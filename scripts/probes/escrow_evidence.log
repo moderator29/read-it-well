@@ -1,0 +1,55 @@
+== THE EVIDENCE FILE AND THE CANCEL THAT HAD NO SENTENCE
+== 22 September 2026, live project uccixoonmbhrnyczyigt, rolled back
+
+Run through mcp__Supabase__apply_migration. The probe ENDS IN A RAISE, so the
+transaction rolls back and nothing reaches a live product table.
+
+-- FIRST RUN. The probe did not get to its own assertions.
+
+ERROR:  23514: new row for relation "escrows" violates check constraint
+"escrows_resolution_has_a_note"
+CONTEXT: SQL statement "update public.escrows set state = 'RESOLVED', resolved_at = now() where id = esc"
+
+That was the probe's own setup being sloppy, but reading the constraint to fix
+it turned up a real fault in code shipped four hours earlier:
+
+  check (resolved_at is null or (resolved_by is not null
+         and resolution_note is not null
+         and char_length(btrim(resolution_note)) >= 4))
+
+`public.escrow_cancel_as` sets resolved_at and resolved_by and passes the
+caller's reason straight through. Called with NO reason, which is the ordinary
+way somebody declines a proposal, it violated that constraint and RAISED,
+where every other refusal in this feature answers with a status.
+
+WHY THE CONCURRENCY HARNESS DID NOT CATCH IT. Its minimal `escrows` table
+copied the COLUMNS and not the CHECK CONSTRAINTS, so the scratch database was
+more permissive than production. A minimal schema means fewer TABLES, not a
+weaker one. The harness now carries all five constraints, and with them it
+reproduced the fault exactly before the fix and answered `ok` after it:
+
+  before the fix on disk:  cancel with no reason at all -> ERROR: new row for
+                           relation "escrows" violates check constraint
+                           "escrows_resolution_has_a_note"
+  after:                   cancel with no reason at all -> ok
+
+-- SECOND RUN, after the fix.
+
+ERROR:  P0001: PROBE ALL PASS. A cancel with no reason and a cancel with a
+three character reason both answered ok and left a sentence on the record, and
+the audit row named the person who did it rather than nobody. On evidence: a
+third party refused; a dated fact with no date, a money fact with no amount, a
+file with no path and a 201 character caption all refused; a well formed fact
+landed; the same party could not file it twice; the other party could
+contradict it; update and delete both raised; and a settled agreement was
+closed to new evidence. Rolling back.
+
+-- THE SECOND FAULT, FOUND BY ASSERTING SOMETHING NOBODY HAD ASKED.
+
+The probe asserts that the audit row for a cancellation NAMES A PERSON. It did
+not. `private.escrow_guard_transition` records `auth.uid()` as the actor, and
+every escrow write now runs through a server action as the SERVICE ROLE, where
+auth.uid() is null. So "every state transition is audited" was true and "the
+audit says who" was false, for every transition, since August. The trigger now
+falls back to the actor columns the doors themselves write, and the metadata
+records which of the two answered.

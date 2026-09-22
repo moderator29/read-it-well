@@ -1,4 +1,4 @@
-== probe started 2026-09-22T22:58:58Z
+== probe started 2026-09-22T23:08:40Z
  PostgreSQL 16.13 (Ubuntu 16.13-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit
    private.wallet_for_update                      sha256 107e855012bc50c6  20260809052049_escrow_money_moves_under_a_lock.sql
    private.wallet_spendable_locked                sha256 71cfe97d15e6858b  20260809052049_escrow_money_moves_under_a_lock.sql
@@ -10,7 +10,7 @@
    private.escrow_transition_is_legal             sha256 47f951527524c7bb  20260922221000_escrow_the_seven_remaining_fixes_before_any_product.sql
    private.escrow_purpose_is_open                 sha256 39ac256aac91e2cf  20260922221000_escrow_the_seven_remaining_fixes_before_any_product.sql
    private.escrow_commission_is_permitted         sha256 599e590435008650  20260922221000_escrow_the_seven_remaining_fixes_before_any_product.sql
-   private.escrow_guard_transition                sha256 1a36150a842ac723  20260809051720_the_platform_can_actually_hold_the_money.sql
+   private.escrow_guard_transition                sha256 a3eee3c97f5fae47  20260923012500_a_cancelled_agreement_still_owes_the_record_a_sentence.sql
    private.escrow_audit_insert                    sha256 b72c1f734f71954a  20260809051720_the_platform_can_actually_hold_the_money.sql
    private.escrow_settle                          sha256 79b03e04d47e6308  20260922221000_escrow_the_seven_remaining_fixes_before_any_product.sql
    private.escrow_sweep_timeouts                  sha256 c3db8d846282dfd3  20260809052049_escrow_money_moves_under_a_lock.sql
@@ -18,7 +18,7 @@
    public.escrow_hold                             sha256 590dc8f416b1fa3e  20260922221000_escrow_the_seven_remaining_fixes_before_any_product.sql
    public.escrow_release                          sha256 00c7cc6b914d37ae  20260809053537_the_three_escrow_legs_the_wallet_layer_already_calls.sql
    public.escrow_refund                           sha256 301afc4305e676d3  20260809053537_the_three_escrow_legs_the_wallet_layer_already_calls.sql
-   public.escrow_cancel_as                        sha256 2dea31d56a787d05  20260922221000_escrow_the_seven_remaining_fixes_before_any_product.sql
+   public.escrow_cancel_as                        sha256 6050c71a9c328bd5  20260923012500_a_cancelled_agreement_still_owes_the_record_a_sentence.sql
    public.escrow_fund_from_wallet_as              sha256 ca747f5598a3302c  20260922221000_escrow_the_seven_remaining_fixes_before_any_product.sql
    public.escrow_confirm_as                       sha256 bff8a89c1e5f7161  20260922120000_the_escrow_doors_are_locked_and_trust_stops_answering_strangers.sql
    public.escrow_request_release_as               sha256 d260db745a9ebc8c  20260922120000_the_escrow_doors_are_locked_and_trust_stops_answering_strangers.sql
@@ -31,8 +31,8 @@
    private.escrow_invariants_check                sha256 d41acf34a96bad55  20260923011000_the_float_identity_is_asserted_on_a_schedule.sql
 == 29 function bodies lifted
 == two F-9 rewrite blocks lifted
-psql:/tmp/tmp.PCk0WoRCNO/f9.sql:89: NOTICE:  F-9: private.pay_booking_from_wallet(uuid, uuid, text) now calls private.wallet_spendable_locked
-psql:/tmp/tmp.PCk0WoRCNO/f9.sql:89: NOTICE:  F-9: public.hold_wallet_withdrawal(uuid, bigint, text, jsonb) now calls private.wallet_spendable_locked
+psql:/tmp/tmp.GMA8huxMAR/f9.sql:89: NOTICE:  F-9: private.pay_booking_from_wallet(uuid, uuid, text) now calls private.wallet_spendable_locked
+psql:/tmp/tmp.GMA8huxMAR/f9.sql:89: NOTICE:  F-9: public.hold_wallet_withdrawal(uuid, bigint, text, jsonb) now calls private.wallet_spendable_locked
 == F-9 confirmed in the scratch database: hold_wallet_withdrawal calls the shared spendable
 
 == P-1: two concurrent escrow funds, one affordable balance of 100,000 kobo
@@ -126,11 +126,12 @@ psql:/tmp/tmp.PCk0WoRCNO/f9.sql:89: NOTICE:  F-9: public.hold_wallet_withdrawal(
 
 == P-8: a direct update from REFUNDED to RELEASED, as the owning role
    before=REFUNDED after=REFUNDED
-   answer: ERROR:  escrow 00621fa8-0368-4247-b89e-a259fbe42b24 cannot go from REFUNDED to RELEASED
-CONTEXT:  PL/pgSQL function private.escrow_guard_transition() line 7 at RAISE
+   answer: ERROR:  escrow 31088e1c-5ff6-492a-8347-bf3159b3f22b cannot go from REFUNDED to RELEASED
+CONTEXT:  PL/pgSQL function private.escrow_guard_transition() line 26 at RAISE
 == P-8: PASS. The trigger refused the update from a plain prompt and the row did not move. The guard is reachable from psql, not only from the functions.
 
 == P-9: the float identity across a mix of held, released, refunded, disputed and cancelled
+   cancel with no reason at all -> ok
    ledger_float=1800000 escrow_float=1800000 difference=0 commission_booked=5000
    gross_mismatches=0 overdrawn=0 invariants_ok=true
    breaches=[]

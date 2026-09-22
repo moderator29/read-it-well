@@ -222,7 +222,23 @@ create table public.escrows (
   commission_minor bigint,
   commission_rate_id uuid,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  -- THE CHECK CONSTRAINTS, AND THEY ARE NOT OPTIONAL HERE.
+  -- The first version of this file copied the COLUMNS of `escrows` and not its
+  -- constraints, so the scratch database was more permissive than production
+  -- and every probe passed things production would have refused. It missed a
+  -- real fault in escrow_cancel_as that way, which the evidence probe then
+  -- found against the live database. A minimal schema means fewer TABLES, not
+  -- a weaker one.
+  constraint escrows_parties_differ check (payer_id <> payee_id),
+  constraint escrows_currency_naira check (currency = 'NGN'),
+  constraint escrows_commission_nonneg
+    check (commission_minor is null or (commission_minor >= 0 and commission_minor <= amount_minor)),
+  constraint escrows_dispute_has_a_reason
+    check (disputed_at is null or (dispute_reason is not null and char_length(btrim(dispute_reason)) >= 4)),
+  constraint escrows_resolution_has_a_note
+    check (resolved_at is null or (resolved_by is not null and resolution_note is not null
+           and char_length(btrim(resolution_note)) >= 4))
 );
 
 create table public.platform_revenue (
@@ -636,7 +652,8 @@ q "select public.escrow_raise_dispute_as('$PAYER','$e3'::uuid,'The keys were nev
 q "select private.escrow_settle('$e4'::uuid,'release','RESOLVED',null,'probe ruling')" >/dev/null 2>&1
 q "select public.escrow_open('$PAYER','$PAYEE',null,'agency_fee',900000)" >/dev/null
 prop="$(q "select id from public.escrows where amount_minor=900000")"
-q "select public.escrow_cancel_as('$PAYER','$prop'::uuid,'Withdrawn')" >/dev/null
+cancel_answer="$(q "select public.escrow_cancel_as('$PAYER','$prop'::uuid,null) ->> 'status'")"
+echo "   cancel with no reason at all -> $cancel_answer" 
 
 inv="$(q "select private.escrow_invariants_check() ->> 'ok'")"
 diff="$(q "select (private.escrow_float_components() ->> 'difference_minor')")"
