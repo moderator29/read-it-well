@@ -7,6 +7,7 @@ import type { Dictionary } from "@vallo/i18n";
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Row, RowList, TYPE } from "@/components/app/Screen";
 import { writeModeCookie, writeWorkspaceCookie } from "@/lib/mode.constants";
 import { SIDE_HOME, writeSideCookie, type Side } from "@/lib/side.constants";
@@ -233,12 +234,29 @@ export function ProfileSwitcher({
             >
               <span className="nf-switch-mark" aria-hidden="true">
                 {avatarUrl ? (
-                  /* The account's own photograph, which is what the render
-                     draws on this one row. A plain `img`: the source is
-                     already a sized avatar and this is the only place in the
-                     sheet that shows one. */
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={avatarUrl} alt="" width={36} height={36} className="nf-switch-mark__photo" />
+                  /*
+                   * The account's own photograph, which is what the render
+                   draws on this one row.
+                   *
+                   * THROUGH `RemoteImage`, WHICH IS THE OPTIMISER, and not a
+                   * bare `img` with the lint rule disabled beside it. Rule 9
+                   * says never disable a lint rule and the stop list says no
+                   * image asset ships without compression and sizing through
+                   * `next/image`; a 36px avatar drawn from a full size upload
+                   * is exactly the case both exist for. It is also what
+                   * stops an unexpected host throwing, which on a sheet that
+                   * opens over every route would be a 500 everywhere at once,
+                   * and it is what `AppShell` already does with the same
+                   * source eight lines of chrome away.
+                   */
+                  <RemoteImage
+                    src={avatarUrl}
+                    alt=""
+                    width={36}
+                    height={36}
+                    sizes="36px"
+                    className="nf-switch-mark__photo"
+                  />
                 ) : (
                   <UiIcon name="user" size="md" />
                 )}
