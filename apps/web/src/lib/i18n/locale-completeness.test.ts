@@ -96,15 +96,32 @@ import { allLocaleCompleteness, localeCompleteness } from "./locale-completeness
  * `ig.ts` or `yo.ts` to make a key count look finished, is the exact defect
  * this gate exists to stop.
  *
- * These numbers moved from 211 / 209 / 218 for that first reason: the
- * seventeen hardcoded English strings the uniqueness sweep found are being
- * moved into `uiCommon`, English only, where `withFallback` serves them and
- * where a translator can now find them.
+ * THESE CEILINGS WERE RECALIBRATED ON 22 SEPTEMBER AND THEY DROPPED BY MORE
+ * THAN HALF, because the measure beneath them was counting the wrong thing.
+ *
+ * `localeCompleteness` counted every key whose rendered text equals English.
+ * A locale module exports `withFallback({...})`, so that included every key
+ * the locale has simply NOT REACHED YET, and adding one English key to `en.ts`
+ * raised all three counts at once and tripped this gate. The only way past was
+ * to raise the ceiling, and a gate whose ceiling must be raised on every
+ * ordinary commit teaches people to raise ceilings. It sat red on main because
+ * of exactly that, from an unrelated session's copy addition.
+ *
+ * It now counts only keys the locale DECLARED FOR ITSELF and gave the English
+ * string, which is the actual defect: English smuggled into a translation file
+ * to make coverage look finished. The old numbers were 212 / 210 / 219 against
+ * a measure that could not tell smuggling from an untranslated key. The
+ * measured truth is below.
+ *
+ * LEAVING THE OLD CEILINGS IN PLACE WOULD HAVE BEEN WORSE THAN THE RED. With
+ * the measure corrected and the ceiling at 212, somebody could paste a hundred
+ * English strings into `yo.ts` and this would stay green. A ratchet is only a
+ * ratchet when it sits on the current value.
  */
 const KNOWN_INCOMPLETE = {
-  yo: { englishValued: 212, englishSentences: 106 },
-  ha: { englishValued: 210, englishSentences: 106 },
-  ig: { englishValued: 219, englishSentences: 106 },
+  yo: { englishValued: 98, englishSentences: 57 },
+  ha: { englishValued: 100, englishSentences: 57 },
+  ig: { englishValued: 105, englishSentences: 57 },
 } as const;
 
 describe("locale completeness", () => {

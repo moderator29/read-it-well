@@ -2,10 +2,12 @@ import { en, type Dictionary } from "./locales/en";
 import { yo } from "./locales/yo";
 import { ha } from "./locales/ha";
 import { ig } from "./locales/ig";
+import { suppliedKeys } from "./locales/fallback";
 import { matchAcceptLanguage } from "./negotiate";
 import type { CountForms, PluralForms } from "./plural";
 
 export type { Dictionary };
+export { suppliedKeys };
 export type { CountForms, PluralForms };
 export {
   parseAcceptLanguage,

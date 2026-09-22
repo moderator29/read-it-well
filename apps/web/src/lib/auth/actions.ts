@@ -15,6 +15,7 @@ import {
 import { recordAlert } from "@/lib/alerts";
 import { recordTermsAcceptance } from "@/lib/legal/acceptance";
 import { TERMS_VERSION } from "@/lib/legal/versions";
+import { termsRefusal } from "./terms-gate";
 import { welcomeOnce } from "@/lib/notify/welcome";
 import { authOrigin } from "@/lib/site";
 import { getProviderStates } from "./providers";
@@ -129,10 +130,12 @@ function validateSignUp(formData: FormData): Partial<Record<AuthField, string>> 
    * somebody sitting on a form opened before the documents changed has not
    * agreed to the documents we would then record against their name.
    */
-  if (field(formData, "termsVersion").trim() !== TERMS_VERSION) {
-    errors.acceptTerms =
-      "Please tick the box to say you agree to the terms, the privacy notice and the rules.";
-  }
+  /* The rule itself lives in `lib/auth/terms-gate.ts` so a test can CALL it.
+     It cannot be exported from here: this is a "use server" module and may
+     export nothing that is not an async function, which is why the test that
+     stood in front of it was reading markup as text. */
+  const refusal = termsRefusal(field(formData, "termsVersion"));
+  if (refusal) errors.acceptTerms = refusal;
 
   if (!hearAbout) errors.hearAbout = "Tell us where you heard about us.";
   else if (!HEAR_ABOUT_VALUES.includes(hearAbout))

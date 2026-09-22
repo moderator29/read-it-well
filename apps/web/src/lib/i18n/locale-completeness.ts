@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE, LOCALES, getDictionary, type Locale } from "@vallo/i18n";
+import { DEFAULT_LOCALE, LOCALES, getDictionary, suppliedKeys, type Locale } from "@vallo/i18n";
 
 /**
  * How much of a locale is actually in that locale.
@@ -84,11 +84,41 @@ function flatten(value: unknown, prefix = "", into = new Map<string, string>()) 
 
 export function localeCompleteness(locale: Locale): LocaleCompleteness {
   const english = flatten(getDictionary(DEFAULT_LOCALE));
-  const theirs = flatten(getDictionary(locale));
+  const theirsDictionary = getDictionary(locale);
+  const theirs = flatten(theirsDictionary);
+
+  /*
+   * ONLY KEYS THE LOCALE ACTUALLY DECLARED, WHICH IS THE WHOLE CORRECTION.
+   *
+   * A locale module exports `withFallback({...})`, so English has already been
+   * merged in by the time this reads it. Counting every key whose text equals
+   * English therefore counted every key the locale has simply NOT REACHED YET,
+   * and adding a single English key to `en.ts` raised the count for all three
+   * locales at once and tripped the gate. The only way past was to hand-raise
+   * the ceiling, and a gate whose ceiling must be raised on every ordinary
+   * commit teaches people to raise ceilings. It was red on main before anybody
+   * noticed, for exactly that reason.
+   *
+   * The defect this gate exists for is narrower: ENGLISH SMUGGLED INTO A
+   * TRANSLATION FILE, where the locale declares a key and gives it the English
+   * string, raising its apparent coverage while the screen still reads in
+   * English. `suppliedKeys` reports what the locale declared for itself, so
+   * that is now the only thing counted. An untranslated key is a copy gap for
+   * a speaker to close; it is not this gate's business.
+   */
+  /* English does not go through `withFallback` and fills from nothing, so it
+     supplies no recorded keys. It is the reference: every key is declared by
+     definition, and saying so here is more honest than making `en.ts` pretend
+     to be a translation of itself. */
+  const declared =
+    locale === DEFAULT_LOCALE
+      ? new Set(english.keys())
+      : suppliedKeys(theirsDictionary);
 
   let englishValued = 0;
   let englishSentences = 0;
   for (const [key, value] of english) {
+    if (!declared.has(key)) continue;
     if (theirs.get(key) !== value) continue;
     englishValued += 1;
     if (value.trim().split(/\s+/).length >= 4) englishSentences += 1;

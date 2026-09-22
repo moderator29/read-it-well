@@ -5,6 +5,12 @@ import { REPORT_TARGETS } from "@/lib/reports/schema";
 import { EULA_ZERO_TOLERANCE } from "@/lib/legal/eula-copy";
 import { BLOCK_CONFIRM_COPY } from "@/lib/safety/blocks-copy";
 import { withoutComments } from "@/lib/copy/source-scan";
+import {
+  TERMS_NOT_ACCEPTED_MESSAGE,
+  termsAccepted,
+  termsRefusal,
+} from "@/lib/auth/terms-gate";
+import { TERMS_VERSION } from "@/lib/legal/versions";
 
 /**
  * The seams the acceptance writer reaches through, replaced so the receipt
@@ -123,12 +129,55 @@ describe("the agreement exists and is accepted rather than announced", () => {
     expect(proxy).not.toContain('"eula"');
   });
 
-  it("blocks sign up until the tick is given", () => {
+  /*
+   * THIS TEST WAS A MIRROR TWICE, AND IT IS NOW A BEHAVIOUR.
+   *
+   * Version one asserted `EmailAuthForm.tsx` contains the string
+   * `setAcceptError(true)`. It would have passed with the submit never
+   * stopped, and the comment above the rule in `lib/auth/actions.ts` says so.
+   *
+   * Version two, which replaced it, asserted the same file contains the
+   * literal `{!isSignUp && <p className="nf-auth__terms">`. That is markup.
+   * It went red on 22 September when another session legitimately rewrote the
+   * component, having never once exercised the rule it was guarding, and it
+   * would have stayed green if somebody kept the JSX and deleted the server
+   * gate. The most serious safety property on this platform was being
+   * defended by a string match on a JSX attribute.
+   *
+   * The rule now lives in `lib/auth/terms-gate.ts` as a pure function,
+   * precisely so this test can CALL it rather than read it. `actions.ts` is
+   * `"use server"` and may export nothing that is not an async function,
+   * which is why it could not be reached before.
+   */
+  it("refuses a sign up that carries no agreement, a stale one, or a blank one", () => {
+    // The real thing: a current version is the only thing that passes.
+    expect(termsAccepted(TERMS_VERSION)).toBe(true);
+    expect(termsRefusal(TERMS_VERSION)).toBeNull();
+
+    // Assembled by hand, or a browser running no script: no field at all.
+    expect(termsAccepted(undefined)).toBe(false);
+    expect(termsAccepted(null)).toBe(false);
+    expect(termsAccepted("")).toBe(false);
+    expect(termsAccepted("   ")).toBe(false);
+
+    // A STALE VERSION IS REFUSED TOO. Somebody sitting on a form opened before
+    // the documents changed has not agreed to the documents we would record.
+    expect(termsAccepted("1999-01-01")).toBe(false);
+    expect(termsAccepted(`${TERMS_VERSION}-old`)).toBe(false);
+
+    // And the refusal is a sentence a person can act on, not a code.
+    expect(termsRefusal(null)).toBe(TERMS_NOT_ACCEPTED_MESSAGE);
+    expect(TERMS_NOT_ACCEPTED_MESSAGE).toMatch(/tick the box/i);
+  });
+
+  /* The form must still OFFER the tick. This one assertion is deliberately
+     about the component, because "the server refuses without it" and "a person
+     is given a way to give it" are two different facts and the second cannot
+     be proved by calling a function. It checks the import, not the markup, so
+     a rewrite of the JSX does not fail it. */
+  it("gives a person signing up the tick to give", () => {
     const form = read("components/auth/EmailAuthForm.tsx");
     expect(form).toContain("AcceptTerms");
-    expect(form).toContain("setAcceptError(true)");
-    // The passive notice must not be what a person signing up sees.
-    expect(form).toContain("{!isSignUp && <p className=\"nf-auth__terms\">");
   });
 
 });
