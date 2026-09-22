@@ -280,19 +280,30 @@
     background: var(--nf-gradient-cta);
     border: var(--nf-border-width) solid var(--nf-brand-edge);
     /*
-     * THE RESTING BLOOM, MEASURED DOWN. It was `0 2px 14px -2px` at rung 3
-     * plus `0 10px 30px -12px` at rung 2. The governing reference throws its
-     * light about twenty pixels from the button's edge and no further: walk
-     * outward from `#0380FB` on the button and the ground has returned by
-     * `#262B4C` five steps later. A thirty pixel drop shadow on top of that
-     * is what made ours read as neon where the reference reads as glass.
-     * The scale itself came down a third at the same time, in tokens.css, so
-     * this is quieter twice over and deliberately so.
+     * THE PRIMARY CONTROL IS LIT, AND THE TOKENS UNDER THIS CARRY ALL OF IT.
+     * `--nf-rim-primary` is the specular rim, `--nf-bloom-lit` is the two
+     * shadows, `--nf-gradient-cta` is the curve. Both have light twins. No
+     * component paints its own light, which is the whole instruction.
+     *
+     * THE RULING THAT STOOD HERE WAS MEASURED ON NOISE AND IS REPLACED. It
+     * read the bloom outward from the button's RIGHT edge, found it gone by
+     * twenty pixels, and took ours down twice over on the strength of it. The
+     * phone bezel in these renders is thirteen pixels to the side and is
+     * itself lit. Re-running the instrument reports the horizontal bloom dying
+     * at 1px, going NEGATIVE at 16px and back up to +13.0 at 24px: that is not
+     * a decay curve, that is a bezel. The vertical sample is the only clean
+     * one and the light reaches 52px.
+     *
+     * BOTH FOUNDER COMPLAINTS ARE TRUE AND THEY ARE THE SAME FAULT. "Neon"
+     * was `0 10px 30px`, a thirty pixel coloured shadow pushed ten pixels
+     * DOWN, which is an object casting a coloured shadow, not an object
+     * emitting light. "Flat" is what was left after that was cut back. Zero
+     * offset is the difference, and it is why the tokens carry no y offset at
+     * night.
      */
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 1px 8px -2px var(--nf-glow-3),
-      0 6px 18px -12px var(--nf-glow-2);
+      var(--nf-rim-primary),
+      var(--nf-bloom-lit);
   }
   /*
    * The signature ripple, ON PRESS ONLY and half as long.
@@ -342,8 +353,8 @@
     /* Pressed, the bloom pulls in: a control under a finger is closer to the
        surface, so the far rung goes and the near one tightens. */
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 10px var(--nf-glow-2);
+      var(--nf-rim-primary),
+      var(--nf-bloom-lit-press);
   }
   /*
    * Hover is a pointer state and nothing else. Without the media query a plain
@@ -354,10 +365,13 @@
   @media (hover: hover) {
     .nf-btn--primary:hover:not(:disabled) {
       border-color: var(--nf-brand-edge-strong);
+      /* Hover lifts the same two shadows rather than introducing a third
+         light: the tight one opens a little and the wide one gains alpha, so
+         the control brightens without changing what it is made of. The y
+         offset stays at zero for the same reason it does at rest. */
       box-shadow:
-        inset 0 1px 0 var(--nf-glass-rim),
-        0 0 22px var(--nf-glow-3),
-        0 12px 36px -10px var(--nf-glow-2);
+        var(--nf-rim-primary),
+        var(--nf-bloom-lit-hover);
     }
   }
   @media (prefers-reduced-motion: reduce) {

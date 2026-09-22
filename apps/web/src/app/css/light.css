@@ -188,14 +188,25 @@
   /* A bloom is a light source and paper has no darkness for one to read
      against, so daylight's primary carries a short brand-tinted shadow rather
      than the night theme's halo, on the same hover-only terms. */
+  /*
+   * THIS RULE USED TO REPLACE THE PRIMARY CONTROL'S WHOLE BOX-SHADOW ON PAPER
+   * with `0 4px 14px`, one offset shadow, which meant the lit treatment simply
+   * did not exist in daylight: no rim, no two-stage bloom, and the light twins
+   * in the token layer were overridden by a component rule that outranked them.
+   *
+   * I nearly recorded this rule's own shadow as proof that my light-mode
+   * derivation worked. The measurement showed a real darkening around the
+   * control on paper and I had to check WHICH declaration was drawing it. It
+   * was this one. A number measured off the wrong rule is not a proof of
+   * anything, which is the third time this week the browser has been right and
+   * the reading of it was not.
+   *
+   * The light values now live with the dark ones in the token layer, which is
+   * the instruction: token layer once, never per component. All this keeps is
+   * the border, which paper genuinely wants different.
+   */
   :root[data-theme="light"] .nf-btn--primary {
     border-color: transparent;
-    box-shadow: 0 4px 14px var(--nf-glow-2);
-  }
-  @media (hover: hover) {
-    :root[data-theme="light"] .nf-btn--primary:hover:not(:disabled) {
-      box-shadow: 0 6px 18px var(--nf-glow-3);
-    }
   }
   /* Inputs: flat white wells with neutral hairlines; blue only on focus. */
   :root[data-theme="light"] .nf-field {

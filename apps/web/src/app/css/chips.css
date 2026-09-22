@@ -166,11 +166,21 @@
    * flat paint.
    */
   .nf-chip[aria-pressed="true"],
+  /*
+   * A SELECTED CHIP IS LIT, at the rung below a primary control. Same light,
+   * same rim, one step down: `--nf-bloom-lit-soft` is the two shadows at
+   * lower alpha and shorter radius, and it has a light twin, so this reads as
+   * a lit object on paper as well as at night. It carries the specular rim
+   * too, because the rim is what makes a fill read as lit from above and
+   * without it a brighter shadow is just a brighter shadow.
+   */
   .nf-chip--active {
     color: var(--nf-content-on-brand);
-    background: var(--nf-brand-primary);
+    background: var(--nf-gradient-cta);
     border-color: var(--nf-brand-primary);
-    box-shadow: 0 0 18px var(--nf-glow-2);
+    box-shadow:
+      var(--nf-rim-primary),
+      var(--nf-bloom-lit-soft);
   }
 
   /* ------------------------------------------------------- the feed tabs */

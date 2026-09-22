@@ -159,6 +159,15 @@
    * ever gains a consumer it should be rotated first.
    */
   --nf-electric-400: #0C6AEF;
+  /*
+   * ADDED DELIBERATELY, and it is the one stop the family did not hold. The
+   * lit primary's specular floor measures #0042FD, which is DEEPER than 400 in
+   * luminance while staying fully saturated, where 500 and 600 get there by
+   * desaturating instead. Numbered 450 because it sits between them by
+   * brightness; it is not a substitute for either, and it exists so the CTA
+   * gradient names a token rather than carrying a raw literal.
+   */
+  --nf-electric-450: #0042FD;
   --nf-electric-500: #005DE0;
   --nf-electric-600: #0056D0;
   --nf-electric-700: #003F98;
@@ -1465,7 +1474,37 @@
    * all.
    */
   --nf-gradient-brand: linear-gradient(135deg, #5C9FFF 0%, var(--nf-electric-400) 100%);
-  --nf-gradient-cta: linear-gradient(180deg, #0C6AEF 0%, #005DE0 50%, #003F98 100%);
+  /*
+   * THE LIT PRIMARY, MEASURED OFF `GOVERNING-03` RATHER THAN EYEBALLED, and
+   * corrected once against the ledger's own first reading.
+   *
+   * The founder's ruling is that the primary blue control is lit in every
+   * reference and ours is flat. Ledger section 13 has the full measurement and
+   * the instrument is `scripts/design/measure-glow.mjs`, so none of this has
+   * to be re-guessed.
+   *
+   * THE FILL IS A SPECULAR CURVE, NOT A RAMP: light, deep, light again, a
+   * cylinder lit from above. The old value ran #0C6AEF to #005DE0 to #003F98,
+   * one way and DESATURATING into a dull navy at the foot. The render never
+   * desaturates; it stays in full blue the whole way down and comes back up.
+   *
+   * AND THE DEEPEST POINT IS NOT WHERE SECTION 13 FIRST PUT IT. That reading
+   * took the mean of each full row, which includes the button's own white
+   * LABEL, and white lifts luminance in exactly the middle rows where the
+   * label sits. Re-measured over the 237 of 309 columns that carry no label
+   * ink, the curve bottoms at 64 per cent down at #0042FD (L 65.5), not at 45
+   * per cent at #004AFD (L 71.5): deeper, and lower down. #004AFD is real but
+   * it is row +19, a point on the way down, not the floor. The second
+   * reference agrees on the structure at half the scale, bottoming at 73 per
+   * cent. Same class of error as every other one this week: a mean taken over
+   * pixels that were not all the thing being measured.
+   *
+   *   top     +2   #0074FC  L 100.4
+   *   deepest +34  #0042FD  L  65.5   64% down
+   *   bottom  +51  #0069F7  L  92.9   (does NOT return to the top value)
+   */
+  --nf-gradient-cta: linear-gradient(180deg, #0074FC 0%, var(--nf-electric-450) 64%, #0069F7 100%);
+
   /*
    * The same gradient, lifted until every stop is readable AS TEXT.
    *
@@ -1747,6 +1786,81 @@
   /* The strong rung comes down with the rest. 56px was throwing light further
      than the reference throws it from a PRIMARY button, on surfaces that are
      not primary buttons. */
+  /*
+   * THE LIT SURFACE: a rim and a bloom, defined once so no component paints
+   * its own. Measured off `GOVERNING-03`, ledger section 13.
+   *
+   * THE RIM IS CYAN IN THE RENDER AND SHIPS AS WHITE, deliberately. The pixels
+   * say #02B6FE, red at 2 of 255, which is not white at low alpha over blue
+   * (white lifts red first). But BRIGHT CYAN IS PENDING in this product and
+   * means one thing, so a cyan rim on every primary control would spend that
+   * signal on decoration. White at 30 per cent reproduces the measured lift
+   * exactly: the rim reads L +48.1 over the fill beneath it, and white over
+   * #0074FC lifts L by 154 per unit alpha, so 48.1 / 154 = 0.31. That is a
+   * reference's off-brand detail translated rather than copied, which the
+   * rules require, and one line reverses it if the founder wants the cyan.
+   *
+   * Two pixels above and one below, as measured. The lower rim is the same
+   * lift over a darker fill, which is what a cylinder does.
+   *
+   * NAMED APART FROM `--nf-rim-lit`, which already exists a few lines above
+   * and is a different thing: that one is a single 1px inset in a white-blue
+   * mix, on the dock and the flip pane, and it has live consumers and a light
+   * twin. Redefining it to mean the primary control's specular rim would have
+   * changed both of those silently. This is the CONTROL's rim and it is its
+   * own token.
+   */
+  --nf-rim-specular: rgb(255 255 255 / 0.30);
+  --nf-rim-specular-soft: rgb(255 255 255 / 0.16);
+  --nf-rim-primary:
+    inset 0 2px 0 -1px var(--nf-rim-specular),
+    inset 0 -1px 0 var(--nf-rim-specular-soft);
+
+  /*
+   * THE BLOOM IS TWO SHADOWS AND BOTH ARE LOAD BEARING. Sampled upward from
+   * the top edge against a panel at L 10, the excess halves every 9px in the
+   * near field and then refuses to die for another 50:
+   *
+   *   1-2px +32.4   4px +21.4   8px +12.4   16px +5.9   24px +3.7   48px +1.8
+   *
+   * No single Gaussian fits that. The tight one carries the edge and is most
+   * of what the eye reads as lit. The wide one is nearly invisible alone and
+   * is what makes the surface underneath look like it is RECEIVING light
+   * rather than the control wearing a halo. It will be tempting to drop. Do
+   * not drop it.
+   *
+   * ZERO OFFSET ON BOTH, which is the whole difference between light and a
+   * drop shadow, and it is why the founder called the old treatment neon: it
+   * was `0 10px 30px`, a thirty pixel shadow pushed ten pixels DOWN, which is
+   * an object casting a coloured shadow rather than an object emitting light.
+   *
+   * AND THE EARLIER "MEASURED DOWN" RULING WAS MEASURED ON NOISE. It walked
+   * outward from the button's RIGHT edge and found the light gone by 20px. The
+   * phone bezel in these renders is 13px to the side and is itself lit: my own
+   * run of the instrument reports the horizontal bloom dying at 1px, going
+   * NEGATIVE at 16px and back up to +13.0 at 24px, which is not a decay curve,
+   * it is a bezel. The vertical sample is the only clean one and it reaches
+   * 52px. Both readings are in the ledger so this is not re-litigated.
+   */
+  --nf-bloom-lit:
+    0 0 24px rgb(12 106 239 / 0.5),
+    0 0 88px rgb(12 106 239 / 0.14);
+  /* Pressed, the field pulls in: a control under a finger is closer to the
+     surface it sits on, so the wide rung goes and the near one tightens. */
+  --nf-bloom-lit-press: 0 0 10px rgb(12 106 239 / 0.34);
+  /* Hover lifts the SAME two shadows rather than adding a third light: the
+     tight one opens and the wide one gains alpha, so the control brightens
+     without changing what it is made of. Zero offset, as at rest. */
+  --nf-bloom-lit-hover:
+    0 0 30px rgb(12 106 239 / 0.6),
+    0 0 96px rgb(12 106 239 / 0.2);
+  /* The same light at the intensity a surface that is SELECTED rather than
+     primary should carry: active tabs, chosen cards, the raised switch, the
+     glass icon plates, every wizard's current step. One rung down on both. */
+  --nf-bloom-lit-soft:
+    0 0 16px rgb(12 106 239 / 0.28),
+    0 0 56px rgb(12 106 239 / 0.08);
+
   --nf-glow-edge-strong:
     inset 0 1px 0 var(--nf-rim-lit-ink),
     0 0 0 1px var(--nf-brand-edge-strong),
@@ -2896,7 +3010,7 @@
   --nf-side-accent: var(--nf-mode-personal);
 
   /* Daylight CTA is a near-flat vivid brand blue, never near-black navy. */
-  --nf-gradient-cta: linear-gradient(180deg, #005DE2 0%, #0950B6 100%);
+  --nf-gradient-cta: linear-gradient(180deg, #0A6BF2 0%, #0040D6 64%, #0060EC 100%);
 
   --nf-border-subtle: rgb(18 21 26 / 0.08);
   --nf-border-default: rgb(18 21 26 / 0.13);
@@ -3450,6 +3564,57 @@
    */
   --nf-rim-lit-ink: #FFFFFF;
   --nf-rim-lit: inset 0 1px 0 var(--nf-rim-lit-ink);
+  /*
+   * THE LIT PRIMARY ON PAPER, AND THIS IS A DERIVATION RATHER THAN A
+   * MEASUREMENT. It is labelled as one because the difference matters.
+   *
+   * ALL EIGHTY NINE INDEXED REFERENCES ARE DARK. The founder's three light
+   * captures are photographs of our own shipped defects and govern nothing, so
+   * there is no light-mode target for any of this and there will not be one.
+   * Everything below was derived, then PROVEN on a real surface with the
+   * contrast probe, and the proof is in ledger section 6.
+   *
+   * WHAT CHANGES AND WHY. A bloom is light thrown into the space around an
+   * object. On a ground at L 10 a 50 per cent brand shadow lifts the panel by
+   * a third of its brightness and reads as light; on paper at L 250 the same
+   * alpha lifts nothing, because there is no headroom above white. So on paper
+   * the tight shadow stops being a light and becomes a TINTED SHADOW: it keeps
+   * the brand hue, so the control still reads as a blue object sitting on
+   * paper rather than a grey one, and it goes darker instead of brighter.
+   *
+   * THE WIDE SHADOW BECOMES A REAL SHADOW in deep blue rather than a light.
+   * At night it is what makes the surface look like it is receiving light; in
+   * daylight that job does not exist, and the same radius in a deep ink is
+   * what makes the control look like it is sitting ABOVE the page.
+   *
+   * THE RIM INVERTS. A white top highlight on a fill this dark still reads on
+   * paper, so it is KEPT rather than removed, but it comes down to 22 per cent
+   * because there is less contrast to earn and a 30 per cent white line on a
+   * light page reads as a seam. The bottom edge gains a slight darkening
+   * instead of a lift, which is what an object on paper does.
+   *
+   * THE FILL IS NOT INVERTED. It is a blue control in both themes: the same
+   * specular curve, lifted one step so the white label keeps its ratio against
+   * the deepest point. Inverting it would make a pale control with dark text,
+   * which is a different control, not a paper twin of this one.
+   */
+  --nf-rim-specular: rgb(255 255 255 / 0.22);
+  --nf-rim-specular-soft: rgb(18 21 26 / 0.10);
+  --nf-rim-primary:
+    inset 0 2px 0 -1px var(--nf-rim-specular),
+    inset 0 -1px 0 var(--nf-rim-specular-soft);
+  --nf-bloom-lit:
+    0 2px 10px rgb(12 106 239 / 0.30),
+    0 10px 30px -8px rgb(0 32 96 / 0.22);
+  --nf-bloom-lit-soft:
+    0 1px 6px rgb(12 106 239 / 0.16),
+    0 6px 18px -8px rgb(0 32 96 / 0.12);
+  /* Pressed on paper the object settles ONTO the page rather than dimming a
+     light that was never lighting anything, so the shadow tightens and stays. */
+  --nf-bloom-lit-press: 0 1px 4px rgb(0 32 96 / 0.28);
+  --nf-bloom-lit-hover:
+    0 3px 14px rgb(12 106 239 / 0.38),
+    0 14px 38px -10px rgb(0 32 96 / 0.26);
   --nf-bloom-card:
     0 1px 2px rgb(18 21 26 / 0.05),
     0 8px 22px -8px var(--nf-glow-2);

@@ -266,6 +266,7 @@ the worker. No row, no close, and the lead does not commit it.
 | `/wallet/transactions`, the statement | `6AF37222` | same server; one card for the whole list with the days as headings inside it, against one card per calendar day | 0 breaches, 390 and 1536, dark and light | B2 |
 | `/start`, `/sign-up/verify`, `/reset-password`, the ink | none; rule 22 locks the register | same server, both themes: heading ink rgb(255,255,255) on plate rgb(0,6,18) = 20.29:1 against 1.14:1 before, and the plate is rgb(0,6,18) in BOTH themes before and after | 0 breaches | B2, found by A2 |
 | The ratio sweep after Tracks L and M | DESIGN_DIRECTION section 1.4 | `compare-surface.mjs --shape-sweep --theme both`, 9 routes x 2 widths x 2 themes, on the same server | **0 breaches.** One at 0.36, the listing photo counter; the feed FAB at 0.50 is icon-only | B2 |
+| The lit primary control, `.nf-btn--primary` | `GOVERNING-03` screen one | `b2/cta-390-dark.png` and `b2/cta-390-light.png`, the 342x60 Continue on `/preview/e/send`, `next start` on `.next-b2`, build exit 0, gate at `cf6e56f`+ | fill top L 100.7 against the render's 100.4; deepest #0043FD L 66.2 at 63% against #0042FD L 65.5 at 64%; rim lift +42.4 against +48.1; bloom 20.2/16.4/11.2/7.0/4.5 at 2/4/8/12/16px against 32.2/21.2/12.3/8.2/5.9. 0 shape breaches | B2 |
 | `/profile/setup/owner`, THE OWNER FORM, all four screens | `GOVERNING-03` | `b1b/owner-1-about-you`, `owner-2-where`, `owner-2-where-picker`, `owner-2-where-state-chosen`, `owner-3-proof`, `owner-3-proof-none`, `owner-4-done`, each at `-390-dark`, `-390-light` and `-1536-dark`. Taken on `next start` with `VALLO_PREVIEW_HARNESS=1` at port 3196, walked by `scratchpad/b1b/proof-owner.mjs`, which fills each screen and presses the control a person would | **0 breaches at or above 0.5 at 390 dark, 390 light and 1536 dark.** Measured in the browser: every one of the six answer rows 14 on 56 = 0.250, including "I have none of these"; the timing label 14 on 44 = 0.318; the calm panel's glyph is the only circle and it carries no text | B1b |
 | `/profile/setup/agent`, THE AGENT FORM, all four screens | `GOVERNING-04` | `b1b/agent-1-about-you`, `agent-1-about-you-filled`, `agent-2-identity`, `agent-3-fees`, `agent-3-fees-declared`, `agent-4-done`, each at `-390-dark`, `-390-light` and `-1536-dark`, walked by `scratchpad/b1b/proof-agent.mjs` on `next start` at port 3196 | **0 breaches at or above 0.5 at 390 dark, 390 light and 1536 dark.** The two upload cards 14 on 123 = 0.114; the fee control and its two step plates on `--nf-radius-control`; the timing label 14 on 44 = 0.318. The run also asserts the fee behaviour: both fees open NOT DECLARED with the minus disabled; twenty and ten presses read 10 per cent and 5 per cent through `Intl` and the total moves to the right figure; changing the example rent moves the total live; one step below the first rung reads a real zero and one more returns to not declared, and the undeclared line draws the words and never a nought | B1b |
 | `/profile/setup/firm`, THE FIRM FORM, all four screens | `GOVERNING-05` | `b1b/firm-1-your-firm`, `firm-1-your-firm-filled`, `firm-2-association`, `firm-2-association-principal`, `firm-2-association-letter`, `firm-3-team-empty`, `firm-3-team-one`, `firm-4-under-review`, each at `-390-dark`, `-390-light` and `-1536-dark`, walked by `scratchpad/b1b/proof-firm.mjs` | **0 breaches at or above 0.5 at 390 dark, 390 light and 1536 dark.** The two route cards 14 on 170 and 14 on 149 = 0.082 and 0.094; the team rows 14 on 56 = 0.250; "Usually three working days" 14 on 44 = 0.318. The run also asserts the copy law on the live page: LASRERA appears ONCE, as the field's own label, the word required never appears, and the hint says what the field is for | B1b |
@@ -1419,6 +1420,65 @@ the tight shadow keeps the brand hue and roughly doubles its alpha while the
 wide one becomes a genuine shadow in deep blue rather than a light, and the rim
 inverts from white to a top-edge darkening. That is a hypothesis, not a
 measurement, and it is labelled as one.
+
+### WHAT SHIPPED, AND THE TWO PLACES THE MEASUREMENT ABOVE WAS WRONG
+
+Implemented by B2 in the token layer: `--nf-gradient-cta` is the specular
+curve, `--nf-rim-primary` the rim, `--nf-bloom-lit` the two shadows, each with
+a light twin, plus `--nf-bloom-lit-press` and `--nf-bloom-lit-hover`. The
+control rules name tokens and paint no light of their own.
+
+**THE DEEPEST POINT IS AT 64 PER CENT, NOT 45, AND IT IS #0042FD, NOT
+#004AFD.** The reading above takes the mean of each full row, and a full row
+includes the button's own WHITE LABEL. White lifts luminance in exactly the
+middle rows where the label sits, which makes the trough look shallower and
+pushes it upwards. Re-measured over the 237 of 309 columns that carry no label
+ink, the curve bottoms at 64 per cent down at L 65.5. #004AFD is real, but it
+is row +19, a point on the way down. The second reference agrees on the
+structure at half the scale and bottoms at 73 per cent. `--nf-electric-450` is
+the new rung, added deliberately, because the family desaturates to reach that
+luminance and the render never desaturates.
+
+**THE OLD "MEASURED DOWN" RULING IN `tokens.css` WAS MEASURED ON NOISE.** It
+walked outward from the button's RIGHT edge, found the light gone by 20px, and
+took the whole glow scale down a third on the strength of it. Section 13 itself
+notes the bezel is 13px to the side and is lit. Re-running the instrument
+confirms it: the horizontal bloom dies at 1px, goes NEGATIVE at 16px and back
+up to +13.0 at 24px. That is a bezel, not a decay curve. Both founder
+complaints, "neon" and "flat", are the same fault seen from two sides: the old
+shadow was `0 10px 30px`, a coloured shadow pushed ten pixels DOWN, and cutting
+it back left nothing. Zero offset is the difference between light and a drop
+shadow.
+
+### THE LIGHT-MODE HYPOTHESIS: TWO PARTS PROVEN, ONE DISPROVED
+
+Measured on our own shipped build, same instrument, `b2/cta-390-light.png`:
+
+1. **The tight shadow keeping the brand hue: PROVEN.** On paper the bloom reads
+   as a DARKENING rather than a light, symmetric on both sides at
+   -23.8, -16.1, -6.4, -3.9, -0.9 L at 2, 4, 8, 12 and 16px against a floor of
+   239, dying by 20px. It is a shadow that is still blue, so the control reads
+   as a blue object on paper rather than a grey one.
+2. **The wide one becoming a genuine shadow in deep blue: PROVEN**, as
+   `rgb(0 32 96 / 0.22)` at a 30px radius with an offset, because in daylight
+   "the surface is receiving light" is not a job that exists.
+3. **The rim inverting to a top-edge darkening: DISPROVED, and it matters.**
+   The white rim was KEPT at 22 per cent and measures a +35.1 lift on paper,
+   reading correctly. The reason is that a specular rim's contrast is against
+   the FILL BENEATH IT, not against the page behind the control, and the fill
+   is a dark saturated blue in both themes. Inverting it would have removed the
+   one cue that makes a control read as lit from above, on the theme that
+   needs the most help. **A dark-fill control does not invert its own
+   highlight just because the page behind it did.**
+
+**AND THE FIRST LIGHT MEASUREMENT WAS OF THE WRONG RULE.** `light.css:191`
+replaced the primary control's entire `box-shadow` with `0 4px 14px`, one
+offset shadow, so the token layer's light twins were overridden by a component
+rule and the lit treatment did not exist in daylight at all. The first run
+showed a real darkening around the control and it would have been easy to
+record that as the derivation working. It was that rule. The override is gone
+and the light values live with the dark ones. A number measured off the wrong
+declaration proves nothing.
 
 ### The shape law is not reopened by any of this
 
