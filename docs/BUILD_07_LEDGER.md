@@ -1316,3 +1316,63 @@ this event as well. The absolute counts stay in the failure message, because
 
 **`en.ts` is free.** A3 has handed it back with its console work committed.
 B1b holds it next, for the three registration forms.
+
+## 15. THE FIVE PROBE ROWS, NAMED BEFORE ANY OF THEM WAS TOUCHED
+
+The founder's ruling: "A migration that forges JWT claims and commits its own
+evidence into production is not data, it is a mess, and the only reservation
+this platform has being a forged one is the same dishonesty I spent all of
+today removing from the front page." Write down exactly what the five are
+first, so there is a record of what was removed and why. Then remove them.
+
+Migration `20260919181950_lead_the_first_first_party_venue_and_the_reservation_loop_proved_against_it`
+forged JWT claims, proved a stranger could not read the thread, and ended on an
+UPDATE rather than a RAISE, so it committed. All five rows carry the same
+timestamp to the microsecond, `2026-09-19 18:19:50.836154+00`, which is how
+they were identified rather than by guessing at names.
+
+| # | Table | Id | What it is |
+| --- | --- | --- | --- |
+| 1 | `businesses` | `ac275023-77c6-441f-9bde-10cb9024f105` | "Vallo House Kitchen", DRAFT, the forged first-party venue |
+| 2 | `reservations` | `88872013-6e14-456b-b5ad-6ba22430529c` | party of 4, CANCELLED. **The only reservation this platform has** |
+| 3 | `conversations` | `2ad0ffaf-d58a-4e1f-8e80-134368820533` | `context_kind = 'reservation'`, pointing at row 2 |
+| 4 | `messages` | `c06eb9fd-2fe4-4559-8eb2-7eb5ac092727` | "Your table is held for four at seven. See you tomorrow." |
+| 5 | `messages` | `6a6c704a-0055-4680-aa76-f5cbd6ffb05b` | "Hello, we are coming for dinner tomorrow at seven." |
+
+### Rows 4 and 5 are gone. Rows 1 to 3 are not, and the reason is not caution
+
+Applied as
+`the_probe_that_committed_its_own_evidence_gives_back_its_two_messages`,
+deleting by exact id and never by a predicate that could widen, ending in a
+check that refuses unless both forged rows are gone and the thread holds
+exactly what it should.
+
+**A REAL MESSAGE, SENT BY A REAL PERSON, IS SITTING IN THE FORGED THREAD.**
+Message `df2a20d3-31ea-4ede-9f11-df152b01da19`, sent 20 September at 05:20 by
+the founder's own account, reads "Shared a listing" with a link to
+`ed000000-0000-4000-8000-00000000003c`. It was sent into the probe's
+conversation while the app was being used for real.
+
+And the three remaining rows cannot be separated from it. Measured, not
+assumed:
+
+* `conversations.reservation_id -> reservations` is **ON DELETE CASCADE**, so
+  deleting the reservation deletes the thread.
+* `messages.conversation_id -> conversations` is **ON DELETE CASCADE**, so
+  deleting the thread deletes every message in it, the real one included.
+* `reservations.business_id -> businesses` is **ON DELETE CASCADE**, so
+  deleting the venue takes the same chain down from the other end.
+* `conversations_context_shape_chk` requires a `reservation` thread to HAVE a
+  reservation, so the link cannot simply be nulled to spare the thread.
+
+So there is no ordering of deletes that removes the forged reservation and
+keeps that message. It is three rows and one real message, or none of them.
+
+**That is the founder's call and not mine.** The instruction authorised
+removing a probe's forged rows; it did not authorise deleting a person's own
+message, and the person giving the instruction did not know one was there.
+Everything needed to decide is above, including the message's exact content,
+so nothing is lost by the record either way. Moving the message to another
+thread was considered and refused: re-parenting somebody's message to a
+conversation they did not send it in is forging data in the opposite
+direction, which is the same fault this is undoing.
