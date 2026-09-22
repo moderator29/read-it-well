@@ -27,7 +27,8 @@ Where to begin
 
 2. Verify who you are
    Identity, then address, then your payout account, then a check in
-   person. Each step you complete shows on your listings.
+   person. Once a person at Vallo has checked your identity, your
+   listings carry the verified tick.
    Start verification: https://vallospaces.com/verification
 
 3. Put the whole cost in

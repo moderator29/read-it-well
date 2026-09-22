@@ -1902,7 +1902,8 @@ Where to begin
 
 2. Verify who you are
    Identity, then address, then your payout account, then a check in
-   person. Each step you complete shows on your listings.
+   person. Once a person at Vallo has checked your identity, your
+   listings carry the verified tick.
    Start verification: https://vallospaces.com/verification
 
 3. Put the whole cost in
@@ -1966,7 +1967,8 @@ Where to begin
 
 3. Verify who you are
    Identity, then address, then your payout account, then a check in
-   person. Each step you complete shows on your listings.
+   person. Once a person at Vallo has checked your identity, your
+   listings carry the verified tick.
    Start verification: https://vallospaces.com/verification
 
 Step inside:
@@ -2010,14 +2012,15 @@ Where to begin
 --------------
 
 1. Register as an agent or a firm
-   Tell us who you are, where you work and what you charge. Agents are
-   checked more closely than owners, because you handle other people's
-   property, and a person at Vallo reads every registration.
+   Tell us who you are, how long you have done this and what you charge,
+   with your ID and a selfie if you have them to hand. A person at Vallo
+   reads every registration before you can publish.
    Choose agent or firm: https://vallospaces.com/profile/setup
 
 2. Verify who you are
    Identity, then address, then your payout account, then a check in
-   person. Each step you complete shows on your listings.
+   person. Once a person at Vallo has checked your identity, your
+   listings carry the verified tick.
    Start verification: https://vallospaces.com/verification
 
 3. List, and state the full cost
@@ -2125,6 +2128,24 @@ stripped: a rough stand in for Outlook's Word engine and Gmail's stripping),
 and `{role}-plain.txt`. Rendered in Chromium through Playwright with the
 lockup served from `apps/web/public`, dark colour scheme. The email has no
 light variant by design (theme.ts: dark in the layer every client honours).
+
+### Evidence for every statement about how Vallo works
+
+Added after the closing audit (`docs/design/proofs/session-b/CLOSING_AUDIT.md`)
+failed two sentences that had no evidence. Both were rewritten to what the code
+does; the tests now fail if either returns.
+
+| Statement in the email | Evidence |
+|---|---|
+| ~~"Agents are checked more closely than owners"~~ (agent step 1, removed) | None found. `ownerRegistrationSchema` and `agentRegistrationSchema` in `lib/supply/registration.ts` ask different questions, but both file the same submitted application to the same admin review; no code checks agents harder. Rewritten to what the agent form asks: "Tell us who you are, how long you have done this and what you charge, with your ID and a selfie if you have them to hand." (fields `experience`, `agencyFeeBps`, `legalFeeBps`, `idPath`, `selfiePath`). |
+| ~~"Each step you complete shows on your listings."~~ (verification step, removed) | False as written. The listing tick is `verified: !row.is_demo && verifiedAgents.has(row.agent_id)` in `lib/listings/supabase-repository.ts`, fed by `agent_badges.verified`, which migration `20260919230000_p2_a_verified_agent_means_a_person_was_checked.sql` defines as `verification_tier >= 1`: one passed identity rung. Later rungs light nothing a listing reader sees. Rewritten: "Once a person at Vallo has checked your identity, your listings carry the verified tick." |
+| "Identity, then address, then your payout account, then a check in person." | `VERIFICATION_RUNGS = ["identity", "address", "payout", "in_person"]`, `lib/trust/verification.ts`; the tier counts rungs passed with no gap below (`lib/agent/verification-queries.ts`). |
+| "A person at Vallo reads every registration before you can publish" / "before listings go up" | `lib/supply/registration-actions.ts` files a submitted row in `agent_applications` and creates no `agents` row; insert on `public.agents` is admin only by policy, and `/agent/list` shows the pitch, not the form, to anybody without one (`app/agent/list/page.tsx`, `context.state === "not-agent"`). |
+| "Every listing for sale states the title the seller claims, or says plainly that none was given." | `components/app/listing/ListingTenure.tsx`, rendered on sale listings: the `land_tenure` label, or "No title stated". |
+| "Report them from the listing." | `ReportSheet` on `app/(app)/listing/[id]/page.tsx`. |
+| "Sort by [total move-in cost]" | `sort=move-in-asc` in `lib/listings/search-params.ts`, read by `/search`. |
+| "Save homes and searches" | `/saved` and `/saved/searches`; `lib/saved/searches.ts`. |
+| "Request an inspection" | `/inspections` and the listing's inspection request. |
 
 ### Refused claims (from the old copy; none of them had evidence)
 

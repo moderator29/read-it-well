@@ -227,6 +227,33 @@ describe("the words", () => {
   });
 });
 
+describe("every statement has evidence in the code", () => {
+  it.each(ALL)("$role makes neither claim the closing audit refused", ({ message }) => {
+    for (const part of [visible(message.html), flat(message.text)]) {
+      // No code checks agents harder than owners: both file the same kind of
+      // application to the same admin review.
+      expect(part).not.toMatch(/checked more closely/i);
+      // Only the identity rung lights anything on a listing (agent_badges
+      // .verified is verification_tier >= 1), so no copy may say each step does.
+      expect(part).not.toMatch(/each step you complete/i);
+    }
+  });
+
+  it("says what verification actually shows, where it is offered", () => {
+    for (const role of ["landlord", "seller", "agent"] as const) {
+      expect(flat(welcome({ role }).text)).toContain(
+        "Once a person at Vallo has checked your identity, your listings carry the verified tick.",
+      );
+    }
+  });
+
+  it("describes the agent registration as the form asks it", () => {
+    const text = flat(welcome({ role: "agent" }).text);
+    expect(text).toContain("how long you have done this and what you charge");
+    expect(text).toContain("A person at Vallo reads every registration before you can publish.");
+  });
+});
+
 describe("it is built to survive a mail client", () => {
   it.each(ALL)("$role is a table layout, 600px and fluid, dark in every layer", ({ message }) => {
     const html = message.html;

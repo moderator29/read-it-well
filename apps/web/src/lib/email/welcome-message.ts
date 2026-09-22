@@ -158,9 +158,19 @@ const REGISTER_OWNER: Step = {
   link: { label: "Register as an owner", path: "/profile/setup/owner" },
 };
 
+/*
+ * EVIDENCE, because the closing audit asked and it was right to. The four
+ * rungs, in this order, are `VERIFICATION_RUNGS` in `lib/trust/verification.ts`.
+ * The tick on a listing is `verified: !row.is_demo && verifiedAgents.has(...)`
+ * in `lib/listings/supabase-repository.ts`, fed by `agent_badges.verified`,
+ * which migration 20260919230000 defines as `verification_tier >= 1`: one
+ * passed identity rung. So the identity check lights the tick; the later rungs
+ * do not add anything a reader of a listing sees, and the copy does not say
+ * they do.
+ */
 const VERIFY: Step = {
   title: "Verify who you are",
-  body: "Identity, then address, then your payout account, then a check in person. Each step you complete shows on your listings.",
+  body: "Identity, then address, then your payout account, then a check in person. Once a person at Vallo has checked your identity, your listings carry the verified tick.",
   link: { label: "Start verification", path: "/verification" },
 };
 
@@ -249,7 +259,12 @@ const VERSIONS: Record<SignupRole | "general", Version> = {
     steps: [
       {
         title: "Register as an agent or a firm",
-        body: "Tell us who you are, where you work and what you charge. Agents are checked more closely than owners, because you handle other people's property, and a person at Vallo reads every registration.",
+        /* EVIDENCE: `agentRegistrationSchema` in `lib/supply/registration.ts`
+           (name, phone, experience, agency and legal fee, ID and selfie
+           uploads), and `lib/supply/registration-actions.ts`, which files a
+           submitted application and creates no `agents` row: insert on
+           `public.agents` is admin only, so a person approves every one. */
+        body: "Tell us who you are, how long you have done this and what you charge, with your ID and a selfie if you have them to hand. A person at Vallo reads every registration before you can publish.",
         link: { label: "Choose agent or firm", path: "/profile/setup" },
       },
       VERIFY,
