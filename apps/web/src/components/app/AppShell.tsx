@@ -352,7 +352,14 @@ export function AppShell({
             children all refuse to shrink does not wrap and does not scroll, it
             simply paints past its own edge.
           */}
-          <div className="flex h-header-sm min-w-0 items-center gap-sm px-gutter sm:h-header">
+          <div
+            className="nf-app-header__row flex h-header-sm min-w-0 items-center gap-sm px-gutter sm:h-header"
+            /* Which of the two tails this row is carrying, so the stylesheet
+               can treat the tight one differently. Signed in the tail is a
+               44px bell and a 40px avatar; signed out it is two buttons, 172px
+               of them, and that row does not fit a full lockup on a phone. */
+            data-tail={signedIn ? "account" : "signed-out"}
+          >
             <button
               type="button"
               aria-label={t.a11y.openMenu}

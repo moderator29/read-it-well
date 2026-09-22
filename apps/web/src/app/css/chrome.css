@@ -821,6 +821,38 @@
     border-radius: var(--nf-radius-sm);
   }
   /*
+   * ON A NARROW SIGNED-OUT HEADER THE WORDMARK STANDS DOWN, AND THE NUMBERS
+   * ARE WHY RATHER THAN A PREFERENCE.
+   *
+   * Measured at 390 on a production server: the row holds 342px between its
+   * gutters and its three children want 355.2 (a 44px hamburger, a 114.9px
+   * responsive lockup, and 172.3px of Sign in plus Sign up, with two 12px
+   * gaps). The 13.2px difference used to be paid by painting past the right
+   * edge: before the spacer and the `responsive` lockup landed, the actions
+   * ended at 407px in a 390px viewport with `scrollWidth` still 390, so the
+   * end of "Sign up" was not merely cut off, it was unreachable by any
+   * gesture.
+   *
+   * Those two fixes brought it to 375.2, which is inside the viewport and no
+   * longer clips, and is still 9.2px past the gutter. The last 9.2 has to come
+   * from somewhere and there are only four candidates: the hamburger, the two
+   * controls the row exists for, the gutter itself, or the wordmark. The first
+   * three all cost the reader something. THE MARK CARRIES THE ACCESSIBLE NAME
+   * "Vallo" on its own, so hiding the WORD costs a screen reader nothing and
+   * costs a sighted reader a logotype they are looking at the mark of.
+   *
+   * Scoped to `[data-tail="signed-out"]`, because a signed-in header carries a
+   * 44px bell and a 40px avatar instead of 172px of buttons and has room to
+   * spare. 26rem rather than the 25.3rem the arithmetic gives, because the
+   * lockup grows with the viewport at about a tenth of the rate the row does,
+   * so the crossing is shallow and a margin is cheap.
+   */
+  @media (max-width: 26rem) {
+    .nf-app-header__row[data-tail="signed-out"] .nf-logo__text {
+      display: none;
+    }
+  }
+  /*
    * THE APP HEADER IS NOT A BAR UNTIL THERE IS SOMETHING UNDER IT.
    *
    * It wore `.nf-glass nf-glass--chrome`, which is an 88 per cent canvas veil
