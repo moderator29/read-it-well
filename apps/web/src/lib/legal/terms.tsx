@@ -72,6 +72,12 @@
  * numbering; three of them still named an older draft's numbers. The flags
  * themselves are unchanged.)
  *
+ *   2   What Vallo is, which gained a paragraph on 22 September naming the
+ *       position: Vallo does not remove the agent, it removes the runaround,
+ *       and a fee an agent charges is the agent's and not ours. It is
+ *       descriptive and nothing turns on it, but it is the first thing a
+ *       reader meets and it is the one place these terms now say anything
+ *       about somebody else's fee, so he should read it.
  *   4   Payments, now that it describes a direct payment rather than a hold.
  *       The consumer protection position changes when the platform is not
  *       holding the money, and that should be said correctly rather than
@@ -88,11 +94,42 @@
  *       Arbitration and Mediation Act 2023.
  *   15  The wallet, which states what a balance is not. That sentence is the
  *       one a regulator would read first.
+ *
+ * AND ONE CORRECTION OF FACT MADE ON 22 SEPTEMBER, recorded here because a
+ * legal document should carry its own history. Section 7 described the
+ * verification ladder as "phone, then identity document, then address, then a
+ * physical inspection". There is no phone rung and there never was, and the
+ * payout rung, the only automated check this platform has, was missing. So
+ * the contract described a check we do not perform and omitted one we do. It
+ * is no longer typed out here at all: it is read from
+ * `lib/trust/verification.ts`, which is the array `private.agent_tier`
+ * counts, so it cannot drift again. That is a correction of a false
+ * statement, not a change of obligation, which is why it lands rather than
+ * waiting.
  */
 
 import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
+import { VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { COMPANY_FORMAL_NAME, COMPANY_TRADING_NAME } from "./company";
 import Link from "next/link";
+
+/**
+ * The verification ladder, in the document's own words, read from the module
+ * that defines it.
+ *
+ * Section 7 used to type the rungs out as "phone, then identity document,
+ * then address, then a physical inspection". THERE IS NO PHONE RUNG AND THERE
+ * NEVER WAS, and the payout rung, which is the only automated check this
+ * platform has, was missing from the list entirely. A contract that describes
+ * a check we do not perform and omits one we do is wrong in both directions
+ * at once, and it was wrong in three other places in the same tree, which is
+ * what a hand typed copy of somebody else's data always becomes.
+ *
+ * `VERIFICATION_ORDER` is what `private.agent_tier` counts. A rung added,
+ * removed or renamed changes this sentence with it, in the same commit, with
+ * nobody having to remember that this file exists.
+ */
+const LADDER = VERIFICATION_ORDER.map((rung) => rung.label.toLowerCase()).join(", then ");
 
 export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
   {
@@ -113,10 +150,29 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
     body: (
       <>
         <p>
-          {COMPANY_TRADING_NAME} is a marketplace for property in Nigeria. People list
-          homes to rent, property for sale, land, shops and offices, and shortlets,
-          hotels and rooms let by their owners. We verify the people who list, host
-          their listings, carry messages between them and you, and process payments.
+          {COMPANY_TRADING_NAME} is a marketplace for property and stays in Nigeria.
+          People list homes to rent, property for sale, land, shops and offices, and
+          shortlets, hotels and rooms let by their owners. We check the people who
+          list, host their listings, carry messages between them and you, and process
+          payments.
+        </p>
+        {/* Identity, not obligation. This paragraph describes what the platform
+            sets out to do; it creates no right and no duty, and nothing else in
+            these terms turns on it. It is here because a person reading a
+            contract is entitled to know what the thing they are contracting
+            about actually is, and because the old description ("a marketplace
+            for property") was true of every property website in Nigeria. */}
+        <p>
+          <strong>
+            {COMPANY_TRADING_NAME} does not remove the agent. It sets out to remove the
+            runaround.
+          </strong>{" "}
+          Agents hold most of the property offered in this market and their fee is
+          theirs to charge. What {COMPANY_TRADING_NAME} is for is that you know who you
+          are dealing with, what you will actually pay and whether the property is real,
+          before you travel to see it. Where an owner lists a property directly, you
+          deal with the owner; where an agent does, you deal with the agent, and either
+          way any fee they charge is theirs and not ours.
         </p>
         <p>
           <strong>
@@ -202,7 +258,7 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
           <strong>This schedule governs stays booked and paid for on{" "}
           {COMPANY_TRADING_NAME}</strong>, which is a shortlet, a hotel room or anything
           else let by the night. One schedule covers all of them, rather than a
-          different one for each agent: everything back until 72 hours before check-in,
+          different one for each person who lists: everything back until 72 hours before check-in,
           half back inside that window, and nothing back once check-in day has started.
         </li>
         <li>
@@ -218,9 +274,9 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
           off at any time for nothing.
         </li>
         <li>
-          If the agent cancels, the property was not what was listed, or you could not
-          get in, you get everything back whenever it happens. Report it rather than
-          cancelling it yourself.
+          If the person who listed it cancels, the property was not what was listed, or
+          you could not get in, you get everything back whenever it happens. Report it
+          rather than cancelling it yourself.
         </li>
         <li>
           Refunds go to your {COMPANY_TRADING_NAME} wallet in naira, and you move money
@@ -281,11 +337,10 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
             those two things and nothing else.
           </li>
           <li>
-            The person who lists climbs a ladder: phone, then identity document, then
-            address, then a physical inspection. Where a rung is shown with a date, that
-            is a record of something that happened on that date. Where it is absent,
-            nobody has done it. An absence is not a negative and does not mean anything
-            is wrong.
+            The person who lists climbs a ladder of four rungs, in this order:{" "}
+            {LADDER}. Where a rung is shown with a date, that is a record of something
+            that happened on that date. Where it is absent, nobody has done it. An
+            absence is not a negative and does not mean anything is wrong.
           </li>
           <li>
             <strong>Verification is not a guarantee against fraud</strong>, not a

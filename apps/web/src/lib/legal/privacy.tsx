@@ -32,12 +32,16 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
         {/* This description is identity, not obligation. It said "stays,
             hotels, restaurants and experiences", the product's earlier scope,
             and omitted property entirely; it now matches how the terms of
-            service section 2 describes the platform. No right or duty in this
-            policy turns on the sentence. */}
+            service section 2 describes the platform, which changed again on
+            22 September when the platform's position changed. No right or
+            duty in this policy turns on the sentence, and the two documents
+            are kept saying the same thing on purpose: a controller described
+            one way in the terms and another way in the notice is a controller
+            a reader cannot identify. */}
         <p>
-          {COMPANY_TRADING_NAME} is a marketplace for property in Nigeria: homes to
-          rent, property for sale, land, shops and offices, and stays, hotels and
-          restaurants listed by the people who run them
+          {COMPANY_TRADING_NAME} is a marketplace for property and stays in Nigeria:
+          homes to rent, property for sale, land, shops and offices, and stays, hotels
+          and restaurants listed by the people who run them
           {COMPANY_DOMAIN ? <>, on the web at {COMPANY_DOMAIN}</> : null}. It is operated
           by {COMPANY_FORMAL_NAME}, a private company limited by shares registered in
           Nigeria under the Companies and Allied Matters Act 2020, whose registered
@@ -78,13 +82,21 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
           </li>
           <li>
             <strong>Booking data.</strong> The listings you view, the bookings you make,
-            dates, guests, messages you exchange with agents, and reviews you write.
+            dates, guests, messages you exchange with the people who list, and reviews
+            you write.
           </li>
           <li>
             <strong>Payment data.</strong> Payment references, amounts, refund history
             and your wallet balance. Card details are handled by licensed Nigerian
             payment processors; we never store your full card number.
           </li>
+          {/* NARROW BECAUSE THE PRODUCT IS NARROW TODAY. The agent application
+              is the only route into the supply side that exists, so this is
+              accurate as written. When the owner and firm forms land (HANDOFF
+              09 Track G) the categories they collect are not identical to
+              these, and this entry widens in the same commit as the form,
+              never after it: a notice that under-describes what is being
+              collected is a defective notice under the NDPA. */}
           <li>
             <strong>Agent verification data.</strong> If you apply to become an agent,
             your government issued ID or NIN, business registration documents where
@@ -104,8 +116,14 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
       <ul>
         <li>To create and run your account and show the platform in your language.</li>
         <li>To process bookings, take payments, issue refunds and pay people out.</li>
-        <li>To verify agent identities and keep fraudulent listings off the platform.</li>
-        <li>To carry messages between guests and agents about listings and bookings.</li>
+        <li>
+          To check the identity of the people who list and keep fraudulent listings off
+          the platform.
+        </li>
+        <li>
+          To carry messages between you and the people who list, about listings and
+          bookings.
+        </li>
         <li>To answer support requests and investigate reports and disputes.</li>
         <li>To keep the service secure, prevent abuse and comply with Nigerian law.</li>
         <li>
@@ -149,10 +167,11 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
         <p>We do not sell personal data. We share it only where the service requires:</p>
         <ul>
           <li>
-            <strong>Agents and the people who contact them.</strong> When you book a
-            stay, request an inspection, apply for a tenancy or enquire about a sale,
-            the agent sees the details they need to answer you. When you list, the
-            people who contact you see your public agent profile.
+            <strong>The people who list, and the people who contact them.</strong> When
+            you book a stay, request an inspection, apply for a tenancy or enquire about
+            a sale, the person who listed the property, whether that is an owner, an
+            agent or a host, sees the details they need to answer you. When you list,
+            the people who contact you see your public listing profile.
           </li>
           <li>
             <strong>Payment processors.</strong> Licensed Nigerian providers that process
