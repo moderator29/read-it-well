@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
-import { formatMoney, getDictionary } from "@vallo/i18n";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import Link from "next/link";
 import { getEscrowConsole, getMoneyConsole, getRefundConsole } from "@/lib/admin/money-queries";
+import { getAuditLog } from "@/lib/admin/audit-queries";
 import { adminUi } from "../_components/ui";
-import { EscrowRuling } from "../_components/MoneyDecisions";
-import { QueueFilters, readQueueQuery } from "../_components/QueueFilters";
-import { EntryRow, RefundsPanel } from "./MoneyRows";
+import { readQueueQuery } from "../_components/QueueFilters";
+import { flatParams } from "./_desk/Desk";
+import { readReconciliation } from "./_desk/Reconciliation";
+import { readPage } from "./_desk/derive";
+import { MoneyDesk, MoneyHead } from "./MoneyDesk";
+import "./_desk/desk.css";
 
 export const metadata: Metadata = {
   title: "Money",
@@ -16,22 +19,26 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 /**
- * The money console. Wallets, the ledger, and anything stuck.
+ * The money desk, as panel 3 of C1D98B3C draws it: four KPI cards, money in
+ * against money out, reconciliation health beside a transaction summary, and
+ * the ledger with a running balance and a numbered pager.
  *
- * The console had fourteen sections and not one of them was about money. An
- * operator asked "where is my five thousand naira" had nothing to open: no
- * wallet view, no ledger, no way to find a withdrawal that had been sitting
- * PENDING since Tuesday. The only answer available to support was to ask an
- * engineer to run SQL against production, which is both slow and the worst
- * possible habit to build.
+ * WHERE EVERY FIGURE COMES FROM, because on this screen that is the design.
  *
- * STUCK COMES FIRST, above the totals and above the ledger, because it is the
- * only thing on this page where somebody is currently waiting. A PENDING debit
- * is money that has left a person's spendable balance and has not arrived
- * anywhere; every minute it sits there is a minute somebody is short.
+ * - Wallet float, settled this week, the flow chart, the summary and the
+ *   ledger's running balance are derived from `getMoneyConsole()` ONLY when
+ *   its answer is provably every entry and every wallet (`moneyReadIsWhole`).
+ *   Past its caps the same panels draw the not-wired state and wait for the
+ *   uncapped reads asked for in `docs/SESSION_B_SCOPE.md` (requests 2 to 5).
+ * - In escrow is `getEscrowConsole().totals.heldMinor`, that function's own
+ *   total over every escrow (a floor above 2,000 rows, stated in the handbook).
+ * - Failed charges needs FAILED `transactions`, which no existing read
+ *   returns, so it waits for request 2 rather than showing half an answer.
+ * - Reconciliation is read from the job's own audit rows via `getAuditLog`.
  *
- * The rows and the refund console are in `MoneyRows.tsx`, shared with the
- * preview harness so what is screenshotted is what the desk draws.
+ * WHAT IS KEPT FROM THE DESK THIS REPLACES, every piece of it: stuck debits
+ * first, the one-subject filter, the wallets list with its narrowed totals,
+ * the refund console, and the disputed holds with the ruling control.
  */
 export default async function AdminMoneyPage({
   searchParams,
@@ -43,23 +50,11 @@ export default async function AdminMoneyPage({
   const common = t.admin.common;
   const ui = adminUi(t, locale);
 
-  /*
-   * ONE SUBJECT, ONE CONTROL, EVERY PANEL APPLIES IT.
-   *
-   * `MoneyFilter` in `lib/admin/money-queries.ts` carries the argument for the
-   * contract; this is the half of it the reader can see. Three panels and a row
-   * of tiles, all narrowed by the same term, because "where is this person's
-   * money" is one question and the console answers it in four places.
-   *
-   * `status` and `offset` are dropped rather than read. The shared queue frame
-   * carries both, and neither means anything here: status is a different enum
-   * per panel, and three panels have three orderings and cannot share one
-   * cursor. A hand-edited `?status=PENDING` on this URL therefore does nothing,
-   * and the important half of that is that it does not LOOK as though it did -
-   * no chip lights up, and `narrowed` below stays false, so nothing on the
-   * screen claims a narrowing that was not applied.
-   */
+  /* ONE SUBJECT, ONE CONTROL, EVERY PANEL APPLIES IT. See `MoneyFilter` in
+     `lib/admin/money-queries.ts`. `status` and `offset` are dropped rather
+     than read: neither means anything here. `page` is this desk's own. */
   const params = await searchParams;
+  const flat = flatParams(params);
   const asked = readQueueQuery(params);
   const query = {
     ...(asked.q ? { q: asked.q } : {}),
@@ -67,240 +62,45 @@ export default async function AdminMoneyPage({
     ...(asked.to ? { to: asked.to } : {}),
   };
   const narrowed = Boolean(query.q || query.from || query.to);
+  const page = readPage(params.page);
 
-  const [read, refunds, escrow] = await Promise.all([
+  const [read, refunds, disputes, escrowTotals, runs] = await Promise.all([
     getMoneyConsole(query),
     getRefundConsole(query),
     /* Disputes only. The escrow desk has its own page; this is the one
        decision from it that is a refund question, made reachable here. */
     getEscrowConsole({ status: "DISPUTED" }),
+    /* Unfiltered, for its platform-wide totals, which never re-scope. */
+    getEscrowConsole(),
+    getAuditLog({ q: "wallet.reconciliation.run", status: "wallet_entry" }),
   ]);
+
 
   if (read.state !== "ok") {
     return (
-      <div className="nf-console">
-        <ui.QueueHeader title="Money" lede="Wallets, the ledger, and anything stuck." />
+      <div className="nf-console nf-md">
+        <MoneyHead />
         <ui.QueueUnavailable />
       </div>
     );
   }
 
-  const { wallets, recent, stuck, totals } = read.data;
-  const shown = wallets.length + recent.length + stuck.length;
-
+  const now = new Date().getTime();
   return (
-    <div className="nf-console">
-      <ui.QueueHeader
-        title="Money"
-        lede="Every wallet, the ledger behind them, and anything stuck."
-        count={stuck.length}
-      />
-
-      {/* Stuck first. It is the only thing here somebody is waiting on. */}
-      {stuck.length > 0 && (
-        <section className="nf-card mb-md p-md sm:p-lg">
-          <h2 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-            Stuck, and somebody is waiting
-          </h2>
-          <p className="mt-2xs max-w-[62ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
-            These debits have been PENDING for over half an hour. The money has
-            left a spendable balance and has not arrived anywhere. The stale
-            hold sweeper releases withdrawal holds on a schedule; anything here
-            that is not a withdrawal has not got a sweeper and needs a person.
-          </p>
-          <ul className="mt-sm">
-            {stuck.map((entry) => (
-              <EntryRow key={entry.id} entry={entry} locale={locale} ui={ui} />
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {/*
-        ABOVE THE TILES, WHICH IS THE OPPOSITE OF `/admin/escrow`, ON PURPOSE.
-
-        There the tiles answer "how much is the platform holding", which is true
-        of everything and does not move when an operator narrows, so the control
-        sits under them with the rows it changes. Here the tiles are summed from
-        the wallets the filter selected, so the filter belongs above them: a
-        control that changes a number must be readable before that number is.
-      */}
-      <QueueFilters
-        base="/admin/money"
-        query={query}
-        common={common}
-        searchLabel="Find a person, a wallet or a payment"
-        searchPlaceholder="Name, wallet id or reference"
-      />
-
-      <ui.StatRow>
-        {/*
-          "Settled across all wallets" was the old label and it was never true.
-          This read has always been capped, and is now filtered as well, so the
-          tile is named for what it actually sums. A headline figure on a money
-          screen that overstates its own scope is the one number on the console
-          an operator would repeat to a customer.
-        */}
-        <ui.Stat
-          label="Settled"
-          value={formatMoney(totals.balanceMinor, locale)}
-          hint={
-            narrowed
-              ? "Across the wallets matching this filter"
-              : "Across the wallets listed below, newest first"
-          }
-        />
-        <ui.Stat
-          label="Held pending"
-          value={formatMoney(totals.heldMinor, locale)}
-          hint="Debits that have left a spendable balance and not settled"
-          tone={totals.heldMinor === 0 ? "neutral" : "warning"}
-        />
-        <ui.Stat
-          label="Wallets"
-          value={String(totals.walletCount)}
-          hint={narrowed ? "Matching this filter" : "Newest first, up to forty"}
-        />
-      </ui.StatRow>
-
-      {narrowed && shown === 0 && (
-        /* A SEARCH THAT MATCHED NOTHING IS NOT A CLEARANCE. This drew the
-           emerald tick, so "all clear" was shown over a queue that may hold
-           hundreds of rows, none of them matching. The third state says what
-           this actually is: the result of the operator's own filter. */
-        <ui.QueueEmpty
-          title={common.noMatchTitle}
-          body={common.noMatchBody}
-          state="no-match"
-        />
-      )}
-
-      <section className="nf-card mb-md p-md sm:p-lg">
-        <h2 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">Wallets</h2>
-        {/* The panel's own empty line is a statement about the WHOLE platform,
-            and under a filter it stops being true: "Nobody has a wallet yet" is
-            a lie to somebody who searched a name that has none. Narrowed, the
-            panel says nothing and the one no-match card above answers for the
-            screen. Same arrangement as `/admin/escrow`. */}
-        {wallets.length === 0 ? (
-          narrowed ? null : (
-          <p className="mt-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
-            Nobody has a wallet yet. One is created the first time somebody is
-            paid or funds an account.
-          </p>
-          )
-        ) : (
-          <ul className="mt-xs">
-            {wallets.map((wallet) => (
-              <li
-                key={wallet.id}
-                className="flex flex-wrap items-baseline justify-between gap-x-md gap-y-2xs border-t border-[var(--nf-border-subtle)] py-sm"
-              >
-                <span className="min-w-0">
-                  <span className="block text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
-                    {wallet.ownerName ?? "No display name"}
-                  </span>
-                  {/* THE OWNER'S ID, AND IT IS NOT A REFERENCE. The comment
-                      that used to sit here was a copy of the ledger row's, and
-                      it said this string was what an operator traces a payment
-                      by with Paystack. It is not; it is the profile id, and the
-                      reason it is printed unclipped is that it is what an
-                      operator pastes into the search box above, or into a
-                      colleague's message, to get from a name to every other
-                      screen this person appears on. `user-select: all` means one
-                      tap takes the whole of it. */}
-                  <span className="block font-mono text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)] [overflow-wrap:anywhere] [user-select:all]">
-                    {wallet.userId}
-                  </span>
-                </span>
-                <span className="flex shrink-0 items-baseline gap-md">
-                  {wallet.heldMinor > 0 && (
-                    <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                      {formatMoney(wallet.heldMinor, locale)} held
-                    </span>
-                  )}
-                  <span className="nf-numeric text-[length:var(--nf-text-body-sm)] font-semibold">
-                    {formatMoney(wallet.balanceMinor, locale)}
-                  </span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <RefundsPanel refunds={refunds} narrowed={narrowed} locale={locale} ui={ui} />
-
-      {escrow.state === "ok" && escrow.data.disputes.length > 0 && (
-        <section className="nf-card mb-md p-md sm:p-lg">
-          <h2 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-            Disputed holds waiting on a ruling
-          </h2>
-          <p className="mt-2xs max-w-[62ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
-            Somebody objected and the money is held until a person rules. Release
-            pays the payee; refund returns it to the payer. Both people are sent
-            your ruling word for word, and the transition is in the audit log.
-            The full desk is at{" "}
-            <Link href="/admin/escrow" className="underline">
-              Escrow
-            </Link>
-            .
-          </p>
-          <ul className="mt-xs">
-            {escrow.data.disputes.map((dispute) => (
-              <li
-                key={dispute.id}
-                className="border-t border-[var(--nf-border-subtle)] py-sm"
-              >
-                <div className="flex flex-wrap items-baseline justify-between gap-x-md gap-y-2xs">
-                  <span className="min-w-0">
-                    <span className="block text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
-                      {dispute.listingTitle ?? "A listing that is no longer there"}
-                      {" · "}
-                      {dispute.payerName ?? "the payer"} paid, {dispute.payeeName ?? "the payee"}{" "}
-                      waits
-                    </span>
-                    {dispute.disputeReason && (
-                      <span className="block text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
-                        {dispute.disputeReason}
-                      </span>
-                    )}
-                  </span>
-                  <span className="nf-numeric text-[length:var(--nf-text-body-sm)] font-semibold">
-                    {formatMoney(dispute.amountMinor, locale)}
-                  </span>
-                </div>
-                <EscrowRuling
-                  escrowId={dispute.id}
-                  amountMinor={dispute.amountMinor}
-                  locale={locale}
-                  payerName={dispute.payerName}
-                  payeeName={dispute.payeeName}
-                />
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <section className="nf-card p-md sm:p-lg">
-        <h2 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-          The ledger, newest first
-        </h2>
-        {recent.length === 0 ? (
-          narrowed ? null : (
-          <p className="mt-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
-            No money has moved yet.
-          </p>
-          )
-        ) : (
-          <ul className="mt-xs">
-            {recent.map((entry) => (
-              <EntryRow key={entry.id} entry={entry} locale={locale} ui={ui} />
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
+    <MoneyDesk
+      locale={locale}
+      ui={ui}
+      common={common}
+      query={query}
+      params={flat}
+      narrowed={narrowed}
+      page={page}
+      read={read.data}
+      refunds={refunds}
+      disputes={disputes}
+      heldInEscrow={escrowTotals.state === "ok" ? escrowTotals.data.totals.heldMinor : null}
+      health={readReconciliation(runs)}
+      now={now}
+    />
   );
 }

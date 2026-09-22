@@ -1,0 +1,919 @@
+/*
+  The money desks: /admin/money, /admin/escrow, /admin/supply, and the
+  register for /admin/bookings and /admin/payments.
+
+  Governed by panel 3 of C1D98B3C (Money) and panels 1 and 3 of 8E9602E2
+  (Escrow, Supply) at the repository root. Imported from each of those
+  routes, never from globals.css; the console shell (admin.css,
+  _components) is admin-shell's and is not touched from here.
+
+  Every size below was converted from the renders and written down in
+  docs/BUILD_SESSION_B_LEDGER.md section 8. Colours are semantic tokens only:
+  the renders' teal, mauve and pink donut slices are translated into the one
+  blue family, ordered by magnitude, with a word beside every slice.
+
+  Light mode is written explicitly at the foot, under
+  :root[data-theme="light"], because a glass card on paper needs a real
+  border and no glow, not a dimmer copy of the night.
+*/
+@layer components {
+  /* ------------------------------------------------------------ the page */
+
+  .nf-md {
+    display: grid;
+    gap: var(--nf-space-md);
+    min-width: 0;
+  }
+  @media (min-width: 1024px) {
+    .nf-md {
+      gap: var(--nf-space-lg);
+    }
+  }
+
+  .nf-md-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--nf-space-sm);
+  }
+  .nf-md-head__title {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h2);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--nf-content-primary);
+  }
+  .nf-md-head__lede {
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-brand-quiet);
+  }
+  .nf-md-head__aside {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-xs);
+  }
+
+  /* ------------------------------------------------ the lit glass container */
+
+  .nf-md-card {
+    position: relative;
+    min-width: 0;
+    border-radius: var(--nf-radius-md);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-glass-card-fill);
+    box-shadow:
+      var(--nf-rim-lit),
+      var(--nf-glow-edge),
+      var(--nf-bloom-card);
+  }
+  /* The render's catchlight along the top edge: a hairline that is brightest
+     in the middle and gone at the corners, drawn inside the border. */
+  .nf-md-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 var(--nf-space-lg) auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--nf-rim-lit-ink), transparent);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .nf-md-panel {
+    padding: var(--nf-pad-card-sm);
+  }
+  @media (min-width: 640px) {
+    .nf-md-panel {
+      padding: var(--nf-pad-card);
+    }
+  }
+  .nf-md-panel__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-xs);
+    margin-bottom: var(--nf-space-md);
+  }
+  .nf-md-panel__title {
+    font-size: var(--nf-text-h4);
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--nf-content-primary);
+  }
+  .nf-md-panel__hint {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-md-panel__foot {
+    margin-top: var(--nf-space-sm);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------ the KPIs */
+
+  .nf-md-kpis {
+    display: grid;
+    gap: var(--nf-space-sm);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (min-width: 1024px) {
+    .nf-md-kpis {
+      gap: var(--nf-space-md);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .nf-md-kpi {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-2xs);
+    padding: var(--nf-pad-card-sm);
+    color: inherit;
+    text-decoration: none;
+  }
+  @media (min-width: 1024px) {
+    .nf-md-kpi {
+      padding: var(--nf-space-md) var(--nf-space-lg) var(--nf-space-lg);
+    }
+  }
+  a.nf-md-kpi {
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  @media (hover: hover) {
+    a.nf-md-kpi:hover {
+      border-color: var(--nf-border-brand);
+      box-shadow:
+        var(--nf-rim-lit),
+        var(--nf-glow-edge-strong),
+        var(--nf-bloom-card);
+    }
+  }
+  a.nf-md-kpi:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  .nf-md-kpi[aria-current="true"] {
+    border-color: var(--nf-border-brand);
+    box-shadow:
+      var(--nf-rim-lit),
+      var(--nf-glow-edge-strong),
+      var(--nf-bloom-card);
+  }
+  .nf-md-kpi__label {
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    color: var(--nf-brand-quiet);
+  }
+  .nf-md-kpi__value {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  @media (min-width: 1280px) {
+    .nf-md-kpi__value {
+      font-size: var(--nf-text-h2);
+    }
+  }
+  .nf-md-kpi__value--quiet {
+    font-size: var(--nf-text-body);
+    font-weight: 500;
+    color: var(--nf-content-muted);
+  }
+  .nf-md-delta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-3xs) var(--nf-space-2xs);
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+  }
+  .nf-md-delta__figure {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+  }
+  .nf-md-delta__figure--up {
+    color: var(--nf-state-success);
+  }
+  .nf-md-delta__figure--down {
+    color: var(--nf-state-error);
+  }
+  .nf-md-delta__figure--flat {
+    color: var(--nf-content-secondary);
+  }
+
+  /* ------------------------------------------------------------ the grids */
+
+  .nf-md-grid {
+    display: grid;
+    gap: var(--nf-space-md);
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+  @media (min-width: 1024px) {
+    .nf-md-grid {
+      gap: var(--nf-space-lg);
+    }
+    /* Money: reconciliation beside the summary, 54 to 46 as drawn. */
+    .nf-md-grid--split {
+      grid-template-columns: minmax(0, 1.17fr) minmax(0, 1fr);
+      align-items: stretch;
+    }
+    /* Escrow and supply: the table beside its narrow column, 2 to 1. */
+    .nf-md-grid--main {
+      grid-template-columns: minmax(0, 2.05fr) minmax(0, 1fr);
+    }
+    .nf-md-grid--halves {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: stretch;
+    }
+  }
+  .nf-md-stack {
+    display: grid;
+    gap: var(--nf-space-md);
+    align-content: start;
+  }
+  @media (min-width: 1024px) {
+    .nf-md-stack {
+      gap: var(--nf-space-lg);
+    }
+  }
+
+  /* ------------------------------------------------------ the not-wired state */
+
+  .nf-md-wait {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-radius-sm);
+    border: var(--nf-border-width) dashed var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+  }
+  .nf-md-wait__title {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-md-wait__body {
+    margin-top: var(--nf-space-3xs);
+    max-width: 62ch;
+    font-size: var(--nf-text-caption);
+    line-height: 1.5;
+    color: var(--nf-content-secondary);
+  }
+  .nf-md-empty {
+    padding: var(--nf-space-lg) var(--nf-space-md);
+    text-align: center;
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-muted);
+  }
+
+  /* ----------------------------------------------------------- the tables */
+
+  .nf-md-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-md-table th {
+    padding: 0 var(--nf-space-xs) var(--nf-space-sm);
+    text-align: left;
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    color: var(--nf-brand-quiet);
+    border-bottom: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    white-space: nowrap;
+  }
+  .nf-md-table td {
+    padding: var(--nf-space-sm) var(--nf-space-xs);
+    vertical-align: middle;
+    color: var(--nf-content-secondary);
+    border-bottom: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+  .nf-md-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .nf-md-table th:first-child,
+  .nf-md-table td:first-child {
+    padding-left: 0;
+  }
+  .nf-md-table th:last-child,
+  .nf-md-table td:last-child {
+    padding-right: 0;
+  }
+  .nf-md-table .nf-md-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .nf-md-table .nf-md-strong {
+    color: var(--nf-content-primary);
+    font-weight: 500;
+  }
+  .nf-md-table .nf-md-date {
+    white-space: nowrap;
+    color: var(--nf-content-primary);
+  }
+  .nf-md-table .nf-md-desc {
+    color: var(--nf-brand-quiet);
+  }
+  .nf-md-credit {
+    color: var(--nf-state-success);
+    font-weight: 500;
+  }
+  .nf-md-debit {
+    color: var(--nf-content-primary);
+    font-weight: 500;
+  }
+  .nf-md-countdown {
+    color: var(--nf-state-success);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .nf-md-countdown--due {
+    color: var(--nf-state-warning);
+  }
+  .nf-md-ref {
+    display: block;
+    font-family: ui-monospace, monospace;
+    font-size: var(--nf-text-overline);
+    color: var(--nf-content-muted);
+    overflow-wrap: anywhere;
+    user-select: all;
+  }
+  .nf-md-thumb {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-sm);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    overflow: hidden;
+  }
+  .nf-md-cell-row {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-width: 0;
+  }
+
+  /*
+    ON A PHONE THE TABLE BECOMES A LIST OF SELF-NAMING ROWS. Six columns do not
+    fit 358px and a sideways scroll inside a card hides the column an operator
+    came for; each cell prints its own heading instead, from data-label.
+  */
+  @media (max-width: 767px) {
+    .nf-md-table thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .nf-md-table,
+    .nf-md-table tbody,
+    .nf-md-table tr,
+    .nf-md-table td {
+      display: block;
+    }
+    .nf-md-table tr {
+      padding: var(--nf-space-sm) 0;
+      border-bottom: var(--nf-border-width) solid var(--nf-border-subtle);
+    }
+    .nf-md-table tbody tr:last-child {
+      border-bottom: 0;
+    }
+    .nf-md-table td {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--nf-space-sm);
+      padding: var(--nf-space-3xs) 0;
+      border-bottom: 0;
+      text-align: right;
+    }
+    .nf-md-table td::before {
+      content: attr(data-label);
+      flex-shrink: 0;
+      text-align: left;
+      font-size: var(--nf-text-overline);
+      color: var(--nf-brand-quiet);
+    }
+    .nf-md-table td[data-label=""]::before {
+      display: none;
+    }
+    .nf-md-table td.nf-md-lead {
+      justify-content: flex-start;
+      text-align: left;
+    }
+    .nf-md-table td.nf-md-lead::before {
+      display: none;
+    }
+  }
+
+  /* ------------------------------------------------------------ the pager */
+
+  .nf-md-pager {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding-top: var(--nf-space-md);
+  }
+  .nf-md-pager__item {
+    display: inline-grid;
+    place-items: center;
+    min-width: 2.75rem;
+    height: 2.75rem;
+    padding: 0 var(--nf-space-xs);
+    border-radius: var(--nf-radius-sm);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow: var(--nf-rim-lit);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+    text-decoration: none;
+    font-variant-numeric: tabular-nums;
+  }
+  @media (hover: hover) {
+    a.nf-md-pager__item:hover {
+      border-color: var(--nf-border-brand);
+      color: var(--nf-content-primary);
+    }
+  }
+  a.nf-md-pager__item:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  /* The current page is the lit primary: gradient fill, bright top rim and a
+     soft blue bloom under it, the same treatment as a primary button. */
+  .nf-md-pager__item[aria-current="page"] {
+    border-color: var(--nf-border-brand);
+    background: var(--nf-gradient-cta);
+    color: var(--nf-content-on-brand);
+    box-shadow:
+      var(--nf-rim-primary),
+      var(--nf-bloom-lit);
+  }
+  .nf-md-pager__item[aria-disabled="true"] {
+    opacity: 0.45;
+  }
+  .nf-md-pager__gap {
+    min-width: 1.5rem;
+    text-align: center;
+    color: var(--nf-content-muted);
+  }
+  .nf-md-pager__count {
+    margin-left: auto;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+
+  /* ------------------------------------------------------------ the charts */
+
+  .nf-md-chart {
+    position: relative;
+    width: 100%;
+  }
+  .nf-md-chart svg {
+    display: block;
+    width: 100%;
+    overflow: visible;
+  }
+  .nf-md-chart__axis {
+    font-size: var(--nf-text-overline);
+    fill: var(--nf-brand-quiet);
+  }
+  .nf-md-chart__grid {
+    stroke: var(--nf-border-subtle);
+  }
+  .nf-md-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--nf-space-2xs) var(--nf-space-md);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+  }
+  .nf-md-legend__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-md-swatch {
+    display: inline-block;
+    width: 0.625rem;
+    height: 0.625rem;
+    flex-shrink: 0;
+    border-radius: var(--nf-radius-circle);
+  }
+  .nf-md-swatch--square {
+    border-radius: var(--nf-radius-xs);
+  }
+
+  /* The hover readout: a thin client layer over a server-drawn chart. */
+  .nf-md-readout-layer {
+    position: absolute;
+    inset: 0;
+    touch-action: pan-y;
+  }
+  .nf-md-readout-line {
+    position: absolute;
+    top: 0;
+    bottom: 1.5rem;
+    width: 1px;
+    background: var(--nf-brand-edge-strong);
+    pointer-events: none;
+  }
+  .nf-md-readout {
+    position: absolute;
+    top: 0;
+    z-index: 2;
+    min-width: 9rem;
+    padding: var(--nf-space-xs) var(--nf-space-sm);
+    border-radius: var(--nf-radius-sm);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-glass-card-fill);
+    backdrop-filter: blur(var(--nf-glass-blur-thin));
+    box-shadow: var(--nf-rim-lit), var(--nf-glow-edge);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-secondary);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .nf-md-readout__title {
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-md-readout__row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--nf-space-md);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The donut, the ring and the legend that names every slice. */
+  .nf-md-donut {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-lg);
+  }
+  .nf-md-donut__svg {
+    width: 9.5rem;
+    height: 9.5rem;
+    flex-shrink: 0;
+  }
+  .nf-md-donut__total {
+    font-family: var(--nf-font-display);
+    font-weight: 600;
+    fill: var(--nf-content-primary);
+  }
+  .nf-md-donut__caption {
+    fill: var(--nf-content-secondary);
+  }
+  .nf-md-slices {
+    display: grid;
+    flex: 1 1 12rem;
+    gap: var(--nf-space-xs);
+    min-width: 0;
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-md-slice {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-md-slice__share,
+  .nf-md-slice__count {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+  .nf-md-slice__count {
+    min-width: 2.5rem;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-md-ring {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-lg);
+  }
+  .nf-md-ring__svg {
+    width: 6.5rem;
+    height: 6.5rem;
+    flex-shrink: 0;
+  }
+  .nf-md-ring__figure {
+    font-family: var(--nf-font-display);
+    font-weight: 600;
+    fill: var(--nf-content-primary);
+  }
+  .nf-md-ring__label {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-brand-quiet);
+  }
+  .nf-md-ring__when {
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-primary);
+  }
+
+  /* Summary rows: label left, figure right, a rule above the total. */
+  .nf-md-sum {
+    display: grid;
+    gap: var(--nf-space-sm);
+  }
+  .nf-md-sum__row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--nf-space-md);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+  .nf-md-sum__row--total {
+    padding-top: var(--nf-space-sm);
+    border-top: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-md-sum__figure {
+    font-variant-numeric: tabular-nums;
+    color: var(--nf-content-primary);
+  }
+
+  /* Ranked bars: 1. Lekki ███░░ 342 */
+  .nf-md-bars {
+    display: grid;
+    gap: var(--nf-space-sm);
+  }
+  .nf-md-bar {
+    display: grid;
+    grid-template-columns: 1.5rem minmax(5rem, 1fr) minmax(0, 1.3fr) auto;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    padding-bottom: var(--nf-space-sm);
+    border-bottom: var(--nf-border-width) solid var(--nf-border-subtle);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-primary);
+  }
+  .nf-md-bar:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+  .nf-md-bar__rank {
+    color: var(--nf-content-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-md-bar__track {
+    height: 0.625rem;
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-brand-tint-1);
+    overflow: hidden;
+  }
+  .nf-md-bar__fill {
+    display: block;
+    height: 100%;
+    border-radius: var(--nf-radius-xs);
+    background: linear-gradient(90deg, var(--nf-brand-primary), var(--nf-brand-quiet));
+  }
+  .nf-md-bar__count {
+    min-width: 2.5rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------------------------------------------------------- the pipeline */
+
+  .nf-md-pipeline {
+    display: grid;
+    gap: var(--nf-space-xs);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (min-width: 640px) {
+    .nf-md-pipeline {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .nf-md-pipeline {
+      display: flex;
+      align-items: stretch;
+      gap: var(--nf-space-2xs);
+    }
+  }
+  .nf-md-stage {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--nf-space-2xs);
+    min-height: 6.5rem;
+    padding: var(--nf-space-sm);
+    text-align: center;
+    color: inherit;
+    text-decoration: none;
+  }
+  .nf-md-stage__label {
+    font-size: var(--nf-text-caption);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+  }
+  .nf-md-stage__count {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--nf-content-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .nf-md-stage--alarm .nf-md-stage__count {
+    color: var(--nf-state-error);
+  }
+  .nf-md-stage__arrow {
+    display: none;
+    align-self: center;
+    color: var(--nf-brand-quiet);
+  }
+  @media (min-width: 1024px) {
+    .nf-md-stage__arrow {
+      display: block;
+      flex-shrink: 0;
+    }
+  }
+
+  /* Recent activity: a timeline of dots on a thin rail. */
+  .nf-md-timeline {
+    display: grid;
+  }
+  .nf-md-event {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1rem minmax(0, 1fr);
+    gap: var(--nf-space-sm);
+    padding-bottom: var(--nf-space-sm);
+  }
+  .nf-md-event + .nf-md-event {
+    padding-top: var(--nf-space-sm);
+    border-top: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+  .nf-md-event__dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    margin-top: 0.3rem;
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-brand-primary);
+    box-shadow: 0 0 10px var(--nf-glow-2);
+  }
+  .nf-md-event__dot--good {
+    background: var(--nf-state-success);
+  }
+  .nf-md-event__dot--bad {
+    background: var(--nf-state-error);
+  }
+  .nf-md-event__dot--pending {
+    background: var(--nf-state-warning);
+  }
+  .nf-md-event__what {
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-primary);
+  }
+  .nf-md-event__when {
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+    color: var(--nf-brand-quiet);
+  }
+
+  /* The float total's short accent rule under the figure. */
+  .nf-md-figure {
+    font-family: var(--nf-font-display);
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  .nf-md-figure::after {
+    content: "";
+    display: block;
+    width: 3rem;
+    height: 3px;
+    margin-top: var(--nf-space-xs);
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-state-warning);
+    box-shadow: 0 0 10px var(--nf-glow-2);
+  }
+
+  /* The check plate on the reconciliation card. */
+  .nf-md-check {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    margin: var(--nf-space-sm) auto var(--nf-space-md);
+    border-radius: var(--nf-radius-circle);
+    background: var(--nf-state-success);
+    color: var(--nf-content-on-brand);
+    box-shadow:
+      0 0 0 8px var(--nf-state-success-surface),
+      0 0 24px var(--nf-state-success-surface);
+  }
+  .nf-md-check--bad {
+    background: var(--nf-state-error);
+    box-shadow:
+      0 0 0 8px var(--nf-state-error-surface),
+      0 0 24px var(--nf-state-error-surface);
+  }
+  .nf-md-check--quiet {
+    background: var(--nf-content-muted);
+    box-shadow: 0 0 0 8px var(--nf-brand-tint-1);
+  }
+
+  /* A verified mark in a table cell: a word for the reader, a glyph for the eye. */
+  .nf-md-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
+  }
+  .nf-md-mark--yes {
+    color: var(--nf-state-success);
+  }
+  .nf-md-mark--no {
+    color: var(--nf-state-error);
+  }
+
+  /* A filter row for the desks with a toggle and chips of their own. */
+  .nf-md-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    min-height: 2.75rem;
+    padding: 0 var(--nf-space-md);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    background: var(--nf-well-fill);
+    box-shadow: var(--nf-rim-lit);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+    text-decoration: none;
+  }
+  .nf-md-toggle[aria-pressed="true"] {
+    border-color: var(--nf-border-brand);
+    color: var(--nf-content-primary);
+    background: var(--nf-brand-tint-2);
+  }
+  .nf-md-toggle:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    a.nf-md-kpi {
+      transition: none;
+    }
+  }
+}
+
+/* --------------------------------------------------------------- on paper */
+@layer components {
+  :root[data-theme="light"] .nf-md-card {
+    box-shadow:
+      var(--nf-rim-lit),
+      var(--nf-glass-shadow-thin);
+  }
+  :root[data-theme="light"] .nf-md-card::before {
+    display: none;
+  }
+  :root[data-theme="light"] .nf-md-event__dot,
+  :root[data-theme="light"] .nf-md-figure::after {
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-md-check,
+  :root[data-theme="light"] .nf-md-check--bad {
+    box-shadow: none;
+  }
+  :root[data-theme="light"] .nf-md-readout {
+    backdrop-filter: none;
+  }
+}

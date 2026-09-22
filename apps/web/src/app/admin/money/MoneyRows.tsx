@@ -155,15 +155,18 @@ export function RefundsPanel({
   narrowed,
   locale,
   ui,
+  className = "nf-card mb-md p-md sm:p-lg",
 }: {
   refunds: AdminRead<RefundConsole>;
+  /** The container. The desk passes its own lit panel; the preview keeps the card. */
+  className?: string;
   /** True when a filter is applied, so an empty list is the filter's answer. */
   narrowed: boolean;
   locale: Locale;
   ui: AdminUi;
 }) {
   return (
-    <section className="nf-card mb-md p-md sm:p-lg">
+    <section className={className}>
       <h2 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
         Refunds
       </h2>
