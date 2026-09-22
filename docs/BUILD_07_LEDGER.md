@@ -2610,3 +2610,76 @@ closed on this feature.**
   `listings_purchase_cost_idx` exists and nothing reads it. The tenancy side
   has `sortMoveIn` and `basisMoveIn` in the dictionary; the sale side has no
   equivalent.
+
+## 24. THE FOUNDER'S EIGHT, STAFFED, AND THE FILE PARTITION THAT KEEPS SIX AGENTS APART
+
+The founder used the product on a real phone and sent eight items. All eight
+are staffed. This section is the record of WHO OWNS WHICH FILE, because three
+scope collisions have already cost this build a day and the standing
+instruction is that a fourth ends the fleet.
+
+### The eight, and where each went
+
+| # | Item | Owner |
+| --- | --- | --- |
+| 1 | **Back buttons go to the declared parent, not to history** | NAV |
+| 2 | The dock's centre switch: in line, smaller, same icon style, container kept | CHROME |
+| 3 | The side drawer: Switch profile row removed, theme control loses its box and its words, the whole drawer made consistent | CHROME |
+| 4 | The switch profile sheet always offers every profile and every door | CHROME |
+| 5 | The console opens on its overview | CHROME |
+| 6 | Light mode: a real light lockup, and the icon plates' paper ground | B2 |
+| 7 | One container anatomy, one edge, one fill, one blue, in the token layer | B2 |
+| 8 | GOVERNING-02 to 12 built as drawn | IMG-A, IMG-B, IMG-C |
+
+### ITEM 1 IS A CORRECTNESS BUG AND I MEASURED IT BEFORE STAFFING IT
+
+The founder's diagnosis is right, and the measurement is worse than the
+symptom. There are **ten `router.back()` call sites**, every one guarded by
+`canGoBackInApp()`, and **no parent map anywhere**: `apps/web/src/lib/nav`
+does not exist. That guard proves the previous entry is IN-APP. It does not
+prove it is the PARENT, which is the entire defect. So a sign-in bounce, a
+redirect or a deep link leaves the previous entry as wherever the machinery
+sent you, and back walks to it.
+
+**History is not hierarchy.** Every route gets a declared parent in one
+readable file, back goes there regardless of how somebody arrived, and history
+is a fallback only when the previous entry is provably in-app AND provably the
+parent. The Android hardware button follows the same resolver, because a wrong
+answer there closes the app.
+
+### THE STYLESHEET PARTITION, WHICH IS THE WHOLE POINT OF THIS SECTION
+
+Six agents are in one tree. The unit of collision is the FILE, not the change,
+which this build learned the expensive way. So every stylesheet has exactly
+one owner this stint:
+
+| File | Owner |
+| --- | --- |
+| `tokens.css`, `buttons.css`, `chips.css`, `glass.css`, `light.css` | B2 |
+| `chrome.css` | CHROME |
+| `controls.css` | IMG-A |
+| `catalogue.css` | IMG-B |
+| the stays stylesheet | IMG-C |
+
+Nobody edits a file they do not own. A token somebody else owns is a line in a
+report, never an edit. `packages/i18n` is ADD ONLY inside each agent's own
+namespace, in all four locales, and never restructured.
+
+### ONE DECISION REVERSED, SAID PLAINLY SO NOBODY RE-ARGUES IT
+
+The dock object currently rises about 7px above the bar, and that was built
+deliberately to `GOVERNING-01`. **The founder has now seen it on a real phone
+and ruled against it**: in line with the other icons, same baseline, same icon
+style, smaller, container kept so it still reads as the special one. A
+reference image loses to the founder looking at the real thing, and that is
+the right order of authority.
+
+### AND ONE THING THAT MAY NOT BE OURS TO FINISH
+
+Item 6 asks for a light variant of the wordmark, "not a filter, not an opacity
+change". A genuine light variant is ARTWORK. Recolouring or inverting the dark
+asset IS the filter he has ruled out, so what is ours is the SEAM: one place
+that decides which lockup a surface gets, keyed on theme, so every appearance
+switches together and a real asset drops in with one edit. If a designed light
+wordmark has to come from the founder, the answer is to name the file and the
+sizes needed rather than to ship a filtered dark mark and call it done.
