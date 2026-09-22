@@ -542,13 +542,13 @@ export async function reviewListing(input: {
               /*
                * IT NO LONGER TELLS THEM TO PRESS A BUTTON THEY DO NOT HAVE.
                *
-               * This told the lister to publish it themselves, to put it in
-               * front of guests. Publish
-               * is an ADMIN action: `reviewListing` refuses it from anybody
-               * who is not an admin and the agent console has no such
-               * control. So a lister read an instruction, went looking for
-               * the button, and found nothing. The next step here is ours and
-               * the sentence now says so.
+               * This told the lister to publish it themselves, to put it
+               * in front of guests. Publishing is an ADMIN act:
+               * `reviewListing` refuses it from anybody who is not an admin
+               * and the agent console carries no such control. So a lister
+               * read an instruction, went looking for the button, and found
+               * nothing. The next step here is ours and the sentence now
+               * says so.
                */
               title: "Listing passed review",
               body: `${listing.title} passed review. We put it live next, and there is nothing for you to do.`,
