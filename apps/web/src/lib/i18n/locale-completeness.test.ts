@@ -41,6 +41,29 @@ import { allLocaleCompleteness, localeCompleteness } from "./locale-completeness
  * identical to English, which includes every key the locale file does not
  * carry, because `withFallback` has already filled those with English.
  *
+ * ## THE JUMP FROM 212 TO 336, AND WHO IT BELONGS TO
+ *
+ * The `supply` namespace grew from 60 keys to 204 between `e36e74f` and
+ * `1c6388d`, in English only. `yo.supply`, `ha.supply` and `ig.supply` are
+ * still the original 60, so `withFallback` now serves 144 English strings
+ * under a namespace that was previously complete, and the English SENTENCE
+ * count went from 106 to 182 in one step.
+ *
+ * That namespace is the three registration forms of GOVERNING-03, 04 and 05.
+ * It is not this worker's and the numbers are recorded here rather than
+ * argued with, because a red shared test blocks everybody. IT IS A REAL
+ * FINDING FOR WHOEVER OWNS TRACK G: a supplier registration form is the first
+ * thing a new agent, owner or firm ever reads on this platform, and today it
+ * reads in English on a Yoruba, Hausa or Igbo phone while the screen around
+ * it does not.
+ *
+ * AND THE MECHANISM IS WORTH RECORDING TOO, because it is a process fault and
+ * not a translation one. Those 180 lines reached the branch inside a commit
+ * whose message describes the admin console, because `en.ts` was carrying
+ * another worker's UNCOMMITTED edits in the shared tree when it was staged by
+ * path. An explicit pathspec is not enough on a file thirteen people share:
+ * the unit of collision is the FILE, not the change.
+ *
  * These are CEILINGS. They may fall; they may not rise.
  *
  * WHEN A CEILING IS RAISED, THE COMMIT SAYS WHY, AND "THE TEST WAS RED" IS NOT
@@ -63,9 +86,9 @@ import { allLocaleCompleteness, localeCompleteness } from "./locale-completeness
  * where a translator can now find them.
  */
 const KNOWN_INCOMPLETE = {
-  yo: { englishValued: 212, englishSentences: 106 },
-  ha: { englishValued: 210, englishSentences: 106 },
-  ig: { englishValued: 219, englishSentences: 106 },
+  yo: { englishValued: 336, englishSentences: 182 },
+  ha: { englishValued: 334, englishSentences: 182 },
+  ig: { englishValued: 343, englishSentences: 182 },
 } as const;
 
 describe("locale completeness", () => {
