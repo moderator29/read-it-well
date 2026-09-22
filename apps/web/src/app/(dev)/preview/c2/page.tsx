@@ -3,6 +3,8 @@ import Link from "next/link";
 const PAGES = [
   ["host-property-photos", "A hotel's own photographs of its property"],
   ["host-property-photos-empty", "The same surface before the first photograph"],
+  ["host-rooms", "The host's rooms and the nights they are on sale"],
+  ["host-rooms-no-nights", "The same rooms with no night on sale at all"],
 ];
 
 /** Track N, the stays side. The surfaces C2 built, drawn from fixtures. */

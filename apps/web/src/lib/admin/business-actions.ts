@@ -40,6 +40,7 @@ import { writeAudit, type AuditDetail } from "./audit";
 import { BUSINESS_LADDER, BUSINESS_TIER_NAME, asBusinessTier } from "./business-ladder";
 import { BUSINESS_RUNGS } from "./business-queries";
 import { adminRefusal, requireAdmin } from "./guard";
+import { nightsToOpen } from "../stays/inventory";
 
 type ListingStatus = Database["public"]["Enums"]["listing_status"];
 
@@ -240,7 +241,7 @@ export async function publishAccommodation(input: {
   const { data: property, error: readError } = await access.supabase
     .from("accommodations")
     .select(
-      "id, name, status, latitude, longitude, business_id, accommodation_photos(id), room_types(id, rate_plans(id)), businesses(id, name, status, owner_id, source)",
+      "id, name, status, latitude, longitude, business_id, accommodation_photos(id), room_types(id, status, units_total, rate_plans(id, active)), businesses(id, name, status, owner_id, source)",
     )
     .eq("id", parsed.data.accommodationId)
     .maybeSingle();
@@ -262,8 +263,12 @@ export async function publishAccommodation(input: {
   if (property.accommodation_photos.length === 0) {
     return fail("This property has no photographs, so there is nothing to show a guest.");
   }
-  const bookable = property.room_types.some((roomType) => roomType.rate_plans.length > 0);
-  if (!bookable) {
+  /* A ROOM IS BOOKABLE WHEN IT CARRIES A RATE PLAN. The same predicate
+     decides the gate below and which room types go live with the property,
+     because a gate that admits a property on one reading and then publishes
+     nothing on another is how a live hotel came to project a null price. */
+  const bookableRooms = property.room_types.filter((roomType) => roomType.rate_plans.length > 0);
+  if (bookableRooms.length === 0) {
     return fail("This property has no room with a rate, so nobody could book it.");
   }
 
@@ -278,6 +283,57 @@ export async function publishAccommodation(input: {
     })
     .eq("id", property.id);
   if (updateError) return fail(SERVICE_DOWN);
+
+  /* ---------------------------------------------------------------------
+     THE TWO WRITES WITHOUT WHICH A PUBLISHED HOTEL IS USELESS, and neither
+     of them existed anywhere in the application before this.
+
+     ONE: NOTHING EVER PUBLISHED A ROOM TYPE. `addRoomTypeDraft` inserts DRAFT
+     and no code path moved it on, while the catalogue projection reads the
+     headline price, the maximum sleeps, the room categories, the breakfast
+     flag and the free cancellation flag from room types where
+     `status = 'PUBLISHED'`. So a hotel that passed every gate appeared on the
+     shelf with a null price. A room type that carries a rate plan goes live
+     with the property it belongs to, in the same act, because the gate
+     directly above has just established that it is bookable and there is no
+     second editorial decision to make about it. A room type with no rate plan
+     stays DRAFT: it is not bookable, and publishing it would put an
+     unsellable room's sleeps into the catalogue.
+
+     TWO: NOTHING EVER WROTE `room_inventory`. `stays_search` treats a missing
+     night as NOT OFFERED, so a hotel with no inventory was invisible to every
+     dated search. The nights are opened at the host's OWN declared
+     `units_total` and at nothing else; see `lib/stays/inventory.ts` for why
+     that is a written-down answer rather than an invented number, and for the
+     horizon.
+
+     NEITHER FAILURE UNDOES THE DECISION. The property is published by this
+     point. A failure here is recorded in the audit detail and told to the
+     admin as the one thing left to do, which is the pattern the business
+     publish beneath already follows and which the lead's B0 audit item 4
+     settled.
+     --------------------------------------------------------------------- */
+  const { error: roomsError, count: roomsPublished } = await access.supabase
+    .from("room_types")
+    .update({ status: "PUBLISHED" }, { count: "exact" })
+    .in(
+      "id",
+      bookableRooms.map((roomType) => roomType.id),
+    )
+    .neq("status", "PUBLISHED");
+
+  const nights = bookableRooms.flatMap((roomType) =>
+    nightsToOpen(roomType.id, roomType.units_total, new Date()),
+  );
+  /* `onConflict` on the primary key, ignoring duplicates: a room type being
+     republished keeps the nights its host has already adjusted rather than
+     having them reset underneath live bookings. */
+  const { error: inventoryError } =
+    nights.length > 0
+      ? await access.supabase
+          .from("room_inventory")
+          .upsert(nights, { onConflict: "room_type_id,date", ignoreDuplicates: true })
+      : { error: null };
 
   // The business goes live with its first published property, so a host does
   // not have to be told to do a second thing they cannot do. The property is
@@ -308,6 +364,10 @@ export async function publishAccommodation(input: {
         business_name: business.name,
         photo_count: property.accommodation_photos.length,
         business_published: businessPublished,
+        /* What went live beside the property, so a null price on the shelf
+           can be traced to the act that should have prevented it. */
+        room_types_published: roomsError ? null : (roomsPublished ?? 0),
+        inventory_nights_opened: inventoryError ? null : nights.length,
       },
     },
   );
@@ -317,6 +377,24 @@ export async function publishAccommodation(input: {
     revalidatePath("/stays");
     return fail(
       "The property is published, but the business could not be marked live at the same time. Open the business and publish it from there.",
+    );
+  }
+
+  /* Said in the order a reviewer can act on: a property with no published
+     room shows no price at all, which is worse than one that shows a price
+     and cannot be found on a dated search. */
+  if (roomsError) {
+    refreshConsole();
+    revalidatePath("/stays");
+    return fail(
+      "The property is published, but its rooms could not be put on sale, so it will show no price. Publish it again in a moment.",
+    );
+  }
+  if (inventoryError) {
+    refreshConsole();
+    revalidatePath("/stays");
+    return fail(
+      "The property is published and priced, but its nights could not be opened, so a search with dates on it will not find the property. Publish it again in a moment.",
     );
   }
 

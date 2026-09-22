@@ -177,9 +177,20 @@ export function HostStandingBody({
                     serves both spines, so the door is honest on both.
                   */}
                   <div className="flex flex-wrap gap-inline">
-                    {business.kind === "restaurant" && (
+                    {business.kind === "restaurant" ? (
                       <Link href="/host/reservations" className="nf-chip">
                         Tables
+                      </Link>
+                    ) : (
+                      /* ROOMS AND NIGHTS, for the same reason Tables exists on
+                         the other spine. `stays_search` treats a night with no
+                         `room_inventory` row as not offered, so a hotel with no
+                         rows cannot be found by anybody who types dates, and
+                         nothing in the application wrote or read that table
+                         until now. This is where a host sees how far ahead they
+                         are bookable and changes it. */
+                      <Link href={`/host/rooms?business=${business.id}`} className="nf-chip">
+                        Rooms and nights
                       </Link>
                     )}
                     <Link href={`/host/photos?business=${business.id}`} className="nf-chip">
