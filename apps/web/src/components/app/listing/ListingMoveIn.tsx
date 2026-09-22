@@ -1,26 +1,32 @@
-import type { Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n";
 import type { Listing } from "@/lib/listings/types";
-import { RENT_PERIOD_LABEL, type RentPeriod } from "@/lib/listings/pricing";
 import { Amount } from "@/components/ui/Amount";
-import { Disclosure } from "@/components/app/Disclosure";
+import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { TYPE } from "@/components/app/Screen";
+import { moveInLines } from "./move-in-lines";
 
 /**
  * What it actually costs to move in.
  *
- * THE NUMBER EVERY NIGERIAN RENTER SHOPS ON, and until now the page did not
- * show it at all. A 4.5m yearly rent routinely means 7m at the door once
- * caution, agency, legal, agreement and service charge are counted, so a
- * listing page that leads with the rent alone is quoting a figure nobody
- * actually pays. The schema has carried these columns for a while
+ * THE NUMBER EVERY NIGERIAN RENTER SHOPS ON, and until 22 September 2026 the
+ * listing page did not show it at all. A 4.5m yearly rent routinely means 7m at
+ * the door once caution, agency, legal, agreement and service charge are
+ * counted, so a listing page that leads with the rent alone is quoting a figure
+ * nobody actually pays. The schema has carried these columns for a while
  * (`total_move_in_cost_minor` and the five parts); this is the first surface to
  * print them.
  *
- * THE SHAPE IS THE REFERENCE PLATFORM'S BALANCE SURFACE: one number and one
- * action, with the full breakdown behind a details sheet. The total leads at
- * heading size, and the six lines that compose it are one tap away rather than
- * six more rows competing with the price above them. Nothing is removed; the
- * breakdown is in the product, it is simply not the first thing shouted.
+ * THIS COMPONENT EXISTED, WAS CORRECT, AND NOTHING IMPORTED IT. HANDOFF 09
+ * section 4.1 calls that the cheapest win in the whole brief. It is on the
+ * screen now, at `listing/[id]/page.tsx`, and the disclosure it used to hide
+ * behind is gone: the breakdown is the point, so the breakdown is open.
+ *
+ * THE ANATOMY IS `GOVERNING-08` SCREEN TWO, "What will a tenant actually pay?":
+ * one row per cost, each carrying a glass object on a rounded plate, the cost's
+ * name with its period or basis beneath, the figure on the right, and a quiet
+ * note saying who keeps it. The total sits in its own lit panel under them with
+ * the coin-stack object beside it. Every capsule in that render ships as a
+ * rounded rectangle on `--nf-radius-control`, per the roles README.
  *
  * WHAT IT WILL NOT DO.
  *
@@ -29,132 +35,118 @@ import { TYPE } from "@/components/app/Screen";
  *     precisely because agents fold fees into each other. When no total was
  *     stated the sum of the named parts is the honest FLOOR, and the figure is
  *     labelled "from" so it cannot read as a quote.
- *   - It never prints a fee nobody stated. A stated zero and an unstated fee
- *     are different facts: "no agency fee" is a selling point, "we did not say"
- *     is not, and only the first is rendered as a number.
+ *   - IT NEVER DRAWS AN UNDECLARED COST AS ZERO. HANDOFF 09 section 4.3:
+ *     "a cost the lister has not declared is drawn as not declared, with the
+ *     words, never as zero. Zero is a claim." So an undeclared line is still
+ *     LISTED, because the tenant will meet it whether or not the lister named
+ *     it, and it is drawn with the words "Not declared" and never with a
+ *     figure. It contributes nothing to the total.
+ *   - A STATED ZERO IS A DIFFERENT FACT AND IS DRAWN AS ONE. "No agency fee"
+ *     on an owner's own listing is the entire argument of this handoff made
+ *     visible in one line, so a declared zero agency fee gets the words rather
+ *     than a ₦0 nobody reads.
  *   - It renders nothing at all when the lister named neither a total nor a
  *     single part, rather than showing a zero or an empty breakdown.
  */
 
-type Part = { key: string; label: string; minor: number };
-
-/**
- * The parts, in the order a tenant meets them.
- *
- * Deliberately built from the `Listing` view rather than by calling
- * `moveInParts`, which takes raw Postgres columns. Same order, same rule that
- * an absent value is skipped and a stated zero is kept.
- */
-function partsOf(listing: Listing): Part[] {
-  const parts: Part[] = [];
-  const push = (key: string, label: string, minor: number | undefined) => {
-    if (minor === undefined || minor === null) return;
-    parts.push({ key, label, minor });
-  };
-
-  const rentPeriod: RentPeriod =
-    listing.pricePeriod === "month" || listing.pricePeriod === "quarter"
-      ? listing.pricePeriod
-      : "year";
-
-  push("rent", `Rent (${RENT_PERIOD_LABEL[rentPeriod].toLowerCase()})`, listing.priceMinor || undefined);
-  push("caution", "Caution deposit", listing.cautionDepositMinor);
-  push(
-    "service",
-    listing.serviceChargePeriod
-      ? `Service charge (${RENT_PERIOD_LABEL[listing.serviceChargePeriod].toLowerCase()})`
-      : "Service charge",
-    listing.serviceChargeMinor,
-  );
-  push("agency", "Agency fee", listing.agencyFeeMinor);
-  push("legal", "Legal fee", listing.legalFeeMinor);
-  push("agreement", "Agreement fee", listing.agreementFeeMinor);
-  return parts;
-}
-
 export function ListingMoveIn({
   listing,
   locale,
+  t,
 }: {
   listing: Listing;
   locale: Locale;
+  t: Dictionary;
 }) {
-  const parts = partsOf(listing);
+  const copy = t.moveIn;
+  const lines = moveInLines(listing, copy);
+  const declared = lines.filter((line) => line.minor !== undefined && line.minor !== null);
   const stated = listing.moveInCostStated === true;
   const total =
-    listing.moveInCostMinor ?? parts.reduce((sum, part) => sum + part.minor, 0);
+    listing.moveInCostMinor ?? declared.reduce((sum, line) => sum + (line.minor ?? 0), 0);
 
   // Nobody named a total and nobody named a part. There is no honest figure to
   // print, so none is printed.
-  if (total <= 0 && parts.length === 0) return null;
+  if (total <= 0 && declared.length === 0) return null;
 
-  /*
-   * The breakdown is only worth a tap when it has more than the rent in it. A
-   * sheet whose entire content restates the price above it is a control that
-   * does nothing, which is worse than no control.
-   */
-  const breakdownWorthOpening = parts.length > 1;
+  const undeclared = lines.length - declared.length;
+  /* A declared zero agency fee is the direct-from-owner argument in one line,
+     so it gets said in words rather than left as a ₦0 in a column. */
+  const noAgencyFee = listing.agencyFeeMinor === 0;
 
   return (
-    <div data-testid="move-in-cost">
-      <p className={TYPE.label}>
-        {stated ? "Total to move in" : "Move in from"}
-      </p>
-      <p className="mt-row">
-        <Amount
-          minorUnits={total}
-          locale={locale}
-          currency={listing.currency}
-          className="text-[1.75rem] font-bold leading-none tracking-[-0.025em] text-[var(--nf-content-primary)] sm:text-[2rem]"
-        />
-      </p>
-      <p className={`mt-row ${TYPE.body}`}>
-        {stated
-          ? "The figure the agent says you need at the door, rent included."
-          : "The parts the agent has named so far, added up. Ask about anything not listed before you commit."}
-      </p>
-
-      {breakdownWorthOpening && (
-        <div className="nf-hairline mt-block">
-          <Disclosure
-            label="What makes up this figure"
-            hint={`${parts.length} ${parts.length === 1 ? "line" : "lines"}`}
-            title="Move-in breakdown"
-            data-testid="move-in-breakdown"
-          >
-            <dl className="divide-y divide-[var(--nf-border-subtle)]">
-              {parts.map((part) => (
-                <div key={part.key} className="flex items-baseline justify-between gap-group py-row">
-                  <dt className={TYPE.body}>{part.label}</dt>
-                  <dd className="shrink-0">
+    <div data-testid="move-in-cost" className="nf-movein">
+      <ul className="nf-movein__list">
+        {lines.map((line) => {
+          const isDeclared = line.minor !== undefined && line.minor !== null;
+          return (
+            <li
+              key={line.key}
+              className="nf-movein__row"
+              data-declared={isDeclared || undefined}
+              data-testid={`move-in-line-${line.key}`}
+            >
+              <span className="nf-movein__plate" aria-hidden="true">
+                <BrandIcon name={line.icon} fill />
+              </span>
+              <span className="nf-movein__name">
+                <span className="nf-movein__label">
+                  {line.label}
+                  {line.basis && <span className="nf-movein__basis"> ({line.basis})</span>}
+                </span>
+                {isDeclared && line.keeper && (
+                  <span className="nf-movein__keeper">{line.keeper}</span>
+                )}
+              </span>
+              <span className="nf-movein__figure">
+                {isDeclared ? (
+                  line.key === "agency" && line.minor === 0 ? (
+                    <span className="nf-movein__free">{copy.noAgencyFee}</span>
+                  ) : (
                     <Amount
-                      minorUnits={part.minor}
+                      minorUnits={line.minor as number}
                       locale={locale}
                       currency={listing.currency}
-                      className="text-[var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]"
                     />
-                  </dd>
-                </div>
-              ))}
-              <div className="flex items-baseline justify-between gap-group py-group">
-                <dt className={TYPE.rowTitle}>{stated ? "Total" : "Named so far"}</dt>
-                <dd className="shrink-0">
-                  <Amount
-                    minorUnits={total}
-                    locale={locale}
-                    currency={listing.currency}
-                    className="text-[var(--nf-text-h4)] font-bold text-[var(--nf-content-primary)]"
-                  />
-                </dd>
-              </div>
-            </dl>
-            <p className={`mt-row ${TYPE.caption} leading-relaxed`}>
-              {stated
-                ? "Stated by the agent. Anything not listed here is not part of their quote, so ask before you pay."
-                : "The agent has not given one total, so this is the sum of the parts they named. There may be more; ask before you pay."}
-            </p>
-          </Disclosure>
-        </div>
+                  )
+                ) : (
+                  <span className="nf-movein__undeclared">{copy.notDeclared}</span>
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="nf-movein__total" data-testid="move-in-total">
+        <span className="nf-movein__plate nf-movein__plate--total" aria-hidden="true">
+          <BrandIcon name="naira-coins" fill />
+        </span>
+        <span className="min-w-0">
+          <span className="nf-movein__total-label">
+            {stated ? copy.totalStated : copy.totalFrom}
+          </span>
+          <span className="nf-movein__total-figure">
+            <Amount minorUnits={total} locale={locale} currency={listing.currency} />
+          </span>
+        </span>
+      </div>
+
+      <p className={`mt-row ${TYPE.caption} leading-relaxed`}>
+        {stated ? copy.statedNote : copy.summedNote}
+      </p>
+      {undeclared > 0 && (
+        <p className={`mt-inline-tight ${TYPE.caption} leading-relaxed`} data-testid="move-in-gaps">
+          {(undeclared === 1 ? copy.undeclaredOne : copy.undeclaredMany).replace(
+            "{count}",
+            String(undeclared),
+          )}
+        </p>
+      )}
+      {noAgencyFee && (
+        <p className={`mt-inline-tight ${TYPE.caption} leading-relaxed`} data-testid="move-in-direct">
+          {copy.noAgencyFeeNote}
+        </p>
       )}
     </div>
   );
