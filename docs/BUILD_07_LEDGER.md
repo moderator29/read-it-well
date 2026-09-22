@@ -306,9 +306,18 @@ compiles, and B1 killed its own build waiter over it; A2 recorded that
 `PageScene` screens unphotographed for that reason, when the cause it named
 had already been fixed at `536a0cd`; and this worker's own first build died
 the same way. **So a proof build is built from a clean checkout of the commit:
-`git clone --shared` it, symlink `node_modules`, copy `.env.local`, build
-there. It costs a minute and it is the difference between gating your own work
-and gating everybody's.**
+`git clone --shared /home/user/read-it-well <dir>`, check the commit out, copy
+`.env.local`, and bring `node_modules` across with `cp -al` at BOTH the root
+and `apps/web`. It costs a minute and it is the difference between gating your
+own work and gating everybody's.**
+
+**DO NOT SYMLINK `node_modules`, and this cost a whole build slot to learn.**
+Turbopack refuses it outright and panics rather than failing cleanly:
+`Symlink [project]/apps/web/node_modules is invalid, it points out of the
+filesystem root`, a `TurbopackInternalError` with a panic log and no line of
+our own code in it. `cp -al` is a hardlink copy: it is as fast as a symlink,
+it costs almost nothing on disk because every file is shared, and Turbopack
+walks it as an ordinary directory.
 
 **A2's register extensions, recorded so the founder can check them.** The
 twelve governing images draw none of the surfaces above, so every one of them
