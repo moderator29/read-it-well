@@ -5873,3 +5873,60 @@ them.** Its remaining request, a `renderTrigger(open)` prop or an
 `openProfileSwitcher()` event on `components/supply/ProfileSwitcher.tsx` so its
 profile row stops coupling to the dock's `.nf-tab__link--switch` class name,
 is assigned to ROLES, which owns that file.
+
+## 52. I CLOSED FINDING 1.5 AGAINST THE WRONG KEY
+
+Section 44's reconciliation matched the applied set against the file set **by
+name**, found zero orphans, and reported the finding closed. That was the wrong
+comparison, and the right one was one query away.
+
+```
+primary_key of supabase_migrations.schema_migrations: version
+```
+
+**`version` is the primary key**, and `version` is the timestamp prefix, not the
+name. Two files sharing a prefix cannot both be recorded: the second insert
+violates the key. The repository carried **twelve files across five duplicate
+versions**:
+
+| Version | Files sharing it |
+|---|---|
+| `20260922140000` | the abuse scan, and the welcome-once guard |
+| `20260922150000` | the terms receipt, three amenities, and the stats band |
+| `20260922160000` | what a buyer pays, and the stay fulfilment guard |
+| `20260922190000` | the recovered-failure watch, the shortlet enum, and the URL trim |
+| `20260922200000` | a bedroom is not a bed, and the money job's own reply |
+
+### Why nobody noticed, which is the interesting half
+
+**`mcp__Supabase__apply_migration` assigns its own version at apply time and
+ignores the filename's.** The newest recorded version is `20260922221913`, a
+wall-clock stamp from this evening, not a number any file carries. So the file
+versions and the database versions are **independent in this workflow**, the
+duplicates never collide when applying remotely, and everything reports clean.
+
+They collide on exactly one path: **a rebuild of the schema from the
+repository**, which is the precise scenario finding 1.5 is named for. The
+finding was about a latent inability to rebuild, and I verified it against a
+key that a rebuild does not use.
+
+**My name-based check was not wrong, it was insufficient.** Zero orphans by name
+is still true and still worth having. It simply cannot see this.
+
+### Fixed
+
+Seven files renamed to unique versions, preserving alphabetical order within
+each group so the apply order a rebuild would choose does not change. Renaming
+is safe here for the same reason the duplicates were invisible: the database
+records its own versions, so no recorded row refers to a filename. **252 files,
+zero duplicate versions.**
+
+Two live workers had independently written `20260922230000`, PRICE CHECK and
+ROLES. Told both; PRICE CHECK moved to `234000` and the block is ROLES's.
+
+### The rule this leaves behind
+
+**Verify a claim against the key the failing scenario uses, not against the key
+that is convenient to read.** A reconciliation that matches on a field the
+restore path ignores is a green light aimed at the wrong wall, and it is the
+eighth of that shape found today.
