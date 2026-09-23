@@ -12,6 +12,8 @@ import { CalmNote, DeskHead, EmptyChart, Kpi, NumberedPager, Panel, TableNote, W
 import { SeriesChart, SeriesLegend, StatusBar, type Series } from "./_desk/charts";
 import { ReconciliationPanel } from "./_desk/Reconciliation";
 import { DisputeEvidence } from "./_desk/Evidence";
+import { BadgeSlot } from "./_desk/BadgeSlot";
+import type { BadgeTier } from "@/lib/admin/reads/badges";
 import type { EvidenceItem } from "@/lib/admin/reads/escrow";
 import { percentChange } from "@/lib/admin/reads/money-derive";
 import type { MoneyDesk as MoneyDeskData } from "@/lib/admin/reads/money";
@@ -42,6 +44,7 @@ export function MoneyDesk({
   health,
   rent,
   evidence = {},
+  tiers = {},
   now,
 }: {
   locale: Locale;
@@ -60,6 +63,8 @@ export function MoneyDesk({
   rent: RentCharges | null;
   /** `getDisputeEvidence` for the disputes below; null when the read failed. */
   evidence?: Record<string, EvidenceItem[]> | null;
+  /** Badge tiers from `public.person_badge`, keyed by user id. */
+  tiers?: Record<string, BadgeTier>;
   now: number;
 }) {
   const { wallets, recent, stuck, totals } = read;
@@ -173,7 +178,7 @@ export function MoneyDesk({
         </Panel>
       </div>
 
-      <RentPanel rent={rent} locale={locale} ui={ui} />
+      <RentPanel rent={rent} locale={locale} ui={ui} tiers={tiers} />
 
       <QueueFilters
         base="/admin/money"
@@ -189,7 +194,7 @@ export function MoneyDesk({
       )}
 
       {ledger ? (
-        <LedgerPanel ledger={ledger} showBalance={!narrowed} narrowed={narrowed} params={params} ui={ui} locale={locale} />
+        <LedgerPanel ledger={ledger} showBalance={!narrowed} narrowed={narrowed} params={params} ui={ui} locale={locale} tiers={tiers} />
       ) : (
         <Panel title="Ledger">
           <Waiting
@@ -234,6 +239,7 @@ export function MoneyDesk({
                 <span className="min-w-0">
                   <span className="block text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
                     {wallet.ownerName ?? "No display name"}
+                    <BadgeSlot tier={tiers[wallet.userId]} />
                   </span>
                   {/* The owner's profile id, printed whole: it is what an
                       operator pastes into the search box above. */}
@@ -289,6 +295,7 @@ export function MoneyDesk({
                   </span>
                 </div>
                 <DisputeEvidence
+                  tiers={tiers}
                   items={evidence ? (evidence[dispute.id] ?? []) : []}
                   readable={evidence !== null}
                   payerName={dispute.payerName}
@@ -328,7 +335,17 @@ const RENT_PERIOD: Record<string, string> = { month: "Monthly", quarter: "Quarte
  * and what is awaited in kobo through the formatter, and the newest charges.
  * Whole-platform, so it never re-scopes under the filter below it.
  */
-function RentPanel({ rent, locale, ui }: { rent: RentCharges | null; locale: Locale; ui: AdminUi }) {
+function RentPanel({
+  rent,
+  locale,
+  ui,
+  tiers,
+}: {
+  rent: RentCharges | null;
+  locale: Locale;
+  ui: AdminUi;
+  tiers: Record<string, BadgeTier>;
+}) {
   if (!rent) {
     return (
       <Panel title="Tenancy charges">
@@ -401,6 +418,7 @@ function RentPanel({ rent, locale, ui }: { rent: RentCharges | null; locale: Loc
                     <span className="block">
                       {row.listingTitle ?? "A listing that is no longer there"}
                       {row.tenantName ? ` · ${row.tenantName}` : ""}
+                      {row.tenantId ? <BadgeSlot tier={tiers[row.tenantId]} /> : null}
                     </span>
                     <span className="nf-md-ref">{row.bookingId}</span>
                   </span>
@@ -497,7 +515,9 @@ function LedgerPanel({
   params,
   ui,
   locale,
+  tiers,
 }: {
+  tiers: Record<string, BadgeTier>;
   ledger: LedgerPage;
   showBalance: boolean;
   narrowed: boolean;
@@ -565,6 +585,7 @@ function LedgerPanel({
                       <span className="flex flex-wrap items-center justify-end gap-xs md:justify-start">
                         {row.note ?? ui.columnLabel("walletEntryKind", row.kind)}
                         {row.ownerName ? ` · ${row.ownerName}` : ""}
+                        {row.ownerId ? <BadgeSlot tier={tiers[row.ownerId]} /> : null}
                         {row.status !== "COMPLETED" && (
                           <ui.StatusChip label={ui.columnLabel("walletEntryStatus", row.status)} status={row.status} />
                         )}

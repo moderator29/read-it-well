@@ -31,6 +31,8 @@ export type BookingRowView = {
   listingTitle: string | null;
   place: string | null;
   guestName: string | null;
+  /** For the badge slot. */
+  guestId?: string;
   checkIn: string;
   checkOut: string;
   nights: number;
@@ -152,6 +154,7 @@ export function buildBookings(
         listingTitle: r.listings?.title ?? null,
         place: [r.listings?.area, r.listings?.city].filter(Boolean).join(", ") || null,
         guestName: r.guest_name ?? names.get(r.guest_id) ?? null,
+        guestId: r.guest_id,
         checkIn: r.check_in,
         checkOut: r.check_out,
         nights: r.nights,
