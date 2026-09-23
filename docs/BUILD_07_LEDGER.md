@@ -5814,6 +5814,37 @@ mid-animation: 18
 Eighteen numerals at 1.57:1 and a headline that says every leaf clears its
 floor. Both statements are true and only one of them was being printed.
 
+### R10. REQUEST. A selected recipient's initials are brand ink on the brand fill, 1.00:1
+
+`apps/web/src/app/css/wallet.css:1554-1563`, daylight only:
+
+```css
+:root[data-theme="light"] .nf-glyph-tile,
+:root[data-theme="light"] .nf-tx-tile,
+:root[data-theme="light"] .nf-recipient__avatar {
+  background: var(--nf-brand-tint-1);
+  color: var(--nf-brand-primary);
+  ...
+}
+:root[data-theme="light"] .nf-recipient[aria-pressed="true"] .nf-recipient__avatar {
+  background: var(--nf-brand-primary);        /* the fill flips */
+}                                             /* the ink does not */
+```
+
+MEASURED on a production server, `/preview/e/send` in daylight: the pressed
+avatar computes `color: rgb(9,75,169)` on `background-color: rgb(9,75,169)`.
+**The same colour twice.** The whole-harness sweep reads it as 1.01:1 off the
+pixels, which is the antialiasing of a glyph that is not there. The initials of
+the recipient a person has just selected are invisible.
+
+**The exact change**: add `color: var(--nf-content-on-brand);` to the
+`aria-pressed="true"` rule. White on `#094BA9` is 8.6:1, it is what every other
+brand fill in the product pairs with, and it is one line.
+
+Not done here because `wallet.css` is outside this session's partition. It is
+the same shape as R8's warning: the FILL was given a daylight answer and the
+INK that rides on it was not.
+
 ## 50. TWO PROOFS THAT DISAGREED WITH THE SHIPPED CODE, RETAKEN
 
 The founder's ruling, in his words: **a proof that disagrees with the shipped

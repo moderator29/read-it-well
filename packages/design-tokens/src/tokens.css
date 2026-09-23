@@ -3087,10 +3087,44 @@
    * Muted ink was #7A8189, which measured 3.94:1 on white and 3.61:1 on the
    * canvas and so failed WCAG AA at ~290 call sites, 30 of them at 10-11px.
    * Only .nf-overline had been patched; the token itself stayed broken.
-   * #676E76 measures 5.16:1 on white, 4.73:1 on canvas and 4.60:1 on inset,
-   * so it clears AA on every light surface the product actually paints on.
+   * #676E76 measured 5.16:1 on white, 4.73:1 on canvas and 4.60:1 on inset.
+   *
+   * AND THEN IT WAS MEASURED AGAINST THE SURFACES IT ACTUALLY LANDS ON, WHICH
+   * ARE NOT THE FOUR NAMED SURFACE TOKENS.
+   *
+   * "Every light surface the product actually paints on" was the right test
+   * named against the wrong list. A surface token is where a fill STARTS; what
+   * an ink lands on is that fill with whatever is layered over it. The
+   * whole-harness sweep in daylight found `--nf-content-muted` under the floor
+   * in twelve places, every one of them on a compound ground the four-token
+   * list does not contain:
+   *
+   *   4.40:1  `.nf-btn__label` on a quiet danger button, ten places, where the
+   *           ground is `--nf-interactive-disabled` (ink at 3.5 per cent) over
+   *           an admin card, which flattens to rgb(234,237,242)
+   *   4.48:1  `.nf-caption` and a muted span on `/preview/e/result`, where the
+   *           card flattens to rgb(236,239,245)
+   *
+   * Crop-verified rather than taken from the sweep: the crop of "Take it down"
+   * is 83 per cent rgb(234,237,242) with the glyph core at exactly
+   * rgb(103,110,118), so both halves of that reading are the paint.
+   *
+   * #646B73 measures 5.39:1 on white, 4.95:1 on the canvas, 5.08:1 on raised,
+   * 4.77:1 on inset, **4.60:1 on the darkest compound ground the sweep found
+   * and 4.68:1 on the next**. It is a two per cent luminance step, invisible as
+   * a design change, and it is the whole of what those twelve failures needed.
+   * It stays a clear rung below `--nf-content-subtle` at 6.95:1 on white.
+   *
+   * WHAT IT DOES NOT FIX, said with its number so nobody re-derives it.
+   * `.nf-tab__label` and `.nf-sgroup__label` read 4.00:1 on a tab track that
+   * flattens to rgb(219,227,240), on `/preview/session-b/profile` and
+   * `/preview/lead/dock`. Reaching 4.5:1 there by moving the INK means about
+   * #5D646C, which is 6.0:1 on white and starts to be the subtle rung rather
+   * than the muted one, across roughly 290 call sites. The tab track is the
+   * cheaper lever and it is somebody else's file, so the number is recorded
+   * here rather than paid for out of the ink ladder.
    */
-  --nf-content-muted: #676E76;
+  --nf-content-muted: #646B73;
   --nf-content-on-brand: #FFFFFF;
   /* 6.95:1 on white, 6.38:1 on canvas, 6.15:1 on inset: the readable tier
      between secondary and muted, safe at any size on every light surface. */
