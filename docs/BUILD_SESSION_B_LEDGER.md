@@ -1827,11 +1827,11 @@ each carry their own (`.nf-md--escrow`, `.nf-md--supply` in `desk.css`).
 | Pager box | 25 render px | 39px | 44 x 44 (R-B floor) | yes (R-B) |
 | Pager digit | cap 9 | 14 cap, 20px | 20px | yes |
 | KPI card box | 79 x 85 render px | 124 x 133 | 284 x 124 at 1440 (four across a wider window) | height yes; width follows the 1440 grid |
-| Card corner | about 5 render px, traced by eye (the scanner could not separate the rim from the fill) | about 8px | 14px (`--nf-radius-md`) | no: the console's one panel corner, measured by admin-shell on the overview render, so every desk is one object |
+| Card corner | about 5 render px, traced by eye (the scanner could not separate the rim from the fill) | about 8px | 10px (`--nf-admin-radius`, admin-shell's measured corner since `66c2ecf5`; the desk inherits it) | yes (within the 6 to 9 CSS px band admin-shell measured at this scale) |
 | Card fill | top under the rim `#002c7c`, 8px down `#001b53`, middle `#00153f`, foot `#011e55` | a lit top, dark middle, lift at the foot | the shell's `--nf-admin-panel-fill`: the same four-stop lit ink over the canvas | yes |
 | Lit rim | top edge `#0373d8`, 1px | a bright top line | inset 0 1px 0 rim-lit ink at 55% plus the centred catchlight | yes |
 | Side edge | left `#003780`, 1px | per-side edge | `--nf-admin-panel-edges` (per side, lit top left) | yes |
-| Outer glow | none: ground `#000a27` flat from 1px outside; a 1px contact line `#000522` | none | the shell's `--nf-admin-panel-glow` 0 0 22px at 22% | no: the shell's shared value; raised to admin-shell rather than overridden per desk |
+| Outer glow | none: ground `#000a27` flat from 1px outside; a 1px contact line `#000522` | none | the shell's `--nf-admin-panel-glow` since `66c2ecf5`: light kept inside the edge, a 3px outer halo | yes (a hair, not a bloom) |
 | Chart | filled rising area, second series quieter, legend top right | | two filled monotone curves on the ramp, dashed second series, legend top right, hover readout | yes in anatomy; the fixture's monthly sums oscillate, the render's rise |
 | Recon ring | emerald ring, % in the middle, Healthy badge | | emerald ring, %, badge on the shape law | yes |
 | Credit colour | `#1aba8d` | | `--nf-state-success` rgb(16 185 129) | yes |
@@ -1879,7 +1879,7 @@ the register is the money desk above; `side-by-side-bookings-vs-register.jpg`,
 |---|---|---|---|---|
 | Page title | 26px 700 | 26px 700 | 26px 700 | yes |
 | Lede | 14px quiet blue | 14px quiet blue | 14px quiet blue | yes |
-| KPI card | 14px corner, per-side lit edges, lit fill | same, five across (224 x 138) | same, four across (284 x 124) | yes |
+| KPI card | 10px corner, per-side lit edges, lit fill | same, five across (224 x 138) | same, four across (284 x 124) | yes |
 | KPI label / figure | 15px 500 / 24.6px 700 | 15 / 24.6 | 15 / 24.6 | yes |
 | Change | 15px 600, emerald or rose | none drawn (state counts, no earlier period of the same thing) | 15px, rose when failures rise | yes |
 | Panel title | 20px 600 | 20px | 20px | yes |
@@ -1923,7 +1923,7 @@ self-naming rows below 768px; the pipeline is two columns; charts scale.
 Built values are `getComputedStyle` in Chromium at 1440 dark on the committed
 harness after the final change (`m2.mjs`, 23 September), and are the "Built"
 column of the tables in 8.2. Shared by every desk: KPI and panel card corner
-14px, per-side lit edges, inset rim; pager 44 x 44, corner 10px (ratio 0.23),
+10px (the shell's `--nf-admin-radius`), per-side lit edges, inset rim; pager 44 x 44, corner 10px (ratio 0.23),
 current page on the lit primary with rim and bloom; table head and rows 13px;
 status badge 23 to 28px tall, 6px corner (0.26); calm note corner 10px;
 toggles and chips 44px tall, 14px corner (0.32). Per desk: money title 26 /
@@ -1995,10 +1995,11 @@ by a signed-in screenshot.
 - `rent_payments` was the one money path on no desk; closed in round three
   (8.10). No charge exists, so the panel has only been seen full on the
   fixture.
-- Card corner: the render draws about 8 CSS px, built 14px, the shell's one
-  panel corner. Outer glow: the render has none, the shell's shared
-  `--nf-admin-panel-glow` adds 22px. Both left to admin-shell, not overridden
-  per desk.
+- Card corner and outer glow: reported here at 14px and 22px against the
+  render's about 8px and none; admin-shell re-measured and changed the shared
+  values (`66c2ecf5`: 10px corner, 3px halo). `.nf-md-card` had pinned
+  `--nf-radius-md` itself; it now reads `--nf-admin-radius`, so no desk
+  overrides the shell. Measured after the change: 10px on every desk's cards.
 - Ledger row pitch 64px against the render's 39: the second line carries the
   payment reference.
 - The render's escrow row photographs: `escrows` has no photo.
@@ -2073,8 +2074,7 @@ longer collide at the right edge.
 **Requests to admin-shell.**
 1. `EscrowRuling` (`_components/MoneyDecisions.tsx`): make the second-step
    committing button the lit primary and keep the two direction choices as
-   equal glass rounded rectangles. Not changed here: `_components` is
-   admin-shell's.
+   equal glass rounded rectangles. Done by admin-shell in `66c2ecf5`.
 
 ### 8.10 Coverage and the lead's rulings
 
@@ -2121,8 +2121,13 @@ an eye; page width at 390 is 390. `vitest run src/lib/admin/reads`: 11 files,
 75 tests passed; `tsc` and `eslint` clean; `next build` exit 0. The shared
 panel corner and glow stay with admin-shell, which is reconciling them
 against the renders; nothing here overrides them. `EscrowRuling` lives in
-`app/admin/_components/MoneyDecisions.tsx`, admin-shell's, so its second-step
-button is left as the request in 8.9 rather than changed here.
+`app/admin/_components/MoneyDecisions.tsx`, admin-shell's; admin-shell made
+its second step the lit primary in `66c2ecf5`. After rebasing onto that
+commit every desk proof and side-by-side was reshot again; the cards now
+measure 10px on all five desks (`.nf-md-card` inherits `--nf-admin-radius`
+instead of pinning its own corner), the independent sweep reads 40
+combinations, 1,200 controls, highest ratio 0.32, and the official sweep over
+all ten routes is 0 breaches and 0 worth an eye.
 
 ## 9. Inspection
 

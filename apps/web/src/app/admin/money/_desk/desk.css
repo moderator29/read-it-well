@@ -71,7 +71,8 @@
   .nf-md-card {
     position: relative;
     min-width: 0;
-    border-radius: var(--nf-radius-md);
+    /* The shell's measured container corner, never a desk's own. */
+    border-radius: var(--nf-admin-radius);
     border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
     /* The glow identity's per-side lit edge (GLOW_IDENTITY section 2), the
        same list admin.css hands every console panel. */
