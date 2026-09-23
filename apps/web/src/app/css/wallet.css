@@ -747,8 +747,16 @@
     background: var(--nf-wallet-glass-mid);
     box-shadow: var(--nf-rim-lit);
   }
+  /*
+   * ONE FOCUS INDICATOR PER ROW. The row carries it: its lit glow, and a
+   * 2px outline in the focus token (`--nf-brand-quiet`, #5C9FFF, about 6.6:1
+   * against the panel's rgb(0 12 43), well over 3:1). The field inside the
+   * row gives up its own ring, below, so keyboard focus is obvious and single.
+   */
   .nf-send-row:focus-within {
     border-color: var(--nf-wallet-rim-foot);
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: var(--nf-focus-ring-offset);
     box-shadow:
       var(--nf-rim-lit),
       0 0 0 3px var(--nf-glow-2);
@@ -1494,4 +1502,17 @@
     margin-top: 0.125rem;
     line-height: 1.35;
   }
+}
+
+/*
+  OUTSIDE THE LAYER, ON PURPOSE. The platform's keyboard ring
+  (`base.css`, `:where(input, select, ...):focus-visible`) is unlayered, and an
+  unlayered rule beats every rule inside `@layer components` whatever its
+  specificity. So the one exception this surface needs is stated at the same
+  level: a field inside a send row draws no ring of its own, because the row
+  draws it (`.nf-send-row:focus-within` above). Scoped to the row, so no other
+  field anywhere loses its ring.
+*/
+.nf-send-row :where(.nf-send-row__input):focus-visible {
+  outline: none;
 }
