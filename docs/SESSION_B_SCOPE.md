@@ -159,6 +159,25 @@ Each group appends "RELEASED <commit>" here when it is done.
     (`BCD39CA8`), are claimed by no group. This group asks for them.
   - already Session B's: wallet family, inspections, auth, admin, welcome.
 
+### Sweep group: home, search and filters, listing detail (worker "sweep-home")
+Routes: `/home`, `/stays` (the home components only; `StayCard` is the stays
+group's), `/search` (bar, chips, sort menu, filter sheet, map view, empty and
+loading states), `/listing/[id]` (gallery, photo viewer, lead card, move-in
+block and costs, spec and amenity tiles, section tabs, agent card, reserve and
+rental panels, sticky Book Inspection bar, loading), `/price` and
+`/price/area/[id]`, and `/rent/move-in/[listingId]` (the Calculate Breakdown
+ledger, styled in `catalogue.css`). Files, besides the five stylesheets above:
+`components/app/home/**`, `components/app/search/**`,
+`components/app/listing/**`, `components/app/price/**`,
+`components/app/filters/**` (the filter sheet), `components/app/ListingCard.tsx`, `app/(app)/{home,search,price,listing}/**`.
+Rules in `catalogue.css` that other groups' components draw (`nf-lw-*` the
+listing wizard, `nf-stay-*`/`nf-room-tile` stay detail, `nf-stays-tile`,
+`nf-tenancy-chip`) are swept here with the file, not in those components.
+The notifications block in `home.css` (`.nf-notif*`) is the settings group's
+and is left alone. New (the fixture and live-row harness, committed):
+`apps/web/src/app/(dev)/preview/session-b/sweep-home/**`, and its proofs in
+`docs/design/proofs/session-b/sweep-home/**`.
+
 ## FOUNDER'S NINE ITEMS, 23 SEPTEMBER: WHAT SESSION B TAKES
 
 | # | Item | Session B's part | Session A's part |

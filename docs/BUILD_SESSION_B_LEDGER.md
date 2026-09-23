@@ -4844,6 +4844,169 @@ proved, its rows are proved by code only.
 (Pass 1, Pass 2, Pass 3: pending)
 
 
+## 13. Platform sweep: home (both sides), search and filters, listing detail, price check (worker "sweep-home")
+
+Scope (SESSION_B_SCOPE, "Sweep group: home, search and filters, listing
+detail"): `app/css/home.css`, `explore.css`, `catalogue.css`, `map.css`,
+`price-check.css` and the components they style (`components/app/home/**`,
+`search/**`, `filters/**`, `listing/**`, `price/**`, `ListingCard.tsx`,
+`app/(app)/{home,search,listing,price}/**`). Governing images, which the
+swept result must still match: `founder/GOVERNING-home-markets-target.png`
+(in-app home chrome and tiles), `roles/GOVERNING-01` screen one (property
+home), `roles/GOVERNING-09` screen one (Stays home), `3EB3E2A9` (search
+results and the filter sheet), `9E8B56ED` (listing detail: lead card,
+Move-in Total, amenity tiles, section tabs, agent card, the Calculate
+Breakdown and Book Inspection foot), with `7B5335E0` and `0D3D34D2` for the
+gallery. All five images draw the same anatomy the console and Get started
+now carry (glass fill, lit top rim, per-side edge, small outer glow, lit
+primary), so no surface here needs to keep a different anatomy on the
+image's say-so; where one does, the row below says why.
+
+The notifications block that used to live in `home.css` moved to the
+settings group in 790d8c2a and is not in this inventory.
+
+### 13.H.1 Routes in the group (8)
+
+| # | Route | What draws it | Proof source |
+|---|---|---|---|
+| 1 | `/home` | `HomeScreen`: greeting, `CityRow`, `HomeHero`, `CategoryRow` (four tiles), `FeaturedBand` of `ListingCard`, `EmptyState` + `EmptyActions` | harness `home` (fixture rows), `home-empty` (the route's own page; this box cannot reach the database, so its reads come back empty and the empty shelf draws) |
+| 2 | `/stays` | the same `HomeHero`, `CategoryRow` (two columns, four doors), `FeaturedBand` of `StayCard` (the card is the stays group's; its `nf-pcard`/`nf-stay-card__chip` rules are in `catalogue.css`, so here) | harness `stays` (fixture cards) |
+| 3 | `/search` | `ShelfBar` (field, filters square, chips), `ShelfCount` (count, sort menu), `ListingCard` grid, `FilterDrawer` sheet, `MapCanvas`/`MapDock` in map view, `EmptyState`, `loading.tsx` | harness `search`, `search?filters=open`, `search-empty`, `search-empty?view=map`, `loading?of=search` |
+| 4 | `/listing/[id]` | `ListingGallery`, `ListingActions`, `PhotoViewer`, lead card, `ListingMoveInBlock`, `ListingSpecChips`, `ListingAmenityTiles`, `ListingSectionTabs`, description panel, `ListingMoveIn`, `ListingPurchase`, `ListingTenure`, `ListingAmenities`, `ListingUtilities`, `ListingReviews`, `ListingCodeRow`, `ListingPhotoGrid`, `ListingWalkthrough`, `ListingAgentCard` + `VerifiedAgentBadge`, `RentalPanel`, `ReservePanel`, `ReserveTable`, `TenancyTerm`, `ExampleNotice`, `ListingStickyBar`, `loading.tsx` | harness `listing` (the f3 rental composition), `listing-parts` (every other panel), photo viewer opened by a click, `loading?of=listing` |
+| 5 | `/price` | `PriceCheckScreen` (ladder rungs, place suggest list, `PinMap`), `ResultPanel`, `AreaPanel`, `ShareAreaButton` | harness `price` (no pin yet), `price-area`, `price-answered` (fixture) |
+| 6 | `/price/area/[id]` | the shared area card `nf-pc-card` | not shot: needs a stored share row; the card's rules are swept with the rest of the file |
+| 7 | `/rent/move-in/[listingId]` | `MoveInLedger` (`nf-ledger-card`, `nf-detail-tag`): the Calculate Breakdown target, styled in `catalogue.css` | not in a harness yet (added in the apply step) |
+| 8 | `/assistant` | `AssistantChat` (`nf-ai__*` in `home.css`): no group names this route, the rules are in a file this group holds | not shot yet; flagged to the lead |
+
+### 13.H.2 Inventory: every place that draws its own container, button, rim, glow, glass or plate (written before any change, 23 September)
+
+Shared already (inherits Phase 1 with no edit here): every `Button` and
+`ButtonLink` (8 primary, 6 secondary, 2 ghost across the group, plus the
+filter sheet's Reset and Apply and the price check's six), `nf-glass`,
+`nf-glass--card`, `--tile`, `--strong`, `--chrome`, `nf-card`, `Switch`,
+`nf-range`, `nf-icon-btn`, `EmptyState`, `Section`. Everything below is
+LOCAL: a rule or a utility in this group that paints its own fill, edge,
+rim, glow, radius or blur. Line numbers are `catalogue.css` (C), `home.css`
+(H), `price-check.css` (P), `map.css` (M), `explore.css` (E) at 3621452c.
+
+**Home, both sides (routes 1, 2)**
+
+| ID | Item (state) | Where | Draws today |
+|---|---|---|---|
+| H1 | location chip, rest / hover / pressed | H `.nf-home__loc` | `nf-glass--tile` + own hover edge `--nf-brand-edge-strong`, own press scale |
+| H2 | hero plate (photo card) | H `.nf-hero-plate` | own radius `--nf-radius-xl` (the console's container is 10px), own 1px edge, `--nf-glow-edge` |
+| H3 | hero place chip on the photo | H `.nf-hero-plate__chip` | own glass: canvas mix, rim-thin edge, raw `blur(10px)` |
+| H4 | hero search well, rest / focus | H `.nf-hero-plate__search` | own well: canvas 78 per cent, raw `blur(14px)`, own focus edge |
+| H5 | hero filters button | H `.nf-hero-plate__filters` | own quiet button: brand 18 per cent, soft edge, no rim, no glow |
+| H6 | category tile icon plate, rest / hover | H `.nf-cat-tile__plate` | own plate: 160deg brand wash, 1px edge, rim, 22px glow, radius-lg |
+| H7 | two-column door tile (Stays), rest / hover | H `.nf-cat-row[data-columns="2"] .nf-cat-tile` | own well card, soft edge, no rim, no glow; plate stripped |
+| H8 | featured head, See all link | `FeaturedBand` | type only, nothing to sweep |
+| H9 | property card, rest / hover / focus | C `.nf-pcard`, `:hover` | `nf-glass--card` + own hover glow stack (`--nf-glow-edge-strong`, floor, `--nf-bloom-card`) |
+| H10 | card photo plate, no-photo plate, note | C `.nf-pcard__media`, `__nophoto`, `__note` | own radius-md, media ground; own overlay chips |
+| H11 | card status badges: Verified, For rent/sale, Example | C `.nf-pcard__mark`, `--market`, `--example` | own glass badge: brand 38 per cent over media, 14px glow; Example on the WARNING ink (an amber edge, off the one blue family) |
+| H12 | card heart, rest / saved / pressed | C `.nf-pcard__heart` | own media glass square |
+| H13 | card "+1" fact chip | C `.nf-pcard__fact--more` | own well chip |
+| H14 | empty shelf | `EmptyState`, `EmptyActions` | shared |
+| H15 | unmounted: market tiles, featured cities, invest band, trending strip, city hero, category rail, recent strip, host panel | `MarketTiles`, `FeaturedCities`, `InvestBand`, `TrendingStrip`, `CityHero`, `CategoryRail`, `RecentStrip`, `ListingHostPanel`; H `.nf-home__market*`, `.nf-home__city*`, `.nf-home__invest*`, `.nf-home__search*`; E `.nf-market__*` | no route imports them (grep, 23 Sept). They draw their own tiles, chips, plates and a flat search plate. To be DELETED with their rules, not moved |
+| H16 | Stays card chips (stays group's card) | C `.nf-stay-card__chip` | own well chip |
+
+**Search and filters (route 3)**
+
+| ID | Item (state) | Where | Draws today |
+|---|---|---|---|
+| S1 | shelf bar under the header | C `.nf-shelf-bar` | `nf-glass--chrome` + own bottom hairline |
+| S2 | search field, rest / focus | C `.nf-shelf-field`, `:focus-within` | own well: soft edge, rim, 3px focus glow ring |
+| S3 | field go arrow | C `.nf-shelf-field__go` | own radius-sm |
+| S4 | filters square (with the count badge) | C `.nf-shelf-square` | own glass button: 1px edge, rim, 16px glow, radius-md |
+| S5 | filter chips (market, beds, price), rest / on / focus | C `.nf-shelf-chip`, `--on` | own chip on control radius; own selected fill (brand 26 per cent), rim, 16px glow |
+| S6 | result count line, sort button | C `.nf-shelf-sort > summary` | own well button, subtle edge, no rim |
+| S7 | sort menu (popover), item current / hover | C `.nf-shelf-sort__menu`, `__item` | own popover: elevated surface, soft edge, `--nf-elev-3`; own tints |
+| S8 | results grid cards | H9 to H13 | as home |
+| S9 | filter sheet panel, backdrop, grip, head, close | C `.nf-filters`, `__grip`, `__head`; `FilterDrawer` backdrop utility | own glass sheet: canvas 92 per cent, strong blur, left edge, `--nf-elev-3`; grip on `--nf-radius-pill` (a shape, allowed) |
+| S10 | sheet option tiles (type, market, beds, baths), rest / hover / pressed | C `.nf-filters__tile`, `[aria-pressed]` | own well tile; selected is a FLAT `--nf-brand-primary` fill + 18px glow, not the lit button |
+| S11 | sheet amenity switches | `Switch` | shared |
+| S12 | sheet price range | `nf-range` | shared |
+| S13 | sheet input rows (location, sort), rest / focus | C `.nf-filters__row`, `:focus-within` | own well, rim, 3px focus ring |
+| S14 | sheet group dividers, foot band | C `.nf-filters__group + ...`, `__foot` | hairlines only |
+| S15 | sheet Reset / Apply (count) | `Button` secondary / primary | shared |
+| S16 | map view: canvas, pins, clusters, user dot, floating card, dock card, zoom | `MapCanvas` (inline `LIFT`/`CARD_LIFT` shadows, Tailwind `bg-[var(--nf-surface-primary)]` x8, `border-*`), `MapDock` (`nf-card`, Tailwind), M `.leaflet-*` (`!important` zoom skin), M `.nf-map-pin-drop` ring | own surfaces and shadows throughout |
+| S17 | empty results | `EmptyState` | shared |
+| S18 | loading skeleton | `search/loading.tsx` | `nf-glass` + own `border-[var(--nf-border-subtle)]` |
+| S19 | active filter chips, view toggle, filter links | `filters/ActiveFilters`, `ViewToggle`, `FilterLink` | shared `nf-chip`; checked in the apply step |
+
+**Listing detail (route 4, and 7)**
+
+| ID | Item (state) | Where | Draws today |
+|---|---|---|---|
+| L1 | gallery: back, counter, arrows, dots | `ListingGallery` Tailwind `bg-[var(--nf-overlay-media*)]`, `border-on-media`, `backdrop-blur-md` x5 | own media glass buttons |
+| L2 | gallery marks: For rent, Verified | C `.nf-gallery-mark`, `--market` | own badge: brand 30/62 per cent over media, 16px glow, radius-sm |
+| L3 | save and share on the photo | `ListingActions` Tailwind (`bg-black/45`, overlay, blur) | own media glass, one raw `black/45` |
+| L4 | photo viewer chrome | `PhotoViewer` Tailwind overlay x4, blur x4 | own |
+| L5 | lead card | `nf-glass--card nf-detail-lead` | shared material |
+| L6 | market tag, verified badge | C `.nf-detail-tag`, `--market`, `.nf-detail-verified` | own badges; verified carries rim + 18px glow |
+| L7 | spec tiles | C `.nf-spec-tile` | own well tile + rim, no edge light |
+| L8 | Move-in Total panel and its rooms plate | C `.nf-detail-movein`, `__rooms` | own lit panel: 135deg brand wash, edge, rim, 28px glow, radius-lg |
+| L9 | amenity tiles, More | C `.nf-amenity-tile` + `nf-glass--tile` | shared material, own radius-md |
+| L10 | section tabs, active underline | C `.nf-detail-tabs`, `[aria-current]::after` | own sticky bar ground; underline glow 10px (a shape, allowed) |
+| L11 | description / location panel | C `.nf-detail-panel` | own well card, subtle edge, rim |
+| L12 | agent card, avatar, Verified Agent pill, verify steps | C `.nf-agent-card`, `__avatar`, `__pill`, `.nf-verify-step` | own well card + rim; own filled pill; own circle steps |
+| L13 | move-in and purchase rows, total | C `.nf-movein__row`, `[data-declared]`, `__total` | own well rows; own lit total (a copy of L8) |
+| L14 | sticky foot: price, Calculate Breakdown, Book Inspection | `ListingStickyBar` (`nf-card`, `nf-action-bar-pinned`, `ButtonLink`) | shared buttons on a shared card |
+| L15 | rental / sale / reserve / table panels | `RentalPanel`, `ReservePanel`, `ReserveTable`, `TenancyTerm` (`nf-card` + Tailwind `border-[var(--nf-border-subtle)]` x14, `bg-[var(--nf-brand-primary)]` selected slot, `bg-[var(--nf-glass-fill)]`, warning-tinted note) | own inner rows, selected slot a flat fill |
+| L16 | reviews, utilities, walkthrough, code row | `ListingReviews`, `ListingUtilities` (`nf-card`, own borders), `ListingWalkthrough` (`surface-inset`), `ListingCodeRow` (Button) | own inner borders |
+| L17 | example notice | `ExampleNotice` (`border-[var(--nf-state-warning)]`, warning surface) | amber, off the one blue family |
+| L18 | loading skeleton | `listing/[id]/loading.tsx` | `nf-card nf-glass--strong` |
+| L19 | stay / restaurant detail anatomy (stays group's routes, rules here) | C `.nf-spec-strip`, `.nf-detail-field`, `.nf-detail-capsule`, `.nf-host-row__avatar` (pill radius on a round avatar, allowed), `.nf-stay-type`, `.nf-room-tile`, `.nf-stay-fact(s)` | own well cards |
+| L20 | move-in ledger (route 7) | C `.nf-ledger-card`, `__glyph` plate, `.nf-ledger-compare__verdict` | own card + 24px glow; own icon plate |
+
+**Price check (routes 5, 6)**
+
+| ID | Item (state) | Where | Draws today |
+|---|---|---|---|
+| P1 | map panel, offline state, credit | P `.nf-pc-map`, `--offline`, `__credit` | own panel: radius-lg, edge, `--nf-glow-edge` |
+| P2 | pin | P `.nf-pc-pin__head`, `__stem` | own (a shape, allowed) |
+| P3 | place suggest list, item hover / focus | P `.nf-pc-suggest__list`, `__item` | own popover, no rim |
+| P4 | confidence badges high / medium / low | P `.nf-pc-confidence--*` | own FILLED / quiet / outline badges on control radius |
+| P5 | disclaimer, share none, share why, share link | P `.nf-pc-disclaimer`, `.nf-pc-share*` | own inset cards, no rim, no glow |
+| P6 | strip plot, fact tiles | P `.nf-pc-strip`, `.nf-pc-fact` | own inset tiles |
+| P7 | shared area card | P `.nf-pc-card` | own raised card with a brand top border |
+| P8 | LIGHT RULES (seven blocks) | P `:root[data-theme="light"] ...` | dead since light mode left the platform; to delete |
+
+**Other rules this group's files hold (other groups' components)**
+
+| ID | Item | Where | Note |
+|---|---|---|---|
+| O1 | listing wizard (`nf-lw-*`: rail, back, note, choice, tile, fact plate, step, shot, add, details, id) | C lines 2353 to 2940, used by `app/agent/list/**` | host wizard is the chrome group's route; the rules are here, so they are swept here |
+| O2 | stays category tile selected, stays hero object | C `.nf-stays-tile--on`, `.nf-stays-hero__object` | used by stays and host components |
+| O3 | tenancy chip | C `.nf-tenancy-chip` | `bookings/TenancyCard` (stays group) |
+| O4 | `nf-cat-surface .nf-card` glow override | C | every catalogue page (listing, stay, restaurant, trips, bookings, checkout, saved) |
+| O5 | assistant (`nf-ai__*`: avatar, bubbles, result card, result mark, thinking, ring, chips, well, send) | H | route 8 |
+| O6 | `nf-reg-card*` | C | no component uses it; to delete |
+
+Counted: 57 local items across 8 routes (H1 to H16, S1 to S19, L1 to L20,
+P1 to P8, O1 to O6, less the rows marked shared).
+
+### 13.H.3 Before proofs
+
+`docs/design/proofs/session-b/sweep-home/before/`, each at 390 (dark, 2x)
+and 1440, from a production build of 3621452c with
+`VALLO_PREVIEW_HARNESS=1`, harness `app/(dev)/preview/session-b/sweep-home/`:
+`home`, `home-empty`, `stays`, `search`, `search-filters`, `search-sort-open`,
+`search-chip-focus`, `search-empty`, `search-map`, `search-loading`,
+`listing`, `listing-viewer`, `listing-parts`, `listing-loading`, `price`,
+`price-area`, `price-answered`. FIXTURE-BACKED except `home-empty`,
+`search-empty` and `search-map`, which are the routes' own pages drawing the
+empty state because this sandbox's egress refuses the Supabase host (so no
+proof here shows a live row, and none claims to).
+
+### 13.H.4 Applied (waits for Phase 1 RELEASED)
+
+(pending)
+
+### 13.H.5 Audit passes
+
+(pending: Pass 1, Pass 2, Pass 3, each dated)
+
 ## Skipped or not verified
 
 (appended honestly as work proceeds)
