@@ -132,7 +132,7 @@ export const RETAINED_TABLES: readonly RetainedTable[] = [
   {
     table: "inspection_requests",
     stripped: "the note they wrote",
-    because: "the other side's record of a viewing that was arranged",
+    because: "the other side's record of an inspection that was arranged",
   },
   {
     table: "inspection_confirmations",

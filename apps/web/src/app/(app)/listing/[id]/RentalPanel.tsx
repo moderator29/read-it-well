@@ -31,7 +31,7 @@ import { TenancyTerm } from "./TenancyTerm";
  *
  * `RequestInspection` files a real request against a real time, which appears
  * as a row with a state on the agent's own home screen and on the asker's
- * bookings screen. Messaging stays, beside it and below it, because a viewing
+ * bookings screen. Messaging stays, beside it and below it, because an inspection
  * needs a conversation around it - what changed is that the conversation is no
  * longer the only place the arrangement exists.
  *
@@ -42,7 +42,7 @@ import { TenancyTerm } from "./TenancyTerm";
 
 const STEPS = [
   { label: "Message the agent", detail: "Ask your questions inside Vallo." },
-  { label: "Inspect the property", detail: "Arrange a viewing before anything is agreed." },
+  { label: "Inspect the property", detail: "Arrange an inspection before anything is agreed." },
   { label: "Pay through Vallo", detail: "Only once you have seen the place." },
 ];
 

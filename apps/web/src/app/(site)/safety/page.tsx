@@ -63,11 +63,11 @@ const INSPECTION_STEPS: { title: string; body: string }[] = [
   },
   {
     title: "Confirm the inspection in the thread",
-    body: "Both sides can record that the inspection happened, in the conversation itself. That record sits with the booking, so nobody can later claim a viewing that did not happen.",
+    body: "Both sides can record that the inspection happened, in the conversation itself. That record sits with the booking, so nobody can later claim an inspection that did not happen.",
   },
   {
     title: "Only then, pay on Vallo",
-    body: "Rent is message, inspect, then pay. There is no reserve button on a rental for exactly that reason. Never hand over cash at a viewing, and never pay an inspection fee, a holding fee or an agency fee to anybody.",
+    body: "Rent is message, inspect, then pay. There is no reserve button on a rental for exactly that reason. Never hand over cash at an inspection, and never pay an inspection fee, a holding fee or an agency fee to anybody.",
   },
 ];
 

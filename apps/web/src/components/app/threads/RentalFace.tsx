@@ -29,7 +29,7 @@ import { fill, lagosWhen } from "./when";
  *
  * `role` changes what you can do, never what you can see. A lister answers:
  * yes, another time, or no. A requester takes an offered time or pulls out.
- * Either side can say the viewing happened.
+ * Either side can say the inspection happened.
  *
  * Every write goes through the existing actions and the database's own guard.
  * The face shows its new state the moment the action returns and then asks
@@ -236,10 +236,10 @@ export function RentalFace({
           {state === "CONFIRMED" && (
             <div className="mt-row flex flex-wrap gap-xs">
               {/*
-                THE ENTRY TO PAYING THE RENT, once the viewing is agreed.
+                THE ENTRY TO PAYING THE RENT, once the inspection is agreed.
                 `/rent/pay/<inspectionId>` is the in-product rent step (BB's
                 route, ledger section 2.1); it carries the inspection so the
-                charge is tied to the viewing that earned it. The requester
+                charge is tied to the inspection that earned it. The requester
                 is the one who pays, so only that side sees it.
               */}
               {role === "requester" && (
@@ -352,7 +352,7 @@ function ProposeSheet({
 
 /**
  * How it went. Three answers, one of which is chosen before Save is live, so
- * a thumb cannot mark a viewing done by accident. The choice is a group of
+ * a thumb cannot mark an inspection done by accident. The choice is a group of
  * pressed buttons rather than a segmented row: the labels are sentences and
  * three of them side by side at 390px would be three truncated words.
  */

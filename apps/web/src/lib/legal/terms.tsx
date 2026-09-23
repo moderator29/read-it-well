@@ -404,7 +404,7 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
         generate text.{" "}
         <strong>
           Anything they produce is assistance, not advice. It is not a valuation, not
-          legal advice and never a substitute for viewing a property in person.
+          legal advice and never a substitute for inspecting a property in person.
         </strong>{" "}
         Generated answers can be wrong. Check anything that matters against the listing
         itself and against the person who posted it, and take professional advice before

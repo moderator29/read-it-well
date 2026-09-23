@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 const NOT_ALLOWED: { title: string; body: string }[] = [
   {
     title: "Asking anyone to pay outside Vallo",
-    body: "Sending an account number, asking for a transfer, moving the conversation to WhatsApp to arrange money, or asking for cash at a viewing. This is the most serious thing on the platform and it ends an account.",
+    body: "Sending an account number, asking for a transfer, moving the conversation to WhatsApp to arrange money, or asking for cash at an inspection. This is the most serious thing on the platform and it ends an account.",
   },
   {
     title: "Charging a fee we do not charge",

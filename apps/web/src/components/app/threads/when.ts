@@ -2,7 +2,7 @@ import { formatDate, type Locale } from "@vallo/i18n";
 
 /**
  * Times as the thread banner says them. Everything here is Lagos wall-clock,
- * because a viewing at "10:00" and a table at "8:00 pm" are appointments in
+ * because an inspection at "10:00" and a table at "8:00 pm" are appointments in
  * one city, whatever device is reading them.
  */
 

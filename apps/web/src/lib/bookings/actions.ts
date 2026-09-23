@@ -75,7 +75,7 @@ const RENTAL_MESSAGE =
   "This home is rented on a tenancy, not per night. Message the agent to arrange an inspection.";
 
 const SALE_MESSAGE =
-  "This property is for sale, not for booking. Message the agent to arrange a viewing.";
+  "This property is for sale, not for booking. Message the agent to arrange an inspection.";
 
 const RESTAURANT_MESSAGE =
   "This place takes table reservations rather than overnight stays. Reserve a table from the listing.";
