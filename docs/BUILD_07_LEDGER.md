@@ -11583,3 +11583,93 @@ know which test it was and I am not claiming it was nothing.** The new sweep
 shells out to `git ls-files` and is the only new thing touching shared mutable
 state, so it is the first suspect. Next occurrence gets the whole reporter
 output, which is the mistake here rather than the flake.
+
+---
+
+## 83. NINETY FIVE TABLES COULD BE EMPTIED BY A ROLE RLS DOES NOT COVER
+
+Found by accident, while checking whether a badge tier could be added to the
+public lister view. One query against `pg_class.relacl` for the two reader
+roles across schema public:
+
+```
+183 TRUNCATE grants across 95 tables
+185 TRIGGER grants
+185 REFERENCES grants
+```
+
+**Every one of those tables has RLS enabled. That is why nothing has ever gone
+wrong, and it is also why nobody looked.**
+
+### WHY RLS IS NOT THE ANSWER HERE
+
+**TRUNCATE IS NOT SUBJECT TO ROW LEVEL SECURITY.** A policy decides which ROWS
+a statement may touch. TRUNCATE does not touch rows: it empties the relation,
+and no policy is consulted. The list included `wallets`, `wallet_entries`,
+`ledger_entries`, `transactions`, `bookings`, `messages`, `user_roles` and
+`listings`.
+
+No application path uses it. PostgREST issues the four DML verbs and function
+calls and nothing else, so `anon` cannot reach TRUNCATE over the wire today.
+**That is a fact about one client, not about the privilege**, and the whole of
+rule 21 is that a grant nobody needs should not exist.
+
+### WHERE IT CAME FROM, AND IT IS NOT CARELESSNESS BY ANYBODY
+
+`pg_default_acl` grants `arwdDxtm` on every NEW relation in public to both
+reader roles. So **every `create table` in this repository's history has
+shipped this way** unless its migration revoked it. That is the same fact rule
+21 rests on. It was applied to functions, and to the tables written after it
+was learned. **It was never applied backwards, and no check looked.**
+
+### WHAT WAS TOUCHED, AND WHAT DELIBERATELY WAS NOT
+
+Only TRUNCATE, TRIGGER, REFERENCES and MAINTAIN are revoked. **SELECT, INSERT,
+UPDATE and DELETE are left exactly as they are**, because an RLS policy is
+evaluated as the querying role, so those grants are load-bearing, and taking
+one is precisely how the public catalogue went dark for eleven and a half
+hours on 22 September.
+
+The read-back has three parts and two are controls: the DML grants are counted
+before and after and must be identical; no reader role holds any of the four
+afterwards; and **`anon` reads the published catalogue inside the same
+transaction under `set local role anon`**, because that is the failure this
+build has actually caused and a grant audit cannot see it.
+
+```
+READ-BACK OK: dml grants unchanged at 752, wide grants now 0,
+anon still reads 64 published listings.
+```
+
+### MY OWN CHECK MISSED HALF THE ROOT CAUSE, AND THE NEXT QUERY CAUGHT IT
+
+The migration's read-back passed. Reading `pg_default_acl` afterwards showed
+new tables would STILL be born wide, because **schema public has two
+default-ACL owners** and `alter default privileges` had narrowed only the one
+belonging to the role running it.
+
+```
+postgres        DELETE, INSERT, SELECT, UPDATE          (narrow now)
+supabase_admin  DELETE, INSERT, MAINTAIN, REFERENCES,
+                SELECT, TRIGGER, TRUNCATE, UPDATE        (unchanged)
+```
+
+Narrowing another role's defaults needs membership in it, which this
+connection does not have. **Attempted rather than assumed impossible, and it
+did not take.** Migrations run as `postgres`, so every table this repository
+creates is now born narrow and the realistic path is closed. The residual is
+Supabase's own tooling.
+
+**This is the blind-light pattern inside the repair for a blind light, for the
+second time this week:** the read-back asked about the tables that exist and
+not about the ones that do not exist yet. It is the same shape as the
+`listing_role` trigger whose grants and presence read clean while its body
+could not run.
+
+### THE STANDING CHECK, BECAUSE A HOLE THAT CANNOT BE CLOSED MUST BE WATCHED
+
+`scripts/probes/reader_roles_hold_no_wide_grants.sql`. It lists any reader-role
+grant of the four, and prints both default-ACL entries with the one known
+exception named on its own row. It deliberately does NOT ask about SELECT,
+INSERT, UPDATE or DELETE: a check that flagged those would teach somebody to
+revoke one.
