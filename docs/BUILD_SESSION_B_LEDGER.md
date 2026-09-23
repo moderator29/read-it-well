@@ -6875,6 +6875,25 @@ them (13.F.5). Proofs: `overlay-pass1-*`, `side-by-side-feed.jpg`,
 `side-by-side-bloom.jpg`, the state shots. Left for pass 2: card 2 runs 7 img tall, the
 overflow dots 4 img off, ring 2 at -4.6 img.
 
+**Pass 2, 23 September.** Re-opened every inventory item in the pass-1 build.
+Found: the location bar shrank to its words when it shared its row with the back control
+(a live defect on `/around`, not only in the harness: `LocationChip`'s root did not grow),
+fixed (`min-w-0 flex-1`), the bar now 562.7 img wide beside the control; the action
+sheet's glyph squares still drew their own box, moved onto the shared icon plate
+(`--nf-plate-*`, middle step, glyph glow); the feed's inline notice, the held-post notice
+and the listing plate inside a card drew their own boxes, moved onto the shared card and a
+quiet inner panel on `--nf-panel-hair`; the card's foot sat 2.8 img low, now 403 exactly.
+The overflow dots measured 4 img off by box corner but land within 0.5 img by centre (a
+measuring slip, nothing moved). Card 2 stays 4.5 img tall because the image draws card
+2's head 4 img higher inside its card than card 1's, and one rule cannot draw both.
+SW-S1 applied (the social group's list): `.nf-social-card` deleted, and the orphaned
+material of `.nf-social-more`, `.nf-social-more__menu`'s offsets, `.nf-social-trust`'s box
+and `.nf-social-chip`'s glow deleted after grepping every consumer; `.nf-social-round`
+KEPT because the story viewer still draws with it; `.nf-social-sheet__panel` kept (the
+bloom's sheets, now on the shared panel). One stale `nf-social-card` class remains in
+`app/(app)/stories/new/loading.tsx`, which this worker does not own; it has no rule now
+and draws nothing of its own. Proofs: `overlay-pass2-*`, the state shots re-taken.
+
 ### 13.F.7 Checks
 
 ### 13.F.8 Not matched, and why

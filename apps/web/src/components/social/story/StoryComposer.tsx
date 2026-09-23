@@ -66,7 +66,7 @@ export function StoryComposer({
 
   if (!signedIn || !userId) {
     return (
-      <div className="nf-panel nf-panel--card nf-social-card p-xl text-center">
+      <div className="nf-panel nf-panel--card p-xl text-center">
         <div className="mx-auto w-fit">
           <BrandIcon name="camera" size={44} />
         </div>
@@ -84,7 +84,7 @@ export function StoryComposer({
 
   if (areas.length === 0) {
     return (
-      <div className="nf-panel nf-panel--card nf-social-card p-xl text-center">
+      <div className="nf-panel nf-panel--card p-xl text-center">
         <div className="mx-auto w-fit">
           <BrandIcon name="pin-map" size={44} />
         </div>
@@ -104,7 +104,7 @@ export function StoryComposer({
 
   if (held) {
     return (
-      <div className="nf-panel nf-panel--card nf-social-card p-xl text-center">
+      <div className="nf-panel nf-panel--card p-xl text-center">
         <div className="mx-auto w-fit">
           <BrandIcon name="doc-shield" size={44} />
         </div>

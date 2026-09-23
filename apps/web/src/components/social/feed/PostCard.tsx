@@ -413,7 +413,7 @@ export function PostCard({
       ) : null}
 
       {post.heldReason ? (
-        <p className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-brand)] bg-[var(--nf-surface-inset)] px-sm py-xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="nf-panel nf-panel--card mt-sm px-sm py-xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
           {post.heldReason} Only you can see this until then.
         </p>
       ) : null}
@@ -632,7 +632,7 @@ function ListingFacts({ listing }: { listing: PostListing }) {
 
 function ListingBlock({ listing }: { listing: PostListing }) {
   return (
-    <div className="nf-post__plate mt-sm overflow-hidden rounded-[var(--nf-radius-lg)]">
+    <div className="nf-post__plate mt-sm overflow-hidden">
       <div className="p-sm">
         <ListingFacts listing={listing} />
       </div>

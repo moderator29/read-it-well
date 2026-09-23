@@ -161,12 +161,13 @@
   }
   /* The flat attached to a post: a plate inside the card, lit at its edge so
      it belongs to the card rather than sitting on it. See `ListingBlock`. */
+  /* A card inside a card: the shared quiet inner panel, its edge the
+     shared hairline, its corner the container role. */
   .nf-post__plate {
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 20px -12px var(--nf-glow-3);
+    border-radius: var(--nf-container-radius);
+    border: 1px solid var(--nf-panel-hair);
+    background: color-mix(in oklab, var(--nf-lit) 8%, transparent);
+    box-shadow: var(--nf-panel-rim);
   }
   /* The action glyphs and counts in the image's pale blue, like the
      handle and the time. */
@@ -749,9 +750,8 @@
     justify-content: center;
     inline-size: 44px;
     block-size: 44px;
-    border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-border-default);
-    background: var(--nf-surface-raised);
+    /* Its material is the shared glass door in the profile's markup now
+       (SW-S1): this keeps the box and the ink only. */
     color: var(--nf-content-secondary);
   }
   .nf-social-more:hover,
@@ -759,11 +759,8 @@
     color: var(--nf-content-primary);
   }
 
-  /* Anchored to this control rather than to a card's header row. */
-  .nf-social-more__menu {
-    inset-inline-end: 0;
-    top: 50px;
-  }
+  /* `.nf-social-more__menu`'s own offsets are gone (SW-S1): the profile
+     anchors its menu in `components/social/profile/social-profile.css`. */
 
   /*
    * What just happened, said once. Fixed above the tab bar so it clears the
@@ -1067,9 +1064,9 @@
      * names for exactly this size and it leaves 10 pixels of flat.
      */
     border-radius: var(--nf-radius-sm);
-    /* Lit brand edge, not a grey hairline (R1 A5). */
+    /* Lit brand edge, not a grey hairline (R1 A5); the glow went with SW-S1,
+       the chip's light is the profile's shared material. */
     border: 1px solid var(--nf-brand-edge);
-    box-shadow: var(--nf-glow-edge);
     font-size: var(--nf-text-caption);
     font-weight: 650;
     color: var(--nf-content-secondary);
@@ -1199,9 +1196,7 @@
     gap: 2px;
     margin-block-start: 1.25rem;
     padding: 1rem 0.5rem;
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-surface-inset);
+    /* The box is the shared card in the profile's markup (SW-S1). */
   }
   .nf-social-trust__cell {
     text-align: center;
@@ -2278,15 +2273,23 @@
   .nf-actions__row:focus-visible {
     background: var(--nf-surface-inset);
   }
+  /* The glyph's plate: the shared icon plate (`--nf-plate-*`), the console's
+     lit square, at its middle step. */
   .nf-actions__icon {
     display: grid;
     place-items: center;
-    inline-size: 42px;
-    block-size: 42px;
+    inline-size: var(--nf-plate-size-md);
+    block-size: var(--nf-plate-size-md);
     flex-shrink: 0;
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-border-subtle);
-    color: var(--nf-content-secondary);
+    border-radius: var(--nf-plate-radius);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    border-color: var(--nf-plate-edges);
+    background: var(--nf-plate-fill);
+    box-shadow: var(--nf-plate-shadow);
+    color: var(--nf-content-primary);
+  }
+  .nf-actions__icon > svg {
+    filter: var(--nf-plate-glyph-glow);
   }
   .nf-actions__row--danger .nf-actions__icon,
   .nf-actions__row--danger .nf-actions__title {
@@ -2954,7 +2957,9 @@
        is the only affordance a horizontal row has that there is more. The
        bleed is the page's gutter, 16 on a phone. */
     margin-inline: -16px;
-    margin-block: 13px 8px;
+    /* 22 image px under the bar; the bar shares a 44px row with the back
+       control, so 8.8 from the row's foot puts the bar where drawn. */
+    margin-block: 8.8px 8px;
   }
   @media (min-width: 640px) {
     .nf-story-ring {
@@ -3299,7 +3304,9 @@
    */
   .nf-post__actions {
     gap: 0;
-    margin-block: 3px 2px;
+    /* The card's foot 29 image px under the glyphs' centre (overlay pass 2:
+       card 1 measures 403, as drawn). */
+    margin-block: 3px 0.4px;
     margin-inline-start: -9.5px;
     padding-top: 0;
     border-top: 0;

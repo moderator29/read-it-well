@@ -468,7 +468,7 @@ export function CreateBloom({
                 ))}
               </ul>
             ) : (
-              <div className="nf-panel nf-panel--card nf-social-card p-lg text-center">
+              <div className="nf-panel nf-panel--card p-lg text-center">
                 <div className="mx-auto w-fit">
                   <BrandIcon name="reviews" size={44} />
                 </div>
