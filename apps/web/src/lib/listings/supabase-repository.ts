@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { memo } from "../cache/memo";
+import { honestExamplePhotos } from "./example-imagery";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import { createClient } from "../supabase/server";
@@ -733,6 +734,20 @@ export function mapRow(
   const moveIn = moveInTotal(row);
   const purchase = purchaseTotal(row);
 
+  /* A modest example wears honest imagery or none (see
+     `lib/listings/example-imagery.ts`): the aspirational renders on its rows
+     are not shown in place of a mini flat. Every other row is untouched. */
+  const shownPhotos = honestExamplePhotos(
+    {
+      kind,
+      bedrooms: row.bedrooms ?? 0,
+      intent: row.listing_intent === "sale" ? "sale" : "rent",
+      isDemo: row.is_demo,
+      ...(headline.kind === "sale" ? {} : { pricePeriod: headline.period }),
+    },
+    photos,
+  );
+
   return {
     id: row.id,
     slug: slugFor(row),
@@ -935,6 +950,7 @@ export function mapRow(
      */
     ...(listerNames.has(row.id) ? { listerName: listerNames.get(row.id) } : {}),
     isDemo: row.is_demo,
+    ...(row.published_at ? { publishedAt: row.published_at } : {}),
     /* Instant book is gone from the schema. The whole product moved from
        "reserve a room tonight" to "rent or buy a property", and no property in
        either of those markets changes hands without a person on both sides.
@@ -942,7 +958,7 @@ export function mapRow(
        still read it; it is false for every database row, which is the truth. */
     instantBook: false,
     amenities,
-    photos,
+    photos: shownPhotos,
     videos,
     hue: hueFor(row.id),
   };
@@ -1150,6 +1166,10 @@ export class SupabaseListingRepository implements ListingRepository {
           "listing_intent",
           filter.intent as Database["public"]["Enums"]["listing_intent"],
         );
+        /* The rent market is tenancies: a row with a rent period. A nightly or
+           per-head rate is `rent` too and is a stay (V-26). `matchesFacts`
+           holds the same rule for the drawer's count. */
+        if (filter.intent === "rent") query = query.not("rent_period", "is", null);
       }
 
       /*

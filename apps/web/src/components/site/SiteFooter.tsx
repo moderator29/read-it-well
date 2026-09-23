@@ -39,8 +39,10 @@ export function SiteFooter({ t }: { t: Dictionary }) {
     {
       title: f.product,
       links: [
-        { href: "/search?type=home", label: face.footer.buy },
-        { href: "/search?type=rental", label: face.footer.rent },
+        /* Markets, not categories (V-26): `type=home` showed houses to let
+           under Buy, and `type=rental` missed every flat to let. */
+        { href: "/search?market=buy", label: face.footer.buy },
+        { href: "/search?market=rent", label: face.footer.rent },
         { href: "/stays", label: face.nav.stays },
         /* The render's Product column lists Invest, pointing at land. Vallo
            sells no investment product, so the slot carries Restaurants,

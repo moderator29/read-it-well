@@ -13,7 +13,7 @@ import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSu
  *   q          free text
  *   type       category, one of the real ListingKind values
  *              (legacy aliases: "property" is apartment, "rent" is rental)
- *   sort       recommended | top-rated | price-asc | price-desc | move-in-asc
+ *   sort       recommended | newest | top-rated | price-asc | price-desc | move-in-asc
  *   view       list | map
  *   min, max   budget bounds in WHOLE NAIRA, the one place naira appears
  *   beds       minimum bedrooms
@@ -46,6 +46,7 @@ import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSu
 
 export type SortKey =
   | "recommended"
+  | "newest"
   | "top-rated"
   | "price-asc"
   | "price-desc"
@@ -67,10 +68,13 @@ export type SortKey =
  * shelf prints that sentence under the count. Nothing may be added here
  * without answering that question.
  */
-export type SortBasis = "price" | "move-in" | "rating" | "mixed";
+export type SortBasis = "price" | "move-in" | "rating" | "listed" | "mixed";
 
 export const SORTS: { key: SortKey; label: string; basis: SortBasis }[] = [
   { key: "recommended", label: "Recommended", basis: "mixed" },
+  /* V-22. The date each listing went live, which nobody can buy a fresh copy
+     of on Vallo because there is no push-up to buy (V-06). */
+  { key: "newest", label: "Newest", basis: "listed" },
   { key: "top-rated", label: "Top rated", basis: "rating" },
   { key: "price-asc", label: "Price: low to high", basis: "price" },
   { key: "price-desc", label: "Price: high to low", basis: "price" },

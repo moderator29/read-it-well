@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { formatNumber, isGlanceCompact, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, formatNumber, isGlanceCompact, type Dictionary, type Locale } from "@vallo/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { hrefForListing } from "@/lib/listings/href";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -14,9 +14,13 @@ import { MediaFrame } from "@/components/app/MediaFrame";
 import { isPropertyType, type PropertyType } from "@/lib/interests/schema";
 import { isDataSaver } from "@/lib/ui/data-saver";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
-import { cardFacts, cardMarket, cardPrice, cardUtility } from "./listing-card-model";
+import { cardFacts, cardMarket, cardMessageHref, cardPrice, cardUtility } from "./listing-card-model";
+import { ButtonLink } from "@/components/ui/Button";
+import { isModestExample } from "@/lib/listings/example-imagery";
 import { panelClass } from "@/components/ui/Panel";
 import { ListerRoleLine } from "@/components/app/listing/ListerRoleLine";
+import { isNewSince, listedAge, listedAgeText, staleMonthOptions } from "@/lib/listings/listed-age";
+import { useLastVisit } from "@/components/app/search/LastVisit";
 
 /**
  * The property card, to the results image (3EB3E2A9).
@@ -63,6 +67,7 @@ export function ListingCard({
   saved,
   wide = false,
   dense = false,
+  messageAgent = false,
 }: {
   listing: Listing;
   locale: Locale;
@@ -100,6 +105,13 @@ export function ListingCard({
    * fact there would be hiding something for no reason.
    */
   dense?: boolean;
+  /**
+   * Draw Message agent under a tenancy (V-26: it moved here from the deleted
+   * `/rent` shelf). Passed by the results shelf; `cardMessageHref` still
+   * decides whether this listing may carry it, so an example or a stay never
+   * does, whatever the page asks.
+   */
+  messageAgent?: boolean;
 }) {
   const router = useRouter();
   const photo = listing.photos[0];
@@ -172,6 +184,26 @@ export function ListingCard({
     index !== undefined
       ? ({ "--card-i": Math.min(index, 5) } as React.CSSProperties)
       : undefined;
+
+  /*
+   * HOW OLD IT IS (V-22), and never on an example: an example illustrates a
+   * flat that does not exist, so "Listed 3 days ago" would be false about the
+   * world. `new Date()` here is the reader's clock; the words change only at a
+   * Lagos midnight, so the server and the browser agree on all but a moment
+   * of the day, and the span says so to React rather than warning.
+   */
+  const now = new Date();
+  const age = listing.isDemo ? null : listedAge(listing.publishedAt, now);
+  const ageText = age
+    ? listedAgeText(
+        age,
+        t.shape.listed,
+        age.kind === "stale" ? formatDate(age.since, locale, staleMonthOptions(age.since, now)) : "",
+      )
+    : null;
+  const lastVisit = useLastVisit();
+  const messageHref = messageAgent ? cardMessageHref(listing) : null;
+  const isNew = !listing.isDemo && isNewSince(listing.publishedAt, lastVisit);
 
   const tunableKind: PropertyType | null = isPropertyType(listing.kind) ? listing.kind : null;
   const save = useSaveControl(listing.id, saved);
@@ -279,6 +311,7 @@ export function ListingCard({
               hue={listing.hue}
               index={index ?? 0}
               kind={listing.kind}
+              drawn={isModestExample(listing)}
               sizes={wide ? "(max-width: 640px) 100vw, 50vw" : "(max-width: 640px) 50vw, 25vw"}
             />
             {photo && (
@@ -334,6 +367,18 @@ export function ListingCard({
             card's fact size so the card keeps its measured proportions. A
             listing with no role (the seed catalogue) draws no line.
           */}
+          {ageText && (
+            <p className="nf-pcard__sub nf-pcard__age" data-testid="card-listed-age" suppressHydrationWarning>
+              {isNew && (
+                <span className="nf-badge nf-badge--info nf-pcard__new" title={t.shape.listed.newMarkLabel}>
+                  <span aria-hidden="true">{t.shape.listed.newMark}</span>
+                  <span className="sr-only">{t.shape.listed.newMarkLabel}. </span>
+                </span>
+              )}
+              {ageText}
+            </p>
+          )}
+
           {listing.listerRole ? (
             <ListerRoleLine role={listing.listerRole} name={listing.listerName ?? null} className="nf-pcard__lister" />
           ) : null}
@@ -426,6 +471,20 @@ export function ListingCard({
           )}
         </div>
       </Link>
+      {messageHref && (
+        <div className="nf-pcard__action">
+          <ButtonLink
+            href={messageHref}
+            variant="secondary"
+            size="sm"
+            full
+            leadingIcon="chat-bubble"
+            data-testid="card-message-agent"
+          >
+            {t.shape.card.messageAgent}
+          </ButtonLink>
+        </div>
+      )}
     </article>
   );
 }

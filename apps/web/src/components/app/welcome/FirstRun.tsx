@@ -11,7 +11,9 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { markWelcomeSeen, skipInterests } from "@/lib/interests/actions";
 import { InterestChoices } from "./InterestChoices";
 import { WelcomeScene, type SceneCentre } from "./WelcomeScene";
-import { rememberFirstRunSeen, withPassedFlag } from "./first-run-seen";
+import { rememberFirstInterest, rememberFirstRunSeen, withPassedFlag } from "./first-run-seen";
+import type { Arrival } from "@/app/welcome/plan";
+import { wallHeading } from "./wall-heading";
 import type { BrandIconObject } from "@/design-system/icons/BrandIcon";
 
 /**
@@ -83,6 +85,7 @@ export function FirstRun({
   asked = false,
   viewer = "member",
   next = null,
+  arrival = null,
 }: {
   t: Dictionary;
   interests: ComponentProps<typeof InterestChoices>["initial"];
@@ -94,6 +97,12 @@ export function FirstRun({
   viewer?: Viewer;
   /* A same-origin path the person was on their way to, already vetted. */
   next?: string | null;
+  /**
+   * What a stranger was stopped on the way to (V-18). Present, first run
+   * opens on the account choice headed with it and the slides stay one dot
+   * away; absent, it is the cold start and opens on slide one.
+   */
+  arrival?: Arrival | null;
 }) {
   const router = useRouter();
   const w = t.welcomeCards.twoWorlds;
@@ -101,12 +110,14 @@ export function FirstRun({
   const guest = viewer === "guest";
   const askQuestion = !guest && !asked;
 
+  const wall = guest && arrival ? wallHeading(arrival.reason, t.shape.wall) : null;
+
   const last = guest
     ? {
         key: "choice",
-        titleA: f.choice.titleA,
-        titleB: f.choice.titleB,
-        body: f.choice.body,
+        titleA: wall ? wall.titleA : f.choice.titleA,
+        titleB: wall ? wall.titleB : f.choice.titleB,
+        body: wall ? wall.body : f.choice.body,
         art: {
           left: { icon: "search-home" as const, label: f.choice.left },
           right: { icon: "user-check" as const, label: f.choice.right },
@@ -168,11 +179,13 @@ export function FirstRun({
   ];
   const total = slides.length;
   const lastIndex = total - 1;
+  /* A stranger with a destination starts on the choice (V-18). */
+  const initialIndex = wall ? lastIndex : 0;
 
   const [beat, setBeat] = useState<"slides" | "question">(
     !guest && !showCards ? "question" : "slides",
   );
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(initialIndex);
   const [announce, setAnnounce] = useState("");
   const [pending, start] = useTransition();
   const [error, setError] = useState("");
@@ -205,7 +218,6 @@ export function FirstRun({
      the live region speaks for dots, buttons, swipes and keys alike and says
      nothing on first paint. */
   const titles = slides.map((s) => `${s.titleA} ${s.titleB}`).join("\n");
-  const initialIndex = 0;
   const titleList = titles.split("\n");
 
   const announceSlide = useCallback(
@@ -270,6 +282,13 @@ export function FirstRun({
   useEffect(() => {
     if (!guest && !showCards) void markWelcomeSeen();
   }, [guest, showCards]);
+
+  /* The market a landing tile named, kept for the interests question after
+     sign-up (V-18). A suggestion only; nothing is saved from it. */
+  const carriedInterest = guest ? (arrival?.interest ?? null) : null;
+  useEffect(() => {
+    if (carriedInterest) rememberFirstInterest(carriedInterest);
+  }, [carriedInterest]);
 
 
   useEffect(() => {
@@ -351,10 +370,25 @@ export function FirstRun({
   const slide = slides[index] ?? slides[0]!;
   const onLast = index === lastIndex;
 
-  /* The three doors, keeping whatever the person was on their way to. */
-  const signUpHref = next && /^\/sign-up(?:[/?#]|$)/.test(next) ? next : "/sign-up";
-  const signInHref = next && /^\/sign-in(?:[/?#]|$)/.test(next) ? next : "/sign-in";
-  const signInFirst = signInHref !== "/sign-in";
+  /*
+   * The two doors, keeping whatever the person was on their way to.
+   *
+   * CREATE ACCOUNT USED TO DROP IT (audit UX-02, R16). With `next` set to the
+   * wall's `/sign-in?next=/search...`, the sign-in door kept it and the
+   * sign-up door fell back to a bare `/sign-up`, so a stranger who chose to
+   * make an account instead of signing in lost the thing that was shared with
+   * them. Both doors now carry the destination: the door they came through
+   * keeps its whole address (its notice included), and the other door is
+   * built from the destination underneath it.
+   */
+  const destinationQuery = arrival ? `?next=${encodeURIComponent(arrival.destination)}` : "";
+  const signUpHref =
+    next && /^\/sign-up(?:[/?#]|$)/.test(next) ? next : `/sign-up${destinationQuery}`;
+  const signInHref =
+    next && /^\/sign-in(?:[/?#]|$)/.test(next) ? next : `/sign-in${destinationQuery}`;
+  /* The primary door is the one the heading names. Without a heading, the
+     one they came through. */
+  const signInFirst = wall ? wall.primary === "sign-in" : signInHref !== "/sign-in";
 
   const lockup = (
     <span className="nf-gs-lockup" role="img" aria-label="Vallo">
@@ -393,7 +427,7 @@ export function FirstRun({
       {/* Back, on slides two to four only: the render draws none on the
           first slide, where back leaves first run the way it came. It steps
           through the same history the hardware button does. */}
-      {index > initialIndex && (
+      {index !== initialIndex && (
         <button
           type="button"
           className="nf-gs-back"

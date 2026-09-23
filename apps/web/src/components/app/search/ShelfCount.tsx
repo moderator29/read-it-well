@@ -33,7 +33,9 @@ export function ShelfCount({
       ? t.moveIn.basisPrice
       : currentBasis === "move-in"
         ? t.moveIn.basisMoveIn
-        : null;
+        : currentBasis === "listed"
+          ? t.shape.listed.basis
+          : null;
   const line =
     count === 0
       ? narrowed

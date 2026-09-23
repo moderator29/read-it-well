@@ -155,6 +155,12 @@ export type Listing = {
   minimumTenancyMonths?: number;
   /** ISO date the property can be occupied from. */
   availableFrom?: string;
+  /**
+   * When the listing went live, as an ISO timestamp (`listings.published_at`).
+   * Absent on a row that was never published and on the seed catalogue. Read
+   * by the listed age on the card and the page (V-22) and by the Newest sort.
+   */
+  publishedAt?: string;
   furnished?: Furnishing;
   /**
    * WHAT A BUYER ACTUALLY PAYS, in kobo, as the lister stated it.

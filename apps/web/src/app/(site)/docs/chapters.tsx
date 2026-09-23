@@ -122,7 +122,7 @@ export const CHAPTERS: DocChapter[] = [
                   Search
                 </Link>{" "}
                 and{" "}
-                <Link href="/rent" className={A}>
+                <Link href="/search?market=rent" className={A}>
                   Rent
                 </Link>
                 , listings, agents, inspections and{" "}
@@ -889,9 +889,9 @@ export const CHAPTERS: DocChapter[] = [
               stays inside the platform where it can be protected.
             </p>
             <p>
-              The rent market has its own front door at{" "}
-              <Link href="/rent" className={A}>
-                /rent
+              The rent market is{" "}
+              <Link href="/search?market=rent" className={A}>
+                search, set to Rent
               </Link>
               . Never hand over cash at an inspection, and never pay into an account
               number somebody sends you. Read{" "}

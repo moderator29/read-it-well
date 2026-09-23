@@ -225,7 +225,6 @@ export const ha: Dictionary = withFallback({
     hotels: "Otal",
     apartments: "Gidaje",
     homes: "Muhalli",
-    rent: "Hayar gida",
     buy: "Siyan gida",
     shortlets: "Zaman ɗan lokaci",
     land: "Fili",

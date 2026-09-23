@@ -7,6 +7,8 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getProviderStates } from "@/lib/auth/providers";
 import { AuthChoices } from "@/components/auth/AuthChoices";
+import { arrivalOf } from "@/app/welcome/plan";
+import { wallHeading } from "@/components/app/welcome/wall-heading";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -54,7 +56,17 @@ export default async function SignInPage({
   const t = getDictionary(locale);
   const notice = typeof params.notice === "string" ? params.notice : undefined;
   const next = typeof params.next === "string" ? params.next : undefined;
-  const noticeText = notice ? NOTICES[notice] : undefined;
+  /* THE WALL NAMES WHAT THEY ASKED FOR (V-18), here as well as on first
+     run. A device that has already seen first run comes straight to this
+     screen from the wall, and "Sign in to open that" said nothing about what
+     "that" was. The same pure heading first run uses names it. */
+  const arrival = notice === "sign-in-required" && next ? arrivalOf(next) : null;
+  const wall = arrival ? wallHeading(arrival.reason, t.shape.wall) : null;
+  const noticeText = wall
+    ? `${wall.titleA} ${wall.titleB}. ${wall.body}`
+    : notice
+      ? NOTICES[notice]
+      : undefined;
 
   return (
     <AuthChoices

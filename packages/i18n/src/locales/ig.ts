@@ -226,7 +226,6 @@ export const ig: Dictionary = withFallback({
     hotels: "Họtel",
     apartments: "Ụlọ obibi",
     homes: "Ebe obibi",
-    rent: "Mgbazinye ụlọ",
     buy: "Ịzụta ụlọ",
     shortlets: "Obibi nwa oge",
     land: "Ala",

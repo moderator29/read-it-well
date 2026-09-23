@@ -21,7 +21,9 @@ import {
   type PricePeriod,
   type RentPeriod,
 } from "@/lib/listings/pricing";
-import { formatNumber } from "@vallo/i18n";
+import { formatDate, formatNumber } from "@vallo/i18n";
+import { listedAge, listedAgeText, staleMonthOptions } from "@/lib/listings/listed-age";
+import { isModestExample } from "@/lib/listings/example-imagery";
 import { getBlockedDates } from "@/lib/bookings/queries";
 import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";
@@ -464,6 +466,17 @@ export default async function ListingDetailPage({
    */
   const isExample = listing.isDemo;
 
+  /* V-22: the listed age, from the same pure rule the card uses. */
+  const ageNow = new Date();
+  const age = isExample ? null : listedAge(listing.publishedAt, ageNow);
+  const listedLine = age
+    ? listedAgeText(
+        age,
+        t.shape.listed,
+        age.kind === "stale" ? formatDate(age.since, locale, staleMonthOptions(age.since, ageNow)) : "",
+      )
+    : null;
+
   /* The footer of 9E8B56ED on a tenancy: Calculate breakdown (the move-in
      ledger) and Book inspection (the real request, in the panel below). A
      stay keeps Check availability with the conversation beside it; a sale
@@ -697,6 +710,7 @@ export default async function ListingDetailPage({
           hue={listing.hue}
           kind={listing.kind}
           photos={listing.photos}
+          drawn={isModestExample(listing)}
           initialSaved={initialSaved}
           backFallback="/home"
           mark={{
@@ -788,8 +802,28 @@ export default async function ListingDetailPage({
                       disclosure lands before the belief the figure forms. */}
                   {listing.isDemo && <ExampleNotice variant="page" className="mt-row" />}
 
+                  {/*
+                    THE MOVE-IN TOTAL LEADS ON A TENANCY, AS IT DOES ON THE CARD.
+
+                    This row used to print the yearly rent in the big figure and
+                    the move-in block sat three rows lower, so the page led with
+                    the number every competitor leads with and the card led with
+                    the one this product exists to print (PRODUCT.md section 5:
+                    "the card leads with the total move-in cost and the rent is
+                    the secondary line"). The founder read the two side by side
+                    and saw them disagree. On a tenancy the move-in block now
+                    takes this place, with the rent beneath the total inside it,
+                    and the rent headline is not drawn a second time. Every other
+                    market keeps its headline figure here.
+                  */}
+                  {isRental && !isSale && (
+                    <div className="mt-md" data-testid="detail-lead-move-in">
+                      <ListingMoveInBlock listing={listing} locale={locale} t={t} />
+                    </div>
+                  )}
+
                   <div className="nf-detail-price-row mt-md">
-                    {listing.priceMinor > 0 && (
+                    {listing.priceMinor > 0 && !(isRental && !isSale) && (
                       <p className="nf-detail-price" data-testid="detail-price">
                         <Amount
                           minorUnits={listing.priceMinor}
@@ -807,6 +841,14 @@ export default async function ListingDetailPage({
                       </span>
                     )}
                   </div>
+
+                  {/* How old it is (V-22). Never on an example, which
+                      illustrates a flat that does not exist. */}
+                  {listedLine && (
+                    <p className={`mt-inline-tight ${TYPE.body}`} data-testid="detail-listed-age">
+                      {listedLine}
+                    </p>
+                  )}
 
                   {/* The spec pairs live inside the Move-in panel's own box on
                       a tenancy, exactly as the render draws them, so the
@@ -839,12 +881,8 @@ export default async function ListingDetailPage({
                     </ul>
                   )}
 
-                  {/* The Nigerian number, on a tenancy: the total to move in. */}
-                  {isRental && !isSale && (
-                    <div className="mt-md">
-                      <ListingMoveInBlock listing={listing} locale={locale} t={t} />
-                    </div>
-                  )}
+                  {/* The Nigerian number, on a tenancy, now leads above the
+                      price row rather than following the trust marks. */}
 
                   {listing.amenities.length > 0 && (
                     <div className="mt-md">

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getDictionary } from "@vallo/i18n";
 import type { Listing } from "@/lib/listings/types";
-import { cardFacts, cardMarket, cardPrice, cardUtility } from "./listing-card-model";
+import { cardFacts, cardMarket, cardMessageHref, cardPrice, cardUtility } from "./listing-card-model";
 
 const en = getDictionary("en");
 
@@ -201,5 +201,29 @@ describe("cardPrice", () => {
 
   it("answers none rather than zero when the row states no figure at all", () => {
     expect(cardPrice(listing({ priceMinor: 0, pricePeriod: "year" }))).toEqual({ lead: "none" });
+  });
+});
+
+describe("Message agent on the card (V-26)", () => {
+  const base = {
+    id: "abc",
+    isDemo: false,
+    intent: "rent",
+    pricePeriod: "year",
+  } as unknown as Parameters<typeof cardMessageHref>[0];
+
+  it("a real tenancy carries it, to the bridge every Message agent uses", () => {
+    expect(cardMessageHref(base)).toBe("/messages/new?listing=abc");
+    expect(cardMessageHref({ ...base, pricePeriod: "month" })).toBe("/messages/new?listing=abc");
+  });
+
+  it("an example never does: there is nobody behind it to message", () => {
+    expect(cardMessageHref({ ...base, isDemo: true })).toBeNull();
+  });
+
+  it("a stay, a table and a sale do not: their next step is elsewhere", () => {
+    expect(cardMessageHref({ ...base, pricePeriod: "night" })).toBeNull();
+    expect(cardMessageHref({ ...base, pricePeriod: "guest" })).toBeNull();
+    expect(cardMessageHref({ ...base, intent: "sale", pricePeriod: undefined })).toBeNull();
   });
 });

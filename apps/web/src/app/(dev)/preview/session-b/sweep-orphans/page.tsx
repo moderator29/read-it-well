@@ -28,7 +28,6 @@ import LoadingReview from "@/app/(app)/bookings/[bookingId]/review/loading";
 import LoadingCrypto from "@/app/(app)/crypto/loading";
 import LoadingCoin from "@/app/(app)/crypto/[id]/loading";
 import LoadingVerification from "@/app/(app)/verification/loading";
-import LoadingRent from "@/app/(app)/rent/loading";
 import LoadingSaved from "@/app/(app)/saved/loading";
 import LoadingSavedSearches from "@/app/(app)/saved/searches/loading";
 import LoadingThread from "@/app/(app)/post/[id]/loading";
@@ -91,7 +90,6 @@ const LOADING: Record<string, { route: string; view: () => ReactNode }> = {
   "loading-crypto": { route: "/crypto", view: () => <LoadingCrypto /> },
   "loading-coin": { route: "/crypto/c", view: () => <LoadingCoin /> },
   "loading-kyc": { route: "/verification", view: () => <LoadingVerification /> },
-  "loading-rent": { route: "/rent", view: () => <LoadingRent /> },
   "loading-saved": { route: "/saved", view: () => <LoadingSaved /> },
   "loading-saved-searches": { route: "/saved/searches", view: () => <LoadingSavedSearches /> },
   "loading-post": { route: "/post/p", view: () => <LoadingThread /> },

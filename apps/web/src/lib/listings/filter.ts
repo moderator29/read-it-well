@@ -45,6 +45,13 @@ export type ListingFacts = {
    * catalogue is and what every row that predates the distinction was.
    */
   intent?: ListingIntent;
+  /**
+   * True for a tenancy (rent by the month, quarter or year), false for a
+   * nightly or per-head rate, absent when the source does not say. The rent
+   * MARKET is tenancies: a shortlet is `listing_intent = 'rent'` too, and the
+   * deleted `/rent` shelf never showed one (V-26).
+   */
+  tenancy?: boolean;
   bedrooms: number;
   bathrooms: number;
   /** The host's declared capacity, where the source carries one. */
@@ -88,6 +95,9 @@ export function factsOf(l: Listing): ListingFacts {
     kind: l.kind,
     priceMinor: l.priceMinor,
     ...(l.intent !== undefined ? { intent: l.intent } : {}),
+    ...(l.pricePeriod !== undefined
+      ? { tenancy: l.pricePeriod === "year" || l.pricePeriod === "month" || l.pricePeriod === "quarter" }
+      : {}),
     bedrooms: l.bedrooms,
     bathrooms: l.bathrooms,
     ...(l.maxGuests !== undefined ? { maxGuests: l.maxGuests } : {}),
@@ -163,6 +173,9 @@ export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = 
   // search is the single most confusing thing this catalogue could do. Absent
   // reads as "rent" because that is what every row without the column is.
   if (filter.intent && (facts.intent ?? "rent") !== filter.intent) return false;
+  /* The rent market is tenancies. A nightly shortlet is let too, but it is a
+     stay, and it lives on the Stays side (V-26, V-67). */
+  if (filter.intent === "rent" && facts.tenancy === false) return false;
 
   const wantsBudget = filter.minPriceMinor !== undefined || filter.maxPriceMinor !== undefined;
   if (wantsBudget) {

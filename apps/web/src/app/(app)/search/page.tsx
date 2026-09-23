@@ -34,6 +34,7 @@ import { BackButton } from "@/components/site/BackButton";
 import { Reveal } from "@/components/site/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/app/Screen";
+import { LastVisitProvider } from "@/components/app/search/LastVisit";
 
 export const metadata: Metadata = {
   title: "Search",
@@ -86,6 +87,16 @@ function moveInFigure(listing: Listing): number | null {
 function sortListings(listings: Listing[], sort: SortKey): Listing[] {
   const out = [...listings];
   switch (sort) {
+    /* V-22. Newest first by the date the listing went live; a row with no
+       date sorts last, because an unknown age is not a young one. */
+    case "newest":
+      out.sort((a, b) => {
+        const left = a.publishedAt ? Date.parse(a.publishedAt) : Number.NEGATIVE_INFINITY;
+        const right = b.publishedAt ? Date.parse(b.publishedAt) : Number.NEGATIVE_INFINITY;
+        if (left === right) return byVerification(a, b);
+        return right > left ? 1 : -1;
+      });
+      break;
     case "top-rated":
       out.sort(
         (a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount || byVerification(a, b),
@@ -401,6 +412,9 @@ export default async function SearchPage({
             /* Two across on a phone, four from `lg`: the decision a person is
                making here is a comparison, and you cannot compare things you
                can only see one at a time. */
+            /* The New mark reads the reader's previous visit on this device
+               (V-22); the provider records this one. */
+            <LastVisitProvider>
             <ul
               key={toShelfHref(query)}
               data-testid="results-grid"
@@ -416,10 +430,12 @@ export default async function SearchPage({
                     dense
                     saved={savedIds.has(l.id)}
                     intent={tuning.signedIn ? tuning.interests : undefined}
+                    messageAgent
                   />
                 </li>
               ))}
             </ul>
+            </LastVisitProvider>
           )}
         </div>
       )}

@@ -224,7 +224,6 @@ export const yo: Dictionary = withFallback({
     hotels: "Hòtẹ́lì",
     apartments: "Fúláàtì",
     homes: "Ilé gbígbé",
-    rent: "Yíyà ilé",
     buy: "Ríra ilé",
     shortlets: "Ìgbàdíẹ̀",
     land: "Ilẹ̀",
