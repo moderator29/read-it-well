@@ -12,6 +12,7 @@ import type { ListingReviewView } from "@/lib/admin/queries";
 import { adminUi } from "@/app/admin/_components/ui";
 import { AdminFrame } from "@/app/admin/_components/AdminFrame";
 import { ListingsQueue } from "@/app/admin/listings/ListingsQueue";
+import { MandatesPanel } from "@/app/admin/listings/MandatesPanel";
 import { ListingReview } from "@/app/admin/listings/[id]/ListingReview";
 import { ReviewActionBar } from "@/app/admin/listings/[id]/ReviewActionBar";
 import { ModerationDesk } from "@/app/admin/moderation/ModerationDesk";
@@ -145,6 +146,9 @@ export default async function Harness({
   const { desk } = await params;
   const sp = await searchParams;
   const empty = sp.empty === "1";
+  /* `?fail=1` draws the review page's two failure states: a walkthrough that
+     could not be signed and a listing with no pin. */
+  const fail = sp.fail === "1";
   const locale = await getLocale();
   const t = getDictionary(locale);
   const ui = adminUi(t, locale);
@@ -182,6 +186,26 @@ export default async function Harness({
         page={1}
         hasNext={!empty}
         hrefForPage={() => "#"}
+        mandates={
+          <MandatesPanel
+            day={ui.day}
+            today="2026-09-23"
+            queue={
+              empty
+                ? { counts: { pending: 0, approved: 0, rejected: 0 }, pending: [], decided: [] }
+                : {
+                    counts: { pending: 2, approved: 5, rejected: 1 },
+                    pending: [
+                      { id: "m1", listingId: "l1", listingTitle: "Three Bedroom Flat in Lekki Phase One", listingReference: null, kind: "letting", principalName: "Mrs Folake Adeyemi", principalPhone: "+2348012345678", exclusive: true, signedOn: "2026-09-01", expiresOn: "2027-09-01", hasDocument: true, status: "pending", rejectionReason: null, reviewedAt: null, createdAt: "2026-09-20T10:00:00Z" },
+                      { id: "m2", listingId: "l2", listingTitle: "Plot in Bwari", listingReference: null, kind: "sale", principalName: "Mr Chinedu Okafor", principalPhone: null, exclusive: null, signedOn: null, expiresOn: null, hasDocument: false, status: "pending", rejectionReason: null, reviewedAt: null, createdAt: "2026-09-21T10:00:00Z" },
+                    ],
+                    decided: [
+                      { id: "m3", listingId: "l3", listingTitle: "Duplex in Ikoyi", listingReference: "VL-3RP911", kind: "management", principalName: "Ikoyi Holdings Ltd", principalPhone: "+2348098765432", exclusive: false, signedOn: "2026-08-10", expiresOn: "2026-09-10", hasDocument: true, status: "rejected", rejectionReason: "The letter names a different address from the listing.", reviewedAt: "2026-09-18T10:00:00Z", createdAt: "2026-09-15T10:00:00Z" },
+                    ],
+                  }
+            }
+          />
+        }
         empty={{
           title: "Nothing is waiting for review",
           body: "No listing has been decided here yet. A new submission appears here the moment a lister sends one.",
@@ -193,16 +217,24 @@ export default async function Harness({
   } else if (desk === "review") {
     const dark = tileProvider("dark");
     const light = tileProvider("light");
+    const listing = fail
+      ? LISTING
+      : {
+          ...LISTING,
+          /* A player with its poster and controls. The file is not a real
+             walkthrough; with preload none nothing is fetched until play. */
+          videos: [{ url: "/preview/session-b/admin-review/walkthrough.mp4", posterUrl: P + "living-room-dusk.webp", durationSeconds: 60 }],
+        };
     body = (
       <ListingReview
-        listing={LISTING}
+        listing={listing}
         extras={{
           title: LISTING.title,
           status: "SUBMITTED",
           isDemo: false,
           amenities: ["Air conditioning", "Balcony", "Fitted kitchen", "Parking", "Security", "WiFi"],
-          latitude: 6.4474,
-          longitude: 3.47,
+          latitude: fail ? null : 6.4474,
+          longitude: fail ? null : 3.47,
           availableFrom: "Immediately",
           lister: {
             name: "Tunde A.",

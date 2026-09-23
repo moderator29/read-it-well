@@ -434,3 +434,130 @@ export function latestRungs(
     return [{ kind, status: found.status as "passed" | "failed" | "pending" }];
   });
 }
+
+/* ------------------------------------------------------------ mandates */
+
+export type MandateStatus = "pending" | "approved" | "rejected";
+
+export type MandateRow = {
+  id: string;
+  listingId: string;
+  listingTitle: string | null;
+  listingReference: string | null;
+  kind: "letting" | "sale" | "management" | string;
+  principalName: string;
+  /** The number a reviewer rings to confirm the instruction. Never logged, never sent to a reader. */
+  principalPhone: string | null;
+  exclusive: boolean | null;
+  signedOn: string | null;
+  expiresOn: string | null;
+  hasDocument: boolean;
+  status: MandateStatus;
+  rejectionReason: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+};
+
+export type MandateQueue = {
+  counts: Record<MandateStatus, number>;
+  /** Every pending mandate, oldest first, read whole. */
+  pending: MandateRow[];
+  /** The twenty most recently decided, newest first. */
+  decided: MandateRow[];
+};
+
+const MANDATE_COLUMNS =
+  "id, listing_id, kind, principal_name, principal_phone, exclusive, signed_on, expires_on, document_id, review_status, rejection_reason, reviewed_at, created_at, listings ( title, reference )";
+
+type MandateDbRow = {
+  id: string;
+  listing_id: string;
+  kind: string;
+  principal_name: string;
+  principal_phone: string | null;
+  exclusive: boolean | null;
+  signed_on: string | null;
+  expires_on: string | null;
+  document_id: string | null;
+  review_status: MandateStatus;
+  rejection_reason: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  listings: { title: string; reference: string | null } | null;
+};
+
+/** Pure: a database row as the desk reads it. */
+export function toMandateRow(row: MandateDbRow): MandateRow {
+  return {
+    id: row.id,
+    listingId: row.listing_id,
+    listingTitle: row.listings?.title ?? null,
+    listingReference: row.listings?.reference ?? null,
+    kind: row.kind,
+    principalName: row.principal_name,
+    principalPhone: row.principal_phone,
+    exclusive: row.exclusive,
+    signedOn: row.signed_on,
+    expiresOn: row.expires_on,
+    hasDocument: row.document_id !== null,
+    status: row.review_status,
+    rejectionReason: row.rejection_reason,
+    reviewedAt: row.reviewed_at,
+    createdAt: row.created_at,
+  };
+}
+
+/** Pure: true when a mandate's own expiry date has passed (Lagos calendar day). */
+export function mandateExpired(expiresOn: string | null, today: string): boolean {
+  return Boolean(expiresOn && expiresOn < today);
+}
+
+/**
+ * The mandate review queue (`listing_mandates`, Track G migration 5): what an
+ * agent or a firm holds instead of ownership. Exact counts per review status,
+ * every pending mandate, and the twenty latest decisions. Read under
+ * `listing_mandates_staff_all` through the admin's own client.
+ */
+export async function getMandateQueue(): Promise<Read<MandateQueue>> {
+  const db = await adminDb();
+  if (!db) return UNAVAILABLE;
+  try {
+    const head = { count: "exact" as const, head: true };
+    const [pendingCount, approved, rejected] = await Promise.all(
+      (["pending", "approved", "rejected"] as const).map(async (status) => {
+        const { count, error } = await db.from("listing_mandates").select("id", head).eq("review_status", status);
+        if (error) throw error;
+        return count ?? 0;
+      }),
+    );
+    const pending: MandateRow[] = [];
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await db
+        .from("listing_mandates")
+        .select(MANDATE_COLUMNS)
+        .eq("review_status", "pending")
+        .order("created_at", { ascending: true })
+        .range(from, from + PAGE - 1);
+      if (error) return UNAVAILABLE;
+      pending.push(...((data ?? []) as unknown as MandateDbRow[]).map(toMandateRow));
+      if (!data || data.length < PAGE) break;
+    }
+    const { data: decided, error: decidedError } = await db
+      .from("listing_mandates")
+      .select(MANDATE_COLUMNS)
+      .neq("review_status", "pending")
+      .order("reviewed_at", { ascending: false, nullsFirst: false })
+      .limit(20);
+    if (decidedError) return UNAVAILABLE;
+    return {
+      state: "ok",
+      data: {
+        counts: { pending: pendingCount ?? 0, approved: approved ?? 0, rejected: rejected ?? 0 },
+        pending,
+        decided: ((decided ?? []) as unknown as MandateDbRow[]).map(toMandateRow),
+      },
+    };
+  } catch {
+    return UNAVAILABLE;
+  }
+}

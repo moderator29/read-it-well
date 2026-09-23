@@ -52,6 +52,8 @@ export type ListingsQueueProps = {
   /** Said under the table when the tab can only ever show a capped list. */
   capNote?: string | null;
   unavailable?: boolean;
+  /** The mandates panel, under the queue. */
+  mandates?: ReactNode;
 };
 
 /** Queue health: the four slices the render draws, from AR-1's exact counts. */
@@ -83,6 +85,7 @@ export function ListingsQueue(props: ListingsQueueProps) {
     empty,
     capNote,
     unavailable,
+    mandates,
   } = props;
 
   const median = reviewTimes?.thisWeek.medianMinutes ?? null;
@@ -118,6 +121,8 @@ export function ListingsQueue(props: ListingsQueueProps) {
               <Pager page={page} hasNext={hasNext} hrefFor={hrefForPage} label="Queue pages" />
             </div>
           ) : null}
+
+          {mandates}
 
           {decided && decided.length > 0 ? (
             <Panel flush title={decidedTitle} labelledBy="rv-decided">

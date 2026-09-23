@@ -375,6 +375,17 @@ AR-11. **An admin read of `public.blocked_terms`.** The table has row level
    or super_admin) with the grant, or a security definer read function. Writing
    the list stays a founder decision and is not asked for here.
 
+AR-12. **A decision for a listing mandate.** `listing_mandates` (Track G
+   migration 5) has `review_status`, `reviewed_by`, `reviewed_at` and a
+   `rejection_reason` that must be 8+ characters, and `listing_mandates_staff_all`
+   lets an admin write it, but nothing in `lib/admin/**` decides one. Request:
+   `reviewListingMandate({ mandateId, approve, reason? })` in the shape of
+   `reviewKycDocument` (reason required on refusal and sent word for word, an
+   audit row, a notification to the listing's owner, and on approval setting
+   `listings.mandate_verified_at`). The Listings desk shows the mandate queue
+   now (Session B's `getMandateQueue`) and says under each pending mandate that
+   it cannot be decided yet.
+
 ### Requests from inspection (the property inspection surface)
 
 Session B has not made these; the surface ships the honest state around each.
