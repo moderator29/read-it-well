@@ -1,0 +1,39 @@
+POLICY CALLERS HOLD EXECUTE, live project uccixoonmbhrnyczyigt, 2026-09-23.
+scripts/probes/policy_callers_hold_execute.sql through
+mcp__Supabase__apply_migration, rolled back.
+
+--- THE RUN ---------------------------------------------------------------
+
+ERROR:  P0001: PROBE ALL PASS policy-callers: 371 pairs examined over every RLS
+policy in the database, 366 hold EXECUTE, 3 known and named exceptions carried
+in the allowlist with their reason, 0 unexplained. A policy expression is
+evaluated as the querying role, so a role that can reach a table and cannot
+evaluate its policy gets 42501 on every statement rather than an empty result.
+Rolled back on purpose.
+
+--- THE MUTATION, because a check nobody has seen fail is a check nobody
+--- should believe. Same probe, `allowed` set to array[]::text[].
+
+ERROR:  P0001: MUTATION CONFIRMED, THE CHECK BITES: 5 of 371 pairs flagged with
+the allowlist emptied.
+  [anon cannot evaluate private.attachment_path_access(text),
+   used by storage.objects.message attachments member insert]
+  [anon cannot evaluate private.attachment_path_access(text),
+   used by storage.objects.message attachments member read]
+  [anon cannot evaluate private.can_see_listing_access(uuid),
+   used by listing_access.listing_access_select]
+  [anon cannot evaluate private.escrow_evidence_path_access(text,boolean),
+   used by storage.objects.escrow_evidence_objects_party_insert]
+  [anon cannot evaluate private.escrow_evidence_path_access(text,boolean),
+   used by storage.objects.escrow_evidence_objects_party_read]
+
+--- WHAT IT WOULD HAVE SAID ON 22 SEPTEMBER -------------------------------
+
+Before migration 20260923103430 it would have added, and would have FAILED on:
+
+  [anon cannot evaluate private.owns_listing(uuid), used by
+   listings.listings_owner_all]                        ... and 33 more pairs,
+  17 policies across 10 tables, for anon and for authenticated both.
+
+That is the outage in ledger section 65, and it is one catalogue query away
+from being visible. It was not visible for a day.
