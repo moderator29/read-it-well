@@ -5,7 +5,8 @@ import { FIRST_RUN_COOKIE } from "@/components/app/welcome/first-run-seen";
 import { signInFirstRunRedirect } from "./first-run-gate";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { getProviderStates } from "@/lib/auth/providers";
+import { resolveProviderStates } from "@/lib/auth/providers";
+import { requestSurface } from "@/lib/auth/surface";
 import { AuthChoices } from "@/components/auth/AuthChoices";
 
 export const metadata: Metadata = {
@@ -56,11 +57,13 @@ export default async function SignInPage({
   const next = typeof params.next === "string" ? params.next : undefined;
   const noticeText = notice ? NOTICES[notice] : undefined;
 
+  const surface = await requestSurface();
   return (
     <AuthChoices
       mode="sign-in"
       t={t}
-      providers={getProviderStates()}
+      providers={await resolveProviderStates(surface)}
+      surface={surface}
       notice={noticeText}
       next={next}
     />

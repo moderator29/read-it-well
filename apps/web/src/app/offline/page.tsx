@@ -35,10 +35,10 @@ export default function OfflinePage() {
       <p className="nf-system__overline">Connection</p>
       <h1 className="nf-system__title">You are offline</h1>
       <p className="nf-system__body">
-        The connection dropped before this page could load. Nothing you were
-        doing has been lost, and nothing was half sent. Your balance, your
-        messages and your bookings are never shown from an old copy, so they
-        will be the real figures when you are back.
+        The connection dropped before this page could load, so it has not
+        been shown. Anything you had typed but not sent may need typing again.
+        Your balance, your messages and your bookings are never shown from an
+        old copy, so they will be the real figures when you are back.
       </p>
 
       <RetryButton />

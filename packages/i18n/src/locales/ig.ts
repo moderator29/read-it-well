@@ -503,9 +503,7 @@ export const ig: Dictionary = withFallback({
            wrong badge rather than a localised one. */
         rightTitle: "Njem ụlọ gị, ugbu a na ekwentị.",
         points: {
-          all: "Ohere zuru oke na njirimara ọ bụla",
           notify: "Ọkwa ozugbo",
-          fast: "Nchebe ma dị ngwa",
           design: "Emere maka otu aka",
         },
       },

@@ -501,9 +501,7 @@ export const yo: Dictionary = withFallback({
            wrong badge rather than a localised one. */
         rightTitle: "Ìrìn àjò ohun ìní rẹ, báyìí lórí fóònù.",
         points: {
-          all: "Àǹfààní kíkún sí gbogbo ẹ̀yà",
           notify: "Ìfitónilétí lẹ́sẹ̀kẹsẹ̀",
-          fast: "Ààbò àti ìyára",
           design: "A ṣe fún ọwọ́ kan",
         },
       },

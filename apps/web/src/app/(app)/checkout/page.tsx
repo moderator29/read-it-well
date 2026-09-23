@@ -123,7 +123,7 @@ export default async function RoomCheckoutPage({
 
       <p className={`flex items-start gap-inline ${TYPE.caption}`}>
         <UiIcon name="verified" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-brand-secondary)]" />
-        <span>Money moves inside Vallo only once a booking exists and its total is stored to the kobo.</span>
+        <span>You pay only for a booking you have made, and only the total shown here.</span>
       </p>
     </div>
   );

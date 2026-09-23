@@ -631,7 +631,7 @@ export const en = {
            returns nothing at all when the platform cannot answer, so the band
            prints no figures rather than a nought dressed as a fact. The line
            said "every count on this page" and pointed at an empty space. */
-        body: "Both sides of Vallo, one account. Any figure on this page is read from the platform as the page loads, and where there is nothing true to print, nothing is printed.",
+        body: "Both sides of Vallo, one account. Where there is nothing true to show, nothing is shown.",
         join: "Join Vallo today",
         thirdParty: "Third party",
         thirdPartyTitle: "Partner inventory, always labelled",
@@ -723,10 +723,10 @@ export const en = {
         android: "Google Play",
         androidSub: "GET IT ON",
         rightTitle: "Property and stays, now on mobile.",
+        /* STORE-06 / UI-07: "Full access to all features" and "Secure and
+           fast" were claims nothing backs, and they are gone. */
         points: {
-          all: "Full access to all features",
           notify: "Instant notifications",
-          fast: "Secure and fast",
           design: "Beautiful, intuitive design",
         },
       },
@@ -1153,6 +1153,10 @@ export const en = {
        email-and-password account. Sign-in only. */
     accountUsesGoogle:
       "This address signs in with Google, so there is no password to type. Continue with Google to get in.",
+    /* Google sign-in is switched off (STORE-02). A person whose account was
+       made with Google still has a way in: a password, set by reset. */
+    accountUsesGoogleOff:
+      "This address was set up with Google, which Vallo no longer uses to sign in. Type your password below. If you never set one, choose Forgot password and we will email you a link to set it.",
     accountNotFound: "No account uses this address yet.",
     accountCreate: "Create one with it",
   },
@@ -1437,7 +1441,7 @@ export const en = {
     place: {
       label: "Where you are",
       noteSet:
-        "This is the city home opens on. Your occupation comes from the platform's own list of 749, so it can be searched on.",
+        "This is the city home opens on.",
       noteUnset: "Set these and home opens where you are.",
       noteSignedOut: "Sign in to keep your state and local government with your account.",
       lga: "Local government",
@@ -1734,7 +1738,7 @@ export const en = {
 
     about: {
       label: "About",
-      note: "Preferences kept on this device stay on this device. Account preferences are protected with row level security, so only you can read or change your own row.",
+      note: "Preferences kept on this device stay on this device. Only you can see or change your account preferences.",
       help: "Help",
       helpSub: "Get an answer from a person",
       terms: "Terms",
@@ -2643,10 +2647,10 @@ export const en = {
    */
   agentEarnings: {
     title: "Earnings",
-    lede: "What has settled from your stays, taken straight from the ledger.",
+    lede: "Earnings from your completed stays.",
     unconfigured: "We cannot reach your earnings right now. Nothing has been lost.",
     unavailable:
-      "We could not read the ledger just now, so no figure is shown rather than a wrong one. Reload in a moment.",
+      "We could not load your earnings just now, so no figure is shown rather than a wrong one. Reload in a moment.",
     totals: {
       yourShare: "Your share, settled",
       guestsPaid: "Guests paid",

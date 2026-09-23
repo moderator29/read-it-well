@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { getProviderStates } from "@/lib/auth/providers";
+import { resolveProviderStates } from "@/lib/auth/providers";
+import { requestSurface } from "@/lib/auth/surface";
 import { AuthChoices } from "@/components/auth/AuthChoices";
 
 export const metadata: Metadata = {
@@ -47,5 +48,7 @@ export default async function SignUpPage({
   const locale = await getLocale();
   const t = getDictionary(locale);
 
-  return <AuthChoices mode="sign-up" t={t} providers={getProviderStates()} next={next} />;
+  const surface = await requestSurface();
+  return <AuthChoices mode="sign-up" t={t} providers={await resolveProviderStates(surface)}
+      surface={surface} next={next} />;
 }
