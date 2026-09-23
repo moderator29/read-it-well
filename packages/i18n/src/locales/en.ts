@@ -1012,7 +1012,7 @@ export const en = {
         water: { title: "What it really costs", body: "Rent, caution, service, agency and legal, added up in front of you before you commit to anything." },
         gate: { title: "Who you are dealing with", body: "A named agent, checked by a person, with the date of the check on the listing." },
         checked: { title: "Checked by a person", body: "The verified tick appears only after a person has checked the agent, by hand, and it shows the date." },
-        inside: { title: "Everything inside Vallo", body: "Chat, viewing and payment stay on the platform, so there is a record if anything goes wrong." },
+        inside: { title: "Everything inside Vallo", body: "Chat, inspection and payment stay on the platform, so there is a record if anything goes wrong." },
       },
     },
     vision: {
@@ -1021,7 +1021,7 @@ export const en = {
       body: "Fake listings, fees invented at the door, agents nobody checked, rent handed over in cash with no record. Everyone knows the stories because everyone has one. Vallo is the version where the person is real, the price is whole, and the paper trail belongs to you.",
       missionOverline: "The mission",
       missionTitle: "Real estate, with the fear taken out.",
-      missionBody: "Every agent checked by hand before they can list. Every price carried to the door. Every conversation, viewing and payment inside one account. That is the whole product, and nothing ships that breaks it.",
+      missionBody: "Every agent checked by hand before they can list. Every price carried to the door. Every conversation, inspection and payment inside one account. That is the whole product, and nothing ships that breaks it.",
       points: {
         verified: { title: "Checked by a person", body: "The verified tick goes on a listing once we have checked the agent behind it, by hand." },
         naira: { title: "Priced in naira", body: "Whole figures, printed in full, never a rate that hides the rest." },
@@ -4006,7 +4006,7 @@ export const en = {
   },
 
   /**
-   * /inspections: every viewing this person asked for or was asked to show.
+   * /inspections: every inspection this person asked for or was asked to show.
    * Added 18 September 2026 (Build 05, FE-1).
    */
   inspectionsPage: {
@@ -4049,7 +4049,7 @@ export const en = {
       viewRestaurant: "View the restaurant",
     },
     rental: {
-      waitingOnYou: "They asked to view this place. Your answer goes to them and to their inspections list.",
+      waitingOnYou: "They asked to inspect this place. Your answer goes to them and to their inspections list.",
       waitingOnThem: "Waiting on {name} to answer.",
       offeredToYou: "{name} offered another time.",
       offeredByYou: "You offered another time. Waiting on {name}.",
@@ -4062,7 +4062,7 @@ export const en = {
       withdraw: "Withdraw",
       markInspected: "Mark as inspected",
       payRent: "Pay the rent",
-      accepted: "Accepted. The viewing is confirmed on both sides.",
+      accepted: "Accepted. The inspection is confirmed on both sides.",
       inspected: "Marked as inspected.",
       withdrawn: "Withdrawn.",
       declined: "Declined.",

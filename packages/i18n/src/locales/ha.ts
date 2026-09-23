@@ -2926,7 +2926,7 @@ export const ha: Dictionary = withFallback({
       viewRestaurant: "Duba gidan cin abinci",
     },
     rental: {
-      waitingOnYou: "They asked to view this place. Your answer goes to them and to their inspections list.",
+      waitingOnYou: "They asked to inspect this place. Your answer goes to them and to their inspections list.",
       waitingOnThem: "Ana jiran {name} ya amsa.",
       offeredToYou: "{name} ya ba da wani lokaci.",
       offeredByYou: "You offered another time. Waiting on {name}.",

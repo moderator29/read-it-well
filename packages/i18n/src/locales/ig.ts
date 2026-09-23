@@ -2930,7 +2930,7 @@ export const ig: Dictionary = withFallback({
       viewRestaurant: "Lee ụlọ nri ahụ",
     },
     rental: {
-      waitingOnYou: "They asked to view this place. Your answer goes to them and to their inspections list.",
+      waitingOnYou: "They asked to inspect this place. Your answer goes to them and to their inspections list.",
       waitingOnThem: "Na-eche {name} ka ọ zaa.",
       offeredToYou: "{name} nyere oge ọzọ.",
       offeredByYou: "You offered another time. Waiting on {name}.",
