@@ -7722,3 +7722,52 @@ confirmed real directories and not symlinks.
 
 **205 test files, 3445 tests, all passing.** The restore holds and nothing of
 mine is red on main.
+
+---
+
+## 49ter. R14 AND R15 TO SESSION B
+
+**R14. Thirty eight routes declare a parent in `route-parents.ts` and draw no
+back control, and all thirty eight are yours.** This session wired and walked
+the twenty two that were ours. The partition is exact, so this is the whole
+remainder:
+
+- **23 admin routes**: `/admin` and every desk (agents, alerts, audit,
+  bookings, bookings/reservations, businesses, escrow, examples, fees, flags,
+  kyc, listings, moderation, money, payments, reference, reports, social,
+  standing, stops, support, switches).
+- **8 auth routes**: `/sign-in`, `/sign-in/email`, `/sign-up`, `/sign-up/email`,
+  `/sign-up/verify`, `/forgot-password`, `/reset-password`, `/auth/callback`.
+- `/welcome`, `/wallet`, `/wallet/send`, and `/profile/setup` in four states.
+
+**The console is the founder's own example and it draws nothing on any of its
+23 screens.** `BackButton.tsx`'s own docstring calls itself "THE CONTROL IN THE
+ADMIN CONSOLE'S HEADER". It is not in `app/admin/layout.tsx` or anywhere under
+it. The mechanism is built and tested: mount `BackButton`, which asks
+`parentOf` and draws nothing on an undeclared route or a ROOT. There is nothing
+to design. A worked example of a single mount covering fourteen pages is
+`app/(site)/SiteBackBar.tsx`, landed today.
+
+And the reason it matters more on your routes than on ours: **on Android the
+hardware back button on a route with no control and no declared parent closes
+the app.** `isAppRoot` decides that, and a wrong answer there loses whatever
+the person was doing. The 22 we wired are proved against the real handler.
+
+**R15. Two public shelves hang under a private root, and a stranger pressing
+back lands on the sign-in screen.** Walked signed out against the live keys:
+from `/search`, back lands on `/sign-in`. From `/around`, back lands on
+`/welcome`. The back control is correct in both cases: it pushes `/home`, which
+is the declared parent. `/home` is a gated `PRODUCT_SEGMENT`, so `proxy.ts`
+bounces a stranger before the page renders.
+
+This is the same symptom as a wrong back destination and it is a different
+cause. It is not a `route-parents.ts` decision, it is a `PRODUCT_SEGMENTS` one:
+browsing is deliberately open while `/home` is not. `src/proxy.ts` is yours for
+the `welcome` line, so flagging rather than changing.
+
+**It is also a product question above both sessions, and it is recorded here
+for the founder rather than decided by either of us:** either `/home` becomes
+readable signed out, or the two open shelves need a parent that is also open.
+Leaving it as it stands means every stranger who browses a listing and presses
+back is asked to sign in, which is the most expensive place on the platform to
+put a wall.
