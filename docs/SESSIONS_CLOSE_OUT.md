@@ -335,7 +335,7 @@ unblocked by C1.1 (network access) plus two labelled test accounts (C3.5).**
 |---|---|---|---|
 | The eight-room inspection checklist, notes and report photos | No tables (request I1) | Session A migration, then Session B screen | half a day A, two hours B |
 | Bank send going live | `BANK_SEND_OPEN = false` pending C3.1; Paystack refuses third-party payouts on a starter account (C2.5) | founder, then one line | minutes |
-| Badge on the admin review desks (Listings, Moderation, Verification, Support names) | wiring in progress at close (see B6) | Session B | one hour |
+| Badge on Moderation reporters and authors, and Support requesters | those reads return names without ids | Session A read, then one line each | one hour |
 | Badge on wallet transaction rows and receipts | the wallet repository drops the counterparty id (W6) | Session A read, then one line | one hour |
 | 5 of 14 money-desk names without a badge | `lib/admin/money-queries.ts` returns names without ids | Session A, then Session B | one hour |
 | Money, Escrow, Supply and Payments desk copy in four locales | English in components; only Bookings reads the dictionary | Session B | two hours, plus a native speaker (C2.3) |
@@ -360,10 +360,10 @@ is only possible for flows that need no session.
 | Inspections | 5 / 5 after `e3c90797` (audit said 4 / 5) | 10 / 12 (I1, I2) | 0 / 12 | 0 / 12 live |
 | Admin shell, Overview, Operations, Analytics | 24 / 24 | 17 / 17 reads built | 0 / 17 | back arrow pressed on a harness |
 | Admin money desks | 5 / 5 | 5 / 5 desks | 0 / 5; writes 0 / 2 | all controls drawn in harness |
-| Admin review desks | 5 / 5 at audit 4 | see ledger 7 | 0 | harness only |
+| Admin review desks | 4 / 5 (wired real is part met: checked in code and read-only SQL, never run) | 5 / 5 desks in code | 0 / 5; controls through a real action 0 / 14 | navigation only, in harness |
 | Admin handbook | 1 / 1 (audit PASS) | n/a | n/a | n/a |
 | Welcome email | 5 / 5 | send wired by Session A | 0 / 6 versions seen in a real inbox | n/a |
-| Deleted posts | 5 / 5 | 11 / 11 listing reads filtered | counts checked live (74 / 1) | 0 |
+| Deleted posts | 5 / 5 | 17 / 18 listing surfaces filtered at the read (the 18th is DP-1) | chain 6 / 9 (policy, table, triggers by SQL; query by test; screen by harness); live counts 74 / 1 | harness: 0 tombstones in feed and profile, 1 in a replied thread |
 
 **Surfaces passed by the independent audit, run 4:** 6 of 8 (profile, get
 started, welcome back, wallet and send, email, handbook); the two narrow fails
@@ -407,6 +407,21 @@ figure is 45.** The difference between them is exactly the list in B2.
   removed, and the profile drew no badge at all from `a4ba8a10` until the swap
   in `e3c90797`.
 
+### B5a. The wide platform sweep (founder instruction, 23 September, IN PROGRESS at this writing)
+
+The founder named the admin console and Get started the reference
+implementation for the whole platform and asked for their anatomy to move into
+the shared token and component layer once, then for every surface to be swept
+onto it, plus the feed and the plus bloom rebuilt to his image
+(`docs/design/references/founder/feed-plus-bloom-target.jpg`). Files claimed in
+the scope file (`ccf594ba`). Workers: shared layer (phase 1), feed and bloom,
+and six surface groups (home, search and listing; stays, trips and checkout;
+settings and notifications; public profile, messages and threads; drawer, dock,
+host, agent and landing; plus Session B's own surfaces). **The result of the
+sweep, route by route (swept, not swept and why), is recorded in ledger section
+13 and summarised in B5b below when it lands. Until B5b says otherwise, treat
+every route outside Session B's original surfaces as NOT YET SWEPT.**
+
 ### B6. What the next session needs to know
 
 - **Worktrees, not the main tree.** Session B built in per-worker git worktrees
@@ -427,9 +442,10 @@ figure is 45.** The difference between them is exactly the list in B2.
   Session A's `TierBadge` and none decides a tier. Consolidating them onto
   `TierBadge` directly is a safe tidy. `PersonTier` is written with
   `createElement` on purpose so its unit test can render it.
-- **The admin review desks' badge wiring** was in progress at close; if
-  `apps/web/src/app/admin/listings` and `moderation` do not import
-  `PersonTier`, it did not land.
+- **Badge on the review desks:** drawn for the lister (queue and listing under
+  review) and the applicant (verification). Moderation reporters and authors and
+  Support requesters have none, because those reads return names without user
+  ids (Session A's queries).
 - **Admin reads live in `lib/admin/reads/**` (Session B's, read only).** Every
   mutation is Session A's. Totals come from exact counts, never a capped list.
 - **The console back arrow preview uses `PathnameContext` from an internal
