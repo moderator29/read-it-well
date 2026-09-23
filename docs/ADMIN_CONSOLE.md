@@ -466,43 +466,68 @@ no real supply yet, and the desk says so on every panel.
 
 ## 11. Bookings
 
-**Route:** `/admin/bookings`, `/admin/bookings/[bookingId]` and
-`/admin/bookings/reservations`. Unchanged in behaviour by this rebuild; it
-wears the console register from the shell.
+**Route:** `/admin/bookings` (the stays desk), `/admin/bookings/[bookingId]`
+(one stay) and `/admin/bookings/reservations` (restaurant tables). **Who:**
+`admin` or `super_admin`; every read repeats `requireAdmin()` and goes
+through the admin's RLS client (`bookings_admin_all`, `listings_admin_all`,
+`transactions_admin_select`, `booking_refunds_select_admin`,
+`profiles_select_admin`).
 
-- **The board** (`getBookingBoard` in `lib/admin/bookings-queries.ts`, Session
-  A) lists stays in three groups, live, past and cancelled, each with its
-  status, what has been paid (successful `transactions` summed per booking)
-  and what has been refunded.
-- **A stay's page** (`getBookingDetail`) shows the guest, the listing, the
-  dates, the money, and the cancel control. Cancelling as an operator calls
-  `cancelBookingAsAdmin`, which previews the refund from the published
-  cancellation schedule (`previewCancellation`), then calls
-  `refund_and_cancel_booking`; the operator chooses only the reason, never
-  the amount. The refund lands as a wallet entry that the Refunds panel on
-  the money desk then tracks.
-- **Reservations** (`getReservationBoard`) lists restaurant and venue
-  reservations; accepting or declining calls `decideReservationAsAdmin`,
-  which updates the row and notifies the guest.
+| Panel | What it shows | Source |
+|---|---|---|
+| Requested | Stays in PENDING: asked for, not yet answered by the host. The card is a link that narrows the table to them | `getBookingsDesk()` in `lib/admin/reads/bookings.ts`, every `bookings` row |
+| Confirmed | Stays in CONFIRMED | same |
+| In stay now | CONFIRMED stays where today (Lagos) is on or after check-in and before check-out | same |
+| Cancelled | Stays in CANCELLED, whoever cancelled | same |
+| Refunded | Stays with a refund of more than nothing recorded in `booking_refunds` | same |
+| Stays booked per day | Stays created each Lagos day for thirty days. Drawn only once two days have bookings; before that the frame stays and a calm note says what will fill it | same |
+| By status | One bar on the status four: Requested (cyan), Confirmed (blue), Completed (emerald), Cancelled or no-show (rose), each with its word and count | same |
+| Filter | Search a listing title, a guest's name or a booking id; a chip per booking status; a Lagos date range on when the stay was booked | `QueueFilters`, URL `q`, `status`, `from`, `to` |
+| Stays | Every stay, newest first: the listing and where it is, the guest, the dates and nights, the status and any refund, what has been paid (successful `transactions`), and the total. Numbered pages of 12. Each title opens the stay | `getBookingsDesk()` |
+| Restaurant tables | The link to the reservations queue with how many are waiting on the restaurant | `getReservationWaitingCount()` (Session A) |
 
-**Today's reality.** Zero bookings and zero reservations have ever been made.
+**The one write, on a stay's own page.** Cancel and refund: the operator
+chooses only the reason; the amount comes from the published cancellation
+schedule (`previewCancellation`), and `cancelBookingAsAdmin` calls
+`refund_and_cancel_booking`, which cancels, writes the refund to the guest's
+wallet and records a `booking_refunds` row that the money desk's Refunds
+panel then tracks. Reservations are accepted or declined with
+`decideReservationAsAdmin`, which notifies the guest. All three are Session
+A's, unchanged.
+
+**Today's reality.** No stay and no reservation has ever been made; every
+card reads 0 and every panel says what will fill it.
 
 ## 12. Payments
 
-**Route:** `/admin/payments`. Unchanged in behaviour by this rebuild.
+**Route:** `/admin/payments`. **Who:** `admin` or `super_admin`.
 
-- **Overdrawn wallets** and **stuck withdrawal holds** come from
-  `getPaymentHealth` (Session A), which calls `public.admin_payment_health`, a
-  security definer function that repeats the admin role check.
-- **Release stuck holds** calls `expireStaleWithdrawalHolds`
-  (`admin_expire_stale_withdrawal_holds`), which releases withdrawal holds
-  older than the stale window back to spendable balance.
-- **Waiting on the provider** lists payments Paystack has not settled in the
-  last 30 days. Re-asking the provider is the reconcile job's decision, not
-  this screen's.
-- **Look up a person's saved methods** shows masked card and bank details and
-  lets an operator remove one (`removePaymentMethodAsAdmin`,
-  `removeBankAccountAsAdmin`), which notifies the owner.
+**Two kinds of payment attempt:** a booking checkout (one `transactions`
+row) and a wallet top-up (a `wallet_entries` row of kind `deposit`, whose
+`metadata.channel` records the Paystack channel). **Five outcomes, from each
+row's own status:** Succeeded (SUCCESSFUL or COMPLETED), Failed (FAILED or
+REVERSED), Refunded (REFUNDED), Started (PENDING and less than 24 hours old)
+and Abandoned (PENDING and older: the person began and did not finish; the
+reconcile job settles any that did).
+
+| Panel | What it shows | Source |
+|---|---|---|
+| Started, Succeeded, Failed, Abandoned | Attempts begun in the last 7 days by outcome, against the 7 days before (a change is drawn only when the earlier week had some) | `getPaymentsDesk()` in `lib/admin/reads/payments.ts`, every attempt |
+| Money in per day | The value of attempts that succeeded, per Lagos day, thirty days. Drawn only once two days have some | same |
+| By channel | Attempts in thirty days by channel (card, bank, USSD and so on; "unrecorded" where the row does not say), and the value that came in on each | same |
+| Where payments ended | One bar on the status four with a word on every segment wide enough and a key naming all five with their counts | same |
+| Every payment | Every attempt, newest first: when it started, the provider reference in full, the kind (a checkout links to its stay), the channel, the outcome and the amount. Narrow by outcome and by kind; numbered pages of 12 | same |
+| Health | Ledger shortfall, money frozen by stuck holds and money waiting on the provider; the overdrawn wallets, the stuck withdrawal holds with the release control, and payments the provider has not settled | `getPaymentHealth()` (Session A), calling `public.admin_payment_health` |
+| Look up a person | Saved cards and bank accounts (masked) and their terms standing, with removal | `findAdminSubject`, `getSavedMethods`, `getTermsStanding` (Session A) |
+
+**Actions, all Session A's, unchanged.** Release stuck holds
+(`expireStaleWithdrawalHolds`, calling `admin_expire_stale_withdrawal_holds`)
+returns withdrawal holds older than the window to spendable balance. Removing
+a saved method (`removePaymentMethodAsAdmin`, `removeBankAccountAsAdmin`)
+notifies its owner.
+
+**Today's reality.** One top-up has ever succeeded (₦1,000 by bank, 9
+August); no booking checkout has been attempted; nothing is stuck.
 
 ## 13. Operations: scheduled jobs, alerts, audit log, notifications
 
@@ -866,6 +891,12 @@ with a reason of at least twelve characters that tells them what to upload
 instead. Their ladder and tier update when the rung's documents are decided.
 
 ### Money desks (admin-money)
+
+**Reading an empty panel.** On money, escrow, supply, bookings and payments an
+empty panel keeps its frame (axes, legend, table head) and shows a calm note:
+the first line says what fills the panel, the second what creates that data,
+and the link goes to the desk where that happens. A red note means the read
+did not answer, not that there is nothing; reload.
 
 **Ruling on a disputed escrow.** Open `/admin/escrow` (or the money desk's
 "Disputed holds" panel). Read both confirmations and the objection. Decide
