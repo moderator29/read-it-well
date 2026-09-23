@@ -14,6 +14,8 @@ import { isYellowCardConfigured } from "@/lib/payments/yellowcard";
 import { listPaymentMethods } from "@/lib/payments/methods-actions";
 import { readPots } from "@/lib/wallet/pots";
 import { PotsSection } from "@/components/app/wallet/PotsSection";
+import { AccountHoldNotice } from "@/components/app/wallet/AccountHoldNotice";
+import { loadAccountHold } from "@/lib/security/account-hold";
 import { FundingVerifier } from "./FundingVerifier";
 import { WalletDeck } from "./WalletDeck";
 
@@ -62,6 +64,12 @@ export default async function WalletPage({
   /* The saved cards, for the Top Up sheet. An unreadable list is an empty
      one here: the hosted window is always still offered. */
   const cards = wallet.live && !wallet.readFailed ? await listPaymentMethods() : null;
+  /* V-19: a "this was not me" hold on withdrawals and sends, read through the
+     owner's own RLS. Unreadable draws nothing; the ledger trigger enforces it. */
+  const hold =
+    session.state === "signed-in"
+      ? await loadAccountHold(session.supabase)
+      : ({ state: "none" } as const);
 
   const verifying =
     funded === "1" && typeof reference === "string" && reference.startsWith("rm-fund-")
@@ -111,6 +119,7 @@ export default async function WalletPage({
         </Reveal>
       ) : (
         <>
+          <AccountHoldNotice hold={hold} locale={locale} copy={t.platform.hold} />
           <Reveal>
             {/* Whether crypto is offered is decided HERE, on the server,
                 because the answer is an environment variable a browser must

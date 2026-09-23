@@ -66,6 +66,7 @@ import {
 } from "../payments/yellowcard";
 import { CRYPTO_PREFIX, FUND_PREFIX, P2P_PREFIX, WITHDRAW_PREFIX } from "../payments/references";
 import { guardMoney } from "../security/money-limits";
+import { accountHoldRefusal } from "../security/account-hold-guard";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { subjectForUser } from "../security/rate-limit";
 import { lookupBank, resolveBankAccountName } from "../payments/bank-resolve";
@@ -518,6 +519,10 @@ async function withdrawWork(
 
   const limit = await guardMoney("withdraw", session.user.id);
   if (!limit.allowed) return fail(limit.message);
+  /* V-19: a "this was not me" hold. The ledger trigger is the rule; this is
+     the sentence. */
+  const accountHold = await accountHoldRefusal(session.supabase);
+  if (accountHold) return fail(accountHold);
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
@@ -833,6 +838,10 @@ async function withdrawToSavedAccount(
 
   const limit = await guardMoney("withdraw", session.user.id);
   if (!limit.allowed) return fail(limit.message);
+  /* V-19: a "this was not me" hold. The ledger trigger is the rule; this is
+     the sentence. */
+  const accountHold = await accountHoldRefusal(session.supabase);
+  if (accountHold) return fail(accountHold);
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
@@ -1116,6 +1125,10 @@ async function transferToUserWork(
 
   const limit = await guardMoney("transferToUser", session.user.id);
   if (!limit.allowed) return fail(limit.message);
+  /* V-19: a "this was not me" hold. The ledger trigger is the rule; this is
+     the sentence. */
+  const accountHold = await accountHoldRefusal(session.supabase);
+  if (accountHold) return fail(accountHold);
 
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);

@@ -297,6 +297,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/settings/account": "/settings",
   "/settings/appearance": "/settings",
   "/settings/devices": "/settings",
+  /* V-19: the new sign-in alert a push lands on; back is the devices screen. */
+  "/settings/devices/alert": "/settings/devices",
   "/settings/help": "/settings",
   "/settings/interests": "/settings",
   "/settings/notifications": "/settings",

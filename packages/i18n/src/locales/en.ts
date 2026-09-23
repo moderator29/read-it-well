@@ -4,6 +4,9 @@ import type { CountForms } from "../plural";
    overwrite once already. One import and one line is the smallest footprint a
    namespace can have here. */
 import { priceCheckEn } from "./price-check.en";
+/* The platform and the craft (devices, sign-in alert, wallet hold, feedback),
+   in its own module for the same reason as Price Check. */
+import { platformEn } from "./platform.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -5883,6 +5886,8 @@ export const en = {
   },
 
   priceCheck: priceCheckEn,
+
+  platform: platformEn,
 
 };
 

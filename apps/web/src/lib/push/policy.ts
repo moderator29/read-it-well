@@ -79,6 +79,29 @@ export function safeHref(href: string | null): string {
 }
 
 /**
+ * THE ONE NON-WALLET PUSH THAT IGNORES QUIET HOURS: A NEW SIGN-IN. V-19.
+ *
+ * `preferences.ts` explains why urgency is decided by kind and why that is a
+ * limitation: `notifications` carries no severity. A new device signing in to
+ * an account that holds a wallet is the event where eight hours of quiet is
+ * eight hours for a stranger, so it has to wake the phone. It is written by
+ * one trigger (`private.notify_new_device`) as a `system` row, and rather
+ * than promote every `system` notice to urgent, the rule keys on the path
+ * that trigger alone writes. That is a path on our own origin chosen by our
+ * own SQL, not a parser over a person's words, which is the line
+ * `preferences.ts` draws.
+ */
+export const URGENT_PATH_PREFIXES: readonly string[] = ["/settings/devices/alert"];
+
+export function isUrgentPath(href: string | null): boolean {
+  if (typeof href !== "string") return false;
+  const path = safeHref(href);
+  return URGENT_PATH_PREFIXES.some(
+    (prefix) => path === prefix || path.startsWith(`${prefix}?`) || path.startsWith(`${prefix}/`),
+  );
+}
+
+/**
  * Decide the fate of one queued push.
  *
  * The order of the tests is the policy, and it is deliberate:
@@ -109,7 +132,7 @@ export function decide(input: {
     return { action: "suppress", outcome: "suppressed_preference" };
   }
 
-  const urgent = isUrgentKind(notification.kind);
+  const urgent = isUrgentKind(notification.kind) || isUrgentPath(notification.href);
   const quiet = quietVerdict({ quiet: readQuietHours(settings), at: now, urgent });
   if (quiet.held) {
     /* A hold that would outlive the row is not a hold, it is a slow
