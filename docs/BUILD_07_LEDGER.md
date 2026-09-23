@@ -11306,3 +11306,88 @@ entry and the list is meant to be empty.**
 
 The three I wrote are 35 lines each: a list of the child screens as links.
 Copy one if it helps.
+
+---
+
+## 80. AN ADDRESS IS PERMANENT NOW, AND A COMMENT THAT CARRIED A MEASUREMENT HAD GONE STALE IN A DAY
+
+### 80.1 THREE DOORS, AND ONLY ONE OF THEM WAS EVER OPEN
+
+The founder's ruling is that an email address can never change. Before today
+nothing in the product offered a change, so it was impossible **by nobody
+having built it**, which is not the same as impossible.
+
+Checked, one door at a time, rather than assumed:
+
+1. **`updateUser({ email })`: no caller anywhere.** The only `updateUser` in
+   the application sets a password. The only write of an address onto an auth
+   row is `scrubAuth` in the account deletion purge. **That one is legitimate
+   and it is named rather than pattern-matched away**: it is erasure, it runs
+   as the service role inside a job, and nothing signed in can reach it.
+2. **The confirm screen accepted an `email_change` token.** `verifyOtp` took a
+   type from the query string and `email_change` was in the accepted list. So a
+   link minted outside the product, from the dashboard or the admin API, would
+   have been redeemed by our own screen. **That was the open door.** It is out,
+   and an unrecognised type falls through to `signup`, which fails against an
+   email-change token rather than confirming one.
+3. **The email hook would have posted the code.** It renders one generic code
+   message for every action type, deliberately, so a dashboard-initiated change
+   would have had its code delivered to the new address by us. It now answers
+   200 with `email_change_is_not_permitted` and sends nothing. **200 rather
+   than an error on purpose:** the change is refused by not delivering, and
+   GoTrue must not be left retrying a message we will never send.
+
+Each is held by a test and **each test was proved able to fail**: restoring the
+`email_change` type and adding an email to the password call turns three of
+four assertions red in `email-immutable.test.ts`; neutering the hook refusal
+turns the route test red.
+
+**THERE IS NO PROJECT-LEVEL SWITCH.** I read the Supabase documentation rather
+than guessing. The only related setting is Secure Email Change, which decides
+whether a change needs confirming from both addresses or only the new one. It
+is a hardening, not a prohibition, and it is in `FOUNDER_OPEN_ITEMS.md` as the
+one dashboard change worth making.
+
+**AND ONE THING IMMUTABILITY DOES NOT COVER, said plainly because it undercuts
+the abuse work:** the deletion purge rewrites an address to a `deleted.invalid`
+pseudonym **specifically so the real one is free for a new account**. That
+comment predates today. So delete-and-re-register resets the mailbox link
+`account_identities` records. Not changed, because it is a product decision and
+it is the founder's.
+
+### 80.2 THE HOOK IS LIVE, AND THE FILE SAYING OTHERWISE CARRIED ITS OWN PROOF
+
+`api/auth/email-hook/route.ts` opened with "BUILT AND NOT ENABLED" and a
+measurement behind it: GoTrue's `mail.send` events carried
+`mail_from: noreply@mail.app.supabase.io`, which rules the hook out.
+
+That was true when written. The founder switched the hook on the next day, it
+is in `FOUNDER_OPEN_ITEMS.md`, and **the comment did not follow.** Two
+documents in this repository disagreed and neither made a noise.
+
+Settled by measuring rather than by choosing a document. `auth_logs`, the
+24 hours to 17:35Z:
+
+```
+14,057  auth log rows
+     2  action=run_hook  msg="Hook ran successfully"  path=/signup
+        at 15:56:59Z and 16:14:56Z, which are the two QA sign-ups
+     0  rows carrying any mail_from
+     0  rows with a mail action of any kind
+```
+
+**GoTrue sent no mail at all.** With the hook on it does not send, so the
+absence is the evidence, and it is the same evidence the old comment read the
+other way round when it was true.
+
+So `verificationCode` moves from NOT BUILT to **PROVED**, and the whole chain
+is visible in one window: `/signup` at 15:56:59, the hook runs, our route
+renders the code, `/verify` at 15:57:29, and the welcome outbox row is written
+at 15:57:28.946. Three templates are now proved rather than two.
+
+**THE LESSON IS ABOUT COMMENTS, NOT ABOUT EMAIL.** A comment carrying a
+measurement is only as current as the measurement. That one was right when
+written and wrong within a day. `BUILT_VS_PROVEN` limitation 6 said in as many
+words that `auth_logs` had not been queried and that this verdict rested on a
+document. **The flagged limitation was the thing that was wrong**, which is the
+whole argument for flagging them rather than laundering them.

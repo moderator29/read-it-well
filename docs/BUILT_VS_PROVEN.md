@@ -378,7 +378,7 @@ re-derived and is called out in section 14.
 | The fifteen outbox templates | 15 | **2 PROVED, 13 BUILT AND UNPROVEN** (`account.welcome` and `security.new_device_sign_in`, both 2026-09-23, section 2.1) | The registry exports all fifteen keys; `outbox-delivery.test.ts` walks each one to a stubbed `globalThis.fetch` and asserts the HTTP request that WOULD go out. Passing today at `origin/main`. **That test replaces the socket**, so it proves the message, never the delivery. `email_outbox` holds zero rows, so no trigger has ever written one. |
 | The twenty direct senders | 20 | **BUILT AND UNPROVEN** | Same: every one goes through `bestEffortEmail`, which is a no-op while `isEmailConfigured()` is false. No key on the deployment, and `api.resend.com` is refused from here. |
 | The three refused builders | 3 | **DONE as refusals** | `lib/email/reachability.test.ts` fails in both directions: red if somebody wires a refused builder, red if a reachable one loses its last caller. Passing today at `origin/main`. This is the one email claim where a unit test IS the real thing, because the assertion is about the import graph and the import graph is what is being claimed. |
-| `verificationCode`, the sign-up code | 1 | **NOT BUILT, as a live path** | The route exists and is correct. The Send Email Hook is not enabled, so GoTrue sends its own mail from `noreply@mail.app.supabase.io` and the route is never called. Not re-derived from `auth_logs` today: `auth_logs` was not queried in this pass. See section 14. |
+| `verificationCode`, the sign-up code | 1 | **PROVED, 23 September.** This row read NOT BUILT because `auth_logs` had not been queried, and the note said so. It has now been. | Over the 24 hours to 17:35Z: **14,057 auth log rows, 2 with action `run_hook` and msg "Hook ran successfully", both on `/signup` at 15:56:59Z and 16:14:56Z, and ZERO rows carrying any `mail_from` or any mail action at all.** With the hook on, GoTrue does not send, so the absence is the evidence. The founder enabled it on 22 September and the code comment never caught up. Our own route rendered and sent a real confirmation code to two real accounts, and both were then confirmed (`/verify` at 15:57:29Z and 16:15:16Z, the exact timestamps of the two welcome outbox rows). |
 
 **What proving the junction would take, in order.**
 
@@ -999,10 +999,12 @@ checked-and-fine.**
 5. **RLS was not tested and cannot be tested from here**, because the only SQL
    role available holds `rolbypassrls`. Every policy on every table in this
    register is unverified. The grants are checked; the policies are not.
-6. **`auth_logs` was not queried**, so `verificationCode`'s NOT BUILT mark
-   rests on `AUTH_EMAILS.md`'s reading of `mail_from`, which is the one verdict
-   in this file taken partly from a document. It is flagged rather than
-   laundered.
+6. **`auth_logs` WAS NOT QUERIED, AND WHEN IT WAS, THE MARK FLIPPED.** This
+   limitation was written honestly and it was load-bearing: `verificationCode`
+   was marked NOT BUILT on `AUTH_EMAILS.md`'s reading of `mail_from`, the one
+   verdict in this file taken partly from a document. Queried on 23 September,
+   it is **PROVED**. The flagged limitation was the thing that was wrong, which
+   is the argument for flagging them rather than laundering them.
 7. **The 35-reachable / 3-refused partition of the 38 email builders was not
    independently re-derived.** I counted 38 builders and confirmed the 15
    outbox keys. The reachability test passes, which is real evidence, but I did

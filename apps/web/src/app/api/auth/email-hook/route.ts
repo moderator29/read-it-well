@@ -5,26 +5,37 @@ import { sendMessage } from "@/lib/email/client";
 import { verificationCode } from "@/lib/email/messages";
 
 /**
- * Supabase's Send Email Hook, BUILT AND NOT ENABLED.
+ * Supabase's Send Email Hook. IT IS ENABLED, AND IT HAS RUN.
  *
  * ---------------------------------------------------------------------------
- * READ THIS FIRST, BECAUSE THIS FILE USED TO CLAIM OTHERWISE.
+ * READ THIS FIRST, BECAUSE THIS FILE HAS BEEN WRONG IN BOTH DIRECTIONS.
  *
- * Its opening line was "every auth email leaves through here", which is a
- * statement about production and is not true.
+ * Its first opening line was "every auth email leaves through here", which was
+ * a statement about production and was not true at the time. It was corrected
+ * to "BUILT AND NOT ENABLED", with a measurement behind it: GoTrue's own
+ * `mail.send` events carried `mail_from: noreply@mail.app.supabase.io`, the
+ * built-in shared sender, which ruled the hook out.
  *
- * `AUTH_EMAILS.md` section 1A has the MEASUREMENT, and it is worse than a
- * wrong route: NEITHER of this repository's two routes is configured on the
- * hosted project. GoTrue's own `mail.send` events carry
- * `mail_from: noreply@mail.app.supabase.io`, Supabase's built-in shared
- * sender, which rules out custom SMTP (the from-address would be our domain)
- * and rules out this hook at the same time (with the hook on, GoTrue does not
- * send at all, so there would be no event to read).
+ * THAT CORRECTION IS NOW ITSELF OUT OF DATE. The founder switched the hook on
+ * in the dashboard on 22 September (`docs/FOUNDER_OPEN_ITEMS.md`), and the
+ * comment did not follow. Measured again on 23 September, from `auth_logs`
+ * over the preceding twenty four hours:
  *
- * So everything below describes what this endpoint WOULD do with the hook
- * switched on in the Supabase dashboard and `SUPABASE_AUTH_HOOK_SECRET` set in
- * the environment. Neither is the case. The code is finished and correct and
- * waiting; it is not the live path, and nor is the other one.
+ *   14,057 auth log rows
+ *        2 rows with action `run_hook`, msg "Hook ran successfully", both on
+ *          `/signup`, at 15:56:59Z and 16:14:56Z: the two QA accounts
+ *        0 rows carrying any `mail_from`
+ *        0 rows with a mail action of any kind
+ *
+ * **GoTrue sent no mail at all, and a hook ran on both sign-ups.** With the
+ * hook on, GoTrue does not send, so there is no event to read; that absence is
+ * the evidence, and it is the same evidence read the other way round as
+ * before. So this endpoint is the live path for auth mail, and
+ * `verificationCode` has rendered and sent a real confirmation code twice.
+ *
+ * THE LESSON, WRITTEN HERE RATHER THAN IN A LEDGER NOBODY OPENS: a comment
+ * carrying a measurement is only as current as the measurement. This one was
+ * right when it was written and wrong within a day, and nothing made a noise.
  *
  * ---------------------------------------------------------------------------
  * WHAT THIS REPLACES AND WHY IT IS WORTH A ROUTE.
@@ -174,6 +185,31 @@ export async function POST(request: Request): Promise<NextResponse> {
   const token = payload.email_data?.token?.trim() ?? "";
   if (to.length === 0 || token.length === 0) {
     return NextResponse.json({ ok: false, reason: "incomplete" }, { status: 400 });
+  }
+
+  /*
+   * AN EMAIL ADDRESS IS PERMANENT HERE, SO THIS DOOR IS SHUT AT THE WIRE.
+   *
+   * The founder ruled on 23 September that an address can never change. Two
+   * things in our own code already make it impossible: nothing calls
+   * `updateUser({ email })`, and the confirm screen no longer accepts an
+   * `email_change` token (`lib/auth/actions.ts`, held by
+   * `lib/auth/email-immutable.test.ts`).
+   *
+   * This is the third, and it is the only one that covers a change initiated
+   * OUTSIDE the product, from the dashboard or the admin API. Without it the
+   * hook would happily render its one generic code email for an address change
+   * nobody on this platform is allowed to make, and post the code to the new
+   * address. **A 200 rather than an error**: the change is refused by not
+   * delivering the code, and GoTrue must not be left retrying a message we
+   * will never send.
+   *
+   * Every type that reaches here is logged by its type alone, never with the
+   * address, because an address is personal data (rule 16).
+   */
+  const action = payload.email_data?.email_action_type;
+  if (action === "email_change" || action === "email_change_current" || action === "email_change_new") {
+    return NextResponse.json({ ok: true, reason: "email_change_is_not_permitted" }, { status: 200 });
   }
 
   /*

@@ -16,6 +16,60 @@ ledger's needs-the-founder section; this file is his.
 
 ---
 
+## 23 September: email immutability, and the one dashboard setting worth changing
+
+**You asked me to disable email change at project level or tell you exactly
+where. Here is the honest answer: THERE IS NO PROJECT-LEVEL SWITCH THAT
+DISABLES IT.** I checked the Supabase documentation rather than guessing. The
+only related setting is **Secure Email Change**, at
+
+> Dashboard -> Authentication -> Providers -> Email
+
+and it does not forbid a change. It decides whether a change needs confirming
+from **both** the old address and the new one, or only the new one. That is a
+hardening, not a prohibition.
+
+**Turn it ON if it is not already.** With it on, a stolen session alone cannot
+move somebody's address, because the old mailbox has to agree. That is worth
+doing whatever else we do.
+
+**THE PROHIBITION ITSELF NOW LIVES IN OUR CODE, IN THREE PLACES**, because
+that is where it can be made absolute:
+
+1. **Nothing offers it.** No server action calls `updateUser({ email })`. A
+   source sweep (`lib/auth/email-immutable.test.ts`) walks every `.ts` and
+   `.tsx` file in the application and fails if any caller ever appears. It
+   finds exactly one write today and names it: the account deletion purge,
+   which replaces an address with a `deleted.invalid` pseudonym. That is
+   erasure, not a change, and it runs as the service role inside a job.
+2. **The confirm screen will not redeem one.** `email_change` was in the list
+   of token types our confirm screen accepted. It is out. Even a link minted
+   outside the product cannot be completed.
+3. **The email hook refuses to deliver the code.** If a change were started
+   from the Supabase dashboard itself, GoTrue would ask our hook to post a code
+   to the new address. It now answers "not permitted" and sends nothing.
+
+Each of the three is held by a test, and I proved each test can fail by
+breaking the thing it guards and watching it go red.
+
+### And the answer to your other question: is the `email_change` template dead
+
+**Yes, and now by construction rather than by luck.** Nothing initiates a
+change, the confirm screen refuses the token, and the hook refuses to send the
+mail. Before today it was dead only because nobody had tried.
+
+### One thing this does NOT stop, and you should know it
+
+**Deleting an account frees its address.** The purge rewrites the address to a
+`deleted.invalid` pseudonym specifically so the real one can be used again, and
+that comment is in the code and predates today. So delete-and-re-register is a
+reset button on the mailbox link that `account_identities` records. That is a
+defensible product decision and it is also a gap in the abuse story in
+`docs/ONE_PERSON_MANY_ACCOUNTS.md`. **It is your call which one wins**, and I
+have not changed it.
+
+---
+
 ## Open, and urgent
 
 ### 121 LIGHT TWINS, WHICH IS THE REAL LIGHT-MODE FAULT
