@@ -6275,3 +6275,77 @@ reason to dismiss the finding.
 other two reds (`locale-completeness`, `user-generated-content`) were ours and
 are fixed in that commit. This one is the last red light on main and it is not
 ours to change.
+
+## 53. NINE PRIVATE FUNCTIONS WERE BORN PUBLIC, AND MY FIRST READING WOULD HAVE TAKEN THE PLATFORM DOWN
+
+The escrow worker reported that four functions in `private` carried no ACL at
+all and closed them. I asked the same question of the whole schema, and the
+first answer looked like a serious breach:
+
+| | |
+|---|---|
+| Functions in `private` | **220**, of which 205 are SECURITY DEFINER |
+| Executable by `authenticated` | **73** |
+| Executable by `anon` | **68** |
+| With **no ACL at all**, which in PostgreSQL means EXECUTE to PUBLIC | **47** |
+
+### The obvious fix would have been a catastrophe
+
+`authenticated` holds USAGE on `private`. The obvious response is to revoke
+EXECUTE across the schema. **That would have locked every person out of their
+own data**, because **152 RLS policies across 88 tables call `private.*`
+functions**, and a policy expression needs EXECUTE as the **querying** role.
+
+So 22 of the 73 are not a defect. They are load-bearing, and they stay.
+
+**I was one query from filing a security finding whose remedy was an outage.**
+The thing that stopped it was asking what the open grants were FOR rather than
+only that they were open. A finding is not finished at the moment it looks
+alarming.
+
+### What survived the question
+
+Removing the policy callers, the 38 trigger functions (PostgreSQL fires a
+trigger **without** checking EXECUTE on the invoking role) and anything in a
+check constraint (none) leaves **nine**:
+
+```
+grant_staff_role(acting_admin, target_email, new_role)
+revoke_staff_role(acting_admin, target_user, old_role)
+suspend_agent(acting_admin, target_agent, stop_reason)
+reinstate_agent(acting_admin, target_agent, note)
+refund_and_cancel_booking(acting_admin, target_booking, refund_amount, ...)
+agent_tier(target_agent)
+catalogue_refresh_accommodation(p_accommodation)
+catalogue_refresh_listing(p_listing)
+handle_seed(p_text)
+```
+
+**Two of them grant and revoke staff roles. One refunds money.** And every one
+of the first five takes **`acting_admin` as a caller argument**, which is the
+same shape the four escrow doors were closed for earlier the same day: a
+function that believes whoever calls it about who is calling it.
+
+### Not a live breach, and that is part of the record
+
+PostgREST exposes `public` on this project, not `private`, so none of the nine
+is reachable over the API today. **The exposure is one configuration change or
+one `public` wrapper away**, which is exactly the distance rule 21 exists to
+keep. A door that is unlocked but behind another door is still unlocked, and
+the second door was never the plan.
+
+### Closed and read back
+
+`anon` and `authenticated` refused on all nine. The migration also **fails if
+the 22 policy callers lost their grant**, because that is the outage it was
+written to avoid rather than cause.
+
+`authenticated` went 73 to **64**, `anon` 68 to **59**.
+
+### The 38 trigger functions are named, not closed
+
+PostgreSQL does not check EXECUTE when firing a trigger, so revoking on them
+should change nothing. **Should is not the standard on this build.** They are
+recorded here as a separate piece of work that wants one observation first: a
+trigger firing as `authenticated` with the grant removed. Nine closed on
+evidence beats forty-seven closed on a belief about the manual.
