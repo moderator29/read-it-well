@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { asPushClient } from "@/lib/push/schema";
+import { revokeTokens } from "@/lib/push/revoke";
 
 /**
  * POST /api/push/revoke. A person takes a device back.
@@ -23,6 +22,11 @@ import { asPushClient } from "@/lib/push/schema";
  * else's device id changes nothing and is told the same thing as somebody
  * naming a device that does not exist, because the two answers must not be
  * distinguishable.
+ *
+ * THE WRITE ITSELF IS IN `lib/push/revoke.ts` AND NOT HERE, because the
+ * settings screen retires devices too and two hand-written service-role
+ * updates are two chances to leave the ownership filter out. This route reads
+ * the session and validates the body; the shared function owns the filter.
  */
 
 export const runtime = "nodejs";
@@ -54,27 +58,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ ok: false, reason: "bad_request" }, { status: 400 });
   }
 
-  const admin = asPushClient(createAdminClient());
-  const patch = {
-    revoked_at: new Date().toISOString(),
-    revoked_reason: "by_person" as const,
-  };
-
-  const query = admin
-    .from("push_tokens")
-    .update(patch)
-    /* THE OWNERSHIP FILTER. Not optional, on either branch. */
-    .eq("user_id", user.id)
-    .is("revoked_at", null);
-
-  const { data, error } =
-    "all" in parsed ? await query.select("id") : await query.eq("id", parsed.deviceId).select("id");
-
-  if (error) {
-    return NextResponse.json({ ok: false, reason: "not_saved" }, { status: 500 });
+  const outcome = await revokeTokens(user.id, parsed);
+  if (!outcome.ok) {
+    return NextResponse.json({ ok: false, reason: outcome.reason }, { status: 500 });
   }
 
   /* The count, not the ids. Zero is a truthful answer to both "that device
      was already off" and "that device was never yours". */
-  return NextResponse.json({ ok: true, revoked: (data ?? []).length }, { status: 200 });
+  return NextResponse.json({ ok: true, revoked: outcome.revoked }, { status: 200 });
 }
