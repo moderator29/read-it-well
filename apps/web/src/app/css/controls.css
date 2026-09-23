@@ -135,9 +135,10 @@
      gated: an active segment looks the same whether a pointer is over it or
      not, which is what "active" means. */
   .nf-segment--on {
-    background: var(--nf-brand-primary);
-    border-color: var(--nf-brand-primary);
+    background: var(--nf-selected-fill);
+    border-color: var(--nf-selected-edge);
     color: var(--nf-content-on-brand);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
 
   /*

@@ -36,7 +36,7 @@ ever appears in a git-tracked file.
 1. Firebase console, project `vallo-44059`, Project settings, **Service
    accounts**, **Generate new private key**. A JSON file downloads.
 2. Google Cloud console, IAM and admin, **Service accounts**,
-   `firebase-adminsdk-fbsvc@vallo-44059.iam.gserviceaccount.com`, **Keys**.
+   the `firebase-adminsdk` account in project `vallo-44059`, **Keys**.
    **Delete the key whose id begins `79a7286`.** Deleting the old key is the
    step that actually closes it; generating a new one on its own changes
    nothing.

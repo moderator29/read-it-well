@@ -5099,6 +5099,21 @@ governing render for the hub and the inbox). Nothing further found on the group'
 Open at the close of Pass 3: the payment methods block (wallet family) and the header avatar
 (chrome).
 
+**Pass 4, after the independent audit (23 September).** Two findings answered.
+S11: the interest tiles (`components/app/welcome/InterestChoices.tsx`, handed to this group for
+this) were `.nf-card` buttons with an inline flat tint as their chosen state; each is now
+`.nf-panel.nf-panel--card`, and chosen it wears the shared selected state
+(`--nf-selected-fill`, `-edges`, `-shadow`, rule `.nf-panel.nf-interest[aria-pressed="true"]` in
+`settings-rows.css`), the hint in on-brand ink on the lit fill; the component's three inline
+error and success boxes became panels with a state edge. The same component draws Get started's
+interests step, which therefore changes with it (the welcome proofs predate this). The harness
+container for `/settings/interests` now carries the route's own classes
+(`nf-panel nf-panel--card block p-lg sm:p-lg`), so the proof is the route. S9: both sheets are
+now opened in this group's own harness (`?v=sheet-rows`, `?v=sheet-bottom`, `SheetViews.tsx`)
+and shot (`after/sheet-rows-*`, `after/sheet-bottom-*`); the wallet-harness shot is removed.
+Proofs: `after/interests-390.jpg` (Apartments chosen), `side-by-side-interests.jpg`,
+`side-by-side-sheet-rows.jpg`, `side-by-side-sheet-bottom.jpg`.
+
 #### Shape sweep (the tool, dark, 390 and 1536, 15 routes)
 
 BREACHES 0; WORTH AN EYE 0; ROUND ICON-ONLY 2 (the hub's back arrow, 20x20 at 390 and 1536: the
@@ -5122,8 +5137,8 @@ bottom sheet), `side-by-side-<view>.jpg` (27). All fixture-backed harness shots 
 - The payment methods block on `/settings` and `/settings/payments` (wallet family, lead's ruling).
 - No before shots of the drawer and the three sheets: they were added in Pass 2, after the old
   build was gone; their before anatomy is the inventory's code description.
-- `.nf-sheet` was only photographed through the wallet harness; the other readers of
-  `components/ui/Sheet.tsx` (listing, price, disclosure) inherit the same rule but were not shot.
+- `.nf-sheet` is shot in this group's harness (Pass 4); its other readers (listing, price,
+  disclosure) inherit the same rule but were not shot.
 - The notification centre's filter tabs in GOVERNING-12 do not exist; that feature is Session A's.
 - `components/app/account/ProfileIdentityCard.tsx` (no reader today) is NOT swept: the profile worker
   is removing its email change affordance on the founder's order, and the lead asked this group to
@@ -5882,6 +5897,53 @@ the lead.
 6. A two-word standing chip ("Fast replies") broke over two lines: chips are
    one line.
 7. The shooter's Requests click hit the wrong tab; corrected for pass 2.
+
+**Pass 2, 23 September** (`pass2/`, the card set beside the target at the
+same crop). Found and fixed on the card:
+1. The name and the price were set in the display face at bold and read as
+   headlines; the render sets both in the text face at a semibold weight.
+2. The two dates broke over two lines at 390 ("22 Jun / 2026"): the facts
+   grid gives the dates more room than the guests (1.12, 1.12, 0.76, as the
+   render spaces them), the glyphs step down to 12 and the values to 500.
+3. The primary's chevron was back but crowded against the label: a 4px gap,
+   labels at 600 as the render draws them.
+Other routes, re-opened at 390 and 1440: no new fault in this group's files.
+One outside it: the inbox segment's selected tab is still the shared
+`Segmented`'s flat navy (reported). The Requests tab now proven
+(`pass2/inbox-requests-*.jpg`).
+
+**Pass 3, 23 September** (`pass3/`). Card: "22 Jun 2026" now keeps to one
+line, but the weighted columns moved the wrap to "25 Jun / 2026" and "2 /
+adults". Fixed by removing the indent instead: the glyph sits on the label's
+line and the value runs from the cell's edge, three equal columns. The
+primary's chevron drew at 14 and read as a speck beside a 13px label: 16.
+Other routes, third look at every inventory item at 390 and 1440 (profile
+agent and member bars, every tab, the empty profile, the menu, followers and
+its empty state, edit, inbox and its requests and empty states, the three
+thread faces top and bottom, the options sheet, the share picker, the six
+skeletons): nothing left drawing its own container, edge, glow, button or
+plate in this group's files. Routes 1 to 11 close on pass 3.
+
+**Pass 4, 23 September, the card only** (`pass4/`, 390 and 1440 beside the
+target). Every fact now holds one line at 390; the desktop card (400 wide)
+reads as the render at its proportions. Found: at 390 the primary's chevron
+was still squeezed to a speck, because the flex row shrank the glyph beside a
+label that filled the bar. Fixed: the glyph never shrinks, and under 480px the
+button labels step down a rung.
+
+**Pass 5, 23 September, the card only** (`pass5/`, both faces: the booking
+card in the thread and the listing card in the share picker, beside the
+target). The chevron draws full size after its label; every fact is one line;
+the listing face's title, Verified, price and period chip sit as the render's
+anatomy would put them. Nothing found. Card closes on pass 5. Still differing
+from the render, on purpose: the buttons are 44 tall against its 30 (tap law),
+our type is a rung larger than its 390 rendering, so the card is 392 tall at
+390 against its 307; the "Confirmed" badge is the shared emerald StatusPill
+with its dot where the render draws a teal label; Contact carries the chat
+glyph because it opens a conversation, not a call.
+
+Final figures: routes in the group 12, swept 11 (the twelfth draws nothing of
+its own), audit passes 3 on every route, 5 on the card.
 
 
 ## 13. Platform sweep: home (both sides), search and filters, listing detail, price check (worker "sweep-home")
@@ -7156,7 +7218,7 @@ vitest, the token check), each heavy job through the shared lock:
 
 - Sweep, settings group (23 September): the payment methods block on `/settings` and
   `/settings/payments` is not swept here (wallet family); no before shots of the drawer and the
-  three sheets (added in audit Pass 2); `.nf-sheet` photographed only through the wallet harness;
+  three sheets (added in audit Pass 2); `.nf-sheet` shot in this group's harness only (Pass 4);
   `ProfileIdentityCard.tsx` not swept (profile worker in flight); the notification centre's filter
   tabs in GOVERNING-12 are Session A's feature and do not exist; every settings and notifications
   proof is fixture-backed (the routes sit behind the sign-in gate).

@@ -57,9 +57,10 @@ const SHOTS = [
     await p.getByTestId("payments-card-row").click();
     await p.locator(".nf-rows-sheet").waitFor();
   }],
-  ["sheet-wallet", "/preview/session-b/wallet", 200, async (p) => {
-    const opener = p.locator("main button").filter({ hasText: /add money|top up|fund/i }).first();
-    await opener.click();
+  ["sheet-rows", `${H}sheet-rows`, 200, async (p) => {
+    await p.locator(".nf-rows-sheet").waitFor();
+  }],
+  ["sheet-bottom", `${H}sheet-bottom`, 200, async (p) => {
     await p.locator('.nf-sheet[data-open="true"]').waitFor();
   }],
   ["offline", "/offline", 200],

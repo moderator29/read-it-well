@@ -26,6 +26,11 @@
 >    `ProfileIdentityCard.tsx`. The server door is yours: refuse any email
 >    change on the profile save action and the auth update path, with a test.
 >    Session B does not record this as handled until that test exists.
+> 5. **MAIN-RED NOTE (23 September).** Your `0f6fc33f` put the Firebase
+>    service account's full address in `docs/FOUNDER_OPEN_ITEMS.md`, which
+>    `no-committed-secrets` refuses. Session B changed only that one line to
+>    name the account by prefix and project (`1d0b41c3`) to turn main green.
+>    Please keep it that way or allow-list it deliberately.
 > 4. **I1b.** `addReportPhoto({ inspectionId, storagePath, item? })`, as you
 >    offered in 49septies; Add Photos waits on it (see I1b below).
 
@@ -144,6 +149,9 @@ Each group appends "RELEASED <commit>" here when it is done.
     **Settings group RELEASED be65d995** (18 of 19 routes and states swept; the
     payment methods block is the wallet family's; `ProfileIdentityCard.tsx` waits
     for the profile worker; ledger 13, settings).
+    After the audit (S11) the lead handed this group
+    `components/app/welcome/InterestChoices.tsx` for the interest tiles' panel and
+    selected state only.
   - feed, stories, posts, the plus bloom (worker "feed"):
     `components/social/feed/**`, `components/social/bloom/**`,
     `components/social/story/**`, `app/social.css`, `app/social-feed.css`
@@ -199,7 +207,7 @@ Each group appends "RELEASED <commit>" here when it is done.
     `.nf-social-more`, `.nf-social-round`, `.nf-social-sheet__panel`,
     `.nf-social-trust`, the `--nf-glow-edge` on `.nf-social-chip`, and the
     right-edge offsets of `.nf-social-more__menu` (superseded).
-    **RELEASED (sweep-social) 8ac45997, e6f82a9a**, 23 September: see ledger 13, social.
+    **RELEASED (sweep-social) 8ac45997, e6f82a9a (reverted by dc52e031 from a stale checkout, restored 23 September after the audit)**, 23 September: see ledger 13, social.
   - host wizard, agent workspace, side drawer, dock, landing:
     `agent.css`, `chrome.css`, `app/side-nav.css`, `landing.css`, `site.css`,
     `chips.css` and their components.
@@ -256,6 +264,55 @@ Each group appends "RELEASED <commit>" here when it is done.
     NOT touched:
     `components/trust/TierBadge.tsx`, `trust-badge.css` (Session A's verified
     badge), the files of groups not yet released (home, feed).
+  - **the orphans (worker "sweep-orphans", claimed 23 September by the lead's
+    instruction on audit finding B3):** the 23 routes no group owned:
+    `/around/[slug]`, `/around/manage`, `/around/new`, `/around/settings`,
+    `/bookings`, `/bookings/[bookingId]`, `/bookings/[bookingId]/review`,
+    `/crypto`, `/crypto/[id]`, `/verification`, `/rent`,
+    `/rent/pay/[inspectionId]`, `/saved`, `/saved/searches`, `/post/[id]`,
+    `/stories/[id]`, `/stories/new`, `/inspections` (the list page only),
+    `/profile/application`, `/profile/setup/[role]`, `/profile/setup/agent`,
+    `/profile/setup/firm`, `/profile/setup/owner`. Files claimed (route
+    components and what only they draw):
+    `app/(app)/around/[slug]/**` (in `page.tsx` everything but the feed
+    worker's badge stamp), `app/(app)/around/{manage,new,settings}/**`,
+    `app/(app)/bookings/**`, `components/app/bookings/**`,
+    `app/(app)/crypto/**` (the two dark routes' `loading.tsx`; the pages stay
+    `notFound()` and nothing under `components/app/crypto/` is touched),
+    `app/(app)/verification/**`, `components/verification/**`,
+    `app/(app)/rent/page.tsx`, `app/(app)/rent/loading.tsx`,
+    `app/(app)/rent/pay/**` (NOT `rent/move-in/**`, the home group's),
+    `app/(app)/saved/**`, `components/app/saved-searches/**`,
+    `app/(app)/post/[id]/**` (the posts worker's tombstone lines in
+    `ThreadView.tsx` are left as they are), `app/(app)/stories/**`,
+    `app/(app)/inspections/page.tsx` and `loading.tsx` (NOT the inspection
+    sheet), `components/app/inspections/InspectionRows.tsx`,
+    `app/(app)/profile/application/**`, `app/(app)/profile/setup/{[role],agent,firm,owner}/**`,
+    `components/supply/{AgentRegisterForm,FirmRegisterForm,OwnerRegisterForm,RegisterField,RegisterShell,UploadCard}.tsx`.
+    New: `app/css/orphans.css` (only what these routes need of their own, on
+    the shared tokens), the fixture harness
+    `app/(dev)/preview/session-b/sweep-orphans/**` (root `page.tsx`), the shot
+    script `scripts/design/session-b-shots/sweep-orphans.mjs`, proofs
+    `docs/design/proofs/session-b/sweep-orphans/**`. NOT touched: the shared
+    layer (`tokens.css`, `Panel`, `IconPlate`, `Button`, `buttons.css`,
+    `controls.css`, `chips.css`, `glass.css`), `components/app/Screen.tsx`,
+    `StatusPill.tsx` (leftovers), `/profile/setup` itself and the chooser
+    (SW-P1, leftovers), `social-feed.css`, `components/social/**` (feed),
+    `ReportSheet.tsx`, `ScreenSkeleton.tsx`, `ui/Skeleton.tsx`,
+    `components/app/crypto/**`. Anything needed there is filed as `SW-O*`.
+  - **the audit fixes S1, S2, S3, S6, S7, S8 (worker "auditfix", claimed 23
+    September by the lead's instruction, held for the duration of the fix):**
+    `apps/web/src/components/ui/Chip.tsx` (ONLY `SELECTED_STYLE`),
+    `apps/web/src/app/admin/money/_desk/desk.css` (ONLY `.nf-md-toggle` on),
+    `apps/web/src/app/css/buttons.css` (ONLY the disabled primary),
+    `apps/web/src/app/css/threads.css` (ONLY `.nf-composer__send:disabled`),
+    `apps/web/src/app/(app)/profile/profile.css` (ONLY `.nf-pf-row__title`),
+    `apps/web/src/components/social/profile/social-profile.css` (ONLY the
+    trust labels), `apps/web/src/components/ui/Segmented.tsx` (ONLY the count),
+    the price suffix class in `app/(app)/listing/[id]/{page,ReservePanel,RentalPanel}.tsx`,
+    `apps/web/src/components/social/profile/LoadingPeople.tsx`, and for S8
+    `apps/web/src/app/css/admin.css` (ONLY `.nf-admin-status` and
+    `.nf-admin-chip` sizing). S5 is the leftovers worker's (shared status badge).
 
 ### Sweep group: home, search and filters, listing detail (worker "sweep-home")
 Routes: `/home`, `/stays` (the home components only; `StayCard` is the stays

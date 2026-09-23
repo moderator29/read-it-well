@@ -153,18 +153,11 @@ export function InterestChoices({
               aria-pressed={selected}
               disabled={busy}
               onClick={() => toggle(value)}
-              className="nf-card nf-tap relative flex min-h-[5.5rem] flex-col items-start justify-center gap-2xs p-md text-left transition-transform active:scale-[0.97] disabled:opacity-60"
-              style={
-                selected
-                  ? {
-                      background:
-                        "color-mix(in oklab, var(--nf-brand-primary) 20%, transparent)",
-                      borderColor: "transparent",
-                      boxShadow:
-                        "0 0 0 2px var(--nf-brand-primary), inset 0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent)",
-                    }
-                  : undefined
-              }
+              /* The shared panel, and when chosen the shared selected state
+                 (`.nf-interest[aria-pressed="true"]` in settings-rows.css reads
+                 the `--nf-selected-*` tokens), as the console's selected row.
+                 It was `.nf-card` with an inline flat tint. */
+              className="nf-panel nf-panel--card nf-interest nf-tap relative flex min-h-[5.5rem] flex-col items-start justify-center gap-2xs p-md text-left transition-transform active:scale-[0.97] disabled:opacity-60"
             >
               {selected && (
                 <UiIcon
@@ -176,7 +169,7 @@ export function InterestChoices({
               <span className="pr-lg text-[length:var(--nf-text-body-sm)] font-semibold leading-tight text-[var(--nf-content-primary)]">
                 {t.interests.markets[value]}
               </span>
-              <span className="text-[length:var(--nf-text-overline)] leading-snug text-[var(--nf-content-muted)]">
+              <span className="nf-interest__hint text-[length:var(--nf-text-overline)] leading-snug">
                 {t.interests.hints[value]}
               </span>
             </button>
@@ -188,7 +181,7 @@ export function InterestChoices({
         <p
           role="alert"
           data-testid="welcome-error"
-          className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+          className="nf-panel nf-panel--card mt-md block border-[color-mix(in_oklab,var(--nf-state-error)_55%,transparent)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {state.error}
         </p>
@@ -198,7 +191,7 @@ export function InterestChoices({
         <p
           role="alert"
           data-testid="welcome-skip-error"
-          className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+          className="nf-panel nf-panel--card mt-md block border-[color-mix(in_oklab,var(--nf-state-error)_55%,transparent)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {skipError}
         </p>
@@ -208,7 +201,7 @@ export function InterestChoices({
         <p
           role="status"
           data-testid="interests-saved"
-          className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-success)_45%,transparent)] px-md py-sm text-center text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-success)]"
+          className="nf-panel nf-panel--card mt-md block border-[color-mix(in_oklab,var(--nf-state-success)_55%,transparent)] px-md py-sm text-center text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-success)]"
         >
           {chosen.length === 0
             ? t.interests.savedNothing
