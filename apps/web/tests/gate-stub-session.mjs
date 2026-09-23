@@ -122,13 +122,13 @@ const client = createServerClient(`http://${HOST}:${PORT}`, "stub-anon-key", {
   },
 });
 const expiresAt = Math.floor(Date.now() / 1000) + 3600;
+/* Two fields and no more: `setSession` takes exactly this pair, reads the
+   expiry out of the token itself, and asks the stand-in above for the reader.
+   Handing it a whole session object works at runtime and does not typecheck,
+   so the two callers are written the same way. */
 const { error } = await client.auth.setSession({
   access_token: accessToken(expiresAt),
   refresh_token: "unsigned-refresh",
-  expires_in: 3600,
-  expires_at: expiresAt,
-  token_type: "bearer",
-  user: USER,
 });
 if (error) {
   console.error(`REFUSING: the stand-in could not mint a session: ${error.message}`);
