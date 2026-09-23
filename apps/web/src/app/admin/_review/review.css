@@ -24,12 +24,14 @@
   /* ------------------------------------------------------------ the page */
   .nf-rv {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--nf-space-lg);
     min-width: 0;
   }
 
   .nf-rv-split {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--nf-space-md);
     min-width: 0;
     align-items: start;
@@ -863,20 +865,35 @@
   }
 
   /* ------------------------------------------------------------ media strip */
+  /* On a phone the strip is a row that scrolls sideways inside its panel,
+     the lead photo and the walkthrough first, so the facts stay in reach. */
   .nf-rv-media {
     display: grid;
     gap: var(--nf-space-xs);
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: 112px;
+    grid-template-rows: 96px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .nf-rv-media > .nf-rv-media__lead {
+    width: 168px;
   }
 
   @media (min-width: 900px) {
     .nf-rv-media {
+      grid-auto-flow: row;
       grid-template-columns: 1.3fr 1.3fr 1fr 1fr 1fr 0.8fr;
+      grid-template-rows: none;
       grid-auto-rows: 64px;
+      grid-auto-columns: auto;
+      overflow: visible;
     }
 
     .nf-rv-media > .nf-rv-media__lead {
       grid-row: span 2;
+      width: auto;
     }
   }
 
@@ -929,6 +946,7 @@
   }
 
   .nf-rv-media__caption {
+    display: none;
     position: absolute;
     z-index: 1;
     left: var(--nf-space-xs);
@@ -1172,8 +1190,46 @@
     color: var(--nf-content-primary);
   }
 
+  @media (min-width: 900px) {
+    .nf-rv-media__caption {
+      display: block;
+    }
+  }
+
   /* ------------------------------------------------------------ phone */
   @media (max-width: 719px) {
+    /* The queue table becomes one card per listing: the listing across the
+       top, then address and lister, price and status. */
+    .nf-rv-table thead {
+      display: none;
+    }
+
+    .nf-rv-table,
+    .nf-rv-table tbody {
+      display: block;
+    }
+
+    .nf-rv-table tbody tr {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--nf-space-2xs) var(--nf-space-sm);
+      padding: var(--nf-space-sm);
+      border-bottom: 1px solid var(--nf-brand-edge-soft);
+    }
+
+    .nf-rv-table tbody tr:last-child {
+      border-bottom: 0;
+    }
+
+    .nf-rv-table td {
+      padding: 0;
+      border: 0;
+    }
+
+    .nf-rv-table td:first-child {
+      grid-column: 1 / -1;
+    }
+
     .nf-rv-head__title {
       font-size: 1.375rem;
     }
