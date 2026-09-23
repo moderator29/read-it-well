@@ -821,3 +821,62 @@ immutability, the Android build guard, I1b, the committed-secret sweep, the
 reader-role privilege revoke across 95 tables, and R-SH4. **Anybody checking
 this file should re-run the gates rather than trusting a table measured eight
 commits ago.**
+
+#### Session B confirms
+
+Written 23 September 2026, 22:30 UTC, by Session B's lead. **Measured at
+`4482b30e`** (origin/main at 22:22 UTC, the last code commit of Session B's
+work), in the main working tree, every heavy job under the shared lock.
+
+**Branch and main.** Everything Session B and its workers wrote is on
+`origin/main`. The local main tree is clean and not ahead of origin. All ten
+worker worktrees still on the box were checked at 22:25: 0 tracked changes,
+0 untracked files, 0 commits ahead of origin/main in every one; twenty earlier
+worktrees were removed after the same check. The designated branch
+`claude/five-surfaces-rebuild-1rz9e0` is set to the same commit as main after
+this confirmation is pushed.
+
+**Gates, with the numbers, at `4482b30e`:**
+
+| Gate | Result |
+|---|---|
+| `tsc --noEmit` on the whole web project | exit 0 |
+| `vitest run`, whole suite | exit 0: 242 of 242 files, 3,859 passed, 1 skipped |
+| `check-css-tokens` (all ten checks) | exit 0, clean |
+| `eslint .` | exit 0: 0 errors, 333 warnings (warnings pre-existing; none is a new error) |
+| `next build` (production, harness off) | exit 0, 199 pages generated |
+| A root `page.tsx` in every `preview/session-b/**` harness directory | yes |
+| Secrets | `no-committed-secrets` passes inside the suite; the QA password exists only in the scratchpad's `qa.env` and in no file of the tree |
+
+Known flake, not hidden: `src/lib/push/service-worker.browser.test.ts` failed
+once under load during the day and passed 7 of 7 alone; it passed in this run.
+
+**Production.** `https://www.vallospaces.com` answered 200 at 22:24 UTC
+(`x-vercel-id` iad1). **Which commit production serves is not known from this
+box:** the Vercel tool needs an approval this session was not given, and the
+GitHub status API refuses this integration. Two facts bound it: production
+redeployed at least twice during the evening (`dpl_MmeTx6Vi...` at 17:19 and
+`dpl_7dLACdyX...` at 17:24, seen by the console proof), and at 17:23 the
+production `/wallet/send` still appeared to carry the bank option, so the bank
+removal (`32830d5b`) had not deployed by then. The founder can read the current
+deployment's commit in the Vercel dashboard in one click.
+
+**Scope file and ledger.** `docs/SESSION_B_SCOPE.md` carries every claim of the
+day with its RELEASED line, the requests to Session A (QA accounts settled,
+B-BANK withdrawn with the order `transferToBank` may go in, EMAIL-LOCK, I1a,
+I1b delivered, I5, A15, R-SH4 published, PUSH-KEY done, SW-A1, the main-red
+note). `docs/BUILD_SESSION_B_LEDGER.md` carries sections 0 to 13 including
+every sweep group, both audit-fix rounds (13.A2 with addendum 13.A2.7), the
+push blind light, and the live-proof rows with time, commit and evidence path.
+Both are pushed.
+
+**Uncommitted, and why:** nothing. Two things are deliberately outside the
+repository: the QA credentials (`qa.env` in the scratchpad, mode 600, because a
+credential never lives in the tree) and the build caches (`.next`, deleted).
+
+**Unproven, restated so nobody reads this section as "all done":** every
+money write (C3.7), every inspection write (C3.8), a real device push row
+(C1.3), the welcome email in an inbox, the hosts' filled screens, the Google
+lookups and rate limiter (service role key), Firm rosters (A15), the email
+lock's server door (Session A), and the 6 sweep rows closed after the second
+audit, which no independent audit has re-run over (B5b).
