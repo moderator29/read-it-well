@@ -376,7 +376,7 @@ links, the admin console 49 of 50 on the production site. What remains:
 | Item | Why not | Owner | Estimate once unblocked |
 |---|---|---|---|
 | The inspection outcome ("Inspected / Deal done / No deal") with the report on | no outcome column (I1a) | Session A migration, then one control | an hour each side |
-| The listing card's lister badge | the listing read carries the lister's name but not the tier (R-SH4; Session A published it in `9b5b3524`, card not yet switched) | Session B, one line | minutes |
+| The listing card's lister badge | Session A published `public.listing_lister_tier` (`9b5b3524`, agent listings only, 0 rows today); the listing read that feeds the card (Session A's) does not select it yet | Session A read, then one line in `ListingCard` | an hour |
 | Badge on Moderation reporters and authors, Support requesters, wallet rows and receipts, 5 of 14 money-desk names | those reads return names without user ids | Session A reads, then one line each | an hour |
 | Admin data Session A must expose first | A5, A6, A8, A11 to A14, AR-10 to AR-12, request 10 | Session A | each panel is built and says what it waits on |
 | Yoruba, Hausa and Igbo copy for the money desks | English keys added (`4bdf6504`); no session invents those words | native speakers (C2.3) | an afternoon each |
