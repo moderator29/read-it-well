@@ -1,8 +1,136 @@
 # Session B closing audit
 
-Three runs, newest first: the third (23 September, `24453445`), the second
-(23 September, `625e47c6`), and the first (22 September, `486cb23`), each kept
-as written.
+Four runs, newest first: the fourth (23 September, `aa522bee`, dark only),
+the third (`24453445`), the second (`625e47c6`) and the first (22 September,
+`486cb23`), each kept as written.
+
+# FOURTH RUN, 23 September, `main` at `aa522bee`
+
+Auditor: Session B worker "auditor". No product code was changed. This run is
+judged against the lead's rulings R-A to R-G and the founder's nine items
+(scope file, `023e8403`). Light mode is out of the platform, so the audit is
+dark only. Main was pulled three times during the run. The last pull
+(`aa522bee`) brought in admin-review's re-shoot (`3f1405d5`), profile's badge
+slot and re-shoot (`a4ba8a10`, `0b74eef9`), the send focus ring (`92d6eb2b`),
+Session A's light removal (`9b9359eb`), Session A's badge renderer
+(`dd840fee`), and Session A's requests to Session B (`2adeadbc`, renumbered R18 and R19 in `d6cd053b`). I rebuilt
+at `a4ba8a10`; the build that followed `9b9359eb` was OOM-killed once, so it
+was re-run. Every surface below is judged on what is on main.
+
+## Result
+
+| Surface | Owner | Fourth run | Still ours | Blocked only on Session A |
+|---|---|---|---|---|
+| Profile | profile | **PASS** | the badge swap (below) | request 1, 1d |
+| Get started | welcome | **PASS** | none | W1, W3 (the landing link and the store's first launch) |
+| Welcome back | signin | **PASS** | none | SIGNIN-1 |
+| Inspections | inspection | **FAIL, narrow** | R18 (Session A's ledger `49quinquies`): `InspectionSheet.tsx`'s back arrow carries no `data-nav-back`, so no browser check can find it; one attribute. Plus the badge swap | I1 to I4 |
+| Wallet | wallet | **PASS** | the badge swap on the send recipient | W2, W3, W4; B-BANK: the action exists (`6887f050`), the licensing question is the founder's, `BANK_SEND_OPEN` stays false |
+| Send money | wallet | **PASS** | as Wallet | as Wallet |
+| Admin shell, overview, operations, analytics | admin-shell | **FAIL, narrow** | R19: the console's back arrow is proved only by a text test (`session-b-admin-back.test.ts` reads the source). No committed harness renders it (the harness paths declare no parent). A harness that mounts `AdminFrame` with `BackButton` under a declared desk path would close it. Plus the badge swap in the shared console components | A5, A6, A8, A11, A12, A13, A14 (`email_outbox`) |
+| Admin review desks | admin-review | **PASS** | the badge swap. Proof note: in `sbs-kyc.jpg` and `sbs-listings.jpg` the rail's open row is not lit (the harness path matches no row); the shell's proofs light it | AR-5, AR-10, AR-11, AR-12 |
+| Admin money desks | admin-money | **PASS** | the badge swap (`_desk/BadgeSlot.tsx` on money, escrow, evidence) | request 10 |
+| Welcome email | email | **PASS** | none | E1, E2 |
+| Deleted posts (item 4) | posts | **PASS** | none | DP-1 (notifications to a deleted post), DP-2 (post count drift) |
+| Handbook | admin workers | **PASS** | none | none |
+
+**Item 5, the badge: the wait on Session A has ended. The swap is now ours.**
+Session A landed the one renderer at 11:44 (`dd840fee`,
+`components/trust/TierBadge.tsx`, `lib/trust/badge-tier.ts`, R16 in their
+ledger). Every Session B surface still draws a `BadgeSlot` that returns
+`null` "until Session A's component lands":
+- `app/(app)/profile/BadgeSlot.tsx`;
+- `app/admin/money/_desk/BadgeSlot.tsx`, used by money, escrow, evidence, bookings and supply;
+- `components/app/inspections/BadgeSlot.tsx`;
+- `components/app/wallet/BadgeSlot.tsx` (`SendFlow.tsx:643`);
+- `app/admin/_components/PersonTier.tsx`, admin-shell's shared console slot (`9042610c`), in the rail and the operator block.
+
+In each file the swap is one line: `return tier === "none" || !tier ? null : <TierBadge tier={tier} size={16} />`.
+I did not fail any gate on this, because it became possible 30 minutes
+before this run closed. It is the next thing every owner does.
+
+## B4. Sweep, token check, dark only
+
+- `check-css-tokens.mjs`: **clean**, all ten checks. It walks all of
+  `src/app`, which includes every route stylesheet.
+- Shape sweep, `--theme dark`, 390 and 1536, one route per run: **63 routes,
+  every one HTTP 200, 0 breaches, 0 at or above 0.35, 0 round icon-only.** The
+  routes: every committed `/preview/session-b/**` harness and variant,
+  including the new `wallet/send-bank` and `inspection/shell`; the signed-out
+  routes (`/welcome`, `/sign-in`, `/sign-in/email`, `/sign-up`,
+  `/sign-up/email`, `/sign-up/verify`, `/forgot-password`, `/reset-password`);
+  and Session A's admin and wallet harnesses.
+- In-browser measurement of the send screen (Chromium): the form panel, rows,
+  chips and reassurance card all draw a 10px corner. The run-three 14px panel
+  is closed.
+
+## Item 2, light rules left in Session B files
+
+I parsed every Session B stylesheet for rule blocks with the comments
+stripped: `auth.css`, `admin.css`, `wallet.css`, `inspection.css`,
+`review.css`, `desk.css`, `welcome.css` and `profile.css`. All eight have
+**0 selectors mentioning light or paper.** No Session B TSX branches on a
+light theme. The light proofs are deleted. The ledger's light halves are
+struck through or replaced, 7(c) included.
+
+One leftover is in a Session B folder:
+`public/brand/session-b/roles/` still carries 452 `-day` paper renditions,
+from the identity worker's handover pack. Nothing references them. Delete
+them, or record that the pack is kept for Session A.
+
+## Item 7, "viewing" in Session B copy
+
+- Rendered strings in Session B files: **none.**
+- The `inspectionsPage` namespace: none. The only hit is a code comment at
+  `en.ts:4009`, not rendered.
+- The email plain-text proofs: 0 in all six.
+- The slides now say "book an inspection".
+- `threads.accepted`, "The viewing is confirmed", is in Session A's `threads`
+  namespace and is not used by the inspection surface.
+
+## Item 4, deleted posts
+
+- Every reader of `posts` in `src`: the listing reads in `posts-queries.ts`
+  (feed, profile posts, replies, media, activity),
+  `profile-tabs-queries.ts`, `comments-queries.ts`, `stories-queries.ts` and
+  `home-queries.ts`. Each excludes REMOVED or reads LIVE only; the thread,
+  comment and story reads prune.
+- The admin reads list HELD only.
+- `posts-media.ts` `readPostViews` has no caller.
+- `bot-actions.ts` reads one post and refuses anything not LIVE.
+- Tests: `deleted-posts`, `reads-deleted` and `tombstone-placement` pass,
+  26 in all.
+- Live: 74 LIVE, 1 REMOVED.
+
+## Items 6 and 8, Get started
+
+`/welcome` never redirects. The last slide offers Sign in and Create account
+only; "Look around first" is gone (checked in `welcome-four-slides-dark-390.jpg`).
+Slides two to four draw a 44px back square that carries `data-nav-back`. Back
+steps through the slides by history.
+
+## R14, back control on the 38 routes
+
+- **Auth, 7 routes:** `AuthBackBar` mounts `BackButton`. Checked in the served
+  HTML: `/sign-in`, `/sign-in/email`, `/sign-up`, `/sign-up/email`,
+  `/sign-up/verify`, `/forgot-password` and `/reset-password` each draw one
+  `aria-label="Back"`.
+- **`/auth/callback`:** draws none, a recorded exception. It is a moment that
+  navigates itself, and it sits outside the auth route group.
+- **`/wallet`, `/wallet/send`:** `WalletBack` mounts `BackButton`. Both harness
+  pages draw one.
+- **`/welcome`:** slide one draws none, on purpose (the render draws none), and
+  back leaves the way it came. Slides two to four draw it.
+- **23 admin routes:** mounted once in `layout.tsx`, but seen by no browser
+  (R19, above).
+- **`/profile/setup`:** four states drawn in `f925f2b5`.
+
+## Coverage (E4)
+
+Unchanged since the third run except the rows below. Push volumes are on
+Notifications (`getPushActivity`, from `push_queue` and `push_deliveries`).
+The job counts are derived: 8 Vercel jobs and 14 pg_cron jobs, matching the
+live `cron.job`. `email_outbox` still has no admin policy, filed as A14.
 
 # THIRD RUN, 23 September, `main` at `24453445`
 
