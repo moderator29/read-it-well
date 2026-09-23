@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { foldStatusCounts, latestRungs, reviewTimesFrom, roleOf } from "./listings";
+import { foldStatusCounts, latestRungs, mandateExpired, reviewTimesFrom, roleOf, toMandateRow } from "./listings";
 
 const DAY = 86_400_000;
 
@@ -59,5 +59,37 @@ describe("listings reads: the aggregation", () => {
       { kind: "identity", status: "passed" },
       { kind: "payout", status: "passed" },
     ]);
+  });
+});
+
+
+describe("listings reads: mandates", () => {
+  it("maps a mandate row and keeps the document as a yes or no", () => {
+    const row = toMandateRow({
+      id: "m1",
+      listing_id: "l1",
+      kind: "letting",
+      principal_name: "Mrs Adeyemi",
+      principal_phone: "+2348012345678",
+      exclusive: null,
+      signed_on: "2026-09-01",
+      expires_on: "2027-09-01",
+      document_id: null,
+      review_status: "rejected",
+      rejection_reason: "The letter names another address.",
+      reviewed_at: "2026-09-20T10:00:00Z",
+      created_at: "2026-09-19T10:00:00Z",
+      listings: { title: "Three Bedroom Flat", reference: null },
+    });
+    expect(row.hasDocument).toBe(false);
+    expect(row.exclusive).toBeNull();
+    expect(row.listingTitle).toBe("Three Bedroom Flat");
+    expect(row.rejectionReason).toBe("The letter names another address.");
+  });
+
+  it("knows an expired mandate by its own date", () => {
+    expect(mandateExpired("2026-09-01", "2026-09-22")).toBe(true);
+    expect(mandateExpired("2026-10-01", "2026-09-22")).toBe(false);
+    expect(mandateExpired(null, "2026-09-22")).toBe(false);
   });
 });

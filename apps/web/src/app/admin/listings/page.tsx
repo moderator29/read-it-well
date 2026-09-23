@@ -5,6 +5,7 @@ import { getListingSubmissions } from "@/lib/admin/queries";
 import {
   getListingReviewTimes,
   getListingStatusCounts,
+  getMandateQueue,
   getQueueRowExtras,
 } from "@/lib/admin/reads/listings";
 import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
@@ -12,6 +13,7 @@ import { adminUi } from "../_components/ui";
 import { QueueFilters, queueHref, queueNarrowed, readQueueQuery } from "../_components/QueueFilters";
 import { LiveRefresh } from "../_review/LiveRefresh";
 import { ListingsQueue } from "./ListingsQueue";
+import { MandatesPanel } from "./MandatesPanel";
 import { toQueueRow } from "./rows";
 import { LISTING_TABS, isDecidedStatus, listingStatusWord, reviewHref } from "./tabs";
 import "../_review/review.css";
@@ -72,7 +74,7 @@ export default async function AdminListingsPage({
   const offset = query.offset ?? 0;
   const page = Math.floor(offset / QUEUE_PAGE_SIZE) + 1;
 
-  const [read, counts, times] = await Promise.all([
+  const [read, counts, times, mandates] = await Promise.all([
     getListingSubmissions({
       ...(query.q ? { q: query.q } : {}),
       ...(status ? { status } : {}),
@@ -82,6 +84,7 @@ export default async function AdminListingsPage({
     }),
     getListingStatusCounts(),
     getListingReviewTimes(),
+    getMandateQueue(),
   ]);
   const total = (key: string) =>
     counts.state === "ok"
@@ -175,6 +178,13 @@ export default async function AdminListingsPage({
             : null
         }
         reviewTimes={times.state === "ok" ? times.data : null}
+        mandates={
+          <MandatesPanel
+            queue={mandates.state === "ok" ? mandates.data : null}
+            day={ui.day}
+            today={lagosToday()}
+          />
+        }
         page={decidedTab ? 1 : page}
         hasNext={decidedTab ? false : full}
         hrefForPage={(p) => queueHref(base, query, { offset: (p - 1) * QUEUE_PAGE_SIZE })}
@@ -200,4 +210,9 @@ export default async function AdminListingsPage({
       />
     </>
   );
+}
+
+/** Today's date in Lagos, YYYY-MM-DD, for a mandate's expiry. */
+function lagosToday(): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(new Date());
 }
