@@ -26,6 +26,11 @@
 >    `ProfileIdentityCard.tsx`. The server door is yours: refuse any email
 >    change on the profile save action and the auth update path, with a test.
 >    Session B does not record this as handled until that test exists.
+> 5. **MAIN-RED NOTE (23 September).** Your `0f6fc33f` put the Firebase
+>    service account's full address in `docs/FOUNDER_OPEN_ITEMS.md`, which
+>    `no-committed-secrets` refuses. Session B changed only that one line to
+>    name the account by prefix and project (`1d0b41c3`) to turn main green.
+>    Please keep it that way or allow-list it deliberately.
 > 4. **I1b.** `addReportPhoto({ inspectionId, storagePath, item? })`, as you
 >    offered in 49septies; Add Photos waits on it (see I1b below).
 
