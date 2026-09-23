@@ -7056,7 +7056,54 @@ pass 2. Bloom and cards unchanged and still exact (plates within 0.1 img, plus w
 Proofs: `overlay-pass3-*`, `story-*-390-dark.jpg`, `post-thread-390-dark.jpg`,
 `feed-1440-dark.jpg`, `bloom-open-1440-dark.jpg`.
 
+**Pass 4, 23 September.** Sampled outward from the plus's rim along two rays, render
+against build. Found: the render's rim peaks near white cyan (#abf9fc) where ours read
+#2fa8f5, and outside the rim the render lays a dense indigo field (#0855e2 to #012aa5,
+about 18 CSS px deep, the thin halo ring inside it) where ours let the card underneath
+show through. Fixed: the rim is `--nf-lit-cyan` lifted toward white, the fill's last
+tenth runs into the cyan, and the glow is a 5px indigo band, the 6px halo hair, a 16px
+field and a 40px falloff (rim now #66bef9, 4 img out #5080ed against #0777f0; what
+remains is the fixture photograph under the glow, a warm dusk where the render's is a
+dark night skyline). Checked and left: the rings' outer glow (the samples were landing on
+the ring's own edge; visually the rims match), and the card and lit-half glows, which are
+the shared layer's glow +1 step (the coordinator's instruction: use the shared glow and
+only go further where the image shows more; the image shows less there, recorded).
+Proofs: `overlay-pass4-*`, `side-by-side-*.jpg` and every state shot re-taken.
+
+**Pass 5, 23 September.** The whole inventory re-opened on the pass-4 build, every state
+shot laid side by side (feed, bloom open, bloom under reduced motion, a tap caught at
+90ms, composer, review picker, review empty, the post menu, Following, both empty states,
+the story viewer, its menu and comments, the story composer, a thread, 1440). Found: the
+action sheet's danger rows (Report, Block) wore the shared plate's cyan glyph glow over a
+rose glyph, which softens a warning; the glow is off for those two
+(`pass5-danger-rows-before-after.jpg`). Nothing else drew its own container, rim, glow or
+plate; bloom geometry still exact (overlay-pass5). Final proofs re-taken after this last
+change.
+
 ### 13.F.7 Checks
+
+Every push ran the gate after `git pull --rebase` (BRIEF: whole-project tsc, whole
+vitest, the token check), each heavy job through the shared lock:
+- `check-css-tokens.mjs`: exit 0 (nothing added; the stylesheet reads layer-2 tokens and
+  the shared anatomy, the deeper indigo derived from `--nf-brand-primary`, FEED-5).
+- `tsc --noEmit -p .` (whole project): exit 0.
+- `vitest run` (whole suite): 238 files, 3850 passed, 1 skipped at the last push
+  (`physics.test.ts` 9 tests: the measured centres and tilts, the arc, screen fit,
+  the trails, the spring; `author-badges.test.ts` 4). Two unrelated tests timed out
+  once each under the box's load (`service-worker.browser.test.ts`,
+  `proxy-session.test.ts`); both pass alone and the gate was re-run clean before pushing.
+- eslint on every changed file: clean.
+- Controls, measured in the build (`feed.mjs` prints them): location bar 33.4 tall,
+  radius 8 (0.24); segment halves 35.2, radius 8 (0.23); action controls 28 painted,
+  radius 6 (0.21), 44 hit; plates 37, radius 14 (0.378, the founder's own ruling:
+  the control radius on the drawn plate; R-D's 0.35 line is exceeded by his choice, not
+  by drift); sheet rows 64, radius 18 (0.28); the plus, the rings and the avatars round
+  (shapes, not text controls).
+- Behaviour: Escape closes the fan and returns focus to the plus; focus order Review,
+  Story, Post; reduced motion shows the plates at rest (a real defect fixed: the
+  reduced-motion paint ran before the plates mounted and left them folded on the plus);
+  every action lands on its real composer (Post sheet, `/stories/new`, the review picker
+  or its honest empty sheet).
 
 ### 13.F.8 Not matched, and why
 
