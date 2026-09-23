@@ -5942,6 +5942,57 @@ block does not touch it. `--nf-brand-quiet` is an INK token: every other
 consumer in the tree uses it as `color`, and `admin/money/_desk/desk.css` uses
 it that way eleven times. The chip wants a tint as its fill.
 
+### R13. CORRECTION TO R12: THOSE TWO FILES ARE SESSION B'S, NOT SESSION A'S
+
+R12 says the two files holding the remaining nineteen rules "both belong to
+other Session A workers rather than to Session B". **That is wrong, and it
+points the entry at the wrong reader.**
+
+`docs/SESSION_B_SCOPE.md` opens with "if a path is listed here, Session B owns
+it until this file says otherwise", and its Phase 2 sweep groups list both:
+
+- `price-check.css` under "home (both sides), search and filters, listing
+  detail"
+- `escrow.css` under "stays, stay detail, trips, restaurants, checkout"
+
+So both are **Session B's for the duration of the sweep**, and R12's selector
+list is addressed to Session B after all. Everything else in R12 stands: the
+line numbers, the comment-stripped check, and the `--nf-brand-quiet` defect at
+`price-check.css:216`.
+
+**Session A has not touched either file.** This session removed both blocks
+locally while acting on R12, noticed the scope listing, and reverted both with
+`git checkout --` before committing; `escrow.css` and `price-check.css` are
+byte-identical to `origin/main` at the commit carrying this entry. The
+nineteen rules are still live and still Session B's to remove.
+
+**Re-measured at `37070ff0`, and the count is confirmed.** Two independent
+comment-stripping implementations agree on 19 live rules in exactly these 2
+files: the committed `docs/design/proofs/no-light/live-light-rules.mjs` (1792
+files scanned, exit 1) and a throwaway scanner written separately for the
+check.
+
+**A caution for anyone re-running this, because it cost this session a pass.**
+The throwaway scanner first reported a clean tree. It tracked quoted strings so
+a `/*` inside one would not be read as a comment, and blanked the string body
+while doing it - which blanks the `"light"` in `[data-theme="light"]`, the
+exact text being hunted. Every real hit disappeared and the run printed zero.
+A two-line fixture (one commented rule, one live rule) caught it in seconds;
+the full-tree run had looked entirely plausible without one. **Run a
+comment-stripping checker against a fixture with a known answer before you
+trust a zero from it.** The committed checker's own guard - refusing to report
+a clean result when it read zero files - is the same lesson from the earlier
+wrong-directory bug, and neither guard would have caught the other's failure.
+
+**A third false-positive class, beyond the comments R12 warns about.** A sweep
+naming six files was circulated; four of them - `settings-rows.css`,
+`side-nav.css`, `social.css`, `social-feed.css` - hold no light-mode rule and
+no light-mode comment either. They match on the word "light" in its ordinary
+sense: prose about catchlights and light direction, and the token
+`--nf-light-angle`, which is a lighting angle and not a theme. Match the
+selector, never the word.
+
+
 ## 50. TWO PROOFS THAT DISAGREED WITH THE SHIPPED CODE, RETAKEN
 
 The founder's ruling, in his words: **a proof that disagrees with the shipped
