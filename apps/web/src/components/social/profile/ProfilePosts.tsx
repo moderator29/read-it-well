@@ -107,7 +107,7 @@ export function ProfilePosts({
         aria-labelledby={labelledBy}
         tabIndex={-1}
       >
-        <div className="nf-card nf-social-card p-lg text-center sm:p-xl">
+        <div className="nf-panel nf-panel--card items-center p-lg text-center sm:p-xl">
           <div className="mx-auto w-fit">
             <BrandIcon name={copy.icon} size={44} />
           </div>

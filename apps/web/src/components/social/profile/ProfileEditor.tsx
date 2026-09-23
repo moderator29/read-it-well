@@ -99,10 +99,9 @@ export function ProfileEditor({
       {bioHeld && (
         <div
           role="status"
-          className="nf-card p-md"
-          style={{ borderColor: "color-mix(in oklab, var(--nf-state-warning) 45%, transparent)" }}
+          className="nf-panel nf-panel--card nf-panel--held p-md"
         >
-          <p className="flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-state-warning)]">
+          <p className="flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-status-pending)]">
             <UiIcon name="sparkle" size={15} className="shrink-0" />
             {BIO_HELD_TITLE}
           </p>
@@ -113,7 +112,7 @@ export function ProfileEditor({
       )}
 
       {/* ------------------------------------------------------------ handle */}
-      <section className="nf-card p-md sm:p-lg">
+      <section className="nf-panel nf-panel--card p-md sm:p-lg">
         <h2 className="nf-overline">{claiming ? "Claim your handle" : "Your handle"}</h2>
         <label htmlFor={handleId} className="nf-label mt-sm">
           Handle
@@ -162,7 +161,7 @@ export function ProfileEditor({
       </section>
 
       {/* --------------------------------------------------------------- bio */}
-      <section className="nf-card p-md sm:p-lg">
+      <section className="nf-panel nf-panel--card p-md sm:p-lg">
         <h2 className="nf-overline">About you</h2>
 
         <label htmlFor={bioId} className="nf-label mt-sm">
@@ -235,7 +234,7 @@ export function ProfileEditor({
       </section>
 
       {/* -------------------------------------------------------- home area */}
-      <section className="nf-card p-md sm:p-lg">
+      <section className="nf-panel nf-panel--card p-md sm:p-lg">
         <h2 className="nf-overline">Where you are</h2>
         <label htmlFor={areaId} className="nf-label mt-sm">
           Home area
@@ -280,7 +279,7 @@ export function ProfileEditor({
         through role and aria-labelledby, and the heading then matches every
         other section on the page.
       */}
-      <section className="nf-card p-md sm:p-lg">
+      <section className="nf-panel nf-panel--card p-md sm:p-lg">
         <h2 id={`${policyId}-label`} className="nf-overline">
           Who can message you
         </h2>
@@ -295,18 +294,9 @@ export function ProfileEditor({
             return (
               <label
                 key={policy}
-                className="flex cursor-pointer items-start gap-sm rounded-[var(--nf-radius-md)] border p-sm transition-colors"
-                /*
-                 * A brand ring rather than a brand tint. `--nf-brand-primary-soft`
-                 * is electric blue mixed at 16 per cent, and over a white card
-                 * that lands in the lavender range, which breaks the no purple
-                 * rule on paper. The ring says "chosen" in both themes and
-                 * cannot drift into another hue.
-                 */
-                style={{
-                  borderColor: active ? "var(--nf-brand-primary)" : "var(--nf-border-subtle)",
-                  boxShadow: active ? "inset 0 0 0 1px var(--nf-brand-primary)" : "none",
-                }}
+                /* The shared choice card: panel at rest, the selected edge
+                   and glow when its radio is checked (`social-profile.css`). */
+                className="nf-choice"
               >
                 <input
                   type="radio"
@@ -327,7 +317,7 @@ export function ProfileEditor({
           })}
         </div>
 
-        <label className="mt-sm flex cursor-pointer items-start gap-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm">
+        <label className="nf-choice mt-sm">
           {/* The hidden field posts first, so an unticked box still sends a
               value and the last one written wins. */}
           <input type="hidden" name="pidginOk" value="off" />
@@ -356,7 +346,7 @@ export function ProfileEditor({
       )}
 
       {saved && (
-        <div role="status" className="nf-card p-md">
+        <div role="status" className="nf-panel nf-panel--card p-md">
           <p className="flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-state-success)]">
             <UiIcon name="verified" size={15} className="shrink-0" />
             {saved.claimed ? `@${saved.handle} is yours.` : "Your profile is saved."}

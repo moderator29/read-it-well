@@ -20,7 +20,7 @@ export function LoadingPeople() {
 
       <ul className="mt-md flex flex-col gap-[var(--nf-social-gap)]" aria-hidden="true">
         {[0, 1, 2, 3, 4].map((row) => (
-          <li key={row} className="nf-card nf-social-card nf-social-person">
+          <li key={row} className="nf-panel nf-panel--card nf-social-person flex-row">
             <Skeleton className="nf-social-person__face" />
             <div className="min-w-0 flex-1 space-y-xs">
               <Skeleton width="9rem" height="1rem" radius="xs" />

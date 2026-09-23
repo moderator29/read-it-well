@@ -1,0 +1,127 @@
+/*
+  The public profile family's own partial (worker "sweep-social", the platform
+  sweep, 23 September). Imported by the components under
+  `components/social/profile/`. It holds no material of its own: every fill,
+  edge, rim and glow below is a shared role from the token layer's REFERENCE
+  ANATOMY block (`--nf-panel-*`, `--nf-selected-*`), so the profile family
+  reads as the console and Get started do.
+
+  It exists because the rules these components used to wear live in
+  `app/social.css` and `app/social-feed.css`, which the feed worker owns. Each
+  rule here names the old selector it supersedes; SW-S1 in
+  `docs/SESSION_B_SCOPE.md` asks the feed worker to delete those.
+*/
+@layer components {
+  /*
+   * THE "MORE ACTIONS" POPOVER OPENED OFF THE LEFT EDGE AT 390 (ledger 13,
+   * defect D1). It borrowed `.nf-post__menu`, which a post anchors to its
+   * RIGHT edge because a post's kebab is in its top right corner. The
+   * profile's kebab sits beside Follow at the LEFT of the page, 146px in, so
+   * a 216px menu anchored to its right edge ran 70px off the screen and cut
+   * the first letters of every row. Anchored to its left edge it ends at
+   * 362px on a 390 screen, and it is kept inside the viewport on anything
+   * narrower. Supersedes `.nf-social-more__menu` in `social-feed.css`.
+   */
+  .nf-post__menu.nf-social-more__menu {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+    max-inline-size: calc(100vw - 2.5rem);
+    border-radius: var(--nf-container-radius);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill-card);
+    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
+    backdrop-filter: blur(var(--nf-panel-blur));
+    box-shadow:
+      var(--nf-panel-rim),
+      var(--nf-panel-glow);
+  }
+
+  /* The block and blocked sheets: the shared card material on the sheet's
+     own geometry. Supersedes the fill, edge and shadow of
+     `.nf-social-sheet__panel`. */
+  .nf-social-sheet .nf-social-sheet__panel {
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill-card);
+    box-shadow:
+      var(--nf-panel-rim),
+      var(--nf-panel-glow);
+  }
+
+  /* Occupation, area and standing chips: the panel's edge and rim on a
+     rounded rectangle. Supersedes the edge and `--nf-glow-edge` of
+     `.nf-social-chip` for the profile header. */
+  .nf-profile-chips .nf-social-chip {
+    /* A two-word standing ("Fast replies") broke inside its chip at 390 and
+       drew a two-line lozenge; a chip is one line. */
+    white-space: nowrap;
+    border-color: var(--nf-panel-edge);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim);
+  }
+
+  /* The trust row is a shared card (the markup adds `nf-panel nf-panel--card`);
+     its three cells keep the grid and take the panel's hairline between them. */
+  .nf-social-trust.nf-panel {
+    display: grid;
+    padding: var(--nf-space-md) var(--nf-space-xs);
+  }
+  .nf-social-trust.nf-panel .nf-social-trust__cell + .nf-social-trust__cell {
+    border-inline-start: var(--nf-border-width) solid var(--nf-panel-hair);
+  }
+
+  /* The tab bar: the panel's track and the shared SELECTED state (the
+     console's chosen row: lit fill, bright edges, the inline glow) on the
+     live tab. Supersedes the track and the flat brand tab of `.nf-glass-seg`
+     for the profile only; the landing's segment is another group's. */
+  .nf-glass-seg.nf-glass-seg--profile {
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim);
+  }
+  .nf-glass-seg--profile .nf-glass-seg__tab[aria-selected="true"] {
+    background: var(--nf-selected-fill);
+    border: var(--nf-border-width) solid transparent;
+    border-color: var(--nf-selected-edges);
+    box-shadow: var(--nf-selected-shadow-inline);
+  }
+
+  /*
+   * A choice card in the profile editor (who may message you, pidgin): the
+   * shared card at rest and the shared selected edge and glow when chosen.
+   * Replaces the inline `style` the editor set a brand ring with, and the
+   * `--nf-border-subtle` grey edge at rest.
+   */
+  .nf-choice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--nf-space-sm);
+    padding: var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim);
+    cursor: pointer;
+    transition:
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
+      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+  }
+  .nf-choice:has(input:checked) {
+    border-color: var(--nf-selected-edges);
+    box-shadow: var(--nf-selected-shadow-inline);
+  }
+  .nf-choice:has(input:focus-visible) {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-choice {
+      transition: none;
+    }
+  }
+
+  /* The bio the scanner is holding: the shared card with the pending edge
+     (bright cyan is the platform's pending colour). */
+  .nf-panel.nf-panel--held {
+    border-color: color-mix(in oklab, var(--nf-status-pending) 60%, transparent);
+  }
+}

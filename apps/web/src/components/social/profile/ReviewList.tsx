@@ -15,7 +15,7 @@ export function ReviewList({ reviews }: { reviews: ReviewCard[] }) {
   return (
     <ul className="flex flex-col gap-[var(--nf-social-gap)]">
       {reviews.map((review) => (
-        <li key={review.id} className="nf-card nf-social-card p-md">
+        <li key={review.id} className="nf-panel nf-panel--card p-md">
           <div className="flex items-center justify-between gap-sm">
             <p className="text-[length:var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]">
               {review.authorLabel}

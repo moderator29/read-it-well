@@ -12,7 +12,7 @@ export default function LoadingThread() {
       <PageHeaderSkeleton />
       <div className="space-y-sm">
         {Array.from({ length: 5 }, (_, i) => (
-          <div key={i} className="nf-card p-md">
+          <div key={i} className="nf-panel nf-panel--card p-md">
             <Skeleton width="62%" height="1.0625rem" radius="sm" />
             <Skeleton className="mt-xs" width="44%" height="0.875rem" radius="sm" />
           </div>

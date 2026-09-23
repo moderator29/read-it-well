@@ -4835,13 +4835,80 @@ proved, its rows are proved by code only.
 - D3, C17: `MessageThread.tsx` is a second, dead thread renderer with its own
   bubble recipe.
 
-### 13.S.5 Per route result
+### 13.S.5 The thread booking and listing card (founder, 23 September)
 
-(pending Phase 1 RELEASED)
+Founder: "make it a bit smaller on mobile and desktop, a bit smaller in width
+and height, make it clean and magnificent". Target
+`docs/design/references/founder/thread-booking-card-target.jpg` (the same
+drawing as `GOVERNING-chat-booking-card.png`). Measured with a sharp pixel
+reader, screen 660 image px inner edge to inner edge, 0.591 CSS px per image
+px at 390.
 
-### 13.S.6 Audit passes
+| Property | Image (measured) | Before | After (pass 1) | Match? |
+|---|---|---|---|---|
+| Card width at 390 | 524 px = 310 CSS, left edge on the bubble column (82 px in = 48 CSS) | 340 CSS, on the screen gutter | 300 CSS, on the bubble column (avatar column kept empty) | yes, 10px narrower |
+| Card width at 1440 | derived from the phone | 686 CSS | 400 CSS (capped at 25rem) | yes (founder: smaller) |
+| Card height | 520 px = 307 CSS | about 560 CSS | 392 CSS | closer; the 44px tap law (buttons 44 against 30 in the render) and our type one rung larger account for the rest |
+| Photo | inset 6 px (4 CSS) from the card edge, 303 x 82 CSS, 3.7 to 1 | flush, 3 to 1 | inset 4, 37 to 10, corner radius under the card's | yes |
+| Container | per-side lit edge (top `#1159BD`, left `#2553A9` band, right `#004591`, bottom `#11308B`), bright bottom band `#011C8F` | own brand edge, well fill, 26px glow | shared `.nf-panel--card` + `--glass`: the console's per-side edges, lit rim, reflection, glow | yes (shared layer) |
+| Room row | no box, a hairline above (y 706) and below (y 816) | boxed well with its own edge | two `--nf-panel-hair` hairlines, no box | yes |
+| Facts row | 53 CSS, hairlines between cells | 110 CSS, labels wrapping | 64 CSS, labels one line | yes |
+| Buttons | lit primary + glass, 1.26 to 1, 8 apart, 30 tall | `--md` 48 tall | shared lit primary and glass door, `--sm` 44 tall, 1.26 to 1, 8 apart | yes except height (tap law) |
+| Chips (3 nights) | small rounded rectangle, cyan hairline | 23px, tint fill | panel-edge hairline, `--nf-radius-xs` | yes |
+| Forward | not drawn | a foot row, 50px | a 44px glyph in the title row, no height of its own | recorded exception (a real route) |
 
-(Pass 1, Pass 2, Pass 3: pending)
+### 13.S.6 Per route result
+
+| Route | Swept | Container | Edge / rim | Glow | Button | Plate |
+|---|---|---|---|---|---|---|
+| 1 `/u/[handle]` | yes in markup (SW-S1 for the rule deletion) | about and trust on `.nf-panel--card`; tabs on the panel track | panel edges, rim | panel glow | Follow on the shared lit primary; cover and kebab on the glass door | none drawn |
+| 2, 3 followers / following | yes | person rows and empty card on `.nf-panel--card` | panel | panel | shared | AGENT tag on the shared role tag |
+| 4 `/u/[handle]/edit` | yes | six sections on `.nf-panel--card`; held bio on `--held` | panel; choice cards take `--nf-selected-*` when checked | panel | Save on the lit primary | none |
+| 5 `/u` | yes (rows, skeleton) | `.nf-panel--card` rows | panel | panel | shared | none |
+| 6 `/messages` | yes | rows hover on the panel fill and rim; paused note on the panel | ring on `--nf-plate-*` | plate glow | shared | unread count on the lit fill |
+| 7 booking face | yes | context fold and chat card on the shared card | panel | panel | shared | the bed on `IconPlate` |
+| 8 rental face | yes | context and inspection cards on the shared card | panel; bubbles on panel edges (theirs) and the lit primary (mine) | panel / lit bloom | shared | the house on `IconPlate` |
+| 9 plain face | yes | bubbles and safety note (calm panel) | as 8 | as 8 | shared | none |
+| 10 options sheet | yes | listing row and block confirm on the shared card | panel | panel | shared | none |
+| 11 share picker | yes | confirm card on the shared card | panel | panel | shared | ring on the plate tokens |
+| 12 `/messages/new` | nothing of its own | | | | | |
+
+Routes swept: 11 of 12 (the twelfth draws nothing of its own). Deleted local
+recipes: `.nf-chat-card` material, `.nf-chat-card__room` box, `.nf-context-card`
+material and its 40px mark box, the three avatar ring recipes, both bubble
+edge and glow recipes, the composer field and send recipes, the role tag's
+well, the inbox and share row hover fills, `MessageThread.tsx` whole (dead).
+Not deleted, because they are the feed worker's (SW-S1):
+`.nf-social-card`, `.nf-social-more`, `.nf-social-more__menu` offsets,
+`.nf-social-round` material, `.nf-social-chip` edge, `.nf-social-trust` well,
+`.nf-glass-seg__tab[aria-selected]`, `.nf-social-sheet__panel` material,
+`.nf-card.nf-post` for the profile's property cards. The profile family now
+wears `components/social/profile/social-profile.css` (new, shared tokens only)
+and the shared classes in markup; the rules above have no profile consumer
+left except where the feed uses the same selector.
+
+Found for others: the inbox segment's selected state ("All") is still a flat
+navy fill from the shared `Segmented`, which Phase 1 did not touch; reported to
+the lead.
+
+### 13.S.7 Audit passes
+
+**Pass 1, 23 September, after applying** (production build, harness, 390 and
+1440, `proofs/session-b/sweep-social/pass1/`). Found and fixed:
+1. The chat card was 285 wide at 390, narrower than the render: the stack was
+   capped at 84 per cent of a row that already lost the avatar column. Now the
+   column's full width, capped at 25rem: 300 at 390.
+2. The Forward foot row cost 50px of height the founder asked back: moved into
+   the title row as a 44px glyph.
+3. "Check out" and "2 adults" wrapped inside their fact cells: labels are one
+   line, cells a rung tighter.
+4. At 390 the primary's chevron was clipped by its own label: padding a rung
+   down, label and glyph a hairline apart.
+5. The profile "More actions" menu (D1) now opens from its left edge and ends
+   at 362 on a 390 screen: fixed and proven (`pass1/profile-menu-390.jpg`).
+6. A two-word standing chip ("Fast replies") broke over two lines: chips are
+   one line.
+7. The shooter's Requests click hit the wrong tab; corrected for pass 2.
 
 
 ## 13. Platform sweep: home (both sides), search and filters, listing detail, price check (worker "sweep-home")

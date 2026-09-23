@@ -151,6 +151,15 @@ Each group appends "RELEASED <commit>" here when it is done.
     sweep-social moves those components' markup onto the shared primitives it
     will list here each selector left with no consumer, for you to delete, or
     ask you to repoint the ones the feed also uses.
+    **SW-S1 list (23 September, after the sweep landed).** The profile family
+    now draws with the shared classes in markup and
+    `components/social/profile/social-profile.css` (new, claimed here). No
+    profile component consumes these any more; delete them unless the feed
+    uses them: `.nf-social-card` (profile uses `nf-panel nf-panel--card`),
+    `.nf-card.nf-post` for the profile property cards, the material of
+    `.nf-social-more`, `.nf-social-round`, `.nf-social-sheet__panel`,
+    `.nf-social-trust`, the `--nf-glow-edge` on `.nf-social-chip`, and the
+    right-edge offsets of `.nf-social-more__menu` (superseded).
   - host wizard, agent workspace, side drawer, dock, landing:
     `agent.css`, `chrome.css`, `app/side-nav.css`, `landing.css`, `site.css`,
     `chips.css` and their components.

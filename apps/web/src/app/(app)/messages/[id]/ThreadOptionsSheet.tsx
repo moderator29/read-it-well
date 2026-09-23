@@ -160,7 +160,7 @@ export function ThreadOptionsSheet({
 
       {/* ------------------------------------------------ listing mini view */}
       {listing && (
-        <Link href={`/listing/${listing.id}`} className="nf-card nf-card--interactive flex items-center gap-md p-sm">
+        <Link href={`/listing/${listing.id}`} className="nf-panel nf-panel--card flex-row items-center gap-md p-sm">
           <div
             aria-hidden="true"
             className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl"
@@ -233,7 +233,7 @@ export function ThreadOptionsSheet({
           />
 
           {confirmingBlock ? (
-            <div className="nf-card mt-md p-md" data-testid="thread-block-confirm">
+            <div className="nf-panel nf-panel--card mt-md p-md" data-testid="thread-block-confirm">
               <p className="nf-body font-semibold text-[var(--nf-content-primary)]">
                 Block {counterpartName}?
               </p>

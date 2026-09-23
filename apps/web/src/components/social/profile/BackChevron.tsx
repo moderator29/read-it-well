@@ -63,7 +63,7 @@ export function BackChevron({
          a substitute: it names a test's grip on one surface, this names what the
          object is on all of them. */
       data-nav-back=""
-      className={labelled ? "nf-social-round nf-social-round--pill" : "nf-social-round"}
+      className={labelled ? "nf-social-round nf-social-round--pill nf-btn--glass" : "nf-social-round nf-btn--glass"}
       data-testid="profile-back"
     >
       <UiIcon name="arrow-left" size={20} />

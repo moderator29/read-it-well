@@ -20,7 +20,7 @@ export function PropertyList({ properties }: { properties: PropertyCard[] }) {
     <ul className="flex flex-col gap-[var(--nf-social-gap)]">
       {properties.map((property) => (
         <li key={property.id}>
-          <Link href={`/listing/${property.id}`} className="nf-card nf-post nf-post--listing block">
+          <Link href={`/listing/${property.id}`} className="nf-panel nf-panel--card nf-post nf-post--listing">
             {property.photoUrl ? (
               <RemoteImage
                 src={property.photoUrl}

@@ -45,7 +45,7 @@ export default async function InboxPage() {
             <PageScene art="bot-chat" />
             <PageHeader title="Inbox" />
           </div>
-          <p className="nf-card nf-body p-card sm:p-cell text-center text-[var(--nf-content-muted)]">
+          <p className="nf-panel nf-panel--card nf-body p-card sm:p-cell text-center text-[var(--nf-content-muted)]">
             Messaging is paused for maintenance. Your conversations are safe and nothing has
             been lost. Try again in a few minutes.
           </p>

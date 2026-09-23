@@ -45,7 +45,7 @@ export default function LoadingPeopleDirectory() {
           actually happening. */}
       <ul className="mt-sm flex flex-col gap-[var(--nf-social-gap)]" aria-hidden="true">
         {[0, 1, 2, 3, 4].map((row) => (
-          <li key={row} className="nf-card nf-social-card nf-people__row">
+          <li key={row} className="nf-panel nf-panel--card nf-people__row flex-row">
             {/* Sized by hand rather than borrowing `.nf-people__avatar`, which
                 fills itself with the brand gradient and would render a solid
                 blue disc where a face is about to be. */}

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import type { Dictionary, Locale } from "@vallo/i18n";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { Inspection } from "@/lib/inspections/types";
 import type { ThreadContext } from "@/lib/messages/live";
@@ -73,14 +72,12 @@ export function ThreadContextBanner({
           listing: a table held against a business row has nowhere on the
           catalogue to point at, and a dead control is never drawn.
         */}
-        <div className="nf-context-card flex-col items-stretch" data-testid="thread-context-card">
+        <div className="nf-panel nf-panel--card nf-context-card flex-col items-stretch" data-testid="thread-context-card">
           <div className="flex items-center gap-row">
-            <span className="nf-context-card__mark" aria-hidden="true">
-              {/* The glass object the restaurant surfaces already use for a
-                  table held at a venue. There is no `restaurant` object in
-                  the pack, and inventing a name for one is how a glyph goes
-                  missing at runtime. */}
-              <BrandIcon name="concierge-bell" fill />
+            <span className="nf-plate nf-plate--brand nf-plate--md nf-context-card__mark" aria-hidden="true">
+              {/* The shared lit plate with a line glyph, as the rental render
+                  draws its house (9E06F51C). */}
+              <UiIcon name="utensils" size={24} />
             </span>
             <span className="min-w-0 flex-1">
               <span className="nf-context-card__title">{words.tableBooking}</span>
@@ -135,10 +132,10 @@ export function ThreadContextBanner({
           would be a change to `lib/messages/live.ts`, which is another
           worker's file.
         */}
-        <div className="nf-context-card flex-col items-stretch" data-testid="thread-context-card">
+        <div className="nf-panel nf-panel--card nf-context-card flex-col items-stretch" data-testid="thread-context-card">
           <div className="flex items-center gap-row">
-            <span className="nf-context-card__mark" aria-hidden="true">
-              <BrandIcon name="hotel-room" fill />
+            <span className="nf-plate nf-plate--brand nf-plate--md nf-context-card__mark" aria-hidden="true">
+              <UiIcon name="bed" size={24} />
             </span>
             <span className="min-w-0 flex-1">
               <span className="nf-context-card__title">{words.stayBooking}</span>
@@ -176,11 +173,11 @@ export function ThreadContextBanner({
       {listing && (
         <Link
           href={`/listing/${listing.id}`}
-          className="nf-context-card nf-card--interactive"
+          className="nf-panel nf-panel--card nf-context-card"
           data-testid="thread-context-card"
         >
-          <span className="nf-context-card__mark" aria-hidden="true">
-            <BrandIcon name="home-search" fill />
+          <span className="nf-plate nf-plate--brand nf-plate--md nf-context-card__mark" aria-hidden="true">
+            <UiIcon name="home" size={24} />
           </span>
           <span className="min-w-0 flex-1">
             <span className="nf-context-card__title">{words.rentalEnquiry}</span>

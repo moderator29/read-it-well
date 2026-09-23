@@ -14,6 +14,7 @@ import { StoryGrid } from "../story/StoryGrid";
 import { EmptyPanel } from "./EmptyPanel";
 import type { TabKey } from "@/lib/social/profile-tabs-schema";
 import type { Dictionary } from "@vallo/i18n";
+import "./social-profile.css";
 
 /**
  * The tabs, and what is under them.
@@ -152,7 +153,7 @@ export function ProfileTabs({
         role="tablist"
         aria-label={labels.tabsLabel.replace("{handle}", handle)}
         onKeyDown={onKeyDown}
-        className="nf-glass-seg"
+        className="nf-glass-seg nf-glass-seg--profile"
         style={{ "--nf-seg-count": tabs.length } as React.CSSProperties}
       >
         {tabs.map((key) => {
