@@ -164,7 +164,8 @@ Internal split between Session B workers (for Session B's own coordination):
 - admin-review: `app/admin/_review/**` (the review desks' own area
   stylesheet, presentational parts and pure helpers; no data access),
   `lib/admin/reads/listings.ts`, `moderation.ts`, `verification.ts` and their
-  tests, and
+  tests, the fixture harness under
+  `apps/web/src/app/(dev)/preview/session-b/admin-review/**` (R-G), and
   listings (queue and the single listing under review),
   moderation, kyc (verification), queue, support.
 - admin-money: money, escrow, supply, bookings, payments.
@@ -353,6 +354,23 @@ AR-1 status counts and AR-2 review times (`getListingStatusCounts`,
 counts (`getVerificationSummary`, `getSupplyRoles`). AR-5 (paging the decided
 bucket of `getListingSubmissions`) is still a limit of that Session A read; the
 desk says so on the tab rather than asking.
+
+AR-10. **A decision for a held event.** `private.scan_event` holds an event
+   (`events.status = 'HELD'`, a `hold_reason`, and a `risk_alerts` row) on
+   payment language or an account number, and nothing can release or remove
+   it: `decideHeldItem` (`lib/admin/moderation-actions.ts`) takes post, story,
+   comment and bio only. Request: add `target: "event"` (RELEASE sets
+   `status = 'LIVE'`, REMOVE sets `'REMOVED'` with a required reason the host
+   reads word for word, an audit row, and a notification to `host_id`, as the
+   other four targets do). Moderation lists held events now (read by Session B's
+   `getHeldEvents`) and says under each that it cannot be decided yet.
+
+AR-11. **An admin read of `public.blocked_terms`.** The table has row level
+   security on, no policy, and no SELECT grant to `authenticated`, so the
+   console cannot show the list or even that it is empty. Request: a
+   `blocked_terms_select_admin` policy (`private.has_role(auth.uid(), 'admin')`
+   or super_admin) with the grant, or a security definer read function. Writing
+   the list stays a founder decision and is not asked for here.
 
 ### Requests from inspection (the property inspection surface)
 

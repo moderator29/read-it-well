@@ -43,7 +43,7 @@ async function adminDb(): Promise<Db | null> {
 export type ModerationSummary = {
   openReports: number;
   reviewingReports: number;
-  held: { posts: number; stories: number; comments: number; bios: number };
+  held: { posts: number; stories: number; comments: number; bios: number; events: number };
   olderThan24h: { reports: number; held: number };
   /** Reports still waiting (open or in review), by category. */
   byCategory: Record<ReportCategory, number>;
@@ -80,11 +80,13 @@ export async function getModerationSummary(now: number = Date.now()): Promise<Re
       stories,
       comments,
       bios,
+      events,
       oldReports,
       oldPosts,
       oldStories,
       oldComments,
       oldBios,
+      oldEvents,
       newThisWeek,
       newLastWeek,
       ...categoryCounts
@@ -95,11 +97,13 @@ export async function getModerationSummary(now: number = Date.now()): Promise<Re
       count(db.from("stories").select("id", head).eq("status", "HELD")),
       count(db.from("story_comments").select("id", head).eq("status", "HELD")),
       count(db.from("social_profiles").select("user_id", head).eq("bio_status", "HELD")),
+      count(db.from("events").select("id", head).eq("status", "HELD")),
       count(db.from("reports").select("id", head).in("status", [...waitingStatuses]).lt("created_at", dayAgo)),
       count(db.from("posts").select("id", head).eq("status", "HELD").lt("created_at", dayAgo)),
       count(db.from("stories").select("id", head).eq("status", "HELD").lt("created_at", dayAgo)),
       count(db.from("story_comments").select("id", head).eq("status", "HELD").lt("created_at", dayAgo)),
       count(db.from("social_profiles").select("user_id", head).eq("bio_status", "HELD").lt("updated_at", dayAgo)),
+      count(db.from("events").select("id", head).eq("status", "HELD").lt("created_at", dayAgo)),
       count(db.from("reports").select("id", head).gte("created_at", weekAgo)),
       count(db.from("reports").select("id", head).gte("created_at", fortnightAgo).lt("created_at", weekAgo)),
       ...REPORT_CATEGORIES.map((category) =>
@@ -150,8 +154,8 @@ export async function getModerationSummary(now: number = Date.now()): Promise<Re
       data: {
         openReports,
         reviewingReports,
-        held: { posts, stories, comments, bios },
-        olderThan24h: { reports: oldReports, held: oldPosts + oldStories + oldComments + oldBios },
+        held: { posts, stories, comments, bios, events },
+        olderThan24h: { reports: oldReports, held: oldPosts + oldStories + oldComments + oldBios + oldEvents },
         byCategory,
         medianResponseMinutes: { thisWeek: response.thisWeek, lastWeek: response.lastWeek },
         closedThisWeek: response.closedThisWeek,
@@ -275,6 +279,76 @@ export async function getReportsByCategory(
           resolvedByName: row.resolved_by ? (names.get(row.resolved_by) ?? null) : null,
         })),
       },
+    };
+  } catch {
+    return UNAVAILABLE;
+  }
+}
+
+/* ------------------------------------------------------------ held events */
+
+export type HeldEvent = {
+  id: string;
+  title: string;
+  blurb: string | null;
+  venue: string | null;
+  startsAt: string | null;
+  holdReason: string | null;
+  createdAt: string;
+  hostName: string | null;
+};
+
+/**
+ * Every event the safety scan is holding (`private.scan_event` sets
+ * `status = 'HELD'` on payment language or an account number), oldest first,
+ * read whole a thousand at a time. `events_admin_write` lets an admin read
+ * them. There is no decision for a held event in Session A's actions yet
+ * (`decideHeldItem` takes posts, stories, comments and bios); scope request
+ * AR-10 asks for one, and the desk says so under each held event.
+ */
+export async function getHeldEvents(): Promise<Read<HeldEvent[]>> {
+  const db = await adminDb();
+  if (!db) return UNAVAILABLE;
+  try {
+    const rows: {
+      id: string;
+      title: string;
+      blurb: string | null;
+      venue_label: string | null;
+      starts_at: string | null;
+      hold_reason: string | null;
+      created_at: string;
+      host_id: string;
+    }[] = [];
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await db
+        .from("events")
+        .select("id, title, blurb, venue_label, starts_at, hold_reason, created_at, host_id")
+        .eq("status", "HELD")
+        .order("created_at", { ascending: true })
+        .range(from, from + PAGE - 1);
+      if (error) return UNAVAILABLE;
+      rows.push(...(data ?? []));
+      if (!data || data.length < PAGE) break;
+    }
+    const hosts = [...new Set(rows.map((row) => row.host_id))];
+    const names = new Map<string, string>();
+    if (hosts.length > 0) {
+      const { data } = await db.from("profiles").select("id, display_name").in("id", hosts);
+      for (const person of data ?? []) if (person.display_name) names.set(person.id, person.display_name);
+    }
+    return {
+      state: "ok",
+      data: rows.map((row) => ({
+        id: row.id,
+        title: row.title,
+        blurb: row.blurb,
+        venue: row.venue_label,
+        startsAt: row.starts_at,
+        holdReason: row.hold_reason,
+        createdAt: row.created_at,
+        hostName: names.get(row.host_id) ?? null,
+      })),
     };
   } catch {
     return UNAVAILABLE;

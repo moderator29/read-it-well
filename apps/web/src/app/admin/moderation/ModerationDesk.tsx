@@ -16,6 +16,7 @@ import {
   type TabItem,
 } from "../_review/parts";
 import { formatDuration, percentChange } from "../_review/metrics";
+import { CalmNote } from "../_components/panels";
 import type { ModerationSummary } from "../_review/contracts";
 
 /**
@@ -80,7 +81,7 @@ export function breakdownSegments(
 export function ModerationDesk(props: ModerationDeskProps) {
   const { tabs, filters, summary, categoryLabel, rows, empty, pager, notes, unavailable } = props;
   const s = summary;
-  const heldTotal = s ? s.held.posts + s.held.stories + s.held.comments + s.held.bios : 0;
+  const heldTotal = s ? s.held.posts + s.held.stories + s.held.comments + s.held.bios + s.held.events : 0;
   const waitingReports = s ? s.openReports + s.reviewingReports : 0;
   const segments = s ? breakdownSegments(s.byCategory, categoryLabel) : [];
 
@@ -243,6 +244,15 @@ export function ModerationDesk(props: ModerationDeskProps) {
             ) : (
               <ReadFailed what="These figures" />
             )}
+          </Panel>
+
+          <Panel title="Blocked terms" labelledBy="rv-blocked">
+            <CalmNote
+              kind="unwired"
+              title="This list cannot be read from the console"
+              fills="The scan holds words that match the platform's blocked terms. Session A's ledger records that the list ships empty until the founder approves one, so today only account numbers and payment language hold anything."
+              creates="Reading the list here needs an admin read on public.blocked_terms, which has none: request AR-11."
+            />
           </Panel>
 
           <Panel>

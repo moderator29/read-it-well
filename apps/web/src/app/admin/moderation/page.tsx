@@ -6,7 +6,9 @@ import { requireAdmin, adminRefusal } from "@/lib/admin/guard";
 import { getModerationQueue, type ModerationQueue } from "@/lib/admin/moderation-queries";
 import { getReports, type ReportView } from "@/lib/admin/queries";
 import {
+  getHeldEvents,
   getModerationSummary,
+  type HeldEvent,
   getReportsByCategory,
   REPORT_CATEGORIES,
   type ReportCategory,
@@ -106,7 +108,7 @@ export default async function AdminModerationPage({
   };
   const narrowed = Object.keys(narrowing).length > 0;
 
-  const [summary, reports, held] = await Promise.all([
+  const [summary, reports, held, heldEvents] = await Promise.all([
     getModerationSummary(),
     tab === "held"
       ? null
@@ -114,6 +116,7 @@ export default async function AdminModerationPage({
         ? getReportsByCategory(tab as ReportCategory, { ...narrowing, ...(offset ? { offset } : {}) })
         : getReports(narrowing),
     tab === "all" || tab === "held" ? getModerationQueue(narrowing) : null,
+    (tab === "all" || tab === "held") && !narrowed ? getHeldEvents() : null,
   ]);
 
   const reportRows: ReportView[] = reports?.state === "ok" ? reports.data.rows : [];
@@ -122,6 +125,7 @@ export default async function AdminModerationPage({
   const rows: (ModerationRow & { at: string })[] = [
     ...reportRows.map((report) => reportRow(report, ui, t.admin.reports, common, now)),
     ...(held ? heldRows(held, now) : []),
+    ...(heldEvents?.state === "ok" ? heldEvents.data.map((event) => eventRow(event, ui, now)) : []),
   ].sort((a, b) => {
     /* Work still waiting first, oldest first, because the longest wait is the
        one that matters; closed reports after it, newest first. */
@@ -434,6 +438,56 @@ function HeldBody({
       {decision}
     </div>
   );
+}
+
+/**
+ * A held event. It can be read and opened, not decided: Session A's
+ * `decideHeldItem` has no event target, so the row says so and names the
+ * request (AR-10) rather than offering a button that would do nothing.
+ */
+function eventRow(event: HeldEvent, ui: AdminUi, now: number): ModerationRow & { at: string } {
+  return {
+    id: `event:${event.id}`,
+    at: event.createdAt,
+    icon: "calendar-booking",
+    item: "Event",
+    itemSub: truncate(event.title, 40),
+    reporter: "Safety scan",
+    reporterSub: "Automatic",
+    reason: event.holdReason ? truncate(event.holdReason, 60) : "Held by the scan",
+    age: ageShort(event.createdAt, now) ?? "",
+    status: "HELD",
+    statusLabel: "Held",
+    tone: "warning",
+    body: (
+      <div style={{ display: "grid", gap: "var(--nf-space-xs)" }}>
+        <p className="nf-rv-panel__note">
+          {[event.hostName, event.venue, event.startsAt ? ui.when(event.startsAt) : null].filter(Boolean).join(", ")}
+        </p>
+        <blockquote
+          style={{
+            margin: 0,
+            paddingLeft: "var(--nf-space-sm)",
+            borderLeft: "2px solid var(--nf-border-brand)",
+            whiteSpace: "pre-wrap",
+            color: "var(--nf-content-primary)",
+            fontSize: "var(--nf-text-body-sm)",
+          }}
+        >
+          {[event.title, event.blurb].filter(Boolean).join("\n\n")}
+        </blockquote>
+        {event.holdReason ? (
+          <p className="nf-rv-msg" style={{ color: "var(--nf-status-pending)" }}>
+            Held because: {event.holdReason}
+          </p>
+        ) : null}
+        <p className="nf-rv-panel__note">
+          There is no decision for a held event yet: releasing or removing one needs an action
+          Session A has not written (scope request AR-10).
+        </p>
+      </div>
+    ),
+  };
 }
 
 function truncate(text: string, max: number): string {
