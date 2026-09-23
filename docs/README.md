@@ -9,6 +9,7 @@ For setup, architecture and the repository layout, start with the [repository RE
 | Document | What it is for |
 |---|---|
 | [PRODUCT.md](PRODUCT.md) | What Vallo is, who it serves, what a listing is, who can do what, and the vocabulary. Read it first |
+| [THE_AUDIT.md](THE_AUDIT.md) | The two-pass pre-store audit of 23 September 2026: every finding with evidence and fix, store readiness, and the order of work |
 | [PLATFORM_STATUS.md](PLATFORM_STATUS.md) | The latest measured state of the platform: what works, what is proven, what is not |
 | [RECOMMENDATIONS.md](RECOMMENDATIONS.md) | The register of findings and open work. Code comments cite its IDs |
 | [ONE_PERSON_MANY_ACCOUNTS.md](ONE_PERSON_MANY_ACCOUNTS.md) | How one person holding several accounts or workspaces is handled at each gate |
