@@ -69,6 +69,16 @@ const config: CapacitorConfig = {
 
   webDir: "native-shell",
 
+  /*
+   * STORE-02 / STORE-03. Every request from the shell carries this token, so
+   * the SERVER knows it is rendering for the app and can leave out a sign-in
+   * door that cannot complete inside a web view (a Google or Apple redirect
+   * lands in the system browser's cookie jar, not the app's), on the first
+   * frame rather than drawing it and removing it on the client. Read by
+   * `surfaceFromUserAgent` in `src/lib/auth/providers.ts`; keep the two equal.
+   */
+  appendUserAgent: "VALLO-NATIVE",
+
   android: {
     /*
      * A release build must never be debuggable, and this is the flag people
