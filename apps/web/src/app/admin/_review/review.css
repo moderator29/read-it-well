@@ -160,7 +160,7 @@
   /* The active tab is the lit blue button: gradient fill, a brighter top rim,
      and a soft bloom cast below it. */
   .nf-rv-tab[aria-current="page"] {
-    border-color: var(--nf-admin-cta-edges, var(--nf-brand-primary));
+    border-color: var(--nf-selected-edges, var(--nf-brand-primary));
     background: linear-gradient(
       180deg,
       color-mix(in oklab, var(--nf-brand-primary) 82%, var(--nf-content-on-brand)) 0%,
@@ -187,13 +187,13 @@
     position: relative;
     min-width: 0;
     padding: var(--nf-space-md);
-    border-radius: var(--nf-admin-radius, var(--nf-radius-md));
+    border-radius: var(--nf-container-radius);
     border: 1px solid var(--nf-border-brand);
-    border-color: var(--nf-admin-panel-edges, var(--nf-border-brand));
-    background: var(--nf-admin-panel-fill, var(--nf-surface-primary));
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill);
     box-shadow:
       inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 55%, transparent),
-      var(--nf-admin-panel-glow, none);
+      var(--nf-panel-glow);
   }
 
   .nf-rv-panel--flush {
@@ -746,7 +746,7 @@
   }
 
   .nf-rv-pager__item[aria-current="page"] {
-    border-color: var(--nf-admin-cta-edges, var(--nf-brand-primary));
+    border-color: var(--nf-selected-edges, var(--nf-brand-primary));
     background: linear-gradient(180deg, color-mix(in oklab, var(--nf-brand-primary) 82%, var(--nf-content-on-brand)), var(--nf-brand-primary-strong));
     color: var(--nf-content-on-brand);
     box-shadow:
@@ -875,7 +875,7 @@
     height: 32px;
     border-radius: var(--nf-radius-xs);
     border: 1px solid var(--nf-border-brand);
-    border-color: var(--nf-admin-tile-edges, var(--nf-border-brand));
+    border-color: var(--nf-plate-edges, var(--nf-border-brand));
     background: linear-gradient(180deg, color-mix(in oklab, var(--nf-brand-primary) 38%, var(--nf-surface-primary)), color-mix(in oklab, var(--nf-brand-primary) 16%, var(--nf-surface-primary)));
     box-shadow: var(--nf-rim-lit), 0 0 12px -4px color-mix(in oklab, var(--nf-brand-primary) 80%, transparent);
     color: var(--nf-content-on-brand);

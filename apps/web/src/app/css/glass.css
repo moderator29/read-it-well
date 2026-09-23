@@ -1194,3 +1194,45 @@
     }
   }
 }
+
+/*
+ * THE PANEL (the wide platform sweep, 23 September): the console's lit glass
+ * container, extracted from `admin.css` and drawn by `components/ui/Panel.tsx`.
+ * Deep blue glass bright along its top, a 1px edge lit per side, the blue
+ * catchlight just inside the top edge, a hair of outer glow and the 10px
+ * container corner. Every value is a token in the "REFERENCE ANATOMY" block of
+ * tokens.css; nothing here is a number of its own but the padding.
+ *
+ *   .nf-panel          a panel: a titled region, a chart, a table
+ *   .nf-panel--card    the shorter object (a figure card, a strip): the card
+ *                      fill, whose top light runs longer
+ *   .nf-panel--flush   no side padding, for a table that runs edge to edge
+ *   .nf-panel--glass   over imagery: the same material with the backdrop blur
+ */
+@layer components {
+  .nf-panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: var(--nf-space-md);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill);
+    box-shadow:
+      var(--nf-panel-rim),
+      var(--nf-panel-glow);
+  }
+  .nf-panel--card {
+    background: var(--nf-panel-fill-card);
+  }
+  .nf-panel--flush {
+    padding-inline: 0;
+    padding-bottom: var(--nf-space-2xs);
+  }
+  .nf-panel--glass {
+    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
+    backdrop-filter: blur(var(--nf-panel-blur));
+  }
+}

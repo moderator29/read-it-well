@@ -7,10 +7,12 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Sparkline, type SparkTone } from "@/components/agent/charts/Sparkline";
 import { NavIcon, type AdminIcon } from "./AdminGlyph";
 import type { Delta } from "./metrics";
+import { Panel as UiPanel } from "@/components/ui/Panel";
+import { IconPlate as UiIconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 
 /**
  * The console's shared furniture, drawn from the four admin renders: the lit
- * glass panel, the page head with its blue sub-line, the KPI strip and the
+ * glass panel (the platform's shared Panel since 23 September), the page head with its blue sub-line, the KPI strip and the
  * KPI card with a sparkline, the icon plate, the status badge, the tab row,
  * the data table, and the two honest states every panel can be in when it has
  * nothing true to draw (empty, or not wired yet).
@@ -48,8 +50,9 @@ export function Panel({
   flush?: boolean;
 }) {
   return (
-    <section
-      className={`nf-admin-panel${flush ? " nf-admin-panel--flush" : ""}${className ? ` ${className}` : ""}`}
+    <UiPanel
+      flush={flush}
+      className={`nf-admin-panel${className ? ` ${className}` : ""}`}
       aria-labelledby={title && id ? `${id}-title` : undefined}
       id={id}
     >
@@ -64,7 +67,7 @@ export function Panel({
         </div>
       )}
       {children}
-    </section>
+    </UiPanel>
   );
 }
 
@@ -78,11 +81,12 @@ export function PanelLink({ href, children }: { href: string; children: ReactNod
   );
 }
 
+/** The console's plate: the shared IconPlate carrying one of the console's line glyphs. */
 export function IconPlate({ icon, tone = "brand", size = "md" }: { icon: AdminIcon; tone?: BadgeTone | "brand"; size?: "sm" | "md" }) {
   return (
-    <span className={`nf-admin-plate nf-admin-plate--${tone} nf-admin-plate--${size}`} aria-hidden="true">
-      <NavIcon icon={icon} size={size === "sm" ? 16 : 24} />
-    </span>
+    <UiIconPlate tone={tone} size={size}>
+      <NavIcon icon={icon} size={ICON_PLATE_GLYPH[size]} />
+    </UiIconPlate>
   );
 }
 

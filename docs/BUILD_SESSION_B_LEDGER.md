@@ -4499,6 +4499,183 @@ routes 20 to 23.
 
 Routes in group: 36 (plus the gated five above).
 
+## 13. Platform sweep: social (public profile, follow lists, edit profile, messages, the three thread faces)
+
+Worker "sweep-social", 23 September. Brief: `SWEEP.md` Phase 2 and the founder
+addendum (every visible thing, three dated audit passes). Governing images
+that still hold form on this group: `GOVERNING-chat-booking-card.png`,
+`founder/GOVERNING-thread-hotel-booking.jpg`,
+`founder/GOVERNING-thread-rental-enquiry.jpg`, `9E06F51C`. Reference anatomy:
+the console (`admin.css`, ledger 6.2) and Get started (ledger 2), through the
+Phase 1 shared layer. Status: INVENTORY AND BEFORE PROOFS DONE; applying waits
+for "Phase 1 RELEASED" in the scope file.
+
+### 13.S.1 Routes in the group (12)
+
+| # | Route | How it is proved | Harness face |
+|---|---|---|---|
+| 1 | `/u/[handle]` public profile, every tab (agent bar: Properties, Stories, Reviews, Activity; member bar: Posts, Replies, Media, Activity), menu sheet, block sheet, share | live (public read, handle `phantomfcalls`) and fixture | `profile`, `&tab=`, `&m=1`, `&e=1` |
+| 2 | `/u/[handle]/followers` | live and fixture | `followers`, `followers-empty` |
+| 3 | `/u/[handle]/following` | live (same component as 2) | (2) |
+| 4 | `/u/[handle]/edit` | fixture (needs a session) | `edit` |
+| 5 | `/u` people search | live | (none needed) |
+| 6 | `/messages` inbox: All / Requests tabs, search, rows, unread count, mark read, empty | fixture signed in, live signed out | `inbox`, `inbox-empty` |
+| 7 | `/messages/[id]` booking face (stay: context fold, chat card, bubbles, composer) | fixture | `booking` |
+| 8 | `/messages/[id]` rental enquiry face (context card, role tags, photo bundle, inspection face) | fixture | `rental` |
+| 9 | `/messages/[id]` plain thread (no listing, no context) | fixture | `plain` |
+| 10 | `/messages/[id]` options sheet, attach, report | fixture | `booking` + click |
+| 11 | `/messages/share/[kind]/[id]` share picker | fixture | `share` |
+| 12 | `/messages/new` bridge | shared `EmptyState` only, nothing of its own | none |
+
+Loading skeletons for 1, 2/3, 4, 5, 6 and 7 to 9 are the route `loading.tsx`
+files rendered directly by the harness (`load-*` faces). Not in the group:
+`/agent/messages` (agent workspace group, `agent.css`), `/profile` (already
+swept, Session B's reference).
+
+Harness: `app/(dev)/preview/session-b/sweep-social/page.tsx`, the real
+components on the shared fixtures (`_fixtures/people.ts`, `f4/fixtures.ts`,
+`f5/fixtures.ts`, read, not edited) inside the real `AppShell`. Every proof
+from it is FIXTURE-BACKED.
+
+### 13.S.2 Who draws what today (the ownership finding)
+
+Every rule the THREAD faces draw is in `threads.css`, which this group owns.
+Every rule the PROFILE family draws (cover, avatar ring, chips, counts, trust
+row, cards, tab segment, sheets, person rows, people search) is in
+`app/social.css` and `app/social-feed.css`, which the scope gives to the
+"feed" worker. So on the profile family this group can move the MARKUP onto
+the shared primitives (Panel, IconPlate, Button variants) and must ask the
+feed worker to delete the orphaned rules; it cannot delete them itself. Filed
+as SW-S1 in the scope file. Two more are outside the group: the held-payment
+composer inside a thread (`ProposeHeldPayment.tsx`, drawn by `escrow.css`,
+stays group) and the `.nf-insp-*` half of `threads.css` (the inspection
+surface, already Session B's; left as it is unless the inspection owner asks).
+
+### 13.S.3 Inventory: every place that draws its own container, edge, rim, glow, button or plate
+
+Legend: file, selector or element, what it draws, the shared target once Phase 1
+lands.
+
+**threads.css (owned, deletions happen here)**
+
+| # | Selector | Draws | Shared target |
+|---|---|---|---|
+| T1 | `.nf-thread__ring` | avatar ring: brand-edge-strong border, well fill, rim-lit + 16px glow-3 + inner wash | avatar ring stays round (shape law); glow from the shared outer-glow token |
+| T2 | `.nf-msg__avatar` | small avatar ring, own rim + 12px glow-2 | as T1 |
+| T3 | `.nf-role-tag` | Tenant/Agent lozenge: own border, well fill, rim-lit, radius-xs | shared small badge (status badge role) |
+| T4 | `.nf-thread__place .nf-badge` ... `.nf-insp-fact .nf-badge` | per-surface radius override on badges (chips.css capsule fix) | delete once the shared badge carries the right radius |
+| T5 | `.nf-bubble--theirs` | incoming bubble: tint-3 fill, brand edge, rim-lit, inner wash, 14px glow-2 | KEEPS its material (image governs: sampled blue glass bubble), edge and glow move to shared per-side edge + outer glow tokens |
+| T6 | `.nf-bubble--mine` | sent bubble: CTA gradient, strong edge, rim-lit, 22px bloom | shared lit-primary fill, rim and bloom tokens (image governs: the lit gradient bubble) |
+| T7 | `.nf-bubble--failed` | rose outline | stays (state, not material) |
+| T8 | `.nf-bubble__photo`, `.nf-photo-bundle__cell`, `__more` | media plates, inset fill | media, not material; radius to the container role |
+| T9 | `.nf-chat-card` | the booking/listing card: strong edge, well fill, blur, rim-lit, floor, 26px glow-3, bloom-card | shared Panel (lit, strong), image governs its extra glow |
+| T10 | `.nf-chat-card__badge` | plate behind Confirmed on a photo | shared badge on media plate |
+| T11 | `.nf-chat-card__facts`, `__fact + __fact` | brand hairlines between cells | shared inner divider token |
+| T12 | `.nf-chat-card__room` | room row: own edge, well fill, rim-lit | shared inner Panel (quiet) |
+| T13 | `.nf-chat-card__chip` | "3 Nights" chip: tint-2 fill | shared chip |
+| T14 | `.nf-chat-card__forward` | text control, radius-control | shared ghost Button |
+| T15 | `.nf-context-card` | rental/booking/reservation context card: edge, well fill, rim-lit, 20px glow-2, bloom-card | shared Panel |
+| T16 | `.nf-context-card__mark` | the house glyph box (BrandIcon in a 40px box, no plate) | shared IconPlate (the image draws the house on a lit plate) |
+| T17 | `.nf-booking-fold*` | fold summary inside the context card | layout only |
+| T18 | `.nf-composer__field` | field: radius-control, edge, well fill, rim-lit, 14px glow-1, focus ring | shared input/field material |
+| T19 | `.nf-composer__send` | send: CTA gradient, strong edge, rim-lit, 20px glow-3 bloom | shared lit primary icon button |
+| T20 | `.nf-composer__pending` | brand hairline | shared divider |
+| T21 | `.nf-inbox-row` hover | glass-fill on hover | shared selected/hover state |
+| T22 | `.nf-inbox-row__ring` | avatar ring (also used by VerifiedAvatar, SharePicker) | as T1 |
+| T23 | `.nf-inbox-row__count` | unread count plate, flat brand fill | shared count badge |
+| T24 | `.nf-share-row` hover | glass-fill on hover | as T21 |
+
+**Thread route components (`components/app/threads/**`, `components/app/messages/ChatCard.tsx`, `ListingOptionsSheet.tsx`, `app/(app)/messages/**`)**
+
+| # | Where | Draws | Shared target |
+|---|---|---|---|
+| C1 | ThreadView header: `nf-icon-btn` back, call, kebab | icon buttons (controls.css, shared already) | shared secondary glass button |
+| C2 | ThreadView safety note `nf-context-card mb-xs` | a context card used as a banner | shared calm info panel (GLOW_IDENTITY 7) |
+| C3 | ThreadView attach `nf-icon-btn`, pending photo `rounded-xl` thumb, remove | icon button, raw Tailwind radius | shared button; media radius token |
+| C4 | ThreadView typing dots `rounded-full` | dots (shape, exempt) | stays |
+| C5 | ChatCard two faces (booking, listing): `nf-btn--primary`, `nf-btn--glass` | lit primary and glass buttons via buttons.css | shared Button variants (already shared, check they pick up Phase 1) |
+| C6 | ThreadContextBanner: three banners, `nf-card--interactive` on one | context cards + buttons | shared Panel (interactive) + Button |
+| C7 | BookingFace: fold, step dots `rounded-full` | card, dots | shared Panel; dots stay |
+| C8 | RentalFace: context card, 11 Buttons, 3 Sheets, `nf-field` | card, sheets | shared Panel; Sheet is shared |
+| C9 | ReservationFace: context card, StatusPill, Sheet | card | shared Panel |
+| C10 | ThreadOptionsSheet: `nf-card nf-card--interactive` listing row, `nf-card mt-md p-md` block, `nf-badge--*`, `nf-share-row` rows, `nf-icon-btn` close | cards inside a sheet | shared Panel (interactive and quiet) |
+| C11 | ListingOptionsSheet: `nf-card` row, `rounded-[var(--nf-radius-md)]` photo, `nf-icon-btn` | card | shared Panel |
+| C12 | Inbox: Segmented (All/Requests), TextField search, `nf-btn--primary`/`--ghost` in the empty state, `nf-btn--ghost --sm` mark read, `nf-icon-btn` find | shared controls | Button variants; Segmented from the shared layer |
+| C13 | `/messages` paused note `nf-card nf-body p-card` | card | shared calm Panel |
+| C14 | `messages/loading.tsx`, `[id]/loading.tsx`, `new/loading.tsx` | `nf-card` skeleton boxes, `divide-y` hairlines | shared Panel skeleton |
+| C15 | SharePicker: `nf-context-card` confirm, `nf-btn--primary` x2, `nf-inbox-row__ring`, `nf-share-row` | card, buttons | shared Panel, Button |
+| C16 | VerifiedAvatar: `rounded-full` initials disc with a 22 per cent brand mix, tick dot with `border-2 surface-primary` | avatar (round, exempt), tick | glow and edge from the avatar ring token |
+| C17 | `components/app/messages/MessageThread.tsx` | a whole second thread with its own bubbles (`rounded-2xl`, raw brand mix) | DEAD: imported nowhere. Delete in the sweep (claimed below) |
+| C18 | ProposeHeldPayment `nf-esc-*` | held-payment composer inside a thread | escrow.css, stays group: not swept here |
+
+**Profile family (`components/social/profile/**`, `app/(app)/u/**`); rules live in social.css / social-feed.css (feed worker)**
+
+| # | Where | Draws | Shared target |
+|---|---|---|---|
+| P1 | ProfileHeader cover `nf-social-cover*`, plate, scrim | photo band with a border | media, not material; the hairline to the shared edge token |
+| P2 | ProfileHeader floats `nf-social-float` + BackChevron/ProfileShare/ProfileMenu `nf-social-round` | round glass buttons on the cover (`--pill` variant) | shared secondary glass icon button on the control radius |
+| P3 | `nf-profile-avatar`, `__disc`, `__badge` | lit ring with own gradient border + 30px glow | avatar stays round; glow from the shared outer-glow token |
+| P4 | `nf-social-chip`, `--brand` (occupation, area, standing) | chips | shared chip |
+| P5 | `nf-social-count*` | count links with a rule | type only, no container |
+| P6 | ProfileHeader `nf-card nf-social-card mt-md p-md` about card + `nf-social-trust` cells | card with cells | shared Panel + inner divider |
+| P7 | FollowButton `nf-btn--primary` / `--glass` | follow / following | shared Button variants |
+| P8 | ProfileTabs `nf-glass-seg`, `__tab[aria-selected]` | segment track with its own glass, selected tab flat brand + 22px glow | shared segmented control and selected state |
+| P9 | PropertyList `nf-card nf-post nf-post--listing`, `nf-post__plate` | listing card borrowed from the feed post | shared Panel (feed worker owns `nf-post`) |
+| P10 | ReviewList `nf-card nf-social-card p-md`, stars `text-[var(--nf-border-default)]` | review card | shared Panel |
+| P11 | ProfilePosts empty `nf-card nf-social-card p-lg` | empty card | shared EmptyState/Panel |
+| P12 | MediaGrid `nf-media-grid__tile` | media tiles | media radius |
+| P13 | ActivityList | posts via PostCard (feed worker) | not this group |
+| P14 | EmptyPanel `nf-card nf-social-card` + `nf-btn` | the social empty state | shared EmptyState/Panel + Button |
+| P15 | ProfileMenu `nf-social-sheet`, `__panel`, `nf-post__menu*`, `nf-social-more__menu`, danger rows, block confirm | menu popover and sheet | shared Sheet/menu panel |
+| P16 | PeopleList `nf-card nf-social-card nf-social-person`, `__face`, the AGENT tag (`rounded-[var(--nf-radius-control)] border-[var(--nf-border-brand)]`, a hand-drawn badge), empty cards | person rows, badge | shared Panel rows; shared badge |
+| P17 | LoadingPeople skeleton `nf-card nf-social-card nf-social-person` | skeleton card | shared Panel skeleton |
+| P18 | ProfileEditor: six `nf-card p-md sm:p-lg` sections, the warning card with an inline `borderColor` style, the contact-policy radio cards (`rounded-[var(--nf-radius-md)] border` + inline `borderColor` for selected), the pidgin checkbox card, `nf-field` inputs | cards, choice cards, selected state | shared Panel, shared selected state (GLOW_IDENTITY 3), shared field |
+| P19 | ProfilePhotos `nf-card nf-social-card overflow-hidden`, cover art, `nf-social-avatar__edit`, two glass Buttons | photo editor card | shared Panel + Button |
+| P20 | `/u` people search `nf-card nf-social-card nf-people__row`, `nf-people__search` field, `nf-people__go` | person rows, search field | shared Panel rows, field |
+| P21 | `/u/loading`, `/u/[handle]/loading`, `edit/loading` | skeleton cards (`nf-card p-lg`), cover skeleton | shared Panel skeleton |
+| P22 | FollowListPage `nf-chip` handle links | chips | shared chip |
+
+Count: 24 in `threads.css`, 18 in thread components, 22 in the profile family:
+64 items. The 22 profile items are drawn by the feed worker's stylesheets
+(SW-S1) and C18 by `escrow.css`, so 23 of the 64 can only be swept in markup
+here, with the rule deletion done by their owners.
+
+### 13.S.4 Before proofs
+
+`docs/design/proofs/session-b/sweep-social/before/`, 390 x 844 at 2x (full
+page where the route scrolls) and 1440 x 900, dark, JPEG q80, from a
+production build of `ccf594ba` plus the harness only. Faces: profile (agent
+bar, reviews tab, member posts tab, every tab empty, menu open), followers,
+followers empty, edit, inbox, inbox requests, inbox empty, the booking face
+(bottom and top), the rental face (bottom and top), the plain face, the
+options sheet, the share picker and the six loading skeletons. The live
+public routes (`/u`, `/u/<handle>`, its followers and following, `/messages`
+signed out) were shot too and every one landed on `/welcome`: the item 8 sign
+in gate now covers them, so no live proof exists for any route in this group
+and all of them are fixture-backed. `/u` people search has no harness face
+(its rows are inline in a server page reading `findPeople`); its skeleton is
+proved, its rows are proved by code only.
+
+**Defects the before proofs show (fixed with the sweep, not before it):**
+- D1, P15: the profile's "More actions" popover opens off the left edge at 390
+  (`profile-menu-390.jpg`): every row's first letters are cut ("opy link",
+  "ute", "eport"). The popover is anchored to the kebab's right edge and is
+  wider than the space to its left. Its rule (`.nf-social-more__menu`) is in
+  `social-feed.css`; the fix is in the component's anchoring or in SW-S1.
+- D2, P16: the AGENT tag in follow lists is a hand-drawn badge in Tailwind
+  (raw border and radius classes) rather than the shared badge.
+- D3, C17: `MessageThread.tsx` is a second, dead thread renderer with its own
+  bubble recipe.
+
+### 13.S.5 Per route result
+
+(pending Phase 1 RELEASED)
+
+### 13.S.6 Audit passes
+
+(Pass 1, Pass 2, Pass 3: pending)
+
+
 ## Skipped or not verified
 
 (appended honestly as work proceeds)

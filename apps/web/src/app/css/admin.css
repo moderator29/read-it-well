@@ -36,101 +36,20 @@
        lighter (measured #00173A). The lit ink is one variable, so the
        identity's coming revision is a change of numbers here, not of
        structure. */
-    --nf-admin-lit: var(--nf-brand-primary);
-    --nf-admin-lit-cyan: color-mix(in oklab, var(--nf-state-info) 55%, white 45%);
-    /* RE-SAMPLED on 5EAA44CB (second closing audit, 23 September), column
-       scans through the chart panel and a KPI card: under the top edge the
-       fill is #00246D (chart) to #002E89 (card), it falls to #001B4C by
-       about 14 CSS px and #00173F by 36, the middle is #001537 to #00173C,
-       and the foot lifts through #001843, #001B50 and #01205D to #002266
-       against the edge. The first pass was darker through the middle (11%
-       against the render's 15 to 18) and hotter but shorter at the top. */
-    --nf-admin-panel-fill:
-      radial-gradient(55% 14px at 50% 0, color-mix(in oklab, var(--nf-admin-lit-cyan) 16%, transparent), transparent),
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-admin-lit) 42%, var(--nf-surface-canvas)) 0px,
-        color-mix(in oklab, var(--nf-admin-lit) 38%, var(--nf-surface-canvas)) 3px,
-        color-mix(in oklab, var(--nf-admin-lit) 31%, var(--nf-surface-canvas)) 8px,
-        color-mix(in oklab, var(--nf-admin-lit) 26%, var(--nf-surface-canvas)) 15px,
-        color-mix(in oklab, var(--nf-admin-lit) 20%, var(--nf-surface-canvas)) 36px,
-        color-mix(in oklab, var(--nf-admin-lit) 16%, var(--nf-surface-canvas)) 50%,
-        color-mix(in oklab, var(--nf-admin-lit) 20%, var(--nf-surface-canvas)) calc(100% - 24px),
-        color-mix(in oklab, var(--nf-admin-lit) 26%, var(--nf-surface-canvas)) calc(100% - 11px),
-        color-mix(in oklab, var(--nf-admin-lit) 32%, var(--nf-surface-canvas)) calc(100% - 5px),
-        color-mix(in oklab, var(--nf-admin-lit) 37%, var(--nf-surface-canvas)) 100%
-      );
-    /* A KPI card is shorter and its top light runs longer (#002E89 under
-       the edge, #002B7B at 6 CSS px, #00266B at 13, #002260 at 20, the
-       middle #00173C). */
-    --nf-admin-card-fill:
-      radial-gradient(55% 14px at 50% 0, color-mix(in oklab, var(--nf-admin-lit-cyan) 16%, transparent), transparent),
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-admin-lit) 50%, var(--nf-surface-canvas)) 0px,
-        color-mix(in oklab, var(--nf-admin-lit) 44%, var(--nf-surface-canvas)) 6px,
-        color-mix(in oklab, var(--nf-admin-lit) 38%, var(--nf-surface-canvas)) 13px,
-        color-mix(in oklab, var(--nf-admin-lit) 32%, var(--nf-surface-canvas)) 22px,
-        color-mix(in oklab, var(--nf-admin-lit) 18%, var(--nf-surface-canvas)) 50%,
-        color-mix(in oklab, var(--nf-admin-lit) 22%, var(--nf-surface-canvas)) calc(100% - 20px),
-        color-mix(in oklab, var(--nf-admin-lit) 28%, var(--nf-surface-canvas)) calc(100% - 6px),
-        color-mix(in oklab, var(--nf-admin-lit) 34%, var(--nf-surface-canvas)) 100%
-      );
-    /* MEASURED ON ALL FOUR ADMIN RENDERS (ledger 6.2, 23 September): the
-       container edge is a 1px lit line and the canvas is flat within about
-       2 CSS px of it on every render, so the outer halo is a hair, not a
-       bloom. The inner catchlight and the per-side edges carry the light. */
-    --nf-admin-panel-glow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-admin-lit) 90%, transparent),
-      inset 1px 0 0 color-mix(in oklab, var(--nf-admin-lit) 70%, var(--nf-surface-canvas)),
-      0 0 3px color-mix(in oklab, var(--nf-state-info) 34%, transparent);
-    /* The container corner, measured: 9 to 10 CSS px on 5EAA44CB (0.908 CSS
-       per image px), 5 to 7 on the three-panel renders at the rail-pitch scale
-       (1.28), 6 to 9 at admin-money's 1.57; the full-resolution render decides
-       between the two token rungs, so 10px (`--nf-radius-sm`). */
-    --nf-admin-radius: var(--nf-radius-sm);
-    --nf-admin-tile-fill:
-      radial-gradient(60% 55% at 50% 48%, color-mix(in oklab, var(--nf-admin-lit) 55%, transparent), transparent 70%),
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-admin-lit) 72%, var(--nf-surface-canvas)) 0,
-        color-mix(in oklab, var(--nf-admin-lit) 46%, var(--nf-surface-canvas)) 18%,
-        color-mix(in oklab, var(--nf-admin-lit) 38%, var(--nf-surface-canvas)) 60%,
-        color-mix(in oklab, var(--nf-admin-lit) 66%, var(--nf-surface-canvas)) 100%
-      );
-    --nf-admin-tile-shadow:
-      inset 1px 0 0 color-mix(in oklab, var(--nf-state-info) 70%, transparent),
-      inset 0 1px 0 color-mix(in oklab, var(--nf-admin-lit-cyan) 55%, transparent),
-      inset 0 -2px 3px -1px color-mix(in oklab, var(--nf-admin-lit) 60%, transparent),
-      0 0 8px color-mix(in oklab, var(--nf-admin-lit) 25%, transparent);
-    --nf-admin-calm-fill: color-mix(in oklab, var(--nf-admin-lit) 28%, transparent);
-    --nf-admin-calm-edge: color-mix(in oklab, var(--nf-admin-lit) 50%, var(--nf-surface-canvas));
-    --nf-admin-calm-rim: inset 0 1px 0 color-mix(in oklab, var(--nf-admin-lit) 45%, var(--nf-surface-canvas));
+    /* THE GLOW IDENTITY's anatomy (the lit fill, the per-side edges, the
+       catchlight, the hair of outer glow, the 10px corner, the icon tile and
+       the selected row) was built here first and on 23 September moved,
+       value for value, into the "REFERENCE ANATOMY" block of
+       packages/design-tokens/src/tokens.css (--nf-panel-*, --nf-plate-*,
+       --nf-selected-*, --nf-lit, --nf-container-radius), with the Panel and
+       IconPlate primitives in components/ui/ drawing it, so every surface
+       inherits what the console measured. This sheet reads those and keeps
+       only what is the console's alone: the calm note and the gap. */
+    --nf-admin-calm-fill: color-mix(in oklab, var(--nf-lit) 28%, transparent);
+    --nf-admin-calm-edge: color-mix(in oklab, var(--nf-lit) 50%, var(--nf-surface-canvas));
+    --nf-admin-calm-rim: inset 0 1px 0 color-mix(in oklab, var(--nf-lit) 45%, var(--nf-surface-canvas));
     --nf-admin-calm-disc: var(--nf-state-info);
     --nf-admin-calm-ink: var(--nf-surface-canvas);
-    --nf-admin-panel-edge: color-mix(in oklab, var(--nf-brand-primary) 62%, transparent);
-    /* Per side, re-sampled: top #0066D1 to #0078E8, right #0047AD to
-       #005EBC, foot #0181F5, left #004CB0 to #004EBE. Blue, not the
-       near-white cyan the first pass drew along the top and left. */
-    --nf-admin-panel-edges:
-      color-mix(in oklab, var(--nf-admin-lit) 82%, var(--nf-state-info))
-      color-mix(in oklab, var(--nf-admin-lit) 72%, var(--nf-surface-canvas))
-      color-mix(in oklab, var(--nf-admin-lit) 70%, var(--nf-state-info))
-      color-mix(in oklab, var(--nf-admin-lit) 74%, var(--nf-surface-canvas));
-    --nf-admin-tile-edges:
-      color-mix(in oklab, var(--nf-state-info) 80%, var(--nf-admin-lit))
-      color-mix(in oklab, var(--nf-admin-lit) 60%, var(--nf-surface-canvas))
-      color-mix(in oklab, var(--nf-admin-lit) 60%, var(--nf-surface-canvas))
-      color-mix(in oklab, var(--nf-state-info) 90%, white);
-    --nf-admin-cta-edges:
-      color-mix(in oklab, var(--nf-admin-lit-cyan) 90%, white)
-      color-mix(in oklab, var(--nf-state-info) 80%, var(--nf-admin-lit))
-      color-mix(in oklab, var(--nf-admin-lit-cyan) 80%, var(--nf-admin-lit))
-      color-mix(in oklab, var(--nf-state-info) 80%, var(--nf-admin-lit));
-    --nf-admin-hair: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
-    /* The line of light just inside a container's top edge: blue (#0078E8
-       on 5EAA44CB), not the white rim the first pass drew. */
-    --nf-admin-catch: color-mix(in oklab, var(--nf-admin-lit) 78%, var(--nf-state-info));
     --nf-admin-gap: var(--nf-space-md);
     display: flex;
     min-height: 100dvh;
@@ -159,8 +78,8 @@
     min-height: calc(100dvh - 2 * var(--nf-space-md));
     width: 200px;
     flex-shrink: 0;
-    border-radius: var(--nf-admin-radius);
-    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
     /* Sampled on 5EAA44CB: the rail's glass is #001031 at mid height, a
        touch lighter than the canvas #000921. */
     background: linear-gradient(
@@ -168,7 +87,7 @@
       color-mix(in oklab, var(--nf-brand-primary) 15%, var(--nf-surface-canvas)),
       color-mix(in oklab, var(--nf-brand-primary) 11%, var(--nf-surface-canvas))
     );
-    box-shadow: var(--nf-rim-lit), var(--nf-admin-panel-glow);
+    box-shadow: var(--nf-rim-lit), var(--nf-panel-glow);
   }
   .nf-admin-rail__inner {
     position: sticky;
@@ -186,7 +105,7 @@
   .nf-admin-rail__brand {
     padding: var(--nf-space-2xs) var(--nf-space-xs) var(--nf-space-sm);
     margin-bottom: var(--nf-space-xs);
-    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+    border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-admin-brand {
     display: inline-flex;
@@ -219,7 +138,7 @@
   .nf-admin-nav__children {
     margin: 2px 0 var(--nf-space-2xs) var(--nf-space-md);
     padding-left: var(--nf-space-2xs);
-    border-left: var(--nf-border-width) solid var(--nf-admin-hair);
+    border-left: var(--nf-border-width) solid var(--nf-panel-hair);
   }
 
   /* A rail row: 42px tall (measured 42), 14px glyph gap, 15px medium label.
@@ -261,16 +180,13 @@
   .nf-admin-nav__row--on,
   .nf-admin-nav__row--on:hover {
     color: var(--nf-content-on-brand);
-    background: var(--nf-gradient-cta);
-    border-color: color-mix(in oklab, var(--nf-rim-lit-ink) 60%, var(--nf-brand-primary));
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, white 55%, transparent),
-      0 0 18px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent),
-      0 6px 16px -6px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+    background: var(--nf-selected-fill);
+    border-color: var(--nf-selected-edge);
+    box-shadow: var(--nf-selected-shadow);
   }
   .nf-admin-nav__row--child.nf-admin-nav__row--on {
     background: color-mix(in oklab, var(--nf-brand-primary) 26%, transparent);
-    border-color: var(--nf-admin-panel-edge);
+    border-color: var(--nf-panel-edge);
     box-shadow: var(--nf-rim-lit);
     color: var(--nf-content-primary);
   }
@@ -296,7 +212,7 @@
   .nf-admin-nav__more {
     margin-top: var(--nf-space-sm);
     padding-top: var(--nf-space-xs);
-    border-top: var(--nf-border-width) solid var(--nf-admin-hair);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-admin-nav__more > summary {
     cursor: pointer;
@@ -315,7 +231,7 @@
     display: grid;
     gap: var(--nf-space-xs);
     padding-top: var(--nf-space-sm);
-    border-top: var(--nf-border-width) solid var(--nf-admin-hair);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-admin-rail__me {
     display: flex;
@@ -401,7 +317,7 @@
     gap: var(--nf-space-sm);
     min-height: 3.75rem;
     padding: var(--nf-space-xs) var(--nf-space-md);
-    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+    border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
     background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur));
     backdrop-filter: blur(var(--nf-glass-blur));
@@ -447,7 +363,7 @@
     min-height: 2.5rem;
     padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-xs) 2.5rem;
     border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
     background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-canvas));
     color: var(--nf-content-primary);
     font-size: var(--nf-text-body-sm);
@@ -521,7 +437,7 @@
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
   }
   .nf-admin-menu {
-    border-color: var(--nf-admin-panel-edge);
+    border-color: var(--nf-panel-edge);
     background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-canvas));
   }
   @media (min-width: 1024px) {
@@ -566,13 +482,13 @@
     width: min(20rem, 86vw);
     padding: calc(var(--nf-space-sm) + env(safe-area-inset-top)) var(--nf-space-sm)
       calc(var(--nf-space-sm) + env(safe-area-inset-bottom));
-    border-right: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    border-right: var(--nf-border-width) solid var(--nf-panel-edge);
     background: linear-gradient(
       180deg,
       color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-canvas)),
       var(--nf-surface-canvas)
     );
-    box-shadow: var(--nf-admin-panel-glow);
+    box-shadow: var(--nf-panel-glow);
     animation: nf-admin-drawer-in var(--nf-duration-fast) var(--nf-ease-standard);
   }
   @keyframes nf-admin-drawer-in {
@@ -592,7 +508,7 @@
     justify-content: space-between;
     padding-bottom: var(--nf-space-sm);
     margin-bottom: var(--nf-space-xs);
-    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+    border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-admin-drawer__head .nf-admin-brand__word {
     font-size: 1.5rem;
@@ -695,7 +611,7 @@
   }
   .nf-admin-tab--on {
     color: var(--nf-content-on-brand);
-    background: var(--nf-gradient-cta);
+    background: var(--nf-selected-fill);
     border-color: var(--nf-brand-edge-strong);
     box-shadow:
       var(--nf-rim-lit),
@@ -979,7 +895,7 @@
   }
   .nf-admin-chip--all.nf-admin-chip--on {
     color: var(--nf-content-on-brand);
-    background: var(--nf-gradient-cta);
+    background: var(--nf-selected-fill);
     border-color: var(--nf-brand-edge);
   }
 
@@ -992,12 +908,12 @@
      it, the card bloom behind, per the founder's ruling on container
      edges; every token is the platform's own. */
   .nf-admin-table {
-    border-radius: var(--nf-admin-radius);
-    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
-    background: var(--nf-admin-panel-fill);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    background: var(--nf-panel-fill);
     box-shadow:
-      inset 0 1px 0 var(--nf-admin-catch),
-      var(--nf-admin-panel-glow);
+      var(--nf-panel-rim),
+      var(--nf-panel-glow);
     overflow: hidden;
   }
   /* The phone row is two lines on a grid: the tile, then the title over
@@ -1316,12 +1232,12 @@
      soft bloom, 10px corners), so a desk that has not been rebuilt yet still
      reads as the same object as the overview. */
   .nf-admin .nf-card {
-    border-radius: var(--nf-admin-radius);
-    background: var(--nf-admin-panel-fill);
-    border-color: var(--nf-admin-panel-edge);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill);
+    border-color: var(--nf-panel-edge);
     box-shadow:
-      inset 0 1px 0 var(--nf-admin-catch),
-      var(--nf-admin-panel-glow);
+      var(--nf-panel-rim),
+      var(--nf-panel-glow);
   }
   /*
    * THE STATUS CHIP IS A SMALL ROUNDED RECTANGLE, AND `278CC66A` IS THE
@@ -1405,25 +1321,9 @@
     gap: var(--nf-admin-gap);
   }
 
-  /* The lit glass panel: deep blue glass, a thin bright blue edge (measured
-     #004EBE on #00173A), a catchlight along the top edge, a soft blue bloom,
-     10px corners (measured 10). */
-  .nf-admin-panel {
-    position: relative;
-    min-width: 0;
-    padding: var(--nf-space-md) var(--nf-space-md) var(--nf-space-md);
-    border-radius: var(--nf-admin-radius);
-    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
-    background: var(--nf-admin-panel-fill);
-    box-shadow:
-      inset 0 1px 0 var(--nf-admin-catch),
-      var(--nf-admin-panel-glow);
-  }
-  .nf-admin-panel--flush {
-    padding-inline: 0;
-    padding-bottom: var(--nf-space-2xs);
-  }
-  .nf-admin-panel--flush > .nf-admin-panel__head {
+  /* The lit glass panel is the shared `.nf-panel` (components/ui/Panel.tsx,
+     glass.css); the console's Panel adds only its head and its link. */
+  .nf-panel--flush > .nf-admin-panel__head {
     padding-inline: var(--nf-space-md);
   }
   .nf-admin-panel__head {
@@ -1461,56 +1361,8 @@
     color: var(--nf-content-muted);
   }
 
-  /* The icon plate: a 44px blue glass square with 10px corners (measured
-     44 and 9), a light line glyph, a lit top edge. A plate is a shape. */
-  .nf-admin-plate {
-    display: inline-grid;
-    place-items: center;
-    flex-shrink: 0;
-    border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
-    /* The glow identity's icon tile (section 9): a lit centre, a brighter
-       rim, per-side edges, the glyph glowing. Measured on 5EAA44CB the
-       plates are lit (#3168C1 at the centre), never a dark tile. */
-    background: var(--nf-admin-tile-fill);
-    color: var(--nf-content-primary);
-    box-shadow: var(--nf-admin-tile-shadow);
-  }
-  .nf-admin-plate--brand > svg,
-  .nf-admin-plate:not([class*="--success"]):not([class*="--error"]):not([class*="--pending"]):not([class*="--info"]) > svg {
-    filter: drop-shadow(0 0 4px color-mix(in oklab, var(--nf-admin-lit-cyan) 80%, transparent));
-  }
-  .nf-admin-plate--md {
-    width: 2.75rem;
-    height: 2.75rem;
-  }
-  .nf-admin-plate--sm {
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: var(--nf-radius-xs);
-  }
-  .nf-admin-plate--success {
-    border-color: color-mix(in oklab, var(--nf-state-success) 70%, transparent);
-    background: color-mix(in oklab, var(--nf-state-success) 34%, var(--nf-surface-canvas));
-    color: var(--nf-content-primary);
-    box-shadow: 0 0 12px color-mix(in oklab, var(--nf-state-success) 30%, transparent);
-  }
-  .nf-admin-plate--error {
-    border-color: color-mix(in oklab, var(--nf-state-error) 70%, transparent);
-    background: color-mix(in oklab, var(--nf-state-error) 34%, var(--nf-surface-canvas));
-    color: var(--nf-content-primary);
-    box-shadow: 0 0 12px color-mix(in oklab, var(--nf-state-error) 30%, transparent);
-  }
-  .nf-admin-plate--pending {
-    border-color: color-mix(in oklab, var(--nf-status-pending) 70%, transparent);
-    background: color-mix(in oklab, var(--nf-status-pending) 18%, var(--nf-surface-canvas));
-    color: var(--nf-status-pending);
-  }
-  .nf-admin-plate--info {
-    border-color: color-mix(in oklab, var(--nf-state-info) 70%, transparent);
-    background: color-mix(in oklab, var(--nf-state-info) 18%, var(--nf-surface-canvas));
-    color: var(--nf-state-info);
-  }
+  /* The icon plate is the shared `.nf-plate` (components/ui/IconPlate.tsx,
+     controls.css), the console's tile extracted value for value. */
 
   /* A status badge, filled as the renders fill it (sampled on 5EAA44CB's
      Recent alerts): a deep fill of the state's own colour, a ring of the
@@ -1566,13 +1418,13 @@
   .nf-admin-strip {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    border-radius: var(--nf-admin-radius);
-    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
-    background: var(--nf-admin-card-fill);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    background: var(--nf-panel-fill-card);
     box-shadow:
-      inset 0 1px 0 var(--nf-admin-catch),
+      var(--nf-panel-rim),
       0 -1px 6px -2px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent),
-      var(--nf-admin-panel-glow);
+      var(--nf-panel-glow);
   }
   @media (min-width: 1100px) {
     .nf-admin-strip {
@@ -1589,14 +1441,14 @@
     padding: var(--nf-space-sm) var(--nf-space-md);
   }
   .nf-admin-strip__cell + .nf-admin-strip__cell {
-    border-left: var(--nf-border-width) solid var(--nf-admin-hair);
+    border-left: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   @media (min-width: 640px) and (max-width: 1099.98px) {
     .nf-admin-strip__cell:nth-child(3) {
       border-left: 0;
     }
     .nf-admin-strip__cell:nth-child(n + 3) {
-      border-top: var(--nf-border-width) solid var(--nf-admin-hair);
+      border-top: var(--nf-border-width) solid var(--nf-panel-hair);
     }
   }
   /* One figure per row on a phone, each still a full cell of the pane. */
@@ -1606,7 +1458,7 @@
     }
     .nf-admin-strip__cell + .nf-admin-strip__cell {
       border-left: 0;
-      border-top: var(--nf-border-width) solid var(--nf-admin-hair);
+      border-top: var(--nf-border-width) solid var(--nf-panel-hair);
     }
     .nf-admin-strip__cell {
       min-height: 4.75rem;
@@ -1657,12 +1509,12 @@
     align-items: start;
     gap: var(--nf-space-sm);
     padding: var(--nf-space-md);
-    border-radius: var(--nf-admin-radius);
-    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
-    background: var(--nf-admin-card-fill);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    background: var(--nf-panel-fill-card);
     box-shadow:
-      inset 0 1px 0 var(--nf-admin-catch),
-      var(--nf-admin-panel-glow);
+      var(--nf-panel-rim),
+      var(--nf-panel-glow);
     transition: box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
   }
   a.nf-admin-kpi:hover {
@@ -1769,7 +1621,7 @@
     min-height: 2.75rem;
     padding: 0 var(--nf-space-md);
     border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
     background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-canvas));
     font-size: var(--nf-text-body-sm);
     font-weight: 500;
@@ -1788,11 +1640,9 @@
   .nf-admin-seg__item--on,
   .nf-admin-seg__item--on:hover {
     color: var(--nf-content-on-brand);
-    background: var(--nf-gradient-cta);
-    border-color: color-mix(in oklab, var(--nf-rim-lit-ink) 60%, var(--nf-brand-primary));
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, white 55%, transparent),
-      0 0 18px color-mix(in oklab, var(--nf-brand-primary) 50%, transparent);
+    background: var(--nf-selected-fill);
+    border-color: var(--nf-selected-edge);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
   .nf-admin-seg__count {
     display: inline-flex;
@@ -1822,7 +1672,7 @@
   }
   .nf-admin-dt th {
     padding: var(--nf-space-xs) var(--nf-space-sm);
-    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+    border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
     background: color-mix(in oklab, var(--nf-brand-primary) 8%, transparent);
     text-align: left;
     font-size: var(--nf-text-caption);
@@ -1833,7 +1683,7 @@
   .nf-admin-dt td {
     padding: var(--nf-space-xs) var(--nf-space-sm);
     min-height: 2.75rem;
-    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+    border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
     color: var(--nf-content-primary);
     vertical-align: middle;
   }
@@ -1874,7 +1724,7 @@
     gap: var(--nf-space-sm);
     min-height: 2.5rem;
     padding: 0 var(--nf-space-2xs);
-    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+    border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-primary);
   }
@@ -1946,7 +1796,7 @@
     gap: var(--nf-space-sm);
     min-height: 3.25rem;
     padding: var(--nf-space-2xs) var(--nf-space-2xs);
-    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+    border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
     border-radius: var(--nf-radius-xs);
   }
   .nf-admin-alerts > li:last-child .nf-admin-alerts__row {
@@ -1997,7 +1847,7 @@
     gap: var(--nf-space-2xs);
     padding: var(--nf-space-lg) var(--nf-space-md);
     border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) dashed var(--nf-admin-hair);
+    border: var(--nf-border-width) dashed var(--nf-panel-hair);
     text-align: center;
     color: var(--nf-content-secondary);
   }
@@ -2024,7 +1874,7 @@
     min-height: 2.25rem;
     padding: 0 2rem 0 var(--nf-space-sm);
     border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
     background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-canvas));
     color: var(--nf-content-primary);
     font-size: var(--nf-text-caption);
@@ -2074,7 +1924,7 @@
     gap: var(--nf-space-sm);
     min-height: 2.5rem;
     align-items: center;
-    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+    border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
     font-size: var(--nf-text-body-sm);
   }
   .nf-admin-kinds > li:last-child {
@@ -2130,7 +1980,7 @@
     position: relative;
     flex: 1 1 auto;
     min-width: 0;
-    border-bottom: var(--nf-border-width) solid var(--nf-admin-hair);
+    border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
     touch-action: pan-y;
   }
   .nf-chart__plot:focus-visible {
@@ -2175,7 +2025,7 @@
     margin-left: var(--nf-space-sm);
     padding: var(--nf-space-xs) var(--nf-space-sm);
     border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
     background: color-mix(in oklab, var(--nf-brand-primary) 16%, var(--nf-surface-canvas));
     box-shadow: var(--nf-rim-lit), 0 8px 24px -8px color-mix(in oklab, var(--nf-surface-canvas) 80%, transparent);
     pointer-events: none;
@@ -2243,7 +2093,7 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: var(--nf-admin-hair);
+    background: var(--nf-panel-hair);
   }
   .nf-chart__plot--bars {
     display: flex;
@@ -2346,21 +2196,17 @@
   /* The glow identity's per-side edges, applied over every container's
      single-colour border above, so each rule keeps its own width and style. */
   .nf-admin-rail,
-  .nf-admin-panel,
   .nf-admin-kpi,
   .nf-admin-strip,
   .nf-admin .nf-card,
   .nf-admin-table {
-    border-color: var(--nf-admin-panel-edges);
-  }
-  .nf-admin-plate:not(.nf-admin-plate--success):not(.nf-admin-plate--error):not(.nf-admin-plate--pending):not(.nf-admin-plate--info) {
-    border-color: var(--nf-admin-tile-edges);
+    border-color: var(--nf-panel-edges);
   }
   /* The lit primary: the open rail row, the open tab. Cyan-lit edges, the
      rim along the top, the bloom beneath. */
   .nf-admin-nav__row--on:not(.nf-admin-nav__row--child),
   .nf-admin-seg__item--on {
-    border-color: var(--nf-admin-cta-edges);
+    border-color: var(--nf-selected-edges);
   }
   /* THE CALM NOTE (GLOW_IDENTITY section 7): flat, a dim edge, no bloom, a
      round glyph disc. The console's designed empty state. */
@@ -2424,10 +2270,6 @@
   /* The empty chart keeps its frame and height; the note sits on the plot. */
   /* A panel is a column, so an empty chart can take the height the grid
      row gives it and no panel carries dead space under its frame. */
-  .nf-admin-panel {
-    display: flex;
-    flex-direction: column;
-  }
   .nf-admin-panel > .nf-chart--empty {
     display: flex;
     flex: 1 1 auto;

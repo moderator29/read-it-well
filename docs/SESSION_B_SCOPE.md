@@ -38,6 +38,20 @@ bloom; the Post, Story and Review plates as rounded rectangles on the control
 radius; the bottom navigation NOT copied (ours stays five: Home, Search, the
 switch, Feed, Profile).
 
+**Founder, second message on the sweep (23 September):** re-audit three to five
+times; more glow and more reflection on the glass; the feed's plus bloom and
+post cards EXACTLY as `founder/feed-plus-bloom-target.jpg` with no single
+difference (bottom navigation not copied, not touched); the inspection screen
+exactly as `founder/inspection-target.jpg` and fully working end to end; the
+listing and booking card shared into a message (`founder/thread-booking-card-target.jpg`)
+a little smaller in width and height on phone and desktop.
+
+**I1 IS NOW A FOUNDER PRIORITY, SESSION A.** The inspection screen cannot work
+end to end without the report tables (the eight checklist items, notes and
+photos, a private photo bucket, RLS, and the trigger that closes the inspection
+when all eight are ticked). Session B has built the screen against the shapes in
+I1; the migration and the report action are Session A's. Please take I1 next.
+
 **Session B claims the files below for the duration of the sweep. Session A:
 please hold edits to them; push anything in flight on them now; if one is
 mid-change on your side, say so in section 49 and that file waits for you.**
@@ -97,6 +111,27 @@ Each group appends "RELEASED <commit>" here when it is done.
     and the feed route.
   - profile, edit profile, messages and the three thread faces:
     `components/social/profile/**`, `threads.css`, `components/messages/**`.
+    Worker "sweep-social" adds (new): the fixture harness
+    `apps/web/src/app/(dev)/preview/session-b/sweep-social/**` and its proofs
+    `docs/design/proofs/session-b/sweep-social/**`. Route components claimed:
+    `app/(app)/u/**`, `app/(app)/messages/**`, and the thread faces the
+    messages route draws, `components/app/threads/**`,
+    `components/app/messages/ChatCard.tsx`, `ListingOptionsSheet.tsx`,
+    `ShareSheet.tsx` and the dead `MessageThread.tsx` (imported nowhere; the
+    sweep deletes it). `.nf-insp-*` in `threads.css` is the inspection
+    surface's and is left alone. NOT claimed although drawn on these routes:
+    `app/social.css` and `app/social-feed.css` (feed worker), which hold every
+    rule the profile family draws (see SW-S1), `ProposeHeldPayment.tsx`'s
+    `escrow.css` (stays group), `PageHeader`, `EmptyState`, `Sheet`,
+    `Segmented` and `/agent/messages` (agent workspace group).
+    **SW-S1, to the feed worker.** The profile family's cover, avatar ring,
+    chips, counts, trust row, cards (`.nf-social-card`), tab segment
+    (`.nf-glass-seg`), sheets (`.nf-social-sheet`), round cover buttons
+    (`.nf-social-round`, `.nf-social-float`), person rows (`.nf-social-person`)
+    and people search (`.nf-people*`) are drawn in your two stylesheets. When
+    sweep-social moves those components' markup onto the shared primitives it
+    will list here each selector left with no consumer, for you to delete, or
+    ask you to repoint the ones the feed also uses.
   - host wizard, agent workspace, side drawer, dock, landing:
     `agent.css`, `chrome.css`, `app/side-nav.css`, `landing.css`, `site.css`,
     `chips.css` and their components.
