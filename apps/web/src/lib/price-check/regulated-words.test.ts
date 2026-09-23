@@ -101,6 +101,27 @@ function runGate(args: string[] = []): { status: number; output: string } {
   }
 }
 
+/**
+ * THE WHOLE-TREE RUN, DONE ONCE.
+ *
+ * `runGate()` with no arguments spawns a Node process that walks every source
+ * file in the repository. Two assertions below need that verdict, and calling
+ * it twice walked the tree twice: about a second each in isolation, and past
+ * vitest's five second default when the rest of the suite is running in
+ * parallel on the same box. That is a test that fails for a reason with
+ * nothing to do with what it asserts, which teaches a reader to re-run rather
+ * than to look, and a re-run is not a root cause.
+ *
+ * So the walk happens once and both assertions read the same verdict. The
+ * timeout below is on the run, not on the assertions, and it is generous
+ * because the cost being measured is a subprocess walking a growing tree.
+ */
+let treeGateVerdict: { status: number; output: string } | null = null;
+function treeGate(): { status: number; output: string } {
+  treeGateVerdict ??= runGate();
+  return treeGateVerdict;
+}
+
 /** The `path:line` pairs the gate named, in the shape it prints them. */
 function reported(output: string): string[] {
   return [...output.matchAll(/^ {2}(\S+)\n {4}what:/gm)].map((m) => m[1] ?? "").sort();
@@ -307,14 +328,14 @@ describe("the half that stops the rule going green by accident", () => {
 });
 
 describe("the tree as it actually is", () => {
-  it("passes the gate today, so the rule is not born red", () => {
-    const gate = runGate();
+  it("passes the gate today, so the rule is not born red", { timeout: 60_000 }, () => {
+    const gate = treeGate();
     expect(gate.status, gate.output).toBe(0);
     expect(gate.output).toContain("valuation words: clean");
   });
 
-  it("has walked a real number of files and says so", () => {
-    const gate = runGate();
+  it("has walked a real number of files and says so", { timeout: 60_000 }, () => {
+    const gate = treeGate();
     const count = Number(/clean - (\d+) files/.exec(gate.output)?.[1] ?? 0);
     expect(count).toBeGreaterThan(MINIMUM_FILES_SCANNED);
   });

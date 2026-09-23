@@ -5742,6 +5742,59 @@ severity, and an audit log. That data is real and was repaired today:
 **Requests for a new view, function or policy come back to this session**, per
 the scope file. Ask rather than adding a migration.
 
+### R8. NOTE. The wallet quick-action titles at 1.32:1 do not reproduce, and no change is wanted
+
+Carried into this session as one of the three worst named light-theme contrast
+failures, with a standing instruction to fix the TOKEN behind it or to write the
+request here. **Re-measured on a production server in both themes and it is not
+there.** `.nf-wallet-quick__title` computes `rgb(22,24,29)` on the paper card,
+about 16:1, and `rgb(255,255,255)` on `rgb(0,6,18)` at night, about 19:1, on
+both `/preview/session-b/wallet` and `/preview/e/wallet`. `--nf-wallet-lit-fill`
+has a full daylight value inside `:root[data-theme="light"] .nf-money` and every
+quick card the harness draws is inside `.nf-money`.
+
+So there is nothing to change in `wallet.css` and this session has not touched
+it. **The one thing worth keeping** is the shape of the old fault, because it is
+the shape that would come back: `--nf-wallet-lit-*` are declared on `.nf-money`
+rather than on `:root`, so a quick card rendered OUTSIDE `.nf-money` in daylight
+falls back to the night gradient and puts near-black ink on it. If a quick card
+is ever lifted out of the wallet shell, that is where 1.32:1 came from.
+
+### R9. REQUEST. The agent calendar draws a past day at 1.55:1, and the fix is one class
+
+`app/agent/listings/[listingId]/calendar/CalendarEditor.tsx:179`, repeated in
+`app/(dev)/preview/o3/agent-calendar/page.tsx`:
+
+```
+mode === "past" && "cursor-default text-[var(--nf-content-muted)] opacity-35"
+```
+
+MEASURED on a production server: the numeral computes `rgb(103,110,118)` at an
+effective opacity of 0.35, which composites to roughly `rgb(201,204,207)` on the
+paper card, **1.55:1**, and to the same kind of nothing at night. That is the
+1.57:1 the September sweep reported. **A date a person cannot read is not a
+disabled control, it is a missing date**, and the numeral is text, so the floor
+is 4.5:1 rather than 3:1.
+
+**The exact change**: drop `opacity-35` and keep
+`text-[var(--nf-content-muted)]`. Muted ink is 5.16:1 on the white card and
+4.73:1 on the canvas, which clears the text floor on every light surface, and it
+is already the quiet tier the rest of the product says "secondary" with. "Past"
+is then carried by `cursor-default` and by the absence of the available day's
+fill, which is what was carrying it anyway; the opacity was only making the
+number disappear along with the affordance.
+
+Not done here because both files are outside this session's partition.
+
+**And one thing the instrument was doing that it should not have been.** The
+whole-harness sweep skips any element under nine tenths effective opacity, for
+the good reason that a closed sheet is not a contrast fact. It had therefore
+been walking silently past every DESIGNED fade, including this one, so "we
+decline to measure this" was reaching the report as "this passes".
+`probe-contrast.mjs` now takes `--faded`, which measures them and lists them in
+a bucket of their own, never counted in the headline. The default run is
+unchanged, so numbers taken before and after this remain comparable.
+
 ## 50. TWO PROOFS THAT DISAGREED WITH THE SHIPPED CODE, RETAKEN
 
 The founder's ruling, in his words: **a proof that disagrees with the shipped
@@ -6559,3 +6612,246 @@ its own section of this ledger.
 **And the standing item that no worker owns, said again because the founder
 asked for it in every report:** 64 published listings, all 64 examples, real
 supply zero, bookings ever zero. No engineering on this list moves that number.
+
+---
+
+## 57. PUSH: ZERO OF FORTY, CLOSED TO THE EDGE OF THE OWNER'S CREDENTIALS
+
+Worker: PUSH. Files: `apps/web/src/lib/push/**`, `apps/web/src/app/api/push/**`,
+`apps/web/src/components/app/push/**`, `apps/web/android/**`,
+`apps/web/ios/**`, `apps/web/capacitor.config.ts`, `apps/web/package.json`
+(one dependency, flagged below), and three new migrations.
+
+### 57.1 What the measurement said, and it was right
+
+No `push_tokens` table. No device table of any kind: every `public` table
+matching `push|device|notification` was listed and only `notifications` came
+back. No `@capacitor/push-notifications`. No FCM, no APNs, no
+`aps-environment`. `AndroidManifest.xml` said so about itself. Push was 0 of
+40 events in the gap matrix at
+`docs/research/EMAIL_AND_NOTIFICATIONS_RESEARCH.md:1754-1795`.
+
+### 57.2 The seam, and why `lib/notify` was not touched
+
+The brief said push is a third channel hanging off the email and trigger
+junction, and to coordinate rather than collide. **The seam chosen is a
+trigger on `public.notifications`, and it is strictly wider than the
+junction.** `announce()` writes its in-app row by inserting there; so does
+`private.notify`, which the junction's own header calls "the one door every
+in-app notification goes through, from eleven triggers and two service-role
+call sites". Hooking the table catches both, plus every door built later,
+**including the events the junction's header says it cannot serve** because
+only a database trigger can see them. `lib/notify/**` and `lib/email/**` are
+unmodified and need to know nothing about push.
+
+The consequence, stated rather than hidden: **an event that never writes a
+`notifications` row will never push.** Five events in the gap matrix are in
+that position (account created, password changed, new sign-in on a new
+device, withdrawal paid, listing approved and rejected before the junction
+wired them). Closing those is closing the A column, not the P column.
+
+### 57.3 What was built
+
+- **`push_tokens`** (`20260923092729`). One row per token FOR EVER, which is
+  the constraint that stops a handset changing hands and notifying its
+  previous owner for months. Many devices per person. Retired with a reason,
+  never deleted. `device_ref`, a generated non-reversible handle, exists so an
+  alert can name a device without carrying the capability to reach it.
+- **`push_queue` and `push_deliveries`** (`20260923093123`). Two tables,
+  because "sent twice" has two causes: the queue is unique on
+  `notification_id`, deliveries are unique on `(queue_id, token_id)`. A check
+  constraint refuses any delivery that claims a settled state without the
+  provider's HTTP status.
+- **The scheduler** (`20260923095900`). pg_cron every five minutes, calling
+  `/api/push/drain` through pg_net, **reading the reply of its own previous
+  call** and raising a `risk_alert` on a non-2xx or a reply that never came.
+- **`lib/push/`**: three transports, the policy, the drain.
+  `transport/webpush.ts` implements RFC 8291 and 8188 with Node's own crypto
+  and no dependency. `policy.ts` holds quiet hours, preferences and
+  collapsing as pure functions.
+- **`components/app/push/`**: the Vallo explanation screen, the four moments,
+  the re-ask rules, and enrolment for both web and native.
+- **Native**: `POST_NOTIFICATIONS` added to the Android manifest with the old
+  comment rewritten rather than deleted; FCM channel, icon and colour
+  meta-data plus the two resources they reference; `aps-environment` and
+  `UIBackgroundModes: remote-notification` on iOS; and the three AppDelegate
+  methods without which an APNs token is delivered to nobody and nothing
+  errors.
+
+### 57.4 What reached a device: NOTHING, and exactly why
+
+**No notification has reached a real device and none could have from here.**
+Not a partial result, a hard stop, and the reason is credentials plus the
+absence of a handset.
+
+- **Web Push needs only a VAPID pair**, which is self generated in a second
+  with `npx web-push generate-vapid-keys`: no account, no signup, no money.
+  **This is the one transport that needs nobody**, and it is therefore the
+  one to prove the path with. It is not set on this deployment.
+  I did **not** generate one: a VAPID pair is the identity every subscription
+  on the platform is bound to, rotating it later invalidates every device,
+  and it belongs in the owner's environment and Vault rather than being
+  minted by a build session.
+- **FCM needs a Firebase service account** (`FCM_PROJECT_ID`,
+  `FCM_SERVICE_ACCOUNT_JSON`) **and** `android/app/google-services.json`.
+  Free, but only the owner can create the project. Without the JSON file an
+  Android handset never obtains a token to send to, so the server credential
+  alone is not enough and that is the half people forget.
+- **APNs needs an Apple Developer membership at 99 USD a year**
+  (`APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY`).
+  `ios/App/App/App.entitlements` already recorded that this account does not
+  exist. Until it does there is no iOS push and no entitlement that will
+  build.
+
+Also absent and worth naming: this container has no `SUPABASE_SERVICE_ROLE_KEY`
+in `apps/web/.env.local`, so the drain could not be exercised against the
+live database from here either, and no handset is attached to any of this.
+
+**What WAS proved.** The RFC 8291 encryption round trips against an
+independently written receiver (`transport/webpush.test.ts` derives the keys
+from the subscription's private half and decrypts what the sender produced);
+the VAPID JWT verifies against its own public key and is audienced at the
+endpoint origin; 40 tests across the crypto and the policy; and the whole
+database mechanism was proved **on the live project** inside a transaction
+that raises at the foot, so nothing persisted and no version was stamped: no
+device queues 0, a live device queues exactly 1, a duplicate is refused, a
+settle with no recorded reason is refused, a delivery marked sent with no
+provider status is refused, and a native token carrying web subscription keys
+is refused.
+
+**How the owner closes it in about a minute, once a VAPID pair exists.** Set
+the two variables, open Vallo on a phone, grant the permission at one of the
+four moments (or from settings), then `POST /api/push/self-test`. That route
+sends to the caller's own devices only and returns **the push service's status
+verbatim, per device**. A 2xx means the service accepted it; the route says in
+its own response that only a notification appearing on the screen proves the
+rest, because a push service cannot read the encrypted body either and accepts
+a ciphertext no handset can open exactly as cheerfully as a good one.
+
+### 57.5 Recorded against myself
+
+`20260923092729` asserted its grants against
+`information_schema.role_table_grants`, which is filtered by the current role.
+Under the migration role **it came back empty, so the assertion passed by
+finding nothing rather than by finding nothing wrong.** That is the same shape
+as a job reporting success for a reply it never read, inside the block written
+to prevent it. `20260923093123` re-proves all three tables with
+`has_table_privilege`, which cannot come back empty, and the live state was
+then read back by hand: anon holds nothing, authenticated holds SELECT only,
+service_role holds everything.
+
+---
+
+## 58. REQUESTS FROM PUSH
+
+Five, none blocking. Everything below was built around rather than waited on.
+
+**R-P1. `apps/web/vercel.json`: one line for the drain.** Not my file.
+`{ "path": "/api/push/drain", "schedule": "*/5 * * * *" }`. **Not blocking**:
+the drain is already scheduled from the database by
+`private.request_push_drain()` (migration `20260923095900`). Both callers
+together are harmless; the claim is a filtered UPDATE, so two callers take
+different rows rather than the same ones twice. Vercel Cron on the Hobby plan
+is daily-only, which is a second reason the database scheduler is not merely a
+stopgap.
+
+**R-P2. `apps/web/src/lib/supabase/database.types.ts`: regenerate.** It has
+not been regenerated since `push_tokens`, `push_queue`, `push_deliveries`,
+`email_outbox` and the other tables that landed this morning. I did not
+regenerate it: it is a 5,900 line file six workers import and two other
+sessions added tables within minutes of mine, so a regenerate from here would
+drop or collide with their work. `lib/push/schema.ts` describes the three push
+tables narrowly in the meantime and there is exactly one cast, named, which
+deletes itself the day this is regenerated.
+
+**R-P3. `apps/web/.env.example`: the push block.** Not my file. Ready to
+paste; `lib/push/credentials.ts` is the live authority either way and
+`describeCredentials()` prints which are missing and who supplies them.
+
+```
+# Web Push. Self generated, needs nobody: npx web-push generate-vapid-keys
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=            # SERVER ONLY
+VAPID_SUBJECT=mailto:hello@vallospaces.com
+
+# Firebase Cloud Messaging, Android. Owner's Firebase project.
+FCM_PROJECT_ID=
+FCM_SERVICE_ACCOUNT_JSON=     # SERVER ONLY, the whole JSON
+# Also needs android/app/google-services.json, which is NOT a variable.
+
+# APNs, iOS. Needs an Apple Developer membership at 99 USD a year.
+APNS_KEY_ID=
+APNS_TEAM_ID=
+APNS_PRIVATE_KEY=             # SERVER ONLY, the .p8 contents
+APNS_BUNDLE_ID=com.vallospaces.app
+APNS_PRODUCTION=false         # true ONLY for an App Store build
+```
+
+**R-P4. `app/(app)/settings/notifications/page.tsx`: mount two things.** Not
+my file. (a) `<PushPrompt moment="settings_opened" />` from
+`components/app/push/PushPrompt`, which is the one place asking is not an
+interruption because the person came to ask us. (b) A device list: the rows
+are readable directly under row level security
+(`select id, device_label, last_seen_at, platform from push_tokens`, which
+returns only the reader's own), and `POST /api/push/revoke` with
+`{deviceId}` or `{all:true}` retires one or all. **Without a device list,
+push is a permission a person can grant and cannot take back except by
+uninstalling.** The preference grid in research 3.7.4 also wants a Push
+column; `lib/push/preferences.ts` already reads
+`notifications.channels.<topic>.push` and falls back to the four existing
+booleans, so the storage side is done and only the surface is missing.
+
+**R-P5. `apps/web/public/sw.js`: the push handlers would be tidier here.** Not
+my file. Push is served from `app/api/push/sw/route.ts` at scope `/api/push/`
+because **registering a second worker at `/` would silently uninstall the
+offline shell**, which would surface weeks later as the dinosaur page and
+nobody would connect it to push. Notifications work completely at the narrower
+scope. The one cost: `clients.matchAll()` cannot see tabs outside the scope,
+so a tap opens a new tab instead of focusing an open one.
+
+**And one thing that is nobody's request but is worth a decision.**
+`notifications` carries a `kind` and no severity, so quiet hours cannot tell
+"your withdrawal failed" from "your wallet was credited" and treats all
+`wallet` as urgent, waking people for both. Waking somebody for a credit is a
+smaller error than sitting on a reversal until morning, so that is the
+direction chosen, but the real fix is a severity on the event. I did not add a
+column to `notifications`: it is the busiest table on the platform and the
+junction worker is live in the code around it.
+
+### One dependency added, said loudly
+
+**`apps/web/package.json` gains `@capacitor/push-notifications: ^8.0.4`**, and
+nothing else. It matches the Capacitor 8 line already there. It is needed by
+`cap sync` to put the native implementation into the Android and iOS projects.
+**The web build does not need it and does not import it**: `enrol.ts` reaches
+the plugin through `Capacitor.registerPlugin`, so the website carries no new
+bytes and a build with the package absent still compiles. No `web-push`
+dependency was added; RFC 8291 is written out in `transport/webpush.ts` against
+Node's own crypto.
+
+---
+
+## 57. A TEST THAT WALKED THE WHOLE TREE TWICE, AND WOULD HAVE TAUGHT PEOPLE TO RE-RUN
+
+Found by the escrow worker while running the full suite under parallel load and
+handed back rather than left: `src/lib/price-check/regulated-words.test.ts`
+failed twice on this box and passed in isolation. Not a red main, a timeout.
+Fixed anyway, because the founder's rule is that a flake is not a root cause
+and because the cost of leaving it is specific.
+
+**What it was.** Two assertions in the last block each called `runGate()` with
+no arguments. That spawns a Node process which walks every source file in the
+repository. So the tree was walked twice, about a second each in isolation, and
+past vitest's five second default when 191 other test files are running on the
+same box. The verdict is identical both times.
+
+**Why a timeout flake is worth a fix rather than a re-run.** A test that fails
+for a reason with nothing to do with what it asserts teaches every reader who
+meets it to press the button again instead of looking. That is the same habit
+that let a green light nobody had pulled on hide five defects in one day, and
+this repository cannot afford to train it.
+
+**The fix.** The walk happens once and both assertions read the same verdict.
+The timeout is set on the run rather than left on the assertions, and it is
+generous, because what it is bounding is a subprocess walking a tree that grows
+every day. 22 of 22 green, and the second assertion now costs nothing.
