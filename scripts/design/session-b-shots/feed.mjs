@@ -219,7 +219,33 @@ for (const [state, name] of [
   await page.close();
 }
 
-/* 8. Desktop. */
+/* 8. The story viewer, its menu and its comments, and the story composer
+   (the existing f4 harnesses, read only). */
+page = await open("/preview/f4/story");
+await shot(page, "story-viewer-390-dark");
+const more = page.locator('[aria-label="More actions for this story"]');
+if (await more.count()) {
+  await more.first().click();
+  await page.waitForTimeout(300);
+  await shot(page, "story-menu-390-dark");
+  await page.keyboard.press("Escape");
+}
+const comment = page.getByRole("button", { name: /comment/i });
+if (await comment.count()) {
+  await comment.first().click();
+  await page.waitForTimeout(500);
+  await shot(page, "story-comments-390-dark");
+  await measure(page, "comments sheet, 390");
+}
+await page.close();
+page = await open("/preview/f4/story-new");
+await shot(page, "story-composer-390-dark");
+await page.close();
+page = await open("/preview/f4/post-thread");
+await shot(page, "post-thread-390-dark");
+await page.close();
+
+/* 9. Desktop. */
 page = await open("/preview/session-b/feed", { width: 1440, height: 900, scale: 1 });
 await shot(page, "feed-1440-dark");
 await page.close();

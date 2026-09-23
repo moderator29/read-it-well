@@ -7009,6 +7009,20 @@ bloom's sheets, now on the shared panel). One stale `nf-social-card` class remai
 `app/(app)/stories/new/loading.tsx`, which this worker does not own; it has no rule now
 and draws nothing of its own. Proofs: `overlay-pass2-*`, the state shots re-taken.
 
+**Pass 3, 23 September.** Production build of the pass-2 commit plus this pass. Found:
+the bar sat 7.6 img high because the back control makes its row 44 tall; the rings' top
+margin now absorbs it (bar at 217.5 against the drawn 218). At 1440 the phone-drawn type
+(9.2px body in a 48rem column) read as captions: from 768 every type role and both text
+controls step up by the same half again (name 15, body 14 on 21, handle and time 12.5,
+counts 13, bar and segment 44 tall), keeping the phone's proportions; measured live at
+1440 (name 15px, body 14px, bar 44, segment 44). Coverage widened to the story viewer,
+its menu, its comments sheet, the story composer and a thread (the committed f4 harnesses,
+read only): the menu and the comments sheet are on the shared panel; the story card keeps
+its on-media glass over the photograph; nothing there drew a container of its own after
+pass 2. Bloom and cards unchanged and still exact (plates within 0.1 img, plus within 1).
+Proofs: `overlay-pass3-*`, `story-*-390-dark.jpg`, `post-thread-390-dark.jpg`,
+`feed-1440-dark.jpg`, `bloom-open-1440-dark.jpg`.
+
 ### 13.F.7 Checks
 
 ### 13.F.8 Not matched, and why

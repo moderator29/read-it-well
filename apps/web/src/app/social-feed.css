@@ -3324,6 +3324,73 @@
     margin-inline-end: -8.9px;
   }
   /* ------------------------------------------------------------------
+   * DESKTOP, DERIVED FROM THE PHONE'S CHARACTER.
+   *
+   * The founder's image is a phone. At 390 every role is its measured size;
+   * from 768 the column is up to 48rem wide and the phone's 9px body would
+   * be a caption on a desktop, so every type role and the two text controls
+   * step up by the same half again, keeping the phone's proportions to one
+   * another rather than inventing a second design. The fan keeps its drawn
+   * geometry: it is an object at the thumb, not a column of text.
+   * ------------------------------------------------------------------ */
+  @media (min-width: 768px) {
+    .nf-feed-chip {
+      block-size: 44px;
+      padding-inline: 12px 14px;
+    }
+    .nf-feed-chip__label {
+      font-size: 14px;
+    }
+    .nf-story-ring__name {
+      font-size: 12px;
+      line-height: 16px;
+    }
+    .nf-feed-seg__link {
+      min-block-size: 44px;
+      font-size: 14px;
+    }
+    .nf-panel.nf-post {
+      padding: 12px 16px 0;
+    }
+    .nf-post__name {
+      font-size: 15px;
+      line-height: 20px;
+    }
+    .nf-post__who {
+      padding-block-start: 3px;
+    }
+    .nf-post__handle {
+      font-size: 12.5px;
+      line-height: 17px;
+    }
+    .nf-post__when {
+      font-size: 12.5px;
+      line-height: 17px;
+      padding-block-start: 5px;
+    }
+    .nf-post__body {
+      margin-block-start: 6px;
+      font-size: 14px;
+      line-height: 21px;
+    }
+    .nf-post__media {
+      margin-block-start: 12px;
+    }
+    .nf-post__act {
+      height: 36px;
+      font-size: 13px;
+    }
+    .nf-post__act--like {
+      min-inline-size: 100px;
+    }
+    .nf-post__act--repost {
+      min-inline-size: 84px;
+    }
+    .nf-post__actions {
+      margin-block: 6px 4px;
+    }
+  }
+  /* ------------------------------------------------------------------
    * The next page.
    * ------------------------------------------------------------------ */
   .nf-feed-more {
