@@ -6576,8 +6576,9 @@ empty. Evidence: `docs/design/proofs/session-b/wallet-live/` (shots and
 | `/wallet/receive` details read | LIVE PROVEN: the identity panel drawn, no failure copy (`03-receive.jpg`) |
 | `/wallet/send` in wallet-to-wallet mode only | LIVE PROVEN: recipient field drawn, zero bank controls (`04-send.jpg`) |
 | Recipient lookup of the QA admin (by email: the schema has no handle, the send form looks up by address) | NOT PROVABLE ON THIS BOX: the server action ran live (POST observed) but answered "unknown" with no reason, because `lookupRecipient` needs the service-role client and this box's `.env.local` carries only the URL and anon key (`05-send-recipient-found.jpg` shows no answer). Proves the moment `SUPABASE_SERVICE_ROLE_KEY` is set for the build; that key is the founder's to give. |
+| Recipient lookup of the QA admin, ON PRODUCTION | LIVE PROVEN ON PRODUCTION (23 Sept 17:23 UTC; production's commit unknown: no version the member can read, `/api/version` answers 401, x-vercel-id iad1::4vpmn-1790184205432-808cf5483866). Signed in as the QA member, production's `/wallet/send` rendered signed in, and its `lookupRecipient` server action, given the QA admin's address, answered `found` with the account's display name and tier `platinum`. Send never pressed; no transfer, fund or withdraw action called. Run over HTTP (`scripts/design/session-b-shots/wallet-live-lookup-production.mjs`), not a browser: this box's Chromium fails every public site with ERR_CERT_AUTHORITY_INVALID. Production appears to still ship the bank mode (its page HTML matches the bank choice's markup or words), so the removal (32830d5b) has most likely not deployed there yet. Evidence: `docs/design/proofs/session-b/wallet-live-production/lookup-run.txt`. |
 
-Links proven live: 5 of 6.
+Links proven live: 6 of 6 (five on this box's build, the lookup on production).
 
 ## Push enrolment blind light (founder, 23 Sept)
 
