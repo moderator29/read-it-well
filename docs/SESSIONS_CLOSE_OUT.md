@@ -485,23 +485,40 @@ workers and two independent audits. The route by route result is B5b; the
 full per-route register with evidence is the second audit's
 `docs/design/proofs/session-b/audit-sweep-2/AUDIT2.md`.
 
-### B5b. The sweep register (interim, 23 September, written at `b6f41ceb`)
+### B5b. The sweep register (final, 23 September, evening)
 
-**Until this section says otherwise route by route, every route outside
-Session B's original surfaces is NOT YET SWEPT.** This is the register as it
-stands; it is rewritten when each group's three dated passes land, and a route
-moves to "swept" only when its after proof and passes are in ledger section 13.
+**The independent verdict** is the second audit (`e389457f`, measured at
+`0ab215f6`), which re-judged every row of the first audit's register:
+**SWEPT 115 of 121 judged routes (95 per cent), PARTIAL 5, NOT SWEPT 1**, plus
+one n/a and one left by the founder's dock ruling (123 rows). The first audit had
+57. The full per-route table, with evidence per row, is
+`docs/design/proofs/session-b/audit-sweep-2/AUDIT2.md`; it is not copied here so
+there is one register, not two.
 
-| Group | Routes | Swept | State at this writing |
-|---|---|---|---|
-| Shared layer (phase 1) | tokens, Panel, IconPlate, Button, Switch | released | `42ea43d9`, `9da8f86f`, `a39d24cb`, `f440fd21`; console and Get started read it; 35 of 38 harness shots pixel-identical before the glow step. Reflection proofs cover the overview and Get started only |
-| Social (public profile, follows, edit profile, messages, three thread faces) | 12 | 11 of 12 | applied `8ac45997`; the twelfth draws nothing of its own; Pass 1 recorded, Passes 2 to 5 pending (thread card is a five-pass surface) |
-| Home, search, listing, price check | 8 | 0 of 8 | inventory and before proofs only; apply pending |
-| Stays, trips, restaurants, checkout, held payments | see ledger 13 stays | 0 | inventory and before proofs only; apply pending |
-| Settings, notifications, system pages | see ledger 13 settings | 0 | inventory and before proofs only; apply pending |
-| Chrome (drawer, dock, header, host wizard, agent, landing) | see ledger 13.4 | 0 | inventory and before proofs only; apply pending |
-| Feed and plus bloom | feed, bloom | 0 | being rebuilt to the founder image; five passes owed |
-| Session B's own surfaces (profile, auth, wallet family, inspection, console) | 8 surfaces | inspection on the shared layer (`890acbde`); the rest pending | the local primary-button overrides in auth, landing, agent and home stylesheets are still to be removed |
+**After that audit**, one worker closed its six remaining rows and its eight
+should-fix items (`beb3883a`, ledger 13.A2), measured before and after at 390
+and 1440. **These closures are the fixing worker's own measurements; no
+independent audit has re-run over them.** So the honest statement is: 115 of 121
+independently swept, and 121 of 121 swept by the builders' measurement.
+
+| Group | Rows | Independently swept (audit 2) | Closed after, builders' measurement | Still not proven, and why |
+|---|---|---|---|---|
+| Shared layer | tokens, Panel, IconPlate, Button, Switch, StatusBadge | released | Switch hit area to 44 (13.A2.6) | reflection proofs cover the overview and Get started only |
+| Console | 18 | 18 | search fields 44 at 1440 | none |
+| Auth | 2 | 2 | | Google OAuth |
+| Settings | 15 | 15 | | none |
+| Stays | 12 | 11 | `/restaurant/[id]` proof on the real component (S-B) | none |
+| Home | 8 | 8 | 44px hit areas (S-E) | none |
+| Social | 11 judged | 9 | "Confirmed" badge (S-A), options sheet (S-C) | 24-hour times recorded as deliberate (shared formatter) |
+| Wallet | 10 | 10 | send inputs 44 (S-E) | none |
+| Profile | 4 | 4 | | none |
+| Feed and plus bloom | 1 | 0 (partial) | location bar spacing (S-D) | gold mark never seen live; ⋯ drawn one way (the image draws it two ways) |
+| Inspection | 1 | 1 | date format recorded as deliberate | every write (C3.8) |
+| Chrome | 16 judged | 14 | `/docs` selected (S-F); gated host routes proven live as the member | the hosts' filled screens (the member owns no business; creating one is a write) |
+| Orphans (no group owned them) | 23 | 23 | 44px hit areas (S-E) | filled states proven on fixtures only |
+
+**What was not swept, on purpose:** the bottom dock (founder ruling), and the
+Yoruba, Hausa and Igbo copy (no session invents those words).
 
 ### B6. What the next session needs to know
 
