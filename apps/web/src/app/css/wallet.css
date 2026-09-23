@@ -70,6 +70,7 @@
    * the left, and the tile band ends 12px above the foot.
    */
   .nf-wallet-hero {
+    position: relative;
     overflow: hidden;
     padding: 0.875rem 1.125rem var(--nf-space-sm);
     border: var(--nf-border-width) solid;
@@ -1007,8 +1008,8 @@
   }
   @media (hover: hover) {
     button.nf-pay-row:hover {
-      background: var(--nf-glass-fill);
-      box-shadow: 0 0 0 1px var(--nf-brand-edge-soft);
+      border-color: var(--nf-selected-edges);
+      background: var(--nf-selected-fill);
     }
   }
   .nf-pay-row:focus-visible {
