@@ -2,6 +2,8 @@ import { formatDate, formatMoney, type Locale } from "@vallo/i18n";
 import type { EvidenceItem } from "@/lib/admin/reads/escrow";
 import type { AdminUi } from "../../_components/ui";
 import { CalmNote, Waiting } from "./Desk";
+import { BadgeSlot } from "./BadgeSlot";
+import type { BadgeTier } from "@/lib/admin/reads/badges";
 
 /**
  * EVERYTHING FILED ON A DISPUTE, ON THE RULING ITSELF, so nobody rules without
@@ -62,7 +64,10 @@ export function DisputeEvidence({
   payeeName,
   locale,
   ui,
+  tiers = {},
 }: {
+  /** Badge tiers keyed by user id, from `public.person_badge`. */
+  tiers?: Record<string, BadgeTier>;
   /** Undefined or empty when nothing is filed. */
   items: readonly EvidenceItem[] | undefined;
   /** False when the evidence read failed. */
@@ -99,7 +104,10 @@ export function DisputeEvidence({
         <ol className="nf-md-evidence__list">
           {items.map((item) => (
             <li key={item.id} className="nf-md-evidence__item" data-side={item.side}>
-              <span className="nf-md-evidence__who">{who(item)}</span>
+              <span className="nf-md-evidence__who">
+                {who(item)}
+                {item.authorId ? <BadgeSlot tier={tiers[item.authorId]} /> : null}
+              </span>
               <span className="nf-md-evidence__what">
                 {item.kind === "fact" ? (
                   factLine(item, locale)

@@ -284,6 +284,7 @@ export async function getMoneyDesk(filter: MoneyDeskFilter, now = Date.now()): P
       rows: pageRows.rows.map((r) => ({
         ...r,
         ownerName: names.get(ownerByWallet.get(walletOf.get(r.id) ?? "") ?? "") ?? null,
+        ownerId: ownerByWallet.get(walletOf.get(r.id) ?? "") ?? null,
         balanceAfterMinor: narrowed ? null : r.balanceAfterMinor,
       })),
     };
@@ -457,6 +458,7 @@ export async function getRentCharges(latest = 6): Promise<AdminRead<RentCharges>
             ...r,
             listingTitle: (row && titleOf.get(row.listing_id)) ?? null,
             tenantName: (row && nameOf.get(row.tenant_id)) ?? null,
+            tenantId: row?.tenant_id ?? null,
           };
         }),
       },

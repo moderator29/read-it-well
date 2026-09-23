@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { BadgeSlot } from "../money/_desk/BadgeSlot";
+import type { BadgeTier } from "@/lib/admin/reads/badges";
 import { formatDate, formatMoney, plural, type Locale, type Dictionary } from "@vallo/i18n";
 import type { BookingsDesk as BookingsDeskData } from "@/lib/admin/reads/bookings";
 import { BOOKING_STATUSES } from "@/lib/admin/bookings-queries";
@@ -36,7 +38,10 @@ export function BookingsDesk({
   params,
   locale,
   waitingTables,
+  tiers = {},
 }: {
+  /** Badge tiers keyed by user id, from `public.person_badge`. */
+  tiers?: Record<string, BadgeTier>;
   desk: BookingsDeskData | null;
   t: Dictionary;
   ui: AdminUi;
@@ -163,7 +168,10 @@ export function BookingsDesk({
                           {stay.place ? `${stay.place} · ` : ""}booked {ui.when(stay.createdAt)}
                         </span>
                       </td>
-                      <td data-label="Guest">{stay.guestName ?? copy.unnamed}</td>
+                      <td data-label="Guest">
+                        {stay.guestName ?? copy.unnamed}
+                        {stay.guestId ? <BadgeSlot tier={tiers[stay.guestId]} /> : null}
+                      </td>
                       <td data-label="Dates" className="whitespace-nowrap">
                         {ui.day(stay.checkIn)} to {ui.day(stay.checkOut)}
                         <span className="block text-[length:var(--nf-text-caption)]">

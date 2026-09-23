@@ -1,6 +1,7 @@
 import { getLocale } from "@/lib/locale";
 import { getAuditActivity, getAuditLog } from "@/lib/admin/audit-queries";
 import { getRiskAlerts } from "@/lib/admin/queries";
+import { getPersonTiers } from "@/lib/admin/reads/shared";
 import { getAlertTrend, getInspectionActivity, getJobHealth, getPushActivity, getRunDays } from "@/lib/admin/reads/operations";
 import { LiveRefresh } from "../_components/LiveRefresh";
 import { OperationsView, type OpsTab } from "./OperationsView";
@@ -46,6 +47,9 @@ export default async function AdminOperationsPage({
     tab === "notifications" ? getPushActivity(now) : Promise.resolve(null),
   ]);
 
+  // B-BADGE: the published tier of every person the audit rows name.
+  const tiers = await getPersonTiers(audit.state === "ok" ? audit.data.rows.map((r) => r.actorId) : []);
+
   return (
     <>
       <LiveRefresh />
@@ -62,6 +66,7 @@ export default async function AdminOperationsPage({
         activity={activity && activity.state === "ok" ? activity.data : null}
         notifications={null}
         push={push && push.state === "ok" ? push.data : null}
+        tiers={tiers}
         inspections={inspections && inspections.state === "ok" ? inspections.data : null}
       />
     </>
