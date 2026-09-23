@@ -316,14 +316,17 @@ per surface evidence is in `docs/BUILD_SESSION_B_LEDGER.md` (sections 0 to 12,
 each with a dated "Final pass, 23 September" block). Scope and every request to
 Session A are in `docs/SESSION_B_SCOPE.md`.
 
-**The one thing to know before reading on.** This box cannot reach the Supabase
-project over HTTP (egress refused; C1.1 below), and no session may create a user
-in production. So **no Session B screen has ever been loaded signed in against
-real data.** Every screenshot of a signed-in surface comes from a committed
-fixture harness under `apps/web/src/app/(dev)/preview/session-b/**` rendering the
-real components in a production build. The wiring is proved by code, by
-read-only SQL against the live project, and by unit tests. By rule 1 that makes
-the signed-in wiring BUILT AND UNPROVEN, and it is recorded that way below.
+**The one thing to know before reading on (rewritten 23 September, evening).**
+Until 15:20 UTC this box could not reach the Supabase project and no account
+could be used, so every signed-in screen was proved on fixtures only. The
+founder then opened the network and created two labelled QA accounts
+(`phantomfcalls+qamember@gmail.com`, member, and `phantomfcalls+qaadmi@gmail.com`,
+admin; the admin grant read back from `user_roles`). From 16:00 Session B ran
+signed-in live proofs against the real project, and against the production site
+for reads that need the service role key this box does not hold. **Live proof
+now covers 104 of 131 chain links (B4)**; what is still unproven, and why, is B2.
+No proof wrote anything except what a screen saves for the QA account itself;
+no money moved; no password is in the repository.
 
 ### B1. What is finished and proved
 
@@ -338,86 +341,79 @@ section 0) and the founder's nine items.
 | Get started `/welcome` | `2A49E2F7` | The render's own stage cut from the image (HOTEL sign retouched out), the turning coin with the render's face, headline and button measured; four slides, never redirects, no "Look around", back steps through slides; 24 browser checks and 12 unit tests pass | PASS | `aea2e4e`, `d48c76b`, `fbf3884f`, `e56cec88`, `d34424d6`, `9488cc26` |
 | Welcome back `/sign-in` | `55A56F21` | The render's sky, lockup and plinth (slogan refused), card at the render's 61.6 per cent width, translucent glass, no crop box or stage edge (brightened proof); every error state drawn in a harness; back on 7 auth routes pressed in a browser | PASS | `65794a4`, `f7c9700`, `a74d8e2b`, `5e95e005`, `bd0cceda`, `5cc1b3b7` |
 | Wallet `/wallet` | `6AF37222` | Balance card, 33px figure (measured on the digits), render's glass wallet, tiles, transactions; the roll can never overlap digits (frozen mid-roll frame); no claims | PASS | `335143b`, `d84a4832`, `62173c3e`, `bea08147` |
-| Send money `/wallet/send` | `77A54EA3` | Form panel, rows and chips at the measured 10px; To bank / To a Vallo wallet; the bank name check shown before confirm; "How a send works" states three checked facts; no NDIC, no encryption badge | PASS | `d46aa3a`, `24eac4c6`, `92d6eb2b` |
-| Inspections | `F6A8A482` | Height 1.04 of the render with both actions on the first screen; lit title word, lit round plates, 10px cards; "inspection" not "viewing" | FAIL (one attribute, R18); fixed in `e3c90797` after the run, **not re-run in a browser** | `8dc680a`, `ca322e92`, `b948932c`, `fe412ab8` |
+| Send money `/wallet/send` | `77A54EA3` | Wallet to wallet only since `32830d5b`: external bank send removed by founder decision (a regulatory line: CAC required N500,000,000 share capital while the objects clause carried payment wording; pushing money to an unrelated third party's bank is licensed activity), so the image's "To bank" mode is intentionally absent. Re-measured after the cut: one form panel 362 wide at 10px, rows 60px, amount chips 64x44 (0.23), Send 340x44.5 (0.31), shape sweep 0. Refund line "3 to 5 business days" (founder, C3.6). No NDIC, no encryption badge | PASS (run 4), re-measured after the cut | `d46aa3a`, `24eac4c6`, `92d6eb2b`, `32830d5b` |
+| Inspections | `F6A8A482` and the founder's `inspection-target.jpg` | Rebuilt to the founder image: eight rooms with the render's glyphs, round checks, notes, Add Photos, Submit enabled only at eight of eight (the database refuses fewer); lifecycle kept as a strip; lit glass back square; five overlay passes plus the audit's S12 (seven differences: six fixed, the rest recorded). Writes go only through Session A's `saveInspectionReport` and `addReportPhoto` (I1, I1b). R18 re-run in a browser (`7a52575a`) | second independent audit: SWEPT | `890acbde`, `521f91cc`, `7a52575a`, `a5459f08` |
 | Admin console, all desks | `5EAA44CB`, `01F7DFC7`, `8E9602E2`, `C1D98B3C` | Shell, full-height rail, sampled panel material, 10px corners, filled badges; overview always first, by address too, with a server route for no-JS; every desk measured against its panel; designed empty states; shape sweep 0 on 27 admin harness routes | shell FAIL (R19), review PASS, money PASS; R19 fixed and **pressed in a browser** on a committed harness in `ff967a20` | many; see ledger 6, 7, 8 |
 | Admin handbook `docs/ADMIN_CONSOLE.md` | none | Every desk: shows, sources, actions, who may act, effects, limits, rejected; job counts derived from code and tested (8 Vercel, 14 pg_cron, matching live) | PASS | `1a95553`, `bf1bca71`, `949930e2`, `9042610c` |
 | Welcome email | none | Six role versions, lit button with Outlook fallback, plain text, preheader, every link on the route list, every claim cited to code; no "viewing"; 111 email tests | PASS | `ac5e07a`, `ca4e5857`, `a570acd0` |
 | Deleted posts (item 4) | none | Every listing read excludes removed posts at the query; a tombstone only in a thread that has a reply; 26 tests, 14 of 15 failing against the old code; live: 74 live, 1 removed | PASS | `1385bfc8`, `0fb6b951` |
 | Examples probe (item 1) | none | Cause found with evidence: Track G migration 6 revoked EXECUTE on `private.owns_listing`; Session A fixed it live | report | `9cfd73b0` |
 
-**Checks I ran myself on main at `693e331a`** (isolated worktree): `tsc` exit 0;
-`check-css-tokens` exit 0 (all ten checks); `vitest run` 222 files, 3,613 passed,
-1 skipped, exit 0. After the badge swap (`e3c90797`): `tsc` exit 0, 58 files and
-465 tests passed across admin, profile, inspections, wallet. **The token check is
-now red on clean main** (`ff967a20`) because of Session A's `trust-badge.css`
-(TK-1, B5).
+**Checks:** the gates on the last measured tree, with their numbers, are in
+PART D (Session B confirms). The token check that was red on `ff967a20` (TK-1)
+was closed by the shared layer in phase 1.
 
 ### B2. What is built but unproven, and what proving it needs
 
-Everything below is written, typechecked and tested against fixtures, and has
-never run against the live project with a signed-in person. **All of it is
-unblocked by C1.1 (network access) plus two labelled test accounts (C3.5).**
+Proven live since the network opened (full rows in the ledger, each with time,
+commit and evidence): Profile 17 of 17, Feed 17 of 17, Wallet reads 6 of 6
+(the recipient lookup on the production site), Welcome back 5 of 8 testable
+links, the admin console 49 of 50 on the production site. What remains:
 
 | Surface | Built and unproven | What proves it |
 |---|---|---|
-| Profile | Every read on the page (identity, counts, posts, row figures, workspaces behind Switch role, the badge tier), avatar and cover upload, the `/profile?switch=` redirects | One signed-in load on a deployed build, figures checked against that account's rows |
-| Get started | A signed-in person's Continue and Skip writing `welcomeSeen` / `interestsAsked`; the interests Save and Skip; Android hardware back on a device (needs GS5, the native back handler is not mounted anywhere) | A signed-in session; the app on a phone |
-| Welcome back | A real sign in reaching `next`; Supabase's real error replies mapping to the drawn messages; the Google-account and no-account lookups; the rate limiter; Google OAuth round trip; the profile-creating trigger | A test account on a deployed build, and Google OAuth configured for that domain |
-| Wallet and Send | Live refresh on a wallet notification; a wallet to wallet send end to end (the production ledger holds 0 transfers); the bank name check against Paystack (only a stand-in resolver so far); the badge tier read | Two test accounts and a funded wallet |
-| Inspections | Every write (confirm, offer a time, decline, take a time, withdraw, submit), the notifications, the other side's screen refreshing | A real, non-example listing (the database refuses inspections on examples, and all 64 are examples) and two signed-in people |
-| Admin console | 0 of 17 shell reads, 0 of 5 money desks, the escrow ruling with evidence, the booking cancel, and the review desks' decisions have run as a signed-in admin | One signed-in admin load of each desk; a real dispute and a real booking |
-| Welcome email | **Sent once for real (re-queried 23 September 16:20 UTC):** `email_outbox` row `76ab6c4e`, `account.welcome` for the QA member `957b3bd2`, created 15:57:28 in the sign-up's transaction, claimed 16:00:02, settled SENT 16:00:05, 1 attempt, no error; a second row for the QA admin `03f3dd52` was PENDING at 16:20, the queue seen holding. SENT means the provider accepted it, **not that an inbox rendered it**: 0 of 6 role versions seen in Gmail, Outlook or Apple Mail (the founder is checking the one sent). The payload carries only `at`, so which role version went is not recorded in the row | The founder opening the sent email, then the other clients |
-| Badge | Drawn through Session A's `TierBadge` on every Session B surface since `e3c90797`, but never seen with a real tier because the read cannot run here (the read-only SQL role cannot evaluate `person_badge`; `authenticated` can) | The same signed-in loads as above; the founder's account should show platinum in the console rail |
+| Welcome back | the Google-account and no-account lookups and the rate limiter (need the service role key, not on this box); Google OAuth round trip | a run on a preview deployment, or the key as an environment secret |
+| Wallet and Send | every write: fund, a wallet to wallet send, withdraw (no money was moved on purpose; the QA wallets hold nothing) | the founder's decision to fund a QA wallet with a small sum |
+| Inspections | every write (request, confirm, offer a time, the report, Add Photos, submit) and the other side refreshing | **one real, labelled, non-example listing** (the database refuses inspections on examples; all 64 are examples) and both QA accounts |
+| Admin console | the Supply desk's "Firm rosters" panel fails on production: `infinite recursion detected in policy for relation "firm_members"` (Session A, request A15); every console write (rulings, cancels, review decisions) was deliberately not pressed | A15's migration; a real dispute and booking for the writes |
+| Push | the fixed control (`e633e2d3`) reads ON only when the server holds this device's row; `push_tokens` is still 0 rows | the founder signing in inside the home-screen app after deploy and tapping Turn on |
+| Welcome email | provider accepted one real send (`email_outbox` `76ab6c4e`, SENT 16:00:05); the second row was PENDING at 16:20. **0 of 6 role versions seen in an inbox**; SENT is the provider's acceptance, not rendering | the founder opening it, then Outlook and Apple Mail |
+| Badge | platinum seen live (console identity, feed author, wallet recipient); gold never seen, because no gold person has a live post, listing or wallet | a verified supplier on the platform |
+| Email lock | the change affordance is gone (`fefc0b4f`) and the email is drawn as a fixed fact; **not handled** until Session A's server refusal has a test | Session A (EMAIL-LOCK) |
 
 ### B3. What is not built, with an honest estimate
 
 | Item | Why not | Owner | Estimate once unblocked |
 |---|---|---|---|
-| The eight-room inspection checklist, notes and report photos | No tables (request I1) | Session A migration, then Session B screen | half a day A, two hours B |
-| Bank send going live | `BANK_SEND_OPEN = false` pending C3.1; Paystack refuses third-party payouts on a starter account (C2.5) | founder, then one line | minutes |
-| Badge on Moderation reporters and authors, and Support requesters | those reads return names without ids | Session A read, then one line each | one hour |
-| Badge on wallet transaction rows and receipts | the wallet repository drops the counterparty id (W6) | Session A read, then one line | one hour |
-| 5 of 14 money-desk names without a badge | `lib/admin/money-queries.ts` returns names without ids | Session A, then Session B | one hour |
-| Money, Escrow, Supply and Payments desk copy in four locales | English in components; only Bookings reads the dictionary | Session B | two hours, plus a native speaker (C2.3) |
-| Admin data Session A must expose first | A5 per-job pg_cron, A6 notifications, A8 listing views, A11 refusal reasons, A12 account deletions, A13 business transfers, A14 email outbox, AR-10 held-event decisions, AR-11 blocked terms, AR-12 mandate decisions, request 10 reconciliation watch | Session A | each is a small migration or action; each panel is already built and says what it waits on |
-| Live refresh of pending wallet rows (W2), transfer notifications naming the other person (W3) | migrations | Session A | an hour each |
-| Glow identity in the token layer and the roles icon pack in the shared pack (ID1, ID2) | Session A's token layer and pack | Session A | half a day |
-| Get started as the store first launch and the landing Get Started target (W3, W1) | native config and landing are Session A's | Session A | an hour |
+| The inspection outcome ("Inspected / Deal done / No deal") with the report on | no outcome column (I1a) | Session A migration, then one control | an hour each side |
+| The listing card's lister badge | the listing read carries the lister's name but not the tier (R-SH4; Session A published it in `9b5b3524`, card not yet switched) | Session B, one line | minutes |
+| Badge on Moderation reporters and authors, Support requesters, wallet rows and receipts, 5 of 14 money-desk names | those reads return names without user ids | Session A reads, then one line each | an hour |
+| Admin data Session A must expose first | A5, A6, A8, A11 to A14, AR-10 to AR-12, request 10 | Session A | each panel is built and says what it waits on |
+| Yoruba, Hausa and Igbo copy for the money desks | English keys added (`4bdf6504`); no session invents those words | native speakers (C2.3) | an afternoon each |
+| Escrow countdown formats and two payment channel labels on locale keys | built by tested read helpers; a separate change | Session B | an hour |
 
 ### B4. The code, by the numbers
 
-Every figure has its denominator. "Gate" is the five closing gate items per
-surface (measured match, chain walked, no claims, checks green, pushed).
-"Proven live" counts chain links run against the real project; on this box that
-is only possible for flows that need no session.
+Re-counted on 23 September, evening, from the ledger's LIVE PROVEN rows. A
+chain link is proven live only when a running build talked to the real project
+(or the production site did) and the result was watched and recorded.
 
-| Surface | Gate | Chain links working in code | Chain links proven live | Controls driven in a browser |
-|---|---|---|---|---|
-| Profile | 5 / 5 | 15 / 15 | 0 / 15 | 3 / 15 |
-| Get started | 5 / 5 | 10 / 10 | 7 / 10 | 12 / 15 |
-| Welcome back | 5 / 5 | 15 / 15 | 7 / 15 | 5 / 17 |
-| Wallet and Send | 10 / 10 | 22 / 24 (W2 open; bank send needs C3.1 and C2.5) | 0 / 24 | harness only |
-| Inspections | 5 / 5 after `e3c90797` (audit said 4 / 5) | 10 / 12 (I1, I2) | 0 / 12 | 0 / 12 live |
-| Admin shell, Overview, Operations, Analytics | 24 / 24 | 17 / 17 reads built | 0 / 17 | back arrow pressed on a harness |
-| Admin money desks | 5 / 5 | 5 / 5 desks | 0 / 5; writes 0 / 2 | all controls drawn in harness |
-| Admin review desks | 4 / 5 (wired real is part met: checked in code and read-only SQL, never run) | 5 / 5 desks in code | 0 / 5; controls through a real action 0 / 14 | navigation only, in harness |
-| Admin handbook | 1 / 1 (audit PASS) | n/a | n/a | n/a |
-| Welcome email | 5 / 5 | send wired by Session A | provider accepted 1 real send (row `76ab6c4e`); 0 / 6 versions seen in a real inbox | n/a |
-| Deleted posts | 5 / 5 | 17 / 18 listing surfaces filtered at the read (the 18th is DP-1) | chain 6 / 9 (policy, table, triggers by SQL; query by test; screen by harness); live counts 74 / 1 | harness: 0 tombstones in feed and profile, 1 in a replied thread |
+| Surface | Chain links proven live | Not proven, why |
+|---|---|---|
+| Profile | 17 / 17 | none |
+| Get started | 7 / 10 | a signed-in Continue and Skip; Android hardware back (GS5) |
+| Welcome back | 5 / 8 testable (plus Google OAuth) | lookups and rate limiter need the service role key |
+| Wallet and Send | 6 / 9 | fund, send, withdraw: no money moved on purpose |
+| Inspections | 0 / 12 | no real listing exists |
+| Admin console (all desks) | 49 / 50 on production | Firm rosters (A15) |
+| Feed and plus bloom | 17 / 17 | gold mark not seen |
+| Push | 0 / 1 | a real device row |
+| Welcome email | provider accepted 1; 0 / 6 versions seen in an inbox | the founder's inbox |
 
-**Surfaces passed by the independent audit, run 4:** 6 of 8 (profile, get
-started, welcome back, wallet and send, email, handbook); the two narrow fails
-(inspections R18, console R19) were fixed after the run, R19 proven in a
-browser, R18 not yet re-run. **Chain links proven live across Session B:
-14 of 98** (get started 7, welcome back 7; nothing else can be proven from here).
+**Chain links proven live across Session B: 104 of 131 (79 per cent)**, email
+counted separately. Checks on the last measured tree are in PART D.
 
-**One overall figure, and how it is made.** Half the weight on the images
-(surfaces that passed the audit: 6 of 8, 75 per cent) and half on the wiring
-(chain links proven live: 14 of 98, 14 per cent). **Session B overall: 45 per
-cent.** If you count "built and wired in code" instead of "proven live", the
-wiring half is 94 of 98 and the figure would read 86 per cent. **The honest
-figure is 45.** The difference between them is exactly the list in B2.
+**Sweep, by the second independent audit** (`e389457f`, measured at `0ab215f6`):
+**115 of 121 judged routes SWEPT (95 per cent)**, 5 partial, 1 not swept; first
+audit 57 of 120. Of the first audit's 16 findings, 13 fixed, 1 partly (S9), 2 not
+(S5, S13). Its eight new should-fix items went to one final worker; the result
+is in B5b.
+
+**One overall figure.** Half the weight on the images and sweep (115 of 121, 95
+per cent), half on the wiring proven live (104 of 131, 79 per cent). **Session B
+overall: 87 per cent.** The gap is exactly B2: writes nobody may make without a
+funded wallet, a real listing or a real device, and three links that need a key
+this box does not hold.
 
 ### B5. What broke, what was wrong, what was corrected
 
@@ -448,7 +444,32 @@ figure is 45.** The difference between them is exactly the list in B2.
   removed, and the profile drew no badge at all from `a4ba8a10` until the swap
   in `e3c90797`.
 
-### B5a. The wide platform sweep (founder instruction, 23 September, IN PROGRESS at this writing)
+- **Two finished releases silently undone on main.** `dc52e031` and
+  `d3d1620c` (stays group) were committed from checkouts that predated the
+  commits they sat on, reverting the social group's thread card passes 2 to 5
+  (`e6f82a9a`, 112 proofs) and the lit selected tab (`361eabe5`). Nobody noticed
+  until the first independent audit (`a6c7a80a`). Restored in `e93bb8a9` and
+  `a6edcaaf`; every worker now runs a no-revert diff before every push, and the
+  second audit found no revert since.
+- **Main went red four more times.** Harness directories without a root
+  `page.tsx` (twice, fixed by Session A `ceb463e7` and `866aac75`, then made a
+  mandatory pre-push check); a harness passing a removed prop (Session A
+  `033ac4c3`); a Session A doc naming a service account address (fixed by
+  Session B `1d0b41c3`, one line).
+- **The shared glass field drew nothing.** `--nf-well-fill` wrapped in a second
+  gradient made the declaration invalid everywhere `Field material="glass"`
+  was used (fixed `eb9afe04`, measured in Chromium).
+- **A rule broken by our own worker.** The inspection worker wrote its own
+  photo insert (`recordReportPhoto`, `890acbde`); Session B never writes a
+  mutation. Deleted in `521f91cc`; Session A supplied `addReportPhoto` (I1b).
+- **The box ran out of memory** (15 concurrent builds) **and then disk**
+  (twenty worktrees at about 200MB each). A lock now serialises every build,
+  whole tsc and whole vitest; finished worktrees are removed.
+- **A blind light on the live site.** The push control read ON from browser
+  permission alone while nothing was saved (founder, 23 September). Fixed in
+  `e633e2d3`; Session A opened `/api/push/key` (`dab5a688`).
+
+### B5a. The wide platform sweep (founder instruction, 23 September)
 
 The founder named the admin console and Get started the reference
 implementation for the whole platform and asked for their anatomy to move into
@@ -458,10 +479,11 @@ onto it, plus the feed and the plus bloom rebuilt to his image
 the scope file (`ccf594ba`). Workers: shared layer (phase 1), feed and bloom,
 and six surface groups (home, search and listing; stays, trips and checkout;
 settings and notifications; public profile, messages and threads; drawer, dock,
-host, agent and landing; plus Session B's own surfaces). **The result of the
-sweep, route by route (swept, not swept and why), is recorded in ledger section
-13 and summarised in B5b below when it lands. Until B5b says otherwise, treat
-every route outside Session B's original surfaces as NOT YET SWEPT.**
+host, agent and landing; plus Session B's own surfaces). Later joined by a
+leftovers worker, an orphans worker (23 routes no group owned), two audit-fix
+workers and two independent audits. The route by route result is B5b; the
+full per-route register with evidence is the second audit's
+`docs/design/proofs/session-b/audit-sweep-2/AUDIT2.md`.
 
 ### B5b. The sweep register (interim, 23 September, written at `b6f41ceb`)
 
@@ -495,12 +517,17 @@ moves to "swept" only when its after proof and passes are in ledger section 13.
   controls at a 44px floor, containers at the render's width, sweep clear of
   0.35, console lands on the overview on every entry, compact real function,
   committed harnesses.
-- **The badge.** Four thin slot components exist (`profile/BadgeSlot.tsx`,
-  `admin/money/_desk/BadgeSlot.tsx`, `inspections/BadgeSlot.tsx`,
-  `wallet/BadgeSlot.tsx`) plus the console's `PersonTier.tsx`; all now render
-  Session A's `TierBadge` and none decides a tier. Consolidating them onto
-  `TierBadge` directly is a safe tidy. `PersonTier` is written with
-  `createElement` on purpose so its unit test can render it.
+- **The badge.** Every Session B surface draws Session A's `TierBadge`
+  directly (`f8a73bc8` removed the four slot wrappers); the console uses
+  `PersonTier`, itself `TierBadge`, written with `createElement` so its unit
+  test can render it. Nothing in Session B decides a tier.
+- **No-revert check before every push.** After `git pull --rebase`, read
+  `git diff origin/main HEAD` for every file outside your claim; a removed line
+  you did not write stops the push. Two releases were lost to this once.
+- **Live proof.** QA credentials live only in the scratchpad's `qa.env` of the
+  session that holds them; a new session asks the founder. Start the server
+  with `NODE_USE_ENV_PROXY=1` and `NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt`.
+  Reads that need the service role key are proven against the production site.
 - **Badge on the review desks:** drawn for the lister (queue and listing under
   review) and the applicant (verification). Moderation reporters and authors and
   Support requesters have none, because those reads return names without user
