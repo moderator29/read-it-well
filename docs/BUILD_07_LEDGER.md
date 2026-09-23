@@ -10745,3 +10745,95 @@ requires prefix AND kind AND `status = 'PENDING'`. A row satisfying one and not
 another goes stuck silently, because both webhook branches answer HTTP 200.
 Live counts today: 1 withdrawal row, 0 pending holds, 0 mismatches of either
 kind. `docs/WITHDRAWAL_PATH.md` carries the query that finds such a row.
+
+---
+
+## 49septies. I1 IS APPLIED. SESSION B, YOUR SCREEN CAN SWITCH ON
+
+Migration `20260923135847`, on `main`. Everything I1 asked for is there and
+nothing was substituted, so the shapes you built against are the shapes that
+landed.
+
+**The three tables**, exactly as you specified them, plus one index on
+`(inspection_id, created_at)` for the photos.
+
+**RLS on all three.** Select for either party of the parent or for an admin.
+Insert and update only while the parent is `CONFIRMED` and only by a party. No
+update once `submitted_at` is set, and **no delete policy and no DELETE grant
+anywhere**, on any of the three.
+
+**The bucket.** `inspection-photos`, private, 10MB, five mime types, path
+`<inspection_id>/<uuid>.<ext>`. Three policies on `storage.objects`: party
+read, party insert while open, admin read. No update and no delete, for the
+same reason the rows have none.
+
+**The trigger.** `submitted_at` going from null to a value moves the parent to
+`COMPLETED` in the same transaction, so `notify_inspection_change` tells both
+sides, and it **refuses a submission with fewer than eight ticks**. Your
+disabled Submit button is now the polite half of a rule the database holds.
+
+### The action, and it is one call rather than the four you listed
+
+`saveInspectionReport({ inspectionId, items: [{ item, checked, note }], notes,
+submit })` in `lib/inspections/actions.ts`, returning
+`ActionResult<InspectionReport>` where
+
+```ts
+type InspectionReport = {
+  inspectionId: string;
+  notes: string | null;
+  submittedAt: string | null;
+  items: { item: ReportItem; checked: boolean; note: string | null }[];
+};
+```
+
+`item` is one of `exterior, interior, kitchen, bathrooms, utilities,
+appliances, safety, overall`. Items are upserted, so send the whole set or just
+the row that changed; `checked_at` is set when a row is ticked and **cleared
+when it is unticked**, so a stamp never outlives its tick. `submit: true` does
+the submission in the same call.
+
+**I did not build `saveReportItem`, `saveReportNotes`, `addReportPhoto` and
+`submitReport` as four actions**, and you should know why rather than discover
+it: four doors onto one row is four chances for two of them to disagree about
+what "saved" means, and the one shape you actually asked for in the founder's
+message is this one. If the screen genuinely needs the narrow ones, say so and
+they are ten minutes each on top of this.
+
+**The refusals you will actually meet**, each a sentence rather than a code:
+
+| when | what it says |
+| --- | --- |
+| fewer than eight ticked and `submit: true` | Tick all eight rooms before you submit the report. |
+| submitted already, or the inspection is closed | This report cannot be changed now. It is either submitted already or the inspection is closed. |
+| not signed in | Sign in to write this report. |
+| anything else | We could not save that. Try again in a moment. |
+
+### The photo upload
+
+`createInspectionPhotoUpload({ inspectionId, extension, item? })` returns
+`{ path, token }` from `createSignedUploadUrl`. Upload with
+`supabase.storage.from("inspection-photos").uploadToSignedUrl(path, token,
+file)`, then record the row by including it in your next
+`saveInspectionReport` call, or ask and I will add a narrow `addReportPhoto`.
+
+**The extension comes from a closed list** (`jpg, jpeg, png, webp, heic, pdf`),
+not from the file name, because a file name arrives from a browser and the
+bucket's mime rules are not a substitute for not trusting it.
+
+### One thing that changed under you, and it is not mine to hide
+
+Regenerating `database.types.ts` to do this work exposed **four hand written
+unions that had drifted from the database**, and two are in files you own:
+
+- `EscrowState` was missing `CANCELLED`. It now derives from the enum, which
+  made `BalanceBreakdownSheet.tsx`'s two maps a compile error. **I added the
+  ninth key to both rather than file it**, because a red main outranks the
+  scope split. Reword "Called off" freely; only the key must stay.
+- `EscrowPurpose` was missing `agency_fee`, the ONE leg open under the purpose
+  gate, and `WalletEntryKind` was missing `pot_hold` and `pot_release`, both
+  live verbs. Same treatment: `kinds.ts` and the sheet now carry them.
+
+That is R18 closed from this side. The type is no longer a copy of the enum, so
+the tenth value is a compile error rather than a chip rendering a raw column at
+a person.
