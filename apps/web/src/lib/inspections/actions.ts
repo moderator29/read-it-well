@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { PHOTO_EXTENSIONS, photoPathBelongsTo } from "./report-photo-path";
 import { z } from "zod";
 import { resolveSession } from "../actions/session";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
@@ -423,7 +424,6 @@ export async function saveInspectionReport(
  * because a name arrives from a browser and a bucket's mime rules are not a
  * substitute for not trusting it.
  */
-const PHOTO_EXTENSIONS = { jpg: "jpg", jpeg: "jpg", png: "png", webp: "webp", heic: "heic", pdf: "pdf" } as const;
 
 const photoUploadSchema = z.object({
   inspectionId: z.string().uuid(),
@@ -454,6 +454,76 @@ export async function createInspectionPhotoUpload(
 
   if (error || !data) return fail(reportRefusal(error?.message ?? ""));
   return ok({ path: data.path, token: data.token });
+}
+
+/**
+ * I1b. THE ROW THAT MAKES AN UPLOADED OBJECT PART OF THE REPORT.
+ *
+ * `createInspectionPhotoUpload` hands the browser a signed URL and the browser
+ * PUTs the bytes straight at storage. Nothing reaches this server in between,
+ * which is the point: a photo of a damp wall does not need to travel through a
+ * server action to get into a bucket. But an object sitting in a bucket that no
+ * row points at is invisible to every screen, so this is the second half, and
+ * the screen calls it once the upload resolves.
+ *
+ * WHY THE PATH IS CHECKED HERE AS WELL AS IN STORAGE. The bucket's own policies
+ * read the first path segment (`private.inspection_photo_path_access`), so a
+ * person genuinely cannot write bytes into somebody else's folder. This row is a
+ * different object in a different schema, and nothing about the storage policy
+ * stops a caller posting `{ inspectionId: mine, storagePath: "<someone else>/x.jpg" }`
+ * and hanging their photo off my report. So the path's first segment must equal
+ * the inspection it is being attached to, and the extension must be one we
+ * issued. **A signed upload proves where the bytes went. It does not prove what
+ * the caller then says about them.**
+ *
+ * The insert itself goes through the caller's own RLS-bound client, so being a
+ * party to the inspection, and the report still being open, are both decided by
+ * Postgres rather than restated here.
+ */
+const addPhotoSchema = z.object({
+  inspectionId: z.string().uuid(),
+  storagePath: z.string().trim().min(3).max(200),
+  item: z.enum(REPORT_ITEMS).optional().nullable(),
+});
+
+export type ReportPhoto = { id: string; storagePath: string; item: string | null; createdAt: string };
+
+export async function addReportPhoto(input: unknown): Promise<ActionResult<ReportPhoto>> {
+  const parsed = validate(addPhotoSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return fail("Sign in to add a photo.");
+
+  const { inspectionId, storagePath, item } = parsed.data;
+
+  if (!photoPathBelongsTo(inspectionId, storagePath)) {
+    return fail("That photo could not be attached to this inspection. Try the upload again.", {
+      storagePath: "This file does not belong to this inspection.",
+    });
+  }
+
+  const { data, error } = await session.supabase
+    .from("inspection_report_photos")
+    .insert({ inspection_id: inspectionId, storage_path: storagePath, item: item ?? null })
+    .select("id, storage_path, item, created_at")
+    .single();
+
+  if (error || !data) {
+    /* 23505 is the same object attached twice, which is a double tap on a slow
+       connection rather than a fault, so it reads as one. */
+    if (error?.code === "23505") return fail("That photo is already on this report.");
+    return fail(reportRefusal(error?.message ?? ""));
+  }
+
+  revalidatePath("/inspections");
+  revalidatePath("/agent/inspections");
+  return ok({
+    id: data.id,
+    storagePath: data.storage_path,
+    item: data.item,
+    createdAt: data.created_at,
+  });
 }
 
 /**
