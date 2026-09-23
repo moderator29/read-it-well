@@ -15,6 +15,7 @@ import {
 import { ICON, Section, Stack, Surface, TYPE } from "@/components/app/Screen";
 import { ReserveTable } from "../../listing/[id]/ReserveTable";
 import { panelClass } from "@/components/ui/Panel";
+import { ReportSheet } from "@/components/app/ReportSheet";
 
 const WEEKDAY: Record<number, string> = {
   0: "Sunday",
@@ -47,6 +48,10 @@ export type RestaurantFaceProps = {
   /** The venue's service windows, `HH:MM` or `HH:MM:SS`; null when unread. */
   windows: { id: string; weekday: number; opens: string; closes: string }[] | null;
   messageHref: string | null;
+  /** The report control for this venue (STORE-P2-01): a catalogue listing is
+      reported as a listing, an onboarded venue as a business. Absent in a
+      static preview. */
+  report?: { targetType: "listing" | "business"; targetId: string; signedIn: boolean };
 };
 
 /**
@@ -81,6 +86,7 @@ export function RestaurantFace({
   reserve,
   windows,
   messageHref,
+  report,
 }: RestaurantFaceProps) {
   const copy = t.restaurantPage;
   return (
@@ -195,6 +201,17 @@ export function RestaurantFace({
               )}
             </Surface>
           </Section>
+
+          {report && (
+            <div className="py-md" data-testid="restaurant-report">
+              <ReportSheet
+                targetType={report.targetType}
+                targetId={report.targetId}
+                targetLabel={title}
+                signedIn={report.signedIn}
+              />
+            </div>
+          )}
         </Stack>
       </div>
     </div>

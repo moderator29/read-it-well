@@ -1104,6 +1104,7 @@ export default async function ListingDetailPage({
                       reviews={reviews}
                       locale={locale}
                       t={t}
+                      signedIn={signedIn}
                     />
                   </Section>
                 </Reveal>

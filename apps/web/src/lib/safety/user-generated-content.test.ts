@@ -551,3 +551,37 @@ describe("the seeded pattern catches fraud and leaves honest listings alone", ()
     expect(terms.length).toBeGreaterThanOrEqual(100);
   });
 });
+
+/**
+ * STORE-P2-01: reviews, stays, restaurants and events are public
+ * user-generated surfaces as well, and each one has to be reportable.
+ */
+describe("reporting reaches every public surface (STORE-P2-01)", () => {
+  it("accepts a review, a business and an event as report targets", async () => {
+    const { reportInputSchema } = await import("@/lib/reports/schema");
+    for (const targetType of ["review", "business", "event"] as const) {
+      expect(REPORT_TARGETS).toContain(targetType);
+      const parsed = reportInputSchema.safeParse({
+        targetType,
+        targetId: "0f0f0f0f-0000-4000-8000-000000000000",
+        category: "offensive",
+      });
+      expect(parsed.success).toBe(true);
+    }
+  });
+
+  it("mounts a report control on every written review", () => {
+    const reviews = code("components/app/listing/ListingReviews.tsx");
+    expect(reviews).toContain("<ReportSheet");
+    expect(reviews).toContain('targetType="review"');
+    expect(code("app/(app)/listing/[id]/page.tsx")).toMatch(/<ListingReviews[\s\S]*?signedIn=\{signedIn\}/);
+  });
+
+  it("mounts a report control on a stay and on a restaurant", () => {
+    expect(code("app/(app)/stay/[id]/StayDetailView.tsx")).toContain('targetType="business"');
+    expect(code("app/(app)/stay/[id]/page.tsx")).toMatch(/signedIn=\{session\.state === "signed-in"\}/);
+    const face = code("app/(app)/restaurant/[id]/RestaurantFace.tsx");
+    expect(face).toContain("<ReportSheet");
+    expect(code("app/(app)/restaurant/[id]/page.tsx")).toMatch(/report=\{\{/);
+  });
+});

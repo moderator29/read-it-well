@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
 import { Amount } from "@/components/ui/Amount";
+import { ReportSheet } from "@/components/app/ReportSheet";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
@@ -109,6 +110,7 @@ export function StayDetailView({
   datesHref,
   reserve,
   saved = false,
+  signedIn,
 }: {
   detail: StayDetail;
   nights: number | null;
@@ -124,6 +126,9 @@ export function StayDetailView({
       on the server from `saved_places` so the heart is lit before hydration
       and stays lit through a reload. */
   saved?: boolean;
+  /** Whether the reader is signed in. When given, the page carries a report
+      control for the place (STORE-P2-01); a static preview passes nothing. */
+  signedIn?: boolean;
 }) {
   const from = stayFromMinor(detail, nights);
   const total = from !== null && nights !== null ? from * nights : null;
@@ -443,6 +448,17 @@ export function StayDetailView({
             <Section title={copy.houseRulesTitle}>
               <p className={`${TYPE.body} leading-relaxed`}>{detail.houseRules}</p>
             </Section>
+          )}
+
+          {signedIn !== undefined && (
+            <div className="py-md" data-testid="stay-report">
+              <ReportSheet
+                targetType="business"
+                targetId={detail.id}
+                targetLabel={detail.name}
+                signedIn={signedIn}
+              />
+            </div>
           )}
         </Stack>
       </div>
