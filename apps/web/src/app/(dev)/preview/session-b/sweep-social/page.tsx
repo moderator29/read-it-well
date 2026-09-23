@@ -47,7 +47,7 @@ import {
  * member bar, `&e=1` for every tab empty), followers, followers-empty, edit,
  * inbox, inbox-empty, booking, rental, plain, share, and the loading
  * skeletons as load-inbox, load-thread, load-profile, load-edit,
- * load-followers, load-people. Invented names only (`_fixtures/people.ts`).
+ * load-followers, load-people. Invented names only (`app/(dev)/preview/_fixtures/people.ts`).
  */
 export const dynamic = "force-dynamic";
 
