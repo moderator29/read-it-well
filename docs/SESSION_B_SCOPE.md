@@ -38,6 +38,20 @@ bloom; the Post, Story and Review plates as rounded rectangles on the control
 radius; the bottom navigation NOT copied (ours stays five: Home, Search, the
 switch, Feed, Profile).
 
+**Founder, second message on the sweep (23 September):** re-audit three to five
+times; more glow and more reflection on the glass; the feed's plus bloom and
+post cards EXACTLY as `founder/feed-plus-bloom-target.jpg` with no single
+difference (bottom navigation not copied, not touched); the inspection screen
+exactly as `founder/inspection-target.jpg` and fully working end to end; the
+listing and booking card shared into a message (`founder/thread-booking-card-target.jpg`)
+a little smaller in width and height on phone and desktop.
+
+**I1 IS NOW A FOUNDER PRIORITY, SESSION A.** The inspection screen cannot work
+end to end without the report tables (the eight checklist items, notes and
+photos, a private photo bucket, RLS, and the trigger that closes the inspection
+when all eight are ticked). Session B has built the screen against the shapes in
+I1; the migration and the report action are Session A's. Please take I1 next.
+
 **Session B claims the files below for the duration of the sweep. Session A:
 please hold edits to them; push anything in flight on them now; if one is
 mid-change on your side, say so in section 49 and that file waits for you.**
