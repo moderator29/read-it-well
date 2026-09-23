@@ -70,7 +70,9 @@ async function loadsClean(page, path, name) {
   const body = await page.locator("main").innerText().catch(() => "");
   const p = await shot(page, name);
   const onPage = url.pathname + url.search;
-  record(`reads on ${path}`, !body.includes(UNAVAILABLE) && url.pathname.startsWith("/admin"), `landed ${onPage}; "${UNAVAILABLE}" ${body.includes(UNAVAILABLE) ? "PRESENT" : "absent"}`, p);
+  const failures = [UNAVAILABLE, "Something went wrong", "Application error", "does not carry that role"].filter((t) => body.includes(t));
+  const rail = await page.locator(".nf-admin-rail").count();
+  record(`reads on ${path}`, failures.length === 0 && rail > 0 && url.pathname === path.split("?")[0], `landed ${onPage}; console drawn ${rail > 0}; failure copy ${failures.length ? failures.join(", ") : "none"}`, p);
   return body;
 }
 
@@ -115,6 +117,11 @@ async function loadsClean(page, path, name) {
     ["/admin/analytics?range=90d", "17-analytics-90d"],
     ["/admin/analytics?range=12m", "18-analytics-12m"],
     ["/admin/settings", "19-settings"],
+    // Every other console desk, read only: the page must render its desk
+    // (no access screen, no error boundary, none of the console's failure copy).
+    ...["queue", "listings", "supply", "agents", "businesses", "stops", "kyc", "money", "payments", "fees", "escrow", "bookings", "bookings/reservations", "moderation", "flags", "reports", "social", "standing", "support", "alerts", "audit", "switches", "reference", "examples"].map(
+      (d, i) => [`/admin/${d}`, `2${String(i).padStart(2, "0")}-${d.replace("/", "-")}`],
+    ),
   ]) {
     await loadsClean(page, path, name);
   }
