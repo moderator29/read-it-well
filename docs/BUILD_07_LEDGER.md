@@ -7771,3 +7771,57 @@ readable signed out, or the two open shelves need a parent that is also open.
 Leaving it as it stands means every stranger who browses a listing and presses
 back is asked to sign in, which is the most expensive place on the platform to
 put a wall.
+
+---
+
+## 57quinquies. THE DRAIN IS LIVE, AND THE WHOLE CHAIN IS PROVEN EXCEPT THE LAST HOP
+
+Closing evidence, read off the live project at 10:35 UTC.
+
+```
+{"ok":true,"job":"push-drain","outcome":"ok","startedAt":"2026-09-23T10:35:01.252Z",
+ "durationMs":210,"counts":{"reaped":0,"claimed":0,"sent":0,...,"waiting":0}}
+```
+
+That is `net._http_response` id 1081, the reply to the scheduler's own call,
+and `private.push_drain_watch.last_verdict` now reads `ok_200` **for the
+correct reason**: the corrected check requires `"job":"push-drain"` in the
+body, so this cannot be the web page again.
+
+**Every hop between an event and a device is now proven live except the
+device itself.**
+
+| hop | proven how |
+| --- | --- |
+| an event writes a `notifications` row and queues a push | live, in a transaction that raises at the foot so nothing persisted |
+| the queue refuses a duplicate, an unread reply, a settle with no reason | same, by the database's own constraints |
+| pg_cron fires every five minutes | `cron.job` row 38, active |
+| pg_net reaches the deployment | id 1081, 200 |
+| the bearer is accepted | `"ok":true`, not `unauthorized` |
+| the drain actually runs and reports | the envelope above, 210ms |
+| the scheduler reads that reply and judges it | `ok_200`, and `wrong_body_200` while it was not deployed |
+| a failure reaches a desk | **2 open `risk_alerts`** raised during the window it was not deployed |
+| the payload is encrypted correctly | decrypted by an independently written receiver |
+| **the device displays it** | **NOT PROVEN. No credential, no handset.** |
+
+The two alerts are worth keeping rather than closing by hand: they are the
+record that the observability works, raised by a real failure rather than a
+drill, and they will be obvious on `/admin/alerts` to whoever looks next.
+
+**And the live product tables are untouched**: 0 `push_tokens`, 0
+`push_queue`, 0 `push_deliveries`. Nothing this session wrote a test row into
+anything.
+
+### The gate, run where it counts
+
+Not in the shared worktree. A detached worktree at `origin/main` (`a18446df`),
+`node_modules` hardlinked with `cp -al` at BOTH the root and `apps/web`, both
+confirmed real directories:
+
+```
+npm run lint   exit 0     (eslint + css tokens + valuation words, all ten checks)
+tsc --noEmit   exit 0
+vitest run     exit 0     209 files, 3464 passed, 1 skipped
+```
+
+The one skip is the live web push proof, reporting NOT RUN with its reason.
