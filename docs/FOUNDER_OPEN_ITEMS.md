@@ -62,28 +62,26 @@ handset is still what proves it.
 
 ---
 
-## 23 September: the refund figure, and a conflict only you can settle
+## 23 September: the refund figure. SETTLED, and it is not days
 
-**You said 3 to 5 business days. It is now in the support FAQ, but not as the
-sentence you may have pictured, because on this platform a refund is instant.**
+**The founder settled it: minutes, and up to one working day. Not 3 to 5
+business days.** So the number on every surface is now the one the withdrawal
+email already used, and there is one number rather than two.
 
-Checked in the code rather than assumed: `refund_and_cancel_booking` credits
-the wallet in the same transaction that cancels the booking, and there is **no
-Paystack refund call anywhere**. Nothing on Vallo ever sends money back to a
-card. So the money is in the wallet the moment the cancellation is decided, and
-3 to 5 business days would understate our own product.
+**Why the first answer was wrong in both directions, kept here because it is
+the useful part.** A Vallo refund is instant: `refund_and_cancel_booking`
+credits the wallet inside the transaction that cancels the booking, and there
+is **no Paystack refund call anywhere**, so nothing on this platform ever sends
+money back to a card. The wait, such as it is, belongs to the next step, moving
+that money from the wallet to a bank. And that step is minutes, not days.
 
-Where your figure is true is the next step: moving that money from the wallet
-to a bank. That is a withdrawal, and the bank is not us. So the FAQ now reads:
-the money is in the wallet immediately, and allow 3 to 5 business days for your
-bank to show it once you move it.
+So the support FAQ now reads: the money is in your wallet the moment the
+cancellation is decided, and if you move it to your bank, banks normally credit
+within minutes and can take up to one working day.
 
-**THE CONFLICT, AND IT IS YOURS TO SETTLE.** The withdrawal email already tells
-people a bank "normally credits within minutes, and can take up to one working
-day". That is the typical experience. Your 3 to 5 business days is the safe
-public commitment. **They describe the same hop and they do not agree.** I have
-not quietly changed either one. Pick the number you want to be held to and I
-will make every surface say it.
+**Nothing is left for you on this one.** The correction is in the FAQ, and R24
+to Session B was corrected too, because I had already asked them for the wrong
+sentence.
 
 ---
 
