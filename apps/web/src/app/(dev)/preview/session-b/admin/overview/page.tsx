@@ -1,6 +1,7 @@
 // Session B admin-shell fixture harness (R-G), behind the preview gate. Renders the real overview on fixture props.
 import { getDictionary } from "@vallo/i18n";
 import { AdminFrame } from "@/app/admin/_components/AdminFrame";
+import { BackButton } from "@/components/site/BackButton";
 import { OverviewView } from "@/app/admin/_components/OverviewView";
 import { safeDesk } from "@/app/admin/_components/entry";
 import { ALERTS, BY_ROLE, COLLECTED, COUNTS, LIVE_COUNTS, EMPTY_BY_ROLE, EMPTY_COLLECTED, EMPTY_PULSE, EMPTY_SUPPLY, IDENTITY, JOBS, NOW, PULSE, REAL_ALERTS, SUPPLY } from "../fixtures";
@@ -20,6 +21,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
       navLabels={t.admin.nav}
       searchLabel="Search"
       bellLabel="Notifications"
+      back={<BackButton fallback="/admin" className="nf-admin-back" />}
     >
       <OverviewView
         locale="en"

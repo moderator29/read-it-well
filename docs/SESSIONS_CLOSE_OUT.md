@@ -91,10 +91,48 @@ anyone can see and none of it has been watched doing its job.**
 
 ### A4. The code, by the numbers
 
-*Per brief and per track, with denominators, in the revision that follows this
-one. The register those figures come from is being re-derived now rather than
-copied from `PLATFORM_STATUS.md`, because that file's own numbers were taken in
-the shared worktree and one of them was wrong.*
+**The per brief and per track table is in `docs/BUILT_VS_PROVEN.md`**, 968
+lines, every mark re-derived today from the live database, the catalogue or a
+command run, and nothing taken from the ledger, from `PLATFORM_STATUS.md` or
+from a commit message. Read that file for the denominators; this is its
+summary.
+
+**Two figures, because one number cannot carry both facts.**
+
+| | |
+| --- | --- |
+| **BUILT** | **11 of 12 blocks = 92%** |
+| **DONE, meaning somebody watched it work** | **3 of 12 blocks = 25%** |
+
+The three that are DONE: all seven cron routes have run in production, each
+with an audit row it wrote itself, between 02:30 and 11:30 today; 13 of 14
+pg_cron jobs have run; and `/api/paystack/reconcile` has run 511 times over six
+weeks.
+
+**That 25% is the honest number and it is lower than the 63% in
+`PLATFORM_STATUS.md`.** The difference is not new failure, it is a harsher and
+more truthful denominator: twelve blocks where a thing either has or has not
+been watched working, rather than items on a list that can be counted as built.
+**And twelve is still a friendlier denominator than the briefs' own.** HANDOFF
+08 has 157 countable rows and the figure over those was deliberately not
+computed rather than estimated, because inventing it is the exact failure this
+file exists to prevent. It would be lower.
+
+**Why so much sits in the gap between 92 and 25:** every green light on this
+platform is currently a machine reporting on itself over an empty table.
+Nineteen push drains of an empty queue. Thirty six escrow jobs over zero
+agreements. Six email drains over zero rows. **None of those can fail for the
+reason the feature would fail**, so none of them is evidence about the feature.
+
+**Measured at `origin/main` `92d6eb2b`, isolated worktree, `node_modules`
+hardlinked at both roots:**
+
+| Gate | Result |
+| --- | --- |
+| `vitest run` | **222 files, 3,613 passed, 1 skipped, exit 0** |
+| `tsc --noEmit` | **exit 0, no diagnostics** |
+| `eslint src` | **was exit 1 with 2 errors**, unreported until the audit found it. Fixed, see A5 item 9. |
+| `next build` | **not run.** Said rather than implied. |
 
 **Measured directly, at `92d6eb2b`, in an isolated worktree at `origin/main`
 with `node_modules` hardlinked at both roots:**
@@ -158,7 +196,20 @@ close-out that lists only successes is not a close-out.**
    A check built precisely to answer this question was answering it correctly
    and nobody read it. The auth hook credential was called absent for the same
    reason and is also present.
-8. **The Web Push identity was on the founder's list and should never have
+8. **`PLATFORM_STATUS.md` says navigation is "19 of 22 drawn and correct" and
+   no artefact in the repository reads 19.** The committed walk reads **15
+   correct**, with 2 wrong destinations and 2 serving a not-found body under a
+   200. The best of four untracked artefacts reads 17. I wrote the 19 from a
+   worker's summary instead of opening the file it pointed at, which is the
+   thing this close-out's own rules forbid. **The navigation figure to trust is
+   15 of 22**, and the three routes that correctly draw nothing are separate
+   from that count.
+9. **The lint gate was red on main and nobody had reported it.** Two errors,
+   both light mode removal residue in the settings hub. It went unnoticed
+   because the warning count fell from 339 to 333 in the same change that broke
+   the gate, so the number moved the way an improvement moves. **A gate is pass
+   or fail; a count printed beside it is not the verdict.** Fixed.
+10. **The Web Push identity was on the founder's list and should never have
    been.** It is self generated, costs nothing and needs no account, and this
    session can configure the deployment. I generated the pair, checked it
    against the application's OWN `vapidKeysAgree` before going near production,
@@ -257,12 +308,102 @@ that a session can create for itself.
 
 ### C1. Blocking something, do these first
 
+**Session A's entries. Session B adds below without repeating these.**
+
+**C1.1. Allow `uccixoonmbhrnyczyigt.supabase.co` through the environment's
+network access. BLOCKING A WHOLE TRACK.**
+The cloud environment menu in this session's title bar, then Edit, then Network
+access: either a broader access level or that host added to the allowed
+domains. **Two minutes.**
+It is blocked on you because it is a setting on the environment, not on the
+code. What it unblocks: **P-7's HTTP half, which is the last untested condition
+on the escrow gate.** Your own sentence is that no naira moves until all nine
+probes pass in both directions. Fourteen local probes pass through the real
+door and the EXECUTE half passes with a control, but PostgREST resolves by
+argument name against a cached schema, so a verb shut in `pg_proc` can still
+answer over the wire. **That one run is what stands between the gate and being
+provably shut.** It also unblocks every screen proof in this repository, all of
+which are currently against fixtures because no dev server here can reach the
+project.
+
+**C1.2. One handset, five minutes, for the first push notification ever sent.**
+Open Vallo on your phone, grant notifications at any of the four moments, then
+`POST /api/push/self-test`. It reaches only your own devices and returns the
+push service's answer verbatim per device.
+Blocked on you because nobody here has a phone. **Web Push is now configured on
+production and preview; the identity pair was generated and set this session,
+so there is nothing for you to configure first.** What it unblocks: push moves
+from BUILT AND UNPROVEN to DONE, and the queue, the quiet hours and the
+delivery accounting all get exercised for the first time by something real.
+Note the honest limit before you read the result: a 2xx means the push service
+accepted the message, not that a screen lit up. A push service cannot read the
+encrypted body either.
+
 ### C2. Needed before launch, not blocking today
+
+**C2.1. A Firebase project, for Android push.** Free. You create it, then drop
+the `google-services` JSON into `android/app/` and set `FCM_PROJECT_ID` and
+`FCM_SERVICE_ACCOUNT_JSON`. Only you can create it. Web Push covers browsers in
+the meantime, so this is not blocking today.
+
+**C2.2. An Apple Developer membership, 99 USD a year, for iOS push and for
+shipping to the App Store at all.** `App.entitlements` already records that
+there is none. Blocked on you because it is a paid account in your name and
+spending money is on this session's stop list. Until it exists, `APNS_KEY_ID`,
+`APNS_TEAM_ID` and `APNS_PRIVATE_KEY` cannot be set and no iOS build can be
+signed.
+
+**C2.3. A native speaker each for Hausa, Igbo and Yoruba.** The three locales
+carry draft keys and **no session has invented translations, deliberately.** A
+wrong word in somebody's own language is not a bug you can ship and fix later.
+`docs/i18n/LOCALE_STATE.md` says exactly how many keys each needs and which
+surfaces are affected, so it is a package you can hand over rather than a
+conversation. An afternoon each.
+
+**C2.4. App store reviewer credentials.** Now a hard requirement rather than a
+convenience, because the platform is closed to signed-out visitors: a reviewer
+cannot see anything without an account. The seeded demo account script exists;
+what it needs is for you to decide the credential and store it, because a
+credential must never live in the repository.
 
 ### C3. Decisions only he can make
 
-*Product and business questions, not engineering ones. State the options and
-your recommendation.*
+**C3.1. May Vallo move money to a third party's bank account at all?**
+Wallet send by bank transfer is built, tested and **switched off** behind one
+line, `BANK_SEND_OPEN = false`. The engineering introduces no float: the
+balance is held under the wallet's own row lock before the processor is called,
+and a failed start releases it. But a wallet to a stranger's account is a
+different regulated shape from a withdrawal to your own account, even though
+the rails and the ledger row are identical.
+**Recommendation: ask the same solicitor the custody question, in the same
+letter, and leave the flag false until the answer comes.** It costs nothing to
+wait and the flag is one line to flip.
+
+**C3.2. Should `/home` be readable signed out?**
+You have closed the platform, so this is now mostly settled, but it has a tail.
+Two public shelves, `/search` and `/around`, declare `/home` as their parent,
+and `/home` is gated, so a signed-out reader pressing back lands on the sign-in
+screen. **Options:** make `/home` readable signed out, or give those shelves an
+open parent, or accept that browsing is now signed-in only and the landing page
+is the whole public surface.
+**Recommendation: the third, because it is what you have already chosen**, and
+then the back destination for those two shelves should be the landing page
+rather than a wall. That is a small change and it is ours once you say so.
+
+**C3.3. The lister line on the listing card.** `GOVERNING-01` draws the
+featured card as photo, verified mark, title, locality, price, facts row, and
+**there is no lister line on it.** The data now reaches every surface that
+takes a listing. The standing rule is that the images govern form, so no worker
+added a slot the image does not draw.
+**Recommendation: add it.** Track G exists so a person can tell an owner from
+an agent from a firm, and the card is where most people will look. But it is a
+form decision and it is yours.
+
+**C3.4. Real supply.** Not a decision so much as the only thing that matters.
+64 published listings, **all 64 examples**, zero real supply, zero bookings
+ever, zero reservations ever, zero escrows ever, and one admin action in the
+platform's history. Every green light above is a machine reporting on itself
+over an empty table. No engineering on any list moves this.
 
 ---
 
@@ -275,6 +416,41 @@ your recommendation.*
 - Production deployment green, with the commit
 - Every scope file and ledger current and pushed
 - Anything left uncommitted, and why
+
+#### Session A confirms
+
+**Branch and main.** Everything Session A wrote is on `origin/main`, verified
+by `git rev-list --left-right --count HEAD...origin/main` reading `0 0` after
+each push. Late in the session the branch ref and `main` diverged by a few
+commits because ten workers were pushing to one branch at once; **`main` is the
+ref that carries every Session A change**, and it is the one that deploys and
+the one being read here. Four commits were landed on `main` from a clean
+worktree by cherry-pick, because a worker's uncommitted migration in the shared
+tree blocked the ordinary merge, and nothing of theirs was touched to do it.
+
+**Gates, at `origin/main` `92d6eb2b` in an isolated worktree with
+`node_modules` hardlinked at both roots:** `vitest run` 222 files, 3,613
+passed, 1 skipped, exit 0. `tsc --noEmit` exit 0. `eslint src` was **exit 1
+with two errors**, found by the audit rather than by anybody building, and
+fixed. **`next build` was not run, and that is a gap in this confirmation
+rather than a pass.**
+
+**Production.** READY on recent commits through the session, including the
+light mode removal. Nine cron jobs ran in production today and each wrote its
+own audit row.
+
+**Left uncommitted, and why.** The shared worktree carried dozens of modified
+paths at close, belonging to workers still mid-edit. **Session A committed only
+files it wrote**, by pathspec, never `git add -A` and never a bare
+`git commit`. Committing a neighbour's half written file is what took
+`lib/notify/welcome.ts` off `main` this morning and left eight assertions red
+in two files that had nothing to do with it.
+
+**Two things a reader of this file should check rather than trust.** Three
+statements in earlier reports were measured in this container and written about
+production, and one was measured in the shared worktree and written about
+`main`. They are corrected in A5. **If a claim anywhere in this repository does
+not say which tree or which system it was measured on, treat it as unmeasured.**
 
 ---
 

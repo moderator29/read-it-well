@@ -158,3 +158,45 @@ export async function allCounts<K extends string>(
   if (values.some((v) => v === null)) return null;
   return Object.fromEntries(keys.map((k, i) => [k, values[i]!])) as Record<K, number>;
 }
+
+/** A person's published badge tier, exactly as `public.person_badge` gives it. Never computed here. */
+import type { PersonTier } from "./shapes";
+export type { PersonTier };
+
+/** The pure half of `getPersonTiers`: rows into a map, anything but gold or platinum dropped. Tested. */
+export function tierMap(rows: readonly { user_id: string | null; tier: string | null }[]): Map<string, PersonTier> {
+  const out = new Map<string, PersonTier>();
+  for (const row of rows) {
+    if (row.user_id && (row.tier === "gold" || row.tier === "platinum")) out.set(row.user_id, row.tier);
+  }
+  return out;
+}
+
+/**
+ * THE BADGE (B-BADGE, Session A's end to end). The console reads each named
+ * person's tier from `public.person_badge`, the one published source (SELECT
+ * granted to authenticated), through the operator's own session, and hands
+ * it to the shared slot `app/admin/_components/PersonTier.tsx`. An absent row means no
+ * badge. Nothing here derives a tier. The view is not in the generated types
+ * yet, so it is reached through an untyped view of the same client. A failed
+ * read returns an empty map: the failure direction is a badge that does not
+ * appear, never one that appears wrongly.
+ */
+export async function getPersonTiers(userIds: readonly (string | null | undefined)[]): Promise<Map<string, PersonTier>> {
+  const ids = [...new Set(userIds.filter((id): id is string => Boolean(id)))];
+  if (ids.length === 0) return new Map();
+  const db = await adminReader();
+  if (!db) return new Map();
+  try {
+    const loose = db as unknown as SupabaseClient;
+    const rows: { user_id: string | null; tier: string | null }[] = [];
+    for (let i = 0; i < ids.length; i += 200) {
+      const { data, error } = await loose.from("person_badge").select("user_id, tier").in("user_id", ids.slice(i, i + 200));
+      if (error) return new Map();
+      rows.push(...((data ?? []) as { user_id: string | null; tier: string | null }[]));
+    }
+    return tierMap(rows);
+  } catch {
+    return new Map();
+  }
+}

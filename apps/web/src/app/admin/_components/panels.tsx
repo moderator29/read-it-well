@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { PersonTier } from "./PersonTier";
+import type { PersonTier as PersonTierValue } from "@/lib/admin/reads/shapes";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -391,6 +393,8 @@ export type AlertRow = {
   word: string;
   icon: AdminIcon;
   href?: string;
+  /** The published badge tier of the person the row names, if any (B-BADGE). */
+  tier?: PersonTierValue | null;
 };
 
 export function AlertList({ rows }: { rows: readonly AlertRow[] }) {
@@ -401,7 +405,10 @@ export function AlertList({ rows }: { rows: readonly AlertRow[] }) {
           <>
             <IconPlate icon={row.icon} tone={row.tone} size="sm" />
             <span className="nf-admin-alerts__text">
-              <span className="nf-admin-alerts__title">{row.title}</span>
+              <span className="nf-admin-alerts__title">
+                {row.title}
+                <PersonTier tier={row.tier} size="sm" />
+              </span>
               <span className="nf-admin-alerts__sub">{row.sub}</span>
             </span>
             <span className="nf-admin-alerts__when nf-numeric">{row.when}</span>

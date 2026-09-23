@@ -765,6 +765,8 @@ no desk offers bulk actions or export.
   `getAgentApplications`, `getReports`, `getMessageFlags`,
   `getSupportTickets` in `lib/admin/queries.ts`).
 - **Actions** none of its own: View opens the item on its desk.
+- **Effects** none: the queue reads and routes; every change happens, and is
+  audited, on the desk that owns the item.
 - **Limits** each tab is the first page of that desk's queue, newest first.
 - **Rejected** acting from the table: every decision needs the desk's
   context (evidence, history), so the queue only routes.
@@ -912,6 +914,7 @@ Owned by admin-money; handbook section 12.
   and it says so when it hits that).
 - **Actions** none; the log is read only, and identity documents and
   credentials in a row's detail are withheld (`safeAuditMetadata`).
+- **Effects** none: reading the log writes nothing, not even a view record.
 - **Limits** forty entries a page (`QUEUE_PAGE_SIZE`), newest first; the
   search matches an exact id or words in the action and the target id, not
   the detail bag; the charts on Operations > Audit log read at most 5,000
@@ -963,11 +966,24 @@ Owned by admin-money; handbook section 12.
 
 ### 15.16 What no desk shows yet
 
-Inspections are on Operations > In flight. Account deletions (A12), business
-transfers (A13), the database's jobs one by one (A5), notification volumes
-(A6) and the money reconciliation watch (admin-money's request 10) each have
-a panel there that says what it needs. Held events and the safety scan's
-blocked terms are admin-review's (section 5).
+Inspections are on Operations > In flight, push notifications on Operations >
+Notifications, price checks on Analytics. Account deletions (A12), business
+transfers (A13), the database's jobs one by one with their runs (A5) and the
+money reconciliation watch (admin-money's request 10) each have a panel on
+In flight that says what it needs; in-app notification volumes (A6) and the
+email outbox (A14) have theirs on Notifications. Held events and the safety
+scan's blocked terms are admin-review's (section 5). Mandates
+(`listing_mandates`), firm members (`firm_members`), escrow evidence
+(`escrow_evidence`) and the daily float snapshots (`escrow_float_snapshots`)
+are shown on the desks that own them (sections 5 to 12).
+
+**The badge (B-BADGE).** Wherever the console draws a person's name (the
+operator in the rail and bar, the people named in audit and alert rows, and
+any desk that passes a tier), it keeps one slot, `PersonTier`, fed from
+`public.person_badge` (gold for a checked supplier, platinum for platform
+staff) by `getPersonTiers`. Session A owns the badge's artwork and component;
+until that lands the slot draws nothing, so no badge appears anywhere in
+the console yet.
 
 ## 16. Everyday procedures
 

@@ -11,6 +11,7 @@ import { AdminFrame } from "./_components/AdminFrame";
 import type { AdminIdentity } from "./_components/AdminNav";
 import { EntryGate } from "./_components/EntryGate";
 import { BackButton } from "@/components/site/BackButton";
+import { getPersonTiers } from "@/lib/admin/reads/shared";
 import { ENTRY_COOKIE } from "./_components/entry";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -41,7 +42,13 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const access = await requireAdmin();
   if (access.state !== "admin") return <AccessScreen t={t} state={access.state} />;
 
-  const [counts, shell, jar] = await Promise.all([getQueueCounts(), getShellIdentity(), cookies()]);
+  const [counts, shell, jar, tiers] = await Promise.all([
+    getQueueCounts(),
+    getShellIdentity(),
+    cookies(),
+    // B-BADGE: the operator's published tier, for the shared slot beside their name.
+    getPersonTiers([access.user.id]),
+  ]);
   /* R-E: has this browser session opened the overview as this operator? */
   const entered = jar.get(ENTRY_COOKIE)?.value === access.user.id;
   const badges: Record<string, number> = counts.state === "ok" ? { ...counts.data } : {};
@@ -53,6 +60,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     role: access.isSuperAdmin ? t.admin.shell.bar.owner : t.admin.shell.bar.operator,
     initial: name.charAt(0).toUpperCase() || "V",
     avatarUrl: shell.avatarUrl || null,
+    tier: tiers.get(access.user.id) ?? null,
   };
 
   return (
