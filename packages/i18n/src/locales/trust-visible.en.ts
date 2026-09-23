@@ -84,6 +84,18 @@ export const trustVisibleEn = {
     shelfLine: "Ordered by a published formula. Nobody can pay to be higher.",
     shelfLink: "How it works",
   },
+  /** V-12: every fee as a share of a year's rent, and the law's number beside it. */
+  fees: {
+    /** `{share}` is a percentage such as "10.0%". */
+    shareOfRent: "{share} of a year's rent",
+    /** `{amount}` is money, `{share}` a percentage. */
+    toAgent: "Fees to the agent: {amount}, {share} of a year's rent.",
+    /** `{state}`, `{agency}`, `{legal}`, `{source}`, `{restated}` come from `lib/trust/fee-rules.ts`. */
+    stateRule:
+      "{state}'s published rule is up to {agency} for the agency fee and up to {legal} for the legal fee, each of a year's rent ({source}, restated {restated}).",
+    noCap: "Vallo does not cap anybody's fee. It publishes it.",
+    sortBasis: "Ordered by the agency, legal and agreement fees together, as a share of a year's rent. Listings that did not state their fees come last.",
+  },
   /** V-21: the agent band on a profile, with no score in it. */
   profile: {
     reviews: "Reviews",

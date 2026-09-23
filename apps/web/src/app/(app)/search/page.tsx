@@ -28,6 +28,7 @@ import { findSavedSearch } from "@/lib/saved/searches-queries";
 import { SaveSearchControl } from "@/components/app/saved-searches/SaveSearchControl";
 import { KIND_NOUN, type SortKey } from "@/lib/listings/search-params";
 import { rankRecommended } from "@/lib/listings/ranking";
+import { feeSortKey } from "@/lib/listings/fee-share";
 import { readListingReference } from "@/lib/listings/reference";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { ListingCard } from "@/components/app/ListingCard";
@@ -106,6 +107,18 @@ function sortListings(listings: Listing[], sort: SortKey): Listing[] {
       out.sort((a, b) => {
         const left = moveInFigure(a);
         const right = moveInFigure(b);
+        if (left === null && right === null) return byVerification(a, b);
+        if (left === null) return 1;
+        if (right === null) return -1;
+        return left - right || byVerification(a, b);
+      });
+      break;
+    /* V-12: the fees paid to the agent, as one share of a year's rent.
+       A listing that stated no fee is unstated, not cheap: it sorts last. */
+    case "fees-asc":
+      out.sort((a, b) => {
+        const left = feeSortKey(a);
+        const right = feeSortKey(b);
         if (left === null && right === null) return byVerification(a, b);
         if (left === null) return 1;
         if (right === null) return -1;

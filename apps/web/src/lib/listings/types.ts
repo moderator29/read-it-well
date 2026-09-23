@@ -80,6 +80,12 @@ export type Listing = {
   city: string;
   state: string;
   /**
+   * `listings.state_code` ("LA"), when the row has one. V-12 reads it to
+   * print a state's published fee rule beside the listing's own ratios.
+   * Absent on the seed catalogue.
+   */
+  stateCode?: string;
+  /**
    * Where the place actually is, when the source knows.
    *
    * Optional because the source genuinely may not know:

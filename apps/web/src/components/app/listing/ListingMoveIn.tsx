@@ -4,6 +4,9 @@ import { Amount } from "@/components/ui/Amount";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { TYPE } from "@/components/app/Screen";
 import { moveInLines } from "./move-in-lines";
+import { feeShares, formatBps, type FeeKey } from "@/lib/listings/fee-share";
+import { feeRuleFor } from "@/lib/trust/fee-rules";
+import { formatMoney } from "@vallo/i18n";
 
 /**
  * What it actually costs to move in.
@@ -70,6 +73,12 @@ export function ListingMoveIn({
   if (total <= 0 && declared.length === 0) return null;
 
   const undeclared = lines.length - declared.length;
+  /* V-12: each fee paid to the agent as a share of a year's rent, the three
+     together, and the published state rule beside them as a fact. Integer
+     basis points; never red, never a verdict. */
+  const shares = feeShares(listing);
+  const feeCopy = t.trustVisible.fees;
+  const rule = feeRuleFor(listing.stateCode);
   /* A declared zero agency fee is the direct-from-owner argument in one line,
      so it gets said in words rather than left as a ₦0 in a column. */
   const noAgencyFee = listing.agencyFeeMinor === 0;
@@ -100,6 +109,14 @@ export function ListingMoveIn({
                     point of the line. */}
                 {isDeclared && line.minor !== 0 && line.keeper && (
                   <span className="nf-movein__keeper">{line.keeper}</span>
+                )}
+                {shares?.each[line.key as FeeKey] && (
+                  <span className="nf-movein__keeper nf-numeric" data-testid={`fee-share-${line.key}`}>
+                    {feeCopy.shareOfRent.replace(
+                      "{share}",
+                      formatBps(shares.each[line.key as FeeKey]!.bps, locale),
+                    )}
+                  </span>
                 )}
               </span>
               <span className="nf-movein__figure">
@@ -135,6 +152,25 @@ export function ListingMoveIn({
           </span>
         </span>
       </div>
+
+      {shares?.total && shares.total.minor > 0 && (
+        <p className={`mt-row ${TYPE.body}`} data-testid="fee-share-total">
+          {feeCopy.toAgent
+            .replace("{amount}", formatMoney(shares.total.minor, locale, listing.currency))
+            .replace("{share}", formatBps(shares.total.bps, locale))}
+        </p>
+      )}
+      {shares && rule && (
+        <p className={`mt-inline-tight ${TYPE.caption} leading-relaxed`} data-testid="fee-state-rule">
+          {feeCopy.stateRule
+            .replace("{state}", rule.stateName)
+            .replace("{agency}", formatBps(rule.agencyMaxBps, locale))
+            .replace("{legal}", formatBps(rule.legalMaxBps, locale))
+            .replace("{source}", rule.source)
+            .replace("{restated}", rule.restated)}{" "}
+          {feeCopy.noCap}
+        </p>
+      )}
 
       <p className={`mt-row ${TYPE.caption} leading-relaxed`}>
         {stated ? copy.statedNote : copy.summedNote}

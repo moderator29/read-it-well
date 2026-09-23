@@ -756,6 +756,7 @@ export function mapRow(
     area: row.area ?? row.city ?? "",
     city: row.city ?? "",
     state: (row.state_code ? stateNames.get(row.state_code) : undefined) ?? row.state_code ?? "",
+    ...(row.state_code ? { stateCode: row.state_code } : {}),
     /* Both columns are nullable and the wizard does not force a pin, so a row
        carries a coordinate or it carries neither. A half pair is refused rather
        than mapped, because a latitude with no longitude places a property on

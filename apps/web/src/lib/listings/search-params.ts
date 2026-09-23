@@ -49,7 +49,10 @@ export type SortKey =
   | "top-rated"
   | "price-asc"
   | "price-desc"
-  | "move-in-asc";
+  | "move-in-asc"
+  /* V-12: the agency, legal and agreement fees together, as a share of a
+     year's rent (`fee-share.ts`). Unstated fees sort last. */
+  | "fees-asc";
 
 /**
  * THE FOUR SORTS ALL READ THE HEADLINE PRICE, AND THAT IS THE DEFECT.
@@ -67,7 +70,7 @@ export type SortKey =
  * shelf prints that sentence under the count. Nothing may be added here
  * without answering that question.
  */
-export type SortBasis = "price" | "move-in" | "rating" | "mixed";
+export type SortBasis = "price" | "move-in" | "rating" | "mixed" | "fees";
 
 export const SORTS: { key: SortKey; label: string; basis: SortBasis }[] = [
   { key: "recommended", label: "Recommended", basis: "mixed" },
@@ -75,6 +78,7 @@ export const SORTS: { key: SortKey; label: string; basis: SortBasis }[] = [
   { key: "price-asc", label: "Price: low to high", basis: "price" },
   { key: "price-desc", label: "Price: high to low", basis: "price" },
   { key: "move-in-asc", label: "Move-in cost: low to high", basis: "move-in" },
+  { key: "fees-asc", label: "Lowest fees on top of rent", basis: "fees" },
 ];
 
 /** The basis a sort key orders on, defaulting to the shelf's opening order. */
