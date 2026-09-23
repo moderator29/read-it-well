@@ -201,6 +201,32 @@ is not a queue with unsent mail in it. It is empty. No trigger on `auth.users`,
 This is a materially different statement from the one the documents make, and
 it is the single most important line in section 13.
 
+**But the enqueue half IS built and live, and that was checked rather than
+assumed.** Read from `pg_trigger` joined to `pg_proc` today, non-internal
+triggers only. **Ten triggers exist and all ten are enabled (`tgenabled =
+'O'`):**
+
+| Table | Trigger | Function |
+|---|---|---|
+| `auth.users` | `users_enqueue_welcome_email_on_insert` | `enqueue_welcome_email` |
+| `auth.users` | `users_enqueue_welcome_email_on_confirm` | `enqueue_welcome_email` |
+| `auth.users` | `users_enqueue_password_changed_email` | `enqueue_password_changed_email` |
+| `auth.sessions` | `sessions_enqueue_new_device_email` | `enqueue_new_device_email` |
+| `public.escrows` | `escrows_enqueue_emails` | `escrow_enqueue_emails` |
+| `public.wallet_entries` | `wallet_entries_enqueue_withdrawal_email` | `enqueue_withdrawal_outcome_email` |
+| `public.inspection_requests` | `inspection_requests_enqueue_email` | `enqueue_inspection_booked_email` |
+| `public.agent_verification_checks` | `agent_verification_checks_enqueue_email` | `enqueue_verification_rung_email` |
+| `public.messages` | `messages_enqueue_new_enquiry_email` | `enqueue_new_enquiry_email` |
+| `public.notifications` | `notifications_push_enqueue` | `push_enqueue` |
+
+**So the mark is BUILT AND UNPROVEN and not NOT BUILT, and the reason the
+queue is empty is not a broken trigger.** It is that the events have not
+happened: zero escrows, zero inspection requests, two wallet entries both
+older than the trigger, seven accounts all older than it, and fifteen messages
+across seven conversations, also older. The machinery is in place and has
+simply never had an event to catch. That is a better position than a broken
+trigger and it is still zero proof.
+
 ### 2.2 The templates, and whether each has a path to the wire
 
 **How the mark was established.** The registry itself, not the prose:
@@ -336,6 +362,19 @@ successful drains of an empty queue.**
 `push_tokens` at zero is the load-bearing number. A drain that never fails
 over a queue that never fills, fed by a token table nobody has ever written
 to, is three layers of correct behaviour with no user anywhere near it.
+
+**And the zero was explained rather than left as a suspicion.**
+`public.notifications` holds **26 rows**, from 2026-08-07 to 2026-09-22, and
+`notifications_push_enqueue` fires on every insert into it. Twenty six
+notifications and zero queue rows looks like a broken trigger. It is not one:
+`private.push_enqueue`'s body, read from `pg_proc.prosrc` today, returns early
+when the recipient has no unrevoked row in `public.push_tokens`, with a comment
+saying exactly why (a person who never granted the permission would otherwise
+accumulate a queue row for every notification forever). **With `push_tokens` at
+zero, every one of those 26 inserts took the early return, which is the correct
+behaviour.** The whole body is additionally wrapped so that nothing in it can
+throw into the transaction that confirms a booking or moves money, which is
+good engineering and worth saying.
 
 **What proving it would take.** One real device registering a token through
 `lib/push/devices-actions.ts`, one queued notification, and a human seeing the
@@ -700,10 +739,10 @@ checked-and-fine.**
    checked its privilege claims against the catalogue and nothing else.
    Specifically I did not re-verify the catalogue-guard hashes, the mutation
    log, or that the harness was run from a `git archive` of `origin/main`.
-4. **No typecheck and no lint and no build were run**, at `origin/main` or
-   anywhere. The ledger's floor is four gates and I measured one of them. The
-   suite is green; `tsc`, `eslint` and `next build` at `92d6eb2b` are
-   **unknown** as of this writing.
+4. **No build was run**, at `origin/main` or anywhere. The ledger's floor is
+   four gates; the suite and the typecheck were measured at `92d6eb2b` and
+   both are green. `next build` at `92d6eb2b` is **unknown**, and so is the
+   lint count if the run below did not land before this file was closed.
 5. **RLS was not tested and cannot be tested from here**, because the only SQL
    role available holds `rolbypassrls`. Every policy on every table in this
    register is unverified. The grants are checked; the policies are not.
@@ -777,7 +816,7 @@ omitted, because omitting it would flatter the total.
 | | |
 |---|---|
 | Test suite at `origin/main` `92d6eb2b` | **222 files, 3613 passed, 1 skipped, exit 0.** Isolated worktree, `cp -al` hardlinks at root and `apps/web`. **DONE.** |
-| Typecheck at `origin/main` | **not run today. Unknown.** |
+| Typecheck at `origin/main` | `npx tsc --noEmit -p tsconfig.json` in the same isolated worktree: **exit 0, no diagnostics.** **DONE.** |
 | Lint at `origin/main` | **not run today. Unknown.** |
 | Build at `origin/main` | **not run today. Unknown.** |
 | Production deployment | Live and serving: seven cron routes reached it and wrote audit rows between 02:30Z and 11:30Z today. |
