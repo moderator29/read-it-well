@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { IconPlate } from "@/components/ui/IconPlate";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -29,9 +30,9 @@ export default async function AdminSettingsPage() {
         {(ADMIN_SETTINGS.children ?? []).map((desk) => (
           <Panel key={desk.key}>
             <Link href={desk.href} className="nf-admin-hub">
-              <span className="nf-admin-plate nf-admin-plate--brand nf-admin-plate--md" aria-hidden="true">
+              <IconPlate tone="brand" size="md">
                 <NavIcon icon={desk.icon} size={24} />
-              </span>
+              </IconPlate>
               <span className="nf-admin-hub__text">
                 <span className="nf-admin-panel__title">{labelFor(desk, shell)}</span>
                 <span className="nf-admin-hub__lede">{LEDES[desk.key] ?? ""}</span>

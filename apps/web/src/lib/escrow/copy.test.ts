@@ -58,7 +58,7 @@ function flat(text: string): string {
 
 const EVERY_EMAIL = [
   heldPaymentProposed({ ...base, viewer: "payer" }),
-  heldPaymentProposed({ ...base, viewer: "payee", note: "For the viewing on Saturday." }),
+  heldPaymentProposed({ ...base, viewer: "payee", note: "For the inspection on Saturday." }),
   heldPaymentSetAside({ ...base, viewer: "payer", autoReleaseAt: "2026-10-14T09:00:00Z" }),
   heldPaymentSetAside({ ...base, viewer: "payee", autoReleaseAt: "2026-10-14T09:00:00Z" }),
   heldPaymentPayoutAsked({ ...base, viewer: "payer", autoReleaseAt: "2026-10-14T09:00:00Z" }),
@@ -71,25 +71,25 @@ const EVERY_EMAIL = [
     netMinor: 237_500,
     automatic: true,
   }),
-  heldPaymentReturned({ ...base, viewer: "payer", reason: "The viewing never happened." }),
+  heldPaymentReturned({ ...base, viewer: "payer", reason: "The inspection never happened." }),
   heldPaymentReturned({ ...base, viewer: "payee" }),
   heldPaymentDisputed({
     ...base,
     viewer: "payer",
     raisedByYou: true,
-    reason: "Nobody turned up for the viewing.",
+    reason: "Nobody turned up for the inspection.",
   }),
   heldPaymentDisputed({
     ...base,
     viewer: "payee",
     raisedByYou: false,
-    reason: "Nobody turned up for the viewing.",
+    reason: "Nobody turned up for the inspection.",
   }),
   heldPaymentRuling({
     ...base,
     viewer: "payer",
     direction: "refund",
-    ruling: "Neither side produced a record of a viewing, so the money goes back.",
+    ruling: "Neither side produced a record of an inspection, so the money goes back.",
     netMinor: 250_000,
     commissionMinor: 0,
   }),
@@ -279,7 +279,7 @@ describe("the held payment emails", () => {
   });
 
   it("puts the ruling in front of both sides word for word", () => {
-    const ruling = "Neither side produced a record of a viewing, so the money goes back.";
+    const ruling = "Neither side produced a record of an inspection, so the money goes back.";
     for (const viewer of PARTIES) {
       const email = heldPaymentRuling({
         ...base,

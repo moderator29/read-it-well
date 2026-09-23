@@ -38,7 +38,7 @@ export function buildAgentNav(t: Dictionary, unreadMessages = 0): NavSection[] {
         /*
          * INSPECTIONS ARE A DESTINATION, not a filter on bookings.
          *
-         * In this market the viewing is the deal: an annual tenancy is agreed
+         * In this market the inspection is the deal: an annual tenancy is agreed
          * after somebody has stood in the flat, and nothing before that step
          * is worth anything. It earns a row for the same reason Bookings does
          * - it is a queue of other people's requests waiting on this person -

@@ -96,7 +96,7 @@ describe("the thirteen facts", () => {
 
   it("folds the date or the amount into the sentence, and neither into the wrong one", () => {
     expect(factSentence({ fact: "viewing_attended", happenedOn: "2026-10-03" })).toContain(
-      "The viewing happened on",
+      "The inspection happened on",
     );
     expect(factSentence({ fact: "amount_agreed", amountMinor: 25_000_00 })).toContain(
       "The amount agreed",

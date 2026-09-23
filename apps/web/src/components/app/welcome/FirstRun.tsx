@@ -1,13 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import type { Dictionary } from "@vallo/i18n";
 import { LogoMark } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { markWelcomeSeen, skipInterests } from "@/lib/interests/actions";
 import { InterestChoices } from "./InterestChoices";
 import { WelcomeScene, type SceneCentre } from "./WelcomeScene";
@@ -461,49 +461,50 @@ export function FirstRun({
 
       <div className="nf-gs-actions">
         {!onLast ? (
-          <button
-            type="button"
-            className="nf-gs-btn nf-gs-btn--lit"
+          <Button
+            variant="primary"
+            size="lg"
+            className="nf-gs-btn"
             onClick={() => goTo(index + 1)}
             data-testid={index === 0 ? "welcome-get-started" : "welcome-next"}
           >
             <span>{index === 0 ? w.getStarted : f.next}</span>
             <UiIcon name="arrow-right" size={20} />
-          </button>
+          </Button>
         ) : guest ? (
           <div className="nf-gs-doors">
             {signInFirst ? (
               <>
-                <Link href={signInHref} onClick={door(signInHref)} className="nf-gs-btn nf-gs-btn--lit" data-testid="welcome-sign-in">
+                <ButtonLink variant="primary" size="lg" href={signInHref} onClick={door(signInHref)} className="nf-gs-btn" data-testid="welcome-sign-in">
                   {f.choice.signIn}
-                </Link>
-                <Link href={signUpHref} onClick={door(signUpHref)} className="nf-gs-btn nf-gs-btn--glass" data-testid="welcome-create">
+                </ButtonLink>
+                <ButtonLink variant="secondary" size="lg" href={signUpHref} onClick={door(signUpHref)} className="nf-gs-btn" data-testid="welcome-create">
                   {f.choice.create}
-                </Link>
+                </ButtonLink>
               </>
             ) : (
               <>
-                <Link href={signInHref} onClick={door(signInHref)} className="nf-gs-btn nf-gs-btn--glass" data-testid="welcome-sign-in">
+                <ButtonLink variant="secondary" size="lg" href={signInHref} onClick={door(signInHref)} className="nf-gs-btn" data-testid="welcome-sign-in">
                   {f.choice.signIn}
-                </Link>
-                <Link href={signUpHref} onClick={door(signUpHref)} className="nf-gs-btn nf-gs-btn--lit" data-testid="welcome-create">
+                </ButtonLink>
+                <ButtonLink variant="primary" size="lg" href={signUpHref} onClick={door(signUpHref)} className="nf-gs-btn" data-testid="welcome-create">
                   {f.choice.create}
-                </Link>
+                </ButtonLink>
               </>
             )}
           </div>
         ) : (
-          <button
-            type="button"
-            className="nf-gs-btn nf-gs-btn--lit"
+          <Button
+            variant="primary"
+            size="lg"
+            className="nf-gs-btn"
             onClick={onDone}
-            disabled={pending}
-            aria-busy={pending || undefined}
+            loading={pending}
             data-testid="welcome-continue"
           >
             <span>{f.member.continue}</span>
             <UiIcon name="arrow-right" size={20} />
-          </button>
+          </Button>
         )}
 
         {onLast ? null : (

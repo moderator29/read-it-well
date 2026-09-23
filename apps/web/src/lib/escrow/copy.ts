@@ -367,8 +367,8 @@ export const ESCROW_FACTS: readonly {
   line: string;
   needs: FactNeeds;
 }[] = [
-  { value: "viewing_attended", line: "The viewing happened", needs: "date" },
-  { value: "viewing_missed", line: "The viewing did not happen", needs: "date" },
+  { value: "viewing_attended", line: "The inspection happened", needs: "date" },
+  { value: "viewing_missed", line: "The inspection did not happen", needs: "date" },
   { value: "keys_received", line: "The keys were handed over", needs: "nothing" },
   { value: "keys_not_received", line: "The keys were not handed over", needs: "nothing" },
   { value: "agreement_signed", line: "An agreement was signed", needs: "nothing" },

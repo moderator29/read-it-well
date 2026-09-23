@@ -399,7 +399,7 @@ export default async function ListingDetailPage({
 
   if (isSale) {
     aboutParagraphs.push(
-      "This property is for sale. Message the agent to ask questions and arrange a viewing, and have your own solicitor verify the title before any money changes hands.",
+      "This property is for sale. Message the agent to ask questions and arrange an inspection, and have your own solicitor verify the title before any money changes hands.",
     );
   } else if (isRental) {
     aboutParagraphs.push(

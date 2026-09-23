@@ -82,7 +82,7 @@ export default async function BookingsPage({
   const groups = unavailable ? null : loaded;
 
   /*
-   * THE VIEWINGS THIS PERSON HAS ASKED FOR.
+   * THE INSPECTIONS THIS PERSON HAS ASKED FOR.
    *
    * A booking is a stay that is paid for; an inspection is the step before
    * anybody pays for anything, and in the rental market it is the ONLY step

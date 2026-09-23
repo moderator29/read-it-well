@@ -38,7 +38,7 @@ import { isOpen } from "@/lib/inspections/types";
  * INSPECTIONS COME FIRST, AND THAT IS THE PRODUCT ARGUMENT
  * ---------------------------------------------------------------------------
  *
- * In this market a viewing is the deal. An annual tenancy is agreed after
+ * In this market an inspection is the deal. An annual tenancy is agreed after
  * somebody has stood in the flat; a sale is agreed after somebody has walked
  * the land. Until now the platform could not represent that step at all - it
  * lived as sentences inside a chat thread, which meant an agent with nine

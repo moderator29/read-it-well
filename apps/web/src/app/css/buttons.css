@@ -261,122 +261,48 @@
 
   /* ---- primary: the signature gradient, lit on the moments that earn it ---- */
   /*
-   * THE PRIMARY IS LIT AT REST, on the founder's ruling of 19 September:
-   * "retire all our buttons colours to this new one ... make it this style of
-   * blue like really shiny".
+   * THE PRIMARY IS GET STARTED'S LIT BAR (the wide platform sweep, 23
+   * September). The founder named Get started and the console as the
+   * reference for the whole product, so the primary takes the anatomy built
+   * there, from the tokens in the "REFERENCE ANATOMY" block of tokens.css:
+   * a bright band top and bottom round a saturated core, lit edges all round,
+   * a white rim along the top, an inner glow, a short strong bloom below, and
+   * a pool of light cast on the surface under the bar (the `::after`).
    *
-   * The fill and the edge were already the render's. What was missing was the
-   * light: this button carried no outer glow at all until a pointer hovered
-   * it, so on a phone, which is the whole product, the platform's signature
-   * control never once threw light on the screen around it. Every primary in
-   * the reference renders sits in its own bloom. Two rungs, near and far, so
-   * the button reads as lit rather than as outlined, and the press and hover
-   * states below step up from this floor instead of introducing it.
+   * It replaces the three-stop `--nf-gradient-cta` primary with its press
+   * ripple. The ripple needed `overflow: hidden`, which would clip the pool,
+   * and the press is still answered by the scale in `.nf-btn:active`.
+   * `isolation` goes back to auto so the pool, at z-index -1, sits BEHIND the
+   * bar on the surface rather than over its foot.
    */
   .nf-btn--primary {
     position: relative;
-    overflow: hidden;
+    isolation: auto;
     color: var(--nf-content-on-brand);
-    background: var(--nf-gradient-cta);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    /*
-     * THE PRIMARY CONTROL IS LIT, AND THE TOKENS UNDER THIS CARRY ALL OF IT.
-     * `--nf-rim-primary` is the specular rim, `--nf-bloom-lit` is the two
-     * shadows, `--nf-gradient-cta` is the curve. Both have light twins. No
-     * component paints its own light, which is the whole instruction.
-     *
-     * THE RULING THAT STOOD HERE WAS MEASURED ON NOISE AND IS REPLACED. It
-     * read the bloom outward from the button's RIGHT edge, found it gone by
-     * twenty pixels, and took ours down twice over on the strength of it. The
-     * phone bezel in these renders is thirteen pixels to the side and is
-     * itself lit. Re-running the instrument reports the horizontal bloom dying
-     * at 1px, going NEGATIVE at 16px and back up to +13.0 at 24px: that is not
-     * a decay curve, that is a bezel. The vertical sample is the only clean
-     * one and the light reaches 52px.
-     *
-     * BOTH FOUNDER COMPLAINTS ARE TRUE AND THEY ARE THE SAME FAULT. "Neon"
-     * was `0 10px 30px`, a thirty pixel coloured shadow pushed ten pixels
-     * DOWN, which is an object casting a coloured shadow, not an object
-     * emitting light. "Flat" is what was left after that was cut back. Zero
-     * offset is the difference, and it is why the tokens carry no y offset at
-     * night.
-     */
-    box-shadow:
-      var(--nf-rim-primary),
-      var(--nf-bloom-lit);
+    border: var(--nf-border-width) solid;
+    border-color: var(--nf-btn-lit-edges);
+    background: var(--nf-btn-lit-fill);
+    box-shadow: var(--nf-btn-lit-shadow);
+    text-shadow: var(--nf-btn-lit-text-glow);
   }
-  /*
-   * The signature ripple, ON PRESS ONLY and half as long.
-   *
-   * It was a 650ms sweep on hover and a 480ms one on press, at 32 percent white.
-   * 650ms is nearly twice `--nf-duration-slow`, so the platform's single most
-   * used control carried its longest animation, and it ran on a pointer event
-   * that most of this product's users do not have. A press sweep is a physical
-   * answer to a finger; a hover sweep is a light show.
-   *
-   * AND IT TAKES THE PSEUDO-ELEMENT FROM THE SHEEN, DELIBERATELY. The base
-   * `.nf-btn::after` is a specular gloss across the upper half, and this rule
-   * has the same specificity and comes later, so the primary has no sheen. That
-   * was true before anyone wrote it down, which made it indistinguishable from
-   * an accident.
-   *
-   * It is the right trade. The primary's fill is `--nf-gradient-cta`, a
-   * vertical ramp that is already lightest at the top, and it carries
-   * `inset 0 1px 0 var(--nf-glass-rim)` as well, so the top light is stated
-   * twice before any gloss is added; a third statement of it is not depth, it
-   * is haze. The ripple, by contrast, is the ONLY physical feedback a touch
-   * user gets from the platform's most-pressed control. One slot, and the
-   * feedback wins.
-   */
   .nf-btn--primary::after {
     content: "";
     position: absolute;
-    inset: -40% -60%;
-    pointer-events: none;
+    inset: auto;
+    left: 12%;
+    right: 12%;
+    top: calc(100% - 6px);
+    height: var(--nf-btn-lit-pool-height);
     z-index: -1;
-    /* The sweep crosses on the platform's light, not on its own angle. It was
-       cut at 115, and a press highlight travelling across a face lit from 152
-       is a second light source that only exists for 260ms. */
-    background: linear-gradient(
-      var(--nf-light-angle),
-      transparent 42%,
-      color-mix(in oklab, var(--nf-content-on-brand) 18%, transparent) 50%,
-      transparent 58%
-    );
-    transform: translateX(-130%);
+    pointer-events: none;
+    border-radius: 0;
+    opacity: 1;
+    background: var(--nf-btn-lit-pool);
+    filter: blur(var(--nf-btn-lit-pool-blur));
   }
-  .nf-btn--primary:active:not(:disabled)::after {
-    transform: translateX(130%);
-    transition: transform var(--nf-duration-base) var(--nf-ease-standard);
-  }
-  .nf-btn--primary:active:not(:disabled) {
-    /* Pressed, the bloom pulls in: a control under a finger is closer to the
-       surface, so the far rung goes and the near one tightens. */
-    box-shadow:
-      var(--nf-rim-primary),
-      var(--nf-bloom-lit-press);
-  }
-  /*
-   * Hover is a pointer state and nothing else. Without the media query a plain
-   * `:hover` sticks after a tap on iOS and Android, so a button somebody pressed
-   * stayed lit until they touched something else, which is the opposite of the
-   * press reading as a moment.
-   */
   @media (hover: hover) {
     .nf-btn--primary:hover:not(:disabled) {
-      border-color: var(--nf-brand-edge-strong);
-      /* Hover lifts the same two shadows rather than introducing a third
-         light: the tight one opens a little and the wide one gains alpha, so
-         the control brightens without changing what it is made of. The y
-         offset stays at zero for the same reason it does at rest. */
-      box-shadow:
-        var(--nf-rim-primary),
-        var(--nf-bloom-lit-hover);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .nf-btn--primary::after {
-      display: none;
+      box-shadow: var(--nf-btn-lit-shadow-hover);
     }
   }
 
@@ -476,21 +402,24 @@
    * quieter volume, with no bloom of its own: the pair is one lit object and
    * one glass one, which is what the renders draw.
    */
+  /* Get started's glass secondary (the sweep, 23 September): the brand glass
+     wash, the container edge, the lit rim and a faint bloom over a soft blur,
+     and no sheen of its own, as Get started draws it. */
   .nf-btn--glass {
-    color: var(--nf-content-secondary);
-    background: var(--nf-glass-fill);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
-    box-shadow:
-      inset 0 1px 0 var(--nf-rim-lit-ink),
-      var(--nf-elev-1);
+    color: var(--nf-content-primary);
+    background: var(--nf-btn-glass-fill);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    box-shadow: var(--nf-btn-glass-shadow);
+  }
+  .nf-btn--glass::after {
+    content: none;
   }
   @media (hover: hover) {
     .nf-btn--glass:hover:not(:disabled) {
       background: var(--nf-glass-fill-strong);
       border-color: var(--nf-brand-edge);
-      color: var(--nf-content-primary);
     }
   }
 
@@ -653,22 +582,11 @@
     }
   }  @media (hover: hover) {  }
 
-  /* The lit primary. Rung 2 at rest, rung 3 on hover, and the same inset rim
-     the base primary carries so the two read as one object with the light on. */
-  .nf-btn--primary.nf-btn--lit {
-    border-color: var(--nf-brand-edge-strong);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 18px var(--nf-glow-2),
-      0 8px 24px -10px var(--nf-glow-3);
-  }
-  @media (hover: hover) {
-    .nf-btn--primary.nf-btn--lit:hover:not(:disabled) {
-      box-shadow:
-        inset 0 1px 0 var(--nf-glass-rim),
-        0 0 24px var(--nf-glow-3),
-        0 10px 28px -10px var(--nf-glow-4);
-    }
+  /* `.nf-btn--lit` (the `glow` prop) is now the primary's resting state: the
+     primary carries the lit bar's bloom and pool at rest, so the class adds
+     nothing and is kept only so call sites that pass `glow` stay valid. */
+  .nf-btn--primary:disabled {
+    text-shadow: none;
   }
   /*
    * `.nf-btn--pill` STOOD HERE AND IS DELETED, and this is the decision

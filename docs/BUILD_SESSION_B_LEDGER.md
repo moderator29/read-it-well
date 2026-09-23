@@ -3933,6 +3933,166 @@ validation, policy, table, trigger, notification, query, screen). Proven: 6 of
 harness in a production build; validation by code reading. The control and
 the action were not exercised live; the notification link is DP-1.
 
+## 13.0 Platform sweep: the shared layer (Phase 1, worker "shared")
+
+Released: 42ea43d9 (the layer), 9da8f86f (one step more glow, the Switch).
+Everything the console and Get started drew for themselves (container,
+edge, rim, glow, corner, icon plate, selected state, lit primary, glass
+secondary) now comes from one token block and three components. The values
+were moved exactly, not re-measured: where a value came from is in the
+table.
+
+### Use these (for the Phase 2 workers)
+
+| Primitive | File | Props | Classes it writes |
+|---|---|---|---|
+| `Panel` | `components/ui/Panel.tsx` | `as?` (element, default `section`), `variant?: "panel" \| "card"`, `flush?`, `glass?`, `className?`, plus the element's own props; also `panelClass({variant, flush, glass, className})` for a `Link` or other element you cannot swap | `.nf-panel`, `.nf-panel--card`, `.nf-panel--flush`, `.nf-panel--glass` (glass.css) |
+| `IconPlate` | `components/ui/IconPlate.tsx` | `size?: "sm" \| "md" \| "lg"` (36 / 44 / 56), `tone?: "brand" \| "success" \| "error" \| "pending" \| "info"`, `className?`, `children` (the glyph; `ICON_PLATE_GLYPH[size]` gives 16 / 24 / 24); also `iconPlateClass()` | `.nf-plate`, `.nf-plate--{tone}`, `.nf-plate--{size}` (controls.css) |
+| `Button` / `ButtonLink` | `components/ui/Button.tsx` (API unchanged) | `variant="primary"` is now Get started's lit bar; `variant="secondary"` is Get started's glass door; `glow` is now inert (the primary is lit at rest) | `.nf-btn--primary`, `.nf-btn--glass` (buttons.css) |
+| `Switch` | `components/ui/Switch.tsx` (API unchanged) | | `.nf-switch` (controls.css): glass track off, lit bar on, rimmed thumb |
+
+Rules: a surface adds layout through `className` and never restates the
+material. The selected state has no component: use the `--nf-selected-*`
+tokens on the surface's own tab or row (the console's `.nf-admin-seg__item--on`
+and `.nf-admin-nav__row--on` are the worked examples).
+
+### The token table
+
+All in `packages/design-tokens/src/tokens.css`, block "THE REFERENCE ANATOMY".
+"admin" is `app/css/admin.css` as it stood at ccf594ba (the `.nf-admin` custom
+properties), "welcome" is `app/welcome/welcome.css` at the same commit.
+
+| Token | Value (measured; the glow step's value in brackets) | Came from |
+|---|---|---|
+| `--nf-lit` | `var(--nf-brand-primary)` | admin `--nf-admin-lit` |
+| `--nf-lit-cyan` | info 55% into white | admin `--nf-admin-lit-cyan` |
+| `--nf-container-radius` | `var(--nf-radius-sm)` = 10px (was `--nf-radius-lg`, no reader) | admin `--nf-admin-radius` (re-measured 10 on the four renders, ledger 6.2) |
+| `--nf-panel-fill` | radial cyan catch 55% x 14px at top centre + ten-stop ramp, lit 42/38/31/26/20% at 0/3/8/15/36px, 16% mid, 20/26/32/37% up the foot | admin `--nf-admin-panel-fill` (5EAA44CB column scans) |
+| `--nf-panel-fill-card` | same catch + lit 50/44/38/32% at 0/6/13/22px, 18% mid, 22/28/34% foot | admin `--nf-admin-card-fill` |
+| `--nf-panel-blur` | `var(--nf-glass-blur-soft)` (12px), applied only by `.nf-panel--glass` | new role; the console's panels are opaque on flat canvas and carry no blur |
+| `--nf-panel-edge` | brand 62% | admin `--nf-admin-panel-edge` |
+| `--nf-panel-edges` | top lit 82% + info, right lit 72% + canvas, foot lit 70% + info, left lit 74% + canvas | admin `--nf-admin-panel-edges` (re-sampled #0066D1..#0078E8 top etc.) |
+| `--nf-panel-catch` | lit 78% + info [lit 68% + info] | admin `--nf-admin-catch` |
+| `--nf-panel-rim` | `inset 0 1px 0 var(--nf-panel-catch)` | admin, the `inset 0 1px 0 var(--nf-admin-catch)` every container restated |
+| `--nf-panel-halo` | `0 0 3px` info 34% [`0 0 5px` info 46%] | admin, third layer of `--nf-admin-panel-glow` |
+| `--nf-panel-glow` | inset top lit 90%, inset left lit 70% + canvas, `var(--nf-panel-halo)` | admin `--nf-admin-panel-glow` |
+| `--nf-panel-hair` | brand 22% | admin `--nf-admin-hair` |
+| `--nf-plate-size-sm` / `-md` / `-lg` | 2.25rem / 2.75rem / 3.5rem | admin `.nf-admin-plate--sm` / `--md`; `-lg` is a new rung for hero plates |
+| `--nf-plate-radius` / `-radius-sm` | `--nf-radius-sm` (10) / `--nf-radius-xs` (6) | admin `.nf-admin-plate`, `--sm` |
+| `--nf-plate-fill` | radial lit 55% centre + lit 72/46/38/66% ramp | admin `--nf-admin-tile-fill` |
+| `--nf-plate-edge` / `-edges` | brand 70% / per side (info 80% top, lit 60% sides, info 90% + white left) | admin `.nf-admin-plate` border, `--nf-admin-tile-edges` |
+| `--nf-plate-rim` | inset left info 70%, inset top lit-cyan 55% | admin `--nf-admin-tile-shadow` layers 1, 2 |
+| `--nf-plate-inner-light` | `inset 0 -2px 3px -1px` lit 60% | admin `--nf-admin-tile-shadow` layer 3 |
+| `--nf-plate-glow` | `0 0 8px` lit 25% [`0 0 10px` lit 34%] | admin `--nf-admin-tile-shadow` layer 4 |
+| `--nf-plate-shadow` | rim, inner light, glow | admin `--nf-admin-tile-shadow` |
+| `--nf-plate-glyph-glow` | `drop-shadow(0 0 4px` lit-cyan 80%) | admin `.nf-admin-plate > svg` |
+| `--nf-selected-fill` | `var(--nf-gradient-cta)` | admin `.nf-admin-nav__row--on`, `.nf-admin-seg__item--on` |
+| `--nf-selected-edge` / `-edges` | rim-lit-ink 60% + brand / cyan-lit per side | admin row border, `--nf-admin-cta-edges` |
+| `--nf-selected-rim` | `inset 0 1px 0` white 55% | admin, both selected rules |
+| `--nf-selected-shadow` | rim, `0 0 18px` brand 55% [22px 64%], `0 6px 16px -6px` brand 70% | admin `.nf-admin-nav__row--on` |
+| `--nf-selected-shadow-inline` | rim, `0 0 18px` brand 50% [22px 58%] | admin `.nf-admin-seg__item--on` |
+| `--nf-btn-lit-edges` | top warning 22% into on-brand, sides brand 70% + warning, foot warning 32% into on-brand | welcome `.nf-gs-btn--lit` (#e4feff top, #0180fb sides, #d6faff foot on 2A49E2F7) |
+| `--nf-btn-lit-fill` | radial cyan lift 45% x 75% at 50% 88% + ramp brand 92% / 74% / 68% / 100% / 70% at 0 / 24 / 62 / 88 / 100% (sRGB) | welcome (#047bfb, #002cdb, #0027d1, #026dfa down the centre) |
+| `--nf-btn-lit-rim` | `inset 0 1px 0` warning 30% into on-brand [20%] | welcome |
+| `--nf-btn-lit-inner` / `-inner-hover` | `inset 0 0 12px` 70% / `16px` 80% | welcome |
+| `--nf-btn-lit-bloom` | `0 5px 14px -2px` 65%, `0 -2px 10px` 22% [`0 6px 16px -2px` 74%, `0 -2px 12px` 30%] | welcome |
+| `--nf-btn-lit-bloom-hover` | `0 4px 12px -2px` 70%, `0 -2px 12px` 28% [`0 5px 14px -2px` 78%, `0 -2px 14px` 34%] | welcome `:hover` |
+| `--nf-btn-lit-shadow` / `-shadow-hover` | rim, inner, bloom | welcome |
+| `--nf-btn-lit-text-glow` | `0 0 10px` on-brand 35% | welcome |
+| `--nf-btn-lit-pool` | radial 50% x 55% at 50% 16%, brand 58% / 16% / 0 [68% / 22%] | welcome `.nf-gs-btn--lit::after` (+136 / +65 / +25 blue at 4 / 10 / 20px) |
+| `--nf-btn-lit-pool-height` / `-blur` | 48px / 3px | welcome `::after` |
+| `--nf-btn-glass-fill` | brand 22% to 8% | welcome `.nf-gs-btn--glass` |
+| `--nf-btn-glass-edge` | `var(--nf-container-edge)` | welcome |
+| `--nf-btn-glass-shadow` | rim-lit-ink inset, `0 0 18px -6px` glow-3 [`0 0 20px -5px`] | welcome |
+| `--nf-btn-glass-blur` | `var(--nf-glass-blur-soft)` | welcome |
+| `--nf-badge-gold-*`, `--nf-badge-platinum-*` | the ten metal stops, unchanged | `app/css/trust-badge.css` (TK-1; moved so no stylesheet under `app/` holds a raw colour) |
+
+Existing names all still resolve. `--nf-gradient-cta`, `--nf-rim-primary`,
+`--nf-bloom-lit*` are untouched; the primary button no longer reads them.
+
+### The glow step (founder addendum item 3)
+
+One block after the main token block, "A LITTLE MORE GLOW: ONE STEP", redeclares
+the ten tokens bracketed above. Deleting that block restores the measured
+values. No ink, fill or text-shadow token moves; no blur is animated; the
+widest halo (the selected row) grows 18 to 22px, inside the console's 16px
+gaps plus the neighbour's own edge.
+
+### Identity diff (the proof that the extraction changed nothing)
+
+Method: `origin/main` at ccf594ba built for production and started with the
+harness gate, 38 full-page shots from the committed harnesses
+(`/preview/session-b/admin/{overview, overview?state=live, operations,
+analytics, back}`, `/preview/session-b/admin-money/{money, escrow, payments,
+bookings, supply}` each bare and `?state=full`, `/preview/session-b/welcome`
+as member, and walked to the last slide as guest, done and member), at 390
+(DPR 2) and 1440 (DPR 1), dark, reduced motion, clock fixed. Then the same
+shots from the extracted build (before the glow step) and a pixel diff.
+Shots were compared against a fresh shot of committed code rather than the
+committed JPEG proofs, because a JPEG cannot show a zero diff; the committed
+proofs are older than several later commits to the same harnesses.
+
+| Result | Shots |
+|---|---|
+| 0 pixels different | 35 of 38: every console route, every money desk bare and full except escrow full, every Get started state at both widths except the guest doors |
+| Guest doors (Sign in / Create account) | 390: 27,119 px differ by at most 4 levels of 255 (not visible). 1440: 21 px differ by more than 8, all on the two left corners of Create account: corner antialiasing from a sub-pixel shift, no colour or geometry change |
+| Escrow desk, `?state=full` | The desk's two secondary buttons ("Release to", "Refund to") change on purpose: the platform secondary now IS Get started's glass door (blue glass, container edge, white label) instead of the old grey glass. The rest of that page's diff is text antialiasing mode (grayscale to subpixel), which Chrome switches when a backdrop-filter layer changes. No layout moved (page heights identical) |
+
+The admin-money desks' primary buttons showed 0 difference: the desks' actions
+were already drawn by the console's own classes where the harness shows them.
+
+With the glow step: all page heights identical, differences at most 15 to 40
+levels of 255, only on panel edges, halos, plates, the selected row and tab,
+and the lit button's bloom and pool. The console and Get started therefore read
+"identical anatomy, glow +1 step".
+
+Proofs (JPEG, `docs/design/proofs/session-b/sweep-shared/`):
+`overview-390-before-vs-extracted.jpg`, `welcome-doors-390-before-vs-extracted.jpg`,
+`escrow-secondary-390-before-vs-shared-glass.jpg`,
+`overview-1440-measured-vs-glow-step.jpg`, `welcome-390-measured-vs-glow-step.jpg`,
+`switch-on-390-thumb-centred.jpg`.
+
+### The Switch
+
+The thumb carried Tailwind's `-translate-y-1/2` (the CSS `translate`
+property) and an inline `transform: translate(x, -50%)`, so it was lifted
+twice. Dropped the class. Measured in the production build on `/preview/g1`
+at 390: the 52x32 track, thumb 4px from the top and 4px from the bottom on
+and off; 5px from the near side and 23px from the far one in both states.
+Anatomy: off is the glass door's fill over the well on a blue panel edge with
+the lit rim; on is the lit primary's fill, edges and shadow; the thumb has a
+1px panel-edge ring (the catchlight when on).
+
+### Checks
+
+tsc clean; eslint clean on every changed TS file; `check-css-tokens` exit 0
+(clean, all ten checks) for the first time since TK-1, because the badge's
+ten literals moved into tokens and the tokens header no longer names the
+deleted light stylesheet; vitest `app/admin`, `app/welcome`,
+`components/app/welcome`, `components/ui`: 8 files, 62 tests passed. Shape:
+the sweep tool measured no controls on the harness routes (its "0 combinations
+measured"), so I measured them: welcome primary and glass 324x56 and 156x56,
+radius 14, ratio 0.25; console tabs 44 tall r14 0.32, rail rows 42 tall r14
+0.33, child rows r10 0.28, badges r6 0.25; escrow buttons 0.28 and 0.32.
+Nothing at or above 0.35.
+
+### Not done or not verified
+
+- Other stylesheets still override `.nf-btn--primary` for their own surface
+  (auth.css, landing.css, agent.css, home.css): those are Phase 2 groups'
+  to delete. Until they do, those surfaces keep their local primary.
+- `.nf-card` (glass.css) is not re-pointed at the panel anatomy: it has
+  hundreds of readers and Get started's interest tiles use it; moving it is a
+  surface-by-surface decision for Phase 2 (use `Panel`).
+- The pool under the primary sits at z-index -1 in the nearest stacking
+  context: over a card that is not itself a stacking context the card's fill
+  can cover it. Where a sweep worker sees no pool, give the card
+  `isolation: isolate`.
+- The shared `.nf-btn--primary` lost its press ripple (it needed
+  `overflow: hidden`, which clips the pool); the press scale remains.
+- The Switch was checked on `/preview/g1` only; `settings-rows.css` had its
+  own `.nf-switch` rules, removed by sweep-settings in 790d8c2a.
+
 ## 13. Platform sweep: stays (stays, stay detail, trips, restaurants, checkout, held payments; worker "sweep-stays")
 
 Group files (scope ccf594ba): `app/css/stays.css`, `app/css/escrow.css` and the route components:
@@ -4088,6 +4248,14 @@ host-house-rules, host-restaurant, host-tables, host-facilities). All fixture-ba
 overflow 0 on every shot.
 
 (Apply, per-route table, after proofs and Passes 1 to 3: pending Phase 1 RELEASED.)
+
+**Founder's second message, taken in (23 September).** At least three dated audit passes per
+route (none of this group's routes is on the five-pass list; the thread booking card is the
+messages group's), recorded below as Pass 1, 2, 3 with what each found and fixed. The extra
+glow and the glass reflection come ONLY from the shared tokens and primitives Phase 1 ships:
+nothing in `stays.css` or `escrow.css` will restate a sheen, rim or glow value. A route closes
+only when no old local recipe is left on it; items drawn by another group's file are recorded
+per route as not closable here, never as done.
 
 ## 13. Platform sweep: settings (settings and every child, notifications, the system pages; worker "sweep-settings")
 
@@ -4675,6 +4843,169 @@ proved, its rows are proved by code only.
 
 (Pass 1, Pass 2, Pass 3: pending)
 
+
+## 13. Platform sweep: home (both sides), search and filters, listing detail, price check (worker "sweep-home")
+
+Scope (SESSION_B_SCOPE, "Sweep group: home, search and filters, listing
+detail"): `app/css/home.css`, `explore.css`, `catalogue.css`, `map.css`,
+`price-check.css` and the components they style (`components/app/home/**`,
+`search/**`, `filters/**`, `listing/**`, `price/**`, `ListingCard.tsx`,
+`app/(app)/{home,search,listing,price}/**`). Governing images, which the
+swept result must still match: `founder/GOVERNING-home-markets-target.png`
+(in-app home chrome and tiles), `roles/GOVERNING-01` screen one (property
+home), `roles/GOVERNING-09` screen one (Stays home), `3EB3E2A9` (search
+results and the filter sheet), `9E8B56ED` (listing detail: lead card,
+Move-in Total, amenity tiles, section tabs, agent card, the Calculate
+Breakdown and Book Inspection foot), with `7B5335E0` and `0D3D34D2` for the
+gallery. All five images draw the same anatomy the console and Get started
+now carry (glass fill, lit top rim, per-side edge, small outer glow, lit
+primary), so no surface here needs to keep a different anatomy on the
+image's say-so; where one does, the row below says why.
+
+The notifications block that used to live in `home.css` moved to the
+settings group in 790d8c2a and is not in this inventory.
+
+### 13.H.1 Routes in the group (8)
+
+| # | Route | What draws it | Proof source |
+|---|---|---|---|
+| 1 | `/home` | `HomeScreen`: greeting, `CityRow`, `HomeHero`, `CategoryRow` (four tiles), `FeaturedBand` of `ListingCard`, `EmptyState` + `EmptyActions` | harness `home` (fixture rows), `home-empty` (the route's own page; this box cannot reach the database, so its reads come back empty and the empty shelf draws) |
+| 2 | `/stays` | the same `HomeHero`, `CategoryRow` (two columns, four doors), `FeaturedBand` of `StayCard` (the card is the stays group's; its `nf-pcard`/`nf-stay-card__chip` rules are in `catalogue.css`, so here) | harness `stays` (fixture cards) |
+| 3 | `/search` | `ShelfBar` (field, filters square, chips), `ShelfCount` (count, sort menu), `ListingCard` grid, `FilterDrawer` sheet, `MapCanvas`/`MapDock` in map view, `EmptyState`, `loading.tsx` | harness `search`, `search?filters=open`, `search-empty`, `search-empty?view=map`, `loading?of=search` |
+| 4 | `/listing/[id]` | `ListingGallery`, `ListingActions`, `PhotoViewer`, lead card, `ListingMoveInBlock`, `ListingSpecChips`, `ListingAmenityTiles`, `ListingSectionTabs`, description panel, `ListingMoveIn`, `ListingPurchase`, `ListingTenure`, `ListingAmenities`, `ListingUtilities`, `ListingReviews`, `ListingCodeRow`, `ListingPhotoGrid`, `ListingWalkthrough`, `ListingAgentCard` + `VerifiedAgentBadge`, `RentalPanel`, `ReservePanel`, `ReserveTable`, `TenancyTerm`, `ExampleNotice`, `ListingStickyBar`, `loading.tsx` | harness `listing` (the f3 rental composition), `listing-parts` (every other panel), photo viewer opened by a click, `loading?of=listing` |
+| 5 | `/price` | `PriceCheckScreen` (ladder rungs, place suggest list, `PinMap`), `ResultPanel`, `AreaPanel`, `ShareAreaButton` | harness `price` (no pin yet), `price-area`, `price-answered` (fixture) |
+| 6 | `/price/area/[id]` | the shared area card `nf-pc-card` | not shot: needs a stored share row; the card's rules are swept with the rest of the file |
+| 7 | `/rent/move-in/[listingId]` | `MoveInLedger` (`nf-ledger-card`, `nf-detail-tag`): the Calculate Breakdown target, styled in `catalogue.css` | not in a harness yet (added in the apply step) |
+| 8 | `/assistant` | `AssistantChat` (`nf-ai__*` in `home.css`): no group names this route, the rules are in a file this group holds | not shot yet; flagged to the lead |
+
+### 13.H.2 Inventory: every place that draws its own container, button, rim, glow, glass or plate (written before any change, 23 September)
+
+Shared already (inherits Phase 1 with no edit here): every `Button` and
+`ButtonLink` (8 primary, 6 secondary, 2 ghost across the group, plus the
+filter sheet's Reset and Apply and the price check's six), `nf-glass`,
+`nf-glass--card`, `--tile`, `--strong`, `--chrome`, `nf-card`, `Switch`,
+`nf-range`, `nf-icon-btn`, `EmptyState`, `Section`. Everything below is
+LOCAL: a rule or a utility in this group that paints its own fill, edge,
+rim, glow, radius or blur. Line numbers are `catalogue.css` (C), `home.css`
+(H), `price-check.css` (P), `map.css` (M), `explore.css` (E) at 3621452c.
+
+**Home, both sides (routes 1, 2)**
+
+| ID | Item (state) | Where | Draws today |
+|---|---|---|---|
+| H1 | location chip, rest / hover / pressed | H `.nf-home__loc` | `nf-glass--tile` + own hover edge `--nf-brand-edge-strong`, own press scale |
+| H2 | hero plate (photo card) | H `.nf-hero-plate` | own radius `--nf-radius-xl` (the console's container is 10px), own 1px edge, `--nf-glow-edge` |
+| H3 | hero place chip on the photo | H `.nf-hero-plate__chip` | own glass: canvas mix, rim-thin edge, raw `blur(10px)` |
+| H4 | hero search well, rest / focus | H `.nf-hero-plate__search` | own well: canvas 78 per cent, raw `blur(14px)`, own focus edge |
+| H5 | hero filters button | H `.nf-hero-plate__filters` | own quiet button: brand 18 per cent, soft edge, no rim, no glow |
+| H6 | category tile icon plate, rest / hover | H `.nf-cat-tile__plate` | own plate: 160deg brand wash, 1px edge, rim, 22px glow, radius-lg |
+| H7 | two-column door tile (Stays), rest / hover | H `.nf-cat-row[data-columns="2"] .nf-cat-tile` | own well card, soft edge, no rim, no glow; plate stripped |
+| H8 | featured head, See all link | `FeaturedBand` | type only, nothing to sweep |
+| H9 | property card, rest / hover / focus | C `.nf-pcard`, `:hover` | `nf-glass--card` + own hover glow stack (`--nf-glow-edge-strong`, floor, `--nf-bloom-card`) |
+| H10 | card photo plate, no-photo plate, note | C `.nf-pcard__media`, `__nophoto`, `__note` | own radius-md, media ground; own overlay chips |
+| H11 | card status badges: Verified, For rent/sale, Example | C `.nf-pcard__mark`, `--market`, `--example` | own glass badge: brand 38 per cent over media, 14px glow; Example on the WARNING ink (an amber edge, off the one blue family) |
+| H12 | card heart, rest / saved / pressed | C `.nf-pcard__heart` | own media glass square |
+| H13 | card "+1" fact chip | C `.nf-pcard__fact--more` | own well chip |
+| H14 | empty shelf | `EmptyState`, `EmptyActions` | shared |
+| H15 | unmounted: market tiles, featured cities, invest band, trending strip, city hero, category rail, recent strip, host panel | `MarketTiles`, `FeaturedCities`, `InvestBand`, `TrendingStrip`, `CityHero`, `CategoryRail`, `RecentStrip`, `ListingHostPanel`; H `.nf-home__market*`, `.nf-home__city*`, `.nf-home__invest*`, `.nf-home__search*`; E `.nf-market__*` | no route imports them (grep, 23 Sept). They draw their own tiles, chips, plates and a flat search plate. To be DELETED with their rules, not moved |
+| H16 | Stays card chips (stays group's card) | C `.nf-stay-card__chip` | own well chip |
+
+**Search and filters (route 3)**
+
+| ID | Item (state) | Where | Draws today |
+|---|---|---|---|
+| S1 | shelf bar under the header | C `.nf-shelf-bar` | `nf-glass--chrome` + own bottom hairline |
+| S2 | search field, rest / focus | C `.nf-shelf-field`, `:focus-within` | own well: soft edge, rim, 3px focus glow ring |
+| S3 | field go arrow | C `.nf-shelf-field__go` | own radius-sm |
+| S4 | filters square (with the count badge) | C `.nf-shelf-square` | own glass button: 1px edge, rim, 16px glow, radius-md |
+| S5 | filter chips (market, beds, price), rest / on / focus | C `.nf-shelf-chip`, `--on` | own chip on control radius; own selected fill (brand 26 per cent), rim, 16px glow |
+| S6 | result count line, sort button | C `.nf-shelf-sort > summary` | own well button, subtle edge, no rim |
+| S7 | sort menu (popover), item current / hover | C `.nf-shelf-sort__menu`, `__item` | own popover: elevated surface, soft edge, `--nf-elev-3`; own tints |
+| S8 | results grid cards | H9 to H13 | as home |
+| S9 | filter sheet panel, backdrop, grip, head, close | C `.nf-filters`, `__grip`, `__head`; `FilterDrawer` backdrop utility | own glass sheet: canvas 92 per cent, strong blur, left edge, `--nf-elev-3`; grip on `--nf-radius-pill` (a shape, allowed) |
+| S10 | sheet option tiles (type, market, beds, baths), rest / hover / pressed | C `.nf-filters__tile`, `[aria-pressed]` | own well tile; selected is a FLAT `--nf-brand-primary` fill + 18px glow, not the lit button |
+| S11 | sheet amenity switches | `Switch` | shared |
+| S12 | sheet price range | `nf-range` | shared |
+| S13 | sheet input rows (location, sort), rest / focus | C `.nf-filters__row`, `:focus-within` | own well, rim, 3px focus ring |
+| S14 | sheet group dividers, foot band | C `.nf-filters__group + ...`, `__foot` | hairlines only |
+| S15 | sheet Reset / Apply (count) | `Button` secondary / primary | shared |
+| S16 | map view: canvas, pins, clusters, user dot, floating card, dock card, zoom | `MapCanvas` (inline `LIFT`/`CARD_LIFT` shadows, Tailwind `bg-[var(--nf-surface-primary)]` x8, `border-*`), `MapDock` (`nf-card`, Tailwind), M `.leaflet-*` (`!important` zoom skin), M `.nf-map-pin-drop` ring | own surfaces and shadows throughout |
+| S17 | empty results | `EmptyState` | shared |
+| S18 | loading skeleton | `search/loading.tsx` | `nf-glass` + own `border-[var(--nf-border-subtle)]` |
+| S19 | active filter chips, view toggle, filter links | `filters/ActiveFilters`, `ViewToggle`, `FilterLink` | shared `nf-chip`; checked in the apply step |
+
+**Listing detail (route 4, and 7)**
+
+| ID | Item (state) | Where | Draws today |
+|---|---|---|---|
+| L1 | gallery: back, counter, arrows, dots | `ListingGallery` Tailwind `bg-[var(--nf-overlay-media*)]`, `border-on-media`, `backdrop-blur-md` x5 | own media glass buttons |
+| L2 | gallery marks: For rent, Verified | C `.nf-gallery-mark`, `--market` | own badge: brand 30/62 per cent over media, 16px glow, radius-sm |
+| L3 | save and share on the photo | `ListingActions` Tailwind (`bg-black/45`, overlay, blur) | own media glass, one raw `black/45` |
+| L4 | photo viewer chrome | `PhotoViewer` Tailwind overlay x4, blur x4 | own |
+| L5 | lead card | `nf-glass--card nf-detail-lead` | shared material |
+| L6 | market tag, verified badge | C `.nf-detail-tag`, `--market`, `.nf-detail-verified` | own badges; verified carries rim + 18px glow |
+| L7 | spec tiles | C `.nf-spec-tile` | own well tile + rim, no edge light |
+| L8 | Move-in Total panel and its rooms plate | C `.nf-detail-movein`, `__rooms` | own lit panel: 135deg brand wash, edge, rim, 28px glow, radius-lg |
+| L9 | amenity tiles, More | C `.nf-amenity-tile` + `nf-glass--tile` | shared material, own radius-md |
+| L10 | section tabs, active underline | C `.nf-detail-tabs`, `[aria-current]::after` | own sticky bar ground; underline glow 10px (a shape, allowed) |
+| L11 | description / location panel | C `.nf-detail-panel` | own well card, subtle edge, rim |
+| L12 | agent card, avatar, Verified Agent pill, verify steps | C `.nf-agent-card`, `__avatar`, `__pill`, `.nf-verify-step` | own well card + rim; own filled pill; own circle steps |
+| L13 | move-in and purchase rows, total | C `.nf-movein__row`, `[data-declared]`, `__total` | own well rows; own lit total (a copy of L8) |
+| L14 | sticky foot: price, Calculate Breakdown, Book Inspection | `ListingStickyBar` (`nf-card`, `nf-action-bar-pinned`, `ButtonLink`) | shared buttons on a shared card |
+| L15 | rental / sale / reserve / table panels | `RentalPanel`, `ReservePanel`, `ReserveTable`, `TenancyTerm` (`nf-card` + Tailwind `border-[var(--nf-border-subtle)]` x14, `bg-[var(--nf-brand-primary)]` selected slot, `bg-[var(--nf-glass-fill)]`, warning-tinted note) | own inner rows, selected slot a flat fill |
+| L16 | reviews, utilities, walkthrough, code row | `ListingReviews`, `ListingUtilities` (`nf-card`, own borders), `ListingWalkthrough` (`surface-inset`), `ListingCodeRow` (Button) | own inner borders |
+| L17 | example notice | `ExampleNotice` (`border-[var(--nf-state-warning)]`, warning surface) | amber, off the one blue family |
+| L18 | loading skeleton | `listing/[id]/loading.tsx` | `nf-card nf-glass--strong` |
+| L19 | stay / restaurant detail anatomy (stays group's routes, rules here) | C `.nf-spec-strip`, `.nf-detail-field`, `.nf-detail-capsule`, `.nf-host-row__avatar` (pill radius on a round avatar, allowed), `.nf-stay-type`, `.nf-room-tile`, `.nf-stay-fact(s)` | own well cards |
+| L20 | move-in ledger (route 7) | C `.nf-ledger-card`, `__glyph` plate, `.nf-ledger-compare__verdict` | own card + 24px glow; own icon plate |
+
+**Price check (routes 5, 6)**
+
+| ID | Item (state) | Where | Draws today |
+|---|---|---|---|
+| P1 | map panel, offline state, credit | P `.nf-pc-map`, `--offline`, `__credit` | own panel: radius-lg, edge, `--nf-glow-edge` |
+| P2 | pin | P `.nf-pc-pin__head`, `__stem` | own (a shape, allowed) |
+| P3 | place suggest list, item hover / focus | P `.nf-pc-suggest__list`, `__item` | own popover, no rim |
+| P4 | confidence badges high / medium / low | P `.nf-pc-confidence--*` | own FILLED / quiet / outline badges on control radius |
+| P5 | disclaimer, share none, share why, share link | P `.nf-pc-disclaimer`, `.nf-pc-share*` | own inset cards, no rim, no glow |
+| P6 | strip plot, fact tiles | P `.nf-pc-strip`, `.nf-pc-fact` | own inset tiles |
+| P7 | shared area card | P `.nf-pc-card` | own raised card with a brand top border |
+| P8 | LIGHT RULES (seven blocks) | P `:root[data-theme="light"] ...` | dead since light mode left the platform; to delete |
+
+**Other rules this group's files hold (other groups' components)**
+
+| ID | Item | Where | Note |
+|---|---|---|---|
+| O1 | listing wizard (`nf-lw-*`: rail, back, note, choice, tile, fact plate, step, shot, add, details, id) | C lines 2353 to 2940, used by `app/agent/list/**` | host wizard is the chrome group's route; the rules are here, so they are swept here |
+| O2 | stays category tile selected, stays hero object | C `.nf-stays-tile--on`, `.nf-stays-hero__object` | used by stays and host components |
+| O3 | tenancy chip | C `.nf-tenancy-chip` | `bookings/TenancyCard` (stays group) |
+| O4 | `nf-cat-surface .nf-card` glow override | C | every catalogue page (listing, stay, restaurant, trips, bookings, checkout, saved) |
+| O5 | assistant (`nf-ai__*`: avatar, bubbles, result card, result mark, thinking, ring, chips, well, send) | H | route 8 |
+| O6 | `nf-reg-card*` | C | no component uses it; to delete |
+
+Counted: 57 local items across 8 routes (H1 to H16, S1 to S19, L1 to L20,
+P1 to P8, O1 to O6, less the rows marked shared).
+
+### 13.H.3 Before proofs
+
+`docs/design/proofs/session-b/sweep-home/before/`, each at 390 (dark, 2x)
+and 1440, from a production build of 3621452c with
+`VALLO_PREVIEW_HARNESS=1`, harness `app/(dev)/preview/session-b/sweep-home/`:
+`home`, `home-empty`, `stays`, `search`, `search-filters`, `search-sort-open`,
+`search-chip-focus`, `search-empty`, `search-map`, `search-loading`,
+`listing`, `listing-viewer`, `listing-parts`, `listing-loading`, `price`,
+`price-area`, `price-answered`. FIXTURE-BACKED except `home-empty`,
+`search-empty` and `search-map`, which are the routes' own pages drawing the
+empty state because this sandbox's egress refuses the Supabase host (so no
+proof here shows a live row, and none claims to).
+
+### 13.H.4 Applied (waits for Phase 1 RELEASED)
+
+(pending)
+
+### 13.H.5 Audit passes
+
+(pending: Pass 1, Pass 2, Pass 3, each dated)
 
 ## Skipped or not verified
 
