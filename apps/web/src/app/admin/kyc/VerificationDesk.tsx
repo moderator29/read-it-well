@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import {
   Avatar,
   Badge,
+  BadgeSlot,
   Bars,
   DeskHead,
   Empty,
@@ -34,6 +35,8 @@ import type { RungKind, VerificationSummary } from "../_review/contracts";
 export type VerificationRow = {
   id: string;
   name: string | null;
+  /** The applicant's badge tier, read from `public.person_badge`. */
+  badge?: "gold" | "platinum" | null;
   role: string;
   tier: number;
   rungsPassed: number;
@@ -148,7 +151,10 @@ export function VerificationDesk(props: VerificationDeskProps) {
                     <summary>
                       <span className="nf-rv-rows__cell nf-rv-rows__cell--wide nf-rv-person">
                         <Avatar name={row.name} small />
-                        <span>{row.name ?? "No display name"}</span>
+                        <span>
+                          {row.name ?? "No display name"}
+                          <BadgeSlot tier={row.badge} />
+                        </span>
                       </span>
                       <span className="nf-rv-rows__cell" style={{ color: "var(--nf-brand-secondary)" }}>
                         {row.role}

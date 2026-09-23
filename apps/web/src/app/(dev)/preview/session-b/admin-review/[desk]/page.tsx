@@ -29,7 +29,7 @@ const P = "/brand/photos/";
 const PHOTOS = [
   "villa-pool-skyline-01.jpg",
   "villa-pool-terrace.webp",
-  "living-room-day.webp",
+  "living-room-dusk.webp",
   "bedroom-01.webp",
   "bathroom-01.webp",
   "living-room-dusk.webp",
@@ -130,6 +130,7 @@ function rows(): QueueRow[] {
     lister,
     listerRole,
     isExample,
+    badge: null,
     price,
     submittedAge: `${age}h ago`,
     status,
@@ -240,6 +241,7 @@ export default async function Harness({
             role: "owner",
             avatarUrl: null,
             verified: true,
+            badge: null,
             tier: 2,
             rungs: [
               { kind: "identity", status: "passed" },

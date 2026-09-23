@@ -146,6 +146,7 @@ export default async function AdminListingsPage({
       ...row,
       listerRole: extra?.role ? ROLE_WORD[extra.role] : null,
       isExample: extra ? extra.isDemo : null,
+      badge: extra?.badge ?? null,
     };
   };
   const narrowed = queueNarrowed(query) || offset > 0;

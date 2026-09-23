@@ -23,6 +23,85 @@ The founder uploaded these five (with the admin and inspection images below)
 to the repository root on 22 September. The root copies of
 the five above are the governing targets for this work.
 
+## THE WIDE PLATFORM SWEEP, 23 SEPTEMBER (founder instruction). READ FIRST, SESSION A.
+
+The founder, after reviewing the admin console and Get started: those two are
+now the reference implementation for the whole platform. Their container
+anatomy, edge treatment, lit rim, glass reflection, glow level, button
+treatment and the inner plate behind an icon move into the SHARED token and
+component layer once, so every surface inherits them, and every surface still
+drawing its own version is swept onto the shared one. He also asked for the
+social feed and the plus bloom built exactly to his image
+(`docs/design/references/founder/feed-plus-bloom-target.jpg`, added in this
+commit), with three rulings: line icons (not glass objects) in the feed and the
+bloom; the Post, Story and Review plates as rounded rectangles on the control
+radius; the bottom navigation NOT copied (ours stays five: Home, Search, the
+switch, Feed, Profile).
+
+**Session B claims the files below for the duration of the sweep. Session A:
+please hold edits to them; push anything in flight on them now; if one is
+mid-change on your side, say so in section 49 and that file waits for you.**
+Each group appends "RELEASED <commit>" here when it is done.
+
+- **Phase 1, the shared layer (worker "shared"):**
+  `packages/design-tokens/src/tokens.css` (ONLY the glass, rim, glow, button,
+  card, panel and icon-plate roles; no other token moves),
+  `apps/web/src/app/css/glass.css`, `buttons.css`, `controls.css`,
+  `apps/web/src/components/ui/Button.tsx`, `apps/web/src/components/ui/Switch.tsx`
+  (the thumb is lifted twice and sits half out of its track on every switch),
+  `apps/web/src/app/css/trust-badge.css`
+  (ONLY to move its ten raw gradient literals into `--nf-badge-*` tokens with no
+  rendered change, closing TK-1, since main is red on it), and new shared primitives under
+  `apps/web/src/components/ui/` (a panel/card and an icon plate) extracted from
+  `app/admin/_components/**` and `components/app/welcome/**`.
+- **Phase 2, the sweep (one worker per group), each group's stylesheets and the
+  components that draw their own card, button, rim, glow or plate:**
+  - home (both sides), search and filters, listing detail: `home.css`,
+    `explore.css`, `catalogue.css`, `map.css`, `price-check.css`, and their
+    route components.
+  - stays, stay detail, trips, restaurants, checkout: `stays.css`,
+    `escrow.css` and their route components.
+    Worker "sweep-stays" adds (new): the fixture harness
+    `apps/web/src/app/(dev)/preview/session-b/sweep-stays/**` and its proofs
+    `docs/design/proofs/session-b/sweep-stays/**`. Route components claimed:
+    `app/(app)/{stays,stay,trips,restaurants,restaurant,checkout,escrow}/**`,
+    `components/app/stays/**`, `components/app/escrow/**`. NOT claimed although
+    drawn on these routes: `catalogue.css`, `home.css`, `components/app/home/**`,
+    `components/app/listing/**` (home and listing group), `ResultSheet.tsx` and
+    `wallet.css` (wallet family), `components/host/stays/**` (host wizard group,
+    which consumes `stays.css`), `components/app/messages/ProposeHeldPayment.tsx`
+    (messages group, which consumes `escrow.css`).
+  - settings and children, notifications: `settings-rows.css`,
+    `overlays.css`, `system.css` and their route components.
+    Worker "sweep-settings" adds (new): the fixture harness
+    `apps/web/src/app/(dev)/preview/session-b/sweep-settings/**`, its shot
+    script `scripts/design/session-b-shots/sweep-settings.mjs` and its proofs
+    `docs/design/proofs/session-b/sweep-settings/**`. Route components claimed:
+    `app/(app)/settings/**`, `app/(app)/notifications/**`,
+    `components/app/account/**`, `components/app/push/**`,
+    `app/(app)/legal/LegalDocument.tsx`, `app/offline/SystemMoment.tsx`,
+    `app/not-found.tsx`, `app/error.tsx`, `app/(app)/error.tsx`,
+    `app/loading.tsx`. By the lead's ruling of 23 September the notifications
+    anatomy (`.nf-notif*`, `home.css` about lines 629 to 773) moves out of
+    `home.css` into a new `app/(app)/notifications/notifications.css`
+    imported by `LiveNotifications.tsx`; that block of `home.css` is this
+    worker's to delete and nothing else in the file. NOT claimed although drawn
+    on these routes: the payment methods block (`PaymentMethodsPanel.tsx`,
+    `AddBankAccountSheet.tsx`, `wallet.css` `.nf-pay-*`, `.nf-glyph-tile`;
+    the wallet family sweeps it), `PageHeader`, `BackButton`, the dock and
+    header (chrome group), `components/app/welcome/InterestChoices.tsx`
+    (welcome).
+  - feed, stories, posts, the plus bloom (worker "feed"):
+    `components/social/feed/**`, `components/social/bloom/**`,
+    `components/social/story/**`, `app/social.css`, `app/social-feed.css`
+    and the feed route.
+  - profile, edit profile, messages and the three thread faces:
+    `components/social/profile/**`, `threads.css`, `components/messages/**`.
+  - host wizard, agent workspace, side drawer, dock, landing:
+    `agent.css`, `chrome.css`, `app/side-nav.css`, `landing.css`, `site.css`,
+    `chips.css` and their components.
+  - already Session B's: wallet family, inspections, auth, admin, welcome.
+
 ## FOUNDER'S NINE ITEMS, 23 SEPTEMBER: WHAT SESSION B TAKES
 
 | # | Item | Session B's part | Session A's part |
@@ -108,6 +187,13 @@ Session A's files:
 - Note for EX-3: Session B added the deleted-post filter to
   `lib/social/posts-queries.ts` (claimed below); the `readPostListings` column
   fault is still Session A's.
+
+**TK-1 (23 September, Session A, main is red).** `check-css-tokens.mjs` fails
+on clean main (ff967a20): `app/css/trust-badge.css` lines 40 to 51 carry ten raw
+colour literals (the badge gradients from dd840fee). They belong in the token
+layer as `--nf-badge-*` definitions, which is Session A's to write. Session B
+has not touched the file. The badge swap in Session B's surfaces does not add
+to it.
 
 ### Deleted posts (item 4, new)
 Claimed by the worker "posts" as it finds them, each file added here in the

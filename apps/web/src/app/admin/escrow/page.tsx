@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getDisputeEvidence, getEscrowDesk, getEscrowFloatHistory } from "@/lib/admin/reads/escrow";
+import { getBadgeTiers } from "@/lib/admin/reads/badges";
 import { getReconciliationHealth } from "@/lib/admin/reads/money";
 import { readPage } from "@/lib/admin/reads/money-derive";
 import { adminUi } from "../_components/ui";
@@ -74,6 +75,10 @@ export default async function AdminEscrowPage({
   /* Everything filed on every dispute, read after the desk so it asks only
      for the escrows actually waiting on a ruling. */
   const evidence = await getDisputeEvidence(desk.data.disputes.map((d) => d.id));
+  const tiers = await getBadgeTiers([
+    ...[...desk.data.disputes, ...desk.data.table.rows].flatMap((r) => [r.payerId, r.payeeId]),
+    ...(evidence.state === "ok" ? Object.values(evidence.data).flat().map((e) => e.authorId) : []),
+  ]);
 
   return (
     <EscrowDesk
@@ -86,6 +91,7 @@ export default async function AdminEscrowPage({
       health={runs.state === "ok" ? runs.data : null}
       evidence={evidence.state === "ok" ? evidence.data : null}
       float={float.state === "ok" ? float.data : null}
+      tiers={tiers}
       now={new Date().getTime()}
     />
   );

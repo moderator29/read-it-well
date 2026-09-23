@@ -23,6 +23,8 @@ export type QueueRow = {
   listerRole: string | null;
   /** True for an example listing (`is_demo`), null when that could not be read. */
   isExample: boolean | null;
+  /** The lister's badge tier, read from `public.person_badge`. */
+  badge: "gold" | "platinum" | null;
   price: string;
   submittedAge: string;
   status: string;
@@ -76,6 +78,7 @@ export function toQueueRow(
     lister: listing.agentName,
     listerRole: null,
     isExample: null,
+    badge: null,
     price: priceLine(listing, copy, locale),
     submittedAge: ageShort(listing.submittedAt ?? listing.createdAt, now) ?? "Not recorded",
     status: listing.status,

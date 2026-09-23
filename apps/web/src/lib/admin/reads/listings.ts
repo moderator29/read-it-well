@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../supabase/database.types";
 import { requireAdmin } from "../guard";
+import { getPersonTiers } from "./shared";
 
 /**
  * The listings review desk's own reads. READ ONLY.
@@ -227,6 +228,8 @@ export type ListerVerification = {
   avatarUrl: string | null;
   verified: boolean;
   tier: number;
+  /** The person's badge, read from `public.person_badge`; null is no badge. */
+  badge: BadgeTier | null;
   rungs: { kind: RungKind; status: "passed" | "failed" | "pending" }[];
 };
 
@@ -248,7 +251,7 @@ const RUNG_STATUS = new Set(["passed", "failed", "pending"]);
 
 /* ------------------------------------------------------------ row extras */
 
-export type QueueRowExtras = { isDemo: boolean; role: ListerRole | null };
+export type QueueRowExtras = { isDemo: boolean; role: ListerRole | null; badge: BadgeTier | null };
 
 /**
  * What each queue row needs beyond the view it already has: whether it is an
@@ -262,23 +265,25 @@ export async function getQueueRowExtras(ids: readonly string[]): Promise<Read<Ma
   try {
     const { data, error } = await db
       .from("listings")
-      .select("id, is_demo, agents ( type, application_id )")
+      .select("id, is_demo, agents ( type, application_id, user_id )")
       .in("id", [...ids]);
     if (error) return UNAVAILABLE;
     const rows = (data ?? []) as unknown as {
       id: string;
       is_demo: boolean;
-      agents: { type: string | null; application_id: string | null } | null;
+      agents: { type: string | null; application_id: string | null; user_id: string } | null;
     }[];
     const roles = await supplyRoles(
       db,
       rows.map((row) => row.agents?.application_id).filter((id): id is string => Boolean(id)),
     );
+    const badges = await getBadgeTiers(rows.map((row) => row.agents?.user_id ?? ""));
     for (const row of rows) {
       const appId = row.agents?.application_id ?? null;
       out.set(row.id, {
         isDemo: row.is_demo,
         role: roleOf(appId ? roles.get(appId) : null, row.agents?.type),
+        badge: row.agents ? (badges.get(row.agents.user_id) ?? null) : null,
       });
     }
     return { state: "ok", data: out };
@@ -362,13 +367,14 @@ export async function getListingReviewExtras(
     const agent = listing.agents;
     let lister: ListerVerification | null = null;
     if (agent) {
-      const [roles, profile, checks] = await Promise.all([
+      const [roles, profile, checks, badges] = await Promise.all([
         supplyRoles(db, agent.application_id ? [agent.application_id] : []),
         db.from("profiles").select("avatar_url").eq("id", agent.user_id).maybeSingle(),
         db
           .from("agent_verification_checks")
           .select("kind, status, decided_at, agent_id")
           .eq("agent_id", (row as { agent_id: string }).agent_id),
+        getBadgeTiers([agent.user_id]),
       ]);
       lister = {
         name: agent.display_name,
@@ -376,6 +382,7 @@ export async function getListingReviewExtras(
         avatarUrl: profile.data?.avatar_url ?? null,
         verified: agent.verified,
         tier: agent.verification_tier ?? 0,
+        badge: badges.get(agent.user_id) ?? null,
         rungs: latestRungs(checks.data ?? []),
       };
     }
@@ -559,5 +566,27 @@ export async function getMandateQueue(): Promise<Read<MandateQueue>> {
     };
   } catch {
     return UNAVAILABLE;
+  }
+}
+
+/* ------------------------------------------------------------ badges */
+
+export type BadgeTier = "gold" | "platinum";
+
+/** Pure: narrow what `public.person_badge` returned onto the two tiers that draw a mark. */
+export function badgeTierOf(value: unknown): BadgeTier | null {
+  return value === "gold" || value === "platinum" ? value : null;
+}
+
+/**
+ * Each person's badge tier, READ from `public.person_badge` through the
+ * console's one tier read (`getPersonTiers`, lib/admin/reads/shared.ts), never derived
+ * here. An absent row or a failed read is no badge.
+ */
+export async function getBadgeTiers(userIds: readonly string[]): Promise<Map<string, BadgeTier>> {
+  try {
+    return await getPersonTiers(userIds);
+  } catch {
+    return new Map();
   }
 }

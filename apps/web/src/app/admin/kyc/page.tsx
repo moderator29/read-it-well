@@ -3,6 +3,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getKycQueue, type KycSubjectView } from "@/lib/admin/kyc-queries";
 import { getSupplyRoles, getVerificationSummary } from "@/lib/admin/reads/verification";
+import { getBadgeTiers } from "@/lib/admin/reads/listings";
 import { Constants } from "@/lib/supabase/database.types";
 import { adminUi, type AdminUi } from "../_components/ui";
 import { QueueFilters, readQueueQuery, type QueueStatusOption } from "../_components/QueueFilters";
@@ -96,9 +97,8 @@ export default async function AdminKycPage({
 
   const { waiting, decided } = read.data;
   const now = nowMs();
-  const roles = await getSupplyRoles(
-    waiting.map((subject) => subject.userId).filter((id): id is string => Boolean(id)),
-  );
+  const waitingIds = waiting.map((subject) => subject.userId).filter((id): id is string => Boolean(id));
+  const [roles, badges] = await Promise.all([getSupplyRoles(waitingIds), getBadgeTiers(waitingIds)]);
   const ROLE_WORD = { owner: "Owner", agent: "Agent", firm: "Firm" } as const;
   const toRow = (subject: KycSubjectView, decidable: boolean): VerificationRow => {
     const latest = subject.documents.reduce<string | null>(
@@ -108,6 +108,7 @@ export default async function AdminKycPage({
     return {
       id: subject.userId ?? subject.documents[0]?.id ?? "orphan",
       name: subject.displayName,
+      badge: subject.userId ? (badges.get(subject.userId) ?? null) : null,
       role: (() => {
         const role =
           roles.state === "ok" && subject.userId ? roles.data.get(subject.userId) : undefined;

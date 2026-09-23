@@ -617,6 +617,72 @@ BREACHES 0, WORTH AN EYE 0. (The first run flagged the four dot buttons at
   the lead's warning. The pop restored exactly my three files and the stash
   list was empty afterwards; I have not used it since.
 
+### Final pass, 23 September
+
+**Re-checked.** The render and the 390 dark side-by-side opened together again
+(`welcome-render-vs-built-390.jpg`, re-shot on this build): lockup, headline,
+sub-line, stage, coin, dots, button, Skip all where the measured rows put them;
+nothing close-but-not-right found on slide one. Slides two to four, the
+always-shows flow, back on every slide and both signed-in endings exercised
+on a fresh production build (`next build` + `next start` with the preview
+harness open).
+
+**Fixed in this pass.** Leaving first run for the app (a member's Continue
+with nothing left to answer, and a member's Skip) hung with the button busy
+when `/home` answered with a redirect: a client-side `router.replace` to a
+redirecting route stalled mid-transition here. `leave` is now a full
+`window.location.replace`, which follows any redirect and leaves no slide
+entries in the app's back stack. Found by exercising the harness, now covered
+by the spec. Added the swipe to the spec, the one input it never drove.
+
+**Commands and output.**
+- `npx tsc --noEmit -p .`: exit 0.
+- `npx eslint` over `app/welcome`, `components/app/welcome`, `app/(auth)/start`,
+  `app/(dev)/preview/session-b/welcome`, the spec: 0 errors, 1 warning (the
+  existing `set-state-in-effect` in `InterestChoices.tsx`, unchanged).
+- `node scripts/check-css-tokens.mjs`: clean.
+- `npx vitest run src/app/welcome`: 12 passed (12).
+- `BASE_URL=http://127.0.0.1:3172 node tests/session-b-welcome.spec.mjs`: 24
+  checks, all passed (reachability, /start, slides by button, key, dot and
+  swipe, live region, back by square and by history, shown every time, the two
+  doors, no look-around door, cookie written, intent kept, the signed-in
+  ending: one Continue, Continue to the real interests question, Continue into
+  the app).
+- `node scripts/design/compare-surface.mjs --shape-sweep --routes
+  /welcome,/preview/session-b/welcome --theme dark`: BREACHES 0, WORTH AN EYE
+  0, ROUND ICON-ONLY 0.
+
+**Badge.** First run draws no person's name or avatar, so there is no badge
+slot on this surface.
+
+**BUILT AND UNPROVEN** (this box cannot reach Supabase over HTTP, so no live
+signed-in run is possible):
+- A member's Continue writing `profiles.settings.welcomeSeen`, and Skip
+  writing `interestsAsked` (`markWelcomeSeen`, `skipInterests`): the calls run
+  in the harness signed out, where they return without writing. Proving it
+  needs a signed-in session against the live project.
+- The interests question's Save and Skip (`saveInterestsAction`,
+  `skipInterests`): rendered and reached; the write needs a session.
+- A signed-in `/welcome` read (`loadInterestsState` with a session): proved
+  by the plan's unit tests and the harness, not by a live row.
+- Android's hardware back on a device: proved through the web view's history
+  in Chromium; a device run needs the native shell (and GS5 once NativeRuntime
+  is mounted).
+- The store first launch opening `/welcome` (W3) and sign up and sign in
+  detouring a first-time visitor here (W1, W2): requests, not built here.
+
+**Percentages.**
+- Close gate items met: 5 / 5 (measured match, wired, no claims, dark checks
+  and sweep, pushed; light removed by the founder, so not counted).
+- Controls exercised in a browser: 12 / 15 (Get Started, Next, dots, arrow
+  keys, swipe, stranger's Skip, back square, history back, Create account,
+  Sign in, Continue to the question, Continue into the app; not exercised
+  with a write: a member's Skip, the question's Save and Skip).
+- Chain links proven: 7 / 10 (control, cookie persistence, the page query's
+  signed-out path, RLS policies, table and triggers read live on 22 September,
+  screen; unproven: the member write, the signed-in read, the question's
+  write). Notification: none deserved, not counted.
+
 ## 3. Welcome back
 
 Route `/sign-in` (the chooser) and `/sign-in/email` (the password step).
@@ -1687,6 +1753,99 @@ one `AdminRail` sets.
 - **ITEM 7 (inspection, not viewing).** The one "view" in this surface's copy
   (In flight's empty note) now says "asks for an inspection".
 
+### 6.6b Final pass, 23 September
+
+**Re-checked.** The three side-by-sides against 5EAA44CB and 01F7DFC7 (panel
+fill, edges, filled badges, full-height rail, the back arrow now drawn on the
+overview harness too, which it lacked); every job count against the
+migrations and `vercel.json` (8 Vercel, 14 pg_cron, now derived and tested);
+the handbook's numbers against code (rail: eleven rows plus Settings = the
+"twelve rows"; pages of forty, `QUEUE_PAGE_SIZE`; the audit chart's 5,000
+cap, `WINDOW_CAP`; fourteen days of runs, `lastDays(14)`); every desk in
+handbook section 15 now carries Shows, Actions, Effects, Limits and Rejected
+(15.1 and 15.12 gained Effects; 15.5 points to admin-money's section 12);
+15.16 names where push, price checks, mandates, firm members, escrow
+evidence and float snapshots are shown.
+
+**Fixed in this pass.** The overview harness drew no back arrow (it builds
+`AdminFrame` directly); a comment path the token check flagged.
+
+**The badge (B-BADGE): wired, blocked on B-BADGE.** `getPersonTiers` in
+`lib/admin/reads/shared.ts` reads `tier` from `public.person_badge` (the one
+source, SELECT granted to authenticated; nothing derived here); `tierMap`
+is tested. One shared slot, `app/admin/_components/PersonTier.tsx`, sits
+beside every name the shared components draw: the operator in the rail and
+bar (`IdentityBlock`, fed by the layout) and the named person in audit and
+alert rows (`AlertList`, fed on Operations). admin-review's and
+admin-money's desks render `<PersonTier tier={...} />` beside a name, with the
+tier from `getPersonTiers`, or pass `tier` on an `AlertRow`. Session A's
+component (`components/app/badge/PersonBadge`) has not landed, so the slot
+renders NOTHING (tested) and no badge appears in the console: blocked on
+B-BADGE.
+
+**Commands and output (run 23 September, final pass):**
+
+```
+npx tsc --noEmit -p .                                -> exit 0, no output
+npx eslint <admin-shell files>                       -> 0 errors, 1 warning
+  (react-hooks/set-state-in-effect, _components/AdminActions.tsx:762,
+   not an admin-shell change)
+node scripts/check-css-tokens.mjs                    -> css tokens: clean
+npx vitest run src/lib/admin/reads src/app/admin     -> 23 files, 145 tests passed
+node scripts/design/compare-surface.mjs --shape-sweep --theme dark (27 admin
+  harness routes)                                    -> BREACHES 0, WORTH AN EYE 0,
+  ROUND ICON-ONLY 0, ROUTES REFUSED 0, 16 combinations measured
+```
+
+**BUILT AND UNPROVEN.** This box cannot reach Supabase over HTTP (egress
+refused) and no admin session may be created, so no read below has run
+against the live project with a signed-in admin. Each is built, typechecked
+against the schema, its policy checked in `pg_policies`, its pure half unit
+tested, and its panel drawn on the committed harness in a production build.
+Proving each needs one signed-in admin load of the page in a deployed build:
+- Overview: `getConsolePulse`, `getCollectedSeries`, `getSupplyByType`,
+  `getNewListingsByRole`, `getRiskAlerts` (existing).
+- Operations: `getJobHealth`, `getRunDays`, `getAlertTrend`,
+  `getInspectionActivity`, `getPushActivity`, `getAuditLog` and
+  `getAuditActivity` (existing).
+- Analytics: `getBookingOutcomes`, `getSupplySeries`, `getThinAreas`,
+  `getPriceCheckDemand`.
+- Shell: `getQueueCounts` badges, `getPersonTiers`, the entry cookie round
+  trip (`EntryGate`, `/admin/enter`, unit tested with `requireAdmin`
+  mocked), the back arrow's landing on a live desk.
+
+**Percentage.** Gate items for this surface: 23 met of 24 (96%). The 24:
+the second audit's six items, its JavaScript-off note and its three handbook
+lines (10); the lead's server-side entry (1); the third audit's six items
+(6); the founder's items 1, 2, 5 and 7 (4); this final hour's real pass,
+ledger block and complete handbook (3). The one not met is item 5, the
+badge, blocked on B-BADGE (the read and the slot are wired; nothing draws). Chain links proven live: 0 of 17 (the list above), for
+the reason given; built, typed and unit tested: 17 of 17.
+
+### 6.6c R19, the back arrow pressed in a browser (fourth audit)
+
+The source-text test was the only proof, because no harness address has a
+console parent. The committed harness `/preview/session-b/admin/back`
+(`app/(dev)/preview/session-b/admin/back/`) renders the real `AdminFrame` and
+the real `BackButton` inside `AsDesk`, which gives every `usePathname()` below
+it the value `/admin/money` (the router is untouched), so the arrow resolves
+exactly as on that desk. `scripts/design/session-b-shots/admin-back.mjs` opens
+it in Chromium against the production build, finds the control by
+`data-nav-back`, checks it drew, presses it and records the navigation:
+
+```
+VALLO_PREVIEW_HARNESS=1 npx next start -p 3175
+node scripts/design/session-b-shots/admin-back.mjs http://127.0.0.1:3175 \
+  docs/design/proofs/session-b/admin/back-arrow-as-admin-money-1440-dark.jpg
+PASS back control: 1 found by data-nav-back, drawn at 240,18 44x44; rail lit
+on "Money"; press requested /admin?_rsc=...; landed
+/sign-in?next=%2Fadmin&notice=sign-in-required
+```
+
+The press asked for `/admin`, the declared parent; the signed-out browser is
+then sent to sign in with `next=/admin` by the proxy, as it would be for
+anyone without a session. Proof: `back-arrow-as-admin-money-1440-dark.jpg`.
+
 ### 6.7 Skipped or not verified
 
 - No proof from the live `/admin` pages with a real admin session (none may be
@@ -2014,6 +2173,73 @@ clean. vitest `src/lib/admin/reads` and `src/app/admin/_review`: 80 passed.
 
 None outstanding: the review desks use the shared `CalmNote`, `Sparkline`,
 the glow identity variables and the frame as they are.
+
+### Final pass, 23 September
+
+**Re-checked.** Each governing panel against its side-by-side, re-shot on the
+shell's full-height rail and dark-only material (3f1405d) from the committed
+harness with the committed script
+(`node scripts/design/session-b-shots/admin-review-shots.mjs`; the machine
+was under a load average of 35 and two runs crashed the renderer mid-set, so
+the set is assembled from the first full run plus the side-by-sides built with
+the same crop boxes). Light mode stripped from every review file (67b3c88).
+"Viewing" swept: none on these desks (item 7).
+
+**Commands and output (23 Sept).**
+- `npx tsc --noEmit -p apps/web`: no errors.
+- `npx eslint` on every review file, the three reads and the harness: no
+  problems.
+- `npx vitest run src/lib/admin/reads src/app/admin/_review`: 17 files,
+  110 tests passed.
+- `node scripts/check-css-tokens.mjs`: every stylesheet check clean
+  (0 layer-1, 0 raw colours, 0 unresolved var(), 0 capsules, 0 dull
+  controls); the comment-path check reports 2 paths, neither in these desks'
+  files (`tokens.css` naming the deleted `light.css`, and
+  `components/app/wallet/BadgeSlot.tsx`).
+- Shape sweep, dark, `/preview/session-b/admin-review/{listings,review,
+  moderation,kyc}` at 390 and 1440 (run on 5ce9249, before the badge slot,
+  which adds no text-bearing control): breaches 0, worth an eye 0, round
+  icon-only 0; the census of every text-bearing control: max 0.318.
+
+**Fixed in this pass.** The shot script wrote into `scripts/docs` (wrong repo
+root): fixed. The badge: each lister (queue rows, the listing under review)
+and each applicant (verification) has its tier READ from
+`public.person_badge` through the console's `getPersonTiers` and drawn with
+the shared `PersonTier` (Session A's `TierBadge`); nothing is computed here
+(ed247e2 and this commit). The harness no longer names a `-day` asset.
+
+**Not covered by the badge yet, named:** reporters and held-content authors on
+Moderation, and requesters on Support: the reads these desks use
+(`getReports`, `getModerationQueue`, `getSupportTickets`, Session A's) return
+names, not user ids, so the tier cannot be read for them without a change to
+those reads or new reads of my own. Left undone for time.
+
+**BUILT AND UNPROVEN** (this box cannot reach Supabase over HTTP, so no
+signed-in run is possible here). Proving each needs a signed-in admin on a
+build that can reach the project:
+1. Approve, Publish, Ask for more and Reject on a real submission, and the
+   next listing loading after each (`reviewListing`, `announce`, audit row).
+2. Report decisions and held-item decisions on Moderation.
+3. Document decisions and the in-app DocumentViewer on Verification.
+4. Every read in `lib/admin/reads/{listings,moderation,verification}.ts`
+   against live rows: proven by unit tests of their aggregation and by
+   read-only SQL of the policies they depend on, never executed through the
+   app.
+5. The map tiles and the walkthrough player with a real file (proofs use a
+   stand-in tile grid and an unfetched video).
+6. `LiveRefresh` picking up new work without a reload.
+
+**Percentage.** Gate items met: 4 of 5 fully (measured match, no claims,
+checks and sweep, pushed) and 1 partly (wired real: every chain link is
+named and verified by code and read-only SQL, none exercised live), so 4/5.
+Chain links proven by execution: 0 of 5 desks end to end; links verified by
+code and live `pg_*` reads: 5 of 5 desks. Controls exercised through a real
+server action: 0 of 14 (Approve, Publish, Ask for more, Reject; Start review,
+Resolve, Dismiss; Let it through, Take it down; Approve and Reject on a
+document; the queue, listings and moderation search forms, pager) because no
+signed-in run is possible here; controls exercised in the harness on a
+production build (navigation, tabs, rows opening, pager links): all of them.
+Open requests: AR-10, AR-11, AR-12.
 
 ## 8. Admin money desks: money, escrow, supply
 
@@ -2472,6 +2698,77 @@ The rail and the flat panels are admin-shell's and were not touched.
   happened" and "The inspection did not happen". The enum values
   (`viewing_attended`, `viewing_missed`) are the schema's and unchanged. The
   console copy is English only; no other "viewing" appears in these desks.
+
+### 8.13 Final pass, 23 September
+
+**Re-checked.** Each governing panel (`C1D98B3C` panel 3, `8E9602E2` panels
+1 and 3) beside the latest side-by-side, reshot on main after admin-shell's
+`949930e2`: the rail runs full height, cards take the shell's 10px corner and
+3px halo, and per-desk type is at the converted sizes in 8.2. Every read's
+code path is exercised by unit tests over the real functions against a fake
+RLS client (no write is ever attempted); each desk renders in a production
+build through the committed harness; read-only SQL on the live project gave
+the counts the empty states mirror.
+
+**Commands and output (dark only).**
+
+```
+npx vitest run src/lib/admin/reads          Test Files 15 passed, Tests 96 passed
+tsc --noEmit (6 GB heap)                    no output (clean)
+eslint app/admin/{money,escrow,supply,bookings} lib/admin/reads harness   clean
+node scripts/check-css-tokens.mjs           clean, 0 layer-1 references
+next build (6 GB heap; a first run was OOM-killed, 137)   exit 0
+compare-surface --shape-sweep, 10 routes, 390 and 1536, dark
+  BREACHES 0, WORTH AN EYE 0, ROUND ICON-ONLY 0, ROUTES REFUSED 0
+```
+
+**Fixed in this pass.** The badge (below). Nothing close-but-not-right was
+left from the side-by-sides after 8.12.
+
+**The badge: BLOCKED ON B-BADGE.** The tier is read, never derived:
+`getBadgeTiers` (`lib/admin/reads/badges.ts`, tested in `badges.test.ts`)
+reads `public.person_badge` for exactly the people a page names, through the
+admin's RLS client; a failed read returns no tiers (a missing badge is
+recoverable, a wrong one is not). Grants read live: `authenticated` holds
+SELECT on the view and EXECUTE on its helpers. The slot, `BadgeSlot`
+(`app/admin/money/_desk/BadgeSlot.tsx`), sits beside 9 of the 14 places these
+desks draw a person's name: Money's wallets list, ledger owner, tenancy charge
+tenant and evidence authors; Escrow's table payer and payee, ruling card payer
+and payee, and evidence authors; Supply's role table and firm roster members;
+Bookings' guest. It renders NOTHING: Session A's component
+(`components/app/badge/PersonBadge.tsx`) had not landed, and drawing our own
+artwork is ruled out. When it lands, that one file returns it. The other 5
+places read Session A's `lib/admin/money-queries.ts`, which returns names
+without user ids (Money's disputed holds payer and payee, Money's recent
+entries and refunds guest, Payments' wallets and stale holds): they need a
+user id added there, which is Session A's file.
+
+**English-only copy.** Not moved into the dictionaries in this pass. The
+money, escrow, supply and payments desks' copy is still English in the
+components (bookings reads `t.admin.bookings`). Recorded as not done.
+
+**BUILT AND UNPROVEN.** This box cannot reach Supabase over HTTP, so no
+signed-in run is possible.
+- Every desk page as a signed-in admin: proving it needs one admin session on
+  a machine with egress, opening each of the five routes.
+- The escrow ruling with its evidence (zero disputes exist): needs one
+  disputed test escrow with a filed fact and a file, then a ruling.
+- "Open file" on evidence: needs a filed file and a signed-in admin (the
+  bucket policy is read live; the signing is unit-tested only).
+- The admin booking cancel from a stay (zero bookings exist).
+- Tenancy charges, float history beyond one day, firm rosters with members:
+  proven on fixtures and unit tests only; the live tables hold 0, 1 and 0 rows.
+- The badge tier read: unit-tested; live grants read; no signed-in read.
+
+**Percentage.** Close-gate items met: 5 of 5 (measured match and
+side-by-sides; chain; no claims; checks, dark only; pushed). Chain links
+proven live: read-only SQL proves policies and counts for the tables all 5 desks read,
+but signed-in runs 0 of 5 desks, so **chain links proven end to end:
+0 / 5**. Controls exercised in a production build through the harness: 5 / 5
+desks rendered, every filter link, pager, toggle and hover readout drawn; the
+two writes (escrow ruling, booking cancel) 0 / 2 exercised. Badge: 9 / 14
+name places wired, 0 / 14 drawing (blocked on B-BADGE). Copy in the
+dictionaries: 1 / 5 desks.
 
 ## 9. Inspection
 
@@ -3556,6 +3853,401 @@ not filed as blocking because nothing renders it.
   triggers; deciding whether they should be withdrawn on delete is a question
   for Session A, not changed here.
 - `social_profiles.post_count` drift on one account (12.3), not drawn today.
+  Both are filed by the lead as DP-1 and DP-2 in the scope file.
+
+### 12.6 Final pass, 23 September
+
+**Re-checked against main.** `git grep 'from("posts")' origin/main -- apps/web/src`
+after the last pull: no new read of `posts` since `1385bfc8`, and no commit
+from Session A touched `posts-queries.ts`, `profile-tabs-queries.ts`,
+`comments-queries.ts` or `stories-queries.ts`. The seven `neq("status",
+DELETED_STATUS)` filters and the four `pruneDeleted` calls are all on main.
+The other `posts` reads are writes or single-row lookups inside actions
+(`posts-actions.ts`, `bot-actions.ts`, `moderation-actions.ts`), the replying-to
+parent lookup in `getProfileReplies` (it names a person and lists nothing), the
+HELD-only admin reads, the LIVE-only home read, and `readPostViews`, which has
+no caller.
+
+**Exercised in a production build.** New committed harness
+`/preview/session-b/posts` (`app/(dev)/preview/session-b/posts/page.tsx`,
+FIXTURE PROPS). It hands the real `Feed`, `ProfilePosts` (Posts tab, owner) and
+`ThreadView` a live post, a deleted post with no replies and a deleted post
+with one reply. The thread rows go through `pruneDeleted`, the function
+`getThread` uses. Built with `next build` (exit 0) and served with
+`VALLO_PREVIEW_HARNESS=1 next start -p 3183`. It was shot at 390 dark and the
+DOM counted per panel (`scratchpad/tools/posts-shot.mjs`, not committed):
+
+```
+{"1":{"tombstones":0,"liveBody":1,"replies":[]},
+ "2":{"tombstones":0,"liveBody":1,"replies":[]},
+ "3":{"tombstones":1,"liveBody":1,"replies":["Same here","Which junction"]},
+ "4":{"tombstones":1,"liveBody":0,"replies":["I saw this before"]}}
+```
+
+Feed and profile: live post only, no tombstone. Thread: one tombstone, for the
+deleted reply somebody answered; the one nobody answered is gone. The deleted
+root somebody answered is the tombstone. Proof:
+`docs/design/proofs/session-b/posts/posts-390-dark-full.jpg`, re-shot after the
+fix below.
+
+**Fixed in this pass (`d4e66ffe`).** The first shot drew the always-open reply
+box under a deleted root. `private.place_post` refuses any reply to a parent
+that is not LIVE ("You cannot reply to a post that has been removed ..."),
+so the box would only ever fail. `ThreadView` no longer offers it under a
+removed root.
+
+**Commands and output at the final commit:**
+- `npx vitest run src/lib/social/deleted-posts.test.ts src/lib/social/reads-deleted.test.ts src/lib/social/tombstone-placement.test.ts`:
+  3 files, 26 tests passed.
+- `npx tsc --noEmit -p .`: no output, exit 0.
+- `npx eslint "src/app/(app)/post/[id]/ThreadView.tsx" "src/app/(dev)/preview/session-b/posts/page.tsx"`:
+  no output, exit 0.
+- `node scripts/check-css-tokens.mjs`: "css tokens: clean".
+- `compare-surface.mjs --shape-sweep --routes /preview/session-b/posts --theme dark`:
+  0 breaches, 0 worth an eye, 0 refused. However, it reported "0
+  route/width/theme combination(s) actually measured", so the sweep measured
+  nothing and proves nothing here. This pass draws no new control; the cards
+  and composer are Session A's.
+
+**BUILT AND UNPROVEN:**
+- The live reads on a signed-in session. The box cannot reach Supabase over
+  HTTP, so no read ran against production. Proving it needs a signed-in author
+  with a deleted post opening `/profile`, `/u/<handle>` and `/around`.
+- The delete control end to end (menu, `removePost`, the row turning REMOVED,
+  the card leaving, the thread root going to `/around`). Proven only by code
+  reading and read-only SQL of the policy and triggers.
+- The story page's deleted-story tombstone (the removed sentence as the
+  headline). Proven by unit test only; not in the harness.
+
+**Known edge, not fixed.** At the depth cap, a reply to a depth-three reply
+whose parent is deleted is retargeted by `replyTargetOf` to that deleted
+parent, which `place_post` refuses. The thread "N replies" line also counts a
+tombstone.
+
+**Percentage.** Listing surfaces in 12.2: 18. Correct at the read: 17 of 18
+(94%). The one open is notifications linking to a deleted post (DP-1, Session
+A). Of the 17, 13 are proved by unit tests over the real read functions and 4
+by reading the code (story rails, home, admin, search: none). Chain links in 12.3: 9 (control, action,
+validation, policy, table, trigger, notification, query, screen). Proven: 6 of
+9 (67%): policy, table and trigger by SQL; query by unit tests; screen by the
+harness in a production build; validation by code reading. The control and
+the action were not exercised live; the notification link is DP-1.
+
+## 13. Platform sweep: stays (stays, stay detail, trips, restaurants, checkout, held payments; worker "sweep-stays")
+
+Group files (scope ccf594ba): `app/css/stays.css`, `app/css/escrow.css` and the route components:
+`app/(app)/{stays,stays/search,stay/[id],trips,restaurants,restaurant/[id],checkout,checkout/[bookingId],escrow,escrow/[id]}/**`,
+`components/app/stays/**`, `components/app/escrow/**`. Harness (new, fixture-backed, R-G):
+`app/(dev)/preview/session-b/sweep-stays/**`, which re-exports the committed F3 pages for the
+routes F3 already draws and adds the stays home, both payment sheets and the three held-payment
+faces. The host set-up panels that `stays.css` dresses are shot from the committed `imgc` harness.
+
+#### Inventory, written before any change (23 September)
+
+Owner column: **mine** = a file of this group, swept here. **shared** = Phase 1's layer
+(`glass.css`, `buttons.css`, `controls.css`, `Button.tsx`, the new primitives), which lands
+everywhere by itself. **other** = another group's file; drawn on my routes, not mine to edit,
+listed so the route's status is honest.
+
+**Route 1, `/stays` (stays home, governing FD3DFE84, GOVERNING-09)**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| greeting, name, logo mark, city row | `components/app/home/CityRow`, route markup (type only) | other (home) / mine (no container) |
+| hero plate: title, lede, search field, filter square | `components/app/home/HomeHero`, `home.css` | other (home) |
+| four doors (hotels, shortlets, restaurants, nearby) | `components/app/home/CategoryRow`, `home.css` | other (home) |
+| featured band head, see all link | `components/app/home/FeaturedBand` | other (home) |
+| stay card: glass card, photo, verified mark, example mark, save heart, title, place, rating, price, per night, total, amenity chips, open/closed badge | `components/app/stays/StayCard.tsx` on `.nf-glass--card` (shared) + `.nf-pcard*`, `.nf-stay-card__*`, `.nf-reg-open*` (`catalogue.css`) | mine (markup) / shared (glass) / other (catalogue.css) |
+| empty band (EmptyState + primary ButtonLink) | `components/app/Screen`, `Button` | shared |
+| loading skeleton | `stays/loading.tsx` on `LoadingShell` + `Skeleton` | mine (no container of its own) |
+
+**Route 2, `/stays/search`**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| page header, count line | `PageHeader` | other (chrome) |
+| search bar: field, go, filter square | `StaySearchBar.tsx` on `.nf-shelf-field*`, `.nf-shelf-square` (`catalogue.css`) | mine (markup) / other (css) |
+| category tiles (selected, pressed, focus) | `StayCategoryTiles.tsx` on `.nf-glass--tile` (shared) + `.nf-stays-tile*` (`catalogue.css`; `stays.css` defines a DIFFERENT `.nf-stays-tile` for the host panels, same class name, two recipes) | mine (markup) / shared / other |
+| filter sheet: backdrop, grip, head, clear, groups, tiles (3 and 5 wide), price range track and fill, rows, selects, switches, foot and apply | `StayFilterSheet.tsx` on `.nf-filters*`, `.nf-range*` (`catalogue.css`), `nf-icon-btn`, `Switch` | mine (markup) / other (css) / shared |
+| result cards | `StayCard` (as route 1) | as route 1 |
+| empty (no results) | `EmptyState` + `ButtonLink` | shared |
+| loading | `stays/search/loading.tsx` | mine (no container) |
+
+**Route 3, `/stay/[id]` (governing 84054CE9, BB0C2C85)**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| gallery, counter, back/save/share | `components/app/listing/ListingGallery` | other (listing) |
+| lead card: name, place, price row, rating, amenity capsules | `.nf-glass--card` + `.nf-detail-lead` (`catalogue.css`), `DetailPriceRow`, `DetailCapsules` | shared / other |
+| about card, host row, message | `DetailAboutCard` | other (listing) |
+| dates and party: check in, check out, guests pickers, check availability action, total note | `DetailAvailabilityCard` | other (listing) |
+| amenity tiles | `.nf-glass--tile` + `.nf-amenity-tile` | shared / other |
+| property type card with glass object | `.nf-stay-type*` (`catalogue.css`) | other |
+| room tiles (photo, glass mark, name, count) | `.nf-room-tile*` (`catalogue.css`) | other |
+| room types list (rows, role mark, from price) | `RoomTypes.tsx` on `Row`/`RowList`, `.nf-role-mark` (`controls.css`) | mine (markup) / shared |
+| rate sheet: rate cards, meal plan, policy line, StatusPill, total, Reserve button | `RoomTypes.tsx`: `nf-card rounded-[var(--nf-radius-lg)] p-card-sm` (**local radius override on the shared card**), `Sheet`, `StatusPill`, `ButtonLink primary` | **mine: sweep** / shared |
+| policy panel, house rules | `.nf-detail-panel` (`catalogue.css`) | other |
+| loading: two `nf-card rounded-[var(--nf-radius-xl)]` blocks and a hairline list | `stay/[id]/loading.tsx` (**local radius override**) | **mine: sweep** |
+| not a stay: falls through to the listing page | `listing/[id]/page` | other |
+
+**Route 4, `/trips`**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| header, page scene art | `PageHeader`, `PageScene` | other (chrome) |
+| spine rule, today marker, hollow marker | `TripSpine.tsx` inline style (a dot and ring, not a container) | mine (keeps: a shape, not a surface) |
+| trip row: link hover wash `hover:bg-[var(--nf-glass-fill)]` on `--nf-radius-lg` | `TripSpine.tsx` (**local hover surface**) | **mine: sweep** |
+| trip thumbnail plate: 64px `rounded-[--nf-radius-md] bg-[--nf-surface-secondary]` holding a photo or a glass object | `TripSpine.tsx` (**its own icon plate**) | **mine: sweep onto IconPlate** |
+| status pills (today, status) | `StatusPill` | shared |
+| pay now (`nf-btn nf-btn--primary nf-btn--sm` on a Link), review link, cancel control and its sheet | `TripSpine.tsx`, `components/app/bookings/CancelBookingSheet` | mine (markup) / shared / other (bookings) |
+| past disclosure | `Disclosure` | shared |
+| empty, loading (`nf-card` blocks) | `EmptyState`, `trips/loading.tsx` | shared / mine (plain shared card, fine) |
+
+**Route 5, `/restaurants`** : header, `StayCard` list with open/closed badge, empty state, loading. Nothing drawn locally; as route 1.
+
+**Route 6, `/restaurant/[id]`**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| gallery | `ListingGallery` | other (listing) |
+| lead card: name, cuisine, open/closed badge, price band | `.nf-glass--card` + `.nf-detail-lead`, `.nf-reg-open*` | shared / other |
+| reserve a table form | `listing/[id]/ReserveTable` | other (listing) |
+| plates, hours surface, message ButtonLink secondary | `Section`, `Surface`, `ButtonLink` | shared |
+| loading: `nf-card rounded-[var(--nf-radius-xl)]` blocks | `restaurant/[id]/loading.tsx` (**local radius override**) | **mine: sweep** |
+
+**Route 7, `/checkout` (room pick)** : room card `nf-card` with hairline `dl`, `ResultScreen` expired state (shared), caption with verified glyph. Container is the shared card; no local recipe.
+
+**Route 8, `/checkout/[bookingId]` (and the payment sheets)**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| header, page scene, 3 segment progress | `PageHeader`, `PageScene`, `SegmentedProgress` | other / shared |
+| summary card, hairline rows, total | `CheckoutSummary.tsx` on `nf-card` | mine (shared card) |
+| hold countdown: sunken panel, 44px glass object **with no plate** | `HoldCountdown.tsx` on `.nf-panel-sunken` (`chips.css`) | **mine: sweep glyph onto IconPlate** / other (chips.css) |
+| pay method cards (card, saved card, wallet): `nf-card` li, 48px glass object **with no plate** | `PayPanel.tsx` `MethodCard` | **mine: sweep onto IconPlate** |
+| saved card picker | `components/app/payments/SavedCardPicker` | other (payments) |
+| buttons: pay, pay with saved card, wallet, top up | `Button`, `ButtonLink` | shared |
+| action bar with total | `ActionBar` | shared |
+| footnote with 20px glass object, closing note `nf-card` with 20px glass object | `checkout/[bookingId]/page.tsx` | mine (inline glyphs, no plate needed at 20px: they are type-sized marks) |
+| payment sheets: pending (blocking), still checking, received, failed, card declined, wallet short | `PaymentReturn.tsx`, `PayPanel.tsx` into `components/app/ResultSheet` + `wallet.css` `.nf-result-*` | mine (copy and call) / other (ResultSheet, wallet.css) |
+| hold expired / not yours / paid: `ResultScreen` | `ResultSheet` | other |
+| loading: `nf-card` blocks | `checkout/[bookingId]/loading.tsx` | mine (plain shared card, fine) |
+
+**Route 9, `/escrow` (held payments list)** and **Route 10, `/escrow/[id]`**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| agreement card: `.nf-esc-sheet` glass fill, rim, 1px brand ring, drop glow, `--nf-radius-lg` | `escrow.css` (**its own card recipe**) | **mine: sweep onto the shared panel** |
+| amount, purpose overline, state word + dot, meaning line | `escrow.css` type roles | mine (type, keeps) |
+| payout date box `.nf-esc-when` (thin glass, soft ring, control radius) | `escrow.css` (**its own inset plate**) | **mine: sweep** |
+| receipt box `.nf-esc-receipt` | `escrow.css` (**its own inset plate**) | **mine: sweep** |
+| evidence row `.nf-esc-filed` with the side stripe | `escrow.css` (**its own inset plate**; the stripe stays, it carries whose) | **mine: sweep plate, keep stripe** |
+| actions `.nf-esc-action` ("Open it", "Pay it out now", "Ask to be paid", "Raise a problem", "File it", ...) | `escrow.css`: radius and height only, **no fill, no rim, no bloom: an unlit text control** | **mine: sweep onto Button variants** |
+| evidence filer: fields `.nf-esc-field` (raised surface, divider border), file input, fact textarea, date, amount | `escrow.css` (**its own field recipe**) | **mine: sweep onto the shared control well** |
+| filer hairline blocks | `escrow.css` | mine (hairlines keep) |
+| proposal in a thread `.nf-esc-thread` (raised surface, divider border), who-pays choices | `escrow.css` classes, drawn by `components/app/messages/ProposeHeldPayment.tsx` | **mine (css)** / other (the component is the messages group's) |
+| light-theme paper twin (`:root[data-theme="light"]` rules) | `escrow.css` | **mine: delete (dark only)** |
+| empty, not found, read failed | `EmptyState` | shared |
+
+**Host set-up panels (`stays.css`, GOVERNING-10 and 11; components are the host wizard group's `components/host/stays/**`)**
+
+| Visible item | Class | Recipe today |
+|---|---|---|
+| step head segments (done, at) | `.nf-stays-head__seg` | pill track, brand gradient, `0 0 12px --nf-glow-3` (a progress bar: keeps shape) |
+| labelled plate | `.nf-stays-plate` | **own card**: `--nf-radius-xl`, brand edge, well fill, rim + `0 0 18px glow-1` |
+| input, select | `.nf-stays-input`, `.nf-stays-select` | **own field well**: deep well, soft edge, rim |
+| row list | `.nf-stays-list` | **own inset plate** |
+| stepper | `.nf-stays-stepper*` | **own control**: control radius, brand edge, deep well |
+| tile (place type, policy, band), selected, tick | `.nf-stays-tile*` | **own tile + own selected state** (`tint-2`, `0 0 22px glow-3`) |
+| cuisine chip, pressed | `.nf-stays-chip` | **own chip + own lit state** (brand gradient, `0 0 18px glow-3`) |
+| rule row | `.nf-stays-rule` | **own card** (`--nf-radius-lg`, rim + `0 0 14px glow-1`) |
+| round glyph | `.nf-stays-glyph` | **own icon plate, round** |
+| rate card, thumb | `.nf-stays-card`, `.nf-stays-thumb` | **own card** (`--nf-radius-2xl`, rim, glow, bloom) and **own plate** |
+| calm note | `.nf-stays-note` | **own card** |
+| stars | `.nf-stays-stars` | type colour only |
+
+**Findings from the inventory, before any change.** (1) Every `.nf-esc-action` on `/escrow/[id]`
+and in the thread proposal is an UNLIT text control: radius and height only, no fill, no rim, no
+bloom, so "Say the work was done", "Choose a file" and "File this" read as loose words (before
+shot `escrow-detail-390-before.jpg`). (2) `.nf-stays-tile` is defined twice with two recipes,
+`catalogue.css` (the search category tiles) and `stays.css` (the host panels); they never meet on
+one page today, but the name collision is a trap. (3) The payment failed and pending sheets draw
+their glass object on a visible dark square (`pay-failed-390-before.jpg`); that square is
+`ResultSheet`/`wallet.css`, not this group's, and is reported to the lead rather than fixed here.
+(4) The stays home, stay detail and restaurant detail are dressed almost entirely by the home and
+listing groups' files (`home.css`, `catalogue.css`, `components/app/home/**`,
+`components/app/listing/**`); this group can only make them match by what Phase 1 and those
+groups ship.
+
+#### Before proofs (23 September, production build, harness, dark, 390 at 2x and 1440 at 1x)
+`docs/design/proofs/session-b/sweep-stays/before/<route>-{390,1440}-before.jpg` for: stays,
+stays-empty, stays-search, stays-filters (sheet open), stay, trips, restaurants, restaurant,
+checkout, pay-pending, pay-failed, escrow, escrow-detail (disputed, filer open), escrow-held,
+escrow-released, and the eight host panels (host-hotel, host-room-types, host-rates, host-place,
+host-house-rules, host-restaurant, host-tables, host-facilities). All fixture-backed. Horizontal
+overflow 0 on every shot.
+
+(Apply, per-route table, after proofs and Passes 1 to 3: pending Phase 1 RELEASED.)
+
+## 13. Platform sweep: settings (settings and every child, notifications, the system pages; worker "sweep-settings")
+
+Group files (scope ccf594ba, claimed in full in the scope file's sweep section): `app/settings-rows.css`,
+`app/css/overlays.css`, `app/css/system.css`, and the route components `app/(app)/settings/**`,
+`app/(app)/notifications/**`, `components/app/account/**`, `components/app/push/**`,
+`app/(app)/legal/LegalDocument.tsx`, `app/offline/SystemMoment.tsx`, `app/not-found.tsx`,
+`app/error.tsx`, `app/(app)/error.tsx`, `app/loading.tsx`. By the lead's ruling the notifications
+anatomy (`.nf-notif*`) moves out of `home.css` into `app/(app)/notifications/notifications.css`.
+Governing images: settings `7F96BE6C` (root copy in `docs/design/references/`); the notification
+centre panel of `roles/GOVERNING-12`. Harness (new, fixture-backed, R-G):
+`app/(dev)/preview/session-b/sweep-settings/` (`?v=` one view per route and inner state, inside the
+real `AppShell`, signed in). Every settings route and `/notifications` sit behind the sign-in gate
+(checked: 307 to `/sign-in` on this server), so every shot of them is FIXTURE-BACKED; `/offline` is
+the real route. Shot script: `scripts/design/session-b-shots/sweep-settings.mjs --phase before|after`.
+
+#### Inventory, written before any change (23 September)
+
+Owner column: **mine** = a file of this group, swept here. **shared** = Phase 1's layer
+(`glass.css` `.nf-card`/`.nf-glass--*`, `buttons.css` `.nf-btn*`, `controls.css`, `Button.tsx`,
+`Switch.tsx`, `Sheet.tsx`, the new primitives), which lands everywhere by itself. **other** = another
+group's file, drawn on my routes, listed so each route's status is honest.
+
+**Route 1, `/settings` (hub, governing 7F96BE6C)**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| back square | `BackButton` (`nf-icon-btn`) | other (chrome) / shared |
+| headline, lede | `.nf-hub-head*` (`settings-rows.css`), type only | mine (no container) |
+| profile card: container, avatar ring with bloom, name, verified tick, email, chevron | `SettingsHub.tsx` `.nf-card.nf-hub-profile` + **local lit-edge override** (`settings-rows.css` "THE LIT EDGE": `--nf-brand-edge` border, `--nf-glow-edge`, floor inset, `--nf-bloom-card`) + **own radius** `--nf-radius-xl`; avatar ring **own gradient border and glow** `.nf-hub-profile__avatar` | **mine: sweep** |
+| hub group: container | `SettingsGroup` `.nf-sgroup__body.nf-card` + **own radius** (`--nf-radius-xl`, doubled selector) + **the same local lit-edge override** | **mine: sweep** |
+| six rows: glyph slot 38px with glass object, label, sub, value, chevron, hairline rail, hover, focus ring | `rows.tsx` `.nf-srow*`, `.nf-hub .nf-srow*` | mine (rows; no container of their own; icon slot is the plate question, see note A) |
+| Verified value with emerald tick | `.nf-hub-value--ok` | mine (type) |
+| Notifications switch, on/off word, disabled while saving, save error alert | `RowSwitch` -> `Switch.tsx` (`.nf-switch` material in `controls.css`; **duplicate dead `.nf-switch`/`__knob` rules in `settings-rows.css`**) | shared / **mine: delete dead copy** |
+| language row (native select, chevron turned right) | `LanguageRow` `RowSelect` | mine |
+| payment methods block: head plate, Add button, card row with Verve plate, Default badge, bank row with plate, Verified badge, add sheet | `PaymentMethodsPanel.tsx`, `AddBankAccountSheet.tsx`, `wallet.css` `.nf-pay-*`, `.nf-glyph-tile`, `.nf-rows-sheet` | other (wallet family, lead ruling) / sheet CSS mine |
+| Log Out group | `LogOutRow` `SettingsGroup` + `RowButton` | mine (as hub group) |
+| loading skeleton | `settings/loading.tsx`: `nf-card p-md` + `Skeleton` | mine (uses shared card, no override) |
+
+**Route 2, `/settings/account`**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| page header with back square, title, sub | `PageHeader` | other (chrome) |
+| group labels, notes | `.nf-sgroup__label`, `__note` | mine (type) |
+| Account group (payment methods row, signed-in value, sign out row, sign-out error) | `AccountSection.tsx` on `SettingsGroup` | mine (group container as route 1) |
+| Delete my account button | `DeleteAccountPanel.tsx` `Button variant="danger"` | shared |
+| delete blockers panel | `DeleteAccountPanel.tsx:157` **inline** `rounded-[--nf-radius-md] border-[--nf-border-subtle] bg-[--nf-surface-raised] p-md` | **mine: sweep** |
+| deletion scheduled panel, restore button, restore error | `DeleteAccountPanel.tsx:248` **inline** error-edged box | **mine: sweep** (a state tone on the shared panel) |
+| delete flow (full-screen layer): scrim, surface, title, close square, "what happens" card, bullet dots, confirm form card, password field, email code button, phrase field, field errors, error box, cancel and delete buttons, done card | `DeleteAccountPanel.tsx:348-560`: **own scrim** (`bg-[--nf-overlay-backdrop] backdrop-blur-sm`), **own surface** (`bg-[--nf-surface-primary]`), `nf-card` x3, `nf-field`, `Button`, **inline error box** (`:535`) | **mine: sweep** |
+| Where you are group (place rows, interests row) | `PlaceCard.tsx`, `InterestsCard.tsx` on `SettingsGroup` | mine |
+| Search group (default area select, currency value, distances select) | `SearchCard` in `SettingsGroups.tsx` | mine |
+
+**Route 3, `/settings/notifications`**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| channels group, four switches, saved/error note | `AccountNotificationsCard` (`AccountToggles.tsx`) on `SettingsGroup`, `RowSwitch` | mine / shared switch |
+| On your phone: push setting card, turn on button, states | `PushSetting.tsx`: `nf-card`, `nf-btn nf-btn--sm nf-btn--ghost` (hand-written class string, not `Button`) | mine (markup) / shared |
+| push device rows, stop one (armed turns danger), stop all, outcome line, unreadable card | `PushDevices.tsx`: `nf-card p-card` rows, hand-written `nf-btn` strings | mine (markup) / shared |
+
+**Route 4, `/settings/privacy` (privacy and security)**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| privacy group (hide activity, data saver switches, note) | `AccountPrivacyCard` | mine |
+| security group (sign-out-everywhere switch, signed-in-on value, row buttons), devices row | `SecurityCard`, `DevicesRow` | mine |
+| data group (export, clear rows) | `DataCard` | mine |
+
+**Route 5, `/settings/payments`**: page header (stacked), the payment methods block (other, wallet), the
+cards note (type), signed-out empty state (`EmptyState` + `EmptyActions`, shared), loading
+(`payments/loading.tsx`: `nf-card` with **own radius override** `rounded-[var(--nf-radius-xl)]`,
+hairline list) = **mine: sweep** (the loading card).
+
+**Route 6, `/settings/help`**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| support chat card, topic chips, answer panel, my bubble, their bubble, typing dots, composer field, send button, contact row, handoff boxes (x2) | `SupportChat.tsx`: `nf-card p-card`, `nf-chip`, **inline** answer panel (`:396` own radius and border), **inline** bubbles (`:431`, `:478`, `:585` `rounded-2xl` plus own fills), **inline** handoff boxes (`:607`, `:682` own brand-tint fill and edge), send `Button` with **own radius** (`:526`) | **mine: sweep** |
+| About group (help, terms, privacy, version, licences) | `SettingsGroup` + `RowLink`/`RowValue` | mine |
+
+**Route 7, `/settings/appearance`**: Appearance group (text size select, reduce motion, sound
+switches), language row = `AppearanceCard`, `LanguageRow` on `SettingsGroup` = mine.
+
+**Route 8, `/settings/devices`**: intro, device cards (`nf-card p-card`), end-this / end-others
+buttons (hand-written `nf-btn nf-btn--sm` strings that turn danger when armed), outcome line,
+unreadable card, signed-out card with glass object and primary link = `DeviceList.tsx`, page = mine
+(markup on shared card and button classes).
+
+**Route 9, `/settings/place`**: form card (`nf-card p-lg`), state, local government and occupation
+pickers (`PlaceFields`, other: auth/place), save button (hand-written `nf-btn nf-btn--primary`),
+**inline** error box (`PlaceForm.tsx:75`), states-unavailable card, signed-out card, loading = mine
+(error box: **sweep**).
+
+**Route 10, `/settings/interests`**: card (`nf-card p-lg`) around `InterestChoices` (other, welcome),
+signed-out card, loading = mine (no override).
+
+**Route 11, `/notifications` (governing GOVERNING-12 panel 3)**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| header: back, title, unread count line, Mark all read | `LiveNotifications.tsx`, `PageHeader`, `Button` | mine / shared |
+| section head New / Earlier with count plate | `.nf-notif__head`, `.nf-notif__count` (**own fill** `--nf-brand-tint-2`) | **mine: sweep** (moves from `home.css`) |
+| list card | `.nf-glass.nf-glass--card.nf-notif__list` | shared material, mine (layout) |
+| row, unread tint, hover, press | `.nf-notif__row` (**own radius and tint**) | **mine: sweep** |
+| glyph plate, unread plate lit | `.nf-glass--tile.nf-notif__tile` + **own size, radius**, **own unread edge/glow** (`--nf-brand-edge-strong`, `--nf-glow-edge-strong`) | **mine: sweep onto the shared IconPlate** |
+| title, body, time, unread dot | type, `.nf-notif__dot` (shape, own glow) | mine |
+| empty state (primary ButtonLink) | `EmptyState` | shared |
+| signed-out and unreachable states | `EmptyState`, `Unreachable`, `PageScene` | shared / other |
+| loading skeleton | `notifications/loading.tsx`: `nf-card nf-notif__list` | mine |
+
+**Route 12, the system pages (`/offline`, not found, the two error boundaries, the root wait) and
+the in-app legal reader (`/legal/terms`, `/legal/privacy`)**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| aurora plate, lockup, wordmark | `.nf-system__plate`, `__icon`, `__wordmark` | mine (art, no container) |
+| system card: fill, border, rim, glow, specular | `.nf-system__card` (`system.css`): **own full recipe** (58% canvas fill, `--nf-glow-brand-rim` border, six-layer shadow, `--nf-glass-specular` ::before, `--nf-radius-2xl`) | **mine: sweep** |
+| 404 numeral, overline, title, body, reference, status line, aside | type | mine |
+| search field with glyph, Search and Back to home buttons | `.nf-field`, `Button`/`ButtonLink` | shared |
+| podium ring and pool | `.nf-system__podium` (shape art from the sign-in render) | mine (keeps, see note B) |
+| root wait: mark, search stand-in, grid of skeletons | `.nf-wait__pill`: **own container** (brand edge, glass fill, `--nf-glow-edge`, `--nf-elev-1`) | **mine: sweep** |
+| legal contents card | `.nf-legal__toc`: **own container** (brand edge, glass fill, blur, `--nf-glow-edge`, specular, `--nf-radius-xl`) | **mine: sweep** |
+| legal prose, sections, back-to-top, foot | type and hairlines | mine |
+
+**Overlays (`overlays.css`), drawn on every group's routes**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| side drawer panel and scrim | `.nf-drawer`, `--left`, `--right`, `.nf-drawer-scrim`: **own glass fill, own `--nf-glow-edge-strong` edge, own radius** | **mine: sweep** (the drawer's CONTENTS are the chrome group's) |
+| bottom sheet: backdrop, surface, grip, body | `.nf-sheet*` (`components/ui/Sheet.tsx`): **own fill (88% elevated), own conic stride edge, `--nf-elev-3-rim`** | **mine: sweep** |
+| rows sheet (payments and profile sheets) | `.nf-rows-sheet*` (`settings-rows.css`): **own fill, own border, own radius, own close square** | **mine: sweep** |
+
+Dead code found in the inventory (to delete while sweeping): `.nf-switch`, `.nf-switch__knob`
+(the switch primitive's material is `controls.css`; these lose the cascade and its thumb class is
+`__thumb`) and `.nf-segment*` (no markup since `RowSegment` became `Segmented`) in `settings-rows.css`.
+
+Note A, the row glyph. `7F96BE6C` draws one glass tile per hub row. The hub passes pack objects that
+carry their own tile (`BrandIcon` at 38), so the row slot must NOT draw a second one (ledger history
+in `settings-rows.css`). The shared IconPlate applies to the stroked-glyph rows on the child pages only
+if the reference draws plates there; the account screens' rows are stroked line glyphs with no plate
+in the render family, so they stay line glyphs.
+
+Note B, the podium. The system card stands on the sign-in render's podium; it is art, not a
+container, and stays.
+
+Found while inventorying, not mine (reported to the lead 23 September): `components/ui/Switch.tsx`
+lifts the thumb twice (Tailwind `-translate-y-1/2` plus an inline `translate(x, -50%)`), so on every
+switch in the product the knob sits 8px above the top of its track (measured 390, hub: track 52x32,
+thumb top -8, expected +4). Visible in `before/hub-390.jpg`.
+
+#### Before proofs (23 September, fixture-backed harness except `/offline`)
+
+`docs/design/proofs/session-b/sweep-settings/before/`, each at 390 (2x) and 1440: `hub`, `account`,
+`delete-sheet`, `delete-scheduled`, `notification-prefs`, `privacy`, `payments`, `help`,
+`appearance`, `devices`, `place`, `interests`, `inbox`, `inbox-empty`, `terms`, `error`,
+`loading-settings`, `loading-payments`, `loading-place`, `loading-interests`, `loading-inbox`,
+`offline` (real route), `not-found` (unknown path under the harness, real 404). 46 shots.
+
+(Apply, per-route table, Pass 1 to 3: pending Phase 1 RELEASED.)
 
 ## Skipped or not verified
 
