@@ -2987,12 +2987,6 @@ export const ha: Dictionary = withFallback({
   /* Build 05, FE-2. Short labels translated; sentences about money kept in
      English until a native reviewer rewrites them. */
   walletSend: {
-    modeLabel: "Aika zuwa",
-    modeBank: "Zuwa banki",
-    modeWallet: "Zuwa walat na Vallo",
-    bankRowLabel: "Banki",
-    bankRowPlaceholder: "Zaɓi banki",
-    accountNumberLabel: "Lambar asusu",
     availableBalance: "Ma'aunin da ake da shi",
     sendSub: "Zuwa kowane walat na Vallo, ta imel ɗinsu",
     instantChip: "Aika nan take",

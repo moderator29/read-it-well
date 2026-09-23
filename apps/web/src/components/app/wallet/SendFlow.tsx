@@ -31,12 +31,6 @@ import { LiveWallet } from "./LiveWallet";
 import { MoneyGlyph } from "./MoneyGlyph";
 import { WalletTiles } from "./WalletTiles";
 import { BadgeSlot } from "./BadgeSlot";
-import {
-  BankRecipientRows,
-  useBankRecipient,
-  type LoadBanks,
-  type ResolveBank,
-} from "./BankRecipient";
 import { RollingAmount } from "./RollingAmount";
 import { canonicalNaira } from "./AmountField";
 import { useMoneyWait, WaitNotice } from "./MoneyWait";
@@ -57,14 +51,15 @@ import {
 } from "./recent-recipients";
 
 /**
- * SEND, to its governing render (95840448).
+ * SEND, to its governing render (77A54EA3). Wallet to wallet only.
  *
- *   compose   the balance strip; the recipient section with the address
- *             field and the people this device has sent to lately; the
- *             amount, rolling as it is typed, with the render's four
- *             presets; the bank section, which is the honest door to the
- *             one bank movement this wallet makes (a withdrawal to your own
- *             account); the note; Continue
+ *   compose   the balance card and its tiles; the form panel with the
+ *             recipient (a Vallo email, checked as it is typed), the amount
+ *             with the render's four presets, and the note; the lit button
+ *   (no bank send: sending to someone else's bank account was removed by
+ *   the founder on 23 September as licensed activity; the one bank movement
+ *   this wallet makes is a withdrawal to your OWN account, on the wallet
+ *   home)
  *   confirm   the amount is the headline, the recipient under it, and the
  *             one sentence that removes fear
  *   sending   the mark, the amount and the consequence line, every second
@@ -94,9 +89,6 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
    20,000 and 50,000 naira. */
 const PRESETS_KOBO = [500_000, 1_000_000, 2_000_000, 5_000_000];
 const NOTE_MAX = 140;
-/* Flips to true, and the confirm step posts to `transferToBank`, the day
-   Session A's B-BANK (b) lands. The account name check is live today. */
-const BANK_SEND_OPEN = false;
 
 export function SendFlow({
   balanceMinor,
@@ -106,9 +98,6 @@ export function SendFlow({
   initialAmount = "",
   initialNote = "",
   lookup: lookupFn = lookupRecipient,
-  resolveBank,
-  loadBanks,
-  initialMode = "wallet",
   homeCopy: homeCopyProp,
   userId = null,
 }: {
@@ -134,12 +123,6 @@ export function SendFlow({
    * passes a fixture resolver to prove the look.
    */
   lookup?: (email: string) => Promise<RecipientLookup>;
-  /** The payout side's bank resolver and list; overridable by the harness
-      only, for the same reason as `lookup`. */
-  resolveBank?: ResolveBank;
-  loadBanks?: LoadBanks;
-  /** Which side the choice opens on; the harness shoots both. */
-  initialMode?: "wallet" | "bank";
 }) {
   const router = useRouter();
   const homeCopy = homeCopyProp ?? getDictionary(locale).wallet.home;
@@ -147,17 +130,6 @@ export function SendFlow({
   const [email, setEmail] = useState(initialEmail);
   const [amountText, setAmountText] = useState(initialAmount);
   const [note, setNote] = useState(initialNote);
-  /* To a Vallo wallet (by email) or to a bank account (founder item 3). */
-  const [mode, setMode] = useState<"wallet" | "bank">(initialMode);
-  const [bankCode, setBankCode] = useState("");
-  const [accountNumber, setAccountNumber] = useState("");
-  const bank = useBankRecipient({
-    enabled: mode === "bank",
-    bankCode,
-    accountNumber,
-    resolve: resolveBank,
-    load: loadBanks,
-  });
   const [hidden, toggleHidden] = useBalanceMask();
   const [recent, setRecent] = useState<RecentRecipient[]>([]);
   const [idempotencyKey] = useState(mintIdempotencyKey);
@@ -231,18 +203,8 @@ export function SendFlow({
     check !== null &&
     check !== "checking" &&
     (check.state === "none" || check.state === "self");
-  /*
-   * A bank send is ready to confirm only once the bank has named the account
-   * AND the transfer-to-bank action exists. It does not yet: scope request
-   * B-BANK (b) asks Session A for `transferToBank`. `BANK_SEND_OPEN` is the
-   * one line that changes the day it lands, with the confirm step posting to
-   * it; until then the button stays off in this mode and the page says why.
-   */
-  const bankNamed = bank.check.state === "found";
   const canContinue =
-    mode === "wallet"
-      ? emailOk && amountOk && enough && check !== "checking" && !refused
-      : BANK_SEND_OPEN && bankNamed && amountOk && enough;
+    emailOk && amountOk && enough && check !== "checking" && !refused;
 
   /*
    * THE RECEIPT IS THE LEDGER'S ROW, NOT THE ACTION'S SUMMARY. One read by
@@ -335,19 +297,14 @@ export function SendFlow({
       <div className="nf-send-head">
         <div className="min-w-0">
           <h1 className="nf-send-head__title">{copy.title}</h1>
-          <p className="nf-send-head__sub">
-            {mode === "bank" ? copy.sendSubBank : copy.sendSub}
-          </p>
+          <p className="nf-send-head__sub">{copy.sendSub}</p>
         </div>
-        {/* True of every wallet send: both legs are written in one database
-            transaction (private.transfer_between_wallets). Not drawn for a
-            bank send, which settles on the bank's clock. */}
-        {mode === "wallet" && (
-          <p className="nf-send-chip-instant">
-            <UiIcon name="bolt" size={16} />
-            {copy.instantChip}
-          </p>
-        )}
+        {/* True of every send this page makes: both legs are written in one
+            database transaction (private.transfer_between_wallets). */}
+        <p className="nf-send-chip-instant">
+          <UiIcon name="bolt" size={16} />
+          {copy.instantChip}
+        </p>
       </div>
 
       {body}
@@ -547,44 +504,13 @@ export function SendFlow({
         THE FORM PANEL, to 77A54EA3: one glass panel holding a row per field,
         each row a round glass plate, a label and the control. Recipient,
         Amount and Narration are the rows this product has. The render's Bank
-        row is refused (a send is wallet to wallet, and bank payouts do not
-        complete today) and so is its scan button (there is no scanner).
+        row is refused: sending to someone else's bank account is licensed
+        activity in Nigeria and the founder removed it on 23 September (see
+        the Session B ledger, section 5); a send moves money between two Vallo
+        wallets inside the ledger. The scan button is refused too (there is
+        no scanner).
       */}
       <div className="nf-card nf-send-form">
-        {/* To a Vallo wallet, or to a bank account (founder item 3). Two
-            rounded rectangles, the chosen one lit. */}
-        <div className="nf-send-mode" role="group" aria-label={copy.modeLabel}>
-          <button
-            type="button"
-            className="nf-send-mode__option"
-            aria-pressed={mode === "bank"}
-            onClick={() => setMode("bank")}
-          >
-            {copy.modeBank}
-          </button>
-          <button
-            type="button"
-            className="nf-send-mode__option"
-            aria-pressed={mode === "wallet"}
-            onClick={() => setMode("wallet")}
-          >
-            {copy.modeWallet}
-          </button>
-        </div>
-
-        {mode === "bank" ? (
-          <BankRecipientRows
-            copy={copy}
-            banks={bank.banks}
-            bankCode={bankCode}
-            onBankCode={setBankCode}
-            accountNumber={accountNumber}
-            onAccountNumber={setAccountNumber}
-            check={bank.check}
-            plate={(art) => <RowPlate art={art} />}
-          />
-        ) : (
-          <>
             <div className="nf-send-row">
               <RowPlate art="plate-recipient" />
               <div className="nf-send-row__body">
@@ -701,8 +627,6 @@ export function SendFlow({
                 </div>
               )}
             </div>
-          </>
-        )}
 
         <div className="nf-send-row nf-send-row--amount">
           <RowPlate art="plate-amount" />
@@ -804,11 +728,6 @@ export function SendFlow({
           arrow at the right. It opens the confirm step, which is where the
           money is actually sent.
         */}
-        {mode === "bank" && !BANK_SEND_OPEN && (
-          <p role="status" className="nf-send-row__hint nf-send-bank-closed">
-            {copy.bankSendClosed}
-          </p>
-        )}
         <button
           type="button"
           className="nf-send-cta"
@@ -840,6 +759,7 @@ export function SendFlow({
               <li>{copy.trustHolds}</li>
               <li>{copy.trustFails}</li>
               <li>{copy.trustRecall}</li>
+              <li>{copy.trustRefund}</li>
             </ul>
           </div>
         </aside>

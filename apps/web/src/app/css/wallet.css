@@ -1250,59 +1250,6 @@
     box-shadow: var(--nf-wallet-lit-glow);
   }
 
-  /* ------------------------------------------------- send: to bank or wallet */
-
-  /*
-   * The mode choice (founder item 3): two rounded rectangles across the top
-   * of the form panel, the chosen one lit with the button's gradient. 44px
-   * tall (R-B), 11px type (R-A floor), a 10px corner (ratio 0.23).
-   */
-  .nf-send-mode {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--nf-space-xs);
-  }
-  .nf-send-mode__option {
-    min-height: 2.75rem;
-    border: 1px solid var(--nf-brand-edge-soft);
-    border-radius: var(--nf-radius-sm);
-    background: var(--nf-wallet-glass-mid);
-    color: var(--nf-content-secondary);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    box-shadow: var(--nf-rim-lit);
-  }
-  .nf-send-mode__option[aria-pressed="true"] {
-    border-color: var(--nf-wallet-cta-edge);
-    background: var(--nf-gradient-cta);
-    color: var(--nf-content-on-brand);
-  }
-  .nf-send-mode__option:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 2px;
-  }
-  /* The Bank row: the render's select, a chevron at the right. */
-  .nf-send-row__select {
-    appearance: none;
-    cursor: pointer;
-  }
-  .nf-send-row__select option {
-    background: var(--nf-surface-elevated);
-    color: var(--nf-content-primary);
-  }
-  .nf-send-row__select:invalid,
-  .nf-send-row__select:has(option[value=""]:checked) {
-    color: var(--nf-content-muted);
-    font-size: 0.6875rem;
-  }
-  .nf-send-row__chevron {
-    color: var(--nf-content-secondary);
-    pointer-events: none;
-  }
-  .nf-send-bank-closed {
-    padding-inline: 0.75rem;
-  }
-
   /* ---------------------------------------- round three: measured glow, radii */
 
   /*

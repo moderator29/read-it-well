@@ -3002,12 +3002,6 @@ export const yo: Dictionary = withFallback({
   /* Build 05, FE-2. Short labels translated; sentences about money kept in
      English until a native reviewer rewrites them. */
   walletSend: {
-    modeLabel: "Fi ránṣẹ́ sí",
-    modeBank: "Sí báńkì",
-    modeWallet: "Sí àpò owó Vallo",
-    bankRowLabel: "Báńkì",
-    bankRowPlaceholder: "Yan báńkì",
-    accountNumberLabel: "Nọ́mbà àkáǹtì",
     availableBalance: "Owó tó wà",
     sendSub: "Sí àpò owó Vallo èyíkéyìí, pẹ̀lú ímeèlì wọn",
     instantChip: "Ìfiránṣẹ́ lẹ́sẹ̀kẹsẹ̀",

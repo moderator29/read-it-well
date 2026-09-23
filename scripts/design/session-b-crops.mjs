@@ -196,9 +196,9 @@ SURFACES.inspection = async () => {
  * Render: 77A54EA3-BBB5-4BF4-B3A5-144C99CABAF7.png (repo root), 1024x1536,
  * phone screen 667 image px wide (1.71 image px per CSS px at 390). The round
  * glass plates at the left of the send form's rows, glyph included (line art,
- * no lettering). Only rows the product offers: Recipient, Bank (added 23
- * September with the send-to-bank screen), Amount, Narration, and the shield
- * of the reassurance card. NOT the scan button (there is no scanner), NOT the
+ * no lettering). Only rows the product offers: Recipient, Amount, Narration,
+ * and the shield of the reassurance card. NOT the Bank row: bank send was
+ * removed by the founder on 23 September. NOT the scan button (there is no scanner), NOT the
  * NDIC or 256 bit badges. The plate inside the lit Send Money button sits on
  * saturated blue, which this key cannot separate from its ground, so it is
  * drawn in CSS. See apps/web/public/brand/session-b/send/SOURCES.md.
@@ -210,9 +210,6 @@ SURFACES.send = async () => {
   await mkdir(dir, { recursive: true });
   const plates = {
     recipient: [228, 694],
-    /* The Bank row's plate, now that the product sends to a bank (founder
-       item 3, 23 September): the pediment glyph on the same round glass. */
-    bank: [228, 786],
     amount: [228, 874],
     note: [227, 1026],
     shield: [229, 1230],

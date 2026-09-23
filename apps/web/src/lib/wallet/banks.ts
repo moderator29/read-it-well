@@ -26,12 +26,11 @@
  * ---------------------------------------------------------------------------
  * WHY IT STILL EXISTS AT ALL, SINCE A DEAD LIST IS HOW THE TWO DIVERGED.
  *
- * Two components still import it as their picker's seed:
+ * One component still imports it as its picker's seed:
  * `app/(app)/wallet/WalletDeck.tsx` (the withdraw sheet, which draws its
- * options from here and nowhere else) and
- * `components/app/wallet/BankRecipient.tsx` (the send desk, which draws these
- * and then replaces them the moment `listBanks()` answers). Both are Session
- * B's files under `docs/SESSION_B_SCOPE.md`, so the withdraw sheet's swap to
+ * options from here and nowhere else). (The send desk's bank picker was
+ * removed with bank send on 23 September.) It is Session B's file under
+ * `docs/SESSION_B_SCOPE.md`, so the withdraw sheet's swap to
  * `listBanks()` is filed as a request in `docs/BUILD_07_LEDGER.md` section 49
  * rather than made here. THE DAY THAT REQUEST LANDS, DELETE THIS FILE.
  *
