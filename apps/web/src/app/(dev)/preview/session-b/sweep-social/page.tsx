@@ -306,6 +306,25 @@ async function Face({ f, tab, member, empty }: { f: string; tab?: string; member
     case "plain": {
       const booking = f === "booking";
       const rental = f === "rental";
+      /*
+       * NO `counterpartVerified` HERE, AND DO NOT PUT IT BACK.
+       *
+       * `9b3d254d` removed it from `ThreadViewProps`, correctly: the flag was
+       * the LISTING's and was being drawn beside a PERSON's name, which is the
+       * one thing rule 12 forbids. This fixture went on passing it, so from
+       * that commit `origin/main` stopped type checking and no production
+       * build completed for anybody, in either session.
+       *
+       * The two `counterpartVerified` keys further up this file are
+       * `ShareToThread`'s own thread descriptors, a different type entirely,
+       * and `SharePicker.tsx` still declares one. So never sweep this file by
+       * the property name.
+       *
+       * `counterpartTier` replaced it and is REQUIRED, so this fixture must
+       * carry one. It is the PERSON's badge tier from the single published
+       * derivation, which is the whole point of the change: the rental case
+       * draws none, the others gold. Never pass a listing's flag here.
+       */
       return (
         <div className="flex h-dvh flex-col">
           <ThreadView
