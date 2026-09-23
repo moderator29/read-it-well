@@ -9,7 +9,7 @@ import { InspectionsLive } from "@/components/app/inspections/InspectionsLive";
 import { resolveSession } from "@/lib/actions/session";
 import { readReportsFor } from "@/lib/inspections/report-queries";
 import { readTruthAnsweredFor } from "@/lib/inspections/truth-queries";
-import { truthOpen } from "@/lib/inspections/truth";
+import { truthOpenNow } from "@/lib/inspections/truth";
 import { reportStorageLive } from "@/lib/inspections/report-flag";
 import { groupInspections, tagSide } from "@/components/app/inspections/grouping";
 import {
@@ -85,9 +85,8 @@ export default async function InspectionsPage({
   ]);
   /* V-05: the truth questions are open for the requester once the agreed
      time has passed; decided here, once, with the server's clock. */
-  const now = Date.now();
   const truthFor = (row: (typeof all)[number]) =>
-    truthOpen(row.side, row.state, row.slotAt, row.requestedAt, now) || truthAnswered.has(row.id)
+    truthOpenNow(row.side, row.state, row.slotAt, row.requestedAt) || truthAnswered.has(row.id)
       ? { answeredAt: truthAnswered.get(row.id) ?? null, copy: t.trustVisible.truth }
       : null;
   const reportLive = reportStorageLive();

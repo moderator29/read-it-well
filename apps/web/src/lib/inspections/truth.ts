@@ -57,6 +57,16 @@ export function truthOpen(
   return Number.isFinite(when) && when <= now;
 }
 
+/** `truthOpen` against the server's clock, for a server component to call once per row. */
+export function truthOpenNow(
+  side: "requester" | "lister",
+  state: InspectionState,
+  slotAt: string | null,
+  requestedAt: string,
+): boolean {
+  return truthOpen(side, state, slotAt, requestedAt, Date.now());
+}
+
 /** The row the insert sends, with only the four answers and the ids. */
 export function truthRow(
   inspectionId: string,
