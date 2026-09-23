@@ -6349,3 +6349,68 @@ should change nothing. **Should is not the standard on this build.** They are
 recorded here as a separate piece of work that wants one observation first: a
 trigger firing as `authenticated` with the grant removed. Nine closed on
 evidence beats forty-seven closed on a belief about the manual.
+
+## 54. ALL SEVEN CRON ROUTES PROVEN, AND THE CHECK-IN CAUGHT MY OWN DEFECT
+
+### The proof, which is the whole point of having scheduled it
+
+```
+cron.complete-stays.ok        2026-09-23 02:30:18
+cron.inventory-drift.ok       2026-09-23 02:45:45
+cron.account-purge.ok         2026-09-23 03:15:07
+cron.saved-search-alerts.ok   2026-09-23 07:40:40
+```
+
+**All four daily routes ran on their own schedule, unaided, every one clean.**
+With `hold-sweep`, `paystack/reconcile` and `pg-cron-watch` already proven
+across three hourly cycles, **all seven Vercel cron routes now have an
+authorised run.** HANDOFF 05 B4 moves from built to **proven**.
+
+Before the secret rotation the previous successful reconciliation was **29
+August**. A 24 day outage, closed and demonstrated rather than asserted.
+
+### And the check-in earned its keep by catching me
+
+`pg-cron-watch` returned `attention` every hour from 00:20 to 07:20. That was
+my own change from the night before.
+
+**I rebuilt the 256-row fault one night after removing it.**
+
+`content.filter.empty` was raised on **every run** of an hourly job.
+`recordAlert` folds a repeat into an open alert only inside a **ten minute**
+window, so each hourly run cleared that window and wrote a **new row**. Nine
+identical rows between 23:20 and 07:20, growing, every one of them true.
+
+That is the exact shape that buried the scheduler outage: 256 rows on this same
+desk all saying the same true thing, at a volume that made the desk not worth
+opening. I spent 22 September removing it, and reintroduced it at 23:20 the
+same evening **inside the change meant to stop a silent filter**.
+
+### The rule it produces, which is worth more than the fix
+
+**A STATE IS NOT AN EVENT, AND WRITING ONE AS THE OTHER IS HOW A DESK FILLS
+WITH TRUTH NOBODY READS.**
+
+An empty term list does not *happen* hourly. It simply *is*, from the moment
+the table shipped empty until somebody seeds it. A state belongs on the desk
+**once, open, until it changes**. An event belongs there each time it occurs.
+The cron lockout alerts were the same mistake: "the job did not run" was
+reported as though it were news on the hour, when it was one standing
+condition.
+
+The test for it: **would a person reading the desk want to know this happened
+again, or only that it is still true?** If only that it is still true, raise it
+once and report the number on every run instead.
+
+### What changed
+
+The raise is conditional on nothing being open for that subject. The term count
+still rides in the job's envelope on **every** run, so the fact is **reported
+continuously and alerted once**. A failed read of the desk raises rather than
+stays silent, because one extra row beats a missing one, which is the rule
+`recordAlert`'s own folding already applies.
+
+The nine rows fold into one, and **the oldest is kept deliberately**: it carries
+23:20, which is when the condition started being reported, and that is the
+number a person wants when they ask how long this has been true. Keeping the
+newest would reset that clock every hour, which is its own small lie.

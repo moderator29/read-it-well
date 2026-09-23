@@ -374,7 +374,7 @@ rather than rediscovered.
 
 | # | Claim | Why it is unproven | Cost to prove |
 |---|---|---|---|
-| 1 | Four daily cron routes work | Never had an authorised run; first chance 02:30–07:40 | One query at 08:00 |
+| 1 | Four daily cron routes work | **CONVERTED 23 Sep. All four ran `.ok` overnight: complete-stays 02:30:18, inventory-drift 02:45:45, account-purge 03:15:07, saved-search-alerts 07:40:40. With the three hourly routes, ALL SEVEN have an authorised run and HANDOFF 05 B4 is proven** | done |
 | 2 | Rate limits refuse | **CONVERTED: 18 of 18 money buckets refuse on exactly the declared attempt; a webhook answered 429 with retry-after 175.** The user half, a drawn refusal sentence, still needs a session |
 | 3 | Every consumer money path | 0 bookings, 0 reservations, 0 rent payments | Needs a seeded account |
 | 4 | All light-mode contrast figures | **CONVERTED and corrected: 55, not 150, and ~49 after crop verification. 53 of 55 are light.** My 4,700px diagnosis was wrong and is withdrawn | done |
