@@ -47,7 +47,9 @@ Each group appends "RELEASED <commit>" here when it is done.
   `packages/design-tokens/src/tokens.css` (ONLY the glass, rim, glow, button,
   card, panel and icon-plate roles; no other token moves),
   `apps/web/src/app/css/glass.css`, `buttons.css`, `controls.css`,
-  `apps/web/src/components/ui/Button.tsx`, `apps/web/src/app/css/trust-badge.css`
+  `apps/web/src/components/ui/Button.tsx`, `apps/web/src/components/ui/Switch.tsx`
+  (the thumb is lifted twice and sits half out of its track on every switch),
+  `apps/web/src/app/css/trust-badge.css`
   (ONLY to move its ten raw gradient literals into `--nf-badge-*` tokens with no
   rendered change, closing TK-1, since main is red on it), and new shared primitives under
   `apps/web/src/components/ui/` (a panel/card and an icon plate) extracted from
