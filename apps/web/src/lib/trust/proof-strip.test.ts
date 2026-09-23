@@ -97,18 +97,19 @@ describe("the proof strip's words", () => {
     expect(proofLineText(late, copy, "en")).toBe("Title document seen in the lister's name, 15 Aug 2026");
   });
 
-  it("counts renters honestly: all, some, and one", () => {
+  it("counts renters honestly: all, some, and never one", () => {
     const at = "2026-09-21T09:00:00Z";
     const all = proofLines({ isDemo: false, renters: { attended: 6, asListed: 6, lastAt: at } })[0]!;
     const some = proofLines({ isDemo: false, renters: { attended: 6, asListed: 4, lastAt: at } })[0]!;
-    const one = proofLines({ isDemo: false, renters: { attended: 1, asListed: 0, lastAt: at } })[0]!;
+    const one = proofLines({ isDemo: false, renters: { attended: 1, asListed: 1, lastAt: at } });
     expect(proofLineText(all, copy, "en")).toBe(
       "Inspected by 6 renters on Vallo. All 6 found the agent and the flat as listed.",
     );
     expect(proofLineText(some, copy, "en")).toBe(
       "Inspected by 6 renters on Vallo. 4 of 6 found the agent and the flat as listed.",
     );
-    expect(proofLineText(one, copy, "en")).toContain("did not find");
+    /* One renter is never a public line: the lister would know whose answer it was. */
+    expect(one).toEqual([]);
   });
 
   it("has an is and an is-not for every line, and names the land registry where it matters", () => {

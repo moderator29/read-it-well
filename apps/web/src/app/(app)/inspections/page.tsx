@@ -8,6 +8,8 @@ import { InspectionHero, InspectionSheet } from "@/components/app/inspections/In
 import { InspectionsLive } from "@/components/app/inspections/InspectionsLive";
 import { resolveSession } from "@/lib/actions/session";
 import { readReportsFor } from "@/lib/inspections/report-queries";
+import { readTruthAnsweredFor } from "@/lib/inspections/truth-queries";
+import { truthOpen } from "@/lib/inspections/truth";
 import { reportStorageLive } from "@/lib/inspections/report-flag";
 import { groupInspections, tagSide } from "@/components/app/inspections/grouping";
 import {
@@ -71,13 +73,23 @@ export default async function InspectionsPage({
     ...tagSide(shown.inspections, "lister"),
   ]);
   const all = [...groups.open, ...groups.closed];
-  const [facts, reports] = await Promise.all([
+  const [facts, reports, truthAnswered] = await Promise.all([
     readListingFacts(
       all.map((row) => row.listingId),
       locale,
     ),
     readReportsFor(all.map((row) => row.id)),
+    readTruthAnsweredFor(
+      all.filter((row) => row.side === "requester").map((row) => row.id),
+    ),
   ]);
+  /* V-05: the truth questions are open for the requester once the agreed
+     time has passed; decided here, once, with the server's clock. */
+  const now = Date.now();
+  const truthFor = (row: (typeof all)[number]) =>
+    truthOpen(row.side, row.state, row.slotAt, row.requestedAt, now) || truthAnswered.has(row.id)
+      ? { answeredAt: truthAnswered.get(row.id) ?? null, copy: t.trustVisible.truth }
+      : null;
   const reportLive = reportStorageLive();
   const empty = all.length === 0;
   const expanded = changed ?? groups.open[0]?.id ?? null;
@@ -123,6 +135,7 @@ export default async function InspectionsPage({
                       facts={facts.get(row.listingId) ?? null}
                       report={reports.get(row.id) ?? null}
                       reportLive={reportLive}
+                      truth={truthFor(row)}
                       locale={locale}
                       open={row.id === expanded}
                     />
@@ -141,6 +154,7 @@ export default async function InspectionsPage({
                       facts={facts.get(row.listingId) ?? null}
                       report={reports.get(row.id) ?? null}
                       reportLive={reportLive}
+                      truth={truthFor(row)}
                       locale={locale}
                       open={row.id === expanded}
                     />

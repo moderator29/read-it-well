@@ -714,6 +714,9 @@ export function mapRow(
      `agent_badges.verified_at`. Optional and last so every existing caller
      and spec reads exactly as before. */
   identitySeenAt: Map<string, string> = new Map(),
+  /* V-05: the public count of renters' truth answers, from
+     `public.listing_truth_summary` (two answers up, real listings only). */
+  renterTruth: Map<string, { attended: number; asListed: number; lastAt: string }> = new Map(),
 ): Listing {
   const kind = KIND_BY_PROPERTY_TYPE[row.property_type] ?? "home";
   const stat = stats.get(row.id);
@@ -859,6 +862,7 @@ export function mapRow(
     ...(!row.is_demo && verifiedAgents.has(row.agent_id) && identitySeenAt.has(row.agent_id)
       ? { listerIdentitySeenAt: identitySeenAt.get(row.agent_id) }
       : {}),
+    ...(!row.is_demo && renterTruth.has(row.id) ? { renterTruth: renterTruth.get(row.id) } : {}),
     source: "vallo",
     bedrooms: row.bedrooms,
     bathrooms: row.bathrooms,
@@ -1056,10 +1060,38 @@ async function getListerNames(
   return names;
 }
 
+/**
+ * V-05: WHAT RENTERS WHO WENT THERE FOUND, AS A COUNT. One read of the
+ * published view for the whole page, in parallel with the others. The view
+ * only answers for published real listings with two answers or more, so a
+ * missing row is the ordinary case and draws no line. A failed read is an
+ * empty map: the failure mode is a line that does not appear.
+ */
+async function getRenterTruth(
+  supabase: Client,
+  listingIds: string[],
+): Promise<Map<string, { attended: number; asListed: number; lastAt: string }>> {
+  const out = new Map<string, { attended: number; asListed: number; lastAt: string }>();
+  if (listingIds.length === 0) return out;
+  try {
+    const { data, error } = await (supabase as unknown as SupabaseClient)
+      .from("listing_truth_summary")
+      .select("listing_id, attended, as_listed, last_at")
+      .in("listing_id", listingIds);
+    if (error || !data) return out;
+    for (const row of data as { listing_id: string; attended: number; as_listed: number; last_at: string }[]) {
+      out.set(row.listing_id, { attended: row.attended, asListed: row.as_listed, lastAt: row.last_at });
+    }
+  } catch {
+    return new Map();
+  }
+  return out;
+}
+
 /** Map raw rows into listings, resolving references and review stats in bulk. */
 async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]> {
   if (rows.length === 0) return [];
-  const [stateNames, amenityCodes, stats, signedVideos, badges, listerNames] = await Promise.all([
+  const [stateNames, amenityCodes, stats, signedVideos, badges, listerNames, renterTruth] = await Promise.all([
     getStateNames(),
     getAmenityCodes(),
     getReviewStats(
@@ -1072,6 +1104,7 @@ async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]>
     ),
     getAgentBadges(supabase, [...new Set(rows.map((r) => r.agent_id))]),
     getListerNames(supabase, rows.map((r) => r.id)),
+    getRenterTruth(supabase, rows.filter((r) => !r.is_demo).map((r) => r.id)),
   ]);
   return rows.map((row) =>
     mapRow(
@@ -1083,6 +1116,7 @@ async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]>
       badges.verified,
       listerNames,
       badges.seenAt,
+      renterTruth,
     ),
   );
 }

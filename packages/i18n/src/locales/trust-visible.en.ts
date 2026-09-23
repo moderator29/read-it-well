@@ -32,8 +32,6 @@ export const trustVisibleEn = {
     /** `{count}` renters attended; `{listed}` found the agent and flat as listed. */
     rentersAll: "Inspected by {count} renters on Vallo. All {count} found the agent and the flat as listed.",
     rentersSome: "Inspected by {count} renters on Vallo. {listed} of {count} found the agent and the flat as listed.",
-    rentersOne: "Inspected by 1 renter on Vallo, who found the agent and the flat as listed.",
-    rentersOneNot: "Inspected by 1 renter on Vallo, who did not find the agent and the flat as listed.",
     openHint: "What this check is",
     sheetIs: "What this is",
     sheetIsNot: "What this is not",
@@ -68,6 +66,30 @@ export const trustVisibleEn = {
         isNot: "It is not a review of the flat's condition. Answers are private and counted, never quoted, and nobody is named.",
       },
     },
+  },
+  /** V-05: the four questions a renter answers after an inspection. */
+  truth: {
+    title: "Four quick questions",
+    lede: "Eight seconds. Your answers are private to Vallo and only ever counted, never shown with your name.",
+    questions: {
+      agentMatched: "Was the person who showed you the place the agent on Vallo, or someone they named?",
+      propertyMatched: "Was it the place in the photos?",
+      available: "Is it still available to you?",
+      offPlatformAsk: "Did anybody ask you for money outside Vallo?",
+    },
+    yes: "Yes",
+    no: "No",
+    notSure: "Not sure",
+    submit: "Send my answers",
+    sending: "Sending",
+    incomplete: "Answer all four, then send.",
+    done: "Thank you. Your answers were recorded on {date}.",
+    offPlatformNote:
+      "Because you were asked for money outside Vallo, a report has been opened for our team with this inspection attached. You do not need to do anything else.",
+    failed: "Your answers did not send. Nothing was recorded. Try again.",
+    signedOut: "Sign in to answer.",
+    notOpen: "These questions open once the agreed time for the inspection has passed.",
+    already: "You have already answered for this inspection.",
   },
   /** V-04: the card above an account number, for the person receiving it. */
   account: {

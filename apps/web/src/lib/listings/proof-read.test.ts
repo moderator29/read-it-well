@@ -84,8 +84,15 @@ function row(over: Partial<ListingRow> = {}): ListingRow {
   };
 }
 
-function map(over: Partial<ListingRow> = {}, verified = new Set<string>(), seen = new Map<string, string>()) {
-  return mapRow(row(over), new Map([["LA", "Lagos"]]), new Map(), new Map(), new Map(), verified, new Map(), seen);
+type Truth = { attended: number; asListed: number; lastAt: string };
+
+function map(
+  over: Partial<ListingRow> = {},
+  verified = new Set<string>(),
+  seen = new Map<string, string>(),
+  truth = new Map<string, Truth>(),
+) {
+  return mapRow(row(over), new Map([["LA", "Lagos"]]), new Map(), new Map(), new Map(), verified, new Map(), seen, truth);
 }
 
 describe("the proof dates are asked for, in both reads", () => {
@@ -134,5 +141,24 @@ describe("the mapper carries the dates, and only where they may be printed", () 
     );
     expect("mandateVerifiedAt" in listing).toBe(false);
     expect("listerIdentitySeenAt" in listing).toBe(false);
+  });
+});
+
+describe("V-05: the renters' count reaches the listing", () => {
+  const id = "ed000000-0000-4000-8000-000000000044";
+  const truth = new Map([[id, { attended: 3, asListed: 3, lastAt: "2026-09-20T10:00:00Z" }]]);
+
+  it("copies the public count for a real listing", () => {
+    expect(map({}, new Set(), new Map(), truth).renterTruth).toEqual({ attended: 3, asListed: 3, lastAt: "2026-09-20T10:00:00Z" });
+  });
+
+  it("never carries it on an example listing", () => {
+    expect("renterTruth" in map({ is_demo: true }, new Set(), new Map(), truth)).toBe(false);
+  });
+
+  it("reads the published view, not the table of answers", () => {
+    const source = readFileSync(join(__dirname, "supabase-repository.ts"), "utf8");
+    expect(source).toMatch(/from\("listing_truth_summary"\)/);
+    expect(source).not.toMatch(/from\("inspection_truth"\)/);
   });
 });

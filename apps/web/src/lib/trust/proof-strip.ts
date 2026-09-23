@@ -113,6 +113,9 @@ export function provableDate(value: string | null | undefined): string | null {
   return Number.isFinite(ms) ? value : null;
 }
 
+/** The fewest renters whose answers may be counted in public. Matches `listing_truth_summary`. */
+export const MIN_PUBLIC_RENTERS = 2;
+
 type Spec = (facts: ProofFacts) => ProofLine | null;
 
 /**
@@ -148,9 +151,11 @@ const SPECS: Record<ProofLineKind, Spec> = {
     const at = provableDate(r.lastAt);
     const attended = Math.trunc(r.attended);
     const asListed = Math.trunc(r.asListed);
-    /* Zero witnesses is not a line, and a count that claims more agreeing
-       renters than attended is a read fault that must print nothing. */
-    if (!at || !(attended > 0) || asListed < 0 || asListed > attended) return null;
+    /* Fewer than two witnesses is not a line (one renter's answer must never
+       be readable off a listing by the lister who met them; the database view
+       refuses it too), and a count that claims more agreeing renters than
+       attended is a read fault that must print nothing. */
+    if (!at || attended < MIN_PUBLIC_RENTERS || asListed < 0 || asListed > attended) return null;
     return { kind: "renters", at, attended, asListed };
   },
 };
@@ -214,7 +219,6 @@ export function proofLineText(line: ProofLine, copy: ProofCopy, locale: Locale):
     case "renters": {
       const count = formatNumber(line.attended, locale);
       const listed = formatNumber(line.asListed, locale);
-      if (line.attended === 1) return line.asListed === 1 ? copy.rentersOne : copy.rentersOneNot;
       const template = line.asListed === line.attended ? copy.rentersAll : copy.rentersSome;
       return template.replace(/\{count\}/g, count).replace("{listed}", listed);
     }

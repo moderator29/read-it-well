@@ -5,7 +5,7 @@ import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatDate, type Locale } from "@vallo/i18n";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { IconPlate } from "@/components/ui/IconPlate";
@@ -46,6 +46,7 @@ import {
 import { ladderFor, type LadderKey } from "./ladder";
 import { statusFor, type BadgeTone } from "./status";
 import { TierBadge } from "@/components/trust/TierBadge";
+import { TruthQuestions } from "./TruthQuestions";
 
 /**
  * ONE INSPECTION, EXACTLY IN THE ANATOMY OF F6A8A482 / founder/inspection-target.jpg.
@@ -161,6 +162,7 @@ export function InspectionSheet({
   open = false,
   report = null,
   reportLive = false,
+  truth = null,
 }: {
   inspection: Inspection;
   side: "lister" | "requester";
@@ -172,6 +174,11 @@ export function InspectionSheet({
   report?: InspectionReport | null;
   /** The one flag: report storage exists. */
   reportLive?: boolean;
+  /**
+   * V-05: the four truth questions, when the page decided they are open for
+   * this viewer (the requester, after the agreed time). Null draws nothing.
+   */
+  truth?: { answeredAt: string | null; copy: Dictionary["trustVisible"]["truth"] } | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -375,6 +382,16 @@ export function InspectionSheet({
             </li>
           ))}
         </ol>
+
+        {/* ------------------------------------------ V-05, the truth questions */}
+        {truth && (
+          <TruthQuestions
+            inspectionId={inspection.id}
+            answeredAt={truth.answeredAt}
+            copy={truth.copy}
+            locale={locale}
+          />
+        )}
 
         {/* -------------------------------------------------------- checklist */}
         <section className={panelClass({ className: "nf-ix-check" })} aria-label="Inspection checklist">
