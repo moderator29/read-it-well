@@ -97,6 +97,27 @@ Each group appends "RELEASED <commit>" here when it is done.
     and the feed route.
   - profile, edit profile, messages and the three thread faces:
     `components/social/profile/**`, `threads.css`, `components/messages/**`.
+    Worker "sweep-social" adds (new): the fixture harness
+    `apps/web/src/app/(dev)/preview/session-b/sweep-social/**` and its proofs
+    `docs/design/proofs/session-b/sweep-social/**`. Route components claimed:
+    `app/(app)/u/**`, `app/(app)/messages/**`, and the thread faces the
+    messages route draws, `components/app/threads/**`,
+    `components/app/messages/ChatCard.tsx`, `ListingOptionsSheet.tsx`,
+    `ShareSheet.tsx` and the dead `MessageThread.tsx` (imported nowhere; the
+    sweep deletes it). `.nf-insp-*` in `threads.css` is the inspection
+    surface's and is left alone. NOT claimed although drawn on these routes:
+    `app/social.css` and `app/social-feed.css` (feed worker), which hold every
+    rule the profile family draws (see SW-S1), `ProposeHeldPayment.tsx`'s
+    `escrow.css` (stays group), `PageHeader`, `EmptyState`, `Sheet`,
+    `Segmented` and `/agent/messages` (agent workspace group).
+    **SW-S1, to the feed worker.** The profile family's cover, avatar ring,
+    chips, counts, trust row, cards (`.nf-social-card`), tab segment
+    (`.nf-glass-seg`), sheets (`.nf-social-sheet`), round cover buttons
+    (`.nf-social-round`, `.nf-social-float`), person rows (`.nf-social-person`)
+    and people search (`.nf-people*`) are drawn in your two stylesheets. When
+    sweep-social moves those components' markup onto the shared primitives it
+    will list here each selector left with no consumer, for you to delete, or
+    ask you to repoint the ones the feed also uses.
   - host wizard, agent workspace, side drawer, dock, landing:
     `agent.css`, `chrome.css`, `app/side-nav.css`, `landing.css`, `site.css`,
     `chips.css` and their components.
