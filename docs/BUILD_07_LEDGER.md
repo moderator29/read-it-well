@@ -8957,3 +8957,46 @@ it is recorded here so it is a decision rather than a surprise.
 
 **The account number never comes back.** Not in the receipt, not in the audit
 log, not in any log line. `accountLast4` is what a receipt gets. Rule 16.
+
+---
+
+## 69. THE BANK SEND, AND THE THREE MUTATIONS I WATCHED IT FAIL
+
+`lib/wallet/bank-send.test.ts`, 16 tests. It follows
+`notify/outbox-delivery.test.ts`: substitute nothing inside the application
+except the outermost seam. The schema, `lib/payments/bank-resolve.ts`, the
+Paystack client, `callMoneyRpc`, `readMoneyStatus` and the REAL
+`withIdempotency` all run as they ship. `globalThis.fetch` is the bank, and
+every assertion about the processor is an assertion about the HTTP request this
+code built: the resolve URL with its two query parameters and its bearer, the
+`/transferrecipient` body carrying the name the BANK gave, and the `/transfer`
+body carrying integer kobo under an `rm-wd-` reference. Postgres is a faithful
+in-memory `hold_wallet_withdrawal` behind the real RPC door, and the guard's
+three functions are stood up exactly as `transfer-idempotency.test.ts` stands
+them up.
+
+**The suite caught a fault in its own scaffolding first, which is the reason
+to write it this way.** My first stand-in for `claim_idempotency` returned the
+claim as a bare object rather than in the `{ ok, data }` wrapper
+`callSecurityRpc` answers in. `withIdempotency` fails open by design when it
+cannot read its store, so the guard silently degraded and the second tap ran the
+work again. The two-taps test went red on the reference not matching. A test
+that had mocked the guard would have been green.
+
+**Then three deliberate mutations, each reverted:**
+
+| Mutation | Result |
+|---|---|
+| Drop the `sameAccountName` check in `transferToBank` | 1 red: "REFUSES when the bank now names somebody else" |
+| Bypass the `withIdempotency` wrapper | 1 red: "moves the money ONCE and replays the first receipt" |
+| Trust `confirmedAccountName` instead of re-resolving | 5 red, including the mismatch refusal and the unresolvable-account refusal |
+
+`git diff` on `actions.ts` is empty after the reverts and the file is the
+committed one.
+
+**UNPROVEN, said plainly.** `api.paystack.co` is not reachable from this
+container and there is no live secret key here, so nothing past the socket is
+proved by me: that Paystack accepts these bodies, that a recipient is created,
+that a transfer settles, and that `transfer.success` then closes the hold. What
+is proved is every byte up to the socket, and the refusals on this side of it.
+No live money moved and no row was written to a product table.
