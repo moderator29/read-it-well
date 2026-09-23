@@ -232,6 +232,11 @@ and `.nf-field`. Request ids are `SW-ST*` (the social group uses `SW-S1`).
   glass object on a visible dark square (`.nf-result-mark`, `wallet.css`),
   seen on checkout's payment pending and failed sheets
   (`docs/design/proofs/session-b/sweep-stays/before/pay-failed-390-before.jpg`).
+**Group RELEASED dc52e031 + d3d1620c** (23 September): 5 of 10 routes fully swept (`/escrow`,
+`/escrow/[id]`, `/checkout`, `/checkout/[bookingId]` bar SW-ST3, `/trips`), `/stay/[id]` and
+`/restaurant/[id]` swept for every item in this group's files, `/stays`, `/stays/search` and
+`/restaurants` with nothing of this group's to move (their material is the home group's), the
+thread proposal and the host panels' stylesheet swept bar SW-ST2. Ledger 13 stays.
 
 ## FOUNDER'S NINE ITEMS, 23 SEPTEMBER: WHAT SESSION B TAKES
 
