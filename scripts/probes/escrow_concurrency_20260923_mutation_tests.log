@@ -295,3 +295,125 @@ CONTEXT:  PL/pgSQL function private.escrow_guard_transition() line 26 at RAISE
 == `((A except B) union all B) except A` and reported ONE disagreement where
 == there were two. Every leaf is now parenthesised, and the re-run above is
 == after that fix.
+
+
+===========================================================================
+== THE THIRD ROUND, 23 September 2026: the catalogue guard, made to fail
+===========================================================================
+==
+== The guard compares what the run lifted out of the migrations against
+== scripts/probes/escrow_live_catalogue.tsv, which is the live catalogue
+== recorded by somebody who could read it. It runs after the bodies are
+== loaded and BEFORE the smoke check, and it stops the run rather than
+== warning.
+==
+== WHAT IT FOUND ON ITS FIRST REAL RUN, BEFORE ANY MUTATION. Five functions
+== whose live body is not the migration text in this repository. That run is
+== the first block below, and the five are not an artefact of the guard.
+
+=============== THE FIRST RUN OF THE GUARD, UNMUTATED ===============
+== CATALOGUE GUARD: what was lifted, against what the live project holds
+   manifest: project=uccixoonmbhrnyczyigt taken_at=2026-09-23T10:45:00Z live_migration_head=20260923104415 functions=32
+   drop statements seen for a probed function: 2
+   no migration defining a probed function is newer than the live head
+   5 DISAGREEMENT(S):
+     - BODY DISAGREES for private.compute_fee(p_kind fee_kind, p_amount_minor bigint, p_at timestamp with time zone): live sha256 a05752227b15c022, lifted 13922c1d9db20e00.
+     - BODY DISAGREES for private.escrow_invariants_check(): live sha256 fa42d93778c5b429, lifted f03d2e7e2b095157.
+     - BODY DISAGREES for private.notify(target_user uuid, n_kind notification_kind, n_title text, n_body text, n_href text): live sha256 ba9f5ed76e664d1b, lifted cba302d43d67f917.
+     - BODY DISAGREES for private.pay_booking_from_wallet(payer uuid, target_booking uuid, payment_reference text): live sha256 8912949f467d32c7, lifted 3a974b257275635a.
+     - BODY DISAGREES for public.move_into_pot(owner_user uuid, pot uuid, amount bigint, move_reference text): live sha256 277aa5c5b11ba322, lifted 7e5e99901a26b65f.
+== RESULT: FAIL, AND NO PROBE WAS RUN.
+
+== FOUR OF THE FIVE ARE THE SAME CODE WITH THE COMMENTS STRIPPED OUT:
+== private.compute_fee, private.notify, public.move_into_pot and
+== private.escrow_invariants_check. WHO STRIPPED THEM IS NOT KNOWN. It is
+== recorded as unexplained rather than guessed at.
+==
+== THE FIFTH WAS REAL. private.pay_booking_from_wallet said RentMe in the
+== harness and says Vallo in production, because SIX migrations rewrite
+== function bodies through pg_get_functiondef and execute rather than through
+== create or replace, and this harness replayed TWO of them. The brand
+== rewrite of 20260922130000 is now replayed too, for the functions the
+== harness holds, and the guard agrees on code afterwards.
+
+=============== MUTATION H: a probed body changed in an existing migration ===============
+== CATALOGUE GUARD: what was lifted, against what the live project holds
+   manifest: project=uccixoonmbhrnyczyigt taken_at=2026-09-23T10:52:00Z live_migration_head=20260923104415 functions=32
+   drop statements seen for a probed function: 2
+   no migration defining a probed function is newer than the live head
+   WARNING, AND IT IS NOT A PASS AND NOT A FAILURE. 4 function(s) run the same code
+   live as this run lifted, but the live copy is not the same TEXT. In every case so
+   far the live copy is the migration's code with its comments stripped out, by
+   something nobody has identified. Ledger section 63 carries it as unexplained.
+   1 DISAGREEMENT(S):
+     - CODE DISAGREES for private.escrow_purpose_is_open(p escrow_purpose): live 4a31b3782ad6a463, lifted 6da0734c9377d147. This is a difference in what the database DOES, not in how it is written.
+== RESULT: FAIL, AND NO PROBE WAS RUN.
+   WHAT THIS RUN LIFTED OUT OF THE MIGRATIONS IS NOT WHAT THE LIVE PROJECT HOLDS.
+   Every verdict below this line would have been about a body that is not shipping,
+   which is worse than no verdict, so none were taken. Refresh
+   scripts/probes/escrow_live_catalogue.tsv from the live catalogue, or fix the
+   divergence it found, and run again.
+== The changed body opens `purchase_balance`, which ADR-E1 refuses
+== permanently. It never reached a probe.
+
+=============== MUTATION I: a probed function dropped in a migration ===============
+== CATALOGUE GUARD: what was lifted, against what the live project holds
+   manifest: project=uccixoonmbhrnyczyigt taken_at=2026-09-23T10:52:00Z live_migration_head=20260923104415 functions=32
+   drop statements seen for a probed function: 3
+   no migration defining a probed function is newer than the live head
+   WARNING, AND IT IS NOT A PASS AND NOT A FAILURE. 4 function(s) run the same code
+   live as this run lifted, but the live copy is not the same TEXT. In every case so
+   far the live copy is the migration's code with its comments stripped out, by
+   something nobody has identified. Ledger section 63 carries it as unexplained.
+   1 DISAGREEMENT(S):
+     - DROPPED AFTER ITS LAST DEFINITION: public.escrow_fund_proposal_as, in 20260923104415_the_money_job_judged_a_web_page_a_successful_reconciliation.sql. The lift cannot see a drop, so this probe would have gone on testing a body that is gone.
+== RESULT: FAIL, AND NO PROBE WAS RUN.
+   WHAT THIS RUN LIFTED OUT OF THE MIGRATIONS IS NOT WHAT THE LIVE PROJECT HOLDS.
+   Every verdict below this line would have been about a body that is not shipping,
+   which is worse than no verdict, so none were taken. Refresh
+   scripts/probes/escrow_live_catalogue.tsv from the live catalogue, or fix the
+   divergence it found, and run again.
+== This is the exact hole the guard was asked for. Before it, a `drop
+== function` was neither a create nor a replace, the lift never saw it, and
+== the probes would have gone on passing against a body that was gone.
+
+=============== MUTATION J: a defining migration newer than the live head ===============
+== CATALOGUE GUARD: what was lifted, against what the live project holds
+   manifest: project=uccixoonmbhrnyczyigt taken_at=2026-09-23T10:52:00Z live_migration_head=20260923104415 functions=32
+   drop statements seen for a probed function: 2
+   WARNING, AND IT IS NOT A PASS AND NOT A FAILURE. 4 function(s) run the same code
+   live as this run lifted, but the live copy is not the same TEXT. In every case so
+   far the live copy is the migration's code with its comments stripped out, by
+   something nobody has identified. Ledger section 63 carries it as unexplained.
+   2 DISAGREEMENT(S):
+     - THE MANIFEST IS STALE. These migrations define or drop a probed function and are newer than the live head 20260923104415: 29999999999999. Either they are not applied to the project, or the manifest was not refreshed after they were.
+     - CODE DISAGREES for private.escrow_purpose_is_open(p escrow_purpose): live 4a31b3782ad6a463, lifted 18f29b50f8023d98. This is a difference in what the database DOES, not in how it is written.
+== RESULT: FAIL, AND NO PROBE WAS RUN.
+   WHAT THIS RUN LIFTED OUT OF THE MIGRATIONS IS NOT WHAT THE LIVE PROJECT HOLDS.
+   Every verdict below this line would have been about a body that is not shipping,
+   which is worse than no verdict, so none were taken. Refresh
+   scripts/probes/escrow_live_catalogue.tsv from the live catalogue, or fix the
+   divergence it found, and run again.
+
+=============== MUTATION K: the manifest itself is missing ===============
+== CATALOGUE GUARD: what was lifted, against what the live project holds
+   THE MANIFEST IS MISSING: /tmp/claude-0/-home-user-read-it-well/6683fd27-f2f3-5b70-8a27-4cc917444da7/scratchpad/mut/scripts/probes/escrow_live_catalogue.tsv
+   Without it nothing here knows what the live project holds.
+== RESULT: FAIL, AND NO PROBE WAS RUN.
+   WHAT THIS RUN LIFTED OUT OF THE MIGRATIONS IS NOT WHAT THE LIVE PROJECT HOLDS.
+   Every verdict below this line would have been about a body that is not shipping,
+   which is worse than no verdict, so none were taken. Refresh
+   scripts/probes/escrow_live_catalogue.tsv from the live catalogue, or fix the
+   divergence it found, and run again.
+
+== AND THEN IT PASSES. The unmutated run is scripts/probes/escrow_concurrency.log,
+== where the guard reads "32 functions compared. Every SIGNATURE, every
+== SECURITY DEFINER flag and every body's CODE agrees with the live catalogue"
+== and then fourteen of fourteen probes pass.
+==
+== WHAT THE GUARD STILL CANNOT DO, SAID PLAINLY. The manifest is a file, not
+== a live query, because this machine has no route to the project. A change
+== made to the live database after the file was taken and before a run is
+== invisible to it. The staleness test narrows that window to migrations, and
+== nothing narrows it for an edit made straight against the database, which
+== is exactly what the four stripped-comment bodies look like.

@@ -159,6 +159,69 @@ print("== two F-9 rewrite blocks lifted")
 PY
 [ $? -eq 0 ] || { echo "== RESULT: FAIL. Could not lift the F-9 blocks."; exit 1; }
 
+# THE BRAND REWRITE, WHICH IS A THIRD KIND OF MIGRATION THE LIFT CANNOT SEE.
+#
+# Six migrations rewrite function bodies through `pg_get_functiondef` and
+# `execute` rather than through `create or replace`. This harness replayed two
+# of them, the F-9 pair, and the catalogue guard below found the consequence
+# on its first run: `private.pay_booking_from_wallet` still said RentMe in the
+# scratch cluster and says Vallo in production, because 20260922130000
+# rewrote it and nothing here replayed that.
+#
+# Only the edits naming a function this harness holds are replayed, because
+# the block in production also rewrites a dozen functions a minimal schema
+# deliberately does not have. AND AN EDIT WHOSE SEARCH STRING IS ALREADY GONE
+# IS SKIPPED RATHER THAN RAISED ON, which is where this departs from the
+# migration deliberately: production ran the rewrite at a point in a timeline,
+# and `private.escrow_settle` and `public.escrow_hold` were re-created with
+# the new wording by a LATER migration whose text is what the lift takes. The
+# harness rebuilds the end state, not the history, and the catalogue guard
+# below is what checks that the end state is right.
+python3 - "$repo" "$scratch" $WANTED <<'PY'
+import glob, os, re, sys
+repo, scratch = sys.argv[1], sys.argv[2]
+wanted = set(sys.argv[3:])
+hits = glob.glob(os.path.join(repo, "supabase", "migrations", "*the_engine_stops_saying_rentme.sql"))
+if not hits:
+    sys.stderr.write("MISSING THE BRAND REWRITE MIGRATION\n")
+    sys.exit(2)
+text = open(hits[0], encoding="utf-8").read()
+edit = re.compile(r"array\[\s*'((?:[^']|'')*)'\s*,\s*'((?:[^']|'')*)'\s*,\s*'((?:[^']|'')*)'\s*\]", re.S)
+kept = []
+for m in edit.finditer(text):
+    sig, search, replace = m.group(1), m.group(2), m.group(3)
+    name = sig.split("(")[0].strip().lower()
+    if name in wanted:
+        kept.append((sig, search, replace))
+if not kept:
+    sys.stderr.write("THE BRAND REWRITE NAMES NO FUNCTION THIS HARNESS HOLDS, WHICH IS NOT EXPECTED\n")
+    sys.exit(2)
+out = ["do $brand$", "declare v_def text; v_new text;", "begin"]
+for sig, search, replace in kept:
+    q = sig.replace("'", "''")
+    # to_regprocedure, NOT the cast. The block names one signature that no
+    # longer exists anywhere, public.escrow_hold with five arguments, because
+    # it was rewritten with six later. A cast raises on that; this skips it
+    # and says so.
+    out.append("  if to_regprocedure('%s') is null then" % q)
+    out.append("    raise notice 'BRAND: %s is not in this scratch schema, skipped';" % q.replace("%", "%%"))
+    out.append("    v_def := null;")
+    out.append("  else")
+    out.append("    v_def := pg_get_functiondef(to_regprocedure('%s'));" % q)
+    out.append("  end if;")
+    out.append("  if v_def is not null and position('%s' in v_def) > 0 then" % search)
+    out.append("    v_new := replace(v_def, '%s', '%s');" % (search, replace))
+    out.append("    execute v_new;")
+    out.append("    raise notice 'BRAND: %s rewritten';" % sig.replace("'", "''").replace("%", "%%"))
+    out.append("  elsif v_def is not null then")
+    out.append("    raise notice 'BRAND: %s already carries the later wording, skipped';" % q.replace("%", "%%"))
+    out.append("  end if;")
+out += ["end", "$brand$;"]
+open(os.path.join(scratch, "brand.sql"), "w", encoding="utf-8").write("\n".join(out) + "\n")
+print("== %d brand rewrite edit(s) lifted for functions this harness holds" % len(kept))
+PY
+[ $? -eq 0 ] || { echo "== RESULT: FAIL. Could not lift the brand rewrite."; exit 1; }
+
 # ---------------------------------------------------------------------------
 # 2. The minimal schema: only the tables those functions touch.
 # ---------------------------------------------------------------------------
@@ -438,6 +501,7 @@ chmod 644 "$scratch"/*.sql
 run "$scratch/schema.sql"   || { echo "== RESULT: FAIL loading schema"; exit 1; }
 run "$scratch/escrow_columns.sql" || { echo "== RESULT: FAIL replaying the escrows column additions"; exit 1; }
 run "$scratch/functions.sql" || { echo "== RESULT: FAIL loading functions"; exit 1; }
+run "$scratch/brand.sql"     || { echo "== RESULT: FAIL replaying the brand rewrite"; exit 1; }
 run "$scratch/f9.sql"        || { echo "== RESULT: FAIL replaying the F-9 rewrite"; exit 1; }
 run "$scratch/triggers.sql" || { echo "== RESULT: FAIL loading triggers"; exit 1; }
 
@@ -449,6 +513,190 @@ if [ "$f9ok" != "true" ]; then
   exit 1
 fi
 echo "== F-9 confirmed in the scratch database: hold_wallet_withdrawal calls the shared spendable"
+
+# ---------------------------------------------------------------------------
+# 2c. THE CATALOGUE GUARD. WHAT WAS LIFTED, AGAINST WHAT THE LIVE PROJECT HOLDS.
+#
+# THE HOLE THIS CLOSES, IN ONE SENTENCE. The lift scans the migrations for
+# `create or replace function` and keeps the last definition of each name. A
+# `drop function` is neither a create nor a replace, so a verb dropped in
+# production goes on passing here, in full colour, against a body that no
+# longer exists anywhere. The same hole swallows a signature changed, a body
+# edited straight against the database, and a migration written but never
+# applied.
+#
+# WHY IT IS A CHECKED-IN FILE AND NOT A QUERY. This machine has no route to
+# the project: `uccixoonmbhrnyczyigt.supabase.co` is refused by the egress
+# proxy, which is the same wall P-7's HTTP half is behind. So the live
+# catalogue is recorded in scripts/probes/escrow_live_catalogue.tsv by a
+# worker who can read it, with the date and the live migration head it was
+# taken at, and the harness compares against that. A file is weaker than a
+# live query and is not pretended otherwise: what it cannot catch is a change
+# made to the live database AFTER the file was taken and before this run. The
+# staleness test below is what narrows that window.
+#
+# WHAT IS COMPARED: existence, the identity arguments, the sha256 of prosrc,
+# and SECURITY DEFINER. What is NOT compared is privilege, because the scratch
+# cluster has no anon, no authenticated and no service_role, and the harness
+# lifts bodies rather than grants. P-7 is the probe that proves the EXECUTE
+# layer.
+# ---------------------------------------------------------------------------
+manifest="$repo/scripts/probes/escrow_live_catalogue.tsv"
+wanted_sql="$(for w in $WANTED; do printf "'%s'," "$w"; done | sed 's/,$//')"
+# THE NORMALISATION IS WRITTEN ONCE AND IS THE SAME EXPRESSION THAT PRODUCED
+# THE MANIFEST. Two different spellings of "strip the comments" would compare
+# two different things and agree by luck.
+cat > "$scratch/catalogue.sql" <<SQL
+select n.nspname || '.' || p.proname || chr(9)
+    || pg_get_function_identity_arguments(p.oid) || chr(9)
+    || encode(sha256(p.prosrc::bytea), 'hex') || chr(9)
+    || encode(sha256(btrim(regexp_replace(regexp_replace(regexp_replace(regexp_replace(
+         p.prosrc, '/\*.*?\*/', '', 'gs'), '--[^\n]*', '', 'g'),
+         '[ \t]+(\n)', '\1', 'g'), '\n+', chr(10), 'g'))::bytea), 'hex') || chr(9)
+    || case when p.prosecdef then 't' else 'f' end
+  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+ where n.nspname || '.' || p.proname in ($wanted_sql)
+ order by 1;
+SQL
+chmod 644 "$scratch/catalogue.sql"
+su postgres -c "psql -X -q -At -d $db -f $scratch/catalogue.sql" > "$scratch/scratch_catalogue.tsv" 2>&1
+
+echo
+echo "== CATALOGUE GUARD: what was lifted, against what the live project holds"
+python3 - "$repo" "$manifest" "$scratch/scratch_catalogue.tsv" $WANTED <<'PY'
+import glob, os, re, sys
+
+repo, manifest_path, scratch_path = sys.argv[1], sys.argv[2], sys.argv[3]
+wanted = set(sys.argv[4:])
+
+if not os.path.exists(manifest_path):
+    print("   THE MANIFEST IS MISSING: %s" % manifest_path)
+    print("   Without it nothing here knows what the live project holds.")
+    sys.exit(2)
+
+meta, live = {}, {}
+for raw in open(manifest_path, encoding="utf-8"):
+    line = raw.rstrip("\n")
+    if line.startswith("#"):
+        bits = line[1:].strip().split("\t")
+        if len(bits) == 2:
+            meta[bits[0].strip()] = bits[1].strip()
+        continue
+    if not line.strip():
+        continue
+    name, args, sha, code, secdef, acl = line.split("\t")
+    live[(name, args)] = (sha, code, secdef, acl)
+
+print("   manifest: project=%s taken_at=%s live_migration_head=%s functions=%s"
+      % (meta.get("project", "?"), meta.get("taken_at", "?"),
+         meta.get("live_migration_head", "?"), len(live)))
+
+scratch = {}
+for raw in open(scratch_path, encoding="utf-8"):
+    line = raw.rstrip("\n")
+    if not line.strip():
+        continue
+    if line.count("\t") != 4:
+        print("   THE SCRATCH CATALOGUE QUERY DID NOT ANSWER CLEANLY: %s" % line)
+        sys.exit(2)
+    name, args, sha, code, secdef = line.split("\t")
+    scratch[(name, args)] = (sha, code, secdef)
+
+problems = []
+comment_only = []
+
+# 1. A `drop function` in the migrations, which the lift is blind to by
+#    construction. Checked on its own so that it fires even with a stale file.
+drop_re = re.compile(r"drop\s+function\s+(?:if\s+exists\s+)?([a-z_][a-z_0-9]*\.[a-z_][a-z_0-9]*)", re.I)
+create_re = re.compile(r"create\s+(?:or\s+replace\s+)?function\s+([a-z_][a-z_0-9]*\.[a-z_][a-z_0-9]*)", re.I)
+last_create, last_drop = {}, {}
+for path in sorted(glob.glob(os.path.join(repo, "supabase", "migrations", "*.sql"))):
+    base = os.path.basename(path)
+    text = open(path, encoding="utf-8").read()
+    for m in create_re.finditer(text):
+        if m.group(1).lower() in wanted:
+            last_create[m.group(1).lower()] = base
+    for m in drop_re.finditer(text):
+        if m.group(1).lower() in wanted:
+            last_drop[m.group(1).lower()] = base
+for name, base in sorted(last_drop.items()):
+    if base > last_create.get(name, ""):
+        problems.append("DROPPED AFTER ITS LAST DEFINITION: %s, in %s. The lift cannot see a drop, "
+                        "so this probe would have gone on testing a body that is gone." % (name, base))
+if last_drop:
+    print("   drop statements seen for a probed function: %d" % len(last_drop))
+else:
+    print("   drop statements seen for a probed function: none")
+
+# 2. Staleness. A migration in this tree that DEFINES or DROPS a probed
+#    function and is newer than the live head means the manifest describes a
+#    database that has not seen the text this run just lifted.
+head = meta.get("live_migration_head", "")
+newer = sorted({base[:14] for base in list(last_create.values()) + list(last_drop.values())
+                if base[:14] > head})
+if newer:
+    problems.append("THE MANIFEST IS STALE. These migrations define or drop a probed function and are "
+                    "newer than the live head %s: %s. Either they are not applied to the project, or "
+                    "the manifest was not refreshed after they were." % (head, ", ".join(newer)))
+else:
+    print("   no migration defining a probed function is newer than the live head")
+
+# 3. The catalogues, row by row.
+for key in sorted(set(live) | set(scratch)):
+    name, args = key
+    if key not in scratch:
+        same_name = [k for k in scratch if k[0] == name]
+        if same_name:
+            problems.append("SIGNATURE DISAGREES for %s: live has (%s), this run lifted (%s)."
+                            % (name, args, same_name[0][1]))
+        else:
+            problems.append("LIVE HAS %s(%s) AND THIS RUN DID NOT LIFT IT AT ALL." % (name, args))
+        continue
+    if key not in live:
+        problems.append("THIS RUN LIFTED %s(%s) AND THE LIVE PROJECT DOES NOT HAVE IT. A dropped or "
+                        "renamed function is exactly this shape." % (name, args))
+        continue
+    lsha, lcode, lsec, _ = live[key]
+    ssha, scode, ssec = scratch[key]
+    if lcode != scode:
+        problems.append("CODE DISAGREES for %s(%s): live %s, lifted %s. This is a difference in "
+                        "what the database DOES, not in how it is written."
+                        % (name, args, lcode[:16], scode[:16]))
+    elif lsha != ssha:
+        comment_only.append("%s(%s): live %s, lifted %s" % (name, args, lsha[:16], ssha[:16]))
+    if lsec != ssec:
+        problems.append("SECURITY DEFINER DISAGREES for %s(%s): live=%s, lifted=%s."
+                        % (name, args, lsec, ssec))
+
+if comment_only:
+    print("   WARNING, AND IT IS NOT A PASS AND NOT A FAILURE. %d function(s) run the same code"
+          % len(comment_only))
+    print("   live as this run lifted, but the live copy is not the same TEXT. In every case so")
+    print("   far the live copy is the migration's code with its comments stripped out, by")
+    print("   something nobody has identified. Ledger section 63 carries it as unexplained.")
+    for line in comment_only:
+        print("     ~ %s" % line)
+
+if problems:
+    print("   %d DISAGREEMENT(S):" % len(problems))
+    for line in problems:
+        print("     - %s" % line)
+    sys.exit(2)
+
+print("   %d functions compared. Every SIGNATURE, every SECURITY DEFINER flag and every body's"
+      % len(live))
+print("   CODE agrees with the live catalogue as recorded at %s." % meta.get("taken_at", "?"))
+PY
+if [ $? -ne 0 ]; then
+  echo "== RESULT: FAIL, AND NO PROBE WAS RUN."
+  echo "   WHAT THIS RUN LIFTED OUT OF THE MIGRATIONS IS NOT WHAT THE LIVE PROJECT HOLDS."
+  echo "   Every verdict below this line would have been about a body that is not shipping,"
+  echo "   which is worse than no verdict, so none were taken. Refresh"
+  echo "   scripts/probes/escrow_live_catalogue.tsv from the live catalogue, or fix the"
+  echo "   divergence it found, and run again."
+  su postgres -c "dropdb --if-exists $db" >/dev/null 2>&1
+  exit 1
+fi
 
 # ---------------------------------------------------------------------------
 # 3. The cast. Two people, two wallets, a clean slate before each probe.

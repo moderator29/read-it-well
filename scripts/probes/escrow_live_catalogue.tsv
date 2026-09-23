@@ -1,0 +1,99 @@
+# THE LIVE CATALOGUE, AS THE PROBE HARNESS MUST FIND IT.
+#
+# WHAT THIS FILE IS FOR. scripts/probes/escrow_concurrency.sh lifts function
+# TEXT out of supabase/migrations/*.sql by scanning for
+# `create or replace function` and taking the last definition of each name. A
+# `drop function` is neither a create nor a replace, so a verb dropped in
+# production goes on passing here against a body that no longer exists
+# anywhere. The same hole swallows a signature changed, a body rewritten by a
+# do-block the harness does not replay, a body edited straight against the
+# database, and a migration written but never applied.
+#
+# So the harness stops trusting the migrations on their own. After it loads
+# the lifted bodies into its scratch cluster it reads ITS OWN pg_proc and
+# compares it, row by row, against this file. A disagreement in the CODE stops
+# the run before the smoke check, because a probe running the wrong body is
+# worse than no probe at all.
+#
+# WHY THERE ARE TWO HASHES, AND WHICH ONE STOPS THE RUN.
+#
+#   body_sha256 is sha256 of prosrc exactly as stored.
+#   code_sha256 is sha256 of prosrc with SQL comments removed, trailing
+#   whitespace stripped and blank lines collapsed.
+#
+#   The gate is code_sha256, because that is the difference that changes what
+#   the database does. A body_sha256 that moves while code_sha256 holds is
+#   reported as a LOUD WARNING naming every function, and the run continues.
+#
+#   THIS IS NOT A THEORETICAL DISTINCTION. The first real run of this guard,
+#   on 23 September 2026, found FIVE functions whose live body differs from
+#   the migration text in this repository: private.compute_fee,
+#   private.notify, private.move_into_pot, private.escrow_invariants_check and
+#   private.pay_booking_from_wallet. In every one of the five the live copy is
+#   the same code with its `--` comments stripped out. Who stripped them is
+#   NOT KNOWN and is written up in ledger section 63 as unexplained. Refusing
+#   to run over a missing comment would have meant the guard was deleted
+#   within a day; passing over a changed statement would have meant it was
+#   worthless. Hence two hashes.
+#
+#   WHAT THE GATE CANNOT SEE, said plainly. Comment stripping is applied to
+#   both sides, so a `--` sequence INSIDE a string literal is removed from
+#   both and a difference after it would be missed. Nothing in these thirty
+#   two bodies has one.
+#
+# WHY THE HASH IS OF prosrc AND NOT OF THE MIGRATION TEXT. Postgres reformats
+# what `pg_get_functiondef` prints but stores the body between the dollar
+# quotes BYTE FOR BYTE. Hashing prosrc compares two catalogues rather than two
+# spellings of one thing.
+#
+# HOW TO REFRESH IT. Read pg_proc on the live project with the query recorded
+# in ledger section 63 and rewrite this file. The harness does not generate it
+# and cannot: the machine the harness runs on has no route to the project,
+# which is the same wall P-7's HTTP half is behind.
+#
+# WHAT IT IS NOT, AND THE `acl` COLUMN IS NOT COMPARED. The scratch cluster
+# has no `anon`, no `authenticated` and no `service_role` at all, and the
+# harness lifts bodies rather than grants, so its catalogue can say nothing
+# about privilege and a comparison would be theatre. `acl` is recorded here so
+# that a reader can see what the live grants were when this file was taken and
+# cross-check it against P-7, which is the probe that actually proves the
+# EXECUTE layer. This file does not stand in for it.
+#
+# project	uccixoonmbhrnyczyigt
+# taken_at	2026-09-23T10:52:00Z
+# live_migration_head	20260923104415
+# functions	32
+#
+# qname	arguments	body_sha256	code_sha256	security_definer	acl
+private.compute_fee	p_kind fee_kind, p_amount_minor bigint, p_at timestamp with time zone	a05752227b15c022b901adfeafe25a8777ff42622280ca7f9820b6c3420e4b5d	038a5b8768ee0c33497f959333604c613ca5a1c698db7cf4ac34db61f1991eb4	t	{postgres=X/postgres}
+private.escrow_audit_insert		50e164d667428bcefe6273c96cf5a365d48fcb6bc4e6011ed1b45c3b6d2fecd2	1fa24ca6b0d037dc935a2fed84392a802b77d13d02151891ba36e35729205663	t	{postgres=X/postgres}
+private.escrow_commission_is_permitted	p escrow_purpose	350ad618d3d12f392f0f5360f8d2af68e2b64a5db836ca29c1d26902adb3228a	4a31b3782ad6a463dc88be833b1124d43b7a1a89585b30508d161e150b57964c	f	{postgres=X/postgres}
+private.escrow_float_components		5cd0e4a7a6406812b0bbc559016b31f4e3f3d6f67687440f2eb12674a566c5bd	fb137a53057f7cb4facb9def34c6e67d2790e0c8697b795a4a4bba6019877ec2	t	{postgres=X/postgres}
+private.escrow_guard_transition		2c0a76effa3fcb6c4f63aff07bcea523c4e2e86074d163489de2a98fbbd50223	3375517ec3d45323c3655e0b761d9314303e522d2a19f54bbb4bcad14ddfdbe1	t	{postgres=X/postgres}
+private.escrow_invariants_check		fa42d93778c5b4292680b19f169d4c4dfabd614a04b94cfb25d01d924dc6676a	a0b3bc984c72f71d4bd456ed238894d198d306e89efe51add589adee6c02658e	t	{postgres=X/postgres}
+private.escrow_purpose_is_open	p escrow_purpose	5a01816947bde273d248f76410d31cd7a27b50bb294967b75f8247d823381836	4a31b3782ad6a463dc88be833b1124d43b7a1a89585b30508d161e150b57964c	f	{postgres=X/postgres}
+private.escrow_settle	p_escrow uuid, p_direction text, p_to_state escrow_state, p_actor uuid, p_note text	cddef8d6fec0510ac4bbe404e9da20b07fb6c963fe224419ebb5faa955061ac8	339abb96343ac0bc8b33593b2a84b3b3c39e84f97879552be5ba529c3f42af32	t	{postgres=X/postgres}
+private.escrow_sweep_timeouts		c5238ea3fe0f3ad125316dedee6da882fd34f0ab8c698cf76e32cd75ecccf05c	c5238ea3fe0f3ad125316dedee6da882fd34f0ab8c698cf76e32cd75ecccf05c	t	{postgres=X/postgres}
+private.escrow_transition_is_legal	from_state escrow_state, to_state escrow_state	d3303812226922bd03471c50da7272beab991857d72b09e40c6dea51292156f0	083f94120d98a07b3417909278f3430c4b28c8e2e7235ac941909adac141a001	f	{postgres=X/postgres}
+private.notify	target_user uuid, n_kind notification_kind, n_title text, n_body text, n_href text	ba9f5ed76e664d1b7cd3631fdd68c86907340df4d5c4d319ca821a194cb84ebe	bb10f6df8f5b7177906128bb031ca207558b5620c6e3b12fab3fa3a6cb364574	t	{postgres=X/postgres}
+private.pay_booking_from_wallet	payer uuid, target_booking uuid, payment_reference text	8912949f467d32c7f3befe8298e3250c832b65d918cac83cd66fc341a3345e91	698ae517b3b68e0bf91faed12bb9863d86c52201ac8810ee0c9e28ea70bcfcd8	t	{postgres=X/postgres}
+private.transfer_between_wallets	sender_user uuid, recipient_user uuid, amount bigint, out_reference text, in_reference text, note text	d4b935b5ed0dab599b336915f5bcd972c21c789b7255066ff5da7dee10321d0e	d901dc787ec8d1a475a234c2044f35d6f433b11631bb76162dae3f097c69ab21	t	{postgres=X/postgres}
+private.wallet_for_update	p_user uuid	b339fb88fe0e84d2abda544bbe89839b753a62893d7f8b53731e36e84c7c0b1a	b339fb88fe0e84d2abda544bbe89839b753a62893d7f8b53731e36e84c7c0b1a	t	{postgres=X/postgres}
+private.wallet_spendable_locked	p_wallet uuid	f5aa669c8bfb8c77b50917f3a3c20f66521200cbd051f7ebd35af5faff091ee4	f5aa669c8bfb8c77b50917f3a3c20f66521200cbd051f7ebd35af5faff091ee4	t	{postgres=X/postgres}
+private.wallets_overdrawn		12d193614decc6e79f38c4c19d827fa4a741844163ca625e492895127fe43168	12d193614decc6e79f38c4c19d827fa4a741844163ca625e492895127fe43168	t	{postgres=X/postgres}
+public.escrow_cancel_as	p_actor uuid, p_escrow uuid, p_reason text	1b0e9c2a298751801e44c2c3aced6aea2b862e987f2f56c61c8df6fd9ecdc1f5	1fb4eaba3ebe8d04294a08dc80f3aa90a0944e8062317ebb3e0366caa987433c	t	{postgres=X/postgres,service_role=X/postgres}
+public.escrow_confirm_as	p_actor uuid, p_escrow uuid	2ed38729f0dcce405e52169e7e428002d765fd5ee30652df279cb48bbfee5ed0	571007fd2d676dc0473742602405242fc401c4e70dcc30ea3e0607dc24a82bb6	t	{postgres=X/postgres,service_role=X/postgres}
+public.escrow_fund_from_wallet_as	p_actor uuid, p_payee uuid, p_listing uuid, p_purpose escrow_purpose, p_amount_minor bigint, p_reference text, p_hold_days integer	684082589884733f905a753312ea31f5a666c1a5b06c033c7ee8805f0aa38f1a	08c91230d5b3d7798133a0b16734ed98245bc7383bcd9f7db2953e9077f1405f	t	{postgres=X/postgres}
+public.escrow_fund_proposal_as	p_actor uuid, p_escrow uuid, p_hold_days integer	7297a566cd66a3ade69b1c00a734b42a28b9ebbd7ec4bcfc1f92592aa3ca611a	9877cc47a546d22049e733335b28735adeb6a3746de6c97eb0e1b6acd9c70550	t	{postgres=X/postgres,service_role=X/postgres}
+public.escrow_hold	escrow_id uuid, payer_user uuid, amount bigint, hold_reference text, note text, hold_days integer	068a676947757cde9614e2e02a46ea742e48754339436813638f296356bf8eee	2433e60347c1c2610f5141094b995b91abe3b6b7bebc2efcfddc72bbf22a838a	t	{postgres=X/postgres,service_role=X/postgres}
+public.escrow_open	payer_user uuid, payee_user uuid, listing uuid, purpose escrow_purpose, amount bigint	17cbd176db6211d91b31641501d5e505dd03e8a416501433a757c4eb60e8fe61	4e4238db30be21f6db3b0e06ad4669319f884b2b1a241134f5d85af6b0d6e562	t	{postgres=X/postgres,service_role=X/postgres}
+public.escrow_propose_as	p_actor uuid, p_conversation uuid, p_counterparty uuid, p_purpose escrow_purpose, p_amount_minor bigint, p_actor_pays boolean	76fd290c58b100271b34d5a739ba7c2ab352ca7039aae2ebcbf779f28d7b02bb	17e8b09205ad22f6d2e35afacbe835717875a45cfc94b61753d861bc9d88b3f7	t	{postgres=X/postgres,service_role=X/postgres}
+public.escrow_raise_dispute_as	p_actor uuid, p_escrow uuid, p_reason text	5028c363ae3f06ad73826f155e3fb8a8009da357280ec127b288f54784e912e7	9b761b39aed3232b152092230729b6c7dd018bb001ce3d0a170755300fc1d317	t	{postgres=X/postgres,service_role=X/postgres}
+public.escrow_refund	escrow_id uuid, payer_user uuid, refund_reference text, note text	c9be9779b2c011a9eee4b03e15ffde2c2717fb18df33a01c6d3d19018df4deea	b9f847137af32267d4d46989aac1231e81cccba8271cb54db0698bb94de7d798	t	{postgres=X/postgres,service_role=X/postgres}
+public.escrow_release	escrow_id uuid, beneficiary_user uuid, release_reference text, note text	cddd427a1ac7aa96468f7381e9fcacf2736c22b55eb9798aafd88c55e8351725	ff9cc9bf9a2b9abf4fe1e2c44e9356fc357e37d82707d71ec5a74bcb938bf142	t	{postgres=X/postgres,service_role=X/postgres}
+public.escrow_request_release_as	p_actor uuid, p_escrow uuid	99f8dd1f5f04f6134b0de32519429ebc1737d8765bea16150d8ecb23733c9afe	8bbc8d5e4cf1f2431638a98eed311cb15235be4f780b85b64e5cdc413359e2cc	t	{postgres=X/postgres,service_role=X/postgres}
+public.fee_rate_at	p_kind fee_kind, p_at timestamp with time zone	5c7cce04169c44e919f480023315700f472b5064154b5d8a9ab066d50455ed05	5c7cce04169c44e919f480023315700f472b5064154b5d8a9ab066d50455ed05	f	{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}
+public.hold_wallet_withdrawal	owner_user uuid, amount bigint, hold_reference text, hold_metadata jsonb	e7fd81855d0324ce2872d620a73b3c0d2aa393dfd866e4c484bb7866653d7278	3ba53670cc937a5fc279aff08246978fb190323e9126f5d9fdb7f67caf60eaa2	t	{postgres=X/postgres,service_role=X/postgres}
+public.move_into_pot	owner_user uuid, pot uuid, amount bigint, move_reference text	277aa5c5b11ba32217db804866b136e1bcea3a0f1b0a22fb2f453450cb598992	5e6a41ecc5108eb96e7b30940b1fea51c3057ca88d6454fd1e13ced32172b0a5	t	{postgres=X/postgres,service_role=X/postgres}
+public.refuse_transaction_on_demo_listing		50e71ab2756c1984a547298d0bd8e6c59f78b1f67276a47a4f022476edcafa0f	59073e89ceb4c8145cd62648eb3f2508ea242dbfcc262d142dddc6da19f080a1	t	{postgres=X/postgres,service_role=X/postgres}
+public.wallets_overdrawn		5aafa46ee4a8180b62a01a37404bb160c8fd7b9a2dc833ec7f8fe86f8e6593eb	5aafa46ee4a8180b62a01a37404bb160c8fd7b9a2dc833ec7f8fe86f8e6593eb	t	{postgres=X/postgres,service_role=X/postgres}
