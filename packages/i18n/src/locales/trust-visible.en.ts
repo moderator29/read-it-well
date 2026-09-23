@@ -69,4 +69,19 @@ export const trustVisibleEn = {
       },
     },
   },
+  /** V-04: the card above an account number, for the person receiving it. */
+  account: {
+    label: "About the account number in this message",
+    checking: "Checking who this account belongs to.",
+    belongs:
+      "This account belongs to the verified lister. Vallo still cannot protect a payment made to an account.",
+    doesNotBelong: "This account does not belong to the person Vallo verified for this listing.",
+    /** `{amount}` is formatted money. */
+    payLead: "Paying for this place? Pay the move-in total here: {amount}, recorded to the kobo.",
+    payButton: "Pay the move-in total",
+    requestLead: "Pay only after inspection. Request one here.",
+    requestButton: "Request an inspection",
+    report: "Report",
+    block: "Block",
+  },
 };

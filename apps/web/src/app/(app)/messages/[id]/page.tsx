@@ -11,6 +11,7 @@ import { heldPaymentsAreOpen } from "@/lib/escrow/flag";
 import { readHeldPaymentForConversation } from "@/lib/escrow/queries";
 import { ThreadView, type ThreadBubble } from "./ThreadView";
 import { resolveCards } from "./cards";
+import { readAccountMoment } from "@/lib/messages/account-moment-read";
 import { InboxEmpty } from "../Inbox";
 
 /**
@@ -155,6 +156,19 @@ export default async function ConversationPage({
        ask, structurally. */
     const inspection =
       context.kind === "listing" ? await readOpenInspectionForConversation(id) : null;
+    /* V-04: the receiver's account card. Skipped, at no cost, unless a
+       message from the other side carries an account number. */
+    const accountMoment =
+      context.kind === "listing"
+        ? await readAccountMoment(session.supabase, {
+            conversationId: id,
+            meId: session.user.id,
+            role,
+            listingId: thread.listing?.id ?? null,
+            messages: thread.messages,
+            locale,
+          })
+        : null;
 
     return (
       <ThreadView
@@ -212,6 +226,8 @@ export default async function ConversationPage({
         inspected={thread.inspected}
         openAttach={(Array.isArray(attach) ? attach[0] : attach) === "1"}
         heldPaymentsOpen={heldPaymentsOpen}
+        accountMoment={accountMoment}
+        accountCopy={t.trustVisible.account}
         agreement={
           heldPayment.payment
             ? {
@@ -232,6 +248,7 @@ export default async function ConversationPage({
             timeLabel: m.timeLabel,
             imageUrl: m.imageUrl,
             read: read.has(m.id),
+            ...(m.createdAt ? { createdAt: m.createdAt } : {}),
             ...(card ? { card } : {}),
           };
         })}

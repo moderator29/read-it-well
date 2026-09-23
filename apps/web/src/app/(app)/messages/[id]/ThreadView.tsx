@@ -42,6 +42,10 @@ import "@/app/css/escrow.css";
 import { useBack } from "@/lib/nav/use-back";
 import { ThreadOptionsSheet, type SheetListing } from "./ThreadOptionsSheet";
 import { Button } from "@/components/ui/Button";
+import { AccountMomentCard } from "@/components/app/messages/AccountMomentCard";
+import { isAccountMoment } from "@/lib/messages/account-moment";
+import type { AccountCheckOutcome } from "@/lib/messages/account-check";
+import type { ChargeOffer } from "@/lib/messages/charge-offer";
 
 /**
  * The conversation thread, one component for both data sources.
@@ -79,6 +83,8 @@ export type ThreadBubble = {
   read?: boolean;
   /** The card a share expands into, resolved by the page. Absent otherwise. */
   card?: ChatCardData;
+  /** The row's timestamp, when known. Read by the account card's "checking" window. */
+  createdAt?: string;
 };
 
 export type ThreadViewProps = {
@@ -147,6 +153,14 @@ export type ThreadViewProps = {
    */
   heldPaymentsOpen?: boolean;
   agreement?: ThreadAgreement | null;
+  /**
+   * V-04, THE ACCOUNT-NUMBER MOMENT. The stored check per message from the
+   * other side (only the receiver's RLS can read one) and the real charge on
+   * offer. Absent draws no card, which is every thread with no account number
+   * in it from the other side.
+   */
+  accountMoment?: { checks: Record<string, AccountCheckOutcome>; offer: ChargeOffer } | null;
+  accountCopy?: Dictionary["trustVisible"]["account"];
 };
 
 const INSPECTIONS_KEY = "nf_inspections";
@@ -272,6 +286,8 @@ export function ThreadView({
   openAttach = false,
   heldPaymentsOpen = false,
   agreement = null,
+  accountMoment = null,
+  accountCopy,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
   /*
@@ -348,6 +364,7 @@ export function ThreadView({
           body: row.body,
           timeLabel: lagosTimeLabel(row.created_at),
           imageUrl: null,
+          createdAt: row.created_at,
         },
       ];
     });
@@ -778,6 +795,10 @@ export function ThreadView({
           const caption = run.length > 1 ? run.find((p) => isCaption(p)) : null;
           const words = run.length === 1 ? m.body : (caption?.body ?? "");
           const last = run[run.length - 1]!;
+          /* V-04: the first message in this run from the other side that
+             carries an account number gets the receiver's card above it. */
+          const accountMessage =
+            live && accountCopy && !m.mine ? run.find((p) => isAccountMoment(p.body)) : undefined;
           return (
             <div
               key={m.id}
@@ -805,6 +826,18 @@ export function ThreadView({
                     {tags && <span className="nf-role-tag">{tags.theirs}</span>}
                     <span className="nf-numeric">{m.timeLabel}</span>
                   </p>
+                )}
+
+                {accountMessage && accountCopy && (
+                  <AccountMomentCard
+                    messageId={accountMessage.id}
+                    createdAt={accountMessage.createdAt ?? null}
+                    initialOutcome={accountMoment?.checks[accountMessage.id] ?? null}
+                    offer={accountMoment?.offer ?? { kind: "none" }}
+                    copy={accountCopy}
+                    locale={locale}
+                    onBlock={counterpartId ? () => setSheetOpen(true) : undefined}
+                  />
                 )}
 
                 {m.card ? (
