@@ -880,44 +880,4 @@
   .nf-nav__scroll--agent .nf-nav__badge {
     background: var(--nf-mode-agent);
   }
-
-  /* ----------------------------------------------------------- light theme */
-
-  :root[data-theme="light"] .nf-nav__row--on {
-    background: color-mix(in oklab, var(--nf-brand-primary) 12%, transparent);
-  }
-
-  /*
-   * THE DRAWER'S LIT ROW STAYS FILLED ON PAPER, and it was white ink on a
-   * pale lavender wash.
-   *
-   * The rail's daylight answer above drops the active pill to a 12 per cent
-   * tint, which is right for a quiet column beside the content. The drawer's
-   * active row is a different object: the render draws it as a filled brand
-   * slab and this stylesheet sets `--nf-content-on-brand` - white - on it to
-   * match. The two rules met in the middle and produced white text on a
-   * near-white plate, which a 390px light shot of the open drawer shows is
-   * unreadable rather than merely quiet.
-   *
-   * Light is a designed twin with the same anatomy, not a derivation: the
-   * slab is the anatomy here, so it stays a slab and the white ink stays
-   * correct. Specificity carries it over the rail's rule without reordering
-   * any import.
-   */
-  :root[data-theme="light"] .nf-nav--drawer .nf-nav__row--on {
-    background: linear-gradient(var(--nf-light-angle), var(--nf-brand-primary), var(--nf-brand-accent));
-    color: var(--nf-content-on-brand);
-  }
-  :root[data-theme="light"] .nf-nav--drawer .nf-nav__row--on .nf-nav__glyph {
-    color: var(--nf-content-on-brand);
-  }
-
-  :root[data-theme="light"] .nf-nav__scroll--agent .nf-nav__row--on {
-    background: color-mix(in oklab, var(--nf-mode-agent) 14%, transparent);
-  }
-
-  :root[data-theme="light"] .nf-nav__row--on .nf-nav__glyph {
-    color: var(--nf-brand-primary);
-  }
-
 }

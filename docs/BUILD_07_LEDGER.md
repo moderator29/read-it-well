@@ -5887,6 +5887,61 @@ block are deliberate and are not part of this.
 
 The full record is `docs/design/LIGHT_MODE_REMOVED.md`.
 
+### R12. NINETEEN LIVE LIGHT RULES LEFT IN TWO FILES, with the selectors, so nobody re-derives them
+
+Follow-up to R11. Light mode is removed: `[data-theme="light"]` can no longer
+appear on the root element, so every rule keyed on it is **dead code**. Nothing
+breaks by leaving it and nothing is fixed by leaving it.
+
+Session A has cleared its own partition and the four general stylesheets that
+belong to no surface (`settings-rows.css`, `side-nav.css`, `social.css`,
+`social-feed.css`; `docs/SESSION_B_SCOPE.md` explicitly names `social.css`
+among the files Session B never edits, and the other three are not in Session
+B's owned list either). **Two files remain and both belong to other Session A
+workers rather than to Session B**, so this entry is addressed to whoever owns
+them and is filed here because this ledger is the channel everyone reads.
+
+`apps/web/src/app/css/escrow.css`, 4 rules:
+
+```
+365  :root[data-theme="light"] .nf-esc-sheet
+369  :root[data-theme="light"] .nf-esc-when,
+370  :root[data-theme="light"] .nf-esc-receipt,
+371  :root[data-theme="light"] .nf-esc-filed
+```
+
+`apps/web/src/app/css/price-check.css`, 15 rules:
+
+```
+455  .nf-pc-map          459  .nf-pc-confidence--medium   462  .nf-pc-confidence--low
+466  .nf-pc-strip        467  .nf-pc-fact                 468  .nf-pc-disclaimer
+469  .nf-pc-share--none  470  .nf-pc-share__why           471  .nf-pc-share__link
+480  .nf-pc-card         486  .nf-pc-share--none          487  .nf-pc-share__link
+490  .nf-pc-share__url   493  .nf-pc-disclaimer           497  .nf-pc-disclaimer__lead
+```
+
+**HOW TO CHECK YOU ARE DONE, and it is not a grep.** A plain search for the
+string reports comments as well as rules, and after a removal like this most of
+the hits ARE comments explaining that the thing is gone, including ones that
+say so in those words. Run
+`node docs/design/proofs/no-light/live-light-rules.mjs`: it blanks `/* */` and
+`//` first, then looks for the selector, prints file and line, and exits
+non-zero if anything is live. It also refuses to report a clean result if it
+read zero files, because the first version of it pointed at the wrong directory
+and printed a pass.
+
+**AND ONE REAL DEFECT INSIDE THAT LIST, which is worth fixing rather than
+deleting.** `price-check.css:216` gives `.nf-pc-confidence--medium`
+`background: var(--nf-brand-quiet)` and `color: var(--nf-brand-secondary)`.
+Those two tokens are **the same colour**: `--nf-brand-secondary` is declared as
+`var(--nf-brand-quiet)`. Measured on a production server, the word "fairly"
+computes `rgb(92,159,255)` on `rgb(92,159,255)`, and the whole-harness sweep
+reads it off the pixels at 1.01:1, which is the antialiasing of a glyph that is
+not there. That is the BASE rule, not the light one, so deleting the light
+block does not touch it. `--nf-brand-quiet` is an INK token: every other
+consumer in the tree uses it as `color`, and `admin/money/_desk/desk.css` uses
+it that way eleven times. The chip wants a tint as its fill.
+
 ## 50. TWO PROOFS THAT DISAGREED WITH THE SHIPPED CODE, RETAKEN
 
 The founder's ruling, in his words: **a proof that disagrees with the shipped

@@ -9,27 +9,37 @@
  * Layer 1 is the raw palette. Never reference layer 1 from a component.
  * Layer 2 is the semantic layer. Components reference only layer 2.
  *
- * HOW A SUBTREE PINS A THEME, and why `[data-theme="dark"]` is on the
- * selector below as well as `:root`.
+ * THE PLATFORM IS DARK ONLY, AND THAT IS A DECISION RATHER THAN AN OMISSION.
  *
- * Dark is the product's default, so it is declared on `:root` and the paper
- * twin overrides it on `:root[data-theme="light"]`. That works for the whole
- * document and has no way to say "this part of the page is dark whatever the
- * rest is". The auth screen needs exactly that: it stays dark in both themes,
- * permanently, because it is the register setter for a money product and
- * every serious one does this (rule 22).
+ * The founder removed light mode on 23 September 2026. There was a complete
+ * second palette here, 932 lines on `:root[data-theme="light"]`, and it is
+ * deleted along with `app/css/light.css`, the before-paint script that set the
+ * attribute, the control that wrote it and the store behind it. If you are
+ * looking for the twin because a token seems to be missing one: it is not
+ * missing, it was taken out on purpose. `docs/design/LIGHT_MODE_REMOVED.md`
+ * lists what came out, what was struck with it and what was deliberately left.
  *
- * Listing `[data-theme="dark"]` here gives any element that carries the
- * attribute the full dark palette for itself and everything inside it. It is
- * not a specificity trick and does not fight `:root[data-theme="light"]`:
- * specificity only decides between rules matching the SAME element, and a
- * custom property declared on a descendant simply wins for that subtree over
- * the value it would otherwise inherit.
+ * DO NOT ADD A `[data-theme="light"]` BLOCK BACK WITHOUT THE FOUNDER SAYING
+ * SO. A token here needs no twin, a rule in a stylesheet needs no paper
+ * answer, and `html { color-scheme: dark }` in `app/css/base.css` is what
+ * stops a browser or an operating system set to light painting its own white
+ * into the form controls, scrollbars and native pickers that no stylesheet can
+ * reach.
  *
- * It does NOT make a light-theme rule keyed on `:root[data-theme="light"]
- * .some-class` stop matching. Those still apply, because the root really is
- * light. A surface that pins dark must therefore also not carry a light twin,
- * which is the second half of shipping rule 22.
+ * WHY `[data-theme="dark"]` IS STILL ON THE SELECTOR BELOW. It is not the
+ * other half of a theme switch any more; it is the one way a SUBTREE can
+ * declare the full palette for itself. The auth screen and the first-run stage
+ * both carry it, from when they had to stay dark while the rest of the
+ * document might be light (rule 22, the register setter for a money product).
+ * They are redundant now and they are harmless, and the mechanism is worth
+ * keeping because it is how any future "this part is always X" would be
+ * written: a custom property declared on a descendant wins for that subtree
+ * over the value it would otherwise inherit, which is inheritance rather than
+ * a specificity trick.
+ *
+ * EMAILS ARE NOT GOVERNED BY THIS FILE AND ARE UNTOUCHED. `lib/email/**` keeps
+ * its own palette and its own `prefers-color-scheme` handling exactly as
+ * designed, because Gmail strips that query and runs its own inversion anyway.
  */
 
 :root,
