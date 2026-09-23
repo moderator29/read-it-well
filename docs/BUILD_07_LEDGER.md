@@ -9923,3 +9923,64 @@ statement. The stale generated file had disarmed them.
 row of either kind reaches `KIND_ICON[entry.kind]`, which has no fallback.
 
 Session A: say the word and PUSH2's successor will do item 1 and file the rest.
+
+---
+
+## 72. ONE VAPID PAIR IN EVERY 256 WAS A VALID PAIR OUR OWN CODE CALLED INVALID
+
+Found because the deployment's push identity was configured an hour earlier and
+this is the function that decides whether it can ever be used. A worker had
+reported the symptom as "a flaky test" and moved on, correctly naming it as not
+theirs. **It was not a flaky test. It was a flaky test standing on a real
+defect**, which is the most expensive kind because the flake explains itself
+away.
+
+**The mechanism.** `ecdh.getPrivateKey()` writes the scalar the way OpenSSL
+writes a big integer: shortest form, leading zero bytes stripped. So a P-256
+private key whose top byte happens to be zero comes back 31 bytes rather than
+32, and one in about 65,000 comes back 30. Measured rather than reasoned: **17
+of 4,000 generated keys were short, 0.42 per cent against a theoretical 0.39.**
+
+Both readers of the private half, `vapidKeysAgree` and the JWT signing path,
+demanded exactly 32 bytes and refused anything else. So roughly **one VAPID
+pair in every 256 was a perfectly valid pair that this platform refused**, and
+the error message blamed the key. Somebody would have generated a pair with the
+documented command, configured it correctly, watched push refuse to send, and
+had no way to discover that the check was wrong rather than the key.
+
+**Why the test flaked.** `makeVapidPair()` generates a fresh pair on every run,
+so the suite met the short case roughly once in 128 runs. A failure at that
+rate reads as noise.
+
+**The fix and the proof.** `scalar32()` left pads to 32, which does not change
+the scalar's value, and still refuses anything LONGER, because a longer scalar
+is a different key rather than a shorter spelling of this one. The new test
+constructs the short case deliberately instead of waiting for it and **fails
+outright if it cannot find one**, because a test that quietly skips the thing
+it exists to test is worse than no test. 12 of 12 green.
+
+**The production pair is unaffected**, and that was checked rather than
+assumed: its private half decodes to exactly 32 bytes, and it was verified
+against `vapidKeysAgree` before it was configured.
+
+---
+
+## 73. TWO ALERTS OUTLIVED THE FAULT THEY REPORTED
+
+Two `high` alerts, "Push drain: something answered, but it was not the drain",
+raised at 10:20Z and 10:25Z. **They were correct when raised**: the scheduled
+drain called its route and got a 200 carrying `<!DOCTYPE html>`, because an
+unknown path on this deployment answers 200 with the site shell rather than
+404. That is the same trap the money reconciliation job was fixed for earlier
+the same day, and it is blind light number one recurring on a different route.
+
+The condition passed at about 10:25 and `cron.push-drain.ok` has recorded a
+genuine drain on every run since. **The alerts stayed open for three hours over
+a fault that no longer existed.** That is what the pg_cron failure watch did for
+twenty five hours before it was corrected, and it teaches an operator to stop
+reading the desk, which costs more than the original fault.
+
+Resolved, and **the condition was re-read rather than assumed**: the migration
+resolves those rows only if the drain has since recorded a successful run LATER
+than the newest of them, and raises with both timestamps if it has not. An
+alert that is still true stays open.
