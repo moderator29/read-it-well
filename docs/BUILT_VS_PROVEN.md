@@ -150,9 +150,25 @@ all. `vallo_purge_email_outbox` read "1 run" with a null timestamp. It has
 zero. The null date is what gave it away. A register that had reported the
 count without the date would have said this job runs.
 
-**`vallo_reconcile_payments` has one non-succeeded run out of 23.** It is not
-the most recent and the job has run successfully since. The failure was not
-diagnosed in this pass; see section 14.
+**`vallo_reconcile_payments` has one non-succeeded run out of 23, and it was
+diagnosed.** Read from `cron.job_run_details.return_message` for the failing
+row, 2026-09-22 15:47:00Z:
+
+```
+ERROR: invalid URL "https://www.vallospaces.com
+/api/paystack/reconcile?hours=48&apply=1": Malformed input to a URL function
+```
+
+**The stored site URL had a trailing newline in it.**
+`private.request_money_reconciliation()` builds the URL with
+`rtrim(btrim(site_url), '/')`, and **`btrim(text)` with one argument strips
+spaces and nothing else**, so a newline pasted into the secret survives both
+trims and lands in the middle of the URL. The job has succeeded 22 times since,
+so the secret was corrected, but the guard was not: paste a newline into that
+secret again tomorrow and this breaks again in exactly the same way. **The fix
+is `btrim(site_url, E' \t\r\n')`, and it is a two-character-class change to
+one function.** Recorded because it is the same family as the pg_cron job that
+404ed for three weeks while reporting success.
 
 **What proving the outstanding one would take.** Nothing but time: it is a
 `25 2 * * *` job registered after 02:25 today, so its first opportunity is
@@ -344,15 +360,26 @@ suite for the logic, and the file tree for the surface.
 `refusals.test.ts` (10), `route-openness.test.ts` (3), `og-palette.test.ts`
 and `regulated-words.test.ts`.
 
-**Mark: BUILT AND UNPROVEN.**
+**Mark: BUILT AND UNPROVEN, and nobody has ever used it.**
+
+Counted today:
+
+```
+price_check_events:  0 rows
+price_check_shares:  0 rows
+price_check_watches: 0 rows
+```
+
+**Not one valuation has ever been run, not one card has ever been shared, and
+not one watch has ever been set.** The two nightly sweepers
+(`vallo_sweep_price_check_events`, `vallo_sweep_price_check_watches`) have each
+run exactly once and each swept an empty table.
 
 The logic, the refusal states, the share-card composition and the rule that no
 artefact may carry an address are all held by tests that exercise real
 functions rather than source text, and that is worth something. But the
 surfaces at `app/(app)/price` and `app/(dev)/preview/price` were **not
-rendered in a browser in this pass**, and the two nightly sweepers
-(`vallo_sweep_price_check_events`, `vallo_sweep_price_check_watches`) have each
-run exactly once, against tables whose contents were not counted in this pass.
+rendered in a browser in this pass**.
 The OG image renders through `@vercel/og` and the naira-sign defect the last
 cycle found was a silent failure only visible inside somebody else's chat app;
 **that class of defect cannot be caught by any check in this repository** and
@@ -449,7 +476,7 @@ for somebody with a warm build.
 | Money that has actually moved | `public.wallet_entries`: **2 rows**, in total, ever | see below |
 | Funding | `wallet.funding.started` 1 (2026-09-19), `wallet.funding.recovered` 1 (2026-08-09) | **BUILT AND UNPROVEN** |
 | Withdrawal | `wallet.withdrawal.hold_placed` 1 and `wallet.withdrawal.not_started` 1, both 2026-08-10, **and nothing since** | **BUILT AND UNPROVEN** |
-| `transferToBank`, request B-BANK (b) from Session B | not searched for in this pass | see section 14 |
+| `transferToBank`, request B-BANK (b) from Session B | **it exists**: `apps/web/src/lib/wallet/actions.ts:1384`, with `lib/wallet/bank-send.test.ts` beside it, passing at `origin/main`. **`BANK_SEND_OPEN = false`** at `components/app/wallet/SendFlow.tsx:99`, so the Send screen keeps bank mode switched off and the action is unreachable from any UI | **BUILT AND UNPROVEN, and deliberately gated off** |
 
 **Mark for the block: BUILT AND UNPROVEN.** Two wallet entries in the lifetime
 of the platform, the last money event of any kind six weeks ago, and the one
@@ -688,15 +715,9 @@ checked-and-fine.**
    independently re-derived.** I counted 38 builders and confirmed the 15
    outbox keys. The reachability test passes, which is real evidence, but I did
    not walk the import graph myself.
-8. **`transferToBank` (Session B's request B-BANK part b) was not looked for.**
-   I do not know whether it exists.
-9. **The one failed `vallo_reconcile_payments` run was not diagnosed.** I have
-   its existence and not its cause.
-10. **Price Check's three tables were not counted**, so I do not know whether
-    the two nightly sweepers swept anything.
-11. **The badge tier counts could not be read** (section 12), so the platinum
-    grant to the founder's account is unverified.
-12. **The twelve governing images were not compared against anything.** Their
+8. **The badge tier counts could not be read** (section 12), so the platinum
+   grant to the founder's account is unverified.
+9. **The twelve governing images were not compared against anything.** Their
     percentage in section 15 is a structural count and is labelled as such,
     because a governing image is closed by a human comparing a screenshot to a
     render and no such comparison happened here.
@@ -727,7 +748,7 @@ denominator on the platform and it is unmeasured today.
 
 **The twelve governing images read 0 of 12 proven and that is not the same as
 0 built.** A governing image is closed when a human compares the render to the
-target. No such comparison was made today by me, and section 14 item 12 says
+target. No such comparison was made today by me, and section 14 item 9 says
 so. The honest reading is "unmeasured", and it is scored zero rather than
 omitted, because omitting it would flatter the total.
 
@@ -839,4 +860,4 @@ here has ever been touched.
 
 **Written 23 September 2026 at `80097483`, measured against `origin/main`
 `92d6eb2b` and the live database `uccixoonmbhrnyczyigt`.** Section 14 lists
-twelve things this register did not check. It is not complete and it says so.
+nine things this register did not check. It is not complete and it says so.
