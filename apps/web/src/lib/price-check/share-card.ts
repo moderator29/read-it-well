@@ -1,4 +1,5 @@
 import { formatMoneyGlance, type Locale } from "@vallo/i18n";
+import { safeAreaName } from "./area-name";
 import { SHARE_CARD_FOOTER } from "./disclaimer";
 import type { AreaShare, ListingPropertyType } from "./types";
 
@@ -143,7 +144,18 @@ export function shareLines(
   locale: Locale,
   stateName: string,
 ): ShareLines {
-  const place = share.area ?? stateName;
+  /*
+   * THE ONE PLACE A STORED STRING BECOMES THE WORDS ON A CARD, so it is the
+   * one place worth asking again. `price_check_shares_area_is_not_an_address`
+   * tested this string on the way IN, against whatever that constraint said
+   * on the day the row was written, and nothing has tested it since. That
+   * constraint has already been rewritten once and the rewrite loosened it
+   * (20260922223118), so a row can be older than the rule it would be judged
+   * by now. `safeAreaName` returns null for an address-shaped name and the
+   * card says the state instead, which is a real and honest artefact rather
+   * than a blank.
+   */
+  const place = safeAreaName(share.area) ?? stateName;
   const type = typeWord(share.propertyType, copy);
 
   /*

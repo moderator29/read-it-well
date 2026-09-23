@@ -5,6 +5,7 @@ import { NOT_CONFIGURED_MESSAGE, resolveSession } from "../actions/session";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createAdminClient } from "../supabase/admin";
 import { coarsenPoint } from "./address";
+import { isHeldAreaName, looksLikeAnAddress } from "./area-name";
 import { geohash5 } from "./geohash";
 import { areaSuggestions } from "./queries";
 import { insertPriceCheckWatch, priceCheckRpc } from "./rpc";
@@ -50,6 +51,34 @@ const WATCH_FAILED =
 
 const SHARE_FAILED =
   "We could not make that card just now. Nothing was lost, so try again in a moment.";
+
+/*
+ * THE FREE TEXT ROUTE ONTO A SHARE CARD, AND WHY IT IS CLOSED HERE.
+ *
+ * `shareAreaSchema.area` is a string a caller supplies, and a server action is
+ * a public HTTP endpoint: the screen sends the area the area report was about,
+ * but nothing makes a caller use the screen. Until this check, the only thing
+ * between an arbitrary 80 character string and the heading on a forwarded card
+ * was `price_check_shares_area_is_not_an_address`, which refuses a leading
+ * house number and a number followed by a street word and is deliberately
+ * narrow so that "1004 Estate" and "Phase 2" get through. "14 Bourdillon" has
+ * neither shape and would have been minted.
+ *
+ * So an area is not a shape question any more. IT MUST BE A NEIGHBOURHOOD NAME
+ * WE ACTUALLY HOLD REAL PUBLISHED LISTINGS IN, which is the only neighbourhood
+ * vocabulary this platform has and is exactly what a card can honestly be
+ * about: a card is minted from the area report, the area report needs three
+ * real published listings in that area, and `area_suggestions` is the same
+ * set. An area we cannot report on is an area we cannot mint a card for.
+ *
+ * IT FAILS CLOSED. An unreachable database returns no suggestions and the card
+ * is refused. Refusing a card costs a person one tap; minting one that names a
+ * building is the thing this whole surface exists to make impossible.
+ *
+ * A state-wide card carries no area at all and is unaffected.
+ */
+const SHARE_AREA_UNKNOWN =
+  "We can only make a card for an area we hold listings in. Run the check again and pick the area from the list.";
 
 /** Rung three of the ladder: the only neighbourhood vocabulary we hold. */
 export async function fetchAreaSuggestions(input: unknown): Promise<ActionResult<AreaSuggestion[]>> {
@@ -179,6 +208,18 @@ export async function shareAreaPrices(input: unknown): Promise<ActionResult<{ id
   if (!isSupabaseConfigured()) return fail(NOT_CONFIGURED_MESSAGE);
 
   const values = parsed.data;
+
+  if (values.area !== undefined) {
+    /* The shape rule first, because it needs no round trip and because it is
+       the same rule the database applies, read a second time at a different
+       moment. */
+    if (looksLikeAnAddress(values.area)) return fail(SHARE_AREA_UNKNOWN);
+    const held = await areaSuggestions(values.stateCode, values.area);
+    if (!isHeldAreaName(values.area, held.map((row) => row.area))) {
+      return fail(SHARE_AREA_UNKNOWN);
+    }
+  }
+
   const session = await resolveSession();
   const createdBy = session.state === "signed-in" ? session.user.id : null;
 
