@@ -11391,3 +11391,94 @@ written and wrong within a day. `BUILT_VS_PROVEN` limitation 6 said in as many
 words that `auth_logs` had not been queried and that this verdict rested on a
 document. **The flagged limitation was the thing that was wrong**, which is the
 whole argument for flagging them rather than laundering them.
+
+---
+
+## 81. ANDROID IS WIRED, ONE LINE SHORT, AND THE BUILD NOW REFUSES INSTEAD OF SHIPPING BROKEN
+
+### 81.1 THE BLOCK CAPACITOR SHIPS IS A BLIND LIGHT
+
+`apps/web/android/app/build.gradle` carried Capacitor's default:
+
+```gradle
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) { apply plugin: 'com.google.gms.google-services' }
+} catch(Exception e) {
+    logger.info("google-services.json not found, ... Push Notifications won't work")
+}
+```
+
+**`logger.info` is invisible at Gradle's default log level, and the build then
+SUCCEEDS.** A release published that way is indistinguishable from a working
+one until a person waits for a notification that is never coming. That is the
+eighteen-blind-lights pattern, shipped by a third party and inherited without
+being read.
+
+Replaced with three checks, each of which has been wrong somewhere before:
+
+1. the file exists and parses;
+2. its `package_name` equals this module's `applicationId`, because a
+   `google-services.json` from another project parses perfectly and registers
+   nothing;
+3. its `api_key` is not the placeholder this repository ships.
+
+**A RELEASE build throws on any of the three. A DEBUG build warns at error
+level and continues.** A developer building locally does not need Firebase; a
+binary going to Play does.
+
+### 81.2 WHAT I COULD AND COULD NOT PROVE, SAID PLAINLY
+
+**Could not: run an Android build.** Gradle and a JDK 21 are both present in
+this container, but the agent proxy answers **403 Forbidden** for
+`dl.google.com`, so neither the Android Gradle Plugin 8.13.0 nor
+`com.google.gms:google-services:4.4.4` can be resolved. Gradle never gets as
+far as parsing the module. **Nothing here is a build proof and I am not
+presenting it as one.**
+
+**Could, and did:**
+
+- **The Groovy parses.** Compiled `app/build.gradle` to the CONVERSION phase
+  with Gradle's own bundled Groovy 3.0.24. That rules out the single most
+  likely failure in a file nobody in this container can execute: a syntax
+  error.
+- **The logic behaves, on all four branches**, run under the same Groovy
+  against real files:
+
+```
+gs/placeholder.json   -> placeholder key
+gs/good.json          -> OK
+gs/wrongpackage.json  -> wrong package: com.someoneelse.app
+gs/absent.json        -> missing
+```
+
+  Two of those are the controls. `good.json` passing is what stops the check
+  being one that refuses everything, and `wrongpackage.json` is the case a
+  key-only check would have waved through.
+
+### 81.3 DOES `deliverablePlatforms()` REPORT ANDROID
+
+**Yes on production. No on preview. No here.** Measured from the Vercel
+project's environment variable NAMES, with no value read or decrypted:
+`FCM_PROJECT_ID` and `FCM_SERVICE_ACCOUNT_JSON` are both set, both targeting
+**production only**.
+
+**The name match is the part worth stating.** `lib/push/credentials.ts` reads
+those two exact strings. A near miss such as `FCM_SERVICE_ACCOUNT` would have
+looked configured in the dashboard and unconfigured to the code, and the only
+symptom would have been android quietly missing from the list. It is not a
+near miss; the names are identical.
+
+**And what that cannot tell anybody:** whether the service account JSON inside
+parses, belongs to `vallo-44059`, or is accepted by Google. `fcmStatus()` only
+asks whether the variables are non-empty. **The first real send is the only
+thing that proves the rest**, and `push_tokens` is still 0.
+
+### 81.4 THE ONE LINE THAT IS MISSING
+
+The founder sent the whole `google-services.json`, and **the API key inside it
+was redacted in transit before it reached me.** So the file in the repository
+carries every other value and `"current_key": "PASTE_THE_ANDROID_API_KEY_FROM_FIREBASE_HERE"`.
+It is in `FOUNDER_OPEN_ITEMS.md` as a one-line change, with where to get it,
+and the release build refuses until it is done. **I did not invent a key and I
+did not leave the placeholder to be discovered by a user.**

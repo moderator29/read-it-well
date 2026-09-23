@@ -16,6 +16,53 @@ ledger's needs-the-founder section; this file is his.
 
 ---
 
+## 23 September: Android push. ONE LINE IS MISSING AND IT IS THE API KEY
+
+**You sent the `google-services.json` content, but the Android API key inside
+it was redacted before it reached me.** Everything else in that file is in the
+repository now at `apps/web/android/app/google-services.json`: project number
+`966141537297`, project id `vallo-44059`, the storage bucket, the
+`mobilesdk_app_id`, and the package name.
+
+**What you have to do: replace one line.** Open that file and change
+
+```
+"current_key": "PASTE_THE_ANDROID_API_KEY_FROM_FIREBASE_HERE"
+```
+
+to the real key from the Firebase console (project `vallo-44059`, Project
+settings, Your apps, Android). **It is not a secret** and it belongs in the
+repository: it ships inside every APK and is bound to the package name and the
+signing certificate.
+
+**A release build now REFUSES while that placeholder is there.** The block
+this replaced was Capacitor's default, and it was a blind light: a missing
+file was reported with `logger.info`, which nobody sees, and the build then
+SUCCEEDED and produced an APK where push could never work. Now a release build
+fails loudly and a debug build warns at error level, because a developer does
+not need Firebase and a binary going to Play does.
+
+### Does `deliverablePlatforms()` report android? YES ON PRODUCTION, NO ON PREVIEW
+
+Measured, not assumed, and measured without reading a single value: the code
+reads exactly two variables, `FCM_PROJECT_ID` and `FCM_SERVICE_ACCOUNT_JSON`.
+Both are set on the Vercel project, **both targeting production only**. The
+names match the code exactly, which is worth saying because a near-miss like
+`FCM_SERVICE_ACCOUNT` would have looked configured to you and unconfigured to
+the code.
+
+So: **production reports android. Preview does not**, and that is your stated
+intention rather than a fault. This container does not, which is why nothing
+here can be taken as evidence about the deployment.
+
+**What a name check cannot tell you**, and I will not pretend otherwise: that
+the service account JSON inside that variable parses, that it belongs to
+`vallo-44059`, or that Google will accept it. **The first real send is the only
+thing that proves that**, and `push_tokens` is still 0, so there has not been
+one.
+
+---
+
 ## 23 September: email immutability, and the one dashboard setting worth changing
 
 **You asked me to disable email change at project level or tell you exactly
