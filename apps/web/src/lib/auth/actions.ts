@@ -970,6 +970,16 @@ export async function updatePassword(
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return { ok: false, message: authMessage(error.message) };
 
+  /*
+   * SEC-08: a new password ends every OTHER session. A reset is what somebody
+   * does after losing a phone, and the thief's session used to keep working
+   * after it. `scope: 'others'` revokes every refresh token but this one, so
+   * those devices cannot mint a new access token. A failure here does not undo
+   * the password change; the devices screen can still end them one by one.
+   */
+  const { error: othersError } = await supabase.auth.signOut({ scope: "others" });
+  if (othersError) console.warn("[auth] password changed; ending other sessions failed:", othersError.message);
+
   // The password changed under the session the link created, so every cached
   // render of the signed-out shell has to go.
   revalidatePath("/", "layout");

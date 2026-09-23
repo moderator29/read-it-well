@@ -201,12 +201,27 @@ export async function setAvatar(input: unknown): Promise<ActionResult<{ avatarUr
 
 /* ------------------------------------------------------------------ sign out */
 
+/*
+ * SEC-08: "Log out" means THIS device. supabase-js defaults to
+ * `scope: 'global'`, which ended every session on the account, so logging out
+ * on a phone threw the laptop out too. `signOutEverywhere` is the explicit,
+ * separate action for the case where that is what somebody wants.
+ */
 export async function signOut(): Promise<ActionResult<null>> {
+  return endSessions("local");
+}
+
+/** Every device on the account, this one included. */
+export async function signOutEverywhere(): Promise<ActionResult<null>> {
+  return endSessions("global");
+}
+
+async function endSessions(scope: "local" | "global"): Promise<ActionResult<null>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return ok(null);
 
-  const { error } = await session.supabase.auth.signOut();
+  const { error } = await session.supabase.auth.signOut({ scope });
   if (error) {
     return fail("We could not sign you out just now. Check your connection and try again.");
   }

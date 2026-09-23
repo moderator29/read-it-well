@@ -8,6 +8,7 @@ import {
   REPORTING_ENDPOINTS,
 } from "@/lib/security/csp";
 import { safeReturnPath } from "@/lib/security/return-path";
+import { forwardedAgentHeaders } from "./lib/supabase/agent";
 import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/supabase/env";
 
 /**
@@ -264,8 +265,7 @@ export function isApiPath(path: string): boolean {
  */
 /** The visitor's own User-Agent, capped, or nothing at all. See the call site. */
 function forwardedAgent(request: NextRequest): Record<string, string> {
-  const agent = request.headers.get("user-agent");
-  return agent ? { "user-agent": agent.slice(0, 512) } : {};
+  return forwardedAgentHeaders(request.headers.get("user-agent"));
 }
 
 function withSecurityPolicy(response: NextResponse, nonce: string): NextResponse {

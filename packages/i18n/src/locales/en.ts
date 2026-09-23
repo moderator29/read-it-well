@@ -1540,7 +1540,7 @@ export const en = {
       intro:
         "Every device holding a live sign-in to this account. If one of these is not you, end it and change your password straight after.",
       caveat:
-        "Ending a session stops that device from getting a new key. The key it is already holding keeps working until it runs out, so there can be a short gap. If a device is in somebody else's hands, change your password as well: that is the step that ends every key at once.",
+        "Ending a session stops that device from getting a new key. The key it is already holding keeps working until it runs out, so there can be a short gap. If a device is in somebody else's hands, change your password as well: that signs every other device out and makes the old password useless.",
 
       thisDevice: "This device",
       signedInAt: "Signed in {when}",
@@ -1554,6 +1554,12 @@ export const en = {
       deviceUnknownSub:
         "This sign-in is older than the change that started recording which device it came from.",
       deviceUnrecognised: "Unrecognised device",
+      unrecordedGroupOne: "1 older sign-in whose device was not recorded",
+      unrecordedGroupMany: "{count} older sign-ins whose device was not recorded",
+      unrecordedGroupSub:
+        "These started before Vallo recorded which device a sign-in came from, so there is nothing to recognise them by. Sign out everywhere else ends all of them.",
+      endEverywhere: "Sign out everywhere",
+      endEverywhereSub: "Ends every session on this account, including this one. You will sign in again here.",
 
       endThis: "Sign out this device",
       endCurrent: "Sign out of this browser",
