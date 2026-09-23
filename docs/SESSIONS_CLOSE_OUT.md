@@ -690,16 +690,36 @@ the one being read here. Four commits were landed on `main` from a clean
 worktree by cherry-pick, because a worker's uncommitted migration in the shared
 tree blocked the ordinary merge, and nothing of theirs was touched to do it.
 
-**Gates, at `origin/main` `92d6eb2b` in an isolated worktree with
-`node_modules` hardlinked at both roots:** `vitest run` 222 files, 3,613
-passed, 1 skipped, exit 0. `tsc --noEmit` exit 0. `eslint src` was **exit 1
-with two errors**, found by the audit rather than by anybody building, and
-fixed. **`next build` was not run, and that is a gap in this confirmation
-rather than a pass.**
+**Gates, RE-RUN at `origin/main` `56bb587a` in a freshly cut isolated worktree
+with `node_modules` hardlinked at the root (npm workspaces hoist, so
+`apps/web/node_modules` holds only caches):**
 
-**Production.** READY on recent commits through the session, including the
-light mode removal. Nine cron jobs ran in production today and each wrote its
-own audit row.
+| Gate | Result |
+| --- | --- |
+| `next build` | **exit 0.** Compiled in 37.3s, TypeScript in 52s, 198 static pages generated, 380 routes. |
+| `vitest run src` | **239 files, 3,844 passed, 1 skipped.** |
+| `tsc --noEmit` | no errors. |
+| `eslint src` | **0 errors, 330 warnings.** |
+
+**`next build` was the gap in the previous confirmation and it is closed.** The
+earlier run was at `92d6eb2b`: 222 files, 3,613 passed, with two eslint errors
+found by the audit rather than by anybody building, since fixed.
+
+**ONE THING NOT CLEAN, recorded rather than smoothed over.** A single run of
+`vitest run src/lib` in the working tree reported **1 failure out of 3,327**,
+and I lost its name by piping the output to `tail`. Three subsequent runs with
+the full output captured were clean, and the gate above was clean. **I do not
+know which test it was and I am not calling it nothing.** The new
+`no-committed-secrets` sweep shells out to `git ls-files` and is the only new
+thing touching shared mutable state, so it is the first suspect. Losing the
+output was the mistake, not the flake.
+
+**Production.** READY on recent commits through the session. Nine cron jobs ran
+in production today and each wrote its own audit row, and three things were
+measured against the live system rather than inferred: the email outbox carried
+four messages end to end on two templates, `/api/push/key` answers 200 with no
+session, and `auth_logs` shows the Send Email Hook running on both sign-ups
+with zero GoTrue mail events beside it.
 
 **Left uncommitted, and why.** The shared worktree carried dozens of modified
 paths at close, belonging to workers still mid-edit. **Session A committed only
@@ -716,4 +736,11 @@ not say which tree or which system it was measured on, treat it as unmeasured.**
 
 ---
 
-**Last written:** *(date, time, and the commit it was measured at)*
+**Last written:** 2026-09-23, 18:05 UTC, measured at `origin/main` `56bb587a`
+for the gate table above. Work landed after that commit is in
+`docs/BUILD_07_LEDGER.md` sections 78 to 83 and is NOT covered by those
+numbers: the removal of external bank send, the preview deck indexes, email
+immutability, the Android build guard, I1b, the committed-secret sweep, the
+reader-role privilege revoke across 95 tables, and R-SH4. **Anybody checking
+this file should re-run the gates rather than trusting a table measured eight
+commits ago.**
