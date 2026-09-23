@@ -6855,3 +6855,50 @@ this repository cannot afford to train it.
 The timeout is set on the run rather than left on the assertions, and it is
 generous, because what it is bounding is a subprocess walking a tree that grows
 every day. 22 of 22 green, and the second assertion now costs nothing.
+
+---
+
+## 58. THE ESCROW WORKER'S CLAIMS, CHECKED AGAINST THE DATABASE RATHER THAN BELIEVED
+
+A worker's report is a claim until somebody else pulls on it. Every item below
+was read back off the live `uccixoonmbhrnyczyigt` catalogue by this session,
+not taken from the hand-back.
+
+**Confirmed true.**
+
+| claim | what the catalogue says |
+| --- | --- |
+| the unique index was refusing the second FILE, now partial | `escrow_evidence_one_fact_per_party` is `UNIQUE (escrow_id, author_id, fact) WHERE kind = 'fact'`. A file row can no longer collide with another file row through two nulls. |
+| the bucket had no door, now three policies | `escrow_evidence_objects_party_insert` (insert, with check), `escrow_evidence_objects_party_read` and `escrow_evidence_objects_admin_read` (select). **No update policy and no delete policy for anybody**, so the object is as append-only as the row. |
+| `escrows.opened_by`, so the audit knows who opened it | present, `uuid`. |
+| the new verbs are not born public | `escrow_propose_as`, `escrow_fund_proposal_as` and `escrow_file_evidence_as` all carry exactly `{postgres, service_role}`. No anon, no authenticated. |
+
+**A blind spot in my own first check, said out loud because it is the shape of
+the fault this ledger keeps recording.** My first query read only `polqual` and
+found TWO storage policies where the worker had claimed three, which for about
+a minute looked like an overclaim. An INSERT policy has no `USING` clause; it
+lives in `polwithcheck`, which my query never read. **The check could not see
+the thing it was reporting on.** The worker was right and my instrument was
+short. The corrected query reads both columns.
+
+**One thing I nearly filed as a finding and did not, after checking.**
+`public.escrow_admin_resolve` is the only escrow verb carrying `authenticated`,
+and it is the one that can move money by ruling. That looks exactly like a door
+left open. It is not. The verb reads `auth.uid()` to decide whether the caller
+carries `admin` or `super_admin`, and `auth.uid()` is NULL under the service
+role, so it must be called AS the signed in admin or it can never identify one.
+The grant is the admin console's, `anon` is revoked in the same migration, and
+the migration reads both facts back inside itself. This is the same trap that
+produced the audit-actor defect, resolved the other way because here the
+caller's identity is the point.
+
+Filing that would have been the 73-function near miss again: a grant that looks
+like a breach, whose removal takes the feature down.
+
+**Still open and not counted as closed:** the HTTP half of P-7. The host is
+denied by this box's egress policy at the proxy, recorded at
+`2026-09-23T09:23:15Z` as `connect_rejected / gateway answered 403 to CONNECT`.
+Eleven verbs refuse EXECUTE under a role switch with a control proving the
+harness reaches function bodies, and that closes the EXECUTE layer only.
+PostgREST resolves by argument NAME and serves from a schema cache, so a door
+shut in `pg_proc` can still answer over the wire. **Not counted.**
