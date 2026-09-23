@@ -1378,8 +1378,12 @@ export type BankTransferReceipt = {
  * the form mints per submit. Only an `ok` answer is recorded, so a refusal
  * (a wrong bank, a name that changed, not enough balance) stays immediately
  * retryable. A form with no key runs unguarded exactly as every other door
- * does, and the typed-in `withdraw` beside this one still has no key at all:
- * the note on that function explains why its panel has no retry button.
+ * does.
+ *
+ * THIS SENTENCE USED TO SAY the typed-in `withdraw` beside it had no key at
+ * all. It does now, under `wallet.withdraw`, so all three doors onto the
+ * `rm-wd-` reference are guarded the same way. Whether the FORM mints a key is
+ * a separate question per panel, and the note on `withdraw` answers it there.
  */
 export async function transferToBank(
   _prev: ActionResult<BankTransferReceipt | null>,
