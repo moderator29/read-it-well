@@ -264,7 +264,7 @@ export default async function SearchPage({
         locale={locale}
         t={t}
         openFilters={raw.filters === "open"}
-        leading={<BackButton fallback="/home" />}
+        leading={<BackButton fallback="/" />}
       />
 
       <h1 className="sr-only">
@@ -329,7 +329,7 @@ export default async function SearchPage({
           <a href="#map-view" className="nf-skip-link">
             Skip to the map
           </a>
-          <div className="nf-card relative overflow-hidden p-0">
+          <div className="nf-panel nf-panel--card relative overflow-hidden p-0">
             <RealMap
               active={query.q?.trim()}
               pins={Object.entries(CITY_COORDS).flatMap(([city, at]) => {

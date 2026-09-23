@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { panelClass } from "@/components/ui/Panel";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { NONCE_HEADER } from "@/lib/security/csp";
@@ -515,7 +516,7 @@ export default async function ListingDetailPage({
    * line: what you cannot do, and the one link that leads somewhere real.
    */
   const bookingPanel = isExample ? (
-    <div className="nf-card p-card">
+    <div className="nf-panel nf-panel--card isolate p-card">
       <p className={TYPE.rowMeta}>
         Nothing here can be booked or paid for. Search for a real place with an
         owner you can reach.
@@ -743,7 +744,7 @@ export default async function ListingDetailPage({
                     with its pin, the Move-in Total panel on a tenancy and
                     the small amenity row. The market and the check are on
                     the photograph above it, not repeated here. */}
-                <Section className="nf-rise nf-glass nf-glass--card nf-detail-lead scroll-mt-16" id="overview">
+                <Section className={panelClass({ variant: "card", className: "nf-rise nf-detail-lead scroll-mt-16" })} id="overview">
                   {/*
                     THE MARKET AND THE CHECK ARE ON THE PHOTOGRAPH, not here.
                     The render draws "For Rent" and "Verified" as pills at the
@@ -1119,7 +1120,7 @@ export default async function ListingDetailPage({
                   Not on a rental or a sale: neither has a booking to cancel.
                 */}
                 <Section divided>
-                  <div className="divide-y divide-[var(--nf-border-subtle)]">
+                  <div className="divide-y divide-[var(--nf-panel-hair)]">
                     {isBookable && (
                       <Disclosure
                         label="Cancellation policy"
@@ -1207,7 +1208,7 @@ function RestaurantPanel({
   messageHref: string;
 }) {
   return (
-    <div className="nf-card p-lg">
+    <div className="nf-panel nf-panel--card isolate p-lg">
       {listing.priceMinor > 0 && (
         <p>
           <Amount

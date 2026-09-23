@@ -85,7 +85,7 @@ export function ListingReviews({
       </p>
 
       {reviews.length > 0 ? (
-        <ul className="mt-block divide-y divide-[var(--nf-border-subtle)]">
+        <ul className="mt-block divide-y divide-[var(--nf-panel-hair)]">
           {reviews.map((review) => (
             <li key={review.id} className="py-md first:pt-0">
               <p className="flex flex-wrap items-center gap-x-inline gap-y-inline-tight">
@@ -99,7 +99,7 @@ export function ListingReviews({
                   per review, and it can never alter a word of the review
                   itself: it is a separate row in a separate table. */}
               {review.response && (
-                <div className="mt-row border-l-2 border-[var(--nf-border-strong)] pl-md">
+                <div className="mt-row border-l-2 border-[var(--nf-panel-edge)] pl-md">
                   <p className={`flex flex-wrap items-center gap-x-inline ${TYPE.rowMeta}`}>
                     <UiIcon
                       name="verified"

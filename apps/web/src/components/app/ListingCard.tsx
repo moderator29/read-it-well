@@ -15,6 +15,8 @@ import { isPropertyType, type PropertyType } from "@/lib/interests/schema";
 import { isDataSaver } from "@/lib/ui/data-saver";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
 import { cardFacts, cardMarket, cardPrice, cardUtility } from "./listing-card-model";
+import { panelClass } from "@/components/ui/Panel";
+import { ListerRoleLine } from "@/components/app/listing/ListerRoleLine";
 
 /**
  * The property card, to the results image (3EB3E2A9).
@@ -229,7 +231,10 @@ export function ListingCard({
 
   return (
     <article
-      className={`nf-glass nf-glass--card nf-pcard group ${wide ? "nf-pcard--wide" : ""} ${index !== undefined ? "nf-card-in" : ""}`}
+      className={panelClass({
+        variant: "card",
+        className: `nf-pcard group ${wide ? "nf-pcard--wide" : ""} ${index !== undefined ? "nf-card-in" : ""}`,
+      })}
       style={cardStyle}
       data-testid="listing-card"
     >
@@ -318,6 +323,20 @@ export function ListingCard({
             <UiIcon name="location" size={11} className="mt-3xs" />
             <span>{where}</span>
           </p>
+
+          {/*
+            WHO PUT IT UP, ON THE CARD (the founder, 23 September, C3.3). He
+            takes this one form decision back from GOVERNING-01, which draws no
+            lister on the featured card: Track G exists so a person can tell an
+            owner from an agent from a firm, and the card is where they look.
+            The one line the detail page's agent card already draws, from the
+            same read (`listing_role` and `public.listing_lister`), in the
+            card's fact size so the card keeps its measured proportions. A
+            listing with no role (the seed catalogue) draws no line.
+          */}
+          {listing.listerRole ? (
+            <ListerRoleLine role={listing.listerRole} name={listing.listerName ?? null} className="nf-pcard__lister" />
+          ) : null}
 
           {price.lead === "none" && (
             <p className="nf-pcard__sub font-semibold">{t.common.priceOnRequest}</p>

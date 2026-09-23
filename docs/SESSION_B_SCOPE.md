@@ -245,6 +245,15 @@ The notifications block in `home.css` (`.nf-notif*`) is the settings group's
 and is left alone. New (the fixture and live-row harness, committed):
 `apps/web/src/app/(dev)/preview/session-b/sweep-home/**`, and its proofs in
 `docs/design/proofs/session-b/sweep-home/**`.
+Added on the founder's answers (23 September, through the lead): C3.2, the
+back control on `/search` and `/around` goes to the landing page:
+`apps/web/src/lib/nav/route-parents.ts` (ONLY those two entries),
+`apps/web/src/lib/nav/resolve.test.ts` (ONLY the new case),
+`apps/web/src/lib/native/back-button.test.ts` (ONLY the `/search` expectation
+that follows from it),
+`app/(app)/around/page.tsx` (ONLY its `BackButton` fallback). C3.3, the
+lister line on the listing card: `components/app/ListingCard.tsx` (already
+claimed) mounting the existing `ListerRoleLine`.
 
 ### Sweep group: stays, stay detail, trips, restaurants, checkout, held payments (worker "sweep-stays")
 Files as listed under Phase 2 above, plus (claimed 23 September, unclaimed by

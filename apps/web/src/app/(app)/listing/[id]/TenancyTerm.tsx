@@ -70,7 +70,7 @@ export function TenancyTerm({
   const label = `${terms} ${terms === 1 ? noun : `${noun}s`}`;
 
   return (
-    <div className="mt-md border-t border-[var(--nf-border-subtle)] pt-md">
+    <div className="mt-md border-t border-[var(--nf-panel-hair)] pt-md">
       <div className="flex items-center justify-between gap-sm">
         <span className={TYPE.rowTitle}>How long</span>
         {/*
@@ -147,7 +147,7 @@ function StepButton({
          (GOVERNING-chat-booking-card.png: back, call, overflow, send) draws every
          one of them as a rounded square. A surface with no reference inherits the
          register, and the register's control is the rectangle. */
-      className="nf-tap grid h-9 w-9 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] text-[var(--nf-content-primary)] transition-colors hover:bg-[var(--nf-glass-fill)] disabled:opacity-35"
+      className="nf-btn nf-btn--glass nf-btn--sm nf-btn--icon grid h-9 w-9 rounded-[var(--nf-radius-sm)] place-items-center text-[var(--nf-content-primary)] disabled:opacity-35"
     >
       <UiIcon name={icon} size={16} />
     </button>

@@ -5941,13 +5941,216 @@ and 1440, from a production build of 3621452c with
 empty state because this sandbox's egress refuses the Supabase host (so no
 proof here shows a live row, and none claims to).
 
-### 13.H.4 Applied (waits for Phase 1 RELEASED)
+### 13.H.4 Applied (on Phase 1 as released in 9da8f86f)
 
-(pending)
+The vocabulary used, so every row below reads the same way (all from
+ledger 13.0; no value is written in this group's files, only token names):
+
+| Role | Shared primitive | Where a class cannot be put on the element |
+|---|---|---|
+| Container, card | `Panel` / `panelClass()` (`.nf-panel`, `--card`, `--glass`) | the panel tokens by name: `--nf-panel-fill(-card)`, `--nf-panel-edge(s)`, `--nf-container-radius`, `--nf-panel-rim`, `--nf-panel-glow` (rules other groups' components draw, e.g. `nf-pcard` under `StayCard`, `nf-lw-*` in the wizard) |
+| Icon plate | `IconPlate` / `iconPlateClass()` (`.nf-plate`) | `--nf-plate-fill`, `-edges`, `-shadow`, `-radius`, `-glyph-glow` |
+| Primary action | `Button` / `ButtonLink variant="primary"` (lit bar, pooled bloom) | none left in this group |
+| Secondary, quiet control, chip at rest, words on a photograph | `Button` / `ButtonLink variant="secondary"` or the class `nf-btn--glass` | `--nf-btn-glass-fill`, `-edge`, `-blur`, `-shadow` |
+| Selected, pressed, filled status badge | none (13.0: "use the `--nf-selected-*` tokens") | `--nf-selected-fill`, `-edge(s)`, `-shadow(-inline)` |
+| Field | `nf-glass nf-glass--well` | `--nf-glass-well-fill` over `--nf-brand-edge-soft` (the well's own two tokens) |
+| Divider | | `--nf-panel-hair` |
+| Hover / focus on a container | | `border-color: var(--nf-selected-edges)` / `var(--nf-selected-edge)` |
+
+**Deleted rather than moved** (no route mounted them; each drew its own
+tile, chip, plate or search plate): `MarketTiles`, `FeaturedCities`,
+`InvestBand`, `TrendingStrip`, `CityHero` (home), `CategoryRail`,
+`RecentStrip` (search), `ListingHostPanel` (listing), with their rules
+(`.nf-home__market*`, `__city*`, `__invest*`, `__search*`, `__head`,
+`__more`, all of `explore.css`'s `.nf-market*`, and `catalogue.css`'s
+`.nf-reg-card*`, `.nf-stay-fact(s)*`, `.nf-stay-price-row`), and the seven
+light-theme blocks of `price-check.css`. `markets.ts` stays: its types feed
+`app/(app)/home/market-queries.ts`. `AiAssistantBanner` is unmounted too but
+is KEPT, with its `.nf-home__ai*` rules, because `ambient.css` and
+`chrome.css` (not this group's) cite it by path and the token check fails
+on a dangling path; request R-SH1 below.
+
+| ID | Item | Before | After | Reference (console / Get started) | Match |
+|---|---|---|---|---|---|
+| H1 | location chip | `nf-glass--tile` + own hover edge | `panelClass({variant:"card"})`, hover `--nf-selected-edges` | console figure card | yes |
+| H2 | hero plate | own radius 22, edge, `--nf-glow-edge` | `panelClass()`, padding off for the photo | console panel | yes |
+| H3 | hero place chip | own glass, raw `blur(10px)` | glass door tokens, radius 6 | Get started glass door | yes |
+| H4 | hero search well | own well, raw `blur(14px)` | `nf-glass nf-glass--well`, focus `--nf-selected-edge` | console search | yes |
+| H5 | hero filters | own quiet square | `ButtonLink variant="secondary" size="sm" iconOnly` | Get started glass door | yes |
+| H6 | category plates (property) | own plate, 22px glow | `iconPlateClass({size:"lg"})` | console icon tile | yes, and now matches GOVERNING-01's four lit squares |
+| H7 | Stays doors | own well card, object beside words | `panelClass({variant:"card"})`, object over the words as GOVERNING-09 draws them | console figure card | yes |
+| H9 | property card, hover | `nf-glass--card` + own hover glow | `panelClass({variant:"card"})`, hover `--nf-selected-edges` | console figure card | yes |
+| H10 | card photo, no-photo mark, saved note | own chips | photo inset on the container radius; chips on the glass door; the no-photo mark centred (it collided with the market tag, pass 1) | glass door | yes |
+| H11 | Verified, For rent/sale | own glass badge + 14px glow | selected tokens (filled lit badge, as 3EB3E2A9) | console filled badge | yes |
+| H11b | Example | own override over the shared badge | override deleted: the shared `nf-badge--example` (cyan outline, the pending family) draws it | | yes |
+| H12 | heart | own media glass | glass door tokens | glass door | yes |
+| H13 | "+1" fact chip | own well chip | glass door tokens | glass door | yes |
+| H14 | empty shelf | shared | shared | | yes |
+| H16 | stay card chips | own well chip | glass door tokens | glass door | yes |
+| HL | home loading | radii 18/14, `nf-home__tiles` (no rule) | panel for chip and hero, `iconPlateClass` for the four, card skeletons on the panel card | | yes |
+| S1 | shelf bar | own hairline | `--nf-panel-hair` | console | yes |
+| S2 | search field | own well, 3px glow ring | well tokens, focus `--nf-selected-edge` | console search | yes |
+| S4 | filters square | own glass + 16px glow | glass door tokens | glass door | yes |
+| S5 | chips rest / on | own well / own 26 per cent fill + glow | glass door / selected | console segment | yes |
+| S6 | sort button | own well, 40px tall (ratio 0.35) | glass door, 44px (0.32) | glass door | yes |
+| S7 | sort menu, current item | own elevated popover | panel card; current on the selected state | console panel, nav row on | yes |
+| S9 | filter sheet | own canvas glass, left edge, `--nf-elev-3` | panel material with the panel blur, grip on `--nf-panel-catch`, hairlines `--nf-panel-hair` | console panel | yes, and 3EB3E2A9's lit sheet |
+| S10 | option tiles rest / hover / pressed | own well / flat brand fill + 18px glow | glass door / `--nf-selected-edges` / selected state | console segment | yes |
+| S13 | location and sort rows | own well + 3px ring | well tokens, focus `--nf-selected-edge` | | yes |
+| S15 | Reset / Apply | shared | shared (now Get started's glass door and lit bar) | | yes |
+| S16 | map: pins, clusters, cards, controls, list, dock, zoom | inline `--nf-elev-*` lifts, `surface-primary` x8, own borders | chosen pin and cluster on the selected state, resting pin and every control on the glass door, the empty card, list and dock on the panel card, Leaflet's zoom on glass door tokens | | yes |
+| S18 | search loading | radii pill/lg/md, own hairline | radius 10, `--nf-panel-hair`, card skeletons on the panel card | | yes |
+| S19 | active filters, view toggle, filter link | shared `nf-chip`, `nf-segmented`, `nf-icon-btn` | unchanged (chips.css and controls.css, not this group's) | | inherits |
+| L1, L3, L4 | gallery, save/share, photo viewer controls | Tailwind overlay fill + border + `backdrop-blur-md`, one `black/45` | `nf-btn nf-btn--glass nf-btn--sm nf-btn--icon` | glass door | yes, as 9E8B56ED's lit squares |
+| L1b | frame counter, caption, notes on photos | Tailwind overlay + blur | `.nf-media-chip` on glass door tokens, radius 6 | glass door | yes |
+| L2 | For rent, Verified on the photo | own badge + 16px glow | selected tokens | filled badge | yes (9E8B56ED) |
+| L5 | lead card | `nf-glass--card` | `panelClass({variant:"card"})` | console figure card | yes |
+| L6 | market tag, Verified listing | own badges | glass door / selected | | yes |
+| L7 | spec tiles | own well | panel card | | yes |
+| L8 | Move-in Total panel, rooms plate | own 135deg wash + 28px glow | panel card / glass door, radius 14 | console figure card | yes (9E8B56ED) |
+| L9 | amenity tiles | `nf-glass--tile` + own radius | `panelClass({variant:"card"})` | | yes |
+| L10 | section tabs, underline | own ground, 10px glow | `--nf-panel-hair`, underline `--nf-panel-catch` with `--nf-panel-halo` | console tab | yes |
+| L11 | description, location panels | own well card | panel card | | yes |
+| L12 | agent card, avatar ring, Verified Agent pill, steps | own well card, own pill | panel card, `--nf-panel-edge` ring with the halo, selected pill (no wrap, pass 1), plate steps | | yes |
+| L13 | move-in and purchase rows, totals | own wells, own lit total | well tokens, `--nf-panel-edge` on a declared row, panel card total | | yes |
+| L14 | sticky foot | shared `ActionBar` and buttons | unchanged | | inherits |
+| L15 | rental, sale, reserve, table panels | `nf-card` + 14 own borders, flat brand slots | `nf-panel nf-panel--card`, `--nf-panel-hair`, slots `.nf-choice` (glass door / selected), steppers the glass door at radius 10 | | yes |
+| L16 | reviews, utilities, walkthrough, photo grid | own borders, radius 18/14 | `--nf-panel-hair`, `--nf-panel-edge`, container radius | | yes |
+| L17 | example notice | cyan warning rule | unchanged: the cyan is the pending family, not amber | | yes |
+| L18 | listing loading | a rounded sheet (28px top) no longer drawn by the page | the panel card lead and the panel aside, radius 10 | | yes |
+| L19 | stay / restaurant anatomy (stays group's routes) | own wells | panel card, glass door, well, plate tokens | | yes (rules here) |
+| L20 | move-in ledger | own card + 24px glow, own glyph plate | panel, plate tokens, hairlines | | yes (route 7, not shot) |
+| P1 to P7 | price check map, pin, suggest list, confidence, disclaimer, strip, facts, share, area card | own panels without rim or glow, flat fills | panel / panel card, selected pin and high confidence, glass door medium, hair outline low, well strip | | yes |
+| P8 | light twin | seven blocks | deleted | | yes |
+| O1 | listing wizard `nf-lw-*` | own wells, plates, glows, circles | panel card, plate, well, glass door, selected edges and shadow for chosen cards | | yes (rules here; the wizard is the chrome group's route) |
+| O2, O3 | stays tile on, tenancy chip | own | selected / glass door | | yes |
+| O4 | `.nf-cat-surface .nf-card` | glow override over the stride card | DELETED: the chrome group moves `.nf-card` itself onto the panel tokens once for every surface (lead, 23 Sept), so a second copy here would be the duplicate this sweep exists to remove; this group's own `nf-card` uses are `nf-panel nf-panel--card` | | yes |
+| O5 | assistant | own avatar, bubble, result card, mark, chip, well and send overrides | plate avatars, panel card bubble and result, selected own bubble and marks, glass door chips and thinking pill, well tokens, the send override deleted (the shared lit primary draws it; dimmed on the lit fill when empty) | | yes |
+| O6 | `nf-reg-card` | own | deleted (no reader) | | yes |
+
+Kept on purpose: the glass OBJECTS' own glow (`.nf-stays-hero__object`,
+`.nf-ai__lockup img`), which is the artwork's light and not a container's;
+the spinner ring and the pin-drop ring (shapes); the grip and the rail
+segments' pill ends (shapes, no letters); `.nf-media-chip--lg`, the "+N"
+scrim over the last grid photo (a scrim, not a chip).
+
+Every panel that holds a lit primary (the rental, sale, reserve and table
+panels, the example panel, the map's empty card, the filter sheet) carries
+`isolation: isolate` so the button's pooled bloom is not painted under the
+panel's fill (13.0, known work).
+
+**Routes swept / routes in group: 8 / 8.** `/home`, `/stays` (the home
+components; `StayCard` is the stays group's and still carries
+`nf-glass--card` as its own class, so its container will move when that
+group sweeps the component: the `nf-pcard` rule now holds layout only),
+`/search`, `/listing/[id]`, `/price`, `/price/area/[id]`,
+`/rent/move-in/[listingId]`, `/assistant`. Not shot: `/price/area/[id]`
+(needs a stored share) and `/rent/move-in/[listingId]` (no harness); their
+rules are swept with the files and were read, not photographed.
+
+Requests (to the lead):
+- **R-SH1.** `AiAssistantBanner.tsx` is unmounted. Delete it with its
+  `.nf-home__ai*` rules once `ambient.css` (451) and `chrome.css` (93) stop
+  naming it; those two comments are the chrome group's.
+- **R-SH2.** `StayCard` (stays group) should take `panelClass({ variant:
+  "card", className: "nf-pcard ..." })` as `ListingCard` now does.
+- **R-SH3.** A shared filled status badge (the console's `.nf-admin-badge`
+  anatomy) belongs in the shared layer; this group draws its filled badges
+  on the selected-state tokens meanwhile.
 
 ### 13.H.5 Audit passes
 
-(pending: Pass 1, Pass 2, Pass 3, each dated)
+Method for every pass: a production build of the branch with
+`VALLO_PREVIEW_HARNESS=1`, all 19 harness states shot at 390 (2x) and 1440,
+each opened beside its before shot and beside the console / Get started
+anatomy (panel, plate, glass door, lit bar, selected state), and every
+text-bearing control with a box measured for radius over short side
+(`ratio.mjs`: buttons, links, inputs, selects, summaries, badges, chips,
+tags, pills, marks).
+
+**Pass 1, 23 September.** Found: (1) the "No photographs yet" mark sat on
+the market tag at the photo's foot on every narrow card (it predates the
+sweep; both were bottom corners); centred it on the photo. (2) The
+Verified Agent pill wrapped to two lines in the agent card at 390; no wrap.
+(3) Measured 178 controls, 18 at or over 0.35: the header avatar on nine
+routes (round by rule), the sort button (14 over 40 = 0.35; raised to 44
+tall, 0.32), the gallery counter and photo notes (14 over 30 = 0.47 after I
+had put them on the control radius; back to 6, 0.20), the reserve and
+tenancy steppers and the party input (14 over 32 to 40; radius 10), the day
+slots (14 over 37 wide; given side padding), the medium confidence badge (14
+over 40; radius 10). (4) The listing harness drew the lead card from the f3
+harness's old `nf-glass--card`; the group's own harness copy now matches the
+route.
+
+**Pass 2, 23 September.** 201 controls measured, 9 at or over 0.35, all nine
+the round header avatar (allowed). Re-opened every state: cards, badges,
+heart, fact chip, sort menu and its current row, filter sheet (sheet, grip,
+option tiles at rest and pressed, rows, Reset and Apply), map (empty card,
+note, controls, zoom), gallery and photo viewer controls, lead card, Move-in
+Total, amenity tiles, tabs and the focused tab, description, agent card,
+every panel in `listing-parts`, price check (map, suggest, confidence,
+disclaimer, strip, facts), assistant, and both loading skeletons. Found: the
+lead asked for no second copy of `.nf-card` (the chrome group moves it for
+every surface), so the catalogue override (O4) was deleted; and every panel
+holding a lit primary got `isolation: isolate` so the pooled bloom shows.
+
+**Pass 3, 23 September** (after the founder's C3.2 and C3.3 went in). 201
+controls measured, 9 at or over 0.35, all nine the round header avatar.
+Re-opened every state again, and the two new things: the lister line on the
+home and search cards, and the lit primaries inside panels (Message agent
+on the rental and sale panels, Request a table, Browse real listings), whose
+pooled bloom now shows under the button. Found: on the two-up search card
+the single ellipsised line cut "Listed by Emeka Johnson, agent" before the
+role word, which is the one word the line exists for; the line now clamps at
+two lines. Verified by applying that rule to the running pass 3 build
+(`search-lister-two-lines-390.jpg`) rather than by a fourth full build, on
+the brief's "do not rebuild for a CSS-only change". Nothing else found.
+Every route in the group is closed.
+
+**Proofs.** `docs/design/proofs/session-b/sweep-home/before/` (13.H.3) and
+`after/` (pass 3 build, same 19 names, 390 at 2x and 1440, plus
+`search-lister-two-lines-390.jpg`). Before, after and the console / Get
+started anatomy were compared side by side at each pass (contact sheets in
+the worker's scratch, not committed).
+
+### 13.H.6 The founder's answers in this group (23 September, through the lead)
+
+**C3.2, browsing is signed in only; back goes to the landing page.**
+`lib/nav/route-parents.ts` now declares `"/search": "/"` and
+`"/around": "/"` (was `/home`, which lands a signed-out reader on the
+sign-in wall), and both screens' hard-coded `BackButton` fallbacks say "/".
+Test: a new case in `lib/nav/resolve.test.ts` (search, search with a query,
+around, all to "/"); `lib/native/back-button.test.ts` had `/search` as its
+sample non-root with `/home` as the expected declared parent, and now
+expects "/". The map test ("every route climbs to a root") still passes,
+since "/" is a root. `/listing/[id]` still climbs to `/search`.
+
+**C3.3, the lister line goes on the listing card.** Under the claims rule:
+The founder deliberately overrides GOVERNING-01 here: the images govern
+form, and he has taken this one form decision back. Track G exists so a
+person can tell an owner from an agent from a firm, and the card is where
+they look. `ListingCard` (the home featured card and the search results
+card, one component) now mounts the existing `ListerRoleLine` under the
+place line when the row carries `listerRole`, with `listerName` from
+`public.listing_lister`: "Listed by the owner", "Listed by {name}, agent",
+"Listed by {firm}". It is words in the muted ink at the card's fact size
+(`--nf-pcard-fact`), one line, ellipsised, so the card grows by one caption
+row and nothing else moves; no badge shape, because `listing_role` is a
+claim until a member of staff dates it. A row with no role (the seed
+catalogue) draws nothing, as the agent card already does.
+NOT DONE, AND WHY: the person's TierBadge beside the name. The listing read
+carries the lister's name and nothing else about them (`listing_lister` is
+a two-column view by design), so there is no tier to hand `TierBadge`
+without a new read. Request R-SH4 below.
+Proof: `docs/design/proofs/session-b/sweep-home/after/home-390.jpg` and
+`search-390.jpg`, fixture rows carrying the three states (agent with a
+name, owner, firm with a name; `sweep-home/lister-fixtures.ts`).
+
+- **R-SH4 (Session A).** Add the lister's badge tier to the public lister
+  read (the `person_badge` tier beside `listing_lister`'s name, or a
+  `listing_lister_tier` view) so the card and the agent card can draw
+  `TierBadge` beside the name. Session B mounts it the day it lands.
+
 
 
 ## 13. Platform sweep: auth (Welcome back and every auth screen; worker "signin")
@@ -6304,6 +6507,7 @@ moment. Scenario 3 and 4 were never run against production.
   written.
 
 ## Skipped or not verified
+- (13.H, sweep-home) No live row on any proof: this box's egress refuses the Supabase host, so every card, panel and figure in the home group's proofs is fixture-backed or an empty state; the wiring is unchanged by the sweep (material only). `/price/area/[id]` and `/rent/move-in/[listingId]` were swept in their stylesheets and not photographed. The lister's TierBadge on the card waits on R-SH4. `StayCard` still wears `nf-glass--card` itself (stays group, R-SH2). The unmounted `AiAssistantBanner` stays until R-SH1.
 
 - Sweep, settings group (23 September): the payment methods block on `/settings` and
   `/settings/payments` is not swept here (wallet family); no before shots of the drawer and the

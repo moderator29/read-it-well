@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { panelClass } from "@/components/ui/Panel";
+import { iconPlateClass } from "@/components/ui/IconPlate";
 
 /**
  * The category row, to `GOVERNING-01` screen one and `GOVERNING-09` screen
@@ -48,10 +50,19 @@ export function CategoryRow({
           <li key={category.key} className="min-w-0">
             <Link
               href={category.href}
-              className="nf-cat-tile nf-tap"
+              className={
+                columns === 2
+                  ? panelClass({ variant: "card", className: "nf-cat-tile nf-tap" })
+                  : "nf-cat-tile nf-tap"
+              }
               data-testid={`home-category-${category.key}`}
             >
-              <span className="nf-cat-tile__plate" aria-hidden="true">
+              <span
+                className={
+                  columns === 2 ? "nf-cat-tile__plate" : iconPlateClass({ size: "lg", className: "nf-cat-tile__plate" })
+                }
+                aria-hidden="true"
+              >
                 <BrandIcon name={category.icon} fill />
               </span>
               <span className="nf-cat-tile__label">{category.label}</span>

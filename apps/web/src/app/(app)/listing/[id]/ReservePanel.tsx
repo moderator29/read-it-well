@@ -119,7 +119,7 @@ function Stepper({
           aria-label={`More ${label.toLowerCase()}`}
           disabled={value >= max}
           onClick={() => onChange(Math.min(max, value + 1))}
-          className="nf-icon-btn h-8 w-8 disabled:opacity-40"
+          className="nf-btn nf-btn--glass nf-btn--sm nf-btn--icon h-9 w-9 rounded-[var(--nf-radius-sm)] disabled:opacity-40"
         >
           <span aria-hidden="true" className="text-[length:var(--nf-text-body)] leading-none">
             +
@@ -228,7 +228,7 @@ export function ReservePanel({
   if (state?.ok) {
     const r = state.data;
     return (
-      <div className="nf-card nf-confirm-sweep p-card" data-testid="reserve-success">
+      <div className="nf-panel nf-panel--card isolate nf-confirm-sweep p-card" data-testid="reserve-success">
         <span aria-hidden="true" className="nf-confirm-dim" />
         <div className="flex flex-col items-center gap-xs text-center">
           <span className="h-14 w-14 shrink-0">
@@ -254,7 +254,7 @@ export function ReservePanel({
             confirms.
           </p>
         )}
-        <dl className="nf-rise nf-body-sm mt-heading space-y-inline border-t border-[var(--nf-divider)] pt-heading">
+        <dl className="nf-rise nf-body-sm mt-heading space-y-inline border-t border-[var(--nf-panel-hair)] pt-heading">
           {r.cleaningMinor > 0 && (
             <div className="flex items-center justify-between text-[var(--nf-content-secondary)]">
               <dt>Cleaning</dt>
@@ -300,7 +300,7 @@ export function ReservePanel({
   }
 
   return (
-    <div className="nf-card p-card" data-testid="reserve-panel">
+    <div className="nf-panel nf-panel--card isolate p-card" data-testid="reserve-panel">
       <div className="flex flex-wrap items-baseline justify-between gap-x-row gap-y-inline-tight">
         <p>
           <Amount
@@ -470,7 +470,7 @@ export function ReservePanel({
             two steppers, so a party the agent would turn away at the gate can
             never be assembled here. The server checks it again against the
             listing row; this is the courtesy, not the guard. */}
-        <div className="mt-block space-y-row rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-card-sm">
+        <div className="mt-block space-y-row rounded-[var(--nf-container-radius)] border border-[var(--nf-panel-hair)] p-card-sm">
           <Stepper
             label="Adults"
             name="adults"
@@ -488,7 +488,7 @@ export function ReservePanel({
             onChange={setChildren}
           />
           {capacity !== null && (
-            <p className="border-t border-[var(--nf-divider)] pt-row nf-caption text-[var(--nf-content-muted)]">
+            <p className="border-t border-[var(--nf-panel-hair)] pt-row nf-caption text-[var(--nf-content-muted)]">
               {t.reserve.capacityNote.replace(
                 "{guests}",
                 plural(capacity, t.counts.guests, locale),
@@ -503,7 +503,7 @@ export function ReservePanel({
             to London. Naming somebody means giving a number the gate can ring,
             which is why the phone is required alongside the name and the email
             is not. */}
-        <div className="mt-block rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] px-md py-2xs">
+        <div className="mt-block rounded-[var(--nf-container-radius)] border border-[var(--nf-panel-hair)] px-md py-2xs">
           {/* The primitive's own row, not a fourth wrapper around it. The
               `py-sm` rhythm the deleted adapter carried moves here, where it
               is a property of THIS list rather than of every switch row on the
@@ -665,7 +665,7 @@ export function ReservePanel({
                     </dd>
                   </div>
                 )}
-                <div className="flex items-center justify-between border-t border-[var(--nf-divider)] pt-inline font-semibold text-[var(--nf-content-primary)]">
+                <div className="flex items-center justify-between border-t border-[var(--nf-panel-hair)] pt-inline font-semibold text-[var(--nf-content-primary)]">
                   <dt>Total</dt>
                   <dd>
                     <Amount minorUnits={totalMinor} locale={locale} currency={currency} />
@@ -684,7 +684,7 @@ export function ReservePanel({
         {state && !state.ok && (
           <div
             role="alert"
-            className="mt-block rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[color-mix(in_oklab,var(--nf-state-warning)_12%,transparent)] p-card-sm nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]"
+            className="mt-block rounded-[var(--nf-container-radius)] border border-[var(--nf-panel-hair)] bg-[color-mix(in_oklab,var(--nf-state-warning)_12%,transparent)] p-card-sm nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]"
           >
             {state.error}
             {state.error.startsWith("Sign in") && (

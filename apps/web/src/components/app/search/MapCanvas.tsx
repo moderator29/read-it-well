@@ -52,12 +52,16 @@ const CELL = 76;
 /** Hard ceiling on drawn marks, so a huge result set cannot stall a phone. */
 const MAX_MARKS = 80;
 /**
- * Lift, taken from the tokens so daylight gets the paper shadow and night gets
- * the deep one. Applied inline because a bare custom property in an arbitrary
- * Tailwind shadow is ambiguous with a shadow colour.
+ * The light on the map's marks, from the shared layer (the platform sweep, 23
+ * September): a chosen pin and a cluster are the selected state, a resting pin
+ * is the glass door, the reader's own dot takes the panel halo. Applied inline
+ * because a bare custom property in an arbitrary Tailwind shadow is ambiguous
+ * with a shadow colour.
  */
-const LIFT = "var(--nf-elev-2)";
-const CARD_LIFT = "var(--nf-elev-1)";
+const SELECTED_FILL = "var(--nf-selected-fill)";
+const SELECTED_SHADOW = "var(--nf-selected-shadow-inline)";
+const GLASS_SHADOW = "var(--nf-btn-glass-shadow)";
+const HALO = "var(--nf-panel-halo)";
 
 /** Space kept clear at the foot of the frame for the docked card. */
 const DOCK_ROOM = 96;
@@ -666,7 +670,8 @@ export function MapCanvas({
               {
                 left: group.x,
                 top: group.y,
-                boxShadow: LIFT,
+                background: SELECTED_FILL,
+                boxShadow: SELECTED_SHADOW,
                 "--pin-i": i,
               } as React.CSSProperties
             }
@@ -683,7 +688,7 @@ export function MapCanvas({
                chooses is not a decision. 6px on 17.12 is 0.35 with 5px of
                straight edge down each side, and it does not move when the
                padding does. Same fix as `.nf-notif__count` in `home.css`. */
-            className="nf-numeric nf-map-cluster-drop nf-tap pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-brand)] bg-[var(--nf-brand-primary)] px-sm py-xs text-[length:var(--nf-text-caption)] font-bold text-[var(--nf-content-on-brand)] transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none"
+            className="nf-numeric nf-map-cluster-drop nf-tap pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 rounded-[var(--nf-radius-xs)] border border-[var(--nf-selected-edge)] px-sm py-xs text-[length:var(--nf-text-caption)] font-bold text-[var(--nf-content-on-brand)] transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none"
           >
             <span className="nf-map-pin-breathe inline-block">{group.items.length}</span>
             <span className="sr-only"> places grouped here, open them</span>
@@ -706,7 +711,8 @@ export function MapCanvas({
                   left: pin.x,
                   top: pin.y,
                   zIndex: chosen ? 2 : 1,
-                  boxShadow: LIFT,
+                  background: chosen ? SELECTED_FILL : undefined,
+                  boxShadow: chosen ? SELECTED_SHADOW : GLASS_SHADOW,
                   "--pin-i": i,
                 } as React.CSSProperties
               }
@@ -714,8 +720,8 @@ export function MapCanvas({
                  takes the control radius. It read `--nf-radius-pill`. */
               className={`nf-numeric nf-map-pin-drop pointer-events-auto absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-[var(--nf-radius-control)] px-sm py-xs text-[length:var(--nf-text-overline)] font-bold transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)] active:scale-95 motion-reduce:transition-none ${
                 chosen
-                  ? "scale-110 border border-[var(--nf-brand-primary)] bg-[var(--nf-brand-primary)] text-[var(--nf-content-on-brand)]"
-                  : "border border-[var(--nf-border-default)] bg-[var(--nf-surface-elevated)] text-[var(--nf-content-primary)] hover:border-[var(--nf-brand-primary)]"
+                  ? "scale-110 border border-[var(--nf-selected-edge)] text-[var(--nf-content-on-brand)]"
+                  : "nf-btn--glass text-[var(--nf-content-primary)] hover:border-[var(--nf-selected-edge)]"
               }`}
             >
               {/* Idle pins breathe on their own inner span, so the slow scale
@@ -745,7 +751,7 @@ export function MapCanvas({
         {userPoint && (
           <span
             aria-hidden="true"
-            style={{ left: userPoint.x, top: userPoint.y, boxShadow: LIFT }}
+            style={{ left: userPoint.x, top: userPoint.y, boxShadow: HALO }}
             className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--nf-content-on-brand)] bg-[var(--nf-brand-primary)]"
           />
         )}
@@ -797,8 +803,7 @@ export function MapCanvas({
         {/* Empty state. Honest about why, and it offers the way back. */}
         {visible.length === 0 && (
           <div
-            style={{ boxShadow: CARD_LIFT }}
-            className="pointer-events-auto mx-auto mt-lg w-[min(20rem,86%)] rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] p-lg text-center"
+            className="nf-panel nf-panel--card isolate pointer-events-auto mx-auto mt-lg w-[min(20rem,86%)] items-center p-lg text-center"
           >
             <BrandIcon name="map-spot" size={44} className="mx-auto" />
             <p className="mt-sm font-semibold text-[var(--nf-content-primary)]">
@@ -860,8 +865,7 @@ export function MapCanvas({
               role="status"
               aria-live="polite"
               data-testid="map-locate-message"
-              style={{ boxShadow: CARD_LIFT }}
-              className="pointer-events-auto mr-auto max-w-[62%] rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-sm py-xs text-[length:var(--nf-text-overline)] leading-snug text-[var(--nf-content-secondary)]"
+              className="nf-btn--glass pointer-events-auto mr-auto max-w-[62%] rounded-[var(--nf-radius-control)] px-sm py-xs text-[length:var(--nf-text-overline)] leading-snug text-[var(--nf-content-secondary)]"
             >
               {locateMessage}
             </p>
@@ -872,7 +876,7 @@ export function MapCanvas({
             aria-expanded={listOpen}
             aria-label={listOpen ? "Close the list of places" : "Browse these places as a list"}
             onClick={() => setListOpen((open) => !open)}
-            className="nf-icon-btn pointer-events-auto h-10 w-10 bg-[var(--nf-surface-primary)]"
+            className="nf-icon-btn pointer-events-auto h-10 w-10 nf-btn--glass"
           >
             <UiIcon name="grid" size={16} />
           </button>
@@ -881,7 +885,7 @@ export function MapCanvas({
             data-testid="map-zoom-in"
             aria-label="Zoom in"
             onClick={() => zoomBy(1)}
-            className="nf-icon-btn pointer-events-auto h-11 w-11 bg-[var(--nf-surface-primary)]"
+            className="nf-icon-btn pointer-events-auto h-11 w-11 nf-btn--glass"
           >
             <UiIcon name="plus" size={16} />
           </button>
@@ -890,7 +894,7 @@ export function MapCanvas({
             data-testid="map-zoom-out"
             aria-label="Zoom out"
             onClick={() => zoomBy(-1)}
-            className="nf-icon-btn pointer-events-auto h-11 w-11 bg-[var(--nf-surface-primary)]"
+            className="nf-icon-btn pointer-events-auto h-11 w-11 nf-btn--glass"
           >
             <UiIcon name="minus" size={16} />
           </button>
@@ -899,7 +903,7 @@ export function MapCanvas({
             data-testid="map-fit"
             aria-label="Fit every place in view"
             onClick={fitAll}
-            className="nf-icon-btn pointer-events-auto h-10 w-10 bg-[var(--nf-surface-primary)]"
+            className="nf-icon-btn pointer-events-auto h-10 w-10 nf-btn--glass"
           >
             <UiIcon name="compass" size={16} />
           </button>
@@ -909,7 +913,7 @@ export function MapCanvas({
             aria-label="Centre the map on my location"
             aria-busy={locate.phase === "working"}
             onClick={locateMe}
-            className="nf-icon-btn pointer-events-auto h-10 w-10 bg-[var(--nf-surface-primary)]"
+            className="nf-icon-btn pointer-events-auto h-10 w-10 nf-btn--glass"
           >
             <UiIcon
               name="location"
@@ -924,10 +928,9 @@ export function MapCanvas({
         {listOpen ? (
           <div
             data-testid="map-list"
-            style={{ boxShadow: LIFT }}
-            className="pointer-events-auto mx-sm mb-sm max-h-[46%] overflow-hidden rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)]"
+            className="nf-panel nf-panel--card pointer-events-auto mx-sm mb-sm max-h-[46%] overflow-hidden p-0"
           >
-            <div className="flex items-center justify-between gap-sm border-b border-[var(--nf-border-subtle)] px-sm py-xs">
+            <div className="flex items-center justify-between gap-sm border-b border-[var(--nf-panel-hair)] px-sm py-xs">
               <h2 className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-primary)]">
                 Places on this map
               </h2>
@@ -949,7 +952,7 @@ export function MapCanvas({
                       choose(listing);
                       setListOpen(false);
                     }}
-                    className="flex w-full items-center gap-sm px-sm py-sm text-left hover:bg-[var(--nf-surface-raised)] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)]"
+                    className="flex w-full items-center gap-sm px-sm py-sm text-left hover:bg-[image:var(--nf-btn-glass-fill)] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--nf-focus-ring)]"
                   >
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-primary)]">

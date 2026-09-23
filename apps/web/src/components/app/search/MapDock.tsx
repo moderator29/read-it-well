@@ -107,12 +107,12 @@ export function MapDock({
           transition: drag ? "none" : "transform var(--nf-duration-fast) var(--nf-ease-standard)",
           boxShadow: "var(--nf-elev-2)",
         }}
-        className="nf-card relative touch-pan-y overflow-hidden p-0"
+        className="nf-panel nf-panel--card relative touch-pan-y overflow-hidden p-0"
       >
         {/* Swipe handle. Decorative, the controls carry the real affordance. */}
         <span
           aria-hidden="true"
-          className="absolute left-1/2 top-1.5 h-1 w-9 -translate-x-1/2 rounded-full bg-[var(--nf-border-strong)]"
+          className="absolute left-1/2 top-1.5 h-1 w-9 -translate-x-1/2 rounded-full bg-[var(--nf-panel-catch)]"
         />
 
         <Link
@@ -140,7 +140,7 @@ export function MapDock({
             row built for the thumbnail and the text column beside it.
           */}
           {listing.isDemo && <ExampleNotice className="basis-full" />}
-          <div className="relative h-[86px] w-[86px] shrink-0 overflow-hidden rounded-[var(--nf-radius-md)]">
+          <div className="relative h-[86px] w-[86px] shrink-0 overflow-hidden rounded-[var(--nf-plate-radius-sm)]">
             <MediaFrame hue={listing.hue} kind={listing.kind} />
             {listing.photo && (
               <Image
@@ -235,7 +235,7 @@ export function MapDock({
         {saveMessage && (
           <p
             role="status"
-            className="nf-body-sm border-t border-[var(--nf-border-subtle)] px-row py-inline text-[var(--nf-state-error)]"
+            className="nf-body-sm border-t border-[var(--nf-panel-hair)] px-row py-inline text-[var(--nf-state-error)]"
           >
             {saveMessage}
           </p>

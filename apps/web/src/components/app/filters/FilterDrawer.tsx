@@ -694,7 +694,7 @@ export function FilterDrawer({
                     : undefined
                 }
               >
-                <div className="divide-y divide-[var(--nf-divider)]">
+                <div className="divide-y divide-[var(--nf-panel-hair)]">
                   {amenityOptions.map((code) => (
                     <div key={code} data-testid={`filter-amenity-${code}`}>
                       <SwitchRow
@@ -728,7 +728,7 @@ export function FilterDrawer({
                     : undefined
                 }
               >
-                <div className="divide-y divide-[var(--nf-divider)]">
+                <div className="divide-y divide-[var(--nf-panel-hair)]">
                   {utilityOptions.backup && (
                     <SwitchRow
                       icon="bolt"
@@ -790,7 +790,7 @@ export function FilterDrawer({
                   : undefined
               }
             >
-              <div className="divide-y divide-[var(--nf-divider)]">
+              <div className="divide-y divide-[var(--nf-panel-hair)]">
                 <SwitchRow
                   icon="sparkle"
                   label={copy.instant}

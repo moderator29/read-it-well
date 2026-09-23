@@ -7,8 +7,14 @@
   Governing images: 3EB3E2A9 (results and the filter sheet), 9E8B56ED and
   7B5335E0 (listing detail), 9F384CFE (move-in ledger), FD3DFE84 (stays home),
   BB0C2C85 and 84054CE9 (stay detail). Every class here is prefixed by the
-  surface it belongs to, because `.nf-cat` is already the home screen's
-  category link (see explore.css) and one collision was enough.
+  surface it belongs to, because `.nf-cat` is the home screen's category
+  row and one collision was enough.
+
+  THE PLATFORM SWEEP (23 September): every container, badge, control and
+  plate in this file takes its material from the shared layer (the panel,
+  the icon plate, the glass door, the selected state; ledger 13.0). The
+  rules below carry layout; where a material is written here it is the
+  shared tokens by name, for the classes other groups' components draw.
 */
 @layer components {
   /* ======================================================= the property card
@@ -41,15 +47,12 @@
       transform var(--nf-duration-press) var(--nf-ease-press),
       box-shadow var(--nf-duration-base) var(--nf-ease-standard),
       border-color var(--nf-duration-base) var(--nf-ease-standard);
+    padding: 0;
   }
   @media (hover: hover) {
     .nf-pcard:hover {
-      border-color: var(--nf-brand-edge-strong);
-      box-shadow:
-        var(--nf-glow-edge-strong),
-        inset 0 -1px 0 var(--nf-glass-floor),
-        var(--nf-bloom-card);
-    }
+    border-color: var(--nf-selected-edges);
+  }
   }
   .nf-pcard:active {
     transform: scale(var(--nf-press-scale-lg));
@@ -67,8 +70,8 @@
     align-self: stretch;
     margin: var(--nf-space-2xs);
     overflow: hidden;
-    border-radius: var(--nf-radius-md);
     background: var(--nf-media-ground-to);
+    border-radius: calc(var(--nf-container-radius) - var(--nf-space-2xs));
   }
   /* One across, so the small rung goes back to the overline: the stay card
      has the width for it and its pills sit on a much larger photograph. */
@@ -132,6 +135,19 @@
     line-height: 1.3;
     color: var(--nf-content-secondary);
     overflow-wrap: anywhere;
+  }
+  /* The lister line (C3.3): the fact size under the place, at most two
+     lines, so the role word at the end of "Listed by {name}, agent" is never
+     the part a narrow card cuts off (pass 3). The
+     claim is words in the muted ink, never a badge shape. */
+  .nf-pcard__lister {
+    display: -webkit-box;
+    margin-top: var(--nf-space-3xs);
+    overflow: hidden;
+    font-size: var(--nf-pcard-fact, var(--nf-text-overline));
+    line-height: 1.3;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
   .nf-pcard--wide .nf-pcard__where {
     font-size: var(--nf-text-overline);
@@ -205,9 +221,10 @@
   .nf-pcard__fact--more {
     padding: 0 var(--nf-space-3xs);
     border-radius: var(--nf-radius-xs);
-    background: var(--nf-well-fill);
     color: var(--nf-content-muted);
     font-weight: 650;
+    background: var(--nf-btn-glass-fill);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
   }
 
   /* The marks on the photograph. Verified is the brand mark of the renders:
@@ -238,11 +255,6 @@
     gap: var(--nf-space-3xs);
     padding: var(--nf-space-3xs) var(--nf-space-2xs);
     border-radius: var(--nf-radius-xs);
-    border: 1px solid var(--nf-brand-edge);
-    background: color-mix(in oklab, var(--nf-brand-primary) 38%, var(--nf-overlay-media-strong));
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
-    backdrop-filter: blur(var(--nf-glass-blur-thin));
-    box-shadow: 0 0 14px var(--nf-glow-2);
     font-size: var(--nf-pcard-fact, var(--nf-text-overline));
     font-weight: 650;
     line-height: 1;
@@ -252,22 +264,26 @@
   .nf-pcard__mark--verified {
     top: var(--nf-space-2xs);
     left: var(--nf-space-2xs);
+    border: var(--nf-border-width) solid var(--nf-selected-edge);
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
+    color: var(--nf-content-on-brand);
   }
   .nf-pcard__mark--market {
     bottom: var(--nf-space-2xs);
     left: var(--nf-space-2xs);
-    background: var(--nf-overlay-media-strong);
-    box-shadow: none;
+    border: var(--nf-border-width) solid var(--nf-selected-edge);
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
+    color: var(--nf-content-on-brand);
   }
   /* The disclosure on an illustrative row. Cyan outline, never a fill, so it
      cannot be mistaken for a promotion; it never appears with Verified. */
   .nf-pcard__mark--example {
     top: var(--nf-space-2xs);
     left: var(--nf-space-2xs);
-    border-color: color-mix(in oklab, var(--nf-state-warning) 60%, transparent);
-    background: var(--nf-overlay-media-strong);
-    box-shadow: none;
-    color: var(--nf-state-warning);
   }
   .nf-pcard__controls {
     position: absolute;
@@ -284,12 +300,13 @@
     width: 2.25rem;
     height: 2.25rem;
     border-radius: var(--nf-radius-sm);
-    border: 1px solid var(--nf-border-on-media);
-    background: var(--nf-overlay-media);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
-    backdrop-filter: blur(var(--nf-glass-blur-thin));
-    color: var(--nf-content-on-media);
     transition: transform var(--nf-duration-press) var(--nf-ease-press);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    box-shadow: var(--nf-btn-glass-shadow);
+    color: var(--nf-content-on-media);
   }
   .nf-pcard__heart:active {
     transform: scale(0.9);
@@ -310,15 +327,21 @@
      what a plate this short needs. */
   .nf-pcard__nophoto {
     position: absolute;
-    right: var(--nf-space-2xs);
-    bottom: var(--nf-space-2xs);
     z-index: 2;
     padding: var(--nf-space-3xs) var(--nf-space-2xs);
     border-radius: var(--nf-radius-xs);
-    background: var(--nf-overlay-media-strong);
     font-size: var(--nf-pcard-fact, var(--nf-text-overline));
     color: var(--nf-content-on-media-muted);
     pointer-events: none;
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    box-shadow: var(--nf-btn-glass-shadow);
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    white-space: nowrap;
   }
   .nf-pcard__note {
     position: absolute;
@@ -334,11 +357,14 @@
      * container edge beside it to compare with. 6px over 20px is 0.30.
      */
     border-radius: var(--nf-radius-xs);
-    border: 1px solid var(--nf-border-on-media);
-    background: var(--nf-overlay-media-strong);
     font-size: var(--nf-text-overline);
     font-weight: 500;
     color: var(--nf-content-on-media);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    box-shadow: var(--nf-btn-glass-shadow);
   }
 
   /* ============================================================= the shelf
@@ -353,7 +379,7 @@
     margin-top: calc(var(--nf-gap-section-tight) * -1);
     margin-inline: calc(var(--nf-pad-shell) * -1);
     padding: var(--nf-space-sm) var(--nf-pad-shell);
-    border-bottom: 1px solid var(--nf-border-subtle);
+    border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-shelf-field {
     display: flex;
@@ -363,18 +389,14 @@
     gap: var(--nf-space-xs);
     height: 3.25rem;
     padding-inline: var(--nf-space-md) var(--nf-space-xs);
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
     transition: border-color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-glass-well-fill);
+    border-radius: var(--nf-radius-control);
   }
   .nf-shelf-field:focus-within {
-    border-color: var(--nf-brand-edge-strong);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 0 3px var(--nf-glow-1);
+    border-color: var(--nf-selected-edge);
   }
   .nf-shelf-field > svg {
     flex-shrink: 0;
@@ -415,13 +437,13 @@
     width: 3.25rem;
     height: 3.25rem;
     flex-shrink: 0;
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 16px var(--nf-glow-1);
     color: var(--nf-brand-secondary);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    box-shadow: var(--nf-btn-glass-shadow);
+    border-radius: var(--nf-radius-control);
   }
   /* The chip row. ROUNDED RECTANGLES, by the founder's shape law of
      19 September, which replaces the amended radius law that stood here: the
@@ -465,9 +487,6 @@
     min-height: 2.75rem;
     padding: 0 var(--nf-space-md);
     border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
     white-space: nowrap;
@@ -476,6 +495,11 @@
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-press) var(--nf-ease-press);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-shelf-chip > svg:first-child {
     color: var(--nf-brand-secondary);
@@ -491,11 +515,15 @@
     outline-offset: 2px;
   }
   .nf-shelf-chip--on {
-    border-color: var(--nf-brand-edge-strong);
-    background: color-mix(in oklab, var(--nf-brand-primary) 26%, var(--nf-surface-canvas));
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 16px var(--nf-glow-2);
+    border: var(--nf-border-width) solid var(--nf-selected-edge);
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-shelf-chip--on > svg:first-child,
+  .nf-shelf-chip--on > svg:last-child {
+    color: currentColor;
   }
   .nf-shelf-count {
     display: flex;
@@ -513,16 +541,19 @@
     display: inline-flex;
     align-items: center;
     gap: var(--nf-space-xs);
-    min-height: 2.5rem;
     padding: 0 var(--nf-space-sm);
-    border-radius: var(--nf-radius-sm);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-well-fill);
     font-size: var(--nf-text-caption);
     font-weight: 600;
     color: var(--nf-content-primary);
     cursor: pointer;
     list-style: none;
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    box-shadow: var(--nf-btn-glass-shadow);
+    border-radius: var(--nf-radius-control);
+    min-height: 2.75rem;
   }
   .nf-shelf-sort > summary::-webkit-details-marker {
     display: none;
@@ -538,10 +569,11 @@
     z-index: 20;
     min-width: 12rem;
     padding: var(--nf-space-2xs);
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-surface-elevated);
-    box-shadow: var(--nf-elev-3);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-shelf-sort__item {
     display: flex;
@@ -554,14 +586,16 @@
     color: var(--nf-content-secondary);
   }
   .nf-shelf-sort__item[aria-current="true"] {
-    color: var(--nf-content-primary);
-    background: var(--nf-brand-tint-2);
+    border: var(--nf-border-width) solid var(--nf-selected-edge);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
+    color: var(--nf-content-on-brand);
   }
   @media (hover: hover) {
     .nf-shelf-sort__item:hover {
-      background: var(--nf-brand-tint-1);
       color: var(--nf-content-primary);
-    }
+    background: var(--nf-btn-glass-fill);
+  }
   }
 
   /* ====================================================== the filter sheet
@@ -573,18 +607,21 @@
     inset: 0;
     display: flex;
     flex-direction: column;
-    background: color-mix(in oklab, var(--nf-surface-canvas) 92%, transparent);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
+    background: var(--nf-panel-fill);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
+    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
+    backdrop-filter: blur(var(--nf-panel-blur));
+    isolation: isolate;
   }
   @media (min-width: 48rem) {
     .nf-filters {
       inset: auto 0 0 auto;
       width: min(28rem, 100%);
       height: 100%;
-      border-left: 1px solid var(--nf-brand-edge-soft);
-      box-shadow: var(--nf-elev-3);
-    }
+    border-radius: var(--nf-container-radius) 0 0 var(--nf-container-radius);
+  }
   }
   /* The grabber above the title, as the render draws it.
 
@@ -599,7 +636,7 @@
     margin: var(--nf-space-xs) auto 0;
     margin-top: calc(var(--nf-space-xs) + env(safe-area-inset-top, 0px));
     border-radius: var(--nf-radius-pill);
-    background: var(--nf-brand-edge-strong);
+    background: var(--nf-panel-catch);
   }
   .nf-filters__head {
     display: flex;
@@ -607,7 +644,7 @@
     justify-content: space-between;
     gap: var(--nf-space-sm);
     padding: var(--nf-space-sm) var(--nf-pad-shell);
-    border-bottom: 1px solid var(--nf-border-subtle);
+    border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-filters__title {
     font-family: var(--nf-font-display);
@@ -624,7 +661,7 @@
   .nf-filters__group + .nf-filters__group {
     margin-top: var(--nf-space-lg);
     padding-top: var(--nf-space-lg);
-    border-top: 1px solid var(--nf-divider);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-filters__group-head {
     display: flex;
@@ -684,9 +721,12 @@
   }
   /* ROUNDED RECTANGLES, by the founder's shape law of 19 September, which
      replaces the amended radius law that stood here: every choice tile in
-     this sheet carries a word, so it takes the control radius, filled brand
-     blue when it is the one standing. */
-  .nf-filters__tile {
+     this sheet carries a word, so it takes the control radius. At rest it is
+     the glass door's material, chosen it is the shared selected state (the
+     platform sweep). `.nf-choice` is the same control outside the sheet: the
+     table-booking day and time slots on a restaurant listing. */
+  .nf-filters__tile,
+  .nf-choice {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -694,8 +734,6 @@
     min-height: 2.75rem;
     padding: var(--nf-space-xs) var(--nf-space-2xs);
     border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
     font-size: var(--nf-text-caption);
     font-weight: 600;
     color: var(--nf-content-secondary);
@@ -704,23 +742,36 @@
       color var(--nf-duration-fast) var(--nf-ease-standard),
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
-  .nf-filters__tile:focus-visible {
+  /* Outside the sheet the slot sits in a row, not a grid cell, so it takes
+     its own side padding: a three letter day otherwise draws narrower than
+     its own corner allows. */
+  .nf-choice {
+    padding-inline: var(--nf-space-sm);
+  }
+  .nf-filters__tile:focus-visible,
+  .nf-choice:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
   }
   @media (hover: hover) {
-    .nf-filters__tile:hover {
-      border-color: var(--nf-brand-edge);
+    .nf-filters__tile:hover,
+    .nf-choice:hover {
       color: var(--nf-content-primary);
-    }
+    border-color: var(--nf-selected-edges);
+  }
   }
   .nf-filters__tile[aria-pressed="true"],
-  .nf-filters__tile[aria-checked="true"] {
-    border-color: var(--nf-brand-edge-strong);
-    background: var(--nf-brand-primary);
+  .nf-filters__tile[aria-checked="true"],
+  .nf-choice[aria-pressed="true"] {
+    border: var(--nf-border-width) solid var(--nf-selected-edge);
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
     color: var(--nf-content-on-brand);
-    box-shadow: 0 0 18px var(--nf-glow-3);
   }
   .nf-filters__range-labels {
     display: flex;
@@ -763,10 +814,9 @@
     gap: var(--nf-space-xs);
     min-height: 3.25rem;
     padding: 0 var(--nf-space-sm) 0 var(--nf-space-md);
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-glass-well-fill);
+    border-radius: var(--nf-radius-control);
   }
   .nf-filters__row > svg:first-child {
     flex-shrink: 0;
@@ -807,10 +857,7 @@
     color: var(--nf-content-inverse);
   }
   .nf-filters__row:focus-within {
-    border-color: var(--nf-brand-edge-strong);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 0 3px var(--nf-glow-1);
+    border-color: var(--nf-selected-edge);
   }
   .nf-filters__row-label {
     flex-shrink: 0;
@@ -824,7 +871,7 @@
     gap: var(--nf-space-xs);
     padding: var(--nf-space-sm) var(--nf-pad-shell);
     padding-bottom: calc(var(--nf-space-sm) + env(safe-area-inset-bottom, 0px));
-    border-top: 1px solid var(--nf-border-subtle);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
   }
 
   /* ======================================================== listing detail
@@ -855,21 +902,19 @@
     min-height: 2.25rem;
     padding: 0 var(--nf-space-sm);
     border-radius: var(--nf-radius-sm);
-    border: 1px solid var(--nf-brand-edge);
-    background: color-mix(in oklab, var(--nf-brand-primary) 30%, var(--nf-overlay-media-strong));
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
-    backdrop-filter: blur(var(--nf-glass-blur-thin));
-    box-shadow: 0 0 16px var(--nf-glow-2);
     font-size: var(--nf-text-caption);
     font-weight: 650;
     line-height: 1;
-    color: var(--nf-content-on-media);
+    border: var(--nf-border-width) solid var(--nf-selected-edge);
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
+    color: var(--nf-content-on-brand);
   }
   .nf-gallery-mark > svg {
     color: var(--nf-content-on-media);
   }
   .nf-gallery-mark--market {
-    background: color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-overlay-media-strong));
   }
   /* A lettered tag, so a rounded rectangle (the founder's shape law). */
   /*
@@ -903,19 +948,22 @@
     min-height: 2rem;
     padding: 0 var(--nf-space-sm);
     border-radius: var(--nf-radius-sm);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
     font-size: var(--nf-text-caption);
     font-weight: 600;
     color: var(--nf-content-primary);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-detail-tag > svg {
     color: var(--nf-brand-secondary);
   }
   .nf-detail-tag--market {
-    border-color: var(--nf-brand-edge);
-    background: color-mix(in oklab, var(--nf-brand-primary) 30%, var(--nf-surface-canvas));
-    box-shadow: 0 0 14px var(--nf-glow-1);
+    border: var(--nf-border-width) solid var(--nf-selected-edge);
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
+    color: var(--nf-content-on-brand);
   }
   .nf-detail-verified {
     display: inline-flex;
@@ -923,15 +971,14 @@
     gap: var(--nf-space-xs);
     min-height: 2.75rem;
     padding: 0 var(--nf-space-md);
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 18px var(--nf-glow-2);
     font-size: var(--nf-text-caption);
     font-weight: 650;
-    color: var(--nf-content-primary);
+    border: var(--nf-border-width) solid var(--nf-selected-edge);
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
+    color: var(--nf-content-on-brand);
+    border-radius: var(--nf-radius-control);
   }
   .nf-detail-verified > svg {
     color: var(--nf-brand-secondary);
@@ -1011,14 +1058,15 @@
     min-height: 4rem;
     flex-shrink: 0;
     padding: var(--nf-space-xs) var(--nf-space-sm);
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
     font-size: var(--nf-text-caption);
     font-weight: 600;
     white-space: nowrap;
     color: var(--nf-content-primary);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-spec-tile > svg {
     color: var(--nf-brand-secondary);
@@ -1044,14 +1092,11 @@
     display: grid;
     gap: var(--nf-space-sm);
     padding: var(--nf-space-md);
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-brand-edge);
-    background:
-      linear-gradient(135deg, color-mix(in oklab, var(--nf-brand-primary) 22%, transparent), transparent 60%),
-      var(--nf-well-fill);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 28px var(--nf-glow-1);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   @media (min-width: 40rem) {
     .nf-detail-movein {
@@ -1089,12 +1134,13 @@
     align-items: center;
     gap: var(--nf-space-sm);
     padding: var(--nf-space-sm) var(--nf-space-md);
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
     font-size: var(--nf-text-caption);
     font-weight: 600;
     color: var(--nf-content-primary);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
+    border-radius: var(--nf-radius-control);
   }
   .nf-detail-movein__rooms > span:first-child {
     display: block;
@@ -1114,8 +1160,8 @@
     display: flex;
     margin-inline: calc(var(--nf-pad-shell) * -1);
     padding-inline: var(--nf-pad-shell);
-    border-bottom: 1px solid var(--nf-divider);
     background: var(--nf-surface-canvas);
+    border-bottom: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-detail-tabs > a {
     position: relative;
@@ -1146,8 +1192,8 @@
     inset: auto var(--nf-space-xs) 0;
     height: 2px;
     border-radius: var(--nf-radius-pill);
-    background: var(--nf-brand-secondary);
-    box-shadow: 0 0 10px var(--nf-glow-3);
+    background: var(--nf-panel-catch);
+    box-shadow: var(--nf-panel-halo);
   }
   /* The lead card, overlapping the photograph's lower edge: the job the
      page-wide sheet used to do before it was retired. */
@@ -1161,10 +1207,11 @@
   }
   .nf-detail-panel {
     padding: var(--nf-space-md);
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-well-fill);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-detail-panel__title {
     font-size: var(--nf-text-body);
@@ -1207,7 +1254,6 @@
     width: 100%;
     min-height: 4rem;
     padding: var(--nf-space-2xs) var(--nf-space-3xs);
-    border-radius: var(--nf-radius-md);
     font-size: var(--nf-pcard-fact, var(--nf-text-overline));
     font-weight: 600;
     line-height: 1.15;
@@ -1236,10 +1282,11 @@
     align-items: center;
     gap: var(--nf-space-sm);
     padding: var(--nf-space-md);
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-agent-card__avatar {
     display: block;
@@ -1248,8 +1295,8 @@
     flex-shrink: 0;
     overflow: hidden;
     border-radius: var(--nf-radius-circle);
-    border: 1px solid var(--nf-brand-edge);
-    box-shadow: 0 0 14px var(--nf-glow-1);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    box-shadow: var(--nf-panel-halo);
   }
   /* The class name still says pill; the SHAPE is a rounded rectangle, because
      it carries a word (the founder's shape law, 19 September). The name is
@@ -1271,11 +1318,14 @@
     gap: var(--nf-space-3xs);
     padding: var(--nf-space-3xs) var(--nf-space-xs);
     border-radius: var(--nf-radius-xs);
-    border: 0;
-    background: var(--nf-brand-primary);
     font-size: var(--nf-text-overline);
     font-weight: 650;
+    border: var(--nf-border-width) solid var(--nf-selected-edge);
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
     color: var(--nf-content-on-brand);
+    white-space: nowrap;
   }
   /* The pill is a BUTTON now (it opens the verification ladder), so it takes
      the platform's press and focus rather than a browser default. */
@@ -1307,11 +1357,13 @@
     width: 1.75rem;
     height: 1.75rem;
     border-radius: var(--nf-radius-circle);
-    border: 1px solid var(--nf-brand-edge);
-    background: var(--nf-brand-tint-2);
     font-size: var(--nf-text-caption);
     font-weight: 650;
     color: var(--nf-brand-secondary);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    border-color: var(--nf-plate-edges);
+    background: var(--nf-plate-fill);
+    box-shadow: var(--nf-plate-shadow);
   }
   /*
    * ==================================== the marks that sit ON a photograph
@@ -1349,6 +1401,18 @@
   .nf-media-chip--lg {
     font-size: var(--nf-text-body-lg);
   }
+  /* A word on a photograph (the frame counter, the "No photographs yet"
+     mark, the viewer's caption, the saved note) stands on the glass door's
+     material, from its tokens, like the chip on the home hero. The "+N"
+     over the last grid photo is a scrim over a tile, not a chip, and keeps
+     its overlay. */
+  .nf-media-chip:not(.nf-media-chip--lg) {
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    box-shadow: var(--nf-btn-glass-shadow);
+  }
 
   /* ================================================== the detail anatomy
      B047A0CE: the strip of spec pairs, the price row with its rating, the
@@ -1363,9 +1427,11 @@
     grid-auto-columns: 1fr;
     align-items: center;
     margin-top: var(--nf-space-md);
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-well-fill);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-spec-strip__cell {
     display: flex;
@@ -1382,7 +1448,7 @@
   /* The hairline is a border on the cell rather than a separate element, so
      a strip of one or two pairs has no dangling rule at its end. */
   .nf-spec-strip__cell + .nf-spec-strip__cell {
-    border-left: 1px solid var(--nf-divider);
+    border-left: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-spec-strip__cell > svg {
     flex-shrink: 0;
@@ -1471,12 +1537,13 @@
      * 0.24. The rename is recorded in the ledger as still owed.
      */
     border-radius: var(--nf-radius-xs);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-well-fill);
     font-size: var(--nf-text-caption);
     font-weight: 600;
     color: var(--nf-content-primary);
     white-space: nowrap;
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-detail-capsule > svg {
     flex-shrink: 0;
@@ -1487,7 +1554,7 @@
   .nf-detail-hairline {
     margin: var(--nf-space-md) 0;
     border: 0;
-    border-top: 1px solid var(--nf-divider);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
   }
 
   .nf-host-row {
@@ -1508,8 +1575,8 @@
     flex-shrink: 0;
     overflow: hidden;
     border-radius: var(--nf-radius-pill);
-    border: 1px solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    background: var(--nf-plate-fill);
   }
   .nf-host-row__body {
     display: block;
@@ -1557,10 +1624,10 @@
     gap: var(--nf-space-2xs);
     min-height: 3.5rem;
     padding: var(--nf-space-xs) var(--nf-space-sm);
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-well-fill);
     color: var(--nf-content-primary);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-glass-well-fill);
+    border-radius: var(--nf-radius-control);
   }
   .nf-detail-field > svg:first-child,
   .nf-detail-field > svg:last-child {
@@ -1678,12 +1745,11 @@
      the lit total, the comparison card and the proceed control. */
   .nf-ledger-card {
     padding: var(--nf-space-md);
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 24px var(--nf-glow-1);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-ledger-row {
     display: flex;
@@ -1692,7 +1758,7 @@
     padding: var(--nf-space-sm) 0;
   }
   .nf-ledger-row + .nf-ledger-row {
-    border-top: 1px solid var(--nf-divider);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-ledger-row__glyph {
     display: grid;
@@ -1700,11 +1766,12 @@
     width: 3rem;
     height: 3rem;
     flex-shrink: 0;
-    border-radius: var(--nf-radius-sm);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
     color: var(--nf-brand-secondary);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    border-color: var(--nf-plate-edges);
+    background: var(--nf-plate-fill);
+    box-shadow: var(--nf-plate-shadow);
+    border-radius: var(--nf-plate-radius-sm);
   }
   .nf-ledger-row__label {
     font-size: var(--nf-text-body);
@@ -1730,7 +1797,7 @@
     gap: var(--nf-space-sm);
     margin-top: var(--nf-space-sm);
     padding-top: var(--nf-space-md);
-    border-top: 1px solid var(--nf-brand-edge-soft);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   /* The total is the blue figure of the render, a rung above the rows it
      sums. It was the same white as the lines above it, which made the one
@@ -1769,10 +1836,11 @@
     margin-top: var(--nf-space-sm);
     padding: var(--nf-space-xs) var(--nf-space-sm);
     border-radius: var(--nf-radius-sm);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-brand-tint-1);
     font-size: var(--nf-text-caption);
     color: var(--nf-content-secondary);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
 
   /* ============================================================ stays home
@@ -1864,18 +1932,18 @@
   }
   @media (hover: hover) {
     .nf-stays-tile:hover {
-      border-color: var(--nf-brand-edge);
-    }
+    border-color: var(--nf-selected-edges);
+  }
   }
   /* Two classes deep on purpose: the tile also wears `.nf-glass--tile`,
      which is one class, and the standing tile has to beat it whichever
      order the partials happen to bundle in. */
   .nf-stays-tile.nf-stays-tile--on {
-    border-color: var(--nf-brand-edge-strong);
-    background: color-mix(in oklab, var(--nf-brand-primary) 24%, var(--nf-surface-canvas));
-    box-shadow:
-      var(--nf-glow-edge-strong),
-      inset 0 -1px 0 var(--nf-glass-floor);
+    border: var(--nf-border-width) solid var(--nf-selected-edge);
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
+    color: var(--nf-content-on-brand);
   }
   /* Small, as the reference draws it: the object names the market, it is not
      the tile. It was 2.75rem in a tile 4rem wide, which is why there was no
@@ -1913,17 +1981,6 @@
     letter-spacing: 0;
     color: var(--nf-content-muted);
   }
-  /* The figure and the stars on one line, as the stay render draws them. */
-  .nf-stay-price-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--nf-space-xs);
-  }
-  .nf-stay-price-row .nf-stay-card__price {
-    text-align: left;
-  }
   .nf-stay-card__rating {
     display: inline-flex;
     align-items: center;
@@ -1952,39 +2009,18 @@
     min-height: 2rem;
     padding: 0 var(--nf-space-xs);
     border-radius: var(--nf-radius-sm);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-well-fill);
     font-size: var(--nf-text-overline);
     font-weight: 500;
     white-space: nowrap;
     color: var(--nf-content-secondary);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-stay-card__chip > svg {
     color: var(--nf-brand-secondary);
   }
 
-  /*
-   * EVERY CONTAINER ON THESE SURFACES READS AS LIT GLASS.
-   *
-   * The founder's note against the renders: our containers are dull where
-   * every container in the reference set is ringed in brand blue with light
-   * coming off the ring. `--nf-glow-edge` is that ring composed once in the
-   * token layer, and the lead put it on `.nf-glass--card`, `.nf-glass--tile`
-   * and `.nf-icon-btn`. `.nf-card` is a DIFFERENT material (a stride-gradient
-   * border box) and was deliberately not promoted with them, so the catalogue
-   * surfaces ask for the edge the same way the money surfaces already do
-   * (`.nf-money .nf-card` in wallet.css): by naming the shared recipe rather
-   * than by writing a second one here. The card's own float rides underneath,
-   * exactly as `.nf-glass--card` arranges it.
-   *
-   * The root class is on the page wrapper of each catalogue surface, so this
-   * cannot reach a card on somebody else's screen.
-   */
-  .nf-cat-surface .nf-card {
-    box-shadow:
-      var(--nf-glow-edge),
-      var(--nf-bloom-card);
-  }
 
   /* ============================================================== the tenancy
      The rent period on a tenancy card (/bookings, F3, 19 September 2026). It is
@@ -2000,68 +2036,30 @@
     min-height: 2rem;
     padding: 0 var(--nf-space-xs);
     border-radius: var(--nf-radius-sm);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-well-fill);
     font-size: var(--nf-text-overline);
     font-weight: 500;
     white-space: nowrap;
     color: var(--nf-content-secondary);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-tenancy-chip > svg {
     color: var(--nf-brand-secondary);
   }
 
   /* ========================================================== stay detail
-     BB0C2C85 and 84054CE9: the fact rows (check-in, check-out, guests) and
-     the room-type gallery tiles. */
-  .nf-stay-facts {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--nf-space-xs);
-    padding: var(--nf-space-xs);
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-  }
-  .nf-stay-fact {
-    display: flex;
-    align-items: center;
-    gap: var(--nf-space-xs);
-    min-height: 3.5rem;
-    padding: var(--nf-space-xs) var(--nf-space-sm);
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-well-fill);
-    color: var(--nf-content-primary);
-  }
-  .nf-stay-fact > svg:first-child {
-    flex-shrink: 0;
-    color: var(--nf-brand-secondary);
-  }
-  .nf-stay-fact > svg:last-child {
-    flex-shrink: 0;
-    margin-left: auto;
-    color: var(--nf-content-muted);
-  }
-  .nf-stay-fact__label {
-    display: block;
-    font-size: var(--nf-text-overline);
-    color: var(--nf-content-muted);
-  }
-  .nf-stay-fact__value {
-    display: block;
-    font-size: var(--nf-text-caption);
-    font-weight: 600;
-    color: var(--nf-content-primary);
-  }
+     BB0C2C85 and 84054CE9: the room-type gallery tiles. */
   .nf-stay-type {
     display: flex;
     align-items: center;
     gap: var(--nf-space-sm);
     padding: var(--nf-space-md);
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-stay-type__object {
     display: block;
@@ -2082,11 +2080,13 @@
   .nf-room-tile {
     display: block;
     overflow: hidden;
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
     text-align: left;
     color: var(--nf-content-primary);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-room-tile:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
@@ -2119,26 +2119,7 @@
   }
 
   /* ============================================================ the register
-     Shared by trips, restaurants, checkout, bookings and saved: the glass row
-     card with a glyph rail on its left. */
-  .nf-reg-card {
-    display: flex;
-    gap: var(--nf-space-sm);
-    padding: var(--nf-space-sm);
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
-  }
-  .nf-reg-card__media {
-    position: relative;
-    width: 5rem;
-    height: 5rem;
-    flex-shrink: 0;
-    overflow: hidden;
-    border-radius: var(--nf-radius-md);
-    background: var(--nf-media-ground-to);
-  }
+     Shared by trips, restaurants, checkout, bookings and saved. */
   /* Open or Closed, in words, so a rounded rectangle (the founder's law).
 
      `--nf-radius-xs`, because the words sit on a 23px plate and 14px of
@@ -2210,15 +2191,14 @@
     gap: var(--nf-space-sm);
     min-height: 3.5rem;
     padding: var(--nf-space-sm) var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-glass-well-fill);
     border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-well-fill);
   }
   /* The declared rows carry the lit rim the render gives them; the undeclared
      ones keep the neutral hairline above, which is the whole difference. */
   .nf-movein__row[data-declared] {
-    border-color: var(--nf-brand-edge-soft);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+    border-color: var(--nf-panel-edge);
   }
   .nf-movein__plate {
     display: block;
@@ -2279,14 +2259,11 @@
     gap: var(--nf-space-md);
     margin-top: var(--nf-space-sm);
     padding: var(--nf-space-md);
-    border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-brand-edge);
-    background:
-      linear-gradient(135deg, color-mix(in oklab, var(--nf-brand-primary) 22%, transparent), transparent 60%),
-      var(--nf-well-fill);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 28px var(--nf-glow-1);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-movein__total-label {
     display: block;
@@ -2355,17 +2332,17 @@
     height: 0.625rem;
     min-width: 0;
     border-radius: calc(var(--nf-radius-xs) / 2);
-    background: var(--nf-well-fill-deep);
-    box-shadow: inset 0 0 0 1px var(--nf-border-subtle);
+    background: var(--nf-glass-well-fill);
+    box-shadow: inset 0 0 0 var(--nf-border-width) var(--nf-panel-hair);
   }
   /* The covered steps: the brand cylinder and the near bloom, which is the
      same light every lit object on this platform carries. */
   .nf-lw-rail__seg[data-done] {
-    background: var(--nf-gradient-brand);
-    box-shadow: 0 0 10px var(--nf-glow-3);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-panel-halo);
   }
   .nf-lw-rail__seg[data-at] {
-    box-shadow: 0 0 14px var(--nf-glow-2);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
   /* A bare icon-only control drawn round in a governing image stays round. */
   .nf-lw-back {
@@ -2374,22 +2351,25 @@
     flex-shrink: 0;
     width: 2.75rem;
     height: 2.75rem;
-    border-radius: var(--nf-radius-circle);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-well-fill);
     color: var(--nf-content-secondary);
     transition:
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       color var(--nf-duration-fast) var(--nf-ease-standard);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    box-shadow: var(--nf-btn-glass-shadow);
+    border-radius: var(--nf-radius-control);
   }
   .nf-lw-back:disabled {
     opacity: 0.4;
   }
   @media (hover: hover) {
     .nf-lw-back:not(:disabled):hover {
-      border-color: var(--nf-brand-edge);
       color: var(--nf-content-primary);
-    }
+    border-color: var(--nf-selected-edges);
+  }
   }
 
   /* ------------------------------------------------------------- the head
@@ -2433,9 +2413,11 @@
     align-items: start;
     gap: var(--nf-space-sm);
     padding: var(--nf-space-md);
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-well-fill);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-lw-note__glyph {
     display: grid;
@@ -2443,9 +2425,12 @@
     width: 1.75rem;
     height: 1.75rem;
     flex-shrink: 0;
-    border-radius: var(--nf-radius-circle);
-    background: var(--nf-brand-tint-2);
     color: var(--nf-brand-secondary);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    border-color: var(--nf-plate-edges);
+    background: var(--nf-plate-fill);
+    box-shadow: var(--nf-plate-shadow);
+    border-radius: var(--nf-plate-radius-sm);
   }
   .nf-lw-note__body {
     font-size: var(--nf-text-body-sm);
@@ -2476,25 +2461,16 @@
     min-height: 3rem;
     padding: var(--nf-space-md);
     text-align: start;
-    border-radius: var(--nf-radius-control);
-    /*
-     * A RESTING CARD IS LIT, not a grey hairline, and the render is the
-     * authority: every unchosen property type, build condition, power band
-     * and water source in 06 and 07 carries a visible blue rim on the dark
-     * ground. `--nf-glow-edge` is that rim, the brand ring and the near bloom
-     * composed once in the token layer. The check in
-     * `scripts/check-css-tokens.mjs` caught this class at
-     * `--nf-border-subtle`, which is the platform's divider, and it was
-     * right to.
-     */
-    border: 1px solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    box-shadow: var(--nf-glow-edge);
     cursor: pointer;
     transition:
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       background-color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-lw-choice--centred {
     align-items: center;
@@ -2508,7 +2484,7 @@
   }
   .nf-lw-choice__glyph {
     color: var(--nf-brand-secondary);
-    filter: drop-shadow(0 0 8px var(--nf-glow-3));
+    filter: var(--nf-plate-glyph-glow);
   }
   .nf-lw-choice__name {
     font-size: var(--nf-text-body);
@@ -2524,9 +2500,8 @@
   }
   @media (hover: hover) {
     .nf-lw-choice:hover {
-      border-color: var(--nf-brand-edge-strong);
-      box-shadow: var(--nf-glow-edge-strong);
-    }
+    border-color: var(--nf-selected-edges);
+  }
   }
   /*
    * THE CHOSEN CARD IS A LIT OUTLINE, which is the same ruling `.nf-option`
@@ -2537,14 +2512,9 @@
    */
   .nf-lw-choice[aria-pressed="true"],
   .nf-lw-choice[aria-checked="true"] {
-    border-color: var(--nf-brand-edge-strong);
-    background:
-      linear-gradient(160deg, var(--nf-brand-tint-2), transparent 70%),
-      var(--nf-well-fill);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      var(--nf-glow-edge-strong),
-      var(--nf-bloom-lit-soft);
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-selected-shadow);
   }
   /*
    * The tick, and it is drawn round because the render draws it round and the
@@ -2563,7 +2533,7 @@
     display: grid;
     place-items: center;
     color: var(--nf-brand-primary);
-    filter: drop-shadow(0 0 8px var(--nf-glow-2));
+    filter: var(--nf-plate-glyph-glow);
   }
 
   /* ------------------------------------------------------ the amenity tiles
@@ -2583,12 +2553,6 @@
     gap: var(--nf-space-2xs);
     min-height: 5.25rem;
     padding: var(--nf-space-sm) var(--nf-space-2xs);
-    border-radius: var(--nf-radius-control);
-    /* Lit at rest, for the reason written on `.nf-lw-choice` above: 07 screen
-       three draws all twelve tiles with the blue rim. */
-    border: 1px solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    box-shadow: var(--nf-glow-edge);
     font-size: var(--nf-text-caption);
     font-weight: 600;
     line-height: 1.2;
@@ -2601,21 +2565,21 @@
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       background-color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-lw-tile > svg {
     flex-shrink: 0;
     color: var(--nf-brand-secondary);
-    filter: drop-shadow(0 0 8px var(--nf-glow-3));
+    filter: var(--nf-plate-glyph-glow);
   }
   .nf-lw-tile[aria-pressed="true"] {
-    border-color: var(--nf-brand-edge-strong);
-    background:
-      linear-gradient(160deg, var(--nf-brand-tint-2), transparent 70%),
-      var(--nf-well-fill);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      var(--nf-glow-edge-strong),
-      var(--nf-bloom-lit-soft);
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-selected-shadow);
   }
 
   /* ---------------------------------------------------------- the fact rows
@@ -2633,9 +2597,9 @@
     align-items: center;
     gap: var(--nf-space-sm);
     padding: var(--nf-space-sm) var(--nf-space-md);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-glass-well-fill);
     border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-well-fill);
   }
   /* The taller shape: the render's Size, Furnishing and Floor rows put their
      control on a line of its own under the name. */
@@ -2649,13 +2613,15 @@
     width: 2.75rem;
     height: 2.75rem;
     flex-shrink: 0;
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill-deep);
     color: var(--nf-brand-secondary);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    border-color: var(--nf-plate-edges);
+    background: var(--nf-plate-fill);
+    box-shadow: var(--nf-plate-shadow);
+    border-radius: var(--nf-plate-radius);
   }
   .nf-lw-fact__plate > svg {
-    filter: drop-shadow(0 0 8px var(--nf-glow-3));
+    filter: var(--nf-plate-glyph-glow);
   }
   .nf-lw-fact__name {
     display: block;
@@ -2691,11 +2657,12 @@
     justify-self: end;
     padding: 0.1875rem var(--nf-space-xs);
     border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: var(--nf-brand-tint-2);
     font-size: var(--nf-text-overline);
     font-weight: 600;
     color: var(--nf-brand-secondary);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
 
   /* ------------------------------------------------------------ the stepper
@@ -2705,10 +2672,10 @@
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: stretch;
-    border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-well-fill-deep);
     overflow: hidden;
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-glass-well-fill);
+    border-radius: var(--nf-radius-control);
   }
   .nf-lw-step--inline {
     width: 8.5rem;
@@ -2729,8 +2696,8 @@
   }
   @media (hover: hover) {
     .nf-lw-step__end:not(:disabled):hover {
-      background: var(--nf-brand-tint-2);
-    }
+    background: var(--nf-btn-glass-fill);
+  }
   }
   .nf-lw-step__value {
     display: grid;
@@ -2759,12 +2726,12 @@
     aspect-ratio: 4 / 3;
     overflow: hidden;
     border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-border-subtle);
     background: var(--nf-media-ground-to);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
   }
   .nf-lw-shot[data-cover] {
-    border-color: var(--nf-brand-edge-strong);
-    box-shadow: var(--nf-bloom-lit-soft);
+    border-color: var(--nf-selected-edges);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
   .nf-lw-shot__img {
     width: 100%;
@@ -2778,9 +2745,12 @@
     inset-inline-start: var(--nf-space-2xs);
     padding: 0.125rem var(--nf-space-2xs);
     border-radius: var(--nf-radius-control);
-    background: var(--nf-brand-primary);
     font-size: var(--nf-text-overline);
     font-weight: 700;
+    border: var(--nf-border-width) solid var(--nf-selected-edge);
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
     color: var(--nf-content-on-brand);
   }
   /* Bare, icon-only, drawn round: it stays round. */
@@ -2793,8 +2763,12 @@
     width: 1.5rem;
     height: 1.5rem;
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-surface-control-on-media-strong);
     color: var(--nf-content-on-media);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   /* The render puts the reordering grip on the photograph's foot. Ours is a
      pair of real controls rather than a decorative grip, because a drag that
@@ -2813,8 +2787,12 @@
     width: 1.5rem;
     height: 1.5rem;
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-surface-control-on-media);
     color: var(--nf-content-on-media);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-lw-shot__move:disabled {
     opacity: 0;
@@ -2828,12 +2806,13 @@
     gap: var(--nf-space-2xs);
     aspect-ratio: 4 / 3;
     border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
     font-size: var(--nf-text-caption);
     font-weight: 600;
     color: var(--nf-content-link);
     cursor: pointer;
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-lw-add__plus {
     display: grid;
@@ -2841,9 +2820,11 @@
     width: 2rem;
     height: 2rem;
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-brand-primary);
+    border: var(--nf-border-width) solid var(--nf-selected-edge);
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
     color: var(--nf-content-on-brand);
-    box-shadow: 0 0 12px var(--nf-glow-2);
   }
   .nf-lw-add:disabled {
     opacity: 0.45;
@@ -2854,10 +2835,12 @@
      08 screen three's table: a glyph, the fact's name, its value, and the
      control that jumps back to the step that owns it. */
   .nf-lw-details {
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-border-subtle);
-    background: var(--nf-well-fill);
     overflow: hidden;
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-lw-detail {
     display: grid;
@@ -2868,7 +2851,7 @@
     min-height: 2.75rem;
   }
   .nf-lw-detail + .nf-lw-detail {
-    border-top: 1px solid var(--nf-border-subtle);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-lw-detail__glyph {
     color: var(--nf-brand-secondary);
@@ -2928,12 +2911,11 @@
     width: 100%;
     margin-top: var(--nf-space-lg);
     padding: var(--nf-space-lg) var(--nf-space-md);
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background:
-      linear-gradient(170deg, var(--nf-brand-tint-2), transparent 75%),
-      var(--nf-well-fill);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-lw-id__label {
     font-size: var(--nf-text-body-sm);

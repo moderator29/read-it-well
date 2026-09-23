@@ -240,7 +240,7 @@ export function ListingGallery({
              reading. The attribute says what the object IS, which is why it is
              not a class name and not the accessible name. */
           data-nav-back=""
-          className="pointer-events-auto grid h-11 w-11 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
+          className="pointer-events-auto grid h-11 w-11 place-items-center nf-btn nf-btn--glass nf-btn--sm nf-btn--icon text-[var(--nf-content-on-media)] transition-transform active:scale-90 motion-reduce:transition-none"
         >
           <UiIcon name="arrow-left" size={16} />
         </button>
@@ -293,7 +293,7 @@ export function ListingGallery({
              capsule from source text that says rectangle (ledger 13.5: the
              ruling is about the RATIO, never the token name). 10px on 28px
              leaves the straight edge the governing images draw. */
-          className="absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-sm)] bg-[var(--nf-overlay-media-strong)] nf-media-chip nf-media-chip--muted px-sm py-2xs font-medium backdrop-blur-md sm:bottom-14 sm:right-4"
+          className="absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-xs)] nf-media-chip nf-media-chip--muted px-sm py-2xs font-medium sm:bottom-14 sm:right-4"
         >
           {t.catalogue.card.noPhotos}
         </p>
@@ -303,7 +303,7 @@ export function ListingGallery({
           data-testid="gallery-counter"
           /* `--nf-radius-sm`, the same 28px-plate ratio as the stand-in chip
              above it. See the note there. */
-          className="nf-numeric absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-sm)] bg-[var(--nf-overlay-media-strong)] nf-media-chip px-sm py-2xs font-semibold backdrop-blur-md sm:bottom-14 sm:right-4"
+          className="nf-numeric absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-xs)] nf-media-chip px-sm py-2xs font-semibold sm:bottom-14 sm:right-4"
         >
           <UiIcon name="picture" size={14} className="mr-2xs inline-block align-[-2px]" />
           <span className="sr-only">Photo </span>
@@ -319,7 +319,7 @@ export function ListingGallery({
             onClick={() => go(active - 1)}
             disabled={active === 0}
             aria-label="Previous photo"
-            className="absolute left-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md disabled:opacity-0 sm:grid"
+            className="absolute left-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center nf-btn nf-btn--glass nf-btn--sm nf-btn--icon text-[var(--nf-content-on-media)] disabled:opacity-0 sm:grid"
           >
             <UiIcon name="arrow-left" size={16} />
           </button>
@@ -328,7 +328,7 @@ export function ListingGallery({
             onClick={() => go(active + 1)}
             disabled={active === panes.length - 1}
             aria-label="Next photo"
-            className="absolute right-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md disabled:opacity-0 sm:grid"
+            className="absolute right-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center nf-btn nf-btn--glass nf-btn--sm nf-btn--icon text-[var(--nf-content-on-media)] disabled:opacity-0 sm:grid"
           >
             <UiIcon name="arrow-right" size={16} />
           </button>

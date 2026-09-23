@@ -104,7 +104,7 @@ export function ListingUtilities({
       : "Grid supply not stated";
 
   return (
-    <dl className="divide-y divide-[var(--nf-border-subtle)]">
+    <dl className="divide-y divide-[var(--nf-panel-hair)]">
       <Row
         icon="chart-growth"
         term="Light"
