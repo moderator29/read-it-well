@@ -196,7 +196,6 @@ const LISTING_SELECT = `
   total_floors,
   bedrooms,
   bathrooms,
-  featured,
   is_demo,
   agent_id,
   listing_role,
@@ -272,7 +271,6 @@ const LISTING_DETAIL_SELECT = `
   total_floors,
   bedrooms,
   bathrooms,
-  featured,
   is_demo,
   agent_id,
   listing_role,
@@ -344,7 +342,6 @@ export type ListingRow = {
   total_floors: number | null;
   bedrooms: number;
   bathrooms: number;
-  featured: boolean;
   is_demo: boolean;
   agent_id: string;
   listing_role: string | null;
@@ -1152,7 +1149,7 @@ export class SupabaseListingRepository implements ListingRepository {
   readonly isSeed = false;
 
   /**
-   * The published catalogue, newest and featured first.
+   * The published catalogue, newest first.
    *
    * What runs where, and why:
    *
@@ -1352,8 +1349,10 @@ export class SupabaseListingRepository implements ListingRepository {
         });
       }
 
+      /* V-06: there is no `featured` any more. The read is newest first, and
+         "Recommended" is decided over what comes back by the published
+         formula in `ranking.ts`, which nobody can pay to move. */
       const { data, error } = await query
-        .order("featured", { ascending: false })
         .order("published_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false })
         .limit(rowCap(opts.limit));

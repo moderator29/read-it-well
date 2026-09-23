@@ -67,6 +67,23 @@ export const trustVisibleEn = {
       },
     },
   },
+  /** V-06: Recommended, in words, generated with the constants in `lib/listings/ranking.ts`. */
+  ranking: {
+    title: "How Recommended is ordered",
+    intro:
+      "Recommended counts {count} things about each listing, one point each, and puts the highest count first. Real listings always come before example listings.",
+    inputs: {
+      costs:
+        "Every cost to move in or to buy is named: caution, agency, legal and agreement fees on a tenancy, and every buying cost on a sale.",
+      utilities: "Light and water are answered: how often the power is on, and where the water comes from.",
+      photos: "At least {min} photographs of the place.",
+      checked: "A person at Vallo has checked the identity of whoever listed it.",
+    },
+    order: "Listings with the same count keep the newest first.",
+    promise: "Nobody can pay to be higher. Vallo does not sell placement.",
+    shelfLine: "Ordered by a published formula. Nobody can pay to be higher.",
+    shelfLink: "How it works",
+  },
   /** V-21: the agent band on a profile, with no score in it. */
   profile: {
     reviews: "Reviews",

@@ -502,7 +502,7 @@ export type ListingSearchOptions = {
   /**
    * WHICH NUMBER THE DATABASE ORDERS ON BEFORE THE CEILING IS APPLIED.
    *
-   * "default" is the catalogue's own order: featured, then newest. "move-in"
+   * "default" is the catalogue's own order: newest first. "move-in"
    * orders on `total_move_in_cost_minor`, cheapest first, which is what
    * `listings_move_in_cost_idx` exists for and which nothing queried until
    * HANDOFF 09 Track H. It matters for the same reason the budget predicate

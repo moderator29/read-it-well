@@ -27,6 +27,7 @@ import { canonicalSearch } from "@/lib/saved/searches";
 import { findSavedSearch } from "@/lib/saved/searches-queries";
 import { SaveSearchControl } from "@/components/app/saved-searches/SaveSearchControl";
 import { KIND_NOUN, type SortKey } from "@/lib/listings/search-params";
+import { rankRecommended } from "@/lib/listings/ranking";
 import { readListingReference } from "@/lib/listings/reference";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { ListingCard } from "@/components/app/ListingCard";
@@ -118,9 +119,12 @@ function sortListings(listings: Listing[], sort: SortKey): Listing[] {
       out.sort((a, b) => b.priceMinor - a.priceMinor || byVerification(a, b));
       break;
     default:
-      // Recommended keeps the repository's order and lifts the checked rows.
-      out.sort(byVerification);
-      break;
+      /* V-06: Recommended is the published formula in `ranking.ts` (real
+         before example, then points for facts about the listing, then
+         newest), the same constants /standards prints in words. It still
+         lifts a checked lister, as one point among four, never above
+         everything. Nobody can pay to be higher. */
+      return rankRecommended(out);
   }
   return out;
 }
