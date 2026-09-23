@@ -187,7 +187,7 @@
     position: relative;
     min-width: 0;
     padding: var(--nf-space-md);
-    border-radius: var(--nf-radius-md);
+    border-radius: var(--nf-admin-radius, var(--nf-radius-md));
     border: 1px solid var(--nf-border-brand);
     border-color: var(--nf-admin-panel-edges, var(--nf-border-brand));
     background: var(--nf-admin-panel-fill, var(--nf-surface-primary));
@@ -510,6 +510,35 @@
     line-height: 1.1;
     font-variant-numeric: tabular-nums;
     color: var(--nf-content-primary);
+  }
+
+  /* Each desk's KPI figure at its render's measured size (cap / 0.72, x1.5):
+     listings 26, verification 31, moderation 40. */
+  .nf-rv--listings .nf-rv-kpi__figure {
+    font-size: 1.625rem;
+  }
+
+  .nf-rv--kyc .nf-rv-kpi__figure {
+    font-size: 1.9375rem;
+  }
+
+  .nf-rv--moderation .nf-rv-kpi__figure {
+    font-size: 2.5rem;
+  }
+
+  /* Rows at the render's measured heights: moderation 47 image px -> 71,
+     verification 42 -> 64. */
+  .nf-rv--moderation .nf-rv-rows__row > summary {
+    min-height: 71px;
+  }
+
+  .nf-rv--kyc .nf-rv-rows__row > summary {
+    min-height: 64px;
+  }
+
+  .nf-rv--kyc .nf-rv-avatar--sm {
+    width: 36px;
+    height: 36px;
   }
 
   .nf-rv-kpi__figure--quiet {

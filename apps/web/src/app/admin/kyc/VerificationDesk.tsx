@@ -76,7 +76,7 @@ export function VerificationDesk(props: VerificationDeskProps) {
   const { filters, rows, empty, summary, recent, notes, decided, unavailable } = props;
   const s = summary;
   return (
-    <div className="nf-rv">
+    <div className="nf-rv nf-rv--kyc">
       <DeskHead title="Verification" sub="Verified people. Safer transactions." />
 
       <div className="nf-rv-kpis">

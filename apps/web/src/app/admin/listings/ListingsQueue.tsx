@@ -91,7 +91,7 @@ export function ListingsQueue(props: ListingsQueueProps) {
     : null;
 
   return (
-    <div className="nf-rv">
+    <div className="nf-rv nf-rv--listings">
       <DeskHead title={title} sub={sub} />
       <Tabs items={tabs} label="Listing status" />
       {filters}
@@ -113,7 +113,11 @@ export function ListingsQueue(props: ListingsQueueProps) {
             )}
           </Panel>
           {capNote ? <p className="nf-rv-panel__note">{capNote}</p> : null}
-          <Pager page={page} hasNext={hasNext} hrefFor={hrefForPage} label="Queue pages" />
+          {hasNext || page > 1 ? (
+            <div className="nf-rv-panel" style={{ padding: "var(--nf-space-sm)" }}>
+              <Pager page={page} hasNext={hasNext} hrefFor={hrefForPage} label="Queue pages" />
+            </div>
+          ) : null}
 
           {decided && decided.length > 0 ? (
             <Panel flush title={decidedTitle} labelledBy="rv-decided">

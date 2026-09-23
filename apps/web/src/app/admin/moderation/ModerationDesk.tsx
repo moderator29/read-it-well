@@ -86,7 +86,7 @@ export function ModerationDesk(props: ModerationDeskProps) {
   const segments = s ? breakdownSegments(s.byCategory, categoryLabel) : [];
 
   return (
-    <div className="nf-rv">
+    <div className="nf-rv nf-rv--moderation">
       <DeskHead title="Moderation" sub="Review reported content and keep the platform safe." />
       <Tabs items={tabs} label="Reason" />
       {filters}
