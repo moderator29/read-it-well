@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { ResultScreen } from "@/components/app/ResultSheet";
 import { Amount } from "@/components/ui/Amount";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Panel } from "@/components/ui/Panel";
 import { ICON, TYPE } from "@/components/app/Screen";
 
 export const metadata: Metadata = { title: "Checkout", robots: { index: false, follow: false } };
@@ -58,14 +59,14 @@ export default async function RoomCheckoutPage({
       <PageHeader title="Checkout" subtitle={detail?.accommodation.name} fallback={backHref} />
 
       {detail && room && plan && (
-        <section className="nf-card p-md sm:p-lg" aria-labelledby="nf-room-pick" data-testid="room-pick">
+        <Panel variant="card" aria-labelledby="nf-room-pick" data-testid="room-pick">
           <h2 id="nf-room-pick" className="nf-h3">
             {room.name}
           </h2>
           <p className={`mt-2xs ${TYPE.rowMeta}`}>
             {plan.name} &middot; {copy.sleeps.replace("{count}", String(room.sleeps))}
           </p>
-          <dl className="mt-md grid gap-xs border-t border-[var(--nf-divider)] pt-md">
+          <dl className="mt-md grid gap-xs border-t border-[var(--nf-panel-hair)] pt-md">
             {checkIn && checkOut && (
               <div className="flex items-start justify-between gap-md">
                 <dt className={TYPE.rowMeta}>{t.catalogue.stays.checkIn}</dt>
@@ -93,7 +94,7 @@ export default async function RoomCheckoutPage({
               </dd>
             </div>
             {total !== null && nights !== null && (
-              <div className="flex items-start justify-between gap-md border-t border-[var(--nf-divider)] pt-xs">
+              <div className="flex items-start justify-between gap-md border-t border-[var(--nf-panel-hair)] pt-xs">
                 <dt className={TYPE.rowMeta}>{copy.totalFor.replace("{count}", String(nights))}</dt>
                 <dd className="nf-numeric text-right nf-h4 text-[var(--nf-content-primary)]">
                   <Amount minorUnits={total} locale={locale} />
@@ -101,7 +102,7 @@ export default async function RoomCheckoutPage({
               </div>
             )}
           </dl>
-        </section>
+        </Panel>
       )}
 
       <ResultScreen

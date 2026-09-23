@@ -17,6 +17,8 @@ import { failureConsequence } from "./payment-copy";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ActionBar } from "@/components/ui/ActionBar";
 import { Amount } from "@/components/ui/Amount";
+import { Panel } from "@/components/ui/Panel";
+import { IconPlate } from "@/components/ui/IconPlate";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
@@ -125,10 +127,12 @@ function Option({
   note?: string;
 }) {
   return (
-    <li className="nf-card flex items-start gap-group p-card">
-      <span className="block h-12 w-12 shrink-0">
-        <BrandIcon name={icon} fill />
-      </span>
+    <Panel as="li" variant="card" className="isolate flex-row items-start gap-group">
+      <IconPlate size="lg">
+        <span className="block h-8 w-8">
+          <BrandIcon name={icon} fill tile={false} />
+        </span>
+      </IconPlate>
       <div className="min-w-0 flex-1">
         <p className="nf-body font-semibold text-[var(--nf-content-primary)]">{title}</p>
         <p className="nf-body-sm mt-inline-tight leading-relaxed text-[var(--nf-content-secondary)]">
@@ -141,7 +145,7 @@ function Option({
         )}
         {action && <div className="mt-row">{action}</div>}
       </div>
-    </li>
+    </Panel>
   );
 }
 

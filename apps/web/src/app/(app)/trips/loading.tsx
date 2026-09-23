@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/Skeleton";
+import { panelClass } from "@/components/ui/Panel";
 import { LoadingShell, PageHeaderSkeleton } from "@/components/app/ScreenSkeleton";
 
 /**
@@ -14,7 +15,7 @@ export default function LoadingBookings() {
     <LoadingShell label="Loading your bookings" className="mx-auto w-full max-w-2xl">
       <PageHeaderSkeleton />
 
-      <div className="nf-card p-md sm:p-lg">
+      <div className={panelClass({ variant: "card" })}>
         <div className="flex items-start gap-md">
           <Skeleton width="4.5rem" height="4.5rem" radius="md" className="shrink-0" />
           <div className="min-w-0 flex-1">
@@ -30,7 +31,7 @@ export default function LoadingBookings() {
       <Skeleton className="mb-sm mt-xl" width="10rem" height="0.75rem" radius="sm" />
       <ul className="grid gap-sm sm:grid-cols-3">
         {Array.from({ length: 3 }, (_, i) => (
-          <li key={i} className="nf-card flex items-start gap-md p-md sm:flex-col">
+          <li key={i} className={panelClass({ variant: "card", className: "flex-row items-start gap-md sm:flex-col" })}>
             <Skeleton width="3.5rem" height="3.5rem" radius="md" className="shrink-0" />
             <div className="min-w-0 flex-1">
               <Skeleton width="70%" height="0.875rem" radius="sm" />

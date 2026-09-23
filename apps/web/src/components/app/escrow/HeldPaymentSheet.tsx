@@ -1,4 +1,3 @@
-import Link from "next/link";
 
 import {
   PURPOSE_LABEL,
@@ -10,6 +9,8 @@ import {
   stateLine,
 } from "@/lib/escrow/copy";
 import type { HeldPayment } from "@/lib/escrow/queries";
+import { ButtonLink } from "@/components/ui/Button";
+import { Panel } from "@/components/ui/Panel";
 
 /**
  * One held payment, as a card in a list.
@@ -66,14 +67,20 @@ export function HeldPaymentSheet({
     </>
   );
 
-  if (!href) return <article className="nf-esc-sheet">{body}</article>;
+  if (!href) {
+    return (
+      <Panel as="article" variant="card" className="nf-esc-sheet">
+        {body}
+      </Panel>
+    );
+  }
 
   return (
-    <article className="nf-esc-sheet">
+    <Panel as="article" variant="card" className="nf-esc-sheet">
       {body}
-      <Link className="nf-esc-action" href={href}>
+      <ButtonLink href={href} variant="secondary" trailingIcon="arrow-right" className="self-start">
         Open it
-      </Link>
-    </article>
+      </ButtonLink>
+    </Panel>
   );
 }

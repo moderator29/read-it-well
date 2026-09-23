@@ -1,46 +1,28 @@
 /*
   escrow: the held-payment surfaces' own partial, imported by the route so
   globals.css is untouched. Its classes are `nf-esc-*`, which nothing else in
-  the estate uses, so no rule here can reach another surface and no rule
-  elsewhere reaches these.
+  the estate uses.
 
-  WHAT IS DRAWN. A list of agreements and one detail sheet per agreement: the
-  amount, the state, what it means to the person reading it, the payout date,
-  the two or three things they can do about it, the evidence filed by both
-  sides, and the receipt once it has settled.
-
-  THE CONTROL LAW, RESTATED BECAUSE IT HAS BEEN BROKEN THIRTY TIMES. A control
-  that carries text is a rounded rectangle on --nf-radius-control and NEVER a
-  capsule. The test is the ratio of the drawn radius to the drawn short side,
-  not the token's name: at or above 0.5 it is a capsule however it was spelled.
-  Every control below is on --nf-radius-control, which is 14px, over a short
-  side of at least 44px, so the ratio is 0.32 and it stays a rectangle at every
-  width. The one round thing on these screens is the state dot, which is a dot.
+  THE MATERIAL IS NOT DRAWN HERE ANY MORE (platform sweep, 23 September). The
+  agreement card, the evidence rows, the receipt and the form boxes are the
+  shared `Panel` (`.nf-panel`, glass.css); every control is the shared `Button`
+  (lit primary, glass secondary); every field is the shared `.nf-field`. What
+  is left in this file is layout, type roles, the state dot and the evidence
+  stripe, none of which is a container, a rim, a glow or a button. A value
+  that is a fill, an edge or a shadow does not belong here: change the token.
 
   NO STATE IS COMMUNICATED BY COLOUR ALONE. Every state carries its word, and
-  the dot beside it is a second signal rather than the only one. A person who
-  cannot tell emerald from rose reads the same screen.
+  the dot beside it is a second signal rather than the only one.
 
-  THE LIT EDGE, on the founder's ruling of 19 September: a bright brand rim of
-  one pixel, an inner highlight along the top, a soft glow off the edge, over a
-  near-black fill. Nothing here names a colour; every value is a token.
-
-  LIGHT IS A DESIGNED PAPER TWIN AT THE FOOT, not an inversion: a brand-tinted
-  hairline and no bloom, because a blurred halo on white paper is a smudge.
+  Dark only: the paper twin that stood at the foot of this file went with
+  light mode.
 */
 @layer components {
   /* ------------------------------------------------------------- the sheet */
 
+  /* Layout only: the material is `Panel variant="card"`. */
   .nf-esc-sheet {
-    display: grid;
     gap: var(--nf-space-md);
-    padding: var(--nf-pad-card-sm);
-    border-radius: var(--nf-radius-lg);
-    background: var(--nf-glass-fill);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 0 1px var(--nf-brand-edge),
-      0 10px 30px -18px var(--nf-glow-3);
   }
 
   .nf-esc-sheet + .nf-esc-sheet {
@@ -51,9 +33,7 @@
 
   /*
    * THE AMOUNT LEADS, because it is the only thing on the screen a person
-   * came to check. It is set in the display face at h2, which is one rung
-   * below the page title, so the agreement's own figure never outshouts the
-   * heading of a list of nine of them.
+   * came to check. Display face at h2, one rung below the page title.
    */
   .nf-esc-amount {
     font-family: var(--nf-font-display);
@@ -81,11 +61,7 @@
     color: var(--nf-content-secondary);
   }
 
-  /*
-   * The dot is the SECOND signal and never the only one. The word beside it
-   * says the same thing, which is what rule D-4 asks for and what makes the
-   * screen readable to somebody who cannot tell one hue from another.
-   */
+  /* The dot is the SECOND signal and never the only one (rule D-4). */
   .nf-esc-dot {
     inline-size: var(--nf-space-xs);
     block-size: var(--nf-space-xs);
@@ -115,18 +91,16 @@
   /* --------------------------------------------------------- the countdown */
 
   /*
-   * THE DATE, IN A BOX OF ITS OWN, because it is the one fact on this screen
-   * that changes what somebody does today. It is a date and never a duration:
-   * `countdown()` in lib/escrow/copy.ts is the only thing that renders it and
-   * there is deliberately no helper that returns a number of days.
+   * THE PAYOUT DATE, as a row inside the agreement card: set off by the
+   * panel's own hairline rather than by a second box, because a box inside
+   * the card is two rims fighting. `countdown()` in lib/escrow/copy.ts is the
+   * only thing that renders it, and it is a date, never a duration.
    */
   .nf-esc-when {
     display: grid;
     gap: var(--nf-space-2xs);
-    padding: var(--nf-space-sm) var(--nf-space-md);
-    border-radius: var(--nf-radius-control);
-    background: var(--nf-glass-fill-thin);
-    box-shadow: 0 0 0 1px var(--nf-brand-edge-soft);
+    padding-top: var(--nf-space-sm);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
   }
 
   .nf-esc-when-label {
@@ -141,15 +115,20 @@
     color: var(--nf-content-primary);
   }
 
+  /*
+   * A SMALL FORM ON ITS OWN CARD (the objection, the file caption): layout
+   * only, on `Panel variant="card"`.
+   */
+  .nf-esc-form {
+    gap: var(--nf-space-xs);
+    margin-top: var(--nf-space-sm);
+  }
+
   /* ----------------------------------------------------------- the receipt */
 
+  /* Layout only: the material is `Panel variant="card"`. */
   .nf-esc-receipt {
-    display: grid;
     gap: var(--nf-space-xs);
-    padding: var(--nf-space-md);
-    border-radius: var(--nf-radius-control);
-    background: var(--nf-glass-fill-thin);
-    box-shadow: 0 0 0 1px var(--nf-brand-edge-soft);
   }
 
   .nf-esc-receipt-row {
@@ -163,7 +142,7 @@
 
   .nf-esc-receipt-row:last-child {
     padding-top: var(--nf-space-xs);
-    border-top: 1px solid var(--nf-divider);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
     color: var(--nf-content-primary);
   }
 
@@ -178,23 +157,28 @@
     gap: var(--nf-space-sm);
   }
 
+  /*
+   * One filed item, on `Panel variant="card"`. WHOSE IT IS is said by a word
+   * and by a stripe on the inline start, drawn INSIDE the card so the card's
+   * own lit edge is left alone. The stripe is a marker, not a surface.
+   */
   .nf-esc-filed {
-    display: grid;
     gap: var(--nf-space-3xs);
-    padding: var(--nf-space-sm) var(--nf-space-md);
-    border-radius: var(--nf-radius-control);
-    background: var(--nf-glass-fill-thin);
-    /*
-     * WHOSE EVIDENCE IT IS, SAID BY A STRIPE AND BY A WORD. The stripe sits on
-     * the inline start so the two sides read as two columns of one file at a
-     * glance; the line above each one names the person, so the stripe is never
-     * carrying the meaning on its own.
-     */
-    border-inline-start: 2px solid var(--nf-brand-edge-soft);
+    padding-inline-start: calc(var(--nf-space-md) + var(--nf-space-2xs));
   }
 
-  .nf-esc-filed[data-mine="true"] {
-    border-inline-start-color: var(--nf-brand-primary);
+  .nf-esc-filed::before {
+    content: "";
+    position: absolute;
+    inset-block: var(--nf-space-sm);
+    inset-inline-start: var(--nf-space-xs);
+    inline-size: 2px;
+    border-radius: var(--nf-radius-pill);
+    background: var(--nf-panel-hair);
+  }
+
+  .nf-esc-filed[data-mine="true"]::before {
+    background: var(--nf-lit);
   }
 
   .nf-esc-filed-who {
@@ -207,50 +191,40 @@
     color: var(--nf-content-primary);
   }
 
+  /* A link that has been filed, drawn as a link and never as a preview. */
+  .nf-esc-filed-open {
+    display: inline-block;
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-link);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
   /* ----------------------------------------------------------- the actions */
 
+  /*
+   * The controls under the agreement, and the sentence under the card: both
+   * need air off the card's lit edge, which a Section's own rhythm does not
+   * give a paragraph that follows a panel.
+   */
+  .nf-esc-sheet + .nf-esc-line,
+  .nf-esc-controls {
+    margin-top: var(--nf-space-sm);
+  }
+
+  /* A row of shared `Button`s. Layout only. */
   .nf-esc-actions {
     display: flex;
     flex-wrap: wrap;
     gap: var(--nf-gap-inline);
   }
 
-  /*
-   * A CONTROL THAT CARRIES TEXT IS A ROUNDED RECTANGLE. 14px of radius over a
-   * 44px minimum short side is a ratio of 0.32. The 44px floor is also the
-   * smallest thing a thumb hits reliably, so the two rules agree.
-   */
-  .nf-esc-action {
-    min-block-size: 44px;
-    padding-inline: var(--nf-space-md);
-    border-radius: var(--nf-radius-control);
-    font-size: var(--nf-text-body-sm);
-    transition:
-      transform var(--nf-duration-press) var(--nf-ease-press),
-      box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-
-  .nf-esc-action:active {
-    transform: scale(var(--nf-press-scale));
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .nf-esc-action {
-      transition: none;
-    }
-
-    .nf-esc-action:active {
-      transform: none;
-    }
-  }
-
   /* -------------------------------------------------- filing evidence */
 
   /*
    * THE FILER. Two blocks, one for a file and one for a fact, separated by a
-   * hairline rather than by a heading weight, because the two are equals: a
-   * receipt and "the keys were not handed over" are both evidence and neither
-   * is the fallback for the other.
+   * hairline rather than by a heading weight, because the two are equals.
    */
   .nf-esc-filer {
     display: grid;
@@ -262,7 +236,7 @@
     display: grid;
     gap: var(--nf-space-sm);
     padding-top: var(--nf-space-md);
-    border-top: 1px solid var(--nf-divider);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
   }
 
   .nf-esc-filer-head {
@@ -271,45 +245,15 @@
     color: var(--nf-content-primary);
   }
 
-  /*
-   * EVERY FIELD IS A ROUNDED RECTANGLE ON THE CONTROL RADIUS, exactly like
-   * every button beside it. 14px over a 44px minimum short side is a ratio of
-   * 0.32, which stays a rectangle at every width. A select and a date input
-   * are controls that carry text, so the same law applies to them.
-   */
-  .nf-esc-field {
-    width: 100%;
-    min-block-size: 44px;
-    padding: var(--nf-space-sm) var(--nf-space-md);
-    border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-divider);
-    background: var(--nf-surface-raised);
-    color: var(--nf-content-primary);
-    font-size: var(--nf-text-body);
-  }
-
-  .nf-esc-field:focus-visible {
-    outline: 2px solid var(--nf-brand-secondary);
-    outline-offset: 2px;
-  }
-
-  /* A link that has been filed, drawn as a link and never as a preview. */
-  .nf-esc-filed-open {
-    display: inline-block;
-    margin-top: var(--nf-space-xs);
-    font-size: var(--nf-text-body-sm);
-    color: var(--nf-content-secondary);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-
   /* --------------------------------------------- the proposal in a thread */
 
   /*
-   * THE COMPOSER SITS ABOVE THE MESSAGE BOX and is distinguishable from a
-   * message by a hairline and by its layout, never by colour alone: it is a
-   * full-width block where every bubble is a bubble, so it does not read as
-   * something either person said.
+   * HELD FOR `components/app/messages/ProposeHeldPayment.tsx`, WHICH IS THE
+   * MESSAGES GROUP'S FILE, and for nothing else. That component still writes
+   * `nf-esc-thread`, `nf-esc-action`, `nf-esc-field` and `nf-esc-choice`; the
+   * held-payment routes no longer do. Request SW-S1 (ledger 13, stays): move
+   * it onto `Panel`, `Button` and `.nf-field`, then delete this block whole.
+   * Kept exactly as it stood so the thread does not change under its owner.
    */
   .nf-esc-thread {
     display: grid;
@@ -319,6 +263,14 @@
     border-radius: var(--nf-radius-lg);
     border: 1px solid var(--nf-divider);
     background: var(--nf-surface-raised);
+  }
+
+  .nf-esc-thread .nf-esc-when {
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-top: 0;
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-glass-fill-thin);
+    box-shadow: 0 0 0 1px var(--nf-brand-edge-soft);
   }
 
   .nf-esc-thread-head {
@@ -341,11 +293,39 @@
     color: var(--nf-content-secondary);
   }
 
-  /*
-   * WHO PAYS IS TWO EQUAL CHOICES AND NEITHER IS PRE-SELECTED. The control is
-   * only enabled once one has been chosen, so the form cannot be submitted by
-   * somebody who has not read the question.
-   */
+  .nf-esc-action {
+    min-block-size: 44px;
+    padding-inline: var(--nf-space-md);
+    border-radius: var(--nf-radius-control);
+    font-size: var(--nf-text-body-sm);
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
+  }
+
+  .nf-esc-action:active {
+    transform: scale(var(--nf-press-scale));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-esc-action {
+      transition: none;
+    }
+
+    .nf-esc-action:active {
+      transform: none;
+    }
+  }
+
+  .nf-esc-field {
+    width: 100%;
+    min-block-size: 44px;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-divider);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+  }
+
   .nf-esc-choice {
     display: flex;
     align-items: center;
@@ -353,22 +333,5 @@
     min-block-size: 44px;
     font-size: var(--nf-text-body);
     color: var(--nf-content-primary);
-  }
-
-  /* ------------------------------------------------------- the paper twin */
-
-  /*
-   * Light is a designed twin and not an inversion (rule 7). The glass keeps
-   * its shape and loses its bloom: a brand-tinted hairline, no glow, because a
-   * blurred halo on white paper reads as a smudge rather than as light.
-   */
-  :root[data-theme="light"] .nf-esc-sheet {
-    box-shadow: 0 0 0 1px var(--nf-brand-edge-soft);
-  }
-
-  :root[data-theme="light"] .nf-esc-when,
-  :root[data-theme="light"] .nf-esc-receipt,
-  :root[data-theme="light"] .nf-esc-filed {
-    box-shadow: 0 0 0 1px var(--nf-divider);
   }
 }

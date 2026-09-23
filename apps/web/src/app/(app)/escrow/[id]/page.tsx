@@ -93,9 +93,11 @@ export default async function HeldPaymentPage({
         </Section>
       ) : null}
 
-      <Section title="Receipt">
-        <HeldPaymentReceipt payment={payment} />
-      </Section>
+      {payment.state === "RELEASED" || payment.state === "REFUNDED" || payment.state === "RESOLVED" ? (
+        <Section title="Receipt">
+          <HeldPaymentReceipt payment={payment} />
+        </Section>
+      ) : null}
 
       <Section
         title="What has been filed"

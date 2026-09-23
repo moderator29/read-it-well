@@ -16,6 +16,8 @@ import {
   nairaToKobo,
   type EscrowFact,
 } from "@/lib/escrow/copy";
+import { Button } from "@/components/ui/Button";
+import { Panel } from "@/components/ui/Panel";
 
 /**
  * THE CLIENT THAT PICKS A FILE AND UPLOADS IT, AND THE ONE THAT STATES A FACT.
@@ -214,30 +216,25 @@ export function EvidenceFiler({
           onChange={(event) => pick(event.target.files?.[0])}
         />
         <div className="nf-esc-actions">
-          <button
-            type="button"
-            className="nf-esc-action"
-            disabled={pending}
-            onClick={() => fileRef.current?.click()}
-          >
+          <Button variant="secondary" leadingIcon="document" disabled={pending} onClick={() => fileRef.current?.click()}>
             {picked ? "Choose a different file" : "Choose a file"}
-          </button>
+          </Button>
           {picked ? (
-            <button type="button" className="nf-esc-action" disabled={pending} onClick={reset}>
+            <Button variant="ghost" disabled={pending} onClick={reset}>
               Remove
-            </button>
+            </Button>
           ) : null}
         </div>
 
         {picked ? (
-          <div className="nf-esc-when">
+          <Panel as="div" variant="card" className="nf-esc-form">
             <p className="nf-esc-filed-what">{picked.name}</p>
             <label className="nf-esc-when-label" htmlFor={`evidence-caption-${id}`}>
               What this file shows
             </label>
             <textarea
               id={`evidence-caption-${id}`}
-              className="nf-esc-field"
+              className="nf-field"
               rows={2}
               maxLength={EVIDENCE_CAPTION_MAX}
               value={caption}
@@ -249,15 +246,10 @@ export function EvidenceFiler({
                 {captionLeft} characters left.
               </p>
             ) : null}
-            <button
-              type="button"
-              className="nf-esc-action"
-              disabled={pending}
-              onClick={sendFile}
-            >
+            <Button variant="primary" disabled={pending} onClick={sendFile}>
               File this
-            </button>
-          </div>
+            </Button>
+          </Panel>
         ) : null}
       </div>
 
@@ -274,7 +266,7 @@ export function EvidenceFiler({
         </label>
         <select
           id={`evidence-fact-${id}`}
-          className="nf-esc-field"
+          className="nf-field"
           value={fact}
           onChange={(event) => {
             setFact(event.target.value as EscrowFact | "");
@@ -300,7 +292,7 @@ export function EvidenceFiler({
             <input
               id={`evidence-date-${id}`}
               type="date"
-              className="nf-esc-field"
+              className="nf-field"
               value={happenedOn}
               onChange={(event) => setHappenedOn(event.target.value)}
             />
@@ -316,7 +308,7 @@ export function EvidenceFiler({
               id={`evidence-amount-${id}`}
               type="text"
               inputMode="decimal"
-              className="nf-esc-field nf-numeric"
+              className="nf-field nf-numeric"
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
               placeholder="250000"
@@ -325,14 +317,9 @@ export function EvidenceFiler({
         ) : null}
 
         <div className="nf-esc-actions">
-          <button
-            type="button"
-            className="nf-esc-action"
-            disabled={pending || !fact}
-            onClick={sendFact}
-          >
+          <Button variant="primary" disabled={pending || !fact} onClick={sendFact}>
             File this
-          </button>
+          </Button>
         </div>
       </div>
 

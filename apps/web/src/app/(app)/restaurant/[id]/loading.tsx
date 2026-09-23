@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/Skeleton";
+import { panelClass } from "@/components/ui/Panel";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
 
 /**
@@ -22,7 +23,7 @@ export default function LoadingRestaurant() {
 
         <Skeleton className="mt-block" width="8rem" height="1.1875rem" radius="sm" />
         <Skeleton className="mt-row" width="88%" height="0.9375rem" radius="sm" />
-        <div className="nf-card mt-heading rounded-[var(--nf-radius-xl)] p-card sm:p-cell">
+        <div className={panelClass({ variant: "card", className: "mt-heading" })}>
           {Array.from({ length: 3 }, (_, i) => (
             <div key={i} className={i === 0 ? "" : "mt-row"}>
               <Skeleton width="6rem" height="0.875rem" radius="sm" />
@@ -33,7 +34,7 @@ export default function LoadingRestaurant() {
         </div>
 
         <Skeleton className="mt-block" width="9rem" height="1.1875rem" radius="sm" />
-        <div className="nf-card mt-heading rounded-[var(--nf-radius-xl)] p-card sm:p-cell">
+        <div className={panelClass({ variant: "card", className: "mt-heading" })}>
           <Skeleton width="92%" height="1rem" radius="sm" />
           <Skeleton className="mt-inline-tight" width="70%" height="1rem" radius="sm" />
         </div>

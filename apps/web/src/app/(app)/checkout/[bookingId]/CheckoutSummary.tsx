@@ -2,6 +2,7 @@ import { getDictionary, plural, type Locale } from "@vallo/i18n";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { Amount } from "@/components/ui/Amount";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Panel } from "@/components/ui/Panel";
 
 /**
  * What is being bought, on the checkout screen.
@@ -15,7 +16,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 export function CheckoutSummary({ view, locale }: { view: CheckoutView; locale: Locale }) {
   const counts = getDictionary(locale).counts;
   return (
-    <section aria-labelledby="nf-checkout-summary" className="nf-card p-md sm:p-lg">
+    <Panel aria-labelledby="nf-checkout-summary" variant="card">
       <h2 id="nf-checkout-summary" className="nf-h3">
         {view.title}
       </h2>
@@ -26,7 +27,7 @@ export function CheckoutSummary({ view, locale }: { view: CheckoutView; locale: 
         </p>
       )}
 
-      <dl className="mt-md grid gap-xs border-t border-[var(--nf-divider)] pt-md">
+      <dl className="mt-md grid gap-xs border-t border-[var(--nf-panel-hair)] pt-md">
         <div className="flex items-start justify-between gap-md">
           <dt className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">Dates</dt>
           <dd className="text-right text-[length:var(--nf-text-caption)] font-medium text-[var(--nf-content-secondary)]">
@@ -51,7 +52,7 @@ export function CheckoutSummary({ view, locale }: { view: CheckoutView; locale: 
         ))}
       </dl>
 
-      <div className="mt-md border-t border-[var(--nf-divider)] pt-md">
+      <div className="mt-md border-t border-[var(--nf-panel-hair)] pt-md">
         <p className="nf-overline text-[var(--nf-content-muted)]">Total to pay</p>
         <p className="mt-2xs">
           <Amount
@@ -70,6 +71,6 @@ export function CheckoutSummary({ view, locale }: { view: CheckoutView; locale: 
           </p>
         )}
       </div>
-    </section>
+    </Panel>
   );
 }

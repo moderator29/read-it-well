@@ -1,5 +1,6 @@
 import { settlementLines } from "@/lib/escrow/copy";
 import type { HeldPayment } from "@/lib/escrow/queries";
+import { Panel } from "@/components/ui/Panel";
 
 /**
  * The receipt, once an agreement has settled.
@@ -30,13 +31,13 @@ export function HeldPaymentReceipt({
   });
 
   return (
-    <section className="nf-esc-receipt" aria-label="Receipt">
+    <Panel variant="card" className="nf-esc-receipt" aria-label="Receipt">
       {rows.map((row) => (
         <div className="nf-esc-receipt-row" key={row.label}>
           <span>{row.label}</span>
           <span className="nf-esc-receipt-value">{row.value}</span>
         </div>
       ))}
-    </section>
+    </Panel>
   );
 }

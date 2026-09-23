@@ -4343,7 +4343,113 @@ escrow-released, and the eight host panels (host-hotel, host-room-types, host-ra
 host-house-rules, host-restaurant, host-tables, host-facilities). All fixture-backed. Horizontal
 overflow 0 on every shot.
 
-(Apply, per-route table, after proofs and Passes 1 to 3: pending Phase 1 RELEASED.)
+#### Applied on the shared layer (Phase 1 RELEASED 9da8f86f), 23 September
+
+What moved, item by item from the inventory above (local recipe deleted in the same change):
+- **Held payments.** Agreement card `.nf-esc-sheet` -> `Panel variant="card"` (its fill, rim,
+  ring and drop glow deleted). Evidence rows `.nf-esc-filed` and the receipt `.nf-esc-receipt` ->
+  `Panel variant="card"` (thin glass and soft ring deleted; the whose-it-is stripe kept, redrawn
+  inside the card on `--nf-panel-hair` / `--nf-lit`). The objection box and the file-caption box
+  -> `Panel variant="card"` (`.nf-esc-form`, layout only). The payout date inside the card is now
+  a row under the panel hairline, not a second box. Every `.nf-esc-action` on the two routes ->
+  `Button`/`ButtonLink`: "Pay it out now", "Ask to be paid", "Confirm the payout", "Send it to
+  Vallo", "File this" are the lit primary; "Open it", "Withdraw it"/"Decline it", "Say what is
+  wrong", "Say the work was (not) done", "Choose a file" are the glass secondary; "Remove" is
+  ghost. Fields `.nf-esc-field` -> the shared `.nf-field` (the objection textarea had been
+  wearing the action class). Light paper twin deleted. What stays in `escrow.css` is type,
+  layout, the state dot and the stripe, plus ONE block held unchanged for the messages group's
+  `ProposeHeldPayment.tsx` (request SW-S1).
+- **Checkout.** Summary card, room pick card, hold note, the three pay-method cards and every
+  loading card: `nf-card` -> `Panel variant="card"` (hairlines on `--nf-panel-hair`). Hold
+  countdown: `.nf-panel-sunken` -> `Panel`, its bare 44px glass object -> `IconPlate md`. Pay
+  methods: bare 48px glass objects -> `IconPlate lg` (the cards carry `isolation: isolate` so the
+  lit primary's pool is not covered, per Phase 1's note).
+- **Stay detail.** Rate cards in the room sheet: `nf-card` with a local `--nf-radius-lg` override
+  -> `Panel variant="card"` (isolated for the Reserve pool). Room rows: the round `.nf-role-mark`
+  -> `IconPlate md`. Loading: two `nf-card` blocks with a local `--nf-radius-xl` -> `panelClass`.
+- **Restaurant detail.** Loading cards with a local `--nf-radius-xl` -> `panelClass`.
+- **Trips.** Thumbnail: its own 64px `--nf-radius-md` plate on `--nf-surface-secondary` ->
+  `IconPlate lg` (the photo fills it; the glass object sits on it when there is no photo); the
+  controls' indent follows `--nf-plate-size-lg`. The row's own hover wash on `--nf-glass-fill`
+  deleted. Loading cards -> `panelClass`.
+- **Host set-up panels (`stays.css`).** Plate, rule row, rate card and calm note -> the panel
+  tokens (`--nf-panel-fill`/`-fill-card`, `-edge`, `-edges`, `-rim`, `-glow`,
+  `--nf-container-radius`); tiles, chips and the stepper -> the glass door tokens
+  (`--nf-btn-glass-*`); every chosen tile and chip -> `--nf-selected-*` (the console's lit
+  selection); the round glyph -> the plate tokens at the small rung; the thumbnail -> plate
+  tokens; list hairlines -> `--nf-panel-hair`. The classes stay because the host wizard's
+  components write them; every local fill, edge, glow and bloom is gone. The field well stays
+  until SW-S2.
+
+Requests added to the scope file (subsection "Sweep group: stays"): **SW-S1** (messages:
+`ProposeHeldPayment` onto Panel/Button/nf-field, then delete the held block), **SW-S2** (host
+wizard: `nf-field` on the stays inputs and selects), **SW-S3** (wallet family: the dark square
+behind `ResultSheet`'s glass object on the payment sheets).
+
+#### Audit passes (production build, harness, dark, 390 at 2x and 1440)
+
+**Pass 1, 23 September.** Re-opened every changed route (escrow list, detail disputed, held,
+released; checkout; trips; stay; five host panels). Found and fixed: (1) on `/escrow/[id]` the
+set-aside sentence and the controls sat hard against the card's lit edge -> `.nf-esc-controls`
+and `.nf-esc-sheet + .nf-esc-line` take `--nf-space-sm` of air; (2) the route drew a "Receipt"
+heading over nothing whenever the agreement had not settled (the receipt component returns
+null) -> the section renders only for RELEASED, REFUNDED, RESOLVED, in the route and the
+harness; (3) the chosen-tile tick overlapped the "e" of Flexible -> the title gives up the tick
+plus `--nf-space-xs`. (Also found: the first after-shots came from a stale server still holding
+the port on the old build; they were discarded and re-shot on the new build.)
+
+**Pass 2, 23 September.** Every route in the group re-shot. Found and fixed: (1) the room rows on
+`/stay/[id]` still carried the round `.nf-role-mark` plate beside the square shared plates ->
+`IconPlate md`; (2) host tiles wore the panel fill, whose pixel-set ramp is meant for a container
+and read wrong at a 48px band tile -> tiles are controls and now wear the glass door like the
+chips and stepper. Checked and left: the naira mark's double bar in the band tiles is the glyph,
+not a seam.
+
+**Pass 3, 23 September.** Every route re-shot again (`after/*-pass3.jpg`), plus the room rate
+sheet opened by a real tap (`stay-rates-sheet-390-pass3.jpg`). Nothing new of this group's
+found. Controls measured by hand in the build (drawn radius / short side): escrow and checkout
+buttons 51 tall r14 0.28; cuisine chips 44 tall r14 0.32; band tiles 48 tall 0.29; policy tiles
+56 tall 0.25; steppers 46 tall 0.30. Shape sweep (`compare-surface --shape-sweep`, dark, 10
+routes, 12 combinations measured): **0 breaches**; "worth an eye" only the gallery counter "1/5"
+at 0.36 (`ListingGallery`, the listing group's); the host step segments at 0.50 carry no text
+(progress bars, allowed).
+
+#### Per-route result
+
+Reference: the console panel, plate and lit primary, and Get started's glass door, as in
+`docs/design/proofs/session-b/sweep-shared/`. Before: `before/<route>-*-before.jpg`. After:
+`after/<route>-*-pass3.jpg`.
+
+| Route | Status | Container | Edge / rim | Glow | Button | Plate | Match |
+|---|---|---|---|---|---|---|---|
+| `/escrow` | **swept** | own glass sheet, r18 -> Panel card r10 | 1px ring + rim -> per-side panel edges + catch | own drop glow -> panel halo | unlit "Open it" -> glass secondary | none | yes |
+| `/escrow/[id]` | **swept** (the thread proposal is on another route, SW-S1) | sheet, when, receipt, filed, form boxes -> Panel card | as above | as above | 8 unlit actions -> lit primary / glass / ghost | none | yes |
+| `/checkout` (room pick) | **swept** | nf-card -> Panel card | panel | panel | shared (ResultScreen) | none | yes |
+| `/checkout/[bookingId]` + sheets | **swept in this group's files**; SW-S3 open on `ResultSheet` | 5 nf-card + sunken panel -> Panel | panel | panel | shared lit primary (pool visible, isolated) | bare glass objects -> IconPlate md / lg | yes, bar SW-S3 |
+| `/trips` | **swept in this group's files**; the Cancel control is `components/app/bookings` | loading nf-card -> Panel | panel | panel | shared | own 64px plate -> IconPlate lg | yes |
+| `/stay/[id]` | **this group's items swept** (rate cards, room plates, loading); lead card, about, availability pickers, amenity and room tiles, policy panel are `catalogue.css` / `components/app/listing` (home group) | rate card -> Panel card | panel | panel | shared lit Reserve | role mark -> IconPlate md | yes for this group's items |
+| `/restaurant/[id]` | **this group's items swept** (loading); the rest is `catalogue.css` / listing components | loading -> panelClass | panel | panel | shared | none | yes for this group's items |
+| `/stays` | **nothing of this group's to sweep**: `StayCard` markup only; material is `catalogue.css` + shared glass, home group | n/a | n/a | n/a | n/a | n/a | depends on home group |
+| `/stays/search` | as `/stays`; filter sheet and bar in `catalogue.css` | n/a | n/a | n/a | n/a | n/a | depends on home group |
+| `/restaurants` | as `/stays` | n/a | n/a | n/a | n/a | n/a | depends on home group |
+| host set-up panels (`stays.css`) | **swept**, bar the field well (SW-S2) | own plates, r18 / r22 / r32 -> panel tokens r10 | own brand edge + rim-lit -> panel edges + catch | own 14 to 22px glows and bloom -> panel halo / selected shadow | tiles, chips, stepper -> glass door; chosen -> selected | round glyph -> plate tokens | yes |
+
+**Routes swept / routes in group: 5 of 10 fully** (`/escrow`, `/escrow/[id]`, `/checkout`,
+`/checkout/[bookingId]` bar SW-S3, `/trips`), **2 with every item of this group's swept and the
+rest owned by the home group** (`/stay/[id]`, `/restaurant/[id]`), **3 with nothing of this
+group's to move** (`/stays`, `/stays/search`, `/restaurants`), plus the host panels' stylesheet
+swept bar SW-S2.
+
+Governing images re-checked after the sweep (FD3DFE84, 84054CE9, BB0C2C85, 9F384CFE): this
+group changed none of the stays home, the stay lead card or the availability card they govern
+(those are the home group's files), and the checkout and rate cards now carry the lit panel and
+the plate the move-in ledger 9F384CFE draws (square plates with line glyphs, lit edge, lit
+primary with its bloom).
+
+Checks, after `git pull --rebase` and through the heavy lock: whole-project tsc exit 0; whole
+vitest 232 files, 3784 passed, 1 skipped; `check-css-tokens` clean (all ten); eslint clean on
+every changed TS file; every directory under the harness has its own `page.tsx`. Reflection: inherited from the shared tokens when "shared" ships it;
+nothing here restates a sheen.
 
 **Founder's second message, taken in (23 September).** At least three dated audit passes per
 route (none of this group's routes is on the five-pass list; the thread booking card is the
@@ -5005,53 +5111,6 @@ the lead.
 6. A two-word standing chip ("Fast replies") broke over two lines: chips are
    one line.
 7. The shooter's Requests click hit the wrong tab; corrected for pass 2.
-
-**Pass 2, 23 September** (`pass2/`, the card set beside the target at the
-same crop). Found and fixed on the card:
-1. The name and the price were set in the display face at bold and read as
-   headlines; the render sets both in the text face at a semibold weight.
-2. The two dates broke over two lines at 390 ("22 Jun / 2026"): the facts
-   grid gives the dates more room than the guests (1.12, 1.12, 0.76, as the
-   render spaces them), the glyphs step down to 12 and the values to 500.
-3. The primary's chevron was back but crowded against the label: a 4px gap,
-   labels at 600 as the render draws them.
-Other routes, re-opened at 390 and 1440: no new fault in this group's files.
-One outside it: the inbox segment's selected tab is still the shared
-`Segmented`'s flat navy (reported). The Requests tab now proven
-(`pass2/inbox-requests-*.jpg`).
-
-**Pass 3, 23 September** (`pass3/`). Card: "22 Jun 2026" now keeps to one
-line, but the weighted columns moved the wrap to "25 Jun / 2026" and "2 /
-adults". Fixed by removing the indent instead: the glyph sits on the label's
-line and the value runs from the cell's edge, three equal columns. The
-primary's chevron drew at 14 and read as a speck beside a 13px label: 16.
-Other routes, third look at every inventory item at 390 and 1440 (profile
-agent and member bars, every tab, the empty profile, the menu, followers and
-its empty state, edit, inbox and its requests and empty states, the three
-thread faces top and bottom, the options sheet, the share picker, the six
-skeletons): nothing left drawing its own container, edge, glow, button or
-plate in this group's files. Routes 1 to 11 close on pass 3.
-
-**Pass 4, 23 September, the card only** (`pass4/`, 390 and 1440 beside the
-target). Every fact now holds one line at 390; the desktop card (400 wide)
-reads as the render at its proportions. Found: at 390 the primary's chevron
-was still squeezed to a speck, because the flex row shrank the glyph beside a
-label that filled the bar. Fixed: the glyph never shrinks, and under 480px the
-button labels step down a rung.
-
-**Pass 5, 23 September, the card only** (`pass5/`, both faces: the booking
-card in the thread and the listing card in the share picker, beside the
-target). The chevron draws full size after its label; every fact is one line;
-the listing face's title, Verified, price and period chip sit as the render's
-anatomy would put them. Nothing found. Card closes on pass 5. Still differing
-from the render, on purpose: the buttons are 44 tall against its 30 (tap law),
-our type is a rung larger than its 390 rendering, so the card is 392 tall at
-390 against its 307; the "Confirmed" badge is the shared emerald StatusPill
-with its dot where the render draws a teal label; Contact carries the chat
-glyph because it opens a conversation, not a call.
-
-Final figures: routes in the group 12, swept 11 (the twelfth draws nothing of
-its own), audit passes 3 on every route, 5 on the card.
 
 
 ## 13. Platform sweep: home (both sides), search and filters, listing detail, price check (worker "sweep-home")

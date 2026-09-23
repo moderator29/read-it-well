@@ -35,9 +35,11 @@ export default async function SweepEscrowDetail({
           <p className="nf-esc-line">{payment.disputeReason}</p>
         </Section>
       ) : null}
-      <Section title="Receipt">
-        <HeldPaymentReceipt payment={payment} />
-      </Section>
+      {payment.state === "RELEASED" || payment.state === "REFUNDED" || payment.state === "RESOLVED" ? (
+        <Section title="Receipt">
+          <HeldPaymentReceipt payment={payment} />
+        </Section>
+      ) : null}
       <Section
         title="What has been filed"
         description="Files and facts, from both of you. Everything here is visible to both sides and nothing can be changed once it is filed."

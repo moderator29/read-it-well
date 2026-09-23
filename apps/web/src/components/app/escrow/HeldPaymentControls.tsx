@@ -10,6 +10,8 @@ import {
   requestHeldPaymentRelease,
 } from "@/lib/escrow/actions";
 import type { EscrowState, Party } from "@/lib/escrow/copy";
+import { Button } from "@/components/ui/Button";
+import { Panel } from "@/components/ui/Panel";
 
 /**
  * The two or three things a person can actually do, and nothing they cannot.
@@ -58,15 +60,14 @@ export function HeldPaymentControls({
   /* A proposal nobody has funded. Either side may withdraw it. */
   if (state === "INITIATED" || state === "FUNDED") {
     controls.push(
-      <button
+      <Button
         key="cancel"
-        type="button"
-        className="nf-esc-action"
+        variant="secondary"
         disabled={pending}
         onClick={() => run(() => cancelHeldPayment({ id }))}
       >
         {payer ? "Withdraw it" : "Decline it"}
-      </button>,
+      </Button>,
     );
   }
 
@@ -74,27 +75,25 @@ export function HeldPaymentControls({
   if (state === "HELD") {
     if (payer) {
       controls.push(
-        <button
+        <Button
           key="confirm"
-          type="button"
-          className="nf-esc-action"
+          variant="primary"
           disabled={pending}
           onClick={() => run(() => confirmHeldPayment({ id }))}
         >
           Pay it out now
-        </button>,
+        </Button>,
       );
     } else {
       controls.push(
-        <button
+        <Button
           key="ask"
-          type="button"
-          className="nf-esc-action"
+          variant="primary"
           disabled={pending}
           onClick={() => run(() => requestHeldPaymentRelease({ id }))}
         >
           Ask to be paid
-        </button>,
+        </Button>,
       );
     }
   }
@@ -102,40 +101,37 @@ export function HeldPaymentControls({
   /* A payout has been asked for. The other side confirms or objects. */
   if (state === "RELEASE_REQUESTED" && payer) {
     controls.push(
-      <button
+      <Button
         key="confirm"
-        type="button"
-        className="nf-esc-action"
+        variant="primary"
         disabled={pending}
         onClick={() => run(() => confirmHeldPayment({ id }))}
       >
         Confirm the payout
-      </button>,
+      </Button>,
     );
   }
 
   /* Objecting is open to both sides while the money is still set aside. */
   if (state === "HELD" || state === "RELEASE_REQUESTED") {
     controls.push(
-      <button
+      <Button
         key="object"
-        type="button"
-        className="nf-esc-action"
+        variant="secondary"
         disabled={pending}
         onClick={() => setArguing((was) => !was)}
       >
         Say what is wrong
-      </button>,
+      </Button>,
     );
   }
 
   /* Under review. Nothing to decide, but facts can still be filed. */
   if (state === "DISPUTED") {
     controls.push(
-      <button
+      <Button
         key="fact"
-        type="button"
-        className="nf-esc-action"
+        variant="secondary"
         disabled={pending}
         onClick={() =>
           run(() =>
@@ -147,39 +143,38 @@ export function HeldPaymentControls({
         }
       >
         {payer ? "Say the work was not done" : "Say the work was done"}
-      </button>,
+      </Button>,
     );
   }
 
   if (controls.length === 0 && !message) return null;
 
   return (
-    <div>
+    <div className="nf-esc-controls">
       <div className="nf-esc-actions">{controls}</div>
 
       {arguing ? (
-        <div className="nf-esc-when">
+        <Panel as="div" variant="card" className="nf-esc-form">
           <label className="nf-esc-when-label" htmlFor={`why-${id}`}>
             What went wrong
           </label>
           <textarea
             id={`why-${id}`}
-            className="nf-esc-action"
+            className="nf-field"
             rows={3}
             maxLength={400}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             placeholder="One or two sentences somebody can act on."
           />
-          <button
-            type="button"
-            className="nf-esc-action"
+          <Button
+            variant="primary"
             disabled={pending || reason.trim().length < 4}
             onClick={() => run(() => disputeHeldPayment({ id, reason: reason.trim() }))}
           >
             Send it to Vallo
-          </button>
-        </div>
+          </Button>
+        </Panel>
       ) : null}
 
       {message ? (

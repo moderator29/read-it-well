@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/Skeleton";
+import { panelClass } from "@/components/ui/Panel";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
 
 /**
@@ -19,18 +20,18 @@ export default function LoadingStay() {
         <Skeleton width="72%" height="1.75rem" radius="sm" />
         <Skeleton className="mt-inline-tight" width="45%" height="1rem" radius="sm" />
 
-        <div className="nf-card mt-block rounded-[var(--nf-radius-xl)] p-card sm:p-cell">
+        <div className={panelClass({ variant: "card", className: "mt-block" })}>
           <Skeleton width="8rem" height="0.875rem" radius="sm" />
           <Skeleton className="mt-inline-tight" width="60%" height="2.5rem" radius="sm" />
           <Skeleton className="mt-inline" width="70%" height="0.90625rem" radius="sm" />
         </div>
 
         <Skeleton className="mt-block" width="6rem" height="1.1875rem" radius="sm" />
-        <ul className="nf-card mt-heading overflow-hidden rounded-[var(--nf-radius-xl)] px-lg sm:px-xl">
+        <ul className={panelClass({ variant: "card", className: "mt-heading overflow-hidden px-lg sm:px-xl" })}>
           {Array.from({ length: 3 }, (_, i) => (
             <li
               key={i}
-              className="flex items-start gap-sm border-t border-[var(--nf-border-subtle)] py-md first:border-t-0"
+              className="flex items-start gap-sm border-t border-[var(--nf-panel-hair)] py-md first:border-t-0"
             >
               <Skeleton width="2.75rem" height="2.75rem" radius="pill" className="shrink-0" />
               <div className="min-w-0 flex-1">

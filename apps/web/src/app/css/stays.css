@@ -10,16 +10,16 @@
  * it, the tile with its tick, the joined stepper, the rule row with its round
  * glyph, the meal-plan list with its hairlines, the day row, the band.
  *
- * WHY A FILE OF ITS OWN. Six agents are in this tree and the unit of collision
- * is the file, so the ledger gave the stays stylesheet one owner. Nothing here
- * edits `tokens.css`, `buttons.css`, `chips.css`, `glass.css`, `light.css`,
- * `chrome.css`, `controls.css` or `catalogue.css`, and nothing here edits
- * `agent.css`, whose `nf-host-*` register this file deliberately INHERITS
- * rather than restates: the plate below is the same well, the same
- * `--nf-brand-edge`, the same `--nf-rim-lit` and the same single soft bloom as
- * `.nf-host-group`, because the render draws one container anatomy across all
- * twelve images and a second recipe for the same object is how two surfaces
- * drift apart.
+ * WHY A FILE OF ITS OWN, AND WHAT IS NO LONGER IN IT. The ledger gave the
+ * stays stylesheet one owner. Since the platform sweep (23 September) it
+ * draws NO material of its own: every container here reads the shared panel
+ * tokens (`--nf-panel-*`, `--nf-container-radius`), the one icon plate reads
+ * the shared plate tokens (`--nf-plate-*`), the chip and the stepper read the
+ * glass door (`--nf-btn-glass-*`) and every chosen state reads
+ * `--nf-selected-*`, which are the console's and Get started's own values
+ * (ledger 13.0). The components that write these classes are the host
+ * wizard's (`components/host/stays/**`), so the class names stay and only
+ * the recipes moved. A new fill, edge or glow belongs in the tokens.
  *
  * THE SHAPE LAW, WHICH OUTRANKS THE RENDER AND IS APPLIED HERE THREE TIMES.
  * A control carrying text is a rounded rectangle on `--nf-radius-control`,
@@ -29,7 +29,7 @@
  * all `--nf-radius-control` however round the render drew them. The two round
  * things that stay round carry NO text and are therefore outside the law: the
  * switch's track, which is the platform's own `Switch` primitive and is not
- * restyled here, and `.nf-stays-glyph`, a bare mark on a ring.
+ * restyled here, and the tick disc on a chosen tile.
  *
  * Everything is inside `@layer components` so Tailwind's utilities stay
  * authoritative over it, and every value is a layer two token.
@@ -153,12 +153,13 @@
    */
   .nf-stays-plate {
     padding: var(--nf-space-sm) var(--nf-space-md) var(--nf-space-md);
-    border-radius: var(--nf-radius-xl);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill);
     box-shadow:
-      var(--nf-rim-lit),
-      0 0 18px var(--nf-glow-1);
+      var(--nf-panel-rim),
+      var(--nf-panel-glow);
   }
   .nf-stays-plate__label {
     display: block;
@@ -279,14 +280,13 @@
    */
   .nf-stays-list {
     margin-top: var(--nf-space-xs);
-    border-radius: var(--nf-radius-lg);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-hair);
     background: var(--nf-well-fill-deep);
-    box-shadow: var(--nf-rim-lit);
     overflow: hidden;
   }
   .nf-stays-list > * + * {
-    border-top: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-stays-list .nf-stays-row {
     padding: var(--nf-space-xs) var(--nf-space-sm);
@@ -306,9 +306,9 @@
     align-items: stretch;
     flex: 0 0 auto;
     border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill-deep);
-    box-shadow: var(--nf-rim-lit);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
     overflow: hidden;
   }
   .nf-stays-stepper__btn {
@@ -327,14 +327,14 @@
   }
   .nf-stays-stepper__btn + .nf-stays-stepper__btn,
   .nf-stays-stepper__value + .nf-stays-stepper__btn {
-    border-left: var(--nf-border-width) solid var(--nf-brand-edge);
+    border-left: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-stays-stepper__value {
     display: grid;
     place-items: center;
     min-width: 3rem;
     padding-inline: var(--nf-space-xs);
-    border-left: var(--nf-border-width) solid var(--nf-brand-edge);
+    border-left: var(--nf-border-width) solid var(--nf-panel-hair);
     font-size: var(--nf-text-body);
     font-variant-numeric: tabular-nums;
     color: var(--nf-content-primary);
@@ -365,10 +365,13 @@
     gap: var(--nf-space-2xs);
     min-height: 3.5rem;
     padding: var(--nf-space-sm);
+    /* A tile is a CONTROL, so it wears the glass door and not the panel: the
+       panel's fill ramp is set in pixels for a container, and at a 48px band
+       tile its foot stop drew a seam across the middle (sweep pass 2). */
     border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill-deep);
-    box-shadow: var(--nf-rim-lit);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
     text-align: left;
     color: var(--nf-content-secondary);
     transition:
@@ -377,12 +380,16 @@
   }
   .nf-stays-tile[aria-pressed="true"],
   .nf-stays-tile[aria-checked="true"] {
-    border-color: var(--nf-brand-edge-strong);
-    background: var(--nf-brand-tint-2);
-    color: var(--nf-content-primary);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 22px var(--nf-glow-3);
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    color: var(--nf-content-on-brand);
+    box-shadow: var(--nf-selected-shadow);
+  }
+  .nf-stays-tile[aria-pressed="true"] .nf-stays-tile__title,
+  .nf-stays-tile[aria-checked="true"] .nf-stays-tile__title,
+  .nf-stays-tile[aria-pressed="true"] .nf-stays-tile__meta,
+  .nf-stays-tile[aria-checked="true"] .nf-stays-tile__meta {
+    color: var(--nf-content-on-brand);
   }
   .nf-stays-tile__mark {
     display: block;
@@ -409,8 +416,8 @@
     width: 1.25rem;
     height: 1.25rem;
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-brand-primary);
-    color: var(--nf-content-on-brand);
+    background: var(--nf-content-on-brand);
+    color: var(--nf-lit);
   }
   /*
    * THE TICK NEVER LANDS ON A WORD. A tile with no mark above its title puts
@@ -420,7 +427,7 @@
    */
   .nf-stays-tile[aria-checked="true"] .nf-stays-tile__title,
   .nf-stays-tile[aria-pressed="true"] .nf-stays-tile__title {
-    padding-right: 1.25rem;
+    padding-right: calc(1.25rem + var(--nf-space-xs));
   }
 
   /* The band tile is a single centred mark and nothing else. */
@@ -462,9 +469,9 @@
     min-height: var(--nf-pad-field-affordance);
     padding: var(--nf-pad-chip-block) var(--nf-space-md);
     border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill-deep);
-    box-shadow: var(--nf-rim-lit);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
     font-size: var(--nf-text-body-sm);
     font-weight: 500;
     color: var(--nf-content-secondary);
@@ -473,12 +480,10 @@
       background var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-stays-chip[aria-pressed="true"] {
-    background: linear-gradient(180deg, var(--nf-brand-primary), var(--nf-brand-primary-strong));
-    border-color: var(--nf-brand-edge-strong);
+    background: var(--nf-selected-fill);
+    border-color: var(--nf-selected-edges);
     color: var(--nf-content-on-brand);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 18px var(--nf-glow-3);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
 
   /* ------------------------------------------------- the rule and day rows */
@@ -496,12 +501,13 @@
     width: 100%;
     min-height: 3.5rem;
     padding: var(--nf-space-xs) var(--nf-space-md);
-    border-radius: var(--nf-radius-lg);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill);
     box-shadow:
-      var(--nf-rim-lit),
-      0 0 14px var(--nf-glow-1);
+      var(--nf-panel-rim),
+      var(--nf-panel-glow);
   }
   .nf-stays-rule__label {
     flex: 1 1 auto;
@@ -510,20 +516,25 @@
     color: var(--nf-content-primary);
   }
   /*
-   * The small round glyph the whole reference set carries. It holds a mark and
-   * never a word, which is why it is the one object on these screens the shape
-   * law leaves round.
+   * The icon plate the whole reference set carries beside a rule or a note:
+   * the shared plate at its small rung (`IconPlate size="sm"`), written as a
+   * class because the host wizard's components set it, not this file.
    */
   .nf-stays-glyph {
     display: grid;
     place-items: center;
-    width: 2.25rem;
-    height: 2.25rem;
+    width: var(--nf-plate-size-sm);
+    height: var(--nf-plate-size-sm);
     flex: 0 0 auto;
-    border-radius: var(--nf-radius-circle);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill-deep);
-    box-shadow: var(--nf-rim-lit);
+    border-radius: var(--nf-plate-radius-sm);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    border-color: var(--nf-plate-edges);
+    background: var(--nf-plate-fill);
+    color: var(--nf-content-primary);
+    box-shadow: var(--nf-plate-shadow);
+  }
+  .nf-stays-glyph > svg {
+    filter: var(--nf-plate-glyph-glow);
   }
 
   /* The day row of `GOVERNING-11` screen four: name, hours, switch. */
@@ -564,13 +575,13 @@
    */
   .nf-stays-card {
     padding: var(--nf-space-md);
-    border-radius: var(--nf-radius-2xl);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill-card);
     box-shadow:
-      var(--nf-rim-lit),
-      0 0 18px var(--nf-glow-1),
-      var(--nf-bloom-card);
+      var(--nf-panel-rim),
+      var(--nf-panel-glow);
   }
   .nf-stays-card__head {
     display: flex;
@@ -595,10 +606,11 @@
     width: 4.5rem;
     height: 4.5rem;
     flex: 0 0 auto;
-    border-radius: var(--nf-radius-lg);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill-deep);
-    box-shadow: var(--nf-rim-lit);
+    border-radius: var(--nf-plate-radius);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    border-color: var(--nf-plate-edges);
+    background: var(--nf-plate-fill);
+    box-shadow: var(--nf-plate-shadow);
     overflow: hidden;
   }
   .nf-stays-thumb img {
@@ -625,7 +637,7 @@
 
   /*
    * THE CALM EXPLANATORY PANEL the whole reference set carries at the foot of
-   * a screen: the round glyph, and one honest sentence about what the screen
+   * a screen: the icon plate, and one honest sentence about what the screen
    * just did. It is the only place on these six panels where a limit gets
    * stated, and stating it is the point.
    */
@@ -634,10 +646,13 @@
     align-items: flex-start;
     gap: var(--nf-space-sm);
     padding: var(--nf-space-md);
-    border-radius: var(--nf-radius-xl);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    box-shadow: var(--nf-rim-lit);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill);
+    box-shadow:
+      var(--nf-panel-rim),
+      var(--nf-panel-glow);
   }
   .nf-stays-note__text {
     flex: 1 1 auto;

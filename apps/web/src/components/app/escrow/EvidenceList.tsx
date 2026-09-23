@@ -1,5 +1,6 @@
 import { factSentence } from "@/lib/escrow/copy";
 import type { HeldPaymentEvidence } from "@/lib/escrow/queries";
+import { Panel } from "@/components/ui/Panel";
 
 /**
  * Everything filed on a dispute, both sides of it, in the order it was filed.
@@ -53,7 +54,7 @@ export function EvidenceList({
   return (
     <div className="nf-esc-evidence">
       {evidence.map((item) => (
-        <div className="nf-esc-filed" key={item.id} data-mine={item.mine ? "true" : "false"}>
+        <Panel as="div" variant="card" className="nf-esc-filed" key={item.id} data-mine={item.mine ? "true" : "false"}>
           <span className="nf-esc-filed-who">
             {item.mine ? "Filed by you" : "Filed by the other person"}
           </span>
@@ -86,7 +87,7 @@ export function EvidenceList({
               </span>
             )
           ) : null}
-        </div>
+        </Panel>
       ))}
     </div>
   );

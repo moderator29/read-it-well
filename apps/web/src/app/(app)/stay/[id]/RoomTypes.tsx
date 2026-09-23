@@ -5,6 +5,8 @@ import type { Dictionary, Locale } from "@vallo/i18n";
 import { Amount } from "@/components/ui/Amount";
 import { ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
+import { Panel } from "@/components/ui/Panel";
+import { ICON_PLATE_GLYPH, IconPlate } from "@/components/ui/IconPlate";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON, Row, RowList, TYPE } from "@/components/app/Screen";
@@ -93,9 +95,9 @@ export function RoomTypes({
                 className="flex w-full items-start gap-sm text-left"
                 aria-label={copy.seeRates.replace("{room}", room.name)}
               >
-                <span className="nf-role-mark mt-3xs shrink-0" aria-hidden="true">
-                  <UiIcon name="bed" size={ICON.row} />
-                </span>
+                <IconPlate size="md" className="mt-3xs">
+                  <UiIcon name="bed" size={ICON_PLATE_GLYPH.md} />
+                </IconPlate>
 
                 <span className="min-w-0 flex-1">
                   <span className={`block ${TYPE.rowTitle}`}>{room.name}</span>
@@ -218,7 +220,7 @@ function PlanCard({
         : copy.maxStay.replace("{count}", String(plan.maxStayNights ?? 0));
 
   return (
-    <div className="nf-card rounded-[var(--nf-radius-lg)] p-card-sm">
+    <Panel as="div" variant="card" className="isolate">
       <div className="flex items-start justify-between gap-row">
         <div className="min-w-0">
           <p className={TYPE.rowTitle}>{plan.name}</p>
@@ -271,6 +273,6 @@ function PlanCard({
       ) : (
         <p className={`mt-row ${TYPE.rowMeta}`}>{copy.pickDatesForTotal}</p>
       )}
-    </div>
+    </Panel>
   );
 }

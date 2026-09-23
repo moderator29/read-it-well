@@ -6,6 +6,7 @@ import { ICON, TYPE } from "@/components/app/Screen";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { iconPlateClass } from "@/components/ui/IconPlate";
 import type { BookingView } from "@/lib/bookings/queries";
 import type { ReservationView } from "@/lib/reservations/queries";
 import { CancelBookingControl } from "@/components/app/bookings/CancelBookingSheet";
@@ -244,16 +245,16 @@ function SpineRow({
       <div className={`min-w-0 flex-1 ${muted ? "opacity-80" : ""}`}>
       <Link
         href={item.href}
-        className="flex min-w-0 gap-md rounded-[var(--nf-radius-lg)] transition-colors hover:bg-[var(--nf-glass-fill)]"
+        className="flex min-w-0 gap-md rounded-[var(--nf-container-radius)]"
       >
-        <span className="relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-[var(--nf-radius-md)] bg-[var(--nf-surface-secondary)]">
+        <span className={iconPlateClass({ size: "lg", className: "relative overflow-hidden" })}>
           {item.photo ? (
-            <Image src={item.photo} alt="" fill sizes="64px" className="object-cover" />
+            <Image src={item.photo} alt="" fill sizes="56px" className="object-cover" />
           ) : (
             /* A table has no photograph of its own; the glass object says
                what kind of trip this is rather than leaving a dark tile. */
-            <span className="block h-10 w-10" aria-hidden="true">
-              <BrandIcon name={item.kind === "table" ? "concierge-bell" : "hotel-room"} fill />
+            <span className="block h-9 w-9" aria-hidden="true">
+              <BrandIcon name={item.kind === "table" ? "concierge-bell" : "hotel-room"} fill tile={false} />
             </span>
           )}
         </span>
@@ -300,7 +301,7 @@ function SpineRow({
         read's own word for "the database would accept a review now".
       */}
       {item.booking && !muted && (
-        <div className="mt-inline flex flex-wrap items-center gap-md pl-[calc(4rem+var(--spacing-md))]">
+        <div className="mt-inline flex flex-wrap items-center gap-md pl-[calc(var(--nf-plate-size-lg)+var(--spacing-md))]">
           {item.booking.status === "PENDING" && (
             <Link
               href={`/checkout/${item.booking.id}`}

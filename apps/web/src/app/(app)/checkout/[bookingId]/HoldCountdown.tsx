@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { formatDate, type Locale } from "@vallo/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { Panel } from "@/components/ui/Panel";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * The hold clock.
@@ -129,10 +131,12 @@ export function HoldCountdown({
   const expired = view.kind === "expired";
 
   return (
-    <div className="nf-panel-sunken flex items-center gap-sm">
-      <span className="block h-11 w-11 shrink-0">
-        <BrandIcon name="calendar-clock" fill />
-      </span>
+    <Panel as="div" className="flex-row items-center gap-sm">
+      <IconPlate size="md">
+        <span className="block h-7 w-7">
+          <BrandIcon name="calendar-clock" fill tile={false} />
+        </span>
+      </IconPlate>
       <div className="min-w-0 flex-1">
         <p
           className={`nf-overline ${
@@ -171,6 +175,6 @@ export function HoldCountdown({
           </p>
         )}
       </div>
-    </div>
+    </Panel>
   );
 }

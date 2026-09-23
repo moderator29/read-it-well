@@ -9,6 +9,7 @@ import { PageScene } from "@/components/app/PageScene";
 import { Reveal } from "@/components/site/Reveal";
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
+import { panelClass } from "@/components/ui/Panel";
 import { CheckoutSummary } from "./CheckoutSummary";
 import { HoldCountdown } from "./HoldCountdown";
 import { PayPanel } from "./PayPanel";
@@ -321,7 +322,7 @@ export default async function CheckoutPage({
  */
 function HoldNote({ children }: { children: React.ReactNode }) {
   return (
-    <p className="nf-card flex items-start gap-sm p-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+    <p className={panelClass({ variant: "card", className: "flex-row items-start gap-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]" })}>
       <span className="mt-3xs block h-5 w-5 shrink-0">
         <BrandIcon name="calendar-check" fill tile={false} />
       </span>
