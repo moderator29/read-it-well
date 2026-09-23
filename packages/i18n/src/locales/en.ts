@@ -2688,7 +2688,7 @@ export const en = {
     unavailable: "We could not read this just now, so nothing is shown rather than a wrong figure.",
     emptyTitle: "Nothing to measure yet",
     emptyBody:
-      "This page counts requests, stays, settled payments and reviews. It stays empty until one of those has actually happened, because a sample chart would tell you about nobody.",
+      "This page counts requests, stays, settled payments and reviews. It stays empty until one of those has actually happened, because a chart drawn from nothing would tell you about nobody.",
     emptyAction: "Start a listing",
 
     headline: {

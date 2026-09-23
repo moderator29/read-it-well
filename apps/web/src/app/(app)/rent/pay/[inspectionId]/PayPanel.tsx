@@ -81,7 +81,7 @@ function Option({
   note?: string;
 }) {
   return (
-    <li className="nf-card flex items-start gap-group p-card">
+    <li className="nf-panel nf-panel--card flex-row items-start gap-group p-card">
       <span className="block h-12 w-12 shrink-0">
         <BrandIcon name={icon} fill />
       </span>
@@ -318,7 +318,7 @@ export function PayPanel({
             body={`Your wallet holds ${view.walletBalanceDisplay}, and the move-in total comes to ${view.totalDisplay}.`}
             note="Add money to your wallet first, or pay by card."
             action={
-              <ButtonLink href="/wallet" variant="ghost" full trailingIcon="arrow-right">
+              <ButtonLink href="/wallet" variant="secondary" full trailingIcon="arrow-right">
                 Open my wallet
               </ButtonLink>
             }
@@ -340,7 +340,7 @@ export function PayPanel({
               currency={view.currency}
               showFraction
               className="text-[length:var(--nf-text-body-lg)] font-bold leading-none tracking-[-0.02em] text-[var(--nf-content-primary)]"
-              secondaryClassName="text-[0.62em] font-semibold text-[var(--nf-content-muted)]"
+              secondaryClassName="text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]"
             />
           </span>
         </p>

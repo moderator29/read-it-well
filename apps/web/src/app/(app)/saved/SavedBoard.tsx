@@ -271,7 +271,7 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
               ) : (
                 <div
                   data-testid="undo-chip"
-                  className="nf-card flex h-full items-center justify-between gap-md p-card"
+                  className="nf-panel nf-panel--card h-full flex-row items-center justify-between gap-md p-card"
                 >
                   <p className="nf-body text-[var(--nf-content-secondary)]">
                     {state === "restoring" ? "Putting it back" : "Removed from saved"}

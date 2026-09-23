@@ -1841,11 +1841,13 @@
     font-size: var(--nf-text-caption);
   }
 
-  /* The range select (Last 12 months): a native select on the control
-     radius, 32px tall as drawn, so the keyboard and screen reader get the
-     platform's own control. */
+  /* The range select (Last 12 months): a native select, so the keyboard and
+     screen reader get the platform's own control. The render draws it 32px
+     tall and it drew 36; it is 44 now, the tap floor (R-B), because a native
+     select takes no hit extender (no pseudo-elements) and so the control
+     itself grows (the second audit, S-E). */
   .nf-admin-select {
-    min-height: 2.25rem;
+    min-height: 2.75rem;
     padding: 0 2rem 0 var(--nf-space-sm);
     border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid var(--nf-panel-edge);

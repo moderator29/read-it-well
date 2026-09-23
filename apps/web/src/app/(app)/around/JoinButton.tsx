@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { joinArea, leaveArea } from "@/lib/social/areas-actions";
+import { Button } from "@/components/ui/Button";
 
 /**
  * Join or leave a place.
@@ -41,7 +42,6 @@ export function JoinButton({
   const [error, setError] = useState<string | null>(null);
 
   const label = isJoined ? "Joined" : "Join";
-  const height = size === "sm" ? "h-9 px-md text-[length:var(--nf-text-overline)]" : "h-11 px-lg text-[length:var(--nf-text-body-sm)]";
 
   const toggle = () => {
     if (!signedIn) {
@@ -69,19 +69,18 @@ export function JoinButton({
 
   return (
     <div className="flex flex-col items-end gap-2xs">
-      <button
-        type="button"
+      {/* The shared lit primary to join and the glass door once joined (the
+          orphans sweep): both 44px tall on the control corner. `sm` is the
+          shared small button, `md` the shared medium one. */}
+      <Button
         onClick={toggle}
         disabled={pending}
         aria-pressed={isJoined}
-        className={`inline-flex items-center justify-center rounded-[var(--nf-radius-control)] font-semibold transition-colors ${height} ${
-          isJoined
-            ? "border border-[var(--nf-border-default)] bg-transparent text-[var(--nf-content-primary)]"
-            : "nf-btn nf-btn--primary"
-        }`}
+        variant={isJoined ? "secondary" : "primary"}
+        size={size}
       >
         {label}
-      </button>
+      </Button>
       {error ? (
         <span role="alert" className="max-w-[14rem] text-right text-[length:var(--nf-text-overline)] text-[var(--nf-state-error)]">
           {error}

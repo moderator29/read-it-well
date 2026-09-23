@@ -16,7 +16,7 @@ import {
   type AssociationProof,
 } from "@/lib/supply/registration";
 import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
-import { RegField } from "./RegisterField";
+import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
 import { UploadCard, newBatchId, type UploadState } from "./UploadCard";
 
@@ -185,76 +185,78 @@ export function FirmRegisterForm({
           <div className="nf-regobject nf-regobject--inline">
             <BrandIcon name="apartment-block" size={176} priority />
           </div>
-          <RegField>
-            <TextField
-              label={mine.details.name}
-              placeholder={mine.details.namePlaceholder}
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
-              required
-              {...(errors.businessName ? { error: errors.businessName } : {})}
-            />
-          </RegField>
-          <RegField>
-            <TextField
-              label={mine.details.rc}
-              placeholder={mine.details.rcPlaceholder}
-              value={rcNumber}
-              onChange={(e) => setRcNumber(e.target.value)}
-              required
-              {...(errors.rcNumber ? { error: errors.rcNumber } : {})}
-            />
-          </RegField>
-          {/* The pin inside the well is the render's own: `GOVERNING-05`
-              screen one draws it at the right of the office address and
-              nowhere else on the screen. It is decoration on a field that
-              already says what it wants, so it is hidden from the reader who
-              is being read to rather than announced as a second thing. */}
-          <RegField>
-            <TextField
-              label={mine.details.office}
-              placeholder={mine.details.officePlaceholder}
-              value={officeAddress}
-              onChange={(e) => setOfficeAddress(e.target.value)}
-              required
-              trailing={
-                <span aria-hidden="true">
-                  <UiIcon name="location" size={18} />
-                </span>
-              }
-              {...(errors.officeAddress ? { error: errors.officeAddress } : {})}
-            />
-          </RegField>
-          <RegField>
-            <TextField
-              label={mine.details.yourName}
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              autoComplete="name"
-              required
-              {...(errors.fullName ? { error: errors.fullName } : {})}
-            />
-          </RegField>
-          {/*
-            OPTIONAL IN THE FORM, IN THE SCHEMA AND IN THE DATABASE, and the
-            hint says what the field is for rather than what the law is. See
-            the note at the head of this file.
+          <RegFieldGroup>
+            <RegField>
+              <TextField
+                label={mine.details.name}
+                placeholder={mine.details.namePlaceholder}
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+                required
+                {...(errors.businessName ? { error: errors.businessName } : {})}
+              />
+            </RegField>
+            <RegField>
+              <TextField
+                label={mine.details.rc}
+                placeholder={mine.details.rcPlaceholder}
+                value={rcNumber}
+                onChange={(e) => setRcNumber(e.target.value)}
+                required
+                {...(errors.rcNumber ? { error: errors.rcNumber } : {})}
+              />
+            </RegField>
+            {/* The pin inside the well is the render's own: `GOVERNING-05`
+                screen one draws it at the right of the office address and
+                nowhere else on the screen. It is decoration on a field that
+                already says what it wants, so it is hidden from the reader who
+                is being read to rather than announced as a second thing. */}
+            <RegField>
+              <TextField
+                label={mine.details.office}
+                placeholder={mine.details.officePlaceholder}
+                value={officeAddress}
+                onChange={(e) => setOfficeAddress(e.target.value)}
+                required
+                trailing={
+                  <span aria-hidden="true">
+                    <UiIcon name="location" size={18} />
+                  </span>
+                }
+                {...(errors.officeAddress ? { error: errors.officeAddress } : {})}
+              />
+            </RegField>
+            <RegField>
+              <TextField
+                label={mine.details.yourName}
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                autoComplete="name"
+                required
+                {...(errors.fullName ? { error: errors.fullName } : {})}
+              />
+            </RegField>
+            {/*
+              OPTIONAL IN THE FORM, IN THE SCHEMA AND IN THE DATABASE, and the
+              hint says what the field is for rather than what the law is. See
+              the note at the head of this file.
 
-            THE TAG AND THE NOTE ARE BOTH THE RENDER'S. `GOVERNING-05` draws
-            "Optional" in the container's top right corner and a line with a
-            small round glyph under the well. The corner and the glyph are the
-            target; the capsule is not, and the tag ships at 0.250. The note
-            carries the hint the field already had, so nothing new is claimed
-            and no statutory word is printed.
-          */}
-          <RegField optional={copy.optional} note={mine.details.lasreraHint}>
-            <TextField
-              label={mine.details.lasrera}
-              value={lasreraNumber}
-              onChange={(e) => setLasreraNumber(e.target.value)}
-              {...(errors.lasreraNumber ? { error: errors.lasreraNumber } : {})}
-            />
-          </RegField>
+              THE TAG AND THE NOTE ARE BOTH THE RENDER'S. `GOVERNING-05` draws
+              "Optional" in the container's top right corner and a line with a
+              small round glyph under the well. The corner and the glyph are the
+              target; the capsule is not, and the tag ships at 0.250. The note
+              carries the hint the field already had, so nothing new is claimed
+              and no statutory word is printed.
+            */}
+            <RegField optional={copy.optional} note={mine.details.lasreraHint}>
+              <TextField
+                label={mine.details.lasrera}
+                value={lasreraNumber}
+                onChange={(e) => setLasreraNumber(e.target.value)}
+                {...(errors.lasreraNumber ? { error: errors.lasreraNumber } : {})}
+              />
+            </RegField>
+          </RegFieldGroup>
         </div>
       ),
     },
@@ -324,18 +326,20 @@ export function FirmRegisterForm({
             />
           ) : null}
           {proof === "principal" ? (
-            <RegField>
-              <TextField
-                label={mine.association.principalEmail}
-                value={principalEmail}
-                onChange={(e) => setPrincipalEmail(e.target.value)}
-                type="email"
-                inputMode="email"
-                autoComplete="off"
-                required
-                {...(errors.principalEmail ? { error: errors.principalEmail } : {})}
-              />
-            </RegField>
+            <RegFieldGroup>
+              <RegField>
+                <TextField
+                  label={mine.association.principalEmail}
+                  value={principalEmail}
+                  onChange={(e) => setPrincipalEmail(e.target.value)}
+                  type="email"
+                  inputMode="email"
+                  autoComplete="off"
+                  required
+                  {...(errors.principalEmail ? { error: errors.principalEmail } : {})}
+                />
+              </RegField>
+            </RegFieldGroup>
           ) : null}
         </div>
       ),
@@ -369,7 +373,7 @@ export function FirmRegisterForm({
                     ) : null}
                   </span>
                   <Button
-                    variant="ghost"
+                    variant="secondary"
                     size="sm"
                     onClick={() => setTeam(team.filter((_, i) => i !== index))}
                   >
@@ -382,22 +386,24 @@ export function FirmRegisterForm({
 
           {team.length < MAX_DECLARED_TEAM ? (
             <div className="grid gap-row">
-              <RegField>
-                <TextField
-                  label={mine.team.name}
-                  value={draftName}
-                  onChange={(e) => setDraftName(e.target.value)}
-                />
-              </RegField>
-              <RegField optional={copy.optional}>
-                <TextField
-                  label={mine.team.email}
-                  value={draftEmail}
-                  onChange={(e) => setDraftEmail(e.target.value)}
-                  type="email"
-                  inputMode="email"
-                />
-              </RegField>
+              <RegFieldGroup>
+                <RegField>
+                  <TextField
+                    label={mine.team.name}
+                    value={draftName}
+                    onChange={(e) => setDraftName(e.target.value)}
+                  />
+                </RegField>
+                <RegField optional={copy.optional}>
+                  <TextField
+                    label={mine.team.email}
+                    value={draftEmail}
+                    onChange={(e) => setDraftEmail(e.target.value)}
+                    type="email"
+                    inputMode="email"
+                  />
+                </RegField>
+              </RegFieldGroup>
               <Button
                 variant="secondary"
                 size="md"

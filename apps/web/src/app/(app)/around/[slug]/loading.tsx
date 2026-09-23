@@ -17,7 +17,7 @@ export default function LoadingArea() {
         <Skeleton width="9rem" height="0.75rem" radius="xs" />
       </div>
 
-      <div className="nf-card mb-md space-y-sm p-lg" aria-hidden="true">
+      <div className="nf-panel nf-panel--card mb-md block space-y-sm p-lg" aria-hidden="true">
         <Skeleton height="0.75rem" radius="xs" />
         <Skeleton width="75%" height="0.75rem" radius="xs" />
         <div className="flex gap-lg pt-xs">
@@ -29,7 +29,7 @@ export default function LoadingArea() {
 
       <div className="flex flex-col gap-[var(--nf-feed-gap)]" aria-hidden="true">
         {[0, 1].map((card) => (
-          <div key={card} className="nf-card nf-post space-y-sm">
+          <div key={card} className="nf-panel nf-panel--card nf-post block space-y-sm">
             <Skeleton width="11rem" height="1rem" radius="xs" />
             <Skeleton height="0.75rem" radius="xs" />
             <Skeleton width="83.3333%" height="0.75rem" radius="xs" />

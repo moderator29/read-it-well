@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { panelClass } from "@/components/ui/Panel";
 
 /**
  * The pieces every `loading.tsx` is assembled from.
@@ -105,7 +106,9 @@ export function CardRowsSkeleton({
   return (
     <ul className={["space-y-sm", className ?? ""].filter(Boolean).join(" ")}>
       {Array.from({ length: rows }, (_, i) => (
-        <li key={i} className="nf-card p-md sm:p-lg">
+        /* The shared panel card by name (SW-O1); `block` keeps the row's
+           own flow, the padding utilities its own inset. */
+        <li key={i} className={panelClass({ variant: "card", className: "block p-md sm:p-lg" })}>
           <div className="flex items-start gap-md">
             <Skeleton width="2.75rem" height="2.75rem" radius="md" className="shrink-0" />
             <div className="min-w-0 flex-1" style={{ minHeight: height }}>

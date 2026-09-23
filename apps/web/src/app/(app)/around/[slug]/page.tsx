@@ -20,9 +20,9 @@ import { POST_COPY } from "@/lib/social/posts-schema";
 import { Feed } from "@/components/social/feed/Feed";
 import { loadMoreAround } from "../feed-actions";
 import { AroundFab } from "@/components/social/AroundFab";
-import { AREA_COPY } from "@/lib/social/areas-schema";
 import { JoinButton } from "../JoinButton";
 import { ModeratorApply } from "./ModeratorApply";
+import { ModeratorNote, PlaceAbout, PlaceNotes } from "./PlacePanels";
 import { SocialPaused } from "@/components/social/SocialPaused";
 import { isSocialEnabled } from "@/lib/social/flag";
 
@@ -80,7 +80,7 @@ export default async function AreaPage({
     return (
       <div className="mx-auto w-full max-w-3xl pb-4xl pt-md">
         <PageHeader title="Around" fallback="/around" />
-        <p className="nf-card p-lg text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="nf-panel nf-panel--card block p-lg text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           We cannot reach this place right now. This is on our side, not yours.
           Nothing has been lost, and the rest of the app works as normal.
         </p>
@@ -122,29 +122,13 @@ export default async function AreaPage({
           arrows, one above the other, going to two different places, and only
           one of them going back. */}
       {door ? (
-        <Link href={`/around/${door.slug}`} className="nf-enter__back mb-md">
+        <Link href={`/around/${door.slug}`} className="nf-chip nf-enter__back mb-md">
           <UiIcon name="arrow-up" size={15} />
           Part of {door.name}
         </Link>
       ) : null}
 
-      {area.status === "PROPOSED" ? (
-        <p className="nf-card mb-md border-[var(--nf-border-brand)] p-md text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-          You suggested this place and it is still with us. {AREA_COPY.proposePending}
-        </p>
-      ) : null}
-
-      {area.status === "PAUSED" ? (
-        <p className="nf-card mb-md p-md text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-          {AREA_COPY.paused}
-        </p>
-      ) : null}
-
-      {area.slowMode && area.status === "ACTIVE" ? (
-        <p className="mb-md rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-md py-sm text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
-          {AREA_COPY.slowMode}
-        </p>
-      ) : null}
+      <PlaceNotes status={area.status} slowMode={area.slowMode} />
 
       <section className="mb-lg">
         <Feed
@@ -192,67 +176,7 @@ export default async function AreaPage({
       {/* What this place is, under the conversation rather than above it. The
           board's district feed goes header, chips, cards; the description is
           something people read once and the feed is what they came for. */}
-      <section className="nf-card mb-md p-lg">
-        {area.blurb ? (
-          <p className="text-[length:var(--nf-text-body)] leading-relaxed text-[var(--nf-content-primary)]">
-            {area.blurb}
-          </p>
-        ) : null}
-
-        <dl className="mt-md flex flex-wrap gap-x-lg gap-y-sm">
-          <div>
-            <dt className="nf-overline text-[var(--nf-content-muted)]">
-              Members
-            </dt>
-            <dd className="nf-numeric mt-3xs text-[length:var(--nf-text-body-lg)] font-bold text-[var(--nf-content-primary)]">
-              {formatNumber(area.memberCount, locale)}
-            </dd>
-          </div>
-          <div>
-            <dt className="nf-overline text-[var(--nf-content-muted)]">
-              Posts
-            </dt>
-            <dd className="nf-numeric mt-3xs text-[length:var(--nf-text-body-lg)] font-bold text-[var(--nf-content-primary)]">
-              {formatNumber(area.postCount, locale)}
-            </dd>
-          </div>
-          <div>
-            <dt className="nf-overline text-[var(--nf-content-muted)]">
-              Looked after by
-            </dt>
-            <dd className="nf-numeric mt-3xs text-[length:var(--nf-text-body-lg)] font-bold text-[var(--nf-content-primary)]">
-              {moderators.length}
-            </dd>
-          </div>
-        </dl>
-
-        {moderators.length > 0 ? (
-          <p className="mt-md text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
-            Kept by{" "}
-            {moderators.map((mod, index) => (
-              <span key={mod.userId}>
-                {index > 0 ? ", " : ""}
-                {mod.handle ? (
-                  <Link
-                    href={`/u/${mod.handle}`}
-                    className="font-semibold text-[var(--nf-brand-secondary)]"
-                  >
-                    @{mod.handle}
-                  </Link>
-                ) : (
-                  "a member"
-                )}
-              </span>
-            ))}
-            . They can hide a post while somebody reviews it, and they cannot
-            delete anybody&rsquo;s post.
-          </p>
-        ) : (
-          <p className="mt-md text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
-            Nobody is looking after this place yet.
-          </p>
-        )}
-      </section>
+      <PlaceAbout area={area} moderators={moderators} locale={locale} />
 
 
       {/* A local government is the coarse door. The room somebody actually
@@ -268,7 +192,7 @@ export default async function AreaPage({
               <li key={place.id}>
                 <Link
                   href={`/around/${place.slug}`}
-                  className="nf-enter__chip"
+                  className="nf-chip nf-enter__chip"
                   aria-label={`${place.name}, ${place.memberCount} ${place.memberCount === 1 ? "member" : "members"}`}
                 >
                   <span className="nf-enter__chip-name">{place.name}</span>
@@ -290,18 +214,7 @@ export default async function AreaPage({
         />
       ) : null}
 
-      {isModerator ? (
-        <div className="nf-card border-[var(--nf-border-brand)] p-md">
-          <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
-            You look after {area.name}
-          </p>
-          <p className="mt-2xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
-            Your name carries a moderator mark in this place and nowhere else.
-            You can hide a post while somebody reviews it. You cannot delete one,
-            and nobody expects you to be available at 2am.
-          </p>
-        </div>
-      ) : null}
+      {isModerator ? <ModeratorNote areaName={area.name} /> : null}
 
       {/* The dock travels with the social layer. Here it already knows the
           place, so Drop gist opens straight onto the composer. */}

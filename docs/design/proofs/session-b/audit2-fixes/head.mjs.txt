@@ -1,0 +1,9 @@
+import { chromium } from "/tmp/claude-0/-home-user-read-it-well/b3cd0ca7-526a-577f-99c1-fc3870877a0e/scratchpad/wt-final/node_modules/playwright-core/index.mjs";
+const [port, dir] = process.argv.slice(2);
+const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+for (const w of [390, 1440]) {
+const p = await (await b.newContext({ viewport: { width: w, height: 900 }, deviceScaleFactor: 2, colorScheme: "dark", reducedMotion: "reduce" })).newPage();
+await p.goto(`http://127.0.0.1:${port}/preview/session-b/sweep-social?f=booking`, { waitUntil: "load" }); await p.waitForTimeout(1500);
+const h = await p.$(".nf-thread__head"); await h.screenshot({ path: `${dir}/thread-head-${w}.jpg`, type: "jpeg", quality: 80 });
+}
+await b.close();

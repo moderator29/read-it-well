@@ -20,10 +20,10 @@ export default function LoadingNewStory() {
         <Skeleton width="16rem" height="0.75rem" radius="xs" />
       </div>
 
-      <div className="nf-card nf-social-card space-y-md p-lg" aria-hidden="true">
+      <div className="nf-panel nf-panel--card block space-y-md p-lg" aria-hidden="true">
         {/* The picture comes first in the real composer, and it is the tallest
             thing on the page, so the skeleton keeps its proportion. */}
-        <Skeleton radius="lg" className="aspect-[4/5]" />
+        <Skeleton radius="sm" className="aspect-[4/5]" />
         <Skeleton height="2.75rem" radius="md" />
         <Skeleton height="2.75rem" radius="md" />
         <Skeleton height="6rem" radius="md" />

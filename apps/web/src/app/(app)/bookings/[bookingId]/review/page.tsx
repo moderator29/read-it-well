@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getLocale } from "@/lib/locale";
 import { getReviewView, type ReviewRead } from "@/lib/reviews/queries";
-import { RATING_LABELS } from "@/lib/reviews/schema";
 import { ResultScreen } from "@/components/app/ResultSheet";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
-import { ICON } from "@/components/app/Screen";
 import { Reveal } from "@/components/site/Reveal";
-import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ReviewForm } from "./ReviewForm";
+import { AlreadyReviewedPanel, ReviewSubjectPanel } from "./ReviewPanels";
 
 export const metadata: Metadata = {
   title: "Review your stay",
@@ -139,76 +136,14 @@ export default async function ReviewPage({
     const { review } = read;
     return (
       <Shell subtitle={read.subject.title}>
-        <Reveal>
-          <section className="nf-card p-card">
-            <h2 className="nf-h3">You have already reviewed this stay</h2>
-            <p className="mt-row nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">
-              This is what other guests see on {read.subject.title}.
-            </p>
-
-            <div className="nf-hairline mt-block pt-block">
-              <p className="flex items-center gap-xs">
-                <span className="flex items-center gap-3xs" aria-hidden="true">
-                  {Array.from({ length: 5 }, (_, i) => (
-                    <UiIcon
-                      key={i}
-                      name="star"
-                      size={ICON.inline}
-                      className={
-                        i < review.rating
-                          ? "text-[var(--nf-rating)]"
-                          : "text-[var(--nf-content-muted)] opacity-40"
-                      }
-                    />
-                  ))}
-                </span>
-                <span className="nf-body-sm font-medium text-[var(--nf-content-secondary)]">
-                  {review.rating} out of 5, {RATING_LABELS[review.rating]}
-                </span>
-              </p>
-              {review.body && (
-                <p className="mt-heading nf-body leading-relaxed text-[var(--nf-content-primary)]">
-                  {review.body}
-                </p>
-              )}
-              <p className="mt-heading nf-caption text-[var(--nf-content-muted)]">
-                {review.author} &middot; {review.when}
-              </p>
-            </div>
-          </section>
-        </Reveal>
-
-        <Reveal delay={80} className="mt-block flex flex-wrap gap-row">
-          <Link
-            href={`/listing/${read.subject.listingId}`}
-            className="nf-btn nf-btn--primary"
-          >
-            See it on the listing
-          </Link>
-          <Link href="/bookings" className="nf-btn nf-btn--glass">
-            See your stays
-          </Link>
-        </Reveal>
+        <AlreadyReviewedPanel subject={read.subject} review={review} />
       </Shell>
     );
   }
 
   return (
     <Shell subtitle={read.subject.title}>
-      <Reveal>
-        <section className="nf-card p-card">
-          <h2 className="nf-h3">{read.subject.title}</h2>
-          {read.subject.location.length > 0 && (
-            <p className="mt-row flex items-center gap-inline nf-body-sm text-[var(--nf-content-muted)]">
-              <UiIcon name="location" size={ICON.inline} className="shrink-0" />
-              <span className="truncate">{read.subject.location}</span>
-            </p>
-          )}
-          <p className="mt-row nf-body-sm text-[var(--nf-content-muted)]">
-            You checked out on {read.subject.checkOutDisplay}.
-          </p>
-        </section>
-      </Reveal>
+      <ReviewSubjectPanel subject={read.subject} />
 
       <Reveal delay={80} className="mt-block">
         <ReviewForm subject={read.subject} />

@@ -2,6 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import "@/app/css/orphans.css";
+import { Button } from "@/components/ui/Button";
+import { Panel, panelClass } from "@/components/ui/Panel";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TextField, SelectField, TextArea } from "@/components/ui/Field";
 import { proposeArea } from "@/lib/social/areas-actions";
@@ -51,7 +54,7 @@ export function ProposeAreaForm({
 
   if (done) {
     return (
-      <div className="nf-card p-lg text-center">
+      <Panel as="div" variant="card" className="p-lg text-center">
         {/* No plate, and the glyph was off the scale as well as inside a box:
             22 is not a rung, and `UI_ICON_SIZES` tops out at 40, which is the
             size an object on its own is meant to be. See the note on
@@ -66,19 +69,17 @@ export function ProposeAreaForm({
           {AREA_COPY.proposePending}
         </p>
         <div className="mt-md flex flex-col gap-xs sm:flex-row sm:justify-center">
-          <button
-            type="button"
-            className="nf-btn nf-btn--primary"
+          <Button
+            variant="primary"
             /* The directory, not the feed: the suggestion just made is printed
                there under "Waiting on us", so this is the one screen that can
                show the person what they have done. */
             onClick={() => router.push("/around/settings")}
           >
             Back to your places
-          </button>
-          <button
-            type="button"
-            className="nf-btn nf-btn--ghost"
+          </Button>
+          <Button
+            variant="secondary"
             onClick={() => {
               setDone(false);
               setName("");
@@ -87,9 +88,9 @@ export function ProposeAreaForm({
             }}
           >
             Suggest another
-          </button>
+          </Button>
         </div>
-      </div>
+      </Panel>
     );
   }
 
@@ -117,7 +118,7 @@ export function ProposeAreaForm({
       }}
     >
       {!signedIn ? (
-        <p className="nf-card border-[var(--nf-border-brand)] p-md text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="nf-panel nf-panel--card block text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           Sign in first and we will keep what you type here.
         </p>
       ) : null}
@@ -143,22 +144,18 @@ export function ProposeAreaForm({
               type="button"
               onClick={() => setKind(option)}
               aria-pressed={kind === option}
-              className={`rounded-[var(--nf-radius-md)] bg-[var(--nf-surface-primary)] p-sm text-left transition-colors ${
-                kind === option
-                  ? "border-2 border-[var(--nf-brand-primary)] shadow-[var(--nf-glow-accent)]"
-                  : "border-2 border-[var(--nf-border-default)]"
-              }`}
+              className={panelClass({ variant: "card", className: "nf-orph-choice min-h-11 justify-start p-sm" })}
             >
               <span
-                className={`block text-[length:var(--nf-text-body-sm)] font-semibold ${
-                  kind === option
-                    ? "text-[var(--nf-brand-primary)]"
-                    : "text-[var(--nf-content-primary)]"
-                }`}
+                className="block text-[length:var(--nf-text-body-sm)] font-semibold"
               >
                 {AREA_KIND_LABEL[option]}
               </span>
-              <span className="mt-2xs block text-[length:var(--nf-text-overline)] leading-snug text-[var(--nf-content-muted)]">
+              <span
+                className={`mt-2xs block text-[length:var(--nf-text-overline)] leading-snug ${
+                  kind === option ? "text-[var(--nf-content-on-brand)]" : "text-[var(--nf-content-muted)]"
+                }`}
+              >
                 {AREA_KIND_HINT[option]}
               </span>
             </button>
@@ -203,7 +200,7 @@ export function ProposeAreaForm({
       />
 
       {slug ? (
-        <p className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-inset)] px-sm py-xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <p className="nf-panel nf-panel--card block px-sm py-xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           Its address will be{" "}
           <span className="nf-numeric text-[var(--nf-content-secondary)]">
             {displayHost()}/around/{slug}
@@ -218,19 +215,15 @@ export function ProposeAreaForm({
       {error ? (
         <p
           role="alert"
-          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]"
+          className="nf-panel nf-panel--card block border-[color-mix(in_oklab,var(--nf-state-error)_55%,transparent)] px-sm py-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-state-error)]"
         >
           {error}
         </p>
       ) : null}
 
-      <button
-        type="submit"
-        className="nf-btn nf-btn--primary w-full"
-        disabled={pending || !signedIn}
-      >
+      <Button type="submit" variant="primary" full disabled={pending || !signedIn}>
         {pending ? "Sending" : "Suggest this place"}
-      </button>
+      </Button>
     </form>
   );
 }

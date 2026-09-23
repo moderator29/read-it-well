@@ -1,0 +1,238 @@
+{
+ "at": "2026-09-23T22:00:01.247Z",
+ "live": {
+  "/host/rooms@390": {
+   "status": 200,
+   "finalPath": "/host/rooms",
+   "h1": "",
+   "legacy": 0,
+   "panels": 0,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "/host/rooms@1440": {
+   "status": 200,
+   "finalPath": "/host/rooms",
+   "h1": "",
+   "legacy": 0,
+   "panels": 0,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "/host/photos@390": {
+   "status": 200,
+   "finalPath": "/host/photos",
+   "h1": "",
+   "legacy": 0,
+   "panels": 0,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "/host/photos@1440": {
+   "status": 200,
+   "finalPath": "/host/photos",
+   "h1": "",
+   "legacy": 0,
+   "panels": 0,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "/host/reservations@390": {
+   "status": 200,
+   "finalPath": "/host/reservations",
+   "h1": "Tables",
+   "legacy": 0,
+   "panels": 0,
+   "primaries": 0,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "/host/reservations@1440": {
+   "status": 200,
+   "finalPath": "/host/reservations",
+   "h1": "Tables",
+   "legacy": 0,
+   "panels": 0,
+   "primaries": 0,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "/host/apply@390": {
+   "status": 200,
+   "finalPath": "/host/apply",
+   "h1": "What kind of host are you?",
+   "legacy": 0,
+   "panels": 3,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "/host/apply@1440": {
+   "status": 200,
+   "finalPath": "/host/apply",
+   "h1": "What kind of host are you?",
+   "legacy": 0,
+   "panels": 3,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "/styleguide@390": {
+   "status": 200,
+   "finalPath": "/styleguide",
+   "h1": "Styleguide",
+   "legacy": 0,
+   "panels": 14,
+   "primaries": 6,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "/styleguide@1440": {
+   "status": 200,
+   "finalPath": "/styleguide",
+   "h1": "Styleguide",
+   "legacy": 0,
+   "panels": 14,
+   "primaries": 6,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  }
+ },
+ "harness": {
+  "business@390": {
+   "progress": "",
+   "h1": "Your business, named and placed",
+   "legacy": 0,
+   "panels": 3,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "business@1440": {
+   "progress": "",
+   "h1": "Your business, named and placed",
+   "legacy": 0,
+   "panels": 3,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "registration@390": {
+   "progress": "",
+   "h1": "Registration papers",
+   "legacy": 0,
+   "panels": 3,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "registration@1440": {
+   "progress": "",
+   "h1": "Registration papers",
+   "legacy": 0,
+   "panels": 3,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "representative@390": {
+   "progress": "",
+   "h1": "You, the representative",
+   "legacy": 0,
+   "panels": 5,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "representative@1440": {
+   "progress": "",
+   "h1": "You, the representative",
+   "legacy": 0,
+   "panels": 5,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "payout@390": {
+   "progress": "",
+   "h1": "Getting paid",
+   "legacy": 0,
+   "panels": 1,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "payout@1440": {
+   "progress": "",
+   "h1": "Getting paid",
+   "legacy": 0,
+   "panels": 1,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "consent@390": {
+   "progress": "",
+   "h1": "Permissions",
+   "legacy": 0,
+   "panels": 3,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "consent@1440": {
+   "progress": "",
+   "h1": "Permissions",
+   "legacy": 0,
+   "panels": 3,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "review@390": {
+   "progress": "",
+   "h1": "Check and send",
+   "legacy": 0,
+   "panels": 2,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  },
+  "review@1440": {
+   "progress": "",
+   "h1": "Check and send",
+   "legacy": 0,
+   "panels": 2,
+   "primaries": 1,
+   "unlit": 0,
+   "overflow": 0,
+   "capsules": 0
+  }
+ },
+ "signedInLandedOn": "/profile"
+}

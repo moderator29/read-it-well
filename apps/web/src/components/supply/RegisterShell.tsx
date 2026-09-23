@@ -136,7 +136,7 @@ export function RegisterShell({
             </Button>
           ) : null}
           {secondary ? (
-            <Button onClick={secondary.onClick} variant="ghost" size="md" full>
+            <Button onClick={secondary.onClick} variant="secondary" size="md" full>
               {secondary.label}
             </Button>
           ) : null}

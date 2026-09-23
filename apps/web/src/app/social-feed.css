@@ -2369,14 +2369,9 @@
     margin-inline: -1.25rem;
     padding-inline: 1.25rem;
     /*
-     * Room for the 44px target under a 38px chip.
-     *
-     * `overflow-x: auto` makes this a scroll container on BOTH axes, so it
-     * clips the 3px the chip's `::before` reaches above and below, and clipping
-     * removes it from hit testing as well as from paint. A hit test found the
-     * expanded target dead on all five chips while the CSS looked correct.
-     * Three pixels of block padding gives it the room; the chips themselves are
-     * painted exactly as before.
+     * Room for the selected chip's inline glow. `overflow-x: auto` makes this
+     * a scroll container on both axes, so without a little block padding the
+     * lit chip's light is clipped at its top and foot.
      */
     padding-block: 3px;
   }
@@ -2384,65 +2379,25 @@
     display: none;
   }
   /*
-   * 44px of hit area with the visual weight of a 38px chip, by a transparent
-   * extender rather than by growing the painted pill. These are the feed's own
-   * filter tabs, the control that decides what the whole screen shows, and they
-   * were the smallest thing on it.
-   *
-   * Two sessions fixed this independently and the implementations differed, so
-   * this is the one that was hit tested rather than the one that was reasoned.
-   * A fixed `inset: -3px -2px` reaches 44 only while the chip is painted at
-   * exactly 38; `max(100%, 44px)` centred reaches it whatever the chip becomes,
-   * which is the same `.nf-tap` rule the rest of the platform uses.
-   *
-   * It is also the safer of the two on the concern the other raised, which was
-   * a chip stealing a tap from its neighbour. The row's gap is 8px, and this
-   * rule never widens a chip that is already wider than 44, so it adds nothing
-   * horizontally at all on a real filter rail.
+   * THE FEED'S FILTER TABS ARE THE SHARED CHIP (the orphans' request SW-O2,
+   * 23 September). They drew their own 38px lozenge at ratio 0.37 with a lit
+   * brand edge at rest and a flat brand fill when chosen, and grew a 44px hit
+   * area with a transparent extender. The markup now wears `.nf-chip`
+   * (chips.css: 44px painted, `--nf-radius-control`, the glass door's edge
+   * and rim) and `.nf-chip--active` when chosen (the shared `--nf-selected-*`
+   * state), so the extender and every material rule here are gone. What is
+   * left is this row's own layout: no shrinking in the rail, and the count.
    */
-  .nf-district__chip::before {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    translate: -50% -50%;
-    width: max(100%, 44px);
-    height: max(100%, 44px);
-  }
-
   .nf-district__chip {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
     flex-shrink: 0;
-    min-block-size: 38px;
-    padding-inline: 15px;
-    border-radius: var(--nf-radius-control);
-    /* Lit brand edge, not a grey hairline. These are the feed's own filter
-       tabs, the control that decides what the whole screen shows, and they
-       were eleven grey boxes beside one lit primary (R1 A5). */
-    border: 1px solid var(--nf-brand-edge);
-    box-shadow: var(--nf-glow-edge);
-    font-size: var(--nf-text-caption);
-    font-weight: 650;
-    color: var(--nf-content-secondary);
-    transition:
-      background var(--nf-duration-fast) var(--nf-ease-standard),
-      border-color var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-  .nf-district__chip[aria-selected="true"] {
-    background: var(--nf-brand-primary);
-    border-color: var(--nf-brand-primary);
-    color: var(--nf-content-on-brand);
-  }
-  .nf-district__chip[aria-selected="true"] .nf-numeric {
-    color: var(--nf-content-on-brand);
-    opacity: 0.8;
   }
   .nf-district__chip .nf-numeric {
-    font-size: 0.7rem;
+    font-size: var(--nf-text-overline);
     color: var(--nf-content-muted);
+  }
+  .nf-district__chip.nf-chip--active .nf-numeric {
+    color: var(--nf-content-on-brand);
+    opacity: 0.8;
   }
 
   /* One place, in the picker. */
@@ -2654,24 +2609,10 @@
     margin-block-start: 0.875rem;
   }
 
+  /* The way back out, on the shared chip (`.nf-chip` on the markup, SW-O2):
+     it drew its own 34px box with a grey hairline. Only its layout stays. */
   .nf-enter__back {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
     flex-shrink: 0;
-    min-block-size: 34px;
-    padding-inline: 11px 13px;
-    border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-border-subtle);
-    font-size: var(--nf-text-caption);
-    font-weight: 650;
-    color: var(--nf-content-secondary);
-    transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
-  }
-
-  .nf-enter__back:hover {
-    border-color: var(--nf-border-default);
-    color: var(--nf-content-primary);
   }
 
   .nf-enter__state {
@@ -2723,36 +2664,30 @@
     margin-block-start: 0.875rem;
   }
 
-  .nf-enter__chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    min-block-size: 40px;
-    padding-inline: 14px;
-    border-radius: var(--nf-radius-control);
-    /* Lit brand edge, not a grey hairline (R1 A5). */
-    border: 1px solid var(--nf-brand-edge);
-    box-shadow: var(--nf-glow-edge);
-    background: var(--nf-surface-inset);
-    font-size: var(--nf-text-caption);
-    font-weight: 650;
+  /*
+   * A PLACE IS THE SHARED CHIP (the orphans' request SW-O2, 23 September).
+   * The picker's and the "within" chips drew their own 40px box at ratio 0.35
+   * with a lit brand edge, an inset fill and a grey hover. The markup now
+   * wears `.nf-chip` (chips.css: 44px, the control corner, the glass door's
+   * edge and rim, the shared hover), so only this grid's layout stays here,
+   * plus two states the shared chip has no word for:
+   *
+   * - a door somebody is already standing behind (`data-open`) keeps a brand
+   *   ring and brand ink: it is open, not chosen, so it is not the selected
+   *   state;
+   * - the chip being entered (`aria-busy`) IS the chosen one for that moment,
+   *   so it takes the shared selected state, the same tokens as
+   *   `.nf-chip--active`.
+   *
+   * Doubled with `.nf-chip` because chips.css lands later in the same layer
+   * and centres a chip's content.
+   */
+  .nf-chip.nf-enter__chip {
+    justify-content: flex-start;
     line-height: 1.2;
-    color: var(--nf-content-secondary);
     text-align: start;
-    transition:
-      border-color var(--nf-duration-fast) var(--nf-ease-standard),
-      color var(--nf-duration-fast) var(--nf-ease-standard);
   }
 
-  .nf-enter__chip:hover:not(:disabled) {
-    border-color: var(--nf-border-strong);
-    color: var(--nf-content-primary);
-  }
-
-  /* A door somebody is already standing behind. A brand RING and brand ink,
-     never a brand tint: a translucent electric blue fill over a white card
-     reads violet on paper, and this brand carries no violet. That is the
-     fourth place in this layer that has had to say it. */
   .nf-enter__chip[data-open="true"] {
     border-color: var(--nf-border-brand);
     color: var(--nf-brand-secondary);
@@ -2764,7 +2699,10 @@
 
   .nf-enter__chip[aria-busy="true"] {
     opacity: 1;
-    border-color: var(--nf-border-brand);
+    color: var(--nf-content-on-brand);
+    background: var(--nf-selected-fill);
+    border-color: var(--nf-selected-edges);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
 
   .nf-enter__chip-name {
@@ -2776,6 +2714,10 @@
     font-size: 0.7rem;
     font-weight: 600;
     color: var(--nf-content-muted);
+  }
+
+  .nf-enter__chip[aria-busy="true"] .nf-enter__chip-state {
+    color: var(--nf-content-on-brand);
   }
 
   .nf-enter__chip[data-open="true"] .nf-enter__chip-count {
@@ -2869,10 +2811,21 @@
     max-inline-size: 48rem;
     margin-inline: auto;
   }
+  /*
+   * On a phone the location bar sits directly under the app header, as
+   * feed-plus-bloom-target.jpg draws it (about 11 CSS px of air). The shell
+   * opens every page with `py-section-tight` (32px at 390) under the header,
+   * which put the bar at y 104 against the header's foot at 60 and pushed the
+   * stories, tabs and cards down by the same band (the second audit's S-D).
+   * The feed takes that band back here, as it already takes back the shell's
+   * gutter; the header, the dock and the shell are untouched, and the page's
+   * own `pt-sm` (12px) is the air the render draws.
+   */
   @media (max-width: 639px) {
     .nf-feed-page {
       inline-size: auto;
       margin-inline: calc(16px - var(--nf-pad-shell));
+      margin-block-start: calc(var(--nf-gap-section-tight) * -1);
     }
   }
 

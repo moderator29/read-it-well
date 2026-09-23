@@ -14,7 +14,7 @@ export default function LoadingBookings() {
     <LoadingShell label="Loading your bookings" className="mx-auto w-full max-w-2xl">
       <PageHeaderSkeleton />
 
-      <div className="nf-card p-md sm:p-lg">
+      <div className="nf-panel nf-panel--card block p-md sm:p-lg">
         <div className="flex items-start gap-md">
           <Skeleton width="4.5rem" height="4.5rem" radius="md" className="shrink-0" />
           <div className="min-w-0 flex-1">
@@ -30,7 +30,7 @@ export default function LoadingBookings() {
       <Skeleton className="mb-sm mt-xl" width="10rem" height="0.75rem" radius="sm" />
       <ul className="grid gap-sm sm:grid-cols-3">
         {Array.from({ length: 3 }, (_, i) => (
-          <li key={i} className="nf-card flex items-start gap-md p-md sm:flex-col">
+          <li key={i} className="nf-panel nf-panel--card flex-row items-start gap-md p-md sm:flex-col">
             <Skeleton width="3.5rem" height="3.5rem" radius="md" className="shrink-0" />
             <div className="min-w-0 flex-1">
               <Skeleton width="70%" height="0.875rem" radius="sm" />

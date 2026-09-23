@@ -220,7 +220,7 @@ export function ReserveTable({
               const next = Number(event.target.value);
               setParty(Number.isFinite(next) ? Math.min(MAX_PARTY, Math.max(1, next)) : 1);
             }}
-            className="w-16 nf-glass--well rounded-[var(--nf-radius-sm)] border px-xs py-xs text-center text-[length:var(--nf-text-body-sm)] tabular-nums text-[var(--nf-content-primary)]"
+            className="h-11 w-16 nf-glass--well rounded-[var(--nf-radius-sm)] border px-xs py-0 text-center text-[length:var(--nf-text-body-sm)] tabular-nums text-[var(--nf-content-primary)]"
           />
           <button
             type="button"

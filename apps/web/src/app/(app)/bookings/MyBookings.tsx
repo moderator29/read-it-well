@@ -127,7 +127,7 @@ function BookingCard({
 
   return (
     <li
-      className={`nf-card overflow-hidden p-0 text-left ${justBooked ? "nf-confirm-sweep nf-just-booked" : ""}`}
+      className={`nf-panel nf-panel--card block overflow-hidden p-0 text-left ${justBooked ? "nf-confirm-sweep nf-just-booked" : ""}`}
     >
       <div className="flex gap-md p-md sm:gap-md sm:p-md">
         <Link
@@ -212,7 +212,7 @@ function BookingCard({
             <button
               type="button"
               onClick={() => onCancel(b)}
-              className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+              className="nf-tap text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
             >
               {copy.cancel}
             </button>
@@ -222,12 +222,9 @@ function BookingCard({
               Once written, it becomes a way back to what they said rather than
               an invitation to say it twice. */}
           {b.reviewable && (
-            <Link
-              href={`/bookings/${b.id}/review`}
-              className="nf-btn nf-btn--primary px-sm py-xs text-[length:var(--nf-text-caption)]"
-            >
+            <ButtonLink href={`/bookings/${b.id}/review`} variant="primary" size="sm">
               {copy.leaveReview}
-            </Link>
+            </ButtonLink>
           )}
           {b.reviewed && (
             <Link

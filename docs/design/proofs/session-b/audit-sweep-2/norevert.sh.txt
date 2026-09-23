@@ -1,0 +1,23 @@
+#!/bin/bash
+# usage: norevert.sh <base> <head>   (run in a repo)
+BASE=$1; HEAD=$2
+git log --no-merges --format=%H --reverse $BASE..$HEAD > /tmp/nr.commits.$$
+: > /tmp/nr.pairs.$$
+while read c; do git diff-tree --no-commit-id --name-only -r $c | sed "s|^|$c |"; done < /tmp/nr.commits.$$ > /tmp/nr.pairs.$$
+awk '{print $2}' /tmp/nr.pairs.$$ | sort | uniq -c | awk '$1>1{print $2}' > /tmp/nr.multi.$$
+echo "files touched by more than one commit: $(wc -l < /tmp/nr.multi.$$)"
+while read f; do
+  git cat-file -e $HEAD:"$f" 2>/dev/null || { echo "## $f  (deleted at HEAD)"; continue; }
+  git show $HEAD:"$f" > /tmp/nr.head.$$
+  first=1
+  grep " $f\$" /tmp/nr.pairs.$$ | awk '{print $1}' | while read c; do
+    # lines this commit added (trimmed, >= 12 chars)
+    git diff $c^ $c -- "$f" | grep '^+' | grep -v '^+++' | sed 's/^+//' | awk 'length($0)>=12' > /tmp/nr.add.$$
+    tot=$(wc -l < /tmp/nr.add.$$)
+    miss=0; : > /tmp/nr.miss.$$
+    while IFS= read -r l; do grep -qxF -- "$l" /tmp/nr.head.$$ || { miss=$((miss+1)); echo "$l" >> /tmp/nr.miss.$$; }; done < /tmp/nr.add.$$
+    echo "$f | $(git log -1 --format='%h %ad' --date=format:%H:%M $c) | added $tot | missing $miss"
+    if [ $miss -gt 0 ]; then head -5 /tmp/nr.miss.$$ | cut -c1-140 | sed 's/^/     - /'; fi
+  done
+done < /tmp/nr.multi.$$
+rm -f /tmp/nr.*.$$

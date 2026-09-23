@@ -1,0 +1,122 @@
+files touched by more than one commit: 127
+apps/web/scripts/design/session-b-shots/sweep-orphans.mjs | d1f69c6b 18:59 | added 229 | missing 0
+apps/web/scripts/design/session-b-shots/sweep-orphans.mjs | 64074bec 19:47 | added 3 | missing 0
+apps/web/scripts/design/session-b-shots/sweep-orphans.mjs | 0ab215f6 20:24 | added 5 | missing 0
+apps/web/src/app/(app)/around/settings/PlaceRows.tsx | d1f69c6b 18:59 | added 100 | missing 26
+     -   const openProposals = proposals;
+     -       <section className="mb-xl">
+     -         {openProposals.map((proposal) => (
+     -           <li
+     -             key={proposal.id}
+apps/web/src/app/(app)/around/settings/PlaceRows.tsx | 64074bec 19:47 | added 24 | missing 0
+apps/web/src/app/(app)/around/settings/page.tsx | d1f69c6b 18:59 | added 5 | missing 0
+apps/web/src/app/(app)/around/settings/page.tsx | 64074bec 19:47 | added 8 | missing 0
+apps/web/src/app/(dev)/preview/session-b/sweep-orphans/Client.tsx | d1f69c6b 18:59 | added 12 | missing 0
+apps/web/src/app/(dev)/preview/session-b/sweep-orphans/Client.tsx | 0ab215f6 20:24 | added 7 | missing 0
+apps/web/src/app/(dev)/preview/session-b/sweep-orphans/fixtures.ts | d1f69c6b 18:59 | added 120 | missing 0
+apps/web/src/app/(dev)/preview/session-b/sweep-orphans/fixtures.ts | 0ab215f6 20:24 | added 17 | missing 0
+apps/web/src/app/(dev)/preview/session-b/sweep-orphans/page.tsx | d1f69c6b 18:59 | added 282 | missing 1
+     - import { CancelSheetFixture, KycFlowFixture } from "./Client";
+apps/web/src/app/(dev)/preview/session-b/sweep-orphans/page.tsx | 0ab215f6 20:24 | added 23 | missing 0
+apps/web/src/app/css/buttons.css | a6edcaaf 18:27 | added 7 | missing 0
+apps/web/src/app/css/buttons.css | c7639c33 19:04 | added 17 | missing 0
+apps/web/src/app/css/controls.css | a6edcaaf 18:27 | added 3 | missing 0
+apps/web/src/app/css/controls.css | ffe8989e 17:29 | added 50 | missing 0
+apps/web/src/app/css/controls.css | 0ab215f6 20:24 | added 15 | missing 0
+apps/web/src/app/css/home.css | 9da21a53 18:30 | added 14 | missing 5
+     -     /* Lit, not greyed (audit S3): the whole lit bar, rim and bloom included,
+     -        only quieter, because an empty composer is waiting, not broken. */
+     -     opacity: 0.7;
+     -     box-shadow: var(--nf-btn-lit-shadow);
+     -     text-shadow: var(--nf-btn-lit-text-glow);
+apps/web/src/app/css/home.css | c7639c33 19:04 | added 4 | missing 0
+apps/web/src/app/css/home.css | ffe8989e 17:29 | added 0 | missing 0
+apps/web/src/app/css/orphans.css | 64074bec 19:47 | added 36 | missing 10
+     -  * panel card that lays its fields out on a grid and takes the member fields'
+     -  * own box away, so the questions share one container (GOVERNING-04).
+     -   .nf-orph-fieldgroup > .nf-regfield {
+     -     padding: 0;
+     -     border: 0;
+apps/web/src/app/css/orphans.css | 0ab215f6 20:24 | added 3 | missing 0
+apps/web/src/app/css/threads.css | e93bb8a9 18:27 | added 29 | missing 0
+apps/web/src/app/css/threads.css | c7639c33 19:04 | added 5 | missing 0
+apps/web/src/app/css/threads.css | ffe8989e 17:29 | added 3 | missing 0
+apps/web/src/app/social-feed.css | c4a519f8 18:40 | added 5 | missing 0
+apps/web/src/app/social-feed.css | c7639c33 19:04 | added 3 | missing 0
+apps/web/src/app/social-feed.css | 0ab215f6 20:24 | added 39 | missing 0
+apps/web/src/components/app/ListingCard.tsx | ffe8989e 17:29 | added 3 | missing 0
+apps/web/src/components/app/ListingCard.tsx | 0ab215f6 20:24 | added 7 | missing 0
+apps/web/src/components/supply/AgentRegisterForm.tsx | 64074bec 19:47 | added 1 | missing 0
+apps/web/src/components/supply/AgentRegisterForm.tsx | 0ab215f6 20:24 | added 25 | missing 0
+apps/web/src/components/supply/FirmRegisterForm.tsx | 64074bec 19:47 | added 1 | missing 0
+apps/web/src/components/supply/FirmRegisterForm.tsx | 0ab215f6 20:24 | added 104 | missing 0
+apps/web/src/components/supply/RegisterField.tsx | 64074bec 19:47 | added 6 | missing 2
+     -      (app/css/orphans.css) keeps only the grid and drops the member fields'
+     -      own container, as `.nf-fieldgroup` did. */
+apps/web/src/components/supply/RegisterField.tsx | 0ab215f6 20:24 | added 7 | missing 0
+apps/web/src/components/ui/Segmented.tsx | a6edcaaf 18:27 | added 1 | missing 0
+apps/web/src/components/ui/Segmented.tsx | c7639c33 19:04 | added 1 | missing 0
+docs/BUILD_SESSION_B_LEDGER.md | e93bb8a9 18:27 | added 42 | missing 0
+docs/BUILD_SESSION_B_LEDGER.md | f3ec1eea 18:32 | added 17 | missing 0
+docs/BUILD_SESSION_B_LEDGER.md | c4a519f8 18:40 | added 25 | missing 0
+docs/BUILD_SESSION_B_LEDGER.md | 9da21a53 18:30 | added 38 | missing 0
+docs/BUILD_SESSION_B_LEDGER.md | a5459f08 18:41 | added 19 | missing 0
+docs/BUILD_SESSION_B_LEDGER.md | 55470695 18:52 | added 31 | missing 6
+     - - One difference left, not changed: the render's cards are rounder than the
+     -   panel card's radius. Matching them would take the tiles off the shared
+     -   panel, which is what S11 asked for, so the lead decides whether it is worth
+     - - Not caused by this change, seen in both shots: at 1440 the full-page shot
+     -   runs past the stage's ground, so the note under Skip sits on a flat dark band.
+docs/BUILD_SESSION_B_LEDGER.md | 089cee05 18:57 | added 14 | missing 0
+docs/BUILD_SESSION_B_LEDGER.md | c7639c33 19:04 | added 29 | missing 3
+     - Gate (after `git pull --rebase`): whole-project tsc, the whole vitest suite and
+     - check-css-tokens, run through the lock. Results are in the commit's report. The
+     - no-revert check `git diff origin/main HEAD` was run before the push.
+docs/BUILD_SESSION_B_LEDGER.md | 4957a8fe 19:06 | added 6 | missing 0
+docs/BUILD_SESSION_B_LEDGER.md | ae3f4818 19:16 | added 131 | missing 0
+docs/BUILD_SESSION_B_LEDGER.md | 155ac97a 19:00 | added 91 | missing 2
+     - components the harness can draw (9e7ce8c3): `BookingDetailCard`, `ReviewPanels`, `RentSummary`,
+     - `h-*` harness, `l-*` live as the QA member at 20:0x UTC on the build of 9e7ce8c3), with
+docs/BUILD_SESSION_B_LEDGER.md | 64074bec 19:47 | added 146 | missing 37
+     - `h-*` harness, `l-*` live as the QA member at 18:55 UTC on the build of 9e7ce8c3), with
+     - - **Pass 3, 23 September 19:37 and 19:45 UTC** (`after/measure.json`, the after proofs):
+     -   identical findings to pass 2, all other owners'. Zero legacy material, zero capsules, zero
+     -   controls under 44px, zero flat selected states, zero unlit enabled primaries and no layout
+     -   wider than 390 on any item this group draws.
+docs/BUILD_SESSION_B_LEDGER.md | ebf0d0e5 19:57 | added 43 | missing 7
+     - | 1 | `/around/[slug]` | SWEPT, BAR SW-O2 | district chips 38px at ratio 0.37 with a flat brand "All"; post text under 11px is the feed's ru
+     - | 4 | `/around/settings` | SWEPT, BAR SW-O2 | the place picker's state chips, 40px at ratio 0.35 (`.nf-enter__chip`, feed) |
+     - | 11 | `/rent` | SWEPT, BAR SW-O4 | the listing card's "/yr" at 10.2px (`ListingCard`, home group); its card and the loading cards still car
+     - | 22 | `/profile/setup/firm` | SWEPT, BAR SW-O3 | each field is its own 14px box (`.nf-regfield`, `controls.css`) |
+     - | 23 | `/profile/setup/owner` | SWEPT, BAR SW-O3 | as firm |
+docs/BUILD_SESSION_B_LEDGER.md | 0ab215f6 20:24 | added 65 | missing 0
+docs/FOUNDER_OPEN_ITEMS.md | 1d0b41c3 18:31 | added 1 | missing 0
+docs/FOUNDER_OPEN_ITEMS.md | cc2778ac 18:41 | added 15 | missing 0
+docs/SESSION_B_SCOPE.md | e93bb8a9 18:27 | added 1 | missing 0
+docs/SESSION_B_SCOPE.md | 1bd26df0 18:31 | added 36 | missing 1
+     -     worker's badge stamp), `app/(app)/around/{manage,new,settings}/**`,
+docs/SESSION_B_SCOPE.md | 47ba064e 18:31 | added 5 | missing 0
+docs/SESSION_B_SCOPE.md | f3ec1eea 18:32 | added 3 | missing 0
+docs/SESSION_B_SCOPE.md | 01b0c057 18:35 | added 13 | missing 2
+     -     the price suffix class in `app/(app)/listing/[id]/{page,ReservePanel,RentalPanel}.tsx`,
+     -     `.nf-admin-chip` sizing). S5 is the leftovers worker's (shared status badge).
+docs/SESSION_B_SCOPE.md | 9da21a53 18:30 | added 3 | missing 0
+docs/SESSION_B_SCOPE.md | c7639c33 19:04 | added 7 | missing 0
+docs/SESSION_B_SCOPE.md | 4957a8fe 19:06 | added 2 | missing 0
+docs/SESSION_B_SCOPE.md | ae3f4818 19:16 | added 10 | missing 1
+     -     **Leftovers RELEASED <pending hash>** (23 September): SW-C5, SW-C6, SW-C1,
+docs/SESSION_B_SCOPE.md | 261e3257 19:18 | added 1 | missing 0
+docs/SESSION_B_SCOPE.md | 64074bec 19:47 | added 2 | missing 0
+docs/SESSION_B_SCOPE.md | ebf0d0e5 19:57 | added 3 | missing 0
+docs/SESSION_B_SCOPE.md | 85c5471c 20:03 | added 19 | missing 0
+docs/SESSION_B_SCOPE.md | 0ab215f6 20:24 | added 6 | missing 0
+     -      "lit": false,
+     -      "grey": true
+     -      "lit": false,
+     -      "grey": true
+     -      "lit": false,
+scripts/design/session-b-shots/welcome-question.mjs | 55470695 18:52 | added 56 | missing 4
+     - for (const width of [390, 1440]) {
+     -     viewport: { width, height: width > 800 ? 900 : 844 },
+     - console.log(`question-${PHASE} shot at 390 and 1440 in ${D}`);
+scripts/design/session-b-shots/welcome-question.mjs | 089cee05 18:57 | added 15 | missing 0

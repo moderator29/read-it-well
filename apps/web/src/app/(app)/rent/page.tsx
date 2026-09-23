@@ -13,6 +13,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ButtonLink } from "@/components/ui/Button";
+import { ICON_PLATE_GLYPH, IconPlate } from "@/components/ui/IconPlate";
 
 export const metadata: Metadata = {
   title: "Rent",
@@ -68,12 +69,10 @@ export default async function RentPage({
         </p>
 
         {/* The safety rule of the rent market, stated up front. */}
-        <div className="nf-card mt-md flex items-start gap-md p-md">
-          <UiIcon
-            name="verified"
-            size={20}
-            className="mt-3xs shrink-0 text-[var(--nf-state-success)]"
-          />
+        <div className="nf-panel nf-panel--card mt-md flex-row items-start gap-md">
+          <IconPlate size="sm" tone="success">
+            <UiIcon name="verified" size={ICON_PLATE_GLYPH.sm} />
+          </IconPlate>
           <p className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
             For your safety, keep every chat and payment inside Vallo. Deals
             made outside the platform are not protected by us. Pay only after
@@ -118,7 +117,7 @@ export default async function RentPage({
 
       <Reveal className="mt-md" delay={60}>
         {rentals.length === 0 ? (
-          <div className="nf-card p-2xl text-center">
+          <div className="nf-panel nf-panel--card items-center p-2xl text-center">
             <span className="nf-story-art mx-auto block h-20 w-20">
               <BrandIcon name="keys-home" fill />
             </span>
