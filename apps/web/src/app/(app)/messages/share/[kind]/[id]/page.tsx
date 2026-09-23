@@ -156,6 +156,7 @@ export default async function SharePage({
     id: thread.id,
     counterpartName: thread.counterpartName,
     counterpartVerified: thread.counterpartVerified,
+    counterpartTier: thread.counterpartTier,
     counterpartKind: thread.counterpartKind,
     listingTitle: thread.listingTitle,
   }));

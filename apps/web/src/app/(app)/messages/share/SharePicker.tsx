@@ -11,6 +11,7 @@ import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { EmptyState, TYPE } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
+import { type BadgeTier } from "@/lib/trust/badge-tier";
 
 /**
  * The share picker, both ways round.
@@ -38,6 +39,8 @@ export type ShareThread = {
   id: string;
   counterpartName: string;
   counterpartVerified: boolean;
+  /** The counterpart's published badge, `public.person_badge.tier`. */
+  counterpartTier: BadgeTier;
   counterpartKind: "agent" | "member";
   listingTitle: string | null;
 };
@@ -95,6 +98,7 @@ export function ShareToThread({
                   <VerifiedAvatar
                     name={thread.counterpartName}
                     verified={thread.counterpartVerified}
+                    tier={thread.counterpartTier}
                     kind={thread.counterpartKind}
                     size="md"
                   />

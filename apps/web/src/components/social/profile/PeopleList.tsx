@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
-import { UiIcon } from "@/design-system/icons/UiIcon";
+import { TierBadge } from "@/components/trust/TierBadge";
 import { FollowButton } from "./FollowButton";
 import { moreFollows } from "@/lib/social/follows-actions";
 import type { FollowDirection, FollowRow } from "@/lib/social/follows-queries";
@@ -180,9 +180,23 @@ export function PeopleList({
                   >
                     {name}
                   </Link>
+                  {/*
+                    THE BADGE, FROM THE ONE PUBLISHED SOURCE, BESIDE THE NAME.
+                    A directory row draws the same mark this person's own
+                    profile draws, because both ask `public.person_badge`.
+                  */}
+                  <TierBadge tier={person.badgeTier} size={14} />
+                  {/*
+                    AND THE ROLE CHIP KEEPS ITS WORD AND LOSES ITS TICK. It used
+                    to carry the `verified-badge` glyph beside the word "Agent",
+                    so a role marker wore the trust mark's own shape and a
+                    reader had no way to tell "this person has an agent account"
+                    from "this person was checked". They are different facts and
+                    they now look different. The chip says what somebody IS; the
+                    seal says what we CHECKED.
+                  */}
                   {person.isAgent ? (
-                    <span className="inline-flex shrink-0 items-center gap-2xs rounded-[var(--nf-radius-control)] border border-[var(--nf-border-brand)] px-xs py-3xs text-[length:var(--nf-text-overline)] font-bold uppercase tracking-[0.08em] text-[var(--nf-brand-secondary)]">
-                      <UiIcon name="verified-badge" size={11} />
+                    <span className="inline-flex shrink-0 items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-brand)] px-xs py-3xs text-[length:var(--nf-text-overline)] font-bold uppercase tracking-[0.08em] text-[var(--nf-brand-secondary)]">
                       Agent
                     </span>
                   ) : null}

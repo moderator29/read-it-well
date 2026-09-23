@@ -34,13 +34,17 @@ import "server-only";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { resolveSession } from "../actions/session";
+import { readPersonBadges, type BadgeTier } from "../trust/badge-tier";
 
 export type PersonRow = {
   userId: string;
   handle: string;
   displayLabel: string;
   avatarUrl: string;
+  /** A role marker, never an earned badge. It draws no mark. */
   isAgent: boolean;
+  /** The published badge. The only thing a mark may be drawn from. */
+  badgeTier: BadgeTier;
   bio: string;
   /** What they do, when they have said. Never a dash when they have not. */
   occupation: string | null;
@@ -210,6 +214,11 @@ export async function findPeople(rawQuery: string): Promise<PeopleDirectory> {
       if (lgaCodes.length > 0 || stateCodes.length > 0) matchedOn.push("place");
     }
 
+    /* The published badge for everybody on this page, in one read. A directory
+       row draws the same mark as a profile page and a message thread, because
+       all three ask the same view. */
+    const badges = await readPersonBadges(supabase, rows.map((row) => row.user_id));
+
     return {
       state: "ready",
       signedIn: Boolean(viewerId),
@@ -224,6 +233,7 @@ export async function findPeople(rawQuery: string): Promise<PeopleDirectory> {
           displayLabel: row.display_label || `@${row.handle}`,
           avatarUrl: row.avatar_path ?? "",
           isAgent: row.is_agent,
+          badgeTier: badges.get(row.user_id) ?? "none",
           /* A bio the scanner is holding is shown to nobody but its author, and
              a directory is nobody's own page. */
           bio: row.bio_status === "HELD" ? "" : (row.bio ?? ""),

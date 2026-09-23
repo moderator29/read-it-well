@@ -140,7 +140,7 @@ export const RENTAL_THREAD: ThreadBubble[] = [
     imageUrl: null,
     read: true,
   },
-  { id: "r6", mine: false, body: "This looks amazing. Can we schedule a viewing for this weekend?", timeLabel: "10:50", imageUrl: null },
+  { id: "r6", mine: false, body: "This looks amazing. Can we schedule an inspection for this weekend?", timeLabel: "10:50", imageUrl: null },
   {
     id: "r7",
     mine: true,
@@ -197,6 +197,7 @@ export const INBOX: InboxRow[] = [
     isRequest: false,
     counterpartKind: "agent",
     counterpartVerified: true,
+    counterpartTier: "gold" as const,
     contextKind: "booking",
   },
   {
@@ -209,6 +210,7 @@ export const INBOX: InboxRow[] = [
     isRequest: false,
     counterpartKind: "agent",
     counterpartVerified: true,
+    counterpartTier: "gold" as const,
     contextKind: "listing",
   },
   {
@@ -221,6 +223,7 @@ export const INBOX: InboxRow[] = [
     isRequest: false,
     counterpartKind: "member",
     counterpartVerified: false,
+    counterpartTier: "none" as const,
     contextKind: "reservation",
   },
   {
@@ -233,6 +236,7 @@ export const INBOX: InboxRow[] = [
     isRequest: true,
     counterpartKind: "member",
     counterpartVerified: false,
+    counterpartTier: "none" as const,
     contextKind: "listing",
   },
 ];
@@ -247,5 +251,5 @@ export const ADMIN_ROWS: QueueRowData[] = [
   { id: "7", reference: "RPT-1018", type: "Report", icon: "flag", title: "Suspicious activity", place: "Abuja", detail: "Possible wash trading", detailSub: "Flagged for review", status: "open", statusLabel: "Open", submitted: "27 Apr 2026, 13:12" },
   { id: "8", reference: "BKG-1017", type: "Booking", icon: "calendar-booking", title: "Funmi Adekunle", place: "Ikeja, Lagos", detail: "Resort (Epe)", detailSub: "3 guests, 10 to 12 May", status: "CONFIRMED", statusLabel: "Confirmed", submitted: "26 Apr 2026, 23:06" },
   { id: "9", reference: "LST-1016", type: "Listing", icon: "house", title: "Cosy 1 bedroom apartment", place: "Victoria Island, Lagos", detail: `${formatMoney(95_000_000)} per year`, detailSub: "1 bed, 1 bath", status: "REJECTED", statusLabel: "Not approved", submitted: "26 Apr 2026, 21:33" },
-  { id: "10", reference: "FLG-1015", type: "Message", icon: "chat-bubble", title: "Agent enquiry", sub: "realestate_pro", detail: "Property viewing request", detailSub: "Interested in Lekki properties", status: "open", statusLabel: "Open", submitted: "26 Apr 2026, 19:18" },
+  { id: "10", reference: "FLG-1015", type: "Message", icon: "chat-bubble", title: "Agent enquiry", sub: "realestate_pro", detail: "Property inspection request", detailSub: "Interested in Lekki properties", status: "open", statusLabel: "Open", submitted: "26 Apr 2026, 19:18" },
 ];

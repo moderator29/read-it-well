@@ -15,6 +15,7 @@ import { Segmented } from "@/components/ui/Segmented";
 import { TextField } from "@/components/ui/Field";
 import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
 import { sharePreview } from "@/components/app/messages/share";
+import { type BadgeTier } from "@/lib/trust/badge-tier";
 
 /**
  * The Inbox.
@@ -45,6 +46,8 @@ export type InboxRow = {
   isRequest: boolean;
   counterpartKind: "agent" | "member";
   counterpartVerified: boolean;
+  /** The counterpart's published badge, `public.person_badge.tier`. */
+  counterpartTier: BadgeTier;
   /**
    * What the thread is for. A listing thread carries no glyph, because it is
    * the ordinary case; a table or a stay carries a small one beside its
@@ -81,6 +84,7 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
           <VerifiedAvatar
             name={row.counterpartName}
             verified={row.counterpartVerified}
+            tier={row.counterpartTier}
             kind={row.counterpartKind}
             size="md"
           />

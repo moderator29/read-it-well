@@ -1,0 +1,67 @@
+/*
+ * THE TWO BADGE MARKS, MEASURED OFF THE FOUNDER'S OWN ARTWORK.
+ *
+ * Sources: `IMG_6170.png` (gold) and `IMG_6169.png` (platinum), uploaded to the
+ * repository root on 23 September 2026 in commit `cb7deb07`. Both were opened
+ * and sampled rather than described. What was measured:
+ *
+ *   silhouette   an EIGHT lobed scalloped seal, identical in both files,
+ *                drawn box 798 x 768, outer radius 422px, inner radius 345px,
+ *                so the scallop is 18.2 per cent deep and the inner radius is
+ *                0.819 of the outer. That ratio is what the path below uses.
+ *   gold body    #FFDC20 at the top, #FFD323 through the middle, #FFBA0C at
+ *                the foot: a vertical gradient, not a flat fill.
+ *   gold tick    commonest #F37B02 and #E86700, deepest #BA4600.
+ *   platinum     #E1E1E1, #D6D6D6, #C4C4C4 top to bottom.
+ *   plat. tick   commonest #5F5F5F and #666666, deepest #3C3C3C.
+ *
+ * THE IMAGES GOVERN FORM AND THEY GOVERN NOTHING ELSE, which is the standing
+ * rule at the top of `docs/design/references/roles/README.md`. They decide what
+ * the mark LOOKS like. They decide nothing whatever about who gets one: that is
+ * `public.person_badge` and the ladder behind it.
+ *
+ * RULE 8 SAYS NO GOLD, NO AMBER AND NO ORANGE, AND THIS IS A NAMED EXCEPTION
+ * RATHER THAN A DRIFT. The founder's instruction of 23 September names the tier
+ * "gold", supplies the artwork in that colour, and the whole point of two tiers
+ * is that a reader can tell them apart at a glance. The exception is scoped to
+ * these two marks and to nothing else: the four custom properties below are the
+ * only place amber exists in the product, they are not on the general scale,
+ * and nothing else may reference them. If any other surface starts using them,
+ * that is the drift rule 8 exists to stop and it should be refused there.
+ *
+ * Both marks were drawn on a near black ground (#121212 measured) and are
+ * metallic, so they carry their own value range and do not restate a surface
+ * colour. There is no light twin here because the light halves are being
+ * removed across the product today under the founder's item 2.
+ */
+
+:root {
+  /* Gold. The exception named above, and its whole extent. */
+  --nf-badge-gold-top: #ffdc20;
+  --nf-badge-gold-mid: #ffd323;
+  --nf-badge-gold-foot: #ffba0c;
+  --nf-badge-gold-tick-top: #f58207;
+  --nf-badge-gold-tick-foot: #d95c00;
+
+  /* Platinum. Neutral, so it sits inside the palette without an exception. */
+  --nf-badge-platinum-top: #e1e1e1;
+  --nf-badge-platinum-mid: #d6d6d6;
+  --nf-badge-platinum-foot: #c4c4c4;
+  --nf-badge-platinum-tick-top: #666666;
+  --nf-badge-platinum-tick-foot: #454545;
+}
+
+/*
+ * The mark itself. It is a fact drawn beside a name, so it never animates, it
+ * never invites a tap on its own, and it takes its size from the line it sits
+ * on rather than from a hard coded box.
+ */
+.nf-tier-badge {
+  display: inline-block;
+  flex: none;
+  vertical-align: -0.125em;
+}
+
+.nf-tier-badge__seal {
+  display: block;
+}

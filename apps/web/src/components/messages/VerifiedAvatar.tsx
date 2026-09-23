@@ -1,5 +1,6 @@
-import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
+import { TierBadge } from "@/components/trust/TierBadge";
+import { type BadgeTier } from "@/lib/trust/badge-tier";
 
 /**
  * A person's avatar in messaging, with the verified mark on it.
@@ -98,14 +99,18 @@ const SHELL: Record<AvatarSize, string> = {
  * and the fetched candidate cannot drift apart.
  */
 
-/** The badge scales with the avatar, never below 14px where the tick fails. */
-const BADGE: Record<AvatarSize, string> = {
-  sm: "h-4 w-4",
-  md: "h-[1.125rem] w-[1.125rem]",
-  lg: "h-5 w-5",
-};
-
-const GLYPH: Record<AvatarSize, number> = { sm: 12, md: 12, lg: 16 };
+/*
+ * The mark scales with the avatar. It went UP when the plate came off: the seal
+ * used to sit inside an 18px filled disc at 12px of glyph, and with nothing
+ * behind it the silhouette itself has to carry the size. Sixteen is the floor
+ * at which the eight lobes are still countable and the tick still reads.
+ *
+ * `BADGE`, the class map for that disc, and `VERIFIED_LABEL`, the string it
+ * labelled, are both gone with it. The label now comes from
+ * `BADGE_TIER_MEANING` inside the one renderer, so a tier cannot be announced
+ * one way here and another way on a listing.
+ */
+const GLYPH: Record<AvatarSize, number> = { sm: 16, md: 18, lg: 20 };
 
 /**
  * The same three sizes as `SHELL`, as numbers.
@@ -126,6 +131,7 @@ function initialOf(name: string): string {
 export function VerifiedAvatar({
   name,
   verified,
+  tier,
   photoUrl,
   size = "md",
   /**
@@ -142,13 +148,44 @@ export function VerifiedAvatar({
   className,
 }: {
   name: string;
-  /** The counterpart's REAL verification state. Never defaulted. */
+  /**
+   * The counterpart's REAL verification state, still required and still never
+   * defaulted. It is `agent_badges.verified`, the same published fact `tier` is
+   * read off, so the two cannot mean different things.
+   */
   verified: boolean;
+  /**
+   * The published badge, `public.person_badge.tier`. Supply it wherever the
+   * read can resolve it; `TierBadge` then draws the founder's mark at the
+   * right tier.
+   *
+   * IT IS OPTIONAL FOR ONE REASON AND IT IS A DATED ONE. `ThreadView.tsx` is
+   * the third call site and on 23 September it carried another worker's
+   * uncommitted edit, so committing it here would have swept up work this
+   * session did not write, which is the collision ledger sections 60 and 61
+   * record twice in one day. Until that file can be edited it passes `verified`
+   * alone and gets GOLD, which is the correct mark for every agent and the
+   * wrong one only for a member of staff in a thread. That is a known gap, it
+   * is named in the ledger, and it closes with a one-line edit.
+   *
+   * This is not a second derivation. Both values come from the same published
+   * chain; `verified` is simply the coarser of the two readings.
+   */
+  tier?: BadgeTier;
   photoUrl?: string;
   size?: AvatarSize;
   kind?: "agent" | "member";
   className?: string;
 }) {
+  /*
+   * ONE PLACE DECIDES WHICH MARK THIS AVATAR DRAWS, AND IT IS NOT A TIER
+   * COMPARISON. When the caller has the published tier, that is the answer,
+   * whole. When it has only the coarser boolean off the same published row, a
+   * true reads as the gold mark, which is what `agent_badges.verified` has
+   * always meant. Nothing here reads a ladder, a role or a session.
+   */
+  const mark: BadgeTier = tier ?? (verified ? "gold" : "none");
+
   return (
     <span
       className={`relative inline-block shrink-0 ${className ?? ""}`}
@@ -176,18 +213,22 @@ export function VerifiedAvatar({
         )}
       </span>
 
-      {verified ? (
+      {mark !== "none" ? (
         /*
+          NO BACKGROUND BEHIND THE MARK, on the founder's instruction of 23
+          September: no disc, no ring, no plate, no halo. It used to sit on a
+          filled circle with a two pixel ring in the surface colour, which is
+          what made it read as a chip rather than as the mark itself. The seal
+          is its own silhouette and it carries its own contrast, so it needs
+          nothing behind it, and a mark with nothing behind it cannot bring a
+          background onto a surface the background was never designed for.
+
           Labelled, not aria-hidden. This is the one mark in a conversation
           carrying information a screen reader user needs as much as anybody:
           it is the difference between a stranger and a stranger the platform
           has checked.
         */
-        <span
-          className={`absolute -bottom-0.5 -right-0.5 grid place-items-center rounded-full border-2 border-[var(--nf-surface-primary)] bg-[var(--nf-status-verified)] text-[var(--nf-content-on-brand)] ${BADGE[size]}`}
-        >
-          <UiIcon name="verified-badge" size={GLYPH[size]} label={VERIFIED_LABEL} />
-        </span>
+        <TierBadge tier={mark} size={GLYPH[size]} className="absolute -bottom-0.5 -right-0.5" />
       ) : (
         kind && (
           /* The fallback meaning. A dot, deliberately not a green "online"
@@ -207,4 +248,3 @@ export function VerifiedAvatar({
   );
 }
 
-const VERIFIED_LABEL = "Verified";

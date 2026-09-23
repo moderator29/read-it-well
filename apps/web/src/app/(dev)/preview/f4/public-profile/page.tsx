@@ -29,6 +29,9 @@ export default function PublicProfilePreview() {
           displayLabel: PERSON.name,
           avatarUrl: "",
           isAgent: true,
+          /* A checked agent in the harness, so the gold seal is what this
+             preview must draw. The boolean beside it is a role marker. */
+          badgeTier: "gold" as const,
           bio: PERSON.bio,
           bioStatus: "LIVE",
           pronouns: "he/him",

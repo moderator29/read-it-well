@@ -19,6 +19,7 @@ import { createAdminClient } from "../supabase/admin";
 import { callableNumberFor } from "../security/counterpart-contact";
 import type { ThreadContextKind } from "./db";
 import { lagosTimeLabel, lagosWhenLabel } from "./time";
+import { readPersonBadges, type BadgeTier } from "@/lib/trust/badge-tier";
 
 type Db = SupabaseClient<Database>;
 
@@ -53,6 +54,8 @@ export type LiveConversationSummary = {
   counterpartKind: "agent" | "member";
   /** True when the counterpart is a verified agent. */
   counterpartVerified: boolean;
+  /** The counterpart's published badge, `public.person_badge.tier`. */
+  counterpartTier: BadgeTier;
   /**
    * What the thread is about, for the small context glyph on the row. A
    * rental enquiry, a restaurant table, or a stay. Every thread before M10 is
@@ -101,6 +104,8 @@ export type LiveThreadData = {
    * not already read.
    */
   counterpartId: string;
+  /** The counterpart's published badge, `public.person_badge.tier`. */
+  counterpartTier: BadgeTier;
   listing: {
     id: string;
     title: string;
@@ -122,7 +127,7 @@ function hueOf(id: string): number {
   return acc;
 }
 
-type Identity = { name: string; verified: boolean; isAgent: boolean };
+type Identity = { name: string; verified: boolean; isAgent: boolean; tier: BadgeTier };
 
 /**
  * Resolve display identities for counterpart user ids through the service
@@ -163,9 +168,26 @@ async function identitiesOf(userIds: string[]): Promise<Map<string, Identity>> {
         .select("user_id, display_name, agent_badges(verified)")
         .in("user_id", ids),
     ]);
+    /*
+     * THE TIER, FROM THE ONE PUBLISHED DOOR, AND IT IS KEYED BY THE PERSON.
+     *
+     * `agent_badges` is keyed by AGENT, so it can only ever answer for an
+     * agent. A member of staff is not an agent and would have drawn nothing in
+     * a thread, which is the founder's own account in his own messages.
+     * `public.person_badge` answers for anybody, and it is the same derivation:
+     * `public.badge_tier` over `public.is_platform_staff` and
+     * `public.is_checked_person`. Migration 20260923111950.
+     */
+    const badges = await readPersonBadges(admin, ids);
+
     for (const p of profiles.data ?? []) {
       if (p.display_name) {
-        map.set(p.id, { name: p.display_name, verified: false, isAgent: false });
+        map.set(p.id, {
+          name: p.display_name,
+          verified: false,
+          isAgent: false,
+          tier: badges.get(p.id) ?? "none",
+        });
       }
     }
     for (const a of agents.data ?? []) {
@@ -173,6 +195,7 @@ async function identitiesOf(userIds: string[]): Promise<Map<string, Identity>> {
         name: a.display_name,
         verified: a.agent_badges?.verified ?? false,
         isAgent: true,
+        tier: badges.get(a.user_id) ?? "none",
       });
     }
   } catch {
@@ -276,6 +299,7 @@ export async function loadConversationSummaries(
       isRequest: !spokenIn.has(c.id) && c.guest_id !== user.id,
       counterpartKind: identity?.isAgent ? "agent" : "member",
       counterpartVerified: identity?.verified ?? false,
+      counterpartTier: identity?.tier ?? "none",
       contextKind: c.context_kind,
     };
   });
@@ -495,6 +519,9 @@ export async function loadThread(
     conversationId: conversation.id,
     meId: user.id,
     counterpartName: counterpart?.name ?? FALLBACK_NAME,
+    /* The person's published badge. `listing.verified` two lines below is a
+       different fact about a PROPERTY and the two are never interchangeable. */
+    counterpartTier: counterpart?.tier ?? "none",
     counterpartPhone,
     counterpartId,
     listing: conversation.listings

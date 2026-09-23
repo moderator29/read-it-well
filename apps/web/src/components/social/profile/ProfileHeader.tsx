@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
+import { TierBadge } from "@/components/trust/TierBadge";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { BackChevron } from "./BackChevron";
@@ -165,30 +166,39 @@ export function ProfileHeader({
               <span aria-hidden="true">{monogram}</span>
             )}
           </span>
-          {/* The mark at the foot of the ring: the verified shield on an
-              APPROVED agent, the one state where a human was checked. Nobody
-              else gets a mark there. */}
-          {profile.isAgent ? (
-            <span className="nf-profile-avatar__badge" aria-hidden="true">
-              <UiIcon name="verified-badge" size={16} />
-            </span>
-          ) : null}
+          {/*
+            THE MARK AT THE FOOT OF THE RING, AND IT NO LONGER COMES FROM
+            `isAgent`.
+
+            It used to, and the comment that stood here called `isAgent` "the
+            one state where a human was checked". That was wrong and it was the
+            second derivation of this badge, alive on a shipping surface.
+            `social_profiles.is_agent` is true the moment an agent application
+            is APPROVED, at verification tier 0, before one document has been
+            looked at; its own column comment in the database reads "a role
+            marker, not an earned badge". So this avatar drew a tick for
+            somebody nobody had checked while every listing behind them
+            correctly drew none, which is exactly the fault
+            `20260919230000_p2_a_verified_agent_means_a_person_was_checked`
+            closed in messaging.
+
+            It is `public.person_badge.tier` now, through the one renderer, and
+            it draws no background of its own.
+          */}
+          <TierBadge
+            tier={profile.badgeTier}
+            size={18}
+            className="nf-profile-avatar__badge"
+            decorative
+          />
         </div>
 
         <div className="nf-profile-text">
           <div className="nf-social-nameline">
             <h1 className="nf-social-name">
               <span className="truncate-none">{name}</span>
-              {profile.isAgent ? (
-                <span
-                  className="nf-social-verified"
-                  title={copy.verifiedTitle}
-                  aria-label={copy.verified}
-                  role="img"
-                >
-                  <UiIcon name="verified-badge" size={18} />
-                </span>
-              ) : null}
+              {/* The same one mark beside the name, from the same one source. */}
+              <TierBadge tier={profile.badgeTier} size={18} className="nf-social-verified" />
             </h1>
             {mod ? (
               <span

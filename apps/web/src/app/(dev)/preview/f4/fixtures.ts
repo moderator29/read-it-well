@@ -332,6 +332,7 @@ export const EDITOR_PROFILE = {
   displayLabel: PERSON.name,
   avatarUrl: "",
   isAgent: false,
+  badgeTier: "none" as const,
   bio: PERSON.bio,
   bioStatus: "LIVE" as const,
   pronouns: "he/him",

@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveSession } from "../actions/session";
 import { createAdminClient } from "../supabase/admin";
 import { createClient } from "../supabase/server";
+import { readPersonBadges, type BadgeTier } from "../trust/badge-tier";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import {
@@ -52,8 +53,18 @@ export type SocialProfileView = {
   displayLabel: string;
   /** The avatar, from the same projection. A public URL, or empty. */
   avatarUrl: string;
-  /** True for an APPROVED agent. A role marker, never an earned badge. */
+  /**
+   * True for an APPROVED agent. A ROLE MARKER, NEVER AN EARNED BADGE, and the
+   * database says so in the column's own comment. It decides what a person can
+   * do, never what mark is drawn beside their name.
+   */
   isAgent: boolean;
+  /**
+   * The published badge, `public.person_badge.tier`. THE ONLY thing a surface
+   * may draw a mark from. See `lib/trust/badge-tier.ts` for why `isAgent`
+   * above must never stand in for it.
+   */
+  badgeTier: BadgeTier;
   bio: string;
   bioStatus: BioStatus;
   pronouns: string;
@@ -132,6 +143,8 @@ function toView(row: ProfileRow, viewerIsOwner: boolean): SocialProfileView {
     displayLabel: row.display_label ?? "",
     avatarUrl: row.avatar_path ?? "",
     isAgent: row.is_agent,
+    /* Filled by the caller from the published view. Never derived here. */
+    badgeTier: "none",
     bio: bioVisible ? (row.bio ?? "") : "",
     bioStatus,
     pronouns: row.pronouns ?? "",
@@ -298,6 +311,19 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
   }
 
   const row = data as ProfileRow;
+  /*
+   * THE BADGE, FROM THE ONE PUBLISHED DOOR, and this read is why the profile
+   * header no longer draws a mark off `is_agent`.
+   *
+   * It used to. `ProfileHeader` and `PeopleList` both drew the verified tick
+   * when `social_profiles.is_agent` was true, and that column is true the
+   * moment an agent application is APPROVED, at verification tier 0, before
+   * anybody had looked at a document. So a reader met a tick on the social
+   * profile and none on the listings behind it, which is the identical defect
+   * `20260919230000` closed in messaging and which came back on a second
+   * surface. `public.person_badge` is the only source now.
+   */
+  const badges = await readPersonBadges(supabase, [row.user_id]);
   const isOwner = viewerId === row.user_id;
 
   /*
@@ -311,7 +337,7 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
    * The consequence lands in the `!data` branch above, and it is stated in the
    * copy there rather than hidden.
    */
-  const profile = toView(row, isOwner);
+  const profile = { ...toView(row, isOwner), badgeTier: badges.get(row.user_id) ?? "none" };
 
   /* Nine reads, all started together. In sequence this page would be nine
      round trips, which on the connections this product is built for is the

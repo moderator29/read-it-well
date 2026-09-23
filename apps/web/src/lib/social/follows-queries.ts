@@ -28,6 +28,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
+import { readPersonBadges, type BadgeTier } from "../trust/badge-tier";
 import { resolveSession } from "../actions/session";
 import type { Database } from "../supabase/database.types";
 
@@ -38,7 +39,10 @@ export type FollowRow = {
   handle: string;
   displayLabel: string;
   avatarUrl: string;
+  /** A role marker, never an earned badge. It draws no mark. */
   isAgent: boolean;
+  /** The published badge. The only thing a mark may be drawn from. */
+  badgeTier: BadgeTier;
   /** Empty when there is none, or when the scanner is holding it. */
   bio: string;
   /** True when the person reading this already follows them. */
@@ -185,12 +189,19 @@ async function readProfiles(
       .select("user_id, handle, display_label, avatar_path, is_agent, bio, bio_status")
       .in("user_id", ids);
     if (error || !data) return [];
+    /* One read for the whole page, from the one published door. A follower row
+       draws the same mark as that person's own profile does. */
+    const badges = await readPersonBadges(
+      supabase,
+      data.map((row) => row.user_id),
+    );
     return data.map((row) => ({
       userId: row.user_id,
       handle: row.handle,
       displayLabel: row.display_label ?? "",
       avatarUrl: row.avatar_path ?? "",
       isAgent: row.is_agent,
+      badgeTier: badges.get(row.user_id) ?? "none",
       /* A bio the scanner is holding is shown to nobody but its own author,
          which is the same rule the profile page follows and it is applied here
          rather than in a template so no list can forget it. */
