@@ -4089,6 +4089,166 @@ overflow 0 on every shot.
 
 (Apply, per-route table, after proofs and Passes 1 to 3: pending Phase 1 RELEASED.)
 
+## 13. Platform sweep: settings (settings and every child, notifications, the system pages; worker "sweep-settings")
+
+Group files (scope ccf594ba, claimed in full in the scope file's sweep section): `app/settings-rows.css`,
+`app/css/overlays.css`, `app/css/system.css`, and the route components `app/(app)/settings/**`,
+`app/(app)/notifications/**`, `components/app/account/**`, `components/app/push/**`,
+`app/(app)/legal/LegalDocument.tsx`, `app/offline/SystemMoment.tsx`, `app/not-found.tsx`,
+`app/error.tsx`, `app/(app)/error.tsx`, `app/loading.tsx`. By the lead's ruling the notifications
+anatomy (`.nf-notif*`) moves out of `home.css` into `app/(app)/notifications/notifications.css`.
+Governing images: settings `7F96BE6C` (root copy in `docs/design/references/`); the notification
+centre panel of `roles/GOVERNING-12`. Harness (new, fixture-backed, R-G):
+`app/(dev)/preview/session-b/sweep-settings/` (`?v=` one view per route and inner state, inside the
+real `AppShell`, signed in). Every settings route and `/notifications` sit behind the sign-in gate
+(checked: 307 to `/sign-in` on this server), so every shot of them is FIXTURE-BACKED; `/offline` is
+the real route. Shot script: `scripts/design/session-b-shots/sweep-settings.mjs --phase before|after`.
+
+#### Inventory, written before any change (23 September)
+
+Owner column: **mine** = a file of this group, swept here. **shared** = Phase 1's layer
+(`glass.css` `.nf-card`/`.nf-glass--*`, `buttons.css` `.nf-btn*`, `controls.css`, `Button.tsx`,
+`Switch.tsx`, `Sheet.tsx`, the new primitives), which lands everywhere by itself. **other** = another
+group's file, drawn on my routes, listed so each route's status is honest.
+
+**Route 1, `/settings` (hub, governing 7F96BE6C)**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| back square | `BackButton` (`nf-icon-btn`) | other (chrome) / shared |
+| headline, lede | `.nf-hub-head*` (`settings-rows.css`), type only | mine (no container) |
+| profile card: container, avatar ring with bloom, name, verified tick, email, chevron | `SettingsHub.tsx` `.nf-card.nf-hub-profile` + **local lit-edge override** (`settings-rows.css` "THE LIT EDGE": `--nf-brand-edge` border, `--nf-glow-edge`, floor inset, `--nf-bloom-card`) + **own radius** `--nf-radius-xl`; avatar ring **own gradient border and glow** `.nf-hub-profile__avatar` | **mine: sweep** |
+| hub group: container | `SettingsGroup` `.nf-sgroup__body.nf-card` + **own radius** (`--nf-radius-xl`, doubled selector) + **the same local lit-edge override** | **mine: sweep** |
+| six rows: glyph slot 38px with glass object, label, sub, value, chevron, hairline rail, hover, focus ring | `rows.tsx` `.nf-srow*`, `.nf-hub .nf-srow*` | mine (rows; no container of their own; icon slot is the plate question, see note A) |
+| Verified value with emerald tick | `.nf-hub-value--ok` | mine (type) |
+| Notifications switch, on/off word, disabled while saving, save error alert | `RowSwitch` -> `Switch.tsx` (`.nf-switch` material in `controls.css`; **duplicate dead `.nf-switch`/`__knob` rules in `settings-rows.css`**) | shared / **mine: delete dead copy** |
+| language row (native select, chevron turned right) | `LanguageRow` `RowSelect` | mine |
+| payment methods block: head plate, Add button, card row with Verve plate, Default badge, bank row with plate, Verified badge, add sheet | `PaymentMethodsPanel.tsx`, `AddBankAccountSheet.tsx`, `wallet.css` `.nf-pay-*`, `.nf-glyph-tile`, `.nf-rows-sheet` | other (wallet family, lead ruling) / sheet CSS mine |
+| Log Out group | `LogOutRow` `SettingsGroup` + `RowButton` | mine (as hub group) |
+| loading skeleton | `settings/loading.tsx`: `nf-card p-md` + `Skeleton` | mine (uses shared card, no override) |
+
+**Route 2, `/settings/account`**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| page header with back square, title, sub | `PageHeader` | other (chrome) |
+| group labels, notes | `.nf-sgroup__label`, `__note` | mine (type) |
+| Account group (payment methods row, signed-in value, sign out row, sign-out error) | `AccountSection.tsx` on `SettingsGroup` | mine (group container as route 1) |
+| Delete my account button | `DeleteAccountPanel.tsx` `Button variant="danger"` | shared |
+| delete blockers panel | `DeleteAccountPanel.tsx:157` **inline** `rounded-[--nf-radius-md] border-[--nf-border-subtle] bg-[--nf-surface-raised] p-md` | **mine: sweep** |
+| deletion scheduled panel, restore button, restore error | `DeleteAccountPanel.tsx:248` **inline** error-edged box | **mine: sweep** (a state tone on the shared panel) |
+| delete flow (full-screen layer): scrim, surface, title, close square, "what happens" card, bullet dots, confirm form card, password field, email code button, phrase field, field errors, error box, cancel and delete buttons, done card | `DeleteAccountPanel.tsx:348-560`: **own scrim** (`bg-[--nf-overlay-backdrop] backdrop-blur-sm`), **own surface** (`bg-[--nf-surface-primary]`), `nf-card` x3, `nf-field`, `Button`, **inline error box** (`:535`) | **mine: sweep** |
+| Where you are group (place rows, interests row) | `PlaceCard.tsx`, `InterestsCard.tsx` on `SettingsGroup` | mine |
+| Search group (default area select, currency value, distances select) | `SearchCard` in `SettingsGroups.tsx` | mine |
+
+**Route 3, `/settings/notifications`**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| channels group, four switches, saved/error note | `AccountNotificationsCard` (`AccountToggles.tsx`) on `SettingsGroup`, `RowSwitch` | mine / shared switch |
+| On your phone: push setting card, turn on button, states | `PushSetting.tsx`: `nf-card`, `nf-btn nf-btn--sm nf-btn--ghost` (hand-written class string, not `Button`) | mine (markup) / shared |
+| push device rows, stop one (armed turns danger), stop all, outcome line, unreadable card | `PushDevices.tsx`: `nf-card p-card` rows, hand-written `nf-btn` strings | mine (markup) / shared |
+
+**Route 4, `/settings/privacy` (privacy and security)**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| privacy group (hide activity, data saver switches, note) | `AccountPrivacyCard` | mine |
+| security group (sign-out-everywhere switch, signed-in-on value, row buttons), devices row | `SecurityCard`, `DevicesRow` | mine |
+| data group (export, clear rows) | `DataCard` | mine |
+
+**Route 5, `/settings/payments`**: page header (stacked), the payment methods block (other, wallet), the
+cards note (type), signed-out empty state (`EmptyState` + `EmptyActions`, shared), loading
+(`payments/loading.tsx`: `nf-card` with **own radius override** `rounded-[var(--nf-radius-xl)]`,
+hairline list) = **mine: sweep** (the loading card).
+
+**Route 6, `/settings/help`**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| support chat card, topic chips, answer panel, my bubble, their bubble, typing dots, composer field, send button, contact row, handoff boxes (x2) | `SupportChat.tsx`: `nf-card p-card`, `nf-chip`, **inline** answer panel (`:396` own radius and border), **inline** bubbles (`:431`, `:478`, `:585` `rounded-2xl` plus own fills), **inline** handoff boxes (`:607`, `:682` own brand-tint fill and edge), send `Button` with **own radius** (`:526`) | **mine: sweep** |
+| About group (help, terms, privacy, version, licences) | `SettingsGroup` + `RowLink`/`RowValue` | mine |
+
+**Route 7, `/settings/appearance`**: Appearance group (text size select, reduce motion, sound
+switches), language row = `AppearanceCard`, `LanguageRow` on `SettingsGroup` = mine.
+
+**Route 8, `/settings/devices`**: intro, device cards (`nf-card p-card`), end-this / end-others
+buttons (hand-written `nf-btn nf-btn--sm` strings that turn danger when armed), outcome line,
+unreadable card, signed-out card with glass object and primary link = `DeviceList.tsx`, page = mine
+(markup on shared card and button classes).
+
+**Route 9, `/settings/place`**: form card (`nf-card p-lg`), state, local government and occupation
+pickers (`PlaceFields`, other: auth/place), save button (hand-written `nf-btn nf-btn--primary`),
+**inline** error box (`PlaceForm.tsx:75`), states-unavailable card, signed-out card, loading = mine
+(error box: **sweep**).
+
+**Route 10, `/settings/interests`**: card (`nf-card p-lg`) around `InterestChoices` (other, welcome),
+signed-out card, loading = mine (no override).
+
+**Route 11, `/notifications` (governing GOVERNING-12 panel 3)**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| header: back, title, unread count line, Mark all read | `LiveNotifications.tsx`, `PageHeader`, `Button` | mine / shared |
+| section head New / Earlier with count plate | `.nf-notif__head`, `.nf-notif__count` (**own fill** `--nf-brand-tint-2`) | **mine: sweep** (moves from `home.css`) |
+| list card | `.nf-glass.nf-glass--card.nf-notif__list` | shared material, mine (layout) |
+| row, unread tint, hover, press | `.nf-notif__row` (**own radius and tint**) | **mine: sweep** |
+| glyph plate, unread plate lit | `.nf-glass--tile.nf-notif__tile` + **own size, radius**, **own unread edge/glow** (`--nf-brand-edge-strong`, `--nf-glow-edge-strong`) | **mine: sweep onto the shared IconPlate** |
+| title, body, time, unread dot | type, `.nf-notif__dot` (shape, own glow) | mine |
+| empty state (primary ButtonLink) | `EmptyState` | shared |
+| signed-out and unreachable states | `EmptyState`, `Unreachable`, `PageScene` | shared / other |
+| loading skeleton | `notifications/loading.tsx`: `nf-card nf-notif__list` | mine |
+
+**Route 12, the system pages (`/offline`, not found, the two error boundaries, the root wait) and
+the in-app legal reader (`/legal/terms`, `/legal/privacy`)**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| aurora plate, lockup, wordmark | `.nf-system__plate`, `__icon`, `__wordmark` | mine (art, no container) |
+| system card: fill, border, rim, glow, specular | `.nf-system__card` (`system.css`): **own full recipe** (58% canvas fill, `--nf-glow-brand-rim` border, six-layer shadow, `--nf-glass-specular` ::before, `--nf-radius-2xl`) | **mine: sweep** |
+| 404 numeral, overline, title, body, reference, status line, aside | type | mine |
+| search field with glyph, Search and Back to home buttons | `.nf-field`, `Button`/`ButtonLink` | shared |
+| podium ring and pool | `.nf-system__podium` (shape art from the sign-in render) | mine (keeps, see note B) |
+| root wait: mark, search stand-in, grid of skeletons | `.nf-wait__pill`: **own container** (brand edge, glass fill, `--nf-glow-edge`, `--nf-elev-1`) | **mine: sweep** |
+| legal contents card | `.nf-legal__toc`: **own container** (brand edge, glass fill, blur, `--nf-glow-edge`, specular, `--nf-radius-xl`) | **mine: sweep** |
+| legal prose, sections, back-to-top, foot | type and hairlines | mine |
+
+**Overlays (`overlays.css`), drawn on every group's routes**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| side drawer panel and scrim | `.nf-drawer`, `--left`, `--right`, `.nf-drawer-scrim`: **own glass fill, own `--nf-glow-edge-strong` edge, own radius** | **mine: sweep** (the drawer's CONTENTS are the chrome group's) |
+| bottom sheet: backdrop, surface, grip, body | `.nf-sheet*` (`components/ui/Sheet.tsx`): **own fill (88% elevated), own conic stride edge, `--nf-elev-3-rim`** | **mine: sweep** |
+| rows sheet (payments and profile sheets) | `.nf-rows-sheet*` (`settings-rows.css`): **own fill, own border, own radius, own close square** | **mine: sweep** |
+
+Dead code found in the inventory (to delete while sweeping): `.nf-switch`, `.nf-switch__knob`
+(the switch primitive's material is `controls.css`; these lose the cascade and its thumb class is
+`__thumb`) and `.nf-segment*` (no markup since `RowSegment` became `Segmented`) in `settings-rows.css`.
+
+Note A, the row glyph. `7F96BE6C` draws one glass tile per hub row. The hub passes pack objects that
+carry their own tile (`BrandIcon` at 38), so the row slot must NOT draw a second one (ledger history
+in `settings-rows.css`). The shared IconPlate applies to the stroked-glyph rows on the child pages only
+if the reference draws plates there; the account screens' rows are stroked line glyphs with no plate
+in the render family, so they stay line glyphs.
+
+Note B, the podium. The system card stands on the sign-in render's podium; it is art, not a
+container, and stays.
+
+Found while inventorying, not mine (reported to the lead 23 September): `components/ui/Switch.tsx`
+lifts the thumb twice (Tailwind `-translate-y-1/2` plus an inline `translate(x, -50%)`), so on every
+switch in the product the knob sits 8px above the top of its track (measured 390, hub: track 52x32,
+thumb top -8, expected +4). Visible in `before/hub-390.jpg`.
+
+#### Before proofs (23 September, fixture-backed harness except `/offline`)
+
+`docs/design/proofs/session-b/sweep-settings/before/`, each at 390 (2x) and 1440: `hub`, `account`,
+`delete-sheet`, `delete-scheduled`, `notification-prefs`, `privacy`, `payments`, `help`,
+`appearance`, `devices`, `place`, `interests`, `inbox`, `inbox-empty`, `terms`, `error`,
+`loading-settings`, `loading-payments`, `loading-place`, `loading-interests`, `loading-inbox`,
+`offline` (real route), `not-found` (unknown path under the harness, real 404). 46 shots.
+
+(Apply, per-route table, Pass 1 to 3: pending Phase 1 RELEASED.)
+
 ## Skipped or not verified
 
 (appended honestly as work proceeds)
