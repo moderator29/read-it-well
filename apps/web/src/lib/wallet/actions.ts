@@ -46,7 +46,7 @@ import {
   resolveSession,
 } from "../actions/session";
 import { bestEffortEmail, sendMessage } from "../email/client";
-import { walletFunded, withdrawalFailed } from "../email/messages";
+import { walletFunded } from "../email/messages";
 import { contactForSelf, contactForUser } from "../email/recipients";
 import { isFeatureEnabled } from "../flags";
 import { logMoney } from "../payments/observability";
@@ -690,17 +690,22 @@ export async function withdraw(
     // Only once the hold is genuinely FAILED is it true to say the money is
     // back in the wallet, so only then does the email go.
     if (markedFailed) {
-      await bestEffortEmail(async () => {
-        const owner = await contactForSelf(session.supabase, session.user, "wallet");
-        if (!owner) return;
-        const message = withdrawalFailed({
-          ownerName: owner.name,
-          amountMinor,
-          bankName: bank.name,
-          accountLast4,
-        });
-        await sendMessage(owner.email, message);
-      });
+      /*
+       * THE OUTBOX SAYS THIS NOW, AND IT SAYS IT BETTER.
+       *
+       * A direct send here sat beside the UPDATE that marks the hold FAILED,
+       * and that UPDATE is what fires
+       * `wallet_entries_enqueue_withdrawal_email`. One failed withdrawal
+       * therefore produced TWO emails about the same money, and the two
+       * disagreed: the queued one tells `reversed` apart from `failed`, which
+       * is the difference between money that never left and money that left
+       * and came back, and this one said only that it failed. Removed rather
+       * than made to agree, because two senders for one event is the defect
+       * and matching their wording only hides it.
+       *
+       * Nothing is lost. `withdrawalOutcome` reads the destination bank and
+       * the last four digits from the entry at SEND time.
+       */
     }
 
     return fail(
@@ -902,17 +907,22 @@ async function withdrawToSavedAccount(
     });
 
     if (markedFailed) {
-      await bestEffortEmail(async () => {
-        const owner = await contactForSelf(session.supabase, session.user, "wallet");
-        if (!owner) return;
-        const message = withdrawalFailed({
-          ownerName: owner.name,
-          amountMinor,
-          bankName: account.bank_name,
-          accountLast4,
-        });
-        await sendMessage(owner.email, message);
-      });
+      /*
+       * THE OUTBOX SAYS THIS NOW, AND IT SAYS IT BETTER.
+       *
+       * A direct send here sat beside the UPDATE that marks the hold FAILED,
+       * and that UPDATE is what fires
+       * `wallet_entries_enqueue_withdrawal_email`. One failed withdrawal
+       * therefore produced TWO emails about the same money, and the two
+       * disagreed: the queued one tells `reversed` apart from `failed`, which
+       * is the difference between money that never left and money that left
+       * and came back, and this one said only that it failed. Removed rather
+       * than made to agree, because two senders for one event is the defect
+       * and matching their wording only hides it.
+       *
+       * Nothing is lost. `withdrawalOutcome` reads the destination bank and
+       * the last four digits from the entry at SEND time.
+       */
     }
 
     return fail(

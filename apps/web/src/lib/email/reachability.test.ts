@@ -152,6 +152,16 @@ const REFUSED: Record<string, string> = {
     "promised nowhere until it operates. Superseded by heldPaymentSetAside, " +
     "which the outbox sends on every HELD transition to both parties.",
 
+  withdrawalFailed:
+    "Superseded by withdrawalOutcome, and removed from three call sites on " +
+    "23 September rather than left to agree with it. All three performed the " +
+    "same UPDATE of `wallet_entries.status` that fires " +
+    "`wallet_entries_enqueue_withdrawal_email`, so one failed withdrawal was " +
+    "TWO emails about the same money, and the two disagreed: the queued one " +
+    "tells `reversed` apart from `failed`, which is the difference between " +
+    "money that never left and money that left and came back. Two senders " +
+    "for one event is the defect; matching their wording would only hide it.",
+
   escrowReleased:
     "Same custody claim in its subject line, same rule 11. Superseded by " +
     "heldPaymentPaidOut, which the outbox sends on every RELEASED transition " +

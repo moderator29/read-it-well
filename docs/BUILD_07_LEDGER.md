@@ -8142,3 +8142,61 @@ both roots: **209 files, 3466 passed, 1 skipped, exit 0.** The skip is the push
 live-delivery harness, which preflights the host and reports NOT RUN rather
 than passing or failing, which is the correct behaviour for a proof that needs
 a wire this container does not have.
+
+---
+
+## 64. ONE FAILED WITHDRAWAL WAS TWO EMAILS, AND THE TWO DISAGREED
+
+Found by the welcome worker while counting unreachable builders, measured
+rather than reasoned (a probe created a wallet and a PENDING entry, ran the
+same UPDATE the TypeScript runs, and rolled back on a raise), handed back
+rather than left because both files are Session A's. **Fixed by this session,
+and fixed BEFORE `RESEND_API_KEY` is set**, which is the only reason it has
+never reached a person.
+
+**The defect.** `wallet_entries_enqueue_withdrawal_email` fires on
+`after update of status` and queues `wallet.withdrawal_outcome`. Three call
+sites perform exactly that UPDATE and then ALSO sent `withdrawalFailed`
+directly through `sendMessage`:
+
+- `app/api/paystack/webhook/route.ts`, the `transfer.failed` and
+  `transfer.reversed` webhook
+- `lib/wallet/actions.ts`, twice, the two catch paths
+
+So one failed withdrawal produced two emails about the same money.
+
+**And they disagreed, which is worse than the duplication.**
+`withdrawalOutcome` tells `reversed` apart from `failed`. That is the
+difference between money that never left the account and money that left, came
+back, and will show as a debit and then a credit on a bank statement.
+`withdrawalFailed` said only that it failed. The trigger function's own comment
+gets this exactly right: *"Telling them 'it failed' is how a support ticket
+starts."* So the person would have received two emails, of which the second
+was less true than the first.
+
+**The fix, and why it is removal rather than reconciliation.** The three direct
+sends are deleted and each site carries a note saying what replaced it. Two
+senders for one event IS the defect; making their wording agree would only hide
+it and leave the next person to find two code paths again. Nothing is lost:
+`withdrawalOutcome` reads the destination bank and the last four digits from
+the entry at SEND time, which is also why those never need to travel through a
+queue.
+
+`withdrawalFailed` joins `passwordReset`, `escrowFunded` and `escrowReleased`
+in the REFUSED map in `lib/email/reachability.test.ts`, with the reason
+written out. **That test asserts the unreachable set EQUALS the refused set, in
+both directions**, so it is now positive proof that nothing calls this builder,
+rather than a grep that would pass over a call it did not think to look for.
+
+**Green:** `tsc --noEmit` exit 0 on the whole workspace read from the
+compiler's own status, and 15 files, 1,371 tests across wallet, paystack and
+email.
+
+**One thing observed and deliberately NOT changed, recorded so somebody decides
+it rather than inherits it.** `private.enqueue_withdrawal_outcome_email` has no
+`exception when others` handler, unlike the two triggers on the `auth` schema.
+On `auth` that handler exists because an email must never stop somebody signing
+in. On `wallet_entries` the opposite argument is available: if the queue cannot
+accept the row, perhaps the settlement should not commit either. Both positions
+are defensible and this is a money table, so it is named here for a decision
+rather than changed by a worker passing through.

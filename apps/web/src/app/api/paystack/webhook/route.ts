@@ -22,7 +22,7 @@ import {
 } from "@/lib/wallet/ledger";
 import { recordMoneyAudit, recordWebhookDelivery } from "@/lib/wallet/audit";
 import { bestEffortEmail, sendMessage } from "@/lib/email/client";
-import { walletFunded, withdrawalFailed } from "@/lib/email/messages";
+import { walletFunded } from "@/lib/email/messages";
 import { contactForUser } from "@/lib/email/recipients";
 import { announceConfirmedStay } from "@/lib/bookings/arrival";
 import { markChargeFailed, settleBookingCharge } from "@/lib/bookings/settlement";
@@ -455,25 +455,22 @@ async function handleTransferEvent(
     outcome,
   });
 
-  await bestEffortEmail(async () => {
-    if (!ownerId) return;
-    const contact = await contactForUser(admin, ownerId, "wallet");
-    if (!contact) return;
-
-    // The withdrawal's own metadata carries where it was headed, written when
-    // the hold was placed. Absent or malformed, the email simply omits it.
-    const meta = metadataObject(settled.metadata);
-    const bankName = typeof meta["bank_name"] === "string" ? meta["bank_name"] : null;
-    const accountLast4 = typeof meta["account_last4"] === "string" ? meta["account_last4"] : null;
-
-    const message = withdrawalFailed({
-      ownerName: contact.name,
-      amountMinor: settled.amountMinor,
-      bankName,
-      accountLast4,
-    });
-    await sendMessage(contact.email, message);
-  });
+  /*
+   * THE OUTBOX SAYS THIS NOW, AND IT SAYS IT BETTER.
+   *
+   * A direct send here used to sit beside the UPDATE above, and that UPDATE
+   * is what fires `wallet_entries_enqueue_withdrawal_email`. One failed
+   * withdrawal therefore produced TWO emails about the same money, and the
+   * two disagreed: the queued one tells `reversed` apart from `failed`,
+   * which is the difference between money that never left and money that
+   * left and came back, and this one said only that it failed. Removed
+   * rather than made to agree, because two senders for one event is the
+   * defect and matching their wording only hides it.
+   *
+   * Nothing is lost. `withdrawalOutcome` reads the destination bank and the
+   * last four digits from the entry at SEND time, which is also why they no
+   * longer travel through a queue.
+   */
 
   return verdict("posted", `withdrawal_${outcome.toLowerCase()}`, 200, {
     amountMinor: settled.amountMinor,
