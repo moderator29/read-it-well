@@ -121,7 +121,7 @@ export function InFlight({ locale, inspections }: { locale: Locale; inspections:
         </Panel>
         <Panel id="ops-db-jobs" title={tx(locale, "inflightDatabaseJobsOneByOne")}>
           <NotWired
-            what={tx(locale, "inflightEachOfTheEightDatabase")}
+            what={tx(locale, "inflightEachOfTheDatabaseJobs")}
             request={tx(locale, "inflightTheDatabaseDoesNotExpose")}
           />
         </Panel>

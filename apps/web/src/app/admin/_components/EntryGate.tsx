@@ -48,7 +48,10 @@ export function EntryGate({
   if (target) {
     return (
       <p className="nf-admin-entry" role="status">
-        {opening}
+        {/* A plain anchor, so the hop works with JavaScript off too. */}
+        <a href={target} className="nf-admin-entry__link">
+          {opening}
+        </a>
       </p>
     );
   }

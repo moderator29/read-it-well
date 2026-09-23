@@ -1,5 +1,5 @@
 import { getLocale } from "@/lib/locale";
-import { getBookingOutcomes, getSupplySeries, getThinAreas } from "@/lib/admin/reads/analytics";
+import { getBookingOutcomes, getPriceCheckDemand, getSupplySeries, getThinAreas } from "@/lib/admin/reads/analytics";
 import type { CollectedRange } from "@/lib/admin/reads/shapes";
 import { LiveRefresh } from "../_components/LiveRefresh";
 import { AnalyticsView } from "./AnalyticsView";
@@ -27,10 +27,11 @@ export default async function AdminAnalyticsPage({
   const params = await searchParams;
   const range = RANGES.find((r) => r === params.range) ?? "30d";
   const now = requestTime();
-  const [bookings, supply, thin] = await Promise.all([
+  const [bookings, supply, thin, demand] = await Promise.all([
     getBookingOutcomes(range, now),
     getSupplySeries(range, now),
     getThinAreas(5),
+    getPriceCheckDemand(range, now),
   ]);
   return (
     <>
@@ -41,6 +42,7 @@ export default async function AdminAnalyticsPage({
         bookings={bookings.state === "ok" ? bookings.data : null}
         supply={supply.state === "ok" ? supply.data : null}
         thin={thin.state === "ok" ? thin.data : null}
+        demand={demand.state === "ok" ? demand.data : null}
       />
     </>
   );

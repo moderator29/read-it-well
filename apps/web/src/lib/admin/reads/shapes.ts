@@ -109,3 +109,22 @@ export type AccountDeletions = { scheduled: number; purging: number; recent: { s
 
 /** Request A13: business transfers, which only their two parties may read today. */
 export type BusinessTransfers = { pending: number; recent: { status: string; offeredAt: string; expiresAt: string | null }[] };
+
+/**
+ * `getPriceCheckDemand(range)`: the platform's first demand log. A price
+ * check is a person asking what a place in an area should cost; each stage
+ * of one check is a row in `price_check_events` (read under
+ * `price_check_events_admin_read`).
+ */
+export type PriceCheckDemand = {
+  /** Checks submitted per bucket, and how many of them were answered. */
+  buckets: { start: string; checks: number; answered: number }[];
+  checks: number;
+  checksPrev: number;
+  answered: number;
+  refused: number;
+  /** Local governments by checks submitted, most first. */
+  topAreas: { area: string; state: string | null; checks: number }[];
+  /** Refusal codes by count, most first. */
+  refusals: { code: string; count: number }[];
+};

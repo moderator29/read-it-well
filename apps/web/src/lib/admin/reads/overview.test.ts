@@ -167,3 +167,46 @@ describe("run days", () => {
     ]);
   });
 });
+
+describe("price check demand", () => {
+  it("counts submitted checks, answers, areas and refusal reasons per bucket", async () => {
+    const { assembleDemand } = await import("./analytics");
+    const row = (stage: string, at: string, extra: Partial<{ outcome: string; refusal_code: string; lga_code: string; state_code: string }> = {}) => ({
+      stage,
+      created_at: at,
+      outcome: extra.outcome ?? null,
+      refusal_code: extra.refusal_code ?? null,
+      lga_code: extra.lga_code ?? null,
+      state_code: extra.state_code ?? null,
+    });
+    const out = assembleDemand(
+      ["2026-09-21", "2026-09-22"],
+      false,
+      [
+        row("submit", "2026-09-21T10:00:00Z", { lga_code: "LA-ETI", state_code: "LA" }),
+        row("submit", "2026-09-22T10:00:00Z", { lga_code: "LA-ETI", state_code: "LA" }),
+        row("submit", "2026-09-22T11:00:00Z", { lga_code: "FC-BWA", state_code: "FC" }),
+        row("outcome", "2026-09-22T10:00:01Z", { outcome: "answered" }),
+        row("outcome", "2026-09-22T11:00:01Z", { outcome: "refused", refusal_code: "too_few_comparables" }),
+        row("outcome", "2026-09-21T10:00:01Z", { outcome: "refused" }),
+      ],
+      new Map([["LA-ETI", "Eti-Osa"]]),
+      1,
+    );
+    expect(out.checks).toBe(3);
+    expect(out.answered).toBe(1);
+    expect(out.refused).toBe(2);
+    expect(out.buckets).toEqual([
+      { start: "2026-09-21", checks: 1, answered: 0 },
+      { start: "2026-09-22", checks: 2, answered: 1 },
+    ]);
+    expect(out.topAreas[0]).toEqual({ area: "Eti-Osa", state: "LA", checks: 2 });
+    expect(out.topAreas[1]?.area).toBe("FC-BWA");
+    expect(out.refusals).toEqual(
+      expect.arrayContaining([
+        { code: "too_few_comparables", count: 1 },
+        { code: "unrecorded", count: 1 },
+      ]),
+    );
+  });
+});
