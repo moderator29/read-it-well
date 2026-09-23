@@ -3587,6 +3587,189 @@ export type Database = {
           },
         ]
       }
+      push_deliveries: {
+        Row: {
+          attempted_at: string
+          attempts: number
+          device_ref: string
+          id: string
+          platform: Database["public"]["Enums"]["push_platform"]
+          provider_error: string | null
+          provider_message_id: string | null
+          provider_status: number | null
+          queue_id: string
+          settled_at: string | null
+          state: Database["public"]["Enums"]["push_delivery_state"]
+          token_id: string
+        }
+        Insert: {
+          attempted_at?: string
+          attempts?: number
+          device_ref: string
+          id?: string
+          platform: Database["public"]["Enums"]["push_platform"]
+          provider_error?: string | null
+          provider_message_id?: string | null
+          provider_status?: number | null
+          queue_id: string
+          settled_at?: string | null
+          state?: Database["public"]["Enums"]["push_delivery_state"]
+          token_id: string
+        }
+        Update: {
+          attempted_at?: string
+          attempts?: number
+          device_ref?: string
+          id?: string
+          platform?: Database["public"]["Enums"]["push_platform"]
+          provider_error?: string | null
+          provider_message_id?: string | null
+          provider_status?: number | null
+          queue_id?: string
+          settled_at?: string | null
+          state?: Database["public"]["Enums"]["push_delivery_state"]
+          token_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_deliveries_queue_id_fkey"
+            columns: ["queue_id"]
+            isOneToOne: false
+            referencedRelation: "push_queue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_deliveries_token_id_fkey"
+            columns: ["token_id"]
+            isOneToOne: false
+            referencedRelation: "push_tokens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_queue: {
+        Row: {
+          attempts: number
+          claim_token: string | null
+          claimed_at: string | null
+          collapsed_into: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          last_error: string | null
+          not_before: string
+          notification_id: string
+          outcome: Database["public"]["Enums"]["push_queue_outcome"] | null
+          settled_at: string | null
+          state: Database["public"]["Enums"]["push_queue_state"]
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          claim_token?: string | null
+          claimed_at?: string | null
+          collapsed_into?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_error?: string | null
+          not_before?: string
+          notification_id: string
+          outcome?: Database["public"]["Enums"]["push_queue_outcome"] | null
+          settled_at?: string | null
+          state?: Database["public"]["Enums"]["push_queue_state"]
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          claim_token?: string | null
+          claimed_at?: string | null
+          collapsed_into?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_error?: string | null
+          not_before?: string
+          notification_id?: string
+          outcome?: Database["public"]["Enums"]["push_queue_outcome"] | null
+          settled_at?: string | null
+          state?: Database["public"]["Enums"]["push_queue_state"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_queue_collapsed_into_fkey"
+            columns: ["collapsed_into"]
+            isOneToOne: false
+            referencedRelation: "push_queue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_queue_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: true
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_tokens: {
+        Row: {
+          app_version: string | null
+          auth: string | null
+          created_at: string
+          device_label: string | null
+          device_ref: string
+          failure_streak: number
+          id: string
+          last_seen_at: string
+          p256dh: string | null
+          platform: Database["public"]["Enums"]["push_platform"]
+          revoked_at: string | null
+          revoked_reason:
+            | Database["public"]["Enums"]["push_revoked_reason"]
+            | null
+          token: string
+          user_id: string
+        }
+        Insert: {
+          app_version?: string | null
+          auth?: string | null
+          created_at?: string
+          device_label?: string | null
+          device_ref?: string
+          failure_streak?: number
+          id?: string
+          last_seen_at?: string
+          p256dh?: string | null
+          platform: Database["public"]["Enums"]["push_platform"]
+          revoked_at?: string | null
+          revoked_reason?:
+            | Database["public"]["Enums"]["push_revoked_reason"]
+            | null
+          token: string
+          user_id: string
+        }
+        Update: {
+          app_version?: string | null
+          auth?: string | null
+          created_at?: string
+          device_label?: string | null
+          device_ref?: string
+          failure_streak?: number
+          id?: string
+          last_seen_at?: string
+          p256dh?: string | null
+          platform?: Database["public"]["Enums"]["push_platform"]
+          revoked_at?: string | null
+          revoked_reason?:
+            | Database["public"]["Enums"]["push_revoked_reason"]
+            | null
+          token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       rate_calendar: {
         Row: {
           closed: boolean
@@ -4928,6 +5111,20 @@ export type Database = {
         }
         Relationships: []
       }
+      push_queue_health: {
+        Row: {
+          dead: number | null
+          delivered_last_hour: number | null
+          failed: number | null
+          gave_up_last_hour: number | null
+          held: number | null
+          oldest_due_seconds: number | null
+          pending: number | null
+          sending: number | null
+          stale_claims: number | null
+        }
+        Relationships: []
+      }
       wallet_balances: {
         Row: {
           balance_minor: number | null
@@ -5439,6 +5636,28 @@ export type Database = {
       catalogue_entity_kind: "listing" | "accommodation" | "restaurant"
       document_review_status: "pending" | "approved" | "rejected"
       listing_role: "owner" | "agent" | "firm"
+      push_delivery_state: "sending" | "sent" | "failed" | "gone"
+      push_platform: "web" | "ios" | "android"
+      push_queue_outcome:
+        | "delivered"
+        | "suppressed_preference"
+        | "suppressed_no_device"
+        | "suppressed_expired"
+        | "collapsed"
+        | "gave_up"
+      push_queue_state:
+        | "pending"
+        | "held"
+        | "sending"
+        | "done"
+        | "failed"
+        | "dead"
+      push_revoked_reason:
+        | "by_person"
+        | "provider_gone"
+        | "provider_invalid"
+        | "repeated_failure"
+        | "signed_out"
       supply_role: "owner" | "agent"
       document_subtype:
         | "passport"

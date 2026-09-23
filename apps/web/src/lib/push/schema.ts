@@ -1,168 +1,67 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/supabase/database.types";
 
 /**
- * THE PUSH TABLES, TYPED HERE RATHER THAN IN THE GENERATED FILE.
+ * THE PUSH ENUMS, AND THE CAST THAT USED TO BE HERE AND IS NOW GONE.
  *
- * `lib/supabase/database.types.ts` is generated from the live schema and does
- * not yet know `push_tokens`, `push_queue` or `push_deliveries`, because it
- * has not been regenerated since they landed. Regenerating it is a rewrite of
- * a five thousand line file that six workers all import, and two other
- * sessions added tables of their own within minutes of these, so a regenerate
- * from here would either drop their work or collide with it.
+ * ===========================================================================
+ * WHAT THIS FILE USED TO BE, AND WHY IT IS NOT THAT ANY MORE.
  *
- * So the push tables are described here, narrowly, and the cast to them
- * happens in exactly one function at the foot of this file. That is the whole
- * extent of the untyped surface in this feature, it is named, and it goes
- * away the moment somebody regenerates the shared file. The request to do
- * that is recorded in `docs/BUILD_07_LEDGER.md`.
+ * `push_tokens`, `push_queue` and `push_deliveries` landed on 23 September
+ * and `lib/supabase/database.types.ts` did not know about them, so this file
+ * described the three tables by hand and cast the Supabase client to a
+ * private view of them in one named function. Its own header said that cast
+ * would delete itself the day somebody regenerated the shared file. R-P2 in
+ * `docs/BUILD_07_LEDGER.md` was the request to do that.
  *
- * THE DESCRIPTIONS BELOW ARE NOT A SECOND SOURCE OF TRUTH. They are read
- * from the migrations that created the tables, and if the two ever disagree
- * the migration is right. Anything this file gets wrong shows up as a runtime
- * error from PostgREST rather than as silent corruption, because every
- * column named here exists or the query is rejected.
+ * The push half of that regeneration has landed: the three tables, the
+ * `push_queue_health` view and the five push enums are now in the generated
+ * file, taken verbatim from `mcp__Supabase__generate_typescript_types` on the
+ * live project. **The hand-written table descriptions are gone and the cast
+ * is gone with them.** Every push query is now checked against the schema the
+ * database actually has, and a column renamed in a migration is a compile
+ * error here rather than a PostgREST error at three in the morning.
+ *
+ * ===========================================================================
+ * WHY THE REGENERATION WAS PARTIAL, MEASURED RATHER THAN GUESSED.
+ *
+ * A FULL regeneration was produced and run against `origin/main` in an
+ * isolated worktree, and it does not compile: the live database is ahead of
+ * four hand-written unions in the application, and widening them to match
+ * fires three exhaustiveness guards that were built to fire. Ten compile
+ * errors in total. Five of them are in `components/app/wallet/**`, which is
+ * Session B's, plus the four locale dictionaries. **Landing the full file
+ * today would have taken main red in somebody else's files and left it there
+ * until they acted**, so the push half landed and the rest is a request with
+ * the exact list beside it. That list is in the ledger and in section 49.
+ *
+ * ===========================================================================
+ * WHAT IS RE-EXPORTED HERE AND WHY ANY OF IT IS.
+ *
+ * Only names. Every type below is an alias onto the generated enums, so there
+ * is no second source of truth: if a value is added to `push_revoked_reason`
+ * in a migration, it appears here the moment the file is regenerated and
+ * every `switch` over it stops compiling. The aliases exist because
+ * `Database["public"]["Enums"]["push_revoked_reason"]` at forty call sites is
+ * noise, not because they add anything.
  */
 
-export type PushPlatform = "web" | "ios" | "android";
-
-export type PushRevokedReason =
-  | "by_person"
-  | "provider_gone"
-  | "provider_invalid"
-  | "repeated_failure"
-  | "signed_out";
-
-export type PushQueueState = "pending" | "held" | "sending" | "done" | "failed" | "dead";
-
-export type PushQueueOutcome =
-  | "delivered"
-  | "suppressed_preference"
-  | "suppressed_no_device"
-  | "suppressed_expired"
-  | "collapsed"
-  | "gave_up";
-
-export type PushDeliveryState = "sending" | "sent" | "failed" | "gone";
-
-type PushTokenRow = {
-  id: string;
-  user_id: string;
-  platform: PushPlatform;
-  token: string;
-  p256dh: string | null;
-  auth: string | null;
-  device_ref: string;
-  device_label: string | null;
-  app_version: string | null;
-  created_at: string;
-  last_seen_at: string;
-  failure_streak: number;
-  revoked_at: string | null;
-  revoked_reason: PushRevokedReason | null;
-};
-
-type PushQueueRow = {
-  id: string;
-  notification_id: string;
-  user_id: string;
-  state: PushQueueState;
-  outcome: PushQueueOutcome | null;
-  not_before: string;
-  expires_at: string;
-  attempts: number;
-  claimed_at: string | null;
-  claim_token: string | null;
-  collapsed_into: string | null;
-  last_error: string | null;
-  created_at: string;
-  settled_at: string | null;
-};
-
-type PushDeliveryRow = {
-  id: string;
-  queue_id: string;
-  token_id: string;
-  device_ref: string;
-  platform: PushPlatform;
-  state: PushDeliveryState;
-  attempts: number;
-  provider_status: number | null;
-  provider_message_id: string | null;
-  provider_error: string | null;
-  attempted_at: string;
-  settled_at: string | null;
-};
-
-type Insertable<Row, Required extends keyof Row> = Pick<Row, Required> & Partial<Row>;
-
-export type PushSchema = {
-  public: {
-    Tables: {
-      push_tokens: {
-        Row: PushTokenRow;
-        Insert: Insertable<PushTokenRow, "user_id" | "platform" | "token">;
-        Update: Partial<PushTokenRow>;
-        Relationships: [];
-      };
-      push_queue: {
-        Row: PushQueueRow;
-        Insert: Insertable<PushQueueRow, "notification_id" | "user_id">;
-        Update: Partial<PushQueueRow>;
-        Relationships: [];
-      };
-      push_deliveries: {
-        Row: PushDeliveryRow;
-        Insert: Insertable<PushDeliveryRow, "queue_id" | "token_id" | "device_ref" | "platform">;
-        Update: Partial<PushDeliveryRow>;
-        Relationships: [];
-      };
-      notifications: {
-        Row: {
-          id: string;
-          user_id: string;
-          kind: string;
-          title: string;
-          body: string | null;
-          href: string | null;
-          read_at: string | null;
-          created_at: string;
-        };
-        Insert: never;
-        Update: never;
-        Relationships: [];
-      };
-      profiles: {
-        Row: { id: string; settings: unknown };
-        Insert: never;
-        Update: never;
-        Relationships: [];
-      };
-    };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: {
-      push_platform: PushPlatform;
-      push_revoked_reason: PushRevokedReason;
-      push_queue_state: PushQueueState;
-      push_queue_outcome: PushQueueOutcome;
-      push_delivery_state: PushDeliveryState;
-    };
-    CompositeTypes: Record<string, never>;
-  };
-};
-
-export type PushClient = SupabaseClient<PushSchema, "public">;
+export type PushPlatform = Database["public"]["Enums"]["push_platform"];
+export type PushRevokedReason = Database["public"]["Enums"]["push_revoked_reason"];
+export type PushQueueState = Database["public"]["Enums"]["push_queue_state"];
+export type PushQueueOutcome = Database["public"]["Enums"]["push_queue_outcome"];
+export type PushDeliveryState = Database["public"]["Enums"]["push_delivery_state"];
 
 /**
- * THE ONE CAST IN THIS FEATURE.
+ * The client every push write uses.
  *
- * The runtime object is unchanged: the same service-role client, the same
- * connection, the same row level security bypass it always had. Only the
- * compile-time view of it differs, and only because the generated types are
- * behind the schema. Nothing here grants a privilege or changes a query.
+ * NO LONGER A PRIVATE VIEW OF ANYTHING. It is the ordinary generated client,
+ * and it is named here only so the drain's twelve helper signatures read as
+ * one thing rather than as `SupabaseClient<Database>` repeated. Nothing is
+ * cast to reach it and nothing here grants a privilege: whether a given
+ * client bypasses row level security is decided by the key it was built with,
+ * in `lib/supabase/admin.ts` and `lib/supabase/server.ts`, and never here.
  */
-export function asPushClient(client: unknown): PushClient {
-  return client as PushClient;
-}
+export type PushClient = SupabaseClient<Database>;

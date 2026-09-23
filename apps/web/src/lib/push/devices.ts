@@ -2,7 +2,7 @@ import "server-only";
 
 import { resolveSession } from "@/lib/actions/session";
 import { sessionWhen, type SessionWhen } from "@/lib/security/when";
-import { asPushClient, type PushPlatform } from "./schema";
+import type { PushPlatform } from "./schema";
 
 /**
  * THE DEVICES A PERSON CAN BE REACHED ON, READ FOR THEIR OWN EYES.
@@ -72,8 +72,7 @@ export async function loadPushDevices(now: number = Date.now()): Promise<PushDev
   if (session.state === "unconfigured") return { state: "unconfigured" };
   if (session.state === "signed-out") return { state: "signed-out" };
 
-  const client = asPushClient(session.supabase);
-  const { data, error } = await client
+  const { data, error } = await session.supabase
     .from("push_tokens")
     /* Named columns. Never `*`: a `*` here would start carrying the token the
        day somebody adds a column, and it would do it silently. */

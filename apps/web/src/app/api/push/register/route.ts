@@ -4,7 +4,6 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { asPushClient } from "@/lib/push/schema";
 
 /**
  * POST /api/push/register. A device says it can be reached.
@@ -96,7 +95,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ ok: false, reason: "bad_request" }, { status: 400 });
   }
 
-  const admin = asPushClient(createAdminClient());
+  const admin = createAdminClient();
   const nowIso = new Date().toISOString();
 
   /* ONE ROW PER TOKEN, EVER. `upsert` on the unique token does all three

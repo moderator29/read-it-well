@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { deliverablePlatforms, describeCredentials } from "@/lib/push/credentials";
-import { asPushClient } from "@/lib/push/schema";
 import { sendApns } from "@/lib/push/transport/apns";
 import { sendFcm } from "@/lib/push/transport/fcm";
 import { sendWebPush } from "@/lib/push/transport/webpush";
@@ -76,7 +75,7 @@ export async function POST(): Promise<NextResponse> {
     );
   }
 
-  const admin = asPushClient(createAdminClient());
+  const admin = createAdminClient();
   const { data } = await admin
     .from("push_tokens")
     .select("id, platform, token, p256dh, auth, device_ref")

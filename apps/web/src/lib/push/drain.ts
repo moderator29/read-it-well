@@ -6,7 +6,7 @@ import type { JobVerdict } from "@/lib/bookings/lifecycle";
 import { deliverablePlatforms, describeCredentials } from "./credentials";
 import { decide, planCollapse, type QueuedNotification } from "./policy";
 import type { NotificationKind } from "./preferences";
-import { asPushClient, type PushClient, type PushPlatform, type PushQueueOutcome } from "./schema";
+import type { PushClient, PushPlatform, PushQueueOutcome } from "./schema";
 import { sendApns } from "./transport/apns";
 import { sendFcm } from "./transport/fcm";
 import { sendWebPush } from "./transport/webpush";
@@ -132,8 +132,14 @@ type ClaimedRow = {
  * into a 500 and a dead scheduler dashboard, but a queue that fails on one
  * malformed row must not stop the other ninety-nine.
  */
-export async function pushDrain(adminClient: unknown): Promise<JobVerdict> {
-  const admin = asPushClient(adminClient);
+export async function pushDrain(admin: PushClient): Promise<JobVerdict> {
+  /* TYPED AGAINST THE CRON CONTRACT, which it was not before. This parameter
+     was `unknown` for as long as the push tables were missing from the
+     generated types and the client had to be cast to a private view of them.
+     `lib/cron/run.ts` declares `CronJob = (admin: AdminClient) => ...` and
+     `AdminClient` is the same `SupabaseClient<Database>` this now takes, so
+     the drain and the runner check against each other rather than meeting
+     through an `unknown`. */
   const platforms = deliverablePlatforms();
 
   /* NO CREDENTIALS MEANS DO NOT TOUCH THE QUEUE.

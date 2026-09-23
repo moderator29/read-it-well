@@ -1,7 +1,6 @@
 import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import { asPushClient } from "./schema";
 
 /**
  * TAKING A DEVICE BACK, WRITTEN ONCE FOR THE TWO DOORS THAT DO IT.
@@ -50,7 +49,7 @@ export async function revokeTokens(
   userId: string,
   target: RevokeTarget,
 ): Promise<RevokeOutcome> {
-  const admin = asPushClient(createAdminClient());
+  const admin = createAdminClient();
 
   const query = admin
     .from("push_tokens")
