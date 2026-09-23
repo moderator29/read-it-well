@@ -6466,8 +6466,8 @@ after right, 28) and `after-390/` (28).
 
 ## 13. Platform sweep: wallet family (wallet, send, receive, top up, withdraw, transactions, receipt, pots, result sheets, payment methods; worker "wallet")
 
-Dated 23 September. Commits cc62e78b (SW-ST3, every money card on `Panel`,
-every glyph plate on `IconPlate`, the local material deleted) and 14b43dce
+Dated 23 September. Commits de290b2b (SW-ST3, every money card on `Panel`,
+every glyph plate on `IconPlate`, the local material deleted) and 24bbdda5
 (the balance card's positioning context, the pay row hover, the after
 proofs). Reference for every container, edge, rim, glow, button and plate:
 the shared layer of Phase 1 (42ea43d9, 9da8f86f), which is the console's
@@ -6509,7 +6509,7 @@ shared layer does not; those are listed as governed exceptions below.
 
 ### 13.w3 Routes (390 and 1440)
 
-Material read from computed style on the running build (14b43dce, harness
+Material read from computed style on the running build (24bbdda5, harness
 `/preview/session-b/...`). Panel = 10px, `--nf-panel-edges`, panel fill,
 rim, glow. Plate = `.nf-plate`. Before = the legacy card (22px or 14px local
 lit card), local glyph tiles.
@@ -6537,7 +6537,7 @@ Routes swept: 10 of 10 (12 harness views, 14 with the two settings views).
 2. 23 Sept, overflow and shape: every 390 proof is 780 device px wide (the
    send pages first came out 812: the balance card had lost `position:
    relative` with the deleted duplicate rule, so its wallet object escaped
-   the clip; restored in 14b43dce). `compare-surface --shape-sweep` on
+   the clip; restored in 24bbdda5). `compare-surface --shape-sweep` on
    wallet, send, send-filled, payments, receive, receipt and the settings
    payments view: no text-bearing control is a capsule. By hand: hero tiles
    75x62 r14 (0.23), quick cards 85x82 r10 (0.12), rows 332x56 r10 (0.18),
@@ -6559,7 +6559,7 @@ receipt, pots, result-pending, result-failed, payments; and
 ### 13.w6 Live proof, signed in as the QA member (reads only)
 
 Run 23 Sept 17:02 UTC against the live project from the production build of
-14b43dce on port 3174 (`next start`, `NODE_USE_ENV_PROXY=1`), by
+24bbdda5 on port 3174 (`next start`, `NODE_USE_ENV_PROXY=1`), by
 `scripts/design/session-b-shots/wallet-live-reads.mjs`; credentials from the
 environment only. Nothing was funded, sent, withdrawn or moved: the only
 POSTs were the sign-in form and the recipient lookup server action. Every
@@ -6570,7 +6570,7 @@ empty. Evidence: `docs/design/proofs/session-b/wallet-live/` (shots and
 
 | Link | Result |
 |---|---|
-| Sign in as the member, land on `/wallet` | LIVE PROVEN (17:02, 14b43dce, steps.json) |
+| Sign in as the member, land on `/wallet` | LIVE PROVEN (17:02, 24bbdda5, steps.json) |
 | `/wallet` balance read | LIVE PROVEN: the hero reads N0.00, no failure copy (`01-wallet.jpg`) |
 | `/wallet/transactions` history read | LIVE PROVEN: "No transactions yet", no failure copy (`02-transactions.jpg`) |
 | `/wallet/receive` details read | LIVE PROVEN: the identity panel drawn, no failure copy (`03-receive.jpg`) |
