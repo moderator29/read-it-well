@@ -8647,3 +8647,129 @@ reaches, and that one gap is enough to keep the gate shut.
 - **The gate lines for the application (`tsc`, `vitest`) were not taken**,
   because nothing in this work touches `apps/web` or any TypeScript file. The
   only artefacts are bash, SQL, a TSV and three documents.
+
+---
+
+## 66. THE NINE ITEMS OF 23 SEPTEMBER, AND WHICH SESSION HAS WHICH
+
+Session A takes **1, 2, 3 (the action and the resolver), 5 (the derivation),
+8 (the gate), 9**. Session B takes **4, 6, 7, and the screens for 3 and 8**,
+and follows Session A's tokens in its seven surfaces for 2 and renders the
+badge for 5. Requests cross through this section and through
+`docs/SESSION_B_SCOPE.md`, never by editing the other session's files.
+
+---
+
+## 67. ITEM 1. THE EXAMPLE LISTINGS. FOUND, NOT GUESSED, AND THE CAUSE WAS OURS
+
+**The founder was right on every count.** Nothing was deleted, nothing was
+filtered, and the break was between the rows and the screen. It was none of
+the three things he listed as likely, and it is worse than all of them.
+
+### What it was
+
+**The entire public catalogue was refused to everybody, for about eleven and a
+half hours, and Track G's own migration 6 did it.**
+
+`private.owns_listing(uuid)` is called by **17 RLS policies on 10 tables**:
+`listings`, `listing_photos`, `listing_videos`, `listing_amenities`,
+`listing_access`, `listing_mandates`, `availability`, `reviews`,
+`agent_documents`, `inspection_requests`. **A policy expression is evaluated as
+the querying role.** Migration
+`20260922230500_track_g_6_the_firm_arm_on_owns_listing_and_the_publish_gate`
+restated a rule 21 revoke over that function, so `pg_proc.proacl` read
+`{postgres=X/postgres}` and every read of the catalogue by `anon` **and by
+`authenticated`** raised `42501 permission denied for function owns_listing`.
+
+Search, the listing page, the map, the shortlist and the sitemap were dead for
+every reader who was not staff. Not empty. Refused.
+
+There was a second half. `listings` is granted to `anon` COLUMN BY COLUMN, and
+**a missing column privilege fails the whole SELECT**, not just that column.
+Track G migration 3 added `listing_role` without its grant, so even after the
+function was restored the signed-out read would have died on the one column the
+new read half selects.
+
+### Rule 21 caused this, and the exception to rule 21 was already written down
+
+Rule 21 is BORN LOCKED NEVER BORN PUBLIC, and it is right. But
+`20260730021956_anon_execute_on_rls_helpers.sql` exists for nothing but this
+exact outage and names `owns_listing` as one of four helpers an anonymous
+reader must be able to evaluate. Ledger section 53 wrote the rule down after
+this session nearly filed the same thing as a breach: *"22 of the 73 are load
+bearing and they stay."*
+
+**The knowledge was in the repository in three places and the migration shipped
+anyway, because it was in prose where it needed to be in a check.** That
+sentence is the actual lesson of today.
+
+### Fixed, and confirmed by this session rather than taken from the report
+
+Migration `20260923103430` restores both grants with the argument written out
+and adds the missing `listing_role` column grant. I re-read it off the live
+catalogue myself and then ran the read the catalogue actually performs, **as
+`anon`**, through `apply_migration` with `set local role` inside a transaction
+ending in a deliberate raise so nothing committed:
+
+```
+PROBE CATALOGUE: control=64 anon_all=64 anon_published=64 anon_demo=64
+                 listing_select_ok=t auth_published=64 err=(none)
+```
+
+The control is there so a column of zeros could not be mistaken for an empty
+table. `LISTING_SELECT`'s exact 58 columns succeed as `anon`. The examples are
+browsable again.
+
+### The three things the founder suspected, each checked and each cleared
+
+| suspicion | what is actually true |
+| --- | --- |
+| the `platform_stats` filter spreading further than the stats band | It has not spread. `platform_stats()` carries `not is_demo` inside itself and is used by the stats band and by the category tiles' counts, and by nothing else. |
+| the category tiles losing their counts and so their apparent supply | Working as designed. The tiles DROP their counts rather than print a figure `platform_stats()` cannot produce honestly, and today it honestly produces zero. The tiles still render. |
+| a featured query returning nothing | No demo filter exists on any featured, home, search or feed read. `excludeDemo` is still in exactly the three places the founder named. |
+
+### The rule, restated where a check can reach it
+
+The example listings stay browsable and stay labelled. They are excluded from
+statistics and from Price Check comparables ONLY. They are not excluded from
+search, from the home page, from the feed or from a listing page.
+`scripts/probes/policy_callers_hold_execute.sql` now enforces the half of this
+that a migration can break: every RLS policy joined to whether the role it
+applies to actually holds EXECUTE on the function it calls. 371 pairs, 366 hold
+it, 3 allowlisted with their reason and their removal condition, and **run with
+the allowlist emptied it flags 5 of 371, so it bites.**
+
+### UNPROVEN, and the founder is the only person who can close it
+
+Nothing on a screen. This container's egress proxy refuses
+`CONNECT uccixoonmbhrnyczyigt.supabase.co:443` with 403, so no dev server here
+can reach the project and `/listing/[id]` answers the not-found body at HTTP
+200 for reasons that have nothing to do with this fault. The database is proved
+correct for both `anon` and `authenticated`. **One reload of the live site
+closes the last gap.**
+
+---
+
+## 68. A SECURITY EXPOSURE FOUND WHILE FIXING ITEM 1, AND IT NEEDS THE FOUNDER
+
+`public.businesses` hands `anon` a **table-wide** SELECT. `pg_class.relacl`
+reads `anon=arwdDxtm/postgres`, and `businesses_select_published` is
+`status = 'PUBLISHED'`. So an anonymous caller can read EVERY COLUMN of every
+published business, including `cac_number`, `tin`, `representative_name`,
+`representative_phone`, `email`, `phone`, `address`, `review_notes`,
+`reviewer_id`, `consents` and `verification_tier`.
+
+**All seven published rows have those columns null today, counted rather than
+assumed. So nothing is leaking right now.** The exposure is the day a real firm
+registers through the Track G firm door: at that moment its RC number, its TIN
+and its representative's phone number become world readable.
+
+`public.listings` on the same estate shows the correct pattern, granted column
+by column with the personal columns left out. This is the same narrowing.
+
+**Not fixed by a worker, and deliberately.** Narrowing a table grant is a
+revoke, and revokes of something somebody currently holds are on the stop list.
+It also cannot be done blind: the narrowing must list every column the product
+legitimately reads anonymously, and getting that list wrong reproduces item 1
+on a different table. **Founder, this needs your word to proceed, and it should
+happen before the firm door takes its first real registration.**
