@@ -6675,16 +6675,37 @@ account-takeover surface): scope request EMAIL-LOCK.
 
 ### 13.P.7 Live proofs (network open, 23 September)
 
-Script `apps/web/tests/session-b-profile-live.spec.mjs` against the production build of
-this commit's tree (next start, real project).
+Script `apps/web/tests/session-b-profile-live.spec.mjs`, run against the production build of
+abd0653d (next build and next start, real project, `NODE_USE_ENV_PROXY=1`). Signed in as the
+QA member only (957b3bd2), credentials from the scratchpad env, never in the repo. Nothing was
+saved: the details sheet was opened and closed, the email never touched. The badge figure is
+checked against a second, independent read of `person_badge` over the REST door as the same
+member. Run: 18 of 18 passed. abd0653d was rebased onto main as eaa95b19: the profile route's files are unchanged by
+the rebase; the settings group's shared rows (`rows.tsx`, `SettingsGlyph.tsx`) moved under it,
+so the below-the-fold rows proven here are the pre-rebase drawing, same links. Screenshots in `docs/design/proofs/session-b/profile/live/`.
 
 | Link | Status |
 |---|---|
-| signed out `/profile` redirects to sign in with the way back | LIVE PROVEN (2026-09-23 15:34 UTC, `docs/design/proofs/session-b/profile/live/signed-out-profile-redirect.jpg`) |
-| signed out `/profile/setup` redirects | LIVE PROVEN (15:34 UTC, script output) |
-| signed out `/profile/setup/owner` redirects | LIVE PROVEN (15:34 UTC) |
-| signed out `/profile?switch=owner` redirects | LIVE PROVEN (15:34 UTC) |
-| identity read, badge tier from `person_badge`, row links and figures, Posts, Switch role sheet, settings link, sign out | WAITING ON QA ACCOUNTS (the script runs them when QA_MEMBER_EMAIL and QA_MEMBER_PASSWORD are set) |
+| signed out `/profile` redirects to sign in with the way back | LIVE PROVEN (2026-09-23 16:41 UTC, abd0653d, `signed-out-profile-redirect.jpg`) |
+| signed out `/profile/setup` redirects | LIVE PROVEN (16:41 UTC, abd0653d, script output) |
+| signed out `/profile/setup/owner` redirects | LIVE PROVEN (16:41 UTC, abd0653d, script output) |
+| signed out `/profile?switch=owner` redirects | LIVE PROVEN (16:41 UTC, abd0653d, script output) |
+| sign in as the member lands on `/profile` (next rides) | LIVE PROVEN (16:41 UTC, abd0653d, script output) |
+| identity read: name and handle from the member's profile | LIVE PROVEN (16:41 UTC, abd0653d, `signed-in-profile.jpg`) |
+| badge tier from `person_badge`: none for a member, no badge drawn; REST read agrees | LIVE PROVEN (16:41 UTC, abd0653d, script output) |
+| Followers and Following counts (0 and 0) | LIVE PROVEN (16:41 UTC, abd0653d, `signed-in-profile.jpg`) |
+| four belongings rows link to `/bookings`, `/saved`, `/wallet`, `/inspections`; no figure drawn at zero | LIVE PROVEN (16:41 UTC, abd0653d, `signed-in-profile.jpg`) |
+| Switch role line offers workspaces and never says admin to a member | LIVE PROVEN (16:41 UTC, abd0653d, `signed-in-profile.jpg`) |
+| Switch role opens the workspace sheet | LIVE PROVEN (16:41 UTC, abd0653d, `signed-in-switch-sheet.jpg`) |
+| Posts tab renders its panel | LIVE PROVEN (16:41 UTC, abd0653d, `signed-in-posts.jpg`) |
+| settings gear links to `/settings` and opens it signed in | LIVE PROVEN (16:41 UTC, abd0653d, `signed-in-settings.jpg`) |
+| below the fold links: edit profile, public page, `/settings/place`, `/reviews`, `/messages`, `/notifications`, `/help` | LIVE PROVEN (16:41 UTC, abd0653d, script output) |
+| email drawn as a fixed fact: no email field on the page, the member's address, "Your email address cannot be changed." | LIVE PROVEN (16:41 UTC, abd0653d, script output) |
+| Your details sheet carries no email field | LIVE PROVEN (16:41 UTC, abd0653d, `signed-in-details-sheet.jpg`) |
+| Log Out on `/settings`, then `/profile` is gated again | LIVE PROVEN (16:41 UTC, abd0653d, script output) |
+
+Links proven live: 17 of 17 (4 signed out, 13 signed in). The server refusal of an email
+change is not among them: it is Session A's (EMAIL-LOCK).
 
 ## Skipped or not verified
 - (13.H, sweep-home) No live row on any proof: this box's egress refuses the Supabase host, so every card, panel and figure in the home group's proofs is fixture-backed or an empty state; the wiring is unchanged by the sweep (material only). `/price/area/[id]` and `/rent/move-in/[listingId]` were swept in their stylesheets and not photographed. The lister's TierBadge on the card waits on R-SH4. `StayCard` still wears `nf-glass--card` itself (stays group, R-SH2). The unmounted `AiAssistantBanner` stays until R-SH1.
