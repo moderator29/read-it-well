@@ -1,5 +1,6 @@
 /** Domain types for discovery results. Shared by every data source. */
 
+import type { ListingRole } from "@/lib/supply/roles";
 import type {
   BuildCondition,
   Furnishing,
@@ -236,6 +237,30 @@ export type Listing = {
   rating: number;
   reviewCount: number;
   verified: boolean;
+  /**
+   * WHAT THE LISTER IS TO THIS PROPERTY: `listings.listing_role`.
+   *
+   * The last mile of Track G. The column has been live and not null since
+   * Track G migration 3, `LISTING_ROLE_SENTENCE` has held the three sentences
+   * since the same day, and `ListerRoleLine` has been mounted on the listing
+   * page's agent card waiting for a value. The chain was complete at both ends
+   * and broken in the middle: this read never carried the column from the row
+   * to the prop, so the three sentences had no way onto a screen. That is the
+   * shape of failure this file should be read for - a constant with a test, a
+   * component with a test, and nothing joining them.
+   *
+   * THIS IS NOT A TRUST MARK and nothing may draw it as one. It is what the
+   * lister SAID they are to this property, and it stays a claim until a member
+   * of staff dates `ownership_verified_at` or `mandate_verified_at` beside it.
+   * `verified` above is the checked fact and the two never imply each other.
+   *
+   * Optional because the type is also satisfied by the seed catalogue and by
+   * the external shapes, which have no such column; absent draws no line, which
+   * is the same behaviour every reader had before the field existed. Typed as
+   * the domain union from `lib/supply/roles.ts` rather than as a loose string,
+   * so the three values cannot drift from the three sentences.
+   */
+  listerRole?: ListingRole;
   /**
    * THE FLAG EVERY SURFACE MUST BRANCH ON.
    *

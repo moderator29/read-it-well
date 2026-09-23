@@ -499,34 +499,40 @@ export function supplyPrimer(): string {
     "Vallo does not remove the agent, it removes the runaround.",
     "On the property side a supplier is either an owner listing their own place or an agent acting for owners, and an agent may have a registered firm behind them.",
     /*
-     * THIS SENTENCE WAS FALSE AND TWO AI SYSTEM PROMPTS WERE SAYING IT.
+     * THIS SENTENCE WAS FALSE, TWO AI SYSTEM PROMPTS WERE SAYING IT, AND IT IS
+     * TRUE AGAIN AS OF TODAY.
      *
-     * It read: "A listing says which of the three it came from, so a person
-     * searching can tell them apart." `listings.listing_role` did not exist, so
-     * no listing said anything of the kind, and this primer is spliced into the
-     * system prompt of both `api/assistant/route.ts` and `api/support/route.ts`.
-     * Every user who asked either of them how Vallo works was told a fact about
-     * the product that the product did not have. That is the same class of
-     * fault as a badge that lies, and it is worse for being said by something
-     * people take to be authoritative.
+     * It read, and reads again: "A listing says which of the three it came
+     * from, so a person searching can tell them apart." When it was written
+     * `listings.listing_role` did not exist, so no listing said anything of the
+     * kind, and this primer is spliced into the system prompt of both
+     * `api/assistant/route.ts` and `api/support/route.ts`. Every user who asked
+     * either of them how Vallo works was told a fact about the product that the
+     * product did not have. It was then weakened to a claim about what the
+     * database records, which was true and said nothing to a reader.
      *
-     * THE COLUMN NOW EXISTS. Track G migration 3 added `listings.listing_role`
-     * and it is not null on all 64 rows, and `ListerRoleLine` renders the
-     * sentence on the listing page's agent card. WHAT IS STILL MISSING IS THE
-     * MIDDLE OF THE CHAIN: the listing READ does not carry the column from the
-     * row to the component, because `lib/listings/types.ts` and
-     * `lib/listings/supabase-repository.ts` are another group's files. So a
-     * reader looking at a listing today still does not see it.
+     * WHAT CLOSED IT. Track G migration 3 added the column and every row
+     * carries it. `ListerRoleLine` has rendered the three sentences on the
+     * listing page's agent card since the same week. What was missing was the
+     * middle: the listing READ never selected the column, so the value never
+     * reached the prop. `lib/listings/supabase-repository.ts` now selects
+     * `listing_role` in both reads and maps it through `isListingRole` onto
+     * `Listing.listerRole`, and `app/(app)/listing/[id]/page.tsx` hands it to
+     * the card. Rendered against a row, the page prints "Listed by the owner"
+     * with `data-role="owner"` on it. That is the sentence on a screen, which
+     * is what this claim is about and what no test of a constant could show.
      *
-     * So the sentence says what is true TODAY rather than what will be true on
-     * Thursday. It describes the three kinds of supplier, which is a fact about
-     * the platform, and it stops claiming a screen behaviour that no screen has
-     * yet. The moment the read carries `listing_role`, this becomes the
-     * stronger sentence again, and the handover naming the three lines that do
-     * it is in the report and in the ledger. A promise kept small is worth more
-     * than a promise that is wrong for a week.
+     * WHAT IS STILL SHORT, SAID HERE SO THE NEXT PERSON DOES NOT HAVE TO FIND
+     * IT. The agent and firm sentences NAME the lister, and the public listing
+     * read carries no name: `agents` is RLS-bound to the agent and to staff,
+     * correctly, so a stranger has no path from `agent_id` to a display name.
+     * `fillLister` refuses to print a template with its placeholder showing, so
+     * those two draw no line until a name reaches the card. The owner sentence,
+     * which needs no name and is the distinction this whole direction exists
+     * for, is on the screen today. Carrying the lister's public name is the
+     * next mile and it needs a migration, not a prop.
      */
-    "Which of the three a listing came from is recorded against that listing, so the difference is a fact about the property and not a guess about the person.",
+    "A listing says which of the three it came from, so a person searching can tell them apart.",
     `Every supplier climbs the same four rung ladder: ${ladderSentence()}.`,
     "A rung not reached is drawn as not reached, with what it would take. Nothing is hidden and nothing is implied.",
   ].join(" ");

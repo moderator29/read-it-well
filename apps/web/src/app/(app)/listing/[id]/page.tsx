@@ -1062,7 +1062,22 @@ export default async function ListingDetailPage({
                 {/* ------------------------------------------ agent card */}
                 <Reveal>
                   <Section title={t.catalogue.detail.agent} divided>
-                    <ListingAgentCard verified={listing.verified} t={t} messageHref={messageHref} />
+                    {/*
+                      THE LAST MILE OF TRACK G, AND IT IS ONE PROP.
+                      `listings.listing_role` has been live and not null on
+                      every row since Track G migration 3, and this card has
+                      mounted `ListerRoleLine` for it since the same week. The
+                      value simply never travelled: the read did not select the
+                      column. It does now, so "Listed by the owner" is on a
+                      screen rather than in a constant with a passing test.
+                      Absent draws no line, which is what this card drew before.
+                    */}
+                    <ListingAgentCard
+                      verified={listing.verified}
+                      t={t}
+                      messageHref={messageHref}
+                      listingRole={listing.listerRole ?? null}
+                    />
                   </Section>
                 </Reveal>
 

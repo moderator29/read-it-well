@@ -5,6 +5,7 @@ import { memo } from "../cache/memo";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import { createClient } from "../supabase/server";
+import { isListingRole } from "../supply/roles";
 import { diversePick, matchesFilter } from "./filter";
 import {
   headlinePrice,
@@ -198,6 +199,7 @@ const LISTING_SELECT = `
   featured,
   is_demo,
   agent_id,
+  listing_role,
   area,
   city,
   state_code,
@@ -271,6 +273,7 @@ const LISTING_DETAIL_SELECT = `
   featured,
   is_demo,
   agent_id,
+  listing_role,
   area,
   city,
   state_code,
@@ -297,7 +300,7 @@ export const LISTING_SELECTS = {
   detail: LISTING_DETAIL_SELECT,
 } as const;
 
-type ListingRow = {
+export type ListingRow = {
   id: string;
   reference: string | null;
   title: string;
@@ -340,6 +343,7 @@ type ListingRow = {
   featured: boolean;
   is_demo: boolean;
   agent_id: string;
+  listing_role: string | null;
   power_grid: string | null;
   power_backup: string | null;
   power_backup_hours: number | null;
@@ -679,7 +683,18 @@ async function getReviewStats(
   return stats;
 }
 
-function mapRow(
+/**
+ * One database row as the domain type.
+ *
+ * EXPORTED FOR THE SPEC, for the same reason `LISTING_SELECTS` is. A column
+ * only reaches a screen if three things hold at once: it is in the select, it
+ * is on the row type, and this function copies it onto the domain object.
+ * `listings.listing_role` is what happens when the first and third are missing
+ * while both ends of the chain have passing tests of their own, so the middle
+ * link is now testable rather than merely reviewable. The row type is exported
+ * beside it so a spec has to build a REAL row rather than a hand-waved partial.
+ */
+export function mapRow(
   row: ListingRow,
   stateNames: Map<string, string>,
   amenityCodes: Map<string, string>,
@@ -872,6 +887,32 @@ function mapRow(
      * to lend it.
      */
     verified: !row.is_demo && verifiedAgents.has(row.agent_id),
+    /*
+     * WHAT THE LISTER IS TO THIS PROPERTY, CARRIED AT LAST.
+     *
+     * This one line is the middle of Track G's chain. The column has been not
+     * null on every row since Track G migration 3 and `ListerRoleLine` has been
+     * mounted on the listing page's agent card since the same week, and between
+     * them there was nothing: the row was read, the column was not selected,
+     * and the three sentences had no route to a screen. Both ends had tests and
+     * both tests passed.
+     *
+     * NARROWED THROUGH THE DOMAIN GUARD, NEVER CAST. The column is a Postgres
+     * enum, so `owner | agent | firm` is what it holds today, but a cast would
+     * put whatever a fourth value turned out to be straight onto a prop that
+     * indexes `LISTING_ROLE_SENTENCE`, and the reader would get `undefined`
+     * rendered as a sentence. `isListingRole` refuses anything it does not
+     * know and the field stays absent, which draws no line at all. Absent and
+     * wrong are different, and only one of them is safe.
+     *
+     * It is NOT clamped on `is_demo`, unlike `verified` and `rating` above,
+     * and that is deliberate. Those two are CLAIMS THIS PLATFORM MAKES, so an
+     * example listing must make neither. This is a statement about who put the
+     * listing up, which an example listing answers as honestly as a real one,
+     * and the example banner over it already tells the reader what the whole
+     * page is.
+     */
+    ...(isListingRole(row.listing_role) ? { listerRole: row.listing_role } : {}),
     isDemo: row.is_demo,
     /* Instant book is gone from the schema. The whole product moved from
        "reserve a room tonight" to "rent or buy a property", and no property in
