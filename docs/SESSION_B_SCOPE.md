@@ -761,6 +761,15 @@ W4. **Bank payouts do not complete in production.** The only withdrawal in the
     row is not drawn. This is a founder and Paystack account question, not
     code: when the Paystack business is upgraded, say so here and the tile
     comes back (the sheet is still reachable at `/wallet?action=withdraw`).
+W6. **A statement row does not know who the other person is.** For the
+    badge beside a counterparty name (founder item 5, B-BADGE) the wallet's
+    rows and receipt need the other person's id. It is in the ledger row
+    (`wallet_entries.metadata.counterparty_user_id`, written by
+    `private.transfer_between_wallets`) and `toWalletEntry` in
+    `lib/wallet/repository.ts` drops it. Request: carry it as an optional
+    `counterpartyUserId` on `WalletEntry`, and ideally the tier from
+    `public.person_badge` beside it, so `EntryRow` and `Receipt` render
+    `BadgeSlot` without a read per row. Until then those two draw no badge.
 W5. **Stroked glyphs the design system does not have.** The two renders draw a
     paper plane, a plus in a rounded square, a bank, a card, a scan frame, a
     shield with a tick and a padlock; `UiIcon` has none of them. They are drawn

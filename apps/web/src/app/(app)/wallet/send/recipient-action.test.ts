@@ -77,22 +77,48 @@ describe("lookupRecipient", () => {
   });
 
   it("answers found with the display name, lower-casing the address it asks for", async () => {
-    expect(await lookupRecipient("Them@Example.com")).toEqual({ state: "found", name: "Tunde Adebayo" });
+    expect(await lookupRecipient("Them@Example.com")).toEqual({ state: "found", name: "Tunde Adebayo", tier: null });
     expect(seam.findUserByEmail).toHaveBeenCalledWith("them@example.com");
   });
 
   it("falls back to the address when the profile carries no name", async () => {
     seam.displayNameFor.mockResolvedValue(null);
-    expect(await lookupRecipient("them@example.com")).toEqual({ state: "found", name: "them@example.com" });
+    expect(await lookupRecipient("them@example.com")).toEqual({ state: "found", name: "them@example.com", tier: null });
   });
 
   it("still says found when the name read throws", async () => {
     seam.displayNameFor.mockRejectedValue(new Error("down"));
-    expect(await lookupRecipient("them@example.com")).toEqual({ state: "found", name: "them@example.com" });
+    expect(await lookupRecipient("them@example.com")).toEqual({ state: "found", name: "them@example.com", tier: null });
   });
 
   it("treats an account resolving to the viewer as self", async () => {
     seam.findUserByEmail.mockResolvedValue({ id: "me", email: "alias@example.com" });
     expect(await lookupRecipient("alias@example.com")).toEqual({ state: "self" });
+  });
+});
+
+describe("lookupRecipient, the badge tier (B-BADGE)", () => {
+  const chain = (result: unknown) => ({
+    select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve(result) }) }),
+  });
+
+  it("carries the tier person_badge answers, and asks for exactly that row", async () => {
+    const from = vi.fn(() => chain({ data: { tier: "gold" }, error: null }));
+    (seam.admin as { from: unknown }).from = from;
+    expect(await lookupRecipient("them@example.com")).toEqual({
+      state: "found",
+      name: "Tunde Adebayo",
+      tier: "gold",
+    });
+    expect(from).toHaveBeenCalledWith("person_badge");
+  });
+
+  it("answers no badge for no row, an unknown value, or a failed read", async () => {
+    (seam.admin as { from: unknown }).from = () => chain({ data: null, error: null });
+    expect(await lookupRecipient("them@example.com")).toMatchObject({ tier: null });
+    (seam.admin as { from: unknown }).from = () => chain({ data: { tier: "diamond" }, error: null });
+    expect(await lookupRecipient("them@example.com")).toMatchObject({ tier: null });
+    (seam.admin as { from: unknown }).from = () => chain({ data: null, error: { message: "denied" } });
+    expect(await lookupRecipient("them@example.com")).toMatchObject({ tier: null });
   });
 });

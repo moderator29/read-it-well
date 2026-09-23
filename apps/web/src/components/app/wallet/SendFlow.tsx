@@ -30,6 +30,7 @@ import { useBalanceMask } from "./balance-mask";
 import { LiveWallet } from "./LiveWallet";
 import { MoneyGlyph } from "./MoneyGlyph";
 import { WalletTiles } from "./WalletTiles";
+import { BadgeSlot } from "./BadgeSlot";
 import {
   BankRecipientRows,
   useBankRecipient,
@@ -221,6 +222,10 @@ export function SendFlow({
   const recipientName =
     check !== null && check !== "checking" && check.state === "found"
       ? check.name
+      : null;
+  const recipientTier =
+    check !== null && check !== "checking" && check.state === "found"
+      ? (check.tier ?? null)
       : null;
   const refused =
     check !== null &&
@@ -633,9 +638,10 @@ export function SendFlow({
                     <span className="nf-send-row__label block">
                       {copy.recipientFound}
                     </span>
-                    <span className="nf-send-found__name block truncate">
-                      {recipientName}
-                    </span>
+                    <span className="nf-send-found__name flex min-w-0 items-center gap-2xs">
+                  <span className="truncate">{recipientName}</span>
+                  <BadgeSlot tier={recipientTier} />
+                </span>
                   </span>
                 </p>
               ) : check !== null &&

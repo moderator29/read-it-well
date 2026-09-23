@@ -1007,6 +1007,63 @@ both themes at 390 and 1536: 0 breaches, 0 over 0.35, 0 round icon-only.
 - The plates are 64 source px for 34px: sharp at 2x, a 1.6x upscale at 3x.
 - The three reassurance lines are English in ha, ig and yo until translated.
 
+
+### Final pass, 23 September (wallet and send)
+
+**Re-checked.** Both renders re-opened beside `wallet-side-by-side.jpg` and
+`send-side-by-side.jpg`. Fixed in this last hour: the doubled focus ring on
+the send rows (one ring, drawn on the row in the focus token, `92d6eb2b`), and
+the badge wiring below.
+
+**The badge (B-BADGE).** Session A's `PersonBadge` component does not exist
+on main at this push, so nothing is drawn. Wired: the send recipient lookup
+(`recipient-action.ts`) now reads `tier` from `public.person_badge`, the one
+source, never computed here (the service role can read the view, confirmed by
+`has_table_privilege`), and `SendFlow` renders `BadgeSlot` beside the
+confirmed name. `BadgeSlot` renders nothing until the component lands; its
+docstring names the one line that changes. **Blocked on B-BADGE.** The
+statement rows and the receipt have no counterparty id to read a tier for:
+**blocked on scope W6** (the id is in the ledger row and
+`lib/wallet/repository.ts` drops it). The bank recipient has no Vallo
+account, so no badge applies to it.
+
+**Commands and output (23 September):**
+```
+npx tsc --noEmit -p .                                  clean
+npx eslint src/components/app/wallet "src/app/(app)/wallet"   clean
+node scripts/check-css-tokens.mjs                      clean
+npx vitest run src/components/app/wallet "src/app/(app)/wallet"
+  Tests  35 passed (35)   (includes the badge tier read: gold carried; no row,
+  an unknown value and a failed read all answer no badge)
+compare-surface --shape-sweep --theme dark, harness wallet, send, send-filled,
+  send-bank (after 24eac4c6; the focus fix after it changes an outline only):
+  BREACHES 0   WORTH AN EYE 0   ROUND ICON-ONLY 0   4 routes, 0 refused
+```
+
+**BUILT AND UNPROVEN** (this box cannot reach Supabase over HTTP, so no
+signed-in run is possible here):
+- The live refresh (`LiveWallet`): proving it needs a signed-in session on a
+  deployed build and a wallet notification arriving.
+- A wallet-to-wallet send end to end: needs two test accounts and a funded
+  wallet; the production ledger holds 0 transfers.
+- The bank name check against Paystack (`resolveBankAccount`): needs a
+  signed-in session with Paystack keys; proved here only on the harness
+  with a fixture resolver.
+- The badge tier read: needs a person with a `person_badge` row and the
+  component from B-BADGE.
+- The back control on the real routes: `/wallet` and `/wallet/send` redirect
+  a signed-out browser, so it was proved by the resolver test and on the
+  harness.
+
+**Percentages.**
+- Closing gate items met: 10 / 10 (five per surface).
+- Chain links working in code: 22 / 24 (wallet 8 / 9, W2 open; send 14 / 15,
+  the bank send open on B-BANK (b) and W4).
+- Chain links proven live against production: 0 / 24 (none reachable from
+  this box; each is proved by code, tests and read-only SQL instead).
+- Badge slots rendering the real badge: 0 / 3 (recipient wired and blocked on
+  B-BADGE; rows and receipt blocked on W6).
+
 ## 6. Admin shell, overview, operations, analytics
 
 Worker admin-shell. Governing images: `5EAA44CB` (overview, one full desktop
