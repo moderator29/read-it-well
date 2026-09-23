@@ -9348,6 +9348,279 @@ nobody but the founder has one.
 
 ---
 
+## 63. THE ROUTES NOBODY HAD DECIDED ABOUT, AND THE FIVE BACK CONTROLS THE WALK COULD NOT SEE
+
+### 63.1 The count, before anything was changed
+
+`lib/nav/route-parents.ts` declared 143 routes. `apps/web/src/app` holds 328
+route files. Nothing anywhere said which of the other 185 were deliberate and
+which had simply never been looked at, and that silence is not a smaller
+version of a wrong entry: a wrong entry is visible the first time somebody
+presses back, and an absence is visible to nobody ever.
+
+After this pass: **every page route in the tree is declared**, and every route
+handler is named in a new `NON_NAVIGABLE` structure with the reason it can
+never carry a back control. `lib/nav/route-files.test.ts` walks `src/app` and
+fails if a route file is in neither, or in both.
+
+### 63.2 THE FINDING THAT MATTERS MOST, AND IT INVALIDATES PART OF R14
+
+**Seven components on this platform call `useBack` and draw a back control.
+Only two of them carried `data-nav-back`.**
+
+```
+components/app/PageHeader.tsx              data-nav-back   yes
+components/site/BackButton.tsx             data-nav-back   yes
+components/social/profile/BackChevron.tsx                  NO
+components/app/listing/ListingGallery.tsx                  NO
+components/app/assistant/AssistantChat.tsx                 NO
+components/app/inspections/InspectionSheet.tsx             NO   (Session B's)
+app/(app)/messages/[id]/ThreadView.tsx                     NO
+```
+
+`scripts/design/proof-nav.mjs` finds a drawn control by that attribute and by
+nothing else. So every screen whose only way back is one of the five reported
+**NO CONTROL DRAWN**, and both of today's route lists rest on that reading.
+
+Two of them are checkable now. `/assistant` was on the "draws nothing" list; on
+a keyless build with the attribute added it draws a control and lands on
+`/home`. `/around/[slug]` carries a source comment saying the district header
+"carries the product's real back control with the same left arrow", and the
+browser walk of that route said it had none. Both were true sentences about a
+selector and false sentences about the product.
+
+`BackButton.tsx`'s own docstring explains the attribute as saying "what the
+object IS, so the same selector finds the one in `PageHeader` too". It was
+right about the principle and it was applied to two components out of seven.
+
+Four of the five are marked. `InspectionSheet.tsx` is Session B's and is R16
+below.
+
+### 63.3 THE DOOR WAS POINTING AT A REDIRECT
+
+`/sign-in`, `/sign-up` and `/auth/callback` all declared `/start` as their
+parent. `/start` is `app/(auth)/start/route.ts`: a 307 to
+`firstRunHref("/sign-up")`, which is `/welcome?next=/sign-up`. For any device
+that has already been shown first run, `planFirstRun` forwards that straight
+on. **Back from Sign in landed on Sign up.**
+
+They now declare `/welcome`, whose closing panel IS the choice between the two
+doors. A returning device opening `/welcome` with no `?next` starts at that
+choice, which is exactly where somebody who pressed back from a door belongs.
+`/auth/callback` declares `/sign-in`, which is where its own refusal path
+already sends a spent link. `/welcome` was the other defensible answer there
+and is one step further from what the person was doing.
+
+`/start` keeps its entry, because links still point at it and a declared route
+is one `isAppRoot` answers NO for. It is marked in the file as a redirect that
+never serves a document and may not be anybody's parent.
+
+### 63.4 FOUR PREVIEW DECKS HAVE NO INDEX PAGE
+
+`/preview/[deck]/[screen]` says a harness screen's way up is its deck, and for
+seventeen decks that is true. For `b1b`, `c1`, `imgc` and `session-b` there is
+no `page.tsx` at the deck, so the generic pattern resolved twenty five screens'
+back control to a URL that answers not-found. Every one of them read as
+correctly declared. Found by walking the map against the directory tree, which
+is now `route-files.test.ts`'s third assertion, and fixed with one literal
+entry per deck. `/preview/f3/listing/sale` is kept in the walk as a control row
+for a deck that DOES have an index and must still go up to its own folder.
+
+### 63.5 THREE SCREENS THAT HAD NO WAY OUT, NOW WIRED AND WALKED
+
+**`/escrow` and `/escrow/[id]`.** No header, no arrow, and no inbound link
+anywhere in the product either: no drawer row, no tile, no card. The only ways
+in were pressing back from a held payment and typing the address, and both were
+one way. `/escrow/[id]` goes up to `/escrow` rather than to the conversation it
+was proposed in, and the choice is forced as well as defensible: an agreement
+id is not a conversation id, so `/messages/[id]` cannot be filled from what
+that route captures, and the same link arrives by email where there is no
+thread at all. `/escrow` goes to `/wallet`, because the wallet is where this
+product already explains money set aside. `/home` was the alternative and is
+weaker: it treats the screen as an orphan rather than as the detail behind
+something the person has been shown.
+
+**`/verification`.** Two of its three states drew a header and the third drew
+none, and the third is the state everybody meets, including every signed-out
+visitor. Its header also passed `fallback="/verification"`, its own address: a
+control whose fallback is the screen it is on presses into itself. Inert while
+the route is declared, and a loop waiting for the day the entry goes. Both
+fixed; walked, draws, asks for `/profile`.
+
+### 63.6 THE INSTRUMENT GAINED TWO GUARDS AND LOST A BLIND SPOT, AND EACH ONE WAS PAID FOR
+
+**`asked`, the control's own answer.** `/escrow` pushes `/wallet` and a
+signed-out visitor is gated onto `/sign-in`. The row read MISMATCH, which is
+the same word the walk uses for a wrong destination, and those are opposite
+findings with different owners: one belongs to `route-parents.ts` and one to
+`proxy.ts`. The column reads the destination off the REQUESTS the press made.
+Taking it off committed navigations was tried first and is blind: the App
+Router fetches the parent as an RSC payload, the proxy answers that fetch with
+a 307, and the browser never commits to the parent at all, so the first commit
+is already the gate's answer. Prefetches are dropped by their
+`Next-Router-Prefetch` header rather than by timing, and self test 5 fails the
+whole run if a client push is not observed, because without that check the
+column would read null everywhere and every gated parent would be reported as a
+wrong destination with complete confidence.
+
+**`settled`, two reads that must agree.** `/crypto/btc` was walked twice
+against one server ten minutes apart and answered "not-found body served at
+200" once and "no control drawn" the other time. A fixed 700ms settle is a
+guess about a React commit, and it was choosing between two opposite findings
+at random. A row is now read twice 600ms apart, a third read breaks a tie, and
+a page that never settles is REFUSED rather than reported.
+
+**`readMap` was reading the wrong half of the file.** Its regex matches
+`"key": "value",` and that shape now appears in `NON_NAVIGABLE` too, so one
+survey walked twenty eight API handlers as if they were screens, with an
+English sentence in the declared-parent column, and reported `/api/push/key` as
+a route with no back control. It is JSON. The source is now cut to the
+`ROUTE_PARENTS` literal first, and the existing floor is what catches a cut
+that takes too much.
+
+### 63.7 The walks, and which tree they are about
+
+Taken in an isolated `git worktree` at `68f30240`, `node_modules` hardlinked at
+the root and at `apps/web`, against a production `next start`, at 390px in
+dark. The worktree has since been removed and its five dist directories with
+it, per the coordinator's disk note.
+
+| set | rows | correct | right push, gated on arrival | no control | not reached |
+|---|---|---|---|---|---|
+| every static declared route, keyless build | 118 | 67 | - | 46 | 5 |
+| the routes this pass declared | 22 | 2 | 2 | 11 | 7 |
+| dynamic routes with real ids | 22 | 6 | 1 | 0 | 15 |
+| the four named unreachable, plus two gated | 6 | 0 | 1 | 0 | 5 |
+| the previous pass's twenty two, re-walked | 22 | 15 | 2 | 1 | 4 |
+
+**ZERO wrong destinations across all of it.** The 46 with no control on the
+keyless survey are the 38 of R14, the six console desks this pass declared,
+`/inspections`, and `/offline`, which is deliberate and documented.
+
+**A WARNING ABOUT THOSE ROWS, and it is not small.** While these walks were
+running, `80097483` inverted the signed-out gate: PUBLIC is now the enumerated
+set in `proxy.ts` and everything else needs a session. `/search`, `/around`,
+`/escrow`, `/price`, `/listing/[id]`, `/u/[handle]` and `/styleguide` were open
+to the walk and are gated on today's main. **The declarations and the Android
+answers are unaffected, because `chooseBack` never reads the gate**, and the
+`control drawn` and `back lands` columns for those routes are a verdict about
+`68f30240` and are labelled as such in `NAV_STATE.md` rather than presented as
+current.
+
+### 63.8 Block 3, said plainly: what could not be reached and what is missing
+
+**Nine dynamic routes could not be walked because there is no row to walk.**
+`/listing/[id]`, `/stay/[id]`, `/restaurant/[id]` and `/rent/move-in/[listingId]`
+all answer not-found with real ids read out of the live database, because all
+64 listings are `is_demo = true` and the detail pages filter examples out. That
+is a fact about the data, not about nav, and it is the same fact section 25
+records about the price check's comparables. `/escrow/[id]` and
+`/price/area/[id]` have no rows anywhere. `/post/[id]` and `/around/[slug]`
+answer not-found to an anonymous reader.
+
+**Fifteen more could not be walked because they need a session**, and this
+container cannot hold one. A real account would have to be created in the
+founder's live Supabase, which is writing to live product tables, and it is not
+done. The forged-cookie pattern in `tests/social-media.spec.mjs` does not help:
+`proxy.ts` calls `supabase.auth.getUser()`, which validates against the real
+project, so a stand-in token is refused.
+
+**What IS missing, named so somebody can supply it:** one test account on the
+platform with a password, or a service-role token this container may use to
+mint a session. With either, the fifteen gated rows and the whole admin console
+become walkable in an hour. Without them nobody has seen the admin console's
+back arrow in a browser, including the test Session B wrote for it.
+
+**Of the four named unreachable by the previous pass**, `/verification` was
+reachable all along, drew nothing, and is now fixed and walked. `/checkout`
+never renders: with no `stay` in the query it redirects to `/stays`, which is
+its declared parent anyway. `/inspections` and `/assistant` need a session on a
+keyed build; on a keyless build `/assistant` draws and lands correctly and
+`/inspections` draws nothing, which is R16.
+
+### 63.9 Deliberately left, with the reason
+
+**153 preview harness screens draw no back control and none links back to
+`/preview`.** They are development surfaces, `notFound()` in production unless
+the flag is set and never on Vercel, so Android never sees them and no customer
+ever will. The map fix stands, because a deck screen's declared parent was a
+404 and that is cheap to get right; mounting a control on 153 dev pages is not,
+and many of them are Session B's. Recorded in `NAV_STATE.md` rather than done.
+
+**`/offline`** still draws nothing on purpose; its way up is the brand lockup,
+and the reasoning is already in `route-parents.ts`.
+
+### 63.10 Something nobody asked about: a flaky VAPID test, and the defect under it
+
+The full suite in the isolated worktree at `68f30240` read
+`2 failed | 3477 passed`, and the one failure was
+`src/lib/push/transport/webpush.test.ts`, "refuses halves that are not a pair,
+which is otherwise a silent 401". Re-run three times on its own it passed three
+times. It generates a fresh EC key pair per run, so this is not test flake in
+the ordinary sense: **`vapidKeysAgree` sometimes says a genuine pair is not a
+pair**, and the test's own sentence says what that costs in production. A
+leading-zero byte in a coordinate is the usual cause of this shape. Not this
+session's file and not touched; named here for whoever holds push.
+
+
+---
+
+## 49quater. R16 AND R17 TO SESSION B
+
+**R16. `components/app/inspections/InspectionSheet.tsx` needs one attribute,
+and without it nobody can prove the inspection surface has a way back.**
+
+It calls `useBack` and draws an arrow, so the behaviour is right. It does not
+carry `data-nav-back`, and that attribute is how `scripts/design/proof-nav.mjs`
+finds a drawn back control. Five of the platform's seven back controls were
+missing it; four are marked now and this one is yours. One line, beside the
+`onClick`:
+
+```tsx
+data-nav-back=""
+```
+
+`components/site/BackButton.tsx` carries the reasoning: the attribute says what
+the object IS, which is why it is not a class name (those change with the
+paint) and not the accessible name (that changes with the language cookie).
+
+The cost of leaving it: `/inspections` is on the list of routes that draw no
+back control, and nobody can tell from a browser whether that is true of the
+surface or only of the selector. `/assistant` was on the same list for the same
+reason and draws one.
+
+**R17. The console's back control is mounted and has never been seen.**
+
+R14 is answered in source: `app/admin/layout.tsx:68` mounts
+`<BackButton fallback="/admin" ... />` into `AdminFrame`'s `back` slot, and
+`_components/session-b-admin-back.test.ts` asserts it. Thank you; the map side
+is done too, and the six desks that had no entry at all (`/admin/analytics`,
+`/admin/operations`, `/admin/queue`, `/admin/settings`, `/admin/supply`,
+`/admin/listings/[id]`) are now declared with `/admin` as their parent, matching
+the other twenty three.
+
+**Two things about that test, offered rather than asserted.** It reads
+`layout.tsx` and `AdminFrame.tsx` as TEXT and asserts an import line and a JSX
+fragment are present. That is the mirror-test shape section 17 of this ledger
+catalogues: it passes whether or not a browser ever drew the arrow, and the
+whole of today's work is a list of cases where a component was mounted and
+nothing appeared. A rename of the prop keeps it green; a wrapper that renders
+`back` conditionally keeps it green.
+
+And the mount sits BELOW `requireAdmin()`'s refusal, so no browser without an
+admin session can reach it on any build this machine can produce, keyed or
+keyless. This session walked all 28 admin routes in Chromium and every one of
+them served the refusal screen. **So the console's arrow is currently proved by
+a text match and by nothing else.** If you have a way to hold an admin session
+in a container, that is the missing piece, and `proof-nav.mjs` will walk the
+whole console the moment it exists: `PROOF_SET` takes a named subject list and
+adding one is four lines.
+
+**Not a complaint and not a request to change the test.** A source assertion
+that a control is mounted once, in one layout, is worth keeping. It is not the
+same claim as "the arrow draws", and today that difference cost this repository
+two wrong route lists.
+
 ## 72. PUSH2: THE SERVICE WORKER, THE SURFACES, THE TYPES, AND THREE DEFECTS THAT WERE NOT PUSH DEFECTS
 
 Worker: PUSH2. The twenty two rules and the stop list in section 0 were read
