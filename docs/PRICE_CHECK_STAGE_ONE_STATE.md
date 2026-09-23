@@ -42,16 +42,44 @@ and produces nothing at all in production. It is not broken. It has no supply.
 
 This is the item that matters most, because on an estate where all 64 listings
 are examples **a predicate that excludes everything looks exactly like a correct
-one**, and this platform has been caught by that shape more than once in a day.
+one**, and this platform has been caught by that shape twice in one day.
 `comparable_listings` returning zero proves nothing by itself: a broken bedroom
 band, a wrong radius, a mismatched rent period or a typo in the intent test
 would each produce the same zero.
 
-The database is read-only from the agent's connection, so the two sides cannot
-be shown by inserting a real row and an example row and rolling back. They can
-be shown by running the shipped function, and then running **its own body with
+**This is proved, and the proof is checked in.**
+`scripts/probes/comparables_admit_the_real_and_refuse_the_example.sql`, run
+23 September 2026 against this project through `apply_migration` and logged
+beside itself, puts two rows in front of the predicate that differ in one
+column and asserts both answers, then flips that column on a row already in the
+set and watches it leave and come back. It ends in a deliberate
+`raise exception` so the whole transaction unwinds, and the rollback was
+verified afterwards by a separate read rather than assumed —
+`non_demo 0`, the estate back exactly as it was.
+
+```
+1 control: both twins PUBLISHED and readable
+2 example twin: NOT a comparable
+3 real twin: IS a comparable, set size 3
+4 flip: is_demo true removes it, false returns it, nothing else moved
+4c gate on 3 real: refused / too_few_comparables, count 3
+5 area report: 1 group of 3 real, 0 groups when the same rows are demo
+6 as anon: both twins still in the catalogue, examples are not hidden
+  from search
+```
+
+Assertion 3 is the one no earlier test on this build had: **a non-demo listing
+can reach a comparable.** Assertion 4 is what makes 2 and 3 mean anything — the
+row that left the set is the same row that was in it, so `is_demo` and nothing
+else decided. Assertion 6 is the rule's other half: examples are excluded from
+Price Check comparables and from statistics **only**, never from search, the
+feed or a listing page, so the probe would fail on the day somebody widened the
+rule and hid the whole catalogue.
+
+A second, independent reading of the same rule, this one read-only and needing
+no writes at all, agrees. Run the shipped function, then run its own body with
 the single condition `l.is_demo = false` flipped to `= true` and nothing else
-changed**:
+changed:
 
 ```sql
 -- SIDE A: the shipped function, exactly as the app calls it
@@ -67,25 +95,16 @@ select count(*) from public.comparable_listings(
 -- 3
 ```
 
-**Side A: 0. Side B: 3.**
+Side B returning three proves the rest of the rule is satisfiable by rows that
+exist right now — the type matches, the intent matches, the bedroom band admits
+them, they are inside the radius, recent enough, priced above zero and share a
+rent cycle. Side A returning zero on that same set therefore proves
+`is_demo = false` is exactly and only what removes them. It is weaker than the
+probe, because it reasons about a copy of the predicate rather than calling the
+function on a real row, and it is worth having because it needs no writes and
+can be run by anyone with a read connection in one query.
 
-Read together those two numbers say something neither says alone. Side B
-returning three proves the rest of the rule is satisfiable by rows that exist
-right now: the property type matches, the intent matches, the bedroom band
-admits them, they are inside the radius, they are recent enough, they have a
-price above zero and they share a rent cycle. Side A returning zero on that same
-set therefore proves **`is_demo = false` is exactly and only what removes them.**
-
-The blind light is off. The predicate excludes example listings and does not
-exclude everything.
-
-What is still not proved, and cannot be from here: that a genuinely non-demo row
-flows all the way through to a rendered report. No such row exists to try it
-with. The strongest available statement is the one above — rows differing from a
-comparable **only** in the demo flag do reach the comparable set. A writable
-branch, or the first real listing, closes the remaining gap.
-
----
+**The blind light is off, from both directions.**
 
 ## 2. THE AREA REPORT FROM ASKING PRICES — BUILT, CORRECT, RETURNS NOTHING
 
@@ -223,7 +242,7 @@ arriving from a listing title or an admin-entered string would pass it.
 
 | Stage one item | Built | Proven live |
 |---|---|---|
-| Comparables rule excludes examples | yes | **yes, both sides** (§1) |
+| Comparables rule excludes examples | yes | **yes, both sides, by a rolled-back probe with real inserts** (§1) |
 | Area report from asking prices | yes | no — 0 comparables, 0 summaries |
 | Neighbourhood power and water facts | yes | no — 0 listings, and its shipped rationale is falsified (§3) |
 | Refusal states with notify-me | yes | **yes** (§4) |
