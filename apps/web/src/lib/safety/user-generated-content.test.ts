@@ -344,14 +344,103 @@ describe("the filter knows abuse as well as fraud", () => {
     expect(migration).toContain("alter table public.blocked_terms enable row level security");
   });
 
-  it("ships the term list empty, and the emptiness is in the SQL and not only the comment", () => {
+  it("creates the term list empty, and leaves the seeding to its own migration", () => {
     /*
      * The assertion on `-- SEED REQUIRED` is kept because the note is what a
      * reader needs, but it is a COMMENT and proves nothing about the table.
-     * What proves it is that the executable half inserts no term at all.
+     * What proves it is that the executable half of THIS migration inserts no
+     * term at all. The list is seeded by a separate, reviewable migration,
+     * which the block below guards.
      */
     expect(migration).toContain("-- SEED REQUIRED");
     expect(body).not.toMatch(/insert\s+into\s+public\.blocked_terms/i);
     expect(migration).not.toMatch(/insert into public\.blocked_terms \(term, severity\) values \('[a-z]/);
+  });
+});
+
+/**
+ * THE SEED, AND THE ONE MISTAKE IN IT THAT WOULD BREAK EVERY POST.
+ *
+ * `private.objectionable_pattern()` joins every term into ONE regular
+ * expression inside `\m(...)\M`. A single `|`, `(`, `[`, `\` or `.` in any one
+ * term does not merely fail to match itself: it changes the meaning of the
+ * whole pattern, or makes it invalid, at which point `~*` raises and every post
+ * reaching the abuse branch throws.
+ *
+ * `blocked_terms_no_regex_metacharacters` refuses that in the database, and
+ * that was proved against the live estate in a rolled-back transaction. This
+ * guards the SOURCE, so a careless paste into the seed file is caught before it
+ * is ever applied anywhere.
+ *
+ * It also guards the two things that make the list REVIEWABLE rather than
+ * merely present: every row carries a category and a one line reason. A term
+ * nobody can review is a term nobody can defend, and an unreviewable list is
+ * how a filter quietly starts holding legitimate posts.
+ */
+describe("the seeded term list cannot break the pattern it is joined into", () => {
+  const seed = readFileSync(
+    join(
+      __dirname,
+      "..",
+      "..",
+      "..",
+      "..",
+      "..",
+      "supabase",
+      "migrations",
+      "20260923113843_seed_blocked_terms_so_the_abuse_filter_matches_something.sql",
+    ),
+    "utf8",
+  );
+
+  /** term, severity, category, reason, one tuple per row of the seed. */
+  const rows = [...seed.matchAll(/^\('((?:[^']|'')+)',\s*'(low|medium|high)',\s*'([a-z.\-]+)',\s*'((?:[^']|'')+)'\)/gm)];
+
+  it("seeds a list rather than a gesture", () => {
+    // The proposal asks for roughly 100 to 120 on day one, not a thousand.
+    expect(rows.length).toBeGreaterThanOrEqual(100);
+  });
+
+  it("holds no regular expression metacharacter in any term", () => {
+    for (const row of rows) {
+      expect(row[1], `${row[1]} would change the meaning of the whole pattern`).not.toMatch(
+        /[(){}[\]|*+?^$\\.]/,
+      );
+    }
+  });
+
+  it("stores every term lowercase and trimmed, because both scanners match with ~*", () => {
+    for (const row of rows) {
+      expect(row[1]).toBe(row[1].toLowerCase());
+      expect(row[1]).toBe(row[1].trim());
+      expect(row[1].length).toBeGreaterThanOrEqual(2);
+      expect(row[1].length).toBeLessThanOrEqual(100);
+    }
+  });
+
+  it("gives every term a category and a reason a person can read", () => {
+    const known = new Set([
+      "fraud.advance-fee",
+      "fraud.off-platform-payment",
+      "fraud.title-documents",
+      "fraud.urgency-isolation",
+      "abuse.racial-ethnic",
+      "abuse.ethnic-nigeria",
+      "abuse.sexual-content",
+      "abuse.sexual-solicitation",
+      "abuse.identity-slur",
+      "abuse.religious-hatred",
+      "abuse.violence-threat",
+      "abuse.child-safety",
+    ]);
+    for (const row of rows) {
+      expect(known.has(row[3]), `${row[1]} carries an unknown category`).toBe(true);
+      expect(row[4].trim().length, `${row[1]} has no reason worth reading`).toBeGreaterThanOrEqual(12);
+    }
+  });
+
+  it("carries no term twice, because the table is keyed on the term", () => {
+    const terms = rows.map((row) => row[1]);
+    expect(new Set(terms).size).toBe(terms.length);
   });
 });
