@@ -40,3 +40,47 @@ export function entryRedirect(pathname: string, search: string, entered: boolean
   const desk = `${pathname}${search && search !== "?" ? (search.startsWith("?") ? search : `?${search}`) : ""}`;
   return `/admin?next=${encodeURIComponent(desk)}`;
 }
+
+/**
+ * THE SERVER-SIDE ENTRY (`/admin/enter`, a route handler), so the landing
+ * rule holds with JavaScript off. The overview writes the entry cookie in the
+ * browser; an operator without JavaScript never gets it and would be offered
+ * the overview again at every desk. Every link that means "go on into the
+ * console" (the overview's Continue, the gate's plain link) goes through
+ * `/admin/enter?next=<target>`, which checks `requireAdmin`, sets the same
+ * cookie on the server and answers 303 to the target.
+ */
+export const ENTER_PATH = "/admin/enter";
+
+/** The cookie as the browser writes it in `EntryGate`: session only, console path, Lax, readable by the page. */
+export const ENTRY_COOKIE_OPTIONS = { path: "/admin", sameSite: "lax", httpOnly: false } as const;
+
+/** The link that enters the console on the server and lands on `target`. */
+export function enterHref(target: string): string {
+  return `${ENTER_PATH}?next=${encodeURIComponent(target)}`;
+}
+
+/**
+ * Where `/admin/enter` may send the operator: the overview (`/admin`), the
+ * overview carrying a desk (`/admin?next=<desk>`), or a console desk. Anything
+ * else (another site, another part of the app, the entry route itself, a
+ * path that climbs out with `..`) lands on the overview.
+ */
+export function enterTarget(next: string | null | undefined): string {
+  if (!next) return "/admin";
+  if (next === "/admin" || next === "/admin/") return "/admin";
+  if (next.startsWith("/admin?")) {
+    const desk = allowedDesk(new URLSearchParams(next.slice("/admin?".length)).get("next"));
+    return desk ? `/admin?next=${encodeURIComponent(desk)}` : "/admin";
+  }
+  return allowedDesk(next) ?? "/admin";
+}
+
+function allowedDesk(next: string | null): string | null {
+  const desk = safeDesk(next);
+  if (!desk) return null;
+  const path = desk.split(/[?#]/)[0] ?? desk;
+  if (path.split("/").some((part) => part === ".." || part === ".")) return null;
+  if (path === ENTER_PATH || path.startsWith(`${ENTER_PATH}/`)) return null;
+  return desk;
+}

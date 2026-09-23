@@ -27,14 +27,16 @@ import {
 } from "./panels";
 import { RangeSelect } from "./RangeSelect";
 import { currentDestination, labelFor, type ShellCopy } from "./nav";
-import Link from "next/link";
+import { enterHref } from "./entry";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /** "You were heading to Money": the desk the address asked for, one tap away. */
 function HeadingTo({ href, copy, shell }: { href: string; copy: { headingTo: string; continue: string }; shell: ShellCopy }) {
   const desk = currentDestination(href.split("?")[0] ?? href);
   return (
-    <Link href={href} className="nf-admin-heading-to">
+    // A plain anchor through `/admin/enter`, which sets the entry cookie on the
+    // server, so the desk opens with JavaScript off as well.
+    <a href={enterHref(href)} className="nf-admin-heading-to">
       <span className="nf-admin-heading-to__text">
         <span className="nf-admin-heading-to__over">{copy.headingTo}</span>
         <span className="nf-admin-heading-to__desk">{desk ? labelFor(desk, shell) : href}</span>
@@ -43,7 +45,7 @@ function HeadingTo({ href, copy, shell }: { href: string; copy: { headingTo: str
         {copy.continue}
         <UiIcon name="arrow-right" size={16} />
       </span>
-    </Link>
+    </a>
   );
 }
 
