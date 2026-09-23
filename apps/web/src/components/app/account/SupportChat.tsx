@@ -361,7 +361,7 @@ export function SupportChat() {
     streaming && messages[messages.length - 1]?.text.trim().length === 0;
 
   return (
-    <section className="nf-card p-card" aria-label="Help and support">
+    <section className="nf-panel nf-panel--card block p-card" aria-label="Help and support">
       <div className="flex items-center gap-group">
         <span className="block h-14 w-14 shrink-0">
           <BrandIcon name="support-shield" fill />
@@ -393,7 +393,7 @@ export function SupportChat() {
         {open && (
           <div
             data-testid="support-panel"
-            className="nf-rise mt-heading overflow-hidden rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)]"
+            className="nf-panel nf-panel--card nf-rise mt-heading block overflow-hidden p-0"
           >
             <div
               ref={scrollerRef}
@@ -523,7 +523,7 @@ export function SupportChat() {
                 aria-label="Send message"
                 data-testid="support-send"
                 disabled={!draft.trim() || streaming}
-                className="shrink-0 rounded-[var(--nf-radius-control)]"
+                className="shrink-0"
               >
                 <UiIcon name="arrow-right" size={16} className="-rotate-90" />
               </Button>
@@ -604,7 +604,7 @@ function TicketReceipt({ reference }: { reference: string }) {
   return (
     <div
       data-testid="support-receipt"
-      className="mt-row rounded-[var(--nf-radius-sm)] border border-[color-mix(in_oklab,var(--nf-brand-primary)_35%,transparent)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_8%,transparent)] p-row"
+      className="mt-row nf-panel nf-panel--card block p-row"
     >
       <p className="flex items-start gap-inline nf-caption font-semibold text-[var(--nf-brand-secondary)]">
         {/* 3xs is the optical-alignment rung, which is what this is: a glyph
@@ -679,7 +679,7 @@ function EscalationCard({
   return (
     <div
       data-testid="support-escalation"
-      className="mt-row rounded-[var(--nf-radius-sm)] border border-[color-mix(in_oklab,var(--nf-brand-primary)_35%,transparent)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_8%,transparent)] p-row"
+      className="mt-row nf-panel nf-panel--card block p-row"
     >
       <p className="flex items-center gap-inline nf-caption font-semibold text-[var(--nf-brand-secondary)]">
         <UiIcon name="user" size={ICON.inline} className="shrink-0" />

@@ -15,7 +15,7 @@ export default function LoadingPayments() {
         {Array.from({ length: 2 }, (_, group) => (
           <div key={group}>
             <Skeleton width="6rem" height="0.875rem" radius="sm" className="mb-inline" />
-            <div className="nf-card overflow-hidden rounded-[var(--nf-radius-xl)]">
+            <div className="nf-panel nf-panel--card block overflow-hidden p-0">
               {Array.from({ length: group === 0 ? 2 : 3 }, (_, i) => (
                 <div
                   key={i}

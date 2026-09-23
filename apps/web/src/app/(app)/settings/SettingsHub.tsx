@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { plural, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import { SettingsGlyph, type SettingsGlyphName } from "@/components/app/account/SettingsGlyph";
 import { ICON } from "@/components/app/Screen";
-import { RowButton, RowLink, RowSwitch, SettingsGroup } from "@/components/app/account/rows";
+import { ROW_GLYPH, RowButton, RowLink, RowSwitch, SettingsGroup } from "@/components/app/account/rows";
 import { LanguageRow } from "@/components/app/account/SettingsGroups";
 import { useNfSettings } from "@/components/app/account/settings-store";
 import { signOut, updateSettings } from "@/lib/profile/actions";
@@ -70,7 +70,7 @@ function ProfileRow({
   const hub = t.settings.hub;
   if (!person) {
     return (
-      <Link href="/sign-in" className="nf-card nf-hub-profile" data-testid="settings-profile-row">
+      <Link href="/sign-in" className="nf-panel nf-panel--card nf-hub-profile" data-testid="settings-profile-row">
         <span className="nf-hub-profile__avatar" aria-hidden="true">
           <UiIcon name="user" size={24} />
         </span>
@@ -84,7 +84,7 @@ function ProfileRow({
   }
   const monogram = (person.name || person.email || "?").charAt(0).toUpperCase();
   return (
-    <Link href="/profile" className="nf-card nf-hub-profile" data-testid="settings-profile-row">
+    <Link href="/profile" className="nf-panel nf-panel--card nf-hub-profile" data-testid="settings-profile-row">
       <span className="nf-hub-profile__avatar" aria-hidden="true">
         {person.avatarUrl ? (
           <RemoteImage src={person.avatarUrl} alt="" width={128} height={128} sizes="64px" />
@@ -109,60 +109,25 @@ function ProfileRow({
 }
 
 /**
- * THE SIX ROW GLYPHS ARE GLASS OBJECTS, NOT STROKES.
+ * THE ROW GLYPHS ARE LINE DRAWINGS ON THE SHARED ICON PLATE.
  *
- * `7F96BE6C` draws a blue glass object in every one of these tiles, and the
- * icon law says the render decides the tier: a glass object where the image
- * shows one, the stroked tier only for small controls. All six exist in the
- * pack under the names the render draws, person and bell and shield and
- * palette and globe and headset, so not one of them is an approximation.
- *
- * A rendered object carries its own ground and its own light, so it reads at a
- * size a line drawing would disappear at.
- *
- * AND R1's A13 IS CLOSED HERE, WITH THE PACK OPEN BESIDE THE RENDER.
- *
- * A13 read "settings mixes icon tiers in one column". The premise is wrong in
- * code and it was right about the picture, which is why it kept coming back.
- * All six are `BrandIcon` at one size through one function; no tier is mixed
- * and rule 5 is not broken by anything written here. What differed was the
- * ARTWORK. Four of the six, `person-card`, `palette`, `globe` and `headset`,
- * are a white line drawing inside a quiet rounded-square glass tile, which is
- * exactly what `7F96BE6C` draws in all six of its rows. The other two were
- * `bell-badge` and `shield-lock`, which are solid modelled objects with no
- * tile at all: saturated, hot, and half again as bright as their four
- * neighbours, so the column read as two tiers although it was made of one.
- *
- * The fix needed no new artwork. The pack already holds `bell-tile` and
- * `shield-check-tile`, drawn in the tiled line family the other four belong
- * to and matching the render's bell and its ticked shield one for one. Two
- * names, and the column is one family and the render's family.
- *
- * `bell-badge` ALSO CARRIED A BAKED COUNT. Its artwork has a "3" painted into
- * the badge, and it sat on the notifications row of a shipping settings
- * screen where the real number is whatever the person has. Rule 15 forbids an
- * invented count and the third edition's stop list forbids letting a render's
- * baked detail into the product. `bell-tile` has no number on it. That is a
- * second reason this swap is not a preference.
- *
- * WHAT IS STILL NOT FIXED HERE, unpapered: none of the six has a light twin,
- * so on paper all six take the pack's navy chip and the group becomes six
- * dark squares punched into a white card. That is the icon ground in the
- * lead's layer and is reported, not worked around.
- *
- * THE SIZE IS THE TILE'S SIZE, AND THAT IS WHY IT MOVED FROM 24 TO 38.
- * Every one of these objects draws its own tile, and the row draws a tile
- * too (`.nf-hub .nf-srow__icon`, 38px with the shared lit edge). At 24 inside
- * 38 the two tiles did not coincide, so every row shipped a bright square
- * with a second dimmer square nested inside it, which the render has none of:
- * `7F96BE6C` draws ONE tile about 36px carrying one line glyph about 20px.
- * Drawn at the tile's own size the artwork's ground lands under the row's
- * lit edge and the pair read as the single object the render draws.
+ * `7F96BE6C` draws one lit glass tile per row with a white line glyph inside
+ * it: person, bell, ticked shield, globe, headset, and the door on Log Out.
+ * Until the platform sweep of 23 September the tile was the artwork itself
+ * (pack objects `person-card`, `bell-tile`, `shield-check-tile`, `globe`,
+ * `headset`, each carrying its own ground), which is why the row slot had to
+ * stay empty to avoid two tiles, and why the column never quite matched the
+ * console's plates. The founder made the console's plate the standard, so the
+ * tile is now `IconPlate` (drawn by `RowGlyph` in `rows.tsx`) and the glyph is
+ * a stroked line: `UiIcon` where it has the drawing, `SettingsGlyph` for the
+ * four it does not. One plate, one family, on every settings row.
  */
-const HUB_GLYPH = 38;
-
-function HubGlyph({ name }: { name: BrandIconName }) {
-  return <BrandIcon name={name} size={HUB_GLYPH} />;
+function HubGlyph({ name }: { name: "user" | "bell" | SettingsGlyphName }) {
+  return name === "user" || name === "bell" ? (
+    <UiIcon name={name} size={ROW_GLYPH} />
+  ) : (
+    <SettingsGlyph name={name} size={ROW_GLYPH} />
+  );
 }
 
 /** An emerald tick beside a word: a state the platform actually checked. */
@@ -238,14 +203,14 @@ export function SettingsHub({ t, locale, signedIn, person, notifications, device
       >
         <RowLink
           href="/settings/account"
-          glyph={<HubGlyph name="person-card" />}
+          glyph={<HubGlyph name="user" />}
           label={hub.accountInfo}
           sub={hub.accountInfoSub}
           value={person?.verified ? <Checked>{hub.verified}</Checked> : undefined}
           testId="hub-account"
         />
         <RowSwitch
-          glyph={<HubGlyph name="bell-tile" />}
+          glyph={<HubGlyph name="bell" />}
           label={t.settings.notifications.label}
           sub={hub.notificationsSub}
           value={notifyOn ? hub.on : hub.off}
@@ -256,7 +221,7 @@ export function SettingsHub({ t, locale, signedIn, person, notifications, device
         />
         <RowLink
           href="/settings/privacy"
-          glyph={<HubGlyph name="shield-check-tile" />}
+          glyph={<HubGlyph name="shield-check" />}
           label={hub.privacy}
           sub={hub.privacySub}
           value={
@@ -317,7 +282,7 @@ export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean })
         }
       >
         <RowButton
-          icon="arrow-right"
+          glyph={<HubGlyph name="log-out" />}
           label={signingOut ? hub.loggingOut : hub.logOut}
           disabled={signingOut}
           onClick={() => {

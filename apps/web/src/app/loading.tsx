@@ -62,7 +62,7 @@ export default function LoadingRoot() {
             thing a skeleton exists to prevent. `md` is 14px, the control rung,
             on a 48px slab: ratio 0.29. Seven siblings were moved in 13.4;
             these two were missed. */}
-        <div className="nf-wait__pill">
+        <div className="nf-panel nf-wait__pill">
           <Skeleton height="3rem" radius="md" />
           <Skeleton width="6.5rem" height="3rem" radius="md" className="shrink-0" />
         </div>
@@ -70,7 +70,7 @@ export default function LoadingRoot() {
 
       <div className="nf-wait__grid">
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="nf-card p-card">
+          <div key={i} className="nf-panel nf-panel--card block p-card">
             <Skeleton circle width="2.5rem" />
             <Skeleton width="60%" height="1rem" radius="sm" className="mt-md" />
             <Skeleton width="85%" height="0.75rem" radius="sm" className="mt-xs" />

@@ -63,31 +63,17 @@
   }
 
   /*
-   * ONE GLASS SURFACE PER GROUP.
-   *
-   * This was a flat filled rectangle: `background: --nf-elev-2` with a 1px
-   * `--nf-elev-2-border` drawn on top of it. Two things wrong with that, and
-   * they are the two the owner named.
-   *
-   * FIRST, IT WAS NOT GLASS. The platform's surface material is the edge-lit
-   * translucent card in glass.css, and the account screens - the ones a person
-   * uses most - were the only place rendering plain opaque boxes instead. The
-   * material is ours and it stays, so the body carries `.nf-card` from the
-   * component now and this rule no longer paints a fill of its own.
-   *
-   * SECOND, THE BORDER FOUGHT THE FILL. A visible 1px outline AND a background
-   * AND a shadow is three ways of saying "edge" at once, which is what makes a
-   * card read as heavy. The glass rim already states the edge as a LIFT off the
-   * canvas. We lean on the rim and draw nothing over it.
-   *
-   * The radius goes up a rung with it, to the 22px the reference platform uses.
-   * The selector is doubled deliberately: settings-rows.css is imported BEFORE
-   * css/glass.css, so at equal specificity `.nf-card`'s own `--nf-radius-lg`
-   * would win and the corner would quietly stay at 18px.
+   * ONE PANEL PER GROUP. The material is the shared panel (`.nf-panel
+   * .nf-panel--card`, set by `SettingsGroup`): fill, per-side lit edge, top
+   * catchlight, glow and the 10px container corner all come from the token
+   * layer since the platform sweep of 23 September. This rule only takes the
+   * panel's padding away, because every row carries its own, and clips the
+   * rows' hover fill to the corner. (The selector is doubled so it outranks
+   * `.nf-panel`, which glass.css declares after this file.)
    */
   .nf-sgroup .nf-sgroup__body {
     overflow: hidden;
-    border-radius: var(--nf-radius-xl);
+    padding: 0;
   }
 
   /* A sentence under the group, in the reference's own idiom: the explanation
@@ -123,7 +109,7 @@
     /* The glyph box and the row's own leading padding, named once, because the
        divider inset is exactly their sum and used to be a hand-typed 3.375rem
        that no longer agreed with either after any change to either. */
-    --nf-srow-glyph: 1.75rem;
+    --nf-srow-glyph: var(--nf-plate-size-sm);
     position: relative;
     display: flex;
     /* Wraps so an overlong value drops to its own line whole rather than
@@ -211,7 +197,7 @@
      * can no longer fit beside a readable label, it wraps to its own line and
      * stays whole, which is the outcome that rule exists for.
      */
-    min-width: 7.5rem;
+    min-width: 6.5rem;
     flex: 1 1 0;
     line-height: 1.3;
   }
@@ -369,6 +355,19 @@
     animation: nf-rows-sheet-in var(--nf-duration-base) var(--nf-ease-standard) both;
   }
 
+  /*
+   * THE SHEET IS THE SHARED PANEL, FLOATING (platform sweep, 23 September).
+   *
+   * It drew its own surface (`--nf-surface-elevated`), its own border
+   * (`--nf-elev-3-border`), its own corner (`--nf-radius-2xl`) and a rung-3
+   * shadow, which was the one container on the settings screens that was not
+   * the console's material. It now wears the panel tokens: the panel fill with
+   * the panel blur (it floats over live content, which is the one condition
+   * for glass), the per-side lit edge, the top catchlight and the glow, and the
+   * container corner. The rung-3 shadow stays under the glow because a sheet
+   * is lifted and a panel in a page is not. (Why the family is not called
+   * `.nf-sheet`: the note above.)
+   */
   .nf-rows-sheet {
     position: fixed;
     z-index: calc(var(--nf-z-modal) + 1);
@@ -377,30 +376,17 @@
     max-height: min(86dvh, 46rem);
     display: flex;
     flex-direction: column;
-    border-radius: var(--nf-radius-2xl) var(--nf-radius-2xl) 0 0;
-    border: 1px solid var(--nf-elev-3-border);
+    border-radius: var(--nf-container-radius) var(--nf-container-radius) 0 0;
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
     border-bottom: 0;
-    /*
-     * THE SHEET HAD NO FILL, AND IT HAD NONE SINCE THE DAY THIS WAS WRITTEN.
-     *
-     * `background: var(--nf-elev-3)` names a token that exists and is spelled
-     * correctly, and `--nf-elev-3` is a three-layer BOX-SHADOW. A shadow list
-     * is not a valid background, so the declaration is invalid at
-     * computed-value time and the browser drops it without a word. This was
-     * the only background on the class, so the settings sheet had a border, a
-     * 2xl radius, a lifted shadow, an entrance animation and nothing behind
-     * its text. Confirmed in a browser before fixing: `backgroundColor`
-     * computed to `rgba(0, 0, 0, 0)` and `backgroundImage` to `none`, in both
-     * themes.
-     *
-     * A RUNG IS THE SHADOW PAIR, NEVER THE FILL. `--nf-elev-3` and its `-rim`
-     * are what the rung is; the surface underneath is the object's own. The
-     * old `--nf-glass-shadow-lifted` is an alias of rung 4, so this was also
-     * wearing rung 4's shadow under rung 3's border, which is the smaller half
-     * of the same confusion.
-     */
-    background: var(--nf-surface-elevated);
-    box-shadow: var(--nf-elev-3-rim), var(--nf-elev-3);
+    background: var(--nf-panel-fill);
+    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
+    backdrop-filter: blur(var(--nf-panel-blur));
+    box-shadow:
+      var(--nf-panel-rim),
+      var(--nf-panel-glow),
+      var(--nf-elev-3);
     animation: nf-rows-sheet-rise var(--nf-duration-slow) var(--nf-ease-entrance) both;
   }
 
@@ -412,8 +398,8 @@
       left: 50%;
       width: min(34rem, calc(100vw - 3rem));
       transform: translate(-50%, -50%);
-      border-radius: var(--nf-radius-2xl);
-      border-bottom: 1px solid var(--nf-elev-3-border);
+      border-radius: var(--nf-container-radius);
+      border-bottom: var(--nf-border-width) solid var(--nf-panel-edge);
       animation-name: nf-rows-sheet-in;
     }
   }
@@ -435,27 +421,15 @@
     color: var(--nf-content-primary);
   }
 
-  .nf-rows-sheet__close {
+  /* The close is the shared glass square (`.nf-icon-btn`, controls.css);
+     only its place in the head is this sheet's. It was a lit circle of its
+     own. Doubled to outrank `.nf-icon-btn`, which controls.css declares
+     after this file and which sets its own position. */
+  .nf-rows-sheet__head .nf-rows-sheet__close {
     position: absolute;
     inset-inline-end: 0.75rem;
     top: 50%;
     transform: translateY(-50%);
-    display: grid;
-    place-items: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 50%;
-    /* Lit brand edge, not a grey hairline (R1 A5). */
-    border: 1px solid var(--nf-brand-edge);
-    box-shadow: var(--nf-glow-edge);
-    background: var(--nf-glass-fill-thin);
-    color: var(--nf-content-secondary);
-    cursor: pointer;
-  }
-
-  .nf-rows-sheet__close:focus-visible {
-    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
-    outline-offset: 2px;
   }
 
   .nf-rows-sheet__body {
@@ -468,7 +442,7 @@
   .nf-rows-sheet__foot {
     flex: none;
     padding: 0.75rem 1rem calc(1rem + env(safe-area-inset-bottom));
-    border-top: 1px solid var(--nf-border-subtle);
+    border-top: 1px solid var(--nf-panel-hair);
   }
 
   @keyframes nf-rows-sheet-in {
@@ -541,13 +515,15 @@
 
   /* The person, in a card of their own: the face, the name with its mark,
      the email, and the chevron to the profile. */
-  .nf-hub-profile {
-    display: flex;
+  /* The material and the corner are the shared panel's (`.nf-panel
+     .nf-panel--card` on the element); this sets the row inside it, and is
+     doubled to outrank `.nf-panel`'s column and padding. */
+  .nf-panel.nf-hub-profile {
+    flex-direction: row;
     align-items: center;
     gap: var(--nf-space-sm);
     min-block-size: 76px;
     padding: var(--nf-space-sm) var(--nf-space-md) var(--nf-space-sm) var(--nf-space-sm);
-    border-radius: var(--nf-radius-xl);
     color: var(--nf-content-primary);
   }
   .nf-hub-profile:focus-visible {
@@ -620,43 +596,12 @@
   }
 
   /*
-   * Each glyph in a glass square, as drawn, at 38 and not 42. Four pixels off
-   * each side is four pixels back for the words, and the words are what was
-   * wrapping.
-   *
-   * THE TILE IS THE OBJECT'S OWN, AND THIS RULE DREW A SECOND ONE.
-   *
-   * It used to carry `--nf-brand-edge` and `--nf-glow-edge` here, on the
-   * argument that a settings tile is the smallest object on the screen that is
-   * still a container and should wear the shared lit edge like the cards. The
-   * argument is sound and the picture says it was wrong, which is the only way
-   * this could have been caught: every object in this column is a pack asset
-   * drawn AS a tile, a white line glyph on a rounded-square glass ground, so
-   * with a bordered tile around it each row shipped two concentric rounded
-   * squares with a gap between them. Photographed at two and a half times on a
-   * production server the two rings are unmistakable, and `7F96BE6C` has ONE
-   * tile per row.
-   *
-   * Scaling the object up until the two coincided was tried and does not work:
-   * the tiled objects fill between 69 and 78 per cent of their PNG box
-   * depending on how much glow each one bleeds, so there is no single number,
-   * and the numbers that close the gap push each object's glow outside the
-   * border that is meant to contain it.
-   *
-   * So the row keeps the slot and the object keeps the tile. Sized to the slot
-   * the artwork's own ground lands exactly where the border used to be, its
-   * own lit edge does the work `--nf-glow-edge` was doing, and the column is
-   * one tile per row as the render draws it. The `color` stays because the
-   * signed-out row puts a stroked `UiIcon` in this slot and that one does need
-   * an ink; it has no tile of its own and no tile is drawn for it either, which
-   * matches the render, where the only thing in the slot is the glyph.
+   * THE HUB'S GLYPH SLOT IS THE COMMON ONE NOW. A 38px slot sized to a pack
+   * artwork's own tile stood here; since the platform sweep the tile is the
+   * shared `IconPlate` inside the ordinary `.nf-srow__icon`, so the hub has
+   * nothing to add.
    */
-  .nf-hub .nf-srow__icon {
-    inline-size: 38px;
-    block-size: 38px;
-    border-radius: var(--nf-radius-sm);
-    color: var(--nf-content-primary);
-  }
+
   /*
    * The hub's rows are denser than the account screens' rows, as the render
    * draws them: the label a step under body and bold, the line under it at
@@ -706,7 +651,7 @@
   /* The rule between rows starts after the tile, so the tiles read as one
      rail. */
   .nf-hub .nf-srow + .nf-srow::before {
-    inset-inline-start: calc(var(--nf-space-sm) + 38px + var(--nf-gap-inline));
+    inset-inline-start: calc(var(--nf-space-sm) + var(--nf-srow-glyph) + var(--nf-gap-inline));
   }
 
   .nf-hub-value {
@@ -739,42 +684,12 @@
    */
 
   /*
-   * ===================================================================
-   * THE LIT EDGE, on the founder's ruling that our containers read dull
-   * beside the renders.
-   *
-   * Every container on this screen was a flat hairline: `.nf-card`'s stride
-   * ring is mostly the glass border with brand mixed into it, which is
-   * correct as a quiet material and is not what `7F96BE6C` draws. The render
-   * draws lit glass: a bright 1px brand rim, a white catchlight along the
-   * inside of the top edge, and a soft blue bloom thrown into the space
-   * around the card, over a near-black navy fill.
-   *
-   * Three layers and each one has a job:
-   *   the rim      a full brand-edge outline, so the shape is drawn in blue
-   *   the catch    the lit-rim ink inside the top edge, so it reads as glass
-   *                with light on it rather than as a blue outline
-   *   the bloom    two negative-spread rungs, close and wide, so the glow is
-   *                in the air around the card and never a halo stuck to it
-   *
-   * THOSE THREE LAYERS ARE `--nf-glow-edge` NOW. When this block was written
-   * the ruling had not reached the token layer and a worker scoping its own
-   * copy under its own surfaces was the right move; the lead has since
-   * composed exactly this recipe once, and `.nf-glass--card` and
-   * `.nf-glass--tile` already wear it. So the hand-rolled four lines are
-   * gone and the token is named instead. The selectors stay because these
-   * containers are `.nf-card`, which is the quiet material by design, and
-   * the settings image draws them as the lit one; that is the only job
-   * this rule still does.
-   * =================================================================== */
-  .nf-sgroup .nf-sgroup__body,
-  .nf-card.nf-hub-profile {
-    border-color: var(--nf-brand-edge);
-    box-shadow:
-      var(--nf-glow-edge),
-      inset 0 -1px 0 var(--nf-glass-floor),
-      var(--nf-bloom-card);
-  }
+   * THE LIT EDGE block that stood here (a brand-edge border, `--nf-glow-edge`,
+   * a floor inset and `--nf-bloom-card` laid over `.nf-card` on the group and
+   * the profile card) is DELETED in the platform sweep of 23 September: both
+   * containers are the shared `.nf-panel` now, which is lit by the token layer
+   * everywhere at once.
+   */
 
   /*
    * THE WORDS ARE WHITE, WITH BLUE UNDER THEM.

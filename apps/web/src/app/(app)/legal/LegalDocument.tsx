@@ -55,7 +55,7 @@ export function LegalDocument({
         <time>{updated}</time>
       </p>
 
-      <nav id="legal-contents" aria-labelledby="legal-contents-title" className="nf-legal__toc">
+      <nav id="legal-contents" aria-labelledby="legal-contents-title" className="nf-panel nf-legal__toc">
         <p id="legal-contents-title" className="nf-overline nf-legal__toc-title">
           Contents
         </p>

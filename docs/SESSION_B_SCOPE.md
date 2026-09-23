@@ -129,7 +129,7 @@ Each group appends "RELEASED <commit>" here when it is done.
     `docs/design/proofs/session-b/sweep-settings/**`. Route components claimed:
     `app/(app)/settings/**`, `app/(app)/notifications/**`,
     `components/app/account/**`, `components/app/push/**`,
-    `app/(app)/legal/LegalDocument.tsx`, `app/offline/SystemMoment.tsx`,
+    `app/(app)/legal/**`, `app/offline/SystemMoment.tsx`,
     `app/not-found.tsx`, `app/error.tsx`, `app/(app)/error.tsx`,
     `app/loading.tsx`. By the lead's ruling of 23 September the notifications
     anatomy (`.nf-notif*`, `home.css` about lines 629 to 773) moves out of

@@ -28,22 +28,27 @@
     }
   }
 
+  /*
+   * THE PANEL MATERIAL, FLOATING (platform sweep, 23 September). The drawer
+   * wore a veil of `--nf-surface-primary` at 88 per cent over a strong blur
+   * and the rung-4 rim; it now wears the console's panel from the token layer
+   * (fill, per-side lit edge, top catchlight, glow) with the panel blur,
+   * because it floats over the app, plus the rung-4 lift a floating layer
+   * takes. The drawer's contents are the chrome group's.
+   */
   .nf-drawer {
     width: min(88%, 26rem);
-    /*
-     * Real glass, on the same terms as the sheet below: a high-opacity veil of
-     * the surface rather than the solid colour, over a strong blur. The drawer
-     * floats over the app by definition, which is the one condition this
-     * platform's material rules say glass has to meet.
-     */
-    background: color-mix(in oklab, var(--nf-surface-primary) 88%, transparent);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    box-shadow: var(--nf-elev-4-rim), var(--nf-elev-4);
+    background: var(--nf-panel-fill);
+    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
+    backdrop-filter: blur(var(--nf-panel-blur));
+    box-shadow:
+      var(--nf-panel-rim),
+      var(--nf-panel-glow),
+      var(--nf-elev-4);
     overscroll-behavior: contain;
   }
   .nf-drawer--right {
-    border-left: 1px solid var(--nf-elev-4-border);
+    border-left: var(--nf-border-width) solid var(--nf-panel-edge);
     animation: nf-drawer-in-right var(--nf-duration-slow) var(--nf-ease-spring) both;
   }
 
@@ -118,20 +123,12 @@
       calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
     inset-inline-start: 0.5rem;
     width: min(80%, 22rem);
-    border: 1px solid var(--nf-brand-edge-strong);
-    border-radius: var(--nf-radius-2xl);
-    /*
-     * The STRONG rung, and this is the second and last surface that takes it
-     * (the flip coin card at the foot is the other). A card in a stack takes
-     * the normal rung because six of them lit at full strength is six lamps;
-     * an open drawer is the only object on the screen, so there is nothing to
-     * compete with and the render rings it as brightly as anything it
-     * contains. At the normal rung, held beside `BCD39CA8`, the panel's
-     * outline disappeared into the dimmed app along its whole left side.
-     */
-    box-shadow:
-      var(--nf-glow-edge-strong),
-      var(--nf-elev-4);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    /* It was the only container on the platform lit at
+       `--nf-glow-edge-strong`; since the sweep it is the panel like every
+       other container, lifted by the rung-4 shadow on `.nf-drawer`. */
     animation: nf-drawer-in-left var(--nf-duration-slow) var(--nf-ease-spring) both;
   }
 
@@ -208,50 +205,25 @@
     display: flex;
     flex-direction: column;
     max-height: 92dvh;
-    border-radius: var(--nf-radius-2xl) var(--nf-radius-2xl) 0 0;
     /*
-     * REAL GLASS, AND IT WAS A SOLID PANEL.
-     *
-     * This is the surface the material was designed for. A sheet is the one
-     * thing in the product that is unambiguously floating over live content:
-     * the page is still there underneath, it is still scrolled where the person
-     * left it, and softening it through the sheet is what says so. A flat
-     * `--nf-surface-elevated` panel said nothing of the kind, and eight surfaces
-     * ride this class.
-     *
-     * All four ingredients, which is the rule: the blurred and saturated
-     * material below, the bright inner rim and the two layer ambient shadow
-     * from elevation rung 3, and the hairline border.
-     *
-     * 88 PER CENT, NOT `--nf-glass-fill-strong`. The glass fills are 11 per cent
-     * white, which is correct for a chrome bar and wrong for a panel carrying a
-     * withdrawal form: text on glass over moving content is unreadable at the
-     * exact moment somebody is deciding to trust you with money. A high-opacity
-     * veil of the sheet's own surface colour keeps the material honest and the
-     * type solid, and it is the same trick `.nf-glass--chrome` uses for the same
-     * reason. Both themes are correct by construction, because the token under
-     * it is white on paper.
+     * THE PANEL MATERIAL, FLOATING (platform sweep, 23 September). A sheet is
+     * the one thing in the product unambiguously floating over live content,
+     * so it takes the panel with the panel blur, plus the rung-3 lift. It
+     * wore its own 88 per cent veil of `--nf-surface-elevated`, a conic stride
+     * border and the rung-3 rim; those are gone. The container corner rounds
+     * the two top corners only.
      */
-    /*
-     * The sheet carries the strides too, and it is the surface that earns them
-     * most: it is the only thing in the product that is unambiguously floating
-     * over live content, so the run of light along its top edge is what says
-     * "this is glass and the page is still behind it". Same ring as the card,
-     * same three rungs, so the two surfaces are visibly the same material.
-     */
-    background:
-      linear-gradient(
-          color-mix(in oklab, var(--nf-surface-elevated) 88%, transparent),
-          color-mix(in oklab, var(--nf-surface-elevated) 88%, transparent)
-        )
-        padding-box,
-      conic-gradient(from var(--nf-stride-angle), var(--nf-edge-stride-stops))
-        border-box;
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    border: var(--nf-border-width) solid transparent;
+    border-radius: var(--nf-container-radius) var(--nf-container-radius) 0 0;
+    background: var(--nf-panel-fill);
+    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
+    backdrop-filter: blur(var(--nf-panel-blur));
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
     border-bottom: 0;
-    box-shadow: var(--nf-elev-3-rim), var(--nf-elev-3);
+    box-shadow:
+      var(--nf-panel-rim),
+      var(--nf-panel-glow),
+      var(--nf-elev-3);
     /* Starts fully off-screen and is driven in. A fade would defeat the point.
        The closed rule carries the EXIT curve and the open rule below carries the
        spring, so the sheet springs up and accelerates away; see the note on the

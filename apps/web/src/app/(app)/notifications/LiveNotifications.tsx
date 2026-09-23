@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import "./notifications.css";
 import { PageHeader } from "@/components/app/PageHeader";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { markNotificationsRead } from "@/lib/messages/notifications-actions";
 import { lagosTimeLabel } from "@/lib/messages/time";
@@ -171,19 +172,17 @@ export function LiveNotifications({
                 {section.items.length}
               </span>
             </div>
-            {/* The lit card, not the calm one: every container in the
-                reference renders carries the brand ring and its near bloom,
-                and this list is the surface's one object. */}
-            <ul className="nf-glass nf-glass--card nf-notif__list">
+            {/* One shared panel per notification, as GOVERNING-12's
+                notification centre draws them (a stack of lit cards, not one
+                card with rules between rows), each with its glyph on the
+                shared icon plate. Platform sweep, 23 September. */}
+            <ul className="nf-notif__list">
               {section.items.map((n) => {
                 const inner = (
                   <>
-                    <span
-                      className="nf-glass nf-glass--tile nf-notif__tile"
-                      aria-hidden="true"
-                    >
-                      <UiIcon name={iconFor(n.kind)} size={20} />
-                    </span>
+                    <IconPlate size="md">
+                      <UiIcon name={iconFor(n.kind)} size={ICON_PLATE_GLYPH.md} />
+                    </IconPlate>
 
                     <span className="nf-notif__body">
                       <span className="nf-notif__title">{n.title}</span>
@@ -213,7 +212,7 @@ export function LiveNotifications({
                       <Link
                         href={n.href}
                         onClick={() => markOne(n.id)}
-                        className="nf-notif__row"
+                        className="nf-panel nf-panel--card nf-notif__row"
                         data-unread={!n.read}
                       >
                         {inner}
@@ -222,7 +221,7 @@ export function LiveNotifications({
                       <button
                         type="button"
                         onClick={() => markOne(n.id)}
-                        className="nf-notif__row"
+                        className="nf-panel nf-panel--card nf-notif__row"
                         data-unread={!n.read}
                       >
                         {inner}

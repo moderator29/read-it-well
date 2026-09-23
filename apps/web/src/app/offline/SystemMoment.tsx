@@ -115,7 +115,7 @@ export function SystemMoment({
           )}
         </Link>
 
-        <div className="nf-system__card">{children}</div>
+        <div className="nf-panel nf-panel--glass nf-system__card">{children}</div>
         <div className="nf-system__podium" aria-hidden="true" />
 
         {aside ? <p className="nf-system__aside">{aside}</p> : null}

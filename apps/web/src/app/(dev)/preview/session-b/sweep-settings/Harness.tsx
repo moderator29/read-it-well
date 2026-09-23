@@ -340,7 +340,7 @@ export function SweepSettingsHarness({ v }: { v: string }) {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <BackButton fallback="/home" />
+      <BackButton fallback="/home" className="nf-icon-btn nf-icon-btn--glass h-11 w-11" />
       <header className="nf-hub-head">
         <h1 className="nf-hub-head__title">{t.nav.settings}</h1>
         <p className="nf-hub-head__lede">{hub.ledeShort}</p>

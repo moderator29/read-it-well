@@ -34,7 +34,7 @@ export default async function InterestsSettingsPage() {
     return (
       <div className="mx-auto max-w-lg">
         <PageHeader title={t.interests.screenTitle} fallback="/settings" />
-        <div className="nf-card p-lg text-center sm:p-xl">
+        <div className="nf-panel nf-panel--card block p-lg text-center sm:p-xl">
           <span className="mx-auto block h-16 w-16">
             <BrandIcon name="globe-pin" fill />
           </span>
@@ -61,7 +61,7 @@ export default async function InterestsSettingsPage() {
         subtitle={t.interests.screenSubtitle}
         fallback="/settings"
       />
-      <div className="nf-card p-lg sm:p-lg">
+      <div className="nf-panel nf-panel--card block p-lg sm:p-lg">
         <InterestChoices initial={state.interests} mode="settings" t={t} />
       </div>
     </div>
