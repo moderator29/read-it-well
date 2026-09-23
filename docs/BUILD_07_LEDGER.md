@@ -6533,3 +6533,29 @@ through Network access.
 **Green:** `agent-badge-derivation` 7 of 7, `supply.test.ts` 8 of 8,
 `tsc --noEmit` on `@vallo/web` exit 0 read from the compiler's own status and
 not from a pipe.
+
+---
+
+## 56. THE QUEUE, WRITTEN BEFORE THE CURRENT SCOPES CLOSE
+
+The founder's instruction on 23 September: *"every worker has its next scope
+written before the current one closes, and the lead queues ahead rather than
+behind."* This is that queue. It is written now, while all six workers are
+mid-scope, so that none of them has to wait on this session to think.
+
+**A worker takes its next block the moment its current one is green and pushed.
+It does not report back and wait.** It reports by pushing, and it reports in
+its own section of this ledger.
+
+| worker | current | next, already decided |
+| --- | --- | --- |
+| NAV | 22 routes with a declared parent and no back control, then walk all 22 including Android hardware back | The routes with NO declared parent. Decide each one's parent from the map, wire it, walk it. A route that genuinely has no parent is recorded as such with the reason, not left silent. |
+| JUNCTION | the email junction, 8 escrow emails, 9 unreachable senders, payment-instrument emails | The welcome email and the 10 unsent product emails through that same junction, then ONE real send to a real inbox, read back from the provider's own log. Until that, the junction is unproven however many callers it has. |
+| ESCROW2 | evidence upload, proposal inside a thread, the HTTP half of P-7, the ADR | Run all nine probes in BOTH directions and record each verdict, pass or fail, in a table. The founder's sentence stands until then: *no naira moves until all nine probes pass in both directions.* |
+| PUSH | the database half, landed | The service worker, the subscription handshake, and a delivery a human confirms on a handset. 6% is the ceiling until then: the founder's rule is that it stays at 6 *until a real notification reaches a real device.* |
+| SHARE | Track G's last prop, then Price Check's share surface | A test that FAILS if a share artefact ever carries a specific address, for anybody, on any surface. The rule is absolute and it needs a guard, not a habit. |
+| PAPER | the contrast failures in light mode | The register of twinless objects: which surfaces are legible on paper as they stand, and which genuinely need artwork the founder has to commission. Commissioning is his. Naming the list is ours. |
+
+**And the standing item that no worker owns, said again because the founder
+asked for it in every report:** 64 published listings, all 64 examples, real
+supply zero, bookings ever zero. No engineering on this list moves that number.
