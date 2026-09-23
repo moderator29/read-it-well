@@ -185,11 +185,12 @@ let profileRole: string | null = null;
 /**
  * What the wallet entry behind a `wallet.withdrawal_outcome` row carries.
  *
- * `transferToBank` writes `destination: "third_party"` and the withdraw door
- * writes no such key, and that one field is the whole difference between an
- * email that calls this a withdrawal and one that calls it a transfer. It is
- * varied per test rather than fixed because the drain's read of it is the hop
- * the template tests cannot see: they are handed the fact, this earns it.
+ * It used to decide whether this email called the money a withdrawal or a
+ * transfer, because there were two doors onto the same `rm-wd-` ledger row.
+ * The send-to-a-bank door was removed on 23 September, so the drain no longer
+ * consults `destination` at all and every row is the withdraw door. The field
+ * is still varied per test, because a stale or unexpected value arriving from
+ * the ledger must not change a single word of what a person reads.
  */
 let walletEntryMetadata: Record<string, unknown> = {
   bank_name: "GTBank",
@@ -597,11 +598,18 @@ describe("a row a database trigger wrote becomes a real HTTP request", () => {
    * path from a row a trigger wrote to the bytes on the wire, and differ only
    * in what the wallet entry carries.
    */
-  it("calls a bank send a transfer, all the way to the wire", async () => {
+  /*
+   * THIS TEST USED TO PROVE THE SEND-TO-A-BANK WORDING reached the wire. That
+   * door was removed on 23 September, so what reaches the wire now is the
+   * withdrawal wording, for every row, whatever the ledger metadata says. The
+   * test is kept pointed at the same seam because the seam is still the point:
+   * a trigger's row becoming a real HTTP request.
+   */
+  it("sends the withdrawal wording to the wire even for a row with send metadata", async () => {
     walletEntryMetadata = {
       bank_name: "Sparkle Microfinance Bank",
       account_last4: "6789",
-      destination: "third_party",
+      destination: "own_account",
     };
     const { admin } = fakeDatabase([withdrawalRow()]);
     const capture = captureFetch({ status: 200, body: { id: "resend-message-id" } });
@@ -611,12 +619,12 @@ describe("a row a database trigger wrote becomes a real HTTP request", () => {
 
     expect(capture.calls).toHaveLength(1);
     const body = capture.calls[0]?.body;
-    expect(body?.subject).toBe("Your transfer did not go through");
-    expect(body?.html).not.toMatch(/withdrawal/i);
-    expect(body?.text).not.toMatch(/withdrawal/i);
+    expect(body?.subject).toBe("Your withdrawal did not go through");
     /* The bank and four digits reach the reader; nothing else about the
        account does, and no holder's name is printed at all (rule 16). */
     expect(body?.html).toContain("Sparkle Microfinance Bank ****6789");
+    /* And nobody is told they sent money to a stranger. */
+    expect(body?.html).not.toContain("the account you sent it to");
   });
 
   it("still calls the person's own withdrawal a withdrawal, on the same path", async () => {

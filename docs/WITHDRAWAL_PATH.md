@@ -64,16 +64,27 @@ codebase calls `initiateTransfer`.
 | --- | --- | --- | --- |
 | `withdraw` (typed-in) | the withdraw sheet | `wallet.withdraw` | `note`, `bank_code`, `bank_name`, `account_last4`, `account_name` |
 | `withdrawToSavedAccount` | dispatched from `withdraw` when the form carries `bankAccountId` | `wallet.withdraw` (the dispatch is INSIDE the wrapper) | the above plus `bank_account_id` |
-| `transferToBank` | the send desk, bank mode | `wallet.transfer.bank` | the above plus `destination: "third_party"` and an optional `message` |
+| `transferToBank` | **REMOVED 23 September.** The send desk's bank mode is gone, code and all, on the founder's direction: moving a member's money to a third party's account is a licensed activity this company is not licensed for. Nothing writes `destination: "third_party"` any more, and the withdrawal email no longer has a branch for it. | | |
 
-`destination: "third_party"` is written by exactly one door and read in exactly
-one place (`gatherFacts` in `lib/notify/outbox.ts`). It changes no money and no
-ledger row; it changes what the settlement email calls the thing.
+`destination: "third_party"` used to be written by exactly one door and read in
+exactly one place (`gatherFacts` in `lib/notify/outbox.ts`). With the door gone
+nothing writes it, so `gatherFacts` no longer reads it either: every row is the
+withdraw door and the words are the same for everybody. The live table was read
+before that branch was cut, and both existing `wallet_entries` rows carry a
+null destination, so no historical row is mis-described.
 
-**`transferToBank` is switched off in the UI.** `BANK_SEND_OPEN = false` in
-`components/app/wallet/SendFlow.tsx`. There is an open licensing question about
-whether Vallo may move money to third-party accounts at all, so the server
-action is complete and proven and the door is shut.
+**THE LICENSING QUESTION IS ANSWERED AND THE ANSWER IS NO.** It was an open
+question with the door shut behind `BANK_SEND_OPEN = false`. On 23 September
+the founder settled it: the company is not applying for the licence, whose
+share capital requirement is N500,000,000. So the code is removed rather than
+flagged off, because a flag is a switch somebody can turn back on.
+
+**Two doors survive and neither is a third party payment.** `transferToUser`
+moves money between two Vallo wallets and no bank is involved. `withdraw` pays
+a person their own money. Note, and it is in `docs/ONE_PERSON_MANY_ACCOUNTS.md`
+as well: nothing currently proves the bank account a person withdraws to is
+theirs, so "their own money" is an assumption about the destination rather than
+a checked fact.
 
 ### Two taps move the money once
 

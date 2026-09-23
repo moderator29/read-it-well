@@ -470,24 +470,25 @@ export function walletFunded(data: WalletFundedData): EmailMessage {
 export type WithdrawalOutcome = "paid" | "failed" | "reversed";
 
 /**
- * WHOSE ACCOUNT THE MONEY WENT TO. TWO DOORS, ONE LEDGER ROW.
+ * WHOSE ACCOUNT THE MONEY WENT TO. THERE IS ONLY ONE DOOR NOW.
  *
- * `own_account` is the withdraw sheet: a person moving their own balance to
- * their own bank. `third_party` is the send desk in bank mode: a person
- * sending money to somebody else's ten digits.
+ * There used to be two. `own_account` is the withdraw sheet: a person moving
+ * their own balance to their own bank. `third_party` was the send desk in bank
+ * mode, and that door was removed on 23 September, because moving a member's
+ * money to somebody else's account is a licensed activity VALLO SPACES LTD is
+ * not licensed for.
  *
- * They are the same row in `wallet_entries`, under the same `rm-wd-` prefix,
- * because the Paystack webhook settles `transfer.*` only for that prefix and
- * the stale-hold sweeper only releases that prefix (see the note on
- * `transferToBank`). That is a correct decision about the LEDGER and a
- * disastrous one about the WORDS: this email said "your withdrawal did not go
- * through" to somebody who had just tried to send rent to a landlord, and
- * "withdrawal" is not a word they would use or recognise for what they did.
+ * So the union has one member and the branch that chose between them is gone.
+ * IT IS KEPT AS A TYPE RATHER THAN DELETED because the ledger still carries
+ * `metadata.destination` on the row, and a named type is how the next person
+ * finds out why a field with one possible value exists.
  *
- * Absent means `own_account`. Every existing caller is the withdraw door, and
- * a default that quietly became "third party" would be the worse mistake.
+ * THE WORDS MATTERED, WHICH IS WHY THIS WAS EVER TWO. The single message used
+ * to say "your withdrawal did not go through" to somebody who had just tried
+ * to send rent to a landlord. With one door left, "withdrawal" is the right
+ * word for everybody who can receive this, and nothing has to guess.
  */
-export type WithdrawalDestination = "own_account" | "third_party";
+export type WithdrawalDestination = "own_account";
 
 export type WithdrawalOutcomeData = {
   ownerName?: string | null;
@@ -497,7 +498,7 @@ export type WithdrawalOutcomeData = {
   accountLast4?: string | null;
   /**
    * Which door this row came from. Read off `metadata.destination` on the
-   * entry, which `transferToBank` writes as `"third_party"` and the withdraw
+   * entry. With the send desk's bank mode removed there is one door, and the
    * door does not write at all.
    */
   destination?: WithdrawalDestination | null;
@@ -554,19 +555,18 @@ export function withdrawalOutcome(data: WithdrawalOutcomeData): EmailMessage {
       : null;
 
   const paid = data.outcome === "paid";
-  /* Absent means the withdraw door. See the note on the type. */
-  const sent = data.destination === "third_party";
 
+  /* One door. `destination` is read off the ledger row and can only be the
+     withdraw door now, so nothing branches on it and the words are the same
+     for everybody who can receive this. */
   const outcomeLabel = paid
-    ? sent
-      ? "Sent to the account you chose"
-      : "Sent to your bank"
+    ? "Sent to your bank"
     : data.outcome === "reversed"
       ? "Returned to your wallet by the bank"
       : "Not sent, money still in your wallet";
 
   const list: ReceiptRow[] = [{ label: "Amount", value: money(data.amountMinor) }];
-  if (account) list.push({ label: sent ? "Sent to" : "Destination", value: account });
+  if (account) list.push({ label: "Destination", value: account });
   list.push({ label: "Outcome", value: outcomeLabel, strong: true });
   if (typeof data.balanceMinor === "number") {
     list.push({ label: "Wallet balance", value: money(data.balanceMinor) });
@@ -575,42 +575,22 @@ export function withdrawalOutcome(data: WithdrawalOutcomeData): EmailMessage {
   const explanation = paid
     ? "Banks normally credit within minutes, and can take up to one working day. Once it has left us, the timing is theirs."
     : data.outcome === "reversed"
-      ? sent
-        ? "The transfer left us and the bank sent it back, so you may see a debit and then a credit on your statement. The money is in your Vallo wallet now, and nothing reached the account you sent it to. This is almost always a name or account number that does not match."
-        : "The transfer left us and the bank sent it back, so you may see a debit and then a credit on your statement. The money is in your Vallo wallet now. This is almost always a name or account number that does not match."
-      : sent
-        ? "This is usually the account details, or a bank that is temporarily unreachable. Check the account number and the bank, then send it again."
-        : "This is usually the account details, or a bank that is temporarily unreachable. Check the account number and the bank, then try the withdrawal again.";
+      ? "The transfer left us and the bank sent it back, so you may see a debit and then a credit on your statement. The money is in your Vallo wallet now. This is almost always a name or account number that does not match."
+      : "This is usually the account details, or a bank that is temporarily unreachable. Check the account number and the bank, then try the withdrawal again.";
 
-  const failedHeadline = sent ? "Your transfer did not go through" : "Your withdrawal did not go through";
+  const failedHeadline = "Your withdrawal did not go through";
 
   return message(
+    paid ? `${money(data.amountMinor)} is on its way to your bank` : failedHeadline,
     paid
-      ? sent
-        ? `${money(data.amountMinor)} is on its way to the account you sent it to`
-        : `${money(data.amountMinor)} is on its way to your bank`
-      : failedHeadline,
-    paid
-      ? sent
-        ? `${money(data.amountMinor)} has left your Vallo wallet for the account you sent it to.`
-        : `${money(data.amountMinor)} has left your Vallo wallet for your bank.`
+      ? `${money(data.amountMinor)} has left your Vallo wallet for your bank.`
       : `${money(data.amountMinor)} stays in your Vallo wallet.`,
     [
-      heading(
-        paid
-          ? sent
-            ? "Your transfer is on its way"
-            : "Your withdrawal is on its way"
-          : failedHeadline,
-      ),
+      heading(paid ? "Your withdrawal is on its way" : failedHeadline),
       paragraph(
         paid
-          ? sent
-            ? `${hello(data.ownerName)} The transfer has left Vallo for the bank account you sent it to.`
-            : `${hello(data.ownerName)} The transfer has left Vallo for your bank account.`
-          : sent
-            ? `${hello(data.ownerName)} The transfer did not complete, so nothing reached them and the money is in your wallet and is available to you now.`
-            : `${hello(data.ownerName)} The transfer to your bank did not complete, so the money is in your wallet and is available to you now.`,
+          ? `${hello(data.ownerName)} The transfer has left Vallo for your bank account.`
+          : `${hello(data.ownerName)} The transfer to your bank did not complete, so the money is in your wallet and is available to you now.`,
       ),
       rows(list),
       paragraph(explanation),
@@ -622,11 +602,7 @@ export function withdrawalOutcome(data: WithdrawalOutcomeData): EmailMessage {
           : "If it fails a second time, contact support with the reference above and a person will look into it with you.",
       ),
     ],
-    [
-      sent
-        ? "You are receiving this because you sent money from your Vallo wallet to a bank account."
-        : "You are receiving this because of a withdrawal from your Vallo wallet.",
-    ],
+    ["You are receiving this because of a withdrawal from your Vallo wallet."],
   );
 }
 
