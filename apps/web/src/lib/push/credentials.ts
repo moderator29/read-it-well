@@ -32,8 +32,8 @@ import "server-only";
  * FIREBASE CLOUD MESSAGING needs a service account JSON from a Firebase
  * project. Free, but it needs a Google account and a project created in a
  * console, so it is the owner's to make and nobody else's. It is required for
- * Android, and `google-services.json` has to be placed in the Android project
- * as well: the credential alone is not enough.
+ * Android, and a `google-services` JSON file has to be dropped into
+ * `android/app/` as well: the credential alone is not enough.
  *
  * APNS needs a `.p8` signing key, a key id and a team id from an Apple
  * Developer account. That account costs 99 USD a year and this repository
@@ -116,7 +116,7 @@ export function fcmStatus(): CredentialStatus {
     configured: missing.length === 0,
     missing,
     supplier:
-      "The owner. Firebase console, a project, Project settings, Service accounts, Generate new private key. Free, but it needs a Google account and a project only the owner can create. The same project also yields android/app/google-services.json, which the Android build needs separately.",
+      "The owner. Firebase console, a project, Project settings, Service accounts, Generate new private key. Free, but it needs a Google account and a project only the owner can create. The same project also yields the google-services JSON file, which is dropped into android/app/ and which the Android build needs separately.",
   };
 }
 

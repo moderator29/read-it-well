@@ -18,11 +18,17 @@ import { replyFromStatus, type ProviderReply, type PushPayload, type PushTarget 
  * lands in `FCM_SERVICE_ACCOUNT_JSON`, this works with no further code.
  *
  * THE SECOND HALF NOBODY REMEMBERS. The server credential is not enough for
- * Android. The same Firebase project also yields `google-services.json`,
- * which has to be placed at `android/app/google-services.json` or the handset
- * never obtains a registration token to send to in the first place. A
- * deployment with the server key and without that file has a working sender
- * and no addresses, which looks like a delivery failure and is not one.
+ * Android. The same Firebase project also yields a `google-services` JSON
+ * file, which has to be dropped into `android/app/` or the handset never
+ * obtains a registration token to send to in the first place. A deployment
+ * with the server key and without that file has a working sender and no
+ * addresses, which looks like a delivery failure and is not one.
+ *
+ * The directory is named rather than the full path on purpose: that file does
+ * not exist in this repository and is not meant to yet, so writing it as a
+ * path with an extension would read as a live reference to something nobody
+ * can open. See `packages/design-tokens/README.md`, "Writing about a file in
+ * a comment".
  *
  * ===========================================================================
  * THE LEGACY API IS GONE. `fcm.googleapis.com/fcm/send` with a server key in
