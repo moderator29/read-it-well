@@ -7,7 +7,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Sparkline, type SparkTone } from "@/components/agent/charts/Sparkline";
 import { NavIcon, type AdminIcon } from "./AdminGlyph";
 import type { Delta } from "./metrics";
-import { Panel as UiPanel } from "@/components/ui/Panel";
+import { Panel as UiPanel, panelClass } from "@/components/ui/Panel";
 import { IconPlate as UiIconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 
 /**
@@ -157,7 +157,7 @@ function Figure({ item, big }: { item: KpiItem; big: boolean }) {
 /** The renders' top strip: four figures in one lit pane, split by hairlines. */
 export function KpiStrip({ items, label }: { items: readonly KpiItem[]; label: string }) {
   return (
-    <section className="nf-admin-strip" aria-label={label}>
+    <section className={panelClass({ variant: "card", className: "nf-admin-strip" })} aria-label={label}>
       {items.map((item) => (
         <div key={item.key} className="nf-admin-strip__cell">
           {item.icon && <IconPlate icon={item.icon} />}
@@ -200,11 +200,11 @@ export function KpiCard({ item }: { item: KpiItem }) {
     </>
   );
   return item.href ? (
-    <Link href={item.href} className={`nf-admin-kpi${item.icon ? "" : " nf-admin-kpi--bare"}`}>
+    <Link href={item.href} className={panelClass({ variant: "card", className: `nf-admin-kpi${item.icon ? "" : " nf-admin-kpi--bare"}` })}>
       {body}
     </Link>
   ) : (
-    <div className={`nf-admin-kpi${item.icon ? "" : " nf-admin-kpi--bare"}`}>{body}</div>
+    <div className={panelClass({ variant: "card", className: `nf-admin-kpi${item.icon ? "" : " nf-admin-kpi--bare"}` })}>{body}</div>
   );
 }
 

@@ -108,7 +108,7 @@ export default async function AdminBookingPage({
         </p>
       </header>
 
-      <div className="nf-card p-md sm:p-lg">
+      <div className="nf-panel nf-panel--card nf-admin-card p-md sm:p-lg">
         <ui.DetailSection title={copy.sections.stay}>
           <ui.DetailRow label={f.reference} value={<span className="nf-numeric">{stay.id}</span>} />
           <ui.DetailRow

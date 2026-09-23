@@ -33,7 +33,7 @@ export default async function AdminReferencePage() {
   const access = await requireAdmin();
   if (access.state !== "admin") {
     return (
-      <div className="nf-card p-lg">
+      <div className="nf-panel nf-panel--card nf-admin-card p-lg">
         <h1 className="text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">Reference data</h1>
         <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           {adminRefusal(access)}

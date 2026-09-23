@@ -3,17 +3,19 @@
 > **FOR SESSION A, FROM THE FOUNDER'S DIRECTIVES OF 23 SEPTEMBER (I1 is
 > applied, thank you; that banner is retired). Four things need you:**
 >
-> 1. **QA-ACCOUNTS. Agree the exact two addresses before anyone creates them,
->    because an email can never be changed (rule 4).** Session B proposes
->    `qa-member@vallospaces.com` (ordinary member) and
->    `qa-admin@vallospaces.com` (admin), both mailboxes on the domain the
->    product already sends from, labelled QA in their display name, excluded
->    from every statistic the way example listings are, named in both ledgers,
->    and doubling as the App Store reviewer credentials. Passwords never enter
->    the repository. Session B asks Session A to create both (the admin grant
->    is a mutation Session B may not write) and to reply in section 49 with
->    the two addresses as created and where the credentials are kept. Session
->    B proves against exactly that pair and no other.
+> 1. **QA-ACCOUNTS, SETTLED BY THE FOUNDER (23 September, 16:15).** He
+>    created both himself; the vallospaces.com proposal above is withdrawn.
+>    The exact strings, copied from `auth.users` (note `qaadmi`, not a typo):
+>    `phantomfcalls+qamember@gmail.com` (member,
+>    `957b3bd2-cce3-425d-bba9-5cd876ca3d62`) and
+>    `phantomfcalls+qaadmi@gmail.com` (to be admin,
+>    `03f3dd52-ea28-4852-9abe-e5b0a67c2a43`). Both confirmed. **Session A:
+>    apply the admin grant to `03f3dd52...` idempotently and prove it by
+>    reading the role back.** App Store and Play reviewers get the MEMBER
+>    account only. Both are excluded from statistics the way example listings
+>    are; Session B excludes them in `lib/admin/reads`, and a database flag
+>    for "QA account" would let every other read do the same (request QA-FLAG,
+>    yours to decide). Emails are permanent, so nothing here is revisable.
 > 2. **B-BANK WITHDRAWN.** External bank send is removed by founder decision
 >    (regulatory, CAC objects clause). Session B removes the bank mode,
 >    `BankRecipient.tsx` and `BANK_SEND_OPEN` first; the commit will be named
@@ -280,6 +282,12 @@ thread proposal and the host panels' stylesheet swept bar SW-ST2. Ledger 13 stay
   (scope W4), so (b) cannot complete until that account is upgraded. The
   screen keeps Send off in bank mode (`BANK_SEND_OPEN` in `SendFlow.tsx`) and
   says so.
+- **B-BANK WITHDRAWN (founder, 23 Sept):** Session B removed bank send in
+  `32830d5b`. Session A may now remove `transferToBank` from
+  `lib/wallet/actions.ts` and its tests; nothing in Session B imports it.
+  (That commit also corrected one comment in `lib/wallet/banks.ts`, Session
+  A's file, which named the deleted `BankRecipient.tsx` and would have failed
+  the token check's comment-path rule; nothing else in that file changed.)
 - **B-BADGE, UPDATED 23 SEPTEMBER (founder: whoever began the badge owns all
   of it).** Session A began it (5f19539b: `public.person_badge`,
   `public.badge_tier`), so Session A owns the derivation, the artwork (the

@@ -184,10 +184,12 @@
     border-color: var(--nf-selected-edge);
     box-shadow: var(--nf-selected-shadow);
   }
+  /* A child row selected is the quieter glass door with the selected edge:
+     the render lights only the section's own row. */
   .nf-admin-nav__row--child.nf-admin-nav__row--on {
-    background: color-mix(in oklab, var(--nf-brand-primary) 26%, transparent);
-    border-color: var(--nf-panel-edge);
-    box-shadow: var(--nf-rim-lit);
+    background: var(--nf-btn-glass-fill);
+    border-color: var(--nf-selected-edge);
+    box-shadow: var(--nf-btn-glass-shadow);
     color: var(--nf-content-primary);
   }
   .nf-admin-nav__count {
@@ -429,7 +431,7 @@
   @media (hover: hover) {
     .nf-admin-icon-btn:hover,
     .nf-admin-menu:hover {
-      background: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
+      background: var(--nf-btn-glass-fill);
     }
   }
   .nf-admin-icon-btn:focus-visible,
@@ -437,8 +439,9 @@
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
   }
   .nf-admin-menu {
-    border-color: var(--nf-panel-edge);
-    background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-canvas));
+    border-color: var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   @media (min-width: 1024px) {
     .nf-admin-menu {
@@ -483,12 +486,8 @@
     padding: calc(var(--nf-space-sm) + env(safe-area-inset-top)) var(--nf-space-sm)
       calc(var(--nf-space-sm) + env(safe-area-inset-bottom));
     border-right: var(--nf-border-width) solid var(--nf-panel-edge);
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-canvas)),
-      var(--nf-surface-canvas)
-    );
-    box-shadow: var(--nf-panel-glow);
+    background: var(--nf-panel-fill);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
     animation: nf-admin-drawer-in var(--nf-duration-fast) var(--nf-ease-standard);
   }
   @keyframes nf-admin-drawer-in {
@@ -599,24 +598,20 @@
     min-height: 2.75rem;
     padding: var(--nf-space-xs) var(--nf-space-md);
     border-radius: var(--nf-radius-md);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
+    /* The shared glass door (--nf-btn-glass-*), as every quiet control. */
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
     color: var(--nf-content-secondary);
     white-space: nowrap;
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 12px var(--nf-glow-1);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-admin-tab--on {
     color: var(--nf-content-on-brand);
     background: var(--nf-selected-fill);
-    border-color: var(--nf-brand-edge-strong);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 20px var(--nf-glow-3),
-      0 8px 24px -10px var(--nf-glow-3);
+    border-color: var(--nf-selected-edges);
+    box-shadow: var(--nf-selected-shadow);
   }
   .nf-admin-tab__count {
     font-variant-numeric: tabular-nums;
@@ -724,18 +719,18 @@
     gap: var(--nf-space-2xs);
     height: 100%;
     padding: var(--nf-pad-card-sm);
-    border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-glass-card-fill);
-    box-shadow: var(--nf-glow-edge);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
     transition:
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
   }
   @media (hover: hover) {
     .nf-admin-tile:hover {
-      border-color: var(--nf-border-brand);
-      box-shadow: var(--nf-glow-edge-strong);
+      border-color: var(--nf-selected-edge);
     }
   }
   .nf-admin-tile:focus-visible {
@@ -849,9 +844,9 @@
       review line. 10px is 0.25.
     */
     border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    box-shadow: var(--nf-rim-lit);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
     font-size: var(--nf-text-caption);
     font-weight: 600;
     color: var(--nf-content-secondary);
@@ -896,7 +891,8 @@
   .nf-admin-chip--all.nf-admin-chip--on {
     color: var(--nf-content-on-brand);
     background: var(--nf-selected-fill);
-    border-color: var(--nf-brand-edge);
+    border-color: var(--nf-selected-edges);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
 
   /* ------------------------------------------------------------ table */
@@ -907,13 +903,9 @@
      pane: the brand hairline end to end, the blue-white catchlight inside
      it, the card bloom behind, per the founder's ruling on container
      edges; every token is the platform's own. */
+  /* The table's container is the shared `.nf-panel .nf-panel--flush`. */
   .nf-admin-table {
-    border-radius: var(--nf-container-radius);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    background: var(--nf-panel-fill);
-    box-shadow:
-      var(--nf-panel-rim),
-      var(--nf-panel-glow);
+    padding: 0;
     overflow: hidden;
   }
   /* The phone row is two lines on a grid: the tile, then the title over
@@ -1040,14 +1032,13 @@
     height: 2.25rem;
     align-self: start;
     flex-shrink: 0;
-    border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    color: var(--nf-brand-secondary);
-    box-shadow:
-      var(--nf-rim-lit),
-      inset 0 0 10px var(--nf-glow-wash),
-      0 0 10px var(--nf-glow-1);
+    /* The shared icon plate (--nf-plate-*), at the small step. */
+    border-radius: var(--nf-plate-radius);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    border-color: var(--nf-plate-edges);
+    background: var(--nf-plate-fill);
+    color: var(--nf-content-primary);
+    box-shadow: var(--nf-plate-shadow);
   }
   /* It was hidden, and the note above the table said the glyph and the pill
      said what each cell is. They do not: a house glyph is a listing and a
@@ -1108,14 +1099,12 @@
     min-height: 2.25rem;
     padding-inline: var(--nf-space-sm);
     border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
     color: var(--nf-content-primary);
     font-size: var(--nf-text-caption);
     font-weight: 600;
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 12px var(--nf-glow-2);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-admin-row[open] .nf-admin-row__view {
     background: var(--nf-brand-tint-2);
@@ -1190,9 +1179,9 @@
     height: 2.25rem;
     padding-inline: var(--nf-space-2xs);
     border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    box-shadow: var(--nf-rim-lit);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
     color: var(--nf-content-secondary);
     font-size: var(--nf-text-caption);
     font-weight: 600;
@@ -1200,8 +1189,9 @@
   }
   .nf-admin-pager__page--on {
     color: var(--nf-content-on-brand);
-    background: var(--nf-brand-primary);
-    border-color: var(--nf-brand-edge);
+    background: var(--nf-selected-fill);
+    border-color: var(--nf-selected-edges);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
   .nf-admin-pager__page[aria-disabled="true"] {
     opacity: 0.4;
@@ -1213,31 +1203,19 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* The desk cards inherit the well material so they sit in the frame. */
-  /*
-   * EVERY CARD IN THE CONSOLE IS A LIT CONTAINER, not only the ones a queue
-   * list happens to hold.
-   *
-   * This rule was `.nf-admin .nf-queue-list > .nf-card`, so a desk's rows
-   * were lit and the metric tiles above them, the detail panel, the switch
-   * rows, the reference rows and every confirmation panel were not: the same
-   * material, on the same screen, at two different edge strengths. That is
-   * the founder's "our containers are dull" on the console. The recipe is the
-   * platform's own and is not hand-rolled here: `--nf-brand-edge` for the
-   * hairline, `--nf-rim-lit` for the catchlight inside it, one glow rung and
-   * the card bloom behind, exactly as `.nf-glass--card` composes it.
-   */
-  /* THE REGISTER SWEEP. Every desk's cards and tables take the panel's own
-     material (deep blue glass, the bright hairline, the top catchlight, the
-     soft bloom, 10px corners), so a desk that has not been rebuilt yet still
-     reads as the same object as the overview. */
-  .nf-admin .nf-card {
-    border-radius: var(--nf-container-radius);
-    background: var(--nf-panel-fill);
-    border-color: var(--nf-panel-edge);
-    box-shadow:
-      var(--nf-panel-rim),
-      var(--nf-panel-glow);
+  /* THE REGISTER SWEEP, ON THE SHARED LAYER (platform sweep, 23 September).
+     Every desk card in the console is now the shared `.nf-panel
+     .nf-panel--card` (components/ui/Panel.tsx), written in the desk's markup;
+     the local `.nf-admin .nf-card` copy of the panel material that used to
+     live here is deleted. */
+  /* The desk cards were block boxes; the shared panel is a flex column. Kept
+     at the old layout; the console cards that lay themselves out (KPI,
+     strip, money and review cards) carry their own display.
+     `.nf-admin-card` marks the desk cards moved off `.nf-card`. */
+  .nf-admin-card {
+    display: block;
+    flex-direction: row;
+    padding: 0;
   }
   /*
    * THE STATUS CHIP IS A SMALL ROUNDED RECTANGLE, AND `278CC66A` IS THE
@@ -1281,12 +1259,11 @@
    * signal: the value carries the tone and the screen reader is told in
    * words, per rule 13.
    */
-  .nf-admin .nf-card.nf-admin-stat--flagged {
+  .nf-admin .nf-panel.nf-admin-stat--flagged {
     box-shadow:
       inset var(--nf-admin-stat-rule) 0 0 var(--nf-admin-stat-ink),
-      var(--nf-rim-lit),
-      0 0 18px var(--nf-glow-1),
-      var(--nf-bloom-card);
+      var(--nf-panel-rim),
+      var(--nf-panel-glow);
   }
   .nf-admin-stat--flagged {
     --nf-admin-stat-rule: 4px;
@@ -1418,13 +1395,7 @@
   .nf-admin-strip {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    border-radius: var(--nf-container-radius);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    background: var(--nf-panel-fill-card);
-    box-shadow:
-      var(--nf-panel-rim),
-      0 -1px 6px -2px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent),
-      var(--nf-panel-glow);
+    padding: 0;
   }
   @media (min-width: 1100px) {
     .nf-admin-strip {
@@ -1509,18 +1480,10 @@
     align-items: start;
     gap: var(--nf-space-sm);
     padding: var(--nf-space-md);
-    border-radius: var(--nf-container-radius);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    background: var(--nf-panel-fill-card);
-    box-shadow:
-      var(--nf-panel-rim),
-      var(--nf-panel-glow);
     transition: box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
   }
   a.nf-admin-kpi:hover {
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 70%, transparent),
-      0 0 8px color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
+    border-color: var(--nf-selected-edge);
   }
   a.nf-admin-kpi:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
@@ -1621,16 +1584,16 @@
     min-height: 2.75rem;
     padding: 0 var(--nf-space-md);
     border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-canvas));
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
     font-size: var(--nf-text-body-sm);
     font-weight: 500;
     color: var(--nf-content-primary);
-    box-shadow: var(--nf-rim-lit);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   @media (hover: hover) {
     .nf-admin-seg__item:hover {
-      background: color-mix(in oklab, var(--nf-brand-primary) 18%, var(--nf-surface-canvas));
+      background: var(--nf-glass-fill-strong);
     }
   }
   .nf-admin-seg__item:focus-visible {
@@ -2195,11 +2158,7 @@
 
   /* The glow identity's per-side edges, applied over every container's
      single-colour border above, so each rule keeps its own width and style. */
-  .nf-admin-rail,
-  .nf-admin-kpi,
-  .nf-admin-strip,
-  .nf-admin .nf-card,
-  .nf-admin-table {
+  .nf-admin-rail {
     border-color: var(--nf-panel-edges);
   }
   /* The lit primary: the open rail row, the open tab. Cyan-lit edges, the

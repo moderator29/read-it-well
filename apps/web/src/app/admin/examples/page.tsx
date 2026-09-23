@@ -169,7 +169,7 @@ export default async function AdminExamplesPage({
             />
           )
         ) : (
-          <div className="nf-card">
+          <div className="nf-panel nf-panel--card nf-admin-card">
             <ul className="nf-rows nf-group">
               {live.map((listing) => (
                 <ExampleRow
@@ -194,7 +194,7 @@ export default async function AdminExamplesPage({
           title="Already retired"
           hint="Suspended rather than deleted, so any of them can come back if the catalogue thins out."
         >
-          <div className="nf-card">
+          <div className="nf-panel nf-panel--card nf-admin-card">
             <ul className="nf-rows nf-group">
               {retired.map((listing) => (
                 <ExampleRow

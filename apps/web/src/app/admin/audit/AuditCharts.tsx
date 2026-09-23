@@ -59,7 +59,7 @@ export function AuditCharts({
 
   return (
     <div className="mb-block grid gap-row lg:grid-cols-2">
-      <section className="nf-card p-card lg:col-span-2">
+      <section className="nf-panel nf-panel--card nf-admin-card p-card lg:col-span-2">
         <h2 className="nf-overline">
           {copy.perDay} · {copy.window.replace("{count}", String(activity.windowDays))}
         </h2>
@@ -72,7 +72,7 @@ export function AuditCharts({
         </div>
       </section>
 
-      <section className="nf-card p-card">
+      <section className="nf-panel nf-panel--card nf-admin-card p-card">
         <h2 className="nf-overline">{copy.byKind}</h2>
         <div className="mt-sm">
           {/* The machine value never reaches the screen: `entityTypeLabel` is
@@ -90,7 +90,7 @@ export function AuditCharts({
         </div>
       </section>
 
-      <section className="nf-card p-card">
+      <section className="nf-panel nf-panel--card nf-admin-card p-card">
         <h2 className="nf-overline">{copy.byActor}</h2>
         <div className="mt-sm">
           {/* Display names only, never an id and never an address. Rule 16

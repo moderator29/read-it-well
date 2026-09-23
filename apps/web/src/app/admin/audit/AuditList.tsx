@@ -201,7 +201,7 @@ export function AuditRow({ row, ui, base }: { row: AuditRowView; ui: AdminUi; ba
 /** The page's rows, in the console's table. */
 export function AuditList({ rows, ui, base }: { rows: readonly AuditRowView[]; ui: AdminUi; base: string }) {
   return (
-    <div className="nf-admin-table" role="region" aria-label={AUDIT_COPY.tableLabel}>
+    <div className="nf-panel nf-panel--flush nf-admin-table" role="region" aria-label={AUDIT_COPY.tableLabel}>
       <div className="nf-admin-table__head" aria-hidden="true">
         <span>ID</span>
         <span>Type</span>

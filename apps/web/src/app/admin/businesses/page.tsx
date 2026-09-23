@@ -252,7 +252,7 @@ export function BusinessCard({ row, ui }: { row: BusinessQueueRow; ui: AdminUi }
   const decided = new Map(row.rungs.map((rung) => [rung.rung, rung]));
 
   return (
-    <li className="nf-card p-card sm:p-card-lg">
+    <li className="nf-panel nf-panel--card nf-admin-card p-card sm:p-card-lg">
       <div className="flex flex-wrap items-center gap-inline">
         <ui.StatusChip status={row.status} />
         <ui.StatusChip label={ui.columnLabel("businessKind", row.kind)} tone="neutral" />

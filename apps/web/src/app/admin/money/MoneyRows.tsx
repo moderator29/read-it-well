@@ -156,7 +156,7 @@ export function RefundsPanel({
   narrowed,
   locale,
   ui,
-  className = "nf-card mb-md p-md sm:p-lg",
+  className = "nf-panel nf-panel--card nf-admin-card mb-md p-md sm:p-lg",
 }: {
   refunds: AdminRead<RefundConsole>;
   /** The container. The desk passes its own lit panel; the preview keeps the card. */

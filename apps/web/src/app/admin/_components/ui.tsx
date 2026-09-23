@@ -364,7 +364,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
          the tone stays a decision here and the geometry stays in the
          stylesheet. */
       <div
-        className={`nf-card p-card${flagged ? " nf-admin-stat--flagged" : ""}`}
+        className={`nf-panel nf-panel--card nf-admin-card p-card${flagged ? " nf-admin-stat--flagged" : ""}`}
         style={
           flagged
             ? ({ "--nf-admin-stat-ink": STAT_VALUE_COLOUR[tone] } as CSSProperties)
@@ -457,7 +457,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
   }) {
     const mark = QUEUE_EMPTY_MARK[queueEmptyKind(state, everHadRows)];
     return (
-      <div className="nf-card p-card-lg text-center">
+      <div className="nf-panel nf-panel--card nf-admin-card p-card-lg text-center">
         <span
           className="mx-auto flex justify-center"
           style={mark.success ? SUCCESS_INK : NEUTRAL_INK}
@@ -488,7 +488,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
         the tone constants: the plate itself was the retired brief's, not this
         system's.
       */
-      <div className="nf-card p-card-lg text-center">
+      <div className="nf-panel nf-panel--card nf-admin-card p-card-lg text-center">
         <span className="mx-auto flex justify-center" style={DANGER_INK}>
           <UiIcon name="close" size={40} />
         </span>
@@ -507,7 +507,7 @@ export function adminUi(t: Dictionary, locale: Locale) {
    */
   function QueueAlarm({ title, body }: { title: string; body: string }) {
     return (
-      <div className="nf-card p-card-lg text-center">
+      <div className="nf-panel nf-panel--card nf-admin-card p-card-lg text-center">
         <span className="mx-auto flex justify-center" style={DANGER_INK}>
           <UiIcon name="shield-stop" size={40} />
         </span>

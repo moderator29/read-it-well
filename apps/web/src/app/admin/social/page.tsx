@@ -71,7 +71,7 @@ export default async function AdminSocialPage({
   const access = await requireAdmin();
   if (access.state !== "admin") {
     return (
-      <div className="nf-card p-lg">
+      <div className="nf-panel nf-panel--card nf-admin-card p-lg">
         <h1 className="text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">Around</h1>
         <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           {adminRefusal(access)}
@@ -142,14 +142,14 @@ export default async function AdminSocialPage({
             screen. */}
         {queue.proposed.length === 0 ? (
           narrowed ? null : (
-            <p className="nf-card p-md text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+            <p className="nf-panel nf-panel--card nf-admin-card p-md text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
               Nothing waiting. When somebody suggests a place it lands here.
             </p>
           )
         ) : (
           <ul className="flex flex-col gap-sm">
             {queue.proposed.map((area) => (
-              <li key={area.id} className="nf-card p-md sm:p-lg">
+              <li key={area.id} className="nf-panel nf-panel--card nf-admin-card p-md sm:p-lg">
                 <div className="flex flex-wrap items-baseline gap-x-xs gap-y-2xs">
                   <h3 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                     {area.name}
@@ -202,14 +202,14 @@ export default async function AdminSocialPage({
 
         {queue.applications.length === 0 ? (
           narrowed ? null : (
-            <p className="nf-card p-md text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+            <p className="nf-panel nf-panel--card nf-admin-card p-md text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
               No applications open.
             </p>
           )
         ) : (
           <ul className="flex flex-col gap-sm">
             {queue.applications.map((application) => (
-              <li key={application.id} className="nf-card p-md sm:p-lg">
+              <li key={application.id} className="nf-panel nf-panel--card nf-admin-card p-md sm:p-lg">
                 <div className="flex flex-wrap items-baseline gap-x-xs">
                   <h3 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
                     {application.displayLabel ??
@@ -262,7 +262,7 @@ export default async function AdminSocialPage({
 
         {queue.open.length === 0 ? (
           narrowed ? null : (
-            <p className="nf-card p-md text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
+            <p className="nf-panel nf-panel--card nf-admin-card p-md text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
               No places are open yet. Approving one above opens it.
             </p>
           )
@@ -271,7 +271,7 @@ export default async function AdminSocialPage({
             {queue.open.map((area) => (
               <li
                 key={area.id}
-                className="nf-card flex flex-wrap items-center gap-sm p-md"
+                className="nf-panel nf-panel--card nf-admin-card flex flex-wrap items-center gap-sm p-md"
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-xs">

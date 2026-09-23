@@ -53,7 +53,7 @@ function ReportCard({
   const closed = report.status === "resolved" || report.status === "dismissed";
 
   return (
-    <li className="nf-card p-md sm:p-lg">
+    <li className="nf-panel nf-panel--card nf-admin-card p-md sm:p-lg">
       <div className="flex flex-wrap items-center gap-xs">
         <ui.StatusChip status={report.status} />
         {/* NOT `label={report.targetType}`. That printed the column: "listing",

@@ -63,34 +63,16 @@
 
   /* ------------------------------------------------ the lit glass container */
 
-  /* The console's one panel surface, read from the shell's own properties
-     (the shared .nf-panel, glass.css), so a money card and an overview card are the
-     same object. */
+  /* The material is the shared `.nf-panel` (components/ui/Panel.tsx, set in
+     the desk's markup beside this class); this class keeps only the desk's
+     own layout. The local copy of the panel recipe is deleted. */
   .nf-md-card {
     position: relative;
+    display: block;
     min-width: 0;
-    /* The shell's measured container corner, never a desk's own. */
-    border-radius: var(--nf-container-radius);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    /* The glow identity's per-side lit edge (GLOW_IDENTITY section 2), the
-       same list admin.css hands every console panel. */
-    border-color: var(--nf-panel-edges);
-    background: var(--nf-panel-fill);
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 55%, transparent),
-      var(--nf-panel-glow);
+    padding: 0;
   }
-  /* The render's catchlight along the top edge: a hairline that is brightest
-     in the middle and gone at the corners, drawn inside the border. */
-  .nf-md-card::before {
-    content: "";
-    position: absolute;
-    inset: 0 var(--nf-space-lg) auto;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--nf-rim-lit-ink), transparent);
-    opacity: 0.55;
-    pointer-events: none;
-  }
+  /* The top catchlight is the shared --nf-panel-rim; the local hairline copy is deleted. */
 
   .nf-md-panel {
     padding: var(--nf-pad-card-sm);
@@ -166,10 +148,7 @@
   }
   @media (hover: hover) {
     a.nf-md-kpi:hover {
-      border-color: var(--nf-border-brand);
-      box-shadow:
-        inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 55%, transparent),
-        var(--nf-glow-edge-strong);
+      border-color: var(--nf-selected-edge);
     }
   }
   a.nf-md-kpi:focus-visible {
@@ -545,9 +524,9 @@
     height: 2.75rem;
     padding: 0 var(--nf-space-xs);
     border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    box-shadow: var(--nf-rim-lit);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
     /* Render: the page number's cap 9 render px = 14 CSS, 20px, in a box the
        render draws at 25 render px = 39 CSS and R-B lifts to 44. */
     font-size: 1.25rem;
@@ -570,11 +549,9 @@
      soft blue bloom under it, the same treatment as a primary button. */
   .nf-md-pager__item[aria-current="page"] {
     border-color: var(--nf-selected-edges);
-    background: var(--nf-gradient-cta);
+    background: var(--nf-selected-fill);
     color: var(--nf-content-on-brand);
-    box-shadow:
-      var(--nf-rim-primary),
-      var(--nf-bloom-lit);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
   .nf-md-pager__item[aria-disabled="true"] {
     opacity: 0.45;
@@ -975,9 +952,9 @@
     min-height: 2.75rem;
     padding: 0 var(--nf-space-md);
     border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    box-shadow: var(--nf-rim-lit);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
     font-size: var(--nf-text-caption);
     font-weight: 600;
     color: var(--nf-content-secondary);

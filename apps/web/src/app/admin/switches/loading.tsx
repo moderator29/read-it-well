@@ -18,7 +18,7 @@ export default function LoadingSwitches() {
       </header>
 
       {/* The standing note about what a switch does. */}
-      <div className="nf-card mb-md flex gap-xs p-md">
+      <div className="nf-panel nf-panel--card nf-admin-card mb-md flex gap-xs p-md">
         <Skeleton width="1.25rem" height="1.25rem" radius="sm" className="shrink-0" />
         <div className="min-w-0 flex-1">
           <Skeleton width="100%" height="0.8125rem" radius="sm" />
@@ -28,7 +28,7 @@ export default function LoadingSwitches() {
 
       <ul className="nf-queue-list">
         {Array.from({ length: 5 }, (_, i) => (
-          <li key={i} className="nf-card flex flex-wrap items-start gap-md p-md sm:p-lg">
+          <li key={i} className="nf-panel nf-panel--card nf-admin-card flex flex-wrap items-start gap-md p-md sm:p-lg">
             <div className="min-w-0 flex-1">
               <Skeleton width="45%" height="1rem" radius="sm" />
               <Skeleton className="mt-xs" width="85%" height="0.8125rem" radius="sm" />

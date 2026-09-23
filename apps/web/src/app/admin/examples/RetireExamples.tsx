@@ -54,7 +54,7 @@ export function RetireExamples({ live }: { live: ExampleListingView[] }) {
 
   if (live.length === 0) {
     return (
-      <div className="nf-card p-card">
+      <div className="nf-panel nf-panel--card nf-admin-card p-card">
         <p className="nf-body font-semibold text-content">
           Every example is already off the catalogue.
         </p>
@@ -67,7 +67,7 @@ export function RetireExamples({ live }: { live: ExampleListingView[] }) {
   }
 
   return (
-    <div className="nf-card p-card">
+    <div className="nf-panel nf-panel--card nf-admin-card p-card">
       <p className="nf-h4">Retire the whole example set</p>
       <p className="nf-body-sm mt-row max-w-[68ch] text-content-2">
         The seeded properties exist so the catalogue is not empty while real

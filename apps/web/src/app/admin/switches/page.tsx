@@ -54,7 +54,7 @@ export function SwitchRow({
       under the words where the words need the width, and `sm:basis-0` gives
       the original row back the moment there is room for it.
     */
-    <li className="nf-card flex flex-wrap items-start gap-md p-md sm:p-lg">
+    <li className="nf-panel nf-panel--card nf-admin-card flex flex-wrap items-start gap-md p-md sm:p-lg">
       <span className="min-w-0 flex-1 basis-full sm:basis-0">
         <span className="flex flex-wrap items-center gap-xs">
           <span className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">{label}</span>
@@ -100,7 +100,7 @@ export default async function AdminSwitchesPage() {
     <div className="nf-console">
       <ui.QueueHeader title={copy.title} lede={copy.lede} />
 
-      <p className="nf-card mb-md flex gap-xs p-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+      <p className="nf-panel nf-panel--card nf-admin-card mb-md flex gap-xs p-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
         {/*
           NOT A BELL, AND NOT THE PENDING COLOUR.
 

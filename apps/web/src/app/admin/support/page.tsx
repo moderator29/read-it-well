@@ -63,7 +63,7 @@ function TicketRow({
         href={`/admin/support?ticket=${ticket.id}`}
         aria-current={selected ? "true" : undefined}
         className={[
-          "nf-card nf-card--interactive block p-md sm:p-md",
+          "nf-panel nf-panel--card nf-admin-card nf-card--interactive block p-md sm:p-md",
           selected ? "ring-1 ring-[var(--nf-border-brand)]" : "",
         ].join(" ")}
       >
@@ -176,7 +176,7 @@ export default async function AdminSupportPage({
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={open.length} />
 
       {selected && (
-        <section className="nf-card mb-lg p-md sm:p-lg">
+        <section className="nf-panel nf-panel--card nf-admin-card mb-lg p-md sm:p-lg">
           <div className="flex flex-wrap items-center gap-xs">
             <ui.StatusChip status={selected.status} />
             <span className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">

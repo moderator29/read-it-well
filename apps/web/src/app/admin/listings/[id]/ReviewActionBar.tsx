@@ -96,7 +96,7 @@ export function ReviewActionBar({
   };
 
   return (
-    <div className="nf-rv-panel nf-rv-actionbar">
+    <div className="nf-panel nf-rv-panel nf-rv-actionbar">
       <label className="sr-only" htmlFor="rv-reason">
         A reason for the lister
       </label>

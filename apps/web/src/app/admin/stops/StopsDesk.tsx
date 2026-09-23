@@ -157,7 +157,7 @@ function StoppedCard({
   const mine = state && state.ok && state.data.agentId === agent.agentId;
 
   return (
-    <li className="nf-card p-card">
+    <li className="nf-panel nf-panel--card nf-admin-card p-card">
       <div className="flex flex-wrap items-center gap-xs">
         <span
           className="nf-badge shrink-0"
@@ -260,7 +260,7 @@ function TradingCard({
     state && !state.ok && open ? (state.fieldErrors?.reason ?? undefined) : undefined;
 
   return (
-    <li className="nf-card p-card">
+    <li className="nf-panel nf-panel--card nf-admin-card p-card">
       <div className="flex flex-wrap items-center gap-xs">
         <h3 className="min-w-0 flex-1 nf-body font-semibold text-[var(--nf-content-primary)]">
           {agent.displayName}

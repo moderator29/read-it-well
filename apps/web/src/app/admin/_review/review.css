@@ -99,10 +99,10 @@
     width: 44px;
     height: 44px; /* R-B */
     border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-border-brand);
-    background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-primary));
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
     color: var(--nf-content-primary);
-    box-shadow: var(--nf-rim-lit);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
 
   .nf-rv-back:hover {
@@ -138,13 +138,14 @@
     min-height: 44px; /* R-B: the render's 32, raised to the 44 floor */
     padding: 0 var(--nf-space-md);
     border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: color-mix(in oklab, var(--nf-brand-primary) 9%, var(--nf-surface-primary));
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
     font-size: 0.9375rem; /* cap 7.5 image px / 0.72 x1.5 = 15.6 (R-A) */
     font-weight: 500;
     color: var(--nf-content-primary);
     white-space: nowrap;
     transition: border-color 160ms ease, background 160ms ease;
+    box-shadow: var(--nf-btn-glass-shadow);
   }
 
   .nf-rv-tab:hover {
@@ -160,17 +161,10 @@
   /* The active tab is the lit blue button: gradient fill, a brighter top rim,
      and a soft bloom cast below it. */
   .nf-rv-tab[aria-current="page"] {
-    border-color: var(--nf-selected-edges, var(--nf-brand-primary));
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-brand-primary) 82%, var(--nf-content-on-brand)) 0%,
-      var(--nf-brand-primary) 55%,
-      var(--nf-brand-primary-strong) 100%
-    );
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
     color: var(--nf-content-on-brand);
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 55%, transparent),
-      0 8px 22px -8px color-mix(in oklab, var(--nf-brand-primary) 75%, transparent);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
 
   .nf-rv-tab[aria-current="page"] .nf-rv-tab__count {
@@ -183,17 +177,13 @@
      rim along the top and the quiet field glow, all read from the variables
      `.nf-admin` defines for both themes, so this desk inherits the identity
      rather than restating a flatter copy of it. */
+  /* The material is the shared `.nf-panel` (components/ui/Panel.tsx), set in
+     the markup beside this class (platform sweep, 23 September); the local
+     copy of the recipe is deleted and this class keeps only its layout. */
   .nf-rv-panel {
     position: relative;
+    display: block;
     min-width: 0;
-    padding: var(--nf-space-md);
-    border-radius: var(--nf-container-radius);
-    border: 1px solid var(--nf-border-brand);
-    border-color: var(--nf-panel-edges);
-    background: var(--nf-panel-fill);
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 55%, transparent),
-      var(--nf-panel-glow);
   }
 
   .nf-rv-panel--flush {
@@ -734,11 +724,12 @@
     height: 44px; /* R-B */
     padding: 0 var(--nf-space-xs);
     border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-brand-edge-soft);
-    background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-primary));
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
     font-size: var(--nf-text-body-sm);
     font-variant-numeric: tabular-nums;
     color: var(--nf-content-primary);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
 
   a.nf-rv-pager__item:hover {
@@ -746,12 +737,10 @@
   }
 
   .nf-rv-pager__item[aria-current="page"] {
-    border-color: var(--nf-selected-edges, var(--nf-brand-primary));
-    background: linear-gradient(180deg, color-mix(in oklab, var(--nf-brand-primary) 82%, var(--nf-content-on-brand)), var(--nf-brand-primary-strong));
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
     color: var(--nf-content-on-brand);
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-content-on-brand) 55%, transparent),
-      0 8px 20px -8px color-mix(in oklab, var(--nf-brand-primary) 75%, transparent);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
 
   .nf-rv-pager__item[aria-disabled="true"] {
@@ -874,10 +863,10 @@
     width: 32px;
     height: 32px;
     border-radius: var(--nf-radius-xs);
-    border: 1px solid var(--nf-border-brand);
-    border-color: var(--nf-plate-edges, var(--nf-border-brand));
-    background: linear-gradient(180deg, color-mix(in oklab, var(--nf-brand-primary) 38%, var(--nf-surface-primary)), color-mix(in oklab, var(--nf-brand-primary) 16%, var(--nf-surface-primary)));
-    box-shadow: var(--nf-rim-lit), 0 0 12px -4px color-mix(in oklab, var(--nf-brand-primary) 80%, transparent);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    border-color: var(--nf-plate-edges);
+    background: var(--nf-plate-fill);
+    box-shadow: var(--nf-plate-shadow);
     color: var(--nf-content-on-brand);
   }
 
@@ -1171,10 +1160,12 @@
   .nf-rv-btn--ask { --rv-btn: var(--nf-brand-primary); }
 
   .nf-rv-btn--quiet {
-    background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-primary));
+    background: var(--nf-btn-glass-fill);
     border-color: var(--nf-border-brand);
     color: var(--nf-content-primary);
-    box-shadow: var(--nf-rim-lit);
+    box-shadow: var(--nf-btn-glass-shadow);
+
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
   }
 
   .nf-rv-msg {

@@ -1106,7 +1106,7 @@ founder's send target, governing over `95840448`). Route `/wallet/send`. Same
 **Header row:** shared chrome, as section 4.
 
 **Proofs:** `docs/design/proofs/session-b/send/send-side-by-side.jpg`,
-`send-390-dark.jpg` (empty), `send-filled-390-dark.jpg`, `send-bank-390-dark.jpg` (to bank, the name resolved),
+`send-390-dark.jpg` (empty), `send-filled-390-dark.jpg`, 
 `send-1280-dark.jpg`; harness
 `apps/web/src/app/(dev)/preview/session-b/wallet/send/` and `.../send-filled/`
 (R-G; the recipient lookup there is a fixture that answers "found").
@@ -1115,9 +1115,6 @@ founder's send target, governing over `95840448`). Route `/wallet/send`. Same
 
 | Link | What it is | State |
 | --- | --- | --- |
-| Mode | "To bank" / "To a Vallo wallet", two rounded rectangles at the top of the form panel (founder item 3) | OK |
-| Bank recipient | `BankRecipient.tsx`: bank select from the payout side's `listBanks()` (falling back to `WALLET_BANKS` when Paystack answers an empty list), 10-digit account number, then the payout side's own `resolveBankAccount({ bankCode, accountNumber })`, debounced and ordered; the bank's name is shown in a confirmation row before anything can be confirmed. No second resolver | OK, live today |
-| Bank send | `transferToBank` does not exist yet (scope B-BANK (b), corrected: (a) and (c) already existed). `BANK_SEND_OPEN = false` keeps Send off in bank mode and the page says why; and the only production payout failed on Paystack's starter-business limit (W4) | BROKEN, scope B-BANK (b) and W4 |
 | Control | `SendFlow` compose (Recipient email, Amount, Narration) -> "Send Money" opens the confirm step -> its button submits | OK |
 | Double tap, client | `submit-guard.ts`: a synchronous latch in the confirm form's submit handler refuses a second submit in the same frame, and the button is disabled from the first press until the result returns (`session-b-wallet.test.ts`, 2 cases) | OK. It narrows the window; the server guard below closes it |
 | Lookup | `lookupRecipient` (`app/(app)/wallet/send/recipient-action.ts`): signed in, paced 40 per 10 minutes, found / none / self / unknown | OK |
@@ -1137,7 +1134,7 @@ founder's send target, governing over `95840448`). Route `/wallet/send`. Same
 | --- | --- |
 | "NDIC INSURED" | False: `lib/legal/terms.tsx` section 15 (R1) |
 | "256 BIT ENCRYPTION" | An uncheckable security claim (R1) |
-| (Bank row) | NOW DRAWN, founder item 3: the bank, the account number and the bank's name for it. The send itself waits on B-BANK (b) |
+| Bank row | Removed by founder directive, 23 September (see below): sending to someone else's bank account is licensed activity |
 | Scan / QR button | No scanner exists |
 | Swap, "Top Up" tiles | As section 4 |
 | "Quick. Safe. Reliable." | Adjectives that are claims; replaced by "Wallet to wallet, by email". The dead dictionary key `walletSend.tagline` ("Fast. Safe. Always.") now carries the same true words |
@@ -1158,10 +1155,7 @@ established and are not stated.
 | "Wallet Balance" | 75px wide = 11px | 11px / 500, 16px glyph | Yes |
 | Title | "Send Money" 103.5px wide, Poppins 600 = 17.5px | 17.5px / 600 ("Send money", house sentence case) | Yes |
 | Line under it | 102.9px wide = 14px, quiet blue | 14px / 400 `--nf-content-link` | Yes |
-| Mode choice | not drawn (the render shows only the bank form) | 44px (R-B), 10px corner (0.23), 11px / 600, chosen one lit with the button gradient | Added: founder item 3 |
-| Bank row | plate, "Bank" over "Select bank", chevron right, 52px | the render's own bank plate (cropped, `plate-bank.webp`), label 11px, select value 16px, chevron 20px, 60px | Yes |
-| Account name row | not drawn | the rows' edge and padding, "Name on the account" 11px over the name 14px / 600 | Added: item 3 |
-| Instant chip | 30px tall, "Instant Transfer" 67.3px = 9.2px | 30px, 11px / 600, 6px corner (0.2); wallet mode only (a bank send is not instant) | Yes (type at floor) |
+| Instant chip | 30px tall, "Instant Transfer" 67.3px = 9.2px | 30px, 11px / 600, 6px corner (0.2) | Yes (type at floor) |
 | Form panel | radius 10 to 12 (rim reaches the side 16 to 20 image px down), rim rgb(0 67 131), fill rgb(0 12 43) between rows | 10px (`--nf-radius-sm`, the nearest rung), the identity's lit card | Yes (audit run two) |
 | Rows | sub-panels, radius 10.5 (18 image px), fill rgb(0 21 61), edge rgb(0 75 167), 52px tall | radius 10, fill 20% brand over canvas, edge `--nf-brand-edge-soft`, 60px | Yes; 8px taller for the 16px typed value (R-A) |
 | Row gap | 9px | 10px | Yes |
@@ -1251,6 +1245,51 @@ signed-in run is possible here):
   this box; each is proved by code, tests and read-only SQL instead).
 - Badge slots rendering the real badge: 0 / 3 (recipient wired and blocked on
   B-BADGE; rows and receipt blocked on W6).
+
+### Bank send removed (founder directive, 23 September)
+
+**What changed** (`32830d5b`): the "To bank" choice, `BankRecipient.tsx`
+(the bank picker and the payout-side name check), the `BANK_SEND_OPEN`
+constant, the send-bank harness, the bank plate crop, the bank-send styles and
+every bank-send word in all four locales are gone. Kept, untouched:
+wallet-to-wallet send, receive, withdraw to your OWN bank account (the
+withdraw sheet and `lib/wallet/banks.ts`), funding, statements, receipts.
+Nothing in Session B imports `transferToBank`; scope request B-BANK is
+withdrawn so Session A can remove it.
+
+**The regulatory line, recorded as the founder gave it.** When VALLO SPACES
+LTD's CAC objects clause carried payment, escrow and wallet wording, CAC
+demanded N500,000,000 share capital; the company was incorporated at
+N1,000,000 with that wording removed. Pushing money on bank rails to an
+unrelated third party is licensed activity in Nigeria; movement inside our
+ledger between two Vallo accounts is a different shape. This is a regulatory
+line, not a design gap: it is not to be rebuilt.
+
+**Re-measured against 77A54EA3 after the cut** (390 dark, harness
+`send-filled`, production build, 23 September): balance card 362 x 196 at
+y 144 under the back square; head "Send money" 17.5px / 600 with the Instant
+transfer chip 124 x 30 (6px corner, 0.2); ONE form panel, 362 wide, 10px
+corner, holding Recipient (60px row), the confirmed name (56px), Amount with
+its four 64 x 44 chips (10px corner, 0.23, equal widths), Narration (60px),
+the lit button 340 x 44.5 (14px corner, 0.31) and the reassurance card (141px,
+now four true lines: record not deposit, a failed send moves nothing, no
+recall, and the founder's refund time, "Refunds reach your wallet in 3 to 5
+business days"). Shape sweep, dark, send and send-filled: 0 breaches, 0 over
+0.35; controls measured by hand above because the tool reports combinations
+only when it finds something.
+
+**What the screen looks like with one mode instead of two.** The render
+draws a single form that mixes both shapes: its Recipient row asks for "bank
+name, account number or phone number" and a Bank select sits under it. With
+one mode the form is Recipient (a Vallo email, checked as it is typed) ->
+Amount -> Narration -> Send, and the panel is one row shorter than the
+render's. Intentionally absent from the drawn image: the Bank row (select and
+its chevron), the bank and account-number wording in the Recipient
+placeholder, the scan square (no scanner), and, as before, the NDIC and
+256-bit badges, "Quick. Safe. Reliable." and the Swap and Top Up labels. No
+mode choice is drawn, because there is nothing to choose between.
+`send-side-by-side.jpg` shows the render beside the cut screen.
+
 
 ## 6. Admin shell, overview, operations, analytics
 
@@ -1845,6 +1884,29 @@ on "Money"; press requested /admin?_rsc=...; landed
 The press asked for `/admin`, the declared parent; the signed-out browser is
 then sent to sign in with `next=/admin` by the proxy, as it would be for
 anyone without a session. Proof: `back-arrow-as-admin-money-1440-dark.jpg`.
+
+### 6.6d Live proof, 23 September (the network opened)
+
+Run against a production build (`next build` + `next start` under the heavy
+lock) whose `.env.local` points at the live project `uccixoonmbhrnyczyigt`.
+
+| Link | State | Evidence |
+|---|---|---|
+| Signed out at `/admin` | LIVE PROVEN, 16:02 UTC, build of 4b1d8c35 plus the sweep | 307 to `/sign-in?next=%2Fadmin&notice=sign-in-required`; `docs/design/proofs/session-b/admin/live/signed-out-doors.json` |
+| Signed out at a desk (`/admin/money`, `/admin/operations?tab=jobs`) | LIVE PROVEN, same run | 307 to sign in carrying the desk and its query as `next` |
+| Signed out at `/admin/enter?next=/admin/money` | LIVE PROVEN, same run | 307 to sign in carrying the whole entry address, so signing in resumes through the entry route |
+| A forged session cookie at each of the four doors | LIVE PROVEN for the build, same run | 307 to sign in, as signed out. The project's edge logs for that minute show no `/auth/v1/user` call, so the forged token was refused before the project was asked: this proves the running build's doors, not the project's token check |
+| Signed in as a non-admin at `/admin` (access screen, no console) | WAITING ON QA ACCOUNTS | step 6 of `scripts/design/session-b-shots/admin-live-signed-in.mjs` |
+| Landing: a desk as the first request of a session lands on the overview carrying it | WAITING ON QA ACCOUNTS | step 1 |
+| Overview reads against live data (no panel unavailable; Live listings 0, the 64 examples excluded; Supply by type all 0) | WAITING ON QA ACCOUNTS | step 2 |
+| Continue opens the desk; a second desk opens directly | WAITING ON QA ACCOUNTS | step 3 |
+| Every Operations tab, Analytics at 30d, 90d and 12m, Settings load without "This did not load" | WAITING ON QA ACCOUNTS | step 4 |
+| `/admin/enter?next=/admin/money` signed in lands on the overview, never the desk | WAITING ON QA ACCOUNTS | step 5 |
+
+The signed-in script reads `QA_ADMIN_EMAIL`, `QA_ADMIN_PASSWORD` (and
+optionally `QA_MEMBER_EMAIL`, `QA_MEMBER_PASSWORD`) from the environment only,
+signs in through the real form, opens pages and writes nothing. Without the
+variables it exits 2 with "WAITING ON QA ACCOUNTS".
 
 ### 6.7 Skipped or not verified
 
@@ -5473,11 +5535,118 @@ production build (after: pass 3, the final CSS applied to the running build);
 | A made-up address (`@example.invalid`) and a wrong password: the real auth server refuses (`invalid_credentials`), drawn as "That email and password do not match. Check them and try again.", still signed out | LIVE PROVEN, same run, `sweep-auth/live/live-refused.png`; the raw reply captured separately: 400 `invalid_credentials` |
 | The no-account and Google-account lookups (`signup_method_for_email`) | NOT PROVABLE on this box: the function is service-role only and this box holds no service key; the page falls back to the ordinary step, as designed |
 | The rate limiter (`consume_rate_limit`) | NOT PROVABLE on this box, same reason: the limiter fails open without the service key, by design |
-| A real sign-in landing on `next` | WAITING ON QA ACCOUNTS: `tests/session-b-signin-live.spec.mjs --signed-in` reads `QA_MEMBER_EMAIL` / `QA_MEMBER_PASSWORD` from the environment and exits 2 until they exist |
+| A real sign-in landing on `next` | WAITING ON QA CREDENTIALS: the member account exists (created by the founder, 23 September 16:30), its password is not on this box. `QA_MEMBER_EMAIL=... QA_MEMBER_PASSWORD=... node tests/session-b-signin-live.spec.mjs --signed-in` signs in through the email-first door with `next=/wallet` and checks the landing and the session cookie; it exits 2 until the password is set. No magic link or reset is requested for the account |
 
 Note for anyone running it: the server needs `NODE_USE_ENV_PROXY=1` and
 `NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt` on this box, or Node's fetch
 never reaches the project and the sign-in spins.
+
+## 13. Platform sweep: console (every admin desk, all three workers' desks; worker "admin-shell")
+
+Dated 23 September. Phase 1 (42ea43d9, 9da8f86f) moved the console's own
+anatomy into the shared layer and pointed `Panel` and `IconPlate` at it. This
+section closes the rest: nothing in `app/css/admin.css`, the money desks'
+`money/_desk/desk.css` or the review desks' `_review/review.css` draws its own
+panel, card, button, plate or selected state any more.
+
+### 13.c1 Inventory (before changing anything)
+
+Scanned with a rule-by-rule reader over the three stylesheets for every
+`background`, `border`, `box-shadow` and `backdrop-filter` that did not come
+from `--nf-panel-*`, `--nf-plate-*`, `--nf-selected-*`, `--nf-btn-*` or the
+container radius (48 rules in admin.css, 12 in desk.css, 24 in review.css),
+then read each against what it draws.
+
+| Item | Where | What it drew | Now |
+|---|---|---|---|
+| Desk cards `.nf-card` | 53 class uses in 28 files under `app/admin` (switches, standing, stops, examples, reference, fees, flags, reports, social, agents, businesses, support, alerts, audit charts, bookings, reservations, listings, money rows, payments) | a local re-skin, `.nf-admin .nf-card`, painting the panel recipe over `.nf-card` | the shared `.nf-panel .nf-panel--card` in the markup (`nf-admin-card` keeps the old block layout); the re-skin rule deleted |
+| KPI card, pulse strip | `_components/panels.tsx` | the panel recipe restated in `.nf-admin-kpi` and `.nf-admin-strip` (plus a local top glow) | `panelClass({ variant: "card" })` in the markup; the material declarations deleted |
+| Queue and audit tables | `QueueTable.tsx`, `audit/AuditList.tsx` | the panel recipe in `.nf-admin-table` | `.nf-panel .nf-panel--flush` in the markup |
+| Money cards | `money/_desk/Desk.tsx`, `MoneyDesk.tsx`, `escrow/EscrowDesk.tsx` | `.nf-md-card` restating the recipe, and a `::before` catchlight of its own | `.nf-panel` (panels) and `.nf-panel .nf-panel--card` (KPIs, stages) in the markup; the recipe and the `::before` deleted |
+| Review panels | 37 class uses of `nf-rv-panel` | `.nf-rv-panel` restating the recipe with its own rim | `.nf-panel` in the markup; the recipe deleted |
+| Tabs | `.nf-admin-tab`, `.nf-rv-tab` | own well fill, brand edge, glow ladder | glass door (`--nf-btn-glass-*`); open tab on `--nf-selected-*` |
+| Pagers | `.nf-admin-pager__page`, `.nf-md-pager__item`, `.nf-rv-pager__item` | own well fill; current page on a pasted gradient | glass door; current page on `--nf-selected-*` |
+| Segments, chips, row View, menu, icon button hover, money toggle, review back and quiet buttons | admin.css, desk.css, review.css | own fills and rims | glass door; "All" chip on `--nf-selected-*` |
+| Selected child row in the rail | admin.css | own 26% wash | glass door with the selected edge |
+| Row tile, review plate | `.nf-admin-row__tile`, `.nf-rv-plate` | own well or gradient and glow | `--nf-plate-*` |
+| Desk tile (console overview), drawer panel | admin.css | own glass card and gradient | `--nf-panel-*` |
+| KPI hovers | `a.nf-admin-kpi`, `a.nf-md-kpi` | own inset and glow | the selected edge on the shared material |
+| Switch | none in the console | the switches desk uses Switch on / Switch off buttons, not a switch | nothing to move |
+
+Kept, each for a reason: the rail (5EAA44CB draws it as a flatter glass
+column than a panel, ledger 6.2); status badges, chip state tints, review
+status dots and roles (a state's colour carries meaning, not material); the
+review desk's approve and reject action buttons (their tone is the decision);
+the calm note (the console's designed empty state, kept by Phase 1); meters,
+bars and chart marks (data, not containers); the glass bar and search fields
+(fields are not in this sweep's list); imagery (thumbnails, media, map).
+
+### 13.c2 Per route
+
+28 harness routes, 1440 and 390, dark. Before from main at 6fbc57d1, after
+from this commit, both production builds.
+
+| Route | Surface | State | Container, edge, rim, glow, button, plate | Match to the console reference |
+|---|---|---|---|---|
+| `/preview/session-b/admin/overview` | Overview (fixture) | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/session-b/admin/overview?state=live` | Overview (empty) | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/session-b/admin/operations` | Operations, jobs | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/session-b/admin/operations?tab=inflight` | Operations, In flight | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/session-b/admin/operations?tab=notifications` | Operations, Notifications | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/session-b/admin/analytics` | Analytics (fixture) | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/session-b/admin/analytics?state=live` | Analytics (empty) | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/session-b/admin/back` | Back arrow as /admin/money | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/session-b/admin-money/money` | Money | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/session-b/admin-money/escrow` | Escrow | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/session-b/admin-money/payments` | Payments | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/session-b/admin-money/bookings` | Bookings (stays) | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/session-b/admin-money/supply` | Supply | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/session-b/admin-review/listings` | Listings queue | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/session-b/admin-review/review` | Listing under review | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/session-b/admin-review/moderation` | Moderation | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/session-b/admin-review/kyc` | Verification | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/f5/admin-desks` | Desks (switches, standing, stops, examples, reference) | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/f5/admin-overview` | Console overview (desk tiles) | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/f5/admin-queue` | Unified queue | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/f5/admin-frame` | Frame and access screen | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/bd/reservations` | Reservations | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/bd/refunds` | Refunds | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/bd/payments` | Payments (old harness) | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/bd/alerts` | Alerts | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/bc/audit` | Audit log | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/c1/listing-review` | Listing review (old harness) | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+| `/preview/p3/admin-businesses` | Businesses | swept | panel, card, table on `.nf-panel`; controls on the glass door; open states on the selected tokens; plates on `--nf-plate-*` | yes |
+
+Routes swept: 28 of 28. The three old deck harnesses (`bd/*`, `p3/*` and the
+`f5/admin-*` frame) draw a narrow rail whose labels wrap letter by letter at
+1440; it is the same before and after, a harness width, not this sweep.
+
+### 13.c3 Audit passes
+
+- **Pass 1, 23 September.** After the first application, every route
+  re-shot and paired with its before (`pairs-1440/*-before-after.jpg`,
+  mean pixel difference per route ranked). Found: the converted desk cards
+  took the shared panel's flex column, so a card's action (Switch off,
+  Switch on) fell under its text on the switches desk; the old `nf-card` had
+  no padding and the panel adds some. Fixed: `.nf-admin-card` restores the
+  block box and zero padding (Tailwind's `p-*` still wins).
+- **Pass 2, 23 September.** Re-shot: the switches desk was unchanged,
+  because the `f5` harness renders the desk outside `.nf-admin`, where the
+  first fix was scoped. Fixed by marking the converted cards with
+  `nf-admin-card` in the markup instead of scoping by ancestor.
+- **Pass 3, 23 September.** Re-shot: a card that lays itself out as a row
+  (`flex flex-wrap`) still wrapped as a column, because the shared panel sets
+  `flex-direction: column`. Fixed with `flex-direction: row` on
+  `.nf-admin-card`. Re-shot all 28: the switches desk now matches its before
+  in layout, every card and control is on the shared material, and the
+  remaining differences are the intended ones (the lit panel replacing the
+  dull `.nf-card` on the listing review, businesses and refunds harnesses;
+  the glass tabs and chips). Shape sweep, dark, 26 of these routes: BREACHES
+  0, over 0.35 0, round icon-only 0, refused 0 (the tool reports 16
+  combinations measured).
+
+Proofs: `docs/design/proofs/session-b/sweep-console/pairs-1440/` (before left,
+after right, 28) and `after-390/` (28).
 
 ## Skipped or not verified
 
