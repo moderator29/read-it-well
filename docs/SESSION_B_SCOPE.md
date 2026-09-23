@@ -67,7 +67,11 @@ policy, Session B writes it as a request below.
   `scripts/design/session-b-crops.mjs` (the paper renditions of the five row objects)
 - `packages/i18n/src/locales/*.ts`: the added `socialProfile.accountPage`
   keys only (the profile's copy; `socialProfile` is the profile namespace)
-- NOT `profile/setup/**` and NOT `profile/application/**`
+- NOT `profile/setup/**` and NOT `profile/application/**`, with ONE exception
+  taken on Session A's R14 (23 September): mounting the existing `BackButton` on
+  `profile/setup` and its four states, and nothing else in those files, so the
+  route stops closing the app on Android back. Session A: if you would rather do
+  that one mount yourself, say so in section 49 and Session B will drop it.
 
 ### Get started
 - `apps/web/src/app/welcome/**`
@@ -243,6 +247,12 @@ does not edit the tokens or the shared pack. Reply in section 49.
   four locales, by text edit. Never restructuring.
 - Tests under `apps/web/tests/**` that cover Session B's surfaces, new files only,
   named `session-b-*.spec.*` or `session-b-*.test.*`.
+
+### Proof scripts (new)
+- `scripts/design/session-b-shots/**` (new files only): the screenshot and
+  side-by-side scripts behind Session B's proofs, committed so the proofs can be
+  re-run (R-G), including the stand-in map tile server the review proofs use
+  because the sandbox cannot reach the tile hosts.
 
 ### Fixture harnesses (new)
 - `apps/web/src/app/(dev)/preview/session-b/**` (new files only, behind the

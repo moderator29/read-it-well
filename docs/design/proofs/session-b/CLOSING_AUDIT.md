@@ -1,7 +1,159 @@
 # Session B closing audit
 
-Two runs. The second run (23 September, on `625e47c6`, with Wallet and Send money on `62173c3e`) is first. The first
-run (22 September, on `486cb23`) is kept unchanged below it.
+Three runs, newest first: the third (23 September, `24453445`), the second
+(23 September, `625e47c6`), and the first (22 September, `486cb23`), each kept
+as written.
+
+# THIRD RUN, 23 September, `main` at `24453445`
+
+Auditor: Session B worker "auditor". No product code was changed. The
+worktree `wt-auditor` was rebuilt at `24453445` and served with
+`VALLO_PREVIEW_HARNESS=1`. I ran the shape sweep and the CSS token check
+myself over every committed harness and every signed-out route. Everything is
+judged against R-A to R-G. The live database was read with SELECT only.
+
+**Wallet and Send money: their fixes had not landed on main.** Before judging,
+I fetched `origin/main` again. The latest commit, `366d0ad6`, contains no
+wallet commit after `62173c3e`. The wallet worker's tree holds the changes
+uncommitted: `WalletSettingsSheet.tsx`, `wallet.css`, the four locales and the
+ledger. So both surfaces are judged on main as it stands.
+
+## Result
+
+"Ours" means fixable by a Session B worker in Session B files. "Blocked on
+Session A" means only a Session A request stands, and the surface says so
+honestly.
+
+| Surface | Owner | Third run | Still ours | Blocked only on Session A |
+|---|---|---|---|---|
+| Profile | profile | **PASS** | none | request 1 (switcher trigger prop), 1d (header slot) |
+| Get started | welcome | **PASS** | R14 (below): `/welcome` declares parent `/home` and draws no back control | W1 (sign up routes to first run), W3 (native first launch), W4 (stale gate spec) |
+| Welcome back | signin | **PASS** | R14: the eight auth routes draw no back control | SIGNIN-1 (unconfirmed address answer) |
+| Inspections | inspection | **PASS** | none | I1 (report tables), I2 (publish the table), I3 (`?attach=1`), I4 (dead `nf-insp-*` rules) |
+| Wallet | wallet | **FAIL (not landed)** | "How your money is protected" still on main, `WalletSettingsSheet.tsx:82`; R14: `/wallet` draws no back control | W2 (publish `wallet_entries`), W3 (transfer notice names), W4 (payouts) |
+| Send money | wallet | **FAIL (not landed)** | `.nf-send-form` still on `--nf-radius-control` (14) against the measured 10 to 12, `wallet.css:752`; R14: `/wallet/send` draws no back control | as Wallet |
+| Admin shell, overview, operations, analytics | admin-shell | **FAIL** | (1) the landing gap, by address (below); (2) job counts drifted again (below); (3) push notifications now readable by an admin and not shown (below); (4) R14: 23 admin routes draw no back control | A5 (per-job pg_cron), A6 (the notifications table), A8 (listing views), A11 (refusal reasons outside price checks), A12, A13, a new one for `email_outbox` |
+| Admin review desks | admin-review | **FAIL (narrow)** | the Moderation and Verification proofs, `sbs-moderation.jpg`, `sbs-kyc.jpg` and every `moderation-*` and `kyc-*` shot, are from 09:21, before the shell's full-height rail and re-sampled material (`949930e2`, 10:10), so they show the old short rail | AR-5 (paging decided listings), AR-10 (held events cannot be decided), AR-11 (blocked terms unreadable), AR-12 (mandates cannot be decided) |
+| Admin money desks | admin-money | **FAIL (narrow)** | every proof and side-by-side is from 09:53 or earlier, before `949930e2`; `side-by-side-escrow.jpg` plainly shows the short rail | request 10 (reconciliation watch) |
+| Welcome email | email | **PASS** | none (`welcome-message.ts` untouched this round; 111 tests pass) | E1 (greet by handle), E2 (lit button in `render.ts`) |
+| Handbook `docs/ADMIN_CONSOLE.md` | admin-shell (jobs), all three (desks) | **FAIL (narrow)** | "seven Vercel Cron jobs" at lines 138 and 607 (there are eight), and twelve pg_cron jobs (there are fourteen) | none |
+
+### The three admin-shell items, exactly
+
+1. **Landing by address has a new gap.** `app/admin/enter/route.ts` answers
+   `GET /admin/enter?next=/admin/<desk>` for any admin. It sets the entry cookie
+   and sends a 303 straight to the desk. `enterTarget` allows a bare desk
+   (`allowedDesk(next)`). So a typed, bookmarked or sent
+   `/admin/enter?next=/admin/money` skips the overview, which is exactly what
+   R-E forbids.
+   - The fix: `enterTarget` never returns a bare desk, only `/admin` or
+     `/admin?next=<desk>`. The overview's Continue can then be a plain link to
+     the desk, because by then the cookie is already set: by the overview in
+     the browser, or by `/admin/enter` without JavaScript.
+   - Everything else in R-E holds. `EntryGate` has a plain link now, and
+     JavaScript off works through `/admin/enter`. The tests pass (139 across
+     `app/admin` and `lib/admin/reads`).
+2. **The job counts moved under the handbook again.** Session A scheduled two
+   more database jobs and one more Vercel job today:
+   - Database jobs (`cron.job` read live): `vallo_push_drain` `*/5 * * * *` and
+     `vallo_purge_email_outbox` `25 2 * * *`, 14 in all.
+   - Vercel: `email-outbox` `*/15 * * * *`, 8 in `vercel.json`. `jobs.ts`
+     already carries it (R13, Session A's one data line).
+   - The handbook table, the In flight copy and A5 say twelve and seven. Fix the
+     text, and derive the number wherever the copy states one, so it cannot
+     drift a third time.
+   - R13 asks admin-shell to say in the ledger whether the `email-outbox` line
+     in `jobs.ts` may stay. The ledger does not answer it yet.
+3. **Every notification.** `public.push_queue` (`state`, `outcome`) and
+   `public.push_deliveries` (`state`, `provider_status`) now have admin read
+   policies (`pg_policies`). The Notifications tab still reads "Not wired yet"
+   and names only A6.
+   - Push volumes can now be counted by state from those two tables, the way
+     price checks were.
+   - `public.email_outbox` (`status`) has RLS on and no admin policy, so it
+     needs a request like A12.
+
+### R14 (Session A's ledger `49ter`, 10:30 today), unanswered
+
+Thirty-eight routes declare a parent in `lib/nav/route-parents.ts` and draw no
+back control. They are all Session B's:
+- the 23 admin routes;
+- the 8 auth routes;
+- `/welcome`, `/wallet`, `/wallet/send`.
+
+None of those trees mounts `BackButton`. I checked with grep:
+`app/admin`, `app/(auth)`, `app/welcome`, `components/auth`,
+`components/app/welcome`, `app/(app)/wallet` and `components/app/wallet` have
+no `BackButton` or `useBack`. On Android the hardware back on such a route
+closes the app.
+
+This does not reopen the design gate. It is a wiring defect that is ours to
+fix, and each owner above carries it. Two notes for the lead:
+- `route-parents.ts` gives `/sign-in` the parent `/start`, which is a 307 to
+  `/welcome?next=/sign-up`. So back from sign in would lead towards sign up.
+  The file is not Session B's; raise it with Session A.
+- R14 also lists `/profile/setup`, which the scope file says is NOT Session
+  B's. The two sessions disagree about who owns it.
+
+R15 (open shelves under a gated `/home`) is a founder question. Session A says
+the same.
+
+## B3. Sweep and token check, from the committed harnesses
+
+- `node apps/web/scripts/check-css-tokens.mjs`: **clean**, all ten checks. It
+  walks all of `src/app`, which includes the route stylesheets:
+  `admin/_review/review.css`, `admin/money/_desk/desk.css`,
+  `(app)/profile/profile.css`, `welcome/welcome.css`, `app/css/*`.
+- `compare-surface.mjs --shape-sweep --theme both`, one route per run, at 390
+  and 1536: **60 routes, every one HTTP 200, every one 0 breaches, 0 at or
+  above 0.35, 0 round icon-only.** The routes:
+  - the signed-out routes;
+  - `/preview/session-b/{welcome (3 viewers), profile (3), signin (4 states), inspection (3), inspection/shell, wallet, wallet/send, wallet/send-filled}`;
+  - `admin/{overview, analytics, operations}`, with all five Operations tabs;
+  - `admin-review/{listings, review, moderation, kyc}` with `?empty=1`;
+  - `admin-money/{money, escrow, supply, bookings, payments}`, live and full;
+  - Session A's `f5`, `bd`, `bc`, `p3`, `c1` and `e` admin and wallet harnesses.
+
+## D3. Visual reading, this run
+
+- **Get started.** The coin rim now has its lips and streak
+  (`welcome-coin-render-vs-built-3x.jpg`). Skip and the button label are
+  measured and set to 11.5 and 15px. There is nothing left beyond the recorded
+  departures (the ice dot, the token-limited violet).
+- **Welcome back.** I brightened `signin-390-dark.jpg` 2.5 times. There is no
+  box behind the lockup and no edge or side strip on the stage. The corner
+  numbers agree in all three places.
+- **Inspections.** "Inspection" is lit cyan. The number is visible under the
+  name and wraps between groups. The row plates are lit discs. Containers are
+  on 10px. Add Photos and Submit are on the first screen in the committed
+  in-shell twin.
+- **Admin shell.** The rail runs the full height, with the foot pinned. The
+  badges are filled, with the word (checked against the render's badges on a
+  3x crop). Analytics reads `price_check_events` for demand, checks answered,
+  top areas and refusals. What is still missing is only what the table above
+  lists.
+- **Admin review.** `sbs-review.jpg` (10:40) shows the player tile and a map
+  frame. It carries a note that the tiles are a stand-in, because the sandbox
+  proxy refuses the tile hosts. I saw the same refusal myself (`connect_rejected`),
+  so this is honest. The shot script that serves the stand-in is not in the
+  committed harness. The failure states have their own proof.
+- **Admin money.** The ruling shows the evidence filed, oldest first. "Float,
+  booked daily" and firm rosters are on their desks. The proofs predate the
+  shell's rail.
+
+## E3. Coverage, the rows that changed
+
+| Item | Run two | Now |
+|---|---|---|
+| `listing_mandates` | MISSING | Listings desk, Mandates panel, read only, exact counts by decision; deciding is AR-12 |
+| `escrow_evidence` | MISSING | on each ruling, oldest first |
+| `escrow_float_snapshots` | MISSING | Escrow, "Float, booked daily", beside the ledger float |
+| `firm_members` | MISSING | Supply, firm rosters, pending / active / revoked |
+| `price_check_events` | MISSING | Analytics: price checks, checks answered, demand vs supply, top areas, refusals |
+| pg_cron jobs | 12, 8 named | 14 live; the handbook names 12; the console summarises them (A5) |
+| Vercel jobs | 7 | 8 live and in `jobs.ts`; the handbook text says seven |
+| `push_queue`, `push_deliveries` (new, admin-readable) | n/a | **MISSING** (admin-shell) |
+| `email_outbox` (new, no admin policy) | n/a | **MISSING**, needs a request |
 
 # SECOND RUN, 23 September, `main` at `625e47c6` (Wallet and Send money at `62173c3e`; R12 re-checked at `57df9fe9`)
 
