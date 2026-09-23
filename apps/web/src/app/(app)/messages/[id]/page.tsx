@@ -167,24 +167,26 @@ export default async function ConversationPage({
         threadCopy={t.threads}
         locale={locale}
         /*
-          THE COUNTERPART'S VERIFIED STATE, AND WHERE IT HAS TO COME FROM.
+          THE COUNTERPART'S BADGE, AND THE DEFECT THAT USED TO BE ON THIS LINE.
 
-          `loadThread` resolves it - `identitiesOf` reads `agent_badges.verified`,
-          the KYC ladder's published badge, through the service role for exactly
-          this - but it hands it back
-          filed under `listing.verified`, which is a misleading home for it:
-          that key sits on the LISTING object and reads as a fact about the
-          property when it is a fact about the person. It is the same value.
+          This read `thread.listing?.verified`. That key sits on the LISTING
+          object and is a fact about a PROPERTY, and it was being handed to the
+          component that draws the mark beside a PERSON'S name, on the screen
+          where somebody decides whether to send a stranger a deposit. The note
+          that stood here argued it was "the same value" because `loadThread`
+          happened to file the person's badge under that key, and it named the
+          cost it could see: a direct message with no listing attached carried
+          nothing, so a checked agent messaging outside a listing showed no
+          mark at all. It asked the lead for a top-level field.
 
-          The cost of that shape shows up here. A direct message with no
-          listing attached has nowhere to carry it, so it resolves false and a
-          verified agent messaging outside a listing shows no mark. That fails
-          in the safe direction - a missing badge, never a false one - and it is
-          logged for the lead: `loadThread` should return `counterpartVerified`
-          at the top level, beside `counterpartName`, and this line becomes
-          `thread.counterpartVerified`.
+          That field now exists. `loadThread` returns `counterpartTier`, the
+          published `public.person_badge.tier`, beside `counterpartName`, and
+          this line is it. A thread with no listing draws the right mark, and
+          the property's own badge can never again stand in for a human check.
+          `VerifiedAvatar`'s own docstring had been warning against exactly this
+          substitution while this call site was performing it.
         */
-        counterpartVerified={thread.listing?.verified ?? false}
+        counterpartTier={thread.counterpartTier}
         counterpartName={thread.counterpartName}
         /* Null unless `lib/security/counterpart-contact.ts` allowed it: RLS
            membership first, a block in either direction withholds it, every

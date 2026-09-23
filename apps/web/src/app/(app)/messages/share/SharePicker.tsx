@@ -97,7 +97,6 @@ export function ShareToThread({
                 <span className="nf-inbox-row__ring">
                   <VerifiedAvatar
                     name={thread.counterpartName}
-                    verified={thread.counterpartVerified}
                     tier={thread.counterpartTier}
                     kind={thread.counterpartKind}
                     size="md"

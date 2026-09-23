@@ -20,7 +20,7 @@ export default async function PreviewThreadRental() {
         conversationId={CONVERSATION_ID}
         meId={PERSON.id}
         counterpartName="Michael T."
-        counterpartVerified={false}
+        counterpartTier="none"
         /* The worst case for the header: the call control beside the kebab on
            the face whose title is the longest thing on the screen. */
         counterpartPhone="+2348010000000"

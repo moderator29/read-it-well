@@ -24,7 +24,7 @@ export default async function PreviewEmptyThread() {
         conversationId={CONVERSATION_ID}
         meId={PERSON.id}
         counterpartName="Michael T."
-        counterpartVerified={false}
+        counterpartTier="none"
         listing={{
           id: LISTING_ID,
           title: "Luxury 2 bedroom apartment",

@@ -221,13 +221,15 @@ beforeAll(async () => {
     },
   });
   const expiresAt = Math.floor(Date.now() / 1000) + 3600;
+  /* Two fields and no more. `setSession` accepts exactly this pair by its own
+     type, reads the expiry out of the token itself, and asks the stand-in's
+     `/auth/v1/user` for the reader. Handing it a whole session object works at
+     runtime and does not typecheck, which is how this was caught: the first
+     version passed one, `npx tsc --noEmit` failed in the clean worktree, and
+     the shared tree had never been asked. */
   const { error } = await client.auth.setSession({
     access_token: accessToken(expiresAt),
     refresh_token: "unsigned-refresh",
-    expires_in: 3600,
-    expires_at: expiresAt,
-    token_type: "bearer",
-    user: USER as never,
   });
   if (error) throw new Error(`the stand-in could not mint a session: ${error.message}`);
   if (jar.length === 0) throw new Error("no cookie was written, so there is nothing to walk with");
