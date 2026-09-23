@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
@@ -54,13 +53,6 @@ export function SwitchRoleRow({ line, title }: { line: string; title: string }) 
         <span className="nf-pf-plate__object">
           <BrandIcon name="role-switch-tile" size={62} />
         </span>
-        <Image
-          src="/brand/session-b/profile/role-switch-tile-day.webp"
-          alt=""
-          width={50}
-          height={50}
-          className="nf-pf-plate__day"
-        />
       </span>
       <span className="nf-pf-row__body">
         <span className="nf-pf-row__title">{title}</span>
