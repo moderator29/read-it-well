@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Odometer } from "@/components/site/Odometer";
 import { Amount } from "@/components/ui/Amount";
 import { Button, ButtonLink } from "@/components/ui/Button";
@@ -36,7 +36,6 @@ import { ErrorNotice, fieldError } from "@/components/app/wallet/ErrorNotice";
 import { mintIdempotencyKey } from "@/components/app/wallet/idempotency";
 import { useMoneyWait, WaitNotice } from "@/components/app/wallet/MoneyWait";
 import { useBalanceMask } from "@/components/app/wallet/balance-mask";
-import { type MoneyGlyphName } from "@/components/app/wallet/MoneyGlyph";
 import { QuickPlate } from "@/components/app/wallet/QuickPlate";
 import { WalletTiles } from "@/components/app/wallet/WalletTiles";
 
@@ -266,21 +265,18 @@ export function WalletDeck({
           <QuickLink
             href="/wallet/send"
             art="send-plane-tile"
-            icon="plane"
             title={copy.quickSend}
             sub={copy.quickSendSub}
           />
           <QuickLink
             href="/wallet/receive"
             art="person-card"
-            uiIcon="user"
             title={copy.quickRequest}
             sub={copy.quickRequestSub}
           />
           <QuickLink
             href="/settings/payments"
             art="card-tile"
-            icon="card"
             title={copy.quickCards}
             sub={copy.quickCardsSub}
           />
@@ -319,21 +315,17 @@ export function WalletDeck({
 function QuickLink({
   href,
   art,
-  icon,
-  uiIcon,
   title,
   sub,
 }: {
   href: string;
   art: BrandIconName;
-  icon?: MoneyGlyphName;
-  uiIcon?: UiIconName;
   title: string;
   sub: string;
 }) {
   return (
     <Link href={href} className="nf-wallet-quick__card">
-      <QuickPlate art={art} glyph={icon} uiIcon={uiIcon} />
+      <QuickPlate art={art} />
       <span className="nf-wallet-quick__title">{title}</span>
       <span className="nf-wallet-quick__sub">{sub}</span>
     </Link>

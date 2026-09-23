@@ -65,7 +65,7 @@ export function WalletSettingsSheet({
           aria-expanded={open}
           className="nf-wallet-quick__card"
         >
-          <QuickPlate art="shield-check-tile" glyph="shield-check" />
+          <QuickPlate art="shield-check-tile" />
           <span className="nf-wallet-quick__title">{card.title}</span>
           <span className="nf-wallet-quick__sub">{card.sub}</span>
         </button>

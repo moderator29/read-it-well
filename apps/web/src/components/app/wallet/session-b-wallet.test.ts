@@ -72,3 +72,11 @@ describe("submit guard", () => {
     expect(guard.tryEnter()).toBe(true);
   });
 });
+
+describe("the way back from the money pages (R14)", () => {
+  it("resolves to each page's declared parent", async () => {
+    const { parentOf } = await import("@/lib/nav/resolve");
+    expect(parentOf("/wallet")).toMatchObject({ kind: "parent", href: "/home" });
+    expect(parentOf("/wallet/send")).toMatchObject({ kind: "parent", href: "/wallet" });
+  });
+});

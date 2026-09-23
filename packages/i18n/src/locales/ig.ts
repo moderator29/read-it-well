@@ -2991,6 +2991,12 @@ export const ig: Dictionary = withFallback({
   /* Build 05, FE-2. Short labels translated; sentences about money kept in
      English until a native reviewer rewrites them. */
   walletSend: {
+    modeLabel: "Zipu na",
+    modeBank: "Na ụlọ akụ",
+    modeWallet: "Na akpa ego Vallo",
+    bankRowLabel: "Ụlọ akụ",
+    bankRowPlaceholder: "Họrọ ụlọ akụ",
+    accountNumberLabel: "Nọmba akaụntụ",
     availableBalance: "Ego dị ugbu a",
     sendSub: "Gaa n'akpa ego Vallo ọ bụla, site na email ha",
     instantChip: "Nzipu ozugbo",

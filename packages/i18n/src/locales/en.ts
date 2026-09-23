@@ -4112,6 +4112,20 @@ export const en = {
    * Added 18 September 2026 (Build 05, FE-2).
    */
   walletSend: {
+    /* Send to a bank account (founder item 3, 23 September). */
+    modeLabel: "Send to",
+    modeBank: "To bank",
+    modeWallet: "To a Vallo wallet",
+    sendSubBank: "To a bank account, named by the bank",
+    bankRowLabel: "Bank",
+    bankRowPlaceholder: "Select bank",
+    accountNumberLabel: "Account number",
+    accountNumberPlaceholder: "10-digit account number",
+    accountChecking: "Asking the bank whose account this is",
+    accountNameLabel: "Name on the account",
+    accountNotConfirmed: "The bank could not confirm this account. Check the number and the bank.",
+    accountHint: "The bank gives the name back before anything is sent.",
+    bankSendClosed: "Sending to a bank account is not switched on. The name check above is live; to move money now, send to a Vallo wallet.",
     /* Session B, send money to 77A54EA3 (22 September 2026). The three
        reassurance lines are the only claims on the page and each is true
        of the code and the terms (lib/legal/terms.tsx section 15). */

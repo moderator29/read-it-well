@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { resolveSession } from "@/lib/actions/session";
 import { SendFlow } from "@/components/app/wallet/SendFlow";
+import { WalletBack } from "@/components/app/wallet/WalletBack";
 import { getWalletForViewer } from "@/lib/wallet/repository";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -41,6 +42,7 @@ export default async function WalletSendPage({
 
   return (
     <div className="nf-money mx-auto max-w-2xl">
+      <WalletBack />
       {!wallet.live ? (
         <EmptyState
           icon="wallet-secure"

@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { RecentActivity } from "@/components/app/wallet/RecentActivity";
 import { LiveWallet } from "@/components/app/wallet/LiveWallet";
+import { WalletBack } from "@/components/app/wallet/WalletBack";
 import { resolveSession } from "@/lib/actions/session";
 import { WalletSettingsSheet } from "@/components/app/wallet/WalletSettingsSheet";
 import { getWalletForViewer } from "@/lib/wallet/repository";
@@ -77,6 +78,7 @@ export default async function WalletPage({
 
   return (
     <div className="nf-money mx-auto max-w-2xl">
+      <WalletBack />
       {verifying && <FundingVerifier reference={verifying} locale={locale} />}
 
       {!wallet.live ? (

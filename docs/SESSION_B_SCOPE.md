@@ -47,6 +47,24 @@ the five above are the governing targets for this work.
   and notifications as `transferToUser`; (c) the bank list the payout side uses.
   Session B builds the screen against these shapes now and wires it the moment
   they land.
+  **Corrected by the wallet worker, 23 September, after reading the payout
+  side:** (a) and (c) ALREADY EXIST and need nothing from Session A.
+  `resolveBankAccount({ bankCode, accountNumber })` and `listBanks()` in
+  `lib/payments/bank-accounts-actions.ts` are `"use server"` actions, signed
+  in, on the money guard, returning `ActionResult<{ accountName }>` and
+  `ActionResult<PaystackBank[]>` (`{ name, code, slug }`). The Send screen
+  calls both today. (The wallet's own `lookupAccountName(bankCode,
+  accountNumber)` in `lib/wallet/actions.ts` is a second path to the same
+  Paystack resolve; Send uses the payout side's, as item 3 asks.) **Only (b)
+  is outstanding:** `transferToBank({ accountNumber, bankCode, amountKobo,
+  narration, idempotencyKey })`, which re-resolves the name server-side rather
+  than trusting one from the form (as `addBankAccount` does), with
+  `transferToUser`'s idempotency, ledger entries and notifications. Note for
+  the founder and Session A: the only production payout failed with
+  Paystack's "You cannot initiate third party payouts as a starter business"
+  (scope W4), so (b) cannot complete until that account is upgraded. The
+  screen keeps Send off in bank mode (`BANK_SEND_OPEN` in `SendFlow.tsx`) and
+  says so.
 - **B-BADGE.** Export the single badge derivation (tier: none, gold, platinum)
   and the artwork paths, so Session B renders exactly that and nothing of its own.
 - **B-GATE.** Item 8's gate, and the store notes on reviewer credentials.

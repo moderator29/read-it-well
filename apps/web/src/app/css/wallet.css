@@ -2,8 +2,8 @@
   wallet: the money surfaces' own partial. Owned by worker E per
   docs/BUILD_06_LEDGER.md section 2: the wallet home, send, receive, the
   statement and receipts, the payment methods block and the result sheet's
-  mark. Light-theme rules for this family live at the foot of the file under
-  :root[data-theme="light"], so the partial is the whole surface.
+  mark. Dark only: light mode was removed by the founder on 23 September, and the
+  paper twins that lived at the foot of this file went with it.
 
   Everything here is drawn from layer-two tokens. The governing renders
   (6AF37222 wallet home, 95840448 send money, 7F96BE6C payment methods) are
@@ -17,9 +17,7 @@
   and ours read dull beside them, so `--nf-border-subtle` and
   `--nf-border-default` are gone from every dark rule in this file: the edge
   is `--nf-brand-edge`, the highlight is `--nf-rim-lit`, and the glow is the
-  glow ladder. The light twin at the foot keeps the paper law (rule 7): a
-  brand-tinted hairline, no bloom, because a blurred halo on white paper
-  reads as a smudge.
+  glow ladder.
 
   THE OBJECTS ARE SMALLER, by the same ruling. The glass marks were drawn
   larger than the renders draw them, which is what made them read as
@@ -465,8 +463,7 @@
    * The plate: the render's 31px glass tile. At night it is the pack's crop
    * of the render's own tile (see QuickPlate.tsx), drawn in a 46px box
    * because the crop carries its glow as margin, so the tile itself lands
-   * at the render's 31px. On paper it is a stroked
-   * glyph on a brand-tinted plate, because the crop would sit on a navy chip.
+   * at the render's 31px.
    */
   .nf-wallet-quick__plate {
     position: relative;
@@ -483,9 +480,6 @@
   .nf-wallet-quick__art {
     position: absolute;
     inset: 0;
-  }
-  .nf-wallet-quick__stroke {
-    display: none;
   }
 
   .nf-wallet-quick__title,
@@ -878,9 +872,6 @@
     height: calc(100% + 0.25rem);
     max-width: none;
   }
-  .nf-send-plate__stroke {
-    display: none;
-  }
   /*
    * THE LIT BUTTON. 44.5 CSS px tall in the render, sampled rgb(0 137 254)
    * under the top rim, rgb(0 89 253) through the middle and rgb(0 165 251)
@@ -1196,27 +1187,12 @@
    * place that owns it.
    */
   /*
-   * THE BIG FIGURE IS WHITE, and it was brand blue.
-   *
-   * `.nf-odometer-figure` in `motion.css` paints the rolling figure
-   * `--nf-brand-secondary`, so the wallet balance and every rolling amount on
-   * these surfaces came out blue. Both governing renders draw the figure in
-   * WHITE with blue reserved for accents, and the founder's ruling of 19
-   * September says the same in one line: text mostly white, blue accents.
-   * The roll is G3's material and stays exactly as it is; only the ink is
-   * overruled, and only on the surfaces this partial owns.
-   *
-   * IT IS STILL NEEDED, and the light half was missing. `motion.css` paints
-   * the figure `--nf-brand-secondary` in the dark and `--nf-brand-primary`
-   * on paper; the promotion of the lit edge did not touch it. The dark
-   * override was landing and the light one was not, because
-   * `:root[data-theme="light"] .nf-odometer-figure` outweighs a two-class
-   * selector, so the wallet balance was white in the dark and brand blue on
-   * paper. The screenshot of the light theme is what found it. Both halves
-   * are stated now, at the specificity each needs.
+   * THE BIG FIGURE IS WHITE, and `motion.css` paints the rolling figure
+   * `--nf-brand-secondary`. Both governing renders draw the figure in white
+   * with blue reserved for accents, so the ink is overruled here, on the
+   * surfaces this partial owns; the roll itself is untouched.
    */
-  .nf-money .nf-odometer-figure,
-  :root[data-theme="light"] .nf-money .nf-odometer-figure {
+  .nf-money .nf-odometer-figure {
     color: var(--nf-content-primary);
   }
   /* The money cards' material is `.nf-money .nf-card` under "the glass" at
@@ -1243,6 +1219,80 @@
     z-index: -1;
     border-radius: var(--nf-radius-circle);
     background: radial-gradient(circle, var(--nf-glow-2) 0%, transparent 68%);
+  }
+
+  /* ------------------------------------------------------------- the way back */
+
+  /*
+   * The render's back square, top left above the balance card: 37px of
+   * rounded glass (64 image px) with a lit edge; 44px here (R-B), corner
+   * 14px (ratio 0.32, an icon-only control).
+   */
+  .nf-wallet-backrow {
+    display: flex;
+    margin-bottom: var(--nf-space-xs);
+  }
+  .nf-wallet-back {
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid;
+    border-color: var(--nf-wallet-lit-edge);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-wallet-lit-fill), var(--nf-surface-canvas);
+    box-shadow: var(--nf-wallet-lit-glow);
+  }
+
+  /* ------------------------------------------------- send: to bank or wallet */
+
+  /*
+   * The mode choice (founder item 3): two rounded rectangles across the top
+   * of the form panel, the chosen one lit with the button's gradient. 44px
+   * tall (R-B), 11px type (R-A floor), a 10px corner (ratio 0.23).
+   */
+  .nf-send-mode {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nf-space-xs);
+  }
+  .nf-send-mode__option {
+    min-height: 2.75rem;
+    border: 1px solid var(--nf-brand-edge-soft);
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-wallet-glass-mid);
+    color: var(--nf-content-secondary);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    box-shadow: var(--nf-rim-lit);
+  }
+  .nf-send-mode__option[aria-pressed="true"] {
+    border-color: var(--nf-wallet-cta-edge);
+    background: var(--nf-gradient-cta);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-send-mode__option:focus-visible {
+    outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
+    outline-offset: 2px;
+  }
+  /* The Bank row: the render's select, a chevron at the right. */
+  .nf-send-row__select {
+    appearance: none;
+    cursor: pointer;
+  }
+  .nf-send-row__select option {
+    background: var(--nf-surface-elevated);
+    color: var(--nf-content-primary);
+  }
+  .nf-send-row__select:invalid,
+  .nf-send-row__select:has(option[value=""]:checked) {
+    color: var(--nf-content-muted);
+    font-size: 0.6875rem;
+  }
+  .nf-send-row__chevron {
+    color: var(--nf-content-secondary);
+    pointer-events: none;
+  }
+  .nf-send-bank-closed {
+    padding-inline: 0.75rem;
   }
 
   /* ---------------------------------------- round three: measured glow, radii */
@@ -1443,172 +1493,5 @@
     gap: 0;
     margin-top: 0.125rem;
     line-height: 1.35;
-  }
-
-  /* -------------------------------------------------------------- daylight */
-
-  /*
-   * PAPER KEEPS THE ANATOMY. The page is white, so the panels become white
-   * glass with a brand-tinted top and a brand hairline, no bloom (a blurred
-   * blue halo on white reads as a printing fault, not as light).
-   *
-   * THE BALANCE CARD STAYS A DEEP BLUE CARD ON PAPER, deliberately. It is the
-   * one object on the screen that is a card in the physical sense, the glass
-   * wallet object needs something to be glass against, and on a white panel
-   * the untwinned object would sit on the pack's blue chip, a dark square
-   * punched into white paper. On deep blue the object reads as it does at
-   * night and the chip is switched off inside the card only. The card's text
-   * is therefore white in both themes.
-   */
-  :root[data-theme="light"] .nf-money {
-    --nf-wallet-glass-top: color-mix(in oklab, var(--nf-brand-primary) 7%, var(--nf-surface-primary));
-    --nf-wallet-glass-mid: var(--nf-surface-primary);
-    --nf-wallet-glass-foot: var(--nf-surface-primary);
-    --nf-wallet-tile-fill: var(--nf-surface-primary);
-    --nf-wallet-rim-top: color-mix(in oklab, var(--nf-brand-primary) 40%, var(--nf-surface-primary));
-    --nf-wallet-rim-side: color-mix(in oklab, var(--nf-brand-primary) 26%, var(--nf-surface-primary));
-    --nf-wallet-rim-foot: color-mix(in oklab, var(--nf-brand-primary) 22%, var(--nf-surface-primary));
-  }
-  /* The identity's paper card: a brand-tinted top band on white, a brand
-     edge darker along the top, a soft shadow. */
-  :root[data-theme="light"] .nf-money {
-    --nf-wallet-lit-edge:
-      var(--nf-brand-primary)
-      color-mix(in srgb, var(--nf-brand-primary) 30%, transparent)
-      color-mix(in srgb, var(--nf-brand-primary) 40%, transparent)
-      color-mix(in srgb, var(--nf-brand-primary) 45%, transparent);
-    --nf-wallet-lit-fill: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--nf-brand-primary) 10%, var(--nf-surface-primary)) 0,
-      var(--nf-surface-primary) 12px,
-      var(--nf-surface-primary) 60%,
-      color-mix(in srgb, var(--nf-brand-primary) 5%, var(--nf-surface-primary)) 100%
-    );
-    --nf-wallet-lit-glow:
-      0 1px 2px color-mix(in srgb, var(--nf-brand-primary) 12%, transparent),
-      0 6px 16px -8px color-mix(in srgb, var(--nf-brand-primary) 30%, transparent);
-    --nf-wallet-cta-edge: var(--nf-brand-primary);
-  }
-  :root[data-theme="light"] .nf-wallet-hero {
-    border-color: color-mix(in oklab, var(--nf-brand-primary) 40%, var(--nf-surface-primary))
-      var(--nf-brand-primary) var(--nf-brand-primary) var(--nf-brand-primary);
-    background: linear-gradient(
-      180deg,
-      var(--nf-brand-primary) 0%,
-      color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-content-primary)) 100%
-    );
-    box-shadow: 0 14px 30px -16px var(--nf-glow-4);
-  }
-  :root[data-theme="light"] .nf-wallet-hero::after {
-    background: radial-gradient(52% 60% at 82% 30%, var(--nf-wash-on-media-1) 0%, transparent 70%);
-  }
-  :root[data-theme="light"] .nf-wallet-hero__object .nf-brand-icon-ground {
-    background: none;
-    box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-wallet-hero__object {
-    filter: drop-shadow(0 10px 18px var(--nf-glow-3));
-  }
-  :root[data-theme="light"] .nf-wallet-hero,
-  :root[data-theme="light"] .nf-wallet-hero .nf-wallet-figure,
-  :root[data-theme="light"] .nf-wallet-hero .nf-money-kobo,
-  :root[data-theme="light"] .nf-money .nf-wallet-hero .nf-odometer-figure {
-    color: var(--nf-content-on-brand);
-  }
-  :root[data-theme="light"] .nf-wallet-hero__label,
-  :root[data-theme="light"] .nf-wallet-hero__note {
-    color: var(--nf-content-on-media-secondary);
-  }
-  :root[data-theme="light"] .nf-wallet-eye {
-    color: var(--nf-content-on-media-accent);
-  }
-  :root[data-theme="light"] .nf-wallet-change {
-    color: var(--nf-content-on-media-accent);
-  }
-  :root[data-theme="light"] .nf-wallet-tile {
-    border-color: var(--nf-wash-on-media-2);
-    background: var(--nf-wash-on-media-1);
-    color: var(--nf-content-on-brand);
-    box-shadow: inset 0 1px 0 var(--nf-wash-on-media-2);
-  }
-  :root[data-theme="light"] .nf-wallet-tile__glyph {
-    color: var(--nf-content-on-media-accent);
-  }
-  :root[data-theme="light"] .nf-wallet-tile--primary {
-    border-color: var(--nf-content-on-media-muted);
-    background: var(--nf-content-on-brand);
-    color: var(--nf-brand-primary);
-    box-shadow: 0 8px 18px -10px var(--nf-glow-4);
-  }
-  :root[data-theme="light"] .nf-wallet-tile--primary .nf-wallet-tile__glyph {
-    color: var(--nf-brand-primary);
-  }
-  :root[data-theme="light"] .nf-wallet-quick__art {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-wallet-quick__stroke {
-    display: grid;
-    place-items: center;
-    width: 1.9375rem;
-    height: 1.9375rem;
-    border: 1px solid var(--nf-brand-edge-soft);
-    border-radius: var(--nf-radius-sm);
-    background: var(--nf-brand-tint-1);
-    color: var(--nf-brand-primary);
-  }
-  :root[data-theme="light"] .nf-glyph-tile,
-  :root[data-theme="light"] .nf-tx-tile,
-  :root[data-theme="light"] .nf-recipient__avatar {
-    background: var(--nf-brand-tint-1);
-    border-color: var(--nf-brand-edge-soft);
-    color: var(--nf-brand-primary);
-    box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-recipient[aria-pressed="true"] .nf-recipient__avatar {
-    background: var(--nf-brand-primary);
-  }
-  :root[data-theme="light"] .nf-pay-row,
-  :root[data-theme="light"] .nf-recipient-found,
-  :root[data-theme="light"] .nf-trust__badge {
-    background: var(--nf-surface-inset);
-    border-color: var(--nf-brand-edge-soft);
-    box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-result-mark--lit::before {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-send-plate__art {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-send-plate__stroke {
-    display: grid;
-    place-items: center;
-    width: 100%;
-    height: 100%;
-    border: 1px solid var(--nf-brand-edge-soft);
-    border-radius: var(--nf-radius-circle);
-    background: var(--nf-brand-tint-1);
-    color: var(--nf-brand-primary);
-  }
-  :root[data-theme="light"] .nf-send-balance-line,
-  :root[data-theme="light"] .nf-send-balance-line > svg {
-    color: var(--nf-content-on-media-secondary);
-  }
-  :root[data-theme="light"] .nf-send-row,
-  :root[data-theme="light"] .nf-send-trust,
-  :root[data-theme="light"] .nf-send-chip {
-    background: var(--nf-surface-primary);
-    box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-send-chip[aria-pressed="true"] {
-    background: var(--nf-brand-primary);
-    color: var(--nf-content-on-brand);
-  }
-  :root[data-theme="light"] .nf-send-chip-instant {
-    background: var(--nf-brand-tint-1);
-    box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-send-cta {
-    box-shadow: 0 10px 22px -12px var(--nf-glow-4);
   }
 }
