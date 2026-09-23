@@ -1,24 +1,22 @@
 import { POST_COPY } from "@/lib/social/posts-schema";
 
 /**
- * What is left when a post is taken down.
+ * What is left of a deleted post INSIDE A CONVERSATION, and nowhere else.
  *
- * The row survives on purpose. `posts.parent_id` is ON DELETE CASCADE, so a
- * real delete would take every reply written underneath with it, which is
- * deleting other people's words to honour one person's decision about their
- * own. The row stays, loses everything it carried, and says so.
+ * The founder, 23 September (item 4): "A deleted post is deleted ... The only
+ * place a tombstone is ever acceptable is inside a conversation that would
+ * otherwise break, where somebody replied to it. Nowhere else, and never on a
+ * profile."
  *
- * **Its own module, and that is the point.** The thread page had a private
- * `Tombstone` and tested for it with `body === null`, which is not the same
- * fact: a post with no words is not a post that was removed, and a card in a
- * feed or on a profile has no way to tell the difference. So every other
- * surface drew a removed post as an empty rectangle with the pictures still on
- * it. One component, read from `PostCard`, so a fourth surface cannot quietly
- * be a fourth place that forgets. That is the same reason `ViewportPost` is a
- * module rather than a helper inside a feed.
+ * So this is drawn by the thread view alone (`app/(app)/post/[id]/ThreadView`),
+ * for a removed post that `getThread` kept because a reply that is still there
+ * hangs off it. `PostCard` draws nothing for a removed post, and every listing
+ * read (feed, profile tabs, media grid, activity) excludes removed rows at the
+ * query. `lib/social/tombstone-placement.test.ts` fails the build of anybody
+ * who imports this anywhere else.
  *
- * The sentence changes with the shape of the thread, because "the replies under
- * it are still here" is a promise and it is only true when there are some.
+ * The row survives in the database on purpose: `posts.parent_id` is ON DELETE
+ * CASCADE, so a hard delete would take other people's replies with it.
  */
 export function Tombstone({ replyCount = 0 }: { replyCount?: number }) {
   return (

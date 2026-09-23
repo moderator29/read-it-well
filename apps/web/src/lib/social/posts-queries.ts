@@ -21,6 +21,7 @@ import type { PostListing, PostView } from "@/components/social/feed/PostCard";
 import { EDIT_WINDOW_MINUTES } from "./posts-schema";
 import { listingPhotoUrl, readMediaFor, type SignedMedia } from "./posts-media";
 import { encodeFeedCursor, parseFeedCursor } from "./posts-cursor";
+import { DELETED_STATUS, conversationIsGone, pruneDeleted } from "./deleted-posts";
 
 const POST_COLUMNS = `
   id, area_id, root_id, parent_id, depth, author_id, author_kind, kind, body,
@@ -501,7 +502,10 @@ async function readFeedPage(
   // must be able to see what they wrote.
   if (areaIds !== null && areaIds.length === 0 && !includePublic) return EMPTY_PAGE;
 
-  let query = supabase.from("posts").select(POST_COLUMNS);
+  /* A deleted post is deleted (founder, item 4). `posts_select` still hands
+     an author their own removed rows, so the feed excludes them here, at the
+     read, rather than drawing a tombstone in somebody's timeline. */
+  let query = supabase.from("posts").select(POST_COLUMNS).neq("status", DELETED_STATUS);
 
   if (areaIds === null) {
     /* Everywhere. No area predicate at all; the policy is the filter. */
@@ -711,7 +715,17 @@ export async function getThread(postId: string): Promise<Thread | null> {
   ]);
 
   const top = (topRes.data ?? rootRow) as unknown as RawPost;
-  const replyRows = (repliesRes.data ?? []) as unknown as RawPost[];
+  /*
+   * The one place a deleted post may still show, and only as a tombstone:
+   * inside this conversation, while a reply that is still there hangs off it.
+   * A deleted reply nobody answered goes; a deleted root with nothing left
+   * under it is not a conversation, so the page reads as not found.
+   */
+  const replyRows = pruneDeleted(
+    (repliesRes.data ?? []) as unknown as RawPost[],
+    (row) => ({ id: row.id, parentId: row.parent_id, deleted: row.status === DELETED_STATUS }),
+  );
+  if (conversationIsGone(top.status === DELETED_STATUS, replyRows.length)) return null;
 
   const [e, muted] = await Promise.all([
     enrich(supabase, [top, ...replyRows], viewerId),
@@ -782,6 +796,8 @@ export async function getProfileFeed(userId: string): Promise<PostView[]> {
     .from("posts")
     .select(POST_COLUMNS)
     .eq("author_id", userId)
+    /* Deleted is gone, and never a tombstone on a profile (founder, item 4). */
+    .neq("status", DELETED_STATUS)
     .is("parent_id", null)
     .order("created_at", { ascending: false })
     .limit(PROFILE_LIMIT);
@@ -813,6 +829,7 @@ export async function getProfileReplies(userId: string): Promise<PostView[]> {
     .from("posts")
     .select(POST_COLUMNS)
     .eq("author_id", userId)
+    .neq("status", DELETED_STATUS)
     .not("parent_id", "is", null)
     .order("created_at", { ascending: false })
     .limit(PROFILE_LIMIT);
@@ -882,6 +899,7 @@ export async function getProfileMedia(userId: string): Promise<PostView[]> {
     .from("posts")
     .select(`${POST_COLUMNS}, post_media!inner(id)`)
     .eq("author_id", userId)
+    .neq("status", DELETED_STATUS)
     .order("created_at", { ascending: false })
     .limit(PROFILE_LIMIT);
 
@@ -955,7 +973,10 @@ export async function getProfileActivity(userId: string): Promise<ActivityEntry[
     supabase
       .from("posts")
       .select(POST_COLUMNS)
-      .in("id", [...new Set(entries.map((entry) => entry.postId))]),
+      .in("id", [...new Set(entries.map((entry) => entry.postId))])
+      /* A like on a post that has since been deleted is not activity worth
+         showing: the post is gone, so the entry goes with it. */
+      .neq("status", DELETED_STATUS),
     readMutes(supabase, viewerId),
   ]);
 

@@ -11,6 +11,7 @@ import type { ActionResult } from "@/lib/actions/envelope";
 import { PostBody } from "@/components/social/feed/PostBody";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
+import { pruneDeleted } from "@/lib/social/deleted-posts";
 
 /**
  * Comments, as a sheet.
@@ -187,7 +188,17 @@ export function CommentsSheet({
           setNotice(result.error);
           return;
         }
-        patch(comment.id, { body: null, removed: true });
+        /* Gone, unless somebody's comment still answers it: then, and only
+           then, it keeps its place as the one-line tombstone (founder, item
+           4). The same rule the server read applies. */
+        setRows((all) =>
+          pruneDeleted(
+            all.map((row) =>
+              row.id === comment.id ? { ...row, body: null, removed: true } : row,
+            ),
+            (row) => ({ id: row.id, parentId: row.parentId, deleted: row.removed }),
+          ),
+        );
         router.refresh();
         return;
       }

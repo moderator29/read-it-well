@@ -19,6 +19,7 @@ import "server-only";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { resolveSession } from "../actions/session";
+import { isDeleted, pruneDeleted } from "./deleted-posts";
 
 export type ThreadComment = {
   id: string;
@@ -53,16 +54,22 @@ export async function getComments(rootId: string): Promise<ThreadComment[]> {
       .limit(200);
     if (error || !data || data.length === 0) return [];
 
-    const rows = data as unknown as {
-      id: string;
-      parent_id: string | null;
-      depth: number;
-      author_id: string | null;
-      body: string | null;
-      status: string;
-      like_count: number;
-      created_at: string;
-    }[];
+    /* A deleted comment stays only while a comment that is still there
+       answers it; otherwise it is gone (founder, item 4). */
+    const rows = pruneDeleted(
+      data as unknown as {
+        id: string;
+        parent_id: string | null;
+        depth: number;
+        author_id: string | null;
+        body: string | null;
+        status: string;
+        like_count: number;
+        created_at: string;
+      }[],
+      (row) => ({ id: row.id, parentId: row.parent_id, deleted: isDeleted(row.status) }),
+    );
+    if (rows.length === 0) return [];
 
     const authorIds = [
       ...new Set(rows.map((row) => row.author_id).filter((v): v is string => Boolean(v))),
