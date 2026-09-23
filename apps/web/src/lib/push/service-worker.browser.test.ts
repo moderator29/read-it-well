@@ -53,10 +53,63 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
  * that cannot pass in an environment is red by construction, and a red suite
  * costs every writer on this tree at once. The preflight is a file existence
  * check and costs milliseconds.
+ *
+ * ===========================================================================
+ * THIS FILE TOOK MAIN RED TWICE ON THE DAY IT WAS WRITTEN. WHAT WAS ACTUALLY
+ * WRONG, BECAUSE IT WAS NOT WHAT IT LOOKED LIKE EITHER TIME.
+ *
+ * It passed eight consecutive times on its own and failed inside the full
+ * suite, which is the same defect wearing a different coat both times.
+ *
+ * FAULT ONE, A FIXED PORT. It listened on 8532. Five other workers run
+ * servers in this tree, the port was taken, and `server.listen` emitted an
+ * `error` event that nothing was listening for, so the promise wrapped around
+ * it NEVER SETTLED. A collision that should have been an instant failure
+ * became a 120 second hook timeout. Both halves are fixed: the operating
+ * system is asked for a free port, and the `error` event is wired to the
+ * rejection, because a promise over an event emitter that is only wired to
+ * the success event turns every failure into a hang.
+ *
+ * FAULT TWO, AND IT IS THE REAL ONE. The coordinator saw
+ * `expected [] to have a length of 1`: the list came back EMPTY, not wrong.
+ * `clearShade` was returning as soon as it read an empty list, and an empty
+ * list is also what you read when the PREVIOUS case's notification has not
+ * landed yet. It then landed, inside the next case, and polluted the
+ * arithmetic of the fold. Proved by watching one leak across a loop
+ * boundary. `clearShade` now requires the list to be empty on several
+ * consecutive reads, so a late arrival is caught rather than inherited.
+ *
+ * ===========================================================================
+ * WHY THIS POLLS AT ALL, ASKED PROPERLY RATHER THAN ASSUMED.
+ *
+ * Because the browser offers nothing else. It was measured, not guessed:
+ * `ServiceWorker.deliverPushMessage` resolves BEFORE the worker's handler has
+ * run, 0 times out of 12 was the notification already present when the call
+ * resolved. The worker's `push` handler runs inside `event.waitUntil` and
+ * nothing outside the worker can observe that settling; adding a `postMessage`
+ * to `public/sw.js` for a test to listen to would be putting test-only code
+ * in a shipped artefact.
+ *
+ * So the only observable is `registration.getNotifications()`, which is
+ * eventually consistent, and the instrument polls it. THE BUDGET BELOW IS NOT
+ * A TUNING KNOB. Every wait here completes in tens of milliseconds on an idle
+ * machine; the budget is the point at which a genuine failure is REPORTED,
+ * and it is generous because a test box running twenty workers schedules a
+ * browser round trip whenever it feels like it. When it expires, the actual
+ * contents of the list are asserted against the expectation and the
+ * difference is printed. A timeout here is never reported as a pass, and
+ * nothing is retried.
  */
 
-const PORT = 8532;
-const ORIGIN = `http://localhost:${PORT}`;
+/**
+ * How long a wait may take before a failure is REPORTED. See the note at the
+ * head: not a tuning knob, and not a retry. Idle, every wait here settles in
+ * tens of milliseconds.
+ */
+const SETTLE_BUDGET_MS = 20_000;
+
+/** Consecutive empty reads required before the shade is believed empty. */
+const QUIET_READS = 3;
 
 /**
  * A FRESH BROWSER PROFILE EVERY RUN, AND THIS IS NOT TIDINESS.
@@ -114,6 +167,7 @@ function preflight(): Ready {
 }
 
 let ready: Ready = { ok: false, reason: "preflight has not run" };
+let origin = "";
 let server: Server | null = null;
 let context: { close: () => Promise<void> } | null = null;
 let deliver: ((data: string) => Promise<void>) | null = null;
@@ -149,7 +203,24 @@ beforeAll(async () => {
     response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     response.end(PAGE);
   });
-  await new Promise<void>((resolve) => server?.listen(PORT, resolve));
+  /* AN EPHEMERAL PORT, AND THE `error` EVENT WIRED TO THE REJECTION. Port 0
+     asks the operating system for one that is free, so this cannot collide
+     with another worker's server; and a listen that fails now fails instead
+     of hanging. See fault one at the head for what the fixed port cost. */
+  const port = await new Promise<number>((resolve, reject) => {
+    const listening = server;
+    if (!listening) {
+      reject(new Error("no server"));
+      return;
+    }
+    listening.once("error", reject);
+    listening.listen(0, "127.0.0.1", () => {
+      const address = listening.address();
+      if (address && typeof address === "object") resolve(address.port);
+      else reject(new Error("the server reported no port"));
+    });
+  });
+  origin = `http://127.0.0.1:${port}`;
 
   /* Imported here rather than at the top, so a host without playwright-core
      skips at the preflight instead of failing to collect the file. */
@@ -164,9 +235,9 @@ beforeAll(async () => {
   });
   context = browserContext;
 
-  await browserContext.grantPermissions(["notifications"], { origin: ORIGIN });
+  await browserContext.grantPermissions(["notifications"], { origin });
   const page = await browserContext.newPage();
-  await page.goto(`${ORIGIN}/`);
+  await page.goto(`${origin}/`);
   await page.evaluate(async () => {
     await navigator.serviceWorker.register("/sw.js", { scope: "/" });
     await navigator.serviceWorker.ready;
@@ -176,7 +247,7 @@ beforeAll(async () => {
   let registrationId: string | null = null;
   cdp.on("ServiceWorker.workerRegistrationUpdated", (event) => {
     for (const registration of event.registrations) {
-      if (registration.scopeURL === `${ORIGIN}/` && !registration.isDeleted) {
+      if (registration.scopeURL === `${origin}/` && !registration.isDeleted) {
         registrationId = registration.registrationId;
       }
     }
@@ -192,7 +263,7 @@ beforeAll(async () => {
 
   deliver = async (data: string) => {
     await cdp.send("ServiceWorker.deliverPushMessage", {
-      origin: ORIGIN,
+      origin,
       registrationId: registrationId as unknown as string,
       data,
     });
@@ -217,19 +288,36 @@ beforeAll(async () => {
       }));
     }) as Promise<Displayed[]>;
 
+  /*
+   * EMPTY, AND STILL EMPTY, WHICH IS NOT THE SAME THING.
+   *
+   * This is fault two at the head. An empty list is what you read after
+   * closing everything, and it is ALSO what you read while the previous
+   * case's notification is still in flight, because `showNotification`
+   * resolves inside the worker long after the call that caused it returned.
+   * The first version returned on the first empty read, inherited the
+   * straggler, and the fold then counted four things when it should have
+   * counted three. So the list has to be empty several reads running, and
+   * anything that turns up in between is closed and the count starts again.
+   */
   clearShade = async () => {
-    await page.evaluate(async () => {
-      const registration = await navigator.serviceWorker.ready;
-      for (const notification of await registration.getNotifications()) notification.close();
-    });
-    /* `close()` is asynchronous inside the browser. Wait for the shade to be
-       empty rather than assuming it, because a leftover row from the previous
-       case would silently change the collapse arithmetic in the next one. */
-    for (let attempt = 0; attempt < 50; attempt += 1) {
-      const remaining = await readShade?.();
-      if (!remaining || remaining.length === 0) return;
+    const deadline = Date.now() + SETTLE_BUDGET_MS;
+    let quiet = 0;
+    while (Date.now() < deadline) {
+      const present = (await readShade?.()) ?? [];
+      if (present.length === 0) {
+        quiet += 1;
+        if (quiet >= QUIET_READS) return;
+      } else {
+        quiet = 0;
+        await page.evaluate(async () => {
+          const registration = await navigator.serviceWorker.ready;
+          for (const notification of await registration.getNotifications()) notification.close();
+        });
+      }
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
+    throw new Error("the notification list would not settle empty between cases");
   };
 }, 120_000);
 
@@ -262,12 +350,16 @@ afterAll(async () => {
 async function push(payload: unknown, until: (shade: Displayed[]) => boolean): Promise<Displayed[]> {
   const body = typeof payload === "string" ? payload : JSON.stringify(payload);
   await deliver?.(body);
+  const deadline = Date.now() + SETTLE_BUDGET_MS;
   let shade: Displayed[] = [];
-  for (let attempt = 0; attempt < 80; attempt += 1) {
+  while (Date.now() < deadline) {
     shade = (await readShade?.()) ?? [];
     if (until(shade)) return shade;
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 25));
   }
+  /* The budget expired. Return what is actually there so the caller's
+     assertions fail ON THE REAL CONTENTS and print the difference. A wait
+     that ran out is never reported as a pass and nothing is retried. */
   return shade;
 }
 
@@ -341,7 +433,7 @@ describe("a real browser, running the shipped worker, building a real notificati
     /* THE BROWSER RESOLVED IT, which is the thing a source review cannot do.
        The worker this replaced named `/icons/icon-192.png`, a path that does
        not exist in `public/`. */
-    expect(shade[0]?.icon).toBe(`${ORIGIN}/pwa/icon-192.png`);
+    expect(shade[0]?.icon).toBe(`${origin}/pwa/icon-192.png`);
     expect(shade[0]?.data?.href).toBe("/messages/9f2");
     expect(shade[0]?.renotify).toBe(false);
     expect(shade[0]?.requireInteraction).toBe(false);
