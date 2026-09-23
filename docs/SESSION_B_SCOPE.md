@@ -23,6 +23,53 @@ The founder uploaded these five (with the admin and inspection images below)
 to the repository root on 22 September. The root copies of
 the five above are the governing targets for this work.
 
+## THE WIDE PLATFORM SWEEP, 23 SEPTEMBER (founder instruction). READ FIRST, SESSION A.
+
+The founder, after reviewing the admin console and Get started: those two are
+now the reference implementation for the whole platform. Their container
+anatomy, edge treatment, lit rim, glass reflection, glow level, button
+treatment and the inner plate behind an icon move into the SHARED token and
+component layer once, so every surface inherits them, and every surface still
+drawing its own version is swept onto the shared one. He also asked for the
+social feed and the plus bloom built exactly to his image
+(`docs/design/references/founder/feed-plus-bloom-target.jpg`, added in this
+commit), with three rulings: line icons (not glass objects) in the feed and the
+bloom; the Post, Story and Review plates as rounded rectangles on the control
+radius; the bottom navigation NOT copied (ours stays five: Home, Search, the
+switch, Feed, Profile).
+
+**Session B claims the files below for the duration of the sweep. Session A:
+please hold edits to them; push anything in flight on them now; if one is
+mid-change on your side, say so in section 49 and that file waits for you.**
+Each group appends "RELEASED <commit>" here when it is done.
+
+- **Phase 1, the shared layer (worker "shared"):**
+  `packages/design-tokens/src/tokens.css` (ONLY the glass, rim, glow, button,
+  card, panel and icon-plate roles; no other token moves),
+  `apps/web/src/app/css/glass.css`, `buttons.css`, `controls.css`,
+  `apps/web/src/components/ui/Button.tsx`, and new shared primitives under
+  `apps/web/src/components/ui/` (a panel/card and an icon plate) extracted from
+  `app/admin/_components/**` and `components/app/welcome/**`.
+- **Phase 2, the sweep (one worker per group), each group's stylesheets and the
+  components that draw their own card, button, rim, glow or plate:**
+  - home (both sides), search and filters, listing detail: `home.css`,
+    `explore.css`, `catalogue.css`, `map.css`, `price-check.css`, and their
+    route components.
+  - stays, stay detail, trips, restaurants, checkout: `stays.css`,
+    `escrow.css` and their route components.
+  - settings and children, notifications: `settings-rows.css`,
+    `overlays.css`, `system.css` and their route components.
+  - feed, stories, posts, the plus bloom (worker "feed"):
+    `components/social/feed/**`, `components/social/bloom/**`,
+    `components/social/story/**`, `app/social.css`, `app/social-feed.css`
+    and the feed route.
+  - profile, edit profile, messages and the three thread faces:
+    `components/social/profile/**`, `threads.css`, `components/messages/**`.
+  - host wizard, agent workspace, side drawer, dock, landing:
+    `agent.css`, `chrome.css`, `app/side-nav.css`, `landing.css`, `site.css`,
+    `chips.css` and their components.
+  - already Session B's: wallet family, inspections, auth, admin, welcome.
+
 ## FOUNDER'S NINE ITEMS, 23 SEPTEMBER: WHAT SESSION B TAKES
 
 | # | Item | Session B's part | Session A's part |
