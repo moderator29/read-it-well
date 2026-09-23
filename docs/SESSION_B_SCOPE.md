@@ -68,6 +68,13 @@ Each group appends "RELEASED <commit>" here when it is done.
   rendered change, closing TK-1, since main is red on it), and new shared primitives under
   `apps/web/src/components/ui/` (a panel/card and an icon plate) extracted from
   `app/admin/_components/**` and `components/app/welcome/**`.
+  New files: `components/ui/Panel.tsx`, `components/ui/IconPlate.tsx`, proofs
+  under `docs/design/proofs/session-b/sweep-shared/`. Also touched, as Session
+  B's own: `app/admin/**` (panels.tsx, settings, loading, desk.css,
+  review.css), `app/css/admin.css`, `app/welcome/welcome.css`,
+  `components/app/welcome/FirstRun.tsx`, `tests/session-b-welcome.spec.mjs`.
+  **Phase 1 RELEASED 9da8f86f** (the layer 42ea43d9, the glow step and Switch
+  9da8f86f). Names, props and tokens: ledger section 13.0.
 - **Phase 2, the sweep (one worker per group), each group's stylesheets and the
   components that draw their own card, button, rim, glow or plate:**
   - home (both sides), search and filters, listing detail: `home.css`,

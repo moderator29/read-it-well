@@ -3933,6 +3933,166 @@ validation, policy, table, trigger, notification, query, screen). Proven: 6 of
 harness in a production build; validation by code reading. The control and
 the action were not exercised live; the notification link is DP-1.
 
+## 13.0 Platform sweep: the shared layer (Phase 1, worker "shared")
+
+Released: 42ea43d9 (the layer), 9da8f86f (one step more glow, the Switch).
+Everything the console and Get started drew for themselves (container,
+edge, rim, glow, corner, icon plate, selected state, lit primary, glass
+secondary) now comes from one token block and three components. The values
+were moved exactly, not re-measured: where a value came from is in the
+table.
+
+### Use these (for the Phase 2 workers)
+
+| Primitive | File | Props | Classes it writes |
+|---|---|---|---|
+| `Panel` | `components/ui/Panel.tsx` | `as?` (element, default `section`), `variant?: "panel" \| "card"`, `flush?`, `glass?`, `className?`, plus the element's own props; also `panelClass({variant, flush, glass, className})` for a `Link` or other element you cannot swap | `.nf-panel`, `.nf-panel--card`, `.nf-panel--flush`, `.nf-panel--glass` (glass.css) |
+| `IconPlate` | `components/ui/IconPlate.tsx` | `size?: "sm" \| "md" \| "lg"` (36 / 44 / 56), `tone?: "brand" \| "success" \| "error" \| "pending" \| "info"`, `className?`, `children` (the glyph; `ICON_PLATE_GLYPH[size]` gives 16 / 24 / 24); also `iconPlateClass()` | `.nf-plate`, `.nf-plate--{tone}`, `.nf-plate--{size}` (controls.css) |
+| `Button` / `ButtonLink` | `components/ui/Button.tsx` (API unchanged) | `variant="primary"` is now Get started's lit bar; `variant="secondary"` is Get started's glass door; `glow` is now inert (the primary is lit at rest) | `.nf-btn--primary`, `.nf-btn--glass` (buttons.css) |
+| `Switch` | `components/ui/Switch.tsx` (API unchanged) | | `.nf-switch` (controls.css): glass track off, lit bar on, rimmed thumb |
+
+Rules: a surface adds layout through `className` and never restates the
+material. The selected state has no component: use the `--nf-selected-*`
+tokens on the surface's own tab or row (the console's `.nf-admin-seg__item--on`
+and `.nf-admin-nav__row--on` are the worked examples).
+
+### The token table
+
+All in `packages/design-tokens/src/tokens.css`, block "THE REFERENCE ANATOMY".
+"admin" is `app/css/admin.css` as it stood at ccf594ba (the `.nf-admin` custom
+properties), "welcome" is `app/welcome/welcome.css` at the same commit.
+
+| Token | Value (measured; the glow step's value in brackets) | Came from |
+|---|---|---|
+| `--nf-lit` | `var(--nf-brand-primary)` | admin `--nf-admin-lit` |
+| `--nf-lit-cyan` | info 55% into white | admin `--nf-admin-lit-cyan` |
+| `--nf-container-radius` | `var(--nf-radius-sm)` = 10px (was `--nf-radius-lg`, no reader) | admin `--nf-admin-radius` (re-measured 10 on the four renders, ledger 6.2) |
+| `--nf-panel-fill` | radial cyan catch 55% x 14px at top centre + ten-stop ramp, lit 42/38/31/26/20% at 0/3/8/15/36px, 16% mid, 20/26/32/37% up the foot | admin `--nf-admin-panel-fill` (5EAA44CB column scans) |
+| `--nf-panel-fill-card` | same catch + lit 50/44/38/32% at 0/6/13/22px, 18% mid, 22/28/34% foot | admin `--nf-admin-card-fill` |
+| `--nf-panel-blur` | `var(--nf-glass-blur-soft)` (12px), applied only by `.nf-panel--glass` | new role; the console's panels are opaque on flat canvas and carry no blur |
+| `--nf-panel-edge` | brand 62% | admin `--nf-admin-panel-edge` |
+| `--nf-panel-edges` | top lit 82% + info, right lit 72% + canvas, foot lit 70% + info, left lit 74% + canvas | admin `--nf-admin-panel-edges` (re-sampled #0066D1..#0078E8 top etc.) |
+| `--nf-panel-catch` | lit 78% + info [lit 68% + info] | admin `--nf-admin-catch` |
+| `--nf-panel-rim` | `inset 0 1px 0 var(--nf-panel-catch)` | admin, the `inset 0 1px 0 var(--nf-admin-catch)` every container restated |
+| `--nf-panel-halo` | `0 0 3px` info 34% [`0 0 5px` info 46%] | admin, third layer of `--nf-admin-panel-glow` |
+| `--nf-panel-glow` | inset top lit 90%, inset left lit 70% + canvas, `var(--nf-panel-halo)` | admin `--nf-admin-panel-glow` |
+| `--nf-panel-hair` | brand 22% | admin `--nf-admin-hair` |
+| `--nf-plate-size-sm` / `-md` / `-lg` | 2.25rem / 2.75rem / 3.5rem | admin `.nf-admin-plate--sm` / `--md`; `-lg` is a new rung for hero plates |
+| `--nf-plate-radius` / `-radius-sm` | `--nf-radius-sm` (10) / `--nf-radius-xs` (6) | admin `.nf-admin-plate`, `--sm` |
+| `--nf-plate-fill` | radial lit 55% centre + lit 72/46/38/66% ramp | admin `--nf-admin-tile-fill` |
+| `--nf-plate-edge` / `-edges` | brand 70% / per side (info 80% top, lit 60% sides, info 90% + white left) | admin `.nf-admin-plate` border, `--nf-admin-tile-edges` |
+| `--nf-plate-rim` | inset left info 70%, inset top lit-cyan 55% | admin `--nf-admin-tile-shadow` layers 1, 2 |
+| `--nf-plate-inner-light` | `inset 0 -2px 3px -1px` lit 60% | admin `--nf-admin-tile-shadow` layer 3 |
+| `--nf-plate-glow` | `0 0 8px` lit 25% [`0 0 10px` lit 34%] | admin `--nf-admin-tile-shadow` layer 4 |
+| `--nf-plate-shadow` | rim, inner light, glow | admin `--nf-admin-tile-shadow` |
+| `--nf-plate-glyph-glow` | `drop-shadow(0 0 4px` lit-cyan 80%) | admin `.nf-admin-plate > svg` |
+| `--nf-selected-fill` | `var(--nf-gradient-cta)` | admin `.nf-admin-nav__row--on`, `.nf-admin-seg__item--on` |
+| `--nf-selected-edge` / `-edges` | rim-lit-ink 60% + brand / cyan-lit per side | admin row border, `--nf-admin-cta-edges` |
+| `--nf-selected-rim` | `inset 0 1px 0` white 55% | admin, both selected rules |
+| `--nf-selected-shadow` | rim, `0 0 18px` brand 55% [22px 64%], `0 6px 16px -6px` brand 70% | admin `.nf-admin-nav__row--on` |
+| `--nf-selected-shadow-inline` | rim, `0 0 18px` brand 50% [22px 58%] | admin `.nf-admin-seg__item--on` |
+| `--nf-btn-lit-edges` | top warning 22% into on-brand, sides brand 70% + warning, foot warning 32% into on-brand | welcome `.nf-gs-btn--lit` (#e4feff top, #0180fb sides, #d6faff foot on 2A49E2F7) |
+| `--nf-btn-lit-fill` | radial cyan lift 45% x 75% at 50% 88% + ramp brand 92% / 74% / 68% / 100% / 70% at 0 / 24 / 62 / 88 / 100% (sRGB) | welcome (#047bfb, #002cdb, #0027d1, #026dfa down the centre) |
+| `--nf-btn-lit-rim` | `inset 0 1px 0` warning 30% into on-brand [20%] | welcome |
+| `--nf-btn-lit-inner` / `-inner-hover` | `inset 0 0 12px` 70% / `16px` 80% | welcome |
+| `--nf-btn-lit-bloom` | `0 5px 14px -2px` 65%, `0 -2px 10px` 22% [`0 6px 16px -2px` 74%, `0 -2px 12px` 30%] | welcome |
+| `--nf-btn-lit-bloom-hover` | `0 4px 12px -2px` 70%, `0 -2px 12px` 28% [`0 5px 14px -2px` 78%, `0 -2px 14px` 34%] | welcome `:hover` |
+| `--nf-btn-lit-shadow` / `-shadow-hover` | rim, inner, bloom | welcome |
+| `--nf-btn-lit-text-glow` | `0 0 10px` on-brand 35% | welcome |
+| `--nf-btn-lit-pool` | radial 50% x 55% at 50% 16%, brand 58% / 16% / 0 [68% / 22%] | welcome `.nf-gs-btn--lit::after` (+136 / +65 / +25 blue at 4 / 10 / 20px) |
+| `--nf-btn-lit-pool-height` / `-blur` | 48px / 3px | welcome `::after` |
+| `--nf-btn-glass-fill` | brand 22% to 8% | welcome `.nf-gs-btn--glass` |
+| `--nf-btn-glass-edge` | `var(--nf-container-edge)` | welcome |
+| `--nf-btn-glass-shadow` | rim-lit-ink inset, `0 0 18px -6px` glow-3 [`0 0 20px -5px`] | welcome |
+| `--nf-btn-glass-blur` | `var(--nf-glass-blur-soft)` | welcome |
+| `--nf-badge-gold-*`, `--nf-badge-platinum-*` | the ten metal stops, unchanged | `app/css/trust-badge.css` (TK-1; moved so no stylesheet under `app/` holds a raw colour) |
+
+Existing names all still resolve. `--nf-gradient-cta`, `--nf-rim-primary`,
+`--nf-bloom-lit*` are untouched; the primary button no longer reads them.
+
+### The glow step (founder addendum item 3)
+
+One block after the main token block, "A LITTLE MORE GLOW: ONE STEP", redeclares
+the ten tokens bracketed above. Deleting that block restores the measured
+values. No ink, fill or text-shadow token moves; no blur is animated; the
+widest halo (the selected row) grows 18 to 22px, inside the console's 16px
+gaps plus the neighbour's own edge.
+
+### Identity diff (the proof that the extraction changed nothing)
+
+Method: `origin/main` at ccf594ba built for production and started with the
+harness gate, 38 full-page shots from the committed harnesses
+(`/preview/session-b/admin/{overview, overview?state=live, operations,
+analytics, back}`, `/preview/session-b/admin-money/{money, escrow, payments,
+bookings, supply}` each bare and `?state=full`, `/preview/session-b/welcome`
+as member, and walked to the last slide as guest, done and member), at 390
+(DPR 2) and 1440 (DPR 1), dark, reduced motion, clock fixed. Then the same
+shots from the extracted build (before the glow step) and a pixel diff.
+Shots were compared against a fresh shot of committed code rather than the
+committed JPEG proofs, because a JPEG cannot show a zero diff; the committed
+proofs are older than several later commits to the same harnesses.
+
+| Result | Shots |
+|---|---|
+| 0 pixels different | 35 of 38: every console route, every money desk bare and full except escrow full, every Get started state at both widths except the guest doors |
+| Guest doors (Sign in / Create account) | 390: 27,119 px differ by at most 4 levels of 255 (not visible). 1440: 21 px differ by more than 8, all on the two left corners of Create account: corner antialiasing from a sub-pixel shift, no colour or geometry change |
+| Escrow desk, `?state=full` | The desk's two secondary buttons ("Release to", "Refund to") change on purpose: the platform secondary now IS Get started's glass door (blue glass, container edge, white label) instead of the old grey glass. The rest of that page's diff is text antialiasing mode (grayscale to subpixel), which Chrome switches when a backdrop-filter layer changes. No layout moved (page heights identical) |
+
+The admin-money desks' primary buttons showed 0 difference: the desks' actions
+were already drawn by the console's own classes where the harness shows them.
+
+With the glow step: all page heights identical, differences at most 15 to 40
+levels of 255, only on panel edges, halos, plates, the selected row and tab,
+and the lit button's bloom and pool. The console and Get started therefore read
+"identical anatomy, glow +1 step".
+
+Proofs (JPEG, `docs/design/proofs/session-b/sweep-shared/`):
+`overview-390-before-vs-extracted.jpg`, `welcome-doors-390-before-vs-extracted.jpg`,
+`escrow-secondary-390-before-vs-shared-glass.jpg`,
+`overview-1440-measured-vs-glow-step.jpg`, `welcome-390-measured-vs-glow-step.jpg`,
+`switch-on-390-thumb-centred.jpg`.
+
+### The Switch
+
+The thumb carried Tailwind's `-translate-y-1/2` (the CSS `translate`
+property) and an inline `transform: translate(x, -50%)`, so it was lifted
+twice. Dropped the class. Measured in the production build on `/preview/g1`
+at 390: the 52x32 track, thumb 4px from the top and 4px from the bottom on
+and off; 5px from the near side and 23px from the far one in both states.
+Anatomy: off is the glass door's fill over the well on a blue panel edge with
+the lit rim; on is the lit primary's fill, edges and shadow; the thumb has a
+1px panel-edge ring (the catchlight when on).
+
+### Checks
+
+tsc clean; eslint clean on every changed TS file; `check-css-tokens` exit 0
+(clean, all ten checks) for the first time since TK-1, because the badge's
+ten literals moved into tokens and the tokens header no longer names the
+deleted light stylesheet; vitest `app/admin`, `app/welcome`,
+`components/app/welcome`, `components/ui`: 8 files, 62 tests passed. Shape:
+the sweep tool measured no controls on the harness routes (its "0 combinations
+measured"), so I measured them: welcome primary and glass 324x56 and 156x56,
+radius 14, ratio 0.25; console tabs 44 tall r14 0.32, rail rows 42 tall r14
+0.33, child rows r10 0.28, badges r6 0.25; escrow buttons 0.28 and 0.32.
+Nothing at or above 0.35.
+
+### Not done or not verified
+
+- Other stylesheets still override `.nf-btn--primary` for their own surface
+  (auth.css, landing.css, agent.css, home.css): those are Phase 2 groups'
+  to delete. Until they do, those surfaces keep their local primary.
+- `.nf-card` (glass.css) is not re-pointed at the panel anatomy: it has
+  hundreds of readers and Get started's interest tiles use it; moving it is a
+  surface-by-surface decision for Phase 2 (use `Panel`).
+- The pool under the primary sits at z-index -1 in the nearest stacking
+  context: over a card that is not itself a stacking context the card's fill
+  can cover it. Where a sweep worker sees no pool, give the card
+  `isolation: isolate`.
+- The shared `.nf-btn--primary` lost its press ripple (it needed
+  `overflow: hidden`, which clips the pool); the press scale remains.
+- The Switch was checked on `/preview/g1` only; `settings-rows.css` had its
+  own `.nf-switch` rules, removed by sweep-settings in 790d8c2a.
+
 ## 13. Platform sweep: stays (stays, stay detail, trips, restaurants, checkout, held payments; worker "sweep-stays")
 
 Group files (scope ccf594ba): `app/css/stays.css`, `app/css/escrow.css` and the route components:
