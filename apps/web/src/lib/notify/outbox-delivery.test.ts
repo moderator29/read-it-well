@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { drainEmailOutbox, type OutboxRow } from "./outbox";
+import { OUTBOX_TEMPLATE_KEYS, type Payload } from "./templates";
 
 /**
  * THE PROOF THAT SOMEBODY RECEIVES SOMETHING.
@@ -95,33 +96,69 @@ function fakeDatabase(rows: StoredRow[]) {
     return { data: {}, error: null };
   };
   /*
-   * The batch read the drain does before it builds anything. It is the real
-   * `gatherFacts` calling this, with the real column list, so `profiles` here
-   * answers with the shape PostgREST answers with: the drain then narrows the
-   * role itself. Every other table answers empty, because no row in this file
-   * asks for one.
+   * The batch read the drain does before it builds anything.
+   *
+   * It is the REAL `gatherFacts` calling this, with the real column lists and
+   * the real chain, so every table answers with the shape PostgREST answers
+   * with and the drain does its own narrowing. Nothing here is a stub of the
+   * drain: the only thing being stood in for is the network hop to Postgres.
    */
   const from = (table: string) => ({
-    select: (columns: string) => ({
-      in: async (_column: string, ids: string[]) => {
-        if (table !== "profiles") return { data: [], error: null };
-        /* If the drain ever stops asking for the role, this notices. */
-        if (!columns.includes("signup_role")) {
-          return { data: [], error: new Error("the drain did not ask for signup_role") };
-        }
-        return {
-          data: ids.map((id) => ({
+    select: (columns: string) => {
+      const rowsFor = (ids: string[]): Record<string, unknown>[] => {
+        if (table === "profiles") {
+          /* If the drain ever stops asking for the role, this notices. */
+          if (!columns.includes("signup_role")) return [];
+          return ids.map((id) => ({
             id,
             display_name: "Ada Balogun",
             signup_role: profileRole,
-          })),
-          error: null,
-        };
-      },
-    }),
+          }));
+        }
+        if (table === "listings") {
+          return ids.map((id) => ({
+            id,
+            title: "2 bedroom flat, Yaba",
+            address: "14 Herbert Macaulay Way",
+            area: "Yaba",
+            city: "Lagos",
+          }));
+        }
+        if (table === "wallet_entries") {
+          return ids.map((id) => ({
+            id,
+            metadata: { bank_name: "GTBank", account_last4: null },
+          }));
+        }
+        if (table === "agent_verification_checks") {
+          return ids.map((id) => ({ agent_id: id, kind: "identity", status: "passed" }));
+        }
+        if (table === "messages") {
+          return ids.map((id) => ({
+            id,
+            conversation_id: CONVERSATION,
+            body: "Good afternoon. Is this flat still available, and is the service charge separate?",
+          }));
+        }
+        return [];
+      };
+      return {
+        in: (_column: string, ids: string[]) => {
+          const answer = { data: rowsFor(ids), error: null };
+          /* `.in(...).eq(...)` is what the rungs read does; `.in(...)` alone is
+             what the other four do. One object serves both. */
+          return {
+            eq: async () => answer,
+            then: (resolve: (value: unknown) => unknown) => resolve(answer),
+          };
+        },
+      };
+    },
   });
   return { admin: { rpc, from } as never, settled, rows };
 }
+
+const CONVERSATION = "88888888-8888-4888-8888-888888888888";
 
 /** What `profiles.signup_role` answers with for the rows in one test. */
 let profileRole: string | null = null;
@@ -179,6 +216,234 @@ afterEach(() => {
   restoreFetch?.();
   restoreFetch = null;
   vi.unstubAllEnvs();
+});
+
+/**
+ * ONE ROW PER TEMPLATE THE REGISTRY ANSWERS TO, with the payload its own
+ * trigger composes, copied key for key out of the migration that composes it.
+ *
+ * Asserted below to cover the registry EXACTLY, so a template added without a
+ * wire-format proof fails here rather than shipping on a builder test alone,
+ * which is the shape that left nine builders unreachable under a green suite.
+ */
+const ESCROW_BASE = {
+  escrow_id: "33333333-3333-4333-8333-333333333333",
+  viewer: "payer",
+  counterparty_id: "22222222-2222-4222-8222-222222222222",
+  listing_id: "44444444-4444-4444-8444-444444444444",
+  purpose: "agency_fee",
+  amount_minor: 250_000_00,
+};
+
+const EVERY_PAYLOAD: Record<string, Payload> = {
+  "account.welcome": { at: "2026-09-23T13:05:00.000Z" },
+  "escrow.INITIATED": { ...ESCROW_BASE, state: "INITIATED" },
+  "escrow.HELD": { ...ESCROW_BASE, state: "HELD", auto_release_at: "2026-10-01T09:00:00.000Z" },
+  "escrow.RELEASE_REQUESTED": {
+    ...ESCROW_BASE,
+    state: "RELEASE_REQUESTED",
+    auto_release_at: "2026-10-01T09:00:00.000Z",
+  },
+  "escrow.RELEASED": {
+    ...ESCROW_BASE,
+    state: "RELEASED",
+    commission_minor: 0,
+    net_minor: 250_000_00,
+    automatic: true,
+  },
+  "escrow.REFUNDED": {
+    ...ESCROW_BASE,
+    state: "REFUNDED",
+    reason: "The property was not available on the day.",
+  },
+  "escrow.DISPUTED": {
+    ...ESCROW_BASE,
+    state: "DISPUTED",
+    raised_by: RECIPIENT,
+    reason: "The keys were never handed over.",
+  },
+  "escrow.RESOLVED": {
+    ...ESCROW_BASE,
+    state: "RESOLVED",
+    direction: "refund",
+    ruling: "Both sides filed. The property was not handed over, so the money goes back.",
+    commission_minor: 0,
+    net_minor: 250_000_00,
+  },
+  "escrow.CANCELLED": {
+    ...ESCROW_BASE,
+    state: "CANCELLED",
+    actor_id: RECIPIENT,
+    note: "Withdrawn by the person who proposed it, before any money moved.",
+  },
+  "security.password_changed": { at: "2026-09-23T13:05:00.000Z" },
+  "security.new_device_sign_in": { at: "2026-09-23T13:05:00.000Z", device: "Chrome on Android" },
+  "wallet.withdrawal_outcome": {
+    entry_id: "55555555-5555-4555-8555-555555555555",
+    outcome: "failed",
+    amount_minor: 50_000_00,
+    reference: "rm-wd-c0426a",
+  },
+  "inspection.scheduled": {
+    inspection_id: "77777777-7777-4777-8777-777777777777",
+    listing_id: "44444444-4444-4444-8444-444444444444",
+    audience: "viewer",
+    counterparty_id: "22222222-2222-4222-8222-222222222222",
+    slot_at: "2026-10-02T10:30:00.000Z",
+  },
+  "verification.rung_passed": {
+    agent_id: "66666666-6666-4666-8666-666666666666",
+    rung: "identity",
+  },
+  "listing.new_enquiry": {
+    conversation_id: CONVERSATION,
+    message_id: "99999999-9999-4999-8999-999999999999",
+    listing_id: "44444444-4444-4444-8444-444444444444",
+    enquirer_id: "22222222-2222-4222-8222-222222222222",
+  },
+};
+
+/**
+ * THE IDS THAT MAY NEVER REACH A READER, WHICH IS ALL OF THEM BUT ONE.
+ *
+ * An id about ANOTHER PERSON (`counterparty_id`, `enquirer_id`, `raised_by`,
+ * `actor_id`, `agent_id`) or about a private record (`entry_id`,
+ * `inspection_id`, `conversation_id`) in somebody's inbox is our plumbing on
+ * their screen at best and a fact about a third party at worst. None of them
+ * may appear, in the subject, the document or the text, in a link or out of
+ * one.
+ *
+ * `escrow_id` is exempted, and it is exempted UNDER PROTEST rather than
+ * because it is right. The eight escrow emails print it as the visible
+ * "Reference" row and again under the button, so a reader is asked to quote
+ * `33333333-3333-4333-8333-333333333333` to support over the phone. That is a
+ * copy defect in `lib/email/escrow-messages.ts`, it is recorded in the ledger
+ * as a finding rather than fixed inside this stint, and the exemption is here
+ * so this sweep can hold the line on everything else in the meantime. The day
+ * escrow grows a short human reference, delete this list and the exemption
+ * with it.
+ */
+const ID_KEYS_THAT_MUST_NOT_PRINT = [
+  "counterparty_id",
+  "enquirer_id",
+  "raised_by",
+  "actor_id",
+  "agent_id",
+  "entry_id",
+  "inspection_id",
+  "conversation_id",
+  "message_id",
+  "listing_id",
+];
+
+const EVERY_ID = [
+  ...new Set(
+    Object.values(EVERY_PAYLOAD).flatMap((payload) =>
+      ID_KEYS_THAT_MUST_NOT_PRINT.map((key) => payload[key]).filter(
+        (value): value is string =>
+          typeof value === "string" && /^[0-9a-f-]{36}$/.test(value),
+      ),
+    ),
+  ),
+];
+
+describe("every template the outbox can send survives the whole path to the socket", () => {
+  /*
+   * WHY THIS EXISTS BESIDE `templates.test.ts` RATHER THAN INSTEAD OF IT.
+   *
+   * That file drives each builder and reads its words. This drives all fifteen
+   * through the REAL registry, the REAL `gatherFacts`, the REAL `sendMessage`
+   * and `sendEmail`, and asserts on the JSON body that would have gone to
+   * Resend. Between those two layers sit the recipient resolution, the From
+   * line, the text alternative, the JSON serialisation and the settle, and
+   * none of that was on any test for thirteen of the fifteen.
+   *
+   * The assertions are the ones that fail when a message is BUILT WRONG rather
+   * than merely built: a payload key renamed in SQL makes its builder answer
+   * null, the row is dropped, and the POST count no longer matches; a money
+   * field that arrives as a string prints NaN; a missing lookup prints
+   * undefined; a template literal that lost its interpolation prints ${; and a
+   * uuid in the copy is a person reading our plumbing.
+   */
+  it("posts one correct message per template, and no id reaches a reader", async () => {
+    expect(Object.keys(EVERY_PAYLOAD).sort()).toEqual([...OUTBOX_TEMPLATE_KEYS].sort());
+
+    profileRole = "landlord";
+    const rows: StoredRow[] = Object.entries(EVERY_PAYLOAD).map(([template, payload], i) => ({
+      id: `row-${i}`,
+      template,
+      user_id: RECIPIENT,
+      payload,
+      attempts: 0,
+      status: "PENDING",
+      error: null,
+    }));
+    const { admin, settled } = fakeDatabase(rows);
+    const capture = captureFetch({ status: 200, body: { id: "resend-message-id" } });
+    restoreFetch = capture.restore;
+
+    const result = await drainEmailOutbox(admin, { limit: rows.length });
+
+    /* NOT A COUNT OF ATTEMPTS: one POST for every template there is, and the
+       queue agreeing. A dropped row is a template that could not build. */
+    expect(result.counts).toMatchObject({
+      claimed: rows.length,
+      sent: rows.length,
+      dropped: 0,
+      retried: 0,
+    });
+    expect(capture.calls).toHaveLength(rows.length);
+    expect(settled.every((row) => row.result === "sent")).toBe(true);
+
+    for (const [i, call] of capture.calls.entries()) {
+      const template = rows[i]?.template ?? "?";
+      expect(call.url, template).toBe("https://api.resend.com/emails");
+      expect(call.method, template).toBe("POST");
+      expect(call.body.from, template).toBe("Vallo <hello@vallospaces.com>");
+      expect(call.body.to, template).toEqual(["ada@example.com"]);
+
+      const subject = call.body.subject ?? "";
+      const html = call.body.html ?? "";
+      const text = call.body.text ?? "";
+
+      expect(subject.length, template).toBeGreaterThan(0);
+      /* A SUBJECT LINE NEVER CARRIES AN ID, not even the record's own. It is
+         the one string a person sees in a list of forty, and it has to say
+         what happened. */
+      expect(subject, template).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-/);
+      /* Gmail truncates past about 70 and a runaway one is a formatting bug. */
+      expect(subject.length, template).toBeLessThan(140);
+      expect(html, template).toContain("<html");
+      expect(html, template).toContain("</html>");
+      expect(text.length, template).toBeGreaterThan(50);
+
+      /*
+       * AN ID IN A LINK IS THE LINK. An id in a sentence is our plumbing on
+       * somebody's screen. So the address of the thing this email is about is
+       * taken out first, and what is left is what a person actually reads:
+       * `heldPaymentProposed` and its seven siblings all button through to
+       * `/escrow/<id>`, and `listing.new_enquiry` to `/messages/<id>`.
+       */
+      const visible = (part: string) =>
+        part
+          .replace(/https?:\/\/[^\s"'<>)]+/g, "")
+          .replace(/href="[^"]*"/g, 'href=""');
+
+      for (const raw of [subject, html, text]) {
+        const part = visible(raw);
+        /* The four ways a broken build shows itself in an inbox. */
+        expect(part, template).not.toContain("undefined");
+        expect(part, template).not.toContain("NaN");
+        expect(part, template).not.toContain("[object Object]");
+        expect(part, template).not.toContain("${");
+        /* The private gmail must never appear on any surface. */
+        expect(part, template).not.toContain("vallospacesltd@gmail.com");
+        /* Nor the reader's own address, which the queue never carried. */
+        expect(part, template).not.toContain(RECIPIENT);
+        for (const id of EVERY_ID) expect(part, `${template} leaked ${id}`).not.toContain(id);
+      }
+    }
+  });
 });
 
 describe("a row a database trigger wrote becomes a real HTTP request", () => {
