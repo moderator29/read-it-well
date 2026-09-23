@@ -2524,3 +2524,11 @@
     margin-top: var(--nf-space-sm);
   }
 }
+
+@layer components {
+  /* The person tier mark (Session A's TierBadge) beside a name: the mark
+     alone, spaced off the name it belongs to. */
+  .nf-admin-name-tier {
+    margin-inline-start: var(--nf-space-2xs);
+  }
+}
