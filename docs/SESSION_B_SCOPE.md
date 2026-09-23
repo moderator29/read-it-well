@@ -73,6 +73,24 @@ Each group appends "RELEASED <commit>" here when it is done.
     (messages group, which consumes `escrow.css`).
   - settings and children, notifications: `settings-rows.css`,
     `overlays.css`, `system.css` and their route components.
+    Worker "sweep-settings" adds (new): the fixture harness
+    `apps/web/src/app/(dev)/preview/session-b/sweep-settings/**`, its shot
+    script `scripts/design/session-b-shots/sweep-settings.mjs` and its proofs
+    `docs/design/proofs/session-b/sweep-settings/**`. Route components claimed:
+    `app/(app)/settings/**`, `app/(app)/notifications/**`,
+    `components/app/account/**`, `components/app/push/**`,
+    `app/(app)/legal/LegalDocument.tsx`, `app/offline/SystemMoment.tsx`,
+    `app/not-found.tsx`, `app/error.tsx`, `app/(app)/error.tsx`,
+    `app/loading.tsx`. By the lead's ruling of 23 September the notifications
+    anatomy (`.nf-notif*`, `home.css` about lines 629 to 773) moves out of
+    `home.css` into a new `app/(app)/notifications/notifications.css`
+    imported by `LiveNotifications.tsx`; that block of `home.css` is this
+    worker's to delete and nothing else in the file. NOT claimed although drawn
+    on these routes: the payment methods block (`PaymentMethodsPanel.tsx`,
+    `AddBankAccountSheet.tsx`, `wallet.css` `.nf-pay-*`, `.nf-glyph-tile`;
+    the wallet family sweeps it), `PageHeader`, `BackButton`, the dock and
+    header (chrome group), `components/app/welcome/InterestChoices.tsx`
+    (welcome).
   - feed, stories, posts, the plus bloom (worker "feed"):
     `components/social/feed/**`, `components/social/bloom/**`,
     `components/social/story/**`, `app/social.css`, `app/social-feed.css`
