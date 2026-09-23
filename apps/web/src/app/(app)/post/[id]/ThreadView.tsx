@@ -313,7 +313,7 @@ export function ThreadView({
 
       {card(root)}
 
-      {replyingTo === root.id ? (
+      {replyingTo === root.id && !root.removed ? (
         <>
           {/*
             WHO IS BEING ANSWERED, SAID OUT LOUD.
@@ -337,8 +337,10 @@ export function ThreadView({
       ) : null}
 
       {/* Always offered, so somebody arriving from a link can answer without
-          hunting for the control. */}
-      {replyingTo === null ? (
+          hunting for the control. Never under a deleted root: `place_post`
+          refuses a reply to a parent that is not LIVE ("You cannot reply to a
+          post that has been removed"), so the box would only ever fail. */}
+      {replyingTo === null && !root.removed ? (
         <Composer parentId={root.id} signedIn={signedIn} onDone={undefined} />
       ) : null}
 
