@@ -4402,8 +4402,7 @@ What moved, item by item from the inventory above (local recipe deleted in the s
   wrong", "Say the work was (not) done", "Choose a file" are the glass secondary; "Remove" is
   ghost. Fields `.nf-esc-field` -> the shared `.nf-field` (the objection textarea had been
   wearing the action class). Light paper twin deleted. What stays in `escrow.css` is type,
-  layout, the state dot and the stripe, plus ONE block held unchanged for the messages group's
-  `ProposeHeldPayment.tsx` (request SW-S1).
+  layout, the state dot and the stripe, and the thread proposal's layout.
 - **Checkout.** Summary card, room pick card, hold note, the three pay-method cards and every
   loading card: `nf-card` -> `Panel variant="card"` (hairlines on `--nf-panel-hair`). Hold
   countdown: `.nf-panel-sunken` -> `Panel`, its bare 44px glass object -> `IconPlate md`. Pay
@@ -4424,11 +4423,18 @@ What moved, item by item from the inventory above (local recipe deleted in the s
   selection); the round glyph -> the plate tokens at the small rung; the thumbnail -> plate
   tokens; list hairlines -> `--nf-panel-hair`. The classes stay because the host wizard's
   components write them; every local fill, edge, glow and bloom is gone. The field well stays
-  until SW-S2.
+  until SW-ST2.
 
-Requests added to the scope file (subsection "Sweep group: stays"): **SW-S1** (messages:
-`ProposeHeldPayment` onto Panel/Button/nf-field, then delete the held block), **SW-S2** (host
-wizard: `nf-field` on the stays inputs and selects), **SW-S3** (wallet family: the dark square
+- **The held payment in a conversation** (`ProposeHeldPayment.tsx`, unclaimed by any group
+  and drawn only by `escrow.css`, so claimed here): its raised-surface block -> `Panel
+  variant="card"`; "Set this money aside" and "Propose it" -> lit primary; "Decline it" /
+  "Withdraw it", "Open it" and the closed composer -> glass secondary; "Not now" -> ghost; the
+  amount field -> `.nf-field`; the who-pays fieldset -> the panel hairline row. The block
+  `escrow.css` had been holding for it is deleted: nothing in the file draws a surface now.
+
+Requests in the scope file (subsection "Sweep group: stays"; ids `SW-ST*` because the social
+group already uses `SW-S1`): **SW-ST1** closed here (the thread proposal above), **SW-ST2** (host
+wizard: `nf-field` on the stays inputs and selects), **SW-ST3** (wallet family: the dark square
 behind `ResultSheet`'s glass object on the payment sheets).
 
 #### Audit passes (production build, harness, dark, 390 at 2x and 1440)
@@ -4459,6 +4465,19 @@ routes, 12 combinations measured): **0 breaches**; "worth an eye" only the galle
 at 0.36 (`ListingGallery`, the listing group's); the host step segments at 0.50 carry no text
 (progress bars, allowed).
 
+**The thread proposal (claimed after the group's first push), three passes, 23 September.**
+Harness `sweep-stays/escrow-thread` (new: the payer's view of a proposal and the composer, opened
+by a real tap and filled). No before shot exists: the component had no harness and the messages
+route needs a session; its before state is the old `.nf-esc-thread` recipe (raised surface,
+divider border, unlit text buttons), as the inventory records. Pass 1 (`escrow-thread-open-390-
+pass1.jpg`): every control on the shared buttons, measured 51 tall r14 0.28; found the who-pays
+radios drawn in the browser's grey -> `accent-color: var(--nf-lit)` at 18px. Pass 2 (after a
+rebuild; an injected stylesheet was refused by the page's CSP, which is correct): radio lit,
+"Propose it" lit once a side and an amount are chosen, the field's focus ring is the shared one.
+Pass 3: re-shot with the escrow routes on the same build; nothing further. (In the pass 2 and 3
+full-page shots the sticky app header is drawn mid-page where the page had scrolled to the
+focused field; that is the screenshot, not the page.)
+
 #### Per-route result
 
 Reference: the console panel, plate and lit primary, and Get started's glass door, as in
@@ -4468,22 +4487,22 @@ Reference: the console panel, plate and lit primary, and Get started's glass doo
 | Route | Status | Container | Edge / rim | Glow | Button | Plate | Match |
 |---|---|---|---|---|---|---|---|
 | `/escrow` | **swept** | own glass sheet, r18 -> Panel card r10 | 1px ring + rim -> per-side panel edges + catch | own drop glow -> panel halo | unlit "Open it" -> glass secondary | none | yes |
-| `/escrow/[id]` | **swept** (the thread proposal is on another route, SW-S1) | sheet, when, receipt, filed, form boxes -> Panel card | as above | as above | 8 unlit actions -> lit primary / glass / ghost | none | yes |
+| `/escrow/[id]` | **swept** | sheet, when, receipt, filed, form boxes -> Panel card | as above | as above | 8 unlit actions -> lit primary / glass / ghost | none | yes |
 | `/checkout` (room pick) | **swept** | nf-card -> Panel card | panel | panel | shared (ResultScreen) | none | yes |
-| `/checkout/[bookingId]` + sheets | **swept in this group's files**; SW-S3 open on `ResultSheet` | 5 nf-card + sunken panel -> Panel | panel | panel | shared lit primary (pool visible, isolated) | bare glass objects -> IconPlate md / lg | yes, bar SW-S3 |
+| `/checkout/[bookingId]` + sheets | **swept in this group's files**; SW-ST3 open on `ResultSheet` | 5 nf-card + sunken panel -> Panel | panel | panel | shared lit primary (pool visible, isolated) | bare glass objects -> IconPlate md / lg | yes, bar SW-ST3 |
 | `/trips` | **swept in this group's files**; the Cancel control is `components/app/bookings` | loading nf-card -> Panel | panel | panel | shared | own 64px plate -> IconPlate lg | yes |
 | `/stay/[id]` | **this group's items swept** (rate cards, room plates, loading); lead card, about, availability pickers, amenity and room tiles, policy panel are `catalogue.css` / `components/app/listing` (home group) | rate card -> Panel card | panel | panel | shared lit Reserve | role mark -> IconPlate md | yes for this group's items |
 | `/restaurant/[id]` | **this group's items swept** (loading); the rest is `catalogue.css` / listing components | loading -> panelClass | panel | panel | shared | none | yes for this group's items |
 | `/stays` | **nothing of this group's to sweep**: `StayCard` markup only; material is `catalogue.css` + shared glass, home group | n/a | n/a | n/a | n/a | n/a | depends on home group |
 | `/stays/search` | as `/stays`; filter sheet and bar in `catalogue.css` | n/a | n/a | n/a | n/a | n/a | depends on home group |
 | `/restaurants` | as `/stays` | n/a | n/a | n/a | n/a | n/a | depends on home group |
-| host set-up panels (`stays.css`) | **swept**, bar the field well (SW-S2) | own plates, r18 / r22 / r32 -> panel tokens r10 | own brand edge + rim-lit -> panel edges + catch | own 14 to 22px glows and bloom -> panel halo / selected shadow | tiles, chips, stepper -> glass door; chosen -> selected | round glyph -> plate tokens | yes |
+| host set-up panels (`stays.css`) | **swept**, bar the field well (SW-ST2) | own plates, r18 / r22 / r32 -> panel tokens r10 | own brand edge + rim-lit -> panel edges + catch | own 14 to 22px glows and bloom -> panel halo / selected shadow | tiles, chips, stepper -> glass door; chosen -> selected | round glyph -> plate tokens | yes |
 
 **Routes swept / routes in group: 5 of 10 fully** (`/escrow`, `/escrow/[id]`, `/checkout`,
-`/checkout/[bookingId]` bar SW-S3, `/trips`), **2 with every item of this group's swept and the
+`/checkout/[bookingId]` bar SW-ST3, `/trips`), **2 with every item of this group's swept and the
 rest owned by the home group** (`/stay/[id]`, `/restaurant/[id]`), **3 with nothing of this
 group's to move** (`/stays`, `/stays/search`, `/restaurants`), plus the host panels' stylesheet
-swept bar SW-S2.
+swept bar SW-ST2.
 
 Governing images re-checked after the sweep (FD3DFE84, 84054CE9, BB0C2C85, 9F384CFE): this
 group changed none of the stays home, the stay lead card or the availability card they govern
@@ -4961,7 +4980,7 @@ row, cards, tab segment, sheets, person rows, people search) is in
 "feed" worker. So on the profile family this group can move the MARKUP onto
 the shared primitives (Panel, IconPlate, Button variants) and must ask the
 feed worker to delete the orphaned rules; it cannot delete them itself. Filed
-as SW-S1 in the scope file. Two more are outside the group: the held-payment
+as SW-ST1 in the scope file. Two more are outside the group: the held-payment
 composer inside a thread (`ProposeHeldPayment.tsx`, drawn by `escrow.css`,
 stays group) and the `.nf-insp-*` half of `threads.css` (the inspection
 surface, already Session B's; left as it is unless the inspection owner asks).
@@ -5052,7 +5071,7 @@ lands.
 
 Count: 24 in `threads.css`, 18 in thread components, 22 in the profile family:
 64 items. The 22 profile items are drawn by the feed worker's stylesheets
-(SW-S1) and C18 by `escrow.css`, so 23 of the 64 can only be swept in markup
+(SW-ST1) and C18 by `escrow.css`, so 23 of the 64 can only be swept in markup
 here, with the rule deletion done by their owners.
 
 ### 13.S.4 Before proofs
@@ -5076,7 +5095,7 @@ proved, its rows are proved by code only.
   (`profile-menu-390.jpg`): every row's first letters are cut ("opy link",
   "ute", "eport"). The popover is anchored to the kebab's right edge and is
   wider than the space to its left. Its rule (`.nf-social-more__menu`) is in
-  `social-feed.css`; the fix is in the component's anchoring or in SW-S1.
+  `social-feed.css`; the fix is in the component's anchoring or in SW-ST1.
 - D2, P16: the AGENT tag in follow lists is a hand-drawn badge in Tailwind
   (raw border and radius classes) rather than the shared badge.
 - D3, C17: `MessageThread.tsx` is a second, dead thread renderer with its own
@@ -5108,7 +5127,7 @@ px at 390.
 
 | Route | Swept | Container | Edge / rim | Glow | Button | Plate |
 |---|---|---|---|---|---|---|
-| 1 `/u/[handle]` | yes in markup (SW-S1 for the rule deletion) | about and trust on `.nf-panel--card`; tabs on the panel track | panel edges, rim | panel glow | Follow on the shared lit primary; cover and kebab on the glass door | none drawn |
+| 1 `/u/[handle]` | yes in markup (SW-ST1 for the rule deletion) | about and trust on `.nf-panel--card`; tabs on the panel track | panel edges, rim | panel glow | Follow on the shared lit primary; cover and kebab on the glass door | none drawn |
 | 2, 3 followers / following | yes | person rows and empty card on `.nf-panel--card` | panel | panel | shared | AGENT tag on the shared role tag |
 | 4 `/u/[handle]/edit` | yes | six sections on `.nf-panel--card`; held bio on `--held` | panel; choice cards take `--nf-selected-*` when checked | panel | Save on the lit primary | none |
 | 5 `/u` | yes (rows, skeleton) | `.nf-panel--card` rows | panel | panel | shared | none |
@@ -5125,7 +5144,7 @@ recipes: `.nf-chat-card` material, `.nf-chat-card__room` box, `.nf-context-card`
 material and its 40px mark box, the three avatar ring recipes, both bubble
 edge and glow recipes, the composer field and send recipes, the role tag's
 well, the inbox and share row hover fills, `MessageThread.tsx` whole (dead).
-Not deleted, because they are the feed worker's (SW-S1):
+Not deleted, because they are the feed worker's (SW-ST1):
 `.nf-social-card`, `.nf-social-more`, `.nf-social-more__menu` offsets,
 `.nf-social-round` material, `.nf-social-chip` edge, `.nf-social-trust` well,
 `.nf-glass-seg__tab[aria-selected]`, `.nf-social-sheet__panel` material,

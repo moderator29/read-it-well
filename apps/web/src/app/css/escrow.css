@@ -248,29 +248,15 @@
   /* --------------------------------------------- the proposal in a thread */
 
   /*
-   * HELD FOR `components/app/messages/ProposeHeldPayment.tsx`, WHICH IS THE
-   * MESSAGES GROUP'S FILE, and for nothing else. That component still writes
-   * `nf-esc-thread`, `nf-esc-action`, `nf-esc-field` and `nf-esc-choice`; the
-   * held-payment routes no longer do. Request SW-S1 (ledger 13, stays): move
-   * it onto `Panel`, `Button` and `.nf-field`, then delete this block whole.
-   * Kept exactly as it stood so the thread does not change under its owner.
+   * THE PROPOSAL IN A THREAD (`components/app/messages/ProposeHeldPayment.tsx`),
+   * on `Panel variant="card"` with the shared buttons and `.nf-field`, like
+   * the routes. Layout and type only. It sits above the message box and reads
+   * as a block, not as a bubble, so it is never mistaken for something either
+   * person said.
    */
   .nf-esc-thread {
-    display: grid;
     gap: var(--nf-space-sm);
     margin-bottom: var(--nf-space-sm);
-    padding: var(--nf-pad-card-sm);
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-divider);
-    background: var(--nf-surface-raised);
-  }
-
-  .nf-esc-thread .nf-esc-when {
-    padding: var(--nf-space-sm) var(--nf-space-md);
-    border-top: 0;
-    border-radius: var(--nf-radius-control);
-    background: var(--nf-glass-fill-thin);
-    box-shadow: 0 0 0 1px var(--nf-brand-edge-soft);
   }
 
   .nf-esc-thread-head {
@@ -293,39 +279,10 @@
     color: var(--nf-content-secondary);
   }
 
-  .nf-esc-action {
-    min-block-size: 44px;
-    padding-inline: var(--nf-space-md);
-    border-radius: var(--nf-radius-control);
-    font-size: var(--nf-text-body-sm);
-    transition: transform var(--nf-duration-press) var(--nf-ease-press);
-  }
-
-  .nf-esc-action:active {
-    transform: scale(var(--nf-press-scale));
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .nf-esc-action {
-      transition: none;
-    }
-
-    .nf-esc-action:active {
-      transform: none;
-    }
-  }
-
-  .nf-esc-field {
-    width: 100%;
-    min-block-size: 44px;
-    padding: var(--nf-space-sm) var(--nf-space-md);
-    border-radius: var(--nf-radius-control);
-    border: 1px solid var(--nf-divider);
-    background: var(--nf-surface-raised);
-    color: var(--nf-content-primary);
-    font-size: var(--nf-text-body);
-  }
-
+  /*
+   * WHO PAYS IS TWO EQUAL CHOICES AND NEITHER IS PRE-SELECTED. The control is
+   * only enabled once one has been chosen.
+   */
   .nf-esc-choice {
     display: flex;
     align-items: center;
@@ -333,5 +290,12 @@
     min-block-size: 44px;
     font-size: var(--nf-text-body);
     color: var(--nf-content-primary);
+  }
+
+  /* The native radio takes the lit blue rather than the browser's grey. */
+  .nf-esc-choice input {
+    accent-color: var(--nf-lit);
+    inline-size: 1.125rem;
+    block-size: 1.125rem;
   }
 }
