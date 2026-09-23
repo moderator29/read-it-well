@@ -16,7 +16,7 @@ A FIRST RUN OF THIS PROBE FAILED ON ITS OWN CONTROL, AND THE CONTROL WAS RIGHT
 TO FAIL. Control B was originally "anon must still be refused
 businesses.representative_phone". It came back able to read it. That is not a
 harness fault, it is a finding about public.businesses and it is recorded in
-docs/archive/BUILD_07_LEDGER.md and docs/archive/TRACK_G_STATE.md rather than smoothed
+docs/BUILD_07_LEDGER.md and docs/design/TRACK_G_STATE.md rather than smoothed
 over. The control was moved to listings.supply_verified_by, a refusal that had
 already been demonstrated in the same session, and the probe re-run.
 
@@ -55,4 +55,4 @@ WHAT THIS RUN IS NOT. It is not the real /listing/[id] against live data. The
 sandbox egress proxy refuses CONNECT uccixoonmbhrnyczyigt.supabase.co:443 with
 403, so the dev server's Supabase client cannot reach the project, every
 listing read returns null, and /listing/[id] answers the not-found body at HTTP
-200. Measured, not assumed. See docs/archive/TRACK_G_STATE.md.
+200. Measured, not assumed. See docs/design/TRACK_G_STATE.md.

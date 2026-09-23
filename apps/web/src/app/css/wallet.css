@@ -1112,7 +1112,8 @@
    * RENDER'S HEIGHT, WITH THE 44PX FLOOR (R-B); CONTAINERS AT THE RENDER'S
    * WIDTH (R-C). Every size below is measured off the governing render at
    * 1.71 image px per CSS px, font size = measured text width divided by the
-   * string's width in ems (cross-checked against cap height / 0.73).
+   * string's width in ems (cross-checked against cap height / 0.73). The
+   * measurements are in docs/archive/BUILD_SESSION_B_LEDGER.md sections 4 and 5.
    * Stated once, here, after the rules they overrule, so the earlier values
    * read as the base and this block as the ruling.
    */

@@ -5,8 +5,9 @@
  *
  * EVERY NUMBER HERE IS MEASURED OFF THE RENDER, not eyeballed. The phone's
  * screen is 658 image pixels wide (inner edge 182 to 840), so one CSS pixel at
- * 390 is 1.687 image pixels. The values that set geometry are given beside
- * each rule.
+ * 390 is 1.687 image pixels. The full measurement table is in
+ * docs/archive/BUILD_SESSION_B_LEDGER.md, section 1; the values that set
+ * geometry are repeated beside each rule.
  *
  * TYPE AT THE RENDER'S SIZE, PER ROLE (rule R-A). Each size below is
  * the render's cap height converted at 0.593 and divided by the face's own

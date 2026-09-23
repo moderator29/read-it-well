@@ -16,7 +16,8 @@
   for row titles and values) and each container is sized from the render's
   own ratios to the row it holds (plate 0.78 of the row, check circle 0.37,
   insets 0.17), not by one uniform factor. Touch targets stay at 44px where a
-  thing is pressed.
+  thing is pressed. The numbers are in docs/archive/BUILD_SESSION_B_LEDGER.md
+  section 9.
 
   Nothing here is a raw colour. Every value is a token or a mix of tokens;
   the rem literals are object sizes (plates, rings, the photo, the house).

@@ -3048,7 +3048,8 @@
    * corner, the icon plate, the selected row) and `app/welcome/welcome.css`
    * (the lit primary with its top and foot bands and its pooled bloom, the
    * glass secondary). The console and Get started now read these and hold no
-   * copy of their own.
+   * copy of their own; `docs/archive/BUILD_SESSION_B_LEDGER.md` section 13.0 has
+   * the table of where each value came from.
    *
    * The components that carry them: `components/ui/Panel.tsx` (`.nf-panel`,
    * glass.css), `components/ui/IconPlate.tsx` (`.nf-plate`, controls.css) and

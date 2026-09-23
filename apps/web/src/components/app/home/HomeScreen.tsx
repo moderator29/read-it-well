@@ -46,7 +46,8 @@ import { EmptyState } from "@/components/app/Screen";
  * `AiAssistantBanner` -> `/assistant`, which is a row in the side drawer and
  * always was. The agents card -> `/agents`, also a drawer row, and the switch
  * in the centre of the dock, which is now the real door to supply. Every one
- * of the six still has a home.
+ * of the six is listed in `docs/archive/BUILD_07_LEDGER.md` section 6 with
+ * its new home.
  *
  * ---------------------------------------------------------------------------
  * THE TWO CATEGORIES THAT NEEDED A RULING AND HAVE ONE.

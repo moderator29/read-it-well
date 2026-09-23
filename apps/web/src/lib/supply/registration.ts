@@ -45,7 +45,7 @@ import { isSupplyRole, type WorkspaceKind } from "./roles";
  *
  * NEITHER FIGURE IS WRITTEN HERE AND NEITHER IS PRINTED IN THE PRODUCT. Both
  * reach us through a search index's summary rather than a primary source, and
- * they wait for a lawyer to confirm them. What ships is
+ * they are held in `docs/archive/BUILD_07_LEDGER.md` section 5 for a lawyer. What ships is
  * the behaviour, which needs no citation.
  *
  * ---------------------------------------------------------------------------

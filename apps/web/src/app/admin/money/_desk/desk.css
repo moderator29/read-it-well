@@ -7,7 +7,8 @@
   routes, never from globals.css; the console shell (admin.css,
   _components) is admin-shell's and is not touched from here.
 
-  Every size below was converted from the renders. Colours are semantic tokens only:
+  Every size below was converted from the renders; the table is in
+  docs/archive/BUILD_SESSION_B_LEDGER.md section 8. Colours are semantic tokens only:
   the renders' teal, mauve and pink donut slices are translated into the one
   blue family, ordered by magnitude, with a word beside every slice.
 

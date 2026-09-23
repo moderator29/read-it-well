@@ -28,7 +28,10 @@
  * a surface is unproven than for somebody to close it on a picture of a page
  * that never finished rendering.
  *
- * Usage:  node scripts/design/sweep-register.mjs > docs/design/SWEEP.md
+ * Usage:  node scripts/design/sweep-register.mjs > /tmp/SWEEP.md
+ * The output is local: docs/design/proofs/ is git-ignored, so the register
+ * describes one machine's shots. The last committed register is
+ * docs/archive/SWEEP.md.
  */
 import { execSync } from "node:child_process";
 import { readdirSync, statSync, existsSync } from "node:fs";

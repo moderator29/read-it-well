@@ -9,7 +9,8 @@
  * MEASURED, NOT EYEBALLED. The render is 1024x1536; the phone's screen runs
  * from x 185 to x 837 (652 image px) and from y 59 to y 1458, so one CSS px at
  * a 390px viewport is 1.672 image px (scale 0.598). The numbers in the notes
- * below are the render's, converted.
+ * below are the render's, converted; the full table beside what the browser
+ * drew is in `docs/archive/BUILD_SESSION_B_LEDGER.md` section 2.
  *
  * DARK ONLY: light mode was removed from the platform on 23 September.
  */

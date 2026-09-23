@@ -53,7 +53,8 @@ import { ResultSheet } from "@/components/app/ResultSheet";
  * same iframe rather than opening something. The absence of `window.open` in
  * the bundle makes it very hard for it to do anything else, but the ACS page
  * is served by the bank into Paystack's checkout document, which this side
- * cannot see. A real 3-D Secure test card is the test that settles it.
+ * cannot see. A real 3-D Secure test card settles it; the test is written out
+ * in `docs/archive/BUILD_07_LEDGER.md`.
  *
  * ---------------------------------------------------------------------------
  * THE RESOLUTION LOOP: THREE SIGNALS, NONE OF THEM TRUSTED ALONE.
