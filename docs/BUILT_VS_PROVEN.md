@@ -458,6 +458,53 @@ push_deliveries: 0 rows
 **Mark: BUILT AND UNPROVEN. Nothing has reached a device, and no device has
 ever registered one.**
 
+**Two corrections to what this section said an hour ago, both of which move it
+in the same direction as section 2.**
+
+**First, the Web Push identity pair IS configured on production and preview**,
+set an hour before this file was written, and checked against the
+application's own `vapidKeysAgree` before it was set. **Push is not blocked on
+a credential either.** It is blocked on one handset, which nobody on this
+session has.
+
+**Second, and nobody reported this: the drain route was not deployed, and the
+scheduler said it was succeeding the whole time.** Found by reading
+`public.risk_alerts`, which was queried to settle the email question and
+answered a different one. Two rows, severity `high`, **status still `open`**:
+
+```
+2026-09-23 10:20:00Z  Push drain: something answered, but it was not the drain
+2026-09-23 10:25:00Z  Push drain: something answered, but it was not the drain
+```
+
+Their description: the scheduled drain called
+`https://www.vallospaces.com/api/push/drain` and got **a 200 that was not the
+drain's reply**. On this deployment an unknown path answers 200 with the web
+page rather than 404, so the body that came back begins `<!DOCTYPE html>`. The
+alert says in as many words: *no notification is reaching any device*.
+
+**This is the trap in the brief, in production, on a live route.** An HTTP 200
+is not proof the thing answered. The deployment returns 200 with the web page
+for a path that does not exist, and a checker reading only the status code
+would have called it healthy forever.
+
+**And pg_cron reported all nineteen runs as `succeeded`**, because pg_cron
+succeeds at queueing an HTTP request rather than at getting a real reply. That
+is blind light number one recurring on a different route.
+
+**Reconstructed from the timestamps, because the alert alone does not say when
+it stopped.** The drain runs every five minutes; nineteen runs from 10:00Z to
+11:30Z. `cron.push-drain.ok` audit rows number **fourteen, the first at
+10:25:01.9Z**. So the five runs at 10:00, 10:05, 10:10, 10:15 and 10:20 wrote
+no audit row, two of them raised the alert, and **every run from 10:25 onward
+has answered properly**. The route was deployed at about 10:25 and has worked
+since.
+
+**What still needs doing: the two alerts are `open` and the condition has
+passed.** Nothing resolves them, so the operations desk currently carries a
+high-severity alert about a route that has been healthy for over an hour. That
+is the same defect as an empty desk, in the other direction.
+
 The database half is real and the transport code exists:
 `lib/push/transport/` holds `apns.ts`, `fcm.ts` and `webpush.ts` with
 `live-proof.test.ts` and `webpush.test.ts` beside them.
@@ -717,7 +764,32 @@ relacl: postgres=arwdDxtm/postgres | service_role=arwdDxtm/postgres
 relrowsecurity: true
 ```
 
-**Mark: BUILT AND UNPROVEN, and the filter is NOT IN FORCE.**
+**Mark when first measured at 11:28Z: BUILT AND UNPROVEN, and the filter was
+NOT IN FORCE.**
+
+**MARK NOW, RE-MEASURED AT 11:57Z: DONE.** While this register was being
+written, migration `20260923113843` seeded the list. Counted again just now:
+
+```
+select count(*) from public.blocked_terms -> 133
+```
+
+**The filter is in force.** `private.objectionable_pattern()` now returns a
+real expression and both scanners run the abuse branch. Production's own watch
+agrees and was checked rather than inferred: `public.risk_alerts` carried a
+`Content: filter, empty` row against `entity_id = 'blocked_terms'`, raised and
+re-raised hourly from 2026-09-22 22:20Z, and migration `20260923115027` closed
+it behind a guard that refuses to close it unless the table actually holds
+rows. **That guard is the right way round**: an alert must never be resolved by
+a migration that merely asserts the condition has passed.
+
+**This is the only item in the register that changed state while the register
+was being written, and both measurements are kept** rather than the earlier one
+being quietly overwritten, because the founder asked what was claimed and what
+turned out to be true. It was true at 11:28 and it is not true now.
+
+**What the 0-row state meant while it lasted**, kept because it is the reason
+the item was worth counting at all:
 
 The table exists, RLS is on, the grants are tight, and
 `private.objectionable_pattern()` builds its regular expression from it.
@@ -747,11 +819,12 @@ right today, because `relrowsecurity` reads true, but it would have gone on
 passing if somebody had disabled RLS in production. **Checked against the
 catalogue, not against the test.**
 
-**What proving it would take.** The founder inserts the agreed terms. This is
-deliberately not seeded by an engineer, which is the correct call: the term
-list is a product decision. The scanners pick it up on the next write with no
-deploy. **This is the cheapest open item on the whole platform and it is
-blocking a real safety function.**
+**What proving it would take, now that the list exists.** A post containing a
+blocked term written through the real path and refused on a real screen.
+**That has not happened**, which is why this is DONE as "the filter is in
+force" and not DONE as "the filter has caught anything". Seventy five posts
+were written with no filter in front of them and none of them has been
+rescanned.
 
 ---
 
@@ -782,7 +855,8 @@ platinum grant to his own account landed.
 
 ## 13. Where a document and the measurement disagree
 
-The founder asked for this explicitly. Six.
+The founder asked for this explicitly. Ten, and four of them were found in the
+last twenty minutes.
 
 **1. "The queue fills correctly and loses nothing meanwhile"
 (`WHAT_SENDS.md`).** `public.email_outbox` holds **zero rows**. The queue has
@@ -823,7 +897,34 @@ No document says otherwise; no document says it either. A fourteen-job pg_cron
 table where thirteen have run reads as a working scheduler, and one job in it
 has produced nothing.
 
-**6. `public.listings.relacl` shows no SELECT for `anon`.** No document
+**6. THE BIGGEST ONE, AND IT WAS THIS REGISTER'S OWN ERROR FIRST.
+`RESEND_API_KEY` is set on the deployment and has been since 20 September.**
+`WHAT_SENDS.md` opens with "NOTHING LEAVES THE BUILDING UNTIL
+`RESEND_API_KEY` IS SET ON THE DEPLOYMENT", `PLATFORM_STATUS.md` repeats it,
+and the first version of this file repeated it a third time. All three were
+reading **this container's** environment and writing a sentence about **the
+deployment**. Production says otherwise, by its own behaviour: the drain
+raises a CRITICAL `email.outbox.unconfigured` alert on every keyless run, it
+has run six times today, and `public.risk_alerts` holds 280 rows of which zero
+are email related. **The consequence is not academic.** The double-send defect
+on a failed withdrawal was filed as "fix it before the key lands". The key
+landed three days ago and nobody knew, so that defect has been live rather
+than pending for three days.
+
+**7. Web Push is configured too**, set an hour before this file was written
+and checked against `vapidKeysAgree` first. Neither of the two channels is
+blocked on a credential, and both documents say both are.
+
+**8. `/api/push/drain` was not deployed and pg_cron called all nineteen runs
+`succeeded`.** Two open high-severity alerts (section 4) record a 200 that
+carried the web page rather than the drain's reply. Fixed at about 10:25Z, and
+**the alerts are still open**. No document mentions it.
+
+**9. `public.blocked_terms` went from 0 rows to 133 while this file was being
+written** (section 11). The register's own first measurement is now historical
+and both are kept.
+
+**10. `public.listings.relacl` shows no SELECT for `anon`.** No document
 mentions this, and it looks exactly like the fault that made the examples
 disappear. It is not that fault: sixty four column grants in `attacl` carry it.
 **Recorded because the next worker who runs the obvious query will believe the
@@ -937,21 +1038,27 @@ omitted, because omitting it would flatter the total.
 
 ## 16. One honest figure for Session A's half
 
-**Of the countable blocks in this register, 3 of 12 are DONE.**
+**Of the countable blocks in this register, 4 of 12 are DONE.**
 
 The denominator, in words: the twelve blocks this register covers, which are
 the seven cron routes as one block, the pg_cron path, the email junction,
 escrow, push, Price Check, Track G, navigation, the wallet and payments, the
 search and catalogue reads, the admin reads, and the blocked terms filter.
 
-**3 / 12 = 25 per cent.**
+**4 / 12 = 33 per cent.**
 
-The three that earn DONE are the seven cron routes (all seven have run in
+The four that earn DONE are the seven cron routes (all seven have run in
 production with their own audit rows), the pg_cron path (thirteen of fourteen
-jobs have run, and the fourteenth has not yet had an opportunity), and the
-payment reconciliation job (511 runs over six weeks, inside the wallet block).
+jobs have run, and the fourteenth has not yet had an opportunity), the payment
+reconciliation job (511 runs over six weeks, inside the wallet block), and the
+blocked terms filter, which earned it at 11:38Z today and would have read
+BUILT AND UNPROVEN in any version of this file written thirty minutes earlier.
 
-**By the other count, the one that feels right, 11 of 12 blocks are BUILT, and
+**It was 3 of 12 when this file was first pushed and it is 4 of 12 now.** The
+change is recorded rather than smoothed over, because a register that silently
+improves is indistinguishable from one that is being flattered.
+
+**By the other count, the one that feels right, 12 of 12 blocks are BUILT, and
 that is 92 per cent.** The distance between 25 and 92 is this file's entire
 reason for existing, and it is the same distance that turned out to be 47 when
 it felt like 90.
@@ -992,18 +1099,24 @@ else below is the founder's.
 one action each by the founder, and each one converts a whole block from
 unproven to provable in an afternoon:
 
-1. **Set `RESEND_API_KEY` on the deployment** (after fixing the double-send on
-   a failed withdrawal, which is an engineering half-hour). Unblocks the entire
-   email junction, 38 builders and 15 templates, and it is one paste.
-2. **Insert the agreed blocked terms into `public.blocked_terms`.** The
-   cheapest item on the platform, a product decision nobody else can make, and
-   it is currently leaving a real safety function switched off over 75 posts.
-3. **Upgrade the Paystack account off starter.** Nothing in the money half can
-   be proved until third-party payouts are permitted.
-4. **Allow `*.supabase.co` out of this sandbox**, or run
-   `scripts/probes/escrow_revoke.sh` from anywhere else. That is the last
-   thing standing between the escrow gate and being opened, and it is one
-   command.
+1. ~~Set `RESEND_API_KEY`.~~ **DONE, 20 September.** Three documents and the
+   first draft of this one said otherwise.
+2. ~~Insert the agreed blocked terms.~~ **DONE, 11:38Z today, 133 terms.**
+3. ~~Configure Web Push.~~ **DONE, an hour ago.**
+4. **Upgrade the Paystack account off starter.** Still outstanding, still the
+   founder's. Nothing in the money half can be proved until third-party
+   payouts are permitted, and the one production payout was refused with "You
+   cannot initiate third party payouts as a starter business".
+5. **Allow `*.supabase.co` out of this sandbox**, or run
+   `scripts/probes/escrow_revoke.sh` from anywhere else. Still outstanding.
+   That is the last thing standing between the escrow gate and being opened,
+   and it is one command.
+
+**Two of the five moved in the hour this register took to write, and a third
+was never true.** That is worth saying plainly, because the close-out's value
+to the founder depends on him being able to trust that an item marked blocked
+on him really is. **Re-read this list against the deployment before acting on
+it**, and do not take any of it, including this file, from a document.
 
 After those four, the honest work is **one real end-to-end walk by a human
 being**: sign up, receive the welcome email, list a property as an owner, get
