@@ -1,0 +1,58 @@
+TRACK G CATALOGUE GRANTS, live project uccixoonmbhrnyczyigt, 2026-09-23.
+Both blocks of scripts/probes/track_g_catalogue_grants.sql, run through
+mcp__Supabase__apply_migration, each one transaction ended by a deliberate
+raise exception so nothing was written.
+
+--- BEFORE, run immediately prior to migration 20260923103430 -----------------
+
+ERROR:  P0001: PROBE ALL PASS track-g-before, 8 assertions, 2 controls green.
+THE PUBLIC CATALOGUE IS REFUSED 42501 TO anon AND TO authenticated over 64
+published listings, because private.owns_listing lost EXECUTE on 22 September
+while 17 RLS policies still call it. Separately anon holds no column privilege
+on listings.listing_role, which both listing selects now name. And anon reads 0
+rows of public.agents, so no lister name has a public door. Rolled back on
+purpose.
+
+The diagnostic run that found the cause, same tool, same day, before the probe
+above was written:
+
+ERROR:  P0001: DIAGNOSTIC: [id only: 42501 permission denied for function
+owns_listing] [id+status: 42501 permission denied for function owns_listing]
+[bare count(*): 42501 permission denied for function owns_listing] [policies:
+listings_admin_all=*:(private.has_role((SELECT auth.uid() AS uid),
+'admin'::app_role) OR private.has_role((SELECT auth.uid() AS uid),
+'super_admin'::app_role)) | listings_owner_all=*:private.owns_listing(id) |
+listings_select_published=r:(status = 'PUBLISHED'::listing_status)]
+
+--- AFTER, run immediately following migration 20260923103430 ----------------
+
+ERROR:  P0001: PROBE ALL PASS track-g-after, 10 assertions, 2 opposite-shape
+controls green (anon still reads 0 agents rows and is still refused
+listings.supply_verified_by). anon and a signed-in reader each read all 64
+published listings including listing_role, every joined catalogue table reads,
+a DRAFT row is filtered rather than fatal, and no table-wide or extra column
+privilege appeared. Rolled back on purpose, the draft row is gone.
+
+--- THE SURVEY THAT FOUND THE BLAST RADIUS ----------------------------------
+
+Every function named in an RLS policy expression, joined to whether anon and
+authenticated can execute it. Read from pg_proc and pg_policy, never from
+information_schema. Four came back short on 2026-09-23:
+
+  private.owns_listing(uuid)                     anon NO   authenticated NO
+    17 policies: listing_videos_select, listing_videos_write,
+    listing_access_select, listing_access_write_own, listing_access_update_own,
+    listing_access_delete_own, listing_photos_select, listing_photos_write,
+    listing_amenities_select, listing_amenities_write, availability_select,
+    availability_write, reviews_select, inspection_requests_insert_requester,
+    agent_documents_select_by_listing, listings_owner_all,
+    listing_mandates_select_own, listing_mandates_insert_own
+
+  private.attachment_path_access(text)           anon NO   authenticated yes
+  private.can_see_listing_access(uuid)           anon NO   authenticated yes
+  private.escrow_evidence_path_access(text,bool) anon NO   authenticated yes
+
+Only the first was closed by 20260923103430, because only the first refuses a
+read the product actually makes. The other three are latent hazards of the same
+shape and are recorded in docs/BUILD_07_LEDGER.md rather than changed, because
+widening a grant nobody has asked for is the mistake in the other direction.
