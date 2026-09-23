@@ -302,9 +302,14 @@ export function FirstRun({
     goTo(dx < 0 ? index + 1 : index - 1);
   };
 
+  /* Leaving first run for the app is a full navigation, replacing this entry.
+     Found in the final pass: a client-side replace to `/home` that the proxy
+     answers with a redirect (a session that has lapsed, or the fixture
+     harness signed out) hung mid-transition with the button busy. A document
+     load follows any redirect, and the slide entries this screen pushed are
+     not left behind in the back stack of the app. */
   const leave = (path: string) => {
-    router.replace(path);
-    router.refresh();
+    window.location.replace(path);
   };
 
   /* A member finishing the slides. */

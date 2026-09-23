@@ -4,6 +4,7 @@ import { flatParams } from "../money/_desk/Desk";
 import { readPage } from "@/lib/admin/reads/money-derive";
 import type { SupplyRoleKey } from "@/lib/admin/reads/money-types";
 import { getFirmRosters, getSupplyDesk } from "@/lib/admin/reads/supply";
+import { getBadgeTiers } from "@/lib/admin/reads/badges";
 import { SUPPLY_ROLE_KEYS } from "@/lib/admin/reads/money-types";
 import { SupplyDesk, type SupplyFilter } from "./SupplyDesk";
 import "../money/_desk/desk.css";
@@ -52,8 +53,12 @@ export default async function AdminSupplyPage({
     getFirmRosters(filter.examples),
   ]);
   const supply = read.state === "ok" ? read.data : null;
+  const tiers = await getBadgeTiers([
+    ...(supply?.rows ?? []).map((r) => r.userId),
+    ...(roster.state === "ok" ? roster.data.firms.flatMap((f) => f.members.map((m) => m.userId)) : []),
+  ]);
 
   return (
-    <SupplyDesk supply={supply} filter={filter} params={flat} locale={locale} pageSize={SUPPLY_PAGE_SIZE} rosters={roster.state === "ok" ? roster.data : null} now={new Date().getTime()} />
+    <SupplyDesk supply={supply} filter={filter} params={flat} locale={locale} pageSize={SUPPLY_PAGE_SIZE} rosters={roster.state === "ok" ? roster.data : null} tiers={tiers} now={new Date().getTime()} />
   );
 }

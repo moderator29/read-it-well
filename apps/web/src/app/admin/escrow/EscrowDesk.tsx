@@ -18,6 +18,9 @@ import {
 import { EscrowRuling } from "../_components/MoneyDecisions";
 import { CalmNote, DeskHead, EmptyChart, Framed, NumberedPager, Panel, TableNote, Waiting, type CalmNoteProps } from "../money/_desk/Desk";
 import { DisputeEvidence } from "../money/_desk/Evidence";
+import { BadgeSlot } from "../money/_desk/BadgeSlot";
+import type { BadgeTier } from "@/lib/admin/reads/badges";
+import type { EscrowDeskRow } from "@/lib/admin/reads/escrow";
 import { Donut, SeriesChart, SeriesLegend, type Series } from "../money/_desk/charts";
 import { ReconciliationPanel } from "../money/_desk/Reconciliation";
 import { ESCROW_STATES, countdown, wholeDays } from "@/lib/admin/reads/money-derive";
@@ -117,8 +120,11 @@ export function EscrowDesk({
   health,
   evidence,
   float,
+  tiers = {},
   now,
 }: {
+  /** Badge tiers keyed by user id, from `public.person_badge`. */
+  tiers?: Record<string, BadgeTier>;
   locale: Locale;
   ui: AdminUi;
   common: AdminCommon;
@@ -190,6 +196,7 @@ export function EscrowDesk({
             {disputes.map((escrow) => (
               <li key={escrow.id}>
                 <EscrowCard
+                  tiers={tiers}
                   escrow={escrow}
                   ui={ui}
                   locale={locale}
@@ -229,7 +236,7 @@ export function EscrowDesk({
             )
           ) : (
             <>
-              <EscrowTable rows={table.rows} now={now} locale={locale} ui={ui} />
+              <EscrowTable rows={table.rows} now={now} locale={locale} ui={ui} tiers={tiers} />
               <NumberedPager
                 base="/admin/escrow"
                 params={params}
@@ -326,9 +333,11 @@ function EscrowTable({
   locale,
   ui,
   empty,
+  tiers = {},
 }: {
   empty?: CalmNoteProps;
-  rows: EscrowView[];
+  tiers?: Record<string, BadgeTier>;
+  rows: (EscrowView & Partial<Pick<EscrowDeskRow, "payerId" | "payeeId">>)[];
   now: number;
   locale: Locale;
   ui: AdminUi;
@@ -376,8 +385,11 @@ function EscrowTable({
                 {formatMoney(escrow.amountMinor, locale)}
               </td>
               <td className="nf-md-desc" data-label="From, to">
-                {escrow.payerName ?? "Payer"} <span aria-hidden="true">&rarr;</span>
+                {escrow.payerName ?? "Payer"}
+                {escrow.payerId ? <BadgeSlot tier={tiers[escrow.payerId]} /> : null}{" "}
+                <span aria-hidden="true">&rarr;</span>
                 <span className="sr-only"> to </span> {escrow.payeeName ?? "payee"}
+                {escrow.payeeId ? <BadgeSlot tier={tiers[escrow.payeeId]} /> : null}
               </td>
               <td className="nf-md-desc" data-label="Purpose">
                 {PURPOSE_LABEL[escrow.purpose] ?? escrow.purpose}
@@ -410,8 +422,10 @@ function EscrowCard({
   locale,
   rulable = false,
   evidence,
+  tiers = {},
 }: {
-  escrow: EscrowView;
+  tiers?: Record<string, BadgeTier>;
+  escrow: EscrowView & Partial<Pick<EscrowDeskRow, "payerId" | "payeeId">>;
   ui: AdminUi;
   locale: Locale;
   rulable?: boolean;
@@ -428,8 +442,24 @@ function EscrowCard({
       </div>
 
       <dl className="mt-row">
-        <ui.DetailRow label="Payer" value={escrow.payerName} />
-        <ui.DetailRow label="Payee" value={escrow.payeeName} />
+        <ui.DetailRow
+          label="Payer"
+          value={
+            <span>
+              {escrow.payerName ?? "No display name"}
+              {escrow.payerId ? <BadgeSlot tier={tiers[escrow.payerId]} /> : null}
+            </span>
+          }
+        />
+        <ui.DetailRow
+          label="Payee"
+          value={
+            <span>
+              {escrow.payeeName ?? "No display name"}
+              {escrow.payeeId ? <BadgeSlot tier={tiers[escrow.payeeId]} /> : null}
+            </span>
+          }
+        />
         {escrow.listingTitle && <ui.DetailRow label="Property" value={escrow.listingTitle} />}
         <ui.DetailRow
           label="Confirmations"
@@ -458,6 +488,7 @@ function EscrowCard({
 
       {rulable && (
         <DisputeEvidence
+          tiers={tiers}
           items={evidence ?? []}
           readable={evidence !== null}
           payerName={escrow.payerName}

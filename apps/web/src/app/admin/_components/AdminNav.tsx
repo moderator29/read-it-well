@@ -1,5 +1,7 @@
 "use client";
 
+import { PersonTier } from "./PersonTier";
+import type { PersonTier as PersonTierValue } from "@/lib/admin/reads/shapes";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -160,7 +162,14 @@ function AllDesks({
   );
 }
 
-export type AdminIdentity = { name: string; role: string; initial: string; avatarUrl: string | null };
+export type AdminIdentity = {
+  name: string;
+  role: string;
+  initial: string;
+  avatarUrl: string | null;
+  /** The operator's published badge tier (`public.person_badge`), for the shared slot. */
+  tier?: PersonTierValue | null;
+};
 
 export function IdentityBlock({ identity, compact = false }: { identity: AdminIdentity; compact?: boolean }) {
   return (
@@ -176,7 +185,10 @@ export function IdentityBlock({ identity, compact = false }: { identity: AdminId
         )}
       </span>
       <span className="nf-admin-id__text">
-        <span className="nf-admin-id__name">{identity.name}</span>
+        <span className="nf-admin-id__name">
+          {identity.name}
+          <PersonTier tier={identity.tier} size="sm" />
+        </span>
         <span className="nf-admin-id__role">{identity.role}</span>
       </span>
     </span>

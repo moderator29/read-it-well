@@ -163,3 +163,6 @@ export type PushActivity = {
   /** The eight newest attempts that failed or found the device gone. */
   failures: PushDeliveryRow[];
 };
+
+/** A person's published badge tier (`public.person_badge.tier`), never derived here. */
+export type PersonTier = "gold" | "platinum";

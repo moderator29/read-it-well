@@ -4,7 +4,7 @@ import type { AuditActivity, AuditRowView } from "@/lib/admin/audit-queries";
 import { actionLabel, entityTypeLabel } from "@/lib/admin/audit-filter";
 import type { AlertView } from "@/lib/admin/queries";
 import { AreaTimeChart } from "@/components/agent/charts/AreaTimeChart";
-import type { AlertTrend, InspectionActivity, JobHealth, NotificationActivity, PushActivity } from "@/lib/admin/reads/shapes";
+import type { AlertTrend, InspectionActivity, JobHealth, NotificationActivity, PersonTier, PushActivity } from "@/lib/admin/reads/shapes";
 import { EmailOutboxPanel, PushActivityPanels } from "./PushActivityPanels";
 import { InFlight } from "./InFlight";
 import {
@@ -62,6 +62,8 @@ export type OperationsProps = {
   notifications: NotificationActivity | null;
   /** Push, from `push_queue` and `push_deliveries` (read on the Notifications tab only). */
   push?: PushActivity | null;
+  /** Published badge tiers of the people the audit rows name (`getPersonTiers`). */
+  tiers?: ReadonlyMap<string, PersonTier>;
   inspections?: InspectionActivity | null;
 };
 
@@ -76,7 +78,12 @@ function stamp(iso: string | null, locale: Locale): string {
   });
 }
 
-export function auditRows(rows: readonly AuditRowView[], now: number, locale: Locale): AlertRow[] {
+export function auditRows(
+  rows: readonly AuditRowView[],
+  now: number,
+  locale: Locale,
+  tiers?: ReadonlyMap<string, PersonTier>,
+): AlertRow[] {
   return rows.map((row) => {
     const system = row.actorId === null;
     return {
@@ -90,6 +97,7 @@ export function auditRows(rows: readonly AuditRowView[], now: number, locale: Lo
       word: system ? "System" : "Admin",
       icon: { tier: "admin", name: system ? "operations" : "user-check" },
       href: row.entityId ? `/admin/audit?q=${encodeURIComponent(row.entityId)}` : "/admin/audit",
+      tier: row.actorId ? (tiers?.get(row.actorId) ?? null) : null,
     };
   });
 }
@@ -178,7 +186,7 @@ export function OperationsView(props: OperationsProps) {
               action={{ href: "/admin/audit", label: "Open the audit log" }}
             />
           ) : (
-            <AlertList rows={auditRows(props.audit.slice(0, 5), props.now, locale)} />
+            <AlertList rows={auditRows(props.audit.slice(0, 5), props.now, locale, props.tiers)} />
           )}
         </Panel>
       </div>
@@ -297,7 +305,7 @@ function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
   );
 }
 
-function AuditPanel({ audit, activity, locale, now }: OperationsProps) {
+function AuditPanel({ audit, activity, locale, now, tiers }: OperationsProps) {
   return (
     <div className="nf-admin-grid nf-admin-grid--wide-left">
       <Panel id="ops-audit-chart" title={tx(locale, "opsRecordedActionsPerDay")}>
@@ -361,7 +369,7 @@ function AuditPanel({ audit, activity, locale, now }: OperationsProps) {
         ) : audit.length === 0 ? (
           <CalmNote title={tx(locale, "opsNothingRecordedYet")} fills={tx(locale, "opsEveryDecisionTakenOnThis2")} />
         ) : (
-          <AlertList rows={auditRows(audit.slice(0, 12), now, locale)} />
+          <AlertList rows={auditRows(audit.slice(0, 12), now, locale, tiers)} />
         )}
       </Panel>
     </div>

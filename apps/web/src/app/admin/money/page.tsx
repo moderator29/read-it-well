@@ -4,6 +4,7 @@ import { getLocale } from "@/lib/locale";
 import { getEscrowConsole, getMoneyConsole, getRefundConsole } from "@/lib/admin/money-queries";
 import { getMoneyDesk, getReconciliationHealth, getRentCharges } from "@/lib/admin/reads/money";
 import { getDisputeEvidence } from "@/lib/admin/reads/escrow";
+import { getBadgeTiers } from "@/lib/admin/reads/badges";
 import { adminUi } from "../_components/ui";
 import { readQueueQuery } from "../_components/QueueFilters";
 import { flatParams } from "./_desk/Desk";
@@ -89,6 +90,14 @@ export default async function AdminMoneyPage({
   /* What each side filed, shown on the ruling so nobody rules without it. */
   const evidence = await getDisputeEvidence(disputes.state === "ok" ? disputes.data.disputes.map((d) => d.id) : []);
 
+  /* Badge tiers for every person this page names, read from person_badge. */
+  const tiers = await getBadgeTiers([
+    ...read.data.wallets.map((w) => w.userId),
+    ...(desk.state === "ok" ? desk.data.ledger.rows.map((r) => r.ownerId) : []),
+    ...(rent.state === "ok" ? rent.data.latest.map((r) => r.tenantId) : []),
+    ...(evidence.state === "ok" ? Object.values(evidence.data).flat().map((e) => e.authorId) : []),
+  ]);
+
   const now = new Date().getTime();
   return (
     <MoneyDesk
@@ -105,6 +114,7 @@ export default async function AdminMoneyPage({
       health={runs.state === "ok" ? runs.data : null}
       rent={rent.state === "ok" ? rent.data : null}
       evidence={evidence.state === "ok" ? evidence.data : null}
+      tiers={tiers}
       now={now}
     />
   );
