@@ -5,7 +5,8 @@
  *   node scripts/design/session-b-shots/admin-money.mjs [--base http://127.0.0.1:3177]
  *
  * Shoots /preview/session-b/admin-money/{money,escrow,supply,bookings,payments}
- * in both fixture states (`full`, `live`) at 1440 and 390, dark and light, full
+ * in both fixture states (`full`, `live`) at 1440 and 390, dark only (light mode
+ * was removed by the founder on 23 September), full
  * page, into docs/design/proofs/session-b/admin-money/, then draws each governing
  * render panel beside the built 1440 dark page. Run from the repository root.
  */
@@ -59,7 +60,7 @@ let shots = 0;
 for (const desk of DESKS) {
   for (const state of ["full", "live"]) {
     for (const width of [1440, 390]) {
-      for (const theme of ["dark", "light"]) {
+      for (const theme of ["dark"]) {
         await shoot(`${BASE}/preview/session-b/admin-money/${desk}?state=${state}`, `${OUT}/${desk}-${state}-${width}-${theme}.jpg`, width, theme);
         shots += 1;
       }

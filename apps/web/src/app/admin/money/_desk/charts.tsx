@@ -20,7 +20,7 @@ import { ChartReadout, type ReadoutColumn } from "./ChartReadout";
  * lightness rather than opacity, because opacity steps on one blue read as
  * one colour at a glance (measured on the first proof: three donut slices
  * were indistinguishable). Rank 0 is the largest or the first series. Every
- * rung is a semantic token with a light-theme twin.
+ * rung is a semantic token.
  */
 const RAMP = [
   "var(--nf-brand-primary)",

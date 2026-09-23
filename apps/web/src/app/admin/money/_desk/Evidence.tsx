@@ -17,8 +17,8 @@ import { CalmNote, Waiting } from "./Desk";
 
 /** The thirteen facts, in an operator's words. */
 const FACT_LINE: Record<string, string> = {
-  viewing_attended: "The viewing happened",
-  viewing_missed: "The viewing did not happen",
+  viewing_attended: "The inspection happened",
+  viewing_missed: "The inspection did not happen",
   keys_received: "The keys were handed over",
   keys_not_received: "The keys were not handed over",
   agreement_signed: "An agreement was signed",
