@@ -1,5 +1,162 @@
 # Session B closing audit
 
+Two runs. The second run (23 September, on `625e47c6`, with Wallet and Send money on `62173c3e`) is first. The first
+run (22 September, on `486cb23`) is kept unchanged below it.
+
+# SECOND RUN, 23 September, `main` at `625e47c6` (Wallet and Send money at `62173c3e`; R12 re-checked at `57df9fe9`)
+
+Auditor: Session B worker "auditor". I changed no product code. I rebuilt the
+worktree `wt-auditor` at `625e47c6`, served it with
+`VALLO_PREVIEW_HARNESS=1 npx next start -p 3181`, and swept it myself from the
+committed harnesses. I read the lead's rulings R-A to R-G (ledger section 0,
+`4e41679d`) and judged against them: where a ruling settles a choice, that
+choice is not failed again. The live database was read with SELECT only:
+64 published listings, all 64 examples, 7 accounts, 1 open risk alert.
+Wallet and Send money were added when their round closed. I pulled `62173c3e`,
+rebuilt, and swept and judged them the same way.
+
+## Result
+
+| Surface | Owner | Second run | Remaining reasons, exactly |
+|---|---|---|---|
+| Profile | profile | **PASS** | None blocking. Tidy-up: ledger 1.2 "Broken or weak links" still lists 1b and 1c as open, although both are withdrawn and done. |
+| Get started | welcome | **FAIL** (narrow) | (1) The Skip text role has no measured size or weight on the image side ("small, quiet"), and the button label is "~16px". R-A requires every text role at its measured size. (2) The coin rim is a flat band of colour; the render's rim carries a highlight streak and white lips (the ledger's own row says "close"). |
+| Welcome back | signin | **FAIL** | (1) A crop seam: in `signin-390-dark.jpg` a darker rectangle sits behind the lockup (about 158 x 155 CSS px round the tile and wordmark). CROP_RULE says "no visible box or seam". (2) The stage ends in a hard horizontal edge under the floor reflection, with a flat navy band below it, and dark vertical strips at both sides of the floor. The render's lake runs to the foot. (3) Stale text: the "Glow identity" paragraph still says the card corner is 22px and 24 CSS; table 3(b) says 18 and 16. |
+| Inspections | inspection | **FAIL** | (1) Title colour: the render's second word, "Inspection", is electric blue. The built title reads white, and the round-three table has no colour row for it. (2) The phone number is replaced by a glyph. R-C says a string that cannot fit wraps before the container grows; it does not say the string disappears (it now lives only in the accessible name). (3) The row plates are 24 of 32 CSS px and dim. The render's plates are lit discs with bright cyan glyphs, which the side-by-side shows plainly. (4) The card corner is 14 on a 94px card (0.15) against the render's 0.11. The reason given, "the 14 rung is the smallest container radius that is not a control's", is not true: the console's containers use `--nf-radius-sm` (10). (5) R-G: the in-shell first-screen proof `inspection-390-dark-first-screen-in-shell.jpg` came from an uncommitted copy of the harness. |
+| Admin shell, overview, operations, analytics | admin-shell | **FAIL** | (1) The database now has 12 pg_cron jobs, not 8. The four new ones are `vallo_escrow_book_the_float` `5 3 * * *`, `vallo_escrow_invariants` `23 * * * *`, `vallo_sweep_price_check_events` `40 3 * * *` and `vallo_sweep_price_check_watches` `50 5 * * *`. None is in the handbook's job table (section 13), which still says "eight" at line 1038. The In flight panel's copy (`admin.shell...inflightEachOfTheEightDatabase`) and request A5's text also say eight. (2) Stale ledger: 6.2's Operations row gives the KPI corner as "deliberately the console's 14"; 6.4a says "14px corners"; the shell is now 10. (3) R-G: 6.6 says the proofs come from the uncommitted `(dev)/preview/sbadmin/**`, not the committed `session-b/admin`. Five proofs (`analytics-1440-light-empty`, `operations-390-light`, `operations-inflight-1440-light`, `operations-notifications-1440-dark`, `overview-heading-to-1440-dark`) predate the 10px change `66c2ecf5`. `overview-390-dark-fixture` also predates the landing change. (4) The rail is a box that ends under All desks, about a third of the page down (visible on Operations, Money, Escrow and Listings). On every render the rail is a full-height lit column. (5) The side-by-sides are darker and flatter than the renders: the renders' panels, rail edge and status badges are bright, and the badges are filled. The ledger measures glow on `5EAA44CB` only. |
+| Admin landing by address (R-E) | admin-shell | **PASS, with two notes** | `EntryGate` catches every `/admin/<desk>` without the session cookie `nf_admin_entry` and replaces the address with `/admin?next=<desk>`. The overview offers the desk first. This covers a typed address, a bookmark and the sign-in bounce, and 4 unit tests cover it. Notes: (a) the redirect runs in the browser. With JavaScript off, the page shows "Opening the overview first." and no link, which is a dead end. (b) The server still renders the desk, and its data rides in the RSC payload. That is harmless for an admin, but the first request is not literally "sent to /admin". |
+| Admin review desks | admin-review | **FAIL** | (1) Coverage: `public.listing_mandates` is a review queue on no desk. It has `review_status` pending/approved/rejected, a rejection reason of at least 8 characters, and `kind` letting/sale/management. No app code reads or writes it yet (0 rows; only `database.types.ts` names it), so it is on no desk, and the ledger does not say so. (2) The committed `sbs-review.jpg` shows the Location panel as an empty navy square with a pin (no tiles), and the walkthrough tile reads "This walkthrough could not be opened". The render draws a street map and a playable tile. Either re-shoot with tiles and video reachable, or record in 7(b) that the proof shows the failure state. (3) The rail box, as for the shell. (4) Recorded, not failing: desk copy is English literals. |
+| Admin money desks | admin-money | **FAIL** | (1) Closed while this run was being written: main was red on `agent-badge-derivation.test.ts` because `lib/admin/reads/supply.ts` read `agents.verified`. `33c537e0` (R12 closed) moved the read to the published badge, and both tests pass here on `57df9fe9` (15 passed). (2) Coverage: `escrow_evidence` (the dispute's files and facts, commit `b1bafcc7`) is not on the ruling panel. An operator rules on a dispute without seeing the evidence the platform now holds. (3) Coverage: `escrow_float_snapshots` (the float identity the new `vallo_escrow_book_the_float` job books) and `firm_members` (pending/active/revoked staff of a firm, a supply role) are on no desk. (4) Visual: the rail box and flatness, as for the shell. Table and ledger density are stated departures. |
+| Wallet | wallet | **FAIL** (narrow) | (1) A claim is left in the wallet: the settings sheet (the Quick Actions "Settings" card) is headed "How your money is protected" (`components/app/wallet/WalletSettingsSheet.tsx:82`). Its two rows are true: the writes are server-only, and the ledger is kobo-exact and permanent (no delete function, no delete policy, `ON DELETE RESTRICT`, read in `pg_proc` and `pg_constraint`). But "protected" is the security claim the render's "Your money is safe" made. Retitle it to what the rows say, for example "How your wallet is kept". Everything else closes. The `TrustStrip` claims are gone from the component and from all four locales (`d84a4832`; `/preview/e/wallet` now renders "How your wallet works"). The proofs show the settled balance (₦245,680.00). The frozen mid-roll frame (`wallet-roll-frozen-midway.png`, zoomed 3x here) clips each digit to its own band, with no overlap with the naira sign. The figure is 33px from a measured digit cap of 24.0 CSS px, which matches. The card keeps the tight halo only, which also matches: the render's page reads (0 7 37) right up to the rim. `wallet-side-by-side.jpg` exists. Chain: W2 (publish `wallet_entries`) is named, and it is a migration. |
+| Send money | wallet | **FAIL** (narrow) | (1) The form panel's corner is 14px against the render's measured 10 to 12. The ledger's row says "Near" and gives the reason "the money family's one card corner". No rule forces that: `--nf-radius-sm` (10) is a container rung the console already uses. Everything else closes. The W1 chain is marked FIXED against `7763ff39` (`transferToUser` inside `withIdempotency`, `transfer-idempotency.test.ts`), plus a same-frame client latch (`submit-guard.ts`, `8c93b285`). `send-side-by-side.jpg` and `send-1280-dark.jpg` now exist. Every text role has a measured row. `walletSend.tagline` now carries "Wallet to wallet, by email". The "Sends to" row and "After this send" are real function, drawn in the rows' register (R-F). |
+| Welcome email | email | **PASS** | Both first-run statements were rewritten with evidence (ledger 10, "Evidence for every statement"). The new line "Once a person at Vallo has checked your identity, your listings carry the verified tick" holds: `agent_badges.verified := verification_tier >= 1`. |
+| Handbook `docs/ADMIN_CONSOLE.md` | admin-shell, admin-review, admin-money | **FAIL** | Section 15 is now full: every desk has shows, sources, actions, effects and limits. Still missing: (1) the 12 pg_cron jobs (above); (2) "Rejected" on 15.9 Around and 15.14 Reference data, and "Limits" on 15.12 Audit log; (3) nothing on `listing_mandates`, `firm_members`, `escrow_evidence`, `escrow_float_snapshots` or `price_check_events`, not even in 15.16 "What no desk shows yet". |
+
+**The shape sweep is at zero.** R-D counts 0.35 and above as a failure, and
+nothing reaches it.
+
+**Claims are clean except one wallet heading** (above). `TrustStrip`'s "256-bit TLS", "Encrypted in transit" and
+"Your money is safe" are gone from the dictionary (`d84a4832`). There is no
+NDIC, airtime, bills, swap, "reimagined" or demo copy. There are no em dashes
+in the files, the locales or this session's commits.
+
+## B2. Shape sweep, from the committed harnesses
+
+`node scripts/design/compare-surface.mjs --base http://127.0.0.1:3181 --shape-sweep --routes <route> --theme both`,
+one route per run, 390 and 1536, dark and light. Every route answered 200. I
+checked the `h1` on four of the harnesses to be sure a real page was measured.
+
+| Route | Breaches | Over 0.35 | Round icon-only |
+|---|---|---|---|
+| `/welcome`, `/sign-in?welcomed=1`, `/sign-in/email`, `/sign-up?welcomed=1`, `/sign-up/email`, `/forgot-password` | 0 | 0 | 0 |
+| `/preview/session-b/welcome` (member, `?viewer=guest`, `?viewer=done`) | 0 | 0 | 0 |
+| `/preview/session-b/profile` (member, `?v=nohandle`, `?v=signedout`) | 0 | 0 | 0 |
+| `/preview/session-b/signin` (chooser, `?state=google`, `none`, `refused`) | 0 | 0 | 0 |
+| `/preview/session-b/inspection` (requester, `?side=lister`, `?side=lister&state=REQUESTED`) | 0 | 0 | 0 |
+| `/preview/session-b/admin/{overview,analytics}`, `operations` and its five tabs (`jobs`, `alerts`, `audit`, `notifications`, `inflight`) | 0 | 0 | 0 |
+| `/preview/session-b/admin-review/{listings,review,moderation,kyc}`, with `?empty=1` where there is one | 0 | 0 | 0 |
+| `/preview/session-b/admin-money/{money,escrow,supply,bookings,payments}`, live and `?state=full` | 0 | 0 | 0 |
+| `/preview/session-b/wallet`, `/wallet/send`, `/wallet/send-filled`, and Session A's `/preview/e/{wallet,send,receive,transactions,receipt,wallet-topup}` (on `62173c3e`) | 0 | 0 | 0 |
+| Session A's admin harnesses `f5/admin-{frame,queue,overview,desks}`, `bd/{alerts,reservations,payments,refunds}`, `bc/audit`, `p3/admin-businesses`, `c1/listing-review` | 0 | 0 | 0 |
+
+That is 64 route variants, all at 0 / 0 / 0. The 128 at 0.35 from the first
+run are gone: the chip and the queue search are on `--nf-radius-sm` in
+`2fc66f60`. The signed-in routes still redirect to sign in, so those surfaces
+still have fixture-only proof. The harnesses are now committed, so anybody can
+reproduce every figure here.
+
+## C2. Admin landing, re-read
+
+Code path: `proxy.ts` (unchanged; a signed-out request goes to
+`/sign-in?next=/admin/<desk>`) -> sign in returns to the desk ->
+`app/admin/layout.tsx` compares the `nf_admin_entry` cookie with
+`access.user.id` -> `_components/EntryGate.tsx` calls `entryRedirect(path,
+search, entered)`. With no entry it renders the status line and calls
+`router.replace('/admin?next=<desk>')`. On `/admin` it writes the session
+cookie, and `page.tsx` passes `safeDesk(next)` to `OverviewView` as
+"You were heading to". Nothing bypasses it except a browser without
+JavaScript, which sees the status line with no link. Verdict: the rule is met
+for every real entry. Two notes: add a plain link in the status line so no
+browser is stranded, and optionally do the redirect on the server.
+
+## D2. Per surface, the three largest remaining differences (my own reading)
+
+**Profile** (`profile-side-by-side-390-dark.jpg`, after round four). (1) The
+glyphs inside the plates read a little smaller than the render's, which fill
+their squares. (2) The row foot's light band is slightly quieter than the
+render's, though the samples are within 10 per channel. (3) The top band
+belongs to the header by design, and the render's back square is dropped
+(recorded). None of these is a resemblance; the page is the image.
+
+**Get started** (`welcome-render-vs-built-390.jpg`,
+`welcome-coin-render-vs-built-3x.jpg`). (1) The coin rim is a flat blue band
+with no highlight. (2) The active dot is ice, not the render's cyan (refused
+under the colour law, recorded). (3) The button core is less violet (the token
+limit, recorded). Only (1) is fixable inside the rules.
+
+**Welcome back** (`signin-vs-55A56F21-390.jpg`, and the 390 proof brightened
+to show the seams). (1) The box behind the lockup. (2) The stage's lower edge
+and its side strips; the floor does not run to the foot. (3) The card is 309
+tall against 240 at the render's scale (R-B, 44px controls, accepted), so the
+plinth sits higher up the screen than drawn.
+
+**Inspections** (`inspection-render-vs-built-390-dark.jpg`). (1) The title's
+blue second word is missing. (2) The row plates are small and dim. (3) The
+phone number is gone from the info row. The overall height now matches
+(1.02), and the outcome row is compact (R-F).
+
+**Admin shell** (`side-by-side-overview.jpg`, `side-by-side-operations.jpg`,
+`operations-inflight-1440-dark.jpg`). (1) The short rail box. (2) Less light:
+the renders' panels, rail edge and open row glow brighter, and the built
+3px halo is fainter than they look. (3) Status badges are small outlined
+chips where the renders draw filled, tinted badges.
+
+**Admin review** (`sbs-listings.jpg`, `sbs-review.jpg`). (1) The empty map and
+the failed walkthrough in the review proof. (2) The short rail. (3) The
+listing table is denser and smaller than the zoomed render, a scale choice
+the ledger records.
+
+**Admin money** (`side-by-side-money.jpg`, `side-by-side-escrow.jpg`). (1) The
+short rail. (2) The panels are flatter than the render's lit cards. (3) The
+`full` fixture's Wallets panel says "Nobody has a wallet yet" beside a ledger
+full of entries, so the proof contradicts itself (fixture only).
+
+**Wallet** (`wallet-side-by-side.jpg`). (1) The resting tiles wear a bright
+lit outline all round, where the render's are darker glass with a soft inner
+rim. (2) Text at the 11px floor makes the transaction rows and badges read
+larger than the render's 7.5 to 10px (R-A, accepted). (3) The shell's header
+row replaces the render's (chrome, accepted). Only (1) is a styling choice,
+and the ledger's "Resting tile" row calls it a match. Minor.
+
+**Send money** (`send-side-by-side.jpg`). (1) The panel corner (above).
+(2) The reassurance card is three lines at 11px, where the render has one
+slim strip (true words at the floor, accepted). (3) The added "Sends to" and
+"After this send" lines make the form taller (R-F, accepted).
+
+## E2. Coverage, re-checked against the live schema
+
+| Item | First run | Now |
+|---|---|---|
+| Inspections, 6 states and outcome | MISSING | Operations > In flight, exact counts by state (`inspection_requests_select_admin`) |
+| Held events | MISSING | Moderation: listed; cannot be decided (AR-10, Session A's `decideHeldItem`) |
+| Blocked terms | MISSING | Moderation: a panel says the list cannot be read (AR-11: RLS on, no policy) |
+| Account deletions, business transfers | MISSING | In flight panels name A12 and A13; still no admin policy (`pg_policies`: none) |
+| Notification kinds (8) | MISSING | Still A6; listed on the tab, not counted |
+| pg_cron per job | Partial (8) | Partial, and now **12 jobs, of which the console and handbook name 8** |
+| Reconciliation watch | MISSING | Still request 10; a panel on In flight says so |
+| Escrow `agency_fee`, `CANCELLED` | handbook gap | Counted on the escrow desk and in the handbook |
+| Tenancy charges (`rent_payments`) | not mapped | Money > Tenancy charges (`rent_payments_admin_select`) |
+| `listing_mandates` (review queue) | not found in the first run | **MISSING** (admin-review) |
+| `firm_members` (pending/active/revoked) | not found in the first run | **MISSING** (admin-money, supply) |
+| `escrow_evidence` | new since the first run | **MISSING** on the ruling (admin-money) |
+| `escrow_float_snapshots` | new since the first run | **MISSING** (admin-money) |
+| `price_check_events` (stage, outcome; admin read policy exists) | new since the first run | **MISSING** from Analytics. It is the first real demand log, the thing A7 asked for (admin-shell) |
+
+The remaining rows of the first run's map (queues, money paths, supply roles,
+verification rungs, listing states, bookings, alerts) still hold.
+
+# FIRST RUN, 22 September, `main` at `486cb23` (kept as written)
+
 Auditor: Session B worker "auditor". Read only: no product file was changed.
 Audited on 22 September 2026 against `main` at `486cb23` (worktree
 `wt-auditor`, a production build of that commit served on port 3181 with
