@@ -7332,3 +7332,69 @@ The fix is one condition, and the reconcile route already returns
 `{"ok":true,"apply":true,...}` through its own envelope, so a body test is
 available. I have not changed it: it is not my function and the money jobs are
 somebody else's to reason about. **Raised rather than done, and raised loudly.**
+
+---
+
+## 61. ESCROW3, BLOCK 3: THE RELEASE CONDITION, AS A DECISION AND NOT A BUILD
+
+`docs/escrow/RELEASE_CONDITION.md`. Research 4.2 asks the compose sheet for a
+release condition chosen from a short list. ADR-E1 section 5 deferred it
+because "a list invented today would be a list the adjudication desk has never
+had to read". **Nothing is built and no vocabulary is invented.**
+
+### 61.1 The finding the paper turns on
+
+**Vallo cannot observe a single one of the events an agency fee waits on.**
+Not a viewing, not a signed tenancy, not keys changing hands. There is no
+signing integration, no gating inspection, no third party reporting. So:
+
+> A release condition cannot be a trigger, because there is nothing to trigger
+> on. It can only be a statement of what the money is for, recorded while both
+> people still agree, and read by whoever has to decide later.
+
+Anything built on the other premise is an automation whose sensor is a person
+pressing a button, and that sensor already exists and is called confirmation.
+**This reframes 4.2's ask from an automation feature into an adjudication
+feature**, which is what makes the smallest version one column.
+
+### 61.2 The vocabulary is not invented, it already ships
+
+`copy.ts` already carries a CLOSED SET OF THIRTEEN FACTS, mirrored by a
+database enum and by check constraints, and they are already what a disputing
+party files and what the desk reads. Four of them are candidate agency fee
+completions: `agreement_signed`, `keys_received`, `service_delivered`,
+`viewing_attended`. A condition drawn from that same set means the condition at
+proposal time and the evidence at dispute time are THE SAME WORD, and the
+negative halves already exist, so the shape of a disagreement is two facts from
+one pair filed by the two sides. **No list was made up.**
+
+### 61.3 What the paper refuses, and the one that matters most
+
+Five options refused with the harm named. The dangerous one is **a condition
+the platform claims to verify**: "releases when the tenancy agreement is
+uploaded". Uploading a PDF is not evidence a tenancy was signed, and a release
+triggered by a file arriving is a release triggered by whoever can put a file
+in a bucket, which after the 23 September evidence work is either party, into
+their own folder. **It converts a document into a payment instruction, and
+silently, because the person uploading believes they are filing evidence.**
+
+The others: free text (a contract term drafted by one party in a thread, and
+the only shapeless field on the surface, which is where an account number or a
+custody claim gets typed and then rendered by us); a third party as the
+condition (money held indefinitely in a float the company has not established
+it may hold); a negative condition (the auto-release window restated as an
+agreement, printing a second countdown); and more than one condition per
+agreement (the desk adjudicating a boolean expression written by a layperson).
+
+### 61.4 Named deliberately and left open
+
+- **A met condition does not pay anybody early.** The window stays the only
+  clock. Changing that would be the first mechanism in this product where one
+  person's own assertion moves money, and the paper says it must be decided as
+  that rather than as a convenience.
+- **An unmet condition is not a reason to keep holding**, for the custody
+  reason in ADR-E1 section 3.
+- **Version zero is named and costed**: no column at all, one derived sentence,
+  since only one purpose is open. Its weakness is written down rather than the
+  column being half built.
+- Four decisions are handed to the founder and none of them can be taken here.
