@@ -1766,7 +1766,7 @@ harness. Font size from cap height / 0.72 (R-A).
 | Property details | icon, label in blue, value right | 16px line icons, blue labels, values right, rows 34 tall | yes |
 | Power and water | glass plates 32 with glyph | 32px plates on `--nf-admin-tile-edges`, lit; bolt, bolt, and a stroked water drop drawn in the line tier | yes; the identity pack's `water-drop-plinth` is a glass object and the plates carry line glyphs, so a glass object would break the set |
 | Amenities | tick rows | tick rows from `amenities.label` | yes |
-| Location | dark map with pin, place label, "View on map" | real tiles from `lib/maps/tiles.ts` (dark and paper sets), pin, place, credit | "View on map" not drawn (it would leave Vallo) |
+| Location | dark map with pin, place label, "View on map" | real tiles from `lib/maps/tiles.ts` (dark set), pin, place, credit | "View on map" not drawn (it would leave Vallo) |
 | Move-in costs | lines + "Total to move in" | lines each naming its payee + total, stated or summed | deliberate: payee added (R5, rule 15) |
 | Lister verification | avatar, name, role tag, Verified, "ID verified, Bank verified" | same from `agents` and the rungs | yes |
 | Reason for review | one sentence | the status in words, every failing check, last note | yes, real |
@@ -1800,13 +1800,13 @@ harness. Font size from cap height / 0.72 (R-A).
 
 Side-by-side proofs (render left, built right, re-shot after the last change):
 `docs/design/proofs/session-b/admin-review/sbs-listings.jpg`,
-`sbs-review.jpg`, `sbs-moderation.jpg`, `sbs-kyc.jpg`. Desktop, phone and paper:
-`<desk>-1440-dark.jpg`, `<desk>-1440-light.jpg`, `<desk>-390-dark.jpg`,
-`<desk>-390-light.jpg` for listings, review, moderation, kyc;
+`sbs-review.jpg`, `sbs-moderation.jpg`, `sbs-kyc.jpg`. Desktop and phone, dark only:
+`<desk>-1440-dark.jpg`, `<desk>-390-dark.jpg` for listings, review,
+moderation, kyc;
 `listings-1536-dark.jpg`; the review page's two failure states (a walkthrough
 that could not be signed, a listing with no pin) in
 `review-failure-states-1440-dark.jpg`; the empty state as it is live today:
-`listings-empty-1440-dark.jpg`, `listings-empty-1440-light.jpg`,
+`listings-empty-1440-dark.jpg`,
 `moderation-empty-1440-dark.jpg`, `kyc-empty-1440-dark.jpg`. ALL FIXTURE-BACKED
 (R-G): harness `/preview/session-b/admin-review/<desk>` (`?empty=1`), real
 components, invented figures that never reach a database. THE MAP TILES IN
@@ -1835,15 +1835,9 @@ a line water drop; panels on the shell's reconciled 10px corner and glow
 
 ### (c) Light mode
 
-Every rule in `review.css` has a paper twin under `:root[data-theme="light"]`:
-panels take the shell's paper `--nf-admin-panel-fill` and edges (the same
-variables), tabs, pager, back and quiet buttons white with the brand edge,
-the active tab and page keep the brand fill with white type, badges a 12 per
-cent tone wash with dark tone ink (the moved daylight state tokens, not a
-re-derived hex), plates and avatars pale brand wells with brand ink (no dark
-tile on white), map tiles switch to the provider's light set, glows off.
-Checked on `*-1440-light.jpg` and `*-390-light.jpg`: no white-on-white, no
-vanishing text, the empty calm note readable.
+Light mode removed by the founder on 23 September; dark only. Every paper rule
+left `review.css`, the map draws only the dark tile set, and the light proofs
+were deleted (67b3c88).
 
 ### (d) Shape sweep (R-D)
 
