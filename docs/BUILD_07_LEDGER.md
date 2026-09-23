@@ -9393,7 +9393,7 @@ selector and false sentences about the product.
 object IS, so the same selector finds the one in `PageHeader` too". It was
 right about the principle and it was applied to two components out of seven.
 
-Four of the five are marked. `InspectionSheet.tsx` is Session B's and is R16
+Four of the five are marked. `InspectionSheet.tsx` is Session B's and is R18
 below.
 
 ### 63.3 THE DOOR WAS POINTING AT A REDIRECT
@@ -9536,7 +9536,7 @@ reachable all along, drew nothing, and is now fixed and walked. `/checkout`
 never renders: with no `stay` in the query it redirects to `/stays`, which is
 its declared parent anyway. `/inspections` and `/assistant` need a session on a
 keyed build; on a keyless build `/assistant` draws and lands correctly and
-`/inspections` draws nothing, which is R16.
+`/inspections` draws nothing, which is R18.
 
 ### 63.9 Deliberately left, with the reason
 
@@ -9565,9 +9565,21 @@ session's file and not touched; named here for whoever holds push.
 
 ---
 
-## 49quater. R16 AND R17 TO SESSION B
+## 49quinquies. R18 AND R19 TO SESSION B
 
-**R16. `components/app/inspections/InspectionSheet.tsx` needs one attribute,
+*Numbered R18 and R19, and the heading is `49quinquies`. They went out in
+`a708a7d5` as R16 and R17 under a `49quater` heading, and BOTH were already
+taken: R16 names the badge derivation at line 7127 AND the bank send contract
+at the other `49quater`, and R17 was free only by accident. **There are three
+R16s in this file and two 49quaters.** Workers are numbering requests from
+whatever they last read, in a file six people append to, so collisions are the
+default rather than the accident. A request nobody can address by name is a
+request that does not arrive. The convention that would fix it is one line:
+take the next number by grepping `\*\*R[0-9]` across the whole file
+immediately before writing, and never from memory. This one did that on the
+second attempt.*
+
+**R18. `components/app/inspections/InspectionSheet.tsx` needs one attribute,
 and without it nobody can prove the inspection surface has a way back.**
 
 It calls `useBack` and draws an arrow, so the behaviour is right. It does not
@@ -9589,7 +9601,7 @@ back control, and nobody can tell from a browser whether that is true of the
 surface or only of the selector. `/assistant` was on the same list for the same
 reason and draws one.
 
-**R17. The console's back control is mounted and has never been seen.**
+**R19. The console's back control is mounted and has never been seen.**
 
 R14 is answered in source: `app/admin/layout.tsx:68` mounts
 `<BackButton fallback="/admin" ... />` into `AdminFrame`'s `back` slot, and
