@@ -1,4 +1,4 @@
-import { readdirSync, statSync } from "node:fs";
+import { existsSync, readdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -167,5 +167,82 @@ describe("every declared parent is a place that exists", () => {
       if (!served(target.href)) broken.push(`${pattern} -> ${target.href}`);
     }
     expect(broken).toEqual([]);
+  });
+});
+
+/**
+ * A PREVIEW DECK WITH NO INDEX IS A BACK BUTTON THAT GOES NOWHERE.
+ *
+ * Every screen at `/preview/<deck>/<screen>` declares `/preview/<deck>` as its
+ * parent. Four decks had no `page.tsx` there, and on this deployment an unknown
+ * path answers **HTTP 200 with the site shell** rather than 404, so the failure
+ * looked like a page. That is why this is a test and not a note: the browser
+ * cannot tell you, and neither can a status code.
+ *
+ * The rule is deliberately about DIRECTORIES rather than about the route map,
+ * so it fails the moment somebody creates a folder, before any map is edited
+ * and before anybody opens the deck. Directories beginning with `_` are not
+ * routes and are not asked.
+ */
+describe("every preview deck serves its own index", () => {
+  const PREVIEW = join(APP, "(dev)", "preview");
+
+  /**
+   * THE ONE EXCEPTION, NAMED RATHER THAN HIDDEN IN A PREDICATE.
+   *
+   * `session-b` is not a deck. It is the namespace holding Session B's fifteen
+   * decks, and its tree is theirs under lead ruling R-G, so Session A does not
+   * write a file into it. R23 in `docs/BUILD_07_LEDGER.md` asks them for the
+   * index. **When that lands, this list goes back to empty and stays empty.**
+   */
+  const NOT_MINE_TO_WRITE = new Set(["session-b"]);
+
+  /** Every directory under the preview tree, deck-relative, excluding `_` ones. */
+  function decks(dir: string, prefix: string[], out: string[]) {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (!entry.isDirectory() || entry.name.startsWith("_")) continue;
+      const here = [...prefix, entry.name];
+      out.push(here.join("/"));
+      decks(join(dir, entry.name), here, out);
+    }
+    return out;
+  }
+
+  /** Does any route file live at or beneath this directory. */
+  function holdsARoute(dir: string): boolean {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isFile() && (entry.name === "page.tsx" || entry.name === "route.ts")) return true;
+      if (entry.isDirectory() && !entry.name.startsWith("_") && holdsARoute(join(dir, entry.name))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  it("finds the preview tree at all, so an empty walk cannot pass as coverage", () => {
+    const found = decks(PREVIEW, [], []);
+    expect(found.length).toBeGreaterThan(20);
+    expect(found).toContain("e");
+  });
+
+  it("serves a page at every directory that has screens under it", () => {
+    const missing: string[] = [];
+    for (const deck of decks(PREVIEW, [], [])) {
+      if (NOT_MINE_TO_WRITE.has(deck)) continue;
+      const dir = join(PREVIEW, ...deck.split("/"));
+      if (!holdsARoute(dir)) continue;
+      if (!existsSync(join(dir, "page.tsx"))) missing.push(`/preview/${deck}`);
+    }
+    expect(missing).toEqual([]);
+  });
+
+  it("names nothing in the exception list that has since been fixed", () => {
+    /* The half that stops the exception outliving its reason. A deck that grew
+       its own index must leave this list, or the list quietly becomes a place
+       things are hidden. */
+    const stale = [...NOT_MINE_TO_WRITE].filter((deck) =>
+      existsSync(join(PREVIEW, ...deck.split("/"), "page.tsx")),
+    );
+    expect(stale).toEqual([]);
   });
 });

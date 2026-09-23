@@ -11280,3 +11280,29 @@ provider accepting the message and not an inbox rendering it, and the outbox
 keeps no provider message id, so we cannot go back and ask about a specific
 one. A2 and `BUILT_VS_PROVEN` were corrected from the rows within fifteen
 minutes of being written from the earlier rows.
+
+---
+
+## 49undecies. R23 TO SESSION B: `/preview/session-b` SERVES NOTHING
+
+One file, and it is in your tree so I have not written it.
+
+`apps/web/src/app/(dev)/preview/session-b/` holds fifteen decks and **no
+`page.tsx`**. Every screen beneath it that declares `/preview/session-b` as an
+ancestor leads to a path this deployment answers with **HTTP 200 and the site
+shell**, which is why nobody has noticed: it does not look like a 404 because
+it is not one.
+
+I fixed the same fault on the three decks in my half today (`b1b`, `c1`,
+`imgc`) and added the guard that stops it recurring:
+`lib/nav/route-files.test.ts`, "every preview deck serves its own index". **It
+fails the moment a directory is created under the preview tree without an
+index**, which I proved by creating one and watching it go red.
+
+`session-b` is the one named exception in that guard, with your name and this
+request written beside it, and a second assertion that fails if the exception
+outlives its reason. **Write the index and the exception goes; it is the last
+entry and the list is meant to be empty.**
+
+The three I wrote are 35 lines each: a list of the child screens as links.
+Copy one if it helps.
