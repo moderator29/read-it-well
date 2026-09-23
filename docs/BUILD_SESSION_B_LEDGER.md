@@ -5535,7 +5535,7 @@ production build (after: pass 3, the final CSS applied to the running build);
 | A made-up address (`@example.invalid`) and a wrong password: the real auth server refuses (`invalid_credentials`), drawn as "That email and password do not match. Check them and try again.", still signed out | LIVE PROVEN, same run, `sweep-auth/live/live-refused.png`; the raw reply captured separately: 400 `invalid_credentials` |
 | The no-account and Google-account lookups (`signup_method_for_email`) | NOT PROVABLE on this box: the function is service-role only and this box holds no service key; the page falls back to the ordinary step, as designed |
 | The rate limiter (`consume_rate_limit`) | NOT PROVABLE on this box, same reason: the limiter fails open without the service key, by design |
-| A real sign-in landing on `next` | WAITING ON QA ACCOUNTS: `tests/session-b-signin-live.spec.mjs --signed-in` reads `QA_MEMBER_EMAIL` / `QA_MEMBER_PASSWORD` from the environment and exits 2 until they exist |
+| A real sign-in landing on `next` | WAITING ON QA CREDENTIALS: the member account exists (created by the founder, 23 September 16:30), its password is not on this box. `QA_MEMBER_EMAIL=... QA_MEMBER_PASSWORD=... node tests/session-b-signin-live.spec.mjs --signed-in` signs in through the email-first door with `next=/wallet` and checks the landing and the session cookie; it exits 2 until the password is set. No magic link or reset is requested for the account |
 
 Note for anyone running it: the server needs `NODE_USE_ENV_PROXY=1` and
 `NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt` on this box, or Node's fetch
