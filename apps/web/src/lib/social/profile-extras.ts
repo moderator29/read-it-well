@@ -56,8 +56,14 @@ export type ProfilePlace = {
 };
 
 export type AgentTrust = {
-  /** 0 to 100, computed from real bookings and real message timings. */
-  score: number;
+  /*
+   * THERE IS NO SCORE (V-21). A number out of 100 collapsed the separate
+   * signals PRODUCT.md section 6 says must stay separate, and it counted
+   * "completed deals" only from stays, so every rental agent read that their
+   * work did not count. The column is gone from `public.agent_trust` and the
+   * field is gone from here, so no screen can print one.
+   */
+  /** Stays hosted through to check-out on this agent's listings. Rent lets are not counted here. */
   completedDeals: number;
   /** Already fit to print: "2 hrs", "40 mins", "Not yet". */
   responseTime: string;
@@ -213,9 +219,9 @@ export async function readStanding(
  *
  * `public.agent_trust(user_id)` returns **no row at all** for somebody who is
  * not an agent, which is how this decides whether the band is rendered rather
- * than asking a second question and hoping the two agree. A trust score of zero
- * and no trust score are very different claims, and an empty result is the
- * database saying the second one.
+ * than asking a second question and hoping the two agree. Zero stays and no
+ * row are very different claims, and an empty result is the database saying
+ * the second one.
  *
  * `response_minutes` is a median in minutes, and the band prints a duration, so
  * the conversion happens here: one place decides that 95 minutes reads as
@@ -232,15 +238,13 @@ export async function readAgentTrust(
     const row = Array.isArray(data) ? data[0] : data;
     if (!row) return null;
 
-    const score = Number(row.trust_score);
     const deals = Number(row.completed_deals);
-    if (!Number.isFinite(score) || !Number.isFinite(deals)) return null;
+    if (!Number.isFinite(deals)) return null;
 
     const minutes = Number(row.response_minutes);
     const rating = Number(row.average_rating);
 
     return {
-      score: Math.max(0, Math.min(100, Math.round(score))),
       completedDeals: Math.max(0, Math.round(deals)),
       responseTime: durationLabel(Number.isFinite(minutes) ? minutes : null),
       reviewCount: Math.max(0, Math.round(Number(row.review_count) || 0)),

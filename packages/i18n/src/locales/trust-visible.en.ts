@@ -67,6 +67,13 @@ export const trustVisibleEn = {
       },
     },
   },
+  /** V-21: the agent band on a profile, with no score in it. */
+  profile: {
+    reviews: "Reviews",
+    /** `{rating}` is the average to one decimal, `{count}` the number of reviews. */
+    reviewsValue: "{rating} from {count}",
+    staysHosted: "Stays hosted",
+  },
   /** V-05: the four questions a renter answers after an inspection. */
   truth: {
     title: "Four quick questions",

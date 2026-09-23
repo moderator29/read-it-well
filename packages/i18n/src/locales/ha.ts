@@ -361,7 +361,6 @@ export const ha: Dictionary = withFallback({
     posts: "Saƙonni",
     joined: "Ya shiga a {month}",
     editProfile: "Gyara bayanan martaba",
-    trustScore: "Makin amana",
     completedDeals: "Cinikin da aka kammala",
     responseTime: "Lokacin amsa",
     tabsLabel: "Abin da @{handle} ke da shi a shafinsa",

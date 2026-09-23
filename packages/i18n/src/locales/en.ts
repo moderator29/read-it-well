@@ -456,7 +456,6 @@ export const en = {
     posts: "Posts",
     joined: "Joined {month}",
     editProfile: "Edit profile",
-    trustScore: "Trust score",
     completedDeals: "Completed deals",
     responseTime: "Response time",
     tabsLabel: "What @{handle} has on their page",

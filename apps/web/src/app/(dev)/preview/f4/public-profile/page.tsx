@@ -58,7 +58,6 @@ export default function PublicProfilePreview() {
         ]}
         place={{ lga: "Eti-Osa", state: "Lagos", label: "Eti-Osa, Lagos" }}
         trust={{
-          score: 92,
           completedDeals: 41,
           responseTime: "2 hrs",
           reviewCount: 28,
