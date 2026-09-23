@@ -67,8 +67,18 @@ import type { BalanceBreakdown, EscrowLine, EscrowPurpose, EscrowState } from "@
  * ---------------------------------------------------------------------------
  */
 
-/** How the eight states read to somebody who is not reading the schema. */
+/**
+ * How the nine states read to somebody who is not reading the schema.
+ *
+ * Session A added `CANCELLED` here on 23 September because `EscrowState` began
+ * deriving from the database enum rather than a hand written copy, which made
+ * this map a compile error rather than a chip that would have rendered the raw
+ * column at a person. A red main outranks the scope split, so it was fixed
+ * rather than filed. Reword it freely: only the key must stay.
+ */
 const STATE_LABEL: Record<EscrowState, string> = {
+  /* Called off before any money was funded. Not a refund: nothing was held. */
+  CANCELLED: "Called off",
   INITIATED: "Agreed",
   FUNDED: "Funded",
   HELD: "Held",
@@ -86,6 +96,8 @@ const STATE_LABEL: Record<EscrowState, string> = {
  * state where the money has stopped and a person has to do something.
  */
 const STATE_TONE: Record<EscrowState, StatusTone> = {
+  /* Neutral, like REFUNDED: nothing went wrong and nothing is owed. */
+  CANCELLED: "neutral",
   INITIATED: "neutral",
   FUNDED: "info",
   HELD: "info",
@@ -101,6 +113,11 @@ const PURPOSE_LABEL: Record<EscrowPurpose, string> = {
   first_rent: "First rent",
   purchase_deposit: "Purchase deposit",
   purchase_balance: "Completion payment",
+  /*
+   * The ONE leg open under the purpose gate, and it was missing from this map
+   * while the other three, both of which the gate refuses today, were present.
+   */
+  agency_fee: "Agency fee",
 };
 
 export function BalanceBreakdownSheet({

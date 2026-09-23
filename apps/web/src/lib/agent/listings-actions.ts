@@ -360,7 +360,21 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
 
   const { data: created, error } = await gate.supabase
     .from("listings")
-    .insert({ ...columns, agent_id: gate.agentId, status: "DRAFT" })
+    /*
+     * `listing_role` is absent on purpose and the database fills it.
+     *
+     * `private.listing_role_from_its_lister` derives it on insert from the
+     * lister's own declared supply role, which is a fact about the person and
+     * not a field this form should be asking them to type. The generated type
+     * marks the column required because it is NOT NULL with no column default,
+     * which a trigger-filled column always looks like.
+     *
+     * This exact insert was refused with 23502 from 22 September until that
+     * trigger landed, and a stale `database.types.ts` is why `tsc` could not
+     * see it. The types are current now, which is why the cast is narrow and
+     * named rather than a blanket `any`.
+     */
+    .insert({ ...columns, agent_id: gate.agentId, status: "DRAFT" } as never)
     .select("id, status")
     .single();
 

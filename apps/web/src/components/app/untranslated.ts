@@ -78,6 +78,9 @@ export const ESCROW_STATE_WORDS: Record<
   RELEASED: "Released",
   REFUNDED: "Refunded",
   DISPUTED: "In dispute",
+  /* Agreed and then called off before any money was funded. Not a refund,
+     because nothing was ever held. */
+  CANCELLED: "Called off",
   RESOLVED: "Ruled on",
 };
 

@@ -303,3 +303,210 @@ function refusalMessage(raw: string): string {
   }
   return "We could not save that. Try again in a moment.";
 }
+
+/* ------------------------------------------------------------------ report */
+
+/**
+ * THE REPORT: EIGHT ROOMS, A NOTE, AND THE TICK THAT CLOSES THE INSPECTION.
+ *
+ * `F6A8A482` draws eight rows, a notes field and Add Photos. I1 in
+ * `docs/SESSION_B_SCOPE.md` asked for exactly this shape and Session B's
+ * screen is wired to it.
+ *
+ * NOTHING HERE DECIDES WHO MAY WRITE, AND THAT IS THE POINT. The same split
+ * the four actions above use: `inspection_reports_insert_party`,
+ * `_update_party` and their siblings decide who and when, and
+ * `private.inspection_report_submission` refuses a submission with fewer than
+ * eight ticks and closes the parent in the same transaction. This function
+ * validates a shape, names a row, and turns a refusal into a sentence.
+ *
+ * SO THE DISABLED SUBMIT BUTTON IS THE POLITE HALF OF A REAL RULE. Anything
+ * that can reach this action can call it with three rooms ticked; the database
+ * is what says no.
+ */
+const REPORT_ITEMS = [
+  "exterior",
+  "interior",
+  "kitchen",
+  "bathrooms",
+  "utilities",
+  "appliances",
+  "safety",
+  "overall",
+] as const;
+
+const saveReportSchema = z.object({
+  inspectionId: z.string().uuid(),
+  items: z
+    .array(
+      z.object({
+        item: z.enum(REPORT_ITEMS),
+        checked: z.boolean(),
+        note: z.string().trim().max(MAX_NOTE).optional().nullable(),
+      }),
+    )
+    .max(REPORT_ITEMS.length),
+  notes: z.string().trim().max(2000).optional().nullable(),
+  submit: z.boolean().optional(),
+});
+
+export type InspectionReport = {
+  inspectionId: string;
+  notes: string | null;
+  submittedAt: string | null;
+  items: { item: (typeof REPORT_ITEMS)[number]; checked: boolean; note: string | null }[];
+};
+
+export async function saveInspectionReport(
+  input: unknown,
+): Promise<ActionResult<InspectionReport>> {
+  const parsed = validate(saveReportSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return fail("Sign in to write this report.");
+
+  const { inspectionId, items, notes, submit } = parsed.data;
+  const db = session.supabase;
+
+  /* The report row is created on first save rather than when the inspection is
+     confirmed, so an inspection nobody wrote up carries no empty report. */
+  const { error: reportError } = await db.from("inspection_reports").upsert(
+    { inspection_id: inspectionId, author_id: session.user.id, notes: notes ?? null },
+    { onConflict: "inspection_id" },
+  );
+  if (reportError) return fail(reportRefusal(reportError.message));
+
+  if (items.length > 0) {
+    const now = new Date().toISOString();
+    const { error: itemsError } = await db.from("inspection_report_items").upsert(
+      items.map((row) => ({
+        inspection_id: inspectionId,
+        item: row.item,
+        checked: row.checked,
+        note: row.note ?? null,
+        /* `checked_at` is when somebody said yes, so it is cleared when they
+           change their mind rather than left pointing at a tick that is gone. */
+        checked_at: row.checked ? now : null,
+      })),
+      { onConflict: "inspection_id,item" },
+    );
+    if (itemsError) return fail(reportRefusal(itemsError.message));
+  }
+
+  if (submit) {
+    const { error: submitError } = await db
+      .from("inspection_reports")
+      .update({ submitted_at: new Date().toISOString() })
+      .eq("inspection_id", inspectionId);
+    if (submitError) return fail(reportRefusal(submitError.message));
+  }
+
+  const saved = await readReport(db, inspectionId);
+  if (!saved) return fail("We saved that but could not read it back. Refresh to see where it stands.");
+
+  revalidatePath("/inspections");
+  revalidatePath("/bookings");
+  revalidatePath("/agent/inspections");
+  return ok(saved);
+}
+
+/**
+ * A SIGNED PATH INTO THE PRIVATE BUCKET, AND THE PATH IS THE PERMISSION.
+ *
+ * `<inspection_id>/<uuid>.<ext>`, which is what
+ * `private.inspection_photo_path_access` reads: the first segment decides, so
+ * a person cannot upload into somebody else's inspection even holding a signed
+ * URL, and cannot read out of one.
+ *
+ * The extension is taken from a closed list rather than from the file name,
+ * because a name arrives from a browser and a bucket's mime rules are not a
+ * substitute for not trusting it.
+ */
+const PHOTO_EXTENSIONS = { jpg: "jpg", jpeg: "jpg", png: "png", webp: "webp", heic: "heic", pdf: "pdf" } as const;
+
+const photoUploadSchema = z.object({
+  inspectionId: z.string().uuid(),
+  extension: z.string().trim().toLowerCase().max(8),
+  item: z.enum(REPORT_ITEMS).optional().nullable(),
+});
+
+export async function createInspectionPhotoUpload(
+  input: unknown,
+): Promise<ActionResult<{ path: string; token: string }>> {
+  const parsed = validate(photoUploadSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return fail("Sign in to add a photo.");
+
+  const extension = PHOTO_EXTENSIONS[parsed.data.extension as keyof typeof PHOTO_EXTENSIONS];
+  if (!extension) {
+    return fail("That file type cannot be attached. Use a photo or a PDF.", {
+      extension: "Use a JPG, PNG, WEBP, HEIC or PDF.",
+    });
+  }
+
+  const path = `${parsed.data.inspectionId}/${crypto.randomUUID()}.${extension}`;
+  const { data, error } = await session.supabase.storage
+    .from("inspection-photos")
+    .createSignedUploadUrl(path);
+
+  if (error || !data) return fail(reportRefusal(error?.message ?? ""));
+  return ok({ path: data.path, token: data.token });
+}
+
+/**
+ * The row after the write, read back through the caller's own session so it
+ * carries exactly what that person is allowed to see.
+ */
+type ReportClient = {
+  from: (table: string) => {
+    select: (columns: string) => {
+      eq: (column: string, value: string) => Promise<{ data: unknown[] | null }>;
+    };
+  };
+};
+
+async function readReport(db: unknown, inspectionId: string): Promise<InspectionReport | null> {
+  const client = db as ReportClient;
+  const [report, items] = await Promise.all([
+    client.from("inspection_reports").select("inspection_id, notes, submitted_at").eq("inspection_id", inspectionId),
+    client.from("inspection_report_items").select("item, checked, note").eq("inspection_id", inspectionId),
+  ]);
+  const row = (report.data ?? [])[0] as
+    | { inspection_id: string; notes: string | null; submitted_at: string | null }
+    | undefined;
+  if (!row) return null;
+  return {
+    inspectionId: row.inspection_id,
+    notes: row.notes,
+    submittedAt: row.submitted_at,
+    items: ((items.data ?? []) as { item: string; checked: boolean; note: string | null }[])
+      .filter((i): i is { item: (typeof REPORT_ITEMS)[number]; checked: boolean; note: string | null } =>
+        (REPORT_ITEMS as readonly string[]).includes(i.item),
+      )
+      .sort((a, b) => REPORT_ITEMS.indexOf(a.item) - REPORT_ITEMS.indexOf(b.item)),
+  };
+}
+
+/**
+ * A report refusal, as a sentence somebody can act on.
+ *
+ * The eight-room rule is the one people will actually meet, so it says the
+ * number rather than "that could not be saved". The RLS refusals read as a
+ * missing row rather than as an error, which is why the closed-inspection case
+ * is phrased as a state and not as a permission.
+ */
+function reportRefusal(raw: string): string {
+  if (raw.includes("all eight rooms are checked")) {
+    return "Tick all eight rooms before you submit the report.";
+  }
+  if (raw.includes("row-level security") || raw.includes("violates row-level security policy")) {
+    return "This report cannot be changed now. It is either submitted already or the inspection is closed.";
+  }
+  if (raw.includes("inspection_reports_pkey")) {
+    return "A report for this inspection already exists. Refresh to see it.";
+  }
+  return "We could not save that. Try again in a moment.";
+}
