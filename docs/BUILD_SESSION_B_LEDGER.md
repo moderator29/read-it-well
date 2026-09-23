@@ -636,8 +636,8 @@ render's own midpoint (tile top 14.5 per cent to plinth foot 92.4, midpoint
 | Wordmark centre height | 37.4% | 38.6% (y 326) | yes |
 | Card top | 46.0% | 43.6% (y 368) | the slogan's line closed by half |
 | Plinth | 87.1 to 92.4%, 725 x 84 render, whole | 80.2 to 84.0% (y 677 to 709), 275 x 32, whole: x 58 to 333 | shape and size yes (render pixels); position follows the taller card |
-| Stage (sky, curtains, horizon, floor) | render | render pixels (`stage.webp`), 388 x 582, anchored at the card foot; a blurred copy of its sky above; the floor continues lit blue below | yes |
-| App tile + wordmark | tile 258, wordmark 382 x 70 | render crop 176 x 171: tile 98, wordmark 145 | yes (pixels); 464 source px for 528 device px at 3x (1.14x), under 1x at 2x |
+| Stage (sky, curtains, horizon, floor) | render | render pixels (`stage.webp`) at 388 x 582, on a 3072 x 2304 canvas drawn 1165 x 874: the render's light continued 1024 px each side and 768 below from just inside its own vignette, blurred and dimmed with distance, feathered only at the canvas's far edges. Measured: largest step between neighbouring 2 px samples in the side 30 px bands 6 (of 765) at 390 and at 430; no step under the plinth apart from the terms text; no hard edge at 1440 | yes, and no edge, band or strip in frame at 390 x 844, 430 x 932 or 1440 x 900 |
+| App tile + wordmark | tile 258, wordmark 382 x 70 | render crop 176 x 171: tile 98, wordmark 145; sky keyed out (floor 110), served as cut (`unoptimized`). Measured with the lockup shown and hidden: identical pixels outside the lit marks (#01298D / #01298D, #001C6F / #001C6F, #010D40 / #010D40), so no box | yes (pixels); 464 source px for 528 device px at 3x (1.14x), under 1x at 2x |
 | Slogan | "Real Estate reimagined!" | none | REFUSED (claims rule, founder) |
 | Card corner | 42 render = 16 | 18 (`--nf-radius-lg`) | +2, the nearest rung |
 | Card inset | 60 render = 23 | 23 sides and top, 16 foot | yes |
@@ -686,14 +686,17 @@ it. Derived from the phone; no desktop render governs it.
 ### Glow identity (`docs/design/GLOW_IDENTITY.md`, d01a5d7)
 
 The identity's structure is followed (lit edge as bands, lit primary with a
-bright top line and a bloom under it). Where 55A56F21 measures differently it
-wins on this surface, per the lead's instruction: the card's edge is the
-render's hot hairline over an electric band rather than the identity's four
-per-side colours, its glass is the render's #001554 rather than the
-identity's gradient of lit ink, and the Continue button keeps the render's
-white top hairline (#F6FEFE) and lit foot (#D7FAFE) rather than the
-identity's cyan edge. Card corner 22px against the identity's 12: the render
-measures 42 render px, 24 CSS.
+bright top line and a bloom under it, the top-centre highlight and the
+lit-ink bands in the glass). Where 55A56F21 measures differently it wins on
+this surface, per the lead's instruction: the card's edge is the render's hot
+hairline over an electric band rather than the identity's four per-side
+colours, its glass tint is sampled from the render (a dark translucent tint
+under the lit-ink bands) rather than the identity's gradient alone, and the
+Continue button keeps the render's white top hairline (#F6FEFE) and lit foot
+(#D7FAFE) rather than the identity's cyan edge. Card corner: the render
+measures 42 render px, 16 CSS at s = 0.379; built 18 px (`--nf-radius-lg`,
+the nearest rung), against the identity's 12. These agree with the table
+above.
 
 ### (c) Light mode
 
@@ -741,7 +744,12 @@ answers that need an account to exist.
 Audit rounds: one fixed the grey card and flat edge; two (lead) the
 proportion, glass, plinth and terms line; three (lead rulings) the card to
 the render's 61.6 per cent and every text role to the render's size with its
-floor.
+floor; four (second closing audit) the crop box behind the lockup (the old
+cut, keyed at floor 70, was also being served from the image optimiser's
+cache across builds; it is now keyed at 110 and served as cut), the stage's
+hard edge and side strips (the plate now continues the render's own light
+past every edge), and the corner numbers in the glow identity paragraph.
+`signin-430-dark.jpg` added for the 430 x 932 check.
 
 ### Crop resolution
 The lockup draws 176 CSS px from 464 source px (1.14x the source on a 3x

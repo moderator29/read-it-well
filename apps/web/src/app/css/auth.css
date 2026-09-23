@@ -55,14 +55,10 @@
      * render's own sky continues past it instead of a flat ground. The
      * plate's feathered top edge melts into it.
      */
-    /* Below the plate the render's mirror floor carries on, lit blue
-       (#001A7C to #002183 at the render's foot). */
-    background: linear-gradient(
-      180deg,
-      var(--nf-auth-sky-deep) 0,
-      var(--nf-auth-sky-deep) 70%,
-      color-mix(in srgb, var(--nf-glow-ink) 22%, var(--nf-surface-canvas)) 100%
-    );
+    /* The plate now carries its own continuation of the floor and the
+       sides and fades to this ground at its far edges, so the ground is
+       one flat night: no second band for its edge to meet. */
+    background: var(--nf-auth-sky-deep);
   }
   .nf-auth::before {
     content: "";
@@ -127,10 +123,12 @@
    * (`session-b-crops.mjs`, box and treatment in `SOURCES.md`). It is scaled
    * with the card and anchored at the card's foot, so the plinth stands
    * exactly where the render stands it whatever the card holds:
-   *   width   1024 / 633 of the card (the render's width over its card's)
+   *   width   3072 / 633 of the card: the render's 1024 plus the 1024 px
+   *           of continuation the crop script adds on each side
    *   bottom  the stage's foot is the podium room's foot, 164 render px
-   *           under the card (render y 1500); the render's frame ends 36
-   *           render px lower, 36 / 1536 = 2.34 per cent of the plate
+   *           under the card (render y 1500); the canvas runs to y 2304
+   *           (the render's 1536 plus 768 of continuation below), so it
+   *           hangs 804 / 2304 = 34.9 per cent of its height below
    * Its edges are feathered to transparent in the file itself.
    */
   .nf-auth__scene {
@@ -138,9 +136,9 @@
     z-index: -1;
     left: 50%;
     bottom: 0;
-    width: calc(100% * 1024 / 633);
-    aspect-ratio: 1024 / 1536;
-    translate: -50% 2.34%;
+    width: calc(100% * 3072 / 633);
+    aspect-ratio: 3072 / 2304;
+    translate: -50% 34.9%;
     background: url("/brand/session-b/signin/stage.webp") center / 100% 100% no-repeat;
     pointer-events: none;
   }

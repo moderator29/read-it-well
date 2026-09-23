@@ -1034,6 +1034,62 @@ function siKeyOutsideTile(raw, r, floor, span) {
   return raw;
 }
 
+/**
+ * Extend a raw RGBA image outward, `side` px left and right and `below` px
+ * under it. The render's outermost `inset` px carry its own dark vignette,
+ * which would read as a strip, so the extension continues the light from
+ * just inside that band: each pixel beyond it takes the nearest pixel of the
+ * inner rectangle, the vignette band itself eases from the original to that
+ * continuation, and the continuation is blurred and dimmed with distance.
+ */
+function siExtend(raw, { side, below, insetX = 110, insetY = 40 }) {
+  const { data, w, h } = raw;
+  const W = w + 2 * side;
+  const H = h + below;
+  const out = new Float32Array(W * H * 4);
+  const dist = new Float32Array(W * H);
+  const smooth = (t) => t * t * (3 - 2 * t);
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const u = x - side;
+      const cu = Math.min(Math.max(u, insetX), w - 1 - insetX);
+      const cv = Math.min(y, h - 1 - insetY);
+      const du = Math.abs(u - cu);
+      const dv = y - cv;
+      const d = Math.hypot(du, dv);
+      const o = (y * W + x) * 4;
+      const i = (cv * w + cu) * 4;
+      const inside = u >= 0 && u < w && y < h;
+      const t = inside ? smooth(Math.min(1, d / Math.max(insetX, insetY))) : 1;
+      const j = inside ? (y * w + u) * 4 : i;
+      for (let c = 0; c < 4; c++) out[o + c] = data[j + c] * (1 - t) + data[i + c] * t;
+      out[o + 3] = 255;
+      dist[y * W + x] = d;
+    }
+  }
+  /* Two reaches of blur: near the seam a soft one, further out a wide one,
+     so the continuation melts into a glow rather than reading as streaks. */
+  const blurs = [20, 64].map((r) =>
+    [0, 1, 2].map((c) => {
+      const plane = new Float32Array(W * H);
+      for (let k = 0; k < W * H; k++) plane[k] = out[k * 4 + c];
+      return siBlur(plane, W, H, r);
+    }),
+  );
+  for (let k = 0; k < W * H; k++) {
+    const d = dist[k];
+    if (d === 0) continue;
+    const m1 = Math.min(1, d / 120);
+    const m2 = Math.min(1, Math.max(0, (d - 60) / 360));
+    const dim = 1 - 0.85 * Math.min(1, d / 520);
+    for (let c = 0; c < 3; c++) {
+      const near = out[k * 4 + c] * (1 - m1) + blurs[0][c][k] * m1;
+      out[k * 4 + c] = (near * (1 - m2) + blurs[1][c][k] * m2) * dim;
+    }
+  }
+  return { data: out, w: W, h: H };
+}
+
 async function signin() {
   const RENDER = "55A56F21-0654-4F2D-984B-60A8CE97BB17.png";
   const dir = path.join(OUT, "signin");
@@ -1056,8 +1112,20 @@ async function signin() {
     ],
     { radius: 48, feather: 12 },
   );
-  siFeather(filled, { left: 60, right: 60, top: 120, bottom: 40 });
-  await siWrite(filled, path.join(dir, "stage.webp"), { quality: 82 });
+  /*
+   * THE STAGE HAS NO EDGE (second closing audit). The render ends at its own
+   * frame, and at 390 its floor stopped in a hard line with flat navy below
+   * and dark strips at both sides. So the plate is extended on three sides
+   * with the render's own light: continued outward from just inside the
+   * render's own dark vignette (which eases into the continuation, so no
+   * strip and no seam), blurred more the further it runs and dimmed towards
+   * the page ground, then feathered to transparent only at the far edges. Canvas 3072 x 2304: the render at
+   * x 1024 to 2048, y 0 to 1536; 1024 px on each side, 768 below.
+   * Only the top keeps the render's own feather, into the sky underlay.
+   */
+  const stageOut = siExtend(filled, { side: 1024, below: 768 });
+  siFeather(stageOut, { left: 260, right: 260, top: 120, bottom: 300 });
+  await siWrite(stageOut, path.join(dir, "stage.webp"), { quality: 80 });
 
   /*
    * 2. THE LOCKUP: the app tile and the chrome wordmark together, as drawn,
@@ -1070,8 +1138,14 @@ async function signin() {
      to see where the crop meets the stage. Inside the tile (render box 380,
      222 to 642, 502, corner 52) the glass is kept whole, dark navy and all,
      with a 6 px soft edge. */
-  siKeyOutsideTile(lockup, { left: 380 - 280, top: 222 - 176, right: 642 - 280, bottom: 502 - 176, radius: 52, soft: 6 }, 70, 150);
-  siFeather(lockup, { left: 12, right: 12, top: 12, bottom: 8 });
+  /* Floor 110, not 70: the render's sky around the tile reads #001355 to
+     #00165C, blue 85 to 92, so a floor of 70 kept it at about 15 per cent
+     and drew a faint 158 x 155 px box on the page (second closing audit).
+     At 110 the sky keys out entirely and the wordmark, whose darkest lit
+     edge is above 150, keeps its whole glow. The edge feather is wider so
+     nothing the key leaves can meet the crop's border. */
+  siKeyOutsideTile(lockup, { left: 380 - 280, top: 222 - 176, right: 642 - 280, bottom: 502 - 176, radius: 52, soft: 6 }, 110, 150);
+  siFeather(lockup, { left: 30, right: 30, top: 30, bottom: 14 });
   await siWrite(lockup, path.join(dir, "lockup.webp"), { quality: 90 });
 
   console.log("signin: stage.webp, lockup.webp ->", dir);
