@@ -388,6 +388,11 @@ Each group appends "RELEASED <commit>" here when it is done.
     ledger section "13. Platform sweep: audit 2 fixes" and the chrome, social,
     feed and inspection ledger rows it records into, proofs
     `docs/design/proofs/session-b/audit2-fixes/**`.
+    **RELEASED beb3883a** (23 September): S-A to S-G closed, the thread card's
+    header name and overflow mark fixed, its clock and attach glyph and the
+    inspection date format recorded as deliberate, the S9 remainder proven (five
+    routes live as the QA member, the wizard's later steps on a harness). Ledger 13.A2.
+    The claim is released.
 
 ### Sweep group: home, search and filters, listing detail (worker "sweep-home")
 Routes: `/home`, `/stays` (the home components only; `StayCard` is the stays
