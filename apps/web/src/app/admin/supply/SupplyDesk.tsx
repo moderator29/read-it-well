@@ -6,6 +6,8 @@ import { CalmNote, DeskHead, EmptyChart, Framed, Kpi, NumberedPager, Panel, Tabl
 import { Donut, RankBars, RankFrame, SeriesChart, SeriesLegend, StatusBar, type Series } from "../money/_desk/charts";
 import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
 import type { FirmRosters } from "@/lib/admin/reads/supply";
+import { BadgeSlot } from "../money/_desk/BadgeSlot";
+import type { BadgeTier } from "@/lib/admin/reads/badges";
 import { percentChange } from "@/lib/admin/reads/money-derive";
 import {
   SUPPLY_ROLE_KEYS,
@@ -61,8 +63,11 @@ export function SupplyDesk({
   locale,
   pageSize,
   rosters,
+  tiers = {},
   now,
 }: {
+  /** Badge tiers keyed by user id, from `public.person_badge`. */
+  tiers?: Record<string, BadgeTier>;
   now: number;
   /** `getFirmRosters`: who works at which firm. Null when it could not be read. */
   rosters: FirmRosters | null;
@@ -178,6 +183,7 @@ export function SupplyDesk({
                     <tr key={`${row.kind}-${row.id}`}>
                       <td className="nf-md-lead nf-md-strong" data-label="">
                         {row.name}
+                        {row.userId ? <BadgeSlot tier={tiers[row.userId]} /> : null}
                       </td>
                       <td data-label="Role">{ROLE_LABEL[row.role].one}</td>
                       <td className="nf-md-num" data-label="Listings">
@@ -284,7 +290,7 @@ export function SupplyDesk({
         </Panel>
       </div>
 
-      <RostersPanel rosters={rosters} examples={filter.examples} locale={locale} />
+      <RostersPanel rosters={rosters} examples={filter.examples} locale={locale} tiers={tiers} />
     </div>
   );
 }
@@ -302,7 +308,17 @@ const MEMBER_STATE: Record<string, { label: string; tone: StatusTone }> = {
  * `private.admit_firm_member` and `private.revoke_firm_member`, each writing
  * an audit row, and no console control calls them.
  */
-function RostersPanel({ rosters, examples, locale }: { rosters: FirmRosters | null; examples: boolean; locale: Locale }) {
+function RostersPanel({
+  rosters,
+  examples,
+  locale,
+  tiers,
+}: {
+  rosters: FirmRosters | null;
+  examples: boolean;
+  locale: Locale;
+  tiers: Record<string, BadgeTier>;
+}) {
   const title = "Firm rosters";
   const day = (iso: string) => formatDate(new Date(iso), locale, { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" });
   if (!rosters) {
@@ -376,7 +392,10 @@ function RostersPanel({ rosters, examples, locale }: { rosters: FirmRosters | nu
               <tbody>
                 {firm.members.map((m) => (
                   <tr key={m.id}>
-                    <td data-label="Agent">{m.agentName ?? "No display name"}</td>
+                    <td data-label="Agent">
+                      {m.agentName ?? "No display name"}
+                      {m.userId ? <BadgeSlot tier={tiers[m.userId]} /> : null}
+                    </td>
                     <td data-label="Role">{m.role === "principal" ? "Principal" : m.role === "staff" ? "Staff" : m.role}</td>
                     <td data-label="State">
                       <StatusPill tone={MEMBER_STATE[m.status]?.tone ?? "neutral"}>

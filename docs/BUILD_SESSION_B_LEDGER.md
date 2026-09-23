@@ -617,6 +617,72 @@ BREACHES 0, WORTH AN EYE 0. (The first run flagged the four dot buttons at
   the lead's warning. The pop restored exactly my three files and the stash
   list was empty afterwards; I have not used it since.
 
+### Final pass, 23 September
+
+**Re-checked.** The render and the 390 dark side-by-side opened together again
+(`welcome-render-vs-built-390.jpg`, re-shot on this build): lockup, headline,
+sub-line, stage, coin, dots, button, Skip all where the measured rows put them;
+nothing close-but-not-right found on slide one. Slides two to four, the
+always-shows flow, back on every slide and both signed-in endings exercised
+on a fresh production build (`next build` + `next start` with the preview
+harness open).
+
+**Fixed in this pass.** Leaving first run for the app (a member's Continue
+with nothing left to answer, and a member's Skip) hung with the button busy
+when `/home` answered with a redirect: a client-side `router.replace` to a
+redirecting route stalled mid-transition here. `leave` is now a full
+`window.location.replace`, which follows any redirect and leaves no slide
+entries in the app's back stack. Found by exercising the harness, now covered
+by the spec. Added the swipe to the spec, the one input it never drove.
+
+**Commands and output.**
+- `npx tsc --noEmit -p .`: exit 0.
+- `npx eslint` over `app/welcome`, `components/app/welcome`, `app/(auth)/start`,
+  `app/(dev)/preview/session-b/welcome`, the spec: 0 errors, 1 warning (the
+  existing `set-state-in-effect` in `InterestChoices.tsx`, unchanged).
+- `node scripts/check-css-tokens.mjs`: clean.
+- `npx vitest run src/app/welcome`: 12 passed (12).
+- `BASE_URL=http://127.0.0.1:3172 node tests/session-b-welcome.spec.mjs`: 24
+  checks, all passed (reachability, /start, slides by button, key, dot and
+  swipe, live region, back by square and by history, shown every time, the two
+  doors, no look-around door, cookie written, intent kept, the signed-in
+  ending: one Continue, Continue to the real interests question, Continue into
+  the app).
+- `node scripts/design/compare-surface.mjs --shape-sweep --routes
+  /welcome,/preview/session-b/welcome --theme dark`: BREACHES 0, WORTH AN EYE
+  0, ROUND ICON-ONLY 0.
+
+**Badge.** First run draws no person's name or avatar, so there is no badge
+slot on this surface.
+
+**BUILT AND UNPROVEN** (this box cannot reach Supabase over HTTP, so no live
+signed-in run is possible):
+- A member's Continue writing `profiles.settings.welcomeSeen`, and Skip
+  writing `interestsAsked` (`markWelcomeSeen`, `skipInterests`): the calls run
+  in the harness signed out, where they return without writing. Proving it
+  needs a signed-in session against the live project.
+- The interests question's Save and Skip (`saveInterestsAction`,
+  `skipInterests`): rendered and reached; the write needs a session.
+- A signed-in `/welcome` read (`loadInterestsState` with a session): proved
+  by the plan's unit tests and the harness, not by a live row.
+- Android's hardware back on a device: proved through the web view's history
+  in Chromium; a device run needs the native shell (and GS5 once NativeRuntime
+  is mounted).
+- The store first launch opening `/welcome` (W3) and sign up and sign in
+  detouring a first-time visitor here (W1, W2): requests, not built here.
+
+**Percentages.**
+- Close gate items met: 5 / 5 (measured match, wired, no claims, dark checks
+  and sweep, pushed; light removed by the founder, so not counted).
+- Controls exercised in a browser: 12 / 15 (Get Started, Next, dots, arrow
+  keys, swipe, stranger's Skip, back square, history back, Create account,
+  Sign in, Continue to the question, Continue into the app; not exercised
+  with a write: a member's Skip, the question's Save and Skip).
+- Chain links proven: 7 / 10 (control, cookie persistence, the page query's
+  signed-out path, RLS policies, table and triggers read live on 22 September,
+  screen; unproven: the member write, the signed-in read, the question's
+  write). Notification: none deserved, not counted.
+
 ## 3. Welcome back
 
 Route `/sign-in` (the chooser) and `/sign-in/email` (the password step).
@@ -1687,6 +1753,99 @@ one `AdminRail` sets.
 - **ITEM 7 (inspection, not viewing).** The one "view" in this surface's copy
   (In flight's empty note) now says "asks for an inspection".
 
+### 6.6b Final pass, 23 September
+
+**Re-checked.** The three side-by-sides against 5EAA44CB and 01F7DFC7 (panel
+fill, edges, filled badges, full-height rail, the back arrow now drawn on the
+overview harness too, which it lacked); every job count against the
+migrations and `vercel.json` (8 Vercel, 14 pg_cron, now derived and tested);
+the handbook's numbers against code (rail: eleven rows plus Settings = the
+"twelve rows"; pages of forty, `QUEUE_PAGE_SIZE`; the audit chart's 5,000
+cap, `WINDOW_CAP`; fourteen days of runs, `lastDays(14)`); every desk in
+handbook section 15 now carries Shows, Actions, Effects, Limits and Rejected
+(15.1 and 15.12 gained Effects; 15.5 points to admin-money's section 12);
+15.16 names where push, price checks, mandates, firm members, escrow
+evidence and float snapshots are shown.
+
+**Fixed in this pass.** The overview harness drew no back arrow (it builds
+`AdminFrame` directly); a comment path the token check flagged.
+
+**The badge (B-BADGE): wired, blocked on B-BADGE.** `getPersonTiers` in
+`lib/admin/reads/shared.ts` reads `tier` from `public.person_badge` (the one
+source, SELECT granted to authenticated; nothing derived here); `tierMap`
+is tested. One shared slot, `app/admin/_components/PersonTier.tsx`, sits
+beside every name the shared components draw: the operator in the rail and
+bar (`IdentityBlock`, fed by the layout) and the named person in audit and
+alert rows (`AlertList`, fed on Operations). admin-review's and
+admin-money's desks render `<PersonTier tier={...} />` beside a name, with the
+tier from `getPersonTiers`, or pass `tier` on an `AlertRow`. Session A's
+component (`components/app/badge/PersonBadge`) has not landed, so the slot
+renders NOTHING (tested) and no badge appears in the console: blocked on
+B-BADGE.
+
+**Commands and output (run 23 September, final pass):**
+
+```
+npx tsc --noEmit -p .                                -> exit 0, no output
+npx eslint <admin-shell files>                       -> 0 errors, 1 warning
+  (react-hooks/set-state-in-effect, _components/AdminActions.tsx:762,
+   not an admin-shell change)
+node scripts/check-css-tokens.mjs                    -> css tokens: clean
+npx vitest run src/lib/admin/reads src/app/admin     -> 23 files, 145 tests passed
+node scripts/design/compare-surface.mjs --shape-sweep --theme dark (27 admin
+  harness routes)                                    -> BREACHES 0, WORTH AN EYE 0,
+  ROUND ICON-ONLY 0, ROUTES REFUSED 0, 16 combinations measured
+```
+
+**BUILT AND UNPROVEN.** This box cannot reach Supabase over HTTP (egress
+refused) and no admin session may be created, so no read below has run
+against the live project with a signed-in admin. Each is built, typechecked
+against the schema, its policy checked in `pg_policies`, its pure half unit
+tested, and its panel drawn on the committed harness in a production build.
+Proving each needs one signed-in admin load of the page in a deployed build:
+- Overview: `getConsolePulse`, `getCollectedSeries`, `getSupplyByType`,
+  `getNewListingsByRole`, `getRiskAlerts` (existing).
+- Operations: `getJobHealth`, `getRunDays`, `getAlertTrend`,
+  `getInspectionActivity`, `getPushActivity`, `getAuditLog` and
+  `getAuditActivity` (existing).
+- Analytics: `getBookingOutcomes`, `getSupplySeries`, `getThinAreas`,
+  `getPriceCheckDemand`.
+- Shell: `getQueueCounts` badges, `getPersonTiers`, the entry cookie round
+  trip (`EntryGate`, `/admin/enter`, unit tested with `requireAdmin`
+  mocked), the back arrow's landing on a live desk.
+
+**Percentage.** Gate items for this surface: 23 met of 24 (96%). The 24:
+the second audit's six items, its JavaScript-off note and its three handbook
+lines (10); the lead's server-side entry (1); the third audit's six items
+(6); the founder's items 1, 2, 5 and 7 (4); this final hour's real pass,
+ledger block and complete handbook (3). The one not met is item 5, the
+badge, blocked on B-BADGE (the read and the slot are wired; nothing draws). Chain links proven live: 0 of 17 (the list above), for
+the reason given; built, typed and unit tested: 17 of 17.
+
+### 6.6c R19, the back arrow pressed in a browser (fourth audit)
+
+The source-text test was the only proof, because no harness address has a
+console parent. The committed harness `/preview/session-b/admin/back`
+(`app/(dev)/preview/session-b/admin/back/`) renders the real `AdminFrame` and
+the real `BackButton` inside `AsDesk`, which gives every `usePathname()` below
+it the value `/admin/money` (the router is untouched), so the arrow resolves
+exactly as on that desk. `scripts/design/session-b-shots/admin-back.mjs` opens
+it in Chromium against the production build, finds the control by
+`data-nav-back`, checks it drew, presses it and records the navigation:
+
+```
+VALLO_PREVIEW_HARNESS=1 npx next start -p 3175
+node scripts/design/session-b-shots/admin-back.mjs http://127.0.0.1:3175 \
+  docs/design/proofs/session-b/admin/back-arrow-as-admin-money-1440-dark.jpg
+PASS back control: 1 found by data-nav-back, drawn at 240,18 44x44; rail lit
+on "Money"; press requested /admin?_rsc=...; landed
+/sign-in?next=%2Fadmin&notice=sign-in-required
+```
+
+The press asked for `/admin`, the declared parent; the signed-out browser is
+then sent to sign in with `next=/admin` by the proxy, as it would be for
+anyone without a session. Proof: `back-arrow-as-admin-money-1440-dark.jpg`.
+
 ### 6.7 Skipped or not verified
 
 - No proof from the live `/admin` pages with a real admin session (none may be
@@ -2472,6 +2631,77 @@ The rail and the flat panels are admin-shell's and were not touched.
   happened" and "The inspection did not happen". The enum values
   (`viewing_attended`, `viewing_missed`) are the schema's and unchanged. The
   console copy is English only; no other "viewing" appears in these desks.
+
+### 8.13 Final pass, 23 September
+
+**Re-checked.** Each governing panel (`C1D98B3C` panel 3, `8E9602E2` panels
+1 and 3) beside the latest side-by-side, reshot on main after admin-shell's
+`949930e2`: the rail runs full height, cards take the shell's 10px corner and
+3px halo, and per-desk type is at the converted sizes in 8.2. Every read's
+code path is exercised by unit tests over the real functions against a fake
+RLS client (no write is ever attempted); each desk renders in a production
+build through the committed harness; read-only SQL on the live project gave
+the counts the empty states mirror.
+
+**Commands and output (dark only).**
+
+```
+npx vitest run src/lib/admin/reads          Test Files 15 passed, Tests 96 passed
+tsc --noEmit (6 GB heap)                    no output (clean)
+eslint app/admin/{money,escrow,supply,bookings} lib/admin/reads harness   clean
+node scripts/check-css-tokens.mjs           clean, 0 layer-1 references
+next build (6 GB heap; a first run was OOM-killed, 137)   exit 0
+compare-surface --shape-sweep, 10 routes, 390 and 1536, dark
+  BREACHES 0, WORTH AN EYE 0, ROUND ICON-ONLY 0, ROUTES REFUSED 0
+```
+
+**Fixed in this pass.** The badge (below). Nothing close-but-not-right was
+left from the side-by-sides after 8.12.
+
+**The badge: BLOCKED ON B-BADGE.** The tier is read, never derived:
+`getBadgeTiers` (`lib/admin/reads/badges.ts`, tested in `badges.test.ts`)
+reads `public.person_badge` for exactly the people a page names, through the
+admin's RLS client; a failed read returns no tiers (a missing badge is
+recoverable, a wrong one is not). Grants read live: `authenticated` holds
+SELECT on the view and EXECUTE on its helpers. The slot, `BadgeSlot`
+(`app/admin/money/_desk/BadgeSlot.tsx`), sits beside 9 of the 14 places these
+desks draw a person's name: Money's wallets list, ledger owner, tenancy charge
+tenant and evidence authors; Escrow's table payer and payee, ruling card payer
+and payee, and evidence authors; Supply's role table and firm roster members;
+Bookings' guest. It renders NOTHING: Session A's component
+(`components/app/badge/PersonBadge.tsx`) had not landed, and drawing our own
+artwork is ruled out. When it lands, that one file returns it. The other 5
+places read Session A's `lib/admin/money-queries.ts`, which returns names
+without user ids (Money's disputed holds payer and payee, Money's recent
+entries and refunds guest, Payments' wallets and stale holds): they need a
+user id added there, which is Session A's file.
+
+**English-only copy.** Not moved into the dictionaries in this pass. The
+money, escrow, supply and payments desks' copy is still English in the
+components (bookings reads `t.admin.bookings`). Recorded as not done.
+
+**BUILT AND UNPROVEN.** This box cannot reach Supabase over HTTP, so no
+signed-in run is possible.
+- Every desk page as a signed-in admin: proving it needs one admin session on
+  a machine with egress, opening each of the five routes.
+- The escrow ruling with its evidence (zero disputes exist): needs one
+  disputed test escrow with a filed fact and a file, then a ruling.
+- "Open file" on evidence: needs a filed file and a signed-in admin (the
+  bucket policy is read live; the signing is unit-tested only).
+- The admin booking cancel from a stay (zero bookings exist).
+- Tenancy charges, float history beyond one day, firm rosters with members:
+  proven on fixtures and unit tests only; the live tables hold 0, 1 and 0 rows.
+- The badge tier read: unit-tested; live grants read; no signed-in read.
+
+**Percentage.** Close-gate items met: 5 of 5 (measured match and
+side-by-sides; chain; no claims; checks, dark only; pushed). Chain links
+proven live: read-only SQL proves policies and counts for the tables all 5 desks read,
+but signed-in runs 0 of 5 desks, so **chain links proven end to end:
+0 / 5**. Controls exercised in a production build through the harness: 5 / 5
+desks rendered, every filter link, pager, toggle and hover readout drawn; the
+two writes (escrow ruling, booking cancel) 0 / 2 exercised. Badge: 9 / 14
+name places wired, 0 / 14 drawing (blocked on B-BADGE). Copy in the
+dictionaries: 1 / 5 desks.
 
 ## 9. Inspection
 

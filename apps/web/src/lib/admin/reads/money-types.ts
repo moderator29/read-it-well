@@ -52,6 +52,8 @@ export type LedgerRow = {
   reference: string;
   note: string | null;
   ownerName: string | null;
+  /** The wallet owner's user id, for the badge slot. */
+  ownerId?: string | null;
   /** The platform float straight after this entry. Null under a filter. */
   balanceAfterMinor: number | null;
 };
@@ -117,6 +119,8 @@ export type SupplyRow = {
   id: string;
   kind: "agent" | "business";
   name: string;
+  /** The account's user (an agent's user, a business's owner), for the badge slot. */
+  userId?: string | null;
   role: SupplyRoleKey;
   verified: boolean;
   listings: number;
@@ -151,6 +155,8 @@ export type RentChargeRow = {
   bookingId: string;
   listingTitle: string | null;
   tenantName: string | null;
+  /** The tenant's user id, for the badge slot. */
+  tenantId?: string | null;
   moveIn: string;
   rentPeriod: string;
   totalMinor: number;

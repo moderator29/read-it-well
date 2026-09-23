@@ -122,6 +122,7 @@ export function buildSupply(inputs: SupplyInputs, filter: SupplyDeskFilter, now:
         id: a.id,
         kind: "agent",
         name: a.display_name,
+        userId: a.user_id,
         role,
         verified: a.agent_badges?.verified ?? false,
         listings: (listingsByAgent.get(a.id) ?? []).length,
@@ -135,6 +136,7 @@ export function buildSupply(inputs: SupplyInputs, filter: SupplyDeskFilter, now:
         id: b.id,
         kind: "business",
         name: b.name,
+        userId: b.owner_id,
         role: firm ? "firm" : "host",
         verified: b.verified,
         listings: firm ? (b.agent_id ? (listingsByAgent.get(b.agent_id) ?? []).length : 0) : (staysByBusiness.get(b.id) ?? 0),
@@ -288,6 +290,8 @@ export const FIRM_MEMBER_STATUSES: readonly FirmMemberStatus[] = ["pending", "ac
 export type FirmMemberRow = {
   id: string;
   agentName: string | null;
+  /** The agent's user id, for the badge slot. */
+  userId?: string | null;
   role: "principal" | "staff" | string;
   status: FirmMemberStatus | string;
   admittedAt: string;
@@ -332,6 +336,7 @@ export function rostersFromRows(
   agentNames: ReadonlyMap<string, string>,
   examples: boolean,
   complete: boolean,
+  agentUsers: ReadonlyMap<string, string> = new Map(),
 ): FirmRosters {
   const byStatus: Record<FirmMemberStatus, number> = { pending: 0, active: 0, revoked: 0 };
   const byFirm = new Map<string, FirmRoster>();
@@ -355,6 +360,7 @@ export function rostersFromRows(
     roster.members.push({
       id: m.id,
       agentName: agentNames.get(m.agent_id) ?? null,
+      userId: agentUsers.get(m.agent_id) ?? null,
       role: m.member_role,
       status: m.status,
       admittedAt: m.admitted_at,
@@ -396,18 +402,22 @@ export async function getFirmRosters(examples: boolean): Promise<AdminRead<FirmR
     const agentIds = [...new Set(members.rows.map((m) => m.agent_id))];
     const firms = new Map<string, { name: string | null; isDemo: boolean }>();
     const agentNames = new Map<string, string>();
+    const agentUsers = new Map<string, string>();
     for (let i = 0; i < Math.max(firmIds.length, agentIds.length); i += 200) {
       const [b, a] = await Promise.all([
         firmIds.length > i ? db.from("businesses").select("id, name, is_demo").in("id", firmIds.slice(i, i + 200)) : null,
-        agentIds.length > i ? db.from("agents").select("id, display_name").in("id", agentIds.slice(i, i + 200)) : null,
+        agentIds.length > i ? db.from("agents").select("id, display_name, user_id").in("id", agentIds.slice(i, i + 200)) : null,
       ]);
       if (b?.error || a?.error) return UNAVAILABLE;
       for (const row of b?.data ?? []) firms.set(row.id, { name: row.name, isDemo: row.is_demo });
-      for (const row of a?.data ?? []) if (row.display_name) agentNames.set(row.id, row.display_name);
+      for (const row of a?.data ?? []) {
+        if (row.display_name) agentNames.set(row.id, row.display_name);
+        agentUsers.set(row.id, row.user_id);
+      }
     }
     return {
       state: "ok",
-      data: rostersFromRows(members.rows, firms, agentNames, examples, members.complete && members.rows.length === count),
+      data: rostersFromRows(members.rows, firms, agentNames, examples, members.complete && members.rows.length === count, agentUsers),
     };
   } catch {
     return UNAVAILABLE;

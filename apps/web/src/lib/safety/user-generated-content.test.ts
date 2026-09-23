@@ -411,10 +411,11 @@ describe("the seeded term list cannot break the pattern it is joined into", () =
 
   it("stores every term lowercase and trimmed, because both scanners match with ~*", () => {
     for (const row of rows) {
-      expect(row[1]).toBe(row[1].toLowerCase());
-      expect(row[1]).toBe(row[1].trim());
-      expect(row[1].length).toBeGreaterThanOrEqual(2);
-      expect(row[1].length).toBeLessThanOrEqual(100);
+      const term = row[1] ?? "";
+      expect(row[1]).toBe(term.toLowerCase());
+      expect(row[1]).toBe(term.trim());
+      expect(term.length).toBeGreaterThanOrEqual(2);
+      expect(term.length).toBeLessThanOrEqual(100);
     }
   });
 
@@ -434,8 +435,8 @@ describe("the seeded term list cannot break the pattern it is joined into", () =
       "abuse.child-safety",
     ]);
     for (const row of rows) {
-      expect(known.has(row[3]), `${row[1]} carries an unknown category`).toBe(true);
-      expect(row[4].trim().length, `${row[1]} has no reason worth reading`).toBeGreaterThanOrEqual(12);
+      expect(known.has(row[3] ?? ""), `${row[1]} carries an unknown category`).toBe(true);
+      expect((row[4] ?? "").trim().length, `${row[1]} has no reason worth reading`).toBeGreaterThanOrEqual(12);
     }
   });
 

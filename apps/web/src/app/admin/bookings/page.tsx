@@ -3,6 +3,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getReservationWaitingCount } from "@/lib/admin/bookings-queries";
 import { getBookingsDesk } from "@/lib/admin/reads/bookings";
+import { getBadgeTiers } from "@/lib/admin/reads/badges";
 import { readPage } from "@/lib/admin/reads/money-derive";
 import { adminUi } from "../_components/ui";
 import { readQueueQuery } from "../_components/QueueFilters";
@@ -54,9 +55,11 @@ export default async function AdminBookingsPage({
     }),
     getReservationWaitingCount(),
   ]);
+  const tiers = await getBadgeTiers(desk.state === "ok" ? desk.data.table.rows.map((r) => r.guestId) : []);
 
   return (
     <BookingsDesk
+      tiers={tiers}
       desk={desk.state === "ok" ? desk.data : null}
       t={t}
       ui={ui}
