@@ -4,6 +4,7 @@ import type { CountForms } from "../plural";
    overwrite once already. One import and one line is the smallest footprint a
    namespace can have here. */
 import { priceCheckEn } from "./price-check.en";
+import { trustVisibleEn } from "./trust-visible.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -5883,6 +5884,7 @@ export const en = {
   },
 
   priceCheck: priceCheckEn,
+  trustVisible: trustVisibleEn,
 
 };
 

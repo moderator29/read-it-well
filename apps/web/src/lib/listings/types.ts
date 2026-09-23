@@ -206,6 +206,27 @@ export type Listing = {
   /** When the stated address was checked against the pin. */
   addressVerifiedAt?: string;
   /**
+   * THE PROOF STRIP'S INPUTS (V-03). Each is a date a member of staff or a
+   * trigger set when something happened, and each is ABSENT, never null or
+   * empty, when nothing happened. `lib/trust/proof-strip.ts` prints a line
+   * only from a present, parseable date.
+   *
+   * `listerIdentitySeenAt` is `agent_badges.verified_at`: when the lister's
+   * identity rung passed and the published badge turned true. The other two
+   * are `listings.ownership_verified_at` and `listings.mandate_verified_at`,
+   * which the database refuses to hold at once. None of them is ever carried
+   * on an example listing.
+   */
+  listerIdentitySeenAt?: string;
+  ownershipVerifiedAt?: string;
+  mandateVerifiedAt?: string;
+  /**
+   * V-05's aggregate: renters who attended an inspection and answered the
+   * truth questions, and how many found the agent and the flat as listed.
+   * Absent until at least one renter has answered.
+   */
+  renterTruth?: { attended: number; asListed: number; lastAt: string };
+  /**
    * Where the listing comes from. There is one answer and it is "vallo":
    * inventory listed on this platform by a person on this platform.
    */

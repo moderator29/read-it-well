@@ -36,6 +36,8 @@ import { ListingAbout } from "@/components/app/listing/ListingAbout";
 import { ListingAmenities } from "@/components/app/listing/ListingAmenities";
 import { ListingAmenityTiles } from "@/components/app/listing/ListingAmenityTiles";
 import { ListingAgentCard } from "@/components/app/listing/ListingAgentCard";
+import { ProofStrip } from "@/components/app/listing/ProofStrip";
+import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
 import { ListingMoveInBlock } from "@/components/app/listing/ListingMoveInBlock";
 import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
@@ -838,6 +840,18 @@ export default async function ListingDetailPage({
                         ))}
                     </ul>
                   )}
+
+                  {/* V-03, THE PROOF STRIP: the dated facts the database holds,
+                      in a fixed order, each opening what the check is and is
+                      not. It renders nothing at all when there is nothing
+                      dated, which today is every example listing. */}
+                  <ProofStrip
+                    lines={proofLines(proofFactsOf(listing))}
+                    variant="full"
+                    t={t}
+                    locale={locale}
+                    className="mt-md"
+                  />
 
                   {/* The Nigerian number, on a tenancy: the total to move in. */}
                   {isRental && !isSale && (

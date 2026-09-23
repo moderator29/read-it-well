@@ -209,6 +209,8 @@ const LISTING_SELECT = `
   created_at,
   address_verified_at,
   physically_inspected_at,
+  ownership_verified_at,
+  mandate_verified_at,
   power_grid,
   power_backup,
   power_backup_hours,
@@ -283,6 +285,8 @@ const LISTING_DETAIL_SELECT = `
   created_at,
   address_verified_at,
   physically_inspected_at,
+  ownership_verified_at,
+  mandate_verified_at,
   power_grid,
   power_backup,
   power_backup_hours,
@@ -359,6 +363,10 @@ export type ListingRow = {
   created_at: string;
   address_verified_at: string | null;
   physically_inspected_at: string | null;
+  /* V-03: the two supply dates, granted to anon by migration 20260924130000.
+     Optional on the type so a fixture written before them still builds. */
+  ownership_verified_at?: string | null;
+  mandate_verified_at?: string | null;
   listing_photos: { storage_path: string; position: number }[];
   listing_videos: {
     storage_path: string;
@@ -702,6 +710,10 @@ export function mapRow(
   signedVideos: Map<string, string>,
   verifiedAgents: Set<string>,
   listerNames: Map<string, string>,
+  /* V-03: when each checked agent's identity rung passed, from
+     `agent_badges.verified_at`. Optional and last so every existing caller
+     and spec reads exactly as before. */
+  identitySeenAt: Map<string, string> = new Map(),
 ): Listing {
   const kind = KIND_BY_PROPERTY_TYPE[row.property_type] ?? "home";
   const stat = stats.get(row.id);
@@ -830,6 +842,23 @@ export function mapRow(
     ...(row.total_floors === null ? {} : { totalFloors: row.total_floors }),
     ...(row.physically_inspected_at ? { inspectedAt: row.physically_inspected_at } : {}),
     ...(row.address_verified_at ? { addressVerifiedAt: row.address_verified_at } : {}),
+    /*
+     * THE PROOF STRIP'S DATES (V-03), and none of them on an example listing.
+     * The database already refuses the two supply stamps on an example and
+     * refuses a verified lister behind one; the clamp here is the same second
+     * lock `verified` carries, for the same reason. The identity date is only
+     * carried where the badge itself is true, so the strip can never print an
+     * identity line beside a listing that draws no badge.
+     */
+    ...(!row.is_demo && row.ownership_verified_at
+      ? { ownershipVerifiedAt: row.ownership_verified_at }
+      : {}),
+    ...(!row.is_demo && row.mandate_verified_at
+      ? { mandateVerifiedAt: row.mandate_verified_at }
+      : {}),
+    ...(!row.is_demo && verifiedAgents.has(row.agent_id) && identitySeenAt.has(row.agent_id)
+      ? { listerIdentitySeenAt: identitySeenAt.get(row.agent_id) }
+      : {}),
     source: "vallo",
     bedrooms: row.bedrooms,
     bathrooms: row.bathrooms,
@@ -966,18 +995,24 @@ export function mapRow(
 async function getAgentBadges(
   supabase: Client,
   agentIds: string[],
-): Promise<Set<string>> {
+): Promise<{ verified: Set<string>; seenAt: Map<string, string> }> {
   const verified = new Set<string>();
-  if (agentIds.length === 0) return verified;
+  /* V-03: the date the badge turned true, which is the date the identity rung
+     passed. Read in the same query, so the proof strip costs no round trip. */
+  const seenAt = new Map<string, string>();
+  if (agentIds.length === 0) return { verified, seenAt };
   const { data, error } = await supabase
     .from("agent_badges")
-    .select("agent_id, verified")
+    .select("agent_id, verified, verified_at")
     .in("agent_id", agentIds);
-  if (error || !data) return verified;
-  for (const row of data as { agent_id: string; verified: boolean }[]) {
-    if (row.verified) verified.add(row.agent_id);
+  if (error || !data) return { verified, seenAt };
+  for (const row of data as { agent_id: string; verified: boolean; verified_at: string | null }[]) {
+    if (row.verified) {
+      verified.add(row.agent_id);
+      if (row.verified_at) seenAt.set(row.agent_id, row.verified_at);
+    }
   }
-  return verified;
+  return { verified, seenAt };
 }
 
 /**
@@ -1024,7 +1059,7 @@ async function getListerNames(
 /** Map raw rows into listings, resolving references and review stats in bulk. */
 async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]> {
   if (rows.length === 0) return [];
-  const [stateNames, amenityCodes, stats, signedVideos, verifiedAgents, listerNames] = await Promise.all([
+  const [stateNames, amenityCodes, stats, signedVideos, badges, listerNames] = await Promise.all([
     getStateNames(),
     getAmenityCodes(),
     getReviewStats(
@@ -1039,7 +1074,16 @@ async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]>
     getListerNames(supabase, rows.map((r) => r.id)),
   ]);
   return rows.map((row) =>
-    mapRow(row, stateNames, amenityCodes, stats, signedVideos, verifiedAgents, listerNames),
+    mapRow(
+      row,
+      stateNames,
+      amenityCodes,
+      stats,
+      signedVideos,
+      badges.verified,
+      listerNames,
+      badges.seenAt,
+    ),
   );
 }
 

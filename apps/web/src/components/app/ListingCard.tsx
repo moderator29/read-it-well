@@ -17,6 +17,8 @@ import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
 import { cardFacts, cardMarket, cardPrice, cardUtility } from "./listing-card-model";
 import { panelClass } from "@/components/ui/Panel";
 import { ListerRoleLine } from "@/components/app/listing/ListerRoleLine";
+import { ProofStrip } from "@/components/app/listing/ProofStrip";
+import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
 
 /**
  * The property card, to the results image (3EB3E2A9).
@@ -337,6 +339,17 @@ export function ListingCard({
           {listing.listerRole ? (
             <ListerRoleLine role={listing.listerRole} name={listing.listerName ?? null} className="nf-pcard__lister" />
           ) : null}
+
+          {/* V-03, the proof strip's compact form: two dated facts at most,
+              as text (the card is one link, and a link may not hold a
+              button). Nothing at all when nothing is dated. */}
+          <ProofStrip
+            lines={proofLines(proofFactsOf(listing))}
+            variant="compact"
+            t={t}
+            locale={locale}
+            className="mt-3xs"
+          />
 
           {price.lead === "none" && (
             <p className="nf-pcard__sub font-semibold">{t.common.priceOnRequest}</p>
