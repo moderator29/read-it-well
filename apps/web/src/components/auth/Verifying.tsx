@@ -131,9 +131,9 @@ export function Verifying({
           <span className="flex justify-center">
             <LogoMark size={44} title="Vallo" />
           </span>
-          <h1 className="nf-h2 mt-5">Sign in with your email</h1>
-          <p className="mt-3 leading-relaxed text-[var(--nf-content-secondary)]">{said}</p>
-          <ButtonLink href="/sign-in/email" variant="primary" size="lg" className="mt-7">
+          <h1 className="nf-h2 mt-md">Sign in with your email</h1>
+          <p className="mt-sm leading-relaxed text-[var(--nf-content-secondary)]">{said}</p>
+          <ButtonLink href="/sign-in/email" variant="primary" size="lg" className="mt-lg">
             Sign in with email
           </ButtonLink>
         </div>

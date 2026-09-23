@@ -233,8 +233,9 @@ describe("the decision paths are actually wired to the junction", () => {
   it("confirming an address queues the welcome, from both call sites", async () => {
     const source = await read("lib/auth/actions.ts");
     expect(source).toContain("welcomeOnce");
-    /* Both paths: the six digit code and the emailed link. */
-    expect(source.match(/await welcomeOnce\(/g) ?? []).toHaveLength(2);
+    /* Every path: the six digit code, the emailed link, and the native Sign
+       in with Apple sheet (STORE-02), which makes an account without either. */
+    expect(source.match(/await welcomeOnce\(/g) ?? []).toHaveLength(3);
   });
 
   it("the welcome path queues and never posts, so the trigger cannot make it a second email", async () => {
