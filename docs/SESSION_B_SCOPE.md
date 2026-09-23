@@ -100,6 +100,21 @@ Each group appends "RELEASED <commit>" here when it is done.
   - host wizard, agent workspace, side drawer, dock, landing:
     `agent.css`, `chrome.css`, `app/side-nav.css`, `landing.css`, `site.css`,
     `chips.css` and their components.
+    Worker "sweep-chrome" adds (new): its proofs
+    `docs/design/proofs/session-b/sweep-chrome/**` (no new harness: the
+    committed `f1`, `f5`, `c2`, `o3`, `lead` preview routes already render
+    every signed-in surface of the group and are read, not edited). Route
+    components claimed: `components/app/{AppShell,MobileTabBar,AppRail,NavTree}.tsx`,
+    `components/supply/ProfileSwitcher.tsx`, `components/host/**` (including
+    `components/host/stays/**`), `app/host/**`, `components/agent/**`,
+    `app/agent/**`, `components/site/**`, `app/page.tsx`, `app/(site)/**`.
+    NOT claimed although drawn on these routes: `overlays.css` (the drawer
+    panel, the sheet; settings group), `catalogue.css` (`.nf-lw-*` on
+    `/agent/list`; home group), `stays.css` (`.nf-stays-*` in the drawn host
+    steps; stays group), `admin.css` charts and meters, `inspection.css`.
+    **SW-C1 (to the lead):** `components/app/flip/SideSwitch.tsx` and
+    `app/css/side-flip.css`, the Flip card at the foot of the drawer
+    (`BCD39CA8`), are claimed by no group. This group asks for them.
   - already Session B's: wallet family, inspections, auth, admin, welcome.
 
 ## FOUNDER'S NINE ITEMS, 23 SEPTEMBER: WHAT SESSION B TAKES
