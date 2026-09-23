@@ -240,40 +240,52 @@ wrong in the direction of being too generous, and that is in section 13.
 
 ### 2.1 Has anything ever been sent
 
-**SUPERSEDED AT 2026-09-23 16:23Z. YES. IT HAS NOW, AND THE ROWS ARE BELOW.**
+**SUPERSEDED AT 2026-09-23 16:36Z. YES. IT HAS NOW, AND THE ROWS ARE BELOW.**
 
-Re-queried at 16:23:36Z, not taken from anybody's account of it:
+Re-queried at 16:36Z, not taken from anybody's account of it:
 
 ```
-id 76ab6c4e  account.welcome  user 957b3bd2  SENT     attempts 1  last_error null
-             created 15:57:28.946Z  claimed 16:00:02.494Z  settled 16:00:05.082Z
-id 019d0132  account.welcome  user 03f3dd52  PENDING  attempts 0  last_error null
-             created 16:15:16.781Z  claimed null  settled null   (due now)
+account.welcome              QA member  SENT  attempts 1  last_error null
+  created 15:57:28.946Z  claimed 16:00:02.494Z  settled 16:00:05.082Z
+account.welcome              QA admin   SENT  attempts 1  last_error null
+  created 16:15:16.781Z  claimed 16:30:02.845Z  settled 16:30:08.078Z
+security.new_device_sign_in  QA member  SENT  attempts 1  last_error null
+  created 16:25:48.311Z  claimed 16:30:02.845Z  settled 16:30:07.219Z
+security.new_device_sign_in  QA admin   SENT  attempts 1  last_error null
+  created 16:25:49.412Z  claimed 16:30:02.845Z  settled 16:30:04.486Z
 ```
 
-**Mark for `account.welcome`: PROVED, with two limits stated below.** Two
-accounts were created, a trigger on `auth.users` wrote a row for each inside
-the transaction that created the account, the quarter hourly drain claimed the
-first one at the next scheduled run and settled it two and a half seconds
-later, attempts 1, no error. Nobody called anything by hand. Enqueue, claim,
-send and settle all ran in production.
+**Mark for `account.welcome` and `security.new_device_sign_in`: PROVED, with
+two limits stated below.** Two accounts were created and then signed into. A
+trigger on `auth.users` wrote a welcome row inside the transaction that created
+each account, and a trigger on `auth.sessions` wrote a sign-in row when a
+session appeared. The quarter hourly drain claimed each at the first scheduled
+run after its enqueue and settled all four within six seconds, one attempt
+each, no errors. Nobody called anything by hand. Enqueue, claim, send and
+settle all ran in production.
+
+**The third row is the one that says the junction is general rather than
+lucky.** It is a different template, from a different trigger, on a different
+table, written by a different kind of event, and it needed nothing configured
+for it.
 
 **LIMIT ONE. SENT means the provider accepted the message. It is not proof an
 inbox rendered it.** And this table keeps no provider message id, so we cannot
 go back afterwards and ask the provider what became of a specific message. If
 that matters, it is a column and a migration, and it does not exist today.
 
-**LIMIT TWO. Two sign-ups are not fifteen templates.** Both rows are
-`account.welcome`. The other fourteen have still never been enqueued by
-anything, so every claim about them rests on `outbox-delivery.test.ts`, which
-proves the message and never the delivery.
+**LIMIT TWO. Two accounts and two templates are not fifteen templates.** The
+other thirteen have still never been enqueued by anything, so every claim about
+them rests on `outbox-delivery.test.ts`, which proves the message and never the
+delivery. Nothing here has exercised an escrow, a withdrawal, an inspection, a
+verification rung or an enquiry, because none of those has ever happened.
 
-**The second row is the more interesting one while it lasts.** It is PENDING,
-created 16:15:16Z, available immediately, and the drain runs at the quarter
-hour. It is a live prediction: if the junction works it will be SENT by
-16:30Z, and if it does not, `last_error` will say why in the provider's own
-words. Either way the table answers, which is the whole point of building the
-outbox rather than calling the provider inline.
+**ONE OF THESE WAS A PUBLISHED PREDICTION AND IT HELD.** At 16:23 the second
+row was PENDING, and this file said in as many words: if the junction works it
+will be SENT by 16:30, and if it does not, `last_error` will say why in the
+provider's own words. It was claimed at 16:30:02 and settled at 16:30:08. That
+is worth more than the first row, because it was written down before it
+happened rather than after.
 
 **WHAT THIS SECTION SAID BEFORE, KEPT BECAUSE IT WAS TRUE WHEN IT WAS
 WRITTEN.** `email_outbox` held 0 rows for the entire life of the platform, and
@@ -363,7 +375,7 @@ re-derived and is called out in section 14.
 
 | Group | Count | Mark | How the mark was established |
 |---|---|---|---|
-| The fifteen outbox templates | 15 | **1 PROVED, 14 BUILT AND UNPROVEN** (`account.welcome` proved 2026-09-23, section 2.1) | The registry exports all fifteen keys; `outbox-delivery.test.ts` walks each one to a stubbed `globalThis.fetch` and asserts the HTTP request that WOULD go out. Passing today at `origin/main`. **That test replaces the socket**, so it proves the message, never the delivery. `email_outbox` holds zero rows, so no trigger has ever written one. |
+| The fifteen outbox templates | 15 | **2 PROVED, 13 BUILT AND UNPROVEN** (`account.welcome` and `security.new_device_sign_in`, both 2026-09-23, section 2.1) | The registry exports all fifteen keys; `outbox-delivery.test.ts` walks each one to a stubbed `globalThis.fetch` and asserts the HTTP request that WOULD go out. Passing today at `origin/main`. **That test replaces the socket**, so it proves the message, never the delivery. `email_outbox` holds zero rows, so no trigger has ever written one. |
 | The twenty direct senders | 20 | **BUILT AND UNPROVEN** | Same: every one goes through `bestEffortEmail`, which is a no-op while `isEmailConfigured()` is false. No key on the deployment, and `api.resend.com` is refused from here. |
 | The three refused builders | 3 | **DONE as refusals** | `lib/email/reachability.test.ts` fails in both directions: red if somebody wires a refused builder, red if a reachable one loses its last caller. Passing today at `origin/main`. This is the one email claim where a unit test IS the real thing, because the assertion is about the import graph and the import graph is what is being claimed. |
 | `verificationCode`, the sign-up code | 1 | **NOT BUILT, as a live path** | The route exists and is correct. The Send Email Hook is not enabled, so GoTrue sends its own mail from `noreply@mail.app.supabase.io` and the route is never called. Not re-derived from `auth_logs` today: `auth_logs` was not queried in this pass. See section 14. |

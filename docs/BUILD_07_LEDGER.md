@@ -11137,3 +11137,146 @@ open Vallo, grant at any of the four moments, then `POST /api/push/self-test`,
 which reaches only the caller's own devices and returns the push service's
 answer verbatim per device. Android has its Firebase project now
 (`vallo-44059`, production only); iOS still needs the membership.
+
+---
+
+## 49decies. R22 TO SESSION B: DRAW THE SHARED MAILBOX, AND DRAW IT CAREFULLY
+
+**The data half is on main and proved. The screens are yours, so this is a
+request rather than a patch.** I have not touched `/admin/moderation` or
+`/admin/kyc`.
+
+### WHAT EXISTS NOW
+
+`apps/web/src/lib/admin/reads/mailbox.ts`, a new file in a directory you own
+three files in. This is not one of them, and I will not add to the three.
+
+```ts
+readMailboxLinks(userIds): Read<Map<string, MailboxLink>>
+readSharedMailboxes(): Read<SharedMailbox[]>
+
+type MailboxLink = {
+  canonical: string;          // personal data. Never in a URL, never in a log.
+  rule: "gmail" | "plus_strip" | "lowercase_only" | "unparseable";
+  accountsSharing: number;    // includes this account. 1 means no link.
+  siblingUserIds: string[];   // never includes this account
+};
+type SharedMailbox = { canonical: string; rule: CanonicalRule; userIds: string[] };
+```
+
+Both read through the operator's own session, so the admin-only SELECT policy
+on `public.account_identities` is the authority, exactly like the rest of the
+directory. The counting half is pure and tested
+(`mailbox.test.ts`, 8 assertions, two of which exist only to catch counting
+siblings inside the filtered set instead of the whole table).
+
+### THE TWO PLACES, AND WHAT EACH SHOULD SAY
+
+**1. `/admin/moderation`, a standing panel: every mailbox behind more than one
+account.** `readSharedMailboxes()`. On the live database right now it returns
+exactly one row, three accounts, and one of them is the founder's own. An empty
+panel is the normal state and should read as calm rather than as broken.
+
+**2. The person surface, wherever you are drawing one** (`/admin/kyc` is the
+closest thing today). `readMailboxLinks([userId])`. Draw nothing at all when
+`accountsSharing` is 1: a "1" is noise on every screen it appears on.
+
+### FOUR COPY RULES, AND THEY ARE NOT STYLE
+
+1. **Two accounts on one mailbox is not wrongdoing.** A person may hold a
+   personal account and a business one. Our own QA pair is this exact
+   mechanism, used honestly. The panel says where to look. It must never
+   say what was found.
+2. **Never shown to the account holder.** Staff surfaces only.
+3. **The canonical address is personal data.** It must not go into a URL, a
+   query string, an analytics event or a log line. Rule 16.
+4. **Say the rule, or say nothing.** A `gmail` link is strong evidence, a
+   `lowercase_only` link only means two addresses were identical apart from
+   case, which is far weaker. Drawing them identically overstates one of them.
+
+### AND STATE THE CEILING ON THE PANEL ITSELF
+
+Anybody who owns a domain has unlimited addresses with a catch-all, and no
+canonical form can ever link those. One honest sentence on the panel stops an
+operator reading an empty list as "nobody is doing this".
+
+---
+
+## 79. AN EMAIL ADDRESS COSTS NOTHING AND WE COULD NOT SEE IT, PLUS A PREDICTION THAT HELD
+
+### 79.1 THE FOUNDER RAISED IT AND IT IS REAL
+
+Gmail delivers `seyi+anything@gmail.com` and `s.e.y.i@gmail.com` to the same
+mailbox as `seyi@gmail.com`. To this platform those were three unrelated
+people. The recorder applied today (`20260923163049`) found, on the nine
+accounts that already existed, **seven mailboxes: three accounts share one.**
+
+It refuses nothing, and it must never be made to. Refusing plus tags and dots
+stops perhaps a third of it, breaks legitimate use, and loses outright to
+anybody with a second mailbox. It is an investigative signal for staff and
+nothing else. **Its ceiling is a catch-all custom domain, which defeats it
+entirely**, and that is written into the migration, the read and the panel
+request so nobody reads a quiet list as coverage.
+
+Three deliberate refusals to over-reach, each one recorded in the file: no
+dash stripping for Yahoo, because a dash is an ordinary character in ordinary
+local parts; no plus stripping on unknown domains; and the rule that produced
+each canonical stored beside it, so a weak link cannot be read as a strong one.
+
+**Proved by writing the way the product writes, into `auth.users`, and rolling
+it back:** `PROBE ALL PASS wrote=testperson@gmail.com rule=gmail shared=2
+no_email_rows=0`. Two of those are controls. The read-back inside the migration
+could see the grants and the trigger's presence, and neither of those can see
+whether the body runs. That lesson cost a day on the listing_role trigger and
+it did not have to cost another one.
+
+### 79.2 THE FOUR GATES, AND THREE OF THEM ARE NOT THERE
+
+Full working in `docs/ONE_PERSON_MANY_ACCOUNTS.md`. The short form, read from
+the code and the live schema rather than from any handoff:
+
+| Gate | Today |
+|---|---|
+| Listing requires a verified NIN | **NOT ENFORCED.** `nin` appears in zero migrations. It is typed at registration and never checked. `verification_tier` gates nothing. |
+| Money requires a name-matched bank account | **PARTIALLY.** Paystack proves the account is real; nothing proves it is yours, and there is no verified name to compare it to. |
+| A review needs a completed and PAID booking | **PARTIALLY**, and the missing half is the one that matters. |
+| A ban attaches to the identity, not the email | **NOT ENFORCED.** `agent_suspensions` holds an agent id and nothing else. |
+
+**The review gate is the sharpest finding, and the repository already knew.**
+`lib/bookings/settlement.ts` line 25 says a stay can be CONFIRMED and still
+unpaid, because a host accepting a request confirms it without any money
+arriving. `reviews_insert_own` requires CONFIRMED and checked out and never
+mentions money. So manufacturing a five-star history costs **zero naira**:
+list, book from a second address, confirm as the host, wait for the date,
+review. It is also the cheapest of the four to close, two to three hours, and
+the only one with no vendor behind it.
+
+**The dependency that shapes the order:** gates 2 and 4 both queue behind gate
+1, because a bank name has nothing to match against and a ban on an unverified
+self-typed NIN bans a string somebody made up. Gate 1 needs a NIMC-licensed
+provider, which is a contract and a per-check cost, which is the founder's
+call and not mine. Nothing has been started. The founder decides the order.
+
+### 79.3 THE PREDICTION HELD, AND A SECOND TEMPLATE PROVED ITSELF UNASKED
+
+At 16:23 this ledger and `BUILT_VS_PROVEN` both said, in writing, that the
+PENDING outbox row would be SENT by 16:30 or `last_error` would say why. It was
+claimed at 16:30:02 and settled at 16:30:08. **A prediction written down before
+the fact is worth more than an observation written after it**, and this is the
+first one this platform has made about itself and kept.
+
+And two rows nobody asked for arrived at 16:25:48 and 16:25:49:
+`security.new_device_sign_in`, both SENT, one attempt, no error. Somebody
+signed into both QA accounts and a trigger on `auth.sessions` wrote them.
+
+**That is the row that matters most of the four**, because it is a different
+template, from a different trigger, on a different table, written by a
+different kind of event, and it needed nothing configured for it. The junction
+is general rather than lucky.
+
+**Four rows, four SENT, zero failures, zero retries. 2 of 15 templates proved,
+13 never enqueued by anything.** The two limits stand unchanged: SENT is the
+provider accepting the message and not an inbox rendering it, and the outbox
+keeps no provider message id, so we cannot go back and ask about a specific
+one. A2 and `BUILT_VS_PROVEN` were corrected from the rows within fifteen
+minutes of being written from the earlier rows.
