@@ -240,18 +240,46 @@ wrong in the direction of being too generous, and that is in section 13.
 
 ### 2.1 Has anything ever been sent
 
-**How the mark was established.** `select count(*) from public.email_outbox`.
+**SUPERSEDED AT 2026-09-23 16:23Z. YES. IT HAS NOW, AND THE ROWS ARE BELOW.**
+
+Re-queried at 16:23:36Z, not taken from anybody's account of it:
 
 ```
-email_outbox: 0 rows. SENT 0. PENDING 0. FAILED 0.
+id 76ab6c4e  account.welcome  user 957b3bd2  SENT     attempts 1  last_error null
+             created 15:57:28.946Z  claimed 16:00:02.494Z  settled 16:00:05.082Z
+id 019d0132  account.welcome  user 03f3dd52  PENDING  attempts 0  last_error null
+             created 16:15:16.781Z  claimed null  settled null   (due now)
 ```
 
-**Mark: BUILT AND UNPROVEN. Nothing has ever been sent, and more than that:
-nothing has ever been QUEUED.** The table is not a queue holding unsent mail
-behind a missing key. It is empty. No trigger on `auth.users`,
-`auth.sessions`, `public.escrows`, `public.wallet_entries`,
-`public.inspection_requests`, `public.agent_verification_checks` or
-`public.messages` has ever written a row into it in production.
+**Mark for `account.welcome`: PROVED, with two limits stated below.** Two
+accounts were created, a trigger on `auth.users` wrote a row for each inside
+the transaction that created the account, the quarter hourly drain claimed the
+first one at the next scheduled run and settled it two and a half seconds
+later, attempts 1, no error. Nobody called anything by hand. Enqueue, claim,
+send and settle all ran in production.
+
+**LIMIT ONE. SENT means the provider accepted the message. It is not proof an
+inbox rendered it.** And this table keeps no provider message id, so we cannot
+go back afterwards and ask the provider what became of a specific message. If
+that matters, it is a column and a migration, and it does not exist today.
+
+**LIMIT TWO. Two sign-ups are not fifteen templates.** Both rows are
+`account.welcome`. The other fourteen have still never been enqueued by
+anything, so every claim about them rests on `outbox-delivery.test.ts`, which
+proves the message and never the delivery.
+
+**The second row is the more interesting one while it lasts.** It is PENDING,
+created 16:15:16Z, available immediately, and the drain runs at the quarter
+hour. It is a live prediction: if the junction works it will be SENT by
+16:30Z, and if it does not, `last_error` will say why in the provider's own
+words. Either way the table answers, which is the whole point of building the
+outbox rather than calling the provider inline.
+
+**WHAT THIS SECTION SAID BEFORE, KEPT BECAUSE IT WAS TRUE WHEN IT WAS
+WRITTEN.** `email_outbox` held 0 rows for the entire life of the platform, and
+the mark was BUILT AND UNPROVEN with nothing ever QUEUED, not a queue holding
+mail behind a missing key. The diagnosis below of WHY it was empty stands
+unchanged and is worth keeping: it was never the credential.
 
 **And the reason is NOT a missing credential, which is what every document on
 this platform says.** `RESEND_API_KEY` is set on production and preview, and
@@ -335,7 +363,7 @@ re-derived and is called out in section 14.
 
 | Group | Count | Mark | How the mark was established |
 |---|---|---|---|
-| The fifteen outbox templates | 15 | **BUILT AND UNPROVEN** | The registry exports all fifteen keys; `outbox-delivery.test.ts` walks each one to a stubbed `globalThis.fetch` and asserts the HTTP request that WOULD go out. Passing today at `origin/main`. **That test replaces the socket**, so it proves the message, never the delivery. `email_outbox` holds zero rows, so no trigger has ever written one. |
+| The fifteen outbox templates | 15 | **1 PROVED, 14 BUILT AND UNPROVEN** (`account.welcome` proved 2026-09-23, section 2.1) | The registry exports all fifteen keys; `outbox-delivery.test.ts` walks each one to a stubbed `globalThis.fetch` and asserts the HTTP request that WOULD go out. Passing today at `origin/main`. **That test replaces the socket**, so it proves the message, never the delivery. `email_outbox` holds zero rows, so no trigger has ever written one. |
 | The twenty direct senders | 20 | **BUILT AND UNPROVEN** | Same: every one goes through `bestEffortEmail`, which is a no-op while `isEmailConfigured()` is false. No key on the deployment, and `api.resend.com` is refused from here. |
 | The three refused builders | 3 | **DONE as refusals** | `lib/email/reachability.test.ts` fails in both directions: red if somebody wires a refused builder, red if a reachable one loses its last caller. Passing today at `origin/main`. This is the one email claim where a unit test IS the real thing, because the assertion is about the import graph and the import graph is what is being claimed. |
 | `verificationCode`, the sign-up code | 1 | **NOT BUILT, as a live path** | The route exists and is correct. The Send Email Hook is not enabled, so GoTrue sends its own mail from `noreply@mail.app.supabase.io` and the route is never called. Not re-derived from `auth_logs` today: `auth_logs` was not queried in this pass. See section 14. |

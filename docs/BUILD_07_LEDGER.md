@@ -10969,3 +10969,171 @@ print them, and it signs in afterwards with the anon key to prove the account
 actually works rather than assuming it.
 
 I will reply here again with the addresses as created, the moment they exist.
+
+---
+
+## 49nonies. THE QA ACCOUNTS EXIST, AND THEY ARE NOT THE ADDRESSES 49octies CONFIRMED
+
+**49octies is superseded. Read this instead.**
+
+That section confirmed `qa-member@vallospaces.com` and
+`qa-admin@vallospaces.com`. **Those two accounts were never created and do not
+exist.** I confirmed a pair of addresses without being able to create them,
+which was the wrong way round, and Session B should not prove anything against
+them.
+
+**The two accounts that actually exist, read out of `auth.users` rather than
+taken from the message that named them:**
+
+```
+phantomfcalls+qamember@gmail.com   957b3bd2-cce3-425d-bba9-5cd876ca3d62   QA member
+phantomfcalls+qaadmi@gmail.com     03f3dd52-ea28-4852-9abe-e5b0a67c2a43   QA admin
+```
+
+**THE SECOND ONE READS `qaadmi`. THERE IS NO `n`.** That is not a typo in this
+ledger. It is the address as created, and it is the address that must be typed
+everywhere, including into App Store Connect and Play Console if it ever went
+there, which it must not. Copy it literally.
+
+**And it is now permanent.** Directive 3 of 23 September makes an email address
+immutable once an account holds it, so the spelling cannot be corrected later
+by changing the address. Correcting it would mean a third account, and a third
+account is worse than a missing letter.
+
+### THE ADMIN GRANT WAS APPLIED HERE, AND READ BACK OUTSIDE THE THING THAT
+### WROTE IT
+
+Both accounts existed and both held only `user`. The migration
+`the_two_qa_accounts_are_named_excluded_and_one_of_them_is_an_admin` does three
+things: creates `public.qa_accounts` (born locked, RLS on, admin-only select,
+revoked from `anon` in the same migration because `pg_default_acl` grants
+`arwdDxtm` on every new relation in `public` to `anon` and `authenticated`),
+seeds both rows with their labels, and grants `admin` to `03f3dd52` idempotently.
+
+Its read-back asserts two things, and **the second is the one that matters**:
+
+- the admin account holds `admin`, and
+- **the member account does NOT.** That is the control. A grant statement that
+  ran against the wrong id, or a policy that hands admin to everybody, passes
+  the first assertion and fails this one.
+
+Then I read it again from the raw tables, outside the migration that wrote it.
+`private.has_role` refused the MCP role with `42501 permission denied for
+function has_role`, which is rule 21 working rather than a fault:
+
+```
+phantomfcalls+qamember@gmail.com   roles: user          qa_label: QA member
+phantomfcalls+qaadmi@gmail.com     roles: admin, user   qa_label: QA admin
+```
+
+### WHAT DOES NOT CHANGE FROM 49octies
+
+**The store reviewer gets the MEMBER account and never the admin one.** Apple
+and Google get `phantomfcalls+qamember@gmail.com`. Handing a reviewer an
+account that can read the moderation queue, the money desk, every person's
+support thread and the KYC documents is a data protection problem, not a
+convenience. `docs/STORE_SUBMISSION_NOTES.md` says the same thing so it cannot
+be lost between us.
+
+### ONE THING THE FOUNDER SHOULD KNOW BEFORE THE ADDRESS GOES TO A REVIEWER
+
+Both addresses are plus-addresses on a personal Gmail. That is why they work
+where the `vallospaces.com` pair would not have: the mailbox genuinely exists,
+so password reset, confirmation and every future transactional email land
+somewhere a human can read them. It is also why the reviewer, and anyone at
+Apple or Google who reads the submission, sees a personal mailbox rather than a
+company one. That is the founder's call and not mine, and it is recorded here
+rather than quietly accepted.
+
+**Passwords are not in this repository and will not be.** Session B, ask for
+them out of band.
+
+---
+
+## 78. THE EMAIL JUNCTION PROVED ITSELF, AND THE PUSH SURFACE WAS LYING IN THREE PLACES
+
+Two sign-ups did more for this platform's honest figure than three days of
+building did, because they exercised a thing that had never been exercised.
+
+### 78.1 THE OUTBOX HELD 0 ROWS FOR ITS WHOLE LIFE. IT HOLDS TWO
+
+Re-queried at 16:23:36Z, before writing a word of this, because the close-out's
+own rules say to measure rather than to repeat:
+
+```
+76ab6c4e  account.welcome  957b3bd2  SENT     attempts 1  last_error null
+          created 15:57:28.946Z  claimed 16:00:02.494Z  settled 16:00:05.082Z
+019d0132  account.welcome  03f3dd52  PENDING  attempts 0  last_error null
+          created 16:15:16.781Z  claimed null  settled null
+```
+
+**Every link in the chain is visible in those two rows.** A trigger on
+`auth.users` wrote each one in the same transaction as the account it describes.
+The quarter hourly drain claimed the first at 16:00:02, the first scheduled run
+after 15:57:28, which is the schedule doing its job rather than a coincidence.
+It settled 2.588 seconds later with one attempt and no error.
+
+**TWO LIMITS, AND THEY SURVIVE INTO EVERY DOCUMENT THAT CITES THIS.**
+
+1. **SENT means the provider accepted the message.** It is not proof an inbox
+   rendered it. Nobody has seen the email. And the table keeps no provider
+   message id, so we cannot go back and ask what became of a specific message.
+   That is a column and a migration, and it does not exist today.
+2. **Two sign-ups are not fifteen templates.** Both rows are
+   `account.welcome`. The other fourteen have never been enqueued by anything,
+   and every claim about them still rests on `outbox-delivery.test.ts`, which
+   proves the message and never the delivery.
+
+`docs/BUILT_VS_PROVEN.md` section 2.1 and `docs/SESSIONS_CLOSE_OUT.md` A1 and
+A2 are updated from the rows, not from a summary of them. The old mark is kept
+in place above the new one, because it was true when it was written and the
+diagnosis under it still stands: **the outbox was never empty because of a
+missing credential.** It was empty because nothing had happened on a platform
+with no supply and no bookings. The first thing that happened filled it.
+
+### 78.2 THE PUSH SURFACE HAD THREE FAULTS AND ALL THREE WERE MINE
+
+**Fault (a): a failed fetch reported `not_configured`.** `enrol.ts` treated any
+failure to obtain the key as "push is not set up on this deployment", so a
+network error, a redirect, an HTML body, and a genuinely unconfigured
+deployment all produced the same sentence. Now a failed fetch returns `failed`,
+and 401 or 403 returns the new `sign_in_required`.
+
+**Fault (b): the setting could not tell allowed from registered.** Permission
+granted and zero devices registered is the exact state a person lands in when
+enrolment fails after the browser prompt, and the component rendered it as
+success. `PushSetting` now takes `registeredDevices`, computes
+`allowed = phase === "granted"` and `registered = allowed && registeredDevices > 0`,
+carries both as `data-push-allowed` and `data-push-registered`, and has a third
+copy branch for allowed-but-not-registered. Every failure path also calls
+`setSettled("control")` now, so the control stops being stuck mid-flight.
+
+**Fault (c), and it is the one that made the other two visible: the public
+VAPID key was behind the wall.** `/api/push/key` was not in
+`PUBLIC_API_PATHS`, so `proxy.ts` answered the sign-in redirect, the browser
+parsed HTML as JSON, and the failure surfaced as `not_configured`. **So the
+product told people push was not set up, on a deployment where push was fully
+set up, because the public half of a keypair whose entire purpose is to be
+public was locked.**
+
+Fixed, deployed, and verified against production rather than against the repo:
+
+```
+GET https://www.vallospaces.com/api/push/key      HTTP 200
+{"configured":true,"publicKey":"BHbluqkxAQZcZ3bhDOpfGe5rpoTG6yCF7DelATIoCo2jblBzbiwwgkXUHerjnJrHtDiGCszk_11B4CjdHJXQAdc"}
+```
+
+No session, no cookie, and that is the same public key I generated and
+configured earlier, checked against the app's own `vapidKeysAgree`.
+
+**This is a blind light of the worst kind**, because the light was not merely
+uninformative, it was confidently wrong in the opposite direction. Anyone
+reading the settings screen would have concluded the deployment needed a VAPID
+pair, and gone and generated a second one.
+
+**AND IT IS STILL NOT PROVED.** `push_tokens` reads **0** at 16:23Z. The door
+is now open and nobody has walked through it. The close remains one handset:
+open Vallo, grant at any of the four moments, then `POST /api/push/self-test`,
+which reaches only the caller's own devices and returns the push service's
+answer verbatim per device. Android has its Firebase project now
+(`vallo-44059`, production only); iOS still needs the membership.
