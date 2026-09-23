@@ -5,6 +5,7 @@ import { LocationChip } from "@/components/social/feed/LocationChip";
 import { StoryRing } from "@/components/social/feed/StoryRing";
 import { CreateBloom } from "@/components/social/bloom/CreateBloom";
 import { BackButton } from "@/components/site/BackButton";
+import { AppShell } from "@/components/app/AppShell";
 import { SettleFocus } from "../../f4/SettleFocus";
 import { FEED_PLACES, FEED_POSTS, FEED_STORIES, REVIEWABLE } from "./fixtures";
 
@@ -24,6 +25,13 @@ import { FEED_PLACES, FEED_POSTS, FEED_STORIES, REVIEWABLE } from "./fixtures";
  *
  * The sheets, menus and the composer open from the page by a tap, which is
  * what `scripts/design/session-b-shots/feed.mjs` does.
+ *
+ * INSIDE THE REAL SHELL (the independent audit, 23 September): the page is
+ * wrapped in `AppShell` exactly as `(app)/layout.tsx` wraps `/around`, with the
+ * harness's route set to `/around`, so the real header sits above the feed and
+ * the real dock below it. Without them the plus was photographed over the
+ * wrong post, because the feed started a header's height higher than it does
+ * on the phone. Neither the shell nor the dock is changed here.
  */
 export default async function FeedHarness({
   searchParams,
@@ -37,7 +45,15 @@ export default async function FeedHarness({
   const open = state === "bloom";
 
   return (
-    <div className="nf-shell pt-md">
+    <AppShell
+      t={t}
+      side="property"
+      userName="Seyi Omojuni"
+      userHandle="seyifunmi"
+      signedIn
+      unreadNotifications={0}
+      preview={{ route: "/around" }}
+    >
       <div
         className="nf-feed-page pt-sm"
         style={{ paddingBottom: "var(--nf-tabbar-clearance)" }}
@@ -98,6 +114,6 @@ export default async function FeedHarness({
         />
         {open ? <SettleFocus /> : null}
       </div>
-    </div>
+    </AppShell>
   );
 }

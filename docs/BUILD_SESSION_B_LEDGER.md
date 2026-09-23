@@ -7142,6 +7142,28 @@ rose glyph, which softens a warning; the glow is off for those two
 plate; bloom geometry still exact (overlay-pass5). Final proofs re-taken after this last
 change.
 
+**Audit response, 23 September (independent audit, `audit-sweep/AUDIT.md`, two
+unrecorded differences).**
+- *The fan sat lower over the posts.* True of the harness: it had no header and no dock,
+  so the feed started a header's height higher than on the phone and the fan landed on
+  card three's head. The harness now renders inside the real `AppShell` (route
+  `/around`, the real header and the real five-slot dock, neither changed). Re-overlaid
+  (`overlay-audit-*`, `overlay-audit-numbers.md`): the plus's centre sat 44 CSS above the
+  dock's top against the image's 41.8, fixed (the gap is now 12.8px, measured 41.8
+  against 41.8); with the shell, Post lies over card two's action row as drawn
+  (`side-by-side-bloom.jpg`). What remains is the dock's own geometry and is recorded,
+  not changed: our dock is 70 CSS tall and 12 above the screen's foot where the image
+  draws 58 and 4, so the whole fan (seated correctly on the dock) sits 20 CSS higher from
+  the screen's foot than the image (123.8 against 103.9). The dock is the chrome group's
+  and the founder's own instruction is not to touch it.
+- *Card two's overflow is a vertical ⋮ in the render.* The render draws the SAME control
+  two ways: a horizontal ⋯ on card one (image 790,541) and a vertical ⋮ on card two
+  (793,960) (`render-overflow-card1-card2.jpg`). One component draws it one way; matching
+  both would mean inventing a rule (odd cards one glyph, even cards the other) that
+  nothing in the product means. The feed keeps card one's horizontal ⋯, the fully drawn
+  exemplar, on every card, and this is now a recorded deliberate difference. If the lead
+  or the founder prefers the vertical ⋮ everywhere, it is one icon name in `PostCard`.
+
 ### 13.F.6a Live proof, signed in (23 September, 17:47 to 17:48 UTC)
 
 Production build of main at `8428129a` (`next build` under the shared lock, `next start` with
@@ -7210,6 +7232,10 @@ vitest, the token check), each heavy job through the shared lock:
   photography); the live feed draws each person's avatar and each post's own pictures.
 - The verified mark is the tier's own artwork (gold or platinum), which is Session A's; the
   render's blue tick is not a tier this platform has.
+- Card two's overflow: the render draws ⋯ on card one and ⋮ on card two for the same
+  control; the feed draws ⋯ on every card (audit response, 13.F.6).
+- The fan sits 20 CSS higher from the screen's foot than drawn because the real dock is
+  taller and higher than the image's; the plus is seated on the dock exactly (41.8 CSS).
 - The render's type is a narrower face than Inter; each role is sized to its drawn WIDTH
   (so lines break where the image breaks) and so sits a little shorter in cap height.
 
