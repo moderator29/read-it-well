@@ -68,6 +68,16 @@ Session A's files:
   (`price_per_night_minor`, `price_period`) and marks example listings as
   verified. Latent today (no post has a `listing_id`), wrong the day one does.
 
+**Requests from item 4 (deleted posts, fixed by Session B in 1385bfc8):**
+- **DP-1.** A notification that links to a post which is then deleted with no
+  reply under it now opens "not found". The notifications come from Session A's
+  triggers: decide whether a delete withdraws them (preferred) or leaves them.
+- **DP-2.** `profiles` post counts drift (one account stores 6 against 8 live).
+  Not shown on any screen today; recount before any screen ever shows it.
+- Note for EX-3: Session B added the deleted-post filter to
+  `lib/social/posts-queries.ts` (claimed below); the `readPostListings` column
+  fault is still Session A's.
+
 ### Deleted posts (item 4, new)
 Claimed by the worker "posts" as it finds them, each file added here in the
 same commit it is first edited, before any edit. Session A: if a file it
