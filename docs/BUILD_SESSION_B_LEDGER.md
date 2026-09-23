@@ -143,10 +143,11 @@ re-sent by the founder as `images/2.jpg`). Worker: profile. Files: `app/(app)/pr
 
 **Broken or weak links.**
 1. Switch role opens the sheet by clicking the dock's trigger (a class-name coupling). Scope
-   request 1 asks for a trigger prop.
-2. New English copy lives in `COPY` (`belongings.ts`), not in `packages/i18n`. Scope request 1b.
-3. `tests/profile.spec.mjs` asserts `.nf-social-cover`; the profile now draws `.nf-pf-cover`.
-   Scope request 1c.
+   request 1, open: asks for a trigger prop.
+2. The settings gear is placed over the app header's row by geometry. Scope request 1d, open:
+   asks for a header slot.
+Withdrawn and done: 1b (the copy is in `packages/i18n` under `socialProfile.accountPage`) and
+1c (`tests/profile.spec.mjs` now asserts `.nf-pf-cover`).
 Nothing else in the chain is broken as far as code and the policy read can show.
 
 ### 1.3 Refused from the render
