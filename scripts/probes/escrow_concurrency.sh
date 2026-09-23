@@ -11,6 +11,32 @@
 # "No naira moves until all nine pass" is the sentence in the brief, and it was
 # untested when this file was written.
 #
+# WHICH DOOR THESE PROBES FUND THROUGH, AND WHY IT CHANGED ON 23 SEPTEMBER.
+#
+#   P-1 to P-6, P-8 and P-9 used to fund through
+#   `public.escrow_fund_from_wallet_as`, which opened an agreement and funded
+#   it in one call. Migration 20260923101038 REVOKED `execute` on that verb
+#   from every role including `service_role`, so no server action can reach it
+#   any more. A green probe over a revoked door is evidence about shared
+#   locking machinery and NOT about the door a real payer walks through.
+#
+#   Every funding call below now goes through the pair the product uses:
+#   `public.escrow_propose_as` opens a row in INITIATED with nothing moved,
+#   and `public.escrow_fund_proposal_as` takes the money. That pair carries
+#   three gates the retired verb never had, and they are now inside every
+#   probe rather than beside them: the thread membership test, the one open
+#   agreement per thread rule, and a funding reference DERIVED from the row
+#   instead of chosen by the caller.
+#
+#   ONE CONSEQUENCE IS STRUCTURAL AND IS WORTH READING BEFORE THE PROBES.
+#   `conversations` is unique on (guest_id, agent_id, listing_id) and the
+#   proposal door refuses a second live agreement in the same thread, so TWO
+#   simultaneously fundable proposals between the same two people require TWO
+#   different properties. P-1 races two funding calls against one balance, so
+#   P-1 needs two listings and two threads. That is a fact about the live door
+#   which the single-call verb could not express, and the cast below carries
+#   eight of each because of it.
+#
 # WHERE THE FUNCTION TEXT COMES FROM, and why it is trustworthy.
 #
 #   Every function is lifted from supabase/migrations/*.sql, taking the LAST
@@ -67,7 +93,7 @@ su postgres -c "createdb $db"
 # ---------------------------------------------------------------------------
 # 1. The function text, lifted from the migrations that ship.
 # ---------------------------------------------------------------------------
-WANTED="private.wallet_for_update private.wallet_spendable_locked private.wallets_overdrawn public.wallets_overdrawn private.notify private.compute_fee public.fee_rate_at private.escrow_transition_is_legal private.escrow_purpose_is_open private.escrow_commission_is_permitted private.escrow_guard_transition private.escrow_audit_insert private.escrow_settle private.escrow_sweep_timeouts public.escrow_open public.escrow_hold public.escrow_release public.escrow_refund public.escrow_cancel_as public.escrow_fund_from_wallet_as public.escrow_confirm_as public.escrow_request_release_as public.escrow_raise_dispute_as public.hold_wallet_withdrawal private.pay_booking_from_wallet private.transfer_between_wallets public.move_into_pot private.escrow_float_components private.escrow_invariants_check"
+WANTED="private.wallet_for_update private.wallet_spendable_locked private.wallets_overdrawn public.wallets_overdrawn private.notify private.compute_fee public.fee_rate_at private.escrow_transition_is_legal private.escrow_purpose_is_open private.escrow_commission_is_permitted private.escrow_guard_transition private.escrow_audit_insert private.escrow_settle private.escrow_sweep_timeouts public.escrow_open public.escrow_hold public.escrow_release public.escrow_refund public.escrow_cancel_as public.escrow_fund_from_wallet_as public.escrow_propose_as public.escrow_fund_proposal_as public.refuse_transaction_on_demo_listing public.escrow_confirm_as public.escrow_request_release_as public.escrow_raise_dispute_as public.hold_wallet_withdrawal private.pay_booking_from_wallet private.transfer_between_wallets public.move_into_pot private.escrow_float_components private.escrow_invariants_check"
 
 python3 - "$repo" "$scratch" $WANTED <<'PY'
 import glob, hashlib, os, re, sys
@@ -160,6 +186,31 @@ create type public.alert_severity as enum ('low','medium','high');
 create type public.alert_status as enum ('open','resolved');
 
 create table public.profiles (id uuid primary key, settings jsonb not null default '{}'::jsonb);
+
+-- THE THREAD AND THE PROPERTY, because the door the product funds through
+-- reads both. `escrow_propose_as` takes a conversation, checks that the two
+-- named people ARE that thread's two people, asks whether the thread's listing
+-- is an example, and copies the LISTING OFF THE THREAD rather than off the
+-- caller. None of that could be exercised by the retired one-call verb.
+--
+-- THE UNIQUE KEY IS PRODUCTION'S, not a convenience. `conversations` is unique
+-- on (guest_id, agent_id, listing_id) on the live database, read from
+-- pg_constraint on 23 September. It is here because it is the reason two
+-- fundable proposals between one pair of people need two properties, which is
+-- what P-1 races.
+create table public.listings (
+  id uuid primary key default gen_random_uuid(),
+  is_demo boolean not null default false
+);
+
+create table public.conversations (
+  id uuid primary key default gen_random_uuid(),
+  guest_id uuid not null,
+  agent_id uuid not null,
+  listing_id uuid references public.listings (id) on delete set null,
+  created_at timestamptz not null default now(),
+  constraint conversations_guest_id_agent_id_listing_id_key unique (guest_id, agent_id, listing_id)
+);
 
 create table public.wallets (
   id uuid primary key default gen_random_uuid(),
@@ -323,6 +374,12 @@ create trigger escrows_audit_insert
 create trigger escrows_guard_transition
   before update on public.escrows
   for each row execute function private.escrow_guard_transition();
+-- F-4's guard, which the proposal door now feeds a real listing_id into. The
+-- retired verb was called with a null listing in every probe, so this trigger
+-- returned on its first line every time and was never actually exercised here.
+create trigger escrows_never_against_a_demo_listing
+  before insert on public.escrows
+  for each row execute function public.refuse_transaction_on_demo_listing();
 SQL
 
 # ---------------------------------------------------------------------------
@@ -399,15 +456,57 @@ echo "== F-9 confirmed in the scratch database: hold_wallet_withdrawal calls the
 PAYER='00000000-0000-4000-8000-00000000aaaa'
 PAYEE='00000000-0000-4000-8000-00000000bbbb'
 
+# EIGHT PROPERTIES AND EIGHT THREADS, one thread per property, both people in
+# every thread. Eight because P-9 opens seven agreements between the same two
+# people and the live door will not put two of them in one thread.
+CONVOS=(); LISTINGS=()
+for slot in 1 2 3 4 5 6 7 8; do
+  CONVOS+=("00000000-0000-4000-8000-0000000000c$slot")
+  LISTINGS+=("00000000-0000-4000-8000-0000000000d$slot")
+done
+seed_listings=""; seed_convos=""
+for i in 0 1 2 3 4 5 6 7; do
+  seed_listings="$seed_listings${seed_listings:+,}('${LISTINGS[$i]}', false)"
+  seed_convos="$seed_convos${seed_convos:+,}('${CONVOS[$i]}','$PAYER','$PAYEE','${LISTINGS[$i]}')"
+done
+SEED_THREADS="insert into public.listings (id, is_demo) values $seed_listings;
+insert into public.conversations (id, guest_id, agent_id, listing_id) values $seed_convos;"
+
 reset_with() { # reset_with <payer kobo>
   su postgres -c "psql -X -q -v ON_ERROR_STOP=1 -d $db" >/dev/null 2>&1 <<SQL
 truncate public.wallet_entries, public.escrows, public.platform_revenue,
          public.audit_log, public.notifications, public.risk_alerts,
-         public.wallet_pots, public.wallets cascade;
+         public.wallet_pots, public.conversations, public.listings,
+         public.wallets cascade;
 insert into public.wallets (user_id) values ('$PAYER'), ('$PAYEE');
 insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
 select id, 'deposit', 'credit', $1, 'seed-' || id::text, 'COMPLETED' from public.wallets where user_id = '$PAYER';
+$SEED_THREADS
 SQL
+}
+
+# THE OPENING HALF OF THE LIVE DOOR. Every agreement below is born here, in
+# INITIATED, with NOT ONE KOBO MOVED, exactly as the thread composer opens it.
+# It echoes the new agreement's id, or a word beginning PROPOSAL-REFUSED, which
+# require_escrow turns into a stopped probe rather than a silent one.
+propose_id() { # propose_id <slot 0..7> <amount kobo>
+  local out
+  out="$(q "select (j ->> 'status') || '~' || coalesce(j ->> 'escrow_id','') from (select public.escrow_propose_as('$PAYER','${CONVOS[$1]}'::uuid,'$PAYEE','agency_fee',$2,true) as j) t")"
+  case "$out" in
+    ok~*) printf '%s' "${out#ok~}" ;;
+    *)    printf 'PROPOSAL-REFUSED:%s' "$out" ;;
+  esac
+}
+
+# A PROBE THAT COULD NOT OPEN ITS AGREEMENT HAS NOT TESTED ANYTHING. This is
+# the same lesson as the smoke check, one probe down: if the proposal never
+# opened, the funding call below it answers `not_found` and several of these
+# probes would read that as the refusal they were hoping for.
+require_escrow() { # require_escrow <value> <where>
+  case "$1" in
+    ????????-????-????-????-????????????) return 0 ;;
+    *) echo "   THE PROPOSAL DID NOT OPEN at $2, so nothing below it is evidence: [$1]"; return 1 ;;
+  esac
 }
 
 two_sessions() { # two_sessions <a.sql> <b.sql> <delay>
@@ -462,9 +561,18 @@ both_answered() { # both_answered <word-a> <word-b>
 # the run STOPS and says the harness is at fault rather than the product,
 # because eleven red lights and one false green are worse than no run at all.
 # ---------------------------------------------------------------------------
-echo; echo "== SMOKE: one uncontested funding call, before any probe runs"
+echo; echo "== SMOKE: one uncontested proposal and one uncontested funding call, before any probe runs"
 reset_with 100000
-smoke="$(q "select public.escrow_fund_from_wallet_as('$PAYER','$PAYEE',null,'agency_fee',50000,'rm-esc-smoke-hold',21) ->> 'status'")"
+smoke_esc="$(propose_id 0 50000)"
+smoke_initiated="$(q "select count(*) from public.escrows where state='INITIATED'")"
+smoke_early="$(q "select count(*) from public.wallet_entries where kind='escrow_hold'")"
+echo "   proposal=[$smoke_esc] initiated=$smoke_initiated holds_before_funding=$smoke_early"
+if ! require_escrow "$smoke_esc" "the smoke check" || [ "$smoke_initiated" != "1" ] || [ "$smoke_early" != "0" ]; then
+  echo "== RESULT: FAIL, AND THE HARNESS IS THE SUSPECT, NOT THE PRODUCT."
+  echo "   The proposal door did not open exactly one INITIATED agreement with nothing moved."
+  exit 1
+fi
+smoke="$(q "select public.escrow_fund_proposal_as('$PAYER','$smoke_esc'::uuid,21) ->> 'status'")"
 smoke_held="$(q "select count(*) from public.escrows where state='HELD'")"
 smoke_entries="$(q "select count(*) from public.wallet_entries where kind='escrow_hold'")"
 echo "   answer=[$smoke] held=$smoke_held holds=$smoke_entries"
@@ -476,36 +584,47 @@ if [ "$smoke" != "ok" ] || [ "$smoke_held" != "1" ] || [ "$smoke_entries" != "1"
   echo "   scratch schema being behind a migration: read the answer above."
   exit 1
 fi
-echo "== SMOKE: PASS. The harness can open and fund an agreement, so a refusal below is a refusal."
+echo "== SMOKE: PASS. The harness can propose and then fund an agreement through the door the"
+echo "   product funds through, so a refusal below is a refusal."
 
 # ---------------------------------------------------------------------------
 # P-1. Two concurrent funds against one affordable balance.
 # ---------------------------------------------------------------------------
-echo; echo "== P-1: two concurrent escrow funds, one affordable balance of 100,000 kobo"
+echo; echo "== P-1: two concurrent fundings of two proposals, one affordable balance of 100,000 kobo"
 reset_with 100000
+# TWO THREADS, because the live door refuses a second live agreement in one
+# thread. Both proposals are for the whole balance and only one can be funded.
+p1e1="$(propose_id 0 100000)"
+p1e2="$(propose_id 1 100000)"
+p1_open="$(q "select count(*) from public.escrows where state='INITIATED'")"
+p1_moved="$(q "select count(*) from public.wallet_entries where kind='escrow_hold'")"
+echo "   proposals_open=$p1_open kobo_moved_by_proposing=$p1_moved"
+require_escrow "$p1e1" "P-1 first proposal" && require_escrow "$p1e2" "P-1 second proposal" || true
 cat > "$scratch/p1a.sql" <<SQL
 begin;
-select 'A ' || (public.escrow_fund_from_wallet_as('$PAYER','$PAYEE',null,'agency_fee',100000,'rm-esc-p1-a-hold',21) ->> 'status');
+select 'A ' || (public.escrow_fund_proposal_as('$PAYER','$p1e1'::uuid,21) ->> 'status');
 select pg_sleep(2);
 commit;
 SQL
 cat > "$scratch/p1b.sql" <<SQL
 begin;
-select 'B ' || (public.escrow_fund_from_wallet_as('$PAYER','$PAYEE',null,'agency_fee',100000,'rm-esc-p1-b-hold',21) ->> 'status');
+select 'B ' || (public.escrow_fund_proposal_as('$PAYER','$p1e2'::uuid,21) ->> 'status');
 commit;
 SQL
 chmod 644 "$scratch"/p1*.sql
 two_sessions "$scratch/p1a.sql" "$scratch/p1b.sql" 0.5
 held="$(q "select count(*) from public.escrows where state='HELD'")"
+still="$(q "select count(*) from public.escrows where state='INITIATED'")"
 holds="$(q "select count(*) from public.wallet_entries where kind='escrow_hold'")"
 bal="$(q "select private.wallet_spendable_locked(id) from public.wallets where user_id='$PAYER'")"
 over="$(q "select count(*) from private.wallets_overdrawn()")"
-echo "   held=$held holds=$holds payer_spendable=$bal overdrawn=$over"
-if grep -q "A ok" "$scratch/a.out" && grep -q "B insufficient" "$scratch/b.out" \
-   && [ "$held" = "1" ] && [ "$holds" = "1" ] && [ "$bal" = "0" ] && [ "$over" = "0" ]; then
-  record P-1 PASS "A held the balance, B blocked on A's row lock, re-read spendable after A committed and was refused. One escrow, one hold, balance zero, never negative."
+echo "   held=$held still_initiated=$still holds=$holds payer_spendable=$bal overdrawn=$over"
+if [ "$p1_open" = "2" ] && [ "$p1_moved" = "0" ] \
+   && grep -q "A ok" "$scratch/a.out" && grep -q "B insufficient" "$scratch/b.out" \
+   && [ "$held" = "1" ] && [ "$still" = "1" ] && [ "$holds" = "1" ] && [ "$bal" = "0" ] && [ "$over" = "0" ]; then
+  record P-1 PASS "Two proposals opened with nothing moved. A held the balance, B blocked on A's wallet row lock, re-read spendable after A committed and was refused. One escrow HELD, one left INITIATED, one hold, balance zero, never negative."
 else
-  record P-1 FAIL "Expected A ok and B insufficient with exactly one hold. Read the two session outputs above."
+  record P-1 FAIL "Expected two open proposals moving nothing, then A ok and B insufficient with exactly one hold. Read the two session outputs above."
 fi
 
 # ---------------------------------------------------------------------------
@@ -514,9 +633,11 @@ fi
 for order in escrow_first withdrawal_first; do
   echo; echo "== P-2 ($order): an escrow and a withdrawal for the same 100,000 kobo"
   reset_with 100000
+  p2e="$(propose_id 0 100000)"
+  require_escrow "$p2e" "P-2 ($order)" || true
   cat > "$scratch/p2e.sql" <<SQL
 begin;
-select 'ESCROW ' || (public.escrow_fund_from_wallet_as('$PAYER','$PAYEE',null,'agency_fee',100000,'rm-esc-p2-$order-hold',21) ->> 'status');
+select 'ESCROW ' || (public.escrow_fund_proposal_as('$PAYER','$p2e'::uuid,21) ->> 'status');
 select pg_sleep(2);
 commit;
 SQL
@@ -550,9 +671,11 @@ echo; echo "== P-3a: an escrow and a pot move for the same 100,000 kobo"
 reset_with 100000
 q "insert into public.wallet_pots (user_id, name) values ('$PAYER','Probe pot')" >/dev/null
 pot="$(q "select id from public.wallet_pots where user_id='$PAYER'")"
+p3ae="$(propose_id 0 100000)"
+require_escrow "$p3ae" "P-3a" || true
 cat > "$scratch/p3a.sql" <<SQL
 begin;
-select 'ESCROW ' || (public.escrow_fund_from_wallet_as('$PAYER','$PAYEE',null,'agency_fee',100000,'rm-esc-p3a-hold',21) ->> 'status');
+select 'ESCROW ' || (public.escrow_fund_proposal_as('$PAYER','$p3ae'::uuid,21) ->> 'status');
 select pg_sleep(2);
 commit;
 SQL
@@ -575,9 +698,11 @@ fi
 
 echo; echo "== P-3b: an escrow and a transfer to another person for the same 100,000 kobo"
 reset_with 100000
+p3be="$(propose_id 0 100000)"
+require_escrow "$p3be" "P-3b" || true
 cat > "$scratch/p3c.sql" <<SQL
 begin;
-select 'ESCROW ' || (public.escrow_fund_from_wallet_as('$PAYER','$PAYEE',null,'agency_fee',100000,'rm-esc-p3b-hold',21) ->> 'status');
+select 'ESCROW ' || (public.escrow_fund_proposal_as('$PAYER','$p3be'::uuid,21) ->> 'status');
 select pg_sleep(2);
 commit;
 SQL
@@ -602,8 +727,10 @@ fi
 # ---------------------------------------------------------------------------
 echo; echo "== P-4: two sessions release the same HELD agreement at the same instant"
 reset_with 100000
-q "select public.escrow_fund_from_wallet_as('$PAYER','$PAYEE',null,'agency_fee',100000,'rm-esc-p4-hold',21)" >/dev/null
-esc="$(q "select id from public.escrows limit 1")"
+esc="$(propose_id 0 100000)"
+require_escrow "$esc" "P-4" || true
+p4fund="$(q "select public.escrow_fund_proposal_as('$PAYER','$esc'::uuid,21) ->> 'status'")"
+echo "   funded through the proposal door: $p4fund"
 cat > "$scratch/p4a.sql" <<SQL
 begin;
 select 'A ' || (private.escrow_settle('$esc'::uuid,'release','RELEASED',null,'probe A') ->> 'status');
@@ -622,7 +749,7 @@ payee="$(q "select private.wallet_spendable_locked(id) from public.wallets where
 audits="$(q "select count(*) from public.audit_log where action='escrow.released'")"
 state="$(q "select state from public.escrows where id='$esc'::uuid")"
 echo "   release_credits=$credits payee_balance=$payee release_audit_rows=$audits state=$state"
-if grep -q "A ok" "$scratch/a.out" && grep -q "B already_settled" "$scratch/b.out" \
+if [ "$p4fund" = "ok" ] && grep -q "A ok" "$scratch/a.out" && grep -q "B already_settled" "$scratch/b.out" \
    && [ "$credits" = "1" ] && [ "$payee" = "100000" ] && [ "$audits" = "1" ] && [ "$state" = "RELEASED" ]; then
   record P-4 PASS "One ok and one already_settled. Exactly one credit, exactly one state change, exactly one audit row, and the payee was paid once."
 else
@@ -635,8 +762,10 @@ fi
 for first in sweeper dispute; do
 echo; echo "== P-5 ($first first): the sweeper's pass and a dispute on the same agreement, at the same instant"
 reset_with 100000
-q "select public.escrow_fund_from_wallet_as('$PAYER','$PAYEE',null,'agency_fee',100000,'rm-esc-p5-hold',21)" >/dev/null
-esc="$(q "select id from public.escrows limit 1")"
+esc="$(propose_id 0 100000)"
+require_escrow "$esc" "P-5 ($first first)" || true
+p5fund="$(q "select public.escrow_fund_proposal_as('$PAYER','$esc'::uuid,21) ->> 'status'")"
+echo "   funded through the proposal door: $p5fund"
 q "update public.escrows set auto_release_at = now() - interval '1 hour' where id='$esc'::uuid" >/dev/null
 cat > "$scratch/p5a.sql" <<SQL
 begin;
@@ -658,7 +787,8 @@ fi
 state="$(q "select state from public.escrows where id='$esc'::uuid")"
 credits="$(q "select count(*) from public.wallet_entries where kind in ('escrow_release','escrow_refund')")"
 echo "   final_state=$state settlement_entries=$credits"
-if { [ "$state" = "RELEASED" ] && [ "$credits" = "1" ]; } || { [ "$state" = "DISPUTED" ] && [ "$credits" = "0" ]; }; then
+if [ "$p5fund" = "ok" ] \
+   && { { [ "$state" = "RELEASED" ] && [ "$credits" = "1" ]; } || { [ "$state" = "DISPUTED" ] && [ "$credits" = "0" ]; }; }; then
   record "P-5 ($first first)" PASS "The agreement ended in exactly one coherent state ($state) with $credits settlement entries. Never both a release and a dispute."
 else
   record "P-5 ($first first)" FAIL "The race produced state=$state with $credits settlement entries, which is neither a clean release nor a clean dispute."
@@ -666,40 +796,83 @@ fi
 done
 
 # ---------------------------------------------------------------------------
-# P-6. The retry, serial and then concurrent, on one reference.
+# P-6. The retry, serially and then concurrently, against the live door.
+#
+# WHAT CHANGED WHEN THE PROBE MOVED TO THE PROPOSAL DOOR, AND IT IS NOT
+# COSMETIC. The retired verb took the funding reference as an ARGUMENT, so a
+# retry was two calls carrying one string and the unique index on
+# `wallet_entries.reference` was the only thing between them and two debits.
+# `escrow_fund_proposal_as` DERIVES the reference from the row
+# (`rm-esc-<escrow id>-hold`), so a retry cannot carry a different key and a
+# caller cannot choose one. The first line of defence is therefore no longer
+# the index at all: it is the row lock plus the state test, and a retry reads
+# `not_fundable` because the agreement is already HELD.
+#
+# THREE HALVES, NOT TWO, and the third is here deliberately. The index is now
+# a BACKSTOP that the ordinary path never reaches, which is exactly the shape
+# that quietly stops working. So the third case puts the derived reference in
+# the ledger by hand while the agreement is still INITIATED and then funds it,
+# which is the only way left to make that `exception when unique_violation`
+# branch run. It must ANSWER `duplicate` rather than raise, and the agreement
+# must not move.
 # ---------------------------------------------------------------------------
-echo; echo "== P-6: the same funding reference called twice, serially"
+echo; echo "== P-6: the same proposal funded twice, serially"
 reset_with 300000
-first="$(q "select public.escrow_fund_from_wallet_as('$PAYER','$PAYEE',null,'agency_fee',100000,'rm-esc-p6-hold',21) ->> 'status'")"
-second="$(q "select public.escrow_fund_from_wallet_as('$PAYER','$PAYEE',null,'agency_fee',100000,'rm-esc-p6-hold',21) ->> 'status'")"
-entries="$(q "select count(*) from public.wallet_entries where reference='rm-esc-p6-hold'")"
+p6e="$(propose_id 0 100000)"
+require_escrow "$p6e" "P-6 serial" || true
+p6ref="rm-esc-$p6e-hold"
+first="$(q "select public.escrow_fund_proposal_as('$PAYER','$p6e'::uuid,21) ->> 'status'")"
+second="$(q "select public.escrow_fund_proposal_as('$PAYER','$p6e'::uuid,21) ->> 'status'")"
+entries="$(q "select count(*) from public.wallet_entries where reference='$p6ref'")"
 bal="$(q "select private.wallet_spendable_locked(id) from public.wallets where user_id='$PAYER'")"
+echo "   derived reference=$p6ref"
 echo "   first=$first second=$second entries=$entries payer_spendable=$bal"
 serial_ok=no
-[ "$first" = "ok" ] && [ "$second" = "duplicate" ] && [ "$entries" = "1" ] && [ "$bal" = "200000" ] && serial_ok=yes
+[ "$first" = "ok" ] && [ "$second" = "not_fundable" ] && [ "$entries" = "1" ] && [ "$bal" = "200000" ] && serial_ok=yes
 
-echo "== P-6: and the same reference from two sessions at once"
+echo "== P-6: and the same proposal funded from two sessions at once"
 reset_with 300000
+p6c="$(propose_id 0 100000)"
+require_escrow "$p6c" "P-6 concurrent" || true
+p6cref="rm-esc-$p6c-hold"
 cat > "$scratch/p6a.sql" <<SQL
 begin;
-select 'A ' || (public.escrow_fund_from_wallet_as('$PAYER','$PAYEE',null,'agency_fee',100000,'rm-esc-p6c-hold',21) ->> 'status');
+select 'A ' || (public.escrow_fund_proposal_as('$PAYER','$p6c'::uuid,21) ->> 'status');
 select pg_sleep(2);
 commit;
 SQL
 cat > "$scratch/p6b.sql" <<SQL
 begin;
-select 'B ' || (public.escrow_fund_from_wallet_as('$PAYER','$PAYEE',null,'agency_fee',100000,'rm-esc-p6c-hold',21) ->> 'status');
+select 'B ' || (public.escrow_fund_proposal_as('$PAYER','$p6c'::uuid,21) ->> 'status');
 commit;
 SQL
 chmod 644 "$scratch"/p6*.sql
 two_sessions "$scratch/p6a.sql" "$scratch/p6b.sql" 0.5
-centries="$(q "select count(*) from public.wallet_entries where reference='rm-esc-p6c-hold'")"
+centries="$(q "select count(*) from public.wallet_entries where reference='$p6cref'")"
 cbal="$(q "select private.wallet_spendable_locked(id) from public.wallets where user_id='$PAYER'")"
 echo "   entries=$centries payer_spendable=$cbal"
-if [ "$serial_ok" = "yes" ] && [ "$centries" = "1" ] && [ "$cbal" = "200000" ]; then
-  record P-6 PASS "A repeat answered duplicate rather than raising, and both serially and concurrently the reference produced exactly one ledger entry and one debit."
+conc_ok=no
+[ "$centries" = "1" ] && [ "$cbal" = "200000" ] && both_answered "A " "B " && conc_ok=yes
+
+echo "== P-6: the unique index backstop, which the ordinary path no longer reaches"
+reset_with 300000
+p6d="$(propose_id 0 100000)"
+require_escrow "$p6d" "P-6 backstop" || true
+p6dref="rm-esc-$p6d-hold"
+q "insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
+   select id, 'escrow_hold', 'debit', 100000, '$p6dref', 'COMPLETED'
+   from public.wallets where user_id='$PAYER'" >/dev/null
+dup="$(q "select public.escrow_fund_proposal_as('$PAYER','$p6d'::uuid,21) ->> 'status'")"
+dentries="$(q "select count(*) from public.wallet_entries where reference='$p6dref'")"
+dstate="$(q "select state from public.escrows where id='$p6d'::uuid")"
+echo "   answer=$dup entries=$dentries state=$dstate"
+back_ok=no
+[ "$dup" = "duplicate" ] && [ "$dentries" = "1" ] && [ "$dstate" = "INITIATED" ] && back_ok=yes
+
+if [ "$serial_ok" = "yes" ] && [ "$conc_ok" = "yes" ] && [ "$back_ok" = "yes" ]; then
+  record P-6 PASS "Serially and concurrently, funding one proposal twice produced exactly one ledger entry and one debit, and the repeat answered not_fundable rather than raising. The unique index backstop, reached on purpose, answered duplicate and left the agreement INITIATED."
 else
-  record P-6 FAIL "A retry on one reference moved money twice, or answered with something other than duplicate."
+  record P-6 FAIL "serial=$serial_ok concurrent=$conc_ok backstop=$back_ok. A retry moved money twice, raised, or answered with the wrong word."
 fi
 
 # ---------------------------------------------------------------------------
@@ -707,15 +880,17 @@ fi
 # ---------------------------------------------------------------------------
 echo; echo "== P-8: a direct update from REFUNDED to RELEASED, as the owning role"
 reset_with 100000
-q "select public.escrow_fund_from_wallet_as('$PAYER','$PAYEE',null,'agency_fee',100000,'rm-esc-p8-hold',21)" >/dev/null
-esc="$(q "select id from public.escrows limit 1")"
+esc="$(propose_id 0 100000)"
+require_escrow "$esc" "P-8" || true
+p8fund="$(q "select public.escrow_fund_proposal_as('$PAYER','$esc'::uuid,21) ->> 'status'")"
+echo "   funded through the proposal door: $p8fund"
 q "select private.escrow_settle('$esc'::uuid,'refund','REFUNDED',null,'probe')" >/dev/null
 before="$(q "select state from public.escrows where id='$esc'::uuid")"
 raised="$(q "update public.escrows set state='RELEASED' where id='$esc'::uuid")"
 after="$(q "select state from public.escrows where id='$esc'::uuid")"
 echo "   before=$before after=$after"
 echo "   answer: $raised"
-if [ "$before" = "REFUNDED" ] && [ "$after" = "REFUNDED" ] && echo "$raised" | grep -qi "cannot go from REFUNDED to RELEASED"; then
+if [ "$p8fund" = "ok" ] && [ "$before" = "REFUNDED" ] && [ "$after" = "REFUNDED" ] && echo "$raised" | grep -qi "cannot go from REFUNDED to RELEASED"; then
   record P-8 PASS "The trigger refused the update from a plain prompt and the row did not move. The guard is reachable from psql, not only from the functions."
 else
   record P-8 FAIL "An illegal transition was not refused by the trigger."
@@ -727,9 +902,17 @@ fi
 echo; echo "== P-9: the float identity across a mix of held, released, refunded, disputed and cancelled"
 reset_with 5000000
 q "insert into public.fee_rates (kind, basis_points, flat_minor, effective_from) values ('commission', 500, 0, now() - interval '1 day')" >/dev/null
+# SEVEN AGREEMENTS, SEVEN THREADS. The live door allows one live agreement per
+# conversation, so the lifecycle mix needs a thread each rather than seven
+# calls against one pair of people.
+p9_funded=0
 for n in 1 2 3 4 5 6; do
-  q "select public.escrow_fund_from_wallet_as('$PAYER','$PAYEE',null,'agency_fee',$((n * 100000)),'rm-esc-p9-$n-hold',21)" >/dev/null
+  p9e="$(propose_id $((n - 1)) $((n * 100000)))"
+  require_escrow "$p9e" "P-9 agreement $n" || continue
+  p9a="$(q "select public.escrow_fund_proposal_as('$PAYER','$p9e'::uuid,21) ->> 'status'")"
+  [ "$p9a" = "ok" ] && p9_funded=$((p9_funded + 1))
 done
+echo "   funded through the proposal door: $p9_funded of 6"
 e1="$(q "select id from public.escrows where amount_minor=100000")"
 e2="$(q "select id from public.escrows where amount_minor=200000")"
 e3="$(q "select id from public.escrows where amount_minor=300000")"
@@ -738,8 +921,11 @@ q "select private.escrow_settle('$e1'::uuid,'release','RELEASED',null,'probe')" 
 q "select private.escrow_settle('$e2'::uuid,'refund','REFUNDED',null,'probe')" >/dev/null
 q "select public.escrow_raise_dispute_as('$PAYER','$e3'::uuid,'The keys were never handed over.')" >/dev/null
 q "select private.escrow_settle('$e4'::uuid,'release','RESOLVED',null,'probe ruling')" >/dev/null 2>&1
-q "select public.escrow_open('$PAYER','$PAYEE',null,'agency_fee',900000)" >/dev/null
-prop="$(q "select id from public.escrows where amount_minor=900000")"
+# THE SEVENTH IS PROPOSED AND NEVER FUNDED, so the cancel leg exercises the
+# same door a person cancelling a proposal in a thread walks through. It used
+# to go through `public.escrow_open`, which no server action calls.
+prop="$(propose_id 6 900000)"
+require_escrow "$prop" "P-9 the cancelled proposal" || true
 cancel_answer="$(q "select public.escrow_cancel_as('$PAYER','$prop'::uuid,null) ->> 'status'")"
 echo "   cancel with no reason at all -> $cancel_answer" 
 
@@ -754,7 +940,7 @@ breaches="$(q "select private.escrow_invariants_check() ->> 'breaches'")"
 echo "   ledger_float=$ledger escrow_float=$rows difference=$diff commission_booked=$commission"
 echo "   gross_mismatches=$gross_ok overdrawn=$over invariants_ok=$inv"
 echo "   breaches=$breaches"
-if [ "$inv" = "true" ] && [ "$diff" = "0" ] && [ "$gross_ok" = "0" ] && [ "$over" = "0" ] && [ "$commission" != "0" ]; then
+if [ "$p9_funded" = "6" ] && [ "$inv" = "true" ] && [ "$diff" = "0" ] && [ "$gross_ok" = "0" ] && [ "$over" = "0" ] && [ "$commission" != "0" ]; then
   record P-9 PASS "Across a lifecycle mix with a live five per cent commission the two derivations of the float agreed to the kobo, no wallet went negative, and every settlement's net plus commission equalled its gross."
 else
   record P-9 FAIL "The float identity did not hold across a lifecycle mix."

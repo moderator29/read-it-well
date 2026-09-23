@@ -1,4 +1,4 @@
-== probe started 2026-09-23T10:20:15Z
+== probe started 2026-09-23T10:34:01Z
  PostgreSQL 16.13 (Ubuntu 16.13-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit
    private.wallet_for_update                      sha256 107e855012bc50c6  20260809052049_escrow_money_moves_under_a_lock.sql
    private.wallet_spendable_locked                sha256 71cfe97d15e6858b  20260809052049_escrow_money_moves_under_a_lock.sql
@@ -20,6 +20,9 @@
    public.escrow_refund                           sha256 301afc4305e676d3  20260809053537_the_three_escrow_legs_the_wallet_layer_already_calls.sql
    public.escrow_cancel_as                        sha256 6050c71a9c328bd5  20260923012500_a_cancelled_agreement_still_owes_the_record_a_sentence.sql
    public.escrow_fund_from_wallet_as              sha256 f1c59e7b92bff6e7  20260923093233_a_proposal_is_made_in_the_thread_and_an_escrow_remembers_who_opened_it.sql
+   public.escrow_propose_as                       sha256 bb557ff649827068  20260923093320_a_proposal_against_an_example_property_answers_in_a_sentence.sql
+   public.escrow_fund_proposal_as                 sha256 3ec738905c17a760  20260923093233_a_proposal_is_made_in_the_thread_and_an_escrow_remembers_who_opened_it.sql
+   public.refuse_transaction_on_demo_listing      sha256 ba48b0c290a7eef3  20260918081149_m03_accommodations_photos_amenities_bucket.sql
    public.escrow_confirm_as                       sha256 bff8a89c1e5f7161  20260922120000_the_escrow_doors_are_locked_and_trust_stops_answering_strangers.sql
    public.escrow_request_release_as               sha256 d260db745a9ebc8c  20260922120000_the_escrow_doors_are_locked_and_trust_stops_answering_strangers.sql
    public.escrow_raise_dispute_as                 sha256 c9c7c2e91cd54bac  20260922120000_the_escrow_doors_are_locked_and_trust_stops_answering_strangers.sql
@@ -29,27 +32,30 @@
    public.move_into_pot                           sha256 38d040ad2b07a6b1  20260812090100_pots_move_money_under_the_wallet_lock.sql
    private.escrow_float_components                sha256 c7e1dde5019f445a  20260923010000_the_escrow_float_is_booked_as_a_liability.sql
    private.escrow_invariants_check                sha256 d41acf34a96bad55  20260923011000_the_float_identity_is_asserted_on_a_schedule.sql
-== 29 function bodies lifted
+== 32 function bodies lifted
 == two F-9 rewrite blocks lifted
    escrows.conversation_id uuid  (lifted from a migration)
    escrows.opened_by uuid  (lifted from a migration)
 == 2 column addition(s) to public.escrows lifted from the migrations
-psql:/tmp/tmp.044lcFTMjz/f9.sql:89: NOTICE:  F-9: private.pay_booking_from_wallet(uuid, uuid, text) now calls private.wallet_spendable_locked
-psql:/tmp/tmp.044lcFTMjz/f9.sql:89: NOTICE:  F-9: public.hold_wallet_withdrawal(uuid, bigint, text, jsonb) now calls private.wallet_spendable_locked
+psql:/tmp/tmp.tjUfdyr7o6/f9.sql:89: NOTICE:  F-9: private.pay_booking_from_wallet(uuid, uuid, text) now calls private.wallet_spendable_locked
+psql:/tmp/tmp.tjUfdyr7o6/f9.sql:89: NOTICE:  F-9: public.hold_wallet_withdrawal(uuid, bigint, text, jsonb) now calls private.wallet_spendable_locked
 == F-9 confirmed in the scratch database: hold_wallet_withdrawal calls the shared spendable
 
-== SMOKE: one uncontested funding call, before any probe runs
+== SMOKE: one uncontested proposal and one uncontested funding call, before any probe runs
+   proposal=[c0ee3363-bde5-481e-bfe8-c990b1e4127c] initiated=1 holds_before_funding=0
    answer=[ok] held=1 holds=1
-== SMOKE: PASS. The harness can open and fund an agreement, so a refusal below is a refusal.
+== SMOKE: PASS. The harness can propose and then fund an agreement through the door the
+   product funds through, so a refusal below is a refusal.
 
-== P-1: two concurrent escrow funds, one affordable balance of 100,000 kobo
+== P-1: two concurrent fundings of two proposals, one affordable balance of 100,000 kobo
+   proposals_open=2 kobo_moved_by_proposing=0
 -- A:
      A ok
      
 -- B:
      B insufficient
-   held=1 holds=1 payer_spendable=0 overdrawn=0
-== P-1: PASS. A held the balance, B blocked on A's row lock, re-read spendable after A committed and was refused. One escrow, one hold, balance zero, never negative.
+   held=1 still_initiated=1 holds=1 payer_spendable=0 overdrawn=0
+== P-1: PASS. Two proposals opened with nothing moved. A held the balance, B blocked on A's wallet row lock, re-read spendable after A committed and was refused. One escrow HELD, one left INITIATED, one hold, balance zero, never negative.
 
 == P-2 (escrow_first): an escrow and a withdrawal for the same 100,000 kobo
 -- A:
@@ -94,6 +100,7 @@ psql:/tmp/tmp.044lcFTMjz/f9.sql:89: NOTICE:  F-9: public.hold_wallet_withdrawal(
 == P-3b (transfer): PASS. Exactly one of the escrow and the transfer took the balance.
 
 == P-4: two sessions release the same HELD agreement at the same instant
+   funded through the proposal door: ok
 -- A:
      A ok
      
@@ -103,6 +110,7 @@ psql:/tmp/tmp.044lcFTMjz/f9.sql:89: NOTICE:  F-9: public.hold_wallet_withdrawal(
 == P-4: PASS. One ok and one already_settled. Exactly one credit, exactly one state change, exactly one audit row, and the payee was paid once.
 
 == P-5 (sweeper first): the sweeper's pass and a dispute on the same agreement, at the same instant
+   funded through the proposal door: ok
 -- A:
      SWEEP moved=1
      
@@ -112,6 +120,7 @@ psql:/tmp/tmp.044lcFTMjz/f9.sql:89: NOTICE:  F-9: public.hold_wallet_withdrawal(
 == P-5 (sweeper first): PASS. The agreement ended in exactly one coherent state (RELEASED) with 1 settlement entries. Never both a release and a dispute.
 
 == P-5 (dispute first): the sweeper's pass and a dispute on the same agreement, at the same instant
+   funded through the proposal door: ok
 -- A:
      DISPUTE ok
 -- B:
@@ -120,24 +129,30 @@ psql:/tmp/tmp.044lcFTMjz/f9.sql:89: NOTICE:  F-9: public.hold_wallet_withdrawal(
    final_state=DISPUTED settlement_entries=0
 == P-5 (dispute first): PASS. The agreement ended in exactly one coherent state (DISPUTED) with 0 settlement entries. Never both a release and a dispute.
 
-== P-6: the same funding reference called twice, serially
-   first=ok second=duplicate entries=1 payer_spendable=200000
-== P-6: and the same reference from two sessions at once
+== P-6: the same proposal funded twice, serially
+   derived reference=rm-esc-51cd76e0-70e9-4c11-af33-5d41fc60e218-hold
+   first=ok second=not_fundable entries=1 payer_spendable=200000
+== P-6: and the same proposal funded from two sessions at once
 -- A:
      A ok
      
 -- B:
-     B duplicate
+     B not_fundable
    entries=1 payer_spendable=200000
-== P-6: PASS. A repeat answered duplicate rather than raising, and both serially and concurrently the reference produced exactly one ledger entry and one debit.
+   BOTH-ANSWERED: yes. A  and B  both spoke.
+== P-6: the unique index backstop, which the ordinary path no longer reaches
+   answer=duplicate entries=1 state=INITIATED
+== P-6: PASS. Serially and concurrently, funding one proposal twice produced exactly one ledger entry and one debit, and the repeat answered not_fundable rather than raising. The unique index backstop, reached on purpose, answered duplicate and left the agreement INITIATED.
 
 == P-8: a direct update from REFUNDED to RELEASED, as the owning role
+   funded through the proposal door: ok
    before=REFUNDED after=REFUNDED
-   answer: ERROR:  escrow 90e1ed27-a619-4063-92be-7da8c8f266fb cannot go from REFUNDED to RELEASED
+   answer: ERROR:  escrow ece94a3c-e40e-48fd-aee5-3634221f0d6e cannot go from REFUNDED to RELEASED
 CONTEXT:  PL/pgSQL function private.escrow_guard_transition() line 26 at RAISE
 == P-8: PASS. The trigger refused the update from a plain prompt and the row did not move. The guard is reachable from psql, not only from the functions.
 
 == P-9: the float identity across a mix of held, released, refunded, disputed and cancelled
+   funded through the proposal door: 6 of 6
    cancel with no reason at all -> ok
    ledger_float=1800000 escrow_float=1800000 difference=0 commission_booked=5000
    gross_mismatches=0 overdrawn=0 invariants_ok=true
@@ -150,7 +165,7 @@ CONTEXT:  PL/pgSQL function private.escrow_guard_transition() line 26 at RAISE
 == scratch database dropped
 
 == SUMMARY
-   P-1                PASS A held the balance, B blocked on A's row lock, re-read spendable after A committed and was refused. One escrow, one hold, balance zero, never negative.
+   P-1                PASS Two proposals opened with nothing moved. A held the balance, B blocked on A's wallet row lock, re-read spendable after A committed and was refused. One escrow HELD, one left INITIATED, one hold, balance zero, never negative.
    P-2 (escrow_first) PASS Exactly one of the two committed the balance. The other was refused and nothing was moved.
    P-2 (withdrawal_first) PASS Exactly one of the two committed the balance. The other was refused and nothing was moved.
    P-3a (pot)         PASS Exactly one of the escrow and the pot took the balance.
@@ -158,7 +173,7 @@ CONTEXT:  PL/pgSQL function private.escrow_guard_transition() line 26 at RAISE
    P-4                PASS One ok and one already_settled. Exactly one credit, exactly one state change, exactly one audit row, and the payee was paid once.
    P-5 (sweeper first) PASS The agreement ended in exactly one coherent state (RELEASED) with 1 settlement entries. Never both a release and a dispute.
    P-5 (dispute first) PASS The agreement ended in exactly one coherent state (DISPUTED) with 0 settlement entries. Never both a release and a dispute.
-   P-6                PASS A repeat answered duplicate rather than raising, and both serially and concurrently the reference produced exactly one ledger entry and one debit.
+   P-6                PASS Serially and concurrently, funding one proposal twice produced exactly one ledger entry and one debit, and the repeat answered not_fundable rather than raising. The unique index backstop, reached on purpose, answered duplicate and left the agreement INITIATED.
    P-8                PASS The trigger refused the update from a plain prompt and the row did not move. The guard is reachable from psql, not only from the functions.
    P-9                PASS Across a lifecycle mix with a live five per cent commission the two derivations of the float agreed to the kobo, no wallet went negative, and every settlement's net plus commission equalled its gross.
 

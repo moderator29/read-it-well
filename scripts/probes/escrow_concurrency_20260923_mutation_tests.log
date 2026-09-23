@@ -1,0 +1,214 @@
+== MUTATION TESTS ON THE RE-POINTED PROBES, 23 September 2026
+==
+== WHY THIS FILE EXISTS. Eleven probes went green the first time they were
+== re-pointed at the door the product funds through. A suite that has only
+== ever been seen green is a suite nobody has watched fail, and on this
+== project a probe has already reported PASS over a door that could not
+== insert a row. So each mutation below breaks ONE thing on purpose, in an
+== ISOLATED COPY of the migrations and the script under /tmp, and the run is
+== kept. Nothing here touched the repository's own migrations or the live
+== project.
+==
+== MUTATION A: public.escrow_fund_proposal_as inserts a column that does not
+==   exist, which is the exact shape of the 09:32 fault on 23 September.
+== MUTATION B: public.escrow_propose_as inserts a column that does not exist,
+==   so the OPENING half of the door cannot make a row.
+== MUTATION C: public.escrow_fund_proposal_as stops refusing an amount the
+==   payer cannot afford (`if spendable < e.amount_minor` becomes `if false`).
+==   The smoke check passes, because one uncontested funding call of an
+==   affordable amount is still fine. The contention probes are what must
+==   notice.
+
+=============== MUTATION A ===============
+== SMOKE: one uncontested proposal and one uncontested funding call, before any probe runs
+   proposal=[229b141e-811e-4fc2-a6b0-1a3d8ea15c99] initiated=1 holds_before_funding=0
+   answer=[ERROR:  column "a_column_that_does_not_exist" of relation "wallet_entries" does not exist
+LINE 1: ...kind, direction, amount_minor, reference, status, a_column_t...
+                                                             ^
+QUERY:  insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status, a_column_that_does_not_exist)
+  values (payer_wallet,'escrow_hold','debit',e.amount_minor,'rm-esc-'||e.id::text||'-hold','COMPLETED', 1)
+CONTEXT:  PL/pgSQL function escrow_fund_proposal_as(uuid,uuid,integer) line 13 at SQL statement] held=0 holds=0
+== RESULT: FAIL, AND THE HARNESS IS THE SUSPECT, NOT THE PRODUCT.
+   An uncontested funding call did not produce one HELD agreement and one hold.
+   Nothing below this line would have been evidence about locking, ordering
+   or the float, so nothing below this line was run. The usual cause is the
+   scratch schema being behind a migration: read the answer above.
+
+=============== MUTATION B ===============
+== SMOKE: one uncontested proposal and one uncontested funding call, before any probe runs
+   proposal=[PROPOSAL-REFUSED:ERROR:  column "a_column_that_does_not_exist" of relation "escrows" does not exist
+LINE 1: ...urpose, amount_minor, opened_by, conversation_id, a_column_t...
+                                                             ^
+QUERY:  insert into public.escrows (payer_id, payee_id, listing_id, purpose, amount_minor, opened_by, conversation_id, a_column_that_does_not_exist)
+  values (p_actor, p_counterparty, convo.listing_id, p_purpose, p_amount_minor, p_actor, p_conversation, 1)
+  returning id
+CONTEXT:  PL/pgSQL function escrow_propose_as(uuid,uuid,uuid,escrow_purpose,bigint,boolean) line 5 at SQL statement] initiated=0 holds_before_funding=0
+   THE PROPOSAL DID NOT OPEN at the smoke check, so nothing below it is evidence: [PROPOSAL-REFUSED:ERROR:  column "a_column_that_does_not_exist" of relation "escrows" does not exist
+LINE 1: ...urpose, amount_minor, opened_by, conversation_id, a_column_t...
+                                                             ^
+QUERY:  insert into public.escrows (payer_id, payee_id, listing_id, purpose, amount_minor, opened_by, conversation_id, a_column_that_does_not_exist)
+  values (p_actor, p_counterparty, convo.listing_id, p_purpose, p_amount_minor, p_actor, p_conversation, 1)
+  returning id
+CONTEXT:  PL/pgSQL function escrow_propose_as(uuid,uuid,uuid,escrow_purpose,bigint,boolean) line 5 at SQL statement]
+== RESULT: FAIL, AND THE HARNESS IS THE SUSPECT, NOT THE PRODUCT.
+   The proposal door did not open exactly one INITIATED agreement with nothing moved.
+
+=============== MUTATION C ===============
+== SMOKE: one uncontested proposal and one uncontested funding call, before any probe runs
+   proposal=[6b84fe18-fd3e-456c-b584-89bb9042e553] initiated=1 holds_before_funding=0
+   answer=[ok] held=1 holds=1
+== SMOKE: PASS. The harness can propose and then fund an agreement through the door the
+   product funds through, so a refusal below is a refusal.
+
+== P-1: two concurrent fundings of two proposals, one affordable balance of 100,000 kobo
+   proposals_open=2 kobo_moved_by_proposing=0
+-- A:
+     A ok
+     
+-- B:
+     B ok
+   held=2 still_initiated=0 holds=2 payer_spendable=-100000 overdrawn=1
+== P-1: FAIL. Expected two open proposals moving nothing, then A ok and B insufficient with exactly one hold. Read the two session outputs above.
+
+== P-2 (escrow_first): an escrow and a withdrawal for the same 100,000 kobo
+-- A:
+     ESCROW ok
+     
+-- B:
+     WITHDRAWAL insufficient
+     
+   ok_answers=1 committing_entries=1 payer_spendable=0
+   BOTH-ANSWERED: yes. ESCROW and WITHDRAWAL both spoke.
+== P-2 (escrow_first): PASS. Exactly one of the two committed the balance. The other was refused and nothing was moved.
+
+== P-2 (withdrawal_first): an escrow and a withdrawal for the same 100,000 kobo
+-- A:
+     WITHDRAWAL ok
+     
+-- B:
+     ESCROW ok
+     
+   ok_answers=2 committing_entries=2 payer_spendable=-100000
+   BOTH-ANSWERED: yes. ESCROW and WITHDRAWAL both spoke.
+== P-2 (withdrawal_first): FAIL. Both paths took the balance, neither did, or one of them never ran.
+
+== P-3a: an escrow and a pot move for the same 100,000 kobo
+-- A:
+     ESCROW ok
+     
+-- B:
+     POT insufficient
+   ok_answers=1 committing_entries=1 payer_spendable=0
+   BOTH-ANSWERED: yes. ESCROW and POT both spoke.
+== P-3a (pot): PASS. Exactly one of the escrow and the pot took the balance.
+
+== P-3b: an escrow and a transfer to another person for the same 100,000 kobo
+-- A:
+     ESCROW ok
+     
+-- B:
+     TRANSFER insufficient
+   committing_entries=1 payer_spendable=0
+   BOTH-ANSWERED: yes. ESCROW and TRANSFER both spoke.
+== P-3b (transfer): PASS. Exactly one of the escrow and the transfer took the balance.
+
+== P-4: two sessions release the same HELD agreement at the same instant
+   funded through the proposal door: ok
+-- A:
+     A ok
+     
+-- B:
+     B already_settled
+   release_credits=1 payee_balance=100000 release_audit_rows=1 state=RELEASED
+== P-4: PASS. One ok and one already_settled. Exactly one credit, exactly one state change, exactly one audit row, and the payee was paid once.
+
+== P-5 (sweeper first): the sweeper's pass and a dispute on the same agreement, at the same instant
+   funded through the proposal door: ok
+-- A:
+     SWEEP moved=1
+     
+-- B:
+     DISPUTE not_disputable
+   final_state=RELEASED settlement_entries=1
+== P-5 (sweeper first): PASS. The agreement ended in exactly one coherent state (RELEASED) with 1 settlement entries. Never both a release and a dispute.
+
+== P-5 (dispute first): the sweeper's pass and a dispute on the same agreement, at the same instant
+   funded through the proposal door: ok
+-- A:
+     DISPUTE ok
+-- B:
+     SWEEP moved=0
+     
+   final_state=DISPUTED settlement_entries=0
+== P-5 (dispute first): PASS. The agreement ended in exactly one coherent state (DISPUTED) with 0 settlement entries. Never both a release and a dispute.
+
+== P-6: the same proposal funded twice, serially
+   derived reference=rm-esc-e4ce5d83-f70d-4f64-afe6-cd8db2a246f4-hold
+   first=ok second=not_fundable entries=1 payer_spendable=200000
+== P-6: and the same proposal funded from two sessions at once
+-- A:
+     A ok
+     
+-- B:
+     B not_fundable
+   entries=1 payer_spendable=200000
+   BOTH-ANSWERED: yes. A  and B  both spoke.
+== P-6: the unique index backstop, which the ordinary path no longer reaches
+   answer=duplicate entries=1 state=INITIATED
+== P-6: PASS. Serially and concurrently, funding one proposal twice produced exactly one ledger entry and one debit, and the repeat answered not_fundable rather than raising. The unique index backstop, reached on purpose, answered duplicate and left the agreement INITIATED.
+
+== P-8: a direct update from REFUNDED to RELEASED, as the owning role
+   funded through the proposal door: ok
+   before=REFUNDED after=REFUNDED
+   answer: ERROR:  escrow 356dd307-5710-455a-b8c3-c281d51338d9 cannot go from REFUNDED to RELEASED
+CONTEXT:  PL/pgSQL function private.escrow_guard_transition() line 26 at RAISE
+== P-8: PASS. The trigger refused the update from a plain prompt and the row did not move. The guard is reachable from psql, not only from the functions.
+
+== P-9: the float identity across a mix of held, released, refunded, disputed and cancelled
+   funded through the proposal door: 6 of 6
+   cancel with no reason at all -> ok
+   ledger_float=1800000 escrow_float=1800000 difference=0 commission_booked=5000
+   gross_mismatches=0 overdrawn=0 invariants_ok=true
+   breaches=[]
+== P-9: PASS. Across a lifecycle mix with a live five per cent commission the two derivations of the float agreed to the kobo, no wallet went negative, and every settlement's net plus commission equalled its gross.
+
+== P-7: the revoke. Not runnable against a local cluster: it needs a real
+   PostgREST and a real anon key. See scripts/probes/escrow_revoke.sh.
+
+== scratch database dropped
+
+== SUMMARY
+   P-1                FAIL Expected two open proposals moving nothing, then A ok and B insufficient with exactly one hold. Read the two session outputs above.
+   P-2 (escrow_first) PASS Exactly one of the two committed the balance. The other was refused and nothing was moved.
+   P-2 (withdrawal_first) FAIL Both paths took the balance, neither did, or one of them never ran.
+   P-3a (pot)         PASS Exactly one of the escrow and the pot took the balance.
+   P-3b (transfer)    PASS Exactly one of the escrow and the transfer took the balance.
+   P-4                PASS One ok and one already_settled. Exactly one credit, exactly one state change, exactly one audit row, and the payee was paid once.
+   P-5 (sweeper first) PASS The agreement ended in exactly one coherent state (RELEASED) with 1 settlement entries. Never both a release and a dispute.
+   P-5 (dispute first) PASS The agreement ended in exactly one coherent state (DISPUTED) with 0 settlement entries. Never both a release and a dispute.
+   P-6                PASS Serially and concurrently, funding one proposal twice produced exactly one ledger entry and one debit, and the repeat answered not_fundable rather than raising. The unique index backstop, reached on purpose, answered duplicate and left the agreement INITIATED.
+   P-8                PASS The trigger refused the update from a plain prompt and the row did not move. The guard is reachable from psql, not only from the functions.
+   P-9                PASS Across a lifecycle mix with a live five per cent commission the two derivations of the float agreed to the kobo, no wallet went negative, and every settlement's net plus commission equalled its gross.
+
+== RESULT: FAIL. 2 of 11 local probes failed.
+
+== WHAT MUTATION C FOUND, AND IT IS A SECOND BLIND LIGHT OF THE SAME FAMILY
+==
+== With the escrow funding door refusing NOTHING, four probes still read PASS:
+== P-2 (escrow_first), P-3a (pot), P-3b (transfer) and P-9.
+==
+== The reason is the same one that let P-2 (withdrawal_first) pass over a
+== broken door this morning, seen from the other side. In P-3a and P-3b the
+== ESCROW GOES FIRST. It wins the balance legitimately, and the leg that then
+== has to be refused is the POT or the TRANSFER, whose own spendable check is
+== untouched. "Exactly one of them took the naira" is satisfied by the other
+== path doing all of the refusing.
+==
+== So P-3's reverse orderings are not merely a direction that has never run.
+== THEY ARE THE ONLY DIRECTION OF P-3 IN WHICH THE ESCROW DOOR'S OWN REFUSAL
+== IS TESTED AT ALL, and this run is the demonstration of it rather than an
+== argument for it.
+==
+== P-9 passes under mutation C because every funding in P-9 is affordable, so
+== the removed refusal is never asked a question. That is correct and is not
+== a defect in P-9: P-9 is the float identity, not the overdraft gate.
