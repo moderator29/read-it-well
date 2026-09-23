@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import type { BookingView } from "@/lib/bookings/queries";
 import { CancelBookingSheet } from "@/components/app/bookings/CancelBookingSheet";
 import { KycFlow } from "@/components/verification/KycFlow";
+import { DistrictChips, type DistrictChip } from "@/components/social/feed/DistrictHeader";
 
 /*
  * The two views whose real component takes a function prop, which a server
@@ -18,5 +20,14 @@ export function KycFlowFixture() {
     <KycFlow
       submit={async () => ({ ok: false, message: "This harness does not send anything." })}
     />
+  );
+}
+
+/* The district feed's filter tabs (SW-O2), with the chosen tab held here as
+   the feed holds it. The counts are fixture numbers. */
+export function DistrictChipsFixture() {
+  const [active, setActive] = useState<DistrictChip>("all");
+  return (
+    <DistrictChips active={active} counts={{ apartments: 3, stories: 2, reviews: 1 }} onPick={setActive} />
   );
 }

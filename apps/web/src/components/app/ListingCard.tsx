@@ -381,7 +381,13 @@ export function ListingCard({
                   glance
                   suffix={price.rentSuffix}
                   className="whitespace-nowrap font-semibold text-[var(--nf-content-secondary)]"
-                  secondaryClassName={fractionClass(price.rentMinor, "text-[0.85em] font-semibold")}
+                  /* The kobo and the "/yr" on this line at the line's own
+                     overline size, not a step under it: `0.85em` of the 12px
+                     sub line drew them at 10.2px, under the 11px floor
+                     (SW-O4). The listing page's "/ year" took the caption
+                     size in its own, larger panel; on the card the sub line
+                     is the overline, so the suffix matches it. */
+                  secondaryClassName={fractionClass(price.rentMinor, "text-[length:var(--nf-text-overline)] font-semibold")}
                 />
               </p>
             </>

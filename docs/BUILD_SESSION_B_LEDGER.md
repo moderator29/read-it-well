@@ -7725,17 +7725,17 @@ everything this group draws is on the shared layer; the named items belong to an
 
 | # | Route | Result | What is left, and whose |
 |---|---|---|---|
-| 1 | `/around/[slug]` | SWEPT, BAR SW-O2 | district chips 38px at ratio 0.37 with a flat brand "All"; post text under 11px is the feed's ruling (feed) |
+| 1 | `/around/[slug]` | SWEPT (SW-O2 closed in Pass 4, 13.O.9; was BAR SW-O2) | district chips 38px at ratio 0.37 with a flat brand "All"; post text under 11px is the feed's ruling (feed) |
 | 2 | `/around/manage` | SWEPT | (a redirect; its loading is swept) |
 | 3 | `/around/new` | SWEPT | none |
-| 4 | `/around/settings` | SWEPT, BAR SW-O2 | the place picker's state chips, 40px at ratio 0.35 (`.nf-enter__chip`, feed) |
+| 4 | `/around/settings` | SWEPT (SW-O2 closed in Pass 4; was BAR SW-O2) | the place picker's state chips, 40px at ratio 0.35 (`.nf-enter__chip`, feed) |
 | 5 | `/bookings` | SWEPT | none (the boxed lists and badges closed with the leftovers release) |
 | 6 | `/bookings/[bookingId]` | SWEPT | none |
 | 7 | `/bookings/[bookingId]/review` | SWEPT | none |
 | 8 | `/crypto` | SWEPT | the page is the swept 404; nothing crypto added |
 | 9 | `/crypto/[id]` | SWEPT | as `/crypto` |
 | 10 | `/verification` | SWEPT | none (the disabled Continue is lit since c7639c33) |
-| 11 | `/rent` | SWEPT, BAR SW-O4 | the listing card's "/yr" at 10.2px (`ListingCard`, home group); its card and the loading cards still carry the class name `.nf-card`, which now draws the panel (SW-O1 is naming only) |
+| 11 | `/rent` | SWEPT (SW-O4 and SW-O1 closed in Pass 4; was BAR SW-O4) | the listing card's "/yr" at 10.2px (`ListingCard`, home group); its card and the loading cards still carry the class name `.nf-card`, which now draws the panel (SW-O1 is naming only) |
 | 12 | `/rent/pay/[inspectionId]` | SWEPT | none |
 | 13 | `/saved` | SWEPT | none (StayCard closed with R-SH2) |
 | 14 | `/saved/searches` | SWEPT | none |
@@ -7746,8 +7746,8 @@ everything this group draws is on the shared layer; the named items belong to an
 | 19 | `/profile/application` | SWEPT | none (it draws only `RowList boxed` and the badge, both closed) |
 | 20 | `/profile/setup/[role]` | SWEPT | none (the doors closed with SW-P1) |
 | 21 | `/profile/setup/agent` | SWEPT | none |
-| 22 | `/profile/setup/firm` | SWEPT, BAR SW-O3 | each field is its own 14px box (`.nf-regfield`, `controls.css`) |
-| 23 | `/profile/setup/owner` | SWEPT, BAR SW-O3 | as firm |
+| 22 | `/profile/setup/firm` | SWEPT (SW-O3 closed in Pass 4; was BAR SW-O3) | each field is its own 14px box (`.nf-regfield`, `controls.css`) |
+| 23 | `/profile/setup/owner` | SWEPT (SW-O3 closed in Pass 4; was BAR SW-O3) | as firm |
 
 **Fully swept on main with this push: 18 of 23.** **Every item this group draws: 23 of 23.**
 Five close with requests to other owners: SW-O2 (feed: 1, 4), SW-O3 (`controls.css`: 22,
@@ -7763,22 +7763,23 @@ accent glow / the shared lit selected fill / match.
 
 ### 13.O.5 Requests
 
-- **SW-O1 (to the lead: unowned shared files; naming only since SW-C5).** `components/ui/Skeleton.tsx` `SkeletonCard`
+- **CLOSED in Pass 4 (13.O.9).** **SW-O1 (to the lead: unowned shared files; naming only since SW-C5).** `components/ui/Skeleton.tsx` `SkeletonCard`
   (`nf-card`, which now draws the panel) and `components/app/ScreenSkeleton.tsx` `CardRowsSkeleton` (`nf-card`) are
   drawn on the loading states of `/rent`, `/saved`, `/saved/searches` and many other routes;
-  `components/social/ReportSheet.tsx` has four `nf-card`s. Onto `panelClass`.
-- **SW-O2 (to the feed worker, `social-feed.css`).** `.nf-district__chip` is 38px tall at ratio
+  `components/social/ReportSheet.tsx` has four `nf-card`s. Onto `panelClass`. (The four are in
+  `components/app/ReportSheet.tsx`; `components/social/ReportSheet.tsx` has none. Fixed there.)
+- **CLOSED in Pass 4 (13.O.9).** **SW-O2 (to the feed worker, `social-feed.css`).** `.nf-district__chip` is 38px tall at ratio
   0.37 and its selected state is a flat brand fill (measured `rgb(0, 105, 254)`, no rim or
   glow) on `/around/[slug]`; `.nf-enter__chip` is 40px at ratio 0.35 in the place picker on
   `/around/settings` and `/around` and the up link `.nf-enter__back`. 44px, under 0.35, and
   `--nf-selected-*`.
-- **SW-O3 (to the lead: `controls.css`, shared layer).** `.nf-regfield` draws each register
+- **CLOSED in Pass 4 (13.O.9).** **SW-O3 (to the lead: `controls.css`, shared layer).** `.nf-regfield` draws each register
   field as its own 14px box (342x102 at 390); `.nf-feestep`, `.nf-nextrow__tick` and
   `.nf-regfield__tag` carry local tint fills; `.nf-steprow__bar[data-on]` is a flat brand fill
   with `--nf-glow-edge`. `.nf-totalpanel` and `.nf-fieldgroup` have no consumer since this
   sweep (the markup is the panel card), so they can be deleted.
 
-- **SW-O4 (to the home group).** `ListingCard`'s price suffix ("/yr", `text-[0.85em]`) measures
+- **CLOSED in Pass 4 (13.O.9).** **SW-O4 (to the home group).** `ListingCard`'s price suffix ("/yr", `text-[0.85em]`) measures
   10.2px at 390 on `/rent`; the 11px floor.
 
 ### 13.O.6 Proofs
@@ -7800,6 +7801,66 @@ After `git pull --rebase` onto 261e3257, 19:48 UTC: `tsc --noEmit` whole project
 predate this sweep). The claim commit 1bd26df0 (scope file only) was pushed before the whole-suite gate was
 run; it touched no code.
 
+### 13.O.9 Pass 4, 23 September 20:05 to 20:25 UTC: the requests SW-O1 to SW-O4 (worker "ofix")
+
+Claimed in the scope file (85c5471c) on the lead's instruction once the owning groups had
+finished. Worktree `wt-ofix` from `origin/main` at ebf0d0e5. Measured before and after on
+production builds of this tree (`next start`, `VALLO_PREVIEW_HARNESS=1`, builds and checks
+under the shared lock), 390 (2x) and 1440, dark, reduced motion, through the committed shot
+script (`sweep-orphans.mjs`, two views added) and the committed harnesses (`sweep-orphans`,
+`b1b`, `sweep-home/search`), and live as the QA member (read only) on `/around/yaba-unilag`,
+`/around/settings`, `/rent` and the three `/profile/setup` forms. Proofs:
+`docs/design/proofs/session-b/sweep-orphans/pass4-before/` and `pass4-after/` (each with
+`measure.json`; `pass4-after/crops/` holds four 390 crops). The harness gained two views,
+FIXTURE-BACKED: `?v=district` (the feed's filter tabs, `DistrictChips`, chosen tab held in
+state) and `?v=picker` (the real `PlacePicker` inside Lagos, two places already open;
+`&s=none` for the state grid). Neither existed before, so their before is the live route.
+
+| Request | Before (measured) | After (measured) | Closed? |
+|---|---|---|---|
+| **SW-O2** district tabs, `/around/[slug]` | 38px, ratio 0.368, resting lit brand edge plus `--nf-glow-edge`, chosen "All" a flat `rgb(0, 105, 254)` fill (no gradient, rim or glow), 44px only through a transparent `::before` | 44px painted, ratio 0.318 (resting) and 0.322 (chosen), resting on the shared chip's glass door edge and rim, chosen on `.nf-chip--active` (`--nf-selected-fill` gradient, `-edges`, `-shadow-inline`); live and harness, both widths | **Closed** |
+| **SW-O2** place chips, `/around/settings` picker and the "within" chips | 40px, ratio 0.35, local brand edge, inset fill and grey hover; the back chip `.nf-enter__back` 34px with a grey hairline | 44px, ratio 0.318, on `.nf-chip`; back chip 44px, 0.318; an open place keeps its brand ring and brand ink (open is not chosen); the chip being entered (`aria-busy`) takes the shared selected tokens | **Closed** |
+| **SW-O3** `/profile/setup/firm`, `/owner` fields | every field its own 14px box (firm five boxes of 342x102 at 390, owner three) with a local well (`--nf-regfield-well`) | the screen's fields sit in one `RegFieldGroup` (the shared `Panel` card, 10px); `.nf-regfield` draws nothing (it is only the tag's positioning context); the value is the shared `.nf-field`; firm 5 of 5 and owner 3 of 3 fields inside the panel, zero boxes on a 12 to 40px corner (`odd` 5 and 3 before, 0 after) | **Closed** |
+| **SW-O4** `ListingCard` "/yr", `/rent` | 10.2px (`0.85em` of the 12px sub line), one card in eight (the ones whose rent carries kobo) | 12px on every card (`--nf-text-overline`, the sub line's own size); `small` 1 before, 0 after, both widths | **Closed** |
+| **SW-O1** `SkeletonCard`, `CardRowsSkeleton`, `ReportSheet` | `nf-card` (legacy count 6 on `/rent` loading, 4 on `/saved` loading, 3 on `/saved/searches` loading) | `panelClass({ variant: "card" })` with `block` (and `p-0` on `SkeletonCard`) so the panel's column flow and padding do not apply; legacy 0; geometry identical (342x355 pad 0 and 342x122 pad 16 at 390, 355x364, 372x378 and 672x138 pad 24 at 1440), corner 10px before and after | **Closed** (naming only, no visual change) |
+
+Decisions, and why:
+- **District tabs on the chip's class, not the `Chip` component.** They are tabs
+  (`role="tab"`, `aria-selected`, `aria-controls`, the row's roving focus); `Chip` speaks
+  radio, toggle and link only. The markup wears `.nf-chip` and `.nf-chip--active`, which is
+  the material `Chip` itself draws, so nothing is restated. Their label moved from caption
+  (13px) to the chip's body-sm (14px) with the material.
+- **The register well is the default shared field, not the glass one.** The field layer says
+  `.nf-field--glass` is for a field on the page or over a photograph and the default is "a
+  form input on a card"; these sit on a panel card, and the owner form's `ChoicePicker`
+  (not in this claim) draws the default field, so the whole panel reads as one material.
+- **The agent form's two lone fields** (NIN, the example rent) drew the same 14px box, so
+  they became panels of one; the agent route was already counted swept.
+- **Deleted, after a grep of `apps/web/src` (no consumer):** `.nf-fieldgroup` and its two
+  child rules, `.nf-totalpanel` (its `__figure` and `__undeclared` stay, both used by the
+  agent form), `.nf-regfield`'s box and well, `.nf-regfield .nf-field` and its focus
+  override, and in `orphans.css` the member-field reset that only undid that box.
+  `social-feed.css` lost the district chip's material, its hit extender and the enter
+  chip's and back chip's material.
+
+Not in these requests and left, named: `SceneBanner` on `/rent` still wears
+`nf-card nf-card--interactive` (legacy 1 on the live route, before and after; home group's
+file); `ReportSheet`'s category rows draw a local brand-edge selected state and two
+hand-written `nf-btn` strings (SW-O1 was naming only); `.nf-regfield__tag`, `.nf-feestep`,
+`.nf-nextrow__tick` and `.nf-steprow__bar[data-on]` keep their local tints (the original
+SW-O3 text named them; the lead's instruction for this pass did not). Post text under 11px on
+`/around/[slug]` is the feed's ruling, unchanged.
+
+Result: `/around/[slug]`, `/around/settings`, `/rent`, `/profile/setup/firm` and
+`/profile/setup/owner` close. **Fully swept on main: 23 of 23** (the named leftovers above
+belong to other files and other requests).
+
+Checks, after `git pull --rebase` onto 85c5471c (20:30 UTC): `tsc --noEmit` whole project,
+clean; `vitest run` whole suite, 242 files, 3859 passed, 1 skipped; `check-css-tokens` clean,
+all ten; `next build` exit 0 (the after build); eslint on every changed file, 0 problems; every
+directory under `(dev)/preview/session-b/` has its own `page.tsx` (16 of 16). The
+no-revert check (`git diff origin/main HEAD`) removed nothing outside this claim.
+
 ### 13.O.8 Skipped or not verified
 
 - `components/app/crypto/**` (13 legacy cards) is not swept: no route renders it (the two
@@ -7813,6 +7874,7 @@ run; it touched no code.
 
 ## Skipped or not verified
 
+- Orphans Pass 4 (13.O.9, SW-O1 to SW-O4): the place chip being entered (`aria-busy`) and every hover state were read in code, not shot; the report sheet was not opened in a browser (its change is class names only); no live write.
 - Orphans sweep (ledger 13, orphans, 13.O.8): `components/app/crypto/**` not swept (no route renders it); `KycFlow` steps past the first and `ProposeAreaForm` done and error states swept in code only.
 - (13.H, sweep-home) No live row on any proof: this box's egress refuses the Supabase host, so every card, panel and figure in the home group's proofs is fixture-backed or an empty state; the wiring is unchanged by the sweep (material only). `/price/area/[id]` and `/rent/move-in/[listingId]` were swept in their stylesheets and not photographed. The lister's TierBadge on the card waits on R-SH4. `StayCard` still wears `nf-glass--card` itself (stays group, R-SH2). The unmounted `AiAssistantBanner` stays until R-SH1.
 

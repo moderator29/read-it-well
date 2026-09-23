@@ -16,7 +16,7 @@ import {
   type OwnershipAnswer,
 } from "@/lib/supply/registration";
 import { submitSupplyRegistration } from "@/lib/supply/registration-actions";
-import { RegField } from "./RegisterField";
+import { RegField, RegFieldGroup } from "./RegisterField";
 import { CalmPanel, RegisterDone, RegisterShell } from "./RegisterShell";
 
 /**
@@ -229,49 +229,51 @@ export function OwnerRegisterForm({
       mark: "home-ring" as const,
       body: (
         <div className="grid gap-row">
-          <RegField>
-            <TextField
-              label={own.you.name}
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              autoComplete="name"
-              required
-              {...(errors.fullName ? { error: errors.fullName } : {})}
-            />
-          </RegField>
-          <RegField>
-            <TextField
-              label={own.you.phone}
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              required
-              {...(errors.phone ? { error: errors.phone } : {})}
-            />
-          </RegField>
-          {/*
-            OPTIONAL, AND IT IS BACK IN THE CORNER THE IMAGE DRAWS IT IN.
-            `GOVERNING-05` draws "Optional" as a capsule at the top right of
-            the field's own container. The corner is the target and the capsule
-            is not: it ships at 6px on a 24px box, which is 0.250 and a
-            rectangle by the only test that counts. The word is not passed down
-            to the primitive as well, or it would be drawn twice.
-          */}
-          <RegField optional={copy.optional}>
-            <TextField
-              label={own.you.nin}
-              hint={own.you.ninHint}
-              value={nin}
-              onChange={(e) => setNin(e.target.value.replace(/\D/g, "").slice(0, 11))}
-              inputMode="numeric"
-              /* Never autofilled, never remembered by the browser, and never
-                 logged anywhere by this platform. */
-              autoComplete="off"
-              {...(errors.nin ? { error: errors.nin } : {})}
-            />
-          </RegField>
+          <RegFieldGroup>
+            <RegField>
+              <TextField
+                label={own.you.name}
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                autoComplete="name"
+                required
+                {...(errors.fullName ? { error: errors.fullName } : {})}
+              />
+            </RegField>
+            <RegField>
+              <TextField
+                label={own.you.phone}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                required
+                {...(errors.phone ? { error: errors.phone } : {})}
+              />
+            </RegField>
+            {/*
+              OPTIONAL, AND IT IS BACK IN THE CORNER THE IMAGE DRAWS IT IN.
+              `GOVERNING-05` draws "Optional" as a capsule at the top right of
+              the field's own container. The corner is the target and the capsule
+              is not: it ships at 6px on a 24px box, which is 0.250 and a
+              rectangle by the only test that counts. The word is not passed down
+              to the primitive as well, or it would be drawn twice.
+            */}
+            <RegField optional={copy.optional}>
+              <TextField
+                label={own.you.nin}
+                hint={own.you.ninHint}
+                value={nin}
+                onChange={(e) => setNin(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                inputMode="numeric"
+                /* Never autofilled, never remembered by the browser, and never
+                   logged anywhere by this platform. */
+                autoComplete="off"
+                {...(errors.nin ? { error: errors.nin } : {})}
+              />
+            </RegField>
+          </RegFieldGroup>
           <CalmPanel icon="shield-stop" body={own.you.assurance} />
         </div>
       ),
@@ -282,53 +284,55 @@ export function OwnerRegisterForm({
       mark: undefined,
       body: (
         <div className="grid gap-row">
-          <RegField>
-            <ChoicePicker
-              t={t}
-              name="stateCode"
-              label={t.pickers.stateLabel}
-              placeholder={t.pickers.statePlaceholder}
-              searchPlaceholder={t.pickers.stateSearch}
-              value={stateCode}
-              groups={stateGroups}
-              onChange={(code) => {
-                setLgas([]);
-                loadedState.current = "";
-                setStateCode(code);
-                setLgaCode("");
-                if (code) void loadLgas(code);
-              }}
-              {...(errors.stateCode ? { error: errors.stateCode } : {})}
-            />
-          </RegField>
-          <RegField>
-            <ChoicePicker
-              t={t}
-              name="lgaCode"
-              label={t.pickers.lgaLabel}
-              placeholder={stateCode ? t.pickers.lgaPlaceholder : t.pickers.lgaLocked}
-              searchPlaceholder={
-                stateName ? t.pickers.searchIn.replace("{place}", stateName) : t.pickers.search
-              }
-              value={lgaCode}
-              groups={lgas}
-              loading={lgaLoading}
-              disabled={stateCode === ""}
-              disabledHint={t.pickers.lgaDisabledHint}
-              onChange={setLgaCode}
-              onOpen={() => void loadLgas(stateCode)}
-              {...(errors.lgaCode ? { error: errors.lgaCode } : {})}
-            />
-          </RegField>
-          <RegField optional={copy.optional}>
-            <TextField
-              label={own.where.area}
-              hint={own.where.areaHint}
-              value={area}
-              onChange={(e) => setArea(e.target.value)}
-              {...(errors.area ? { error: errors.area } : {})}
-            />
-          </RegField>
+          <RegFieldGroup>
+            <RegField>
+              <ChoicePicker
+                t={t}
+                name="stateCode"
+                label={t.pickers.stateLabel}
+                placeholder={t.pickers.statePlaceholder}
+                searchPlaceholder={t.pickers.stateSearch}
+                value={stateCode}
+                groups={stateGroups}
+                onChange={(code) => {
+                  setLgas([]);
+                  loadedState.current = "";
+                  setStateCode(code);
+                  setLgaCode("");
+                  if (code) void loadLgas(code);
+                }}
+                {...(errors.stateCode ? { error: errors.stateCode } : {})}
+              />
+            </RegField>
+            <RegField>
+              <ChoicePicker
+                t={t}
+                name="lgaCode"
+                label={t.pickers.lgaLabel}
+                placeholder={stateCode ? t.pickers.lgaPlaceholder : t.pickers.lgaLocked}
+                searchPlaceholder={
+                  stateName ? t.pickers.searchIn.replace("{place}", stateName) : t.pickers.search
+                }
+                value={lgaCode}
+                groups={lgas}
+                loading={lgaLoading}
+                disabled={stateCode === ""}
+                disabledHint={t.pickers.lgaDisabledHint}
+                onChange={setLgaCode}
+                onOpen={() => void loadLgas(stateCode)}
+                {...(errors.lgaCode ? { error: errors.lgaCode } : {})}
+              />
+            </RegField>
+            <RegField optional={copy.optional}>
+              <TextField
+                label={own.where.area}
+                hint={own.where.areaHint}
+                value={area}
+                onChange={(e) => setArea(e.target.value)}
+                {...(errors.area ? { error: errors.area } : {})}
+              />
+            </RegField>
+          </RegFieldGroup>
         </div>
       ),
     },

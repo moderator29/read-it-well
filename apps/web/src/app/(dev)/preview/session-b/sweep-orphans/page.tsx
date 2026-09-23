@@ -38,10 +38,13 @@ import LoadingInspections from "@/app/(app)/inspections/loading";
 import { BOOKINGS, RESTAURANTS, SHELF, STAYS, TENANCIES } from "../../f3/fixtures";
 import { INSPECTION } from "../../f5/fixtures";
 import { THREAD } from "../../f4/fixtures";
-import { CancelSheetFixture, KycFlowFixture } from "./Client";
+import { PlacePicker } from "@/components/social/PlacePicker";
+import { CancelSheetFixture, DistrictChipsFixture, KycFlowFixture } from "./Client";
 import {
   AREAS,
   MODERATORS,
+  PICKER_OPEN,
+  PICKER_TREE,
   PROPOSALS,
   RENT_VIEW,
   REVIEW,
@@ -74,6 +77,8 @@ const ROUTES: Record<string, string> = {
   "saved-searches": "/saved/searches",
   post: "/post/p",
   "inspection-rows": "/bookings",
+  district: "/around/yaba",
+  picker: "/around/settings",
 };
 
 const LOADING: Record<string, { route: string; view: () => ReactNode }> = {
@@ -142,6 +147,25 @@ function View({ v, s }: { v: string; s?: string }) {
             <ModeratorApply areaId={AREAS[0]!.id} areaName="Yaba" pendingApplication />
           </div>
           <ModeratorNote areaName="Yaba" />
+        </Frame>
+      );
+    case "district":
+      return (
+        <Frame title="Around Yaba">
+          <DistrictChipsFixture />
+        </Frame>
+      );
+    case "picker":
+      /* The place picker inside Lagos (`s=` a state code to open another):
+         the back chip, the local governments, and two already open. */
+      return (
+        <Frame title={t.social.manage}>
+          <PlacePicker
+            tree={PICKER_TREE}
+            open={PICKER_OPEN}
+            signedIn
+            initialStateCode={s === "none" ? null : (s ?? "LA")}
+          />
         </Frame>
       );
     case "place-new":

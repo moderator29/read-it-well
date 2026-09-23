@@ -122,7 +122,7 @@ export default async function AreaPage({
           arrows, one above the other, going to two different places, and only
           one of them going back. */}
       {door ? (
-        <Link href={`/around/${door.slug}`} className="nf-enter__back mb-md">
+        <Link href={`/around/${door.slug}`} className="nf-chip nf-enter__back mb-md">
           <UiIcon name="arrow-up" size={15} />
           Part of {door.name}
         </Link>
@@ -192,7 +192,7 @@ export default async function AreaPage({
               <li key={place.id}>
                 <Link
                   href={`/around/${place.slug}`}
-                  className="nf-enter__chip"
+                  className="nf-chip nf-enter__chip"
                   aria-label={`${place.name}, ${place.memberCount} ${place.memberCount === 1 ? "member" : "members"}`}
                 >
                   <span className="nf-enter__chip-name">{place.name}</span>

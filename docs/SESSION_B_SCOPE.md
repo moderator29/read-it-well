@@ -332,6 +332,12 @@ Each group appends "RELEASED <commit>" here when it is done.
     `app/(dev)/preview/session-b/sweep-orphans/**` (two new views) and its
     shot script, proofs `docs/design/proofs/session-b/sweep-orphans/pass4-*/**`.
     Held for the duration of the fix.
+    **SW-O1 to SW-O4 CLOSED, claim RELEASED** (23 September, Pass 4, ledger 13, orphans,
+    13.O.9): the district tabs and place chips on the shared chip and selected state (44px,
+    0.318), the register fields in one panel on the shared field (`.nf-fieldgroup`,
+    `.nf-totalpanel` and the per-field box deleted), the card's "/yr" at 12px, and the
+    skeletons and report sheet on `panelClass` with no change in geometry. The orphans are
+    23 of 23 swept.
   - **the audit fixes S1, S2, S3, S6, S7, S8 (worker "auditfix", claimed 23
     September by the lead's instruction, held for the duration of the fix):**
     `apps/web/src/components/ui/Chip.tsx` (ONLY `SELECTED_STYLE`),
