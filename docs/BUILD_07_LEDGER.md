@@ -8231,3 +8231,189 @@ in. On `wallet_entries` the opposite argument is available: if the queue cannot
 accept the row, perhaps the settlement should not commit either. Both positions
 are defensible and this is a money table, so it is named here for a decision
 rather than changed by a worker passing through.
+
+---
+
+## 65. TRACK G: THE WHOLE PUBLIC CATALOGUE WAS REFUSED TO EVERYBODY FOR A DAY, AND RULE 21 DID IT
+
+**This is the most important thing in this entry and it is not the feature.**
+It is that a correct rule, applied to the wrong function, took the product down
+and no check in this repository could see it.
+
+### 65.1 What was down
+
+`private.owns_listing(uuid)` is called by **17 RLS policies on 10 tables**:
+`listings`, `listing_photos`, `listing_videos`, `listing_amenities`,
+`listing_access`, `listing_mandates`, `availability`, `reviews`,
+`agent_documents`, `inspection_requests`. **A policy expression is evaluated as
+the QUERYING role**, so the querying role needs EXECUTE on anything it calls.
+
+`20260922230500_track_g_6_the_firm_arm_on_owns_listing_and_the_publish_gate`
+added the firm arm with `create or replace`, noted correctly in its own header
+that `create or replace` preserves grants, and then restated a rule 21 revoke:
+
+```
+revoke all     on function private.owns_listing(uuid) from public;
+revoke execute on function private.owns_listing(uuid) from anon;
+revoke execute on function private.owns_listing(uuid) from authenticated;
+```
+
+From that moment `pg_proc.proacl` read `{postgres=X/postgres}` and nothing
+else. `listings` carries `listings_owner_all`, a FOR ALL policy every role must
+evaluate, so **every read of the catalogue by `anon` or by `authenticated`
+raised `42501 permission denied for function owns_listing`**. Postgres ORs
+permissive policies but it must EVALUATE them, so the error takes the whole
+statement rather than filtering a row. Search, the listing page, the map, the
+shortlist and the sitemap were dead for every reader who was not staff.
+
+### 65.2 The repository already knew, twice, and said so in writing
+
+`20260730021956_anon_execute_on_rls_helpers.sql` exists for nothing but this
+outage. Its header describes the failure exactly, names the four helpers an
+anonymous reader must be able to evaluate, and grants them; `owns_listing` is
+the second of the four. `20260728152229_listings_core.sql` granted it to
+`authenticated` on the day the function was born.
+
+And **section 53 of this ledger wrote the rule that decides it**: 152 RLS
+policies across 88 tables call `private.*` functions, a policy expression needs
+EXECUTE as the querying role, and "22 of the 73 are not a defect, they are
+load-bearing, and they stay". Section 53 avoided this outage by asking what an
+open grant was FOR. Migration 6 delivered it by not asking. **The institutional
+knowledge was in the repository in three places and the migration still
+shipped**, which says the knowledge was in prose where it needed to be in a
+check.
+
+### 65.3 Why nothing caught it
+
+Because nothing in this repository ever reads as `anon`. The suite runs against
+fixtures. `mcp__Supabase__execute_sql` runs as a role with `rolbypassrls`, so
+it answers every one of these questions with a success. The only instrument
+that can see this is a probe that switches role inside a transaction, and Track
+G did not have one for the read path. The migration's own probe checked that
+the revoke had happened, which it had. **The check observed that it tried.**
+
+### 65.4 Closed, and the mechanism that would have caught it
+
+`20260923103430` restores both grants with the argument written out, adds the
+`listings.listing_role` column grant to `anon` that Track G migration 3 never
+added (without which the signed-out catalogue read still fails on the one
+column the read half selects), and reads both back inside its own body.
+
+The mechanism is the survey in `scripts/probes/track_g_catalogue_grants.log`:
+**every function named in an RLS policy expression, joined to whether `anon`
+and `authenticated` can execute it.** It is a catalogue query, it takes a
+second, and it names the whole class rather than this instance. It found four.
+One was the outage. The other three are recorded in 65.6.
+
+Proved as refusals and then as successes, on the live project, through
+`apply_migration` with `set role` in a transaction that rolls back:
+
+| Run | Result |
+| --- | --- |
+| BEFORE | 8 assertions, 2 green controls (`agent_badges` and `amenities` read fine as the same `anon` role in the same transaction) |
+| AFTER | 10 assertions, 2 **opposite-shape** controls (`anon` still reads 0 rows of `public.agents`, still refused `listings.supply_verified_by`), plus a DRAFT row inserted and rolled back to prove the July failure mode now filters rather than kills |
+
+### 65.5 And the feature itself, which was the assignment
+
+`public.listing_lister` (`20260923103838`) publishes the lister's name and
+nothing else: two columns, `listing_id` and `lister_name`, published listings
+only, NULL for an owner because that sentence names nobody by design. **A view
+rather than a SECURITY DEFINER function**, because a view's exposure is
+readable from `pg_attribute` and `pg_class.relacl` for ever while a function's
+exposure is its body, which no catalogue query can tell you.
+
+**Rule 21 has an exact twin for a view and it is not written down anywhere, so
+here it is.** `pg_default_acl` on this project grants `arwdDxtm` on every NEW
+RELATION in `public` to `anon` and `authenticated`, and a non-invoker view
+**writes as its owner**. A view over `agents` in `public` is therefore BORN
+able to write to `agents` with RLS bypassed, by an anonymous caller. Revoked
+from `public`, `anon` and `authenticated` in the same migration, SELECT granted
+back to the two reader roles deliberately and with the reason stated, read back
+in the body. The probe tries INSERT, UPDATE and DELETE as `anon` and all three
+are refused.
+
+`ListingAgentCard` printed "Agent on Vallo" as the name fallback for every
+listing whatever its role, so an owner's listing read "Agent on Vallo" directly
+above "Listed by the owner". Fixed, and the rule moved into a pure module so it
+could be mutated and shown to fail rather than grepped for.
+
+Full state, per surface, with what is proved and what is not:
+`docs/design/TRACK_G_STATE.md`.
+
+### 65.6 Three more latent policy callers, and one table that will leak the day a firm registers
+
+Named rather than changed, because widening a grant nobody asked for and
+revoking one somebody holds are both mistakes a worker passing through should
+not make alone.
+
+- `private.attachment_path_access(text)`, `private.can_see_listing_access(uuid)`
+  and `private.escrow_evidence_path_access(text, boolean)` are executable by
+  `authenticated` and **not** by `anon`, while the policies that call them apply
+  to PUBLIC. Any anonymous statement reaching those tables raises 42501 rather
+  than returning no rows. No shipping path does today.
+
+- **`public.businesses` hands `anon` a table-wide SELECT.** `pg_class.relacl`
+  reads `anon=arwdDxtm` and `businesses_select_published` is
+  `status = 'PUBLISHED'`, so an anonymous caller can read **every column** of
+  every published business: `cac_number`, `tin`, `representative_name`,
+  `representative_phone`, `email`, `phone`, `address`, `review_notes`,
+  `reviewer_id`, `consents`, `verification_tier`. All 7 published rows have
+  those columns null today, counted rather than assumed, so nothing leaks yet.
+  **The day a firm registers through the Track G firm door, its RC number, its
+  TIN and its representative's phone become world readable.** `public.listings`
+  on the same estate shows the correct pattern: a column-by-column grant with
+  `address`, `landmark`, `review_notes` and `reviewer_id` held back. This was
+  found because a probe CONTROL failed, and the control was right.
+
+### 65.7 What this session could not prove, said plainly
+
+**The real `/listing/[id]` against live data was not rendered.** This
+container's egress proxy refuses `CONNECT` to the Supabase host with 403, so
+the dev server cannot reach the project, every listing read returns null and
+that route answers the not-found body at HTTP 200. Measured: the page was
+fetched, the DOM read, and `main` contained "This page has checked out". The
+Vercel fetch tool was tried against the production alias and the latest
+production deployment and answered that it could not access them.
+
+So the screen proof is the real component with fixture props at
+`/preview/track-g`, labelled as that and not as more. The database half is the
+real thing, on the live project, as the roles that actually read it. Nothing in
+this entry claims main is green: every suite run was in the shared worktree,
+which per section 61 is a statement about that tree.
+
+---
+
+### R14. NOTE, not a blocker. Track G reaches the admin listings queue and Session B owns that screen
+
+`app/admin/listings/**` is Session B's. It already derives a role through
+`lib/admin/reads/overview.ts` (`listerRole`) and prints it as a `RoleTag`, and
+nothing in this session's work changes that file or needs it changed.
+
+Two things Session B may want now that they exist:
+
+1. **`public.listing_lister`** (migration `20260923103838`) publishes
+   `listing_id` and `lister_name` for PUBLISHED listings, readable by `anon` and
+   `authenticated`. It resolves the agent's display name for `agent`, the firm's
+   name for `firm`, and NULL for `owner`. If the queue or the listing under
+   review wants a lister name without going through `agents`, this is the door
+   and it needs no request. **It carries a name and nothing else**, deliberately.
+2. **`listings.listing_role` is now granted to `anon`** as a single column, so
+   any read that selects it from a signed-out context works. It did not before
+   today and every such read raised 42501.
+
+And one to be aware of rather than act on: `public.businesses` currently hands
+`anon` a table-wide SELECT, so every column of a PUBLISHED business row is
+world readable. If an admin surface shows a business's RC number, TIN or
+representative phone, it is showing something the public can already read. That
+is recorded in section 65.6 for the founder; Session B should not narrow it
+either, since it is a revoke.
+
+### R15. NOTE. The supply kind is not on any search surface, and one of them may become Session B's
+
+`LISTING_ROLE_FILTER_LABEL` has zero consumers, `ListingSearchFilter` has no
+role field, and `GOVERNING-01` draws no lister line on a property card. That is
+this session's to close and is recorded in `docs/design/TRACK_G_STATE.md`
+section 4. It is listed here only so that Session B does not add a second,
+different vocabulary for the same three values on an admin screen: the three
+sentences and the three filter labels live in `apps/web/src/lib/supply/roles.ts`
+and nowhere else, and that rule has already been broken three times.
