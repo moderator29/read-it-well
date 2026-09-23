@@ -61,6 +61,28 @@ function passwordChangedRow(): StoredRow {
   };
 }
 
+/**
+ * A settlement row, exactly as `wallet_entries_enqueue_withdrawal_email`
+ * writes one when a hold is marked FAILED. The same trigger and the same
+ * payload serve both doors, which is the point.
+ */
+function withdrawalRow(): StoredRow {
+  return {
+    id: "row-withdrawal",
+    template: "wallet.withdrawal_outcome",
+    user_id: RECIPIENT,
+    payload: {
+      entry_id: "55555555-5555-4555-8555-555555555555",
+      outcome: "failed",
+      amount_minor: 50_000_00,
+      reference: "rm-wd-c0426a",
+    },
+    attempts: 0,
+    status: "PENDING",
+    error: null,
+  };
+}
+
 /** A welcome row, exactly as `users_enqueue_welcome_email_on_confirm` writes one. */
 function welcomeRow(): StoredRow {
   return {
@@ -125,10 +147,7 @@ function fakeDatabase(rows: StoredRow[]) {
           }));
         }
         if (table === "wallet_entries") {
-          return ids.map((id) => ({
-            id,
-            metadata: { bank_name: "GTBank", account_last4: null },
-          }));
+          return ids.map((id) => ({ id, metadata: walletEntryMetadata }));
         }
         if (table === "agent_verification_checks") {
           return ids.map((id) => ({ agent_id: id, kind: "identity", status: "passed" }));
@@ -162,6 +181,20 @@ const CONVERSATION = "88888888-8888-4888-8888-888888888888";
 
 /** What `profiles.signup_role` answers with for the rows in one test. */
 let profileRole: string | null = null;
+
+/**
+ * What the wallet entry behind a `wallet.withdrawal_outcome` row carries.
+ *
+ * `transferToBank` writes `destination: "third_party"` and the withdraw door
+ * writes no such key, and that one field is the whole difference between an
+ * email that calls this a withdrawal and one that calls it a transfer. It is
+ * varied per test rather than fixed because the drain's read of it is the hop
+ * the template tests cannot see: they are handed the fact, this earns it.
+ */
+let walletEntryMetadata: Record<string, unknown> = {
+  bank_name: "GTBank",
+  account_last4: null,
+};
 
 /** Everything one intercepted POST tells us. */
 type Captured = {
@@ -204,6 +237,7 @@ let restoreFetch: (() => void) | null = null;
 
 beforeEach(() => {
   profileRole = null;
+  walletEntryMetadata = { bank_name: "GTBank", account_last4: null };
   contactForUser.mockReset();
   contactForUser.mockResolvedValue({ email: "ada@example.com", name: "Ada Balogun" });
   /* A key has to be present or `sendEmail` answers `unconfigured` and never
@@ -551,6 +585,48 @@ describe("a row a database trigger wrote becomes a real HTTP request", () => {
     expect(result.counts).toMatchObject({ claimed: 1, sent: 0, retried: 1 });
     expect(settled).toEqual([{ id: "row-security", result: "retry" }]);
     expect(rows[0]?.status).toBe("PENDING");
+  });
+
+  /**
+   * THE HOP THE TEMPLATE TESTS CANNOT SEE.
+   *
+   * `templates.test.ts` proves the words are right GIVEN the destination. It
+   * cannot prove the drain ever reads one, and a drain that stopped reading
+   * `metadata.destination` would send "your withdrawal did not go through" to
+   * everybody again with that file still green. So these two drive the whole
+   * path from a row a trigger wrote to the bytes on the wire, and differ only
+   * in what the wallet entry carries.
+   */
+  it("calls a bank send a transfer, all the way to the wire", async () => {
+    walletEntryMetadata = {
+      bank_name: "Sparkle Microfinance Bank",
+      account_last4: "6789",
+      destination: "third_party",
+    };
+    const { admin } = fakeDatabase([withdrawalRow()]);
+    const capture = captureFetch({ status: 200, body: { id: "resend-message-id" } });
+    restoreFetch = capture.restore;
+
+    await drainEmailOutbox(admin);
+
+    expect(capture.calls).toHaveLength(1);
+    const body = capture.calls[0]?.body;
+    expect(body?.subject).toBe("Your transfer did not go through");
+    expect(body?.html).not.toMatch(/withdrawal/i);
+    expect(body?.text).not.toMatch(/withdrawal/i);
+    /* The bank and four digits reach the reader; nothing else about the
+       account does, and no holder's name is printed at all (rule 16). */
+    expect(body?.html).toContain("Sparkle Microfinance Bank ****6789");
+  });
+
+  it("still calls the person's own withdrawal a withdrawal, on the same path", async () => {
+    const { admin } = fakeDatabase([withdrawalRow()]);
+    const capture = captureFetch({ status: 200, body: { id: "resend-message-id" } });
+    restoreFetch = capture.restore;
+
+    await drainEmailOutbox(admin);
+
+    expect(capture.calls[0]?.body.subject).toBe("Your withdrawal did not go through");
   });
 
   it("does not reach the socket at all when there is no key", async () => {

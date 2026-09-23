@@ -30,6 +30,8 @@ const PAYEE = "22222222-2222-4222-8222-222222222222";
 const ESCROW = "33333333-3333-4333-8333-333333333333";
 const LISTING = "44444444-4444-4444-8444-444444444444";
 const ENTRY = "55555555-5555-4555-8555-555555555555";
+/** The same row family through the OTHER door: a send to somebody else. */
+const SENT_ENTRY = "5a5a5a5a-5a5a-4a5a-8a5a-5a5a5a5a5a5a";
 const AGENT = "66666666-6666-4666-8666-666666666666";
 const MESSAGE = "99999999-9999-4999-8999-999999999999";
 
@@ -39,7 +41,12 @@ const lookups: TemplateLookups = {
   signupRole: (id) => (id === PAYER ? "landlord" : null),
   listing: (id) =>
     id === LISTING ? { title: "2 bedroom flat, Yaba", address: "14 Herbert Macaulay Way" } : null,
-  withdrawal: (id) => (id === ENTRY ? { bankName: "GTBank", accountLast4: null } : null),
+  withdrawal: (id) =>
+    id === ENTRY
+      ? { bankName: "GTBank", accountLast4: null, destination: "own_account" }
+      : id === SENT_ENTRY
+        ? { bankName: "Sparkle Microfinance Bank", accountLast4: "6789", destination: "third_party" }
+        : null,
   passedRungs: (id) => (id === AGENT ? ["identity"] : []),
   enquiry: (id) =>
     id === MESSAGE
@@ -424,6 +431,63 @@ describe("the withdrawal, the inspection and the rung", () => {
     );
     expect(failed?.text).toContain("Not sent, money still in your wallet");
     expect(reversed?.text).toContain("Returned to your wallet by the bank");
+  });
+
+  /**
+   * ONE LEDGER ROW, TWO DOORS, AND THE WORDS MUST FOLLOW THE DOOR.
+   *
+   * A bank send writes the same `rm-wd-` entry a withdrawal does, because the
+   * webhook settles only that prefix. Until 23 September the settlement email
+   * therefore told somebody who had just sent rent to a landlord that their
+   * WITHDRAWAL had not gone through.
+   *
+   * These two walk the SAME template with the same payload and differ only in
+   * which entry the drain looked up, which is the only thing that differs in
+   * production.
+   */
+  it("calls a send to somebody else a transfer, and a withdrawal a withdrawal", () => {
+    const own = templateFor("wallet.withdrawal_outcome")?.build(
+      PAYLOADS["wallet.withdrawal_outcome"],
+      contextFor(PAYER, "Ada"),
+    );
+    const sent = templateFor("wallet.withdrawal_outcome")?.build(
+      { ...PAYLOADS["wallet.withdrawal_outcome"], entry_id: SENT_ENTRY },
+      contextFor(PAYER, "Ada"),
+    );
+
+    expect(own?.subject).toBe("Your withdrawal did not go through");
+    expect(sent?.subject).toBe("Your transfer did not go through");
+    expect(sent?.text).not.toMatch(/withdrawal/i);
+    expect(sent?.html).not.toMatch(/withdrawal/i);
+    /* And it does not tell them to "try the withdrawal again" either. The
+       plain-text part is hard wrapped, so both are read with the wrapping
+       folded away rather than asserted against one particular line break. */
+    const flat = (raw: string | undefined) => (raw ?? "").replace(/\s+/g, " ");
+    expect(flat(sent?.text)).toContain("send it again");
+    expect(flat(own?.text)).toContain("try the withdrawal again");
+  });
+
+  it("a paid send says the money is on its way to the account they chose", () => {
+    const sent = templateFor("wallet.withdrawal_outcome")?.build(
+      { ...PAYLOADS["wallet.withdrawal_outcome"], entry_id: SENT_ENTRY, outcome: "paid" },
+      contextFor(PAYER, "Ada"),
+    );
+    expect(sent?.subject).toContain("on its way to the account you sent it to");
+    expect(sent?.text).toContain("Sent to the account you chose");
+    expect(sent?.text).not.toMatch(/withdrawal/i);
+    /* The bank and four digits, and no holder's name anywhere (rule 16). */
+    expect(sent?.text).toContain("Sparkle Microfinance Bank ****6789");
+  });
+
+  it("an entry the drain could not read is treated as the person's own withdrawal", () => {
+    /* A row whose metadata says nothing is every row the withdraw door has
+       ever written. Defaulting the other way would tell somebody moving their
+       own balance home that they had sent money to a stranger. */
+    const unknown = templateFor("wallet.withdrawal_outcome")?.build(
+      { ...PAYLOADS["wallet.withdrawal_outcome"], entry_id: LISTING },
+      contextFor(PAYER, "Ada"),
+    );
+    expect(unknown?.subject).toBe("Your withdrawal did not go through");
   });
 
   it("refuses an inspection with no property or no time", () => {

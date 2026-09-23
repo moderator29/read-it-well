@@ -395,9 +395,15 @@ export async function gatherFacts(
         const bank = typeof metadata["bank_name"] === "string" ? metadata["bank_name"].trim() : "";
         const last4 =
           typeof metadata["account_last4"] === "string" ? metadata["account_last4"].trim() : "";
+        /* `transferToBank` writes exactly this string and the withdraw door
+           writes nothing, so anything else on the row is read as the withdraw
+           door: an unrecognised value must never be allowed to turn a
+           person's own withdrawal into "you sent money to somebody". */
+        const sent = metadata["destination"] === "third_party";
         facts.withdrawals.set(row.id, {
           bankName: bank.length > 0 ? bank : null,
           accountLast4: /^\d{4}$/.test(last4) ? last4 : null,
+          destination: sent ? "third_party" : "own_account",
         });
       }
     } catch {

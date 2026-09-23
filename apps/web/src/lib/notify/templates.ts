@@ -20,6 +20,7 @@ import {
   type EmailMessage,
   type SignupRole,
   type VerificationRung,
+  type WithdrawalDestination,
   type WithdrawalOutcome,
 } from "../email/messages";
 import type { EmailChannel } from "../email/recipients";
@@ -97,6 +98,22 @@ export type WithdrawalFacts = {
   bankName: string | null;
   /** Four digits of a CARD only. A bank account gets none; see below. */
   accountLast4: string | null;
+  /**
+   * WHICH DOOR THIS ROW CAME FROM, because one row serves two of them.
+   *
+   * A bank send and a withdrawal are the same `rm-wd-` entry on purpose: the
+   * Paystack webhook settles `transfer.*` only for that prefix and the
+   * stale-hold sweeper releases only that prefix, so a prefix of its own would
+   * have produced a debit nothing on this platform could ever settle. The
+   * entry's `metadata.destination` is what tells them apart, and the drain
+   * reads it here so the email can stop calling a transfer to a landlord a
+   * withdrawal.
+   *
+   * `null` is an entry whose metadata says nothing, which is every row the
+   * withdraw door has ever written. The builder treats it as `own_account`,
+   * which is what it is.
+   */
+  destination: WithdrawalDestination | null;
 };
 
 /** What the drain must read before a batch of rows can be built. */
@@ -482,13 +499,18 @@ export const OUTBOX_TEMPLATES: Readonly<Record<string, OutboxTemplate>> = {
       if (amountMinor === null || !outcome) return null;
 
       const entryId = str(payload, "entry_id");
-      const destination = entryId ? context.lookups.withdrawal(entryId) : null;
+      const entry = entryId ? context.lookups.withdrawal(entryId) : null;
       return withdrawalOutcome({
         ownerName: context.recipient.name,
         outcome,
         amountMinor,
-        bankName: destination?.bankName ?? null,
-        accountLast4: destination?.accountLast4 ?? null,
+        bankName: entry?.bankName ?? null,
+        accountLast4: entry?.accountLast4 ?? null,
+        /* WHICH DOOR, so the words match the screen the person used. Read off
+           the entry at send time with the bank and the last four, never
+           carried in the queue row: the outbox holds ids so a row read out of
+           it describes an event without describing anybody. */
+        destination: entry?.destination ?? null,
         reference: str(payload, "reference"),
       });
     },

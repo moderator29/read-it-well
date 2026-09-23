@@ -469,12 +469,38 @@ export function walletFunded(data: WalletFundedData): EmailMessage {
 /** What happened to a withdrawal. One email, three honest endings. */
 export type WithdrawalOutcome = "paid" | "failed" | "reversed";
 
+/**
+ * WHOSE ACCOUNT THE MONEY WENT TO. TWO DOORS, ONE LEDGER ROW.
+ *
+ * `own_account` is the withdraw sheet: a person moving their own balance to
+ * their own bank. `third_party` is the send desk in bank mode: a person
+ * sending money to somebody else's ten digits.
+ *
+ * They are the same row in `wallet_entries`, under the same `rm-wd-` prefix,
+ * because the Paystack webhook settles `transfer.*` only for that prefix and
+ * the stale-hold sweeper only releases that prefix (see the note on
+ * `transferToBank`). That is a correct decision about the LEDGER and a
+ * disastrous one about the WORDS: this email said "your withdrawal did not go
+ * through" to somebody who had just tried to send rent to a landlord, and
+ * "withdrawal" is not a word they would use or recognise for what they did.
+ *
+ * Absent means `own_account`. Every existing caller is the withdraw door, and
+ * a default that quietly became "third party" would be the worse mistake.
+ */
+export type WithdrawalDestination = "own_account" | "third_party";
+
 export type WithdrawalOutcomeData = {
   ownerName?: string | null;
   outcome: WithdrawalOutcome;
   amountMinor: number;
   bankName?: string | null;
   accountLast4?: string | null;
+  /**
+   * Which door this row came from. Read off `metadata.destination` on the
+   * entry, which `transferToBank` writes as `"third_party"` and the withdraw
+   * door does not write at all.
+   */
+  destination?: WithdrawalDestination | null;
   /** The wallet reference the money moved on. */
   reference?: string | null;
   /** The balance after the outcome settled, when it is known. */
@@ -494,9 +520,31 @@ export type WithdrawalOutcomeData = {
  * and the money never left. Reversed means it left, came back, and somebody
  * will have seen a debit and then a credit. Telling somebody "it failed" when
  * their statement shows two entries is how a support ticket starts.
+ *
+ * ---------------------------------------------------------------------------
+ * AND IT IS ONE MESSAGE FOR BOTH DOORS, WHICH IS WHY `destination` EXISTS.
+ *
+ * A bank send and a withdrawal are the same ledger row on purpose. They are
+ * not the same event to the person: one is moving your own money home, the
+ * other is paying somebody. Until 23 September this template said
+ * "withdrawal" to both, so a person who had just sent rent to a landlord was
+ * told their WITHDRAWAL had not gone through, about money they had not
+ * withdrawn, using a word they had not seen on the screen they used.
+ *
+ * A SECOND BUILDER WAS THE WRONG FIX AND WAS NOT MADE. `reachability.test.ts`
+ * asserts the built set equals the reachable set in both directions, so a
+ * second builder with no caller of its own would turn it red, correctly. More
+ * to the point, two builders is how the failure email quietly stops being as
+ * clear as the success one, which is the whole argument in the paragraph
+ * above. So the words fork inside the one message and the shape does not fork
+ * at all: same rows, same reference, same button, same three endings.
+ *
+ * WHAT NEVER CHANGES BETWEEN THE TWO. The recipient's NAME is not printed in
+ * either version. A bank name and four digits are what a receipt needs, and
+ * rule 16 keeps the rest of it out of an inbox.
  */
 export function withdrawalOutcome(data: WithdrawalOutcomeData): EmailMessage {
-  const destination =
+  const account =
     (data.bankName ?? "").trim().length > 0
       ? `${(data.bankName ?? "").trim()}${
           (data.accountLast4 ?? "").trim().length > 0
@@ -506,15 +554,19 @@ export function withdrawalOutcome(data: WithdrawalOutcomeData): EmailMessage {
       : null;
 
   const paid = data.outcome === "paid";
+  /* Absent means the withdraw door. See the note on the type. */
+  const sent = data.destination === "third_party";
 
   const outcomeLabel = paid
-    ? "Sent to your bank"
+    ? sent
+      ? "Sent to the account you chose"
+      : "Sent to your bank"
     : data.outcome === "reversed"
       ? "Returned to your wallet by the bank"
       : "Not sent, money still in your wallet";
 
   const list: ReceiptRow[] = [{ label: "Amount", value: money(data.amountMinor) }];
-  if (destination) list.push({ label: "Destination", value: destination });
+  if (account) list.push({ label: sent ? "Sent to" : "Destination", value: account });
   list.push({ label: "Outcome", value: outcomeLabel, strong: true });
   if (typeof data.balanceMinor === "number") {
     list.push({ label: "Wallet balance", value: money(data.balanceMinor) });
@@ -523,22 +575,42 @@ export function withdrawalOutcome(data: WithdrawalOutcomeData): EmailMessage {
   const explanation = paid
     ? "Banks normally credit within minutes, and can take up to one working day. Once it has left us, the timing is theirs."
     : data.outcome === "reversed"
-      ? "The transfer left us and the bank sent it back, so you may see a debit and then a credit on your statement. The money is in your Vallo wallet now. This is almost always a name or account number that does not match."
-      : "This is usually the account details, or a bank that is temporarily unreachable. Check the account number and the bank, then try the withdrawal again.";
+      ? sent
+        ? "The transfer left us and the bank sent it back, so you may see a debit and then a credit on your statement. The money is in your Vallo wallet now, and nothing reached the account you sent it to. This is almost always a name or account number that does not match."
+        : "The transfer left us and the bank sent it back, so you may see a debit and then a credit on your statement. The money is in your Vallo wallet now. This is almost always a name or account number that does not match."
+      : sent
+        ? "This is usually the account details, or a bank that is temporarily unreachable. Check the account number and the bank, then send it again."
+        : "This is usually the account details, or a bank that is temporarily unreachable. Check the account number and the bank, then try the withdrawal again.";
+
+  const failedHeadline = sent ? "Your transfer did not go through" : "Your withdrawal did not go through";
 
   return message(
     paid
-      ? `${money(data.amountMinor)} is on its way to your bank`
-      : "Your withdrawal did not go through",
+      ? sent
+        ? `${money(data.amountMinor)} is on its way to the account you sent it to`
+        : `${money(data.amountMinor)} is on its way to your bank`
+      : failedHeadline,
     paid
-      ? `${money(data.amountMinor)} has left your Vallo wallet for your bank.`
+      ? sent
+        ? `${money(data.amountMinor)} has left your Vallo wallet for the account you sent it to.`
+        : `${money(data.amountMinor)} has left your Vallo wallet for your bank.`
       : `${money(data.amountMinor)} stays in your Vallo wallet.`,
     [
-      heading(paid ? "Your withdrawal is on its way" : "Your withdrawal did not go through"),
+      heading(
+        paid
+          ? sent
+            ? "Your transfer is on its way"
+            : "Your withdrawal is on its way"
+          : failedHeadline,
+      ),
       paragraph(
         paid
-          ? `${hello(data.ownerName)} The transfer has left Vallo for your bank account.`
-          : `${hello(data.ownerName)} The transfer to your bank did not complete, so the money is in your wallet and is available to you now.`,
+          ? sent
+            ? `${hello(data.ownerName)} The transfer has left Vallo for the bank account you sent it to.`
+            : `${hello(data.ownerName)} The transfer has left Vallo for your bank account.`
+          : sent
+            ? `${hello(data.ownerName)} The transfer did not complete, so nothing reached them and the money is in your wallet and is available to you now.`
+            : `${hello(data.ownerName)} The transfer to your bank did not complete, so the money is in your wallet and is available to you now.`,
       ),
       rows(list),
       paragraph(explanation),
@@ -550,7 +622,11 @@ export function withdrawalOutcome(data: WithdrawalOutcomeData): EmailMessage {
           : "If it fails a second time, contact support with the reference above and a person will look into it with you.",
       ),
     ],
-    ["You are receiving this because of a withdrawal from your Vallo wallet."],
+    [
+      sent
+        ? "You are receiving this because you sent money from your Vallo wallet to a bank account."
+        : "You are receiving this because of a withdrawal from your Vallo wallet.",
+    ],
   );
 }
 
@@ -684,7 +760,7 @@ export function escrowReleased(data: EscrowReleasedData): EmailMessage {
 /* -------------------------------------------------------------- inspections */
 
 export type InspectionScheduledData = {
-  /** Whether this is the person viewing or the person showing. */
+  /** Whether this is the person inspecting or the person showing. */
   audience: "viewer" | "lister";
   name?: string | null;
   listingTitle: string;
@@ -700,7 +776,7 @@ export type InspectionScheduledData = {
 };
 
 /**
- * The viewing is booked.
+ * The inspection is booked.
  *
  * Both sides are about to travel across a Nigerian city to meet somebody they
  * have not met, which is the moment this platform owes the clearest safety
@@ -719,7 +795,7 @@ export function inspectionScheduled(data: InspectionScheduledData): EmailMessage
     { label: "Time", value: data.time, strong: true },
   ];
   if (other) {
-    list.push({ label: viewing ? "Showing you round" : "Coming to view", value: other });
+    list.push({ label: viewing ? "Showing you round" : "Coming to inspect", value: other });
   }
   const phone = (data.otherPartyPhone ?? "").trim();
   if (phone.length > 0) list.push({ label: "Their number", value: phone });
@@ -731,26 +807,26 @@ export function inspectionScheduled(data: InspectionScheduledData): EmailMessage
       heading("Your inspection is booked"),
       paragraph(
         viewing
-          ? `${hello(data.name)} Your viewing is confirmed. Here is where to be and when.`
-          : `${hello(data.name)} Somebody is coming to view your property. Here are the details.`,
+          ? `${hello(data.name)} Your inspection is confirmed. Here is where to be and when.`
+          : `${hello(data.name)} Somebody is coming to inspect your property. Here are the details.`,
       ),
       rows(list),
       paragraph(
         viewing
           ? "Take your time and ask about the things a photograph cannot show you: the light, the water, the road in the rain, and what the service charge actually covers."
-          : "The questions people ask most are about light, water, the gate and what the service charge covers. Having the answers ready is what turns a viewing into a tenancy.",
+          : "The questions people ask most are about light, water, the gate and what the service charge covers. Having the answers ready is what turns an inspection into a tenancy.",
       ),
       bullets(
         viewing
           ? [
               "Go in daylight where you can.",
               "Tell somebody where you are going and when you expect to be back.",
-              "Do not carry money to a viewing and do not pay anything at the gate.",
+              "Do not carry money to an inspection and do not pay anything at the gate.",
               "Keep the conversation in Vallo, so there is a record of what was agreed.",
             ]
           : [
               "Confirm the time in Vallo so the record shows what was agreed.",
-              "Never ask a viewer for money at the property. Payment goes through Vallo.",
+              "Never ask the person inspecting for money at the property. Payment goes through Vallo.",
               "If plans change, say so in the app rather than only by phone.",
             ],
       ),
@@ -1146,7 +1222,7 @@ export function newEnquiry(data: NewEnquiryData): EmailMessage {
         ...(shown.length > 0 ? [{ label: "They wrote", value: shown, strong: true }] : []),
       ]),
       paragraph(
-        "Reply inside Vallo. Enquiries that are answered the same day turn into viewings far more often than ones answered the next week, and the conversation on the platform is the record that protects you both.",
+        "Reply inside Vallo. Enquiries that are answered the same day turn into inspections far more often than ones answered the next week, and the conversation on the platform is the record that protects you both.",
       ),
       button("Reply in Vallo", appUrl(data.conversationPath)),
       note(

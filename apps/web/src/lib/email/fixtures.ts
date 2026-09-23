@@ -98,6 +98,33 @@ export const EVERY_MESSAGE: NamedMessage[] = [
       amountMinor: 250_000,
     }),
   },
+  /* THE SAME BUILDER THROUGH THE OTHER DOOR. A bank send is an `rm-wd-` entry
+     like any withdrawal, so this is one message with two vocabularies rather
+     than two messages, and both need looking at side by side: the failure
+     wording is the half that usually goes unread until it is wrong. */
+  {
+    name: "withdrawalOutcome:sent",
+    message: messages.withdrawalOutcome({
+      ownerName: "Ada",
+      outcome: "paid",
+      amountMinor: 250_000,
+      bankName: "Sparkle Microfinance Bank",
+      accountLast4: "6789",
+      destination: "third_party",
+      reference: "rm-wd-9k2m",
+    }),
+  },
+  {
+    name: "withdrawalOutcome:sent-failed",
+    message: messages.withdrawalOutcome({
+      ownerName: "Ada",
+      outcome: "failed",
+      amountMinor: 250_000,
+      bankName: "Sparkle Microfinance Bank",
+      accountLast4: "6789",
+      destination: "third_party",
+    }),
+  },
   {
     name: "withdrawalFailed",
     message: messages.withdrawalFailed({ ownerName: "Ada", amountMinor: 250_000 }),
