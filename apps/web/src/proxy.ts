@@ -8,6 +8,13 @@ import {
   REPORTING_ENDPOINTS,
 } from "@/lib/security/csp";
 import { safeReturnPath } from "@/lib/security/return-path";
+import { consume, ipFromHeaders, subjectForIp } from "@/lib/security/rate-limit";
+import {
+  ANON_CATALOGUE_LIMIT,
+  ANON_CATALOGUE_WINDOW_SECONDS,
+  isPublicCataloguePath,
+  publicCatalogueEnabled,
+} from "@/lib/catalogue/public-access";
 import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/supabase/env";
 
 /**
@@ -138,7 +145,10 @@ const PUBLIC_SEGMENTS = new Set([
   "start",
   "welcome",
   // Serving with no network, and resolving which home the caller means.
+  // `open` is where the native app starts (STORE-04): it answers /home for a
+  // session and /welcome or the open catalogue for anybody else.
   "home-or-landing",
+  "open",
   "offline",
   // Development harnesses, closed by their own guard in production.
   "gallery",
@@ -238,8 +248,15 @@ const PUBLIC_API_PATHS = new Set([
  * same function the running middleware uses, rather than through a second copy
  * of the rule that can agree with itself while disagreeing with the product.
  */
-export function isPublicPath(path: string): boolean {
+export function isPublicPath(
+  path: string,
+  options: { publicCatalogue?: boolean } = {},
+): boolean {
   if (PUBLIC_PATHS.has(path)) return true;
+  /* STORE-P2-04: the founder's switch, VALLO_PUBLIC_CATALOGUE. It can only
+     ADD the six read-only catalogue segments; it cannot open an account
+     surface or an API route (`lib/catalogue/public-access.ts`). */
+  if (options.publicCatalogue && isPublicCataloguePath(path)) return true;
   /* An API path is decided by its WHOLE path and never by its first segment,
      because `api` is not a public tree: exactly sixteen endpoints under it
      answer a caller with no session and the rest do not. */
@@ -345,7 +362,37 @@ export async function proxy(request: NextRequest) {
 
   if (!user) {
     const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
-    if (!isPublicPath(path)) {
+    const publicCatalogue = publicCatalogueEnabled();
+
+    /* A stranger reading the open catalogue is counted per address, so the
+       switch cannot be used to walk every listing at machine speed. Only the
+       pages are counted; a person reads a few a minute. */
+    if (publicCatalogue && isPublicCataloguePath(path)) {
+      const verdict = await consume({
+        bucket: "anon_catalogue",
+        subject: subjectForIp(ipFromHeaders(request.headers)),
+        limit: ANON_CATALOGUE_LIMIT,
+        windowSeconds: ANON_CATALOGUE_WINDOW_SECONDS,
+      });
+      if (!verdict.allowed) {
+        return withSecurityPolicy(
+          new NextResponse(
+            `Too many pages opened from this connection. Try again ${verdict.retryIn}, or sign in to keep browsing.`,
+            {
+              status: 429,
+              headers: {
+                "content-type": "text/plain; charset=utf-8",
+                "retry-after": String(verdict.retryAfterSeconds),
+                "cache-control": "no-store",
+              },
+            },
+          ),
+          nonce,
+        );
+      }
+    }
+
+    if (!isPublicPath(path, { publicCatalogue })) {
       /*
        * AN API ROUTE IS ANSWERED, NEVER REDIRECTED.
        *
