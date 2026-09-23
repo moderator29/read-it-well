@@ -8,7 +8,7 @@ import "@/app/welcome/welcome.css";
  * the look that ships.
  *
  * DARK ONLY. The founder removed light mode from the platform on 23
- * September; Session A forces dark at the root. `data-theme="dark"` stays on
+ * September; the root layout forces dark. `data-theme="dark"` stays on
  * this element only so the tokens here are dark on the day before that lands,
  * and it can go once the root no longer carries any other value.
  */

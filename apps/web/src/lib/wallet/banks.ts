@@ -29,10 +29,8 @@
  * One component still imports it as its picker's seed:
  * `app/(app)/wallet/WalletDeck.tsx` (the withdraw sheet, which draws its
  * options from here and nowhere else). (The send desk's bank picker was
- * removed with bank send on 23 September.) It is Session B's file under
- * `docs/SESSION_B_SCOPE.md`, so the withdraw sheet's swap to
- * `listBanks()` is filed as a request in `docs/BUILD_07_LEDGER.md` section 49
- * rather than made here. THE DAY THAT REQUEST LANDS, DELETE THIS FILE.
+ * removed with bank send on 23 September.) The withdraw sheet should move to
+ * `listBanks()`. THE DAY IT DOES, DELETE THIS FILE.
  *
  * Until then the honest description of the gap is: the server will now pay any
  * bank the live registry knows, and the withdraw sheet's `<select>` still only

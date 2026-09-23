@@ -312,8 +312,7 @@ export async function publishAccommodation(input: {
      NEITHER FAILURE UNDOES THE DECISION. The property is published by this
      point. A failure here is recorded in the audit detail and told to the
      admin as the one thing left to do, which is the pattern the business
-     publish beneath already follows and which the lead's B0 audit item 4
-     settled.
+     publish beneath already follows.
      --------------------------------------------------------------------- */
   const { error: roomsError, count: roomsPublished } = await access.supabase
     .from("room_types")
@@ -340,8 +339,7 @@ export async function publishAccommodation(input: {
   // The business goes live with its first published property, so a host does
   // not have to be told to do a second thing they cannot do. The property is
   // already published by this point, so a failure here is not a failure of
-  // the decision: it is written into the audit line (the lead's B0 audit,
-  // item 4) and the admin is told the one thing left to do.
+  // the decision: it is written into the audit line and the admin is told the one thing left to do.
   let businessPublished: boolean | null = null;
   if (business.status === "APPROVED") {
     const { error: businessError } = await access.supabase

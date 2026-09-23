@@ -62,7 +62,7 @@ const cutoff = new Date(
  * count, a count that grows on its own. So the date now comes from git, which
  * is the same answer on every machine and cannot be changed by touching a file.
  * One `git log` walks the whole proofs tree; a file git has never seen (a shot
- * taken in this session and not yet committed) is genuinely new and is treated
+ * taken on this machine and not yet committed) is genuinely new and is treated
  * as fresh, which is the only reading that lets today's work count today.
  */
 function proofCommitDates() {
@@ -93,10 +93,9 @@ function proofCommitDates() {
 const COMMITTED = proofCommitDates();
 
 /*
- * OWNERSHIP BY ROUTE PREFIX, longest prefix wins. This is the division the
- * five sweep workers were given, written down so the register and the briefs
- * cannot drift apart. "site" is the marketing and legal frontage, which no
- * sweep worker owns and which is therefore the lead's.
+ * OWNERSHIP BY ROUTE PREFIX, longest prefix wins. This is the division of
+ * routes into sweep groups. "site" is the marketing and legal frontage,
+ * which belongs to no group.
  */
 const OWNERS = [
   ["/admin", "V5 agent, host and admin"],
@@ -224,7 +223,7 @@ if (existsSync(PROOFS)) {
         group: group.name,
         file,
         /* Git's answer, not the disk's. A proof git has never seen was taken
-           in this session and has not been committed yet, so it is new. */
+           on this machine and has not been committed yet, so it is new. */
         fresh: (COMMITTED.get(`docs/design/proofs/${group.name}/${file}`) ?? new Date()) > cutoff,
         /* The slug a proof file is named for, matched loosely: a file called
            f3-search-filters-open-dark.png is a proof of /search. */

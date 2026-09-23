@@ -6,9 +6,9 @@ import { Badge, Empty, Panel, ReadFailed, StatusBar } from "../_review/parts";
  * (`listing_mandates`). Exact counts by review status, every pending mandate
  * with its principal, and the latest decisions with the refusal reason.
  *
- * READ ONLY ON PURPOSE. No action in Session A's `lib/admin` decides a
+ * READ ONLY ON PURPOSE. No action in `lib/admin` decides a
  * mandate yet, so the panel shows the queue and says what deciding needs
- * (scope request AR-12) rather than drawing a button that would do nothing.
+ * rather than drawing a button that would do nothing.
  * The principal's number is shown only inside the opened row: it is the
  * number a reviewer rings to confirm the instruction, and it goes nowhere else.
  */

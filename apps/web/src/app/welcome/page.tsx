@@ -22,7 +22,7 @@ export const metadata: Metadata = {
  * sides and the coin, what verified means, talk first and pay on Vallo, and
  * the ending), skippable. A stranger ends on Create account and Sign in;
  * somebody signed in ends on one Continue into the app. Governing image:
- * `2A49E2F7` at the repository root.
+ * `2A49E2F7` in docs/design/references/.
  *
  * REACHABLE SIGNED OUT, and it never redirects: `planFirstRun` in `./plan.ts`
  * (a pure function with its own test) only chooses the ending.

@@ -1,14 +1,14 @@
 /*
  * profile: the signed-in person's own page, `/profile`, built to `50E032EA`.
- * Owned by Session B (docs/SESSION_B_SCOPE.md, Profile). Imported by the route
+ * Imported by the route
  * and by the three components that draw it, so `globals.css` is not touched.
  *
  * EVERY NUMBER HERE IS MEASURED OFF THE RENDER, not eyeballed. The phone's
  * screen is 658 image pixels wide (inner edge 182 to 840), so one CSS pixel at
- * 390 is 1.687 image pixels. The table is in docs/BUILD_SESSION_B_LEDGER.md,
- * section 1; the values that set geometry are repeated beside each rule.
+ * 390 is 1.687 image pixels. The values that set geometry are given beside
+ * each rule.
  *
- * TYPE AT THE RENDER'S SIZE, PER ROLE (lead ruling R-A). Each size below is
+ * TYPE AT THE RENDER'S SIZE, PER ROLE (rule R-A). Each size below is
  * the render's cap height converted at 0.593 and divided by the face's own
  * cap ratio (Poppins 0.697, Inter 0.727): names, titles and figures ship at
  * exactly that; a body, subtitle, caption or label role that measures under
@@ -241,7 +241,7 @@
     inline-size: 1.375rem;
     block-size: 1.375rem;
   }
-  /* The person's tier mark (Session A's TierBadge): the mark alone, no
+  /* The person's tier mark (TierBadge): the mark alone, no
      disc behind it, on the ring's upper right, clear of the picture control. */
   .nf-pf-avatar__tier {
     position: absolute;

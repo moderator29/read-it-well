@@ -899,8 +899,7 @@ export function FilterDrawer({
               </label>
               {/* WHICH NUMBER, IN THE DRAWER TOO. The shelf prints this under
                   its count; the drawer is where the choice is made, so it says
-                  it here as well rather than only after the sheet closes.
-                  HANDOFF 09 section 4.2. */}
+                  it here as well rather than only after the sheet closes. */}
               {draftBasis && (
                 <p
                   data-testid="filter-sort-basis"

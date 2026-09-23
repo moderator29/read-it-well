@@ -55,7 +55,7 @@ const response = await page.goto(base + route, { waitUntil: "load", timeout: 90_
  * printed `shot <route> -> <file>` whatever the server had actually said. A
  * 404, a 500, the not-found page served on a 200, or the sign-in screen after
  * a redirect: all four produce a tidy PNG under the name of the route that was
- * asked for, and a worker reading the file has no way to tell. Its phone twin,
+ * asked for, and whoever reads the file has no way to tell. Its phone twin,
  * `verify-shots.mjs`, learned all four of these the hard way in one day and
  * wrote down what each one cost. This is the twin that says it writes the
  * theme "the same way" and then proved nothing at all.
@@ -128,7 +128,7 @@ await page.waitForTimeout(1_500);
  * which fades a block in only when an IntersectionObserver sees it. Playwright
  * never scrolls for a fullPage screenshot: it resizes the capture and shoots.
  * So a fullpage shot of a Reveal page came back as the hero and then four and
- * a half thousand pixels of empty navy, and a worker reading that shot would
+ * a half thousand pixels of empty navy, and anyone reading that shot would
  * report the whole middle of the page missing. Walking a viewport at a time to
  * the foot fires every observer, and returning to the top leaves the page in
  * the state a reader actually meets.

@@ -3,7 +3,7 @@ import { LoadingShell, PageHeaderSkeleton } from "@/components/app/ScreenSkeleto
 
 /**
  * The wait on `/crypto`, which is dark for version one (`page.tsx`:
- * `notFound()`, HANDOFF 08 section 5.2). What follows this wait is the
+ * `notFound()`). What follows this wait is the
  * platform's not-found page, so the wait draws a header and one plain panel
  * and nothing that looks like a market: no coin rail, no price tiles, nothing
  * we do not offer (orphans sweep, 23 September). The market's own skeleton is

@@ -61,8 +61,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
  * It passed eight consecutive times on its own and failed inside the full
  * suite, which is the same defect wearing a different coat both times.
  *
- * FAULT ONE, A FIXED PORT. It listened on 8532. Five other workers run
- * servers in this tree, the port was taken, and `server.listen` emitted an
+ * FAULT ONE, A FIXED PORT. It listened on 8532. Other processes run
+ * servers on the same machine, the port was taken, and `server.listen` emitted an
  * `error` event that nothing was listening for, so the promise wrapped around
  * it NEVER SETTLED. A collision that should have been an instant failure
  * became a 120 second hook timeout. Both halves are fixed: the operating
@@ -205,7 +205,7 @@ beforeAll(async () => {
   });
   /* AN EPHEMERAL PORT, AND THE `error` EVENT WIRED TO THE REJECTION. Port 0
      asks the operating system for one that is free, so this cannot collide
-     with another worker's server; and a listen that fails now fails instead
+     with another process's server; and a listen that fails now fails instead
      of hanging. See fault one at the head for what the fixed port cost. */
   const port = await new Promise<number>((resolve, reject) => {
     const listening = server;

@@ -190,10 +190,9 @@ describe("every preview deck serves its own index", () => {
   /**
    * THE ONE EXCEPTION, NAMED RATHER THAN HIDDEN IN A PREDICATE.
    *
-   * `session-b` is not a deck. It is the namespace holding Session B's fifteen
-   * decks, and its tree is theirs under lead ruling R-G, so Session A does not
-   * write a file into it. R23 in `docs/BUILD_07_LEDGER.md` asks them for the
-   * index. **When that lands, this list goes back to empty and stays empty.**
+   * `session-b` is not a deck. It is the namespace holding fifteen design
+   * decks, and it has no index page of its own yet. **When it gets one, this
+   * list goes back to empty and stays empty.**
    */
   const NOT_MINE_TO_WRITE = new Set(["session-b"]);
 

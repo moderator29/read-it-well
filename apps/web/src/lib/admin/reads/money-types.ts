@@ -4,11 +4,9 @@ import type { Database } from "@/lib/supabase/database.types";
  * THE SHAPES THE MONEY DESKS ARE BUILT AGAINST, AND NOTHING ELSE.
  *
  * Types only. There is no query in this folder and there must never be one:
- * the console's reads belong to `lib/admin/**`, which is the other session's,
- * and a second query layer here would collide with the one they are building.
- * Each type below is the exact return shape asked for in
- * `docs/SESSION_B_SCOPE.md` under "Requests from admin-money" (the number is on
- * each), so the function that lands can return it verbatim and the panel that
+ * the console's queries live in `lib/admin/**`, and a second query layer here
+ * would duplicate them. Each type below is the exact return shape a money
+ * desk panel needs, so the function that provides it can return it verbatim and the panel that
  * reads it lights up with a one-line import.
  *
  * Until a function lands, its panel receives `null` and draws the not-wired

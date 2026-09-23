@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { TierBadge } from "@/components/trust/TierBadge";
 import type { PersonTier as Tier } from "@/lib/admin/reads/shapes";
 
-/* Session A's one badge beside a name anywhere in the console's shared
+/* The one badge beside a name anywhere in the console's shared
    components; the tier is `public.person_badge`, read by `getPersonTiers`.
    Written with createElement rather than JSX so the unit test that renders it
    runs under the test setup's server React build. */

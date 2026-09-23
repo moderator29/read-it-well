@@ -148,7 +148,7 @@ export function ProfileSwitcher({
   /**
    * DRAW YOUR OWN TRIGGER INSTEAD OF THE DOCK SLOT.
    *
-   * Session B asked for this and the request was right. `/profile` has a
+   * `/profile` has a
    * "Switch role" row that must open this sheet, and the only way it could was
    * to find the dock's button by its class name and click it:
    *

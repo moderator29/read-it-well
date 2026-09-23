@@ -1,11 +1,11 @@
 /*
   inspection: the property inspection surface (/inspections and the agent's
-  /agent/inspections), owned by Session B. Imported by
+  /agent/inspections). Imported by
   `components/app/inspections/InspectionSheet.tsx`, never by globals.css, so
   no shared stylesheet is touched. Dark only: light mode was removed by the
   founder on 23 September, so there is no paper twin.
 
-  THE GOVERNING IMAGE IS F6A8A482 (repo root). Every size below was measured
+  THE GOVERNING IMAGE IS F6A8A482 (docs/design/references/). Every size below was measured
   off that render and converted. The phone screen in the render is 668 image
   px wide (inner edge 177 to 845), so one CSS px at 390 is 0.584 image px.
 
@@ -16,8 +16,7 @@
   for row titles and values) and each container is sized from the render's
   own ratios to the row it holds (plate 0.78 of the row, check circle 0.37,
   insets 0.17), not by one uniform factor. Touch targets stay at 44px where a
-  thing is pressed. The numbers are in docs/BUILD_SESSION_B_LEDGER.md
-  section 9.
+  thing is pressed.
 
   Nothing here is a raw colour. Every value is a token or a mix of tokens;
   the rem literals are object sizes (plates, rings, the photo, the house).
@@ -640,7 +639,7 @@
     line-height: 1.2;
     color: var(--nf-content-primary);
   }
-  /* Lead ruling R-F: one row of three, in the checklist's register. */
+  /* Rule R-F: one row of three, in the checklist's register. */
   .nf-ix-outcome__options {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));

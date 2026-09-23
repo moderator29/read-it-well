@@ -28,10 +28,10 @@ const STAYS_PAGE_SIZE = 12;
  * reads every booking once and checks the count, so no figure is the total of
  * a capped list. The table's rows open the stay's own page
  * (`/admin/bookings/[bookingId]`), which is where the only write on this desk
- * lives: Session A's cancel-and-refund (`cancelBookingAsAdmin`, with the
+ * lives: the cancel-and-refund (`cancelBookingAsAdmin`, with the
  * refund worked out by `previewCancellation` from the published schedule),
  * unchanged. The restaurant tables queue keeps its own route and its waiting
- * count (`getReservationWaitingCount`, Session A's).
+ * count (`getReservationWaitingCount`).
  */
 export default async function AdminBookingsPage({
   searchParams,

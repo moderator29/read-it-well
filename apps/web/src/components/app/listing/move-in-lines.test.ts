@@ -6,7 +6,7 @@ import type { Listing } from "@/lib/listings/types";
 /**
  * THE HONESTY RULE OF TRACK H, ASSERTED.
  *
- * HANDOFF 09 section 4.3: "a cost the lister has not declared is drawn as not
+ * The product rule: "a cost the lister has not declared is drawn as not
  * declared, with the words, never as zero. Zero is a claim." The two facts this
  * file exists to keep apart are an UNDECLARED cost, which carries no number at
  * all, and a DECLARED ZERO, which is a lister saying there is no such fee and

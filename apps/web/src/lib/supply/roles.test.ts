@@ -145,7 +145,7 @@ describe("the answer that keeps nine owners in ten in the product", () => {
 
   /*
    * The two titling figures rest on a search summary rather than a primary
-   * source, and HANDOFF 09 section 7 gates them on a lawyer's confirmation.
+   * source, and they wait on a lawyer's confirmation.
    * The behaviour needs no citation, so the behaviour is what ships.
    */
   it("prints no statutory figure or percentage a lawyer has not confirmed", () => {

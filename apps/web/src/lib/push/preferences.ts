@@ -101,8 +101,7 @@ const LEGACY_KEY_BY_TOPIC: Readonly<Partial<Record<PushTopic, string>>> = {
  * wallet was credited", and it wakes somebody for both. Waking a person for a
  * credit they were not worried about is a smaller error than sitting on a
  * reversal until morning, so that is the direction chosen. The real fix is a
- * severity on the event, and it is written up as a request in
- * `docs/BUILD_07_LEDGER.md` rather than guessed at here by reading titles,
+ * severity on the event, rather than a guess made here by reading titles,
  * which would be a parser over a person's content and would break the first
  * time the copy changed.
  */

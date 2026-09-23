@@ -43,8 +43,8 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
  * reservation thread and the property on a booking thread; `guest_id` is the
  * other side. Neither `loadThread` nor `getThreadContext` says which one the
  * caller is, so this asks the row directly under the caller's own RLS. Both
- * of those readers already select the two columns; the line for the lead is
- * that either could return `viewerRole` and this read goes away.
+ * of those readers already select the two columns, so either could return
+ * `viewerRole` and this read would go away.
  */
 async function viewerRole(
   supabase: Parameters<typeof loadThread>[0],
@@ -177,7 +177,7 @@ export default async function ConversationPage({
           happened to file the person's badge under that key, and it named the
           cost it could see: a direct message with no listing attached carried
           nothing, so a checked agent messaging outside a listing showed no
-          mark at all. It asked the lead for a top-level field.
+          mark at all. It needed a top-level field.
 
           That field now exists. `loadThread` returns `counterpartTier`, the
           published `public.person_badge.tier`, beside `counterpartName`, and

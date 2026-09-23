@@ -49,8 +49,8 @@ const SIGNED_OUT_ROLES: RoleState[] = [
  * It is built to `50E032EA` now, on this surface's own classes (`profile.css`,
  * `nf-pf-*`): the cover, the round face on its lit ring, the counts, the
  * Belongings and Posts control, the four belongings rows and Switch role.
- * Every figure on it is read from the database; the whole chain is written
- * out in `docs/BUILD_SESSION_B_LEDGER.md`, section 1.
+ * Every figure on it is read from the database; the reads are in
+ * `./belongings-queries.ts` and `AccountHero`.
  *
  * **The cover, the counts and the posts all need a claimed handle**, because
  * they all live on `social_profiles`. Somebody who has not claimed one is not

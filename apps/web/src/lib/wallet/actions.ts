@@ -460,9 +460,8 @@ export type WithdrawReceipt = {
  * a digit, or who was short by a hundred naira and has just funded, must be
  * able to try again at once rather than be handed the same refusal for the
  * whole TTL. A form with no key runs unguarded exactly as before, which is the
- * state the withdraw sheet is in until it mints one: the request is filed in
- * `docs/BUILD_07_LEDGER.md` section 49, and the panel can have its retry
- * button the day it carries a key.
+ * state the withdraw sheet is in until it mints one; the panel can have its
+ * retry button the day it carries a key.
  *
  * THE GUARD FAILS OPEN BY DESIGN when it cannot reach its store, so it is not
  * a substitute for the ledger's unique `reference`. It removes the common

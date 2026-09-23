@@ -1,4 +1,4 @@
-// Session B admin-shell fixture harness (R-G), behind the preview gate. Real AnalyticsView on fixture props.
+// Admin console fixture harness, behind the preview gate. Real AnalyticsView on fixture props.
 import { AnalyticsView } from "@/app/admin/analytics/AnalyticsView";
 import { Frame } from "../frame";
 

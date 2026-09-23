@@ -50,8 +50,7 @@ import { WalletTiles } from "@/components/app/wallet/WalletTiles";
  * money opens the funding sheet (a saved card or the hosted Paystack window),
  * History is the statement. The render's Swap, Buy Airtime and Pay Bills are
  * products Vallo does not sell and are not drawn; every refusal and
- * substitution is recorded where it is made and in the Session B ledger,
- * section 4. The withdraw sheet is still reachable by `?action=withdraw` and
+ * substitution is recorded where it is made. The withdraw sheet is still reachable by `?action=withdraw` and
  * is not drawn as a tile while bank payouts do not complete.
  *
  * The eye is remembered on this device (`balance-mask.ts`), and the send

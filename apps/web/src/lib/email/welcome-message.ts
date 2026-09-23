@@ -23,8 +23,8 @@
  *
  * WHO SENDS IT. Not this file. `lib/notify/welcome.ts` (`welcomeOnce`) sends
  * it once, on confirmation, guarded by `profiles.welcomed_at`, and picks the
- * version from `profiles.signup_role`. That wiring is Session A's; this file
- * is the design and the words.
+ * version from `profiles.signup_role`. This file is the design and the
+ * words.
  *
  * THE WORDS NEVER CLAIM WHAT NOBODY CAN STAND BEHIND. No counts, no promise
  * about what the platform holds, nothing insured or guaranteed, nothing

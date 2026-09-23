@@ -10,7 +10,7 @@
   desktop first and derived down to 390px rather than the other way round.
   Everything below is scoped under `.nf-landing`; the few values that are not
   already on the token scale are defined as local custom properties on that
-  root so the lead can promote them in one move.
+  root so they can be promoted to the token scale in one move.
 */
 @layer components {
   .nf-landing,
@@ -19,8 +19,8 @@
      * Local rungs. The hero headline sits above `--nf-text-display` because the
      * render's "Real Estate" is a poster line, not a page heading; the pill and
      * the floating card carry their own measures because nothing on the scale
-     * describes "a search bar floating over a photograph". Reported to the lead
-     * for promotion.
+     * describes "a search bar floating over a photograph". Candidates for
+     * promotion to the token scale.
      */
     /*
      * SMALLER AGAIN ON THE PHONE, on the founder's second reading.

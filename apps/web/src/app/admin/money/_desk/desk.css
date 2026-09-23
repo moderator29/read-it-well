@@ -7,8 +7,7 @@
   routes, never from globals.css; the console shell (admin.css,
   _components) is admin-shell's and is not touched from here.
 
-  Every size below was converted from the renders and written down in
-  docs/BUILD_SESSION_B_LEDGER.md section 8. Colours are semantic tokens only:
+  Every size below was converted from the renders. Colours are semantic tokens only:
   the renders' teal, mauve and pink donut slices are translated into the one
   blue family, ordered by magnitude, with a word beside every slice.
 
@@ -987,7 +986,7 @@
   PER-DESK TYPE, from each render panel's own measurements at the same 1.57
   CSS px per render px (the rail label "Supply" measures 26 render px wide in
   all three panels, 44 in the overview render drawn at 0.929). The three
-  panels do not draw their roles at one size, and lead ruling R-A takes each
+  panels do not draw their roles at one size, and rule R-A takes each
   role at its render's measured size, so the escrow and supply desks carry
   their own. Cap heights in render px, converted, then font size = cap / 0.72.
 */

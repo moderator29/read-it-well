@@ -323,7 +323,7 @@ export type EscrowLike = {
  *
  * The activity list uses the three timestamps `EscrowView` carries: opened,
  * held and settled. Funding, release requests and disputes have their own
- * columns in the table and are asked for in scope request 7; until then they
+ * columns in the table but not in `EscrowView`; until it carries them they
  * are not invented from the state.
  */
 export function pipelineFromWhole(escrows: readonly EscrowLike[], recentCount = 6): EscrowPipeline {
@@ -387,7 +387,7 @@ function outcomeOf(metadata: unknown): string | null {
  * otherwise, in which case `pageOnly` is true and the panel says "of the last
  * N runs".
  * `expectedRuns` and `lastReply` stay null; both need the job's schedule and
- * `private.reconciliation_watch`, which only scope request 8 can reach.
+ * `private.reconciliation_watch`, which no admin read reaches yet.
  */
 export function reconciliationFromAudit(
   rows: readonly AuditRunLike[],

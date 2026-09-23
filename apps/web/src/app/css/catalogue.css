@@ -37,7 +37,7 @@
     /* This surface's own rung beneath the overline, for the card's smallest
        type: the fact row, the place line, the price suffix and the pills on
        the photograph. Declared on the card root so everything inside it
-       reads one value, and reported to the lead for promotion. */
+       reads one value; a candidate for promotion to the token scale. */
     --nf-pcard-fact: 0.6875rem;
     display: flex;
     flex-direction: column;
@@ -99,7 +99,7 @@
    * screen. The render gives the same column a small two-line title, a
    * muted place, the figure as the one prominent line, and a hairline fact
    * row. `--nf-pcard-fact` is this surface's own rung beneath the overline,
-   * scoped to the card and reported to the lead for promotion.
+   * scoped to the card; a candidate for promotion to the token scale.
    */
   .nf-pcard__body {
     display: flex;
@@ -1577,7 +1577,7 @@
   /* An avatar, so it stays a circle: the founder's shape law exempts avatars
      by name, and 999px on a 3rem square IS the circle. Left on the pill token
      rather than swapped to `--nf-radius-circle` because the two render
-     identically here and the token swap is the lead's tidy, not a shape
+     identically here and the token swap is a tidy, not a shape
      change. */
   .nf-host-row__avatar {
     position: relative;
@@ -2185,7 +2185,7 @@
      AN UNDECLARED COST IS DRAWN, NOT HIDDEN, and it is drawn quiet: the row
      loses its lit rim and its figure is a word at the muted ink, so the eye
      reads the declared costs first and still cannot miss that something was
-     left unsaid. HANDOFF 09 section 4.3. */
+     left unsaid. */
   .nf-movein__list {
     display: grid;
     gap: var(--nf-space-xs);

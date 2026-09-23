@@ -5,7 +5,7 @@ import { BackButton } from "@/components/site/BackButton";
 import { parentOf } from "@/lib/nav/resolve";
 
 /**
- * The way back on the money pages (Session A's R14, BUILD_07 section 49ter).
+ * The way back on the money pages.
  *
  * `/wallet` and `/wallet/send` declare a parent in `lib/nav/route-parents.ts`
  * (`/home` and `/wallet`) and drew no back control, so on Android the

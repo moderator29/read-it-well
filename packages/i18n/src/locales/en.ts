@@ -1,7 +1,7 @@
 import type { CountForms } from "../plural";
-/* Price Check lives in its own module: `en.ts` is 4,900 lines, three workers
-   write to it in the same hour, and this namespace was lost to a concurrent
-   overwrite once already. One import and one line is the smallest footprint a
+/* Price Check lives in its own module: `en.ts` is 4,900 lines, many changes
+   touch it at once, and this namespace was lost to a concurrent overwrite
+   once already. One import and one line is the smallest footprint a
    namespace can have here. */
 import { priceCheckEn } from "./price-check.en";
 
@@ -202,8 +202,8 @@ export const en = {
     switchToStays: "Switch to Stays",
     switchToProperty: "Switch to Property",
     /* The founder's wording, 23 September: it is "Flip", not "Flip coin".
-       The KEY is left as `flipCoin` on purpose. Four locale files are written
-       by several workers in the same hour and the standing rule on this
+       The KEY is left as `flipCoin` on purpose. Four locale files change
+       together and the standing rule on this
        package is add keys, never restructure; renaming a key is a restructure
        and this change is about the word a person reads. */
     flipCoin: "Flip",
@@ -255,7 +255,7 @@ export const en = {
     tripsEmptyTitle: "No trips yet",
     tripsEmptyBody: "Book a stay or a table and it lands here with its confirmation and its conversation.",
     findStay: "Find a stay",
-    /* Build 05, FE-5: the date spine on /trips. */
+    /* The date spine on /trips. */
     tripsToday: "Today",
     tripsPast: "Past trips",
     tripsNothingAhead: "Nothing ahead right now. Your past trips are below.",
@@ -267,7 +267,7 @@ export const en = {
   },
   nav: {
     /* The two sides. Added 18 September 2026 with the flip; Trips is the
-       Stays side's name for its bookings surface (HANDOFF_05 section 2). */
+       Stays side's name for its bookings surface. */
     stays: "Stays",
     exploreStays: "Explore stays",
     trips: "Trips",
@@ -403,7 +403,7 @@ export const en = {
     walletRow: "Balance, cards and transactions",
     inspectionsRow: "Scheduled and past inspections",
     /*
-     * The account page itself (`/profile`, Session B). Row values carry the
+     * The account page itself (`/profile`). Row values carry the
      * figure in `{count}`; the Switch role line names only the roles the
      * account holds, joined by the two patterns below.
      */
@@ -506,7 +506,7 @@ export const en = {
          * `title1` names the same three actions as the segments of the landing
          * search control, and that is not a coincidence to be tidied away:
          * the headline teaches the control and the control proves the
-         * headline (HANDOFF 09 section 2.1). The headline reads them rent,
+         * headline. The headline reads them rent,
          * buy, stay and the control draws them buy, rent, stay, which is the
          * founder's own wording of each kept as he approved it: the rule is
          * the same three words, never the same sequence. The segments are
@@ -779,8 +779,8 @@ export const en = {
      * LEDGER. "Real Estate reimagined!" is the OLD positioning line, and this
      * comment used to say so in those words. The new one is "Rent, buy or
      * stay. Without the runaround." A slogan beside a wordmark is a brand
-     * decision rather than a copy fix, so it is not changed here on a worker's
-     * initiative; splitting the key is what lets it change in one line when he
+     * decision rather than a copy fix, so it is not changed here as a copy
+     * edit; splitting the key is what lets it change in one line when he
      * rules, without dragging the auth screen along by accident.
      */
     slogan: "Real Estate reimagined!",
@@ -818,8 +818,8 @@ export const en = {
        * key here, including the "Real Estate, / reimagined." headline and the
        * "Nigeria's real estate marketplace" overline, is dead copy carrying
        * the OLD POSITIONING and is left rather than deleted only because the
-       * three other locales mirror this shape and a namespace removal is not
-       * one worker's to make in a tree thirteen people are editing. IF YOU
+       * three other locales mirror this shape and a namespace removal is a
+       * change to all four at once, not a copy edit. IF YOU
        * ARE ABOUT TO COPY A LINE OUT OF HERE, DO NOT. The position is
        * "Rent, buy or stay. Without the runaround." and it lives in
        * `landing.face.hero` above.
@@ -1072,8 +1072,8 @@ export const en = {
        * FOR THE WRONG PERSON.
        *
        * It read "Become an agent". Most of the supply this platform now wants
-       * is landlords who are not agents and never will be, and HANDOFF 09
-       * section 6A.2 names that label as the defect: the only door was marked
+       * is landlords who are not agents and never will be, and that label was
+       * the defect: the only door was marked
        * for the one visitor who was least likely to be standing at it. The
        * destination already changed under it. `/agents` redirects to
        * `/profile?switch=owner`, which opens the chooser with the owner door
@@ -1150,7 +1150,7 @@ export const en = {
     signInSub: "Sign in to your Vallo account",
     signUpSub: "Create your Vallo account in a minute",
     /* The password step, when the address typed on the chooser is not an
-       email-and-password account. Sign-in only; Session B ledger section 3. */
+       email-and-password account. Sign-in only. */
     accountUsesGoogle:
       "This address signs in with Google, so there is no password to type. Continue with Google to get in.",
     accountNotFound: "No account uses this address yet.",
@@ -2884,10 +2884,10 @@ export const en = {
     /**
      * The wallet home to its governing render: the balance card, the four
      * tiles, quick actions, recent transactions and the trust strip. Added
-     * 18 September 2026 (Build 06, E).
+     * 18 September 2026.
      */
     home: {
-      /* Session B, wallet home (22 September 2026): the tiles' label, the
+      /* Wallet home (22 September 2026): the tiles' label, the
          quick-action cards that fit one line each at 390px, the settings link. */
       actionsLabel: "Wallet actions",
       quickSend: "Send",
@@ -3716,8 +3716,8 @@ export const en = {
     },
 
     /*
-     * The money desks: money, escrow, supply and payments (Session B,
-     * admin-money). English only; the other three locales fall back through
+     * The money desks: money, escrow, supply and payments.
+     * English only; the other three locales fall back through
      * `withFallback` until a native speaker writes them. Placeholders in
      * braces are filled by the console. The desk titles are `shell.nav`.
      */
@@ -4320,8 +4320,8 @@ export const en = {
     },
 
     /*
-     * The console shell, overview, operations and analytics (Session B,
-     * admin-shell). Additive: nothing above is changed. Placeholders in
+     * The console shell, overview, operations and analytics.
+     * Additive: nothing above is changed. Placeholders in
      * braces are filled by the console.
      */
     shell: {
@@ -4627,7 +4627,7 @@ export const en = {
 
   /**
    * /inspections: every inspection this person asked for or was asked to show.
-   * Added 18 September 2026 (Build 05, FE-1).
+   * Added 18 September 2026.
    */
   inspectionsPage: {
     title: "Inspections",
@@ -4647,7 +4647,7 @@ export const en = {
   /**
    * The context banner at the top of a conversation. One sentence about the
    * thing the chat is for, and the one or two controls that belong to it.
-   * Added 18 September 2026 (Build 05, FE-1).
+   * Added 18 September 2026.
    */
   threads: {
     /*
@@ -4729,10 +4729,10 @@ export const en = {
 
   /**
    * /wallet/send: a whole page for sending to another Vallo wallet.
-   * Added 18 September 2026 (Build 05, FE-2).
+   * Added 18 September 2026.
    */
   walletSend: {
-    /* Session B, send money to 77A54EA3 (22 September 2026). The three
+    /* Send money, to 77A54EA3 (22 September 2026). The three
        reassurance lines are the only claims on the page and each is true
        of the code and the terms (lib/legal/terms.tsx section 15). */
     availableBalance: "Available Balance",
@@ -4801,7 +4801,7 @@ export const en = {
 
   /**
    * /wallet/receive: your handle, your address, a request to share.
-   * Added 18 September 2026 (Build 05, FE-2).
+   * Added 18 September 2026.
    */
   walletReceive: {
     title: "Receive money",
@@ -4834,7 +4834,7 @@ export const en = {
 
   /**
    * /settings/payments: "Payment methods". Cards you pay with, accounts you
-   * are paid into. Added 18 September 2026 (Build 05, FE-3).
+   * are paid into. Added 18 September 2026.
    */
   paymentsPage: {
     title: "Payment methods",
@@ -4902,7 +4902,7 @@ export const en = {
 
   /**
    * /stay/[id]: the stay detail showcase. Rooms as rows, rates behind them,
-   * the total as the headline. Added 18 September 2026 (Build 05, FE-4).
+   * the total as the headline. Added 18 September 2026.
    */
   stayDetail: {
     aboutTitle: "About this place",
@@ -4957,12 +4957,12 @@ export const en = {
 
   /**
    * /restaurant/[id]: the dedicated restaurant surface, where the reservation
-   * is the page. Added 18 September 2026 (Build 05, FE-11).
+   * is the page. Added 18 September 2026.
    */
   restaurantPage: {
     fallbackTitle: "Restaurant",
-    /* The restaurant face on the one detail anatomy, added 19 September 2026
-       (Build 06, F3). Every one of these labels a column the venue filled in
+    /* The restaurant face on the one detail anatomy, added 19 September 2026.
+       Every one of these labels a column the venue filled in
        itself; a venue that filled none of them draws none of them. */
     aboutTitle: "About this restaurant",
     cuisine: "Cuisine",
@@ -4991,7 +4991,7 @@ export const en = {
   },
 
   /**
-   * The catalogue and stays surfaces (F3, Build 06): the property card, the
+   * The catalogue and stays surfaces: the property card, the
    * results shelf and its filter sheet, the listing detail, the move-in
    * ledger, stays home and the stay detail. Added 18 September 2026.
    */
@@ -5085,7 +5085,7 @@ export const en = {
       seeAll: "See all",
       photos: "{count} photos",
       morePhotos: "+{count}",
-      /** The detail anatomy of B047A0CE, added 19 September 2026 (Build 06, F3). */
+      /** The detail anatomy of B047A0CE, added 19 September 2026. */
       aboutThisProperty: "About this property",
       verifiedHost: "Verified host",
       selectDate: "Select date",
@@ -5117,12 +5117,12 @@ export const en = {
     },
     /**
      * A TENANCY IS NOT A STAY, so it has its own words. Added 19 September
-     * 2026 (Build 06, F3) when rent charges stopped being dropped from
+     * 2026 when rent charges stopped being dropped from
      * /bookings. Nothing here counts nights or guests, and nothing here says
      * check in: a tenancy has a move-in day and a rent period.
      */
     /**
-     * The trips hub (/bookings). Added 19 September 2026 (Build 06, F3): the
+     * The trips hub (/bookings). Added 19 September 2026: the
      * screen shipped with its tabs, its three empty states, its controls and
      * its explainer as English literals inside the component, so three of the
      * four languages this platform ships in read the record of their own
@@ -5234,7 +5234,7 @@ export const en = {
   /**
    * /crypto: the market surface. Display only: prices, movers, pairs and
    * the way to fund the wallet with crypto. No trading, no custody, no
-   * advice. Added 18 September 2026 (Build 06, E).
+   * advice. Added 18 September 2026.
    */
   crypto: {
     title: "Crypto",
@@ -5288,7 +5288,7 @@ export const en = {
   /**
    * TRACK H: what a tenant will actually pay.
    *
-   * HANDOFF 09 section 4. The cost block on the listing detail page and the
+   * The cost block on the listing detail page and the
    * move-in sort in search read every word from here. The honesty rule is in
    * the copy itself: a cost nobody declared says so in words, because zero is
    * a claim and silence is not the same claim.
@@ -5458,9 +5458,8 @@ export const en = {
    * `docs/research/UI_UNIQUENESS_AND_ADMIN_RESEARCH.md` section 2.9 counted
    * seventeen user visible English literals sitting in TSX. They are gathered
    * here rather than spread into `social`, `nav`, `admin` and `stays`, because
-   * three groups are editing this file this week and two agents have already
-   * collided in it: one namespace added at the end is a change another worker's
-   * diff cannot silently swallow.
+   * one namespace added at the end is a change that a concurrent edit
+   * elsewhere in this file cannot silently swallow.
    *
    * `QueueFilters.tsx:141` already states the principle these close:
    * "A control that is half translated is worse than one that is not, because
@@ -5561,8 +5560,8 @@ export const en = {
    * other.
    *
    * No statutory figure, penalty or percentage appears anywhere in this
-   * namespace. HANDOFF 09 section 7 gates the LASRERA and tenancy numbers on
-   * a lawyer's confirmation, so what ships is the behaviour, which needs no
+   * namespace. The LASRERA and tenancy numbers wait on a lawyer's
+   * confirmation, so what ships is the behaviour, which needs no
    * citation.
    */
   supply: {

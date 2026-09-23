@@ -450,7 +450,7 @@ export function StayDetailView({
       {/*
         NO PINNED FOOT ON THIS FACE.
 
-        It used to carry one, and it was the fault the lead's audit caught: the
+        It used to carry one, and an audit caught the fault: the
         foot painted over the amenity tiles at 390, and it quoted a total a
         second time under a card that already stated it. Neither B047A0CE nor
         BB0C2C85 ends on a pinned bar; both end on the availability card's own

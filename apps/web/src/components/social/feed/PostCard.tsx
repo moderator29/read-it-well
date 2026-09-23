@@ -335,7 +335,7 @@ export function PostCard({
 
         The face in its glass ring, then the name with the verified mark beside
         it and the handle on the line under, then the time and the kebab at the
-        far end. The mark is Session A's `TierBadge`, the one badge on the
+        far end. The mark is `TierBadge`, the one badge on the
         platform, drawn from `public.person_badge` and nothing else. It used to
         be a tick for `isAgent`, which is a role marker and not a check of
         anybody (`lib/trust/badge-tier.ts` forbids exactly that reading).

@@ -40,9 +40,8 @@ export type VercelJob = {
 
 export const VERCEL_JOBS: readonly VercelJob[] = [
   /*
-   * Added by Session A's email junction worker (R13): data only, kept by
-   * Session B's ruling of 23 September, because the equality test with
-   * `vercel.json` needs it and nothing else in the file moved.
+   * The email outbox drain: data only, kept here because the equality test
+   * with `vercel.json` needs it.
    */
   { name: "email-outbox", cron: "*/15 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "email-outbox" } },
   { name: "hold-sweep", cron: "5 * * * *", schedule: "Hourly at :05", maxGapHours: 3, audit: { entityType: "cron_job", term: "hold-sweep" } },

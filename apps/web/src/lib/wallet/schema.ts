@@ -68,8 +68,8 @@ export const nairaAmountSchema = z
 /**
  * One key per submit, minted by the surface. Optional so every existing form
  * keeps working; when present, a dropped connection and a second tap replay
- * the first answer instead of opening a second charge (the lead's B0 audit
- * of 73e284e: a double submit charged twice under two references).
+ * the first answer instead of opening a second charge (an audit of 73e284e
+ * found it: a double submit charged twice under two references).
  */
 const idempotencyKeySchema = z.string().trim().min(1).max(200).optional();
 

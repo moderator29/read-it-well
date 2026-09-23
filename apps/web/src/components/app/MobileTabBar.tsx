@@ -267,7 +267,7 @@ export function MobileTabBar({
     still opens from the hamburger in the app header, which renders on every
     route this dock renders on. So the More slot's entire contents are the
     drawer's contents, they have not moved, and the drawer has gained a row
-    rather than lost one. Listed item by item in `BUILD_07_LEDGER.md`.
+    rather than lost one.
 
     The renders label the fourth slot "Saved" and it ships as "Feed" on the
     founder's correction of 22 September. The stays renders label the second

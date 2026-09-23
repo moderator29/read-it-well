@@ -130,8 +130,8 @@ for (const route of routes) {
      * AND THE STATUS CHECK ABOVE IS NOT ENOUGH, WHICH IS THE WHOLE TRAP.
      *
      * `notFound()` called from a layout during streaming answers HTTP 200 with
-     * the not-found BODY. Three workers hit that independently tonight while
-     * the preview harness was shut, and between them wrote eight PNGs of the
+     * the not-found BODY. That was hit three times independently while the
+     * preview harness was shut, and the runs between them wrote eight PNGs of the
      * "This page has checked out" screen. Every assertion in this file passed
      * on every one of them, because that page is a real page of ours: same
      * inline theme script, same stylesheet, no Reveal bands to get stuck.
