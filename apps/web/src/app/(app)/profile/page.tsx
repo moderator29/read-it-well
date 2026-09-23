@@ -16,7 +16,7 @@ import { RoleSwitcher } from "@/components/roles/RoleSwitcher";
 import { VerifyPrompt } from "@/components/roles/VerifyPrompt";
 import { roleStateFrom, type AgentFacts, type RoleState } from "@/components/roles/roles";
 import { resolveWorkspaces } from "@/lib/supply/workspaces-queries";
-import { loadBelongings } from "./belongings-queries";
+import { loadBelongings, loadOwnBadgeTier } from "./belongings-queries";
 import { switchParamTarget, switchRoleLine } from "./belongings";
 
 export const metadata: Metadata = { title: "Profile" };
@@ -75,7 +75,7 @@ export default async function ProfilePage({
   // Reads that do not depend on each other, so they cost one round trip rather
   // than six. `resolveWorkspaces` is React-cached and the app layout has
   // already run it for this request, so it costs nothing here.
-  const [account, social, agentContext, mode, belongings, held] = await Promise.all([
+  const [account, social, agentContext, mode, belongings, held, badgeTier] = await Promise.all([
     loadProfileState(),
     loadAccountSocialIdentity(),
     /*
@@ -90,6 +90,7 @@ export default async function ProfilePage({
     getMode(),
     loadBelongings(),
     resolveWorkspaces(),
+    loadOwnBadgeTier(),
   ]);
 
   const agentFacts: AgentFacts =
@@ -211,6 +212,7 @@ export default async function ProfilePage({
               }
             : null
         }
+        badgeTier={badgeTier}
         locale={locale}
       />
 

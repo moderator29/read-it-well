@@ -13,7 +13,8 @@ import { COVER_MAX_BYTES, COVER_MAX_EDGE } from "@/lib/social/profiles-schema";
 import { createClient } from "@/lib/supabase/client";
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import { RemoteImage } from "@/components/ui/RemoteImage";
-import { accountCopy } from "./belongings";
+import { accountCopy, type BadgeTier } from "./belongings";
+import { BadgeSlot } from "./BadgeSlot";
 
 /**
  * THE TOP OF YOUR OWN PROFILE, BUILT TO `50E032EA`.
@@ -35,9 +36,9 @@ import { accountCopy } from "./belongings";
  *   counts     `social_profiles.follower_count` and `following_count`, kept by
  *              the `follows_count` trigger (`bump_follow_counts`) on every
  *              follow and unfollow
- *   ticks      `social_profiles.is_agent`, which `agents_sync_social_flag`
- *              sets true only for an APPROVED agent row. A tick is never drawn
- *              for anything a member of staff did not decide.
+ *   badge      `public.person_badge.tier` (Session A's one derivation), into
+ *              `BadgeSlot`, which draws nothing until Session A's badge
+ *              component lands (blocked on B-BADGE)
  *   face       `profiles.avatar_url`
  *   cover      `social_profiles.cover_path`, or the founder's villa plate
  *              when nobody has set one
@@ -79,6 +80,7 @@ export function AccountHero({
   email,
   avatarUrl,
   identity,
+  badgeTier = null,
   locale,
 }: {
   userId: string;
@@ -87,6 +89,8 @@ export function AccountHero({
   avatarUrl: string;
   /** Null when this person has not claimed a handle. */
   identity: HeroIdentity | null;
+  /** From `public.person_badge`, the one source. Null means no badge. */
+  badgeTier?: BadgeTier;
   /**
    * Place and member-since. Accepted for the callers that still pass it; the
    * render draws neither in the header, so both now live in the account rows
@@ -114,7 +118,6 @@ export function AccountHero({
   const monogram = (displayName.trim() || identity?.handle || email || "?")
     .charAt(0)
     .toUpperCase();
-  const verified = identity?.isAgent === true;
 
   async function prepare(file: File, square: boolean): Promise<Blob | null> {
     setError(null);
@@ -269,32 +272,18 @@ export function AccountHero({
               <span aria-hidden="true">{monogram}</span>
             )}
           </span>
-          {/* The tick at the foot of the ring, only for an APPROVED agent; for
-              everybody else a quiet picture mark saying the face is a control. */}
-          {verified ? (
-            <span className="nf-pf-avatar__badge" aria-hidden="true">
-              <UiIcon name="verified-badge" size="xs" />
-            </span>
-          ) : (
-            <span className="nf-pf-avatar__badge nf-pf-avatar__badge--quiet" aria-hidden="true">
-              <UiIcon name={busy === "avatar" ? "sparkle" : "picture"} size="2xs" />
-            </span>
-          )}
+          {/* The person's badge (Session A's, from `person_badge`) sits here;
+              the quiet picture mark says the face is a control. */}
+          <BadgeSlot tier={badgeTier} place="avatar" />
+          <span className="nf-pf-avatar__badge nf-pf-avatar__badge--quiet" aria-hidden="true">
+            <UiIcon name={busy === "avatar" ? "sparkle" : "picture"} size="2xs" />
+          </span>
         </button>
 
         <div className="nf-pf-id__text">
-          <h1 className="nf-pf-name">
+          <h1 className="nf-pf-name" data-badge-tier={badgeTier ?? "none"}>
             <span className="nf-pf-name__text">{shownName}</span>
-            {verified ? (
-              <span
-                className="nf-pf-name__tick"
-                title="A verified Vallo agent"
-                aria-label="Verified agent"
-                role="img"
-              >
-                <UiIcon name="verified-badge" size="sm" />
-              </span>
-            ) : null}
+            <BadgeSlot tier={badgeTier} place="name" />
           </h1>
           <p className="nf-pf-handle">{identity ? `@${identity.handle}` : email}</p>
 

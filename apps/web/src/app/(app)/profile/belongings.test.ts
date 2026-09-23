@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NO_FACTS, rowValue, switchParamTarget, switchRoleLine, type BelongingsFacts } from "./belongings";
+import { NO_FACTS, badgeTierFrom, rowValue, switchParamTarget, switchRoleLine, type BelongingsFacts } from "./belongings";
 import type { RoleState } from "@/components/roles/roles";
 
 const facts = (over: Partial<BelongingsFacts>): BelongingsFacts => ({ ...NO_FACTS, ...over });
@@ -77,5 +77,15 @@ describe("switchParamTarget: the live ?switch= links", () => {
 
   it("sends a verified role to its workspace", () => {
     expect(switchParamTarget("owner", roles({ setUp: true, verified: true }))).toBe("/agent/dashboard");
+  });
+});
+
+describe("badgeTierFrom: only what person_badge publishes", () => {
+  it("passes gold and platinum through and nothing else", () => {
+    expect(badgeTierFrom("gold")).toBe("gold");
+    expect(badgeTierFrom("platinum")).toBe("platinum");
+    expect(badgeTierFrom("none")).toBeNull();
+    expect(badgeTierFrom(undefined)).toBeNull();
+    expect(badgeTierFrom("verified")).toBeNull();
   });
 });

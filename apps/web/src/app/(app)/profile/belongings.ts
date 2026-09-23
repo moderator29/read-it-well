@@ -26,6 +26,14 @@ export function accountCopy(locale: Locale): AccountPageCopy {
   return getDictionary(locale).socialProfile.accountPage;
 }
 
+/** A person's badge tier as `public.person_badge` publishes it; null is none. */
+export type BadgeTier = "gold" | "platinum" | null;
+
+/** Reads a `person_badge.tier` value; anything else (none, missing) is no badge. */
+export function badgeTierFrom(value: unknown): BadgeTier {
+  return value === "gold" || value === "platinum" ? value : null;
+}
+
 /** What the four rows can say about themselves. `null` is "unknown", never zero. */
 export type BelongingsFacts = {
   /** PENDING or CONFIRMED stays whose check out is still ahead, as a guest. */
