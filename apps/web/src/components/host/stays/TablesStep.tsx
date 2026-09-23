@@ -144,7 +144,7 @@ export function TablesStep({ draft, pending, run, setNotice, advance }: StaysSte
                       </label>
                       <select
                         id={`stays-opens-${day.weekday}`}
-                        className="nf-stays-select"
+                        className="nf-field nf-field--glass nf-stays-select"
                         value={row.opens}
                         onChange={(event) => edit(day.weekday, { opens: event.target.value })}
                       >
@@ -164,7 +164,7 @@ export function TablesStep({ draft, pending, run, setNotice, advance }: StaysSte
                       </label>
                       <select
                         id={`stays-closes-${day.weekday}`}
-                        className="nf-stays-select"
+                        className="nf-field nf-field--glass nf-stays-select"
                         value={row.closes}
                         onChange={(event) => edit(day.weekday, { closes: event.target.value })}
                       >
@@ -214,7 +214,7 @@ export function TablesStep({ draft, pending, run, setNotice, advance }: StaysSte
         <StaysRow
           trailing={
             <select
-              className="nf-stays-select w-auto"
+              className="nf-field nf-field--glass nf-stays-select w-auto"
               value={minutes}
               aria-label="Sitting duration"
               onChange={(event) => setMinutes(Number(event.target.value))}

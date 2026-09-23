@@ -94,7 +94,7 @@ export default async function DocChapterPage({
 
         <article className="min-w-0 flex-1 xl:order-first">
           {/* ---------------------------------------------------- sections */}
-          <div className="nf-card nf-rise p-card" style={{ animationDelay: "80ms" }}>
+          <div className="nf-panel nf-panel--card block nf-rise p-card" style={{ animationDelay: "80ms" }}>
             <div className="space-y-block">
               {chapter.sections.map((section) => (
                 <section key={section.id} id={section.id} className="scroll-mt-28">
@@ -113,7 +113,7 @@ export default async function DocChapterPage({
               <Link
                 href={`/docs/${previous.slug}`}
                 rel="prev"
-                className="nf-card nf-card--interactive flex min-h-11 flex-col p-card-sm"
+                className="nf-panel nf-panel--card nf-card--interactive flex min-h-11 flex-col p-card-sm"
               >
                 <span className="flex items-center gap-inline text-[0.75rem] font-semibold text-[var(--nf-content-muted)]">
                   <UiIcon name="arrow-left" size={12} />
@@ -131,7 +131,7 @@ export default async function DocChapterPage({
               <Link
                 href={`/docs/${next.slug}`}
                 rel="next"
-                className="nf-card nf-card--interactive flex min-h-11 flex-col p-card-sm sm:items-end sm:text-right"
+                className="nf-panel nf-panel--card nf-card--interactive flex min-h-11 flex-col p-card-sm sm:items-end sm:text-right"
               >
                 <span className="flex items-center gap-inline text-[0.75rem] font-semibold text-[var(--nf-content-muted)]">
                   Next

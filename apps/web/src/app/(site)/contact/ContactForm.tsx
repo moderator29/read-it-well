@@ -43,7 +43,7 @@ export function ContactForm({
   // ------------------------------------------------------------ filed
   if (state?.ok) {
     return (
-      <div className="nf-card p-card text-center" data-testid="contact-filed">
+      <div className="nf-panel nf-panel--card block p-card text-center" data-testid="contact-filed">
         <span className="mx-auto grid h-14 w-14 place-items-center">
           <BrandIcon name="support-chat" fill />
         </span>
@@ -54,7 +54,7 @@ export function ContactForm({
           We reply within one business day, Monday to Saturday. Your reference is
           below, and it is in the confirmation email we have just sent you.
         </p>
-        <p className="nf-numeric mt-group inline-block rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] px-group py-inline text-[1.0625rem] font-bold tracking-wide text-[var(--nf-content-primary)]">
+        <p className="nf-numeric mt-group inline-block nf-panel nf-panel--card px-group py-inline text-[1.0625rem] font-bold tracking-wide text-[var(--nf-content-primary)]">
           {state.data.reference}
         </p>
         <p className="mt-group text-[0.8125rem] leading-relaxed text-[var(--nf-content-muted)]">
@@ -156,7 +156,7 @@ export function ContactForm({
         <p
           id="contact-form-note"
           role="alert"
-          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-row text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
+          className="nf-panel nf-panel--card block p-row text-[0.8125rem] leading-relaxed text-[var(--nf-content-secondary)]"
         >
           {state.error}
           {SUPPORT_MAILBOX ? (

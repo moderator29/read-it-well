@@ -125,7 +125,7 @@ export function PlaceStep({
       <StaysPlate label="What you call it" htmlFor="stays-place-name">
         <input
           id="stays-place-name"
-          className="nf-stays-input"
+          className="nf-field nf-field--glass nf-stays-input"
           value={name}
           onChange={(event) => setName(event.target.value)}
         />
@@ -175,7 +175,7 @@ export function PlaceStep({
           decoration and not a value, so it is hidden from a screen reader,
           which hears the field's own label instead.
         */}
-        <div className="nf-stays-input flex items-center gap-[var(--nf-space-xs)]">
+        <div className="nf-field nf-field--glass nf-stays-input flex items-center gap-[var(--nf-space-xs)]">
           <span aria-hidden="true">{"₦"}</span>
           <input
             id="stays-place-rate"

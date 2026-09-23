@@ -98,7 +98,7 @@ export default async function Page() {
         />
       ) : (
         <p
-          className="rounded-[var(--nf-radius-md)] p-md text-[length:var(--nf-text-body-sm)] font-medium leading-relaxed"
+          className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-body-sm)] font-medium leading-relaxed"
           style={{
             background: "var(--nf-state-warning-surface)",
             color: "var(--nf-state-warning)",

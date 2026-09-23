@@ -12,7 +12,7 @@ export default function LoadingAgentReviews() {
       <AgentTitleSkeleton />
       <div className="space-y-sm">
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="nf-card p-md">
+          <div key={i} className="nf-panel nf-panel--card block p-md">
             <Skeleton width="38%" height="1.0625rem" radius="sm" />
             <Skeleton className="mt-sm" width="92%" height="0.875rem" radius="sm" />
             <Skeleton className="mt-xs" width="70%" height="0.875rem" radius="sm" />

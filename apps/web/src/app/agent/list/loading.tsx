@@ -12,7 +12,7 @@ export default function LoadingListingWizard() {
       <AgentTitleSkeleton />
       <div className="space-y-row">
         {Array.from({ length: 3 }, (_, i) => (
-          <div key={i} className="nf-card p-card">
+          <div key={i} className="nf-panel nf-panel--card block p-card">
             <Skeleton width="50%" height="1.0625rem" radius="sm" />
             <Skeleton className="mt-inline" width="100%" height="0.875rem" radius="sm" />
             <Skeleton className="mt-inline" width="100%" height="0.875rem" radius="sm" />

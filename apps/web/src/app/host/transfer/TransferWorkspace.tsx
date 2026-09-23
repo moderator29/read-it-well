@@ -270,7 +270,7 @@ function BusinessRow({
       )}
 
       {offer ? (
-        <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-md">
+        <div className="nf-panel nf-panel--card block p-md">
           <p className={TYPE.rowTitle}>Offered, waiting on an answer</p>
           <p className={`mt-2xs ${TYPE.rowMeta}`}>
             {offer.counterpartyHandle
@@ -292,7 +292,7 @@ function BusinessRow({
           Offer sent. It runs out on {when(sent)}, and the business stays yours until they accept.
         </p>
       ) : open ? (
-        <div className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-md">
+        <div className="nf-panel nf-panel--card block p-md">
           <label className="nf-label mb-2xs block" htmlFor={`email-${business.id}`}>
             Their email address on Vallo
           </label>

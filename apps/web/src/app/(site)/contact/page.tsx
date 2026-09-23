@@ -60,7 +60,7 @@ export default async function ContactPage({
 
         {/* ------------------------------------------------ the promise */}
         <Reveal as="section" className="mt-section">
-          <div className="nf-card p-card text-center-lg">
+          <div className="nf-panel nf-panel--card block p-card text-center-lg">
             {/*
               The hero used to be a large mailto to support@rentme.ng, a
               mailbox that does not exist, sitting directly above a form that
@@ -115,7 +115,7 @@ export default async function ContactPage({
 
         {/* --------------------------------------------- help centre first */}
         <Reveal as="section" className="mt-heading">
-          <div className="nf-card flex flex-col items-start gap-group p-card sm:flex-row sm:items-center sm:justify-between">
+          <div className="nf-panel nf-panel--card flex flex-col items-start gap-group p-card sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-group">
               <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
                 <BrandIcon name="support-chat" fill />
@@ -134,7 +134,7 @@ export default async function ContactPage({
 
         {/* ------------------------------------------------ safety first */}
         <Reveal as="section" className="mt-heading">
-          <div className="nf-card flex flex-col items-start gap-group p-card sm:flex-row sm:items-center sm:justify-between">
+          <div className="nf-panel nf-panel--card flex flex-col items-start gap-group p-card sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-group">
               <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
                 <BrandIcon name="shield-check" fill />
@@ -155,7 +155,7 @@ export default async function ContactPage({
         {/* -------------------------------------------------------- form */}
         <Reveal as="section" className="mt-section">
           <h2 className="nf-overline text-center">Or write to us here</h2>
-          <div className="nf-card mt-group p-card">
+          <div className="nf-panel nf-panel--card block mt-group p-card">
             <ContactForm defaultTopic={defaultTopic} />
           </div>
         </Reveal>
@@ -163,14 +163,14 @@ export default async function ContactPage({
         {/* ------------------------------------------------ other routes */}
         <Reveal as="section" className="mt-section">
           <div className="grid gap-heading sm:grid-cols-2">
-            <div className="nf-card p-card">
+            <div className="nf-panel nf-panel--card block p-card">
               <p className="nf-overline">Careers</p>
               <p className="mt-inline text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
                 Applications and anything hiring related go through the form
                 above. Put Careers in the topic and it reaches the same queue.
               </p>
             </div>
-            <div className="nf-card p-card">
+            <div className="nf-panel nf-panel--card block p-card">
               {/* OWNERS FIRST, AND THE HEADING SAYS SO. "Agents and hosts"
                   left out the largest group this product now wants, and sent
                   every one of them to a page marked with an agent's job title.

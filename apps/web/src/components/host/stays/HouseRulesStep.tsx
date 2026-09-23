@@ -118,7 +118,7 @@ export function HouseRulesStep({
             </label>
             <select
               id="stays-check-in"
-              className="nf-stays-select"
+              className="nf-field nf-field--glass nf-stays-select"
               value={checkIn}
               disabled={pending}
               onChange={(event) => setCheckIn(event.target.value)}
@@ -136,7 +136,7 @@ export function HouseRulesStep({
             </label>
             <select
               id="stays-check-out"
-              className="nf-stays-select"
+              className="nf-field nf-field--glass nf-stays-select"
               value={checkOut}
               disabled={pending}
               onChange={(event) => setCheckOut(event.target.value)}

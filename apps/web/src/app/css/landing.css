@@ -47,19 +47,11 @@
      */
     --nf-landing-shell-max: 78rem;
     /*
-     * EVERY CONTAINER ON THIS PAGE IS LIT GLASS, NOT A DARK BOX WITH A
-     * BORDER. The render's tiles carry a bright 1px brand rim, an inner
-     * highlight along the top edge and a blue bloom around the outside, over
-     * a near-black navy fill. The first stint's rim was the soft edge and
-     * read flat at zoom (founder's second-stint word), so the ring is the
-     * full brand edge now and every surface that uses it also carries the
-     * inner rim.
+     * EVERY CONTAINER ON THIS PAGE IS THE SHARED PANEL (Phase 1
+     * `--nf-panel-*`), since the platform sweep: the landing's own glow ring,
+     * glass edge, tile fill and band fill are deleted with the rules that
+     * read them.
      */
-    --nf-landing-glow-ring: 0 0 0 1px var(--nf-brand-edge), 0 0 30px var(--nf-glow-2);
-    --nf-landing-glass-edge:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 0 1px var(--nf-brand-edge),
-      0 0 26px var(--nf-glow-2);
     /*
      * ON THE PHOTOGRAPH, THE THEME DOES NOT CHANGE. A dusk plate is dark in
      * daylight too, so everything that sits on one (the hero copy, the city
@@ -92,8 +84,6 @@
     --nf-landing-control: var(--nf-glass-fill);
     --nf-landing-control-strong: var(--nf-glass-fill-strong);
     --nf-landing-pane: color-mix(in oklab, var(--nf-surface-canvas) 80%, transparent);
-    --nf-landing-tile-fill: color-mix(in oklab, var(--nf-surface-primary) 78%, transparent);
-    --nf-landing-band-fill: color-mix(in oklab, var(--nf-surface-canvas) 78%, transparent);
     background: var(--nf-surface-canvas);
     color: var(--nf-content-primary);
   }
@@ -186,18 +176,18 @@
     min-height: 2.75rem;
     min-width: 2.75rem;
     padding: 0 var(--nf-space-md);
-    border-radius: var(--nf-radius-md);
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
     color: var(--nf-content-primary);
-    background: var(--nf-glass-fill);
-    border: 1px solid var(--nf-glass-border);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
     transition:
       background var(--nf-duration-fast) var(--nf-ease-standard),
       border-color var(--nf-duration-fast) var(--nf-ease-standard);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-btn-glass-fill);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   /*
    * THE ONE CIRCLE THE LAW ALLOWS, AND IT WAS THE ONE THING DRAWN SQUARE.
@@ -223,7 +213,7 @@
   @media (hover: hover) {
     .nf-site-nav-glass:hover {
       background: var(--nf-glass-fill-strong);
-      border-color: var(--nf-brand-edge-soft);
+      border-color: var(--nf-brand-edge);
     }
   }
   .nf-site-nav-glass:focus-visible {
@@ -238,15 +228,14 @@
     left: 0;
     min-width: 13rem;
     padding: var(--nf-gap-inline);
-    border-radius: var(--nf-radius-lg);
-    background: var(--nf-glass-fill-strong);
-    border: 1px solid var(--nf-glass-border);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      var(--nf-elev-3);
     z-index: 2;
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow), var(--nf-elev-3);
+    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
+    backdrop-filter: blur(var(--nf-panel-blur));
   }
   .nf-site-nav-menu a {
     display: flex;
@@ -646,26 +635,24 @@
     font-weight: 600;
     color: var(--nf-landing-fg);
     background: var(--nf-landing-control);
-    border: 1px solid var(--nf-landing-hairline);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
     backdrop-filter: blur(var(--nf-glass-blur-thin));
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
     transition:
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       background var(--nf-duration-fast) var(--nf-ease-standard);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    box-shadow: var(--nf-rim-lit);
   }
   .nf-landing-city--lead {
     color: var(--nf-content-on-brand);
-    background: var(--nf-gradient-cta);
-    border-color: var(--nf-brand-edge-strong);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 18px var(--nf-glow-2);
+    background: var(--nf-selected-fill);
+    border-color: var(--nf-selected-edges);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
   @media (hover: hover) {
     .nf-landing-city--lead:hover {
-      background: var(--nf-gradient-cta);
-      border-color: var(--nf-brand-edge-strong);
+      background: var(--nf-selected-fill);
+      border-color: var(--nf-selected-edges);
     }
   }
   @media (hover: hover) {
@@ -686,16 +673,14 @@
     width: 100%;
     max-width: var(--nf-landing-card-w);
     padding: var(--nf-space-xs);
-    border-radius: var(--nf-radius-lg);
-    background: color-mix(in oklab, var(--nf-landing-ink) 70%, transparent);
-    border: 1px solid var(--nf-brand-edge-soft);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      var(--nf-landing-glow-ring),
-      var(--nf-elev-3);
     color: var(--nf-landing-on-ink);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow), var(--nf-elev-3);
+    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
+    backdrop-filter: blur(var(--nf-panel-blur));
   }
   @media (min-width: 1024px) {
     .nf-landing-float-wrap {
@@ -707,7 +692,7 @@
     position: relative;
     aspect-ratio: 4 / 3;
     overflow: hidden;
-    border-radius: var(--nf-radius-md);
+    border-radius: var(--nf-radius-sm);
   }
   .nf-landing-float-media img {
     object-fit: cover;
@@ -891,15 +876,13 @@
     flex-direction: column;
     gap: var(--nf-gap-inline);
     padding: var(--nf-gap-inline);
-    border-radius: var(--nf-radius-xl);
     background: var(--nf-landing-pane);
-    border: 1px solid var(--nf-brand-edge-soft);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      var(--nf-landing-glow-ring),
-      var(--nf-elev-4);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
+    backdrop-filter: blur(var(--nf-panel-blur));
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow), var(--nf-elev-4);
   }
   @media (min-width: 640px) {
     .nf-landing-pill {
@@ -962,8 +945,9 @@
     gap: var(--nf-gap-inline-tight);
     padding: var(--nf-space-2xs);
     border-radius: var(--nf-radius-control);
-    background: var(--nf-landing-control);
-    border: 1px solid var(--nf-landing-hairline);
+    background: var(--nf-btn-glass-fill);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    box-shadow: var(--nf-rim-lit);
   }
   @media (min-width: 640px) {
     .nf-landing-pill-segments {
@@ -989,8 +973,8 @@
   }
   .nf-landing-pill-seg[aria-checked="true"] {
     color: var(--nf-content-on-brand);
-    background: var(--nf-gradient-cta);
-    box-shadow: 0 0 16px var(--nf-glow-2);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
   .nf-landing-pill-seg:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
@@ -1037,7 +1021,10 @@
   }
   .nf-landing-pill-actions > button[type="submit"] {
     color: var(--nf-content-on-brand);
-    background: var(--nf-brand-primary);
+    background: var(--nf-btn-lit-fill);
+    border: var(--nf-border-width) solid transparent;
+    border-color: var(--nf-btn-lit-edges);
+    box-shadow: var(--nf-btn-lit-shadow);
   }
   @media (hover: hover) {
     .nf-landing-pill-actions > a:hover {
@@ -1072,12 +1059,11 @@
     display: grid;
     gap: var(--nf-gap-group);
     padding: var(--nf-pad-card);
-    border-radius: var(--nf-radius-xl);
-    background: var(--nf-landing-band-fill);
-    border: 1px solid var(--nf-brand-edge-soft);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glow-1),
-      var(--nf-landing-glow-ring);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   @media (min-width: 1024px) {
     .nf-landing-stats {
@@ -1106,12 +1092,11 @@
     gap: var(--nf-gap-row);
     min-height: 4.5rem;
     padding: var(--nf-space-sm) var(--nf-space-md);
-    border-radius: var(--nf-radius-lg);
-    background: var(--nf-landing-tile-fill);
-    border: 1px solid var(--nf-brand-edge-soft);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 18px var(--nf-glow-1);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-landing-stat-figure {
     font-family: var(--nf-font-display);
@@ -1171,12 +1156,11 @@
      than as a hole (R1 finding A9). */
   .nf-landing-orb--ring {
     padding: 0.55rem;
-    background: var(--nf-brand-tint-1);
-    border: 1px solid var(--nf-brand-edge);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 26px var(--nf-glow-2);
     filter: none;
+    background: var(--nf-plate-fill);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    border-color: var(--nf-plate-edges);
+    box-shadow: var(--nf-plate-shadow);
   }
 
   /* ------------------------------------------------- the feature grid */
@@ -1216,26 +1200,23 @@
     gap: var(--nf-gap-row);
     min-height: 7rem;
     padding: var(--nf-pad-card-sm);
-    border-radius: var(--nf-radius-lg);
-    background: var(--nf-landing-tile-fill);
-    border: 1px solid var(--nf-brand-edge-soft);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 18px var(--nf-glow-1);
     transition:
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-base) var(--nf-ease-standard),
       transform var(--nf-duration-press) var(--nf-ease-press);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-landing-tile:active {
     transform: scale(var(--nf-press-scale-lg));
   }
   @media (hover: hover) {
     .nf-landing-tile:hover {
-      border-color: var(--nf-brand-edge-strong);
-      box-shadow:
-        inset 0 1px 0 var(--nf-glass-rim),
-        0 0 28px var(--nf-glow-2);
+      border-color: var(--nf-selected-edges);
+      box-shadow: var(--nf-panel-rim), var(--nf-panel-glow), var(--nf-elev-2);
     }
   }
   .nf-landing-tile:focus-visible {
@@ -1259,12 +1240,11 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--nf-gap-row);
     padding: var(--nf-pad-card-sm);
-    border-radius: var(--nf-radius-xl);
-    background: var(--nf-landing-band-fill);
-    border: 1px solid var(--nf-brand-edge-soft);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glow-1),
-      var(--nf-landing-glow-ring);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   @media (min-width: 640px) {
     .nf-landing-chiprow {
@@ -1323,10 +1303,11 @@
   .nf-landing-stack-photo {
     position: relative;
     overflow: hidden;
-    border-radius: var(--nf-radius-xl);
-    border: 1px solid var(--nf-brand-edge-soft);
-    box-shadow: var(--nf-landing-glow-ring), var(--nf-elev-3);
     aspect-ratio: 4 / 3;
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    box-shadow: var(--nf-panel-glow), var(--nf-elev-3);
   }
   .nf-landing-stack-photo img {
     object-fit: cover;
@@ -1363,15 +1344,13 @@
   }
   .nf-landing-stack-card {
     padding: var(--nf-pad-card-sm);
-    border-radius: var(--nf-radius-lg);
-    background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
-    border: 1px solid var(--nf-brand-edge-soft);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      var(--nf-landing-glow-ring),
-      var(--nf-elev-3);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow), var(--nf-elev-3);
+    -webkit-backdrop-filter: blur(var(--nf-panel-blur));
+    backdrop-filter: blur(var(--nf-panel-blur));
   }
   .nf-landing-stack-card .nf-landing-float-title,
   .nf-landing-stack-card .nf-landing-float-price {
@@ -1386,18 +1365,18 @@
     gap: var(--nf-gap-inline-tight);
     min-height: 1.75rem;
     padding: 0 var(--nf-space-xs);
-    border-radius: var(--nf-radius-sm);
     font-size: var(--nf-text-overline);
     font-weight: 700;
     color: var(--nf-content-on-brand);
     background: var(--nf-brand-primary);
+    border-radius: var(--nf-radius-xs);
   }
   .nf-landing-tag--third {
     /* Partner inventory is labelled, never dressed as first party: the tag
        is a quiet outline, the opposite treatment to the verified fill. */
     color: var(--nf-content-primary);
     background: transparent;
-    border: 1px solid var(--nf-brand-edge);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
   }
 
   /* The phrases the render sets in the brand ink inside a white headline. */
@@ -1480,22 +1459,21 @@
     aspect-ratio: 1.04;
     overflow: hidden;
     padding: var(--nf-space-sm);
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-brand-edge);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      var(--nf-landing-glow-ring);
     color: var(--nf-landing-on-ink);
     transition:
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-press) var(--nf-ease-press);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-landing-cat:active {
     transform: scale(var(--nf-press-scale-lg));
   }
   @media (hover: hover) {
     .nf-landing-cat:hover {
-      border-color: var(--nf-brand-edge-strong);
+      border-color: var(--nf-selected-edges);
     }
     .nf-landing-cat:hover img {
       transform: scale(1.04);
@@ -1543,12 +1521,11 @@
     width: 2.25rem;
     height: 2.25rem;
     padding: 0.3rem;
-    border-radius: var(--nf-radius-sm);
-    background: color-mix(in oklab, var(--nf-brand-primary) 30%, var(--nf-landing-control-on-ink));
-    border: 1px solid var(--nf-brand-edge);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 12px var(--nf-glow-2);
+    border-radius: var(--nf-plate-radius-sm);
+    background: var(--nf-plate-fill);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    border-color: var(--nf-plate-edges);
+    box-shadow: var(--nf-plate-shadow);
   }
   .nf-landing-cat-title {
     display: block;
@@ -1582,12 +1559,11 @@
     gap: var(--nf-gap-group);
     overflow: hidden;
     padding: var(--nf-pad-card-sm);
-    border-radius: var(--nf-radius-2xl);
-    background: var(--nf-landing-band-fill);
-    border: 1px solid var(--nf-brand-edge-soft);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glow-1),
-      var(--nf-landing-glow-ring);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   @media (min-width: 1024px) {
     .nf-landing-band {
@@ -1607,8 +1583,8 @@
     min-width: 0;
     aspect-ratio: 16 / 10;
     overflow: hidden;
-    border-radius: calc(var(--nf-radius-2xl) - var(--nf-pad-card-sm));
-    border: 1px solid var(--nf-brand-edge-soft);
+    border-radius: var(--nf-radius-xs);
+    border: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   @media (min-width: 1024px) {
     .nf-landing-band-photo {
@@ -1653,11 +1629,12 @@
     flex: none;
     width: 2rem;
     height: 2rem;
-    border-radius: var(--nf-radius-sm);
     color: var(--nf-brand-secondary);
-    background: var(--nf-glass-fill);
-    border: 1px solid var(--nf-brand-edge-soft);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim);
+    border-radius: var(--nf-plate-radius-sm);
+    background: var(--nf-plate-fill);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    border-color: var(--nf-plate-edges);
+    box-shadow: var(--nf-plate-shadow);
   }
   @media (hover: hover) {
     .nf-landing-list a:hover {
@@ -1701,26 +1678,11 @@
    */
 
   /*
-   * The primary's marketing bloom, brought down with the scale. It was
-   * `0 0 24px` at rung 2 on a scale whose rungs were themselves a third
-   * hotter than they are now. The reference's light is gone twenty pixels
-   * from the button's edge, measured by `scripts/design/sample-reference.mjs`,
-   * so twenty-four pixels of unattenuated bloom was the neon the founder
-   * named.
+   * THE LANDING DRAWS THE SHARED BUTTONS AS THEY ARE. The primary and glass
+   * overrides that sat here (a hand-cut 12px bloom and an 18px glass halo)
+   * are deleted in the platform sweep: `Button` now carries Get started's lit
+   * bar and glass door (Phase 1), and the landing takes them unchanged.
    */
-  .nf-landing .nf-btn--primary,
-  .nf-site .nf-btn--primary {
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 12px -2px var(--nf-glow-2);
-  }
-  .nf-landing .nf-btn--glass,
-  .nf-site .nf-btn--glass {
-    border-color: var(--nf-brand-edge);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 18px var(--nf-glow-1);
-  }
   /*
    * The hero's glass button is ALWAYS on the photograph, in both themes and
    * at every width, and the platform's white-tinted glass reads as milk over
@@ -1730,10 +1692,6 @@
   .nf-landing-hero .nf-btn--glass {
     color: var(--nf-landing-on-ink);
     background: var(--nf-landing-control-on-ink-strong);
-    border-color: var(--nf-landing-hairline-on-ink);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 18px var(--nf-glow-1);
   }
 
   /* ---------------------------------------------------- the app band */
@@ -1764,12 +1722,10 @@
     padding: 0 var(--nf-space-lg) 0 var(--nf-space-md);
     border-radius: var(--nf-radius-control);
     background: var(--nf-landing-ink);
-    border: 1px solid var(--nf-brand-edge);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 18px var(--nf-glow-1);
     color: var(--nf-landing-on-ink);
     transition: border-color var(--nf-duration-fast) var(--nf-ease-standard);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-landing-store > span {
     display: flex;

@@ -76,7 +76,7 @@ export function ModeSwitcher({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-xs w-[19rem] rounded-[var(--nf-radius-xl)] border border-[var(--nf-border-default)] bg-[var(--nf-surface-elevated)] p-sm shadow-[var(--nf-elev-4)]">
+        <div className="nf-panel absolute right-0 top-full z-50 mt-xs block w-[19rem] p-sm">
           <p className="px-2xs pb-xs pt-2xs">
             <span className="block text-[length:var(--nf-text-body-sm)] font-semibold">{t.agent.mode.chooseTitle}</span>
             <span className="block text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
@@ -92,10 +92,7 @@ export function ModeSwitcher({
                   onClick={() => choose(o.mode)}
                   aria-current={o.mode === current ? "true" : undefined}
                   className={[
-                    "flex w-full items-center gap-sm rounded-[var(--nf-radius-lg)] border p-sm text-left transition-colors disabled:opacity-60",
-                    o.mode === current
-                      ? "border-[var(--nf-border-brand)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_16%,transparent)]"
-                      : "border-[var(--nf-border-subtle)] hover:border-[var(--nf-border-default)]",
+                    "nf-panel nf-panel--card nf-agent-mode-option flex w-full flex-row items-center gap-sm p-sm text-left disabled:opacity-60",
                   ].join(" ")}
                 >
                   <BrandIcon name={o.icon} size={40} />

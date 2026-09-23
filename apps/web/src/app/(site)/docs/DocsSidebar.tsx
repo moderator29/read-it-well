@@ -53,7 +53,7 @@ export function DocsSidebar({ items }: { items: DocChapterIndexEntry[] }) {
           onClick={() => setOpen((was) => !was)}
           aria-expanded={open}
           aria-controls={panelId}
-          className="nf-tap flex min-h-11 w-full items-center justify-between gap-row rounded-[var(--nf-radius-md)] border border-[var(--nf-border-default)] bg-[var(--nf-surface-secondary)] px-group py-inline text-left lg:hidden"
+          className="nf-tap flex min-h-11 w-full items-center justify-between gap-row rounded-[var(--nf-radius-control)] border border-[var(--nf-btn-glass-edge)] bg-[image:var(--nf-btn-glass-fill)] shadow-[var(--nf-rim-lit)] px-group py-inline text-left lg:hidden"
         >
           <span className="flex min-w-0 items-center gap-inline">
             <UiIcon
@@ -84,7 +84,7 @@ export function DocsSidebar({ items }: { items: DocChapterIndexEntry[] }) {
         <p className="nf-overline hidden px-row pb-inline text-[var(--nf-content-muted)] lg:block">
           Documentation
         </p>
-        <ol className="space-y-inline-tight rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-inline lg:border-0 lg:bg-transparent lg:p-0">
+        <ol className="space-y-inline-tight rounded-[var(--nf-container-radius)] border border-[var(--nf-panel-edge)] bg-[image:var(--nf-panel-fill-card)] p-inline lg:border-0 lg:bg-none lg:bg-transparent lg:p-0">
           <li>
             <ChapterLink href="/docs" active={onContents} number={null} title="All chapters" />
           </li>

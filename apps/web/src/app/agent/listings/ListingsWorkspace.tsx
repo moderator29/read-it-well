@@ -199,7 +199,7 @@ function ConfirmSheet({
 
       {error && (
         <p
-          className="mt-sm rounded-[var(--nf-radius-md)] p-sm text-[length:var(--nf-text-caption)] font-medium"
+          className="mt-sm rounded-[var(--nf-container-radius)] p-sm text-[length:var(--nf-text-caption)] font-medium"
           style={{
             background: "var(--nf-state-warning-surface)",
             color: "var(--nf-state-warning)",
@@ -253,7 +253,7 @@ function UndoStrip({
   }, []);
 
   return (
-    <li className="nf-card overflow-hidden p-0" data-testid="draft-undo">
+    <li className="nf-panel nf-panel--card block overflow-hidden p-0" data-testid="draft-undo">
       <div className="flex items-center justify-between gap-md p-md" role="status">
         <span className="min-w-0 leading-tight">
           <span className="block text-[length:var(--nf-text-body-sm)] font-semibold">{t.workspace.undo.removed}</span>
@@ -305,7 +305,7 @@ function ListingRow({
   const live = listing.status === "PUBLISHED" || listing.status === "APPROVED";
 
   return (
-    <li className="nf-card overflow-hidden p-0">
+    <li className="nf-panel nf-panel--card block overflow-hidden p-0">
       <div className="flex gap-4.5 p-md">
         <span
           className="relative block h-[5.25rem] w-[5.25rem] shrink-0 overflow-hidden rounded-[var(--nf-radius-md)]"
@@ -566,10 +566,9 @@ export function ListingsWorkspace({
     return (
       <div className="mx-auto max-w-md py-10 text-center">
         <span
-          className="mx-auto grid h-16 w-16 place-items-center rounded-[var(--nf-radius-lg)]"
-          style={{ background: "var(--nf-surface-raised)", color: "var(--nf-brand-quiet)" }}
+          className="nf-plate nf-plate--brand nf-plate--lg mx-auto"
         >
-          <UiIcon name="house" size={32} />
+          <UiIcon name="house" size={24} />
         </span>
         <h2 className="nf-h3 mt-5">{t.workspace.emptyTitle}</h2>
         <p className="mx-auto mt-xs max-w-[38ch] text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">

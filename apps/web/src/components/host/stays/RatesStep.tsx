@@ -177,7 +177,7 @@ export function RatesStep({
               </label>
               <select
                 id="stays-free-until"
-                className="nf-stays-select"
+                className="nf-field nf-field--glass nf-stays-select"
                 value={chosen?.id ?? ""}
                 disabled={pending}
                 onChange={(event) =>
@@ -305,7 +305,7 @@ function RateEditor({
       </label>
       <input
         id={`rate-${roomTypeId}`}
-        className="nf-stays-input"
+        className="nf-field nf-field--glass nf-stays-input"
         inputMode="decimal"
         value={naira}
         placeholder={String(Math.round(baseRateMinor / 100))}

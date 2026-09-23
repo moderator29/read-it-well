@@ -6,6 +6,7 @@ import type { Dictionary } from "@vallo/i18n";
 import { Logo } from "@/design-system/brand/Logo";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
+import { panelClass } from "@/components/ui/Panel";
 import { buildNav } from "./nav-model";
 import { NavTree } from "./NavTree";
 import { SideSwitch } from "./SideSwitch";
@@ -124,7 +125,7 @@ export function AppRail({
         <Link
           href="/profile"
           onClick={onNavigate}
-          className={drawer ? "nf-nav__who nf-nav__who--card nf-glass nf-glass--card" : "nf-nav__who"}
+          className={drawer ? `nf-nav__who nf-nav__who--card ${panelClass({ variant: "card" })}` : "nf-nav__who"}
         >
           <span className="nf-nav__avatar" aria-hidden="true">
             {avatarUrl ? (

@@ -79,7 +79,7 @@ export function RestaurantStep({
       <StaysPlate label="Restaurant name" htmlFor="stays-restaurant-name">
         <input
           id="stays-restaurant-name"
-          className="nf-stays-input"
+          className="nf-field nf-field--glass nf-stays-input"
           value={draft.name}
           autoComplete="organization"
           onChange={(event) => set("name", event.target.value)}

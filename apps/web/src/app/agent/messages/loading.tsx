@@ -12,7 +12,7 @@ export default function LoadingAgentMessages() {
       <AgentTitleSkeleton />
       <div className="space-y-sm">
         {Array.from({ length: 5 }, (_, i) => (
-          <div key={i} className="nf-card p-md">
+          <div key={i} className="nf-panel nf-panel--card block p-md">
             <Skeleton width="42%" height="1.0625rem" radius="sm" />
             <Skeleton className="mt-sm" width="85%" height="0.875rem" radius="sm" />
             <Skeleton className="mt-xs" width="55%" height="0.875rem" radius="sm" />

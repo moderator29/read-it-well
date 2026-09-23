@@ -87,7 +87,7 @@ export function HostDocumentUploader({
   const done = present || filedName !== null;
 
   return (
-    <section className="nf-host-group">
+    <section className="nf-panel nf-panel--card block nf-host-group">
       <h3 className="nf-host-group__title">{spec.title}</h3>
       <p className="nf-host-group__note">{spec.qualifies}</p>
       <p className="mt-2xs flex items-start gap-2xs nf-caption">
@@ -103,7 +103,7 @@ export function HostDocumentUploader({
         className="sr-only"
         onChange={(event) => void pick(event.target.files?.[0])}
       />
-      <label htmlFor={inputId} className={`nf-host-drop mt-sm${done ? " nf-host-drop--done" : ""}`}>
+      <label htmlFor={inputId} className={`nf-panel nf-panel--card nf-host-drop mt-sm${done ? " nf-host-drop--done" : ""}`}>
         <UiIcon name={done ? "verified" : "picture"} size={20} className="shrink-0" />
         <span className="min-w-0 flex-1">
           <span className="block nf-body-sm font-semibold">

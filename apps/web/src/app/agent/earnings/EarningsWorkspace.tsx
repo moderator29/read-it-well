@@ -43,7 +43,7 @@ function Tile({
   value: React.ReactNode;
 }) {
   return (
-    <div className="nf-card flex flex-col gap-xs p-md sm:gap-sm sm:p-md">
+    <div className="nf-panel nf-panel--card flex flex-col gap-xs p-md sm:gap-sm sm:p-md">
       <span className="h-9 w-9 shrink-0 sm:h-10 sm:w-10">
         <BrandIcon name={icon} fill />
       </span>
@@ -71,7 +71,7 @@ export function EarningsWorkspace({
   if (!earnings.readable) {
     return (
       <p
-        className="rounded-[var(--nf-radius-md)] p-md text-[length:var(--nf-text-body-sm)] font-medium leading-relaxed"
+        className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-body-sm)] font-medium leading-relaxed"
         style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
         role="alert"
       >
@@ -138,7 +138,7 @@ export function EarningsWorkspace({
         />
       </div>
 
-      <section className="nf-card p-md sm:p-panel">
+      <section className="nf-panel nf-panel--card block p-md sm:p-panel">
         <h2 className="nf-h3">{t.byMonth}</h2>
 
         {/* Phone: stacked cards, so nothing scrolls sideways. */}
@@ -146,7 +146,7 @@ export function EarningsWorkspace({
           {earnings.months.map((month) => (
             <li
               key={month.key}
-              className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-sm"
+              className="nf-panel nf-panel--card block p-sm"
             >
               <div className="flex items-baseline justify-between gap-md">
                 <p className="text-[length:var(--nf-text-body-sm)] font-semibold">{monthLabel(month.year, month.month, locale)}</p>
@@ -208,7 +208,7 @@ export function EarningsWorkspace({
         </div>
       </section>
 
-      <section className="nf-card p-md sm:p-panel">
+      <section className="nf-panel nf-panel--card block p-md sm:p-panel">
         <h2 className="nf-h3">{t.howTitle}</h2>
         <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           {t.howBody}

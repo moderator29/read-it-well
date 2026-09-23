@@ -60,7 +60,7 @@ export default function DocsHomePage() {
           <li key={chapter.slug}>
             <Link
               href={`/docs/${chapter.slug}`}
-              className="nf-card nf-card--interactive flex h-full flex-col p-card-sm"
+              className="nf-panel nf-panel--card nf-card--interactive flex h-full flex-col p-card-sm"
             >
               <div className="flex items-start gap-row">
                 <span className="inline-grid h-11 w-11 shrink-0 place-items-center">
@@ -108,7 +108,7 @@ export default function DocsHomePage() {
               body: "The formal documents. Where this guide and a policy differ, the policy governs.",
             },
           ].map((card) => (
-            <Link key={card.href} href={card.href} className="nf-card nf-card--interactive p-card-sm">
+            <Link key={card.href} href={card.href} className="nf-panel nf-panel--card block nf-card--interactive p-card-sm">
               <span className="block text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                 {card.title}
               </span>

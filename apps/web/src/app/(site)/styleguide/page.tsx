@@ -142,7 +142,7 @@ export default function StyleguidePage() {
         title="Surfaces"
         blurb="Planes, lowest to highest. A card does not sit on the canvas by having a lighter hex value; it sits on it by using the next surface up. Reach for the next one rather than inventing a shade between two."
       >
-        <ul className="nf-card p-card-sm">
+        <ul className="nf-panel nf-panel--card block p-card-sm">
           {SURFACES.map((s) => (
             <SwatchRow key={s.name} {...s} kind="surface" />
           ))}
@@ -153,7 +153,7 @@ export default function StyleguidePage() {
         title="Text"
         blurb="Four weights of emphasis and one for brand fills. Muted is for counts and captions and never for a sentence somebody has to act on, because it is the only one that does not clear AA at body size on every surface."
       >
-        <ul className="nf-card p-card-sm">
+        <ul className="nf-panel nf-panel--card block p-card-sm">
           {CONTENT.map((s) => (
             <SwatchRow key={s.name} {...s} kind="text" />
           ))}
@@ -164,7 +164,7 @@ export default function StyleguidePage() {
         title="Brand"
         blurb="One blue family, and that is the whole palette. There is no orange, amber, gold, purple or magenta anywhere on this platform, and a second accent colour is the fastest way to make a product look like two products."
       >
-        <ul className="nf-card p-card-sm">
+        <ul className="nf-panel nf-panel--card block p-card-sm">
           {BRAND.map((s) => (
             <SwatchRow key={s.name} {...s} kind="surface" />
           ))}
@@ -175,7 +175,7 @@ export default function StyleguidePage() {
         title="Borders"
         blurb="Four edges. Subtle for dividers inside a surface, default for the edge of one, strong when it has to be seen, brand when the control is active."
       >
-        <ul className="nf-card p-card-sm">
+        <ul className="nf-panel nf-panel--card block p-card-sm">
           {BORDERS.map((s) => (
             <SwatchRow key={s.name} {...s} kind="border" />
           ))}
@@ -190,7 +190,7 @@ export default function StyleguidePage() {
           {STATES.map((s) => (
             <li
               key={s.name}
-              className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-card-sm"
+              className="nf-panel nf-panel--card block p-card-sm"
               style={{ background: `var(${s.surface})`, color: `var(${s.name})` }}
             >
               <p className="text-[0.9375rem] font-bold">{s.label}</p>
@@ -235,7 +235,7 @@ export default function StyleguidePage() {
         title="Chips and pills"
         blurb="A chip is a choice a person makes. A status pill is a fact the system states. They look related on purpose and they are never interchangeable: nothing that reports a state should be tappable, and nothing tappable should look like a report."
       >
-        <div className="nf-card space-y-heading p-card-sm">
+        <div className="nf-panel nf-panel--card block space-y-heading p-card-sm">
           <div>
             <p className="nf-overline mb-inline">Chips</p>
             <div className="flex flex-wrap items-center gap-inline">
@@ -263,7 +263,7 @@ export default function StyleguidePage() {
         title="Loading"
         blurb="Skeletons shaped like the thing that is coming, never a spinner. A spinner says something is happening; a skeleton says what is about to be there, which is the difference between waiting and waiting for something."
       >
-        <div className="nf-card space-y-heading p-card-sm">
+        <div className="nf-panel nf-panel--card block space-y-heading p-card-sm">
           <div>
             <p className="nf-overline mb-inline">Text</p>
             <SkeletonText lines={3} />
@@ -288,7 +288,7 @@ export default function StyleguidePage() {
         title="Icons"
         blurb="UiIcon is for navigation and controls: one stroke weight, one 24 box, drawn as paths so they inherit colour and never carry their own. BrandIcon is for content and is a separate tier. Icon3D is retired and must not appear anywhere."
       >
-        <ul className="nf-card grid grid-cols-3 gap-row p-card-sm sm:grid-cols-5 lg:grid-cols-8">
+        <ul className="nf-panel nf-panel--card grid grid-cols-3 gap-row p-card-sm sm:grid-cols-5 lg:grid-cols-8">
           {ICONS.map((name) => (
             <li
               key={name}
@@ -331,7 +331,7 @@ export default function StyleguidePage() {
         title="Targets"
         blurb="Every interactive element is at least 44px in both directions. A control may be painted smaller than that, and several are, but the target it accepts a press on never is: the extra area comes from a pseudo-element rather than from inflating the box, so a 36px chip still catches a thumb."
       >
-        <div className="nf-card flex flex-wrap items-center gap-group p-card-sm">
+        <div className="nf-panel nf-panel--card flex flex-row flex-wrap items-center gap-group p-card-sm">
           <span className="grid h-11 w-11 place-items-center rounded-[var(--nf-radius-md)] border border-dashed border-[var(--nf-border-strong)] text-[0.6875rem] text-[var(--nf-content-muted)]">
             44
           </span>

@@ -89,7 +89,7 @@ export default function AboutPage() {
 
         {/* ----------------------------------------------------- mission */}
         <Reveal as="section" className="mt-section">
-          <div className="nf-card p-card-lg">
+          <div className="nf-panel nf-panel--card block p-card-lg">
             <h2 className="nf-overline">Our mission</h2>
             <p className="mt-row text-[1.0625rem] font-medium leading-relaxed sm:text-[1.125rem]">
               To make finding a place in Nigeria as safe and simple as messaging a
@@ -112,7 +112,7 @@ export default function AboutPage() {
 
         {/* ------------------------------------------------------ vision */}
         <Reveal as="section" className="mt-heading">
-          <div className="nf-card p-card-lg">
+          <div className="nf-panel nf-panel--card block p-card-lg">
             <h2 className="nf-overline">Our vision</h2>
             <p className="mt-row text-[1.0625rem] font-medium leading-relaxed sm:text-[1.125rem]">
               A Nigeria where anyone can find a place, see the whole cost of it and
@@ -129,7 +129,7 @@ export default function AboutPage() {
           <ul className="mt-group grid grid-cols-2 gap-group">
             {categories.map((c, i) => (
               <Reveal key={c.title} as="li" delay={i * 70} className="h-full">
-                <div className="nf-card flex h-full flex-col items-start gap-row p-card-sm">
+                <div className="nf-panel nf-panel--card flex h-full flex-col items-start gap-row p-card-sm">
                   <span className="inline-grid h-13 w-13 place-items-center">
                     <BrandIcon name={c.icon} fill />
                   </span>
@@ -149,7 +149,7 @@ export default function AboutPage() {
           <div className="mt-group space-y-row">
             {values.map((v, i) => (
               <Reveal key={v.title} delay={i * 60}>
-                <div className="nf-card flex items-start gap-group p-card">
+                <div className="nf-panel nf-panel--card flex flex-row items-start gap-group p-card">
                   <span className="inline-grid h-16 w-16 shrink-0 place-items-center">
                     <BrandIcon name={v.icon} fill />
                   </span>
@@ -167,7 +167,7 @@ export default function AboutPage() {
 
         {/* -------------------------------------------------- final call */}
         <Reveal as="section" className="mt-section">
-          <div className="nf-card p-card text-center-lg">
+          <div className="nf-panel nf-panel--card block p-card text-center-lg">
             <h2 className="nf-h2 mx-auto max-w-[22ch]">Come and build this with us</h2>
             <p className="mx-auto mt-row max-w-[48ch] text-[0.9375rem] text-[var(--nf-content-secondary)]">
               Whether you are looking for your next place, want to list a property you

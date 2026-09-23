@@ -434,7 +434,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
         {stepTitles[step]}
       </p>
 
-      <form action={formAction} className="nf-card p-panel sm:p-xl">
+      <form action={formAction} className="nf-panel nf-panel--card block p-panel sm:p-xl">
         {/* Keep every step in the DOM so all fields reach the server action;
             only the active step is shown. */}
 
@@ -469,11 +469,9 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
                     key={tp}
                     onClick={() => setAgentType(tp)}
                     aria-pressed={agentType === tp}
+                    aria-current={agentType === tp ? "true" : undefined}
                     className={[
-                      "rounded-[var(--nf-radius-lg)] border p-sm text-left transition-colors",
-                      agentType === tp
-                        ? "border-[var(--nf-border-brand)] bg-[color-mix(in_oklab,var(--nf-mode-agent)_14%,transparent)]"
-                        : "border-[var(--nf-border-subtle)] hover:border-[var(--nf-border-default)]",
+                      "nf-panel nf-panel--card nf-agent-mode-option block p-sm text-left",
                     ].join(" ")}
                   >
                     <span className="nf-body-sm block font-semibold">
@@ -565,7 +563,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
         {/* Step 6: Review */}
         <fieldset hidden={step !== last} className="space-y-md">
           <Legend title={a.review.title} sub={a.review.body} />
-          <dl className="nf-card divide-y divide-[var(--nf-border-subtle)] p-0">
+          <dl className="nf-panel nf-panel--card block divide-y divide-[var(--nf-border-subtle)] p-0">
             {TEXT_FIELDS.filter((f) => values[f]).map((f) => (
               <div key={f} className="flex items-center justify-between gap-md px-md py-sm text-[length:var(--nf-text-caption)]">
                 <dt className="text-[var(--nf-content-muted)]">{a.fields[f as keyof typeof a.fields] ?? f}</dt>
@@ -593,7 +591,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
             checked={agreed}
             onCheckedChange={setAgreed}
             label={a.fields.agreeTerms}
-            className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm"
+            className="nf-panel nf-panel--card block p-sm"
           />
           {err?.agreeTerms && (
             <p role="alert" className="text-[length:var(--nf-text-overline)] text-[var(--nf-state-error)]">{err.agreeTerms}</p>
@@ -770,7 +768,7 @@ function UploadZone({
         htmlFor={id}
         aria-busy={slot?.uploading ? true : undefined}
         className={[
-          "relative flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-xs overflow-hidden rounded-[var(--nf-radius-lg)] border border-dashed bg-[var(--nf-surface-inset)] text-center transition-colors",
+          "relative flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-xs overflow-hidden rounded-[var(--nf-container-radius)] border border-dashed bg-[var(--nf-surface-inset)] text-center transition-colors",
           slot?.error
             ? "border-[var(--nf-state-error)]"
             : done

@@ -119,7 +119,7 @@ export function AgentSettingsBody({
         {notifications ? (
           <AccountNotificationsCard t={t} initial={notifications} variant="host" />
         ) : (
-          <div className="nf-card p-panel">
+          <div className="nf-panel nf-panel--card block p-panel">
             <p className="nf-overline">Notifications</p>
             <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               We could not read your preferences just now. Nothing has changed, and
@@ -129,7 +129,7 @@ export function AgentSettingsBody({
         )}
 
         {/* -------------------------------------------------------- payout */}
-        <div className="nf-card p-panel">
+        <div className="nf-panel nf-panel--card block p-panel">
           <p className="nf-overline">Where your earnings go</p>
           {preferred ? (
             <>
@@ -161,7 +161,7 @@ export function AgentSettingsBody({
         </div>
 
         {/* ------------------------------------------------------ identity */}
-        <div className="nf-card p-panel">
+        <div className="nf-panel nf-panel--card block p-panel">
           <p className="nf-overline">Your host identity</p>
           <p className="mt-sm flex flex-wrap items-center gap-x-xs gap-y-2xs text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
             {agent.displayName}
@@ -205,7 +205,7 @@ export function AgentSettingsBody({
         </div>
 
         {/* ------------------------------------------------------ the rest */}
-        <div className="nf-card p-panel">
+        <div className="nf-panel nf-panel--card block p-panel">
           <p className="nf-overline">Everything else</p>
           <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
             Theme, language, privacy, security and account deletion are one account

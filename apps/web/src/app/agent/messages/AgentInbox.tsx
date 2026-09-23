@@ -36,7 +36,7 @@ function ThreadRow({ thread }: { thread: AgentThread }) {
            is the dull container the founder photographed. `.nf-card--interactive`
            is the designed answer: the press physics, and the light travelling
            once round the ring on a pointer. */
-        className="nf-card nf-card--interactive block p-md"
+        className="nf-panel nf-panel--card nf-card--interactive block p-md"
       >
         <div className="flex items-start justify-between gap-sm">
           <div className="min-w-0 leading-tight">
@@ -115,7 +115,7 @@ export function AgentInbox({ inbox, filter }: { inbox: Inbox; filter: InboxFilte
           ))}
         </ul>
       ) : (
-        <div className="nf-card mt-md p-xl text-center">
+        <div className="nf-panel nf-panel--card block mt-md p-xl text-center">
           <span className="mx-auto block h-16 w-16">
             <BrandIcon name="chat-duo" fill />
           </span>

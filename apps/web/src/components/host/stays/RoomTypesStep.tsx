@@ -149,7 +149,7 @@ export function RoomTypesStep({
           <StaysPlate label="Name" htmlFor="stays-room-name">
             <input
               id="stays-room-name"
-              className="nf-stays-input"
+              className="nf-field nf-field--glass nf-stays-input"
               value={name}
               placeholder="Deluxe double"
               aria-invalid={fieldErrors.name ? true : undefined}
@@ -208,7 +208,7 @@ export function RoomTypesStep({
           <StaysPlate label="Nightly price" htmlFor="stays-room-rate">
             <input
               id="stays-room-rate"
-              className="nf-stays-input"
+              className="nf-field nf-field--glass nf-stays-input"
               inputMode="decimal"
               value={naira}
               aria-invalid={fieldErrors.baseRateMinor ? true : undefined}

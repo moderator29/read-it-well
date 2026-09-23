@@ -149,7 +149,7 @@ export default async function AgentDashboardPage() {
             <li key={quick.href}>
               <Link
                 href={quick.href}
-                className="nf-card nf-card--interactive flex items-center gap-row p-card-sm"
+                className="nf-panel nf-panel--card nf-card--interactive flex flex-row items-center gap-row p-card-sm"
               >
                 {/*
                   NO PLATE, AND IT WAS A PLATE INSIDE A CARD.

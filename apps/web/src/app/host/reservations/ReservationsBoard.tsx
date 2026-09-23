@@ -124,7 +124,7 @@ function TableCard({
         : "Declined or called off";
 
   return (
-    <li className="nf-card p-card">
+    <li className="nf-panel nf-panel--card block p-card">
       <div className="flex flex-wrap items-center gap-inline">
         <StatusPill tone={tone}>{word}</StatusPill>
         <span className="nf-overline">{table.listingTitle}</span>
@@ -143,7 +143,7 @@ function TableCard({
       {/* Never truncated. A note is where an allergy goes, and a shortened
           allergy is worse than no allergy at all. */}
       {table.note && (
-        <p className={`mt-row rounded-[var(--nf-radius-md)] bg-[var(--nf-surface-raised)] px-row py-inline ${TYPE.rowMeta}`}>
+        <p className={`mt-row rounded-[var(--nf-container-radius)] bg-[var(--nf-surface-raised)] px-row py-inline ${TYPE.rowMeta}`}>
           {table.note}
         </p>
       )}

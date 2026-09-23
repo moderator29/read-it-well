@@ -115,7 +115,7 @@ function ReservationCard({
         : "warning";
 
   return (
-    <li className="nf-card p-md sm:p-panel">
+    <li className="nf-panel nf-panel--card block p-md sm:p-panel">
       <div className="flex flex-wrap items-center gap-xs">
         <StatusPill tone={tone}>
           {reservation.status === "PENDING"
@@ -147,7 +147,7 @@ function ReservationCard({
       {/* Shown to the host in full, never truncated. A note is where an allergy
           goes, and a shortened allergy is worse than none. */}
       {reservation.note && (
-        <p className="mt-xs rounded-lg bg-[var(--nf-surface-raised)] px-sm py-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="mt-xs rounded-[var(--nf-container-radius)] bg-[var(--nf-surface-raised)] px-sm py-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
           {reservation.note}
         </p>
       )}

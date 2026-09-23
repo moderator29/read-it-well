@@ -39,13 +39,9 @@ export function ListingPitch({ copy, signedIn }: { copy: PitchCopy; signedIn: bo
           gradient in both themes and the token is what follows the theme; the
           literal was a dark-only assumption that happened to look right. */}
       <span
-        className="mx-auto grid h-16 w-16 place-items-center rounded-[var(--nf-radius-lg)]"
-        style={{
-          background: "var(--nf-gradient-agent)",
-          color: "var(--nf-content-on-brand)",
-        }}
+        className="nf-plate nf-plate--brand nf-plate--lg mx-auto"
       >
-        <UiIcon name="key" size={32} />
+        <UiIcon name="key" size={24} />
       </span>
 
       <h1 className="nf-h2 mt-heading">{copy.title}</h1>

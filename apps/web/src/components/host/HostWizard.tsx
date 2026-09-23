@@ -554,7 +554,7 @@ function HostTypeStep({ draft, set }: StepProps) {
               type="button"
               role="radio"
               aria-checked={on}
-              className="nf-host-choice"
+              className="nf-panel nf-panel--card nf-host-choice"
               onClick={() => {
                 set("hostType", type);
                 /* A restaurant is a restaurant; the other branches pick. */
@@ -576,7 +576,7 @@ function HostTypeStep({ draft, set }: StepProps) {
         })}
       </div>
       {chosen && chosen.kinds.length > 1 && (
-        <div className="nf-host-group">
+        <div className="nf-panel nf-panel--card block nf-host-group">
           <p className="nf-host-group__title">What is it, exactly?</p>
           <div className="mt-sm flex flex-wrap gap-xs" role="group" aria-label="Kind of business">
             {chosen.kinds.map((kind) => (
@@ -601,7 +601,7 @@ function BusinessStep({ draft, set, fieldErrors }: StepProps) {
   return (
     <>
       {BUSINESS_SECTIONS.map((section) => (
-        <section key={section.heading} className="nf-host-group">
+        <section key={section.heading} className="nf-panel nf-panel--card block nf-host-group">
           <h2 className="nf-host-group__title">{section.heading}</h2>
           <p className="nf-host-group__note">{section.note}</p>
           <div className="mt-md flex flex-col gap-sm">
@@ -646,7 +646,7 @@ function BusinessStep({ draft, set, fieldErrors }: StepProps) {
 function RegistrationStep({ draft, set, userId, fieldErrors }: StepProps) {
   return (
     <>
-      <section className="nf-host-group">
+      <section className="nf-panel nf-panel--card block nf-host-group">
         <h2 className="nf-host-group__title">As the CAC holds it</h2>
         <div className="mt-md flex flex-col gap-sm">
           <TextField
@@ -686,7 +686,7 @@ function RepresentativeStep({ draft, set, userId, fieldErrors }: StepProps) {
   const filed = (kind: HostDocumentKind) => set("documents", { ...draft.documents, [kind]: true });
   return (
     <>
-      <section className="nf-host-group">
+      <section className="nf-panel nf-panel--card block nf-host-group">
         <h2 className="nf-host-group__title">You</h2>
         <div className="mt-md flex flex-col gap-sm">
           <TextField
@@ -805,7 +805,7 @@ function PayoutStep({ draft, pending, run, setNotice, set }: StepProps) {
 
   return (
     <>
-      <section className="nf-host-group">
+      <section className="nf-panel nf-panel--card block nf-host-group">
         <h2 className="nf-host-group__title">Where payouts go</h2>
         <p className="nf-host-group__note">
           {draft.hasBankAccount
@@ -835,7 +835,7 @@ function PayoutStep({ draft, pending, run, setNotice, set }: StepProps) {
             onChange={(e) => { setNumber(e.target.value.replace(/\D/g, "")); setResolved(null); }}
           />
           {resolved ? (
-            <div className="nf-host-drop nf-host-drop--done">
+            <div className="nf-panel nf-panel--card nf-host-drop nf-host-drop--done">
               <UiIcon name="verified" size={20} className="shrink-0" />
               <span className="min-w-0 flex-1">
                 <span className="block nf-body-sm font-semibold">{resolved}</span>
@@ -871,7 +871,7 @@ function ConsentStep({ draft, pending, saveText, set }: StepProps) {
       {CONSENTS.map((consent) => {
         const on = Boolean(draft.consents[consent.id]);
         return (
-          <label key={consent.id} className="nf-host-choice" aria-checked={on} role="checkbox">
+          <label key={consent.id} className="nf-panel nf-panel--card nf-host-choice" aria-checked={on} role="checkbox">
             <input
               type="checkbox"
               className="sr-only"
@@ -909,7 +909,7 @@ function ReviewStep({ draft, pending, run, goTo, set }: StepProps) {
   const accommodation = hostsAccommodation(draft.hostType ?? "individual");
   return (
     <>
-      <section className="nf-host-group">
+      <section className="nf-panel nf-panel--card block nf-host-group">
         <h2 className="nf-host-group__title">{draft.name || "Your business"}</h2>
         <p className="nf-host-group__note">
           {draft.hostType ? HOST_TYPE_DEFINITIONS[draft.hostType].title : "Host type not chosen"}
@@ -938,7 +938,7 @@ function ReviewStep({ draft, pending, run, goTo, set }: StepProps) {
         </dl>
       </section>
 
-      <section className="nf-host-group" aria-live="polite">
+      <section className="nf-panel nf-panel--card block nf-host-group" aria-live="polite">
         <h2 className="nf-host-group__title">
           {missing.length === 0 ? "Everything is here" : `Still missing (${missing.length})`}
         </h2>

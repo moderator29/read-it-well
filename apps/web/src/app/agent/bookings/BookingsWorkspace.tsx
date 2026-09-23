@@ -180,7 +180,7 @@ function DecisionSheet({
 
       {error && (
         <p
-          className="mt-sm rounded-[var(--nf-radius-md)] p-sm text-[length:var(--nf-text-caption)] font-medium"
+          className="mt-sm rounded-[var(--nf-container-radius)] p-sm text-[length:var(--nf-text-caption)] font-medium"
           style={{
             background: "var(--nf-state-warning-surface)",
             color: "var(--nf-state-warning)",
@@ -240,7 +240,7 @@ function BookingCard({
         : t.card.unknown;
 
   return (
-    <li className="nf-card overflow-hidden p-0">
+    <li className="nf-panel nf-panel--card block overflow-hidden p-0">
       <div className="p-md sm:p-md">
         <div className="flex items-start justify-between gap-xs">
           <div className="min-w-0">

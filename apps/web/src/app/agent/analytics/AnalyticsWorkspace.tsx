@@ -87,7 +87,7 @@ function Tile({
   note?: string;
 }) {
   return (
-    <div className="nf-card flex flex-col gap-xs p-md sm:gap-sm sm:p-md">
+    <div className="nf-panel nf-panel--card flex flex-col gap-xs p-md sm:gap-sm sm:p-md">
       <span className="h-9 w-9 shrink-0 sm:h-10 sm:w-10">
         <BrandIcon name={icon} fill />
       </span>
@@ -133,7 +133,7 @@ function Unknown({ label }: { label: string }) {
 function Unavailable({ children }: { children: string }) {
   return (
     <p
-      className="rounded-[var(--nf-radius-md)] p-md text-[length:var(--nf-text-caption)] font-medium leading-relaxed"
+      className="rounded-[var(--nf-container-radius)] p-md text-[length:var(--nf-text-caption)] font-medium leading-relaxed"
       style={{ background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" }}
       role="status"
     >
@@ -152,7 +152,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="nf-card p-md sm:p-panel">
+    <section className="nf-panel nf-panel--card block p-md sm:p-panel">
       <h2 className="nf-h3">{title}</h2>
       {blurb ? (
         <p className="mt-xs max-w-[68ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -510,7 +510,7 @@ function ListingsPanel({
         {rows.map((row) => (
           <li
             key={row.listingId}
-            className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-sm"
+            className="nf-panel nf-panel--card block p-sm"
           >
             <div className="flex items-baseline justify-between gap-sm">
               <p className="min-w-0 flex-1 text-[length:var(--nf-text-body-sm)] font-semibold">{row.title}</p>
@@ -763,7 +763,7 @@ export function AnalyticsWorkspace({
         one, and it is also the only reason a host will trust the numbers that
         ARE here.
       */}
-      <section className="nf-card p-md sm:p-panel">
+      <section className="nf-panel nf-panel--card block p-md sm:p-panel">
         <h2 className="nf-h3">{t.notCounted.title}</h2>
         <ul className="mt-sm space-y-sm">
           {[t.notCounted.views, t.notCounted.saves, t.notCounted.occupancy].map((line) => (

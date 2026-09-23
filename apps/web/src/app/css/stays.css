@@ -175,23 +175,18 @@
   }
 
   /*
-   * The inner plate a value sits on. Deeper than the well it is set into, so
-   * the two read as a box inside a box rather than as one flat field, which is
-   * exactly what the render draws.
+   * The inner plate a value sits on is the shared glass field
+   * (`nf-field nf-field--glass`, controls.css) at every call site since the
+   * platform sweep (SW-ST2); the local well that stood here is deleted. What
+   * stays is the plate's rhythm inside a set-up panel: its height, the gap
+   * above it and its tighter padding.
    */
   .nf-stays-input,
   .nf-stays-select {
     display: block;
-    width: 100%;
     min-height: var(--nf-pad-field-affordance);
     margin-top: var(--nf-space-xs);
     padding: var(--nf-space-xs) var(--nf-space-sm);
-    border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill-deep);
-    box-shadow: var(--nf-rim-lit);
-    color: var(--nf-content-primary);
-    font-size: var(--nf-text-body);
   }
   .nf-stays-select {
     /*
@@ -204,27 +199,31 @@
     appearance: none;
     padding-right: var(--nf-pad-field-affordance);
     /*
-     * THE WELL IS RESTATED IN THIS LIST AND THAT IS NOT A DUPLICATE. The rule
-     * above paints the plate with `background`, whose image layer is
-     * `--nf-well-fill-deep`. Setting `background-image` here would REPLACE that
-     * layer, leaving every select on these screens with a chevron and no fill,
-     * which is the same silent-drop family as `.nf-rows-sheet` painting
-     * `background: var(--nf-elev-3)` and rendering transparent. The well is
-     * therefore the last layer of the list rather than a second declaration.
+     * THE FIELD'S TWO LAYERS ARE RESTATED UNDER THE CHEVRON AND THAT IS NOT A
+     * SECOND MATERIAL. `.nf-field--glass` paints the well on the padding box
+     * and its edge on the border box; setting `background-image` for the
+     * chevron replaces the whole layer list, so the glass field's own two
+     * layers (the same tokens, in the same boxes) follow the two chevron
+     * strokes, or every select would be a chevron on nothing.
      */
     background-image:
       linear-gradient(45deg, transparent 50%, var(--nf-content-secondary) 50%),
       linear-gradient(135deg, var(--nf-content-secondary) 50%, transparent 50%),
-      var(--nf-well-fill-deep);
+      var(--nf-well-fill),
+      linear-gradient(var(--nf-brand-edge-soft), var(--nf-brand-edge-soft));
     background-position:
       calc(100% - 1.125rem) calc(50% - 1px),
       calc(100% - 0.75rem) calc(50% - 1px),
+      0 0,
       0 0;
     background-size:
       0.375rem 0.375rem,
       0.375rem 0.375rem,
+      auto,
       auto;
-    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+    background-origin: padding-box, padding-box, padding-box, border-box;
+    background-clip: padding-box, padding-box, padding-box, border-box;
   }
   /*
    * A SELECT THAT ANSWERS A ROW rather than filling a plate: it sits at the
@@ -235,6 +234,28 @@
    * and the later one wins; written above, its `width: auto` lost to the
    * base rule's `width: 100%` and the variant did nothing at all.
    */
+  /* On focus the glass field repaints its layers with the strong edge; the
+     chevron is carried through so a focused select still says it opens. */
+  .nf-stays-select.nf-field--glass:focus {
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--nf-content-secondary) 50%),
+      linear-gradient(135deg, var(--nf-content-secondary) 50%, transparent 50%),
+      var(--nf-well-fill),
+      linear-gradient(var(--nf-brand-edge-strong), var(--nf-brand-edge-strong));
+    background-position:
+      calc(100% - 1.125rem) calc(50% - 1px),
+      calc(100% - 0.75rem) calc(50% - 1px),
+      0 0,
+      0 0;
+    background-size:
+      0.375rem 0.375rem,
+      0.375rem 0.375rem,
+      auto,
+      auto;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+    background-origin: padding-box, padding-box, padding-box, border-box;
+    background-clip: padding-box, padding-box, padding-box, border-box;
+  }
   .nf-stays-select--inline {
     width: auto;
     max-width: 11rem;

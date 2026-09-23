@@ -92,7 +92,7 @@ export function PayoutAccounts({
           ))}
         </ul>
       ) : (
-        <div className="nf-card mt-md p-lg text-center">
+        <div className="nf-panel nf-panel--card block mt-md p-lg text-center">
           <span className="mx-auto block h-16 w-16">
             <BrandIcon name="naira-hand" fill />
           </span>
@@ -107,7 +107,7 @@ export function PayoutAccounts({
       )}
 
       {!resolveAvailable ? (
-        <div className="nf-card mt-md flex items-start gap-sm p-md">
+        <div className="nf-panel nf-panel--card mt-md flex flex-row items-start gap-sm p-md">
           <span className="mt-3xs block h-8 w-8 shrink-0">
             <BrandIcon name="card-lock" fill tile={false} />
           </span>
@@ -118,7 +118,7 @@ export function PayoutAccounts({
           </p>
         </div>
       ) : (
-        <div className="nf-card mt-md p-md sm:p-panel">
+        <div className="nf-panel nf-panel--card block mt-md p-md sm:p-panel">
           <h3 className="nf-overline text-[var(--nf-content-muted)]">Add an account</h3>
 
           <div className="mt-sm grid gap-sm">
@@ -187,7 +187,7 @@ export function PayoutAccounts({
               <input type="hidden" name="accountNumber" value={digitsOnly(accountNumber)} />
               <input type="hidden" name="accountName" value={confirmed} />
 
-              <p className="flex items-start gap-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm">
+              <p className="nf-panel nf-panel--card flex flex-row items-start gap-sm p-sm">
                 <UiIcon
                   name="verified"
                   size={20}
@@ -223,7 +223,7 @@ export function PayoutAccounts({
           {resolveState && !resolveState.ok && (
             <p
               role="alert"
-              className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
+              className="mt-sm nf-panel nf-panel--card block p-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
             >
               {resolveState.error}
             </p>
@@ -231,7 +231,7 @@ export function PayoutAccounts({
           {addState && !addState.ok && (
             <p
               role="alert"
-              className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
+              className="mt-sm nf-panel nf-panel--card block p-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-warning)]"
             >
               {addState.error}
             </p>
@@ -263,7 +263,7 @@ function AccountRow({ account }: { account: PayoutAccount }) {
     null;
 
   return (
-    <li className="nf-card p-md">
+    <li className="nf-panel nf-panel--card block p-md">
       <div className="flex items-start justify-between gap-sm">
         <div className="min-w-0 leading-tight">
           {/* The account holder's name on the screen where money leaves the

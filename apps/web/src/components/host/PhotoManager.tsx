@@ -130,7 +130,7 @@ export function PhotoManager({
   }
 
   return (
-    <section className="nf-host-group">
+    <section className="nf-panel nf-panel--card block nf-host-group">
       <h2 className="nf-host-group__title">{copy.title}</h2>
       <p className="nf-host-group__note">{copy.guidance}</p>
       <p className="nf-caption mt-inline">
@@ -199,7 +199,7 @@ export function PhotoManager({
       {full ? (
         <p className="nf-caption mt-group">{copy.fullNote}</p>
       ) : (
-        <label htmlFor={inputId} className="nf-host-drop mt-group">
+        <label htmlFor={inputId} className="nf-panel nf-panel--card nf-host-drop mt-group">
           <UiIcon name="picture" size={20} className="shrink-0" />
           <span className="min-w-0 flex-1">
             <span className="block nf-body-sm font-semibold">
