@@ -2,8 +2,8 @@
   inspection: the property inspection surface (/inspections and the agent's
   /agent/inspections), owned by Session B. Imported by
   `components/app/inspections/InspectionSheet.tsx`, never by globals.css, so
-  no shared stylesheet is touched. The light twin lives at the foot of this
-  file, so the partial is the whole surface.
+  no shared stylesheet is touched. Dark only: light mode was removed by the
+  founder on 23 September, so there is no paper twin.
 
   THE GOVERNING IMAGE IS F6A8A482 (repo root). Every size below was measured
   off that render and converted. The phone screen in the render is 668 image
@@ -93,9 +93,6 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
-  }
-  .nf-ix-crop--day {
-    display: none;
   }
 
   .nf-ix-list {
@@ -786,109 +783,4 @@
       transition: none;
     }
   }
-}
-
-/* ------------------------------------------------------------ paper twin */
-
-/*
-  Same anatomy on paper, designed rather than derived: the containers become
-  the paper surface with the paper shadow and a brand hairline; the plates are
-  a pale brand wash with brand ink, never a dark disc on white; no bloom,
-  because a blurred halo on white reads as a smudge. The lit CTA keeps its
-  gradient, which has its own light twin in the tokens.
-*/
-/* The identity's paper card: white with a breath of brand at the top, a
-   brand top edge and softer sides, a small cast shadow; no bloom. */
-:root[data-theme="light"] .nf-ix-glass {
-  border-color:
-    var(--nf-brand-primary)
-    color-mix(in oklab, var(--nf-brand-primary) 30%, transparent)
-    color-mix(in oklab, var(--nf-brand-primary) 40%, transparent)
-    color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--nf-brand-primary) 10%, white) 0,
-    white 12px,
-    white 60%,
-    color-mix(in oklab, var(--nf-brand-primary) 5%, white) 100%
-  );
-  box-shadow:
-    0 1px 2px color-mix(in oklab, var(--nf-brand-primary) 12%, transparent),
-    0 6px 16px -8px color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
-}
-:root[data-theme="light"] .nf-ix-bar {
-  background: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-brand-primary) 25%, transparent);
-}
-:root[data-theme="light"] .nf-ix-bar > span {
-  background: var(--nf-brand-primary);
-}
-:root[data-theme="light"] .nf-ix-step,
-:root[data-theme="light"] .nf-ix-option {
-  background: var(--nf-surface-raised);
-  box-shadow: none;
-}
-:root[data-theme="light"] .nf-ix-option[aria-checked="true"] {
-  background: var(--nf-brand-tint-2);
-}
-:root[data-theme="light"] .nf-ix-crop--night {
-  display: none;
-}
-:root[data-theme="light"] .nf-ix-crop--day {
-  display: block;
-}
-/* The identity's paper tile, round: pale glass, brand edge, brand glyph. */
-:root[data-theme="light"] .nf-ix-step__plate {
-  border-color:
-    color-mix(in oklab, var(--nf-brand-primary) 70%, white)
-    color-mix(in oklab, var(--nf-brand-primary) 35%, transparent)
-    color-mix(in oklab, var(--nf-brand-primary) 40%, transparent)
-    color-mix(in oklab, var(--nf-brand-primary) 35%, transparent);
-  background: linear-gradient(180deg, color-mix(in oklab, var(--nf-brand-primary) 5%, white), color-mix(in oklab, var(--nf-brand-primary) 15%, white));
-  box-shadow: inset 0 1px 0 white, 0 4px 10px -6px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
-  color: var(--nf-brand-primary);
-}
-:root[data-theme="light"] .nf-ix-step__plate > svg {
-  filter: none;
-}
-:root[data-theme="light"] .nf-ix-notes__well {
-  background: var(--nf-surface-raised);
-}
-:root[data-theme="light"] .nf-ix-fact__glyph {
-  filter: none;
-}
-:root[data-theme="light"] .nf-ix-bar > span {
-  box-shadow: none;
-}
-:root[data-theme="light"] .nf-ix .nf-ix-cta {
-  border-color: color-mix(in oklab, var(--nf-brand-primary) 70%, white) var(--nf-brand-primary) var(--nf-brand-primary) var(--nf-brand-primary);
-  background: var(--nf-gradient-cta);
-  box-shadow:
-    var(--nf-rim-primary),
-    0 6px 16px -6px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent);
-}
-:root[data-theme="light"] .nf-ix .nf-ix-submit {
-  background: var(--nf-surface-on-paper);
-  box-shadow: var(--nf-shadow-on-paper);
-}
-:root[data-theme="light"] .nf-ix .nf-ix-submit:disabled {
-  background: var(--nf-surface-raised);
-  color: var(--nf-content-muted);
-}
-/*
-  The glass house on paper: the render's own crop, in its daylight cut (the
-  floor lifted so the night bloom does not smudge the white), standing on
-  the paper with a soft brand shadow for an edge. No chip behind it: a navy
-  plate on a white page is what the founder rejected
-  (docs/design/references/founder/home-light-black-icon-plates-as-shipped.jpg).
-*/
-:root[data-theme="light"] .nf-ix-hero__mark {
-  filter: drop-shadow(0 4px 10px var(--nf-glow-2));
-}
-/* On paper the lit cyan word would vanish into white, so it runs from the
-   brand ink into the daylight cyan (both tokens, both over 4.5:1 on white). */
-:root[data-theme="light"] .nf-ix-hero__lit {
-  background: linear-gradient(90deg, var(--nf-brand-primary), var(--nf-state-warning));
-  -webkit-background-clip: text;
-  background-clip: text;
 }

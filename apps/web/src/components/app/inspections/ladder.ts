@@ -12,7 +12,7 @@ import type { Inspection, InspectionState } from "@/lib/inspections/types";
  *
  *   asked      the request exists
  *   agreed     a time was agreed (CONFIRMED, or a proposed time taken)
- *   visited    the viewing happened (COMPLETED)
+ *   visited    the inspection happened (COMPLETED)
  *   recorded   how it went was written down (an outcome on COMPLETED)
  *
  * A declined or withdrawn request keeps the rungs it climbed and stops.
@@ -49,7 +49,7 @@ export function ladderCount(rungs: LadderRung[]): { done: number; total: number 
   return { done: rungs.filter((rung) => rung.done).length, total: rungs.length };
 }
 
-/** True when the report may be sent: the viewing is agreed and not yet closed. */
+/** True when the report may be sent: the inspection is agreed and not yet closed. */
 export function canReport(state: InspectionState): boolean {
   return state === "CONFIRMED";
 }

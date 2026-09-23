@@ -23,7 +23,7 @@ import type { Inspection } from "@/lib/inspections/types";
  * queue on their own home screen, the person who asked gets a row with a state
  * on it, and both are reading the same record.
  *
- * MESSAGING IS NOT REPLACED. It sits beside this, and it should: a viewing
+ * MESSAGING IS NOT REPLACED. It sits beside this, and it should: an inspection
  * needs a conversation around it. What has changed is that the conversation is
  * no longer the only place the arrangement exists.
  *

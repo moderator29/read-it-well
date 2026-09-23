@@ -17,7 +17,7 @@ import { isOpen, waitingOn, type Inspection, type InspectionState } from "@/lib/
  * you", which is the reading a person scanning their own diary wants.
  *
  * Inside OPEN the order is the order of attention: rows where it is the
- * reader's move first, then the viewings that are booked in, soonest first,
+ * reader's move first, then the inspections that are booked in, soonest first,
  * then the ones waiting on the other side. Inside CLOSED, most recent first.
  */
 

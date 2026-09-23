@@ -3,7 +3,7 @@ import { statusFor } from "./status";
 import { isInspectionHref } from "./live";
 
 describe("statusFor", () => {
-  it("says Pending in cyan on a scheduled viewing, as the render does beside Scheduled", () => {
+  it("says Pending in cyan on a scheduled inspection, as the render does beside Scheduled", () => {
     expect(statusFor({ state: "CONFIRMED", outcome: null }, "requester")).toEqual({ label: "Pending", tone: "pending" });
     expect(statusFor({ state: "CONFIRMED", outcome: null }, "lister")).toEqual({ label: "Pending", tone: "pending" });
   });

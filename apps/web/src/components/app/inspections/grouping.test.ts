@@ -40,7 +40,7 @@ describe("grouping a person's inspections", () => {
       ...tagSide([row("theirs", "REQUESTED", { createdAt: "2026-09-18T12:00:00.000Z" })], "requester"),
       /* Offered a time, read as requester: my move. */
       ...tagSide([row("mine", "PROPOSED", { createdAt: "2026-09-18T09:00:00.000Z" })], "requester"),
-      /* Two confirmed viewings, the later one listed first on purpose. */
+      /* Two confirmed inspections, the later one listed first on purpose. */
       ...tagSide(
         [
           row("later", "CONFIRMED", { slotAt: "2026-09-25T10:00:00.000Z" }),

@@ -37,9 +37,9 @@ const MAX_NOTE = 400;
  * wrong, and trying again will never work.
  */
 const EXAMPLE_LISTING_MESSAGE =
-  "This is an example listing, so there is nothing to view. Open a real listing from search and arrange an inspection there.";
+  "This is an example listing, so there is nothing to inspect. Open a real listing from search and arrange an inspection there.";
 
-/** The furthest ahead somebody may ask to view a property. */
+/** The furthest ahead somebody may ask to inspect a property. */
 const MAX_DAYS_AHEAD = 90;
 
 const whenSchema = z
@@ -59,7 +59,7 @@ const requestSchema = z.object({
 });
 
 /**
- * Ask to view a property.
+ * Ask to inspect a property.
  *
  * The lister is NOT supplied and cannot be: a trigger resolves it from the
  * listing, so a request always names the person who actually owns the property

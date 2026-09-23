@@ -58,7 +58,7 @@ function mount(answers: Record<string, Answer>) {
   return { writes };
 }
 
-/** A viewing three days out, inside the ninety-day window. */
+/** An inspection three days out, inside the ninety-day window. */
 function when(): string {
   return new Date(Date.now() + 3 * 86_400_000).toISOString();
 }

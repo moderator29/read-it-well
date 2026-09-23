@@ -50,7 +50,7 @@ import { statusFor, type BadgeTone } from "./status";
  * I1. "Add Photos" goes to the conversation, because the message-attachments
  * bucket is the one real photo path an inspection has today. "Submit
  * Inspection Report" is `closeInspection` with an outcome, live once the
- * viewing is agreed and an outcome is chosen. The notes are the two the row
+ * inspection is agreed and an outcome is chosen. The notes are the two the row
  * carries, read-only, because no action writes a note after the fact
  * (request I1 again).
  */
@@ -99,15 +99,15 @@ const STATE_TONE: Record<InspectionState, BadgeTone> = {
  * for the visit, the document for the outcome.
  */
 const RUNG: Record<LadderKey, { icon: UiIconName; name: string; detail: string }> = {
-  asked: { icon: "house", name: "Viewing requested", detail: "The request is on both sides' lists" },
+  asked: { icon: "house", name: "Inspection requested", detail: "The request is on both sides' lists" },
   agreed: { icon: "verified", name: "Time agreed", detail: "A day and a time both sides took" },
-  visited: { icon: "bed", name: "Viewing happened", detail: "Somebody stood in the property" },
+  visited: { icon: "bed", name: "Inspection happened", detail: "Somebody stood in the property" },
   recorded: { icon: "document", name: "Outcome recorded", detail: "How it went, written on the record" },
 };
 
 const CROPS = "/brand/session-b/inspection";
 
-/** A crop from the render, with its daylight cut; the theme picks one. */
+/** A crop from the render (dark only; no daylight cut since 23 September). */
 function Crop({
   name,
   width,
@@ -120,24 +120,14 @@ function Crop({
   className?: string;
 }) {
   return (
-    <>
-      <Image
-        src={`${CROPS}/${name}.webp`}
-        alt=""
-        width={width}
-        height={height}
-        unoptimized
-        className={`nf-ix-crop nf-ix-crop--night ${className ?? ""}`}
-      />
-      <Image
-        src={`${CROPS}/${name}-day.webp`}
-        alt=""
-        width={width}
-        height={height}
-        unoptimized
-        className={`nf-ix-crop nf-ix-crop--day ${className ?? ""}`}
-      />
-    </>
+    <Image
+      src={`${CROPS}/${name}.webp`}
+      alt=""
+      width={width}
+      height={height}
+      unoptimized
+      className={`nf-ix-crop ${className ?? ""}`}
+    />
   );
 }
 
@@ -362,7 +352,7 @@ export function InspectionSheet({
               </p>
             )}
             {!inspection.note && !inspection.listerNote && (
-              <p className="nf-ix-notes__well nf-ix-notes__empty">No notes on this viewing yet.</p>
+              <p className="nf-ix-notes__well nf-ix-notes__empty">No notes on this inspection yet.</p>
             )}
           </div>
         </section>
@@ -456,7 +446,7 @@ export function InspectionSheet({
             <Link
               href={`/messages/${inspection.conversationId}?attach=1`}
               className="nf-btn nf-btn--primary nf-btn--lg nf-btn--full nf-ix-cta"
-              aria-label="Add Photos, in the conversation about this viewing"
+              aria-label="Add Photos, in the conversation about this inspection"
               data-testid="inspection-add-photos"
             >
               <UiIcon name="chevron-right" size={16} className="nf-ix-cta__start" />

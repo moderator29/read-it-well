@@ -20,7 +20,7 @@ import { waitingOn, type Inspection, type InspectionState } from "@/lib/inspecti
  * INSPECTIONS, AS ROWS, WITH THE STATE VISIBLE ON BOTH SIDES.
  *
  * One component, two audiences, and that is the point rather than an economy.
- * The single worst thing about arranging a viewing by chat is that the two
+ * The single worst thing about arranging an inspection by chat is that the two
  * people are looking at different things: the agent remembers saying Sunday,
  * the renter remembers asking for Saturday and hearing nothing. A row that
  * renders from the same record on both screens cannot disagree with itself.
@@ -255,7 +255,7 @@ function InspectionRow({
         THE CONTROLS, and only when it is actually this person's move.
 
         A row that always carries three buttons is a list you cannot scan. A
-        confirmed viewing needs nothing done to it, so it says so and stops.
+        confirmed inspection needs nothing done to it, so it says so and stops.
       */}
       {yourMove && side === "lister" && (
         <div className={`flex flex-wrap gap-xs ${CONTROL_INDENT}`}>
@@ -302,7 +302,7 @@ function InspectionRow({
         </div>
       )}
 
-      {/* A confirmed viewing can be marked as done by either side, because
+      {/* A confirmed inspection can be marked as done by either side, because
           either of them might be the one holding the phone afterwards. */}
       {inspection.state === "CONFIRMED" && (
         <div className={`flex flex-wrap items-center gap-xs ${CONTROL_INDENT}`}>
@@ -326,7 +326,7 @@ function InspectionRow({
       )}
 
       {/*
-        THE MORNING AFTER THE VIEWING, AND IT WAS A DEAD END.
+        THE MORNING AFTER THE INSPECTION, AND IT WAS A DEAD END.
 
         A COMPLETED row drew nothing at all. The only doors into
         `/rent/pay/<inspectionId>` in the whole product were inside a thread

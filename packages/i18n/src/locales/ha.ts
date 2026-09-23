@@ -2903,7 +2903,7 @@ export const ha: Dictionary = withFallback({
      until a native reviewer rewrites them. */
   inspectionsPage: {
     title: "Duba gida",
-    lede: "Every viewing you asked for or were asked to show. Both of you see the same state on the same request.",
+    lede: "Every inspection you asked for or were asked to host. Both of you see the same state on the same request.",
     openTitle: "A buɗe",
     openDescription: "Your move first, then what is booked in, then what is waiting on them.",
     closedTitle: "An rufe",
@@ -2911,7 +2911,7 @@ export const ha: Dictionary = withFallback({
       "We could not load your inspections just now, so this is not showing you an empty list that might not be true. Nothing has been lost. Try again in a moment.",
     emptyTitle: "Babu wani duba da aka shirya tukuna",
     emptyBody:
-      "Ask to view a property from its page and it lands here, with the answer beside it the moment it comes.",
+      "Request an inspection from a property's page and it lands here, with the answer beside it the moment it comes.",
     emptyAction: "Nemo wuri",
     loading: "Ana ɗora dubawarku",
   },
