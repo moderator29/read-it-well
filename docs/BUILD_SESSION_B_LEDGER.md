@@ -350,54 +350,84 @@ Proofs: `docs/design/proofs/session-b/welcome/`.
 
 The real first run, not a splash. Four slides on one stage, the render's four
 dots: (1) Two worlds. One platform, Property and Stays with the coin between;
-(2) what the verified tick means; (3) talk first, pay on Vallo; (4) the choice:
-Create account, Sign in, Look around first. Skippable on every slide, seen
-once, reachable signed out, swipe, arrow keys and dots, each move announced in
-a polite live region, 44px tall taps, safe-area padding, reduced motion.
+(2) what the verified tick means; (3) talk first, pay on Vallo; (4) the ending:
+Create account and Sign in for a stranger, one Continue into the app for
+somebody signed in. Skippable, shown EVERY time it is asked for (the founder,
+23 September, item 6), reachable signed out, swipe, arrow keys, dots and back,
+each move announced in a polite live region, 44px taps, safe-area padding,
+reduced motion.
+
+**Founder's items of 23 September, applied here.**
+- Item 6: `/welcome` never redirects. Everybody who asks for it, signed in or
+  not, seen or not, answered or not, gets the slides from the first one. The
+  ending fits who is looking: signed out, Create account and Sign in;
+  signed in, one Continue (through the interests question only while it is
+  unanswered, else into the app). The device cookie no longer suppresses the
+  screen; it is still written, for the sign up and sign in detour (W1, W2).
+- Item 8: "Look around first" is gone, with its key in all four locales:
+  nothing inside the platform is visible signed out. The ending's copy says
+  what an account unlocks instead.
+- Item 7: "viewing" is "inspection" on slide three, slide four and the art
+  label, in all four locales; a sweep of the surface's files finds no
+  "viewing" left.
+- Item 2: Light mode removed by the founder on 23 September; dark only.
+- R14 (Session A, section 49ter): back works. See "Back" below.
 
 Decisions recorded:
 - **The interests question stays** for a signed-in person who has not
   answered it. It is the only answer the product acts on at the door (it ranks
   home and search) and `InterestChoices` is its tested implementation, so it
   follows the slides as a fifth beat with no dot. A member's last slide reads
-  "You are in. Make it yours." with Continue (to the question) or Go to home.
-- **Seen once**: a stranger's device holds the first-party cookie
+  "You are in. Make it yours." with one Continue and nothing else.
+- **Back.** Every slide move pushes a history entry on the same address
+  (carrying the App Router's own state, so going back does not reload), and a
+  `popstate` listener restores the slide. So the browser's back, a swipe-back
+  gesture and Android's hardware back all step to the previous slide. Slides
+  two to four draw a 44px glass back square at the top left, level with the
+  lockup; slide one draws none, as the render draws none, and back there
+  leaves first run the way it came. Found while doing this: the Android back
+  handler (`components/app/NativeRuntime.tsx`) is not mounted anywhere in
+  `src`, so today Capacitor's default applies (the web view's history, then
+  exit), which is exactly what the slide history is built on. When Session A
+  mounts it, its `chooseBack` would push `/home` from any slide; request
+  **GS5** (welcome's block of the scope file) asks it to honour an in-page
+  history entry first. **GS6** asks Session A to update the one check in
+  `tests/signup-verify.spec.mjs` that item 6 retires. Proved in the
+  browser spec (drawn back and history back from slide three).
+- **The device memory**: a stranger's device holds the first-party cookie
   `vallo_first_run=seen` (400 days, Lax, Secure on https), written on Skip, on
-  reaching the last slide, or on taking a door; never while rendering. The
-  server reads it before painting, so a returning stranger with `?next=` goes
-  straight there and one without lands on the choice. A member keeps
-  `profiles.settings.welcomeSeen`; a device that saw the slides before sign up
-  counts as seen, so the question follows sign up without the slides again.
-  If the browser refuses the cookie, exits carry `welcomed=1` so a page that
-  gates on it cannot loop.
+  reaching the last slide, or on taking a door; never while rendering. Since
+  item 6 it no longer decides whether `/welcome` shows; sign up and sign in
+  read it to decide whether a first-time visitor detours here (W1, W2). A
+  member's Continue still records `profiles.settings.welcomeSeen`. If the
+  browser refuses the cookie, exits carry `welcomed=1` so a page that gates on
+  it cannot loop.
 - **Intent is kept**: `/welcome?next=/sign-in?next=%2Fwallet` makes Sign in the
   lit door with that address; Skip carries on to `next`.
 - **`/start` is a 307** to `/welcome?next=/sign-up` (a route handler, so no
   loading frame streams first). Every landing Get started link already points
   at `/start`, so the landing needed no change. StartCarousel is deleted.
-- **Dark in both themes**, by rule 22 (BUILD_06 12.2 names first run with sign
-  in and sign up). The stage pins `data-theme="dark"` and uses no shared class
-  that carries a `:root[data-theme="light"]` rule (not `.nf-aurora`,
-  `.nf-grid-veil` or `.nf-brand-icon-ground`, the three leaks the light survey
-  found on the old welcome), so paper cannot reach it.
+- **Dark only.** Light mode removed by the founder on 23 September; dark only.
 - **Header**: the render's page has only the lockup; there is no app chrome on
-  this screen by design, so no back button, dock or header is drawn.
+  this screen by design, so no dock or header is drawn; the back square above
+  is the one addition, on slides two to four only.
 
 ### (a) The chain
 
 | Link | What | State |
 |---|---|---|
 | Control | Get Started / Next / dots / arrows / swipe | client state only, nothing to write |
-| Control | Skip, stranger | `rememberFirstRunSeen()` writes the cookie, then `router.push(next)` or the choice slide. Proved by `tests/session-b-welcome.spec.mjs` |
-| Control | the three doors | real `<Link>`s to `/sign-up`, `/sign-in`, `/search`; the proxy leaves all three open signed out (checked live: 200) |
-| Query | `/welcome` page | `cookies()` + `loadInterestsState()` (profiles.interests, profiles.settings under the caller's RLS) into `planFirstRun` (pure, 14 unit tests in `app/welcome/plan.test.ts`) |
+| Control | Back (drawn square, browser, hardware) | `history.pushState` per slide, `popstate` restores it; proved by the browser spec |
+| Control | Skip, stranger | `rememberFirstRunSeen()` writes the cookie, then `router.push(next)` or the last slide. Proved by `tests/session-b-welcome.spec.mjs` |
+| Control | the two doors | real `<Link>`s to `/sign-up` and `/sign-in`, both open signed out |
+| Query | `/welcome` page | `loadInterestsState()` (profiles.interests, profiles.settings under the caller's RLS) into `planFirstRun` (pure, 12 unit tests in `app/welcome/plan.test.ts`), which only chooses the ending |
 | Proxy | `proxy.ts` | `welcome` removed from `PRODUCT_SEGMENTS` (claimed in scope first, 9b50916). Before this, a stranger was bounced to sign in and could never meet first run |
 | Server action | Continue / Skip, member | `markWelcomeSeen` and `skipInterests` in `lib/interests/actions.ts` (unchanged). No input, so no validation beyond the session |
 | RLS | `profiles` | `profiles_update_own` (auth.uid() = id, USING and WITH CHECK), `profiles_select_own`; read live with SELECT on pg_policies, 22 Sept |
 | Table | `profiles.settings` jsonb (`welcomeSeen`, `interestsAsked`), `profiles.interests` property_type[] | |
 | Triggers | `profiles_set_updated_at`, `profiles_sync_social_identity` (after update), two that fire only on place and name columns | none of them touch these keys |
 | Notification | none | none deserved: nothing another person needs to know |
-| Screen | `/home` redirects to `/welcome` while `askIntent`; `/welcome` sends a finished member home | |
+| Screen | `/home` redirects to `/welcome` while `askIntent`; a member's Continue goes to the question or into the app | |
 | Stats | none shown | the render shows none; `platform_stats` is not needed |
 
 Broken links found and where they went:
@@ -423,8 +453,8 @@ Broken links found and where they went:
 |---|---|
 | Flip between Property and Stays with a single account | the side flip and one session (`lib/side.ts`, the drawer's flip coin) |
 | The tick means someone at Vallo checked the agent's government ID by hand. It is about the person, not the property | `agent_badges.verified := verification_tier >= 1`, rung 1 = identity, "a named member of staff's recorded decision" (`lib/trust/verification.ts`, `lib/trust/agent-badge-derivation.test.ts`). The older "it shows the date" wording was dropped: I could not find the date on a listing surface |
-| Message the agent or host and arrange a viewing first. When you pay, pay on Vallo, never to anybody outside it | messaging and inspections exist; the pay sentence is advice, not a guarantee. No "safe", "protected" or insurance wording anywhere |
-| An account lets you save, message and ask for viewings. Browsing needs none | the proxy's product list (saved, messages, inspections) against its open routes (`/search`) |
+| Message the agent or host and book an inspection first. When you pay, pay on Vallo, never to anybody outside it | messaging and inspection requests exist (`app/(app)/inspections`); the pay sentence is advice, not a guarantee. No "safe", "protected" or insurance wording anywhere |
+| An account lets you search, save, message agents and hosts, and book inspections | every one of those is behind the account (item 8: nothing inside is visible signed out) |
 
 ### Refused from the render
 
@@ -522,16 +552,12 @@ around it. Nothing is upscaled.
 
 ### (c) Light mode
 
-Checked on the production server with `nf_theme=light` (document
-`data-theme="light"`): the surface renders identically to dark, as rule 22
-requires. No light-keyed rule reaches it (no shared class with a daylight
-rule is used), the lockup, stage and buttons are unchanged, and the ground
-covers the viewport. Proof: `welcome-light-390.jpg`.
+Light mode removed by the founder on 23 September; dark only.
 
 ### (d) Shape sweep
 
 `node scripts/design/compare-surface.mjs --base http://127.0.0.1:3172
---shape-sweep --routes /welcome --theme both`, 390 and 1536, dark and light:
+--shape-sweep --routes /welcome --theme both`, 390 and 1536 (light since removed; re-run dark only on 23 September, same result):
 BREACHES 0, WORTH AN EYE 0. (The first run flagged the four dot buttons at
 14/28 = 0.50; they now use `--nf-radius-xs`.) `check-css-tokens.mjs`: clean.
 
@@ -574,6 +600,7 @@ swept with it. Proofs: `docs/design/proofs/session-b/signin/`.
 | 11 | Google | `startGoogleOAuth` form action, provider fixed server side, `redirectTo` = `/auth/callback?next=...&intent=sign-in`; the callback page runs `completeEmailVerification` (code exchange) and shows the sign-in moment, not "Verifying your email" | Works in code. Drawn only when `getProviderStates` says Google is on |
 | 12a | First run (request W2) | `/sign-in` sends a device without `vallo_first_run=seen` to `/welcome?next=<the whole sign-in address>`; straight through on the cookie, on `welcomed=1`, and on the account notices (`first-run-gate.ts`, six unit tests) | NEW. Measured: a cookieless browser opening `/sign-in?next=/home` lands on `/welcome?next=%2Fsign-in%3Fnext%3D%252Fhome`. It arrives as a streamed redirect (HTTP 200 with the `NEXT_REDIRECT` marker and a meta refresh), not a 307 header, because the auth layout has begun streaming; a header-level 307 would need `proxy.ts`, which is not mine |
 | 12 | Sign up link | `/sign-up` (the real entry; the welcome worker may route it through `/welcome`) | Works |
+| 12c | Back (Session A's R14) | `AuthBackBar` in the (auth) layout mounts the shared `BackButton` when `parentOf` answers "parent"; a 44 px glass square top left, opposite the language control. Walked on the production build, pressing it on each route: `/sign-in` to `/welcome`, `/sign-in/email` to `/sign-in`, `/sign-up` to `/welcome`, `/sign-up/email` to `/sign-up`, `/sign-up/verify` to `/sign-up/email`, `/forgot-password` and `/reset-password` to `/sign-in`. `/auth/callback` sits outside the group (a moment that navigates itself) and draws none, confirmed. `auth-back.test.ts` holds all eight parents and that none is an app root | NEW. `/sign-in`'s parent is already `/welcome` in `route-parents.ts` (not `/start`), so back from sign in no longer heads to sign up; no request needed |
 | 12b | "What Vallo is" | On the sign-up card only; now `/welcome?next=/sign-up` with prefetch off (it was `/start`, a redirect prefetched on every render, which kept the page's network from ever settling). Sign-in carries no such link: a first-time visitor is already sent to first run by 12a | CHANGED |
 
 Broken links found and not in my files (none blocking):
@@ -646,6 +673,7 @@ render's own midpoint (tile top 14.5 per cent to plinth foot 92.4, midpoint
 | Icon plates | none | none | n/a |
 | Status badges | none | none | n/a |
 | Language control | not drawn | 44 px glass rounded rectangle, top right, clear of the tile | kept: a working control |
+| Back control | not drawn | 44 px glass rounded rectangle (corner 14, ratio 0.32), top left at 16, 16, clear of the tile; card and lockup positions unchanged (card 75, 368, 240 x 309) | added: R14, Android back |
 | Terms line | not drawn | 12 px muted, two lines, under the floor's lit reflection | kept: a Google sign-up passes no tick |
 | Colours | one blue family | one blue family plus Google's G | yes |
 
@@ -679,18 +707,8 @@ above.
 
 ### (c) Light mode
 
-Rule 22 keeps the auth family dark in both themes, so light mode's duty is to
-render the SAME screen. Measured: every element and pseudo-element under
-`main` compared by computed colour, background, border, shadow, display,
-opacity and filter, dark against light: **0 differences on `/sign-in`,
-`/sign-in/email`, `/sign-up`, `/forgot-password` and the harness's refused
-state** (round three). Two light leaks were found and closed on
-the way: `light.css` repainted `.nf-field` rgb(0,0,32) and took the primary's
-edge to transparent inside the pinned subtree (fixed by leading with
-`.nf-auth[data-theme="dark"]`); and `.nf-aurora` / `.nf-grid-veil`, which
-`light.css` hid in light mode (survey 9.5, item 1), are no longer used here.
-The logo is the render crop on a night stage in both themes, so it cannot
-vanish.
+~~Light mode: 0 computed-style differences on five routes.~~ Light mode removed
+by the founder on 23 September; dark only.
 
 ### (d) Shape sweep
 
@@ -713,8 +731,7 @@ files: 0 errors. Unit tests: 49 passing across `app/(auth)/sign-in`,
 ### Proofs (`docs/design/proofs/session-b/signin/`)
 Re-shot after the final round-three change, production build, 390 x 844 at 2x
 unless named. LIVE (no fixtures): `signin-vs-55A56F21-390.jpg` (the render
-beside the build), `signin-390-dark.jpg`, `signin-390-light.jpg` (rule 22: the
-same dark screen), `signin-email-390-dark.jpg`, `signup-390-dark-inherits.jpg`,
+beside the build), `signin-390-dark.jpg`, `signin-email-390-dark.jpg`, `signup-390-dark-inherits.jpg`,
 `forgot-390-dark-inherits.jpg`, `signin-1440-dark.jpg`. FIXTURE-BACKED (R-G,
 harness committed at `apps/web/src/app/(dev)/preview/session-b/signin/`, open
 with `VALLO_PREVIEW_HARNESS=1`): `harness-google-390.jpg`,

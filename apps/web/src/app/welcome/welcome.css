@@ -12,9 +12,7 @@
  * below are the render's, converted; the ledger (`docs/BUILD_SESSION_B_LEDGER.md`
  * section 2) holds the full table beside what the browser drew.
  *
- * DARK IN BOTH THEMES by rule 22 (see `WelcomeStage.tsx`). The tokens are
- * pinned by `data-theme="dark"` on the stage; the daylight note at the foot
- * says why no paper rule is needed.
+ * DARK ONLY: light mode was removed from the platform on 23 September.
  */
 @layer components {
   /* ------------------------------------------------------------ the ground */
@@ -98,6 +96,36 @@
   .nf-gs-lockup__word {
     width: 99px;
     height: auto;
+  }
+
+  /* Back, on slides two to four: a small glass square level with the
+     lockup at the top left (none on slide one, as the render draws none).
+     44px, the tap floor (R-B); radius 14 on 44 is 0.32, under the 0.35
+     review line (R-D). */
+  .nf-gs-back {
+    position: absolute;
+    top: calc(env(safe-area-inset-top, 0px) + 15px);
+    left: calc(env(safe-area-inset-left, 0px) + var(--nf-space-md));
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid var(--nf-container-edge);
+    border-radius: var(--nf-radius-control);
+    background: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
+    box-shadow:
+      inset 0 1px 0 var(--nf-rim-lit-ink),
+      0 0 14px -4px var(--nf-glow-3);
+    color: var(--nf-content-primary);
+    cursor: pointer;
+    backdrop-filter: blur(var(--nf-glass-blur-soft));
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur-soft));
+  }
+  .nf-gs-back:focus-visible {
+    outline: 2px solid var(--nf-focus-ring);
+    outline-offset: 3px;
   }
 
   /* ------------------------------------------------------------ the words */
@@ -702,14 +730,10 @@
     }
   }
 
-  /* ------------------------------------------------------------ daylight */
+  /* ------------------------------------------------------------ scheme */
 
-  /* Rule 22: this screen is dark on paper too, and it needs no daylight
-     rule to be so. The stage pins the dark tokens (`data-theme="dark"`),
-     covers the whole viewport with its own ground, and uses no shared class
-     that carries a `:root[data-theme="light"]` rule. What is left for paper
-     is the browser's own chrome: form controls and scrollbars inside the
-     stage are told the scheme here. */
+  /* Dark only (the founder, 23 September): form controls and scrollbars
+     inside the stage are told so. */
   .nf-gs {
     color-scheme: dark;
   }

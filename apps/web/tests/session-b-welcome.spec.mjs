@@ -6,8 +6,10 @@
  * What this proves that `src/app/welcome/plan.test.ts` cannot: that a
  * stranger really reaches `/welcome` signed out, that `/start` hands over to
  * it, that the slides move by button, key and dot with each move announced,
- * and that "seen once" survives a real click, a real cookie and a real
- * second request. Signed out only; nothing here signs anybody up.
+ * that back (drawn, browser, and so Android's hardware back in the web view)
+ * steps to the previous slide, that first run shows every time it is asked
+ * for, and that the device cookie the sign up detour reads is still written.
+ * Signed out only; nothing here signs anybody up.
  */
 
 import { chromium } from "playwright-core";
@@ -82,33 +84,53 @@ try {
     !cookiesBefore.some((c) => c.name === "vallo_first_run"),
   );
 
-  console.log("\nSeen once");
+  console.log("\nBack steps through the slides");
+  check("a back square on slide two", (await page.getByTestId("welcome-back").count()) === 1);
+  await goToSlide(page, 1);
+  check("none on the first slide, as the render draws none", (await page.getByTestId("welcome-back").count()) === 0);
+  await page.getByTestId("welcome-get-started").click();
+  await page.getByTestId("welcome-dot-2").and(page.locator('[aria-current="step"]')).waitFor();
+  await page.getByTestId("welcome-next").click();
+  await page.getByTestId("welcome-dot-3").and(page.locator('[aria-current="step"]')).waitFor();
+  check("a back square on slide three", (await page.getByTestId("welcome-back").count()) === 1);
+  await page.goBack({ waitUntil: "commit" });
+  await page.getByTestId("welcome-dot-2").and(page.locator('[aria-current="step"]')).waitFor();
+  check(
+    "the history back (what Android's hardware back does in the web view) goes to the previous slide, not out",
+    new URL(page.url()).pathname === "/welcome",
+  );
+  await page.getByTestId("welcome-back").click();
+  await page.getByTestId("welcome-dot-1").and(page.locator('[aria-current="step"]')).waitFor();
+  check("the drawn back square goes to the previous slide", new URL(page.url()).pathname === "/welcome");
+
+  console.log("\nShown every time, and the device still remembers");
   await page.getByTestId("welcome-skip-all").click();
   await page.waitForURL((url) => url.pathname === "/sign-up", { waitUntil: "domcontentloaded" });
   check("Skip carries on to where the person was going", new URL(page.url()).pathname === "/sign-up");
   const seen = (await ctx.cookies()).find((c) => c.name === "vallo_first_run");
-  check("and the device remembers", seen?.value === "seen", [JSON.stringify(seen)]);
+  check("the device remembers, for the sign up and sign in detour", seen?.value === "seen", [JSON.stringify(seen)]);
 
   await page.goto(`${BASE_URL}/welcome?next=%2Fsign-in`, { waitUntil: "domcontentloaded" });
-  await page.waitForURL((url) => url.pathname === "/sign-in", { waitUntil: "domcontentloaded" });
-  check("the second time, the intro is not shown again: straight to sign in", new URL(page.url()).pathname === "/sign-in");
-
-  await page.goto(`${BASE_URL}/welcome`, { waitUntil: "domcontentloaded" });
-  await page.getByTestId("welcome-create").waitFor();
-  check("with nowhere to go, a returning stranger lands on the choice", (await page.getByTestId("welcome-dot-4").getAttribute("aria-current")) === "step");
+  await page.getByTestId("welcome-get-started").waitFor();
+  check(
+    "asked for again, first run shows again from the first slide (the founder's rule)",
+    new URL(page.url()).pathname === "/welcome" &&
+      (await page.getByTestId("welcome-dot-1").getAttribute("aria-current")) === "step",
+  );
+  await goToSlide(page, 4);
   const hrefs = {
     create: await page.getByTestId("welcome-create").getAttribute("href"),
     signIn: await page.getByTestId("welcome-sign-in").getAttribute("href"),
-    browse: await page.getByTestId("welcome-browse").getAttribute("href"),
   };
   check(
-    "the three doors are the real routes",
-    hrefs.create === "/sign-up" && hrefs.signIn === "/sign-in" && hrefs.browse === "/search",
+    "a stranger's ending is the two real doors",
+    hrefs.create === "/sign-up" && hrefs.signIn === "/sign-in",
     [JSON.stringify(hrefs)],
   );
-  await page.getByTestId("welcome-browse").click();
-  await page.waitForURL((url) => url.pathname === "/search", { waitUntil: "domcontentloaded" });
-  check("Look around first opens browsing signed out", new URL(page.url()).pathname === "/search");
+  check(
+    "and there is no look-around door: nothing inside is visible signed out",
+    (await page.getByTestId("welcome-browse").count()) === 0 && (await page.getByTestId("welcome-skip-all").count()) === 0,
+  );
   await ctx.close();
 
   console.log("\nReaching the end is seeing it");

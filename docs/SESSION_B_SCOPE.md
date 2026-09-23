@@ -180,6 +180,8 @@ policy, Session B writes it as a request below.
 - `apps/web/src/components/auth/EmailAuthForm.tsx`
 - `apps/web/src/components/auth/fields.tsx`
 - `apps/web/src/app/css/auth.css`
+- `apps/web/src/app/(auth)/AuthBackBar.tsx` and `apps/web/src/app/(auth)/auth-back.test.ts` (new):
+  the auth screens' back control (Session A's R14) and its resolver test
 - `apps/web/public/brand/third-party/google-g.svg` (new): Google's standard G for the
   Continue with Google door, as a file because its four colours are Google's, not tokens
 
@@ -765,6 +767,24 @@ W4. **`tests/gate.spec.mjs` fails on main for reasons that are not first run.**
     which is now `src/proxy.ts`, so it throws at the end. Session B changed
     only the `/welcome` and `/start` lines, and the public list (23 routes,
     including both) passes. Request: bring the lists up to date.
+GS5. **Android's hardware back: `components/app/NativeRuntime.tsx` is not
+    mounted anywhere in `src`** (22 and 23 September, `grep NativeRuntime`), so
+    the back handler R14 describes never runs and Capacitor's default applies
+    (the web view's history, then exit). First run is built on exactly that
+    default: every slide is a history entry, so back steps to the previous
+    slide. When NativeRuntime is mounted, its `goBack` asks `chooseBack`, which
+    would push `/welcome`'s parent from any slide and skip the history. Request:
+    in `goBack`, before `chooseBack`, if `window.history.state?.nfGsSlide` is a
+    number (an in-page step), call `router.back()`. Session B changes nothing
+    in that file.
+GS6. **Founder's item 6 changes what `tests/signup-verify.spec.mjs` checks.**
+    Its lines 166 to 172 assert `showCards={!intent.welcomeSeen}` on
+    `app/welcome/page.tsx` ("a returning sign-in is not shown them again").
+    The founder now wants first run shown every time it is asked for, signed in
+    or not, so that line no longer exists and the check fails by design.
+    Request: drop or invert that check (`/welcome` renders `showCards` for
+    everybody; the device cookie `vallo_first_run` decides only the sign up and
+    sign in detour).
 
 ### Requests from identity (the platform identity and the roles icon pack)
 

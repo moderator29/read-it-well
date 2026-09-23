@@ -87,7 +87,8 @@ export const en = {
        `agent_badges.verified`, which is tier 1 of the ladder in
        `lib/trust/verification.ts` (a member of staff has seen the agent's
        government ID) and says nothing about the property; paying on Vallo is
-       advice, not a guarantee; browsing is open signed out (`proxy.ts`). */
+       advice, not a guarantee; nothing inside the platform is visible signed
+       out, so the ending offers an account, not a look around. */
     firstRun: {
       carousel: "Getting started with Vallo",
       slideLive: "Slide {n} of {total}: {title}",
@@ -103,21 +104,20 @@ export const en = {
       safe: {
         titleA: "Talk first.",
         titleB: "Pay when sure.",
-        body: "Message the agent or host and arrange a viewing first. When you pay, pay on Vallo, never to anybody outside it.",
+        body: "Message the agent or host and book an inspection first. When you pay, pay on Vallo, never to anybody outside it.",
         left: "Message",
         right: "Pay",
-        art: "A conversation, a viewing and a wallet",
+        art: "A conversation, an inspection and a wallet",
       },
       choice: {
         titleA: "Ready when",
         titleB: "you are.",
-        body: "An account lets you save, message and ask for viewings. Browsing needs none, so you can look around first.",
-        left: "Browse",
+        body: "An account lets you search, save, message agents and hosts, and book inspections.",
+        left: "Search",
         right: "Account",
-        art: "Browsing and an account, with the coin between them",
+        art: "Search and an account, with the coin between them",
         create: "Create account",
         signIn: "Sign in",
-        browse: "Look around first",
       },
       member: {
         titleA: "You are in.",
@@ -125,7 +125,6 @@ export const en = {
         bodyAsk: "One question next, so home opens on the markets you care about.",
         bodyDone: "Home opens on both sides. The coin in the menu turns between them.",
         continue: "Continue",
-        home: "Go to home",
       },
       worldsArt: "Property and Stays, with the coin that turns between them",
     },
