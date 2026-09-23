@@ -45,7 +45,12 @@ const record = (step, pass, detail, shot) => {
   console.log(`${pass ? "PASS" : "FAIL"} ${step}: ${detail}`);
 };
 
-const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH ?? "/opt/pw-browsers/chromium" });
+// A deployed host is reached through the box's HTTPS proxy when one is set (its CA is in the browser's NSS store).
+const proxy = base.startsWith("https://") && process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY } : undefined;
+// The proxy re-terminates TLS with its own CA; CHROMIUM_TRUST_SPKI pins exactly that CA's key (the
+// sweep workers' convention), rather than turning certificate checks off.
+const args = process.env.CHROMIUM_TRUST_SPKI ? [`--ignore-certificate-errors-spki-list=${process.env.CHROMIUM_TRUST_SPKI}`] : [];
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH ?? "/opt/pw-browsers/chromium", proxy, args });
 
 async function signIn(email, password, next = "/admin/money") {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -90,6 +95,11 @@ async function loadsClean(page, path, name) {
   const live = await page.locator(".nf-admin-kpi", { hasText: "Live listings" }).first().innerText().catch(() => "");
   const supplyRows = await page.locator("#ov-supply [role=row]:not(.nf-admin-dist__row--head), #ov-supply tbody tr").allInnerTexts().catch(() => []);
   record("overview reads", !main.includes(UNAVAILABLE), `"${UNAVAILABLE}" ${main.includes(UNAVAILABLE) ? "PRESENT" : "absent"}`, null);
+  const openReviews = await page.locator(".nf-admin-kpi", { hasText: "Open reviews" }).first().innerText().catch(() => "");
+  const railCounts = await page.locator(".nf-admin-rail .nf-admin-nav__count").allInnerTexts().catch(() => []);
+  record("rail badges and Open reviews (getQueueCounts)", !/Unavailable/.test(openReviews), `Open reviews reads "${openReviews.replace(/\s+/g, " ").trim()}"; rail badges [${railCounts.join(", ")}]`, null);
+  const alertsPanel = await page.locator("#ov-alerts").innerText().catch(() => "");
+  record("recent alerts (getRiskAlerts)", alertsPanel.length > 0 && !/did not load/i.test(alertsPanel), alertsPanel.replace(/\s+/g, " ").trim().slice(0, 160), null);
   record("live listings is the live count", /Live listings\s*0\b/.test(live.replace(/\s+/g, " ")), `card reads "${live.replace(/\s+/g, " ").trim()}" (expected 0: 0 real, the 64 examples excluded)`, null);
   const people = await page.locator(".nf-admin-strip").innerText().catch(() => "");
   const expectPeople = process.env.EXPECT_PEOPLE ?? "7";

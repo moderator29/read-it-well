@@ -40,7 +40,15 @@ const record = (step, pass, detail, shot) => {
   console.log(`${pass ? "PASS" : "FAIL"} ${step}: ${detail}`);
 };
 
-const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH ?? "/opt/pw-browsers/chromium" });
+// Against a remote host, PW_USE_PROXY=1 sends the browser through the box's
+// HTTPS proxy. (On this box Chromium cannot verify public sites,
+// ERR_CERT_AUTHORITY_INVALID, so production is probed over HTTP by
+// wallet-live-lookup-production.mjs instead.)
+const proxyUrl = process.env.PW_USE_PROXY ? new URL(process.env.HTTPS_PROXY ?? process.env.https_proxy ?? "") : null;
+const proxy = proxyUrl
+  ? { server: `${proxyUrl.protocol}//${proxyUrl.host}`, username: decodeURIComponent(proxyUrl.username) || undefined, password: decodeURIComponent(proxyUrl.password) || undefined }
+  : undefined;
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH ?? "/opt/pw-browsers/chromium", proxy });
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, reducedMotion: "reduce" });
 const page = await ctx.newPage();
 const requests = [];

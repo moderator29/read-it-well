@@ -1997,6 +1997,38 @@ checked by reading the old and new text side by side, not by rendering (the
 control needs a router). The console-wide page titles and loading labels on
 the money desks are left as they are.
 
+### 6.6h Live proof on production (www.vallospaces.com), 23 September 17:19 to 17:24 UTC
+
+The same read-only script (`admin-live-signed-in.mjs`) against
+`https://www.vallospaces.com`, signed in as the QA admin, through the box's
+HTTPS proxy (the proxy's CA pinned by SPKI, `CHROMIUM_TRUST_SPKI`, not
+certificate checks turned off). Pressed only navigation (Continue, the back
+arrow). **Deployed commit: unknown.** The pages name their Vercel deployment:
+`dpl_MmeTx6ViCFMJN3PwEgKoSDQQphuo` when the run began and
+`dpl_7dLACdyXnQwYzzzVQGgWqsMNRr2q` when it ended (production was redeployed
+during the run); reading the commit behind a deployment id needs a Vercel
+lookup this session was not approved for. Evidence: `docs/design/proofs/session-b/admin/live/production/` (a shot per step,
+`steps.json`).
+
+An earlier run at 17:12 on `dpl_62vNjAT4VYD3s1EM9K62QBjDbak6` passed 44 of
+46: the back arrow did nothing, because the browser refused a script chunk
+of a newer deployment under the page's Content Security Policy while
+production was switching deployments; on the settled run it passes.
+
+| Link | State |
+|---|---|
+| `getQueueCounts`: rail badges and Open reviews | LIVE PROVEN ON PRODUCTION: Open reviews 0, rail badges 6, 1, 4 |
+| `getRiskAlerts`: Recent alerts and the Alerts desk | LIVE PROVEN ON PRODUCTION: the newest real alert shown ("Push drain: something answered, but it was not the drain") |
+| `getAuditLog` and `getAuditActivity`: Operations > Audit log and the Audit desk (2) | LIVE PROVEN ON PRODUCTION: `13-ops-audit.jpg`, `220-audit.jpg` |
+| Every link of 6.6f proven locally (25) | LIVE PROVEN ON PRODUCTION as well (landing, Continue, second desk, back arrow, entry route, member refused, every read on Overview, Operations, Analytics) |
+| Desks the missing key broke locally: queue, listings, agents, businesses, money, reservations, flags, reports, support, alerts, audit, switches (12) | LIVE PROVEN ON PRODUCTION: each renders its desk with no failure copy (`200-*.jpg` to `223-*.jpg`) |
+| Supply desk, "Firm rosters" (admin-money's read) | FAILED ON PRODUCTION: "Firm rosters could not be read. Who works at each firm, pending, active and revoked. The read did not answer just now; reload in a moment." The project's Postgres log at the same seconds: `infinite recursion detected in policy for relation "firm_members"`. Filed as request A15 (Session A's policy) |
+
+**Totals.** Admin shell: 29 of 29 links proven live (25 on the local build
+against the live project, all 29 on production). Whole console as the script
+walks it: 4 signed-out doors plus 46 signed-in steps = 50; 49 LIVE PROVEN ON
+PRODUCTION, 1 FAILED (Firm rosters, A15).
+
 ### 6.7 Skipped or not verified
 
 - No proof from the live `/admin` pages with a real admin session (none may be
@@ -6576,8 +6608,9 @@ empty. Evidence: `docs/design/proofs/session-b/wallet-live/` (shots and
 | `/wallet/receive` details read | LIVE PROVEN: the identity panel drawn, no failure copy (`03-receive.jpg`) |
 | `/wallet/send` in wallet-to-wallet mode only | LIVE PROVEN: recipient field drawn, zero bank controls (`04-send.jpg`) |
 | Recipient lookup of the QA admin (by email: the schema has no handle, the send form looks up by address) | NOT PROVABLE ON THIS BOX: the server action ran live (POST observed) but answered "unknown" with no reason, because `lookupRecipient` needs the service-role client and this box's `.env.local` carries only the URL and anon key (`05-send-recipient-found.jpg` shows no answer). Proves the moment `SUPABASE_SERVICE_ROLE_KEY` is set for the build; that key is the founder's to give. |
+| Recipient lookup of the QA admin, ON PRODUCTION | LIVE PROVEN ON PRODUCTION (23 Sept 17:23 UTC; production's commit unknown: no version the member can read, `/api/version` answers 401, x-vercel-id iad1::4vpmn-1790184205432-808cf5483866). Signed in as the QA member, production's `/wallet/send` rendered signed in, and its `lookupRecipient` server action, given the QA admin's address, answered `found` with the account's display name and tier `platinum`. Send never pressed; no transfer, fund or withdraw action called. Run over HTTP (`scripts/design/session-b-shots/wallet-live-lookup-production.mjs`), not a browser: this box's Chromium fails every public site with ERR_CERT_AUTHORITY_INVALID. Production appears to still ship the bank mode (its page HTML matches the bank choice's markup or words), so the removal (32830d5b) has most likely not deployed there yet. Evidence: `docs/design/proofs/session-b/wallet-live-production/lookup-run.txt`. |
 
-Links proven live: 5 of 6.
+Links proven live: 6 of 6 (five on this box's build, the lookup on production).
 
 ## Push enrolment blind light (founder, 23 Sept)
 
@@ -7023,7 +7056,54 @@ pass 2. Bloom and cards unchanged and still exact (plates within 0.1 img, plus w
 Proofs: `overlay-pass3-*`, `story-*-390-dark.jpg`, `post-thread-390-dark.jpg`,
 `feed-1440-dark.jpg`, `bloom-open-1440-dark.jpg`.
 
+**Pass 4, 23 September.** Sampled outward from the plus's rim along two rays, render
+against build. Found: the render's rim peaks near white cyan (#abf9fc) where ours read
+#2fa8f5, and outside the rim the render lays a dense indigo field (#0855e2 to #012aa5,
+about 18 CSS px deep, the thin halo ring inside it) where ours let the card underneath
+show through. Fixed: the rim is `--nf-lit-cyan` lifted toward white, the fill's last
+tenth runs into the cyan, and the glow is a 5px indigo band, the 6px halo hair, a 16px
+field and a 40px falloff (rim now #66bef9, 4 img out #5080ed against #0777f0; what
+remains is the fixture photograph under the glow, a warm dusk where the render's is a
+dark night skyline). Checked and left: the rings' outer glow (the samples were landing on
+the ring's own edge; visually the rims match), and the card and lit-half glows, which are
+the shared layer's glow +1 step (the coordinator's instruction: use the shared glow and
+only go further where the image shows more; the image shows less there, recorded).
+Proofs: `overlay-pass4-*`, `side-by-side-*.jpg` and every state shot re-taken.
+
+**Pass 5, 23 September.** The whole inventory re-opened on the pass-4 build, every state
+shot laid side by side (feed, bloom open, bloom under reduced motion, a tap caught at
+90ms, composer, review picker, review empty, the post menu, Following, both empty states,
+the story viewer, its menu and comments, the story composer, a thread, 1440). Found: the
+action sheet's danger rows (Report, Block) wore the shared plate's cyan glyph glow over a
+rose glyph, which softens a warning; the glow is off for those two
+(`pass5-danger-rows-before-after.jpg`). Nothing else drew its own container, rim, glow or
+plate; bloom geometry still exact (overlay-pass5). Final proofs re-taken after this last
+change.
+
 ### 13.F.7 Checks
+
+Every push ran the gate after `git pull --rebase` (BRIEF: whole-project tsc, whole
+vitest, the token check), each heavy job through the shared lock:
+- `check-css-tokens.mjs`: exit 0 (nothing added; the stylesheet reads layer-2 tokens and
+  the shared anatomy, the deeper indigo derived from `--nf-brand-primary`, FEED-5).
+- `tsc --noEmit -p .` (whole project): exit 0.
+- `vitest run` (whole suite): 238 files, 3850 passed, 1 skipped at the last push
+  (`physics.test.ts` 9 tests: the measured centres and tilts, the arc, screen fit,
+  the trails, the spring; `author-badges.test.ts` 4). Two unrelated tests timed out
+  once each under the box's load (`service-worker.browser.test.ts`,
+  `proxy-session.test.ts`); both pass alone and the gate was re-run clean before pushing.
+- eslint on every changed file: clean.
+- Controls, measured in the build (`feed.mjs` prints them): location bar 33.4 tall,
+  radius 8 (0.24); segment halves 35.2, radius 8 (0.23); action controls 28 painted,
+  radius 6 (0.21), 44 hit; plates 37, radius 14 (0.378, the founder's own ruling:
+  the control radius on the drawn plate; R-D's 0.35 line is exceeded by his choice, not
+  by drift); sheet rows 64, radius 18 (0.28); the plus, the rings and the avatars round
+  (shapes, not text controls).
+- Behaviour: Escape closes the fan and returns focus to the plus; focus order Review,
+  Story, Post; reduced motion shows the plates at rest (a real defect fixed: the
+  reduced-motion paint ran before the plates mounted and left them folded on the plus);
+  every action lands on its real composer (Post sheet, `/stories/new`, the review picker
+  or its honest empty sheet).
 
 ### 13.F.8 Not matched, and why
 
