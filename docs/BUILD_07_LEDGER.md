@@ -9000,3 +9000,102 @@ proved by me: that Paystack accepts these bodies, that a recipient is created,
 that a transfer settles, and that `transfer.success` then closes the hold. What
 is proved is every byte up to the socket, and the refusals on this side of it.
 No live money moved and no row was written to a product table.
+
+---
+
+## 69. ITEM 3 LANDED, AND ONE QUESTION IN IT IS NOT AN ENGINEERING QUESTION
+
+### A correction to the brief, offered because the founder asked for findings and not agreement
+
+**The send screen never took a bank account.** Checked rather than asserted:
+the only commit in the whole history that puts `accountNumber` into
+`SendFlow.tsx` or anything under `app/(app)/wallet/send/**` is `24eac4c6`,
+which landed TODAY and is Session B's new screen.
+
+What the founder is remembering is real and is two things:
+
+1. **The withdraw sheet on `/wallet`** has always taken an account number and a
+   bank and shown the bank-resolved name back. That is exactly the flow he
+   describes. It only ever went to **your own** account.
+2. **A "Bank" row on the send screen**, which was a link through to that
+   withdraw sheet rather than a bank send. It was removed on 22 September at
+   `d46aa3a7` and the reason is in the commit: the row implied a capability
+   that did not exist. **That refusal was right at the time.** What has changed
+   is that the capability now exists, so the row can come back with something
+   behind it.
+
+### The decision in this work most worth reading
+
+**A bank send writes an `rm-wd-` reference.** Confirmed at
+`api/paystack/webhook/route.ts:504`: `if (!reference.startsWith(WITHDRAW_PREFIX))`
+gates every `transfer.success`, `transfer.failed` and `transfer.reversed`, and
+the stale-hold sweeper releases only that prefix. **A prefix of its own would
+have produced a debit that nothing on this platform could ever settle or
+release**: somebody's balance held out for ever, by design, on day one. So a
+bank send is a withdrawal in the ledger, carrying
+`destination: "third_party"` in its metadata, and it spends the same
+five-an-hour `guardMoney("withdraw")` allowance so the payout cap cannot be
+walked round by using the other screen.
+
+### One resolver, and there were already two front doors that disagreed
+
+`resolveAccountNumber` was and is the single HTTP call. But two callers sat on
+top of it with different rules: the payout side handed any non-empty bank code
+to the processor, while the withdraw sheet **silently refused** any code
+outside a hand-curated list of twenty three. So before today a person could
+file a Kuda, Opay, Palmpay, Moniepoint, Sparkle, VFD or Jaiz account on the
+payments settings page and get nothing back at all from the withdraw sheet for
+the same account. The body now lives in one module that all four callers ask.
+
+It also printed an outage as **"no account found with that number at this
+bank"**, which is a lie about a number that may be perfectly correct. Those are
+two different sentences now.
+
+### ESCALATION TO THE FOUNDER, beside R1 and the NDIC ruling
+
+**A wallet to a stranger's bank account is a different regulated shape from a
+withdrawal to your own account, even though the rails and the ledger row are
+identical.**
+
+The work was built exactly as instructed and introduces no float: the balance
+is held under the wallet's own row lock before the processor is called, and a
+failed start releases it. Nothing here is a merchant-of-record exposure and
+nothing sits on the stop list. **But whether Vallo should be moving money to
+third party accounts at all is a licensing question and not an engineering
+one**, and it is the same class of question as the NDIC badge: something the
+code can do, that the company may not yet be permitted to do.
+
+This is raised, not decided, and nothing is switched on: Session B's screen
+carries `BANK_SEND_OPEN = false` and that one line is the whole gate. **Founder,
+this wants the same answer the solicitor is giving on custody, and it should
+have it before that flag is flipped.**
+
+### Still open, named rather than quietly fixed
+
+- **The withdraw sheet still uses the twenty three bank list** while the send
+  desk uses the live registry of about a hundred. The disagreement survives in
+  exactly one place now. Widening it means a code the `<select>` cannot
+  currently produce reaching a live payout path, which is money nobody was
+  asked to touch.
+- **The settlement email will say "withdrawal"** to somebody who has just sent
+  money to a friend. True, and not the word they expect.
+- **`withdraw` still takes no idempotency key**, which is why its panel has no
+  retry button. The new door has one; the old one is unchanged.
+
+### Proved by watching it fail, which is the only reason to believe any of it
+
+Three deliberate mutations of the shipped code, each reverted with an empty
+`git diff` afterwards: dropping the name check turned one test red, bypassing
+the idempotency wrapper turned one red, and trusting the browser's confirmed
+name instead of re-resolving turned five red. The scaffolding itself failed
+first: a stand-in returned the wrong wrapper shape, the idempotency guard
+degraded open, and the two-taps test went red. **A test that had mocked the
+guard would have been green**, which is the whole argument for substituting
+nothing but the outermost socket.
+
+**UNPROVEN and stated as such:** `api.paystack.co` is unreachable from this
+container and there is no live key here, so nothing past the socket is proved.
+That Paystack accepts these bodies, that the recipient is created, that the
+transfer settles and that `transfer.success` then closes the hold are all
+untested. Everything up to the bytes on the wire is proved, and so is every
+refusal on this side of it.
