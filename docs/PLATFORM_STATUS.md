@@ -1,12 +1,124 @@
 # Vallo platform status
 
-**Measured:** 23 September 2026, 00:05 UTC. Cycle 2.
-**Briefs measured at commit:** `dfbff2f` (cycle 1), re-measured against `1464eca5` where noted
-**Repository state at write time:** `1464eca5` on `main` (and `claude/brave-feynman-9g0ykr`, identical)
+**Measured:** 23 September 2026, 10:40 UTC. Cycle 4.
+**Briefs measured at commit:** `dfbff2f` (cycle 1), re-measured against `1464eca5` and
+then `f70c0bbe` where noted
+**Repository state at write time:** `f70c0bbe` on `main` (and `claude/brave-feynman-9g0ykr`, identical)
 **Measured by:** the build session lead, with four read-only measurement agents whose
 findings were re-checked against the live database and the files before being written here.
 Four of their claims were wrong and are corrected in place rather than repeated.
 **Rewritten:** at the end of every cycle. This file is written to be checked.
+
+---
+
+## CYCLE 4, AND A CORRECTION TO CYCLES 1 TO 3 THAT MATTERS MORE THAN THE PROGRESS
+
+**Read this before any number below it.**
+
+### The correction: main was red and this report could not see it
+
+Three times this cycle the lead told the founder main was green. Every one of
+those statements was measured by running the suite in the shared worktree
+`/home/user/read-it-well`. **That tree is not main.** Six writers have
+uncommitted edits in it, and one of those edits was supplying a module that
+main did not have. The suite was green over a tree that nobody has and nobody
+deploys.
+
+Measured properly, in a `git worktree` at `origin/main` with `node_modules`
+hardlinked at both the root and `apps/web`:
+
+```
+Test Files  2 failed | 203 passed (205)
+     Tests  8 failed | 3430 passed (3438)
+```
+
+Commit `7da4b0d0`, whose subject is push transports, had deleted
+`apps/web/src/lib/notify/welcome.ts` while `lib/auth/actions.ts` still imported
+`welcomeOnce` from it. The eight failures were in `sign-in-ceiling.test.ts` and
+`terms-gate.test.ts`, two files about refusing sign-ups with nothing to do with
+push or with welcome emails, because a missing import takes down whatever
+imports the importer. **The failure list was no guide to the cause.**
+
+This is blind light number seventeen and the first whose blind spot was the
+measuring session's own standing assumption. **The rule that follows, now
+binding on both sessions: while more than one writer is live in the worktree,
+the words "main is green" require a run at `origin/main` in isolation. A run in
+the shared tree measures the shared tree, which is a different sentence.**
+
+The file is restored byte for byte from `7da4b0d0^`. The green below IS
+measured that way.
+
+### Why it happened: the repository ate seven files in one day
+
+`git add` and `git commit` are two statements over one shared index, and the
+index belongs to every process in the worktree. Three times on 23 September a
+worker's commit swept up files it never touched: twenty four files of the Price
+Check share surface landed inside a commit about escrow probes, a probe table
+landed inside the push commit, and this deletion. **That procedure was the
+lead's and it was racy.** Every worker has been moved to
+`git commit -- <paths>`, which builds a temporary index and never reads the
+shared one, with `git add` used only for brand new files, which is the one case
+the pathspec form cannot cover.
+
+### What actually moved this cycle
+
+| block | what landed | state |
+|---|---|---|
+| Escrow | evidence filing with the bucket's own limits, the proposal inside a thread, ADR-E1, the probe table, `openHeldPayment` retired and its verb revoked from every role | built, **partly unproven, see below** |
+| Email | the junction: one durable outbox, a trigger writing in the same transaction as the event, a quarter hourly drain, thirteen templates with a path to the wire | built, **nothing has ever been sent** |
+| Navigation | 22 routes with a declared parent and no back control, wired and WALKED cold and warm on real Chromium, plus the Android hardware button against the real handler | 19 of 22 drawn and correct, 3 correctly draw nothing |
+| Track G | `listing_role` travels to the detail page and `Listed by the owner` was rendered on a real screen | read half closed, **renders for nobody today** |
+| Price Check | the share surface, its destination, its OG image, and five independent proofs that no artefact can carry an address | built and proved |
+| Push | the database half: tokens, a queue, a delivery that cannot claim a success it never read | database half only |
+
+### Four defects found this cycle that would have shipped
+
+1. **Every agreement ever opened was audited to nobody.** `escrow_audit_insert`
+   wrote `actor_id = auth.uid()`, and `auth.uid()` is null under the service
+   role, which is how every escrow write arrives.
+2. **The second file any party ever uploaded was refused.**
+   `escrow_evidence_one_fact_per_party` was `UNIQUE NULLS NOT DISTINCT` and a
+   file row has a null fact, so the second upload came back as "You have
+   already filed that" with the bytes already in the bucket and no row.
+3. **`created_by` on a shared Price Check card was readable by anyone**, and by
+   anyone paging the table. A table wide SELECT grant to `anon`, over which a
+   column list grant narrows nothing.
+4. **The share card's first OG image printed the naira sign as an empty box.**
+   Satori ships no system font fallback and the font `@vercel/og` bundles has
+   no U+20A6. Its failure mode is silent and only visible inside somebody
+   else's chat app.
+
+### And two blind lights inside the escrow probes themselves
+
+**P-2 read PASS while the escrow door could not insert a row at all.** The
+withdrawal went first and took the balance, so the escrow leg was refused
+`insufficient` by the spendable check before it ever reached the broken
+statement. Every assertion was satisfied. The other direction caught it. **That
+is what the founder's phrase "in both directions" is for.**
+
+**The nine probe harness had been red for hours and nothing said so.** It
+builds a scratch copy of `escrows` by hand while lifting real function bodies
+out of the migrations, and the real table gained a column. Second time that
+hand built copy has been less faithful than production. It now lifts its
+columns the same way it lifts its bodies, and runs a smoke check first so a
+harness fault cannot masquerade as a product verdict.
+
+### The honest state of the founder's own sentence
+
+*No naira moves until all nine probes pass in both directions.*
+
+- The local eleven pass against the 23 September bodies.
+- P-7's EXECUTE half passes: 22 refusals over 11 verbs and 2 roles, with a
+  control answering a real business reply, so the harness is known to reach
+  function bodies.
+- **P-7's HTTP half has NEVER RUN** and cannot run from this container.
+  PostgREST resolves by argument name against a cached schema, so a verb shut
+  in `pg_proc` can still answer over the wire. The EXECUTE half cannot stand in
+  for it.
+- **P-1 to P-6 are UNPROVEN as evidence about the door the product now funds
+  through**, because they fund through the verb retired today. They remain
+  evidence about the shared locking and ledger machinery.
+- P-3's reverse orderings and P-8's other illegal transitions have never run.
 
 ---
 
@@ -50,13 +162,13 @@ Not an average of the optimistic ones.
 
 | Fact | Value | How |
 |---|---|---|
-| Test suite | **188 files, 3,227 tests. 3,226 pass, 1 FAILS** | `npx vitest run` on a clean worktree at `1464eca5`, exit 1 |
+| Test suite | **206 files, 3,455 tests, ALL PASS** | `vitest run` in an ISOLATED worktree at `origin/main` = `f70c0bbe`, exit 0. Not the shared tree, for the reason given above. |
 | Workspace lint | **0 errors, 341 warnings** | `npm run lint --workspace @vallo/web`, exit 0 |
 | Production build | **green, six consecutive** | Vercel production READY on `2596ed9` and every commit since the 17:36 fix |
-| Routes | 269 `page.tsx` | `find apps/web/src/app -name page.tsx` |
-| Components | 272 `.tsx` | `find apps/web/src/components` |
-| Migrations | 259, **zero duplicate versions** | `ls supabase/migrations/*.sql`, and a `uniq -d` on the version prefix |
-| Preview harness routes | 132 | `find apps/web/src/app/(dev)/preview -name page.tsx` |
+| Routes | 299 `page.tsx` | `find apps/web/src/app -name page.tsx` |
+| Components | 296 `.tsx` | `find apps/web/src/components` |
+| Migrations | 284, **zero duplicate versions** | `ls supabase/migrations/*.sql`, and a `uniq -d` on the version prefix |
+| Preview harness routes | 154 | `find apps/web/src/app/(dev)/preview -name page.tsx` |
 | **Published listings** | **64** | live database |
 | **Of which demo** | **64** | `is_demo = true` on every one |
 | **Real supply** | **0** | `count(*) where status='PUBLISHED' and not is_demo` |
@@ -70,7 +182,25 @@ Not an average of the optimistic ones.
 
 ## The one honest overall figure
 
-# 58%
+# 63%
+
+> **CYCLE 4.** Five points, and it should have been more. Escrow gained the
+> evidence half, the proposal door, the ADR and an honest probe table; the
+> email junction went from thirteen templates reaching nobody to thirteen
+> templates one environment variable away from sending; twenty two routes got a
+> back control and were WALKED rather than grepped; Track G's read half closed
+> and was rendered on a screen; the Price Check share surface landed with five
+> independent proofs about addresses.
+>
+> **What held it to five.** Two things this cycle got WORSE as knowledge, and
+> knowledge is what this number measures. P-1 to P-6 stopped being evidence
+> about the door the product funds through, because that door changed. And main
+> was red for a stretch while three reports said it was green, which means the
+> instrument this file depends on was wrong. Fixing an instrument does not add
+> progress; it subtracts the progress that was never there.
+>
+> **The number did not move because more was written. It moved because more was
+> proved, minus what turned out never to have been.**
 
 > **CYCLE 2, and why the number moved 11 points in one night.** Five workers
 > closed on the founder's five blocks. Price Check went 0% to a built, applied
@@ -95,6 +225,15 @@ The arithmetic, so it can be argued with:
 | HANDOFF 09, seven tracks + the words | 25% | ~52 | Two tracks at 0% and 20% are the largest blocks in it |
 | The twelve governing images | 10% | 78 | 36 of 46 screens rowed and filed |
 | Today's repairs | 10% | 100 | Everything claimed today was verified before it was claimed |
+
+**Cycle 4 adjustment to the arithmetic above**, so the five points can be
+argued with rather than taken. HANDOFF 09's escrow and email tracks each moved
+roughly a third of their remaining items; navigation moved 22 of the 60 routes
+that declare a parent and draw nothing, which is 37% of that item and not of
+the track. Against that, the escrow concurrency evidence was RE-CLASSIFIED from
+proven to unproven for the live door, which is a subtraction, and the
+"today's repairs 100%" line above was itself measured in the shared tree and is
+now re-taken in isolation. The net is +5.
 
 **Why it is not higher.** Because "built" and "proven" have been allowed to mean
 the same thing, and they do not. The backend is 89% built and far less than 89%
@@ -1201,11 +1340,19 @@ Session B's; the lister's notification centre and search-by-ID stay here.
 Every number above is meant to be re-derived. The commands:
 
 ```sh
-npx vitest run --root apps/web                    # 154 files, 2802 tests
-npm run lint --workspace @vallo/web               # exit 0, 341 warnings
+# NOT in the shared worktree. While more than one writer is live, a run there
+# measures a tree nobody has and nobody deploys, which is how main stayed red
+# behind three green reports on 23 September.
+git worktree add /tmp/gate origin/main --detach
+cp -al node_modules /tmp/gate/node_modules              # hardlink, NEVER a symlink
+cp -al apps/web/node_modules /tmp/gate/apps/web/node_modules
+cd /tmp/gate/apps/web && ../../node_modules/.bin/vitest run   # 206 files, 3455 tests, exit 0
+
+npm run lint --workspace @vallo/web               # exit 0, warnings only
 node apps/web/scripts/check-css-tokens.mjs        # exit 0, ten rules
 node apps/web/scripts/check-deep-links.mjs        # exit 1, by design
-ls supabase/migrations/*.sql | wc -l              # 242
+ls supabase/migrations/*.sql | wc -l              # 284
+ls supabase/migrations/*.sql | xargs -n1 basename | cut -d_ -f1 | sort | uniq -d   # empty
 ```
 
 ```sql
