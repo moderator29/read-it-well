@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { buildSitemap } from "@/lib/listings/sitemap";
+import { areaPricePages } from "@/lib/areas/queries";
 import { siteUrl } from "@/lib/site";
 
 /**
@@ -31,6 +32,18 @@ import { siteUrl } from "@/lib/site";
  * `app/sitemap.test.ts` holds this file, `robots.ts` and `proxy.ts` to the
  * same answer so the three cannot drift.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
-  return buildSitemap(siteUrl());
+/*
+ * ONE READ CAME BACK, AND IT IS NOT INVENTORY (V-82). The public area price
+ * pages are aggregates (what an area is asking, with the count), and an area
+ * earns one only with the Price Check minimum of REAL listings. The list is
+ * read as a cookie-less stranger through `areaPricePages`, so the sitemap
+ * names exactly the pages a crawler will be served, and none today. An
+ * outage lists none rather than failing the whole file.
+ */
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const pages = await areaPricePages();
+  return buildSitemap(
+    siteUrl(),
+    (pages ?? []).map((page) => ({ path: page.path, lastModified: page.newestAt })),
+  );
 }
