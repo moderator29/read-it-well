@@ -1,0 +1,66 @@
+shape sweep: /preview/session-b/sweep-social?f=booking, /preview/session-b/sweep-social?f=rental, /preview/session-b/sweep-social?f=share, /preview/session-b/sweep-social?f=inbox, /preview/session-b/feed?state=bloom, /preview/session-b/inspection, /preview/session-b/sweep-home/search, /preview/session-b/sweep-home/listing-parts, /preview/session-b/sweep-wallet/transactions, /preview/session-b/admin-money/payments, /preview/session-b/sweep-settings?v=hub, /preview/session-b/sweep-stays/escrow-detail, /preview/g1, / at 390px, 1536px in dark
+
+BREACHES, a text-bearing control drawn as a capsule (ratio at or above 0.5): 12
+  /preview/g1 @390 dark  nf-badge.px-sm.py-xs  "Pending"  92x38  radius 19.1px  ratio 0.50
+  /preview/g1 @390 dark  nf-badge.px-sm.py-xs  "In Review"  101x38  radius 19.1px  ratio 0.50
+  /preview/g1 @390 dark  nf-badge.px-sm.py-xs  "Approved"  102x38  radius 19.1px  ratio 0.50
+  /preview/g1 @390 dark  nf-badge.px-sm.py-xs  "Completed"  110x38  radius 19.1px  ratio 0.50
+  /preview/g1 @390 dark  nf-badge.px-sm.py-xs  "Rejected"  96x38  radius 19.1px  ratio 0.50
+  /preview/g1 @390 dark  nf-badge.px-sm.py-xs  "Verified"  90x38  radius 19.1px  ratio 0.50
+  /preview/g1 @1536 dark  nf-badge.px-sm.py-xs  "Pending"  92x38  radius 19.1px  ratio 0.50
+  /preview/g1 @1536 dark  nf-badge.px-sm.py-xs  "In Review"  101x38  radius 19.1px  ratio 0.50
+  /preview/g1 @1536 dark  nf-badge.px-sm.py-xs  "Approved"  102x38  radius 19.1px  ratio 0.50
+  /preview/g1 @1536 dark  nf-badge.px-sm.py-xs  "Completed"  110x38  radius 19.1px  ratio 0.50
+  /preview/g1 @1536 dark  nf-badge.px-sm.py-xs  "Rejected"  96x38  radius 19.1px  ratio 0.50
+  /preview/g1 @1536 dark  nf-badge.px-sm.py-xs  "Verified"  90x38  radius 19.1px  ratio 0.50
+
+WORTH AN EYE, text-bearing and over 0.35 but not yet a capsule: 20
+  /preview/session-b/sweep-social?f=booking @390 dark  nf-chat-card__badge  "Confirmed"  108x28  radius 10px  ratio 0.36
+  /preview/session-b/sweep-social?f=booking @390 dark  nf-badge.px-sm.py-2xs  "Confirmed"  108x28  radius 10px  ratio 0.36
+  /preview/session-b/sweep-social?f=booking @1536 dark  nf-chat-card__badge  "Confirmed"  108x28  radius 10px  ratio 0.36
+  /preview/session-b/sweep-social?f=booking @1536 dark  nf-badge.px-sm.py-2xs  "Confirmed"  108x28  radius 10px  ratio 0.36
+  /preview/session-b/sweep-social?f=rental @390 dark  nf-badge.nf-badge--success.shrink-0  "Verified"  80x27  radius 10px  ratio 0.38
+  /preview/session-b/sweep-social?f=rental @1536 dark  nf-badge.nf-badge--success.shrink-0  "Verified"  80x27  radius 10px  ratio 0.38
+  /preview/session-b/sweep-social?f=share @390 dark  nf-badge.nf-badge--verified.shrink-0  "Verified"  80x27  radius 10px  ratio 0.38
+  /preview/session-b/sweep-social?f=share @1536 dark  nf-badge.nf-badge--verified.shrink-0  "Verified"  80x27  radius 10px  ratio 0.38
+  /preview/g1 @390 dark  nf-segmented__item.relative.z-1  "Buy"  72x36  radius 14px  ratio 0.39
+  /preview/g1 @390 dark  nf-segmented__item.relative.z-1  "Rent"  77x36  radius 14px  ratio 0.39
+  /preview/g1 @390 dark  nf-segmented__item.relative.z-1  "Stay"  76x36  radius 14px  ratio 0.39
+  /preview/g1 @390 dark  nf-segmented__item.relative.z-1  "Invest"  86x36  radius 14px  ratio 0.39
+  /preview/g1 @1536 dark  nf-segmented__item.relative.z-1  "Buy"  72x36  radius 14px  ratio 0.39
+  /preview/g1 @1536 dark  nf-segmented__item.relative.z-1  "Rent"  77x36  radius 14px  ratio 0.39
+  /preview/g1 @1536 dark  nf-segmented__item.relative.z-1  "Stay"  76x36  radius 14px  ratio 0.39
+  /preview/g1 @1536 dark  nf-segmented__item.relative.z-1  "Invest"  86x36  radius 14px  ratio 0.39
+  / @1536 dark  nf-site-nav-link  "AI"  38x44  radius 14px  ratio 0.37
+  / @1536 dark  nf-landing-pill-seg  "Buy"  70x40  radius 14px  ratio 0.35
+  / @1536 dark  nf-landing-pill-seg  "Rent"  75x40  radius 14px  ratio 0.35
+  / @1536 dark  nf-landing-pill-seg  "Stay"  74x40  radius 14px  ratio 0.35
+
+ROUND ICON-ONLY CONTROLS, allowed only where a governing image draws them round: 20
+  /preview/session-b/feed?state=bloom @390 dark  nf-tap.grid.place-items-center  ""  20x20  radius 10px  ratio 0.50
+  /preview/session-b/feed?state=bloom @390 dark  nf-bloom__fab  ""  58x58  radius 29px  ratio 0.50
+  /preview/session-b/feed?state=bloom @1536 dark  nf-tap.grid.place-items-center  ""  20x20  radius 10px  ratio 0.50
+  /preview/session-b/feed?state=bloom @1536 dark  nf-bloom__fab  ""  58x58  radius 29px  ratio 0.50
+  /preview/session-b/inspection @390 dark  nf-ix-room__check  ""  18x18  radius 9px  ratio 0.50
+  /preview/session-b/inspection @390 dark  nf-ix-room__check  ""  18x18  radius 9px  ratio 0.50
+  /preview/session-b/inspection @390 dark  nf-ix-room__check  ""  18x18  radius 9px  ratio 0.50
+  /preview/session-b/inspection @390 dark  nf-ix-room__check  ""  18x18  radius 9px  ratio 0.50
+  /preview/session-b/inspection @390 dark  nf-ix-room__check  ""  18x18  radius 9px  ratio 0.50
+  /preview/session-b/inspection @390 dark  nf-ix-room__check  ""  18x18  radius 9px  ratio 0.50
+  /preview/session-b/inspection @390 dark  nf-ix-room__check  ""  18x18  radius 9px  ratio 0.50
+  /preview/session-b/inspection @390 dark  nf-ix-room__check  ""  18x18  radius 9px  ratio 0.50
+  /preview/session-b/inspection @1536 dark  nf-ix-room__check  ""  18x18  radius 9px  ratio 0.50
+  /preview/session-b/inspection @1536 dark  nf-ix-room__check  ""  18x18  radius 9px  ratio 0.50
+  /preview/session-b/inspection @1536 dark  nf-ix-room__check  ""  18x18  radius 9px  ratio 0.50
+  /preview/session-b/inspection @1536 dark  nf-ix-room__check  ""  18x18  radius 9px  ratio 0.50
+  /preview/session-b/inspection @1536 dark  nf-ix-room__check  ""  18x18  radius 9px  ratio 0.50
+  /preview/session-b/inspection @1536 dark  nf-ix-room__check  ""  18x18  radius 9px  ratio 0.50
+  /preview/session-b/inspection @1536 dark  nf-ix-room__check  ""  18x18  radius 9px  ratio 0.50
+  /preview/session-b/inspection @1536 dark  nf-ix-room__check  ""  18x18  radius 9px  ratio 0.50
+
+ROUTES REFUSED, so nothing is claimed about them either way: 1
+  / @390 dark: page.goto: Timeout 60000ms exceeded.
+
+COVERED: 14 route(s) asked for, 1 refusal(s), 13 route/width/theme combination(s) actually measured.
+
+12 text-bearing control(s) are capsules. The shape law is broken here.
