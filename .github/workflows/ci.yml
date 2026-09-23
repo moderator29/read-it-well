@@ -33,6 +33,12 @@
 # jobs are independent now, so a push always gets the build's answer. The cost
 # is one extra runner on a red branch, which is worth far less than twenty
 # minutes of production.
+#
+# THE DATABASE PROBES (DOC-03) are the `db-probes` job: every
+# supabase/tests/probes/*.sql against the database in the PROBES_DATABASE_URL
+# secret, each required to raise PROBE_OK (and always rolled back). The unit
+# suite never reaches the database; this is the job that fails when a
+# migration revokes a grant an RLS policy needs.
 name: CI
 
 on:
@@ -80,6 +86,10 @@ jobs:
       - name: Test
         if: ${{ !cancelled() }}
         run: npm run test
+
+      - name: Database probe files keep the contract
+        if: ${{ !cancelled() }}
+        run: node scripts/db-probes/run.mjs --check
 
   # Its own job, and NOT one of the required checks: a new advisory with no
   # fix yet, or the npm audit service being down, must not turn the
@@ -129,3 +139,51 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  # DOC-03. Every supabase/tests/probes/*.sql against the database named by the
+  # PROBES_DATABASE_URL secret; each probe must raise PROBE_OK and always rolls
+  # back (supabase/tests/README.md). Without the secret this job says loudly
+  # that the database was NOT checked and passes nothing it did not check.
+  db-probes:
+    name: Database probes
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # One run at a time against the database, never cancelled halfway: every
+    # probe rolls back, but a killed client leaves its locks to time out.
+    concurrency:
+      group: db-probes
+      cancel-in-progress: false
+    env:
+      DATABASE_URL: ${{ secrets.PROBES_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: No database configured
+        if: ${{ env.DATABASE_URL == '' }}
+        run: |
+          echo "::warning title=DATABASE PROBES DID NOT RUN::The PROBES_DATABASE_URL secret is not set, so no RLS policy, grant or trigger was checked on this push. See supabase/tests/README.md for the one-step setup."
+          {
+            echo "## Database probes did NOT run"
+            echo ""
+            echo "PROBES_DATABASE_URL is not set. Nothing in supabase/tests/probes was checked, and this run says nothing about the database."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install psql
+        if: ${{ env.DATABASE_URL != '' }}
+        run: command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client)
+
+      - name: Run every probe
+        if: ${{ env.DATABASE_URL != '' }}
+        run: node scripts/db-probes/run.mjs --json db-probes.json
+
+      - name: Keep the verdicts
+        if: ${{ !cancelled() && env.DATABASE_URL != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-probes
+          path: db-probes.json
+          if-no-files-found: ignore
