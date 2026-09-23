@@ -430,7 +430,7 @@ function ListingRow({
         {editable && (
           <button
             type="button"
-            className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
+            className="nf-tap text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
             onClick={() => onAction("submit", listing)}
           >
             {t.workspace.actions.submit}
@@ -439,7 +439,7 @@ function ListingRow({
         {live && (
           <button
             type="button"
-            className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
+            className="nf-tap text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
             onClick={() => onAction("unpublish", listing)}
           >
             {t.workspace.actions.takeDown}

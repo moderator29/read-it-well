@@ -172,10 +172,12 @@
   .nf-site-newsletter-field:focus-within {
     border-color: var(--nf-focus-ring);
   }
+  /* 44, the tap floor (R-B), for the field and its submit: they drew 40
+     (the second audit, S-E). */
   .nf-site-newsletter-field input {
     flex: 1 1 auto;
     min-width: 0;
-    min-height: 2.5rem;
+    min-height: 2.75rem;
     background: transparent;
     border: 0;
     font-size: var(--nf-text-body-sm);
@@ -203,15 +205,15 @@
    * component could add, so the component could not reach it. Found by A2 and
    * handed over because Group B owns the stylesheets.
    *
-   * `--nf-radius-control` is 14px on 40px, a ratio of 0.35, which is the same
-   * pair every other icon-only square in the product wears.
+   * `--nf-radius-control` is 14px on 44px (it drew 40 until the second audit),
+   * a ratio of 0.32, under the review line.
    */
   .nf-site-newsletter-field button {
     display: inline-grid;
     place-items: center;
     flex: none;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2.75rem;
+    height: 2.75rem;
     /* The lit primary's bar (Phase 1 `--nf-btn-lit-*`) at icon size. */
     border-radius: var(--nf-radius-control);
     color: var(--nf-content-on-brand);

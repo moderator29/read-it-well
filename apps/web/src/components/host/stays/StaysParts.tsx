@@ -63,7 +63,7 @@ export function StaysHead({
             type="button"
             onClick={onBack}
             aria-label="Back"
-            className="grid h-10 w-10 shrink-0 place-items-center text-[var(--nf-brand-secondary)]"
+            className="nf-tap grid h-10 w-10 shrink-0 place-items-center text-[var(--nf-brand-secondary)]"
           >
             <UiIcon name="arrow-left" size={24} />
           </button>

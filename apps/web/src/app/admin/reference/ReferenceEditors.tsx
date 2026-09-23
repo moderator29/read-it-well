@@ -197,7 +197,7 @@ export function OccupationEditor({ rows }: { rows: Occupation[] }) {
             <button
               type="button"
               onClick={() => setOpenCode(openCode === row.code ? null : row.code)}
-              className="flex w-full items-center gap-sm text-left"
+              className="flex min-h-11 w-full items-center gap-sm text-left"
             >
               <span className="min-w-0 flex-1">
                 <span className="block text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
@@ -399,7 +399,7 @@ export function LocalGovernmentEditor({
             <button
               type="button"
               onClick={() => setOpenCode(openCode === row.code ? null : row.code)}
-              className="flex w-full items-center gap-sm text-left"
+              className="flex min-h-11 w-full items-center gap-sm text-left"
             >
               <span className="min-w-0 flex-1">
                 <span className="block text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">

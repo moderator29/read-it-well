@@ -127,6 +127,11 @@ export function ThreadOptionsSheet({
         if (!next) closeEverything();
       }}
       title="Conversation"
+      /* The sheet's own header row: the title and a 44px glass Close on one
+         line. The Close used to sit in a second row drawn inside the body with
+         a negative top margin, so the scrolling body clipped the top of it and
+         of the line beside it, and it was 36px (the second audit's S-C). */
+      closeLabel="Close"
       footer={
         listing ? (
           <>
@@ -149,14 +154,9 @@ export function ThreadOptionsSheet({
         ) : undefined
       }
     >
-      <div className="-mt-xs mb-md flex items-start justify-between gap-md">
-        <p className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
-          Conversation with {counterpartName}
-        </p>
-        <button type="button" aria-label="Close" onClick={closeEverything} className="nf-icon-btn h-9 w-9">
-          <UiIcon name="close" size={16} />
-        </button>
-      </div>
+      <p className="mb-md text-[length:var(--nf-text-caption)] text-[var(--nf-content-muted)]">
+        Conversation with {counterpartName}
+      </p>
 
       {/* ------------------------------------------------ listing mini view */}
       {listing && (

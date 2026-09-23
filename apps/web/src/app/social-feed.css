@@ -2811,10 +2811,21 @@
     max-inline-size: 48rem;
     margin-inline: auto;
   }
+  /*
+   * On a phone the location bar sits directly under the app header, as
+   * feed-plus-bloom-target.jpg draws it (about 11 CSS px of air). The shell
+   * opens every page with `py-section-tight` (32px at 390) under the header,
+   * which put the bar at y 104 against the header's foot at 60 and pushed the
+   * stories, tabs and cards down by the same band (the second audit's S-D).
+   * The feed takes that band back here, as it already takes back the shell's
+   * gutter; the header, the dock and the shell are untouched, and the page's
+   * own `pt-sm` (12px) is the air the render draws.
+   */
   @media (max-width: 639px) {
     .nf-feed-page {
       inline-size: auto;
       margin-inline: calc(16px - var(--nf-pad-shell));
+      margin-block-start: calc(var(--nf-gap-section-tight) * -1);
     }
   }
 

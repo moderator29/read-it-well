@@ -381,7 +381,10 @@ Each group appends "RELEASED <commit>" here when it is done.
     `app/(app)/listing/[id]/ReserveTable.tsx`, `components/host/stays/StaysParts.tsx`,
     `app/admin/reference/ReferenceEditors.tsx` (ONLY the hit areas of the named
     controls), `app/(site)/docs/DocsSidebar.tsx` (ONLY the selected chapter),
-    `packages/i18n/src/locales/en.ts` (ONLY `agentAnalytics.emptyBody`), the
+    `packages/i18n/src/locales/en.ts` (ONLY `agentAnalytics.emptyBody`),
+    added during the fix: `components/host/HostWizard.tsx` (ONLY a harness-only
+    `initialStep` prop) and the new harness
+    `app/(dev)/preview/session-b/audit2-fixes/**` (the wizard's later steps), the
     ledger section "13. Platform sweep: audit 2 fixes" and the chrome, social,
     feed and inspection ledger rows it records into, proofs
     `docs/design/proofs/session-b/audit2-fixes/**`.

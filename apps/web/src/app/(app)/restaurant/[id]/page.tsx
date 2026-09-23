@@ -1,40 +1,18 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import { formatNumber } from "@vallo/i18n";
-import { Amount } from "@/components/ui/Amount";
-import { ButtonLink } from "@/components/ui/Button";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { ListingGallery } from "@/components/app/listing/ListingGallery";
-import {
-  DetailAboutCard,
-  DetailCapsules,
-  DetailPriceRow,
-  DetailSpecStrip,
-  type SpecPair,
-} from "@/components/app/listing/DetailAnatomy";
-import { ICON, Section, Stack, Surface, TYPE } from "@/components/app/Screen";
-import { ReserveTable } from "../../listing/[id]/ReserveTable";
+import type { UiIconName } from "@/design-system/icons/UiIcon";
+import type { SpecPair } from "@/components/app/listing/DetailAnatomy";
 import { getRestaurantDetail } from "@/lib/stays/queries";
 import { listBusinessPhotos } from "@/lib/stays/business-photos";
 import { listSavedPlaces } from "@/lib/saved/places-actions";
 import { isSaved, savedKeySet } from "@/lib/saved/places";
 import { RESTAURANT_PLATES } from "@/components/app/stays/restaurant-plates";
 import { siteUrl } from "@/lib/site";
-import { panelClass } from "@/components/ui/Panel";
-
-const WEEKDAY: Record<number, string> = {
-  0: "Sunday",
-  1: "Monday",
-  2: "Tuesday",
-  3: "Wednesday",
-  4: "Thursday",
-  5: "Friday",
-  6: "Saturday",
-};
+import { RestaurantFace } from "./RestaurantFace";
 
 /**
  * A restaurant, on its own surface.
@@ -281,185 +259,65 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
         .concat("."),
   ];
 
+  /* The face itself is `RestaurantFace`, so the sweep's fixture harness draws
+     exactly what this route draws (the second audit's S-B). */
   return (
-    <div className="nf-cat-surface">
-      <ListingGallery
-        listingId={venue.id}
-        title={venue.title}
-        hue={0}
-        kind="restaurant"
-        photos={venue.photos}
-        plates={RESTAURANT_PLATES as string[]}
-        backFallback="/restaurants"
-        mark={{ label: t.stays.restaurantsTitle, icon: "utensils", verified: venue.verified, verifiedLabel: t.common.verified }}
+    <RestaurantFace
+      locale={locale}
+      t={t}
+      gallery={{
+        listingId: venue.id,
+        title: venue.title,
+        hue: 0,
+        kind: "restaurant",
+        photos: venue.photos,
+        plates: RESTAURANT_PLATES as string[],
+        backFallback: "/restaurants",
+        mark: { label: t.stays.restaurantsTitle, icon: "utensils", verified: venue.verified, verifiedLabel: t.common.verified },
         /* The heart, on the shelf this venue actually lives on. A business is
            a `saved_places` row under the restaurant kind; a catalogue listing
            keeps the `saved_items` path and passes no target. It refused every
            tap on a venue until now. */
-        {...(venue.isBusiness
+        ...(venue.isBusiness
           ? { place: { kind: "restaurant" as const, id: venue.id }, initialSaved: savedVenue }
-          : {})}
-      />
-
-      {/* The third face of the one detail anatomy (B047A0CE): the same lit
-          lead card over the photograph, the same bordered spec strip under
-          the pin line, the same blue figure with its unit and its rating, the
-          same capsule row, and the same About card with its host row. What
-          differs is the foot: a restaurant's decision is a table, so the
-          reservation control and the week's hours close the page. */}
-      <div className="mx-auto max-w-2xl px-gutter pb-section">
-        <div className={panelClass({ variant: "card", className: "nf-detail-lead relative z-10 -mt-xl block sm:-mt-2xl" })}>
-        <div className="flex flex-wrap items-center gap-xs empty:hidden">
-          {hours && (
-            <span className={`nf-reg-open ${hours.openNow ? "nf-reg-open--open" : "nf-reg-open--closed"}`} data-testid="open-now">
-              <UiIcon name="history" size={12} />
-              {hours.label}
-            </span>
-          )}
-        </div>
-        <h1 className="nf-h2 mt-row [text-wrap:balance]">{venue.title}</h1>
-        {where && (
-          <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
-            <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
-            {where}
-          </p>
-        )}
-
-        <DetailSpecStrip pairs={specPairs} />
-
-        {venue.priceMinor > 0 && (
-          <DetailPriceRow
-            figure={
-              <Amount minorUnits={venue.priceMinor} locale={locale} currency={venue.currency} />
+          : {}),
+      }}
+      title={venue.title}
+      where={where}
+      hours={hours}
+      specPairs={specPairs}
+      price={venue.priceMinor > 0 ? { minor: venue.priceMinor, currency: venue.currency } : null}
+      rating={
+        venue.rating
+          ? {
+              average: formatNumber(venue.rating.average, locale, {
+                minimumFractionDigits: 1,
+                maximumFractionDigits: 1,
+              }),
+              reviews: t.catalogue.stays.reviews.replace("{count}", formatNumber(venue.rating.count, locale)),
             }
-            unit={copy.perHead}
-            /* Real rows only: the rating is averaged from `reviews` and is
-               zero on an example row, so this is absent until somebody has
-               actually reviewed the venue. */
-            rating={
-              venue.rating
-                ? {
-                    average: formatNumber(venue.rating.average, locale, {
-                      minimumFractionDigits: 1,
-                      maximumFractionDigits: 1,
-                    }),
-                    reviews: t.catalogue.stays.reviews.replace(
-                      "{count}",
-                      formatNumber(venue.rating.count, locale),
-                    ),
-                  }
-                : null
+          : null
+      }
+      capsules={capsules}
+      aboutParagraphs={aboutParagraphs}
+      host={
+        detail
+          ? {
+              name: detail.business.name,
+              role: t.stays.restaurantsTitle,
+              verified: venue.verified,
+              verifiedLabel: t.catalogue.detail.verifiedHost,
+              messageHref,
+              messageLabel: t.catalogue.detail.message,
             }
-          />
-        )}
-
-        <DetailCapsules items={capsules} label={t.catalogue.detail.amenities} />
-        </div>
-
-        <div className="mt-block">
-          <DetailAboutCard
-            title={copy.aboutTitle}
-            paragraphs={aboutParagraphs}
-            host={
-              detail
-                ? {
-                    name: detail.business.name,
-                    role: t.stays.restaurantsTitle,
-                    verified: venue.verified,
-                    verifiedLabel: t.catalogue.detail.verifiedHost,
-                    messageHref,
-                    messageLabel: t.catalogue.detail.message,
-                  }
-                : null
-            }
-          />
-        </div>
-
-        <Stack className="mt-block">
-          {/* THE RESERVATION, FIRST. Not a panel beside the description. */}
-          <Section
-            title={copy.reserveTitle}
-            description={copy.reserveBody}
-          >
-            {/* A reservation names exactly one venue and the database says
-                which column it lands in: `business_id` for an M7 venue,
-                `listing_id` for a catalogue restaurant. The form carried only
-                the listing half, so the whole business-grade path was
-                unreachable from the product while `reserveTable` was ready to
-                accept it. */}
-            <ReserveTable
-              {...(venue.isBusiness ? { businessId: venue.id } : { listingId: venue.id })}
-              messageHref={messageHref}
-            />
-          </Section>
-
-          <Section title={copy.gettingThereTitle}>
-            <Surface>
-              {where && (
-                <p className={`flex items-start gap-inline-tight ${TYPE.body}`}>
-                  <UiIcon name="location" size={ICON.inline} className="mt-3xs shrink-0" />
-                  <span className="min-w-0">{where}</span>
-                </p>
-              )}
-              <p className={`mt-row ${TYPE.rowMeta}`}>{copy.threadLine}</p>
-              <Link
-                href="/restaurants"
-                className={`mt-row inline-flex items-center gap-inline-tight ${TYPE.rowMeta} font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline`}
-              >
-                {t.stays.restaurantsTitle}
-                <UiIcon name="arrow-right" size={ICON.inline} />
-              </Link>
-            </Surface>
-          </Section>
-
-          {/*
-            THE HOURS, AS THE FOOT OF THE PAGE.
-
-            `lib/stays/hours` answers "is it seating right now" on the Lagos
-            clock from the venue's own service windows, and that one line is
-            the last thing this page says, under the week it is computed from.
-            A venue that has published no windows says so plainly: not "coming
-            soon", not an empty week grid, and above all not an "Open now" pill
-            this page cannot stand behind, because a guessed badge sends
-            somebody across Lagos to a locked door.
-          */}
-          <Section title={copy.hoursTitle}>
-            <Surface>
-              {hours && (
-                <p
-                  className={`nf-reg-open ${hours.openNow ? "nf-reg-open--open" : "nf-reg-open--closed"} mb-row`}
-                  data-testid="hours-open-now"
-                >
-                  <UiIcon name="history" size={12} />
-                  {hours.label}
-                </p>
-              )}
-              {detail && detail.windows.length > 0 ? (
-                <ul className="divide-y divide-[var(--nf-divider)]" data-testid="service-windows">
-                  {detail.windows.map((window) => (
-                    <li key={window.id} className={`flex items-center justify-between gap-sm py-xs ${TYPE.body}`}>
-                      <span className="font-medium text-[var(--nf-content-primary)]">{WEEKDAY[window.weekday] ?? window.weekday}</span>
-                      <span className="nf-numeric">
-                        {window.opens.slice(0, 5)} to {window.closes.slice(0, 5)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <>
-                  <p className={TYPE.body}>{copy.hoursUnknown}</p>
-                  <p className={`mt-row ${TYPE.rowMeta}`}>{copy.hoursAsk}</p>
-                </>
-              )}
-              {messageHref && (
-                <ButtonLink href={messageHref} variant="secondary" className="mt-row">
-                  {copy.message}
-                </ButtonLink>
-              )}
-            </Surface>
-          </Section>
-        </Stack>
-      </div>
-    </div>
+          : null
+      }
+      /* A reservation names exactly one venue and the database says which
+         column it lands in: `business_id` for an M7 venue, `listing_id` for a
+         catalogue restaurant. */
+      reserve={{ ...(venue.isBusiness ? { businessId: venue.id } : { listingId: venue.id }), messageHref }}
+      windows={detail ? detail.windows : null}
+      messageHref={messageHref}
+    />
   );
 }

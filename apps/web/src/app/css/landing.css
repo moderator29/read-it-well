@@ -893,8 +893,11 @@
     padding-inline: var(--nf-space-sm);
     color: var(--nf-landing-fg-3);
   }
+  /* The input fills the 48px field it sits in, so the whole drawn field is
+     the target and not only its 22px line of text (the second audit, S-E). */
   .nf-landing-pill-field input {
     flex: 1 1 auto;
+    align-self: stretch;
     min-width: 0;
     background: transparent;
     border: 0;
@@ -952,7 +955,9 @@
     align-items: center;
     justify-content: center;
     gap: var(--nf-gap-inline-tight);
-    min-height: 2.5rem;
+    /* 44, the tap floor (R-B); it drew 40 (the second audit, S-E). On the
+       control radius that is 14 on 44, 0.32, under the review line. */
+    min-height: 2.75rem;
     padding: 0 var(--nf-space-sm);
     border-radius: var(--nf-radius-control);
     font-size: var(--nf-text-body-sm);

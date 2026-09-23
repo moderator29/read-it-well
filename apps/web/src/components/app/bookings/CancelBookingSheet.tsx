@@ -134,7 +134,7 @@ export function CancelBookingControl({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`${TYPE.caption} font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline`}
+        className={`nf-tap ${TYPE.caption} font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline`}
       >
         {label}
       </button>
