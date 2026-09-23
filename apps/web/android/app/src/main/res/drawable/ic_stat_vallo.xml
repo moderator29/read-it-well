@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The small notification icon.
+
+    IT IS A SILHOUETTE AND IT HAS TO BE. From Android 5 the system takes the
+    ALPHA CHANNEL of this drawable and throws the colours away, filling the
+    mask with the notification colour. A full-colour logo here does not come
+    out muted or wrong, it comes out AS A SOLID WHITE BLOB, which is the most
+    common notification defect on Android and looks like a broken build rather
+    than a design choice. So every path below is opaque white and the shape is
+    carried entirely by where the alpha is.
+
+    24dp, the system size, drawn inside the 24x24 viewport with a little
+    breathing room because the status bar scales it down further.
+
+    The mark is Vallo's: a door standing in an arch. It reads at 18 pixels,
+    which a wordmark does not.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- The arch: an outline, so the alpha is the stroke and not the fill. -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,2.5L3.5,9.2v11.3h5.2V13.4h6.6v7.1h5.2V9.2L12,2.5zM12,4.9l6.6,5.2v8.7h-1.6v-7.1H7V18.8H5.4v-8.7L12,4.9z" />
+
+    <!-- The doorway, filled, which is what gives the mark its weight. -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M10.3,14.8h3.4v5.7h-3.4z" />
+</vector>

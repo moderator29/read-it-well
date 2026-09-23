@@ -197,6 +197,37 @@
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
+
+        <!--
+            FCM's defaults for a notification that arrives while the
+            application is not running.
+
+            WHY THE CHANNEL ID MATTERS MORE THAN IT LOOKS. From Android 8
+            every notification must belong to a channel, and a notification
+            naming a channel that does not exist IS DROPPED WITHOUT A SOUND
+            OR A LOG LINE. `vallo_default` is the id the server puts on every
+            Android message (`src/lib/push/transport/fcm.ts`), so the two have
+            to agree; if this ever changes, that file changes with it. The
+            channel itself is created by the push plugin at registration.
+
+            The icon must be a silhouette: Android 5 and above renders a
+            notification icon as a mask, so anything with colour in it comes
+            out a white blob. `@mipmap/ic_launcher` is wrong for the same
+            reason and is the default people fall back to.
+
+            NONE OF THIS DOES ANYTHING WITHOUT `app/google-services.json`,
+            which is not in this repository and comes from a Firebase project
+            only the owner can create.
+        -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="vallo_default" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_vallo" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/vallo_notification" />
         </provider>
     </application>
 
@@ -323,6 +354,26 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
 
     <!--
+        POST_NOTIFICATIONS, the runtime permission for showing a notification
+        at all, added when push became a channel that can deliver. See the
+        long note further down for what changed and what has not.
+
+        IT ONLY EXISTS ON ANDROID 13, API 33, AND ABOVE. Below that the
+        permission is granted at install and there is no prompt, which is why
+        `components/app/push/moments.ts` skips the explanation screen entirely
+        on older handsets rather than asking somebody to agree to something
+        that has already happened. Declaring it here is harmless on those
+        versions and required on newer ones.
+
+        A PERMANENT DENIAL IS NOT A PROMPT TO REPEAT. Android stops showing
+        the system dialogue after two refusals and returns denied without
+        asking. The route back is the application's own notification settings
+        in the system Settings app, and the product says so rather than
+        calling the request again into a dialogue that will never appear.
+    -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!--
         Not declared, on purpose, so that the next person does not add them
         back wondering whether they were forgotten:
 
@@ -353,11 +404,34 @@
         RECORD_AUDIO, READ_CONTACTS, READ_CALENDAR. Nothing in the product
         records audio, reads an address book or writes a calendar entry.
 
-        POST_NOTIFICATIONS. Notifications on this platform are database rows
-        rendered in-product. Web Push is not wired and there is no FCM
+        POST_NOTIFICATIONS USED TO BE ON THIS LIST AND IS NOT ANY MORE.
+        It is declared above, and this paragraph is the record of why the
+        reasoning changed rather than a quiet deletion of it.
+
+        What it said was: "Web Push is not wired and there is no FCM
         registration, so asking for the notification prompt today would spend
         the one prompt a person reliably grants on a channel that cannot yet
-        deliver anything.
+        deliver anything." That was correct and it was the right call for as
+        long as it was true. A manifest whose comments say the opposite of its
+        declarations is how the next reader is misled, so it moves when the
+        fact moves.
+
+        WHAT CHANGED. `supabase/migrations/*_push_one_*` and `*_push_two_*`
+        built the token table and the delivery path, `src/lib/push/` carries
+        three transports, and the permission is now asked for by
+        `src/components/app/push/PushPrompt.tsx` AFTER a Vallo screen a person
+        has already said yes to, at one of four moments where the value is
+        obvious. The prompt is no longer spent on a cold start, which was the
+        real objection in the sentence above.
+
+        WHAT HAS STILL NOT CHANGED, AND IT MATTERS ON THIS PLATFORM
+        SPECIFICALLY. Android delivery needs FCM, FCM needs a service account
+        AND `app/google-services.json`, and neither exists in this repository
+        because both come from a Firebase project only the owner can create.
+        Until they do, an Android handset grants the permission and receives
+        nothing. `src/lib/push/credentials.ts` names the missing variables and
+        who supplies them, and the drain refuses to claim work rather than
+        failing quietly against a wall.
     -->
 
     <!--

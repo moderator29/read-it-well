@@ -125,6 +125,25 @@ const config: CapacitorConfig = {
       backgroundColor: "#010118",
       overlaysWebView: false,
     },
+    PushNotifications: {
+      /*
+       * `presentationOptions` governs what iOS shows when a notification
+       * arrives WHILE THE APPLICATION IS OPEN, which is the state every
+       * person testing push is in, and the state iOS shows nothing in by
+       * default.
+       *
+       * It is listed here for completeness and the plist is not the whole
+       * story: the delegate method in `ios/App/App/AppDelegate.swift` is what
+       * actually answers iOS when it asks, and without that method this
+       * setting does nothing. Both are present; neither is sufficient.
+       *
+       * `badge` is included and is the one to watch: a badge nothing ever
+       * clears is a red dot a person cannot get rid of, and clearing it is
+       * the application's job, not the system's.
+       */
+      presentationOptions: ["badge", "sound", "alert"],
+    },
+
     Keyboard: {
       /*
        * `resize: "native"` shrinks the web view when the keyboard opens, which

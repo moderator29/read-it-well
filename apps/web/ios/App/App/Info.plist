@@ -2,6 +2,24 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!--
+		UIBackgroundModes, remote-notification. WITHOUT THIS KEY IOS DOES NOT
+		WAKE THE APPLICATION FOR A PUSH and the Capacitor plugin never sees
+		one. It is the plist half of push; the entitlement in
+		`App.entitlements` is the other half, and BOTH are needed.
+
+		`remote-notification` alone does NOT make this a background app for
+		App Review purposes: it is what every application that receives a
+		notification declares. What it does not permit is a silent push used
+		to keep a process alive, and nothing in this product sends one. Every
+		push this platform sends is an alert with a title and a body a person
+		will see, which is also what `userVisibleOnly` promises on the web
+		side in `components/app/push/enrol.ts`.
+	-->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
   <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>

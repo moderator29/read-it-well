@@ -60,5 +60,49 @@
 		<string>applinks:vallospaces.com</string>
 		<string>applinks:www.vallospaces.com</string>
 	</array>
+
+	<!--
+		PUSH NOTIFICATIONS. THE SAME THREE STEPS AND THE SAME MISSING ACCOUNT.
+
+		`aps-environment` is the entitlement that lets a build register with
+		APNs at all. Like the associated domains above it is INERT until the
+		owner has an Apple Developer account, and for the identical reason:
+		a build fails outright with "provisioning profile does not include the
+		aps-environment entitlement" until the Push Notifications capability
+		exists on the App ID `com.vallospaces.app`. It is written here so the
+		value is ready and the step is recorded, not because it works today.
+
+		THE OWNER'S STEPS FOR PUSH, in order, none doable from this repository.
+
+		1. Apple Developer Program membership, 99 USD a year. There is no way
+		   round this one: APNs has no free tier and no sandbox that works
+		   without a team.
+		2. Certificates Identifiers and Profiles, the App ID
+		   `com.vallospaces.app`, tick Push Notifications, save, let the
+		   profiles regenerate.
+		3. Keys, plus, a new key with Apple Push Notifications service (APNs)
+		   ticked. Download the `.p8`. IT DOWNLOADS EXACTLY ONCE and cannot be
+		   retrieved again; a lost one has to be revoked and replaced. Then
+		   set APNS_KEY_ID (the key's 10 character id), APNS_TEAM_ID (the same
+		   Team ID the note above describes finding) and APNS_PRIVATE_KEY (the
+		   whole .p8 contents) in the server environment. NOT in this
+		   repository: see `src/lib/push/credentials.ts`.
+		4. Xcode, the App target, Signing and Capabilities, plus, Push
+		   Notifications. Xcode adopts this file rather than creating a second
+		   one and sets `CODE_SIGN_ENTITLEMENTS` itself.
+
+		THE VALUE BELOW IS `development` AND THAT IS DELIBERATE.
+		A build signed with a development profile receives a SANDBOX device
+		token, and a sandbox token sent to the production gateway is refused
+		400 BadDeviceToken, which reads exactly like a dead device and will
+		have somebody retiring perfectly good tokens. `development` is what a
+		local or TestFlight-from-Xcode build wants. AN APP STORE BUILD NEEDS
+		THIS CHANGED TO `production`, and the server side switched with it by
+		setting APNS_PRODUCTION=true. Xcode's automatic signing rewrites this
+		for a Release archive, but the SERVER half does not change itself and
+		is the half people forget.
+	-->
+	<key>aps-environment</key>
+	<string>development</string>
 </dict>
 </plist>

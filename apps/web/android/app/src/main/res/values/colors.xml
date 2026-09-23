@@ -27,4 +27,18 @@
     <color name="colorPrimary">#000F98</color>
     <color name="colorPrimaryDark">#010118</color>
     <color name="colorAccent">#0C39EF</color>
+
+    <!--
+        The tint Android applies behind the small notification icon in the
+        status bar and beside the app name in the shade. Referenced by
+        `com.google.firebase.messaging.default_notification_color` in the
+        manifest.
+
+        The glow rather than the primary, because this colour is drawn
+        against the system's own background, which is near-white in a light
+        theme, and `#000F98` against white is a dark smudge at that size.
+        `#0C39EF` is the same anchor `colorAccent` uses and is legible both
+        ways round.
+    -->
+    <color name="vallo_notification">#0C39EF</color>
 </resources>

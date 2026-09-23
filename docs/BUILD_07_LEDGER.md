@@ -7123,3 +7123,137 @@ service role. So it answered `signed_out` to every call this product could have
 made. It was not broken by the F-2 revoke; it was born unreachable by the only
 caller shape that exists. It is now revoked and its `comment` says so, so the
 next reader does not have to work it out.
+
+---
+
+## 57bis. PUSH: I TRIED TO REACH A REAL DEVICE FROM THIS CONTAINER AND HERE IS THE EXACT WALL
+
+The brief said to stay on this until a real notification reaches a real
+device, or until I can say precisely what is missing and who must supply it.
+I did not stop at "the code is written". I went after the proof and it failed
+for a reason worth writing down, because it is a fact about this build
+environment that the next worker should not have to rediscover.
+
+**The plan, which was sound.** Web Push needs no owner credential, so a VAPID
+pair can be generated in-process. `playwright-core` is a devDependency and a
+real Chromium exists at `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`.
+So: serve a page and a worker on `http://localhost` (a secure context), have
+the real browser mint a real subscription against Google's real push service,
+encrypt a real payload to it with `transport/webpush.ts`, POST it to the real
+endpoint, and have the service worker decrypt it and report what it read.
+That would have proved the entire chain except the glass of a handset.
+
+**It got two steps in and stopped, and each step taught something.**
+
+1. `pushManager.subscribe()` refused with `Registration failed - permission
+   denied`, and Chrome printed why in a console line: **Chrome does not
+   support the Push API in incognito mode**, and every ordinary Playwright
+   context is incognito. Fixed by using `launchPersistentContext`.
+
+2. With a real profile, `subscribe()` stopped refusing and **hung**. That is
+   Chrome trying to register with Google's messaging service, and the egress
+   proxy does not permit it:
+
+   | host | result |
+   | --- | --- |
+   | `mtalk.google.com:5228`, the GCM channel a registration completes over | **not reachable** |
+   | `android.clients.google.com` | **blocked, connect rejected** |
+   | `fcmregistrations.googleapis.com` | reachable (404 on `/`) |
+   | `fcm.googleapis.com`, where a push is DELIVERED | reachable (404 on `/`) |
+   | `updates.push.services.mozilla.com` | **blocked, CONNECT tunnel 403** |
+
+**So the sending side is reachable from here and the subscribing side is
+not.** A subscription cannot be created in this container by any browser, so
+there is no endpoint to send to, so nothing could have reached a device. That
+is a property of the sandbox, not of the code, and it is the same wall the
+email junction worker hit on `api.resend.com`.
+
+The temporary proof harness was deleted rather than committed: it needs a
+browser and the network and has no business in the suite. What it would have
+proved is exactly what `POST /api/push/self-test` proves in one request from
+a real phone on a real deployment, which is where that proof now waits.
+
+**Counted as unproven on the wire, and said so plainly.** The encryption is
+proved against an independently written receiver, the database mechanism is
+proved on the live project, the policy is proved by 41 tests. **No
+notification has reached a device and I am not claiming otherwise.**
+
+---
+
+## 60. ESCROW3, BLOCK 2: THE NINE PROBES, AND THE SUITE HAD BEEN RED SINCE 09:32
+
+`docs/escrow/PROBE_STATE.md` is the table: one row per probe, what it asserts,
+how it is run, its verdict, and the date that verdict was taken. The founder's
+sentence is quoted at the top and governs the file. The vocabulary is four
+words and NOT RUN is one of them, in those words, for a run that has never
+happened.
+
+### 60.1 What re-running the suite found, which nobody asked about
+
+**The nine-probe harness had been broken since 09:32 the same morning and
+nothing said so.** Migration `20260923093233` added `escrows.opened_by` and
+made `escrow_fund_from_wallet_as` write it.
+`scripts/probes/escrow_concurrency.sh` builds a MINIMAL copy of `escrows` by
+hand, that copy has no such column, and the harness lifts the CURRENT function
+text out of the migration files. Every probe that funds an escrow died on one
+statement, and **ten of eleven failed**:
+
+```
+ERROR:  column "opened_by" of relation "escrows" does not exist
+CONTEXT: PL/pgSQL function escrow_fund_from_wallet_as(...) line 42
+```
+
+The run is `scripts/probes/escrow_concurrency_20260923_stale_scratch_schema.log`.
+**This is the second time this scratch table has been less faithful than
+production.** On 22 September it copied the COLUMNS and not the CHECK
+CONSTRAINTS, and a shipped fault in `escrow_cancel_as` went straight through
+it. The shape is the same both times: a hand-built copy of a real table, kept
+in step by somebody remembering.
+
+### 60.2 THE DAY'S BLIND LIGHT: one probe passed with the escrow door unusable
+
+**P-2 (withdrawal first) read PASS in that same run.** Its assertion is that
+exactly one of the withdrawal and the escrow commits the balance, that both
+sessions SPEAK rather than raise, and that the payer ends at zero. With the
+withdrawal going first it takes the balance, and the escrow leg is then refused
+`insufficient` by the spendable check **before it reaches the broken
+statement**. Every condition is met:
+
+```
+-- A:   WITHDRAWAL ok
+-- B:   ESCROW insufficient
+   ok_answers=1 committing_entries=1 payer_spendable=0
+   BOTH-ANSWERED: yes. ESCROW and WITHDRAWAL both spoke.
+== P-2 (withdrawal_first): PASS.
+```
+
+`insufficient` is the expected word whether the door behind it is sound or
+cannot open a row at all. **The pass is true and it is not evidence.** The
+other direction caught the fault correctly, with `BOTH-ANSWERED: no`, which is
+the control doing its job. So the founder's phrase "in both directions" is not
+rhetorical: one direction of one probe went green over a door that could not
+insert.
+
+### 60.3 P-7's HTTP half, checked once and left alone
+
+```
+== checked at 2026-09-23T10:12:18Z
+curl: (56) CONNECT tunnel failed, response 403
+HTTP 000
+```
+
+Same refusal as yesterday. It is an egress policy on this box, it is the
+founder's to change, and it is not retryable, so it was checked once and no
+further time was spent on it. **Nothing in the table claims a verdict that run
+would have produced**, and the EXECUTE half is recorded as a separate row with
+the reason it cannot stand in for the HTTP half: PostgREST resolves by argument
+name against a cached schema, so a verb shut in `pg_proc` can still be
+answerable over the wire through an unrevoked overload or a stale cache.
+
+### 60.4 Two directions that have never run at all
+
+Stated in the file rather than left to be discovered. **P-3's reverse
+orderings** (pot before escrow, transfer before escrow) have never been
+executed: only escrow-first is in the harness. **P-8 tests one illegal
+transition**, REFUNDED to RELEASED, and the other pairs in the transition table
+are untested.
