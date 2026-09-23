@@ -134,11 +134,70 @@ dependencies {
 
 apply from: 'capacitor.build.gradle'
 
-try {
-    def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
-        apply plugin: 'com.google.gms.google-services'
+/*
+ * FIREBASE CLOUD MESSAGING, AND A BUILD THAT REFUSES RATHER THAN SHIPS BROKEN.
+ *
+ * THE BLOCK THIS REPLACES was Capacitor's default, and it was a blind light:
+ * a missing or unreadable google-services.json was swallowed and reported with
+ * `logger.info`, which nobody sees, and the build then SUCCEEDED and produced
+ * an APK in which push notifications could never work. A release published
+ * that way looks identical to a working one until a person waits for a
+ * notification that is never coming.
+ *
+ * So the rule here is: a DEBUG build may go without push, loudly; a RELEASE
+ * build may not go without it at all. A developer building locally does not
+ * need Firebase. A binary going to Play does.
+ *
+ * WHAT IS CHECKED, and each of these has been wrong somewhere before:
+ *   1. the file exists and parses,
+ *   2. its package_name equals this module's applicationId, because a
+ *      google-services.json from another project or another package parses
+ *      perfectly and registers nothing,
+ *   3. its api_key is a real key rather than the placeholder this repository
+ *      ships. The key is not a secret (it travels inside every APK and is
+ *      bound to the package name and the signing certificate), but it was
+ *      redacted in transit when it was sent, so the file here carries a
+ *      placeholder and this check is what stops that placeholder shipping.
+ */
+def googleServicesFile = file('google-services.json')
+def fcmProblem = null
+def fcmJson = null
+
+if (!googleServicesFile.exists()) {
+    fcmProblem = "apps/web/android/app/google-services.json is missing. Download it from the Firebase console, project vallo-44059, Project settings, Your apps, Android."
+} else {
+    try {
+        fcmJson = new groovy.json.JsonSlurper().parse(googleServicesFile)
+    } catch (Exception e) {
+        fcmProblem = "apps/web/android/app/google-services.json does not parse as JSON: ${e.message}"
     }
-} catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
+
+if (fcmProblem == null) {
+    def declaredPackage = fcmJson?.client?.getAt(0)?.client_info?.android_client_info?.package_name
+    if (declaredPackage != "com.vallospaces.app") {
+        fcmProblem = "google-services.json is for package '${declaredPackage}', but this module builds com.vallospaces.app. A file from the wrong project parses perfectly and registers nothing."
+    }
+}
+
+if (fcmProblem == null) {
+    def key = fcmJson?.client?.getAt(0)?.api_key?.getAt(0)?.current_key
+    if (key == null || key.toString().startsWith("PASTE_")) {
+        fcmProblem = "google-services.json still carries the placeholder API key. Replace 'current_key' with the Android API key from the Firebase console, project vallo-44059. It is not a secret and it belongs in this repository."
+    }
+}
+
+if (fcmProblem == null) {
+    apply plugin: 'com.google.gms.google-services'
+} else {
+    /* A release build is a shipped defect, so it stops here. A debug build
+       carries on without push, but says so at error level rather than info,
+       because the whole point is that somebody reads it. */
+    gradle.taskGraph.whenReady { graph ->
+        def releasing = graph.allTasks.any { it.name.toLowerCase().contains('release') }
+        if (releasing) {
+            throw new GradleException("PUSH NOTIFICATIONS WOULD NOT WORK IN THIS RELEASE BUILD. " + fcmProblem)
+        }
+    }
+    logger.error("WARNING: push notifications are not wired in this build. " + fcmProblem)
 }
