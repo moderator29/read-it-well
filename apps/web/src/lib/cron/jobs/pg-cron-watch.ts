@@ -16,7 +16,7 @@ import {
   staleJobs,
 } from "../freshness";
 import { callServiceFunction, type AdminClient } from "../rpc";
-import { contentFilterAlert, readContentFilter } from "../content-filter";
+import { alreadyOnTheDesk, contentFilterAlert, readContentFilter } from "../content-filter";
 
 /**
  * The watch on both schedulers, the database's and ours.
@@ -67,8 +67,13 @@ export async function pgCronWatch(admin: AdminClient): Promise<JobVerdict> {
        the right place to say this one. See lib/cron/content-filter.ts. */
     readContentFilter(admin),
   ]);
+  /* RAISED ONCE, REPORTED ALWAYS. An empty term list is a STATE, not an
+     event, and the first version of this wrote a new row every hour because
+     recordAlert only folds repeats inside ten minutes. Nine identical rows by
+     morning, which is the 256-row fault this build spent a day removing. The
+     count still rides in the envelope below on every run. */
   const filterAlert = contentFilterAlert(filter);
-  if (filterAlert) await recordAlert(filterAlert);
+  if (filterAlert && !(await alreadyOnTheDesk(admin))) await recordAlert(filterAlert);
 
   const freshness = staleJobs(runs, Date.now(), { watchingSince });
   if (freshness.stale.length > 0) {

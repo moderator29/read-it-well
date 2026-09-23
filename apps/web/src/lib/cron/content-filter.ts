@@ -97,6 +97,60 @@ export async function readContentFilter(admin: AdminClient): Promise<ContentFilt
 }
 
 /**
+ * IS THIS CONDITION ALREADY ON THE DESK.
+ *
+ * ---------------------------------------------------------------------------
+ * I BUILT THE 256-ROW FAULT AGAIN, ONE NIGHT AFTER REMOVING IT.
+ *
+ * The first version of this raised `content.filter.empty` on every run of the
+ * hourly watch. `recordAlert` folds a repeat into an open alert only inside a
+ * ten minute window, so an hourly repeat clears that window every time and
+ * writes a NEW ROW. By morning the desk held NINE IDENTICAL ROWS, one an hour,
+ * growing.
+ *
+ * That is precisely the shape that buried the scheduler outage: 256 rows on
+ * this same desk, all saying the same true thing, at a volume that made the
+ * desk not worth opening. I spent 22 September removing it and reintroduced it
+ * at 23:20 the same evening.
+ *
+ * AN EMPTY TERM LIST IS A STATE, NOT AN EVENT. It does not happen hourly; it
+ * simply IS, from the moment the table shipped empty until somebody seeds it.
+ * A state belongs on the desk once, open, until it changes. An event belongs
+ * on the desk each time it occurs. Writing a state as an event is how a desk
+ * fills with truth nobody reads.
+ *
+ * So the raise is now conditional on there being no open row for this subject
+ * already. The count still rides in the job's envelope on EVERY run, so the
+ * fact is never lost: it is reported continuously and alerted once.
+ */
+export async function alreadyOnTheDesk(admin: AdminClient): Promise<boolean> {
+  try {
+    const { data } = await (admin as unknown as {
+      from: (t: string) => {
+        select: (c: string) => {
+          eq: (a: string, b: string) => {
+            eq: (a: string, b: string) => {
+              limit: (n: number) => PromiseLike<{ data: unknown[] | null }>;
+            };
+          };
+        };
+      };
+    })
+      .from("risk_alerts")
+      .select("id")
+      .eq("status", "open")
+      .eq("entity_type", "content_filter")
+      .limit(1);
+    return Array.isArray(data) && data.length > 0;
+  } catch {
+    /* A failed read must not silence a real condition, so the honest default
+       is to raise. One extra row beats a missing one, which is the same rule
+       recordAlert's own folding applies. */
+    return false;
+  }
+}
+
+/**
  * What the desk is told. Null when the filter is genuinely in force, because a
  * working filter does not need to announce itself every hour.
  */
