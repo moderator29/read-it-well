@@ -8,15 +8,12 @@
  * 390 is 1.687 image pixels. The table is in docs/BUILD_SESSION_B_LEDGER.md,
  * section 1; the values that set geometry are repeated beside each rule.
  *
- * ONE DELIBERATE TRANSLATION. The render's type is small for its phone: the
- * row subtitle measures 9.5px and the row title 10.7px at 390. Shipped as
- * measured, most of this page's text would sit under the 11px the product's
- * own dock labels use. So every TEXT size is the measured size times 1.16,
- * snapped to the nearest step, which puts the smallest role (the subtitle) on
- * 11px and keeps the order between roles as drawn. The factor is the largest
- * that still sets the render's longest subtitle on one line inside the row the
- * render draws. Container geometry (radii, plates, row heights, gaps, the
- * avatar) is shipped at 1x.
+ * TYPE AT THE RENDER'S SIZE, PER ROLE (lead ruling R-A). Each size below is
+ * the render's cap height converted at 0.593 and divided by the face's own
+ * cap ratio (Poppins 0.697, Inter 0.727): names, titles and figures ship at
+ * exactly that; a body, subtitle, caption or label role that measures under
+ * 11px ships at 11px and no larger. No whole-surface factor. Container
+ * geometry (radii, plates, row heights, gaps, the avatar) is shipped at 1x.
  *
  * Shape law: every text-bearing control here is a rounded rectangle on
  * `--nf-radius-control`; the only circles are the avatar, its ring and its
@@ -265,8 +262,11 @@
     gap: 0.375rem;
     margin: 0;
     font-family: var(--nf-font-display);
-    font-size: 1.25rem;
-    font-weight: 600;
+    /* Cap 21 image px: 12.45 CSS / 0.697 = 17.9, shipped 18. Weight from the
+       O's stroke: 3.7 image px, 0.12 em, which is Poppins medium; semibold
+       measured 0.145 em beside it and read heavier than the render. */
+    font-size: 1.125rem;
+    font-weight: 500;
     line-height: 1.15;
     letter-spacing: -0.01em;
     color: var(--nf-content-primary);
@@ -281,23 +281,25 @@
     color: var(--nf-brand-primary);
     filter: drop-shadow(0 0 6px var(--nf-glow-3));
   }
-  /* Handle: 10.3px measured (53 CSS wide), 13 shipped, the mist blue. */
+  /* Handle: about 10px measured (x-height 7 image px, 53 CSS wide), a
+     subtitle role under the floor, so 11. The mist blue. */
   .nf-pf-handle {
     margin: 0.0625rem 0 0;
-    font-size: var(--nf-text-caption);
+    font-size: 0.6875rem;
     line-height: 1.35;
     color: var(--nf-pf-mist);
   }
-  /* Bio: cap 12 image px, 10px measured, 12 shipped. One line in the render;
-     a longer bio wraps rather than being cut, because it is the person's own. */
+  /* Bio: cap 12 image px: 7.1 CSS / 0.727 = 9.8, a body role under the floor,
+     so 11. A longer bio wraps rather than being cut: it is the person's own. */
   .nf-pf-bio {
     margin: 0.25rem 0 0;
-    font-size: var(--nf-text-overline);
+    font-size: 0.6875rem;
     line-height: 1.4;
     color: var(--nf-pf-mist);
   }
-  /* Counts: value cap 14 image px (11.5 measured, 14 shipped, semibold),
-     label 10 measured, 12 shipped; 24 either side of a 22px hairline. The
+  /* Counts: value cap 14 image px: 8.3 CSS / 0.727 = 11.4, a figure, shipped
+     at that, semibold (stem 0.11 em); label cap 12: 9.8, a label under the
+     floor, so 11; 24 either side of a 22px hairline. The
      links keep a 44px target through a hit area, not through their drawing. */
   .nf-pf-counts {
     display: flex;
@@ -322,13 +324,13 @@
     outline-offset: 2px;
   }
   .nf-pf-count__value {
-    font-size: var(--nf-text-body-sm);
+    font-size: 0.7125rem;
     font-weight: 600;
     line-height: 1.2;
     color: var(--nf-content-primary);
   }
   .nf-pf-count__label {
-    font-size: var(--nf-text-overline);
+    font-size: 0.6875rem;
     line-height: 1.3;
     color: var(--nf-pf-mist);
   }
@@ -457,7 +459,8 @@
     border: 1px solid transparent;
     border-radius: var(--nf-radius-control);
     background: transparent;
-    font-size: var(--nf-text-body-sm);
+    /* Cap 14 image px: 8.3 CSS / 0.727 = 11.4, above the floor, so as drawn. */
+    font-size: 0.7125rem;
     font-weight: 500;
     color: color-mix(in oklab, var(--nf-pf-mist) 85%, var(--nf-content-primary));
     cursor: pointer;
@@ -601,7 +604,12 @@
     border-radius: var(--nf-radius-sm);
     border: 1px solid color-mix(in srgb, var(--nf-pf-ink) 30%, var(--nf-pf-ground));
     border-block-start-color: color-mix(in srgb, var(--nf-pf-ink) 50%, var(--nf-pf-ground));
-    border-block-end-color: color-mix(in srgb, var(--nf-pf-ink) 70%, var(--nf-pf-ground));
+    /* The foot rim 2 82 211 carries a little cyan, like the row's top line. */
+    border-block-end-color: color-mix(
+      in srgb,
+      color-mix(in srgb, var(--nf-pf-ink) 80%, var(--nf-state-warning)) 70%,
+      var(--nf-pf-ground)
+    );
     background:
       radial-gradient(
         45% 42% at 50% 50%,
@@ -666,15 +674,16 @@
     min-inline-size: 0;
     margin-inline-end: -0.625rem;
   }
-  /* Title: cap 13 image px, 10.7 measured, 13 shipped, semibold. */
+  /* Title: cap 13 image px: 7.7 CSS / 0.727 = 10.6, a title, shipped as
+     drawn; semibold (the M's stem measures 0.13 em). */
   .nf-pf-row__title {
-    font-size: var(--nf-text-caption);
+    font-size: 0.6625rem;
     font-weight: 600;
     line-height: 1.25;
     letter-spacing: -0.005em;
   }
-  /* Subtitle: cap 11 image px, 9.5 measured, 11 shipped, the mist blue, one
-     line. The ellipsis is a guard for a longer translation, not the design. */
+  /* Subtitle: cap 11 image px: 6.5 CSS / 0.727 = 9.0, a subtitle under the
+     floor, so 11. The mist blue, one line. The ellipsis is a guard for a longer translation, not the design. */
   .nf-pf-row__sub {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -687,7 +696,7 @@
      render: the brief allows one where the data exists. */
   .nf-pf-row__value {
     flex-shrink: 0;
-    font-size: var(--nf-text-caption);
+    font-size: 0.6875rem;
     font-weight: 600;
     color: var(--nf-brand-quiet);
   }

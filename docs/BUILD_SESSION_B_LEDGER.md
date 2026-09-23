@@ -97,11 +97,12 @@ re-sent by the founder as `images/2.jpg`). Worker: profile. Files: `app/(app)/pr
   re-inked on the brand ramp `#9CC2FF` to `#06379A` by how lit it was). The icon is identical in
   both themes; there is never a dark square on white. Source 96 image px for 57 CSS px is 1.7 px
   per CSS px, so at 2x and 3x the paper files are soft (`SOURCES.md` there says so).
-- **Type scale.** Measured render type is small for its phone (row subtitle 9.5px, row title
-  10.7px at 390). Every text role ships at measured x 1.16, snapped to a step, which puts the
-  subtitle on 11px (the dock label's size) and is the largest factor that still sets the
-  render's longest subtitle ("Manage your balance, cards and transactions") on one line inside
-  the row the render draws. Geometry (radii, plates, rows, gaps, avatar) ships at 1x.
+- **Type (round four, ruling R-A).** The 1.16 factor is withdrawn. Every text role ships at the
+  render's measured size: cap height in image px x 0.593, divided by the face's cap ratio
+  (Poppins 0.697 for the name, Inter 0.727 for the rest). Names, titles and figures ship exactly
+  that; a body, subtitle, caption or label role measuring under 11px ships at 11px and no larger.
+  Weights from stroke widths: the name's O measures 0.12 em (Poppins medium, 500), the row
+  title's M 0.13 em and the count's 1 0.11 em (Inter semibold, 600). Geometry ships at 1x.
 - **Cover photo control.** The render draws nothing on the cover but back and gear, so the
   quiet change-cover square that used to sit on the cover is now a "Cover photo" row below the
   fold. Tapping the face still opens the avatar picker.
@@ -183,18 +184,18 @@ bar; in the product the 60px app header takes that band, so every built position
 | Avatar tick | filled blue disc about 21 at the ring's lower right (71 158 251) | 22 disc, brand blue tick on white, canvas cut-out; only for an approved agent | yes (claims rule) |
 | Avatar top to name cap | 28 | 26 | yes |
 | Text column start | 17 right of the ring | 17 | yes |
-| Name | cap 21 image px: 17px, semibold, near white (238 241 249) | 20px Poppins 600 (x1.16), 246 246 247 | size by the translation, weight and colour yes |
+| Name | cap 21 image px: 12.45 CSS, 17.9px; stroke 0.12 em (medium); 238 241 249 | 18px Poppins 500; built cap 12.5 CSS; 246 246 247 | yes |
 | Name tick | blue verified disc beside the name (110 190 252) | `verified-badge` 20, brand blue with glow; only when `is_agent` | yes |
-| Handle | about 10.3px, mist blue (160 198 239) | 13px, 161 194 243 | size by the translation, colour yes |
-| Bio | 10px, one line, mist blue (162 201 242) | 12px, one line at 390, 159 191 238 | yes |
-| Count value | 11.5px semibold, near white | 14px 600, 245 246 247 | size by the translation |
-| Count label | 10px mist (148 193 236) | 12px, 155 187 235 | yes |
+| Handle | about 10px (x-height 7 image px, 53 CSS wide), mist blue (160 198 239) | 11px 400 (a subtitle role, floored), 161 194 243 | yes, by R-A's floor |
+| Bio | cap 12 image px: 9.8px, one line, mist blue (162 201 242) | 11px 400 (body, floored), one line at 390, 159 191 238 | yes, by R-A's floor |
+| Count value | cap 14 image px: 11.4px, stroke 0.11 em (semibold), near white | 11.4px 600, built cap 8.5 CSS against 8.3, 245 246 247 | yes |
+| Count label | cap 12 image px: 9.8px, mist (148 193 236) | 11px 400 (label, floored), 155 187 235 | yes, by R-A's floor |
 | Counts gap and hairline | 24 each side of a 22 tall hairline (15 134 203) | 24 each side, 1 x 22, 43 125 244 with a soft glow (round two, was 9 78 182) | yes; the built rule is 41 levels bluer, 9 less green |
 | Counts to tabs | 24 | 22 | yes |
 | Tab control | 598 x 71 image px: 355 x 42, radius about 14, one track, live half fills the full height | 354 x 44 (44 for the thumb), `--nf-radius-control` 14 (ratio 0.32), live half full height | yes |
 | Live tab | lit: 1 126 254 top, 0 61 246 middle, 0 101 254 bottom, bright top rim (3 146 251), bloom | `--nf-gradient-cta`: 0 113 252, 27 96 253, 0 99 248; `--nf-rim-primary`; `--nf-bloom-lit-soft` | yes; middle a little lighter |
 | Resting tab | glass 0 21 67, label 175 203 238, rim 1 46 134 | 0 16 74, label mist, rim 0 54 142 | yes |
-| Tab label | 11.5px, 500 to 600, house and chat glyphs | 14px, 600 live and 500 resting, `home` and `chat-bubble` 24 | yes |
+| Tab label | cap 14 image px: 11.4px, 500 to 600, house and chat glyphs | 11.4px, 600 live and 500 resting, `home` and `chat-bubble` 24 | yes |
 | Tabs to first row | 20 | 20 | yes |
 | Row | 598 x 112 image px: 355 x 66, radius 23 image px: 14 (ratio 0.21) | 354 x 67, `--nf-radius-control` 14 (ratio 0.21) | yes |
 | Row gap | 13 image px: 8 | 8 | yes |
@@ -203,21 +204,22 @@ bar; in the product the 60px app header takes that band, so every built position
 | Row glow | 1px dark seam under the foot, then a faint halo: 4px out 1 12 49 above, 0 11 42 below | seam in the canvas, `0 0 8px -2px` glow-2 and `0 4px 12px -6px` glow-3; 4px out 0 9 46 above, 2 12 50 below | yes |
 | Icon plate | 83 image px: 49, the render's objects; lit from inside (see table below) | 49 (radius 10), the pack crops of this render on a plate built in `profile.css`: per-side rims, a vertical body, a radial inner light, a little side light, `saturate(1.4)` on the plate only | yes, within 10 on every channel at seven points |
 | Plate to title | 24 image px: 14 | 14 | yes |
-| Row title | 10.7px, 500 to 600, near white | 13px 600, 241 242 244 | size by the translation |
-| Row subtitle | 9.5px, one line, mist (159 194 231) | 11px, one line for all four at 390, 154 187 234 | yes |
+| Row title | cap 13 image px: 7.7 CSS, 10.6px, M stem 0.13 em (semibold), near white | 10.6px 600, built cap 8.0 CSS, 241 242 244 | yes |
+| Row subtitle | cap 11 image px: 9.0px, one line, mist (159 194 231) | 11px 400 (subtitle, floored), one line for all four at 390, 154 187 234 | yes, by R-A's floor |
 | Chevron | right edge 18 from the row edge, near white | 20px `chevron-right`, 12 padding plus the glyph's own margin | yes |
 | Gap before Switch role | 39 image px: 23 | 23 | yes |
 | Switch role row | 101 image px: 60, its own falloff and a quieter plate (see table below) | 62, plate 44, the same recipe with its own stops | yes, within 10 |
-| Text column, measured built | | name 20/600 at y 192; handle 13/400; bio 12/400; count 14/600; count label 12/400; tab 14/600 live, 500 resting; row title 13/600; row subtitle 11/400; all second lines oklab 0.845 (mist blue) | per rows above |
+| Vertical rhythm from the avatar's top | name cap 25.5, tabs 139.4, first row 201.6, Switch role 512.4 | name cap 25.5, tabs 138, first row 202, Switch role 517 | yes (Switch 4.6 lower: rows 67 against 66.4) |
+| Text column, measured built (round four) | | name 18/500 at y 192; handle 11/400; bio 11/400; count 11.4/600; count label 11/400; tab 11.4 (600 live, 500 resting); row title 10.6/600; row subtitle 11/400; all second lines oklab 0.845 (mist blue) | per rows above |
 | Status badges | none on this screen | none | yes |
 | Buttons | the lit segment is the only lit control | the lit segment; Claim your handle (no handle only) wears the same gradient, top rim and bloom | yes |
 | Colours | one blue family | one blue family; the plate's sunset is photographic and graded towards blue | yes |
 
-**Differences that remain, honestly.** (1) Everything below the top band sits about 22 to 35px
-lower than in the render: the app header takes the status bar's band, and the scaled type makes
-the text column 10px taller. The render's back square is dropped and its gear joins the header
-row (1.1). (2) Type is 1.16 times the render's, on
-purpose (1.1). (3) The counts hairline samples 43 125 244 against 15 134 203 (raised in round two). The rows
+**Differences that remain, honestly.** (1) Everything below the top band sits about 22px lower
+than in the render, because the app header takes the status bar's band; measured from the
+avatar's top the rhythm matches (row above). The render's back square is dropped and its gear
+joins the header row (1.1). (2) Four roles (handle, bio, count label, row subtitle) measure under
+11px in the render and ship at 11px by ruling R-A; every other role is at the render's size. (3) The counts hairline samples 43 125 244 against 15 134 203 (raised in round two). The rows
 and plates are matched point by point in round three (table below).
 (4) The fixture has no photograph, so the face is a monogram; the product draws the person's
 own `avatar_url`. (5) The glow identity (`docs/design/GLOW_IDENTITY.md`) proposes a cyan top
@@ -253,7 +255,7 @@ saturation on the layer, not the text, gets there), a hot top rim of the ink wit
 | Plate body, top | 0 38 132 | 0 35 132 | yes |
 | Plate inner light by the glyph | 0 46 233 | 0 39 232 | yes |
 | Plate body, low | 0 22 108 | 0 23 108 | yes |
-| Plate foot rim | 2 82 211 | 0 72 203 | yes (green 10) |
+| Plate foot rim | 2 82 211 | 0 84 213 (round four: a little cyan in the rim) | yes |
 | Plate, left middle | 1 30 101 | 0 30 110 | yes |
 | Plate, right middle | 0 29 112 | 0 35 104 | yes |
 | Switch row top rim | 5 90 189 | 0 93 192 | yes |
@@ -268,8 +270,9 @@ saturation on the layer, not the text, gets there), a hot top rim of the ink wit
 | Switch plate by the glyph | 0 38 164 | 0 47 156 | yes |
 | Switch plate low | 0 25 90 | 0 26 87 | yes |
 
-Every row and plate point is within 10 on every channel; the tightest are the plate foot rim
-(green 10) and the Switch foot rim (blue 10). Paper resets all of it: the fill layer is white,
+Every row and plate point is within 10 on every channel; the tightest is the Switch foot rim
+(blue 10). Re-sampled on the round-four build (the harness at `/preview/session-b/profile`), rows
+11px higher than round three because the text column is shorter: identical values. Paper resets all of it: the fill layer is white,
 the plate draws no ground, rim or filter, and the paper objects sit on it as before.
 
 **Re-audit gate.** Pass one (image beside `v3`): the plate objects drew a second, lighter
@@ -313,12 +316,12 @@ Checked by eye in all five screens. No white-on-white and no vanishing mark foun
 
 ### 1.6 Shape sweep, checks, and what was not verified
 
-`node scripts/design/compare-surface.mjs --base http://127.0.0.1:3171 --shape-sweep --routes "/zz-pfs,/zz-pfs?v=nohandle,/zz-pf?v=signedout" --theme both`
-on the final build (`/zz-pfs` is the throwaway harness inside the SIGNED-IN app shell;
+`node scripts/design/compare-surface.mjs --base http://127.0.0.1:3171 --shape-sweep --routes "/preview/session-b/profile,/preview/session-b/profile?v=nohandle,/preview/session-b/profile?v=signedout" --theme both`
+on the final build (`/preview/session-b/profile` is the committed harness inside the SIGNED-IN app shell, ruling R-G;
 `/profile` itself redirects to sign in without a session and the sweep refuses a redirect):
 
 ```
-shape sweep: /zz-pfs, /zz-pfs?v=nohandle, /zz-pf?v=signedout at 390px, 1536px in dark and light
+shape sweep: /preview/session-b/profile, /preview/session-b/profile?v=nohandle, /preview/session-b/profile?v=signedout at 390px, 1536px in dark and light
 BREACHES, a text-bearing control drawn as a capsule (ratio at or above 0.5): 0
 WORTH AN EYE, text-bearing and over 0.35 but not yet a capsule: 0
 ROUND ICON-ONLY CONTROLS, allowed only where a governing image draws them round: 0
@@ -338,7 +341,8 @@ light, `-posts` and `-posts-empty`, `-signedout` dark and light, `profile-390-da
 
 **Not verified, and why.**
 - **Every proof is fixture-backed.** There is no test account on production and none may be
-  created, so the screenshots come from a throwaway harness route (never committed) that renders
+  created, so the screenshots come from the committed harness
+  `apps/web/src/app/(dev)/preview/session-b/profile/` (ruling R-G, behind the preview gate) that renders
   `AccountHero`, `AccountBody` and `SignedOutHero` with fixture props inside the real app shell.
   Round two renders it inside `AppShell` with `signedIn`, so the header and dock are the
   member's. The signed-out variant is shot in the signed-out shell. The fixture counts (12,400
@@ -2487,8 +2491,8 @@ with a lit edge, a picture rather than an icon chip. Proof:
   sign up do not yet route a first-time visitor to first run (scope W1, W2);
   the native first launch still opens the landing (W3); gate.spec is stale on
   main (W4); ha, yo and ig strings for the new keys need a native speaker.
-- **Profile.** Every proof is fixture-backed (throwaway harness, never committed; its header is
-  the signed-out header). The live wiring is proven by code, the RLS and trigger read, and unit
+- **Profile.** Every proof is fixture-backed (the committed harness
+  `(dev)/preview/session-b/profile`, in the signed-in shell). The live wiring is proven by code, the RLS and trigger read, and unit
   tests, not by a real session (the Switch role sheet was opened in the signed-in harness). `saved_places` and the two storage buckets' policies not re-read. New English copy not yet
   in `packages/i18n` was scope request 1b, now done (ha, ig, yo are drafts for a native speaker).
   The settings gear is overlaid on the header row by geometry until request 1d. Details in 1.6.
