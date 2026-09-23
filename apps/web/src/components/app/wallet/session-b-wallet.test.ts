@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { counterpartyLine } from "./counterparty";
+import { createSubmitGuard } from "./submit-guard";
 import { BALANCE_MASK_KEY, readBalanceMask, writeBalanceMask } from "./balance-mask";
 
 describe("counterpartyLine", () => {
@@ -53,5 +54,21 @@ describe("balance mask", () => {
     };
     expect(readBalanceMask()).toBe(false);
     expect(() => writeBalanceMask(true)).not.toThrow();
+  });
+});
+
+
+describe("submit guard", () => {
+  it("lets exactly one of two same-frame taps through", () => {
+    const guard = createSubmitGuard();
+    expect(guard.tryEnter()).toBe(true);
+    expect(guard.tryEnter()).toBe(false);
+    expect(guard.isBusy()).toBe(true);
+  });
+  it("opens again once the result has returned", () => {
+    const guard = createSubmitGuard();
+    guard.tryEnter();
+    guard.release();
+    expect(guard.tryEnter()).toBe(true);
   });
 });

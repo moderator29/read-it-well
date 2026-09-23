@@ -22,6 +22,7 @@ import { canonicalNaira } from "./AmountField";
 import { useMoneyWait, WaitNotice } from "./MoneyWait";
 import { ErrorNotice } from "./ErrorNotice";
 import { mintIdempotencyKey } from "./idempotency";
+import { createSubmitGuard } from "./submit-guard";
 import { lookupRecipient, type RecipientLookup } from "@/app/(app)/wallet/send/recipient-action";
 import {
   readRecentRecipients,
@@ -117,6 +118,20 @@ export function SendFlow({
   const [state, formAction, pending] = useActionState(transferToUser, INITIAL);
   const wait = useMoneyWait(pending);
   const [entry, setEntry] = useState<WalletEntry | null>(null);
+  /* The double-tap latch and the button's own disabled state from the first
+     press until the result returns. See submit-guard.ts: this narrows the
+     double-send window and does not close it (scope request W1). */
+  const guard = useRef(createSubmitGuard());
+  const [pressed, setPressed] = useState(false);
+  const [answered, setAnswered] = useState(state);
+  if (answered !== state) {
+    setAnswered(state);
+    setPressed(false);
+  }
+  /* The result is back: the latch opens so a refusal can be corrected. */
+  useEffect(() => {
+    guard.current.release();
+  }, [state]);
   const lookedUp = useRef<string | null>(null);
 
   /* This device's recent recipients, read after mount so the server render
@@ -306,7 +321,18 @@ export function SendFlow({
   /* ------------------------------------------------------------- confirm */
   if (shownStep === "confirm" && kobo !== null) {
     return frame(
-      <form action={formAction} noValidate data-testid="wallet-send-confirm">
+      <form
+        action={formAction}
+        noValidate
+        data-testid="wallet-send-confirm"
+        onSubmit={(event) => {
+          if (!guard.current.tryEnter()) {
+            event.preventDefault();
+            return;
+          }
+          setPressed(true);
+        }}
+      >
         <input type="hidden" name="recipientEmail" value={email.trim()} />
         <input type="hidden" name="amount" value={amountText.trim()} />
         <input type="hidden" name="note" value={note.trim()} />
@@ -366,7 +392,14 @@ export function SendFlow({
           </p>
 
           <div className="mt-block flex flex-col items-stretch gap-inline">
-            <Button type="submit" variant="primary" size="lg" full loading={pending}>
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              full
+              loading={pending || pressed}
+              disabled={pending || pressed}
+            >
               {copy.send}
             </Button>
             <Button type="button" variant="ghost" full disabled={pending} onClick={() => setStep("compose")}>

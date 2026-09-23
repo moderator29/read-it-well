@@ -226,6 +226,24 @@
    * used to write their own version of this; one class, one rung down for
    * the smaller figures.
    */
+  /*
+   * THE ROLL MAY NEVER DRAW OVERLAPPING GLYPHS. Two faults were caught in a
+   * proof shot mid-roll: the figure's negative tracking pulled each digit
+   * slot left over the comma before it, and each slot's 1em clip box reaches
+   * above the cap height, so the neighbouring digits of a moving strip showed
+   * as fragments over the figure. Inside the rolling figures here, digits
+   * and separators carry no tracking (the tabular digits already sit tight),
+   * and each slot is clipped to the digits' own band, from just above the
+   * cap height to just below the baseline, so nothing but the digit in the
+   * window is ever painted, settled or moving.
+   */
+  .nf-money .nf-odometer__slot,
+  .nf-money .nf-odometer__sep {
+    letter-spacing: 0;
+  }
+  .nf-money .nf-odometer__slot {
+    clip-path: inset(0.1em -0.05em 0.1em -0.05em);
+  }
   .nf-wallet-figure--long {
     font-size: clamp(1.75rem, 7.6vw, 2.25rem);
   }
@@ -292,12 +310,13 @@
       linear-gradient(180deg, var(--nf-wash-2) 0%, transparent 55%),
       var(--nf-wallet-tile-fill);
     color: var(--nf-content-primary);
-    font-size: var(--nf-text-caption);
+    /* 12px on all four so "Add money" sits inside its 64px with room at both
+       ends and the four labels match. No ellipsis, no wrap. */
+    font-size: var(--nf-text-overline);
     font-weight: 500;
     line-height: 1.2;
     text-align: center;
     white-space: nowrap;
-    letter-spacing: -0.02em;
     box-shadow:
       var(--nf-rim-lit),
       inset 0 0 12px -4px var(--nf-glow-4),
@@ -423,7 +442,9 @@
     min-width: 0;
     flex-direction: column;
     align-items: flex-start;
-    padding: 0.375rem;
+    /* The render's plate stands 9px in from the card's top and left, and the
+       title and sub share its left edge. */
+    padding: 0.5625rem;
     border: 1px solid;
     border-color: var(--nf-wallet-lit-edge);
     border-radius: var(--nf-radius-control);
@@ -442,7 +463,7 @@
   }
   /*
    * The plate: the render's 31px glass tile. At night it is the pack's crop
-   * of the render's own tile (see QuickPlate.tsx), drawn in a 52px box
+   * of the render's own tile (see QuickPlate.tsx), drawn in a 46px box
    * because the crop carries its glow as margin, so the tile itself lands
    * at the render's 31px. On paper it is a stroked
    * glyph on a brand-tinted plate, because the crop would sit on a navy chip.
@@ -451,9 +472,12 @@
     position: relative;
     display: grid;
     place-items: center;
-    width: 3.25rem;
-    height: 3.25rem;
-    margin: -0.6875rem 0 -0.4375rem -0.6875rem;
+    /* The crop's glass tile fills 67 per cent of its square, so a 46px box
+       draws the render's 31px tile with 7.5px of glow round it; the negative
+       margin puts the TILE's edge, not the box's, on the card's padding. */
+    width: 2.875rem;
+    height: 2.875rem;
+    margin: -0.46875rem 0 -0.21875rem -0.46875rem;
     color: var(--nf-brand-secondary);
   }
   .nf-wallet-quick__art {
@@ -546,12 +570,21 @@
    * Three tight lines at the left (title, the counterparty in blue, the date
    * and time), the signed amount over the status badge at the right.
    */
+  /* "See all" on the title's baseline; the first row 18px under the
+     title's baseline, as measured (831 - 800 image px). */
   .nf-tx-card__head {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
     gap: var(--nf-space-sm);
-    padding: 0.875rem 0.875rem 0.25rem;
+    padding: 0.875rem 0.875rem 0;
+  }
+  .nf-tx-card__head .nf-wallet-link {
+    min-height: 0;
+    padding-block: var(--nf-space-2xs);
+  }
+  .nf-tx-list > li:first-child > .nf-tx-row {
+    padding-top: 0.125rem;
   }
   .nf-tx-list {
     padding-inline: 0.875rem;
@@ -755,8 +788,25 @@
     font-size: var(--nf-text-overline);
     color: var(--nf-content-muted);
   }
+  /* Notes under a row share the rows' left edge; hints and errors are set
+     in by the row's own padding so their text starts where the label does. */
   .nf-send-row__notes {
-    margin: calc(var(--nf-space-2xs) * -1) var(--nf-space-2xs) 0;
+    margin-top: calc(var(--nf-space-2xs) * -1);
+  }
+  .nf-send-row__notes > .nf-send-row__hint,
+  .nf-send-row__notes > .nf-send-row__error,
+  .nf-send-row__notes.nf-send-row__error {
+    padding-inline: 0.75rem;
+  }
+  .nf-send-row__notes > .nf-recipient-found {
+    min-height: 3.5rem;
+    padding: 0.5rem 0.75rem;
+    gap: var(--nf-space-sm);
+    border-radius: var(--nf-radius-control);
+  }
+  /* The 18px tick centred in the 34px plate column the rows above use. */
+  .nf-send-row__notes > .nf-recipient-found > svg {
+    margin-inline: 0.5rem;
   }
   .nf-send-row__notes:empty {
     display: none;
@@ -784,6 +834,8 @@
   /* 24px tall in the render; 36 here, the smallest height at which a 10px
      corner is still a rectangle and a thumb still hits it. */
   .nf-send-chip {
+    min-width: 0;
+    text-align: center;
     min-height: 2.25rem;
     padding-inline: 0.125rem;
     border: 1px solid var(--nf-wallet-rim-side);
