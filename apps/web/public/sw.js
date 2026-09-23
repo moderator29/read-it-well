@@ -2,12 +2,26 @@
  * Vallo service worker. Hand written, no library, deliberately small.
  *
  * The audience is Nigerian and frequently on a mid-range Android over 3G with
- * a metered data bundle, so this worker has two jobs and no others:
+ * a metered data bundle, so this worker has three jobs and no others:
  *
  *   1. Keep a tiny offline shell so a dropped connection shows a designed
  *      screen instead of the browser's dinosaur.
  *   2. Stop the phone paying twice for bytes that never change (the hashed
  *      Next build output and the brand artwork).
+ *   3. Turn a push into a notification, and a tap on that notification into
+ *      the right screen. See THE PUSH HALF at the foot of this file.
+ *
+ * THE PUSH HANDLERS LIVE HERE AND NOT IN A SECOND WORKER, and that is a
+ * correctness decision rather than a tidiness one. TWO REGISTRATIONS AT THE
+ * SAME SCOPE ARE NOT TWO WORKERS, THEY ARE ONE WORKER REPLACING THE OTHER, so
+ * a push worker registered at `/` would have silently uninstalled the offline
+ * shell above. The previous arrangement dodged that by serving a second
+ * worker from `/api/push/sw` at the narrower scope `/api/push/`, where it
+ * could not displace anything. It cost one thing and the cost was the whole
+ * point of a notification: `clients.matchAll()` only returns pages inside the
+ * scope, so a tap could not see an already-open Vallo tab and opened a second
+ * one. One worker at `/` sees every tab, so a tap lands in the tab the person
+ * already has.
  *
  * What it must never do is answer a question about money, messages or
  * identity from a cache. A stale balance or a stale conversation is worse
@@ -34,7 +48,8 @@
  * user on last week's shell.
  */
 
-const CACHE_VERSION = "v1";
+/* Bumped to v2 when the push handlers moved in from `/api/push/sw`. */
+const CACHE_VERSION = "v2";
 const SHELL_CACHE = `vallo-shell-${CACHE_VERSION}`;
 const ASSET_CACHE = `vallo-assets-${CACHE_VERSION}`;
 const CURRENT_CACHES = [SHELL_CACHE, ASSET_CACHE];
@@ -274,4 +289,342 @@ self.addEventListener("fetch", (event) => {
 
   // Everything else, including every API and authenticated data response, is
   // left entirely alone: no interception, no cache, no stale answer.
+});
+
+/* =========================================================================
+ *                              THE PUSH HALF
+ * =========================================================================
+ *
+ * WITHOUT THIS, WEB PUSH DOES NOTHING VISIBLE. A push arrives at a service
+ * worker and a service worker has to CHOOSE to display it. A browser that
+ * receives a push its worker does not show may put up its own "this site has
+ * been updated in the background" notice instead, which is worse than a plain
+ * one of ours. So every branch below ends in `showNotification`, including
+ * the branches where the payload could not be read at all.
+ *
+ * NOTHING HERE TOUCHES THE CACHE AND NOTHING ABOVE TOUCHES A NOTIFICATION.
+ * The two halves share this file and nothing else, which is what makes it
+ * safe for them to share a registration.
+ *
+ * WHAT THE SERVER SENDS. `lib/push/transport/webpush.ts` encrypts exactly
+ * this object and nothing else:
+ *
+ *     { title, body, href, tag, urgent }
+ *
+ * Every field is re-checked here. The sender already refuses an off-origin
+ * href; this refuses it again, because a notification is a place a tap leaves
+ * the application from and it is not a place to take a sender's word for a
+ * destination. A push service cannot read the ciphertext, but a compromised
+ * application server could, and the second check costs four lines.
+ */
+
+/* The only icon this file names. It is in SHELL_ASSETS above, so it is
+   already on disk and a notification has an icon with no network at all. A
+   notification with no icon falls back to the browser's own mark, which on
+   Android is a grey circle nobody recognises.
+
+   THERE IS DELIBERATELY NO `badge`. Android draws the badge as a flat
+   monochrome silhouette in the status bar, and there is no monochrome Vallo
+   mark in `public/`. Pointing at one that does not exist looks like care and
+   behaves exactly like omitting it, so it is omitted and the missing asset is
+   recorded in `docs/push/FIRST_NOTIFICATION.md` instead. */
+const PUSH_ICON = "/pwa/icon-192.png";
+
+/* Where a tap goes when the payload names nowhere. Always a truthful
+   destination: the list holds every notification the person has. */
+const PUSH_FALLBACK_HREF = "/notifications";
+
+/*
+ * ON-DEVICE COLLAPSING, WHICH IS A DIFFERENT PROBLEM FROM THE SERVER'S.
+ *
+ * `lib/push/policy.ts` folds a backlog at the moment one drain run sends it.
+ * It cannot fold what it already sent. A person who leaves their phone on the
+ * table for an hour gets one push per drain, five minutes apart, and the
+ * shade fills up with rows the server thinks it has already been careful
+ * about. This is the only place that can see what is actually on the screen.
+ *
+ * Above this many ordinary Vallo notifications, they become one that says how
+ * many. Three matches COLLAPSE_THRESHOLD in the policy on purpose: two
+ * different answers to "how many is too many" would be worse than either.
+ */
+const DEVICE_COLLAPSE_AT = 3;
+
+/*
+ * Read one push payload into the notification it should become.
+ *
+ * Pure: it takes a parsed value and returns a description. Every guard here
+ * is a branch a test can reach without a browser, which is the reason it is a
+ * function rather than a block inside the listener.
+ */
+function notificationFromPayload(raw) {
+  const payload = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+
+  const title =
+    typeof payload.title === "string" && payload.title.trim().length > 0
+      ? payload.title
+      : "Vallo";
+  const body = typeof payload.body === "string" ? payload.body : "";
+  const tag =
+    typeof payload.tag === "string" && payload.tag.trim().length > 0 ? payload.tag : "vallo";
+  const urgent = payload.urgent === true;
+
+  return {
+    title,
+    tag,
+    urgent,
+    options: {
+      body,
+      icon: PUSH_ICON,
+      /* The collapse key. A second notification with the same tag REPLACES
+         the first rather than stacking, which is what keeps eleven messages
+         in one conversation to one row in the shade. */
+      tag,
+      /* RE-ALERT ONLY FOR THE URGENT, AND THIS IS NOT A DETAIL.
+
+         The tag is per person per kind, so "your withdrawal failed" replaces
+         "your wallet was credited" on the same row. Replacing silently is
+         right for a conversation and wrong for money: the person would never
+         learn the second thing happened. Urgent replacements buzz again.
+         Ordinary ones do not, because re-alerting for a replacement is how a
+         phone ends up buzzing eleven times for one conversation anyway. */
+      renotify: urgent,
+      /* Money and security stay on the screen until they are dealt with.
+         Ignored on platforms that do not support it, which is fine: it can
+         only ever make an urgent notification easier to miss, never a
+         non-urgent one harder to dismiss. */
+      requireInteraction: urgent,
+      /* Everything the tap handler needs, and nothing that identifies a
+         device. `count` is what makes a summary countable; see below. */
+      data: { href: safePushHref(payload.href), urgent, count: 1 },
+    },
+  };
+}
+
+/*
+ * A destination, or the notifications list.
+ *
+ * Only a path on our own origin is ever carried. `//host` is a
+ * protocol-relative URL and leaves the origin, which is the one that gets
+ * missed. This mirrors `safeHref` in `lib/push/policy.ts` deliberately: the
+ * sender checks and the receiver checks, and neither trusts the other.
+ */
+function safePushHref(href) {
+  if (typeof href !== "string") return PUSH_FALLBACK_HREF;
+  const trimmed = href.trim();
+  if (trimmed.charAt(0) !== "/") return PUSH_FALLBACK_HREF;
+  if (trimmed.charAt(1) === "/") return PUSH_FALLBACK_HREF;
+  return trimmed;
+}
+
+/* How many real events an already-displayed notification stands for. */
+function representedCount(notification) {
+  const data = notification && notification.data;
+  const count = data && data.count;
+  return typeof count === "number" && count >= 1 ? count : 1;
+}
+
+/*
+ * Decide what the shade should look like once this one arrives.
+ *
+ * Returns either the single notification, or a summary plus the list of
+ * notifications to close first. Pure, and separated from the listener for the
+ * same reason as above: the awkward cases here (a replacement must not count
+ * as an arrival; an urgent row must never be folded or closed) are exactly
+ * the ones that are painful to reach through a browser.
+ */
+function planShade(existing, incoming) {
+  /* URGENT IS NEVER FOLDED AND NEVER CLOSED. A reversed transaction does not
+     become "4 updates", and it does not disappear because four messages
+     arrived after it. */
+  if (incoming.urgent) return { close: [], show: incoming };
+
+  const ordinary = (existing || []).filter(
+    (notification) => !(notification.data && notification.data.urgent === true),
+  );
+
+  /* A notification with this tag is being REPLACED, not added to. Counting it
+     as an arrival would collapse the shade after three messages in one
+     conversation, which is the thing the tag exists to prevent. */
+  const replacing = ordinary.some((notification) => notification.tag === incoming.tag);
+  const already = ordinary.reduce(
+    (total, notification) => total + representedCount(notification),
+    0,
+  );
+  const total = replacing ? Math.max(already, 1) : already + 1;
+
+  if (total <= DEVICE_COLLAPSE_AT) return { close: [], show: incoming };
+
+  return {
+    close: ordinary,
+    show: {
+      title: "Vallo",
+      tag: "vallo-summary",
+      urgent: false,
+      options: {
+        body: `${total} things happened while you were away`,
+        icon: PUSH_ICON,
+        tag: "vallo-summary",
+        /* A summary that grows is a summary worth looking at again. */
+        renotify: true,
+        requireInteraction: false,
+        /* THE LIST, NOT THE NEWEST ITEM. A summary that opens one of the
+           things it is summarising hides the others. */
+        data: { href: PUSH_FALLBACK_HREF, urgent: false, count: total },
+      },
+    },
+  };
+}
+
+self.addEventListener("push", (event) => {
+  let parsed = null;
+  if (event.data) {
+    try {
+      parsed = event.data.json();
+    } catch {
+      /* Not JSON, or not decryptable. `notificationFromPayload` turns null
+         into the plain Vallo notification, which still tells the person
+         something is waiting and still opens the list. */
+    }
+  }
+
+  const incoming = notificationFromPayload(parsed);
+
+  event.waitUntil(
+    (async () => {
+      let existing = [];
+      try {
+        /* Not supported everywhere, and it throws rather than returning
+           nothing on some older Android browsers. An empty list is the safe
+           reading: it shows the individual notification, which is never
+           wrong, only sometimes noisier than it could be. */
+        existing = (await self.registration.getNotifications()) || [];
+      } catch {
+        existing = [];
+      }
+
+      const plan = planShade(existing, incoming);
+      for (const notification of plan.close) {
+        try {
+          notification.close();
+        } catch {
+          /* Already dismissed by the person between the read and here. */
+        }
+      }
+      await self.registration.showNotification(plan.show.title, plan.show.options);
+    })(),
+  );
+});
+
+/*
+ * THE TAP.
+ *
+ * Three outcomes in preference order, and the order is the whole point:
+ *
+ *  1. A tab already open ON THAT EXACT PAGE is focused and left alone.
+ *     Navigating it would throw away a half-typed reply.
+ *  2. Any other Vallo tab is navigated to the destination and focused, so a
+ *     person ends the day with one Vallo tab rather than nine.
+ *  3. Only when there is no Vallo tab at all is a new window opened.
+ *
+ * At scope `/` every Vallo tab is visible here and every one of them is
+ * controlled by this worker, which is what makes `navigate` legal. Under the
+ * old `/api/push/` scope steps 1 and 2 could not see anything and every tap
+ * fell through to step 3.
+ */
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const data = event.notification.data || {};
+  const href = safePushHref(data.href);
+
+  event.waitUntil(
+    (async () => {
+      let clientList = [];
+      try {
+        clientList = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      } catch {
+        clientList = [];
+      }
+
+      const ours = clientList.filter((client) => {
+        try {
+          return new URL(client.url).origin === self.location.origin;
+        } catch {
+          return false;
+        }
+      });
+
+      const target = new URL(href, self.location.origin).href;
+
+      const exact = ours.find((client) => client.url === target);
+      if (exact && typeof exact.focus === "function") {
+        return exact.focus();
+      }
+
+      const anyTab = ours[0];
+      if (anyTab) {
+        if (typeof anyTab.navigate === "function") {
+          try {
+            const navigated = await anyTab.navigate(target);
+            /* `navigate` resolves to null for a client it could not move.
+               Focusing the original is better than opening a second tab. */
+            if (navigated && typeof navigated.focus === "function") return navigated.focus();
+          } catch {
+            /* An uncontrolled client refuses to be navigated. Fall through
+               and at least bring the person back to Vallo. */
+          }
+        }
+        if (typeof anyTab.focus === "function") return anyTab.focus();
+      }
+
+      return self.clients.openWindow(target);
+    })(),
+  );
+});
+
+/*
+ * THE SUBSCRIPTION THAT ROTATES UNDER YOU.
+ *
+ * A browser may replace a push subscription without the page being open, and
+ * if nobody re-registers it the device goes silent for ever with nothing
+ * anywhere saying so. The new subscription is sent straight back. The request
+ * carries cookies, so it lands as the right person or it is refused; there is
+ * no path here by which one person's device is recorded against another.
+ */
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil(
+    (async () => {
+      try {
+        const old = event.oldSubscription;
+        const applicationServerKey =
+          (old && old.options && old.options.applicationServerKey) || null;
+        const fresh =
+          event.newSubscription ||
+          (applicationServerKey
+            ? await self.registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey,
+              })
+            : null);
+        if (!fresh) return;
+
+        const json = fresh.toJSON();
+        const keys = json.keys || {};
+        await fetch("/api/push/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            platform: "web",
+            token: fresh.endpoint,
+            p256dh: keys.p256dh,
+            auth: keys.auth,
+          }),
+        });
+      } catch {
+        /* Nothing useful to do and nowhere useful to say it. The device goes
+           quiet until the page is next opened, which re-registers. */
+      }
+    })(),
+  );
 });

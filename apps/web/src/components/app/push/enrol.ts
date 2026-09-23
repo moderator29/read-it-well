@@ -109,11 +109,17 @@ async function enrolWeb(): Promise<EnrolOutcome> {
   }
 
   try {
-    /* Registered at its own path's scope, NOT at `/`. A registration at `/`
-       would replace `public/sw.js` and silently uninstall the offline shell.
-       See the note in `app/api/push/sw/route.ts`. */
-    const registration = await navigator.serviceWorker.register("/api/push/sw", { scope: "/api/push/" });
+    /* ONE WORKER AT `/`, WHICH IS `public/sw.js`, AND IT NOW CARRIES THE PUSH
+       HANDLERS ITSELF. Registering the same script at the same scope is
+       idempotent: if `ServiceWorkerRegistrar` has already installed it, this
+       resolves with the registration that exists rather than replacing it.
+
+       It is called here anyway rather than trusting the registrar, because
+       the registrar is production-only and a person granting the permission
+       must end up with a worker whatever the build. */
+    const registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
     await navigator.serviceWorker.ready.catch(() => undefined);
+    await retireLegacyPushWorker();
 
     /* An existing subscription is reused rather than replaced. Unsubscribing
        and re-subscribing mints a new endpoint and leaves the old row to be
@@ -211,6 +217,39 @@ async function enrolNative(): Promise<EnrolOutcome> {
     return postRegistration({ platform, token, deviceLabel: platform === "ios" ? "iPhone" : "Android" });
   } catch {
     return { ok: false, reason: "unsupported" };
+  }
+}
+
+/**
+ * THE WORKER THAT USED TO DO THIS JOB, TAKEN OFF ANY HANDSET THAT HAS IT.
+ *
+ * Push handlers were briefly served from `/api/push/sw` at scope
+ * `/api/push/`, to avoid displacing the offline shell at `/`. They now live
+ * in `public/sw.js`, and a stale registration at the old scope would hold a
+ * push subscription of its own: the row in `push_tokens` would still be live,
+ * the old worker would still display, and the person would get TWO
+ * notifications for one event with no way to tell which worker to blame.
+ *
+ * So it is unregistered before the new subscription is taken. Unregistering
+ * a registration also drops its push subscription, so nothing is left holding
+ * an endpoint.
+ *
+ * WHETHER ANY DEVICE ACTUALLY HAS ONE: almost certainly none does, because
+ * `enrolWeb` above returns `not_configured` and never reaches the register
+ * call when there is no VAPID key, and no deployment has ever had one. This
+ * runs anyway. "Almost certainly none" is not a thing to build on, and the
+ * cost of being wrong is a duplicate notification on somebody's lock screen.
+ */
+async function retireLegacyPushWorker(): Promise<void> {
+  try {
+    const stale = await navigator.serviceWorker.getRegistration("/api/push/sw");
+    if (!stale) return;
+    if (!stale.scope.endsWith("/api/push/")) return;
+    await stale.unregister();
+  } catch {
+    /* Nothing to do about it and nothing worth telling the person. The worst
+       case is the duplicate this is trying to avoid, which is visible and
+       which they can report. */
   }
 }
 

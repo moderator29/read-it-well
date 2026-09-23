@@ -481,7 +481,7 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/push/register": "POST only, a subscription write.",
   "/api/push/revoke": "POST only, a subscription delete.",
   "/api/push/self-test": "POST only, a diagnostic send.",
-  "/api/push/sw": "the service worker's JavaScript.",
+  "/api/push/sw": "a retired service worker, serving only its own unregister.",
   "/api/support": "POST only, the contact form.",
   "/api/yellowcard/webhook": "processor webhook.",
   "/admin/enter": "303 into the console with the entry cookie.",
