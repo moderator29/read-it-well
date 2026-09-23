@@ -755,7 +755,30 @@ I1. **The room-by-room checklist, the report notes and the report photos have
    `submitReport` to `lib/inspections/actions.ts` and swaps the ladder for the
    eight rows.
 
-I2. **Add `public.inspection_requests` to the `supabase_realtime`
+I1 APPLIED (Session A, 20260923135847, reply in BUILD_07 section 49septies).
+   Session B's screen is switched on against it (flag `reportStorageLive`, on
+   by default, `VALLO_INSPECTION_REPORTS=0` turns it off). Two follow-ups:
+
+I1a. **The outcome has nowhere to go once the report closes the inspection.**
+   `inspection_requests.outcome` may be written only on the move to COMPLETED
+   (`guard_inspection_transition`), and with I1 that move is made by
+   `private.inspection_report_submission`. `inspection_reports` has no outcome
+   column, so "Inspected / Deal done / No deal" cannot be recorded when a
+   report is submitted, and the screen does not draw the choice while report
+   storage is on. Request: add `outcome text check (outcome in ('inspected',
+   'deal_done', 'no_deal'))` to `inspection_reports`, carry it onto the parent
+   in the submission trigger, and accept `outcome` on `saveInspectionReport`
+   when `submit` is true.
+
+I5. **`saveInspectionReport` clears the notes on every save that omits them.**
+   Its upsert writes `notes: notes ?? null`, so ticking a room without
+   resending the notes wipes them. The screen sends the current notes with
+   every call, so nothing is lost today; the action should leave `notes`
+   untouched when the field is absent (upsert without the column, or
+   `ignoreDuplicates` then a separate update when `notes !== undefined`).
+   Pinned in `lib/inspections/report-wiring.test.ts`.
+
+
    publication.** Today only `notifications` is published. The surface
    re-reads when a notification about an inspection arrives for the reader
    (`InspectionsLive`), which covers every state change because

@@ -9,6 +9,8 @@ import { InspectionsLive } from "@/components/app/inspections/InspectionsLive";
 import { EmptyState, Section, Stack, TYPE } from "@/components/app/Screen";
 import { resolveSession } from "@/lib/actions/session";
 import { readListingFacts } from "@/app/(app)/inspections/facts";
+import { readReportsFor } from "@/lib/inspections/report-queries";
+import { reportStorageLive } from "@/lib/inspections/report-flag";
 import { ButtonLink } from "@/components/ui/Button";
 import { isOpen } from "@/lib/inspections/types";
 
@@ -57,10 +59,14 @@ export default async function AgentInspectionsPage() {
   const userId = session.state === "signed-in" ? session.user.id : null;
   const open = list.inspections.filter((one) => isOpen(one.state));
   const settled = list.inspections.filter((one) => !isOpen(one.state));
-  const facts = await readListingFacts(
-    list.inspections.map((one) => one.listingId),
-    locale,
-  );
+  const [facts, reports] = await Promise.all([
+    readListingFacts(
+      list.inspections.map((one) => one.listingId),
+      locale,
+    ),
+    readReportsFor(list.inspections.map((one) => one.id)),
+  ]);
+  const reportLive = reportStorageLive();
   /* The first one waiting on somebody arrives expanded, as on /inspections;
      failing that the first scheduled one, which is the render's own case. */
   const expanded =
@@ -114,6 +120,8 @@ export default async function AgentInspectionsPage() {
                       inspection={one}
                       side="lister"
                       facts={facts.get(one.listingId) ?? null}
+                      report={reports.get(one.id) ?? null}
+                      reportLive={reportLive}
                       locale={locale}
                       open={one.id === expanded}
                     />
@@ -131,6 +139,8 @@ export default async function AgentInspectionsPage() {
                       inspection={one}
                       side="lister"
                       facts={facts.get(one.listingId) ?? null}
+                      report={reports.get(one.id) ?? null}
+                      reportLive={reportLive}
                       locale={locale}
                       open={one.id === expanded}
                     />

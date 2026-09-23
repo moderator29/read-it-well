@@ -1,24 +1,41 @@
 "use client";
 
 import "@/app/css/inspection.css";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatDate, type Locale } from "@vallo/i18n";
-import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
+import { IconPlate } from "@/components/ui/IconPlate";
+import { panelClass } from "@/components/ui/Panel";
 import { Sheet } from "@/components/ui/Sheet";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { TYPE } from "@/components/app/Screen";
 import { formatPhone } from "@/lib/phone";
 import { useBack } from "@/lib/nav/use-back";
+import { createClient } from "@/lib/supabase/client";
 import type { ListingKind } from "@/lib/listings/types";
 import {
   acceptProposedTime,
   answerInspection,
   closeInspection,
+  createInspectionPhotoUpload,
+  saveInspectionReport,
 } from "@/lib/inspections/actions";
+import { recordReportPhoto } from "@/lib/inspections/report-actions";
+import {
+  EMPTY_REPORT,
+  ROOM_COPY,
+  ROOM_ITEMS,
+  canEditReport,
+  canSubmit,
+  checkedCount,
+  fromSaved,
+  type InspectionReport,
+  type RoomItem,
+} from "@/lib/inspections/report";
 import {
   INSPECTION_OUTCOMES,
   waitingOn,
@@ -26,34 +43,26 @@ import {
   type InspectionOutcome,
   type InspectionState,
 } from "@/lib/inspections/types";
-import { canReport, ladderCount, ladderFor, type LadderKey } from "./ladder";
+import { ladderFor, type LadderKey } from "./ladder";
 import { statusFor, type BadgeTone } from "./status";
 import { BadgeSlot } from "./BadgeSlot";
 
 /**
- * ONE INSPECTION, IN THE ANATOMY OF F6A8A482.
+ * ONE INSPECTION, EXACTLY IN THE ANATOMY OF F6A8A482 / founder/inspection-target.jpg.
  *
- * The listing card with its badge, the date / agent / status row, the
- * checklist panel with its count and bar, the notes, then Add Photos (lit)
- * and Submit Inspection Report (secondary, disabled until it can be sent).
- * Every control writes through the existing actions and the database's own
- * transition guard (`private.guard_inspection_transition`); the face asks the
- * router to re-read the moment an action returns, and `InspectionsLive`
- * re-reads when the OTHER side moves, so what is drawn is never ahead of what
- * was saved and never behind it for long.
+ * The listing card with its badge, the date / party / status row, the
+ * inspection's lifecycle, the eight-room checklist with its count and bar,
+ * the notes field, the outcome choice, Add Photos (lit) and Submit
+ * Inspection Report (glass, disabled until it can be sent). Containers,
+ * plates and buttons are the shared layer (Panel, IconPlate, Button).
  *
- * WHAT IS HONEST HERE AND WHAT IS NOT DRAWN. The render's eight room-by-room
- * rows (Exterior to Overall Condition) have no table behind them: nothing
- * stores a tick, a room note or a photo against an inspection. Drawing eight
- * circles that forget their ticks on reload would be a picture of a feature,
- * so the checklist panel carries the four things the record CAN say (see
- * `ladder.ts`), and the table the eight rows need is Session B scope request
- * I1. "Add Photos" goes to the conversation, because the message-attachments
- * bucket is the one real photo path an inspection has today. "Submit
- * Inspection Report" is `closeInspection` with an outcome, live once the
- * inspection is agreed and an outcome is chosen. The notes are the two the row
- * carries, read-only, because no action writes a note after the fact
- * (request I1 again).
+ * THE REPORT (eight rooms, notes, photos) writes through Session A's
+ * `saveInspectionReport` and `createInspectionPhotoUpload` (I1, applied 23
+ * September) and this surface's `recordReportPhoto`, behind ONE flag
+ * (`reportLive`, `lib/inspections/report-flag.ts`). A tick is drawn only from
+ * what the action read back from the database, never optimistically. With
+ * the flag off the rows draw, the circles are not pressable, and a plain line
+ * says so. The lifecycle above it writes through the existing actions.
  */
 
 export type InspectionListingFacts = {
@@ -93,44 +102,13 @@ const STATE_TONE: Record<InspectionState, BadgeTone> = {
   WITHDRAWN: "quiet",
 };
 
-/*
- * Each rung sits on a lit round disc, drawn to the render's measured size and
- * light, with the stroked glyph chosen for what the rung means: the house
- * for the request, the shield with its tick for the agreed time, the room
- * for the visit, the document for the outcome.
- */
-const RUNG: Record<LadderKey, { icon: UiIconName; name: string; detail: string }> = {
-  asked: { icon: "house", name: "Inspection requested", detail: "The request is on both sides' lists" },
-  agreed: { icon: "verified", name: "Time agreed", detail: "A day and a time both sides took" },
-  visited: { icon: "bed", name: "Inspection happened", detail: "Somebody stood in the property" },
-  recorded: { icon: "document", name: "Outcome recorded", detail: "How it went, written on the record" },
+/** The lifecycle, in four words, as a strip above the checklist. */
+const RUNG_LABEL: Record<LadderKey, string> = {
+  asked: "Requested",
+  agreed: "Time agreed",
+  visited: "Inspected",
+  recorded: "Outcome recorded",
 };
-
-const CROPS = "/brand/session-b/inspection";
-
-/** A crop from the render (dark only; no daylight cut since 23 September). */
-function Crop({
-  name,
-  width,
-  height,
-  className,
-}: {
-  name: string;
-  width: number;
-  height: number;
-  className?: string;
-}) {
-  return (
-    <Image
-      src={`${CROPS}/${name}.webp`}
-      alt=""
-      width={width}
-      height={height}
-      unoptimized
-      className={`nf-ix-crop ${className ?? ""}`}
-    />
-  );
-}
 
 /* The full meaning, which is the accessible name of each choice. */
 const OUTCOME_LABEL: Record<InspectionOutcome, string> = {
@@ -146,6 +124,22 @@ const OUTCOME_SHORT: Record<InspectionOutcome, string> = {
   no_deal: "No deal",
 };
 
+const CROPS = "/brand/session-b/inspection";
+
+/** A crop from the render (SOURCES.md), dark only. */
+function Crop({ name, width, height, className }: { name: string; width: number; height: number; className?: string }) {
+  return (
+    <Image
+      src={`${CROPS}/${name}.webp`}
+      alt=""
+      width={width}
+      height={height}
+      unoptimized
+      className={`nf-ix-crop ${className ?? ""}`}
+    />
+  );
+}
+
 function whenLine(value: string, locale: Locale): { day: string; time: string } {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return { day: "", time: "" };
@@ -159,12 +153,21 @@ function Badge({ tone, children }: { tone: BadgeTone; children: React.ReactNode 
   return <span className={`nf-ix-badge nf-ix-badge--${tone}`}>{children}</span>;
 }
 
+const EXTENSIONS: Record<string, "jpg" | "png" | "webp" | "heic"> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/heic": "heic",
+};
+
 export function InspectionSheet({
   inspection,
   side,
   facts,
   locale,
   open = false,
+  report = null,
+  reportLive = false,
 }: {
   inspection: Inspection;
   side: "lister" | "requester";
@@ -172,21 +175,30 @@ export function InspectionSheet({
   locale: Locale;
   /** Expanded on arrival. The first live one is; the rest fold to their card. */
   open?: boolean;
+  /** The saved report (I1), or null when none exists or storage is off. */
+  report?: InspectionReport | null;
+  /** The one flag: report storage exists. */
+  reportLive?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [proposing, setProposing] = useState(false);
   const [outcome, setOutcome] = useState<InspectionOutcome | null>(null);
+  const [saved, setSaved] = useState<InspectionReport>(report ?? EMPTY_REPORT);
+  const [notes, setNotes] = useState(report?.notes ?? "");
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const waiting = waitingOn(inspection.state);
   const yourMove = waiting === side;
   const rungs = ladderFor(inspection);
-  const count = ladderCount(rungs);
   const shown = inspection.slotAt ?? inspection.requestedAt;
   const when = whenLine(shown, locale);
-  const reportable = canReport(inspection.state);
   const status = statusFor(inspection, side);
+  const editable = canEditReport(reportLive, inspection.state, saved);
+  const rooms = checkedCount(saved.items);
+  const submittable = canSubmit(reportLive, inspection.state, saved, outcome);
 
   function run(work: () => Promise<{ ok: boolean; error?: string }>) {
     setError(null);
@@ -200,10 +212,76 @@ export function InspectionSheet({
     });
   }
 
+  /*
+   * A tick is drawn only from what the action read back, never
+   * optimistically. The notes travel with EVERY call: the action writes
+   * `notes ?? null` on each save, so a tick sent without them would clear
+   * what was typed (request I5 to Session A).
+   */
+  function saveReport(body: { items?: { item: RoomItem; checked: boolean }[]; submit?: boolean }) {
+    setError(null);
+    startTransition(async () => {
+      const result = await saveInspectionReport({
+        inspectionId: inspection.id,
+        items: body.items ?? [],
+        notes: notes.trim().length > 0 ? notes : null,
+        submit: body.submit ?? false,
+      });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setSaved((now) => fromSaved(result.data, now.photoCount));
+      router.refresh();
+    });
+  }
+
+  async function addPhoto(file: File) {
+    const extension = EXTENSIONS[file.type];
+    if (!extension) {
+      setError("Add a photo as a JPEG, PNG, WebP or HEIC image.");
+      return;
+    }
+    setError(null);
+    setUploading(true);
+    try {
+      const target = await createInspectionPhotoUpload({ inspectionId: inspection.id, extension });
+      if (!target.ok) {
+        setError(target.error);
+        return;
+      }
+      const upload = await createClient()
+        .storage.from("inspection-photos")
+        .uploadToSignedUrl(target.data.path, target.data.token, file, { contentType: file.type });
+      if (upload.error) {
+        setError("That photo did not upload. Try again in a moment.");
+        return;
+      }
+      const recorded = await recordReportPhoto({ inspectionId: inspection.id, storagePath: target.data.path });
+      if (!recorded.ok) {
+        setError(recorded.error);
+        return;
+      }
+      setSaved((now) => ({ ...now, photoCount: now.photoCount + 1 }));
+      router.refresh();
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function submit() {
+    if (reportLive) {
+      saveReport({ submit: true });
+      return;
+    }
+    if (!outcome) return;
+    run(() => closeInspection({ id: inspection.id, state: "COMPLETED", outcome }));
+  }
+
   return (
     <details className="nf-ix nf-ix-fold" open={open} data-testid="inspection-sheet">
       <summary>
-        <div className="nf-ix-glass nf-ix-card">
+        <div className={panelClass({ variant: "card", className: "nf-ix-card" })}>
           <div className="nf-ix-card__photo" aria-hidden="true">
             <MediaFrame hue={facts?.hue ?? 0} kind={facts?.kind ?? "home"} ghost={Boolean(facts?.photo)} />
             {facts?.photo && <Image src={facts.photo} alt="" fill sizes="(min-width: 640px) 160px, 116px" className="object-cover" />}
@@ -238,7 +316,7 @@ export function InspectionSheet({
 
       <div className="nf-ix-body">
         {/* ---------------------------------------------- date, party, state */}
-        <dl className="nf-ix-glass nf-ix-facts">
+        <dl className={panelClass({ variant: "card", className: "nf-ix-facts" })}>
           <div className="nf-ix-fact">
             <span className="nf-ix-fact__glyph" aria-hidden="true">
               <UiIcon name="calendar-booking" size={16} />
@@ -254,20 +332,17 @@ export function InspectionSheet({
               <UiIcon name="user" size={16} />
             </span>
             <div className="nf-ix-fact__text">
-              {/* The render says "Assigned Agent". Nobody is assigned: the other
-                  party is whoever lists the property, owner or agent, so the
-                  label says that and no more (CLAIMS_RULE; ledger 9, refused). */}
+              {/* The render says "Assigned Agent". The data model has no
+                  assigned agent: `inspection_requests` names the requester
+                  and the lister (owner or agent) and nobody else, so the
+                  label says what the row holds (CLAIMS_RULE; ledger 9). */}
               <dt className="nf-ix-fact__label">{side === "requester" ? "Listed by" : "Requested by"}</dt>
               <dd className="nf-ix-fact__value">
                 {inspection.counterpartName ?? "Not named yet"}
                 <BadgeSlot tier={inspection.counterpartBadge} />
               </dd>
-              {/*
-                THE NUMBER, when this reader is allowed to have it, visible
-                under the name as the render draws it and itself the tel:
-                link. `lib/security/counterpart-contact.ts` decides; null means
-                no line is drawn at all rather than a dead control.
-              */}
+              {/* The number, visible under the name and itself the tel: link,
+                  when `lib/security/counterpart-contact.ts` hands one over. */}
               {inspection.counterpartPhone && (
                 <dd>
                   <a
@@ -295,74 +370,116 @@ export function InspectionSheet({
           </div>
         </dl>
 
+        {/* -------------------------------------------------------- lifecycle */}
+        <ol className="nf-ix-life" aria-label="Inspection progress">
+          {rungs.map((rung) => (
+            <li key={rung.key} className={`nf-ix-life__step${rung.done ? " nf-ix-life__step--done" : ""}`}>
+              <span className="nf-ix-life__dot" aria-hidden="true" />
+              <span className="nf-ix-life__label">{RUNG_LABEL[rung.key]}</span>
+              <span className="sr-only">{rung.done ? "done" : "not yet"}</span>
+            </li>
+          ))}
+        </ol>
+
         {/* -------------------------------------------------------- checklist */}
-        <section className="nf-ix-glass nf-ix-check" aria-label="Inspection checklist">
+        <section className={panelClass({ className: "nf-ix-check" })} aria-label="Inspection checklist">
           <div className="nf-ix-check__head">
             <p className="nf-ix-check__title">
-              <UiIcon name="document" size={16} />
+              <UiIcon name="menu" size={16} />
               Inspection Checklist
             </p>
             <div className="nf-ix-check__count">
               <span className="nf-numeric">
-                {count.done} / {count.total} Completed
+                {rooms.done} / {rooms.total} Completed
               </span>
               <span
                 className="nf-ix-bar"
                 role="progressbar"
-                aria-label="Inspection checklist"
+                aria-label="Rooms checked"
                 aria-valuemin={0}
-                aria-valuemax={count.total}
-                aria-valuenow={count.done}
+                aria-valuemax={rooms.total}
+                aria-valuenow={rooms.done}
               >
-                <span style={{ width: `${(count.done / count.total) * 100}%` }} />
+                <span style={{ width: `${(rooms.done / rooms.total) * 100}%` }} />
               </span>
             </div>
           </div>
-          <ol className="nf-ix-check__rows">
-            {rungs.map((rung) => {
-              const words = RUNG[rung.key];
+          {!reportLive && (
+            <p className="nf-ix-check__note" data-testid="inspection-report-off">
+              Ticking the rooms starts when inspection report storage is switched on. Nothing here is saved yet.
+            </p>
+          )}
+          <ul className="nf-ix-check__rows">
+            {ROOM_ITEMS.map((item) => {
+              const checked = saved.items[item] === true;
+              const copy = ROOM_COPY[item];
               return (
-                <li key={rung.key} className={`nf-ix-step${rung.done ? " nf-ix-step--done" : ""}`}>
-                  <span className="nf-ix-step__plate" aria-hidden="true">
-                    <UiIcon name={words.icon} size={16} />
+                <li key={item} className={`nf-ix-room${checked ? " nf-ix-room--done" : ""}`}>
+                  <IconPlate size="sm" className="nf-ix-room__plate">
+                    <Crop name={`room-${item}`} width={50} height={50} />
+                  </IconPlate>
+                  <span className="nf-ix-room__text">
+                    <span className="nf-ix-room__name">{copy.title}</span>
+                    <span className="nf-ix-room__detail">{copy.detail}</span>
                   </span>
-                  <span className="nf-ix-step__text">
-                    <span className="nf-ix-step__name">{words.name}</span>
-                    <span className="nf-ix-step__detail">{words.detail}</span>
-                  </span>
-                  <span className="nf-ix-step__ring" aria-hidden="true" />
-                  <span className="sr-only">{rung.done ? "Done" : "Not yet"}</span>
+                  <button
+                    type="button"
+                    role="checkbox"
+                    aria-checked={checked}
+                    aria-label={`${copy.title} checked`}
+                    className="nf-ix-room__check"
+                    disabled={!editable || pending}
+                    onClick={() => saveReport({ items: [{ item, checked: !checked }] })}
+                    data-testid={`inspection-room-${item}`}
+                  />
                 </li>
               );
             })}
-          </ol>
+          </ul>
         </section>
 
         {/* ------------------------------------------------------------ notes */}
-        <section className="nf-ix-glass nf-ix-notes" aria-label="Notes">
+        <section className={panelClass({ className: "nf-ix-notes" })} aria-label="Notes">
           <UiIcon name="document" size={16} className="nf-ix-notes__glyph" />
           <div className="min-w-0 flex-1">
-            <p className="nf-ix-notes__label">Notes</p>
+            <label className="nf-ix-notes__label" htmlFor={`notes-${inspection.id}`}>
+              Notes
+            </label>
             {inspection.note && (
-              <p className="nf-ix-notes__well">
+              <p className="nf-ix-notes__said">
                 <span className="nf-ix-notes__who">{side === "requester" ? "You wrote" : "They wrote"}</span>
                 {inspection.note}
               </p>
             )}
             {inspection.listerNote && (
-              <p className="nf-ix-notes__well">
-                <span className="nf-ix-notes__who">{side === "lister" ? "You wrote" : "The agent wrote"}</span>
+              <p className="nf-ix-notes__said">
+                <span className="nf-ix-notes__who">{side === "lister" ? "You wrote" : "The lister wrote"}</span>
                 {inspection.listerNote}
               </p>
             )}
-            {!inspection.note && !inspection.listerNote && (
-              <p className="nf-ix-notes__well nf-ix-notes__empty">No notes on this inspection yet.</p>
-            )}
+            <textarea
+              id={`notes-${inspection.id}`}
+              className="nf-ix-notes__field"
+              rows={2}
+              maxLength={2000}
+              placeholder="Add any additional notes or observations..."
+              value={notes}
+              disabled={!editable || pending}
+              onChange={(event) => setNotes(event.target.value)}
+              onBlur={() => {
+                if (editable && notes !== (saved.notes ?? "")) saveReport({});
+              }}
+              data-testid="inspection-notes"
+            />
           </div>
         </section>
 
-        {reportable && (
-          <section className="nf-ix-glass nf-ix-outcome" aria-label="How did it go?">
+        {/* The outcome is recorded by the close action, so it is drawn only
+            while report storage is off; with it on, submitting the report
+            is what closes the inspection and I1 has no outcome to carry it
+            (request I1a). Drawn and dropped would be worse than not drawn. */}
+        {inspection.state === "CONFIRMED" && !reportLive && (
+          <section className={panelClass({ className: "nf-ix-outcome" })} aria-label="How did it go?">
             <p className="nf-ix-outcome__head" id={`outcome-${inspection.id}`}>
               How did it go?
             </p>
@@ -380,7 +497,7 @@ export function InspectionSheet({
                     onClick={() => setOutcome(value)}
                     data-testid={`inspection-outcome-${value}`}
                   >
-                    <span className="nf-ix-step__ring" aria-hidden="true" />
+                    <span className="nf-ix-option__ring" aria-hidden="true" />
                     {OUTCOME_SHORT[value]}
                   </button>
                 );
@@ -446,37 +563,67 @@ export function InspectionSheet({
             </Button>
           )}
 
-          {inspection.conversationId && (
+          {/* Add Photos: into the report once storage is live; until then the
+              conversation, the one real photo path an inspection has. */}
+          {reportLive && editable ? (
+            <>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic"
+                className="sr-only"
+                tabIndex={-1}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
+                  if (file) void addPhoto(file);
+                }}
+              />
+              <Button
+                variant="primary"
+                full
+                className="nf-ix-cta"
+                disabled={uploading || pending}
+                onClick={() => fileRef.current?.click()}
+                data-testid="inspection-add-photos"
+              >
+                <UiIcon name="picture" size={16} />
+                {uploading ? "Adding photo" : saved.photoCount > 0 ? `Add Photos (${saved.photoCount})` : "Add Photos"}
+                <UiIcon name="chevron-right" size={16} className="nf-ix-cta__end" />
+              </Button>
+            </>
+          ) : inspection.conversationId ? (
             <Link
               href={`/messages/${inspection.conversationId}?attach=1`}
-              className="nf-btn nf-btn--primary nf-btn--lg nf-btn--full nf-ix-cta"
+              className="nf-btn nf-btn--primary nf-btn--md nf-btn--full nf-ix-cta"
               aria-label="Add Photos, in the conversation about this inspection"
               data-testid="inspection-add-photos"
             >
-              <UiIcon name="chevron-right" size={16} className="nf-ix-cta__start" />
               <UiIcon name="picture" size={16} />
               Add Photos
               <UiIcon name="chevron-right" size={16} className="nf-ix-cta__end" />
             </Link>
-          )}
+          ) : null}
 
           <Button
             variant="secondary"
             full
             className="nf-ix-submit"
-            disabled={!reportable || outcome === null || pending}
+            disabled={!submittable || pending}
             leadingIcon="telegram"
-            onClick={() =>
-              outcome && run(() => closeInspection({ id: inspection.id, state: "COMPLETED", outcome }))
-            }
+            onClick={submit}
             data-testid="inspection-submit"
           >
             Submit Inspection Report
           </Button>
-          {reportable && outcome === null && (
-            <p className="nf-ix-hint">Choose how it went, and the report can be sent.</p>
+          {inspection.state === "CONFIRMED" && !submittable && (
+            <p className="nf-ix-hint">
+              {reportLive
+                ? "Tick all eight rooms, and the report can be sent."
+                : "Choose how it went, and the report can be sent."}
+            </p>
           )}
-          {!reportable && inspection.state !== "COMPLETED" && (
+          {inspection.state !== "CONFIRMED" && inspection.state !== "COMPLETED" && (
             <p className="nf-ix-hint">The report opens once a time is agreed on both sides.</p>
           )}
           {inspection.conversationId && (

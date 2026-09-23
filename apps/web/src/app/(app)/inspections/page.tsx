@@ -7,6 +7,8 @@ import { ButtonLink } from "@/components/ui/Button";
 import { InspectionHero, InspectionSheet } from "@/components/app/inspections/InspectionSheet";
 import { InspectionsLive } from "@/components/app/inspections/InspectionsLive";
 import { resolveSession } from "@/lib/actions/session";
+import { readReportsFor } from "@/lib/inspections/report-queries";
+import { reportStorageLive } from "@/lib/inspections/report-flag";
 import { groupInspections, tagSide } from "@/components/app/inspections/grouping";
 import {
   readInspectionsForLister,
@@ -69,10 +71,14 @@ export default async function InspectionsPage({
     ...tagSide(shown.inspections, "lister"),
   ]);
   const all = [...groups.open, ...groups.closed];
-  const facts = await readListingFacts(
-    all.map((row) => row.listingId),
-    locale,
-  );
+  const [facts, reports] = await Promise.all([
+    readListingFacts(
+      all.map((row) => row.listingId),
+      locale,
+    ),
+    readReportsFor(all.map((row) => row.id)),
+  ]);
+  const reportLive = reportStorageLive();
   const empty = all.length === 0;
   const expanded = changed ?? groups.open[0]?.id ?? null;
 
@@ -115,6 +121,8 @@ export default async function InspectionsPage({
                       inspection={row}
                       side={row.side}
                       facts={facts.get(row.listingId) ?? null}
+                      report={reports.get(row.id) ?? null}
+                      reportLive={reportLive}
                       locale={locale}
                       open={row.id === expanded}
                     />
@@ -131,6 +139,8 @@ export default async function InspectionsPage({
                       inspection={row}
                       side={row.side}
                       facts={facts.get(row.listingId) ?? null}
+                      report={reports.get(row.id) ?? null}
+                      reportLive={reportLive}
                       locale={locale}
                       open={row.id === expanded}
                     />
