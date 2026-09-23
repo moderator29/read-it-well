@@ -254,6 +254,7 @@ that follows from it),
 `app/(app)/around/page.tsx` (ONLY its `BackButton` fallback). C3.3, the
 lister line on the listing card: `components/app/ListingCard.tsx` (already
 claimed) mounting the existing `ListerRoleLine`.
+**Home group RELEASED cfc7fad4** (the sweep, three dated passes, C3.3) and b2a1ef5f (C3.2). Routes swept 8 / 8. Requests R-SH1 to R-SH4 in ledger 13.H.4 and 13.H.6.
 
 ### Sweep group: stays, stay detail, trips, restaurants, checkout, held payments (worker "sweep-stays")
 Files as listed under Phase 2 above, plus (claimed 23 September, unclaimed by
