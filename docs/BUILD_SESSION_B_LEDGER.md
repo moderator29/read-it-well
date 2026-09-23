@@ -5099,6 +5099,21 @@ governing render for the hub and the inbox). Nothing further found on the group'
 Open at the close of Pass 3: the payment methods block (wallet family) and the header avatar
 (chrome).
 
+**Pass 4, after the independent audit (23 September).** Two findings answered.
+S11: the interest tiles (`components/app/welcome/InterestChoices.tsx`, handed to this group for
+this) were `.nf-card` buttons with an inline flat tint as their chosen state; each is now
+`.nf-panel.nf-panel--card`, and chosen it wears the shared selected state
+(`--nf-selected-fill`, `-edges`, `-shadow`, rule `.nf-panel.nf-interest[aria-pressed="true"]` in
+`settings-rows.css`), the hint in on-brand ink on the lit fill; the component's three inline
+error and success boxes became panels with a state edge. The same component draws Get started's
+interests step, which therefore changes with it (the welcome proofs predate this). The harness
+container for `/settings/interests` now carries the route's own classes
+(`nf-panel nf-panel--card block p-lg sm:p-lg`), so the proof is the route. S9: both sheets are
+now opened in this group's own harness (`?v=sheet-rows`, `?v=sheet-bottom`, `SheetViews.tsx`)
+and shot (`after/sheet-rows-*`, `after/sheet-bottom-*`); the wallet-harness shot is removed.
+Proofs: `after/interests-390.jpg` (Apartments chosen), `side-by-side-interests.jpg`,
+`side-by-side-sheet-rows.jpg`, `side-by-side-sheet-bottom.jpg`.
+
 #### Shape sweep (the tool, dark, 390 and 1536, 15 routes)
 
 BREACHES 0; WORTH AN EYE 0; ROUND ICON-ONLY 2 (the hub's back arrow, 20x20 at 390 and 1536: the
@@ -5122,8 +5137,8 @@ bottom sheet), `side-by-side-<view>.jpg` (27). All fixture-backed harness shots 
 - The payment methods block on `/settings` and `/settings/payments` (wallet family, lead's ruling).
 - No before shots of the drawer and the three sheets: they were added in Pass 2, after the old
   build was gone; their before anatomy is the inventory's code description.
-- `.nf-sheet` was only photographed through the wallet harness; the other readers of
-  `components/ui/Sheet.tsx` (listing, price, disclosure) inherit the same rule but were not shot.
+- `.nf-sheet` is shot in this group's harness (Pass 4); its other readers (listing, price,
+  disclosure) inherit the same rule but were not shot.
 - The notification centre's filter tabs in GOVERNING-12 do not exist; that feature is Session A's.
 - `components/app/account/ProfileIdentityCard.tsx` (no reader today) is NOT swept: the profile worker
   is removing its email change affordance on the founder's order, and the lead asked this group to
@@ -7203,7 +7218,7 @@ vitest, the token check), each heavy job through the shared lock:
 
 - Sweep, settings group (23 September): the payment methods block on `/settings` and
   `/settings/payments` is not swept here (wallet family); no before shots of the drawer and the
-  three sheets (added in audit Pass 2); `.nf-sheet` photographed only through the wallet harness;
+  three sheets (added in audit Pass 2); `.nf-sheet` shot in this group's harness only (Pass 4);
   `ProfileIdentityCard.tsx` not swept (profile worker in flight); the notification centre's filter
   tabs in GOVERNING-12 are Session A's feature and do not exist; every settings and notifications
   proof is fixture-backed (the routes sit behind the sign-in gate).

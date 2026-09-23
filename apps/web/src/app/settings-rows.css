@@ -712,4 +712,24 @@
   }
   .nf-hub-head__lede {
     color: color-mix(in oklab, var(--nf-brand-secondary) 26%, var(--nf-content-secondary));
-  }}
+  }
+  /*
+   * THE INTEREST TILES (`components/app/welcome/InterestChoices.tsx`, on
+   * `/settings/interests` and in Get started). Each tile is the shared panel;
+   * chosen, it wears the shared selected state from the token layer, the
+   * console's selected row, where it used to carry an inline flat tint.
+   * Doubled selectors to outrank `.nf-panel` in glass.css.
+   */
+  .nf-panel.nf-interest[aria-pressed="true"] {
+    background: var(--nf-selected-fill);
+    border-color: var(--nf-selected-edges);
+    box-shadow: var(--nf-selected-shadow);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-interest .nf-interest__hint {
+    color: var(--nf-content-muted);
+  }
+  .nf-interest[aria-pressed="true"] .nf-interest__hint {
+    color: color-mix(in oklab, var(--nf-content-on-brand) 82%, transparent);
+  }
+}

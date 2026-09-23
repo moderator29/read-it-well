@@ -16,6 +16,7 @@ import { PlaceForm } from "@/app/(app)/settings/place/PlaceForm";
 import { LegalDocument } from "@/app/(app)/legal/LegalDocument";
 import { TERMS_SECTIONS } from "@/lib/legal/terms";
 import { ErrorView } from "./ErrorView";
+import { BottomSheetView, RowsSheetView } from "./SheetViews";
 import LoadingSettings from "@/app/(app)/settings/loading";
 import LoadingPayments from "@/app/(app)/settings/payments/loading";
 import LoadingPlace from "@/app/(app)/settings/place/loading";
@@ -56,6 +57,8 @@ import { BANK_ACCOUNTS, NOTIFICATIONS, PAYMENT_CARDS } from "../../f4/fixtures";
  *   ?v=interests      /settings/interests
  *   ?v=terms          /legal/terms, the in-app legal reader
  *   ?v=error          the in-app error boundary
+ *   ?v=sheet-rows     the rows sheet open over the hub (settings-rows.css)
+ *   ?v=sheet-bottom   the bottom sheet open over the hub (overlays.css)
  *   ?v=loading-<x>    the skeleton of settings, payments, place, interests, inbox
  *
  * Every settings route sits behind the sign-in gate, so each is shot here.
@@ -79,6 +82,8 @@ const ROUTES: Record<string, string> = {
   interests: "/settings/interests",
   terms: "/legal/terms",
   error: "/settings",
+  "sheet-rows": "/settings",
+  "sheet-bottom": "/settings",
   "loading-settings": "/settings",
   "loading-payments": "/settings/payments",
   "loading-place": "/settings/place",
@@ -232,7 +237,8 @@ export function SweepSettingsHarness({ v }: { v: string }) {
     return (
       <div className="mx-auto max-w-lg">
         <PageHeader title={t.interests.screenTitle} subtitle={t.interests.screenSubtitle} fallback="/settings" />
-        <div className="nf-card p-lg sm:p-lg">
+        {/* The route's own container, class for class (audit S11). */}
+        <div className="nf-panel nf-panel--card block p-lg sm:p-lg">
           <InterestChoices initial={["apartment"]} mode="settings" t={t} />
         </div>
       </div>
@@ -340,6 +346,8 @@ export function SweepSettingsHarness({ v }: { v: string }) {
 
   return (
     <div className="mx-auto max-w-2xl">
+      {v === "sheet-rows" ? <RowsSheetView /> : null}
+      {v === "sheet-bottom" ? <BottomSheetView /> : null}
       <BackButton fallback="/home" className="nf-icon-btn nf-icon-btn--glass h-11 w-11" />
       <header className="nf-hub-head">
         <h1 className="nf-hub-head__title">{t.nav.settings}</h1>

@@ -149,6 +149,9 @@ Each group appends "RELEASED <commit>" here when it is done.
     **Settings group RELEASED be65d995** (18 of 19 routes and states swept; the
     payment methods block is the wallet family's; `ProfileIdentityCard.tsx` waits
     for the profile worker; ledger 13, settings).
+    After the audit (S11) the lead handed this group
+    `components/app/welcome/InterestChoices.tsx` for the interest tiles' panel and
+    selected state only.
   - feed, stories, posts, the plus bloom (worker "feed"):
     `components/social/feed/**`, `components/social/bloom/**`,
     `components/social/story/**`, `app/social.css`, `app/social-feed.css`
