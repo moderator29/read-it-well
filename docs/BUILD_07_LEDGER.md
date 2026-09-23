@@ -9154,3 +9154,76 @@ That Paystack accepts these bodies, that the recipient is created, that the
 transfer settles and that `transfer.success` then closes the hold are all
 untested. Everything up to the bytes on the wire is proved, and so is every
 refusal on this side of it.
+
+---
+
+## 70. THE EMAIL PROVIDER WAS CONFIGURED ALL ALONG, AND WE READ THE SANDBOX AND REPORTED ON PRODUCTION
+
+**The seventeenth blind light, and the third time today this same shape has
+caught this session: measuring one thing and describing another.**
+
+Three workers and this session told the founder that not one email could leave
+the building until the provider credential was configured. **It has been
+present on production and preview since 20 September.** I found it while
+reading the deployment's own environment listing for a different reason. The
+entry is marked sensitive, so its value reads back empty, but the entry exists
+and its updated timestamp differs from its created timestamp.
+
+**How the error was made.** Everyone read the environment INSIDE THIS
+CONTAINER, found nothing, and wrote "not configured" about the deployment. The
+sandbox is not the deployment, exactly as the shared worktree is not main.
+
+**And production's own behaviour was the evidence the whole time.** The drain
+raises `email.outbox.unconfigured` at CRITICAL on every run when that
+credential is absent. It has run six times today. `public.risk_alerts` holds no
+such alert. **A check built precisely to answer this question was answering it
+correctly and nobody read it.** That is worse than the original mistake, and it
+is the same failure as the reconciliation job reporting success for
+twenty four days while nobody pulled on it.
+
+The auth hook credential was called absent for the same reason and is also
+present on production.
+
+**What the email state actually is.** `public.email_outbox` has 0 rows, so
+nothing has ever been ENQUEUED, which is smaller and different from nothing
+being sent. The triggers are installed and enabled. There has been no
+qualifying event on a platform with zero bookings, zero escrows and no new
+accounts today. The first sign-up that confirms its address writes a row and
+the drain sends it within fifteen minutes.
+
+**The rule that follows.** Never describe the deployment's configuration from
+this container's environment. Read the deployment, or read the behaviour of a
+check that runs inside it. Both were available and neither was used.
+
+---
+
+## 71. THE WEB PUSH IDENTITY WAS ON THE FOUNDER'S LIST AND SHOULD NOT HAVE BEEN
+
+His instruction: *"do not put anything on my list that you could have done
+yourself."* This was one of those.
+
+The Web Push identity is self generated, costs nothing, needs no account and no
+signup. The previous worker declined to create it, reasoning that it is the
+identity every subscription binds to and belongs in the founder's environment
+rather than in a build session. **That reasoning is sound about REPLACING it
+and wrong about the first one**, and the difference is the whole point.
+
+Created with Node's own crypto and **checked against the application's own
+`vapidKeysAgree` before going anywhere near production**: private half 32
+bytes, public half 65 bytes beginning `0x04`, and the public point derived from
+the private half byte-identical to the public half. Configuring something the
+application would then refuse is worse than configuring nothing, and that check
+already existed in the codebase for exactly this reason.
+
+Both halves are now on production and preview, the public half plain and the
+private half sensitive, each carrying a note saying what it is and what must
+never be done to it.
+
+**It was safe to do now and it will never be this safe again.** `push_tokens`
+is empty. Replacing that public half invalidates every subscription bound to
+it, so the moment one real device subscribes this becomes a destructive act.
+Doing it while the table is empty cost nothing; waiting would have made it
+expensive.
+
+Web Push is therefore configured end to end. What remains is one handset, and
+nobody but the founder has one.

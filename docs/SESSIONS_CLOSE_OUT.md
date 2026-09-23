@@ -73,8 +73,8 @@ anyone can see and none of it has been watched doing its job.**
 
 | What | Why it is unproven | What would prove it |
 | --- | --- | --- |
-| **The whole email junction.** One durable outbox, a trigger writing in the same transaction as the event it describes, a quarter hourly drain, fifteen templates with a path to the wire. | **`public.email_outbox` has 0 rows and not one email has ever been sent.** `RESEND_API_KEY` is unset, and this container's egress proxy refuses `api.resend.com:443` with a 403, so no send can be proved from here at all. | The key set on the deployment, then one real message read back from the provider's own log. Fifteen minutes once the key exists. |
-| **Push notifications.** Tokens, a queue, deliveries that cannot claim success without the provider's status, quiet hours in WAT, three transports. | **0 rows in `push_tokens`. Nothing has reached a device.** Chrome refuses the Push API in incognito and every Playwright context is incognito; the proxy permits the sending side and blocks the subscribing side. | `npx web-push generate-vapid-keys`, two variables, then one handset. Web Push needs nobody and no money. |
+| **The whole email junction.** One durable outbox, a trigger writing in the same transaction as the event it describes, a quarter hourly drain, fifteen templates with a path to the wire. | **`public.email_outbox` has 0 rows, so nothing has ever been ENQUEUED**, which is a different and smaller problem than nothing being sent. **The provider credential IS present on production and preview**, corrected in A5 below. The drain has run six times today and has raised no `email.outbox.unconfigured` alert, which it would do at CRITICAL on every run if that credential were missing. So configuration is not the gap. The gap is that no qualifying event has happened on a platform with no bookings, no escrows and no new accounts today. | One real event: a sign-up that confirms its address, or a password change. The trigger writes the row, the drain sends it within fifteen minutes, and `email_outbox.status` then carries what the provider answered. **Nobody has to configure anything first.** |
+| **Push notifications.** Tokens, a queue, deliveries that cannot claim success without the provider's status, quiet hours in WAT, three transports. | **0 rows in `push_tokens`. Nothing has reached a device.** Chrome refuses the Push API in incognito and every Playwright context is incognito; the proxy permits the sending side and blocks the subscribing side. | **Web Push is now configured on production and preview**, see A5. What remains is one handset: open Vallo, grant at any of the four moments, then `POST /api/push/self-test`, which reaches only the caller's own devices and returns the push service's answer verbatim per device. Android and iOS still need a Firebase project and a 99 USD Apple membership respectively. |
 | **The escrow gate.** Fourteen local probes pass through the door the product actually funds through; P-7's EXECUTE half passes with 22 refusals over 11 verbs and 2 roles and a control that answers a real business reply. | **P-7's HTTP half has NEVER RUN.** PostgREST resolves by argument name against a cached schema, so a verb shut in `pg_proc` can still answer over the wire. The EXECUTE half cannot stand in for it. | The Supabase host allowed through Network access, then one run of a script that already exists. |
 | **Bank transfer on wallet send.** Action, resolver, refusals, idempotency, all built and mutation tested. | `api.paystack.co` unreachable and no live key here, so nothing past the socket is proved: not that Paystack accepts the bodies, not that the transfer settles, not that the webhook closes the hold. **And it is deliberately switched off** behind `BANK_SEND_OPEN = false` pending a licensing answer. | A test key and a sandbox transfer. Separately, the licensing decision. |
 | **Every surface that needs live data.** | The egress proxy refuses `uccixoonmbhrnyczyigt.supabase.co`, so a dev server here cannot reach the project and every data backed route answers **the not-found body at HTTP 200**. No screen proof in this session is against live data. | One reload of the live site by somebody who can reach it. |
@@ -147,6 +147,25 @@ close-out that lists only successes is not a close-out.**
    pointed at payments.
 6. **One failed withdrawal was two emails and the two disagreed**, one of them
    less true than the other. Removed rather than reconciled.
+7. **I told the founder twice that the email provider was not configured, and
+   it is.** It has been present on production and preview since 20 September.
+   Three workers and I read the environment INSIDE THIS SANDBOX, found nothing,
+   and reported on production. **That is the same blind light as running the
+   suite in the shared worktree: measuring one thing and describing another.**
+   The deployment's own behaviour was the evidence all along, because the drain
+   raises `email.outbox.unconfigured` at CRITICAL on every run when that
+   credential is absent, it has run six times today, and no such alert exists.
+   A check built precisely to answer this question was answering it correctly
+   and nobody read it. The auth hook credential was called absent for the same
+   reason and is also present.
+8. **The Web Push identity was on the founder's list and should never have
+   been.** It is self generated, costs nothing and needs no account, and this
+   session can configure the deployment. I generated the pair, checked it
+   against the application's OWN `vapidKeysAgree` before going near production,
+   and configured both halves on production and preview. **It was safe to do
+   now and will never be this safe again:** `push_tokens` is empty, and
+   replacing that public half invalidates every subscription bound to it, so
+   once real devices exist this becomes a destructive act.
 
 ### A6. What the next session needs to know
 
