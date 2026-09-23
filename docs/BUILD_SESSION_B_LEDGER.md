@@ -756,18 +756,28 @@ to source resolution at 3x; no upscaling filter was applied.
 ## 4. Wallet
 
 Governing image: `6AF37222-1D2E-4200-AB23-E55A24AE5E4F.png` (repo root). Route
-`/wallet`. Worker: wallet (worktree `wt-wallet`, port 3174).
+`/wallet`. Worker: wallet. Round three, 23 September, under lead rulings R-A to
+R-G and the closing gate.
 
-**Measuring scale.** The phone screen in the render runs from x=177 to x=844,
-667 image px for a 390px viewport, so 1.71 image px make one CSS px. Every
-image figure below is converted through that.
+**Scale.** The render's phone screen runs x=177 to x=844: 667 image px for a
+390px viewport, 1.71 image px per CSS px. Font sizes are measured two ways and
+must agree: the string's rendered width divided by its width in ems, and a
+single glyph's cap height divided by the face's cap ratio (Inter 0.727).
 
-**Header row: shared chrome, not built.** The render's back square, app-icon
-tile with VALLO, bell with its dot and profile button are the app bar
-`AppShell` already draws on every in-app page (hamburger, lockup, bell,
-avatar, per DESIGN_DIRECTION 3.2). It is the other session's chrome and was
-not touched. The page draws no second header row: the balance card is the
-first thing under the app bar, as in the render.
+**Header row: shared chrome, not built.** The render's back square, app tile
+with VALLO, bell and profile button are the app bar `AppShell` draws on every
+in-app page (DESIGN_DIRECTION 3.2). It is not Session B's. The page adds no
+second header row; the balance card is the first thing under the app bar.
+
+**Proofs** (all fixture-backed, from the committed harness
+`apps/web/src/app/(dev)/preview/session-b/wallet/`, R-G, on a production
+server, shot after every animation settled):
+`docs/design/proofs/session-b/wallet/wallet-side-by-side.jpg` (render left,
+built right, same scale), `wallet-390-dark.jpg`,
+`wallet-390-dark-reduced-motion.jpg`, `wallet-390-light.jpg`,
+`wallet-1280-dark.jpg`, and `wallet-roll-frozen-midway.png` (every digit strip
+frozen half-way between two digits, the worst frame the roll can paint: each
+digit is clipped to its own band and nothing overlaps).
 
 ### (a) The chain
 
@@ -775,241 +785,210 @@ Balance and statement (read):
 
 | Link | What it is | State |
 | --- | --- | --- |
-| Screen | `app/(app)/wallet/page.tsx` renders `WalletDeck` (balance card, tiles, quick actions), `RecentActivity`, then the pots | OK |
-| Query | `getWalletForViewer()` -> `readStatement()` (`lib/wallet/repository.ts`): `wallet_balances` for the figure, the newest 100 `wallet_entries`, both through the viewer's own Supabase client | OK |
-| RLS | `wallets_select_own` (`auth.uid() = user_id`), `wallet_entries_select_own` (the entry's wallet belongs to `auth.uid()`), admin select policies beside them. RLS is enabled on `wallets`, `wallet_entries`, `notifications` (checked in `pg_class`) | OK |
-| View | `public.wallet_balances` = `private.wallet_balance(id)`: the sum of COMPLETED credits minus debits, returning only for the owner or an admin | OK |
-| "+12.5% this week" | `weekChange()` (`components/app/wallet/week-change.ts`): the net of the viewer's COMPLETED rows in the last seven days as a percentage of the balance the week began on; absent when there are no rows, and the net amount instead of a percentage when the week began at zero. Computed from real ledger rows, so it is drawn; the render's 12.5 is never drawn | OK |
-| Live | NEW `LiveWallet`: subscribes to INSERTs on `public.notifications` for this user. `supabase_realtime` publishes `messages` and `notifications` only (checked in `pg_publication_tables`), NOT `wallet_entries`. Every COMPLETED ledger row fires `wallet_entries_notify_after_change` -> `private.notify_wallet_entry()` -> `private.notify(owner, 'wallet', ...)`, and wallet notifications have no mute preference in `private.notify`, so a `kind = 'wallet'` insert is a reliable "the ledger moved" signal. On it the page calls `router.refresh()` and re-reads on the server | FIXED (was: no live update at all on the wallet home) |
-| Live, pending rows | A PENDING row (a withdrawal hold) notifies nobody, so it shows on the next read only | BROKEN, scope request W2 |
-| Eye | NEW `balance-mask.ts`: the hide/show choice kept in this device's storage (guarded, defaults to shown), read by the wallet home and the send page alike | FIXED (was: reset on every visit, and not shared with send) |
+| Screen | `app/(app)/wallet/page.tsx` renders `WalletDeck` (balance card, `WalletTiles`, Quick Actions), `RecentActivity`, the pots | OK |
+| Query | `getWalletForViewer()` -> `readStatement()` (`lib/wallet/repository.ts`): `wallet_balances` for the figure, the newest 100 `wallet_entries`, both on the viewer's own Supabase client | OK |
+| Policy | `wallets_select_own` (`auth.uid() = user_id`), `wallet_entries_select_own` (the entry's wallet is the viewer's), admin select policies; RLS on for `wallets`, `wallet_entries`, `notifications` (read in `pg_class`) | OK |
+| View | `public.wallet_balances` = `private.wallet_balance(id)`: COMPLETED credits minus debits, returned only to the owner or an admin | OK |
+| "this week" line | `weekChange()` (`components/app/wallet/week-change.ts`): the net of the viewer's COMPLETED rows in the last 7 days as a percentage of the balance the week began on; no line when there are no rows; the net amount when the week began at zero. Computed from real rows; the render's 12.5 is never drawn | OK |
+| Live | `LiveWallet` subscribes to INSERTs on `public.notifications` for this user (`supabase_realtime` publishes `messages` and `notifications`, not `wallet_entries`, read in `pg_publication_tables`). Every COMPLETED ledger row fires `wallet_entries_notify_after_change` -> `private.notify_wallet_entry()` -> `private.notify(owner, 'wallet', ...)`; wallet notices have no mute preference, so a `kind = 'wallet'` insert means the ledger moved, and the page calls `router.refresh()` | OK (added in round one) |
+| Live, pending rows | A PENDING row (a withdrawal hold) notifies nobody, so it shows on the next read | BROKEN, scope request W2 (migration: publish the table) |
+| Eye | `balance-mask.ts`: the hide/show choice in this device's storage, guarded, default shown; shared with the send page | OK |
 
-Controls on the page and where each goes:
+Every control on the page:
 
-| Control | Destination | Real end to end? |
+| Control | Goes to | Real end to end? |
 | --- | --- | --- |
-| Send tile | `/wallet/send` | Yes, see section 5 |
-| Receive tile | `/wallet/receive` (address, handle, shareable request link) | Yes |
-| Add money tile | the funding sheet -> `fundWallet` (hosted Paystack) or `fundWalletWithSavedCard` -> webhook / `verifyFunding` -> `recordFunding` | Yes: one COMPLETED `deposit` in the production ledger, 9 August 2026 |
+| Send tile | `/wallet/send` | Yes, section 5 |
+| Receive tile | `/wallet/receive` (address, handle, shareable request) | Yes |
+| Add money tile | funding sheet -> `fundWallet` (hosted Paystack) or `fundWalletWithSavedCard` -> webhook / `verifyFunding` -> `recordFunding` | Yes: one COMPLETED deposit in the production ledger (9 August 2026) |
 | History tile | `/wallet/transactions` | Yes |
-| Quick: Send | `/wallet/send` | Yes |
-| Quick: Request | `/wallet/receive` | Yes |
-| Quick: Cards | `/settings/payments` (saved cards and bank accounts) | Yes (the page exists and lists what is saved) |
-| Quick: Settings | the wallet settings sheet | Yes |
-| See all (transactions) | `/wallet/transactions` | Yes |
-| A transaction row | `/wallet/transactions/[id]`, the receipt | Yes |
+| Quick: Send / Request / Cards / Settings | `/wallet/send`, `/wallet/receive`, `/settings/payments`, the wallet settings sheet | Yes |
+| See all | `/wallet/transactions` | Yes |
+| A row | `/wallet/transactions/[id]`, the receipt | Yes |
 
 ### Refused from the render
 
-| Render element | Why it is not drawn |
+| Render element | Why |
 | --- | --- |
-| Swap tile | Vallo holds one currency and sells no exchange; crypto is dark by ruling (`/crypto` is `notFound()`). BUILD_07 section 49, R2 |
-| "Top Up" label | Refused as a render label (CLAIMS_RULE). The funding path it names is real, so the tile ships under the product's own name for it, "Add money" |
-| Buy Airtime quick action | Not a product Vallo sells (R2) |
-| Pay Bills quick action | Not a product Vallo sells (R2) |
-| Quick Actions "See all" | All four actions are on screen; the link would lead nowhere |
-| Withdraw (the obvious fourth tile) | Not a render element, recorded here because it was the natural substitute and is deliberately NOT drawn: the only production withdrawal (10 August) FAILED with Paystack's "You cannot initiate third party payouts as a starter business". A bank payout does not work end to end today. Scope request W4 |
-| ₦245,680.00, +12.5%, every row, name, time and amount | Example content. The page prints what the ledger returns and nothing else |
-| Emerald vs cyan "Completed" | The render's badge samples cyan; the platform's one success colour is emerald and the brief names emerald. Emerald ships (DESIGN_DRIFT_SURVEY 3.4, option a) |
+| Swap tile | No second currency; crypto is dark by ruling. BUILD_07 section 49, R2 |
+| "Top Up" label | A render label (CLAIMS_RULE). The path is real, so the tile says "Add money", the product's own name |
+| Buy Airtime, Pay Bills | Products Vallo does not sell (R2) |
+| Quick Actions "See all" | All four actions are on screen; the link would go nowhere |
+| Withdraw (not in the render; the natural fourth tile) | Not drawn: the only production withdrawal FAILED with Paystack's "You cannot initiate third party payouts as a starter business". Scope W4 |
+| ₦245,680.00, +12.5%, every row | Example content; the page prints the ledger |
+| Cyan "Completed" | The platform's one success colour is emerald (DESIGN_DRIFT_SURVEY 3.4, option a) |
+| The trust copy that used to ride in the wallet dictionary ("Your money is safe", "Encrypted in transit", "256-bit TLS") | Removed in `d84a4832`. `TrustStrip` now carries two true sentences (a naira record, not a bank deposit; a completed send cannot be recalled), is not drawn on the wallet home, and survives only because Session A's older harness imports it |
 
-Founder questions (not drawn, asked): (1) Should Withdraw come back once the
-Paystack business can make third-party payouts? (2) Should the wallet home
-carry a reassurance card like the send page's? The render has none, so none is
-drawn.
+Founder questions: should Withdraw come back once Paystack payouts work; does
+the wallet home want a reassurance card (the render has none, so none is
+drawn).
 
 ### (b) The comparison, 390px dark
 
-**The glow identity** (`docs/design/GLOW_IDENTITY.md` section 9) is adopted in
-`wallet.css` under `.nf-money`, restated from tokens because the stylesheet may
-not carry a raw colour: the lit card (per-side edge, banded fill, tight halo)
-on the transactions panel, the quick cards and the send form; the lit button's
-cyan edge on the Send tile and the Send Money button; the paper answers in
-light. Where 6AF37222 measures differently the image wins, and these are the
-differences: the balance card keeps the render's own measured fill (a brighter
-middle than the identity's generic card), and every corner is the render's
-14px rather than the identity's 12px.
-
-Built values are the browser's own (`getBoundingClientRect` and computed
-style on a production server, `next build && next start`), fixture-backed
-through a throwaway harness that renders the real `WalletDeck` and
-`RecentActivity` with the fixture props from `(dev)/preview/e/fixtures.ts`
-(not committed). Colours are sampled pixels off the render and off our
-screenshot.
+Built values are the browser's (`getBoundingClientRect`, computed style,
+sampled pixels) on `next build && next start`, harness above.
 
 | Property | Image (measured) | Built (measured) | Match? |
 | --- | --- | --- | --- |
-| Page gutter | 13.5px | 24px | NO: the gutter is `AppShell`'s, shared chrome. Every width below is narrower by that |
-| Balance card size | 364 x 185 | 342 x ~206 | Height within 21px (our figure line box and 13px tile labels); width is the gutter |
-| Card radius | 24 image px = 14px | 14px (`--nf-radius-md`) | Yes |
-| Card fill, top / middle / foot | rgb(0 39 123) / (0 17 63) / (0 21 96) over a page of (0 7 37) | srgb mixes of the brand and canvas, sampled (0 50 126) / (0 29 74) / (0 41 100) | Close; the same blue glass, brighter than the page. Was (3 10 26), darker than the page |
-| Rim | 1px, rgb(14 125 204) top, (6 172 246) sides, (37 188 255) foot | 1px per-side edge from the glow identity: pale cyan top, deep blue right, lit bottom, sky left, brand mixed with `--nf-state-info` (used as a colour) | Yes in form; slightly less cyan |
-| Glow | soft blue bloom off every edge | `0 0 22px -4px glow-3` + `0 14px 36px -14px glow-4` | Yes |
-| "Total Balance" | ~14px regular, soft white, eye in quiet blue | 14px / 500, `--nf-content-secondary`, eye 20px `--nf-brand-secondary` | Yes |
-| Figure | cap height 28.2px = a 40px face; kobo at 0.58 | 40.17px / 800, kobo 0.6em, never wraps | Yes. The survey's 33.5px defect is closed |
-| Change line | 14px, good colour, arrow | 14px / 500, `--nf-state-success`, 16px arrow | Yes (emerald, see refusals) |
-| Glass wallet object | 138 x 150 image px, about 81 x 88 | the pack's `wallet-naira`, which IS the render's object cut from this image (ICON_SYSTEM.md table: 6AF37222, box 614, 226), in a 128px box, drawn mark about 72 | Near: 72 against 81, kept smaller so it clears a 40px figure in our wider face |
-| Tiles | 76 x 63, 8px gap, radius 8 | 70 x 62, 8px gap, radius 14 (`--nf-radius-control`, ratio 0.23) | Size yes; radius follows the shape law, not the image |
-| Lit tile | gradient rgb(0 125 255) -> (0 49 247) -> (0 139 253), white top edge, bloom | `--nf-gradient-cta`, specular top rim, inner foot glow, two-rung bloom | Yes |
-| Resting tiles | blue glass rgb(0 22 80) with a bright rim glowing inward | srgb 32% brand over canvas, rim + inset glow | Yes |
-| Tile glyph and label | 22px glyph; ~14px label | 22px glyph; 13px / 500 label | Label one px smaller so "Add money" holds one line |
-| Section heads | ~14px (cap 8.8px) semibold | 17px (`--nf-text-h4`) / 600 | NO, deliberately: the platform does not set a heading below h4 (DESIGN_DRIFT_SURVEY part six, 1) |
-| Quick cards | 87 x 70, 8px gap | 79.5 x 78.8, 8px gap | Near; the height is the 12px type floor on two lines |
-| Quick plates | 31px glass tile | the pack's crops of the render's tiles (`send-plane-tile` is this image's own), drawn at 31px | Yes |
-| Quick title / sub | ~12px semibold / ~11px muted, one line each | 12px / 600 and 12px muted, one line each (strings chosen to fit, measured in the browser) | Yes |
-| Transactions panel | one glass card, head + five rows, 322px | one glass card, head + rows, radius 14 | Yes |
-| Row height | 57px | about 61px | Near |
-| Row type | title ~13px; counterparty in blue; date and time muted | 14px / 600; 12px `--nf-content-link`; 12px muted | Yes |
-| Row circle | 61 image px = 36px | 36px, 20px stroked glyph | Yes |
-| Amount | ~14px semibold, "-" white, "+" in the good colour | 14px / 600, signed, credit `--nf-state-success` | Yes |
-| Status badge | 17px tall rounded rectangle, no mark | 19px tall, 6px corner (ratio 0.32), with the platform's shape mark | Near; the mark stays (survey part six, 8) |
-| Hairlines between rows | yes | `--nf-divider` between rows (the old `.nf-tx-row + .nf-tx-row` never matched, because each row is inside an `li`) | FIXED |
+| Card width, gutter | 364px, 13.5px gutter | 362px: the money page reaches 10px into the shell's 24px gutter on a phone (R-C) | Yes (2px) |
+| Card height | 185px | 195px | Near: 10px, the 44px eye tap target in the label row |
+| Card radius | rim reaches the side 24 image px down = 14px | 14px | Yes |
+| Card fill, top / middle / foot | rgb(0 39 123) / (0 17 63) / (0 21 96) over a page of (0 7 37) | (0 50 126) / (0 29 74) / (0 41 100) | Yes: the same blue glass, a touch brighter mid-card |
+| Rim | 1px: (14 125 204) top, (6 172 246) sides, (37 188 255) foot | 1px per-side edge (glow identity): pale cyan top, deep blue right, lit bottom, sky left | Yes in form; ours a shade less cyan |
+| Glow | none off the card: the page reads (0 7 37) up to the left rim; 2px above the top rim rises to (3 13 43) | the identity's tight halo only (4px and 12px), the two wide blooms removed in round three | Yes |
+| "Total Balance" | 67.8px wide = 11px, regular, soft white | 11px / 500, `--nf-content-secondary` | Yes (R-A) |
+| Figure | one digit's cap 24.0px = 33px Inter bold; whole string 186px wide | 33px / 700, whole string 188px wide; kobo 0.6em; never wraps | Yes. The survey's "40px" read the naira sign and comma into the cap height |
+| Change line | "+12.5% this week" 105px wide = 14px, the good colour | 14px / 500, `--nf-state-success`, 16px arrow | Yes (emerald, see refusals) |
+| Wallet object | 138 x 150 image px = 81 x 88 | the render's own object (`wallet-naira`, cut from this image, ICON_SYSTEM.md), in a 128px box | Yes in form; sized to clear the figure |
+| Tiles | 76 x 63, gap 8, radius 8 | 75 x 62, gap 8, radius 14 (shape law, ratio 0.23) | Size yes; corner is the law's |
+| Tile label | "Send" 22.8px wide, "Receive" 35.1px = 10.5px | 11px / 500 (floor), "Add money" 56px in a 71px interior | Yes (R-A floor) |
+| Tile glyph | 22px | 22px stroked, 1.5 stroke | Yes |
+| Lit tile | (0 125 255) -> (0 49 247) -> (0 139 253), white top edge | `--nf-gradient-cta`, specular top rim, the identity's cyan edge | Yes |
+| Resting tile | (0 22 80) with an inward glow | 32% brand over canvas, inset glow | Yes |
+| Section heads | "Quick Actions" 87.7px wide Poppins 600 = 13px | 13px / 600 | Yes (R-A) |
+| See all | 29.2px wide = 8.6px | 11px / 500, 44px tall tap target (R-B) | Yes (floors) |
+| Quick cards | 87 x 70 | 84.5 x 82 | Near: two 11px lines under a 31px tile |
+| Quick plates | 31px glass tile, 9px in from top and left | the render's own tiles (`send-plane-tile` is this image's), tile edge 10px in | Yes |
+| Quick title / sub | 9.4px / 7.7px | 11px / 600 and 11px / 400, one line each | Yes (floor) |
+| Panel | one card, head and five rows, radius 14 | one card, radius 14 | Yes |
+| Head to first row | 18px (title baseline to first row) | 18px | Yes |
+| Rows | 57px | 56px | Yes |
+| Row title / counterparty / date / amount | 10.1 / 10 / 10 / 10.7px | 11 / 11 / 11 / 11px (floor); counterparty in `--nf-content-link` | Yes (floor) |
+| Row circle | 61 image px = 36px | 36px, 20px glyph | Yes |
+| Badge | 17px tall, "Completed" 39.2px wide = 7.5px | 11px / 700, 18px tall, 6px corner (ratio 0.33), with the platform's shape mark | Yes; the mark stays (survey part six, 8) |
+| Hairlines | between rows | `--nf-divider` between rows | Yes |
+
+Three differences a side-by-side still shows, each on purpose: the shell's
+header (shared chrome); the object sits slightly smaller; our tile corners are
+14px against the render's 8px (the shape law).
 
 ### (c) Light mode
 
-`data-theme="light"` on the root. The page is paper; the quick cards and the
-transactions panel become white glass with a brand-tinted top and a brand
-hairline, no bloom. The balance card stays a DEEP BLUE card on paper by
-decision: it is the one physical card on the screen, the glass wallet object
+`data-theme="light"`. Paper page; quick cards and the transactions panel are
+the identity's paper card (brand-tinted top band, brand edge, soft shadow). The
+balance card stays a deep blue card on paper by decision: the glass wallet
 needs something to be glass against, and on white the untwinned object would
-sit on the pack's navy chip. The chip is switched off inside the card only;
-the card's text is white; the lit Send tile becomes a white tile with brand
-ink. The quick plates switch from the render's crops (which would sit on navy
-chips on paper) to stroked glyphs on brand-tint plates; the row circles are
-brand tint with brand ink. No dark plate sits on white anywhere. Proof:
-`docs/design/proofs/session-b/wallet/wallet-390-light.png`.
+sit on the pack's navy chip. Inside it the text is white and the lit Send tile
+is white with brand ink. The quick plates switch to stroked glyphs on
+brand-tint plates, the row circles to brand tint. No dark plate on white.
+`wallet-390-light.jpg`.
 
-### (d) Shape sweep
+### (d) Shape sweep and checks
 
 ```
-shape sweep: /preview/sbw/wallet, /preview/sbw/send, /preview/sbw/send-filled at 390px, 1536px in dark and light
-BREACHES, a text-bearing control drawn as a capsule (ratio at or above 0.5): 0
-WORTH AN EYE, text-bearing and over 0.35 but not yet a capsule: 0
-ROUND ICON-ONLY CONTROLS, allowed only where a governing image draws them round: 0
-no text-bearing control is a capsule.
+shape sweep: /preview/session-b/wallet, /preview/session-b/wallet/send, /preview/session-b/wallet/send-filled at 390px, 1536px in dark and light
+BREACHES (ratio >= 0.5): 0
+WORTH AN EYE (> 0.35): 0
+ROUND ICON-ONLY CONTROLS: 0
+COVERED: 3 route(s) asked for, 0 refusal(s), 6 route/width/theme combination(s) actually measured.
 ```
-`node apps/web/scripts/check-css-tokens.mjs`: clean, all ten checks.
-
-Proofs: `docs/design/proofs/session-b/wallet/wallet-390-dark.jpg`, `wallet-390-light.jpg`, `wallet-1280-dark.jpg` (fixture-backed).
-
-`/wallet` itself redirects a signed-out browser to `/sign-in`, and the sweep
-refuses to measure a redirected page, so the sweep ran on the harness route
-that renders the same components.
+(The tool counts a combination only when it reported a control in it.) Round
+three's first run found 20 status badges at 0.44 after they were squeezed to
+14px; they are back at the render's 18px (ratio 0.33) and the run above is
+after that fix.
+tsc clean, eslint clean on every wallet file, `check-css-tokens.mjs` clean,
+`vitest run src/components/app/wallet`: 23 passed.
 
 ### (e) Skipped or not verified
 
-- The live wiring (a real notification arriving, `router.refresh` re-reading)
-  was not exercised against production: there is no test user this session
-  may create. It is proved by the SQL introspection above and by code.
-- Proof screenshots are fixture-backed (the harness), not a signed-in session.
-- The gutter (24 against 13.5) is `AppShell`'s and was not changed.
+- Live refresh not exercised against production (no test user may be
+  created); proved by code and read-only SQL.
+- All proofs fixture-backed.
+- The page gutter beyond the money page is the shell's.
 
 ## 5. Send money
 
 Governing image: `77A54EA3-BBB5-4BF4-B3A5-144C99CABAF7.png` (repo root; the
-founder uploaded it as the send target, so it governs over `95840448`).
-Route `/wallet/send`. Same 1.71 scale.
+founder's send target, governing over `95840448`). Route `/wallet/send`. Same
+1.71 scale and method.
 
-**Header row: shared chrome, not built** (as section 4).
+**Header row:** shared chrome, as section 4.
+
+**Proofs:** `docs/design/proofs/session-b/send/send-side-by-side.jpg`,
+`send-390-dark.jpg` (empty), `send-filled-390-dark.jpg`, `send-390-light.jpg`,
+`send-1280-dark.jpg`; harness
+`apps/web/src/app/(dev)/preview/session-b/wallet/send/` and `.../send-filled/`
+(R-G; the recipient lookup there is a fixture that answers "found").
 
 ### (a) The chain
 
 | Link | What it is | State |
 | --- | --- | --- |
-| Control | `SendFlow` compose: Recipient (email), Amount, Narration, then "Send Money" opens the confirm step; the confirm step's "Send" submits the form | OK |
-| Lookup | `lookupRecipient` (`app/(app)/wallet/send/recipient-action.ts`): signed in, paced 40 per 10 minutes, answers found / none / self / unknown; the name is shown before any money moves | OK |
-| Server action | `transferToUser` (`lib/wallet/actions.ts`): feature flag, session, validation, `guardMoney` rate limit, recipient resolved again, self refused | OK |
-| Validation | zod `transferSchema`: email, `nairaAmountSchema` (integer kobo, 100 naira to 10,000,000 naira), note up to 140 | OK |
-| Idempotency | `SendFlow` posts one `idempotencyKey` per mount; `transferSchema` drops it and the pair id is a fresh `randomUUID()` per call, so a second submit is a second transfer | BROKEN, scope request W1 (not Session B's file) |
-| RPC | `public.transfer_between_wallets` (EXECUTE: `service_role` only; `anon` and `authenticated` cannot call it, checked with `has_function_privilege`) -> `private.transfer_between_wallets`: locks the sender's wallet `FOR UPDATE`, settled minus pending debits, refuses `insufficient`, inserts BOTH legs in one statement (`transfer_out` debit, `transfer_in` credit, both COMPLETED), a unique violation is `duplicate` | OK |
-| RLS | the RPC is `security definer` and is called by the service role, so the writes do not go through RLS; the reads back are under `wallet_entries_select_own` | OK |
-| Trigger | `wallet_entries_notify_after_change` fires for both inserted legs | OK |
-| Notification | `private.notify_wallet_entry()` -> "Wallet debited" to the sender and "Wallet credited" to the recipient. `labelTransferLegs` then updates the status to the same COMPLETED, which the trigger ignores (no second notice) | OK, but the text names nobody: scope request W3 |
-| Read back | `revalidatePath("/wallet")` in the action; `SendFlow` calls `router.refresh()` on success and reads the receipt by reference through `getStatement()` | OK |
-| Screen, live | NEW: the send page now carries the balance card and `LiveWallet`, so after a send the card shows the new balance without a reload, and a recipient with the page open sees money land | FIXED |
-| PIN | none exists (the settings sheet now says so plainly); the confirm step is the confirmation | As built |
-| Receipt | `Receipt` on success, the ledger's own row | OK |
+| Control | `SendFlow` compose (Recipient email, Amount, Narration) -> "Send Money" opens the confirm step -> its button submits | OK |
+| Double tap, client | `submit-guard.ts`: a synchronous latch in the confirm form's submit handler refuses a second submit in the same frame, and the button is disabled from the first press until the result returns (`session-b-wallet.test.ts`, 2 cases) | OK. It narrows the window; the server guard below closes it |
+| Lookup | `lookupRecipient` (`app/(app)/wallet/send/recipient-action.ts`): signed in, paced 40 per 10 minutes, found / none / self / unknown | OK |
+| Action | `transferToUser` (`lib/wallet/actions.ts`): feature flag, session, validation, `guardMoney`, recipient resolved again, self refused | OK |
+| Validation | zod `transferSchema`: email, `nairaAmountSchema` (integer kobo, bounds), note up to 140, and `idempotencyKey` | OK |
+| Idempotency, server | `transferToUser` runs inside `withIdempotency` keyed on the form's key (`transfer-idempotency.test.ts`) | FIXED by Session A in `7763ff39`; scope W1 marked closed. The round-two chain that said BROKEN was stale |
+| RPC | `public.transfer_between_wallets` (EXECUTE: `service_role` only, `has_function_privilege`) -> `private.transfer_between_wallets`: locks the sender's wallet `FOR UPDATE`, settled minus pending debits, `insufficient` refused, both legs in ONE insert, a unique violation is `duplicate` | OK |
+| Policy | the RPC is `security definer` under the service role; reads back are under `wallet_entries_select_own` | OK |
+| Trigger | `wallet_entries_notify_after_change` on both legs | OK |
+| Notification | "Wallet debited" to the sender, "Wallet credited" to the recipient; the later caption update keeps COMPLETED, which the trigger ignores | OK; the text names nobody (scope W3) |
+| Read back | `revalidatePath("/wallet")`; `router.refresh()` on success; the receipt read by reference via `getStatement()` | OK |
+| Screen, live | the send page carries the balance card and `LiveWallet`, so the new balance lands without a reload | OK |
 
 ### Refused from the render
 
-| Render element | Why it is not drawn |
+| Render element | Why |
 | --- | --- |
-| "NDIC INSURED" badge | False: `lib/legal/terms.tsx` section 15 says in bold that a wallet balance is not insured by the NDIC and Vallo is not a bank (R1) |
-| "256 BIT ENCRYPTION" badge | A security claim a person cannot check or act on (R1) |
-| Bank row ("Select bank") | A send is wallet to wallet by email; bank payouts do not complete today (W4) |
-| Scan / QR button | There is no scanner and no QR on receive |
-| Swap and "Top Up" tiles | As section 4 |
-| "Quick. Safe. Reliable." | Adjectives that are claims. Replaced by a plain description: "Wallet to wallet, by email" |
-| ₦245,680.00 and every example value | Example content |
+| "NDIC INSURED" | False: `lib/legal/terms.tsx` section 15 (R1) |
+| "256 BIT ENCRYPTION" | An uncheckable security claim (R1) |
+| Bank row | A send is wallet to wallet; bank payouts do not complete today (W4) |
+| Scan / QR button | No scanner exists |
+| Swap, "Top Up" tiles | As section 4 |
+| "Quick. Safe. Reliable." | Adjectives that are claims; replaced by "Wallet to wallet, by email". The dead dictionary key `walletSend.tagline` ("Fast. Safe. Always.") now carries the same true words |
+| Example values | The page prints the ledger |
 
-Kept, and why each is true: the "Instant transfer" chip (both legs are
-written in one database transaction). The reassurance card carries exactly
-three statements, each checked on 22 September: "Your wallet is Vallo's naira
-record of your money, not a bank deposit" (terms section 15); "If a send
-fails, nothing leaves your wallet: both sides move together or not at all"
-(the one-statement insert in `private.transfer_between_wallets`); "A completed
-send cannot be recalled. Only the person you paid can send it back" (no user
-reversal path exists).
-
-Founder questions: (1) WHO HOLDS THE MONEY is not established anywhere this
-worker could read (which account or custodian the naira sits with), so the
-card says what the wallet is, not where the money is. (2) HOW LONG A REFUND
-TAKES is not established for any path (the terms say refunds go to the wallet,
-not how fast), so no refund time is stated. Each needs the founder's answer
-before it can be printed.
+Kept, each with its evidence: "Instant transfer" (both legs in one database
+statement); three reassurance lines: the wallet is a naira record, not a bank
+deposit (terms section 15); a failed send moves nothing (one insert, both legs);
+a completed send cannot be recalled (no user reversal path). Founder
+questions: who holds the money, and how long a refund takes, are not
+established and are not stated.
 
 ### (b) The comparison, 390px dark
 
-Built values are the browser's own on a production server, fixture-backed
-through a throwaway harness rendering the real `SendFlow` (not committed).
-
 | Property | Image (measured) | Built (measured) | Match? |
 | --- | --- | --- | --- |
-| Balance card | as section 4, "Available Balance" over the figure, a wallet glyph and "Wallet Balance" under it, the same four tiles | the same card: label, 40px figure, card glyph with "Wallet Balance", `WalletTiles` with Send lit and `aria-current` | Yes (the tiles are the refusal-corrected set) |
-| Title | "Send Money", about 20px semibold | "Send money" (the dictionary's sentence case), 20px / 600 Poppins | Yes |
-| Line under it | 14 to 15px quiet blue | 14px `--nf-content-link` | Yes (words changed, see refusals) |
-| Instant chip | about 100 x 30, rounded rectangle, bolt, cyan-blue ink | 142 x 36, 10px corner (ratio 0.28), bolt 16px | Taller so the corner stays a rectangle; wider for the word "transfer" in lower case |
-| Form panel | one glass panel, rows as sub-panels with lit edges | one `nf-card` on the identity's lit card, rows as sub-panels, 14px corners | Yes |
-| Row plates | round glass plates, 57 image px = 34px | the render's own plates cropped from this image, 34px | Yes (softer at 3x, see (e)) |
-| Row type | label ~14px white; placeholder ~14px muted blue | label 14px / 500; input 16px, placeholder muted | Input is 16px on purpose: below 16px iOS zooms the page on focus |
-| Recipient row | "Enter bank name, account number or phone number" and a scan square | "Their Vallo email"; no scan square | Words are what the lookup really accepts; scan refused |
-| Amount chips | ₦5,000, ₦10,000, ₦20,000, ₦50,000, about 24px tall | the same four amounts, 36px tall, 10px corner, 12px type, chosen one filled with the lit gradient | Values yes; taller for the shape law and the thumb |
-| Narration counter | 0/50 | 0/140, the schema's real limit | Limit is the real one |
-| Button | 44.5px, gradient rgb(0 137 254) -> (0 89 253) -> (0 165 251), white-hot top edge, bloom, plane on a darker disc at the left, arrow at the right | 50px, `--nf-gradient-cta` sampled (0 97 252) -> (0 72 253) -> (16 133 249), specular rim, cyan per-side edge from the identity, two-rung bloom, plane on a `--nf-brand-primary-strong` disc, arrow right | Yes |
-| Reassurance card | shield plate, "Your money is safe", one line, two badges | shield plate cropped from the render, "How a send works", three checked facts, no badges | Anatomy yes; words and badges per the claims rule |
-| Status after send | not drawn | the ledger receipt, and the balance card re-reads | Kept |
-
+| Balance card | as section 4, "Available Balance", a wallet glyph and "Wallet Balance" | the same card and `WalletTiles`, Send lit with `aria-current` | Yes |
+| "Wallet Balance" | 75px wide = 11px | 11px / 500, 16px glyph | Yes |
+| Title | "Send Money" 103.5px wide, Poppins 600 = 17.5px | 17.5px / 600 ("Send money", house sentence case) | Yes |
+| Line under it | 102.9px wide = 14px, quiet blue | 14px / 400 `--nf-content-link` | Yes |
+| Instant chip | 30px tall, "Instant Transfer" 67.3px = 9.2px | 30px, 11px / 600, 6px corner (0.2) | Yes (type at floor) |
+| Form panel | radius 10 to 12 (rim reaches the side 16 to 20 image px down), rim rgb(0 67 131), fill rgb(0 12 43) between rows | 14px, the identity's lit card | Near: 14 is the money family's one card corner |
+| Rows | sub-panels, radius 10.5 (18 image px), fill rgb(0 21 61), edge rgb(0 75 167), 52px tall | radius 10, fill 20% brand over canvas, edge `--nf-brand-edge-soft`, 60px | Yes; 8px taller for the 16px typed value (R-A) |
+| Row gap | 9px | 10px | Yes |
+| Row plates | 57 image px = 34px round glass | the render's own plates, cropped from this image, 34px | Yes |
+| Row labels | about 9.3px | 11px / 500 | Yes (floor) |
+| Placeholder | 215px for 23em = 9.3px | 11px | Yes (floor) |
+| Typed value | (not drawn) | 16px | R-A: iOS zooms below 16 |
+| Amount chips | 24px tall, "₦5,000" 31px wide = 9.4px, equal widths | 44px (R-B), 11px / 500, four equal 64px cells, text centred, 10px corner (0.23) | Yes (floors) |
+| Counter | 7px | 11px, real limit 0/140 | Yes (floor; the limit is the schema's) |
+| Button | 44.5px, (0 137 254) -> (0 89 253) -> (0 165 251), white-hot top, plane on a darker disc, arrow right | 44.5px, `--nf-gradient-cta`, specular rim, cyan per-side edge, plane on a 34px `--nf-brand-primary-strong` disc, arrow | Yes |
+| Button label | 77.8px wide Poppins = 13px | 13px / 600 | Yes |
+| Reassurance card | one slim strip, radius 10, shield plate, title 7.7px, one line 7px, two badges | radius 10, the render's own shield plate, title 11px / 600, three 11px lines, no badges | Anatomy yes; taller, because three true lines at the 11px floor cannot fit the render's one 7px line |
+| "Sends to" row (not in the render) | none | the rows' left edge and padding, 56px, radius 10 | Aligned to the rows |
 
 ### (c) Light mode
 
-Same anatomy on paper: the balance card stays deep blue (section 4), the form
-panel and its rows are white with brand hairlines, the row plates switch from
-the render's crops (a white glyph that would vanish on white) to stroked
-glyphs on brand-tint discs, the chips are white with brand edges and the
-chosen one fills brand, the button stays the lit gradient. Proof:
-`docs/design/proofs/session-b/send/send-390-light.png`.
+Balance card deep blue as section 4; the form panel and rows white with brand
+edges; row plates switch from the render's crops (a white glyph that would
+vanish on white) to stroked glyphs on brand-tint discs; chips white with brand
+edges, the chosen one filled brand; the button stays the lit gradient.
+`send-390-light.jpg`.
 
 ### (d) Shape sweep
 
-The same run as section 4 (d) covers `/wallet/send`'s components, empty and filled: zero breaches, zero over 0.35.
-
-Proofs: `docs/design/proofs/session-b/send/send-390-dark.jpg` (empty), `send-filled-390-dark.jpg`, `send-390-light.jpg` (fixture-backed).
+The same run as section 4 (d), covering the empty and filled send harness in
+both themes at 390 and 1536: 0 breaches, 0 over 0.35, 0 round icon-only.
 
 ### (e) Skipped or not verified
 
-- The transfer itself was not run against production (no test user may be
-  created); `private.transfer_between_wallets` was read, not called. Zero
-  transfers exist in the production ledger, so the path has never run live.
-- Proofs are fixture-backed (a throwaway harness rendering the real
-  `SendFlow` with a fixture recipient lookup, not committed).
-- The recipient, amount, narration and shield plates are cropped from
-  77A54EA3 (`public/brand/session-b/send/`, SOURCES.md there): 64 source px
-  for a 34px plate, so 68 device px at 2x (sharp) and 102 at 3x (a 1.6x
-  upscale, visibly softer on a 3x phone). The plane inside the lit button is
-  drawn in CSS: it sits on saturated blue, which the key cannot separate from
-  its ground.
-- Hausa, Igbo and Yoruba have the new send labels; the three reassurance
-  lines fall back to English in those locales until a speaker translates them,
-  because a legal statement should not be machine-guessed.
+- No transfer run against production (no test user may be created); the RPC
+  was read, not called. The production ledger holds no transfer yet.
+- Proofs fixture-backed.
+- The plates are 64 source px for 34px: sharp at 2x, a 1.6x upscale at 3x.
+- The three reassurance lines are English in ha, ig and yo until translated.
 
 ## 6. Admin shell, overview, operations, analytics
 

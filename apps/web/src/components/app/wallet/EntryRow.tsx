@@ -78,11 +78,11 @@ export function EntryRow({
             />
           </span>
           {entry.status === "COMPLETED" ? (
-            <StatusPill tone="success" className="nf-tx-badge">
+            <StatusPill tone="success" className="nf-tx-badge text-[length:0.6875rem]!">
               {completedLabel}
             </StatusPill>
           ) : (
-            <StatusPill tone={toneForStatus(entry.status)} className="nf-tx-badge">
+            <StatusPill tone={toneForStatus(entry.status)} className="nf-tx-badge text-[length:0.6875rem]!">
               {words.status[entry.status]}
             </StatusPill>
           )}

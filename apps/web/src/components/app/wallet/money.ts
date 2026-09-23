@@ -5,8 +5,8 @@ import { formatMoney, type Locale } from "@vallo/i18n";
  *
  * formatMoney now shows kobo whenever there is kobo, so this is no longer
  * about correctness; it is about TYPOGRAPHY. The balance card sets the naira
- * at 2.4rem on a 390px phone, rising to 2.75rem from 427px up, and the kobo at
- * 0.6em of whatever that is, and the odometer rolls only the whole-naira
+ * at 33px on a 390px phone (measured on one digit of the render; see
+ * wallet.css, round three), and the kobo at 0.6em of whatever that is, and the odometer rolls only the whole-naira
  * digits, so the two parts have to arrive separately.
  *
  * This comment used to say 2.6rem and 1.4rem, which was the INTENT and never

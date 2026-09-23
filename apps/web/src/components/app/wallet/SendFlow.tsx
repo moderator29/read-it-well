@@ -473,8 +473,8 @@ export function SendFlow({
             >
               <UiIcon name="verified" size={18} className="shrink-0 text-[var(--nf-state-success)]" />
               <span className="min-w-0">
-                <span className={`block ${TYPE.label}`}>{copy.recipientFound}</span>
-                <span className={`block truncate ${TYPE.rowTitle}`}>{recipientName}</span>
+                <span className="nf-send-row__label block">{copy.recipientFound}</span>
+                <span className="nf-send-found__name block truncate">{recipientName}</span>
               </span>
             </p>
           ) : check !== null && check.state === "unknown" && check.reason.length > 0 ? (
