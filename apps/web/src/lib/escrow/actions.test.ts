@@ -12,9 +12,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * the caller supplies, a signed-out caller reaches no database function at
  * all, the funding door counts against a money rate limit, and a refusal the
  * database decided is handed back as a sentence rather than as a SQL status.
+ *
+ * AND THE RETIREMENT OF `openHeldPayment`, 23 SEPTEMBER. That action opened an
+ * agreement and funded it in one call, so it had to invent a funding
+ * reference: there was no row to derive one from. A client that retried by
+ * calling the action again generated a fresh reference and would have opened a
+ * SECOND agreement holding a second amount. It is gone. The two guards at the
+ * bottom of this file are what keep it gone: no exported action may reach
+ * `escrow_fund_from_wallet_as`, and no exported action may hand `callMoneyRpc`
+ * a reference of its own. Both go red if somebody wires one back.
  */
 const seam = vi.hoisted(() => ({
   rpc: vi.fn(),
+  /** What `callMoneyRpc` was handed as its reference, per call. */
+  references: [] as unknown[],
   signedIn: true,
   allowed: true,
   /* The kill switch. It fails CLOSED, so a test that forgot to open it would
@@ -29,8 +40,15 @@ vi.mock("../security/money-limits", () => ({
 }));
 vi.mock("../wallet/ledger", () => ({ getAdminClient: () => ({ rpc: seam.rpc }) }));
 vi.mock("../wallet/rpc", () => ({
-  callMoneyRpc: async (_admin: unknown, _surface: string, fn: string, args: Record<string, unknown>) => {
+  callMoneyRpc: async (
+    _admin: unknown,
+    _surface: string,
+    fn: string,
+    args: Record<string, unknown>,
+    options: { reference: string | null },
+  ) => {
     seam.rpc(fn, args);
+    seam.references.push(options.reference);
     return { outcome: "ok", data: seam.answer } as const;
   },
   readMoneyStatus: (data: unknown) => {
@@ -59,6 +77,7 @@ vi.mock("../actions/session", () => ({
 
 const PAYEE = "22222222-2222-4222-8222-222222222222";
 const ESCROW = "33333333-3333-4333-8333-333333333333";
+const CONVERSATION = "44444444-4444-4444-8444-444444444444";
 
 function answer(value: unknown): void {
   seam.answer = value;
@@ -66,6 +85,7 @@ function answer(value: unknown): void {
 
 beforeEach(() => {
   seam.rpc.mockClear();
+  seam.references.length = 0;
   seam.signedIn = true;
   seam.allowed = true;
   seam.flagOpen = true;
@@ -74,19 +94,40 @@ beforeEach(() => {
 
 describe("the guarded held-payment doors", () => {
   it("passes the SESSION's user id as the actor, never the caller's", async () => {
-    const { openHeldPayment } = await import("./actions");
-    const result = await openHeldPayment({
-      payeeId: PAYEE,
+    const { proposeHeldPayment } = await import("./actions");
+    const result = await proposeHeldPayment({
+      conversationId: CONVERSATION,
+      counterpartyId: PAYEE,
       purpose: "agency_fee",
       amountMinor: 250000,
+      iPay: true,
     });
 
     expect(result.ok).toBe(true);
     const [fn, args] = seam.rpc.mock.calls[0] as [string, Record<string, unknown>];
-    expect(fn).toBe("escrow_fund_from_wallet_as");
+    expect(fn).toBe("escrow_propose_as");
     expect(args["p_actor"]).toBe("11111111-1111-4111-8111-111111111111");
-    // The reference is ours, generated per call, and never taken from input.
-    expect(String(args["p_reference"])).toMatch(/^rm-esc-.+-hold$/);
+  });
+
+  it("names no listing on a proposal, because the thread already knows", async () => {
+    /*
+     * A caller who could name a listing could print a property they have no
+     * relationship with onto an agreement, and the person reading it would
+     * have no way to tell. The conversation is the argument; the database
+     * reads the listing off it.
+     */
+    const { proposeHeldPayment } = await import("./actions");
+    await proposeHeldPayment({
+      conversationId: CONVERSATION,
+      counterpartyId: PAYEE,
+      purpose: "agency_fee",
+      amountMinor: 250000,
+      iPay: false,
+    });
+
+    const args = seam.rpc.mock.calls[0]?.[1] as Record<string, unknown>;
+    expect(Object.keys(args)).not.toContain("p_listing");
+    expect(args["p_conversation"]).toBe(CONVERSATION);
   });
 
   it("reaches no database function at all when nobody is signed in", async () => {
@@ -98,13 +139,24 @@ describe("the guarded held-payment doors", () => {
     expect(seam.rpc).not.toHaveBeenCalled();
   });
 
-  it("counts the funding door against a money limit and charges nothing when refused", async () => {
+  it("counts the funding door against a money limit and holds nothing when refused", async () => {
     seam.allowed = false;
-    const { openHeldPayment } = await import("./actions");
-    const result = await openHeldPayment({
-      payeeId: PAYEE,
+    const { fundHeldPaymentProposal } = await import("./actions");
+    const result = await fundHeldPaymentProposal({ id: ESCROW });
+
+    expect(result.ok).toBe(false);
+    expect(seam.rpc).not.toHaveBeenCalled();
+  });
+
+  it("counts the proposal door against the same limit, because it is the pressure surface", async () => {
+    seam.allowed = false;
+    const { proposeHeldPayment } = await import("./actions");
+    const result = await proposeHeldPayment({
+      conversationId: CONVERSATION,
+      counterpartyId: PAYEE,
       purpose: "agency_fee",
       amountMinor: 250000,
+      iPay: true,
     });
 
     expect(result.ok).toBe(false);
@@ -112,11 +164,13 @@ describe("the guarded held-payment doors", () => {
   });
 
   it("refuses a bad amount before any call, because kobo are whole", async () => {
-    const { openHeldPayment } = await import("./actions");
-    const result = await openHeldPayment({
-      payeeId: PAYEE,
+    const { proposeHeldPayment } = await import("./actions");
+    const result = await proposeHeldPayment({
+      conversationId: CONVERSATION,
+      counterpartyId: PAYEE,
       purpose: "agency_fee",
       amountMinor: 1250.5,
+      iPay: true,
     });
 
     expect(result.ok).toBe(false);
@@ -157,14 +211,26 @@ describe("the guarded held-payment doors", () => {
 });
 
 describe("the kill switch, which fails closed", () => {
-  it("refuses to open a held payment when the switch is off, and calls nothing", async () => {
+  it("refuses to propose a held payment when the switch is off, and calls nothing", async () => {
     seam.flagOpen = false;
-    const { openHeldPayment } = await import("./actions");
-    const result = await openHeldPayment({
-      payeeId: PAYEE,
+    const { proposeHeldPayment } = await import("./actions");
+    const result = await proposeHeldPayment({
+      conversationId: CONVERSATION,
+      counterpartyId: PAYEE,
       purpose: "agency_fee",
       amountMinor: 250000,
+      iPay: true,
     });
+
+    expect(result.ok).toBe(false);
+    expect(result.ok === false && result.error).toBe("held payments are off");
+    expect(seam.rpc).not.toHaveBeenCalled();
+  });
+
+  it("refuses to fund a proposal when the switch is off, and calls nothing", async () => {
+    seam.flagOpen = false;
+    const { fundHeldPaymentProposal } = await import("./actions");
+    const result = await fundHeldPaymentProposal({ id: ESCROW });
 
     expect(result.ok).toBe(false);
     expect(result.ok === false && result.error).toBe("held payments are off");
@@ -318,22 +384,73 @@ describe("filing evidence", () => {
 
 describe("the hold window", () => {
   it("clamps to the same floor and ceiling the database clamps to", async () => {
-    const { openHeldPayment } = await import("./actions");
+    const { fundHeldPaymentProposal } = await import("./actions");
 
-    await openHeldPayment({ payeeId: PAYEE, purpose: "agency_fee", amountMinor: 1000, holdDays: 0 });
+    await fundHeldPaymentProposal({ id: ESCROW, holdDays: 0 });
     expect((seam.rpc.mock.calls[0]?.[1] as Record<string, unknown>)["p_hold_days"]).toBe(1);
 
     seam.rpc.mockClear();
-    await openHeldPayment({
-      payeeId: PAYEE,
-      purpose: "agency_fee",
-      amountMinor: 1000,
-      holdDays: 5000,
-    });
+    await fundHeldPaymentProposal({ id: ESCROW, holdDays: 5000 });
     expect((seam.rpc.mock.calls[0]?.[1] as Record<string, unknown>)["p_hold_days"]).toBe(180);
 
     seam.rpc.mockClear();
-    await openHeldPayment({ payeeId: PAYEE, purpose: "agency_fee", amountMinor: 1000 });
+    await fundHeldPaymentProposal({ id: ESCROW });
     expect((seam.rpc.mock.calls[0]?.[1] as Record<string, unknown>)["p_hold_days"]).toBe(21);
+  });
+});
+
+/**
+ * THE TWO GUARDS THAT KEEP THE RETIRED DOOR RETIRED.
+ *
+ * Neither of these reads the source. Both walk EVERY exported action with
+ * input it accepts and look at what actually reached the database layer, so
+ * an action added tomorrow is covered without anybody remembering to add it
+ * here. If somebody reintroduces an open-and-fund call, or hands the money
+ * layer a reference of its own choosing, these go red.
+ */
+describe("the open-and-fund door stays shut", () => {
+  /** Every exported action, with arguments its schema accepts. */
+  async function walkEveryDoor(): Promise<void> {
+    const mod = await import("./actions");
+    await mod.proposeHeldPayment({
+      conversationId: CONVERSATION,
+      counterpartyId: PAYEE,
+      purpose: "agency_fee",
+      amountMinor: 250000,
+      iPay: true,
+    });
+    await mod.fundHeldPaymentProposal({ id: ESCROW, holdDays: 21 });
+    await mod.confirmHeldPayment({ id: ESCROW });
+    await mod.requestHeldPaymentRelease({ id: ESCROW });
+    await mod.disputeHeldPayment({ id: ESCROW, reason: "The flat was not as described." });
+    await mod.cancelHeldPayment({ id: ESCROW, reason: "We found somewhere else." });
+    await mod.fileHeldPaymentFact({ id: ESCROW, fact: "amount_agreed", amountMinor: 250000 });
+  }
+
+  it("has no exported action that reaches escrow_fund_from_wallet_as", async () => {
+    await walkEveryDoor();
+
+    const verbs = seam.rpc.mock.calls.map((call) => call[0] as string);
+    /* The walk must have reached the database at all, or the absence below
+       would be the absence of a working test rather than of a door. */
+    expect(verbs.length).toBeGreaterThanOrEqual(7);
+    expect(verbs).toContain("escrow_propose_as");
+    expect(verbs).toContain("escrow_fund_proposal_as");
+    expect(verbs).not.toContain("escrow_fund_from_wallet_as");
+    expect(verbs).not.toContain("escrow_fund_from_wallet");
+  });
+
+  it("hands the money layer no reference of its own, on any door", async () => {
+    await walkEveryDoor();
+
+    expect(seam.references.length).toBeGreaterThanOrEqual(7);
+    expect(seam.references.every((reference) => reference === null)).toBe(true);
+
+    /* And no door passes one down as an argument either. The funding
+       reference is derived inside the database, from the row. */
+    const everyArgumentName = seam.rpc.mock.calls.flatMap((call) =>
+      Object.keys(call[1] as Record<string, unknown>),
+    );
+    expect(everyArgumentName).not.toContain("p_reference");
   });
 });

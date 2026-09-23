@@ -6991,3 +6991,135 @@ The line is additive and data only. The schedule text and the allowance are
 yours to reword; a comment in place says so. If you would rather it were not
 there, say so in your ledger and we will move the drain's registration
 somewhere you do not own.
+
+---
+
+## 59. ESCROW3, BLOCK 1: THE OPEN-AND-FUND DOOR IS RETIRED, AND IT NEVER HAD A CALLER
+
+Worker: ESCROW3. Files: `apps/web/src/lib/escrow/actions.ts`,
+`apps/web/src/lib/escrow/actions.test.ts`,
+`apps/web/src/lib/security/money-limits.ts`,
+`docs/adr/0001-held-payments-custody-purpose-and-the-float.md`, and one
+migration.
+
+### 59.1 What was found before anything was changed
+
+`openHeldPayment` opened an agreement and funded it in one call. ADR-E1 section
+4, departure 2, names the fault exactly: there is no row to derive a funding
+reference from, so it minted a fresh uuid per attempt, and research 5.3 is
+absolute that the idempotency key comes off the row. A client that retried by
+calling the action again would have opened a SECOND agreement holding a SECOND
+amount out of the same balance. The unique index on `wallet_entries.reference`
+does not catch that, because the second attempt carries a different string.
+
+**Every reference in the tree, counted rather than assumed:**
+
+| Where | What it was |
+| --- | --- |
+| `lib/escrow/actions.ts` | the definition |
+| `lib/escrow/actions.test.ts` | five tests, all of them using it as a convenient door rather than testing it |
+| `lib/security/money-limits.ts` | a rate-limit key named after it, and its row in the table comment |
+| `docs/adr/0001-...` | the departure that named it for retirement |
+
+**There was no UI caller, and there never had been.** The three components that
+import `lib/escrow/actions` are `HeldPaymentControls.tsx` (confirm, release,
+dispute, cancel, file a fact), `EvidenceFiler.tsx` (file a document or a fact)
+and `ProposeHeldPayment.tsx` (propose, fund a proposal). **No caller had to be
+moved to the proposal door, because no caller existed.** That is worth saying
+plainly rather than dressing up as a migration of callers: the risk this block
+removes is a door standing open, not a journey being rerouted.
+
+### 59.2 What landed
+
+- **`openHeldPayment` is deleted**, with `openSchema`, the `randomUUID` import
+  and the `ESCROW_PREFIX` import that existed only to build its reference.
+- **`callGuarded` lost its `reference` option.** It had exactly one user. A dead
+  option on the one function every door funnels through is the shape that lets
+  a caller-chosen key back in, so it is gone and `callMoneyRpc` is handed
+  `null`. The retired verb is out of `callGuarded`'s type union, so the module
+  cannot name it even by mistake.
+- **The rate-limit key is `holdMoney` and the BUCKET IS UNCHANGED.** The key was
+  `openHeldPayment`, after a function that no longer exists.
+  `money_hold_open` is the string `consume_rate_limit` counts against in the
+  database, and renaming it would have handed everybody mid-window a fresh
+  allowance. The name is ours; the string is the counter's.
+- **Migration `20260923101038`**: `EXECUTE` revoked on
+  `public.escrow_fund_from_wallet_as` and on its delegate
+  `public.escrow_fund_from_wallet`, from `public`, `anon`, `authenticated` and
+  **`service_role`**, with the catalogue read back inside the migration.
+
+### 59.3 What was proved, and how
+
+**The revoke.** The migration ends in a `do` block that asks
+`has_function_privilege` for two functions across four roles and RAISES if any
+grant survives. A `revoke` succeeds whether or not it revoked anything, so a
+migration of nothing but revokes reports success either way; this one has to
+answer for itself.
+
+**THE CONTROL, because eight refusals look exactly like a question that cannot
+say yes.** The same predicate, on the same role, in the same transaction, is
+asked about `escrow_fund_proposal_as`, which `service_role` MUST still hold
+because it is the door the product funds through. It answered true. If it had
+not, the migration raises and says that nothing above it is evidence.
+
+**Confirmed again afterwards, outside the migration**, by reading `pg_proc`
+through a separate connection: both retired functions read
+`postgres=X/postgres` and nothing else; both proposal doors still read
+`service_role=X/postgres`. So the verdict does not rest on the migration's own
+account of itself.
+
+**Two new guards in `actions.test.ts`, and neither reads the source.** Both walk
+EVERY exported action with input its schema accepts and then look at what
+reached the database layer:
+
+1. no exported action reaches `escrow_fund_from_wallet_as` or
+   `escrow_fund_from_wallet`;
+2. no exported action hands `callMoneyRpc` a reference, and no argument named
+   `p_reference` appears on any call.
+
+Each asserts first that the walk reached the database at least seven times and
+that it did reach `escrow_propose_as` and `escrow_fund_proposal_as`, so the
+absence it reports is the absence of a door and not the absence of a working
+test. An action added tomorrow is covered the moment it is added to the walk,
+and the walk is one function.
+
+Gates: `npx tsc --noEmit` exit 0. `npx vitest run src/lib/escrow src/lib/security`
+12 files, 158 tests, all passed. `money-limits-call-sites.test.ts`, which walks
+the tree for a `guardMoney` call site per action, passes on the renamed key.
+
+### 59.4 THE FUNCTIONS ARE NOT DROPPED, AND THE REASON IS A BLIND LIGHT
+
+The brief said to remove the function only if nothing in the tree or the
+database still references it. **The tree still does.**
+`scripts/probes/escrow_concurrency.sh` is P-1 to P-6 and funds every one of
+those six probes through `escrow_fund_from_wallet_as`;
+`scripts/probes/escrow_ruling.sql` and `scripts/probes/escrow_revoke.sh` name it
+too. In the database, `public.escrow_fund_from_wallet` still calls it, which is
+why both were revoked together.
+
+**And here is the part that matters.** Dropping the function would NOT have
+made those six probes fail. The harness lifts function TEXT out of
+`supabase/migrations/*.sql`, taking the last `create or replace function` for
+each qualified name, and runs it in a scratch cluster. A `drop function` in a
+later migration is not a `create or replace`, so the extractor would never have
+seen it. **All six would have gone on passing, in full colour, against a body
+that no longer existed in production.** That is the fifteen-and-counting shape:
+a check that observes that it tried.
+
+So the body stays readable and unreachable, and the honest consequence is
+recorded rather than buried: **P-1 to P-6 are proved against a door that is now
+revoked.** They are not wrong about locking, ordering or the ledger, which is
+what they were built to test and which is shared machinery. They are no longer
+evidence about the door the product actually funds through. Re-pointing them at
+`escrow_propose_as` plus `escrow_fund_proposal_as` is named in
+`docs/escrow/PROBE_STATE.md` and is NOT done today.
+
+### 59.5 Found while doing this, that nobody asked about
+
+**`escrow_fund_from_wallet`, the delegate, could never have worked under the
+service role and nobody had said so.** It passes `auth.uid()`, which is null
+under the service role, and every escrow write in this product arrives as the
+service role. So it answered `signed_out` to every call this product could have
+made. It was not broken by the F-2 revoke; it was born unreachable by the only
+caller shape that exists. It is now revoked and its `comment` says so, so the
+next reader does not have to work it out.

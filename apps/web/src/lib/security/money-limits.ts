@@ -29,7 +29,7 @@ import { consume, ipFromHeaders, subjectForIp, subjectForUser } from "./rate-lim
  * | setDefaultBankAccount      | bank_default            |    20 |   10 m | It decides where the next payout lands, which is the whole account |
  * | removeBankAccount          | bank_remove             |    10 |    1 h | Same shape as removing a card, on the side money leaves by |
  * | paymentState               | money_state_poll        |    40 |   10 m | Polled on a backoff: one in-app checkout spends about 12   |
- * | openHeldPayment            | money_hold_open         |     5 |    1 h | Each one takes an amount out of a spendable balance and locks the wallet row |
+ * | holdMoney                  | money_hold_open         |     5 |    1 h | Each one takes an amount out of a spendable balance and locks the wallet row |
  * | signature failures, per IP | webhook_bad_signature   |    30 |   10 m | Unauthenticated: a sprayed webhook URL is answered from cache |
  * | cron secret failures, per IP | cron_bad_secret       |    30 |   10 m | Unauthenticated: same shape for the reconcile route        |
  *
@@ -64,7 +64,7 @@ export type MoneyAction =
   | "addBankAccount"
   | "resolveBankAccount"
   | "startCardSetup"
-  | "openHeldPayment"
+  | "holdMoney"
   | "setDefaultPaymentMethod"
   | "removePaymentMethod"
   | "setDefaultBankAccount"
@@ -161,7 +161,17 @@ export const MONEY_LIMITS: Record<MoneyAction, MoneyLimit> = {
     windowSeconds: HOUR,
     refusal: "You have started several card setups already, so this one was not opened and nothing was charged.",
   },
-  openHeldPayment: {
+  /*
+   * THE KEY IS `holdMoney` AND THE BUCKET IS UNCHANGED, 23 SEPTEMBER. It used
+   * to be `openHeldPayment`, after the server action of that name, and that
+   * action is retired: one call that opened an agreement and funded it, with a
+   * funding reference it had to invent because the row did not exist yet. The
+   * BUCKET STRING IS DELIBERATELY NOT RENAMED. `money_hold_open` is the key
+   * `consume_rate_limit` counts against in the database, so renaming it would
+   * hand everybody who is mid-window a fresh allowance. The name above is what
+   * this codebase calls the limit; the string below is what the counter is.
+   */
+  holdMoney: {
     bucket: "money_hold_open",
     limit: 5,
     windowSeconds: HOUR,

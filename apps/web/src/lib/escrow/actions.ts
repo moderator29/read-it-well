@@ -26,13 +26,22 @@
  * copy in this file says the word to a user. Nothing renders it today; when a
  * surface is designed and the founder has the solicitor's answer on custody,
  * it calls these and inherits the guard rather than growing a second path.
+ *
+ * THERE IS ONE WAY TO OPEN AN AGREEMENT AND IT IS THE PROPOSAL, 23 SEPTEMBER.
+ * `openHeldPayment` used to sit here: it opened a row and funded it in ONE
+ * call, so there was no row to derive a funding reference from and it minted a
+ * fresh uuid per attempt. That breaks research 5.3, which is absolute: the
+ * idempotency key is derived from the escrow row, never freshly generated,
+ * because a client that retries by calling the action again would open a
+ * SECOND agreement and hold a second amount. It is gone, its database door is
+ * revoked from `service_role`, and nothing in this module can reach it. The
+ * surviving path is propose (no money) then fund what exists (reference
+ * derived inside the database), which is ADR-E1 section 4 departure 2 closed.
  */
 
-import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
-import { ESCROW_PREFIX } from "../payments/references";
 import { guardMoney } from "../security/money-limits";
 import { getAdminClient } from "../wallet/ledger";
 import { callMoneyRpc, readMoneyStatus } from "../wallet/rpc";
@@ -64,28 +73,6 @@ export type HeldPaymentOutcome = {
 };
 
 const idSchema = z.object({ id: z.uuid("That is not something we can act on.") });
-
-const openSchema = z.object({
-  payeeId: z.uuid("Choose who is being paid."),
-  listingId: z.uuid().nullable().optional(),
-  /*
-   * ONLY THE AGENCY FEE, AND THE DATABASE AGREES.
-   *
-   * `private.escrow_purpose_is_open` refuses everything else inside the
-   * funding function, so this is the second of two locks rather than the only
-   * one. It is here as well because a schema refusal names a field and a
-   * database refusal names a status, and the person filling in a form should
-   * get the first.
-   */
-  purpose: z.enum(["agency_fee"], {
-    message: "Say what this payment is for.",
-  }),
-  /** Integer kobo. The boundary that turned naira into kobo is the caller's. */
-  amountMinor: z
-    .number()
-    .int("Amounts are whole kobo.")
-    .positive("That amount is not one we can move."),
-});
 
 const disputeSchema = idSchema.extend({
   reason: z
@@ -139,16 +126,16 @@ function refusalFor(status: string): string {
 }
 
 /**
- * The one shape all four share: session, schema, limit, service client, call.
+ * The one shape every door shares: session, schema, limit, service client, call.
  *
  * Kept private so no export can reach a database function without walking all
- * five steps. `guardMoney` is applied to the funding door only, because that
- * is the one that moves an amount; the other three change a state a party is
- * already a party to, and they are reached through the same session check.
+ * five steps. `guardMoney` is applied to the doors that open or fund an
+ * agreement, because those are the ones that commit an amount or promise to;
+ * the rest change a state a party is already a party to, and they are reached
+ * through the same session check.
  */
 async function callGuarded(
   fn:
-    | "escrow_fund_from_wallet_as"
     | "escrow_confirm_as"
     | "escrow_request_release_as"
     | "escrow_raise_dispute_as"
@@ -157,14 +144,22 @@ async function callGuarded(
     | "escrow_propose_as"
     | "escrow_fund_proposal_as",
   args: (actorId: string) => Record<string, unknown>,
-  options: { limited: boolean; reference?: string; amountMinor?: number },
+  /*
+   * NO `reference` OPTION, DELIBERATELY. It existed for one caller,
+   * `openHeldPayment`, which minted a fresh uuid per attempt because there was
+   * no row to derive one from. Every surviving door either moves nothing or
+   * funds a row that already exists, and the surviving funding door derives
+   * `rm-esc-<escrow uuid>-hold` INSIDE the database. Leaving the option here
+   * would leave the shape that lets a caller-chosen key back in.
+   */
+  options: { limited: boolean; amountMinor?: number },
 ): Promise<ActionResult<HeldPaymentOutcome>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
 
   if (options.limited) {
-    const limit = await guardMoney("openHeldPayment", session.user.id);
+    const limit = await guardMoney("holdMoney", session.user.id);
     if (!limit.allowed) return fail(limit.message);
   }
 
@@ -172,7 +167,7 @@ async function callGuarded(
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
   const call = await callMoneyRpc(admin, "escrow", fn, args(session.user.id), {
-    reference: options.reference ?? null,
+    reference: null,
     amountMinor: options.amountMinor ?? null,
     userId: session.user.id,
   });
@@ -184,69 +179,6 @@ async function callGuarded(
   const row = (call.data ?? {}) as Record<string, unknown>;
   const id = typeof row["escrow_id"] === "string" ? (row["escrow_id"] as string) : "";
   return ok({ id, state: status.state, amountMinor: status.amountMinor });
-}
-
-/**
- * Move an amount out of the caller's spendable balance and hold it.
- *
- * The reference is generated here and never accepted from a caller: it is the
- * ledger's uniqueness key, and a caller who could choose it could collide with
- * somebody else's movement or replay their own.
- */
-export async function openHeldPayment(input: {
-  payeeId: string;
-  listingId?: string | null;
-  purpose: "agency_fee";
-  amountMinor: number;
-  /** Whole days the money stays set aside. Clamped again in the database. */
-  holdDays?: number;
-}): Promise<ActionResult<HeldPaymentOutcome>> {
-  const parsed = validate(openSchema, input);
-  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
-
-  /*
-   * THE KILL SWITCH, BEFORE ANYTHING ELSE AND FAILING CLOSED. A held payment
-   * that opens because the flags table was briefly unreachable is a held
-   * payment nobody chose to allow. See ./flag.ts for why this is not the
-   * estate's ordinary flag helper.
-   */
-  if (!(await heldPaymentsAreOpen())) return fail(HELD_PAYMENTS_CLOSED_MESSAGE);
-
-  if (!OPEN_PURPOSES.includes(parsed.data.purpose)) {
-    return fail(
-      PURPOSE_REFUSAL[parsed.data.purpose as keyof typeof PURPOSE_REFUSAL] ??
-        "That is not something we can set aside.",
-    );
-  }
-
-  /*
-   * THE REFERENCE IS GENERATED HERE AND NEVER ACCEPTED FROM A CALLER, because
-   * it is the ledger's uniqueness key and a caller who could choose it could
-   * collide with somebody else's movement or replay their own.
-   *
-   * It is a fresh uuid rather than the escrow row's id, and that is not the
-   * asymmetry `references.ts` warns about. The escrow ROW DOES NOT EXIST YET:
-   * this one call opens it and holds against it inside one transaction, so
-   * there is no id to derive from. What makes the retry safe is that the
-   * database answers `duplicate` on the unique index rather than raising, and
-   * a client that retries with the same reference moves nothing. The two later
-   * legs, release and refund, do derive from the row id, because by then there
-   * is one.
-   */
-  const reference = `${ESCROW_PREFIX}${randomUUID()}-hold`;
-  return callGuarded(
-    "escrow_fund_from_wallet_as",
-    (actorId) => ({
-      p_actor: actorId,
-      p_payee: parsed.data.payeeId,
-      p_listing: parsed.data.listingId ?? null,
-      p_purpose: parsed.data.purpose,
-      p_amount_minor: parsed.data.amountMinor,
-      p_reference: reference,
-      p_hold_days: clampHoldDays(input.holdDays),
-    }),
-    { limited: true, reference, amountMinor: parsed.data.amountMinor },
-  );
 }
 
 /** Say, as one of the two parties, that this is settled. */

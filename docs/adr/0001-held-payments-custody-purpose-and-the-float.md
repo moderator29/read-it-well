@@ -251,6 +251,29 @@ than papered over.
 the one the product uses: propose, then fund what exists. `openHeldPayment` is
 the older single-step path and should be retired once nothing calls it.
 
+**CLOSED, 23 SEPTEMBER, LATER THE SAME DAY.** Nothing called it. It had no UI
+caller at any point: the only references outside its own definition were its
+own unit tests and a rate-limit key named after it. `openHeldPayment` is
+deleted, and migration `20260923101038` revokes `EXECUTE` on
+`public.escrow_fund_from_wallet_as` and on its delegate
+`public.escrow_fund_from_wallet` from every role, `service_role` included, and
+reads the catalogue back inside itself with a control that must answer yes.
+**There is now exactly one way to open an agreement and exactly one way to fund
+one, and neither of them accepts a reference.** This departure is therefore no
+longer a departure: research 5.3 is honoured literally by the only funding door
+that exists.
+
+**The two functions are NOT dropped, and that is deliberate.**
+`scripts/probes/escrow_concurrency.sh` funds P-1 to P-6 through
+`escrow_fund_from_wallet_as`, by lifting the function text out of the migration
+files into a scratch cluster. Dropping it would not have made those probes
+fail: the extractor reads `create or replace function` statements and would
+never have seen a `drop`, so six probes would have gone on passing against a
+body that no longer existed in production. The body is kept readable and
+unreachable until the probes are re-pointed. **That re-pointing is not done and
+is named in `docs/escrow/PROBE_STATE.md` as the reason P-1 to P-6 are proved
+against a retired door.**
+
 ---
 
 ## 5. What this ADR deliberately does not decide
@@ -311,6 +334,10 @@ Short, because a list a person can hold in their head is a list they use.
    any arithmetic on money that is not integer kobo.
 4. Any read-before-write idempotency check in TypeScript. The unique index is
    the enforcement and nothing else is.
+4b. Any funding door that takes a reference as an argument, and any door that
+   opens an agreement and funds it in the same call. The row has to exist
+   before the money moves, so that the key can be derived from the row. This
+   was true of `openHeldPayment` and it is why it is gone.
 5. Any flag read for this feature that can fail open, or that is cached.
 6. Any evidence that can be edited or deleted, by anybody, including its author.
 7. Any copy containing the word itself, or a promise of safety, protection or a
