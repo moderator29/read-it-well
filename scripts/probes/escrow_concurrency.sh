@@ -325,8 +325,61 @@ create trigger escrows_guard_transition
   for each row execute function private.escrow_guard_transition();
 SQL
 
+# ---------------------------------------------------------------------------
+# 2b. THE COLUMNS THE MIGRATIONS ADDED AFTER THE MINIMAL TABLE WAS WRITTEN.
+#
+# WHY THIS EXISTS. The `escrows` table above is a HAND-WRITTEN copy, and on
+# 23 September migration 20260923093233 added `escrows.opened_by` and made
+# `escrow_fund_from_wallet_as` write it. The harness lifts the CURRENT function
+# text out of the migrations but was still building yesterday's table, so every
+# probe that funds an escrow died on one insert and TEN OF ELEVEN FAILED. It
+# had been red for hours with nothing saying so.
+#
+# Hand-copying the two columns would fix today and leave tomorrow exactly as
+# fragile, so the alters are LIFTED, the same way the function bodies are. The
+# `references` clause is stripped because the scratch database deliberately has
+# no `auth.users` and no `conversations`: the point of a minimal schema is
+# fewer TABLES, and a foreign key to a table that is not here is not a
+# constraint this harness can honour.
+#
+# A LOUD WARNING, NOT A SILENT DROP. An added column carrying `not null` or a
+# `default` is one where dropping the rest of the line changes behaviour, so it
+# is named on the way past rather than swallowed.
+# ---------------------------------------------------------------------------
+: > "$scratch/escrow_columns.sql"
+added=0
+while IFS='|' read -r name rest; do
+  [ -n "$name" ] || continue
+  type_word="$(echo "$rest" | awk '{print $1}')"
+  echo "alter table public.escrows add column if not exists $name $type_word;" \
+    >> "$scratch/escrow_columns.sql"
+  added=$((added + 1))
+  echo "   escrows.$name $type_word  (lifted from a migration)"
+  case "$rest" in
+    *"not null"*|*default*)
+      echo "   WARNING: escrows.$name declares not null or a default and this harness kept neither." ;;
+  esac
+done <<EXTRACT
+$(awk '
+  /^alter table public\.escrows/ { inalter = 1; next }
+  inalter && /add column if not exists/ {
+    line = $0
+    sub(/.*add column if not exists[ \t]+/, "", line)
+    sub(/;[ \t]*$/, "", line)
+    sub(/[ \t]+references[ \t].*$/, "", line)
+    split(line, parts, /[ \t]+/)
+    rest = line
+    sub(/^[^ \t]+[ \t]+/, "", rest)
+    print parts[1] "|" rest
+  }
+  inalter && /;[ \t]*$/ { inalter = 0 }
+' "$repo"/supabase/migrations/*.sql | sort -u)
+EXTRACT
+echo "== $added column addition(s) to public.escrows lifted from the migrations"
+
 chmod 644 "$scratch"/*.sql
 run "$scratch/schema.sql"   || { echo "== RESULT: FAIL loading schema"; exit 1; }
+run "$scratch/escrow_columns.sql" || { echo "== RESULT: FAIL replaying the escrows column additions"; exit 1; }
 run "$scratch/functions.sql" || { echo "== RESULT: FAIL loading functions"; exit 1; }
 run "$scratch/f9.sql"        || { echo "== RESULT: FAIL replaying the F-9 rewrite"; exit 1; }
 run "$scratch/triggers.sql" || { echo "== RESULT: FAIL loading triggers"; exit 1; }
@@ -389,6 +442,41 @@ both_answered() { # both_answered <word-a> <word-b>
   echo "   BOTH-ANSWERED: yes. $1 and $2 both spoke."
   return 0
 }
+
+# ---------------------------------------------------------------------------
+# 4. THE SMOKE CHECK. CAN THIS HARNESS OPEN AN ESCROW AT ALL?
+#
+# WHY IT IS HERE, IN ONE CASE. On 23 September the scratch `escrows` table was
+# a column behind production and every funding call raised. Ten of eleven
+# probes correctly read FAIL. **P-2 (withdrawal first) read PASS.** Its
+# assertion is that exactly one of the withdrawal and the escrow commits the
+# balance, that both sessions speak rather than raise, and that the payer ends
+# at zero. The withdrawal went first and took the balance, so the escrow leg
+# was refused `insufficient` by the spendable check BEFORE it reached the
+# statement that was broken. Every condition was met. `insufficient` is the
+# expected word whether the door behind it is sound or cannot insert a row.
+#
+# So a suite of eleven probes reported a pass over a door that could not open
+# an agreement. This is the guard against that: ONE funding call, on its own,
+# with nothing racing it, before any probe runs. If it does not answer `ok`
+# the run STOPS and says the harness is at fault rather than the product,
+# because eleven red lights and one false green are worse than no run at all.
+# ---------------------------------------------------------------------------
+echo; echo "== SMOKE: one uncontested funding call, before any probe runs"
+reset_with 100000
+smoke="$(q "select public.escrow_fund_from_wallet_as('$PAYER','$PAYEE',null,'agency_fee',50000,'rm-esc-smoke-hold',21) ->> 'status'")"
+smoke_held="$(q "select count(*) from public.escrows where state='HELD'")"
+smoke_entries="$(q "select count(*) from public.wallet_entries where kind='escrow_hold'")"
+echo "   answer=[$smoke] held=$smoke_held holds=$smoke_entries"
+if [ "$smoke" != "ok" ] || [ "$smoke_held" != "1" ] || [ "$smoke_entries" != "1" ]; then
+  echo "== RESULT: FAIL, AND THE HARNESS IS THE SUSPECT, NOT THE PRODUCT."
+  echo "   An uncontested funding call did not produce one HELD agreement and one hold."
+  echo "   Nothing below this line would have been evidence about locking, ordering"
+  echo "   or the float, so nothing below this line was run. The usual cause is the"
+  echo "   scratch schema being behind a migration: read the answer above."
+  exit 1
+fi
+echo "== SMOKE: PASS. The harness can open and fund an agreement, so a refusal below is a refusal."
 
 # ---------------------------------------------------------------------------
 # P-1. Two concurrent funds against one affordable balance.

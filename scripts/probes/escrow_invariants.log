@@ -59,3 +59,16 @@ The subtraction was restored:
 
 Three of seven assertions are genuinely connected to the arithmetic they name,
 and the identity itself is one of the three.
+
+-- RE-RUN, 23 September 2026.
+
+  ERROR:  P0001: PROBE ALL PASS. Baseline clean. I-3a caught an agreement
+  holding money the ledger never took. I-2 stayed quiet on a sound agreement
+  and caught a 100 kobo disagreement with difference_minor = -100 exactly.
+  I-3b caught a double hold. Five passes opened exactly one alert for I-2 and
+  one for I-3a. Rolling back.
+
+"Baseline clean" is the half of this that is about production rather than
+about the probe: at the moment of the run, the float derived from the ledger
+and the float derived from the agreement rows agreed, and no wallet was
+overdrawn.

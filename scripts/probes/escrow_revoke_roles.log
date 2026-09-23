@@ -30,3 +30,29 @@ run: see escrow_revoke.log for the egress denial, re-checked today.
 
 P-7 IS THEREFORE NOT CLOSED. It is half proved, and the half that is proved is
 named rather than counted as the whole.
+
+-- RE-RUN, 23 September 2026, AFTER THE OPEN-AND-FUND DOOR WAS RETIRED.
+
+Migration 20260923101038 revoked EXECUTE on escrow_fund_from_wallet and
+escrow_fund_from_wallet_as from every role, service_role included. This probe
+asks about `anon` and `authenticated` only, so the expected answer is
+unchanged, and it is the re-run that says so rather than an assumption:
+
+  ERROR:  P0001: PROBE ALL PASS (rolled back). 22 refusals over 11 verbs and
+  2 roles, 0 reached a body. THE CONTROL ANSWERED: escrow_admin_resolve, under
+  role authenticated in the same transaction, returned {"status": "forbidden"}.
+  This is the EXECUTE layer; the HTTP layer is a separate claim and is not
+  made here.
+
+THE HTTP HALF IS STILL NOT RUN and has never run. Checked once more at
+2026-09-23T10:12:18Z: curl (56) CONNECT tunnel failed, response 403. That is
+an egress policy on this box, it is the founder's to change, and it is not
+retryable.
+
+A NOTE ON WHERE THE GRANT VERDICTS CAME FROM. Every privilege reading behind
+this probe and behind migration 20260923101038 is taken from the CATALOGUE:
+pg_proc.proacl and has_function_privilege. None of it is from
+information_schema.role_table_grants or information_schema.column_privileges,
+which only return rows where the querying role is grantor or grantee, so an
+empty result from those views is a fact about the observer and not about the
+object.

@@ -7447,3 +7447,83 @@ rewrite history, which is on the stop list. It added an empty commit carrying
 the full message and pointing at the commit its work had landed in. That leaves
 the record honest and the tree untouched, and it is the pattern to copy if this
 happens again before the new sequence reaches everybody.
+
+---
+
+## 62. ESCROW3, BLOCK 4: THE HARNESS REPAIRED, AND 11 OF 11 GREEN AGAIN
+
+### 62.1 The repair, and why it is not two hand-copied columns
+
+Section 60 found the suite red because `escrows.opened_by` arrived at 09:32 and
+the harness's hand-written copy of `escrows` did not have it. Copying the two
+columns in would have fixed today and left tomorrow exactly as fragile, and
+this is the SECOND time that hand-written table has been behind production. So:
+
+- **The column additions are LIFTED from the migrations**, the same way the
+  twenty nine function bodies already are. Every
+  `alter table public.escrows add column` in `supabase/migrations/*.sql` is
+  extracted, its `references` clause stripped because the scratch database
+  deliberately has no `auth.users` and no `conversations`, and each one printed
+  as it is replayed. **A column carrying `not null` or a `default` is named in
+  a loud warning rather than silently stripped**, because that is the case
+  where dropping the rest of the line changes behaviour and a person should
+  look. It lifted two and named both.
+- **A SMOKE CHECK before any probe runs.** One uncontested funding call, with
+  nothing racing it. If it does not answer `ok` and leave exactly one HELD
+  agreement and one hold entry, **the run stops** and says the harness is the
+  suspect rather than the product. This is the direct answer to 60.2: eleven
+  red lights with one false green among them is worse than no run at all, and
+  with this in front, P-2 (withdrawal first) can never again report a pass over
+  a door that cannot insert a row.
+
+### 62.2 What was re-run today, and what each one said
+
+| Probe | Where it runs | Verdict | Evidence |
+| --- | --- | --- | --- |
+| P-1 to P-6, P-8, P-9 local | local scratch cluster, nothing touches live | **11 of 11 PASS** | `scripts/probes/escrow_concurrency.log`, re-dated 2026-09-23T10:20:15Z |
+| P-7, the EXECUTE layer | live project, rolled back | **PASS.** 22 refusals over 11 verbs and 2 roles, 0 reached a body, control answered `{"status":"forbidden"}` | `scripts/probes/escrow_revoke_roles.log` |
+| P-9 against the live database | live project, rolled back | **PASS**, and **baseline clean** | `scripts/probes/escrow_invariants.log` |
+| P-7, the HTTP layer | needs egress this box does not have | **NOT RUN, and has never run** | `curl (56) CONNECT tunnel failed, response 403` at 2026-09-23T10:12:18Z |
+
+The smoke line on the green run reads `answer=[ok] held=1 holds=1`. The bodies
+that ran are the 23 September ones, sha256 printed per body, including the
+`opened_by` fix to `private.escrow_audit_insert`, which the 22 September run
+never saw.
+
+**"Baseline clean" is the half of P-9 that is about production rather than
+about the probe**: at the moment of the run, the float derived from the ledger
+and the float derived from the agreement rows agreed exactly, and no wallet was
+overdrawn.
+
+### 62.3 The coordinator's warning, checked rather than assumed
+
+The warning about `information_schema.role_table_grants` and
+`information_schema.column_privileges` returning rows only where the QUERYING
+role is grantor or grantee was checked against this work rather than taken on
+trust. **No escrow probe reads `information_schema` at all.** Every privilege
+verdict in section 59, in migration `20260923101038` and in
+`docs/escrow/PROBE_STATE.md` comes from the CATALOGUE: `pg_proc.proacl` and
+`has_function_privilege`. The grep that says so covers
+`scripts/probes/*.sql`, `scripts/probes/*.sh` and `docs/escrow/*.md`; the only
+`information_schema` uses anywhere in `scripts/probes` are
+`information_schema.columns` for column EXISTENCE, in Price Check, sale cost,
+stays and Track G probes, which is not a privilege read. **Nothing needed
+re-taking**, and that is stated as a result of looking rather than as a
+reason not to look.
+
+### 62.4 What P-1 to P-6 are and are not evidence of, said again
+
+They fund through `escrow_fund_from_wallet_as`, which section 59 revoked from
+every role today. A green run of those six is evidence about the shared
+LOCKING, ORDERING and LEDGER machinery, which is what they were built to test
+and which the proposal door uses too. **It is not evidence about the door the
+product now funds through.** Re-pointing them at `escrow_propose_as` plus
+`escrow_fund_proposal_as` is not done and is item 2 of what is owed in
+`docs/escrow/PROBE_STATE.md`.
+
+### 62.5 The gate has not moved
+
+Eleven local probes and two live ones are green today. **P-7's HTTP half has
+never run and cannot be run from this box**, and that alone keeps the gate
+shut, before conditions 1, 2 and 9 of ADR-E1 section 6 are even reached. The
+founder's sentence stands exactly as he wrote it.

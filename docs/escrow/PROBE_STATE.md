@@ -18,11 +18,19 @@ the vocabulary is deliberately small and each word means one thing:
 | **NOT RUN** | The run has never happened. Not once. It is not a pass, it is not a fail, and it is not evidence of anything. |
 | **STALE** | It passed on the date given, and the thing it tested has changed since. The verdict is about a version that is no longer shipping. |
 
-**State of the whole gate on 23 September 2026: NOT MET.** One probe half has
-never run and cannot be run from this machine. Eight probes were red when they
-were last executed, for a reason in the harness rather than in the product, and
-that reason is now fixed but the fix has not been proved by a green run at the
-time of writing. See the last section for exactly what is owed.
+**State of the whole gate on 23 September 2026: NOT MET, and one probe half is
+the reason.** Everything that can be run from this machine was run today and
+passed. **P-7's HTTP half has never run, not once, and cannot be run from
+here.** Until it has, the claim "the escrow verbs are shut to a signed-in
+person's browser" is a claim about the database and not about the API, and the
+founder's sentence stands.
+
+**Every privilege verdict in this file is taken from the CATALOGUE**, meaning
+`pg_proc.proacl` and `has_function_privilege`. None of it comes from
+`information_schema.role_table_grants` or `information_schema.column_privileges`,
+which only return rows where the QUERYING role is grantor or grantee: an empty
+result from those views is a fact about the observer and not about the object,
+and a worker on this tree drew the wrong conclusion from one today.
 
 ---
 
@@ -33,26 +41,32 @@ was written and not the date it last passed at some earlier version.
 
 | # | What it asserts | How it is run | Verdict | Date taken |
 |---|---|---|---|---|
-| **P-1** | Two concurrent funding calls against one balance that affords exactly one of them: exactly one succeeds, the second blocks on the first's row lock, re-reads spendable after the commit and is refused. One escrow, one hold, balance zero, never negative. | `scripts/probes/escrow_concurrency.sh`. Two real `psql` sessions against a local Postgres 16 cluster, over a minimal copy of only the tables the functions touch, running the function text lifted out of `supabase/migrations/*.sql` with each body's sha256 printed. Nothing touches the live project. | **FAIL** | 2026-09-23 |
-| **P-2** | An escrow hold and a withdrawal hold for the same balance, **in both orders**: exactly one commits, the other is refused, and both sessions answer rather than raise. | As P-1. | **FAIL** (escrow first). **PASS** (withdrawal first) **and it is not evidence**, see the note below the table. | 2026-09-23 |
-| **P-3** | The same shape against the third and fourth committing paths: an escrow against a pot move, and an escrow against a transfer to another person. Exactly one takes the naira. | As P-1. | **FAIL** (both) | 2026-09-23 |
-| **P-4** | Two sessions settle the same HELD agreement at the same instant: exactly one credit, exactly one state change, exactly one audit row, and the payee is paid once. | As P-1. | **FAIL** | 2026-09-23 |
-| **P-5** | The timeout sweeper and a dispute race on one agreement, **in both orders**: never both a release and a dispute, and the agreement ends in one coherent state. | As P-1. | **FAIL** (both) | 2026-09-23 |
-| **P-6** | The same funding reference called twice, **serially and concurrently**: one ledger entry, and `duplicate` answered rather than raised. | As P-1. | **FAIL** (both) | 2026-09-23 |
-| **P-7, the EXECUTE layer** | `anon` and `authenticated` are refused by Postgres itself on every revoked escrow verb, before any body runs. | `scripts/probes/escrow_revoke_roles.sql`, through `mcp__Supabase__apply_migration` against the live project, ending in a deliberate `raise exception` so the whole transaction rolls back. | **PASS.** 22 refusals over 11 verbs and 2 roles, every one `insufficient_privilege` (42501). A control verb granted to `authenticated` on purpose answered `{"status":"forbidden"}` in the same transaction, so the harness demonstrably reaches function bodies. | 2026-09-23 |
+| **P-1** | Two concurrent funding calls against one balance that affords exactly one of them: exactly one succeeds, the second blocks on the first's row lock, re-reads spendable after the commit and is refused. One escrow, one hold, balance zero, never negative. | `scripts/probes/escrow_concurrency.sh`. Two real `psql` sessions against a local Postgres 16 cluster, over a minimal copy of only the tables the functions touch, running the function text lifted out of `supabase/migrations/*.sql` with each body's sha256 printed. Nothing touches the live project. | **PASS** | 2026-09-23 |
+| **P-2** | An escrow hold and a withdrawal hold for the same balance, **in both orders**: exactly one commits, the other is refused, and both sessions answer rather than raise. | As P-1. | **PASS** (both orders) | 2026-09-23 |
+| **P-3** | The same shape against the third and fourth committing paths: an escrow against a pot move, and an escrow against a transfer to another person. Exactly one takes the naira. | As P-1. | **PASS** (both pairs). The REVERSE orderings within each pair are **NOT RUN**. | 2026-09-23 |
+| **P-4** | Two sessions settle the same HELD agreement at the same instant: exactly one credit, exactly one state change, exactly one audit row, and the payee is paid once. | As P-1. | **PASS** | 2026-09-23 |
+| **P-5** | The timeout sweeper and a dispute race on one agreement, **in both orders**: never both a release and a dispute, and the agreement ends in one coherent state. | As P-1. | **PASS** (both orders) | 2026-09-23 |
+| **P-6** | The same funding reference called twice, **serially and concurrently**: one ledger entry, and `duplicate` answered rather than raised. | As P-1. | **PASS** (both) | 2026-09-23 |
+| **P-7, the EXECUTE layer** | `anon` and `authenticated` are refused by Postgres itself on every revoked escrow verb, before any body runs. | `scripts/probes/escrow_revoke_roles.sql`, through `mcp__Supabase__apply_migration` against the live project, ending in a deliberate `raise exception` so the whole transaction rolls back. | **PASS.** 22 refusals over 11 verbs and 2 roles, every one `insufficient_privilege` (42501), re-run after the grants changed today. A control verb granted to `authenticated` on purpose answered `{"status":"forbidden"}` in the same transaction, so the harness demonstrably reaches function bodies. | 2026-09-23 |
 | **P-7, the HTTP layer** | PostgREST, given a real anon key and a real user JWT over the wire, also refuses every one of those verbs. | `scripts/probes/escrow_revoke.sh`, against `https://uccixoonmbhrnyczyigt.supabase.co`. | **NOT RUN.** It has never run, not once. See the section below. | never |
-| **P-8** | A direct `update public.escrows set state = 'RELEASED'` on a REFUNDED row, from a plain prompt as the owning role, raises from the transition trigger and the row does not move. | As P-1. | **FAIL** | 2026-09-23 |
-| **P-9, locally** | Across a lifecycle mix of held, released, refunded, disputed and cancelled, with a live commission rate, the two derivations of the float agree to the kobo, no wallet goes negative, and every settlement's net plus commission equals its gross. | As P-1. | **FAIL** | 2026-09-23 |
-| **P-9, against the live database** | The same identity, I-2, plus I-3a and I-3b, asserted against production inside a transaction that rolls back, including that each breach opens exactly one alert and not one per pass. | `scripts/probes/escrow_invariants.sql`, through `apply_migration`, ending in a deliberate raise. | **PASS**, and **STALE**. Its first run found a real defect: the deduplication compared a column with a same-named variable, so it was a tautology that would have gone silent after its first finding. | 2026-09-22 |
+| **P-8** | A direct `update public.escrows set state = 'RELEASED'` on a REFUNDED row, from a plain prompt as the owning role, raises from the transition trigger and the row does not move. | As P-1. | **PASS** for that one pair. Every OTHER illegal pair in the transition table is **NOT RUN**. | 2026-09-23 |
+| **P-9, locally** | Across a lifecycle mix of held, released, refunded, disputed and cancelled, with a live commission rate, the two derivations of the float agree to the kobo, no wallet goes negative, and every settlement's net plus commission equals its gross. | As P-1. | **PASS** | 2026-09-23 |
+| **P-9, against the live database** | The same identity, I-2, plus I-3a and I-3b, asserted against production inside a transaction that rolls back, including that each breach opens exactly one alert and not one per pass. | `scripts/probes/escrow_invariants.sql`, through `apply_migration`, ending in a deliberate raise. | **PASS**, re-run today. **Baseline clean**, which is the half of it that is about production rather than about the probe: at the moment of the run the two derivations of the float agreed and no wallet was overdrawn. | 2026-09-23 |
 
-### P-2 (withdrawal first) passed today with the escrow door unusable
+### THE SMOKE CHECK, AND WHY THERE NOW IS ONE
+
+Every PASS above was taken **after** a repair to the harness, and the repair is
+the most useful thing in this file. Read the next two sections before believing
+any row.
+
+### P-2 (withdrawal first) passed this morning with the escrow door unusable
 
 This is the clearest thing in the file and it belongs above the fold rather
 than in a footnote. P-2's assertion is that exactly one of the two paths
 commits the balance, that both sessions SPEAK rather than raise, and that the
 payer ends at zero. With the withdrawal going first, it takes the balance, and
 the escrow leg is then refused `insufficient` by the spendable check **before
-it reaches the statement that was broken**. Every condition is satisfied.
+it reaches the statement that was broken**. Every condition was satisfied.
 `insufficient` is the expected word whether the door behind it is sound or
 cannot run at all.
 
@@ -61,9 +75,22 @@ The other direction caught it correctly and read FAIL with
 the founder's sentence says in both directions.** One direction of one probe
 went green over a door that could not open a row.
 
+**The guard that now stops it.** Before any of the eleven probes runs, the
+harness makes ONE uncontested funding call with nothing racing it. If it does
+not answer `ok` and leave exactly one HELD agreement and one hold entry, the
+run STOPS and says the harness is the suspect rather than the product. Eleven
+red lights with one false green among them is worse than no run at all. The
+line it prints on a good day is:
+
+```
+== SMOKE: one uncontested funding call, before any probe runs
+   answer=[ok] held=1 holds=1
+== SMOKE: PASS. The harness can open and fund an agreement, so a refusal below is a refusal.
+```
+
 ---
 
-## Why eight of them are red, and it is not the product
+## Why eight of them were red this morning, and it was not the product
 
 `scripts/probes/escrow_concurrency_20260923_stale_scratch_schema.log` is the
 run. Migration `20260923093233` added `escrows.opened_by` at 09:32 on
@@ -85,13 +112,20 @@ exact scratch table has been more permissive or less faithful than production:
 on 22 September it copied the COLUMNS and not the CHECK CONSTRAINTS, and a
 shipped fault in `escrow_cancel_as` went straight through it.
 
-**UNPROVEN, and said plainly:** the eight red rows above are believed to be red
-for the schema reason alone, because every one of them has the same
-`opened_by` error in its session output. That belief rests on reading the log.
-Until the harness is repaired and a green run is captured, **no row in this
-file may be read as evidence that the locking, the ordering or the float
-identity still hold.** The last green run of those eight was 2026-09-22, and
-the bodies they ran have changed since.
+**THE REPAIR, and it is not a hand-copied column.** Copying the two missing
+columns in would fix today and leave tomorrow exactly as fragile. So the
+harness now LIFTS every `alter table public.escrows add column` out of the
+migration files, the same way it already lifts the function bodies, strips the
+`references` clause because the scratch database deliberately has no
+`auth.users` and no `conversations`, and prints each one as it goes. A column
+carrying `not null` or a `default` is named in a loud warning rather than
+silently stripped. Plus the smoke check above.
+
+**Then it was re-run and it reads 11 of 11.** That run is
+`scripts/probes/escrow_concurrency.log`, dated 2026-09-23, and it is where
+every local PASS in the table comes from. The function bodies it ran are the
+23 September ones, sha256 printed per body, including the `opened_by` fix to
+`private.escrow_audit_insert`.
 
 ---
 
@@ -147,8 +181,10 @@ orderings and P-8's other illegal transitions have never been executed.**
 
 ## What is owed before any of this reads green
 
-1. **Repair the scratch schema so it cannot go stale again**, then capture a
-   green run of P-1 to P-6, P-8 and P-9 and date this table from it.
+1. **DONE, 23 September.** The scratch schema now lifts its column additions
+   from the migrations, a smoke check stops the run if the harness cannot open
+   an agreement, and a green run of 11 of 11 is captured. This table is dated
+   from it.
 2. **P-1 to P-6 fund through `escrow_fund_from_wallet_as`, which was retired on
    23 September** by migration `20260923101038`: `EXECUTE` is revoked from
    every role including `service_role`. The body is deliberately kept so the
@@ -161,4 +197,6 @@ orderings and P-8's other illegal transitions have never been executed.**
    produce that verdict.
 4. **P-8 and P-3 need their missing directions.**
 
-Until 1 to 4 are closed, the founder's sentence stands exactly as he wrote it.
+Until 2 to 4 are closed, the founder's sentence stands exactly as he wrote it.
+**Item 3 is the one that cannot be closed from inside this repository**, and it
+alone is enough to keep the gate shut.
