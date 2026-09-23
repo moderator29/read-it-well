@@ -2662,6 +2662,79 @@ components. `check-css-tokens.mjs`: clean.
 - The house crop is soft at 3x (0.62 of the pixels needed; the plate crops are withdrawn); numbers in
   `public/brand/session-b/inspection/SOURCES.md`.
 
+### Final pass, 23 September
+
+**Re-checked.** The governing image beside the latest side-by-side
+(`inspection-render-vs-built-390-dark.jpg`): anatomy, the lit cyan second word, the lit
+round plates, the 10px container corners, the visible number, the one-row outcome and
+Add Photos on the first screen all hold; nothing close-but-not-right found in this pass.
+The production database, read-only as `supabase_read_only_user` on 23 September:
+`public.person_badge` is a view with SELECT for `authenticated` (and EXECUTE on
+`is_platform_staff` and `is_checked_person` for `authenticated` and `anon`, so the view
+evaluates for a reader; the read-only role itself is refused EXECUTE, so its rows could not
+be counted from here); `public.inspection_requests` holds 0 rows; `notifications` is in
+`supabase_realtime` and `inspection_requests` is not (request I2).
+
+**The badge (item 2 of the final hour).** The other party's tier is read from
+`public.person_badge`, Session A's one source, in `lib/inspections/queries.ts`
+(`readBadgeTiers`, both reads), narrowed by `lib/inspections/badge.ts`
+(`badgeTierFrom`, tested) and carried on `Inspection.counterpartBadge`. The slot
+(`components/app/inspections/BadgeSlot.tsx`) sits beside the name in the sheet's "Listed
+by" / "Requested by" cell and beside the requester's name in the agent's rows, and renders
+NOTHING: **blocked on B-BADGE**, because Session A's badge component is not on main at the
+time of this push. No artwork or colour of our own is drawn.
+
+**Commands and output (this pass, worktree on main after 65edefe1):**
+- `npx tsc --noEmit -p .` : exit 0.
+- `npx eslint src/components/app/inspections "src/app/(app)/inspections" src/app/agent/inspections src/lib/inspections "src/app/(dev)/preview/session-b/inspection"` : exit 0, no output.
+- `node scripts/check-css-tokens.mjs` : "css tokens: clean" (after fixing one comment that
+  named the not-yet-written badge component as a path).
+- `npx vitest run src/components/app/inspections src/lib/inspections` : "Test Files 6
+  passed (6), Tests 35 passed (35)".
+- Shape sweep, dark, on the committed harness and its in-shell twin: `compare-surface.mjs --shape-sweep --routes
+  /preview/session-b/inspection,/preview/session-b/inspection/shell --theme dark` printed
+  BREACHES 0, WORTH AN EYE 0, ROUND ICON-ONLY 0, ROUTES REFUSED 0, but also "COVERED: 2
+  route(s) asked for, 0 refusal(s), 0 route/width/theme combination(s) actually measured",
+  so on its own that zero proves nothing (the tool changed with the dark-only work and I did
+  not debug it). I therefore measured directly on the same production build with a
+  throwaway Playwright script: every text-bearing control and badge inside the surface
+  (`.nf-ix` buttons, links, radios, badges), both harness pages, at 390 and 1536: 9 controls
+  per page, maximum radius-to-short-side 0.33, 0 at or above 0.35. Add Photos ends at y 784
+  of 844 inside the shell.
+
+**Fixed in this pass.** The comment path above; nothing visual needed changing.
+
+**BUILT AND UNPROVEN** (this box cannot reach Supabase over HTTP, so no signed-in run is
+possible here; each is proven by code, unit tests and read-only SQL only):
+1. Every write: Confirm, Offer another time, Decline, Take that time, Withdraw, and Submit
+   Inspection Report through `closeInspection` with an outcome. Proving it needs a signed-in
+   party on a real (non-example) listing: all 64 listings are examples, so the demo trigger
+   refuses any new inspection and 0 exist.
+2. The notification each transition fires (`private.notify_inspection_change`), and
+   `InspectionsLive` re-reading the other party's screen when it lands. Needs two signed-in
+   parties and one real inspection.
+3. The badge tier read against live rows (the view evaluates for `authenticated`; the rows
+   were not readable from the read-only role). Needs a signed-in read, and Session A's
+   component to show anything.
+4. The call link and Add Photos landing in the thread (Add Photos cannot open the picker:
+   request I3).
+Not built, by the founder's rule, until a table exists: the eight-room checklist, report
+notes and report photos (request I1).
+
+**Percentage, with its denominator.**
+- Close-gate items met: 5 / 5 = 100% (measured match, wired in code with broken links
+  named, no claims, checks green, pushed; the third audit passed this surface).
+- Chain links verified in code and by read-only SQL: 10 / 12 = 83% (control, action,
+  validation, policy, table, trigger, notification function, query, own-screen refresh,
+  other-screen refresh wiring). The two not verified: report storage (I1, does not exist)
+  and table-level realtime (I2, not published).
+- Chain links exercised live: 0 / 12 = 0% (no network path to Supabase from this box, and
+  no real listing to inspect).
+- Controls exercised live: 0 / 12 = 0% (Confirm, Offer another time, Decline, Take that
+  time, Withdraw, Withdraw the request, three outcome choices, Submit, Add Photos, the call
+  link). Their pure logic (status, ladder, grouping, badge narrowing) is covered by the 35
+  unit tests.
+
 ## 10. The welcome email
 
 Owner: Session B worker "email", design and words only. The send is Session
