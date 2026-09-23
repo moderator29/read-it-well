@@ -70,11 +70,20 @@ begin
   end;
   if n <> 1 then raise exception 'PROBE_FAIL db-03: firm member sees firm draft rows=%', n; end if;
   -- ...but cannot rewrite it (WITH CHECK is the lister only).
+  -- Refused either way: 0 rows under the lister-only write policy, or 42501
+  -- from a WITH CHECK.
   begin
     update public.listings set title = 'hijack' where id = firm_listing;
-    raise exception 'PROBE_FAIL db-03: firm staff rewrote the principal''s listing';
+    get diagnostics n = row_count;
+    if n <> 0 then raise exception 'PROBE_FAIL db-03: firm staff rewrote the principal''s listing rows=%', n; end if;
   exception when insufficient_privilege then null;
   end;
+
+  -- ...nor delete it (DELETE has no WITH CHECK, so only a write policy
+  -- keyed on the lister stops it).
+  delete from public.listings where id = firm_listing;
+  get diagnostics n = row_count;
+  if n <> 0 then raise exception 'PROBE_FAIL db-03: firm staff deleted the principal''s listing rows=%', n; end if;
 
   -- REFUSAL: inserting for somebody else's agent id.
   begin
@@ -90,6 +99,12 @@ begin
   update public.listings set title = 'stranger' where id = lid;
   get diagnostics n = row_count;
   if n <> 0 then raise exception 'PROBE_FAIL db-03: stranger update rows=%', n; end if;
+
+  -- CONTROL: the lister deletes their own draft (deleteListing).
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  delete from public.listings where id = lid and agent_id = agent;
+  get diagnostics n = row_count;
+  if n <> 1 then raise exception 'PROBE_FAIL db-03: owner delete own draft rows=%', n; end if;
 
   raise exception 'PROBE_OK db-03';
 end
