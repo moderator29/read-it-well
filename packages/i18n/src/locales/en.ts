@@ -2874,6 +2874,10 @@ export const en = {
        */
       pot_hold: "Moved to a pot",
       pot_release: "Taken from a pot",
+      /* V-33: rent settles to the lister at the moment of charge. Left out of
+         ha, ig and yo for the same reason as the two pot words above. */
+      payment_in: "Rent received",
+      payment_in_return: "Rent refunded to tenant",
     },
     entryStatus: {
       PENDING: "Going through",

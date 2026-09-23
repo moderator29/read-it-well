@@ -218,6 +218,15 @@ export async function cancelBookingAsAdmin(
     );
   }
   if (status === "duplicate") return fail(ALREADY);
+  /* V-33. Settled rent is the lister's the moment it is charged, so a refund
+     comes back out of the lister's wallet, and the database refuses when the
+     lister no longer holds it rather than paying it from nothing. */
+  if (status === "lister_short") {
+    const holds = outcomeNumber(data, "lister_spendable_minor") ?? 0;
+    return fail(
+      `This rent was settled to the lister, who now holds ${formatMoney(holds, "en")}, less than the ${formatMoney(outcome.refundMinor, "en")} refund. Nothing was changed. Open a dispute with the lister so the refund is recovered from them first.`,
+    );
+  }
   if (status !== "ok") return fail(SERVICE_DOWN);
 
   const refundMinor = outcomeNumber(data, "refund_minor") ?? outcome.refundMinor;

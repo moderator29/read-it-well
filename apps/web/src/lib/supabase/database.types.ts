@@ -6952,6 +6952,8 @@ export type Database = {
         | "escrow_refund"
         | "pot_hold"
         | "pot_release"
+        | "payment_in"
+        | "payment_in_return"
       wallet_entry_status: "PENDING" | "COMPLETED" | "FAILED" | "REVERSED"
       water_supply:
         | "TREATED_MAINS"
@@ -7341,6 +7343,8 @@ export const Constants = {
         "escrow_refund",
         "pot_hold",
         "pot_release",
+        "payment_in",
+        "payment_in_return",
       ],
       wallet_entry_status: ["PENDING", "COMPLETED", "FAILED", "REVERSED"],
       water_supply: [
