@@ -207,6 +207,25 @@ Each group appends "RELEASED <commit>" here when it is done.
     header left by ruling). Requests SW-C1 to SW-C6 in ledger 13 (chrome).
   - already Session B's: wallet family, inspections, auth, admin, welcome.
     **auth: RELEASED** (see ledger 13.A; remainder filed as SW-A1).
+  - **the leftovers no group owns (worker "leftovers", claimed 23 September
+    by the lead's instruction):** SW-C5, SW-C6, SW-C1 and the app header.
+    Files: `apps/web/src/app/css/glass.css` (ONLY `.nf-card` and its
+    interactive hover, re-pointed at the panel tokens, and the panel's hover
+    state), `apps/web/src/components/app/Screen.tsx` (`RowList boxed` and
+    `Surface` onto the panel), `apps/web/src/app/css/agent.css` and
+    `apps/web/src/app/css/chips.css` (ONLY the two bridge rules SW-C5 names,
+    and in chips.css the `.nf-badge` family moving onto the shared badge),
+    `apps/web/src/components/app/SideSwitch.tsx`, `apps/web/src/app/css/side-flip.css`
+    (ONLY the Flip card, `.nf-side-switch*`), `packages/design-tokens/src/tokens.css`
+    (ONLY one new token pair in the glow block, the bar's lit bottom edge),
+    `apps/web/src/app/css/chrome.css` (ONLY `.nf-app-header`; the dock, its
+    switch and the dock island are NOT touched, founder ruling),
+    `apps/web/src/components/ui/StatusPill.tsx` and a new
+    `apps/web/src/components/ui/StatusBadge.tsx` with its test, and the call
+    sites of local status badges in files of released groups. Proofs under
+    `docs/design/proofs/session-b/sweep-leftovers/**`. NOT touched:
+    `components/trust/TierBadge.tsx`, `trust-badge.css` (Session A's verified
+    badge), the files of groups not yet released (home, feed).
 
 ### Sweep group: home, search and filters, listing detail (worker "sweep-home")
 Routes: `/home`, `/stays` (the home components only; `StayCard` is the stays
