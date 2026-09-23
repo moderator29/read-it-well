@@ -2,7 +2,8 @@
 
 import { resolveSession } from "@/lib/actions/session";
 import { consume, subjectForUser } from "@/lib/security/rate-limit";
-import { displayNameFor, findUserByEmail, getAdminClient } from "@/lib/wallet/ledger";
+import { displayNameFor, findUserByEmail, getAdminClient, type AdminClient } from "@/lib/wallet/ledger";
+import type { BadgeTier } from "@/components/app/wallet/BadgeSlot";
 
 /**
  * The recipient lookup for /wallet/send, as the withdraw sheet's account-name
@@ -25,7 +26,7 @@ import { displayNameFor, findUserByEmail, getAdminClient } from "@/lib/wallet/le
 
 export type RecipientLookup =
   /** An account uses the address; this is the name on it. */
-  | { state: "found"; name: string }
+  | { state: "found"; name: string; tier?: BadgeTier }
   /** No account uses the address. The send would be refused. */
   | { state: "none" }
   /** The viewer's own address. The send would be refused. */
@@ -66,5 +67,35 @@ export async function lookupRecipient(rawEmail: string): Promise<RecipientLookup
   } catch {
     /* A missing display name is not a reason to hide that the account exists. */
   }
-  return { state: "found", name: name ?? email };
+  return { state: "found", name: name ?? email, tier: await badgeTierFor(admin, recipient.id) };
+}
+
+/**
+ * The recipient's badge tier, from `public.person_badge`, the one source
+ * (scope B-BADGE); never computed here. A person with no row has no badge.
+ * The view is newer than the generated database types, so it is read
+ * untyped and its one column is checked by hand. Any failure is "no badge",
+ * because a missing badge must never stop a person seeing who they pay.
+ */
+async function badgeTierFor(admin: AdminClient, userId: string): Promise<BadgeTier> {
+  try {
+    const loose = admin as unknown as {
+      from: (table: string) => {
+        select: (cols: string) => {
+          eq: (col: string, value: string) => {
+            maybeSingle: () => Promise<{ data: { tier?: unknown } | null; error: unknown }>;
+          };
+        };
+      };
+    };
+    const { data, error } = await loose
+      .from("person_badge")
+      .select("tier")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error || !data) return null;
+    return data.tier === "gold" || data.tier === "platinum" ? data.tier : null;
+  } catch {
+    return null;
+  }
 }
