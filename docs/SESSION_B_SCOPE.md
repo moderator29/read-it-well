@@ -201,7 +201,7 @@ Each group appends "RELEASED <commit>" here when it is done.
     (`BCD39CA8`), are claimed by no group. This group asks for them.
     SW-ST2 (the stays set-up fields) was done here at the lead's instruction,
     so `app/css/stays.css` (the field rules only) is touched by this group.
-    **Group RELEASED (see the commit that adds this line)** (23 September):
+    **Group RELEASED d07b59a3 + 5b2f2320** (23 September):
     44 of 49 routes swept; not closed: the five chrome rows (the drawer panel,
     Flip card and switch sheet are other files, SW-C1 and SW-C2; the dock and
     header left by ruling). Requests SW-C1 to SW-C6 in ledger 13 (chrome).
