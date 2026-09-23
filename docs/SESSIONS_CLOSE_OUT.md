@@ -52,6 +52,41 @@ disagreed with my measurement the measurement is what is written.**
 under me while I wrote, because ten workers were pushing; every number carries
 the commit it was taken at rather than implying it is the tip.
 
+### A0. THE ONE THING THAT CHANGED THE SHAPE OF THIS FILE, FOUND IN THE LAST HOUR
+
+**An agent could not create a listing, and had not been able to since 22
+September.**
+
+`track_g_3` added `listings.listing_role`, backfilled all 64 existing rows, and
+made the column `NOT NULL` with no default and no trigger. The agent console
+inserts without a role, so every creation failed on `23502
+not_null_violation`. **The backfill is what hid it**: every row had a role, so
+every read, every probe, every screen and every test looked correct. A
+migration that repairs the rows it can see and leaves the next insert to fail
+produces a perfect table behind a shut door.
+
+**It also corrects something this session told the founder in every report.**
+We have written repeatedly that no engineering moves real supply off zero, and
+that the number was his alone. That was not quite true. The one action that
+moves it is an agent creating a listing, and that action was refused for a day.
+**It works again now**, proved by inserting a row the way the application does
+and rolling it back, with two controls: an explicitly passed role survives
+untouched, and a firm without a firm is still refused.
+
+**And this is the thread that ties the whole file together.** The Price Check
+audit, finished separately and minutes later, ends on the same sentence: the
+single unblocking action for five of its seven stage one rows is not code, it
+is **one real, non-demo, published listing**. Every read in that feature
+correctly excludes examples, so on an estate of 64 examples they all correctly
+return nothing, and the feature reads as a row of green lights producing
+nothing. The same is true of push drains over an empty queue, escrow jobs over
+zero agreements and email drains over zero rows.
+
+**So the gap between 92 per cent built and 25 per cent proved has one cause
+under most of it, and for a day that cause had an engineering defect sitting
+underneath it.** That defect is fixed. What remains underneath is genuinely
+the founder's.
+
 ### A1. What is finished and proved
 
 **Proved means I watched the real thing happen, not that a test passed.**
