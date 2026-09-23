@@ -119,7 +119,7 @@ re-sent by the founder as `images/2.jpg`). Worker: profile. Files: `app/(app)/pr
 | Control | Action / read | Validation | RLS policy | Table | Trigger / notification | Screen |
 |---|---|---|---|---|---|---|
 | Name | `loadProfileState` | none (read) | `profiles_select_own` | `profiles.display_name` (first and surname fallback) | `profiles_sync_display_name`, `profiles_sync_social_identity` keep the social row in step | `AccountHero` h1 |
-| Handle, bio, cover, counts, tick | `loadAccountSocialIdentity` | none | `social_profiles_select` (not blocked) | `social_profiles` (`handle, bio, cover_path, follower_count, following_count, is_agent`) | `follows_count` -> `bump_follow_counts` increments and decrements both counts on every follow and unfollow; `follows_notify_after_insert` -> `notify_follow` tells the followee; `agents_sync_social_flag` sets `is_agent = (status = 'APPROVED')` | name tick and avatar tick only when `is_agent`; counts compact from 10,000 (12.4K) |
+| Handle, bio, cover, counts, tick | `loadAccountSocialIdentity` | none | `social_profiles_select` (not blocked) | `social_profiles` (`handle, bio, cover_path, follower_count, following_count, is_agent`) | `follows_count` -> `bump_follow_counts` increments and decrements both counts on every follow and unfollow; `follows_notify_after_insert` -> `notify_follow` tells the followee; `agents_sync_social_flag` sets `is_agent = (status = 'APPROVED')` | counts compact from 10,000 (12.4K); the badge is now read from `public.person_badge` (see the final pass) |
 | Followers, Following | links to `/u/<handle>/followers`, `/following` | | `follows_select` (true) | `follows` | | existing routes |
 | Avatar tap | canvas re-encode (strips GPS) -> storage `avatars` -> `setAvatar` | type, size (10MB), re-encode must succeed | storage policy on `avatars` (not re-checked live) | `profiles.avatar_url` | | face |
 | Cover photo row | re-encode -> storage `social-covers` -> `setSocialCover` | same | same, `social-covers` | `social_profiles.cover_path` | | cover |
@@ -337,6 +337,48 @@ before this work). `vitest run src/app/(app)/profile`: 12 passed.
 - Row values (upcoming, saved, balance, open) were shot with fixture facts
   (`profile-390-dark-values.jpg`); against production the read returns what the account has.
 - The ha, ig and yo strings for `socialProfile.accountPage` are drafts awaiting a native speaker.
+
+### 1.7 Final pass, 23 September
+
+**Re-checked.** The governing image beside the re-shot `profile-side-by-side-390-dark.jpg`;
+every control in the committed harness on a production build; read-only SQL on the live
+project for the badge view.
+
+**Fixed in this pass.** The blue ticks beside the name and on the avatar were the profile's own,
+drawn from `social_profiles.is_agent`. The badge is Session A's end to end (scope B-BADGE), so
+they are gone. The profile now reads `tier` from `public.person_badge` (live: a view, SELECT
+granted to anon and authenticated, `relacl` read on 23 September) through
+`loadOwnBadgeTier` and hands it to `BadgeSlot` beside the name and on the avatar. Session A's
+badge component is not in the tree, so the slot renders NOTHING: **blocked on B-BADGE**. The
+render's two ticks are therefore absent from the side by side on purpose. No tier is derived
+and no badge artwork or colour is drawn by the profile.
+
+**Commands and output (this pass, final build).**
+- `npx vitest run src/app/(app)/profile`: 22 passed (belongings, the Switch role line, the
+  `?switch=` targets, `badgeTierFrom`, and the R14 setup back test).
+- `npx tsc --noEmit -p .`: no output (clean).
+- `npx eslint src/app/(app)/profile`: 0 errors, 1 warning (the existing set-state-in-effect in
+  the details sheet).
+- `node scripts/check-css-tokens.mjs`: clean.
+- `compare-surface.mjs --shape-sweep --routes /preview/session-b/profile,...?v=nohandle,...?v=signedout --theme dark`:
+  BREACHES 0, WORTH AN EYE 0, ROUND ICON-ONLY 0.
+- Harness: Switch role pressed, the dock's workspace sheet opened (Switch profile, Personal,
+  Add a workspace); the name carries `data-badge-tier="none"` and no badge mark.
+
+**BUILT AND UNPROVEN** (this box cannot reach Supabase over HTTP, so no signed-in run exists):
+- every data read on the page against a real account: profile row, social identity and counts,
+  posts, the four row figures, the workspaces behind Switch role, the badge tier. Proving it
+  needs one signed-in session on a deployed build, opening `/profile`, checking each figure
+  against the account's rows;
+- avatar and cover uploads end to end (storage bucket policies not re-read);
+- the `?switch=` redirects for a real owner or agent row;
+- Session A's badge once B-BADGE lands (one line in `BadgeSlot`).
+
+**Percentage, with its denominator.**
+- Close gate items met: 5 of 5 (second closing audit PASS; badge recorded as blocked).
+- Controls exercised in the committed harness on a production build: 3 of 15 (tabs, Switch role,
+  the settings gear's target); the other 12 are links and pickers rendered but not driven.
+- Chain links proven against a live signed-in session: 0 of 15.
 
 ## 2. Get started
 
@@ -3391,7 +3433,7 @@ not filed as blocking because nothing renders it.
   sign up do not yet route a first-time visitor to first run (scope W1, W2);
   the native first launch still opens the landing (W3); gate.spec is stale on
   main (W4); ha, yo and ig strings for the new keys need a native speaker.
-- **Profile.** Every proof is fixture-backed (the committed harness
+- **Profile.** Badge blocked on B-BADGE (tier read, slot empty). Every proof is fixture-backed (the committed harness
   `(dev)/preview/session-b/profile`, in the signed-in shell). The live wiring is proven by code, the RLS and trigger read, and unit
   tests, not by a real session (the Switch role sheet was opened in the signed-in harness). `saved_places` and the two storage buckets' policies not re-read. New English copy not yet
   in `packages/i18n` was scope request 1b, now done (ha, ig, yo are drafts for a native speaker).
