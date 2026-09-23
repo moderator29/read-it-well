@@ -23,7 +23,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, resolve } from "node:path";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const REPO = resolve(HERE, "../..");
+const REPO = resolve(HERE, "../../..");
 const OUT = join(REPO, "docs/design/proofs/session-b/admin-review");
 const TILE = join(HERE, "admin-review-standin-tile.png");
 const arg = (name, fallback) => {
@@ -75,7 +75,7 @@ for (const job of jobs) {
   const response = await page.goto(BASE + job.url, { waitUntil: "networkidle", timeout: 90_000 });
   if (!response || response.status() !== 200) throw new Error(`${job.url} answered ${response?.status()}`);
   await page.waitForTimeout(800);
-  await page.screenshot({ path: join(OUT, `${job.name}.jpg`), type: "jpeg", quality: 80, fullPage: job.full });
+  await page.screenshot({ path: join(OUT, `${job.name}.jpg`), type: "jpeg", quality: 80, fullPage: job.full, timeout: 180_000 });
   console.log(job.name, response.status());
   await page.close();
 }
