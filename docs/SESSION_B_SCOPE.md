@@ -1034,6 +1034,16 @@ A14. **Admins cannot read `public.email_outbox`.** Row security is on and it
     created_at`; or an `email_outbox_select_admin` policy if the payloads are
     judged safe for operators. Operations > Notifications has the panel built
     and says "Not readable by an admin yet" until then.
+A15. **The `firm_members` read policy recurses.** Found by the production
+    live proof, 23 September 17:25 UTC: the Supply desk's Firm rosters read
+    fails for an admin and the project logs `infinite recursion detected in
+    policy for relation "firm_members"`. `firm_members_select_principal`
+    selects from `firm_members` inside its own USING clause, so any read that
+    evaluates it (policies are OR'ed, so an admin's read does too) recurses.
+    Request (Session A, a migration): rewrite it through a `security definer`
+    helper (for example `private.is_firm_principal(firm_id, uid)`) that reads
+    `firm_members` without RLS, as the estate's other role checks do. Until
+    then the panel shows its designed failure state.
 R13 (answered 23 September). Session A's `email-outbox` line in
     `lib/admin/reads/jobs.ts` stays: data only, it keeps the `VERCEL_JOBS` =
     `vercel.json` equality test green, and nothing else moved. Its comment

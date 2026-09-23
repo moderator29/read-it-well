@@ -1997,6 +1997,38 @@ checked by reading the old and new text side by side, not by rendering (the
 control needs a router). The console-wide page titles and loading labels on
 the money desks are left as they are.
 
+### 6.6h Live proof on production (www.vallospaces.com), 23 September 17:19 to 17:24 UTC
+
+The same read-only script (`admin-live-signed-in.mjs`) against
+`https://www.vallospaces.com`, signed in as the QA admin, through the box's
+HTTPS proxy (the proxy's CA pinned by SPKI, `CHROMIUM_TRUST_SPKI`, not
+certificate checks turned off). Pressed only navigation (Continue, the back
+arrow). **Deployed commit: unknown.** The pages name their Vercel deployment:
+`dpl_MmeTx6ViCFMJN3PwEgKoSDQQphuo` when the run began and
+`dpl_7dLACdyXnQwYzzzVQGgWqsMNRr2q` when it ended (production was redeployed
+during the run); reading the commit behind a deployment id needs a Vercel
+lookup this session was not approved for. Evidence: `docs/design/proofs/session-b/admin/live/production/` (a shot per step,
+`steps.json`).
+
+An earlier run at 17:12 on `dpl_62vNjAT4VYD3s1EM9K62QBjDbak6` passed 44 of
+46: the back arrow did nothing, because the browser refused a script chunk
+of a newer deployment under the page's Content Security Policy while
+production was switching deployments; on the settled run it passes.
+
+| Link | State |
+|---|---|
+| `getQueueCounts`: rail badges and Open reviews | LIVE PROVEN ON PRODUCTION: Open reviews 0, rail badges 6, 1, 4 |
+| `getRiskAlerts`: Recent alerts and the Alerts desk | LIVE PROVEN ON PRODUCTION: the newest real alert shown ("Push drain: something answered, but it was not the drain") |
+| `getAuditLog` and `getAuditActivity`: Operations > Audit log and the Audit desk (2) | LIVE PROVEN ON PRODUCTION: `13-ops-audit.jpg`, `220-audit.jpg` |
+| Every link of 6.6f proven locally (25) | LIVE PROVEN ON PRODUCTION as well (landing, Continue, second desk, back arrow, entry route, member refused, every read on Overview, Operations, Analytics) |
+| Desks the missing key broke locally: queue, listings, agents, businesses, money, reservations, flags, reports, support, alerts, audit, switches (12) | LIVE PROVEN ON PRODUCTION: each renders its desk with no failure copy (`200-*.jpg` to `223-*.jpg`) |
+| Supply desk, "Firm rosters" (admin-money's read) | FAILED ON PRODUCTION: "Firm rosters could not be read. Who works at each firm, pending, active and revoked. The read did not answer just now; reload in a moment." The project's Postgres log at the same seconds: `infinite recursion detected in policy for relation "firm_members"`. Filed as request A15 (Session A's policy) |
+
+**Totals.** Admin shell: 29 of 29 links proven live (25 on the local build
+against the live project, all 29 on production). Whole console as the script
+walks it: 4 signed-out doors plus 46 signed-in steps = 50; 49 LIVE PROVEN ON
+PRODUCTION, 1 FAILED (Firm rosters, A15).
+
 ### 6.7 Skipped or not verified
 
 - No proof from the live `/admin` pages with a real admin session (none may be
