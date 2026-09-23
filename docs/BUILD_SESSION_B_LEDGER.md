@@ -6195,6 +6195,114 @@ Routes swept: 28 of 28. The three old deck harnesses (`bd/*`, `p3/*` and the
 Proofs: `docs/design/proofs/session-b/sweep-console/pairs-1440/` (before left,
 after right, 28) and `after-390/` (28).
 
+## Push enrolment blind light (founder, 23 Sept)
+
+Worker "push". Files: `components/app/push/{enrol.ts,PushSetting.tsx,PushPrompt.tsx}`,
+new `device-state.ts`, `device-state.test.ts`, `enrol.test.ts`, one prop in
+`app/(app)/settings/notifications/page.tsx`, proof script
+`scripts/design/session-b-shots/push-blind-light.mjs`.
+
+**The defect.** `push_tokens` has 0 rows ever (read-only SQL, 16:28:
+`rows_ever 0, live 0`). The founder allowed notifications in the iPhone home
+screen app, signed in, and the control looked on, with no message.
+
+**The branch he hit (from the code at the time, not from device logs).**
+`PushSetting` read its phase from `Notification.permission` alone. The tap:
+permission granted, then `GET /api/push/key` answered 401
+`sign-in-required` (proxy gated it; the home screen app has its own cookie
+store), `enrol` mapped that to `not_configured`, `setNote` ran but the phase
+was never settled. The first render after showed a wrong note ("not switched
+on for this version") under granted copy; every load after that read
+permission "granted" and drew "Notifications are allowed on this device" with
+the button "Switch this device back on" and NO note. That is the light with no
+words. Session A's `dab5a688` (16:13) opened the key route, split out a
+`sign_in_required` reason and made ON need `registeredDevices > 0` (an account
+count).
+
+**What was still wrong after `dab5a688`, proven live on production at
+16:39 to 16:40** (`docs/design/proofs/session-b/push/before/`, QA member, cookies
+cleared after the page loaded to stand in for the separate cookie store):
+the key now answers 200, the browser subscribes, and `/api/push/register`
+answers 401. `enrol` mapped that to `not_saved`, so the screen said "That did
+not work. This device was not registered. Try again in a moment.": the wrong
+advice, trying again goes round the same loop. And ON from an account count
+lets a laptop's row light an iPhone that has none.
+
+**The fix.**
+- `enrol.ts`: reasons are `not_configured` (no key on the deployment, or
+  register 503) and a new `signed_out` (a 401 or 403 from the key route OR from
+  register). `sign_in_required` is gone. On register ok, and only then, the
+  device records `{deviceRef, endpoint}` locally; every register failure clears
+  that record.
+- `device-state.ts`: `deviceIsLive` is the only way to ON: permission granted,
+  the local `device_ref` from register is among the live refs the page just read
+  from `push_tokens` (`revoked_at is null`), and the browser still holds the
+  endpoint that was registered. `controlState` decides what the control draws:
+  "checking" (reads off) until that check has run; a register ok on this visit
+  reads on only until `router.refresh()` hands a new list, then the list
+  decides. `failureMessage` gives every reason one plain sentence; signed_out
+  in the iPhone home screen app reads "You're not signed in inside this app.
+  Sign in here, then turn notifications on. The app on your home screen signs
+  in separately from Safari." with an "Open sign in" link to
+  `/sign-in?next=/settings/notifications`; elsewhere "You're not signed in on
+  this device any more, so it was not registered. Sign in, then turn
+  notifications on." `not_configured` keeps "Nothing for you to do."
+- `PushPrompt`: an already-granted permission now reports `allowed`, never
+  `enrolled` (it used to report `enrolled` with no register call at all);
+  `enrolled` carries the server's `deviceRef`; failures use `failureMessage`.
+- `PushSetting`: takes `registeredRefs` (the page passes
+  `rows.map(r => r.ref)`); `registeredDevices` is accepted and ignored. A
+  success note is shown only while the control reads on.
+
+**Tests** (`npx vitest run src/components/app/push`, 54 pass):
+`enrol.test.ts` (11) drives `enrol` with the browser stubbed and then asks the
+settings rule whether the device reads on: permission granted + key 401 ->
+`signed_out`, register never called, not on; key ok + register 401 ->
+`signed_out` (not `not_saved`), not on although the browser holds a
+subscription; register 500, 200 without a ref, network failure -> `not_saved`,
+not on; a failure after an earlier record clears it; no key -> `not_configured`;
+offline key fetch -> `failed`; refused permission -> no request; register ok ->
+on only when the page lists the ref. `device-state.test.ts` (32): every
+`deviceIsLive` and `controlState` branch, including the empty-list-both-times
+refresh that a content key got wrong in the first build (caught by the proof
+run, fixed, re-shot), every reason has a sentence with no dash or exclamation
+mark, signed_out and not_configured differ, the iOS copy.
+
+**Proof runs** (Chromium 390x844 @2x, dark; `replies.json` beside each set
+holds every `/api/push/*` status with time):
+
+| Scenario | Before: production, 16:39 to 16:40 | After: local `next build` + `next start` of this change, real Supabase, throwaway local VAPID pair, 16:45 to 16:46 |
+|---|---|---|
+| 1 loaded, permission granted, no row | "allowed ... not registered yet", off | "allowed ... not registered", off |
+| 2 tap, no session (desktop UA) | key 200, register 401, "That did not work ... Try again in a moment." | key 200, register 401, "You're not signed in on this device any more ..." + Open sign in |
+| 2b tap, no session, iPhone UA + `navigator.standalone` | key 200, register 401, same wrong advice | key 200, register 401, "You're not signed in inside this app. Sign in here ..." |
+| 3 tap signed in (local only) | not run on production | key 200, register 500 (no service role key locally, so no write), "We could not register this device ...", off |
+| 4 FIXTURE: register reply replaced with ok + made-up ref (local only) | not run | ON with "This device is registered"; after the refresh the real list does not hold the ref, so off and the note goes (4b) |
+
+Stand-ins, said plainly: headless Chromium has no push service here, so
+`PushManager.subscribe` returns a made-up endpoint (`https://push.invalid/...`)
+from an init script; the signed-out register refuses it before any write. The
+iPhone case is a desktop Chromium with an iPhone user agent and
+`navigator.standalone` forced true, which shows the copy, not Safari's cookie
+behaviour. Shot 4's `state` in `replies.json` was read a moment after the
+image, when the refresh had already landed; the image and text are the ON
+moment. Scenario 3 and 4 were never run against production.
+
+**Links.**
+- `/api/push/key` open to signed-out requests: LIVE PROVEN (23 Sept 16:20
+  curl and 16:39 run, production, evidence `push/before/replies.json`).
+- `/api/push/register` refuses a signed-out request before any write: LIVE
+  PROVEN (production 16:39 to 16:40, 401 twice; `push_tokens` still 0 rows
+  afterwards).
+- signed_out copy on screen after a refused register: LIVE PROVEN on a local
+  production build against the real project (16:45 to 16:46,
+  `push/after/2*.jpg`); on production only after this deploys.
+- A real device registering a row in `push_tokens` and the control reading
+  ON from it: NOT PROVEN. It needs a person on a real phone on production
+  after this deploys (signed in inside the home screen app, then Turn on).
+  Nothing on this box can make a real push subscription, and no row was
+  written.
+
 ## Skipped or not verified
 
 - Sweep, settings group (23 September): the payment methods block on `/settings` and
@@ -6272,3 +6380,8 @@ after right, 28) and `after-390/` (28).
   harness; `eslint` on `scripts/design/session-b-crops.mjs` timed out on the
   loaded box and was not completed (`node --check` passes).
 - admin-money copy (8.14): ha, yo and ig serve the new English keys until a native speaker writes them; no word was invented. Left in English: each desk's metadata title and loading label, the shared `EscrowRuling` (admin-shell's), the refund reason labels (`lib/trust`), the escrow countdown formats and the payment channel fallbacks (`lib/admin/reads`). The payments health, overdrawn, stuck and sweep sections are proven by typecheck, not by a harness shot.
+- Push enrolment blind light: a real device registering a `push_tokens` row
+  and the control reading ON from it is not proven; it needs a person on a real
+  phone on production after deploy. The iPhone home screen condition was
+  simulated (cleared cookies, iPhone user agent, forced `navigator.standalone`),
+  not run in Safari. Push subscribe was stood in by an init script.

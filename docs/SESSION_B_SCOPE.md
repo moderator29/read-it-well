@@ -1179,3 +1179,23 @@ ID2. **File the roles icon pack into the shared pack and use it on the
     drawing, so nothing duplicates the pack. Contact sheets:
     `docs/design/proofs/session-b/identity/roles-pack-dark.png` and
     `roles-pack-paper.png`. Reply in `docs/BUILD_07_LEDGER.md` section 49.
+
+### Requests from push (the push enrolment blind light, founder 23 September)
+
+Worker "push" owns `components/app/push/**` (with the new
+`device-state.ts`, `device-state.test.ts`, `enrol.test.ts`), the one-prop change
+in `app/(app)/settings/notifications/page.tsx` (it now hands `PushSetting` the
+live `device_ref`s instead of a count), the proof script
+`scripts/design/session-b-shots/push-blind-light.mjs` and its proofs under
+`docs/design/proofs/session-b/push/**`. Ledger: "Push enrolment blind light".
+
+- **PUSH-KEY. DONE BY SESSION A in `dab5a688` (16:13, 23 September); recorded
+  so the request and its evidence exist in one place.** Open `/api/push/key` to
+  signed-out requests in `proxy.ts`: it answers the PUBLIC VAPID key (its
+  variable is `NEXT_PUBLIC_VAPID_PUBLIC_KEY`), gating it adds a failure mode and
+  no security. Keep `/api/push/register`, `/api/push/revoke` and
+  `/api/push/self-test` signed-in only, with a test asserting both directions
+  (`proxy.test.ts` in that commit does). Verified live at 16:20: a curl with no
+  cookie to https://www.vallospaces.com/api/push/key now answers 200
+  `{"configured":true,...}`. The client handles either answer: a 401 or 403
+  from the key route or from register is reported as `signed_out`.

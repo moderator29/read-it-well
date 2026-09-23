@@ -88,10 +88,10 @@ export default async function NotificationsSettingsPage() {
       {push.state === "signed-in" && (
         <section id="settings-push" className="mt-block scroll-mt-28 space-y-block">
           <h2 className="nf-title-sm text-content">On your phone</h2>
-          {/* The same rows the list below draws. The control is not allowed
-              to decide it is on from the browser's permission alone: see the
-              header of `PushSetting`. */}
-          <PushSetting registeredDevices={rows.length} />
+          {/* The same live rows the list below draws, by `device_ref`. The
+              control reads on only when THIS device's ref is among them: see
+              `components/app/push/device-state.ts`. */}
+          <PushSetting registeredRefs={rows.map((row) => row.ref)} />
           <PushDevices rows={rows} readable={push.readable} />
         </section>
       )}

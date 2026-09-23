@@ -1,0 +1,133 @@
+{
+  "base": "http://127.0.0.1:3197",
+  "phase": "after",
+  "results": [
+    {
+      "name": "1-loaded-permission-granted",
+      "state": {
+        "setting": "control",
+        "allowed": "yes",
+        "registered": "no"
+      },
+      "text": "On your phone You have allowed notifications on this device, but it is not registered, so nothing will reach it. Turn it on below. Turn on for this device No device is set up for notifications yet. Say yes above on any phone or browser and it will appear here."
+    },
+    {
+      "name": "2-tap-with-no-session",
+      "state": {
+        "setting": "control",
+        "allowed": "no",
+        "registered": "no"
+      },
+      "text": "On your phone Get told when a host answers, when somebody writes back, and when money moves. Nothing at night unless it is about your money. You're not signed in on this device any more, so it was not registered. Sign in, then turn notifications on. Open sign in Turn on for this device No device is set up for notifications yet. Say yes above on any phone or browser and it will appear here."
+    },
+    {
+      "name": "2b-ios-home-screen-tap-with-no-session",
+      "state": {
+        "setting": "control",
+        "allowed": "no",
+        "registered": "no"
+      },
+      "text": "On your phone Get told when a host answers, when somebody writes back, and when money moves. Nothing at night unless it is about your money. You're not signed in inside this app. Sign in here, then turn notifications on. The app on your home screen signs in separately from Safari. Open sign in Turn on for this device No device is set up for notifications yet. Say yes above on any phone or browser and it will appear here."
+    },
+    {
+      "name": "3-tap-signed-in",
+      "state": {
+        "setting": "control",
+        "allowed": "no",
+        "registered": "no"
+      },
+      "text": "On your phone Get told when a host answers, when somebody writes back, and when money moves. Nothing at night unless it is about your money. We could not register this device. Nothing will reach it yet. Try again in a moment. Turn on for this device No device is set up for notifications yet. Say yes above on any phone or browser and it will appear here."
+    },
+    {
+      "name": "4-fixture-register-ok-immediately",
+      "state": {
+        "setting": "control",
+        "allowed": "yes",
+        "registered": "no"
+      },
+      "text": "On your phone Notifications are on for this device. Vallo can reach it. This device is registered. It is on the list below. Register this device again No device is set up for notifications yet. Say yes above on any phone or browser and it will appear here."
+    },
+    {
+      "name": "4b-fixture-after-list-refresh",
+      "state": {
+        "setting": "control",
+        "allowed": "yes",
+        "registered": "no"
+      },
+      "text": "On your phone You have allowed notifications on this device, but it is not registered, so nothing will reach it. Turn it on below. Turn on for this device No device is set up for notifications yet. Say yes above on any phone or browser and it will appear here."
+    }
+  ],
+  "replies": [
+    {
+      "scenario": "signed-out-tap",
+      "at": "2026-09-23T16:45:54.874Z",
+      "path": "/api/push/key",
+      "status": 200,
+      "body": {
+        "configured": true,
+        "publicKey": "BAgpK0POhNODZqwqsWYoAVAyTEFaYwVo5e03kM6058PkHXEzNmsveBDRPCIAvp8frl7AoueIXjP28gsaGCyAco8"
+      }
+    },
+    {
+      "scenario": "signed-out-tap",
+      "at": "2026-09-23T16:45:56.578Z",
+      "path": "/api/push/register",
+      "status": 401,
+      "body": null
+    },
+    {
+      "scenario": "ios-app-signed-out-tap",
+      "at": "2026-09-23T16:46:03.206Z",
+      "path": "/api/push/key",
+      "status": 200,
+      "body": {
+        "configured": true,
+        "publicKey": "BAgpK0POhNODZqwqsWYoAVAyTEFaYwVo5e03kM6058PkHXEzNmsveBDRPCIAvp8frl7AoueIXjP28gsaGCyAco8"
+      }
+    },
+    {
+      "scenario": "ios-app-signed-out-tap",
+      "at": "2026-09-23T16:46:05.112Z",
+      "path": "/api/push/register",
+      "status": 401,
+      "body": null
+    },
+    {
+      "scenario": "signed-in-tap",
+      "at": "2026-09-23T16:46:10.993Z",
+      "path": "/api/push/key",
+      "status": 200,
+      "body": {
+        "configured": true,
+        "publicKey": "BAgpK0POhNODZqwqsWYoAVAyTEFaYwVo5e03kM6058PkHXEzNmsveBDRPCIAvp8frl7AoueIXjP28gsaGCyAco8"
+      }
+    },
+    {
+      "scenario": "signed-in-tap",
+      "at": "2026-09-23T16:46:11.467Z",
+      "path": "/api/push/register",
+      "status": 500,
+      "body": null
+    },
+    {
+      "scenario": "fixture-register-ok",
+      "at": "2026-09-23T16:46:17.556Z",
+      "path": "/api/push/key",
+      "status": 200,
+      "body": {
+        "configured": true,
+        "publicKey": "BAgpK0POhNODZqwqsWYoAVAyTEFaYwVo5e03kM6058PkHXEzNmsveBDRPCIAvp8frl7AoueIXjP28gsaGCyAco8"
+      }
+    },
+    {
+      "scenario": "fixture-register-ok",
+      "at": "2026-09-23T16:46:17.568Z",
+      "path": "/api/push/register",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "deviceRef": "f1x7u4e0000a"
+      }
+    }
+  ]
+}
