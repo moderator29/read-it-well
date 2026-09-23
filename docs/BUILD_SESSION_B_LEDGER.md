@@ -3440,6 +3440,30 @@ parent. On the real route the declared parent is `/home` (`lib/nav/route-parents
 Screenshots of where back lands: `docs/design/proofs/session-b/inspection/r18-back-*.jpg`.
 Result: PASS on the harness; the real route BUILT AND UNPROVEN until a QA account exists.
 
+### Audit S12, 23 September: seven differences from the target, each fixed or recorded
+
+The independent audit (`docs/design/proofs/session-b/audit-sweep/AUDIT.md`, S12,
+`sbs-inspection.jpg`) listed seven visible differences from `founder/inspection-target.jpg`
+the ledger did not record. Before / after beside the render:
+`docs/design/proofs/session-b/inspection/s12-render-before-after.jpg` (render, the audit's
+build 8d1ba5a7, this build).
+
+| Difference | Now |
+|---|---|
+| Notes glyph a document, render a pencil | FIXED: the render's pencil, cropped with its faint plate (`glyph-pencil.webp`) |
+| Add Photos glyph a picture, render a camera | FIXED: the render's camera, keyed off the lit bar (`glyph-camera.webp`) |
+| Submit's paper plane filled, render outlined | FIXED: the render's outlined plane (`glyph-plane.webp`) |
+| Checklist head three lines, render a bulleted list | FIXED: the render's list glyph (`glyph-list.webp`) |
+| Date and status glyphs differ | FIXED: the render's calendar, person and clock on their faint plates (`glyph-calendar`, `-person`, `-clock`) |
+| Helper lines and "Open the chat" | FIXED where the render has nothing to say: with the report on, "Tick all eight rooms..." is gone (the "n / 8 Completed" count already says why Submit waits), the photos line is gone (I1b landed, so Add Photos uploads), and "Open the chat" is gone (the thread is reached from Messages and, with the report off, from Add Photos). DELIBERATE, kept: "Choose how it went..." only with the report OFF, and "The report opens once a time is agreed on both sides." only before the inspection is agreed; both carry a state the render (a scheduled inspection with the report on) cannot show |
+| Back control a dark square, render a lit glass square | FIXED: the shared icon plate's material (fill, per-side lit edge, rim, inner light, glow) on the 44px square, the arrow in the plate's lit cyan |
+
+**I1b landed with this** (Session A, 48ae9293: `addReportPhoto`, a unique object per
+photo). Add Photos now opens the file picker, uploads to the private bucket through
+`createInspectionPhotoUpload`'s signed path and records the row with `addReportPhoto`; the
+count moves only when that row came back. Both are Session A's; this surface writes no
+mutation. BUILT AND UNPROVEN until a QA account can upload for real.
+
 ## 10. The welcome email
 
 Owner: Session B worker "email", design and words only. The send is Session

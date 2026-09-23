@@ -11,8 +11,8 @@ import type { InspectionOutcome, InspectionState } from "./types";
  * `inspection-photos` bucket, and a trigger that refuses a submission with
  * fewer than eight ticks and moves the parent to COMPLETED in the same
  * transaction. The writes are Session A's `saveInspectionReport` and
- * `createInspectionPhotoUpload` (lib/inspections/actions.ts); recording a
- * photo waits on Session A's `addReportPhoto` (request I1b).
+ * `createInspectionPhotoUpload` and `addReportPhoto` (lib/inspections/actions.ts,
+ * I1 and I1b).
  *
  * This module is the screen's own view of a report and the rules for what
  * may be pressed. Pure, so it is tested rather than trusted.
@@ -49,15 +49,6 @@ export type InspectionReport = {
   photoCount: number;
   submittedAt: string | null;
 };
-
-/**
- * Whether photos can be added to the report. OFF until Session A adds
- * `addReportPhoto` (request I1b): Session B writes no mutation of its own,
- * `saveInspectionReport` does not take photos, and an upload with no row
- * recording it would be a file nobody can find. Flip to true and wire the
- * button to A's action when it lands.
- */
-export const REPORT_PHOTOS_LIVE = false;
 
 /** The one sentence every report write returns while storage is off. */
 export const REPORT_NOT_YET =

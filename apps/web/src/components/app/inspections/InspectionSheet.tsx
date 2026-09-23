@@ -1,7 +1,7 @@
 "use client";
 
 import "@/app/css/inspection.css";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,12 +19,14 @@ import type { ListingKind } from "@/lib/listings/types";
 import {
   acceptProposedTime,
   answerInspection,
+  addReportPhoto,
   closeInspection,
+  createInspectionPhotoUpload,
   saveInspectionReport,
 } from "@/lib/inspections/actions";
+import { createClient } from "@/lib/supabase/client";
 import {
   EMPTY_REPORT,
-  REPORT_PHOTOS_LIVE,
   ROOM_COPY,
   ROOM_ITEMS,
   canEditReport,
@@ -178,6 +180,8 @@ export function InspectionSheet({
   const [outcome, setOutcome] = useState<InspectionOutcome | null>(null);
   const [saved, setSaved] = useState<InspectionReport>(report ?? EMPTY_REPORT);
   const [notes, setNotes] = useState(report?.notes ?? "");
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const waiting = waitingOn(inspection.state);
   const yourMove = waiting === side;
@@ -223,6 +227,41 @@ export function InspectionSheet({
       setSaved((now) => fromSaved(result.data, now.photoCount));
       router.refresh();
     });
+  }
+
+  /*
+   * A photo into the report: a signed path from Session A's
+   * `createInspectionPhotoUpload`, the upload straight from the browser to the
+   * private bucket, then Session A's `addReportPhoto` records the row (I1b).
+   * The count moves only when that row came back.
+   */
+  async function addPhoto(file: File) {
+    const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+    setError(null);
+    setUploading(true);
+    try {
+      const target = await createInspectionPhotoUpload({ inspectionId: inspection.id, extension });
+      if (!target.ok) {
+        setError(target.error);
+        return;
+      }
+      const upload = await createClient()
+        .storage.from("inspection-photos")
+        .uploadToSignedUrl(target.data.path, target.data.token, file, { contentType: file.type });
+      if (upload.error) {
+        setError("That photo did not upload. Try again in a moment.");
+        return;
+      }
+      const added = await addReportPhoto({ inspectionId: inspection.id, storagePath: target.data.path });
+      if (!added.ok) {
+        setError(added.error);
+        return;
+      }
+      setSaved((now) => ({ ...now, photoCount: now.photoCount + 1 }));
+      router.refresh();
+    } finally {
+      setUploading(false);
+    }
   }
 
   function submit() {
@@ -275,7 +314,7 @@ export function InspectionSheet({
         <dl className={panelClass({ variant: "card", className: "nf-ix-facts" })}>
           <div className="nf-ix-fact">
             <span className="nf-ix-fact__glyph" aria-hidden="true">
-              <UiIcon name="calendar-booking" size={16} />
+              <Crop name="glyph-calendar" width={44} height={44} />
             </span>
             <div className="nf-ix-fact__text">
               <dt className="nf-ix-fact__label">Inspection Date</dt>
@@ -285,7 +324,7 @@ export function InspectionSheet({
           </div>
           <div className="nf-ix-fact">
             <span className="nf-ix-fact__glyph" aria-hidden="true">
-              <UiIcon name="user" size={16} />
+              <Crop name="glyph-person" width={46} height={46} />
             </span>
             <div className="nf-ix-fact__text">
               {/* The render says "Assigned Agent". The data model has no
@@ -315,7 +354,7 @@ export function InspectionSheet({
           </div>
           <div className="nf-ix-fact">
             <span className="nf-ix-fact__glyph" aria-hidden="true">
-              <UiIcon name="history" size={16} />
+              <Crop name="glyph-clock" width={46} height={44} />
             </span>
             <div className="nf-ix-fact__text">
               <dt className="nf-ix-fact__label">Status</dt>
@@ -341,7 +380,7 @@ export function InspectionSheet({
         <section className={panelClass({ className: "nf-ix-check" })} aria-label="Inspection checklist">
           <div className="nf-ix-check__head">
             <p className="nf-ix-check__title">
-              <UiIcon name="menu" size={16} />
+              <Crop name="glyph-list" width={34} height={34} className="nf-ix-check__glyph" />
               Inspection Checklist
             </p>
             <div className="nf-ix-check__count">
@@ -396,7 +435,9 @@ export function InspectionSheet({
 
         {/* ------------------------------------------------------------ notes */}
         <section className={panelClass({ className: "nf-ix-notes" })} aria-label="Notes">
-          <UiIcon name="document" size={16} className="nf-ix-notes__glyph" />
+          <span className="nf-ix-notes__glyph" aria-hidden="true">
+            <Crop name="glyph-pencil" width={38} height={38} />
+          </span>
           <div className="min-w-0 flex-1">
             <label className="nf-ix-notes__label" htmlFor={`notes-${inspection.id}`}>
               Notes
@@ -520,31 +561,37 @@ export function InspectionSheet({
           )}
 
           {/*
-            Add Photos, drawn as the render draws it. Photos go into the
-            report only through Session A's `addReportPhoto` (request I1b),
-            which has not landed; this surface writes nothing of its own. So
-            with the report on, the button is drawn disabled with the honest
-            line under it; with it off, it opens the conversation, the one
-            real photo path an inspection has.
+            Add Photos, as the render draws it (the render's own camera). With
+            the report on it uploads into the report through Session A's I1b
+            actions; with it off it opens the conversation, the one photo path
+            an inspection then has.
           */}
           {reportLive ? (
             <>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+                className="sr-only"
+                tabIndex={-1}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
+                  if (file) void addPhoto(file);
+                }}
+              />
               <Button
                 variant="primary"
                 full
                 className="nf-ix-cta"
-                disabled={!REPORT_PHOTOS_LIVE}
+                disabled={!editable || uploading || pending}
+                onClick={() => fileRef.current?.click()}
                 data-testid="inspection-add-photos"
               >
-                <UiIcon name="picture" size={16} />
-                Add Photos
+                <Crop name="glyph-camera" width={38} height={34} className="nf-ix-cta__glyph" />
+                {uploading ? "Adding photo" : saved.photoCount > 0 ? `Add Photos (${saved.photoCount})` : "Add Photos"}
                 <UiIcon name="chevron-right" size={16} className="nf-ix-cta__end" />
               </Button>
-              {!REPORT_PHOTOS_LIVE && (
-                <p className="nf-ix-hint" data-testid="inspection-photos-off">
-                  Photos can be added once this is switched on.
-                </p>
-              )}
             </>
           ) : inspection.conversationId ? (
             <Link
@@ -553,7 +600,7 @@ export function InspectionSheet({
               aria-label="Add Photos, in the conversation about this inspection"
               data-testid="inspection-add-photos"
             >
-              <UiIcon name="picture" size={16} />
+              <Crop name="glyph-camera" width={38} height={34} className="nf-ix-cta__glyph" />
               Add Photos
               <UiIcon name="chevron-right" size={16} className="nf-ix-cta__end" />
             </Link>
@@ -564,26 +611,21 @@ export function InspectionSheet({
             full
             className="nf-ix-submit"
             disabled={!submittable || pending}
-            leadingIcon="telegram"
             onClick={submit}
             data-testid="inspection-submit"
           >
+            <Crop name="glyph-plane" width={36} height={36} className="nf-ix-cta__glyph" />
             Submit Inspection Report
           </Button>
-          {inspection.state === "CONFIRMED" && !submittable && (
-            <p className="nf-ix-hint">
-              {reportLive
-                ? "Tick all eight rooms, and the report can be sent."
-                : "Choose how it went, and the report can be sent."}
-            </p>
+          {/* The render draws no helper line: with the report on, the count
+              ("n / 8 Completed") already says why Submit waits. These two
+              carry states the render cannot show (report storage off, and an
+              inspection not yet agreed), so they stay; ledger 9, S12. */}
+          {!reportLive && inspection.state === "CONFIRMED" && !submittable && (
+            <p className="nf-ix-hint">Choose how it went, and the report can be sent.</p>
           )}
           {inspection.state !== "CONFIRMED" && inspection.state !== "COMPLETED" && (
             <p className="nf-ix-hint">The report opens once a time is agreed on both sides.</p>
-          )}
-          {inspection.conversationId && (
-            <Link href={`/messages/${inspection.conversationId}`} className="nf-ix-link">
-              Open the chat
-            </Link>
           )}
         </div>
       </div>
@@ -691,7 +733,7 @@ export function InspectionHero({
           aria-label="Back"
           data-nav-back=""
           onClick={goBack}
-          className="nf-icon-btn nf-icon-btn--glass h-11 w-11 shrink-0"
+          className="nf-icon-btn nf-ix-back h-11 w-11 shrink-0"
         >
           <UiIcon name="arrow-left" size={20} />
         </button>

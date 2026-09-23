@@ -189,6 +189,47 @@ SURFACES.inspection = async () => {
   for (const [name, cy] of Object.entries(rooms)) {
     await cutObject(render, [226, cy - 25, 50, 50], path.join(dir, `room-${name}`), { feather: 0.04 });
   }
+  /* The render's own line glyphs where the stroked tier draws a different
+     one (audit S12): the checklist's bulleted list, the date cell's plain
+     calendar, the agent cell's person, the status cell's clock, the notes
+     pencil, and Submit's outlined paper plane, each with the faint plate the
+     render draws behind it. Line art, no lettering. */
+  const glyphs = {
+    list: [218, 614, 34, 34],
+    calendar: [220, 517, 44, 44],
+    person: [440, 514, 46, 46],
+    clock: [662, 515, 46, 44],
+    pencil: [218, 1131, 38, 38],
+    plane: [395, 1298, 36, 36],
+  };
+  for (const [name, box] of Object.entries(glyphs)) {
+    await cutObject(render, box, path.join(dir, `glyph-${name}`), { feather: 0.06 });
+  }
+  /* The camera sits on the lit Add Photos bar, a bright blue ground the
+     brightest-channel key cannot separate from a white glyph. Its alpha is
+     taken from the red and green channels instead (the bar has almost none,
+     the glyph is near white), and the colour is the glyph's own. */
+  {
+    const [left, top, width, height] = [444, 1236, 38, 34];
+    const { data, info } = await sharp(render)
+      .extract({ left, top, width, height })
+      .removeAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    const out = Buffer.alloc(info.width * info.height * 4);
+    for (let p = 0, q = 0; p < data.length; p += info.channels, q += 4) {
+      const lift = Math.min(data[p], data[p + 1]);
+      const a = Math.max(0, Math.min(1, (lift - 40) / 150));
+      out[q] = 255;
+      out[q + 1] = 255;
+      out[q + 2] = 255;
+      out[q + 3] = Math.round(a * 255);
+    }
+    featherEdges(out, info.width, info.height, 0.06);
+    await sharp(out, { raw: { width: info.width, height: info.height, channels: 4 } })
+      .webp({ quality: 90, alphaQuality: 100 })
+      .toFile(path.join(dir, "glyph-camera.webp"));
+  }
 };
 
 /* ------------------------------------------------------------------ send */
