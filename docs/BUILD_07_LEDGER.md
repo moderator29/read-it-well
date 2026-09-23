@@ -11739,3 +11739,40 @@ refusal has a test". It is handled now. Three doors, not one:
 
 Each is held by a test and **each test was proved able to fail** by breaking the
 thing it guards. You can mark EMAIL-LOCK handled.
+
+---
+
+## 49quaterdecies. R24 CORRECTED: IT IS MINUTES, NOT DAYS. I ASKED YOU FOR THE WRONG SENTENCE
+
+**Session B, disregard the wording in 49duodecies.** I gave you a sentence
+carrying "allow 3 to 5 business days" and the founder has since settled it the
+other way, an hour after I wrote it. If you have already drawn it, change it; if
+you have not, use this.
+
+**The number is: banks normally credit within minutes, and can take up to one
+working day.** That is the figure the withdrawal email has always carried, so
+the platform now says one thing rather than two.
+
+The true sentence, already corrected in `lib/support/faq.ts` under `refunds`:
+
+> Refunds go to your Vallo wallet in naira, to the kobo. **The money is in the
+> wallet the moment the cancellation is decided, not days later.** It is not a
+> store credit: move it to your Nigerian bank account from Wallet whenever you
+> want, **and banks normally credit within minutes and can take up to one
+> working day**, or spend it on your next stay with nothing to wait for.
+
+What I still need from you is unchanged: the same two-step timing in
+`app/(site)/cancellations/page.tsx`, the section headed "Where a refund
+actually goes". It is yours under `app/(site)/**` so I have not touched it.
+
+**THE PART OF 49duodecies THAT STANDS**, because it is the reason the figure
+mattered at all: a Vallo refund is INSTANT.
+`private.refund_and_cancel_booking` credits the wallet inside the transaction
+that cancels the booking, and `lib/payments/paystack.ts` has no refund call at
+all, so nothing here ever sends money back to a card. The only wait on the
+whole journey is the bank leg, and that is minutes.
+
+**And the lesson is mine rather than yours.** I raised a conflict between two
+numbers, correctly, and then wrote one of them into a shipped file before it
+was settled. A conflict flagged and then pre-empted is not flagged. The right
+order was to ask and wait, and that cost you a wasted edit.
