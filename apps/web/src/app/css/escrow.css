@@ -244,6 +244,117 @@
     }
   }
 
+  /* -------------------------------------------------- filing evidence */
+
+  /*
+   * THE FILER. Two blocks, one for a file and one for a fact, separated by a
+   * hairline rather than by a heading weight, because the two are equals: a
+   * receipt and "the keys were not handed over" are both evidence and neither
+   * is the fallback for the other.
+   */
+  .nf-esc-filer {
+    display: grid;
+    gap: var(--nf-space-md);
+    margin-top: var(--nf-space-md);
+  }
+
+  .nf-esc-filer-block {
+    display: grid;
+    gap: var(--nf-space-sm);
+    padding-top: var(--nf-space-md);
+    border-top: 1px solid var(--nf-divider);
+  }
+
+  .nf-esc-filer-head {
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  /*
+   * EVERY FIELD IS A ROUNDED RECTANGLE ON THE CONTROL RADIUS, exactly like
+   * every button beside it. 14px over a 44px minimum short side is a ratio of
+   * 0.32, which stays a rectangle at every width. A select and a date input
+   * are controls that carry text, so the same law applies to them.
+   */
+  .nf-esc-field {
+    width: 100%;
+    min-block-size: 44px;
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-control);
+    border: 1px solid var(--nf-divider);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-primary);
+    font-size: var(--nf-text-body);
+  }
+
+  .nf-esc-field:focus-visible {
+    outline: 2px solid var(--nf-brand-secondary);
+    outline-offset: 2px;
+  }
+
+  /* A link that has been filed, drawn as a link and never as a preview. */
+  .nf-esc-filed-open {
+    display: inline-block;
+    margin-top: var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* --------------------------------------------- the proposal in a thread */
+
+  /*
+   * THE COMPOSER SITS ABOVE THE MESSAGE BOX and is distinguishable from a
+   * message by a hairline and by its layout, never by colour alone: it is a
+   * full-width block where every bubble is a bubble, so it does not read as
+   * something either person said.
+   */
+  .nf-esc-thread {
+    display: grid;
+    gap: var(--nf-space-sm);
+    margin-bottom: var(--nf-space-sm);
+    padding: var(--nf-pad-card-sm);
+    border-radius: var(--nf-radius-lg);
+    border: 1px solid var(--nf-divider);
+    background: var(--nf-surface-raised);
+  }
+
+  .nf-esc-thread-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--nf-space-sm);
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-esc-thread-amount {
+    font-size: var(--nf-text-h3);
+  }
+
+  .nf-esc-thread-state {
+    font-size: var(--nf-text-body-sm);
+    font-weight: 500;
+    color: var(--nf-content-secondary);
+  }
+
+  /*
+   * WHO PAYS IS TWO EQUAL CHOICES AND NEITHER IS PRE-SELECTED. The control is
+   * only enabled once one has been chosen, so the form cannot be submitted by
+   * somebody who has not read the question.
+   */
+  .nf-esc-choice {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-sm);
+    min-block-size: 44px;
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-primary);
+  }
+
   /* ------------------------------------------------------- the paper twin */
 
   /*

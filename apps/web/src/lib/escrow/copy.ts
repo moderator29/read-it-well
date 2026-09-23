@@ -317,3 +317,221 @@ export const BANNED_IN_ESCROW_COPY: readonly { label: string; pattern: RegExp }[
 export function bannedWordsIn(text: string): readonly string[] {
   return BANNED_IN_ESCROW_COPY.filter(({ pattern }) => pattern.test(text)).map((r) => r.label);
 }
+
+/**
+ * THE THIRTEEN FACTS, STATED ONCE.
+ *
+ * WHY THEY LIVE HERE AND NOT BESIDE THE COMPONENT THAT RENDERS THEM. The list
+ * existed in three places on 22 September: an enum in the database, a `FACTS`
+ * array in `actions.ts` that the schema validates against, and a `FACT_LINE`
+ * map inside `EvidenceList.tsx` that turns one into a sentence. Three copies
+ * of a closed list is two copies too many, and the failure mode is silent: a
+ * fourteenth value added to the enum renders as "A fact" and nobody notices
+ * because nothing throws.
+ *
+ * EVIDENCE IS FILES AND FACTS, NEVER OPINIONS. Each of these either happened
+ * or did not. There is no "I think", no "they seemed", and no free text beside
+ * them: a fact that needs a day carries a date, a fact that needs a figure
+ * carries integer kobo, and nothing carries a sentence. The only free text a
+ * person may attach to evidence at all is a file's caption, capped at two
+ * hundred characters, and the label asks what the file SHOWS.
+ *
+ * THE SHAPE RULES ARE THE DATABASE'S, RESTATED. `escrow_evidence_fact_carries_
+ * what_it_needs` is a check constraint that says a dated fact has a date and no
+ * amount, that `amount_agreed` has an amount and no date, and that everything
+ * else has neither. `needs` below is the same sentence in the language the form
+ * is written in, so the person is refused by a field label before they are
+ * refused by a status code.
+ */
+export type EscrowFact =
+  | "viewing_attended"
+  | "viewing_missed"
+  | "keys_received"
+  | "keys_not_received"
+  | "agreement_signed"
+  | "agreement_not_signed"
+  | "service_delivered"
+  | "service_not_delivered"
+  | "property_matched_listing"
+  | "property_differed_from_listing"
+  | "contacted_on"
+  | "no_reply_since"
+  | "amount_agreed";
+
+/** What a fact needs beside it before the database will take it. */
+export type FactNeeds = "date" | "amount" | "nothing";
+
+export const ESCROW_FACTS: readonly {
+  value: EscrowFact;
+  /** The sentence in the reader's words rather than in the enum's. */
+  line: string;
+  needs: FactNeeds;
+}[] = [
+  { value: "viewing_attended", line: "The viewing happened", needs: "date" },
+  { value: "viewing_missed", line: "The viewing did not happen", needs: "date" },
+  { value: "keys_received", line: "The keys were handed over", needs: "nothing" },
+  { value: "keys_not_received", line: "The keys were not handed over", needs: "nothing" },
+  { value: "agreement_signed", line: "An agreement was signed", needs: "nothing" },
+  { value: "agreement_not_signed", line: "No agreement was signed", needs: "nothing" },
+  { value: "service_delivered", line: "The work was done", needs: "nothing" },
+  { value: "service_not_delivered", line: "The work was not done", needs: "nothing" },
+  { value: "property_matched_listing", line: "The property matched the listing", needs: "nothing" },
+  {
+    value: "property_differed_from_listing",
+    line: "The property was not what the listing said",
+    needs: "nothing",
+  },
+  { value: "contacted_on", line: "Got in touch", needs: "date" },
+  { value: "no_reply_since", line: "No reply since", needs: "date" },
+  { value: "amount_agreed", line: "The amount agreed", needs: "amount" },
+] as const;
+
+/** Every fact value, for a schema to close itself against. */
+export const ESCROW_FACT_VALUES = ESCROW_FACTS.map((f) => f.value) as readonly EscrowFact[];
+
+/** What a given fact needs beside it, or `nothing`. */
+export function factNeeds(fact: string): FactNeeds {
+  return ESCROW_FACTS.find((f) => f.value === fact)?.needs ?? "nothing";
+}
+
+/**
+ * One filed fact, as a sentence with its date or its amount folded in.
+ *
+ * An unknown value reads as "A fact" rather than throwing, because a row that
+ * is already in the database must render on a dispute even if this deployment
+ * has not heard of its value yet. The test that keeps the list honest is that
+ * every enum value in the database has an entry here, not that this function
+ * refuses the ones that do not.
+ */
+export function factSentence(input: {
+  fact: string | null;
+  happenedOn?: string | null;
+  amountMinor?: number | null;
+}): string {
+  const line = ESCROW_FACTS.find((f) => f.value === input.fact)?.line ?? "A fact";
+  if (input.happenedOn) {
+    return `${line} on ${formatDate(new Date(`${input.happenedOn}T12:00:00Z`))}`;
+  }
+  if (typeof input.amountMinor === "number") return `${line}: ${formatMoney(input.amountMinor)}`;
+  return line;
+}
+
+/**
+ * WHAT MAY BE ATTACHED, and it is the bucket's own list rather than a guess.
+ *
+ * `escrow-evidence` was created with exactly these five types and a ten
+ * megabyte ceiling. A picker that offers a sixth type produces an upload that
+ * storage refuses with an error the person cannot act on, so the accept list
+ * and the cap are read from here by both the picker and the server action and
+ * match the bucket exactly. HEIF is deliberately absent: the bucket does not
+ * carry it, and an iPhone offering a HEIF file that storage will refuse is
+ * worse than an iPhone converting it first.
+ */
+export const EVIDENCE_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "application/pdf",
+] as const;
+
+export type EvidenceMimeType = (typeof EVIDENCE_MIME_TYPES)[number];
+
+/** Ten megabytes, which is what the bucket accepts. */
+export const EVIDENCE_MAX_BYTES = 10_485_760;
+
+/** The private bucket the files land in. Named once, read by both sides. */
+export const EVIDENCE_BUCKET = "escrow-evidence";
+
+/** The caption cap, which is where an opinion would otherwise go. */
+export const EVIDENCE_CAPTION_MAX = 200;
+
+/** True when this is a type the bucket will actually take. */
+export function isEvidenceMimeType(value: string): value is EvidenceMimeType {
+  return (EVIDENCE_MIME_TYPES as readonly string[]).includes(value);
+}
+
+/**
+ * Where a file goes in the bucket: `<agreement>/<the person filing>/<uuid>`.
+ *
+ * THE PATH IS THE PERMISSION. The storage policy checks both segments, so a
+ * path built any other way is refused by the database rather than accepted
+ * into the wrong folder. It is derived in one function for the same reason a
+ * payment reference is: two places that build a key eventually build two
+ * different keys.
+ */
+export function evidenceObjectPath(input: {
+  escrowId: string;
+  authorId: string;
+  fileName: string;
+  unique: string;
+}): string {
+  const dot = input.fileName.lastIndexOf(".");
+  const ext =
+    dot > 0 && dot < input.fileName.length - 1
+      ? input.fileName.slice(dot + 1).toLowerCase().replace(/[^a-z0-9]/g, "")
+      : "";
+  return `${input.escrowId}/${input.authorId}/${input.unique}${ext ? `.${ext}` : ""}`;
+}
+
+/**
+ * THE PROPOSAL, AND WHAT IT IS CAREFUL NOT TO SAY.
+ *
+ * Build rule 15, no dark patterns, decides most of this. There is no default
+ * amount, no pre-ticked anything, no countdown on a proposal that nobody has
+ * accepted, and no sentence implying the other person has agreed to something
+ * they have not. The word "proposed" is used throughout and never "requested",
+ * because a request carries an obligation and a proposal does not.
+ */
+export const PROPOSAL_OPENER = "Propose setting an amount aside";
+
+export const PROPOSAL_EXPLAINER =
+  "Nothing is paid now. The other person sees what you have proposed and decides. If they agree, the money leaves their spendable balance and is set aside until you both say it is settled.";
+
+/** The line under a proposal that has been made and not yet accepted. */
+export function proposalStanding(viewer: Party): string {
+  return viewer === "payer"
+    ? "You have been asked to set this money aside. Nothing has left your balance and you can decline."
+    : "You have proposed this. Nothing has moved, and the other person can decline it.";
+}
+
+/**
+ * The date the money would pay out if it were set aside now.
+ *
+ * RULE 2 LIVES IN THIS FILE AND NOWHERE ELSE, so the funding step cannot say
+ * "in 21 days" by writing its own string. The hold window is a number of days
+ * in the database and it stops being one the moment it reaches a person: what
+ * they read is a date in a diary. There is deliberately no exported helper
+ * that returns the number.
+ */
+export function payoutDateIfFundedNow(holdDays = 21, now: Date = new Date()): string {
+  const on = new Date(now.getTime());
+  on.setDate(on.getDate() + Math.min(180, Math.max(1, Math.trunc(holdDays))));
+  return `If neither of you says otherwise, it pays out on ${formatDate(on)}.`;
+}
+
+/**
+ * Naira as a person types them, integer kobo as the ledger stores them.
+ *
+ * NO FLOAT TOUCHES AN AMOUNT AT ANY POINT. `Number("1234.56") * 100` is
+ * 123455.99999999999, and the platform's rule is that money is integer kobo as
+ * bigint and never a float. So the naira and the kobo are parsed as two
+ * separate runs of digits and combined with integer arithmetic.
+ *
+ * IT REFUSES RATHER THAN GUESSES. Exponent notation, a minus sign, three
+ * decimal places, a lone dot, an empty string and anything with a letter in it
+ * all return null, and the caller says "give the amount in naira, as a number"
+ * instead of moving a figure nobody typed. Spaces and thousands commas are the
+ * only things forgiven, because they are how people actually write money.
+ *
+ * It lives in this file rather than beside a form because two forms already
+ * needed it, and two places that parse money eventually parse it differently.
+ */
+export function nairaToKobo(naira: string): number | null {
+  const cleaned = naira.replace(/[\s,]/g, "");
+  if (!/^\d+(\.\d{1,2})?$/.test(cleaned)) return null;
+  const [whole, part = ""] = cleaned.split(".");
+  const padded = `${part}00`.slice(0, 2);
+  const value = Number(whole) * 100 + Number(padded);
+  return Number.isSafeInteger(value) && value > 0 ? value : null;
+}

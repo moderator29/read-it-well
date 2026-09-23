@@ -1,0 +1,61 @@
+== THE PROPOSAL IN A THREAD, against live project uccixoonmbhrnyczyigt
+== 23 September 2026, rolled back
+
+  ERROR:  P0001: PROBE ALL PASS (rolled back).
+  Refusals: stranger, outsider, purchase_balance, purchase_deposit, zero, self,
+  example property, second proposal, payee funding, stranger funding, empty
+  balance, refunding twice, withdrawing a funded one.
+  Passes: proposal INITIATED, birth row names the proposer from the row,
+  funding to HELD under rm-esc-<id>-hold, one ledger entry, spendable delta 0,
+  float balanced.
+
+-- THE DEFECT IT CLOSED, PROVED SEPARATELY FIRST.
+
+Before the fix, run against the live database with no JWT claims, exactly as a
+server action running as the service role:
+
+  ERROR:  P0001: PROBE FOUND THE DEFECT (rolled back). An escrow was born and
+  its audit row names actor_id = NULL. private.escrow_audit_insert reads
+  auth.uid(), which is null for the service role, and every escrow write runs
+  as the service role.
+
+EVERY AGREEMENT EVER OPENED WAS AUDITED TO NOBODY. The 22 September work found
+and fixed exactly this shape on the UPDATE trigger, by reading the columns the
+doors write, and the INSERT trigger was left reading a session that is never
+there. One trap, two triggers, and only one of them had been walked.
+
+The fix is `escrows.opened_by`, written by every opening door and read by the
+trigger as `coalesce(auth.uid(), new.opened_by)`. The probe now asserts not
+only that the actor is non-null but that it is THE PROPOSER, and that
+`actor_source` reads `row` rather than `session`, so a future change that
+starts recording the payer by default would fail rather than look right.
+
+-- THE REFUSALS, WHICH ARE THE POINT OF A MONEY DOOR.
+
+  stranger proposing into somebody else's thread  not_a_party
+  member proposing with somebody outside it      not_a_party
+  purchase_balance                               purpose_not_open
+  purchase_deposit                               purpose_not_open
+  zero amount                                    bad_amount
+  proposing to oneself                           same_party
+  an example property                            demo_listing
+  a second proposal in one thread                already_open
+  the payee funding what the payee is owed        not_a_party
+  a stranger funding it                           not_a_party
+  an empty balance                                insufficient
+  funding an already funded agreement             not_fundable
+  withdrawing one that is funded                  already_funded
+
+`demo_listing` is the one that would have shipped as an outage. Every one of
+the seven conversations on this database is about an example listing, so the
+first person to open the composer would have hit the demo-listing trigger's
+raised exception and read "That could not be done just now". The door asks
+first now; the trigger still refuses anything that gets past it.
+
+-- AND THE MONEY.
+
+One hold, under `rm-esc-<escrow uuid>-hold` derived inside the database from
+the row rather than passed in, exactly one `wallet_entries` row for the
+agreement, the payer's spendable balance at a delta of ZERO across a deposit
+and a hold of the same amount, and `private.escrow_invariants_check()` still
+reporting the float identity I-2 holding afterwards.

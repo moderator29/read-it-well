@@ -7,6 +7,8 @@ import { resolveSession } from "@/lib/actions/session";
 import { isFeatureEnabled } from "@/lib/flags";
 import { getThreadContext, loadThread, type ThreadContext } from "@/lib/messages/live";
 import { readOpenInspectionForConversation } from "@/lib/inspections/queries";
+import { heldPaymentsAreOpen } from "@/lib/escrow/flag";
+import { readHeldPaymentForConversation } from "@/lib/escrow/queries";
 import { ThreadView, type ThreadBubble } from "./ThreadView";
 import { resolveCards } from "./cards";
 import { InboxEmpty } from "../Inbox";
@@ -117,11 +119,28 @@ export default async function ConversationPage({
     if (!UUID_RE.test(id)) notFound();
     const locale = await getLocale();
     const t = getDictionary(locale);
-    const [thread, contextRead, role, read] = await Promise.all([
+    const [thread, contextRead, role, read, heldPaymentsOpen, heldPayment] = await Promise.all([
       loadThread(session.supabase, session.user, id),
       getThreadContext(id),
       viewerRole(session.supabase, session.user.id, id),
       readIds(session.supabase, id),
+      /*
+       * THE KILL SWITCH, READ PER REQUEST AND FAILING CLOSED. It is not
+       * cached and it is not `lib/flags.ts`, which is fail-open by design: a
+       * proposal surface that appears because the flags table blinked is a
+       * promise nobody chose to make. No row means closed, which is what the
+       * database says today.
+       */
+      heldPaymentsAreOpen(),
+      /*
+       * The open agreement this thread carries, under the caller's own RLS. A
+       * failed read is treated exactly as none: the thread shows the opener
+       * rather than claiming there is nothing, and `/escrow` is where the
+       * authoritative list lives. This is the one place that difference does
+       * not matter, because the composer's refusal on a second agreement is
+       * the database's, not the screen's.
+       */
+      readHeldPaymentForConversation(id),
     ]);
     if (!thread) notFound();
     /* The shared listings and bookings, expanded into cards for this reader. */
@@ -190,6 +209,18 @@ export default async function ConversationPage({
         }
         inspected={thread.inspected}
         openAttach={(Array.isArray(attach) ? attach[0] : attach) === "1"}
+        heldPaymentsOpen={heldPaymentsOpen}
+        agreement={
+          heldPayment.payment
+            ? {
+                id: heldPayment.payment.id,
+                state: heldPayment.payment.state,
+                amountMinor: heldPayment.payment.amountMinor,
+                purpose: heldPayment.payment.purpose,
+                viewer: heldPayment.payment.viewer,
+              }
+            : null
+        }
         messages={thread.messages.map((m): ThreadBubble => {
           const card = cards.get(m.id);
           return {

@@ -1,0 +1,20 @@
+== THE EVIDENCE BUCKET'S DOOR, against live project uccixoonmbhrnyczyigt
+== 23 September 2026, rolled back
+
+  ERROR:  P0001: PROBE ALL PASS (rolled back). Own folder yes, other party's
+  folder no, stranger no, signed out no, settled reads yes and writes no.
+
+WHAT THE BUCKET LOOKED LIKE BEFORE THIS. `escrow-evidence` was created private
+on 22 September and NOT ONE POLICY ON `storage.objects` MENTIONED IT. Read back
+from the live catalogue before the migration:
+
+  select polname from pg_policy where polrelid = 'storage.objects'::regclass
+    and (polname ilike '%escrow%' or pg_get_expr(polqual, polrelid) ilike '%escrow%');
+  -> []
+
+Private plus no policy means the service role could read and write it and
+nobody else could do either. Invisible while no client could pick a file; the
+first browser upload would have failed with a storage error saying nothing.
+
+THE SIX ANSWERS ABOVE ARE THE POLICY, not a description of it: both storage
+policies call this one function, so what it returns IS what storage permits.

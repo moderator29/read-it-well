@@ -1,0 +1,32 @@
+== P-7, THE EXECUTE HALF, against live project uccixoonmbhrnyczyigt
+== 23 September 2026, rolled back
+
+Run through `mcp__Supabase__apply_migration`. Verbatim:
+
+  ERROR:  P0001: PROBE ALL PASS (rolled back). 22 refusals over 11 verbs and
+  2 roles, 0 reached a body. THE CONTROL ANSWERED: escrow_admin_resolve, under
+  role authenticated in the same transaction, returned {"status": "forbidden"}.
+  This is the EXECUTE layer; the HTTP layer is a separate claim and is not made
+  here.
+
+ELEVEN VERBS, TWO ROLES, TWENTY TWO REFUSALS. Every one raised
+`insufficient_privilege` (42501) before its body ran. The eleven are the four
+F-2 revoked, their `_as` siblings, the service path `escrow_hold`, the two new
+proposal doors from 23 September, the generic `escrow_open`, and the evidence
+door.
+
+THE CONTROL IS THE LINE THAT MAKES THE OTHER TWENTY TWO MEAN ANYTHING.
+`escrow_admin_resolve` is granted to `authenticated` deliberately, and under
+the identical role switch, in the same transaction, it returned
+`{"status": "forbidden"}`. That is a business answer in escrow's own
+vocabulary. So the harness reaches function bodies, and a refusal above is a
+refusal rather than a broken call.
+
+WHAT THIS DOES NOT PROVE, STATED PLAINLY. It does not prove the HTTP half.
+PostgREST resolves a call by argument NAME and serves from a schema cache, so
+a door can be shut in `pg_proc` and still answerable over the wire by an
+overload or a stale cache entry. That is `escrow_revoke.sh` and it has not
+run: see escrow_revoke.log for the egress denial, re-checked today.
+
+P-7 IS THEREFORE NOT CLOSED. It is half proved, and the half that is proved is
+named rather than counted as the whole.

@@ -36,7 +36,18 @@ import { ESCROW_PREFIX } from "../payments/references";
 import { guardMoney } from "../security/money-limits";
 import { getAdminClient } from "../wallet/ledger";
 import { callMoneyRpc, readMoneyStatus } from "../wallet/rpc";
-import { OPEN_PURPOSES, PURPOSE_REFUSAL } from "./copy";
+import {
+  ESCROW_FACT_VALUES,
+  EVIDENCE_BUCKET,
+  EVIDENCE_CAPTION_MAX,
+  EVIDENCE_MAX_BYTES,
+  EVIDENCE_MIME_TYPES,
+  OPEN_PURPOSES,
+  PURPOSE_REFUSAL,
+  factNeeds,
+  type EscrowFact,
+  type EvidenceMimeType,
+} from "./copy";
 import { HELD_PAYMENTS_CLOSED_MESSAGE, heldPaymentsAreOpen } from "./flag";
 
 const SERVICE_DOWN =
@@ -109,6 +120,18 @@ const REFUSALS: Record<string, string> = {
   purpose_not_open: "That is not something we can set aside.",
   not_open: "That is settled, so nothing more can be filed against it.",
   duplicate: "You have already filed that, so nothing was added twice.",
+  not_fundable:
+    "That is no longer waiting to be set aside, so nothing was moved. Open it and see where it stands.",
+  already_open:
+    "There is already an open agreement in this conversation. Settle or withdraw that one first.",
+  /*
+   * THE EXAMPLE CATALOGUE, SAID PLAINLY. Every conversation on the platform
+   * today is about an example property, so this is the sentence the first
+   * person to open the composer actually reads. It names the reason rather
+   * than apologising, because the property genuinely is not real.
+   */
+  demo_listing:
+    "This property is an example of what the catalogue will hold, so nothing can be arranged against it.",
 };
 
 function refusalFor(status: string): string {
@@ -130,7 +153,9 @@ async function callGuarded(
     | "escrow_request_release_as"
     | "escrow_raise_dispute_as"
     | "escrow_cancel_as"
-    | "escrow_file_evidence_as",
+    | "escrow_file_evidence_as"
+    | "escrow_propose_as"
+    | "escrow_fund_proposal_as",
   args: (actorId: string) => Record<string, unknown>,
   options: { limited: boolean; reference?: string; amountMinor?: number },
 ): Promise<ActionResult<HeldPaymentOutcome>> {
@@ -311,24 +336,15 @@ export async function cancelHeldPayment(input: {
   );
 }
 
-const FACTS = [
-  "viewing_attended",
-  "viewing_missed",
-  "keys_received",
-  "keys_not_received",
-  "agreement_signed",
-  "agreement_not_signed",
-  "service_delivered",
-  "service_not_delivered",
-  "property_matched_listing",
-  "property_differed_from_listing",
-  "contacted_on",
-  "no_reply_since",
-  "amount_agreed",
-] as const;
-
-/** The facts that mean nothing without the day they happened. */
-const DATED_FACTS = new Set(["viewing_attended", "viewing_missed", "contacted_on", "no_reply_since"]);
+/*
+ * THE THIRTEEN FACTS COME FROM `copy.ts` AND ARE NOT RETYPED HERE.
+ *
+ * They used to be a second copy of the list, which meant the enum in the
+ * database, the array in this file and the sentence map in `EvidenceList.tsx`
+ * were three statements of one closed set that nothing kept in step. The list
+ * and the shape rule now live once, beside the sentences they produce.
+ */
+const FACTS = ESCROW_FACT_VALUES as readonly [EscrowFact, ...EscrowFact[]];
 
 const factSchema = idSchema.extend({
   fact: z.enum(FACTS, { message: "Choose what you are saying happened." }),
@@ -356,17 +372,18 @@ const factSchema = idSchema.extend({
  */
 export async function fileHeldPaymentFact(input: {
   id: string;
-  fact: (typeof FACTS)[number];
+  fact: EscrowFact;
   happenedOn?: string | null;
   amountMinor?: number | null;
 }): Promise<ActionResult<HeldPaymentOutcome>> {
   const parsed = validate(factSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
-  if (DATED_FACTS.has(parsed.data.fact) && !parsed.data.happenedOn) {
+  const needs = factNeeds(parsed.data.fact);
+  if (needs === "date" && !parsed.data.happenedOn) {
     return fail("Say which day that was.", { happenedOn: "Say which day that was." });
   }
-  if (parsed.data.fact === "amount_agreed" && !parsed.data.amountMinor) {
+  if (needs === "amount" && !parsed.data.amountMinor) {
     return fail("Say how much was agreed.", { amountMinor: "Say how much was agreed." });
   }
 
@@ -377,8 +394,8 @@ export async function fileHeldPaymentFact(input: {
       p_escrow: parsed.data.id,
       p_kind: "fact",
       p_fact: parsed.data.fact,
-      p_happened_on: DATED_FACTS.has(parsed.data.fact) ? parsed.data.happenedOn : null,
-      p_amount_minor: parsed.data.fact === "amount_agreed" ? parsed.data.amountMinor : null,
+      p_happened_on: needs === "date" ? parsed.data.happenedOn : null,
+      p_amount_minor: needs === "amount" ? parsed.data.amountMinor : null,
     }),
     { limited: false },
   );
@@ -387,36 +404,66 @@ export async function fileHeldPaymentFact(input: {
 const fileSchema = idSchema.extend({
   storagePath: z.string().trim().min(1, "That file did not finish uploading."),
   fileName: z.string().trim().min(1, "That file has no name.").max(200, "That name is too long."),
-  mimeType: z.enum(
-    ["image/jpeg", "image/png", "image/webp", "image/heic", "application/pdf"],
-    { message: "Attach a photograph or a PDF." },
-  ),
+  mimeType: z.enum(EVIDENCE_MIME_TYPES, { message: "Attach a photograph or a PDF." }),
   sizeBytes: z
     .number()
     .int()
     .positive("That file is empty.")
-    .max(10_485_760, "Keep it under 10MB."),
+    .max(EVIDENCE_MAX_BYTES, "Keep it under 10MB."),
   /*
    * WHAT THE FILE SHOWS. Two hundred characters, and the label in the product
    * asks what it SHOWS rather than what the person thinks. That cap is where
    * an opinion would otherwise go, and the database carries the same one.
    */
-  caption: z.string().trim().max(200, "Keep it under 200 characters.").optional(),
+  caption: z
+    .string()
+    .trim()
+    .max(EVIDENCE_CAPTION_MAX, "Keep it under 200 characters.")
+    .optional(),
 });
 
-/** File one document or photograph against a held payment. */
+/**
+ * File one document or photograph against a held payment.
+ *
+ * THE PATH IS CHECKED HERE AS WELL AS IN THE STORAGE POLICY, and the two
+ * checks are not the same check. The policy decides whether the BYTES may be
+ * written; this decides whether the ROW may point at them. Without it a party
+ * could upload one file legitimately and then file a row naming the other
+ * party's object, or an object under a different agreement entirely, and the
+ * evidence list would render somebody else's photograph as theirs. The path is
+ * built by `evidenceObjectPath` in exactly one place and re-derived here in
+ * prefix form rather than trusted.
+ *
+ * A REFUSED ROW TAKES ITS BYTES WITH IT. The upload happens first, because
+ * there is no row to point at until there is a file; so a refusal leaves an
+ * object in a private bucket that nothing will ever read. It is removed here,
+ * as the service role, and only when it is this caller's own folder on this
+ * agreement AND no evidence row anywhere points at it. Both conditions matter:
+ * the first means a party can never reach the other party's uploads, the
+ * second means an object that was accepted by an earlier call cannot be
+ * deleted by a later one that failed.
+ */
 export async function fileHeldPaymentDocument(input: {
   id: string;
   storagePath: string;
   fileName: string;
-  mimeType: "image/jpeg" | "image/png" | "image/webp" | "image/heic" | "application/pdf";
+  mimeType: EvidenceMimeType;
   sizeBytes: number;
   caption?: string;
 }): Promise<ActionResult<HeldPaymentOutcome>> {
   const parsed = validate(fileSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
-  return callGuarded(
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  const prefix = `${parsed.data.id}/${session.user.id}/`;
+  if (!parsed.data.storagePath.startsWith(prefix)) {
+    return fail("That file was not one you uploaded, so nothing was filed.");
+  }
+
+  const outcome = await callGuarded(
     "escrow_file_evidence_as",
     (actorId) => ({
       p_actor: actorId,
@@ -429,5 +476,153 @@ export async function fileHeldPaymentDocument(input: {
       p_caption: parsed.data.caption ?? null,
     }),
     { limited: false },
+  );
+
+  if (!outcome.ok) await sweepUnfiledObject(parsed.data.storagePath);
+  return outcome;
+}
+
+/**
+ * Remove an uploaded object that no evidence row points at.
+ *
+ * Failing quietly is correct here and is not the usual excuse for it. The
+ * person has already been told their file was not filed, which is the fact
+ * they need; a second sentence about a bucket they have never heard of would
+ * be noise, and a tidy-up that fails leaves one unreferenced object rather
+ * than anything a reader can see.
+ */
+async function sweepUnfiledObject(storagePath: string): Promise<void> {
+  try {
+    const admin = getAdminClient();
+    if (!admin) return;
+    /*
+     * `escrow_evidence` is not in the generated database types yet, and
+     * regenerating them is another session's file today. One narrow shim,
+     * typed to exactly the call it makes, the same way `queries.ts` does it,
+     * and deliberately ugly so it is removed rather than copied.
+     */
+    const rows = admin as unknown as {
+      from(table: string): {
+        select(columns: string): {
+          eq(
+            column: string,
+            value: string,
+          ): {
+            limit(n: number): PromiseLike<{ data: unknown[] | null; error: unknown }>;
+          };
+        };
+      };
+    };
+    const { data, error } = await rows
+      .from("escrow_evidence")
+      .select("id")
+      .eq("storage_path", storagePath)
+      .limit(1);
+    if (error || (data ?? []).length > 0) return;
+    await admin.storage.from(EVIDENCE_BUCKET).remove([storagePath]);
+  } catch {
+    /* One unreferenced object is a smaller problem than a thrown action. */
+  }
+}
+
+const proposeSchema = z.object({
+  conversationId: z.uuid("That conversation is not one we can act on."),
+  counterpartyId: z.uuid("That is not somebody we can act on."),
+  purpose: z.enum(["agency_fee"], { message: "Say what this payment is for." }),
+  amountMinor: z
+    .number()
+    .int("Amounts are whole kobo.")
+    .positive("That amount is not one we can move."),
+  /** True when the person proposing is the one who would pay. */
+  iPay: z.boolean(),
+});
+
+/**
+ * PROPOSE A HELD PAYMENT INSIDE THE THREAD THE TWO PEOPLE ARE ALREADY IN.
+ *
+ * THIS IS THE ENTRY POINT AND IT MOVES NO MONEY. It writes one row in
+ * INITIATED. Nothing leaves anybody's balance, and the sentence the other
+ * person reads says so before it says anything else. The funding is a separate
+ * deliberate act by the payer, through `fundHeldPaymentProposal` below, which
+ * is the shape 4.3 of the research file asks for: propose, accept, then pay.
+ *
+ * WHY THE CONVERSATION IS AN ARGUMENT AND THE LISTING IS NOT. The database
+ * reads the listing off the conversation row. A caller who could name a
+ * listing could print a property they have no relationship with onto an
+ * agreement, and the person reading it would have no way to tell.
+ *
+ * THE KILL SWITCH GUARDS IT, even though no naira moves. A proposal is a
+ * promise about what this platform will do next, and a platform that cannot
+ * currently hold money should not be making it. It fails closed, on a missing
+ * row as on a failed read.
+ *
+ * RATE LIMITED AS A MONEY PATH. Proposals are the pressure surface: fifty of
+ * them is harassment rather than negotiation. The database refuses a second
+ * open agreement per thread and the limiter refuses a burst across threads.
+ */
+export async function proposeHeldPayment(input: {
+  conversationId: string;
+  counterpartyId: string;
+  purpose: "agency_fee";
+  amountMinor: number;
+  iPay: boolean;
+}): Promise<ActionResult<HeldPaymentOutcome>> {
+  const parsed = validate(proposeSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  if (!(await heldPaymentsAreOpen())) return fail(HELD_PAYMENTS_CLOSED_MESSAGE);
+
+  if (!OPEN_PURPOSES.includes(parsed.data.purpose)) {
+    return fail(
+      PURPOSE_REFUSAL[parsed.data.purpose as keyof typeof PURPOSE_REFUSAL] ??
+        "That is not something we can set aside.",
+    );
+  }
+
+  return callGuarded(
+    "escrow_propose_as",
+    (actorId) => ({
+      p_actor: actorId,
+      p_conversation: parsed.data.conversationId,
+      p_counterparty: parsed.data.counterpartyId,
+      p_purpose: parsed.data.purpose,
+      p_amount_minor: parsed.data.amountMinor,
+      p_actor_pays: parsed.data.iPay,
+    }),
+    { limited: true, amountMinor: parsed.data.amountMinor },
+  );
+}
+
+/**
+ * Accept a proposal by funding it. Only the payer can, and the database says so.
+ *
+ * NO REFERENCE IS PASSED, AND THAT IS THE POINT. The agreement already exists,
+ * so `references.ts` applies exactly: the key is `rm-esc-<escrow uuid>-hold`,
+ * derived inside the database from the row itself. A retry after a dropped
+ * connection computes the identical string, collides with the unique index on
+ * `wallet_entries.reference`, and moves nothing. There is nothing for a caller
+ * to choose and therefore nothing for a caller to get wrong.
+ *
+ * THE HOLD WINDOW IS CLAMPED HERE AND CLAMPED AGAIN IN THE DATABASE, to the
+ * same floor and the same ceiling, so a value this accepts is never silently
+ * changed and a value it refuses never arrives.
+ */
+export async function fundHeldPaymentProposal(input: {
+  id: string;
+  holdDays?: number;
+}): Promise<ActionResult<HeldPaymentOutcome>> {
+  const parsed = validate(idSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  if (!(await heldPaymentsAreOpen())) return fail(HELD_PAYMENTS_CLOSED_MESSAGE);
+
+  return callGuarded(
+    "escrow_fund_proposal_as",
+    (actorId) => ({
+      p_actor: actorId,
+      p_escrow: parsed.data.id,
+      p_hold_days: clampHoldDays(input.holdDays),
+    }),
+    { limited: true },
   );
 }

@@ -17,11 +17,19 @@
 # service path and has always been service-role only; it is included because
 # F-6 gave it a new signature and a new signature is a new grant.
 #
-# NOT RUN AS OF 22 SEPTEMBER 2026. The egress proxy in the build sandbox denies
-# *.supabase.co by policy, so every call returns "CONNECT tunnel failed,
-# response 403" and the control check at the end correctly refuses to call that
-# evidence. See escrow_revoke.log. THE HTTP HALF OF P-7 IS UNPROVEN and needs
-# one run from a machine that can reach the project.
+# STILL NOT RUN AS OF 23 SEPTEMBER 2026, RE-CHECKED RATHER THAN ASSUMED. The
+# founder said he was opening egress, so the first thing this script now does
+# is ask, and it prints the proxy's own reason when the answer is no. Today the
+# answer is still no: `uccixoonmbhrnyczyigt.supabase.co:443` returns "CONNECT
+# tunnel failed, response 403" and the agent proxy records
+# `connect_rejected / gateway answered 403 to CONNECT (policy denial)`.
+# See escrow_revoke.log. THE HTTP HALF OF P-7 IS UNPROVEN and needs one run
+# from a machine that can reach the project.
+#
+# THE EXECUTE HALF IS PROVED AND IS A DIFFERENT FILE. `escrow_revoke_roles.sql`
+# switches to `anon` and to `authenticated` inside a transaction, calls all
+# eleven verbs, and ends with a control call that MUST answer. The two halves
+# ask different questions and neither substitutes for the other.
 #
 # Usage:
 #   SUPABASE_URL=https://<ref>.supabase.co SUPABASE_ANON_KEY=<anon key> \
@@ -66,6 +74,27 @@ probe() { # probe <rpc name> <json body>
 
 echo "== P-7, the revoke, over HTTP, $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo "== $url, anon key, no session"
+echo
+
+# ------------------------------------------------------------------ preflight
+#
+# ASK WHETHER THE HOST IS REACHABLE BEFORE READING ANYTHING INTO A REFUSAL.
+# A blocked CONNECT and a closed door are the same curl exit code away from
+# each other, and the whole value of this probe is in telling them apart.
+reach="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$url/rest/v1/" 2>&1 || true)"
+if [ "$reach" = "000" ] || [ -z "$reach" ]; then
+  echo "-- PREFLIGHT: $url is NOT REACHABLE from here."
+  echo "   curl could not open a tunnel. The agent proxy reports:"
+  curl -sS "${HTTPS_PROXY:-http://127.0.0.1:44815}/__agentproxy/status" 2>/dev/null \
+    | grep -A3 recentRelayFailures | head -8 || echo "   (proxy status unavailable)"
+  echo
+  echo "== RESULT: NOT RUN. The egress policy denies this host, so P-7's HTTP"
+  echo "== half is UNPROVEN. Nothing below ran and no refusal is claimed."
+  echo "== The EXECUTE half is proved separately: escrow_revoke_roles.sql."
+  exit 2
+fi
+echo "-- PREFLIGHT: $url answered HTTP $reach. Running the probe."
+echo
 
 ZERO='00000000-0000-4000-8000-000000000000'
 

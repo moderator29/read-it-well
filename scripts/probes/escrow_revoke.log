@@ -74,3 +74,57 @@ arguments. Dropped by its exact old signature in 20260922221000.
 The GRANT is proved, twice, from the catalogue and inside the migrations.
 The HTTP REFUSAL is UNPROVEN from this sandbox and is the one thing on the
 nine-probe list that has not been watched happening.
+
+
+================================================================================
+== 23 SEPTEMBER 2026. RE-CHECKED, BECAUSE THE FOUNDER SAID HE WAS OPENING IT.
+================================================================================
+
+The instruction was to check whether `*.supabase.co` is reachable now rather
+than assume it is not. It was checked. It is not.
+
+  curl -sS -o /dev/null -w "HTTP %{http_code}" \
+    https://uccixoonmbhrnyczyigt.supabase.co/rest/v1/
+  curl: (56) CONNECT tunnel failed, response 403
+  HTTP 000 in 0.20s
+
+  curl -sS "$HTTPS_PROXY/__agentproxy/status"
+  "recentRelayFailures": [
+    {
+      "ts": "2026-09-23T09:23:15.573Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "uccixoonmbhrnyczyigt.supabase.co:443"
+    }
+  ]
+
+The proxy's own README says a 403 on CONNECT is an organization egress policy
+denial, that it must not be retried or routed around, and that the blocked host
+should be reported. It is reported here with its timestamp.
+
+SO P-7'S HTTP HALF IS STILL UNPROVEN AND IS NOT COUNTED. The script now
+PREFLIGHTS the host and exits 2 with "NOT RUN" rather than producing a column
+of refusals that a reader could mistake for a column of closed doors.
+
+-- WHAT WAS ADDED TODAY INSTEAD, AND IT IS NOT A SUBSTITUTE.
+
+`escrow_revoke_roles.sql` proves the EXECUTE layer, which is the half that can
+be reached from here, and it proves it with the control the founder asked for:
+
+  22 refusals over 11 verbs and 2 roles, 0 reached a body.
+  THE CONTROL ANSWERED: escrow_admin_resolve, under role authenticated in the
+  same transaction, returned {"status": "forbidden"}.
+
+Eleven verbs now rather than seven: the four from F-2, their `_as` siblings,
+`escrow_hold`, `escrow_open`, the evidence door, and the two proposal doors
+added on 23 September.
+
+THE TWO LAYERS ARE DIFFERENT QUESTIONS. Postgres refusing `authenticated` on a
+signature is not the same claim as PostgREST refusing a real JWT over the wire:
+PostgREST resolves by argument NAME and answers from a schema cache, so an
+overload or a stale cache entry can be reachable while `pg_proc` says the door
+is shut. That is exactly why P-7 was written as an HTTP probe in the research
+file and not as a catalogue query.
+
+P-7 REMAINS OPEN. Half proved, and the proved half is named rather than counted
+as the whole.

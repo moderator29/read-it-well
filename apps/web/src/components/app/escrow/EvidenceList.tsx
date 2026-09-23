@@ -1,5 +1,4 @@
-import { formatDate, formatMoney } from "@vallo/i18n";
-
+import { factSentence } from "@/lib/escrow/copy";
 import type { HeldPaymentEvidence } from "@/lib/escrow/queries";
 
 /**
@@ -18,31 +17,23 @@ import type { HeldPaymentEvidence } from "@/lib/escrow/queries";
  * stripe is a second signal rather than the only one.
  */
 
-/** The thirteen facts, in the reader's words rather than in the enum's. */
-const FACT_LINE: Record<string, string> = {
-  viewing_attended: "The viewing happened",
-  viewing_missed: "The viewing did not happen",
-  keys_received: "The keys were handed over",
-  keys_not_received: "The keys were not handed over",
-  agreement_signed: "An agreement was signed",
-  agreement_not_signed: "No agreement was signed",
-  service_delivered: "The work was done",
-  service_not_delivered: "The work was not done",
-  property_matched_listing: "The property matched the listing",
-  property_differed_from_listing: "The property was not what the listing said",
-  contacted_on: "Got in touch",
-  no_reply_since: "No reply since",
-  amount_agreed: "The amount agreed",
-};
-
+/**
+ * What one filed row says, in a sentence.
+ *
+ * THE THIRTEEN FACTS ARE NOT RESTATED HERE. They used to be, as a `FACT_LINE`
+ * map in this file, which made three copies of one closed list: the enum in
+ * the database, the array the server action validates against, and this. The
+ * list lives in `copy.ts` now, beside every other sentence this feature says.
+ *
+ * A FILE IS DRAWN AS ITS NAME AND WHAT IT SHOWS, never as the caption alone: a
+ * caption is a claim about a file and a reader needs to be able to open the
+ * file and disagree with it.
+ */
 function describe(item: HeldPaymentEvidence): string {
   if (item.kind === "file") {
     return item.caption ? `${item.fileName}: ${item.caption}` : (item.fileName ?? "A file");
   }
-  const line = FACT_LINE[item.fact ?? ""] ?? "A fact";
-  if (item.happenedOn) return `${line} on ${formatDate(new Date(`${item.happenedOn}T12:00:00Z`))}`;
-  if (typeof item.amountMinor === "number") return `${line}: ${formatMoney(item.amountMinor)}`;
-  return line;
+  return factSentence(item);
 }
 
 export function EvidenceList({
@@ -67,6 +58,34 @@ export function EvidenceList({
             {item.mine ? "Filed by you" : "Filed by the other person"}
           </span>
           <span className="nf-esc-filed-what">{describe(item)}</span>
+          {item.kind === "file" ? (
+            item.href ? (
+              /*
+                A LINK OUT, and deliberately not a preview. A signed URL on a
+                private bucket expires, and an <img> that has expired is a
+                broken picture where a person expects evidence. A named link
+                that opens is the honest control, and it works for a PDF and a
+                photograph alike.
+              */
+              <a
+                className="nf-esc-filed-open"
+                href={item.href}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open this file
+              </a>
+            ) : (
+              /*
+                NULL IS NOT ABSENT. The row is still drawn with its name; only
+                the link is missing. Dropping the row instead would tell one
+                party the other had filed nothing.
+              */
+              <span className="nf-esc-filed-open" aria-live="polite">
+                This file could not be opened just now. Refresh and try again.
+              </span>
+            )
+          ) : null}
         </div>
       ))}
     </div>

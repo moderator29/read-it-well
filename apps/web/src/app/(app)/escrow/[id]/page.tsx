@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { EmptyState, Section, Stack } from "@/components/app/Screen";
+import { EvidenceFiler } from "@/components/app/escrow/EvidenceFiler";
 import { EvidenceList } from "@/components/app/escrow/EvidenceList";
 import { HeldPaymentControls } from "@/components/app/escrow/HeldPaymentControls";
 import { HeldPaymentReceipt } from "@/components/app/escrow/HeldPaymentReceipt";
 import { HeldPaymentSheet } from "@/components/app/escrow/HeldPaymentSheet";
-import { SET_ASIDE_SENTENCE, custodySentence } from "@/lib/escrow/copy";
+import { resolveSession } from "@/lib/actions/session";
+import { SET_ASIDE_SENTENCE, custodySentence, isLive } from "@/lib/escrow/copy";
 import { readHeldPayment } from "@/lib/escrow/queries";
 
 import "@/app/css/escrow.css";
@@ -40,7 +42,10 @@ export default async function HeldPaymentPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { payment, evidence, readFailed } = await readHeldPayment(id);
+  const [{ payment, evidence, readFailed }, session] = await Promise.all([
+    readHeldPayment(id),
+    resolveSession(),
+  ]);
 
   if (readFailed) {
     return (
@@ -90,6 +95,22 @@ export default async function HeldPaymentPage({
         description="Files and facts, from both of you. Everything here is visible to both sides and nothing can be changed once it is filed."
       >
         <EvidenceList evidence={evidence} />
+        {/*
+          THE FILER APPEARS ONLY WHILE THE QUESTION IS STILL OPEN, and the
+          states are exactly the ones `escrow_file_evidence_as` accepts: set
+          aside, payout asked for, under review. Once it has settled the
+          question is answered and filing against it would be an appeal rather
+          than evidence, so the database refuses it and the screen does not
+          offer it. The list above stays, because a settled agreement's file is
+          the record of how it settled.
+
+          The author id comes from the session rather than from the row,
+          because it decides where in the bucket the bytes go and the storage
+          policy checks that folder against the caller.
+        */}
+        {isLive(payment.state) && session.state === "signed-in" ? (
+          <EvidenceFiler id={payment.id} authorId={session.user.id} />
+        ) : null}
       </Section>
     </Stack>
   );

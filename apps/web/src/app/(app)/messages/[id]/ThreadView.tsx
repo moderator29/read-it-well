@@ -32,6 +32,11 @@ import {
   type LiveMessageRow,
 } from "@/lib/messages/useRealtime";
 import { createClient } from "@/lib/supabase/client";
+import {
+  ProposeHeldPayment,
+  type ThreadAgreement,
+} from "@/components/app/messages/ProposeHeldPayment";
+import "@/app/css/escrow.css";
 import { useBack } from "@/lib/nav/use-back";
 import { ThreadOptionsSheet, type SheetListing } from "./ThreadOptionsSheet";
 import { Button } from "@/components/ui/Button";
@@ -124,6 +129,22 @@ export type ThreadViewProps = {
   locale?: Locale;
   /** Open the photo picker on arrival: the inspection screen's Add photos lands here. */
   openAttach?: boolean;
+  /**
+   * THE HELD-PAYMENT COMPOSER, AND WHY IT IS TWO PROPS RATHER THAN ONE.
+   *
+   * `heldPaymentsOpen` is the kill switch, read on the server per request and
+   * failing closed on a missing row, a failed read or no configuration. When
+   * it is false this thread renders NOTHING about held payments: not a
+   * disabled control, not an explanation, not a "coming soon". A feature that
+   * cannot operate is promised to nobody (rule 11), and the switch exists so
+   * an operator can make that true in one statement at three in the morning.
+   *
+   * `agreement` is the open agreement this conversation is carrying, read
+   * under the caller's own RLS from the `conversation_id` column the proposal
+   * door writes. Null means there is none and the composer offers to make one.
+   */
+  heldPaymentsOpen?: boolean;
+  agreement?: ThreadAgreement | null;
 };
 
 const INSPECTIONS_KEY = "nf_inspections";
@@ -247,6 +268,8 @@ export function ThreadView({
   threadCopy,
   locale = "en",
   openAttach = false,
+  heldPaymentsOpen = false,
+  agreement = null,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
   /*
@@ -894,6 +917,16 @@ export function ThreadView({
           </button>
         </div>
       )}
+
+      {/* ------------------------------------------- the held-payment entry */}
+      {live && heldPaymentsOpen && counterpartId ? (
+        <ProposeHeldPayment
+          conversationId={conversationId}
+          counterpartyId={counterpartId}
+          counterpartName={counterpartName}
+          agreement={agreement}
+        />
+      ) : null}
 
       {/* --------------------------------------------------------- composer */}
       {pendingFile && (

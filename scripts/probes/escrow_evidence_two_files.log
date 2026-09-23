@@ -1,0 +1,38 @@
+== ONE PARTY, TWO FILES, against live project uccixoonmbhrnyczyigt
+== 23 September 2026, rolled back. RUN TWICE, ON PURPOSE.
+
+-- RUN ONE, BEFORE THE FIX. It found the defect.
+
+  ERROR:  P0001: PROBE FAILED. One party can file only ONE file per agreement.
+  The second answered {"status": "duplicate"}.
+  escrow_evidence_one_fact_per_party is UNIQUE NULLS NOT DISTINCT and a file
+  row has fact = null.
+
+THE CONSTRAINT'S NAME SAID FACTS AND ITS BEHAVIOUR SAID FILES TOO. A file row
+carries `fact = null`, and `nulls not distinct` makes two nulls equal, so the
+second file any party ever uploaded to an agreement came back `duplicate` and
+the product would have rendered "You have already filed that, so nothing was
+added twice." to somebody who had just chosen a different photograph. Their
+bytes would already have been in the bucket with no row pointing at them.
+
+NOTHING COULD HAVE SEEN THIS BEFORE TODAY. The table, the constraints, the
+trigger and the server action all shipped on 22 September with no client that
+could pick a file, so no second file was ever filed. It was not caught by
+reading the migration either: the constraint reads correctly if you read its
+name, and `nulls not distinct` is four words at the end of a line.
+
+-- THE FIX. 20260923092713 replaces the table constraint with a partial unique
+-- index carrying `where kind = 'fact'`. Inside that predicate `fact` is
+-- already `not null` by the `escrow_evidence_fact_is_a_fact` check, so null
+-- semantics stop mattering rather than being relied on the other way round.
+
+-- RUN TWO, AFTER THE FIX.
+
+  ERROR:  P0001: PROBE ALL PASS (rolled back). Two files from one party
+  (ok, ok), one from the other (ok), one fact (ok), the same fact again refused
+  as duplicate. 4 rows filed, 0 kept.
+
+The last assertion is the one that matters as much as the fix: the behaviour
+the constraint was actually written for, one party stating one fact once, still
+refuses. A fix that had simply dropped the constraint would have passed the
+first four checks and lost that.
