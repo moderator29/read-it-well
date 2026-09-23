@@ -2861,7 +2861,7 @@ export const ig: Dictionary = withFallback({
     },
 
     /*
-     * The console shell (Session B, admin-shell). Additive. Only the rail's
+     * The console shell. Additive. Only the rail's
      * destination names are carried here, taken word for word from this
      * file's own admin.nav above so they read the same in both places; every
      * other shell string falls back to English through withFallback until a
@@ -2901,7 +2901,7 @@ export const ig: Dictionary = withFallback({
     unreadOn: "{label}, ọkwa {count} a gụghị agụ",
   },
 
-  /* Build 05, FE-1. Short labels translated; longer sentences kept in English
+  /* Short labels translated; longer sentences kept in English
      until a native reviewer rewrites them. */
   inspectionsPage: {
     title: "Nyocha ụlọ",
@@ -2988,7 +2988,7 @@ export const ig: Dictionary = withFallback({
     },
   },
 
-  /* Build 05, FE-2. Short labels translated; sentences about money kept in
+  /* Short labels translated; sentences about money kept in
      English until a native reviewer rewrites them. */
   walletSend: {
     availableBalance: "Ego dị ugbu a",
@@ -3078,7 +3078,7 @@ export const ig: Dictionary = withFallback({
     requestSub: "Njikọ nke ego ole dịlarị n'ime ya",
   },
 
-  /* Build 05, FE-3. Short labels translated; sentences about money kept in
+  /* Short labels translated; sentences about money kept in
      English until a native reviewer rewrites them. */
   paymentsPage: {
     title: "Ụzọ ịkwụ ụgwọ",
@@ -3144,7 +3144,7 @@ export const ig: Dictionary = withFallback({
     blockEmpty: "Enweghị kaadị ma ọ bụ akaụntụ ụlọ akụ echekwara. Tinye otu, ịkwụ ụgwọ ma ọ bụ iwepụ ego bụ otu mmetụ.",
   },
 
-  /* Build 05, FE-4. Short labels translated; longer sentences kept in English
+  /* Short labels translated; longer sentences kept in English
      until a native reviewer rewrites them. */
   stayDetail: {
     aboutTitle: "Maka ebe a",
@@ -3197,7 +3197,7 @@ export const ig: Dictionary = withFallback({
     },
   },
 
-  /* Build 05, FE-11. Short labels translated; the longer sentences kept in
+  /* Short labels translated; the longer sentences kept in
      English until a native reviewer rewrites them. */
   restaurantPage: {
     fallbackTitle: "Ụlọ oriri",
@@ -3272,7 +3272,7 @@ export const ig: Dictionary = withFallback({
     priceIn: "Gosi ọnụ ahịa na",
   },
 
-  /* The catalogue and stays surfaces (F3, Build 06). */
+  /* The catalogue and stays surfaces. */
   catalogue: {
     card: {
       forRent: "Maka mgbazinye",
@@ -3392,7 +3392,7 @@ export const ig: Dictionary = withFallback({
       notFound: "Ndepụta ahụ adịghịzi.",
       notRental: "Naanị ụlọ mgbazinye nwere ụgwọ mbanye.",
     },
-    /* Ibe ndebe ọnọdụ (/bookings). Build 06, F3. */
+    /* Ibe ndebe ọnọdụ (/bookings). */
     bookings: {
       statusLabel: "Ọnọdụ ndebe",
       upcoming: "Na-abịa",
@@ -3440,7 +3440,7 @@ export const ig: Dictionary = withFallback({
       step3Title: "Nwee obi ụtọ na ebe obibi gị",
       step3Body: "Nkọwa mbanye ga-abịa ebe a nakwa site na email.",
     },
-    /* Mgbazinye abụghị ebe obibi: o nwere ụbọchị mbanye na oge ụgwọ ụlọ. Build 06, F3. */
+    /* Mgbazinye abụghị ebe obibi: o nwere ụbọchị mbanye na oge ụgwọ ụlọ. */
     tenancy: {
       section: "Mgbazinye gị",
       sectionLine: "Ụgwọ ụlọ ị malitere ịkwụ na Vallo.",

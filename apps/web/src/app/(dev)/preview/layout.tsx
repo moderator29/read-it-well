@@ -5,7 +5,7 @@ import { previewHarnessIsOpen } from "@/lib/preview-harness";
 /**
  * The dev-only preview harness. Real components, fixture props, so a
  * signed-in surface can be screenshotted in a sandbox that has no session.
- * See BUILD_06_LEDGER section 5. Never the proof of the ONE LAW, only the
+ * Never the proof of the ONE LAW, only the
  * proof of the look.
  *
  * WHY THIS IS NO LONGER A BARE `NODE_ENV === "production"` CHECK. It used to

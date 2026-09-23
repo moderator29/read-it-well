@@ -4,7 +4,7 @@ import type { MiniListing } from "@/lib/site/listing-card";
 import { photo } from "@/lib/site/photos";
 
 /**
- * Fixtures for the F2 preview harness (docs/archive/BUILD_06_LEDGER.md section 5).
+ * Fixtures for the F2 preview harness.
  *
  * Brand-neutral and fictional: the catalogue's invented street names, no
  * real agency, no real person. Prices are integer kobo. `verified` is true

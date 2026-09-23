@@ -1,6 +1,5 @@
 /**
- * The typed client for BD's crypto proxy, to the contract in
- * docs/archive/BUILD_06_LEDGER.md section 2.1.
+ * The typed client for the crypto market proxy under `/api/crypto`.
  *
  *   GET /api/crypto/markets?vs=ngn&per=50&page=1
  *   GET /api/crypto/coins/[id]

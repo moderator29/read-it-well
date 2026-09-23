@@ -2872,7 +2872,7 @@ export const yo: Dictionary = withFallback({
     },
 
     /*
-     * The console shell (Session B, admin-shell). Additive. Only the rail's
+     * The console shell. Additive. Only the rail's
      * destination names are carried here, taken word for word from this
      * file's own admin.nav above so they read the same in both places; every
      * other shell string falls back to English through withFallback until a
@@ -2912,7 +2912,7 @@ export const yo: Dictionary = withFallback({
     unreadOn: "{label}, ìfitónilétí {count} tí a kò tí ì kà",
   },
 
-  /* Build 05, FE-1. Short labels translated; longer sentences kept in English
+  /* Short labels translated; longer sentences kept in English
      until a native reviewer rewrites them (see the note at the top of this file). */
   inspectionsPage: {
     title: "Àyẹ̀wò ilé",
@@ -2999,7 +2999,7 @@ export const yo: Dictionary = withFallback({
     },
   },
 
-  /* Build 05, FE-2. Short labels translated; sentences about money kept in
+  /* Short labels translated; sentences about money kept in
      English until a native reviewer rewrites them. */
   walletSend: {
     availableBalance: "Owó tó wà",
@@ -3089,7 +3089,7 @@ export const yo: Dictionary = withFallback({
     requestSub: "Ìjápọ̀ tí iye owó ti wà nínú rẹ̀",
   },
 
-  /* Build 05, FE-3. Short labels translated; sentences about money kept in
+  /* Short labels translated; sentences about money kept in
      English until a native reviewer rewrites them. */
   paymentsPage: {
     title: "Àwọn ọ̀nà ìsanwó",
@@ -3155,7 +3155,7 @@ export const yo: Dictionary = withFallback({
     blockEmpty: "Kò sí káàdì tàbí àkáǹtì báǹkì tí a fi pamọ́ síbẹ̀. Fi ọ̀kan kún, ìsanwó tàbí yíyọ owó yóò sì jẹ́ ìfọwọ́kàn kan.",
   },
 
-  /* Build 05, FE-4. Short labels translated; longer sentences kept in English
+  /* Short labels translated; longer sentences kept in English
      until a native reviewer rewrites them. */
   stayDetail: {
     aboutTitle: "Nípa ibi yìí",
@@ -3208,7 +3208,7 @@ export const yo: Dictionary = withFallback({
     },
   },
 
-  /* Build 05, FE-11. Short labels translated; the longer sentences kept in
+  /* Short labels translated; the longer sentences kept in
      English until a native reviewer rewrites them. */
   restaurantPage: {
     fallbackTitle: "Ilé oúnjẹ",
@@ -3283,7 +3283,7 @@ export const yo: Dictionary = withFallback({
     priceIn: "Fi iye hàn ní",
   },
 
-  /* The catalogue and stays surfaces (F3, Build 06). */
+  /* The catalogue and stays surfaces. */
   catalogue: {
     card: {
       forRent: "Fún háyà",
@@ -3403,7 +3403,7 @@ export const yo: Dictionary = withFallback({
       notFound: "Àkọsílẹ̀ yẹn kò sí mọ́.",
       notRental: "Ilé háyà nìkan ló ní owó ìwọlé.",
     },
-    /* Ojú-ìwé ìfipamọ́ (/bookings). Build 06, F3. */
+    /* Ojú-ìwé ìfipamọ́ (/bookings). */
     bookings: {
       statusLabel: "Ipò ìfipamọ́",
       upcoming: "Tó ń bọ̀",
@@ -3451,7 +3451,7 @@ export const yo: Dictionary = withFallback({
       step3Title: "Gbádùn ibùgbé rẹ",
       step3Body: "Àwọn àlàyé ìwọlé yóò dé síbí àti nípasẹ̀ ímeèlì.",
     },
-    /* Háyà kìí ṣe ibùgbé: ọjọ́ ìwọlé àti àkókò háyà ni ó ní. Build 06, F3. */
+    /* Háyà kìí ṣe ibùgbé: ọjọ́ ìwọlé àti àkókò háyà ni ó ní. */
     tenancy: {
       section: "Àwọn háyà rẹ",
       sectionLine: "Háyà tí o ti bẹ̀rẹ̀ sí san lórí Vallo.",

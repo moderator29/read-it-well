@@ -1,6 +1,6 @@
 /**
  * `import { recordAlert } from "@/lib/alerts"` is the contract every job and
- * webhook writes through (BUILD_06_LEDGER section 2.1, cron alerting).
+ * webhook writes through to raise an alert on the admin alerts desk.
  */
 export {
   recordAlert,

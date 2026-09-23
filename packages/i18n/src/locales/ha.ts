@@ -2857,7 +2857,7 @@ export const ha: Dictionary = withFallback({
     },
 
     /*
-     * The console shell (Session B, admin-shell). Additive. Only the rail's
+     * The console shell. Additive. Only the rail's
      * destination names are carried here, taken word for word from this
      * file's own admin.nav above so they read the same in both places; every
      * other shell string falls back to English through withFallback until a
@@ -2897,7 +2897,7 @@ export const ha: Dictionary = withFallback({
     unreadOn: "{label}, sanarwa {count} da ba a karanta ba",
   },
 
-  /* Build 05, FE-1. Short labels translated; longer sentences kept in English
+  /* Short labels translated; longer sentences kept in English
      until a native reviewer rewrites them. */
   inspectionsPage: {
     title: "Duba gida",
@@ -2984,7 +2984,7 @@ export const ha: Dictionary = withFallback({
     },
   },
 
-  /* Build 05, FE-2. Short labels translated; sentences about money kept in
+  /* Short labels translated; sentences about money kept in
      English until a native reviewer rewrites them. */
   walletSend: {
     availableBalance: "Ma'aunin da ake da shi",
@@ -3074,7 +3074,7 @@ export const ha: Dictionary = withFallback({
     requestSub: "Hanyar haɗi da adadin a ciki tuni",
   },
 
-  /* Build 05, FE-3. Short labels translated; sentences about money kept in
+  /* Short labels translated; sentences about money kept in
      English until a native reviewer rewrites them. */
   paymentsPage: {
     title: "Hanyoyin biya",
@@ -3140,7 +3140,7 @@ export const ha: Dictionary = withFallback({
     blockEmpty: "Babu kati ko asusun banki da aka ajiye tukuna. Ƙara ɗaya, biya ko cire kuɗi zai zama taɓawa ɗaya.",
   },
 
-  /* Build 05, FE-4. Short labels translated; longer sentences kept in English
+  /* Short labels translated; longer sentences kept in English
      until a native reviewer rewrites them. */
   stayDetail: {
     aboutTitle: "Game da wannan wuri",
@@ -3193,7 +3193,7 @@ export const ha: Dictionary = withFallback({
     },
   },
 
-  /* Build 05, FE-11. Short labels translated; the longer sentences kept in
+  /* Short labels translated; the longer sentences kept in
      English until a native reviewer rewrites them. */
   restaurantPage: {
     fallbackTitle: "Gidan cin abinci",
@@ -3268,7 +3268,7 @@ export const ha: Dictionary = withFallback({
     priceIn: "Nuna farashi a",
   },
 
-  /* The catalogue and stays surfaces (F3, Build 06). */
+  /* The catalogue and stays surfaces. */
   catalogue: {
     card: {
       forRent: "Na haya",
@@ -3388,7 +3388,7 @@ export const ha: Dictionary = withFallback({
       notFound: "Wannan jeri ba ya samuwa kuma.",
       notRental: "Gidan haya kawai ke da kuɗin shiga.",
     },
-    /* Shafin ajiyar wuri (/bookings). Build 06, F3. */
+    /* Shafin ajiyar wuri (/bookings). */
     bookings: {
       statusLabel: "Matsayin ajiya",
       upcoming: "Mai zuwa",
@@ -3436,7 +3436,7 @@ export const ha: Dictionary = withFallback({
       step3Title: "Ji daɗin masaukinka",
       step3Body: "Bayanan shiga za su iso nan da kuma ta imel.",
     },
-    /* Haya ba masauki ba ne: yana da ranar shiga da lokacin haya. Build 06, F3. */
+    /* Haya ba masauki ba ne: yana da ranar shiga da lokacin haya. */
     tenancy: {
       section: "Hayoyinka",
       sectionLine: "Hayar da ka fara biya a Vallo.",

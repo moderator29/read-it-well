@@ -620,8 +620,8 @@ export async function reportProfile(input: {
  * file". It does not fail in isolation either. The module then compiles with NO
  * EXPORTS AT ALL, so every importer fails to resolve, and four components on
  * the social spine went down together with fifty eight errors from one line.
- * `next build` was red on main from the moment it landed. BUILD_06_LEDGER 7.0
- * records the same fault on 19 September and the lint rule's own message names
+ * `next build` was red on main from the moment it landed. The same fault took
+ * production down on 19 September, and the lint rule's own message names
  * that date.
  *
  * The distinction that matters, because it is subtle and it is the one people

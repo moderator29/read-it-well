@@ -3,19 +3,20 @@
 # Three checks that need no secrets: typecheck, lint, test. They run from the
 # repository root so the workspaces resolve, on the Node line the app is
 # developed on, with the npm cache keyed on package-lock.json. `npm run lint`
-# is `eslint . && node scripts/check-css-tokens.mjs`, so the CSS token check
-# (the third of the five gates in BUILD_06_LEDGER 10.7) rides in with it.
+# is `eslint . && node scripts/check-css-tokens.mjs && node
+# scripts/check-valuation-words.mjs` in apps/web, so the CSS token check and
+# the valuation-words check ride in with it.
 #
 # The build is a separate job because it is the slow one and the one most
 # likely to need an environment later. Today `next build` passes without any
-# env (BUILD_06_LEDGER section 1 baseline), so it runs here with none; if it
+# env, so it runs here with none; if it
 # ever needs a key, it gets a repository variable, never a secret in this file.
 #
 # IT NO LONGER WAITS FOR `checks`, AND THAT IS THE POINT OF THIS EDIT.
 # `next build` is the ONLY gate that sees a type re-export from a "use server"
 # module: TypeScript erases it, no test can reach it, and the CSS checker has
 # nothing to say about it. That line took production down for twenty minutes
-# on 19 September (BUILD_06_LEDGER section 7.0). With `needs: checks` the
+# on 19 September 2026. With `needs: checks` the
 # build was skipped entirely whenever a typecheck, a lint warning-turned-error
 # or one red test failed for an unrelated reason, which is exactly the shape of
 # the day that outage happened: the one gate that could see it did not run.
@@ -55,7 +56,7 @@ jobs:
         run: npm ci
 
       # All three run on every push, not just up to the first red one. A run
-      # that stops at the typecheck tells a worker one thing about their branch
+      # that stops at the typecheck tells a developer one thing about their branch
       # and hides two, which costs a round trip each time; the job still fails
       # if any of them does. `!cancelled()` rather than `always()`, so a
       # cancelled run stops properly.
