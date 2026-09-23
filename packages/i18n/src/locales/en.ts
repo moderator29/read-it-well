@@ -2880,6 +2880,7 @@ export const en = {
       historyTile: "History",
       quickRequest: "Request",
       quickRequestSub: "Send a link",
+      settingsHeading: "How your wallet record works",
       settingsLink: "Settings",
       quickSettingsSub: "Your wallet",
       totalBalance: "Total Balance",

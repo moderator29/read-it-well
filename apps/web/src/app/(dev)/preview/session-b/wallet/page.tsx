@@ -18,7 +18,10 @@ export default function WalletHarness() {
         breakdown={BREAKDOWN}
         live
         cards={CARDS}
-        settings={<WalletSettingsSheet card={{ title: copy.settingsLink, sub: copy.quickSettingsSub }} />}
+        settings={<WalletSettingsSheet
+                card={{ title: copy.settingsLink, sub: copy.quickSettingsSub }}
+                heading={copy.settingsHeading}
+              />}
       />
       <div className="nf-wallet-section">
         <RecentActivity entries={ENTRIES} locale="en" copy={copy} />

@@ -2111,6 +2111,7 @@ export const ig: Dictionary = withFallback({
       historyTile: "Akụkọ",
       quickRequest: "Rịọ",
       quickRequestSub: "Zipu njikọ",
+      settingsHeading: "Otú ndekọ akpa ego gị si arụ ọrụ",
       settingsLink: "Ntọala",
       quickSettingsSub: "Akpa ego gị",
       totalBalance: "Ego niile dị",

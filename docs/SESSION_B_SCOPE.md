@@ -23,6 +23,39 @@ The founder uploaded these five (with the admin and inspection images below)
 to the repository root on 22 September. The root copies of
 the five above are the governing targets for this work.
 
+## FOUNDER'S NINE ITEMS, 23 SEPTEMBER: WHAT SESSION B TAKES
+
+| # | Item | Session B's part | Session A's part |
+|---|---|---|---|
+| 1 | Example listings look gone | Checks every Session B read, and runs a read-only investigation of the whole path from rows to screen, reporting the cause here and in the ledger. Restores nothing. | Checks its own reads (search, home, feed, catalogue). |
+| 2 | Light mode out, dark only | Removes every light rule from Session B's own stylesheets and surfaces once the tokens land; strikes the light halves of its ledger sections. Emails untouched. | LEADS: tokens, `light.css`, the control, forcing dark at the root, the checking tools. |
+| 3 | Bank transfer back in Send | The Send screen: account number, bank, the resolved account name shown before confirm, then send; email send stays as the other option. | The action and the resolver (reuse the payout resolver). Request B-BANK below. |
+| 4 | A deleted post is deleted | ALL of it: gone from every surface that lists posts (profile grid, feed, anywhere else); a tombstone only inside a conversation that replied to it. Files claimed in the "Deleted posts" subsection below. | none |
+| 5 | Gold and platinum badges | Renders the one derivation on Session B's surfaces (profile, admin lists, inspections, wallet names, email if a name is drawn). | OWNS the derivation, both tiers from one source, and the platinum grant to the founder's account. |
+| 6 | Get started always shows, the front door | `/welcome` renders every time it is asked for, signed in or not; the ending fits who is looking. | The landing Get Started linking to `/welcome`, app store first launch (W1, W3). |
+| 7 | Inspection, not viewing | Every Session B surface's copy (Get started slides, inspections, email, anywhere else of ours). | Its own surfaces. |
+| 8 | "Look around" removed, sign in required | The Get started screen. | The gate, and the store notes. |
+| 9 | "Flip", not "Flip coin" | none | ALL of it. |
+
+**Requests to Session A from the nine items:**
+- **B-BANK.** A transfer-to-bank action for Send that reuses the payout side's
+  bank resolver (resolve account number + bank code to an account name, no
+  second resolver): (a) `resolveBankAccount({ accountNumber, bankCode })`
+  returning `{ accountName }` or a typed refusal, callable from the Send screen;
+  (b) `transferToBank({ accountNumber, bankCode, accountName, amountKobo,
+  narration, idempotencyKey })` with the same idempotency, RLS, ledger entries
+  and notifications as `transferToUser`; (c) the bank list the payout side uses.
+  Session B builds the screen against these shapes now and wires it the moment
+  they land.
+- **B-BADGE.** Export the single badge derivation (tier: none, gold, platinum)
+  and the artwork paths, so Session B renders exactly that and nothing of its own.
+- **B-GATE.** Item 8's gate, and the store notes on reviewer credentials.
+
+### Deleted posts (item 4, new)
+Claimed by the worker "posts" as it finds them, each file added here in the
+same commit it is first edited, before any edit. Session A: if a file it
+names is one of yours in flight, say so in section 49 and it will stop.
+
 ## FOUNDER REASSIGNMENT, 22 SEPTEMBER, READ THIS FIRST
 
 The founder has moved two more areas to Session B, in his words "that's even the

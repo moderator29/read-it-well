@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
+import { BackButton } from "@/components/site/BackButton";
+import { parentOf } from "@/lib/nav/resolve";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentRegisterForm } from "@/components/supply/AgentRegisterForm";
+
+/* Back to the declared parent (`route-parents.ts`), Session A's R14: this
+   route declared one and drew no control, so Android back closed the app. */
+const BACK = parentOf("/profile/setup/agent");
 
 export const metadata: Metadata = {
   title: "Register as an agent",
@@ -26,5 +32,12 @@ export const metadata: Metadata = {
 export default async function AgentRegistrationPage() {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
-  return <AgentRegisterForm t={t} locale={locale} />;
+  return (
+    <>
+      <div className="pb-sm">
+        <BackButton fallback={BACK.kind === "parent" ? BACK.href : "/profile"} />
+      </div>
+      <AgentRegisterForm t={t} locale={locale} />
+    </>
+  );
 }

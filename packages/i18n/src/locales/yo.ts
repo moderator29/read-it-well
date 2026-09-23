@@ -2106,6 +2106,7 @@ export const yo: Dictionary = withFallback({
       historyTile: "Ìtàn",
       quickRequest: "Béèrè",
       quickRequestSub: "Fi ìjápọ̀ ránṣẹ́",
+      settingsHeading: "Bí àkọsílẹ̀ àpò owó rẹ ṣe ń ṣiṣẹ́",
       settingsLink: "Ètò",
       quickSettingsSub: "Àpò owó rẹ",
       totalBalance: "Àpapọ̀ owó tó kù",

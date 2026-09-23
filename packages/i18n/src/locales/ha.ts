@@ -2106,6 +2106,7 @@ export const ha: Dictionary = withFallback({
       historyTile: "Tarihi",
       quickRequest: "Nema",
       quickRequestSub: "Aika hanyar haɗi",
+      settingsHeading: "Yadda rikodin walat ɗinka ke aiki",
       settingsLink: "Saituna",
       quickSettingsSub: "Walat ɗinka",
       totalBalance: "Jimlar ma'auni",

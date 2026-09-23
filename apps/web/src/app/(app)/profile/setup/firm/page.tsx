@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
+import { BackButton } from "@/components/site/BackButton";
+import { parentOf } from "@/lib/nav/resolve";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { FirmRegisterForm } from "@/components/supply/FirmRegisterForm";
+
+/* Back to the declared parent (`route-parents.ts`), Session A's R14: this
+   route declared one and drew no control, so Android back closed the app. */
+const BACK = parentOf("/profile/setup/firm");
 
 export const metadata: Metadata = {
   title: "Register a firm",
@@ -23,5 +29,12 @@ export const metadata: Metadata = {
 export default async function FirmRegistrationPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  return <FirmRegisterForm t={t} />;
+  return (
+    <>
+      <div className="pb-sm">
+        <BackButton fallback={BACK.kind === "parent" ? BACK.href : "/profile"} />
+      </div>
+      <FirmRegisterForm t={t} />
+    </>
+  );
 }

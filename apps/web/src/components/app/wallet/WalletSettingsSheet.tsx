@@ -43,7 +43,16 @@ const PROTECTIONS: { icon: BrandIconName; title: string; body: string }[] = [
  * plate, one title line, one sub line), which is where it lives now.
  * Without it the trigger is the square icon button.
  */
-export function WalletSettingsSheet({ card }: { card?: { title: string; sub: string } } = {}) {
+export function WalletSettingsSheet({
+  card,
+  heading = "How your wallet record works",
+}: {
+  card?: { title: string; sub: string };
+  /** The sheet's section heading, from `wallet.home.settingsHeading`. It
+      names what the rows say (a record and who writes to it), not a
+      promise of protection, which was a claim nobody could point at. */
+  heading?: string;
+} = {}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -79,7 +88,7 @@ export function WalletSettingsSheet({ card }: { card?: { title: string; sub: str
             id="wallet-protection-heading"
             className="nf-overline"
           >
-            How your money is protected
+            {heading}
           </h3>
           {/*
             THREE PROMISES ARE ONE OBJECT WITH THREE PARTS, NOT THREE CARDS.

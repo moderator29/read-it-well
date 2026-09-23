@@ -970,7 +970,7 @@ established and are not stated.
 | Title | "Send Money" 103.5px wide, Poppins 600 = 17.5px | 17.5px / 600 ("Send money", house sentence case) | Yes |
 | Line under it | 102.9px wide = 14px, quiet blue | 14px / 400 `--nf-content-link` | Yes |
 | Instant chip | 30px tall, "Instant Transfer" 67.3px = 9.2px | 30px, 11px / 600, 6px corner (0.2) | Yes (type at floor) |
-| Form panel | radius 10 to 12 (rim reaches the side 16 to 20 image px down), rim rgb(0 67 131), fill rgb(0 12 43) between rows | 14px, the identity's lit card | Near: 14 is the money family's one card corner |
+| Form panel | radius 10 to 12 (rim reaches the side 16 to 20 image px down), rim rgb(0 67 131), fill rgb(0 12 43) between rows | 10px (`--nf-radius-sm`, the nearest rung), the identity's lit card | Yes (audit run two) |
 | Rows | sub-panels, radius 10.5 (18 image px), fill rgb(0 21 61), edge rgb(0 75 167), 52px tall | radius 10, fill 20% brand over canvas, edge `--nf-brand-edge-soft`, 60px | Yes; 8px taller for the 16px typed value (R-A) |
 | Row gap | 9px | 10px | Yes |
 | Row plates | 57 image px = 34px round glass | the render's own plates, cropped from this image, 34px | Yes |
