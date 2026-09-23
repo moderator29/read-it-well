@@ -3068,7 +3068,7 @@
      the foot. The console re-sampled this on 5EAA44CB (ledger 6.2). The card
      fill is the same material for a shorter object, whose top light runs
      longer. */
-  --nf-panel-fill:
+  --nf-panel-fill-base:
     radial-gradient(55% 14px at 50% 0, color-mix(in oklab, var(--nf-lit-cyan) 16%, transparent), transparent),
     linear-gradient(
       180deg,
@@ -3083,7 +3083,7 @@
       color-mix(in oklab, var(--nf-lit) 32%, var(--nf-surface-canvas)) calc(100% - 5px),
       color-mix(in oklab, var(--nf-lit) 37%, var(--nf-surface-canvas)) 100%
     );
-  --nf-panel-fill-card:
+  --nf-panel-fill-card-base:
     radial-gradient(55% 14px at 50% 0, color-mix(in oklab, var(--nf-lit-cyan) 16%, transparent), transparent),
     linear-gradient(
       180deg,
@@ -3099,6 +3099,14 @@
   /* A panel is opaque over the flat canvas, which is how the console draws it.
      Over imagery `.nf-panel--glass` adds this blur. */
   --nf-panel-blur: var(--nf-glass-blur-soft);
+  /* The fills as read: the measured ramp under the glass reflection. The
+     reflection itself lives in the glow block below, so it is tuned (or
+     removed) there alone. */
+  --nf-glass-sheen: none;
+  --nf-plate-sheen: none;
+  --nf-panel-fill: var(--nf-glass-sheen), var(--nf-panel-fill-base);
+  --nf-panel-fill-card: var(--nf-glass-sheen), var(--nf-panel-fill-card-base);
+  --nf-plate-fill: var(--nf-plate-sheen), var(--nf-plate-fill-base);
   /* The edge: one colour for the `border` shorthand, then lit per side (top,
      right, foot, left) over it. Blue, not near-white. */
   --nf-panel-edge: color-mix(in oklab, var(--nf-brand-primary) 62%, transparent);
@@ -3128,7 +3136,7 @@
   --nf-plate-size-lg: 3.5rem;
   --nf-plate-radius: var(--nf-radius-sm);
   --nf-plate-radius-sm: var(--nf-radius-xs);
-  --nf-plate-fill:
+  --nf-plate-fill-base:
     radial-gradient(60% 55% at 50% 48%, color-mix(in oklab, var(--nf-lit) 55%, transparent), transparent 70%),
     linear-gradient(
       180deg,
@@ -3250,7 +3258,7 @@
 }
 
 /*
- * A LITTLE MORE GLOW: ONE STEP, PLATFORM WIDE (the founder's addendum to the
+ * MORE GLOW AND A GLASS REFLECTION, PLATFORM WIDE (the founder's addendum to the
  * sweep, 23 September: "make it a bit more glow too").
  *
  * The reference anatomy above is the console and Get started exactly as they
@@ -3272,12 +3280,29 @@
  *   --nf-btn-lit-bloom-hover    4/12px 70%, 12px 28%     5/14px 78%, 14px 34%
  *   --nf-btn-lit-pool           58% / 16%                68% / 22%
  *   --nf-btn-glass-shadow halo  0 0 18px -6px glow-3     0 0 20px -5px glow-3
+ *
+ * THE SECOND MESSAGE ("add more glowing and reflection to make the glass more
+ * magnificent"), in the same block so there is still one place to tune: the
+ * renders (founder/inspection-target.jpg, feed-plus-bloom-target.jpg) light
+ * every card from the top left, a paler corner fading diagonally to the
+ * body, and every icon plate carries a bright glint on its upper left. That
+ * is --nf-glass-sheen on panels and cards and --nf-plate-sheen on plates,
+ * painted as the top background layer (none in the measured block). The rim
+ * and halo take a second step: the halo 0 0 5px 46% becomes 0 0 6px 52%,
+ * the catchlight lit 68% becomes lit 62% + info, the plate glow 10px 34%
+ * becomes 12px 40%. The halo stays under the 12px between neighbouring
+ * panels. Text sits on the body, below the sheen's 38% stop, and the sheen
+ * adds at most 7% white at the very corner, so no text contrast moves.
  */
 :root,
 [data-theme="dark"] {
-  --nf-panel-halo: 0 0 5px color-mix(in oklab, var(--nf-state-info) 46%, transparent);
-  --nf-panel-catch: color-mix(in oklab, var(--nf-lit) 68%, var(--nf-state-info));
-  --nf-plate-glow: 0 0 10px color-mix(in oklab, var(--nf-lit) 34%, transparent);
+  --nf-panel-halo: 0 0 6px color-mix(in oklab, var(--nf-state-info) 52%, transparent);
+  --nf-panel-catch: color-mix(in oklab, var(--nf-lit) 62%, var(--nf-state-info));
+  --nf-plate-glow: 0 0 12px color-mix(in oklab, var(--nf-lit) 40%, transparent);
+  --nf-glass-sheen:
+    radial-gradient(60% 70% at 0% 0%, color-mix(in oklab, var(--nf-lit-cyan) 12%, transparent), transparent 70%),
+    linear-gradient(135deg, color-mix(in oklab, white 7%, transparent) 0%, color-mix(in oklab, white 2%, transparent) 22%, transparent 38%);
+  --nf-plate-sheen: linear-gradient(135deg, color-mix(in oklab, white 26%, transparent) 0%, color-mix(in oklab, white 6%, transparent) 30%, transparent 50%);
   --nf-selected-shadow:
     var(--nf-selected-rim),
     0 0 22px color-mix(in oklab, var(--nf-brand-primary) 64%, transparent),

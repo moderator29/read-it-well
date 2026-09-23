@@ -4018,6 +4018,27 @@ values. No ink, fill or text-shadow token moves; no blur is animated; the
 widest halo (the selected row) grows 18 to 22px, inside the console's 16px
 gaps plus the neighbour's own edge.
 
+### More glow and a glass reflection (founder's second message)
+
+Still one block, now called "MORE GLOW AND A GLASS REFLECTION". The fills are
+split so the reflection can be tuned on its own: `--nf-panel-fill` =
+`var(--nf-glass-sheen), var(--nf-panel-fill-base)` (the same for
+`--nf-panel-fill-card`), and `--nf-plate-fill` = `var(--nf-plate-sheen),
+var(--nf-plate-fill-base)`. The measured block sets both sheens to `none`, so
+deleting the glow block restores the console exactly.
+
+| Token | Measured | Glow +1 (9da8f86f) | Glow +2 and reflection |
+|---|---|---|---|
+| `--nf-glass-sheen` | none | none | radial lit-cyan 12% at the top-left corner (60% x 70%), and a 135deg white wash: 7% at the corner, 2% at 22%, clear by 38% |
+| `--nf-plate-sheen` | none | none | a 135deg white glint: 26% at the corner, 6% at 30%, clear by 50% |
+| `--nf-panel-halo` | 0 0 3px info 34% | 0 0 5px 46% | 0 0 6px 52% |
+| `--nf-panel-catch` | lit 78% + info | lit 68% | lit 62% |
+| `--nf-plate-glow` | 0 0 8px lit 25% | 0 0 10px 34% | 0 0 12px 40% |
+
+Sampled against `founder/inspection-target.jpg`: every card there is paler
+in its top-left corner and fades diagonally into the body, and every plate
+has a glint on its upper left. Text sits on the body below the 38% stop.
+
 ### Identity diff (the proof that the extraction changed nothing)
 
 Method: `origin/main` at ccf594ba built for production and started with the
