@@ -9345,3 +9345,296 @@ expensive.
 
 Web Push is therefore configured end to end. What remains is one handset, and
 nobody but the founder has one.
+
+---
+
+## 72. PUSH2: THE SERVICE WORKER, THE SURFACES, THE TYPES, AND THREE DEFECTS THAT WERE NOT PUSH DEFECTS
+
+Worker: PUSH2. The twenty two rules and the stop list in section 0 were read
+before the first edit and are restated by being followed: integer kobo, one
+blue family, British spelling, no em dash anywhere including these commit
+messages, never say proven about something not observed, and rule 21 on any
+`SECURITY DEFINER` work. No migration was written this shift, so rule 21 had
+nothing to bind; it is restated here rather than skipped.
+
+**Nothing has reached a device. Nothing below says otherwise.** Every proof on
+this page is labelled with the half it covers.
+
+### 72.1 R-P5. The handlers moved into `public/sw.js`, at scope `/`
+
+A notification's whole job is to put a person back in the application. At the
+old scope `/api/push/` the worker could not see a single Vallo tab, because
+`clients.matchAll()` only returns clients inside the scope, so **every tap
+opened a second tab**. At `/` it sees them all: a tab already on that page is
+focused and left alone, because navigating it would throw away a half typed
+reply; any other Vallo tab is navigated and focused; a new window is the last
+resort rather than the only one.
+
+**Found while moving it.** The old worker named `/icons/icon-192.png` and
+`/icons/badge-72.png`, and `apps/web/public/icons/` **does not exist**. Both
+404ed and both fell back to the browser's grey circle. The icon is now
+`/pwa/icon-192.png`, which is already in the offline precache, so a
+notification has its mark with no network. **No badge is named at all**: there
+is no monochrome Vallo mark to name, and pointing at a file that is not there
+looks like care and behaves exactly like omitting it. One 72 by 72 monochrome
+PNG closes it, from whoever owns the icon set.
+
+**Urgent and ordinary are no longer shown the same way, and this one matters.**
+The collapse tag is per person per kind, so "your withdrawal failed" replaces
+"your wallet was credited" on the same row. Replacing SILENTLY would mean the
+person never learns the second thing happened. Urgent now re-alerts and stays
+on the screen; ordinary still replaces quietly, because re-alerting for a
+replacement is how a phone buzzes eleven times for one conversation.
+
+**The device now folds what the server cannot.** `policy.ts` collapses a
+backlog within one drain run and cannot fold what it already sent, so a phone
+left on a table fills up five minutes at a time. Above three ordinary rows the
+worker closes them and shows one that says how many. A replacement is not
+counted as an arrival, or three replies in one conversation would collapse the
+shade. An urgent row is never folded, never counted and never closed.
+
+`/api/push/sw` still answers, with a worker whose only instruction is to
+unregister itself. **Deleting the script would have retired nothing**: a
+browser keeps running an installed worker and a failed update check leaves it
+exactly where it was, which is how one event becomes two notifications.
+
+**Proved, and each labelled.** `service-worker.test.ts` reads the shipped
+`public/sw.js` off disk and RUNS IT against a recording `self`: 31 assertions
+over what is built, what is refused, what is folded and where a tap lands. It
+tests the exact bytes a browser downloads, so there is no copy to drift.
+Five mutations of the shipped file were each caught. `service-worker.browser.test.ts`
+registers that same file in a real Chromium and delivers a real `push` event
+through the DevTools protocol, then reads the notification back with
+`registration.getNotifications()`. No network, no push service, no VAPID pair.
+**NOT PROVED: that anything reached a device, and the encryption, which is
+proved separately.**
+
+### 72.2 R-P4. The surfaces are mounted and the permission is reversible
+
+`docs/SESSION_B_SCOPE.md` lists `app/admin/settings/**`, not
+`app/(app)/settings/**`. Checked before editing, so nothing was filed and
+nothing was built around.
+
+**WITHOUT A DEVICE LIST, PUSH IS A PERMISSION A PERSON CAN GRANT AND CANNOT
+TAKE BACK** except by uninstalling Vallo, which is not a setting, it is an
+ultimatum. `/settings/notifications` now carries one, under the existing
+channel toggles, plus the control that switches a device on.
+
+A device is named without carrying the capability to reach it. The read names
+its columns and never names `token`, `p256dh` or `auth`, and never uses a star,
+which would start carrying the token the day somebody adds a column. The row
+shows `device_ref`, which the database generates from the token and which is
+not reversible.
+
+The retirement write is in **one** place, `lib/push/revoke.ts`, used by the API
+route and the server action. `push_tokens` has no update policy at all, so row
+level security is not holding that line: this code is. Two hand written service
+role updates would have been two chances to leave the ownership filter out, and
+leaving it out means "turn every device off" retires every device on the
+platform.
+
+**A defect in the inherited design, named rather than worked around.**
+`moments.ts` will not offer twice in thirty days and not three times ever,
+which is right for an interruption and wrong on a settings screen. A person who
+said Not now twice and then came looking for the switch a week later would have
+found the screen silent with no way to turn notifications on. The rules still
+decide whether the PROMPT is shown, with its careful copy; when they say no, a
+plain control is shown instead. `moments.ts` is unchanged, because the fault is
+not in the rules, it is in applying rules about interruption to a screen that
+is not one.
+
+A blocked permission is now a sentence rather than a blank, because on iOS a
+refusal is effectively permanent and offering a button that leads nowhere is
+worse than saying where the only remaining route is.
+
+13 assertions against a recording double of the Supabase client, five mutations
+each caught: selecting a star, naming the token, dropping the owner filter,
+reporting a failed read as an empty list, and returning rows instead of a
+count.
+
+### 72.3 R-P2. The regeneration is PARTIAL, and the measurement is why
+
+The three push tables, the `push_queue_health` view and the five push enums are
+now in `database.types.ts`, verbatim from the generator against the live
+project. **219 insertions, 0 deletions**: nothing anybody else added today was
+dropped.
+
+`lib/push/schema.ts` no longer describes three tables by hand and **no longer
+casts the Supabase client**. Its own header promised that cast would delete
+itself the day the file was regenerated, and it has. One thing fell out:
+`pushDrain` took `unknown` because of that cast and now takes the same
+`SupabaseClient<Database>` that `lib/cron/run.ts` declares a `CronJob`
+receives, so the drain and the runner check against each other instead of
+meeting through an `unknown`.
+
+**The full file does not compile, measured at `origin/main` in an isolated
+worktree with `node_modules` hardlinked at both roots.** Five errors, and
+closing them opens five more:
+
+| Where | What |
+|---|---|
+| `components/app/untranslated.ts` | `escrow_state` gained `CANCELLED` |
+| `lib/agent/listings-actions.ts` | `listings.listing_role` is required |
+| `lib/wallet/breakdown.ts` (two) | `EscrowState`, `EscrowPurpose` are behind |
+| `lib/wallet/repository.ts` | `WalletEntryKind` is behind |
+| `components/app/wallet/BalanceBreakdownSheet.tsx` (three) | **Session B** |
+| `components/app/wallet/kinds.ts` (two) | **Session B** |
+| `packages/i18n` `wallet.entryKind` | four locales |
+
+**Three of those are exhaustiveness guards doing exactly what they were built
+to do.** `lib/wallet/types.ts` says in its own words that the union must stay a
+superset of the database enum so a new kind is a compile error rather than a
+blank row. **The stale generated file had disarmed all three.** They fire the
+moment it is current, which is an argument for regenerating and not against.
+
+Five of the ten are Session B's, so landing the whole file would have taken
+main red in somebody else's tree and left it there until they acted. The push
+half landed and the rest is R18 below.
+
+### 72.4 The three defects that were not push defects
+
+**AN AGENT CANNOT CREATE A LISTING.** `listings.listing_role` is NOT NULL with
+no default, no trigger fills it, and `lib/agent/listings-actions.ts` inserts
+without it. Every new listing from the agent console is refused `23502` and the
+person is shown "could not save". The stale types were hiding it from `tsc`.
+
+Proved by outcome rather than by reading, on the live project, in a migration
+that raises at the foot so nothing committed and no version was stamped, and
+into a TEMPORARY copy of the table's shape so no product table was touched and
+none of its twelve triggers fired:
+
+```
+A (the columns the agent console sends): REFUSED 23502 null value in column
+  "listing_role" of relation ... violates not-null constraint
+B (the same plus listing_role):          ACCEPTED
+```
+
+**A SUPPORT REPLY OPENS THE WRONG SCREEN.** `private.notify_support_reply`
+writes `href = '/settings'`, the settings hub. The screen with the person's
+support conversation on it is `/settings/help`. In app that is an annoyance; as
+a push notification it is the exact failure that makes people switch
+notifications off. One string in a migration.
+
+**THE MOST PUSH-WORTHY SECURITY EVENT REACHES AN INBOX AND NOT A PHONE.** A new
+sign-in on a new device now sends an email, through
+`private.enqueue_new_device_email` over the new `known_devices` table, and
+writes no `notifications` row, so it cannot push. That is the wrong way round
+for something that wants an answer in the next sixty seconds.
+
+And one privilege reading, for the record rather than for action:
+`20260923092729` grants `SELECT` on the whole of `push_tokens` to
+`authenticated`, and a whole table grant includes `token`. Row level security
+still limits it to the reader's own rows. Confirmed live with
+`has_column_privilege`, which answers about the object rather than about the
+observer. Not narrowed from here: narrowing a live grant is a privilege change
+on a shared table.
+
+### 72.5 The forty events, walked
+
+`docs/push/THE_FORTY_EVENTS.md`. 27 of 40 have a push path, 11 have none, 2 are
+deliberately none and both are one time codes, because a code on a lock screen
+is a code anybody holding the phone can read. **Every one of the eleven is
+missing for the same reason and it is not a push reason**: the event writes no
+`notifications` row, and nothing in `lib/push` can close that. 46 functions
+write notification rows, through 21 triggers and the rest through application
+call sites, which is why the trigger on `notifications` was chosen over the
+email junction.
+
+### 72.6 The founder's page, and a correction to it within the hour
+
+`docs/push/FIRST_NOTIFICATION.md`. It said plainly what a 2xx from
+`/api/push/self-test` proves, which is that the push service accepted the
+message, and what it does not, which is that a screen lit up, because the push
+service cannot read the encrypted body either.
+
+**Then section 71 landed and made its first instruction dangerous.** The page
+opened with `npx web-push generate-vapid-keys`; a pair now exists on
+production, and a second pair would silently kill every device bound to the
+first. Part one is now a CHECK rather than a task, the generate command appears
+once inside the warning that says not to run it, and the page says that the key
+being on production is taken on section 71's word rather than measured, because
+this container's proxy refuses a CONNECT to the production host.
+
+### 72.7 Recorded against myself: I took main red, and the instrument was blind
+
+`service-worker.browser.test.ts` passed eight consecutive times alone and
+failed inside the full suite. Twice, in two different shapes, which is one
+defect wearing two coats.
+
+**A fixed port.** It listened on 8532, five other workers run servers here, and
+`server.listen` emitted an `error` event that nothing was listening for, so the
+promise wrapped around it NEVER SETTLED. A collision that should have been an
+instant failure became a 120 second hook timeout. **A promise over an event
+emitter that is only wired to the success event turns every failure into a
+hang.**
+
+**A quiescence race.** `clearShade` returned on the first empty read, and an
+empty list is also what you read while the previous case's notification is
+still in flight. It landed inside the next case and the fold counted four
+things when three were standing. The list must now be empty on three
+consecutive reads.
+
+**And before either, a blind light inside the instrument built to see.** The
+harness reused one browser profile under `/tmp`. A service worker lives in the
+profile, so a run inherited the worker the PREVIOUS run had installed: the
+harness was checked by breaking the shipped worker on purpose and **it still
+passed**, because it was reading yesterday's file. A fresh profile per run and
+a `no-store` script, and the same mutation is now caught.
+
+The right first question was whether the wait could be REMOVED rather than
+lengthened, and it was asked and answered:
+`ServiceWorker.deliverPushMessage` **resolves before the handler runs**, 0 of
+12 pushes were already present when the call returned. There is no completion
+signal outside the worker, and adding a `postMessage` to `public/sw.js` for a
+test to listen to would put test-only code in a shipped artefact. So it polls,
+with a budget that is where a genuine failure is REPORTED rather than a knob,
+and a wait that runs out asserts on the real contents and prints the
+difference.
+
+**Green, at a named commit.** `origin/main` = `4afcfd57`, isolated worktree,
+`node_modules` hardlinked at both roots: **224 files, 3637 passed, 1 skipped,
+exit 0.** The skip is `transport/live-proof.test.ts`, the wire proof, which
+reports NOT RUN because this host cannot reach `mtalk.google.com:5228`. The
+browser proof ran inside that suite in 8.5 seconds and passed.
+
+One earlier run of that same gate reported 21 failed files. **It was the disk,
+not the code**: the box was at 100 per cent and the failure was `ENOSPC`. Worth
+writing down because a full disk fails a browser test in ways that look nothing
+like a disk problem, and `expected [] to have a length of 1` is exactly what a
+Chromium that cannot write its profile produces.
+
+---
+
+## 49quinquies. R18 TO SESSION B: THE WALLET UNIONS ARE BEHIND THE DATABASE
+
+**Not blocking and nothing is waiting on it.** The push half of the types
+regeneration landed without touching any of this.
+
+`database.types.ts` is still behind the live schema for everything except push,
+and it cannot be brought current without five changes in Session B's files. The
+exact list, measured at `origin/main` in an isolated worktree rather than
+guessed:
+
+1. `lib/wallet/types.ts` (Session A's) widens `EscrowState` with `CANCELLED`,
+   `EscrowPurpose` with `agency_fee`, and `WalletEntryKind` with `pot_hold` and
+   `pot_release`. All four are live in the database today.
+2. That then fires three exhaustiveness guards, and these are **yours**:
+   - `components/app/wallet/BalanceBreakdownSheet.tsx`: `Record<EscrowState, string>`
+     and `Record<EscrowState, tone>` need `CANCELLED`, and
+     `Record<EscrowPurpose, string>` needs `agency_fee`.
+   - `components/app/wallet/kinds.ts`: `KIND_ICON` and the `WalletWords.kind`
+     record need `pot_hold` and `pot_release`.
+   - `packages/i18n` `wallet.entryKind` needs the same two words in four
+     locales.
+
+**These are the guards working, not breakage.** `lib/wallet/types.ts` says in
+its own comment that the union must stay a superset of the database enum
+precisely so a new kind is a compile error rather than a blank row on a
+statement. The stale generated file had disarmed them.
+
+**Today nothing renders wrong**, measured: `escrows` holds 0 rows and
+`wallet_entries` holds 0 rows with a pot kind. But `move_into_pot`,
+`move_out_of_pot` and `escrow_cancel_as` are all live functions, so the first
+row of either kind reaches `KIND_ICON[entry.kind]`, which has no fallback.
+
+Session A: say the word and PUSH2's successor will do item 1 and file the rest.
