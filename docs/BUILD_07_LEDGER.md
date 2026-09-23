@@ -8068,3 +8068,77 @@ second pass above builds on the restored copy rather than on a rewrite.
 - **Backfilling the five confirmed accounts.** A welcome months late is a
   surprise.
 - **`profiles.welcomed_at`.** Dropping a column is data-losing.
+
+---
+
+## 62bis. R-P6 CLOSED BY THIS SESSION, R-P7 REFUTED BY MUTATION, AND A MEASUREMENT ERROR OF MY OWN
+
+### R-P6 is real and is fixed. The money job read a status code and called it a reconciliation.
+
+The push worker found this shape in its OWN scheduler, which had reported
+`ok_200` for four consecutive runs that all failed, and then went looking for
+the same shape elsewhere instead of filing one bug and stopping. That is the
+behaviour this ledger wants and it found a live one.
+
+`private.request_money_reconciliation` judged its previous reply with
+`elsif previous_status between 200 and 299 then verdict := 'ok_' || status`.
+Nothing looked at the body. **It already SELECTED the body** and used it only
+to decorate an alert it had decided to raise for another reason.
+
+**Why that is not theoretical here.** An unknown path on this deployment does
+not answer 404. Next.js answers **200 with the Vallo HTML shell**. So the day
+`/api/paystack/reconcile` is renamed, moved or shadowed by a redirect, the job
+records `ok_200` at a web page, reconciles nothing, and the scheduler's
+dashboard stays green. That is the 29 August fault exactly, which ran for
+twenty four days, pointed at payments instead of at notifications.
+
+Migration `20260923104415`. A 2xx whose body does not carry the route's own
+envelope is now `wrong_body_<status>` with its own high alert and its own
+sentence saying what a 2xx-that-is-not-the-reconciler usually means. The marker
+is `"charges"`, emitted by this route and by nothing else, and the captured
+window widened from 300 to 1000 characters for the TEST while the alert still
+prints 300, because an alert a person has to read is not improved by a
+kilobyte of HTML.
+
+**The predicate is exercised inside the migration on both bodies**, the site
+shell and a genuine reply, and raises if it accepts the shell or rejects the
+reply. A condition nobody ran is a condition nobody has. Rule 21 restated after
+the `create or replace`, with anon and authenticated read back as refused AND a
+control confirming `postgres` still holds it, because a migration that shuts
+the job is not a migration that fixed it.
+
+### R-P7 is refuted, and refuted by breaking it rather than by reading it.
+
+The claim was that `junction.test.ts`'s welcome assertion resolves a path that
+has never existed and so passes unconditionally. I tested it the only way a
+claim like that can be settled: in a clean worktree at `origin/main`, I put a
+direct send back into `lib/notify/welcome.ts` and ran the test.
+
+```
+unmutated:  ✓ the welcome path queues and never posts ...   10 passed
+mutated:    × the welcome path queues and never posts ...    1 failed | 9 passed
+```
+
+**The assertion is live.** It fails when the thing it guards is broken, which
+is the only definition of a guard that means anything. Nothing to fix.
+
+### And my own error, which is the same family as the one I wrote up an hour ago.
+
+While checking R-P7 I compared a gate worktree pinned at `f70c0bbe` against
+`git show origin/main:`, which reads the CURRENT tip. The tip had moved twice
+in between. For several minutes I was looking at a test from one commit and a
+source file from another and concluding that a guard was blind.
+
+**A stale gate is as misleading as a shared tree.** The rule in section 61 said
+"run at `origin/main` in an isolated worktree"; it now also says: and re-cut
+that worktree when the tip moves, or note the commit you are reporting on and
+report only about that commit. Both mistakes are the same mistake, which is
+describing one tree while reading another.
+
+### Green, measured properly, at a named commit
+
+`origin/main` = `24453445`, isolated worktree, `node_modules` hardlinked at
+both roots: **209 files, 3466 passed, 1 skipped, exit 0.** The skip is the push
+live-delivery harness, which preflights the host and reports NOT RUN rather
+than passing or failing, which is the correct behaviour for a proof that needs
+a wire this container does not have.
