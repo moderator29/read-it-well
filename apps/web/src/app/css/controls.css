@@ -1579,3 +1579,64 @@
 .nf-regfield .nf-label {
   align-items: baseline;
 }
+
+/*
+ * THE ICON PLATE (the wide platform sweep, 23 September): the inner plate that
+ * sits behind a line glyph, the console's icon tile extracted from `admin.css`
+ * and drawn by `components/ui/IconPlate.tsx`. A lit blue glass square: a lit
+ * centre, a cyan rim along the top and left, an inner light at the foot, edges
+ * lit per side, a glow of its own and a glyph that glows. A plate is a shape,
+ * not a control, and carries no text. Status tones swap the lit glass for the
+ * state's own deep fill. Values: the "REFERENCE ANATOMY" block of tokens.css.
+ */
+@layer components {
+  .nf-plate {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: var(--nf-plate-radius);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    background: var(--nf-plate-fill);
+    color: var(--nf-content-primary);
+    box-shadow: var(--nf-plate-shadow);
+  }
+  .nf-plate--brand {
+    border-color: var(--nf-plate-edges);
+  }
+  .nf-plate--brand > svg {
+    filter: var(--nf-plate-glyph-glow);
+  }
+  .nf-plate--md {
+    width: var(--nf-plate-size-md);
+    height: var(--nf-plate-size-md);
+  }
+  .nf-plate--sm {
+    width: var(--nf-plate-size-sm);
+    height: var(--nf-plate-size-sm);
+    border-radius: var(--nf-plate-radius-sm);
+  }
+  .nf-plate--lg {
+    width: var(--nf-plate-size-lg);
+    height: var(--nf-plate-size-lg);
+  }
+  .nf-plate--success {
+    border-color: color-mix(in oklab, var(--nf-state-success) 70%, transparent);
+    background: color-mix(in oklab, var(--nf-state-success) 34%, var(--nf-surface-canvas));
+    box-shadow: 0 0 12px color-mix(in oklab, var(--nf-state-success) 30%, transparent);
+  }
+  .nf-plate--error {
+    border-color: color-mix(in oklab, var(--nf-state-error) 70%, transparent);
+    background: color-mix(in oklab, var(--nf-state-error) 34%, var(--nf-surface-canvas));
+    box-shadow: 0 0 12px color-mix(in oklab, var(--nf-state-error) 30%, transparent);
+  }
+  .nf-plate--pending {
+    border-color: color-mix(in oklab, var(--nf-status-pending) 70%, transparent);
+    background: color-mix(in oklab, var(--nf-status-pending) 18%, var(--nf-surface-canvas));
+    color: var(--nf-status-pending);
+  }
+  .nf-plate--info {
+    border-color: color-mix(in oklab, var(--nf-state-info) 70%, transparent);
+    background: color-mix(in oklab, var(--nf-state-info) 18%, var(--nf-surface-canvas));
+    color: var(--nf-state-info);
+  }
+}

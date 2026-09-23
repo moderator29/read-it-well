@@ -13,7 +13,7 @@
  *
  * The founder removed light mode on 23 September 2026. There was a complete
  * second palette here, 932 lines on `:root[data-theme="light"]`, and it is
- * deleted along with `app/css/light.css`, the before-paint script that set the
+ * deleted along with the light stylesheet, the before-paint script that set the
  * attribute, the control that wrote it and the store behind it. If you are
  * looking for the twin because a token seems to be missing one: it is not
  * missing, it was taken out on purpose. `docs/design/LIGHT_MODE_REMOVED.md`
@@ -1816,7 +1816,9 @@
   --nf-container-edge: color-mix(in oklab, var(--nf-container-ink) 70%, transparent);
   --nf-container-edge-lit: color-mix(in oklab, var(--nf-container-ink) 85%, transparent);
   --nf-container-fill: var(--nf-well-fill);
-  --nf-container-radius: var(--nf-radius-lg);
+  /* The container corner, the console's measured 10px (it had no reader
+     while it stood on --nf-radius-lg). */
+  --nf-container-radius: var(--nf-radius-sm);
 
   --nf-brand-edge: var(--nf-container-edge);
   --nf-brand-edge-strong: color-mix(in oklab, var(--nf-container-ink) 85%, transparent);
@@ -3035,6 +3037,216 @@
   --nf-measure-lede: 42ch;
   --nf-measure-section: 52ch;
   --nf-measure-body: 62ch;
+
+  /* ---------------------------------------------------------------------
+   * THE REFERENCE ANATOMY (the wide platform sweep, 23 September).
+   *
+   * The founder named the admin console and Get started as the reference
+   * implementation for the whole product. These roles are their anatomy,
+   * extracted once, value for value, from `app/css/admin.css` (the panel, the
+   * per-side edges, the top catchlight, the hair of outer glow, the 10px
+   * corner, the icon plate, the selected row) and `app/welcome/welcome.css`
+   * (the lit primary with its top and foot bands and its pooled bloom, the
+   * glass secondary). The console and Get started now read these and hold no
+   * copy of their own; `docs/BUILD_SESSION_B_LEDGER.md` section 13.0 has the
+   * table of where each value came from.
+   *
+   * The components that carry them: `components/ui/Panel.tsx` (`.nf-panel`,
+   * glass.css), `components/ui/IconPlate.tsx` (`.nf-plate`, controls.css) and
+   * `components/ui/Button.tsx` (`.nf-btn--primary`, `.nf-btn--glass`,
+   * buttons.css). Reach for those before these.
+   * ------------------------------------------------------------------ */
+
+  /* The two inks every role below mixes from: the brand, and the cool cyan
+     catchlight (the state cyan lifted towards white, used here as light, not
+     as a status). */
+  --nf-lit: var(--nf-brand-primary);
+  --nf-lit-cyan: color-mix(in oklab, var(--nf-state-info) 55%, white 45%);
+
+  /* THE PANEL. A lit glass container: bright along the top 11px with a cyan
+     catchlight at the top centre, dark through the middle, lifting again at
+     the foot. The console re-sampled this on 5EAA44CB (ledger 6.2). The card
+     fill is the same material for a shorter object, whose top light runs
+     longer. */
+  --nf-panel-fill:
+    radial-gradient(55% 14px at 50% 0, color-mix(in oklab, var(--nf-lit-cyan) 16%, transparent), transparent),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-lit) 42%, var(--nf-surface-canvas)) 0px,
+      color-mix(in oklab, var(--nf-lit) 38%, var(--nf-surface-canvas)) 3px,
+      color-mix(in oklab, var(--nf-lit) 31%, var(--nf-surface-canvas)) 8px,
+      color-mix(in oklab, var(--nf-lit) 26%, var(--nf-surface-canvas)) 15px,
+      color-mix(in oklab, var(--nf-lit) 20%, var(--nf-surface-canvas)) 36px,
+      color-mix(in oklab, var(--nf-lit) 16%, var(--nf-surface-canvas)) 50%,
+      color-mix(in oklab, var(--nf-lit) 20%, var(--nf-surface-canvas)) calc(100% - 24px),
+      color-mix(in oklab, var(--nf-lit) 26%, var(--nf-surface-canvas)) calc(100% - 11px),
+      color-mix(in oklab, var(--nf-lit) 32%, var(--nf-surface-canvas)) calc(100% - 5px),
+      color-mix(in oklab, var(--nf-lit) 37%, var(--nf-surface-canvas)) 100%
+    );
+  --nf-panel-fill-card:
+    radial-gradient(55% 14px at 50% 0, color-mix(in oklab, var(--nf-lit-cyan) 16%, transparent), transparent),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-lit) 50%, var(--nf-surface-canvas)) 0px,
+      color-mix(in oklab, var(--nf-lit) 44%, var(--nf-surface-canvas)) 6px,
+      color-mix(in oklab, var(--nf-lit) 38%, var(--nf-surface-canvas)) 13px,
+      color-mix(in oklab, var(--nf-lit) 32%, var(--nf-surface-canvas)) 22px,
+      color-mix(in oklab, var(--nf-lit) 18%, var(--nf-surface-canvas)) 50%,
+      color-mix(in oklab, var(--nf-lit) 22%, var(--nf-surface-canvas)) calc(100% - 20px),
+      color-mix(in oklab, var(--nf-lit) 28%, var(--nf-surface-canvas)) calc(100% - 6px),
+      color-mix(in oklab, var(--nf-lit) 34%, var(--nf-surface-canvas)) 100%
+    );
+  /* A panel is opaque over the flat canvas, which is how the console draws it.
+     Over imagery `.nf-panel--glass` adds this blur. */
+  --nf-panel-blur: var(--nf-glass-blur-soft);
+  /* The edge: one colour for the `border` shorthand, then lit per side (top,
+     right, foot, left) over it. Blue, not near-white. */
+  --nf-panel-edge: color-mix(in oklab, var(--nf-brand-primary) 62%, transparent);
+  --nf-panel-edges:
+    color-mix(in oklab, var(--nf-lit) 82%, var(--nf-state-info))
+    color-mix(in oklab, var(--nf-lit) 72%, var(--nf-surface-canvas))
+    color-mix(in oklab, var(--nf-lit) 70%, var(--nf-state-info))
+    color-mix(in oklab, var(--nf-lit) 74%, var(--nf-surface-canvas));
+  /* The line of light just inside the top edge, and the rule that draws it. */
+  --nf-panel-catch: color-mix(in oklab, var(--nf-lit) 78%, var(--nf-state-info));
+  --nf-panel-rim: inset 0 1px 0 var(--nf-panel-catch);
+  /* The outer glow, measured as a hair: the canvas is flat within about 2 CSS
+     px of the edge on all four admin renders. */
+  --nf-panel-halo: 0 0 3px color-mix(in oklab, var(--nf-state-info) 34%, transparent);
+  --nf-panel-glow:
+    inset 0 1px 0 color-mix(in oklab, var(--nf-lit) 90%, transparent),
+    inset 1px 0 0 color-mix(in oklab, var(--nf-lit) 70%, var(--nf-surface-canvas)),
+    var(--nf-panel-halo);
+  /* The hairline that divides the inside of a panel. */
+  --nf-panel-hair: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
+
+  /* THE ICON PLATE. The lit blue glass square behind a line glyph: a lit
+     centre, a bright rim, per-side edges, a glow of its own and a glyph that
+     glows. Sizes step 36 / 44, and 56 for a hero plate. */
+  --nf-plate-size-sm: 2.25rem;
+  --nf-plate-size-md: 2.75rem;
+  --nf-plate-size-lg: 3.5rem;
+  --nf-plate-radius: var(--nf-radius-sm);
+  --nf-plate-radius-sm: var(--nf-radius-xs);
+  --nf-plate-fill:
+    radial-gradient(60% 55% at 50% 48%, color-mix(in oklab, var(--nf-lit) 55%, transparent), transparent 70%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-lit) 72%, var(--nf-surface-canvas)) 0,
+      color-mix(in oklab, var(--nf-lit) 46%, var(--nf-surface-canvas)) 18%,
+      color-mix(in oklab, var(--nf-lit) 38%, var(--nf-surface-canvas)) 60%,
+      color-mix(in oklab, var(--nf-lit) 66%, var(--nf-surface-canvas)) 100%
+    );
+  --nf-plate-edge: color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+  --nf-plate-edges:
+    color-mix(in oklab, var(--nf-state-info) 80%, var(--nf-lit))
+    color-mix(in oklab, var(--nf-lit) 60%, var(--nf-surface-canvas))
+    color-mix(in oklab, var(--nf-lit) 60%, var(--nf-surface-canvas))
+    color-mix(in oklab, var(--nf-state-info) 90%, white);
+  --nf-plate-rim:
+    inset 1px 0 0 color-mix(in oklab, var(--nf-state-info) 70%, transparent),
+    inset 0 1px 0 color-mix(in oklab, var(--nf-lit-cyan) 55%, transparent);
+  --nf-plate-inner-light: inset 0 -2px 3px -1px color-mix(in oklab, var(--nf-lit) 60%, transparent);
+  --nf-plate-glow: 0 0 8px color-mix(in oklab, var(--nf-lit) 25%, transparent);
+  --nf-plate-shadow: var(--nf-plate-rim), var(--nf-plate-inner-light), var(--nf-plate-glow);
+  --nf-plate-glyph-glow: drop-shadow(0 0 4px color-mix(in oklab, var(--nf-lit-cyan) 80%, transparent));
+
+  /* THE SELECTED STATE. The open rail row and the open tab: the brand
+     gradient, cyan-lit edges, a white rim along the top and a blue bloom. */
+  --nf-selected-fill: var(--nf-gradient-cta);
+  --nf-selected-edge: color-mix(in oklab, var(--nf-rim-lit-ink) 60%, var(--nf-brand-primary));
+  --nf-selected-edges:
+    color-mix(in oklab, var(--nf-lit-cyan) 90%, white)
+    color-mix(in oklab, var(--nf-state-info) 80%, var(--nf-lit))
+    color-mix(in oklab, var(--nf-lit-cyan) 80%, var(--nf-lit))
+    color-mix(in oklab, var(--nf-state-info) 80%, var(--nf-lit));
+  --nf-selected-rim: inset 0 1px 0 color-mix(in oklab, white 55%, transparent);
+  --nf-selected-shadow:
+    var(--nf-selected-rim),
+    0 0 18px color-mix(in oklab, var(--nf-brand-primary) 55%, transparent),
+    0 6px 16px -6px color-mix(in oklab, var(--nf-brand-primary) 70%, transparent);
+  /* A selected tab inside a row: the same light without the cast shadow. */
+  --nf-selected-shadow-inline:
+    var(--nf-selected-rim),
+    0 0 18px color-mix(in oklab, var(--nf-brand-primary) 50%, transparent);
+
+  /* THE LIT PRIMARY BUTTON, Get started's (2A49E2F7, GLOW_IDENTITY section
+     5): a bright band top and bottom round a saturated core with a cyan lift
+     low in the middle, lit edges all round (near-white top and foot, blue
+     sides), an inner glow, a short strong bloom below, and a pool of light
+     centred under the bar. Mixed in sRGB as the render was sampled. */
+  --nf-btn-lit-edges:
+    color-mix(in srgb, var(--nf-state-warning) 22%, var(--nf-content-on-brand))
+    color-mix(in srgb, var(--nf-brand-primary) 70%, var(--nf-state-warning))
+    color-mix(in srgb, var(--nf-state-warning) 32%, var(--nf-content-on-brand))
+    color-mix(in srgb, var(--nf-brand-primary) 70%, var(--nf-state-warning));
+  --nf-btn-lit-fill:
+    radial-gradient(
+      45% 75% at 50% 88%,
+      color-mix(in srgb, color-mix(in srgb, var(--nf-brand-primary) 72%, var(--nf-state-warning)) 55%, transparent),
+      transparent
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--nf-brand-primary) 92%, var(--nf-state-warning)) 0%,
+      color-mix(in srgb, var(--nf-brand-primary) 74%, var(--nf-surface-primary)) 24%,
+      color-mix(in srgb, var(--nf-brand-primary) 68%, var(--nf-surface-primary)) 62%,
+      var(--nf-brand-primary) 88%,
+      color-mix(in srgb, var(--nf-brand-primary) 70%, var(--nf-state-warning)) 100%
+    );
+  --nf-btn-lit-rim: inset 0 1px 0 color-mix(in srgb, var(--nf-state-warning) 30%, var(--nf-content-on-brand));
+  --nf-btn-lit-inner: inset 0 0 12px color-mix(in srgb, color-mix(in srgb, var(--nf-brand-primary) 70%, var(--nf-state-warning)) 70%, transparent);
+  --nf-btn-lit-inner-hover: inset 0 0 16px color-mix(in srgb, color-mix(in srgb, var(--nf-brand-primary) 70%, var(--nf-state-warning)) 80%, transparent);
+  --nf-btn-lit-bloom:
+    0 5px 14px -2px color-mix(in srgb, var(--nf-brand-primary) 65%, transparent),
+    0 -2px 10px color-mix(in srgb, var(--nf-brand-primary) 22%, transparent);
+  --nf-btn-lit-bloom-hover:
+    0 4px 12px -2px color-mix(in srgb, var(--nf-brand-primary) 70%, transparent),
+    0 -2px 12px color-mix(in srgb, var(--nf-brand-primary) 28%, transparent);
+  --nf-btn-lit-shadow: var(--nf-btn-lit-rim), var(--nf-btn-lit-inner), var(--nf-btn-lit-bloom);
+  --nf-btn-lit-shadow-hover: var(--nf-btn-lit-rim), var(--nf-btn-lit-inner-hover), var(--nf-btn-lit-bloom-hover);
+  --nf-btn-lit-text-glow: 0 0 10px color-mix(in oklab, var(--nf-content-on-brand) 35%, transparent);
+  /* The pool the bar casts on the surface under it: an ellipse of light
+     below the middle (blue +136 at 4px under the centre, +65 at 10, +25 at
+     20; half that towards the ends). */
+  --nf-btn-lit-pool: radial-gradient(
+    50% 55% at 50% 16%,
+    color-mix(in srgb, var(--nf-brand-primary) 58%, transparent) 0%,
+    color-mix(in srgb, var(--nf-brand-primary) 16%, transparent) 55%,
+    transparent 100%
+  );
+  --nf-btn-lit-pool-height: 48px;
+  --nf-btn-lit-pool-blur: 3px;
+
+  /* THE GLASS SECONDARY, Get started's: a brand glass wash, the container
+     edge, the lit rim and a faint bloom, over a soft backdrop blur. */
+  --nf-btn-glass-fill: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--nf-brand-primary) 22%, transparent),
+    color-mix(in oklab, var(--nf-brand-primary) 8%, transparent)
+  );
+  --nf-btn-glass-edge: var(--nf-container-edge);
+  --nf-btn-glass-shadow:
+    inset 0 1px 0 var(--nf-rim-lit-ink),
+    0 0 18px -6px var(--nf-glow-3);
+  --nf-btn-glass-blur: var(--nf-glass-blur-soft);
+
+  /*
+   * THE TIER BADGE'S TWO METALS (Session A's TierBadge, moved here from
+   * `app/css/trust-badge.css` so no stylesheet under `app/` holds a raw
+   * colour; values unchanged). Gold is the one amber in the product and is
+   * scoped to the badge by rule 8: nothing but `.nf-tier-badge` may read these.
+   */
+  --nf-badge-gold-top: #ffdc20;
+  --nf-badge-gold-mid: #ffd323;
+  --nf-badge-gold-foot: #ffba0c;
+  --nf-badge-gold-tick-top: #f58207;
+  --nf-badge-gold-tick-foot: #d95c00;
+  --nf-badge-platinum-top: #e1e1e1;
+  --nf-badge-platinum-mid: #d6d6d6;
+  --nf-badge-platinum-foot: #c4c4c4;
+  --nf-badge-platinum-tick-top: #666666;
+  --nf-badge-platinum-tick-foot: #454545;
 }
 
 /*

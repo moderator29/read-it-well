@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/Skeleton";
+import { Panel } from "@/components/ui/Panel";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
 
 /**
@@ -37,10 +38,10 @@ export default function LoadingAdminOverview() {
       {Array.from({ length: 2 }, (_, row) => (
         <div key={row} className="nf-admin-grid nf-admin-grid--wide-left">
           {Array.from({ length: 2 }, (_, i) => (
-            <div key={i} className="nf-admin-panel">
+            <Panel as="div" key={i} className="nf-admin-panel">
               <Skeleton width="12rem" height="1.125rem" radius="sm" />
               <Skeleton className="mt-md" width="100%" height="12rem" radius="sm" />
-            </div>
+            </Panel>
           ))}
         </div>
       ))}
