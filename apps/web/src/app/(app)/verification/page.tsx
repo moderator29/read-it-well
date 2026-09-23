@@ -168,7 +168,13 @@ export default async function VerificationPage({
             rest of the own-data screens open on. A2. */}
         <div className="relative">
           <PageScene art="shield-check" />
-          <PageHeader title="Verification" fallback="/verification" />
+          {/* THE FALLBACK USED TO BE `/verification`, which is this screen.
+              It is inert while the route is declared in
+              `lib/nav/route-parents.ts`, and it was a loop waiting for the day
+              the entry was removed: a back control whose fallback is its own
+              address presses into itself. `/profile` is the declared parent and
+              is what this now repeats. */}
+          <PageHeader title="Verification" fallback="/profile" />
         </div>
         {/* The reviewer's words travel INTO the flow. Somebody re-photographing
             a document should not have to remember, from the screen before, which
@@ -197,7 +203,18 @@ export default async function VerificationPage({
           <KycStatus status={status} locale={locale} />
         </>
       ) : (
-        <KycFlow submit={submitVerification} />
+        <>
+          {/* THE BRANCH WITH NO WAY OUT, AND IT IS THE ONE MOST PEOPLE MEET.
+              Two of this page's three states drew a header and the third drew
+              none: somebody who has never sent a document, which includes every
+              signed-out visitor, got the flow and nothing above it. Walked in
+              Chromium at `/verification`, cold: no back control on the page at
+              all. The header is the same one the other two branches draw, and
+              the scene is not repeated here because there is no status object
+              for it to sit behind. */}
+          <PageHeader title="Verification" fallback="/profile" />
+          <KycFlow submit={submitVerification} />
+        </>
       )}
     </div>
   );

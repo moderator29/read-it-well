@@ -1,0 +1,69 @@
+{
+  "base": "http://127.0.0.1:3394",
+  "when": "2026-09-23T11:16:41.667Z",
+  "set": "gated",
+  "surveying": false,
+  "firstRunSeen": true,
+  "rows": [
+    {
+      "pattern": "/inspections",
+      "url": "/inspections",
+      "declaredParent": "/home",
+      "reachable": false,
+      "refused": "redirected to /sign-in"
+    },
+    {
+      "pattern": "/checkout",
+      "url": "/checkout",
+      "declaredParent": "/stays",
+      "reachable": false,
+      "refused": "redirected to /sign-in"
+    },
+    {
+      "pattern": "/assistant",
+      "url": "/assistant",
+      "declaredParent": "/home",
+      "reachable": false,
+      "refused": "redirected to /sign-in"
+    },
+    {
+      "pattern": "/verification",
+      "url": "/verification",
+      "declaredParent": "/profile",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 44,
+        "h": 44
+      },
+      "coldLanded": "/sign-in",
+      "coldAsked": "/profile",
+      "coldTrail": [
+        "/sign-in"
+      ],
+      "coldNote": null,
+      "warmLanded": null,
+      "warmNote": "parent /profile did not load: redirected to /sign-in",
+      "coldCorrect": false,
+      "warmCorrect": false,
+      "coldAskedCorrect": true,
+      "gatedParent": true
+    },
+    {
+      "pattern": "/settings",
+      "url": "/settings",
+      "declaredParent": "/home",
+      "reachable": false,
+      "refused": "redirected to /sign-in"
+    },
+    {
+      "pattern": "/styleguide",
+      "url": "/styleguide",
+      "declaredParent": "/",
+      "reachable": false,
+      "refused": "redirected to /sign-in"
+    }
+  ]
+}

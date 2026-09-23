@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { EmptyState, Section, Stack } from "@/components/app/Screen";
+import { PageHeader } from "@/components/app/PageHeader";
 import { HeldPaymentSheet } from "@/components/app/escrow/HeldPaymentSheet";
 import { resolveSession } from "@/lib/actions/session";
 import { isSettled } from "@/lib/escrow/copy";
@@ -37,7 +38,15 @@ export default async function HeldPaymentsPage() {
   if (session.state !== "signed-in") {
     return (
       <Stack>
-        <Section title="Held payments">
+        {/* THE WAY UP. This screen had none: no header, no arrow, and no inbound
+          link anywhere in the product either, so the only way anybody reaches it
+          is by pressing back from a held payment or by typing the address, and
+          until now both of those were one-way. `/wallet` is the declared parent
+          in `lib/nav/route-parents.ts`; the fallback repeats it for the same
+          reason every other call site passes one, and is never read while the
+          route is declared. */}
+        <PageHeader layout="stacked" title="Held payments" fallback="/wallet" />
+        <Section>
           <EmptyState
             icon="shield-lock"
             title="Sign in to see your held payments"
@@ -53,7 +62,15 @@ export default async function HeldPaymentsPage() {
   if (readFailed) {
     return (
       <Stack>
-        <Section title="Held payments">
+        {/* THE WAY UP. This screen had none: no header, no arrow, and no inbound
+          link anywhere in the product either, so the only way anybody reaches it
+          is by pressing back from a held payment or by typing the address, and
+          until now both of those were one-way. `/wallet` is the declared parent
+          in `lib/nav/route-parents.ts`; the fallback repeats it for the same
+          reason every other call site passes one, and is never read while the
+          route is declared. */}
+        <PageHeader layout="stacked" title="Held payments" fallback="/wallet" />
+        <Section>
           <EmptyState
             icon="alert-triangle"
             title="We could not read your held payments"
@@ -69,7 +86,8 @@ export default async function HeldPaymentsPage() {
 
   return (
     <Stack>
-      <Section title="Held payments">
+      <PageHeader layout="stacked" title="Held payments" fallback="/wallet" />
+      <Section>
         {open.length === 0 ? (
           <EmptyState
             icon="wallet-secure"

@@ -36,7 +36,22 @@
  *                A blank page is its own finding and is never a missing
  *                control.
  *
- * Every one of the four can turn a row into REFUSED, and a refused row is never
+ *   settled      and this one was paid for by the instrument contradicting
+ *                itself. The same URL, the same server, ten minutes apart,
+ *                answered "not-found body served at 200" once and "no control
+ *                drawn" the other time, because a fixed settle is a guess about
+ *                a React commit. A row is now read TWICE and refused unless the
+ *                two reads agree about the not-found body and about whether a
+ *                control is drawn.
+ *   asked        the control's OWN answer, taken off the requests it made,
+ *                separately from where the browser came to rest. `/escrow`
+ *                pushes `/wallet` and a signed-out visitor is gated onto
+ *                `/sign-in`: the control is right and the row read MISMATCH
+ *                until this column existed. A wrong destination and a correct
+ *                destination behind a gate are opposite findings with different
+ *                owners.
+ *
+ * Every one of these can turn a row into REFUSED, and a refused row is never
  * counted as a pass.
  *
  * ===========================================================================
@@ -100,7 +115,23 @@ const OUT = process.env.PROOF_OUT ?? join(REPO, "docs/design/proofs/nav");
  */
 const MAP_FILE = join(REPO, "apps/web/src/lib/nav/route-parents.ts");
 function readMap() {
-  const src = readFileSync(MAP_FILE, "utf8");
+  const whole = readFileSync(MAP_FILE, "utf8");
+  /* ONLY THE HIERARCHY OBJECT, AND THIS COST A RUN.
+   *
+   * The regex below matches `"key": "value",` and that shape now appears twice
+   * more in the file: `NON_NAVIGABLE`, which names every route handler with the
+   * reason it can never carry a back control, and `LITERAL_EXPANSIONS`. Read
+   * whole, the survey walked twenty eight API handlers as if they were screens,
+   * with an English sentence in the "declared parent" column, and reported
+   * `/api/push/key` as a route with no back control. It is JSON.
+   *
+   * So the source is cut to the `ROUTE_PARENTS` literal first. The floor below
+   * is what catches a cut that took too much. */
+  const from = whole.indexOf("export const ROUTE_PARENTS");
+  if (from === -1) throw new Error("REFUSING: ROUTE_PARENTS not found in route-parents.ts");
+  const to = whole.indexOf("\n};", from);
+  if (to === -1) throw new Error("REFUSING: could not find the end of the ROUTE_PARENTS literal");
+  const src = whole.slice(from, to);
   const map = new Map();
   const re = /^\s*"([^"]+)":\s*(ROOT|"([^"]+)")\s*,/gm;
   let m;
@@ -187,6 +218,114 @@ const SUBJECTS = [
 const SURVEY = [...ROUTE_PARENTS.entries()]
   .filter(([pattern, parent]) => parent !== null && !pattern.includes("["))
   .map(([pattern]) => ({ pattern, url: pattern }));
+
+/**
+ * THE ROUTES THE SECOND PASS DECLARED, AND THE ONES IT RE-POINTED.
+ *
+ * `PROOF_SET=added`. Every one of these answered `no-parent-declared` this
+ * morning, or named a parent that was not a screen. Some of them are behind
+ * the signed-out gate and this walk cannot reach them; those rows come back
+ * REFUSED with the redirect that refused them, which is the point. A gated
+ * route shown as a green row would be the same lie as a blank page shown as a
+ * missing control.
+ */
+const ADDED = [
+  { pattern: "/escrow", url: "/escrow" },
+  /* A well-formed id with no row behind it. `readHeldPayment` returns nothing
+     under RLS and the page answers not-found, which the third guard catches.
+     Walked anyway so the refusal is on the record rather than the route being
+     quietly left out. */
+  { pattern: "/escrow/[id]", url: "/escrow/2f1d4c6e-0000-4000-8000-000000000001" },
+  { pattern: "/price", url: "/price" },
+  { pattern: "/price/area/[id]", url: "/price/area/2f1d4c6e-0000-4000-8000-000000000002" },
+  /* The door. These three named `/start`, which is a 307 and not a screen. */
+  { pattern: "/sign-in", url: "/sign-in" },
+  { pattern: "/sign-up", url: "/sign-up" },
+  { pattern: "/auth/callback", url: "/auth/callback" },
+  /* The six console desks nobody had declared. Gated: the proxy sends a
+     signed-out visitor to `/sign-in` before the page runs, so these are
+     expected to refuse here and are R16 to the session that owns them. */
+  { pattern: "/admin/analytics", url: "/admin/analytics" },
+  { pattern: "/admin/operations", url: "/admin/operations" },
+  { pattern: "/admin/queue", url: "/admin/queue" },
+  { pattern: "/admin/settings", url: "/admin/settings" },
+  { pattern: "/admin/supply", url: "/admin/supply" },
+  { pattern: "/admin/listings/[id]", url: "/admin/listings/ed000000-0000-4000-8000-000000000001" },
+  /* The four decks with no index page. Before this pass each of these had a
+     back control pointing at `/preview/<deck>`, which answers not-found. */
+  { pattern: "/preview/b1b/[screen]", url: "/preview/b1b/chooser" },
+  { pattern: "/preview/c1/[screen]", url: "/preview/c1/listing-review" },
+  { pattern: "/preview/imgc/[screen]", url: "/preview/imgc/hotel" },
+  { pattern: "/preview/session-b/[screen]", url: "/preview/session-b/profile" },
+  { pattern: "/preview/session-b/admin/[screen]", url: "/preview/session-b/admin/overview" },
+  { pattern: "/preview/session-b/admin-money/[screen]", url: "/preview/session-b/admin-money/money" },
+  { pattern: "/preview/session-b/admin-review/[desk]", url: "/preview/session-b/admin-review/kyc" },
+  /* THE CONTROL ROW. A deck that DOES have an index page must still go up to
+     its own folder. Without this the seven above would prove only that
+     `/preview` is reachable, not that the rule discriminates. */
+  { pattern: "/preview/[deck]/[screen]/[variant]", url: "/preview/f3/listing/sale" },
+  { pattern: "/preview/[deck]/[screen]", url: "/preview/f3/listing" },
+];
+
+/**
+ * THE DYNAMIC ROUTES THE FIRST SURVEY COULD NOT REACH.
+ *
+ * `PROOF_SET=dynamic`. The first survey walked 110 STATIC declared routes and
+ * left every `[segment]` out, on the correct ground that an invented id 404s
+ * and a 404 counted as "no control" puts good routes on the gap list. The
+ * answer is not to invent an id: it is to use a REAL one. Every id below was
+ * read out of the live database with a SELECT, and the two that have no row
+ * anywhere are marked so rather than fabricated.
+ *
+ * `/u/nobody-holds-this` is deliberately a handle nobody holds. That page
+ * answers for every handle whether it is taken or not, by its own docstring,
+ * so an unclaimed one is a real rendering of the route and avoids putting a
+ * person's address into a proof file.
+ */
+const DYNAMIC = [
+  { pattern: "/listing/[id]", url: "/listing/ed000000-0000-4000-8000-000000000001" },
+  { pattern: "/stay/[id]", url: "/stay/ea000000-0000-4000-8000-000000000001" },
+  { pattern: "/restaurant/[id]", url: "/restaurant/eb000000-0000-4000-8000-000000000006" },
+  { pattern: "/docs/[slug]", url: "/docs/what-vallo-is" },
+  { pattern: "/around/[slug]", url: "/around/yaba-unilag" },
+  { pattern: "/post/[id]", url: "/post/7675fef6-11e0-486a-aff2-c61803b051ec" },
+  { pattern: "/u/[handle]", url: "/u/nobody-holds-this" },
+  { pattern: "/u/[handle]/followers", url: "/u/nobody-holds-this/followers" },
+  { pattern: "/u/[handle]/following", url: "/u/nobody-holds-this/following" },
+  { pattern: "/u/[handle]/edit", url: "/u/nobody-holds-this/edit" },
+  { pattern: "/crypto/[id]", url: "/crypto/btc" },
+  { pattern: "/rent/move-in/[listingId]", url: "/rent/move-in/ed000000-0000-4000-8000-000000000001" },
+  { pattern: "/rent/pay/[inspectionId]", url: "/rent/pay/2f1d4c6e-0000-4000-8000-000000000003" },
+  { pattern: "/profile/setup/[role]", url: "/profile/setup/agent" },
+  { pattern: "/preview/[deck]/[screen]", url: "/preview/f5/agent-dashboard" },
+  /* Signed-in only, every one of them. Walked so the refusal is recorded with
+     the redirect that produced it. */
+  { pattern: "/messages/[id]", url: "/messages/2f1d4c6e-0000-4000-8000-000000000004" },
+  { pattern: "/messages/share/listing/[id]", url: "/messages/share/listing/ed000000-0000-4000-8000-000000000001" },
+  { pattern: "/bookings/[bookingId]", url: "/bookings/2f1d4c6e-0000-4000-8000-000000000005" },
+  { pattern: "/bookings/[bookingId]/review", url: "/bookings/2f1d4c6e-0000-4000-8000-000000000005/review" },
+  { pattern: "/wallet/transactions/[id]", url: "/wallet/transactions/2f1d4c6e-0000-4000-8000-000000000006" },
+  { pattern: "/checkout/[bookingId]", url: "/checkout/2f1d4c6e-0000-4000-8000-000000000005" },
+  { pattern: "/agent/listings/[listingId]/calendar", url: "/agent/listings/ed000000-0000-4000-8000-000000000001/calendar" },
+];
+
+/**
+ * THE FOUR THE FIRST PASS NAMED AS UNREACHABLE, ASKED AGAIN.
+ *
+ * `PROOF_SET=gated`. `/inspections`, `/checkout`, `/assistant` and
+ * `/verification` were reported as drawing their control only behind a
+ * signed-in branch. Three of them sit on a gated first segment and the fourth
+ * does not, which is a distinction the first pass could not make because it
+ * ran against a build with no platform keys at all, where the gate never runs.
+ */
+const GATED = [
+  { pattern: "/inspections", url: "/inspections" },
+  { pattern: "/checkout", url: "/checkout" },
+  { pattern: "/assistant", url: "/assistant" },
+  { pattern: "/verification", url: "/verification" },
+  { pattern: "/settings", url: "/settings" },
+  { pattern: "/styleguide", url: "/styleguide" },
+];
 
 const BACK = "[data-nav-back]";
 
@@ -349,7 +488,41 @@ async function load(page, url) {
     return { ok: false, refused: `redirected to ${landed}`, status, landed };
   }
 
-  const facts = await inspect(page);
+  /* A SIXTH GUARD, AND THE FIRST FIVE WERE WHAT FOUND IT.
+   *
+   * `/crypto/btc` was walked twice in one session, against one server, ten
+   * minutes apart, and answered "not-found body served at 200" once and "no
+   * control drawn" the other time. Both readings came out of this instrument
+   * and they are opposite findings: one says the route is a 404, one says the
+   * route is a page missing its way back. A fixed 700ms settle is a guess about
+   * a React commit, and a guess that is usually right is exactly the shape of
+   * thing that hides the times it is wrong.
+   *
+   * So the page is read TWICE and the two readings must agree about the two
+   * facts a verdict rests on: whether the not-found body is up, and whether a
+   * control is drawn. A third read breaks a tie. A page that never settles is
+   * REFUSED rather than reported, because an unstable page has no answer and
+   * printing one of its two answers is choosing at random. */
+  const same = (a, b) => a.notFound === b.notFound && a.controlCount > 0 === (b.controlCount > 0);
+  let facts = await inspect(page);
+  let second = null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    await page.waitForTimeout(600);
+    second = await inspect(page);
+    if (same(facts, second)) break;
+    facts = second;
+    second = null;
+  }
+  if (second === null) {
+    return {
+      ok: false,
+      refused: "the page never settled: two reads 600ms apart disagreed about the not-found body or the control",
+      status,
+      landed,
+      ...facts,
+    };
+  }
+  facts = second;
   if (unhydrated && facts.controlCount > 0) {
     return { ok: false, refused: unhydrated, status, landed, ...facts };
   }
@@ -366,14 +539,80 @@ async function load(page, url) {
   return { ok: true, status, landed, ...facts };
 }
 
-/** Press the control and report where the browser ended up. */
+/**
+ * Press the control and report where the browser ended up, AND EVERY PLACE IT
+ * WENT THROUGH ON THE WAY.
+ *
+ * THE FINAL URL IS NOT THE CONTROL'S ANSWER. `/escrow` declares `/wallet`, and
+ * `wallet` is a gated segment, so a signed-out press lands on `/sign-in`: the
+ * control did exactly the right thing and the row read MISMATCH. Reporting
+ * only where the browser settled cannot tell a wrong destination from a
+ * correct destination behind a gate, and those are opposite findings with
+ * opposite owners - one is `route-parents.ts` and one is `proxy.ts`.
+ *
+ * So the main frame's committed navigations are collected, same-document
+ * pushes included, and the row carries the whole trail. `asked` is the first
+ * place the control went, which IS the control's answer; `landedAfter` is
+ * where the browser came to rest, which is the person's experience. Both are
+ * written down and neither is allowed to stand in for the other.
+ */
 async function press(page) {
   const before = path(page.url());
+  const trail = [];
+  const onNav = (frame) => {
+    if (frame !== page.mainFrame()) return;
+    const at = path(frame.url());
+    if (trail[trail.length - 1] !== at) trail.push(at);
+  };
+
+  /* WHAT THE CONTROL ASKED FOR CANNOT BE READ OFF `framenavigated`, AND THIS
+     WAS MEASURED RATHER THAN ASSUMED. The first version of this collected
+     committed navigations, and on `/escrow` it reported `asked: /sign-in`. The
+     App Router fetches the parent as an RSC payload first; the proxy answers
+     that fetch with a 307, and the browser only ever COMMITS to `/sign-in`. It
+     never commits to `/wallet`, so a walk watching commits cannot see the
+     destination the control chose, which is the one thing this field exists to
+     report.
+     The REQUEST is where the choice is visible. Everything the page fetches
+     after the click is recorded, minus the static chunks and the assets, and
+     the first same-origin path that is not where we started is what the control
+     asked for. */
+  const requested = [];
+  const ORIGIN = new URL(BASE).origin;
+  const onRequest = (request) => {
+    let at;
+    try {
+      const url = new URL(request.url());
+      if (url.origin !== ORIGIN) return;
+      at = path(request.url());
+    } catch {
+      return;
+    }
+    if (at.startsWith("/_next/") || at.startsWith("/api/") || /\.[a-z0-9]+$/i.test(at)) return;
+    /* A PREFETCH IS NOT A DESTINATION. The App Router fetches the RSC payload
+       of any link that scrolls into view, and one of those arriving inside the
+       press window would be read as the place the control chose. Next marks
+       them with `Next-Router-Prefetch`, so they are dropped by name rather
+       than by timing. */
+    const headers = request.headers();
+    if (headers["next-router-prefetch"] || headers["purpose"] === "prefetch") return;
+    if (requested[requested.length - 1] !== at) requested.push(at);
+  };
+
+  page.on("framenavigated", onNav);
+  page.on("request", onRequest);
+  const finish = (result) => {
+    page.off("framenavigated", onNav);
+    page.off("request", onRequest);
+    const after = trail.filter((at) => at !== before);
+    const asked = requested.filter((at) => at !== before);
+    return { ...result, trail: after, requested: asked, asked: asked[0] ?? after[0] ?? null };
+  };
   const control = page.locator(BACK).first();
   try {
     await control.click({ timeout: 10_000 });
   } catch (error) {
-    return { landedAfter: before, note: `click failed: ${String(error).slice(0, 100)}` };
+    return finish({ landedAfter: before, note: `click failed: ${String(error).slice(0, 100)}` });
   }
   /* A client-side push does not fire a load event, so the URL is polled rather
      than waited on, and a control that does nothing is reported as landing
@@ -385,10 +624,15 @@ async function press(page) {
       { timeout: 10_000 },
     );
   } catch {
-    return { landedAfter: before, note: "the URL never changed" };
+    return finish({ landedAfter: before, note: "the URL never changed" });
   }
+  /* One settle, so a gate's redirect is part of the trail rather than arriving
+     after the row was written. Without it `/escrow` would read as landing on
+     `/wallet` and the gate would be invisible, which is the failure in the
+     other direction. */
   await page.waitForLoadState("load", { timeout: 30_000 }).catch(() => {});
-  return { landedAfter: path(page.url()), note: null };
+  await page.waitForTimeout(700);
+  return finish({ landedAfter: path(page.url()), note: null });
 }
 
 /* ------------------------------------------------------------- the self test */
@@ -423,6 +667,19 @@ async function selfTest(page) {
   if (known.ok && known.controlCount > 0) {
     const moved = await press(page);
     if (moved.landedAfter === "/about") problems.push(`the control on /about did not move the URL (${moved.note ?? "no note"})`);
+    /* 5. AND THE TRAIL SAW IT. `asked` is how this walk tells a wrong
+          destination from a correct one behind a gate, and it is read off
+          `framenavigated`, which is a Chromium behaviour and not a promise. If
+          same-document pushes did not raise it, `asked` would be null on every
+          row, `gatedParent` would be false on every row, and every gated
+          parent would be reported as a WRONG DESTINATION with complete
+          confidence. `/about` pushes `/` and the trail must say so. */
+    if (moved.asked !== "/") {
+      problems.push(
+        `the press on /about landed on ${moved.landedAfter} but the trail read ${JSON.stringify(moved.trail)}: ` +
+          "a client-side push is not being observed, so the 'control asked for' column would be blind",
+      );
+    }
   } else {
     problems.push("/about has no back control, so the press path could not be proved at all");
   }
@@ -431,11 +688,35 @@ async function selfTest(page) {
 }
 
 /* ------------------------------------------------------------------ the walk */
-const page = await browser.newPage({
+/**
+ * A DEVICE THAT HAS BEEN OPENED BEFORE, WHICH IS EVERY DEVICE BUT ONCE.
+ *
+ * `PROOF_FIRST_RUN_SEEN=1` sets `vallo_first_run=seen`, the one first-party
+ * cookie `components/app/welcome/first-run-seen.ts` writes, whose value is the
+ * word `seen` and which identifies nobody.
+ *
+ * Without it `/sign-in` cannot be walked at all: a browser with no cookies is
+ * forwarded to `/welcome?next=/sign-in` before the page runs, so the row comes
+ * back REFUSED with the redirect rather than with anything about the door. A
+ * fresh Chromium context is a first launch, and a first launch is the ONE state
+ * this screen is not usually in. Off by default, because a walk that quietly
+ * arranged its own conditions is a walk nobody can read.
+ */
+const CONTEXT_COOKIES =
+  process.env.PROOF_FIRST_RUN_SEEN === "1"
+    ? [{ name: "vallo_first_run", value: "seen", url: BASE }]
+    : [];
+
+const context = await browser.newContext({
   viewport: { width: 390, height: 844 },
   deviceScaleFactor: 2,
   colorScheme: "dark",
 });
+if (CONTEXT_COOKIES.length > 0) {
+  await context.addCookies(CONTEXT_COOKIES);
+  console.log("context: first run already seen on this device\n");
+}
+const page = await context.newPage();
 
 const problems = await selfTest(page);
 if (problems.length > 0) {
@@ -447,8 +728,18 @@ if (problems.length > 0) {
 console.log("self test: passed (root draws none, not-found refuses, blank is reported, a press moves the URL)\n");
 
 const SURVEYING = process.env.PROOF_SURVEY === "1";
-const WORK = SURVEYING ? SURVEY : SUBJECTS;
-console.log(`walking ${WORK.length} route(s)${SURVEYING ? " (survey: every static declared route)" : ""}\n`);
+/* `PROOF_SET` picks a subject list. It never changes a guard, a press or a
+   verdict: the same instrument walks every list, which is the whole reason
+   there is one instrument. */
+const SETS = { added: ADDED, dynamic: DYNAMIC, gated: GATED, subjects: SUBJECTS };
+const SET_NAME = process.env.PROOF_SET ?? "";
+if (SET_NAME && !SETS[SET_NAME]) {
+  console.error(`REFUSING: PROOF_SET="${SET_NAME}" is not one of ${Object.keys(SETS).join(", ")}`);
+  await browser.close();
+  process.exit(1);
+}
+const WORK = SURVEYING ? SURVEY : (SETS[SET_NAME] ?? SUBJECTS);
+console.log(`walking ${WORK.length} route(s)${SURVEYING ? " (survey: every static declared route)" : SET_NAME ? ` (set: ${SET_NAME})` : ""}\n`);
 
 const say = (line) => { process.stderr.write(line + "\n"); };
 
@@ -490,6 +781,8 @@ for (const subject of WORK) {
 
   const coldPress = await press(page);
   row.coldLanded = coldPress.landedAfter;
+  row.coldAsked = coldPress.asked;
+  row.coldTrail = coldPress.trail;
   row.coldNote = coldPress.note;
 
   /* ---- WARM: the parent, then the child, so the entry behind really IS the
@@ -502,6 +795,8 @@ for (const subject of WORK) {
       if (childLoad.ok && childLoad.controlCount > 0) {
         const warmPress = await press(page);
         row.warmLanded = warmPress.landedAfter;
+        row.warmAsked = warmPress.asked;
+        row.warmTrail = warmPress.trail;
         row.warmNote = warmPress.note;
       } else {
         row.warmLanded = null;
@@ -515,9 +810,20 @@ for (const subject of WORK) {
 
   row.coldCorrect = row.coldLanded === want;
   row.warmCorrect = SURVEYING ? true : row.warmLanded === want;
+  /* The control's own answer, separately from the browser's resting place. A
+     route where these disagree is a route whose parent is behind a gate, and
+     the difference is the finding. */
+  row.coldAskedCorrect = row.coldAsked === want;
+  row.gatedParent = row.coldAskedCorrect && !row.coldCorrect;
   rows.push(row);
   say(
-    `${subject.url.padEnd(20)} drawn  cold->${String(row.coldLanded).padEnd(14)} warm->${String(row.warmLanded).padEnd(14)} want ${want} ${row.coldCorrect && row.warmCorrect ? "OK" : "MISMATCH"}`,
+    `${subject.url.padEnd(20)} drawn  asked->${String(row.coldAsked).padEnd(14)} cold->${String(row.coldLanded).padEnd(14)} warm->${String(row.warmLanded).padEnd(14)} want ${want} ${
+      row.coldCorrect && row.warmCorrect
+        ? "OK"
+        : row.gatedParent
+          ? "CORRECT PUSH, GATED PARENT"
+          : "MISMATCH"
+    }`,
   );
 }
 
@@ -525,12 +831,12 @@ await browser.close();
 
 mkdirSync(OUT, { recursive: true });
 const when = new Date().toISOString();
-const stem = SURVEYING ? "survey" : "walk";
-writeFileSync(join(OUT, `${stem}.json`), JSON.stringify({ base: BASE, when, surveying: SURVEYING, rows }, null, 2));
+const stem = SURVEYING ? "survey" : SET_NAME ? `walk-${SET_NAME}` : "walk";
+writeFileSync(join(OUT, `${stem}.json`), JSON.stringify({ base: BASE, when, set: SET_NAME || null, surveying: SURVEYING, firstRunSeen: CONTEXT_COOKIES.length > 0, rows }, null, 2));
 
 const lines = [
-  "| route | reachable | control drawn | cold press lands | warm press lands | declared parent | verdict |",
-  "|---|---|---|---|---|---|---|",
+  "| route | reachable | control drawn | control asked for | cold press lands | warm press lands | declared parent | verdict |",
+  "|---|---|---|---|---|---|---|---|",
 ];
 for (const r of rows) {
   const verdict = !r.reachable
@@ -539,14 +845,19 @@ for (const r of rows) {
       ? "NO CONTROL"
       : r.coldCorrect && r.warmCorrect
         ? "correct"
-        : "WRONG DESTINATION";
+        : r.gatedParent
+          ? `control correct, parent gated: settled on ${r.coldLanded}`
+          : "WRONG DESTINATION";
   lines.push(
-    `| \`${r.url}\` | ${r.reachable ? "yes" : "no"} | ${r.reachable ? (r.drawn ? "yes" : "NO") : "-"} | ${r.coldLanded ?? "-"} | ${r.warmLanded ?? "-"} | ${r.declaredParent ?? "ROOT"} | ${verdict} |`,
+    `| \`${r.url}\` | ${r.reachable ? "yes" : "no"} | ${r.reachable ? (r.drawn ? "yes" : "NO") : "-"} | ${r.coldAsked ?? "-"} | ${r.coldLanded ?? "-"} | ${r.warmLanded ?? "-"} | ${r.declaredParent ?? "ROOT"} | ${verdict} |`,
   );
 }
 writeFileSync(join(OUT, `${stem}.md`), lines.join("\n") + "\n");
 
 const walked = rows.filter((r) => r.reachable);
 const good = walked.filter((r) => r.drawn && r.coldCorrect && r.warmCorrect);
-console.log(`\n${good.length}/${rows.length} correct; ${rows.length - walked.length} not reached.`);
+const gated = walked.filter((r) => r.drawn && r.gatedParent);
+console.log(
+  `\n${good.length}/${rows.length} correct; ${gated.length} pushed the right parent and were gated on arrival; ${rows.length - walked.length} not reached.`,
+);
 console.log(`written: ${join(OUT, `${stem}.md`)}`);

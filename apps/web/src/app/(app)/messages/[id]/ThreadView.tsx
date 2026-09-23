@@ -592,7 +592,16 @@ export function ThreadView({
       <header
         className={`nf-thread__head${inspected || ceremony ? " nf-page-header--verified" : ""}`}
       >
-        <button type="button" aria-label="Back" onClick={back} className="nf-icon-btn">
+        {/* THE WALKER'S HANDLE; see `components/site/BackButton.tsx`. This
+            thread's control calls the same `useBack` as every other one and was
+            invisible to the browser walk without it. */}
+        <button
+          type="button"
+          aria-label="Back"
+          onClick={back}
+          data-nav-back=""
+          className="nf-icon-btn"
+        >
           <UiIcon name="arrow-left" size={ICON.inline} />
         </button>
         {/*

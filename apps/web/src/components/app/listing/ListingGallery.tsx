@@ -233,6 +233,13 @@ export function ListingGallery({
           type="button"
           onClick={back}
           aria-label={t.common.back}
+          /* THE WALKER'S HANDLE. `scripts/design/proof-nav.mjs` finds every
+             drawn back control by this attribute. Five of the platform's seven
+             back controls did not carry it, so a browser walk reported them as
+             drawing nothing at all and two route lists were built on that
+             reading. The attribute says what the object IS, which is why it is
+             not a class name and not the accessible name. */
+          data-nav-back=""
           className="pointer-events-auto grid h-11 w-11 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-on-media)] bg-[var(--nf-overlay-media)] text-[var(--nf-content-on-media)] backdrop-blur-md transition-transform active:scale-90 motion-reduce:transition-none"
         >
           <UiIcon name="arrow-left" size={16} />

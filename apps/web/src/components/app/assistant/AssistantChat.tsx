@@ -558,6 +558,13 @@ export function AssistantChat({
           type="button"
           aria-label="Back"
           onClick={back}
+          /* THE WALKER'S HANDLE. `scripts/design/proof-nav.mjs` finds every
+             drawn back control by this attribute. Five of the platform's seven
+             back controls did not carry it, so a browser walk reported them as
+             drawing nothing at all and two route lists were built on that
+             reading. The attribute says what the object IS, which is why it is
+             not a class name and not the accessible name. */
+          data-nav-back=""
           className="nf-icon-btn h-11 w-11 shrink-0"
         >
           <UiIcon name="arrow-left" size={20} />

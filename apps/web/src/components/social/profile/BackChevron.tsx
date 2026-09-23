@@ -54,6 +54,15 @@ export function BackChevron({
          string by construction rather than by two people remembering. */
       aria-label={labelled ? undefined : label}
       onClick={back}
+      /* THE WALKER'S HANDLE. `scripts/design/proof-nav.mjs` finds every drawn
+         back control by this attribute, and this component did not carry it, so
+         every screen whose only way back is a chevron read as having none. The
+         district header on `/around/[slug]` is one of those, and its own comment
+         says the header "carries the product's real back control" while a
+         browser walk of that route reported nothing drawn. `data-testid` is not
+         a substitute: it names a test's grip on one surface, this names what the
+         object is on all of them. */
+      data-nav-back=""
       className={labelled ? "nf-social-round nf-social-round--pill" : "nf-social-round"}
       data-testid="profile-back"
     >

@@ -1,0 +1,313 @@
+{
+  "base": "http://127.0.0.1:3394",
+  "when": "2026-09-23T11:16:22.302Z",
+  "set": "dynamic",
+  "surveying": false,
+  "firstRunSeen": true,
+  "rows": [
+    {
+      "pattern": "/listing/[id]",
+      "url": "/listing/ed000000-0000-4000-8000-000000000001",
+      "declaredParent": "/search",
+      "reachable": false,
+      "refused": "not-found body served at 200"
+    },
+    {
+      "pattern": "/stay/[id]",
+      "url": "/stay/ea000000-0000-4000-8000-000000000001",
+      "declaredParent": "/stays",
+      "reachable": false,
+      "refused": "not-found body served at 200"
+    },
+    {
+      "pattern": "/restaurant/[id]",
+      "url": "/restaurant/eb000000-0000-4000-8000-000000000006",
+      "declaredParent": "/restaurants",
+      "reachable": false,
+      "refused": "not-found body served at 200"
+    },
+    {
+      "pattern": "/docs/[slug]",
+      "url": "/docs/what-vallo-is",
+      "declaredParent": "/docs",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/docs",
+      "coldAsked": "/docs",
+      "coldTrail": [
+        "/docs"
+      ],
+      "coldNote": null,
+      "warmLanded": "/docs",
+      "warmAsked": "/docs",
+      "warmTrail": [
+        "/docs"
+      ],
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true,
+      "coldAskedCorrect": true,
+      "gatedParent": false
+    },
+    {
+      "pattern": "/around/[slug]",
+      "url": "/around/yaba-unilag",
+      "declaredParent": "/around",
+      "reachable": false,
+      "refused": "not-found body served at 200"
+    },
+    {
+      "pattern": "/post/[id]",
+      "url": "/post/7675fef6-11e0-486a-aff2-c61803b051ec",
+      "declaredParent": "/around",
+      "reachable": false,
+      "refused": "not-found body served at 200"
+    },
+    {
+      "pattern": "/u/[handle]",
+      "url": "/u/nobody-holds-this",
+      "declaredParent": "/around",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 44,
+        "h": 44
+      },
+      "coldLanded": "/around",
+      "coldAsked": "/around",
+      "coldTrail": [
+        "/around"
+      ],
+      "coldNote": null,
+      "warmLanded": "/around",
+      "warmAsked": "/around",
+      "warmTrail": [
+        "/around"
+      ],
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true,
+      "coldAskedCorrect": true,
+      "gatedParent": false
+    },
+    {
+      "pattern": "/u/[handle]/followers",
+      "url": "/u/nobody-holds-this/followers",
+      "declaredParent": "/u/nobody-holds-this",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 44,
+        "h": 44
+      },
+      "coldLanded": "/u/nobody-holds-this",
+      "coldAsked": "/u/nobody-holds-this",
+      "coldTrail": [
+        "/u/nobody-holds-this"
+      ],
+      "coldNote": null,
+      "warmLanded": "/u/nobody-holds-this",
+      "warmAsked": "/u/nobody-holds-this",
+      "warmTrail": [
+        "/u/nobody-holds-this"
+      ],
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true,
+      "coldAskedCorrect": true,
+      "gatedParent": false
+    },
+    {
+      "pattern": "/u/[handle]/following",
+      "url": "/u/nobody-holds-this/following",
+      "declaredParent": "/u/nobody-holds-this",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 44,
+        "h": 44
+      },
+      "coldLanded": "/u/nobody-holds-this",
+      "coldAsked": "/u/nobody-holds-this",
+      "coldTrail": [
+        "/u/nobody-holds-this"
+      ],
+      "coldNote": null,
+      "warmLanded": "/u/nobody-holds-this",
+      "warmAsked": "/u/nobody-holds-this",
+      "warmTrail": [
+        "/u/nobody-holds-this"
+      ],
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true,
+      "coldAskedCorrect": true,
+      "gatedParent": false
+    },
+    {
+      "pattern": "/u/[handle]/edit",
+      "url": "/u/nobody-holds-this/edit",
+      "declaredParent": "/u/nobody-holds-this",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 44,
+        "h": 44
+      },
+      "coldLanded": "/u/nobody-holds-this",
+      "coldAsked": "/u/nobody-holds-this",
+      "coldTrail": [
+        "/u/nobody-holds-this"
+      ],
+      "coldNote": null,
+      "warmLanded": "/u/nobody-holds-this",
+      "warmAsked": "/u/nobody-holds-this",
+      "warmTrail": [
+        "/u/nobody-holds-this"
+      ],
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true,
+      "coldAskedCorrect": true,
+      "gatedParent": false
+    },
+    {
+      "pattern": "/crypto/[id]",
+      "url": "/crypto/btc",
+      "declaredParent": "/crypto",
+      "reachable": false,
+      "refused": "not-found body served at 200"
+    },
+    {
+      "pattern": "/rent/move-in/[listingId]",
+      "url": "/rent/move-in/ed000000-0000-4000-8000-000000000001",
+      "declaredParent": "/listing/ed000000-0000-4000-8000-000000000001",
+      "reachable": false,
+      "refused": "not-found body served at 200"
+    },
+    {
+      "pattern": "/rent/pay/[inspectionId]",
+      "url": "/rent/pay/2f1d4c6e-0000-4000-8000-000000000003",
+      "declaredParent": "/inspections",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 44,
+        "h": 44
+      },
+      "coldLanded": "/sign-in",
+      "coldAsked": "/inspections",
+      "coldTrail": [
+        "/sign-in"
+      ],
+      "coldNote": null,
+      "warmLanded": null,
+      "warmNote": "parent /inspections did not load: redirected to /sign-in",
+      "coldCorrect": false,
+      "warmCorrect": false,
+      "coldAskedCorrect": true,
+      "gatedParent": true
+    },
+    {
+      "pattern": "/profile/setup/[role]",
+      "url": "/profile/setup/agent",
+      "declaredParent": "/profile/setup",
+      "reachable": false,
+      "refused": "redirected to /sign-in"
+    },
+    {
+      "pattern": "/preview/[deck]/[screen]",
+      "url": "/preview/f5/agent-dashboard",
+      "declaredParent": "/preview/f5",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 36,
+        "h": 36
+      },
+      "coldLanded": "/preview/f5",
+      "coldAsked": "/preview/f5",
+      "coldTrail": [
+        "/preview/f5"
+      ],
+      "coldNote": null,
+      "warmLanded": "/preview/f5",
+      "warmAsked": "/preview/f5",
+      "warmTrail": [
+        "/preview/f5"
+      ],
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true,
+      "coldAskedCorrect": true,
+      "gatedParent": false
+    },
+    {
+      "pattern": "/messages/[id]",
+      "url": "/messages/2f1d4c6e-0000-4000-8000-000000000004",
+      "declaredParent": "/messages",
+      "reachable": false,
+      "refused": "redirected to /sign-in"
+    },
+    {
+      "pattern": "/messages/share/listing/[id]",
+      "url": "/messages/share/listing/ed000000-0000-4000-8000-000000000001",
+      "declaredParent": "/listing/ed000000-0000-4000-8000-000000000001",
+      "reachable": false,
+      "refused": "redirected to /sign-in"
+    },
+    {
+      "pattern": "/bookings/[bookingId]",
+      "url": "/bookings/2f1d4c6e-0000-4000-8000-000000000005",
+      "declaredParent": "/bookings",
+      "reachable": false,
+      "refused": "redirected to /sign-in"
+    },
+    {
+      "pattern": "/bookings/[bookingId]/review",
+      "url": "/bookings/2f1d4c6e-0000-4000-8000-000000000005/review",
+      "declaredParent": "/bookings/2f1d4c6e-0000-4000-8000-000000000005",
+      "reachable": false,
+      "refused": "redirected to /sign-in"
+    },
+    {
+      "pattern": "/wallet/transactions/[id]",
+      "url": "/wallet/transactions/2f1d4c6e-0000-4000-8000-000000000006",
+      "declaredParent": "/wallet/transactions",
+      "reachable": false,
+      "refused": "redirected to /sign-in"
+    },
+    {
+      "pattern": "/checkout/[bookingId]",
+      "url": "/checkout/2f1d4c6e-0000-4000-8000-000000000005",
+      "declaredParent": "/bookings/2f1d4c6e-0000-4000-8000-000000000005",
+      "reachable": false,
+      "refused": "redirected to /sign-in"
+    },
+    {
+      "pattern": "/agent/listings/[listingId]/calendar",
+      "url": "/agent/listings/ed000000-0000-4000-8000-000000000001/calendar",
+      "declaredParent": "/agent/listings",
+      "reachable": false,
+      "refused": "redirected to /sign-in"
+    }
+  ]
+}

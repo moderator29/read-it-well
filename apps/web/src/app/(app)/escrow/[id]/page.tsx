@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { EmptyState, Section, Stack } from "@/components/app/Screen";
+import { PageHeader } from "@/components/app/PageHeader";
 import { EvidenceFiler } from "@/components/app/escrow/EvidenceFiler";
 import { EvidenceList } from "@/components/app/escrow/EvidenceList";
 import { HeldPaymentControls } from "@/components/app/escrow/HeldPaymentControls";
@@ -50,7 +51,12 @@ export default async function HeldPaymentPage({
   if (readFailed) {
     return (
       <Stack>
-        <Section title="Held payment">
+        {/* The way up is the list of held payments and not the conversation this
+          was proposed in: an agreement id is not a conversation id, so the
+          thread cannot be addressed from what this route captures, and the same
+          link arrives by email where there is no thread at all. */}
+        <PageHeader layout="stacked" title="Held payment" fallback="/escrow" />
+        <Section>
           <EmptyState
             icon="alert-triangle"
             title="We could not read this"
@@ -67,7 +73,8 @@ export default async function HeldPaymentPage({
 
   return (
     <Stack>
-      <Section title="Held payment">
+      <PageHeader layout="stacked" title="Held payment" fallback="/escrow" />
+      <Section>
         <HeldPaymentSheet payment={payment} />
         <p className="nf-esc-line">{SET_ASIDE_SENTENCE}</p>
         {custody ? <p className="nf-esc-line">{custody}</p> : null}
