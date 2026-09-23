@@ -7,22 +7,32 @@
 # scripts/check-valuation-words.mjs` in apps/web, so the CSS token check and
 # the valuation-words check ride in with it.
 #
-# The build is a separate job because it is the slow one and the one most
-# likely to need an environment later. Today `next build` passes without any
-# env, so it runs here with none; if it
-# ever needs a key, it gets a repository variable, never a secret in this file.
+# `npm ci`, never `npm install`: production (Vercel) builds from
+# package-lock.json, so the lockfile tree is the only tree worth testing
+# (DOC-01, DOC-02). A separate, non-required `audit` job fails on a high or
+# critical advisory in the production dependencies, so a vulnerable pin cannot
+# sit in the lock unseen without an advisory service outage blocking a merge.
+#
+# THE BUILD COMPILES PRODUCTION'S CONFIG (DOC-P2-02). `next.config.ts` and
+# several `NEXT_PUBLIC_*` branches fold at build time, so a build with no env
+# compiles a program that never ships. The Build job therefore gets the same
+# PUBLIC values Vercel has: the Supabase project URL and publishable key, the
+# site URL and the MapTiler key. None of them is a secret (all four are in the
+# browser bundle), and they come from repository VARIABLES (Settings, Secrets
+# and variables, Actions, Variables), never secrets, except the two addresses,
+# which fall back to their known values. A missing variable is a loud warning
+# in the run, not a silent no-env build.
 #
 # IT NO LONGER WAITS FOR `checks`, AND THAT IS THE POINT OF THIS EDIT.
-# `next build` is the ONLY gate that sees a type re-export from a "use server"
-# module: TypeScript erases it, no test can reach it, and the CSS checker has
-# nothing to say about it. That line took production down for twenty minutes
-# on 19 September 2026. With `needs: checks` the
-# build was skipped entirely whenever a typecheck, a lint warning-turned-error
-# or one red test failed for an unrelated reason, which is exactly the shape of
-# the day that outage happened: the one gate that could see it did not run.
-# The two jobs are independent now, so a push always gets the build's answer.
-# The cost is one extra runner on a red branch, which is worth far less than
-# twenty minutes of production.
+# A type re-export from a "use server" module took production down for twenty
+# minutes on 19 September 2026. TypeScript erases it and no unit test reaches
+# it; two gates see it: lint (`nf/server-actions-export-only-actions`) and
+# `next build` (DOC-P2-01). With `needs: checks` the build was skipped
+# entirely whenever a typecheck, lint or one red test failed for an unrelated
+# reason, which is exactly the shape of the day that outage happened. The two
+# jobs are independent now, so a push always gets the build's answer. The cost
+# is one extra runner on a red branch, which is worth far less than twenty
+# minutes of production.
 name: CI
 
 on:
@@ -55,11 +65,11 @@ jobs:
       - name: Install
         run: npm ci
 
-      # All three run on every push, not just up to the first red one. A run
-      # that stops at the typecheck tells a developer one thing about their branch
-      # and hides two, which costs a round trip each time; the job still fails
-      # if any of them does. `!cancelled()` rather than `always()`, so a
-      # cancelled run stops properly.
+      # All of these run on every push, not just up to the first red one. A
+      # run that stops at the typecheck tells a developer one thing about their
+      # branch and hides the rest, which costs a round trip each time; the job
+      # still fails if any of them does. `!cancelled()` rather than
+      # `always()`, so a cancelled run stops properly.
       - name: Typecheck
         run: npm run typecheck
 
@@ -71,10 +81,32 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run test
 
+  # Its own job, and NOT one of the required checks: a new advisory with no
+  # fix yet, or the npm audit service being down, must not turn the
+  # deterministic gate above red. A red run here is a notice to act on.
+  audit:
+    name: Advisories (production dependencies)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: npm audit
+        run: npm audit --omit=dev --audit-level=high
+
   build:
     name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://uccixoonmbhrnyczyigt.supabase.co' }}
+      NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://www.vallospaces.com' }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_MAPTILER_KEY: ${{ vars.NEXT_PUBLIC_MAPTILER_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -86,6 +118,14 @@ jobs:
 
       - name: Install
         run: npm ci
+
+      - name: Say which production values this build is missing
+        run: |
+          for v in NEXT_PUBLIC_SUPABASE_ANON_KEY NEXT_PUBLIC_MAPTILER_KEY; do
+            if [ -z "${!v}" ]; then
+              echo "::warning title=Build is not production-shaped::Repository variable $v is not set, so this build compiles branches production never takes. Add it under Settings > Secrets and variables > Actions > Variables (it is public, not a secret)."
+            fi
+          done
 
       - name: Build
         run: npm run build
