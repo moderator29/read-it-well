@@ -580,7 +580,7 @@ export function badgeTierOf(value: unknown): BadgeTier | null {
 
 /**
  * Each person's badge tier, READ from `public.person_badge` through the
- * console's one tier read (`getPersonTiers`, reads/shared.ts), never derived
+ * console's one tier read (`getPersonTiers`, lib/admin/reads/shared.ts), never derived
  * here. An absent row or a failed read is no badge.
  */
 export async function getBadgeTiers(userIds: readonly string[]): Promise<Map<string, BadgeTier>> {
