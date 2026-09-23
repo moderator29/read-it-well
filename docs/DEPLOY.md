@@ -548,8 +548,9 @@ deploy.
 - **Push is built and unproven.** Web Push (VAPID) is configured; FCM is set
   on Production only (Preview reports Android push unconfigured, by design);
   APNs is not configured, and `android/app/google-services.json` still holds a
-  placeholder API key that fails every release build. No device has enrolled
-  yet (`push_tokens` is empty).
+  placeholder API key that fails every release build. No real device has
+  enrolled yet: at 23:47 UTC on 23 September `push_tokens` held one web token, a
+  test enrolment that was revoked 28 seconds later.
 - **CI exists but does not gate.** `.github/workflows/ci.yml` runs typecheck,
   lint, tests and a build, and `main` has no branch protection
   (THE_AUDIT DOC-01).

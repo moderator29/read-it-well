@@ -165,9 +165,10 @@ section 1. `SUPABASE_AUTH_HOOK_SECRET` is set; without it the route refuses
 every request with 401 by design, because an endpoint whose protection is
 optional ships unprotected the first time a variable is forgotten.
 
-The transactional outbox is proven the same way: `public.email_outbox` holds
-a row SENT at 16:00:05 UTC on 23 September after a real sign-up (and one
-PENDING, drained every fifteen minutes by `/api/cron/email-outbox`).
+The transactional outbox is proven the same way. Measured at 23:47 UTC on 23
+September, `public.email_outbox` holds 5 rows, all SENT (15:57 to 20:39 UTC),
+the first after a real sign-up, and none PENDING. `/api/cron/email-outbox`
+drains it every fifteen minutes.
 
 **What is still missing is the reply path, not the send path.**
 `EMAIL_REPLY_TO` is not set and `vallospaces.com` has no MX, so a reply to any
@@ -293,8 +294,8 @@ welcome, it is a surprise. The triggers fire forward only.
 ## 5. What a person should do next, in order
 
 **Updated 23 September 2026.** `RESEND_API_KEY` is set, the Send Email Hook is
-on, and a real sign-up's welcome left through the outbox (a row SENT at
-16:00:05 UTC). What remains:
+on, and every row in the outbox has been sent (5 SENT, 0 PENDING at 23:47 UTC on
+23 September). What remains:
 
 1. **Check finding 1 is closed** before relying on withdrawal emails: two
    sends about the same failed withdrawal is the defect it describes.

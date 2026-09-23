@@ -110,8 +110,9 @@ rule, under which a stranger could browse the catalogue.
   `careers`, `contact`, `docs`, `help`), every legal and policy page (`terms`,
   `privacy`, `eula`, `cancellations`, `standards`, `safety`),
   `delete-account` (a store requirement, and the only way back from a deletion
-  in progress), the sign-in and sign-up doors, `welcome` (first run), `offline`,
-  and the webhook, cron and support API routes that authenticate themselves.
+  in progress), the sign-in and sign-up doors, `start` (the browser install
+  page), `welcome` (first run), `offline`, the `preview` and `gallery` fixture
+  harnesses (which answer not-found on Vercel regardless), and the webhook, cron and support API routes that authenticate themselves.
   Everything else, including `search`, `listing`, `stays`, `restaurants`,
   `around` and `u`, redirects to sign-in and carries the address back.
 - `apps/web/tests/gate.spec.mjs` walks the open list in a browser.
@@ -123,15 +124,24 @@ engine (`app/sitemap.ts` publishes no listing URL), a shared listing link
 unfurls as a sign-in page, and both app stores need reviewer credentials
 (`docs/STORE_SUBMISSION_NOTES.md`).
 
-**The public catalogue flag.** Apple's guideline 5.1.1(v) makes a catalogue
-behind a sign-in wall a likely rejection (THE_AUDIT STORE-P2-04). The answer
-being built is a flag that, when switched on, opens a read-only catalogue to
-signed-out visitors (search, stays, restaurants and a listing's own page),
-while `/u`, messages, the wallet, every action and every exact address stay
-behind sign-in and anonymous reads are rate-limited. With the flag off, the
-ruling above holds exactly. Whether to switch it on for a store submission is
-the founder's decision; the flag's name and default are documented in
-`docs/ENVIRONMENT.md` once it ships.
+**The public catalogue flag, `VALLO_PUBLIC_CATALOGUE`.** Apple's guideline
+5.1.1(v) makes a catalogue behind a sign-in wall a likely rejection (THE_AUDIT
+STORE-P2-04). The flag is server-only and read by `proxy.ts` on every request,
+so switching it needs an environment change and a redeploy, not a code change.
+
+- **Off (the default):** unset, or any value other than `1`, `true` or `on`.
+  The ruling above holds exactly.
+- **On:** signed-out visitors can open `/search`, `/stays`, `/restaurants`,
+  `/listing/*`, `/stay/*` and `/restaurant/*` read-only. Anonymous page
+  requests are rate-limited per IP. `/u`, messages, the wallet, bookings and
+  every action stay behind sign-in either way, and an exact address is never
+  selected for a signed-out reader (the address columns are not granted to
+  anon).
+- **The native app starts on `/open`**, a public route: signed in goes to
+  `/home`; signed out goes to `/search` when the flag is on and to `/welcome`
+  when it is off.
+
+Whether to switch it on for a store submission is the founder's decision.
 
 **The roles.**
 
@@ -319,7 +329,7 @@ Use these words. Do not invent synonyms.
 | **Agent** | A verified supplier who lists | Host, landlord, vendor, seller |
 | **Member** | A signed-in person who is not an agent | User, customer, guest, unless they are actually staying |
 | **Guest** | A member who has booked a stay | |
-| **Stay** | A nightly booking | Reservation, unless it is a restaurant table. **Trips** is the name of the Stays side's surface for your stays (`/trips`), by founder ruling of 18 September 2026 |
+| **Stay** | A nightly booking | Reservation, unless it is a restaurant table. ("Trips" is the Stays surface that lists them, `/trips`.) |
 | **Reservation** | A restaurant table request | |
 | **Around** | The social layer | Feed, community, compound. A compound is a different thing in Nigerian property |
 | **Place** | A named area inside Around, backed by a local government | Hub, district, neighbourhood |
@@ -333,8 +343,9 @@ Use these words. Do not invent synonyms.
 **Banned in UI copy:** `demo`, `sample`, `preview`, `not live`, `coming soon`,
 `lorem`. Enforced by the vitest scan in `apps/web/src/lib/copy/`
 (`banned-phrases.test.ts`), which runs with `npm test`. The synonyms in the
-"Not" column above are guidance: the table meant to enforce them
-(`BANNED_SYNONYMS`) is empty today (THE_AUDIT DOC-08). The ban exists because this repository once
+"Not" column above are enforced by `BANNED_SYNONYMS` only where no product
+string still uses them; the rest join that list in the change that rewrites
+their copy (THE_AUDIT DOC-08). The ban exists because this repository once
 shipped twenty-three invented places, twenty-two of them carrying
 `verified: true` with fabricated ratings on addresses that do not exist. Any
 example content must say what it is in plain words and must never carry a trust

@@ -5314,7 +5314,7 @@ Verdict key: **T** = true as far as I checked. **P** = partly true (specific fal
 |---|---|---|
 | `/checkout` with no booking id (QA member) | CORRECTLY EMPTY | Redirects to `/stays`. The QA member has no booking; zero bookings exist. So I could not axe-audit a real payment panel. |
 | `/search` and `/stays` signed out | NOT EMPTY, REDIRECTED | Redirects to `/welcome?next=/sign-in?...notice=sign-in-required`. Whether browsing must require sign-in is a product decision; flagged to the relevant agent, not filed here. |
-| `email_outbox`, escrow and push drains "green over nothing" | CORRECTLY EMPTY | Per the docs and the brief. I did not re-query. **Update, 23 September:** `email_outbox` now holds two rows, one SENT at 16:00:05 after a real sign-up and one PENDING, so the email path is proven end to end against a real event. `push_tokens` is still 0: no push has been proven. |
+| `email_outbox`, escrow and push drains "green over nothing" | CORRECTLY EMPTY | Per the docs and the brief. I did not re-query. **Update, measured 23:47 UTC on 23 September:** `email_outbox` holds 5 rows, all SENT (15:57 to 20:39 UTC), 0 PENDING. The first was sent after a real sign-up, so the email path is proven end to end against a real event. `push_tokens` holds 1 row: a web token created at 23:07:53 and revoked at 23:08:21, a test enrolment rather than a user's device. No push delivery has been proven. |
 
 *Pass-two note:* the signed-out redirect on `/search` and `/stays` is now filed as STORE-P2-04 (HIGH) in the stores area.
 
