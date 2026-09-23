@@ -3436,12 +3436,13 @@
     /* Where the image draws it: its centre 30 CSS px in from the screen's
        edge, so 1px of air (`BLOOM_PLUS.inset` in physics.ts). */
     inset-inline-end: 1px;
-    /* 15px above the dock's top, where the image seats it (25 image px from
-       the plus's foot to the dock), read from the dock's own geometry so the
-       two cannot drift apart. */
+    /* The plus's centre 41.8 CSS above the dock's top, where the image seats
+       it (71.2 image px; re-measured against the real dock in the shelled
+       harness after the independent audit), so its foot is 12.8 above the
+       dock. Read from the dock's own geometry so the two cannot drift. */
     bottom: calc(
       var(--nf-dock-offset) + env(safe-area-inset-bottom, 0px) + var(--nf-dock-height) +
-        var(--nf-dock-lift) + 15px
+        var(--nf-dock-lift) + 12.8px
     );
     /* Chrome while closed: under anything that opens over the page. */
     z-index: var(--nf-z-sticky);

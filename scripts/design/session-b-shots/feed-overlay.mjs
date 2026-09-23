@@ -134,6 +134,8 @@ const built = await page.evaluate((d) => {
     };
   });
   const fab = q(".nf-bloom__fab").getBoundingClientRect();
+  const dockEl = q(".nf-tabbar");
+  const dock = dockEl ? dockEl.getBoundingClientRect() : null;
   return {
     "location bar": box(q(".nf-feed-chip")),
     "segment": box(q(".nf-feed-seg")),
@@ -161,6 +163,8 @@ const built = await page.evaluate((d) => {
     "card 1 photo": box(q(".nf-post__media", 0)),
     "card 2": box(q(".nf-panel.nf-post", 1)),
     plus: { cx: (fab.x + fab.width / 2) * d, cy: (fab.y + fab.height / 2) * d, w: fab.width * d, h: fab.height * d },
+    dock: dock ? { top: dock.top * d, bottom: dock.bottom * d, h: dock.height * d } : null,
+    viewportH: window.innerHeight * d,
     plates,
   };
 }, D);
@@ -197,6 +201,16 @@ for (const p of built.plates) {
   lines.push(
     `| ${p.name} (bloom-aligned) | c ${drawn.cx},${drawn.cy} tilt ${drawn.deg} | c ${fmt(cx)},${fmt(cy)} ${fmt(p.w)}x${fmt(p.h)} tilt ${p.deg} | ${fmt(cx - drawn.cx)},${fmt(cy - drawn.cy)} tilt ${fmt(p.deg - drawn.deg)} |`,
   );
+}
+/* The fan against the dock and the screen's foot (image: dock 1370 to 1469,
+   screen foot 1476, plus centre 1298.8). The harness renders the real shell. */
+if (built.dock) {
+  const k = 390 / (SCREEN.right - SCREEN.left);
+  const css = (v) => fmt(v * k);
+  lines.push(`| plus centre to dock top | 71.2 (${css(71.2)} CSS) | ${fmt(built.dock.top - built.plus.cy)} (${css(built.dock.top - built.plus.cy)} CSS) | ${fmt(built.dock.top - built.plus.cy - 71.2)} |`);
+  lines.push(`| dock height | 99 (${css(99)} CSS) | ${fmt(built.dock.h)} (${css(built.dock.h)} CSS) | ${fmt(built.dock.h - 99)} |`);
+  lines.push(`| dock foot to screen foot | 7 (${css(7)} CSS) | ${fmt(built.viewportH - built.dock.bottom)} (${css(built.viewportH - built.dock.bottom)} CSS) | ${fmt(built.viewportH - built.dock.bottom - 7)} |`);
+  lines.push(`| plus centre to screen foot | 177.2 (${css(177.2)} CSS) | ${fmt(built.viewportH - built.plus.cy)} (${css(built.viewportH - built.plus.cy)} CSS) | ${fmt(built.viewportH - built.plus.cy - 177.2)} |`);
 }
 const table = lines.join("\n");
 console.log(table);
