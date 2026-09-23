@@ -39,8 +39,8 @@ export type ListingReviewProps = {
   sqm: string;
   statusLabel: (status: string) => string;
   backHref: string;
-  /** Map tile template and credit, from the product's own provider. */
-  tiles: { dark: string; light: string; credit: string };
+  /** Map tile template and credit, from the product's own provider (dark only). */
+  tiles: { dark: string; credit: string };
   /** The action bar, or the closed notice for a decided listing. */
   actions: ReactNode;
   /**
@@ -480,18 +480,15 @@ function LocationMap({
   place: string;
   latitude: number | null;
   longitude: number | null;
-  tiles: { dark: string; light: string; credit: string };
+  tiles: { dark: string; credit: string };
 }) {
   const dark = latitude !== null && longitude !== null ? tileMosaic(latitude, longitude, tiles.dark) : null;
-  const light = latitude !== null && longitude !== null ? tileMosaic(latitude, longitude, tiles.light) : null;
+
   return (
     <div className="nf-rv-map">
-      {dark && light ? (
+      {dark ? (
         <>
-          {[
-            { mosaic: dark, cls: "nf-rv-map__tiles nf-rv-map__tiles--dark" },
-            { mosaic: light, cls: "nf-rv-map__tiles nf-rv-map__tiles--light" },
-          ].map(({ mosaic, cls }) => (
+          {[{ mosaic: dark, cls: "nf-rv-map__tiles" }].map(({ mosaic, cls }) => (
             <div
               key={cls}
               className={cls}

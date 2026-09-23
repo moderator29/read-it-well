@@ -1015,10 +1015,6 @@
     background-size: cover;
   }
 
-  .nf-rv-map__tiles--light {
-    display: none;
-  }
-
   .nf-rv-map__pin {
     position: absolute;
     left: 50%;
@@ -1292,74 +1288,4 @@
       padding: 0 var(--nf-space-sm);
     }
   }
-}
-
-/* ------------------------------------------------------------ paper */
-/*
- * LIGHT MODE IS WRITTEN, NOT DERIVED. On paper the panels are white cards
- * with the brand edge, the table's dividers go quiet grey, the badges keep
- * their ink on a pale wash with dark text, and the plates behind the utility
- * glyphs become pale brand wells with brand ink so no dark tile sits on a
- * white page.
- */
-:root[data-theme="light"] .nf-rv-tab,
-:root[data-theme="light"] .nf-rv-pager__item,
-:root[data-theme="light"] .nf-rv-back,
-:root[data-theme="light"] .nf-rv-btn--quiet {
-  background: var(--nf-surface-primary);
-  border-color: var(--nf-brand-edge);
-}
-
-:root[data-theme="light"] .nf-rv-tab[aria-current="page"],
-:root[data-theme="light"] .nf-rv-pager__item[aria-current="page"] {
-  background: linear-gradient(180deg, color-mix(in oklab, var(--nf-brand-primary) 85%, var(--nf-content-on-brand)), var(--nf-brand-primary-strong));
-  border-color: var(--nf-brand-primary);
-  color: var(--nf-content-on-brand);
-}
-
-:root[data-theme="light"] .nf-rv-badge {
-  background: color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 12%, var(--nf-surface-primary));
-  color: color-mix(in oklab, var(--rv-ink, var(--nf-brand-primary)) 80%, var(--nf-content-primary));
-  box-shadow: none;
-}
-
-:root[data-theme="light"] .nf-rv-plate {
-  background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-primary));
-  color: var(--nf-brand-primary);
-  box-shadow: none;
-}
-
-:root[data-theme="light"] .nf-rv-avatar {
-  background: color-mix(in oklab, var(--nf-brand-primary) 14%, var(--nf-surface-primary));
-  color: var(--nf-brand-primary);
-}
-
-:root[data-theme="light"] .nf-rv-field,
-:root[data-theme="light"] .nf-rv-thumb,
-:root[data-theme="light"] .nf-rv-media > *,
-:root[data-theme="light"] .nf-rv-map {
-  background: var(--nf-surface-inset);
-}
-
-:root[data-theme="light"] .nf-rv-field::placeholder {
-  color: var(--nf-content-muted);
-}
-
-:root[data-theme="light"] .nf-rv-map__tiles--dark {
-  display: none;
-}
-
-:root[data-theme="light"] .nf-rv-map__tiles--light {
-  display: grid;
-}
-
-:root[data-theme="light"] .nf-rv-map__place {
-  text-shadow: 0 1px 6px var(--nf-surface-primary);
-}
-
-:root[data-theme="light"] .nf-rv-spark__line,
-:root[data-theme="light"] .nf-rv-donut__arc,
-:root[data-theme="light"] .nf-rv-dot {
-  filter: none;
-  box-shadow: none;
 }
