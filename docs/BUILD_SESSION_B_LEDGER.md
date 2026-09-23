@@ -4249,6 +4249,14 @@ overflow 0 on every shot.
 
 (Apply, per-route table, after proofs and Passes 1 to 3: pending Phase 1 RELEASED.)
 
+**Founder's second message, taken in (23 September).** At least three dated audit passes per
+route (none of this group's routes is on the five-pass list; the thread booking card is the
+messages group's), recorded below as Pass 1, 2, 3 with what each found and fixed. The extra
+glow and the glass reflection come ONLY from the shared tokens and primitives Phase 1 ships:
+nothing in `stays.css` or `escrow.css` will restate a sheen, rim or glow value. A route closes
+only when no old local recipe is left on it; items drawn by another group's file are recorded
+per route as not closable here, never as done.
+
 ## 13. Platform sweep: settings (settings and every child, notifications, the system pages; worker "sweep-settings")
 
 Group files (scope ccf594ba, claimed in full in the scope file's sweep section): `app/settings-rows.css`,
