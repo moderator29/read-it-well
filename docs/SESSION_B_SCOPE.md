@@ -358,6 +358,33 @@ Each group appends "RELEASED <commit>" here when it is done.
     S5 is the leftovers worker's (shared status badge).
     **RELEASED c7639c33** (23 September): S1, S2, S3, S6, S7, S8 fixed and
     measured, ledger 13, audit fixes. The claim is released.
+  - **the second audit's fixes S-A to S-G, the thread card and inspection
+    differences and the S9 remainder (worker "final", claimed 23 September by
+    the lead's instruction; every other worker has finished; held for the
+    duration of the fix):** `apps/web/src/app/css/threads.css` (ONLY
+    `.nf-chat-card__badge`), `apps/web/src/components/app/messages/ChatCard.tsx`
+    (ONLY the badge), `app/(app)/messages/[id]/ThreadOptionsSheet.tsx` (ONLY the
+    header rows), `app/(app)/messages/[id]/ThreadView.tsx` (ONLY the header's
+    options glyph and name), `app/(app)/restaurant/[id]/page.tsx` and a new
+    `app/(app)/restaurant/[id]/RestaurantFace.tsx` (the route's face lifted so the
+    harness can draw it), `app/(dev)/preview/session-b/sweep-stays/restaurant/page.tsx`,
+    `app/(app)/around/page.tsx` and `app/social-feed.css` (ONLY the feed page's
+    top spacing), `app/css/catalogue.css` (ONLY `.nf-pcard__heart` and
+    `.nf-shelf-field__go` hit areas), `app/css/wallet.css` (ONLY
+    `.nf-send-row__input` height), `app/css/site.css` (ONLY the newsletter field
+    heights), `app/css/landing.css` (ONLY `.nf-landing-pill-seg` and the pill
+    field input heights), `app/css/admin.css` (ONLY `.nf-admin-select`
+    height), `app/(app)/bookings/MyBookings.tsx`,
+    `components/app/bookings/CancelBookingSheet.tsx`,
+    `app/agent/listings/ListingsWorkspace.tsx`,
+    `components/app/listing/ListingAbout.tsx`, `components/app/place/ChoicePicker.tsx`,
+    `app/(app)/listing/[id]/ReserveTable.tsx`, `components/host/stays/StaysParts.tsx`,
+    `app/admin/reference/ReferenceEditors.tsx` (ONLY the hit areas of the named
+    controls), `app/(site)/docs/DocsSidebar.tsx` (ONLY the selected chapter),
+    `packages/i18n/src/locales/en.ts` (ONLY `agentAnalytics.emptyBody`), the
+    ledger section "13. Platform sweep: audit 2 fixes" and the chrome, social,
+    feed and inspection ledger rows it records into, proofs
+    `docs/design/proofs/session-b/audit2-fixes/**`.
 
 ### Sweep group: home, search and filters, listing detail (worker "sweep-home")
 Routes: `/home`, `/stays` (the home components only; `StayCard` is the stays
