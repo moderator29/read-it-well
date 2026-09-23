@@ -145,7 +145,7 @@ function Earned({
         />
       </ui.StatRow>
 
-      <div className="nf-card">
+      <div className="nf-panel nf-panel--card nf-admin-card">
         <ul className="nf-rows nf-group">
           {summary.bySource.map((line) => (
             <li key={line.source} className="nf-row">
@@ -170,7 +170,7 @@ function Earned({
       {summary.recent.length > 0 && (
         <div className="mt-block">
           <h3 className="nf-overline">The most recent entries</h3>
-          <div className="nf-card mt-heading">
+          <div className="nf-panel nf-panel--card nf-admin-card mt-heading">
             <ul className="nf-rows nf-group">
               {summary.recent.map((entry) => (
                 <li key={entry.id} className="nf-row">
@@ -213,7 +213,7 @@ function FeeSection({
   const live = rates.find((r) => r.inForce);
 
   return (
-    <section className="nf-card nf-section--tight p-card">
+    <section className="nf-panel nf-panel--card nf-admin-card nf-section--tight p-card">
       <h2 className="nf-h4">{title}</h2>
       <p className="nf-body-sm mt-row max-w-[68ch] text-content-2">{blurb}</p>
 

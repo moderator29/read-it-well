@@ -127,7 +127,7 @@ export function ReservationDecisions({
            the blue conic rim that catches where the light enters and leaves,
            the inner catchlight, the elevation rung. No new class, no second
            material for the one panel that takes a table away. */
-        <div className="nf-card p-card-sm">
+        <div className="nf-panel nf-panel--card nf-admin-card p-card-sm">
           <p className="nf-body font-semibold text-content">
             {WORDS[chosen].verb} for {guestName} at {placeName}?
           </p>

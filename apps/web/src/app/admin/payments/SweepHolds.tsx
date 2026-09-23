@@ -93,7 +93,7 @@ export function SweepHolds({
   }
 
   return (
-    <div className="nf-card p-card">
+    <div className="nf-panel nf-panel--card nf-admin-card p-card">
       <p className="nf-h4">Release the stuck holds</p>
       <p className="nf-body-sm mt-row max-w-[68ch] text-content-2">
         A withdrawal whose transfer never came back leaves a pending debit on the

@@ -177,7 +177,7 @@ export function OccupationEditor({ rows }: { rows: Occupation[] }) {
       </div>
 
       {adding && (
-        <div className="nf-card mb-sm p-md">
+        <div className="nf-panel nf-panel--card nf-admin-card mb-sm p-md">
           <OccupationForm mode="create" onSaved={saved} />
         </div>
       )}
@@ -193,7 +193,7 @@ export function OccupationEditor({ rows }: { rows: Occupation[] }) {
 
       <ul className="flex flex-col gap-xs">
         {filtered.map((row) => (
-          <li key={row.code} className="nf-card p-md">
+          <li key={row.code} className="nf-panel nf-panel--card nf-admin-card p-md">
             <button
               type="button"
               onClick={() => setOpenCode(openCode === row.code ? null : row.code)}
@@ -358,7 +358,7 @@ export function LocalGovernmentEditor({
       </div>
 
       {adding && (
-        <div className="nf-card mb-sm p-md">
+        <div className="nf-panel nf-panel--card nf-admin-card mb-sm p-md">
           <LocalGovernmentForm mode="create" states={states} onSaved={saved} />
         </div>
       )}
@@ -395,7 +395,7 @@ export function LocalGovernmentEditor({
 
       <ul className="flex flex-col gap-xs">
         {filtered.map((row) => (
-          <li key={row.code} className="nf-card p-md">
+          <li key={row.code} className="nf-panel nf-panel--card nf-admin-card p-md">
             <button
               type="button"
               onClick={() => setOpenCode(openCode === row.code ? null : row.code)}

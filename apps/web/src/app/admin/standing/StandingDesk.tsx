@@ -51,7 +51,7 @@ export function StandingDesk({
   return (
     <div className="space-y-lg">
       {/* --------------------------------------------------------- grant */}
-      <form action={formAction} noValidate className="nf-card p-md sm:p-lg">
+      <form action={formAction} noValidate className="nf-panel nf-panel--card nf-admin-card p-md sm:p-lg">
         <h2 className="text-[length:var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]">
           Grant standing
         </h2>
@@ -134,7 +134,7 @@ export function StandingDesk({
       <section>
         <h2 className="nf-h3 mb-sm text-[length:var(--nf-text-body)]">Every grant, and who signed for it</h2>
         {grants.length === 0 ? (
-          <div className="nf-card p-lg text-center">
+          <div className="nf-panel nf-panel--card nf-admin-card p-lg text-center">
             <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
               Nobody has been granted standing yet
             </p>
@@ -146,7 +146,7 @@ export function StandingDesk({
         ) : (
           <ul className="nf-queue-list">
             {grants.map((grant) => (
-              <li key={`${grant.userId}-${grant.badgeCode}`} className="nf-card p-md">
+              <li key={`${grant.userId}-${grant.badgeCode}`} className="nf-panel nf-panel--card nf-admin-card p-md">
                 <div className="flex flex-wrap items-center gap-xs">
                   <span className="nf-badge nf-badge--brand">{grant.badgeName}</span>
                   {/* `.nf-badge` alone paints no fill and no colour, so this

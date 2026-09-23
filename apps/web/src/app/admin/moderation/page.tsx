@@ -81,7 +81,7 @@ export default async function AdminModerationPage({
 
   if (access.state !== "admin") {
     return (
-      <div className="nf-card p-lg">
+      <div className="nf-panel nf-panel--card nf-admin-card p-lg">
         <h1 className="text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
           Moderation
         </h1>

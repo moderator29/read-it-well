@@ -110,7 +110,7 @@ export function ModerationDesk(props: ModerationDeskProps) {
                   : READ_FAILED
               }
             />
-            <div className="nf-rv-panel nf-rv-kpi">
+            <div className="nf-panel nf-rv-panel nf-rv-kpi">
               <p className="nf-rv-kpi__label" style={{ color: "var(--nf-state-error)" }}>
                 <UiIcon name="history" size={16} />
                 Over 24 hours
@@ -181,7 +181,7 @@ export function ModerationDesk(props: ModerationDeskProps) {
           </Panel>
           {notes}
           {pager ? (
-            <div className="nf-rv-panel" style={{ padding: "var(--nf-space-sm)" }}>
+            <div className="nf-panel nf-rv-panel" style={{ padding: "var(--nf-space-sm)" }}>
               {pager}
             </div>
           ) : null}

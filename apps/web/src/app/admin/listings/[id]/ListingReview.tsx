@@ -407,7 +407,7 @@ function MediaStrip({ listing, copy }: { listing: ListingReviewView; copy: Admin
   }
 
   return (
-    <div className="nf-rv-panel" style={{ padding: "var(--nf-space-sm)" }}>
+    <div className="nf-panel nf-rv-panel" style={{ padding: "var(--nf-space-sm)" }}>
       <ul className="nf-rv-media" role="list" aria-label="Photos and walkthrough">
         {lead ? (
           <li className="nf-rv-media__lead">

@@ -52,7 +52,7 @@ export function QueueSkeleton({
 
       <ul className="nf-queue-list">
         {Array.from({ length: rows }, (_, i) => (
-          <li key={i} className="nf-card p-card">
+          <li key={i} className="nf-panel nf-panel--card nf-admin-card p-card">
             {/* The status pill and timestamp row every queue card opens with. */}
             <div className="flex flex-wrap items-center gap-inline">
               <Skeleton width="5rem" height="1.25rem" radius="pill" />

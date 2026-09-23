@@ -97,7 +97,7 @@ function FlagCard({
   const roleLabel: Record<PartyRole, string> = copy.role;
 
   return (
-    <li className="nf-card p-md sm:p-lg">
+    <li className="nf-panel nf-panel--card nf-admin-card p-md sm:p-lg">
       <div className="flex flex-wrap items-center gap-xs">
         <ui.StatusChip status={flag.status} />
         <ui.StatusChip label={copy.reason[flag.reason]} tone="neutral" />

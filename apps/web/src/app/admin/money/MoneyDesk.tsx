@@ -261,7 +261,7 @@ export function MoneyDesk({
         )}
       </Panel>
 
-      <RefundsPanel refunds={refunds} narrowed={narrowed} locale={locale} ui={ui} className="nf-md-card nf-md-panel" />
+      <RefundsPanel refunds={refunds} narrowed={narrowed} locale={locale} ui={ui} className="nf-panel nf-md-card nf-md-panel" />
 
       {disputes.state === "ok" && disputes.data.disputes.length > 0 && (
         <Panel title="Disputed holds waiting on a ruling">

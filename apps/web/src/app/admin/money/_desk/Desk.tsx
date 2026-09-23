@@ -42,7 +42,7 @@ export function Panel({
 }) {
   const id = labelledBy ?? `panel-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   return (
-    <section className={`nf-md-card nf-md-panel ${className ?? ""}`} aria-labelledby={id}>
+    <section className={`nf-panel nf-md-card nf-md-panel ${className ?? ""}`} aria-labelledby={id}>
       <div className="nf-md-panel__head">
         <h2 id={id} className="nf-md-panel__title">
           {title}
@@ -164,12 +164,12 @@ export function Kpi({
   );
   if (href) {
     return (
-      <Link href={href} className="nf-md-card nf-md-kpi" aria-current={current ? "true" : undefined}>
+      <Link href={href} className="nf-panel nf-panel--card nf-md-card nf-md-kpi" aria-current={current ? "true" : undefined}>
         {body}
       </Link>
     );
   }
-  return <div className="nf-md-card nf-md-kpi">{body}</div>;
+  return <div className="nf-panel nf-panel--card nf-md-card nf-md-kpi">{body}</div>;
 }
 
 /**

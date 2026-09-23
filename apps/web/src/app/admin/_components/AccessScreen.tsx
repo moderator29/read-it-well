@@ -45,7 +45,7 @@ export function AccessScreen({
 
   return (
     <main id="main" className="flex min-h-dvh items-center justify-center px-md py-2xl">
-      <div className="nf-card w-full max-w-md p-lg text-center sm:p-xl">
+      <div className="nf-panel nf-panel--card nf-admin-card w-full max-w-md p-lg text-center sm:p-xl">
         {/*
           `block w-fit mx-auto` AND NOT `inline-block`, ON BOTH ANCHORS.
 

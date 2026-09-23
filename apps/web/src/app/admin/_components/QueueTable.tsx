@@ -89,7 +89,7 @@ export function QueueTable({
 }) {
   const words = heads;
   return (
-    <div className="nf-admin-table" role="region" aria-label={label}>
+    <div className="nf-panel nf-panel--flush nf-admin-table" role="region" aria-label={label}>
       {/*
         THE SEVEN COLUMN HEADS OF EVERY CONSOLE TABLE WERE ENGLISH LITERALS,
         in a four locale product, above rows whose contents are translated.

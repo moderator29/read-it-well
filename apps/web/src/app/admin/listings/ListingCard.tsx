@@ -97,7 +97,7 @@ export function ListingCard({
   const f = copy.fields;
 
   return (
-    <li className="nf-card p-md sm:p-lg">
+    <li className="nf-panel nf-panel--card nf-admin-card p-md sm:p-lg">
       <div className="flex flex-wrap items-center gap-xs">
         <ui.StatusChip status={listing.status} />
         <ui.StatusChip label={copy.propertyType[listing.propertyType]} tone="neutral" />

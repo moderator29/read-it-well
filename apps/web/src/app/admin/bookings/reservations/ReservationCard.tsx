@@ -44,7 +44,7 @@ export function TableCard({
 }) {
   const guest = row.guestName ?? "A guest without a display name";
   return (
-    <li className="nf-card p-md sm:p-lg">
+    <li className="nf-panel nf-panel--card nf-admin-card p-md sm:p-lg">
       <div className="flex flex-wrap items-center gap-xs">
         <ui.StatusChip status={row.status} />
         {row.past && row.status !== "CANCELLED" && (

@@ -118,7 +118,7 @@ export function ListingsQueue(props: ListingsQueueProps) {
           </Panel>
           {capNote ? <p className="nf-rv-panel__note">{capNote}</p> : null}
           {hasNext || page > 1 ? (
-            <div className="nf-rv-panel" style={{ padding: "var(--nf-space-sm)" }}>
+            <div className="nf-panel nf-rv-panel" style={{ padding: "var(--nf-space-sm)" }}>
               <Pager page={page} hasNext={hasNext} hrefFor={hrefForPage} label="Queue pages" />
             </div>
           ) : null}

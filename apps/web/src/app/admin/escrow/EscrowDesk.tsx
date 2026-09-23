@@ -166,7 +166,7 @@ export function EscrowDesk({
               )}
               <Link
                 href={stageHref(stage.state)}
-                className={`nf-md-card nf-md-stage nf-md-kpi ${stage.state === "DISPUTED" && count > 0 ? "nf-md-stage--alarm" : ""}`}
+                className={`nf-panel nf-panel--card nf-md-card nf-md-stage nf-md-kpi ${stage.state === "DISPUTED" && count > 0 ? "nf-md-stage--alarm" : ""}`}
                 aria-current={status === stage.state ? "true" : undefined}
               >
                 <span className="nf-md-stage__label">{stage.label}</span>
@@ -433,7 +433,7 @@ function EscrowCard({
   evidence?: EvidenceItem[] | null;
 }) {
   return (
-    <article className="nf-md-card nf-md-panel">
+    <article className="nf-panel nf-md-card nf-md-panel">
       <div className="flex flex-wrap items-center gap-inline">
         <ui.StatusChip label={STATE_LABEL[escrow.state] ?? escrow.state} tone={STATE_TONE[escrow.state] ?? "neutral"} />
         <span className="nf-numeric nf-h4">{formatMoney(escrow.amountMinor, locale)}</span>

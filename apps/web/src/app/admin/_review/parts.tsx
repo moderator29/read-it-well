@@ -99,7 +99,7 @@ export function Panel({
 }) {
   return (
     <section
-      className={["nf-rv-panel", flush ? "nf-rv-panel--flush" : "", className ?? ""]
+      className={["nf-panel nf-rv-panel", flush ? "nf-rv-panel--flush" : "", className ?? ""]
         .filter(Boolean)
         .join(" ")}
       aria-labelledby={labelledBy}
@@ -249,7 +249,7 @@ export function Kpi({
   hint?: string;
 }) {
   return (
-    <div className="nf-rv-panel nf-rv-kpi">
+    <div className="nf-panel nf-rv-panel nf-rv-kpi">
       <p className="nf-rv-kpi__label">
         {icon ? <UiIcon name={icon} size={16} /> : null}
         {label}
