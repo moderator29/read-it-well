@@ -5,7 +5,7 @@ import type { Database } from "../../supabase/database.types";
 import { kindFromAgentType } from "../../supply/workspaces";
 import { requireAdmin } from "../guard";
 import type { AdminRead } from "../queries";
-import { readEvery } from "./money";
+import { exactCount, readEvery } from "./money";
 import { lagosMonth } from "./money-derive";
 import { SUPPLY_ROLE_KEYS, type SupplyConsole, type SupplyRoleKey, type SupplyRow } from "./money-types";
 
@@ -271,6 +271,144 @@ export async function getSupplyDesk(
     );
     const complete = [agents, applications, businesses, listings, stays, released, bookings].every((r) => r.complete);
     return { state: "ok", data: { ...data, complete } };
+  } catch {
+    return UNAVAILABLE;
+  }
+}
+
+/* ======================================================================
+ * FIRM ROSTERS: who works at which firm (`firm_members`), written only by
+ * `private.admit_firm_member` and `private.revoke_firm_member`. Read here
+ * under `firm_members_staff_all`, select only.
+ * ==================================================================== */
+
+export type FirmMemberStatus = "pending" | "active" | "revoked";
+export const FIRM_MEMBER_STATUSES: readonly FirmMemberStatus[] = ["pending", "active", "revoked"];
+
+export type FirmMemberRow = {
+  id: string;
+  agentName: string | null;
+  role: "principal" | "staff" | string;
+  status: FirmMemberStatus | string;
+  admittedAt: string;
+  revokedAt: string | null;
+  revokeNote: string | null;
+};
+
+export type FirmRoster = {
+  firmId: string;
+  firmName: string | null;
+  counts: Record<FirmMemberStatus, number>;
+  members: FirmMemberRow[];
+};
+
+export type FirmRosters = {
+  /** Exact count of `firm_members` rows counted (examples left out unless asked for). */
+  total: number;
+  byStatus: Record<FirmMemberStatus, number>;
+  firms: FirmRoster[];
+  /** Members of example firms left out of every figure. */
+  examplesExcluded: number;
+  complete: boolean;
+};
+
+type MemberRaw = {
+  id: string;
+  firm_id: string;
+  agent_id: string;
+  member_role: string;
+  status: string;
+  admitted_at: string;
+  revoked_at: string | null;
+  revoke_note: string | null;
+};
+
+const STATUS_ORDER: Record<string, number> = { pending: 0, active: 1, revoked: 2 };
+
+/** Members into counts by state and rosters under their firms. Pure, for the test. */
+export function rostersFromRows(
+  members: readonly MemberRaw[],
+  firms: ReadonlyMap<string, { name: string | null; isDemo: boolean }>,
+  agentNames: ReadonlyMap<string, string>,
+  examples: boolean,
+  complete: boolean,
+): FirmRosters {
+  const byStatus: Record<FirmMemberStatus, number> = { pending: 0, active: 0, revoked: 0 };
+  const byFirm = new Map<string, FirmRoster>();
+  let examplesExcluded = 0;
+  let total = 0;
+  for (const m of members) {
+    const firm = firms.get(m.firm_id);
+    if (firm?.isDemo && !examples) {
+      examplesExcluded += 1;
+      continue;
+    }
+    total += 1;
+    const known = FIRM_MEMBER_STATUSES.find((s) => s === m.status);
+    if (known) byStatus[known] += 1;
+    let roster = byFirm.get(m.firm_id);
+    if (!roster) {
+      roster = { firmId: m.firm_id, firmName: firm?.name ?? null, counts: { pending: 0, active: 0, revoked: 0 }, members: [] };
+      byFirm.set(m.firm_id, roster);
+    }
+    if (known) roster.counts[known] += 1;
+    roster.members.push({
+      id: m.id,
+      agentName: agentNames.get(m.agent_id) ?? null,
+      role: m.member_role,
+      status: m.status,
+      admittedAt: m.admitted_at,
+      revokedAt: m.revoked_at,
+      revokeNote: m.revoke_note,
+    });
+  }
+  const firmsOut = [...byFirm.values()];
+  for (const f of firmsOut) {
+    f.members.sort(
+      (a, b) =>
+        (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3) ||
+        (a.role === "principal" ? -1 : 0) - (b.role === "principal" ? -1 : 0) ||
+        Date.parse(b.admittedAt) - Date.parse(a.admittedAt),
+    );
+  }
+  firmsOut.sort((a, b) => b.counts.pending - a.counts.pending || (a.firmName ?? "").localeCompare(b.firmName ?? ""));
+  return { total, byStatus, firms: firmsOut, examplesExcluded, complete };
+}
+
+/** Every firm membership, its firm's name and its agent's name, checked against an exact count. */
+export async function getFirmRosters(examples: boolean): Promise<AdminRead<FirmRosters>> {
+  const access = await requireAdmin();
+  if (access.state !== "admin") return UNAVAILABLE;
+  const db: Client = access.supabase;
+  try {
+    const [members, count] = await Promise.all([
+      readEvery<MemberRaw>((f, t) =>
+        db
+          .from("firm_members")
+          .select("id, firm_id, agent_id, member_role, status, admitted_at, revoked_at, revoke_note")
+          .order("id")
+          .range(f, t),
+      ),
+      exactCount(db.from("firm_members").select("id", { count: "exact", head: true })),
+    ]);
+    if (!members || count === null) return UNAVAILABLE;
+    const firmIds = [...new Set(members.rows.map((m) => m.firm_id))];
+    const agentIds = [...new Set(members.rows.map((m) => m.agent_id))];
+    const firms = new Map<string, { name: string | null; isDemo: boolean }>();
+    const agentNames = new Map<string, string>();
+    for (let i = 0; i < Math.max(firmIds.length, agentIds.length); i += 200) {
+      const [b, a] = await Promise.all([
+        firmIds.length > i ? db.from("businesses").select("id, name, is_demo").in("id", firmIds.slice(i, i + 200)) : null,
+        agentIds.length > i ? db.from("agents").select("id, display_name").in("id", agentIds.slice(i, i + 200)) : null,
+      ]);
+      if (b?.error || a?.error) return UNAVAILABLE;
+      for (const row of b?.data ?? []) firms.set(row.id, { name: row.name, isDemo: row.is_demo });
+      for (const row of a?.data ?? []) if (row.display_name) agentNames.set(row.id, row.display_name);
+    }
+    return {
+      state: "ok",
+      data: rostersFromRows(members.rows, firms, agentNames, examples, members.complete && members.rows.length === count),
+    };
   } catch {
     return UNAVAILABLE;
   }

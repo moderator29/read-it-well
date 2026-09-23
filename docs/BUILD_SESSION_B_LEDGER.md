@@ -2093,7 +2093,7 @@ panel, exact counts by state from the booking's status and whether a
 SUCCESSFUL transaction settled it, paid and awaited sums in kobo, the six
 newest; `getRentCharges` in `lib/admin/reads/money.ts` under
 `rent_payments_admin_select`, read live, tested in `money-rent.test.ts` and
-`money-derive.test.ts`). No money path is left off the console.
+`money-derive.test.ts`). No money path is left off the console. Run two of the closing audit added dispute evidence, the float's daily booking and firm rosters (8.11).
 
 **Every supply role.** Owner, agent, firm and host, from the application's
 `supply_role` with a fallback to the agent type; businesses count as firms
@@ -2127,6 +2127,25 @@ measure 10px on all five desks (`.nf-md-card` inherits `--nf-admin-radius`
 instead of pinning its own corner), the independent sweep reads 40
 combinations, 1,200 controls, highest ratio 0.32, and the official sweep over
 all ten routes is 0 breaches and 0 worth an eye.
+
+### 8.11 Closing audit, run two: evidence, the float's daily booking, firm rosters
+
+The audit found three tables no desk showed. Each is now read select-only
+through `requireAdmin()` and the RLS client, tested, drawn with a designed
+empty state, and in the handbook. Live counts read with SQL on 23 September:
+`escrow_evidence` 0, `escrow_float_snapshots` 1, `firm_members` 0.
+
+| Table | Where it is drawn | Read and policy | Test | Empty state |
+|---|---|---|---|---|
+| `escrow_evidence` | On every ruling: Escrow's "Waiting on a ruling" and Money's "Disputed holds", above `EscrowRuling`: side (Payer or Payee, in words and by the stripe), who, the fact in words with its date or amount, or the file with name, caption, type, size and "Open file", and when | `getDisputeEvidence()` (`lib/admin/reads/escrow.ts`): `escrow_evidence_select_admin`, `escrows_select_admin`, `profiles_select_admin`; files signed for ten minutes under the bucket policy `escrow_evidence_objects_admin_read` (read live). No in-console document viewer exists, so a file opens in the browser's own | `escrow-evidence.test.ts`: side placement, order, names, signing, an unsigned file kept, no write | "Nothing has been filed on this dispute"; a failed read is "The evidence could not be read", never "nothing filed" |
+| `escrow_float_snapshots` | Escrow, "Float, booked daily": escrow float and ledger float as two lines, hover readout with the difference, and the invariant (`difference_minor`, zero is Balanced) with days balanced and the last day that was not | `getEscrowFloatHistory()`: every row against an exact count, `escrow_float_snapshots_select_admin` | `escrow-evidence.test.ts`: ordering, unbalanced days, exact count | One day booked so far (the real 23 September row): no line, the verdict printed, Balanced |
+| `firm_members` | Supply, "Firm rosters": counts Pending, Active, Revoked on a status bar with words, then each firm's roster under its name | `getFirmRosters()` (`lib/admin/reads/supply.ts`): every row against an exact count, `firm_members_staff_all` used for select only; firm names from `businesses`, agents from `agents`; example firms left out unless asked | `supply-firms.test.ts`: counts by state, grouping, order, examples | Bar at zero, table head, "No firm has a roster yet" and how a member is admitted |
+
+Neither `escrow_evidence` nor `escrow_float_snapshots` is in the generated
+types yet; each read goes through one narrow untyped door with the columns
+checked against the live table, and the mappers treat every field as unknown.
+
+The rail and the flat panels are admin-shell's and were not touched.
 
 ## 9. Inspection
 

@@ -1088,3 +1088,111 @@
     color: var(--nf-content-on-brand);
   }
 }
+
+/* ------------------------------------------- evidence, float, firm rosters */
+@layer components {
+  /* The evidence on a dispute, drawn on the ruling card above the ruling. */
+  .nf-md-evidence {
+    margin-top: var(--nf-space-md);
+    padding-top: var(--nf-space-md);
+    border-top: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+  .nf-md-evidence__title {
+    margin: 0 0 var(--nf-space-sm);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-md-evidence__list {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nf-md-evidence__item {
+    display: grid;
+    grid-template-columns: minmax(9rem, 14rem) minmax(0, 1fr) auto;
+    gap: var(--nf-space-xs) var(--nf-space-md);
+    padding: var(--nf-space-sm) 0 var(--nf-space-sm) var(--nf-space-sm);
+    border-left: 2px solid var(--nf-border-subtle);
+    font-size: var(--nf-text-body-sm);
+  }
+  .nf-md-evidence__item + .nf-md-evidence__item {
+    border-top: var(--nf-border-width) solid var(--nf-border-subtle);
+  }
+  /* Which side is said in words first; the stripe is the second signal. */
+  .nf-md-evidence__item[data-side="payer"] {
+    border-left-color: var(--nf-brand-primary);
+  }
+  .nf-md-evidence__item[data-side="payee"] {
+    border-left-color: var(--nf-state-info);
+  }
+  .nf-md-evidence__who {
+    color: var(--nf-brand-quiet);
+    font-weight: 500;
+  }
+  .nf-md-evidence__what {
+    min-width: 0;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-md-evidence__meta {
+    display: block;
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-md-evidence__open {
+    color: var(--nf-brand-quiet);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .nf-md-evidence__when {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+    white-space: nowrap;
+  }
+  @media (max-width: 767px) {
+    .nf-md-evidence__item {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* The float's invariant, under its chart. */
+  .nf-md-invariant {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--nf-space-xs) var(--nf-space-md);
+    margin-top: var(--nf-space-md);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+
+  /* One firm's roster under its name. */
+  /* Every firm's table takes the same columns, so the rosters read as one list. */
+  .nf-md-roster .nf-md-table {
+    table-layout: fixed;
+  }
+  .nf-md-roster + .nf-md-roster {
+    margin-top: var(--nf-space-lg);
+  }
+  .nf-md-roster__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--nf-space-xs) var(--nf-space-md);
+    margin: 0 0 var(--nf-space-xs);
+  }
+  .nf-md-roster__name {
+    margin: 0;
+    font-size: var(--nf-text-body);
+    font-weight: 600;
+    color: var(--nf-content-primary);
+  }
+  .nf-md-roster__counts {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+}

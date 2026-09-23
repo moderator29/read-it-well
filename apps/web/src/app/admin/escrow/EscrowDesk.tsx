@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { LiveRefresh } from "../_components/LiveRefresh";
 import { Fragment } from "react";
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { formatDate, formatMoney, type Locale } from "@vallo/i18n";
 import type { EscrowView } from "@/lib/admin/money-queries";
-import type { EscrowDesk as EscrowDeskData } from "@/lib/admin/reads/escrow";
+import type { EscrowDesk as EscrowDeskData, EvidenceItem, FloatHistory } from "@/lib/admin/reads/escrow";
 import { ESCROW_STATE_WORDS } from "@/components/app/untranslated";
 import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -16,8 +16,9 @@ import {
   type QueueStatusOption,
 } from "../_components/QueueFilters";
 import { EscrowRuling } from "../_components/MoneyDecisions";
-import { CalmNote, DeskHead, Framed, NumberedPager, Panel, TableNote, type CalmNoteProps } from "../money/_desk/Desk";
-import { Donut } from "../money/_desk/charts";
+import { CalmNote, DeskHead, EmptyChart, Framed, NumberedPager, Panel, TableNote, Waiting, type CalmNoteProps } from "../money/_desk/Desk";
+import { DisputeEvidence } from "../money/_desk/Evidence";
+import { Donut, SeriesChart, SeriesLegend, type Series } from "../money/_desk/charts";
 import { ReconciliationPanel } from "../money/_desk/Reconciliation";
 import { ESCROW_STATES, countdown, wholeDays } from "@/lib/admin/reads/money-derive";
 import type { EscrowEvent, EscrowState, ReconciliationHealth } from "@/lib/admin/reads/money-types";
@@ -114,6 +115,8 @@ export function EscrowDesk({
   params,
   desk,
   health,
+  evidence,
+  float,
   now,
 }: {
   locale: Locale;
@@ -123,6 +126,10 @@ export function EscrowDesk({
   params: Record<string, string | undefined>;
   desk: EscrowDeskData;
   health: ReconciliationHealth | null;
+  /** `getDisputeEvidence` for every dispute: null when the read failed, which is never "nothing filed". */
+  evidence: Record<string, EvidenceItem[]> | null;
+  /** `getEscrowFloatHistory`: null when it could not be read. */
+  float: FloatHistory | null;
   now: number;
 }) {
   const { pipeline, disputes, table } = desk;
@@ -182,7 +189,13 @@ export function EscrowDesk({
           <ul className="nf-md-stack">
             {disputes.map((escrow) => (
               <li key={escrow.id}>
-                <EscrowCard escrow={escrow} ui={ui} locale={locale} rulable />
+                <EscrowCard
+                  escrow={escrow}
+                  ui={ui}
+                  locale={locale}
+                  rulable
+                  evidence={evidence ? (evidence[escrow.id] ?? []) : null}
+                />
               </li>
             ))}
           </ul>
@@ -239,6 +252,8 @@ export function EscrowDesk({
           <ReconciliationPanel health={health} now={now} when={ui.when} variant="check" />
         </div>
       </div>
+
+      <FloatHistoryPanel float={float} locale={locale} ui={ui} />
 
       <div className="nf-md-grid nf-md-grid--halves">
         <Panel title="Escrow by purpose">
@@ -394,11 +409,14 @@ function EscrowCard({
   ui,
   locale,
   rulable = false,
+  evidence,
 }: {
   escrow: EscrowView;
   ui: AdminUi;
   locale: Locale;
   rulable?: boolean;
+  /** What is filed on this dispute; null when the evidence read failed. */
+  evidence?: EvidenceItem[] | null;
 }) {
   return (
     <article className="nf-md-card nf-md-panel">
@@ -439,6 +457,17 @@ function EscrowCard({
       </dl>
 
       {rulable && (
+        <DisputeEvidence
+          items={evidence ?? []}
+          readable={evidence !== null}
+          payerName={escrow.payerName}
+          payeeName={escrow.payeeName}
+          locale={locale}
+          ui={ui}
+        />
+      )}
+
+      {rulable && (
         <EscrowRuling
           escrowId={escrow.id}
           amountMinor={escrow.amountMinor}
@@ -448,5 +477,95 @@ function EscrowCard({
         />
       )}
     </article>
+  );
+}
+
+function dayLabel(asOf: string, locale: Locale, withYear = false): string {
+  return formatDate(new Date(`${asOf}T12:00:00Z`), locale, {
+    day: "numeric",
+    month: "short",
+    ...(withYear ? { year: "numeric" as const } : {}),
+  });
+}
+
+/**
+ * The escrow float as booked once a day (`escrow_float_snapshots`), against
+ * the float the ledger books, with the invariant the table records: the
+ * difference between the two, where zero is balanced.
+ */
+function FloatHistoryPanel({ float, locale, ui }: { float: FloatHistory | null; locale: Locale; ui: AdminUi }) {
+  const series: Series[] = [
+    { name: "Escrow float", values: float ? float.points.map((p) => p.floatMinor) : [], rank: 0, area: true },
+    { name: "Ledger float", values: float ? float.points.map((p) => p.ledgerFloatMinor) : [], rank: 1, dash: "6 4" },
+  ];
+  const legend = <SeriesLegend series={series} />;
+  const title = "Float, booked daily";
+  if (!float) {
+    return (
+      <Panel title={title} aside={legend}>
+        <Waiting
+          title="The float history could not be read"
+          body="The escrow float booked each day against what the ledger books, and whether the two agree. The read did not answer just now; reload in a moment."
+        />
+      </Panel>
+    );
+  }
+  const latest = float.points[float.points.length - 1] ?? null;
+  const verdict = latest ? (
+    <p className="nf-md-invariant">
+      <ui.StatusChip
+        label={latest.differenceMinor === 0 ? "Balanced" : "Does not balance"}
+        tone={latest.differenceMinor === 0 ? "success" : "danger"}
+      />
+      <span>
+        {latest.differenceMinor === 0
+          ? `On ${dayLabel(latest.asOf, locale, true)} the escrow float, ${formatMoney(latest.floatMinor, locale)}, equals what the ledger books.`
+          : `On ${dayLabel(latest.asOf, locale, true)} the escrow float and the ledger differ by ${formatMoney(Math.abs(latest.differenceMinor), locale)}.`}{" "}
+        {float.points.length - float.unbalancedDays} of {float.points.length}{" "}
+        {float.points.length === 1 ? "day" : "days"} balanced
+        {float.lastUnbalanced ? `; last off on ${dayLabel(float.lastUnbalanced, locale, true)}` : ""}.
+      </span>
+    </p>
+  ) : null;
+
+  if (float.points.length < 2) {
+    const xs = float.points.map((p) => dayLabel(p.asOf, locale));
+    return (
+      <Panel title={title} aside={legend} hint={`${float.total} ${float.total === 1 ? "day" : "days"} booked`}>
+        <EmptyChart
+          height={180}
+          yLabels={["₦0", "", "", "", ""]}
+          xLabels={xs.length ? xs : ["", "", "", "", ""]}
+          note={{
+            title: latest ? `One day booked so far (${dayLabel(latest.asOf, locale, true)})` : "The float has not been booked yet",
+            fills: "The money held in escrow, booked once a day, beside the float the ledger books, so a gap between them shows the day it opens.",
+            creates: "A daily job books the float each morning. A line needs a second day, so none is drawn.",
+          }}
+        />
+        {verdict}
+      </Panel>
+    );
+  }
+  return (
+    <Panel title={title} aside={legend} hint={`${float.total} days booked`}>
+      <SeriesChart
+        id="escrow-float"
+        xLabels={float.points.map((p) => dayLabel(p.asOf, locale))}
+        series={series}
+        height={200}
+        label="The escrow float booked each day against the ledger float"
+        yLabel={(v) => formatMoney(v, locale, "NGN", { compact: true })}
+        readout={float.points.map((p) => ({
+          title: dayLabel(p.asOf, locale, true),
+          rows: [
+            { label: "Escrow float", value: formatMoney(p.floatMinor, locale) },
+            { label: "Ledger float", value: formatMoney(p.ledgerFloatMinor, locale) },
+            { label: "Difference", value: formatMoney(p.differenceMinor, locale) },
+            { label: "Escrows", value: String(p.escrowCount) },
+          ],
+        }))}
+      />
+      {verdict}
+    </Panel>
   );
 }

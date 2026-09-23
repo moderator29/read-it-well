@@ -3,6 +3,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getEscrowConsole, getMoneyConsole, getRefundConsole } from "@/lib/admin/money-queries";
 import { getMoneyDesk, getReconciliationHealth, getRentCharges } from "@/lib/admin/reads/money";
+import { getDisputeEvidence } from "@/lib/admin/reads/escrow";
 import { adminUi } from "../_components/ui";
 import { readQueueQuery } from "../_components/QueueFilters";
 import { flatParams } from "./_desk/Desk";
@@ -85,6 +86,9 @@ export default async function AdminMoneyPage({
     );
   }
 
+  /* What each side filed, shown on the ruling so nobody rules without it. */
+  const evidence = await getDisputeEvidence(disputes.state === "ok" ? disputes.data.disputes.map((d) => d.id) : []);
+
   const now = new Date().getTime();
   return (
     <MoneyDesk
@@ -100,6 +104,7 @@ export default async function AdminMoneyPage({
       disputes={disputes}
       health={runs.state === "ok" ? runs.data : null}
       rent={rent.state === "ok" ? rent.data : null}
+      evidence={evidence.state === "ok" ? evidence.data : null}
       now={now}
     />
   );
