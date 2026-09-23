@@ -275,12 +275,6 @@
     min-inline-size: 0;
     overflow-wrap: anywhere;
   }
-  .nf-pf-name__tick {
-    display: inline-grid;
-    flex-shrink: 0;
-    color: var(--nf-brand-primary);
-    filter: drop-shadow(0 0 6px var(--nf-glow-3));
-  }
   /* Handle: about 10px measured (x-height 7 image px, 53 CSS wide), a
      subtitle role under the floor, so 11. The mist blue. */
   .nf-pf-handle {

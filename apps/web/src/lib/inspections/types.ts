@@ -118,6 +118,12 @@ export type Inspection = {
    */
   counterpartPhone?: string | null;
   /**
+   * The other party's badge tier, read from `public.person_badge` (Session
+   * A's one source; never computed here). Optional for the same reason as
+   * `counterpartPhone`: fixtures of this shape predate it.
+   */
+  counterpartBadge?: import("./badge").BadgeTier | null;
+  /**
    * Set only on COMPLETED, and only if somebody said why. Optional on the
    * type because the components build fixtures of this shape and none of
    * them has an opinion about it; every read in lib/inspections fills it.

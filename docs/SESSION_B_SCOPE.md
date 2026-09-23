@@ -180,6 +180,7 @@ policy, Session B writes it as a request below.
 - `apps/web/src/app/(app)/profile/*.test.ts` (new)
 - `apps/web/src/app/(app)/profile/belongings.ts` (new: pure helpers for the row values and the Switch role line)
 - `apps/web/src/app/(app)/profile/belongings-queries.ts` (new: the head counts and balance the rows carry)
+- `apps/web/src/app/(app)/profile/BadgeSlot.tsx` (new: where Session A's badge renders; empty until B-BADGE lands)
 - `apps/web/src/app/(app)/profile/SwitchRoleRow.tsx` (new: the Switch role row, opening the dock's own workspace sheet)
 - `apps/web/src/app/(dev)/preview/session-b/profile/**` (the proof harness, ruling R-G)
 - `apps/web/tests/profile.spec.mjs`: the spec for this surface; only its

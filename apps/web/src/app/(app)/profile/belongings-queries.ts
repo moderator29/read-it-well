@@ -2,7 +2,8 @@ import "server-only";
 
 import { resolveSession } from "@/lib/actions/session";
 import { lagosToday } from "@/lib/rent/schema";
-import { NO_FACTS, type BelongingsFacts } from "./belongings";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { NO_FACTS, badgeTierFrom, type BadgeTier, type BelongingsFacts } from "./belongings";
 
 /**
  * The four numbers the Belongings rows may carry, read under the caller's own
@@ -109,6 +110,30 @@ async function readWallet(
       .maybeSingle();
     if (error || !data || !data.wallet_id) return null;
     return { balanceMinor: Number(data.balance_minor ?? 0), currency: data.currency ?? "NGN" };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The signed-in person's badge tier, read from `public.person_badge`, the one
+ * source (Session A's derivation; SELECT is granted to authenticated). Never
+ * computed here. The view is newer than the generated types, so the read goes
+ * through an untyped client; the value is narrowed by `badgeTierFrom`. A failed
+ * read is no badge, never a guessed one.
+ */
+export async function loadOwnBadgeTier(): Promise<BadgeTier> {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return null;
+  try {
+    const client = session.supabase as unknown as SupabaseClient;
+    const { data, error } = await client
+      .from("person_badge")
+      .select("tier")
+      .eq("user_id", session.user.id)
+      .maybeSingle();
+    if (error || !data) return null;
+    return badgeTierFrom((data as { tier?: unknown }).tier);
   } catch {
     return null;
   }

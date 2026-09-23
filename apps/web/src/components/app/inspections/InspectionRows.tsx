@@ -1,5 +1,6 @@
 "use client";
 
+import { BadgeSlot } from "./BadgeSlot";
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -215,6 +216,7 @@ function InspectionRow({
           <span className={`mt-3xs block ${TYPE.rowMeta}`}>
             {whenLine(shown, locale)}
             {inspection.counterpartName ? ` · ${inspection.counterpartName}` : ""}
+            {inspection.counterpartName && <BadgeSlot tier={inspection.counterpartBadge} />}
           </span>
 
           {/* The time that was ASKED for, kept beside the one that was agreed.

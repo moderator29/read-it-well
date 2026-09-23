@@ -28,6 +28,7 @@ import {
 } from "@/lib/inspections/types";
 import { canReport, ladderCount, ladderFor, type LadderKey } from "./ladder";
 import { statusFor, type BadgeTone } from "./status";
+import { BadgeSlot } from "./BadgeSlot";
 
 /**
  * ONE INSPECTION, IN THE ANATOMY OF F6A8A482.
@@ -257,7 +258,10 @@ export function InspectionSheet({
                   party is whoever lists the property, owner or agent, so the
                   label says that and no more (CLAIMS_RULE; ledger 9, refused). */}
               <dt className="nf-ix-fact__label">{side === "requester" ? "Listed by" : "Requested by"}</dt>
-              <dd className="nf-ix-fact__value">{inspection.counterpartName ?? "Not named yet"}</dd>
+              <dd className="nf-ix-fact__value">
+                {inspection.counterpartName ?? "Not named yet"}
+                <BadgeSlot tier={inspection.counterpartBadge} />
+              </dd>
               {/*
                 THE NUMBER, when this reader is allowed to have it, visible
                 under the name as the render draws it and itself the tel:
