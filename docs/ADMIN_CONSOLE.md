@@ -374,7 +374,7 @@ platform's money where it should be" without asking an engineer to run SQL.
 | Ledger | Every wallet entry, newest first: date, description (the entry's note, or its kind, and the owner), the reference in full, Credit or Debit, amount, and the platform float straight after that entry. Unsettled entries carry a status badge and leave the balance unchanged. Numbered pages of 10 (`?page=`) | `getMoneyDesk()` |
 | Wallets | Newest forty wallets with settled and held figures, narrowed by the filter | `getMoneyConsole()` |
 | Refunds | Every refund decided on the console and where its money is now | `getRefundConsole()` (Session A) |
-| Disputed holds waiting on a ruling | Disputed escrows with the ruling control | `getEscrowConsole({ status: "DISPUTED" })` (Session A) |
+| Disputed holds waiting on a ruling | Disputed escrows, with everything each side has filed shown above the ruling control (see Escrow, "Evidence filed") | `getEscrowConsole({ status: "DISPUTED" })` (Session A); evidence `getDisputeEvidence()` in `lib/admin/reads/escrow.ts` |
 
 **How the totals are kept honest.** PostgREST aggregates are not switched on
 for this project, so sums are taken over rows. `readEvery` pages through each
@@ -416,9 +416,11 @@ people, and ruling on the ones where somebody objected.
 | The pipeline | Six tiles: Funded, Held, Release requested, Released, Refunded, Disputed, each with the count of escrows in that state across the platform. Each tile is a link that narrows the table to that state; pressing the lit one clears it. Disputed turns rose when it is not zero | `getEscrowDesk()` in `lib/admin/reads/escrow.ts`, every `escrows` row |
 | Filter | Search by property title, a status chip for every escrow state (all nine in the live schema, including Cancelled), a Lagos date range | `QueueFilters`, URL `q`, `status`, `from`, `to` |
 | Waiting on a ruling | Every dispute on the platform, never paged, oldest first: both people, the property, both confirmations (and whether the payer's came from an inspection), the objection in the objector's words, the platform share, and the ruling control | `getEscrowDesk().disputes` |
+| Evidence filed (on each ruling) | Everything either side has filed on that dispute, oldest first, above the ruling so nobody rules without reading it: which side filed it (Payer or Payee, and the name; "Neither party" if someone else did), what it is (one of the thirteen closed facts in words, with its date or amount, or a file with its name, caption, type and size), when it was filed, and for a file an "Open file" link: a ten-minute signed link into the private `escrow-evidence` bucket that opens in the browser's own viewer (the console has no document viewer to reuse). A file that could not be signed says so. A failed read says "The evidence could not be read", never "nothing filed". With nothing filed it says so and that each side files from their own held payment page. Also drawn on the Money desk's disputed holds | `getDisputeEvidence()` in `lib/admin/reads/escrow.ts`: `escrow_evidence` under `escrow_evidence_select_admin`, the escrow's payer and payee, names from `profiles`, links signed under `escrow_evidence_objects_admin_read` |
 | Live escrows | Every escrow not yet settled (or, with a state chosen, every escrow in that state): short id (the first eight characters of its id, full id on hover), property, amount, payer to payee, purpose, whole days since it was held, and the time left until it releases on its own, in the render's "4d 12h" form (it reads "due" once the moment has passed; the sweeper releases on its own schedule). Settled rows show their state instead of a countdown. Numbered pages of 10 | `getEscrowDesk().table` |
 | Float total | HELD plus RELEASE_REQUESTED plus DISPUTED money, and how many escrows are still running | `getEscrowDesk()` |
 | Reconciliation check | The same reconciliation read as the money desk, as a check plate and a badge | `getReconciliationHealth()` |
+| Float, booked daily | The escrow float as the daily job books it (`escrow_float_snapshots`, one row a day) beside the float the ledger books, as two lines, with a hover readout of both, the difference and the escrow count. Under it the invariant the table records: the difference between the two, where zero is Balanced (emerald) and anything else Does not balance (rose), the latest day's figures, how many days balanced and the last day that did not. With one day there is no line and the panel says so; the verdict is still printed | `getEscrowFloatHistory()` in `lib/admin/reads/escrow.ts`, every snapshot against an exact count, under `escrow_float_snapshots_select_admin` |
 | Escrow by purpose | Every escrow split by purpose: rent deposit, first rent, purchase deposit, purchase balance and agency fee (`agency_fee`, in the live schema since 23 September and not yet in the generated types; the desk counts it and any purpose added later rather than failing), on the blue ramp, largest first, with share and count beside every slice | `getEscrowDesk().pipeline.byPurpose` |
 | Recent activity | The newest six transitions across all escrows, from the seven timestamp columns (funded, held, release requested, released, refunded, disputed, ruled on) plus opened | `getEscrowDesk().pipeline.recent` |
 
@@ -427,11 +429,16 @@ people, and ruling on the ones where somebody objected.
 
 **What this desk cannot do.** Release or refund an escrow that is not
 disputed (the database refuses it; the parties or the auto release sweeper
-move those), change an amount, or open an escrow.
+move those), change an amount, or open an escrow. It cannot add, edit or
+remove evidence either: `escrow_evidence` is append only by trigger, and only
+the parties file.
 
 **Today's reality.** `escrows` holds no rows. Every tile reads 0, the table
 says the platform is not holding anybody's money, the donut and the activity
-list say nothing has happened yet.
+list say nothing has happened yet. `escrow_evidence` holds no rows.
+`escrow_float_snapshots` holds one: 23 September, a float of ₦0 against a
+ledger float of ₦0, Balanced; the float panel says one day is booked and
+draws no line.
 
 ## 10. Supply
 
@@ -460,12 +467,16 @@ supply.
 | Supply growth by role | How many accounts in each role had joined by the end of each of the last six months. Four series on one blue ramp, told apart by dash pattern and a name at the end of each line, never by colour alone. Hover a month for all four figures | `getSupplyDesk().growth` |
 | Top 5 areas by supply | Live listings plus live accommodations by area (city where no area is given), ranked | `getSupplyDesk().topAreas` |
 | Supply by property type | Live listings by property type, on the blue ramp, with share and count | `getSupplyDesk().byPropertyType` |
+| Firm rosters | Who works at which firm (`firm_members`): exact counts of memberships Pending, Active and Revoked on one status bar with words, then each firm's roster under its name (firms with someone pending first): agent, Principal or Staff, the state, and the day admitted, or the day revoked with the revocation note. Members of example firms are left out unless examples are asked for, and the count left out is printed. With no member it keeps its bar and table head and says how a member is admitted | `getFirmRosters()` in `lib/admin/reads/supply.ts`, under `firm_members_staff_all` (select only), firm names from `businesses`, agent names from `agents` |
 
 **Actions.** None. The desk reads; approving supply is on the Agent
-applications and Businesses desks.
+applications and Businesses desks. Admitting or revoking a firm member is
+`private.admit_firm_member` and `private.revoke_firm_member`, each of which
+writes an audit row; no console control calls them yet.
 
 **Today's reality.** With examples left out, every figure is zero: there is
-no real supply yet, and the desk says so on every panel.
+no real supply yet, and the desk says so on every panel. `firm_members` holds
+no rows, so the rosters panel reads 0 pending, 0 active, 0 revoked.
 
 ## 11. Bookings
 

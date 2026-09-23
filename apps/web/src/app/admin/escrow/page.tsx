@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { getEscrowDesk } from "@/lib/admin/reads/escrow";
+import { getDisputeEvidence, getEscrowDesk, getEscrowFloatHistory } from "@/lib/admin/reads/escrow";
 import { getReconciliationHealth } from "@/lib/admin/reads/money";
 import { readPage } from "@/lib/admin/reads/money-derive";
 import { adminUi } from "../_components/ui";
@@ -33,7 +33,9 @@ export const dynamic = "force-dynamic";
  * reads every escrow once and computes the pipeline, the purpose split, the
  * newest transitions, the float and the numbered table page from that one
  * set, checked against an exact count. Reconciliation is
- * `getReconciliationHealth`, shared with the money desk.
+ * `getReconciliationHealth`, shared with the money desk. The evidence on each
+ * dispute: `getDisputeEvidence`. The float booked daily and its invariant:
+ * `getEscrowFloatHistory`.
  */
 export default async function AdminEscrowPage({
   searchParams,
@@ -47,7 +49,7 @@ export default async function AdminEscrowPage({
 
   const params = await searchParams;
   const query = readQueueQuery(params);
-  const [desk, runs] = await Promise.all([
+  const [desk, runs, float] = await Promise.all([
     getEscrowDesk({
       ...(query.q ? { q: query.q } : {}),
       ...(query.status ? { status: query.status } : {}),
@@ -57,6 +59,7 @@ export default async function AdminEscrowPage({
       pageSize: ESCROW_PAGE_SIZE,
     }),
     getReconciliationHealth(),
+    getEscrowFloatHistory(),
   ]);
 
   if (desk.state !== "ok") {
@@ -68,6 +71,10 @@ export default async function AdminEscrowPage({
     );
   }
 
+  /* Everything filed on every dispute, read after the desk so it asks only
+     for the escrows actually waiting on a ruling. */
+  const evidence = await getDisputeEvidence(desk.data.disputes.map((d) => d.id));
+
   return (
     <EscrowDesk
       locale={locale}
@@ -77,6 +84,8 @@ export default async function AdminEscrowPage({
       params={flatParams(params)}
       desk={desk.data}
       health={runs.state === "ok" ? runs.data : null}
+      evidence={evidence.state === "ok" ? evidence.data : null}
+      float={float.state === "ok" ? float.data : null}
       now={new Date().getTime()}
     />
   );

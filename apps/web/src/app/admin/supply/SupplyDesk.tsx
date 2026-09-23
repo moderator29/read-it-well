@@ -3,7 +3,9 @@ import { LiveRefresh } from "../_components/LiveRefresh";
 import { formatDate, formatMoney, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { CalmNote, DeskHead, EmptyChart, Framed, Kpi, NumberedPager, Panel, TableNote, Waiting, lastMonths } from "../money/_desk/Desk";
-import { Donut, RankBars, RankFrame, SeriesChart, SeriesLegend, type Series } from "../money/_desk/charts";
+import { Donut, RankBars, RankFrame, SeriesChart, SeriesLegend, StatusBar, type Series } from "../money/_desk/charts";
+import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
+import type { FirmRosters } from "@/lib/admin/reads/supply";
 import { percentChange } from "@/lib/admin/reads/money-derive";
 import {
   SUPPLY_ROLE_KEYS,
@@ -58,9 +60,12 @@ export function SupplyDesk({
   params,
   locale,
   pageSize,
+  rosters,
   now,
 }: {
   now: number;
+  /** `getFirmRosters`: who works at which firm. Null when it could not be read. */
+  rosters: FirmRosters | null;
   supply: (SupplyConsole & { complete?: boolean }) | null;
   filter: SupplyFilter;
   params: Record<string, string | undefined>;
@@ -278,7 +283,118 @@ export function SupplyDesk({
           )}
         </Panel>
       </div>
+
+      <RostersPanel rosters={rosters} examples={filter.examples} locale={locale} />
     </div>
+  );
+}
+
+const MEMBER_STATE: Record<string, { label: string; tone: StatusTone }> = {
+  pending: { label: "Pending", tone: "warning" },
+  active: { label: "Active", tone: "success" },
+  revoked: { label: "Revoked", tone: "danger" },
+};
+
+/**
+ * Who works at which firm (`firm_members`): exact counts by state on the
+ * status four, then each firm's roster under its name, pending first, the
+ * principal before staff. Read-only: admitting and revoking are
+ * `private.admit_firm_member` and `private.revoke_firm_member`, each writing
+ * an audit row, and no console control calls them.
+ */
+function RostersPanel({ rosters, examples, locale }: { rosters: FirmRosters | null; examples: boolean; locale: Locale }) {
+  const title = "Firm rosters";
+  const day = (iso: string) => formatDate(new Date(iso), locale, { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" });
+  if (!rosters) {
+    return (
+      <Panel title={title}>
+        <Waiting
+          title="Firm rosters could not be read"
+          body="Who works at each firm, pending, active and revoked. The read did not answer just now; reload in a moment."
+        />
+      </Panel>
+    );
+  }
+  const b = rosters.byStatus;
+  return (
+    <Panel
+      title={title}
+      hint={`${rosters.total} ${rosters.total === 1 ? "membership" : "memberships"} across ${rosters.firms.length} ${rosters.firms.length === 1 ? "firm" : "firms"}${
+        !examples && rosters.examplesExcluded > 0 ? `, ${rosters.examplesExcluded} at example firms left out` : ""
+      }`}
+    >
+      <StatusBar
+        label="Firm memberships by state"
+        segments={[
+          { key: "pending", label: "Pending", count: b.pending, tone: "pending" },
+          { key: "active", label: "Active", count: b.active, tone: "good" },
+          { key: "revoked", label: "Revoked", count: b.revoked, tone: "bad" },
+        ]}
+      />
+      {rosters.firms.length === 0 ? (
+        <table className="nf-md-table mt-md">
+          <caption className="sr-only">Firm rosters</caption>
+          <thead>
+            <tr>
+              <th scope="col">Agent</th>
+              <th scope="col">Role</th>
+              <th scope="col">State</th>
+              <th scope="col">Since</th>
+            </tr>
+          </thead>
+          <tbody>
+            <TableNote
+              columns={4}
+              note={{
+                title: `No firm has a roster yet${!examples && rosters.examplesExcluded > 0 ? " outside the examples" : ""}`,
+                fills: "Every firm's members under its name: pending, active and revoked, the principal first, with the day each was admitted or revoked.",
+                creates: "A firm's principal, or platform staff, admits an agent to a firm; each admission and revocation is written to the audit log.",
+                action: { href: "/admin/businesses", label: "Open business review" },
+              }}
+            />
+          </tbody>
+        </table>
+      ) : (
+        rosters.firms.map((firm) => (
+          <section key={firm.firmId} className="nf-md-roster mt-md" aria-label={firm.firmName ?? "A firm"}>
+            <div className="nf-md-roster__head">
+              <h4 className="nf-md-roster__name">{firm.firmName ?? "A firm with no name on record"}</h4>
+              <span className="nf-md-roster__counts">
+                {firm.counts.pending} pending · {firm.counts.active} active · {firm.counts.revoked} revoked
+              </span>
+            </div>
+            <table className="nf-md-table">
+              <caption className="sr-only">Members of {firm.firmName ?? "this firm"}</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Agent</th>
+                  <th scope="col">Role</th>
+                  <th scope="col">State</th>
+                  <th scope="col">Since</th>
+                </tr>
+              </thead>
+              <tbody>
+                {firm.members.map((m) => (
+                  <tr key={m.id}>
+                    <td data-label="Agent">{m.agentName ?? "No display name"}</td>
+                    <td data-label="Role">{m.role === "principal" ? "Principal" : m.role === "staff" ? "Staff" : m.role}</td>
+                    <td data-label="State">
+                      <StatusPill tone={MEMBER_STATE[m.status]?.tone ?? "neutral"}>
+                        {MEMBER_STATE[m.status]?.label ?? m.status}
+                      </StatusPill>
+                    </td>
+                    <td className="nf-md-date" data-label="Since">
+                      {m.status === "revoked" && m.revokedAt ? `Revoked ${day(m.revokedAt)}` : `Admitted ${day(m.admittedAt)}`}
+                      {m.status === "revoked" && m.revokeNote ? <span className="nf-md-ref">{m.revokeNote}</span> : null}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        ))
+      )}
+    </Panel>
   );
 }
 

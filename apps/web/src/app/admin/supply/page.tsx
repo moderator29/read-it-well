@@ -3,7 +3,7 @@ import { getLocale } from "@/lib/locale";
 import { flatParams } from "../money/_desk/Desk";
 import { readPage } from "@/lib/admin/reads/money-derive";
 import type { SupplyRoleKey } from "@/lib/admin/reads/money-types";
-import { getSupplyDesk } from "@/lib/admin/reads/supply";
+import { getFirmRosters, getSupplyDesk } from "@/lib/admin/reads/supply";
 import { SUPPLY_ROLE_KEYS } from "@/lib/admin/reads/money-types";
 import { SupplyDesk, type SupplyFilter } from "./SupplyDesk";
 import "../money/_desk/desk.css";
@@ -47,10 +47,13 @@ export default async function AdminSupplyPage({
     page: readPage(params.page),
   };
 
-  const read = await getSupplyDesk({ ...filter, pageSize: SUPPLY_PAGE_SIZE });
+  const [read, roster] = await Promise.all([
+    getSupplyDesk({ ...filter, pageSize: SUPPLY_PAGE_SIZE }),
+    getFirmRosters(filter.examples),
+  ]);
   const supply = read.state === "ok" ? read.data : null;
 
   return (
-    <SupplyDesk supply={supply} filter={filter} params={flat} locale={locale} pageSize={SUPPLY_PAGE_SIZE} now={new Date().getTime()} />
+    <SupplyDesk supply={supply} filter={filter} params={flat} locale={locale} pageSize={SUPPLY_PAGE_SIZE} rosters={roster.state === "ok" ? roster.data : null} now={new Date().getTime()} />
   );
 }

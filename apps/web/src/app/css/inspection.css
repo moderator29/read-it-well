@@ -49,10 +49,21 @@
     letter-spacing: -0.01em;
     color: var(--nf-content-primary);
   }
-  /* The render's second word is the same white with a breath of blue in
-     it, not a gradient: sampled #e8f1ff against the first word's #f7f9ff. */
+  /* The render's second word is lit cyan, running left to right from pale
+     to deep: its letter cores sample #b2e9f7, #6ad4f7, #2cb1f6, #22a8f7
+     across four bands (the first word samples #eef0f7). The cyan rung is
+     `--nf-state-warning` (#00c8ff); the far end leans to the lit blue. */
   .nf-ix-hero__lit {
-    color: color-mix(in oklab, var(--nf-content-primary) 82%, var(--nf-brand-secondary));
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--nf-state-warning) 35%, white) 0%,
+      color-mix(in oklab, var(--nf-state-warning) 65%, white) 30%,
+      color-mix(in oklab, var(--nf-state-warning) 85%, var(--nf-glow-ink)) 65%,
+      color-mix(in oklab, var(--nf-state-warning) 70%, var(--nf-glow-ink)) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
   .nf-ix-hero__sub {
     /* Render: two lines at 10.5px strict; 13px, the same two lines. */
@@ -136,7 +147,7 @@
    */
   .nf-ix-glass {
     position: relative;
-    border-radius: var(--nf-radius-md);
+    border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid;
     border-color:
       color-mix(in oklab, var(--nf-state-warning) 85%, white)
@@ -346,28 +357,24 @@
     margin-top: var(--nf-space-2xs);
   }
 
-  /* The call control (lead's ruling): a phone glyph on the name's line,
-     the number in its accessible name and its tel: link, so the row never
-     wraps. A 44px target drawn around a 16px glyph by padding and negative
-     margin, so it takes no height from the row. */
-  .nf-ix-fact__who {
-    display: flex;
-    align-items: center;
-    gap: var(--nf-space-3xs);
-    min-width: 0;
-  }
-  .nf-ix-fact__call {
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-    width: 2.75rem;
-    height: 2.75rem;
-    margin: -0.875rem -0.875rem -0.875rem -0.75rem;
+  /* The number, visible under the name as the render draws it (R-C: a
+     string wraps, it never disappears), and itself the tel: link. The
+     44px target is drawn by padding and negative margin, so it takes no
+     height from the row. */
+  .nf-ix-fact__phone {
+    display: inline-block;
+    margin-top: var(--nf-space-3xs);
+    padding-block: 0.9375rem;
+    margin-block: -0.9375rem;
+    font-size: 0.6875rem;
+    line-height: 1.3;
+    font-weight: 500;
     color: var(--nf-content-link);
+    overflow-wrap: normal;
   }
-  .nf-ix-fact__call:focus-visible {
+  .nf-ix-fact__phone:focus-visible {
     outline: 2px solid var(--nf-brand-primary);
-    outline-offset: -8px;
+    outline-offset: -12px;
   }
   @media (min-width: 640px) {
     .nf-ix-fact {
@@ -457,21 +464,49 @@
     gap: var(--nf-space-xs);
     min-height: 2rem;
     padding: 1px var(--nf-space-xs) 1px var(--nf-space-3xs);
-    border-radius: var(--nf-radius-sm);
+    border-radius: var(--nf-radius-xs);
     border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     background: var(--nf-brand-tint-1);
     box-shadow: var(--nf-rim-lit);
   }
-  /* The round glass plate, cropped from the render with its glyph: 42 of
-     the row's 54 render px (0.78), so 34px on a 44px row. */
+  /*
+   * THE LIT DISC, measured off the render: 47 to 48 render px across (27.5
+   * CSS strict, 0.89 of the 54px row), so 28px on the 32px row. Its light,
+   * sampled down the Exterior disc: a lit rim along the top (#003e98), a
+   * navy body (#00236b), and the light pooling at the foot (#003da9 rising
+   * to #003dac, then #0060b0 on the lower rim), with the cyan line glyph
+   * (#47e9ff) glowing inside. That is the glow identity's icon tile, round:
+   * lit from inside, brighter at the foot, a hot rim, a soft outer glow.
+   */
   .nf-ix-step__plate {
-    display: block;
-    width: 1.5rem;
-    height: 1.5rem;
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
     flex-shrink: 0;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid;
+    border-color:
+      color-mix(in oklab, var(--nf-glow-ink) 70%, var(--nf-state-warning))
+      color-mix(in oklab, var(--nf-glow-ink) 75%, black)
+      color-mix(in oklab, var(--nf-glow-ink) 85%, var(--nf-state-warning))
+      color-mix(in oklab, var(--nf-glow-ink) 60%, var(--nf-state-warning));
+    background:
+      radial-gradient(60% 45% at 50% 100%, color-mix(in oklab, var(--nf-glow-ink) 55%, transparent), transparent),
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--nf-glow-ink) 45%, black) 0,
+        color-mix(in oklab, var(--nf-glow-ink) 30%, black) 45%,
+        color-mix(in oklab, var(--nf-glow-ink) 55%, black) 100%
+      );
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--nf-state-warning) 45%, transparent),
+      inset 0 -2px 3px -1px color-mix(in oklab, var(--nf-glow-ink) 70%, transparent),
+      0 0 8px color-mix(in oklab, var(--nf-glow-ink) 35%, transparent);
+    color: color-mix(in oklab, var(--nf-state-warning) 75%, white);
   }
-  .nf-ix-plate-paper {
-    display: none;
+  .nf-ix-step__plate > svg {
+    filter: drop-shadow(0 0 3px color-mix(in oklab, var(--nf-state-warning) 80%, transparent));
   }
   .nf-ix-step__text {
     min-width: 0;
@@ -545,7 +580,7 @@
     margin-top: var(--nf-space-2xs);
     padding: var(--nf-space-3xs) var(--nf-space-xs);
     min-height: 1.375rem;
-    border-radius: var(--nf-radius-sm);
+    border-radius: var(--nf-radius-xs);
     border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     /* Render: the well is a step LIGHTER than its panel (#00154b on
        #00113d), not a hole in it. */
@@ -802,15 +837,19 @@
 :root[data-theme="light"] .nf-ix-crop--day {
   display: block;
 }
-:root[data-theme="light"] .nf-ix-plate-paper {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  border-radius: var(--nf-radius-circle);
-  border: var(--nf-border-width) solid var(--nf-brand-edge);
-  background: var(--nf-brand-tint-1);
+/* The identity's paper tile, round: pale glass, brand edge, brand glyph. */
+:root[data-theme="light"] .nf-ix-step__plate {
+  border-color:
+    color-mix(in oklab, var(--nf-brand-primary) 70%, white)
+    color-mix(in oklab, var(--nf-brand-primary) 35%, transparent)
+    color-mix(in oklab, var(--nf-brand-primary) 40%, transparent)
+    color-mix(in oklab, var(--nf-brand-primary) 35%, transparent);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--nf-brand-primary) 5%, white), color-mix(in oklab, var(--nf-brand-primary) 15%, white));
+  box-shadow: inset 0 1px 0 white, 0 4px 10px -6px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
   color: var(--nf-brand-primary);
+}
+:root[data-theme="light"] .nf-ix-step__plate > svg {
+  filter: none;
 }
 :root[data-theme="light"] .nf-ix-notes__well {
   background: var(--nf-surface-raised);
@@ -845,4 +884,11 @@
 */
 :root[data-theme="light"] .nf-ix-hero__mark {
   filter: drop-shadow(0 4px 10px var(--nf-glow-2));
+}
+/* On paper the lit cyan word would vanish into white, so it runs from the
+   brand ink into the daylight cyan (both tokens, both over 4.5:1 on white). */
+:root[data-theme="light"] .nf-ix-hero__lit {
+  background: linear-gradient(90deg, var(--nf-brand-primary), var(--nf-state-warning));
+  -webkit-background-clip: text;
+  background-clip: text;
 }

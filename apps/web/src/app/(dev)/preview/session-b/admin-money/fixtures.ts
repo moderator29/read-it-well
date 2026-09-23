@@ -10,6 +10,7 @@
 import type { EscrowView, MoneyConsole, WalletEntryView } from "@/lib/admin/money-queries";
 import { flowFromWhole, ledgerFromWhole, pipelineFromWhole, pulseFromWhole } from "@/lib/admin/reads/money-derive";
 import type { ReconciliationHealth } from "@/lib/admin/reads/money-types";
+import type { EvidenceItem } from "@/lib/admin/reads/escrow";
 import { buildSupply } from "@/lib/admin/reads/supply";
 import { buildBookings, type BookingRaw } from "@/lib/admin/reads/bookings";
 import { buildPayments, type PaymentAttempt } from "@/lib/admin/reads/payments";
@@ -96,4 +97,46 @@ export function rentCharges(full: boolean) {
   return full
     ? { total: 23, byState: { awaiting: 5, paid: 13, cancelled: 3, no_show: 1, check: 1 }, paidMinor: 4_120_000_000, awaitingMinor: 1_060_000_000, latest: rows, complete: true }
     : { total: 0, byState: { awaiting: 0, paid: 0, cancelled: 0, no_show: 0, check: 0 }, paidMinor: 0, awaitingMinor: 0, latest: rows, complete: true };
+}
+/** Evidence on the fixture dispute. Live: no dispute exists (0 rows in escrow_evidence on 23 September). */
+export function disputeEvidence(full: boolean): Record<string, EvidenceItem[]> {
+  if (!full) return {};
+  const id = "3j9p8812-3333-4000-8000-000000000009";
+  const base = { escrowId: id, fact: null, happenedOn: null, amountMinor: null, fileName: null, mimeType: null, sizeBytes: null, caption: null, fileUrl: null };
+  return {
+    [id]: [
+      { ...base, id: "ev1", kind: "fact" as const, side: "payer" as const, authorName: "Maitama tenant", fact: "viewing_attended", happenedOn: "2026-09-12", createdAt: iso(NOW - 5_000_000) },
+      { ...base, id: "ev2", kind: "file" as const, side: "payer" as const, authorName: "Maitama tenant", fileName: "borehole-dry.jpg", mimeType: "image/jpeg", sizeBytes: 842_000, caption: "The borehole tap on the day of move-in", fileUrl: "#evidence-ev2", createdAt: iso(NOW - 4_600_000) },
+      { ...base, id: "ev3", kind: "fact" as const, side: "payee" as const, authorName: "Grace", fact: "property_matched_listing", createdAt: iso(NOW - 3_000_000) },
+      { ...base, id: "ev4", kind: "file" as const, side: "payee" as const, authorName: "Grace", fileName: "generator-service-receipt.pdf", mimeType: "application/pdf", sizeBytes: 120_400, caption: "Generator serviced two weeks before", createdAt: iso(NOW - 2_400_000) },
+    ],
+  };
+}
+/** The float booked daily. Live mirrors the one real snapshot (23 September, ₦0, balanced); full is invented layout data. */
+export function floatHistory(full: boolean) {
+  if (!full) {
+    return { points: [{ asOf: "2026-09-23", takenAt: "2026-09-23T03:05:00Z", floatMinor: 0, ledgerFloatMinor: 0, differenceMinor: 0, escrowCount: 0, commissionBookedMinor: 0 }], total: 1, unbalancedDays: 0, lastUnbalanced: null, complete: true };
+  }
+  const points = Array.from({ length: 30 }, (_, i) => {
+    const asOf = iso(NOW - (29 - i) * DAY).slice(0, 10);
+    const floatMinor = 600_000_000 + i * 30_000_000 + (i % 4) * 25_000_000;
+    const differenceMinor = i === 17 ? 5_000_000 : 0;
+    return { asOf, takenAt: `${asOf}T03:05:00Z`, floatMinor, ledgerFloatMinor: floatMinor - differenceMinor, differenceMinor, escrowCount: 20 + Math.floor(i / 2), commissionBookedMinor: 0 };
+  });
+  return { points, total: 30, unbalancedDays: 1, lastUnbalanced: points[17]!.asOf, complete: true };
+}
+/** Firm rosters. Live mirrors the database (0 rows in firm_members on 23 September); full is invented layout data. */
+export function firmRosters(full: boolean) {
+  if (!full) return { total: 0, byStatus: { pending: 0, active: 0, revoked: 0 }, firms: [], examplesExcluded: 0, complete: true };
+  const mk = (id: string, agentName: string, role: string, status: string, days: number, note: string | null = null) => ({ id, agentName, role, status, admittedAt: iso(NOW - days * DAY), revokedAt: status === "revoked" ? iso(NOW - 2 * DAY) : null, revokeNote: note });
+  return {
+    total: 7,
+    byStatus: { pending: 2, active: 4, revoked: 1 },
+    firms: [
+      { firmId: "f1", firmName: "Sunshine Realty", counts: { pending: 1, active: 3, revoked: 1 }, members: [mk("m1", "Kemi O.", "staff", "pending", 1), mk("m2", "Tunde A.", "principal", "active", 60), mk("m3", "Amaka J.", "staff", "active", 40), mk("m4", "Chinedu R.", "staff", "active", 21), mk("m5", "Bola T.", "staff", "revoked", 30, "Left the firm in September")] },
+      { firmId: "f2", firmName: "Lagos Homes", counts: { pending: 1, active: 1, revoked: 0 }, members: [mk("m6", "Fatima B.", "staff", "pending", 2), mk("m7", "Daniel K.", "principal", "active", 90)] },
+    ],
+    examplesExcluded: 0,
+    complete: true,
+  };
 }

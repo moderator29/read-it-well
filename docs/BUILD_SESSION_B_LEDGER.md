@@ -487,7 +487,7 @@ server.
 | PROPERTY / STAYS | cap 15 src = 9 css, 116 src = 69 css wide, pale ice, glow | 11px, 0.19em, 70 css wide, ice with glow, turned with the tile | yes |
 | Coin size and place | in a 3x zoom of the stage (3 zoom px per css px): bounding box x 85 to 320, y 60 to 355, overlapping the plinth's front rim, rim low on the left | 101 css face at (49.8%, 62.4%) of the stage, leaning 20 deg, turned 52 deg and tipped 12: bounding box x 85 to 325, y 60 to 350 in the same zoom | yes, within 2 css px on every side (`welcome-coin-render-vs-built-3x.jpg`) |
 | Coin face | this render's coin: front face an ellipse, centre (515, 884) src, semi axes 80 and 52, long axis 20 deg from vertical | THIS render's face, cut by the crop script (`coin-face.webp`, 160 px): un-projected from that ellipse to a circle, then turned back by the live coin to the drawn pose (`welcome-coin-face-crop.jpg`) | yes: the same pixels |
-| Coin rim | a smooth band about 20 src px (12 css) showing low on the left, deep blue with white lips | 15 discs 1px apart in the brand blue, the outer two with a lit lip, 16 css thick, tipped back 12 deg so it shows low on the left | close: one smooth band now (no ridges); ours is a flat colour where the render's band carries a highlight streak |
+| Coin rim | sampled across the band at render row 900 (x 450 to 472, 20 src px = 12 css): outer lip #f2f7ff, body #1f82fd falling to #0f6dfd, front lip #c5f0ff; at row 930 a white specular streak across the band, #fbfffe, low on the left | 15 discs 1px apart, 16 css thick, tipped back 12 deg so the band shows low on the left; each disc an angular gradient, sampled on the built 2x shot: outer lip #94c9ff, body #117fff, front lip #67b0ff; the streak low on the left #eef5ff (208 to 236 deg of the face, so it rides the rim as the coin turns) | yes: body, lips and streak drawn and sampled; the built lips are a little less white (#94c9ff against #f2f7ff) because a 2px lip is half a device pixel wider than the drawn one at 3x and was kept soft to avoid a hard ring |
 | Coin motion | still in the render | turns once every 7 s, rests at the drawn pose 45% of the cycle; reduced motion holds the pose | by design |
 | Dots | 4, pitch 23 css, active 9.5, rest 7 | 4, pitch 28 css (44 tall buttons), active 10, rest 7 | pitch wider on purpose for the tap |
 | Dots centre from mark top | 583 css | 581 | yes |
@@ -495,9 +495,9 @@ server.
 | Button fill, down the centre | #047bfb top, #002cdb a third down, #0027d1 two thirds, #026dfa at the foot | #3c9dfb top (the 1px rim sits in the sample), #0058d3, #0072f1, #0084fe: GLOW_IDENTITY's lit primary (d01a5d7) with its radial cyan lift low in the middle | close: the render's core is a more violet blue (green channel 44) than any brand token mix can reach without a layer-1 token (ours 88); the lightness and the bright top and bottom bands match |
 | Button edge and rim | lit all round: #e4feff top, #d6faff bottom, #0180fb sides | 1px border: cyan 22% into white on top, 32% into white at the foot, brand 70% into cyan on the sides; inset 1px rim | yes |
 | Button bloom, blue channel over the ground below the bar (render ground #000823, built #000830) | centre: +136 / +65 / +25 at 4 / 10 / 20 css px; halfway to the ends: +64 / +24 / +2. A pool under the middle, not a band | centre +129 / +77 / +20; halfway +65 / +22 / +1 (a short even shadow plus a radial pool under the middle) | yes, within 12 at every point. Hue: the render's pool is a deeper violet blue (#0120ab at 4px) than any brand token reaches (ours #0044b1); no layer-1 token may be used |
-| Button label | ~16px medium, "Get Started" 81 css wide, arrow | 16px 500, arrow 20px | yes |
+| Button label "Get Started" | cap height 18 src (10.8 css), 134 src wide (80.1 css), stems 2 to 3 src (1.5 css): Inter-like, medium; arrow 24 src (14 css) wide | Inter 500 at 15px: cap 10.9, 81.6 css wide (measured with a text range), arrow 20px box (14 css glyph) | yes |
 | Button radius | ~10 css | 14 (`--nf-radius-control`) | shape law, recorded |
-| Skip | centre 705 css below mark top, small, quiet (#345fb7 mean) | 13px, quiet blue at 78%, 44px tap, centre 702 | yes |
+| Skip | cap 14 src (8.4 css), 37 src wide (22.1 css), stems 2 src (1.2 css): medium; quiet (#345fb7 mean, #60a5fa brightest); centre 705 css below the mark top | Inter 500 at 11.5px (R-A floor 11 respected): cap 8.4, 23.9 css wide; quiet blue at 78%; 44px tap; centre 702 | yes |
 | Ground | #000518 top, #000d3e at 36%, #00092d at 73%, #000926 foot, faint grid top | night ink stirred with strong blue in sRGB: #00041a, #000e3c, #00092f, #00072e; 28px grid fading by 55% | yes |
 | Glow identity (`docs/design/GLOW_IDENTITY.md`, revised d01a5d7) | | the lit button already has the identity's structure (gradient, top rim, edge glow, bloom); where the identity's numbers differ (its cyan lift), this surface keeps the values measured from `2A49E2F7`, as the lead's note allows | noted |
 
@@ -530,6 +530,12 @@ button is the render's 323 css wide; R-D: the sweep reports 0 at or above
 `?viewer=done`), behind the preview gate, and the member proof now comes from
 it rather than Session A's `/preview/f1/welcome`. All proofs re-shot after the
 last change.
+
+Second closing audit round: the button label and Skip measured on the image
+side (cap height, width and stem width, rows above) and set to 15px and 11.5px
+Inter 500 to match (they were 16px and 13px); the coin rim drawn with its
+measured body, white lips and the specular streak low on the left. The coin
+zoom and the side-by-side re-shot after the change.
 
 Resolution, honestly: the stage is 636 source px for 380 css, 1.67 source px
 per css px. At 2x it is sharp; at 3x it is visibly softer than the live text
@@ -630,8 +636,8 @@ render's own midpoint (tile top 14.5 per cent to plinth foot 92.4, midpoint
 | Wordmark centre height | 37.4% | 38.6% (y 326) | yes |
 | Card top | 46.0% | 43.6% (y 368) | the slogan's line closed by half |
 | Plinth | 87.1 to 92.4%, 725 x 84 render, whole | 80.2 to 84.0% (y 677 to 709), 275 x 32, whole: x 58 to 333 | shape and size yes (render pixels); position follows the taller card |
-| Stage (sky, curtains, horizon, floor) | render | render pixels (`stage.webp`), 388 x 582, anchored at the card foot; a blurred copy of its sky above; the floor continues lit blue below | yes |
-| App tile + wordmark | tile 258, wordmark 382 x 70 | render crop 176 x 171: tile 98, wordmark 145 | yes (pixels); 464 source px for 528 device px at 3x (1.14x), under 1x at 2x |
+| Stage (sky, curtains, horizon, floor) | render | render pixels (`stage.webp`) at 388 x 582, on a 3072 x 2304 canvas drawn 1165 x 874: the render's light continued 1024 px each side and 768 below from just inside its own vignette, blurred and dimmed with distance, feathered only at the canvas's far edges. Measured: largest step between neighbouring 2 px samples in the side 30 px bands 6 (of 765) at 390 and at 430; no step under the plinth apart from the terms text; no hard edge at 1440 | yes, and no edge, band or strip in frame at 390 x 844, 430 x 932 or 1440 x 900 |
+| App tile + wordmark | tile 258, wordmark 382 x 70 | render crop 176 x 171: tile 98, wordmark 145; sky keyed out (floor 110), served as cut (`unoptimized`). Measured with the lockup shown and hidden: identical pixels outside the lit marks (#01298D / #01298D, #001C6F / #001C6F, #010D40 / #010D40), so no box | yes (pixels); 464 source px for 528 device px at 3x (1.14x), under 1x at 2x |
 | Slogan | "Real Estate reimagined!" | none | REFUSED (claims rule, founder) |
 | Card corner | 42 render = 16 | 18 (`--nf-radius-lg`) | +2, the nearest rung |
 | Card inset | 60 render = 23 | 23 sides and top, 16 foot | yes |
@@ -680,14 +686,17 @@ it. Derived from the phone; no desktop render governs it.
 ### Glow identity (`docs/design/GLOW_IDENTITY.md`, d01a5d7)
 
 The identity's structure is followed (lit edge as bands, lit primary with a
-bright top line and a bloom under it). Where 55A56F21 measures differently it
-wins on this surface, per the lead's instruction: the card's edge is the
-render's hot hairline over an electric band rather than the identity's four
-per-side colours, its glass is the render's #001554 rather than the
-identity's gradient of lit ink, and the Continue button keeps the render's
-white top hairline (#F6FEFE) and lit foot (#D7FAFE) rather than the
-identity's cyan edge. Card corner 22px against the identity's 12: the render
-measures 42 render px, 24 CSS.
+bright top line and a bloom under it, the top-centre highlight and the
+lit-ink bands in the glass). Where 55A56F21 measures differently it wins on
+this surface, per the lead's instruction: the card's edge is the render's hot
+hairline over an electric band rather than the identity's four per-side
+colours, its glass tint is sampled from the render (a dark translucent tint
+under the lit-ink bands) rather than the identity's gradient alone, and the
+Continue button keeps the render's white top hairline (#F6FEFE) and lit foot
+(#D7FAFE) rather than the identity's cyan edge. Card corner: the render
+measures 42 render px, 16 CSS at s = 0.379; built 18 px (`--nf-radius-lg`,
+the nearest rung), against the identity's 12. These agree with the table
+above.
 
 ### (c) Light mode
 
@@ -735,7 +744,12 @@ answers that need an account to exist.
 Audit rounds: one fixed the grey card and flat edge; two (lead) the
 proportion, glass, plinth and terms line; three (lead rulings) the card to
 the render's 61.6 per cent and every text role to the render's size with its
-floor.
+floor; four (second closing audit) the crop box behind the lockup (the old
+cut, keyed at floor 70, was also being served from the image optimiser's
+cache across builds; it is now keyed at 110 and served as cut), the stage's
+hard edge and side strips (the plate now continues the render's own light
+past every edge), and the corner numbers in the glow identity paragraph.
+`signin-430-dark.jpg` added for the 430 x 932 check.
 
 ### Crop resolution
 The lockup draws 176 CSS px from 464 source px (1.14x the source on a 3x
@@ -2079,7 +2093,7 @@ panel, exact counts by state from the booking's status and whether a
 SUCCESSFUL transaction settled it, paid and awaited sums in kobo, the six
 newest; `getRentCharges` in `lib/admin/reads/money.ts` under
 `rent_payments_admin_select`, read live, tested in `money-rent.test.ts` and
-`money-derive.test.ts`). No money path is left off the console.
+`money-derive.test.ts`). No money path is left off the console. Run two of the closing audit added dispute evidence, the float's daily booking and firm rosters (8.11).
 
 **Every supply role.** Owner, agent, firm and host, from the application's
 `supply_role` with a fallback to the agent type; businesses count as firms
@@ -2113,6 +2127,25 @@ measure 10px on all five desks (`.nf-md-card` inherits `--nf-admin-radius`
 instead of pinning its own corner), the independent sweep reads 40
 combinations, 1,200 controls, highest ratio 0.32, and the official sweep over
 all ten routes is 0 breaches and 0 worth an eye.
+
+### 8.11 Closing audit, run two: evidence, the float's daily booking, firm rosters
+
+The audit found three tables no desk showed. Each is now read select-only
+through `requireAdmin()` and the RLS client, tested, drawn with a designed
+empty state, and in the handbook. Live counts read with SQL on 23 September:
+`escrow_evidence` 0, `escrow_float_snapshots` 1, `firm_members` 0.
+
+| Table | Where it is drawn | Read and policy | Test | Empty state |
+|---|---|---|---|---|
+| `escrow_evidence` | On every ruling: Escrow's "Waiting on a ruling" and Money's "Disputed holds", above `EscrowRuling`: side (Payer or Payee, in words and by the stripe), who, the fact in words with its date or amount, or the file with name, caption, type, size and "Open file", and when | `getDisputeEvidence()` (`lib/admin/reads/escrow.ts`): `escrow_evidence_select_admin`, `escrows_select_admin`, `profiles_select_admin`; files signed for ten minutes under the bucket policy `escrow_evidence_objects_admin_read` (read live). No in-console document viewer exists, so a file opens in the browser's own | `escrow-evidence.test.ts`: side placement, order, names, signing, an unsigned file kept, no write | "Nothing has been filed on this dispute"; a failed read is "The evidence could not be read", never "nothing filed" |
+| `escrow_float_snapshots` | Escrow, "Float, booked daily": escrow float and ledger float as two lines, hover readout with the difference, and the invariant (`difference_minor`, zero is Balanced) with days balanced and the last day that was not | `getEscrowFloatHistory()`: every row against an exact count, `escrow_float_snapshots_select_admin` | `escrow-evidence.test.ts`: ordering, unbalanced days, exact count | One day booked so far (the real 23 September row): no line, the verdict printed, Balanced |
+| `firm_members` | Supply, "Firm rosters": counts Pending, Active, Revoked on a status bar with words, then each firm's roster under its name | `getFirmRosters()` (`lib/admin/reads/supply.ts`): every row against an exact count, `firm_members_staff_all` used for select only; firm names from `businesses`, agents from `agents`; example firms left out unless asked | `supply-firms.test.ts`: counts by state, grouping, order, examples | Bar at zero, table head, "No firm has a roster yet" and how a member is admitted |
+
+Neither `escrow_evidence` nor `escrow_float_snapshots` is in the generated
+types yet; each read goes through one narrow untyped door with the columns
+checked against the live table, and the mappers treat every field as unknown.
+
+The rail and the flat panels are admin-shell's and were not touched.
 
 ## 9. Inspection
 
@@ -2157,7 +2190,7 @@ proven by code, the SQL introspection above and the unit tests
 (`components/app/inspections/status.test.ts`, `ladder.test.ts`, `grouping.test.ts`,
 `lib/inspections/*.test.ts`, 33 passing).
 
-### (b) The comparison, 390 dark (round three, on the lead's rulings R-A to R-G)
+### (b) The comparison, 390 dark (round four, after the second closing audit)
 
 Scale: phone screen 668 render px (inner edge 177 to 845), so 1 CSS px at 390 = 0.584
 render px; "strict" means render px x 0.584. Rulings applied (ledger section 0):
@@ -2168,12 +2201,14 @@ proportions; **R-C** containers at the render's width (342 against 360: the 24px
 gutter, below); **R-D** no text-bearing control at or above 0.35; **R-F** the outcome
 choice kept, drawn as one row of three; **R-G** the harness is committed at
 `apps/web/src/app/(dev)/preview/session-b/inspection/page.tsx`. Built numbers are
-`getBoundingClientRect` and computed style at 390 x 844 on that harness and on the same
-components inside the app shell. Side by side at matched scale:
+`getBoundingClientRect` and computed style at 390 x 844 on that harness and on its
+in-shell twin, `apps/web/src/app/(dev)/preview/session-b/inspection/shell/page.tsx`
+(the same fixture inside the real `AppShell` with the same server facts
+`app/(app)/layout.tsx` passes; committed, R-G). Side by side at matched scale:
 `docs/design/proofs/session-b/inspection/inspection-render-vs-built-390-dark.jpg`.
 
-**Overall: title top to Submit bottom, render 1132 render px = 661 CSS; built 672, 1.02
-times.** Inside the app shell at 390 x 844, Add Photos ends at y 768 and Submit at 820:
+**Overall: title top to Submit bottom, render 1132 render px = 661 CSS; built 688, 1.04
+times.** Inside the app shell at 390 x 844, Add Photos ends at y 784 and Submit at 836:
 both on the first screen (the harness's shell is the signed-out header; a signed-in
 dock would cover the foot of Submit, not Add Photos).
 
@@ -2181,26 +2216,27 @@ dock would cover the foot of Submit, not Add Photos).
 |---|---|---|---|
 | Page gutter | 28 render = 16 CSS | 24 (the app shell's padding on every consumer page) | no, by decision: the shell's 24px is the platform standard, not this surface's to change; containers are 342 against 360 for that reason |
 | Back button | glass rounded square in the header row | 44 x 44 glass square on its own row | shape yes; the render's header row is shared chrome |
-| Title | cap 28 render = 16.4 strict, 23px, bold | 23px / 700, h 26 | yes |
+| Title size | cap 28 render = 16.4 strict, 23px, bold | 23px / 700, h 26 | yes |
+| Title colour | "Property" letter cores #eef0f7; "Inspection" lit cyan, running left to right #b2e9f7, #6ad4f7, #2cb1f6, #22a8f7 (four bands, cores with a channel over 200) | "Property" `--nf-content-primary`; "Inspection" a left-to-right gradient from the cyan rung (`--nf-state-warning`, #00c8ff) mixed 35% into white, through 65%, to cyan leaning into the lit blue; on paper brand ink into the daylight cyan | yes (tokens, so within a few steps of the sampled hexes, not on them) |
 | Sub line | about 10.5px strict, blue #47d0f6 peak, 2 lines | 11px / 400 (floor), 2 lines, h 30, brand quiet | yes |
 | Glass house | object 153 render = 89 CSS, foot over the card edge | the render's own crop, box 100 x 75, foot over the card edge, above it | yes (crop, soft at 3x, SOURCES.md) |
 | Listing card | 616 x 142 render = 360 x 83 | 342 x 94 | yes (1.13 in height) |
-| Card radius | 16 render on 142 (0.11) | 14 on 94 (0.15) | near: the 14 rung is the smallest container radius in the tokens that is not a control's |
+| Container radius (card, info row, panels) | 16 render on the 142 card (0.11) | the 10px rung (`--nf-radius-sm`, the console's container rung) on 94 (0.106) | yes. Correction: the earlier reason given here ("14 is the smallest container radius that is not a control's") was wrong; 10 exists, is the console's container rung, and matches the render's ratio |
 | Card photo | 180 x 129 = 105 x 75, radius 10 render (0.08) | 104 x 84, radius 10 (0.12) | yes |
 | Scheduled / Pending badge | 91 x 24 render = 53 x 14, corner 8 render (0.33) | 18 tall, 11px / 600, corner 6 (0.33), emerald / cyan tokens | yes; 18 not 14 because 11px text needs it; hue emerald (render teal is off-family) |
 | Card title | about 11.7px strict, semibold | 12px / 600, one line | yes |
 | Place and kind lines | about 9px strict | 11px / 400 (floor), 12px glyphs | yes |
 | Price | about 11.4px strict, bold brand blue; "/ year" | 12px / 700 via `formatMoney`; "per year" 11px (the product's `PERIOD_SUFFIX`) | yes |
-| Info row | 616 x 88 = 360 x 51, three cells side by side, glyph left of text | 342 x 57, three cells side by side, glyph left of text, no wrap | yes (1.12) |
+| Info row | 616 x 88 = 360 x 51, three cells side by side, glyph left of text | 342 x 73, three cells side by side, glyph left of text | 1.43: the number is visible under the name and wraps to a second line (R-C) |
 | Info label / value / second line | about 7 / 9 / 7px strict | 11 / 11 / 11px (floor), value 600 | yes |
-| Phone | the number, 7px strict, under the name | a phone glyph (16px) on the name's line, 44px target, tel: link, the grouped number in its accessible name | by ruling: the number cannot fit at the floor without wrapping |
+| Phone | the number, 7px strict, visible under the name | the grouped number, visible under the name, 11px / 500 link colour, itself the tel: link with a 44px target (padding and negative margin), wrapping between groups where the cell is narrow (R-C) | yes |
 | Checklist panel | 616 x 506 (8 rows) = 360 x 296 | 342 x 181 (4 rows, request I1) | per row, below |
 | Checklist head | title about 11px strict, count about 8px, bar 72 x 3.5 under the count | 11px / 600, 11px, bar 4px under the count | yes |
-| Checklist row | 54 render = 31.5 CSS, corner 12 (0.22), 1 to 2 render apart | 32, corner 10 (0.31), 2 apart | height yes; corner a rung larger |
-| Row plate | 42 of 54 (0.78) | the render's own crop, 24 of 32 (0.75) | yes |
+| Checklist row | 54 render = 31.5 CSS, corner 12 (0.22), 1 to 2 render apart | 32, the 6px rung (0.19), 2 apart | yes |
+| Row plate | a lit round disc 47 to 48 render across (27.5 CSS, 0.89 of the row); sampled down the Exterior disc: lit top rim #003e98, navy body #00236b, light pooling at the foot #003da9 to #0060b0, cyan line glyph #47e9ff | 28px disc (0.875 of the row): the identity's lit tile, round (hot rim, navy body, lit pool at the foot, 8px outer glow) through `--nf-glow-ink` and `--nf-state-warning`, with the stroked glyph (house, shield, bed, document) at 16px in cyan with a 3px glow; on paper the identity's pale tile, round, brand glyph | yes. The earlier 24px keyed crops came out dim and are withdrawn |
 | Check circle | 20 of 54 (0.37) | 14 of 32 (0.44), done: emerald fill and a drawn tick | yes |
 | Row title / sub | about 7.8 / 6.5px strict | 11 / 11px (floor), 600 / 400 | yes |
-| Notes panel | 616 x 88 = 360 x 51; well corner 8 render | 342 x 53; well 22 tall, corner 10; label 11px / 600, text 11px | yes (1.04) |
+| Notes panel | 616 x 88 = 360 x 51; well 45 render tall, corner 8 render (0.18) | 342 x 53; well 22 tall, the 6px rung (0.27); label 11px / 600, text 11px | yes (1.04) |
 | Outcome choice | not drawn | one row of three at 44 (R-B), corner 10 (0.23), "Inspected", "Deal done", "No deal", each with its full meaning as its accessible name; panel 79 tall | added by ruling R-F |
 | Add Photos | 56 render = 33 CSS, corner 14 render (0.25), gradient #016bfb / #0039fd / #0472f8 | 44 (floor), corner 14 (0.32), 11px / 650 label, identity lit button over the token gradient (#0074fc / #0042fd / #0069f7) | yes |
 | Submit | 50 render = 29 CSS, fill #001e62, edge #003ab1, muted label | 44 (floor), brand-tint glass, brand edge, label brand quiet at 55% while disabled, 11px / 650 | yes |
@@ -2256,14 +2292,14 @@ Same anatomy on paper: containers become `--nf-surface-on-paper` with
 `--nf-shadow-on-paper` and the brand hairline; rows and options `--nf-surface-raised`;
 no bloom. The glass house swaps to its daylight cut (floor lifted from 12 to 70 so the
 night bloom does not smudge the white) and stands on the paper with no chip. The row
-plates do NOT use their daylight cut: at 48 render px the glass disc keys to a pale
-bubble on white and its cyan glyph all but vanishes (the "Outcome recorded" plate was
-unreadable in the first light proof), so on paper each plate is drawn as a pale brand
-disc with the brand edge and the stroked glyph (house, shield, bed, document), same
-anatomy, crisp. No daylight plate is cut. For the house: `home-check` has no light twin in the pack, so `BrandIcon` would have put it on
+plates are the identity's paper tile, round: pale glass (brand 5% to 15% into white), a
+brand top edge, a soft brand shadow, the brand glyph; never a dark disc on white. The
+title's lit word runs from brand ink into the daylight cyan so it stays legible on
+white. For the house: `home-check` has no light twin in the pack, so `BrandIcon` would have put it on
 a navy chip, which is exactly the rejected "black icon plate". Lit CTA keeps the token
 gradient's light twin. Badges take the daylight state colours from the tokens
-(2596ed9), not re-derived hexes. Proof: `docs/design/proofs/session-b/inspection/inspection-390-light.jpg`.
+(2596ed9), not re-derived hexes. Proofs: `docs/design/proofs/session-b/inspection/inspection-390-light.jpg`,
+`inspection-390-light-first-screen-in-shell.jpg`.
 
 ### Desktop
 
@@ -2274,21 +2310,22 @@ the four checklist rows in two columns, the outcome options in three. Proof:
 
 ### (d) Shape sweep
 
-`node scripts/design/compare-surface.mjs --base http://127.0.0.1:3178 --shape-sweep --routes /preview/session-b/inspection --theme both`
-on the committed harness (R-G), final build of round three, at 390 and 1536, dark and
-light: BREACHES (at or above 0.5) 0; WORTH AN EYE (0.35 to 0.5) 0; round icon-only
-controls 0. The first run of round three found the 16px badges at 0.38; they are 18px
-now (0.33). `/inspections` and `/agent/inspections` redirect to sign-in without a
-session, so the sweep runs on the harness, which renders the same components.
-`check-css-tokens.mjs`: clean.
+`node scripts/design/compare-surface.mjs --base http://127.0.0.1:3178 --shape-sweep --routes /preview/session-b/inspection,/preview/session-b/inspection/shell --theme both`
+on the committed harness and its in-shell twin (R-G), final build of round four, at
+390 and 1536, dark and light. Verbatim: BREACHES (at or above 0.5) 0; WORTH AN EYE
+(0.35 to 0.5) 0; ROUND ICON-ONLY CONTROLS 0; ROUTES REFUSED 0; "COVERED: 2 route(s)
+asked for, 0 refusal(s), 2 route/width/theme combination(s) actually measured" (the
+tool's own count, quoted as printed). `/inspections` and `/agent/inspections` redirect
+to sign-in without a session, so the sweep runs on the harness, which renders the same
+components. `check-css-tokens.mjs`: clean.
 
 ### (e) Proofs, and what I could not verify
 
 - Every screenshot is FIXTURE-BACKED, from the committed harness
   `apps/web/src/app/(dev)/preview/session-b/inspection/page.tsx` (R-G; run with
-  `VALLO_PREVIEW_HARNESS=1`), except `inspection-390-dark-first-screen-in-shell.jpg`, taken
-  from a throwaway copy of the same page inside the app shell (not committed) to show the
-  first screen with the shell's header. Earlier rounds used a throwaway harness route (not committed)
+  `VALLO_PREVIEW_HARNESS=1`), and the first-screen shots `inspection-390-dark-first-screen-in-shell.jpg` and
+  `inspection-390-light-first-screen-in-shell.jpg` come from its committed in-shell twin
+  `.../inspection/shell/page.tsx` (signed-out shell header). Earlier rounds used a throwaway harness route (not committed)
   rendering `InspectionHero` and `InspectionSheet` with the F5 fixture inspection
   (CONFIRMED, requester side) and listing facts. No signed-in production render exists.
 - Not verified live: a real party moving a real inspection, the notification arriving,

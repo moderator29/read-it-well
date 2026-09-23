@@ -93,16 +93,16 @@ const STATE_TONE: Record<InspectionState, BadgeTone> = {
 };
 
 /*
- * Each rung wears one of the render's own glass plates, cropped from F6A8A482
- * (`public/brand/session-b/inspection/SOURCES.md`), chosen for what the rung
- * means: the house for the request, the shield with its tick for the agreed
- * time, the room for the visit, the document for the outcome.
+ * Each rung sits on a lit round disc, drawn to the render's measured size and
+ * light, with the stroked glyph chosen for what the rung means: the house
+ * for the request, the shield with its tick for the agreed time, the room
+ * for the visit, the document for the outcome.
  */
-const RUNG: Record<LadderKey, { plate: string; paper: UiIconName; name: string; detail: string }> = {
-  asked: { plate: "exterior", paper: "house", name: "Viewing requested", detail: "The request is on both sides' lists" },
-  agreed: { plate: "safety", paper: "verified", name: "Time agreed", detail: "A day and a time both sides took" },
-  visited: { plate: "interior", paper: "bed", name: "Viewing happened", detail: "Somebody stood in the property" },
-  recorded: { plate: "overall", paper: "document", name: "Outcome recorded", detail: "How it went, written on the record" },
+const RUNG: Record<LadderKey, { icon: UiIconName; name: string; detail: string }> = {
+  asked: { icon: "house", name: "Viewing requested", detail: "The request is on both sides' lists" },
+  agreed: { icon: "verified", name: "Time agreed", detail: "A day and a time both sides took" },
+  visited: { icon: "bed", name: "Viewing happened", detail: "Somebody stood in the property" },
+  recorded: { icon: "document", name: "Outcome recorded", detail: "How it went, written on the record" },
 };
 
 const CROPS = "/brand/session-b/inspection";
@@ -113,14 +113,11 @@ function Crop({
   width,
   height,
   className,
-  night = false,
 }: {
   name: string;
   width: number;
   height: number;
   className?: string;
-  /** Night only: daylight draws something else in its place. */
-  night?: boolean;
 }) {
   return (
     <>
@@ -132,14 +129,14 @@ function Crop({
         unoptimized
         className={`nf-ix-crop nf-ix-crop--night ${className ?? ""}`}
       />
-      {!night && <Image
+      <Image
         src={`${CROPS}/${name}-day.webp`}
         alt=""
         width={width}
         height={height}
         unoptimized
         className={`nf-ix-crop nf-ix-crop--day ${className ?? ""}`}
-      />}
+      />
     </>
   );
 }
@@ -270,26 +267,25 @@ export function InspectionSheet({
                   party is whoever lists the property, owner or agent, so the
                   label says that and no more (CLAIMS_RULE; ledger 9, refused). */}
               <dt className="nf-ix-fact__label">{side === "requester" ? "Listed by" : "Requested by"}</dt>
-              <dd className="nf-ix-fact__value nf-ix-fact__who">
-                <span className="min-w-0">{inspection.counterpartName ?? "Not named yet"}</span>
-                {/*
-                  THE NUMBER, when this reader is allowed to have it.
-                  `lib/security/counterpart-contact.ts` decides; null means no
-                  control is drawn at all. Drawn as a phone glyph on the name's
-                  line (lead's ruling), the grouped number in its accessible
-                  name and its tel: link, so the row never wraps.
-                */}
-                {inspection.counterpartPhone && (
+              <dd className="nf-ix-fact__value">{inspection.counterpartName ?? "Not named yet"}</dd>
+              {/*
+                THE NUMBER, when this reader is allowed to have it, visible
+                under the name as the render draws it and itself the tel:
+                link. `lib/security/counterpart-contact.ts` decides; null means
+                no line is drawn at all rather than a dead control.
+              */}
+              {inspection.counterpartPhone && (
+                <dd>
                   <a
                     href={`tel:${inspection.counterpartPhone}`}
-                    className="nf-ix-fact__call"
+                    className="nf-ix-fact__phone nf-numeric"
                     aria-label={`Call ${inspection.counterpartName ?? "them"} on ${formatPhone(inspection.counterpartPhone)}`}
                     data-testid="inspection-call"
                   >
-                    <UiIcon name="phone" size={16} />
+                    {formatPhone(inspection.counterpartPhone)}
                   </a>
-                )}
-              </dd>
+                </dd>
+              )}
             </div>
           </div>
           <div className="nf-ix-fact">
@@ -334,13 +330,7 @@ export function InspectionSheet({
               return (
                 <li key={rung.key} className={`nf-ix-step${rung.done ? " nf-ix-step--done" : ""}`}>
                   <span className="nf-ix-step__plate" aria-hidden="true">
-                    <Crop name={`plate-${words.plate}`} width={50} height={50} night />
-                    {/* On paper the 48px glass disc keys to a pale bubble with
-                        a glyph too faint to read, so daylight draws the same
-                        plate as a pale brand disc with the stroked glyph. */}
-                    <span className="nf-ix-plate-paper">
-                      <UiIcon name={words.paper} size={12} />
-                    </span>
+                    <UiIcon name={words.icon} size={16} />
                   </span>
                   <span className="nf-ix-step__text">
                     <span className="nf-ix-step__name">{words.name}</span>

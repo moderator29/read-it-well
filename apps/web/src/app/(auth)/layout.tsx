@@ -68,8 +68,12 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
             width={464}
             height={452}
             priority
-            sizes="(min-width: 640px) 308px, 68vw"
             className="nf-auth__lockup"
+            /* Served as cut: the file is already an optimised WebP at its
+               source resolution, and the optimiser re-encoded its alpha at
+               q75 and upscaled it past the source (and cached the old cut
+               across builds, which is how a keyed-out sky came back). */
+            unoptimized
           />
         </Link>
 

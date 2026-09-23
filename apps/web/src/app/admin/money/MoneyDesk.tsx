@@ -11,6 +11,8 @@ import { EntryRow, RefundsPanel } from "./MoneyRows";
 import { CalmNote, DeskHead, EmptyChart, Kpi, NumberedPager, Panel, TableNote, Waiting, lastMonths } from "./_desk/Desk";
 import { SeriesChart, SeriesLegend, StatusBar, type Series } from "./_desk/charts";
 import { ReconciliationPanel } from "./_desk/Reconciliation";
+import { DisputeEvidence } from "./_desk/Evidence";
+import type { EvidenceItem } from "@/lib/admin/reads/escrow";
 import { percentChange } from "@/lib/admin/reads/money-derive";
 import type { MoneyDesk as MoneyDeskData } from "@/lib/admin/reads/money";
 import type { LedgerPage, MoneyFlow, ReconciliationHealth, RentCharges, RentChargeState } from "@/lib/admin/reads/money-types";
@@ -39,6 +41,7 @@ export function MoneyDesk({
   disputes,
   health,
   rent,
+  evidence = {},
   now,
 }: {
   locale: Locale;
@@ -55,6 +58,8 @@ export function MoneyDesk({
   health: ReconciliationHealth | null;
   /** `getRentCharges`: every tenancy charge by state, and the newest. Null when it could not be read. */
   rent: RentCharges | null;
+  /** `getDisputeEvidence` for the disputes below; null when the read failed. */
+  evidence?: Record<string, EvidenceItem[]> | null;
   now: number;
 }) {
   const { wallets, recent, stuck, totals } = read;
@@ -283,6 +288,14 @@ export function MoneyDesk({
                     {money(dispute.amountMinor)}
                   </span>
                 </div>
+                <DisputeEvidence
+                  items={evidence ? (evidence[dispute.id] ?? []) : []}
+                  readable={evidence !== null}
+                  payerName={dispute.payerName}
+                  payeeName={dispute.payeeName}
+                  locale={locale}
+                  ui={ui}
+                />
                 <EscrowRuling
                   escrowId={dispute.id}
                   amountMinor={dispute.amountMinor}

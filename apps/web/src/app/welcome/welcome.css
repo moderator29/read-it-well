@@ -331,16 +331,35 @@
     inset: 0;
     border-radius: var(--nf-radius-circle);
   }
-  /* The rim: fifteen discs a pixel apart, one smooth lit band like the
-     drawn one (#0a78f0 in its body, white-cyan along its outer lip). */
+  /* The rim, sampled across the drawn band (render row 900, x 450 to 472,
+     20 src px): a white outer lip (#f2f7ff), a bright electric body (#1f82fd
+     falling to #0f6dfd), a white-cyan front lip (#c5f0ff); and lower on the
+     left (row 930) a white specular streak across the whole band (#fbfffe).
+     Fifteen discs a pixel apart make the band; each carries the body as an
+     angular gradient with the streak at the lower left of the coin's own
+     face, so the streak stays on the rim as it turns; the two outermost
+     discs carry the lips. */
   .nf-gs-coin__edge {
     transform: translateZ(calc(var(--nf-gs-layer) * 1px));
-    background: color-mix(in srgb, var(--nf-brand-primary) 88%, var(--nf-surface-primary));
+    --nf-gs-rim: color-mix(in srgb, color-mix(in srgb, var(--nf-brand-primary) 78%, var(--nf-state-warning)) 88%, var(--nf-content-on-brand));
+    --nf-gs-rim-deep: color-mix(in srgb, var(--nf-brand-primary) 94%, var(--nf-state-warning));
+    background: conic-gradient(
+      from 0deg,
+      var(--nf-gs-rim) 0deg,
+      var(--nf-gs-rim-deep) 150deg,
+      var(--nf-gs-rim) 186deg,
+      var(--nf-content-on-brand) 208deg,
+      var(--nf-content-on-brand) 236deg,
+      var(--nf-gs-rim) 258deg,
+      var(--nf-gs-rim-deep) 320deg,
+      var(--nf-gs-rim) 360deg
+    );
   }
-  /* The two lips of the rim catch the light, as drawn. */
   .nf-gs-coin__edge:first-child,
   .nf-gs-coin__edge:nth-child(15) {
-    box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--nf-state-warning) 40%, var(--nf-content-on-brand));
+    box-shadow:
+      inset 0 0 0 2px color-mix(in srgb, var(--nf-state-warning) 8%, var(--nf-content-on-brand)),
+      0 0 4px color-mix(in srgb, var(--nf-state-warning) 40%, transparent);
   }
   .nf-gs-coin__face {
     overflow: hidden;
@@ -452,7 +471,10 @@
     min-height: 56px;
     padding: 0 var(--nf-space-md);
     border-radius: var(--nf-radius-control);
-    font-size: 1rem;
+    /* Render: "Get Started" cap height 18 src (10.8 css), 134 src wide
+       (80.1 css), stems 2 to 3 src (1.5 css). Inter 500 at 15px: cap 10.9,
+       81.6 wide. */
+    font-size: 0.9375rem;
     font-weight: 500;
     line-height: 1.2;
     text-decoration: none;
@@ -560,7 +582,6 @@
     flex: 1 1 9rem;
     width: auto;
     padding: 0 var(--nf-space-sm);
-    font-size: 1rem;
   }
 
   /* Render: "Skip" centred 29 css under the button, small (34 source px
@@ -577,7 +598,10 @@
     border: 0;
     border-radius: var(--nf-radius-control);
     background: transparent;
-    font-size: 0.8125rem;
+    /* Render: "Skip" cap 14 src (8.4 css), 37 src wide (22.1 css), stems
+       2 src (1.2 css). Inter 500 at 11.5px: cap 8.4, 23.5 wide; at the
+       R-A floor of 11px or above. */
+    font-size: 0.71875rem;
     font-weight: 500;
     color: color-mix(in oklab, var(--nf-brand-quiet) 78%, transparent);
     text-decoration: none;
