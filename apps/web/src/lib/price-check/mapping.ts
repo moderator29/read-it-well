@@ -1,10 +1,12 @@
 import type {
   AreaAskingRow,
   AreaCensus,
+  AreaShare,
   AreaSuggestion,
   AreaUtilityFacts,
   Comparable,
   GateVerdict,
+  ListingIntent,
   ListingPropertyType,
   SupplyCensus,
 } from "./types";
@@ -169,5 +171,66 @@ export function suggestionFromRow(row: Record<string, unknown>): AreaSuggestion 
     area: typeof row.area === "string" ? row.area : "",
     city: typeof row.city === "string" ? row.city : null,
     listingCount: asCount(row.listing_count),
+  };
+}
+
+/**
+ * ONE SHARE ROW, AND THE THREE FIGURES DECIDE WHETHER IT IS A CARD AT ALL.
+ *
+ * Null rather than a shape with holes in it. `low_minor`, `mid_minor` and
+ * `high_minor` are `bigint` columns, so PostgREST sends them as JSON STRINGS,
+ * and a string reaching `formatMoneyGlance` prints NaN on the one artefact in
+ * this product that leaves it and gets forwarded. `asNullableNumber` is the
+ * only reader of them and it fails towards null, so a row that cannot be read
+ * as money becomes no card rather than a card with a broken number on it.
+ *
+ * THE SCOPE IS NARROWED AND NEVER CAST. `price_check_share_scope` has two
+ * labels today and neither is a property. If a third ever appeared, a cast
+ * would put it straight onto a type whose union has two members and the card
+ * would render whatever it turned out to be. An unrecognised scope is not a
+ * card, and `null` is what this returns for one.
+ *
+ * `created_by` IS NOT READ HERE AND THERE IS NOWHERE TO PUT IT. A card says
+ * what an area is asking; it never says who asked. `anon` and `authenticated`
+ * hold no grant on that column (`20260923094710`), so a row read through the
+ * caller's own client does not carry it at all.
+ */
+export function shareFromRow(row: Record<string, unknown> | undefined): AreaShare | null {
+  if (!row) return null;
+  if (typeof row.id !== "string" || row.id === "") return null;
+  if (row.scope !== "area" && row.scope !== "area_and_type") return null;
+  if (row.listing_intent !== "rent" && row.listing_intent !== "sale") return null;
+
+  const lowMinor = asNullableNumber(row.low_minor);
+  const midMinor = asNullableNumber(row.mid_minor);
+  const highMinor = asNullableNumber(row.high_minor);
+  const listingCount = asNullableNumber(row.listing_count);
+  if (lowMinor === null || midMinor === null || highMinor === null) return null;
+  /* The database refuses fewer than three. A row that says otherwise is a row
+     this reader does not understand, and a card is not minted from it. */
+  if (listingCount === null || listingCount < 3) return null;
+
+  return {
+    id: row.id,
+    scope: row.scope,
+    stateCode: typeof row.state_code === "string" ? row.state_code : "",
+    lgaCode: typeof row.lga_code === "string" ? row.lga_code : null,
+    area: typeof row.area === "string" && row.area.trim() !== "" ? row.area : null,
+    propertyType:
+      typeof row.property_type === "string"
+        ? (row.property_type as ListingPropertyType)
+        : null,
+    listingIntent: row.listing_intent as ListingIntent,
+    /* Zero is a studio and is a real answer, so this is nullable rather than
+       counted: `asCount` would turn "no bedroom count on this card" into
+       "studio", which is a different card. */
+    bedrooms: asNullableNumber(row.bedrooms),
+    lowMinor,
+    midMinor,
+    highMinor,
+    listingCount,
+    oldestAt: typeof row.oldest_at === "string" ? row.oldest_at : null,
+    newestAt: typeof row.newest_at === "string" ? row.newest_at : null,
+    createdAt: typeof row.created_at === "string" ? row.created_at : "",
   };
 }

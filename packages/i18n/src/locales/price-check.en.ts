@@ -267,5 +267,50 @@ export const priceCheckEn = {
     cardLine: "{bedrooms} bedroom {type} in {area} are asking {low} to {high}",
     copy: "Copy the link",
     copied: "Copied",
+
+    /* THE BUTTON, AND WHAT IT SAYS WHEN THERE IS NOTHING TO SHARE.
+       A card is a claim, and on this platform today almost every per property
+       check refuses, so "nothing to share yet" is the state a person will
+       actually meet. It is written as a fact about our supply rather than as
+       an error, and it never appears as a disabled button: a control that
+       cannot be pressed teaches nobody why. */
+    make: "Share these prices",
+    making: "Making the card",
+    madeHeading: "Your card is ready",
+    madeBody:
+      "Anybody with this link can read it. It names the area and the type of property, and it names no address.",
+    failed: "We could not make that card just now. Nothing was lost, so try again in a moment.",
+    nothingYet: "Nothing to share here yet",
+    nothingYetBody:
+      "A card needs at least three real listings of the same kind in one area. We are not going to make one out of fewer.",
+    open: "Open the card",
+
+    /* THE DESTINATION. A stranger lands here from a forwarded link with no
+       idea what Vallo is, so the page says what the figure is, what it is not,
+       and where the reader can go next. */
+    pageLead: "What properties in this area are currently advertised for on Vallo.",
+    /* The four lines printed on the card itself and on the image. `{type}` is
+       a plural noun: "flats", "houses", "shops", "offices". */
+    headline: "{bedrooms} bedroom {type} in {area}",
+    headlineNoBedrooms: "{type} in {area}",
+    headlineStudio: "Studio {type} in {area}",
+    cardRange: "Asking {low} to {high} {period}",
+    cardBasis: "Based on {count} Vallo listings, {month}",
+    cardBasisNoDate: "Based on {count} Vallo listings",
+    typeApartmentPlural: "flats",
+    typeHomePlural: "houses",
+    typeShopPlural: "shops",
+    typeOfficePlural: "offices",
+    typeAnyPlural: "Properties",
+    madeOn: "Card made {month}.",
+    /* THE FIGURES ARE FROZEN. A card that silently updated would be a record
+       of nothing, which is the same reasoning saved checks are frozen under. */
+    frozen:
+      "These figures were true of the listings we held when the card was made. They are not recalculated.",
+    checkYours: "Check another area",
+    seeListings: "See what is listed here",
+    missingTitle: "This card is not here",
+    missingBody:
+      "The link may be wrong, or the card may never have been made. You can run a price check of your own instead.",
   },
 };

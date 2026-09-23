@@ -10,15 +10,23 @@ import Link from "next/link";
  * without either supply we do not have or a database we are not allowed to
  * write to.
  *
- * It proves the LOOK and never the ONE LAW. Nothing here goes near the gate,
- * the funnel table or the share card: the gate is proved by
+ * It proves the LOOK and never the ONE LAW. Nothing here goes near the gate or
+ * the funnel table: the gate is proved by
  * `scripts/probes/price_check_stage_one.sql` against the live database, and
  * the decision that picks the refusal is proved by `lib/price-check/gate.test.ts`.
+ *
+ * THE SHARE PAGE IS THE ONE EXCEPTION AND IT SAYS SO ON ITSELF. Its button
+ * calls the real server action and mints a real row, because a share whose
+ * control is stubbed proves a layout and nothing else, and the thing worth
+ * proving is that the whole path works and that what comes out of it carries
+ * no address. The rule itself is proved against the live database by
+ * `scripts/probes/price_check_share_cannot_carry_an_address.sql`.
  */
 const PAGES = [
   ["refusals", "All nine refusal states, each with its copy and its next action"],
   ["answered", "An answered range, the basis line, the confidence row and the disclaimer"],
   ["area", "The area report and the neighbourhood power and water panel"],
+  ["share", "The share control, the sheet, the card and the state where there is nothing to share"],
 ];
 
 export default function PreviewPriceIndex() {

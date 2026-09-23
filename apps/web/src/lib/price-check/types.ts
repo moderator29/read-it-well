@@ -157,3 +157,45 @@ export type AreaUtilityFacts = {
 
 /** One suggestion from `public.area_suggestions`. */
 export type AreaSuggestion = { area: string; city: string | null; listingCount: number };
+
+/**
+ * ONE ROW OF `public.price_check_shares`, AS A CARD READS IT.
+ *
+ * NOTE WHAT IS NOT ON THIS TYPE AND CANNOT BE. There is no address, no
+ * latitude, no longitude, no listing id and no free text hint, because there
+ * is no column for any of them on that table and there may not be. The scope
+ * enum carries two labels, `area` and `area_and_type`, and neither of them is
+ * a property, so a property-scoped card is unrepresentable rather than merely
+ * forbidden. The absence is the enforcement, exactly as it is for
+ * `PriceCheckSubject.hint`.
+ *
+ * `createdBy` is not on it either, and that absence is younger and was found
+ * by probe: the table grant covered every column, so anybody holding a share
+ * id could read the uuid of whoever minted the card. The grant is now a column
+ * list without it (`20260923094710`), and this type has no field to put it in
+ * even if that changed back.
+ */
+export type AreaShare = {
+  id: string;
+  /** Two values and neither is a property. See above. */
+  scope: "area" | "area_and_type";
+  stateCode: string;
+  lgaCode: string | null;
+  /** A NEIGHBOURHOOD NAME, never a street address: a check constraint refuses
+      anything address-shaped. Null on a state-wide card. */
+  area: string | null;
+  /** Null on an `area` scoped card, by check constraint. */
+  propertyType: ListingPropertyType | null;
+  listingIntent: ListingIntent;
+  /** Null on an `area` scoped card. Zero is a studio and is a real answer. */
+  bedrooms: number | null;
+  /** Integer kobo. ASKING, never sold, and never a single point estimate. */
+  lowMinor: number;
+  midMinor: number;
+  highMinor: number;
+  /** At least three, by check constraint: a card cannot be minted from two. */
+  listingCount: number;
+  oldestAt: string | null;
+  newestAt: string | null;
+  createdAt: string;
+};

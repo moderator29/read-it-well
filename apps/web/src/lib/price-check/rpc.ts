@@ -202,3 +202,60 @@ export async function insertPriceCheckWatch(
     .from("price_check_watches")
     .insert(row as unknown as Record<string, unknown>);
 }
+
+/**
+ * THE COLUMNS A SHARE CARD IS ALLOWED TO ASK FOR, WRITTEN OUT.
+ *
+ * `created_by` is not in this list and that is the whole point of the list.
+ * `anon` and `authenticated` hold no grant on that column
+ * (`20260923094710`), so asking for it would come back as an error rather than
+ * as a leak - but a select that names its columns says what a card is in the
+ * one place a reviewer will look, and it fails LOUDLY the day somebody widens
+ * the grant again. A `select("*")` here would start returning the uuid of
+ * whoever minted the card the moment the grant changed, and nothing would
+ * report it.
+ *
+ * NOTE WHAT CANNOT BE IN THIS LIST: there is no address, latitude, longitude
+ * or listing id column on `price_check_shares` to name.
+ */
+export const SHARE_SELECT =
+  "id, scope, state_code, lga_code, area, property_type, listing_intent, bedrooms, low_minor, mid_minor, high_minor, listing_count, oldest_at, newest_at, created_at";
+
+type LooseSelect = {
+  from: (table: string) => {
+    select: (columns: string) => {
+      eq: (
+        column: string,
+        value: string,
+      ) => {
+        maybeSingle: () => PromiseLike<{ data: unknown; error: unknown }>;
+      };
+    };
+  };
+};
+
+/**
+ * One share card by id, through the CALLER's own client.
+ *
+ * The same narrow cast as the RPC door above and for the same reason:
+ * `price_check_shares` is not in `lib/supabase/database.types.ts`, and
+ * regenerating that file would pull every other worker's schema change into a
+ * commit whose subject is a share button.
+ *
+ * Through the caller's own client rather than the service-role one, and
+ * deliberately, even though the row is public. The service-role client
+ * bypasses RLS and the column grants both, so a read through it would return
+ * `created_by` and would keep working if the policy were ever tightened. A
+ * read through the caller's client is exactly what a stranger following a link
+ * gets, which is the thing being built.
+ */
+export async function selectPriceCheckShare(
+  supabase: Db,
+  id: string,
+): Promise<{ data: unknown; error: unknown }> {
+  return (supabase as unknown as LooseSelect)
+    .from("price_check_shares")
+    .select(SHARE_SELECT)
+    .eq("id", id)
+    .maybeSingle();
+}

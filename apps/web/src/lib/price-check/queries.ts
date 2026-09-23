@@ -7,15 +7,17 @@ import {
   areaCensusFromRow,
   areaRowFromRow,
   comparableFromRow,
+  shareFromRow,
   suggestionFromRow,
   supplyFromRow,
   utilityFactsFromRow,
   verdictFromRow,
 } from "./mapping";
-import { priceCheckRpc } from "./rpc";
+import { priceCheckRpc, selectPriceCheckShare } from "./rpc";
 import type {
   AreaAskingRow,
   AreaCensus,
+  AreaShare,
   AreaSuggestion,
   AreaUtilityFacts,
   Comparable,
@@ -340,3 +342,38 @@ export async function runPriceCheck(subject: PriceCheckSubject): Promise<{
      verdict supports rather than inventing a census. */
   return { verdict, supply, reachable: verdict !== null || supply !== null };
 }
+
+
+/* ------------------------------------------------------------ the card */
+
+/**
+ * ONE SHARE CARD BY ID, READ THE WAY A STRANGER READS IT.
+ *
+ * THROUGH THE CALLER'S OWN CLIENT, NEVER THE SERVICE ROLE ONE, even though
+ * every row in this table is meant to be public. The service-role client
+ * bypasses RLS and the column grants together, so a read through it would come
+ * back with `created_by` on it and would keep working if the policy were ever
+ * tightened - a page that renders under a permission nobody actually holds. A
+ * read through the caller's client is exactly what a person following a
+ * forwarded link gets, and if that stops working the page stops working, which
+ * is the correct failure.
+ *
+ * NULL COVERS THREE DIFFERENT THINGS AND THE PAGE SAYS WHICH. A card that was
+ * never minted, a card whose id was mistyped and a database we could not reach
+ * all arrive here as null. The destination answers "this card is not here" for
+ * all three, because it cannot tell them apart and guessing which would be a
+ * claim about our own data. Read the header of this file: a refusal that looks
+ * like a gate refusal when it was really a broken connection is the one thing
+ * this feature may not do.
+ */
+export const shareById = cache(async function shareById(id: string): Promise<AreaShare | null> {
+  const supabase = await client();
+  if (!supabase) return null;
+  try {
+    const { data, error } = await selectPriceCheckShare(supabase, id);
+    if (error || data === null || typeof data !== "object") return null;
+    return shareFromRow(data as Record<string, unknown>);
+  } catch {
+    return null;
+  }
+});

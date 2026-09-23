@@ -7257,3 +7257,14 @@ orderings** (pot before escrow, transfer before escrow) have never been
 executed: only escrow-first is in the harness. **P-8 tests one illegal
 transition**, REFUNDED to RELEASED, and the other pairs in the transition table
 are untested.
+
+### 60.5 A note on how this section reached main, because it matters
+
+`docs/escrow/PROBE_STATE.md` and section 60 above were still uncommitted in the
+shared tree when another worker ran `git add -A` and committed. They landed on
+`main` inside `7da4b0d0`, "Push, the rest of it", with that worker's message on
+them. Nothing was lost and nothing is being asked of anybody; it is recorded
+because it is precisely the collision the rule against `git add -A` exists to
+prevent, observed from the other side. Six writers share one tree; a worker
+that stages by name stages only what it wrote, and a worker that stages
+everything signs its name to work it has not read.

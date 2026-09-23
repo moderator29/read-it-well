@@ -1,0 +1,74 @@
+P-S1, run 23 September 2026 against uccixoonmbhrnyczyigt through
+`mcp__Supabase__apply_migration`. The probe ends in a deliberate `raise
+exception`, so the transaction rolls back; the rollback was verified afterwards
+by `select count(*) from public.price_check_shares` (0) and by checking that no
+migration named `probe%` was recorded (0).
+
+RUN 1, BEFORE `20260923094710`. FAILED on assertion 5:
+
+  ERROR:  P0001: created_by IS READABLE BY anon: a card would name whoever made it
+
+  That is the finding this probe existed for. `20260922222524` had granted
+  `select on table` to anon and authenticated, and `20260923094423` then laid a
+  column list on top of it, which narrows nothing: a table privilege already
+  covers every column. So a stranger holding a share id could read the uuid of
+  whoever minted it, and anybody at all could page the table and collect the
+  pairs. It also showed that `20260923094423`'s opening premise ("no table
+  grant to anybody") was wrong: the empty answer from
+  `information_schema.role_table_grants` was a fact about the read-only role
+  doing the asking, not about the table. `20260923094710` corrects both.
+
+RUN 2, AFTER `20260923094710`. PASSED:
+
+  PROBE PASSED, ROLLING BACK.
+   1 enum: (area,area_and_type) - no value for a property
+   2 columns: no address, latitude, longitude, lat, lng or listing_id
+   3 writer: no address, point or listing parameter
+   4 anon read: Lekki Phase 1, 3 bed, 750000000 to 900000000 kobo, from 9 listings
+   5 anon created_by: refused, so a card never names who made it
+   6a anon insert: refused
+   6b anon delete: refused
+   6c anon update: refused
+   7a "14 Admiralty Way": refused by the address guard
+   7b "Victoria Island": accepted, so the guard has not eaten real neighbourhoods
+
+WHAT 4 PROVES THAT NO UNIT TEST CAN. The figures came back as a real row read
+through the `anon` role, which is the role a stranger following a share link
+actually holds. Before this run nothing in the product had ever read this table,
+so "the share surface returns nothing" and "the share surface is not wired up"
+were indistinguishable from outside.
+
+---------------------------------------------------------------------------
+WHAT WAS RENDERED BESIDE THE PROBE, 23 September 2026.
+
+The container's egress to the Supabase host is denied by organisation policy,
+so `/price/area/[id]` cannot be rendered against the live project from here.
+It was rendered instead against a local PostgREST-shaped reader holding ONE
+share row with the shape and the string-encoded bigints PostgREST actually
+sends, which is what the page reads through `shareById`:
+
+  GET /price/area/00000000-0000-4000-8000-00000000cafe            200
+    <title>3 bedroom flats in Lekki Phase 1 | Vallo</title>
+    og:title        3 bedroom flats in Lekki Phase 1
+    og:description  Asking N7.5m to N9m a year. Based on 9 Vallo listings, September 2026
+    og:image        .../opengraph-image-...  image/png  1200x630
+    card            "3 bedroom flats in Lekki Phase 1" / range / "Based on 9
+                    Vallo listings, September 2026" / "Asking prices, not sold
+                    prices. vallo.ng" / "This is not a valuation." in full
+
+  GET /price/area/<an id with no row>                             200
+    the "This card is not here" state, one sentence for all three causes
+
+  GET .../opengraph-image                     200 image/png 1200x630, 61 KB
+  GET .../opengraph-image (no row)            200 image/png 1200x630, the mark
+                                              and NO FIGURES
+
+  GET /preview/price/share                    200, both states on one page
+
+THE FIRST IMAGE PRINTED THE MONEY AS A TOFU BOX and that is recorded because
+it is the class of fault that ships. Satori has no system font fallback and
+`@vercel/og` fetches one per missing glyph at render time; that request
+answered 400 for the naira sign, and Geist, the font it bundles, does not
+carry U+20A6 either (726 codepoints, the euro among them, not this one). The
+route now reads unsubsetted Inter from beside itself, so the picture of
+somebody's money has no network dependency in the middle of it.

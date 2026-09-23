@@ -87,6 +87,7 @@ export function AreaReport({
   locale,
   copy,
   typeNames,
+  renderShare,
 }: {
   /** Null means we could not read, which is different from "there is nothing". */
   rows: AreaAskingRow[] | null;
@@ -94,6 +95,21 @@ export function AreaReport({
   locale: Locale;
   copy: AreaCopy;
   typeNames: TypeNames;
+  /**
+   * THE SHARE CONTROL, RENDERED BY THE CALLER, ONCE PER ROW AND ONCE FOR NONE.
+   *
+   * It is a prop rather than an import because this file is presentational and
+   * the button is a client component holding a server action: this panel is
+   * drawn on three surfaces and only one of them can mint a card.
+   *
+   * It is called with a ROW where there is one, and with `null` in each of the
+   * three empty states, because "there is nothing to share here yet" is the
+   * answer a person will actually meet on this platform today and it belongs
+   * on the screen rather than being the absence of a control. A share surface
+   * that simply vanishes when there is no data is a share surface nobody knows
+   * exists.
+   */
+  renderShare?: (row: AreaAskingRow | null) => React.ReactNode;
 }) {
   /*
    * THREE EMPTY STATES AND THEY ARE NOT THE SAME SENTENCE.
@@ -105,6 +121,10 @@ export function AreaReport({
    * invented figure of rule 15 with the numbers left out.
    */
   if (rows === null) {
+    /* NO SHARE CONTROL HERE, and this is the one empty state that gets none.
+       The other two are statements about our supply; this one is a statement
+       about us being unable to read it, and offering a card off the back of a
+       failed read would be offering something we cannot say anything about. */
     return (
       <EmptyState
         icon="report-stats"
@@ -118,12 +138,15 @@ export function AreaReport({
   if (rows.length === 0) {
     const examplesOnly = census !== null && census.realCount === 0 && census.demoCount > 0;
     return (
-      <EmptyState
-        icon={examplesOnly ? "seal-pending" : "report-stats"}
-        title={examplesOnly ? copy.demoOnlyTitle : copy.emptyTitle}
-        body={examplesOnly ? copy.demoOnlyBody : copy.emptyBody}
-        data-testid={examplesOnly ? "nf-pc-area-demo-only" : "nf-pc-area-empty"}
-      />
+      <>
+        <EmptyState
+          icon={examplesOnly ? "seal-pending" : "report-stats"}
+          title={examplesOnly ? copy.demoOnlyTitle : copy.emptyTitle}
+          body={examplesOnly ? copy.demoOnlyBody : copy.emptyBody}
+          data-testid={examplesOnly ? "nf-pc-area-demo-only" : "nf-pc-area-empty"}
+        />
+        {renderShare?.(null)}
+      </>
     );
   }
 
@@ -175,6 +198,13 @@ export function AreaReport({
                 {" to "}
                 <Amount minorUnits={row.p75Minor} locale={locale} glance />
               </p>
+              {/* PER ROW, because a card names one type and one bedroom count:
+                  "Three bedroom flats in Lekki Phase 1". A single control over
+                  the whole panel would have to pick one of them for the
+                  reader, and picking would be inventing. */}
+              {renderShare === undefined ? null : (
+                <div className="nf-pc-area-row__share">{renderShare(row)}</div>
+              )}
             </div>
           );
         })}

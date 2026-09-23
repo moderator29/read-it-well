@@ -349,6 +349,74 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* --------------------------------------------------- the share surface */
+
+  /*
+    THE CARD, THE CONTROL AND THE STATE WHERE THERE IS NOTHING TO SHARE.
+
+    The third of those is the one a person will actually meet: all 64 published
+    listings are examples, so almost every check refuses and most area reports
+    are empty. It is drawn as a quiet panel rather than as a disabled button,
+    because a control that cannot be pressed teaches nobody why.
+  */
+
+  .nf-pc-share {
+    display: block;
+  }
+  .nf-pc-share--none {
+    padding: var(--nf-pad-card-sm);
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: var(--nf-surface-inset);
+  }
+  .nf-pc-share__why {
+    padding: var(--nf-pad-card-sm);
+    border-radius: var(--nf-radius-lg);
+    background: var(--nf-surface-inset);
+  }
+  .nf-pc-share__link {
+    padding: var(--nf-pad-card);
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    background: var(--nf-surface-inset);
+  }
+  /*
+    THE LINK IS SELECTABLE TEXT AND IT WRAPS RATHER THAN SCROLLING AWAY.
+    `navigator.clipboard` is refused outright in several in-app browsers people
+    in this market actually use, so the visible string is the fallback and it
+    has to be readable end to end on a 390px phone.
+  */
+  .nf-pc-share__url {
+    overflow-wrap: anywhere;
+    color: var(--nf-content-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /*
+    THE ROW'S OWN CONTROL. The area row is a baseline-aligned flex row of two,
+    and the button is a third child that takes the full width beneath both, so
+    a row reads as one object with an action under it rather than as three
+    columns competing for a 390px line.
+  */
+  .nf-pc-area-row__share {
+    flex-basis: 100%;
+    margin-top: var(--nf-gap-inline);
+  }
+
+  /*
+    THE DESTINATION'S CARD. `/price/area/[id]` is usually the first Vallo screen
+    a forwarded reader ever sees, so the figure sits in its own lit panel with
+    the top rim the platform's identity is built on, rather than loose on the
+    page like a result inside a check the reader ran themselves.
+  */
+  .nf-pc-card {
+    padding: var(--nf-pad-card-lg);
+    border-radius: var(--nf-radius-lg);
+    border: var(--nf-border-width) solid var(--nf-border-subtle);
+    border-top-color: var(--nf-brand-primary);
+    background: var(--nf-surface-raised);
+  }
+
   /* -------------------------------------------------- the comparables rail */
 
   .nf-pc-rail {
@@ -397,8 +465,30 @@
   }
   :root[data-theme="light"] .nf-pc-strip,
   :root[data-theme="light"] .nf-pc-fact,
-  :root[data-theme="light"] .nf-pc-disclaimer {
+  :root[data-theme="light"] .nf-pc-disclaimer,
+  :root[data-theme="light"] .nf-pc-share--none,
+  :root[data-theme="light"] .nf-pc-share__why,
+  :root[data-theme="light"] .nf-pc-share__link {
     background: var(--nf-surface-on-paper);
+  }
+  /*
+    THE CARD ON PAPER. A designed twin rather than an inversion: the raised
+    surface goes white, the hairline takes the paper border, and the lit top
+    rim stays, because it is the one element that says whose card this is and
+    it reads at full strength on white.
+  */
+  :root[data-theme="light"] .nf-pc-card {
+    background: var(--nf-surface-on-paper);
+    border-color: var(--nf-border-on-paper);
+    border-top-color: var(--nf-brand-primary);
+    box-shadow: var(--nf-shadow-on-paper);
+  }
+  :root[data-theme="light"] .nf-pc-share--none,
+  :root[data-theme="light"] .nf-pc-share__link {
+    border-color: var(--nf-border-on-paper);
+  }
+  :root[data-theme="light"] .nf-pc-share__url {
+    color: var(--nf-content-on-paper-secondary);
   }
   :root[data-theme="light"] .nf-pc-disclaimer {
     border-color: var(--nf-border-on-paper);

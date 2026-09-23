@@ -1,0 +1,60 @@
+== P-1 TO P-6, P-8 AND P-9 RE-RUN, AND THE HARNESS WAS RED BEFORE THE PRODUCT
+== 23 September 2026, local scratch cluster, nothing touched the live project
+
+THE HEADLINE. The nine-probe harness had been broken since 09:32 the same
+morning and nobody had re-run it. Migration 20260923093233 added
+`escrows.opened_by` and made `escrow_fund_from_wallet_as` write it. The
+harness builds a MINIMAL copy of `escrows` by hand, that copy has no such
+column, and the harness lifts the CURRENT function text out of the migration
+files. So every probe that funds an escrow died on the insert:
+
+  ERROR:  column "opened_by" of relation "escrows" does not exist
+  QUERY:  insert into public.escrows (payer_id, payee_id, listing_id, purpose,
+          amount_minor, opened_by)
+  CONTEXT: PL/pgSQL function escrow_fund_from_wallet_as(...) line 42
+
+TEN OF ELEVEN FAILED. That is the correct behaviour and the harness is not at
+fault for reporting it: it did not report a pass. What is at fault is that a
+suite whose whole purpose is the sentence "no naira moves until all nine
+probes pass" can go red for a day with nothing saying so.
+
+AND ONE OF THE ELEVEN PASSED WITH THE ESCROW DOOR COMPLETELY BROKEN.
+P-2 (withdrawal_first) reads PASS in the summary below. Its assertion is that
+exactly one of the withdrawal and the escrow commits the balance, that both
+sessions SPOKE rather than raised, and that the payer ends at zero. With the
+withdrawal going first it takes the balance, and the escrow door is then
+refused `insufficient` by the spendable check BEFORE it ever reaches the
+insert that would have failed. Every condition is met. The word `insufficient`
+is the expected answer whether the door behind it is sound or unusable.
+
+  -- A:
+       WITHDRAWAL ok
+  -- B:
+       ESCROW insufficient
+     ok_answers=1 committing_entries=1 payer_spendable=0
+     BOTH-ANSWERED: yes. ESCROW and WITHDRAWAL both spoke.
+  == P-2 (withdrawal_first): PASS.
+
+That is the day's blind light. `both_answered` was added to stop a probe
+counting a crash as a refusal, and it works in the escrow_first direction,
+which correctly read FAIL with "BOTH-ANSWERED: no". In the other direction the
+escrow leg is refused for a REAL reason upstream of the fault, so the control
+has nothing to catch. THE PASS IS TRUE AND IT IS NOT EVIDENCE ABOUT THE
+ESCROW DOOR.
+
+-- THE SUMMARY, VERBATIM.
+
+== SUMMARY
+   P-1                FAIL Expected A ok and B insufficient with exactly one hold. Read the two session outputs above.
+   P-2 (escrow_first) FAIL Both paths took the balance, neither did, or one of them never ran.
+   P-2 (withdrawal_first) PASS Exactly one of the two committed the balance. The other was refused and nothing was moved.
+   P-3a (pot)         FAIL The pot and the escrow both reached the same naira, neither did, or one of them never ran.
+   P-3b (transfer)    FAIL The transfer and the escrow both reached the same naira, neither did, or one of them never ran.
+   P-4                FAIL A double settle produced something other than exactly one credit and one audit row.
+   P-5 (sweeper first) FAIL The race produced state=ERROR:  invalid input syntax for type uuid: ""
+   P-5 (dispute first) FAIL The race produced state=ERROR:  invalid input syntax for type uuid: ""
+   P-6                FAIL A retry on one reference moved money twice, or answered with something other than duplicate.
+   P-8                FAIL An illegal transition was not refused by the trigger.
+   P-9                FAIL The float identity did not hold across a lifecycle mix.
+
+== RESULT: FAIL. 10 of 11 local probes failed.

@@ -25,6 +25,8 @@ import type {
 } from "@/lib/price-check/types";
 import { AreaReport, NeighbourhoodFacts } from "./AreaPanel";
 import { PinMap } from "./PinMap";
+import { ShareAreaButton } from "./ShareAreaButton";
+import { shareAreaCopy } from "./share-copy";
 import { AnsweredResult, ComparablesRail, Disclaimer, RefusalPanel, StripPlot } from "./ResultPanel";
 
 /**
@@ -276,6 +278,8 @@ export function PriceCheckScreen(props: PriceCheckScreenProps) {
 
   const spec = result?.kind === "refused" ? REFUSALS[result.code] : null;
 
+  const shareCopy = useMemo(() => shareAreaCopy(t), [t]);
+
   return (
     <Stack>
       {/* ------------------------------------------------- rung 1 to 5 */}
@@ -467,6 +471,38 @@ export function PriceCheckScreen(props: PriceCheckScreenProps) {
                 copy={copy.result}
                 intent={intent}
               />
+              {/*
+                THE SHARE CONTROL SITS ON THE ANSWERED BRANCH AND ON NO OTHER.
+                An image is a claim and a refusal has nothing to claim, so the
+                refused branch below offers no card and the unreachable branch
+                offers nothing at all. The discriminated union makes that
+                structural rather than remembered: a refused result has no
+                figures to hand the button.
+
+                AND THE FIGURES CARRY THEIR OWN COUNT. `comparableCount` is the
+                number of listings the range was built from, and the card
+                prints it, so a forwarded artefact says what it rests on.
+                NOTHING ABOUT THE SUBJECT GOES WITH IT: not the pin, not the
+                area typed into rung three beyond its name, not the hint, which
+                exists nowhere but this component's own state.
+              */}
+              <div className="mt-section-tight">
+                <ShareAreaButton
+                  stateCode={stateCode}
+                  lgaCode={lgaCode || null}
+                  area={area.trim() || null}
+                  propertyType={propertyType}
+                  listingIntent={intent}
+                  bedrooms={query.bedrooms}
+                  figures={{
+                    lowMinor: result.lowMinor,
+                    midMinor: result.midMinor,
+                    highMinor: result.highMinor,
+                    listingCount: result.comparableCount,
+                  }}
+                  copy={shareCopy}
+                />
+              </div>
               <div className="mt-section-tight">
                 <ComparablesRail comparables={comparables} locale={locale} copy={copy.result} />
               </div>
@@ -516,6 +552,38 @@ export function PriceCheckScreen(props: PriceCheckScreenProps) {
           locale={locale}
           copy={copy.area}
           typeNames={typeNames}
+          renderShare={(row) => (
+            <ShareAreaButton
+              stateCode={stateCode}
+              lgaCode={lgaCode || null}
+              area={area.trim() || null}
+              propertyType={row === null ? null : asSupportedType(row.propertyType)}
+              listingIntent={intent}
+              bedrooms={row === null ? null : row.bedrooms}
+              /*
+               * THE AREA REPORT'S OWN FIGURES, WHICH ARE ITS QUARTILES AND
+               * NOT THE GATE'S RANGE. They are a different claim: "the middle
+               * half of what we hold here is asking between these two", built
+               * from at least three listings rather than five, and the card
+               * prints the count so the smaller claim stays the smaller claim.
+               * `null` is the honest state where there are no rows at all,
+               * which on this platform today is nearly everywhere.
+               */
+              figures={
+                row === null
+                  ? null
+                  : {
+                      lowMinor: row.p25Minor,
+                      midMinor: row.medianMinor,
+                      highMinor: row.p75Minor,
+                      listingCount: row.listingCount,
+                      oldestAt: row.oldestAt || null,
+                      newestAt: row.newestAt || null,
+                    }
+              }
+              copy={shareCopy}
+            />
+          )}
         />
       </div>
 
@@ -638,6 +706,23 @@ function RefusalActions({
       )}
     </div>
   );
+}
+
+/**
+ * An area row's property type, narrowed onto the four a card may carry.
+ *
+ * `area_asking_summary` answers for every type the database holds, including
+ * land, hotels and restaurants, and `price_check_shares.property_type` is a
+ * `property_type` column that would accept any of them - but a card built from
+ * one would be a price claim about a kind of property this product refuses to
+ * price, which is what `unsupported_type` exists to say. So an unsupported row
+ * gets an AREA scoped card, which names the neighbourhood and no type, rather
+ * than a typed card this feature would not have issued through the gate.
+ */
+function asSupportedType(value: string): PriceCheckPropertyType | null {
+  return value === "apartment" || value === "home" || value === "shop" || value === "office"
+    ? value
+    : null;
 }
 
 /** One rung, with its numeral, so a five field column reads as a ladder. */
