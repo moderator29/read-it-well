@@ -41,6 +41,26 @@ read from `pg_class.relacl`, `pg_attribute.attacl` and `pg_proc.proacl`, never
 from `information_schema`, whose privilege views answer about the observer
 rather than about the object.
 
+**NEVER DESCRIBE THE DEPLOYMENT'S CONFIGURATION FROM THIS CONTAINER'S
+ENVIRONMENT. This is blind light number eighteen and this register nearly
+carried it into the close-out.**
+
+The first version of section 2 below said the email estate was blocked on an
+unset `RESEND_API_KEY`. It took that from `WHAT_SENDS.md` and
+`PLATFORM_STATUS.md`, which took it from three workers who read the
+environment **inside this container**, found nothing, and wrote a sentence
+about **the deployment**. Those are two different machines and the sentence is
+false: the credential has been set on production and preview since 20
+September. The same was true of the Web Push identity pair, set an hour before
+this file was written.
+
+**This container's environment is evidence about this container, and about
+nothing else.** The deployment's configuration is knowable two ways and both
+were available the whole time: read the deployment's own environment listing,
+or **read the behaviour of a check that runs inside it**. The second is what
+sections 2 and 4 now use, because it is a verdict about production rather than
+about anybody's shell.
+
 **The egress wall, re-tested today rather than assumed.** At 11:34:50Z, from
 this container:
 
@@ -226,12 +246,43 @@ wrong in the direction of being too generous, and that is in section 13.
 email_outbox: 0 rows. SENT 0. PENDING 0. FAILED 0.
 ```
 
-**Mark: NOT BUILT, in the only sense the founder is asking about. Nothing has
-ever been sent, and more than that: nothing has ever been QUEUED.** The table
-is not a queue with unsent mail in it. It is empty. No trigger on `auth.users`,
+**Mark: BUILT AND UNPROVEN. Nothing has ever been sent, and more than that:
+nothing has ever been QUEUED.** The table is not a queue holding unsent mail
+behind a missing key. It is empty. No trigger on `auth.users`,
 `auth.sessions`, `public.escrows`, `public.wallet_entries`,
 `public.inspection_requests`, `public.agent_verification_checks` or
 `public.messages` has ever written a row into it in production.
+
+**And the reason is NOT a missing credential, which is what every document on
+this platform says.** `RESEND_API_KEY` is set on production and preview, and
+has been since 20 September.
+
+**How that was established here, from production's own behaviour rather than
+from anybody's environment.** Three links, each checked today:
+
+1. `lib/cron/jobs/email-outbox.ts` lines 106 to 122, read today: when
+   `result.unconfigured` is true the job returns
+   `alert: { kind: "email.outbox.unconfigured", severity: "critical" }`, with
+   a comment saying critical rather than warning is deliberate, because it
+   means every transactional email the platform owes anybody is not going out
+   behind a green dashboard.
+2. `lib/notify/outbox.ts` line 519 sets `unconfigured: true` on exactly the
+   missing-key branch, so that alert fires on **every** run with no key.
+3. The drain has run **six times today** (section 1.1). `public.risk_alerts`
+   holds **280 rows, oldest 2026-09-19 00:05Z, newest 2026-09-23 10:25Z, and
+   ZERO of them are email related** by title, description or entity.
+
+**Six runs, each of which would have raised a CRITICAL alert had the key been
+missing, and not one alert exists.** The key is set. That is a measurement of
+production taken from inside production, and it outranks three workers'
+reading of this box's shell.
+
+**So the real state is smaller and more specific than "blocked on a
+credential".** The junction is wired end to end, the key is in place, and
+**there has been no qualifying event**: zero escrows, zero inspection
+requests, zero bookings, no account created or confirmed today, and the seven
+existing accounts, two wallet entries and fifteen messages all predate the
+triggers. The machinery is loaded and nothing has pulled the trigger.
 
 This is a materially different statement from the one the documents make, and
 it is the single most important line in section 13.

@@ -7,7 +7,7 @@ import { plural, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { ICON } from "@/components/app/Screen";
-import { RowButton, RowLink, RowSelect, RowSwitch, SettingsGroup } from "@/components/app/account/rows";
+import { RowButton, RowLink, RowSwitch, SettingsGroup } from "@/components/app/account/rows";
 import { LanguageRow } from "@/components/app/account/SettingsGroups";
 import { useNfSettings } from "@/components/app/account/settings-store";
 import { signOut, updateSettings } from "@/lib/profile/actions";
@@ -177,7 +177,10 @@ function Checked({ children }: { children: string }) {
 
 export function SettingsHub({ t, locale, signedIn, person, notifications, deviceCount }: SettingsHubProps) {
   const hub = t.settings.hub;
-  const copy = t.settings.appearance;
+  /* The appearance group and its theme row went with light mode on 23
+     September. `t.settings.appearance` still exists in the dictionary and is
+     now unread here; removing the keys is the i18n sweep's job, not this
+     component's. */
 
   /* ------------------------------------------------------- notifications */
   const { settings, set } = useNfSettings();
