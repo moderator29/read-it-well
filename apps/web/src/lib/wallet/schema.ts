@@ -175,6 +175,51 @@ export const transferSchema = z.object({
   idempotencyKey: idempotencyKeySchema,
 });
 
+/**
+ * SEND TO A BANK ACCOUNT, the second half of the send desk.
+ *
+ * ---------------------------------------------------------------------------
+ * WHY THE BANK CODE IS NOT CHECKED AGAINST `WALLET_BANKS` HERE.
+ *
+ * `withdrawSchema` above checks its code against the twenty three banks in
+ * `./banks`, because the withdraw sheet's picker is built from that same
+ * constant and a code from anywhere else is a tampered form. The send screen's
+ * picker is built from the LIVE registry (`listBanks`, the payout side's own
+ * list, which is where Jaiz, Sparkle, VFD and every microfinance bank live),
+ * so a valid send can legitimately carry a code this file has never heard of.
+ * The action checks the code against that same live registry before it holds a
+ * kobo, which is the only list that can be right.
+ *
+ * ---------------------------------------------------------------------------
+ * `confirmedAccountName` IS NOT THE NAME THE MONEY IS SENT TO.
+ *
+ * It is the name the browser was SHOWN at the confirmation step, posted back
+ * so the action can check that it is still the answer the bank gives. The
+ * action resolves the account again itself and refuses on any disagreement.
+ * Nothing the browser sends ever reaches a payout instruction: a field a
+ * person can edit must never be able to address money.
+ */
+export const bankTransferSchema = z.object({
+  idempotencyKey: idempotencyKeySchema,
+  amount: nairaAmountSchema,
+  bankCode: z.string().trim().min(1, "Choose the bank."),
+  accountNumber: z
+    .string()
+    .trim()
+    .transform((v) => v.replace(/\D/g, ""))
+    .refine((v) => /^\d{10}$/.test(v), "A Nigerian account number is 10 digits."),
+  confirmedAccountName: z
+    .string()
+    .trim()
+    .min(1, "Check the account name before sending."),
+  note: z
+    .string()
+    .trim()
+    .max(140, "Keep the note under 140 characters.")
+    .optional()
+    .transform((v) => (v && v.length > 0 ? v : undefined)),
+});
+
 /** Funding references we generate: rm-fund-<uuid v4-shaped>. */
 export const fundReferenceSchema = z
   .string()
@@ -186,3 +231,4 @@ export const fundReferenceSchema = z
 export type FundInput = z.infer<typeof fundSchema>;
 export type WithdrawInput = z.infer<typeof withdrawSchema>;
 export type TransferInput = z.infer<typeof transferSchema>;
+export type BankTransferInput = z.infer<typeof bankTransferSchema>;

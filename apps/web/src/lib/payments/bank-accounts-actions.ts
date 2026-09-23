@@ -39,13 +39,13 @@ import {
   bankAccountRemovedNotice,
   bankDefaultChangedNotice,
 } from "./notices";
+import { isPaystackConfigured, type PaystackBank } from "./paystack";
 import {
-  PaystackError,
-  isPaystackConfigured,
-  listBanks as fetchBanks,
-  resolveAccountNumber,
-  type PaystackBank,
-} from "./paystack";
+  accountNumberSchema,
+  bankNameForCode,
+  cachedBanks,
+  resolveBankAccountName,
+} from "./bank-resolve";
 
 const SERVICE_DOWN_MESSAGE =
   "We could not save that just then. Nothing was lost, please try again in a moment.";
@@ -72,10 +72,10 @@ export type BankAccount = {
   createdAt: string;
 };
 
-const accountNumberSchema = z
-  .string({ message: "Enter the ten digit account number." })
-  .transform((value) => value.replace(/\D/g, ""))
-  .refine((value) => /^\d{10}$/.test(value), "A Nigerian account number is exactly ten digits.");
+/* The digits rule, the registry and the resolve call all live in
+   ./bank-resolve, which is the single implementation every caller on this
+   platform asks. See the note at the top of that file for what went wrong
+   when there were two. */
 
 const bankAccountInputSchema = z.object({
   bankCode: z.string().trim().min(1, "Choose the bank."),
@@ -99,18 +99,6 @@ function toBankAccount(row: BankAccountRow): BankAccount {
 }
 
 /* ------------------------------------------------------------------- banks */
-
-/** The registry changes rarely and the page asks often. One hour, in memory. */
-const BANKS_TTL_MS = 60 * 60 * 1000;
-let banksCache: { at: number; banks: PaystackBank[] } | null = null;
-
-async function cachedBanks(): Promise<PaystackBank[]> {
-  const now = Date.now();
-  if (banksCache && now - banksCache.at < BANKS_TTL_MS) return banksCache.banks;
-  const banks = await fetchBanks();
-  banksCache = { at: now, banks };
-  return banks;
-}
 
 /** Nigerian banks Paystack can pay out to, cached for an hour per instance. */
 export async function listBanks(): Promise<ActionResult<PaystackBank[]>> {
@@ -146,15 +134,13 @@ export async function resolveBankAccount(input: {
   const limit = await guardMoney("resolveBankAccount", session.user.id);
   if (!limit.allowed) return fail(limit.message);
 
-  try {
-    const resolved = await resolveAccountNumber(parsed.data.accountNumber, parsed.data.bankCode);
-    return ok({ accountName: resolved.accountName });
-  } catch (error) {
-    if (error instanceof PaystackError) {
-      return fail(NOT_CONFIRMED_MESSAGE, { accountNumber: "We could not confirm this account." });
-    }
-    return fail(SERVICE_DOWN_MESSAGE);
+  const resolved = await resolveBankAccountName(parsed.data);
+  if (resolved.ok) return ok({ accountName: resolved.accountName });
+  if (resolved.failure === "not-confirmed") {
+    return fail(NOT_CONFIRMED_MESSAGE, { accountNumber: "We could not confirm this account." });
   }
+  if (resolved.failure === "unconfigured") return fail(UNVERIFIABLE_MESSAGE);
+  return fail(SERVICE_DOWN_MESSAGE);
 }
 
 /* --------------------------------------------------------------------- add */
@@ -214,26 +200,20 @@ async function addBankAccountWork(
   parsed: { data: { bankCode: string; accountNumber: string } },
 ): Promise<ActionResult<BankAccount>> {
 
-  let bankName: string | null = null;
-  try {
-    bankName = (await cachedBanks()).find((b) => b.code === parsed.data.bankCode)?.name ?? null;
-  } catch {
-    bankName = null;
-  }
+  const bankName = await bankNameForCode(parsed.data.bankCode);
   if (!bankName) {
     return fail("Choose a bank from the list.", { bankCode: "Choose a bank from the list." });
   }
 
-  let accountName: string;
-  try {
-    const resolved = await resolveAccountNumber(parsed.data.accountNumber, parsed.data.bankCode);
-    accountName = resolved.accountName;
-  } catch (error) {
-    if (error instanceof PaystackError) {
+  const resolved = await resolveBankAccountName(parsed.data);
+  if (!resolved.ok) {
+    if (resolved.failure === "not-confirmed") {
       return fail(NOT_CONFIRMED_MESSAGE, { accountNumber: "We could not confirm this account." });
     }
+    if (resolved.failure === "unconfigured") return fail(UNVERIFIABLE_MESSAGE);
     return fail(SERVICE_DOWN_MESSAGE);
   }
+  const accountName = resolved.accountName;
 
   const { data: created, error } = await supabase
     .from("bank_accounts")

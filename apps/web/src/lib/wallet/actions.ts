@@ -69,6 +69,11 @@ import { guardMoney } from "../security/money-limits";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { subjectForUser } from "../security/rate-limit";
 import { bankByCode } from "./banks";
+import {
+  bankNameForCode,
+  resolveBankAccountName,
+  sameAccountName,
+} from "../payments/bank-resolve";
 import { recordMoneyAudit } from "./audit";
 import {
   availableBalanceMinor,
@@ -85,6 +90,7 @@ import { callMoneyRpc, readMoneyStatus } from "./rpc";
 import { readStatement } from "./repository";
 import { chargeSavedCard } from "../payments/charge-saved-card";
 import {
+  bankTransferSchema,
   fundReferenceSchema,
   fundSchema,
   fundWithSavedCardSchema,
@@ -1217,6 +1223,355 @@ async function labelTransferLegs(
   }
 }
 
+
+/* ------------------------------------------------- p2p, to a bank account */
+
+export type BankTransferReceipt = {
+  amountMinor: number;
+  reference: string;
+  bankName: string;
+  /** The last four digits only. The full NUBAN never comes back to a browser. */
+  accountLast4: string;
+  /** The bank's own answer, read again at the moment the money moved. */
+  accountName: string;
+};
+
+/**
+ * Send wallet money to somebody else's Nigerian bank account.
+ *
+ * ---------------------------------------------------------------------------
+ * THE THREE STEPS, AND WHY THE MIDDLE ONE CANNOT BE SKIPPED.
+ *
+ *   1. the ten digits and the bank        the screen's fields
+ *   2. the account name, from the bank    `resolveBankAccount`, which stores
+ *                                         nothing and moves nothing
+ *   3. send                               here
+ *
+ * Step 2 is the whole safety of the thing. Nigerian account numbers are ten
+ * digits with no checksum a person can see, and the only defence against a
+ * mistyped digit landing in a stranger's account is a person reading back the
+ * name the BANK holds before they commit. So the name shown at step 2 is
+ * never a name this platform stored, cached or inferred: it comes off the
+ * wire from the processor, per attempt.
+ *
+ * ---------------------------------------------------------------------------
+ * AND THE NAME THE BROWSER SENDS BACK DECIDES NOTHING.
+ *
+ * `confirmedAccountName` is not an instruction. It is the answer the browser
+ * was shown, posted back so this action can check that it is still true. This
+ * action resolves the account AGAIN, itself, and compares. If the two
+ * disagree, nothing is held and nothing is sent, because the only ways they
+ * can disagree are that the account number or the bank changed between the
+ * confirmation and the submit, or that something edited the field. Either way
+ * the person on the screen has not seen the name the money would go to, and
+ * that is the one thing this flow exists to guarantee.
+ *
+ * A field a person can edit must never address money. The payout instruction
+ * is built from the fresh resolution and from nothing else.
+ *
+ * ---------------------------------------------------------------------------
+ * IT IS A WITHDRAWAL IN THE LEDGER, AND IT HAS TO BE.
+ *
+ * Same `rm-wd-<uuid>` reference family, same `hold_wallet_withdrawal` hold
+ * under the wallet's row lock, same Paystack transfer, same webhook. That is
+ * not laziness about naming: `transfer.success`, `transfer.failed` and
+ * `transfer.reversed` are settled by the webhook ONLY for references starting
+ * `rm-wd-` (see api/paystack/webhook/route.ts), and `sweepStaleWithdrawalHolds`
+ * only releases holds under that prefix. A new prefix would have produced a
+ * debit that nothing on this platform could ever settle or release: money
+ * held out of somebody's balance for ever, by design, on day one. The
+ * destination is what differs, and the destination lives in the entry's
+ * metadata.
+ *
+ * ---------------------------------------------------------------------------
+ * IT COUNTS AGAINST THE WITHDRAWAL ALLOWANCE, deliberately.
+ *
+ * `guardMoney("withdraw")` and not a new bucket of its own. Both doors hold
+ * balance and pay a transfer fee at the processor, and a second bucket would
+ * mean the five-an-hour payout cap could be walked round simply by using the
+ * other screen.
+ *
+ * ---------------------------------------------------------------------------
+ * TWO TAPS MOVE THE MONEY ONCE.
+ *
+ * The same `withIdempotency` guard `transferToUser`, `fundWallet` and
+ * `addBankAccount` use, under its own scope, keyed on the `idempotencyKey`
+ * the form mints per submit. Only an `ok` answer is recorded, so a refusal
+ * (a wrong bank, a name that changed, not enough balance) stays immediately
+ * retryable. A form with no key runs unguarded exactly as every other door
+ * does, and the typed-in `withdraw` beside this one still has no key at all:
+ * the note on that function explains why its panel has no retry button.
+ */
+export async function transferToBank(
+  _prev: ActionResult<BankTransferReceipt | null>,
+  formData: FormData,
+): Promise<ActionResult<BankTransferReceipt | null>> {
+  const session = await resolveSession();
+  const key = formDataToObject(formData)["idempotencyKey"] ?? null;
+  if (session.state !== "signed-in" || !key) return transferToBankWork(formData);
+
+  const run = await withIdempotency<ActionResult<BankTransferReceipt | null>>(
+    {
+      scope: BANK_TRANSFER_SCOPE,
+      key,
+      subject: subjectForUser(session.user.id),
+      shouldRecord: (result) => result.ok,
+    },
+    () => transferToBankWork(formData),
+  );
+  if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);
+  return run.result;
+}
+
+/** One scope for the bank send door, matching the shape of the other three. */
+const BANK_TRANSFER_SCOPE = "wallet.transfer.bank";
+
+/**
+ * The name the person confirmed is no longer the name the bank gives.
+ *
+ * Said as a fact about the account rather than as an accusation, because the
+ * ordinary cause is a corrected digit, and said without printing either name:
+ * a refusal is not a reason to put somebody's account holder in a log, a
+ * toast or an error string that ends up in a bug report.
+ */
+const NAME_CHANGED_MESSAGE =
+  "The name on that account is not the one you checked, so nothing has been sent. Check the account number and the bank, confirm the name again, and then send.";
+
+async function transferToBankWork(
+  formData: FormData,
+): Promise<ActionResult<BankTransferReceipt | null>> {
+  if (!(await isFeatureEnabled("wallet"))) return fail(WALLET_OFF_MESSAGE);
+
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+
+  const parsed = validate(bankTransferSchema, formDataToObject(formData));
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  if (!isPaystackConfigured()) {
+    return fail("We cannot send to a bank account right now. Your balance is untouched.");
+  }
+
+  /* The same allowance the withdraw door spends. See the note above. */
+  const limit = await guardMoney("withdraw", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
+
+  const admin = getAdminClient();
+  if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
+
+  /* The live registry, which is the list the send screen's picker is built
+     from and the same one the payments settings page checks against. */
+  const bankName = await bankNameForCode(parsed.data.bankCode);
+  if (!bankName) {
+    return fail("Choose a bank from the list.", { bankCode: "Choose a bank from the list." });
+  }
+
+  /*
+   * WHO THE MONEY IS GOING TO, ASKED OF THE BANK, BEFORE ANYTHING IS HELD.
+   * A failure here has taken nothing and locked nothing; resolving after the
+   * hold would leave a typo holding somebody's balance until it expired.
+   */
+  const resolved = await resolveBankAccountName({
+    accountNumber: parsed.data.accountNumber,
+    bankCode: parsed.data.bankCode,
+  });
+  if (!resolved.ok) {
+    logMoney({
+      surface: "transfer",
+      outcome: "rejected",
+      reason: `account_not_resolved:${resolved.failure}`,
+      userId: session.user.id,
+    });
+    if (resolved.failure === "not-confirmed") {
+      return fail(
+        "We could not find that account at the bank you chose. Check the number and the bank, and nothing has been sent.",
+        {
+          accountNumber:
+            "We could not find that account at the bank you chose. Nothing has been sent.",
+        },
+      );
+    }
+    return fail(
+      "We could not confirm that account just now, so nothing has been sent. Your balance is untouched. Please try again in a moment.",
+    );
+  }
+
+  /* THE CHECK THE CONFIRMATION STEP EXISTS FOR. */
+  if (!sameAccountName(resolved.accountName, parsed.data.confirmedAccountName)) {
+    logMoney({
+      surface: "transfer",
+      outcome: "rejected",
+      reason: "confirmed_name_changed",
+      userId: session.user.id,
+    });
+    return fail(NAME_CHANGED_MESSAGE, {
+      accountNumber: "Confirm the account name again before sending.",
+    });
+  }
+
+  const accountName = resolved.accountName;
+  const amountMinor = parsed.data.amount;
+  const accountLast4 = parsed.data.accountNumber.slice(-4);
+  const reference = `${WITHDRAW_PREFIX}${randomUUID()}`;
+
+  /*
+   * The hold's metadata, the same shape the withdraw door writes, with one
+   * field added. The account NUMBER never goes in: the last four digits are
+   * what a receipt needs and what the settlement email prints, and the full
+   * NUBAN belongs to Paystack's recipient record, not to a row every admin
+   * can read (rule 16). `destination: "third_party"` is what tells a reader
+   * of the ledger, and anybody reconciling it, that this row is money sent to
+   * somebody else rather than a person moving their own balance home.
+   */
+  const holdMetadata = {
+    note: `Sent to ${bankName} ****${accountLast4}`,
+    bank_code: parsed.data.bankCode,
+    bank_name: bankName,
+    account_last4: accountLast4,
+    account_name: accountName,
+    destination: "third_party",
+    ...(parsed.data.note ? { message: parsed.data.note } : {}),
+  };
+
+  const held = await callMoneyRpc(
+    admin,
+    "withdraw",
+    "hold_wallet_withdrawal",
+    {
+      owner_user: session.user.id,
+      amount: amountMinor,
+      hold_reference: reference,
+      hold_metadata: holdMetadata,
+    },
+    { reference, amountMinor, userId: session.user.id },
+  );
+
+  /*
+   * NO UNLOCKED FALLBACK ON THIS PATH. The typed-in withdrawal still carries
+   * one, written for the days before `public.hold_wallet_withdrawal` landed.
+   * A new door has no reason to inherit an unlocked money path, so a missing
+   * function is an honest refusal here, exactly as it is on the saved-account
+   * withdrawal beside it.
+   */
+  if (held.outcome !== "ok") {
+    logMoney({
+      surface: "transfer",
+      outcome: "failed",
+      reason: `hold_unavailable:${held.outcome}`,
+      reference,
+      amountMinor,
+      userId: session.user.id,
+    });
+    return fail("This send could not be recorded. Your balance is untouched. Please try again.");
+  }
+
+  const status = readMoneyStatus(held.data);
+  if (status.status === "insufficient") {
+    const available = status.availableMinor ?? 0;
+    logMoney({
+      surface: "transfer",
+      outcome: "rejected",
+      reason: "insufficient_balance",
+      reference,
+      amountMinor,
+      userId: session.user.id,
+    });
+    return fail(
+      `Your available balance is ${nairaExact(available)}, so this send of ${nairaExact(amountMinor)} cannot go through.`,
+      { amount: "There is not enough in your wallet for this amount." },
+    );
+  }
+  if (status.status !== "ok" && status.status !== "duplicate") {
+    logMoney({
+      surface: "transfer",
+      outcome: "rejected",
+      reason: `rpc_status:${status.status}`,
+      reference,
+      amountMinor,
+      userId: session.user.id,
+    });
+    return fail("This send could not be recorded. Your balance is untouched. Please try again.");
+  }
+
+  logMoney({
+    surface: "transfer",
+    outcome: "posted",
+    reason: "hold_placed",
+    reference,
+    amountMinor,
+    userId: session.user.id,
+    ...(status.walletId ? { walletId: status.walletId } : {}),
+  });
+  await recordMoneyAudit(admin, {
+    actor: { kind: "user", userId: session.user.id },
+    action: "wallet.transfer_to_bank.hold_placed",
+    reference,
+    amountMinor,
+    subjectUserId: session.user.id,
+    walletId: status.walletId,
+    outcome: status.status,
+    /* The bank's code and four digits. Never the number, never the holder:
+       audit_log is readable by every admin. */
+    detail: { bank_code: parsed.data.bankCode, account_last4: accountLast4, atomic: true },
+  });
+
+  try {
+    const recipient = await createTransferRecipient({
+      /* The bank's own answer, resolved above in this same call. Not the form
+         field, not a stored row, not the person's typing. */
+      name: accountName,
+      accountNumber: parsed.data.accountNumber,
+      bankCode: parsed.data.bankCode,
+    });
+    await initiateTransfer({
+      amountMinor,
+      recipientCode: recipient.recipientCode,
+      reference,
+      reason: "Vallo wallet send",
+    });
+  } catch (e) {
+    let markedFailed = false;
+    try {
+      await setEntryStatus(admin, reference, "FAILED", {
+        failure: e instanceof PaystackError ? e.message : "Transfer initiation failed.",
+      });
+      markedFailed = true;
+    } catch {
+      /* The hold stays PENDING and `sweepStaleWithdrawalHolds` releases it,
+         because this reference is in the family that sweep reads. */
+    }
+
+    logMoney({
+      surface: "transfer",
+      outcome: markedFailed ? "rejected" : "failed",
+      reason: markedFailed ? "transfer_not_started_hold_released" : "transfer_not_started_hold_stuck",
+      reference,
+      amountMinor,
+      userId: session.user.id,
+    });
+    await recordMoneyAudit(admin, {
+      actor: { kind: "user", userId: session.user.id },
+      action: "wallet.transfer_to_bank.not_started",
+      reference,
+      amountMinor,
+      subjectUserId: session.user.id,
+      outcome: markedFailed ? "FAILED" : "still_pending",
+      detail: { bank_code: parsed.data.bankCode, account_last4: accountLast4 },
+    });
+
+    return fail(
+      describePaystackError(
+        e,
+        "This send could not be started, so it was cancelled and your balance is untouched.",
+      ),
+    );
+  }
+
+  revalidatePath("/wallet");
+  return ok({ amountMinor, reference, bankName, accountLast4, accountName });
+}
+
 /* ------------------------------------------------------------ verify fund */
 
 export type FundingVerification = {
@@ -1559,15 +1914,23 @@ export async function lookupAccountName(
   const limit = await guardMoney("resolveBankAccount", session.user.id);
   if (!limit.allowed) return { ok: false, reason: limit.message };
 
-  try {
-    const resolved = await resolveAccountNumber(digits, bank.code);
-    return { ok: true, accountName: resolved.accountName };
-  } catch {
-    /* Deliberately not the processor's wording. The reader is still filling the
-       form and the only useful thing to say is that this pair does not match;
-       the withdrawal gives the full message if they go on anyway. */
-    return { ok: false, reason: "No account found with that number at this bank." };
+  /* THE SAME RESOLVER THE PAYOUT SIDE AND THE SEND DESK ASK. This used to
+     call `resolveAccountNumber` itself and map every failure to one sentence,
+     which is how this door and the payments settings door came to disagree
+     about what a confirmable account is. See lib/payments/bank-resolve.ts. */
+  const resolved = await resolveBankAccountName({ accountNumber: digits, bankCode: bank.code });
+  if (resolved.ok) return { ok: true, accountName: resolved.accountName };
+
+  /* Deliberately not the processor's wording. The reader is still filling the
+     form and the only useful thing to say is that this pair does not match;
+     the withdrawal gives the full message if they go on anyway. An outage is
+     said differently, because "no account found" would be a lie about a
+     number that may well be right. */
+  if (resolved.failure === "unreachable") {
+    return { ok: false, reason: "We could not check that account just now. Please try again in a moment." };
   }
+  if (resolved.failure === "unconfigured") return { ok: false, reason: "" };
+  return { ok: false, reason: "No account found with that number at this bank." };
 }
 
 /* ------------------------------------------------ funding, once per submit */

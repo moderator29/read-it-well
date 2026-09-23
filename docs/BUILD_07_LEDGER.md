@@ -8815,3 +8815,145 @@ It also cannot be done blind: the narrowing must list every column the product
 legitimately reads anonymously, and getting that list wrong reproduces item 1
 on a different table. **Founder, this needs your word to proceed, and it should
 happen before the firm door takes its first real registration.**
+
+---
+
+## 49quater. R16 TO SESSION B: THE BANK SEND CONTRACT, ANSWERING B-BANK
+
+`SESSION_B_SCOPE.md` item 3 and its request **B-BANK** asked for a
+transfer-to-bank action, a bank list and a resolver that is the payout side's
+own. All three are on `main`. **Session B owns the screen; this is the shape to
+build it against.** The names and shapes below are what shipped, and where they
+differ from the guess in B-BANK the difference is stated and the reason given.
+
+### The three calls
+
+**1. The bank list.**
+
+```ts
+import { listBanks } from "@/lib/payments/bank-accounts-actions";
+listBanks(): Promise<ActionResult<{ name: string; code: string; slug: string }[]>>
+```
+
+The LIVE registry from the processor, cached one hour per instance. About a
+hundred entries, including the microfinance banks and wallets a person actually
+uses (Kuda, Opay, Palmpay, Moniepoint, Sparkle, VFD, Jaiz). **Not**
+`WALLET_BANKS` in `lib/wallet/banks.ts`, which is a curated twenty three, is
+the withdraw sheet's list, and is not the authority on this screen.
+
+- `ok: true` with `[]` means the processor is not configured in this
+  environment. Draw the email option and say the bank option is unavailable
+  right now. Do not draw an empty picker.
+- `ok: false` means the list could not be read. Same treatment, with the
+  message shown.
+
+**2. The resolve. This is the payout side's existing action, unchanged.**
+
+```ts
+import { resolveBankAccount } from "@/lib/payments/bank-accounts-actions";
+resolveBankAccount({ bankCode: string; accountNumber: string })
+  : Promise<ActionResult<{ accountName: string }>>
+```
+
+Stores nothing, moves nothing, writes nothing. Call it when the field holds ten
+digits and a bank is chosen. Its refusals, all through `ActionResult`:
+
+| `error` | What it means | What the screen does |
+|---|---|---|
+| "That account could not be confirmed. Check the number and the bank, then try again." | The bank answered and does not know this account. `fieldErrors.accountNumber` is set. | Show it under the number field. **Do not advance to confirm.** |
+| "We cannot confirm a bank account right now, and we will not store an account we cannot confirm belongs to you." | No processor key in this environment. | Bank option unavailable. |
+| "We could not save that just then. Nothing was lost, please try again in a moment." | The processor could not be reached. | Offer a retry. Not a reason to advance. |
+| "Please check the highlighted fields and try again." | Ten digits or a bank code missing. `fieldErrors` carries which. | Light the field. |
+| A sentence beginning "You have tried..." | Twenty resolves in ten minutes, per person. | Show it. It says when to try again. |
+| "You need to be signed in..." / the unconfigured message | Session. | The usual. |
+
+**3. The send.**
+
+```ts
+import { transferToBank, type BankTransferReceipt } from "@/lib/wallet/actions";
+transferToBank(prev: ActionResult<BankTransferReceipt | null>, formData: FormData)
+  : Promise<ActionResult<BankTransferReceipt | null>>
+```
+
+**It is a `useActionState` form action, not an object call.** B-BANK guessed
+`transferToBank({ ... })`; it is `(prev, formData)` so it matches
+`transferToUser` exactly and the send screen keeps one submit pattern for both
+options. The form fields, by name:
+
+| Field | Required | Shape |
+|---|---|---|
+| `accountNumber` | yes | Ten digits. Spaces and grouping are stripped. |
+| `bankCode` | yes | A `code` from `listBanks()`. |
+| `confirmedAccountName` | yes | **The exact string `resolveBankAccount` returned**, posted back unmodified. |
+| `amount` | yes | **Naira text**, as every other wallet form ("5,000" or "5000.50"). NOT kobo. The schema converts once, `Math.round(naira * 100)`. B-BANK guessed `amountKobo`; rule 2 puts that conversion at the input boundary and nowhere else. |
+| `note` | no | Up to 140 characters. |
+| `idempotencyKey` | yes in practice | One per submit, from `mintIdempotencyKey()`. Without it the guard steps aside and a second tap sends a second time. |
+
+On success, `data` is:
+
+```ts
+{ amountMinor: number;    // integer kobo
+  reference: string;      // rm-wd-<uuid>
+  bankName: string;
+  accountLast4: string;   // four digits, never the full number
+  accountName: string; }  // the bank's answer at the moment it moved
+```
+
+### Every refusal `transferToBank` can produce
+
+| `error` | Means | Screen |
+|---|---|---|
+| "The wallet is switched off for a moment..." | Feature flag. | Whole desk unavailable. |
+| The signed-out / unconfigured messages | Session. | The usual. |
+| "Please check the highlighted fields and try again." | Schema. `fieldErrors` names `accountNumber`, `bankCode`, `amount`, `confirmedAccountName` or `note`. | Light the fields, stay on compose. |
+| "We cannot send to a bank account right now. Your balance is untouched." | No processor key. | Bank option unavailable. |
+| "You have asked for several withdrawals in the last hour..." | **The withdrawal allowance, five an hour, shared with the withdraw door on purpose** so the cap cannot be walked round by using the other screen. | Show it. |
+| "Choose a bank from the list." (`fieldErrors.bankCode`) | The code is not in the live registry. | Back to the picker. |
+| "We could not find that account at the bank you chose. Check the number and the bank, and nothing has been sent." | Fresh resolve failed at send time. | Back to step one. |
+| "We could not confirm that account just now, so nothing has been sent..." | Processor unreachable at send time. | Offer a retry. |
+| **"The name on that account is not the one you checked, so nothing has been sent. Check the account number and the bank, confirm the name again, and then send."** | The bank now returns a different holder than the one posted in `confirmedAccountName`. | **Send the person back to step one and make them confirm a name again.** This is the guard, not an edge case. |
+| "Your available balance is ... so this send of ... cannot go through." | Decided by the database under the wallet's row lock. `fieldErrors.amount` set. | Show on the amount. |
+| "This send could not be recorded. Your balance is untouched. Please try again." | The hold did not go on. | Retry. |
+| "This send could not be started, so it was cancelled and your balance is untouched." (sometimes with the processor's own sentence appended) | The transfer would not start. The hold is released. | Retry. |
+| "Your earlier attempt is still going through..." | A second tap while the first is in flight. | **Never auto-retry.** Say it and offer the wallet. |
+
+### What the screen must show at each step
+
+**Step 1, compose.** The account number field (ten digits, numeric keypad), the
+bank picker from `listBanks()`, the amount, the optional note. Nothing is
+resolved until both the number and the bank are present. Email send is the
+other option on the same screen and is unchanged: it still posts
+`transferToUser`.
+
+**Step 2, the name.** Call `resolveBankAccount`. **Show the returned
+`accountName` exactly as the bank gave it, and nothing else.** Do not title
+case it, do not match it against a Vallo profile, do not fall back to anything
+if it is missing, and never show a name this platform stored: the person is
+checking a stranger's ten digits against the bank's own record, and any name
+that did not come off that call defeats the step entirely. A refusal here
+**stops the flow**. There is no "send anyway".
+
+**Step 3, confirm and send.** Amount as the headline, the bank name, the last
+four digits, and the confirmed name. Post the whole form, `confirmedAccountName`
+included. The action resolves the account **again** server-side and refuses if
+the answer has changed, so the value you post is a claim being checked, never an
+instruction being obeyed.
+
+### Three things worth knowing
+
+**The ledger row is a withdrawal.** `rm-wd-<uuid>`, the same family the
+withdraw door uses, because the Paystack webhook settles `transfer.*` events
+only for that prefix and the stale-hold sweep only releases that prefix. A
+prefix of its own would have meant a debit nothing on this platform could ever
+settle. So a bank send appears in the statement as a withdrawal whose metadata
+carries `destination: "third_party"`, the destination bank and the last four
+digits.
+
+**The settlement email says "withdrawal".** `withdrawalOutcome` builds it from
+the entry, and it is the same template for both doors. It is true (money left
+the wallet to that bank account) but it is not the word a person who just sent
+money to a friend expects. Wording that template is not this session's file;
+it is recorded here so it is a decision rather than a surprise.
+
+**The account number never comes back.** Not in the receipt, not in the audit
+log, not in any log line. `accountLast4` is what a receipt gets. Rule 16.
