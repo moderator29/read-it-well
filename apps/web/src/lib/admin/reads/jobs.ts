@@ -26,8 +26,8 @@ export type RunRow = {
  * the newest such row per job (one read per job, newest first, so it is
  * exactly the last run however long ago it was).
  *
- * The database's own pg_cron jobs are not in this list: their runs live in
- * `cron.job_run_details`, which nothing in the query layer reads yet
+ * The database's own pg_cron jobs are `PG_CRON_JOBS` below: their runs live
+ * in `cron.job_run_details`, which nothing in the query layer can read yet
  * (Request A5).
  */
 export type VercelJob = {
@@ -40,13 +40,9 @@ export type VercelJob = {
 
 export const VERCEL_JOBS: readonly VercelJob[] = [
   /*
-   * ADDED BY THE EMAIL JUNCTION WORKER, AND IT IS THE ONE LINE OF THIS FILE
-   * THAT WORKER TOUCHED. This module is Session B's; the entry is here rather
-   * than in a request because `session-b-admin-shell.test.ts` asserts that
-   * this list and `vercel.json` are EQUAL, so adding the drain to the
-   * scheduler without adding it here turns the whole tree red for every
-   * writer sharing it. Additive, data only, nothing else in the file moved.
-   * Session B: reword the schedule text or the allowance as you like.
+   * Added by Session A's email junction worker (R13): data only, kept by
+   * Session B's ruling of 23 September, because the equality test with
+   * `vercel.json` needs it and nothing else in the file moved.
    */
   { name: "email-outbox", cron: "*/15 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "email-outbox" } },
   { name: "hold-sweep", cron: "5 * * * *", schedule: "Hourly at :05", maxGapHours: 3, audit: { entityType: "cron_job", term: "hold-sweep" } },
@@ -68,6 +64,34 @@ export const VERCEL_JOBS: readonly VercelJob[] = [
     maxGapHours: 26,
     audit: { entityType: "cron_job", term: "saved-search-alerts" },
   },
+];
+
+/**
+ * THE DATABASE'S OWN SCHEDULED JOBS (pg_cron), one list, so every count the
+ * console, the handbook and the scope file state is derived and cannot
+ * drift. `session-b-admin-jobs.test.ts` scans `supabase/migrations` for every
+ * `cron.schedule('<name>', '<cron>', ...)` (applying the 22 September rename
+ * of `rentme*` to `vallo*`) and fails the day a job is scheduled there and not
+ * listed here, listed here and not scheduled there, or scheduled at a
+ * different time. Schedules are UTC, as pg_cron runs them; `when` is Lagos.
+ */
+export type PgCronJob = { name: string; cron: string; when: string; what: string };
+
+export const PG_CRON_JOBS: readonly PgCronJob[] = [
+  { name: "vallo_push_drain", cron: "*/5 * * * *", when: "every 5 min", what: "asks the app to drain the push queue" },
+  { name: "vallo_release_stale_holds", cron: "*/15 * * * *", when: "every 15 min", what: "database side of the hold release" },
+  { name: "vallo_escrow_sweep_timeouts", cron: "17 * * * *", when: "hourly at :17", what: "escrow timeouts" },
+  { name: "vallo_escrow_invariants", cron: "23 * * * *", when: "hourly at :23", what: "asserts the escrow float identity" },
+  { name: "vallo_purge_rate_limits", cron: "30 * * * *", when: "hourly at :30", what: "clears old rate limit rows" },
+  { name: "vallo_reconcile_payments", cron: "47 * * * *", when: "hourly at :47", what: "database side of reconciliation" },
+  { name: "vallo_purge_idempotency", cron: "10 2 * * *", when: "daily 03:10", what: "clears old idempotency records" },
+  { name: "vallo-nightly-badges", cron: "20 2 * * *", when: "daily 03:20", what: "awards earned badges" },
+  { name: "vallo_purge_email_outbox", cron: "25 2 * * *", when: "daily 03:25", what: "forgets emails already delivered" },
+  { name: "vallo_escrow_book_the_float", cron: "5 3 * * *", when: "daily 04:05", what: "books the day's escrow float as a liability" },
+  { name: "vallo_sweep_price_check_events", cron: "40 3 * * *", when: "daily 04:40", what: "deletes price check events older than 24 months" },
+  { name: "vallo_announce_completed_stays", cron: "20 5 * * *", when: "daily 06:20", what: "announces completed stays" },
+  { name: "vallo_sweep_price_check_watches", cron: "50 5 * * *", when: "daily 06:50", what: "tells a price check watcher once the area opens" },
+  { name: "vallo-daily-note", cron: "0 6 * * *", when: "daily 07:00", what: "the daily note" },
 ];
 
 /** A readable name for a job: "hold-sweep" becomes "Hold sweep". */

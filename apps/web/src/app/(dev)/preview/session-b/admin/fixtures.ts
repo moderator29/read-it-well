@@ -81,6 +81,7 @@ export const ALERTS: AlertView[] = [
 export const JOBS: JobHealth = {
   checkedAt: new Date(NOW).toISOString(),
   jobs: [
+    { name: "email-outbox", scheduler: "vercel", cron: "*/15 * * * *", schedule: "Every 15 minutes", lastRunAt: at(9), lastDurationMs: 740, lastOutcome: "ok", stale: false, active: true },
     { name: "hold-sweep", scheduler: "vercel", cron: "5 * * * *", schedule: "Hourly at :05", lastRunAt: at(19), lastDurationMs: 8239, lastOutcome: "ok", stale: false, active: true },
     { name: "paystack-reconcile", scheduler: "vercel", cron: "10 * * * *", schedule: "Hourly at :10", lastRunAt: at(14), lastDurationMs: null, lastOutcome: "ok", stale: false, active: true },
     { name: "pg-cron-watch", scheduler: "vercel", cron: "20 * * * *", schedule: "Hourly at :20", lastRunAt: at(4), lastDurationMs: 1507, lastOutcome: "ok", stale: false, active: true },

@@ -4,9 +4,11 @@ import type { AuditActivity, AuditRowView } from "@/lib/admin/audit-queries";
 import { actionLabel, entityTypeLabel } from "@/lib/admin/audit-filter";
 import type { AlertView } from "@/lib/admin/queries";
 import { AreaTimeChart } from "@/components/agent/charts/AreaTimeChart";
-import type { AlertTrend, InspectionActivity, JobHealth, NotificationActivity } from "@/lib/admin/reads/shapes";
+import type { AlertTrend, InspectionActivity, JobHealth, NotificationActivity, PushActivity } from "@/lib/admin/reads/shapes";
+import { EmailOutboxPanel, PushActivityPanels } from "./PushActivityPanels";
 import { InFlight } from "./InFlight";
 import {
+  PG_CRON_JOBS,
   durationLabel,
   jobStatus,
   jobTitle,
@@ -58,6 +60,8 @@ export type OperationsProps = {
   audit: AuditRowView[] | "unavailable";
   activity: AuditActivity | null;
   notifications: NotificationActivity | null;
+  /** Push, from `push_queue` and `push_deliveries` (read on the Notifications tab only). */
+  push?: PushActivity | null;
   inspections?: InspectionActivity | null;
 };
 
@@ -149,7 +153,15 @@ export function OperationsView(props: OperationsProps) {
         </Panel>
       )}
       {props.tab === "audit" && <AuditPanel {...props} />}
-      {props.tab === "notifications" && <NotificationsPanel activity={props.notifications} locale={locale} />}
+      {props.tab === "notifications" && (
+        <>
+          <PushActivityPanels push={props.push ?? null} locale={locale} />
+          <div className="nf-admin-grid nf-admin-grid--halves">
+            <NotificationsPanel activity={props.notifications} locale={locale} />
+            <EmailOutboxPanel locale={locale} />
+          </div>
+        </>
+      )}
       {props.tab === "inflight" && <InFlight locale={locale} inspections={props.inspections ?? null} />}
 
       <div className="nf-admin-grid nf-admin-grid--halves">
@@ -258,7 +270,7 @@ function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
               <tr>
                 <th scope="row" className="nf-admin-dt__name">
                   {c.databaseJobs}
-                  <span className="nf-admin-dt__sub">pg_cron, twelve scheduled in the database</span>
+                  <span className="nf-admin-dt__sub">pg_cron, {PG_CRON_JOBS.length} scheduled in the database</span>
                 </th>
                 <td colSpan={3} className="nf-admin-dt__muted">
                   {database

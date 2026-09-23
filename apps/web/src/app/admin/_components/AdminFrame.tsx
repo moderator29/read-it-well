@@ -27,6 +27,7 @@ export function AdminFrame({
   searchLabel,
   bellLabel,
   shell,
+  back,
   children,
 }: {
   identity: AdminIdentity;
@@ -38,6 +39,13 @@ export function AdminFrame({
   bellLabel: string;
   /** The console's own copy (`admin.shell`), in the reader's language. */
   shell?: Dictionary["admin"]["shell"];
+  /**
+   * The console's back control (R14), mounted by `admin/layout.tsx`: the
+   * shared `BackButton`, which goes to the route's declared parent in
+   * `lib/nav/route-parents.ts` (every desk to `/admin`, a record to its desk).
+   * It leads the top bar, where the render's rhythm puts the first control.
+   */
+  back?: ReactNode;
   children: ReactNode;
 }) {
   const badges = counts;
@@ -76,6 +84,7 @@ export function AdminFrame({
             identity={identity}
             brand={brand}
           />
+          {back && <span className="nf-admin-bar__back">{back}</span>}
           <span className="nf-admin-bar__brand">{brand}</span>
           <ConsoleSearch label={searchLabel} placeholder={shell?.bar.search ?? "Search anything..."} />
           <span className="nf-admin-bar__spacer" />

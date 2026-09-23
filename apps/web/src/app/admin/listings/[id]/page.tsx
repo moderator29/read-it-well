@@ -96,7 +96,6 @@ export default async function ListingUnderReviewPage({
 
   const decidable = found.status !== "PUBLISHED" && found.status !== "REJECTED";
   const dark = tileProvider("dark");
-  const light = tileProvider("light");
   const nextId = extra?.nextId ?? null;
   const { offset: _offset, ...carried } = query;
 
@@ -114,7 +113,6 @@ export default async function ListingUnderReviewPage({
         backHref={queueHref}
         tiles={{
           dark: dark.url,
-          light: light.url,
           credit: dark.credits.map((credit) => credit.label).join(", "),
         }}
         keepers={{ moveIn: t.moveIn, purchase: t.purchase }}

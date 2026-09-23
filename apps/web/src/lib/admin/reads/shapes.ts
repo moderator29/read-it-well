@@ -128,3 +128,38 @@ export type PriceCheckDemand = {
   /** Refusal codes by count, most first. */
   refusals: { code: string; count: number }[];
 };
+
+/** The push queue's own states (`push_queue_state`). */
+export const PUSH_QUEUE_STATES = ["pending", "held", "sending", "failed", "dead", "done"] as const;
+export type PushQueueState = (typeof PUSH_QUEUE_STATES)[number];
+/** How a settled push ended (`push_queue_outcome`). */
+export const PUSH_OUTCOMES = ["delivered", "suppressed_preference", "suppressed_no_device", "suppressed_expired", "collapsed", "gave_up"] as const;
+export type PushOutcome = (typeof PUSH_OUTCOMES)[number];
+/** One device attempt (`push_delivery_state`). */
+export const PUSH_DELIVERY_STATES = ["sending", "sent", "failed", "gone"] as const;
+export type PushDeliveryState = (typeof PUSH_DELIVERY_STATES)[number];
+
+export type PushDeliveryRow = {
+  id: string;
+  platform: string;
+  state: PushDeliveryState;
+  providerStatus: number | null;
+  /** The provider's error, cut to 160 characters; never a token or a device reference. */
+  error: string | null;
+  attemptedAt: string;
+};
+
+/** `getPushActivity(days)`: push notifications, from `push_queue` and `push_deliveries`. */
+export type PushActivity = {
+  windowDays: number;
+  /** Every queue row by the state it is in now. Exact counts. */
+  queue: Record<PushQueueState, number>;
+  /** Rows settled in the window, by outcome. Exact counts. */
+  outcomes: Record<PushOutcome, number>;
+  /** Device attempts in the window, by state. Exact counts. */
+  deliveries: Record<PushDeliveryState, number>;
+  /** The eight newest device attempts. */
+  recent: PushDeliveryRow[];
+  /** The eight newest attempts that failed or found the device gone. */
+  failures: PushDeliveryRow[];
+};

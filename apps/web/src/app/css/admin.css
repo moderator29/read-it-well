@@ -1,8 +1,8 @@
 /*
   admin: the console's own partial, owned by Session B worker admin-shell
-  (docs/SESSION_B_SCOPE.md section 7). Light-theme rules for this family live
-  here too, under :root[data-theme="light"], so the partial is the whole
-  surface.
+  (docs/SESSION_B_SCOPE.md section 7). Dark only: light mode was removed by
+  the founder on 23 September, and the paper twins that used to close this
+  file went with it.
 
   The governing images are the four admin renders at the repository root:
   5EAA44CB (overview, one full desktop window), 01F7DFC7 (moderation,
@@ -969,8 +969,7 @@
 
     In dark this is what it has always been and it reads correctly: near-white
     ink over an 18 per cent wash of the state's own ink over a near-black
-    ground. The light half is written below, in the paper block, because the
-    two themes need genuinely different answers and a single rule was the bug.
+    ground. (Its light half went with light mode, removed on 23 September.)
   */
   .nf-admin-chip--on {
     color: var(--nf-content-primary);
@@ -2485,6 +2484,22 @@
     font-size: var(--nf-text-body-sm);
     color: var(--nf-content-secondary);
   }
+  /* The back control (R14) leads the bar: the shared arrow, no plate, 44px
+     hit region, then the search. */
+  .nf-admin-bar__back {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+  .nf-admin-back {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .nf-admin-subhead {
+    margin: var(--nf-space-md) 0 var(--nf-space-xs);
+    font-size: var(--nf-text-body-sm);
+    font-weight: 600;
+    color: var(--nf-content-secondary);
+  }
   .nf-admin-entry__link {
     color: var(--nf-content-link);
     text-decoration: underline;
@@ -2508,246 +2523,4 @@
   .nf-admin-dist + .nf-admin-calm {
     margin-top: var(--nf-space-sm);
   }
-}
-
-/* ------------------------------------------------------------ paper twin */
-
-/*
-  On paper every well becomes the raised paper surface and the blooms come
-  down the light glow ladder on their own; the chips keep their inks, which
-  are already the deep daylight values. The filled tab and the active page
-  keep the brand fill because on-brand ink stays white.
-*/
-:root[data-theme="light"] .nf-admin-search__field input,
-:root[data-theme="light"] .nf-admin-tab,
-/*
-  :not(--on) IS THE WHOLE OF R1 FINDING A24.
-
-  This selector is `:root[data-theme="light"] .nf-admin-chip`, which outranks
-  `.nf-admin-chip--all.nf-admin-chip--on` on specificity, so on paper it
-  repainted the SELECTED chip with the white paper surface while leaving its
-  `color: var(--nf-content-on-brand)` alone. White ink on a white plate,
-  measured by F6 at 1.21:1: the selected filter was invisible on the surface
-  whose entire job is telling an operator what they have narrowed to. The
-  coloured selected chips survived it only because their ink is dark, and they
-  still lost their fill, so selection was carried by a border alone.
-
-  Selected chips are excluded here and stated on their own below.
-*/
-:root[data-theme="light"] .nf-admin-chip:not(.nf-admin-chip--on),
-:root[data-theme="light"] .nf-admin-table,
-:root[data-theme="light"] .nf-admin-row__tile,
-:root[data-theme="light"] .nf-admin-row__view,
-:root[data-theme="light"] .nf-admin-pager__page,
-:root[data-theme="light"] .nf-admin .nf-card {
-  background: var(--nf-surface-on-paper);
-  box-shadow: var(--nf-shadow-on-paper);
-}
-/* On paper the rule stays and the night light goes, same as every other
-   object that gained a catchlight for the container ruling. */
-:root[data-theme="light"] .nf-admin .nf-card.nf-admin-stat--flagged {
-  box-shadow:
-    inset var(--nf-admin-stat-rule) 0 0 var(--nf-admin-stat-ink),
-    var(--nf-shadow-on-paper);
-}
-/*
-  The lit rim is a night material: on paper a blue-white catchlight inside a
-  chip or a tile is either invisible or a smear, so every object that gained
-  one for the founder's container ruling takes the paper shadow instead.
-*/
-:root[data-theme="light"] .nf-admin-table,
-:root[data-theme="light"] .nf-admin-tab,
-:root[data-theme="light"] .nf-admin-chip,
-:root[data-theme="light"] .nf-admin-row__tile,
-:root[data-theme="light"] .nf-admin-row__view,
-:root[data-theme="light"] .nf-admin-pager__page,
-:root[data-theme="light"] .nf-admin-search__field input,
-:root[data-theme="light"] .nf-admin-more__body {
-  box-shadow: var(--nf-shadow-on-paper);
-}
-:root[data-theme="light"] .nf-admin-tab--on,
-:root[data-theme="light"] .nf-admin-pager__page--on {
-  background: var(--nf-brand-primary);
-}
-/*
-  THE SELECTED STATUS CHIP ON PAPER (R1 finding A24), and it is a fill rather
-  than a wash, deliberately.
-
-  A wash does not work here and the Chip primitive already learned why: eighteen
-  per cent of any ink over white is very nearly white, so on paper the selected
-  chip was a white lozenge among white lozenges and the only thing telling them
-  apart was a border colour. Rule 13 says colour is never the only signal; a
-  filled capsule beside outlined ones is a difference in weight that survives
-  greyscale, a monitor with the contrast wound down, and the reader who cannot
-  tell cyan from sky.
-
-  WHY THE INK AND NOT THE BRAND GRADIENT FOR ALL FIVE, which is what A24
-  prescribes. On paper the four state inks are the deep daylight values, and
-  white on each of them clears AA for the chip's caption-sized 600 weight:
-  cyan #0E6E8C 5.79:1, emerald #0A7A51 5.37:1, rose #C10E32 6.22:1, sky
-  #0369A1 5.93:1, and All on #0C2FE8 8.12:1. Filling all five with the brand
-  gradient instead would clear contrast too and would throw away the state's
-  own colour on the one control whose job is to say WHICH state, so the ink
-  stays and only All, whose ink is the brand, wears the gradient.
-
-  THE SAME FILL IS WRONG IN DARK and is not applied there. The night ramp's
-  inks are the bright ones, and white on them fails outright: cyan #00C8FF is
-  1.96:1, emerald #10B981 2.54:1, rose #FF1744 3.85:1. Dark keeps near-white
-  ink over the eighteen per cent wash, which reads correctly over a near-black
-  ground and is what shipped. Two themes, two answers, neither of them a
-  theme-derived surface, which is what A24 actually asks for.
-*/
-:root[data-theme="light"] .nf-admin-chip--on {
-  color: var(--nf-content-on-brand);
-  background: var(--nf-admin-chip-ink);
-  border-color: var(--nf-admin-chip-ink);
-  box-shadow: var(--nf-shadow-on-paper);
-}
-/* The state dot sits on its own ink once the chip is filled, so it takes the
-   on-brand paper the label takes or it disappears into the fill. */
-:root[data-theme="light"] .nf-admin-chip--on::before {
-  background: var(--nf-content-on-brand);
-}
-:root[data-theme="light"] .nf-admin-chip--all.nf-admin-chip--on {
-  color: var(--nf-content-on-brand);
-  background: var(--nf-gradient-cta);
-  border-color: var(--nf-brand-edge);
-}
-:root[data-theme="light"] .nf-admin-nav__row--on:hover,
-:root[data-theme="light"] .nf-admin-seg__item--on:hover {
-  background: var(--nf-gradient-cta);
-}
-:root[data-theme="light"] .nf-admin-row > summary:hover,
-:root[data-theme="light"] .nf-admin-table__head {
-  background: var(--nf-surface-raised);
-}
-
-/*
-  THE SHELL AND THE FURNITURE ON PAPER. Same anatomy: the rail and every panel
-  are paper with a brand hairline and the paper shadow instead of deep glass
-  and a bloom; the open rail row and the open tab keep the lit brand fill
-  (white on brand clears AA); plates become a pale brand tint with brand ink,
-  never a dark tile on a white page; the wordmark is type in the page's ink,
-  so it cannot vanish.
-*/
-:root[data-theme="light"] .nf-admin {
-  --nf-admin-tile-fill: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--nf-brand-primary) 5%, var(--nf-surface-on-paper)) 0%,
-    color-mix(in oklab, var(--nf-brand-primary) 14%, var(--nf-surface-on-paper)) 100%
-  );
-  --nf-admin-tile-shadow: inset 0 1px 0 var(--nf-surface-on-paper), 0 4px 10px -6px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
-  --nf-admin-calm-fill: color-mix(in oklab, var(--nf-brand-primary) 6%, transparent);
-  --nf-admin-calm-edge: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
-  --nf-admin-calm-rim: none;
-  --nf-admin-calm-disc: var(--nf-brand-primary);
-  --nf-admin-calm-ink: var(--nf-content-on-brand);
-  --nf-admin-panel-fill: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-on-paper)) 0,
-    var(--nf-surface-on-paper) 12px,
-    var(--nf-surface-on-paper) 60%,
-    color-mix(in oklab, var(--nf-brand-primary) 5%, var(--nf-surface-on-paper)) 100%
-  );
-  --nf-admin-panel-edges:
-    color-mix(in oklab, var(--nf-brand-primary) 80%, white)
-    color-mix(in oklab, var(--nf-brand-primary) 30%, transparent)
-    color-mix(in oklab, var(--nf-brand-primary) 40%, transparent)
-    color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
-  --nf-admin-tile-edges: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
-  --nf-admin-cta-edges: color-mix(in oklab, var(--nf-brand-primary) 70%, white) var(--nf-brand-primary) var(--nf-brand-primary) var(--nf-brand-primary);
-  --nf-admin-panel-edge: color-mix(in oklab, var(--nf-brand-primary) 26%, transparent);
-  --nf-admin-panel-glow: var(--nf-shadow-on-paper);
-  --nf-admin-card-fill: var(--nf-admin-panel-fill);
-  --nf-admin-catch: color-mix(in oklab, var(--nf-rim-lit-ink) 55%, transparent);
-  --nf-admin-hair: color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
-  background: var(--nf-surface-canvas);
-}
-:root[data-theme="light"] .nf-admin-rail,
-:root[data-theme="light"] .nf-admin-drawer__panel {
-  background: var(--nf-surface-on-paper);
-  box-shadow: var(--nf-shadow-on-paper);
-}
-:root[data-theme="light"] .nf-admin-panel,
-:root[data-theme="light"] .nf-admin-kpi,
-:root[data-theme="light"] .nf-admin-strip {
-  box-shadow: var(--nf-shadow-on-paper);
-}
-:root[data-theme="light"] .nf-admin-bar {
-  background: color-mix(in oklab, var(--nf-surface-canvas) 88%, transparent);
-}
-:root[data-theme="light"] .nf-admin-bar__search input,
-:root[data-theme="light"] .nf-admin-menu,
-:root[data-theme="light"] .nf-admin-seg__item:not(.nf-admin-seg__item--on),
-:root[data-theme="light"] .nf-admin-select,
-:root[data-theme="light"] .nf-chart__readout {
-  background: var(--nf-surface-on-paper);
-  box-shadow: var(--nf-shadow-on-paper);
-}
-:root[data-theme="light"] .nf-admin-plate:not(.nf-admin-plate--success):not(.nf-admin-plate--error):not(.nf-admin-plate--pending):not(.nf-admin-plate--info) {
-  border-color: color-mix(in oklab, var(--nf-brand-primary) 30%, transparent);
-  background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-on-paper));
-  color: var(--nf-brand-primary);
-  box-shadow: none;
-}
-:root[data-theme="light"] .nf-admin-plate--success,
-:root[data-theme="light"] .nf-admin-plate--error,
-:root[data-theme="light"] .nf-admin-plate--pending,
-:root[data-theme="light"] .nf-admin-plate--info {
-  background: var(--nf-surface-on-paper);
-  box-shadow: none;
-}
-:root[data-theme="light"] .nf-admin-id__avatar {
-  background: color-mix(in oklab, var(--nf-brand-primary) 12%, var(--nf-surface-on-paper));
-  color: var(--nf-brand-primary);
-  box-shadow: none;
-}
-:root[data-theme="light"] .nf-admin-nav__row--child.nf-admin-nav__row--on {
-  background: color-mix(in oklab, var(--nf-brand-primary) 12%, transparent);
-  box-shadow: none;
-}
-:root[data-theme="light"] .nf-meter {
-  background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-on-paper));
-}
-:root[data-theme="light"] .nf-meter__fill,
-:root[data-theme="light"] .nf-chart__bar--s0 {
-  box-shadow: none;
-}
-:root[data-theme="light"] .nf-chart__line {
-  filter: none;
-}
-:root[data-theme="light"] .nf-chart__dot {
-  border-color: var(--nf-surface-on-paper);
-}
-:root[data-theme="light"] .nf-admin-nav__count,
-:root[data-theme="light"] .nf-admin-seg__count {
-  color: var(--nf-content-on-brand);
-}
-:root[data-theme="light"] .nf-admin-dt th {
-  background: var(--nf-surface-raised);
-}
-:root[data-theme="light"] .nf-admin-plate--success {
-  color: var(--nf-state-success);
-}
-:root[data-theme="light"] .nf-admin-plate--error {
-  color: var(--nf-state-error);
-}
-:root[data-theme="light"] .nf-admin-plate > svg {
-  filter: none;
-}
-/* Light: the same filled badge on paper, the fill lighter so the state's
-   ink keeps its contrast (at least 4.5:1 on every tone). */
-:root[data-theme="light"] .nf-admin-badge {
-  background: color-mix(in oklab, var(--nf-admin-badge-hue) 14%, var(--nf-surface-on-paper));
-  border-color: color-mix(in oklab, var(--nf-admin-badge-hue) 50%, var(--nf-surface-on-paper));
-  box-shadow: none;
-  color: var(--nf-admin-badge-ink, var(--nf-admin-badge-hue));
-}
-:root[data-theme="light"] .nf-admin-badge--info {
-  --nf-admin-badge-ink: var(--nf-brand-primary);
-}
-:root[data-theme="light"] .nf-admin-badge--solid.nf-admin-badge--error {
-  color: var(--nf-content-on-brand);
-  background: var(--nf-state-error);
-  border-color: var(--nf-state-error);
 }

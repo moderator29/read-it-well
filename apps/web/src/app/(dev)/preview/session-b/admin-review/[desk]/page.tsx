@@ -216,8 +216,7 @@ export default async function Harness({
     );
   } else if (desk === "review") {
     const dark = tileProvider("dark");
-    const light = tileProvider("light");
-    const listing = fail
+      const listing = fail
       ? LISTING
       : {
           ...LISTING,
@@ -255,7 +254,7 @@ export default async function Harness({
         sqm={t.catalogue.card.sqm}
         statusLabel={(s: string) => listingStatusWord(s, ui.statusLabel)}
         backHref="#"
-        tiles={{ dark: dark.url, light: light.url, credit: dark.credits.map((c) => c.label).join(", ") }}
+        tiles={{ dark: dark.url, credit: dark.credits.map((c) => c.label).join(", ") }}
         keepers={{ moveIn: t.moveIn, purchase: t.purchase }}
         actions={<ReviewActionBar listingId={LISTING.id} status="SUBMITTED" nextHref={null} queueHref="#" />}
       />

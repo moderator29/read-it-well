@@ -1009,7 +1009,7 @@ window, 1586 image px for a 1440 CSS px window, so 1 image px = 0.908 CSS px),
 about 492 image px wide and drawn at a much smaller scale, so it governed
 composition and anatomy while `5EAA44CB` governed every size), and
 `8E9602E2` and `C1D98B3C` for the shell every desk shares (rail, bar,
-identity at the foot). Built desktop first at 1440, then 390, then light.
+identity at the foot). Built desktop first at 1440, then 390 (dark only since 23 September).
 
 Files: `app/admin/layout.tsx`, `page.tsx`, `loading.tsx`, `_components/**`
 (AdminFrame, AdminNav, AdminGlyph, panels, metrics, nav, ConsoleClock,
@@ -1047,19 +1047,24 @@ client navigations) cannot send the operator back. **JavaScript off (after the s
 browser-written cookie alone left a JavaScript-off operator offered the
 overview again at every desk. `app/admin/enter/route.ts` closes that loop:
 `GET /admin/enter?next=<target>` -> `requireAdmin()` (not an admin: 303 to
-`/admin`, no cookie) -> `enterTarget(next)`, the allow-list (`/admin`,
-`/admin?next=<desk>`, or a console desk through `safeDesk`; never another
-origin, never outside `/admin/`, never a `..` segment, never `/admin/enter`
-itself; anything else becomes `/admin`) -> sets `nf_admin_entry=<user id>`
-with the browser's own attributes (`ENTRY_COOKIE_OPTIONS`: path `/admin`,
-SameSite Lax, readable by the page, no expiry) -> 303 to the target. The
-gate's "Opening the overview first." link is `enterHref("/admin?next=<desk>")`,
-so a JavaScript-off operator still lands on the overview first, and the
-overview's "Continue" is `enterHref(<desk>)`, so the desk then opens with the
-cookie held. Tests: `session-b-admin-enter.test.ts` (7: the allow-list both
-ways, the gate-to-overview round trip, and the handler itself with
-`requireAdmin` mocked: 303, Location, Set-Cookie attributes, refusal for
-signed-out, not-admin and unconfigured). Earlier tests:
+`/admin`, no cookie) -> `enterTarget(next)`, which answers ONLY the
+overview: `/admin`, or `/admin?next=<desk>` for a console desk accepted by
+`safeDesk` (never another origin, never outside `/admin/`, never a `..`
+segment, never `/admin/enter` itself). A bare desk (`?next=/admin/money`)
+becomes the overview carrying it, so a typed, bookmarked or sent
+`/admin/enter?next=/admin/money` can no longer skip the overview (third
+closing audit; the first version answered the desk itself, which R-E
+forbids) -> sets `nf_admin_entry=<user id>` with the browser's own
+attributes (`ENTRY_COOKIE_OPTIONS`: path `/admin`, SameSite Lax, readable by
+the page, no expiry) -> 303 to the overview. The gate's "Opening the
+overview first." link is `enterHref("/admin?next=<desk>")`; the overview's
+"Continue" is a plain link to the desk, because by then the cookie is set
+(by the overview in the browser, or by `/admin/enter` without JavaScript).
+Tests: `session-b-admin-enter.test.ts` (8: the overview-only answers, a bare
+desk turned into the overview carrying it, the refusals, the gate-to-overview
+round trip, and the handler itself with `requireAdmin` mocked: 303, Location
+always the overview, Set-Cookie attributes, refusal for signed-out,
+not-admin and unconfigured). Earlier tests:
 `_components/session-b-admin-entry.test.ts` (4). Not exercised end to end with
 a real admin session (none may be created); the redirect and the round trip
 are unit tested and the overview's link is in `overview-heading-to-1440-dark.jpg`.
@@ -1103,18 +1108,37 @@ newest first (`entity_type='cron_job' and entity_id=<job>`, or
 `action='wallet.reconciliation.run'` for the reconcile job), -> `jobRow`,
 `jobStatus`, `durationLabel` (tested); schedules from `VERCEL_JOBS`, which a
 test holds equal to `vercel.json`. Database jobs -> the newest
-`pg-cron-watch` row's metadata -> `databaseJobsSummary`. **Broken link:** the
-twelve pg_cron jobs (four added by the migrations of 22 and 23 September:
-`vallo_escrow_invariants`, `vallo_escrow_book_the_float`,
-`vallo_sweep_price_check_events`, `vallo_sweep_price_check_watches`) cannot be listed one by one (cron schema not exposed,
-`cron_job_failures` is service role only) -> **Request A5**. Jobs line ->
+`pg-cron-watch` row's metadata -> `databaseJobsSummary`. **The job counts are
+derived (third closing audit), because they drifted twice:** the Vercel count
+is `VERCEL_JOBS.length` (held equal to `vercel.json`), the database count is
+`PG_CRON_JOBS.length`, one list in `lib/admin/reads/jobs.ts` that
+`lib/admin/reads/jobs.test.ts` holds equal to every `cron.schedule` the
+migrations leave in place (scanning `supabase/migrations`, applying the
+`rentme*` to `vallo*` rename) and to the handbook's table and its stated
+counts. The console's jobs table note and the In flight panel print
+`PG_CRON_JOBS.length` and the names; A5 names the list, not a number. On 23
+September that is 8 Vercel jobs (`email-outbox` added) and 14 pg_cron jobs
+(`vallo_push_drain`, `vallo_purge_email_outbox` added). **Broken link:** the
+pg_cron jobs cannot be listed one by one with their runs (cron schema not
+exposed, `cron_job_failures` is service role only) -> **Request A5**. Jobs line ->
 `getRunDays` (every cron audit row for 14 days, `readAll`). Active alerts ->
 `getAlertTrend`: exact open count now and open a week ago from `created_at`
 and `resolved_at`, daily raised. Alerts tab and panel -> `getRiskAlerts()`.
 Audit tab and panel -> `getAuditLog()` and `getAuditActivity()` (existing;
 the activity read's 5,000 row cap is shown on screen when hit).
-Notifications tab -> **broken link:** `notifications` has only
-`notifications_select_own` -> **Request A6**; the tab says so.
+Notifications tab (third closing audit) -> push: `push_queue` and
+`push_deliveries` under `push_queue_staff_read` and
+`push_deliveries_staff_read` (checked in `pg_policies` on 23 September) ->
+`getPushActivity(now, 7)` in `lib/admin/reads/operations.ts`: exact counts of
+queue rows by the state they are in now (six states), of rows settled in the
+window by outcome (six outcomes), and of device attempts in the window by
+state (four), plus the eight newest attempts and the eight newest failures
+(`pushDeliveryRow`, tested: no token, no device reference, the provider's
+error cut to 160 characters) -> four panels: Push queue now, Push outcomes,
+Device attempts with the newest attempts, Newest failures. **Broken links
+left:** in-app `notifications` has only `notifications_select_own` ->
+**Request A6** (narrowed to in-app volumes by kind); `email_outbox` has RLS on
+and no admin policy -> **Request A14** (new); both panels say so.
 
 **Analytics.** Successful bookings -> `getBookingOutcomes(range)`, two exact
 counts (confirmed or completed, this window and the one before). Supply ->
@@ -1339,20 +1363,12 @@ KPI card, Recent alerts) and 01F7DFC7 (jobs table), against the build at
 | Success badge | fill #00424A to #005353, ring #047E70 to #027F7D, mint word | #003432 tint, bright outline | fill #00473B, ring #216264, word #7BC9B3 (emerald 40% over the canvas, 65% ring, word lifted towards white) |
 | High / Failed badge | fill #351B40 to #7C2251, ring #842550 to #C2285B | rose tint outline; Failed solid bright rose | rose 40% fill, 65% ring; Failed fill #852438, ring #AC3C60 (58% fill, full rose ring) |
 
-Light mode keeps its own paper material; its badges are filled at 14% with
-the state's ink for contrast.
-
 ### 6.3 Light mode
 
-Same anatomy on paper: the canvas `#F4F5F7`, rail and panels on
-`--nf-surface-on-paper` with a brand hairline at 26% and the paper shadow
-instead of blooms; the open row and open tab keep the lit brand fill (white on
-brand); plates become a pale brand tint with brand ink (no dark tile on white);
-status plates keep their ink on paper; badges keep word, ink and tint; the
-wordmark is type in the page ink, so it never vanishes; chart glow filters are
-removed on paper. Proofs: `overview-1440-light-fixture.jpg`,
-`overview-390-light-fixture.jpg`, `operations-1440-light.jpg`,
-`analytics-1440-light.jpg`.
+~~Light mode rows, the paper twins and the light proofs.~~ Light mode removed
+by the founder on 23 September; dark only. `admin.css` carries no
+`[data-theme="light"]` rule and no paper twin any more, and the light proofs
+are deleted.
 
 ### 6.4 Shape sweep (after the closing audit, R-D)
 
@@ -1444,8 +1460,10 @@ are shared in `_components/panels.tsx` for the other admin workers.
 
 Side by side, render left and built right, re-shot after the final change:
 `side-by-side-overview.jpg`, `side-by-side-operations.jpg`,
-`side-by-side-analytics.jpg`. Desktop 1440 dark and light, 390 dark and light,
-for all three desks, plus the empty (real database) variants.
+`side-by-side-analytics.jpg`. Desktop 1440 and 390, dark only (light mode
+removed on 23 September), for all three desks, plus the empty (real
+database) variants, the heading-to proof, In flight and Notifications (push
+fixture and `?state=live` empty).
 
 `docs/design/proofs/session-b/admin/`, all re-shot on 23 September after the
 landing change, the rail, the badge fills and the re-sampled material, from
@@ -1462,6 +1480,27 @@ database's real state on 22 September (0 live, 0 money, 1 sign-up, alerts all
 resolved). In the proofs the open rail row is lit by adding its class in the
 browser, because the harness path is not `/admin`; the class is exactly the
 one `AdminRail` sets.
+
+### 6.6a Third closing audit answers (23 September)
+
+- **R13 (Session A's `email-outbox` line in `jobs.ts`).** It stays. It is
+  data only, it keeps the `VERCEL_JOBS` = `vercel.json` equality test green,
+  and nothing else in the file moved. Its comment is reworded to say so;
+  the schedule text ("Every 15 minutes", allowance 2 hours) is kept.
+- **R14 (Session A's ledger `49ter`, the missing back control).** The shared
+  `BackButton` is mounted once, in `app/admin/layout.tsx`, and handed to
+  `AdminFrame` as its `back` slot, which leads the top bar before the search
+  (the arrow alone, 44px hit region, as the component draws it). Every one
+  of the 23 admin routes renders through that layout, so every one draws it,
+  and it goes to the route's declared parent in `lib/nav/route-parents.ts`
+  (a desk to `/admin`, a record to its desk, `/admin` itself to `/home`, which
+  is what that file declares). Test: `session-b-admin-back.test.ts` (a desk
+  resolves to `/admin`, a record to its desk, every rail destination has a
+  declared parent, and the layout mounts the control).
+- **A new request, A14, for `email_outbox`**, and its panel on Operations >
+  Notifications in the designed not-wired state.
+- **ITEM 7 (inspection, not viewing).** The one "view" in this surface's copy
+  (In flight's empty note) now says "asks for an inspection".
 
 ### 6.7 Skipped or not verified
 
