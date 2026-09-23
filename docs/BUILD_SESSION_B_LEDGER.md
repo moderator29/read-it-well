@@ -806,6 +806,86 @@ to source resolution at 3x; no upscaling filter was applied.
   to English until a speaker writes them.
 - No new test file was added for this surface.
 
+### Final pass, 23 September
+
+**Re-checked.** The governing image beside the latest side-by-side
+(`signin-vs-55A56F21-390.jpg`): card 240 x 309 at 75, 368, lockup, stage and
+plinth unchanged since the passing third audit; nothing found close but not
+right that the rulings allow changing. Every auth route walked on the
+production build of this worktree, and every refusal the password step can
+show exercised through the committed harness, now extended with
+`?state=unconfirmed`, `throttled`, `deactivated` and `fields` beside
+`google`, `none` and `refused` (proofs `harness-*-390.jpg`).
+
+**Commands and output (worktree, production build, 390 x 844, dark).**
+
+```
+vitest run src/app/(auth) src/components/auth src/lib/auth
+  Test Files  7 passed (7)   Tests  58 passed (58)
+tsc --noEmit -p apps/web                                  clean
+eslint (auth layout, sign-in, harness, AuthChoices, EmailAuthForm, fields)
+  0 errors (28 warnings, all pre-existing raw-spacing notes in untouched files)
+check-css-tokens.mjs   clean: 0 raw colours, 0 unresolved var(), 0 capsules
+compare-surface --shape-sweep --theme dark, /sign-in?welcomed=1, /sign-in/email,
+  /sign-up?welcomed=1, /forgot-password, harness refused, deactivated, fields:
+  BREACHES 0   WORTH AN EYE 0   ROUND ICON-ONLY 0
+harness states (role=alert / role=status text, card width 240 on every one):
+  chooser      status "Sign in to open that. ..."
+  google       status "This address signs in with Google ..." + Google button
+  none         status "No account uses this address yet. Create one with it"
+               -> /sign-up/email?email=ada%40example.com
+  refused      alert  "That email and password do not match. ..."
+  unconfirmed  alert  "Confirm your email first. ..."
+  throttled    alert  "Too many attempts just now. Try again in a minute."
+  deactivated  alert  real deactivatedAccountNotice(), link /delete-account#restore
+  fields       two field alerts under their fields
+  submit       typing a password and pressing Sign in posts through the real
+               form to the fixture action and draws its refusal
+  continue     /sign-in -> /sign-in/email?email=ada%40example.com, field filled
+back control, pressed on each route:
+  /sign-in -> /welcome   /sign-in/email -> /sign-in   /sign-up -> /welcome
+  /sign-up/email -> /sign-up   /sign-up/verify -> /sign-up/email
+  /forgot-password -> /sign-in   /reset-password -> /sign-in
+  /auth/callback: none drawn (outside the group, navigates itself)
+```
+
+**Fixed in this pass.** The harness now covers every refusal the server can
+return, so the rose alert, the deactivated notice's restore link and the
+field errors are proven drawn, not assumed.
+
+**Badge.** Not applicable: no auth screen draws a person's name or avatar.
+
+**BUILT AND UNPROVEN.** This box cannot reach Supabase over HTTP (egress
+refused), and no test user may be created, so none of these has run live:
+1. `signInWithPassword` succeeding and the session cookies landing the person
+   on `next` (links 6, 9). Proving it needs one test account on a preview
+   deployment and one sign-in with `next=/listing/x`.
+2. The real refusals from GoTrue mapped by `authMessage` (links 5, 6, 7 live);
+   drawn here from the same sentences, not from GoTrue's answers.
+3. `signUpMethodForEmail` answering "google" or "none" on the password step
+   (link 2); proven drawn, not proven looked up. Needs a Google-made account.
+4. The throttle tripping (`consume_rate_limit`) and its risk alert (link 5).
+5. Google OAuth to `/auth/callback` and back with `intent=sign-in` (link 11).
+6. `handle_new_user` writing the profile row (link 8): present in `pg_trigger`
+   by read-only SQL on 22 September, never fired from here.
+
+**Percentages.**
+- Gate items: 5 / 5 met (third closing audit PASS; light struck by ruling).
+- Chain links proven end to end on this box: 7 / 15 (1 the chooser's hand-off,
+  7 the refusal on screen, 12 sign-up link, 12a first run, 12b What Vallo is,
+  12c back, 10 the intent carried in `next` through the chooser). The other 8
+  are built, read and introspected, and listed above as unproven.
+- Controls on the built page, 17 in all (chooser: email field, Continue,
+  Google door, Sign up, back, language control, three terms links; password
+  step: email field, password field, show/hide, Sign in, Forgot password,
+  Other ways; notices: their Google button, Create one, Restore).
+  Pressed and followed to their result: 5 / 17 (chooser email field and
+  Continue, password field and Sign in, back). Drawn with their destination
+  read off the page and correct: 14 / 17 (adds Sign up, Forgot password,
+  Other ways, Create one, Restore, the three terms links, show/hide). Not
+  proven: the two Google buttons (OAuth) and the language round trip.
+
+
 ## 4. Wallet
 
 Governing image: `6AF37222-1D2E-4200-AB23-E55A24AE5E4F.png` (repo root). Route
