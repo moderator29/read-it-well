@@ -21,10 +21,10 @@ export default function LoadingNotifications() {
         <Skeleton width="4rem" height="1.25rem" radius="sm" />
         <Skeleton width="1.5rem" height="1.5rem" radius="pill" />
       </div>
-      <ul className="nf-card nf-notif__list">
+      <ul className="nf-notif__list">
         {Array.from({ length: 6 }, (_, i) => (
-          <li key={i} className="nf-notif__row">
-            <Skeleton width="2.75rem" height="2.75rem" radius="md" className="shrink-0" />
+          <li key={i} className="nf-panel nf-panel--card nf-notif__row">
+            <Skeleton width="var(--nf-plate-size-md)" height="var(--nf-plate-size-md)" radius="sm" className="shrink-0" />
             <div className="nf-notif__body">
               <Skeleton width="60%" height="1rem" radius="sm" />
               <Skeleton className="mt-inline-tight" width="85%" height="0.8125rem" radius="sm" />

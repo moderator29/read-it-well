@@ -64,9 +64,11 @@ export default async function SettingsPage() {
         settings tree with no way up was its top. `BackButton` rather than
         swapping the head for a `PageHeader`, because `nf-hub-head` is the
         render's own title and lede and a `PageHeader` would replace a designed
-        head to add one control.
+        head to add one control. It wears the shared glass square
+        (`nf-icon-btn--glass`, as `PageHeader` does) because `7F96BE6C` draws
+        the back arrow in one, where the component alone draws a bare arrow.
       */}
-      <BackButton fallback="/home" />
+      <BackButton fallback="/home" className="nf-icon-btn nf-icon-btn--glass h-11 w-11" />
       <header className="nf-hub-head">
         <h1 className="nf-hub-head__title">{t.nav.settings}</h1>
         <p className="nf-hub-head__lede">{hub.ledeShort}</p>

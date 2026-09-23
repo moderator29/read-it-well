@@ -43,54 +43,52 @@
     font-weight: 650;
     color: var(--nf-content-primary);
   }
+  /*
+   * THE PLATFORM SWEEP (23 September). The list was one `.nf-glass--card` with
+   * rules between rows, each row its own `--nf-radius-lg` and brand tint, and
+   * each glyph a `.nf-glass--tile` resized and re-lit here. GOVERNING-12's
+   * notification centre draws a stack of lit cards, one per notification, the
+   * glyph on a plate. So each row is now the shared panel (`.nf-panel
+   * .nf-panel--card`) and each glyph the shared `IconPlate`; this file keeps
+   * only the layout. The rules are doubled to outrank `.nf-panel`, which
+   * glass.css declares.
+   */
   .nf-notif__list {
     display: flex;
     flex-direction: column;
-    padding: var(--nf-space-2xs);
+    gap: var(--nf-space-xs);
   }
-  .nf-notif__list > * + * {
-    border-top: 1px solid var(--nf-divider);
-  }
-  .nf-notif__row {
-    display: flex;
+  .nf-panel.nf-notif__row {
+    flex-direction: row;
     width: 100%;
     min-height: 4rem;
     align-items: center;
     gap: var(--nf-gap-row);
     padding: var(--nf-space-sm);
-    border-radius: var(--nf-radius-lg);
     color: var(--nf-content-primary);
     text-align: left;
-    transition:
-      background-color var(--nf-duration-fast) var(--nf-ease-standard),
-      transform var(--nf-duration-press) var(--nf-ease-press);
+    transition: transform var(--nf-duration-press) var(--nf-ease-press);
   }
-  .nf-notif__row:active {
+  .nf-panel.nf-notif__row:active {
     transform: scale(var(--nf-press-scale-lg));
   }
   @media (hover: hover) {
-    .nf-notif__row:hover {
-      background: var(--nf-interactive-hover);
+    .nf-panel.nf-notif__row:hover {
+      border-color: var(--nf-selected-edges);
     }
   }
-  .nf-notif__row[data-unread="true"] {
-    background: var(--nf-brand-tint-1);
+  /* Unread is the lit state the render gives its newest card: the selected
+     edge and its glow from the token layer, the title at full weight, and the
+     dot. Never colour alone. */
+  .nf-panel.nf-notif__row[data-unread="true"] {
+    border-color: var(--nf-selected-edges);
+    box-shadow: var(--nf-selected-shadow);
   }
-  /* The glyph tile's material is `.nf-glass--tile`; only its size, its shape
-     and its ink belong to this surface. */
-  .nf-notif__tile {
-    display: grid;
-    flex-shrink: 0;
-    place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: var(--nf-radius-md);
-    color: var(--nf-content-muted);
+  .nf-notif__row .nf-plate {
+    color: var(--nf-content-secondary);
   }
-  .nf-notif__row[data-unread="true"] .nf-notif__tile {
-    color: var(--nf-brand-secondary);
-    border-color: var(--nf-brand-edge-strong);
-    box-shadow: var(--nf-glow-edge-strong);
+  .nf-notif__row[data-unread="true"] .nf-plate {
+    color: var(--nf-content-primary);
   }
   .nf-notif__body {
     min-width: 0;

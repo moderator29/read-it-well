@@ -15,7 +15,9 @@
  *      lands on the overview, carrying the desk ("You were heading to");
  *   2. the overview's reads return the live state: no panel says "This did
  *      not load", Live listings reads 0 (0 real listings; the 64 example
- *      listings are excluded), and Supply by type shows 0 on every row;
+ *      listings are excluded), the sign-ups cell reads "7 people in all" (9
+ *      accounts less the two QA accounts; EXPECT_PEOPLE overrides) and
+ *      Supply by type shows 0 on every row;
  *   3. Continue opens the desk, and a second desk now opens directly;
  *   4. every inner page of this surface and every tab loads without "This
  *      did not load": Operations (jobs, alerts, audit, notifications, in
@@ -68,7 +70,9 @@ async function loadsClean(page, path, name) {
   const body = await page.locator("main").innerText().catch(() => "");
   const p = await shot(page, name);
   const onPage = url.pathname + url.search;
-  record(`reads on ${path}`, !body.includes(UNAVAILABLE) && url.pathname.startsWith("/admin"), `landed ${onPage}; "${UNAVAILABLE}" ${body.includes(UNAVAILABLE) ? "PRESENT" : "absent"}`, p);
+  const failures = [UNAVAILABLE, "Something went wrong", "Application error", "does not carry that role"].filter((t) => body.includes(t));
+  const rail = await page.locator(".nf-admin-rail").count();
+  record(`reads on ${path}`, failures.length === 0 && rail > 0 && url.pathname === path.split("?")[0], `landed ${onPage}; console drawn ${rail > 0}; failure copy ${failures.length ? failures.join(", ") : "none"}`, p);
   return body;
 }
 
@@ -84,12 +88,22 @@ async function loadsClean(page, path, name) {
   const supplyRows = await page.locator("#ov-supply [role=row], #ov-supply tbody tr").allInnerTexts().catch(() => []);
   record("overview reads", !main.includes(UNAVAILABLE), `"${UNAVAILABLE}" ${main.includes(UNAVAILABLE) ? "PRESENT" : "absent"}`, null);
   record("live listings is the live count", /Live listings\s*0\b/.test(live.replace(/\s+/g, " ")), `card reads "${live.replace(/\s+/g, " ").trim()}" (expected 0: 0 real, the 64 examples excluded)`, null);
+  const people = await page.locator(".nf-admin-strip").innerText().catch(() => "");
+  const expectPeople = process.env.EXPECT_PEOPLE ?? "7";
+  record("real people exclude the QA accounts", new RegExp(`\\b${expectPeople} people in all`).test(people), `sign-ups cell reads "${(people.match(/\d[\d,]* people in all/) ?? ["(none)"])[0]}" (expected ${expectPeople}: 9 accounts less the two QA accounts)`, null);
   record("supply by type is empty", supplyRows.length === 0 || supplyRows.every((r) => /\b0\b/.test(r)), `${supplyRows.length} rows: ${supplyRows.map((r) => r.replace(/\s+/g, " ").trim()).join(" | ")}`, null);
 
   await Promise.all([page.waitForURL((u) => u.pathname === "/admin/money", { timeout: 20_000 }), page.click(".nf-admin-heading-to")]);
   record("continue opens the desk", new URL(page.url()).pathname === "/admin/money", `landed ${new URL(page.url()).pathname}`, await shot(page, "02-continue-money"));
   await page.goto(`${base}/admin/escrow`, { waitUntil: "networkidle" });
   record("a second desk opens directly", new URL(page.url()).pathname === "/admin/escrow", `landed ${new URL(page.url()).pathname}`, await shot(page, "03-second-desk"));
+
+  // 3b: the back arrow on a live desk goes up to the overview (navigation only).
+  await page.goto(`${base}/admin/money`, { waitUntil: "networkidle" });
+  const back = page.locator("[data-nav-back]");
+  const drawn = (await back.count()) === 1 && (await back.isVisible());
+  await Promise.all([page.waitForURL((u) => u.pathname === "/admin", { timeout: 20_000 }).catch(() => {}), back.click()]);
+  record("back arrow on a live desk", drawn && new URL(page.url()).pathname === "/admin", `drawn ${drawn}; from /admin/money pressed, landed ${new URL(page.url()).pathname}`, await shot(page, "04-back-arrow"));
 
   // 4: every inner page and tab of this surface.
   for (const [path, name] of [
@@ -103,6 +117,11 @@ async function loadsClean(page, path, name) {
     ["/admin/analytics?range=90d", "17-analytics-90d"],
     ["/admin/analytics?range=12m", "18-analytics-12m"],
     ["/admin/settings", "19-settings"],
+    // Every other console desk, read only: the page must render its desk
+    // (no access screen, no error boundary, none of the console's failure copy).
+    ...["queue", "listings", "supply", "agents", "businesses", "stops", "kyc", "money", "payments", "fees", "escrow", "bookings", "bookings/reservations", "moderation", "flags", "reports", "social", "standing", "support", "alerts", "audit", "switches", "reference", "examples"].map(
+      (d, i) => [`/admin/${d}`, `2${String(i).padStart(2, "0")}-${d.replace("/", "-")}`],
+    ),
   ]) {
     await loadsClean(page, path, name);
   }

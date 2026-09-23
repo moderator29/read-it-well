@@ -24,6 +24,7 @@ import {
   lastMonths,
   lastWeeks,
   readAll,
+  QA_NOT_IN,
   type AdminReader,
   type Read,
 } from "./shared";
@@ -89,6 +90,8 @@ export function assemblePulse(input: {
   signups: readonly string[];
   submitted: readonly string[];
   collected: readonly { key: string; amount: number }[];
+  /** Every account, the QA accounts left out; absent in older callers. */
+  people?: number;
 }): ConsolePulse {
   const { days } = input;
   const count = (stamps: readonly string[]) =>
@@ -106,6 +109,7 @@ export function assemblePulse(input: {
   return {
     listingsLive: input.liveNow,
     listingsLiveWeekAgo: input.liveWeekAgo,
+    peopleTotal: input.people ?? null,
     signupsToday: signups[last] ?? 0,
     signupsYesterday: signups[last - 1] ?? 0,
     collectedTodayMinor: collected[last] ?? 0,
@@ -141,7 +145,7 @@ export async function getConsolePulse(now: number): Promise<Read<ConsolePulse>> 
   try {
     const live = () =>
       db.from("listings").select("id", { count: "exact", head: true }).eq("status", "PUBLISHED").eq("is_demo", false);
-    const [liveNow, liveWeekAgo, published, signups, submitted, collected] = await Promise.all([
+    const [liveNow, liveWeekAgo, published, signups, submitted, collected, people] = await Promise.all([
       exactCount(live()),
       exactCount(live().lte("published_at", weekAgoIso)),
       readAll<{ published_at: string | null }>((from, to) =>
@@ -157,6 +161,7 @@ export async function getConsolePulse(now: number): Promise<Read<ConsolePulse>> 
         db
           .from("profiles")
           .select("created_at")
+          .not("id", "in", QA_NOT_IN)
           .gte("created_at", fromIso)
           .order("created_at", { ascending: true })
           .order("id", { ascending: true })
@@ -172,8 +177,10 @@ export async function getConsolePulse(now: number): Promise<Read<ConsolePulse>> 
           .range(from, to),
       ),
       collectedRows(db, fromIso),
+      // Every account there is, the QA accounts left out (founder, 23 September).
+      exactCount(db.from("profiles").select("id", { count: "exact", head: true }).not("id", "in", QA_NOT_IN)),
     ]);
-    if (liveNow === null || liveWeekAgo === null || !published || !signups || !submitted || !collected) {
+    if (liveNow === null || liveWeekAgo === null || !published || !signups || !submitted || !collected || people === null) {
       return UNAVAILABLE;
     }
     return {
@@ -186,6 +193,7 @@ export async function getConsolePulse(now: number): Promise<Read<ConsolePulse>> 
         signups: signups.map((r) => r.created_at),
         submitted: submitted.map((r) => r.submitted_at).filter((v): v is string => Boolean(v)),
         collected,
+        people,
       }),
     };
   } catch {

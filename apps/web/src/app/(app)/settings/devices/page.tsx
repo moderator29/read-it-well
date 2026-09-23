@@ -57,7 +57,7 @@ export default async function DevicesPage() {
     return (
       <div className="mx-auto max-w-lg">
         <PageHeader title={copy.screenTitle} fallback="/settings" />
-        <div className="nf-card p-card text-center">
+        <div className="nf-panel nf-panel--card block p-card text-center">
           <span className="mx-auto block h-16 w-16">
             <BrandIcon name="globe-pin" fill />
           </span>

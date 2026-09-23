@@ -124,22 +124,26 @@ export function PushPrompt({ moment, onSettled }: PushPromptProps) {
   if (!shown) return null;
 
   return (
-    <section className="nf-glass nf-glass--card" aria-live="polite" data-push-prompt={moment}>
-      <h2>Get told, not left guessing</h2>
+    <section className="nf-panel nf-panel--card block p-card" aria-live="polite" data-push-prompt={moment}>
+      <h2 className="nf-title-sm text-content">Get told, not left guessing</h2>
       {/* The specific thing they will stop missing, in the words for this
           moment. A generic "enable notifications" converts at a fraction of
           this and deserves to. */}
-      <p>{shown.offer}</p>
+      <p className="nf-body-sm mt-2xs text-[var(--nf-content-secondary)]">{shown.offer}</p>
       {/* EXACTLY WHAT WILL BE SENT, BEFORE THE PROMPT AND NOT AFTER.
           A person who knows what they are agreeing to says yes more often
           and regrets it less. */}
-      <ul>
+      <ul className="nf-body-sm mt-sm list-disc space-y-3xs pl-lg text-[var(--nf-content-secondary)]">
         <li>Bookings, messages and money.</li>
         <li>Nothing at night unless it is about your money.</li>
         <li>Off again whenever you like, in Settings.</li>
       </ul>
-      {failed ? <p role="status">{failed}</p> : null}
-      <div>
+      {failed ? (
+        <p role="status" className="nf-body-sm mt-sm text-[var(--nf-state-error)]">
+          {failed}
+        </p>
+      ) : null}
+      <div className="mt-md flex flex-wrap gap-sm">
         <button type="button" className="nf-btn nf-btn--primary" onClick={accept} disabled={busy}>
           {busy ? "Just a moment" : "Yes, tell me"}
         </button>

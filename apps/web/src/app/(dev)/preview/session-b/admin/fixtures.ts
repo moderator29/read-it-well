@@ -96,7 +96,7 @@ export const JOBS: JobHealth = {
 // no money, one sign-up today, alerts all resolved. The designed empty state.
 export const EMPTY_PULSE: ConsolePulse = {
   ...PULSE,
-  listingsLive: 0, listingsLiveWeekAgo: 0, signupsToday: 1, signupsYesterday: 0,
+  listingsLive: 0, listingsLiveWeekAgo: 0, signupsToday: 1, signupsYesterday: 0, peopleTotal: 7,
   collectedTodayMinor: 0, collectedYesterdayMinor: 0, collectedWeekMinor: 0, collectedPrevWeekMinor: 0,
   newSupplyWeek: 0, newSupplyPrevWeek: 0,
   daily: PULSE.daily.map((d, i) => ({ ...d, signups: i === 13 ? 1 : 0, collectedMinor: 0, submitted: 0, liveAtClose: 0 })),

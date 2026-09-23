@@ -121,7 +121,7 @@ export function DeviceList({
       <p className="nf-body-sm text-content-2">{copy.intro}</p>
 
       {!readable && (
-        <p role="alert" className="nf-card p-card nf-body-sm text-content">
+        <p role="alert" className="nf-panel nf-panel--card block p-card nf-body-sm text-content">
           {copy.unreadable}
         </p>
       )}
@@ -130,7 +130,7 @@ export function DeviceList({
         <p
           role="status"
           data-testid="devices-outcome"
-          className={`nf-card p-card nf-body-sm ${
+          className={`nf-panel nf-panel--card block p-card nf-body-sm ${
             outcome.tone === "problem" ? "text-danger" : "text-content"
           }`}
         >
@@ -140,7 +140,7 @@ export function DeviceList({
 
       <ul className="space-y-row">
         {rows.map((row) => (
-          <li key={row.id} className="nf-card p-card" data-testid="device-row">
+          <li key={row.id} className="nf-panel nf-panel--card block p-card" data-testid="device-row">
             <div className="flex items-start justify-between gap-inline">
               <div>
                 <p className="nf-body font-semibold text-content">{row.device}</p>
@@ -176,7 +176,7 @@ export function DeviceList({
               disabled={pending}
               data-testid="device-end"
               className={`nf-btn nf-btn--sm mt-group w-full ${
-                armed === row.id ? "nf-btn--danger" : "nf-btn--ghost"
+                armed === row.id ? "nf-btn--danger" : "nf-btn--glass"
               }`}
             >
               {pending && armed === null
@@ -191,7 +191,7 @@ export function DeviceList({
         ))}
       </ul>
 
-      <div className="nf-card p-card">
+      <div className="nf-panel nf-panel--card block p-card">
         <p className="nf-body font-semibold text-content">{copy.endOthers}</p>
         <p className="nf-body-sm mt-row text-content-2">
           {others === 0 ? copy.endOthersNone : copy.endOthersSub}
@@ -202,7 +202,7 @@ export function DeviceList({
           disabled={pending || others === 0}
           data-testid="devices-end-others"
           className={`nf-btn nf-btn--sm mt-group w-full ${
-            armed === "others" ? "nf-btn--danger" : "nf-btn--ghost"
+            armed === "others" ? "nf-btn--danger" : "nf-btn--glass"
           }`}
         >
           {armed === "others" ? copy.confirm : copy.endOthers}

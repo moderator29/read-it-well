@@ -7,6 +7,7 @@ import { ICON } from "@/components/app/Screen";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { Switch } from "@/components/ui/Switch";
 import { Segmented } from "@/components/ui/Segmented";
+import { IconPlate } from "@/components/ui/IconPlate";
 
 /**
  * Grouped rows: the one shape every account surface on this platform uses.
@@ -53,10 +54,10 @@ export function SettingsGroup({
           {label}
         </h2>
       )}
-      {/* `.nf-card` is the platform's glass. The group used to paint its own
-          flat fill and its own border, which made the account screens the one
-          place in the product rendering opaque boxes. One material, everywhere. */}
-      <div className="nf-sgroup__body nf-card">{children}</div>
+      {/* The shared panel (`components/ui/Panel.tsx`'s class): the console's
+          lit glass, one material for every container on the platform since
+          the sweep of 23 September. The group paints nothing of its own. */}
+      <div className="nf-sgroup__body nf-panel nf-panel--card">{children}</div>
       {note && <p className="nf-sgroup__note">{note}</p>}
     </section>
   );
@@ -65,18 +66,44 @@ export function SettingsGroup({
 /* -------------------------------------------------------------------- row */
 
 /**
- * A row's leading glyph.
+ * A row's leading glyph, on the shared icon plate.
  *
- * Two tiers and never both in one row, per the icon law. `glyph` is the blue
- * glass object, passed by a caller whose governing image draws one (the
- * settings home does, on all six of its rows); `icon` is the stroked tier,
- * which is what a small control gets. A row that passes neither still gets
- * the box, so a group where only some rows carry a mark keeps one rail.
+ * `7F96BE6C` draws every settings row glyph as a white line drawing inside a
+ * lit glass tile, and the platform sweep of 23 September made that tile ONE
+ * object: `IconPlate` (`components/ui/IconPlate.tsx`), the console's plate.
+ * So this slot no longer draws a tile of its own and no longer hands the job
+ * to a pack artwork that carries its own; it puts the line glyph on the
+ * shared plate. `glyph` is any line glyph a caller draws (the hub's
+ * `SettingsGlyph`), `icon` is a `UiIcon` name. A row that passes neither
+ * still gets the slot, empty, so a group where only some rows carry a mark
+ * keeps one rail.
  */
-function RowGlyph({ icon, glyph }: { icon?: UiIconName; glyph?: ReactNode }) {
+/**
+ * The plate is the small rung, 36px, because `7F96BE6C` draws its row tiles
+ * at 55px of a 658px screen, which is 33px at 390; the glyph inside is 20,
+ * the render's 30px line drawing at the same scale (18), on the icon grid's
+ * nearest size. Exported so a caller drawing its own glyph uses the same one.
+ */
+export const ROW_GLYPH = 20;
+
+function RowGlyph({
+  icon,
+  glyph,
+  danger,
+}: {
+  icon?: UiIconName;
+  glyph?: ReactNode;
+  /** A row that does something irreversible takes the plate's rose tone. */
+  danger?: boolean;
+}) {
+  const mark = glyph ?? (icon ? <UiIcon name={icon} size={ROW_GLYPH} /> : null);
   return (
     <span className="nf-srow__icon" aria-hidden="true">
-      {glyph ?? (icon ? <UiIcon name={icon} size={ICON.row} /> : null)}
+      {mark ? (
+        <IconPlate size="sm" tone={danger ? "error" : "brand"}>
+          {mark}
+        </IconPlate>
+      ) : null}
     </span>
   );
 }
@@ -88,6 +115,7 @@ function RowInner({
   sub,
   value,
   trailing,
+  danger,
 }: {
   icon?: UiIconName;
   glyph?: ReactNode;
@@ -95,10 +123,11 @@ function RowInner({
   sub?: ReactNode;
   value?: ReactNode;
   trailing?: ReactNode;
+  danger?: boolean;
 }) {
   return (
     <>
-      <RowGlyph icon={icon} glyph={glyph} />
+      <RowGlyph icon={icon} glyph={glyph} danger={danger} />
       <span className="nf-srow__body">
         <span className="nf-srow__label">{label}</span>
         {sub && <span className="nf-srow__sub">{sub}</span>}
@@ -199,6 +228,7 @@ export function RowButton({
         sub={sub}
         value={value}
         trailing={chevron ? Chevron : undefined}
+        danger={danger}
       />
     </button>
   );
@@ -419,13 +449,7 @@ export function RowSegment<T extends string>({
 }) {
   return (
     <div className="nf-srow flex-wrap">
-      {icon ? (
-        <span className="nf-srow__icon" aria-hidden="true">
-          <UiIcon name={icon} size={ICON.row} />
-        </span>
-      ) : (
-        <span className="nf-srow__icon" aria-hidden="true" />
-      )}
+      <RowGlyph icon={icon} />
       <span className="nf-srow__body">
         <span className="nf-srow__label">{label}</span>
         {sub && <span className="nf-srow__sub">{sub}</span>}
@@ -434,7 +458,7 @@ export function RowSegment<T extends string>({
           label rather than under the glyph. The indent is the glyph box plus
           the row's gap, which is the same sum the row divider is inset by, so
           the two stay aligned without either being measured by hand. */}
-      <div className="w-full min-w-0 basis-full pl-[calc(1.75rem+var(--nf-gap-inline))] pt-inline sm:w-auto sm:basis-auto sm:pl-0 sm:pt-0">
+      <div className="w-full min-w-0 basis-full pl-[calc(var(--nf-plate-size-sm)+var(--nf-gap-inline))] pt-inline sm:w-auto sm:basis-auto sm:pl-0 sm:pt-0">
         <Segmented<T>
           semantics="radio"
           full
@@ -525,7 +549,7 @@ export function Sheet({
             type="button"
             onClick={close}
             aria-label="Close"
-            className="nf-rows-sheet__close nf-tap"
+            className="nf-icon-btn nf-rows-sheet__close"
           >
             <UiIcon name="close" size={ICON.inline} />
           </button>

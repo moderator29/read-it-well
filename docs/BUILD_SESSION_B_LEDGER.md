@@ -1896,17 +1896,40 @@ lock) whose `.env.local` points at the live project `uccixoonmbhrnyczyigt`.
 | Signed out at a desk (`/admin/money`, `/admin/operations?tab=jobs`) | LIVE PROVEN, same run | 307 to sign in carrying the desk and its query as `next` |
 | Signed out at `/admin/enter?next=/admin/money` | LIVE PROVEN, same run | 307 to sign in carrying the whole entry address, so signing in resumes through the entry route |
 | A forged session cookie at each of the four doors | LIVE PROVEN for the build, same run | 307 to sign in, as signed out. The project's edge logs for that minute show no `/auth/v1/user` call, so the forged token was refused before the project was asked: this proves the running build's doors, not the project's token check |
-| Signed in as a non-admin at `/admin` (access screen, no console) | WAITING ON QA ACCOUNTS | step 6 of `scripts/design/session-b-shots/admin-live-signed-in.mjs` |
-| Landing: a desk as the first request of a session lands on the overview carrying it | WAITING ON QA ACCOUNTS | step 1 |
-| Overview reads against live data (no panel unavailable; Live listings 0, the 64 examples excluded; Supply by type all 0) | WAITING ON QA ACCOUNTS | step 2 |
-| Continue opens the desk; a second desk opens directly | WAITING ON QA ACCOUNTS | step 3 |
-| Every Operations tab, Analytics at 30d, 90d and 12m, Settings load without "This did not load" | WAITING ON QA ACCOUNTS | step 4 |
-| `/admin/enter?next=/admin/money` signed in lands on the overview, never the desk | WAITING ON QA ACCOUNTS | step 5 |
+| Signed in as a non-admin at `/admin` (access screen, no console) | WAITING ON QA CREDENTIALS (accounts exist, passwords not in this box) | step 6 of `scripts/design/session-b-shots/admin-live-signed-in.mjs` |
+| Landing: a desk as the first request of a session lands on the overview carrying it | WAITING ON QA CREDENTIALS (accounts exist, passwords not in this box) | step 1 |
+| Overview reads against live data (no panel unavailable; Live listings 0, the 64 examples excluded; Supply by type all 0) | WAITING ON QA CREDENTIALS (accounts exist, passwords not in this box) | step 2 |
+| Continue opens the desk; a second desk opens directly | WAITING ON QA CREDENTIALS (accounts exist, passwords not in this box) | step 3 |
+| Every Operations tab, Analytics at 30d, 90d and 12m, Settings load without "This did not load" | WAITING ON QA CREDENTIALS (accounts exist, passwords not in this box) | step 4 |
+| `/admin/enter?next=/admin/money` signed in lands on the overview, never the desk | WAITING ON QA CREDENTIALS (accounts exist, passwords not in this box) | step 5 |
 
 The signed-in script reads `QA_ADMIN_EMAIL`, `QA_ADMIN_PASSWORD` (and
 optionally `QA_MEMBER_EMAIL`, `QA_MEMBER_PASSWORD`) from the environment only,
 signs in through the real form, opens pages and writes nothing. Without the
 variables it exits 2 with "WAITING ON QA ACCOUNTS".
+
+### 6.6e The QA accounts, out of every statistic (founder, 23 September)
+
+One list, `QA_ACCOUNT_IDS` in `lib/admin/reads/shapes.ts` (re-exported with
+`QA_NOT_IN`, `isQaAccount` and `withoutQa` from `reads/shared.ts`), names the
+two accounts the founder created for live proof: the member
+957b3bd2-cce3-425d-bba9-5cd876ca3d62 and the admin
+03f3dd52-ea28-4852-9abe-e5b0a67c2a43. Left out of: sign-ups (the pulse's
+profiles read), the new people total (`peopleTotal`, an exact count, shown as
+"7 people in all" under Sign-ups today), successful bookings (by
+`guest_id`), and price checks and their answers (by `user_id`, anonymous
+checks still counted). Still present and labelled: a QA account's audit rows
+read "QA" instead of "Admin". Tests: `reads/qa-accounts.test.ts` (4).
+
+Live check, read-only SQL on the project, 23 September: profiles 9, profiles
+less the two QA accounts 7; sign-ups in 14 days 5, less QA 3; the QA accounts
+own no agent, business, booking or price check yet. The console reading 7 on
+screen is step 2 of the signed-in script: WAITING ON QA CREDENTIALS.
+
+Not done, and why: money collected is keyed by wallet, not person, and a QA
+account never moves real money (LIVE_PROOF); the Supply desk's counts
+(admin-money's `reads/supply.ts`) count agents and businesses, which the QA
+accounts are not; if that changes, `withoutQa` is the one call to add there.
 
 ### 6.7 Skipped or not verified
 
@@ -4590,7 +4613,7 @@ per route as not closable here, never as done.
 Group files (scope ccf594ba, claimed in full in the scope file's sweep section): `app/settings-rows.css`,
 `app/css/overlays.css`, `app/css/system.css`, and the route components `app/(app)/settings/**`,
 `app/(app)/notifications/**`, `components/app/account/**`, `components/app/push/**`,
-`app/(app)/legal/LegalDocument.tsx`, `app/offline/SystemMoment.tsx`, `app/not-found.tsx`,
+`app/(app)/legal/**`, `app/offline/SystemMoment.tsx`, `app/not-found.tsx`,
 `app/error.tsx`, `app/(app)/error.tsx`, `app/loading.tsx`. By the lead's ruling the notifications
 anatomy (`.nf-notif*`) moves out of `home.css` into `app/(app)/notifications/notifications.css`.
 Governing images: settings `7F96BE6C` (root copy in `docs/design/references/`); the notification
@@ -4743,7 +4766,165 @@ thumb top -8, expected +4). Visible in `before/hub-390.jpg`.
 `loading-settings`, `loading-payments`, `loading-place`, `loading-interests`, `loading-inbox`,
 `offline` (real route), `not-found` (unknown path under the harness, real 404). 46 shots.
 
-(Apply, per-route table, Pass 1 to 3: pending Phase 1 RELEASED.)
+#### Applied (23 September, on Phase 1 as released at 9da8f86f)
+
+What moved onto the shared layer, and what was deleted with it:
+
+- **Every settings group** (`SettingsGroup`): `.nf-card` plus a local radius (`--nf-radius-xl`) plus the
+  local "LIT EDGE" block (brand edge, `--nf-glow-edge`, floor inset, `--nf-bloom-card`) became
+  `.nf-panel.nf-panel--card`; the radius rule and the lit-edge block are deleted. The group keeps only
+  `padding: 0; overflow: hidden`.
+- **The profile card** on the hub: same, `.nf-panel.nf-panel--card`; its radius override deleted.
+- **Every row glyph** on every settings screen: `RowGlyph` draws the shared `IconPlate` (sm, 36px, r6,
+  brand; error tone on a danger row) around a line glyph at 20. The hub's pack objects with baked
+  tiles (`person-card`, `bell-tile`, `shield-check-tile`, `globe`, `headset`) and the hub-only 38px
+  slot are gone; `UiIcon` `user` and `bell` plus a new `components/app/account/SettingsGlyph.tsx`
+  (ticked shield, globe, headset, log-out door, the four `UiIcon` lacks) draw the render's glyphs.
+  Log Out now carries the render's door glyph.
+- **The rows sheet** (`.nf-rows-sheet`): own surface, border, 2xl corner and rung-3 rim replaced by the
+  panel tokens with the panel blur and the container corner; the lit round close became the shared
+  `.nf-icon-btn` square.
+- **The bottom sheet** (`.nf-sheet`, `components/ui/Sheet.tsx`'s material, in `overlays.css`): own
+  88% elevated veil, conic stride border and rung-3 rim replaced by the panel tokens and blur.
+- **The side drawer panel** (`.nf-drawer`, `--left`, `--right`): own veil, `--nf-glow-edge-strong`
+  ring, rung-4 rim and 2xl corner replaced by the panel tokens and blur, the container corner and a
+  rung-4 lift. Its contents stay the chrome group's.
+- **The system card** (offline, not found, both error boundaries): its whole own recipe (58% canvas
+  fill, `--nf-glow-brand-rim` border, six shadows, specular `::before`, 2xl) deleted;
+  `SystemMoment` draws `.nf-panel.nf-panel--glass`.
+- **The root wait's search stand-in** and **the legal contents card**: own edges, fills, glows,
+  specular and corner deleted; both drawn as `.nf-panel`.
+- **The notifications screen** (moved out of `home.css` first, byte-identical, 790d8c2a): one glass
+  card with rules became one panel per notification as GOVERNING-12 draws it; the resized
+  `.nf-glass--tile` became `IconPlate` md; the unread row wears the `--nf-selected-*` edge and
+  shadow instead of a local tint and a local strong glow; the skeleton follows.
+- **Every other card in the group** (`nf-card` in DeviceList, PushDevices, PushPrompt, SupportChat,
+  place, interests, devices, the delete flow, the six loading skeletons) became
+  `.nf-panel.nf-panel--card`; the inline boxes (delete blockers, deletion scheduled, the two error
+  boxes, the support answer panel and both handoff boxes) lost their own radius, border and fill and
+  became panels (the error ones keep a rose edge as their state); the payments skeleton's radius
+  override and the support send button's radius override are deleted.
+- **Buttons**: every primary here already went through `Button` or `.nf-btn--primary` and takes the
+  lit bar from Phase 1 with no change. The device and push actions (hand-written `nf-btn--ghost`)
+  became the glass secondary (`nf-btn--glass`), which is what the console gives a card's action.
+- **Dead code deleted**: `.nf-switch`, `.nf-switch__knob`, `.nf-segment*` in `settings-rows.css`.
+- **Kept on purpose**: the avatar ring on the profile card (an avatar, round by law), the unread dot,
+  the podium under the system card (art from the sign-in render), the delete flow's full-screen layer
+  (a screen, not a container), chat bubbles in the support chat (the messages group's anatomy).
+
+Files changed: `app/settings-rows.css`, `app/css/overlays.css`, `app/css/system.css`,
+`app/(app)/notifications/{notifications.css,LiveNotifications.tsx,loading.tsx}`,
+`app/(app)/settings/{SettingsHub.tsx,DeleteAccountPanel.tsx,loading.tsx,devices/*,place/*,interests/*,payments/loading.tsx}`,
+`components/app/account/{rows.tsx,SettingsGlyph.tsx (new),SupportChat.tsx}`,
+`components/app/push/{PushDevices.tsx,PushPrompt.tsx,PushSetting.tsx}`, `app/offline/SystemMoment.tsx`,
+`app/loading.tsx`, `app/(app)/legal/{LegalDocument.tsx,terms/loading.tsx,privacy/loading.tsx}`.
+
+#### Per-route result
+
+Container / edge / rim / glow / button / plate. "ref" is the console panel (`.nf-panel`, 10px, per-side
+lit edge, catchlight, glow +1 step) and plate (`.nf-plate`); "match" means the built element IS the
+shared primitive, not a copy of its values.
+
+| Route | Status | Container before -> after | Plate before -> after | Buttons | Match |
+|---|---|---|---|---|---|
+| `/settings` (hub) | swept | `.nf-card` 22px + local lit edge -> panel card 10px | pack tile artwork 38px -> IconPlate sm 36 r6 + line glyph 20 | switch: shared, thumb now centred (Phase 1) | yes, except the payment methods block (wallet family, not swept here) |
+| `/settings/account` | swept | as hub | bare stroked glyph -> IconPlate sm | danger button shared; delete panels -> panel | yes |
+| delete flow (sheet, scheduled, done, form, errors) | swept | `nf-card` + inline boxes -> panel card (rose edge on the two alerts) | n/a | shared primary, danger, ghost | yes |
+| `/settings/notifications` | swept | groups and push cards -> panel card | IconPlate sm | device actions ghost -> glass; prompt primary lit | yes |
+| `/settings/privacy` | swept | as hub | IconPlate sm | switches shared | yes |
+| `/settings/payments` | partly | skeleton card -> panel; the block itself is the wallet family's | n/a | n/a | the block: not mine, still `.nf-card` 22px |
+| `/settings/help` | swept | support card, answer panel, handoff boxes -> panel; about group -> panel | IconPlate sm | send button override deleted | yes (bubbles kept, see above) |
+| `/settings/appearance` | swept | as hub | IconPlate sm | n/a | yes |
+| `/settings/devices` | swept | device cards -> panel card | n/a | ghost -> glass | yes |
+| `/settings/place` | swept | form card, error box -> panel | n/a | lit primary (shared) | yes |
+| `/settings/interests` | swept | card -> panel | n/a | chips are the welcome group's | yes |
+| `/notifications` | swept | one glass card -> a panel per row (GOVERNING-12) | glass tile -> IconPlate md | Mark all read (shared ghost) | yes; the render's filter tabs are Session A's (R5, the lister's notification centre) |
+| offline, not found, error boundaries | swept | own card recipe -> panel glass | n/a | shared primary and glass | yes |
+| root wait, legal reader | swept | own containers -> panel | n/a | n/a | yes |
+| rows sheet, bottom sheet, side drawer | swept (material) | own surfaces -> panel tokens + blur + lift | n/a | close: own circle -> shared square | yes |
+
+Routes swept: 18 of 19 (every route and state above but the payments block, which the lead gave to
+the wallet family; `/settings/payments` is otherwise swept).
+
+Governing-image comparison, hub at 390 against `7F96BE6C` (screen 658px wide in the render, so
+1 CSS px = 1.69 image px; built values measured in the production build):
+
+| Property | Image (measured) | Built (measured) | Match? |
+|---|---|---|---|
+| container corner | 18 image px = 10.7 | 10px (`--nf-container-radius`) | yes |
+| container edge | bright 1px blue, brighter along the top | 1px per-side panel edges, catchlight inset, halo | yes |
+| icon plate | 55 image px = 33, corner about 10 = 6 | 36 x 36, r6, lit rim, inner light, glow | yes (3px larger, the shared sm rung) |
+| row glyph | 30 image px = 18, white line | 20, white line, `--nf-plate-glyph-glow` | yes |
+| row height | 79 image px = 47 | 60 | no: the rows keep the 56px floor and the platform's readable type |
+| title | about 42 image px = 25, heavy | 24.6px / 800 | yes |
+| profile name / email | about 27 / 22 image px = 16 / 13 | 17 / 700, 14 | yes, within a px |
+| row label / sub / value | about 17 / 14 / 15 image px = 10 / 8.3 / 9 | 14 / 650, 12, 13 / 600 | no, deliberately: the render's type is under the platform's 12px floor |
+| switch | lit capsule, white thumb, centred | 52 x 32 lit bar, thumb 4px from top and bottom | yes |
+| Verified value | emerald word and tick | emerald word and tick | yes |
+| payment methods block | lit panel, Verve plate, filled badges | wallet's block, still `.nf-card` 22px | no (wallet family) |
+| Appearance row | present (Dark) | absent | no, deliberately: light mode is gone, so the row has no choice to offer |
+
+#### Audit passes
+
+**Pass 1 (23 September, production build, harness).** Re-opened all 23 views at 390 and 1440.
+Found: (1) "What you do / Product designer" pushed its chevron onto a second line, because the plate
+slot grew 8px (28 to 36); fixed by lowering the label column's floor from 7.5 to 6.5rem.
+(2) The push prompt, now on a padded panel, showed its heading and list as unstyled browser type;
+fixed with the platform's title, body and list type and a button row. (3) The device and push
+actions were bare ghost text inside lit cards; moved to the glass secondary. Switch thumb
+re-measured: track 52 x 32, thumb at 4px from the top (was -8 before Phase 1), on the hub and on all
+four notification switches. Shape measured myself on every view at 390 and 1440 (the tool measured
+2 combinations): every text control at or under 0.32; panels r10; plates 36 r6 (rows) and 44 r10
+(inbox); the only ratio over 0.35 is the header's round monogram avatar (chrome, an avatar).
+
+**Pass 2 (23 September, rebuilt).** Re-shot all views. Pass 1's three fixes hold. Added the states
+the first two passes had not photographed: the side drawer open, the rows sheet (Add a payment
+method, This card) and a bottom sheet (the wallet's top up, the one `.nf-sheet` reachable from a
+harness). Found: (4) the danger row "Remove this card" drew its glyph on a blue plate beside rose
+text; fixed with the plate's error tone on danger rows. (5) The rows sheet's close square sat in the
+middle of the title: `.nf-tap` in `base.css` is unlayered and set `position: relative` over the
+close's absolute placement. This was true of the old round close as well (it predates the sweep).
+
+**Pass 3 (23 September, rebuilt).** Removed `nf-tap` from the close (the shared square is already
+44px); measured the close at x 343, 12px from the edge, vertically centred in the head. Found
+(6): the hub's back control was the shared `BackButton`'s bare 20px arrow (the tool's one "round
+icon-only" finding), where `7F96BE6C` draws a glass square and every child page's `PageHeader`
+draws one; the hub now passes `nf-icon-btn nf-icon-btn--glass h-11 w-11` to it (44 x 44, control
+radius, ratio 0.32), the component itself untouched. Re-shot
+everything (54 shots) and drew the 27 side-by-sides (before, after, console reference, and the
+governing render for the hub and the inbox). Nothing further found on the group's own surfaces.
+Open at the close of Pass 3: the payment methods block (wallet family) and the header avatar
+(chrome).
+
+#### Shape sweep (the tool, dark, 390 and 1536, 15 routes)
+
+BREACHES 0; WORTH AN EYE 0; ROUND ICON-ONLY 2 (the hub's back arrow, 20x20 at 390 and 1536: the
+shared `BackButton` draws a bare arrow; fixed in Pass 3, see there); ROUTES REFUSED 0; "2 route/width/theme combination(s) actually
+measured", so the numbers above from my own measurement are the proof, not this line.
+
+#### Checks
+
+Whole-project `tsc` clean; `check-css-tokens` adds nothing (its one finding at the time is a path
+comment in the sweep-social harness, not this group's); whole vitest: see the commit; eslint on the
+changed files: 0 errors (existing `set-state-in-effect` warnings in PlaceForm and SupportChat, on
+untouched lines).
+
+#### Proofs
+
+`docs/design/proofs/session-b/sweep-settings/before/` (46), `after/` (54, adds drawer, rows sheet x2,
+bottom sheet), `side-by-side-<view>.jpg` (27). All fixture-backed harness shots except `/offline`.
+
+#### Not swept or not verified, honestly
+
+- The payment methods block on `/settings` and `/settings/payments` (wallet family, lead's ruling).
+- No before shots of the drawer and the three sheets: they were added in Pass 2, after the old
+  build was gone; their before anatomy is the inventory's code description.
+- `.nf-sheet` was only photographed through the wallet harness; the other readers of
+  `components/ui/Sheet.tsx` (listing, price, disclosure) inherit the same rule but were not shot.
+- The notification centre's filter tabs in GOVERNING-12 do not exist; that feature is Session A's.
+- `components/app/account/ProfileIdentityCard.tsx` (no reader today) is NOT swept: the profile worker
+  is removing its email change affordance on the founder's order, and the lead asked this group to
+  wait for that to land. It still draws `.nf-card`.
 
 ## 13. Platform sweep: chrome (side drawer, dock and switch sheet, app header, host wizard, agent workspace, landing and site pages; worker "sweep-chrome")
 
@@ -5649,6 +5830,13 @@ Proofs: `docs/design/proofs/session-b/sweep-console/pairs-1440/` (before left,
 after right, 28) and `after-390/` (28).
 
 ## Skipped or not verified
+
+- Sweep, settings group (23 September): the payment methods block on `/settings` and
+  `/settings/payments` is not swept here (wallet family); no before shots of the drawer and the
+  three sheets (added in audit Pass 2); `.nf-sheet` photographed only through the wallet harness;
+  `ProfileIdentityCard.tsx` not swept (profile worker in flight); the notification centre's filter
+  tabs in GOVERNING-12 are Session A's feature and do not exist; every settings and notifications
+  proof is fixture-backed (the routes sit behind the sign-in gate).
 
 (appended honestly as work proceeds)
 

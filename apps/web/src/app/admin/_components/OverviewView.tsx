@@ -135,6 +135,10 @@ export function OverviewView(props: OverviewProps) {
       value: pulse ? n(pulse.signupsToday) : null,
       delta: pulse ? periodDelta(pulse.signupsToday, pulse.signupsYesterday) : null,
       spark: spark("strip-signups", (d) => d.signups, "Sign-ups, last 14 days"),
+      caption:
+        pulse && typeof pulse.peopleTotal === "number"
+          ? tx(locale, "ovPeopleInAll").replace("{count}", n(pulse.peopleTotal))
+          : undefined,
       pending: pending("This figure"),
     },
     {

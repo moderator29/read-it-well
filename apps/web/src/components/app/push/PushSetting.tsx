@@ -252,7 +252,7 @@ export function PushSetting({ registeredDevices = 0 }: { registeredDevices?: num
         onClick={turnOn}
         disabled={busy}
         data-testid="push-turn-on"
-        className="nf-btn nf-btn--sm nf-btn--ghost w-full"
+        className="nf-btn nf-btn--sm nf-btn--glass w-full"
       >
         {busy ? "Just a moment" : registered ? "Switch this device back on" : "Turn on for this device"}
       </button>

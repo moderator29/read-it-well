@@ -129,39 +129,20 @@
 
   /* ----------------------------------------------------------------- card */
   /*
-   * The glass card with the sharp electric rim, to the render and to
-   * `.nf-auth__card`: canvas at 58 per cent so the aurora shows through the
-   * blur, one crisp brand line for the edge, the bloom outside it at one glow
-   * rung so the line stays a line, and the specular sweep across the top.
+   * THE SHARED PANEL, OVER THE AURORA (platform sweep, 23 September). This
+   * card carried its own full recipe: a 58 per cent canvas fill, a
+   * `--nf-glow-brand-rim` border, six stacked shadows, a specular sheet on
+   * `::before` and the 2xl corner. `SystemMoment` now draws it as
+   * `.nf-panel.nf-panel--glass` (the console's material from the token layer,
+   * with the panel blur because it stands over a photograph), and this file
+   * keeps only its place on the stage, doubled to outrank `.nf-panel`.
    */
-  .nf-system__card {
-    position: relative;
-    isolation: isolate;
+  .nf-panel.nf-system__card {
+    display: block;
     width: 100%;
     margin-top: var(--nf-space-xl);
     padding: var(--nf-space-lg);
-    border-radius: var(--nf-radius-2xl);
-    border: var(--nf-border-width) solid var(--nf-glow-brand-rim);
-    background: color-mix(in oklab, var(--nf-surface-canvas) 58%, transparent);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    box-shadow:
-      inset 0 1px 0 var(--nf-glow-brand-rim),
-      inset 0 0 0 1px var(--nf-glow-1),
-      inset 0 0 40px var(--nf-glow-wash),
-      0 0 0 1px var(--nf-glow-1),
-      0 0 40px var(--nf-glow-2),
-      var(--nf-elev-3);
     text-align: center;
-  }
-  .nf-system__card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    background: var(--nf-glass-specular);
-    pointer-events: none;
   }
 
   /* The big numeral on the missing page: the display face in the brand
@@ -368,7 +349,8 @@
     border-radius: var(--nf-radius-squircle);
     filter: drop-shadow(0 0 16px var(--nf-glow-2));
   }
-  .nf-wait__pill {
+  .nf-panel.nf-wait__pill {
+    flex-direction: row;
     display: flex;
     align-items: center;
     gap: var(--nf-space-xs);
@@ -385,22 +367,13 @@
      * anywhere in the image. A skeleton that does not have the shape of the
      * thing it stands in for is a flash of the wrong layout, so this follows
      * the container onto `--nf-radius-control`.
-     *
-     * NOT CLOSED HERE: `app/loading.tsx` still passes `radius="pill"` to the
-     * two Skeletons inside this box, and that file belongs to another scope.
-     * Reported rather than edited.
      */
     border-radius: var(--nf-radius-control);
-    /* A CONTAINER, so it is lit. `--nf-glass-border` is 11 per cent white,
-       which on the navy canvas is a grey hairline, and this pill is the only
-       object on a waiting screen. The founder's ruling of 19 September puts
-       the brand ring and its near bloom on every container; this is one.
-       (R1 finding A5.) */
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-glass-fill);
-    box-shadow:
-      var(--nf-glow-edge),
-      var(--nf-elev-1);
+    /* A CONTAINER: `app/loading.tsx` draws it as `.nf-panel` (platform
+       sweep, 23 September), where it carried a brand edge, a glass fill and
+       `--nf-glow-edge` of its own. The corner stays the control radius
+       because this stands in for the landing search bar, a control; the
+       selector is doubled to outrank `.nf-panel`. */
   }
   .nf-wait__grid {
     display: grid;
@@ -436,30 +409,13 @@
     color: var(--nf-content-secondary);
     font-variant-numeric: tabular-nums;
   }
-  .nf-legal__toc {
-    position: relative;
-    isolation: isolate;
+  /* The contents card is the shared panel (`LegalDocument` draws it as
+     `.nf-panel`, platform sweep, 23 September); it drew its own brand edge,
+     glass fill, blur, `--nf-glow-edge`, specular sheet and xl corner. */
+  .nf-panel.nf-legal__toc {
+    display: block;
     margin-top: var(--nf-space-lg);
     padding: var(--nf-space-md);
-    border-radius: var(--nf-radius-xl);
-    /* The contents list on a legal page is a card full of links, so it takes
-       the card's lit ring rather than the grey hairline. (R1 finding A5.) */
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
-    box-shadow:
-      var(--nf-glow-edge),
-      var(--nf-elev-1);
-  }
-  .nf-legal__toc::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    background: var(--nf-glass-specular);
-    pointer-events: none;
   }
   .nf-legal__toc-title {
     margin: 0 var(--nf-space-xs);

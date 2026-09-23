@@ -43,7 +43,7 @@ export default async function PlacePage() {
     return (
       <div className="mx-auto max-w-lg">
         <PageHeader title={copy.screenTitle} fallback="/settings" />
-        <div className="nf-card p-lg text-center sm:p-xl">
+        <div className="nf-panel nf-panel--card block p-lg text-center sm:p-xl">
           <span className="mx-auto block h-16 w-16">
             <BrandIcon name="globe-pin" fill />
           </span>
@@ -87,7 +87,7 @@ export default async function PlacePage() {
       />
 
       {states.length === 0 && (
-        <p className="nf-card mb-md p-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+        <p className="nf-panel nf-panel--card block mb-md p-md text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
           {copy.statesUnavailable}
         </p>
       )}

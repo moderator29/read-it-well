@@ -13,7 +13,7 @@ export default function LoadingLegalPrivacy() {
     <LoadingShell label="Loading the privacy policy" className="mx-auto w-full max-w-3xl pb-3xl pt-md">
       <PageHeaderSkeleton subtitle />
       <Skeleton width="11rem" height="0.8125rem" radius="sm" className="mt-sm" />
-      <div className="nf-card mt-lg p-md">
+      <div className="nf-panel nf-panel--card block mt-lg p-md">
         <Skeleton width="4.5rem" height="0.75rem" radius="sm" />
         <div className="mt-xs space-y-3xs">
           {Array.from({ length: 6 }, (_, i) => (

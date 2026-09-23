@@ -129,7 +129,7 @@ Each group appends "RELEASED <commit>" here when it is done.
     `docs/design/proofs/session-b/sweep-settings/**`. Route components claimed:
     `app/(app)/settings/**`, `app/(app)/notifications/**`,
     `components/app/account/**`, `components/app/push/**`,
-    `app/(app)/legal/LegalDocument.tsx`, `app/offline/SystemMoment.tsx`,
+    `app/(app)/legal/**`, `app/offline/SystemMoment.tsx`,
     `app/not-found.tsx`, `app/error.tsx`, `app/(app)/error.tsx`,
     `app/loading.tsx`. By the lead's ruling of 23 September the notifications
     anatomy (`.nf-notif*`, `home.css` about lines 629 to 773) moves out of
@@ -141,6 +141,9 @@ Each group appends "RELEASED <commit>" here when it is done.
     the wallet family sweeps it), `PageHeader`, `BackButton`, the dock and
     header (chrome group), `components/app/welcome/InterestChoices.tsx`
     (welcome).
+    **Settings group RELEASED be65d995** (18 of 19 routes and states swept; the
+    payment methods block is the wallet family's; `ProfileIdentityCard.tsx` waits
+    for the profile worker; ledger 13, settings).
   - feed, stories, posts, the plus bloom (worker "feed"):
     `components/social/feed/**`, `components/social/bloom/**`,
     `components/social/story/**`, `app/social.css`, `app/social-feed.css`

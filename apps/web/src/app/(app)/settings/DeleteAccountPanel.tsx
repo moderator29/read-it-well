@@ -154,7 +154,7 @@ export function DeleteAccountPanel({
   return (
     <>
       {blockers.length > 0 && (
-        <div className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-raised)] p-md">
+        <div className="nf-panel nf-panel--card mt-sm block p-md">
           <p className="text-[length:var(--nf-text-body-sm)] font-semibold">{copy.blockedTitle}</p>
           <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
             {copy.blockedBody}
@@ -245,7 +245,7 @@ function ScheduledPanel({
 
   return (
     <div
-      className="mt-sm rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] p-md"
+      className="mt-sm nf-panel nf-panel--card block border-[color-mix(in_oklab,var(--nf-state-error)_55%,transparent)] p-md"
       data-testid="delete-scheduled"
     >
       <p className="flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold">
@@ -371,7 +371,7 @@ function DeleteDrawer({
           </div>
 
           {state?.ok ? (
-            <div className="nf-card p-lg" data-testid="delete-done">
+            <div className="nf-panel nf-panel--card block p-lg" data-testid="delete-done">
               <p className="flex items-center gap-xs text-[length:var(--nf-text-body-lg)] font-semibold">
                 <UiIcon
                   name="verified"
@@ -385,7 +385,7 @@ function DeleteDrawer({
               </p>
             </div>
           ) : step === "explain" ? (
-            <div className="nf-card p-lg">
+            <div className="nf-panel nf-panel--card block p-lg">
               <p className="text-[length:var(--nf-text-body-sm)] font-semibold">{copy.permanentTitle}</p>
 
               <p className="mt-sm text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-link)]">
@@ -449,7 +449,7 @@ function DeleteDrawer({
               </div>
             </div>
           ) : (
-            <form action={formAction} className="nf-card p-lg">
+            <form action={formAction} className="nf-panel nf-panel--card block p-lg">
               <p className="text-[length:var(--nf-text-body-sm)] font-semibold">{copy.confirmTitle}</p>
 
               {method === "password" ? (
@@ -532,7 +532,7 @@ function DeleteDrawer({
               {state && !state.ok && (
                 <p
                   role="alert"
-                  className="mt-sm rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+                  className="mt-sm nf-panel nf-panel--card block border-[color-mix(in_oklab,var(--nf-state-error)_55%,transparent)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
                 >
                   {state.fieldErrors?.confirmPhrase ?? state.fieldErrors?.password ?? state.error}
                 </p>

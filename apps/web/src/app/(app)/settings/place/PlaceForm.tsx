@@ -58,7 +58,7 @@ export function PlaceForm({
   const fieldErrors = state && !state.ok ? state.fieldErrors : undefined;
 
   return (
-    <form action={formAction} className="nf-card p-lg sm:p-lg" data-testid="place-form">
+    <form action={formAction} className="nf-panel nf-panel--card block p-lg sm:p-lg" data-testid="place-form">
       <PlaceFields
         t={t}
         states={states}
@@ -72,7 +72,7 @@ export function PlaceForm({
         <p
           role="alert"
           data-testid="place-error"
-          className="mt-md rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+          className="mt-md nf-panel nf-panel--card block border-[color-mix(in_oklab,var(--nf-state-error)_55%,transparent)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {state.error}
         </p>

@@ -15,7 +15,9 @@ export type ConsolePulse = {
   /** Published, non-example listings now, and the same count as it stood seven days ago. */
   listingsLive: number;
   listingsLiveWeekAgo: number;
-  /** Profiles created today and yesterday (Lagos days). */
+  /** Every account on the platform, the two QA accounts left out (founder, 23 September); null where not read. */
+  peopleTotal?: number | null;
+  /** Profiles created today and yesterday (Lagos days), the QA accounts left out. */
   signupsToday: number;
   signupsYesterday: number;
   /** Money collected (successful charges plus completed wallet deposits), kobo. */
@@ -166,3 +168,30 @@ export type PushActivity = {
 
 /** A person's published badge tier (`public.person_badge.tier`), never derived here. */
 export type PersonTier = "gold" | "platinum";
+
+/**
+ * THE QA ACCOUNTS (founder's ruling, 23 September): the two accounts the
+ * founder created for live proof, a member and an admin. They are left out of
+ * every statistic the console draws (account counts, sign-ups, active
+ * people, any per-person aggregate), exactly as the example listings are,
+ * and they stay findable in people lists and search, labelled QA, exactly as
+ * the examples stay browsable and labelled. One list, here; nothing else in
+ * the console names them.
+ */
+export const QA_ACCOUNT_IDS = [
+  "957b3bd2-cce3-425d-bba9-5cd876ca3d62", // phantomfcalls+qamember@gmail.com, the QA member
+  "03f3dd52-ea28-4852-9abe-e5b0a67c2a43", // phantomfcalls+qaadmi@gmail.com, the QA admin
+] as const;
+
+/** Is this person one of the QA accounts? For labelling a row "QA" in a list. */
+export function isQaAccount(id: string | null | undefined): boolean {
+  return Boolean(id) && (QA_ACCOUNT_IDS as readonly string[]).includes(id as string);
+}
+
+/** The PostgREST value for `.not(column, "in", QA_NOT_IN)`: every statistic's filter. */
+export const QA_NOT_IN = `(${QA_ACCOUNT_IDS.join(",")})`;
+
+/** The pure half: drop QA accounts from rows keyed by a person. Tested. */
+export function withoutQa<T>(rows: readonly T[], personOf: (row: T) => string | null | undefined): T[] {
+  return rows.filter((row) => !isQaAccount(personOf(row)));
+}

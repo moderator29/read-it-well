@@ -48,6 +48,20 @@ const SHOTS = [
   ["loading-place", `${H}loading-place`, 200],
   ["loading-interests", `${H}loading-interests`, 200],
   ["loading-inbox", `${H}loading-inbox`, 200],
+  ["drawer", `${H}hub&drawer=1`, 200, async () => {}],
+  ["rows-sheet-add", `${H}payments`, 200, async (p) => {
+    await p.getByTestId("payments-add").click();
+    await p.locator(".nf-rows-sheet").waitFor();
+  }],
+  ["rows-sheet-card", `${H}payments`, 200, async (p) => {
+    await p.getByTestId("payments-card-row").click();
+    await p.locator(".nf-rows-sheet").waitFor();
+  }],
+  ["sheet-wallet", "/preview/session-b/wallet", 200, async (p) => {
+    const opener = p.locator("main button").filter({ hasText: /add money|top up|fund/i }).first();
+    await opener.click();
+    await p.locator('.nf-sheet[data-open="true"]').waitFor();
+  }],
   ["offline", "/offline", 200],
   ["not-found", "/preview/session-b/sweep-settings/missing", 404],
 ];
@@ -77,6 +91,48 @@ async function shoot([name, path, status, action], width) {
     quality: 80,
   });
   await ctx.close();
+}
+
+/*
+ * `--sides`: after the after proofs exist, draw each route's before, after and
+ * the reference side by side (390, top of page): the console overview proof as
+ * the anatomy reference for every route, and for the hub and the inbox their
+ * governing render as well.
+ */
+if (process.argv.includes("--sides")) {
+  const { readFileSync, existsSync } = await import("node:fs");
+  const D = "docs/design/proofs/session-b/sweep-settings";
+  const REF = "docs/design/proofs/session-b/admin/overview-390-dark-fixture.jpg";
+  const GOV = {
+    hub: ["docs/design/references/7F96BE6C-BF8C-4413-BD58-25531B27D549.png", 183, 60, 658, 1300],
+    inbox: ["docs/design/references/roles/GOVERNING-12-review-desk-notification-search-by-id.png", 795, 90, 342, 790],
+  };
+  const img = (f) => `data:image/${f.endsWith(".png") ? "png" : "jpeg"};base64,${readFileSync(f).toString("base64")}`;
+  let made = 0;
+  for (const [name] of SHOTS) {
+    const before = `${D}/before/${name}-390.jpg`;
+    const after = `${D}/after/${name}-390.jpg`;
+    if (!existsSync(after)) continue;
+    const page = await browser.newPage({ viewport: { width: 1640, height: 900 } });
+    const gov = GOV[name];
+    const col = (label, src) => `<div><div style="margin-bottom:8px">${label}</div><div style="width:390px;height:844px;overflow:hidden;background:#000"><img src="${src}" style="width:390px"></div></div>`;
+    const govCol = gov
+      ? `<div><div style="margin-bottom:8px">Governing render (crop)</div><canvas id="g" width="390" height="844"></canvas></div>`
+      : "";
+    await page.setContent(`<html><body style="margin:0;background:#0b0f1a;font:600 16px sans-serif;color:#fff"><div style="display:flex;gap:16px;padding:16px">
+${existsSync(before) ? col("Before (" + name + ")", img(before)) : col("Before: not shot (state added in the audit passes)", "")}
+${col("After, 390 dark", img(after))}
+${col("Reference anatomy: console overview", img(REF))}
+${govCol}</div>
+<script>${gov ? `const im=new Image();im.onload=()=>{const c=document.getElementById('g');const s=390/${gov[3]};c.getContext('2d').drawImage(im,${gov[1]},${gov[2]},${gov[3]},${gov[4]},0,0,390,${gov[4]}*s);document.title='ok'};im.src="${img(gov[0])}";` : "document.title='ok'"}</script></body></html>`);
+    await page.waitForFunction(() => document.title === "ok");
+    await page.screenshot({ path: `${D}/side-by-side-${name}.jpg`, type: "jpeg", quality: 78, fullPage: true });
+    await page.close();
+    made += 1;
+  }
+  await browser.close();
+  console.log(`${made} side-by-sides in ${D}`);
+  process.exit(0);
 }
 
 let n = 0;

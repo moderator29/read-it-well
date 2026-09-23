@@ -3,7 +3,10 @@ import "server-only";
 import { rangeBuckets } from "./overview";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { BookingOutcomes, CollectedRange, PriceCheckDemand, ThinAreas } from "./shapes";
-import { UNAVAILABLE, adminReader, bucketSum, exactCount, lagosDay, readAll, type Read } from "./shared";
+import { QA_NOT_IN, UNAVAILABLE, adminReader, bucketSum, exactCount, lagosDay, readAll, type Read } from "./shared";
+
+/** A person-keyed row that is anonymous or not a QA account. */
+const QA_OR_NULL = `user_id.is.null,user_id.not.in.${QA_NOT_IN}`;
 
 /**
  * THE ANALYTICS DESK'S READS (01F7DFC7 panel three).
@@ -34,7 +37,12 @@ export async function getBookingOutcomes(range: CollectedRange, now: number): Pr
     const from = new Date(now - span).toISOString();
     const before = new Date(now - 2 * span).toISOString();
     const q = () =>
-      db.from("bookings").select("id", { count: "exact", head: true }).in("status", ["CONFIRMED", "COMPLETED"]);
+      db
+        .from("bookings")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["CONFIRMED", "COMPLETED"])
+        // A QA account's stay is not a booking the platform made (founder, 23 September).
+        .not("guest_id", "in", QA_NOT_IN);
     const [successful, successfulPrev] = await Promise.all([
       exactCount(q().gte("created_at", from)),
       exactCount(q().gte("created_at", before).lt("created_at", from)),
@@ -184,6 +192,8 @@ export async function getPriceCheckDemand(range: CollectedRange, now: number): P
         .from("price_check_events")
         .select("stage, outcome, refusal_code, state_code, lga_code, created_at")
         .in("stage", ["submit", "outcome"])
+        // Anonymous checks count; the QA accounts' checks do not (founder, 23 September).
+        .or(QA_OR_NULL)
         .gte("created_at", fromIso)
         .order("created_at", { ascending: true })
         .order("id", { ascending: true })
@@ -195,6 +205,7 @@ export async function getPriceCheckDemand(range: CollectedRange, now: number): P
         .from("price_check_events")
         .select("id", { count: "exact", head: true })
         .eq("stage", "submit")
+        .or(QA_OR_NULL)
         .gte("created_at", new Date(Date.parse(fromIso) - span).toISOString())
         .lt("created_at", fromIso),
     );

@@ -103,7 +103,7 @@ export function PushDevices({
 
   if (!readable) {
     return (
-      <p role="alert" className="nf-card p-card nf-body-sm text-content">
+      <p role="alert" className="nf-panel nf-panel--card block p-card nf-body-sm text-content">
         We could not read your devices just now. Nothing has changed. Try again in a moment.
       </p>
     );
@@ -130,7 +130,7 @@ export function PushDevices({
         <p
           role="status"
           data-testid="push-devices-outcome"
-          className={`nf-card p-card nf-body-sm ${
+          className={`nf-panel nf-panel--card block p-card nf-body-sm ${
             outcome.tone === "problem" ? "text-danger" : "text-content"
           }`}
         >
@@ -140,7 +140,7 @@ export function PushDevices({
 
       <ul className="space-y-row">
         {rows.map((row) => (
-          <li key={row.id} className="nf-card p-card" data-testid="push-device-row">
+          <li key={row.id} className="nf-panel nf-panel--card block p-card" data-testid="push-device-row">
             <p className="nf-body font-semibold text-content">{row.name}</p>
 
             <dl className="mt-row space-y-row">
@@ -166,7 +166,7 @@ export function PushDevices({
               disabled={pending}
               data-testid="push-device-stop"
               className={`nf-btn nf-btn--sm mt-group w-full ${
-                armed === row.id ? "nf-btn--danger" : "nf-btn--ghost"
+                armed === row.id ? "nf-btn--danger" : "nf-btn--glass"
               }`}
             >
               {pending && armed === null
@@ -184,7 +184,7 @@ export function PushDevices({
         onClick={stopAll}
         disabled={pending}
         data-testid="push-device-stop-all"
-        className={`nf-btn nf-btn--sm w-full ${armed === "all" ? "nf-btn--danger" : "nf-btn--ghost"}`}
+        className={`nf-btn nf-btn--sm w-full ${armed === "all" ? "nf-btn--danger" : "nf-btn--glass"}`}
       >
         {pending && armed === null
           ? "Just a moment"

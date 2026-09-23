@@ -3941,6 +3941,7 @@ export const en = {
         opsLatestEntries: "Latest entries",
         opsEveryDecisionTakenOnThis2: "Every decision taken on this console is written here with the name of whoever took it.",
         opsNotificationsSent: "In-app notifications by kind",
+        ovPeopleInAll: "{count} people in all",
         opsPushQueueNow: "Push queue now",
         opsPushOutcomes: "Push outcomes, last {days} days",
         opsPushDeliveries: "Device attempts, last {days} days",
