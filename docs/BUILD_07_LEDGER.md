@@ -6414,3 +6414,53 @@ The nine rows fold into one, and **the oldest is kept deliberately**: it carries
 23:20, which is when the condition started being reported, and that is the
 number a person wants when they ask how long this has been true. Keeping the
 newest would reset that clock every hour, which is its own small lie.
+
+### R12. EMERGENCY. Main has been red since `reads/supply.ts` landed, and a new standing rule now covers it
+
+**Still red, verified at the time of writing.** `lib/trust/agent-badge-derivation.test.ts`:
+
+```
+expected [ 'lib/admin/reads/supply.ts' ] to deeply equal []
+```
+
+`apps/web/src/lib/admin/reads/supply.ts` selects `verified` from `public.agents`
+at line 117 (`verified: a.verified`) and carries it on two row types at lines 51
+and 62.
+
+**The badge was deliberately reduced to one derivation, and this is the second
+one.** The rule is rule 12: the verified badge means a checked human, and it is
+read from the published `agent_badges` row and nowhere else. `agents.verified`
+is a different column answering a similar-sounding question. A desk drawing a
+tick from it will one day disagree with the public listing and nobody will be
+able to say which is right.
+
+**What is asked:** read the badge from `agent_badges` as the rest of the product
+does, and drop `verified` from that select. If the Supply desk needs the raw
+column for an operational reason, such as showing that a row disagrees with its
+badge, it needs a different name on screen and an argument in the file, because
+**a column called `verified` drawn as a tick IS the badge whatever the variable
+is called.**
+
+---
+
+## A NEW STANDING RULE FOR BOTH SESSIONS, FROM THE FOUNDER, 23 SEPTEMBER
+
+> **A red test on main belongs to whoever notices it.** Raise it first. **If it
+> is not green within one cycle, fix it yourself regardless of whose file it
+> is. Main staying green outranks the scope split.**
+
+This overrides the file partition in ledger section 51 for this one purpose and
+for no other. The partition still governs who BUILDS what; it no longer governs
+who may repair a red main.
+
+**The reasoning, which is worth keeping.** A scope boundary is a device for
+avoiding collisions between people building things. It was never meant to be a
+reason for a broken build to stay broken while two sessions each wait for the
+other. A red main costs every worker on the tree at once: it hides the next
+regression, it makes every gate ambiguous, and it teaches everybody to read a
+failure and move past it. That cost is always larger than the cost of one
+session editing one file outside its list and saying so.
+
+**This session's clock on R12 starts now.** If `agent-badge-derivation` is not
+green by the end of this cycle, this session fixes `reads/supply.ts` itself and
+records the edit here.
