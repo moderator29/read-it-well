@@ -238,6 +238,7 @@ const EXPECTED_PUBLIC = new Set([
   "/welcome",
   /* No network, and which home. */
   "/home-or-landing",
+  "/open",
   "/offline",
   /* API, each one guarded by a signature, a bearer secret, or nothing because
      it is telemetry a signed-out browser has to be able to post. */
