@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { formatMoney, getDictionary, plural, type Dictionary, type Locale } from "@vallo/i18n";
+import { fill } from "../_components/copy";
 import {
   PAYMENT_OUTCOMES,
   channelLabel,
@@ -21,13 +22,14 @@ import { dayLabel } from "../bookings/BookingsDesk";
  * every attempt in a numbered table.
  */
 
-export const OUTCOME_WORD: Record<PaymentOutcome, string> = {
-  succeeded: "Succeeded",
-  initialised: "Started",
-  abandoned: "Abandoned",
-  failed: "Failed",
-  refunded: "Refunded",
-};
+/**
+ * Where a payment attempt ended, in words: this desk's own three, and the
+ * console's transaction words for failed and refunded, which mean the same.
+ */
+export function outcomeWords(t: Dictionary): Record<PaymentOutcome, string> {
+  const status = t.admin.common.columns.transactionStatus;
+  return { ...t.admin.payments.outcome, failed: status.FAILED, refunded: status.REFUNDED };
+}
 const OUTCOME_TONE: Record<PaymentOutcome, StatusTone> = {
   succeeded: "success",
   initialised: "warning",
@@ -43,28 +45,34 @@ const OUTCOME_TONE4: Record<PaymentOutcome, StatusTone4> = {
   refunded: "info",
 };
 
-export function PaymentsKpis({ desk }: { desk: PaymentsDesk | null }) {
+export function PaymentsKpis({ desk, locale = "en" }: { desk: PaymentsDesk | null; locale?: Locale }) {
+  const t = getDictionary(locale);
+  const c = t.admin.payments;
+  const word = outcomeWords(t);
   const w = desk?.week;
   const d = (k: PaymentOutcome | "started", upIsGood = true) =>
-    w ? { percent: percentChange(w.thisWeek[k], w.lastWeek[k]), against: "vs the 7 days before", upIsGood } : null;
+    w ? { percent: percentChange(w.thisWeek[k], w.lastWeek[k]), against: t.admin.money.vsSevenDaysBefore, upIsGood } : null;
   return (
     <div className="nf-md-kpis">
-      <Kpi label="Started" value={w ? String(w.thisWeek.started) : null} delta={d("started")} note="Checkouts and top-ups begun this week" />
-      <Kpi label="Succeeded" value={w ? String(w.thisWeek.succeeded) : null} delta={d("succeeded")} note="Paid and settled this week" />
-      <Kpi label="Failed" value={w ? String(w.thisWeek.failed) : null} delta={d("failed", false)} note="Refused or reversed this week" />
-      <Kpi label="Abandoned" value={w ? String(w.thisWeek.abandoned) : null} delta={d("abandoned", false)} note="Started and not finished within a day" />
+      <Kpi locale={locale} label={c.kpiStarted} value={w ? String(w.thisWeek.started) : null} delta={d("started")} note={c.kpiStartedNote} />
+      <Kpi locale={locale} label={word.succeeded} value={w ? String(w.thisWeek.succeeded) : null} delta={d("succeeded")} note={c.kpiSucceededNote} />
+      <Kpi locale={locale} label={word.failed} value={w ? String(w.thisWeek.failed) : null} delta={d("failed", false)} note={c.kpiFailedNote} />
+      <Kpi locale={locale} label={word.abandoned} value={w ? String(w.thisWeek.abandoned) : null} delta={d("abandoned", false)} note={c.kpiAbandonedNote} />
     </div>
   );
 }
 
 export function PaymentsCharts({ desk, locale }: { desk: PaymentsDesk | null; locale: Locale }) {
+  const t = getDictionary(locale);
+  const c = t.admin.payments;
   if (!desk) {
     return (
-      <Panel title="Money in per day">
-        <Waiting title="Payments could not be read" body="Every checkout and top-up the platform has started. The read did not answer just now; reload in a moment." />
+      <Panel title={c.perDayTitle}>
+        <Waiting title={c.unreadTitle} body={c.unreadCharts} />
       </Panel>
     );
   }
+  const word = outcomeWords(t);
   const days = desk.perDay;
   const activeDays = days.filter((x) => x.amountMinor > 0).length;
   const ticks = days.map((x, i) => (i % 5 === 0 || i === days.length - 1 ? dayLabel(x.day, locale) : ""));
@@ -74,70 +82,64 @@ export function PaymentsCharts({ desk, locale }: { desk: PaymentsDesk | null; lo
   return (
     <>
       <div className="nf-md-grid nf-md-grid--main">
-        <Panel title="Money in per day" hint="Succeeded, last 30 days">
+        <Panel title={c.perDayTitle} hint={c.perDayHint}>
           {activeDays < 2 ? (
             <EmptyChart
               height={200}
-              yLabels={["₦0", "", "", "", ""]}
+              yLabels={[formatMoney(0, locale), "", "", "", ""]}
               xLabels={ticks}
               note={{
-                title: activeDays === 0 ? "No payment succeeded in thirty days" : "One day of payments so far",
-                fills: "The value of checkouts and top-ups that succeeded each day over the last thirty days.",
-                creates: "Every payment the provider settles adds to its day. A line needs two days, so none is drawn.",
-                action: { href: "/admin/money", label: "Open the money desk" },
+                title: activeDays === 0 ? c.perDayNone : c.perDayOne,
+                fills: c.perDayFills,
+                creates: c.perDayCreates,
+                action: { href: "/admin/money", label: c.openMoneyDesk },
               }}
             />
           ) : (
             <SeriesChart
+              locale={locale}
               id="payments-volume"
               xLabels={days.map((x) => dayLabel(x.day, locale))}
-              series={[{ name: "Money in", values: days.map((x) => x.amountMinor), rank: 0, area: true }]}
-              label="Succeeded payments per day, last thirty days"
+              series={[{ name: t.admin.money.moneyIn, values: days.map((x) => x.amountMinor), rank: 0, area: true }]}
+              label={c.perDayLabel}
               yLabel={(v) => formatMoney(v, locale, "NGN", { compact: true })}
               readout={days.map((x) => ({
                 title: dayLabel(x.day, locale, true),
                 rows: [
-                  { label: "Money in", value: formatMoney(x.amountMinor, locale) },
-                  { label: "Payments", value: String(x.count) },
+                  { label: t.admin.money.moneyIn, value: formatMoney(x.amountMinor, locale) },
+                  { label: c.paymentsRow, value: String(x.count) },
                 ],
               }))}
             />
           )}
         </Panel>
-        <Panel title="By channel" hint="Attempts, last 30 days">
+        <Panel title={c.byChannelTitle} hint={c.byChannelHint}>
           {desk.byChannel.length === 0 ? (
             <Framed frame={<RankFrame rows={4} />}>
-              <CalmNote
-                title="No payment attempt in thirty days"
-                fills="Checkouts and top-ups by the channel they were paid through: card, bank transfer, USSD and the rest."
-                creates="The channel is recorded when the provider confirms a top-up."
-              />
+              <CalmNote title={c.noAttemptTitle} fills={c.byChannelFills} creates={c.byChannelCreates} />
             </Framed>
           ) : (
             <>
               <RankBars rows={desk.byChannel.slice(0, 6).map((c) => ({ label: c.channel, count: c.attempts }))} />
               <p className="nf-md-panel__foot">
                 {desk.byChannel
-                  .filter((c) => c.succeeded > 0)
-                  .map((c) => `${c.channel}: ${formatMoney(c.succeededMinor, locale)} in`)
-                  .join(" · ") || "Nothing succeeded on any channel in thirty days."}
+                  .filter((ch) => ch.succeeded > 0)
+                  .map((ch) => fill(c.channelIn, { channel: ch.channel, amount: formatMoney(ch.succeededMinor, locale) }))
+                  .join(" · ") || c.nothingOnChannel}
               </p>
             </>
           )}
         </Panel>
       </div>
-      <Panel title="Where payments ended" hint={`${total30} ${total30 === 1 ? "attempt" : "attempts"}, last 30 days`}>
+      <Panel title={c.endedTitle} hint={plural(total30, c.attempts30, locale)}>
         <StatusBar
-          label="Payment attempts by outcome, last thirty days"
-          segments={PAYMENT_OUTCOMES.map((o) => ({ key: o, label: OUTCOME_WORD[o], count: t30[o], tone: OUTCOME_TONE4[o] }))}
+          locale={locale}
+          label={c.endedLabel}
+          segments={PAYMENT_OUTCOMES.map((o) => ({ key: o, label: word[o], count: t30[o], tone: OUTCOME_TONE4[o] }))}
         />
         {total30 === 0 && (
           <div className="mt-md">
-            <CalmNote
-              title="No payment attempt in thirty days"
-              fills="Where every checkout and top-up ended: succeeded, still in progress, abandoned, failed or refunded."
-              creates="A guest paying for a stay or a person funding their wallet starts one."
-            />
+            <CalmNote title={c.noAttemptTitle} fills={c.endedFills} creates={c.startsOne} />
           </div>
         )}
       </Panel>
@@ -172,31 +174,34 @@ export function PaymentsTable({
     );
   };
   const narrowed = Boolean(params.outcome || params.kind);
+  const t = getDictionary(locale);
+  const c = t.admin.payments;
+  const word = outcomeWords(t);
 
   return (
-    <Panel title="Every payment" hint={desk ? `${desk.table.total} ${desk.table.total === 1 ? "attempt" : "attempts"}` : undefined}>
-      <div className="mb-sm flex flex-wrap gap-xs" role="group" aria-label="Narrow the payments">
-        {chip("outcome", undefined, "All outcomes")}
-        {PAYMENT_OUTCOMES.map((o) => chip("outcome", o, OUTCOME_WORD[o]))}
+    <Panel title={c.everyTitle} hint={desk ? plural(desk.table.total, c.attempts, locale) : undefined}>
+      <div className="mb-sm flex flex-wrap gap-xs" role="group" aria-label={c.narrowOutcome}>
+        {chip("outcome", undefined, c.allOutcomes)}
+        {PAYMENT_OUTCOMES.map((o) => chip("outcome", o, word[o]))}
       </div>
-      <div className="mb-sm flex flex-wrap gap-xs" role="group" aria-label="Narrow by kind">
-        {chip("kind", undefined, "Checkouts and top-ups")}
-        {chip("kind", "checkout", "Booking checkouts")}
-        {chip("kind", "topup", "Wallet top-ups")}
+      <div className="mb-sm flex flex-wrap gap-xs" role="group" aria-label={c.narrowKind}>
+        {chip("kind", undefined, c.allKinds)}
+        {chip("kind", "checkout", c.checkouts)}
+        {chip("kind", "topup", c.topups)}
       </div>
       {!desk ? (
-        <Waiting title="Payments could not be read" body="Every checkout and top-up with its reference, channel and outcome. The read did not answer just now." />
+        <Waiting title={c.unreadTitle} body={c.unreadTable} />
       ) : (
         <>
           <table className="nf-md-table">
             <thead>
               <tr>
-                <th scope="col">Started</th>
-                <th scope="col">Reference</th>
-                <th scope="col">Kind</th>
-                <th scope="col">Channel</th>
-                <th scope="col">Outcome</th>
-                <th scope="col" className="nf-md-num">Amount</th>
+                <th scope="col">{c.started}</th>
+                <th scope="col">{c.reference}</th>
+                <th scope="col">{c.kind}</th>
+                <th scope="col">{c.channel}</th>
+                <th scope="col">{c.outcomeColumn}</th>
+                <th scope="col" className="nf-md-num">{c.amount}</th>
               </tr>
             </thead>
             <tbody>
@@ -205,42 +210,38 @@ export function PaymentsTable({
                   columns={6}
                   note={
                     narrowed
-                      ? { title: "Nothing matched that", fills: "No payment attempt has that outcome or kind.", action: { href: "/admin/payments", label: "Show every payment" } }
-                      : {
-                          title: "No payment has been started yet",
-                          fills: "Every booking checkout and wallet top-up, with its reference, channel and where it ended.",
-                          creates: "A guest paying for a stay or a person funding their wallet starts one.",
-                        }
+                      ? { title: t.admin.common.noMatchTitle, fills: c.noMatchFills, action: { href: "/admin/payments", label: c.showEvery } }
+                      : { title: c.noneTitle, fills: c.noneFills, creates: c.startsOne }
                   }
                 />
               ) : (
                 desk.table.rows.map((p) => (
                   <tr key={`${p.kind}-${p.id}`}>
-                    <td className="nf-md-date" data-label="Started">
+                    <td className="nf-md-date" data-label={c.started}>
                       {ui.when(p.createdAt)}
                     </td>
-                    <td data-label="Reference">
+                    <td data-label={c.reference}>
                       {/* The reference, never clipped: it is what the provider traces by. */}
                       <span className="nf-md-ref">{p.reference}</span>
                     </td>
-                    <td data-label="Kind">
+                    <td data-label={c.kind}>
                       {p.kind === "checkout" && p.bookingId ? (
                         <Link href={`/admin/bookings/${p.bookingId}`} className="underline-offset-2 hover:underline">
-                          Booking checkout
+                          {c.checkout}
                         </Link>
                       ) : p.kind === "checkout" ? (
-                        "Booking checkout"
+                        c.checkout
                       ) : (
-                        "Wallet top-up"
+                        c.topup
                       )}
                     </td>
-                    <td className="nf-md-desc" data-label="Channel">
+                    <td className="nf-md-desc" data-label={c.channel}>
                       {channelLabel(p)}
                     </td>
-                    <td data-label="Outcome">
-                      <StatusPill tone={OUTCOME_TONE[p.outcome]}>{OUTCOME_WORD[p.outcome]}</StatusPill>
+                    <td data-label={c.outcomeColumn}>
+                      <StatusPill tone={OUTCOME_TONE[p.outcome]}>{word[p.outcome]}</StatusPill>
                     </td>
-                    <td className="nf-md-num nf-md-strong" data-label="Amount">
+                    <td className="nf-md-num nf-md-strong" data-label={c.amount}>
                       {formatMoney(p.amountMinor, locale)}
                     </td>
                   </tr>
@@ -249,7 +250,7 @@ export function PaymentsTable({
             </tbody>
           </table>
           {desk.table.total > 0 && (
-            <NumberedPager base="/admin/payments" params={params} page={desk.table.page} total={desk.table.total} pageSize={desk.table.pageSize} noun="payments" />
+            <NumberedPager base="/admin/payments" params={params} page={desk.table.page} total={desk.table.total} pageSize={desk.table.pageSize} noun={c.paymentsNoun} locale={locale} />
           )}
         </>
       )}

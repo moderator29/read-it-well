@@ -2,7 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { getDictionary, type Locale } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
+import { fill } from "../_components/copy";
 import {
   removeBankAccountAsAdmin,
   removePaymentMethodAsAdmin,
@@ -21,12 +23,17 @@ export function RemoveSavedMethod({
   kind,
   id,
   describe,
+  locale = "en",
 }: {
   kind: "card" | "account";
   id: string;
   /** "Visa ending 4821" or "GTBank ending 0912". The masked words only. */
   describe: string;
+  /** The console's locale; English when omitted. */
+  locale?: Locale;
 }) {
+  const t = getDictionary(locale);
+  const c = t.admin.payments.remove;
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
@@ -53,16 +60,14 @@ export function RemoveSavedMethod({
 
   if (done) {
     return (
-      <p className="nf-body-sm mt-row font-medium text-[var(--nf-state-success)]">
-        Removed. The owner has been told, and the reason is in the audit log.
-      </p>
+      <p className="nf-body-sm mt-row font-medium text-[var(--nf-state-success)]">{c.done}</p>
     );
   }
 
   if (!open) {
     return (
       <Button type="button" size="sm" variant="dangerQuiet" onClick={() => setOpen(true)}>
-        Remove at their request
+        {c.open}
       </Button>
     );
   }
@@ -71,21 +76,16 @@ export function RemoveSavedMethod({
     /* The same ruling as the reservation desk's confirm panel: a container
        edge is lit glass, never a flat grey outline. `nf-card` carries it. */
     <div className="nf-panel nf-panel--card nf-admin-card mt-row p-card-sm">
-      <p className="nf-body font-semibold text-content">Remove {describe} from their account?</p>
-      <p className="nf-body-sm mt-row text-content-2">
-        It comes off their list exactly as if they had removed it themselves. The
-        row is kept for support, the owner is sent a notification saying a member
-        of staff did this, and your reason goes into the audit log. Nothing about
-        the {kind === "card" ? "card" : "account"} itself is written anywhere new.
-      </p>
+      <p className="nf-body font-semibold text-content">{fill(c.question, { describe })}</p>
+      <p className="nf-body-sm mt-row text-content-2">{kind === "card" ? c.bodyCard : c.bodyAccount}</p>
       <label className="mt-row block">
-        <span className="nf-label">Who asked, and how</span>
+        <span className="nf-label">{c.who}</span>
         <textarea
           className="nf-field min-h-[72px] resize-y"
           value={reason}
           maxLength={500}
           onChange={(event) => setReason(event.target.value)}
-          placeholder="For example: owner asked by support ticket 1234 after losing the phone the card was on."
+          placeholder={c.placeholder}
         />
       </label>
       <div className="mt-row flex flex-wrap gap-inline">
@@ -97,7 +97,7 @@ export function RemoveSavedMethod({
           disabled={reason.trim().length < 10}
           onClick={run}
         >
-          Remove {describe}
+          {fill(c.confirm, { describe })}
         </Button>
         <Button
           type="button"
@@ -109,7 +109,7 @@ export function RemoveSavedMethod({
             setError(null);
           }}
         >
-          Not now
+          {t.admin.common.notNow}
         </Button>
       </div>
       {error && (

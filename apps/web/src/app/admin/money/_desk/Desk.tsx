@@ -1,8 +1,15 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { getDictionary, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { CalmNote, type CalmNoteProps } from "../../_components/panels";
+import { fill } from "../../_components/copy";
 import { pagerItems } from "@/lib/admin/reads/money-derive";
+
+/** The money desks' furniture words. English when a caller (the bookings desk) passes no locale. */
+function deskWords(locale: Locale | undefined) {
+  return getDictionary(locale ?? "en").admin.money.desk;
+}
 
 /**
  * The money desks' furniture, shared by money, escrow, supply, bookings and
@@ -112,10 +119,11 @@ export type Delta = {
   upIsGood?: boolean;
 };
 
-function DeltaLine({ delta, fallback }: { delta: Delta | null; fallback?: string }) {
+function DeltaLine({ delta, fallback, locale }: { delta: Delta | null; fallback?: string; locale?: Locale }) {
   if (!delta || delta.percent === null) {
     return fallback ? <p className="nf-md-delta">{fallback}</p> : null;
   }
+  const c = deskWords(locale);
   const { percent, against, upIsGood = true } = delta;
   const direction = percent > 0 ? "up" : percent < 0 ? "down" : "flat";
   const good = direction === "flat" ? null : (direction === "up") === upIsGood;
@@ -127,7 +135,7 @@ function DeltaLine({ delta, fallback }: { delta: Delta | null; fallback?: string
           <UiIcon name={direction === "up" ? "arrow-up" : "arrow-down"} size={14} />
         )}
         {Math.abs(percent)}%
-        <span className="sr-only">{direction === "up" ? " up" : direction === "down" ? " down" : " unchanged"}</span>
+        <span className="sr-only">{` ${direction === "up" ? c.up : direction === "down" ? c.down : c.unchanged}`}</span>
       </span>
       <span>{against}</span>
     </p>
@@ -141,6 +149,7 @@ export function Kpi({
   note,
   href,
   current,
+  locale,
 }: {
   label: string;
   /** Null draws the quiet not-wired figure. */
@@ -150,16 +159,18 @@ export function Kpi({
   note?: string;
   href?: string;
   current?: boolean;
+  /** The console's locale; English when omitted. */
+  locale?: Locale;
 }) {
   const body = (
     <>
       <span className="nf-md-kpi__label">{label}</span>
       {value === null ? (
-        <span className="nf-md-kpi__value nf-md-kpi__value--quiet">Could not be read</span>
+        <span className="nf-md-kpi__value nf-md-kpi__value--quiet">{deskWords(locale).couldNotBeRead}</span>
       ) : (
         <span className="nf-md-kpi__value nf-numeric">{value}</span>
       )}
-      <DeltaLine delta={delta} fallback={note} />
+      <DeltaLine delta={delta} fallback={note} locale={locale} />
     </>
   );
   if (href) {
@@ -187,6 +198,7 @@ export function NumberedPager({
   pageSize,
   noun,
   param = "page",
+  locale,
 }: {
   base: string;
   params: Record<string, string | undefined>;
@@ -195,7 +207,10 @@ export function NumberedPager({
   pageSize: number;
   noun: string;
   param?: string;
+  /** The console's locale; English when omitted. */
+  locale?: Locale;
 }) {
+  const c = deskWords(locale);
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const href = (p: number) => {
     const next = new URLSearchParams();
@@ -209,11 +224,11 @@ export function NumberedPager({
   const last = Math.min(total, page * pageSize);
 
   return (
-    <nav className="nf-md-pager" aria-label={`${noun} pages`}>
+    <nav className="nf-md-pager" aria-label={fill(c.pagerLabel, { noun })}>
       {items.length > 0 && (
         <>
           {page > 1 ? (
-            <Link href={href(page - 1)} className="nf-md-pager__item" aria-label="Previous page">
+            <Link href={href(page - 1)} className="nf-md-pager__item" aria-label={c.previousPage}>
               <UiIcon name="arrow-left" size={16} />
             </Link>
           ) : (
@@ -232,14 +247,14 @@ export function NumberedPager({
                 href={href(item.page)}
                 className="nf-md-pager__item"
                 aria-current={item.page === page ? "page" : undefined}
-                aria-label={`Page ${item.page}`}
+                aria-label={fill(c.page, { page: item.page })}
               >
                 {item.page}
               </Link>
             ),
           )}
           {page < pages ? (
-            <Link href={href(page + 1)} className="nf-md-pager__item" aria-label="Next page">
+            <Link href={href(page + 1)} className="nf-md-pager__item" aria-label={c.nextPage}>
               <UiIcon name="arrow-right" size={16} />
             </Link>
           ) : (
@@ -250,7 +265,7 @@ export function NumberedPager({
         </>
       )}
       <span className="nf-md-pager__count">
-        {total === 0 ? `No ${noun}` : `${first} to ${last} of ${total} ${noun}`}
+        {total === 0 ? fill(c.pagerNone, { noun }) : fill(c.pagerCount, { first, last, total, noun })}
       </span>
     </nav>
   );

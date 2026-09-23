@@ -2855,6 +2855,111 @@ two writes (escrow ruling, booking cancel) 0 / 2 exercised. Badge: 9 / 14
 name places wired, 0 / 14 drawing (blocked on B-BADGE). Copy in the
 dictionaries: 1 / 5 desks.
 
+### 8.14 The four desks' copy moves onto the locale layer (founder directive, 23 September)
+
+Supersedes "English-only copy" in 8.13. Money, Escrow, Supply and Payments,
+and the furniture they share in `money/_desk`, now read their words through
+`getDictionary(locale)` like the rest of the console. **Copy in the
+dictionaries: 5 / 5 desks** (bookings already did).
+
+**Where the words went.** Where an existing key said the same thing it is
+reused. Where none existed the key was added to `packages/i18n/src/locales/en.ts`
+ONLY, as new desk blocks inside the existing `admin` namespace (`admin.money`,
+`admin.escrow`, `admin.supply`, `admin.payments`), the same `admin.<desk>`
+pattern `admin.bookings` already uses. Nothing was restructured and no other
+locale file was touched: Yoruba, Hausa and Igbo fall back to these English
+strings through `withFallback`, exactly as for any key they have not declared,
+and no Yoruba, Hausa or Igbo word was written. Counted strings use the
+existing `plural()` with `{ one, other }` forms (the `settings.devices`
+pattern) instead of `n === 1` ternaries, so a speaker can write the forms
+their language has. Placeholders are filled with the console's `fill`.
+Money is still formatted only by `formatMoney`, unchanged; the four literal
+`"₦0"` axis labels now come from `formatMoney(0, locale)`, which returns the
+same `₦0`.
+
+**Counts.** "Moved" is distinct visible strings (aria labels, captions,
+placeholders and `data-label`s included; a plural pair is one string; a string
+drawn in several places is counted once).
+
+| Desk | Moved | Existing keys reused | English keys added (leaves) | Left hardcoded | Denominator |
+|---|---|---|---|---|---|
+| Shared furniture (`money/_desk`: pager, KPI, delta, charts, reconciliation, dispute evidence) | 66 | 1 | 65 | 0 | 66 / 66 |
+| Money | 109 | 4 | 109 | 17 | 109 / 126 |
+| Escrow | 101 | 3 | 101 | 18 | 101 / 119 |
+| Supply | 100 | 9 | 95 | 2 | 100 / 102 |
+| Payments | 138 | 5 | 141 | 4 | 138 / 142 |
+| **Total** | **514** | **22** | **511** | | |
+
+Leaves exceed distinct strings where a plural carries two forms (19 pairs).
+
+**Keys reused (22).** `shell.nav.money`, `shell.nav.escrow` (twice: the
+title and the link in Money's disputes paragraph), `shell.nav.supply`,
+`shell.nav.payments`; `shell.operations.vsWeekAgo`, `shell.overview.vsLastWeek`,
+`shell.operations.healthy` (the reconciliation verdict); `shell.overview.owner`,
+`.agent`, `.firm` (supply roles, singular) and `shell.overview.kinds.land`,
+`.hotels`, `.shortlets`, `.restaurants` (property types);
+`common.status.CANCELLED` (tenancy charges and escrow);
+`common.searchPlaceholders.escrow`; `common.noMatchTitle`; `common.notNow`;
+`common.columns.transactionStatus.FAILED` and `.REFUNDED` (payment outcomes).
+Near misses NOT reused because the English differs or the sense does: the
+bookings desk's cancellation reasons ("The host cancelled" against the
+refund row's "The agent cancelled"), and `columns.walletEntryStatus.COMPLETED`
+("Settled" as a status is not "Settled" as a balance heading).
+
+**Left hardcoded, with reasons.**
+- All four desks: the static `metadata.title` in each `page.tsx` (4) and the
+  `QueueSkeleton` label in each `loading.tsx` (4). Every console route does
+  both this way; moving them means `generateMetadata` and an awaited locale on
+  the loading path across the console, which is admin-shell's convention to
+  change, not one desk's.
+- Money and Escrow: `EscrowRuling` in `app/admin/_components/MoneyDecisions.tsx`
+  (11 strings: placeholder, prompt, both direction buttons, both consequence
+  lines, the warning, the confirm verb pair, "to", Cancel). A shared
+  `_components` file, admin-shell's; counted against both desks.
+- Money: the four refund reason labels come from `CANCELLATION_REASONS` in
+  `lib/trust/cancellation.ts` (Session A's file).
+- Escrow: the `ES-` short id prefix (an identifier format), and the four
+  countdown formats (`due`, `{d}d {h}h`, `{h}h {m}m`, `{m}m`) built by
+  `countdown()` in `lib/admin/reads/money-derive.ts`, a pure read helper with
+  its own tests; moving them changes a read's return shape, so it is a
+  separate change.
+- Payments: `channelLabel()`'s two fallbacks ("checkout, unrecorded",
+  "top-up, unrecorded") in `lib/admin/reads/payments.ts`, same reason.
+- Not copy, not counted: the `·` separators, `%`, the `????` shown for a
+  missing card tail, and the acceptance date printed as ISO `yyyy-mm-dd`.
+- Now dead, left for its owner: `ESCROW_STATE_WORDS` in
+  `components/app/untranslated.ts` (Session A's staging file). Its words now
+  live at `admin.escrow.state`, the destination the block itself names; the
+  escrow desk was its only reader.
+- The bookings desk also draws the shared furniture and passes no locale, so
+  its pager and KPI words stay English there; bookings was not in this
+  directive.
+
+**Same English, proven.** Production build with `VALLO_PREVIEW_HARNESS=1`,
+under the lock, before (origin/main `b6f41ceb` plus the unused English keys)
+and after; the committed harness `(dev)/preview/session-b/admin-money/{money,escrow,supply,payments}`
+in both fixture states, and the two older harnesses that draw the refund panel
+and the payment-method lookup (`preview/bd/refunds`, `preview/bd/payments`),
+each at 1440 and 390, dark: 20 page states. For each: a full-page PNG and a
+dump of `innerText`, raw `textContent`, and every `aria-label`, `title`,
+`placeholder`, `data-label`, `id` and `aria-labelledby` inside the console.
+- Text: **20 / 20 dumps byte-identical**.
+- Pixels: two baseline runs differ only in rows 42 to 52 at 1440 (the frame's
+  top bar); outside that band 13 single-line clusters differ, 33 to 442
+  pixels each, max channel delta 36 to 60, every one inside a line where
+  adjacent text nodes became one (for example `{amount}` and ` kept`), which
+  moves glyph anti-aliasing by a sub-pixel. Viewed at 3x before over after:
+  no visible change.
+- Not covered by a harness: the payments page's own health panel, overdrawn
+  and stuck tables and the sweep control (no harness draws them); proven by
+  the whole typecheck and by reading, not by a shot.
+- One English difference is possible and not reached by the fixtures: a count
+  of 1,000 or more in a pluralised phrase now prints grouped ("1,234
+  charges"), because `plural()` formats through `Intl`.
+
+**Checks.** Listed in the commit's gate below (whole tsc, whole vitest,
+`check-css-tokens`, a `page.tsx` at the root of every harness directory).
+
 ## 9. Inspection
 
 Governing image `F6A8A482-657B-4836-B30A-1A0578BC3FBA.png` (catalogue: "Checklist
@@ -6166,3 +6271,4 @@ after right, 28) and `after-390/` (28).
   renditions are derived recolours checked only on contact sheets and a
   harness; `eslint` on `scripts/design/session-b-crops.mjs` timed out on the
   loaded box and was not completed (`node --check` passes).
+- admin-money copy (8.14): ha, yo and ig serve the new English keys until a native speaker writes them; no word was invented. Left in English: each desk's metadata title and loading label, the shared `EscrowRuling` (admin-shell's), the refund reason labels (`lib/trust`), the escrow countdown formats and the payment channel fallbacks (`lib/admin/reads`). The payments health, overdrawn, stuck and sweep sections are proven by typecheck, not by a harness shot.

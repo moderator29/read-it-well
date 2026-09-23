@@ -66,7 +66,7 @@ export default async function AdminEscrowPage({
   if (desk.state !== "ok") {
     return (
       <div className="nf-console nf-md">
-        <EscrowHead />
+        <EscrowHead locale={locale} />
         <ui.QueueUnavailable />
       </div>
     );

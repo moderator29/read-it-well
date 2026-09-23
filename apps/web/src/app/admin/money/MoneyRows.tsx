@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
 import type { AdminRead } from "@/lib/admin/queries";
 import type { RefundConsole, RefundState, RefundView, WalletEntryView } from "@/lib/admin/money-queries";
 import type { StatusTone } from "@/components/ui/StatusPill";
@@ -7,6 +7,7 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { CANCELLATION_REASONS } from "@/lib/trust/cancellation";
 import type { AdminUi } from "../_components/ui";
 import { CalmNote } from "../_components/panels";
+import { fill } from "../_components/copy";
 
 /**
  * The money desk's rows and the refund console, out of the page so the
@@ -17,12 +18,12 @@ import { CalmNote } from "../_components/panels";
  * Where a refund's money is, in words and in a tone that survives greyscale.
  * The word is the signal; the tone only agrees with it.
  */
-export const REFUND_STATE: Record<RefundState, { label: string; tone: StatusTone }> = {
-  credited: { label: "In the guest's wallet", tone: "success" },
-  not_settled: { label: "Credit not settled yet", tone: "info" },
-  failed: { label: "Credit failed", tone: "danger" },
-  not_credited: { label: "Recorded, no credit found", tone: "danger" },
-  nothing_owed: { label: "Nothing was owed", tone: "neutral" },
+export const REFUND_TONE: Record<RefundState, StatusTone> = {
+  credited: "success",
+  not_settled: "info",
+  failed: "danger",
+  not_credited: "danger",
+  nothing_owed: "neutral",
 };
 
 export function EntryRow({
@@ -93,7 +94,8 @@ export function RefundRow({
   locale: Locale;
   ui: AdminUi;
 }) {
-  const state = REFUND_STATE[refund.state];
+  const c = getDictionary(locale).admin.money;
+  const state = { label: c.refundState[refund.state], tone: REFUND_TONE[refund.state] };
   return (
     <li className="flex flex-wrap items-baseline gap-x-md gap-y-2xs border-t border-[var(--nf-border-subtle)] py-sm">
       {/* The row's glass object, small: money going back to a person. The
@@ -101,9 +103,9 @@ export function RefundRow({
       <BrandIcon name="payment-received" size={26} className="mt-3xs shrink-0" />
       <span className="min-w-0 flex-1">
         <span className="block text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
-          {refund.guestName ?? "No display name"}
+          {refund.guestName ?? c.noDisplayName}
           {" · "}
-          {refund.listingTitle ?? "A listing that is no longer there"}
+          {refund.listingTitle ?? c.listingGone}
           {" · "}
           {CANCELLATION_REASONS.find((r) => r.code === refund.reason)?.label ??
             ui.columnLabel("cancellationReason", refund.reason)}
@@ -118,7 +120,7 @@ export function RefundRow({
           href={`/admin/bookings/${refund.bookingId}`}
           className="mt-2xs inline-block text-[length:var(--nf-text-caption)] underline"
         >
-          Open the stay
+          {c.openStay}
         </Link>
       </span>
       <span className="flex shrink-0 flex-wrap items-baseline gap-sm">
@@ -128,7 +130,7 @@ export function RefundRow({
         </span>
         {refund.retainedMinor > 0 && (
           <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-            {formatMoney(refund.retainedMinor, locale)} kept
+            {fill(c.kept, { amount: formatMoney(refund.retainedMinor, locale) })}
           </span>
         )}
         <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
@@ -166,16 +168,14 @@ export function RefundsPanel({
   locale: Locale;
   ui: AdminUi;
 }) {
+  const c = getDictionary(locale).admin.money;
   return (
     <section className={className}>
       <h2 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
-        Refunds
+        {c.refundsTitle}
       </h2>
       <p className="mt-2xs max-w-[62ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
-        Every refund decided on the console, newest first, with where the money
-        is now. A stay is refunded from its own page under the published
-        schedule; open a stay from the Stays queue to decide one. The state
-        beside each row is the wallet entry&apos;s own status, not a guess.
+        {c.refundsBody}
       </p>
 
       {refunds.state !== "ok" ? (
@@ -187,14 +187,14 @@ export function RefundsPanel({
           <div className="mt-sm">
             <ui.StatRow>
               <ui.Stat
-                label="Returned"
+                label={c.returned}
                 value={formatMoney(refunds.data.totals.refundedMinor, locale)}
-                hint={`Across ${refunds.data.totals.count === 1 ? "1 refund" : `${refunds.data.totals.count} refunds`} on the platform`}
+                hint={plural(refunds.data.totals.count, c.returnedHint, locale)}
               />
               <ui.Stat
-                label="Recorded without a credit"
+                label={c.notCredited}
                 value={String(refunds.data.totals.notCredited)}
-                hint="A refund owed with no wallet entry behind it needs an engineer"
+                hint={c.notCreditedHint}
                 tone={refunds.data.totals.notCredited === 0 ? "success" : "danger"}
               />
             </ui.StatRow>
@@ -204,10 +204,10 @@ export function RefundsPanel({
             narrowed ? null : (
               <div className="mt-sm">
                 <CalmNote
-                  title="No refund has been decided yet"
-                  fills="Every refund decided on the console, with where its money is now."
-                  creates="A stay is refunded from its own page under the published schedule."
-                  action={{ href: "/admin/bookings", label: "Open bookings" }}
+                  title={c.refundsNoneTitle}
+                  fills={c.refundsNoneFills}
+                  creates={c.refundsNoneCreates}
+                  action={{ href: "/admin/bookings", label: c.openBookings }}
                 />
               </div>
             )

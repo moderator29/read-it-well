@@ -1,7 +1,8 @@
-import { formatDate, formatMoney, type Locale } from "@vallo/i18n";
+import { formatDate, formatMoney, getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
 import type { EvidenceItem } from "@/lib/admin/reads/escrow";
 import type { AdminUi } from "../../_components/ui";
 import { CalmNote, Waiting } from "./Desk";
+import { fill } from "../../_components/copy";
 import { BadgeSlot } from "./BadgeSlot";
 import type { BadgeTier } from "@/lib/admin/reads/badges";
 
@@ -17,43 +18,33 @@ import type { BadgeTier } from "@/lib/admin/reads/badges";
  * failure and never drawn as "nothing filed".
  */
 
-/** The thirteen facts, in an operator's words. */
-const FACT_LINE: Record<string, string> = {
-  viewing_attended: "The inspection happened",
-  viewing_missed: "The inspection did not happen",
-  keys_received: "The keys were handed over",
-  keys_not_received: "The keys were not handed over",
-  agreement_signed: "An agreement was signed",
-  agreement_not_signed: "No agreement was signed",
-  service_delivered: "The work was done",
-  service_not_delivered: "The work was not done",
-  property_matched_listing: "The property matched the listing",
-  property_differed_from_listing: "The property was not what the listing said",
-  contacted_on: "Got in touch with the other side",
-  no_reply_since: "No reply from the other side since",
-  amount_agreed: "The amount agreed",
-};
+type EvidenceWords = Dictionary["admin"]["money"]["evidence"];
 
-function size(bytes: number | null): string | null {
+function size(bytes: number | null, c: EvidenceWords): string | null {
   if (bytes === null) return null;
-  if (bytes < 1024) return `${bytes} bytes`;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes < 1024) return fill(c.sizeBytes, { size: bytes });
+  if (bytes < 1024 * 1024) return fill(c.sizeKb, { size: Math.round(bytes / 1024) });
+  return fill(c.sizeMb, { size: (bytes / (1024 * 1024)).toFixed(1) });
 }
 
-function kindWord(mime: string | null): string {
-  if (!mime) return "File";
-  if (mime === "application/pdf") return "PDF";
-  if (mime.startsWith("image/")) return "Image";
-  return "File";
+function kindWord(mime: string | null, c: EvidenceWords): string {
+  if (!mime) return c.kindFile;
+  if (mime === "application/pdf") return c.kindPdf;
+  if (mime.startsWith("image/")) return c.kindImage;
+  return c.kindFile;
 }
 
-function factLine(item: EvidenceItem, locale: Locale): string {
-  const line = FACT_LINE[item.fact ?? ""] ?? "A fact";
+/** One of the thirteen facts, in an operator's words. */
+function factLine(item: EvidenceItem, locale: Locale, c: EvidenceWords): string {
+  const facts: Record<string, string> = c.facts;
+  const line = facts[item.fact ?? ""] ?? c.aFact;
   if (item.happenedOn) {
-    return `${line} on ${formatDate(new Date(`${item.happenedOn}T12:00:00Z`), locale, { day: "numeric", month: "short", year: "numeric" })}`;
+    return fill(c.factOn, {
+      fact: line,
+      date: formatDate(new Date(`${item.happenedOn}T12:00:00Z`), locale, { day: "numeric", month: "short", year: "numeric" }),
+    });
   }
-  if (item.amountMinor !== null) return `${line}: ${formatMoney(item.amountMinor, locale)}`;
+  if (item.amountMinor !== null) return fill(c.factAmount, { fact: line, amount: formatMoney(item.amountMinor, locale) });
   return line;
 }
 
@@ -77,28 +68,29 @@ export function DisputeEvidence({
   locale: Locale;
   ui: AdminUi;
 }) {
+  const c = getDictionary(locale).admin.money.evidence;
   const who = (item: EvidenceItem) =>
     item.side === "payer"
-      ? `Payer · ${payerName ?? item.authorName ?? "no display name"}`
+      ? fill(c.payer, { name: payerName ?? item.authorName ?? c.noDisplayName })
       : item.side === "payee"
-        ? `Payee · ${payeeName ?? item.authorName ?? "no display name"}`
-        : `Neither party · ${item.authorName ?? "no display name"}`;
+        ? fill(c.payee, { name: payeeName ?? item.authorName ?? c.noDisplayName })
+        : fill(c.neither, { name: item.authorName ?? c.noDisplayName });
 
   return (
-    <section className="nf-md-evidence" aria-label="Evidence filed on this dispute">
+    <section className="nf-md-evidence" aria-label={c.label}>
       <h4 className="nf-md-evidence__title">
-        Evidence filed{readable && items && items.length > 0 ? ` (${items.length})` : ""}
+        {readable && items && items.length > 0 ? fill(c.titleCount, { count: items.length }) : c.title}
       </h4>
       {!readable ? (
         <Waiting
-          title="The evidence could not be read"
-          body="What each side has filed on this dispute. The read did not answer just now, which is not the same as nothing being filed. Reload before ruling."
+          title={c.unreadTitle}
+          body={c.unreadBody}
         />
       ) : !items || items.length === 0 ? (
         <CalmNote
-          title="Nothing has been filed on this dispute"
-          fills="Every receipt, photograph, message screenshot and dated fact either side files, with who filed it and when."
-          creates="Each side files from their own held payment page. Items appear here as they are filed and cannot be edited or removed."
+          title={c.noneTitle}
+          fills={c.noneFills}
+          creates={c.noneCreates}
         />
       ) : (
         <ol className="nf-md-evidence__list">
@@ -110,22 +102,22 @@ export function DisputeEvidence({
               </span>
               <span className="nf-md-evidence__what">
                 {item.kind === "fact" ? (
-                  factLine(item, locale)
+                  factLine(item, locale, c)
                 ) : (
                   <>
                     <span className="block">
-                      {item.fileName ?? "A file"}
+                      {item.fileName ?? c.aFile}
                       {item.caption ? `: ${item.caption}` : ""}
                     </span>
                     <span className="nf-md-evidence__meta">
-                      {[kindWord(item.mimeType), size(item.sizeBytes)].filter(Boolean).join(" · ")}
+                      {[kindWord(item.mimeType, c), size(item.sizeBytes, c)].filter(Boolean).join(" · ")}
                       {" · "}
                       {item.fileUrl ? (
                         <a href={item.fileUrl} target="_blank" rel="noopener noreferrer" className="nf-md-evidence__open">
-                          Open file
+                          {c.openFile}
                         </a>
                       ) : (
-                        "Could not be opened just now"
+                        c.cannotOpen
                       )}
                     </span>
                   </>

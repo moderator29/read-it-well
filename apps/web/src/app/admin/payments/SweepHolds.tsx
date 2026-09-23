@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { formatMoney, getDictionary, plural, type Locale } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
+import { fill } from "../_components/copy";
 import { expireStaleWithdrawalHolds } from "@/lib/admin/payments-actions";
 import type { StaleHold } from "@/lib/admin/payments-queries";
 
@@ -50,6 +51,8 @@ export function SweepHolds({
    */
   asOf: string;
 }) {
+  const t = getDictionary(locale);
+  const c = t.admin.payments.sweep;
   const router = useRouter();
   const [minutes, setMinutes] = useState(String(defaultMinutes));
   const [confirming, setConfirming] = useState(false);
@@ -94,16 +97,11 @@ export function SweepHolds({
 
   return (
     <div className="nf-panel nf-panel--card nf-admin-card p-card">
-      <p className="nf-h4">Release the stuck holds</p>
-      <p className="nf-body-sm mt-row max-w-[68ch] text-content-2">
-        A withdrawal whose transfer never came back leaves a pending debit on the
-        wallet, and spendable balance is settled money minus pending debits. Until
-        the hold is cleared the owner is short that amount with nothing on their
-        screen explaining it.
-      </p>
+      <p className="nf-h4">{c.title}</p>
+      <p className="nf-body-sm mt-row max-w-[68ch] text-content-2">{c.body}</p>
 
       <label className="mt-group block max-w-[22rem]">
-        <span className="nf-label">Older than, in minutes</span>
+        <span className="nf-label">{c.window}</span>
         <input
           className="nf-field nf-numeric"
           inputMode="numeric"
@@ -114,10 +112,7 @@ export function SweepHolds({
             setDone(null);
           }}
         />
-        <span className="nf-caption mt-inline-tight block">
-          Ten minutes is the floor. Anything shorter would fail withdrawals that
-          are still on their way.
-        </span>
+        <span className="nf-caption mt-inline-tight block">{c.floor}</span>
       </label>
 
       {!confirming && (
@@ -131,9 +126,7 @@ export function SweepHolds({
               setConfirming(true);
             }}
           >
-            {affected.length === 0
-              ? "Nothing is stuck at that window"
-              : `Review ${affected.length === 1 ? "1 hold" : `${affected.length} holds`}`}
+            {affected.length === 0 ? c.nothing : plural(affected.length, c.review, locale)}
           </Button>
         </div>
       )}
@@ -141,21 +134,19 @@ export function SweepHolds({
       {confirming && (
         <div className="mt-group rounded-[var(--nf-radius-md)] border border-[var(--nf-state-warning)] p-card-sm">
           <p className="nf-body font-semibold text-content">
-            This will release {formatMoney(totalMinor, locale)} across{" "}
-            {affected.length === 1 ? "1 held withdrawal" : `${affected.length} held withdrawals`}.
+            {fill(c.willRelease, {
+              amount: formatMoney(totalMinor, locale),
+              withdrawals: plural(affected.length, c.withdrawals, locale),
+            })}
           </p>
-          <p className="nf-body-sm mt-row text-content-2">
-            Each one is marked failed and the money returns to the owner&apos;s
-            spendable balance. Nobody is paid by this. Anyone who still wants
-            their withdrawal has to start it again.
-          </p>
+          <p className="nf-body-sm mt-row text-content-2">{c.consequence}</p>
 
           <ul className="nf-rows mt-group">
             {affected.map((hold) => (
               <li key={hold.reference} className="nf-row">
                 <span className="min-w-0 flex-1">
                   <span className="nf-body-sm block font-semibold text-content">
-                    {hold.ownerName ?? "Name not on file"}
+                    {hold.ownerName ?? t.admin.payments.nameNotOnFile}
                   </span>
                   <span className="nf-caption block truncate">{hold.reference}</span>
                 </span>
@@ -168,7 +159,7 @@ export function SweepHolds({
 
           <div className="mt-group flex flex-wrap gap-inline">
             <Button type="button" variant="danger" loading={pending} onClick={run}>
-              Release {formatMoney(totalMinor, locale)}
+              {fill(c.release, { amount: formatMoney(totalMinor, locale) })}
             </Button>
             <Button
               type="button"
@@ -176,7 +167,7 @@ export function SweepHolds({
               disabled={pending}
               onClick={() => setConfirming(false)}
             >
-              Cancel
+              {c.cancel}
             </Button>
           </div>
         </div>
@@ -189,9 +180,7 @@ export function SweepHolds({
       )}
       {done !== null && (
         <p className="nf-body-sm mt-row font-medium text-[var(--nf-state-success)]">
-          {done === 0
-            ? "Nothing needed releasing. Every hold had already settled."
-            : `Released ${done === 1 ? "1 hold" : `${done} holds`}, with your name on the record.`}
+          {done === 0 ? c.nothingNeeded : plural(done, c.released, locale)}
         </p>
       )}
     </div>
