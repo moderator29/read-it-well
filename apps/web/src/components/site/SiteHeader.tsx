@@ -7,7 +7,6 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
 import { NavScrollState } from "./NavScrollState";
 import { SiteNavLinks } from "./SiteNavLinks";
-import { ThemeToggle } from "./ThemeToggle";
 
 /**
  * Marketing header, to the governing landing image.
@@ -65,12 +64,10 @@ export function SiteHeader({
               links={links}
               more={more}
               moreLabel={nav.more}
-              extras={
-                <>
-                  <ThemeToggle labels={t.uiCommon.theme} />
-                  <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
-                </>
-              }
+              /* The theme toggle stood beside the language switcher here
+                 until light mode was removed on 23 September 2026. One
+                 palette, no control. */
+              extras={<LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />}
             />
           </nav>
 
@@ -99,7 +96,6 @@ export function SiteHeader({
               signUp={nav.getStarted}
               openLabel={t.a11y.openMenu}
               closeLabel={t.a11y.closeMenu}
-              themeLabels={t.uiCommon.theme}
             />
           </div>
         </div>

@@ -9,7 +9,7 @@ import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { ICON } from "@/components/app/Screen";
 import { RowButton, RowLink, RowSelect, RowSwitch, SettingsGroup } from "@/components/app/account/rows";
 import { LanguageRow } from "@/components/app/account/SettingsGroups";
-import { useNfSettings, useThemeChoice, type ThemeChoice } from "@/components/app/account/settings-store";
+import { useNfSettings } from "@/components/app/account/settings-store";
 import { signOut, updateSettings } from "@/lib/profile/actions";
 import type { ResolvedProfileSettings } from "@/lib/profile/schema";
 import { RemoteImage } from "@/components/ui/RemoteImage";
@@ -213,12 +213,6 @@ export function SettingsHub({ t, locale, signedIn, person, notifications, device
   );
 
   /* ---------------------------------------------------------- appearance */
-  const { theme, chooseTheme } = useThemeChoice();
-  const themeOptions: { value: ThemeChoice; label: string }[] = [
-    { value: "dark", label: copy.themeDark },
-    { value: "light", label: copy.themeLight },
-    { value: "system", label: copy.themeSystem },
-  ];
 
   useEffect(() => {
     if (!saveError) return;
@@ -269,15 +263,14 @@ export function SettingsHub({ t, locale, signedIn, person, notifications, device
           }
           testId="hub-privacy"
         />
-        <RowSelect
-          glyph={<HubGlyph name="palette" />}
-          label={copy.label}
-          sub={hub.appearanceSub}
-          value={theme}
-          options={themeOptions}
-          onChange={chooseTheme}
-          testId="hub-theme"
-        />
+        {/*
+          THE APPEARANCE ROW IS GONE, and it was the theme. The founder removed
+          light mode from the platform on 23 September 2026, so this hub has
+          nothing to offer here: one palette, no choice, and the row deleted
+          rather than left showing "Dark" as the only option somebody can pick.
+          Text size and reduced motion still live on the Appearance card inside
+          `/settings`, which is where they always were.
+        */}
         <LanguageRow
           t={t}
           current={locale}

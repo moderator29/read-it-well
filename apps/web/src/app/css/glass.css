@@ -938,95 +938,35 @@
   }
 
   /*
-   * The theme switch for the 23 marks that ship with a light twin.
-   *
-   * No filter gets from one to the other: the difference is which parts of the
-   * object are transparent, so a frosted-white mark keyed off white inverts on
-   * a dark ground (the tick inside `seal-check` turns black). Both files are in
-   * the markup and this chooses. See the long note in `BrandIcon.tsx` for why
-   * it is not `<picture>` and not an effect.
-   */
-  .nf-brand-icon--day {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-brand-icon--day {
-    display: block;
-  }
-  :root[data-theme="light"] .nf-brand-icon--night {
-    display: none;
-  }
-
-  /*
    * The untiled object's ground, and the default treatment for a brand object
    * everywhere on the platform.
    *
-   * IN THE DARK THEME THIS PAINTS NOTHING, and that was the acceptance test for
-   * the artwork swap. `--nf-icon-ground` is `transparent` at night now: if an
-   * object still needed a plate to be legible on the canvas, the cutout would be
-   * wrong and the answer would be to recut it rather than to keep the plate.
+   * IT PAINTS NO PLATE AT ALL NOW, IN THE ONLY THEME THERE IS.
    *
-   * It still exists because daylight wants it the other way round. A glass
-   * object is see-through by design, so its interior alpha is partial, which is
-   * correct against a dark ground and reads thin on white paper. So in the light
-   * theme the token is the base navy and the 80 objects with no light twin sit
-   * on a navy chip, which gives the glass something to be glass against. That
-   * was tested on four real surfaces rather than assumed: see
-   * `docs/img/glass-in-daylight.png` and `docs/FRONTEND_REVAMP.md` 2.8.
+   * This element once carried a near-white plate, because the old clay artwork
+   * was opaque RGB keyed out with `mix-blend-mode: multiply` and multiply over
+   * a near-black canvas returns the canvas. `public/brand/glass` has a real
+   * alpha channel, so that plate went and the element painted nothing at
+   * night, which was the acceptance test for the artwork swap and it passed.
    *
-   * ONE LAYER. A flat plate with a squircle radius: no border, no rim, no
-   * shadow, no glow, no inner well, no parallax.
+   * It kept a background for one reason only: DAYLIGHT. A glass object is
+   * see-through by design, so its interior alpha is partial, which is correct
+   * against a dark ground and read thin on white paper, and the untwinned
+   * objects sat on a navy chip to give the glass something to be glass
+   * against. The founder removed light mode on 23 September 2026, so
+   * `--nf-icon-ground`, `--nf-icon-ground-edge` and `--nf-icon-plate` are
+   * deleted from `tokens.css` and the `--twinned` variant that switched the
+   * plate off is deleted here. There is nothing left to declare.
    *
-   * THE ACCEPTANCE TEST FOR DELETING THIS ENTIRELY. L-60 asked for the blend
-   * mode, this token and this class to go once the glass objects were wired.
-   * The blend mode is gone and the night plate is gone; the daylight plate is
-   * what is left, and a standing exception with no stated exit is just a
-   * decision nobody wrote down. There are two ways out of it and the first one
-   * is countable.
+   * WHAT THE ELEMENT IS FOR NOW, because it is not nothing. It holds the
+   * object square, gives it a squircle corner, keeps seven per cent of room
+   * around artwork whose own transparent margin runs from five to fourteen per
+   * cent, and it is the hook the three rules below hang a lit rim on where the
+   * object IS the tile.
    *
-   * ONE: THE TWIN COUNT REACHES ZERO. `--twinned` below already sets
-   * `background: none`, so a mark drops its chip the day its light twin lands
-   * and nothing here changes.
-   *
-   * THE COUNT IN THIS PARAGRAPH WAS WRONG BY FIFTY ONE PER CENT AND IT WAS THE
-   * FILE TRACKING THE FINISH LINE. It said 103 marks ship and 80 are untwinned.
-   * Counted from disk on 22 September: `public/brand/glass/*.png` holds 144
-   * objects, `BRAND_ICONS` lists exactly 144 names, and `LIGHT_TWINS` holds 23,
-   * so 121 are untwinned. The number had been moving AWAY from zero since this
-   * was written, because the 41 render crops arrived after it and none of them
-   * can be twinned. `docs/ICON_SYSTEM.md:18` carried the same stale pair.
-   *
-   * So: 144 marks ship and 23 are twinned, so 121 are not; the live number is
-   * `144 - LIGHT_TWINS.size` in
-   * `design-system/icons/BrandIcon.tsx`. When it reaches 0 this rule's
-   * background has no consumer in either theme, and `--nf-icon-ground`,
-   * `.nf-brand-icon-ground` and `.nf-brand-icon-ground--twinned` come out
-   * together in one commit with nothing left to decide.
-   *
-   * TWO: THE CUTOUT TEST, if those 80 twins are never drawn. Set the daylight
-   * `--nf-icon-ground` to `transparent` and look at the untwinned marks on
-   * white at both ends of the range they ship at, 16px inside a list row and
-   * 160px on an empty state. This is the daylight half of the test recorded
-   * above, which is what retired the plate at night. A mark PASSES when its
-   * interior still reads as a surface; it FAILS when it reads as a watermark of
-   * itself, white showing through its own fill. That failure is not subtle and
-   * needs no measurement, which is why this is an eye and not a script: these
-   * objects are see-through on purpose, so the question is never "is it
-   * visible" but "does it read as an object or as a stain". If a mark fails,
-   * recut that mark. Keeping the plate for all 80 because one of them failed is
-   * what the night theme did for two years.
-   *
-   * AND ONE THING THAT IS NOT THE TEST. The chip has a second argument in
-   * daylight that has nothing to do with rescuing a cutout: a glass object
-   * needs something to be glass against, and a navy chip is the container
-   * answer rather than the recolour answer. If the 80 pass the cutout test on
-   * white and still read thin, the plate is worth keeping ON PURPOSE. Write
-   * that here if that is where it lands, because an exception that has been
-   * re-argued and kept is a different thing from one nobody went back to.
-   *
-   * `aspect-ratio: 1` is what makes the percentage radius honest. A percentage
-   * corner on a non-square box draws an ellipse, and a fixed radius cannot serve
-   * a plate that is 16px behind a list row and 160px on an empty state, so the
-   * radius stays proportional and the box is held square instead.
+   * `aspect-ratio: 1` is what makes the percentage radius honest: a percentage
+   * corner on a non-square box draws an ellipse, and a fixed radius cannot
+   * serve a box that is 16px behind a list row and 160px on an empty state.
    */
   .nf-brand-icon-ground {
     align-items: center;
@@ -1035,98 +975,15 @@
     aspect-ratio: 1;
     border-radius: var(--nf-radius-squircle);
     /*
-     * THE PLATE IS ONE TOKEN AND IT IS A GRADIENT NOW, not a fill. At night it
-     * resolves to `none` and this paints exactly nothing, which is the same
-     * acceptance test the transparent fill was passing before. In daylight it
-     * is a radial from a deep core out to the navy rim that meets the page:
-     * the whole argument, with the measurements, is beside `--nf-icon-plate` in
-     * `tokens.css`, and the short version is that the colour the OBJECT needs
-     * under it and the colour the PAGE needs against it are not the same colour
-     * and a fill can only be one of them.
-     */
-    background: var(--nf-icon-plate);
-    /*
-     * ROOM AROUND THE OBJECT. The note above says the artwork carries its own
-     * transparent margin so the chip needs no padding, and on the marks with
-     * fourteen per cent of margin that is true. On the ones with five it is
-     * not: the founder read the object as jammed against the edge of its
-     * plate, and it was. Seven per cent is the difference between the
-     * tightest artwork and the roomiest, so every object now stands off its
-     * plate by at least as much as the most generous one already did.
+     * ROOM AROUND THE OBJECT. The artwork carries its own transparent margin,
+     * and on the marks with fourteen per cent that is enough; on the ones with
+     * five it is not, and the founder read the object as jammed against the
+     * edge of its plate. Seven per cent is the difference between the tightest
+     * artwork and the roomiest.
      */
     padding: 7%;
   }
-  /*
-   * A twinned mark never takes the chip. The 23 transaction marks arrive on
-   * their own rounded glass tile, so a chip behind one is a tile around a tile,
-   * and their light twin is already drawn for paper.
-   */
-  .nf-brand-icon-ground--twinned {
-    background: none;
-  }
-  /*
-   * The chip gets an edge in daylight, and only in daylight.
-   *
-   * The one-layer rule above is right and this does not break it: at night the
-   * chip paints nothing at all, so there is nothing to put a rim on. On paper
-   * a deep navy square against white has a hard machine-cut boundary, and a
-   * hairline in the same brand ink every container now carries is what turns
-   * that boundary into an edge the object is standing on. It is the same line
-   * as the strides, at the quiet rung, so the chip belongs to the containers
-   * around it instead of sitting in front of them.
-   */
-  /*
-   * AND ON PAPER THE PLATE IS LIT EVERYWHERE, NOT ONLY WHERE IT IS THE SUBJECT.
-   *
-   * This rule used to put a quiet `--nf-edge-stride-base` hairline on the
-   * daylight chip, and the reasoning below it, that a lit rim on every inline
-   * mark would be nested chrome, is the right worry aimed at the wrong theme.
-   *
-   * WHAT WAS MEASURED. 121 of 144 objects have no light twin, so on paper they
-   * keep painting their DARK artwork on `--nf-icon-ground`, which was `#052A6D`
-   * when this was written. The median object pixel falls from 2.42:1 against the
-   * night canvas to 1.60:1 against that navy chip, a 33 per cent median loss,
-   * and 45 of the 121 fall under 1.5:1. The chip itself is 13.47:1 against the
-   * white page. So the eye resolves the SQUARE and not the object in it, by a
-   * factor of about six, and that is the whole mechanism of the founder's
-   * "images not showing": the image is there and the chip is louder than it.
-   *
-   * WHY THIS RULE AND NOT A RECOLOUR. The one surface in the product where the
-   * founder says the objects read correctly on paper is the home market grid,
-   * and the only thing different about it is the rule below: the chip is framed
-   * with `--nf-glow-edge` there, so it reads as a small dark plate CARRYING a
-   * mark rather than as a hole punched in a white card. That was designed in
-   * deliberately on three selectors and defaulted to everywhere else. It is the
-   * pattern, so it becomes the default.
-   *
-   * THE NESTED-CHROME ARGUMENT DOES NOT REACH PAPER. At night the chip paints
-   * nothing at all, `--nf-icon-ground` being `transparent`, so there is no
-   * plate for a rim to sit on and a lit rim there really would be chrome around
-   * nothing. In daylight the chip is ALWAYS an opaque navy square whether
-   * anybody wanted it or not, so the rim is not chrome added to a mark, it is
-   * the edge of a plate that is already being drawn. The choice on paper was
-   * never "plate or no plate", it was "plate that reads as a container" or
-   * "plate that reads as a hole".
-   *
-   * THE RIM WAS A HOLDING ANSWER AND THE FILL UNDER IT HAS SINCE BEEN FIXED.
-   * The rim is still right and still here: it is what stops the plate reading
-   * as a hole, and the home grid is still the surface that proved it. What it
-   * never did was change the number above, because a shadow outside the plate
-   * cannot alter what the object is composited against INSIDE it. That is now
-   * a gradient, `--nf-icon-plate`, deep under the object and the same navy at
-   * the rim, which takes the object's median from 2.37:1 to 3.40:1 without
-   * moving the 13.44:1 edge the page sees. The measurements and the reasoning
-   * are beside the token in `tokens.css`, and the instrument is
-   * `docs/design/proofs/paper/measure-object-ground.mjs`.
-   *
-   * IT IS STILL NOT ARTWORK. 29 of the 121 remain under 3:1 on the best ground
-   * that exists without a render. Commissioning the missing light twins is a
-   * render order and the founder's to place: `docs/FOUNDER_ARTWORK_NEEDED.md`
-   * names every surface and every object still owed one.
-   */
-  :root[data-theme="light"] .nf-brand-icon-ground {
-    box-shadow: var(--nf-glow-edge);
-  }
+
   /*
    * THE PLATE IS LIT WHEREVER IT IS THE SUBJECT.
    *
@@ -1137,26 +994,14 @@
    * the reference draws a lit blue edge with light coming off it, and ours
    * drew a flat dark square. `--nf-glow-edge` is the same rung every card and
    * control now wears, so the plate joins the family rather than inventing a
-   * fourth look.
+   * fourth look. This is now the ONLY thing `.nf-brand-icon-ground` paints,
+   * since the fill behind it went with light mode.
    */
   .nf-home__market-art .nf-brand-icon-ground,
   .nf-landing-cat-icon .nf-brand-icon-ground,
   .nf-landing-orb .nf-brand-icon-ground {
     box-shadow: var(--nf-glow-edge);
   }
-  :root[data-theme="light"] .nf-brand-icon-ground--twinned {
-    box-shadow: none;
-  }
-  /*
-   * An object already standing on a dark stage needs no chip in daylight
-   * either: the stage IS the chip, and a slightly different navy inside it
-   * would read as a rounded rectangle nobody asked for.
-   */
-  :root[data-theme="light"] .nf-story-stage--paper .nf-brand-icon-ground,
-  :root[data-theme="light"] .nf-story-stage--night .nf-brand-icon-ground {
-    background: none;
-  }
-
   /*
    * The icon tile: the chip a surface asks for when the object is its subject.
    *
@@ -1304,11 +1149,7 @@
     pointer-events: none;
     background: color-mix(in oklab, var(--nf-canvas-base) 30%, transparent);
     animation: nf-confirm-dim var(--nf-duration-cinematic) var(--nf-ease-standard) both;
-  }
-  :root[data-theme="light"] .nf-confirm-dim {
-    background: var(--nf-wash-5);
-  }
-  @keyframes nf-confirm-dim {
+  }  @keyframes nf-confirm-dim {
     0% { opacity: 0; }
     32% { opacity: 1; }
     100% { opacity: 0; }

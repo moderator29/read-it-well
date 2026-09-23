@@ -799,36 +799,26 @@
 
   /* Brand object ground
    *
-   * THIS IS TRANSPARENT AT NIGHT NOW, AND THAT WAS THE ACCEPTANCE TEST.
+   * THE PLATE TOKENS ARE GONE AND THE ELEMENT PAINTS NOTHING.
    *
-   * It used to be #F5F7FD, a near-white plate painted behind every untiled
-   * brand object. It had to be. The clay artwork was opaque RGB rendered on
-   * white and the white was removed at paint time with
-   * `mix-blend-mode: multiply`; multiply against a near-black canvas returns
-   * near-black, so an object with nothing light behind it was not subtle, it was
-   * gone. The plate was the rescue, and the cost was that every content object
-   * on the default theme was a white sticker on navy.
+   * `--nf-icon-ground`, `--nf-icon-ground-edge` and `--nf-icon-plate` declared
+   * the chip an untiled brand object stood on. It was `transparent` here and a
+   * navy plate in the light theme, and that asymmetry was the whole reason it
+   * existed: the old clay artwork needed a near-white plate to survive
+   * `mix-blend-mode: multiply` over a near-black canvas, the glass pack has a
+   * real alpha channel and needed none, and only daylight still wanted one,
+   * because a see-through object reads thin on white paper.
    *
-   * `public/brand/glass` has a real alpha channel, so the plate is not needed
-   * and its absence is how the cutout is judged: if an object still required
-   * something light behind it to read on the canvas, the cut would be wrong and
-   * the answer would be to recut it rather than to keep the plate.
+   * The founder removed light mode on 23 September 2026. With no white paper
+   * there is nothing for a plate to rescue, so the tokens are deleted and
+   * `.nf-brand-icon-ground` in `glass.css` keeps only the geometry: square,
+   * squircle corner, seven per cent of room, and the lit rim the three
+   * surfaces that make the object their subject ask for by name.
    *
-   * The light value is where the token still earns its place. See the note in
-   * the daylight block below. */
-  --nf-icon-ground: transparent;
-  /*
-   * THE PLATE IS THREE TOKENS NOW, AND AT NIGHT ALL THREE PAINT NOTHING.
-   *
-   * `--nf-icon-ground` is the colour under the OBJECT, `--nf-icon-ground-edge`
-   * is the colour that meets the PAGE, and `--nf-icon-plate` is the background
-   * the two of them make. They are separate because the two jobs pull in
-   * opposite directions and one colour cannot do both: see the daylight block.
-   * Here the plate is switched off entirely, which is the acceptance test the
-   * note above describes, so all three are the absence of a plate rather than a
-   * value that happens not to show. */
-  --nf-icon-ground-edge: transparent;
-  --nf-icon-plate: none;
+   * THE ACCEPTANCE TEST THIS CLOSES, recorded because it was open for months.
+   * L-60 asked for the blend mode, the token and the class to go once the
+   * glass objects were wired, and the daylight plate was the last of the three
+   * standing. It is out. */
 
   /* State
    *

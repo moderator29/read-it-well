@@ -1,7 +1,7 @@
 "use client";
 
 import { Browser } from "@capacitor/browser";
-import { CHROME_COLOUR, currentTheme } from "./theme";
+import { CHROME_COLOUR } from "@/lib/theme/chrome";
 
 /**
  * Anything that is not ours opens in the system browser, never in the shell.
@@ -131,7 +131,7 @@ export async function openExternal(url: string): Promise<void> {
   try {
     await Browser.open({
       url,
-      toolbarColor: CHROME_COLOUR[currentTheme()],
+      toolbarColor: CHROME_COLOUR,
       presentationStyle: "fullscreen",
     });
   } catch {

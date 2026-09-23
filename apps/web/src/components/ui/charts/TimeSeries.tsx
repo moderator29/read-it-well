@@ -7,11 +7,14 @@ import { CHART_INK, CHART_SERIES } from "./palette";
  * nostalgic. Every console page is a server component today; every popular
  * charting library's chart is a client component, so adopting one turns each
  * charted desk into a client boundary and ships the desk's data twice, once
- * as HTML and once as the RSC payload for hydration. Our theme lives in CSS
- * custom properties that change under `[data-theme="light"]`, and an SVG
- * `stroke="var(--nf-brand-primary)"` follows that with no JavaScript, while a
- * canvas library has to resolve the property in JS on the client, which is a
- * flash of the wrong colour and a theme listener per chart. And every one of
+ * as HTML and once as the RSC payload for hydration. Our palette lives in CSS
+ * custom properties and an SVG `stroke="var(--nf-brand-primary)"` follows a
+ * retune of one with no JavaScript, while a canvas library has to resolve the
+ * property in JS on the client, which is a flash of the wrong colour. (This
+ * used to say "change under `[data-theme="light"]`" and cite a theme listener
+ * per chart; light mode was removed on 23 September 2026, so the argument is
+ * now about a token moving rather than a theme switching, and it is the same
+ * argument.) And every one of
  * them ships a categorical default containing the four banned hues. This is
  * about 2KB and has none of those properties.
  *

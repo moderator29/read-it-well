@@ -105,12 +105,19 @@ export function MapCanvas({
   const [tick, setTick] = useState(0);
   const [engineReady, setEngineReady] = useState(false);
   const [imagery, setImagery] = useState<"loading" | "ready" | "offline">("loading");
-  const [theme, setTheme] = useState<"dark" | "light" | null>(null);
+  /* THE MAP FOLLOWS THE PLATFORM AND THE PLATFORM HAS ONE THEME. This was
+     `useState(null)` plus a `MutationObserver` on `data-theme`, so the tiles
+     could swap when somebody switched to paper mid-map. Light mode was removed
+     on 23 September 2026, the attribute can never appear, and an observer
+     waiting for something that cannot happen is the dead machinery that gets
+     re-enabled by accident. The null start went with it: there is no longer a
+     first render where the answer is unknown. */
+  const theme = "dark" as const;
   /* The credit line belongs to whichever provider is actually serving tiles.
      Both providers credit the same names whatever the style, so the theme here
      only picks a variant; it is passed for completeness rather than because the
      answer changes with it. */
-  const credits = tileProvider(theme === "light" ? "light" : "dark").credits;
+  const credits = tileProvider(theme).credits;
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [soloIds, setSoloIds] = useState<ReadonlySet<string>>(() => new Set<string>());
@@ -156,16 +163,6 @@ export function MapCanvas({
     read();
     const observer = new ResizeObserver(read);
     observer.observe(frame);
-    return () => observer.disconnect();
-  }, []);
-
-  // ------------------------------------------------------------------ theme
-  useEffect(() => {
-    const root = document.documentElement;
-    const read = () => setTheme(root.dataset.theme === "light" ? "light" : "dark");
-    read();
-    const observer = new MutationObserver(read);
-    observer.observe(root, { attributes: true, attributeFilter: ["data-theme"] });
     return () => observer.disconnect();
   }, []);
 
@@ -232,10 +229,10 @@ export function MapCanvas({
   useEffect(() => {
     const map = mapRef.current;
     const leaflet = leafletRef.current;
-    if (!map || !leaflet || !theme) return;
+    if (!map || !leaflet) return;
     tileRef.current?.remove();
     warnIfNonCommercialTiles();
-    const tiles = tileProvider(theme === "light" ? "light" : "dark");
+    const tiles = tileProvider(theme);
     const layer = leaflet.tileLayer(tiles.url, {
       maxZoom: tiles.maxZoom,
       minZoom: 4,

@@ -1,7 +1,8 @@
 /*
   catalogue: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
-  section 2. Light-theme rules for this family live here too, under
-  :root[data-theme="light"], so the partial is the whole surface.
+  section 2. There is one theme: the founder removed light mode on 23 September
+  2026 and the paper rules that used to live here are deleted, so the partial
+  is the whole surface for the only palette there is.
 
   Governing images: 3EB3E2A9 (results and the filter sheet), 9E8B56ED and
   7B5335E0 (listing detail), 9F384CFE (move-in ledger), FD3DFE84 (stays home),
@@ -2181,103 +2182,6 @@
       }
     }
   }
-
-  /* ========================================================= the paper twin
-     Same anatomy on daylight: white surfaces, hairline borders, the brand
-     blue for figures and marks, no blur over a solid canvas. */
-  /* `.nf-pcard` and `.nf-stays-tile` are NOT in this list: they wear
-     `.nf-glass--card` and `.nf-glass--tile`, whose own paper twins live in
-     the shared light partial. Repeating them here would overrule the
-     system's card on daylight with a flatter one. */
-  :root[data-theme="light"] .nf-shelf-field,
-  :root[data-theme="light"] .nf-shelf-square,
-  :root[data-theme="light"] .nf-shelf-chip,
-  :root[data-theme="light"] .nf-shelf-sort > summary,
-  :root[data-theme="light"] .nf-filters__tile,
-  :root[data-theme="light"] .nf-filters__row,
-  :root[data-theme="light"] .nf-detail-tag,
-  :root[data-theme="light"] .nf-detail-verified,
-  :root[data-theme="light"] .nf-spec-tile,
-  :root[data-theme="light"] .nf-detail-movein__rooms,
-  :root[data-theme="light"] .nf-detail-panel,
-  :root[data-theme="light"] .nf-amenity-tile,
-  :root[data-theme="light"] .nf-agent-card,
-  :root[data-theme="light"] .nf-ledger-card,
-  :root[data-theme="light"] .nf-ledger-row__glyph,
-  :root[data-theme="light"] .nf-stay-card__chip,
-  :root[data-theme="light"] .nf-stay-facts,
-  :root[data-theme="light"] .nf-stay-fact,
-  :root[data-theme="light"] .nf-stay-type,
-  :root[data-theme="light"] .nf-room-tile,
-  :root[data-theme="light"] .nf-reg-card {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-stay-facts {
-    background: var(--nf-surface-primary);
-  }
-  /*
-   * THE CHOSEN FILTER TILE WAS WHITE INK ON A WHITE PLATE ON DAYLIGHT, AND
-   * THIS IS THE FIX. Found in a 390 light proof of the stays filter sheet on
-   * 19 September: the Any tile under Rating rendered as an empty white box.
-   *
-   * The mechanism is the ordinary one for this file. The paper-twin list
-   * above names `.nf-filters__tile` and paints it `--nf-surface-primary`, at
-   * a specificity of three, and the chosen state a few hundred lines up is
-   * `.nf-filters__tile[aria-pressed="true"]`, which is two. So the white
-   * surface won the background and the chosen state still won the ink, which
-   * it sets to `--nf-content-on-brand`: white letters on white paper. Every
-   * sheet in the product opens with at least one tile chosen, so this was on
-   * screen the moment a light user opened Filters, in both sheets.
-   *
-   * `.nf-shelf-chip--on` two rules down has had this exact companion rule all
-   * along, which is why the shelf chips were right and these were not: the
-   * tile's chosen state is spelled with an attribute rather than a modifier
-   * class, so it was never added to that list. It is spelled out here rather
-   * than folded into that selector because a pressed tile also carries the
-   * brand edge and the glow, and the shelf chip's light rule is the right
-   * shape for both.
-   *
-   * NOT A SHAPE CHANGE. The radius work of this pass did not cause it and
-   * does not depend on it; it was found by looking at the proof.
-   */
-  :root[data-theme="light"] .nf-filters__tile[aria-pressed="true"],
-  :root[data-theme="light"] .nf-filters__tile[aria-checked="true"],
-  :root[data-theme="light"] .nf-shelf-chip--on,
-  :root[data-theme="light"] .nf-stays-tile.nf-stays-tile--on,
-  :root[data-theme="light"] .nf-gallery-mark--market,
-  :root[data-theme="light"] .nf-detail-tag--market {
-    background: var(--nf-brand-primary);
-    border-color: var(--nf-brand-primary);
-    color: var(--nf-content-on-brand);
-    box-shadow: 0 4px 12px var(--nf-glow-3);
-  }
-  :root[data-theme="light"] .nf-shelf-chip--on > svg,
-  :root[data-theme="light"] .nf-detail-tag--market > svg,
-  :root[data-theme="light"] .nf-filters__tile[aria-pressed="true"] > svg,
-  :root[data-theme="light"] .nf-filters__tile[aria-checked="true"] > svg,
-  :root[data-theme="light"] .nf-stays-tile.nf-stays-tile--on {
-    color: var(--nf-content-on-brand);
-  }
-  :root[data-theme="light"] .nf-filters {
-    background: var(--nf-surface-canvas);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-  :root[data-theme="light"] .nf-detail-tabs {
-    background: var(--nf-surface-canvas);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-  :root[data-theme="light"] .nf-detail-movein {
-    background:
-      linear-gradient(135deg, var(--nf-brand-tint-2), transparent 60%),
-      var(--nf-surface-primary);
-    border-color: var(--nf-border-brand);
-    box-shadow: var(--nf-elev-1);
-  }
-
   /* ============================ what a tenant will actually pay (Track H)
      GOVERNING-08 screen two, "What will a tenant actually pay?": one glass row
      per cost, each carrying its 3D object on a rounded plate, the cost's name
@@ -2402,50 +2306,6 @@
     color: var(--nf-content-primary);
     text-shadow: 0 0 24px var(--nf-glow-2);
   }
-
-  :root[data-theme="light"] .nf-detail-movein__figure,
-  :root[data-theme="light"] .nf-ledger-total__figure {
-    text-shadow: none;
-  }
-  :root[data-theme="light"] .nf-amenity-tile > svg {
-    filter: none;
-  }
-  :root[data-theme="light"] .nf-shelf-sort__menu {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-  }
-  :root[data-theme="light"] .nf-filters__row-select > option {
-    color: var(--nf-content-primary);
-  }
-  /*
-     The Track H cost rows in LIGHT: the dark well and the lit rim have no
-     meaning on paper, so the declared rows take the paper card and its border
-     and the undeclared ones stay on the page ground with the subtle line.
-  */
-  :root[data-theme="light"] .nf-movein__row {
-    background: var(--nf-surface-primary);
-    /* NOT `--nf-border-subtle`: B2 measured it at 1.17:1 on the white card,
-       which is no boundary at all, and that is the exact drift that made the
-       money family the worst surface in the product. An UNDECLARED row is the
-       quiet one, so it takes the default paper border rather than the brand
-       edge the declared rows take below. */
-    border-color: var(--nf-border-default);
-  }
-  :root[data-theme="light"] .nf-movein__row[data-declared] {
-    border-color: var(--nf-border-brand);
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-movein__total {
-    background:
-      linear-gradient(135deg, var(--nf-brand-tint-2), transparent 60%),
-      var(--nf-surface-primary);
-    border-color: var(--nf-border-brand);
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-movein__total-figure {
-    text-shadow: none;
-  }
-
   /* ====================================================== THE LISTING WIZARD
      GOVERNING-06 (what are you listing, where is it, the rooms, condition and
      availability), GOVERNING-07 (light, water, amenities, photos and the
@@ -3106,65 +2966,4 @@
     width: 2.25rem;
     height: 2.25rem;
     flex-shrink: 0;
-  }
-
-  /* ---------------------------------------------------------------- light
-     Every rule above assumes the night canvas. On paper the well and the lit
-     rim mean nothing, so the containers take the paper card and its border
-     and the glow comes off entirely. */
-  :root[data-theme="light"] .nf-lw-choice,
-  :root[data-theme="light"] .nf-lw-tile,
-  :root[data-theme="light"] .nf-lw-fact,
-  :root[data-theme="light"] .nf-lw-details,
-  :root[data-theme="light"] .nf-lw-note,
-  :root[data-theme="light"] .nf-lw-add,
-  :root[data-theme="light"] .nf-lw-back,
-  :root[data-theme="light"] .nf-lw-step {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-  }
-  /* On paper the lit rim is a smudge, so the resting cards take the paper
-     card's own elevation and the ring comes off. */
-  :root[data-theme="light"] .nf-lw-choice,
-  :root[data-theme="light"] .nf-lw-tile {
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-lw-fact__plate,
-  :root[data-theme="light"] .nf-lw-step__value {
-    background: var(--nf-surface-inset);
-    border-color: var(--nf-border-default);
-  }
-  :root[data-theme="light"] .nf-lw-choice[aria-pressed="true"],
-  :root[data-theme="light"] .nf-lw-choice[aria-checked="true"],
-  :root[data-theme="light"] .nf-lw-tile[aria-pressed="true"] {
-    background: linear-gradient(160deg, var(--nf-brand-tint-2), transparent 70%), var(--nf-surface-primary);
-    border-color: var(--nf-border-brand);
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-lw-id {
-    background: linear-gradient(170deg, var(--nf-brand-tint-2), transparent 75%), var(--nf-surface-primary);
-    border-color: var(--nf-border-brand);
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-lw-rail__seg {
-    background: var(--nf-surface-inset);
-  }
-  /* The glow is a night effect. On paper it is a smudge. */
-  :root[data-theme="light"] .nf-lw-rail__seg[data-done],
-  :root[data-theme="light"] .nf-lw-rail__seg[data-at],
-  :root[data-theme="light"] .nf-lw-add__plus,
-  :root[data-theme="light"] .nf-lw-shot[data-cover] {
-    box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-lw-rail__seg[data-done] {
-    background: var(--nf-gradient-brand);
-  }
-  :root[data-theme="light"] .nf-lw-choice__tick {
-    filter: none;
-  }
-  :root[data-theme="light"] .nf-lw-choice__glyph,
-  :root[data-theme="light"] .nf-lw-tile > svg,
-  :root[data-theme="light"] .nf-lw-fact__plate > svg {
-    filter: none;
-  }
-}
+  }}

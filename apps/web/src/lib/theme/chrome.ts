@@ -1,6 +1,10 @@
 /**
- * The colour of the chrome ABOVE the page, in both themes, and the one place
- * it is written down.
+ * The colour of the chrome ABOVE the page, and the one place it is written
+ * down.
+ *
+ * IT WAS A PAIR UNTIL 23 SEPTEMBER 2026, when the founder removed light mode.
+ * There is one theme, so there is one chrome colour, and the `AppTheme` union
+ * that used to index this record is gone with it.
  *
  * FOUR THINGS PAINT THIS AND NONE OF THEM CAN READ A TOKEN.
  *
@@ -23,22 +27,19 @@
  * and nearer the header, which is the surface it actually touches. Somebody
  * chose this value correctly and recorded only that it matched, so the next
  * person to reach for the obvious token would have moved the chrome nine units
- * away from the thing it abuts. In light the two answers coincide, which is why
- * only the dark value ever looked arbitrary.
+ * away from the thing it abuts.
  *
- * NO `"use client"` HERE, DELIBERATELY. `lib/native/theme.ts` carries that
- * directive because it owns a `MutationObserver`, and `manifest.ts` is a server
- * route. Two plain constants and a type belong below that boundary so both
- * sides can read them without either one pulling the other's runtime in.
+ * NO `"use client"` HERE, DELIBERATELY. This constant is read by
+ * `viewport.themeColor` in the root layout and by `manifest.ts`, both of which
+ * are server side, and by two Capacitor helpers that are not. A plain constant
+ * belongs below that boundary so both sides can read it without either one
+ * pulling the other's runtime in. (There used to be a client module above it
+ * that owned a `MutationObserver` on `data-theme`; it went with light mode on
+ * 23 September 2026.)
  *
  * `capacitor.config.ts` is the one consumer that still writes the value out by
  * hand, because it sits outside `src` and is read by tooling rather than by the
  * app. Its comment points here. If these values move, that file moves with them.
  */
 
-export type AppTheme = "dark" | "light";
-
-export const CHROME_COLOUR: Record<AppTheme, string> = {
-  dark: "#010118",
-  light: "#F4F5F7",
-};
+export const CHROME_COLOUR = "#010118";

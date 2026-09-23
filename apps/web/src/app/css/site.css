@@ -1,7 +1,8 @@
 /*
   site: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
-  section 2. Light-theme rules for this family live here too, under
-  :root[data-theme="light"], so the partial is the whole surface.
+  section 2. There is one theme: the founder removed light mode on 23 September
+  2026 and the paper rules that used to live here are deleted, so the partial
+  is the whole surface for the only palette there is.
 
   The marketing shell (header and footer, on every public page) and the
   register the content pages inherit from the landing: a photo plate behind
@@ -345,39 +346,6 @@
       0 0 0 1px var(--nf-brand-edge-soft),
       0 0 28px var(--nf-glow-1);
   }
-
-  /* -------------------------------------------------------- daylight */
-
-  :root[data-theme="light"] .nf-site-footer {
-    border-top-color: var(--nf-border-subtle);
-  }
-  :root[data-theme="light"] .nf-site-footer::before {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-site-newsletter-field {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-    box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-site-newsletter-field button {
-    box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-site .nf-card {
-    box-shadow: var(--nf-elev-1);
-  }
-  /* The head keeps its photograph in daylight, like the landing hero; only
-     the foot of the scrim changes colour, which the canvas token does. */
-  /* The paper twin takes the same brand edge for the same reason. Leaving the
-     hairline here would have given dark the render's blue outline and paper a
-     grey one, which is the divergence this cycle has already closed twice on
-     other controls. The landing ink and control fill stay, because this chip
-     still sits on a photograph in both themes. */
-  :root[data-theme="light"] .nf-site-head .nf-chip {
-    color: var(--nf-landing-fg);
-    background: var(--nf-landing-control);
-    border-color: var(--nf-brand-edge);
-  }
-
   /*
    * The social row under the newsletter field: X and Telegram, as small lit
    * glass squares in the same family as every other icon plate on the

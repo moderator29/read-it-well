@@ -206,14 +206,14 @@ export function ResultSheet(props: ResultSheetProps) {
         style={{ "--nf-result-ink": tone.ink } as React.CSSProperties}
       >
         {/*
-          ONE GLOW, BEHIND ONE OBJECT, ONLY IN THE DARK, AND NEVER ON BAD NEWS.
+          ONE GLOW, BEHIND ONE OBJECT, AND NEVER ON BAD NEWS.
 
-          A blurred coloured halo on white paper reads as a print smudge, so
-          the light twin gets none of it: the state's ink appears there only in
-          the verdict's colour and in the primary button. The arbitrary variant
-          is how that is said from a component file, because the stylesheet
-          that would ordinarily carry a `:root[data-theme="light"]` rule
-          belongs to the material layer and not to this one.
+          It used to carry `[html[data-theme=light]_&]:hidden`, because a
+          blurred coloured halo on white paper reads as a print smudge. Light
+          mode was removed from the platform on 23 September 2026, so the only
+          ground this glow can land on is the one it was drawn for, and a
+          Tailwind variant keyed on an attribute that can never appear is dead
+          weight in the class string.
 
           AND A FAILURE DOES NOT GLOW. Two reasons, and the first one is a hard
           rule. Rose at 26 per cent, blurred, over navy composites to a
@@ -228,7 +228,7 @@ export function ResultSheet(props: ResultSheetProps) {
         {state !== "failed" && state !== "expired" && (
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-0 -z-10 h-72 w-72 -translate-x-1/2 [html[data-theme=light]_&]:hidden"
+            className="pointer-events-none absolute left-1/2 top-0 -z-10 h-72 w-72 -translate-x-1/2"
             style={{
               background:
                 "radial-gradient(circle, color-mix(in oklab, var(--nf-result-ink) 26%, transparent) 0%, transparent 66%)",

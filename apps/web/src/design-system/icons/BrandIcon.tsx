@@ -27,28 +27,23 @@ import Image from "next/image";
  * was the acceptance test for the swap and it passed: see `docs/ICON_SYSTEM.md`
  * and `docs/FRONTEND_REVAMP.md` section 2.
  *
- * WHAT IS STILL TRUE. A glass object is see-through by design, so its interior
- * alpha is partial. That is correct against a dark ground and it reads thin on
- * white paper, which is why the light theme gives the untwinned objects a navy
- * plate (`--nf-icon-plate`, see `tokens.css`) and gives the 23 transaction
- * marks their own light twin instead. The twins were tested rather than
- * assumed: no filter gets from one to the other, because the difference is
- * which parts of the object are transparent, so a frosted-white mark keyed off
- * white inverts on a dark ground.
+ * WHAT IS STILL TRUE, AND IT IS SIMPLER THAN IT WAS. A glass object is
+ * see-through by design, so its interior alpha is partial, and that is correct
+ * against the dark ground this platform has. It read thin on white paper,
+ * which is why the light theme gave the untwinned objects a navy plate and
+ * gave 23 marks a separately drawn daylight twin instead.
  *
- * (That sentence used to say 80 untwinned objects. It is 121. `BRAND_ICONS` is
- * 144 names and `LIGHT_TWINS` is 23, and the live number is always
- * `BRAND_ICONS.length - LIGHT_TWINS.size`.)
+ * THERE IS NO WHITE PAPER ANY MORE. The founder removed light mode on 23
+ * September 2026. The plate tokens, the twin `<Image>`, the `LIGHT_TWINS` set
+ * and the day and night classes are all deleted; `.nf-brand-icon-ground` is now
+ * a square wrapper with a radius and a little padding and nothing else, which
+ * is what it computed to in the dark theme all along.
  *
- * AND THE CHIP IS A LIT PLATE RATHER THAN A FILL, which is what makes those 121
- * legible on paper without waiting for their twins. An object keyed off black is
- * composited `a*C + (1-a)*G`, so its distance from its ground grows as the
- * ground darkens; the chip is therefore a radial from a deep core under the
- * object out to the same navy at the rim the page sees. It takes the median
- * object from 2.37:1 to 3.40:1 and leaves the page-facing edge at 13.44:1.
- * `--nf-icon-plate` in `tokens.css` carries the argument and the table, and
- * `docs/FOUNDER_ARTWORK_NEEDED.md` names the 29 objects that are still under
- * 3:1 on the best ground that exists without a render.
+ * The one fact from that work worth carrying forward, because it is about the
+ * ARTWORK and not about a theme: no filter gets from one of these objects to a
+ * paper version of it. The difference is which parts of the object are
+ * transparent, and a frosted-white mark keyed off white inverts on a dark
+ * ground. If a second palette is ever wanted, it is a render order.
  *
  * THE TILE IS OFF BY DEFAULT, and it used to be on.
  *
@@ -237,48 +232,28 @@ export const BRAND_ICONS = [
 /** A name with a file behind it. */
 export type BrandIconObject = (typeof BRAND_ICONS)[number];
 
-/**
- * The 23 marks that ship with a light twin, under `public/brand/glass/light`.
+/*
+ * THE 23 LIGHT TWINS ARE NO LONGER DRAWN, AND THE SET THAT NAMED THEM IS GONE.
  *
- * They are the transaction and outcome set, and it is not a coincidence that
- * the twinned set is exactly the set that arrives on its own rounded glass
- * tile: those are the marks that appear inline on a receipt, which is the one
- * surface where a navy chip would read as a hole in the paper. Everything else
- * is a single object with its own transparent margin, and the chip is the
- * better answer for those.
+ * `LIGHT_TWINS` held the transaction and outcome marks that shipped a second,
+ * separately drawn PNG for daylight under `public/brand/glass/light`. This
+ * component rendered BOTH files and a `display` rule keyed on
+ * `[data-theme="light"]` chose between them. The founder removed light mode on
+ * 23 September 2026, so the attribute can never appear, the second `<Image>`
+ * could never be shown, and rendering a hidden copy of 23 objects is a cost
+ * with no outcome.
  *
- * `escrow-hold` has a twin on disk and is deliberately NOT here and NOT in
- * `BRAND_ICONS`. `docs/BRAND_MARKS.md` says to build it and not ship it until
- * escrow exists, and `lib/legal/terms.tsx` now states that Vallo does not hold
- * your money, so an escrow mark on a screen would be the artwork contradicting
- * the contract. It stays cut and withheld so nothing can reach for it by
- * accident.
+ * THE FILES ARE STILL ON DISK AND THAT IS DELIBERATE. `glass/light/**` is
+ * commissioned artwork; deleting it is not this session's call, and it is
+ * inert where it sits because nothing references it. `brand-icon-assets.test.ts`
+ * records that it is retained and unused so the next reader does not file it as
+ * a wiring bug. `escrow-hold` stays withheld there for its own, separate
+ * reason: `docs/BRAND_MARKS.md` says build it and do not ship it until escrow
+ * exists, because `lib/legal/terms.tsx` states that Vallo does not hold your
+ * money.
+ *
+ * `docs/design/LIGHT_MODE_REMOVED.md` is the record.
  */
-const LIGHT_TWINS = new Set<string>([
-  "alert-triangle",
-  "clock-expired",
-  "coin-naira",
-  "contract-sign",
-  "doc-cross",
-  "doc-review",
-  "hourglass",
-  "id-card-check",
-  "info",
-  "keys-handover",
-  "ledger-book",
-  "payment-failed",
-  "payment-received",
-  "payment-sent",
-  "progress-ring",
-  "receipt-check",
-  "savings-pot",
-  "seal-check",
-  "seal-cross",
-  "seal-pending",
-  "transfer-arrow",
-  "wallet-out",
-  "wallet-plus",
-]);
 
 /**
  * Names the clay pack had and the glass pack does not, kept as aliases onto
@@ -383,7 +358,6 @@ export function BrandIcon({
 }) {
   const decorative = !label;
   const object = resolveObject(name);
-  const twinned = LIGHT_TWINS.has(object);
 
   /*
    * `fill` here means "fill the wrapper box", implemented with intrinsic
@@ -416,47 +390,28 @@ export function BrandIcon({
   } as const;
 
   /*
-   * THE THEME SWITCH IS TWO ELEMENTS AND A DISPLAY RULE, AND THAT IS ON PURPOSE.
+   * ONE FILE, ONE ELEMENT. It used to be two: the dark artwork and, for the 23
+   * twinned marks, a second `<Image>` of the daylight artwork, with a
+   * `display` rule keyed on `[data-theme="light"]` choosing between them. That
+   * shape existed because the theme was an attribute on the document element
+   * rather than an OS preference, so `<picture>` and `prefers-color-scheme`
+   * could not see it and swapping `src` in an effect would have flickered the
+   * mark on the confirmation screens where it is the emotional payload.
    *
-   * The theme is `data-theme` on the document element, not an OS preference, so
-   * `<picture>` and `prefers-color-scheme` cannot see it and neither can
-   * `image-set()`. Swapping `src` in an effect would mean the server renders the
-   * wrong artwork first and every twinned mark flickers on hydration, on the
-   * confirmation screens where the mark is the emotional payload.
-   *
-   * So both files are in the markup and CSS chooses. The hidden copy carries
-   * `loading="lazy"`, which is Next's default whenever `priority` is not set,
-   * and a lazy image inside a `display: none` ancestor never enters the
-   * viewport, so the browser never fetches it. Measured in Chromium 1194 rather
-   * than assumed: a lazy hidden image produced no network request and an eager
-   * hidden one produced a request, which is why `priority` is deliberately NOT
-   * forwarded to the twin. A browser that fetches both anyway costs one extra
-   * 20KB PNG on 23 of 103 objects and still renders correctly, so the worst case
-   * is a download rather than a defect. `display: none` also removes the hidden
-   * copy from the accessibility tree, so the label is announced once.
+   * Light mode was removed on 23 September 2026 and the second element went
+   * with it. Worth keeping from that note, because it is the reason the hidden
+   * copy was affordable at the time and the reason a future two-artwork switch
+   * should be built the same way: a lazy image inside a `display: none`
+   * ancestor is never fetched, measured in Chromium 1194 rather than assumed.
    */
   const img = (
-    <>
-      <Image
-        {...shared}
-        alt={label ?? ""}
-        src={`/brand/glass/${object}.png`}
-        priority={priority}
-        className={`nf-brand-icon ${twinned ? "nf-brand-icon--night" : ""} ${
-          fill || insideTile ? "h-full w-full" : ""
-        }`}
-      />
-      {twinned ? (
-        <Image
-          {...shared}
-          alt={label ?? ""}
-          src={`/brand/glass/light/${object}.png`}
-          className={`nf-brand-icon nf-brand-icon--day ${
-            fill || insideTile ? "h-full w-full" : ""
-          }`}
-        />
-      ) : null}
-    </>
+    <Image
+      {...shared}
+      alt={label ?? ""}
+      src={`/brand/glass/${object}.png`}
+      priority={priority}
+      className={`nf-brand-icon ${fill || insideTile ? "h-full w-full" : ""}`}
+    />
   );
 
   if (!tile) {
@@ -473,33 +428,27 @@ export function BrandIcon({
      * 80 objects that have no light twin.
      */
     /*
-     * `data-twinned` AND `data-object` EXIST SO A MIXED SET CAN BE SEEN.
+     * `data-object` REACHES THE DOM AND `data-twinned` NO LONGER DOES.
      *
-     * 23 of the 144 objects ship a light twin and 121 do not. In DARK that
-     * distinction is invisible, because an untwinned object's chip is
-     * transparent and both families paint the same way. In DAYLIGHT they are
-     * two different materials: a twinned mark is a pale frosted object with no
-     * plate, and an untwinned one is its dark artwork on a framed navy plate.
-     * Drawn side by side that is two artwork families in one row, and it has
-     * happened in at least six places (`WalletDeck`, `RentalFace`,
-     * `app/host/page.tsx`, `HostWizard` and two icon rows B3 found).
+     * The pair existed so a MIXED SET could be seen: 23 objects shipped a
+     * daylight twin and 121 did not, and in daylight those were two different
+     * materials standing side by side, a pale frosted mark beside dark artwork
+     * on a navy plate. It happened in at least six places and nothing could
+     * check it, because the fact lived in a `Set` in this file and never
+     * reached the markup. `scripts/design/compare-surface.mjs --twin-sweep`
+     * was written to walk a real page and report any container holding both.
      *
-     * THE RULE IT BREAKS IS SIMPLE AND NOTHING COULD CHECK IT: A SET OF
-     * OBJECTS DRAWN SIDE BY SIDE IS ALL TWINNED OR NONE. Nothing could check
-     * it because the fact lived in a `Set` inside this file and never reached
-     * the DOM, so neither a stylesheet, a reviewer's eye in dark, nor any
-     * browser check could tell one from the other.
-     *
-     * Now it reaches the DOM. `scripts/design/compare-surface.mjs --twin-sweep`
-     * walks a real page and reports any container holding both. The attributes
-     * are inert: nothing styles them, and they cost two strings on an element
-     * that already exists.
+     * Light mode was removed on 23 September 2026 and there is one artwork
+     * family again, so the distinction the attribute carried does not exist and
+     * the sweep has nothing to find. `data-object` stays: it is one string on
+     * an element that already exists, nothing styles it, and it is what lets a
+     * browser check say WHICH object a plate is drawing rather than guessing
+     * from a filename.
      */
     return (
       <span
-        data-twinned={twinned ? "true" : "false"}
         data-object={object}
-        className={`nf-brand-icon-ground ${twinned ? "nf-brand-icon-ground--twinned" : ""} ${
+        className={`nf-brand-icon-ground ${
           fill ? "block h-full w-full" : "inline-flex"
         } ${className ?? ""}`}
       >

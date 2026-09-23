@@ -1,7 +1,8 @@
 /*
   agent: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
-  section 2. Light-theme rules for this family live here too, under
-  :root[data-theme="light"], so the partial is the whole surface.
+  section 2. There is one theme: the founder removed light mode on 23 September
+  2026 and the paper rules that used to live here are deleted, so the partial
+  is the whole surface for the only palette there is.
 
   No governing image covers the agent console, the Host wizard or the
   verification flow, so all three inherit the register: the same glass
@@ -405,24 +406,4 @@
       transition: none;
     }
   }
-}
-
-/* ------------------------------------------------------------ paper twin */
-
-:root[data-theme="light"] .nf-agent-stat,
-:root[data-theme="light"] .nf-agent .nf-card,
-:root[data-theme="light"] .nf-agent-panel,
-:root[data-theme="light"] .nf-agent-bar__search input,
-:root[data-theme="light"] .nf-agent-bar__lang .nf-btn--primary,
-:root[data-theme="light"] .nf-host-choice,
-:root[data-theme="light"] .nf-host .nf-card,
-:root[data-theme="light"] .nf-host-group {
-  background: var(--nf-surface-on-paper);
-  box-shadow: var(--nf-shadow-on-paper);
-}
-/* The lit rim is a night material; on paper the drop plate keeps the raised
-   surface and no catchlight. */
-:root[data-theme="light"] .nf-host-drop {
-  background: var(--nf-surface-raised);
-  box-shadow: none;
 }

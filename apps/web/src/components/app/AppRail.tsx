@@ -8,7 +8,6 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { buildNav } from "./nav-model";
 import { NavTree } from "./NavTree";
-import { ThemeToggle } from "@/components/site/ThemeToggle";
 import { SideSwitch } from "./SideSwitch";
 import { COMPANY_LEGAL_NAME } from "@/lib/legal/company";
 import type { Side } from "@/lib/side.constants";
@@ -195,19 +194,16 @@ export function AppRail({
       <div className="nf-nav__foot">
         <SideSwitch t={t} onNavigate={onNavigate} />
         {/*
-          THE THEME CONTROL IS THE GLYPH AND NOTHING ELSE.
+          THE THEME CONTROL IS GONE FROM THE DRAWER, with light mode, on the
+          founder's decision of 23 September 2026.
 
-          It was a full-width `nf-nav__row` inside a lit glass card saying
-          "Light mode" or "Dark mode". The founder: "no box, no Light mode, no
-          Dark mode, just the icon, sitting on its own." So it is the `bare`
-          variant - a 44px tap target with no plate, no border and no label -
-          sitting alone under the coin at the same left rule as every row
-          above it. The words survive as the ACCESSIBLE NAME, which is where a
-          control with no visible label has to keep them: `aria-label` reads
-          "Switch to light" or "Switch to dark", the destination rather than
-          the current state, which is what the old label said too.
+          It had already been cut down once, from a full-width row in a lit
+          glass card saying "Light mode" to the bare glyph on its own, on the
+          founder's "no box, no Light mode, no Dark mode, just the icon". Now
+          there is one palette and a control with one value is not a control.
+          The component, its store and the `nf_theme` key are all deleted; see
+          `docs/design/LIGHT_MODE_REMOVED.md`.
         */}
-        <ThemeToggle variant="bare" labels={t.uiCommon.theme} className="nf-nav__theme" />
         {/*
           THE LEGAL ROW AT THE FOOT OF THE DRAWER, which the drawer render
           draws and the product did not have: a divider, a shield, the

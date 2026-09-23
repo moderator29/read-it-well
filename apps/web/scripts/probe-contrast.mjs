@@ -57,7 +57,7 @@
  *
  * Usage:
  *   node scripts/probe-contrast.mjs --base http://127.0.0.1:3184
- *   node scripts/probe-contrast.mjs --base ... --routes /preview/f4/settings --themes light
+ *   node scripts/probe-contrast.mjs --base ... --routes /preview/f4/settings
  *   node scripts/probe-contrast.mjs --base ... --json
  *
  * The server must be a PRODUCTION server with `VALLO_PREVIEW_HARNESS=1`.
@@ -101,10 +101,20 @@ const JSON_OUT = process.argv.includes("--json");
 const FADED = process.argv.includes("--faded");
 const WIDTH = Number(arg("width", "390"));
 const VIEWPORT_H = Number(arg("height", "844"));
-const THEMES = arg("themes", "dark,light")
-  .split(",")
-  .map((t) => t.trim())
-  .filter(Boolean);
+/*
+ * ONE THEME. The founder removed light mode from the platform on 23 September
+ * 2026, so this sweeps the only palette there is.
+ *
+ * `--themes` IS GONE RATHER THAN DEFAULTED, and the difference matters for a
+ * measuring instrument. A flag that still accepts "light" would run a whole
+ * sweep, find nothing wrong, and hand back a clean report about a theme that
+ * does not exist; a report that cannot be distinguished from a passing one is
+ * worse than no report. The seeding that set `nf_theme` in storage and put
+ * `data-theme` on the root has gone with it: neither has a reader any more.
+ *
+ * `docs/design/LIGHT_MODE_REMOVED.md` is the record.
+ */
+const THEMES = ["dark"];
 
 /*
  * THE ROUTE LIST IS READ OFF DISK, NOT WRITTEN DOWN HERE.
@@ -484,22 +494,21 @@ const MEASURE = async ({ src, dpr, onlyTall, vw, vh, faded }) => {
 
 for (const theme of THEMES) {
   for (const route of ROUTES) {
+    /*
+     * `colorScheme: "light"` ON PURPOSE, AND IT IS NOT A LEFTOVER.
+     *
+     * The emulated OS preference is now the one thing worth varying, because
+     * `html { color-scheme: dark }` in `base.css` is what stops a light
+     * operating system painting its own white into the controls no stylesheet
+     * can reach. Asking Chromium for LIGHT and still measuring a dark page is
+     * the sweep quietly re-proving that line on every route it opens.
+     */
     const page = await browser.newPage({
       viewport: { width: WIDTH, height: VIEWPORT_H },
-      colorScheme: theme,
+      colorScheme: "light",
       deviceScaleFactor: 2,
     });
     try {
-      /* Seeded before the first byte, so the root layout's before-paint script
-         reads it and the page is never painted in the wrong theme first. Dark
-         carries NO attribute, which is how the token sheet is keyed. */
-      await page.addInitScript((t) => {
-        try {
-          window.localStorage.setItem("nf_theme", t);
-        } catch {
-          /* A storage-blocked context still gets the attribute below. */
-        }
-      }, theme);
       const response = await page.goto(`${BASE}${route}`, {
         waitUntil: "networkidle",
         timeout: 45_000,
@@ -521,10 +530,6 @@ for (const theme of THEMES) {
       if (await page.locator("[data-nf-not-found]").count())
         throw new Error("not-found body served at 200");
 
-      await page.evaluate((t) => {
-        if (t === "light") document.documentElement.setAttribute("data-theme", "light");
-        else document.documentElement.removeAttribute("data-theme");
-      }, theme);
       await page.waitForTimeout(350);
 
       /*

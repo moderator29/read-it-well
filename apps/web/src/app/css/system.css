@@ -1,9 +1,9 @@
 /*
   system: the system pages (the error boundaries, not found, offline, the
   root wait) and the in-app legal reader. Owned by G4 per
-  docs/BUILD_06_LEDGER.md section 2.0. Light-theme rules for this family live
-  here too, under :root[data-theme="light"], so the partial is the whole
-  surface.
+  docs/BUILD_06_LEDGER.md section 2.0. There is one theme: the founder removed
+  light mode on 23 September 2026 and the paper rules that used to live here
+  are deleted.
 
   THE GOVERNING IMAGE IS THE SIGN-IN RENDER, docs/design/references/55A56F21.
   An error, a missing page and a dead network are the three moments the
@@ -601,54 +601,4 @@
     .nf-legal__toc a {
       transition: none;
     }
-  }
-
-  /* ---------------------------------------------------------- daylight */
-  /*
-   * The paper twin, designed rather than derived: the photograph and its
-   * scrim go, the page is the paper canvas, the card is flat white with a
-   * hairline and a soft shadow, and the podium is a quiet grey lens. The
-   * tile and wordmark are glass renders and keep a soft halo, as every glass
-   * object does on paper.
-   */
-  :root[data-theme="light"] .nf-system__plate {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-system__card {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    box-shadow: var(--nf-elev-2);
-  }
-  :root[data-theme="light"] .nf-system__card::before {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-system__podium::before {
-    border-color: var(--nf-border-default);
-    background: radial-gradient(ellipse at 50% 50%, var(--nf-wash-4), transparent 70%);
-    box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-system__podium::after {
-    background: linear-gradient(180deg, var(--nf-wash-3), transparent 90%);
-  }
-  :root[data-theme="light"] .nf-system__icon,
-  :root[data-theme="light"] .nf-system__wordmark,
-  :root[data-theme="light"] .nf-wait__mark {
-    filter: drop-shadow(0 4px 14px var(--nf-glow-2));
-  }
-  :root[data-theme="light"] .nf-system__code {
-    filter: none;
-  }
-  :root[data-theme="light"] .nf-wait__pill,
-  :root[data-theme="light"] .nf-legal__toc {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-legal__toc::before {
-    display: none;
-  }
-}
+  }}

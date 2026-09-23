@@ -18,7 +18,7 @@ import { CHROME_COLOUR } from "@/lib/theme/chrome";
  *
  * THE COLOURS ARE THE CANVAS, FROM ITS ONE HOME. `theme_color` paints the
  * chrome above an installed app and `background_color` paints the splash
- * before the first frame; both read `CHROME_COLOUR.dark`, which
+ * before the first frame; both read `CHROME_COLOUR`, which
  * `lib/theme/chrome.ts` measured against the dark canvas and the glass header
  * it abuts, so install, splash, status bar and first paint are one continuous
  * dark surface. Dark is the default theme and the operating system does not
@@ -27,7 +27,7 @@ import { CHROME_COLOUR } from "@/lib/theme/chrome";
  * the same home.
  */
 
-const NAVY = CHROME_COLOUR.dark;
+const NAVY = CHROME_COLOUR;
 
 export default function manifest(): MetadataRoute.Manifest {
   return {

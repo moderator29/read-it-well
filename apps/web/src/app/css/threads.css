@@ -1,7 +1,8 @@
 /*
   threads: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
-  section 2. Light-theme rules for this family live here too, under
-  :root[data-theme="light"], so the partial is the whole surface.
+  section 2. There is one theme: the founder removed light mode on 23 September
+  2026 and the paper rules that used to live here are deleted, so the partial
+  is the whole surface for the only palette there is.
 
   The governing image is GOVERNING-chat-booking-card.png, the rental face is
   9E06F51C. Two bubble materials and one card material carry the whole room:
@@ -1015,7 +1016,6 @@
     }
   }
 
-
   /* ------------------------------------------------------ inspections */
 
   /* F6A8A482. The screen opens on a headline with the second word lit, a
@@ -1391,66 +1391,4 @@
       transition: none;
     }
   }
-}
-
-/* ------------------------------------------------------------ paper twin */
-
-/*
-  On paper the wells are the platform's light well (a grey wash), the mine
-  bubble keeps its blue because on-brand ink stays white, and the blooms come
-  down through the light glow ladder on their own. The card and the composer
-  well turn to the raised paper surface so the hairline reads as an edge and
-  not as a shadow.
-*/
-:root[data-theme="light"] .nf-bubble--theirs,
-:root[data-theme="light"] .nf-context-card,
-:root[data-theme="light"] .nf-chat-card,
-:root[data-theme="light"] .nf-composer__field,
-:root[data-theme="light"] .nf-thread__ring,
-:root[data-theme="light"] .nf-msg__avatar,
-:root[data-theme="light"] .nf-inbox-row__ring {
-  background: var(--nf-surface-on-paper);
-}
-:root[data-theme="light"] .nf-bubble--theirs {
-  box-shadow: var(--nf-shadow-on-paper);
-}
-/*
-  The lit rim is a night material. On paper a blue-white catchlight inside a
-  small object is either invisible or a smear, so the objects that gained one
-  for the dark ruling take the paper shadow instead. The light law: same
-  anatomy, designed, never derived.
-*/
-:root[data-theme="light"] .nf-role-tag,
-:root[data-theme="light"] .nf-composer__field,
-:root[data-theme="light"] .nf-thread__ring,
-:root[data-theme="light"] .nf-msg__avatar,
-:root[data-theme="light"] .nf-inbox-row__ring,
-:root[data-theme="light"] .nf-chat-card__room,
-:root[data-theme="light"] .nf-insp-fact__glyph,
-:root[data-theme="light"] .nf-insp-facts,
-:root[data-theme="light"] .nf-insp-notes__body {
-  box-shadow: var(--nf-shadow-on-paper);
-}
-:root[data-theme="light"] .nf-chat-card,
-:root[data-theme="light"] .nf-context-card {
-  box-shadow: var(--nf-shadow-on-paper);
-}
-:root[data-theme="light"] .nf-chat-card__room {
-  background: var(--nf-surface-raised);
-}
-:root[data-theme="light"] .nf-bubble--mine {
-  box-shadow: var(--nf-shadow-on-paper);
-}
-:root[data-theme="light"] .nf-insp-card,
-:root[data-theme="light"] .nf-insp-facts,
-:root[data-theme="light"] .nf-insp-ladder,
-:root[data-theme="light"] .nf-insp-notes,
-:root[data-theme="light"] .nf-insp-step__tile {
-  background: var(--nf-surface-on-paper);
-  box-shadow: var(--nf-shadow-on-paper);
-}
-:root[data-theme="light"] .nf-insp-step,
-:root[data-theme="light"] .nf-insp-notes__body {
-  background: var(--nf-surface-raised);
-  box-shadow: var(--nf-shadow-on-paper);
 }

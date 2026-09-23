@@ -643,14 +643,14 @@ for (const dir of ROOTS) {
  * is the wrong way round: the fault the founder photographed is a resting
  * control that looks unfinished, and a state rule is not the resting state.
  * A hover that darkens toward a neutral, a focus ring that sets a border, a
- * disabled button that goes grey on purpose and a light-theme override that
- * is a designed paper twin are all legitimate, and flagging thirty of them
+ * disabled button that goes grey on purpose are legitimate, and flagging
+ * thirty of them
  * is how a check gets switched off in a week - which this file's own header
  * warns about at length.
  *
- * So a state selector and a `[data-theme="light"]` selector are EXCLUDED, and
+ * So a state selector is EXCLUDED, and
  * what is left is exactly the fault: the edge a control wears when nothing
- * is happening to it, in the theme that is the product's default.
+ * is happening to it.
  *
  * THE PARSE IS DELIBERATELY CRUDE, on the same argument `SOLE_VAR` above
  * makes for itself: brace depth and the text before `{`. It cannot see a rule
@@ -663,16 +663,17 @@ const CONTROL_SELECTOR =
 /*
  * A STATE. NOT A THEME.
  *
- * `\[data-theme` used to sit in this list, and the sentence above it argued
- * that a designed paper twin is legitimate, which is true, and then drew the
- * wrong conclusion from it. A paper twin is legitimate; a paper twin edged in a
- * neutral border token is the SAME defect this check exists to catch, wearing
- * the one selector the check could not see. The reasoning at the head of this
- * block, "in the theme that is the product's default", is exactly how the theme
- * every daylight user sees went untested for the whole of its life.
+ * `\[data-theme` used to sit in this list, on the argument that a designed
+ * paper twin is legitimate. That was true and the conclusion drawn from it was
+ * wrong: a paper twin edged in a neutral border token is the SAME defect this
+ * check exists to catch, wearing the one selector the check could not see, and
+ * that is how a whole theme went untested for the life of it.
  *
- * A resting rule is a resting rule in both themes, so the theme attribute is
- * out of the exclusion list and only genuine STATES remain in it.
+ * THE THEME IS GONE NOW, removed by the founder on 23 September 2026, so this
+ * particular blind spot cannot recur. The paragraph stays because the lesson
+ * does not depend on the theme: an exclusion added to stop a check being noisy
+ * is an exclusion that hides exactly the rules nobody is looking at. Only
+ * genuine STATES are in the list.
  */
 const NOT_RESTING =
   /(:hover|:active|:focus|:disabled|\[aria-pressed|\[aria-current|\[aria-disabled|\[data-on\b|\[data-loading|\[disabled)/;
@@ -717,16 +718,13 @@ const DULL_ALLOWED = new Set([
   "src/app/css/controls.css  .nf-switch",
   "src/app/settings-rows.css  .nf-switch",
   /*
-   * PERMANENT, and it arrived the day this check stopped excluding the paper
-   * twin by name. It is the SAME switch track as the two entries above it,
-   * reached through its light rule instead of its base rule. Grey off and
-   * brand on is the entire semantics of a switch in both themes, and a blue
-   * track on paper would say the switch is on before anybody touched it just
-   * as surely as it would at night. The rule the light twin actually owes is
-   * the THUMB, which `controls.css` paints white on `#EFF1F4` at 1.09:1, and
-   * that is a contrast defect rather than a dull-edge one.
+   * A THIRD SWITCH ENTRY LIVED HERE AND IS GONE WITH THE RULE IT EXCUSED. It
+   * named `controls.css  :root[data-theme="light"] .nf-switch`, the same track
+   * as the two entries above reached through its paper twin. Light mode was
+   * removed on 23 September 2026 and every `[data-theme="light"]` rule in this
+   * tree with it, so the selector no longer exists and an exception for it
+   * would be an assertion about a rule nobody can read.
    */
-  'src/app/css/controls.css  :root[data-theme="light"] .nf-switch',
   /*
    * THE THIRD SWITCH ENTRY WAS REMOVED ON 23 SEPTEMBER AND THIS NOTE IS WHAT IS
    * LEFT OF IT, because a spent exception is the same fault family as a comment

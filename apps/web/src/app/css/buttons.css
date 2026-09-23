@@ -651,24 +651,7 @@
     .nf-btn--glass-brand {
       background: linear-gradient(180deg, var(--nf-surface-raised), var(--nf-surface-elevated));
     }
-  }
-  /* Paper: an opaque white plate with the brand edge; the bloom becomes a
-     short brand-tinted shadow, the same terms daylight's primary already uses. */
-  :root[data-theme="light"] .nf-btn--glass-brand {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-brand-edge);
-    color: var(--nf-content-primary);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    box-shadow: 0 2px 10px var(--nf-glow-1);
-  }
-  @media (hover: hover) {
-    :root[data-theme="light"] .nf-btn--glass-brand:hover:not(:disabled) {
-      background: var(--nf-surface-primary);
-      border-color: var(--nf-brand-edge-strong);
-      box-shadow: 0 4px 14px var(--nf-glow-2);
-    }
-  }
+  }  @media (hover: hover) {  }
 
   /* The lit primary. Rung 2 at rest, rung 3 on hover, and the same inset rim
      the base primary carries so the two read as one object with the light on. */
@@ -687,11 +670,6 @@
         0 10px 28px -10px var(--nf-glow-4);
     }
   }
-  :root[data-theme="light"] .nf-btn--primary.nf-btn--lit {
-    border-color: transparent;
-    box-shadow: 0 6px 18px var(--nf-glow-3);
-  }
-
   /*
    * `.nf-btn--pill` STOOD HERE AND IS DELETED, and this is the decision
    * rather than a deferral.

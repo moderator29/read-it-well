@@ -197,7 +197,7 @@ export const viewport: Viewport = {
    * choice and OS preference were mismatched, measured rather than reasoned
    * about. None of those combinations exists any more.
    *
-   * IT READS `CHROME_COLOUR.dark` RATHER THAN RESTATING IT. This was one of
+   * IT READS `CHROME_COLOUR` RATHER THAN RESTATING IT. This was one of
    * four places the same hex was written out by hand, beside the manifest and
    * the Capacitor `StatusBar` block. All of them are serialised where no CSS
    * has run, so none can hold a token, and literals with no stylesheet between
@@ -205,7 +205,7 @@ export const viewport: Viewport = {
    * home, and it carries the measurement showing why this value is not
    * `--nf-surface-canvas`.
    */
-  themeColor: CHROME_COLOUR.dark,
+  themeColor: CHROME_COLOUR,
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

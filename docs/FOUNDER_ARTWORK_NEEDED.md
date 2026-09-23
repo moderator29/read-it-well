@@ -1,3 +1,26 @@
+# STRUCK, 23 SEPTEMBER 2026
+
+**The founder removed light mode from the platform, so this order no longer
+exists.** Every render named below was a DAYLIGHT twin for an object that has
+only ever needed to work on the dark canvas it was drawn for. There is nothing
+to commission.
+
+It is kept rather than deleted because two things in it are facts about the
+ARTWORK rather than about a theme, and both are still true:
+
+- the pack splits into 80 objects sliced from the supplied sheets and 41
+  cropped out of the reference renders, and the crops are the ones cut at 36 to
+  56 pixels of native size, which is why they hold up least when they are asked
+  to do anything other than sit in the composition they came from;
+- no filter gets from one of these objects to a version of it for a light
+  ground, because the difference is which parts of the object are TRANSPARENT.
+  If a second palette is ever wanted, that is the reason it is a render order
+  and not a stylesheet change.
+
+`docs/design/LIGHT_MODE_REMOVED.md` is the record of the removal.
+
+---
+
 # Artwork the founder still has to commission
 
 **One job for the founder in this file: order light renders.** Everything in it

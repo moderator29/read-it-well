@@ -63,21 +63,17 @@
    * goes deeper, because with nothing separating the two layers the type
    * underneath competes with the panel's own. (R1 finding A19.)
    *
-   * IT SAID THAT STEP IN THE WRONG TOKEN UNTIL TODAY, and this file is one of
-   * the two with no `[data-theme="light"]` rule anywhere in it, so it is worth
-   * saying what that absence did and did not mean. The value was
-   * `--nf-shade-3`, the deepest rung of the INSET SHADOW ladder, which at night
-   * sits at 0.55 and is within a hair of the backdrop it was trying to be a
-   * step below. On paper the shade ladder is tuned so a well is a whisper:
-   * `--nf-shade-3` is ink at 18 per cent, and the drawer dimmed a white page by
-   * well under half what the sheet beside it dims the same page by. The two
-   * overlays disagreed about how much of the product goes quiet.
+   * IT SAID THAT STEP IN THE WRONG TOKEN, and the fix outlived the theme that
+   * exposed it. The value was `--nf-shade-3`, the deepest rung of the INSET
+   * SHADOW ladder, which sits at 0.55 and is within a hair of the backdrop it
+   * was trying to be a step below, so at night the two were indistinguishable
+   * and nothing ever showed. It took a light theme to make the difference
+   * visible, because the shade ladder is tuned so a well is a whisper.
    *
-   * So the fix is not a light rule in this file. A light rule would have
-   * patched the symptom on paper and left the wrong KIND of token painting the
-   * scrim in both themes. `--nf-scrim-drawer` is a scrim, it is declared in
-   * both themes beside the backdrop it is a step from, and this file stays what
-   * it was: token-clean, and correct in daylight because the tokens are.
+   * `--nf-scrim-drawer` is a scrim rather than a shadow ink, it is declared
+   * beside the backdrop it is a step from, and the step between them is the
+   * designed one. Light mode was removed on 23 September 2026 and this stays,
+   * because a token of the right KIND is right in any number of themes.
    */
   .nf-drawer-scrim {
     background: var(--nf-scrim-drawer);

@@ -208,21 +208,13 @@
      * light. The reduced-motion block that used to sit under this rule went
      * with the animation.
      */
-  }
-  :root[data-theme="light"] .nf-page-scene {
-    opacity: 0.28;
-  }
-  /* ---------------------------------------------------------- odometer */
+  }  /* ---------------------------------------------------------- odometer */
 
   /* Figures paint solid brand ink: a clipped gradient cannot cross the
      transformed digit strips, which leaves the numbers invisible. */
   .nf-odometer-figure {
     color: var(--nf-brand-secondary);
   }
-  :root[data-theme="light"] .nf-odometer-figure {
-    color: var(--nf-brand-primary);
-  }
-
   .nf-odometer__slot {
     display: inline-block;
     height: 1em;

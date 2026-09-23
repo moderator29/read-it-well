@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
-import { CHROME_COLOUR, currentTheme } from "@/lib/native/theme";
 
 /**
  * Device settings store.
@@ -17,7 +16,6 @@ import { CHROME_COLOUR, currentTheme } from "@/lib/native/theme";
 export const SETTINGS_KEY = "nf_settings";
 
 export type TextSize = "s" | "m" | "l";
-export type ThemeChoice = "system" | "light" | "dark";
 export type DistanceUnit = "km" | "mi";
 export type ProfileVisibility = "everyone" | "private";
 
@@ -214,139 +212,23 @@ export function applyTextSize(size: TextSize): void {
   document.documentElement.style.fontSize = scale;
 }
 
-/**
- * Theme uses the same key and attribute the root layout's before-paint script
- * reads: `nf_theme` in storage, `data-theme="light"` on the root for light, no
- * attribute for dark.
+/*
+ * THE THEME IS NOT A SETTING ANY MORE, AND THIS IS WHAT USED TO BE HERE.
  *
- * Dark is the platform default and only an explicit choice moves it. "system"
- * is now WRITTEN to storage rather than clearing it, which matters: the
- * before-paint script cannot tell "chose system" from "never chose anything" if
- * both look like an empty key, and it has to render dark for the second one.
- * Storing the word keeps someone who genuinely wants to follow their OS from
- * getting a flash of dark on every page load.
+ * `applyTheme`, `applyThemeColour`, `readThemeChoice`, the `ThemeChoice` type,
+ * the `nf_theme` storage key, the `useSyncExternalStore` subscription behind
+ * `useThemeChoice` and the `storage` listener that kept two tabs in step are
+ * all deleted. The founder removed light mode from the platform on 23
+ * September 2026: there is one palette, `html { color-scheme: dark }` in
+ * `base.css` stops a light operating system painting its own white into the
+ * controls a stylesheet cannot reach, and there is nothing left for a person
+ * to choose.
+ *
+ * DELETED RATHER THAN PINNED TO "dark". A store that still reads a key and
+ * still has a setter is a store somebody gives a second value back to, and the
+ * whole point of removing a theme is that it cannot come back by accident.
+ *
+ * The chrome colour is now written once, on the server, by
+ * `viewport.themeColor` in the root layout. Nothing rewrites it at runtime.
  */
-export function applyTheme(choice: ThemeChoice): void {
-  try {
-    window.localStorage.setItem("nf_theme", choice);
-  } catch {
-    // The attribute below still flips this session's appearance.
-  }
-  const light =
-    choice === "light" ||
-    (choice === "system" && window.matchMedia("(prefers-color-scheme: light)").matches);
-  if (light) document.documentElement.dataset.theme = "light";
-  else delete document.documentElement.dataset.theme;
-  applyThemeColour();
-}
 
-/**
- * The browser's own chrome follows the theme.
- *
- * TWO FAULTS, AND THE SECOND ONE ONLY TURNED UP BECAUSE THE FIRST WAS FIXED
- * BADLY TWICE.
- *
- * THE FAULT. `<meta name="theme-color" media="(prefers-color-scheme: light)">`
- * answers the OPERATING SYSTEM, and this product's theme answers STORAGE.
- * Those are not the same question and they disagreed for exactly the visitor
- * the dark default was written for: somebody whose phone is set to light,
- * opening Vallo for the first time, got the dark canvas under a #F4F5F7
- * browser chrome, which is the hard seam the two-value metadata existed to
- * remove. Measured across all six combinations of stored choice and OS
- * preference; three of the six were mismatched.
- *
- * THE FIRST BAD FIX was a pair of hex literals here, and `nf/no-raw-colour`
- * called it. THE SECOND was reading `--nf-surface-canvas` instead, which is a
- * better instinct and still the wrong source, and only a measurement showed it:
- * the canvas is #000010 in dark, but the browser chrome sits above the TOP OF
- * THE PAGE and the top of the page is the sticky glass header, which samples
- * #090919. #010118 is neither of those and is closer to the header than the
- * canvas is, which is why it was chosen and why nobody wrote down that it was a
- * header colour rather than a canvas one.
- *
- * So the source is `CHROME_COLOUR`, which is the one place these two values
- * live and which `viewport.themeColor` and the Capacitor `StatusBar` block both
- * already mirror. A fourth opinion about the same colour was the whole problem.
- *
- * Called with no argument on purpose: it runs after `data-theme` has moved and
- * reads the theme the document is actually in, so it cannot disagree with the
- * screen.
- */
-export function applyThemeColour(): void {
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", CHROME_COLOUR[currentTheme()]);
-}
-
-export function readThemeChoice(): ThemeChoice {
-  try {
-    const stored = window.localStorage.getItem("nf_theme");
-    if (stored === "light" || stored === "dark" || stored === "system") return stored;
-  } catch {
-    // Fall through to the platform default below.
-  }
-  // Nothing chosen means the brand's own theme, not the operating system's.
-  return "dark";
-}
-
-/* ---------------------------------------------------------------- the theme */
-
-/**
- * The chosen theme as a subscription, for the control that shows which one is on.
- *
- * ---------------------------------------------------------------------------
- * WHY THE THEME NEEDED ITS OWN STORE RATHER THAN JOINING `NfSettings`.
- *
- * It cannot live in the settings document, and the reason is the flash. A
- * before-paint script in the document head reads `nf_theme` and sets
- * `data-theme` before React exists, because a theme applied after hydration is
- * a white page that turns dark in front of the reader. That script cannot parse
- * a JSON settings blob and pick a field out of it cheaply enough to run in the
- * head, so the theme stays on its own key and `applyTheme` writes it.
- *
- * WHAT WAS WRONG WITH THE EFFECT. `SettingsGroups` initialised `useState` to
- * "dark", then read the real answer in a mount effect, so the theme row showed
- * Dark selected for one commit on a device set to light and then corrected
- * itself. On `/settings` that is a visible flicker on the row somebody opened
- * the screen to change. It was also `react-hooks/set-state-in-effect`, for the
- * exact reason the rule exists: the value came from outside React and was being
- * pushed into React's state instead of subscribed to.
- *
- * `getServerSnapshot` answers "dark" because the server has no storage and dark
- * is the platform default, which is what the markup is built for.
- */
-const themeListeners = new Set<() => void>();
-
-function themeSnapshot(): ThemeChoice {
-  return readThemeChoice();
-}
-
-function themeServerSnapshot(): ThemeChoice {
-  return "dark";
-}
-
-function themeSubscribe(onChange: () => void): () => void {
-  themeListeners.add(onChange);
-  const onStorage = (event: StorageEvent) => {
-    if (event.key === null || event.key === "nf_theme") onChange();
-  };
-  window.addEventListener("storage", onStorage);
-  return () => {
-    themeListeners.delete(onChange);
-    window.removeEventListener("storage", onStorage);
-  };
-}
-
-/* `readThemeChoice` returns one of three string literals, so the snapshot is
-   already compared correctly by identity and needs no caching. That is the one
-   thing this store gets for free that the settings document does not. */
-export function useThemeChoice(): {
-  theme: ThemeChoice;
-  chooseTheme: (next: ThemeChoice) => void;
-} {
-  const theme = useSyncExternalStore(themeSubscribe, themeSnapshot, themeServerSnapshot);
-  const chooseTheme = useCallback((next: ThemeChoice) => {
-    applyTheme(next);
-    for (const listener of themeListeners) listener();
-  }, []);
-  return { theme, chooseTheme };
-}

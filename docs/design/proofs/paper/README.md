@@ -1,3 +1,29 @@
+# STRUCK, 23 SEPTEMBER 2026
+
+**The founder removed light mode from the platform.** Everything in this
+directory measured daylight: the plate an untwinned brand object stood on, the
+ink ladder against four light surfaces, which surfaces drew an object with no
+light twin, and `/preview/g2` shot in both themes. None of those questions
+exists any more.
+
+The files are kept and NOT deleted. Two of them say true things that do not
+depend on a theme, and both were expensive to establish:
+
+- `model-vs-chromium.mjs` shows that compositing these PNGs offline is a model
+  of what Chromium paints, mean 1.41 of 255. That is a fact about the artwork's
+  alpha key and it is the licence for any future offline measurement of it.
+- `measure-object-ground.mjs` composites the objects over an arbitrary ground.
+  Point it at any ground and it still answers.
+
+`ink-ladder.mjs` and `sweep-untwinned.mjs` are void: one measures light
+surfaces that no longer exist, the other counts light twins that are no longer
+drawn. `shot-plate.mjs` still shoots `/preview/g2`, but the plate it was named
+for is gone and both of its shots are now the same picture.
+
+`docs/design/LIGHT_MODE_REMOVED.md` is the record.
+
+---
+
 # Paper proofs: daylight, measured
 
 Five files about one theme: **what daylight actually measures, rather than what

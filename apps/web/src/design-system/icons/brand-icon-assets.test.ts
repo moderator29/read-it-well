@@ -1,6 +1,12 @@
 /**
  * THE OBJECT REGISTRY AND THE FILES ON DISK MUST AGREE, IN BOTH DIRECTIONS.
  *
+ * READ THIS FIRST IF THE LIGHT HALF LOOKS MISSING. It is. Light mode was
+ * removed from the platform on 23 September 2026, `LIGHT_TWINS` is deleted and
+ * `BrandIcon` renders one file per object. The daylight PNGs are still in
+ * `glass/light/` on purpose and one spec below asserts they stay unreferenced.
+ * `docs/design/LIGHT_MODE_REMOVED.md` is the record.
+ *
  * This exists because of a real near miss. `escrow-hold` has a light twin
  * sitting in `glass/light/` with NO dark original and no entry in either list,
  * and reading the directory alone it looks exactly like a twin somebody
@@ -45,7 +51,6 @@ const namesIn = (start: string): string[] => {
   return [...SOURCE.slice(open, close).matchAll(/"([a-z0-9-]+)"/g)].map((m) => m[1]!);
 };
 const BRAND_ICONS = namesIn("export const BRAND_ICONS");
-const LIGHT_TWINS = new Set(namesIn("const LIGHT_TWINS"));
 
 const GLASS = join(process.cwd(), "public/brand/glass");
 const pngs = (dir: string) =>
@@ -77,43 +82,34 @@ describe("brand object artwork", () => {
     expect(orphans, `artwork on disk that nothing can draw: ${orphans.join(", ")}`).toEqual([]);
   });
 
-  it("every object claiming a light twin actually has one", () => {
-    const lying = [...LIGHT_TWINS].filter((n) => !light.includes(n));
-    expect(
-      lying,
-      `in LIGHT_TWINS with no file in glass/light: ${lying.join(", ")}. ` +
-        "The plate is suppressed for these, so in daylight this is a missing " +
-        "image on a white page with nothing behind it.",
-    ).toEqual([]);
-  });
-
-  it("every light file is claimed, or is deliberately withheld", () => {
-    const unclaimed = light.filter((f) => !LIGHT_TWINS.has(f) && !WITHHELD.has(f));
-    expect(
-      unclaimed,
-      `light artwork on disk that nothing uses: ${unclaimed.join(", ")}. ` +
-        "Either add it to LIGHT_TWINS or add it to WITHHELD with a reason.",
-    ).toEqual([]);
-  });
-
-  it("a light twin is a twin of something that exists", () => {
-    const strays = [...LIGHT_TWINS].filter((n) => !BRAND_ICONS.includes(n));
-    expect(strays, `LIGHT_TWINS names that are not objects: ${strays.join(", ")}`).toEqual([]);
-  });
-
   /*
-   * NOT A PASS, A RECORD. 23 of 144 objects are twinned and 121 are not, and
-   * in daylight those two groups are different MATERIALS: a twinned mark is a
-   * pale object standing on nothing, an untwinned one is dark artwork on a
-   * navy plate. This number is the real light-mode fault in the product and it
-   * cannot be closed by engineering, because the missing thing is artwork.
+   * THE FOUR LIGHT-TWIN SPECS THAT STOOD HERE ARE GONE, and this note is what
+   * is left of them, because the directory they policed is still on disk.
    *
-   * The assertion is deliberately one-directional. It fails if coverage goes
-   * BACKWARDS, and it does not need editing as renders land; when it finally
-   * reads 144 somebody can delete it.
+   * They checked that every name in `LIGHT_TWINS` had a file in
+   * `glass/light/`, that every file there was claimed, that a twin was a twin
+   * of something real, and that twin coverage never went backwards. All four
+   * were about the daylight artwork. The founder removed light mode on 23
+   * September 2026: `LIGHT_TWINS` is deleted, `BrandIcon` renders one file, and
+   * nothing in the product references `glass/light/` at all.
+   *
+   * THE FILES STAY AND THAT IS A DECISION RATHER THAN AN OVERSIGHT. They are
+   * commissioned artwork and deleting them is not this session's call, so they
+   * sit there unreferenced. The spec below is what stops the next reader
+   * filing that as a wiring bug: it asserts the directory is intact and
+   * UNUSED, which is the state somebody has to deliberately change.
    */
-  it("light-twin coverage never goes backwards", () => {
-    expect(LIGHT_TWINS.size).toBeGreaterThanOrEqual(23);
+  it("the daylight artwork is still on disk and is referenced by nothing", () => {
+    expect(light.length, "glass/light emptied without a decision recorded").toBeGreaterThan(0);
+    const referenced = SOURCE.includes("/brand/glass/light/");
+    expect(
+      referenced,
+      "BrandIcon references glass/light again. Light mode was removed on 23 " +
+        "September 2026; see docs/design/LIGHT_MODE_REMOVED.md before wiring it back.",
+    ).toBe(false);
+  });
+
+  it("the object list has not moved", () => {
     expect(BRAND_ICONS.length).toBe(144);
   });
 });

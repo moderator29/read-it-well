@@ -1,7 +1,8 @@
 /*
   home: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
-  section 2. Light-theme rules for this family live here too, under
-  :root[data-theme="light"], so the partial is the whole surface.
+  section 2. There is one theme: the founder removed light mode on 23 September
+  2026 and the paper rules that used to live here are deleted, so the partial
+  is the whole surface for the only palette there is.
 
   The governing image is the dimmed home behind the flip in
   docs/design/references/GOVERNING-flip-mid-turn.png: the search field, the
@@ -623,30 +624,7 @@
      left is this surface's own: the photograph's scrim, and the accents that
      need a darker ink on paper. The location chip wears `.nf-glass--tile`
      too, so its paper twin is the ladder's as well. */
-  @media (hover: hover) {
-    :root[data-theme="light"] .nf-home__loc:hover {
-      border-color: var(--nf-brand-edge);
-      box-shadow: var(--nf-elev-2);
-    }
-  }
-  /* On paper the photograph is not scrimmed into the page: the words sit on
-     white and the picture keeps its own edge. */
-  :root[data-theme="light"] .nf-home__invest-media::after {
-    background: linear-gradient(
-      90deg,
-      var(--nf-surface-primary) 6%,
-      color-mix(in oklab, var(--nf-surface-primary) 84%, transparent) 38%,
-      color-mix(in oklab, var(--nf-surface-primary) 32%, transparent) 60%,
-      transparent 82%
-    );
-  }
-  :root[data-theme="light"] .nf-home__market-count,
-  :root[data-theme="light"] .nf-home__city-count,
-  :root[data-theme="light"] .nf-home__invest-eyebrow,
-  :root[data-theme="light"] .nf-home__invest-accent {
-    color: var(--nf-brand-primary);
-  }
-}
+  @media (hover: hover) {  }}
 
 /*
   notifications: no governing image; inherits the home register. Glass rows
@@ -791,18 +769,7 @@
     border-radius: var(--nf-radius-circle);
     background: var(--nf-mark-unread);
     box-shadow: 0 0 10px var(--nf-glow-3);
-  }
-
-  /* On paper the tile's material is the ladder's; the unread one keeps the
-     brand hairline rather than the lit ring, which is a night effect. */
-  :root[data-theme="light"] .nf-notif__row[data-unread="true"] .nf-notif__tile {
-    border-color: var(--nf-brand-edge);
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-notif__dot {
-    box-shadow: none;
-  }
-}
+  }}
 
 /*
   assistant: to docs/design/references/BF49B814. The header pair under the
@@ -1380,70 +1347,7 @@
     border-color: var(--nf-brand-edge);
     opacity: 0.45;
     box-shadow: none;
-  }
-
-  /* ---------------------------------------------------------- daylight */
-  :root[data-theme="light"] .nf-ai__bubble--theirs,
-  :root[data-theme="light"] .nf-ai__result,
-  :root[data-theme="light"] .nf-ai__thinking,
-  :root[data-theme="light"] .nf-ai__chip,
-  :root[data-theme="light"] .nf-ai__avatar {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-ai__bubble--mine {
-    background: var(--nf-brand-primary);
-    border-color: transparent;
-    color: var(--nf-content-on-brand);
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-ai__bubble--mine .nf-ai__stamp,
-  :root[data-theme="light"] .nf-ai__bubble--mine .nf-ai__ticks {
-    color: var(--nf-content-on-brand);
-  }
-  :root[data-theme="light"] .nf-ai__well {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-default);
-    box-shadow: inset 0 1px 2px var(--nf-shade-1);
-  }
-  :root[data-theme="light"] .nf-ai__well:focus-within {
-    border-color: var(--nf-brand-edge-strong);
-    box-shadow:
-      inset 0 1px 2px var(--nf-shade-1),
-      0 0 0 3px var(--nf-glow-1);
-  }
-  :root[data-theme="light"] .nf-ai__thread {
-    border-top-color: var(--nf-border-default);
-  }
-  /* On paper the brand fill and the quiet ink are the same blue, so the
-     ring's travelling arc needs its own tint to be seen moving. */
-  /*
-   * THE SPINNER IS INVISIBLE ON PAPER AND THIS RULE DOES NOT FIX IT, because
-   * the cause is not in this file. Written down because the next person will
-   * otherwise spend the same hour.
-   *
-   * Measured on the running page: the ring's computed border in light is
-   * `rgba(18, 21, 26, 0.08)`, which is `--nf-border-subtle`. Neither this
-   * rule nor the base `.nf-ai__ring` rule mentions that token. The winner is
-   * `* { border-color: var(--nf-border-subtle) }` at `app/css/base.css:11`,
-   * which that file's own header says is DELIBERATELY UNLAYERED. Unlayered
-   * declarations outrank everything inside `@layer`, whatever its specificity,
-   * so no `border-color` written in a layer lands anywhere in this product.
-   * Every lit brand edge in the tree is really a grey hairline with a glow
-   * around it, which is R1's A5 seen from underneath.
-   *
-   * `base.css` is not this scope's to edit, so this rule stays correct and
-   * inert: the track is a real tint of the brand, the travelling arc is the
-   * full brand, and both start painting the moment the universal rule is
-   * scoped or layered. Reported rather than worked around with `!important`.
-   */
-  :root[data-theme="light"] .nf-ai__thinking .nf-ai__ring {
-    border-color: color-mix(in oklab, var(--nf-brand-primary) 22%, transparent);
-    border-top-color: var(--nf-brand-primary);
-    box-shadow: none;
-  }
-}
+  }}
 
 /*
   TRACK P: the hero plate, the category row and the featured band.
@@ -1720,43 +1624,4 @@
   }
 }
 
-@layer components {
-  /* The three Track P objects in LIGHT. The plate keeps its photograph, so
-     only the things drawn OVER it change: the chip and the field take paper
-     rather than smoked glass, and the headline drops its dark text shadow,
-     which on a light page is a smudge. */
-  :root[data-theme="light"] .nf-hero-plate__chip,
-  :root[data-theme="light"] .nf-hero-plate__search {
-    background: color-mix(in oklab, var(--nf-surface-primary) 88%, transparent);
-    border-color: var(--nf-brand-edge);
-  }
-  /*
-   * B2'S LIGHT OVERRIDE FOR THE HERO TITLE AND LEDE STOOD HERE AND IS
-   * WITHDRAWN, AND IT WAS A CORRECT FIX TO A WRONG PREMISE.
-   *
-   * It inverted the halo to white so that dark ink on a photograph stayed
-   * readable, which is exactly right IF the ink is dark. B2 was reading my own
-   * comment, which said the headline sits on "a light page" in daylight. It
-   * does not: it sits on a dusk photograph in both themes. The ink is now
-   * `--nf-content-on-media`, white in both, so there is no dark ink left for a
-   * white halo to rescue and a white halo behind white type is a fog.
-   *
-   * The finding underneath B2's fix survives and is the reason this note is
-   * long: the promise in a comment and the rule in the file had disagreed, and
-   * the comment was the thing that was wrong.
-   */
-  :root[data-theme="light"] .nf-cat-tile__plate {
-    background:
-      linear-gradient(160deg, var(--nf-brand-tint-2), transparent 70%),
-      var(--nf-surface-primary);
-    border-color: var(--nf-border-brand);
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-cat-row[data-columns="2"] .nf-cat-tile {
-    background: var(--nf-surface-primary);
-    /* `--nf-border-subtle` measures 1.17:1 on the white card, so the tile had
-       no boundary on paper at all. The resting edge of a tile is the brand
-       edge in both themes, which now measures 3.15:1 in daylight. */
-    border-color: var(--nf-brand-edge);
-  }
-}
+@layer components {}

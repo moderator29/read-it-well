@@ -1,7 +1,8 @@
 /*
   landing: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
-  section 2. Light-theme rules for this family live here too, under
-  :root[data-theme="light"], so the partial is the whole surface.
+  section 2. There is one theme: the founder removed light mode on 23 September
+  2026 and the paper rules that used to live here are deleted, so the partial
+  is the whole surface for the only palette there is.
 
   The landing is the one surface with its own desktop governing image
   (docs/design/references/GOVERNING-landing-desktop-hero.png and
@@ -1895,96 +1896,4 @@
     .nf-landing-pill-seg {
       transition: none;
     }
-  }
-
-  /* -------------------------------------------------------- daylight */
-
-  /*
-   * The hero keeps its photograph in daylight because a photograph is a
-   * photograph; its copy is on media and stays white. Everything under the
-   * fold turns to paper: white panes, neutral hairlines, the brand only on
-   * figures, active states and the CTA.
-   */
-  :root[data-theme="light"] .nf-landing {
-    --nf-landing-glow-ring: 0 0 0 1px var(--nf-border-subtle);
-    --nf-landing-tile-fill: var(--nf-surface-primary);
-    --nf-landing-band-fill: var(--nf-surface-primary);
-  }
-  :root[data-theme="light"] .nf-landing-stats,
-  :root[data-theme="light"] .nf-landing-chiprow,
-  :root[data-theme="light"] .nf-landing-band,
-  :root[data-theme="light"] .nf-landing-stack-card {
-    border-color: var(--nf-border-subtle);
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-landing-stat,
-  :root[data-theme="light"] .nf-landing-tile {
-    background: var(--nf-surface-raised);
-    border-color: var(--nf-brand-edge);
-    box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-landing-orb {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-subtle);
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-landing-list a > span:first-child {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-subtle);
-    box-shadow: none;
-  }
-  /* The install badges stay the render's deep capsules on paper: they are
-     the one pair of controls that reads as a badge rather than a button. */
-  :root[data-theme="light"] .nf-landing-store {
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-landing-stack-card {
-    background: var(--nf-surface-primary);
-  }
-  :root[data-theme="light"] .nf-landing-stack-photo,
-  :root[data-theme="light"] .nf-landing-cat {
-    border-color: var(--nf-border-subtle);
-    box-shadow: var(--nf-elev-2);
-  }
-  :root[data-theme="light"] .nf-landing-phone {
-    border-color: var(--nf-border-default);
-    box-shadow: var(--nf-elev-3);
-  }
-  :root[data-theme="light"] .nf-landing-steps::before {
-    background: linear-gradient(90deg, transparent, var(--nf-border-default), transparent);
-  }
-  /* The floating card, the pill and the city chips are on the photograph in
-     both themes, so they keep the night material; only the nav follows the
-     paper once scrolled, which the shared chrome rule already does. The one
-     shared control that would flip is the glass CTA, so it is held here. */
-  /*
-   * The night material for the hero's controls has to be restated under the
-   * light root, because light.css is imported after this partial and its own
-   * `:root[data-theme="light"] .nf-btn--glass` would otherwise turn the
-   * button to paper on top of a dusk photograph. Same for the panel opener
-   * in the bar while the bar is still transparent over the plate.
-   */
-  :root[data-theme="light"] .nf-landing-hero .nf-btn--glass {
-    color: var(--nf-landing-on-ink);
-    background: var(--nf-landing-control-on-ink-strong);
-    border-color: var(--nf-landing-hairline-on-ink);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 18px var(--nf-glow-1);
-  }
-  :root[data-theme="light"]
-    .nf-site-nav[data-variant="landing"]:not([data-scrolled="true"])
-    .nf-icon-btn {
-    color: var(--nf-landing-on-ink);
-    background: var(--nf-landing-control-on-ink-strong);
-    border-color: var(--nf-landing-hairline-on-ink);
-  }
-  :root[data-theme="light"] .nf-site-nav[data-variant="landing"]:not([data-scrolled="true"]) .nf-site-nav-link,
-  :root[data-theme="light"] .nf-site-nav[data-variant="landing"]:not([data-scrolled="true"]) .nf-site-nav-glass {
-    color: var(--nf-landing-on-ink);
-  }
-  :root[data-theme="light"] .nf-site-nav[data-variant="landing"]:not([data-scrolled="true"]) .nf-site-nav-glass {
-    background: var(--nf-landing-control-on-ink);
-    border-color: var(--nf-glass-border);
-  }
-}
+  }}

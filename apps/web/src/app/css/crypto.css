@@ -1,7 +1,8 @@
 /*
   crypto: the market surface's own partial. Owned by worker E per
-  docs/BUILD_06_LEDGER.md section 2. Light-theme rules live at the foot under
-  :root[data-theme="light"], so the partial is the whole surface.
+  docs/BUILD_06_LEDGER.md section 2. There is one theme: the founder removed
+  light mode on 23 September 2026 and the paper rules that used to sit at the
+  foot of this file are deleted.
 
   The off-brand render (213F6F47) lends only its card and chart composition.
   Its gold, orange and flame are ignored: price up is emerald, price down is
@@ -310,33 +311,4 @@
     box-shadow:
       var(--nf-glow-edge),
       var(--nf-bloom-card);
-  }
-
-  /* -------------------------------------------------------------- daylight */
-
-  :root[data-theme="light"] .nf-coin-img,
-  :root[data-theme="light"] .nf-mover-head__glyph,
-  :root[data-theme="light"] .nf-crypto-ghost {
-    background: var(--nf-brand-tint-1);
-    border-color: var(--nf-brand-edge-soft);
-    box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-crypto-stat {
-    background: var(--nf-surface-inset);
-    border-color: var(--nf-brand-edge-soft);
-    box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-crypto-surface .nf-card {
-    box-shadow: 0 0 0 1px var(--nf-brand-edge-soft);
-  }
-  :root[data-theme="light"] .nf-crypto-chart__line {
-    filter: none;
-  }
-  :root[data-theme="light"] .nf-crypto-state__mark::before,
-  :root[data-theme="light"] .nf-crypto-fund::before {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-crypto-fund__mark {
-    filter: drop-shadow(0 8px 14px var(--nf-glow-1));
-  }
-}
+  }}

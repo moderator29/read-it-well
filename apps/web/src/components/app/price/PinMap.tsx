@@ -84,24 +84,21 @@ export function PinMap({
   }, [onMove]);
 
   const [imagery, setImagery] = useState<"loading" | "ready" | "offline">("loading");
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  /* THE MAP FOLLOWS THE PLATFORM AND THE PLATFORM HAS ONE THEME. This was
+     `useState` plus a `MutationObserver` on `data-theme`, because a person
+     could switch to paper while a map was on screen and the tiles had to swap
+     with it. The founder removed light mode on 23 September 2026, so the
+     attribute can never appear and the observer could never fire; it is
+     deleted rather than left watching for something that cannot happen.
+     `tileProvider` keeps its parameter: which tile STYLE a map asks for is a
+     map question, and this is the only answer the platform has. */
+  const theme = "dark" as const;
 
   /* The credit belongs to whichever provider is actually serving tiles, and it
      travels WITH the tile URL rather than being written beside the map: a
      provider swap that silently kept the wrong credit would replace one
      licence breach with another. */
   const credits = tileProvider(theme).credits;
-
-  useEffect(() => {
-    const read = () =>
-      setTheme(
-        document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark",
-      );
-    read();
-    const observer = new MutationObserver(read);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => {
     let cancelled = false;

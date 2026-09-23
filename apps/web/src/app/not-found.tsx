@@ -34,9 +34,10 @@ export default async function NotFound() {
        * while the preview harness was shut. So `verify-shots.mjs` checking the
        * status code is necessary and NOT sufficient: it cannot tell this page
        * from a surface, and neither can any of its other assertions. This page
-       * sets `data-theme` from the same inline script, loads the same
-       * stylesheet and has no Reveal bands to get stuck, so it passes every
-       * one of them perfectly. Workers wrote eight PNGs of this screen and
+       * loads the same stylesheet and has no Reveal bands to get stuck, so it
+       * passes every one of them perfectly. (It also used to set `data-theme`
+       * from the same inline script as every other route; that script went with
+       * light mode on 23 September 2026 and nothing about this trap changed.) Workers wrote eight PNGs of this screen and
        * nearly filed them as proof that a surface had been swept.
        *
        * One attribute settles it, and it is on the page itself rather than

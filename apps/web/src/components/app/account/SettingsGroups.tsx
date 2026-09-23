@@ -11,9 +11,7 @@ import {
   applyReduceMotion,
   applyTextSize,
   useNfSettings,
-  useThemeChoice,
   type TextSize,
-  type ThemeChoice,
 } from "./settings-store";
 
 /**
@@ -52,12 +50,16 @@ import {
 /* ------------------------------------------------------------- appearance */
 
 /**
- * Appearance: theme, motion and text size.
+ * Appearance: motion and text size.
  *
- * Theme mirrors the mechanism the root layout already uses (`nf_theme` plus
- * `data-theme` on the root), so this control and the header toggle always
- * agree. Text size scales the root font size, which every rem measure in the
- * app follows. All three apply instantly and persist on this device.
+ * THE THEME ROW IS GONE. The founder removed light mode from the platform on
+ * 23 September 2026, so there is one palette and nothing for a person to
+ * choose; the row, its three options and the store behind them are deleted
+ * rather than pinned to Dark, because a control that still has a setter is a
+ * control somebody gives a second value back to.
+ *
+ * Text size scales the root font size, which every rem measure in the app
+ * follows. Both settings apply instantly and persist on this device.
  */
 export function AppearanceCard({ t, children }: { t: Dictionary; children?: ReactNode }) {
   const { settings, set } = useNfSettings();
@@ -66,28 +68,14 @@ export function AppearanceCard({ t, children }: { t: Dictionary; children?: Reac
   /* Built from the dictionary rather than held as module constants, because a
      module constant is evaluated once per bundle and would freeze whichever
      language happened to load first. */
-  const themeOptions: { value: ThemeChoice; label: string }[] = [
-    { value: "system", label: copy.themeSystem },
-    { value: "light", label: copy.themeLight },
-    { value: "dark", label: copy.themeDark },
-  ];
   const textSizes: { value: TextSize; label: string }[] = [
     { value: "s", label: copy.textSmall },
     { value: "m", label: copy.textMedium },
     { value: "l", label: copy.textLarge },
   ];
-  /* Subscribed, not copied into state and corrected afterwards. This was
-     `useState("dark")` plus a mount effect, so on a device set to light the
-     theme row showed Dark selected for one commit before flipping - a flicker
-     on the exact row somebody opened this screen to change. See
-     `useThemeChoice` in `./settings-store`. */
-  const { theme, chooseTheme } = useThemeChoice();
-
   /* The migration is a WRITE to another device's leftover key, so it stays an
      effect: it is this component updating an external system, which is the case
-     the rule says an effect is for. It cannot move into the theme store either,
-     because the flag it migrates belongs to the settings document and not to the
-     theme. */
+     the rule says an effect is for. */
   useEffect(() => {
     try {
       // Migrate the flag earlier builds stored on its own key.
@@ -108,14 +96,6 @@ export function AppearanceCard({ t, children }: { t: Dictionary; children?: Reac
 
   return (
     <SettingsGroup label={copy.label} note={copy.note}>
-      <RowSelect
-        icon="sparkle"
-        label={copy.theme}
-        value={theme}
-        options={themeOptions}
-        onChange={chooseTheme}
-        testId="setting-theme"
-      />
       <RowSelect
         icon="grid"
         label={copy.textSize}

@@ -607,30 +607,7 @@
     border-color: var(--nf-mode-agent);
     background: color-mix(in oklab, var(--nf-mode-agent) 12%, transparent);
     box-shadow: var(--nf-bloom-lit-soft);
-  }
-  /*
-   * ON PAPER THE WASH COMES DOWN, BECAUSE IT WAS COSTING THE TEXT ON TOP OF IT.
-   *
-   * Measured on a production server: the option's own description, "A
-   * self-contained flat let by the night.", reads rgb(103,110,118) on the
-   * selected wash's rgb(213,227,247), which is 3.97:1 and under the 4.5:1 that
-   * 14px needs. A selected state that makes its own body text harder to read
-   * is the wrong trade, and it was there before the light went on.
-   *
-   * 12 per cent of a mode colour over navy is a visible tint; the same 12 per
-   * cent over white is a solid pale blue that eats the ink's headroom. At 5
-   * per cent the ground returns to about L 0.91 and the muted ink clears the
-   * floor again.
-   *
-   * It can afford to, NOW, and that is the point of the lit outline: the
-   * selected option is carried by a full-strength edge and the measured bloom,
-   * so the wash is the third cue rather than the only one. Before the light it
-   * was doing the whole job alone and could not be reduced.
-   */
-  :root[data-theme="light"] .nf-option[aria-pressed="true"] {
-    background: color-mix(in oklab, var(--nf-mode-agent) 5%, transparent);
-  }
-  /*
+  }  /*
    * AND IT IS STILL 4.39:1, WHICH IS UNDER THE FLOOR, AND I CANNOT CLOSE IT
    * FROM A STYLESHEET. Recorded here rather than left as a silent near-miss.
    *

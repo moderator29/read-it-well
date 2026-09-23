@@ -9,7 +9,6 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { SUPPORT_HREF } from "@/lib/support-email";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import { ThemeToggle, type ThemeToggleLabels } from "./ThemeToggle";
 import type { Locale } from "@vallo/i18n";
 
 /**
@@ -46,7 +45,6 @@ export function MobileMenu({
   signUp,
   openLabel,
   closeLabel,
-  themeLabels,
 }: {
   links: { href: string; label: string }[];
   locale: Locale;
@@ -55,7 +53,6 @@ export function MobileMenu({
   signUp: string;
   openLabel: string;
   closeLabel: string;
-  themeLabels: ThemeToggleLabels;
 }) {
   const [open, setOpen] = useState(false);
   const panel = useRef<HTMLDivElement | null>(null);
@@ -159,14 +156,14 @@ export function MobileMenu({
 
             <div className="mt-block">
               {/*
-                Theme and language, which are the two things a visitor may want
-                to change before reading a word. Same shape as the group above,
-                label outside, so the panel has two objects on it rather than
-                four kinds of thing.
+                Language, which is the one thing a visitor may want to change
+                before reading a word. This group held the theme toggle beside
+                it until light mode was removed on 23 September 2026; with one
+                palette there is nothing to toggle, so the group is one control
+                and keeps its label outside, the same shape as the group above.
               */}
               <span className="nf-group-label">Display</span>
               <div className="nf-card flex items-center gap-inline px-group py-row">
-                <ThemeToggle labels={themeLabels} />
                 <LanguageSwitcher current={locale} label={languageLabel} compact />
               </div>
 

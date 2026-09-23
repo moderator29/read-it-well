@@ -591,129 +591,18 @@
 
 /*
  * ===========================================================================
- * THE PAPER TWIN, WHICH THIS FILE DID NOT HAVE.
+ * THE PAPER TWIN IS GONE, WITH LIGHT MODE.
  * ===========================================================================
  *
- * 590 lines and, until now, ZERO `[data-theme="light"]` rules, on the surface
- * `docs/DESIGN_DIRECTION.md:2` calls the product's signature. Everything here
- * was chosen for a near-black ground and every one of those choices inverts on
- * white. This is the worst-served surface in the product on paper and it is
- * the one the founder photographed first.
+ * This file got its first `[data-theme="light"]` rules on 22 September, after
+ * 590 lines written entirely for a near-black ground, on the surface
+ * `docs/DESIGN_DIRECTION.md:2` calls the product's signature. The founder
+ * removed light mode on 23 September, so those rules are deleted and the
+ * near-black ground is the only ground again.
  *
- * Four faults, and each rule below names the one it answers. None of them
- * needs new artwork; the artwork is a separate, larger job and is the
- * founder's to commission.
+ * Worth keeping from that day, because it is a fact about the ARTWORK rather
+ * than about the theme: the flip cover's objects were chosen for a dark
+ * canvas, and that is now simply correct rather than a thing one theme had to
+ * work around.
  */
-@layer components {
-  /*
-   * ONE: THE DIM WAS A BLACK-OUT ON PAPER.
-   *
-   * `filter: brightness(0.45) saturate(0.8)` on the outgoing page is the
-   * intended dim on the night canvas. On the `#F4F5F7` daylight page the
-   * arithmetic is not in doubt: 0.45 of 244 is 110, so the page goes to
-   * roughly `#6D6E70`, a charcoal, for the length of every turn. The
-   * signature gesture flashed dark grey on every use in daylight.
-   *
-   * On paper the way to push a page back is to wash it OUT rather than down,
-   * because the eye reads "further away" as paler against white and darker
-   * against black. So brightness goes UP towards the page and saturation
-   * comes down, which lifts `#F4F5F7` towards white and drains its colour:
-   * the page recedes instead of going out.
-   */
-  :root[data-theme="light"] .nf-flip-stage:not([data-phase="idle"]) .nf-flip-face--front {
-    filter: brightness(1.06) saturate(0.45) opacity(0.55);
-  }
-
-  /*
-   * TWO: THREE OF THE TURNING PANE'S FOUR GLOW RUNGS PAINT NOTHING.
-   *
-   * The pane stacks `--nf-glow-brand-rim`, `--nf-glow-4`, `--nf-glow-3` and
-   * `--nf-glow-2` as its lit edge. On paper `--nf-glow-4` flattens to 2.42:1
-   * and `--nf-glow-2` to 1.40:1 against the page, so what was a lit edge with
-   * a bloom coming off it became one hard blue outline with nothing around it.
-   * And `--nf-rim-lit-ink` is `#FFFFFF` in daylight, painted on a pane whose
-   * fill is the near-white canvas: the inset catchlight is a no-op too.
-   *
-   * On paper the analogue of a rim of light is a SHADE beneath, which is the
-   * same argument the elevation ladder makes about itself. So the pane keeps
-   * its brand outline at full strength, because an outline that fades on paper
-   * loses the object, drops the two rungs that cannot be seen, and gains a
-   * real cast shadow so the turning pane is unmistakably in front of the page.
-   */
-  :root[data-theme="light"] .nf-flip-stage:not([data-phase="idle"]) .nf-flip-card {
-    box-shadow:
-      0 0 0 1px var(--nf-brand-edge-strong),
-      var(--nf-shadow-on-paper),
-      var(--nf-elev-3);
-    background: var(--nf-surface-primary);
-  }
-
-  /*
-   * THREE: THE COVER GLOW WAS A SATURATED BLUE WASH ON A WHITE PAGE.
-   *
-   * `--nf-side-accent` resolves to `--nf-mode-personal` or `--nf-mode-agent`,
-   * both saturated blues, and the cover painted them as two radial gradients
-   * at 46 and 22 per cent directly onto white. That is the "blue glow around
-   * it" in the founder's own words, and on paper a bloom is not light in the
-   * space behind an object, it is a stain on the paper.
-   *
-   * So on paper it becomes a WASH: the same hue, a quarter of the strength,
-   * reading as tinted paper behind the mark rather than as light.
-   */
-  :root[data-theme="light"] .nf-flip-cover__glow {
-    background:
-      radial-gradient(
-        48% 34% at 50% 44%,
-        color-mix(in oklab, var(--nf-side-accent) 12%, transparent) 0%,
-        color-mix(in oklab, var(--nf-side-accent) 5%, transparent) 40%,
-        transparent 72%
-      ),
-      radial-gradient(
-        120% 80% at 50% 110%,
-        color-mix(in oklab, var(--nf-side-accent) 6%, transparent) 0%,
-        transparent 60%
-      );
-  }
-
-  /*
-   * FOUR: THE DROP-SHADOW FELL ON AN OPAQUE SQUARE AND DREW A SQUARE HALO.
-   *
-   * `filter` applies to an element's whole rendered subtree. At night the
-   * chip under the mark is `transparent`, so the two `drop-shadow()` layers
-   * fall on the object's own alpha ramp and produce the lit glass building the
-   * reference draws. On paper the chip is an opaque `#052A6D` square, so a
-   * drop-shadow of it is a SQUARE glow, scaled up 25 per cent. A navy square
-   * with a blue halo round it, which is the founder's sentence word for word.
-   *
-   * The mark now carries the plate's own lit edge, which the icon ground gives
-   * every daylight plate, instead of a halo of a shape nobody drew. The scale
-   * stays: the mark is still the subject of the cover.
-   */
-  :root[data-theme="light"] .nf-flip-cover__mark {
-    filter: none;
-  }
-
-  /*
-   * AND THE COIN, WHICH DISAPPEARED ENTIRELY.
-   *
-   * `.nf-side-switch__coin` is a 44px disc filled `--nf-glass-fill-strong`,
-   * white at 95 per cent, with a `--nf-glass-rim` inset, white at 90 per cent,
-   * drawn on a `.nf-glass--card` whose paper fill is `#FFFFFF`. White on white
-   * inside white: MEASURED at 1.000:1. What was left visible was the 30px navy
-   * chip of the object inside it, so the drawer's Flip Coin card showed a
-   * rounded SQUARE where a coin should be. The card itself is the same fault
-   * one level up.
-   *
-   * The disc takes the recessed grey and a real brand ring, so the coin is a
-   * coin again and the object sits inside it rather than instead of it.
-   */
-  :root[data-theme="light"] .nf-side-switch {
-    background: var(--nf-surface-inset);
-  }
-  :root[data-theme="light"] .nf-side-switch__coin {
-    background: var(--nf-surface-primary);
-    box-shadow:
-      inset 0 0 0 1px var(--nf-brand-edge),
-      var(--nf-elev-1);
-  }
-}
+@layer components {}
