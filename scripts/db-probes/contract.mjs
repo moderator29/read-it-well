@@ -15,8 +15,8 @@
  *     each file in `begin; ... rollback;` so a probe that forgot to raise
  *     cannot commit, and that probe is judged FAIL (no PROBE_OK was seen).
  *
- * A run PASSES only when the server's error text carries `PROBE_OK <id>` and
- * nothing else went wrong. Every other outcome is a failure, including a probe
+ * A run PASSES only when the client exited non-zero AND an `ERROR:` line
+ * carries `PROBE_OK <id>` (a NOTICE never counts), and nothing else went wrong. Every other outcome is a failure, including a probe
  * that finished without raising, a syntax error, a timeout and a `PROBE_OK`
  * for a different id. There is no "skipped": a probe that cannot run is red.
  */
@@ -62,6 +62,9 @@ export function checkProbeSource(path, sql) {
   if (!/PROBE_FAIL/.test(code)) {
     problems.push("has no PROBE_FAIL branch, so it cannot report a failure by name");
   }
+  if (/\bdblink\w*\s*\(|\bnet\s*\.\s*http_\w+\s*\(/i.test(code)) {
+    problems.push("calls dblink or pg_net, which act outside the probe's transaction and are never rolled back");
+  }
   if (/\bcommit\s*;/i.test(code)) {
     problems.push("contains COMMIT: a probe must never be able to keep what it did");
   }
@@ -78,16 +81,23 @@ function escapeRe(s) {
  */
 export function judgeRun(id, output, exitCode) {
   const text = String(output ?? "");
-  const okRe = new RegExp(`PROBE_OK\\s+${escapeRe(id)}(?![A-Za-z0-9_-])`, "i");
+  // PROBE_OK counts only as the server's ERROR (the probe's closing `raise
+  // exception`), never as a NOTICE or any other line, and only when the client
+  // exited non-zero. `raise notice 'PROBE_OK <id>'` followed by a normal end
+  // would otherwise pass while asserting nothing.
+  const okRe = new RegExp(
+    `^(?:psql:[^:\\n]*:\\d+:\\s*)?(?:Failed to apply database migration:\\s*)?ERROR:\\s+(?:[A-Z0-9]{5}:\\s+)?PROBE_OK\\s+${escapeRe(id)}(?![A-Za-z0-9_-])`,
+    "im",
+  );
   const fail = /PROBE_FAIL[^\n]*/.exec(text);
   if (fail) return { ok: false, reason: fail[0].trim() };
-  if (okRe.test(text)) return { ok: true, reason: `PROBE_OK ${id}` };
-  const other = /PROBE_OK\s+([A-Za-z0-9_-]+)/.exec(text);
-  if (other) {
+  if (exitCode !== 0 && okRe.test(text)) return { ok: true, reason: `PROBE_OK ${id}` };
+  const other = /ERROR:\s+(?:[A-Z0-9]{5}:\s+)?PROBE_OK\s+([A-Za-z0-9_-]+)/.exec(text);
+  if (other && other[1].toLowerCase() !== id.toLowerCase()) {
     return { ok: false, reason: `raised PROBE_OK ${other[1]}, not PROBE_OK ${id}: the success line names another probe` };
   }
   if (exitCode === 0) {
-    return { ok: false, reason: "finished without raising: no PROBE_OK was seen (rolled back by the runner)" };
+    return { ok: false, reason: "finished without raising: no PROBE_OK error was seen (rolled back by the runner)" };
   }
   const err = /ERROR:[^\n]*/.exec(text);
   return { ok: false, reason: err ? err[0].trim() : `client exited ${exitCode} with no PROBE_OK` };

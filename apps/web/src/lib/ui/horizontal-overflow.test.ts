@@ -35,6 +35,12 @@ const PAGES = {
   closedDrawer: `${ROOT_CLIP}<aside aria-hidden="true" style="position:fixed;left:100%;width:300px;height:100px">menu</aside>`,
 };
 
+/* Skipped only on a machine with no Chromium, and never in CI: a CI runner
+   without a browser must be red, or this check quietly becomes a skip. */
+it("has a browser to run in when CI is set", () => {
+  if (process.env.CI) expect(CHROMIUM, "no Chromium binary on a CI runner").toBeDefined();
+});
+
 describe.skipIf(!CHROMIUM)("horizontal overflow with the root clipped (real Chromium)", () => {
   let browser: Browser;
   let page: Page;

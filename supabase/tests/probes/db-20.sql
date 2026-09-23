@@ -25,15 +25,17 @@
 -- Known limit: a helper called only from inside another SECURITY INVOKER
 -- helper is not a pg_depend edge of the policy and is not seen here.
 --
--- Controls: the run must examine pairs, most must hold, and the pair that
--- caused the outage (anon, private.owns_listing, public.listings) must be
--- among those examined, which proves the query reaches the policies that
--- matter rather than coming back clean over nothing.
+-- Controls: the run must examine pairs, some must hold, and at least one
+-- (anon, <helper>, public.listings) pair must be among those examined: the
+-- public catalogue is the table the outage took down, so a query that no
+-- longer reaches its policies as anon is broken, not clean. (It is not pinned
+-- to private.owns_listing: the listings policies have since moved to other
+-- helpers, and the control must survive a correct refactor.)
 do $$
 declare
   total int;
   ok int;
-  outage_pair int;
+  catalogue_pairs int;
   bad text;
 begin
   with dep as (
@@ -53,10 +55,10 @@ begin
   )
   select count(*),
          count(*) filter (where has_function_privilege(r, fnoid, 'execute')),
-         count(*) filter (where r = 'anon' and sig = 'private.owns_listing(uuid)' and tbl = 'listings'),
+         count(*) filter (where r = 'anon' and tbl = 'listings'),
          string_agg(case when not has_function_privilege(r, fnoid, 'execute')
                          then r || ' cannot execute ' || sig || ' (policy ' || tbl || '.' || polname || ')' end, '; ')
-    into total, ok, outage_pair, bad
+    into total, ok, catalogue_pairs, bad
     from pairs;
 
   if total = 0 then
@@ -65,8 +67,8 @@ begin
   if ok = 0 then
     raise exception 'PROBE_FAIL db-20: harness broken, % pairs and none holds EXECUTE', total;
   end if;
-  if outage_pair = 0 then
-    raise exception 'PROBE_FAIL db-20: harness broken, the outage pair (anon, private.owns_listing, listings) was not examined';
+  if catalogue_pairs = 0 then
+    raise exception 'PROBE_FAIL db-20: harness broken, no (anon, helper, public.listings) pair was examined';
   end if;
   if bad is not null then
     raise exception 'PROBE_FAIL db-20: % of % pairs cannot be evaluated by the role the policy applies to (42501 on every statement): %', total - ok, total, bad;

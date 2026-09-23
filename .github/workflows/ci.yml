@@ -142,8 +142,8 @@ jobs:
 
   # DOC-03. Every supabase/tests/probes/*.sql against the database named by the
   # PROBES_DATABASE_URL secret; each probe must raise PROBE_OK and always rolls
-  # back (supabase/tests/README.md). Without the secret this job says loudly
-  # that the database was NOT checked and passes nothing it did not check.
+  # back (supabase/tests/README.md). Without the secret this job FAILS, saying
+  # that the database was not checked: it can never pass without running.
   db-probes:
     name: Database probes
     runs-on: ubuntu-latest
@@ -171,6 +171,10 @@ jobs:
             echo ""
             echo "PROBES_DATABASE_URL is not set. Nothing in supabase/tests/probes was checked, and this run says nothing about the database."
           } >> "$GITHUB_STEP_SUMMARY"
+          # Red, not green-with-a-warning: a job that passes without running
+          # is the blind light this job exists to remove, and must never be
+          # able to satisfy a required check.
+          exit 1
 
       - name: Install psql
         if: ${{ env.DATABASE_URL != '' }}

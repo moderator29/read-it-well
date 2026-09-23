@@ -48,6 +48,23 @@ describe("judgeRun: a probe passes only on its own PROBE_OK", () => {
     expect(r.reason).toMatch(/PROBE_FAIL db-99/);
   });
 
+  it("never counts a PROBE_OK that arrived as a NOTICE", async () => {
+    const { judgeRun } = await contract();
+    // `raise notice 'PROBE_OK <id>'` and a normal end asserts nothing.
+    expect(judgeRun("db-99", "psql:<stdin>:2: NOTICE:  PROBE_OK db-99", 0).ok).toBe(false);
+    // A notice that spells an ERROR line, followed by an unrelated error.
+    expect(
+      judgeRun("db-99", "psql:<stdin>:2: NOTICE:  ERROR:  PROBE_OK db-99\npsql:<stdin>:9: ERROR:  division by zero", 3).ok,
+    ).toBe(false);
+  });
+
+  it("passes the psql shape: PROBE_OK on an ERROR line and a non-zero exit", async () => {
+    const { judgeRun } = await contract();
+    expect(judgeRun("db-99", "psql:<stdin>:40: ERROR:  PROBE_OK db-99: 12 pairs", 3).ok).toBe(true);
+    // The same line with a zero exit is not a pass: the client must have seen the error.
+    expect(judgeRun("db-99", "psql:<stdin>:40: ERROR:  PROBE_OK db-99: 12 pairs", 0).ok).toBe(false);
+  });
+
   it("fails when the probe finished without raising (exit 0)", async () => {
     const { judgeRun } = await contract();
     expect(judgeRun("db-99", "", 0)).toMatchObject({ ok: false, reason: expect.stringMatching(/without raising/) });
@@ -89,6 +106,12 @@ describe("checkProbeSource: the shape every probe keeps", () => {
     expect(checkProbeSource("db-99.sql", `${GOOD}\ngrant all on public.wallets to anon;`).join()).toMatch(/ONE block/);
     expect(checkProbeSource("db-99.sql", GOOD.replace("begin", "begin commit;")).join()).toMatch(/COMMIT/);
     expect(checkProbeSource("db-99.sql", `grant all on public.wallets to anon;\n${GOOD}`).join()).toMatch(/does not start/);
+  });
+
+  it("refuses dblink and pg_net, which write outside the rolled-back transaction", async () => {
+    const { checkProbeSource } = await contract();
+    expect(checkProbeSource("db-99.sql", GOOD.replace("begin", "begin perform dblink_exec('x', 'y');")).join()).toMatch(/dblink or pg_net/);
+    expect(checkProbeSource("db-99.sql", GOOD.replace("begin", "begin perform net.http_post('https://x');")).join()).toMatch(/dblink or pg_net/);
   });
 
   it("does not count a PROBE_OK that exists only in a comment", async () => {

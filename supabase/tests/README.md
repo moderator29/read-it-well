@@ -40,28 +40,41 @@ node scripts/db-probes/run.mjs --list       # the files, one per line
 ```
 
 Each probe goes to `psql` in its own transaction (`begin; <probe>; rollback;`)
-with a 60 s statement timeout and a 5 s lock timeout. PASS means the server
-answered with `PROBE_OK <id>`; everything else, including a probe that finished
-without raising, is FAIL. Exit status: 0 all passed, 1 any failed, 2 the runner
+with a 60 s statement timeout and a 5 s lock timeout. PASS means psql exited
+non-zero and printed `PROBE_OK <id>` on an `ERROR:` line (a NOTICE never
+counts); everything else, including a probe that finished without raising, is
+FAIL. A probe may not call `dblink` or `pg_net`, which act outside its
+transaction. Exit status: 0 all passed, 1 any failed, 2 the runner
 could not run (no `DATABASE_URL`, no `psql`). Needs `psql` (`postgresql-client`).
 
 Use the SESSION pooler (port 5432) or the direct connection, as the `postgres`
-user: the probes need `set role anon` / `set role authenticated`.
+user: the probes build fixtures as the owner and `set role` into `anon` and
+`authenticated` (see "Why the postgres user" below).
 
 ### In CI
 
 `.github/workflows/ci.yml` job **Database probes** runs the same command when
-the repository secret `PROBES_DATABASE_URL` is set. Without it the job writes a
-warning and a step summary saying the database was NOT checked; it never
-reports a pass it did not earn.
+the repository secret `PROBES_DATABASE_URL` is set. Without it the job FAILS
+with a warning and a step summary saying the database was NOT checked, so it
+can never pass without running. Make it a required check only after the
+secret exists and the probes are green.
 
-**Founder, one step:** Supabase dashboard, project `uccixoonmbhrnyczyigt`,
-**Connect** → **Session pooler** → copy the URI and put the database password in
-it. Then GitHub → the repository → Settings → Secrets and variables → Actions →
-**New repository secret**: name `PROBES_DATABASE_URL`, value that URI. Every
-probe rolls back, but this is a credential for the production database: it is a
-secret, never a variable, and it is only readable by workflows in this
-repository.
+**Founder, one step (the secret):** Supabase dashboard, project
+`uccixoonmbhrnyczyigt`, **Connect** → **Session pooler**, copy the URI with the
+database password filled in. Then GitHub → the repository → Settings → Secrets
+and variables → Actions → **New repository secret**: name
+`PROBES_DATABASE_URL`, value that URI. It is a secret, never a variable.
+
+**Why the `postgres` user and not a narrower role.** Several probes build
+their own fixtures before switching into an API role (an escrow in a given
+state, a ledger row, a draft business) and remove them again, which needs the
+table owner's rights; a role that can only become `anon` or `authenticated`
+fails those probes. Everything still rolls back, and the runner refuses
+`dblink`/`pg_net`, the two ways to write outside the transaction. The
+exposure is the secret itself: any workflow on a branch of this repository
+can read it, which is acceptable only while everyone who can push already
+holds production access. If that changes, move the job to `push` on `main`
+only, or to a GitHub environment with required reviewers.
 
 ### In a Claude session with the Supabase MCP
 
