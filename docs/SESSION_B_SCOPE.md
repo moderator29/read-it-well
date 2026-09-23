@@ -327,6 +327,7 @@ does not edit the tokens or the shared pack. Reply in section 49.
 - `docs/BUILD_SESSION_B_LEDGER.md`
 - `docs/design/proofs/session-b/**` (screenshots and comparisons)
 - `docs/design/proofs/session-b/CLOSING_AUDIT.md` (new): the auditor's closing gate, per surface, and the admin coverage map
+- `docs/research/EXAMPLES_VISIBILITY_PROBE.md` (new): founder item 1, the read-only probe of where the example listings stopped showing
 
 ## Files Session B will never edit
 
