@@ -292,8 +292,18 @@ export function ListingGallery({
              14px of corner clamps to half the height and the browser paints a
              capsule from source text that says rectangle (ledger 13.5: the
              ruling is about the RATIO, never the token name). 10px on 28px
-             leaves the straight edge the governing images draw. */
-          className="absolute bottom-12 right-3 z-10 rounded-[var(--nf-radius-xs)] nf-media-chip nf-media-chip--muted px-sm py-2xs font-medium sm:bottom-14 sm:right-4"
+             leaves the straight edge the governing images draw.
+
+             CENTRED ON THE PHOTOGRAPH, NOT IN THE FOOT'S RIGHT CORNER. The
+             foot's left carries the marks (the market, then Verified), and at
+             390 a verified venue's two marks run to x 243 while this chip
+             started at x 238: Verified drew 4px under it (audit 2 follow-up).
+             The card met the same collision with its market tag and centred
+             its no-photo mark (`.nf-pcard__nophoto`); this is that answer.
+             Nothing else sits at the centre (the arrows are at the sides from
+             `sm`, the dots are hidden for stand-in plates), and it lets a tap
+             through to the lightbox under it. */
+          className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-[var(--nf-radius-xs)] nf-media-chip nf-media-chip--muted px-sm py-2xs font-medium"
         >
           {t.catalogue.card.noPhotos}
         </p>

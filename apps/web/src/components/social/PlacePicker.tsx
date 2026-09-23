@@ -214,7 +214,7 @@ export function PlacePicker({
           <button
             type="button"
             onClick={() => chooseState(null)}
-            className="nf-enter__back"
+            className="nf-chip nf-enter__back"
             data-testid="place-picker-back"
           >
             <UiIcon name="arrow-left" size={15} />
@@ -268,7 +268,7 @@ export function PlacePicker({
                 <li key={state.code}>
                   <button
                     type="button"
-                    className="nf-enter__chip"
+                    className="nf-chip nf-enter__chip"
                     onClick={() => chooseState(state.code)}
                     data-state-code={state.code}
                     aria-label={`${state.name}, ${state.count} local government${state.count === 1 ? "" : "s"}`}
@@ -289,7 +289,7 @@ export function PlacePicker({
                   <li key={lga.code}>
                     <button
                       type="button"
-                      className="nf-enter__chip"
+                      className="nf-chip nf-enter__chip"
                       data-lga-code={lga.code}
                       data-open={already ? "true" : undefined}
                       aria-busy={busy || undefined}

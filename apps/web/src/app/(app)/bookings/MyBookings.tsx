@@ -212,7 +212,7 @@ function BookingCard({
             <button
               type="button"
               onClick={() => onCancel(b)}
-              className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
+              className="nf-tap text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)] underline-offset-4 hover:text-[var(--nf-content-secondary)] hover:underline"
             >
               {copy.cancel}
             </button>

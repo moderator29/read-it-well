@@ -332,6 +332,12 @@ Each group appends "RELEASED <commit>" here when it is done.
     `app/(dev)/preview/session-b/sweep-orphans/**` (two new views) and its
     shot script, proofs `docs/design/proofs/session-b/sweep-orphans/pass4-*/**`.
     Held for the duration of the fix.
+    **SW-O1 to SW-O4 CLOSED, claim RELEASED** (23 September, Pass 4, ledger 13, orphans,
+    13.O.9): the district tabs and place chips on the shared chip and selected state (44px,
+    0.318), the register fields in one panel on the shared field (`.nf-fieldgroup`,
+    `.nf-totalpanel` and the per-field box deleted), the card's "/yr" at 12px, and the
+    skeletons and report sheet on `panelClass` with no change in geometry. The orphans are
+    23 of 23 swept.
   - **the audit fixes S1, S2, S3, S6, S7, S8 (worker "auditfix", claimed 23
     September by the lead's instruction, held for the duration of the fix):**
     `apps/web/src/components/ui/Chip.tsx` (ONLY `SELECTED_STYLE`),
@@ -352,6 +358,54 @@ Each group appends "RELEASED <commit>" here when it is done.
     S5 is the leftovers worker's (shared status badge).
     **RELEASED c7639c33** (23 September): S1, S2, S3, S6, S7, S8 fixed and
     measured, ledger 13, audit fixes. The claim is released.
+  - **the second audit's fixes S-A to S-G, the thread card and inspection
+    differences and the S9 remainder (worker "final", claimed 23 September by
+    the lead's instruction; every other worker has finished; held for the
+    duration of the fix):** `apps/web/src/app/css/threads.css` (ONLY
+    `.nf-chat-card__badge`), `apps/web/src/components/app/messages/ChatCard.tsx`
+    (ONLY the badge), `app/(app)/messages/[id]/ThreadOptionsSheet.tsx` (ONLY the
+    header rows), `app/(app)/messages/[id]/ThreadView.tsx` (ONLY the header's
+    options glyph and name), `app/(app)/restaurant/[id]/page.tsx` and a new
+    `app/(app)/restaurant/[id]/RestaurantFace.tsx` (the route's face lifted so the
+    harness can draw it), `app/(dev)/preview/session-b/sweep-stays/restaurant/page.tsx`,
+    `app/(app)/around/page.tsx` and `app/social-feed.css` (ONLY the feed page's
+    top spacing), `app/css/catalogue.css` (ONLY `.nf-pcard__heart` and
+    `.nf-shelf-field__go` hit areas), `app/css/wallet.css` (ONLY
+    `.nf-send-row__input` height), `app/css/site.css` (ONLY the newsletter field
+    heights), `app/css/landing.css` (ONLY `.nf-landing-pill-seg` and the pill
+    field input heights), `app/css/admin.css` (ONLY `.nf-admin-select`
+    height), `app/(app)/bookings/MyBookings.tsx`,
+    `components/app/bookings/CancelBookingSheet.tsx`,
+    `app/agent/listings/ListingsWorkspace.tsx`,
+    `components/app/listing/ListingAbout.tsx`, `components/app/place/ChoicePicker.tsx`,
+    `app/(app)/listing/[id]/ReserveTable.tsx`, `components/host/stays/StaysParts.tsx`,
+    `app/admin/reference/ReferenceEditors.tsx` (ONLY the hit areas of the named
+    controls), `app/(site)/docs/DocsSidebar.tsx` (ONLY the selected chapter),
+    `packages/i18n/src/locales/en.ts` (ONLY `agentAnalytics.emptyBody`),
+    added during the fix: `components/host/HostWizard.tsx` (ONLY a harness-only
+    `initialStep` prop) and the new harness
+    `app/(dev)/preview/session-b/audit2-fixes/**` (the wizard's later steps), the
+    ledger section "13. Platform sweep: audit 2 fixes" and the chrome, social,
+    feed and inspection ledger rows it records into, proofs
+    `docs/design/proofs/session-b/audit2-fixes/**`.
+    **RELEASED beb3883a** (23 September): S-A to S-G closed, the thread card's
+    header name and overflow mark fixed, its clock and attach glyph and the
+    inspection date format recorded as deliberate, the S9 remainder proven (five
+    routes live as the QA member, the wizard's later steps on a harness). Ledger 13.A2.
+    The claim is released.
+  - **the four items 13.A2.5 and 13.A2.6 left open (worker "last", claimed 23
+    September by the lead's instruction; every other worker has finished; held
+    for the duration of the fix):** `components/app/listing/ListingGallery.tsx`
+    (ONLY the stand-in chip's place), `app/css/admin.css` (ONLY
+    `.nf-admin-bar__search input` height), `app/css/agent.css` (ONLY
+    `.nf-agent-bar__search input` height), `components/ui/Switch.tsx` (ONLY the
+    hit extender), `app/css/landing.css` (ONLY `.nf-site-nav-link` width), the
+    ledger addendum to "13. Platform sweep: audit 2 fixes", proofs
+    `docs/design/proofs/session-b/audit2-fixes/last/**`.
+    **RELEASED** in the commit that carries ledger 13.A2.7 (23 September): the
+    gallery's stand-in chip centred (0 overlaps at 390 and 1440), both bar search
+    fields 44 at 1440, the Switch's hit area 44 on an unchanged 52x32 track, the
+    "AI" link 44 wide at 0.318. The claim is released.
 
 ### Sweep group: home, search and filters, listing detail (worker "sweep-home")
 Routes: `/home`, `/stays` (the home components only; `StayCard` is the stays

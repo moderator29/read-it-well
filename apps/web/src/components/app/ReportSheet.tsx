@@ -15,6 +15,7 @@ import {
 import type { ActionResult } from "@/lib/actions/envelope";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { panelClass } from "@/components/ui/Panel";
 
 /**
  * Report this.
@@ -165,7 +166,7 @@ export function ReportSheet({
             <div className="min-h-0 flex-1 overflow-y-auto px-md py-md">
               <div className="mx-auto grid max-w-2xl gap-md pb-xl">
                 {state?.ok ? (
-                  <div className="nf-card p-lg text-center" data-testid="report-filed">
+                  <div className={panelClass({ variant: "card", className: "block p-lg text-center" })} data-testid="report-filed">
                     <span className="mx-auto block h-16 w-16">
                       <BrandIcon name="shield-check" fill />
                     </span>
@@ -182,7 +183,7 @@ export function ReportSheet({
                     </button>
                   </div>
                 ) : !signedIn ? (
-                  <div className="nf-card p-lg text-center">
+                  <div className={panelClass({ variant: "card", className: "block p-lg text-center" })}>
                     <span className="mx-auto block h-16 w-16">
                       <BrandIcon name="shield-lock" fill />
                     </span>
@@ -203,7 +204,7 @@ export function ReportSheet({
                     <input type="hidden" name="targetType" value={targetType} />
                     <input type="hidden" name="targetId" value={targetId} />
 
-                    <fieldset className="nf-card p-md">
+                    <fieldset className={panelClass({ variant: "card", className: "block p-md" })}>
                       <legend className="px-2xs text-[length:var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]">
                         What happened?
                       </legend>
@@ -242,7 +243,7 @@ export function ReportSheet({
                       </div>
                     </fieldset>
 
-                    <div className="nf-card p-md">
+                    <div className={panelClass({ variant: "card", className: "block p-md" })}>
                       <label
                         htmlFor={`${uid}-details`}
                         className="text-[length:var(--nf-text-body-sm)] font-bold text-[var(--nf-content-primary)]"

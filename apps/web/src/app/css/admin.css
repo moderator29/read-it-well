@@ -359,10 +359,11 @@
       display: flex;
     }
   }
-  /* The render's field: a quiet glass well with a thin lit edge, 40px tall. */
+  /* The render's field: a quiet glass well with a thin lit edge. 44px tall,
+     the platform's target floor (audit 2 follow-up; it was 40). */
   .nf-admin-bar__search input {
     width: 100%;
-    min-height: 2.5rem;
+    min-height: 2.75rem;
     padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-xs) 2.5rem;
     border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid var(--nf-panel-edge);
@@ -1841,11 +1842,13 @@
     font-size: var(--nf-text-caption);
   }
 
-  /* The range select (Last 12 months): a native select on the control
-     radius, 32px tall as drawn, so the keyboard and screen reader get the
-     platform's own control. */
+  /* The range select (Last 12 months): a native select, so the keyboard and
+     screen reader get the platform's own control. The render draws it 32px
+     tall and it drew 36; it is 44 now, the tap floor (R-B), because a native
+     select takes no hit extender (no pseudo-elements) and so the control
+     itself grows (the second audit, S-E). */
   .nf-admin-select {
-    min-height: 2.25rem;
+    min-height: 2.75rem;
     padding: 0 2rem 0 var(--nf-space-sm);
     border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid var(--nf-panel-edge);

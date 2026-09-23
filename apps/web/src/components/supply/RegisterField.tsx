@@ -25,6 +25,12 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
  * which also renders an `.nf-label` over an `.nf-field`, without that
  * component knowing anything about this one.
  *
+ * ONE PANEL, SINCE SW-O3 (23 September). The container is no longer drawn per
+ * field: `.nf-regfield` has no material of its own, and every `RegField` sits
+ * inside a `RegFieldGroup`, the shared panel card, which is what the images
+ * draw once for a screen's questions. The value's well is the shared
+ * `.nf-field`. A lone field is a group of one.
+ *
  * "OPTIONAL" IS A RECTANGLE IN THE CORNER. `GOVERNING-05` draws it as a
  * capsule at the container's top right. The corner is the target and the
  * capsule is not, so it ships at 6px on a 24px box, which is 0.250 and a
@@ -74,7 +80,7 @@ export function RegField({
 export function RegFieldGroup({ children }: { children: ReactNode }) {
   /* The shared panel card since the orphans sweep: the 10px container corner,
      the lit edge and the catchlight come from the panel; `nf-orph-fieldgroup`
-     (app/css/orphans.css) keeps only the grid and drops the member fields'
-     own container, as `.nf-fieldgroup` did. */
+     (app/css/orphans.css) keeps only the grid. The member fields draw no box
+     of their own (SW-O3). */
   return <div className="nf-panel nf-panel--card nf-orph-fieldgroup p-card">{children}</div>;
 }

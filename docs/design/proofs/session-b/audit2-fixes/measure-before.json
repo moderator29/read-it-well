@@ -1,0 +1,1084 @@
+{
+ "390": {
+  "badge": [
+   {
+    "cls": "nf-chat-card__badge",
+    "text": "Confirmed",
+    "w": 108,
+    "h": 28.1,
+    "radius": 10,
+    "ratio": 0.355
+   },
+   {
+    "cls": "nf-badge nf-badge--success px-sm py-2xs text-[length:var(--nf-text-caption)]",
+    "text": "Confirmed",
+    "w": 108,
+    "h": 28.1,
+    "radius": 6,
+    "ratio": 0.213
+   }
+  ],
+  "sheet": {
+   "bodyTop": 509.828125,
+   "closes": [
+    {
+     "w": 36,
+     "h": 36,
+     "top": 501.8,
+     "clippedByBody": true
+    }
+   ],
+   "line": {
+    "top": 501.8,
+    "clipped": true
+   },
+   "headings": [
+    "Conversation"
+   ]
+  },
+  "restaurantLead": {
+   "cls": "nf-glass nf-glass--card nf-detail-lead relative z-10 -mt-xl sm:-mt-2xl",
+   "radius": "22px",
+   "bg": "linear-gradient(rgba(255, 255, 255, 0.06) 0%, rgba(0, 0, 0, "
+  },
+  "feed": {
+   "headerBottom": 60,
+   "headerCls": "nf-safe-top nf-app-header sticky top-0 z-40 lg:hidden",
+   "mainTop": 0,
+   "mainPadTop": "0px",
+   "feedPageTop": 92,
+   "feedPagePadTop": "12px",
+   "chipTop": 104,
+   "chipBottom": 137.4
+  },
+  "docs": {
+   "/docs": {
+    "text": "All chapters",
+    "visible": false,
+    "bgImage": "none",
+    "bgColor": "oklab(0.568226 -0.0396168 -0.232808 / 0.14)",
+    "border": "rgba(255, 255, 255, 0.08) 0px",
+    "shadow": "none"
+   },
+   "/docs/getting-started": {
+    "text": "2Getting started",
+    "visible": false,
+    "bgImage": "none",
+    "bgColor": "oklab(0.568226 -0.0396168 -0.232808 / 0.14)",
+    "border": "rgba(255, 255, 255, 0.08) 0px",
+    "shadow": "none"
+   }
+  },
+  "hit": {
+   "/preview/session-b/sweep-home/home": [
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Luxury 4 Bedroom wi",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Luxury 3 Bedroom Du",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save 2 Bedroom Apartment",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Penthouse with terr",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/preview/session-b/sweep-home/search": [
+    {
+     "cls": "button.nf-shelf-field__go",
+     "text": "Search",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Luxury 2 bedroom ap",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Modern 3 bedroom du",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Contemporary 4 bedr",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Spacious 5 bedroom ",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save 3 bedroom villa wit",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Land for sale",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Two bedroom flat of",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/preview/session-b/sweep-home/listing": [
+    {
+     "cls": "button.mt-xs.inline-flex.items-center",
+     "text": "Read more",
+     "h": 21.7,
+     "hit": 21.7
+    }
+   ],
+   "/preview/session-b/sweep-home/listing-parts": [
+    {
+     "cls": "button.nf-switch.relative.h-8",
+     "text": "",
+     "h": 32,
+     "hit": 42
+    },
+    {
+     "cls": "input.w-16.nf-glass--well.rounded-[var(--nf-radius-sm)]",
+     "text": "",
+     "h": 39.7,
+     "hit": 39.7
+    }
+   ],
+   "/preview/session-b/sweep-home/stays": [
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Grand Vista Hotel",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Pearl Waterside Apa",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/preview/session-b/sweep-stays/stays": [
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Remove Grand Vista Hotel",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Pearl Waterside Apa",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/preview/session-b/sweep-stays/stays-search": [
+    {
+     "cls": "button.nf-shelf-field__go",
+     "text": "Search stays",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Grand Vista Hotel",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Pearl Waterside Apa",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/preview/session-b/sweep-stays/restaurants": [
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save The Lagoon Kitchen",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Harbour Lounge",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Copper Bar and Gril",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/preview/session-b/sweep-stays/restaurant": [
+    {
+     "cls": "input.w-16.nf-glass--well.rounded-[var(--nf-radius-sm)]",
+     "text": "",
+     "h": 39.7,
+     "hit": 39.7
+    }
+   ],
+   "/preview/session-b/sweep-stays/trips": [
+    {
+     "cls": "button.nf-caption.font-semibold.text-[var(--nf-content-muted",
+     "text": "Cancel",
+     "h": 19.5,
+     "hit": 19.5
+    }
+   ],
+   "/preview/session-b/sweep-orphans?v=booking": [
+    {
+     "cls": "button.nf-caption.font-semibold.text-[var(--nf-content-muted",
+     "text": "Cancel",
+     "h": 19.5,
+     "hit": 19.5
+    }
+   ],
+   "/preview/session-b/sweep-orphans?v=bookings": [
+    {
+     "cls": "button.text-[length:var(--nf-text-caption)].font-semibold.te",
+     "text": "Cancel",
+     "h": 20.1,
+     "hit": 20.1
+    }
+   ],
+   "/preview/session-b/sweep-orphans?v=saved": [
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Remove Grand Vista Hotel",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Remove The Lagoon Kitche",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Luxury 2 bedroom ap",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Modern 3 bedroom du",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/preview/session-b/sweep-settings?v=place": [
+    {
+     "cls": "button.text-[length:var(--nf-text-overline)].font-semibold.t",
+     "text": "Clear",
+     "h": 18.6,
+     "hit": 18.6
+    }
+   ],
+   "/preview/session-b/wallet/send": [
+    {
+     "cls": "input.nf-send-row__input",
+     "text": "",
+     "h": 28,
+     "hit": 28
+    },
+    {
+     "cls": "input.nf-send-row__input.nf-numeric",
+     "text": "",
+     "h": 28,
+     "hit": 28
+    },
+    {
+     "cls": "input.nf-send-row__input",
+     "text": "",
+     "h": 28,
+     "hit": 28
+    }
+   ],
+   "/preview/session-b/wallet/send-filled": [
+    {
+     "cls": "input.nf-send-row__input",
+     "text": "",
+     "h": 28,
+     "hit": 28
+    },
+    {
+     "cls": "input.nf-send-row__input.nf-numeric",
+     "text": "",
+     "h": 28,
+     "hit": 28
+    },
+    {
+     "cls": "input.nf-send-row__input",
+     "text": "",
+     "h": 28,
+     "hit": 28
+    }
+   ],
+   "/preview/session-b/admin/overview": [
+    {
+     "cls": "select.nf-admin-select",
+     "text": "Last 30 days\nLast 90 day",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/preview/session-b/admin/analytics": [
+    {
+     "cls": "select.nf-admin-select",
+     "text": "Last 30 days\nLast 90 day",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/": [
+    {
+     "cls": "input.",
+     "text": "",
+     "h": 21.7,
+     "hit": 21.7
+    },
+    {
+     "cls": "button.nf-landing-pill-seg",
+     "text": "Buy",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "button.nf-landing-pill-seg",
+     "text": "Rent",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "button.nf-landing-pill-seg",
+     "text": "Stay",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "input.",
+     "text": "",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "button.",
+     "text": "Subscribe",
+     "h": 40,
+     "hit": 40
+    }
+   ],
+   "/about": [
+    {
+     "cls": "input.",
+     "text": "",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "button.",
+     "text": "Subscribe",
+     "h": 40,
+     "hit": 40
+    }
+   ],
+   "/help": [
+    {
+     "cls": "input.",
+     "text": "",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "button.",
+     "text": "Subscribe",
+     "h": 40,
+     "hit": 40
+    }
+   ],
+   "/docs": [
+    {
+     "cls": "input.",
+     "text": "",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "button.",
+     "text": "Subscribe",
+     "h": 40,
+     "hit": 40
+    }
+   ],
+   "/preview/f5/host-wizard": [
+    {
+     "cls": "button.grid.h-10.w-10",
+     "text": "Back",
+     "h": 40,
+     "hit": 40
+    }
+   ],
+   "/preview/imgc/hotel": [
+    {
+     "cls": "button.grid.h-10.w-10",
+     "text": "Back",
+     "h": 40,
+     "hit": 40
+    }
+   ],
+   "/preview/f5/agent-listings": [
+    {
+     "cls": "button.text-[length:var(--nf-text-caption)].font-semibold.te",
+     "text": "Take it down",
+     "h": 20.1,
+     "hit": 20.1
+    },
+    {
+     "cls": "button.text-[length:var(--nf-text-caption)].font-semibold.te",
+     "text": "Send for review",
+     "h": 20.1,
+     "hit": 20.1
+    },
+    {
+     "cls": "button.text-[length:var(--nf-text-caption)].font-semibold.te",
+     "text": "Send for review",
+     "h": 20.1,
+     "hit": 20.1
+    }
+   ],
+   "/preview/f5/admin-desks": [
+    {
+     "cls": "button.flex.w-full.items-center",
+     "text": "Architect\nBuilt environm",
+     "h": 42.3,
+     "hit": 42.3
+    },
+    {
+     "cls": "button.flex.w-full.items-center",
+     "text": "Estate surveyor and valu",
+     "h": 42.3,
+     "hit": 42.3
+    },
+    {
+     "cls": "button.flex.w-full.items-center",
+     "text": "Ikeja\nLagos · la_ikeja\nE",
+     "h": 42.3,
+     "hit": 42.3
+    },
+    {
+     "cls": "button.flex.w-full.items-center",
+     "text": "Eti Osa\nLagos · la_eti_o",
+     "h": 42.3,
+     "hit": 42.3
+    }
+   ],
+   "/preview/f1/home": [
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Luxury 4 Bedroom wi",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Luxury 3 Bedroom Du",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save 2 Bedroom Apartment",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Penthouse with terr",
+     "h": 36,
+     "hit": 36
+    }
+   ]
+  }
+ },
+ "1440": {
+  "badge": [
+   {
+    "cls": "nf-chat-card__badge",
+    "text": "Confirmed",
+    "w": 108,
+    "h": 28.1,
+    "radius": 10,
+    "ratio": 0.355
+   },
+   {
+    "cls": "nf-badge nf-badge--success px-sm py-2xs text-[length:var(--nf-text-caption)]",
+    "text": "Confirmed",
+    "w": 108,
+    "h": 28.1,
+    "radius": 6,
+    "ratio": 0.213
+   }
+  ],
+  "sheet": {
+   "bodyTop": 594.328125,
+   "closes": [
+    {
+     "w": 36,
+     "h": 36,
+     "top": 586.3,
+     "clippedByBody": true
+    }
+   ],
+   "line": {
+    "top": 586.3,
+    "clipped": true
+   },
+   "headings": [
+    "Conversation"
+   ]
+  },
+  "restaurantLead": {
+   "cls": "nf-glass nf-glass--card nf-detail-lead relative z-10 -mt-xl sm:-mt-2xl",
+   "radius": "22px",
+   "bg": "linear-gradient(rgba(255, 255, 255, 0.06) 0%, rgba(0, 0, 0, "
+  },
+  "feed": {
+   "headerBottom": 0,
+   "headerCls": "nf-safe-top nf-app-header sticky top-0 z-40 lg:hidden",
+   "mainTop": 0,
+   "mainPadTop": "0px",
+   "feedPageTop": 48,
+   "feedPagePadTop": "12px",
+   "chipTop": 60,
+   "chipBottom": 104
+  },
+  "docs": {
+   "/docs": {
+    "text": "All chapters",
+    "visible": true,
+    "bgImage": "none",
+    "bgColor": "oklab(0.568226 -0.0396168 -0.232808 / 0.14)",
+    "border": "rgba(255, 255, 255, 0.08) 0px",
+    "shadow": "none"
+   },
+   "/docs/getting-started": {
+    "text": "2\nGetting started",
+    "visible": true,
+    "bgImage": "none",
+    "bgColor": "oklab(0.568226 -0.0396168 -0.232808 / 0.14)",
+    "border": "rgba(255, 255, 255, 0.08) 0px",
+    "shadow": "none"
+   }
+  },
+  "hit": {
+   "/preview/session-b/sweep-home/home": [
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Luxury 4 Bedroom wi",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Luxury 3 Bedroom Du",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save 2 Bedroom Apartment",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Penthouse with terr",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/preview/session-b/sweep-home/search": [
+    {
+     "cls": "button.nf-shelf-field__go",
+     "text": "Search",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Luxury 2 bedroom ap",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Modern 3 bedroom du",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Contemporary 4 bedr",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Spacious 5 bedroom ",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save 3 bedroom villa wit",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Land for sale",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Two bedroom flat of",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/preview/session-b/sweep-home/listing": [
+    {
+     "cls": "button.mt-xs.inline-flex.items-center",
+     "text": "Read more",
+     "h": 21.7,
+     "hit": 21.7
+    }
+   ],
+   "/preview/session-b/sweep-home/listing-parts": [
+    {
+     "cls": "button.nf-switch.relative.h-8",
+     "text": "",
+     "h": 32,
+     "hit": 42
+    },
+    {
+     "cls": "input.w-16.nf-glass--well.rounded-[var(--nf-radius-sm)]",
+     "text": "",
+     "h": 39.7,
+     "hit": 39.7
+    }
+   ],
+   "/preview/session-b/sweep-home/stays": [
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Grand Vista Hotel",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Pearl Waterside Apa",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/preview/session-b/sweep-stays/stays": [
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Remove Grand Vista Hotel",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Pearl Waterside Apa",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/preview/session-b/sweep-stays/stays-search": [
+    {
+     "cls": "button.nf-shelf-field__go",
+     "text": "Search stays",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Grand Vista Hotel",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Pearl Waterside Apa",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/preview/session-b/sweep-stays/restaurants": [
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save The Lagoon Kitchen",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Harbour Lounge",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Copper Bar and Gril",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/preview/session-b/sweep-stays/restaurant": [
+    {
+     "cls": "input.w-16.nf-glass--well.rounded-[var(--nf-radius-sm)]",
+     "text": "",
+     "h": 39.7,
+     "hit": 39.7
+    }
+   ],
+   "/preview/session-b/sweep-stays/trips": [
+    {
+     "cls": "button.nf-caption.font-semibold.text-[var(--nf-content-muted",
+     "text": "Cancel",
+     "h": 19.5,
+     "hit": 19.5
+    }
+   ],
+   "/preview/session-b/sweep-orphans?v=booking": [
+    {
+     "cls": "button.nf-caption.font-semibold.text-[var(--nf-content-muted",
+     "text": "Cancel",
+     "h": 19.5,
+     "hit": 19.5
+    }
+   ],
+   "/preview/session-b/sweep-orphans?v=bookings": [
+    {
+     "cls": "button.text-[length:var(--nf-text-caption)].font-semibold.te",
+     "text": "Cancel",
+     "h": 20.1,
+     "hit": 20.1
+    }
+   ],
+   "/preview/session-b/sweep-orphans?v=saved": [
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Remove Grand Vista Hotel",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Remove The Lagoon Kitche",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Luxury 2 bedroom ap",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Modern 3 bedroom du",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/preview/session-b/sweep-settings?v=place": [
+    {
+     "cls": "button.text-[length:var(--nf-text-overline)].font-semibold.t",
+     "text": "Clear",
+     "h": 18.6,
+     "hit": 18.6
+    }
+   ],
+   "/preview/session-b/wallet/send": [
+    {
+     "cls": "input.nf-send-row__input",
+     "text": "",
+     "h": 28,
+     "hit": 28
+    },
+    {
+     "cls": "input.nf-send-row__input.nf-numeric",
+     "text": "",
+     "h": 28,
+     "hit": 28
+    },
+    {
+     "cls": "input.nf-send-row__input",
+     "text": "",
+     "h": 28,
+     "hit": 28
+    }
+   ],
+   "/preview/session-b/wallet/send-filled": [
+    {
+     "cls": "input.nf-send-row__input",
+     "text": "",
+     "h": 28,
+     "hit": 28
+    },
+    {
+     "cls": "input.nf-send-row__input.nf-numeric",
+     "text": "",
+     "h": 28,
+     "hit": 28
+    },
+    {
+     "cls": "input.nf-send-row__input",
+     "text": "",
+     "h": 28,
+     "hit": 28
+    }
+   ],
+   "/preview/session-b/admin/overview": [
+    {
+     "cls": "input.",
+     "text": "",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "select.nf-admin-select",
+     "text": "Last 30 days\nLast 90 day",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/preview/session-b/admin/analytics": [
+    {
+     "cls": "input.",
+     "text": "",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "select.nf-admin-select",
+     "text": "Last 30 days\nLast 90 day",
+     "h": 36,
+     "hit": 36
+    }
+   ],
+   "/": [
+    {
+     "cls": "input.",
+     "text": "",
+     "h": 21.7,
+     "hit": 21.7
+    },
+    {
+     "cls": "button.nf-landing-pill-seg",
+     "text": "Buy",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "button.nf-landing-pill-seg",
+     "text": "Rent",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "button.nf-landing-pill-seg",
+     "text": "Stay",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "input.",
+     "text": "",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "button.",
+     "text": "Subscribe",
+     "h": 40,
+     "hit": 40
+    }
+   ],
+   "/about": [
+    {
+     "cls": "input.",
+     "text": "",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "button.",
+     "text": "Subscribe",
+     "h": 40,
+     "hit": 40
+    }
+   ],
+   "/help": [
+    {
+     "cls": "input.",
+     "text": "",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "button.",
+     "text": "Subscribe",
+     "h": 40,
+     "hit": 40
+    }
+   ],
+   "/docs": [
+    {
+     "cls": "input.",
+     "text": "",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "button.",
+     "text": "Subscribe",
+     "h": 40,
+     "hit": 40
+    }
+   ],
+   "/preview/f5/host-wizard": [
+    {
+     "cls": "button.grid.h-10.w-10",
+     "text": "Back",
+     "h": 40,
+     "hit": 40
+    }
+   ],
+   "/preview/imgc/hotel": [
+    {
+     "cls": "button.grid.h-10.w-10",
+     "text": "Back",
+     "h": 40,
+     "hit": 40
+    }
+   ],
+   "/preview/f5/agent-listings": [
+    {
+     "cls": "input.",
+     "text": "Search",
+     "h": 40,
+     "hit": 40
+    },
+    {
+     "cls": "button.text-[length:var(--nf-text-caption)].font-semibold.te",
+     "text": "Take it down",
+     "h": 20.1,
+     "hit": 20.1
+    },
+    {
+     "cls": "button.text-[length:var(--nf-text-caption)].font-semibold.te",
+     "text": "Send for review",
+     "h": 20.1,
+     "hit": 20.1
+    },
+    {
+     "cls": "button.text-[length:var(--nf-text-caption)].font-semibold.te",
+     "text": "Send for review",
+     "h": 20.1,
+     "hit": 20.1
+    }
+   ],
+   "/preview/f5/admin-desks": [
+    {
+     "cls": "button.flex.w-full.items-center",
+     "text": "Architect\nBuilt environm",
+     "h": 42.3,
+     "hit": 42.3
+    },
+    {
+     "cls": "button.flex.w-full.items-center",
+     "text": "Quantity surveyor\nBuilt ",
+     "h": 42.3,
+     "hit": 42.3
+    },
+    {
+     "cls": "button.flex.w-full.items-center",
+     "text": "Estate surveyor and valu",
+     "h": 42.3,
+     "hit": 42.3
+    },
+    {
+     "cls": "button.flex.w-full.items-center",
+     "text": "Ikeja\nLagos · la_ikeja\nE",
+     "h": 42.3,
+     "hit": 42.3
+    },
+    {
+     "cls": "button.flex.w-full.items-center",
+     "text": "Eti Osa\nLagos · la_eti_o",
+     "h": 42.3,
+     "hit": 42.3
+    }
+   ],
+   "/preview/f1/home": [
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Luxury 4 Bedroom wi",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Luxury 3 Bedroom Du",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save 2 Bedroom Apartment",
+     "h": 36,
+     "hit": 36
+    },
+    {
+     "cls": "button.nf-pcard__heart",
+     "text": "Save Penthouse with terr",
+     "h": 36,
+     "hit": 36
+    }
+   ]
+  }
+ }
+}

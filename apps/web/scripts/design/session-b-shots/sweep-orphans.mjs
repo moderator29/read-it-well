@@ -48,6 +48,11 @@ const HARNESS = [
   ["h-saved-searches", `${H}saved-searches`],
   ["h-post", `${H}post`],
   ["h-inspection-rows", `${H}inspection-rows`],
+  /* Added with SW-O2 (the fix worker): the district tabs and the place picker. */
+  ["h-district", `${H}district`],
+  ["h-district-picked", `${H}district`, "button[role=tab]:has-text('Stories')"],
+  ["h-picker", `${H}picker`],
+  ["h-picker-states", `${H}picker&s=none`],
   ...[
     "place", "manage", "place-new", "places", "bookings", "review", "crypto", "coin", "kyc",
     "rent", "saved", "saved-searches", "post", "story-new", "story", "inspections",

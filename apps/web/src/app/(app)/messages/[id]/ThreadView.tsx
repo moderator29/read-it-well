@@ -685,7 +685,9 @@ export function ThreadView({
             onClick={() => setSheetOpen(true)}
             className="nf-icon-btn"
           >
-            <UiIcon name="more" size={ICON.inline} />
+            {/* Upright, as GOVERNING-chat-booking-card.png draws the header's
+                options control: the shared three nodes turned a quarter. */}
+            <UiIcon name="more" size={ICON.inline} className="rotate-90" />
           </button>
         </div>
       </header>

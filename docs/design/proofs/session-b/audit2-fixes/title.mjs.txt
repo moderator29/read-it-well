@@ -1,0 +1,9 @@
+import { chromium } from "/tmp/claude-0/-home-user-read-it-well/b3cd0ca7-526a-577f-99c1-fc3870877a0e/scratchpad/wt-final/node_modules/playwright-core/index.mjs";
+const port = process.argv[2] || 3371;
+const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+for (const w of [390, 1440]) {
+const p = await (await b.newContext({ viewport: { width: w, height: 900 } })).newPage();
+await p.goto(`http://127.0.0.1:${port}/preview/session-b/sweep-social?f=booking`, { waitUntil: "load" }); await p.waitForTimeout(1500);
+console.log(w, await p.evaluate(() => { const h = document.querySelector(".nf-thread__title"); const s = h.querySelector("span"); const cs = getComputedStyle(h); const more = document.querySelector("button[aria-label='Conversation options'] svg"); return JSON.stringify({ text: s.textContent, clientW: s.clientWidth, scrollW: s.scrollWidth, truncated: s.scrollWidth > s.clientWidth, h1W: h.getBoundingClientRect().width, font: cs.fontFamily.slice(0, 40), size: cs.fontSize, weight: cs.fontWeight, moreTransform: more ? getComputedStyle(more).transform + " " + more.getAttribute("class") : null }); }));
+}
+await b.close();

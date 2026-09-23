@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { panelClass } from "@/components/ui/Panel";
 
 /**
  * Skeletons.
@@ -126,7 +127,7 @@ export function SkeletonText({
 /**
  * The listing card, before it exists.
  *
- * The boxes deliberately mirror `ListingCard`'s real geometry - the `nf-card`
+ * The boxes deliberately mirror `ListingCard`'s real geometry - the panel card
  * shell, the 4:3 media, the `p-4` body, the 15px title line, the 12px meta row
  * at `mt-2.5` and the 19px price at `mt-3.5`. A skeleton whose proportions are
  * merely approximate causes a layout shift at the exact moment the real content
@@ -137,7 +138,10 @@ export function SkeletonCard({ className }: { className?: string }) {
   return (
     <div
       aria-hidden="true"
-      className={["nf-card overflow-hidden", className ?? ""].filter(Boolean).join(" ")}
+      /* The shared panel card by name (SW-O1): `.nf-card` already drew this
+         material, so only the name moved. `block p-0` keep the card's own
+         layout, which the panel would otherwise make a padded column. */
+      className={panelClass({ variant: "card", className: ["block overflow-hidden p-0", className ?? ""].filter(Boolean).join(" ") })}
     >
       <Skeleton radius="none" className="aspect-[4/3] w-full" />
       <div className="p-card-sm">

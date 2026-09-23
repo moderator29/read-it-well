@@ -1,0 +1,181 @@
+{"r":"/preview/g1","w":390,"cls":"button.nf-segmented__item.relative.z-1","text":"Buy","aria":"","h":36,"hit":36,"textual":true}
+{"r":"/preview/g1","w":390,"cls":"button.nf-segmented__item.relative.z-1","text":"Rent","aria":"","h":36,"hit":36,"textual":true}
+{"r":"/preview/g1","w":390,"cls":"button.nf-segmented__item.relative.z-1","text":"Stay","aria":"","h":36,"hit":36,"textual":true}
+{"r":"/preview/g1","w":390,"cls":"button.nf-segmented__item.relative.z-1","text":"Invest","aria":"","h":36,"hit":36,"textual":true}
+{"r":"/preview/g1","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/g1","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/g1","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/g1/sheet","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Notifications","h":32,"hit":42,"textual":false}
+{"r":"/preview/g1/sheet","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/g1/sheet","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/g1/surfaces","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Notifications","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/admin/overview","w":390,"cls":"select.nf-admin-select","text":"Last 30 days\nLast 90","aria":"","h":36,"hit":36,"textual":true}
+{"r":"/preview/session-b/admin/overview?state=live","w":390,"cls":"select.nf-admin-select","text":"Last 30 days\nLast 90","aria":"","h":36,"hit":36,"textual":true}
+{"r":"/preview/session-b/admin/analytics","w":390,"cls":"select.nf-admin-select","text":"Last 30 days\nLast 90","aria":"","h":36,"hit":36,"textual":true}
+{"r":"/preview/session-b/admin/analytics?state=live","w":390,"cls":"select.nf-admin-select","text":"Last 30 days\nLast 90","aria":"","h":36,"hit":36,"textual":true}
+{"r":"/preview/session-b/wallet/send","w":390,"cls":"input.nf-send-row__input","text":"","aria":"","h":28,"hit":28,"textual":false}
+{"r":"/preview/session-b/wallet/send","w":390,"cls":"input.nf-send-row__input.nf-numeric","text":"","aria":"","h":28,"hit":28,"textual":false}
+{"r":"/preview/session-b/wallet/send","w":390,"cls":"input.nf-send-row__input","text":"","aria":"","h":28,"hit":28,"textual":false}
+{"r":"/preview/session-b/wallet/send-filled","w":390,"cls":"input.nf-send-row__input","text":"","aria":"","h":28,"hit":28,"textual":false}
+{"r":"/preview/session-b/wallet/send-filled","w":390,"cls":"input.nf-send-row__input.nf-numeric","text":"","aria":"","h":28,"hit":28,"textual":false}
+{"r":"/preview/session-b/wallet/send-filled","w":390,"cls":"input.nf-send-row__input","text":"","aria":"","h":28,"hit":28,"textual":false}
+{"r":"/preview/session-b/inspection","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Exterior checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Interior checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Kitchen checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Bathrooms checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Utilities checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Appliances checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Safety checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Overall Condition checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?rooms=8","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Exterior checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?rooms=8","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Interior checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?rooms=8","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Kitchen checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?rooms=8","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Bathrooms checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?rooms=8","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Utilities checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?rooms=8","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Appliances checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?rooms=8","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Safety checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?rooms=8","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Overall Condition checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?rooms=off","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Exterior checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?rooms=off","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Interior checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?rooms=off","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Kitchen checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?rooms=off","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Bathrooms checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?rooms=off","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Utilities checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?rooms=off","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Appliances checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?rooms=off","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Safety checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?rooms=off","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Overall Condition checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?side=lister","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Exterior checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?side=lister","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Interior checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?side=lister","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Kitchen checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?side=lister","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Bathrooms checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?side=lister","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Utilities checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?side=lister","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Appliances checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?side=lister","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Safety checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection?side=lister","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Overall Condition checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection/shell","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Exterior checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection/shell","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Interior checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection/shell","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Kitchen checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection/shell","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Bathrooms checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection/shell","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Utilities checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection/shell","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Appliances checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection/shell","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Safety checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/inspection/shell","w":390,"cls":"button.nf-ix-room__check","text":"","aria":"Overall Condition checked","h":18,"hit":42,"textual":false}
+{"r":"/preview/session-b/feed?state=feed","w":390,"cls":"button.nf-feed-chip","text":"Lekki, Lagos","aria":"Where this feed is read from: Lekki, Lagos","h":33.4,"hit":42,"textual":true}
+{"r":"/preview/session-b/feed?state=feed","w":390,"cls":"a.nf-feed-seg__link","text":"For you","aria":"","h":35.2,"hit":42,"textual":true}
+{"r":"/preview/session-b/feed?state=feed","w":390,"cls":"a.nf-feed-seg__link","text":"Following","aria":"","h":35.2,"hit":42,"textual":true}
+{"r":"/preview/session-b/feed?state=bloom","w":390,"cls":"button.nf-feed-chip","text":"Lekki, Lagos","aria":"Where this feed is read from: Lekki, Lagos","h":33.4,"hit":42,"textual":true}
+{"r":"/preview/session-b/feed?state=bloom","w":390,"cls":"a.nf-feed-seg__link","text":"For you","aria":"","h":35.2,"hit":42,"textual":true}
+{"r":"/preview/session-b/feed?state=bloom","w":390,"cls":"a.nf-feed-seg__link","text":"Following","aria":"","h":35.2,"hit":42,"textual":true}
+{"r":"/preview/session-b/feed?state=following","w":390,"cls":"button.nf-feed-chip","text":"Lekki, Lagos","aria":"Where this feed is read from: Lekki, Lagos","h":33.4,"hit":42,"textual":true}
+{"r":"/preview/session-b/feed?state=following","w":390,"cls":"a.nf-feed-seg__link","text":"For you","aria":"","h":35.2,"hit":42,"textual":true}
+{"r":"/preview/session-b/feed?state=following","w":390,"cls":"a.nf-feed-seg__link","text":"Following","aria":"","h":35.2,"hit":42,"textual":true}
+{"r":"/preview/session-b/feed?state=empty","w":390,"cls":"button.nf-feed-chip","text":"Lekki, Lagos","aria":"Where this feed is read from: Lekki, Lagos","h":33.4,"hit":42,"textual":true}
+{"r":"/preview/session-b/feed?state=empty","w":390,"cls":"a.nf-feed-seg__link","text":"For you","aria":"","h":35.2,"hit":42,"textual":true}
+{"r":"/preview/session-b/feed?state=empty","w":390,"cls":"a.nf-feed-seg__link","text":"Following","aria":"","h":35.2,"hit":42,"textual":true}
+{"r":"/preview/session-b/feed?state=following-empty","w":390,"cls":"button.nf-feed-chip","text":"Lekki, Lagos","aria":"Where this feed is read from: Lekki, Lagos","h":33.4,"hit":42,"textual":true}
+{"r":"/preview/session-b/feed?state=following-empty","w":390,"cls":"a.nf-feed-seg__link","text":"For you","aria":"","h":35.2,"hit":42,"textual":true}
+{"r":"/preview/session-b/feed?state=following-empty","w":390,"cls":"a.nf-feed-seg__link","text":"Following","aria":"","h":35.2,"hit":42,"textual":true}
+{"r":"/preview/session-b/sweep-home/home","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Luxury 4 Bedroom with BQ","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/home","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Luxury 3 Bedroom Duplex","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/home","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save 2 Bedroom Apartment, Osapa","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/home","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Penthouse with terrace","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/stays","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Grand Vista Hotel","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/stays","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Pearl Waterside Apartments","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/search","w":390,"cls":"button.nf-shelf-field__go","text":"","aria":"Search","h":40,"hit":40,"textual":false}
+{"r":"/preview/session-b/sweep-home/search","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Luxury 2 bedroom apartment with BQ","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/search","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Modern 3 bedroom duplex","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/search","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Contemporary 4 bedroom terrace","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/search","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Spacious 5 bedroom mansion","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/search","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save 3 bedroom villa with pool","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/search","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Land for sale","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/search","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Two bedroom flat off Admiralty Way","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/search?filters=open","w":390,"cls":"button.nf-shelf-field__go","text":"","aria":"Search","h":40,"hit":40,"textual":false}
+{"r":"/preview/session-b/sweep-home/search?filters=open","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Luxury 2 bedroom apartment with BQ","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/search?filters=open","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Modern 3 bedroom duplex","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/search?filters=open","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Contemporary 4 bedroom terrace","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/search?filters=open","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Spacious 5 bedroom mansion","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/search?filters=open","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save 3 bedroom villa with pool","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/search?filters=open","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Land for sale","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/search?filters=open","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Two bedroom flat off Admiralty Way","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-home/search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Free Wi-Fi","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-home/search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Parking","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-home/search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Swimming pool","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-home/search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Gym","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-home/search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Security","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-home/search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Instant book","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-home/search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Verified only","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-home/search-empty","w":390,"cls":"button.nf-shelf-field__go","text":"","aria":"Search","h":40,"hit":40,"textual":false}
+{"r":"/preview/session-b/sweep-home/search-empty?view=map","w":390,"cls":"button.nf-shelf-field__go","text":"","aria":"Search","h":40,"hit":40,"textual":false}
+{"r":"/preview/session-b/sweep-home/listing","w":390,"cls":"button.mt-xs.inline-flex.items-center","text":"Read more","aria":"","h":21.7,"hit":21.7,"textual":true}
+{"r":"/preview/session-b/sweep-home/listing-parts","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-home/listing-parts","w":390,"cls":"input.w-16.nf-glass--well.rounded-[var(--nf-radius-sm)]","text":"","aria":"","h":39.7,"hit":39.7,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Remove Grand Vista Hotel from saved","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Pearl Waterside Apartments","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays-search","w":390,"cls":"button.nf-shelf-field__go","text":"","aria":"Search stays","h":40,"hit":40,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays-search","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Grand Vista Hotel","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays-search","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Pearl Waterside Apartments","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays-search?filters=open","w":390,"cls":"button.nf-shelf-field__go","text":"","aria":"Search stays","h":40,"hit":40,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays-search?filters=open","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Grand Vista Hotel","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays-search?filters=open","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Pearl Waterside Apartments","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays-search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Wi-Fi","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays-search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Air conditioning","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays-search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Parking","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays-search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Breakfast included","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays-search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Pool","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays-search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Gym","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays-search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Kitchen","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays-search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Security","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays-search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Generator","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays-search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Verified only","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-stays/stays-search?filters=open","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"Free cancellation","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-stays/trips","w":390,"cls":"button.nf-caption.font-semibold.text-[var(--nf-content-muted","text":"Cancel","aria":"","h":19.5,"hit":19.5,"textual":true}
+{"r":"/preview/session-b/sweep-stays/restaurants","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save The Lagoon Kitchen","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-stays/restaurants","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Harbour Lounge","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-stays/restaurants","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Copper Bar and Grill","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-stays/restaurant","w":390,"cls":"input.w-16.nf-glass--well.rounded-[var(--nf-radius-sm)]","text":"","aria":"","h":39.7,"hit":39.7,"textual":false}
+{"r":"/preview/session-b/sweep-settings?v=hub","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-settings?v=notifications","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-settings?v=notifications","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-settings?v=notifications","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-settings?v=notifications","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-settings?v=privacy","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-settings?v=privacy","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-settings?v=privacy","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-settings?v=appearance","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-settings?v=appearance","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-settings?v=place","w":390,"cls":"button.text-[length:var(--nf-text-overline)].font-semibold.t","text":"Clear","aria":"","h":18.6,"hit":18.6,"textual":true}
+{"r":"/preview/session-b/sweep-settings?v=hub&drawer=1","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/","w":390,"cls":"input.","text":"","aria":"","h":21.7,"hit":21.7,"textual":false}
+{"r":"/","w":390,"cls":"button.nf-landing-pill-seg","text":"Buy","aria":"","h":40,"hit":40,"textual":true}
+{"r":"/","w":390,"cls":"button.nf-landing-pill-seg","text":"Rent","aria":"","h":40,"hit":40,"textual":true}
+{"r":"/","w":390,"cls":"button.nf-landing-pill-seg","text":"Stay","aria":"","h":40,"hit":40,"textual":true}
+{"r":"/","w":390,"cls":"input.","text":"","aria":"","h":40,"hit":40,"textual":false}
+{"r":"/","w":390,"cls":"button.","text":"","aria":"Subscribe","h":40,"hit":40,"textual":false}
+{"r":"/about","w":390,"cls":"input.","text":"","aria":"","h":40,"hit":40,"textual":false}
+{"r":"/about","w":390,"cls":"button.","text":"","aria":"Subscribe","h":40,"hit":40,"textual":false}
+{"r":"/help","w":390,"cls":"input.","text":"","aria":"","h":40,"hit":40,"textual":false}
+{"r":"/help","w":390,"cls":"button.","text":"","aria":"Subscribe","h":40,"hit":40,"textual":false}
+{"r":"/docs","w":390,"cls":"input.","text":"","aria":"","h":40,"hit":40,"textual":false}
+{"r":"/docs","w":390,"cls":"button.","text":"","aria":"Subscribe","h":40,"hit":40,"textual":false}
+{"r":"/preview/f1/home","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Luxury 4 Bedroom with BQ","h":36,"hit":36,"textual":false}
+{"r":"/preview/f1/home","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Luxury 3 Bedroom Duplex","h":36,"hit":36,"textual":false}
+{"r":"/preview/f1/home","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save 2 Bedroom Apartment, Osapa","h":36,"hit":36,"textual":false}
+{"r":"/preview/f1/home","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Penthouse with terrace","h":36,"hit":36,"textual":false}
+{"r":"/preview/f5/host-wizard","w":390,"cls":"button.grid.h-10.w-10","text":"","aria":"Back","h":40,"hit":40,"textual":false}
+{"r":"/preview/f5/agent-listings","w":390,"cls":"button.text-[length:var(--nf-text-caption)].font-semibold.te","text":"Take it down","aria":"","h":20.1,"hit":20.1,"textual":true}
+{"r":"/preview/f5/agent-listings","w":390,"cls":"button.text-[length:var(--nf-text-caption)].font-semibold.te","text":"Send for review","aria":"","h":20.1,"hit":20.1,"textual":true}
+{"r":"/preview/f5/agent-listings","w":390,"cls":"button.text-[length:var(--nf-text-caption)].font-semibold.te","text":"Send for review","aria":"","h":20.1,"hit":20.1,"textual":true}
+{"r":"/preview/imgc/hotel","w":390,"cls":"button.grid.h-10.w-10","text":"","aria":"Back","h":40,"hit":40,"textual":false}
+{"r":"/preview/f5/admin-desks","w":390,"cls":"button.flex.w-full.items-center","text":"Architect\nBuilt envi","aria":"","h":42.3,"hit":42.3,"textual":true}
+{"r":"/preview/f5/admin-desks","w":390,"cls":"button.flex.w-full.items-center","text":"Estate surveyor and ","aria":"","h":42.3,"hit":42.3,"textual":true}
+{"r":"/preview/f5/admin-desks","w":390,"cls":"button.flex.w-full.items-center","text":"Ikeja\nLagos · la_ike","aria":"","h":42.3,"hit":42.3,"textual":true}
+{"r":"/preview/f5/admin-desks","w":390,"cls":"button.flex.w-full.items-center","text":"Eti Osa\nLagos · la_e","aria":"","h":42.3,"hit":42.3,"textual":true}
+{"r":"/preview/session-b/sweep-settings?v=sheet-bottom","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-settings?v=sheet-rows","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-orphans?v=bookings","w":390,"cls":"button.text-[length:var(--nf-text-caption)].font-semibold.te","text":"Cancel","aria":"","h":20.1,"hit":20.1,"textual":true}
+{"r":"/preview/session-b/sweep-orphans?v=booking","w":390,"cls":"button.nf-caption.font-semibold.text-[var(--nf-content-muted","text":"Cancel","aria":"","h":19.5,"hit":19.5,"textual":true}
+{"r":"/preview/session-b/sweep-orphans?v=saved","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Remove Grand Vista Hotel from saved","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-orphans?v=saved","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Remove The Lagoon Kitchen from saved","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-orphans?v=saved","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Luxury 2 bedroom apartment with BQ","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-orphans?v=saved","w":390,"cls":"button.nf-pcard__heart","text":"","aria":"Save Modern 3 bedroom duplex","h":36,"hit":36,"textual":false}
+{"r":"/preview/session-b/sweep-orphans?v=saved-searches","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}
+{"r":"/preview/session-b/sweep-orphans?v=saved-searches","w":390,"cls":"button.nf-switch.relative.h-8","text":"","aria":"","h":32,"hit":42,"textual":false}

@@ -38,7 +38,7 @@ export function ListingAbout({ paragraphs }: { paragraphs: string[] }) {
           aria-expanded={open}
           aria-controls={regionId}
           data-testid="about-toggle"
-          className="mt-xs inline-flex items-center gap-2xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)] underline underline-offset-4 transition-colors hover:text-[var(--nf-brand-primary)]"
+          className="nf-tap mt-xs inline-flex items-center gap-2xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)] underline underline-offset-4 transition-colors hover:text-[var(--nf-brand-primary)]"
         >
           {open ? "Show less" : "Read more"}
           <UiIcon

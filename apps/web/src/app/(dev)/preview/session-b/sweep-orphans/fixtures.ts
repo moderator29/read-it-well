@@ -1,3 +1,4 @@
+import type { OpenPlace, PlaceTree } from "@/lib/social/places-schema";
 import type { AreaDetail, AreaProposal, AreaSummary } from "@/lib/social/areas-queries";
 import type { RentPayView } from "@/lib/rent/queries";
 import type { ListingReview, ReviewSubject } from "@/lib/reviews/queries";
@@ -152,4 +153,28 @@ export const SAVED_SEARCHES: SavedSearchView[] = [
     alertEnabled: false,
     createdAt: "2026-09-02T09:00:00.000Z",
   },
+];
+
+/* The place picker (SW-O2): two states, Lagos with six of its local
+   governments, two of them already open. Names are the public reference list;
+   member counts are fixture numbers. */
+export const PICKER_TREE: PlaceTree = [
+  {
+    code: "LA",
+    name: "Lagos",
+    lgas: [
+      { code: "la_eti_osa", name: "Eti-Osa" },
+      { code: "la_ikeja", name: "Ikeja" },
+      { code: "la_lagos_mainland", name: "Lagos Mainland" },
+      { code: "la_surulere", name: "Surulere" },
+      { code: "la_alimosho", name: "Alimosho" },
+      { code: "la_kosofe", name: "Kosofe" },
+    ],
+  },
+  { code: "FC", name: "Federal Capital Territory", lgas: [{ code: "fc_amac", name: "Abuja Municipal" }] },
+];
+
+export const PICKER_OPEN: OpenPlace[] = [
+  { lgaCode: "la_eti_osa", slug: "eti-osa", name: "Eti-Osa", status: "ACTIVE", memberCount: 412, postCount: 90 },
+  { lgaCode: "la_lagos_mainland", slug: "lagos-mainland", name: "Lagos Mainland", status: "ACTIVE", memberCount: 128, postCount: 31 },
 ];

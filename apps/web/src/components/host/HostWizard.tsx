@@ -153,6 +153,7 @@ export function HostWizard({
   policies,
   locale,
   door = null,
+  initialStep = null,
 }: {
   initial: HostDraft;
   userId: string;
@@ -173,6 +174,16 @@ export function HostWizard({
    * only fills a blank.
    */
   door?: StaysDoor | null;
+  /**
+   * THE FIXTURE HARNESS'S WAY IN TO A LATER STEP, and nothing else passes it.
+   *
+   * Moving forward is a write (`saveHostDraft` creates the business at step
+   * two), so a proof of the later steps cannot click its way there. With a
+   * step named here the wizard opens on it, over whatever draft it was given;
+   * an id the draft's branch does not have is ignored. The routes never pass
+   * it (the second audit, S9).
+   */
+  initialStep?: HostStepId | null;
 }) {
   const router = useRouter();
   const [draft, setDraft] = useState<HostDraft>(() =>
@@ -180,9 +191,13 @@ export function HostWizard({
       ? { ...initial, hostType: door.hostType, kind: door.kind }
       : initial,
   );
-  const [at, setAt] = useState(
-    door && initial.hostType === null && initial.kind === null ? 1 : 0,
-  );
+  const [at, setAt] = useState(() => {
+    const opened = initialStep
+      ? stepsFor(initial.hostType, initial.kind).findIndex((candidate) => candidate.id === initialStep)
+      : -1;
+    if (opened >= 0) return opened;
+    return door && initial.hostType === null && initial.kind === null ? 1 : 0;
+  });
   const [pending, start] = useTransition();
   const [notice, setNotice] = useState<Notice>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
