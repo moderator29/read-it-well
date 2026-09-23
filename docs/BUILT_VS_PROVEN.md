@@ -284,7 +284,7 @@ claims in `PROBE_STATE.md` were checked one at a time:
 | `escrow_fund_from_wallet_as` retired, `{postgres=X/postgres}` and nothing else | `postgres=X/postgres` | **holds** |
 | `escrow_propose_as` holds `service_role=X/postgres` and nothing else | `postgres=X/postgres \| service_role=X/postgres` | **holds** |
 | `escrow_fund_proposal_as` the same | `postgres=X/postgres \| service_role=X/postgres` | **holds** |
-| The escrow verbs are shut to `anon` and `authenticated` | **`public.escrow_admin_resolve` holds `authenticated=X/postgres`**, and `private.escrow_evidence_path_access` holds `authenticated=X/postgres` | **does NOT hold as stated, see below** |
+| The escrow verbs are shut to `anon` and `authenticated` | **`public.escrow_admin_resolve` holds `authenticated=X/postgres`**, and `private.escrow_evidence_path_access` holds `authenticated=X/postgres`. Thirty one escrow functions exist; the probe names eleven | **holds for the eleven, not for the surface, see below** |
 
 **The finding this register contributes.** `public.escrow_admin_resolve(p_escrow
 uuid, p_direction text, p_note text)` is `SECURITY DEFINER` and its ACL reads
@@ -292,14 +292,35 @@ uuid, p_direction text, p_note text)` is `SECURITY DEFINER` and its ACL reads
 **Every signed-in account on this platform can EXECUTE the verb that resolves a
 dispute.** The same is true of `private.escrow_evidence_path_access`.
 
-That is not by itself a hole: both presumably guard internally, and
-`escrow_admin_resolve` is the kind of verb a signed-in admin has to be able to
-call. But rule 21 of the ledger says BORN LOCKED, and the summary sentence
-"`anon` and `authenticated` are refused by Postgres itself on every revoked
-escrow verb" is true only of the eleven verbs the probe chose. It is not true
-of the escrow surface. **The grant is real, it was read from `proacl` today,
-and whether the internal guard is sound was NOT checked in this pass**, because
-demonstrating a refusal needs a non-`rolbypassrls` role and this tool has none.
+**And then the guard was read, rather than assumed either way, which changes
+the finding.** `public.escrow_admin_resolve`'s body, from `pg_proc.prosrc`
+today, opens:
+
+```
+actor uuid := auth.uid();
+if actor is null
+   or not (private.has_role(actor, 'admin') or private.has_role(actor, 'super_admin')) then
+  return jsonb_build_object('status', 'forbidden');
+```
+
+**So the grant is deliberate and the verb is guarded**, and this is almost
+certainly the very "control verb granted to `authenticated` on purpose" that
+`PROBE_STATE.md` says answered `{"status":"forbidden"}` inside the P-7
+transaction. The register does not file it as a hole.
+
+**What survives as a real correction is narrower and still worth having.** The
+document's summary sentence, "`anon` and `authenticated` are refused by
+Postgres itself on every revoked escrow verb", is true of the eleven verbs the
+probe named and is not true of the escrow surface, which has thirty one
+functions in it. A reader who takes the sentence at face value will believe
+something about `escrow_admin_resolve` that is not so. **The eleven are shut.
+The surface is not the eleven.**
+
+Two things were NOT checked here and are named rather than glossed:
+`private.escrow_evidence_path_access`'s body was not read, so its
+`authenticated=X` grant is unexamined; and no refusal was demonstrated for any
+of them, because demonstrating one needs a role without `rolbypassrls` and
+this tool has none.
 
 ### 3.2 Escrow in production
 
@@ -695,10 +716,14 @@ kept, or it counts something the artefacts do not.
 
 **3. "`anon` and `authenticated` are refused by Postgres itself on every
 revoked escrow verb" (`PROBE_STATE.md`, P-7 EXECUTE).** True of the eleven
-verbs the probe names. Not true of the escrow surface:
-`public.escrow_admin_resolve` and `private.escrow_evidence_path_access` both
-hold `authenticated=X/postgres` in `proacl` today. The claim is sound about
-what it tested and its summary sentence is wider than what it tested.
+verbs the probe names. Not true of the escrow surface, which has thirty one
+functions in it: `public.escrow_admin_resolve` and
+`private.escrow_evidence_path_access` both hold `authenticated=X/postgres` in
+`proacl` today. **This is the mildest of the six**, because reading
+`escrow_admin_resolve`'s body shows the grant is deliberate and the verb
+refuses a non-admin caller in its first four lines. The claim is sound about
+what it tested; its summary sentence is wider than what it tested, and a
+reader will draw a conclusion from it that the catalogue does not support.
 
 **4. The "seven cron routes have run" question was never claimed, and the
 answer is better than the documents imply.** `PLATFORM_STATUS.md` cycle 4 makes
