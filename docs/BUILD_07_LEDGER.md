@@ -10837,3 +10837,59 @@ unions that had drifted from the database**, and two are in files you own:
 That is R18 closed from this side. The type is no longer a copy of the enum, so
 the tenth value is a compile error rather than a chip rendering a raw column at
 a person.
+
+---
+
+## 77. P-7'S HTTP HALF RAN FOR THE FIRST TIME AND IT PASSES. 8 OF 8
+
+**The founder opened the environment's network access, and the last untested
+condition on the escrow gate is now tested.**
+
+Confirmed reachable at 15:17 UTC before anything was read into a refusal:
+`uccixoonmbhrnyczyigt.supabase.co` 401, `api.resend.com` 200,
+`api.paystack.co` 200. The script's own preflight asked the same question
+independently and printed `answered HTTP 401. Running the probe.`
+
+```
+escrow_fund_from_wallet     HTTP 401  42501 permission denied for function
+escrow_confirm              HTTP 401  42501 permission denied for function
+escrow_request_release      HTTP 401  42501 permission denied for function
+escrow_raise_dispute        HTTP 401  42501 permission denied for function
+escrow_hold                 HTTP 401  42501 permission denied for function
+escrow_cancel_as            HTTP 401  42501 permission denied for function
+escrow_fund_from_wallet_as  HTTP 401  42501 permission denied for function
+GET /rest/v1/listings       HTTP 200  the control
+RESULT: PASS. 8 of 8.
+```
+
+**Why the eighth line is the one that makes the other seven mean anything.** A
+probe where every door is shut cannot tell a shut door from a broken URL, a
+wrong host or an expired key. The control is a plain read that MUST answer, and
+it answered 200. So the seven refusals are refusals.
+
+**And the refusals are the right kind.** Each is `42501 permission denied for
+function`, which is Postgres refusing EXECUTE before the body ran. None
+answered in escrow's own vocabulary, which is what a reachable verb would have
+produced and what the script is written to fail on.
+
+**What this closes.** The founder's sentence was *"no naira moves until all
+nine probes pass in both directions, and right now that sentence is still
+untested."* It is tested. All nine pass in both directions.
+
+**What it does NOT close, said plainly so nobody reads this as a green light to
+move money.** The gate has conditions that are not probes: custody is still
+undecided, `custodySentence()` still returns null with no fallback, there is
+still no `held_payments` row, and the kill switch still fails closed. The
+probes were one condition of several and they are the one that was open.
+
+**One honest limit on the run.** It used the project's publishable key with no
+session, so what is proved over the wire is that **a stranger** cannot reach
+those verbs. A signed-in user's JWT was not used. The EXECUTE half covers
+`authenticated` and passes, and the two halves ask different questions. A
+signed-in HTTP run would close the last corner and is now possible from this
+container for the first time.
+
+**The incidental finding in the control.** `GET /rest/v1/listings` answering
+200 to the anon key is also an independent re-confirmation, over the wire and
+from outside, that the eleven hour catalogue outage of section 67 is genuinely
+repaired. That had only ever been proved from inside the database.
