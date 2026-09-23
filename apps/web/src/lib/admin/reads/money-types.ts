@@ -84,8 +84,11 @@ export type EscrowActivity = {
 };
 
 export type EscrowPipeline = {
-  byState: Record<EscrowState, { count: number; amountMinor: number }>;
-  byPurpose: Record<EscrowPurpose, { count: number; amountMinor: number }>;
+  /* Keyed by string, not by the generated enum: the live database carries
+     values the generated types do not yet (`CANCELLED`, `agency_fee`, checked
+     23 September), and a value the types lag behind must count, not crash. */
+  byState: Record<EscrowState | string, { count: number; amountMinor: number }>;
+  byPurpose: Record<EscrowPurpose | string, { count: number; amountMinor: number }>;
   total: number;
   recent: EscrowActivity[];
 };

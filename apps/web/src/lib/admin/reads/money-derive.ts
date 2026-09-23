@@ -1,7 +1,6 @@
 import type {
   EscrowActivity,
   EscrowPipeline,
-  EscrowPurpose,
   EscrowState,
   LedgerPage,
   MoneyFlow,
@@ -269,7 +268,12 @@ export function countdown(untilIso: string | null, now: number): { label: string
   return { label: `${Math.max(1, minutes)}m`, due: false };
 }
 
-export const ESCROW_STATES: readonly EscrowState[] = [
+/**
+ * Every escrow state and purpose in the LIVE schema (read 23 September),
+ * which is ahead of the generated types by `CANCELLED` and `agency_fee`. A
+ * value outside these lists still counts: the pipeline adds it as it meets it.
+ */
+export const ESCROW_STATES: readonly string[] = [
   "INITIATED",
   "FUNDED",
   "HELD",
@@ -278,19 +282,21 @@ export const ESCROW_STATES: readonly EscrowState[] = [
   "REFUNDED",
   "DISPUTED",
   "RESOLVED",
+  "CANCELLED",
 ];
 
-export const ESCROW_PURPOSES: readonly EscrowPurpose[] = [
+export const ESCROW_PURPOSES: readonly string[] = [
   "rent_deposit",
   "first_rent",
   "purchase_deposit",
   "purchase_balance",
+  "agency_fee",
 ];
 
 /** The slice of `EscrowView` the pipeline needs. */
 export type EscrowLike = {
   id: string;
-  state: EscrowState;
+  state: EscrowState | string;
   purpose: string;
   amountMinor: number;
   listingTitle: string | null;
@@ -327,13 +333,12 @@ export function pipelineFromWhole(escrows: readonly EscrowLike[], recentCount = 
 
   const events: EscrowActivity[] = [];
   for (const e of escrows) {
-    byState[e.state].count += 1;
-    byState[e.state].amountMinor += e.amountMinor;
-    const purpose = byPurpose[e.purpose as EscrowPurpose];
-    if (purpose) {
-      purpose.count += 1;
-      purpose.amountMinor += e.amountMinor;
-    }
+    const st = (byState[e.state] ??= { count: 0, amountMinor: 0 });
+    st.count += 1;
+    st.amountMinor += e.amountMinor;
+    const purpose = (byPurpose[e.purpose] ??= { count: 0, amountMinor: 0 });
+    purpose.count += 1;
+    purpose.amountMinor += e.amountMinor;
     const base = { escrowId: e.id, amountMinor: e.amountMinor, listingTitle: e.listingTitle };
     events.push({ ...base, event: "opened", at: e.createdAt });
     if (e.heldAt) events.push({ ...base, event: "held", at: e.heldAt });

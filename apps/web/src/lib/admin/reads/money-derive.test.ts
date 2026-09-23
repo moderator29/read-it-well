@@ -161,8 +161,8 @@ describe("pipelineFromWhole", () => {
     ]);
     expect(pipeline.total).toBe(2);
     expect(pipeline.byState.HELD).toEqual({ count: 1, amountMinor: 500 });
-    expect(pipeline.byState.DISPUTED.count).toBe(0);
-    expect(pipeline.byPurpose.first_rent.count).toBe(1);
+    expect(pipeline.byState.DISPUTED!.count).toBe(0);
+    expect(pipeline.byPurpose.first_rent!.count).toBe(1);
     expect(pipeline.recent[0]).toMatchObject({ escrowId: "b", event: "refunded" });
     expect(pipeline.recent[1]).toMatchObject({ escrowId: "a", event: "held" });
   });
@@ -234,5 +234,15 @@ describe("reconciliation over a window", () => {
     const health = reconciliationFromAudit([], 7);
     health.lastRunAt = new Date(NOW - 9 * DAY).toISOString();
     expect(reconciliationVerdict(health, NOW, 3)).toBe("quiet");
+  });
+});
+
+describe("pipelineFromWhole against the live schema", () => {
+  it("counts CANCELLED and agency_fee, which the generated types do not know yet", () => {
+    const p = pipelineFromWhole([
+      { id: "x", state: "CANCELLED", purpose: "agency_fee", amountMinor: 9, listingTitle: null, createdAt: new Date(NOW).toISOString(), heldAt: null, settledAt: null },
+    ]);
+    expect(p.byState.CANCELLED).toEqual({ count: 1, amountMinor: 9 });
+    expect(p.byPurpose.agency_fee).toEqual({ count: 1, amountMinor: 9 });
   });
 });

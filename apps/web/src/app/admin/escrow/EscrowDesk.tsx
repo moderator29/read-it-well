@@ -4,7 +4,6 @@ import { Fragment } from "react";
 import { formatMoney, type Locale } from "@vallo/i18n";
 import type { EscrowView } from "@/lib/admin/money-queries";
 import type { EscrowDesk as EscrowDeskData } from "@/lib/admin/reads/escrow";
-import { Constants } from "@/lib/supabase/database.types";
 import { ESCROW_STATE_WORDS } from "@/components/app/untranslated";
 import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -20,7 +19,7 @@ import { EscrowRuling } from "../_components/MoneyDecisions";
 import { CalmNote, DeskHead, Framed, NumberedPager, Panel, TableNote, type CalmNoteProps } from "../money/_desk/Desk";
 import { Donut } from "../money/_desk/charts";
 import { ReconciliationPanel } from "../money/_desk/Reconciliation";
-import { countdown, wholeDays } from "@/lib/admin/reads/money-derive";
+import { ESCROW_STATES, countdown, wholeDays } from "@/lib/admin/reads/money-derive";
 import type { EscrowEvent, EscrowState, ReconciliationHealth } from "@/lib/admin/reads/money-types";
 
 const PURPOSE_LABEL: Record<string, string> = {
@@ -28,6 +27,7 @@ const PURPOSE_LABEL: Record<string, string> = {
   first_rent: "First rent",
   purchase_deposit: "Purchase deposit",
   purchase_balance: "Purchase balance",
+  agency_fee: "Agency fee",
 };
 
 /*
@@ -45,11 +45,14 @@ const STATE_TONE: Record<string, StatusTone> = {
   REFUNDED: "success",
   DISPUTED: "danger",
   RESOLVED: "success",
+  CANCELLED: "neutral",
 };
 
 /* Staged in `components/app/untranslated.ts`; the destination is
    `t.admin.escrow.state.<VALUE>`. */
-const STATE_LABEL = ESCROW_STATE_WORDS;
+/* The live schema has CANCELLED; the staged words and the generated types do
+   not yet, so it is named here rather than printed as the raw column. */
+const STATE_LABEL: Record<string, string> = { ...ESCROW_STATE_WORDS, CANCELLED: "Cancelled" };
 
 /** The six stages the render draws, in the order money moves through them. */
 export const STAGES: { state: EscrowState; label: string }[] = [
@@ -84,7 +87,7 @@ const EVENT_DOT: Record<EscrowEvent, string> = {
 };
 
 function statusFilters(): readonly QueueStatusOption[] {
-  return Constants.public.Enums.escrow_state.map((value) => ({
+  return ESCROW_STATES.map((value) => ({
     value,
     label: STATE_LABEL[value] ?? value,
   }));
@@ -123,7 +126,7 @@ export function EscrowDesk({
   now: number;
 }) {
   const { pipeline, disputes, table } = desk;
-  const status = STATE_LABEL[query.status as EscrowState] ? (query.status as EscrowState) : null;
+  const status = query.status && STATE_LABEL[query.status] ? query.status : null;
   const narrowed = queueNarrowed(query);
   const stageHref = (state: EscrowState) => {
     const next = new URLSearchParams();
@@ -140,7 +143,7 @@ export function EscrowDesk({
 
       <nav className="nf-md-pipeline" aria-label="Escrows by state">
         {STAGES.map((stage, i) => {
-          const count = pipeline.byState[stage.state].count;
+          const count = pipeline.byState[stage.state]?.count ?? 0;
           return (
             <Fragment key={stage.state}>
               {i > 0 && (
