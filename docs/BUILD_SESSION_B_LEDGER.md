@@ -487,7 +487,7 @@ server.
 | PROPERTY / STAYS | cap 15 src = 9 css, 116 src = 69 css wide, pale ice, glow | 11px, 0.19em, 70 css wide, ice with glow, turned with the tile | yes |
 | Coin size and place | in a 3x zoom of the stage (3 zoom px per css px): bounding box x 85 to 320, y 60 to 355, overlapping the plinth's front rim, rim low on the left | 101 css face at (49.8%, 62.4%) of the stage, leaning 20 deg, turned 52 deg and tipped 12: bounding box x 85 to 325, y 60 to 350 in the same zoom | yes, within 2 css px on every side (`welcome-coin-render-vs-built-3x.jpg`) |
 | Coin face | this render's coin: front face an ellipse, centre (515, 884) src, semi axes 80 and 52, long axis 20 deg from vertical | THIS render's face, cut by the crop script (`coin-face.webp`, 160 px): un-projected from that ellipse to a circle, then turned back by the live coin to the drawn pose (`welcome-coin-face-crop.jpg`) | yes: the same pixels |
-| Coin rim | a smooth band about 20 src px (12 css) showing low on the left, deep blue with white lips | 15 discs 1px apart in the brand blue, the outer two with a lit lip, 16 css thick, tipped back 12 deg so it shows low on the left | close: one smooth band now (no ridges); ours is a flat colour where the render's band carries a highlight streak |
+| Coin rim | sampled across the band at render row 900 (x 450 to 472, 20 src px = 12 css): outer lip #f2f7ff, body #1f82fd falling to #0f6dfd, front lip #c5f0ff; at row 930 a white specular streak across the band, #fbfffe, low on the left | 15 discs 1px apart, 16 css thick, tipped back 12 deg so the band shows low on the left; each disc an angular gradient, sampled on the built 2x shot: outer lip #94c9ff, body #117fff, front lip #67b0ff; the streak low on the left #eef5ff (208 to 236 deg of the face, so it rides the rim as the coin turns) | yes: body, lips and streak drawn and sampled; the built lips are a little less white (#94c9ff against #f2f7ff) because a 2px lip is half a device pixel wider than the drawn one at 3x and was kept soft to avoid a hard ring |
 | Coin motion | still in the render | turns once every 7 s, rests at the drawn pose 45% of the cycle; reduced motion holds the pose | by design |
 | Dots | 4, pitch 23 css, active 9.5, rest 7 | 4, pitch 28 css (44 tall buttons), active 10, rest 7 | pitch wider on purpose for the tap |
 | Dots centre from mark top | 583 css | 581 | yes |
@@ -495,9 +495,9 @@ server.
 | Button fill, down the centre | #047bfb top, #002cdb a third down, #0027d1 two thirds, #026dfa at the foot | #3c9dfb top (the 1px rim sits in the sample), #0058d3, #0072f1, #0084fe: GLOW_IDENTITY's lit primary (d01a5d7) with its radial cyan lift low in the middle | close: the render's core is a more violet blue (green channel 44) than any brand token mix can reach without a layer-1 token (ours 88); the lightness and the bright top and bottom bands match |
 | Button edge and rim | lit all round: #e4feff top, #d6faff bottom, #0180fb sides | 1px border: cyan 22% into white on top, 32% into white at the foot, brand 70% into cyan on the sides; inset 1px rim | yes |
 | Button bloom, blue channel over the ground below the bar (render ground #000823, built #000830) | centre: +136 / +65 / +25 at 4 / 10 / 20 css px; halfway to the ends: +64 / +24 / +2. A pool under the middle, not a band | centre +129 / +77 / +20; halfway +65 / +22 / +1 (a short even shadow plus a radial pool under the middle) | yes, within 12 at every point. Hue: the render's pool is a deeper violet blue (#0120ab at 4px) than any brand token reaches (ours #0044b1); no layer-1 token may be used |
-| Button label | ~16px medium, "Get Started" 81 css wide, arrow | 16px 500, arrow 20px | yes |
+| Button label "Get Started" | cap height 18 src (10.8 css), 134 src wide (80.1 css), stems 2 to 3 src (1.5 css): Inter-like, medium; arrow 24 src (14 css) wide | Inter 500 at 15px: cap 10.9, 81.6 css wide (measured with a text range), arrow 20px box (14 css glyph) | yes |
 | Button radius | ~10 css | 14 (`--nf-radius-control`) | shape law, recorded |
-| Skip | centre 705 css below mark top, small, quiet (#345fb7 mean) | 13px, quiet blue at 78%, 44px tap, centre 702 | yes |
+| Skip | cap 14 src (8.4 css), 37 src wide (22.1 css), stems 2 src (1.2 css): medium; quiet (#345fb7 mean, #60a5fa brightest); centre 705 css below the mark top | Inter 500 at 11.5px (R-A floor 11 respected): cap 8.4, 23.9 css wide; quiet blue at 78%; 44px tap; centre 702 | yes |
 | Ground | #000518 top, #000d3e at 36%, #00092d at 73%, #000926 foot, faint grid top | night ink stirred with strong blue in sRGB: #00041a, #000e3c, #00092f, #00072e; 28px grid fading by 55% | yes |
 | Glow identity (`docs/design/GLOW_IDENTITY.md`, revised d01a5d7) | | the lit button already has the identity's structure (gradient, top rim, edge glow, bloom); where the identity's numbers differ (its cyan lift), this surface keeps the values measured from `2A49E2F7`, as the lead's note allows | noted |
 
@@ -530,6 +530,12 @@ button is the render's 323 css wide; R-D: the sweep reports 0 at or above
 `?viewer=done`), behind the preview gate, and the member proof now comes from
 it rather than Session A's `/preview/f1/welcome`. All proofs re-shot after the
 last change.
+
+Second closing audit round: the button label and Skip measured on the image
+side (cap height, width and stem width, rows above) and set to 15px and 11.5px
+Inter 500 to match (they were 16px and 13px); the coin rim drawn with its
+measured body, white lips and the specular streak low on the left. The coin
+zoom and the side-by-side re-shot after the change.
 
 Resolution, honestly: the stage is 636 source px for 380 css, 1.67 source px
 per css px. At 2x it is sharp; at 3x it is visibly softer than the live text
