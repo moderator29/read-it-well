@@ -12,9 +12,7 @@
   the renders' teal, mauve and pink donut slices are translated into the one
   blue family, ordered by magnitude, with a word beside every slice.
 
-  Light mode is written explicitly at the foot, under
-  :root[data-theme="light"], because a glass card on paper needs a real
-  border and no glow, not a dimmer copy of the night.
+  Dark only: light mode was removed by the founder on 23 September.
 */
 @layer components {
   /* ------------------------------------------------------------ the page */
@@ -1045,47 +1043,6 @@
   }
   .nf-md--supply .nf-md-panel__title {
     font-size: 1.375rem;
-  }
-}
-
-/* --------------------------------------------------------------- on paper */
-@layer components {
-  :root[data-theme="light"] .nf-md-card::before {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-md-event__dot,
-  :root[data-theme="light"] .nf-md-figure::after {
-    box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-md-check,
-  :root[data-theme="light"] .nf-md-check--bad {
-    box-shadow: none;
-  }
-  :root[data-theme="light"] .nf-md-readout {
-    backdrop-filter: none;
-  }
-  :root[data-theme="light"] .nf-md-frame__note > .nf-admin-calm {
-    background: color-mix(in oklab, var(--nf-brand-primary) 5%, var(--nf-surface-on-paper));
-  }
-  :root[data-theme="light"] .nf-md-kpi[aria-current="true"] {
-    border-color: var(--nf-brand-primary);
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-brand-primary) 16%, var(--nf-surface-on-paper)),
-      color-mix(in oklab, var(--nf-brand-primary) 6%, var(--nf-surface-on-paper)) 40%,
-      color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-on-paper))
-    );
-    box-shadow:
-      0 0 0 1px var(--nf-brand-primary),
-      0 8px 22px -8px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
-  }
-  :root[data-theme="light"] .nf-md-toggle[aria-pressed="true"] {
-    border-color: var(--nf-brand-primary);
-    background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-on-paper));
-    box-shadow: 0 0 0 1px var(--nf-brand-primary);
-  }
-  :root[data-theme="light"] .nf-md-statusbar__seg {
-    color: var(--nf-content-on-brand);
   }
 }
 

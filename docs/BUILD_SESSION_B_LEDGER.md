@@ -1998,11 +1998,9 @@ the register is the money desk above; `side-by-side-bookings-vs-register.jpg`,
 
 ### 8.4 Light mode
 
-Checked at 1440 and 390 on all five desks, both fixture states (`docs/design/proofs/session-b/admin-money/*-light.jpg`).
-Cards take the shell's paper surface and edge; no glow; charts follow the
-ramp tokens' light twins; the credit colour and badges take the daylight state
-tokens from `2596ed9`. One defect found and fixed: the escrow row plate was a
-dark glass object on paper; replaced with a line glyph.
+~~Checked at 1440 and 390 on all five desks in light.~~ Light mode removed by the founder on 23 September; dark only. The desks'
+light rules (`desk.css` "on paper" block) are deleted, and light proofs are no
+longer shot.
 
 ### 8.5 Phone 390
 
@@ -2074,7 +2072,7 @@ reads' code, the SQL introspection in 8.1 and 8.9 and the 70 unit tests, not
 by a signed-in screenshot.
 
 `docs/design/proofs/session-b/admin-money/`: 40 shots, each desk x
-`full`/`live` x 1440/390 x dark/light; `side-by-side-{money,escrow,supply}.jpg`
+`full`/`live` x 1440/390, dark (light shots deleted: light mode removed by the founder on 23 September; dark only); `side-by-side-{money,escrow,supply}.jpg`
 (render crop beside the built page at 1440 dark);
 `side-by-side-{bookings,payments}-vs-register.jpg`.
 
@@ -2148,8 +2146,8 @@ A read that failed draws the same note as an error.
 **Glow identity (d01a5d7).** Panels take `--nf-admin-panel-edges` (per-side
 lit edge) and the shell's lit fill. Selected KPI cards and pipeline stages
 take section 3's anatomy: cyan-lit edges, a 1px ring of the lit cyan, the fill
-lifted under the rim, the 14px and 30px bloom; paper twin: brand edge and
-ring, pale lift, soft shadow. The current pager page and pressed toggles take
+lifted under the rim, the 14px and 30px bloom; ~~paper twin: brand edge and
+ring, pale lift, soft shadow.~~ (Light mode removed by the founder on 23 September; dark only.) The current pager page and pressed toggles take
 the lit primary edge. The escrow Release and Refund controls are
 admin-shell's `EscrowRuling`; they are rounded rectangles (sweep below) and
 are deliberately equal glass controls, because drawing one direction as the
@@ -2207,7 +2205,7 @@ the toggle asks for them, and the count left out is printed.
 | R-G harnesses committed | `apps/web/src/app/(dev)/preview/session-b/admin-money/` |
 
 **Round three (coordinator, 23 September).** Tenancy charges added as above.
-The money proofs (`money-{full,live}-{1440,390}-{dark,light}.jpg`,
+The money proofs (`money-{full,live}-{1440,390}-dark.jpg`,
 `side-by-side-money.jpg`) were reshot after it; the shape sweep over both
 money routes at 390 and 1536 in both themes is still 0 breaches and 0 worth
 an eye; page width at 390 is 390. `vitest run src/lib/admin/reads`: 11 files,
@@ -2240,6 +2238,22 @@ types yet; each read goes through one narrow untyped door with the columns
 checked against the live table, and the mappers treat every field as unknown.
 
 The rail and the flat panels are admin-shell's and were not touched.
+
+### 8.12 Closing audit run three, and the founder's items 2 and 7
+
+- Every proof and side-by-side reshot on main after admin-shell's
+  `949930e2` (full-height rail, sampled panel material) by the committed
+  script `scripts/design/session-b-shots/admin-money.mjs`, from the
+  committed harness (`0da05f2f`).
+- Item 2: Light mode removed by the founder on 23 September; dark only. The "on paper" block in `desk.css` and
+  the light-twin note in `charts.tsx` are removed; no component in these
+  desks branches on theme. The 20 `*-light.jpg` proofs are deleted and the
+  shot script shoots dark only. Earlier sweep figures quoted "both themes";
+  from here the sweep is dark only.
+- Item 7: the two evidence facts that said "viewing" now say "The inspection
+  happened" and "The inspection did not happen". The enum values
+  (`viewing_attended`, `viewing_missed`) are the schema's and unchanged. The
+  console copy is English only; no other "viewing" appears in these desks.
 
 ## 9. Inspection
 
