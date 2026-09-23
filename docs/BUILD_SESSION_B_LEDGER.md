@@ -683,6 +683,36 @@ signed-in run is possible):
   screen; unproven: the member write, the signed-in read, the question's
   write). Notification: none deserved, not counted.
 
+### (f) The interests step changed, 23 September (settings sweep, f3ec1eea)
+
+The fifth beat (the interests question a signed-in member meets after the last
+slide) is drawn by `InterestChoices`, which the settings sweep changed for audit
+S11. It was never photographed before; it is now, from this harness (four
+slides, the member's Continue, Apartments chosen), before and after that
+commit, by `scripts/design/session-b-shots/welcome-question.mjs`:
+`question-before-{390,1440}.jpg`, `question-after-{390,1440}.jpg` and
+`side-by-side-question-390.jpg` (image `2A49E2F7`, the last committed welcome
+proof `welcome-member-final-390-fixture.jpg`, before, after).
+
+- What changed: the eleven tiles were near-black cards with a hairline edge and,
+  when chosen, a dim brand tint inside a 2px ring; they are now the shared glass
+  panel (lit blue edge, top rim), and the chosen tile is lit with the shared
+  selected fill (the lit button's blue), its hint in on-brand ink. The corner
+  radius went from the card's to the panel card's, a little tighter. Heading,
+  copy, grid, Continue and Skip did not move.
+- Against the image: `2A49E2F7` draws slide one only, with no tiles, so the step
+  is judged by the image's materials. It still matches them and is closer than
+  before: the tiles now read as the render's glass cards (Property, Stays) with
+  their lit blue edges, and the chosen tile has the Get Started button's lit
+  fill, where before the tiles were flat dark boxes the render does not draw.
+  No fix was needed in `InterestChoices`.
+- One difference left, not changed: the render's cards are rounder than the
+  panel card's radius. Matching them would take the tiles off the shared
+  panel, which is what S11 asked for, so the lead decides whether it is worth
+  it.
+- Not caused by this change, seen in both shots: at 1440 the full-page shot
+  runs past the stage's ground, so the note under Skip sits on a flat dark band.
+
 ## 3. Welcome back
 
 Route `/sign-in` (the chooser) and `/sign-in/email` (the password step).
@@ -5137,6 +5167,11 @@ now opened in this group's own harness (`?v=sheet-rows`, `?v=sheet-bottom`, `She
 and shot (`after/sheet-rows-*`, `after/sheet-bottom-*`); the wallet-harness shot is removed.
 Proofs: `after/interests-390.jpg` (Apartments chosen), `side-by-side-interests.jpg`,
 `side-by-side-sheet-rows.jpg`, `side-by-side-sheet-bottom.jpg`.
+Get started's interests step, drawn by the same component, is shot before and after this change
+(`docs/design/proofs/session-b/welcome/question-*`, `side-by-side-question-390.jpg`) and recorded
+in section 2 (f): the tiles went from flat dark boxes to the shared glass panel, the chosen one lit;
+it still matches `2A49E2F7`'s materials, closer than before, and nothing needed fixing. The only
+difference left is that the render's cards are rounder, which is the lead's call.
 
 #### Shape sweep (the tool, dark, 390 and 1536, 15 routes)
 
