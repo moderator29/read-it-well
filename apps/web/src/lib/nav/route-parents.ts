@@ -148,7 +148,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
    * `/welcome?next=/sign-up`. `/sign-in`, `/sign-up` and `/auth/callback` all
    * named it as their parent, and on a device that has already seen first run
    * `planFirstRun` forwards that straight on, so BACK FROM SIGN IN LANDED ON
-   * SIGN UP. Walked, cold and warm, in `docs/design/proofs/nav/`.
+   * SIGN UP. Walked, cold and warm, by `scripts/design/proof-nav.mjs`.
    *
    * The screen above both doors is `/welcome`, whose closing panel IS the
    * choice between them (Sign in, Create an account, Look around first). With

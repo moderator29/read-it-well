@@ -289,7 +289,8 @@ export default async function RootLayout({
           `nonce=""`, so the two can never agree and every route logged a
           hydration mismatch on these elements. R1 caught it in the dev
           log and then found it staring out of a shipped proof, as the "2
-          Issues" badge in `docs/design/proofs/f5/inbox-390-dark.png`.
+          Issues" badge in `docs/design/proofs/f5/inbox-390-dark.png` (a proof
+          shot since removed from the tree; in git history at `85c5471`).
 
           The cost of leaving it was not the warning, it was that a permanent
           false positive hides the real hydration bugs behind it. The
