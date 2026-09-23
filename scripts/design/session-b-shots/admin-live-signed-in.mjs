@@ -96,6 +96,13 @@ async function loadsClean(page, path, name) {
   await page.goto(`${base}/admin/escrow`, { waitUntil: "networkidle" });
   record("a second desk opens directly", new URL(page.url()).pathname === "/admin/escrow", `landed ${new URL(page.url()).pathname}`, await shot(page, "03-second-desk"));
 
+  // 3b: the back arrow on a live desk goes up to the overview (navigation only).
+  await page.goto(`${base}/admin/money`, { waitUntil: "networkidle" });
+  const back = page.locator("[data-nav-back]");
+  const drawn = (await back.count()) === 1 && (await back.isVisible());
+  await Promise.all([page.waitForURL((u) => u.pathname === "/admin", { timeout: 20_000 }).catch(() => {}), back.click()]);
+  record("back arrow on a live desk", drawn && new URL(page.url()).pathname === "/admin", `drawn ${drawn}; from /admin/money pressed, landed ${new URL(page.url()).pathname}`, await shot(page, "04-back-arrow"));
+
   // 4: every inner page and tab of this surface.
   for (const [path, name] of [
     ["/admin", "10-overview"],
