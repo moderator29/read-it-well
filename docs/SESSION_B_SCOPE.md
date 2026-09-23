@@ -264,6 +264,15 @@ Each group appends "RELEASED <commit>" here when it is done.
     NOT touched:
     `components/trust/TierBadge.tsx`, `trust-badge.css` (Session A's verified
     badge), the files of groups not yet released (home, feed).
+    **Leftovers RELEASED <pending hash>** (23 September): SW-C5, SW-C6, SW-C1,
+    the header, R-SH1, R-SH2, R-SH3, SW-P1 and the audit's S4 list and S5
+    closed. Touched beyond the first claim, by the audit's S4 and the lead:
+    `app/(app)/stay/[id]/StayDetailView.tsx`, `app/(app)/restaurant/[id]/page.tsx`,
+    `components/app/stays/StayCategoryTiles.tsx`, `catalogue.css` (the lead card,
+    tiles and badges), `threads.css`, `side-nav.css`, `landing.css`,
+    `price-check.css`, `NavTree.tsx`, `ListingCard.tsx`, `ListingGallery.tsx`,
+    `ResultPanel.tsx`, `MoveInLedger.tsx`, `CommunityBand.tsx`, `ListingMini.tsx`
+    (badge material and markup only). Ledger 13, leftovers (13.L).
   - **the orphans (worker "sweep-orphans", claimed 23 September by the lead's
     instruction on audit finding B3):** the 23 routes no group owned:
     `/around/[slug]`, `/around/manage`, `/around/new`, `/around/settings`,
@@ -816,7 +825,7 @@ refused render element is recorded in `docs/BUILD_SESSION_B_LEDGER.md`.
 1c. **WITHDRAWN.** `tests/profile.spec.mjs` is this surface's spec; Session B
    changed its two `.nf-social-cover` selectors to `.nf-pf-cover` itself.
 1e. **EMAIL-LOCK:** Session B removed the email change affordance in fefc0b4f; Session A to refuse any email change server-side (profile save action and auth updateUser path) with a test.
-1f. **SW-P1 (to the shared worker):** the add-a-workspace chooser at `/profile/setup` draws `.nf-door`, `.nf-door__mark` and `.nf-calmpanel` from `controls.css` (the shared layer's file) on the older edge tokens. Please repoint them onto `--nf-panel-*`, `--nf-plate-*` and `--nf-selected-*`; the chooser markup needs no change.
+1f. **SW-P1: CLOSED by the leftovers worker (ledger 13.L).** Was, to the shared worker: the add-a-workspace chooser at `/profile/setup` draws `.nf-door`, `.nf-door__mark` and `.nf-calmpanel` from `controls.css` (the shared layer's file) on the older edge tokens. Please repoint them onto `--nf-panel-*`, `--nf-plate-*` and `--nf-selected-*`; the chooser markup needs no change.
 - Worker "profile" claims for the sweep: `components/app/account/ProfileIdentityCard.tsx` (the founder's email-lock rule only), its test `profile-identity-card.test.ts`, and `apps/web/tests/session-b-profile-live.spec.mjs` (new).
 1d. **Profile, a page action in the app header.** On `/profile` the settings
    gear sits in the app header's row (left of the bell) so the band over the

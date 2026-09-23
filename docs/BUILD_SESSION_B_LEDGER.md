@@ -7387,6 +7387,160 @@ files. For the no-revert check I read every line `git diff origin/main HEAD`
 removes. Each one is this fix's own replacement or one of the three local
 disabled rules the lead asked to delete. Pushed as c7639c33.
 
+## 13. Platform sweep: leftovers (SW-C5, SW-C6, SW-C1, the app header, R-SH1 to R-SH3, SW-P1, audit S4 and S5; worker "leftovers")
+
+Claimed 23 September in `5de8290a` and `a754c1c9` (scope, "the leftovers no
+group owns"). Everything here reads the Phase 1 layer (13.0); no colour,
+radius or shadow value was written except the one token pair below, which
+is itself a mix of existing tokens.
+
+### 13.L.1 What moved
+
+| Item | Before (measured on the base build) | After (measured, Pass 3) | Reference | Match |
+|---|---|---|---|---|
+| SW-C5 `.nf-card` (glass.css) | canvas veil 88%, conic stride ring, 22px, rung 1 elevation | `--nf-panel-fill-card`, `--nf-panel-edge(s)`, `--nf-panel-rim`, `--nf-panel-glow`, `--nf-container-radius` 10px; `listing-parts` cards measured 10px | console panel card | yes |
+| `.nf-card--interactive:hover` | swapped the shadow for elevation 2 and ran the stride ring once | panel rim + glow + elevation 2 (`.nf-card`, `.nf-panel`, `.nf-elev--hoverable`); the stride `@property` and keyframes deleted | panel hover | yes |
+| `Screen` `RowList boxed` (`/agent/dashboard`, `/host/transfer`, host standing, `/stay/[id]`) | `nf-card` + `rounded-[--nf-radius-xl]` utility: 22px | `panelClass({variant:"card"})`, `block py-0` so its flow is unchanged: 10px | panel | yes |
+| `Screen` `Surface` (card tone; `/restaurant/[id]` and others) | `nf-card` + 22px utility | `panelClass` card, `block`; the glass tone keeps its own corner | panel | yes |
+| Bridge rules | agent.css `:is(.nf-agent,.nf-host) .nf-card`, chips.css `.nf-panel.nf-card--interactive:hover` | deleted; the hover lives in glass.css beside the card | | yes |
+| A card holding the lit primary | pool could fall under the card fill | `.nf-card:has(.nf-btn--primary) { isolation: isolate }` (the panel already had it in chips.css) | 13.0 note | yes |
+| SW-C6 shared status badge | none; `.nf-badge` tints with no edge, `StatusPill` inline fills, a dozen local marks | `components/ui/StatusBadge.tsx` + `.nf-badge` material in chips.css: tint of the hue over the canvas (48% to 34%), ring 65% drawn inside, top catch, 6px halo, word lifted towards white; tones success, pending, error, info, neutral (aliases approved, warning, rejected, brand, verified, example); `--nf-radius-xs`, 11px type floor; `--md` 24px row size | console `.nf-admin-badge` | yes |
+| Badge shapes (33 measured on 16 routes) | 0.23 to 0.32; threads badges 10px on 23 to 28 = 0.36 to 0.43 (audit S5) | 0.21 to 0.33, all 6px except the 32 to 37px tags (10px, 0.27 to 0.31) | ratio under 0.35 | yes |
+| `StatusPill` | inline tinted fill per tone; `shape="pill"` drew r999 (12 capsules on `/preview/g1`) | writes the badge tone class; `outlined` and `shape="pill"` inert | shared badge | yes |
+| Count badges (drawer and rail "5", `.nf-count-badge`, `.nf-badge-overlap`) | flat brand fill, 21px | shared badge (info tone), 22px; the overlap keeps a 3px canvas outline | shared badge | yes |
+| R-SH3 home badges: card Verified / For rent / Example, gallery marks, move-in tag, price confidence, Open now, landing float badge and partner tag | selected-state fills or own tints; landing float badge 10px on 28 = 0.36 | shared badge in the markup (`nf-badge nf-badge--*`), the local classes keep only position and size; `.nf-reg-open` is named in the badge rule because the `f3/restaurant` harness writes it bare | shared badge | yes |
+| SW-C1 Flip card (`SideSwitch`, side-flip.css) | `nf-glass nf-glass--card`, 22px, tint wash, `--nf-glow-edge-strong` | `panelClass` card (10px, measured 286x101 at 390), hover and focus take `--nf-selected-edges` and `--nf-selected-shadow-inline`; the coin's ring wears the plate's light on a disc (56px); label "Flip" kept (founder item 9) | panel, selected state, plate | yes |
+| App header, scrolled | brand tint 1 over canvas 88%, strong blur, `--nf-glow-edge` ringing four sides | canvas 82%, base blur 26px (the console bar, `.nf-admin-bar`), `--nf-bar-glow`: a 1px foot line in `--nf-bar-edge-lit` (the panel's foot edge, lit 70% + info) and the panel halo (info 52%) cast down | console top bar | yes |
+| SW-P1 `/profile/setup` doors, calm panel (controls.css) | 14px, soft brand edge, glass card fill; chosen door tint 2 + glow edge; mark tint 1 | panel card at rest (10px, 0.08 on 123px), selected edges and bloom when chosen, the plate (56px, lg) behind the object, the calm panel on the panel and its glyph on the plate's light | panel, selected state, plate | yes |
+| R-SH2 `StayCard`, and the audit's S4 extras: `/stays/search` category tiles, `/stay/[id]` and `/restaurant/[id]` lead card, `/stay/[id]` amenity tiles | `nf-glass--card` / `--tile`, 22px / 18px | `panelClass({variant:"card"})`, as `ListingCard` and `ListingAmenityTiles` do | panel | yes |
+| R-SH1 `AiAssistantBanner` | unmounted, kept for two comment paths | deleted with `.nf-home__ai*`; the comments in ambient.css and chrome.css no longer name its path | | yes |
+
+Local badge rules deleted: threads.css (10px override, the S5 breach),
+agent.css (`.nf-agent/.nf-host .nf-badge` radius), side-nav.css `.nf-nav__badge`
+material, landing.css `.nf-landing-float-badge(--quiet)` and
+`.nf-landing-tag(--third)` material, catalogue.css `.nf-pcard__mark--*`,
+`.nf-gallery-mark`, `.nf-detail-tag(--market)`, `.nf-reg-open--*` material,
+price-check.css `.nf-pc-confidence--*`.
+
+### 13.L.2 Routes: did the layout move?
+
+Method: the base (`a754c1c9`) and the change built for production in this
+worktree, one at a time, each served with `VALLO_PREVIEW_HARNESS=1`; every
+committed harness route (200 under `app/(dev)/preview/**`, the admin-review
+desk expanded to its four desks) plus `/`, `/about`, `/help`: 204 routes at
+390 and 1440, 408 shots. For each shot, every element's box (x, y, width,
+height) was recorded after scrolling the page through; the base was shot
+twice to learn which pages are not deterministic. Scripts:
+`scratchpad/lo/{shoot,diff,measure,sheet,proof}.mjs`.
+
+Result (Pass 2, the change alone on the same base): **319 of 408 identical,
+5 differ only where the base also differs from itself, 83 moved.** None of the
+83 moved a container: every move is inside a badge.
+- badge width 1 to 4px (weight and ring) (19): `/preview/bd/alerts @390`, `/preview/e/crypto @390`, `/preview/e/crypto-coin @390`, `/preview/f2 @390`, `/preview/f3/restaurant @390`, `/preview/g1/sheet @390`, `/preview/g1/surfaces @390`, `/preview/session-b/sweep-home/search @390`, `/preview/session-b/sweep-stays/pay-failed @390`, `/preview/session-b/sweep-stays/restaurant @390`, `/ @390`, `/preview/bc/audit @1440`, `/preview/bd/alerts @1440`, `/preview/f2 @1440`, `/preview/f3/restaurant @1440`, `/preview/g1/sheet @1440`, `/preview/g1/surfaces @1440`, `/preview/session-b/sweep-stays/restaurant @1440`, `/ @1440`
+- drawer or rail count badge 21 to 22px tall (31): `/preview/f1/drawer @390`, `/preview/lead/drawer @390`, `/preview/e @1440`, `/preview/e/crypto @1440`, `/preview/e/crypto-coin @1440`, `/preview/e/crypto-off @1440`, `/preview/e/payments @1440`, `/preview/e/receipt @1440`, `/preview/e/receive @1440`, `/preview/e/transactions @1440`, `/preview/e/wallet @1440`, `/preview/e/wallet-topup @1440`, `/preview/f1/chrome @1440`, `/preview/f1/dock-stays @1440`, `/preview/f1/drawer @1440`, `/preview/f1/switch @1440`, `/preview/lead/drawer @1440`, `/preview/session-b/profile @1440`, `/preview/session-b/sweep-settings @1440`, `/preview/session-b/sweep-social @1440`, `/preview/session-b/sweep-wallet @1440`, `/preview/session-b/sweep-wallet/payments @1440`, `/preview/session-b/sweep-wallet/pots @1440`, `/preview/session-b/sweep-wallet/receipt @1440`, `/preview/session-b/sweep-wallet/receive @1440`, `/preview/session-b/sweep-wallet/result @1440`, `/preview/session-b/sweep-wallet/withdraw @1440`, `/preview/session-b/sweep-wallet/transactions @1440`, `/preview/session-b/wallet @1440`, `/preview/session-b/wallet/send @1440`, `/preview/session-b/wallet/send-filled @1440`
+- card marks 18 to 16px (restored in Pass 3) (19): `/preview/f1/home @390`, `/preview/f3/saved @390`, `/preview/f3/search @390`, `/preview/f3/stays @390`, `/preview/f3/stays-search @390`, `/preview/session-b/sweep-home/home @390`, `/preview/session-b/sweep-home/stays @390`, `/preview/session-b/sweep-stays/stays @390`, `/preview/session-b/sweep-stays/stays-search @390`, `/preview/f1/home @1440`, `/preview/f3/saved @1440`, `/preview/f3/search @1440`, `/preview/f3/stays @1440`, `/preview/f3/stays-search @1440`, `/preview/session-b/sweep-home/home @1440`, `/preview/session-b/sweep-home/search @1440`, `/preview/session-b/sweep-home/stays @1440`, `/preview/session-b/sweep-stays/stays @1440`, `/preview/session-b/sweep-stays/stays-search @1440`
+- gallery mark glyph 1px (restored in Pass 3) (8): `/preview/f3/listing @390`, `/preview/f3/stay @390`, `/preview/session-b/sweep-home/listing @390`, `/preview/session-b/sweep-stays/stay @390`, `/preview/f3/listing @1440`, `/preview/f3/stay @1440`, `/preview/session-b/sweep-home/listing @1440`, `/preview/session-b/sweep-stays/stay @1440`
+- StatusPill pill retired (height, dev gallery) (2): `/preview/g1 @390`, `/preview/g1 @1440`
+- confidence badge line (height) (4): `/preview/price/answered @390`, `/preview/session-b/sweep-home/price-answered @390`, `/preview/price/answered @1440`, `/preview/session-b/sweep-home/price-answered @1440`
+
+(`/preview/session-b/sweep-home/search` and `/preview/session-b/sweep-stays/pay-failed`
+in the first group were read side by side: identical on screen; the boxes that
+differ are the sticky shelf and an off-screen sheet mid-transition.)
+
+Two of those causes were then removed (Pass 3): the card marks, gallery marks,
+the move-in tag and the confidence badge keep the 1px border they always had,
+transparent, so the shared badge (ring drawn inside) sits at their old size.
+The confidence badge still ends 3px shorter (its padding is the chip's, the
+line box is the badge's). The Pass 3 full diff sits on a newer main and also
+shows the feed, inspection and settings commits that landed meanwhile
+(`c4a519f8`, `444bb3c3`, `a5459f08`, `f3ec1eea`, `e93bb8a9`); of its height
+changes only `/preview/g1` (-4 and -2, the retired capsule) and the two price
+answers (-3) are this change's.
+
+Where a card sits over a lit primary's pool, `isolation: isolate` is now on
+`.nf-card:has(.nf-btn--primary)` as well as on the panel.
+
+### 13.L.3 Audit passes
+
+**Pass 1, 23 September.** First after set. Found: (1) every "after" shot of
+the first two rounds had been served by a stale `next-server` child left on
+the port by the very first run, answering from a rebuilt `.next`: the error
+shells in both sets were that, not the change. The server is now stopped by
+its process (every `next` process whose working directory is the worktree)
+and every set below was re-taken. (2) The shared badge moved rows: a real 1px
+border (the old badges had none) and `line-height: 1.2` made 46 pages 1 to
+23px shorter. Fixed: the ring is an inset shadow, the line height and weight
+are the old badge's. (3) The audit (S4, S5) arrived with more: the
+`/stays/search` tiles, the stay and restaurant lead cards and amenity tiles,
+StatusPill's capsule. Moved in the same pass.
+
+**Pass 2, 23 September.** Re-shot all 408 on the corrected build against the
+base shot twice: 83 moved, all inside badges (13.L.2). Opened side by side:
+the drawer, the rail at 1440, the chooser, the agent dashboard, host transfer
+and standing, stay, restaurant, stays and stays search, home, listing, the
+price answer. Found: the card marks were 2px shorter and the gallery glyphs
+1px left, because those marks had carried a real border. Fixed with a
+transparent 1px border on the four classes that had one.
+
+**Pass 3, 23 September (rebased on main at 55470695).** Whole gate green;
+rebuilt; measured 16 routes with `getComputedStyle` (33 badges, max ratio
+0.33; every `.nf-card` 10px; the Flip card 10px with its ring round; the
+scrolled header `rgba canvas / 0.82`, `blur(26px)`, the foot line and halo);
+the repository's shape sweep over 15 routes at 390 and 1536: **0 breaches**,
+9 worth an eye (the agent search field at 0.35 and the dev gallery's
+segmented control at 0.39, neither this change's), `/` refused on
+`networkidle` (the landing's badge measured by hand: 84x28, 6px, 0.21); the
+full 408 diff again (above); the proof set re-shot.
+
+### 13.L.4 Proofs
+
+`docs/design/proofs/session-b/sweep-leftovers/`: before (base `a754c1c9`) and
+after (Pass 3) side by side: `drawer-390`, `rail-1440`, `chooser-390` and
+`chooser-1440` (the `/profile/setup` chooser; before from `/preview/b1b/chooser`,
+after from the profile harness `?v=setup`, the same component),
+`agent-dashboard-390/-1440`, `host-transfer-390`, `host-standing-390`,
+`stay-390`, `restaurant-390`, `stays-390`, `stays-search-390/-1440`,
+`home-390`, `listing-390`, `price-answered-390`; and `header-scrolled-390`,
+`header-scrolled-1440` (after only; the before is the measured row above).
+All fixture-backed harness renders, 390 at dpr 1, JPEG.
+
+### 13.L.5 Checks
+
+`tsc --noEmit` whole project clean; `vitest run` whole suite 242 of 242 files
+(3859 tests; one earlier run of the same gate failed once in
+`lib/push/service-worker.browser.test.ts`, a headless browser timing test
+this change does not touch, and passed on the rerun); `check-css-tokens`
+clean, all ten; eslint clean on every changed TS file; new test
+`components/ui/StatusBadge.test.ts` (4). The no-revert check (BRIEF, 23
+September) was run after `pull --rebase`: every removed line in
+`git diff origin/main HEAD` is this change's own.
+
+### 13.L.6 Not moved, and why
+
+- `admin.css` `.nf-admin-badge` (the console's own badge, the source the
+  shared one was taken from) and `.nf-admin .nf-badge` (a radius the shared
+  badge now sets itself): the console worker's file; now redundant, left for
+  them.
+- `.nf-detail-verified` ("Verified listing" beside the price, 40 to 44px, the
+  selected state): a control-height mark the home group matched to
+  `7B5335E0`, not a status badge; and the `f3/move-in` harness writes it bare.
+- `.nf-tag-pill` (identifiers such as "P2 . ROW F"): not a status.
+- `components/trust/TierBadge.tsx`, `trust-badge.css`: Session A's, untouched.
+- `crypto.css` `.nf-crypto-surface .nf-card` still restates the card's shadow
+  (`--nf-glow-edge`): another group's file, and both crypto routes are
+  `notFound()`.
+- `social*.css` `.nf-card.nf-post` and friends restate the card for the feed:
+  the feed group's released design, which wins by specificity on purpose.
+- `Chip.tsx`: the audit-fix worker's.
+- The dock, its switch and the dock island: untouched (founder ruling).
+- `scripts/shot-cards.mjs` drives the deleted `--nf-stride-angle`; the note
+  in tokens.css about it and `--nf-edge-stride-stops` are now unread (tokens
+  outside this worker's pair).
+
+**Released**: see the scope file. Items closed: SW-C1, SW-C5, SW-C6, the
+header, R-SH1, R-SH2, R-SH3, SW-P1, audit S4 (all of its list) and S5.
+
+
 ## Skipped or not verified
 - (13.H, sweep-home) No live row on any proof: this box's egress refuses the Supabase host, so every card, panel and figure in the home group's proofs is fixture-backed or an empty state; the wiring is unchanged by the sweep (material only). `/price/area/[id]` and `/rent/move-in/[listingId]` were swept in their stylesheets and not photographed. The lister's TierBadge on the card waits on R-SH4. `StayCard` still wears `nf-glass--card` itself (stays group, R-SH2). The unmounted `AiAssistantBanner` stays until R-SH1.
 
@@ -7476,4 +7630,4 @@ disabled rules the lead asked to delete. Pushed as c7639c33.
   `/preview/session-b/feed`; the wiring is proved live signed in as the QA member (13.F.6a,
   17 of 17). Not live: a gold author on screen (no gold person has a live post; platinum
   is proved), and every write, which the live run deliberately does not make.
-
+- Sweep leftovers (13.L, 23 September): every proof is fixture-backed (harness renders); no signed-in live page was opened. Hover states were read in code and measured only through `getComputedStyle`, not shot. The shape sweep refused `/` on `networkidle`; its badge was measured by hand. The pixel diff covers the committed harnesses and three public pages, not gated routes without a harness. Not moved: the console's own badge rules, `.nf-detail-verified`, `.nf-tag-pill`, crypto.css's card shadow, the feed's card overrides (13.L.6).
