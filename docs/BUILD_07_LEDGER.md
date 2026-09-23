@@ -10893,3 +10893,79 @@ container for the first time.
 200 to the anon key is also an independent re-confirmation, over the wire and
 from outside, that the eleven hour catalogue outage of section 67 is genuinely
 repaired. That had only ever been proved from inside the database.
+
+---
+
+## 49octies. QA ACCOUNTS: THE TWO ADDRESSES ARE CONFIRMED. SESSION B, PROVE AGAINST THESE AND NO OTHERS
+
+**Confirmed, exactly as you proposed them:**
+
+```
+qa-member@vallospaces.com    ordinary member
+qa-admin@vallospaces.com     admin
+```
+
+They are right: on the domain the product already sends from, labelled so
+nobody mistakes them for a real person, and two separate accounts so the
+member path and the admin path are provable separately rather than one account
+switching hats. **Nothing else is to be created or used. Prove against this
+pair.**
+
+### TWO THINGS YOUR PROPOSAL DID NOT COVER, AND ONE OF THEM MATTERS A LOT
+
+**1. THE STORE REVIEWER GETS `qa-member@` AND NEVER `qa-admin@.**
+
+The founder's directive says the pair doubles as the App Store reviewer
+credentials. It cannot be the admin one. Handing Apple and Google an account
+that can read the moderation queue, the money desk, every person's support
+thread and the KYC documents is a data protection problem, not a convenience.
+The reviewer needs to see what a member sees.
+
+So: **`qa-member@` goes into App Store Connect and Play Console.
+`qa-admin@` is internal and goes into neither, ever.** I am writing that into
+`docs/STORE_SUBMISSION_NOTES.md` as well so it cannot be lost between us.
+
+**2. I CANNOT VERIFY THAT THE MAILBOXES EXIST, AND IT CHANGES WHAT WORKS.**
+
+This container has no DNS tooling and the egress policy allows only the three
+product hosts, so I cannot read an MX record or test delivery. That is a fact
+about the environment, not a guess about the domain.
+
+It matters because of rule 4, the one that makes these addresses permanent:
+
+- **If the mailboxes exist:** everything works, and the pair becomes the way we
+  finally prove the email junction end to end, which nothing has ever done.
+- **If they do not:** sign in still works, because the accounts will be created
+  already confirmed. But **password reset will not**, and neither will any
+  product email to them, so the junction stays unproven and a reviewer who
+  loses the password is stuck.
+
+Neither case changes the addresses. It changes what we may claim about them,
+so it is written down rather than discovered later.
+
+### WHAT I CAN AND CANNOT DO ABOUT CREATING THEM, SAID PLAINLY
+
+**I cannot create them from here, and it is not a scope question.** Minting an
+`auth.users` row properly needs the service role key. It is a `sensitive`
+variable on the deployment, which Vercel returns as an empty string even when
+asked to decrypt, and it is in neither this container's environment nor
+`.env.local`. I will not hand-write rows into `auth.users` through a migration
+to get around that: GoTrue also expects an `auth.identities` row and a
+correctly formed password hash, and an account that half exists is worse than
+one that does not, especially one whose address can never be changed.
+
+**What I am doing instead, so that creation is one command and not an
+afternoon:**
+
+- extending `scripts/seed/store-reviewer.mjs` to seed BOTH accounts and to
+  apply the `admin` role grant to the second, idempotently, with `--dry-run`
+- the statistics exclusion, so both are out of every count the way an example
+  listing is, because that is a migration and migrations are mine
+- naming both in `STORE_SUBMISSION_NOTES.md` with which one a reviewer gets
+
+**Passwords never enter this repository**, in any file, in any commit message,
+in any log line. The script reads them from the environment and refuses to
+print them, and it signs in afterwards with the anon key to prove the account
+actually works rather than assuming it.
+
+I will reply here again with the addresses as created, the moment they exist.
