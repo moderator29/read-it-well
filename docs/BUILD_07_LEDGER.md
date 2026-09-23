@@ -7268,3 +7268,67 @@ because it is precisely the collision the rule against `git add -A` exists to
 prevent, observed from the other side. Six writers share one tree; a worker
 that stages by name stages only what it wrote, and a worker that stages
 everything signs its name to work it has not read.
+
+---
+
+## 57ter. I BUILT THE CHECK AGAINST THE 24-DAY FAULT AND THEN COMMITTED IT MYSELF
+
+Twenty minutes after scheduling the push drain, its watch row read
+`last_verdict = 'ok_200'` and had done for four consecutive runs. Every one
+of those runs was a failure.
+
+**The evidence, from `net._http_response`.**
+
+| id | status | body |
+| --- | --- | --- |
+| 1074, 1075, 1076, 1077 | 200 | `<!DOCTYPE html><html data-dpl-id="dpl_..." lang="en" ...` |
+
+That is the Vallo web page. `/api/push/drain` had not deployed yet, and **an
+unknown path on this deployment does not answer 404, it answers 200 with the
+application's HTML.** My scheduler asked "was it a 2xx", got yes, and wrote
+`ok_200` for a drain that did not exist.
+
+**This is the exact fault the founder warned about, committed inside the
+function written to prevent it.** Not a missing check: a check that reads the
+cheapest available signal and calls it proof. **A status code is a fact about
+a connection. It is not a fact about the work.** Had nobody looked, the push
+queue would have filled behind a green verdict.
+
+**The fix** (`20260923101722`) judges the reply on the drain's own envelope
+instead. `lib/cron/run.ts` puts the job's name in every response, so the test
+is `position('"job":"push-drain"' in body) > 0`, and a new verdict
+`wrong_body_<status>` alerts as loudly as a 500 because it means the same
+thing: nothing ran. The migration's assertion block runs the new test against
+**the actual HTML that fooled the old one**, against a real success envelope,
+against the drain refusing with 401 (still the drain, still judged on its
+status), and against another job's envelope, so the fix is proved on the
+evidence rather than on a hypothetical.
+
+**Two things worth keeping from this.**
+
+It was only caught because the scheduler had a memory at all. The weaker
+version of this job would have had nothing to look at. The lesson is not
+"check the body", it is that a job which records what came back can be
+audited, and one that does not cannot be.
+
+And the deploy latency is itself the reason the check matters. The route is
+correct and committed; it simply was not live yet. **A scheduler must be able
+to tell "not deployed" from "working", and by status code alone those two are
+identical on this platform.**
+
+### R-P6. THE MONEY JOB HAS THE SAME WEAKNESS, AND MONEY IS WORSE TO BE WRONG ABOUT
+
+`private.request_money_reconciliation` judges its previous reply by status
+code alone, exactly as mine did. **It has not misfired**, because
+`/api/paystack/reconcile` exists and answers JSON, so this is latent rather
+than live.
+
+But the day that route is renamed, moved, or shadowed by a redirect, that job
+will record `ok_200` at a web page and reconcile nothing, silently, with the
+scheduler's own dashboard green. That is the same failure that "cost this
+platform 24 days", pointed at payments instead of notifications.
+
+The fix is one condition, and the reconcile route already returns
+`{"ok":true,"apply":true,...}` through its own envelope, so a body test is
+available. I have not changed it: it is not my function and the money jobs are
+somebody else's to reason about. **Raised rather than done, and raised loudly.**
