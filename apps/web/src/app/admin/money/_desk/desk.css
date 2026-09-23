@@ -109,9 +109,12 @@
     gap: var(--nf-space-xs);
     margin-bottom: var(--nf-space-md);
   }
+  /* Sizes on this desk family are the render's, converted at 1.57 CSS px per
+     render px (calibrated on the rail label "Supply", drawn in both the
+     overview render and these panels): panel title cap 9 render px = 20px. */
   .nf-md-panel__title {
     font-family: var(--nf-font-display);
-    font-size: 1rem;
+    font-size: 1.25rem;
     font-weight: 600;
     line-height: 1.25;
     color: var(--nf-content-primary);
@@ -192,14 +195,16 @@
       0 0 14px 1px color-mix(in oklab, var(--nf-admin-lit) 62%, transparent),
       0 0 30px 4px color-mix(in oklab, var(--nf-admin-lit) 34%, transparent);
   }
+  /* Render: ascender height 7 render px = 11 CSS, a 15px label. */
   .nf-md-kpi__label {
-    font-size: var(--nf-text-caption);
+    font-size: 0.9375rem;
     font-weight: 500;
     color: var(--nf-brand-quiet);
   }
   .nf-md-kpi__value {
     font-family: var(--nf-font-display);
-    font-size: clamp(1.375rem, 1rem + 0.9vw, 2.125rem);
+    /* Render: figure cap 12 render px = 18.8 CSS, a 26px figure. */
+    font-size: clamp(1.375rem, 1rem + 0.6vw, 1.625rem);
     font-weight: 700;
     line-height: 1.1;
     color: var(--nf-content-primary);
@@ -222,7 +227,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--nf-space-3xs);
-    font-size: var(--nf-text-caption);
+    font-size: 0.9375rem;
     font-weight: 600;
   }
   .nf-md-delta__figure--up {
@@ -378,10 +383,11 @@
 
   /* ----------------------------------------------------------- the tables */
 
+  /* Render: row text cap 6 render px = 9.4 CSS, 13px. */
   .nf-md-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: var(--nf-text-body-sm);
+    font-size: 0.8125rem;
   }
   .nf-md-table th {
     padding: 0 var(--nf-space-xs) var(--nf-space-sm);
@@ -543,7 +549,9 @@
     border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
     background: var(--nf-well-fill);
     box-shadow: var(--nf-rim-lit);
-    font-size: var(--nf-text-body-sm);
+    /* Render: the page number's cap 9 render px = 14 CSS, 20px, in a box the
+       render draws at 25 render px = 39 CSS and R-B lifts to 44. */
+    font-size: 1.25rem;
     font-weight: 500;
     color: var(--nf-content-secondary);
     text-decoration: none;
@@ -993,6 +1001,49 @@
     a.nf-md-kpi {
       transition: none;
     }
+  }
+}
+
+/*
+  PER-DESK TYPE, from each render panel's own measurements at the same 1.57
+  CSS px per render px (the rail label "Supply" measures 26 render px wide in
+  all three panels, 44 in the overview render drawn at 0.929). The three
+  panels do not draw their roles at one size, and lead ruling R-A takes each
+  role at its render's measured size, so the escrow and supply desks carry
+  their own. Cap heights in render px, converted, then font size = cap / 0.72.
+*/
+@layer components {
+  /* Escrow, 8E9602E2 panel 1: title cap 14 (30px), stage label ascender 7
+     (15px), stage count cap 12 (26px), float figure cap 11 (24px). */
+  .nf-md--escrow .nf-md-head__title {
+    font-size: clamp(1.5rem, 1.1rem + 0.9vw, 1.875rem);
+  }
+  .nf-md--escrow .nf-md-stage__label {
+    font-size: 0.9375rem;
+  }
+  .nf-md--escrow .nf-md-stage__count {
+    font-size: clamp(1.375rem, 1rem + 0.6vw, 1.625rem);
+  }
+  .nf-md--escrow .nf-md-figure {
+    font-size: 1.5rem;
+  }
+  /* Supply, 8E9602E2 panel 3: title cap 14 (30px), KPI label ascender 8
+     (17px), figure cap 13 (28px), change cap 9 (20px), panel title cap 10
+     (22px). */
+  .nf-md--supply .nf-md-head__title {
+    font-size: clamp(1.5rem, 1.1rem + 0.9vw, 1.875rem);
+  }
+  .nf-md--supply .nf-md-kpi__label {
+    font-size: 1.0625rem;
+  }
+  .nf-md--supply .nf-md-kpi__value {
+    font-size: clamp(1.5rem, 1.1rem + 0.6vw, 1.75rem);
+  }
+  .nf-md--supply .nf-md-delta__figure {
+    font-size: 1.25rem;
+  }
+  .nf-md--supply .nf-md-panel__title {
+    font-size: 1.375rem;
   }
 }
 

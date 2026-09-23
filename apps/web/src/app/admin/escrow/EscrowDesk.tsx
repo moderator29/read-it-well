@@ -137,7 +137,7 @@ export function EscrowDesk({
   };
 
   return (
-    <div className="nf-console nf-md">
+    <div className="nf-console nf-md nf-md--escrow">
       <LiveRefresh />
       <EscrowHead />
 

@@ -411,12 +411,12 @@ people, and ruling on the ones where somebody objected.
 | Panel | What it shows | Source |
 |---|---|---|
 | The pipeline | Six tiles: Funded, Held, Release requested, Released, Refunded, Disputed, each with the count of escrows in that state across the platform. Each tile is a link that narrows the table to that state; pressing the lit one clears it. Disputed turns rose when it is not zero | `getEscrowDesk()` in `lib/admin/reads/escrow.ts`, every `escrows` row |
-| Filter | Search by property title, a status chip for every escrow state, a Lagos date range | `QueueFilters`, URL `q`, `status`, `from`, `to` |
+| Filter | Search by property title, a status chip for every escrow state (all nine in the live schema, including Cancelled), a Lagos date range | `QueueFilters`, URL `q`, `status`, `from`, `to` |
 | Waiting on a ruling | Every dispute on the platform, never paged, oldest first: both people, the property, both confirmations (and whether the payer's came from an inspection), the objection in the objector's words, the platform share, and the ruling control | `getEscrowDesk().disputes` |
 | Live escrows | Every escrow not yet settled (or, with a state chosen, every escrow in that state): short id (the first eight characters of its id, full id on hover), property, amount, payer to payee, purpose, whole days since it was held, and the time left until it releases on its own, in the render's "4d 12h" form (it reads "due" once the moment has passed; the sweeper releases on its own schedule). Settled rows show their state instead of a countdown. Numbered pages of 10 | `getEscrowDesk().table` |
 | Float total | HELD plus RELEASE_REQUESTED plus DISPUTED money, and how many escrows are still running | `getEscrowDesk()` |
 | Reconciliation check | The same reconciliation read as the money desk, as a check plate and a badge | `getReconciliationHealth()` |
-| Escrow by purpose | Every escrow split into rent deposit, first rent, purchase deposit and purchase balance, on the blue ramp, largest first, with share and count beside every slice | `getEscrowDesk().pipeline.byPurpose` |
+| Escrow by purpose | Every escrow split by purpose: rent deposit, first rent, purchase deposit, purchase balance and agency fee (`agency_fee`, in the live schema since 23 September and not yet in the generated types; the desk counts it and any purpose added later rather than failing), on the blue ramp, largest first, with share and count beside every slice | `getEscrowDesk().pipeline.byPurpose` |
 | Recent activity | The newest six transitions across all escrows, from the seven timestamp columns (funded, held, release requested, released, refunded, disputed, ruled on) plus opened | `getEscrowDesk().pipeline.recent` |
 
 **The action.** The ruling, exactly as described under Money: Session A's
@@ -495,6 +495,19 @@ panel then tracks. Reservations are accepted or declined with
 `decideReservationAsAdmin`, which notifies the guest. All three are Session
 A's, unchanged.
 
+**Who may do what.** Reading the desk needs `admin` or `super_admin`
+(`requireAdmin()` in the layout and again inside `getBookingsDesk`; the
+tables publish their rows to those two roles by policy). Cancelling a stay
+needs the same role; `cancelBookingAsAdmin` repeats the check at its own
+door and the database function repeats it again. Nobody can change a price,
+a date or a guest from the console.
+
+**What it cannot do.** It cannot move a stay's dates, change what a guest
+paid, pay a host, or refund outside the published schedule. "Checked in" is
+not recorded by the product, so "In stay now" is worked out from the dates of
+a confirmed stay, not from anybody arriving. Reservations have their own
+queue and are not counted in these cards.
+
 **Today's reality.** No stay and no reservation has ever been made; every
 card reads 0 and every panel says what will fill it.
 
@@ -525,6 +538,17 @@ reconcile job settles any that did).
 returns withdrawal holds older than the window to spendable balance. Removing
 a saved method (`removePaymentMethodAsAdmin`, `removeBankAccountAsAdmin`)
 notifies its owner.
+
+**Who may do what.** Reading needs `admin` or `super_admin`; the payment
+reads, the health RPC (`admin_payment_health`, security definer, repeats the
+role check) and both actions check the role themselves. No one can create,
+retry or refund a payment from this desk.
+
+**What it cannot do.** It cannot re-ask the provider (that is the reconcile
+job's decision, hourly), cannot see a checkout's channel (only top-ups record
+one), and cannot see the provider's own abandoned status: "Abandoned" here is
+a PENDING attempt older than 24 hours, which the handbook states rather than
+the screen implying Paystack said so.
 
 **Today's reality.** One top-up has ever succeeded (₦1,000 by bank, 9
 August); no booking checkout has been attempted; nothing is stuck.
@@ -990,7 +1014,15 @@ console needs and does not have yet)
   property of a person and a property together, and that pair is not in the
   schema yet.
 - **Nothing on these desks writes except the escrow ruling,** which is
-  Session A's mutation.
+  Session A's mutation, and on bookings and payments Session A's cancel,
+  reservation decision, hold release and saved method removal.
+- **Bookings has no "checked in".** The schema has no such status; the card
+  is "In stay now", from a confirmed stay's dates.
+- **Payments cannot name a checkout's channel.** `transactions` does not
+  carry one; the desk says "unrecorded" rather than guessing card.
+- **The generated database types lag the live schema** (`CANCELLED`,
+  `agency_fee`). The desks count unknown values instead of failing; the types
+  are Session A's to regenerate.
 
 ### Overview and analytics limits (admin-shell)
 
@@ -1062,6 +1094,15 @@ part four belong here)
 - **Counting examples as supply.** Rejected under the founder's claims
   ruling: examples are excluded by default and the page counts them
   separately.
+- **A "Checked in" card on bookings.** Rejected: nothing records an arrival,
+  so a count of check-ins would be a guess. "In stay now" is what the data
+  supports.
+- **Treating every PENDING payment as in progress.** Rejected: a checkout a
+  person walked away from three days ago is not in progress. Split at 24
+  hours into Started and Abandoned, with the rule written down.
+- **One status palette slot per payment outcome.** Five outcomes, four status
+  colours: Abandoned and Failed share rose and are told apart by their words
+  on the bar and in the key.
 - **A cursor pager on escrow.** The shared queue pager offers only next and
   previous because the old read had no total. The render draws numbered
   pages, and `getEscrowDesk` has an exact total, so the desk uses numbered

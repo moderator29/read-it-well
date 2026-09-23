@@ -87,7 +87,7 @@ export function SupplyDesk({
   );
 
   return (
-    <div className="nf-console nf-md">
+    <div className="nf-console nf-md nf-md--supply">
       <LiveRefresh />
       <DeskHead
         title="Supply"
