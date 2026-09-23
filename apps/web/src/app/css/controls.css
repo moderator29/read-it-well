@@ -946,31 +946,42 @@
    *
    * The 44pt floor stays the component's `::after`, measured by the spec.
    */
+  /*
+   * THE SHARED LIT ANATOMY (the wide platform sweep, 23 September): off is
+   * the glass door's material over the well, on a blue edge, so the control
+   * is still found on a dark row; on is the lit primary's bar (its fill, its
+   * lit edges, its rim, inner glow and bloom); the thumb carries a hairline
+   * rim of the panel edge so white on the lit bar keeps its outline.
+   */
   .nf-switch {
-    background: var(--nf-well-fill);
-    border: var(--nf-border-width) solid var(--nf-border-default);
-    box-shadow: inset 0 1px 3px var(--nf-shade-2);
+    background: var(--nf-btn-glass-fill), var(--nf-well-fill);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    box-shadow:
+      inset 0 1px 3px var(--nf-shade-2),
+      var(--nf-rim-lit);
     transition:
       background-color var(--nf-duration-base) var(--nf-ease-standard),
       border-color var(--nf-duration-base) var(--nf-ease-standard),
       box-shadow var(--nf-duration-base) var(--nf-ease-standard);
   }
   .nf-switch[aria-checked="true"] {
-    background: var(--nf-brand-primary);
-    border-color: var(--nf-brand-edge-strong);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 16px -2px var(--nf-glow-3);
+    background: var(--nf-btn-lit-fill);
+    border-color: var(--nf-btn-lit-edges);
+    box-shadow: var(--nf-btn-lit-shadow);
   }
   .nf-switch__thumb {
     background: var(--nf-content-on-brand);
-    box-shadow: var(--nf-elev-1);
+    box-shadow:
+      0 0 0 1px var(--nf-panel-edge),
+      var(--nf-elev-1);
   }
   .nf-switch[aria-checked="true"] .nf-switch__thumb {
     box-shadow:
+      0 0 0 1px var(--nf-panel-catch),
       var(--nf-elev-1),
       0 0 8px var(--nf-glow-2);
-  }  @media (prefers-reduced-motion: reduce) {
+  }
+  @media (prefers-reduced-motion: reduce) {
     .nf-switch {
       transition: none;
     }

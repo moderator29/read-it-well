@@ -125,10 +125,14 @@ export function Switch({
       */}
       <span
         aria-hidden="true"
-        className="nf-switch__thumb absolute left-1 top-1/2 block size-6 -translate-y-1/2 rounded-[var(--nf-radius-pill)] transition-transform motion-reduce:transition-none"
+        className="nf-switch__thumb absolute left-1 top-1/2 block size-6 rounded-[var(--nf-radius-pill)] transition-transform motion-reduce:transition-none"
         style={{
           /* 1.25rem of travel on a 52px track with a 24px knob and a 4px
-             inset each side, less the hairline the track now carries. */
+             inset each side, less the hairline the track now carries. The
+             -50% here is the ONLY vertical centring: the thumb used to carry
+             Tailwind's -translate-y-1/2 as well, which sets the separate CSS
+             `translate` property, so it was lifted twice and sat half out of
+             the top of its track on every switch (sweep, 23 September). */
           transform: `translate(${checked ? "1.125rem" : "0"}, -50%)`,
           transitionDuration: "var(--nf-duration-base)",
           transitionTimingFunction: "var(--nf-ease-spring)",
