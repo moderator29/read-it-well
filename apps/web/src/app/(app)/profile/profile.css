@@ -376,53 +376,11 @@
     font-size: var(--nf-text-caption);
     color: var(--nf-pf-mist);
   }
-  /* The one glass panel on the signed-out page, in the rows' material. */
+  /* The signed-out note is the shared Panel; only its place in the column. */
   .nf-pf-note {
     margin-block-start: var(--nf-space-lg);
-    padding: var(--nf-space-lg);
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid color-mix(in oklab, var(--nf-container-ink) 50%, transparent);
-    border-block-end-color: color-mix(in oklab, var(--nf-container-ink) 72%, transparent);
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-container-ink) 30%, var(--nf-surface-canvas)) 0%,
-      color-mix(in oklab, var(--nf-container-ink) 17%, var(--nf-surface-canvas)) 100%
-    );
-    box-shadow: 0 6px 18px -10px var(--nf-glow-2);
   }
 
-  /*
-   * THE LIT BUTTON, per the brief: a gradient fill, a brighter rim along the
-   * top edge and a soft blue bloom cast below. Used by Claim your handle.
-   */
-  .nf-pf-litbtn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--nf-space-xs);
-    inline-size: 100%;
-    min-block-size: 2.75rem;
-    padding-inline: var(--nf-space-lg);
-    border-radius: var(--nf-radius-control);
-    border: 1px solid color-mix(in oklab, var(--nf-brand-accent) 70%, var(--nf-content-on-brand));
-    background: var(--nf-gradient-cta);
-    color: var(--nf-content-on-brand);
-    font-size: var(--nf-text-body-sm);
-    font-weight: 600;
-    box-shadow: var(--nf-rim-primary), var(--nf-bloom-lit-soft);
-  }
-  .nf-pf-litbtn:hover {
-    box-shadow: var(--nf-rim-primary), var(--nf-bloom-lit);
-  }
-  .nf-pf-litbtn:focus-visible {
-    outline: 2px solid var(--nf-brand-accent);
-    outline-offset: 2px;
-  }
-  @media (min-width: 640px) {
-    .nf-pf-litbtn {
-      inline-size: auto;
-    }
-  }
 
   /* -------------------------------------------------------- the tabs */
 
@@ -480,8 +438,12 @@
     outline: 2px solid var(--nf-brand-accent);
     outline-offset: 2px;
   }
+  /* The live half is the shared selected state's fill (`--nf-selected-fill`,
+     the same stops as the lit primary). Its rim and bloom stay the render's:
+     the shared selected rim is white at 55 per cent and samples 171 223 253
+     on this tab against the render's blue 3 146 251 (sweep, ledger 13.P). */
   .nf-pf-tab[aria-selected="true"] {
-    background: var(--nf-gradient-cta);
+    background: var(--nf-selected-fill);
     border-color: color-mix(in oklab, var(--nf-brand-accent) 80%, var(--nf-content-on-brand));
     color: var(--nf-content-on-brand);
     font-weight: 600;
@@ -759,13 +721,12 @@
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
   }
+  /* The wait's rows are the shared Panel card at a row's size and layout. */
   .nf-pf-skel-row {
-    display: flex;
+    flex-direction: row;
     align-items: center;
     gap: 0.875rem;
     min-block-size: 4.125rem;
     padding: 0.5rem 1.125rem 0.5rem 0.875rem;
-    border-radius: var(--nf-radius-control);
-    border: 1px solid color-mix(in oklab, var(--nf-container-ink) 30%, transparent);
   }
 }

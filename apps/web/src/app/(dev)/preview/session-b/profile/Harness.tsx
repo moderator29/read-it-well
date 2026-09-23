@@ -3,6 +3,8 @@ import { AccountHero } from "@/app/(app)/profile/AccountHero";
 import { AccountBody } from "@/app/(app)/profile/AccountBody";
 import { SignedOutHero } from "@/app/(app)/profile/SignedOutHero";
 import { switchRoleLine } from "@/app/(app)/profile/belongings";
+import LoadingProfile from "@/app/(app)/profile/loading";
+import { AddWorkspaceChooser } from "@/components/supply/AddWorkspaceChooser";
 import { PERSON } from "../../_fixtures/people";
 import { FEED_POSTS } from "../../f4/fixtures";
 
@@ -18,9 +20,15 @@ import { FEED_POSTS } from "../../f4/fixtures";
  *   ?v=nohandle   no handle claimed
  *   ?v=noposts    no posts
  *   ?v=signedout  the signed-out page
+ *   ?v=loading    the profile's loading skeleton
+ *   ?v=setup      the add-a-workspace chooser at /profile/setup
+ * The full and values states carry a gold badge tier (a fixture, standing in
+ * for what `person_badge` would publish for an approved agent).
  */
 export function ProfileHarness({ v = "full" }: { v?: string }) {
   const t = getDictionary("en");
+  if (v === "loading") return <LoadingProfile />;
+  if (v === "setup") return <AddWorkspaceChooser t={t} side="property" />;
   if (v === "signedout") {
     return (
       <div className="nf-pf">
@@ -49,6 +57,7 @@ export function ProfileHarness({ v = "full" }: { v?: string }) {
               }
             : null
         }
+        badgeTier={claimed ? "gold" : null}
         locale="en"
       />
       <AccountBody

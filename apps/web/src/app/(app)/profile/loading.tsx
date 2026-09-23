@@ -1,4 +1,5 @@
 import "./profile.css";
+import { Panel } from "@/components/ui/Panel";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
 
@@ -27,13 +28,13 @@ export default function LoadingProfile() {
         <Skeleton width="100%" height="2.75rem" radius="md" />
         <div className="nf-pf-panel nf-pf-rows">
           {Array.from({ length: 4 }, (_, i) => (
-            <div key={i} className="nf-pf-skel-row">
+            <Panel key={i} as="div" variant="card" className="nf-pf-skel-row">
               <Skeleton width="3.0625rem" height="3.0625rem" radius="sm" />
               <div className="flex-1">
                 <Skeleton width="40%" height="0.8125rem" radius="xs" />
                 <Skeleton className="mt-xs" width="75%" height="0.6875rem" radius="xs" />
               </div>
-            </div>
+            </Panel>
           ))}
         </div>
       </div>

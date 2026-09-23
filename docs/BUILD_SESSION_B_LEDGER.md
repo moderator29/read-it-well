@@ -349,7 +349,7 @@ drawn from `social_profiles.is_agent`. The badge is Session A's end to end (scop
 they are gone. The profile now reads `tier` from `public.person_badge` (live: a view, SELECT
 granted to anon and authenticated, `relacl` read on 23 September) through
 `loadOwnBadgeTier` and hands it to `BadgeSlot` beside the name and on the avatar. Session A's
-badge component is not in the tree, so the slot renders NOTHING: **blocked on B-BADGE**. The
+badge component was not in the tree at this pass, so the slot rendered NOTHING. (Later the same day e3c90797 wired the slot to Session A's `TierBadge`; see 13.P.) The
 render's two ticks are therefore absent from the side by side on purpose. No tier is derived
 and no badge artwork or colour is drawn by the profile.
 
@@ -6558,6 +6558,133 @@ moment. Scenario 3 and 4 were never run against production.
   after this deploys (signed in inside the home screen app, then Turn on).
   Nothing on this box can make a real push subscription, and no row was
   written.
+
+## 13. Platform sweep: profile (the account page, its states and sheets, and the add-a-workspace chooser; worker "profile")
+
+Routes: `/profile` (signed in: Belongings and Posts, with and without a handle; signed out;
+loading) and `/profile/setup` (the chooser). Harness: `apps/web/src/app/(dev)/preview/session-b/profile/`
+(committed, R-G), inside the signed-in app shell, `?v=` full, values, nohandle, noposts,
+signedout, loading, setup. Governing image `50E032EA` still governs where it measures.
+
+### 13.P.1 Inventory (every visible item, before any change, 23 September)
+
+| # | Item | Drawn by, before | Shared primitive it belongs on |
+|---|---|---|---|
+| 1 | Cover band, grade and fade | `profile.css` `.nf-pf-cover*` | none (a photograph, not a container) |
+| 2 | Settings gear on the header row | `nf-icon-btn` (shared) placed by `.nf-pf-gear` | already shared |
+| 3 | Avatar, lit ring, picture mark | `profile.css` `.nf-pf-avatar*` | none (a shape, not a container) |
+| 4 | Tier badge beside the name and on the avatar | Session A's `TierBadge` through `BadgeSlot` | already shared |
+| 5 | Followers and Following, hairline | `profile.css` `.nf-pf-count*` | none (text) |
+| 6 | Claim your handle (no handle) | `.nf-pf-litbtn`, a local lit button | `ButtonLink variant="primary"` |
+| 7 | Belongings / Posts segment, track and live half | `.nf-pf-tabs`, `.nf-pf-tab[aria-selected]` (gradient-cta, rim-primary, bloom-lit-soft) | selected tokens `--nf-selected-*` |
+| 8 | Four belongings rows (container) | `.nf-pf-row` + `::before` fill, per-side rims, halo | `Panel` / panel tokens |
+| 9 | Row icon plates (glass objects) | `.nf-pf-plate` + pack crops | `IconPlate` / plate tokens |
+| 10 | Row value, title, subtitle, chevron | `.nf-pf-row__*` | none (text) |
+| 11 | Switch role row and its quiet plate | `.nf-pf-row--switch`, `.nf-pf-plate--switch` | `Panel` / plate tokens |
+| 12 | Switch role sheet (the dock's) | `ProfileSwitcher` (chrome group) | chrome group's |
+| 13 | Below the fold: More of your account, Your activity | `SettingsGroup`, `RowLink`, `RowButton`, `RowValue` (`components/app/account/rows`) | settings group's |
+| 14 | Your details sheet, its fields and Save | `Sheet`, `.nf-field`, `.nf-btn--primary` | shared already (Button class) |
+| 15 | Details sheet error | a local bordered error line in `AccountBody.tsx` | none (inline text state) |
+| 16 | Posts tab, cards and empty state | `ProfilePosts`, `EmptyState` (social group) | social group's |
+| 17 | Verify prompt (applied, unverified) | `VerifyPrompt` (roles) | not claimed by this group |
+| 18 | Signed out: the note panel | `.nf-pf-note`, a local glass card | `Panel` |
+| 19 | Signed out: Sign in | `.nf-pf-litbtn` | `ButtonLink variant="primary"` |
+| 20 | Signed out: On this device rows and sheet | `SettingsGroup`, `Sheet` | settings group's |
+| 21 | Loading: skeleton rows | `.nf-pf-skel-row`, a local bordered row | `Panel variant="card"` |
+| 22 | Chooser (`/profile/setup`): step bars, doors, door marks, calm panel, Continue | `.nf-steprow`, `.nf-door`, `.nf-door__mark`, `.nf-calmpanel` (all in `controls.css`, the shared layer's file), `Button variant="primary"` | `Panel`, `IconPlate`, `Button` |
+| 23 | Chooser back control | `nf-icon-btn--glass` (shared) | already shared |
+
+### 13.P.2 Applied (23 September, on Phase 1 RELEASED 9da8f86f)
+
+| # | Item | After | Local version deleted |
+|---|---|---|---|
+| 6, 19 | Claim your handle; signed-out Sign in | `ButtonLink variant="primary" size="lg" full` (the Get started lit bar, pooled bloom) | yes: `.nf-pf-litbtn` and its hover, focus and media rules |
+| 18 | Signed-out note | `Panel` (the console panel material) | yes: the note's border, fill and shadow; only its top margin stays |
+| 21 | Loading skeleton rows | `Panel as="div" variant="card"` | yes: the skeleton row's own border; only row layout stays |
+| 7 | Live tab fill | `--nf-selected-fill` (the shared selected state) | the `--nf-gradient-cta` reference; rim and bloom stay the render's (see below) |
+| 2, 4, 14, 23 | Gear, tier badge, details sheet Save, chooser back | already shared (`nf-icon-btn`, `TierBadge`, `.nf-btn--primary`, `nf-icon-btn--glass`) | nothing local existed |
+
+**Kept, because the governing image measures differently (render governs, per the lead).** Each
+was tried on the shared tokens in the running production build (a stylesheet injected over the
+page, then the same points sampled as ledger 1.4's table):
+- **Rows (8, 11) on the panel tokens:** 6 of 12 sampled points leave the render by more than 10:
+  top rim 0 122 254 against 2 112 219; 1px under it 22 75 142 against 0 52 148; 9px 11 56 117
+  against 0 33 105; foot rim 5 135 253 against 2 73 161; 4px below 4 21 56 against 0 11 42;
+  radius 10 against the render's 14. The render-matched rows stay (all 12 within 10).
+- **Plates (9, 11) on the plate tokens:** top rim 40 167 250 against 0 49 164, body 13 74 180
+  against 0 38 132; and the render draws its own glass objects in them, which `IconPlate`
+  (a line-glyph plate) does not carry. The render-matched plates stay.
+- **Tab track (7) on the panel tokens:** middle 0 35 86 against 0 21 67, rim 0 124 254 against
+  1 46 134. Kept. **Live tab rim:** the shared selected rim samples 171 223 253 against the
+  render's 3 146 251, so the render's blue rim stays; the fill is the shared token.
+
+**Not swept, and why.**
+- **Chooser (22):** its doors, door marks and calm panel are `.nf-door`, `.nf-door__mark` and
+  `.nf-calmpanel` in `controls.css`, the shared layer's own file (Phase 1's claim), still drawn on
+  the older edge tokens. The marks carry the roles render's glass objects, so `IconPlate` does not
+  fit them either. Request **SW-P1** (scope file): repoint those three onto `--nf-panel-*`,
+  `--nf-plate-*` and `--nf-selected-*` in `controls.css`; the chooser markup needs no change.
+- **Below the fold (13, 20), details sheet fields (14), Posts tab (16), Verify prompt (17), the
+  Switch role sheet (12):** drawn by components other groups claim (settings, social, roles,
+  chrome); they inherit their groups' sweeps.
+
+### 13.P.3 Audit passes
+
+- **Pass 1, 23 September.** Every state in the harness on the production build (`?v=` full,
+  values, nohandle, noposts, signedout, loading, setup; Posts tab; Your details sheet; the Switch
+  role sheet), 390 and 1440, beside the console panel and Get started's lit bar. Found: the rows,
+  plates and track, tried on the shared tokens, left the render (numbers above); kept. The Claim
+  and Sign in buttons now draw the shared lit bar with its pooled bloom; the note is the console
+  panel; the skeleton rows are panel cards.
+- **Pass 2, 23 September.** Re-read the same states against `50E032EA`. Found: the skeleton rows
+  (panel cards) read brighter at the edge than the real rows they stand for, because the real
+  rows are render-matched and the panel carries the +1 glow step. Accepted: the wait is the
+  shared material by the sweep's rule and the render draws no loading state. The live tab's rim
+  would turn white on the shared selected shadow; kept the render's rim, took the shared fill.
+- **Pass 3, 23 September.** The 1440 shots: the column, the rows and the lit segment hold at
+  desktop width; the tier badge (Session A's `TierBadge`, gold is its one allowed colour) sits
+  beside the name and on the ring. Nothing further found.
+
+### 13.P.4 Per route
+
+| Route | Result | Container | Edge | Rim | Glow | Button | Plate |
+|---|---|---|---|---|---|---|---|
+| `/profile` (signed in) | swept where the render allows | rows kept (render), skeleton and note on `Panel` | kept (render) | kept (render) | kept (render) | shared lit primary | kept (render objects) |
+| `/profile` (signed out) | swept | `Panel` | shared | shared | shared | shared lit primary | none |
+| `/profile` (loading) | swept | `Panel` card | shared | shared | shared | none | none |
+| `/profile/setup` | not swept (SW-P1) | `.nf-door` (shared file, older tokens) | same | same | same | shared lit primary | `.nf-door__mark` |
+
+Routes swept, fully or where the render allows: 3 of 4 states; the chooser waits on SW-P1.
+
+### 13.P.5 Proofs
+
+Before: the final-pass proofs already on main (`docs/design/proofs/session-b/profile/`,
+0b74eef9, before the shared layer and before `TierBadge`); no separate 1440 before exists.
+After: `docs/design/proofs/session-b/profile/sweep/after-<state>-390.jpg` and `-1440.jpg` for
+full, values, nohandle, noposts, signedout, loading and setup, plus `after-posts-390.jpg`,
+`after-details-sheet-390.jpg`, `after-switch-sheet-390.jpg` and `contact.jpg`.
+
+### 13.P.6 Email lock (founder rule, 23 September)
+
+`components/app/account/ProfileIdentityCard.tsx`: the email input and its writer are removed;
+the email is drawn as fixed text with the line "Your email address cannot be changed.", and the
+card's `save` is only ever called with a name (test `profile-identity-card.test.ts`, 3 passing).
+The account page's own Email row says the same line. **The button is removed, but the server
+door is Session A's, and this is NOT handled until their refusal has a test** (an
+account-takeover surface): scope request EMAIL-LOCK.
+
+### 13.P.7 Live proofs (network open, 23 September)
+
+Script `apps/web/tests/session-b-profile-live.spec.mjs` against the production build of
+this commit's tree (next start, real project).
+
+| Link | Status |
+|---|---|
+| signed out `/profile` redirects to sign in with the way back | LIVE PROVEN (2026-09-23 15:34 UTC, `docs/design/proofs/session-b/profile/live/signed-out-profile-redirect.jpg`) |
+| signed out `/profile/setup` redirects | LIVE PROVEN (15:34 UTC, script output) |
+| signed out `/profile/setup/owner` redirects | LIVE PROVEN (15:34 UTC) |
+| signed out `/profile?switch=owner` redirects | LIVE PROVEN (15:34 UTC) |
+| identity read, badge tier from `person_badge`, row links and figures, Posts, Switch role sheet, settings link, sign out | WAITING ON QA ACCOUNTS (the script runs them when QA_MEMBER_EMAIL and QA_MEMBER_PASSWORD are set) |
 
 ## Skipped or not verified
 - (13.H, sweep-home) No live row on any proof: this box's egress refuses the Supabase host, so every card, panel and figure in the home group's proofs is fixture-backed or an empty state; the wiring is unchanged by the sweep (material only). `/price/area/[id]` and `/rent/move-in/[listingId]` were swept in their stylesheets and not photographed. The lister's TierBadge on the card waits on R-SH4. `StayCard` still wears `nf-glass--card` itself (stays group, R-SH2). The unmounted `AiAssistantBanner` stays until R-SH1.

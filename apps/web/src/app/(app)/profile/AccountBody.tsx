@@ -269,7 +269,12 @@ export function AccountBody({
                 sub="Name, nickname and phone number"
                 testId="row-details"
               />
-              <RowValue icon="mail" label="Email" value={email} />
+              <RowValue
+                icon="mail"
+                label="Email"
+                value={email}
+                sub="Your email address cannot be changed."
+              />
               <RowLink
                 href="/settings/place"
                 icon="location"
