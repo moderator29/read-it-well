@@ -192,11 +192,17 @@ describe("every link resolves to a real route", () => {
 
 describe("the words", () => {
   const BANNED =
-    /\b(insured|guarantee|guaranteed|demo|sample|preview|coming soon|welcome aboard|amazing|revolutionary)\b/i;
+    /\b(insured|guarantee|guaranteed|demo|sample|preview|coming soon|welcome aboard|amazing|revolutionary|viewings?)\b/i;
 
   it.each(ALL)("$role uses none of the banned words, in markup, comments or text", ({ message }) => {
     for (const part of [message.subject, message.html, message.text]) {
       expect(part).not.toMatch(BANNED);
+    }
+  });
+
+  it.each(ALL)("$role says inspection, never viewing (founder item 7)", ({ message }) => {
+    for (const part of [message.subject, message.html, message.text]) {
+      expect(part).not.toMatch(/\bviewings?\b/i);
     }
   });
 
