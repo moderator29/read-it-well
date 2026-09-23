@@ -2906,9 +2906,11 @@ export const en = {
       seeAll: "See all",
       completed: "Completed",
       recentEmpty: "Nothing has moved through your wallet yet. Add money and it appears here.",
-      trustTitle: "Your money is safe",
-      trustBody: "Encrypted in transit and recorded to the kobo. Nothing moves without you.",
-      trustBadge: "256-bit TLS",
+      /* True statements only (22 September claims rule): what the balance is,
+         and what a completed movement is. The earlier "safe", "encrypted" and
+         "256-bit" copy was a render claim and is gone. */
+      trustTitle: "How your wallet works",
+      trustBody: "Your balance is Vallo's naira record of your money, not a bank deposit. A completed send cannot be recalled.",
       topUpTitle: "Top up your wallet",
       topUpHint: "By card or bank transfer through a secure Paystack window, or with a card you have already saved.",
       savedCard: "Pay with a saved card",
@@ -4096,7 +4098,7 @@ export const en = {
     signInBody: "Sending comes from your own wallet, so it needs your account.",
     unreadableTitle: "Your balance could not be loaded",
     unreadableBody: "We will not take a send against a figure we cannot stand behind. Nothing has moved. Try again in a moment.",
-    tagline: "Fast. Safe. Always.",
+    tagline: "Wallet to wallet, by email",
     balanceLabel: "Wallet Balance",
     availableFor: "Available for transfers",
     recipientTitle: "Recipient",

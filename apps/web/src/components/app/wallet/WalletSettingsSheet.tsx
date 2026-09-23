@@ -21,7 +21,8 @@ import { QuickPlate } from "./QuickPlate";
  * here: the render-style claims ("bank-level encryption", a PIN "at launch")
  * were removed on 22 September under the rule that the images govern form and
  * never claims (docs/design/references/roles/README.md). What the wallet is
- * NOT is said as plainly as the terms say it (lib/legal/terms.tsx, section 15).
+ * NOT is said plainly and points at the terms (lib/legal/terms.tsx, section 15)
+ * rather than naming a regulator, which the founder's rule keeps off screens.
  */
 
 const PROTECTIONS: { icon: BrandIconName; title: string; body: string }[] = [
@@ -33,7 +34,7 @@ const PROTECTIONS: { icon: BrandIconName; title: string; body: string }[] = [
   {
     icon: "shield-check",
     title: "Ledger-recorded to the kobo",
-    body: "Every movement lives in a permanent, kobo-exact ledger.",
+    body: "Every movement is a row in a kobo-exact ledger, and you can read every row in your history.",
   },
 ];
 
@@ -114,8 +115,9 @@ export function WalletSettingsSheet({ card }: { card?: { title: string; sub: str
           settings sheet full of dead switches is worse than a short one.
         */}
         <p className="nf-body-sm mt-block leading-relaxed text-[var(--nf-content-muted)]">
-          A Vallo wallet balance is a record in naira, not a bank deposit, and it
-          is not insured by the Nigeria Deposit Insurance Corporation. There is no transaction PIN on the wallet today.
+          A Vallo wallet balance is a record in naira, not a bank deposit; the
+          terms of service say what that means. There is no transaction PIN on
+          the wallet today.
         </p>
       </Sheet>
     </>

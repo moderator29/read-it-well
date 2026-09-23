@@ -1245,6 +1245,143 @@
     background: radial-gradient(circle, var(--nf-glow-2) 0%, transparent 68%);
   }
 
+  /* ------------------------------------- round three: lead rulings R-A to R-C */
+
+  /*
+   * TYPE AT THE RENDER'S SIZE, WITH THE 11PX FLOOR (R-A); CONTROLS AT THE
+   * RENDER'S HEIGHT, WITH THE 44PX FLOOR (R-B); CONTAINERS AT THE RENDER'S
+   * WIDTH (R-C). Every size below is measured off the governing render at
+   * 1.71 image px per CSS px, font size = measured text width divided by the
+   * string's width in ems (cross-checked against cap height / 0.73). The
+   * measurements are in docs/BUILD_SESSION_B_LEDGER.md sections 4 and 5.
+   * Stated once, here, after the rules they overrule, so the earlier values
+   * read as the base and this block as the ruling.
+   */
+
+  /* R-C. The render's cards are 364px at 390 (13.5px gutters); the shell's
+     gutter is 24px, so the money pages reach 10px into it on a phone and
+     land at 362. Wider screens keep the shell's column. */
+  @media (max-width: 639px) {
+    .nf-money > * {
+      margin-inline: -0.625rem;
+    }
+  }
+
+  /* Wallet 6AF37222. "Total Balance" 67.8px wide = 11px. */
+  .nf-wallet-hero__label {
+    font-size: 0.6875rem;
+  }
+  /* Tile labels: "Send" 22.8px, "Receive" 35.1px wide = 10.5px, so the
+     11px floor. "Add money" is then 56px inside a 64px tile. */
+  .nf-wallet-tile {
+    font-size: 0.6875rem;
+  }
+  /* "Quick Actions" 87.7px wide in Poppins 600 = 13px. */
+  .nf-wallet-section__title {
+    font-size: 0.8125rem;
+  }
+  /* "See all" 29.2px wide = 8.6px, so 11px; a control, so 44px tall. */
+  .nf-wallet-link {
+    min-height: 2.75rem;
+    font-size: 0.6875rem;
+  }
+  .nf-tx-card__head .nf-wallet-link {
+    min-height: 2.75rem;
+    padding-block: 0;
+  }
+  /* Quick cards: title "Send Money" 55.6px = 9.4px, sub 61.4px for "To bank
+     or wallet" = 7.7px; both to the 11px floor. */
+  .nf-wallet-quick__title,
+  .nf-wallet-quick__sub {
+    font-size: 0.6875rem;
+  }
+  @media (min-width: 640px) {
+    .nf-wallet-quick__title,
+    .nf-wallet-quick__sub {
+      font-size: 0.8125rem;
+    }
+  }
+  /* Rows: "Money Sent" 53.8px = 10.1px, counterparty and date 7.6px cap =
+     10px, amount "- ₦50,000.00" 67.3px = 10.7px; all to the 11px floor. */
+  .nf-tx-row__title,
+  .nf-tx-row__party,
+  .nf-tx-row__when,
+  .nf-tx-row__amount {
+    font-size: 0.6875rem;
+  }
+  .nf-tx-row__title,
+  .nf-tx-row__amount {
+    font-weight: 600;
+  }
+
+  /* Send 77A54EA3. "Send Money" 103.5px wide in Poppins 600 = 17.5px; the
+     line under it 102.9px = 14px. */
+  .nf-send-head__title {
+    font-size: 1.09375rem;
+  }
+  .nf-send-head__sub {
+    font-size: 0.875rem;
+  }
+  /* The chip: "Instant Transfer" 67.3px wide = 9.2px, so 11px. It is a
+     statement, not a control (nothing to press), so it keeps the render's
+     30px height; its 6px corner is a ratio of 0.2. */
+  .nf-send-chip-instant {
+    min-height: 1.875rem;
+    padding-inline: 0.625rem;
+    border-radius: var(--nf-radius-xs);
+    font-size: 0.6875rem;
+  }
+  /* Row labels and placeholders: the render's are about 9.3px (the long
+     placeholder is 215px wide), so 11px. A typed value stays 16px (R-A: iOS
+     zooms the page below that). */
+  .nf-send-row__label,
+  .nf-send-row__count,
+  .nf-send-row__hint {
+    font-size: 0.6875rem;
+  }
+  .nf-send-row__input::placeholder {
+    font-size: 0.6875rem;
+  }
+  /* The render's rows are quiet sub-panels inside the lit panel, their edge a
+     soft glow and not a bright outline. */
+  .nf-send-row,
+  .nf-send-trust {
+    border-color: var(--nf-brand-edge-soft);
+  }
+  /* Amount chips: drawn 24px tall with "₦5,000" 31px wide = 9.4px. R-B takes
+     the height to 44, R-A the type to 11. */
+  .nf-send-chip {
+    min-height: 2.75rem;
+    font-size: 0.6875rem;
+  }
+  /* The button: 44.5px in the render, "Send Money" 77.8px = 13px. */
+  .nf-send-cta {
+    min-height: 2.78125rem;
+    padding-block: 0.25rem;
+  }
+  .nf-send-cta__label {
+    font-size: 0.8125rem;
+  }
+  .nf-send-cta__plate {
+    width: 2.125rem;
+    height: 2.125rem;
+  }
+  /* The reassurance strip: one slim card as drawn, a 34px plate, its title
+     (render 64.9px wide = 7.7px) and its lines (render 7px) at the floor. */
+  .nf-send-trust {
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+  }
+  .nf-send-trust__title,
+  .nf-send-trust__facts {
+    font-size: 0.6875rem;
+  }
+  .nf-send-trust__facts {
+    gap: 0;
+    margin-top: 0.125rem;
+    line-height: 1.35;
+  }
+
   /* -------------------------------------------------------------- daylight */
 
   /*

@@ -94,6 +94,8 @@ policy, Session B writes it as a request below.
 - `apps/web/src/app/(app)/wallet/**`
 - `apps/web/src/components/app/wallet/**`
 - `apps/web/src/app/css/wallet.css`
+- `apps/web/src/app/(dev)/preview/session-b/wallet/**` (the fixture harness, lead ruling R-G)
+- `apps/web/public/brand/session-b/send/**` and the `send` block of `scripts/design/session-b-crops.mjs`
 
 ### 6. Inspections (worker inspection)
 - `apps/web/src/app/(app)/inspections/**`
@@ -548,7 +550,7 @@ E3. **Fixtures.** `fixtures.ts` still renders the welcome with
 Checked by read-only SQL against production on 22 September. Session B has not
 made these; the surfaces ship the honest state around each.
 
-W1. **BLOCKER, MONEY SAFETY. A second tap on Send sends twice.** `SendFlow` posts an
+W1. **CLOSED by Session A in `7763ff39`** (`transferSchema` names `idempotencyKey`, `transferToUser` runs inside `withIdempotency`, `transfer-idempotency.test.ts`); the client also latches the confirm submit (`submit-guard.ts`). The original request, kept for the record: **A second tap on Send sent twice.** `SendFlow` posts an
     `idempotencyKey` minted once per mount, and `transferSchema`
     (`lib/wallet/schema.ts`) drops it, so `transferToUser`
     (`lib/wallet/actions.ts`) never sees it. The pair id is a fresh
