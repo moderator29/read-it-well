@@ -83,7 +83,6 @@ function Row({ row, typing }: { row: InboxRow; typing: boolean }) {
         <span className="nf-inbox-row__ring">
           <VerifiedAvatar
             name={row.counterpartName}
-            verified={row.counterpartVerified}
             tier={row.counterpartTier}
             kind={row.counterpartKind}
             size="md"

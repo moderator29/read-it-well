@@ -26,7 +26,7 @@ export default async function PreviewThreadBookingCard() {
         conversationId={CONVERSATION_ID}
         meId={PERSON.id}
         counterpartName={HOTEL.name}
-        counterpartVerified
+        counterpartTier="gold"
         /* The render's call control. Null in a thread where the read withheld
            the number, and then the header simply carries the kebab alone. */
         counterpartPhone="+2348010000000"

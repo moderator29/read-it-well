@@ -26,7 +26,7 @@ export default async function PreviewThreadBookingContext() {
         conversationId={CONVERSATION_ID}
         meId={PERSON.id}
         counterpartName={HOTEL.name}
-        counterpartVerified
+        counterpartTier="gold"
         counterpartPhone="+2348010000000"
         listing={null}
         inspected={false}

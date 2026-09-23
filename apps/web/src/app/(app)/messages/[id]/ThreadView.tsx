@@ -9,6 +9,8 @@ import type { Inspection } from "@/lib/inspections/types";
 import type { ThreadContext } from "@/lib/messages/live";
 import { EmptyState, ICON } from "@/components/app/Screen";
 import { VerifiedAvatar } from "@/components/messages/VerifiedAvatar";
+import { TierBadge } from "@/components/trust/TierBadge";
+import type { BadgeTier } from "@/lib/trust/badge-tier";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ChatCard, type ChatCardData } from "@/components/app/messages/ChatCard";
@@ -111,7 +113,7 @@ export type ThreadViewProps = {
    * is the mark somebody weighs before agreeing to meet them at a property, and
    * one that appears because a prop was forgotten is worse than none at all.
    */
-  counterpartVerified: boolean;
+  counterpartTier: BadgeTier;
   listing: SheetListing | null;
   inspected: boolean;
   messages: ThreadBubble[];
@@ -258,7 +260,7 @@ export function ThreadView({
   counterpartName,
   counterpartPhone = null,
   counterpartId = null,
-  counterpartVerified,
+  counterpartTier,
   listing,
   inspected: inspectedInitial,
   messages,
@@ -617,14 +619,18 @@ export function ThreadView({
           {propertyFace && listing ? (
             <MediaFrame hue={listing.hue} sizes="44px" />
           ) : (
-            <VerifiedAvatar name={counterpartName} verified={counterpartVerified} size="md" />
+            <VerifiedAvatar name={counterpartName} tier={counterpartTier} size="md" />
           )}
         </span>
         <div className="min-w-0 flex-1">
           <h1 className={`nf-thread__title${propertyFace ? " nf-thread__title--place" : ""}`}>
             <span className="min-w-0">{propertyFace && listing ? listing.title : counterpartName}</span>
-            {!propertyFace && counterpartVerified && (
-              <UiIcon name="verified-badge" size={18} className="nf-thread__tick" label="Verified" />
+            {/* The one shared renderer, from the one published tier. It used to be a
+                `verified-badge` glyph gated on a boolean that was actually the
+                LISTING's verified flag; see the note at this call site in
+                `page.tsx`. */}
+            {!propertyFace && (
+              <TierBadge tier={counterpartTier} size={18} className="nf-thread__tick" />
             )}
           </h1>
           {/* Said once. The context card under a property header already

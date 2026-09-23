@@ -12,22 +12,29 @@ import { type BadgeTier } from "@/lib/trust/badge-tier";
  * ---------------------------------------------------------------------------
  * IT IS A FACT, NOT A DECORATION, AND THE TYPE ENFORCES THAT.
  *
- * `verified` is required and has no default. A call site that has not resolved
- * the counterpart's real verification state cannot render this component at
- * all - it will not compile - and that is the whole reason the prop is not
- * optional. A verified tick that appears because somebody forgot to pass a
- * prop is worse than no tick anywhere: it is the one mark on the platform that
- * a person is going to weigh before sending money to a stranger.
+ * `tier` is required and has no default. A call site that has not resolved the
+ * counterpart's real badge cannot render this component at all - it will not
+ * compile - and that is the whole reason the prop is not optional. A verified
+ * tick that appears because somebody forgot to pass a prop is worse than no
+ * tick anywhere: it is the one mark on the platform that a person is going to
+ * weigh before sending money to a stranger.
  *
- * WHERE THE TRUTH COMES FROM. `agent_badges.verified`, resolved in
- * `lib/messages/live.ts` and carried through as `counterpartVerified`. That
- * table is the one published derivation of the badge: `private.sync_agent_badge`
- * writes it as `agents.verification_tier >= 1`, and the tier is computed by
- * `private.agent_tier` from the rungs in `agent_verification_checks`, each one
- * a named member of staff's recorded decision. So the tick means one thing
- * only: a person here looked at a government document and said yes. It is the
- * same column every listing surface reads, which is the point: one badge, one
- * derivation, no screen disagreeing with another.
+ * WHERE THE TRUTH COMES FROM. `agent_badges.verified`, now read through
+ * `public.person_badge.tier`, resolved in `lib/messages/live.ts` and carried
+ * through as `counterpartTier`. That is the one published derivation of the
+ * badge: `private.sync_agent_badge` writes `verified` as
+ * `agents.verification_tier >= 1`, the tier is computed by `private.agent_tier`
+ * from the rungs in `agent_verification_checks`, each one a named member of
+ * staff's recorded decision, and `public.badge_tier` turns that plus
+ * `public.is_platform_staff` into which mark to draw. So the mark means one
+ * thing only: a person here looked at a government document and said yes, or
+ * this person is Vallo. It is the same chain every listing surface reads, which
+ * is the point: one badge, one derivation, no screen disagreeing with another.
+ *
+ * IT IS KEYED BY THE PERSON, NOT BY THE AGENT, and that is not a detail.
+ * `agent_badges` is keyed by agent, so a member of staff in a thread resolved
+ * to nothing at all: the founder's own account, in his own messages, with no
+ * mark. `public.person_badge` answers for anybody.
  *
  * IT USED TO READ `agents.verified`, and that was the fault this docstring was
  * wrong about. That column was hand-set to true at the moment an agent
@@ -42,7 +49,7 @@ import { type BadgeTier } from "@/lib/trust/badge-tier";
  *
  * IT CANNOT APPEAR ON SEED CONTENT. The seed message repository has no agents
  * table behind it, so nothing there resolves an identity and `counterpartName`
- * falls back with `verified` false. Demo content therefore carries no mark,
+ * falls back with the tier at `none`. Demo content therefore carries no mark,
  * which is correct: the badge means a person was checked, and nobody checked a
  * fixture.
  *
@@ -130,7 +137,6 @@ function initialOf(name: string): string {
 
 export function VerifiedAvatar({
   name,
-  verified,
   tier,
   photoUrl,
   size = "md",
@@ -149,43 +155,28 @@ export function VerifiedAvatar({
 }: {
   name: string;
   /**
-   * The counterpart's REAL verification state, still required and still never
-   * defaulted. It is `agent_badges.verified`, the same published fact `tier` is
-   * read off, so the two cannot mean different things.
-   */
-  verified: boolean;
-  /**
-   * The published badge, `public.person_badge.tier`. Supply it wherever the
-   * read can resolve it; `TierBadge` then draws the founder's mark at the
-   * right tier.
+   * THE PUBLISHED BADGE, AND THE ONLY INPUT THIS COMPONENT HAS FOR THE MARK.
+   * `public.person_badge.tier`. Required, with no default, for the reason the
+   * docstring above gives: a call site that has not resolved the counterpart's
+   * real badge cannot render this component at all, it will not compile, and a
+   * mark that appears because somebody forgot a prop is the one thing worse
+   * than no mark anywhere.
    *
-   * IT IS OPTIONAL FOR ONE REASON AND IT IS A DATED ONE. `ThreadView.tsx` is
-   * the third call site and on 23 September it carried another worker's
-   * uncommitted edit, so committing it here would have swept up work this
-   * session did not write, which is the collision ledger sections 60 and 61
-   * record twice in one day. Until that file can be edited it passes `verified`
-   * alone and gets GOLD, which is the correct mark for every agent and the
-   * wrong one only for a member of staff in a thread. That is a known gap, it
-   * is named in the ledger, and it closes with a one-line edit.
-   *
-   * This is not a second derivation. Both values come from the same published
-   * chain; `verified` is simply the coarser of the two readings.
+   * IT TOOK A BOOLEAN AS WELL FOR ABOUT AN HOUR, AND THE GUARD CAUGHT THAT.
+   * While `ThreadView.tsx` carried another worker's uncommitted edit, this
+   * component kept a `verified` prop and mapped a true onto gold so that file
+   * could keep compiling. However small, that mapping is a rule about which
+   * mark to draw living somewhere other than the derivation, and
+   * `agent-badge-derivation.test.ts` flagged it by shape on the guard's very
+   * first run. It is gone rather than excused: the moment that file was free,
+   * the prop went with it.
    */
-  tier?: BadgeTier;
+  tier: BadgeTier;
   photoUrl?: string;
   size?: AvatarSize;
   kind?: "agent" | "member";
   className?: string;
 }) {
-  /*
-   * ONE PLACE DECIDES WHICH MARK THIS AVATAR DRAWS, AND IT IS NOT A TIER
-   * COMPARISON. When the caller has the published tier, that is the answer,
-   * whole. When it has only the coarser boolean off the same published row, a
-   * true reads as the gold mark, which is what `agent_badges.verified` has
-   * always meant. Nothing here reads a ladder, a role or a session.
-   */
-  const mark: BadgeTier = tier ?? (verified ? "gold" : "none");
-
   return (
     <span
       className={`relative inline-block shrink-0 ${className ?? ""}`}
@@ -213,7 +204,7 @@ export function VerifiedAvatar({
         )}
       </span>
 
-      {mark !== "none" ? (
+      {tier !== "none" ? (
         /*
           NO BACKGROUND BEHIND THE MARK, on the founder's instruction of 23
           September: no disc, no ring, no plate, no halo. It used to sit on a
@@ -228,7 +219,7 @@ export function VerifiedAvatar({
           it is the difference between a stranger and a stranger the platform
           has checked.
         */
-        <TierBadge tier={mark} size={GLYPH[size]} className="absolute -bottom-0.5 -right-0.5" />
+        <TierBadge tier={tier} size={GLYPH[size]} className="absolute -bottom-0.5 -right-0.5" />
       ) : (
         kind && (
           /* The fallback meaning. A dot, deliberately not a green "online"
