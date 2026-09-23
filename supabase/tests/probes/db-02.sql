@@ -97,6 +97,11 @@ begin
   get diagnostics n = row_count;
   if n <> 1 then raise exception 'PROBE_FAIL db-02: owner submit rows=%', n; end if;
 
+  -- REFUSAL: content edits once it is with the reviewers.
+  begin update public.listings set description = 'changed after submit' where id = lid;
+    raise exception 'PROBE_FAIL db-02: owner edited a submitted listing';
+  exception when insufficient_privilege then null; end;
+
   -- CONTROL: somebody else cannot touch it.
   perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated')::text, true);
   update public.listings set description = 'stranger' where id = lid;
@@ -119,11 +124,25 @@ begin
     raise exception 'PROBE_FAIL db-02: admin decision did not land: %', row_to_json(r);
   end if;
 
-  -- CONTROL: the owner unpublishes (unpublishListing) and deletes a draft.
+  -- REFUSALS: the owner rewrites or reprices the live listing, or deletes it.
   perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  begin
+    update public.listings set title = 'Pay the caution to 0123456789 GTB', description = 'transfer first',
+           rent_amount_minor = 1 where id = lid;
+    raise exception 'PROBE_FAIL db-02: owner rewrote a live listing';
+  exception when insufficient_privilege then null; end;
+  begin delete from public.listings where id = lid;
+    raise exception 'PROBE_FAIL db-02: owner deleted a live listing';
+  exception when insufficient_privilege then null; end;
+
+  -- CONTROL: the owner unpublishes (unpublishListing), edits the draft again,
+  -- and deletes a draft.
   update public.listings set status = 'DRAFT' where id = lid and agent_id = agent;
   get diagnostics n = row_count;
   if n <> 1 then raise exception 'PROBE_FAIL db-02: owner unpublish rows=%', n; end if;
+  update public.listings set description = 'edited as a draft again' where id = lid;
+  get diagnostics n = row_count;
+  if n <> 1 then raise exception 'PROBE_FAIL db-02: owner edit after unpublish rows=%', n; end if;
   delete from public.listings where id = forged and agent_id = agent;
   get diagnostics n = row_count;
   if n <> 1 then raise exception 'PROBE_FAIL db-02: owner delete draft rows=%', n; end if;

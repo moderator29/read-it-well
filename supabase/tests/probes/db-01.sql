@@ -103,6 +103,11 @@ begin
   if n <> 1 then raise exception 'PROBE_FAIL db-01: owner close rows=%', n; end if;
   update public.businesses set status = 'SUBMITTED' where id = biz;
 
+  -- REFUSAL: content edits once the application is with the reviewers.
+  begin update public.businesses set description = 'changed after submit' where id = biz;
+    raise exception 'PROBE_FAIL db-01: owner edited a submitted business';
+  exception when insufficient_privilege then null; end;
+
   -- CONTROL: the admin decides through their own authenticated client.
   perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
   update public.businesses
@@ -122,12 +127,39 @@ begin
     raise exception 'PROBE_FAIL db-01: admin decision did not land: %', row_to_json(r);
   end if;
 
-  -- The owner may still unpublish what the admin published.
+  -- REFUSALS: the owner rewrites what the reviewer published, or deletes it.
   perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  begin update public.businesses set name = 'Pay the deposit to 0123456789', phone = null where id = biz;
+    raise exception 'PROBE_FAIL db-01: owner rewrote a live business';
+  exception when insufficient_privilege then null; end;
+  begin update public.accommodations set description = 'rewritten live' where id = acc;
+    raise exception 'PROBE_FAIL db-01: owner rewrote a live property';
+  exception when insufficient_privilege then null; end;
+  begin update public.room_types set base_rate_minor = 1 where id = room;
+    raise exception 'PROBE_FAIL db-01: owner repriced a live room';
+  exception when insufficient_privilege then null; end;
+  begin delete from public.room_types where id = room;
+    raise exception 'PROBE_FAIL db-01: owner deleted a live room';
+  exception when insufficient_privilege then null; end;
+  begin delete from public.businesses where id = biz;
+    raise exception 'PROBE_FAIL db-01: owner deleted a live business';
+  exception when insufficient_privilege then null; end;
+
+  -- CONTROL: the owner closes it (closeBusiness: properties first, then the
+  -- business), and then edits the still-PUBLISHED room as part of the draft.
   update public.accommodations set status = 'DRAFT' where business_id = biz and status in ('PUBLISHED', 'APPROVED');
   update public.businesses set status = 'DRAFT' where id = biz and owner_id = member;
   get diagnostics n = row_count;
   if n <> 1 then raise exception 'PROBE_FAIL db-01: owner unpublish rows=%', n; end if;
+  update public.room_types set base_rate_minor = 6000000 where id = room;
+  get diagnostics n = row_count;
+  if n <> 1 then raise exception 'PROBE_FAIL db-01: owner room edit under a draft business rows=%', n; end if;
+  update public.businesses set description = 'edited as a draft again' where id = biz;
+  get diagnostics n = row_count;
+  if n <> 1 then raise exception 'PROBE_FAIL db-01: owner edit after close rows=%', n; end if;
+  delete from public.businesses where id = forged;
+  get diagnostics n = row_count;
+  if n <> 1 then raise exception 'PROBE_FAIL db-01: owner delete of a draft business rows=%', n; end if;
 
   raise exception 'PROBE_OK db-01';
 end
