@@ -10,6 +10,7 @@ import {
   getJoinedFeed,
 } from "@/lib/social/posts-queries";
 import { listStories } from "@/lib/social/stories-queries";
+import { stampAuthorTiers } from "@/lib/social/author-badges";
 import { POST_COPY } from "@/lib/social/posts-schema";
 import { AROUND_UNCONFIGURED } from "./copy";
 import { loadMoreAround } from "./feed-actions";
@@ -87,7 +88,7 @@ export default async function AroundPage({
   const tab: FeedTab = isFeedTab(rawTab) ? rawTab : "for-you";
   const joined = viewerId !== null && mine.length > 0;
 
-  const feed = selected
+  const read = selected
     ? await getAreaFeed(selected.id)
     : tab === "following"
       ? joined
@@ -98,6 +99,8 @@ export default async function AroundPage({
         : joined
           ? await getJoinedFeed(viewerId)
           : await getEverywhereFeed();
+  /* Each author's published badge, the tick the image draws beside a name. */
+  const feed = { ...read, posts: await stampAuthorTiers(read.posts) };
 
   const browsingOpen = !selected && tab === "for-you" && mine.length === 0;
 
@@ -156,7 +159,9 @@ export default async function AroundPage({
 
   return (
     <div
-      className="mx-auto w-full max-w-3xl pt-sm"
+      /* `nf-feed-page`: the 3xl column, and on a phone the image's 16px
+         gutter in place of the shell's 24 (social-feed.css). */
+      className="nf-feed-page pt-sm"
       /* The dock floats over the bottom of the screen on a phone. Padding
          rather than a fixed value so the clearance tracks the dock's real
          height and the home indicator's inset together. */

@@ -18,6 +18,7 @@
 import { loadMoreFeed, type FeedMode } from "@/lib/social/posts-actions";
 import type { ActionResult } from "@/lib/actions/envelope";
 import type { FeedPage } from "@/lib/social/posts-queries";
+import { stampAuthorTiers } from "@/lib/social/author-badges";
 
 /*
  * A "use server" MODULE MAY EXPORT ASYNC FUNCTIONS AND NOTHING ELSE, and a
@@ -44,5 +45,9 @@ export async function loadMoreAround(
   mode: FeedMode,
   cursor: string,
 ): Promise<ActionResult<FeedPage>> {
-  return loadMoreFeed(cursor, mode);
+  const page = await loadMoreFeed(cursor, mode);
+  /* Page two carries the same marks as page one: the published badge of
+     each author, read once for the page. */
+  if (!page.ok) return page;
+  return { ...page, data: { ...page.data, posts: await stampAuthorTiers(page.data.posts) } };
 }

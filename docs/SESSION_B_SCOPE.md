@@ -148,6 +148,21 @@ Each group appends "RELEASED <commit>" here when it is done.
     `components/social/feed/**`, `components/social/bloom/**`,
     `components/social/story/**`, `app/social.css`, `app/social-feed.css`
     and the feed route.
+    Worker "feed" adds: the feed route as `app/(app)/around/page.tsx` and
+    `app/(app)/around/feed-actions.ts` (the badge stamp on page one and on
+    every next page, and the page's gutter class), and in
+    `app/(app)/around/[slug]/page.tsx` ONLY the same stamp on a place's
+    first page; new
+    `apps/web/src/lib/social/author-badges.ts` and its test (reads
+    `public.person_badge` through Session A's `readPersonBadges`; nothing
+    derived); new `components/social/feed/LineGlyph.tsx` (inside the claim);
+    the fixture harness `apps/web/src/app/(dev)/preview/session-b/feed/**`,
+    the shot script `scripts/design/session-b-shots/feed.mjs` and the proofs
+    `docs/design/proofs/session-b/feed/**`. NOT claimed although drawn on the
+    feed: `components/social/AroundFab.tsx` (read only; it renders
+    `CreateBloom` and needs nothing), `design-system/icons/UiIcon.tsx`
+    (FEED-1), the app header, the dock and the canvas token (chrome,
+    FEED-2).
   - profile, edit profile, messages and the three thread faces:
     `components/social/profile/**`, `threads.css`, `components/messages/**`.
     Worker "sweep-social" adds (new): the fixture harness
@@ -1231,3 +1246,45 @@ live `device_ref`s instead of a count), the proof script
   cookie to https://www.vallospaces.com/api/push/key now answers 200
   `{"configured":true,...}`. The client handles either answer: a 401 or 403
   from the key route or from register is reported as `signed_out`.
+
+### Requests from feed (the feed, stories and the plus bloom)
+
+- **FEED-1. Three line glyphs into `UiIcon`.** The founder's feed image draws
+  a pencil (Post), a camera (Story) and two people (Following) as plain line
+  icons, and `UiIcon` has none of them. They are drawn in
+  `components/social/feed/LineGlyph.tsx` on `UiIcon`'s own grid, caps, joins,
+  size scale and `UI_ICON_STROKE_PX`. Please add `pencil`, `camera` and
+  `people` to `UiIcon` (the paths can be lifted as they are); the feed then
+  switches its three call sites and deletes `LineGlyph.tsx`.
+- **FEED-2. The canvas under the feed (chrome, not the feed's).** The image's
+  canvas between the cards samples #010d3c, a lit navy; ours is
+  `--nf-surface-canvas` #000612. Everything the feed draws is matched against
+  the image on top of that difference. Whether the platform canvas lifts
+  (or the ambient layer under the social routes does) is a chrome and token
+  decision; recorded, not worked around.
+- **FEED-3. `PostView.author.tier` at the read (optional).** The feed route
+  stamps each author's tier from `public.person_badge` after the page is read
+  (`lib/social/author-badges.ts`), because Session B's claim on
+  `posts-queries.ts` is the deleted-post filter only. Any other surface that
+  renders `PostCard` (profile Posts tab, a thread) shows
+  no mark until it does the same. Folding `stampAuthorTiers` into the page
+  reads in `posts-queries.ts` would give every surface the mark at once;
+  that file's owner decides.
+
+- **FEED-4. `/around` is a dock destination with a declared parent.** The
+  founder's image has no back control beside the location bar; ours draws
+  one because `lib/nav/route-parents.ts` declares `"/around": "/home"`, and
+  the nav law puts a back control on every screen with a parent. `/around`
+  is one of the dock's five destinations (Feed), like `/home`. If the nav
+  owner makes `/around` a `ROOT` as the other dock tabs are, the feed drops
+  its `BackButton` and the bar takes the image's full 359px width. Until
+  then the bar is 359 less the control and its gap, recorded in ledger 13.
+- **FEED-5. The image's deeper lit blue has no layer-2 token.** The founder's
+  feed image lights the plus, the three plates, their trails and the haze
+  behind them in a blue a few degrees deeper than `--nf-brand-primary`
+  (#1557fa, #012dd4 sampled; `--nf-electric-450` #0042FD is the nearest
+  palette step, which stylesheets may not read). The feed derives it as
+  `oklch(from var(--nf-brand-primary) calc(l - 0.07) c calc(h + 7))`
+  (`--nf-feed-indigo`, with the brand blue as the fallback). A layer-2 token
+  for it (for instance `--nf-lit-deep`) in the reference anatomy block would
+  let the feed read it by name.

@@ -74,7 +74,7 @@ export function LocationChip({
       >
         <UiIcon name="location" size={20} className="nf-feed-chip__pin" />
         <span className="nf-feed-chip__label">{shown}</span>
-        <UiIcon name="chevron-down" size={20} className="nf-feed-chip__chev" />
+        <UiIcon name="chevron-down" size={24} className="nf-feed-chip__chev" />
       </button>
 
       {open ? (

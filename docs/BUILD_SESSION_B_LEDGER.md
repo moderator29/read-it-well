@@ -6721,6 +6721,177 @@ pushed in 9868f652. Screenshots in `docs/design/proofs/session-b/profile/live/`.
 Links proven live: 17 of 17 (4 signed out, 13 signed in). The server refusal of an email
 change is not among them: it is Session A's (EMAIL-LOCK).
 
+## 13. Platform sweep: feed and bloom (the feed, stories, posts, the plus bloom; worker "feed")
+
+Governing image: the founder's `docs/design/references/founder/feed-plus-bloom-target.jpg`
+(the same pixels as `GOVERNING-feed-plus-bloom.png`, catalogue line 64). His rulings:
+plain LINE icons in the feed and the bloom, never glass objects; the Post, Story and
+Review plates as rounded rectangles on `--nf-radius-control`, everything else about them
+exactly as drawn; the bottom navigation NOT copied (ours stays five). His second message
+(relayed 23 September): "no one single difference from this image". So on this surface
+the image's measured size wins over the lead's floors R-A (11px type) and R-B (44px
+controls) wherever they disagree; every tap target stays 44px by a pseudo-element that
+paints nothing, so the drawn pixels and the reachable target are both honoured. This
+supersedes the R-A/R-B values an earlier commit of this section used; the lead should
+know the floors are not applied here, on the founder's words.
+
+### 13.F.1 Scale
+
+The screen in the 1024 x 1536 image runs x 178 to 843 (inner edge to inner edge,
+brightness profile at y 300, 700 and 1000), 665 image px for a 390 CSS px viewport:
+**1 image px = 0.5865 CSS px**, and a screenshot at device scale 1.7051 is one image pixel
+per screenshot pixel, which is what the overlay (13.F.6) uses.
+
+### 13.F.2 Routes and every visible item (the inventory, written before the change)
+
+Route `/around` (`app/(app)/around/page.tsx`, signed in; proofs from the committed harness
+`/preview/session-b/feed`, fixture props, ruling R-G). Where each item was drawn BEFORE
+this sweep, and what it is on now:
+
+| # | Item | Before (own drawing) | After |
+|---|---|---|---|
+| 1 | Back control beside the bar | `BackButton` (site) | unchanged; the nav law requires it (FEED-4) |
+| 2 | Location bar, and its place menu | `.nf-feed-chip` own glass, 44 tall, 14 corner; menu on `.nf-post__menu` (surface-raised, radius-lg) | drawn 359 x 33.4, 8 corner, hit 44 by ::after; menu on the shared panel (`--nf-panel-*`, container corner) |
+| 3 | Story rings, Your story plus, names | own ring, 56px, names 12px | measured ring 50, pitch 62.7, plus badge 19 lit, names 9.1px |
+| 4 | For You / Following track and lit half | own track, 3px inset, brand flat fill | drawn 359 x 35.2, lit half flush; track on `--nf-panel-edges`/`--nf-panel-glow`, lit half on `--nf-selected-*` |
+| 5 | Post card container | `.nf-card` plus local `--nf-glow-edge` and 22px corner | shared `Panel` card (`panelClass({variant:"card"})`), 10px container corner, local overrides deleted |
+| 6 | Card head: avatar ring, name, verified mark, handle, time, overflow | avatar 40, name 14px, tick = `verified-badge` for `isAgent` | avatar 38, name 11.3/600, **Session A's `TierBadge` from `public.person_badge`** (12), handle 8.6px and time 8.5px pale blue, overflow 16 |
+| 7 | Body | 14px, author line breaks collapsed | 9.2px on 14.1, the author's line breaks kept |
+| 8 | Photograph (1 to 4) | 16:9, radius 18 | single 2.8:1 as drawn, radius 7 |
+| 9 | Action row: like, repost, reply counts, share right | 34 tall, 13px counts, vertical repost glyph | 28 painted / 44 hit, 8.5px counts in fixed columns, the drawn LEVEL repost loop (`LineGlyph`), glyphs 20/16 |
+| 10 | Overflow action sheet (`nf-actions`) | surface-primary, radius 22 | shared panel fill, per-side edges, glow, container corner |
+| 11 | Toast | surface-raised | shared panel card |
+| 12 | Inline composer, loading skeleton, review empty card, story composer cards | `.nf-card` | shared panel card classes |
+| 13 | Composer sheet, review picker sheet, place and stay rows | surface-primary sheet, bordered rows | shared panel sheet; rows on the panel card with the selected edge on focus |
+| 14 | Comments sheet (`nf-comments`) | surface-primary | shared panel, container corner |
+| 15 | The plus | 60px glass disc, 16px in | 58px lit sphere where drawn (1px in), halo ring, glyph 32 |
+| 16 | The three plates | 104 x 40 dark glass, chat/picture glyphs, slots thrown too far | 91 x 37 on the control radius, measured centres and tilts, star/camera/pencil line glyphs at 28, lit glass with the shared selected edges, trails |
+| 17 | Empty states (For You, Following) | `EmptyState` | unchanged component; sits on the page (proofs) |
+| 18 | Story viewer, story rail, story plates | own on-media glass, 22 corner | corner now the container radius; the on-media glass stays (it sits over a photograph, the one place a panel would hide the picture) |
+
+### 13.F.3 The chain (control to screen)
+
+- **Like**: heart -> `toggleMark` (`lib/social/posts-actions.ts`) -> session and zod in the
+  action -> `post_reactions_insert_self` / `_delete_self` -> `public.post_reactions` ->
+  `post_reactions_count` (`bump_post_counters`) and `post_reactions_notify_after_insert`
+  (`notify_reaction`) -> `posts.like_count` -> the card's count. Verified live 23 Sept
+  (pg_policies, pg_trigger).
+- **Repost**: loop -> `toggleRepost` -> `post_reposts_insert_self` -> `public.post_reposts`
+  -> `bump_post_counters`, `notify_repost` -> `posts.repost_count`.
+- **Reply**: bubble -> `/post/[id]?reply=1` -> `replyToPost` -> `posts_insert_self` ->
+  `posts` -> `bump_post_tree_counters`, `notify_post_insert` -> `reply_count`.
+- **Share**: the sheet's share (native share or copy link); writes nothing.
+- **Overflow**: the action sheet -> save, repost, share, copy, mute (`mutes_insert_own`),
+  report (`reports_insert_own`), block.
+- **Verified mark**: `public.person_badge` (view; anon and authenticated both hold SELECT,
+  and EXECUTE on `badge_tier`, `is_checked_person`, `is_platform_staff`, checked live) ->
+  `readPersonBadges` (Session A, `lib/trust/badge-tier.ts`) -> `stampAuthorTiers`
+  (`lib/social/author-badges.ts`, new) on page one (`/around`, `/around/[slug]`) and on
+  every next page (`around/feed-actions.ts`) -> `PostAuthor.tier` -> `TierBadge`. Never
+  derived; unknown or failed read = no mark (test `author-badges.test.ts`).
+- **Counts** are the row's own columns (`like_count`, `repost_count`, `reply_count`),
+  kept by triggers. Nothing on the screen is invented; the fixture harness's counts are
+  fixture props and labelled so.
+- **Deleted posts** stay excluded: `posts-queries` filters `REMOVED` at the read and
+  `PostCard` returns null for one (section 12); live: 74 LIVE, 1 REMOVED.
+- **Bloom**: plus -> Post: the existing `Composer` in the sheet with the place picker
+  (`posts_insert_self` refuses a non-ACTIVE place, so only ACTIVE ones are offered); Story:
+  `/stories/new` (`StoryComposer`, `stories_insert_self`, `scan_story`,
+  `notify_story_insert`); Review: the picker of stays `getMyBookings` marks reviewable
+  (mirrors `reviews_insert_own`) -> `/bookings/[id]/review`; none: the honest empty sheet
+  with the way to the bookings list. Signed out, every action is the sign-in door.
+- **Broken links named**: FEED-3 (other `PostCard` surfaces show no mark until they stamp),
+  FEED-4 (back control on a dock root). None routed around.
+
+### 13.F.4 Refused from the render (claims)
+
+The render's counts (243, 37, 56, 89, 12, 24), its names and faces, "2h ago", "Lekki,
+Lagos" and the key and house emoji are the image's content, not ours: the built feed
+draws the database's rows. The verified tick is drawn only where `person_badge` says so.
+The render's bottom navigation (Home, Search, Saved, Profile) is not copied, on the
+founder's ruling.
+
+### 13.F.5 Comparison (image measured vs built measured)
+
+Image px from the render; built px measured in the production build by
+`scripts/design/session-b-shots/feed-overlay.mjs` at one image px per screenshot px
+(the table it writes is `docs/design/proofs/session-b/feed/overlay-<pass>-numbers.md`).
+CSS px = image px x 0.5865.
+
+| Property | Image (measured) | Built (measured) | Match? |
+|---|---|---|---|
+| Screen gutter | 28 img (16.4 CSS) | 16 CSS (`.nf-feed-page` on a phone) | yes |
+| Location bar | 612 x 57 img, corner 14 img (8.2), fill #011748 | 33.4 CSS tall, corner 8, fill lit 16% into canvas; hit 44 by ::after | height, corner, fill yes; width NO (back control, FEED-4) |
+| Pin / chevron | 14 / 11.7 CSS glyphs | 20 / 24 boxes = 14.2 / 12 glyph | yes |
+| Location words | "Lekki, Lagos" 110 img | 11.5px, 64.5 CSS | yes |
+| Story ring | 86 img (50 CSS), rim #1d93f1, first ring at 207 | 50, info-blue rim, first ring at 207.0 | yes |
+| Ring pitch | 112, 107, 107, 107, 101 img (uneven in the render) | 107.4 even | ring 1 exact, ring 2 -4.6 img, the rest within 3 |
+| Your story plus | 32 img (19 CSS) at the ring's lower right | 19, lit, same place | yes |
+| Ring names | "Your story" 77 img | 9.1px, 75.2 img | yes |
+| For You / Following track | 612 x 60 img, corner 8 CSS | 610.4 x 60, corner 8 | yes (1.6 img: the 358 vs 359 screen) |
+| Lit half | 297 x 60 img, #0468fe / #0144f3, rim #058efb | 298 x 60 on `--nf-selected-*` | yes |
+| Segment labels | cap 13 img, 10.5px | 10.5px / 500 | yes |
+| Card | 612 x 403 img, corner 15 img (8.8), fill #00133d, edges #0f459e / #123779 / #144395 / #0c2b6d | 610.4 x 405.8, 10px container corner, shared card tuned darker with brighter per-side edges | yes (corner 1.2 CSS rounder: the platform's container corner) |
+| Avatar | 65 img at 222,521 | 64.8 at 222.0,521.7 | yes |
+| Name | "Tunde Adebayo" 132 img, 600 | 11.3px / 600, 134.7 img | yes |
+| Verified mark | a tick after the name, 16 img | `TierBadge` 12 CSS from `person_badge` (gold or platinum art, Session A's) | anatomy yes; the tier's own colour, never a blue render tick |
+| Handle | 130 img | 8.6px, 129.3 img | yes |
+| Time | 47 img at 715,531 | 8.5px, 47.2 img at 714.3,531.1 | yes |
+| Overflow | dots centre 790,541 | centre 790.5,541 +-4 | within 4 img |
+| Body | 486 img first line, 24 img line pitch | 9.2px on 14.1, 476 img first line, the author's breaks kept | yes |
+| Photograph | 573 x 204 img at 226,650, corner 12 img | 570.6 x 205.9 at 225.9,649.9, corner 7 CSS | yes |
+| Action row | heart 240.5, repost 355, reply 450, share 782.5 (centres, img) | 240.5, 355.3, 448, 781 | yes |
+| Counts | "243" 27 img, pale blue | 8.5px, 28.2 img, pale blue | yes |
+| Repost glyph | a LEVEL loop | `LineGlyph` repost (level) | yes |
+| Plus | 98 img (57.7 CSS), centre 30 CSS in, #1557fa core to #17a4fe, #3abffb rim, halo ring | 58 (98.9 img), 1px in, indigo core to info-blue rim, halo ring | yes |
+| Plates, centres from the plus | Review -0.7,-50; Story -30.4,-84; Post -63.5,-114.8 CSS | the same (overlay: within 0.1 img) | yes |
+| Plate tilt | -13, -17, -20 | -13, -17, -20 (computed transform) | yes |
+| Plate size | 155 x 63 img (91 x 37) | 155.2 x 63.1 img | yes |
+| Plate shape | capsules | control radius 14 on 37 (0.378) | the founder's one translation |
+| Plate material | indigo top, #001f78 middle, lit foot, cyan rim, glow | indigo derived (FEED-5), deep middle, shared selected edges 1.5px, glow | yes by sample (13.F.6) |
+| Plate glyphs | pencil, camera, star, line | `LineGlyph` pencil, camera; `UiIcon` star; 28 boxes (19 CSS) | yes |
+| Plate labels | "Post" cap 12.8 img, 10.3px | 10.3px / 500 | yes |
+| Trails and haze | glowing curves into the plus, blue haze #012dd4 | three trails, indigo glow; the fan's haze | anatomy yes; the render's ribbon is brighter (13.F.8) |
+| Stack order | Review over Story over Post | the same (z-index by nearness) | yes |
+| Scrim | none | transparent tap target | yes |
+| Motion | thrown, caught | the existing spring (overshoot about 8%, settle under 450ms), 55ms stagger, fold inward | as before, tests green |
+| Bottom navigation | Home, Search, Saved, Profile | not copied (ours stays five) | the founder's ruling |
+
+### 13.F.6 The overlay and the five passes
+
+Every pass: production build, the committed harness, `feed-overlay.mjs --tag passN`
+(blend at 50 per cent, difference image, the numbers), then `feed.mjs` for the state
+shots. Mean absolute difference is over the whole region, so the fixture photographs and
+the monogram avatars (the render's faces and photos are not ours to use) keep it high;
+the per-element numbers are the measure.
+
+**Pass 1, 23 September.** Found against the image: the fan thrown too far and 10px left
+(the earlier R-B/shift reading), the plates 44 tall, type at the 11px floor, the card at
+the shared default (brighter fill, dimmer edges), the scrim dimming the feed, the plus and
+plates azure where the image is indigo, the repost glyph standing on end, the count columns
+evenly spaced where the image sets fixed columns, the first ring 3.4 CSS in, the lit half
+at 50 per cent where the image draws 48.5, authors' line breaks collapsed. Fixed all of
+them (13.F.5). Proofs: `overlay-pass1-*`, `side-by-side-feed.jpg`,
+`side-by-side-bloom.jpg`, the state shots. Left for pass 2: card 2 runs 7 img tall, the
+overflow dots 4 img off, ring 2 at -4.6 img.
+
+### 13.F.7 Checks
+
+### 13.F.8 Not matched, and why
+
+- The location bar's width: the back control the nav law requires sits in its row
+  (FEED-4).
+- The canvas between the cards is #010d3c in the image and #000612 here: the platform
+  canvas is chrome, not the feed's (FEED-2).
+- "For You" is the image's capitalisation; the dictionary says "For you" and this worker
+  may add keys, not change values. A copy decision for the lead.
+- Faces and photographs in the proofs are fixture props (monograms, the platform's own
+  photography); the live feed draws each person's avatar and each post's own pictures.
+- The verified mark is the tier's own artwork (gold or platinum), which is Session A's; the
+  render's blue tick is not a tier this platform has.
+- The render's type is a narrower face than Inter; each role is sized to its drawn WIDTH
+  (so lines break where the image breaks) and so sits a little shorter in cap height.
+
 ## Skipped or not verified
 - (13.H, sweep-home) No live row on any proof: this box's egress refuses the Supabase host, so every card, panel and figure in the home group's proofs is fixture-backed or an empty state; the wiring is unchanged by the sweep (material only). `/price/area/[id]` and `/rent/move-in/[listingId]` were swept in their stylesheets and not photographed. The lister's TierBadge on the card waits on R-SH4. `StayCard` still wears `nf-glass--card` itself (stays group, R-SH2). The unmounted `AiAssistantBanner` stays until R-SH1.
 
@@ -6804,3 +6975,11 @@ change is not among them: it is Session A's (EMAIL-LOCK).
   phone on production after deploy. The iPhone home screen condition was
   simulated (cleared cookies, iPhone user agent, forced `navigator.standalone`),
   not run in Safari. Push subscribe was stood in by an init script.
+
+
+- Feed and bloom (section 13, feed): no signed-in run of `/around` (no test user); every
+  proof is fixture-backed through `/preview/session-b/feed`. The badge read is proved by
+  SQL (grants, EXECUTE) and `author-badges.test.ts`, not by a live feed with a gold author
+  on screen. The harness has no dock, so the plus's height is set from the dock's own
+  geometry tokens, not photographed against the dock.
+

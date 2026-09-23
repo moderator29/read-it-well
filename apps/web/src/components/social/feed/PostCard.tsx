@@ -6,7 +6,11 @@ import Image from "next/image";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { PostBody } from "./PostBody";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { LineGlyph } from "./LineGlyph";
 import { RemoteImage } from "@/components/ui/RemoteImage";
+import { TierBadge } from "@/components/trust/TierBadge";
+import { panelClass } from "@/components/ui/Panel";
+import type { BadgeTier } from "@/lib/trust/badge-tier";
 
 /**
  * A post.
@@ -16,12 +20,10 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
  * where they all look identical is a feed you scroll past. The shapes are
  * defined in social-feed.css; this decides which one a post wears.
  *
- * The material underneath every one of them is the platform's own `.nf-card`:
- * the stride ring on the border box, the brand bloom at the upper left, the
- * backdrop blur. That is deliberate and it is the point. It is lit from the
- * same direction as the commissioned icon family, so painted UI and rendered
- * artwork agree about where the light is, and no amount of copying a layout
- * reproduces it.
+ * The material underneath every one of them is the shared card, `Panel` in
+ * its card variant: the console's lit glass (per-side lit edges, the catchlight
+ * inside the top, the outer glow, the 10px container corner), the one container
+ * anatomy on the platform since the wide sweep.
  */
 
 export type PostAuthor = {
@@ -33,6 +35,12 @@ export type PostAuthor = {
   isAgent: boolean;
   /** Set when this person looks after the place the post is in. */
   moderatorOf: string | null;
+  /**
+   * The published badge, `public.person_badge.tier`, read by the surface that
+   * loaded the page (`lib/social/author-badges.ts`). Absent means nobody read
+   * it, and absent draws no mark: the badge is never inferred on a card.
+   */
+  tier?: BadgeTier;
 };
 
 export type PostListing = {
@@ -210,11 +218,11 @@ function ActionRow({
       <AuthGate action="react">
         <button
           type="button"
-          className="nf-post__act"
+          className="nf-post__act nf-post__act--like"
           aria-pressed={post.liked}
           onClick={onLike}
         >
-          <UiIcon name="heart" filled={post.liked} />
+          <UiIcon name="heart" size={20} filled={post.liked} />
           <span className="nf-numeric">{compact(post.likeCount, locale)}</span>
           <span className="sr-only">{post.liked ? "liked, undo" : "likes, like this"}</span>
         </button>
@@ -223,12 +231,12 @@ function ActionRow({
       <AuthGate action="react">
         <button
           type="button"
-          className="nf-post__act"
+          className="nf-post__act nf-post__act--repost"
           aria-pressed={post.reposted}
           onClick={onRepost}
           data-active={post.reposted ? "" : undefined}
         >
-          <UiIcon name="repost" filled={post.reposted} />
+          <LineGlyph name="repost" size={20} />
           <span className="nf-numeric">{compact(post.repostCount, locale)}</span>
           <span className="sr-only">
             {post.reposted ? "reposted, undo" : "reposts, repost this"}
@@ -237,8 +245,8 @@ function ActionRow({
       </AuthGate>
 
       <AuthGate action="post">
-        <button type="button" className="nf-post__act" onClick={onReply}>
-          <UiIcon name="chat-bubble" />
+        <button type="button" className="nf-post__act nf-post__act--reply" onClick={onReply}>
+          <UiIcon name="chat-bubble" size={16} />
           <span className="nf-numeric">{compact(post.replyCount, locale)}</span>
           <span className="sr-only">
             {post.replyCount === 1 ? "reply" : "replies"}, reply to this
@@ -248,11 +256,11 @@ function ActionRow({
 
       <button
         type="button"
-        className="nf-post__act ms-auto"
+        className="nf-post__act nf-post__act--share ms-auto"
         onClick={onShare}
         aria-label="Share this post"
       >
-        <UiIcon name="share" />
+        <UiIcon name="share" size={20} />
       </button>
     </div>
   );
@@ -299,13 +307,19 @@ export function PostCard({
   const isBot = post.authorKind === "BOT";
   const hasPlate = Boolean(post.listing?.photoUrl);
 
-  const shell = [
-    "nf-card nf-post nf-post--pressable",
-    isSystem ? "nf-post--system" : "",
-    isBot ? "nf-post--ai" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  /* The shared card (`Panel`, variant card): the console's lit glass, the
+     one container anatomy on the platform. The feed's own rules only tune
+     it to the founder's feed image (social-feed.css, `.nf-panel.nf-post`). */
+  const shell = panelClass({
+    variant: "card",
+    className: [
+      "nf-post nf-post--pressable",
+      isSystem ? "nf-post--system" : "",
+      isBot ? "nf-post--ai" : "",
+    ]
+      .filter(Boolean)
+      .join(" "),
+  });
 
   const body = (
     <>
@@ -321,9 +335,10 @@ export function PostCard({
 
         The face in its glass ring, then the name with the verified mark beside
         it and the handle on the line under, then the time and the kebab at the
-        far end. The mark is the platform's verified shield, drawn only for an
-        APPROVED agent, because that is the one state on this platform where a
-        human was checked; nothing else earns it.
+        far end. The mark is Session A's `TierBadge`, the one badge on the
+        platform, drawn from `public.person_badge` and nothing else. It used to
+        be a tick for `isAgent`, which is a role marker and not a check of
+        anybody (`lib/trust/badge-tier.ts` forbids exactly that reading).
       */}
       <div className="nf-post__head">
         {isSystem || isBot ? (
@@ -351,14 +366,10 @@ export function PostCard({
                 >
                   {post.author?.displayLabel ?? `@${post.author?.handle ?? "someone"}`}
                 </Link>
-                {post.author?.isAgent ? (
-                  <span
-                    className="nf-post__tick"
-                    title="A verified Vallo agent"
-                    aria-label="Verified agent"
-                    role="img"
-                  >
-                    <UiIcon name="verified-badge" size={16} />
+                {post.author?.tier && post.author.tier !== "none" ? (
+                  /* 16 image px across in the render (9.4 CSS): the 12 step. */
+                  <span className="nf-post__tick">
+                    <TierBadge tier={post.author.tier} size={12} />
                   </span>
                 ) : null}
                 {post.author?.moderatorOf ? (
@@ -388,7 +399,7 @@ export function PostCard({
           aria-haspopup="dialog"
           onClick={onMenu}
         >
-          <UiIcon name="more" />
+          <UiIcon name="more" size={16} />
         </button>
       </div>
 

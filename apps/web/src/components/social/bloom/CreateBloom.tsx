@@ -7,9 +7,11 @@ import { useOverlay } from "@/lib/ui/use-overlay";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { Composer } from "../feed/Composer";
+import { LineGlyph, type LineGlyphName } from "../feed/LineGlyph";
 import {
   BLOOM_STAGGER_MS,
   bloomSlot,
+  bloomTrail,
   bloomTransform,
   isSettled,
   stepSpring,
@@ -63,16 +65,38 @@ type Action = "post" | "story" | "review";
 
 /*
  * Ordered by distance from the plus, nearest first, which is also the order
- * they open in. The glyphs are the stroked UiIcon tier, as the render shows
- * line glyphs: a pencil and a camera are drawn there and the platform's set
- * has neither yet, so a post is the speech glyph and a story is the picture
- * glyph until the two are cut.
+ * they open in, the order Tab walks them and the order they stack (the
+ * nearest paints on top, as the render lays Review over Story over Post).
+ *
+ * PLAIN LINE GLYPHS, the founder's ruling for the bloom: a star, a camera and
+ * a pencil exactly as his image draws them. The star is `UiIcon`'s; the camera
+ * and the pencil are drawn on `UiIcon`'s grid and weight in `LineGlyph` until
+ * the set carries them (request FEED-1).
  */
-const ACTIONS: { key: Action; icon: UiIconName; label: string }[] = [
-  { key: "review", icon: "star", label: "Review" },
-  { key: "story", icon: "picture", label: "Story" },
-  { key: "post", icon: "chat-bubble", label: "Post" },
+const ACTIONS: {
+  key: Action;
+  icon: { set: "ui"; name: UiIconName } | { set: "line"; name: LineGlyphName };
+  label: string;
+}[] = [
+  { key: "review", icon: { set: "ui", name: "star" }, label: "Review" },
+  { key: "story", icon: { set: "line", name: "camera" }, label: "Story" },
+  { key: "post", icon: { set: "line", name: "pencil" }, label: "Post" },
 ];
+
+/* One plate and its trail at a given progress, written straight to the
+   elements. The trail only ever fades in with its plate and is never brighter
+   than the plate is out. */
+function paint(
+  items: (HTMLElement | null)[],
+  trails: (SVGPathElement | null)[],
+  index: number,
+  progress: number,
+) {
+  const el = items[index];
+  if (el) el.style.transform = bloomTransform(bloomSlot(index), progress);
+  const trail = trails[index];
+  if (trail) trail.style.opacity = String(Math.max(0, Math.min(1, progress)));
+}
 
 function prefersReducedMotion(): boolean {
   if (typeof window === "undefined") return false;
@@ -109,7 +133,12 @@ export function CreateBloom({
   const fabRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
-  const springs = useRef<SpringState[]>(ACTIONS.map(() => ({ value: 0, velocity: 0 })));
+  const trailRefs = useRef<(SVGPathElement | null)[]>([]);
+  /* Born at rest where the harness asks for the open fan, so a proof is the
+     settled picture rather than a frame of the throw. */
+  const springs = useRef<SpringState[]>(
+    ACTIONS.map(() => ({ value: initialOpen ? 1 : 0, velocity: 0 })),
+  );
   const frame = useRef<number | null>(null);
   const composerRef = useRef<HTMLDivElement>(null);
   const reviewRef = useRef<HTMLDivElement>(null);
@@ -136,17 +165,20 @@ export function CreateBloom({
    * do. When the target is 0 and every spring has settled, the fan unmounts.
    */
   useEffect(() => {
-    if (open) setMounted(true);
     const reduced = prefersReducedMotion();
     const target = open ? 1 : 0;
 
     if (reduced) {
+      /* No throw: the plates are simply where they rest. Painted on the next
+         frame rather than now, because on the way open this effect runs
+         before the plates it paints have mounted, and a synchronous write
+         found no element and left them folded on the plus. */
       springs.current = ACTIONS.map(() => ({ value: target, velocity: 0 }));
-      itemRefs.current.forEach((el, i) => {
-        if (el) el.style.transform = bloomTransform(bloomSlot(i), target);
+      const settle = requestAnimationFrame(() => {
+        ACTIONS.forEach((_, i) => paint(itemRefs.current, trailRefs.current, i, target));
+        if (!open) setMounted(false);
       });
-      if (!open) setMounted(false);
-      return;
+      return () => cancelAnimationFrame(settle);
     }
 
     const started = performance.now();
@@ -158,14 +190,13 @@ export function CreateBloom({
       last = now;
       let settled = true;
       order.forEach((index, position) => {
-        const el = itemRefs.current[index];
         if (now - started < position * BLOOM_STAGGER_MS) {
           settled = false;
           return;
         }
         const next = stepSpring(springs.current[index]!, target, dt);
         springs.current[index] = next;
-        if (el) el.style.transform = bloomTransform(bloomSlot(index), next.value);
+        paint(itemRefs.current, trailRefs.current, index, next.value);
         if (!isSettled(next, target)) settled = false;
       });
       if (settled) {
@@ -182,7 +213,7 @@ export function CreateBloom({
     };
   }, [open]);
 
-  /* Focus lands on the nearest lozenge once it is in the document. */
+  /* Focus lands on the nearest plate once it is in the document. */
   useEffect(() => {
     if (!open) return;
     const raf = requestAnimationFrame(() => itemRefs.current[0]?.focus());
@@ -236,10 +267,15 @@ export function CreateBloom({
           aria-expanded={open}
           aria-controls="nf-bloom-menu"
           aria-label={open ? "Close" : "Create something"}
-          onClick={() => setOpen((value) => !value)}
+          onClick={() => {
+            /* Mount the fan with the tap that opens it, so the spring loop
+               finds its plates on its first frame. */
+            if (!open) setMounted(true);
+            setOpen(!open);
+          }}
           data-testid="bloom-fab"
         >
-          <UiIcon name="plus" size={28} className="nf-bloom__glyph" />
+          <UiIcon name="plus" size={32} className="nf-bloom__glyph" />
         </button>
 
         {mounted ? (
@@ -250,6 +286,27 @@ export function CreateBloom({
             className="nf-bloom__fan"
             aria-hidden={!open}
           >
+            {/* The trails the render draws behind the throw: one glowing curve
+                from each plate's trailing end into the plus. Decoration only. */}
+            <svg className="nf-bloom__trails" viewBox="-160 -160 200 200" aria-hidden="true">
+              <defs>
+                <linearGradient id="nf-bloom-trail" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="currentColor" stopOpacity="0.9" />
+                  <stop offset="1" stopColor="currentColor" stopOpacity="0.2" />
+                </linearGradient>
+              </defs>
+              {ACTIONS.map((action, index) => (
+                <path
+                  key={action.key}
+                  ref={(el) => {
+                    trailRefs.current[index] = el;
+                  }}
+                  d={bloomTrail(bloomSlot(index))}
+                  className="nf-bloom__trail"
+                  style={{ opacity: initialOpen ? 1 : 0 }}
+                />
+              ))}
+            </svg>
             {ACTIONS.map((action, index) => (
               <button
                 key={action.key}
@@ -263,11 +320,18 @@ export function CreateBloom({
                 /* Born on the plus. The spring loop owns the transform from
                    here and writes it straight to the element, so this prop
                    never changes and React never overwrites the loop's work. */
-                style={{ transform: bloomTransform(bloomSlot(index), 0) }}
+                style={{
+                  transform: bloomTransform(bloomSlot(index), initialOpen ? 1 : 0),
+                  zIndex: ACTIONS.length - index,
+                }}
                 onClick={() => choose(action.key)}
                 data-testid={`bloom-${action.key}`}
               >
-                <UiIcon name={action.icon} size={18} />
+                {action.icon.set === "ui" ? (
+                  <UiIcon name={action.icon.name} size={28} className="nf-bloom__icon" />
+                ) : (
+                  <LineGlyph name={action.icon.name} size={28} className="nf-bloom__icon" />
+                )}
                 <span>{action.label}</span>
               </button>
             ))}
@@ -404,7 +468,7 @@ export function CreateBloom({
                 ))}
               </ul>
             ) : (
-              <div className="nf-card nf-social-card p-lg text-center">
+              <div className="nf-panel nf-panel--card nf-social-card p-lg text-center">
                 <div className="mx-auto w-fit">
                   <BrandIcon name="reviews" size={44} />
                 </div>

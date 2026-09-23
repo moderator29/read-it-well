@@ -12,6 +12,7 @@ import {
 } from "@/lib/social/areas-queries";
 import { PLACE_COPY } from "@/lib/social/places-schema";
 import { getAreaFeed } from "@/lib/social/posts-queries";
+import { stampAuthorTiers } from "@/lib/social/author-badges";
 import { listStories } from "@/lib/social/stories-queries";
 import { getPlaceReviews } from "@/lib/social/reviews-queries";
 import { listMyAreas } from "@/lib/social/areas-queries";
@@ -105,6 +106,8 @@ export default async function AreaPage({
       ? getLgaDoor(area.withinLgaCode)
       : Promise.resolve(null),
   ]);
+  /* Each author's published badge (`public.person_badge`), as on `/around`. */
+  const posts = await stampAuthorTiers(feed.posts);
   const isModerator = viewer.role === "MODERATOR";
 
   return (
@@ -145,7 +148,7 @@ export default async function AreaPage({
 
       <section className="mb-lg">
         <Feed
-          initial={feed.posts}
+          initial={posts}
           pageCursor={feed.cursor}
           /* The place's own timeline pages through BB's `loadMoreFeed`, the
              same read `getAreaFeed` made for the first page. */
