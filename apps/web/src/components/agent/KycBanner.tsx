@@ -101,7 +101,7 @@ export function KycBanner({ standing }: { standing: KycStanding }) {
     <div
       data-testid="kyc-banner"
       data-state={standing.state}
-      className={`flex items-start gap-group rounded-[var(--nf-radius-md)] border-l-[3px] p-card-sm ${TONE_CLASS[copy.tone]}`}
+      className={`flex items-start gap-group rounded-[var(--nf-container-radius)] border-l-[3px] p-card-sm ${TONE_CLASS[copy.tone]}`}
     >
       <UiIcon name={copy.icon} size={ICON.row} className="mt-3xs shrink-0" />
       <div className="min-w-0 flex-1">

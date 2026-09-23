@@ -93,7 +93,7 @@ export function FacilitiesStep({ draft, userId, pending, run, setNotice, advance
             </label>
             <input
               id="stays-lat"
-              className="nf-stays-input"
+              className="nf-field nf-field--glass nf-stays-input"
               inputMode="decimal"
               value={lat}
               onChange={(event) => setLat(event.target.value)}
@@ -105,7 +105,7 @@ export function FacilitiesStep({ draft, userId, pending, run, setNotice, advance
             </label>
             <input
               id="stays-lng"
-              className="nf-stays-input"
+              className="nf-field nf-field--glass nf-stays-input"
               inputMode="decimal"
               value={lng}
               onChange={(event) => setLng(event.target.value)}

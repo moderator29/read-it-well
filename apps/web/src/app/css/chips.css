@@ -89,8 +89,12 @@
     font-size: var(--nf-text-body-sm);
     font-weight: 600;
     color: var(--nf-content-secondary);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-glass-fill-thin);
+    /* The shared glass door (Phase 1 `--nf-btn-glass-*`) with its lit rim and
+       without its bloom: a row of eight chips each casting light is the
+       shouting this rule was written to stop. */
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-rim-lit);
     transition:
       color var(--nf-duration-fast) var(--nf-ease-standard),
       border-color var(--nf-duration-fast) var(--nf-ease-standard),
@@ -176,11 +180,9 @@
    */
   .nf-chip--active {
     color: var(--nf-content-on-brand);
-    background: var(--nf-gradient-cta);
-    border-color: var(--nf-brand-primary);
-    box-shadow:
-      var(--nf-rim-primary),
-      var(--nf-bloom-lit-soft);
+    background: var(--nf-selected-fill);
+    border-color: var(--nf-selected-edges);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
 
   /* ------------------------------------------------------- the feed tabs */
@@ -275,10 +277,8 @@
    */
   .nf-feedtab[aria-current="page"] {
     color: var(--nf-content-on-brand);
-    background: var(--nf-gradient-cta);
-    box-shadow:
-      var(--nf-rim-primary),
-      var(--nf-bloom-lit-soft);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
 
   /*
@@ -767,11 +767,11 @@
     border-radius: var(--nf-radius-control);
     padding-inline: var(--nf-space-md);
     color: var(--nf-content-primary);
-    border-color: var(--nf-brand-edge-soft);
-    background: var(--nf-glass-fill);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+    border-color: var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    box-shadow: var(--nf-rim-lit);
   }
   @media (hover: hover) {
     .nf-chip--pill:hover {
@@ -789,20 +789,9 @@
   .nf-chip--pill.nf-chip--active,
   .nf-chip--pill[aria-pressed="true"] {
     color: var(--nf-content-on-brand);
-    background: var(--nf-gradient-cta);
-    border-color: var(--nf-brand-edge-strong);
-    /* The measured light, one rung down, replacing a hand-composed rim and
-       halo that were close to it and not the same as it. */
-    box-shadow:
-      var(--nf-rim-primary),
-      var(--nf-bloom-lit-soft);
-  }
-  @media (hover: hover) {
-    .nf-chip--pill.nf-chip--active:hover,
-    .nf-chip--pill[aria-pressed="true"]:hover {
-      background: var(--nf-brand-primary);
-      border-color: var(--nf-glow-brand-rim);
-    }
+    background: var(--nf-selected-fill);
+    border-color: var(--nf-selected-edges);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
   /* The leading glyph: a glass object or a line glyph in the brand's quiet
      ink, which is the ink the renders draw their chip glyphs in. */
@@ -851,18 +840,16 @@
    */
   .nf-segmented--pill {
     border-radius: var(--nf-radius-control);
-    background: var(--nf-glass-fill);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
+    background: var(--nf-btn-glass-fill);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
+    box-shadow: var(--nf-rim-lit);
   }
   .nf-segmented--pill .nf-segmented__capsule {
     border-radius: var(--nf-radius-control);
-    background: var(--nf-brand-primary);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 16px var(--nf-glow-3);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
   .nf-segmented--pill .nf-segmented__item {
     border-radius: var(--nf-radius-control);
@@ -878,11 +865,9 @@
      had a rim and a halo, hand-composed; these are the measured tokens, so
      the two controls agree instead of nearly agreeing. */
   .nf-segmented--pill .nf-segmented__link[aria-current="true"] {
-    background: var(--nf-gradient-cta);
+    background: var(--nf-selected-fill);
     color: var(--nf-content-on-brand);
-    box-shadow:
-      var(--nf-rim-primary),
-      var(--nf-bloom-lit-soft);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
   /* ------------------------------------------------- the sheet's anatomy */
 
@@ -932,9 +917,9 @@
    * this is the `glow` prop.
    */
   .nf-action-bar-pinned--lit {
-    border-top: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border-top: var(--nf-border-width) solid var(--nf-panel-edge);
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
+      var(--nf-panel-rim),
       0 -10px 36px -14px var(--nf-glow-3);
   }
   .nf-action-bar-pinned--lit::after {
@@ -975,20 +960,22 @@
    * separated by faint blue hairlines and the whole thing scrolls sideways
    * inside the card rather than widening the page. `tone="glass"` on Table.
    */
+  /* The console's panel (Phase 1 `--nf-panel-*`), hairlines between rows. */
   .nf-table--glass {
-    border-radius: var(--nf-radius-xl);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-glass-fill-thin);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill);
     box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      var(--nf-elev-1);
+      var(--nf-panel-rim),
+      var(--nf-panel-glow);
   }
   .nf-table--glass th {
-    background: color-mix(in oklab, var(--nf-surface-elevated) 92%, transparent);
-    border-bottom-color: var(--nf-brand-edge-soft);
+    background: transparent;
+    border-bottom-color: var(--nf-panel-hair);
   }
   .nf-table--glass td {
-    border-bottom-color: color-mix(in oklab, var(--nf-brand-edge-soft) 50%, transparent);
+    border-bottom-color: var(--nf-panel-hair);
   }
   .nf-table--glass tbody tr:last-child td {
     border-bottom: 0;
@@ -1013,6 +1000,34 @@
    * and a fill that carries the glow at its leading edge so "how far" is lit.
    * `material="glass"` on Progress.
    */
+  /*
+   * A PANEL THAT IS A LINK KEEPS ITS LIGHT ON HOVER.
+   *
+   * `.nf-card--interactive:hover` (glass.css) swaps the whole shadow for the
+   * elevation rung, which on a `Panel` would put the lit rim and the outer
+   * glow out the moment a pointer arrived. On a panel the lift is added to the
+   * panel's own light instead. Request SW-C5 asks for this in glass.css beside
+   * the panel; it lives here until then.
+   */
+  @media (hover: hover) {
+    .nf-panel.nf-card--interactive:hover {
+      box-shadow:
+        var(--nf-panel-rim),
+        var(--nf-panel-glow),
+        var(--nf-elev-2);
+    }
+  }
+
+  /*
+   * A PANEL HOLDING THE LIT PRIMARY KEEPS ITS POOL OF LIGHT. The primary's
+   * pooled bloom is an `::after` drawn under the bar; inside a panel without
+   * a stacking context of its own it falls behind the panel's fill and the
+   * bar loses its light. `isolation` gives the panel that context.
+   */
+  .nf-panel:has(.nf-btn--primary) {
+    isolation: isolate;
+  }
+
   .nf-progress--glass {
     background: var(--nf-well-fill);
     box-shadow:

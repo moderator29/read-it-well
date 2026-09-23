@@ -85,7 +85,7 @@ export function FacilitiesPicker({
   }
 
   return (
-    <section className="nf-host-group">
+    <section className="nf-panel nf-panel--card block nf-host-group">
       <h2 className="nf-host-group__title">What the property offers</h2>
       <p className="nf-host-group__note">
         Only what a guest can actually use. A guest searching for parking or air conditioning is

@@ -1,4 +1,5 @@
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { panelClass } from "@/components/ui/Panel";
 import { amenityLabel } from "@/components/app/filters/amenities";
 import { ICON } from "@/components/app/Screen";
 
@@ -61,14 +62,14 @@ export function ListingAmenityTiles({
       data-testid="amenity-tiles"
     >
       {shown.map((code) => (
-        <li key={code} className="nf-glass nf-glass--tile nf-amenity-tile">
+        <li key={code} className={panelClass({ variant: "card", className: "nf-amenity-tile" })}>
           <UiIcon name={AMENITY_ICON[code] ?? "sparkle"} size={ICON.inline} />
           <span>{amenityLabel(code)}</span>
         </li>
       ))}
       {remainder > 0 && moreHref && (
         <li className="contents">
-          <a href={moreHref} className="nf-glass nf-glass--tile nf-amenity-tile">
+          <a href={moreHref} className={panelClass({ variant: "card", className: "nf-amenity-tile" })}>
             <UiIcon name="more" size={ICON.inline} />
             <span>
               {moreLabel ?? "More"} (+{remainder})

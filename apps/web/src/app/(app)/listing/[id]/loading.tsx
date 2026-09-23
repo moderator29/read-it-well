@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/Skeleton";
+import { panelClass } from "@/components/ui/Panel";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
 
 /**
@@ -25,13 +26,13 @@ export default function LoadingListing() {
         />
       </div>
 
-      <div className="nf-glass nf-glass--strong relative z-10 -mx-gutter -mt-xl rounded-t-[1.75rem] border-x-0 border-b-0 px-gutter pb-lg pt-lg sm:-mt-2xl sm:rounded-t-[2.25rem] sm:pb-xl sm:pt-xl">
+      <div className={panelClass({ variant: "card", className: "relative z-10 -mt-xl sm:-mt-2xl sm:p-xl" })}>
         <div className="grid gap-xl lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
           <div className="min-w-0">
             {/* Status row, title, location, then the hero price. */}
             <div className="flex flex-wrap items-center gap-xs">
-              <Skeleton width="5.5rem" height="1.375rem" radius="pill" />
-              <Skeleton width="4.5rem" height="1.375rem" radius="pill" />
+              <Skeleton width="5.5rem" height="1.375rem" radius="sm" />
+              <Skeleton width="4.5rem" height="1.375rem" radius="sm" />
             </div>
             <Skeleton className="mt-sm" width="80%" height="2.25rem" radius="sm" />
             <Skeleton className="mt-xs" width="45%" height="1rem" radius="sm" />
@@ -46,17 +47,17 @@ export default function LoadingListing() {
             {/* The amenity grid. */}
             <div className="mt-lg grid grid-cols-2 gap-sm sm:grid-cols-3">
               {Array.from({ length: 6 }, (_, i) => (
-                <Skeleton key={i} height="2.75rem" radius="md" />
+                <Skeleton key={i} height="2.75rem" radius="sm" />
               ))}
             </div>
           </div>
 
           {/* The reserve panel, pinned beside the content from lg up. */}
-          <aside className="nf-card p-lg">
+          <aside className={panelClass({ className: "p-lg" })}>
             <Skeleton width="60%" height="1.5rem" radius="sm" />
-            <Skeleton className="mt-md" height="3rem" radius="lg" />
-            <Skeleton className="mt-sm" height="3rem" radius="lg" />
-            <Skeleton className="mt-md" height="3.5rem" radius="pill" />
+            <Skeleton className="mt-md" height="3rem" radius="sm" />
+            <Skeleton className="mt-sm" height="3rem" radius="sm" />
+            <Skeleton className="mt-md" height="3.5rem" radius="sm" />
             <Skeleton className="mt-md" width="70%" height="0.8125rem" radius="sm" />
           </aside>
         </div>

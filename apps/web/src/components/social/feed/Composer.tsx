@@ -104,7 +104,7 @@ export function Composer({
 
   if (!signedIn) {
     return (
-      <div className="nf-card nf-post p-md text-center">
+      <div className="nf-panel nf-panel--card nf-post p-md text-center">
         <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
           Sign in to {isReply ? "reply" : `post${areaName ? ` around ${areaName}` : ""}`}.
         </p>
@@ -129,7 +129,7 @@ export function Composer({
 
   if (held) {
     return (
-      <div className="nf-card nf-post p-md">
+      <div className="nf-panel nf-panel--card nf-post p-md">
         <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           It is with us
         </p>
@@ -332,7 +332,7 @@ export function Composer({
 
   return (
     <form
-      className="nf-card nf-post"
+      className="nf-panel nf-panel--card nf-post"
       onSubmit={(event) => {
         event.preventDefault();
         if (canSend) send();

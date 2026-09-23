@@ -49,7 +49,7 @@ export function ReplyForm({
 
   if (saved && !editing) {
     return (
-      <div className="mt-sm rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-md">
+      <div className="mt-sm nf-panel nf-panel--card block p-md">
         <p className="flex items-center gap-xs text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.08em] text-[var(--nf-content-muted)]">
           <UiIcon name="chat-bubble" size={12} className="shrink-0" />
           Your reply

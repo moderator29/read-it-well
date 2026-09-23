@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { formatMoney, getDictionary } from "@vallo/i18n";
+import { formatMoney, getDictionary, plural } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import {
   getPaymentHealth,
@@ -9,6 +9,7 @@ import {
 import { findAdminSubject } from "@/lib/admin/queries";
 import { getTermsStanding } from "@/lib/admin/legal-queries";
 import { adminUi } from "../_components/ui";
+import { fill } from "../_components/copy";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/Table";
 import { SweepHolds } from "./SweepHolds";
 import { LookupPanel } from "./LookupPanel";
@@ -64,6 +65,7 @@ export default async function AdminPaymentsPage({
   const locale = await getLocale();
   const t = getDictionary(locale);
   const ui = adminUi(t, locale);
+  const c = t.admin.payments;
 
   const params = await searchParams;
   const rawTerm = params["q"];
@@ -82,7 +84,7 @@ export default async function AdminPaymentsPage({
   ]);
   const payments = flow.state === "ok" ? flow.data : null;
   const head = (
-    <DeskHead title="Payments" lede="Money coming in, and anything stuck, short or waiting on the provider." />
+    <DeskHead title={t.admin.shell.nav.payments} lede={c.lede} />
   );
   const found =
     lookup && lookup.state === "ok" && lookup.data?.state === "found"
@@ -103,7 +105,7 @@ export default async function AdminPaymentsPage({
       <div className="nf-console nf-md">
         <LiveRefresh />
         {head}
-        <PaymentsKpis desk={payments} />
+        <PaymentsKpis desk={payments} locale={locale} />
         <PaymentsCharts desk={payments} locale={locale} />
         <PaymentsTable desk={payments} params={flat} locale={locale} ui={ui} />
         <ui.QueueUnavailable />
@@ -119,40 +121,32 @@ export default async function AdminPaymentsPage({
       <LiveRefresh />
       {head}
 
-      <PaymentsKpis desk={payments} />
+      <PaymentsKpis desk={payments} locale={locale} />
       <PaymentsCharts desk={payments} locale={locale} />
       <PaymentsTable desk={payments} params={flat} locale={locale} ui={ui} />
 
-      <Panel title="Health" hint="Money that is stuck, short, or waiting on the provider">
+      <Panel title={c.healthTitle} hint={c.healthHint}>
       <ui.StatRow>
         <ui.Stat
-          label="Ledger shortfall"
+          label={c.shortfall}
           value={formatMoney(totals.shortfallMinor, locale)}
-          hint={
-            overdrawn.length === 0
-              ? "Every wallet adds up"
-              : `${overdrawn.length === 1 ? "1 wallet is" : `${overdrawn.length} wallets are`} below zero`
-          }
+          hint={overdrawn.length === 0 ? c.addsUp : plural(overdrawn.length, c.belowZero, locale)}
           tone={overdrawn.length === 0 ? "success" : "danger"}
         />
         <ui.Stat
-          label="Frozen by stuck holds"
+          label={c.frozen}
           value={formatMoney(totals.frozenMinor, locale)}
           hint={
             staleHolds.length === 0
-              ? "Nothing is held past its window"
-              : `${staleHolds.length === 1 ? "1 withdrawal" : `${staleHolds.length} withdrawals`} older than ${staleMinutes} minutes`
+              ? c.nothingHeld
+              : fill(plural(staleHolds.length, c.olderThan, locale), { minutes: staleMinutes })
           }
           tone={staleHolds.length === 0 ? "success" : "warning"}
         />
         <ui.Stat
-          label="Waiting on the provider"
+          label={c.waitingProvider}
           value={formatMoney(totals.unsettledMinor, locale)}
-          hint={
-            unsettled.length === 0
-              ? "Nothing unsettled in thirty days"
-              : `${unsettled.length === 1 ? "1 payment" : `${unsettled.length} payments`} pending or failed`
-          }
+          hint={unsettled.length === 0 ? c.nothingUnsettled : plural(unsettled.length, c.pendingOrFailed, locale)}
           tone={unsettled.length === 0 ? "success" : "neutral"}
         />
       </ui.StatRow>
@@ -161,9 +155,9 @@ export default async function AdminPaymentsPage({
         <div className="mt-sm">
           <CalmNote
             kind="clear"
-            title="The money is where it should be"
-            fills="No wallet is overdrawn, no withdrawal is held past its window, and the provider has settled everything it was sent in the last thirty days."
-            creates="An overdrawn wallet, a stuck hold or an unsettled payment appears here the moment one exists."
+            title={c.clearTitle}
+            fills={c.clearFills}
+            creates={c.clearCreates}
           />
         </div>
       )}
@@ -171,8 +165,8 @@ export default async function AdminPaymentsPage({
 
       {overdrawn.length > 0 && (
         <ui.Section
-          title="Overdrawn wallets"
-          hint="A wallet whose settled entries sum below zero. This is not a delay, it is an arithmetic failure in the ledger, and it has no button here on purpose: an adjusting entry typed into a web form would bury the evidence an engineer needs to find the cause."
+          title={c.overdrawnTitle}
+          hint={c.overdrawnHint}
         >
           {/*
             A TABLE, BECAUSE THIS IS A TABLE.
@@ -196,19 +190,19 @@ export default async function AdminPaymentsPage({
             operator quotes to an engineer, and `user-select: all` means one tap
             takes the whole string rather than transcribing it.
           */}
-          <Table caption="Overdrawn wallets" density="compact">
+          <Table caption={c.overdrawnTitle} density="compact">
             <THead>
               <TR>
-                <TH>Owner</TH>
-                <TH>Wallet</TH>
-                <TH align="end">Balance</TH>
+                <TH>{c.owner}</TH>
+                <TH>{c.wallet}</TH>
+                <TH align="end">{c.balance}</TH>
               </TR>
             </THead>
             <TBody>
               {overdrawn.map((wallet) => (
                 <TR key={wallet.walletId}>
                   <TD className="font-semibold text-[var(--nf-content-primary)]">
-                    {wallet.ownerName ?? "Name not on file"}
+                    {wallet.ownerName ?? c.nameNotOnFile}
                   </TD>
                   <TD className="[overflow-wrap:anywhere] [user-select:all]">
                     {wallet.walletId}
@@ -224,34 +218,34 @@ export default async function AdminPaymentsPage({
       )}
 
       <ui.Section
-        title="Stuck withdrawal holds"
-        hint={`A withdrawal still marked pending after ${staleMinutes} minutes. The money is neither in the owner's spendable balance nor in their bank account.`}
+        title={c.stuckTitle}
+        hint={fill(c.stuckHint, { minutes: staleMinutes })}
       >
         {staleHolds.length === 0 ? (
           <CalmNote
             kind="clear"
-            title="No withdrawal is stuck"
-            fills="Every pending hold is inside its window, which means it is on its way rather than frozen."
-            creates="A withdrawal still pending after the window appears here with the control to release it."
+            title={c.stuckNoneTitle}
+            fills={c.stuckNoneFills}
+            creates={c.stuckNoneCreates}
           />
         ) : (
           <div className="nf-stack nf-stack--group">
             {/* The reference gets its own column and still never clips: it is
                 what a stuck hold is traced by with the processor. */}
-            <Table caption="Stuck withdrawal holds" density="compact">
+            <Table caption={c.stuckTitle} density="compact">
               <THead>
                 <TR>
-                  <TH>Owner</TH>
-                  <TH>Reference</TH>
-                  <TH>Held since</TH>
-                  <TH align="end">Amount</TH>
+                  <TH>{c.owner}</TH>
+                  <TH>{c.reference}</TH>
+                  <TH>{c.heldSince}</TH>
+                  <TH align="end">{c.amount}</TH>
                 </TR>
               </THead>
               <TBody>
                 {staleHolds.map((hold) => (
                   <TR key={hold.reference}>
                     <TD className="font-semibold text-[var(--nf-content-primary)]">
-                      {hold.ownerName ?? "Name not on file"}
+                      {hold.ownerName ?? c.nameNotOnFile}
                     </TD>
                     <TD className="[overflow-wrap:anywhere] [user-select:all]">
                       {hold.reference}
@@ -277,20 +271,20 @@ export default async function AdminPaymentsPage({
 
       {unsettled.length > 0 && (
         <ui.Section
-          title="Waiting on the provider"
-          hint="Payments the provider has not settled, from the last thirty days. Re-asking the provider is the reconcile job's decision to take, not this screen's."
+          title={c.waitingProvider}
+          hint={c.waitingHint}
         >
           {/* The provider's reference gets the widest column: it is what an
               operator pastes into Paystack or Yellow Card to find out what
               actually happened, and it never clips. */}
-          <Table caption="Payments waiting on the provider" density="compact">
+          <Table caption={c.waitingCaption} density="compact">
             <THead>
               <TR>
-                <TH>State</TH>
-                <TH>Reference</TH>
-                <TH>Provider</TH>
-                <TH>Started</TH>
-                <TH align="end">Amount</TH>
+                <TH>{c.state}</TH>
+                <TH>{c.reference}</TH>
+                <TH>{c.provider}</TH>
+                <TH>{c.started}</TH>
+                <TH align="end">{c.amount}</TH>
               </TR>
             </THead>
             <TBody>
@@ -327,7 +321,7 @@ export default async function AdminPaymentsPage({
                   <TD className="font-semibold text-[var(--nf-content-primary)] [overflow-wrap:anywhere] [user-select:all]">
                     {payment.providerRef ?? payment.id}
                   </TD>
-                  <TD>{payment.provider ?? "Unknown provider"}</TD>
+                  <TD>{payment.provider ?? c.unknownProvider}</TD>
                   <TD>{ui.when(payment.createdAt)}</TD>
                   <TD align="end" className="font-bold">
                     {formatMoney(payment.amountMinor, locale)}
@@ -345,6 +339,7 @@ export default async function AdminPaymentsPage({
         methods={methods}
         standing={standing}
         ui={ui}
+        locale={locale}
       />
     </div>
   );

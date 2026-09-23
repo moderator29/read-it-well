@@ -64,7 +64,7 @@ export function Ladder({ ladder }: { ladder: OwnLadder }) {
         const failed = decision?.status === "failed";
 
         return (
-          <li key={rung.kind} className="nf-card p-md sm:p-panel">
+          <li key={rung.kind} className="nf-panel nf-panel--card block p-md sm:p-panel">
             <div className="flex flex-wrap items-center gap-xs">
               <span className="text-[length:var(--nf-text-overline)] font-semibold tabular-nums text-[var(--nf-content-muted)]">
                 {rung.step}
@@ -100,7 +100,7 @@ export function Ladder({ ladder }: { ladder: OwnLadder }) {
                 locked door. */}
             {decision?.note && (
               <p
-                className={`mt-sm rounded-lg px-sm py-xs text-[length:var(--nf-text-caption)] leading-relaxed ${
+                className={`mt-sm rounded-[var(--nf-container-radius)] px-sm py-xs text-[length:var(--nf-text-caption)] leading-relaxed ${
                   failed
                     ? "bg-[var(--nf-state-error-surface)] text-[var(--nf-content-primary)]"
                     : "bg-[var(--nf-surface-raised)] text-[var(--nf-content-secondary)]"
@@ -129,7 +129,7 @@ export function Ladder({ ladder }: { ladder: OwnLadder }) {
 export function Standing({ tier }: { tier: VerificationTier }) {
   const next = nextRung(tier);
   return (
-    <div className="nf-card p-panel">
+    <div className="nf-panel nf-panel--card block p-panel">
       <p className="text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
         Your standing
       </p>
@@ -222,7 +222,7 @@ export default async function Page() {
         /* An honest absence rather than an empty ladder. Drawing four "not
            checked yet" rungs from a failed read would tell an agent who has
            passed three that they have passed none. */
-        <p className="nf-card p-panel text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
+        <p className="nf-panel nf-panel--card block p-panel text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
           Your checks could not be loaded just now. Nothing has changed, and
           reloading usually settles it.
         </p>

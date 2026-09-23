@@ -62,7 +62,9 @@ export function LocationChip({
   const shown = current ? `${current.name}, ${current.city}` : place;
 
   return (
-    <div className="relative" data-testid="feed-location">
+    /* Grows to fill its row: on `/around` it shares the row with the back
+       control, and without this it shrank to the width of its words. */
+    <div className="relative min-w-0 flex-1" data-testid="feed-location">
       <button
         ref={buttonRef}
         type="button"
@@ -74,7 +76,7 @@ export function LocationChip({
       >
         <UiIcon name="location" size={20} className="nf-feed-chip__pin" />
         <span className="nf-feed-chip__label">{shown}</span>
-        <UiIcon name="chevron-down" size={20} className="nf-feed-chip__chev" />
+        <UiIcon name="chevron-down" size={24} className="nf-feed-chip__chev" />
       </button>
 
       {open ? (

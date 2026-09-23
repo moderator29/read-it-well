@@ -49,7 +49,7 @@ function Stars({ rating }: { rating: number }) {
 function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Locale }) {
   const most = Math.max(1, ...summary.distribution);
   return (
-    <div className="nf-card p-panel">
+    <div className="nf-panel nf-panel--card block p-panel">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-sm">
         <span className="block h-14 w-14 shrink-0">
           <BrandIcon name="reviews" fill />
@@ -98,7 +98,7 @@ function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Lo
 
 function ReviewCard({ review }: { review: AgentReview }) {
   return (
-    <li className="nf-card p-md">
+    <li className="nf-panel nf-panel--card block p-md">
       <div className="flex flex-wrap items-center justify-between gap-x-sm gap-y-xs">
         <p className="flex flex-wrap items-center gap-x-xs gap-y-2xs">
           <Stars rating={review.rating} />
@@ -165,7 +165,7 @@ export function ReviewsWorkspace({
 
   if (summary.total === 0) {
     return (
-      <div className="nf-card p-xl text-center">
+      <div className="nf-panel nf-panel--card block p-xl text-center">
         <span className="mx-auto block h-16 w-16">
           <BrandIcon name="reviews" fill />
         </span>
@@ -229,7 +229,7 @@ export function ReviewsWorkspace({
           ))}
         </ul>
       ) : (
-        <div className="nf-card mt-md p-xl text-center">
+        <div className="nf-panel nf-panel--card block mt-md p-xl text-center">
           <span className="mx-auto block h-16 w-16">
             <BrandIcon name="listing-review" fill />
           </span>

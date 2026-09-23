@@ -1,8 +1,10 @@
+import { getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
 import type { SavedMethods } from "@/lib/admin/payments-queries";
 import type { TermsStanding } from "@/lib/admin/legal-queries";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import type { AdminRead, SubjectLookup } from "@/lib/admin/queries";
 import type { AdminUi } from "../_components/ui";
+import { fill } from "../_components/copy";
 import { RemoveSavedMethod } from "./MethodLookup";
 
 /**
@@ -26,6 +28,7 @@ export function LookupPanel({
   standing = null,
   ui,
   base = "/admin/payments",
+  locale = "en",
 }: {
   term: string;
   lookup: AdminRead<SubjectLookup | null> | null;
@@ -39,30 +42,30 @@ export function LookupPanel({
   ui: AdminUi;
   /** Where the GET lands. The desk's own path unless a harness says otherwise. */
   base?: string;
+  /** The console's locale; English when a harness passes none. */
+  locale?: Locale;
 }) {
+  const c = getDictionary(locale).admin.payments.lookup;
   return (
-    <ui.Section
-      title="Saved cards and bank accounts"
-      hint="Find a person by handle, email address or account id to see what they have saved to pay with or be paid to. Cards show what the processor filed, never a number. Accounts show their last four digits only."
-    >
+    <ui.Section title={c.title} hint={c.hint}>
       <form method="get" action={base} className="flex flex-wrap items-end gap-row">
         <label className="min-w-0 flex-1">
-          <span className="nf-label">Handle, email or account id</span>
+          <span className="nf-label">{c.field}</span>
           <input
             type="search"
             name="q"
             defaultValue={term}
-            placeholder="@handle, name@example.com, or an id"
+            placeholder={c.placeholder}
             className="nf-field mt-inline-tight w-full"
           />
         </label>
         <button type="submit" className="nf-chip nf-chip--active shrink-0">
-          Look up
+          {c.submit}
         </button>
       </form>
 
       {term.length > 0 && (
-        <LookupResult lookup={lookup} methods={methods} standing={standing} ui={ui} />
+        <LookupResult lookup={lookup} methods={methods} standing={standing} ui={ui} locale={locale} />
       )}
     </ui.Section>
   );
@@ -73,12 +76,16 @@ export function LookupResult({
   methods,
   standing = null,
   ui,
+  locale = "en",
 }: {
   lookup: AdminRead<SubjectLookup | null> | null;
   methods: AdminRead<SavedMethods> | null;
   standing?: AdminRead<TermsStanding> | null;
   ui: AdminUi;
+  locale?: Locale;
 }) {
+  const t = getDictionary(locale);
+  const c = t.admin.payments.lookup;
   if (!lookup || lookup.state !== "ok") {
     return (
       <div className="mt-sm">
@@ -89,24 +96,17 @@ export function LookupResult({
   const found: SubjectLookup | null = lookup.data;
   if (found === null) {
     return (
-      <p className="nf-body-sm mt-sm text-content-2">
-        That does not read as a handle, an email address or an account id. Check it and try again.
-      </p>
+      <p className="nf-body-sm mt-sm text-content-2">{c.unreadable}</p>
     );
   }
   if (found.state === "email-unavailable") {
     return (
-      <p className="nf-body-sm mt-sm text-content-2">
-        Looking a person up by email address is not switched on in this
-        deployment yet. Search by their handle or their account id instead.
-      </p>
+      <p className="nf-body-sm mt-sm text-content-2">{c.emailOff}</p>
     );
   }
   if (found.state === "none") {
     return (
-      <p className="nf-body-sm mt-sm text-content-2">
-        No account matches that {found.by === "email" ? "address" : found.by}.
-      </p>
+      <p className="nf-body-sm mt-sm text-content-2">{c.noMatch[found.by]}</p>
     );
   }
 
@@ -116,7 +116,7 @@ export function LookupResult({
   return (
     <div className="mt-sm">
       <p className="nf-body font-semibold text-content">
-        {subject.displayName ?? "No display name"}
+        {subject.displayName ?? t.admin.money.noDisplayName}
         {subject.handle ? ` · @${subject.handle}` : ""}
       </p>
       {/* THE ID, UNCLIPPED: what an operator pastes into the money desk to
@@ -125,7 +125,7 @@ export function LookupResult({
         {subject.userId}
       </p>
 
-      <TermsRow standing={standing} />
+      <TermsRow standing={standing} c={c} />
 
       {saved === null ? (
         <div className="mt-sm">
@@ -133,16 +133,16 @@ export function LookupResult({
         </div>
       ) : (
         <>
-          <h3 className="nf-h4 mt-group">Saved cards</h3>
+          <h3 className="nf-h4 mt-group">{c.savedCards}</h3>
           {saved.cards.length === 0 ? (
-            <p className="nf-body-sm mt-row text-content-2">No card has been saved on this account.</p>
+            <p className="nf-body-sm mt-row text-content-2">{c.noCards}</p>
           ) : (
             <ul className="nf-rows mt-row">
               {saved.cards.map((card) => {
                 const brand = card.cardType
                   ? card.cardType.charAt(0).toUpperCase() + card.cardType.slice(1)
-                  : "Card";
-                const describe = `${brand} ending ${card.last4 ?? "????"}`;
+                  : c.card;
+                const describe = fill(c.ending, { what: brand, last4: card.last4 ?? "????" });
                 return (
                   <li key={card.id} className="nf-row flex-wrap">
                     {/* The saved card's glass object, small, as the render
@@ -155,18 +155,18 @@ export function LookupResult({
                       </span>
                       <span className="nf-caption block">
                         {card.expMonth && card.expYear
-                          ? `Expires ${String(card.expMonth).padStart(2, "0")}/${card.expYear}`
-                          : "Expiry not on file"}
-                        {card.isDefault && !card.removedAt ? " · default" : ""}
-                        {!card.reusable ? " · processor says no longer chargeable" : ""}
-                        {" · saved "}
+                          ? fill(c.expires, { month: String(card.expMonth).padStart(2, "0"), year: card.expYear })
+                          : c.noExpiry}
+                        {card.isDefault && !card.removedAt ? c.isDefault : ""}
+                        {!card.reusable ? c.notChargeable : ""}
+                        {c.saved}
                         {ui.when(card.createdAt)}
                       </span>
                     </span>
                     {card.removedAt ? (
-                      <ui.StatusChip label={`Removed ${ui.when(card.removedAt)}`} tone="neutral" />
+                      <ui.StatusChip label={fill(c.removedOn, { when: ui.when(card.removedAt) })} tone="neutral" />
                     ) : (
-                      <RemoveSavedMethod kind="card" id={card.id} describe={describe} />
+                      <RemoveSavedMethod kind="card" id={card.id} describe={describe} locale={locale} />
                     )}
                   </li>
                 );
@@ -174,15 +174,13 @@ export function LookupResult({
             </ul>
           )}
 
-          <h3 className="nf-h4 mt-group">Bank accounts</h3>
+          <h3 className="nf-h4 mt-group">{c.bankAccounts}</h3>
           {saved.accounts.length === 0 ? (
-            <p className="nf-body-sm mt-row text-content-2">
-              No bank account has been filed on this account.
-            </p>
+            <p className="nf-body-sm mt-row text-content-2">{c.noAccounts}</p>
           ) : (
             <ul className="nf-rows mt-row">
               {saved.accounts.map((account) => {
-                const describe = `${account.bankName} ending ${account.accountNumberMasked.slice(-4)}`;
+                const describe = fill(c.ending, { what: account.bankName, last4: account.accountNumberMasked.slice(-4) });
                 return (
                   <li key={account.id} className="nf-row flex-wrap">
                     {/* The bank account's object: the column, not a card. */}
@@ -195,18 +193,18 @@ export function LookupResult({
                       </span>
                       <span className="nf-caption block">
                         {account.accountName}
-                        {account.isDefault && !account.removedAt ? " · default" : ""}
-                        {" · filed "}
+                        {account.isDefault && !account.removedAt ? c.isDefault : ""}
+                        {c.filed}
                         {ui.when(account.createdAt)}
                       </span>
                     </span>
                     {account.removedAt ? (
                       <ui.StatusChip
-                        label={`Removed ${ui.when(account.removedAt)}`}
+                        label={fill(c.removedOn, { when: ui.when(account.removedAt) })}
                         tone="neutral"
                       />
                     ) : (
-                      <RemoveSavedMethod kind="account" id={account.id} describe={describe} />
+                      <RemoveSavedMethod kind="account" id={account.id} describe={describe} locale={locale} />
                     )}
                   </li>
                 );
@@ -233,21 +231,18 @@ export function LookupResult({
  * because nothing was being recorded, and the row says exactly that instead of
  * implying somebody declined.
  */
-function TermsRow({ standing }: { standing: AdminRead<TermsStanding> | null }) {
+function TermsRow({
+  standing,
+  c,
+}: {
+  standing: AdminRead<TermsStanding> | null;
+  c: Dictionary["admin"]["payments"]["lookup"];
+}) {
   if (!standing || standing.state !== "ok") {
-    return (
-      <p className="nf-body-sm mt-row text-content-2">
-        What this person accepted could not be read just now.
-      </p>
-    );
+    return <p className="nf-body-sm mt-row text-content-2">{c.termsUnread}</p>;
   }
   if (standing.data.nothingOnFile) {
-    return (
-      <p className="nf-body-sm mt-row text-content-2">
-        Nothing on file. Acceptances have been recorded since 22 September 2026,
-        so an account opened before then has no receipt to show.
-      </p>
-    );
+    return <p className="nf-body-sm mt-row text-content-2">{c.termsNone}</p>;
   }
   return (
     <ul className="nf-rows mt-row">
@@ -255,8 +250,7 @@ function TermsRow({ standing }: { standing: AdminRead<TermsStanding> | null }) {
         <li key={`${accepted.document}-${accepted.version}`} className="nf-row flex-wrap">
           <span className="min-w-0 flex-1">
             <span className="nf-body-sm block font-semibold text-content">
-              Accepted the {accepted.document === "privacy" ? "privacy notice" : "terms"}, version{" "}
-              {accepted.version}
+              {fill(accepted.document === "privacy" ? c.acceptedPrivacy : c.acceptedTerms, { version: accepted.version })}
             </span>
             <span className="nf-body-sm block text-content-2">
               {new Date(accepted.acceptedAt).toISOString().slice(0, 10)} · {accepted.source}

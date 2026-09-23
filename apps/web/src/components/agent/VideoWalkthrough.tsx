@@ -189,7 +189,7 @@ export function VideoWalkthrough({
 
       {/* The calm explanatory panel with its small round glyph, which appears
           on almost every screen in the governing set. */}
-      <div className="nf-card mt-inline flex items-start gap-inline p-card-sm">
+      <div className="nf-panel nf-panel--card mt-inline flex flex-row items-start gap-inline p-card-sm">
         <span
           className="mt-3xs flex size-8 shrink-0 items-center justify-center rounded-[var(--nf-radius-control)] bg-[var(--nf-surface-elevated)]"
           aria-hidden
@@ -206,7 +206,7 @@ export function VideoWalkthrough({
       {videos.length > 0 && (
         <ul className="mt-inline space-y-inline">
           {videos.map((video) => (
-            <li key={video.id} className="nf-card overflow-hidden p-card-sm">
+            <li key={video.id} className="nf-panel nf-panel--card block overflow-hidden p-card-sm">
               {/* A walkthrough of an empty flat carries no speech, so there is
                   no track to caption. */}
               <video
@@ -237,7 +237,7 @@ export function VideoWalkthrough({
       )}
 
       {state.phase === "uploading" && (
-        <div className="nf-card mt-inline p-card-sm" data-testid="video-progress">
+        <div className="nf-panel nf-panel--card block mt-inline p-card-sm" data-testid="video-progress">
           <div className="flex items-center justify-between gap-inline">
             <span className="nf-body-sm text-[var(--nf-content-secondary)]">Uploading</span>
             <span className="nf-numeric nf-body-sm font-semibold">{percent}%</span>

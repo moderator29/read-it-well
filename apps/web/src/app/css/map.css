@@ -135,14 +135,22 @@
     }
   }
 
-  /* Leaflet chrome, restyled to the theme. */
+  /* Leaflet chrome, restyled to the shared layer: the zoom pair is the glass
+     door, from its tokens. `!important` because Leaflet's own sheet sets
+     these on the same selector and loads after ours. */
   .leaflet-container {
     background: var(--nf-surface-inset);
     font-family: inherit;
   }
   .leaflet-control-zoom a {
-    background: var(--nf-surface-elevated) !important;
+    background: var(--nf-btn-glass-fill) !important;
     color: var(--nf-content-primary) !important;
-    border-color: var(--nf-border-subtle) !important;
+    border-color: var(--nf-btn-glass-edge) !important;
+  }
+  .leaflet-control-zoom {
+    border-radius: var(--nf-radius-control) !important;
+    border-color: var(--nf-btn-glass-edge) !important;
+    box-shadow: var(--nf-btn-glass-shadow) !important;
+    overflow: hidden;
   }
 }

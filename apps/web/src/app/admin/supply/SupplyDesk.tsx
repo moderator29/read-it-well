@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LiveRefresh } from "../_components/LiveRefresh";
-import { formatDate, formatMoney, type Locale } from "@vallo/i18n";
+import { formatDate, formatMoney, getDictionary, plural, type Dictionary, type Locale } from "@vallo/i18n";
+import { fill } from "../_components/copy";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { CalmNote, DeskHead, EmptyChart, Framed, Kpi, NumberedPager, Panel, TableNote, Waiting, lastMonths } from "../money/_desk/Desk";
 import { Donut, RankBars, RankFrame, SeriesChart, SeriesLegend, StatusBar, type Series } from "../money/_desk/charts";
@@ -26,25 +27,32 @@ import {
  * stays side. Four doors, no fifth.
  */
 
-export const ROLE_LABEL: Record<SupplyRoleKey, { one: string; many: string }> = {
-  owner: { one: "Owner", many: "Owners" },
-  agent: { one: "Agent", many: "Agents" },
-  firm: { one: "Firm", many: "Firms" },
-  host: { one: "Host", many: "Hosts" },
-};
+/**
+ * A role's name, one and many. `one` is the console's own lister words
+ * (`shell.overview`), with the host this desk adds; `many` is this desk's.
+ */
+export function roleLabels(t: Dictionary): Record<SupplyRoleKey, { one: string; many: string }> {
+  const o = t.admin.shell.overview;
+  const c = t.admin.supply;
+  return {
+    owner: { one: o.owner, many: c.many.owner },
+    agent: { one: o.agent, many: c.many.agent },
+    firm: { one: o.firm, many: c.many.firm },
+    host: { one: c.host, many: c.many.host },
+  };
+}
 
-const PROPERTY_TYPE_LABEL: Record<string, string> = {
-  apartment: "Flats",
-  home: "Houses",
-  villa: "Villas",
-  rental: "Rentals",
-  shortlet: "Shortlets",
-  hotel: "Hotels",
-  land: "Land",
-  shop: "Shops",
-  office: "Offices",
-  restaurant: "Restaurants",
-};
+/** Property types in words: the overview's own kinds where it has them, this desk's for the rest. */
+function propertyTypeLabels(t: Dictionary): Record<string, string> {
+  const k = t.admin.shell.overview.kinds;
+  return {
+    ...t.admin.supply.propertyType,
+    shortlet: k.shortlets,
+    hotel: k.hotels,
+    land: k.land,
+    restaurant: k.restaurants,
+  };
+}
 
 /** Dash patterns so four series never rest on colour alone (research part four). */
 const ROLE_DASH: Record<SupplyRoleKey, string | undefined> = {
@@ -77,6 +85,10 @@ export function SupplyDesk({
   locale: Locale;
   pageSize: number;
 }) {
+  const t = getDictionary(locale);
+  const c = t.admin.supply;
+  const ROLE_LABEL = roleLabels(t);
+  const PROPERTY_TYPE_LABEL = propertyTypeLabels(t);
   const hrefWith = (next: Record<string, string | undefined>) => {
     const merged: Record<string, string | undefined> = { ...params, ...next, page: undefined };
     const qs = new URLSearchParams(
@@ -92,7 +104,7 @@ export function SupplyDesk({
       aria-pressed={filter.examples}
     >
       <UiIcon name={filter.examples ? "eye" : "eye-off"} size={16} />
-      {filter.examples ? "Including examples" : "Examples left out"}
+      {filter.examples ? c.includingExamples : c.examplesLeftOut}
     </Link>
   );
 
@@ -100,30 +112,31 @@ export function SupplyDesk({
     <div className="nf-console nf-md nf-md--supply">
       <LiveRefresh />
       <DeskHead
-        title="Supply"
-        lede="More supply. More choice. A stronger marketplace."
+        title={t.admin.shell.nav.supply}
+        lede={c.lede}
         aside={examplesToggle}
       />
 
-      <div className="nf-md-kpis" role="list" aria-label="Supply by role">
+      <div className="nf-md-kpis" role="list" aria-label={c.byRole}>
         {SUPPLY_ROLE_KEYS.map((role) => {
           const count = supply?.counts[role];
           return (
             <div role="listitem" key={role} className="contents">
               <Kpi
+                locale={locale}
                 label={ROLE_LABEL[role].many}
                 value={count ? String(count.now) : null}
                 delta={
                   count
-                    ? { percent: percentChange(count.now, count.weekAgo), against: "vs last week" }
+                    ? { percent: percentChange(count.now, count.weekAgo), against: t.admin.shell.overview.vsLastWeek }
                     : null
                 }
                 note={
                   !count
-                    ? "Accounts on the platform in this role"
+                    ? c.accountsInRole
                     : count.now === 0
-                      ? `No ${ROLE_LABEL[role].many.toLowerCase()} yet`
-                      : "None a week ago to compare with"
+                      ? c.noneYet[role]
+                      : c.noneWeekAgo
                 }
                 href={hrefWith({ role: filter.role === role ? undefined : role })}
                 current={filter.role === role}
@@ -134,42 +147,34 @@ export function SupplyDesk({
       </div>
 
       {supply && supply.complete === false && (
-        <p className="nf-md-panel__hint">
-          There are more accounts than this desk reads in one pass, so these counts are at least these numbers.
-        </p>
+        <p className="nf-md-panel__hint">{c.incomplete}</p>
       )}
       {supply && !filter.examples && supply.examplesExcluded > 0 && (
-        <p className="nf-md-panel__hint">
-          {supply.examplesExcluded} example {supply.examplesExcluded === 1 ? "account is" : "accounts are"} left
-          out of every figure on this page. They are seeded so the catalogue is not empty; the Examples desk
-          manages them.
-        </p>
+        <p className="nf-md-panel__hint">{plural(supply.examplesExcluded, c.examplesExcluded, locale)}</p>
       )}
 
       <div className="nf-md-grid nf-md-grid--main">
         <Panel
-          title={filter.role ? `Supply by role: ${ROLE_LABEL[filter.role].many}` : "Supply by role"}
-          hint={supply ? `${supply.total} ${supply.total === 1 ? "account" : "accounts"}` : undefined}
+          title={filter.role ? fill(c.byRoleOf, { role: ROLE_LABEL[filter.role].many }) : c.byRole}
+          hint={supply ? plural(supply.total, c.accounts, locale) : undefined}
         >
           {!supply ? (
-            <Waiting
-              title="Supply could not be read"
-              body="Every owner, agent, firm and host with their verification, how many listings they hold, how much has been paid to them and when they joined. The read did not answer just now; reload in a moment."
-            />
+            <Waiting title={c.unreadTitle} body={c.unreadTable} />
           ) : supply.rows.length === 0 ? (
             <table className="nf-md-table">
-              <SupplyHead />
+              <SupplyHead c={c} />
               <tbody>
                 <TableNote
                   columns={6}
                   note={{
                     title: filter.role
-                      ? `No ${ROLE_LABEL[filter.role].many.toLowerCase()} yet${filter.examples ? "" : " outside the examples"}`
-                      : `Nobody supplies the platform yet${filter.examples ? "" : " outside the examples"}`,
-                    fills:
-                      "Every owner, agent, firm and host, with their verification, live listings, what has been paid to them and when they joined.",
-                    creates: "An account appears here when its application is approved on the verification desk.",
-                    action: { href: "/admin/kyc", label: "Open the verification queue" },
+                      ? (filter.examples ? c.noneYet : c.noneYetOutside)[filter.role]
+                      : filter.examples
+                        ? c.nobodyYet
+                        : c.nobodyYetOutside,
+                    fills: c.tableFills,
+                    creates: c.tableCreates,
+                    action: { href: "/admin/kyc", label: c.openVerification },
                   }}
                 />
               </tbody>
@@ -177,7 +182,7 @@ export function SupplyDesk({
           ) : (
             <>
               <table className="nf-md-table">
-                <SupplyHead />
+                <SupplyHead c={c} />
                 <tbody>
                   {supply.rows.map((row) => (
                     <tr key={`${row.kind}-${row.id}`}>
@@ -185,25 +190,25 @@ export function SupplyDesk({
                         {row.name}
                         {row.userId ? <BadgeSlot tier={tiers[row.userId]} /> : null}
                       </td>
-                      <td data-label="Role">{ROLE_LABEL[row.role].one}</td>
-                      <td className="nf-md-num" data-label="Listings">
+                      <td data-label={c.role}>{ROLE_LABEL[row.role].one}</td>
+                      <td className="nf-md-num" data-label={c.listings}>
                         {row.listings}
                       </td>
-                      <td data-label="Verified">
+                      <td data-label={c.verified}>
                         {row.verified ? (
                           <span className="nf-md-mark nf-md-mark--yes">
-                            <UiIcon name="verified" size={16} /> Yes
+                            <UiIcon name="verified" size={16} /> {c.yes}
                           </span>
                         ) : (
                           <span className="nf-md-mark nf-md-mark--no">
-                            <UiIcon name="close" size={16} /> No
+                            <UiIcon name="close" size={16} /> {c.no}
                           </span>
                         )}
                       </td>
-                      <td className="nf-md-num nf-md-strong" data-label="Total transacted">
+                      <td className="nf-md-num nf-md-strong" data-label={c.transacted}>
                         {formatMoney(row.transactedMinor, locale, "NGN", { compact: row.transactedMinor >= 100_000_000 })}
                       </td>
-                      <td className="nf-md-num" data-label="Joined">
+                      <td className="nf-md-num" data-label={c.joined}>
                         {formatDate(new Date(row.joinedAt), locale, {
                           month: "short",
                           year: "numeric",
@@ -220,7 +225,8 @@ export function SupplyDesk({
                 page={supply.page}
                 total={supply.total}
                 pageSize={pageSize}
-                noun="accounts"
+                noun={c.accountsNoun}
+                locale={locale}
               />
             </>
           )}
@@ -230,37 +236,31 @@ export function SupplyDesk({
       </div>
 
       <div className="nf-md-grid nf-md-grid--halves">
-        <Panel title="Top 5 areas by supply">
+        <Panel title={c.topAreasTitle}>
           {!supply ? (
-            <Waiting
-              title="Supply could not be read"
-              body="The five areas with the most live listings and stays, ranked. The read did not answer just now."
-            />
+            <Waiting title={c.unreadTitle} body={c.unreadAreas} />
           ) : supply.topAreas.length === 0 ? (
             <Framed frame={<RankFrame />}>
               <CalmNote
-                title="No live listing yet"
-                fills="The five areas with the most live listings and stays, ranked."
-                creates="A listing counts here once it is approved and published."
-                action={{ href: "/admin/listings", label: "Open listing review" }}
+                title={c.noLiveTitle}
+                fills={c.areasFills}
+                creates={c.noLiveCreates}
+                action={{ href: "/admin/listings", label: c.openListingReview }}
               />
             </Framed>
           ) : (
             <RankBars rows={supply.topAreas.slice(0, 5).map((a) => ({ label: a.area, count: a.count }))} />
           )}
         </Panel>
-        <Panel title="Supply by property type">
+        <Panel title={c.byTypeTitle}>
           {!supply ? (
-            <Waiting
-              title="Supply could not be read"
-              body="Live listings split by property type, from houses and flats to hotels and restaurants. The read did not answer just now."
-            />
+            <Waiting title={c.unreadTitle} body={c.unreadTypes} />
           ) : supply.byPropertyType.length === 0 ? (
             <Framed
               frame={
                 <Donut
-                  label="Live listings by property type"
-                  totalLabel="Total"
+                  label={c.byTypeLabel}
+                  totalLabel={c.total}
                   totalValue="0"
                   slices={["home", "apartment", "land", "hotel", "shortlet", "restaurant"].map((t) => ({
                     label: PROPERTY_TYPE_LABEL[t] ?? t,
@@ -270,16 +270,16 @@ export function SupplyDesk({
               }
             >
               <CalmNote
-                title="No live listing yet"
-                fills="Live listings split by property type, from houses and flats to hotels and restaurants."
-                creates="A listing counts here once it is approved and published."
-                action={{ href: "/admin/listings", label: "Open listing review" }}
+                title={c.noLiveTitle}
+                fills={c.typesFills}
+                creates={c.noLiveCreates}
+                action={{ href: "/admin/listings", label: c.openListingReview }}
               />
             </Framed>
           ) : (
             <Donut
-              label="Live listings by property type"
-              totalLabel="Total"
+              label={c.byTypeLabel}
+              totalLabel={c.total}
               totalValue={String(supply.byPropertyType.reduce((s, x) => s + x.count, 0))}
               slices={supply.byPropertyType.map((p) => ({
                 label: PROPERTY_TYPE_LABEL[p.type] ?? p.type,
@@ -295,10 +295,10 @@ export function SupplyDesk({
   );
 }
 
-const MEMBER_STATE: Record<string, { label: string; tone: StatusTone }> = {
-  pending: { label: "Pending", tone: "warning" },
-  active: { label: "Active", tone: "success" },
-  revoked: { label: "Revoked", tone: "danger" },
+const MEMBER_TONE: Record<string, StatusTone> = {
+  pending: "warning",
+  active: "success",
+  revoked: "danger",
 };
 
 /**
@@ -319,15 +319,14 @@ function RostersPanel({
   locale: Locale;
   tiers: Record<string, BadgeTier>;
 }) {
-  const title = "Firm rosters";
+  const c = getDictionary(locale).admin.supply;
+  const memberWord: Record<string, string> = c.memberState;
+  const title = c.rostersTitle;
   const day = (iso: string) => formatDate(new Date(iso), locale, { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" });
   if (!rosters) {
     return (
       <Panel title={title}>
-        <Waiting
-          title="Firm rosters could not be read"
-          body="Who works at each firm, pending, active and revoked. The read did not answer just now; reload in a moment."
-        />
+        <Waiting title={c.rostersUnreadTitle} body={c.rostersUnreadBody} />
       </Panel>
     );
   }
@@ -335,75 +334,77 @@ function RostersPanel({
   return (
     <Panel
       title={title}
-      hint={`${rosters.total} ${rosters.total === 1 ? "membership" : "memberships"} across ${rosters.firms.length} ${rosters.firms.length === 1 ? "firm" : "firms"}${
-        !examples && rosters.examplesExcluded > 0 ? `, ${rosters.examplesExcluded} at example firms left out` : ""
-      }`}
+      hint={`${fill(c.rostersHint, {
+        memberships: plural(rosters.total, c.memberships, locale),
+        firms: plural(rosters.firms.length, c.firms, locale),
+      })}${!examples && rosters.examplesExcluded > 0 ? fill(c.rostersExcluded, { count: rosters.examplesExcluded }) : ""}`}
     >
       <StatusBar
-        label="Firm memberships by state"
+        locale={locale}
+        label={c.membershipsByState}
         segments={[
-          { key: "pending", label: "Pending", count: b.pending, tone: "pending" },
-          { key: "active", label: "Active", count: b.active, tone: "good" },
-          { key: "revoked", label: "Revoked", count: b.revoked, tone: "bad" },
+          { key: "pending", label: c.memberState.pending, count: b.pending, tone: "pending" },
+          { key: "active", label: c.memberState.active, count: b.active, tone: "good" },
+          { key: "revoked", label: c.memberState.revoked, count: b.revoked, tone: "bad" },
         ]}
       />
       {rosters.firms.length === 0 ? (
         <table className="nf-md-table mt-md">
-          <caption className="sr-only">Firm rosters</caption>
+          <caption className="sr-only">{c.rostersTitle}</caption>
           <thead>
             <tr>
-              <th scope="col">Agent</th>
-              <th scope="col">Role</th>
-              <th scope="col">State</th>
-              <th scope="col">Since</th>
+              <th scope="col">{c.agent}</th>
+              <th scope="col">{c.role}</th>
+              <th scope="col">{c.state}</th>
+              <th scope="col">{c.since}</th>
             </tr>
           </thead>
           <tbody>
             <TableNote
               columns={4}
               note={{
-                title: `No firm has a roster yet${!examples && rosters.examplesExcluded > 0 ? " outside the examples" : ""}`,
-                fills: "Every firm's members under its name: pending, active and revoked, the principal first, with the day each was admitted or revoked.",
-                creates: "A firm's principal, or platform staff, admits an agent to a firm; each admission and revocation is written to the audit log.",
-                action: { href: "/admin/businesses", label: "Open business review" },
+                title: !examples && rosters.examplesExcluded > 0 ? c.noRosterOutside : c.noRoster,
+                fills: c.rosterFills,
+                creates: c.rosterCreates,
+                action: { href: "/admin/businesses", label: c.openBusinessReview },
               }}
             />
           </tbody>
         </table>
       ) : (
         rosters.firms.map((firm) => (
-          <section key={firm.firmId} className="nf-md-roster mt-md" aria-label={firm.firmName ?? "A firm"}>
+          <section key={firm.firmId} className="nf-md-roster mt-md" aria-label={firm.firmName ?? c.aFirm}>
             <div className="nf-md-roster__head">
-              <h4 className="nf-md-roster__name">{firm.firmName ?? "A firm with no name on record"}</h4>
+              <h4 className="nf-md-roster__name">{firm.firmName ?? c.firmNoName}</h4>
               <span className="nf-md-roster__counts">
-                {firm.counts.pending} pending · {firm.counts.active} active · {firm.counts.revoked} revoked
+                {fill(c.firmCounts, { pending: firm.counts.pending, active: firm.counts.active, revoked: firm.counts.revoked })}
               </span>
             </div>
             <table className="nf-md-table">
-              <caption className="sr-only">Members of {firm.firmName ?? "this firm"}</caption>
+              <caption className="sr-only">{fill(c.membersOf, { firm: firm.firmName ?? c.thisFirm })}</caption>
               <thead>
                 <tr>
-                  <th scope="col">Agent</th>
-                  <th scope="col">Role</th>
-                  <th scope="col">State</th>
-                  <th scope="col">Since</th>
+                  <th scope="col">{c.agent}</th>
+                  <th scope="col">{c.role}</th>
+                  <th scope="col">{c.state}</th>
+                  <th scope="col">{c.since}</th>
                 </tr>
               </thead>
               <tbody>
                 {firm.members.map((m) => (
                   <tr key={m.id}>
-                    <td data-label="Agent">
-                      {m.agentName ?? "No display name"}
+                    <td data-label={c.agent}>
+                      {m.agentName ?? getDictionary(locale).admin.money.noDisplayName}
                       {m.userId ? <BadgeSlot tier={tiers[m.userId]} /> : null}
                     </td>
-                    <td data-label="Role">{m.role === "principal" ? "Principal" : m.role === "staff" ? "Staff" : m.role}</td>
-                    <td data-label="State">
-                      <StatusPill tone={MEMBER_STATE[m.status]?.tone ?? "neutral"}>
-                        {MEMBER_STATE[m.status]?.label ?? m.status}
+                    <td data-label={c.role}>{m.role === "principal" ? c.principal : m.role === "staff" ? c.staff : m.role}</td>
+                    <td data-label={c.state}>
+                      <StatusPill tone={MEMBER_TONE[m.status] ?? "neutral"}>
+                        {memberWord[m.status] ?? m.status}
                       </StatusPill>
                     </td>
-                    <td className="nf-md-date" data-label="Since">
-                      {m.status === "revoked" && m.revokedAt ? `Revoked ${day(m.revokedAt)}` : `Admitted ${day(m.admittedAt)}`}
+                    <td className="nf-md-date" data-label={c.since}>
+                      {m.status === "revoked" && m.revokedAt ? fill(c.revokedOn, { day: day(m.revokedAt) }) : fill(c.admittedOn, { day: day(m.admittedAt) })}
                       {m.status === "revoked" && m.revokeNote ? <span className="nf-md-ref">{m.revokeNote}</span> : null}
                     </td>
                   </tr>
@@ -418,6 +419,9 @@ function RostersPanel({
 }
 
 function GrowthPanel({ supply, locale, now }: { supply: SupplyConsole | null; locale: Locale; now: number }) {
+  const t = getDictionary(locale);
+  const c = t.admin.supply;
+  const ROLE_LABEL = roleLabels(t);
   const series: Series[] = SUPPLY_ROLE_KEYS.map((role, rank) => ({
     name: ROLE_LABEL[role].many,
     values: supply ? supply.growth.map((g) => g.counts[role]) : [],
@@ -435,41 +439,39 @@ function GrowthPanel({ supply, locale, now }: { supply: SupplyConsole | null; lo
 
   if (!supply) {
     return (
-      <Panel title="Supply growth by role" aside={legend}>
-        <Waiting
-          title="Supply could not be read"
-          body="How many owners, agents, firms and hosts the platform has had at the end of each of the last six months. The read did not answer just now."
-        />
+      <Panel title={c.growthTitle} aside={legend}>
+        <Waiting title={c.unreadTitle} body={c.growthUnreadBody} />
       </Panel>
     );
   }
   if (supply.growth.length < 2) {
     return (
-      <Panel title="Supply growth by role" aside={legend}>
+      <Panel title={c.growthTitle} aside={legend}>
         <EmptyChart
           height={220}
           yLabels={["0", "", "", "", ""]}
           xLabels={lastMonths(now, 6).map((m) => label(m))}
           note={{
-            title: "No supply to chart yet",
-            fills: "How many owners, agents, firms and hosts the platform has had at the end of each of the last six months.",
-            creates: "Each approved application adds an account to its role's line.",
-            action: { href: "/admin/agents", label: "Open agent applications" },
+            title: c.growthNoneTitle,
+            fills: c.growthFills,
+            creates: c.growthCreates,
+            action: { href: "/admin/agents", label: c.openApplications },
           }}
         />
       </Panel>
     );
   }
   return (
-    <Panel title="Supply growth by role" aside={legend}>
+    <Panel title={c.growthTitle} aside={legend}>
       <SeriesChart
+        locale={locale}
         id="supply-growth"
         xLabels={supply.growth.map((g) => label(g.month))}
         series={series}
         directLabels
         width={380}
         height={300}
-        label="Accounts in each supply role at the end of each month"
+        label={c.growthLabel}
         yLabel={(v) => String(Math.round(v))}
         readout={supply.growth.map((g) => ({
           title: label(g.month, true),
@@ -480,21 +482,21 @@ function GrowthPanel({ supply, locale, now }: { supply: SupplyConsole | null; lo
   );
 }
 
-function SupplyHead() {
+function SupplyHead({ c }: { c: Dictionary["admin"]["supply"] }) {
   return (
     <thead>
       <tr>
-        <th scope="col">Name</th>
-        <th scope="col">Role</th>
+        <th scope="col">{c.name}</th>
+        <th scope="col">{c.role}</th>
         <th scope="col" className="nf-md-num">
-          Listings
+          {c.listings}
         </th>
-        <th scope="col">Verified</th>
+        <th scope="col">{c.verified}</th>
         <th scope="col" className="nf-md-num">
-          Total transacted
+          {c.transacted}
         </th>
         <th scope="col" className="nf-md-num">
-          Joined
+          {c.joined}
         </th>
       </tr>
     </thead>

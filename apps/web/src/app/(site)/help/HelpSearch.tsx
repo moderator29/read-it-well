@@ -73,7 +73,7 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
                 {visible
                   .filter((f) => f.category === cat)
                   .map((f) => (
-                    <details key={f.q} className="nf-card group p-0">
+                    <details key={f.q} className="nf-panel nf-panel--card group block p-0">
                       <summary className="flex cursor-pointer list-none items-center justify-between gap-row p-card-sm font-semibold leading-snug [&::-webkit-details-marker]:hidden">
                         {f.q}
                         <UiIcon
@@ -92,7 +92,7 @@ export function HelpSearch({ faqs }: { faqs: Faq[] }) {
           ))}
         </div>
       ) : (
-        <div className="nf-card mt-heading p-card text-center-lg">
+        <div className="nf-panel nf-panel--card block mt-heading p-card text-center-lg">
           <h2 className="nf-h3">Nothing matches that yet</h2>
           <p className="mx-auto mt-inline max-w-[46ch] text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
             Try a shorter word, or ask us directly. A person reads every message.

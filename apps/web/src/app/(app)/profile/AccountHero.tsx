@@ -13,6 +13,7 @@ import { COVER_MAX_BYTES, COVER_MAX_EDGE } from "@/lib/social/profiles-schema";
 import { createClient } from "@/lib/supabase/client";
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import { RemoteImage } from "@/components/ui/RemoteImage";
+import { ButtonLink } from "@/components/ui/Button";
 import { accountCopy, type BadgeTier } from "./belongings";
 import { BadgeSlot } from "./BadgeSlot";
 
@@ -311,9 +312,15 @@ export function AccountHero({
 
       {!identity && (
         <div className="nf-pf-claim">
-          <Link href="/u/me/edit" className="nf-pf-litbtn" data-testid="profile-claim-handle">
+          <ButtonLink
+            href="/u/me/edit"
+            variant="primary"
+            size="lg"
+            full
+            data-testid="profile-claim-handle"
+          >
             {COPY.claimHandle}
-          </Link>
+          </ButtonLink>
           <p className="nf-pf-claim__note">{COPY.claimHandleNote}</p>
         </div>
       )}

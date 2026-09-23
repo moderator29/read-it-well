@@ -98,7 +98,7 @@ export function ShelfCount({
                 </li>
               );
             })}
-            <li className="mt-2xs border-t border-[var(--nf-divider)] pt-2xs">
+            <li className="mt-2xs border-t border-[var(--nf-panel-hair)] pt-2xs">
               <ViewToggle current={query.view} hrefFor={(view) => toShelfViewHref(query, view)} />
             </li>
           </ul>

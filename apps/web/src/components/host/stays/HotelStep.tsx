@@ -95,7 +95,7 @@ export function HotelStep({
       <StaysPlate label="Hotel name" htmlFor="stays-hotel-name">
         <input
           id="stays-hotel-name"
-          className="nf-stays-input"
+          className="nf-field nf-field--glass nf-stays-input"
           value={name}
           autoComplete="organization"
           onChange={(event) => setName(event.target.value)}
@@ -105,7 +105,7 @@ export function HotelStep({
       <StaysPlate label="RC number" htmlFor="stays-hotel-rc">
         <input
           id="stays-hotel-rc"
-          className="nf-stays-input"
+          className="nf-field nf-field--glass nf-stays-input"
           value={draft.cacNumber}
           inputMode="text"
           aria-invalid={fieldErrors.cacNumber ? true : undefined}

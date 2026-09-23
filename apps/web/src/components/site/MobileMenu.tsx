@@ -123,7 +123,7 @@ export function MobileMenu({
                 corners here, which is the same job done by the surface instead
                 of by the row.
               */}
-              <ul className="nf-card nf-group nf-rows">
+              <ul className="nf-panel nf-panel--card nf-group nf-rows">
                 {[
                   ...links,
                   { href: "/sign-in", label: signIn },
@@ -163,7 +163,7 @@ export function MobileMenu({
                 and keeps its label outside, the same shape as the group above.
               */}
               <span className="nf-group-label">Display</span>
-              <div className="nf-card flex items-center gap-inline px-group py-row">
+              <div className="nf-panel nf-panel--card flex flex-row items-center gap-inline px-group py-row">
                 <LanguageSwitcher current={locale} label={languageLabel} compact />
               </div>
 

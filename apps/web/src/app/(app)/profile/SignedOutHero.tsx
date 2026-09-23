@@ -3,7 +3,8 @@
 import "./profile.css";
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { Panel } from "@/components/ui/Panel";
+import { ButtonLink } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RowButton, RowValue, SettingsGroup, Sheet } from "@/components/app/account/rows";
 import {
@@ -97,7 +98,7 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
         </p>
       )}
 
-      <div className="nf-pf-note">
+      <Panel className="nf-pf-note">
         <h2 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
           {unconfigured
             ? "We cannot reach your account right now"
@@ -109,11 +110,11 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
             : "Sign in and this page shows what you have actually booked, saved and reviewed, on every device you use, along with a handle, a cover and somewhere for what you write to live."}
         </p>
         {!unconfigured && (
-          <Link href="/sign-in" className="nf-pf-litbtn mt-md">
+          <ButtonLink href="/sign-in" variant="primary" size="lg" full className="mt-md">
             Sign in
-          </Link>
+          </ButtonLink>
         )}
-      </div>
+      </Panel>
 
       {/*
        * The name and the email held on this device.

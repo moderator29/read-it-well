@@ -55,7 +55,7 @@ export function StoryRing({
                 </span>
               )}
               <span className="nf-story-ring__plus" aria-hidden="true">
-                <UiIcon name="plus" size={16} />
+                <UiIcon name="plus" size={12} />
               </span>
             </span>
             <span className="nf-story-ring__name">{yourStoryLabel}</span>

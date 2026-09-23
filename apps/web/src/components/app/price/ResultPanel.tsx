@@ -255,7 +255,7 @@ export function ComparablesRail({
         {comparables.map((comparable) => {
           const months = Math.round(comparable.ageDays / 30);
           return (
-            <article key={comparable.id} className="nf-card p-card-sm">
+            <article key={comparable.id} className="nf-panel nf-panel--card p-card-sm">
               <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]">
                 <Amount minorUnits={comparable.priceMinor} locale={locale} glance />
               </p>

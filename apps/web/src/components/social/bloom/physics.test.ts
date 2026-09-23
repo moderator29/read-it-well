@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  BLOOM_FAN_SHIFT_X,
   BLOOM_ITEM,
+  BLOOM_MEASURED,
+  BLOOM_PLUS,
   BLOOM_SPRING,
   bloomSlot,
+  bloomTrail,
   bloomTransform,
   isSettled,
   stepSpring,
@@ -52,38 +56,68 @@ describe("the bloom spring", () => {
 });
 
 describe("the bloom geometry", () => {
-  it("fans up and to the left, further out for each lozenge", () => {
+  it("is the founder's image, measured: centres and tilts as drawn, moved as one", () => {
+    /* Centres in CSS px from the plus, tilts in degrees, off
+       feed-plus-bloom-target.jpg at 0.5865 CSS px per image px. */
+    const drawn = [
+      { x: -0.7, y: -50.0, rotate: -13 },
+      { x: -30.4, y: -84.0, rotate: -17 },
+      { x: -63.5, y: -114.8, rotate: -20 },
+    ];
+    expect(BLOOM_MEASURED).toEqual(drawn);
+    for (let i = 0; i < 3; i += 1) {
+      const slot = bloomSlot(i);
+      expect(slot.x).toBeCloseTo(drawn[i]!.x + BLOOM_FAN_SHIFT_X, 1);
+      expect(slot.y).toBe(drawn[i]!.y);
+      expect(slot.rotate).toBe(drawn[i]!.rotate);
+    }
+    /* Spacing along the arc is the render's, because the shift is uniform. */
+    const gap = (a: number, b: number) =>
+      Math.hypot(bloomSlot(b).x - bloomSlot(a).x, bloomSlot(b).y - bloomSlot(a).y);
+    expect(gap(0, 1)).toBeCloseTo(Math.hypot(29.7, 34.0), 1);
+    expect(gap(1, 2)).toBeCloseTo(Math.hypot(33.1, 30.8), 1);
+  });
+
+  it("fans up and to the left, each plate tilted more than the one nearer the thumb", () => {
     const [a, b, c] = [bloomSlot(0), bloomSlot(1), bloomSlot(2)];
-    expect(a.x).toBeLessThan(0);
-    expect(a.y).toBeLessThan(0);
     expect(b.x).toBeLessThan(a.x);
     expect(c.x).toBeLessThan(b.x);
     expect(b.y).toBeLessThan(a.y);
     expect(c.y).toBeLessThan(b.y);
-    /* Each tilts a little more than the one before, never the other way. */
     expect(a.rotate).toBeLessThan(0);
     expect(b.rotate).toBeLessThan(a.rotate);
     expect(c.rotate).toBeLessThan(b.rotate);
   });
 
-  it("fits inside a 390px phone with the plus at the corner", () => {
-    /* The plus centre sits 46px in from the right edge (a 1rem inset and a
-       60px circle), so both edges of every slot must stay on the screen even
-       at the spring's overshoot. */
-    const plusX = 390 - 46;
-    const half = BLOOM_ITEM.width / 2;
+  it("keeps every plate's centre and label on a 390px phone, as drawn", () => {
+    /* The image runs Review's rounded end past the screen; its label and the
+       whole of Story and Post stay on it. The label spans the middle 60px. */
+    const plusX = 390 - BLOOM_PLUS.inset - BLOOM_PLUS.size / 2;
+    expect(390 - plusX).toBeCloseTo(30, 0);
     for (let i = 0; i < 3; i += 1) {
       const slot = bloomSlot(i);
-      expect(plusX + slot.x * 1.08 - half).toBeGreaterThan(8);
-      expect(plusX + slot.x + half).toBeLessThan(390 - 2);
+      const rad = (Math.abs(slot.rotate) * Math.PI) / 180;
+      const labelReach = 30 * Math.cos(rad);
+      expect(plusX + slot.x + labelReach).toBeLessThan(390);
+      expect(plusX + slot.x - (BLOOM_ITEM.width / 2) * Math.cos(rad)).toBeGreaterThan(8);
     }
   });
 
-  it("clears the plus itself, nearest lozenge first", () => {
-    /* The plus is a 60px circle; the nearest lozenge must sit above its rim
-       rather than on it, or the fan reads as a stack. */
+  it("sits the nearest plate on the plus's rim, not inside it", () => {
+    /* The render seats Review's lower edge on the top of the plus. */
     const nearest = bloomSlot(0);
-    expect(nearest.y + BLOOM_ITEM.height / 2).toBeLessThan(-30);
+    expect(nearest.y + BLOOM_ITEM.height / 2).toBeLessThanOrEqual(-BLOOM_PLUS.size / 2 + 2);
+  });
+
+  it("draws a trail from each plate's trailing end into the plus", () => {
+    for (let i = 0; i < 3; i += 1) {
+      const d = bloomTrail(bloomSlot(i));
+      const [sx, sy] = d.slice(1).split(" ").map(Number) as [number, number];
+      /* It starts left of and below the plate's centre, and ends on the plus. */
+      expect(sx).toBeLessThan(bloomSlot(i).x);
+      expect(sy).toBeGreaterThan(bloomSlot(i).y);
+      expect(d.endsWith(`${(-BLOOM_PLUS.size / 2 + 4).toFixed(1)} 6.0`)).toBe(true);
+    }
   });
 
   it("collapses onto the plus at progress zero", () => {

@@ -43,7 +43,7 @@ export default function LoadingAround() {
 
       <div className="flex flex-col gap-[var(--nf-feed-gap)]" aria-hidden="true">
         {[0, 1, 2].map((card) => (
-          <div key={card} className="nf-card nf-post p-md">
+          <div key={card} className="nf-panel nf-panel--card nf-post p-md">
             <div className="flex items-center gap-sm">
               <Skeleton circle width="2.5rem" />
               <div className="min-w-0 flex-1 space-y-xs">

@@ -416,9 +416,11 @@ describe("where the hardware button sends a person who is not at a root", () => 
   it("takes no proof from a browser with no Navigation API", () => {
     const blind: NavigationLike = {};
     expect(previousEntryPath(blind)).toBeNull();
+    /* `/search` declares the landing page as its parent since the founder's
+       C3.2 answer (23 September), so the declared parent here is "/". */
     expect(androidDecision("/search", previousEntryPath(blind))).toEqual({
       action: "push",
-      href: "/home",
+      href: "/",
       reason: "declared-parent",
     });
   });

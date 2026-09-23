@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { panelClass } from "@/components/ui/Panel";
 
 /**
  * The location chip, to the feed render's header bar (GOVERNING-feed-plus-bloom):
@@ -31,7 +32,7 @@ export function CityRow({
       aria-label={
         isOwn ? `Your city is ${shown}. Change it.` : `Choose the city you explore from.`
       }
-      className="nf-glass nf-glass--tile nf-home__loc nf-tap mt-md"
+      className={panelClass({ variant: "card", className: "nf-home__loc nf-tap mt-md" })}
     >
       <UiIcon name="location" size={20} className="nf-home__loc-pin" />
       <span className="nf-home__loc-name">

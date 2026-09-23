@@ -34,7 +34,7 @@ function GroupSkeleton({ rows }: { rows: number }) {
   return (
     <section>
       <Skeleton width="7rem" height="0.90625rem" radius="sm" />
-      <div className="nf-card mt-heading px-lg sm:px-xl">
+      <div className="nf-panel nf-panel--card block mt-heading px-lg sm:px-xl">
         {Array.from({ length: rows }, (_, i) => (
           <div key={i} className="flex items-center gap-row py-row">
             <Skeleton width="1.5rem" height="1.5rem" radius="sm" className="shrink-0" />

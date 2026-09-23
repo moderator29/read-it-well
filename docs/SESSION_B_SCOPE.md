@@ -148,6 +148,21 @@ Each group appends "RELEASED <commit>" here when it is done.
     `components/social/feed/**`, `components/social/bloom/**`,
     `components/social/story/**`, `app/social.css`, `app/social-feed.css`
     and the feed route.
+    Worker "feed" adds: the feed route as `app/(app)/around/page.tsx` and
+    `app/(app)/around/feed-actions.ts` (the badge stamp on page one and on
+    every next page, and the page's gutter class), and in
+    `app/(app)/around/[slug]/page.tsx` ONLY the same stamp on a place's
+    first page; new
+    `apps/web/src/lib/social/author-badges.ts` and its test (reads
+    `public.person_badge` through Session A's `readPersonBadges`; nothing
+    derived); new `components/social/feed/LineGlyph.tsx` (inside the claim);
+    the fixture harness `apps/web/src/app/(dev)/preview/session-b/feed/**`,
+    the shot script `scripts/design/session-b-shots/feed.mjs` and the proofs
+    `docs/design/proofs/session-b/feed/**`. NOT claimed although drawn on the
+    feed: `components/social/AroundFab.tsx` (read only; it renders
+    `CreateBloom` and needs nothing), `design-system/icons/UiIcon.tsx`
+    (FEED-1), the app header, the dock and the canvas token (chrome,
+    FEED-2).
   - profile, edit profile, messages and the three thread faces:
     `components/social/profile/**`, `threads.css`, `components/messages/**`.
     Worker "sweep-social" adds (new): the fixture harness
@@ -196,11 +211,36 @@ Each group appends "RELEASED <commit>" here when it is done.
     panel, the sheet; settings group), `catalogue.css` (`.nf-lw-*` on
     `/agent/list`; home group), `stays.css` (`.nf-stays-*` in the drawn host
     steps; stays group), `admin.css` charts and meters, `inspection.css`.
-    **SW-C1 (to the lead):** `components/app/flip/SideSwitch.tsx` and
+    **SW-C1 (to the lead):** `components/app/SideSwitch.tsx` and
     `app/css/side-flip.css`, the Flip card at the foot of the drawer
     (`BCD39CA8`), are claimed by no group. This group asks for them.
+    SW-ST2 (the stays set-up fields) was done here at the lead's instruction,
+    so `app/css/stays.css` (the field rules only) is touched by this group.
+    **Group RELEASED d07b59a3 + 5b2f2320** (23 September):
+    44 of 49 routes swept; not closed: the five chrome rows (the drawer panel,
+    Flip card and switch sheet are other files, SW-C1 and SW-C2; the dock and
+    header left by ruling). Requests SW-C1 to SW-C6 in ledger 13 (chrome).
   - already Session B's: wallet family, inspections, auth, admin, welcome.
     **auth: RELEASED** (see ledger 13.A; remainder filed as SW-A1).
+  - **the leftovers no group owns (worker "leftovers", claimed 23 September
+    by the lead's instruction):** SW-C5, SW-C6, SW-C1 and the app header.
+    Files: `apps/web/src/app/css/glass.css` (ONLY `.nf-card` and its
+    interactive hover, re-pointed at the panel tokens, and the panel's hover
+    state), `apps/web/src/components/app/Screen.tsx` (`RowList boxed` and
+    `Surface` onto the panel), `apps/web/src/app/css/agent.css` and
+    `apps/web/src/app/css/chips.css` (ONLY the two bridge rules SW-C5 names,
+    and in chips.css the `.nf-badge` family moving onto the shared badge),
+    `apps/web/src/components/app/SideSwitch.tsx`, `apps/web/src/app/css/side-flip.css`
+    (ONLY the Flip card, `.nf-side-switch*`), `packages/design-tokens/src/tokens.css`
+    (ONLY one new token pair in the glow block, the bar's lit bottom edge),
+    `apps/web/src/app/css/chrome.css` (ONLY `.nf-app-header`; the dock, its
+    switch and the dock island are NOT touched, founder ruling),
+    `apps/web/src/components/ui/StatusPill.tsx` and a new
+    `apps/web/src/components/ui/StatusBadge.tsx` with its test, and the call
+    sites of local status badges in files of released groups. Proofs under
+    `docs/design/proofs/session-b/sweep-leftovers/**`. NOT touched:
+    `components/trust/TierBadge.tsx`, `trust-badge.css` (Session A's verified
+    badge), the files of groups not yet released (home, feed).
 
 ### Sweep group: home, search and filters, listing detail (worker "sweep-home")
 Routes: `/home`, `/stays` (the home components only; `StayCard` is the stays
@@ -220,6 +260,16 @@ The notifications block in `home.css` (`.nf-notif*`) is the settings group's
 and is left alone. New (the fixture and live-row harness, committed):
 `apps/web/src/app/(dev)/preview/session-b/sweep-home/**`, and its proofs in
 `docs/design/proofs/session-b/sweep-home/**`.
+Added on the founder's answers (23 September, through the lead): C3.2, the
+back control on `/search` and `/around` goes to the landing page:
+`apps/web/src/lib/nav/route-parents.ts` (ONLY those two entries),
+`apps/web/src/lib/nav/resolve.test.ts` (ONLY the new case),
+`apps/web/src/lib/native/back-button.test.ts` (ONLY the `/search` expectation
+that follows from it),
+`app/(app)/around/page.tsx` (ONLY its `BackButton` fallback). C3.3, the
+lister line on the listing card: `components/app/ListingCard.tsx` (already
+claimed) mounting the existing `ListerRoleLine`.
+**Home group RELEASED cfc7fad4** (the sweep, three dated passes, C3.3) and b2a1ef5f (C3.2). Routes swept 8 / 8. Requests R-SH1 to R-SH4 in ledger 13.H.4 and 13.H.6.
 
 ### Sweep group: stays, stay detail, trips, restaurants, checkout, held payments (worker "sweep-stays")
 Files as listed under Phase 2 above, plus (claimed 23 September, unclaimed by
@@ -228,7 +278,10 @@ any group and drawn entirely by `escrow.css`):
 and `.nf-field`. Request ids are `SW-ST*` (the social group uses `SW-S1`).
 - **SW-ST1: closed by this group** (was addressed to the messages group): the
   thread proposal is swept here and the held block in `escrow.css` is gone.
-- **SW-ST2 (to the host wizard group):** the stays set-up inputs and selects
+- **SW-ST2: closed by the chrome group** (was addressed to the host wizard
+  group, this one): the sixteen call sites draw `nf-field nf-field--glass`,
+  and `stays.css` keeps only the rhythm, the chevron and the inline width.
+  Original request: the stays set-up inputs and selects
   (`.nf-stays-input`, `.nf-stays-select` in `components/host/stays/**`) are
   still a local field well. Add the shared `nf-field` class at those call
   sites; `stays.css` then keeps only the select's chevron and the inline
@@ -677,6 +730,9 @@ refused render element is recorded in `docs/BUILD_SESSION_B_LEDGER.md`.
    drafts awaiting a native speaker).
 1c. **WITHDRAWN.** `tests/profile.spec.mjs` is this surface's spec; Session B
    changed its two `.nf-social-cover` selectors to `.nf-pf-cover` itself.
+1e. **EMAIL-LOCK:** Session B removed the email change affordance in fefc0b4f; Session A to refuse any email change server-side (profile save action and auth updateUser path) with a test.
+1f. **SW-P1 (to the shared worker):** the add-a-workspace chooser at `/profile/setup` draws `.nf-door`, `.nf-door__mark` and `.nf-calmpanel` from `controls.css` (the shared layer's file) on the older edge tokens. Please repoint them onto `--nf-panel-*`, `--nf-plate-*` and `--nf-selected-*`; the chooser markup needs no change.
+- Worker "profile" claims for the sweep: `components/app/account/ProfileIdentityCard.tsx` (the founder's email-lock rule only), its test `profile-identity-card.test.ts`, and `apps/web/tests/session-b-profile-live.spec.mjs` (new).
 1d. **Profile, a page action in the app header.** On `/profile` the settings
    gear sits in the app header's row (left of the bell) so the band over the
    cover reads as one row, as `50E032EA` draws it. It is placed there by
@@ -1170,3 +1226,65 @@ ID2. **File the roles icon pack into the shared pack and use it on the
     drawing, so nothing duplicates the pack. Contact sheets:
     `docs/design/proofs/session-b/identity/roles-pack-dark.png` and
     `roles-pack-paper.png`. Reply in `docs/BUILD_07_LEDGER.md` section 49.
+
+### Requests from push (the push enrolment blind light, founder 23 September)
+
+Worker "push" owns `components/app/push/**` (with the new
+`device-state.ts`, `device-state.test.ts`, `enrol.test.ts`), the one-prop change
+in `app/(app)/settings/notifications/page.tsx` (it now hands `PushSetting` the
+live `device_ref`s instead of a count), the proof script
+`scripts/design/session-b-shots/push-blind-light.mjs` and its proofs under
+`docs/design/proofs/session-b/push/**`. Ledger: "Push enrolment blind light".
+
+- **PUSH-KEY. DONE BY SESSION A in `dab5a688` (16:13, 23 September); recorded
+  so the request and its evidence exist in one place.** Open `/api/push/key` to
+  signed-out requests in `proxy.ts`: it answers the PUBLIC VAPID key (its
+  variable is `NEXT_PUBLIC_VAPID_PUBLIC_KEY`), gating it adds a failure mode and
+  no security. Keep `/api/push/register`, `/api/push/revoke` and
+  `/api/push/self-test` signed-in only, with a test asserting both directions
+  (`proxy.test.ts` in that commit does). Verified live at 16:20: a curl with no
+  cookie to https://www.vallospaces.com/api/push/key now answers 200
+  `{"configured":true,...}`. The client handles either answer: a 401 or 403
+  from the key route or from register is reported as `signed_out`.
+
+### Requests from feed (the feed, stories and the plus bloom)
+
+- **FEED-1. Three line glyphs into `UiIcon`.** The founder's feed image draws
+  a pencil (Post), a camera (Story) and two people (Following) as plain line
+  icons, and `UiIcon` has none of them. They are drawn in
+  `components/social/feed/LineGlyph.tsx` on `UiIcon`'s own grid, caps, joins,
+  size scale and `UI_ICON_STROKE_PX`. Please add `pencil`, `camera` and
+  `people` to `UiIcon` (the paths can be lifted as they are); the feed then
+  switches its three call sites and deletes `LineGlyph.tsx`.
+- **FEED-2. The canvas under the feed (chrome, not the feed's).** The image's
+  canvas between the cards samples #010d3c, a lit navy; ours is
+  `--nf-surface-canvas` #000612. Everything the feed draws is matched against
+  the image on top of that difference. Whether the platform canvas lifts
+  (or the ambient layer under the social routes does) is a chrome and token
+  decision; recorded, not worked around.
+- **FEED-3. `PostView.author.tier` at the read (optional).** The feed route
+  stamps each author's tier from `public.person_badge` after the page is read
+  (`lib/social/author-badges.ts`), because Session B's claim on
+  `posts-queries.ts` is the deleted-post filter only. Any other surface that
+  renders `PostCard` (profile Posts tab, a thread) shows
+  no mark until it does the same. Folding `stampAuthorTiers` into the page
+  reads in `posts-queries.ts` would give every surface the mark at once;
+  that file's owner decides.
+
+- **FEED-4. `/around` is a dock destination with a declared parent.** The
+  founder's image has no back control beside the location bar; ours draws
+  one because `lib/nav/route-parents.ts` declares `"/around": "/home"`, and
+  the nav law puts a back control on every screen with a parent. `/around`
+  is one of the dock's five destinations (Feed), like `/home`. If the nav
+  owner makes `/around` a `ROOT` as the other dock tabs are, the feed drops
+  its `BackButton` and the bar takes the image's full 359px width. Until
+  then the bar is 359 less the control and its gap, recorded in ledger 13.
+- **FEED-5. The image's deeper lit blue has no layer-2 token.** The founder's
+  feed image lights the plus, the three plates, their trails and the haze
+  behind them in a blue a few degrees deeper than `--nf-brand-primary`
+  (#1557fa, #012dd4 sampled; `--nf-electric-450` #0042FD is the nearest
+  palette step, which stylesheets may not read). The feed derives it as
+  `oklch(from var(--nf-brand-primary) calc(l - 0.07) c calc(h + 7))`
+  (`--nf-feed-indigo`, with the brand blue as the fallback). A layer-2 token
+  for it (for instance `--nf-lit-deep`) in the reference anatomy block would
+  let the feed read it by name.

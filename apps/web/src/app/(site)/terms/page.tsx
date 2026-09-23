@@ -37,7 +37,7 @@ export default function TermsPage() {
       <div className="mx-auto max-w-3xl">
 
         {/* ---------------------------------------------------- document */}
-        <div className="nf-card nf-rise mt-block p-card-lg" style={{ animationDelay: "100ms" }}>
+        <div className="nf-panel nf-panel--card block nf-rise mt-block p-card-lg" style={{ animationDelay: "100ms" }}>
           <div className="space-y-block">
             {sections.map((s) => (
               <section key={s.title}>

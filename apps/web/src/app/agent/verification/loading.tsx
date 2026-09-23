@@ -12,7 +12,7 @@ export default function LoadingAgentVerification() {
       <AgentTitleSkeleton />
       <div className="space-y-sm">
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="nf-card p-md">
+          <div key={i} className="nf-panel nf-panel--card block p-md">
             <Skeleton width="45%" height="1.0625rem" radius="sm" />
             <Skeleton className="mt-sm" width="80%" height="0.875rem" radius="sm" />
             <Skeleton className="mt-xs" width="60%" height="0.875rem" radius="sm" />

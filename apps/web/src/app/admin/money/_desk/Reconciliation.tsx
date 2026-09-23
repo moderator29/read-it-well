@@ -1,3 +1,4 @@
+import { getDictionary, type Locale } from "@vallo/i18n";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { WATCHED_JOBS } from "@/lib/cron/freshness";
@@ -5,6 +6,7 @@ import type { ReconciliationHealth } from "@/lib/admin/reads/money-types";
 import { cleanShare, reconciliationVerdict, type ReconciliationVerdict } from "@/lib/admin/reads/money-derive";
 import { Ring } from "./charts";
 import { Panel, Waiting } from "./Desk";
+import { fill } from "../../_components/copy";
 
 /**
  * RECONCILIATION, READ FROM WHERE THE JOB ACTUALLY WRITES ITS HISTORY.
@@ -29,11 +31,11 @@ function maxGapHours(): number {
   return WATCHED_JOBS.find((job) => job.job === RECONCILE_JOB)?.maxGapHours ?? 3;
 }
 
-const VERDICT: Record<ReconciliationVerdict, { word: string; tone: "success" | "danger" | "warning" | "neutral" }> = {
-  healthy: { word: "Healthy", tone: "success" },
-  attention: { word: "Needs a person", tone: "danger" },
-  quiet: { word: "Gone quiet", tone: "danger" },
-  never: { word: "No runs recorded", tone: "neutral" },
+const VERDICT_TONE: Record<ReconciliationVerdict, "success" | "danger" | "warning" | "neutral"> = {
+  healthy: "success",
+  attention: "danger",
+  quiet: "danger",
+  never: "neutral",
 };
 
 export function ReconciliationPanel({
@@ -41,19 +43,24 @@ export function ReconciliationPanel({
   now,
   when,
   variant,
+  locale,
 }: {
   health: ReconciliationHealth | null;
   now: number;
   when: (iso: string | null) => string;
   variant: "ring" | "check";
+  /** The console's locale; English when omitted. */
+  locale?: Locale;
 }) {
-  const title = variant === "ring" ? "Reconciliation health" : "Reconciliation check";
+  const t = getDictionary(locale ?? "en");
+  const c = t.admin.money.reconciliation;
+  const title = variant === "ring" ? c.titleRing : c.titleCheck;
   if (!health) {
     return (
       <Panel title={title}>
         <Waiting
-          title="The reconciliation history could not be read"
-          body="This panel shows how many of the payment reconciliation runs came back clean and when the last clean one was. The audit log did not answer just now; nothing about the job itself is implied."
+          title={c.unreadTitle}
+          body={c.unreadBody}
         />
       </Panel>
     );
@@ -61,13 +68,16 @@ export function ReconciliationPanel({
 
   const verdict = reconciliationVerdict(health, now, maxGapHours());
   const share = cleanShare(health);
-  const badge = VERDICT[verdict];
+  const badge = {
+    word: verdict === "healthy" ? t.admin.shell.operations.healthy : c[verdict],
+    tone: VERDICT_TONE[verdict],
+  };
   const scope =
     health.runs === 0
-      ? "The job has not recorded a run yet."
+      ? c.noRunYet
       : health.pageOnly
-        ? `Clean in ${health.clean} of the last ${health.runs} recorded runs.`
-        : `Clean in ${health.clean} of ${health.runs} runs in the last ${health.windowDays} days.`;
+        ? fill(c.cleanOfLast, { clean: health.clean, runs: health.runs })
+        : fill(c.cleanInDays, { clean: health.clean, runs: health.runs, days: health.windowDays });
 
   if (variant === "check") {
     const plate = verdict === "healthy" ? "" : verdict === "never" ? "nf-md-check--quiet" : "nf-md-check--bad";
@@ -81,7 +91,7 @@ export function ReconciliationPanel({
             {badge.word}
           </StatusPill>
           <p className="mt-xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
-            Last run: {when(health.lastRunAt)}
+            {fill(c.lastRunColon, { when: when(health.lastRunAt) })}
           </p>
           <p className="nf-md-panel__foot">{scope}</p>
         </div>
@@ -95,11 +105,12 @@ export function ReconciliationPanel({
         <Ring
           percent={share}
           tone={verdict === "healthy" ? "good" : verdict === "never" ? "quiet" : "bad"}
-          label={share === null ? "No runs recorded" : `${share} per cent of recorded runs clean`}
+          label={share === null ? c.never : fill(c.sharePerCent, { share })}
+          locale={locale}
         />
         <div className="min-w-0">
-          <p className="nf-md-ring__label">Last clean run</p>
-          <p className="nf-md-ring__when">{health.lastCleanAt ? when(health.lastCleanAt) : "None recorded"}</p>
+          <p className="nf-md-ring__label">{c.lastClean}</p>
+          <p className="nf-md-ring__when">{health.lastCleanAt ? when(health.lastCleanAt) : c.noneRecorded}</p>
           <div className="mt-xs">
             <StatusPill tone={badge.tone} size="sm">
               {badge.word}
@@ -108,7 +119,7 @@ export function ReconciliationPanel({
         </div>
       </div>
       <p className="nf-md-panel__foot">
-        {scope} Last run {when(health.lastRunAt)}.
+        {scope} {fill(c.lastRunSentence, { when: when(health.lastRunAt) })}
       </p>
     </Panel>
   );

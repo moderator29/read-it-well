@@ -502,7 +502,7 @@ export function Feed({
       {notice ? (
         <p
           role="status"
-          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-brand)] bg-[var(--nf-surface-inset)] px-md py-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
+          className="nf-panel nf-panel--card px-md py-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
         >
           {notice}
         </p>

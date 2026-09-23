@@ -1,14 +1,13 @@
 import Link from "next/link";
 import { LiveRefresh } from "../_components/LiveRefresh";
 import { Fragment } from "react";
-import { formatDate, formatMoney, type Locale } from "@vallo/i18n";
+import { formatDate, formatMoney, getDictionary, plural, type Dictionary, type Locale } from "@vallo/i18n";
 import type { EscrowView } from "@/lib/admin/money-queries";
 import type { EscrowDesk as EscrowDeskData, EvidenceItem, FloatHistory } from "@/lib/admin/reads/escrow";
-import { ESCROW_STATE_WORDS } from "@/components/app/untranslated";
 import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { AdminUi } from "../_components/ui";
-import type { AdminCommon } from "../_components/copy";
+import { fill, type AdminCommon } from "../_components/copy";
 import {
   QueueFilters,
   queueNarrowed,
@@ -26,13 +25,6 @@ import { ReconciliationPanel } from "../money/_desk/Reconciliation";
 import { ESCROW_STATES, countdown, wholeDays } from "@/lib/admin/reads/money-derive";
 import type { EscrowEvent, EscrowState, ReconciliationHealth } from "@/lib/admin/reads/money-types";
 
-const PURPOSE_LABEL: Record<string, string> = {
-  rent_deposit: "Rent deposit",
-  first_rent: "First rent",
-  purchase_deposit: "Purchase deposit",
-  purchase_balance: "Purchase balance",
-  agency_fee: "Agency fee",
-};
 
 /*
  * A tone per state. "warning" (cyan, pending) for everything still running,
@@ -52,32 +44,20 @@ const STATE_TONE: Record<string, StatusTone> = {
   CANCELLED: "neutral",
 };
 
-/* Staged in `components/app/untranslated.ts`; the destination is
-   `t.admin.escrow.state.<VALUE>`. */
-/* The live schema has CANCELLED; the staged words and the generated types do
-   not yet, so it is named here rather than printed as the raw column. */
-const STATE_LABEL: Record<string, string> = { ...ESCROW_STATE_WORDS, CANCELLED: "Cancelled" };
+/* The state words live at `t.admin.escrow.state` (the destination the staged
+   block in `components/app/untranslated.ts` names). The live schema has
+   CANCELLED, which the desk words as the console's own `Cancelled`. */
+function stateLabels(t: Dictionary): Record<string, string> {
+  return { ...t.admin.escrow.state, CANCELLED: t.admin.common.status.CANCELLED };
+}
+
+/** A purpose in words, or the raw value when the live schema is ahead of the words. */
+function purposeLabel(t: Dictionary, purpose: string): string {
+  return (t.admin.escrow.purpose as Record<string, string>)[purpose] ?? purpose;
+}
 
 /** The six stages the render draws, in the order money moves through them. */
-export const STAGES: { state: EscrowState; label: string }[] = [
-  { state: "FUNDED", label: "Funded" },
-  { state: "HELD", label: "Held" },
-  { state: "RELEASE_REQUESTED", label: "Release requested" },
-  { state: "RELEASED", label: "Released" },
-  { state: "REFUNDED", label: "Refunded" },
-  { state: "DISPUTED", label: "Disputed" },
-];
-
-const EVENT_WORD: Record<EscrowEvent, string> = {
-  opened: "opened",
-  funded: "funded",
-  held: "held",
-  release_requested: "release requested",
-  released: "released",
-  refunded: "refunded",
-  disputed: "disputed",
-  resolved: "ruled on",
-};
+export const STAGES = ["FUNDED", "HELD", "RELEASE_REQUESTED", "RELEASED", "REFUNDED", "DISPUTED"] as const satisfies readonly EscrowState[];
 
 const EVENT_DOT: Record<EscrowEvent, string> = {
   opened: "",
@@ -90,10 +70,10 @@ const EVENT_DOT: Record<EscrowEvent, string> = {
   resolved: "nf-md-event__dot--good",
 };
 
-function statusFilters(): readonly QueueStatusOption[] {
+function statusFilters(labels: Record<string, string>): readonly QueueStatusOption[] {
   return ESCROW_STATES.map((value) => ({
     value,
-    label: STATE_LABEL[value] ?? value,
+    label: labels[value] ?? value,
   }));
 }
 
@@ -102,8 +82,9 @@ function shortId(id: string): string {
   return `ES-${id.slice(0, 8).toUpperCase()}`;
 }
 
-export function EscrowHead() {
-  return <DeskHead title="Escrow" lede="Secure transactions. Fair outcomes." />;
+export function EscrowHead({ locale = "en" }: { locale?: Locale } = {}) {
+  const t = getDictionary(locale);
+  return <DeskHead title={t.admin.shell.nav.escrow} lede={t.admin.escrow.lede} />;
 }
 
 /**
@@ -138,6 +119,9 @@ export function EscrowDesk({
   float: FloatHistory | null;
   now: number;
 }) {
+  const t = getDictionary(locale);
+  const c = t.admin.escrow;
+  const STATE_LABEL = stateLabels(t);
   const { pipeline, disputes, table } = desk;
   const status = query.status && STATE_LABEL[query.status] ? query.status : null;
   const narrowed = queueNarrowed(query);
@@ -152,10 +136,11 @@ export function EscrowDesk({
   return (
     <div className="nf-console nf-md nf-md--escrow">
       <LiveRefresh />
-      <EscrowHead />
+      <EscrowHead locale={locale} />
 
-      <nav className="nf-md-pipeline" aria-label="Escrows by state">
-        {STAGES.map((stage, i) => {
+      <nav className="nf-md-pipeline" aria-label={c.byState}>
+        {STAGES.map((state, i) => {
+          const stage = { state, label: c.stage[state] };
           const count = pipeline.byState[stage.state]?.count ?? 0;
           return (
             <Fragment key={stage.state}>
@@ -177,21 +162,19 @@ export function EscrowDesk({
         })}
       </nav>
       {!desk.complete && (
-        <p className="nf-md-panel__hint">
-          There are more escrows than this desk reads in one pass, so these counts are at least these numbers.
-        </p>
+        <p className="nf-md-panel__hint">{c.incomplete}</p>
       )}
 
       <QueueFilters
         base="/admin/escrow"
         query={query}
         common={common}
-        statuses={statusFilters()}
-        searchPlaceholder="Search by property"
+        statuses={statusFilters(STATE_LABEL)}
+        searchPlaceholder={common.searchPlaceholders.escrow}
       />
 
       {disputes.length > 0 && (
-        <Panel title="Waiting on a ruling" hint="Until somebody rules, neither person can have the money">
+        <Panel title={c.rulingTitle} hint={c.rulingHint}>
           <ul className="nf-md-stack">
             {disputes.map((escrow) => (
               <li key={escrow.id}>
@@ -211,8 +194,8 @@ export function EscrowDesk({
 
       <div className="nf-md-grid nf-md-grid--main">
         <Panel
-          title={status ? `Escrows: ${STATE_LABEL[status]}` : "Live escrows"}
-          hint={table.total > 0 ? `${table.total} ${table.total === 1 ? "escrow" : "escrows"}` : undefined}
+          title={status ? fill(c.tableInState, { state: STATE_LABEL[status] ?? status }) : c.tableTitle}
+          hint={table.total > 0 ? plural(table.total, c.count, locale) : undefined}
         >
           {table.rows.length === 0 ? (
             narrowed ? (
@@ -225,12 +208,9 @@ export function EscrowDesk({
                 locale={locale}
                 ui={ui}
                 empty={{
-                  title: "The platform is not holding anybody's money",
-                  fills: "Every escrow still running, with days held and the time left before it releases on its own.",
-                  creates:
-                    status
-                      ? "Escrows in this state appear here as they reach it."
-                      : "A tenant or buyer funding a rent deposit, first rent or purchase opens one.",
+                  title: c.noneTitle,
+                  fills: c.noneFills,
+                  creates: status ? c.noneCreatesState : c.noneCreates,
                 }}
               />
             )
@@ -243,66 +223,61 @@ export function EscrowDesk({
                 page={table.page}
                 total={table.total}
                 pageSize={table.pageSize}
-                noun="escrows"
+                noun={c.escrows}
+                locale={locale}
               />
             </>
           )}
         </Panel>
 
         <div className="nf-md-stack">
-          <Panel title="Float total">
+          <Panel title={c.floatTitle}>
             <p className="nf-md-figure">{formatMoney(desk.heldMinor, locale)}</p>
-            <p className="nf-md-panel__foot">
-              Held, awaiting release or disputed, across every escrow. {desk.openCount} still running.
-            </p>
+            <p className="nf-md-panel__foot">{fill(c.floatFoot, { count: desk.openCount })}</p>
           </Panel>
-          <ReconciliationPanel health={health} now={now} when={ui.when} variant="check" />
+          <ReconciliationPanel health={health} now={now} when={ui.when} variant="check" locale={locale} />
         </div>
       </div>
 
       <FloatHistoryPanel float={float} locale={locale} ui={ui} />
 
       <div className="nf-md-grid nf-md-grid--halves">
-        <Panel title="Escrow by purpose">
+        <Panel title={c.byPurposeTitle}>
           {pipeline.total === 0 ? (
             <Framed
               frame={
                 <Donut
-                  label="Escrows by purpose"
-                  totalLabel="Total"
+                  label={c.byPurposeLabel}
+                  totalLabel={c.total}
                   totalValue="0"
                   slices={Object.keys(pipeline.byPurpose).map((purpose) => ({
-                    label: PURPOSE_LABEL[purpose] ?? purpose,
+                    label: purposeLabel(t, purpose),
                     count: 0,
                   }))}
                 />
               }
             >
               <CalmNote
-                title="No escrow has been opened yet"
-                fills="How the platform's escrows split between rent deposits, first rent and purchase money."
-                creates="Each escrow a tenant or buyer funds is counted under its purpose."
+                title={c.byPurposeNoneTitle}
+                fills={c.byPurposeNoneFills}
+                creates={c.byPurposeNoneCreates}
               />
             </Framed>
           ) : (
             <Donut
-              label="Escrows by purpose"
-              totalLabel="Total"
+              label={c.byPurposeLabel}
+              totalLabel={c.total}
               totalValue={String(pipeline.total)}
               slices={Object.entries(pipeline.byPurpose).map(([purpose, v]) => ({
-                label: PURPOSE_LABEL[purpose] ?? purpose,
+                label: purposeLabel(t, purpose),
                 count: v.count,
               }))}
             />
           )}
         </Panel>
-        <Panel title="Recent activity">
+        <Panel title={c.recentTitle}>
           {pipeline.recent.length === 0 ? (
-            <CalmNote
-              title="Nothing has happened to an escrow yet"
-              fills="The newest movements across every escrow: funded, held, release asked for, released, refunded, disputed and ruled on."
-              creates="Each step a payer, a payee, the auto release or a ruling takes is listed as it happens."
-            />
+            <CalmNote title={c.recentNoneTitle} fills={c.recentNoneFills} creates={c.recentNoneCreates} />
           ) : (
             <ol className="nf-md-timeline">
               {pipeline.recent.map((event) => (
@@ -310,7 +285,7 @@ export function EscrowDesk({
                   <span className={`nf-md-event__dot ${EVENT_DOT[event.event]}`} aria-hidden="true" />
                   <span className="min-w-0">
                     <span className="nf-md-event__what block">
-                      <span title={event.escrowId}>{shortId(event.escrowId)}</span> {EVENT_WORD[event.event]}
+                      <span title={event.escrowId}>{shortId(event.escrowId)}</span> {c.event[event.event]}
                       {" · "}
                       {formatMoney(event.amountMinor, locale)}
                     </span>
@@ -342,19 +317,22 @@ function EscrowTable({
   locale: Locale;
   ui: AdminUi;
 }) {
+  const t = getDictionary(locale);
+  const c = t.admin.escrow;
+  const STATE_LABEL = stateLabels(t);
   return (
     <table className="nf-md-table">
       <thead>
         <tr>
-          <th scope="col">ID</th>
-          <th scope="col">Amount</th>
-          <th scope="col">From &rarr; To</th>
-          <th scope="col">Purpose</th>
+          <th scope="col">{c.id}</th>
+          <th scope="col">{c.amount}</th>
+          <th scope="col">{c.fromTo}</th>
+          <th scope="col">{c.purposeColumn}</th>
           <th scope="col" className="nf-md-num">
-            Days held
+            {c.daysHeld}
           </th>
           <th scope="col" className="nf-md-num">
-            Auto release
+            {c.autoRelease}
           </th>
         </tr>
       </thead>
@@ -376,28 +354,28 @@ function EscrowTable({
                       {shortId(escrow.id)}
                     </span>
                     <span className="block truncate text-[length:var(--nf-text-caption)]">
-                      {escrow.listingTitle ?? "A listing that is no longer there"}
+                      {escrow.listingTitle ?? t.admin.money.listingGone}
                     </span>
                   </span>
                 </span>
               </td>
-              <td className="nf-md-strong nf-numeric" data-label="Amount">
+              <td className="nf-md-strong nf-numeric" data-label={c.amount}>
                 {formatMoney(escrow.amountMinor, locale)}
               </td>
-              <td className="nf-md-desc" data-label="From, to">
-                {escrow.payerName ?? "Payer"}
+              <td className="nf-md-desc" data-label={c.fromToLabel}>
+                {escrow.payerName ?? c.payerFallback}
                 {escrow.payerId ? <BadgeSlot tier={tiers[escrow.payerId]} /> : null}{" "}
                 <span aria-hidden="true">&rarr;</span>
-                <span className="sr-only"> to </span> {escrow.payeeName ?? "payee"}
+                <span className="sr-only">{` ${c.to} `}</span> {escrow.payeeName ?? c.payeeFallback}
                 {escrow.payeeId ? <BadgeSlot tier={tiers[escrow.payeeId]} /> : null}
               </td>
-              <td className="nf-md-desc" data-label="Purpose">
-                {PURPOSE_LABEL[escrow.purpose] ?? escrow.purpose}
+              <td className="nf-md-desc" data-label={c.purposeColumn}>
+                {purposeLabel(t, escrow.purpose)}
               </td>
-              <td className="nf-md-num" data-label="Days held">
-                {held === null ? "Not held yet" : held}
+              <td className="nf-md-num" data-label={c.daysHeld}>
+                {held === null ? c.notHeldYet : held}
               </td>
-              <td className="nf-md-num" data-label="Auto release">
+              <td className="nf-md-num" data-label={c.autoRelease}>
                 {live && release ? (
                   <span className={`nf-md-countdown ${release.due ? "nf-md-countdown--due" : ""}`} title={ui.when(escrow.autoReleaseAt)}>
                     {release.label}
@@ -432,58 +410,61 @@ function EscrowCard({
   /** What is filed on this dispute; null when the evidence read failed. */
   evidence?: EvidenceItem[] | null;
 }) {
+  const t = getDictionary(locale);
+  const c = t.admin.escrow;
+  const STATE_LABEL = stateLabels(t);
   return (
     <article className="nf-panel nf-md-card nf-md-panel">
       <div className="flex flex-wrap items-center gap-inline">
         <ui.StatusChip label={STATE_LABEL[escrow.state] ?? escrow.state} tone={STATE_TONE[escrow.state] ?? "neutral"} />
         <span className="nf-numeric nf-h4">{formatMoney(escrow.amountMinor, locale)}</span>
-        <span className="nf-body-sm text-content-2">{PURPOSE_LABEL[escrow.purpose] ?? escrow.purpose}</span>
+        <span className="nf-body-sm text-content-2">{purposeLabel(t, escrow.purpose)}</span>
         <span className="nf-caption ml-auto">{ui.when(escrow.createdAt)}</span>
       </div>
 
       <dl className="mt-row">
         <ui.DetailRow
-          label="Payer"
+          label={c.payer}
           value={
             <span>
-              {escrow.payerName ?? "No display name"}
+              {escrow.payerName ?? t.admin.money.noDisplayName}
               {escrow.payerId ? <BadgeSlot tier={tiers[escrow.payerId]} /> : null}
             </span>
           }
         />
         <ui.DetailRow
-          label="Payee"
+          label={c.payee}
           value={
             <span>
-              {escrow.payeeName ?? "No display name"}
+              {escrow.payeeName ?? t.admin.money.noDisplayName}
               {escrow.payeeId ? <BadgeSlot tier={tiers[escrow.payeeId]} /> : null}
             </span>
           }
         />
-        {escrow.listingTitle && <ui.DetailRow label="Property" value={escrow.listingTitle} />}
+        {escrow.listingTitle && <ui.DetailRow label={c.property} value={escrow.listingTitle} />}
         <ui.DetailRow
-          label="Confirmations"
+          label={c.confirmations}
           value={
             <span>
-              {escrow.payerConfirmed ? "Payer has confirmed" : "Payer has not confirmed"}
-              {escrow.fromInspection ? " (from a confirmed inspection)" : ""}
+              {escrow.payerConfirmed ? c.payerConfirmed : c.payerNotConfirmed}
+              {escrow.fromInspection ? ` ${c.fromInspection}` : ""}
               {" · "}
-              {escrow.payeeConfirmed ? "Payee has confirmed" : "Payee has not confirmed"}
+              {escrow.payeeConfirmed ? c.payeeConfirmed : c.payeeNotConfirmed}
             </span>
           }
         />
         {escrow.autoReleaseAt && (
-          <ui.DetailRow label="Releases on its own" value={`${ui.when(escrow.autoReleaseAt)} if nobody acts`} />
+          <ui.DetailRow label={c.releasesAlone} value={fill(c.ifNobodyActs, { when: ui.when(escrow.autoReleaseAt) })} />
         )}
-        {escrow.disputeReason && <ui.DetailRow label="The objection" value={escrow.disputeReason} />}
-        {escrow.resolutionNote && <ui.DetailRow label="The ruling" value={escrow.resolutionNote} />}
+        {escrow.disputeReason && <ui.DetailRow label={c.objection} value={escrow.disputeReason} />}
+        {escrow.resolutionNote && <ui.DetailRow label={c.ruling} value={escrow.resolutionNote} />}
         {escrow.commissionMinor !== null && (
           <ui.DetailRow
-            label="Platform share"
-            value={escrow.commissionMinor === 0 ? "No fee" : formatMoney(escrow.commissionMinor, locale)}
+            label={c.platformShare}
+            value={escrow.commissionMinor === 0 ? c.noFee : formatMoney(escrow.commissionMinor, locale)}
           />
         )}
-        {escrow.settledAt && <ui.DetailRow label="Settled" value={ui.when(escrow.settledAt)} />}
+        {escrow.settledAt && <ui.DetailRow label={c.settled} value={ui.when(escrow.settledAt)} />}
       </dl>
 
       {rulable && (
@@ -525,19 +506,17 @@ function dayLabel(asOf: string, locale: Locale, withYear = false): string {
  * difference between the two, where zero is balanced.
  */
 function FloatHistoryPanel({ float, locale, ui }: { float: FloatHistory | null; locale: Locale; ui: AdminUi }) {
+  const c = getDictionary(locale).admin.escrow;
   const series: Series[] = [
-    { name: "Escrow float", values: float ? float.points.map((p) => p.floatMinor) : [], rank: 0, area: true },
-    { name: "Ledger float", values: float ? float.points.map((p) => p.ledgerFloatMinor) : [], rank: 1, dash: "6 4" },
+    { name: c.escrowFloat, values: float ? float.points.map((p) => p.floatMinor) : [], rank: 0, area: true },
+    { name: c.ledgerFloat, values: float ? float.points.map((p) => p.ledgerFloatMinor) : [], rank: 1, dash: "6 4" },
   ];
   const legend = <SeriesLegend series={series} />;
-  const title = "Float, booked daily";
+  const title = c.floatHistoryTitle;
   if (!float) {
     return (
       <Panel title={title} aside={legend}>
-        <Waiting
-          title="The float history could not be read"
-          body="The escrow float booked each day against what the ledger books, and whether the two agree. The read did not answer just now; reload in a moment."
-        />
+        <Waiting title={c.floatUnreadTitle} body={c.floatUnreadBody} />
       </Panel>
     );
   }
@@ -545,16 +524,18 @@ function FloatHistoryPanel({ float, locale, ui }: { float: FloatHistory | null; 
   const verdict = latest ? (
     <p className="nf-md-invariant">
       <ui.StatusChip
-        label={latest.differenceMinor === 0 ? "Balanced" : "Does not balance"}
+        label={latest.differenceMinor === 0 ? c.balanced : c.notBalanced}
         tone={latest.differenceMinor === 0 ? "success" : "danger"}
       />
       <span>
         {latest.differenceMinor === 0
-          ? `On ${dayLabel(latest.asOf, locale, true)} the escrow float, ${formatMoney(latest.floatMinor, locale)}, equals what the ledger books.`
-          : `On ${dayLabel(latest.asOf, locale, true)} the escrow float and the ledger differ by ${formatMoney(Math.abs(latest.differenceMinor), locale)}.`}{" "}
-        {float.points.length - float.unbalancedDays} of {float.points.length}{" "}
-        {float.points.length === 1 ? "day" : "days"} balanced
-        {float.lastUnbalanced ? `; last off on ${dayLabel(float.lastUnbalanced, locale, true)}` : ""}.
+          ? fill(c.balancedOn, { date: dayLabel(latest.asOf, locale, true), amount: formatMoney(latest.floatMinor, locale) })
+          : fill(c.differOn, {
+              date: dayLabel(latest.asOf, locale, true),
+              amount: formatMoney(Math.abs(latest.differenceMinor), locale),
+            })}{" "}
+        {fill(plural(float.points.length, c.daysBalanced, locale), { balanced: float.points.length - float.unbalancedDays })}
+        {float.lastUnbalanced ? fill(c.lastOff, { date: dayLabel(float.lastUnbalanced, locale, true) }) : ""}.
       </span>
     </p>
   ) : null;
@@ -562,15 +543,15 @@ function FloatHistoryPanel({ float, locale, ui }: { float: FloatHistory | null; 
   if (float.points.length < 2) {
     const xs = float.points.map((p) => dayLabel(p.asOf, locale));
     return (
-      <Panel title={title} aside={legend} hint={`${float.total} ${float.total === 1 ? "day" : "days"} booked`}>
+      <Panel title={title} aside={legend} hint={plural(float.total, c.daysBooked, locale)}>
         <EmptyChart
           height={180}
-          yLabels={["₦0", "", "", "", ""]}
+          yLabels={[formatMoney(0, locale), "", "", "", ""]}
           xLabels={xs.length ? xs : ["", "", "", "", ""]}
           note={{
-            title: latest ? `One day booked so far (${dayLabel(latest.asOf, locale, true)})` : "The float has not been booked yet",
-            fills: "The money held in escrow, booked once a day, beside the float the ledger books, so a gap between them shows the day it opens.",
-            creates: "A daily job books the float each morning. A line needs a second day, so none is drawn.",
+            title: latest ? fill(c.oneDay, { date: dayLabel(latest.asOf, locale, true) }) : c.notBooked,
+            fills: c.floatFills,
+            creates: c.floatCreates,
           }}
         />
         {verdict}
@@ -578,21 +559,22 @@ function FloatHistoryPanel({ float, locale, ui }: { float: FloatHistory | null; 
     );
   }
   return (
-    <Panel title={title} aside={legend} hint={`${float.total} days booked`}>
+    <Panel title={title} aside={legend} hint={fill(c.daysBooked.other, { count: float.total })}>
       <SeriesChart
+        locale={locale}
         id="escrow-float"
         xLabels={float.points.map((p) => dayLabel(p.asOf, locale))}
         series={series}
         height={200}
-        label="The escrow float booked each day against the ledger float"
+        label={c.floatChartLabel}
         yLabel={(v) => formatMoney(v, locale, "NGN", { compact: true })}
         readout={float.points.map((p) => ({
           title: dayLabel(p.asOf, locale, true),
           rows: [
-            { label: "Escrow float", value: formatMoney(p.floatMinor, locale) },
-            { label: "Ledger float", value: formatMoney(p.ledgerFloatMinor, locale) },
-            { label: "Difference", value: formatMoney(p.differenceMinor, locale) },
-            { label: "Escrows", value: String(p.escrowCount) },
+            { label: c.escrowFloat, value: formatMoney(p.floatMinor, locale) },
+            { label: c.ledgerFloat, value: formatMoney(p.ledgerFloatMinor, locale) },
+            { label: c.difference, value: formatMoney(p.differenceMinor, locale) },
+            { label: c.escrowsRow, value: String(p.escrowCount) },
           ],
         }))}
       />

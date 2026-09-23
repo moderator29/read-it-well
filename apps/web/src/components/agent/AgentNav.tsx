@@ -66,7 +66,7 @@ export function AgentIdentityCard({
 }) {
   if (!profile) {
     return (
-      <div className="nf-card flex items-center gap-md p-sm">
+      <div className="nf-panel nf-panel--card flex flex-row items-center gap-md p-sm">
         <span
           className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[var(--nf-border-subtle)] text-[var(--nf-content-muted)]"
           aria-hidden="true"
@@ -91,7 +91,7 @@ export function AgentIdentityCard({
   }
 
   return (
-    <div className="nf-card flex items-center gap-md p-sm">
+    <div className="nf-panel nf-panel--card flex flex-row items-center gap-md p-sm">
       <span
         className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[length:var(--nf-text-caption)] font-bold text-[var(--nf-content-on-brand)]"
         style={{ background: "var(--nf-gradient-agent)" }}

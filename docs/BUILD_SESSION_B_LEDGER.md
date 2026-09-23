@@ -349,7 +349,7 @@ drawn from `social_profiles.is_agent`. The badge is Session A's end to end (scop
 they are gone. The profile now reads `tier` from `public.person_badge` (live: a view, SELECT
 granted to anon and authenticated, `relacl` read on 23 September) through
 `loadOwnBadgeTier` and hands it to `BadgeSlot` beside the name and on the avatar. Session A's
-badge component is not in the tree, so the slot renders NOTHING: **blocked on B-BADGE**. The
+badge component was not in the tree at this pass, so the slot rendered NOTHING. (Later the same day e3c90797 wired the slot to Session A's `TierBadge`; see 13.P.) The
 render's two ticks are therefore absent from the side by side on purpose. No tier is derived
 and no badge artwork or colour is drawn by the profile.
 
@@ -1931,6 +1931,72 @@ account never moves real money (LIVE_PROOF); the Supply desk's counts
 (admin-money's `reads/supply.ts`) count agents and businesses, which the QA
 accounts are not; if that changes, `withoutQa` is the one call to add there.
 
+### 6.6f Live proof signed in as the QA admin, 23 September 16:57 UTC
+
+Production build of `baad755f` plus the `/admin/enter` fix below, `next start`
+with `NODE_USE_ENV_PROXY=1` and the box's CA bundle, against the live project,
+signed in through the real form as phantomfcalls+qaadmi@gmail.com (admin
+grant applied by Session A). Read only: the script opens pages and presses
+only navigation (Continue, the back arrow). Evidence: `docs/design/proofs/session-b/admin/live/signed-in/` (a shot per step
+and `steps.json`); the run log is 23 of 44 script steps passing, and every
+failing step is one of the three service-role reads below. Checked against
+read-only SQL at the same minute: 0 real live listings, 64 examples, 9
+profiles (7 without the QA accounts), 1 open alert, 0 push rows, 0
+inspection requests, 0 price checks, 0 successful bookings.
+
+**Found live and fixed: `/admin/enter` sent a signed-in admin to sign in.**
+The redirect was built from `request.url`, which `next start` knows as
+`localhost`; a browser on 127.0.0.1 (or any proxied host) followed it to
+another origin without its session cookies and the proxy sent it to sign in.
+The route now answers a path-only `Location` (`seeOther` in
+`app/admin/enter/route.ts`), tests updated; re-run: lands on
+`/admin?next=%2Fadmin%2Fmoney`.
+
+| Link | State | Evidence |
+|---|---|---|
+| Signed out: `/admin`, a desk, a desk with a query, `/admin/enter` (4) | LIVE PROVEN, 16:02 UTC | `signed-out-doors.json` (6.6d) |
+| Landing: a desk as the first address after sign in lands on the overview carrying it | LIVE PROVEN | `01-landing.jpg` |
+| Continue opens the desk | LIVE PROVEN | `02-continue-money.jpg` |
+| A second desk opens directly for the rest of the session | LIVE PROVEN | `03-second-desk.jpg` |
+| The back arrow on `/admin/money` goes to `/admin` | LIVE PROVEN | `04-back-arrow.jpg` |
+| `/admin/enter?next=/admin/money` lands on the overview, never the desk | LIVE PROVEN after the fix | `20-enter.jpg` |
+| A signed-in member at `/admin` gets no console | LIVE PROVEN (QA member) | `30-member-at-admin.jpg` |
+| `getConsolePulse` (Listings live 0, sign-ups, "7 people in all", naira today, new supply) | LIVE PROVEN | `01-landing.jpg`, `10-overview.jpg` |
+| `getCollectedSeries` (twelve months, one August spike) | LIVE PROVEN | `10-overview.jpg` |
+| `getSupplyByType` (every type 0, examples excluded) | LIVE PROVEN | `10-overview.jpg` |
+| `getNewListingsByRole` (empty state, full scale) | LIVE PROVEN | `10-overview.jpg` |
+| `getJobHealth` (8 of 8 healthy, real last runs) and the database jobs summary | LIVE PROVEN | `11-ops-jobs.jpg` |
+| `getRunDays` (the jobs sparkline) | LIVE PROVEN | `11-ops-jobs.jpg` |
+| `getAlertTrend` (1 open, +1 on a week ago; SQL: 1 open) | LIVE PROVEN | `11-ops-jobs.jpg` |
+| `getInspectionActivity` (six states at 0; SQL: 0) | LIVE PROVEN | `15-ops-inflight.jpg` |
+| `getPushActivity` (queue, outcomes, attempts at 0; SQL: 0 and 0) | LIVE PROVEN | `14-ops-notifications.jpg` |
+| `getBookingOutcomes`, `getSupplySeries`, `getThinAreas`, `getPriceCheckDemand` (30d, 90d, 12m) | LIVE PROVEN (4 links) | `16-analytics-30d.jpg` to `18-analytics-12m.jpg` |
+| `getPersonTiers` (the operator's badge beside the name) | LIVE PROVEN | the identity in every shot |
+| `getQueueCounts` (rail badges, Open reviews) | NOT PROVABLE ON THIS BOX: `lib/admin/queries.ts` (Session A's) reads through the service role, and `SUPABASE_SERVICE_ROLE_KEY` is not in this box's environment; the card says "Unavailable" as designed | `10-overview.jpg` |
+| `getRiskAlerts` (Recent alerts, Alerts desk) | NOT PROVABLE ON THIS BOX, same reason | `10-overview.jpg`, `219-alerts.jpg` |
+| `getAuditLog`, `getAuditActivity` (Audit log panel and tab) | NOT PROVABLE ON THIS BOX, same reason (2 links) | `13-ops-audit.jpg` |
+
+**Admin-shell links proven live: 25 of 29.** The other desks' pages opened
+too (`200-*.jpg` to `223-*.jpg`): the ones that read through the service role
+(queue, listings, agents, businesses, money, reservations, flags, reports,
+support, alerts, audit, switches) show their designed failure state for the
+same reason, and the Supply desk's Firm rosters read (admin-money's) says it
+could not be read; those are the owning workers' links and are reported to
+the lead, not counted here.
+
+### 6.6g The escrow ruling control's copy on the locale layer (after ledger 8.14)
+
+`EscrowRuling` in `_components/MoneyDecisions.tsx`: 13 visible strings (the
+two stand-in names, the label, the placeholder, the direction prompt, the
+two direction buttons, the confirmation line, the two "does not" lines, the
+finality sentence, the two confirm buttons) move to `admin.escrow.rulingControl`
+in `en.ts` (13 English keys, no Yoruba, Hausa or Igbo word), and Cancel
+reuses `admin.payments.sweep.cancel` (1 key reused). Placeholders fill by a
+`{name}` replace, so the English renders the same characters as before:
+checked by reading the old and new text side by side, not by rendering (the
+control needs a router). The console-wide page titles and loading labels on
+the money desks are left as they are.
+
 ### 6.7 Skipped or not verified
 
 - No proof from the live `/admin` pages with a real admin session (none may be
@@ -2854,6 +2920,111 @@ desks rendered, every filter link, pager, toggle and hover readout drawn; the
 two writes (escrow ruling, booking cancel) 0 / 2 exercised. Badge: 9 / 14
 name places wired, 0 / 14 drawing (blocked on B-BADGE). Copy in the
 dictionaries: 1 / 5 desks.
+
+### 8.14 The four desks' copy moves onto the locale layer (founder directive, 23 September)
+
+Supersedes "English-only copy" in 8.13. Money, Escrow, Supply and Payments,
+and the furniture they share in `money/_desk`, now read their words through
+`getDictionary(locale)` like the rest of the console. **Copy in the
+dictionaries: 5 / 5 desks** (bookings already did).
+
+**Where the words went.** Where an existing key said the same thing it is
+reused. Where none existed the key was added to `packages/i18n/src/locales/en.ts`
+ONLY, as new desk blocks inside the existing `admin` namespace (`admin.money`,
+`admin.escrow`, `admin.supply`, `admin.payments`), the same `admin.<desk>`
+pattern `admin.bookings` already uses. Nothing was restructured and no other
+locale file was touched: Yoruba, Hausa and Igbo fall back to these English
+strings through `withFallback`, exactly as for any key they have not declared,
+and no Yoruba, Hausa or Igbo word was written. Counted strings use the
+existing `plural()` with `{ one, other }` forms (the `settings.devices`
+pattern) instead of `n === 1` ternaries, so a speaker can write the forms
+their language has. Placeholders are filled with the console's `fill`.
+Money is still formatted only by `formatMoney`, unchanged; the four literal
+`"₦0"` axis labels now come from `formatMoney(0, locale)`, which returns the
+same `₦0`.
+
+**Counts.** "Moved" is distinct visible strings (aria labels, captions,
+placeholders and `data-label`s included; a plural pair is one string; a string
+drawn in several places is counted once).
+
+| Desk | Moved | Existing keys reused | English keys added (leaves) | Left hardcoded | Denominator |
+|---|---|---|---|---|---|
+| Shared furniture (`money/_desk`: pager, KPI, delta, charts, reconciliation, dispute evidence) | 66 | 1 | 65 | 0 | 66 / 66 |
+| Money | 109 | 4 | 109 | 17 | 109 / 126 |
+| Escrow | 101 | 3 | 101 | 18 | 101 / 119 |
+| Supply | 100 | 9 | 95 | 2 | 100 / 102 |
+| Payments | 138 | 5 | 141 | 4 | 138 / 142 |
+| **Total** | **514** | **22** | **511** | | |
+
+Leaves exceed distinct strings where a plural carries two forms (19 pairs).
+
+**Keys reused (22).** `shell.nav.money`, `shell.nav.escrow` (twice: the
+title and the link in Money's disputes paragraph), `shell.nav.supply`,
+`shell.nav.payments`; `shell.operations.vsWeekAgo`, `shell.overview.vsLastWeek`,
+`shell.operations.healthy` (the reconciliation verdict); `shell.overview.owner`,
+`.agent`, `.firm` (supply roles, singular) and `shell.overview.kinds.land`,
+`.hotels`, `.shortlets`, `.restaurants` (property types);
+`common.status.CANCELLED` (tenancy charges and escrow);
+`common.searchPlaceholders.escrow`; `common.noMatchTitle`; `common.notNow`;
+`common.columns.transactionStatus.FAILED` and `.REFUNDED` (payment outcomes).
+Near misses NOT reused because the English differs or the sense does: the
+bookings desk's cancellation reasons ("The host cancelled" against the
+refund row's "The agent cancelled"), and `columns.walletEntryStatus.COMPLETED`
+("Settled" as a status is not "Settled" as a balance heading).
+
+**Left hardcoded, with reasons.**
+- All four desks: the static `metadata.title` in each `page.tsx` (4) and the
+  `QueueSkeleton` label in each `loading.tsx` (4). Every console route does
+  both this way; moving them means `generateMetadata` and an awaited locale on
+  the loading path across the console, which is admin-shell's convention to
+  change, not one desk's.
+- Money and Escrow: `EscrowRuling` in `app/admin/_components/MoneyDecisions.tsx`
+  (11 strings: placeholder, prompt, both direction buttons, both consequence
+  lines, the warning, the confirm verb pair, "to", Cancel). A shared
+  `_components` file, admin-shell's; counted against both desks.
+- Money: the four refund reason labels come from `CANCELLATION_REASONS` in
+  `lib/trust/cancellation.ts` (Session A's file).
+- Escrow: the `ES-` short id prefix (an identifier format), and the four
+  countdown formats (`due`, `{d}d {h}h`, `{h}h {m}m`, `{m}m`) built by
+  `countdown()` in `lib/admin/reads/money-derive.ts`, a pure read helper with
+  its own tests; moving them changes a read's return shape, so it is a
+  separate change.
+- Payments: `channelLabel()`'s two fallbacks ("checkout, unrecorded",
+  "top-up, unrecorded") in `lib/admin/reads/payments.ts`, same reason.
+- Not copy, not counted: the `·` separators, `%`, the `????` shown for a
+  missing card tail, and the acceptance date printed as ISO `yyyy-mm-dd`.
+- Now dead, left for its owner: `ESCROW_STATE_WORDS` in
+  `components/app/untranslated.ts` (Session A's staging file). Its words now
+  live at `admin.escrow.state`, the destination the block itself names; the
+  escrow desk was its only reader.
+- The bookings desk also draws the shared furniture and passes no locale, so
+  its pager and KPI words stay English there; bookings was not in this
+  directive.
+
+**Same English, proven.** Production build with `VALLO_PREVIEW_HARNESS=1`,
+under the lock, before (origin/main `b6f41ceb` plus the unused English keys)
+and after; the committed harness `(dev)/preview/session-b/admin-money/{money,escrow,supply,payments}`
+in both fixture states, and the two older harnesses that draw the refund panel
+and the payment-method lookup (`preview/bd/refunds`, `preview/bd/payments`),
+each at 1440 and 390, dark: 20 page states. For each: a full-page PNG and a
+dump of `innerText`, raw `textContent`, and every `aria-label`, `title`,
+`placeholder`, `data-label`, `id` and `aria-labelledby` inside the console.
+- Text: **20 / 20 dumps byte-identical**.
+- Pixels: two baseline runs differ only in rows 42 to 52 at 1440 (the frame's
+  top bar); outside that band 13 single-line clusters differ, 33 to 442
+  pixels each, max channel delta 36 to 60, every one inside a line where
+  adjacent text nodes became one (for example `{amount}` and ` kept`), which
+  moves glyph anti-aliasing by a sub-pixel. Viewed at 3x before over after:
+  no visible change.
+- Not covered by a harness: the payments page's own health panel, overdrawn
+  and stuck tables and the sweep control (no harness draws them); proven by
+  the whole typecheck and by reading, not by a shot.
+- One English difference is possible and not reached by the fixtures: a count
+  of 1,000 or more in a pluralised phrase now prints grouped ("1,234
+  charges"), because `plural()` formats through `Intl`.
+
+**Checks.** Listed in the commit's gate below (whole tsc, whole vitest,
+`check-css-tokens`, a `page.tsx` at the root of every harness directory).
 
 ## 9. Inspection
 
@@ -5132,13 +5303,168 @@ the group listed in 13.4.
   individually shot unless the wizard takes an initial-step prop for the
   harness.
 
-### 13.2 Applied (waits for Phase 1 RELEASED)
+### 13.2 Applied (after Phase 1 RELEASED 9da8f86f)
 
-(pending: nothing in the six stylesheets has been changed yet.)
+Every item below reads the Phase 1 layer (`Panel`, `IconPlate`/`.nf-plate`,
+`--nf-panel-*`, `--nf-plate-*`, `--nf-selected-*`, `--nf-btn-lit-*`,
+`--nf-btn-glass-*`, `--nf-container-radius`). No colour, radius or shadow
+value was written: every new declaration is a token reference.
+
+**Containers to `Panel`, in the markup.** 162 `nf-panel` uses across 58
+files of the group, where there was `.nf-card` or a hand-drawn box: `nf-panel nf-panel--card`
+(`app/agent/**`, `app/host/**`, `app/(site)/**`, `components/agent/**`,
+`components/host/**`, `components/site/MobileMenu.tsx`), plus the host
+groups, doors, choices and drop zones (`.nf-host-group`, `.nf-host-choice`,
+`.nf-host-drop`), the agent identity card, the mode menu and its options, the
+mobile workspace panel, the inner bordered boxes (payout notes, reply form,
+earnings and analytics sub-cards, listing wizard summaries, transfer offers,
+contact and careers asides) and the drawer's person card
+(`panelClass({ variant: "card" })` in `AppRail`). `Panel` lays out as a padded
+flex column; where the old card was a block, `block` is added so no layout
+moved, and where it was a row, `flex-row`.
+
+**Local material deleted.**
+- agent.css: the dead `.nf-agent-stat` tile (no markup), the
+  `.nf-agent .nf-card, .nf-agent-panel` well, `.nf-host .nf-card`,
+  `.nf-host-group`/`-choice`/`-drop` materials, the language control's
+  primary override (`LanguageSwitcher` now draws the shared glass door, so the
+  locale picker is no longer a second lit primary in any header).
+  One bridge rule remains, `:is(.nf-agent, .nf-host) .nf-card` on the panel
+  tokens, for the `.nf-card` that `Screen`'s `RowList boxed` draws (not this
+  group's file; SW-C5).
+- landing.css: the `.nf-landing/.nf-site .nf-btn--primary` and `--glass`
+  overrides (the shared lit bar and glass door now show), the landing's own
+  glow ring, glass edge, tile fill and band fill tokens; stats band, chip row,
+  stays band, stat tiles, feature tiles, category tiles, float card, stack
+  photos and cards, the "More" menu and the search pill take the panel;
+  city chips, pill segments, Sign in and search take the glass door; the lead
+  city and the checked segment take the selected state; the pill's submit
+  takes the lit bar; orb rings, category icons and the stays list glyphs take
+  the icon plate.
+- site.css: `.nf-site .nf-card` deleted; the bar's opener, the social links
+  take the glass door; the newsletter field the shared field material; its
+  send button the lit bar; the footer seal the plate's light on a disc; the
+  page-head photo plate the panel edge and glow.
+- side-nav.css: the dead theme control rules (the component went with light
+  mode) deleted; the rail column takes the panel fill, edge and halo; the
+  person row and card the panel; "View profile" the glass door; the open row,
+  rail and drawer, and in Agent Mode too, the shared selected state (the flat
+  20% tint and the hand-made gradient and 20 + 48px bloom are gone).
+- chips.css: chips and pill chips take the glass door with its rim and without
+  its bloom (a row of eight lit chips is the shouting the rule was written
+  against); the active chip, current feed tab, segmented capsule and current
+  segment take the selected state; `.nf-table--glass` the panel; the lit
+  action bar the panel edge and rim. Two new rules: a `Panel` that is a link
+  keeps its light on hover (`.nf-panel.nf-card--interactive:hover`, SW-C5
+  asks for it in glass.css), and a panel holding the lit primary gets
+  `isolation: isolate` so the pooled bloom is not drawn under the panel's
+  fill (the lead's instruction).
+- Notes and banners (`KycBanner`, the warning notes on earnings, analytics,
+  bookings, listings, the reservations and verification notes, the restore
+  form's notices): corner to `--nf-container-radius`. Their state tint stays:
+  a notice is not a panel.
+- Icon squares on the listing pitch and the empty listings state: the shared
+  icon plate (lg) with a 24px line glyph, not a hand-painted gradient square.
+- Docs sidebar and "On this page" toggles: the glass door; the chapter list
+  on a phone the panel.
+
+**Left alone, on purpose.**
+- THE DOCK, its switch and the dock island: the founder's ruling ("don't copy
+  the bottom nav, don't touch it") and the governing image: `GOVERNING-01`
+  draws a dark translucent bar with a lit blue edge and the switch as a lit
+  square in line, which is what the dock already draws (`.nf-tabbar` lit edge
+  and lifted glow, `.nf-switch-dock` on the Phase 1 plate). Destinations,
+  layout and material unchanged; chrome.css has no diff.
+- The app header: its scrolled state already carries `--nf-glow-edge` along
+  its foot; there is no shared token for a bottom-edged bar and swapping it
+  for the panel hairline dimmed it, so it was reverted.
+- Avatars and their rings (round is allowed), the glass objects' own
+  drop-shadow glow, the hero's photo scrims, the phones in the app band
+  (presentation), divider gradients, progress tracks.
+- Status badges (`.nf-badge` family, `.nf-count-badge`, `.nf-nav__badge`,
+  landing tags): Phase 1 extracted no shared badge, so they keep their tints;
+  request SW-C6.
 
 ### 13.3 Audit passes
 
-(pending: Pass 1, Pass 2, Pass 3 are dated and written here after the change.)
+All three on `next start` of this worktree's own build (compile then
+generate mode, run through the shared heavy-job lock), port 3190,
+`VALLO_PREVIEW_HARNESS=1`, dark (the only theme), 390x844 at dpr 2 and
+1440x900, full page after scrolling the whole page so every `Reveal` section
+has fired. Every route in 13.4 was re-opened in each pass and set beside its
+before shot and the console / Get started reference (ledger 6.2 panel row:
+10px corner, per-side lit edge, top catchlight, 3px outer glow).
+
+**Pass 1, 23 September (after the first apply).**
+Found and fixed:
+1. The first "before" set of the landing and the site pages was blank below
+   the fold (their sections reveal on scroll and a full-page screenshot does
+   not scroll). The shooter now scrolls the page in 300px steps first, and
+   the before set was re-taken from a clean build of the pre-sweep tree
+   (2104275e) in a throwaway worktree, so before and after are both whole.
+2. A CSS editing slip left four hover rules inside `@media (hover: hover)`
+   in landing.css with their bodies outside their braces (nav glass, lead
+   city, feature tile, category tile). `check-css-tokens` caught it
+   ("Unexpected end of input"); repaired and re-checked, every partial
+   parses.
+3. The landing nav's search glyph had lost its circle with the glass door;
+   `DESIGN_DIRECTION` section 1 names it the one icon button the governing
+   hero draws round. The circle is back.
+4. Landing tags ("Third party") measured 10px on 28px = 0.36 in the shape
+   sweep; moved to `--nf-radius-xs` (0.21).
+5. A panel holding the lit primary drew the primary's pooled bloom under its
+   own fill; `isolation: isolate` on `.nf-panel:has(.nf-btn--primary)`.
+Found and NOT fixable here: `Screen`'s `RowList boxed` forces
+`rounded-[var(--nf-radius-xl)]` as a Tailwind utility, which outranks any
+component rule, so the boxed lists on `/agent/dashboard`, `/host/transfer`
+and the host standing page take the panel's material but keep a 22px corner
+(SW-C5).
+
+**Pass 2, 23 September.**
+Re-opened every route plus the open states the first pass had not shot:
+the agent workspace's mobile drawer, the landing "More" menu, the site
+mobile menu, the switch sheet, the drawer's foot. Measured in the browser
+(13.5). Found and fixed:
+1. THE AGENT WORKSPACE'S MOBILE DRAWER OPENED 60PX TALL. It is a
+   `position: fixed` dialog rendered inside the top bar, whose glass
+   (`nf-glass--chrome`) has a backdrop blur, and a backdrop filter makes the
+   bar the containing block for fixed descendants: the drawer was the height
+   of the bar, with no scrim and no navigation. Present before the sweep (the
+   bar's blur is unchanged); found here because the sweep shot the open
+   state. `AgentMobileNav` now portals the dialog to `document.body`.
+2. Nav rows (rail and drawer) and the open row measured 18px on 52px = 0.35;
+   moved to `--nf-radius-control` (0.27), the console's open-row corner.
+Checked and left: the "More" menu and the site mobile menu open full size
+and read as panels; the switch sheet is the settings group's sheet over the
+Phase 1 plates; the agent search field sits at 14 on 40 = 0.35, the pill
+segments at 0.35 (at the line, not over it).
+
+(Pass 3 below.)
+
+**Pass 3, 23 September (final build, after SW-ST2).**
+Every route re-shot (`after/`), every open state re-opened, the refused
+routes of the first shape sweep re-run, the stays set-up steps added.
+Found and fixed:
+1. With the drawer now full height, its Account rows (Verification,
+   Settings) sat out of sight: the nav list was a shrinking inner scroller
+   squeezed under the identity card. `.nf-agent-drawer .nf-nav__scroll`
+   lets the drawer scroll as one column, as the app drawer does. Re-shot:
+   every row, the identity card and the mode switch in one column.
+2. SW-ST2 (the lead's request): the sixteen stays set-up inputs and selects
+   in `components/host/stays/**` draw the shared `nf-field nf-field--glass`
+   (the glass well of `GOVERNING-10`, fixed in eb9afe04); `stays.css` keeps
+   only their rhythm (height, gap, padding), the select's chevron (carrying
+   the field's two layers under it, in the same tokens) and the inline width,
+   and its own well is deleted. Before and after on all eight steps.
+Checked and left: the "AI" nav link draws 14px on a 38px-wide label (0.37);
+its corner only ever draws the focus ring, and 0.37 is under the capsule
+line. The agent search field and the pill segments sit at 0.35.
+Shape sweep, Pass 3: **0 breaches**; 10 worth an eye (the three above);
+180 round icon-only (the stays step progress dashes, drawn in `stays.css`,
+and the footer's scroll glyph; none carries text); 1 refusal (a site page
+timing out on `networkidle` in the tool, shot and read by hand in `after/`).
+Pass 1 sweep over all 36 routes: 0 breaches, 32 worth an eye (all of them
+the items above plus the tag fixed in Pass 1), 5 refusals of the same kind.
 
 ### 13.4 Routes in the group and the before proofs
 
@@ -5174,7 +5500,113 @@ rooms, photos and reservations pages draw only `.nf-agent-head`, `.nf-chip`,
 `.nf-host-group`, `.nf-host-drop` and `.nf-card`, all of which are shot on
 routes 20 to 23.
 
-Routes in group: 36 (plus the gated five above).
+Routes in group: 36 (plus the gated five above), and from SW-ST2 the eight
+drawn stays set-up steps (`/preview/imgc/{hotel,room-types,rates,place,
+house-rules,facilities,restaurant,tables}`), shot before in `before/`
+(`stays-*-before`) and after. The before set of the landing and the site
+pages was re-taken in Pass 1 from a clean build of the pre-sweep tree, full
+page and scrolled.
+
+### 13.5 Per route: swept or not, and the comparison
+
+Reference (ledger 6.2 and the Phase 1 tokens): container corner 10px
+(`--nf-container-radius`), per-side lit edge (`--nf-panel-edges`), top
+catchlight (`--nf-panel-rim`), 3px outer halo plus inset top and side light
+(`--nf-panel-glow`), the panel fill with its reflection
+(`--nf-panel-fill-card`, a white 12% radial at the top left), lit primary
+(`--nf-btn-lit-*`), glass door (`--nf-btn-glass-*`), selected state
+(`--nf-selected-*`), icon plate (`--nf-plate-*`). Measured with
+`getComputedStyle` on the Pass 2 build (`scratchpad/chrome/measure.mjs`,
+`measure2.txt`).
+
+| Item (route) | Before | After (measured) | Reference | Match |
+|---|---|---|---|---|
+| Host door / choice (`/host/start`, wizard) | 18px, brand edge, well fill, 16px glow-1 | 10px, per-side edges (top L 0.60, side L 0.45), panel fill with reflection, rim + halo | panel | yes |
+| Chosen door | edge strong, 22px glow-3 + bloom-card | selected edges (top L 0.88), panel rim, 22px bloom at 64% + drop 16px | selected state | yes |
+| Workspace card (`/agent/settings` etc.) | 22px `.nf-card` conic hairline + agent well override | 10px panel, same edges and fill as above | panel | yes |
+| Boxed row list (`/agent/dashboard`, `/host/transfer`) | 22px `.nf-card` | panel material, corner still 22px | panel | material yes, corner no (SW-C5) |
+| Glass button (`/agent/settings`) | flat raised fill | 14px, glass fill 22% to 8%, edge 70%, rim, 20px bloom -5 | glass door | yes |
+| Primary button (`/agent/dashboard`) | local override removed in agent bar | lit edges, rim, inner 12px, 6px/16px bloom | lit bar | yes |
+| Rail / drawer open row | flat brand 20% (rail), hand gradient + 20/48px bloom (drawer) | CTA gradient, white 55% rim, 22px bloom at 58%; 14px on 52 (0.27) | selected, console open row | yes |
+| Drawer person card | `.nf-glass--card` 22px | 10px panel card | panel | yes |
+| "View profile" | brand tint capsule on 6px | glass door on 6px (0.19) | glass door | yes |
+| Landing feature strip, stats, stays band (`/`) | 22 to 28px, band fill, glow ring 30px | 10px panel | panel | yes |
+| Landing search pill | 22px then 14px, pane + glow ring + elev-4 | pane kept (photo legibility), panel edges, rim, glow, blur, 14px (a bar, control corner) | panel over imagery | yes |
+| Lead city, checked segment | CTA + 18px / 16px glow-2 | selected state | selected | yes |
+| Pill submit | flat brand | lit bar | lit bar | yes |
+| Category icon, stays list glyph, orb ring | brand 30% square + 12px glow, glass square, tint ring + 26px | plate fill, per-side plate edges, plate rim, inner light, 10px glow; 6px corner on 36px | icon plate | yes |
+| Site cards (`/about` and 12 more) | `.nf-site .nf-card` xl + 28px glow-1 | 10px panel | panel | yes |
+| Newsletter send | CTA + 14px glow | lit bar | lit bar | yes |
+| Footer seal | canvas disc + 22px glow | plate light on a disc | icon plate | yes (round: a mark) |
+| Stays set-up fields (host wizard drawn steps) | local deep well, soft edge | shared `nf-field nf-field--glass` | shared field | yes (SW-ST2) |
+| Dock (every app route) | lit edge bar, 22px, switch plate | unchanged | `GOVERNING-01` | yes, untouched by ruling |
+| Drawer panel, switch sheet body | `overlays.css` | unchanged here | settings group | not this group |
+| Flip card | `side-flip.css` | unchanged here | | SW-C1 |
+| Status badges and counts | tinted | unchanged | no shared badge in Phase 1 | SW-C6 |
+
+**Routes swept / routes in group: 44 of 49** (the 36 rows of 13.4, the five
+gated routes, and the eight drawn stays set-up steps SW-ST2 brought in).
+Swept, every inventory item of this group on the shared layer: the landing,
+the thirteen public site pages, `/styleguide` (by class), the host standing,
+doors, wizard (first step shot; later steps by class, SW-C4), transfer,
+rooms, photos, reservations (by class), the eight drawn stays set-up steps
+(fields, SW-ST2), and all thirteen agent routes with their loading states
+(by class) and the workspace drawer and mode menu.
+Not closed (the five chrome rows of 13.4: home with header and dock, the
+switch sheet, the side drawer, the dock, the home body under the chrome):
+the drawer's panel and Flip card and the sheet are other files (SW-C1, the
+settings group), the dock and header are left by ruling, and the home body is
+the home group's. Noted but counted as swept:
+1. `/agent/dashboard` and `/host/transfer` and the host standing page: the
+   boxed row lists keep a 22px corner from `Screen.tsx` (SW-C5). Counted as
+   swept for this group's files; the corner is another file's.
+   Everything else on those three routes is on the shared layer.
+
+### 13.6 Requests and releases
+
+- **SW-C1 (to the lead):** `components/app/SideSwitch.tsx` and
+  `app/css/side-flip.css`, the Flip card at the foot of the drawer
+  (`BCD39CA8`), are claimed by no sweep group; it still draws
+  `nf-glass nf-glass--card`.
+- **SW-C2:** the drawer panel, its scrim and the switch sheet are
+  `overlays.css` (settings group).
+- **SW-C3:** `/agent/list`'s choices are `catalogue.css` (home group); the
+  drawn stays steps' tiles and plates are `stays.css` (stays group, released;
+  this group touched only the field rules there, for SW-ST2).
+- **SW-C4:** the host wizard harness reaches only its first step; the later
+  non-drawn steps share its three classes and are swept by class, not shot.
+- **SW-C5 (to Phase 1 / the lead):** re-point `.nf-card` itself at the panel
+  tokens, or move `Screen`'s `RowList boxed` to `panelClass` and drop its
+  `rounded-[var(--nf-radius-xl)]` utility; then delete agent.css's bridge rule
+  and chips.css's panel hover rule, and add the panel hover state to glass.css.
+- **SW-C6 (to Phase 1):** no shared badge came out of the console; the
+  platform's status badges and counts keep their own tints until one does.
+- **SW-ST2: closed by this group** (see Pass 3).
+- The dock and its switch: not touched, on the founder's ruling.
+
+### 13.7 Proofs
+
+`docs/design/proofs/session-b/sweep-chrome/`: `before/` (pre-sweep build,
+every route at 390 and 1440, plus `stays-*-before` for SW-ST2), `after/` (the
+final build, every route, the drawer foot, the open workspace drawer, the
+open "More" menu), `sheets/` (before, after and the console overview side by
+side for the workspace settings, the host wizard and the drawer; the landing
+and the hotel step before and after; the open workspace drawer beside the
+app drawer's foot). All from `next start` with `VALLO_PREVIEW_HARNESS=1`;
+every `/preview/**` shot is fixture-backed, the landing and site pages are
+live. Downscaled for the repository (390 shots to 390px, 1440 to 960px, JPEG
+68); the dpr 2 originals are in the worker's scratchpad.
+
+### 13.8 Skipped or not verified
+
+- The host wizard's later non-drawn steps are not individually shot (SW-C4).
+- `/host/rooms`, `/host/photos`, `/host/reservations`, `/host/apply` and
+  `/styleguide` sit behind the sign-in gate and have no harness; covered by
+  class only.
+- Hover states were not shot; the rules were read and the panel hover rule
+  measured in code only.
+- The shape sweep's refusals (site pages timing out on `networkidle` in the
+  tool) were covered by hand-read shots, not by the tool.
 
 ## 13. Platform sweep: social (public profile, follow lists, edit profile, messages, the three thread faces)
 
@@ -5575,13 +6007,216 @@ and 1440, from a production build of 3621452c with
 empty state because this sandbox's egress refuses the Supabase host (so no
 proof here shows a live row, and none claims to).
 
-### 13.H.4 Applied (waits for Phase 1 RELEASED)
+### 13.H.4 Applied (on Phase 1 as released in 9da8f86f)
 
-(pending)
+The vocabulary used, so every row below reads the same way (all from
+ledger 13.0; no value is written in this group's files, only token names):
+
+| Role | Shared primitive | Where a class cannot be put on the element |
+|---|---|---|
+| Container, card | `Panel` / `panelClass()` (`.nf-panel`, `--card`, `--glass`) | the panel tokens by name: `--nf-panel-fill(-card)`, `--nf-panel-edge(s)`, `--nf-container-radius`, `--nf-panel-rim`, `--nf-panel-glow` (rules other groups' components draw, e.g. `nf-pcard` under `StayCard`, `nf-lw-*` in the wizard) |
+| Icon plate | `IconPlate` / `iconPlateClass()` (`.nf-plate`) | `--nf-plate-fill`, `-edges`, `-shadow`, `-radius`, `-glyph-glow` |
+| Primary action | `Button` / `ButtonLink variant="primary"` (lit bar, pooled bloom) | none left in this group |
+| Secondary, quiet control, chip at rest, words on a photograph | `Button` / `ButtonLink variant="secondary"` or the class `nf-btn--glass` | `--nf-btn-glass-fill`, `-edge`, `-blur`, `-shadow` |
+| Selected, pressed, filled status badge | none (13.0: "use the `--nf-selected-*` tokens") | `--nf-selected-fill`, `-edge(s)`, `-shadow(-inline)` |
+| Field | `nf-glass nf-glass--well` | `--nf-glass-well-fill` over `--nf-brand-edge-soft` (the well's own two tokens) |
+| Divider | | `--nf-panel-hair` |
+| Hover / focus on a container | | `border-color: var(--nf-selected-edges)` / `var(--nf-selected-edge)` |
+
+**Deleted rather than moved** (no route mounted them; each drew its own
+tile, chip, plate or search plate): `MarketTiles`, `FeaturedCities`,
+`InvestBand`, `TrendingStrip`, `CityHero` (home), `CategoryRail`,
+`RecentStrip` (search), `ListingHostPanel` (listing), with their rules
+(`.nf-home__market*`, `__city*`, `__invest*`, `__search*`, `__head`,
+`__more`, all of `explore.css`'s `.nf-market*`, and `catalogue.css`'s
+`.nf-reg-card*`, `.nf-stay-fact(s)*`, `.nf-stay-price-row`), and the seven
+light-theme blocks of `price-check.css`. `markets.ts` stays: its types feed
+`app/(app)/home/market-queries.ts`. `AiAssistantBanner` is unmounted too but
+is KEPT, with its `.nf-home__ai*` rules, because `ambient.css` and
+`chrome.css` (not this group's) cite it by path and the token check fails
+on a dangling path; request R-SH1 below.
+
+| ID | Item | Before | After | Reference (console / Get started) | Match |
+|---|---|---|---|---|---|
+| H1 | location chip | `nf-glass--tile` + own hover edge | `panelClass({variant:"card"})`, hover `--nf-selected-edges` | console figure card | yes |
+| H2 | hero plate | own radius 22, edge, `--nf-glow-edge` | `panelClass()`, padding off for the photo | console panel | yes |
+| H3 | hero place chip | own glass, raw `blur(10px)` | glass door tokens, radius 6 | Get started glass door | yes |
+| H4 | hero search well | own well, raw `blur(14px)` | `nf-glass nf-glass--well`, focus `--nf-selected-edge` | console search | yes |
+| H5 | hero filters | own quiet square | `ButtonLink variant="secondary" size="sm" iconOnly` | Get started glass door | yes |
+| H6 | category plates (property) | own plate, 22px glow | `iconPlateClass({size:"lg"})` | console icon tile | yes, and now matches GOVERNING-01's four lit squares |
+| H7 | Stays doors | own well card, object beside words | `panelClass({variant:"card"})`, object over the words as GOVERNING-09 draws them | console figure card | yes |
+| H9 | property card, hover | `nf-glass--card` + own hover glow | `panelClass({variant:"card"})`, hover `--nf-selected-edges` | console figure card | yes |
+| H10 | card photo, no-photo mark, saved note | own chips | photo inset on the container radius; chips on the glass door; the no-photo mark centred (it collided with the market tag, pass 1) | glass door | yes |
+| H11 | Verified, For rent/sale | own glass badge + 14px glow | selected tokens (filled lit badge, as 3EB3E2A9) | console filled badge | yes |
+| H11b | Example | own override over the shared badge | override deleted: the shared `nf-badge--example` (cyan outline, the pending family) draws it | | yes |
+| H12 | heart | own media glass | glass door tokens | glass door | yes |
+| H13 | "+1" fact chip | own well chip | glass door tokens | glass door | yes |
+| H14 | empty shelf | shared | shared | | yes |
+| H16 | stay card chips | own well chip | glass door tokens | glass door | yes |
+| HL | home loading | radii 18/14, `nf-home__tiles` (no rule) | panel for chip and hero, `iconPlateClass` for the four, card skeletons on the panel card | | yes |
+| S1 | shelf bar | own hairline | `--nf-panel-hair` | console | yes |
+| S2 | search field | own well, 3px glow ring | well tokens, focus `--nf-selected-edge` | console search | yes |
+| S4 | filters square | own glass + 16px glow | glass door tokens | glass door | yes |
+| S5 | chips rest / on | own well / own 26 per cent fill + glow | glass door / selected | console segment | yes |
+| S6 | sort button | own well, 40px tall (ratio 0.35) | glass door, 44px (0.32) | glass door | yes |
+| S7 | sort menu, current item | own elevated popover | panel card; current on the selected state | console panel, nav row on | yes |
+| S9 | filter sheet | own canvas glass, left edge, `--nf-elev-3` | panel material with the panel blur, grip on `--nf-panel-catch`, hairlines `--nf-panel-hair` | console panel | yes, and 3EB3E2A9's lit sheet |
+| S10 | option tiles rest / hover / pressed | own well / flat brand fill + 18px glow | glass door / `--nf-selected-edges` / selected state | console segment | yes |
+| S13 | location and sort rows | own well + 3px ring | well tokens, focus `--nf-selected-edge` | | yes |
+| S15 | Reset / Apply | shared | shared (now Get started's glass door and lit bar) | | yes |
+| S16 | map: pins, clusters, cards, controls, list, dock, zoom | inline `--nf-elev-*` lifts, `surface-primary` x8, own borders | chosen pin and cluster on the selected state, resting pin and every control on the glass door, the empty card, list and dock on the panel card, Leaflet's zoom on glass door tokens | | yes |
+| S18 | search loading | radii pill/lg/md, own hairline | radius 10, `--nf-panel-hair`, card skeletons on the panel card | | yes |
+| S19 | active filters, view toggle, filter link | shared `nf-chip`, `nf-segmented`, `nf-icon-btn` | unchanged (chips.css and controls.css, not this group's) | | inherits |
+| L1, L3, L4 | gallery, save/share, photo viewer controls | Tailwind overlay fill + border + `backdrop-blur-md`, one `black/45` | `nf-btn nf-btn--glass nf-btn--sm nf-btn--icon` | glass door | yes, as 9E8B56ED's lit squares |
+| L1b | frame counter, caption, notes on photos | Tailwind overlay + blur | `.nf-media-chip` on glass door tokens, radius 6 | glass door | yes |
+| L2 | For rent, Verified on the photo | own badge + 16px glow | selected tokens | filled badge | yes (9E8B56ED) |
+| L5 | lead card | `nf-glass--card` | `panelClass({variant:"card"})` | console figure card | yes |
+| L6 | market tag, Verified listing | own badges | glass door / selected | | yes |
+| L7 | spec tiles | own well | panel card | | yes |
+| L8 | Move-in Total panel, rooms plate | own 135deg wash + 28px glow | panel card / glass door, radius 14 | console figure card | yes (9E8B56ED) |
+| L9 | amenity tiles | `nf-glass--tile` + own radius | `panelClass({variant:"card"})` | | yes |
+| L10 | section tabs, underline | own ground, 10px glow | `--nf-panel-hair`, underline `--nf-panel-catch` with `--nf-panel-halo` | console tab | yes |
+| L11 | description, location panels | own well card | panel card | | yes |
+| L12 | agent card, avatar ring, Verified Agent pill, steps | own well card, own pill | panel card, `--nf-panel-edge` ring with the halo, selected pill (no wrap, pass 1), plate steps | | yes |
+| L13 | move-in and purchase rows, totals | own wells, own lit total | well tokens, `--nf-panel-edge` on a declared row, panel card total | | yes |
+| L14 | sticky foot | shared `ActionBar` and buttons | unchanged | | inherits |
+| L15 | rental, sale, reserve, table panels | `nf-card` + 14 own borders, flat brand slots | `nf-panel nf-panel--card`, `--nf-panel-hair`, slots `.nf-choice` (glass door / selected), steppers the glass door at radius 10 | | yes |
+| L16 | reviews, utilities, walkthrough, photo grid | own borders, radius 18/14 | `--nf-panel-hair`, `--nf-panel-edge`, container radius | | yes |
+| L17 | example notice | cyan warning rule | unchanged: the cyan is the pending family, not amber | | yes |
+| L18 | listing loading | a rounded sheet (28px top) no longer drawn by the page | the panel card lead and the panel aside, radius 10 | | yes |
+| L19 | stay / restaurant anatomy (stays group's routes) | own wells | panel card, glass door, well, plate tokens | | yes (rules here) |
+| L20 | move-in ledger | own card + 24px glow, own glyph plate | panel, plate tokens, hairlines | | yes (route 7, not shot) |
+| P1 to P7 | price check map, pin, suggest list, confidence, disclaimer, strip, facts, share, area card | own panels without rim or glow, flat fills | panel / panel card, selected pin and high confidence, glass door medium, hair outline low, well strip | | yes |
+| P8 | light twin | seven blocks | deleted | | yes |
+| O1 | listing wizard `nf-lw-*` | own wells, plates, glows, circles | panel card, plate, well, glass door, selected edges and shadow for chosen cards | | yes (rules here; the wizard is the chrome group's route) |
+| O2, O3 | stays tile on, tenancy chip | own | selected / glass door | | yes |
+| O4 | `.nf-cat-surface .nf-card` | glow override over the stride card | DELETED: the chrome group moves `.nf-card` itself onto the panel tokens once for every surface (lead, 23 Sept), so a second copy here would be the duplicate this sweep exists to remove; this group's own `nf-card` uses are `nf-panel nf-panel--card` | | yes |
+| O5 | assistant | own avatar, bubble, result card, mark, chip, well and send overrides | plate avatars, panel card bubble and result, selected own bubble and marks, glass door chips and thinking pill, well tokens, the send override deleted (the shared lit primary draws it; dimmed on the lit fill when empty) | | yes |
+| O6 | `nf-reg-card` | own | deleted (no reader) | | yes |
+
+Kept on purpose: the glass OBJECTS' own glow (`.nf-stays-hero__object`,
+`.nf-ai__lockup img`), which is the artwork's light and not a container's;
+the spinner ring and the pin-drop ring (shapes); the grip and the rail
+segments' pill ends (shapes, no letters); `.nf-media-chip--lg`, the "+N"
+scrim over the last grid photo (a scrim, not a chip).
+
+Every panel that holds a lit primary (the rental, sale, reserve and table
+panels, the example panel, the map's empty card, the filter sheet) carries
+`isolation: isolate` so the button's pooled bloom is not painted under the
+panel's fill (13.0, known work).
+
+**Routes swept / routes in group: 8 / 8.** `/home`, `/stays` (the home
+components; `StayCard` is the stays group's and still carries
+`nf-glass--card` as its own class, so its container will move when that
+group sweeps the component: the `nf-pcard` rule now holds layout only),
+`/search`, `/listing/[id]`, `/price`, `/price/area/[id]`,
+`/rent/move-in/[listingId]`, `/assistant`. Not shot: `/price/area/[id]`
+(needs a stored share) and `/rent/move-in/[listingId]` (no harness); their
+rules are swept with the files and were read, not photographed.
+
+Requests (to the lead):
+- **R-SH1.** `AiAssistantBanner.tsx` is unmounted. Delete it with its
+  `.nf-home__ai*` rules once `ambient.css` (451) and `chrome.css` (93) stop
+  naming it; those two comments are the chrome group's.
+- **R-SH2.** `StayCard` (stays group) should take `panelClass({ variant:
+  "card", className: "nf-pcard ..." })` as `ListingCard` now does.
+- **R-SH3.** A shared filled status badge (the console's `.nf-admin-badge`
+  anatomy) belongs in the shared layer; this group draws its filled badges
+  on the selected-state tokens meanwhile.
 
 ### 13.H.5 Audit passes
 
-(pending: Pass 1, Pass 2, Pass 3, each dated)
+Method for every pass: a production build of the branch with
+`VALLO_PREVIEW_HARNESS=1`, all 19 harness states shot at 390 (2x) and 1440,
+each opened beside its before shot and beside the console / Get started
+anatomy (panel, plate, glass door, lit bar, selected state), and every
+text-bearing control with a box measured for radius over short side
+(`ratio.mjs`: buttons, links, inputs, selects, summaries, badges, chips,
+tags, pills, marks).
+
+**Pass 1, 23 September.** Found: (1) the "No photographs yet" mark sat on
+the market tag at the photo's foot on every narrow card (it predates the
+sweep; both were bottom corners); centred it on the photo. (2) The
+Verified Agent pill wrapped to two lines in the agent card at 390; no wrap.
+(3) Measured 178 controls, 18 at or over 0.35: the header avatar on nine
+routes (round by rule), the sort button (14 over 40 = 0.35; raised to 44
+tall, 0.32), the gallery counter and photo notes (14 over 30 = 0.47 after I
+had put them on the control radius; back to 6, 0.20), the reserve and
+tenancy steppers and the party input (14 over 32 to 40; radius 10), the day
+slots (14 over 37 wide; given side padding), the medium confidence badge (14
+over 40; radius 10). (4) The listing harness drew the lead card from the f3
+harness's old `nf-glass--card`; the group's own harness copy now matches the
+route.
+
+**Pass 2, 23 September.** 201 controls measured, 9 at or over 0.35, all nine
+the round header avatar (allowed). Re-opened every state: cards, badges,
+heart, fact chip, sort menu and its current row, filter sheet (sheet, grip,
+option tiles at rest and pressed, rows, Reset and Apply), map (empty card,
+note, controls, zoom), gallery and photo viewer controls, lead card, Move-in
+Total, amenity tiles, tabs and the focused tab, description, agent card,
+every panel in `listing-parts`, price check (map, suggest, confidence,
+disclaimer, strip, facts), assistant, and both loading skeletons. Found: the
+lead asked for no second copy of `.nf-card` (the chrome group moves it for
+every surface), so the catalogue override (O4) was deleted; and every panel
+holding a lit primary got `isolation: isolate` so the pooled bloom shows.
+
+**Pass 3, 23 September** (after the founder's C3.2 and C3.3 went in). 201
+controls measured, 9 at or over 0.35, all nine the round header avatar.
+Re-opened every state again, and the two new things: the lister line on the
+home and search cards, and the lit primaries inside panels (Message agent
+on the rental and sale panels, Request a table, Browse real listings), whose
+pooled bloom now shows under the button. Found: on the two-up search card
+the single ellipsised line cut "Listed by Emeka Johnson, agent" before the
+role word, which is the one word the line exists for; the line now clamps at
+two lines. Verified by applying that rule to the running pass 3 build
+(`search-lister-two-lines-390.jpg`) rather than by a fourth full build, on
+the brief's "do not rebuild for a CSS-only change". Nothing else found.
+Every route in the group is closed.
+
+**Proofs.** `docs/design/proofs/session-b/sweep-home/before/` (13.H.3) and
+`after/` (pass 3 build, same 19 names, 390 at 2x and 1440, plus
+`search-lister-two-lines-390.jpg`). Before, after and the console / Get
+started anatomy were compared side by side at each pass (contact sheets in
+the worker's scratch, not committed).
+
+### 13.H.6 The founder's answers in this group (23 September, through the lead)
+
+**C3.2, browsing is signed in only; back goes to the landing page.**
+`lib/nav/route-parents.ts` now declares `"/search": "/"` and
+`"/around": "/"` (was `/home`, which lands a signed-out reader on the
+sign-in wall), and both screens' hard-coded `BackButton` fallbacks say "/".
+Test: a new case in `lib/nav/resolve.test.ts` (search, search with a query,
+around, all to "/"); `lib/native/back-button.test.ts` had `/search` as its
+sample non-root with `/home` as the expected declared parent, and now
+expects "/". The map test ("every route climbs to a root") still passes,
+since "/" is a root. `/listing/[id]` still climbs to `/search`.
+
+**C3.3, the lister line goes on the listing card.** Under the claims rule:
+The founder deliberately overrides GOVERNING-01 here: the images govern
+form, and he has taken this one form decision back. Track G exists so a
+person can tell an owner from an agent from a firm, and the card is where
+they look. `ListingCard` (the home featured card and the search results
+card, one component) now mounts the existing `ListerRoleLine` under the
+place line when the row carries `listerRole`, with `listerName` from
+`public.listing_lister`: "Listed by the owner", "Listed by {name}, agent",
+"Listed by {firm}". It is words in the muted ink at the card's fact size
+(`--nf-pcard-fact`), one line, ellipsised, so the card grows by one caption
+row and nothing else moves; no badge shape, because `listing_role` is a
+claim until a member of staff dates it. A row with no role (the seed
+catalogue) draws nothing, as the agent card already does.
+NOT DONE, AND WHY: the person's TierBadge beside the name. The listing read
+carries the lister's name and nothing else about them (`listing_lister` is
+a two-column view by design), so there is no tier to hand `TierBadge`
+without a new read. Request R-SH4 below.
+Proof: `docs/design/proofs/session-b/sweep-home/after/home-390.jpg` and
+`search-390.jpg`, fixture rows carrying the three states (agent with a
+name, owner, firm with a name; `sweep-home/lister-fixtures.ts`).
+
+- **R-SH4 (Session A).** Add the lister's badge tier to the public lister
+  read (the `person_badge` tier beside `listing_lister`'s name, or a
+  `listing_lister_tier` view) so the card and the agent card can draw
+  `TierBadge` beside the name. Session B mounts it the day it lands.
+
 
 
 ## 13. Platform sweep: auth (Welcome back and every auth screen; worker "signin")
@@ -5829,7 +6464,455 @@ Routes swept: 28 of 28. The three old deck harnesses (`bd/*`, `p3/*` and the
 Proofs: `docs/design/proofs/session-b/sweep-console/pairs-1440/` (before left,
 after right, 28) and `after-390/` (28).
 
+## Push enrolment blind light (founder, 23 Sept)
+
+Worker "push". Files: `components/app/push/{enrol.ts,PushSetting.tsx,PushPrompt.tsx}`,
+new `device-state.ts`, `device-state.test.ts`, `enrol.test.ts`, one prop in
+`app/(app)/settings/notifications/page.tsx`, proof script
+`scripts/design/session-b-shots/push-blind-light.mjs`.
+
+**The defect.** `push_tokens` has 0 rows ever (read-only SQL, 16:28:
+`rows_ever 0, live 0`). The founder allowed notifications in the iPhone home
+screen app, signed in, and the control looked on, with no message.
+
+**The branch he hit (from the code at the time, not from device logs).**
+`PushSetting` read its phase from `Notification.permission` alone. The tap:
+permission granted, then `GET /api/push/key` answered 401
+`sign-in-required` (proxy gated it; the home screen app has its own cookie
+store), `enrol` mapped that to `not_configured`, `setNote` ran but the phase
+was never settled. The first render after showed a wrong note ("not switched
+on for this version") under granted copy; every load after that read
+permission "granted" and drew "Notifications are allowed on this device" with
+the button "Switch this device back on" and NO note. That is the light with no
+words. Session A's `dab5a688` (16:13) opened the key route, split out a
+`sign_in_required` reason and made ON need `registeredDevices > 0` (an account
+count).
+
+**What was still wrong after `dab5a688`, proven live on production at
+16:39 to 16:40** (`docs/design/proofs/session-b/push/before/`, QA member, cookies
+cleared after the page loaded to stand in for the separate cookie store):
+the key now answers 200, the browser subscribes, and `/api/push/register`
+answers 401. `enrol` mapped that to `not_saved`, so the screen said "That did
+not work. This device was not registered. Try again in a moment.": the wrong
+advice, trying again goes round the same loop. And ON from an account count
+lets a laptop's row light an iPhone that has none.
+
+**The fix.**
+- `enrol.ts`: reasons are `not_configured` (no key on the deployment, or
+  register 503) and a new `signed_out` (a 401 or 403 from the key route OR from
+  register). `sign_in_required` is gone. On register ok, and only then, the
+  device records `{deviceRef, endpoint}` locally; every register failure clears
+  that record.
+- `device-state.ts`: `deviceIsLive` is the only way to ON: permission granted,
+  the local `device_ref` from register is among the live refs the page just read
+  from `push_tokens` (`revoked_at is null`), and the browser still holds the
+  endpoint that was registered. `controlState` decides what the control draws:
+  "checking" (reads off) until that check has run; a register ok on this visit
+  reads on only until `router.refresh()` hands a new list, then the list
+  decides. `failureMessage` gives every reason one plain sentence; signed_out
+  in the iPhone home screen app reads "You're not signed in inside this app.
+  Sign in here, then turn notifications on. The app on your home screen signs
+  in separately from Safari." with an "Open sign in" link to
+  `/sign-in?next=/settings/notifications`; elsewhere "You're not signed in on
+  this device any more, so it was not registered. Sign in, then turn
+  notifications on." `not_configured` keeps "Nothing for you to do."
+- `PushPrompt`: an already-granted permission now reports `allowed`, never
+  `enrolled` (it used to report `enrolled` with no register call at all);
+  `enrolled` carries the server's `deviceRef`; failures use `failureMessage`.
+- `PushSetting`: takes `registeredRefs` (the page passes
+  `rows.map(r => r.ref)`); `registeredDevices` is accepted and ignored. A
+  success note is shown only while the control reads on.
+
+**Tests** (`npx vitest run src/components/app/push`, 54 pass):
+`enrol.test.ts` (11) drives `enrol` with the browser stubbed and then asks the
+settings rule whether the device reads on: permission granted + key 401 ->
+`signed_out`, register never called, not on; key ok + register 401 ->
+`signed_out` (not `not_saved`), not on although the browser holds a
+subscription; register 500, 200 without a ref, network failure -> `not_saved`,
+not on; a failure after an earlier record clears it; no key -> `not_configured`;
+offline key fetch -> `failed`; refused permission -> no request; register ok ->
+on only when the page lists the ref. `device-state.test.ts` (32): every
+`deviceIsLive` and `controlState` branch, including the empty-list-both-times
+refresh that a content key got wrong in the first build (caught by the proof
+run, fixed, re-shot), every reason has a sentence with no dash or exclamation
+mark, signed_out and not_configured differ, the iOS copy.
+
+**Proof runs** (Chromium 390x844 @2x, dark; `replies.json` beside each set
+holds every `/api/push/*` status with time):
+
+| Scenario | Before: production, 16:39 to 16:40 | After: local `next build` + `next start` of this change, real Supabase, throwaway local VAPID pair, 16:45 to 16:46 |
+|---|---|---|
+| 1 loaded, permission granted, no row | "allowed ... not registered yet", off | "allowed ... not registered", off |
+| 2 tap, no session (desktop UA) | key 200, register 401, "That did not work ... Try again in a moment." | key 200, register 401, "You're not signed in on this device any more ..." + Open sign in |
+| 2b tap, no session, iPhone UA + `navigator.standalone` | key 200, register 401, same wrong advice | key 200, register 401, "You're not signed in inside this app. Sign in here ..." |
+| 3 tap signed in (local only) | not run on production | key 200, register 500 (no service role key locally, so no write), "We could not register this device ...", off |
+| 4 FIXTURE: register reply replaced with ok + made-up ref (local only) | not run | ON with "This device is registered"; after the refresh the real list does not hold the ref, so off and the note goes (4b) |
+
+Stand-ins, said plainly: headless Chromium has no push service here, so
+`PushManager.subscribe` returns a made-up endpoint (`https://push.invalid/...`)
+from an init script; the signed-out register refuses it before any write. The
+iPhone case is a desktop Chromium with an iPhone user agent and
+`navigator.standalone` forced true, which shows the copy, not Safari's cookie
+behaviour. Shot 4's `state` in `replies.json` was read a moment after the
+image, when the refresh had already landed; the image and text are the ON
+moment. Scenario 3 and 4 were never run against production.
+
+**Links.**
+- `/api/push/key` open to signed-out requests: LIVE PROVEN (23 Sept 16:20
+  curl and 16:39 run, production, evidence `push/before/replies.json`).
+- `/api/push/register` refuses a signed-out request before any write: LIVE
+  PROVEN (production 16:39 to 16:40, 401 twice; `push_tokens` still 0 rows
+  afterwards).
+- signed_out copy on screen after a refused register: LIVE PROVEN on a local
+  production build against the real project (16:45 to 16:46,
+  `push/after/2*.jpg`); on production only after this deploys.
+- A real device registering a row in `push_tokens` and the control reading
+  ON from it: NOT PROVEN. It needs a person on a real phone on production
+  after this deploys (signed in inside the home screen app, then Turn on).
+  Nothing on this box can make a real push subscription, and no row was
+  written.
+
+## 13. Platform sweep: profile (the account page, its states and sheets, and the add-a-workspace chooser; worker "profile")
+
+Routes: `/profile` (signed in: Belongings and Posts, with and without a handle; signed out;
+loading) and `/profile/setup` (the chooser). Harness: `apps/web/src/app/(dev)/preview/session-b/profile/`
+(committed, R-G), inside the signed-in app shell, `?v=` full, values, nohandle, noposts,
+signedout, loading, setup. Governing image `50E032EA` still governs where it measures.
+
+### 13.P.1 Inventory (every visible item, before any change, 23 September)
+
+| # | Item | Drawn by, before | Shared primitive it belongs on |
+|---|---|---|---|
+| 1 | Cover band, grade and fade | `profile.css` `.nf-pf-cover*` | none (a photograph, not a container) |
+| 2 | Settings gear on the header row | `nf-icon-btn` (shared) placed by `.nf-pf-gear` | already shared |
+| 3 | Avatar, lit ring, picture mark | `profile.css` `.nf-pf-avatar*` | none (a shape, not a container) |
+| 4 | Tier badge beside the name and on the avatar | Session A's `TierBadge` through `BadgeSlot` | already shared |
+| 5 | Followers and Following, hairline | `profile.css` `.nf-pf-count*` | none (text) |
+| 6 | Claim your handle (no handle) | `.nf-pf-litbtn`, a local lit button | `ButtonLink variant="primary"` |
+| 7 | Belongings / Posts segment, track and live half | `.nf-pf-tabs`, `.nf-pf-tab[aria-selected]` (gradient-cta, rim-primary, bloom-lit-soft) | selected tokens `--nf-selected-*` |
+| 8 | Four belongings rows (container) | `.nf-pf-row` + `::before` fill, per-side rims, halo | `Panel` / panel tokens |
+| 9 | Row icon plates (glass objects) | `.nf-pf-plate` + pack crops | `IconPlate` / plate tokens |
+| 10 | Row value, title, subtitle, chevron | `.nf-pf-row__*` | none (text) |
+| 11 | Switch role row and its quiet plate | `.nf-pf-row--switch`, `.nf-pf-plate--switch` | `Panel` / plate tokens |
+| 12 | Switch role sheet (the dock's) | `ProfileSwitcher` (chrome group) | chrome group's |
+| 13 | Below the fold: More of your account, Your activity | `SettingsGroup`, `RowLink`, `RowButton`, `RowValue` (`components/app/account/rows`) | settings group's |
+| 14 | Your details sheet, its fields and Save | `Sheet`, `.nf-field`, `.nf-btn--primary` | shared already (Button class) |
+| 15 | Details sheet error | a local bordered error line in `AccountBody.tsx` | none (inline text state) |
+| 16 | Posts tab, cards and empty state | `ProfilePosts`, `EmptyState` (social group) | social group's |
+| 17 | Verify prompt (applied, unverified) | `VerifyPrompt` (roles) | not claimed by this group |
+| 18 | Signed out: the note panel | `.nf-pf-note`, a local glass card | `Panel` |
+| 19 | Signed out: Sign in | `.nf-pf-litbtn` | `ButtonLink variant="primary"` |
+| 20 | Signed out: On this device rows and sheet | `SettingsGroup`, `Sheet` | settings group's |
+| 21 | Loading: skeleton rows | `.nf-pf-skel-row`, a local bordered row | `Panel variant="card"` |
+| 22 | Chooser (`/profile/setup`): step bars, doors, door marks, calm panel, Continue | `.nf-steprow`, `.nf-door`, `.nf-door__mark`, `.nf-calmpanel` (all in `controls.css`, the shared layer's file), `Button variant="primary"` | `Panel`, `IconPlate`, `Button` |
+| 23 | Chooser back control | `nf-icon-btn--glass` (shared) | already shared |
+
+### 13.P.2 Applied (23 September, on Phase 1 RELEASED 9da8f86f)
+
+| # | Item | After | Local version deleted |
+|---|---|---|---|
+| 6, 19 | Claim your handle; signed-out Sign in | `ButtonLink variant="primary" size="lg" full` (the Get started lit bar, pooled bloom) | yes: `.nf-pf-litbtn` and its hover, focus and media rules |
+| 18 | Signed-out note | `Panel` (the console panel material) | yes: the note's border, fill and shadow; only its top margin stays |
+| 21 | Loading skeleton rows | `Panel as="div" variant="card"` | yes: the skeleton row's own border; only row layout stays |
+| 7 | Live tab fill | `--nf-selected-fill` (the shared selected state) | the `--nf-gradient-cta` reference; rim and bloom stay the render's (see below) |
+| 2, 4, 14, 23 | Gear, tier badge, details sheet Save, chooser back | already shared (`nf-icon-btn`, `TierBadge`, `.nf-btn--primary`, `nf-icon-btn--glass`) | nothing local existed |
+
+**Kept, because the governing image measures differently (render governs, per the lead).** Each
+was tried on the shared tokens in the running production build (a stylesheet injected over the
+page, then the same points sampled as ledger 1.4's table):
+- **Rows (8, 11) on the panel tokens:** 6 of 12 sampled points leave the render by more than 10:
+  top rim 0 122 254 against 2 112 219; 1px under it 22 75 142 against 0 52 148; 9px 11 56 117
+  against 0 33 105; foot rim 5 135 253 against 2 73 161; 4px below 4 21 56 against 0 11 42;
+  radius 10 against the render's 14. The render-matched rows stay (all 12 within 10).
+- **Plates (9, 11) on the plate tokens:** top rim 40 167 250 against 0 49 164, body 13 74 180
+  against 0 38 132; and the render draws its own glass objects in them, which `IconPlate`
+  (a line-glyph plate) does not carry. The render-matched plates stay.
+- **Tab track (7) on the panel tokens:** middle 0 35 86 against 0 21 67, rim 0 124 254 against
+  1 46 134. Kept. **Live tab rim:** the shared selected rim samples 171 223 253 against the
+  render's 3 146 251, so the render's blue rim stays; the fill is the shared token.
+
+**Not swept, and why.**
+- **Chooser (22):** its doors, door marks and calm panel are `.nf-door`, `.nf-door__mark` and
+  `.nf-calmpanel` in `controls.css`, the shared layer's own file (Phase 1's claim), still drawn on
+  the older edge tokens. The marks carry the roles render's glass objects, so `IconPlate` does not
+  fit them either. Request **SW-P1** (scope file): repoint those three onto `--nf-panel-*`,
+  `--nf-plate-*` and `--nf-selected-*` in `controls.css`; the chooser markup needs no change.
+- **Below the fold (13, 20), details sheet fields (14), Posts tab (16), Verify prompt (17), the
+  Switch role sheet (12):** drawn by components other groups claim (settings, social, roles,
+  chrome); they inherit their groups' sweeps.
+
+### 13.P.3 Audit passes
+
+- **Pass 1, 23 September.** Every state in the harness on the production build (`?v=` full,
+  values, nohandle, noposts, signedout, loading, setup; Posts tab; Your details sheet; the Switch
+  role sheet), 390 and 1440, beside the console panel and Get started's lit bar. Found: the rows,
+  plates and track, tried on the shared tokens, left the render (numbers above); kept. The Claim
+  and Sign in buttons now draw the shared lit bar with its pooled bloom; the note is the console
+  panel; the skeleton rows are panel cards.
+- **Pass 2, 23 September.** Re-read the same states against `50E032EA`. Found: the skeleton rows
+  (panel cards) read brighter at the edge than the real rows they stand for, because the real
+  rows are render-matched and the panel carries the +1 glow step. Accepted: the wait is the
+  shared material by the sweep's rule and the render draws no loading state. The live tab's rim
+  would turn white on the shared selected shadow; kept the render's rim, took the shared fill.
+- **Pass 3, 23 September.** The 1440 shots: the column, the rows and the lit segment hold at
+  desktop width; the tier badge (Session A's `TierBadge`, gold is its one allowed colour) sits
+  beside the name and on the ring. Nothing further found.
+
+### 13.P.4 Per route
+
+| Route | Result | Container | Edge | Rim | Glow | Button | Plate |
+|---|---|---|---|---|---|---|---|
+| `/profile` (signed in) | swept where the render allows | rows kept (render), skeleton and note on `Panel` | kept (render) | kept (render) | kept (render) | shared lit primary | kept (render objects) |
+| `/profile` (signed out) | swept | `Panel` | shared | shared | shared | shared lit primary | none |
+| `/profile` (loading) | swept | `Panel` card | shared | shared | shared | none | none |
+| `/profile/setup` | not swept (SW-P1) | `.nf-door` (shared file, older tokens) | same | same | same | shared lit primary | `.nf-door__mark` |
+
+Routes swept, fully or where the render allows: 3 of 4 states; the chooser waits on SW-P1.
+
+### 13.P.5 Proofs
+
+Before: the final-pass proofs already on main (`docs/design/proofs/session-b/profile/`,
+0b74eef9, before the shared layer and before `TierBadge`); no separate 1440 before exists.
+After: `docs/design/proofs/session-b/profile/sweep/after-<state>-390.jpg` and `-1440.jpg` for
+full, values, nohandle, noposts, signedout, loading and setup, plus `after-posts-390.jpg`,
+`after-details-sheet-390.jpg`, `after-switch-sheet-390.jpg` and `contact.jpg`.
+
+### 13.P.6 Email lock (founder rule, 23 September)
+
+`components/app/account/ProfileIdentityCard.tsx`: the email input and its writer are removed;
+the email is drawn as fixed text with the line "Your email address cannot be changed.", and the
+card's `save` is only ever called with a name (test `profile-identity-card.test.ts`, 3 passing).
+The account page's own Email row says the same line. **The button is removed, but the server
+door is Session A's, and this is NOT handled until their refusal has a test** (an
+account-takeover surface): scope request EMAIL-LOCK. The button went in fefc0b4f.
+
+### 13.P.7 Live proofs (network open, 23 September)
+
+Script `apps/web/tests/session-b-profile-live.spec.mjs`, run against the production build of
+abd0653d (next build and next start, real project, `NODE_USE_ENV_PROXY=1`). Signed in as the
+QA member only (957b3bd2), credentials from the scratchpad env, never in the repo. Nothing was
+saved: the details sheet was opened and closed, the email never touched. The badge figure is
+checked against a second, independent read of `person_badge` over the REST door as the same
+member. Run: 18 of 18 passed. abd0653d was rebased onto main as fefc0b4f (the email lock's commit): the profile route's files are unchanged by
+the rebase; the settings group's shared rows (`rows.tsx`, `SettingsGlyph.tsx`) moved under it,
+so the below-the-fold rows proven here are the pre-rebase drawing, same links. Live proofs
+pushed in 9868f652. Screenshots in `docs/design/proofs/session-b/profile/live/`.
+
+| Link | Status |
+|---|---|
+| signed out `/profile` redirects to sign in with the way back | LIVE PROVEN (2026-09-23 16:41 UTC, abd0653d, `signed-out-profile-redirect.jpg`) |
+| signed out `/profile/setup` redirects | LIVE PROVEN (16:41 UTC, abd0653d, script output) |
+| signed out `/profile/setup/owner` redirects | LIVE PROVEN (16:41 UTC, abd0653d, script output) |
+| signed out `/profile?switch=owner` redirects | LIVE PROVEN (16:41 UTC, abd0653d, script output) |
+| sign in as the member lands on `/profile` (next rides) | LIVE PROVEN (16:41 UTC, abd0653d, script output) |
+| identity read: name and handle from the member's profile | LIVE PROVEN (16:41 UTC, abd0653d, `signed-in-profile.jpg`) |
+| badge tier from `person_badge`: none for a member, no badge drawn; REST read agrees | LIVE PROVEN (16:41 UTC, abd0653d, script output) |
+| Followers and Following counts (0 and 0) | LIVE PROVEN (16:41 UTC, abd0653d, `signed-in-profile.jpg`) |
+| four belongings rows link to `/bookings`, `/saved`, `/wallet`, `/inspections`; no figure drawn at zero | LIVE PROVEN (16:41 UTC, abd0653d, `signed-in-profile.jpg`) |
+| Switch role line offers workspaces and never says admin to a member | LIVE PROVEN (16:41 UTC, abd0653d, `signed-in-profile.jpg`) |
+| Switch role opens the workspace sheet | LIVE PROVEN (16:41 UTC, abd0653d, `signed-in-switch-sheet.jpg`) |
+| Posts tab renders its panel | LIVE PROVEN (16:41 UTC, abd0653d, `signed-in-posts.jpg`) |
+| settings gear links to `/settings` and opens it signed in | LIVE PROVEN (16:41 UTC, abd0653d, `signed-in-settings.jpg`) |
+| below the fold links: edit profile, public page, `/settings/place`, `/reviews`, `/messages`, `/notifications`, `/help` | LIVE PROVEN (16:41 UTC, abd0653d, script output) |
+| email drawn as a fixed fact: no email field on the page, the member's address, "Your email address cannot be changed." | LIVE PROVEN (16:41 UTC, abd0653d, script output) |
+| Your details sheet carries no email field | LIVE PROVEN (16:41 UTC, abd0653d, `signed-in-details-sheet.jpg`) |
+| Log Out on `/settings`, then `/profile` is gated again | LIVE PROVEN (16:41 UTC, abd0653d, script output) |
+
+Links proven live: 17 of 17 (4 signed out, 13 signed in). The server refusal of an email
+change is not among them: it is Session A's (EMAIL-LOCK).
+
+## 13. Platform sweep: feed and bloom (the feed, stories, posts, the plus bloom; worker "feed")
+
+Governing image: the founder's `docs/design/references/founder/feed-plus-bloom-target.jpg`
+(the same pixels as `GOVERNING-feed-plus-bloom.png`, catalogue line 64). His rulings:
+plain LINE icons in the feed and the bloom, never glass objects; the Post, Story and
+Review plates as rounded rectangles on `--nf-radius-control`, everything else about them
+exactly as drawn; the bottom navigation NOT copied (ours stays five). His second message
+(relayed 23 September): "no one single difference from this image". So on this surface
+the image's measured size wins over the lead's floors R-A (11px type) and R-B (44px
+controls) wherever they disagree; every tap target stays 44px by a pseudo-element that
+paints nothing, so the drawn pixels and the reachable target are both honoured. This
+supersedes the R-A/R-B values an earlier commit of this section used; the lead should
+know the floors are not applied here, on the founder's words.
+
+### 13.F.1 Scale
+
+The screen in the 1024 x 1536 image runs x 178 to 843 (inner edge to inner edge,
+brightness profile at y 300, 700 and 1000), 665 image px for a 390 CSS px viewport:
+**1 image px = 0.5865 CSS px**, and a screenshot at device scale 1.7051 is one image pixel
+per screenshot pixel, which is what the overlay (13.F.6) uses.
+
+### 13.F.2 Routes and every visible item (the inventory, written before the change)
+
+Route `/around` (`app/(app)/around/page.tsx`, signed in; proofs from the committed harness
+`/preview/session-b/feed`, fixture props, ruling R-G). Where each item was drawn BEFORE
+this sweep, and what it is on now:
+
+| # | Item | Before (own drawing) | After |
+|---|---|---|---|
+| 1 | Back control beside the bar | `BackButton` (site) | unchanged; the nav law requires it (FEED-4) |
+| 2 | Location bar, and its place menu | `.nf-feed-chip` own glass, 44 tall, 14 corner; menu on `.nf-post__menu` (surface-raised, radius-lg) | drawn 359 x 33.4, 8 corner, hit 44 by ::after; menu on the shared panel (`--nf-panel-*`, container corner) |
+| 3 | Story rings, Your story plus, names | own ring, 56px, names 12px | measured ring 50, pitch 62.7, plus badge 19 lit, names 9.1px |
+| 4 | For You / Following track and lit half | own track, 3px inset, brand flat fill | drawn 359 x 35.2, lit half flush; track on `--nf-panel-edges`/`--nf-panel-glow`, lit half on `--nf-selected-*` |
+| 5 | Post card container | `.nf-card` plus local `--nf-glow-edge` and 22px corner | shared `Panel` card (`panelClass({variant:"card"})`), 10px container corner, local overrides deleted |
+| 6 | Card head: avatar ring, name, verified mark, handle, time, overflow | avatar 40, name 14px, tick = `verified-badge` for `isAgent` | avatar 38, name 11.3/600, **Session A's `TierBadge` from `public.person_badge`** (12), handle 8.6px and time 8.5px pale blue, overflow 16 |
+| 7 | Body | 14px, author line breaks collapsed | 9.2px on 14.1, the author's line breaks kept |
+| 8 | Photograph (1 to 4) | 16:9, radius 18 | single 2.8:1 as drawn, radius 7 |
+| 9 | Action row: like, repost, reply counts, share right | 34 tall, 13px counts, vertical repost glyph | 28 painted / 44 hit, 8.5px counts in fixed columns, the drawn LEVEL repost loop (`LineGlyph`), glyphs 20/16 |
+| 10 | Overflow action sheet (`nf-actions`) | surface-primary, radius 22 | shared panel fill, per-side edges, glow, container corner |
+| 11 | Toast | surface-raised | shared panel card |
+| 12 | Inline composer, loading skeleton, review empty card, story composer cards | `.nf-card` | shared panel card classes |
+| 13 | Composer sheet, review picker sheet, place and stay rows | surface-primary sheet, bordered rows | shared panel sheet; rows on the panel card with the selected edge on focus |
+| 14 | Comments sheet (`nf-comments`) | surface-primary | shared panel, container corner |
+| 15 | The plus | 60px glass disc, 16px in | 58px lit sphere where drawn (1px in), halo ring, glyph 32 |
+| 16 | The three plates | 104 x 40 dark glass, chat/picture glyphs, slots thrown too far | 91 x 37 on the control radius, measured centres and tilts, star/camera/pencil line glyphs at 28, lit glass with the shared selected edges, trails |
+| 17 | Empty states (For You, Following) | `EmptyState` | unchanged component; sits on the page (proofs) |
+| 18 | Story viewer, story rail, story plates | own on-media glass, 22 corner | corner now the container radius; the on-media glass stays (it sits over a photograph, the one place a panel would hide the picture) |
+
+### 13.F.3 The chain (control to screen)
+
+- **Like**: heart -> `toggleMark` (`lib/social/posts-actions.ts`) -> session and zod in the
+  action -> `post_reactions_insert_self` / `_delete_self` -> `public.post_reactions` ->
+  `post_reactions_count` (`bump_post_counters`) and `post_reactions_notify_after_insert`
+  (`notify_reaction`) -> `posts.like_count` -> the card's count. Verified live 23 Sept
+  (pg_policies, pg_trigger).
+- **Repost**: loop -> `toggleRepost` -> `post_reposts_insert_self` -> `public.post_reposts`
+  -> `bump_post_counters`, `notify_repost` -> `posts.repost_count`.
+- **Reply**: bubble -> `/post/[id]?reply=1` -> `replyToPost` -> `posts_insert_self` ->
+  `posts` -> `bump_post_tree_counters`, `notify_post_insert` -> `reply_count`.
+- **Share**: the sheet's share (native share or copy link); writes nothing.
+- **Overflow**: the action sheet -> save, repost, share, copy, mute (`mutes_insert_own`),
+  report (`reports_insert_own`), block.
+- **Verified mark**: `public.person_badge` (view; anon and authenticated both hold SELECT,
+  and EXECUTE on `badge_tier`, `is_checked_person`, `is_platform_staff`, checked live) ->
+  `readPersonBadges` (Session A, `lib/trust/badge-tier.ts`) -> `stampAuthorTiers`
+  (`lib/social/author-badges.ts`, new) on page one (`/around`, `/around/[slug]`) and on
+  every next page (`around/feed-actions.ts`) -> `PostAuthor.tier` -> `TierBadge`. Never
+  derived; unknown or failed read = no mark (test `author-badges.test.ts`).
+- **Counts** are the row's own columns (`like_count`, `repost_count`, `reply_count`),
+  kept by triggers. Nothing on the screen is invented; the fixture harness's counts are
+  fixture props and labelled so.
+- **Deleted posts** stay excluded: `posts-queries` filters `REMOVED` at the read and
+  `PostCard` returns null for one (section 12); live: 74 LIVE, 1 REMOVED.
+- **Bloom**: plus -> Post: the existing `Composer` in the sheet with the place picker
+  (`posts_insert_self` refuses a non-ACTIVE place, so only ACTIVE ones are offered); Story:
+  `/stories/new` (`StoryComposer`, `stories_insert_self`, `scan_story`,
+  `notify_story_insert`); Review: the picker of stays `getMyBookings` marks reviewable
+  (mirrors `reviews_insert_own`) -> `/bookings/[id]/review`; none: the honest empty sheet
+  with the way to the bookings list. Signed out, every action is the sign-in door.
+- **Broken links named**: FEED-3 (other `PostCard` surfaces show no mark until they stamp),
+  FEED-4 (back control on a dock root). None routed around.
+
+### 13.F.4 Refused from the render (claims)
+
+The render's counts (243, 37, 56, 89, 12, 24), its names and faces, "2h ago", "Lekki,
+Lagos" and the key and house emoji are the image's content, not ours: the built feed
+draws the database's rows. The verified tick is drawn only where `person_badge` says so.
+The render's bottom navigation (Home, Search, Saved, Profile) is not copied, on the
+founder's ruling.
+
+### 13.F.5 Comparison (image measured vs built measured)
+
+Image px from the render; built px measured in the production build by
+`scripts/design/session-b-shots/feed-overlay.mjs` at one image px per screenshot px
+(the table it writes is `docs/design/proofs/session-b/feed/overlay-<pass>-numbers.md`).
+CSS px = image px x 0.5865.
+
+| Property | Image (measured) | Built (measured) | Match? |
+|---|---|---|---|
+| Screen gutter | 28 img (16.4 CSS) | 16 CSS (`.nf-feed-page` on a phone) | yes |
+| Location bar | 612 x 57 img, corner 14 img (8.2), fill #011748 | 33.4 CSS tall, corner 8, fill lit 16% into canvas; hit 44 by ::after | height, corner, fill yes; width NO (back control, FEED-4) |
+| Pin / chevron | 14 / 11.7 CSS glyphs | 20 / 24 boxes = 14.2 / 12 glyph | yes |
+| Location words | "Lekki, Lagos" 110 img | 11.5px, 64.5 CSS | yes |
+| Story ring | 86 img (50 CSS), rim #1d93f1, first ring at 207 | 50, info-blue rim, first ring at 207.0 | yes |
+| Ring pitch | 112, 107, 107, 107, 101 img (uneven in the render) | 107.4 even | ring 1 exact, ring 2 -4.6 img, the rest within 3 |
+| Your story plus | 32 img (19 CSS) at the ring's lower right | 19, lit, same place | yes |
+| Ring names | "Your story" 77 img | 9.1px, 75.2 img | yes |
+| For You / Following track | 612 x 60 img, corner 8 CSS | 610.4 x 60, corner 8 | yes (1.6 img: the 358 vs 359 screen) |
+| Lit half | 297 x 60 img, #0468fe / #0144f3, rim #058efb | 298 x 60 on `--nf-selected-*` | yes |
+| Segment labels | cap 13 img, 10.5px | 10.5px / 500 | yes |
+| Card | 612 x 403 img, corner 15 img (8.8), fill #00133d, edges #0f459e / #123779 / #144395 / #0c2b6d | 610.4 x 405.8, 10px container corner, shared card tuned darker with brighter per-side edges | yes (corner 1.2 CSS rounder: the platform's container corner) |
+| Avatar | 65 img at 222,521 | 64.8 at 222.0,521.7 | yes |
+| Name | "Tunde Adebayo" 132 img, 600 | 11.3px / 600, 134.7 img | yes |
+| Verified mark | a tick after the name, 16 img | `TierBadge` 12 CSS from `person_badge` (gold or platinum art, Session A's) | anatomy yes; the tier's own colour, never a blue render tick |
+| Handle | 130 img | 8.6px, 129.3 img | yes |
+| Time | 47 img at 715,531 | 8.5px, 47.2 img at 714.3,531.1 | yes |
+| Overflow | dots centre 790,541 | centre 790.5,541 +-4 | within 4 img |
+| Body | 486 img first line, 24 img line pitch | 9.2px on 14.1, 476 img first line, the author's breaks kept | yes |
+| Photograph | 573 x 204 img at 226,650, corner 12 img | 570.6 x 205.9 at 225.9,649.9, corner 7 CSS | yes |
+| Action row | heart 240.5, repost 355, reply 450, share 782.5 (centres, img) | 240.5, 355.3, 448, 781 | yes |
+| Counts | "243" 27 img, pale blue | 8.5px, 28.2 img, pale blue | yes |
+| Repost glyph | a LEVEL loop | `LineGlyph` repost (level) | yes |
+| Plus | 98 img (57.7 CSS), centre 30 CSS in, #1557fa core to #17a4fe, #3abffb rim, halo ring | 58 (98.9 img), 1px in, indigo core to info-blue rim, halo ring | yes |
+| Plates, centres from the plus | Review -0.7,-50; Story -30.4,-84; Post -63.5,-114.8 CSS | the same (overlay: within 0.1 img) | yes |
+| Plate tilt | -13, -17, -20 | -13, -17, -20 (computed transform) | yes |
+| Plate size | 155 x 63 img (91 x 37) | 155.2 x 63.1 img | yes |
+| Plate shape | capsules | control radius 14 on 37 (0.378) | the founder's one translation |
+| Plate material | indigo top, #001f78 middle, lit foot, cyan rim, glow | indigo derived (FEED-5), deep middle, shared selected edges 1.5px, glow | yes by sample (13.F.6) |
+| Plate glyphs | pencil, camera, star, line | `LineGlyph` pencil, camera; `UiIcon` star; 28 boxes (19 CSS) | yes |
+| Plate labels | "Post" cap 12.8 img, 10.3px | 10.3px / 500 | yes |
+| Trails and haze | glowing curves into the plus, blue haze #012dd4 | three trails, indigo glow; the fan's haze | anatomy yes; the render's ribbon is brighter (13.F.8) |
+| Stack order | Review over Story over Post | the same (z-index by nearness) | yes |
+| Scrim | none | transparent tap target | yes |
+| Motion | thrown, caught | the existing spring (overshoot about 8%, settle under 450ms), 55ms stagger, fold inward | as before, tests green |
+| Bottom navigation | Home, Search, Saved, Profile | not copied (ours stays five) | the founder's ruling |
+
+### 13.F.6 The overlay and the five passes
+
+Every pass: production build, the committed harness, `feed-overlay.mjs --tag passN`
+(blend at 50 per cent, difference image, the numbers), then `feed.mjs` for the state
+shots. Mean absolute difference is over the whole region, so the fixture photographs and
+the monogram avatars (the render's faces and photos are not ours to use) keep it high;
+the per-element numbers are the measure.
+
+**Pass 1, 23 September.** Found against the image: the fan thrown too far and 10px left
+(the earlier R-B/shift reading), the plates 44 tall, type at the 11px floor, the card at
+the shared default (brighter fill, dimmer edges), the scrim dimming the feed, the plus and
+plates azure where the image is indigo, the repost glyph standing on end, the count columns
+evenly spaced where the image sets fixed columns, the first ring 3.4 CSS in, the lit half
+at 50 per cent where the image draws 48.5, authors' line breaks collapsed. Fixed all of
+them (13.F.5). Proofs: `overlay-pass1-*`, `side-by-side-feed.jpg`,
+`side-by-side-bloom.jpg`, the state shots. Left for pass 2: card 2 runs 7 img tall, the
+overflow dots 4 img off, ring 2 at -4.6 img.
+
+**Pass 2, 23 September.** Re-opened every inventory item in the pass-1 build.
+Found: the location bar shrank to its words when it shared its row with the back control
+(a live defect on `/around`, not only in the harness: `LocationChip`'s root did not grow),
+fixed (`min-w-0 flex-1`), the bar now 562.7 img wide beside the control; the action
+sheet's glyph squares still drew their own box, moved onto the shared icon plate
+(`--nf-plate-*`, middle step, glyph glow); the feed's inline notice, the held-post notice
+and the listing plate inside a card drew their own boxes, moved onto the shared card and a
+quiet inner panel on `--nf-panel-hair`; the card's foot sat 2.8 img low, now 403 exactly.
+The overflow dots measured 4 img off by box corner but land within 0.5 img by centre (a
+measuring slip, nothing moved). Card 2 stays 4.5 img tall because the image draws card
+2's head 4 img higher inside its card than card 1's, and one rule cannot draw both.
+SW-S1 applied (the social group's list): `.nf-social-card` deleted, and the orphaned
+material of `.nf-social-more`, `.nf-social-more__menu`'s offsets, `.nf-social-trust`'s box
+and `.nf-social-chip`'s glow deleted after grepping every consumer; `.nf-social-round`
+KEPT because the story viewer still draws with it; `.nf-social-sheet__panel` kept (the
+bloom's sheets, now on the shared panel). One stale `nf-social-card` class remains in
+`app/(app)/stories/new/loading.tsx`, which this worker does not own; it has no rule now
+and draws nothing of its own. Proofs: `overlay-pass2-*`, the state shots re-taken.
+
+### 13.F.7 Checks
+
+### 13.F.8 Not matched, and why
+
+- The location bar's width: the back control the nav law requires sits in its row
+  (FEED-4).
+- The canvas between the cards is #010d3c in the image and #000612 here: the platform
+  canvas is chrome, not the feed's (FEED-2).
+- "For You" is the image's capitalisation; the dictionary says "For you" and this worker
+  may add keys, not change values. A copy decision for the lead.
+- Faces and photographs in the proofs are fixture props (monograms, the platform's own
+  photography); the live feed draws each person's avatar and each post's own pictures.
+- The verified mark is the tier's own artwork (gold or platinum), which is Session A's; the
+  render's blue tick is not a tier this platform has.
+- The render's type is a narrower face than Inter; each role is sized to its drawn WIDTH
+  (so lines break where the image breaks) and so sits a little shorter in cap height.
+
 ## Skipped or not verified
+- (13.H, sweep-home) No live row on any proof: this box's egress refuses the Supabase host, so every card, panel and figure in the home group's proofs is fixture-backed or an empty state; the wiring is unchanged by the sweep (material only). `/price/area/[id]` and `/rent/move-in/[listingId]` were swept in their stylesheets and not photographed. The lister's TierBadge on the card waits on R-SH4. `StayCard` still wears `nf-glass--card` itself (stays group, R-SH2). The unmounted `AiAssistantBanner` stays until R-SH1.
 
 - Sweep, settings group (23 September): the payment methods block on `/settings` and
   `/settings/payments` is not swept here (wallet family); no before shots of the drawer and the
@@ -5837,6 +6920,11 @@ after right, 28) and `after-390/` (28).
   `ProfileIdentityCard.tsx` not swept (profile worker in flight); the notification centre's filter
   tabs in GOVERNING-12 are Session A's feature and do not exist; every settings and notifications
   proof is fixture-backed (the routes sit behind the sign-in gate).
+- **Platform sweep, chrome group (13, "sweep-chrome"):** the host wizard's
+  later non-drawn steps not shot (SW-C4); five gated routes covered by class
+  only; hover states read, not shot; the boxed row lists' 22px corner
+  (SW-C5), the Flip card (SW-C1) and the status badges (SW-C6) not moved,
+  being other files.
 
 (appended honestly as work proceeds)
 
@@ -5900,3 +6988,17 @@ after right, 28) and `after-390/` (28).
   renditions are derived recolours checked only on contact sheets and a
   harness; `eslint` on `scripts/design/session-b-crops.mjs` timed out on the
   loaded box and was not completed (`node --check` passes).
+- admin-money copy (8.14): ha, yo and ig serve the new English keys until a native speaker writes them; no word was invented. Left in English: each desk's metadata title and loading label, the shared `EscrowRuling` (admin-shell's), the refund reason labels (`lib/trust`), the escrow countdown formats and the payment channel fallbacks (`lib/admin/reads`). The payments health, overdrawn, stuck and sweep sections are proven by typecheck, not by a harness shot.
+- Push enrolment blind light: a real device registering a `push_tokens` row
+  and the control reading ON from it is not proven; it needs a person on a real
+  phone on production after deploy. The iPhone home screen condition was
+  simulated (cleared cookies, iPhone user agent, forced `navigator.standalone`),
+  not run in Safari. Push subscribe was stood in by an init script.
+
+
+- Feed and bloom (section 13, feed): no signed-in run of `/around` (no test user); every
+  proof is fixture-backed through `/preview/session-b/feed`. The badge read is proved by
+  SQL (grants, EXECUTE) and `author-badges.test.ts`, not by a live feed with a gold author
+  on screen. The harness has no dock, so the plus's height is set from the dock's own
+  geometry tokens, not photographed against the dock.
+

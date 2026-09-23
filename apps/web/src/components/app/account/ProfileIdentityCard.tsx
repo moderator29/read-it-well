@@ -7,7 +7,6 @@ import { ButtonLink } from "@/components/ui/Button";
 import {
   formatSince,
   GUEST_NAME,
-  MAX_EMAIL,
   MAX_NAME,
   useDeviceIdentity,
 } from "./device-identity";
@@ -41,7 +40,6 @@ export function ProfileIdentityCard() {
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const nameId = useId();
-  const emailId = useId();
 
   /*
    * THE HYDRATION EFFECT IS GONE. See `device-identity.ts`.
@@ -61,11 +59,12 @@ export function ProfileIdentityCard() {
   const email = identity.email;
   const since = formatSince(identity.since);
 
-  /* Both editors write on every keystroke, which is what they did before and is
-     the right behaviour here: there is no Save button on this card, so a value
-     that is not written as it is typed is a value lost by navigating away. */
+  /* The name writes on every keystroke: there is no Save button on this card,
+     so a value not written as it is typed is lost by navigating away. The
+     email is NEVER written from here (the founder's rule of 23 September: an
+     account's email address can never be changed), so `save` is only ever
+     called with a name. */
   const updateName = (next: string) => save({ name: next.slice(0, MAX_NAME) });
-  const updateEmail = (next: string) => save({ email: next.slice(0, MAX_EMAIL) });
 
   const shownName = name.trim() || GUEST_NAME;
   const initial = shownName.charAt(0).toUpperCase();
@@ -142,27 +141,21 @@ export function ProfileIdentityCard() {
               className="nf-field"
             />
           </div>
-          <div>
-            <label htmlFor={emailId} className="nf-label mb-inline block">
-              Email address
-            </label>
-            <input
-              id={emailId}
-              type="email"
-              value={email}
-              maxLength={MAX_EMAIL}
-              autoComplete="email"
-              placeholder="you@example.com"
-              onChange={(e) => updateEmail(e.target.value)}
-              className="nf-field"
-            />
+          {/* The email is a fixed fact, drawn as text rather than as a field,
+              so nothing on this card looks as if it could change it. */}
+          <div data-testid="identity-email">
+            <p className="nf-label mb-inline">Email address</p>
+            <p className="nf-body">{email || "Not set"}</p>
+            <p className="mt-inline nf-caption text-[var(--nf-content-muted)]">
+              Your email address cannot be changed.
+            </p>
           </div>
           {/* 12px type and a 12px glyph on the line that tells somebody where
-              their name and email are actually kept. Both come up: the caption
+              their name is actually kept. Both come up: the caption
               tier is the quietest readable one, and the icon floor is 20. */}
           <p className="flex items-center gap-inline nf-caption text-[var(--nf-content-muted)]">
             <UiIcon name="verified" size={ICON.inline} className="shrink-0" />
-            Stored on this device only, until you create an account.
+            Your name is stored on this device only, until you create an account.
           </p>
         </form>
       )}

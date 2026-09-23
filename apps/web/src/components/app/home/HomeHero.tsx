@@ -1,8 +1,9 @@
-import Link from "next/link";
 import type { ListingKind } from "@/lib/listings/types";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
+import { panelClass } from "@/components/ui/Panel";
+import { ButtonLink } from "@/components/ui/Button";
 
 /**
  * The hero container, to `GOVERNING-01` screen one and `GOVERNING-09` screen
@@ -66,7 +67,7 @@ export function HomeHero({
   id: string;
 }) {
   return (
-    <section className="nf-hero-plate nf-rise nf-rise-3" data-testid="home-hero">
+    <section className={panelClass({ className: "nf-hero-plate nf-rise nf-rise-3" })} data-testid="home-hero">
       <MediaFrame hue={2} kind={kind} sizes="100vw" priority scrim />
       <div className="nf-hero-plate__body">
         {/* THE PLACE CHIP. Absent rather than guessed: a chip reading the
@@ -85,7 +86,7 @@ export function HomeHero({
           action={searchAction}
           method="get"
           role="search"
-          className="nf-hero-plate__search"
+          className="nf-glass nf-glass--well nf-hero-plate__search"
           data-testid="home-hero-search"
         >
           <label htmlFor={id} className="sr-only">
@@ -104,14 +105,17 @@ export function HomeHero({
               it. A LINK, not a button: the drawer lives on the search screen
               and opening it from here is a navigation, so it survives with no
               script and the back button walks it. */}
-          <Link
+          <ButtonLink
             href={filtersHref}
             aria-label={filtersLabel}
-            className="nf-hero-plate__filters nf-tap"
+            variant="secondary"
+            size="sm"
+            iconOnly
+            className="nf-hero-plate__filters"
             data-testid="home-hero-filters"
           >
             <UiIcon name="sliders" size={18} />
-          </Link>
+          </ButtonLink>
         </form>
       </div>
     </section>

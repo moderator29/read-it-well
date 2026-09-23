@@ -85,7 +85,7 @@ export default function SafetyCentrePage() {
       <div className="mx-auto max-w-3xl">
 
         {/* ------------------------------------------------- the one rule */}
-        <section className="nf-card mt-section p-card" aria-labelledby="one-rule">
+        <section className="nf-panel nf-panel--card block mt-section p-card" aria-labelledby="one-rule">
           <span className="nf-overline">The rule that matters most</span>
           <h2 id="one-rule" className="nf-h2 mt-inline text-[1.375rem]">
             {NO_FEES_LINE}
@@ -117,7 +117,7 @@ export default function SafetyCentrePage() {
           </p>
           <ul className="mt-group space-y-row">
             {NEVER_ASK.map((item) => (
-              <li key={item.title} className="nf-card p-card-sm">
+              <li key={item.title} className="nf-panel nf-panel--card block p-card-sm">
                 <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                   {item.title}
                 </h3>
@@ -136,7 +136,7 @@ export default function SafetyCentrePage() {
           </h2>
           <ol className="mt-group space-y-row">
             {PAYING_STEPS.map((step, index) => (
-              <li key={step.title} className="nf-card p-card-sm">
+              <li key={step.title} className="nf-panel nf-panel--card block p-card-sm">
                 <span className="nf-overline">
                   Step <span className="nf-numeric">{index + 1}</span>
                 </span>
@@ -163,7 +163,7 @@ export default function SafetyCentrePage() {
           </p>
           <ol className="mt-group space-y-row">
             {INSPECTION_STEPS.map((step, index) => (
-              <li key={step.title} className="nf-card p-card-sm">
+              <li key={step.title} className="nf-panel nf-panel--card block p-card-sm">
                 <span className="nf-overline">
                   Step <span className="nf-numeric">{index + 1}</span>
                 </span>
@@ -212,7 +212,7 @@ export default function SafetyCentrePage() {
           </p>
           <ul className="mt-group space-y-inline">
             {REPORT_CATEGORY_ORDER.map((category) => (
-              <li key={category} className="nf-card p-card-sm">
+              <li key={category} className="nf-panel nf-panel--card block p-card-sm">
                 <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                   {REPORT_CATEGORY_COPY[category].label}
                 </h3>
@@ -223,7 +223,7 @@ export default function SafetyCentrePage() {
             ))}
           </ul>
 
-          <div className="nf-card mt-heading p-card">
+          <div className="nf-panel nf-panel--card block mt-heading p-card">
             <span className="nf-overline">What happens next</span>
             <p className="mt-inline text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
               A report about being asked to pay outside Vallo, or about anything
@@ -255,7 +255,7 @@ export default function SafetyCentrePage() {
             If you have already paid someone outside Vallo
           </h2>
           <ol className="mt-group space-y-row">
-            <li className="nf-card p-card-sm">
+            <li className="nf-panel nf-panel--card block p-card-sm">
               <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                 Tell your bank today, not tomorrow
               </h3>
@@ -266,7 +266,7 @@ export default function SafetyCentrePage() {
                 transfer.
               </p>
             </li>
-            <li className="nf-card p-card-sm">
+            <li className="nf-panel nf-panel--card block p-card-sm">
               <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                 Then report it here
               </h3>
@@ -278,7 +278,7 @@ export default function SafetyCentrePage() {
                 to the next person.
               </p>
             </li>
-            <li className="nf-card p-card-sm">
+            <li className="nf-panel nf-panel--card block p-card-sm">
               <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                 Keep everything
               </h3>
@@ -292,7 +292,7 @@ export default function SafetyCentrePage() {
         </section>
 
         {/* ------------------------------------------------------- close */}
-        <div className="nf-card mt-section-tight flex flex-col items-start gap-group p-card sm:flex-row sm:items-center sm:justify-between">
+        <div className="nf-panel nf-panel--card mt-section-tight flex flex-col items-start gap-group p-card sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-group">
             <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
               <BrandIcon name="support-shield" fill />

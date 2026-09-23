@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import type { Dictionary } from "@vallo/i18n";
 import type { AgentProfile } from "@/lib/agent/types";
@@ -24,6 +25,9 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * and closing animate; `inert` keeps the closed drawer out of the tab order
  * and away from assistive technology.
  */
+/** Nothing to subscribe to: the store only answers "is this the client". */
+const noSubscribe = () => () => {};
+
 export function AgentMobileNav({
   t,
   active,
@@ -46,6 +50,20 @@ export function AgentMobileNav({
      workspace menu into the page it was covering. */
   useOverlay({ open, onClose: close, panelRef: drawerRef });
 
+  /*
+   * THE DRAWER IS PORTALLED TO THE BODY. It sits in the workspace's top bar,
+   * whose glass (`nf-glass--chrome`) carries a backdrop blur, and a backdrop
+   * filter makes an element the containing block for its `position: fixed`
+   * descendants. So the "full screen" drawer was 60px tall, the height of the
+   * bar, with no scrim, found in the platform sweep's second pass. Rendering
+   * it on the body puts the fixed box back against the viewport.
+   */
+  const mounted = useSyncExternalStore(
+    noSubscribe,
+    () => true,
+    () => false
+  );
+
   return (
     <>
       <button
@@ -54,7 +72,7 @@ export function AgentMobileNav({
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label={t.a11y.openMenu}
-        className="nf-tap -ml-2xs grid h-10 w-10 shrink-0 place-items-center rounded-[var(--nf-radius-md)] text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)] lg:hidden"
+        className="nf-icon-btn nf-tap -ml-2xs h-10 w-10 shrink-0 lg:hidden"
       >
         {/* The panel toggle, matching Personal Mode. Three stacked lines say
             "a list is behind this" and say it identically whatever opens; this
@@ -62,71 +80,80 @@ export function AgentMobileNav({
         <UiIcon name="panel-left" size={20} />
       </button>
 
-      <div
-        ref={drawerRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t.agent.mode.workspaceLabel}
-        inert={!open}
-        className={[
-          "fixed inset-0 z-50 lg:hidden",
-          open ? "" : "pointer-events-none",
-        ].join(" ")}
-      >
-        {/* Backdrop: click to dismiss. Escape covers keyboard users, so this
+      {mounted &&
+        createPortal(
+          <div
+            ref={drawerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={t.agent.mode.workspaceLabel}
+            inert={!open}
+            className={[
+              "fixed inset-0 z-50 lg:hidden",
+              open ? "" : "pointer-events-none",
+            ].join(" ")}
+          >
+            {/* Backdrop: click to dismiss. Escape covers keyboard users, so this
             stays a plain surface rather than a focusable control. */}
-        <div
-          aria-hidden="true"
-          onClick={close}
-          className={[
-            "absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm transition-opacity duration-300",
-            open ? "opacity-100" : "opacity-0",
-          ].join(" ")}
-        />
-
-        {/* Panel */}
-        <div
-          className={[
-            "absolute inset-y-0 left-0 flex w-[18.5rem] max-w-[85vw] flex-col overflow-y-auto border-r border-[var(--nf-border-subtle)] bg-[var(--nf-surface-primary)] px-md pt-5 shadow-[var(--nf-elev-4)] transition-transform duration-300 ease-out",
-            open ? "translate-x-0" : "-translate-x-full",
-          ].join(" ")}
-          style={{ paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom))" }}
-        >
-          <div className="mb-xs flex items-center justify-between px-2xs">
-            <Link href="/" aria-label={t.a11y.logoHome} onClick={close}>
-              <Logo size={44} wordSize={22} />
-            </Link>
-            <button
-              type="button"
+            <div
+              aria-hidden="true"
               onClick={close}
-              aria-label={t.a11y.closeMenu}
-              className="-mr-2xs grid h-10 w-10 place-items-center rounded-[var(--nf-radius-md)] text-[var(--nf-content-secondary)] transition-colors hover:bg-[var(--nf-glass-fill)] hover:text-[var(--nf-content-primary)]"
-            >
-              <UiIcon name="close" size="sm" />
-            </button>
-          </div>
-
-          <AgentModePill label={t.agent.mode.agent} className="mb-5 ml-2xs" />
-
-          <NavTree
-            sections={buildAgentNav(t, unreadMessages)}
-            active={active}
-            label={t.agent.mode.workspaceLabel}
-            accent="agent"
-            onNavigate={close}
-          />
-
-          <div className="mt-md space-y-xs">
-            <AgentIdentityCard
-              profile={profile}
-              verifiedLabel={t.agent.mode.verifiedAgent}
-              visitorLabel={t.agent.mode.visitor}
-              signInLabel={t.agent.mode.signInToWorkspace}
+              className={[
+                "absolute inset-0 bg-[var(--nf-overlay-backdrop)] backdrop-blur-sm transition-opacity duration-300",
+                open ? "opacity-100" : "opacity-0",
+              ].join(" ")}
             />
-            <ModeSwitcher t={t} current="working" variant="menu" />
-          </div>
-        </div>
-      </div>
+
+            {/* Panel */}
+            <div
+              className={[
+                "nf-panel nf-agent-drawer absolute inset-y-0 left-0 flex w-[18.5rem] max-w-[85vw] flex-col overflow-y-auto rounded-l-none px-md pt-5 transition-transform duration-300 ease-out",
+                open ? "translate-x-0" : "-translate-x-full",
+              ].join(" ")}
+              style={{
+                paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom))",
+              }}
+            >
+              <div className="mb-xs flex items-center justify-between px-2xs">
+                <Link href="/" aria-label={t.a11y.logoHome} onClick={close}>
+                  <Logo size={44} wordSize={22} />
+                </Link>
+                <button
+                  type="button"
+                  onClick={close}
+                  aria-label={t.a11y.closeMenu}
+                  className="nf-icon-btn -mr-2xs h-10 w-10"
+                >
+                  <UiIcon name="close" size="sm" />
+                </button>
+              </div>
+
+              <AgentModePill
+                label={t.agent.mode.agent}
+                className="mb-5 ml-2xs"
+              />
+
+              <NavTree
+                sections={buildAgentNav(t, unreadMessages)}
+                active={active}
+                label={t.agent.mode.workspaceLabel}
+                accent="agent"
+                onNavigate={close}
+              />
+
+              <div className="mt-md space-y-xs">
+                <AgentIdentityCard
+                  profile={profile}
+                  verifiedLabel={t.agent.mode.verifiedAgent}
+                  visitorLabel={t.agent.mode.visitor}
+                  signInLabel={t.agent.mode.signInToWorkspace}
+                />
+                <ModeSwitcher t={t} current="working" variant="menu" />
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </>
   );
 }

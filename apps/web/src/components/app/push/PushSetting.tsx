@@ -1,9 +1,18 @@
 "use client";
 
-import { useCallback, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { currentPermission, enrol } from "./enrol";
+import {
+  controlState,
+  deviceIsLive,
+  failureMessage,
+  readLocalDevice,
+  refsKeyOf,
+  type EnrolFailureReason,
+} from "./device-state";
+import { currentEndpoint, currentPermission, enrol, onIosHomeScreenApp } from "./enrol";
 import { PushPrompt } from "./PushPrompt";
 import { offerVerdict, readMemory, rememberSystemAsked, writeMemory } from "./moments";
 
@@ -104,31 +113,42 @@ function subscribe(): () => void {
 }
 
 /**
- * THE CONTROL MAY NOT READ ON UNLESS A ROW EXISTS. THIS IS WHY.
+ * THE CONTROL MAY NOT READ ON UNLESS THE SERVER HOLDS A LIVE ROW FOR THIS
+ * DEVICE. THIS IS WHY.
  *
- * On 23 September the founder tried to register the first device this platform
- * has ever had. `/api/push/key` answered 401 because the route was gated, the
- * subscribe never happened, `push_tokens` stayed at zero rows, and **the
- * control still presented as allowed**, because the phase was read from
- * `Notification.permission` alone. Permission had genuinely been granted: that
- * is a fact about the BROWSER and it says nothing whatever about whether Vallo
- * holds a subscription.
+ * On 23 September the founder allowed notifications in the iPhone home screen
+ * app, signed in, and the control read as on. `push_tokens` had never held a
+ * row. `/api/push/key` was answering 401 to that app (the route was gated and
+ * the home screen app keeps a cookie store of its own), the subscribe never
+ * happened, and the control had decided it was on from
+ * `Notification.permission`. On the first tap it showed a failure note for as
+ * long as the page lived; on every load after that permission read "granted",
+ * the phase went straight to the granted copy ("Notifications are allowed on
+ * this device") and there was no note at all. A light and no words.
  *
- * So a control that reads permission is a control that reports the wrong
- * thing at exactly the moment it matters, and it reported success over a
- * failure. Two things stop it now.
+ * Permission is a fact about the browser. A later fix read ON from the
+ * account's device COUNT, which lights this phone because of a row belonging
+ * to a laptop. Now ON needs all of `deviceIsLive` in `device-state.ts`: the
+ * `device_ref` that `/api/push/register` gave THIS device, found among the
+ * live refs the page just read from the database, with the browser still
+ * holding the endpoint that was registered. Until that check has run, the
+ * control reads off.
  *
- * ONE, `registeredDevices` comes from the database, server rendered by the
- * page that also draws the device list underneath. Zero rows means this
- * account has registered nothing, whatever the browser says.
- *
- * TWO, a failed attempt always settles the phase itself rather than leaving
- * the browser to drive it. Before, `setNote` was called and `setSettled` was
- * not, so the next render read permission, found "granted", and drew the
- * granted copy with the failure note beneath it. One said allowed and the
- * other said not switched on, about the same device, at the same moment.
+ * Every failed attempt settles the phase and says one plain sentence
+ * (`failureMessage`); no failure may leave the screen silent.
  */
-export function PushSetting({ registeredDevices = 0 }: { registeredDevices?: number } = {}) {
+type Note = { text: string; signIn: boolean; tone: "done" | "problem" };
+
+export function PushSetting({
+  registeredRefs,
+  registeredDevices: _legacyCount,
+}: {
+  /** `device_ref` of every live row on this account, from the database. */
+  registeredRefs?: readonly string[];
+  /** @deprecated An account-wide count cannot say anything about THIS device. */
+  registeredDevices?: number;
+} = {}) {
+  void _legacyCount;
   const router = useRouter();
   const observed = useSyncExternalStore<Phase>(subscribe, readPhase, () => "deciding");
   /* What the person has since done on this screen, which outranks what the
@@ -136,8 +156,52 @@ export function PushSetting({ registeredDevices = 0 }: { registeredDevices?: num
   const [settled, setSettled] = useState<Phase | null>(null);
   const phase = settled ?? observed;
   const [busy, setBusy] = useState(false);
-  const [note, setNote] = useState<string | null>(null);
+  const [note, setNote] = useState<Note | null>(null);
 
+  /* The server's word on THIS device, checked after mount because the local
+     record and the subscription exist only in the browser. `null` while the
+     check is running, which reads as off. Keyed by the refs it was computed
+     against, so a refreshed list (a device retired below) re-runs it. */
+  const refsKey = refsKeyOf(registeredRefs);
+  const [verified, setVerified] = useState<{ key: string; live: boolean } | null>(null);
+  /* A registration that succeeded on this visit, before the list has been
+     refreshed to include it. Held with the very array the page had handed
+     over at that moment: `router.refresh()` hands over a new one, and from
+     then on the list decides, even if its contents look the same. */
+  const [confirmed, setConfirmed] = useState<{
+    ref: string;
+    list: readonly string[] | undefined;
+  } | null>(null);
+
+  useEffect(() => {
+    if (phase !== "granted") return;
+    let cancelled = false;
+    void currentEndpoint().then((endpoint) => {
+      if (cancelled) return;
+      setVerified({
+        key: refsKey,
+        live: deviceIsLive({
+          permission: currentPermission(),
+          local: readLocalDevice(),
+          currentEndpoint: endpoint,
+          liveRefs: registeredRefs,
+        }),
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+    /* `registeredRefs` is read through `refsKey`, which is its value. */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, refsKey]);
+
+  const fail = useCallback((reason: EnrolFailureReason) => {
+    setNote({
+      text: failureMessage(reason, { iosHomeScreenApp: onIosHomeScreenApp(), where: "settings" }),
+      signIn: reason === "signed_out",
+      tone: "problem",
+    });
+  }, []);
 
   /* NOT AWAITED BEFORE THE CALL. `enrol` requests the permission on its first
      line precisely so the user activation from this click is still live when
@@ -150,34 +214,29 @@ export function PushSetting({ registeredDevices = 0 }: { registeredDevices?: num
       writeMemory(rememberSystemAsked(readMemory()));
       setBusy(false);
       if (outcome.ok) {
+        /* The ONLY path to ON from a tap: the server answered ok and named
+           the row. */
         setSettled("granted");
-        setNote("This device is on the list below.");
+        setConfirmed({ ref: outcome.deviceRef, list: registeredRefs });
+        setNote({ text: "This device is registered. It is on the list below.", signIn: false, tone: "done" });
         /* The list is server-rendered from the database, so it is refreshed
-           rather than patched. A client-side copy of the devices would be one
-           stale render away from telling somebody a device is off when it is
-           not. */
+           rather than patched. */
         router.refresh();
         return;
       }
+      setConfirmed(null);
+      setVerified({ key: refsKey, live: false });
       if (outcome.reason === "permission_denied") {
         setSettled("denied");
         return;
       }
-      /* THE PHASE IS SETTLED ON EVERY FAILURE, not just on a refusal. Leaving
-         it unset let `Notification.permission` decide, and permission was
-         granted, so the screen drew the allowed copy over a failed attempt. */
+      /* THE PHASE IS SETTLED ON EVERY FAILURE, and a sentence is always
+         shown. Leaving it to `Notification.permission` is how the screen
+         drew the allowed copy over a failed attempt. */
       setSettled("control");
-      setNote(
-        outcome.reason === "sign_in_required"
-          ? "Your session did not reach us, so this device was not registered. Sign in again and try once more. On an iPhone, the app you added to your home screen signs in separately from Safari."
-          : outcome.reason === "not_configured"
-            ? "Notifications are not switched on for this version of Vallo yet. Nothing for you to do."
-            : outcome.reason === "unsupported"
-              ? "This browser cannot show notifications. Add Vallo to your home screen and try again."
-              : "That did not work. This device was not registered. Try again in a moment.",
-      );
+      fail(outcome.reason);
     });
-  }, [router]);
+  }, [router, refsKey, registeredRefs, fail]);
 
   if (phase === "deciding") return null;
 
@@ -185,15 +244,17 @@ export function PushSetting({ registeredDevices = 0 }: { registeredDevices?: num
     return (
       <PushPrompt
         moment="settings_opened"
-        onSettled={(outcome) => {
-          if (outcome === "enrolled") {
+        onSettled={(outcome, deviceRef) => {
+          if (outcome === "enrolled" && deviceRef) {
             setSettled("granted");
+            setConfirmed({ ref: deviceRef, list: registeredRefs });
             router.refresh();
             return;
           }
           /* A No here is honoured as a No, and the plain control stays so the
-             screen is not a dead end. */
-          setSettled(outcome === "unavailable" ? readPhase() : "control");
+             screen is not a dead end. A failure keeps the prompt on screen
+             with its own sentence, so it does not arrive here. */
+          setSettled(outcome === "unavailable" || outcome === "allowed" ? readPhase() : "control");
         }}
       />
     );
@@ -220,31 +281,54 @@ export function PushSetting({ registeredDevices = 0 }: { registeredDevices?: num
   }
 
   /*
-   * `allowed` is a browser fact. `registered` is a database fact. They are
-   * kept apart on purpose, and the control only ever reads ON when BOTH are
-   * true. A device the browser has allowed but that we hold no row for is the
-   * exact state the founder hit, and it now says so in as many words.
+   * `allowed` is a browser fact. `registered` is the server's word about this
+   * device. The control only ever reads ON when both are true.
    */
   const allowed = phase === "granted";
-  const registered = allowed && registeredDevices > 0;
+  const state = controlState({
+    allowed,
+    refsKey,
+    registeredRefs,
+    confirmed: confirmed ? { ref: confirmed.ref, listRefreshed: confirmed.list !== registeredRefs } : null,
+    verified,
+  });
+  const registered = state === "on";
+  const checking = state === "checking";
 
   return (
     <div
       className="space-y-row"
       data-push-setting={registered ? "granted" : "control"}
       data-push-allowed={allowed ? "yes" : "no"}
-      data-push-registered={registered ? "yes" : "no"}
+      data-push-registered={registered ? "yes" : checking ? "checking" : "no"}
     >
       <p className="nf-body-sm text-content-2">
         {registered
-          ? "Notifications are allowed on this device. If it is not in the list below, switch it back on."
-          : allowed
-            ? "You have allowed notifications on this device, but it is not registered yet, so nothing will reach it. Switch it on below."
-            : "Get told when a host answers, when somebody writes back, and when money moves. Nothing at night unless it is about your money."}
+          ? "Notifications are on for this device. Vallo can reach it."
+          : checking
+            ? "Checking whether this device is registered."
+            : allowed
+              ? "You have allowed notifications on this device, but it is not registered, so nothing will reach it. Turn it on below."
+              : "Get told when a host answers, when somebody writes back, and when money moves. Nothing at night unless it is about your money."}
       </p>
-      {note && (
-        <p role="status" className="nf-body-sm text-content">
-          {note}
+      {/* A "done" note is shown only while the control reads on: once the
+          refreshed list has had its say, a success sentence under an off
+          control would be the blind light again in words. */}
+      {note && (note.tone === "problem" || registered) && (
+        <p
+          role={note.tone === "problem" ? "alert" : "status"}
+          className="nf-body-sm text-content"
+          data-push-note={note.tone}
+        >
+          {note.text}
+          {note.signIn ? (
+            <>
+              {" "}
+              <Link href="/sign-in?next=%2Fsettings%2Fnotifications" className="underline">
+                Open sign in
+              </Link>
+            </>
+          ) : null}
         </p>
       )}
       <button
@@ -254,7 +338,7 @@ export function PushSetting({ registeredDevices = 0 }: { registeredDevices?: num
         data-testid="push-turn-on"
         className="nf-btn nf-btn--sm nf-btn--glass w-full"
       >
-        {busy ? "Just a moment" : registered ? "Switch this device back on" : "Turn on for this device"}
+        {busy ? "Just a moment" : registered ? "Register this device again" : "Turn on for this device"}
       </button>
     </div>
   );

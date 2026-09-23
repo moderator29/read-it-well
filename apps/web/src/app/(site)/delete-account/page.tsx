@@ -49,7 +49,7 @@ export default function DeleteAccountPage() {
       <div className="nf-shell pb-section">
         <div className="mx-auto max-w-3xl">
           {/* ------------------------------------------------------ how to */}
-          <section className="nf-card mt-block p-lg">
+          <section className="nf-panel nf-panel--card block mt-block p-lg">
             <h2 className="nf-h3">How to start it</h2>
             <ol className="mt-sm space-y-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               <li>
@@ -91,7 +91,7 @@ export default function DeleteAccountPage() {
           </section>
 
           {/* --------------------------------------------------- the window */}
-          <section className="nf-card mt-block p-lg">
+          <section className="nf-panel nf-panel--card block mt-block p-lg">
             <h2 className="nf-h3">What happens next, and when</h2>
             <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               The moment you confirm, your account is signed out everywhere and deactivated. You
@@ -105,7 +105,7 @@ export default function DeleteAccountPage() {
           </section>
 
           {/* ------------------------------------------------- what is gone */}
-          <section className="nf-card mt-block p-lg">
+          <section className="nf-panel nf-panel--card block mt-block p-lg">
             <h2 className="nf-h3">What is destroyed</h2>
             <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               Your profile, your photograph and cover picture, your posts, comments, stories and
@@ -128,7 +128,7 @@ export default function DeleteAccountPage() {
           </section>
 
           {/* ------------------------------------------------- what is kept */}
-          <section className="nf-card mt-block p-lg">
+          <section className="nf-panel nf-panel--card block mt-block p-lg">
             <h2 className="nf-h3">What is kept, and why</h2>
             <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               Vallo is registered with the Special Control Unit against Money Laundering, and
@@ -173,7 +173,7 @@ export default function DeleteAccountPage() {
           </section>
 
           {/* ---------------------------------------------------- the way back */}
-          <section className="nf-card mt-block p-lg" id="restore">
+          <section className="nf-panel nf-panel--card block mt-block p-lg" id="restore">
             <h2 className="nf-h3">Stop a deletion you have started</h2>
             <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               Your account is deactivated while the {GRACE_WINDOW_DAYS} days run, so you cannot
@@ -184,7 +184,7 @@ export default function DeleteAccountPage() {
           </section>
 
           {/* ------------------------------------------------------ nowhere else */}
-          <section className="nf-card mt-block p-lg">
+          <section className="nf-panel nf-panel--card block mt-block p-lg">
             <h2 className="nf-h3">If you cannot get in at all</h2>
             <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
               If you have lost access to the email address on the account and cannot sign in, write

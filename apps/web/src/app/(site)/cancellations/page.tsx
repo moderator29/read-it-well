@@ -57,7 +57,7 @@ export default function CancellationPolicyPage() {
           <h2 id="before-you-pay" className="nf-h2 text-[1.375rem]">
             Before you have paid
           </h2>
-          <div className="nf-card mt-group p-card">
+          <div className="nf-panel nf-panel--card block mt-group p-card">
             <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
               A reservation you have not paid for is a hold on the calendar and
               nothing more. Cancel it from Bookings, or from Trips on the Stays
@@ -74,7 +74,7 @@ export default function CancellationPolicyPage() {
           <h2 id="after-you-pay" className="nf-h2 text-[1.375rem]">
             After you have paid
           </h2>
-          <div className="nf-card mt-group p-card">
+          <div className="nf-panel nf-panel--card block mt-group p-card">
             <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
               Once money has moved, a cancellation is handled by a person rather
               than by a button, because a refund is somebody&apos;s money and it
@@ -104,7 +104,7 @@ export default function CancellationPolicyPage() {
             When the cancellation is not your doing
           </h2>
           <ul className="mt-group space-y-row">
-            <li className="nf-card p-card-sm">
+            <li className="nf-panel nf-panel--card block p-card-sm">
               <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                 The agent cancels
               </h3>
@@ -115,7 +115,7 @@ export default function CancellationPolicyPage() {
                 not choose.
               </p>
             </li>
-            <li className="nf-card p-card-sm">
+            <li className="nf-panel nf-panel--card block p-card-sm">
               <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                 The place is not what was listed
               </h3>
@@ -126,7 +126,7 @@ export default function CancellationPolicyPage() {
                 once a person has looked at it.
               </p>
             </li>
-            <li className="nf-card p-card-sm">
+            <li className="nf-panel nf-panel--card block p-card-sm">
               <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                 You could not get in
               </h3>
@@ -145,7 +145,7 @@ export default function CancellationPolicyPage() {
           <h2 id="tables" className="nf-h2 text-[1.375rem]">
             A restaurant table is different
           </h2>
-          <div className="nf-card mt-group p-card">
+          <div className="nf-panel nf-panel--card block mt-group p-card">
             <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
               Nothing is taken for a table, so nothing has to come back. You ask
               a restaurant for a date, a time and a party size, and the restaurant
@@ -162,7 +162,7 @@ export default function CancellationPolicyPage() {
           <h2 id="refund-route" className="nf-h2 text-[1.375rem]">
             Where a refund actually goes
           </h2>
-          <div className="nf-card mt-group p-card">
+          <div className="nf-panel nf-panel--card block mt-group p-card">
             <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
               Into your Vallo wallet, in naira, to the kobo. That is the fastest
               route available in this market and it is not a store credit: move it
@@ -183,7 +183,7 @@ export default function CancellationPolicyPage() {
           <h2 id="tenancies" className="nf-h2 text-[1.375rem]">
             A tenancy, a sale or a lease is different again
           </h2>
-          <div className="nf-card mt-group p-card">
+          <div className="nf-panel nf-panel--card block mt-group p-card">
             <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
               The schedule above is for stays: a room, a flat or a house taken by
               the night. A year&apos;s rent, a purchase or a commercial lease is

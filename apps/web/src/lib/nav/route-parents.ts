@@ -188,7 +188,10 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/offline": "/home",
 
   /* ----------------------------------------------------------- rent side */
-  "/search": "/home",
+  /* The founder, 23 September (C3.2): browsing is signed in only, and the
+     back control on the two browsing screens goes to the landing page, not
+     to `/home`, which lands a signed-out reader on the sign-in wall. */
+  "/search": "/",
   "/listing/[id]": "/search",
   "/saved": "/home",
   "/saved/searches": "/saved",
@@ -264,7 +267,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/escrow/[id]": "/escrow",
 
   /* -------------------------------------------------------------- social */
-  "/around": "/home",
+  /* C3.2, as `/search` above: the landing page, not `/home`. */
+  "/around": "/",
   "/around/[slug]": "/around",
   "/around/settings": "/around",
   "/around/new": "/around/settings",

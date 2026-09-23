@@ -258,7 +258,7 @@ export default function HelpPage() {
           style={{ animationDelay: "60ms" }}
         >
           {TRUST_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className="nf-card nf-card--interactive p-card-sm">
+            <Link key={link.href} href={link.href} className="nf-panel nf-panel--card block nf-card--interactive p-card-sm">
               <span className="inline-grid h-9 w-9 place-items-center">
                 <BrandIcon name={link.icon} fill />
               </span>
@@ -283,7 +283,7 @@ export default function HelpPage() {
         </div>
 
         {/* ------------------------------------------------ still stuck */}
-        <div className="nf-card mt-section-tight flex flex-col items-start gap-group p-card sm:flex-row sm:items-center sm:justify-between">
+        <div className="nf-panel nf-panel--card mt-section-tight flex flex-col items-start gap-group p-card sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-group">
             <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
               <BrandIcon name="chat" fill />

@@ -65,10 +65,11 @@
     position: relative;
     height: 15rem;
     overflow: hidden;
-    border-radius: var(--nf-radius-lg);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    box-shadow: var(--nf-glow-edge);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
     background: var(--nf-surface-inset);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-pc-map__canvas {
     position: absolute;
@@ -94,9 +95,9 @@
     width: 1.5rem;
     height: 1.5rem;
     border-radius: var(--nf-radius-circle);
-    background: var(--nf-brand-primary);
     border: var(--nf-border-width-strong) solid var(--nf-content-on-brand);
-    box-shadow: var(--nf-glow-brand);
+    box-shadow: var(--nf-selected-shadow-inline);
+    background: var(--nf-selected-fill);
   }
   .nf-pc-pin__stem {
     width: var(--nf-border-width-strong);
@@ -115,9 +116,11 @@
     gap: var(--nf-space-2xs);
     padding: var(--nf-space-3xs) var(--nf-space-2xs);
     border-radius: var(--nf-radius-xs);
-    background: var(--nf-overlay-media-soft);
     color: var(--nf-content-on-media-muted);
     font-size: var(--nf-text-caption);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
 
   /* When the tile engine cannot be reached. The pin still works, because the
@@ -128,7 +131,7 @@
     place-items: center;
     padding: var(--nf-pad-card);
     text-align: center;
-    background: var(--nf-well-fill);
+    background: var(--nf-panel-fill);
   }
 
   /* ------------------------------------------------------- the typeahead */
@@ -140,10 +143,12 @@
     margin-top: var(--nf-space-2xs);
     display: flex;
     flex-direction: column;
-    border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-surface-elevated);
     overflow: hidden;
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-pc-suggest__item {
     display: flex;
@@ -156,11 +161,11 @@
     cursor: pointer;
   }
   .nf-pc-suggest__item + .nf-pc-suggest__item {
-    border-top: var(--nf-border-width) solid var(--nf-divider);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-pc-suggest__item:hover,
   .nf-pc-suggest__item:focus-visible {
-    background: var(--nf-interactive-hover);
+    background: var(--nf-btn-glass-fill);
   }
   .nf-pc-suggest__count {
     flex: none;
@@ -205,23 +210,26 @@
     align-items: center;
     gap: var(--nf-gap-inline-tight);
     padding: var(--nf-pad-chip-block) var(--nf-pad-chip-inline);
-    border-radius: var(--nf-radius-control);
+    border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid transparent;
   }
   .nf-pc-confidence--high {
-    background: var(--nf-brand-primary);
+    border: var(--nf-border-width) solid var(--nf-selected-edge);
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
     color: var(--nf-content-on-brand);
-    border-color: var(--nf-brand-primary);
   }
   .nf-pc-confidence--medium {
-    background: var(--nf-brand-quiet);
     color: var(--nf-brand-secondary);
-    border-color: var(--nf-brand-edge);
+    background: var(--nf-btn-glass-fill);
+    border-color: var(--nf-btn-glass-edge);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-pc-confidence--low {
     background: transparent;
     color: var(--nf-content-muted);
-    border-color: var(--nf-border-subtle);
+    border-color: var(--nf-panel-hair);
   }
 
   /* ------------------------------------------------------ the disclaimer */
@@ -232,10 +240,12 @@
   .nf-pc-disclaimer {
     margin-top: var(--nf-gap-section-tight);
     padding: var(--nf-pad-card);
-    border-radius: var(--nf-radius-lg);
-    border: var(--nf-border-width) solid var(--nf-border-subtle);
-    background: var(--nf-surface-inset);
     color: var(--nf-content-secondary);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-pc-disclaimer__lead {
     color: var(--nf-content-primary);
@@ -252,8 +262,9 @@
     position: relative;
     height: 3.5rem;
     margin-top: var(--nf-space-md);
-    border-radius: var(--nf-radius-md);
-    background: var(--nf-well-fill);
+    background: var(--nf-glass-well-fill);
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
   }
   .nf-pc-strip__axis {
     position: absolute;
@@ -261,7 +272,7 @@
     right: var(--nf-space-sm);
     top: 50%;
     height: var(--nf-border-width);
-    background: var(--nf-divider);
+    background: var(--nf-panel-hair);
   }
   .nf-pc-strip__tick {
     position: absolute;
@@ -308,8 +319,11 @@
     flex-direction: column;
     gap: var(--nf-space-3xs);
     padding: var(--nf-pad-card-sm);
-    border-radius: var(--nf-radius-md);
-    background: var(--nf-surface-inset);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-pc-fact__label {
     color: var(--nf-content-muted);
@@ -333,7 +347,7 @@
     padding-block: var(--nf-pad-row-block);
   }
   .nf-pc-area-row + .nf-pc-area-row {
-    border-top: var(--nf-border-width) solid var(--nf-divider);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-pc-area-row__what {
     min-width: 0;
@@ -365,20 +379,25 @@
   }
   .nf-pc-share--none {
     padding: var(--nf-pad-card-sm);
-    border-radius: var(--nf-radius-lg);
-    border: var(--nf-border-width) solid var(--nf-border-subtle);
-    background: var(--nf-surface-inset);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-pc-share__why {
     padding: var(--nf-pad-card-sm);
-    border-radius: var(--nf-radius-lg);
-    background: var(--nf-surface-inset);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-pc-share__link {
     padding: var(--nf-pad-card);
-    border-radius: var(--nf-radius-lg);
-    border: var(--nf-border-width) solid var(--nf-border-subtle);
-    background: var(--nf-surface-inset);
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-glass-well-fill);
+    border-radius: var(--nf-radius-control);
   }
   /*
     THE LINK IS SELECTABLE TEXT AND IT WRAPS RATHER THAN SCROLLING AWAY.
@@ -411,10 +430,11 @@
   */
   .nf-pc-card {
     padding: var(--nf-pad-card-lg);
-    border-radius: var(--nf-radius-lg);
-    border: var(--nf-border-width) solid var(--nf-border-subtle);
-    border-top-color: var(--nf-brand-primary);
-    background: var(--nf-surface-raised);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
 
   /* -------------------------------------------------- the comparables rail */
@@ -443,58 +463,3 @@
   }
 }
 
-/*
-  THE LIGHT TWIN.
-
-  A designed paper theme rather than an inversion, per rule 7. Only the
-  surfaces that stop reading correctly on paper are restated: the map frame,
-  which loses its glow, the confidence row, whose outlined variants need a
-  stronger edge against white, and the strip plot's well.
-*/
-@layer components {
-  :root[data-theme="light"] .nf-pc-map {
-    border-color: var(--nf-border-on-paper);
-    box-shadow: var(--nf-shadow-on-paper);
-  }
-  :root[data-theme="light"] .nf-pc-confidence--medium {
-    border-color: var(--nf-brand-primary);
-  }
-  :root[data-theme="light"] .nf-pc-confidence--low {
-    border-color: var(--nf-border-on-paper);
-    color: var(--nf-content-on-paper-muted);
-  }
-  :root[data-theme="light"] .nf-pc-strip,
-  :root[data-theme="light"] .nf-pc-fact,
-  :root[data-theme="light"] .nf-pc-disclaimer,
-  :root[data-theme="light"] .nf-pc-share--none,
-  :root[data-theme="light"] .nf-pc-share__why,
-  :root[data-theme="light"] .nf-pc-share__link {
-    background: var(--nf-surface-on-paper);
-  }
-  /*
-    THE CARD ON PAPER. A designed twin rather than an inversion: the raised
-    surface goes white, the hairline takes the paper border, and the lit top
-    rim stays, because it is the one element that says whose card this is and
-    it reads at full strength on white.
-  */
-  :root[data-theme="light"] .nf-pc-card {
-    background: var(--nf-surface-on-paper);
-    border-color: var(--nf-border-on-paper);
-    border-top-color: var(--nf-brand-primary);
-    box-shadow: var(--nf-shadow-on-paper);
-  }
-  :root[data-theme="light"] .nf-pc-share--none,
-  :root[data-theme="light"] .nf-pc-share__link {
-    border-color: var(--nf-border-on-paper);
-  }
-  :root[data-theme="light"] .nf-pc-share__url {
-    color: var(--nf-content-on-paper-secondary);
-  }
-  :root[data-theme="light"] .nf-pc-disclaimer {
-    border-color: var(--nf-border-on-paper);
-    color: var(--nf-content-on-paper-secondary);
-  }
-  :root[data-theme="light"] .nf-pc-disclaimer__lead {
-    color: var(--nf-content-on-paper);
-  }
-}

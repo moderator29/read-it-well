@@ -55,10 +55,9 @@
    * it had silently made the AI card render byte for byte identical to an
    * ordinary person's post.
    */
-  .nf-card.nf-social-card,
-  .nf-social-card {
-    border-radius: var(--nf-social-radius);
-  }
+  /* `.nf-social-card` is gone (SW-S1, 23 September): the profile and the
+     feed's sheets draw the shared card (`nf-panel nf-panel--card`), whose
+     corner is the container role. */
 
   /* Independent and floating. No connecting line, no shared edge, no notch. */
   .nf-social-stack > * + * {

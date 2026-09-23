@@ -87,7 +87,7 @@ export async function RentalPanel({
       : 1;
 
   return (
-    <div className="nf-card p-lg" data-testid="rental-panel">
+    <div className="nf-panel nf-panel--card isolate p-lg" data-testid="rental-panel">
       <p>
         <Amount
           minorUnits={priceMinor}
@@ -117,11 +117,11 @@ export async function RentalPanel({
         />
       )}
 
-      <ol className="mt-md space-y-sm border-t border-[var(--nf-border-subtle)] pt-md">
+      <ol className="mt-md space-y-sm border-t border-[var(--nf-panel-hair)] pt-md">
         {STEPS.map((step, i) => (
           <li key={step.label} className="flex items-start gap-sm">
             {/* KEPT ROUND: an ordinal marker in an <ol>, not a control. */}
-            <span className="nf-numeric nf-caption mt-3xs grid h-6 w-6 shrink-0 place-items-center rounded-full border border-[var(--nf-border-subtle)] font-bold text-[var(--nf-content-secondary)]">
+            <span className="nf-numeric nf-caption mt-3xs grid h-6 w-6 shrink-0 place-items-center rounded-full border border-[var(--nf-panel-edge)] font-bold text-[var(--nf-content-secondary)]">
               {i + 1}
             </span>
             <span className="min-w-0">
@@ -156,7 +156,7 @@ export async function RentalPanel({
 
       {/* The trust block: an object large enough to read as content, so this is
           the one place on the panel that takes a 3D brand icon. */}
-      <div className="mt-md flex items-start gap-sm border-t border-[var(--nf-border-subtle)] pt-md">
+      <div className="mt-md flex items-start gap-sm border-t border-[var(--nf-panel-hair)] pt-md">
         <span className="block h-11 w-11 shrink-0">
           <BrandIcon name="shield-check" fill />
         </span>

@@ -24,7 +24,7 @@ export function RestoreForm() {
   if (state?.ok) {
     return (
       <p
-        className="mt-sm rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-success)_45%,transparent)] px-md py-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-state-success)]"
+        className="mt-sm rounded-[var(--nf-container-radius)] border border-[color-mix(in_oklab,var(--nf-state-success)_45%,transparent)] px-md py-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-state-success)]"
         data-testid="restore-done"
       >
         Your account is back and nothing was destroyed. You can sign in again now.
@@ -55,7 +55,7 @@ export function RestoreForm() {
       {state && !state.ok && (
         <p
           role="alert"
-          className="mt-sm rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
+          className="mt-sm rounded-[var(--nf-container-radius)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] px-md py-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
         >
           {state.fieldErrors?.restoreCode ?? state.error}
         </p>

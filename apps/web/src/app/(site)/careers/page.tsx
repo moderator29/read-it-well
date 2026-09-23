@@ -72,7 +72,7 @@ export default function CareersPage() {
           <div className="mt-group grid gap-heading sm:grid-cols-2">
             {culture.map((c, i) => (
               <Reveal key={c.title} delay={(i % 2) * 80} className="h-full">
-                <div className="nf-card flex h-full flex-col gap-row p-card">
+                <div className="nf-panel nf-panel--card flex h-full flex-col gap-row p-card">
                   <span className="inline-grid h-13 w-13 place-items-center">
                     <BrandIcon name={c.icon} fill />
                   </span>
@@ -89,7 +89,7 @@ export default function CareersPage() {
         {/* -------------------------------------- open roles, empty state */}
         <Reveal as="section" className="mt-section">
           <h2 className="nf-overline text-center">Open roles</h2>
-          <div className="nf-card mt-group p-card text-center-lg">
+          <div className="nf-panel nf-panel--card block mt-group p-card text-center-lg">
             <span className="mx-auto inline-grid h-16 w-16 place-items-center">
               <BrandIcon name="home-search" fill />
             </span>
@@ -102,7 +102,7 @@ export default function CareersPage() {
               the team arrived exactly that way.
             </p>
 
-            <div className="mx-auto mt-heading max-w-md rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] p-card-sm text-left">
+            <div className="mx-auto mt-heading max-w-md nf-panel nf-panel--card block p-card-sm text-left">
               <p className="nf-overline">Send us</p>
               <ul className="mt-inline space-y-inline text-[0.875rem] text-[var(--nf-content-secondary)]">
                 <li className="flex items-start gap-inline">
@@ -145,7 +145,7 @@ export default function CareersPage() {
           <ul className="mt-group space-y-row">
             {wanted.map((w, i) => (
               <Reveal key={w} as="li" delay={i * 60}>
-                <div className="nf-card flex items-center gap-group p-card-sm">
+                <div className="nf-panel nf-panel--card flex flex-row items-center gap-group p-card-sm">
                   <span className="inline-grid h-13 w-13 shrink-0 place-items-center">
                     <BrandIcon name="user-check" fill />
                   </span>
@@ -158,7 +158,7 @@ export default function CareersPage() {
 
         {/* ------------------------------------------------- cross links */}
         <Reveal as="section" className="mt-section">
-          <div className="nf-card p-card text-center-lg">
+          <div className="nf-panel nf-panel--card block p-card text-center-lg">
             {/* NOT "BECOME AN AGENT". Most of the supply this platform wants
                 is owners who are not agents and never will be, and the one door
                 we offered them was marked with somebody else's job title. The

@@ -101,7 +101,7 @@ export function ButtonSpecimens() {
   }
 
   return (
-    <div className="nf-card space-y-heading p-card-sm">
+    <div className="nf-panel nf-panel--card block space-y-heading p-card-sm">
       {BUTTON_SIZES.map((size) => (
         <div key={size}>
           <p className="nf-overline mb-inline">{size}</p>

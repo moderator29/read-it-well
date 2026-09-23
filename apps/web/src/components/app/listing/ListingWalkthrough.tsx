@@ -45,7 +45,7 @@ export function ListingWalkthrough({
             preload="metadata"
             playsInline
             aria-label={`Walkthrough of ${title}`}
-            className="aspect-video w-full rounded-[var(--nf-radius-lg)] bg-[var(--nf-surface-inset)] object-cover"
+            className="aspect-video w-full rounded-[var(--nf-container-radius)] bg-[var(--nf-surface-inset)] object-cover"
           />
           <p className="nf-caption mt-inline-tight flex items-center gap-inline-tight text-[var(--nf-content-muted)]">
             <UiIcon name="views" size={14} aria-hidden />

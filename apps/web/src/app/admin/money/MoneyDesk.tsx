@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { LiveRefresh } from "../_components/LiveRefresh";
-import { formatDate, formatMoney, type Locale } from "@vallo/i18n";
+import { formatDate, formatMoney, getDictionary, plural, type Dictionary, type Locale } from "@vallo/i18n";
 import type { AdminRead } from "@/lib/admin/queries";
 import type { EscrowConsole, MoneyConsole, RefundConsole } from "@/lib/admin/money-queries";
 import type { AdminUi } from "../_components/ui";
-import type { AdminCommon } from "../_components/copy";
+import { fill, type AdminCommon } from "../_components/copy";
 import { EscrowRuling } from "../_components/MoneyDecisions";
 import { QueueFilters } from "../_components/QueueFilters";
 import { EntryRow, RefundsPanel } from "./MoneyRows";
@@ -22,8 +22,9 @@ import type { LedgerPage, MoneyFlow, ReconciliationHealth, RentCharges, RentChar
 /** Ledger rows per page. The render draws six; ten is a page an operator can scan without paging every few seconds. */
 export const LEDGER_PAGE_SIZE = 10;
 
-export function MoneyHead() {
-  return <DeskHead title="Money" lede="Track transactions, settlements and reconciliation." />;
+export function MoneyHead({ locale = "en" }: { locale?: Locale } = {}) {
+  const t = getDictionary(locale);
+  return <DeskHead title={t.admin.shell.nav.money} lede={t.admin.money.lede} />;
 }
 
 /**
@@ -67,6 +68,8 @@ export function MoneyDesk({
   tiers?: Record<string, BadgeTier>;
   now: number;
 }) {
+  const t = getDictionary(locale);
+  const c = t.admin.money;
   const { wallets, recent, stuck, totals } = read;
   const pulse = desk?.pulse ?? null;
   const flow: MoneyFlow | null = desk?.flow ?? null;
@@ -77,16 +80,13 @@ export function MoneyDesk({
   return (
     <div className="nf-console nf-md">
       <LiveRefresh />
-      <MoneyHead />
+      <MoneyHead locale={locale} />
 
       {/* Stuck first. It is the only thing here somebody is waiting on. */}
       {stuck.length > 0 && (
-        <Panel title="Stuck, and somebody is waiting" hint={`${stuck.length} pending over half an hour`}>
+        <Panel title={c.stuckTitle} hint={fill(c.stuckHint, { count: stuck.length })}>
           <p className="max-w-[62ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
-            These debits have been PENDING for over half an hour. The money has left a spendable
-            balance and has not arrived anywhere. The stale hold sweeper releases withdrawal holds
-            on a schedule; anything here that is not a withdrawal has not got a sweeper and needs a
-            person.
+            {c.stuckBody}
           </p>
           <ul className="mt-sm">
             {stuck.map((entry) => (
@@ -100,80 +100,74 @@ export function MoneyDesk({
           under the filter below, which is why the filter sits under them. */}
       <div className="nf-md-kpis">
         <Kpi
-          label="Wallet float"
+          locale={locale}
+          label={c.floatLabel}
           value={pulse ? money(pulse.floatMinor) : null}
-          delta={pulse ? { percent: percentChange(pulse.floatMinor, pulse.floatWeekAgoMinor), against: "vs a week ago" } : null}
-          note="Settled money in every wallet"
+          delta={pulse ? { percent: percentChange(pulse.floatMinor, pulse.floatWeekAgoMinor), against: t.admin.shell.operations.vsWeekAgo } : null}
+          note={c.floatNote}
         />
         <Kpi
-          label="In escrow"
+          locale={locale}
+          label={c.inEscrowLabel}
           value={pulse ? money(pulse.inEscrowMinor) : null}
-          delta={pulse ? { percent: percentChange(pulse.inEscrowMinor, pulse.inEscrowWeekAgoMinor), against: "vs a week ago" } : null}
-          note="Held, awaiting release or disputed"
+          delta={pulse ? { percent: percentChange(pulse.inEscrowMinor, pulse.inEscrowWeekAgoMinor), against: t.admin.shell.operations.vsWeekAgo } : null}
+          note={c.inEscrowNote}
         />
         <Kpi
-          label="Settled this week"
+          locale={locale}
+          label={c.settledLabel}
           value={pulse ? money(pulse.settledMinor.thisWeek) : null}
           delta={
             pulse
-              ? { percent: percentChange(pulse.settledMinor.thisWeek, pulse.settledMinor.lastWeek), against: "vs the 7 days before" }
+              ? { percent: percentChange(pulse.settledMinor.thisWeek, pulse.settledMinor.lastWeek), against: c.vsSevenDaysBefore }
               : null
           }
-          note="Completed wallet entries, last 7 days"
+          note={c.settledNote}
         />
         <Kpi
-          label="Failed charges"
+          locale={locale}
+          label={c.failedLabel}
           value={pulse ? money(pulse.failedCharges.thisWeek.amountMinor) : null}
           delta={
             pulse
               ? {
                   percent: percentChange(pulse.failedCharges.thisWeek.amountMinor, pulse.failedCharges.lastWeek.amountMinor),
-                  against: "vs the 7 days before",
+                  against: c.vsSevenDaysBefore,
                   upIsGood: false,
                 }
               : null
           }
-          note={
-            pulse
-              ? `${pulse.failedCharges.thisWeek.count} failed card or top-up ${pulse.failedCharges.thisWeek.count === 1 ? "charge" : "charges"} this week`
-              : "Card and top-up charges that failed this week"
-          }
+          note={pulse ? plural(pulse.failedCharges.thisWeek.count, c.failedNote, locale) : c.failedNoteUnread}
         />
       </div>
       {desk && !desk.complete && (
-        <p className="nf-md-panel__hint">
-          The ledger is larger than this desk reads in one pass, so the figures above are at least these
-          amounts rather than totals.
-        </p>
+        <p className="nf-md-panel__hint">{c.incomplete}</p>
       )}
 
       <FlowPanel flow={flow} locale={locale} now={now} />
 
       <div className="nf-md-grid nf-md-grid--split">
-        <ReconciliationPanel health={health} now={now} when={ui.when} variant="ring" />
-        <Panel title="Transaction summary" hint="Last 30 days">
+        <ReconciliationPanel health={health} now={now} when={ui.when} variant="ring" locale={locale} />
+        <Panel title={c.summaryTitle} hint={c.last30Days}>
           {flow ? (
             <dl className="nf-md-sum">
               <div className="nf-md-sum__row">
-                <dt>Money in</dt>
+                <dt>{c.moneyIn}</dt>
                 <dd className="nf-md-sum__figure nf-numeric">{money(flow.last30Days.inMinor)}</dd>
               </div>
               <div className="nf-md-sum__row">
-                <dt>Money out</dt>
+                <dt>{c.moneyOut}</dt>
                 <dd className="nf-md-sum__figure nf-numeric">{money(flow.last30Days.outMinor)}</dd>
               </div>
               <div className="nf-md-sum__row nf-md-sum__row--total">
-                <dt>Net</dt>
+                <dt>{c.net}</dt>
                 <dd className="nf-md-sum__figure nf-numeric">
                   {money(flow.last30Days.inMinor - flow.last30Days.outMinor)}
                 </dd>
               </div>
             </dl>
           ) : (
-            <Waiting
-              title="The ledger could not be read"
-              body="Money in, money out and the difference over the last 30 days, across every wallet. The read did not answer just now; nothing about the money itself is implied. Reload in a moment."
-            />
+            <Waiting title={c.ledgerUnreadTitle} body={c.summaryUnreadBody} />
           )}
         </Panel>
       </div>
@@ -184,8 +178,8 @@ export function MoneyDesk({
         base="/admin/money"
         query={query}
         common={common}
-        searchLabel="Find a person, a wallet or a payment"
-        searchPlaceholder="Name, wallet id or reference"
+        searchLabel={c.searchLabel}
+        searchPlaceholder={c.searchPlaceholder}
       />
 
       {narrowed && shown === 0 && (
@@ -196,36 +190,33 @@ export function MoneyDesk({
       {ledger ? (
         <LedgerPanel ledger={ledger} showBalance={!narrowed} narrowed={narrowed} params={params} ui={ui} locale={locale} tiers={tiers} />
       ) : (
-        <Panel title="Ledger">
-          <Waiting
-            title="The ledger could not be read"
-            body="Every wallet entry, newest first, with the platform float after each one. The read did not answer just now; reload in a moment."
-          />
+        <Panel title={c.ledgerTitle}>
+          <Waiting title={c.ledgerUnreadTitle} body={c.ledgerUnreadBody} />
         </Panel>
       )}
 
-      <Panel title="Wallets" hint={narrowed ? "Matching this filter" : "Newest first, up to forty"}>
+      <Panel title={c.walletsTitle} hint={narrowed ? c.matchingFilter : c.newestForty}>
         <ui.StatRow>
           <ui.Stat
-            label="Settled"
+            label={c.settled}
             value={money(totals.balanceMinor)}
-            hint={narrowed ? "Across the wallets matching this filter" : "Across the wallets listed below, newest first"}
+            hint={narrowed ? c.settledHintNarrowed : c.settledHint}
           />
           <ui.Stat
-            label="Held pending"
+            label={c.heldPending}
             value={money(totals.heldMinor)}
-            hint="Debits that have left a spendable balance and not settled"
+            hint={c.heldPendingHint}
             tone={totals.heldMinor === 0 ? "neutral" : "warning"}
           />
-          <ui.Stat label="Wallets" value={String(totals.walletCount)} hint={narrowed ? "Matching this filter" : "Newest first, up to forty"} />
+          <ui.Stat label={c.walletsTitle} value={String(totals.walletCount)} hint={narrowed ? c.matchingFilter : c.newestForty} />
         </ui.StatRow>
         {wallets.length === 0 ? (
           narrowed ? null : (
             <div className="mt-sm">
               <CalmNote
-                title="Nobody has a wallet yet"
-                fills="Every wallet on the platform, newest first, with what is settled and what is held."
-                creates="A wallet is created the first time somebody is paid or funds an account."
+                title={c.walletsNoneTitle}
+                fills={c.walletsNoneFills}
+                creates={c.walletsNoneCreates}
               />
             </div>
           )
@@ -238,7 +229,7 @@ export function MoneyDesk({
               >
                 <span className="min-w-0">
                   <span className="block text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
-                    {wallet.ownerName ?? "No display name"}
+                    {wallet.ownerName ?? c.noDisplayName}
                     <BadgeSlot tier={tiers[wallet.userId]} />
                   </span>
                   {/* The owner's profile id, printed whole: it is what an
@@ -248,7 +239,7 @@ export function MoneyDesk({
                 <span className="flex shrink-0 items-baseline gap-md">
                   {wallet.heldMinor > 0 && (
                     <span className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                      {money(wallet.heldMinor)} held
+                      {fill(c.held, { amount: money(wallet.heldMinor) })}
                     </span>
                   )}
                   <span className="nf-numeric text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
@@ -264,13 +255,11 @@ export function MoneyDesk({
       <RefundsPanel refunds={refunds} narrowed={narrowed} locale={locale} ui={ui} className="nf-panel nf-md-card nf-md-panel" />
 
       {disputes.state === "ok" && disputes.data.disputes.length > 0 && (
-        <Panel title="Disputed holds waiting on a ruling">
+        <Panel title={c.disputesTitle}>
           <p className="max-w-[62ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
-            Somebody objected and the money is held until a person rules. Release pays the payee;
-            refund returns it to the payer. Both people are sent your ruling word for word, and the
-            transition is in the audit log. The full desk is at{" "}
+            {c.disputesBody}{" "}
             <Link href="/admin/escrow" className="underline">
-              Escrow
+              {t.admin.shell.nav.escrow}
             </Link>
             .
           </p>
@@ -280,9 +269,9 @@ export function MoneyDesk({
                 <div className="flex flex-wrap items-baseline justify-between gap-x-md gap-y-2xs">
                   <span className="min-w-0">
                     <span className="block text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
-                      {dispute.listingTitle ?? "A listing that is no longer there"}
+                      {dispute.listingTitle ?? c.listingGone}
                       {" · "}
-                      {dispute.payerName ?? "the payer"} paid, {dispute.payeeName ?? "the payee"} waits
+                      {fill(c.disputeLine, { payer: dispute.payerName ?? c.thePayer, payee: dispute.payeeName ?? c.thePayee })}
                     </span>
                     {dispute.disputeReason && (
                       <span className="block text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
@@ -319,15 +308,18 @@ export function MoneyDesk({
   );
 }
 
-const RENT_STATE: Record<RentChargeState, { label: string; tone: "success" | "warning" | "danger" | "info" }> = {
-  awaiting: { label: "Awaiting payment", tone: "warning" },
-  paid: { label: "Paid", tone: "success" },
-  cancelled: { label: "Cancelled", tone: "danger" },
-  no_show: { label: "Did not move in", tone: "danger" },
-  check: { label: "Needs a look", tone: "info" },
+const RENT_TONE: Record<RentChargeState, "success" | "warning" | "danger" | "info"> = {
+  awaiting: "warning",
+  paid: "success",
+  cancelled: "danger",
+  no_show: "danger",
+  check: "info",
 };
 
-const RENT_PERIOD: Record<string, string> = { month: "Monthly", quarter: "Quarterly", year: "Yearly" };
+/** A tenancy charge's state in words: the desk's own four, and the console's word for cancelled. */
+function rentStateWord(state: RentChargeState, t: Dictionary): string {
+  return state === "cancelled" ? t.admin.common.status.CANCELLED : t.admin.money.rentState[state];
+}
 
 /**
  * Tenancy charges (`rent_payments`): the move-in money a tenant pays after an
@@ -346,53 +338,54 @@ function RentPanel({
   ui: AdminUi;
   tiers: Record<string, BadgeTier>;
 }) {
+  const t = getDictionary(locale);
+  const c = t.admin.money;
   if (!rent) {
     return (
-      <Panel title="Tenancy charges">
-        <Waiting
-          title="Tenancy charges could not be read"
-          body="Every move-in charge by where it stands, and the newest ones. The read did not answer just now; nothing about the charges themselves is implied. Reload in a moment."
-        />
+      <Panel title={c.rentTitle}>
+        <Waiting title={c.rentUnreadTitle} body={c.rentUnreadBody} />
       </Panel>
     );
   }
+  const period: Record<string, string> = c.rentPeriod;
   const b = rent.byState;
   const money = (minor: number, currency?: string) => formatMoney(minor, locale, currency);
   return (
     <Panel
-      title="Tenancy charges"
-      hint={`${rent.total} ${rent.total === 1 ? "charge" : "charges"}${rent.complete ? "" : ", more than one pass reads"}`}
+      title={c.rentTitle}
+      hint={plural(rent.total, rent.complete ? c.rentHint : c.rentHintPartial, locale)}
     >
       <StatusBar
-        label="Tenancy charges by state"
+        locale={locale}
+        label={c.rentByState}
         segments={[
-          { key: "awaiting", label: "Awaiting payment", count: b.awaiting, tone: "pending" },
-          { key: "paid", label: "Paid", count: b.paid, tone: "good" },
-          { key: "ended", label: "Cancelled or did not move in", count: b.cancelled + b.no_show, tone: "bad" },
-          { key: "check", label: "Needs a look", count: b.check, tone: "info" },
+          { key: "awaiting", label: c.rentState.awaiting, count: b.awaiting, tone: "pending" },
+          { key: "paid", label: c.rentState.paid, count: b.paid, tone: "good" },
+          { key: "ended", label: c.rentEnded, count: b.cancelled + b.no_show, tone: "bad" },
+          { key: "check", label: c.rentState.check, count: b.check, tone: "info" },
         ]}
       />
       <dl className="nf-md-sum mt-md">
         <div className="nf-md-sum__row">
-          <dt>Paid</dt>
+          <dt>{c.rentState.paid}</dt>
           <dd className="nf-md-sum__figure nf-numeric">{money(rent.paidMinor)}</dd>
         </div>
         <div className="nf-md-sum__row">
-          <dt>Awaiting payment</dt>
+          <dt>{c.rentState.awaiting}</dt>
           <dd className="nf-md-sum__figure nf-numeric">{money(rent.awaitingMinor)}</dd>
         </div>
       </dl>
       <table className="nf-md-table mt-md">
-        <caption className="sr-only">The newest tenancy charges</caption>
+        <caption className="sr-only">{c.rentCaption}</caption>
         <thead>
           <tr>
-            <th scope="col">Opened</th>
-            <th scope="col">Tenancy</th>
-            <th scope="col">Move-in</th>
+            <th scope="col">{c.opened}</th>
+            <th scope="col">{c.tenancy}</th>
+            <th scope="col">{c.moveIn}</th>
             <th scope="col" className="nf-md-num">
-              Total
+              {c.total}
             </th>
-            <th scope="col">State</th>
+            <th scope="col">{c.state}</th>
           </tr>
         </thead>
         <tbody>
@@ -400,37 +393,36 @@ function RentPanel({
             <TableNote
               columns={5}
               note={{
-                title: "No tenancy charge yet",
-                fills: "Every move-in charge by where it stands, what is paid and what is awaited, and the newest charges.",
-                creates:
-                  "A charge opens when a tenant starts paying the move-in costs on an inspection the lister accepted.",
-                action: { href: "/admin/bookings", label: "Open bookings" },
+                title: c.rentNoneTitle,
+                fills: c.rentNoneFills,
+                creates: c.rentNoneCreates,
+                action: { href: "/admin/bookings", label: c.openBookings },
               }}
             />
           ) : (
             rent.latest.map((row) => (
               <tr key={row.id}>
-                <td className="nf-md-date" data-label="Opened">
+                <td className="nf-md-date" data-label={c.opened}>
                   {ui.day(row.createdAt)}
                 </td>
-                <td className="nf-md-desc" data-label="Tenancy">
+                <td className="nf-md-desc" data-label={c.tenancy}>
                   <span className="block min-w-0">
                     <span className="block">
-                      {row.listingTitle ?? "A listing that is no longer there"}
+                      {row.listingTitle ?? c.listingGone}
                       {row.tenantName ? ` · ${row.tenantName}` : ""}
                       {row.tenantId ? <BadgeSlot tier={tiers[row.tenantId]} /> : null}
                     </span>
                     <span className="nf-md-ref">{row.bookingId}</span>
                   </span>
                 </td>
-                <td data-label="Move-in">
-                  {ui.day(`${row.moveIn}T12:00:00Z`)} · {RENT_PERIOD[row.rentPeriod] ?? row.rentPeriod}
+                <td data-label={c.moveIn}>
+                  {ui.day(`${row.moveIn}T12:00:00Z`)} · {period[row.rentPeriod] ?? row.rentPeriod}
                 </td>
-                <td className="nf-md-num nf-md-strong" data-label="Total">
+                <td className="nf-md-num nf-md-strong" data-label={c.total}>
                   {money(row.totalMinor, row.currency)}
                 </td>
-                <td data-label="State">
-                  <ui.StatusChip label={RENT_STATE[row.state].label} tone={RENT_STATE[row.state].tone} />
+                <td data-label={c.state}>
+                  <ui.StatusChip label={rentStateWord(row.state, t)} tone={RENT_TONE[row.state]} />
                 </td>
               </tr>
             ))
@@ -450,38 +442,35 @@ function monthLabel(month: string, locale: Locale, withYear = false): string {
 }
 
 function FlowPanel({ flow, locale, now }: { flow: MoneyFlow | null; locale: Locale; now: number }) {
+  const c = getDictionary(locale).admin.money;
   const series: Series[] = [
-    { name: "Money in", values: flow ? flow.months.map((m) => m.inMinor) : [], rank: 0, area: true },
-    { name: "Money out", values: flow ? flow.months.map((m) => m.outMinor) : [], rank: 1, area: true, dash: "6 4" },
+    { name: c.moneyIn, values: flow ? flow.months.map((m) => m.inMinor) : [], rank: 0, area: true },
+    { name: c.moneyOut, values: flow ? flow.months.map((m) => m.outMinor) : [], rank: 1, area: true, dash: "6 4" },
   ];
   const legend = <SeriesLegend series={series} />;
 
   if (!flow) {
     return (
-      <Panel title="Money in vs money out" aside={legend}>
-        <Waiting
-          title="The ledger could not be read"
-          body="Settled money coming into wallets against settled money leaving them, month by month for a year. The read did not answer just now; reload in a moment."
-        />
+      <Panel title={c.flowTitle} aside={legend}>
+        <Waiting title={c.ledgerUnreadTitle} body={c.flowUnreadBody} />
       </Panel>
     );
   }
   if (flow.months.length < 2) {
     return (
-      <Panel title="Money in vs money out" aside={legend}>
+      <Panel title={c.flowTitle} aside={legend}>
         <EmptyChart
           height={200}
-          yLabels={["₦0", "", "", "", ""]}
+          yLabels={[formatMoney(0, locale), "", "", "", ""]}
           xLabels={lastMonths(now, 12).map((m) => monthLabel(m, locale))}
           note={{
             title:
               flow.months.length === 0
-                ? "No money has settled yet"
-                : `One month of settled money so far (${monthLabel(flow.months[0]!.month, locale, true)})`,
-            fills: "Settled money into wallets against settled money out, month by month for a year.",
-            creates:
-              "Every top-up, booking payment, payout and refund that completes adds to it. A line needs a second month, so none is drawn.",
-            action: { href: "/admin/payments", label: "Open payments" },
+                ? c.flowNoneTitle
+                : fill(c.flowOneMonth, { month: monthLabel(flow.months[0]!.month, locale, true) }),
+            fills: c.flowFills,
+            creates: c.flowCreates,
+            action: { href: "/admin/payments", label: c.openPayments },
           }}
         />
       </Panel>
@@ -489,18 +478,19 @@ function FlowPanel({ flow, locale, now }: { flow: MoneyFlow | null; locale: Loca
   }
 
   return (
-    <Panel title="Money in vs money out" aside={legend}>
+    <Panel title={c.flowTitle} aside={legend}>
       <SeriesChart
+        locale={locale}
         id="money-flow"
         xLabels={flow.months.map((m) => monthLabel(m.month, locale))}
         series={series}
-        label="Settled money in and out of wallets by month"
+        label={c.flowLabel}
         yLabel={(v) => formatMoney(v, locale, "NGN", { compact: true })}
         readout={flow.months.map((m) => ({
           title: monthLabel(m.month, locale, true),
           rows: [
-            { label: "Money in", value: formatMoney(m.inMinor, locale) },
-            { label: "Money out", value: formatMoney(m.outMinor, locale) },
+            { label: c.moneyIn, value: formatMoney(m.inMinor, locale) },
+            { label: c.moneyOut, value: formatMoney(m.outMinor, locale) },
           ],
         }))}
       />
@@ -525,32 +515,30 @@ function LedgerPanel({
   ui: AdminUi;
   locale: Locale;
 }) {
-  const foot =
-    !showBalance && ledger.total > 0
-      ? "The balance column is the platform float, so it is shown only for the unfiltered ledger."
-      : undefined;
+  const c = getDictionary(locale).admin.money;
+  const foot = !showBalance && ledger.total > 0 ? c.ledgerFoot : undefined;
   return (
-    <Panel title="Ledger" foot={foot}>
+    <Panel title={c.ledgerTitle} foot={foot}>
       {ledger.total === 0 ? (
         narrowed ? null : (
           <table className="nf-md-table">
             <thead>
               <tr>
-                <th scope="col">Date</th>
-                <th scope="col">Description</th>
-                <th scope="col">Type</th>
-                <th scope="col" className="nf-md-num">Amount</th>
-                <th scope="col" className="nf-md-num">Balance</th>
+                <th scope="col">{c.date}</th>
+                <th scope="col">{c.description}</th>
+                <th scope="col">{c.type}</th>
+                <th scope="col" className="nf-md-num">{c.amount}</th>
+                <th scope="col" className="nf-md-num">{c.balance}</th>
               </tr>
             </thead>
             <tbody>
               <TableNote
                 columns={5}
                 note={{
-                  title: "No money has moved yet",
-                  fills: "Every wallet entry, newest first, with the platform float after each one.",
-                  creates: "A top-up, a booking payment, a payout or a refund writes the first entry.",
-                  action: { href: "/admin/payments", label: "Open payments" },
+                  title: c.ledgerNoneTitle,
+                  fills: c.ledgerNoneFills,
+                  creates: c.ledgerNoneCreates,
+                  action: { href: "/admin/payments", label: c.openPayments },
                 }}
               />
             </tbody>
@@ -561,15 +549,15 @@ function LedgerPanel({
           <table className="nf-md-table">
             <thead>
               <tr>
-                <th scope="col">Date</th>
-                <th scope="col">Description</th>
-                <th scope="col">Type</th>
+                <th scope="col">{c.date}</th>
+                <th scope="col">{c.description}</th>
+                <th scope="col">{c.type}</th>
                 <th scope="col" className="nf-md-num">
-                  Amount
+                  {c.amount}
                 </th>
                 {showBalance && (
                   <th scope="col" className="nf-md-num">
-                    Balance
+                    {c.balance}
                   </th>
                 )}
               </tr>
@@ -577,10 +565,10 @@ function LedgerPanel({
             <tbody>
               {ledger.rows.map((row) => (
                 <tr key={row.id}>
-                  <td className="nf-md-date" data-label="Date">
+                  <td className="nf-md-date" data-label={c.date}>
                     {ui.day(row.createdAt)}
                   </td>
-                  <td className="nf-md-desc" data-label="Description">
+                  <td className="nf-md-desc" data-label={c.description}>
                     <span className="block min-w-0">
                       <span className="flex flex-wrap items-center justify-end gap-xs md:justify-start">
                         {row.note ?? ui.columnLabel("walletEntryKind", row.kind)}
@@ -594,14 +582,14 @@ function LedgerPanel({
                       <span className="nf-md-ref">{row.reference}</span>
                     </span>
                   </td>
-                  <td data-label="Type" className={row.direction === "credit" ? "nf-md-credit" : "nf-md-debit"}>
-                    {row.direction === "credit" ? "Credit" : "Debit"}
+                  <td data-label={c.type} className={row.direction === "credit" ? "nf-md-credit" : "nf-md-debit"}>
+                    {row.direction === "credit" ? c.credit : c.debit}
                   </td>
-                  <td className="nf-md-num nf-md-strong" data-label="Amount">
+                  <td className="nf-md-num nf-md-strong" data-label={c.amount}>
                     {formatMoney(row.amountMinor, locale)}
                   </td>
                   {showBalance && (
-                    <td className="nf-md-num nf-md-strong" data-label="Balance">
+                    <td className="nf-md-num nf-md-strong" data-label={c.balance}>
                       {row.balanceAfterMinor === null ? "" : formatMoney(row.balanceAfterMinor, locale)}
                     </td>
                   )}
@@ -615,7 +603,8 @@ function LedgerPanel({
             page={ledger.page}
             total={ledger.total}
             pageSize={ledger.pageSize}
-            noun="entries"
+            noun={c.entries}
+            locale={locale}
           />
         </>
       )}

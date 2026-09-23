@@ -4,6 +4,7 @@ import { daypartFor, lagosHour, type HomeOverview } from "@/lib/app/home-queries
 import { HomeScreen } from "@/components/app/home/HomeScreen";
 import { PERSON } from "../../../_fixtures/people";
 import { LISTINGS } from "../../../f1/listings";
+import { withListers } from "../lister-fixtures";
 import { SweepFrame } from "../Frame";
 
 /** `/home` as a signed-in person sees it (greeting, name, place), from fixture rows. */
@@ -37,7 +38,7 @@ export default async function SweepHome() {
         t={t}
         locale={locale}
         overview={overview}
-        listings={LISTINGS}
+        listings={withListers(LISTINGS)}
         roles={[]}
         manageHref="/profile/setup"
       />

@@ -102,7 +102,7 @@ export function ReserveTable({
 
   if (state?.ok) {
     return (
-      <div className="nf-card p-lg">
+      <div className="nf-panel nf-panel--card isolate p-lg">
         <p className="flex items-center gap-xs text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
           <UiIcon name="chat-bubble" size={20} className="shrink-0 opacity-80" aria-hidden />
           Request sent
@@ -126,7 +126,7 @@ export function ReserveTable({
   }
 
   return (
-    <form action={formAction} className="nf-card p-lg">
+    <form action={formAction} className="nf-panel nf-panel--card isolate p-lg">
       {/* One target, never both: the field that is not this venue's is simply
           not in the form, which is what `reserveSchema`'s refine asks for. */}
       {listingId && <input type="hidden" name="listingId" value={listingId} />}
@@ -155,11 +155,7 @@ export function ReserveTable({
                 type="button"
                 onClick={() => setDate(iso)}
                 aria-pressed={active}
-                className={`shrink-0 rounded-[var(--nf-radius-control)] px-sm py-xs text-[length:var(--nf-text-caption)] transition-colors ${
-                  active
-                    ? "bg-[var(--nf-brand-primary)] font-semibold text-[var(--nf-content-on-brand)]"
-                    : "border border-[var(--nf-border-subtle)] text-[var(--nf-content-secondary)]"
-                }`}
+                className="nf-choice shrink-0"
               >
                 {dayLabel(iso, todayIso)}
               </button>
@@ -185,11 +181,7 @@ export function ReserveTable({
                 type="button"
                 onClick={() => setTime(slot)}
                 aria-pressed={active}
-                className={`shrink-0 rounded-[var(--nf-radius-control)] px-sm py-xs text-[length:var(--nf-text-caption)] tabular-nums transition-colors ${
-                  active
-                    ? "bg-[var(--nf-brand-primary)] font-semibold text-[var(--nf-content-on-brand)]"
-                    : "border border-[var(--nf-border-subtle)] text-[var(--nf-content-secondary)]"
-                }`}
+                className="nf-choice shrink-0 tabular-nums"
               >
                 {slot}
               </button>
@@ -211,7 +203,7 @@ export function ReserveTable({
             type="button"
             onClick={() => setParty((n) => Math.max(1, n - 1))}
             aria-label="One fewer guest"
-            className="grid h-9 w-9 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] text-[var(--nf-content-secondary)] disabled:opacity-40"
+            className="nf-btn nf-btn--glass nf-btn--sm nf-btn--icon grid h-9 w-9 rounded-[var(--nf-radius-sm)] place-items-center text-[var(--nf-content-secondary)] disabled:opacity-40"
             disabled={party <= 1}
           >
             <UiIcon name="minus" size={16} aria-hidden />
@@ -228,13 +220,13 @@ export function ReserveTable({
               const next = Number(event.target.value);
               setParty(Number.isFinite(next) ? Math.min(MAX_PARTY, Math.max(1, next)) : 1);
             }}
-            className="w-16 rounded-lg border border-[var(--nf-border-subtle)] bg-transparent px-xs py-xs text-center text-[length:var(--nf-text-body-sm)] tabular-nums text-[var(--nf-content-primary)]"
+            className="w-16 nf-glass--well rounded-[var(--nf-radius-sm)] border px-xs py-xs text-center text-[length:var(--nf-text-body-sm)] tabular-nums text-[var(--nf-content-primary)]"
           />
           <button
             type="button"
             onClick={() => setParty((n) => Math.min(MAX_PARTY, n + 1))}
             aria-label="One more guest"
-            className="grid h-9 w-9 place-items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-subtle)] text-[var(--nf-content-secondary)] disabled:opacity-40"
+            className="nf-btn nf-btn--glass nf-btn--sm nf-btn--icon grid h-9 w-9 rounded-[var(--nf-radius-sm)] place-items-center text-[var(--nf-content-secondary)] disabled:opacity-40"
             disabled={party >= MAX_PARTY}
           >
             <UiIcon name="plus" size={16} aria-hidden />
@@ -268,7 +260,7 @@ export function ReserveTable({
           rows={2}
           maxLength={500}
           placeholder="A birthday, a wheelchair, an allergy"
-          className="mt-2xs w-full rounded-lg border border-[var(--nf-border-subtle)] bg-transparent px-sm py-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)] placeholder:text-[var(--nf-content-muted)]"
+          className="mt-2xs w-full nf-glass--well rounded-[var(--nf-radius-control)] border px-sm py-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)] placeholder:text-[var(--nf-content-muted)]"
         />
       </div>
 

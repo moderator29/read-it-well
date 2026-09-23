@@ -1,4 +1,11 @@
+import { getDictionary, type Locale } from "@vallo/i18n";
+import { fill } from "../../_components/copy";
 import { ChartReadout, type ReadoutColumn } from "./ChartReadout";
+
+/** The charts' own words. English when a caller (the bookings desk) passes no locale. */
+function chartWords(locale: Locale | undefined) {
+  return getDictionary(locale ?? "en").admin.money.desk;
+}
 
 /**
  * The money desks' charts: inline SVG drawn on the server, no dependency.
@@ -151,6 +158,7 @@ export function SeriesChart({
   label,
   directLabels = false,
   width = 720,
+  locale,
 }: {
   /** Unique on the page, for the gradient ids. */
   id: string;
@@ -170,6 +178,8 @@ export function SeriesChart({
    * panel, about 360 for the narrow column.
    */
   width?: number;
+  /** The console's locale; English when omitted. */
+  locale?: Locale;
 }) {
   const W = width;
   const H = height;
@@ -266,7 +276,7 @@ export function SeriesChart({
         <caption>{label}</caption>
         <thead>
           <tr>
-            <th scope="col">Period</th>
+            <th scope="col">{chartWords(locale).period}</th>
             {series.map((s) => (
               <th key={s.name} scope="col">
                 {s.name}
@@ -421,10 +431,13 @@ export function Ring({
   percent,
   tone,
   label,
+  locale,
 }: {
   percent: number | null;
   tone: "good" | "bad" | "quiet";
   label: string;
+  /** The console's locale; English when omitted. */
+  locale?: Locale;
 }) {
   const r = 40;
   const c = 2 * Math.PI * r;
@@ -448,7 +461,7 @@ export function Ring({
         />
       )}
       <text x="50" y="57" textAnchor="middle" fontSize="20" className="nf-md-ring__figure">
-        {percent === null ? "none" : `${percent}%`}
+        {percent === null ? chartWords(locale).none : `${percent}%`}
       </text>
     </svg>
   );
@@ -481,9 +494,12 @@ export type StatusTone4 = "good" | "bad" | "pending" | "info";
 export function StatusBar({
   segments,
   label,
+  locale,
 }: {
   segments: { key: string; label: string; count: number; tone: StatusTone4 }[];
   label: string;
+  /** The console's locale; English when omitted. */
+  locale?: Locale;
 }) {
   const total = segments.reduce((s, x) => s + x.count, 0);
   const shown = segments.filter((s) => s.count > 0);
@@ -491,7 +507,7 @@ export function StatusBar({
     <figure className="m-0">
       <div
         role="img"
-        aria-label={`${label}: ${segments.map((s) => `${s.label} ${s.count}`).join(", ")}, ${total} in total.`}
+        aria-label={`${label}: ${segments.map((s) => `${s.label} ${s.count}`).join(", ")}, ${fill(chartWords(locale).inTotal, { total })}`}
         className={`nf-md-statusbar${total === 0 ? " nf-md-statusbar--empty" : ""}`}
       >
         {shown.map((s) => (

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { panelClass } from "@/components/ui/Panel";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -162,7 +163,7 @@ export function DetailAboutCard({
 }) {
   if (paragraphs.length === 0 && !host) return null;
   return (
-    <section className="nf-glass nf-glass--card nf-detail-lead" data-testid="about-card">
+    <section className={panelClass({ variant: "card", className: "nf-detail-lead" })} data-testid="about-card">
       <h2 className="nf-detail-panel__title">{title}</h2>
       {paragraphs.length > 0 && (
         <div className="mt-row">
@@ -255,7 +256,7 @@ export function DetailAvailabilityCard({
     </ButtonLink>
   );
   return (
-    <section className="nf-glass nf-glass--card nf-detail-lead" data-testid="availability-card">
+    <section className={panelClass({ variant: "card", className: "nf-detail-lead" })} data-testid="availability-card">
       <h2 className="nf-detail-panel__title">{title}</h2>
       {fields.length > 0 && (
         <div className="nf-detail-fields mt-row">

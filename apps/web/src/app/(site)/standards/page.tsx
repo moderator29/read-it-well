@@ -126,7 +126,7 @@ export default function StandardsPage() {
             {RESPONSE_ORDER.map((grade) => {
               const commitment = RESPONSE_COMMITMENTS[grade];
               return (
-                <li key={grade} className="nf-card p-card-sm">
+                <li key={grade} className="nf-panel nf-panel--card block p-card-sm">
                   <div className="flex flex-wrap items-baseline gap-x-row gap-y-inline-tight">
                     <span className="nf-numeric text-[1.0625rem] font-semibold text-[var(--nf-content-primary)]">
                       {commitment.label}
@@ -153,7 +153,7 @@ export default function StandardsPage() {
           </h2>
           <ul className="mt-group space-y-row">
             {NOT_ALLOWED.map((item) => (
-              <li key={item.title} className="nf-card p-card-sm">
+              <li key={item.title} className="nf-panel nf-panel--card block p-card-sm">
                 <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                   {item.title}
                 </h3>
@@ -172,7 +172,7 @@ export default function StandardsPage() {
           </h2>
           <ol className="mt-group space-y-row">
             {ENFORCEMENT.map((item, index) => (
-              <li key={item.title} className="nf-card p-card-sm">
+              <li key={item.title} className="nf-panel nf-panel--card block p-card-sm">
                 <span className="nf-overline">
                   Step <span className="nf-numeric">{index + 1}</span>
                 </span>
@@ -194,7 +194,7 @@ export default function StandardsPage() {
           </h2>
           <ul className="mt-group space-y-row">
             {CONSEQUENCES.map((item) => (
-              <li key={item.title} className="nf-card p-card-sm">
+              <li key={item.title} className="nf-panel nf-panel--card block p-card-sm">
                 <h3 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
                   {item.title}
                 </h3>
@@ -222,7 +222,7 @@ export default function StandardsPage() {
           </p>
           <ol className="mt-group space-y-row">
             {VERIFICATION_ORDER.map((rung) => (
-              <li key={rung.kind} className="nf-card p-card-sm">
+              <li key={rung.kind} className="nf-panel nf-panel--card block p-card-sm">
                 <div className="flex flex-wrap items-baseline gap-x-row gap-y-inline-tight">
                   <span className="nf-overline">
                     Level <span className="nf-numeric">{rung.step}</span>
@@ -252,7 +252,7 @@ export default function StandardsPage() {
           <h2 id="appeals" className="nf-h2 text-[1.375rem]">
             If you think we got it wrong
           </h2>
-          <div className="nf-card mt-group p-card">
+          <div className="nf-panel nf-panel--card block mt-group p-card">
             <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
               Every decision can be appealed, and an appeal is read by somebody
               who did not make the original call. Write to support with what was

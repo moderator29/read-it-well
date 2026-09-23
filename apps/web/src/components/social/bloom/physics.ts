@@ -53,40 +53,88 @@ export function isSettled(state: SpringState, target: number): boolean {
 /* ---------------------------------------------------------------- geometry */
 
 /**
- * Where each lozenge lands, relative to the centre of the plus.
+ * Where each plate lands, relative to the centre of the plus.
  *
- * Measured off `GOVERNING-feed-plus-bloom.png` and scaled to a real 390px
- * viewport: Review sits just above the plus and a little to its left, Story
- * further up and left, Post furthest, the three on one arc that curves up and
- * away from the thumb, each tilted a little more than the one before so the
- * fan reads as thrown rather than stacked. The render lets Review poke past
- * the phone's edge; a real viewport cannot paint there, so every slot keeps
- * the lozenge inside the screen.
+ * MEASURED, NOT DRAWN BY EYE, off the founder's
+ * `docs/design/references/founder/feed-plus-bloom-target.jpg` (the same pixels
+ * as `GOVERNING-feed-plus-bloom.png`). The phone's screen runs from x 178 to
+ * x 843 in that 1024 x 1536 image, 665 image px for a 390 CSS px viewport, so
+ * one image px is 0.5865 CSS px. Each plate was counter-rotated until its
+ * edges ran level, which gives its tilt, and its centre was mapped back into
+ * the image and then to CSS px from the plus's centre (791.4, 1298.8):
  *
- * REMEASURED against the render after the first screenshot of the open fan.
- * The old arc threw the three a third further out than the image does, which
- * put Post most of the way up the card above it and spread the fan across
- * half the screen; in the render the three sit in a tight curve that still
- * reads as one gesture from the thumb. The lozenge shrank with them, from
- * 124x46 to the render's 104x40, and the slots are scaled to the same
- * measurement rather than to the old ones.
+ *   plate    centre (image)   from the plus (CSS)   tilt    size (CSS)
+ *   Review   790.3, 1213.5    -0.7, -50.0           -13     90 x 37
+ *   Story    739.6, 1155.5    -30.4, -84.0          -17     93 x 37
+ *   Post     683.1, 1103.0    -63.5, -114.8         -20     89 x 37
  *
- * Index 0 is the lozenge nearest the plus. It opens first and closes last, so
- * the fan grows outward and folds inward.
+ * Nearest the thumb is least tilted and the tilt grows outward, so the three
+ * lie along one arc that leans further the further it is thrown.
+ *
+ * NO DIFFERENCE BUT ONE (the founder, 23 September: "no single difference
+ * from this image"). Centres, tilts, sizes (91 x 37) and the plus's place
+ * (its centre 30 CSS px in from the screen's edge) are the image's. The one
+ * translation is his own ruling: the plates are rounded rectangles on the
+ * control radius rather than capsules. Review's rounded end runs past the
+ * screen's edge exactly as it does in the image, where it is drawn over the
+ * phone's frame; on a phone the screen's edge cuts it there, and the label
+ * stays on the screen. Each plate's tap target is 44 tall by a pseudo-element,
+ * which paints nothing.
+ *
+ * Index 0 is the plate nearest the plus. It opens first and closes last, so
+ * the fan grows outward and folds inward, and it paints on top, as the render
+ * lays Review over Story and Story over Post.
  */
 export type BloomSlot = { x: number; y: number; rotate: number };
 
-const SLOTS: BloomSlot[] = [
-  { x: -12, y: -58, rotate: -6 },
-  { x: -40, y: -100, rotate: -12 },
-  { x: -72, y: -140, rotate: -18 },
+/** No shift: the fan sits where the image draws it. Kept as a named zero so
+    the geometry test states the decision rather than implying it. */
+export const BLOOM_FAN_SHIFT_X = 0;
+
+/** The measured centres and tilts, before the shift. */
+export const BLOOM_MEASURED: readonly BloomSlot[] = [
+  { x: -0.7, y: -50.0, rotate: -13 },
+  { x: -30.4, y: -84.0, rotate: -17 },
+  { x: -63.5, y: -114.8, rotate: -20 },
 ];
 
-/** A lozenge's width and height, as the stylesheet draws them. */
-export const BLOOM_ITEM = { width: 104, height: 40 } as const;
+const SLOTS: BloomSlot[] = BLOOM_MEASURED.map((slot) => ({
+  x: Math.round((slot.x + BLOOM_FAN_SHIFT_X) * 10) / 10,
+  y: slot.y,
+  rotate: slot.rotate,
+}));
+
+/** A plate's width and height, as the stylesheet draws them. */
+export const BLOOM_ITEM = { width: 91, height: 37 } as const;
+
+/** The plus: 58px across (98 image px), its centre 30px in from the edge. */
+export const BLOOM_PLUS = { size: 58, inset: 1 } as const;
 
 export function bloomSlot(index: number): BloomSlot {
   return SLOTS[Math.min(index, SLOTS.length - 1)] ?? SLOTS[0]!;
+}
+
+/**
+ * The trail the render draws behind each plate: a glowing curve from the
+ * plate's trailing (lower left) end sweeping down into the left of the plus,
+ * so the three read as thrown out of it. Returned as an SVG path in the plus's
+ * own coordinates (origin at its centre).
+ */
+export function bloomTrail(slot: BloomSlot): string {
+  const rad = (slot.rotate * Math.PI) / 180;
+  /* The plate's lower left, just inside its rounded end: the local point
+     (-half, down) turned by the plate's tilt. */
+  const half = BLOOM_ITEM.width / 2 - 10;
+  const down = BLOOM_ITEM.height / 2 - 6;
+  const sx = slot.x - half * Math.cos(rad) - down * Math.sin(rad);
+  const sy = slot.y - half * Math.sin(rad) + down * Math.cos(rad);
+  /* Into the plus's left shoulder. */
+  const ex = -BLOOM_PLUS.size / 2 + 4;
+  const ey = 6;
+  /* The bulge sits out to the left and low, which is the render's curve. */
+  const cx = Math.min(sx, ex) - 6;
+  const cy = ey - 4;
+  return `M${sx.toFixed(1)} ${sy.toFixed(1)} Q${cx.toFixed(1)} ${cy.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}`;
 }
 
 /** How long each lozenge waits after the one before it, in milliseconds. */

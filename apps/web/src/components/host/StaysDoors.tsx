@@ -39,7 +39,7 @@ export function StaysDoors() {
 
       <nav className="mt-block flex flex-col gap-row" aria-label="What kind of stays business are you">
         {STAYS_DOORS.map((door) => (
-          <Link key={door.id} href={`/host/apply?door=${door.id}`} className="nf-host-choice">
+          <Link key={door.id} href={`/host/apply?door=${door.id}`} className="nf-panel nf-panel--card nf-host-choice">
             <span className="nf-host-choice__mark" aria-hidden="true">
               <BrandIcon name={door.mark} fill />
             </span>
@@ -63,7 +63,7 @@ export function StaysDoors() {
         saved as it goes, and a human reads it. No promise about how long,
         because nothing in this product can produce that number yet.
       */}
-      <aside className="nf-host-group mt-block flex items-start gap-sm">
+      <aside className="nf-panel nf-panel--card nf-host-group mt-block flex flex-row items-start gap-sm">
         {/* The small round glyph the set carries on almost every screen. It is
             a bare mark on an existing ring and carries no text, which is the
             one shape the law leaves round. No new stylesheet rule: the panel is

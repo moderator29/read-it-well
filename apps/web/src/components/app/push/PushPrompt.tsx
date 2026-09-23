@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 
-import { currentPermission, enrol } from "./enrol";
+import { failureMessage } from "./device-state";
+import { currentPermission, enrol, onIosHomeScreenApp } from "./enrol";
 import {
   offerVerdict,
   readMemory,
@@ -44,8 +46,19 @@ import {
 export type PushPromptProps = {
   /** Why now. See `moments.ts`; there are exactly four legitimate answers. */
   moment: PushMoment;
-  /** Told what happened, so a caller can say thank you in its own words. */
-  onSettled?: (outcome: "enrolled" | "declined" | "unavailable") => void;
+  /**
+   * Told what happened, so a caller can say thank you in its own words.
+   *
+   * "enrolled" means ONLY that `/api/push/register` answered ok for this
+   * device, and it always carries the `device_ref` the server named. A
+   * permission the browser already holds is "allowed", never "enrolled": that
+   * confusion is how a control came to read on over zero rows (see
+   * `device-state.ts`).
+   */
+  onSettled?: (
+    outcome: "enrolled" | "allowed" | "declined" | "unavailable",
+    deviceRef?: string,
+  ) => void;
 };
 
 export function PushPrompt({ moment, onSettled }: PushPromptProps) {
@@ -54,7 +67,7 @@ export function PushPrompt({ moment, onSettled }: PushPromptProps) {
      yet", which is distinct from "decided not to show". */
   const [shown, setShown] = useState<{ offer: string } | null>(null);
   const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState<string | null>(null);
+  const [failed, setFailed] = useState<{ text: string; signIn: boolean } | null>(null);
 
   useEffect(() => {
     /* DECIDED AFTER MOUNT, ON THE CLIENT, AND THERE IS NO OTHER OPTION.
@@ -74,7 +87,7 @@ export function PushPrompt({ moment, onSettled }: PushPromptProps) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- see above
       setShown({ offer: verdict.offer });
     } else {
-      onSettled?.(verdict.because === "granted" ? "enrolled" : "unavailable");
+      onSettled?.(verdict.because === "granted" ? "allowed" : "unavailable");
     }
     /* `onSettled` is deliberately not a dependency: a caller passing an
        inline function would otherwise re-run this on every render and could
@@ -93,7 +106,7 @@ export function PushPrompt({ moment, onSettled }: PushPromptProps) {
       setBusy(false);
       if (outcome.ok) {
         setShown(null);
-        onSettled?.("enrolled");
+        onSettled?.("enrolled", outcome.deviceRef);
         return;
       }
       if (outcome.reason === "permission_denied") {
@@ -105,13 +118,15 @@ export function PushPrompt({ moment, onSettled }: PushPromptProps) {
         onSettled?.("declined");
         return;
       }
-      setFailed(
-        outcome.reason === "not_configured"
-          ? "Notifications are not switched on for this version of Vallo yet. Nothing for you to do."
-          : outcome.reason === "unsupported"
-            ? "This browser cannot show notifications. Add Vallo to your home screen and try again."
-            : "That did not work. You can try again from Settings.",
-      );
+      /* Every failure says one plain sentence and the prompt stays, so the
+         person is never left with a closed prompt and a silent screen. */
+      setFailed({
+        text: failureMessage(outcome.reason, {
+          iosHomeScreenApp: onIosHomeScreenApp(),
+          where: "prompt",
+        }),
+        signIn: outcome.reason === "signed_out",
+      });
     });
   }, [onSettled]);
 
@@ -139,8 +154,16 @@ export function PushPrompt({ moment, onSettled }: PushPromptProps) {
         <li>Off again whenever you like, in Settings.</li>
       </ul>
       {failed ? (
-        <p role="status" className="nf-body-sm mt-sm text-[var(--nf-state-error)]">
-          {failed}
+        <p role="alert" data-push-note="problem" className="nf-body-sm mt-sm text-[var(--nf-state-error)]">
+          {failed.text}
+          {failed.signIn ? (
+            <>
+              {" "}
+              <Link href="/sign-in?next=%2Fsettings%2Fnotifications" className="underline">
+                Open sign in
+              </Link>
+            </>
+          ) : null}
         </p>
       ) : null}
       <div className="mt-md flex flex-wrap gap-sm">

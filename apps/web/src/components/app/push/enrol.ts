@@ -2,6 +2,13 @@
 
 import { looksNative } from "@/lib/native/platform";
 
+import {
+  clearLocalDevice,
+  isIosHomeScreenApp,
+  writeLocalDevice,
+  type EnrolFailureReason,
+} from "./device-state";
+
 /**
  * TURNING A YES INTO A DEVICE THE SERVER CAN REACH.
  *
@@ -38,35 +45,29 @@ export type EnrolOutcome =
   | { ok: true; deviceRef: string; platform: "web" | "ios" | "android" }
   | {
       ok: false;
-      reason:
-        /* The person, or a previous permanent refusal, said no. */
-        | "permission_denied"
-        /* No push in this browser at all: an old Android browser, or iOS
-           Safari on a site that has not been installed to the home screen. */
-        | "unsupported"
-        /* The deployment has no VAPID key, so there is nothing to subscribe
-           against. Nothing the person can do. */
-        | "not_configured"
-        /*
-         * THE REQUEST CARRIED NO SESSION, WHICH IS A DIFFERENT FAULT WITH A
-         * DIFFERENT FIX AND IT USED TO BE REPORTED AS THE ONE ABOVE.
-         *
-         * "The deployment has no key" and "your session did not reach us" are
-         * told apart here because they are told apart nowhere else: the first
-         * is ours and the person can do nothing, the second is theirs and
-         * signing in fixes it in five seconds. Collapsing them told the
-         * founder push was not set up on a deployment where it was.
-         *
-         * It is most likely on iOS, where a home screen web app keeps a
-         * cookie store separate from Safari: signed in in one, signed out in
-         * the other, same device, same person.
-         */
-        | "sign_in_required"
-        /* The subscription or token was obtained and the server would not
-           record it. */
-        | "not_saved"
-        | "failed";
+      /*
+       * See `device-state.ts` for the list and what each one means.
+       *
+       * "not_configured" and "signed_out" are told apart because they are
+       * told apart nowhere else: the first is ours and the person can do
+       * nothing, the second is theirs and signing in fixes it. Collapsing them
+       * told the founder push was not set up on a deployment where it was.
+       */
+      reason: EnrolFailureReason;
     };
+
+/**
+ * How a reply from one of our push routes reads, as a failure, or null when it
+ * is not one. A 401 or 403 is ALWAYS "signed_out": the proxy answers
+ * `{"code":"sign-in-required"}` and `/api/push/register` answers
+ * `{"reason":"signed_out"}`, and both mean no session reached us. A 503 from
+ * register is the deployment with no database, which is ours.
+ */
+export function replyFailure(status: number): EnrolFailureReason | null {
+  if (status === 401 || status === 403) return "signed_out";
+  if (status === 503) return "not_configured";
+  return null;
+}
 
 /** What the browser or operating system says right now, without asking. */
 export function currentPermission(): "granted" | "denied" | "default" | "unsupported" {
@@ -82,6 +83,43 @@ export function currentPermission(): "granted" | "denied" | "default" | "unsuppo
   }
   const state = Notification.permission;
   return state === "granted" || state === "denied" ? state : "default";
+}
+
+/**
+ * The endpoint of the Web Push subscription this browser holds right now, for
+ * `deviceIsLive` in `device-state.ts`. `undefined` on native, where there is
+ * no endpoint to compare; `null` when the browser holds no subscription, or
+ * cannot say. Asks nothing and changes nothing: no permission prompt, no
+ * worker registration.
+ */
+export async function currentEndpoint(): Promise<string | null | undefined> {
+  if (typeof window === "undefined") return null;
+  if (looksNative()) return undefined;
+  try {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return null;
+    const registration = await navigator.serviceWorker.getRegistration("/");
+    if (!registration) return null;
+    const subscription = await registration.pushManager.getSubscription();
+    return subscription ? subscription.endpoint : null;
+  } catch {
+    return null;
+  }
+}
+
+/** For the copy: is this the iPhone home screen app, with its own sign-in? */
+export function onIosHomeScreenApp(): boolean {
+  if (typeof window === "undefined") return false;
+  let displayModeStandalone = false;
+  try {
+    displayModeStandalone = window.matchMedia?.("(display-mode: standalone)").matches ?? false;
+  } catch {
+    displayModeStandalone = false;
+  }
+  return isIosHomeScreenApp({
+    userAgent: navigator.userAgent,
+    navigatorStandalone: (navigator as Navigator & { standalone?: boolean }).standalone,
+    displayModeStandalone,
+  });
 }
 
 /**
@@ -121,9 +159,8 @@ async function enrolWeb(): Promise<EnrolOutcome> {
      * device anybody ever tried to register, and a reply this specific must
      * never again be flattened into "not set up".
      */
-    if (response.status === 401 || response.status === 403) {
-      return { ok: false, reason: "sign_in_required" };
-    }
+    const refused = replyFailure(response.status);
+    if (refused) return { ok: false, reason: refused };
 
     const body = (await response.json()) as { configured?: boolean; publicKey?: string };
     if (!body.configured || typeof body.publicKey !== "string") {
@@ -167,7 +204,7 @@ async function enrolWeb(): Promise<EnrolOutcome> {
     const keys = json.keys ?? {};
     if (!keys.p256dh || !keys.auth) return { ok: false, reason: "failed" };
 
-    return postRegistration({
+    return await postRegistration({
       platform: "web",
       token: subscription.endpoint,
       p256dh: keys.p256dh,
@@ -295,13 +332,35 @@ async function postRegistration(body: {
       credentials: "include",
       body: JSON.stringify(body),
     });
-    if (!response.ok) return { ok: false, reason: "not_saved" };
+    /* THE REGISTER CALL IS WHERE A MISSING SESSION NOW SHOWS UP. With the
+       key route open, a home screen app with no session of its own gets the
+       key, subscribes, and is refused here. That is "signed_out", not
+       "not_saved": the fix is to sign in inside the app, and saying "try
+       again in a moment" would send the person round the same loop. */
+    const refused = replyFailure(response.status);
+    if (refused) return failedAndForgotten(refused);
+    if (!response.ok) return failedAndForgotten("not_saved");
     const result = (await response.json()) as { ok?: boolean; deviceRef?: string };
-    if (!result.ok || typeof result.deviceRef !== "string") return { ok: false, reason: "not_saved" };
+    if (!result.ok || typeof result.deviceRef !== "string" || result.deviceRef.length === 0) {
+      return failedAndForgotten("not_saved");
+    }
+    /* THE ONLY PLACE A DEVICE IS RECORDED AS ON. The server has just said it
+       holds a live row for this token and named it. See `device-state.ts`. */
+    writeLocalDevice({
+      deviceRef: result.deviceRef,
+      endpoint: body.platform === "web" ? body.token : null,
+    });
     return { ok: true, deviceRef: result.deviceRef, platform: body.platform };
   } catch {
-    return { ok: false, reason: "not_saved" };
+    return failedAndForgotten("not_saved");
   }
+}
+
+/* A failed registration also forgets any earlier one, so a stale record can
+   never be the thing that lights the control after a refusal. */
+function failedAndForgotten(reason: EnrolFailureReason): EnrolOutcome {
+  clearLocalDevice();
+  return { ok: false, reason };
 }
 
 /**

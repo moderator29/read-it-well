@@ -121,7 +121,7 @@ export function HostStandingBody({
                   : `${missing.length} thing${missing.length === 1 ? "" : "s"} still to add before it can be sent.`
             }
           >
-            <Link href="/host/apply" className="nf-host-choice">
+            <Link href="/host/apply" className="nf-panel nf-panel--card nf-host-choice">
               <span className="nf-host-choice__mark" aria-hidden="true">
                 <BrandIcon name="doc-review" fill />
               </span>

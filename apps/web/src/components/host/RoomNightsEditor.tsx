@@ -87,7 +87,7 @@ function RoomCard({ room, locale }: { room: MyRoomType; locale: Locale }) {
   }
 
   return (
-    <section className="nf-host-group">
+    <section className="nf-panel nf-panel--card block nf-host-group">
       {/* THE NAME AND THE STATE DO NOT SHARE A LINE ON A PHONE, for the reason
           written on the host's standing page: "Executive suite" beside "Not
           live yet" leaves about 120px for a room name. A grid, stacked at 390

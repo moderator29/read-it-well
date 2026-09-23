@@ -81,7 +81,7 @@ export default async function AdminMoneyPage({
   if (read.state !== "ok") {
     return (
       <div className="nf-console nf-md">
-        <MoneyHead />
+        <MoneyHead locale={locale} />
         <ui.QueueUnavailable />
       </div>
     );

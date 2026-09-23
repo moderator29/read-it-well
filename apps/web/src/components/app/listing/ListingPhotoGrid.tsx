@@ -89,7 +89,7 @@ export function ListingPhotoGrid({
                     ? `View all ${photos.length} photos`
                     : `View photo ${i + 1} of ${photos.length} full screen`
                 }
-                className="relative block aspect-square w-full overflow-hidden rounded-[var(--nf-radius-md)] transition-transform active:scale-[0.97] motion-reduce:transition-none"
+                className="relative block aspect-square w-full overflow-hidden rounded-[var(--nf-container-radius)] transition-transform active:scale-[0.97] motion-reduce:transition-none"
               >
                 <Tile photo={photo} hue={hue} kind={kind} index={i} sizes="(max-width: 640px) 33vw, 220px" />
                 {last && (
@@ -111,7 +111,7 @@ export function ListingPhotoGrid({
                 type="button"
                 onClick={() => open(i)}
                 aria-label={`View photo ${i + 1} of ${photos.length} full screen`}
-                className="relative block aspect-[4/3] w-full overflow-hidden rounded-[var(--nf-radius-md)] transition-transform active:scale-[0.97] motion-reduce:transition-none"
+                className="relative block aspect-[4/3] w-full overflow-hidden rounded-[var(--nf-container-radius)] transition-transform active:scale-[0.97] motion-reduce:transition-none"
               >
                 <Tile photo={photo} hue={hue} kind={kind} index={i} sizes="(max-width: 640px) 50vw, 220px" />
               </button>

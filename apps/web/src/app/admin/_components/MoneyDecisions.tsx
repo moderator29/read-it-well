@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { formatMoney, getDictionary, type Locale } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
 import { resolveEscrow, setFeeRate } from "@/lib/admin/money-actions";
 import { reviewKycDocument } from "@/lib/admin/kyc-actions";
@@ -73,9 +73,13 @@ export function EscrowRuling({
     });
   }
 
+  const r = getDictionary(locale).admin.escrow.rulingControl;
+  const cancelWord = getDictionary(locale).admin.payments.sweep.cancel;
+  const fill = (text: string, values: Record<string, string>) =>
+    text.replace(/\{(\w+)\}/g, (whole, key: string) => values[key] ?? whole);
   const money = formatMoney(amountMinor, locale);
-  const payer = payerName ?? "the payer";
-  const payee = payeeName ?? "the payee";
+  const payer = payerName ?? r.thePayer;
+  const payee = payeeName ?? r.thePayee;
   /* Who actually receives the money under the chosen direction. Release pays
      the payee; refund returns it to the payer. */
   const recipient = direction === "release" ? payee : payer;
@@ -83,13 +87,13 @@ export function EscrowRuling({
   return (
     <div className="mt-row rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-card-sm">
       <label className="block">
-        <span className="nf-label">Your ruling</span>
+        <span className="nf-label">{r.label}</span>
         <textarea
           className="nf-field min-h-[80px] resize-y"
           value={note}
           maxLength={1000}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="What you decided and why. Both people are sent this, word for word."
+          placeholder={r.placeholder}
         />
       </label>
 
@@ -104,13 +108,10 @@ export function EscrowRuling({
       */}
       {!direction ? (
         <>
-          <p className="nf-caption mt-row">
-            Choose a direction. You will see exactly what moves, and to whom,
-            before anything happens.
-          </p>
+          <p className="nf-caption mt-row">{r.choose}</p>
           <div className="mt-row flex flex-wrap gap-inline">
             <Button type="button" size="sm" onClick={() => setDirection("release")}>
-              Release to {payee}
+              {fill(r.releaseTo, { name: payee })}
             </Button>
             <Button
               type="button"
@@ -118,29 +119,24 @@ export function EscrowRuling({
               variant="secondary"
               onClick={() => setDirection("refund")}
             >
-              Refund to {payer}
+              {fill(r.refundTo, { name: payer })}
             </Button>
           </div>
         </>
       ) : (
         <div className="mt-row rounded-[var(--nf-radius-md)] border border-[var(--nf-state-warning)] p-card-sm">
           <p className="nf-body font-semibold text-content">
-            {money} goes to {recipient}.
+            {fill(r.goesTo, { money, recipient })}
           </p>
           <p className="nf-body-sm mt-row text-content-2">
-            {direction === "release"
-              ? `${payer} does not get this money back.`
-              : `${payee} does not receive this money.`}{" "}
-            Both people are sent your ruling word for word. This cannot be
-            undone: the state machine will not let a resolved escrow be
-            reopened.
+            {direction === "release" ? fill(r.payerLoses, { payer }) : fill(r.payeeLoses, { payee })} {r.finality}
           </p>
           <div className="mt-group flex flex-wrap gap-inline">
             {/* The second step is the lit primary (admin-money's request, 23
                 September): the ruling is the consequential action and the
                 confirmation above already says, in words, what cannot be undone. */}
             <Button type="button" size="sm" variant="primary" loading={pending} onClick={run}>
-              {direction === "release" ? "Release" : "Refund"} {money} to {recipient}
+              {fill(direction === "release" ? r.confirmRelease : r.confirmRefund, { money, recipient })}
             </Button>
             <Button
               type="button"
@@ -152,7 +148,7 @@ export function EscrowRuling({
                 setError(null);
               }}
             >
-              Cancel
+              {cancelWord}
             </Button>
           </div>
         </div>

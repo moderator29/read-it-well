@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { LineGlyph } from "./LineGlyph";
 
 /** The feed's modes. `new` survives as a valid address for old links: it is
     everything anybody may read, newest first, and it is what For you falls
@@ -15,7 +16,7 @@ export function isFeedTab(value: string | undefined | null): value is FeedTab {
 /**
  * For You / Following.
  *
- * The governing feed image draws two segments in one glass capsule, the live
+ * The governing feed image draws two segments in one glass track, the live
  * one filled in brand blue with a line glyph before its word, and that is what
  * this is. Each is a link carrying `?tab=`, so the choice survives a reload,
  * puts a real entry in the history and costs no JavaScript; `aria-current`
@@ -27,9 +28,12 @@ export function isFeedTab(value: string | undefined | null): value is FeedTab {
  * `?tab=new` still answers for anybody holding that address.
  */
 export function FeedTabs({ active, t }: { active: FeedTab; t: Dictionary }) {
-  const segments: { tab: FeedTab; label: string; icon: "sparkle" | "user" }[] = [
+  /* The founder's image draws a sparkle on For You and two people on
+     Following, both plain line glyphs, 14 CSS px drawn (sparkle at the 28 step, whose
+     path fills half its box; people at 20). */
+  const segments: { tab: FeedTab; label: string; icon: "sparkle" | "people" }[] = [
     { tab: "for-you", label: t.social.tabForYou, icon: "sparkle" },
-    { tab: "following", label: t.social.tabFollowing, icon: "user" },
+    { tab: "following", label: t.social.tabFollowing, icon: "people" },
   ];
   /* An old `?tab=new` link lights For you, which is the mode it reads as. */
   const live: FeedTab = active === "new" ? "for-you" : active;
@@ -44,7 +48,11 @@ export function FeedTabs({ active, t }: { active: FeedTab; t: Dictionary }) {
           aria-current={segment.tab === live ? "page" : undefined}
           data-testid={`feed-tab-${segment.tab}`}
         >
-          <UiIcon name={segment.icon} size={20} />
+          {segment.icon === "people" ? (
+            <LineGlyph name="people" size={20} />
+          ) : (
+            <UiIcon name={segment.icon} size={28} />
+          )}
           {segment.label}
         </Link>
       ))}

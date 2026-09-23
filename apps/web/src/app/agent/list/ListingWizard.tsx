@@ -1571,7 +1571,7 @@ export function ListingWizard({
         </div>
       )}
 
-      <div className="nf-card mt-group p-card sm:p-cell">
+      <div className="nf-panel nf-panel--card block mt-group p-card sm:p-cell">
         {/* ---------------------------------------------------- 1 basic info */}
         {step === 0 && (
           <div className="space-y-lg">
@@ -2178,7 +2178,7 @@ export function ListingWizard({
             />
 
             {/* ------------------------------------------------ the gate */}
-            <div className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-card">
+            <div className="nf-panel nf-panel--card block p-card">
               <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                 Getting through the gate
               </p>
@@ -2311,7 +2311,7 @@ export function ListingWizard({
                   platform worked out and printed as a fact would be an
                   invented number. The lister states what they charge.
                 */}
-                <div className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-card">
+                <div className="nf-panel nf-panel--card block p-card">
                   <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                     What a buyer actually pays
                   </p>
@@ -2553,7 +2553,7 @@ export function ListingWizard({
                   unstated rather than as zero: "no agency fee" is a selling
                   point and "we did not say" is not the same promise.
                 */}
-                <div className="rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] p-card">
+                <div className="nf-panel nf-panel--card block p-card">
                   <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                     What it costs to move in
                   </p>
@@ -2787,7 +2787,7 @@ export function ListingWizard({
         {step === 6 && (
           <div>
             <Note>{copy.guestView.intro}</Note>
-            <article className="nf-card mt-group overflow-hidden">
+            <article className="nf-panel nf-panel--card block mt-group overflow-hidden">
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--nf-surface-raised)]">
                 {photos[0] ? (
                   /* The guest view's cover: one wide 4:3 plate, so it earns a
