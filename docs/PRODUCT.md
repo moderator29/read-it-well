@@ -275,7 +275,7 @@ collapse into one tick.**
    `apps/web/src/lib/legal/terms.tsx` was rewritten on 15 September to say in as
    many words that Vallo does not hold your money in escrow. **The wallet screen
    and the contract now say opposite things about where somebody's rent money
-   is.** That is the highest-priority item in `docs/FRONTEND_REVAMP.md`.
+   is.** That is the highest-priority item in `docs/archive/FRONTEND_REVAMP.md`.
 
    **The rule stands and is restated.** Escrow may not be mentioned to a user
    until the money can actually be held, released and disputed. See
@@ -352,7 +352,7 @@ where. A slogan does none of that.
 attempt at it was. The three words are an i18n key, `landing.hero.line1/2/3`, the
 auth shell and the footer reach it through that key, it is translated into
 Yorùbá, Hausa and Igbo, and **it is reused as the titles of the three
-how-it-works steps**. `docs/FRONTEND_REVAMP.md` section 3 has the full inventory
+how-it-works steps**. `docs/archive/FRONTEND_REVAMP.md` section 3 has the full inventory
 and the three separate jobs it breaks into.
 
 ## 8. Language and theme

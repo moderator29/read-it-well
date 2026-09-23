@@ -5,7 +5,7 @@
  * client component and needs these types and these sentences; putting them
  * next to the server reads would make the module server-only and the import
  * would typecheck and then fail the build, which is the trap recorded in
- * docs/HANDOFF.md section 6 and which this project has hit for real.
+ * docs/archive/HANDOFF.md section 6 and which this project has hit for real.
  *
  * The geography itself is the database's, not this file's. `public.states` has
  * the 36 states and the FCT, `public.local_governments` has all 774, and

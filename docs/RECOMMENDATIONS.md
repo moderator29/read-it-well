@@ -18,7 +18,7 @@ is wrong with it and what to do next.
 
 ## How to read this file
 
-**The full evidence for every A1, A2 and A3 entry is in `docs/audit/`.** This
+**The full evidence for every A1, A2 and A3 entry is in `docs/archive/audit-2026-09-15/`.** This
 file is the register and the work queue: identifier, what is wrong, effort and
 status. The three reports carry the seven fields for each one, being evidence,
 action, reason, impact, effort, risk and priority, and they are long on purpose.
@@ -990,7 +990,7 @@ a tick box; the rest carry their status.
 |  | `A2-117` | Support tickets have no SLA view | S | OPEN | `A2_ENGINEERING_BACKEND_DB_SECURITY` |
 |  | `A2-120` | `previewCancellation` and `expireStaleWithdrawalHolds` have no confirmation contract | M | OPEN | `A2_ENGINEERING_BACKEND_DB_SECURITY` |
 |  | `A2-129` | There is no staging environment | S | OPEN | `A2_ENGINEERING_BACKEND_DB_SECURITY` |
-|  | `A2-130` | `docs/DATABASE_AUDIT.md` is stale on its own headline finding | S | OPEN | `A2_ENGINEERING_BACKEND_DB_SECURITY` |
+|  | `A2-130` | `docs/archive/DATABASE_AUDIT.md` is stale on its own headline finding | S | OPEN | `A2_ENGINEERING_BACKEND_DB_SECURITY` |
 |  | `A2-131` | The eight cron jobs are all scheduled in UTC with no note of the offset at each site | S | OPEN | `A2_ENGINEERING_BACKEND_DB_SECURITY` |
 |  | `A2-132` | Nothing measures the webhook's own latency | S | OPEN | `A2_ENGINEERING_BACKEND_DB_SECURITY` |
 |  | `A2-137` | There is no webhook secret rotation procedure | S | OPEN | `A2_ENGINEERING_BACKEND_DB_SECURITY` |

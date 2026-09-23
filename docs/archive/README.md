@@ -16,7 +16,13 @@ any of these was moved. If you find something in here that is true, still
 relevant and **not** in the live documents, that is a defect in the live
 documents. Fix them, do not restore this.
 
-Archived 2026-08-09.
+Archived 2026-08-09, and added to on 2026-09-23.
+
+**Session scaffolding lives here too.** Handoffs, build ledgers, prompts,
+surveys and one-off audit reports were written for the build sessions that
+made this platform: briefs and working records passed between them. They
+explain how a decision was reached; they do not describe the platform. The
+documentation of the platform itself is the rest of `docs/`.
 
 ---
 
@@ -71,3 +77,10 @@ CI excludes `docs/archive/`.
 | `ui-audit/*` | See the warning above | `RECOMMENDATIONS.md` D-1, D-2 and D-3 |
 | `KNOWN_GAPS.md` | The honest absence list, last updated 9 August 2026 and moved here from the repository root on 23 September. Later surveys found it stale. Code comments and migrations still cite it by name for specific gaps, which is why it is kept rather than deleted | The current state is `docs/PLATFORM_STATUS.md`; open work is `docs/RECOMMENDATIONS.md` |
 | `ROADMAP.md` | What had landed as of 9 August 2026, moved here from the repository root on 23 September. A history, not a plan | `docs/PLATFORM_STATUS.md` and `git log` |
+| `HANDOFF.md`, `HANDOFF_01_COMPANY.md`, `HANDOFF_02_PLATFORM.md`, `HANDOFF_03_FRONTEND.md`, `HANDOFF_06.md` | Briefs written for build sessions between 14 and 19 September 2026. Each was superseded by the next numbered handoff | What the product is: `docs/PRODUCT.md`; its state: `docs/PLATFORM_STATUS.md`. `HANDOFF_01_COMPANY.md` still holds the only written record of the company obligations (registration, data protection, money rules); lift those into a live document before relying on the archive for them |
+| `BUILD_06_LEDGER.md` | The working ledger of the 18 to 19 September build session: scopes, the queue, what landed with its commit. Many code comments cite its sections | The code, and `git log` |
+| `FRONTEND_REVAMP.md` | The 16 September survey of the frontend and the glass artwork, written before any of it was wired | `docs/BRAND_MARKS.md`, `docs/ICON_SYSTEM.md`, `docs/DESIGN_DIRECTION.md` |
+| `VALLO_DISCOVERY_REPORT.md` | The 18 September discovery report that opened the visual reimagination; its evidence chapters are in `docs/research/` | `docs/DESIGN_DIRECTION.md` |
+| `BRANCH_AUDIT.md` | The record of branch heads taken on 15 September before the branch clean-up, kept so a deleted branch can be restored from its SHA | Nothing; it is a record |
+| `DATABASE_AUDIT.md` | The Supabase linter run of 7 August 2026. `docs/RECOMMENDATIONS.md` A2-130 records that its headline went stale | Re-run the advisors; `docs/security/GRANT_STATE.md` |
+| `audit-2026-09-15/` | The three full audit reports of 15 September (product, engineering, frontend), the evidence behind every A1, A2 and A3 entry | `docs/RECOMMENDATIONS.md`, which carries each finding with its status |

@@ -57,7 +57,7 @@ lists the off-brand details that must be translated rather than copied.
    **THIS SUPERSEDES THE EARLIER NOTE IN THIS SECTION**, which read "control
    shape follows the governing image ... where a render shows pill chips and
    capsule buttons, ship them", **and it supersedes the section 8 amendment
-   in `docs/BUILD_06_LEDGER.md`** that added `--nf-radius-control-pill` as a
+   in `docs/archive/BUILD_06_LEDGER.md`** that added `--nf-radius-control-pill` as a
    second control role. Both are withdrawn. The founder's ruling of
    19 September, with `GOVERNING-landing-desktop-hero.png` open: not one
    capsule in that image, and the only circle in it is the search glyph at

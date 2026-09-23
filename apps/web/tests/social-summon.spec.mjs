@@ -140,7 +140,7 @@ check(
   Object.values(BOT_REFUSALS).every((line) => !/[0-9]|₦|naira|kobo/i.test(line)),
 );
 /* Written as an escape so this file stays clean under the repository's own
-   em dash scan, the same way `docs/HANDOFF.md` writes its. */
+   em dash scan, the same way `docs/archive/HANDOFF.md` writes its. */
 const EM_DASH = String.fromCharCode(0x2014);
 check(
   "no refusal and no line of the assistant's copy carries an em dash",

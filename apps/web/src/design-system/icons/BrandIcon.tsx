@@ -25,7 +25,7 @@ import Image from "next/image";
  * and on paper. So the blend mode is gone, the dark plate is gone, and
  * `.nf-brand-icon-ground` now paints nothing at all in the dark theme. That
  * was the acceptance test for the swap and it passed: see `docs/ICON_SYSTEM.md`
- * and `docs/FRONTEND_REVAMP.md` section 2.
+ * and `docs/archive/FRONTEND_REVAMP.md` section 2.
  *
  * WHAT IS STILL TRUE, AND IT IS SIMPLER THAN IT WAS. A glass object is
  * see-through by design, so its interior alpha is partial, and that is correct
@@ -270,7 +270,7 @@ export type BrandIconObject = (typeof BRAND_ICONS)[number];
  * alias means every one of those screens gets the correct new artwork today,
  * and the rename can follow as a separate, readable change.
  *
- * Each substitution is the one `docs/FRONTEND_REVAMP.md` section 2.6 argues
+ * Each substitution is the one `docs/archive/FRONTEND_REVAMP.md` section 2.6 argues
  * for. Two of them, `homes-sparkle` and `house-sparkle`, are marked interim
  * there: no glass object carries "several homes, recommended" or "one home,
  * recommended", and those two are the only objects on the list that need

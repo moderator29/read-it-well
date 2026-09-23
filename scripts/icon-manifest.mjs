@@ -40,14 +40,14 @@
  * is a headset with a speech bubble. Calling the headset `support-chat` keeps
  * four live call sites working with no edit, and a headset alone is a fair
  * drawing of support. A bubble-and-headset object would be better and is a line
- * in the commission list in docs/FRONTEND_REVAMP.md, not a reason to leave four
+ * in the commission list in docs/archive/FRONTEND_REVAMP.md, not a reason to leave four
  * screens on the old artwork in the meantime.
  *
  * WHAT IS RECORDED AND NOT FIXED. `9795AD6E` index 23 is a hotel with the word
  * HOTEL rendered into the artwork as pixels. This platform ships `packages/i18n`
  * and text baked into an image cannot be translated, so that object is named
  * `hotel-sign` and is NOT canonical for anything. It is a recommendation in
- * docs/FRONTEND_REVAMP.md, not a file to quietly use.
+ * docs/archive/FRONTEND_REVAMP.md, not a file to quietly use.
  */
 
 /**

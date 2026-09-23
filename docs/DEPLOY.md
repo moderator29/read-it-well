@@ -335,7 +335,7 @@ opposite of the truth.
 - **Turn on leaked password protection.** Authentication, Policies. It is off,
   and it is the only genuine item on the security advisor list. Credential
   stuffing against a marketplace with a naira wallet behind it is exactly what
-  it prevents. `docs/DATABASE_AUDIT.md` section 1.1.
+  it prevents. `docs/archive/DATABASE_AUDIT.md` section 1.1.
 - **Drop `private.probe_as` before real people's data arrives.** It sets
   `request.jwt.claims` so a probe can run as a signed-in person under RLS, which
   is the only way to test a policy. It is revoked from every role but
@@ -356,7 +356,7 @@ because the limiter fails open by design.
 
 **Advisors, Security Advisor** and **Performance Advisor**. Security returns
 eleven items and **ten of them are correct by design**: read
-`docs/DATABASE_AUDIT.md` section 4, the do-not-fix list, before changing
+`docs/archive/DATABASE_AUDIT.md` section 4, the do-not-fix list, before changing
 anything. "Fixing" any of those five breaks the landing page, the agent trust
 panel or the machinery that stops a payment being taken twice. Performance shows
 multiple-permissive-policy notes and unused indexes on empty tables; that is
