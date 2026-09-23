@@ -1,153 +1,36 @@
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { MetadataRoute } from "next";
 
-import {
-  buildSitemap,
-  RESTAURANT_PAGES_INDEXABLE,
-  type SitemapListing,
-  type SitemapStay,
-} from "@/lib/listings/sitemap";
+import { buildSitemap } from "@/lib/listings/sitemap";
 import { siteUrl } from "@/lib/site";
-import type { Database } from "@/lib/supabase/database.types";
-import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 
 /**
  * `/sitemap.xml`.
  *
- * THE RULE THIS ROUTE EXISTS TO OBEY. The example listings in the catalogue
- * describe properties that DO NOT EXIST, and a sitemap is an explicit
- * invitation to a crawler. Handing Google the address of a fabricated property
- * advertisement published under our name is the single worst thing this file
- * could do, so the exclusion is refused twice: pushed into SQL below, and then
- * applied again by the gate inside `buildSitemap`. See
- * `lib/listings/syndication.ts` for why both. The same rule, the same two
- * refusals, apply to the Stays side: an accommodation row is a business-grade
- * record and it carries `is_demo` for the same reason.
+ * IT READS NO DATABASE AT ALL NOW, AND THAT IS THE POINT.
  *
- * WHY THE READS ARE HERE RATHER THAN THROUGH THE REPOSITORIES. A repository
- * caps a catalogue read at sixty rows, deliberately, because it is serving a
- * page. A sitemap that silently stopped at sixty would be correct-looking
- * today and quietly wrong on the day the catalogue grows, which is the day it
- * matters. So this reads the two or three columns a sitemap needs, in pages,
- * until the table is exhausted, and never asks for the fifty columns a card
- * needs.
+ * Until 23 September this route walked `listings` and `accommodations` in
+ * pages, refused the example rows twice over, and emitted a URL per published
+ * property. The founder's item 8 then closed the platform: every one of those
+ * addresses sends a signed-out visitor to `/sign-in` before the page runs, and
+ * a crawler is a signed-out visitor. Advertising pages a crawler is then
+ * refused at is worse than advertising nothing, so the route stopped
+ * advertising them.
  *
- * WHY A COOKIE-FREE CLIENT. A sitemap has no reader, so it must be built by
- * the role that actually crawls it. The request-scoped client acts as whoever
- * is signed in, which means an admin opening `/sitemap.xml` in their own
- * browser could be handed rows that `anon` cannot see, and those rows would go
- * into a file served to everybody. `anon` under RLS is the honest question:
- * what can a stranger read.
+ * WHAT WENT WITH IT, SAID PLAINLY SO NOBODY LOOKS FOR IT: the cookie-free
+ * `anon` client, the paged walk with its twenty-thousand-row ceiling, and the
+ * second refusal of the example listings on the way out. None of that was
+ * wrong. It has no rows to run over, because there is no public inventory
+ * surface left for a row to point at.
  *
- * `/u/[handle]` and `/post/[id]` are public and are deliberately absent. Both
- * are somebody's own content rather than inventory, both need their own
- * enumeration and their own opt-out, and neither is what a property
- * marketplace is found for. `/restaurant/[id]` is absent for a different
- * reason, stated on `RESTAURANT_PAGES_INDEXABLE`.
+ * The rule it obeyed is untouched and still governs the other three surfaces:
+ * `lib/listings/syndication.ts` decides the JSON-LD block, the Open Graph card
+ * and email. Putting inventory back here means reopening the gate first; see
+ * `lib/listings/sitemap.ts`.
+ *
+ * `robots.txt` is written from the same decision, and
+ * `app/sitemap.test.ts` holds this file, `robots.ts` and `proxy.ts` to the
+ * same answer so the three cannot drift.
  */
-
-/** One page of the enumeration. Few columns, so the pages can be wide. */
-const PAGE_SIZE = 1000;
-
-/**
- * The row ceiling per table.
- *
- * A sitemap file may hold fifty thousand URLs by the protocol, and this stops
- * well short of it. When a table reaches this size the answer is
- * `generateSitemaps` and a sitemap index, not a bigger number here: the point
- * of the ceiling is that the route cannot pull an unbounded table into memory
- * on a cold request.
- */
-const MAX_URLS = 20_000;
-
-type Client = ReturnType<typeof createSupabaseClient<Database>>;
-
-function anonClient(): Client | null {
-  if (!isSupabaseConfigured()) return null;
-  return createSupabaseClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-}
-
-type Row = { id: string; is_demo: boolean; updated_at: string };
-
-/**
- * Walk one table in pages until it is exhausted or the ceiling is reached.
- *
- * `select` narrows to the three columns every sitemap row needs; `narrow` adds
- * the table's own predicate on top of the two shared ones. The example rows
- * are refused in SQL so they never leave the database, and `buildSitemap`
- * applies the gate a second time over whatever comes back.
- */
-async function walk(
-  client: Client,
-  table: "listings" | "accommodations",
-  narrow: (query: PageQuery) => PageQuery,
-): Promise<Row[]> {
-  const rows: Row[] = [];
-  try {
-    for (let from = 0; from < MAX_URLS; from += PAGE_SIZE) {
-      const query = narrow(
-        client
-          .from(table)
-          .select("id, is_demo, updated_at")
-          .eq("status", "PUBLISHED")
-          .eq("is_demo", false),
-      );
-      const { data, error } = await query
-        .order("updated_at", { ascending: false })
-        .range(from, from + PAGE_SIZE - 1);
-      if (error || !data || data.length === 0) break;
-      for (const row of data) rows.push(row as Row);
-      if (data.length < PAGE_SIZE) break;
-    }
-  } catch {
-    /*
-     * An unreachable database yields whatever was read so far, or nothing,
-     * rather than a 500. A sitemap that errors is dropped wholesale by the
-     * crawler that fetched it; a sitemap that is briefly short of its rows is
-     * re-read tomorrow.
-     */
-  }
-  return rows;
-}
-
-/* The chainable shape both tables' reads share, typed loosely on purpose: the
-   generated query types differ per table and the sitemap uses only the four
-   methods every one of them has. */
-type PageQuery = {
-  eq: (column: string, value: string | boolean) => PageQuery;
-  neq: (column: string, value: string | boolean) => PageQuery;
-  order: (column: string, opts: { ascending: boolean }) => PageQuery;
-  range: (from: number, to: number) => PromiseLike<{ data: unknown[] | null; error: unknown }>;
-};
-
-const asRow = (row: Row): SitemapListing => ({
-  id: row.id,
-  isDemo: row.is_demo,
-  updatedAt: row.updated_at,
-});
-
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const client = anonClient();
-  if (!client) return buildSitemap(siteUrl(), []);
-
-  /*
-   * Restaurants share the listings table with the property catalogue and are
-   * told apart by `property_type`; the property read leaves them out so a
-   * restaurant is never listed twice, once as `/listing` and once as
-   * `/restaurant`, and the restaurant read runs only once its page indexes.
-   */
-  const [properties, stays, restaurants] = await Promise.all([
-    walk(client, "listings", (q) => q.neq("property_type", "restaurant")),
-    walk(client, "accommodations", (q) => q),
-    RESTAURANT_PAGES_INDEXABLE
-      ? walk(client, "listings", (q) => q.eq("property_type", "restaurant"))
-      : Promise.resolve([] as Row[]),
-  ]);
-
-  return buildSitemap(siteUrl(), properties.map(asRow), {
-    stays: stays.map((row): SitemapStay => asRow(row)),
-    restaurants: restaurants.map(asRow),
-  });
+export default function sitemap(): MetadataRoute.Sitemap {
+  return buildSitemap(siteUrl());
 }

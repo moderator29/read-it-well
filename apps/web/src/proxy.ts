@@ -25,85 +25,218 @@ import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/sup
  * `/search`, and removing those links would have stopped the clicks while
  * leaving every one of these routes open to anybody who typed the address,
  * followed an old link, or read the sitemap. One check, before any page runs.
+ *
+ * It is not the ONLY check, and it must never be treated as one. Every server
+ * action resolves its own session and every read is behind RLS, because a
+ * server action is posted to a page's path and a caller can choose a path this
+ * gate leaves open. The middleware decides who gets a screen. The action and
+ * the policy decide who gets a row.
  */
 
 /**
- * The product. Everything under one of these first segments requires a session.
+ * WHAT CHANGED ON 23 SEPTEMBER, AND WHY THE LIST IS THE OTHER WAY UP NOW.
  *
- * Matched on the first path segment rather than by prefix string, so `/search`
- * is protected and a future public route called `/searching` is not caught by
- * accident.
+ * The founder's instruction, in his own words: "Remove look around. You must
+ * sign in. Nothing inside the platform is visible without signing up or
+ * signing in."
  *
- * WHAT CHANGED, and why it matters more than it looks.
+ * This file used to hold the closed list: a set of product first segments,
+ * with everything else open. That shape answers the wrong question. A route
+ * added to the app was PUBLIC until somebody remembered to classify it, and
+ * "we forgot" is how a product quietly reopens. The same lesson was paid for
+ * one layer down this morning, where a rule that lived in prose rather than in
+ * a check took the whole catalogue off the air for eleven and a half hours
+ * (ledger section 67): the knowledge was in the repository in three places and
+ * the migration shipped anyway.
  *
- * This set used to hold `search`, `listing`, `rent`, `around`, `u` and `post`,
- * which meant an anonymous visitor could not see a single property. A shared
- * listing link hit a sign-in wall. Google could not index one page of
- * inventory. An app store reviewer would have opened the app, been asked to
- * register, and had no way to see that the product does anything.
+ * So the list is inverted. PUBLIC is now the enumerated set and everything
+ * else needs a session, which makes a new route BORN LOCKED, the same rule
+ * rule 21 puts on a database function. Getting this list wrong in the closing
+ * direction is a compliance problem rather than a bug, which is why every
+ * entry below carries the reason it is there and why
+ * `apps/web/tests/gate.spec.mjs` walks all of them with a real browser.
  *
- * A property marketplace that cannot be seen cannot be found, and being found
- * is most of what a marketplace is for. So browsing is open and DOING is what
- * costs an account: saving, messaging, requesting an inspection, paying,
- * listing, the wallet, and everything in the consoles. That line is drawn in
- * two places and they have to agree. Here, for whole routes. And in the client
- * gate, for the individual controls on a page a stranger is allowed to read.
- *
- * Anything holding somebody's own data, their money, or somebody else's
- * attention stays behind the wall.
+ * WHAT IS DELIBERATELY ACCEPTED WITH IT, so nobody files either as a defect.
+ * No listing will be indexed by any search engine, so the landing page is our
+ * only public surface: `app/sitemap.ts` therefore publishes no listing URL.
+ * And both app stores need reviewer credentials, which makes the seeded demo
+ * account a hard requirement rather than a convenience. Both are written up in
+ * `docs/STORE_SUBMISSION_NOTES.md`.
  */
-const PRODUCT_SEGMENTS = new Set([
-  // The (app) group.
-  "assistant",
-  "bookings",
-  "checkout",
-  "home",
-  /* The in-product copies of the legal documents. The public originals at
-     /privacy and /terms stay open to everyone, which is what a privacy policy
-     is for; these are the same text inside the product shell and there is no
-     reason for a stranger to reach them rather than the canonical page. */
-  "legal",
-  "messages",
-  "notifications",
-  "profile",
-  "saved",
-  "settings",
-  /* Stories expire and count their viewers, so a view is a write against
-     somebody's post. There is nothing to read here anonymously. */
-  "stories",
-  "wallet",
-  /* The Stays side's own-data surfaces: your stays and reservations, and the
-     Host console. Browsing (/stays, /stay, /restaurants, /restaurant) stays
-     open, exactly like /search and /listing on the Property side. */
-  "trips",
-  "host",
-  /* The Property side's inspections page: every row on it is the reader's. */
-  "inspections",
-  // The consoles. These have their own role checks on top; this only decides
-  // whether an anonymous visitor gets as far as being told they lack a role.
-  "admin",
-  "agent",
-  /* NOT "welcome". First run is the first thing a stranger meets, from the
-     stores and from Sign up or Sign in, so it must answer signed out. The
-     page is its own guard for the signed-in half (app/welcome/page.tsx). */
+
+/**
+ * Open to anybody, matched on the FIRST path segment.
+ *
+ * Matched on the segment rather than by prefix string, so `/terms` is public
+ * and a future `/termsheet` is not public by accident.
+ *
+ * THE LANDING PAGE AND WHAT SURROUNDS IT. `/` is the founder's named public
+ * surface. `about`, `careers`, `contact`, `help` and `docs` are the company
+ * and support pages that hang off its footer: they are not inside the
+ * platform, and a support page behind a login is a support page the one person
+ * who most needs it cannot reach. `/help` additionally mounts the support chat
+ * that `/api/support` answers, which is why that endpoint is open below.
+ *
+ * THE LEGAL AND POLICY PAGES. `terms`, `privacy`, `eula`, `cancellations`,
+ * `standards`, `safety`. A privacy notice nobody can read without an account
+ * is not a privacy notice. A regulator, an app store reviewer and a person who
+ * has lost access to their account must all be able to reach every one of
+ * these without signing in.
+ *
+ * `delete-account` IS NOT OPTIONAL AND IT IS NOT MARKETING. Google Play
+ * requires a publicly reachable URL explaining how to request account deletion
+ * that works without installing anything and without signing in. It also
+ * carries the restore form, which is the one step a person CANNOT perform
+ * signed in, because their account is banned for the length of the grace
+ * window. Closing this page would lock somebody out of undoing their own
+ * deletion.
+ *
+ * THE DOORS. `sign-in`, `sign-up`, `forgot-password`, `reset-password`, `auth`
+ * (which is where every confirmation link lands, and a session is the thing it
+ * is about to create) and `start` (the old intro address, a 307). A lock with
+ * no door is a wall.
+ *
+ * `welcome` IS THE FRONT DOOR. First run is the first thing a stranger meets,
+ * from the stores and from Sign up or Sign in, so it must answer signed out.
+ * This is the line Session B holds by written agreement; it has moved from the
+ * closed list to this one and it means the same thing.
+ *
+ * `offline` is served when there is no network at all, so it cannot depend on
+ * an auth call, and `home-or-landing` resolves the word "home" by reading the
+ * caller's own cookies and answers `/` for a stranger, which is the honest
+ * answer and would become a redirect loop if it were gated.
+ *
+ * `preview` and `gallery` STAY OUT OF THE GATE ON PURPOSE. They carry their
+ * own guard, `previewHarnessIsOpen`, which answers not-found on Vercel
+ * unconditionally and off Vercel unless `VALLO_PREVIEW_HARNESS=1`. Gating them
+ * as well would break every proof walk in `scripts/design/`, which runs signed
+ * out by necessity, and would buy nothing in production where they do not
+ * exist.
+ */
+const PUBLIC_SEGMENTS = new Set([
+  // The company and support surfaces around the landing page.
+  "about",
+  "careers",
+  "contact",
+  "docs",
+  "help",
+  // Legal and policy. Never close one of these.
+  "cancellations",
+  "eula",
+  "privacy",
+  "safety",
+  "standards",
+  "terms",
+  // Compliance: the Play Store deletion URL and the only route back from a
+  // deletion already started.
+  "delete-account",
+  // The doors.
+  "auth",
+  "forgot-password",
+  "reset-password",
+  "sign-in",
+  "sign-up",
+  "start",
+  "welcome",
+  // Serving with no network, and resolving which home the caller means.
+  "home-or-landing",
+  "offline",
+  // Development harnesses, closed by their own guard in production.
+  "gallery",
+  "preview",
 ]);
 
 /**
- * Product that does not own its own first segment.
+ * Open, matched on the EXACT path, because these are files rather than trees.
  *
- * The two agent addresses that used to be listed here are gone with the
- * `/agents` tree: setting a profile up is `/profile/setup/[role]` and an
- * application's state is `/profile/application`, both of which live under
- * `profile`, which is already a protected first segment. So the rule that
- * guarded them still applies and no longer needs naming twice.
+ * `/` is the landing page. `/robots.txt` and `/sitemap.xml` are read by
+ * crawlers that have no session and never will, and a sitemap behind a login
+ * is a sitemap nothing can fetch. `/opengraph-image.png` is what an unfurler
+ * fetches when somebody pastes our address into a chat, so it is public for
+ * the same reason.
  *
- * `/styleguide` is the design reference. It carries noindex and it is ours,
- * not a page a visitor has any business reading.
- *
- * Matched on the exact path, and on the path with a trailing slash, because
- * `/styleguide/` is the same page to a browser and a different string here.
+ * Everything else a browser fetches without a session already leaves the
+ * middleware alone through the matcher at the foot of this file: the static
+ * chunks, the brand and icon directories, the fonts, the PWA assets,
+ * `/.well-known/`, `/sw.js` and `/manifest.webmanifest`.
  */
-const PRODUCT_PATHS = new Set(["/styleguide"]);
+const PUBLIC_PATHS = new Set(["/", "/robots.txt", "/sitemap.xml", "/opengraph-image.png"]);
+
+/**
+ * The API routes that answer WITHOUT a session, by exact path, and why each
+ * one has to.
+ *
+ * A GATE THAT ONLY REDIRECTS PAGE REQUESTS WHILE THE DATA ROUTES STILL ANSWER
+ * IS NOT A GATE, IT IS A CURTAIN. `/api/map/listings` served the whole
+ * catalogue inside a bounding box to anybody who asked, and the map on
+ * `/search` is the only thing that calls it.
+ *
+ * ENUMERATED AS THE OPEN SET, NOT THE CLOSED ONE, for the same reason as the
+ * page list: a new endpoint is then born closed. Every entry here carries its
+ * own guard, and none of them is a session:
+ *
+ *   webhooks           a signature over the body, from Paystack, Yellow Card
+ *                      and Supabase's own auth hook. The sender has no cookie
+ *                      and never will.
+ *   cron               a bearer secret through `lib/cron/run.ts`, including
+ *                      `/api/push/drain`, which pg_net calls every five
+ *                      minutes, and `/api/paystack/reconcile`.
+ *   browser telemetry  `/api/csp-report` is named in the Reporting-Endpoints
+ *                      header this middleware stamps on EVERY response,
+ *                      including the sign-in page's, and `/api/client-error`
+ *                      is posted by the error boundaries. Closing either one
+ *                      would mean the only reports we ever received came from
+ *                      people who were already signed in.
+ *   the service worker `/api/push/sw` is fetched as a script by the browser's
+ *                      service worker registration.
+ *   support            `/api/support` answers the chat mounted on the PUBLIC
+ *                      `/help` page. Somebody locked out is exactly who needs
+ *                      it.
+ *
+ * Closed by absence, and checked: `/api/assistant`, `/api/crypto/*`,
+ * `/api/documents/[id]`, `/api/map/listings`, `/api/push/key`,
+ * `/api/push/register`, `/api/push/revoke` and `/api/push/self-test`.
+ */
+const PUBLIC_API_PATHS = new Set([
+  "/api/auth/email-hook",
+  "/api/client-error",
+  "/api/cron/account-purge",
+  "/api/cron/complete-stays",
+  "/api/cron/email-outbox",
+  "/api/cron/hold-sweep",
+  "/api/cron/inventory-drift",
+  "/api/cron/pg-cron-watch",
+  "/api/cron/saved-search-alerts",
+  "/api/csp-report",
+  "/api/paystack/reconcile",
+  "/api/paystack/webhook",
+  "/api/push/drain",
+  "/api/push/sw",
+  "/api/support",
+  "/api/yellowcard/webhook",
+]);
+
+/**
+ * May a caller with no session have this path at all?
+ *
+ * Exported so `proxy.test.ts` can put every route on this platform through the
+ * same function the running middleware uses, rather than through a second copy
+ * of the rule that can agree with itself while disagreeing with the product.
+ */
+export function isPublicPath(path: string): boolean {
+  if (PUBLIC_PATHS.has(path)) return true;
+  /* An API path is decided by its WHOLE path and never by its first segment,
+     because `api` is not a public tree: exactly sixteen endpoints under it
+     answer a caller with no session and the rest do not. */
+  if (isApiPath(path)) return PUBLIC_API_PATHS.has(path);
+  const [, first = ""] = path.split("/");
+  return PUBLIC_SEGMENTS.has(first);
+}
+
+/** An `/api` path, which is answered rather than redirected. See `refuse`. */
+export function isApiPath(path: string): boolean {
+  return path === "/api" || path.startsWith("/api/");
+}
 
 /**
  * Stamp the policy on a response, whichever response it turned out to be.
@@ -197,14 +330,39 @@ export async function proxy(request: NextRequest) {
 
   if (!user) {
     const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
-    const [, first = ""] = path.split("/");
-    if (PRODUCT_SEGMENTS.has(first) || PRODUCT_PATHS.has(path)) {
+    if (!isPublicPath(path)) {
+      /*
+       * AN API ROUTE IS ANSWERED, NEVER REDIRECTED.
+       *
+       * A 307 to an HTML sign-in page is not something a `fetch` can do
+       * anything with: it follows the redirect, receives a page, and the
+       * caller then tries to read JSON out of it. The refusal has to be
+       * readable by the thing that made the request, so it is a 401 with the
+       * reason in it and `no-store` so nothing caches a refusal.
+       */
+      if (isApiPath(path)) {
+        return withSecurityPolicy(
+          NextResponse.json(
+            { error: "Sign in to use this.", code: "sign-in-required" },
+            { status: 401, headers: { "cache-control": "no-store" } },
+          ),
+          nonce,
+        );
+      }
+
       const target = request.nextUrl.clone();
       target.pathname = "/sign-in";
       target.search = "";
       /* Sign-up would be the friendlier guess, but somebody who typed a
          product address is far more likely to already have an account than
-         not, and the sign-in screen offers the way to create one. */
+         not, and the sign-in screen offers the way to create one.
+
+         THE DEEP LINK IS THE WHOLE POINT OF THIS PARAMETER. Every listing
+         address anybody shares now lands here first, so a `next` that is
+         dropped turns every shared link on the platform into a dead end. It
+         rides through `/sign-in`, `/sign-in/email` and `/auth/callback`
+         already; `safeReturnPath` is what keeps it a path and not somebody
+         else's host. */
       const back = safeReturnPath(request.nextUrl.pathname, request.nextUrl.search);
       if (back) target.searchParams.set("next", back);
       target.searchParams.set("notice", "sign-in-required");

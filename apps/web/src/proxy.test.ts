@@ -1,6 +1,8 @@
+import { readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { NextRequest } from "next/server";
-import { proxy } from "./proxy";
+import { isApiPath, isPublicPath, proxy } from "./proxy";
 import { NONCE_HEADER } from "@/lib/security/csp";
 
 /**
@@ -130,5 +132,250 @@ describe("the proxy's Content Security Policy", () => {
   it("carries the reporting endpoint the policy points at", async () => {
     const response = await proxy(new NextRequest("http://localhost/"));
     expect(response.headers.get("Reporting-Endpoints")).toBe('csp="/api/csp-report"');
+  });
+});
+
+/* ==========================================================================
+ * THE GATE ITSELF, WHICH NOTHING IN THIS FILE USED TO TOUCH.
+ * ==========================================================================
+ *
+ * Every test above runs through the pass-through exit, the one a request takes
+ * when Supabase is not configured, because that needs no credentials. That is
+ * correct for the nonce contract and it means THE GUARD HAD NO TEST AT ALL:
+ * the branch that decides whether a stranger sees the platform was never
+ * entered by this suite.
+ *
+ * It cannot be entered here either. Arming the guard needs `getUser()` to
+ * answer, which is a network call to a project this container's egress proxy
+ * refuses. So the split is deliberate and is stated rather than papered over:
+ *
+ *   here             the DECISION, `isPublicPath`, against every route that
+ *                    exists, read off the filesystem rather than restated.
+ *   gate.spec.mjs    the BEHAVIOUR, a real browser against a real server with
+ *                    the guard armed, watching requests bounce.
+ *
+ * Neither half is the other. A green run here proves the rule is right about
+ * the routes we have; it proves nothing about whether the middleware runs.
+ *
+ * WHAT THIS WOULD REPORT ON AN EMPTY LIST, asked before the assertions were
+ * written: "every route is classified" is trivially true of no routes, and
+ * "nothing public leaked" is trivially true of nothing. So the list's SIZE and
+ * a handful of routes known to exist are checked first, and the file refuses
+ * rather than passes if the walk came back thin.
+ */
+
+/** Every URL path the app serves, read off the route files. */
+function routePaths(): string[] {
+  const appDir = join(__dirname, "app");
+  const out: string[] = [];
+  const walk = (dir: string, prefix: string) => {
+    for (const entry of readdirSync(dir)) {
+      const full = join(dir, entry);
+      if (!statSync(full).isDirectory()) continue;
+      /* A route group in brackets is not a URL segment. */
+      const next = entry.startsWith("(") ? prefix : `${prefix}/${entry}`;
+      const inside = readdirSync(full);
+      if (inside.includes("page.tsx") || inside.includes("route.ts")) out.push(next || "/");
+      walk(full, next);
+    }
+  };
+  walk(appDir, "");
+  /* The root page and the two file conventions that answer at a URL. */
+  out.push("/", "/robots.txt", "/sitemap.xml", "/opengraph-image.png");
+  return [...new Set(out)].sort();
+}
+
+/**
+ * THE PUBLIC SET, WRITTEN OUT, AND IT IS THE POINT OF THE FILE.
+ *
+ * This is not a convenience list. It is the founder's decision of 23 September
+ * in the form a check can read, and it is exhaustive: a route that becomes
+ * public without appearing here fails, and a route that appears here and stops
+ * being public fails. "We forgot to classify it" cannot happen quietly in
+ * either direction.
+ *
+ * Dynamic segments are written as they appear on disk.
+ */
+const EXPECTED_PUBLIC = new Set([
+  "/",
+  "/robots.txt",
+  "/sitemap.xml",
+  "/opengraph-image.png",
+  /* Company and support. */
+  "/about",
+  "/careers",
+  "/contact",
+  "/docs",
+  "/docs/[slug]",
+  "/help",
+  /* Legal and policy. */
+  "/cancellations",
+  "/eula",
+  "/privacy",
+  "/safety",
+  "/standards",
+  "/terms",
+  /* Compliance. */
+  "/delete-account",
+  /* The doors. */
+  "/auth/callback",
+  "/forgot-password",
+  "/reset-password",
+  "/sign-in",
+  "/sign-in/email",
+  "/sign-up",
+  "/sign-up/email",
+  "/sign-up/verify",
+  "/start",
+  "/welcome",
+  /* No network, and which home. */
+  "/home-or-landing",
+  "/offline",
+  /* API, each one guarded by a signature, a bearer secret, or nothing because
+     it is telemetry a signed-out browser has to be able to post. */
+  "/api/auth/email-hook",
+  "/api/client-error",
+  "/api/cron/account-purge",
+  "/api/cron/complete-stays",
+  "/api/cron/email-outbox",
+  "/api/cron/hold-sweep",
+  "/api/cron/inventory-drift",
+  "/api/cron/pg-cron-watch",
+  "/api/cron/saved-search-alerts",
+  "/api/csp-report",
+  "/api/paystack/reconcile",
+  "/api/paystack/webhook",
+  "/api/push/drain",
+  "/api/push/sw",
+  "/api/support",
+  "/api/yellowcard/webhook",
+]);
+
+/**
+ * The development harness, which is open here and closed by its own guard.
+ *
+ * `previewHarnessIsOpen` answers not-found on Vercel unconditionally, so these
+ * do not exist in production. They are listed apart from `EXPECTED_PUBLIC` so
+ * that nobody reads the public list and concludes the preview decks ship.
+ */
+const HARNESS_PREFIXES = ["/preview", "/gallery"];
+
+describe("who may see the platform with no session", () => {
+  it("read a route list worth asserting about", () => {
+    /* THE BLIND-LIGHT GUARD. Every assertion below is vacuously true of an
+       empty list, and a walk that silently stopped finding routes would turn
+       this whole describe block green while proving nothing. */
+    const paths = routePaths();
+    expect(paths.length, "the route walk came back thin, so nothing below means anything").toBeGreaterThan(250);
+    for (const known of ["/", "/sign-in", "/home", "/search", "/listing/[id]", "/api/map/listings"]) {
+      expect(paths, `${known} should have been found on disk`).toContain(known);
+    }
+  });
+
+  it("classifies every route on the platform, with nothing left over", () => {
+    const harness = (p: string) => HARNESS_PREFIXES.some((h) => p === h || p.startsWith(`${h}/`));
+    const openedByAccident = routePaths().filter(
+      (p) => isPublicPath(p) && !EXPECTED_PUBLIC.has(p) && !harness(p),
+    );
+    const closedByAccident = [...EXPECTED_PUBLIC].filter((p) => !isPublicPath(p));
+    expect(openedByAccident, "these routes answer a stranger and nobody decided that").toEqual([]);
+    expect(closedByAccident, "these routes were decided public and the gate closes them").toEqual([]);
+  });
+
+  it("never closes a page somebody locked out of their account has to reach", () => {
+    /* Getting the list wrong in THIS direction is a compliance problem rather
+       than a bug, which is why it is asserted separately from the sweep above:
+       the sweep would pass if all of these were dropped from both sides. */
+    for (const path of [
+      "/privacy",
+      "/terms",
+      "/eula",
+      "/cancellations",
+      "/standards",
+      "/safety",
+      "/delete-account",
+      "/offline",
+      "/robots.txt",
+      "/sitemap.xml",
+    ]) {
+      expect(isPublicPath(path), `${path} must stay reachable without an account`).toBe(true);
+    }
+  });
+
+  it("closes the browsing surfaces, which is the founder's item 8", () => {
+    /* These were open by a deliberate decision until 23 September. The whole
+       of item 8 is that they are not any more, so each one is named rather
+       than left to the sweep. */
+    for (const path of [
+      "/home",
+      "/search",
+      "/listing/anything",
+      "/around",
+      "/around/yaba-unilag",
+      "/stays",
+      "/stay/anything",
+      "/restaurants",
+      "/restaurant/anything",
+      "/rent",
+      "/price",
+      "/post/anything",
+      "/u/somebody",
+      "/escrow",
+      "/verification",
+      "/crypto",
+      "/styleguide",
+    ]) {
+      expect(isPublicPath(path), `${path} is inside the platform and must need a session`).toBe(false);
+    }
+  });
+
+  it("shuts the data routes, because a gate that only redirects pages is a curtain", () => {
+    for (const path of [
+      "/api/map/listings",
+      "/api/crypto/markets",
+      "/api/crypto/pairs",
+      "/api/crypto/coins/btc",
+      "/api/assistant",
+      "/api/documents/anything",
+      "/api/push/key",
+      "/api/push/register",
+      "/api/push/revoke",
+      "/api/push/self-test",
+    ]) {
+      expect(isPublicPath(path), `${path} hands product data to a stranger`).toBe(false);
+      expect(isApiPath(path), `${path} must be refused as JSON, not redirected to HTML`).toBe(true);
+    }
+  });
+
+  it("leaves the webhooks and the scheduler alone, which have no cookie and never will", () => {
+    for (const path of [
+      "/api/paystack/webhook",
+      "/api/yellowcard/webhook",
+      "/api/auth/email-hook",
+      "/api/cron/email-outbox",
+      "/api/push/drain",
+      "/api/csp-report",
+      "/api/client-error",
+      "/api/support",
+      "/api/push/sw",
+    ]) {
+      expect(isPublicPath(path), `${path} is guarded by a signature or a secret and must answer`).toBe(true);
+    }
+  });
+
+  it("matches the whole first segment, so a longer name is not public by accident", () => {
+    expect(isPublicPath("/terms")).toBe(true);
+    expect(isPublicPath("/termsheet")).toBe(false);
+    expect(isPublicPath("/sign-in")).toBe(true);
+    expect(isPublicPath("/sign-in-later")).toBe(false);
+    expect(isPublicPath("/help")).toBe(true);
+    expect(isPublicPath("/helpdesk")).toBe(false);
+  });
+
+  it("does not treat an unknown address as public", () => {
+    /* A route nobody has written is inside until somebody says otherwise. The
+       not-found page is still served to anybody signed in; a stranger is sent
+       to the door. */
+    expect(isPublicPath("/definitely-not-a-route")).toBe(false);
   });
 });

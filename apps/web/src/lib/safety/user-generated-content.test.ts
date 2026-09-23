@@ -5,6 +5,7 @@ import { REPORT_TARGETS } from "@/lib/reports/schema";
 import { EULA_ZERO_TOLERANCE } from "@/lib/legal/eula-copy";
 import { BLOCK_CONFIRM_COPY } from "@/lib/safety/blocks-copy";
 import { withoutComments } from "@/lib/copy/source-scan";
+import { isPublicPath } from "../../proxy";
 import {
   TERMS_NOT_ACCEPTED_MESSAGE,
   termsAccepted,
@@ -124,9 +125,25 @@ describe("the agreement exists and is accepted rather than announced", () => {
   it("is published at a route a signed out person can reach", () => {
     const page = read("app/(site)/eula/page.tsx");
     expect(page).toContain("EULA_SECTIONS");
-    const proxy = read("proxy.ts");
-    // (site) routes are public unless they are named in the protected set.
-    expect(proxy).not.toContain('"eula"');
+    /*
+     * THIS ASSERTION WAS A MIRROR AND THE GATE'S INVERSION CAUGHT IT.
+     *
+     * It used to read `proxy.ts` as text and require the ABSENCE of the string
+     * `"eula"`, on the reasoning that a `(site)` route is public unless it is
+     * named in the protected set. On 23 September the founder's item 8 turned
+     * that file the other way up: the enumerated list is now the PUBLIC one,
+     * so the same string being present is exactly what keeps this page open,
+     * and the old assertion went red over a product that was correct.
+     *
+     * A grep for a name in a file was never the question. The question is
+     * whether a person with no session may have this page, so it is now asked
+     * of the function the running middleware itself calls, which answers the
+     * same whichever way round the list is written next.
+     */
+    expect(
+      isPublicPath("/eula"),
+      "an agreement somebody has to accept must be readable before they have an account",
+    ).toBe(true);
   });
 
   /*

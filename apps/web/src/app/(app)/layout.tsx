@@ -5,6 +5,36 @@ import { getSide } from "@/lib/side";
 import { resolveWorkspaces } from "@/lib/supply/workspaces-queries";
 import { AppShell } from "@/components/app/AppShell";
 
+import type { Metadata } from "next";
+
+/**
+ * NOTHING UNDER THIS LAYOUT IS FOR A CRAWLER, AND THE TAG NOW SAYS SO.
+ *
+ * The root layout declares `robots: { index: true, follow: true }`, which was
+ * right when browsing was open: `/search`, `/listing/[id]`, `/around`,
+ * `/stays` and `/stay/[id]` were the inventory we wanted found. The founder's
+ * item 8 of 23 September closed all of them, and roughly half the routes under
+ * this group had no robots directive of their own, so they went on inheriting
+ * an invitation to index a page the gate would refuse.
+ *
+ * No crawler can act on that, because `proxy.ts` answers a signed-out request
+ * with a 307 to `/sign-in` and the HTML is never served. It is fixed here
+ * anyway, for two reasons. A tag that contradicts the gate is a tag the next
+ * person reads and believes. And the day one of these routes is deliberately
+ * reopened, the safe default is the one that has to be switched ON rather than
+ * the one somebody has to remember to switch off.
+ *
+ * ONE PLACE RATHER THAN THIRTY. Next merges metadata down the tree, so a page
+ * that states its own `robots` still wins: the pages that already carry
+ * `index: false` are unaffected, and any page deliberately reopened states it
+ * here. `app/layout.tsx` is deliberately NOT edited: it is the public site's
+ * default and it belongs to the landing page and the company and legal pages,
+ * which are indexed and must stay so.
+ */
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
+
 /**
  * The consumer layout, for both sides.
  *

@@ -754,6 +754,25 @@ export async function loadMoreFeed(
 
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  /*
+   * A SIGNED-OUT CALLER GETS NOTHING, AND THAT IS ITEM 8 REACHING THE ACTIONS.
+   *
+   * `/around` and `/post/[id]` are behind the gate from 23 September, so no
+   * signed-out person has a feed to continue. This function is still
+   * reachable by one, because a server action is posted to a PAGE'S path and
+   * a caller may choose a path the gate leaves open: closing the screens
+   * without closing this would leave the whole public timeline pageable by
+   * anybody who read the action id out of the landing page's payload. A gate
+   * that only redirects page requests while the data still answers is a
+   * curtain.
+   *
+   * It is an ended page rather than a refusal, exactly as the "joined" branch
+   * below has always answered a stranger, because the caller is a load-more
+   * control and "there is no more" is the one answer it knows how to draw.
+   * RLS is unchanged and is still what decides which rows a signed-in reader
+   * may have.
+   */
+  if (session.state !== "signed-in") return ok(ENDED);
 
   const at = parsedCursor.data;
   const chosen = parsedMode.data;
