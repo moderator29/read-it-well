@@ -435,8 +435,9 @@
     height: 0.25rem;
     overflow: hidden;
     border-radius: var(--nf-radius-circle);
-    background: linear-gradient(180deg, color-mix(in oklab, var(--nf-lit) 45%, black), color-mix(in oklab, var(--nf-lit) 38%, black));
-    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-lit) 50%, black);
+    /* Render: the empty track is a clear mid blue (#003790), not a shadow. */
+    background: color-mix(in oklab, var(--nf-lit) 55%, black);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-lit) 70%, black);
   }
   .nf-ix-bar > span {
     position: absolute;
@@ -457,7 +458,7 @@
     display: flex;
     align-items: center;
     gap: var(--nf-space-xs);
-    min-height: 2.5rem;
+    min-height: 2rem;
     padding: var(--nf-space-3xs) var(--nf-space-xs) var(--nf-space-3xs) var(--nf-space-3xs);
     border-radius: var(--nf-radius-xs);
     border: var(--nf-border-width) solid var(--nf-panel-hair);
@@ -471,15 +472,15 @@
    * render's own, cropped (SOURCES.md).
    */
   .nf-ix-room__plate.nf-plate {
-    width: 2rem;
-    height: 2rem;
+    width: 1.75rem;
+    height: 1.75rem;
     border-radius: var(--nf-radius-circle);
     overflow: hidden;
   }
   .nf-ix-room__plate .nf-ix-crop {
-    width: 115%;
-    height: 115%;
-    max-width: none;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
   .nf-ix-room__text {
     min-width: 0;
@@ -586,8 +587,8 @@
     display: block;
     width: 100%;
     margin-top: var(--nf-space-2xs);
-    min-height: 2.75rem;
-    padding: var(--nf-space-2xs) var(--nf-space-xs);
+    min-height: 2.25rem;
+    padding: var(--nf-space-3xs) var(--nf-space-xs);
     resize: vertical;
     border-radius: var(--nf-radius-control);
     border: var(--nf-border-width) solid var(--nf-panel-hair);
@@ -685,6 +686,16 @@
     padding-block: 0;
     font-size: 0.6875rem;
     justify-content: center;
+  }
+  /* Submit while it waits: the render draws it as blue glass with a brand
+     edge and a muted blue label (#001e62, #003ab1, #447cd3), not a greyed
+     control, so the disabled state keeps the shared panel material. */
+  .nf-ix .nf-ix-submit:disabled {
+    opacity: 1;
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill-card);
+    color: color-mix(in oklab, var(--nf-brand-secondary) 70%, transparent);
+    box-shadow: var(--nf-panel-rim);
   }
   .nf-ix .nf-ix-cta__end {
     position: absolute;

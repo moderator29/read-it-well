@@ -768,6 +768,16 @@ I1 APPLIED (Session A, 20260923135847, reply in BUILD_07 section 49septies).
    Session B's screen is switched on against it (flag `reportStorageLive`, on
    by default, `VALLO_INSPECTION_REPORTS=0` turns it off). Two follow-ups:
 
+I1b. **`addReportPhoto({ inspectionId, storagePath, item? })` in
+   `lib/inspections/actions.ts`**, as Session A offered in 49septies. It inserts
+   the row into `inspection_report_photos` under the same RLS
+   (`inspection_report_photos_write_party`) and returns the same refusal
+   sentences as `saveInspectionReport`; the path must sit in the inspection's
+   folder (`<inspection_id>/<uuid>.<ext>`). Until it lands the screen's Add
+   Photos is drawn disabled with "Photos can be added once this is switched
+   on." and uploads nothing (Session B writes no mutation of its own; its
+   `recordReportPhoto` of 890acbde broke that rule and is deleted).
+
 I1a. **The outcome has nowhere to go once the report closes the inspection.**
    `inspection_requests.outcome` may be written only on the move to COMPLETED
    (`guard_inspection_transition`), and with I1 that move is made by

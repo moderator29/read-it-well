@@ -1,7 +1,7 @@
 "use client";
 
 import "@/app/css/inspection.css";
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,18 +15,16 @@ import { MediaFrame } from "@/components/app/MediaFrame";
 import { TYPE } from "@/components/app/Screen";
 import { formatPhone } from "@/lib/phone";
 import { useBack } from "@/lib/nav/use-back";
-import { createClient } from "@/lib/supabase/client";
 import type { ListingKind } from "@/lib/listings/types";
 import {
   acceptProposedTime,
   answerInspection,
   closeInspection,
-  createInspectionPhotoUpload,
   saveInspectionReport,
 } from "@/lib/inspections/actions";
-import { recordReportPhoto } from "@/lib/inspections/report-actions";
 import {
   EMPTY_REPORT,
+  REPORT_PHOTOS_LIVE,
   ROOM_COPY,
   ROOM_ITEMS,
   canEditReport,
@@ -56,9 +54,9 @@ import { BadgeSlot } from "./BadgeSlot";
  * Inspection Report (glass, disabled until it can be sent). Containers,
  * plates and buttons are the shared layer (Panel, IconPlate, Button).
  *
- * THE REPORT (eight rooms, notes, photos) writes through Session A's
- * `saveInspectionReport` and `createInspectionPhotoUpload` (I1, applied 23
- * September) and this surface's `recordReportPhoto`, behind ONE flag
+ * THE REPORT (eight rooms and notes) writes through Session A's
+ * `saveInspectionReport` (I1, applied 23 September) and nothing of this
+ * surface's own; photos wait on Session A's `addReportPhoto` (I1b). Behind ONE flag
  * (`reportLive`, `lib/inspections/report-flag.ts`). A tick is drawn only from
  * what the action read back from the database, never optimistically. With
  * the flag off the rows draw, the circles are not pressable, and a plain line
@@ -107,7 +105,7 @@ const RUNG_LABEL: Record<LadderKey, string> = {
   asked: "Requested",
   agreed: "Time agreed",
   visited: "Inspected",
-  recorded: "Outcome recorded",
+  recorded: "Recorded",
 };
 
 /* The full meaning, which is the accessible name of each choice. */
@@ -153,13 +151,6 @@ function Badge({ tone, children }: { tone: BadgeTone; children: React.ReactNode 
   return <span className={`nf-ix-badge nf-ix-badge--${tone}`}>{children}</span>;
 }
 
-const EXTENSIONS: Record<string, "jpg" | "png" | "webp" | "heic"> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/heic": "heic",
-};
-
 export function InspectionSheet({
   inspection,
   side,
@@ -187,8 +178,6 @@ export function InspectionSheet({
   const [outcome, setOutcome] = useState<InspectionOutcome | null>(null);
   const [saved, setSaved] = useState<InspectionReport>(report ?? EMPTY_REPORT);
   const [notes, setNotes] = useState(report?.notes ?? "");
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const waiting = waitingOn(inspection.state);
   const yourMove = waiting === side;
@@ -234,39 +223,6 @@ export function InspectionSheet({
       setSaved((now) => fromSaved(result.data, now.photoCount));
       router.refresh();
     });
-  }
-
-  async function addPhoto(file: File) {
-    const extension = EXTENSIONS[file.type];
-    if (!extension) {
-      setError("Add a photo as a JPEG, PNG, WebP or HEIC image.");
-      return;
-    }
-    setError(null);
-    setUploading(true);
-    try {
-      const target = await createInspectionPhotoUpload({ inspectionId: inspection.id, extension });
-      if (!target.ok) {
-        setError(target.error);
-        return;
-      }
-      const upload = await createClient()
-        .storage.from("inspection-photos")
-        .uploadToSignedUrl(target.data.path, target.data.token, file, { contentType: file.type });
-      if (upload.error) {
-        setError("That photo did not upload. Try again in a moment.");
-        return;
-      }
-      const recorded = await recordReportPhoto({ inspectionId: inspection.id, storagePath: target.data.path });
-      if (!recorded.ok) {
-        setError(recorded.error);
-        return;
-      }
-      setSaved((now) => ({ ...now, photoCount: now.photoCount + 1 }));
-      router.refresh();
-    } finally {
-      setUploading(false);
-    }
   }
 
   function submit() {
@@ -460,7 +416,7 @@ export function InspectionSheet({
             <textarea
               id={`notes-${inspection.id}`}
               className="nf-ix-notes__field"
-              rows={2}
+              rows={1}
               maxLength={2000}
               placeholder="Add any additional notes or observations..."
               value={notes}
@@ -563,34 +519,32 @@ export function InspectionSheet({
             </Button>
           )}
 
-          {/* Add Photos: into the report once storage is live; until then the
-              conversation, the one real photo path an inspection has. */}
-          {reportLive && editable ? (
+          {/*
+            Add Photos, drawn as the render draws it. Photos go into the
+            report only through Session A's `addReportPhoto` (request I1b),
+            which has not landed; this surface writes nothing of its own. So
+            with the report on, the button is drawn disabled with the honest
+            line under it; with it off, it opens the conversation, the one
+            real photo path an inspection has.
+          */}
+          {reportLive ? (
             <>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/heic"
-                className="sr-only"
-                tabIndex={-1}
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  event.target.value = "";
-                  if (file) void addPhoto(file);
-                }}
-              />
               <Button
                 variant="primary"
                 full
                 className="nf-ix-cta"
-                disabled={uploading || pending}
-                onClick={() => fileRef.current?.click()}
+                disabled={!REPORT_PHOTOS_LIVE}
                 data-testid="inspection-add-photos"
               >
                 <UiIcon name="picture" size={16} />
-                {uploading ? "Adding photo" : saved.photoCount > 0 ? `Add Photos (${saved.photoCount})` : "Add Photos"}
+                Add Photos
                 <UiIcon name="chevron-right" size={16} className="nf-ix-cta__end" />
               </Button>
+              {!REPORT_PHOTOS_LIVE && (
+                <p className="nf-ix-hint" data-testid="inspection-photos-off">
+                  Photos can be added once this is switched on.
+                </p>
+              )}
             </>
           ) : inspection.conversationId ? (
             <Link

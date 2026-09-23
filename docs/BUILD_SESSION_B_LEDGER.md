@@ -3032,6 +3032,81 @@ notes and report photos (request I1).
   link). Their pure logic (status, ladder, grouping, badge narrowing) is covered by the 35
   unit tests.
 
+### Round five, 23 September: the eight rooms, I1 live, the shared layer
+
+**The founder's instruction.** "Build the inspection exactly like this, those glows etc
+all exactly, fully functional like that, make it work end to end." Target
+`docs/design/references/founder/inspection-target.jpg` (the same render as F6A8A482).
+
+**What is built.**
+- The **eight-room checklist** exactly as drawn: Exterior, Interior, Kitchen, Bathrooms,
+  Utilities, Appliances, Safety, Overall Condition, each with the render's subtitle
+  (`lib/inspections/report.ts`, `ROOM_COPY`), the render's own glyph cropped
+  (`room-*.webp`, `session-b-crops.mjs`) on the shared `IconPlate` drawn round (the render
+  draws round discs; the one local change is the corner), and a round check circle with a
+  44px hit area. The count ("n / 8 Completed") and bar read what was saved.
+- The **Notes field** is a real textarea (16px type so iOS does not zoom, R-A); it saves on
+  blur. The two notes on the request row still show above it.
+- **Add Photos** is drawn as the render draws it but, with the report on, disabled with
+  "Photos can be added once this is switched on.": recording a photo needs Session A's
+  `addReportPhoto` (request I1b). With the report off it opens the conversation.
+- **Submit Inspection Report** stays disabled until all eight rooms are ticked, the same
+  rule I1's trigger holds; submitting closes the inspection in the database, which fires the
+  existing notification to both sides.
+- The **lifecycle** (Requested, Time agreed, Inspected, Recorded) stays, as one line of dots
+  between the facts and the checklist.
+- **"Assigned Agent"**: the data model has no assigned agent (`inspection_requests` holds a
+  requester and a lister, nothing else), so the cell keeps the honest "Listed by".
+- **The shared layer** (Phase 1 released, 42ea43d9 / 9da8f86f): every container is `Panel`
+  (the listing card and facts row as `variant="card"`), the room plates `IconPlate`, Add
+  Photos the shared lit primary, Submit the shared glass secondary. `.nf-ix-glass` and its
+  pasted identity values are deleted; this surface's stylesheet now lays out only what sits
+  inside the primitives. One deliberate local rule, from the render: Submit while disabled
+  keeps the blue panel material (#001e62 fill, #003ab1 edge in the render) instead of the
+  shared greyed state.
+
+**I1 landed while this was built, and the screen is switched on.** Session A applied
+migration `20260923135847` (commits 49be9282, a5afdee7). Read-only SQL on production, 23
+September: the three tables with the columns I1 named; RLS on all three (select for a party
+or an admin, insert and update for a party, no delete policy or grant anywhere); the
+triggers `inspection_reports_set_updated_at` and `inspection_reports_submission`; the bucket
+`inspection-photos` private, 10MB, jpeg/png/webp/heic/pdf, with party read, party insert and
+admin read policies; `anon` cannot read the reports; 0 reports exist. The screen writes
+only through Session A's `saveInspectionReport` (one call for ticks, notes and submit). The flag (`lib/inspections/report-flag.ts`) is ON by default;
+`VALLO_INSPECTION_REPORTS=0` turns the report off in one place, and then the rows draw, the
+circles cannot be pressed and a plain line says so. A tick is drawn only from what the
+action read back from the database.
+
+**Differences from what I1 asked, found against the landed code, and filed:**
+- **I1a**: `inspection_reports` has no outcome column, and the parent's outcome can be
+  written only on its move to COMPLETED, which the report's trigger makes. So "Inspected /
+  Deal done / No deal" cannot be recorded with a report. With the report on, the outcome
+  choice is not drawn (drawn and dropped would be worse); with it off, it records through
+  the close action as before.
+- **I5**: `saveInspectionReport` writes `notes: notes ?? null` on every call, so a tick sent
+  without the notes would clear them. The screen sends the current notes with every call;
+  pinned in `report-wiring.test.ts`.
+
+**Broke / corrected.** 890acbde added `recordReportPhoto` in
+`lib/inspections/report-actions.ts`, an insert into `inspection_report_photos` written by
+this surface. That broke the standing rule: Session B never writes a mutation and never
+calls one it did not receive from Session A. Corrected in the next commit: the action, its
+schema and its tests are deleted, Add Photos uploads and writes nothing, and request I1b asks
+Session A for `addReportPhoto({ inspectionId, storagePath, item? })` with the same RLS and
+refusal sentences. When it lands, `REPORT_PHOTOS_LIVE` (`lib/inspections/report.ts`) flips and
+the button calls it.
+
+**Exercised, as far as this box allows (no HTTP path to Supabase, so no signed-in run):**
+`lib/inspections/report-wiring.test.ts` runs Session A's real `saveInspectionReport` over a
+recording client: a tick writes the report row and the item with its stamp, an untick clears
+the stamp, a submit stamps `submitted_at` in the same call, and the database's eight-tick
+refusal and the RLS refusal come back as the screen's sentences. `report.test.ts` pins the
+eight rooms, their words, the Submit rule and the read-back.
+
+**BUILT AND UNPROVEN**: a signed-in party ticking, typing and submitting against
+production, and the other side's screen refreshing. Every listing is an example, which the
+database refuses inspections on, so no real inspection exists to report on.
+
 ## 10. The welcome email
 
 Owner: Session B worker "email", design and words only. The send is Session

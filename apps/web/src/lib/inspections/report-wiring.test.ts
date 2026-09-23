@@ -5,8 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  *
  * This box cannot reach Supabase over HTTP, so the live run is impossible
  * here. What can be proved is that the screen's calls go through Session A's
- * real `saveInspectionReport` (I1) and this surface's `recordReportPhoto` with
- * the shapes the tables take, that the database's refusals come back as the
+ * real `saveInspectionReport` (I1) with the shapes the tables take, that the database's refusals come back as the
  * sentences the screen shows, and that `fromSaved` turns what the action read
  * back into the ticks the screen draws. The database end (RLS, the eight-tick
  * trigger, the bucket) was confirmed read-only on production.
@@ -19,12 +18,10 @@ vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
 vi.mock("server-only", () => ({}));
 
 const { saveInspectionReport } = await import("./actions");
-const { recordReportPhoto } = await import("./report-actions");
 const { fromSaved, ROOM_ITEMS } = await import("./report");
 
 const USER = "11111111-1111-4111-8111-111111111111";
 const ID = "44444444-4444-4444-8444-444444444444";
-const PHOTO = "55555555-5555-4555-8555-555555555555";
 
 type Answer = { data: unknown; error: unknown };
 type Write = { table: string; op: string; payload: unknown };
@@ -139,31 +136,5 @@ describe("submitting", () => {
     const result = await saveInspectionReport({ inspectionId: ID, items: [], notes: null, submit: false });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toMatch(/cannot be changed now/);
-  });
-});
-
-describe("recording a photo", () => {
-  it("inserts the row for a path inside this inspection's folder", async () => {
-    const { writes } = mount();
-    const result = await recordReportPhoto({ inspectionId: ID, storagePath: `${ID}/${PHOTO}.jpg` });
-    expect(result.ok).toBe(true);
-    expect(writes).toEqual([
-      { table: "inspection_report_photos", op: "insert", payload: { inspection_id: ID, item: null, storage_path: `${ID}/${PHOTO}.jpg` } },
-    ]);
-  });
-
-  it("writes nothing when the flag is turned off", async () => {
-    const { writes } = mount();
-    process.env.VALLO_INSPECTION_REPORTS = "0";
-    const result = await recordReportPhoto({ inspectionId: ID, storagePath: `${ID}/${PHOTO}.jpg` });
-    expect(result.ok).toBe(false);
-    expect(writes).toEqual([]);
-  });
-
-  it("refuses a path outside the folder before touching the database", async () => {
-    const { writes } = mount();
-    const result = await recordReportPhoto({ inspectionId: ID, storagePath: `someone-else/${PHOTO}.jpg` });
-    expect(result.ok).toBe(false);
-    expect(writes).toEqual([]);
   });
 });
