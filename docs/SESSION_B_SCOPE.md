@@ -241,7 +241,15 @@ Each group appends "RELEASED <commit>" here when it is done.
     `apps/web/src/components/ui/StatusPill.tsx` and a new
     `apps/web/src/components/ui/StatusBadge.tsx` with its test, and the call
     sites of local status badges in files of released groups. Proofs under
-    `docs/design/proofs/session-b/sweep-leftovers/**`. NOT touched:
+    `docs/design/proofs/session-b/sweep-leftovers/**`. Added by the lead the
+    same day: R-SH1 (delete `components/app/AiAssistantBanner.tsx` and its
+    `.nf-home__ai*` rules in `home.css`, after the comment paths in
+    `ambient.css` and `chrome.css` stop naming it; comments only there),
+    R-SH2 (`components/app/stays/StayCard.tsx` onto `panelClass`), R-SH3 (the
+    home group's filled badges onto the shared badge, at their call sites and
+    their rules), SW-P1 (`controls.css`, ONLY `.nf-door*` and `.nf-calmpanel`,
+    the `/profile/setup` chooser, onto the panel, plate and selected state).
+    NOT touched:
     `components/trust/TierBadge.tsx`, `trust-badge.css` (Session A's verified
     badge), the files of groups not yet released (home, feed).
 
