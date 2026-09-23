@@ -163,6 +163,9 @@ Each group appends "RELEASED <commit>" here when it is done.
     `CreateBloom` and needs nothing), `design-system/icons/UiIcon.tsx`
     (FEED-1), the app header, the dock and the canvas token (chrome,
     FEED-2).
+    **Feed group RELEASED 444bb3c3** (passes 94992d5d, 08ceb402, 37fee36f,
+    444bb3c3; ledger 13 "feed and bloom", five dated audit passes, requests
+    FEED-1 to FEED-5).
   - profile, edit profile, messages and the three thread faces:
     `components/social/profile/**`, `threads.css`, `components/messages/**`.
     Worker "sweep-social" adds (new): the fixture harness
