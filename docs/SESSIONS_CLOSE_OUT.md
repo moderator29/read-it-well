@@ -361,7 +361,7 @@ unblocked by C1.1 (network access) plus two labelled test accounts (C3.5).**
 | Wallet and Send | Live refresh on a wallet notification; a wallet to wallet send end to end (the production ledger holds 0 transfers); the bank name check against Paystack (only a stand-in resolver so far); the badge tier read | Two test accounts and a funded wallet |
 | Inspections | Every write (confirm, offer a time, decline, take a time, withdraw, submit), the notifications, the other side's screen refreshing | A real, non-example listing (the database refuses inspections on examples, and all 64 are examples) and two signed-in people |
 | Admin console | 0 of 17 shell reads, 0 of 5 money desks, the escrow ruling with evidence, the booking cancel, and the review desks' decisions have run as a signed-in admin | One signed-in admin load of each desk; a real dispute and a real booking |
-| Welcome email | Never seen in Gmail, Outlook or Apple Mail; whether production holds the Resend key is unverified from here | One real sign-up on production, then open the email in three clients |
+| Welcome email | **Sent once for real (re-queried 23 September 16:20 UTC):** `email_outbox` row `76ab6c4e`, `account.welcome` for the QA member `957b3bd2`, created 15:57:28 in the sign-up's transaction, claimed 16:00:02, settled SENT 16:00:05, 1 attempt, no error; a second row for the QA admin `03f3dd52` was PENDING at 16:20, the queue seen holding. SENT means the provider accepted it, **not that an inbox rendered it**: 0 of 6 role versions seen in Gmail, Outlook or Apple Mail (the founder is checking the one sent). The payload carries only `at`, so which role version went is not recorded in the row | The founder opening the sent email, then the other clients |
 | Badge | Drawn through Session A's `TierBadge` on every Session B surface since `e3c90797`, but never seen with a real tier because the read cannot run here (the read-only SQL role cannot evaluate `person_badge`; `authenticated` can) | The same signed-in loads as above; the founder's account should show platinum in the console rail |
 
 ### B3. What is not built, with an honest estimate
@@ -397,7 +397,7 @@ is only possible for flows that need no session.
 | Admin money desks | 5 / 5 | 5 / 5 desks | 0 / 5; writes 0 / 2 | all controls drawn in harness |
 | Admin review desks | 4 / 5 (wired real is part met: checked in code and read-only SQL, never run) | 5 / 5 desks in code | 0 / 5; controls through a real action 0 / 14 | navigation only, in harness |
 | Admin handbook | 1 / 1 (audit PASS) | n/a | n/a | n/a |
-| Welcome email | 5 / 5 | send wired by Session A | 0 / 6 versions seen in a real inbox | n/a |
+| Welcome email | 5 / 5 | send wired by Session A | provider accepted 1 real send (row `76ab6c4e`); 0 / 6 versions seen in a real inbox | n/a |
 | Deleted posts | 5 / 5 | 17 / 18 listing surfaces filtered at the read (the 18th is DP-1) | chain 6 / 9 (policy, table, triggers by SQL; query by test; screen by harness); live counts 74 / 1 | harness: 0 tombstones in feed and profile, 1 in a replied thread |
 
 **Surfaces passed by the independent audit, run 4:** 6 of 8 (profile, get
