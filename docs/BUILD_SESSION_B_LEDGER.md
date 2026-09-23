@@ -3933,6 +3933,162 @@ validation, policy, table, trigger, notification, query, screen). Proven: 6 of
 harness in a production build; validation by code reading. The control and
 the action were not exercised live; the notification link is DP-1.
 
+## 13. Platform sweep: stays (stays, stay detail, trips, restaurants, checkout, held payments; worker "sweep-stays")
+
+Group files (scope ccf594ba): `app/css/stays.css`, `app/css/escrow.css` and the route components:
+`app/(app)/{stays,stays/search,stay/[id],trips,restaurants,restaurant/[id],checkout,checkout/[bookingId],escrow,escrow/[id]}/**`,
+`components/app/stays/**`, `components/app/escrow/**`. Harness (new, fixture-backed, R-G):
+`app/(dev)/preview/session-b/sweep-stays/**`, which re-exports the committed F3 pages for the
+routes F3 already draws and adds the stays home, both payment sheets and the three held-payment
+faces. The host set-up panels that `stays.css` dresses are shot from the committed `imgc` harness.
+
+#### Inventory, written before any change (23 September)
+
+Owner column: **mine** = a file of this group, swept here. **shared** = Phase 1's layer
+(`glass.css`, `buttons.css`, `controls.css`, `Button.tsx`, the new primitives), which lands
+everywhere by itself. **other** = another group's file; drawn on my routes, not mine to edit,
+listed so the route's status is honest.
+
+**Route 1, `/stays` (stays home, governing FD3DFE84, GOVERNING-09)**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| greeting, name, logo mark, city row | `components/app/home/CityRow`, route markup (type only) | other (home) / mine (no container) |
+| hero plate: title, lede, search field, filter square | `components/app/home/HomeHero`, `home.css` | other (home) |
+| four doors (hotels, shortlets, restaurants, nearby) | `components/app/home/CategoryRow`, `home.css` | other (home) |
+| featured band head, see all link | `components/app/home/FeaturedBand` | other (home) |
+| stay card: glass card, photo, verified mark, example mark, save heart, title, place, rating, price, per night, total, amenity chips, open/closed badge | `components/app/stays/StayCard.tsx` on `.nf-glass--card` (shared) + `.nf-pcard*`, `.nf-stay-card__*`, `.nf-reg-open*` (`catalogue.css`) | mine (markup) / shared (glass) / other (catalogue.css) |
+| empty band (EmptyState + primary ButtonLink) | `components/app/Screen`, `Button` | shared |
+| loading skeleton | `stays/loading.tsx` on `LoadingShell` + `Skeleton` | mine (no container of its own) |
+
+**Route 2, `/stays/search`**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| page header, count line | `PageHeader` | other (chrome) |
+| search bar: field, go, filter square | `StaySearchBar.tsx` on `.nf-shelf-field*`, `.nf-shelf-square` (`catalogue.css`) | mine (markup) / other (css) |
+| category tiles (selected, pressed, focus) | `StayCategoryTiles.tsx` on `.nf-glass--tile` (shared) + `.nf-stays-tile*` (`catalogue.css`; `stays.css` defines a DIFFERENT `.nf-stays-tile` for the host panels, same class name, two recipes) | mine (markup) / shared / other |
+| filter sheet: backdrop, grip, head, clear, groups, tiles (3 and 5 wide), price range track and fill, rows, selects, switches, foot and apply | `StayFilterSheet.tsx` on `.nf-filters*`, `.nf-range*` (`catalogue.css`), `nf-icon-btn`, `Switch` | mine (markup) / other (css) / shared |
+| result cards | `StayCard` (as route 1) | as route 1 |
+| empty (no results) | `EmptyState` + `ButtonLink` | shared |
+| loading | `stays/search/loading.tsx` | mine (no container) |
+
+**Route 3, `/stay/[id]` (governing 84054CE9, BB0C2C85)**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| gallery, counter, back/save/share | `components/app/listing/ListingGallery` | other (listing) |
+| lead card: name, place, price row, rating, amenity capsules | `.nf-glass--card` + `.nf-detail-lead` (`catalogue.css`), `DetailPriceRow`, `DetailCapsules` | shared / other |
+| about card, host row, message | `DetailAboutCard` | other (listing) |
+| dates and party: check in, check out, guests pickers, check availability action, total note | `DetailAvailabilityCard` | other (listing) |
+| amenity tiles | `.nf-glass--tile` + `.nf-amenity-tile` | shared / other |
+| property type card with glass object | `.nf-stay-type*` (`catalogue.css`) | other |
+| room tiles (photo, glass mark, name, count) | `.nf-room-tile*` (`catalogue.css`) | other |
+| room types list (rows, role mark, from price) | `RoomTypes.tsx` on `Row`/`RowList`, `.nf-role-mark` (`controls.css`) | mine (markup) / shared |
+| rate sheet: rate cards, meal plan, policy line, StatusPill, total, Reserve button | `RoomTypes.tsx`: `nf-card rounded-[var(--nf-radius-lg)] p-card-sm` (**local radius override on the shared card**), `Sheet`, `StatusPill`, `ButtonLink primary` | **mine: sweep** / shared |
+| policy panel, house rules | `.nf-detail-panel` (`catalogue.css`) | other |
+| loading: two `nf-card rounded-[var(--nf-radius-xl)]` blocks and a hairline list | `stay/[id]/loading.tsx` (**local radius override**) | **mine: sweep** |
+| not a stay: falls through to the listing page | `listing/[id]/page` | other |
+
+**Route 4, `/trips`**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| header, page scene art | `PageHeader`, `PageScene` | other (chrome) |
+| spine rule, today marker, hollow marker | `TripSpine.tsx` inline style (a dot and ring, not a container) | mine (keeps: a shape, not a surface) |
+| trip row: link hover wash `hover:bg-[var(--nf-glass-fill)]` on `--nf-radius-lg` | `TripSpine.tsx` (**local hover surface**) | **mine: sweep** |
+| trip thumbnail plate: 64px `rounded-[--nf-radius-md] bg-[--nf-surface-secondary]` holding a photo or a glass object | `TripSpine.tsx` (**its own icon plate**) | **mine: sweep onto IconPlate** |
+| status pills (today, status) | `StatusPill` | shared |
+| pay now (`nf-btn nf-btn--primary nf-btn--sm` on a Link), review link, cancel control and its sheet | `TripSpine.tsx`, `components/app/bookings/CancelBookingSheet` | mine (markup) / shared / other (bookings) |
+| past disclosure | `Disclosure` | shared |
+| empty, loading (`nf-card` blocks) | `EmptyState`, `trips/loading.tsx` | shared / mine (plain shared card, fine) |
+
+**Route 5, `/restaurants`** : header, `StayCard` list with open/closed badge, empty state, loading. Nothing drawn locally; as route 1.
+
+**Route 6, `/restaurant/[id]`**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| gallery | `ListingGallery` | other (listing) |
+| lead card: name, cuisine, open/closed badge, price band | `.nf-glass--card` + `.nf-detail-lead`, `.nf-reg-open*` | shared / other |
+| reserve a table form | `listing/[id]/ReserveTable` | other (listing) |
+| plates, hours surface, message ButtonLink secondary | `Section`, `Surface`, `ButtonLink` | shared |
+| loading: `nf-card rounded-[var(--nf-radius-xl)]` blocks | `restaurant/[id]/loading.tsx` (**local radius override**) | **mine: sweep** |
+
+**Route 7, `/checkout` (room pick)** : room card `nf-card` with hairline `dl`, `ResultScreen` expired state (shared), caption with verified glyph. Container is the shared card; no local recipe.
+
+**Route 8, `/checkout/[bookingId]` (and the payment sheets)**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| header, page scene, 3 segment progress | `PageHeader`, `PageScene`, `SegmentedProgress` | other / shared |
+| summary card, hairline rows, total | `CheckoutSummary.tsx` on `nf-card` | mine (shared card) |
+| hold countdown: sunken panel, 44px glass object **with no plate** | `HoldCountdown.tsx` on `.nf-panel-sunken` (`chips.css`) | **mine: sweep glyph onto IconPlate** / other (chips.css) |
+| pay method cards (card, saved card, wallet): `nf-card` li, 48px glass object **with no plate** | `PayPanel.tsx` `MethodCard` | **mine: sweep onto IconPlate** |
+| saved card picker | `components/app/payments/SavedCardPicker` | other (payments) |
+| buttons: pay, pay with saved card, wallet, top up | `Button`, `ButtonLink` | shared |
+| action bar with total | `ActionBar` | shared |
+| footnote with 20px glass object, closing note `nf-card` with 20px glass object | `checkout/[bookingId]/page.tsx` | mine (inline glyphs, no plate needed at 20px: they are type-sized marks) |
+| payment sheets: pending (blocking), still checking, received, failed, card declined, wallet short | `PaymentReturn.tsx`, `PayPanel.tsx` into `components/app/ResultSheet` + `wallet.css` `.nf-result-*` | mine (copy and call) / other (ResultSheet, wallet.css) |
+| hold expired / not yours / paid: `ResultScreen` | `ResultSheet` | other |
+| loading: `nf-card` blocks | `checkout/[bookingId]/loading.tsx` | mine (plain shared card, fine) |
+
+**Route 9, `/escrow` (held payments list)** and **Route 10, `/escrow/[id]`**
+
+| Visible item | Drawn by | Owner |
+|---|---|---|
+| agreement card: `.nf-esc-sheet` glass fill, rim, 1px brand ring, drop glow, `--nf-radius-lg` | `escrow.css` (**its own card recipe**) | **mine: sweep onto the shared panel** |
+| amount, purpose overline, state word + dot, meaning line | `escrow.css` type roles | mine (type, keeps) |
+| payout date box `.nf-esc-when` (thin glass, soft ring, control radius) | `escrow.css` (**its own inset plate**) | **mine: sweep** |
+| receipt box `.nf-esc-receipt` | `escrow.css` (**its own inset plate**) | **mine: sweep** |
+| evidence row `.nf-esc-filed` with the side stripe | `escrow.css` (**its own inset plate**; the stripe stays, it carries whose) | **mine: sweep plate, keep stripe** |
+| actions `.nf-esc-action` ("Open it", "Pay it out now", "Ask to be paid", "Raise a problem", "File it", ...) | `escrow.css`: radius and height only, **no fill, no rim, no bloom: an unlit text control** | **mine: sweep onto Button variants** |
+| evidence filer: fields `.nf-esc-field` (raised surface, divider border), file input, fact textarea, date, amount | `escrow.css` (**its own field recipe**) | **mine: sweep onto the shared control well** |
+| filer hairline blocks | `escrow.css` | mine (hairlines keep) |
+| proposal in a thread `.nf-esc-thread` (raised surface, divider border), who-pays choices | `escrow.css` classes, drawn by `components/app/messages/ProposeHeldPayment.tsx` | **mine (css)** / other (the component is the messages group's) |
+| light-theme paper twin (`:root[data-theme="light"]` rules) | `escrow.css` | **mine: delete (dark only)** |
+| empty, not found, read failed | `EmptyState` | shared |
+
+**Host set-up panels (`stays.css`, GOVERNING-10 and 11; components are the host wizard group's `components/host/stays/**`)**
+
+| Visible item | Class | Recipe today |
+|---|---|---|
+| step head segments (done, at) | `.nf-stays-head__seg` | pill track, brand gradient, `0 0 12px --nf-glow-3` (a progress bar: keeps shape) |
+| labelled plate | `.nf-stays-plate` | **own card**: `--nf-radius-xl`, brand edge, well fill, rim + `0 0 18px glow-1` |
+| input, select | `.nf-stays-input`, `.nf-stays-select` | **own field well**: deep well, soft edge, rim |
+| row list | `.nf-stays-list` | **own inset plate** |
+| stepper | `.nf-stays-stepper*` | **own control**: control radius, brand edge, deep well |
+| tile (place type, policy, band), selected, tick | `.nf-stays-tile*` | **own tile + own selected state** (`tint-2`, `0 0 22px glow-3`) |
+| cuisine chip, pressed | `.nf-stays-chip` | **own chip + own lit state** (brand gradient, `0 0 18px glow-3`) |
+| rule row | `.nf-stays-rule` | **own card** (`--nf-radius-lg`, rim + `0 0 14px glow-1`) |
+| round glyph | `.nf-stays-glyph` | **own icon plate, round** |
+| rate card, thumb | `.nf-stays-card`, `.nf-stays-thumb` | **own card** (`--nf-radius-2xl`, rim, glow, bloom) and **own plate** |
+| calm note | `.nf-stays-note` | **own card** |
+| stars | `.nf-stays-stars` | type colour only |
+
+**Findings from the inventory, before any change.** (1) Every `.nf-esc-action` on `/escrow/[id]`
+and in the thread proposal is an UNLIT text control: radius and height only, no fill, no rim, no
+bloom, so "Say the work was done", "Choose a file" and "File this" read as loose words (before
+shot `escrow-detail-390-before.jpg`). (2) `.nf-stays-tile` is defined twice with two recipes,
+`catalogue.css` (the search category tiles) and `stays.css` (the host panels); they never meet on
+one page today, but the name collision is a trap. (3) The payment failed and pending sheets draw
+their glass object on a visible dark square (`pay-failed-390-before.jpg`); that square is
+`ResultSheet`/`wallet.css`, not this group's, and is reported to the lead rather than fixed here.
+(4) The stays home, stay detail and restaurant detail are dressed almost entirely by the home and
+listing groups' files (`home.css`, `catalogue.css`, `components/app/home/**`,
+`components/app/listing/**`); this group can only make them match by what Phase 1 and those
+groups ship.
+
+#### Before proofs (23 September, production build, harness, dark, 390 at 2x and 1440 at 1x)
+`docs/design/proofs/session-b/sweep-stays/before/<route>-{390,1440}-before.jpg` for: stays,
+stays-empty, stays-search, stays-filters (sheet open), stay, trips, restaurants, restaurant,
+checkout, pay-pending, pay-failed, escrow, escrow-detail (disputed, filer open), escrow-held,
+escrow-released, and the eight host panels (host-hotel, host-room-types, host-rates, host-place,
+host-house-rules, host-restaurant, host-tables, host-facilities). All fixture-backed. Horizontal
+overflow 0 on every shot.
+
+(Apply, per-route table, after proofs and Passes 1 to 3: pending Phase 1 RELEASED.)
+
 ## Skipped or not verified
 
 (appended honestly as work proceeds)

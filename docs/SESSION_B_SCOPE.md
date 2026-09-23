@@ -59,6 +59,16 @@ Each group appends "RELEASED <commit>" here when it is done.
     route components.
   - stays, stay detail, trips, restaurants, checkout: `stays.css`,
     `escrow.css` and their route components.
+    Worker "sweep-stays" adds (new): the fixture harness
+    `apps/web/src/app/(dev)/preview/session-b/sweep-stays/**` and its proofs
+    `docs/design/proofs/session-b/sweep-stays/**`. Route components claimed:
+    `app/(app)/{stays,stay,trips,restaurants,restaurant,checkout,escrow}/**`,
+    `components/app/stays/**`, `components/app/escrow/**`. NOT claimed although
+    drawn on these routes: `catalogue.css`, `home.css`, `components/app/home/**`,
+    `components/app/listing/**` (home and listing group), `ResultSheet.tsx` and
+    `wallet.css` (wallet family), `components/host/stays/**` (host wizard group,
+    which consumes `stays.css`), `components/app/messages/ProposeHeldPayment.tsx`
+    (messages group, which consumes `escrow.css`).
   - settings and children, notifications: `settings-rows.css`,
     `overlays.css`, `system.css` and their route components.
   - feed, stories, posts, the plus bloom (worker "feed"):
