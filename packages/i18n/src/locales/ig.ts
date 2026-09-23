@@ -159,7 +159,7 @@ export const ig: Dictionary = withFallback({
     staysName: "Ebe obibi",
     switchToStays: "Gbanwee gaa Ebe obibi",
     switchToProperty: "Gbanwee gaa Ụlọ",
-    flipCoin: "Tụgharịa mkpụrụ ego",
+    flipCoin: "Tụgharịa",
     staysSubShort: "Ụlọ oriri, shortlet, ebe ezumike na ndị ọzọ",
     propertySubShort: "Mgbazinye, ire, ndị nnọchiteanya na nyocha",
     staysSub: "Họtel, shortlet na ụlọ nri",

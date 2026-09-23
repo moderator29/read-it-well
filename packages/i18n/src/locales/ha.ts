@@ -158,7 +158,7 @@ export const ha: Dictionary = withFallback({
     staysName: "Masauki",
     switchToStays: "Koma zuwa Masauki",
     switchToProperty: "Koma zuwa Gida",
-    flipCoin: "Juya tsabar",
+    flipCoin: "Juya",
     staysSubShort: "Otal, shortlet, wuraren hutu da ƙari",
     propertySubShort: "Haya, sayarwa, wakilai da duba",
     staysSub: "Otal, shortlet da gidajen abinci",

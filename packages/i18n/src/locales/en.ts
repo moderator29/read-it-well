@@ -202,7 +202,12 @@ export const en = {
     staysName: "Stays",
     switchToStays: "Switch to Stays",
     switchToProperty: "Switch to Property",
-    flipCoin: "Flip coin",
+    /* The founder's wording, 23 September: it is "Flip", not "Flip coin".
+       The KEY is left as `flipCoin` on purpose. Four locale files are written
+       by several workers in the same hour and the standing rule on this
+       package is add keys, never restructure; renaming a key is a restructure
+       and this change is about the word a person reads. */
+    flipCoin: "Flip",
     staysSubShort: "Hotels, shortlets, resorts and more",
     propertySubShort: "Rentals, sales, agents and inspections",
     staysSub: "Hotels, shortlets and restaurants",

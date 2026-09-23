@@ -49,12 +49,14 @@ export function SideSwitch({
 
   return (
     /*
-      THE FLIP COIN CARD, per the drawer render: a glass card lit at the edge,
-      the coin in a glowing ring on the left, the overline FLIP COIN, the
-      destination as the title, one line of what is on the other side, a
-      chevron. The coin carries the OTHER side's mark, because the control is
-      a door and a door shows where it leads. Hover teases the edge, press
-      spins it through the same physics as the viewport.
+      THE FLIP CARD, per the drawer render: a glass card lit at the edge,
+      the coin in a glowing ring on the left, the overline FLIP (the founder's
+      wording of 23 September: the word coin is dropped from the label, while
+      the glass object itself is still the coin), the destination as the title,
+      one line of what is on the other side, a chevron. The coin carries the
+      OTHER side's mark, because the control is a door and a door shows where
+      it leads. Hover teases the edge, press spins it through the same physics
+      as the viewport.
     */
     <button
       ref={button}

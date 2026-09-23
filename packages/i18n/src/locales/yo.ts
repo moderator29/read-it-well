@@ -157,7 +157,7 @@ export const yo: Dictionary = withFallback({
     staysName: "Ibùgbé",
     switchToStays: "Yí sí Ibùgbé",
     switchToProperty: "Yí sí Ilé",
-    flipCoin: "Yí owó-ẹyọ",
+    flipCoin: "Yí",
     staysSubShort: "Hótẹ́ẹ̀lì, shortlet, ibi ìsinmi àti síwájú",
     propertySubShort: "Yíyá, títà, aṣojú àti àyẹ̀wò",
     staysSub: "Hótẹ́ẹ̀lì, shortlet àti ilé oúnjẹ",
