@@ -295,7 +295,9 @@ export type StayCatalogueFacts = Pick<
 
 export type StayDetail = {
   accommodation: AccommodationRow;
-  business: Pick<BusinessRow, "id" | "name" | "slug" | "kind" | "source" | "phone" | "email" | "is_demo">;
+  /* `phone` and `email` are gone from this shape on purpose: `anon` may not
+     read them since ledger section 68, and no screen ever drew them. */
+  business: Pick<BusinessRow, "id" | "name" | "slug" | "kind" | "source" | "is_demo">;
   photos: AccommodationPhotoRow[];
   amenities: { code: string; label: string; category: string }[];
   room_types: RoomTypeDetail[];
@@ -311,7 +313,11 @@ export type StayDetail = {
 };
 
 export type RestaurantDetail = {
-  business: BusinessRow;
+  /* THE PUBLIC COLUMNS ONLY, and not `BusinessRow`. `/restaurant/[id]` is a
+     signed-out surface and `businesses` withholds its personal columns from
+     `anon`, so the row this carries is the one a visitor may actually be
+     handed. See `RESTAURANT_BUSINESS_COLUMNS` in `lib/stays/queries.ts`. */
+  business: Omit<BusinessRow, "address" | "phone" | "email">;
   profile: RestaurantProfileRow | null;
   windows: ServiceWindowRow[];
   open_now: boolean;

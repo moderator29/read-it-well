@@ -29,6 +29,27 @@ import type {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/*
+ * THE TWO PUBLIC COLUMN LISTS FOR `businesses`.
+ *
+ * `public.businesses` no longer hands `anon` the whole table. It grants a
+ * column list, the way `public.listings` always has, and the twelve columns
+ * left out are personal or internal: `address`, `phone`, `email`,
+ * `cac_number`, `registered_name`, `tin`, `representative_name`,
+ * `representative_phone`, `consents`, `reviewer_id`, `review_notes` and
+ * `verification_tier`.
+ *
+ * A MISSING COLUMN PRIVILEGE FAILS THE WHOLE SELECT, not just that column.
+ * That is the second half of the eleven hour catalogue outage of 23 September.
+ * So these two strings are not tidiness: naming a withheld column in either of
+ * them refuses the stay page or the restaurant page to every signed-out
+ * visitor. `scripts/probes/businesses_column_grants.sql` runs both of them as
+ * `anon` against the live database and fails if either is stranded.
+ */
+const STAY_BUSINESS_COLUMNS = "id, name, slug, kind, source, is_demo";
+const RESTAURANT_BUSINESS_COLUMNS =
+  "id, owner_id, agent_id, kind, name, slug, description, source, status, state_code, city, area, latitude, longitude, is_demo, published_at";
+
 /** A finite number, whatever the driver handed back, or null. Never NaN. */
 function finiteOrNull(value: unknown): number | null {
   if (typeof value === "number") return Number.isFinite(value) ? value : null;
@@ -83,8 +104,15 @@ export async function getStayDetail(accommodationId: string): Promise<StayDetail
 
     const [businessRes, photosRes, amenityLinksRes, roomTypesRes, catalogueRes] = await Promise.all([
       supabase
+        /* THE PUBLIC COLUMNS AND NOT ONE MORE. `businesses` grants `anon` a
+           COLUMN LIST rather than the table (ledger section 68), so this read
+           names what a signed-out visitor may see. `phone` and `email` used to
+           be selected here and were never drawn on any screen; they are the
+           venue's contact details and they are now withheld from `anon`, so
+           asking for them would fail THE WHOLE SELECT rather than one column
+           and take the stay page down. */
         .from("businesses")
-        .select("id, name, slug, kind, source, phone, email, is_demo")
+        .select(STAY_BUSINESS_COLUMNS)
         .eq("id", accommodation.business_id)
         .maybeSingle(),
       supabase
@@ -192,8 +220,13 @@ export async function getRestaurantDetail(
   try {
     const supabase = await staysClient();
     const { data: business } = await supabase
+      /* NOT `select("*")`. This read is issued by a signed-out visitor on
+         `/restaurant/[id]`, and `businesses` withholds its personal columns
+         from `anon` (ledger section 68). A star here asks for `cac_number`,
+         `tin` and the representative's phone number and would be refused
+         outright, so the page would answer not-found for every venue. */
       .from("businesses")
-      .select("*")
+      .select(RESTAURANT_BUSINESS_COLUMNS)
       .eq("id", businessId)
       .eq("kind", "restaurant")
       .maybeSingle();
