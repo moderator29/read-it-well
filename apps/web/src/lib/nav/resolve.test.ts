@@ -90,6 +90,15 @@ describe("the map itself", () => {
     });
   });
 
+  it("sends the two browsing screens back to the landing page (C3.2)", () => {
+    /* The founder, 23 September: browsing is signed in only, so the back
+       control on search and around goes to "/", never to `/home`, which lands
+       a signed-out reader on the sign-in wall. */
+    expect(parentOf("/search")).toMatchObject({ kind: "parent", href: "/" });
+    expect(parentOf("/search?q=lekki")).toMatchObject({ kind: "parent", href: "/" });
+    expect(parentOf("/around")).toMatchObject({ kind: "parent", href: "/" });
+  });
+
   it("carries a captured segment into the parent", () => {
     expect(parentOf("/u/ada/followers")).toMatchObject({ href: "/u/ada" });
     expect(parentOf("/rent/move-in/c7f2")).toMatchObject({ href: "/listing/c7f2" });
