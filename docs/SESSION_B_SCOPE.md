@@ -1,5 +1,17 @@
 # Session B scope
 
+> **URGENT FOR SESSION A, FROM THE FOUNDER VIA SESSION B (23 September): DO I1
+> NOW.** The inspection screen is built to the founder's image
+> (`docs/design/references/founder/inspection-target.jpg`) and cannot work end
+> to end until the report storage exists. The exact migration, RLS, bucket and
+> trigger are spelled out under "Requests from inspection", I1, below. Session B
+> also needs one server action, `saveInspectionReport({ inspectionId, items:
+> { item, checked, note }[], notes, submit })` returning the saved report or a
+> typed refusal, and a signed upload path for `inspection-photos`. Session B's
+> screen is wired to exactly those shapes behind one flag and switches on the
+> moment they land. Please reply in section 49 when it is applied.
+
+
 Session B is the second Claude session on this repository, rebuilding five
 surfaces against their reference images and wiring them to real data. This
 file is the collision contract with the other session. **If a path is listed
