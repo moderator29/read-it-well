@@ -11,7 +11,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  */
 export function RentSummary({ view }: { view: RentPayView }) {
   return (
-    <section aria-labelledby="nf-rent-summary" className="nf-card p-md sm:p-lg">
+    <section aria-labelledby="nf-rent-summary" className="nf-panel nf-panel--card block p-md sm:p-lg">
       <h2 id="nf-rent-summary" className="nf-h3">
         {view.title}
       </h2>
@@ -23,7 +23,9 @@ export function RentSummary({ view }: { view: RentPayView }) {
       )}
 
       <p className="nf-caption mt-block text-[var(--nf-content-muted)]">
-        {view.totalStated ? "Move-in total, as stated by the lister" : "Move-in total, from the parts the lister stated"}
+        {view.totalStated
+          ? "Move-in total, as stated by the lister"
+          : "Move-in total, from the parts the lister stated"}
       </p>
       <p className="mt-inline-tight">
         <Amount
@@ -32,7 +34,7 @@ export function RentSummary({ view }: { view: RentPayView }) {
           currency={view.currency}
           showFraction
           className="text-[length:var(--nf-text-display-sm)] font-bold leading-none tracking-[-0.02em] text-[var(--nf-content-primary)]"
-          secondaryClassName="text-[0.5em] font-semibold text-[var(--nf-content-muted)]"
+          secondaryClassName="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-muted)]"
         />
       </p>
 
@@ -54,13 +56,14 @@ export function RentSummary({ view }: { view: RentPayView }) {
       </dl>
 
       <p className="nf-caption mt-block leading-relaxed text-[var(--nf-content-muted)]">
-        Rent is {RENT_PERIOD_LABEL[view.rentPeriod].toLowerCase()}, moving in from {view.moveIn}. Vallo
-        charges nothing on this payment; a card processor may show its own charge on the payment page.
+        Rent is {RENT_PERIOD_LABEL[view.rentPeriod].toLowerCase()}, moving in from {view.moveIn}.
+        Vallo charges nothing on this payment; a card processor may show its own charge on the
+        payment page.
       </p>
       {view.bookingId && view.holdExpiresAt && !view.holdExpired && (
         <p className="nf-caption mt-inline leading-relaxed text-[var(--nf-content-muted)]">
-          This payment step stays open for 48 hours from when you opened it. If it closes unpaid, open it
-          again from here.
+          This payment step stays open for 48 hours from when you opened it. If it closes unpaid,
+          open it again from here.
         </p>
       )}
     </section>

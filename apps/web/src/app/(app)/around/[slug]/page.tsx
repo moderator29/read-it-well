@@ -80,7 +80,7 @@ export default async function AreaPage({
     return (
       <div className="mx-auto w-full max-w-3xl pb-4xl pt-md">
         <PageHeader title="Around" fallback="/around" />
-        <p className="nf-card p-lg text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+        <p className="nf-panel nf-panel--card block p-lg text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
           We cannot reach this place right now. This is on our side, not yours.
           Nothing has been lost, and the rest of the app works as normal.
         </p>

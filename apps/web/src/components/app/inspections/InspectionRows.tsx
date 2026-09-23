@@ -8,8 +8,9 @@ import { formatDate, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
+import { ICON_PLATE_GLYPH, IconPlate } from "@/components/ui/IconPlate";
 import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
-import { ICON, Row, RowList, TYPE } from "@/components/app/Screen";
+import { Row, RowList, TYPE } from "@/components/app/Screen";
 import {
   acceptProposedTime,
   answerInspection,
@@ -68,7 +69,8 @@ const STATE_TONE: Record<InspectionState, StatusTone> = {
 /**
  * The indent that puts a row's controls under its text.
  *
- * Each row is `nf-role-mark`, then `gap-sm`, then the text column. The controls
+ * Each row is the plate (the shared `IconPlate`, md, 2.75rem like the old
+ * `nf-role-mark`), then `gap-sm`, then the text column. The controls
  * sit below in their own full-width div, so lining them up under the title means
  * clearing exactly those two things: `.nf-role-mark` is 2.75rem in
  * `app/css/controls.css` and the gap is the 12px rung, which is 56px.
@@ -185,9 +187,9 @@ function InspectionRow({
   return (
     <Row className={`flex-col items-stretch gap-xs py-md ${entrance}`}>
       <div className="flex w-full flex-wrap items-start gap-sm">
-        <span className="nf-role-mark mt-3xs shrink-0" aria-hidden="true">
-          <UiIcon name="calendar-booking" size={ICON.row} />
-        </span>
+        <IconPlate size="md" className="mt-3xs">
+          <UiIcon name="calendar-booking" size={ICON_PLATE_GLYPH.md} />
+        </IconPlate>
 
         <span className="min-w-0 flex-1">
           {/* The property first. It is what an agent with nine of them is
@@ -274,7 +276,7 @@ function InspectionRow({
           </Button>
           <Button
             size="sm"
-            variant="ghost"
+            variant="secondary"
             disabled={pending}
             onClick={() => run(() => answerInspection({ id: inspection.id, state: "DECLINED" }))}
           >
@@ -295,7 +297,7 @@ function InspectionRow({
           </Button>
           <Button
             size="sm"
-            variant="ghost"
+            variant="secondary"
             disabled={pending}
             onClick={() => run(() => closeInspection({ id: inspection.id, state: "WITHDRAWN" }))}
           >

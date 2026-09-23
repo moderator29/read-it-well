@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import "@/app/css/orphans.css";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 
 /**
@@ -71,5 +72,9 @@ export function RegField({
  * of rules that can disagree.
  */
 export function RegFieldGroup({ children }: { children: ReactNode }) {
-  return <div className="nf-fieldgroup">{children}</div>;
+  /* The shared panel card since the orphans sweep: the 10px container corner,
+     the lit edge and the catchlight come from the panel; `nf-orph-fieldgroup`
+     (app/css/orphans.css) keeps only the grid and drops the member fields'
+     own container, as `.nf-fieldgroup` did. */
+  return <div className="nf-panel nf-panel--card nf-orph-fieldgroup p-card">{children}</div>;
 }

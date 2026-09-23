@@ -20,8 +20,8 @@ export default function LoadingRent() {
         <Skeleton width="70%" height="0.9375rem" radius="sm" />
       </div>
 
-      <div className="nf-card mt-md flex items-start gap-md p-md">
-        <Skeleton width="1.25rem" height="1.25rem" radius="sm" className="shrink-0" />
+      <div className="nf-panel nf-panel--card mt-md flex-row items-start gap-md">
+        <Skeleton width="2.25rem" height="2.25rem" radius="xs" className="shrink-0" />
         <div className="min-w-0 flex-1 space-y-xs">
           <Skeleton height="0.8125rem" radius="sm" />
           <Skeleton width="65%" height="0.8125rem" radius="sm" />
@@ -31,7 +31,7 @@ export default function LoadingRent() {
       {/* The city rail: full-bleed on phones, exactly as the real nav is. */}
       <div className="-mx-gutter mt-md flex gap-xs overflow-hidden px-gutter">
         {Array.from({ length: 6 }, (_, i) => (
-          <Skeleton key={i} width="7rem" height="2.75rem" radius="pill" className="shrink-0" />
+          <Skeleton key={i} width="7rem" height="2.75rem" radius="md" className="shrink-0" />
         ))}
       </div>
 

@@ -48,7 +48,7 @@ export function TenancyCard({
   const where = [tenancy.area, tenancy.city].filter(Boolean).join(", ");
 
   return (
-    <li className="nf-glass nf-glass--card overflow-hidden p-0 text-left" data-testid="tenancy-card">
+    <li className="nf-panel nf-panel--card block overflow-hidden p-0 text-left" data-testid="tenancy-card">
       <div className="flex gap-md p-md">
         <Link
           href={`/listing/${tenancy.listingId}`}

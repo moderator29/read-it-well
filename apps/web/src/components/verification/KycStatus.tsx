@@ -2,6 +2,15 @@ import Link from "next/link";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { StatusPill } from "@/components/ui/StatusPill";
+import { ICON_PLATE_GLYPH, IconPlate, type IconPlateTone } from "@/components/ui/IconPlate";
+
+/* The status plate takes the state's own tone on the shared plate (orphans
+   sweep): pending for waiting, emerald for approved, rose for refused. */
+const PLATE_TONE: Record<"warning" | "success" | "danger", IconPlateTone> = {
+  warning: "pending",
+  success: "success",
+  danger: "error",
+};
 
 /**
  * Where a submission stands, and what to do about it.
@@ -245,11 +254,11 @@ function Panel({
   children?: React.ReactNode;
 }) {
   return (
-    <section className="nf-card p-lg sm:p-lg">
+    <section className="nf-panel nf-panel--card block p-lg">
       <div className="flex items-start gap-md">
-        <span className="nf-role-mark" aria-hidden="true">
-          <UiIcon name={icon} size="md" />
-        </span>
+        <IconPlate size="md" tone={PLATE_TONE[tone]}>
+          <UiIcon name={icon} size={ICON_PLATE_GLYPH.md} />
+        </IconPlate>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-xs">
             <h2 className="text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">

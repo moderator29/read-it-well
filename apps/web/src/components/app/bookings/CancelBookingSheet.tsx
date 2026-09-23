@@ -101,7 +101,7 @@ export function CancelBookingSheet({
                defect the wallet's own banner had. */
             <p
               role="alert"
-              className="mt-row rounded-[var(--nf-radius-md)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] bg-[var(--nf-state-error-surface)] p-row text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
+              className="nf-panel nf-panel--card mt-row block border-[color-mix(in_oklab,var(--nf-state-error)_55%,transparent)] p-row text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-state-error)]"
             >
               {state.error}
             </p>

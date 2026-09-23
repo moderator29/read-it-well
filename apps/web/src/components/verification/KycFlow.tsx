@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
 import { SegmentedProgress } from "@/components/ui/Progress";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ICON_PLATE_GLYPH, IconPlate } from "@/components/ui/IconPlate";
 import { DocumentUploader, type ChosenFile } from "./DocumentUploader";
 import {
   BUSINESS_SECTIONS,
@@ -205,9 +206,12 @@ export function KycFlow({
                   aria-pressed={business === option.value}
                   className="flex w-full items-center gap-sm px-2xs py-md text-left transition-colors hover:bg-[var(--nf-interactive-hover)]"
                 >
-                  <span className="nf-role-mark" aria-hidden="true">
-                    <UiIcon name={option.value ? "building-apartment" : "user"} size="md" />
-                  </span>
+                  <IconPlate size="md">
+                    <UiIcon
+                      name={option.value ? "building-apartment" : "user"}
+                      size={ICON_PLATE_GLYPH.md}
+                    />
+                  </IconPlate>
                   <span className="min-w-0 flex-1">
                     <span className="block text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                       {option.label}
@@ -240,7 +244,7 @@ export function KycFlow({
            * is three small tasks rather than one long one.
            */
           BUSINESS_SECTIONS.map((section) => (
-            <section key={section.heading} className="nf-card p-md sm:p-lg">
+            <section key={section.heading} className="nf-panel nf-panel--card block p-md sm:p-lg">
               <h2 className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                 {section.heading}
               </h2>
@@ -278,7 +282,7 @@ export function KycFlow({
               const ticked = consents.includes(consent.id);
               return (
                 <li key={consent.id}>
-                  <label className="nf-card flex cursor-pointer items-start gap-sm p-md">
+                  <label className="nf-panel nf-panel--card flex-row cursor-pointer items-start gap-sm">
                     <input
                       type="checkbox"
                       checked={ticked}
@@ -308,7 +312,7 @@ export function KycFlow({
 
         {step.id === "review" && (
           <>
-            <ul className="nf-card divide-y divide-[var(--nf-divider)] p-0">
+            <ul className="nf-panel nf-panel--card block divide-y divide-[var(--nf-divider)] p-0">
               <ReviewRow label={IDENTITY_ROW} value={documents.identity?.name ?? MISSING} />
               <ReviewRow label={ADDRESS_ROW} value={documents.address?.name ?? MISSING} />
               <ReviewRow label={BUSINESS_ROW} value={business ? YES : NO} />
@@ -324,7 +328,7 @@ export function KycFlow({
 
             {/* Never "complete all required fields". The gaps are named. */}
             {gaps.length > 0 && (
-              <div role="alert" className="nf-card p-md">
+              <div role="alert" className="nf-panel nf-panel--card block border-[color-mix(in_oklab,var(--nf-state-error)_55%,transparent)]">
                 <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                   {GAPS_TITLE}
                 </p>
@@ -395,9 +399,9 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
 function Submitted() {
   return (
     <div className="mx-auto max-w-md py-xl text-center">
-      <span className="nf-role-mark nf-role-mark--lg mx-auto" aria-hidden="true">
-        <UiIcon name="calendar-booking" size="lg" />
-      </span>
+      <IconPlate size="lg" className="mx-auto">
+        <UiIcon name="calendar-booking" size={ICON_PLATE_GLYPH.lg} />
+      </IconPlate>
       <h1 className="nf-h2 mt-md">{SENT_TITLE}</h1>
       <p className="mt-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
         {SENT_BODY}

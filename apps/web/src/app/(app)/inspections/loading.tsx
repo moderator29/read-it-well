@@ -20,9 +20,9 @@ export default function LoadingInspections() {
         </div>
         <Skeleton width="5.5rem" height="5.5rem" radius="lg" className="shrink-0" />
       </div>
-      <Skeleton className="mt-md" width="100%" height="8.5rem" radius="md" />
-      <Skeleton className="mt-sm" width="100%" height="5.25rem" radius="md" />
-      <Skeleton className="mt-sm" width="100%" height="17rem" radius="md" />
+      <Skeleton className="mt-md" width="100%" height="8.5rem" radius="sm" />
+      <Skeleton className="mt-sm" width="100%" height="5.25rem" radius="sm" />
+      <Skeleton className="mt-sm" width="100%" height="17rem" radius="sm" />
     </LoadingShell>
   );
 }

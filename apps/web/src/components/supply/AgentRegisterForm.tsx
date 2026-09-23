@@ -343,7 +343,7 @@ export function AgentRegisterForm({
           {/* THE LIVE TENANT TOTAL. Everything in it moves the moment either
               control moves, which is the whole point: the agent is looking at
               what a tenant will read while they decide. */}
-          <div className="nf-totalpanel" aria-live="polite">
+          <div className="nf-panel nf-panel--card block p-card" aria-live="polite">
             <p className={TYPE.label}>{mine.fees.totalLead}</p>
             <p className="nf-totalpanel__figure mt-inline-tight">
               {formatMoney(total.totalMinor, locale)}

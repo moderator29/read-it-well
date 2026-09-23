@@ -23,7 +23,7 @@ export default function LoadingAroundManage() {
       <Skeleton className="mb-sm" width="6rem" height="0.75rem" radius="xs" />
       <ul className="flex flex-col gap-xs" aria-hidden="true">
         {[0, 1, 2, 3].map((row) => (
-          <li key={row} className="nf-card flex items-start gap-sm p-md">
+          <li key={row} className="nf-panel nf-panel--card flex-row items-start gap-sm p-md">
             <div className="min-w-0 flex-1 space-y-xs">
               <Skeleton width="10rem" height="1rem" radius="xs" />
               <Skeleton width="14rem" height="0.75rem" radius="xs" />

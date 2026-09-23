@@ -3,6 +3,7 @@
 import { useId, useRef, useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
+import { ICON_PLATE_GLYPH, IconPlate } from "@/components/ui/IconPlate";
 import {
   ACCEPTED_LABEL,
   ACCEPTED_MIME,
@@ -63,7 +64,7 @@ export function DocumentUploader({
   }
 
   return (
-    <section className="nf-card p-md sm:p-lg">
+    <section className="nf-panel nf-panel--card block p-md sm:p-lg">
       <h3 className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">{spec.title}</h3>
 
       <p className="mt-2xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
@@ -86,10 +87,10 @@ export function DocumentUploader({
       />
 
       {file ? (
-        <div className="mt-md flex items-center gap-sm rounded-[var(--nf-radius-lg)] border border-[var(--nf-border-subtle)] bg-[var(--nf-surface-secondary)] px-md py-sm">
-          <span className="nf-role-mark" aria-hidden="true">
-            <UiIcon name="document" size="md" />
-          </span>
+        <div className="nf-panel nf-panel--card mt-md flex-row items-center gap-sm px-md py-sm">
+          <IconPlate size="md">
+            <UiIcon name="document" size={ICON_PLATE_GLYPH.md} />
+          </IconPlate>
           <span className="min-w-0 flex-1">
             <span className="block truncate text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
               {file.name}
@@ -101,7 +102,7 @@ export function DocumentUploader({
           {/* Replace, not just remove. The person is here to supply a document,
               so the useful control is the one that gets them to a better
               photograph rather than back to an empty box. */}
-          <Button variant="ghost" size="sm" onClick={() => input.current?.click()}>
+          <Button variant="secondary" size="sm" onClick={() => input.current?.click()}>
             {REPLACE}
           </Button>
         </div>

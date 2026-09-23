@@ -19,7 +19,7 @@ export default function LoadingVerification() {
       <Skeleton height="0.375rem" radius="pill" className="mt-sm" />
       <Skeleton width="12rem" height="2rem" radius="sm" className="mt-lg" />
       <Skeleton width="min(24rem, 100%)" height="1rem" radius="sm" className="mt-xs" />
-      <Skeleton height="12rem" radius="xl" className="mt-lg" />
+      <Skeleton height="12rem" radius="sm" className="mt-lg" />
     </LoadingShell>
   );
 }

@@ -18,12 +18,12 @@ export default function LoadingThread() {
       </div>
 
       <div className="flex flex-col gap-[var(--nf-feed-gap)]" aria-hidden="true">
-        <div className="nf-card nf-post space-y-sm">
+        <div className="nf-panel nf-panel--card nf-post block space-y-sm">
           <Skeleton width="11rem" height="1rem" radius="xs" />
           <Skeleton height="0.75rem" radius="xs" />
           <Skeleton width="80%" height="0.75rem" radius="xs" />
         </div>
-        <div className="nf-card nf-post ms-sm space-y-sm">
+        <div className="nf-panel nf-panel--card nf-post ms-sm block space-y-sm">
           <Skeleton width="9rem" height="1rem" radius="xs" />
           <Skeleton width="75%" height="0.75rem" radius="xs" />
         </div>

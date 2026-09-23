@@ -40,7 +40,7 @@ export default async function ProposeAreaPage() {
 
       <ProposeAreaForm states={states} signedIn={signedIn} />
 
-      <section className="nf-card mt-xl p-lg">
+      <section className="nf-panel nf-panel--card mt-xl block p-lg">
         <h2 className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           If you want to look after a place
         </h2>

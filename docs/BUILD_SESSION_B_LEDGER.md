@@ -7636,10 +7636,175 @@ Pieces the audit named as unowned and shared, NOT claimed (other routes draw the
 `Screen.tsx` (`RowList boxed`, `Surface`: leftovers).
 
 Before proofs: `docs/design/proofs/session-b/sweep-orphans/before/` (125 shots, 390 and 1440,
-`h-*` harness, `l-*` live as the QA member at 20:0x UTC on the build of 9e7ce8c3), with
+`h-*` harness, `l-*` live as the QA member at 18:55 UTC on the build of 9e7ce8c3), with
 `measure.json`.
 
+### 13.O.2 Applied (23 September, on Phase 1 as released at 9da8f86f)
+
+No pasted values: every container below is `nf-panel nf-panel--card` (the shared `Panel`'s
+classes, written as a class string where the element is a `p`, `li` or `label` that must stay
+itself; `block` or `flex-row` added only where the panel's own column flow would change the
+layout), every plate is `IconPlate`, every button is `Button` / `ButtonLink`.
+
+- **Cards, 22px, onto the panel card:** the place notes, about panel and moderator note
+  (`PlacePanels`), the unreachable note, the three look-after cards (`ModeratorApply`), the
+  intro card and done card on `/around/new`, the three notes and the empty card on
+  `/around/settings`, every proposal and place row (`PlaceRows`), the stay card (`MyBookings`),
+  the tenancy card (`TenancyCard`, was `.nf-glass--card`), the detail card, the review panels
+  and form, the uploader, business sections, consent cards, review list and gaps card
+  (`KycFlow`), the status card (`KycStatus`), the reviewer's words, the rent safety card and
+  no-rentals card, the rent summary, the pay options (`PayPanel`), the undo card
+  (`SavedBoard`), the register forms' field group and total panel, and every loading card on
+  these routes (including the two post skeletons, which now wear `nf-panel nf-panel--card
+  nf-post` exactly like the real post card).
+- **Local boxes deleted:** the slow-mode well, the address well, the thread notice (brand-edged
+  inset), the muted-reply dashed box, the uploaded-file well: panel cards. The four local error
+  boxes (`ModeratorApply`, `ProposeAreaForm`, `CancelBookingSheet`, and `ReviewForm`'s refusal,
+  which was drawn in the warning ink on a neutral box) follow the settings group's precedent (`PlaceForm`): the
+  panel card with its edge tinted rose at 55% and the words in the error ink.
+- **Plates:** `nf-role-mark` (a local 44px plate in `controls.css`) became `IconPlate` md in
+  `KycFlow` (business choice), `DocumentUploader` (file), `KycStatus` (status, in the state's
+  tone: pending, success, error) and `InspectionRows` (the row plate, same 2.75rem, so the
+  control indent holds); the submitted screen's large mark is `IconPlate` lg. The rent safety
+  line's bare verified glyph sits on an `IconPlate` sm in the success tone.
+- **Buttons:** eleven hand-written `nf-btn` strings (36, 40 and caption-sized) are `Button` /
+  `ButtonLink` at the shared small size (44px): Withdraw it, Send application, Not now, Suggest
+  this place, Back to your places, Suggest another, Suggest a place (header, now the glass
+  door with the sparkle glyph), Suggest a place (empty card), Leave a review (hub and detail),
+  See it on the listing / See your stays, Share review (its local `disabled:opacity-60`
+  deleted). `JoinButton` (claimed while sweeping; drawn only here) was a 36px local toggle with
+  a flat outline when joined: now the lit primary to join and the glass secondary once joined,
+  44px. Every `variant="ghost"` secondary in the claimed files is the glass door
+  (`secondary`): Replace, Open my wallet, Rename, Keep, Cancel (saved searches), Decline and
+  Withdraw (inspection rows), remove a team member and the register flow's secondary.
+- **Selected state:** the place-kind choice on `/around/new` (local 2px brand border and
+  `--nf-glow-accent`) is a panel card that takes `--nf-selected-fill`, `--nf-selected-edges`
+  and `--nf-selected-shadow-inline` when pressed (`app/css/orphans.css`, new, tokens only).
+- **Badges:** the local outlined "With us" and "Paused" become `StatusPill` (info, neutral),
+  so they move onto the shared badge with SW-C6.
+- **Type floor:** the rent summary's and the pay bar's kobo figure were 8px and 10.5px
+  (`0.5em`, `0.62em`): now body and overline sizes.
+- **Crypto (dark routes):** both loading states drew a coin rail and price tiles for a route
+  that answers `notFound()`, and the rail pushed the 390 layout 119px wide. They now draw a
+  header and one plain panel, nothing that reads as a market. `components/app/crypto/**` is
+  not touched and nothing was added.
+- **Skeleton corners:** card-sized placeholders on these routes sit on the container corner
+  (`sm`, 10px) instead of `lg`/`xl`/`md`; field placeholders on the control corner.
+
+### 13.O.3 Audit passes
+
+Each pass: the production build of the working tree, the harness signed out and the live routes
+signed in as the QA member, 390 (2x) and 1440, dark, reduced motion, every state in 13.O.1,
+measured in the browser (`measure.json` per pass) and read by eye against the console reference
+(`admin/operations-390-dark.jpg`).
+
+- **Pass 1, 23 September 19:15 UTC** (`pass1/measure.json`). A first run at 19:09 measured a
+  stale server left on the port by the previous build and was thrown away. Found and fixed:
+  the kobo figures under 11px on the rent summary and pay bar (8px, 10.5px); the place-kind
+  choice cards drew their words vertically centred (a `button`'s default) instead of from the
+  top. Every legacy card, local box, ghost secondary, local plate and hand-written button in
+  this group's files measured gone.
+- **Pass 2, 23 September 19:24 UTC** (`pass2/measure.json`). Nothing left in this group's
+  files: the 48 remaining findings (out of 172 page-width measurements) are each on an item
+  another owner draws, listed in 13.O.4. Found by eye and fixed: `InspectionRows` still drew
+  the local `nf-role-mark` plate (on `/bookings`).
+- **Pass 3, 23 September 19:37 and 19:45 UTC** (`after/measure.json`, the after proofs):
+  identical findings to pass 2, all other owners'. Zero legacy material, zero capsules, zero
+  controls under 44px, zero flat selected states, zero unlit enabled primaries and no layout
+  wider than 390 on any item this group draws.
+
+### 13.O.4 Per route (23 routes)
+
+SWEPT = every item in the route's inventory is on the shared layer on this commit. SWEPT, BAR X =
+everything this group draws is on the shared layer; the named items belong to another owner.
+
+| # | Route | Result | What is left, and whose |
+|---|---|---|---|
+| 1 | `/around/[slug]` | SWEPT, BAR SW-O2 | district chips 38px, ratio 0.37, flat brand "All"; post text under 11px (feed ruling); `.nf-enter` chips (feed) |
+| 2 | `/around/manage` | SWEPT | (redirect; loading swept) |
+| 3 | `/around/new` | SWEPT | none |
+| 4 | `/around/settings` | SWEPT, BAR SW-O2 | the place picker's state chips 40px, ratio 0.35 (`.nf-enter__chip`, feed) |
+| 5 | `/bookings` | SWEPT, BAR SW-C5, SW-C6 | "How it works" and the inspections block on `RowList boxed` (leftovers); status badges |
+| 6 | `/bookings/[bookingId]` | SWEPT, BAR SW-C6 | status badge (`StatusPill`, leftovers) |
+| 7 | `/bookings/[bookingId]/review` | SWEPT | none |
+| 8 | `/crypto` | SWEPT | the page is the swept 404; no crypto surface added |
+| 9 | `/crypto/[id]` | SWEPT | as `/crypto` |
+| 10 | `/verification` | SWEPT, BAR S3, SW-C6 | the disabled Continue is unlit (shared primary, audit S3); badge |
+| 11 | `/rent` | SWEPT, BAR SW-C5, SW-O1, S6 | `ListingCard` on `.nf-card--interactive` (home / leftovers); "/yr" 10.2px (home, audit S6); loading `SkeletonCard` (SW-O1) |
+| 12 | `/rent/pay/[inspectionId]` | SWEPT | none |
+| 13 | `/saved` | SWEPT, BAR R-SH2, SW-O1 | `StayCard` on `.nf-glass--card` (leftovers R-SH2); loading `SkeletonCard` |
+| 14 | `/saved/searches` | SWEPT, BAR SW-C5, SW-O1 | `Surface` (leftovers); loading `CardRowsSkeleton` |
+| 15 | `/post/[id]` | SWEPT, BAR S3 | disabled Reply unlit (S3); post text sizes are the feed's ruling |
+| 16 | `/stories/[id]` | SWEPT | nothing local; the viewer is the feed's |
+| 17 | `/stories/new` | SWEPT | none |
+| 18 | `/inspections` | SWEPT | nothing local; the sheets are the inspection surface's |
+| 19 | `/profile/application` | SWEPT, BAR SW-C5, SW-C6 | nothing of its own: `RowList boxed`, `StatusPill` |
+| 20 | `/profile/setup/[role]` | SWEPT, BAR SW-P1 | the door list (`controls.css` `.nf-door`, leftovers) |
+| 21 | `/profile/setup/agent` | SWEPT, BAR SW-P1, SW-O3, S3 | calm panel, fee stepper, boxed fields; disabled Continue |
+| 22 | `/profile/setup/firm` | SWEPT, BAR SW-P1, SW-O3, S3 | doors, boxed fields (14px `nf-regfield` boxes read as containers) |
+| 23 | `/profile/setup/owner` | SWEPT, BAR SW-P1, SW-O3, S3 | as firm |
+
+**Fully closed on main with this commit: 9 of 23** (2, 3, 7, 8, 9, 12, 16, 17, 18; 6 closes
+with SW-C6). **Every item this group draws: 23 of 23.** The rest close when the leftovers work
+(2b534841, SW-C5, SW-C6, R-SH2, SW-P1; not on main at 19:45) lands and SW-O1 to SW-O3 are done.
+
+Comparison (container, edge, rim, glow, button, plate; before / after / reference), 390:
+`sbs-*-before-after-reference.jpg` (twelve routes; the reference column is the console's
+operations desk). Container: 22px stride ring on flat glass / 10px panel card with the per-side
+lit edge, catchlight, reflection and halo / the same: match. Button: 36 to 40px local strings,
+ghost secondaries / the lit primary and glass door at 44px / match. Plate: local 44px role mark
+or a bare glyph / the shared plate in the state's tone / match. Selected: 2px brand edge and
+accent glow / the shared lit selected fill / match.
+
+### 13.O.5 Requests
+
+- **SW-O1 (to the lead: unowned shared files).** `components/ui/Skeleton.tsx` `SkeletonCard`
+  (`nf-card`, 22px) and `components/app/ScreenSkeleton.tsx` `CardRowsSkeleton` (`nf-card`) are
+  drawn on the loading states of `/rent`, `/saved`, `/saved/searches` and many other routes;
+  `components/social/ReportSheet.tsx` has four `nf-card`s. Onto `panelClass`.
+- **SW-O2 (to the feed worker, `social-feed.css`).** `.nf-district__chip` is 38px tall at ratio
+  0.37 and its selected state is a flat brand fill (measured `rgb(0, 105, 254)`, no rim or
+  glow) on `/around/[slug]`; `.nf-enter__chip` is 40px at ratio 0.35 in the place picker on
+  `/around/settings` and `/around` and the up link `.nf-enter__back`. 44px, under 0.35, and
+  `--nf-selected-*`.
+- **SW-O3 (to the lead: `controls.css`, shared layer).** `.nf-regfield` draws each register
+  field as its own 14px box (342x102 at 390); `.nf-feestep`, `.nf-nextrow__tick` and
+  `.nf-regfield__tag` carry local tint fills; `.nf-steprow__bar[data-on]` is a flat brand fill
+  with `--nf-glow-edge`. `.nf-totalpanel` and `.nf-fieldgroup` have no consumer since this
+  sweep (the markup is the panel card), so they can be deleted.
+
+### 13.O.6 Proofs
+
+`docs/design/proofs/session-b/sweep-orphans/`: `before/` and `after/` (each 125 shots: 36
+harness views and 23 live routes (plus the manage redirect), 390 and 1440, with
+`measure.json`), `pass1/` and `pass2/` (measurements), `sbs-*` (before, after, reference).
+Harness views are FIXTURE-BACKED (`h-*`); live views (`l-*`) are the real routes on a
+production build of this tree against the real project, signed in as the QA member, read only,
+at 18:55 (before) and 19:45 UTC (after). The QA member has no bookings, tenancies, saves,
+inspections or application, so live shows those routes' empty and missing states; the populated
+states are the harness's.
+
+### 13.O.7 Checks
+
+`tsc --noEmit` (whole project), `vitest run` (whole suite), `check-css-tokens` (clean, all ten)
+and eslint on every changed file, after `git pull --rebase`: see the commit that carries this
+section. The claim commit 1bd26df0 (scope file only) was pushed before the whole-suite gate was
+run; it touched no code.
+
+### 13.O.8 Skipped or not verified
+
+- `components/app/crypto/**` (13 legacy cards) is not swept: no route renders it (the two
+  routes are `notFound()`), and proving it would mean drawing a market we do not offer.
+- The `KycFlow` steps after the first (address, business question, details, consent, review)
+  and `ProposeAreaForm`'s done and error states cannot be reached from props; they were swept in
+  code and measured only through their shared pieces.
+- The around page's proposed, paused, slow-mode and moderator notes and the settings page's
+  proposal rows are fixture-proven only: the QA member has none.
+- No live writes: nothing was submitted, joined, cancelled or paid.
+
 ## Skipped or not verified
+
+- Orphans sweep (ledger 13, orphans, 13.O.8): `components/app/crypto/**` not swept (no route renders it); `KycFlow` steps past the first and `ProposeAreaForm` done and error states swept in code only.
 - (13.H, sweep-home) No live row on any proof: this box's egress refuses the Supabase host, so every card, panel and figure in the home group's proofs is fixture-backed or an empty state; the wiring is unchanged by the sweep (material only). `/price/area/[id]` and `/rent/move-in/[listingId]` were swept in their stylesheets and not photographed. The lister's TierBadge on the card waits on R-SH4. `StayCard` still wears `nf-glass--card` itself (stays group, R-SH2). The unmounted `AiAssistantBanner` stays until R-SH1.
 
 - Sweep, settings group (23 September): the payment methods block on `/settings` and

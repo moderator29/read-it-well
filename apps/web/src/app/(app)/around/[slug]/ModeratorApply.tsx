@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/Button";
 import {
   applyToModerate,
   withdrawModeratorApplication,
@@ -42,16 +43,17 @@ export function ModeratorApply({
 
   if (pendingApplication) {
     return (
-      <div className="nf-card p-md">
+      <div className="nf-panel nf-panel--card block">
         <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           You asked to look after {areaName}
         </p>
         <p className="mt-2xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           {AREA_COPY.moderatorPending}
         </p>
-        <button
-          type="button"
-          className="nf-btn nf-btn--ghost mt-sm inline-flex h-9 items-center px-md text-[length:var(--nf-text-overline)]"
+        <Button
+          variant="secondary"
+          size="sm"
+          className="mt-sm"
           disabled={pending}
           onClick={() =>
             startTransition(async () => {
@@ -62,7 +64,7 @@ export function ModeratorApply({
           }
         >
           {pending ? "Withdrawing" : "Withdraw it"}
-        </button>
+        </Button>
         {error ? (
           <p role="alert" className="mt-xs text-[length:var(--nf-text-overline)] text-[var(--nf-state-error)]">
             {error}
@@ -77,7 +79,7 @@ export function ModeratorApply({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="nf-card w-full p-md text-left transition-colors hover:border-[var(--nf-border-brand)]"
+        className="nf-panel nf-panel--card block w-full text-left"
       >
         <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           Look after {areaName}
@@ -94,7 +96,7 @@ export function ModeratorApply({
 
   return (
     <form
-      className="nf-card flex flex-col gap-md p-md"
+      className="nf-panel nf-panel--card gap-md"
       onSubmit={(event) => {
         event.preventDefault();
         if (pending) return;
@@ -163,28 +165,25 @@ export function ModeratorApply({
       {error ? (
         <p
           role="alert"
-          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-state-error)] bg-[var(--nf-state-error-surface)] px-sm py-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]"
+          className="nf-panel nf-panel--card block border-[color-mix(in_oklab,var(--nf-state-error)_55%,transparent)] px-sm py-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-state-error)]"
         >
           {error}
         </p>
       ) : null}
 
       <div className="flex gap-xs">
-        <button
+        <Button
           type="submit"
-          className="nf-btn nf-btn--primary h-10 flex-1 text-[length:var(--nf-text-body-sm)]"
+          variant="primary"
+          size="sm"
+          className="flex-1"
           disabled={pending || remaining > 0}
         >
           {pending ? "Sending" : "Send application"}
-        </button>
-        <button
-          type="button"
-          className="nf-btn nf-btn--ghost h-10 px-md text-[length:var(--nf-text-body-sm)]"
-          onClick={() => setOpen(false)}
-          disabled={pending}
-        >
+        </Button>
+        <Button variant="secondary" size="sm" onClick={() => setOpen(false)} disabled={pending}>
           Not now
-        </button>
+        </Button>
       </div>
     </form>
   );

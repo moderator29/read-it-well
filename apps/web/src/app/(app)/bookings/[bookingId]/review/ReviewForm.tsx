@@ -8,6 +8,7 @@ import { BODY_MAX, RATING_LABELS, RATING_MAX, RATING_MIN } from "@/lib/reviews/s
 import type { ReviewSubject } from "@/lib/reviews/queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ResultScreen } from "@/components/app/ResultSheet";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The review form.
@@ -62,7 +63,7 @@ export function ReviewForm({ subject }: { subject: ReviewSubject }) {
   const remaining = BODY_MAX - body.length;
 
   return (
-    <form action={formAction} className="nf-card p-card">
+    <form action={formAction} className="nf-panel nf-panel--card block p-card">
       <input type="hidden" name="bookingId" value={subject.bookingId} />
 
       <fieldset className="border-0 p-0">
@@ -141,19 +142,15 @@ export function ReviewForm({ subject }: { subject: ReviewSubject }) {
       {state && !state.ok && (
         <p
           role="alert"
-          className="mt-block rounded-[var(--nf-radius-md)] border border-[var(--nf-border-subtle)] p-card-sm nf-body-sm leading-relaxed text-[var(--nf-state-warning)]"
+          className="nf-panel nf-panel--card mt-block block border-[color-mix(in_oklab,var(--nf-state-error)_55%,transparent)] p-card-sm nf-body-sm leading-relaxed text-[var(--nf-state-error)]"
         >
           {state.error}
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="nf-btn nf-btn--primary mt-block w-full disabled:opacity-60"
-      >
+      <Button type="submit" variant="primary" full disabled={pending} className="mt-block">
         {pending ? "Sharing your review..." : "Share review"}
-      </button>
+      </Button>
 
       {/* 12px on the sentence warning somebody not to put a bank account
           number where the whole internet can read it. Caption is the floor. */}

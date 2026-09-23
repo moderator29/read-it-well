@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ButtonLink } from "@/components/ui/Button";
 import type { ListingReview, ReviewSubject } from "@/lib/reviews/queries";
 import { RATING_LABELS } from "@/lib/reviews/schema";
 import { ICON } from "@/components/app/Screen";
@@ -14,7 +14,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 export function ReviewSubjectPanel({ subject }: { subject: ReviewSubject }) {
   return (
     <Reveal>
-      <section className="nf-card p-card">
+      <section className="nf-panel nf-panel--card block p-card">
         <h2 className="nf-h3">{subject.title}</h2>
         {subject.location.length > 0 && (
           <p className="mt-row flex items-center gap-inline nf-body-sm text-[var(--nf-content-muted)]">
@@ -40,12 +40,12 @@ export function AlreadyReviewedPanel({
   return (
     <>
       <Reveal>
-        <section className="nf-card p-card">
+        <section className="nf-panel nf-panel--card block p-card">
           <h2 className="nf-h3">You have already reviewed this stay</h2>
           <p className="mt-row nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">
             This is what other guests see on {subject.title}.
           </p>
-  
+
           <div className="nf-hairline mt-block pt-block">
             <p className="flex items-center gap-xs">
               <span className="flex items-center gap-3xs" aria-hidden="true">
@@ -77,17 +77,14 @@ export function AlreadyReviewedPanel({
           </div>
         </section>
       </Reveal>
-  
+
       <Reveal delay={80} className="mt-block flex flex-wrap gap-row">
-        <Link
-          href={`/listing/${subject.listingId}`}
-          className="nf-btn nf-btn--primary"
-        >
+        <ButtonLink href={`/listing/${subject.listingId}`} variant="primary">
           See it on the listing
-        </Link>
-        <Link href="/bookings" className="nf-btn nf-btn--glass">
+        </ButtonLink>
+        <ButtonLink href="/bookings" variant="secondary">
           See your stays
-        </Link>
+        </ButtonLink>
       </Reveal>
     </>
   );

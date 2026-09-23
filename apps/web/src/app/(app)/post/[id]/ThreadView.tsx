@@ -305,7 +305,7 @@ export function ThreadView({
       {notice ? (
         <p
           role="status"
-          className="rounded-[var(--nf-radius-md)] border border-[var(--nf-border-brand)] bg-[var(--nf-surface-inset)] px-md py-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
+          className="nf-panel nf-panel--card block px-md py-sm text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
         >
           {notice}
         </p>
@@ -446,14 +446,14 @@ export function ThreadView({
  */
 function MutedReply({ who, onShow }: { who: string; onShow: () => void }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-sm rounded-[var(--nf-radius-lg)] border border-dashed border-[var(--nf-border-default)] px-md py-sm">
+    <div className="nf-panel nf-panel--card flex-row flex-wrap items-center justify-between gap-sm px-md py-sm">
       <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
         You muted {who}.
       </p>
       <button
         type="button"
         onClick={onShow}
-        className="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-brand-secondary)]"
+        className="min-h-11 text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-brand-secondary)]"
       >
         Read it anyway
       </button>

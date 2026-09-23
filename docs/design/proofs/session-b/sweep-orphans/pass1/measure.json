@@ -1,0 +1,5264 @@
+{
+ "h-place": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=place"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=place"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=place"
+ },
+ "h-place-apply": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Send application",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=place"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Send application",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=place"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=place"
+ },
+ "h-place-new": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Suggest this place",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=place-new"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Suggest this place",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=place-new"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=place-new"
+ },
+ "h-place-new-out": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Suggest this place",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=place-new&s=out"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Suggest this place",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=place-new&s=out"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=place-new&s=out"
+ },
+ "h-places": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=places"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=places"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=places"
+ },
+ "h-bookings": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Pay the rent",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [
+    {
+     "r": 14,
+     "w": 342,
+     "h": 54,
+     "el": "div.nf-segmented.relative.inline-flex.items-center"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=bookings"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Pay the rent",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [
+    {
+     "r": 14,
+     "w": 672,
+     "h": 54,
+     "el": "div.nf-segmented.relative.inline-flex.items-center"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=bookings"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=bookings"
+ },
+ "h-booking": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Leave a review",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=booking"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Leave a review",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=booking"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=booking"
+ },
+ "h-booking-cancel": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=booking-cancel"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=booking-cancel"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=booking-cancel"
+ },
+ "h-review": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Share review",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=review"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Share review",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=review"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=review"
+ },
+ "h-reviewed": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "See it on the listing",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=reviewed"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "See it on the listing",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=reviewed"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=reviewed"
+ },
+ "h-kyc": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Continue",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=kyc"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Continue",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=kyc"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=kyc"
+ },
+ "h-kyc-rejected": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=kyc-status&s=rejected"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=kyc-status&s=rejected"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=kyc-status&s=rejected"
+ },
+ "h-kyc-pending": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=kyc-status&s=pending"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=kyc-status&s=pending"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=kyc-status&s=pending"
+ },
+ "h-kyc-approved": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=kyc-status&s=approved"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=kyc-status&s=approved"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=kyc-status&s=approved"
+ },
+ "h-rent-pay": {
+  "390": {
+   "overflow": 0,
+   "small": [
+    {
+     "t": ".00",
+     "fs": 8,
+     "el": "span.text-[0.5em].font-semibold.text-[var(--nf-content-muted)]"
+    },
+    {
+     "t": ".00",
+     "fs": 10.5,
+     "el": "span.text-[0.62em].font-semibold.text-[var(--nf-content-muted)]"
+    }
+   ],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Pay by card",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Pay by card",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 2,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=rent-pay"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [
+    {
+     "t": ".00",
+     "fs": 8,
+     "el": "span.text-[0.5em].font-semibold.text-[var(--nf-content-muted)]"
+    },
+    {
+     "t": ".00",
+     "fs": 10.5,
+     "el": "span.text-[0.62em].font-semibold.text-[var(--nf-content-muted)]"
+    }
+   ],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Pay by card",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Pay by card",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 2,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=rent-pay"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=rent-pay"
+ },
+ "h-rent-pay-wallet": {
+  "390": {
+   "overflow": 0,
+   "small": [
+    {
+     "t": ".00",
+     "fs": 8,
+     "el": "span.text-[0.5em].font-semibold.text-[var(--nf-content-muted)]"
+    },
+    {
+     "t": ".00",
+     "fs": 10.5,
+     "el": "span.text-[0.62em].font-semibold.text-[var(--nf-content-muted)]"
+    }
+   ],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Pay from my wallet",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 2,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=rent-pay&s=wallet"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [
+    {
+     "t": ".00",
+     "fs": 8,
+     "el": "span.text-[0.5em].font-semibold.text-[var(--nf-content-muted)]"
+    },
+    {
+     "t": ".00",
+     "fs": 10.5,
+     "el": "span.text-[0.62em].font-semibold.text-[var(--nf-content-muted)]"
+    }
+   ],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Pay from my wallet",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 2,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=rent-pay&s=wallet"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=rent-pay&s=wallet"
+ },
+ "h-saved": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [
+    "article.nf-glass.nf-glass--card.nf-pcard.nf-pcard--wide"
+   ],
+   "oddContainers": [
+    {
+     "r": 22,
+     "w": 342,
+     "h": 312,
+     "el": "article.nf-glass.nf-glass--card.nf-pcard.nf-pcard--wide"
+    },
+    {
+     "r": 22,
+     "w": 342,
+     "h": 312,
+     "el": "article.nf-glass.nf-glass--card.nf-pcard.nf-pcard--wide"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 2,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=saved"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [
+    "article.nf-glass.nf-glass--card.nf-pcard.nf-pcard--wide"
+   ],
+   "oddContainers": [
+    {
+     "r": 22,
+     "w": 372,
+     "h": 339,
+     "el": "article.nf-glass.nf-glass--card.nf-pcard.nf-pcard--wide"
+    },
+    {
+     "r": 22,
+     "w": 372,
+     "h": 339,
+     "el": "article.nf-glass.nf-glass--card.nf-pcard.nf-pcard--wide"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 2,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=saved"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=saved"
+ },
+ "h-saved-searches": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [
+    "div.nf-card.rounded-[var(--nf-radius-xl)].p-card.sm:p-cell"
+   ],
+   "oddContainers": [
+    {
+     "r": 22,
+     "w": 342,
+     "h": 443,
+     "el": "div.nf-card.rounded-[var(--nf-radius-xl)].p-card.sm:p-cell"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 1,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=saved-searches"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [
+    "div.nf-card.rounded-[var(--nf-radius-xl)].p-card.sm:p-cell"
+   ],
+   "oddContainers": [
+    {
+     "r": 22,
+     "w": 672,
+     "h": 349,
+     "el": "div.nf-card.rounded-[var(--nf-radius-xl)].p-card.sm:p-cell"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 1,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=saved-searches"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=saved-searches"
+ },
+ "h-post": {
+  "390": {
+   "overflow": 0,
+   "small": [
+    {
+     "t": "@",
+     "fs": 8.6,
+     "el": "span.nf-post__handle"
+    },
+    {
+     "t": "2h ago",
+     "fs": 8.5,
+     "el": "span.nf-post__when"
+    },
+    {
+     "t": "Just closed on this 4-bedroom ",
+     "fs": 9.2,
+     "el": "p.nf-post__body"
+    },
+    {
+     "t": "243",
+     "fs": 8.5,
+     "el": "span.nf-numeric"
+    },
+    {
+     "t": "37",
+     "fs": 8.5,
+     "el": "span.nf-numeric"
+    },
+    {
+     "t": "3",
+     "fs": 8.5,
+     "el": "span.nf-numeric"
+    },
+    {
+     "t": "@",
+     "fs": 8.6,
+     "el": "span.nf-post__handle"
+    },
+    {
+     "t": "1h ago",
+     "fs": 8.5,
+     "el": "span.nf-post__when"
+    },
+    {
+     "t": "Congratulations. Is the pool h",
+     "fs": 9.2,
+     "el": "p.nf-post__body"
+    },
+    {
+     "t": "12",
+     "fs": 8.5,
+     "el": "span.nf-numeric"
+    }
+   ],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Reply",
+     "lit": true,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 24,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=post"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Reply",
+     "lit": true,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=post"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=post"
+ },
+ "h-inspection-rows": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [
+    "ul.nf-rows.nf-rows--inset.nf-card.overflow-hidden"
+   ],
+   "oddContainers": [
+    {
+     "r": 22,
+     "w": 342,
+     "h": 429,
+     "el": "ul.nf-rows.nf-rows--inset.nf-card.overflow-hidden"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 1,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=inspection-rows"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [
+    "ul.nf-rows.nf-rows--inset.nf-card.overflow-hidden"
+   ],
+   "oddContainers": [
+    {
+     "r": 22,
+     "w": 672,
+     "h": 268,
+     "el": "ul.nf-rows.nf-rows--inset.nf-card.overflow-hidden"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 1,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=inspection-rows"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=inspection-rows"
+ },
+ "h-loading-place": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-place"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-place"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=loading-place"
+ },
+ "h-loading-manage": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-manage"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-manage"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=loading-manage"
+ },
+ "h-loading-place-new": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-place-new"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-place-new"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=loading-place-new"
+ },
+ "h-loading-places": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-places"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-places"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=loading-places"
+ },
+ "h-loading-bookings": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-bookings"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-bookings"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=loading-bookings"
+ },
+ "h-loading-review": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-review"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-review"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=loading-review"
+ },
+ "h-loading-crypto": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-crypto"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-crypto"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=loading-crypto"
+ },
+ "h-loading-coin": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-coin"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-coin"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=loading-coin"
+ },
+ "h-loading-kyc": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-kyc"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-kyc"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=loading-kyc"
+ },
+ "h-loading-rent": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [
+    "div.nf-card.overflow-hidden"
+   ],
+   "oddContainers": [
+    {
+     "r": 22,
+     "w": 342,
+     "h": 355,
+     "el": "div.nf-card.overflow-hidden"
+    },
+    {
+     "r": 22,
+     "w": 342,
+     "h": 355,
+     "el": "div.nf-card.overflow-hidden"
+    },
+    {
+     "r": 22,
+     "w": 342,
+     "h": 355,
+     "el": "div.nf-card.overflow-hidden"
+    },
+    {
+     "r": 22,
+     "w": 342,
+     "h": 355,
+     "el": "div.nf-card.overflow-hidden"
+    },
+    {
+     "r": 22,
+     "w": 342,
+     "h": 355,
+     "el": "div.nf-card.overflow-hidden"
+    },
+    {
+     "r": 22,
+     "w": 342,
+     "h": 355,
+     "el": "div.nf-card.overflow-hidden"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 6,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-rent"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [
+    "div.nf-card.overflow-hidden"
+   ],
+   "oddContainers": [
+    {
+     "r": 22,
+     "w": 355,
+     "h": 364,
+     "el": "div.nf-card.overflow-hidden"
+    },
+    {
+     "r": 22,
+     "w": 355,
+     "h": 365,
+     "el": "div.nf-card.overflow-hidden"
+    },
+    {
+     "r": 22,
+     "w": 355,
+     "h": 364,
+     "el": "div.nf-card.overflow-hidden"
+    },
+    {
+     "r": 22,
+     "w": 355,
+     "h": 364,
+     "el": "div.nf-card.overflow-hidden"
+    },
+    {
+     "r": 22,
+     "w": 355,
+     "h": 365,
+     "el": "div.nf-card.overflow-hidden"
+    },
+    {
+     "r": 22,
+     "w": 355,
+     "h": 364,
+     "el": "div.nf-card.overflow-hidden"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 6,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-rent"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=loading-rent"
+ },
+ "h-loading-saved": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [
+    "div.nf-card.overflow-hidden"
+   ],
+   "oddContainers": [
+    {
+     "r": 22,
+     "w": 342,
+     "h": 355,
+     "el": "div.nf-card.overflow-hidden"
+    },
+    {
+     "r": 22,
+     "w": 342,
+     "h": 355,
+     "el": "div.nf-card.overflow-hidden"
+    },
+    {
+     "r": 22,
+     "w": 342,
+     "h": 355,
+     "el": "div.nf-card.overflow-hidden"
+    },
+    {
+     "r": 22,
+     "w": 342,
+     "h": 355,
+     "el": "div.nf-card.overflow-hidden"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 4,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-saved"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [
+    "div.nf-card.overflow-hidden"
+   ],
+   "oddContainers": [
+    {
+     "r": 22,
+     "w": 372,
+     "h": 378,
+     "el": "div.nf-card.overflow-hidden"
+    },
+    {
+     "r": 22,
+     "w": 372,
+     "h": 378,
+     "el": "div.nf-card.overflow-hidden"
+    },
+    {
+     "r": 22,
+     "w": 372,
+     "h": 378,
+     "el": "div.nf-card.overflow-hidden"
+    },
+    {
+     "r": 22,
+     "w": 372,
+     "h": 378,
+     "el": "div.nf-card.overflow-hidden"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 4,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-saved"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=loading-saved"
+ },
+ "h-loading-saved-searches": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [
+    "li.nf-card.p-md.sm:p-lg"
+   ],
+   "oddContainers": [
+    {
+     "r": 22,
+     "w": 342,
+     "h": 122,
+     "el": "li.nf-card.p-md.sm:p-lg"
+    },
+    {
+     "r": 22,
+     "w": 342,
+     "h": 122,
+     "el": "li.nf-card.p-md.sm:p-lg"
+    },
+    {
+     "r": 22,
+     "w": 342,
+     "h": 122,
+     "el": "li.nf-card.p-md.sm:p-lg"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 3,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-saved-searches"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [
+    "li.nf-card.p-md.sm:p-lg"
+   ],
+   "oddContainers": [
+    {
+     "r": 22,
+     "w": 672,
+     "h": 138,
+     "el": "li.nf-card.p-md.sm:p-lg"
+    },
+    {
+     "r": 22,
+     "w": 672,
+     "h": 138,
+     "el": "li.nf-card.p-md.sm:p-lg"
+    },
+    {
+     "r": 22,
+     "w": 672,
+     "h": 138,
+     "el": "li.nf-card.p-md.sm:p-lg"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 3,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-saved-searches"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=loading-saved-searches"
+ },
+ "h-loading-post": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-post"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-post"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=loading-post"
+ },
+ "h-loading-story-new": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-story-new"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-story-new"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=loading-story-new"
+ },
+ "h-loading-story": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-story"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-story"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=loading-story"
+ },
+ "h-loading-inspections": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-inspections"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/session-b/sweep-orphans?v=loading-inspections"
+  },
+  "route": "/preview/session-b/sweep-orphans?v=loading-inspections"
+ },
+ "h-setup-agent": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Continue",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [
+    {
+     "r": 14,
+     "w": 342,
+     "h": 115,
+     "el": "div.nf-calmpanel"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/b1b/agent"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Continue",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [
+    {
+     "r": 14,
+     "w": 672,
+     "h": 93,
+     "el": "div.nf-calmpanel"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/b1b/agent"
+  },
+  "route": "/preview/b1b/agent"
+ },
+ "h-setup-firm": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Continue",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [
+    {
+     "r": 14,
+     "w": 342,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 342,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 342,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 342,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 342,
+     "h": 145,
+     "el": "div.nf-regfield"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/b1b/firm"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Continue",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [
+    {
+     "r": 14,
+     "w": 672,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 672,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 672,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 672,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 672,
+     "h": 131,
+     "el": "div.nf-regfield"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/b1b/firm"
+  },
+  "route": "/preview/b1b/firm"
+ },
+ "h-setup-owner": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Continue",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [
+    {
+     "r": 14,
+     "w": 342,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 342,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 342,
+     "h": 148,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 342,
+     "h": 93,
+     "el": "div.nf-calmpanel"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/b1b/owner"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Continue",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [
+    {
+     "r": 14,
+     "w": 672,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 672,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 672,
+     "h": 129,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 672,
+     "h": 82,
+     "el": "div.nf-calmpanel"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/preview/b1b/owner"
+  },
+  "route": "/preview/b1b/owner"
+ },
+ "l-around-slug": {
+  "390": {
+   "overflow": 0,
+   "small": [
+    {
+     "t": "5 Aug",
+     "fs": 8.5,
+     "el": "span.nf-post__when"
+    },
+    {
+     "t": "UNILAG is open, in Lagos. The ",
+     "fs": 9.2,
+     "el": "p.nf-post__body.nf-post__body--system"
+    },
+    {
+     "t": "1",
+     "fs": 8.5,
+     "el": "span.nf-numeric"
+    },
+    {
+     "t": "1",
+     "fs": 8.5,
+     "el": "span.nf-numeric"
+    },
+    {
+     "t": "1",
+     "fs": 8.5,
+     "el": "span.nf-numeric"
+    },
+    {
+     "t": "5 Aug",
+     "fs": 8.5,
+     "el": "span.nf-post__when"
+    },
+    {
+     "t": "Never send money for a place y",
+     "fs": 9.2,
+     "el": "p.nf-post__body.nf-post__body--system"
+    },
+    {
+     "t": "0",
+     "fs": 8.5,
+     "el": "span.nf-numeric"
+    },
+    {
+     "t": "0",
+     "fs": 8.5,
+     "el": "span.nf-numeric"
+    },
+    {
+     "t": "0",
+     "fs": 8.5,
+     "el": "span.nf-numeric"
+    }
+   ],
+   "capsules": [
+    {
+     "t": "All",
+     "ratio": 0.37,
+     "w": 49,
+     "h": 38,
+     "el": "button.nf-district__chip"
+    },
+    {
+     "t": "Apartments",
+     "ratio": 0.37,
+     "w": 107,
+     "h": 38,
+     "el": "button.nf-district__chip"
+    },
+    {
+     "t": "Stories",
+     "ratio": 0.37,
+     "w": 77,
+     "h": 38,
+     "el": "button.nf-district__chip"
+    },
+    {
+     "t": "Reviews",
+     "ratio": 0.37,
+     "w": 85,
+     "h": 38,
+     "el": "button.nf-district__chip"
+    },
+    {
+     "t": "Updates",
+     "ratio": 0.37,
+     "w": 85,
+     "h": 38,
+     "el": "button.nf-district__chip"
+    }
+   ],
+   "short": [
+    {
+     "t": "All",
+     "h": 38,
+     "el": "button.nf-district__chip"
+    },
+    {
+     "t": "Apartments",
+     "h": 38,
+     "el": "button.nf-district__chip"
+    },
+    {
+     "t": "Stories",
+     "h": 38,
+     "el": "button.nf-district__chip"
+    },
+    {
+     "t": "Reviews",
+     "h": 38,
+     "el": "button.nf-district__chip"
+    },
+    {
+     "t": "Updates",
+     "h": 38,
+     "el": "button.nf-district__chip"
+    }
+   ],
+   "primaries": [
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [
+    {
+     "t": "All",
+     "bg": "rgb(0, 105, 254)",
+     "el": "button.nf-district__chip"
+    }
+   ],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 10,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/around/yaba-unilag"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [
+    {
+     "t": "All",
+     "ratio": 0.37,
+     "w": 49,
+     "h": 38,
+     "el": "button.nf-district__chip"
+    },
+    {
+     "t": "Apartments",
+     "ratio": 0.37,
+     "w": 107,
+     "h": 38,
+     "el": "button.nf-district__chip"
+    },
+    {
+     "t": "Stories",
+     "ratio": 0.37,
+     "w": 77,
+     "h": 38,
+     "el": "button.nf-district__chip"
+    },
+    {
+     "t": "Reviews",
+     "ratio": 0.37,
+     "w": 85,
+     "h": 38,
+     "el": "button.nf-district__chip"
+    },
+    {
+     "t": "Updates",
+     "ratio": 0.37,
+     "w": 85,
+     "h": 38,
+     "el": "button.nf-district__chip"
+    }
+   ],
+   "short": [
+    {
+     "t": "All",
+     "h": 38,
+     "el": "button.nf-district__chip"
+    },
+    {
+     "t": "Apartments",
+     "h": 38,
+     "el": "button.nf-district__chip"
+    },
+    {
+     "t": "Stories",
+     "h": 38,
+     "el": "button.nf-district__chip"
+    },
+    {
+     "t": "Reviews",
+     "h": 38,
+     "el": "button.nf-district__chip"
+    },
+    {
+     "t": "Updates",
+     "h": 38,
+     "el": "button.nf-district__chip"
+    }
+   ],
+   "primaries": [
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [
+    {
+     "t": "All",
+     "bg": "rgb(0, 105, 254)",
+     "el": "button.nf-district__chip"
+    }
+   ],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/around/yaba-unilag"
+  },
+  "route": "/around/yaba-unilag"
+ },
+ "l-around-manage": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [
+    {
+     "t": "Abia",
+     "ratio": 0.35,
+     "w": 59,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Adamawa",
+     "ratio": 0.35,
+     "w": 93,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Akwa Ibom",
+     "ratio": 0.35,
+     "w": 100,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Anambra",
+     "ratio": 0.35,
+     "w": 88,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Bauchi",
+     "ratio": 0.35,
+     "w": 73,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Bayelsa",
+     "ratio": 0.35,
+     "w": 79,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Benue",
+     "ratio": 0.35,
+     "w": 70,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Borno",
+     "ratio": 0.35,
+     "w": 68,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Cross River",
+     "ratio": 0.35,
+     "w": 102,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Delta",
+     "ratio": 0.35,
+     "w": 63,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ebonyi",
+     "ratio": 0.35,
+     "w": 73,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Edo",
+     "ratio": 0.35,
+     "w": 54,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ekiti",
+     "ratio": 0.35,
+     "w": 57,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Enugu",
+     "ratio": 0.35,
+     "w": 70,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "FCT (Abuja)",
+     "ratio": 0.35,
+     "w": 106,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Gombe",
+     "ratio": 0.35,
+     "w": 75,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Imo",
+     "ratio": 0.35,
+     "w": 53,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Jigawa",
+     "ratio": 0.35,
+     "w": 75,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kaduna",
+     "ratio": 0.35,
+     "w": 78,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kano",
+     "ratio": 0.35,
+     "w": 63,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Katsina",
+     "ratio": 0.35,
+     "w": 78,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kebbi",
+     "ratio": 0.35,
+     "w": 66,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kogi",
+     "ratio": 0.35,
+     "w": 58,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kwara",
+     "ratio": 0.35,
+     "w": 69,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Lagos",
+     "ratio": 0.35,
+     "w": 68,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Nasarawa",
+     "ratio": 0.35,
+     "w": 93,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Niger",
+     "ratio": 0.35,
+     "w": 64,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ogun",
+     "ratio": 0.35,
+     "w": 64,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ondo",
+     "ratio": 0.35,
+     "w": 64,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Osun",
+     "ratio": 0.35,
+     "w": 63,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Oyo",
+     "ratio": 0.35,
+     "w": 55,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Plateau",
+     "ratio": 0.35,
+     "w": 77,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Rivers",
+     "ratio": 0.35,
+     "w": 70,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Sokoto",
+     "ratio": 0.35,
+     "w": 74,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Taraba",
+     "ratio": 0.35,
+     "w": 74,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Yobe",
+     "ratio": 0.35,
+     "w": 62,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Zamfara",
+     "ratio": 0.35,
+     "w": 83,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    }
+   ],
+   "short": [
+    {
+     "t": "Abia",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Adamawa",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Akwa Ibom",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Anambra",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Bauchi",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Bayelsa",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Benue",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Borno",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Cross River",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Delta",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ebonyi",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Edo",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ekiti",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Enugu",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "FCT (Abuja)",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Gombe",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Imo",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Jigawa",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kaduna",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kano",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Katsina",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kebbi",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kogi",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kwara",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Lagos",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Nasarawa",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Niger",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ogun",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ondo",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Osun",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Oyo",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Plateau",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Rivers",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Sokoto",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Taraba",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Yobe",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Zamfara",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    }
+   ],
+   "primaries": [
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/around/settings"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [
+    {
+     "t": "Abia",
+     "ratio": 0.35,
+     "w": 59,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Adamawa",
+     "ratio": 0.35,
+     "w": 93,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Akwa Ibom",
+     "ratio": 0.35,
+     "w": 100,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Anambra",
+     "ratio": 0.35,
+     "w": 88,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Bauchi",
+     "ratio": 0.35,
+     "w": 73,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Bayelsa",
+     "ratio": 0.35,
+     "w": 79,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Benue",
+     "ratio": 0.35,
+     "w": 70,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Borno",
+     "ratio": 0.35,
+     "w": 68,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Cross River",
+     "ratio": 0.35,
+     "w": 102,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Delta",
+     "ratio": 0.35,
+     "w": 63,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ebonyi",
+     "ratio": 0.35,
+     "w": 73,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Edo",
+     "ratio": 0.35,
+     "w": 54,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ekiti",
+     "ratio": 0.35,
+     "w": 57,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Enugu",
+     "ratio": 0.35,
+     "w": 70,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "FCT (Abuja)",
+     "ratio": 0.35,
+     "w": 106,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Gombe",
+     "ratio": 0.35,
+     "w": 75,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Imo",
+     "ratio": 0.35,
+     "w": 53,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Jigawa",
+     "ratio": 0.35,
+     "w": 75,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kaduna",
+     "ratio": 0.35,
+     "w": 78,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kano",
+     "ratio": 0.35,
+     "w": 63,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Katsina",
+     "ratio": 0.35,
+     "w": 78,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kebbi",
+     "ratio": 0.35,
+     "w": 66,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kogi",
+     "ratio": 0.35,
+     "w": 58,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kwara",
+     "ratio": 0.35,
+     "w": 69,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Lagos",
+     "ratio": 0.35,
+     "w": 68,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Nasarawa",
+     "ratio": 0.35,
+     "w": 93,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Niger",
+     "ratio": 0.35,
+     "w": 64,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ogun",
+     "ratio": 0.35,
+     "w": 64,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ondo",
+     "ratio": 0.35,
+     "w": 64,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Osun",
+     "ratio": 0.35,
+     "w": 63,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Oyo",
+     "ratio": 0.35,
+     "w": 55,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Plateau",
+     "ratio": 0.35,
+     "w": 77,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Rivers",
+     "ratio": 0.35,
+     "w": 70,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Sokoto",
+     "ratio": 0.35,
+     "w": 74,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Taraba",
+     "ratio": 0.35,
+     "w": 74,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Yobe",
+     "ratio": 0.35,
+     "w": 62,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Zamfara",
+     "ratio": 0.35,
+     "w": 83,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    }
+   ],
+   "short": [
+    {
+     "t": "Abia",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Adamawa",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Akwa Ibom",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Anambra",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Bauchi",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Bayelsa",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Benue",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Borno",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Cross River",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Delta",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ebonyi",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Edo",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ekiti",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Enugu",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "FCT (Abuja)",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Gombe",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Imo",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Jigawa",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kaduna",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kano",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Katsina",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kebbi",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kogi",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kwara",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Lagos",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Nasarawa",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Niger",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ogun",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ondo",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Osun",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Oyo",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Plateau",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Rivers",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Sokoto",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Taraba",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Yobe",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Zamfara",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    }
+   ],
+   "primaries": [
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/around/settings"
+  },
+  "route": "/around/manage"
+ },
+ "l-around-new": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Suggest this place",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/around/new"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Suggest this place",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/around/new"
+  },
+  "route": "/around/new"
+ },
+ "l-around-settings": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [
+    {
+     "t": "Abia",
+     "ratio": 0.35,
+     "w": 59,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Adamawa",
+     "ratio": 0.35,
+     "w": 93,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Akwa Ibom",
+     "ratio": 0.35,
+     "w": 100,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Anambra",
+     "ratio": 0.35,
+     "w": 88,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Bauchi",
+     "ratio": 0.35,
+     "w": 73,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Bayelsa",
+     "ratio": 0.35,
+     "w": 79,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Benue",
+     "ratio": 0.35,
+     "w": 70,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Borno",
+     "ratio": 0.35,
+     "w": 68,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Cross River",
+     "ratio": 0.35,
+     "w": 102,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Delta",
+     "ratio": 0.35,
+     "w": 63,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ebonyi",
+     "ratio": 0.35,
+     "w": 73,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Edo",
+     "ratio": 0.35,
+     "w": 54,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ekiti",
+     "ratio": 0.35,
+     "w": 57,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Enugu",
+     "ratio": 0.35,
+     "w": 70,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "FCT (Abuja)",
+     "ratio": 0.35,
+     "w": 106,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Gombe",
+     "ratio": 0.35,
+     "w": 75,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Imo",
+     "ratio": 0.35,
+     "w": 53,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Jigawa",
+     "ratio": 0.35,
+     "w": 75,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kaduna",
+     "ratio": 0.35,
+     "w": 78,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kano",
+     "ratio": 0.35,
+     "w": 63,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Katsina",
+     "ratio": 0.35,
+     "w": 78,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kebbi",
+     "ratio": 0.35,
+     "w": 66,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kogi",
+     "ratio": 0.35,
+     "w": 58,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kwara",
+     "ratio": 0.35,
+     "w": 69,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Lagos",
+     "ratio": 0.35,
+     "w": 68,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Nasarawa",
+     "ratio": 0.35,
+     "w": 93,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Niger",
+     "ratio": 0.35,
+     "w": 64,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ogun",
+     "ratio": 0.35,
+     "w": 64,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ondo",
+     "ratio": 0.35,
+     "w": 64,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Osun",
+     "ratio": 0.35,
+     "w": 63,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Oyo",
+     "ratio": 0.35,
+     "w": 55,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Plateau",
+     "ratio": 0.35,
+     "w": 77,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Rivers",
+     "ratio": 0.35,
+     "w": 70,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Sokoto",
+     "ratio": 0.35,
+     "w": 74,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Taraba",
+     "ratio": 0.35,
+     "w": 74,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Yobe",
+     "ratio": 0.35,
+     "w": 62,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Zamfara",
+     "ratio": 0.35,
+     "w": 83,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    }
+   ],
+   "short": [
+    {
+     "t": "Abia",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Adamawa",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Akwa Ibom",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Anambra",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Bauchi",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Bayelsa",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Benue",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Borno",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Cross River",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Delta",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ebonyi",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Edo",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ekiti",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Enugu",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "FCT (Abuja)",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Gombe",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Imo",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Jigawa",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kaduna",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kano",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Katsina",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kebbi",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kogi",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kwara",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Lagos",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Nasarawa",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Niger",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ogun",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ondo",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Osun",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Oyo",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Plateau",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Rivers",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Sokoto",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Taraba",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Yobe",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Zamfara",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    }
+   ],
+   "primaries": [
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/around/settings"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [
+    {
+     "t": "Abia",
+     "ratio": 0.35,
+     "w": 59,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Adamawa",
+     "ratio": 0.35,
+     "w": 93,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Akwa Ibom",
+     "ratio": 0.35,
+     "w": 100,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Anambra",
+     "ratio": 0.35,
+     "w": 88,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Bauchi",
+     "ratio": 0.35,
+     "w": 73,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Bayelsa",
+     "ratio": 0.35,
+     "w": 79,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Benue",
+     "ratio": 0.35,
+     "w": 70,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Borno",
+     "ratio": 0.35,
+     "w": 68,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Cross River",
+     "ratio": 0.35,
+     "w": 102,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Delta",
+     "ratio": 0.35,
+     "w": 63,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ebonyi",
+     "ratio": 0.35,
+     "w": 73,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Edo",
+     "ratio": 0.35,
+     "w": 54,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ekiti",
+     "ratio": 0.35,
+     "w": 57,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Enugu",
+     "ratio": 0.35,
+     "w": 70,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "FCT (Abuja)",
+     "ratio": 0.35,
+     "w": 106,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Gombe",
+     "ratio": 0.35,
+     "w": 75,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Imo",
+     "ratio": 0.35,
+     "w": 53,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Jigawa",
+     "ratio": 0.35,
+     "w": 75,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kaduna",
+     "ratio": 0.35,
+     "w": 78,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kano",
+     "ratio": 0.35,
+     "w": 63,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Katsina",
+     "ratio": 0.35,
+     "w": 78,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kebbi",
+     "ratio": 0.35,
+     "w": 66,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kogi",
+     "ratio": 0.35,
+     "w": 58,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kwara",
+     "ratio": 0.35,
+     "w": 69,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Lagos",
+     "ratio": 0.35,
+     "w": 68,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Nasarawa",
+     "ratio": 0.35,
+     "w": 93,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Niger",
+     "ratio": 0.35,
+     "w": 64,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ogun",
+     "ratio": 0.35,
+     "w": 64,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ondo",
+     "ratio": 0.35,
+     "w": 64,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Osun",
+     "ratio": 0.35,
+     "w": 63,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Oyo",
+     "ratio": 0.35,
+     "w": 55,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Plateau",
+     "ratio": 0.35,
+     "w": 77,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Rivers",
+     "ratio": 0.35,
+     "w": 70,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Sokoto",
+     "ratio": 0.35,
+     "w": 74,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Taraba",
+     "ratio": 0.35,
+     "w": 74,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Yobe",
+     "ratio": 0.35,
+     "w": 62,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Zamfara",
+     "ratio": 0.35,
+     "w": 83,
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    }
+   ],
+   "short": [
+    {
+     "t": "Abia",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Adamawa",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Akwa Ibom",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Anambra",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Bauchi",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Bayelsa",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Benue",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Borno",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Cross River",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Delta",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ebonyi",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Edo",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ekiti",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Enugu",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "FCT (Abuja)",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Gombe",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Imo",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Jigawa",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kaduna",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kano",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Katsina",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kebbi",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kogi",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Kwara",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Lagos",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Nasarawa",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Niger",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ogun",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Ondo",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Osun",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Oyo",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Plateau",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Rivers",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Sokoto",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Taraba",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Yobe",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    },
+    {
+     "t": "Zamfara",
+     "h": 40,
+     "el": "button.nf-enter__chip"
+    }
+   ],
+   "primaries": [
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Join",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/around/settings"
+  },
+  "route": "/around/settings"
+ },
+ "l-bookings": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Find a place",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [
+    "ul.nf-rows.nf-rows--inset.nf-card.overflow-hidden"
+   ],
+   "oddContainers": [
+    {
+     "r": 14,
+     "w": 342,
+     "h": 54,
+     "el": "div.nf-segmented.relative.inline-flex.items-center"
+    },
+    {
+     "r": 22,
+     "w": 342,
+     "h": 293,
+     "el": "ul.nf-rows.nf-rows--inset.nf-card.overflow-hidden"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 1,
+   "status": 200,
+   "finalUrl": "/bookings"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Find a place",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [
+    "ul.nf-rows.nf-rows--inset.nf-card.overflow-hidden"
+   ],
+   "oddContainers": [
+    {
+     "r": 14,
+     "w": 672,
+     "h": 54,
+     "el": "div.nf-segmented.relative.inline-flex.items-center"
+    },
+    {
+     "r": 22,
+     "w": 672,
+     "h": 228,
+     "el": "ul.nf-rows.nf-rows--inset.nf-card.overflow-hidden"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 1,
+   "status": 200,
+   "finalUrl": "/bookings"
+  },
+  "route": "/bookings"
+ },
+ "l-booking-missing": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Open Bookings",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/bookings/00000000-0000-4000-8000-000000000000"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Open Bookings",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/bookings/00000000-0000-4000-8000-000000000000"
+  },
+  "route": "/bookings/00000000-0000-4000-8000-000000000000"
+ },
+ "l-review-missing": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "See your stays",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/bookings/00000000-0000-4000-8000-000000000000/review"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "See your stays",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/bookings/00000000-0000-4000-8000-000000000000/review"
+  },
+  "route": "/bookings/00000000-0000-4000-8000-000000000000/review"
+ },
+ "l-crypto": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Search",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/crypto"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Search",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/crypto"
+  },
+  "route": "/crypto"
+ },
+ "l-crypto-coin": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Search",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/crypto/bitcoin"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Search",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/crypto/bitcoin"
+  },
+  "route": "/crypto/bitcoin"
+ },
+ "l-verification": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Continue",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/verification"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Continue",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/verification"
+  },
+  "route": "/verification"
+ },
+ "l-rent": {
+  "390": {
+   "overflow": 0,
+   "small": [
+    {
+     "t": "/yr",
+     "fs": 10.2,
+     "el": "span.text-[0.85em].font-semibold"
+    }
+   ],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Message agent",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Message agent",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Message agent",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Message agent",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Message agent",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Message agent",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Message agent",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Message agent",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [
+    "a.nf-card.nf-card--interactive.group.flex"
+   ],
+   "oddContainers": [],
+   "smallCount": 1,
+   "legacyCount": 1,
+   "status": 200,
+   "finalUrl": "/rent"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [
+    {
+     "t": "/yr",
+     "fs": 10.2,
+     "el": "span.text-[0.85em].font-semibold"
+    }
+   ],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Message agent",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Message agent",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Message agent",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Message agent",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Message agent",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Message agent",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Message agent",
+     "lit": true,
+     "grey": false
+    },
+    {
+     "t": "Message agent",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [
+    "a.nf-card.nf-card--interactive.group.flex"
+   ],
+   "oddContainers": [],
+   "smallCount": 1,
+   "legacyCount": 1,
+   "status": 200,
+   "finalUrl": "/rent"
+  },
+  "route": "/rent"
+ },
+ "l-rent-pay-missing": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "See your inspections",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/rent/pay/00000000-0000-4000-8000-000000000000"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "See your inspections",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/rent/pay/00000000-0000-4000-8000-000000000000"
+  },
+  "route": "/rent/pay/00000000-0000-4000-8000-000000000000"
+ },
+ "l-saved": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Find a place",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/saved"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Find a place",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/saved"
+  },
+  "route": "/saved"
+ },
+ "l-saved-searches": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Start a search",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/saved/searches"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Start a search",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/saved/searches"
+  },
+  "route": "/saved/searches"
+ },
+ "l-post": {
+  "390": {
+   "overflow": 0,
+   "small": [
+    {
+     "t": "13h",
+     "fs": 8.5,
+     "el": "span.nf-post__when"
+    },
+    {
+     "t": "A caution fee is your money be",
+     "fs": 9.2,
+     "el": "p.nf-post__body.nf-post__body--system"
+    },
+    {
+     "t": "1",
+     "fs": 8.5,
+     "el": "span.nf-numeric"
+    },
+    {
+     "t": "0",
+     "fs": 8.5,
+     "el": "span.nf-numeric"
+    },
+    {
+     "t": "0",
+     "fs": 8.5,
+     "el": "span.nf-numeric"
+    }
+   ],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Reply",
+     "lit": true,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 5,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/post/07de48f8-6fdf-4983-b2af-b1eaa990f8a8"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Reply",
+     "lit": true,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/post/07de48f8-6fdf-4983-b2af-b1eaa990f8a8"
+  },
+  "route": "/post/07de48f8-6fdf-4983-b2af-b1eaa990f8a8"
+ },
+ "l-story-missing": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Search",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/stories/00000000-0000-4000-8000-000000000000"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Search",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/stories/00000000-0000-4000-8000-000000000000"
+  },
+  "route": "/stories/00000000-0000-4000-8000-000000000000"
+ },
+ "l-story-new": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Find a place",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/stories/new"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Find a place",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/stories/new"
+  },
+  "route": "/stories/new"
+ },
+ "l-inspections": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Find a place",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/inspections"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Find a place",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/inspections"
+  },
+  "route": "/inspections"
+ },
+ "l-application": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Apply to become an agent",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/profile/application"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Apply to become an agent",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/profile/application"
+  },
+  "route": "/profile/application"
+ },
+ "l-setup-role": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Next",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/profile/setup/professional"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Next",
+     "lit": true,
+     "grey": false
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/profile/setup/professional"
+  },
+  "route": "/profile/setup/professional"
+ },
+ "l-setup-agent": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Continue",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [
+    {
+     "r": 14,
+     "w": 342,
+     "h": 115,
+     "el": "div.nf-calmpanel"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/profile/setup/agent"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Continue",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [
+    {
+     "r": 14,
+     "w": 672,
+     "h": 93,
+     "el": "div.nf-calmpanel"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/profile/setup/agent"
+  },
+  "route": "/profile/setup/agent"
+ },
+ "l-setup-firm": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Continue",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [
+    {
+     "r": 14,
+     "w": 342,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 342,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 342,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 342,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 342,
+     "h": 145,
+     "el": "div.nf-regfield"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/profile/setup/firm"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Continue",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [
+    {
+     "r": 14,
+     "w": 672,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 672,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 672,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 672,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 672,
+     "h": 131,
+     "el": "div.nf-regfield"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/profile/setup/firm"
+  },
+  "route": "/profile/setup/firm"
+ },
+ "l-setup-owner": {
+  "390": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Continue",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [
+    {
+     "r": 14,
+     "w": 342,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 342,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 342,
+     "h": 148,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 342,
+     "h": 93,
+     "el": "div.nf-calmpanel"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/profile/setup/owner"
+  },
+  "1440": {
+   "overflow": 0,
+   "small": [],
+   "capsules": [],
+   "short": [],
+   "primaries": [
+    {
+     "t": "Continue",
+     "lit": false,
+     "grey": true
+    }
+   ],
+   "flatSelected": [],
+   "legacy": [],
+   "oddContainers": [
+    {
+     "r": 14,
+     "w": 672,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 672,
+     "h": 102,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 672,
+     "h": 129,
+     "el": "div.nf-regfield"
+    },
+    {
+     "r": 14,
+     "w": 672,
+     "h": 82,
+     "el": "div.nf-calmpanel"
+    }
+   ],
+   "smallCount": 0,
+   "legacyCount": 0,
+   "status": 200,
+   "finalUrl": "/profile/setup/owner"
+  },
+  "route": "/profile/setup/owner"
+ }
+}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { PageHeader } from "@/components/app/PageHeader";
+import { ButtonLink } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
@@ -96,13 +97,9 @@ export default async function AroundManagePage({
         title={t.social.manage}
         fallback="/around"
         actions={
-          <Link
-            href="/around/new"
-            className="nf-btn nf-btn--ghost inline-flex h-10 items-center gap-xs px-md text-[length:var(--nf-text-body-sm)]"
-          >
-            <UiIcon name="sparkle" size={16} />
+          <ButtonLink href="/around/new" variant="secondary" size="sm" leadingIcon="sparkle">
             Suggest a place
-          </Link>
+          </ButtonLink>
         }
       />
 
@@ -127,7 +124,7 @@ export default async function AroundManagePage({
           reads as a screen nobody looked at. */}
       {unconfigured ? (
         <p
-          className="nf-card mb-lg p-md text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
+          className="nf-panel nf-panel--card mb-lg block text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
           /* Named so a spec can tell the two honest answers apart: the picker
              itself, or this sentence in its place. Without the hook a run with
              no keys looks identical to a run where the picker silently went
@@ -160,7 +157,7 @@ export default async function AroundManagePage({
             ))}
           </ul>
         ) : (
-          <p className="nf-card p-md text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
+          <p className="nf-panel nf-panel--card block text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
             {signedIn ? AREA_COPY.joinedNone : "Sign in to keep your places here."}
           </p>
         )}
@@ -177,15 +174,15 @@ export default async function AroundManagePage({
             ))}
           </ul>
         ) : (
-          <div className="nf-card p-lg text-center">
+          <div className="nf-panel nf-panel--card items-center p-lg text-center">
             <p className="text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-muted)]">
               {open.length > 0
                 ? "You are in every place that is open so far."
                 : AREA_COPY.noneOpenYet}
             </p>
-            <Link href="/around/new" className="nf-btn nf-btn--primary mt-md inline-flex h-10 items-center px-lg text-[length:var(--nf-text-body-sm)]">
+            <ButtonLink href="/around/new" variant="primary" size="sm" className="mt-md">
               Suggest a place
-            </Link>
+            </ButtonLink>
           </div>
         )}
       </section>

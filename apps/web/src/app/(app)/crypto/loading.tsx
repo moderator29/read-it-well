@@ -1,19 +1,21 @@
 import { Skeleton } from "@/components/ui/Skeleton";
 import { LoadingShell, PageHeaderSkeleton } from "@/components/app/ScreenSkeleton";
 
-/** The wait, on the market surface: the header, the search, the overview. */
+/**
+ * The wait on `/crypto`, which is dark for version one (`page.tsx`:
+ * `notFound()`, HANDOFF 08 section 5.2). What follows this wait is the
+ * platform's not-found page, so the wait draws a header and one plain panel
+ * and nothing that looks like a market: no coin rail, no price tiles, nothing
+ * we do not offer (orphans sweep, 23 September). The market's own skeleton is
+ * in git at d6748e6e and comes back with the route.
+ */
 export default function LoadingCrypto() {
   return (
-    <LoadingShell label="Loading market prices" className="mx-auto w-full max-w-2xl">
-      <PageHeaderSkeleton subtitle />
-      <Skeleton height="3rem" radius="lg" />
-      <div className="nf-card mt-group p-card-sm">
-        <Skeleton width="9rem" height="1.25rem" radius="sm" />
-        <div className="nf-coin-rail mt-row">
-          {Array.from({ length: 3 }, (_, i) => (
-            <Skeleton key={i} width="9.25rem" height="9rem" radius="xl" className="shrink-0" />
-          ))}
-        </div>
+    <LoadingShell label="Loading" className="mx-auto w-full max-w-2xl">
+      <PageHeaderSkeleton />
+      <div className="nf-panel nf-panel--card block p-card-sm">
+        <Skeleton width="60%" height="1.25rem" radius="sm" />
+        <Skeleton className="mt-row" width="85%" height="0.875rem" radius="sm" />
       </div>
     </LoadingShell>
   );

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatNumber, type Locale } from "@vallo/i18n";
 import type { AreaProposal, AreaSummary } from "@/lib/social/areas-queries";
 import { AREA_COPY, AREA_KIND_LABEL } from "@/lib/social/areas-schema";
+import { StatusPill } from "@/components/ui/StatusPill";
 import { JoinButton } from "../JoinButton";
 
 /**
@@ -12,18 +13,14 @@ import { JoinButton } from "../JoinButton";
  */
 export function ProposalsWaiting({ proposals }: { proposals: AreaProposal[] }) {
   if (proposals.length === 0) return null;
-  const openProposals = proposals;
   return (
-      <section className="mb-xl">
+    <section className="mb-xl">
       <h2 className="mb-sm text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
         Waiting on us
       </h2>
       <ul className="flex flex-col gap-xs">
-        {openProposals.map((proposal) => (
-          <li
-            key={proposal.id}
-            className="nf-card flex items-center gap-sm p-md"
-          >
+        {proposals.map((proposal) => (
+          <li key={proposal.id} className="nf-panel nf-panel--card flex-row items-center gap-sm">
             <div className="min-w-0 flex-1">
               <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
                 {proposal.name}
@@ -32,9 +29,9 @@ export function ProposalsWaiting({ proposals }: { proposals: AreaProposal[] }) {
                 {proposal.city} &middot; you suggested this
               </p>
             </div>
-            <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-sm py-2xs text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-content-muted)]">
+            <StatusPill tone="info" className="shrink-0">
               With us
-            </span>
+            </StatusPill>
           </li>
         ))}
       </ul>
@@ -47,26 +44,25 @@ export function ProposalsWaiting({ proposals }: { proposals: AreaProposal[] }) {
 
 export function ProposalsAnswered({ proposals }: { proposals: AreaProposal[] }) {
   if (proposals.length === 0) return null;
-  const answered = proposals;
   return (
-      <section className="mb-xl">
-        <h2 className="mb-sm text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
-          We came back to you
-        </h2>
-        <ul className="flex flex-col gap-xs">
-          {answered.map((proposal) => (
-            <li key={proposal.id} className="nf-card p-md">
-              <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
-                {proposal.name}
-              </p>
-              <p className="mt-2xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
-                {proposal.decisionNote ??
-                  "We could not open this one. You can suggest another at any time."}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </section>
+    <section className="mb-xl">
+      <h2 className="mb-sm text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
+        We came back to you
+      </h2>
+      <ul className="flex flex-col gap-xs">
+        {proposals.map((proposal) => (
+          <li key={proposal.id} className="nf-panel nf-panel--card">
+            <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
+              {proposal.name}
+            </p>
+            <p className="mt-2xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
+              {proposal.decisionNote ??
+                "We could not open this one. You can suggest another at any time."}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -87,7 +83,7 @@ export function AreaRow({
   locale: Locale;
 }) {
   return (
-    <li className="nf-card flex items-start gap-sm p-md">
+    <li className="nf-panel nf-panel--card flex-row items-start gap-sm">
       {/*
         Nothing in this row truncates, and that is deliberate rather than
         untidy. A place name is a proper noun, and "Magodo Phase 2 Es..." is not
@@ -104,9 +100,9 @@ export function AreaRow({
             {area.name}
           </p>
           {area.status === "PAUSED" ? (
-            <span className="shrink-0 rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
+            <StatusPill tone="neutral" className="shrink-0">
               Paused
-            </span>
+            </StatusPill>
           ) : null}
         </div>
         <p className="mt-3xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
@@ -126,4 +122,3 @@ export function AreaRow({
     </li>
   );
 }
-

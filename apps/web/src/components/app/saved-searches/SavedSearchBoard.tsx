@@ -201,7 +201,7 @@ function SavedSearchRow({
               Save name
             </Button>
             <Button
-              variant="ghost"
+              variant="secondary"
               size="sm"
               onClick={() => {
                 setDraft(row.label);
@@ -249,7 +249,7 @@ function SavedSearchRow({
         <div className="flex items-center gap-2xs">
           {!renaming && (
             <Button
-              variant="ghost"
+              variant="secondary"
               size="sm"
               onClick={() => {
                 setDraft(row.label);
@@ -271,7 +271,7 @@ function SavedSearchRow({
               >
                 Remove it
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+              <Button variant="secondary" size="sm" onClick={() => setConfirming(false)}>
                 Keep
               </Button>
             </>

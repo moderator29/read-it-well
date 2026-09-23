@@ -284,7 +284,8 @@ Each group appends "RELEASED <commit>" here when it is done.
     `/profile/setup/firm`, `/profile/setup/owner`. Files claimed (route
     components and what only they draw):
     `app/(app)/around/[slug]/**` (in `page.tsx` everything but the feed
-    worker's badge stamp), `app/(app)/around/{manage,new,settings}/**`,
+    worker's badge stamp), `app/(app)/around/{manage,new,settings}/**`, `app/(app)/around/JoinButton.tsx` (drawn only by `/around/[slug]`
+    and `/around/settings`; added while sweeping, 23 September),
     `app/(app)/bookings/**`, `components/app/bookings/**`,
     `app/(app)/crypto/**` (the two dark routes' `loading.tsx`; the pages stay
     `notFound()` and nothing under `components/app/crypto/` is touched),

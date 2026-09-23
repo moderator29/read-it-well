@@ -20,7 +20,10 @@ export function BookingDetailCard({ booking, locale }: { booking: BookingView; l
   const statusWords = t.admin.common.status;
 
   return (
-    <article className="nf-card overflow-hidden p-0" data-testid="booking-detail">
+    <article
+      className="nf-panel nf-panel--card block overflow-hidden p-0"
+      data-testid="booking-detail"
+    >
       <div className="flex gap-md p-md">
         <Link
           href={`/listing/${booking.listingId}`}
@@ -87,12 +90,9 @@ export function BookingDetailCard({ booking, locale }: { booking: BookingView; l
             </ButtonLink>
           )}
           {booking.reviewable && (
-            <Link
-              href={`/bookings/${booking.id}/review`}
-              className="nf-btn nf-btn--primary px-sm py-xs text-[length:var(--nf-text-caption)]"
-            >
+            <ButtonLink href={`/bookings/${booking.id}/review`} variant="primary" size="sm">
               {copy.leaveReview}
-            </Link>
+            </ButtonLink>
           )}
           {booking.reviewed && (
             <Link
@@ -103,9 +103,7 @@ export function BookingDetailCard({ booking, locale }: { booking: BookingView; l
               {copy.yourReview}
             </Link>
           )}
-          {booking.cancellable && (
-            <CancelBookingControl booking={booking} label={copy.cancel} />
-          )}
+          {booking.cancellable && <CancelBookingControl booking={booking} label={copy.cancel} />}
           <Link
             href={`/listing/${booking.listingId}`}
             className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"

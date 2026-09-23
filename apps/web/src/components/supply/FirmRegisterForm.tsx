@@ -369,7 +369,7 @@ export function FirmRegisterForm({
                     ) : null}
                   </span>
                   <Button
-                    variant="ghost"
+                    variant="secondary"
                     size="sm"
                     onClick={() => setTeam(team.filter((_, i) => i !== index))}
                   >

@@ -117,6 +117,9 @@ const measure = () => {
   for (const el of main.querySelectorAll(ctrlSel)) {
     const r = vis(el);
     if (!r) continue;
+    /* The shared app header (chrome group) and its round avatar are not a
+       route's own controls. */
+    if (el.closest(".nf-app-header")) continue;
     const isField = /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName);
     const txt = isField ? "field" : (el.innerText || "").trim();
     if (!txt) continue;

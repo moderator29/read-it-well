@@ -18,7 +18,7 @@ export default function LoadingProposeArea() {
         <Skeleton width="18rem" height="0.75rem" radius="xs" />
       </div>
 
-      <div className="nf-card space-y-md p-lg" aria-hidden="true">
+      <div className="nf-panel nf-panel--card block space-y-md p-lg" aria-hidden="true">
         <Skeleton height="2.75rem" radius="md" />
         <div className="grid gap-md sm:grid-cols-2">
           <Skeleton height="2.75rem" radius="md" />
@@ -31,7 +31,7 @@ export default function LoadingProposeArea() {
       {/* The moderator rules panel underneath. It is static copy and arrives with
           the page, so its shape is held rather than left as a gap that pushes the
           form upward when it lands. */}
-      <div className="nf-card mt-xl space-y-sm p-lg" aria-hidden="true">
+      <div className="nf-panel nf-panel--card mt-xl block space-y-sm p-lg" aria-hidden="true">
         <Skeleton width="14rem" height="1rem" radius="xs" />
         <Skeleton height="0.75rem" radius="xs" />
         <Skeleton width="80%" height="0.75rem" radius="xs" />
