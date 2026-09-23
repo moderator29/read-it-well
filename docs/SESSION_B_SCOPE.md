@@ -51,6 +51,23 @@ the five above are the governing targets for this work.
   and the artwork paths, so Session B renders exactly that and nothing of its own.
 - **B-GATE.** Item 8's gate, and the store notes on reviewer credentials.
 
+**Item 1 answered (Session B's probe, `docs/research/EXAMPLES_VISIBILITY_PROBE.md`, 9cfd73b0).**
+Nothing filtered the examples out. Track G migration 6 (4ba9f66b) revoked
+EXECUTE on `private.owns_listing` from anon and authenticated; 17 RLS policies
+call it, so every non-staff read of listings, photos, amenities, videos and
+reviews raised 42501, and 22e544f5 then added `listing_role` without an anon
+column grant. Session A fixed both live (20260923103430, 83c03d66). The rows
+were never touched. Session B's reads needed nothing. Three follow-ups, all in
+Session A's files:
+- **EX-1.** `supabase-repository.ts` turns a query error into an empty market
+  (`if (error || !data) return []`), which is why a permissions fault looked
+  like "the listings are gone". Surface the error instead.
+- **EX-2.** Put the policy-caller EXECUTE probe (1c61ea00) in CI so a revoke
+  on a function a policy calls fails the build.
+- **EX-3.** `posts-queries` `readPostListings` selects columns that do not exist
+  (`price_per_night_minor`, `price_period`) and marks example listings as
+  verified. Latent today (no post has a `listing_id`), wrong the day one does.
+
 ### Deleted posts (item 4, new)
 Claimed by the worker "posts" as it finds them, each file added here in the
 same commit it is first edited, before any edit. Session A: if a file it
