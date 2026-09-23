@@ -36,6 +36,16 @@ begin
     ('I will kill you', 'hold'),
     ('i go kill you', 'hold'),
     ('f4ggot', 'hold'),
+    -- zero-width, look-alike letters, stretched letters, trailing symbols
+    ('nig' || chr(8203) || 'ger', 'hold'),
+    ('n' || chr(1110) || 'gger', 'hold'),
+    ('nigg' || chr(1077) || 'r', 'hold'),
+    ('c' || chr(1072) || 'll girl', 'hold'),
+    ('i will k' || chr(1110) || 'll you', 'hold'),
+    ('niiiigger', 'hold'),
+    ('nigggger', 'hold'),
+    ('kafirrr', 'hold'),
+    ('n!gg@', 'hold'),
     -- must only flag (real names, places, idioms, landmarks)
     ('Coon Street', 'flag'),
     ('I will deal with you if you break the tap', 'flag'),
@@ -59,7 +69,14 @@ begin
     ('Chief Chukwuemeka Okonkwo', 'clean'),
     ('Oluwaseun Adebayo', 'clean'),
     ('Babajide, Garki, Abuja', 'clean'),
-    ('Spacious 2 bed in Yaba, 24 hour power', 'clean')
+    ('Spacious 2 bed in Yaba, 24 hour power', 'clean'),
+    ('Hi!! Lovely place', 'clean'),
+    ('Book it now!!!', 'clean'),
+    ('Sooo good', 'clean'),
+    ('abeg make una come check am', 'clean'),
+    ('this price go kill you', 'clean'),
+    ('G R A Ikeja', 'clean'),
+    ('Sabon Gari, Kano', 'clean')
   ) as t(txt, want) loop
     got := (private.content_verdict(rec.txt)).verdict;
     if got is distinct from rec.want then
@@ -159,6 +176,9 @@ begin
   exception when sqlstate 'RM004' then refused := true;
   end;
   if not refused then raise exception 'PROBE_FAIL sec-05: slur review accepted'; end if;
+  -- A review warning people about a scam is published, never refused.
+  insert into probe_reviews (body) values ('The agent asked for an inspection fee before viewing. No caution fee before inspection here, and we never pay to inspect.');
+  insert into probe_reviews (body) values ('Gift card shop next door; use opay or transfer to the landlord.');
 
   create temp table probe_replies (review_id uuid default gen_random_uuid(), body text) on commit drop;
   create trigger probe_replies_scan after insert or update on probe_replies
@@ -170,6 +190,7 @@ begin
   exception when sqlstate 'RM004' then refused := true;
   end;
   if not refused then raise exception 'PROBE_FAIL sec-05: threatening reply accepted'; end if;
+  insert into probe_replies (body) values ('We never ask anyone to pay to inspect.');
 
   create temp table probe_events (id uuid default gen_random_uuid(), title text, blurb text,
     status text default 'LIVE', hold_reason text) on commit drop;

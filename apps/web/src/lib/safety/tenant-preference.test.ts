@@ -16,6 +16,13 @@ const HELD = [
   "only married couples",
   "NO IGBOS",
   "N0 1gbo",
+  "Igbo tenants not allowed",
+  "We prefer Yoruba tenants",
+  "Muslim tenants preferred",
+  "Strictly for married couples",
+  "no ig\u200bbo",
+  "Girls only hostel",
+  "No Igbo allowed in this compound",
 ];
 
 const LEFT_ALONE = [
@@ -32,6 +39,17 @@ const LEFT_ALONE = [
   "Yoruba-speaking caretaker on site",
   "Muslim prayer room in the estate",
   "no single room available",
+  "Spacious, no boys quarters, 24 hour power",
+  "No boys' quarters",
+  "No ladies bar or club noise",
+  "only ladies hairdresser downstairs",
+  "no men allowed in the rooms after 10pm",
+  "no Igbo Efon traffic",
+  "perfect for couples",
+  "married couples welcome",
+  "singles and couples welcome",
+  "Christian neighbourhood",
+  "bachelor pad",
 ];
 
 describe("tenantPreference (SEC-06)", () => {
@@ -58,5 +76,13 @@ describe("contentForms", () => {
   it("keeps numbers that are numbers and drops edge punctuation", () => {
     expect(contentForms("3 bedrooms, 450,000 naira")[0]).toBe("3 bedrooms 450 000 naira");
     expect(contentForms("whatsapp me directly!!")[0]).toBe("whatsapp me directly");
+  });
+
+  it("reads zero-width characters, look-alike letters, stretched letters and trailing symbols", () => {
+    expect(contentForms("nig\u200bger")).toContain("nigger");
+    expect(contentForms("n\u0456gger")).toContain("nigger");
+    expect(contentForms("niiiigger")).toContain("nigger");
+    expect(contentForms("nigggger")).toContain("nigger");
+    expect(contentForms("n!gg@")).toContain("nigga");
   });
 });
