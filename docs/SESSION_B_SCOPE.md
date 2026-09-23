@@ -157,6 +157,7 @@ Each group appends "RELEASED <commit>" here when it is done.
     `public.person_badge` through Session A's `readPersonBadges`; nothing
     derived); new `components/social/feed/LineGlyph.tsx` (inside the claim);
     the fixture harness `apps/web/src/app/(dev)/preview/session-b/feed/**`,
+    the signed-in live proof `apps/web/tests/session-b-feed-live.spec.mjs` (new),
     the shot script `scripts/design/session-b-shots/feed.mjs` and the proofs
     `docs/design/proofs/session-b/feed/**`. NOT claimed although drawn on the
     feed: `components/social/AroundFab.tsx` (read only; it renders
@@ -1298,7 +1299,9 @@ live `device_ref`s instead of a count), the proof script
   reads in `posts-queries.ts` would give every surface the mark at once;
   that file's owner decides.
 
-- **FEED-4. `/around` is a dock destination with a declared parent.** The
+- **FEED-4. CLOSED AS RULED (founder C3.2, b2a1ef5f): `/around`'s parent is the
+  landing `/`, so the back control stays and points there; proved live signed in.**
+  The original note follows. `/around` is a dock destination with a declared parent. The
   founder's image has no back control beside the location bar; ours draws
   one because `lib/nav/route-parents.ts` declares `"/around": "/home"`, and
   the nav law puts a back control on every screen with a parent. `/around`
