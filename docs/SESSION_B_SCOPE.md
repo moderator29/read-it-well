@@ -264,7 +264,7 @@ Each group appends "RELEASED <commit>" here when it is done.
     NOT touched:
     `components/trust/TierBadge.tsx`, `trust-badge.css` (Session A's verified
     badge), the files of groups not yet released (home, feed).
-    **Leftovers RELEASED <pending hash>** (23 September): SW-C5, SW-C6, SW-C1,
+    **Leftovers RELEASED ffe8989e + ae3f4818** (23 September): SW-C5, SW-C6, SW-C1,
     the header, R-SH1, R-SH2, R-SH3, SW-P1 and the audit's S4 list and S5
     closed. Touched beyond the first claim, by the audit's S4 and the lead:
     `app/(app)/stay/[id]/StayDetailView.tsx`, `app/(app)/restaurant/[id]/page.tsx`,
