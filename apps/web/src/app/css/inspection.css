@@ -587,12 +587,15 @@
     display: block;
     width: 100%;
     margin-top: var(--nf-space-2xs);
-    min-height: 2.25rem;
-    padding: var(--nf-space-3xs) var(--nf-space-xs);
-    resize: vertical;
+    /* 44px: a text control at the floor (R-B), so the control corner stays
+       under 0.35 (14 on 44 is 0.32). No resize grip; the render has none. */
+    min-height: 2.75rem;
+    padding: var(--nf-space-2xs) var(--nf-space-xs);
+    resize: none;
     border-radius: var(--nf-radius-control);
     border: var(--nf-border-width) solid var(--nf-panel-hair);
-    background: color-mix(in oklab, var(--nf-lit) 10%, var(--nf-surface-canvas));
+    /* Render: the field is a step LIGHTER than its panel (#00154b on #00113d). */
+    background: color-mix(in oklab, var(--nf-lit) 16%, transparent);
     font-size: 1rem;
     line-height: 1.35;
     color: var(--nf-content-primary);
@@ -696,6 +699,17 @@
     background: var(--nf-panel-fill-card);
     color: color-mix(in oklab, var(--nf-brand-secondary) 70%, transparent);
     box-shadow: var(--nf-panel-rim);
+  }
+  /* Add Photos while photos wait on I1b: the render draws it lit, so it keeps
+     the shared lit material and is only not pressable; the line under it
+     says why. */
+  .nf-ix .nf-ix-cta:disabled {
+    opacity: 0.9;
+    cursor: not-allowed;
+    background: var(--nf-btn-lit-fill);
+    border-color: var(--nf-btn-lit-edges);
+    color: var(--nf-content-on-brand);
+    box-shadow: var(--nf-btn-lit-shadow);
   }
   .nf-ix .nf-ix-cta__end {
     position: absolute;

@@ -3107,6 +3107,51 @@ eight rooms, their words, the Submit rule and the read-back.
 production, and the other side's screen refreshing. Every listing is an example, which the
 database refuses inspections on, so no real inspection exists to report on.
 
+**Five audit passes, 23 September** (each against `founder/inspection-target.jpg`, production
+build under the heavy lock, the committed harness; side-by-sides in
+`docs/design/proofs/session-b/inspection/audit-pass-*.jpg`):
+- **Pass 1** (after the first build of the eight rooms): the empty progress track was
+  invisible; the room glyph sat off-centre inside its plate with a second ring; the Exterior
+  subtitle wrapped to two lines where the render keeps one; Submit while waiting went grey
+  where the render keeps blue glass; the lifecycle's last label wrapped. Fixed: track in a mid
+  blue, glyph fills the round plate, plate 28px and row 32px (the render's), Submit keeps the
+  panel material while disabled, the label is "Recorded".
+- **Pass 2** (after the correction commit): my own ratio check found the notes field at 0.39
+  (14px corner on 36px); Add Photos, disabled while photos wait on I1b, went grey where the
+  render draws it lit; the field showed a resize grip the render does not have. Fixed: field
+  44px (0.32), no grip; Add Photos keeps the lit material while not pressable, with the line
+  under it.
+- **Pass 3** (after that rebuild): the whole screen beside the render. Anatomy, lit title,
+  card, facts, eight rooms with their words and glyphs, notes, Add Photos, Submit all in
+  place. Remaining differences are the recorded ones: type at the readable floor (11px, 16px
+  in the field), the facts row's wrapped number, the lifecycle strip, "Listed by".
+- **Pass 4** (states): eight ticked (`?rooms=8`): emerald circles with ticks, "8 / 8", Submit
+  enabled as the shared glass secondary. Report off (`?rooms=off`): the plain line, circles not
+  pressable, the outcome choice and the thread link back. Found: the notes field was darker
+  than its panel where the render's is a step lighter. Fixed.
+- **Pass 5** (desktop 1280 and the lister's side): the column holds at 42rem, rooms in two
+  columns, the house over the card edge; the lister sees "Requested by" and Confirm / Offer
+  another time / Decline. Nothing found to fix; desktop type stays at the phone's sizes by
+  R-A (noted, not changed).
+Shape check after pass 5 (my own measure; the sweep tool's "combinations measured" line is not
+proof): 7 text-bearing controls per page, maximum 0.33, none at or above 0.35, at 390 and 1536,
+bare and in the shell.
+
+**R18, re-run in a browser, 23 September 15:21 UTC.** Production build of the worktree on
+main after 521f91cc (built under the heavy lock), the committed harness
+`/preview/session-b/inspection` and its in-shell twin `/preview/session-b/inspection/shell`,
+at 390 x 844 and 1440 x 900, arriving from `/home` first so a history entry sits behind the
+sheet. The back control is found by its attribute (`.nf-ix-hero [data-nav-back]`, the
+e3c90797 fix) on all four; pressing it lands on the route's declared parent by path, not on
+the history entry: `/preview/session-b/inspection` goes to `/preview` and
+`/preview/session-b/inspection/shell` goes to `/preview/session-b/inspection`, at both
+widths, which is what `useBack` does when the previous page cannot be proved to be the
+parent. On the real route the declared parent is `/home` (`lib/nav/route-parents.ts`,
+`"/inspections": "/home"`) and for the agent's page `/agent/dashboard`; walking the real
+`/inspections` needs a signed-in session, which is not yet agreed (no sign-in attempted).
+Screenshots of where back lands: `docs/design/proofs/session-b/inspection/r18-back-*.jpg`.
+Result: PASS on the harness; the real route BUILT AND UNPROVEN until a QA account exists.
+
 ## 10. The welcome email
 
 Owner: Session B worker "email", design and words only. The send is Session
