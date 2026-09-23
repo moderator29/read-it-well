@@ -1562,6 +1562,20 @@ A's read (so the checklist and costs are computed once); a title Session A's
 `orSafe` search cannot match would show "could not be opened" rather than a
 guess.
 
+**Mandates (on the Listings desk).** Control: none that writes (rows open).
+Query: `getMandateQueue` (`lib/admin/reads/listings.ts`: three head-only exact
+counts on `listing_mandates.review_status`, every pending row read whole a
+thousand at a time, the twenty latest decisions, joined to
+`listings(title, reference)`), tested in `listings.test.ts`. Policy:
+`listing_mandates_staff_all` (admin or super_admin, read in `pg_policies`);
+no trigger on the table (read in `pg_trigger`). Table checks: a refusal needs
+a reason of 8+ characters and a decider. Screen: the Mandates panel under the
+queue, a status bar with words, the rows, the reason on a refused one, the
+principal's number only inside the opened row. **Broken link, named and
+filed:** no action in Session A's `lib/admin` decides a mandate (scope AR-12);
+each pending row says so. Live count on 23 Sept: 0 rows, so the empty state is
+what production shows. Commit b72f4be.
+
 **Moderation.** Controls: reason tabs (the eight real `reports_category_chk`
 values), Held by the scan, search, dates, pager on a reason tab, and per row
 `ReportDecision` (Start review, Resolve, Dismiss) or `HoldDecision` (Let it
@@ -1691,11 +1705,21 @@ Side-by-side proofs (render left, built right, re-shot after the last change):
 `sbs-review.jpg`, `sbs-moderation.jpg`, `sbs-kyc.jpg`. Desktop, phone and paper:
 `<desk>-1440-dark.jpg`, `<desk>-1440-light.jpg`, `<desk>-390-dark.jpg`,
 `<desk>-390-light.jpg` for listings, review, moderation, kyc;
-`listings-1536-dark.jpg`; the empty state as it is live today:
+`listings-1536-dark.jpg`; the review page's two failure states (a walkthrough
+that could not be signed, a listing with no pin) in
+`review-failure-states-1440-dark.jpg`; the empty state as it is live today:
 `listings-empty-1440-dark.jpg`, `listings-empty-1440-light.jpg`,
 `moderation-empty-1440-dark.jpg`, `kyc-empty-1440-dark.jpg`. ALL FIXTURE-BACKED
 (R-G): harness `/preview/session-b/admin-review/<desk>` (`?empty=1`), real
-components, invented figures that never reach a database.
+components, invented figures that never reach a database. THE MAP TILES IN
+`review-*.jpg` AND `sbs-review.jpg` ARE A STAND-IN: the sandbox's egress proxy
+refuses the tile hosts (`basemaps.cartocdn.com`, `tile.openstreetmap.org`,
+connect_rejected, checked 23 Sept), so the shot script answers tile requests
+with a plain navy grid. The layout, the pin position (projected from the
+fixture's latitude and longitude by `tileMosaic`) and the credit line are
+real; the street detail on a live page comes from the provider. The
+walkthrough tile shows the player with its poster and controls (the fixture
+file is not a real video and is never fetched: `preload="none"`).
 
 Re-audit. Round one (images beside the first shots) found: badges in a word
 different from their tab; the media strip ending in a "+2" with empty tiles; a
@@ -1762,7 +1786,10 @@ clean. vitest `src/lib/admin/reads` and `src/app/admin/_review`: 80 passed.
   the reads' aggregation; not by a live decision. No decision was taken on
   production (reports 0, documents 0, held items 0, waiting listings 0).
 - Held events cannot be decided (AR-10); the blocked terms list cannot be read
-  (AR-11). Both filed in the scope file.
+  (AR-11); listing mandates cannot be decided (AR-12). All filed in the scope
+  file.
+- The map in the proofs uses stand-in tiles (the tile hosts are unreachable
+  from the sandbox); no proof shows real street tiles.
 - `/admin/queue` and `/admin/support` inherit the shell's register and were not
   rebuilt to an image (none governs them).
 - The Live, Rejected and Suspended tabs show the ten newest (Session A's read).

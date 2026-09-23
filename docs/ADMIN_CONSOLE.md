@@ -227,6 +227,25 @@ What you see, top to bottom:
 
 The desk refreshes itself every thirty seconds while it is on screen.
 
+### Mandates
+
+Under the queue, the **Mandates** panel: what an agent or a firm holds instead
+of ownership (`listing_mandates`), the owner's written instruction with the
+owner's name and a number to ring. One status bar gives exact counts by
+decision (Waiting, Approved, Rejected); the table lists every waiting mandate
+(oldest first) and the twenty latest decisions: the listing, the kind
+(letting, sale, management, and whether exclusive where the lister said), the
+principal, the date signed and the status. Open a row for the principal's
+number (the call to it is the check; the document is a photograph), whether a
+document is on file and when the mandate expires, and for a refused one the
+reason. Read by `getMandateQueue` (`lib/admin/reads/listings.ts`) under
+`listing_mandates_staff_all`.
+
+**It cannot decide a mandate yet.** Nothing in Session A's `lib/admin` approves
+or refuses one; scope request AR-12 asks for `reviewListingMandate`. Until it
+lands, ring the principal and record the outcome with the engineering team.
+A listing whose mandate was refused cannot be published (Track G migration 6).
+
 ### The listing under review
 
 Open any row. You see: back to the queue (keeping your tab and search), the
@@ -1053,8 +1072,10 @@ console needs and does not have yet)
 - **The desks decide nothing of their own.** Approve, Publish, Ask for more,
   Reject, report decisions, held-item decisions and document decisions all
   call Session A's existing actions, unchanged.
-- No open requests: AR-1 to AR-9 were withdrawn when Session B wrote the reads
-  itself (`lib/admin/reads/listings.ts`, `moderation.ts`, `verification.ts`).
+- Open requests: AR-10 (deciding a held event), AR-11 (reading the blocked
+  terms list), AR-12 (deciding a listing mandate). AR-1 to AR-9 were withdrawn
+  when Session B wrote the reads itself (`lib/admin/reads/listings.ts`,
+  `moderation.ts`, `verification.ts`).
 
 ### Money desks (admin-money)
 
