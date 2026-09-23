@@ -7398,3 +7398,52 @@ agreement (the desk adjudicating a boolean expression written by a layperson).
   since only one purpose is open. Its weakness is written down rather than the
   column being half built.
 - Four decisions are handed to the founder and none of them can be taken here.
+
+---
+
+## 60. TWO WORKERS' FILES LANDED IN ONE WORKER'S COMMIT, TWICE TODAY. THE PROCEDURE WAS MINE AND IT WAS RACY
+
+**What happened.** A worker ran `git commit` in the seconds between another
+worker's `git add` and its `git commit`. The index is shared by every process
+in a worktree, so the second worker's commit swept up the first worker's staged
+files. All 24 files of the Price Check share surface landed inside a commit
+whose subject is an escrow probe. Nothing was lost and nothing was duplicated,
+but the history no longer says what that diff was, and history that cannot be
+read is history that cannot be reverted with confidence.
+
+It has now happened twice in one day, to two different pairs of workers.
+
+**Whose fault it is.** Mine. The standing sequence I gave every worker was
+`git add <files by name>` then `git commit`, and those are two statements with
+a shared mutable structure between them. `git add` is not the safe half of that
+pair just because it names its files. The index it writes to belongs to
+everybody.
+
+**THE NEW STANDING SEQUENCE, and it removes the race rather than narrowing
+it.** Do not stage at all. Commit the paths directly:
+
+```
+git commit -m "<message>" -- path/one path/two path/three
+```
+
+With a pathspec, git builds a TEMPORARY index from those paths alone and
+commits that. The shared index is never written and never read, so there is no
+window for another process to commit through. A worker can no longer sweep up a
+neighbour's files and a neighbour can no longer sweep up its own.
+
+The rest is unchanged and still matters: never `git add -A`, then
+`git fetch origin main`, `git merge --no-edit origin/main`, push to the branch
+and to main, and VERIFY `git rev-list --left-right --count HEAD...origin/main`
+reads `0 0`. The merge still needs a clean index for the paths it touches,
+which a pathspec commit leaves alone.
+
+**One thing the pathspec form will not do:** it refuses while a merge is in
+progress. That is correct and not a problem, because the sequence commits
+BEFORE it merges. If a worker finds itself needing to commit mid-merge, it has
+already gone off the path and should stop and say so.
+
+**And the repair that was used, which was the right one.** The worker did not
+rewrite history, which is on the stop list. It added an empty commit carrying
+the full message and pointing at the commit its work had landed in. That leaves
+the record honest and the tree untouched, and it is the pattern to copy if this
+happens again before the new sequence reaches everybody.
