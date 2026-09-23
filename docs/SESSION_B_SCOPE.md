@@ -143,6 +143,10 @@ read functions once, not into screens.
   a deleted comment nobody answered instead of patching it into a tombstone
 - `apps/web/src/lib/social/tombstone-placement.test.ts` (new): the tombstone
   is reachable from the conversation renderers and nowhere else
+- `apps/web/src/app/(dev)/preview/session-b/posts/**` (new, the fixture
+  harness, ruling R-G): the real feed, profile Posts tab and thread view handed
+  deleted posts with and without replies
+- `docs/design/proofs/session-b/posts/**` (new, its shots)
 
 ## FOUNDER REASSIGNMENT, 22 SEPTEMBER, READ THIS FIRST
 
