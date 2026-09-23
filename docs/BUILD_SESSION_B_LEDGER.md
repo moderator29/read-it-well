@@ -5883,6 +5883,53 @@ the lead.
    one line.
 7. The shooter's Requests click hit the wrong tab; corrected for pass 2.
 
+**Pass 2, 23 September** (`pass2/`, the card set beside the target at the
+same crop). Found and fixed on the card:
+1. The name and the price were set in the display face at bold and read as
+   headlines; the render sets both in the text face at a semibold weight.
+2. The two dates broke over two lines at 390 ("22 Jun / 2026"): the facts
+   grid gives the dates more room than the guests (1.12, 1.12, 0.76, as the
+   render spaces them), the glyphs step down to 12 and the values to 500.
+3. The primary's chevron was back but crowded against the label: a 4px gap,
+   labels at 600 as the render draws them.
+Other routes, re-opened at 390 and 1440: no new fault in this group's files.
+One outside it: the inbox segment's selected tab is still the shared
+`Segmented`'s flat navy (reported). The Requests tab now proven
+(`pass2/inbox-requests-*.jpg`).
+
+**Pass 3, 23 September** (`pass3/`). Card: "22 Jun 2026" now keeps to one
+line, but the weighted columns moved the wrap to "25 Jun / 2026" and "2 /
+adults". Fixed by removing the indent instead: the glyph sits on the label's
+line and the value runs from the cell's edge, three equal columns. The
+primary's chevron drew at 14 and read as a speck beside a 13px label: 16.
+Other routes, third look at every inventory item at 390 and 1440 (profile
+agent and member bars, every tab, the empty profile, the menu, followers and
+its empty state, edit, inbox and its requests and empty states, the three
+thread faces top and bottom, the options sheet, the share picker, the six
+skeletons): nothing left drawing its own container, edge, glow, button or
+plate in this group's files. Routes 1 to 11 close on pass 3.
+
+**Pass 4, 23 September, the card only** (`pass4/`, 390 and 1440 beside the
+target). Every fact now holds one line at 390; the desktop card (400 wide)
+reads as the render at its proportions. Found: at 390 the primary's chevron
+was still squeezed to a speck, because the flex row shrank the glyph beside a
+label that filled the bar. Fixed: the glyph never shrinks, and under 480px the
+button labels step down a rung.
+
+**Pass 5, 23 September, the card only** (`pass5/`, both faces: the booking
+card in the thread and the listing card in the share picker, beside the
+target). The chevron draws full size after its label; every fact is one line;
+the listing face's title, Verified, price and period chip sit as the render's
+anatomy would put them. Nothing found. Card closes on pass 5. Still differing
+from the render, on purpose: the buttons are 44 tall against its 30 (tap law),
+our type is a rung larger than its 390 rendering, so the card is 392 tall at
+390 against its 307; the "Confirmed" badge is the shared emerald StatusPill
+with its dot where the render draws a teal label; Contact carries the chat
+glyph because it opens a conversation, not a call.
+
+Final figures: routes in the group 12, swept 11 (the twelfth draws nothing of
+its own), audit passes 3 on every route, 5 on the card.
+
 
 ## 13. Platform sweep: home (both sides), search and filters, listing detail, price check (worker "sweep-home")
 
