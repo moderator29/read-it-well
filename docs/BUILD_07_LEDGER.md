@@ -5795,6 +5795,25 @@ decline to measure this" was reaching the report as "this passes".
 a bucket of their own, never counted in the headline. The default run is
 unchanged, so numbers taken before and after this remain comparable.
 
+Run on this one route it reads, verbatim:
+
+```
+node apps/web/scripts/probe-contrast.mjs --base http://127.0.0.1:3184 \
+  --routes /preview/o3/agent-calendar --themes light --faded
+
+BELOW THE FLOOR (4.5:1, or 3:1 for large text), on a flat ground: 0
+...
+FADED BELOW NINE TENTHS AND UNDER THE FLOOR ANYWAY, counted in nothing above
+because the sweep cannot tell a designed fade from a frame caught
+mid-animation: 18
+  light /preview/o3/agent-calendar  button.nf-body-sm.flex.h-11  "1"  14px
+    ink rgb(195,198,202) on rgb(244,245,247) = 1.57:1  [opacity 0.35]
+  ... 17 more, one per past day
+```
+
+Eighteen numerals at 1.57:1 and a headline that says every leaf clears its
+floor. Both statements are true and only one of them was being printed.
+
 ## 50. TWO PROOFS THAT DISAGREED WITH THE SHIPPED CODE, RETAKEN
 
 The founder's ruling, in his words: **a proof that disagrees with the shipped

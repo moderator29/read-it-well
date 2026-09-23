@@ -78,3 +78,22 @@ It is now lit from its edge. See `--nf-icon-plate` in
 `packages/design-tokens/src/tokens.css` for the table and the argument, and
 `docs/FOUNDER_ARTWORK_NEEDED.md` for the objects a render order still has to
 cover.
+
+## The shots
+
+`shots/g2-light-before.png` and `shots/g2-light-after.png` are `/preview/g2` in
+daylight either side of the plate change, both taken on a production build of
+the tree at the time.
+
+`shots/g2-dark-unchanged.png` is the night theme, and it is ONE file rather than
+a pair on purpose: the before and after shots of the night theme came back
+byte for byte identical, `md5 cec6a8e0`, which is the strongest available
+statement that nothing about the default theme moved. `--nf-icon-plate` is
+`none` at night, exactly as `--nf-icon-ground` was `transparent`.
+
+A caution for whoever takes the next one. `/preview/g2` draws 164 lazy images
+and `networkidle` fires before they have all decoded when the box is busy. An
+undecoded image leaves an EMPTY plate in the shot, which looks exactly like a
+plate that hides its object; the first after-shot taken here looked like a
+regression and was a loading artefact. `shot-plate.mjs` waits four seconds for
+that reason.

@@ -69,7 +69,11 @@ for (const theme of ["light", "dark"]) {
     if (t === "light") document.documentElement.setAttribute("data-theme", "light");
     else document.documentElement.removeAttribute("data-theme");
   }, theme);
-  await page.waitForTimeout(500);
+  /* The gallery is 164 lazy images; under load `networkidle` fires before they
+     have all decoded, and an undecoded image leaves an EMPTY plate in the shot,
+     which looks exactly like a plate that hides its object. Four seconds is the
+     cheap guard. */
+  await page.waitForTimeout(4000);
   await page.evaluate(() => window.scrollTo({ top: 0, left: 0, behavior: "instant" }));
   await page.screenshot({ path: join(OUT, `g2-${theme}-${TAG}.png`) });
 
