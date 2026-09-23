@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check:deep-links": "node scripts/check-deep-links.mjs",
-    "prebuild": "node ../../scripts/build-scene-manifest.mjs"
+    "prebuild": "node ../../scripts/build-scene-manifest.mjs",
+    "shell:config": "node scripts/write-shell-config.mjs",
+    "cap:sync": "node scripts/write-shell-config.mjs && npx cap sync"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.1",

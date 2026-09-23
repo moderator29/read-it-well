@@ -224,7 +224,7 @@
       /*
        * The calm explanatory panel with the small round glyph, which appears
        * on almost every screen in the governing set. It is the place the
-       * product says the quiet true thing: here, that nothing was lost.
+       * product says the quiet true thing: here, that the account and everything on it is safe.
        */
       .note {
         display: flex;
@@ -416,7 +416,7 @@
           <h1>You are offline</h1>
           <p class="lede">
             Vallo needs a connection to show you homes, stays and your wallet.
-            Nothing has been lost.
+            <span id="still" hidden>Still no connection. Try again when you have signal.</span>
           </p>
 
           <div class="note">
@@ -426,82 +426,37 @@
               </svg>
             </span>
             <p>
-              <strong>Everything is where you left it.</strong>
-              Your saved places, your messages and your bookings live on your
-              account, not on this phone, so they are waiting the moment you
-              are back on a network.
+              <strong>Your account is safe.</strong>
+              Your saved places, your messages, your bookings and your balance
+              are kept on your account, not on this phone, and they will be
+              there when you are back on a network. Anything you had typed but
+              not sent may need typing again.
             </p>
           </div>
 
           <button type="button" id="retry">Try again</button>
-          <p class="footnote">Wi-Fi, mobile data or aeroplane mode, then try again.</p>
+          <p class="footnote">Check Wi-Fi or mobile data, and that aeroplane mode is off. We will also try again by ourselves when the connection comes back.</p>
         </div>
 
+        <!--
+          Shown only by a build that was packaged without `shell-config.js`
+          (see `scripts/write-shell-config.mjs`), which a release build cannot
+          be: the file is committed with the production origin. The words are
+          for whoever is holding the phone, so they say what they can do.
+        -->
         <div id="unconfigured">
-          <h1>This build has no server</h1>
+          <h1>This copy of Vallo needs updating</h1>
           <p class="lede">
-            It was packaged without a live address, so there is nothing for it
-            to open. This is a build fault, not a fault with your phone or your
-            network.
+            It cannot find its way to Vallo. Install the latest version from
+            your app store, or open vallospaces.com in your browser.
           </p>
-
-          <div class="note">
-            <span class="note-glyph" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 8v5" />
-                <path d="M12 16.5v.01" />
-              </svg>
-            </span>
-            <p>
-              Set <span class="code">CAPACITOR_SERVER_URL</span> to the
-              production origin, run <span class="code">npx cap sync</span>,
-              and build again. See <span class="code">docs/MOBILE.md</span>.
-            </p>
-          </div>
-
-          <button type="button" id="reload">Reload the shell</button>
         </div>
       </div>
     </main>
 
-    <script>
-      /*
-       * Two different failures need two different sentences.
-       *
-       * Capacitor writes the configured server URL into the bridge, so an
-       * absent one is knowable here rather than guessable. A build with no
-       * origin is a packaging fault and telling somebody to check their network
-       * about it wastes their time and hides ours.
-       */
-      (function () {
-        var configured =
-          window.Capacitor &&
-          window.Capacitor.getConfig &&
-          window.Capacitor.getConfig().server &&
-          window.Capacitor.getConfig().server.url;
-
-        if (!configured) {
-          document.body.setAttribute("data-state", "unconfigured");
-        }
-
-        var retry = document.getElementById("retry");
-        if (retry) {
-          retry.addEventListener("click", function () {
-            if (configured) {
-              window.location.replace(configured);
-            } else {
-              window.location.reload();
-            }
-          });
-        }
-
-        var reload = document.getElementById("reload");
-        if (reload) {
-          reload.addEventListener("click", function () {
-            window.location.reload();
-          });
-        }
-      })();
-    </script>
+    <!-- Written at sync time by `scripts/write-shell-config.mjs`: the live
+         origin and the path the app opens on. Packaged, never fetched. -->
+    <script src="shell-config.js"></script>
+    <script src="shell.js"></script>
   </body>
 </html>
