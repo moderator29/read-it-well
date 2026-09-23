@@ -64,21 +64,21 @@
   /* ------------------------------------------------ the lit glass container */
 
   /* The console's one panel surface, read from the shell's own properties
-     (admin.css .nf-admin-panel), so a money card and an overview card are the
+     (the shared .nf-panel, glass.css), so a money card and an overview card are the
      same object. */
   .nf-md-card {
     position: relative;
     min-width: 0;
     /* The shell's measured container corner, never a desk's own. */
-    border-radius: var(--nf-admin-radius);
-    border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
+    border-radius: var(--nf-container-radius);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
     /* The glow identity's per-side lit edge (GLOW_IDENTITY section 2), the
        same list admin.css hands every console panel. */
-    border-color: var(--nf-admin-panel-edges);
-    background: var(--nf-admin-panel-fill);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill);
     box-shadow:
       inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 55%, transparent),
-      var(--nf-admin-panel-glow);
+      var(--nf-panel-glow);
   }
   /* The render's catchlight along the top edge: a hairline that is brightest
      in the middle and gone at the corners, drawn inside the border. */
@@ -180,19 +180,19 @@
      ring of the lit cyan, the fill lifted under the rim and a real bloom,
      unlike the resting card's near-none. */
   .nf-md-kpi[aria-current="true"] {
-    border-color: var(--nf-admin-cta-edges);
+    border-color: var(--nf-selected-edges);
     background:
       linear-gradient(
         180deg,
-        color-mix(in oklab, var(--nf-admin-lit-cyan) 55%, var(--nf-admin-lit)) 0,
-        color-mix(in oklab, var(--nf-admin-lit) 55%, var(--nf-surface-canvas)) 6px,
-        color-mix(in oklab, var(--nf-admin-lit) 34%, var(--nf-surface-canvas)) 40%,
-        color-mix(in oklab, var(--nf-admin-lit) 26%, var(--nf-surface-canvas)) 100%
+        color-mix(in oklab, var(--nf-lit-cyan) 55%, var(--nf-lit)) 0,
+        color-mix(in oklab, var(--nf-lit) 55%, var(--nf-surface-canvas)) 6px,
+        color-mix(in oklab, var(--nf-lit) 34%, var(--nf-surface-canvas)) 40%,
+        color-mix(in oklab, var(--nf-lit) 26%, var(--nf-surface-canvas)) 100%
       );
     box-shadow:
-      0 0 0 1px color-mix(in oklab, var(--nf-admin-lit-cyan) 55%, transparent),
-      0 0 14px 1px color-mix(in oklab, var(--nf-admin-lit) 62%, transparent),
-      0 0 30px 4px color-mix(in oklab, var(--nf-admin-lit) 34%, transparent);
+      0 0 0 1px color-mix(in oklab, var(--nf-lit-cyan) 55%, transparent),
+      0 0 14px 1px color-mix(in oklab, var(--nf-lit) 62%, transparent),
+      0 0 30px 4px color-mix(in oklab, var(--nf-lit) 34%, transparent);
   }
   /* Render: ascender height 7 render px = 11 CSS, a 15px label. */
   .nf-md-kpi__label {
@@ -294,7 +294,7 @@
      frame's words read through it. Same calm recipe, mixed into the canvas
      instead of into transparency. */
   .nf-md-frame__note > .nf-admin-calm {
-    background: color-mix(in oklab, var(--nf-admin-lit) 18%, var(--nf-surface-canvas));
+    background: color-mix(in oklab, var(--nf-lit) 18%, var(--nf-surface-canvas));
   }
   .nf-md-frame__note {
     position: absolute;
@@ -329,7 +329,7 @@
     border-radius: var(--nf-radius-xs);
   }
   .nf-md-statusbar--empty {
-    border: var(--nf-border-width) dashed color-mix(in oklab, var(--nf-admin-lit) 45%, var(--nf-surface-canvas));
+    border: var(--nf-border-width) dashed color-mix(in oklab, var(--nf-lit) 45%, var(--nf-surface-canvas));
   }
   .nf-md-statusbar__seg {
     display: flex;
@@ -569,7 +569,7 @@
   /* The current page is the lit primary: gradient fill, bright top rim and a
      soft blue bloom under it, the same treatment as a primary button. */
   .nf-md-pager__item[aria-current="page"] {
-    border-color: var(--nf-admin-cta-edges);
+    border-color: var(--nf-selected-edges);
     background: var(--nf-gradient-cta);
     color: var(--nf-content-on-brand);
     box-shadow:
@@ -984,12 +984,12 @@
     text-decoration: none;
   }
   .nf-md-toggle[aria-pressed="true"] {
-    border-color: var(--nf-admin-cta-edges);
+    border-color: var(--nf-selected-edges);
     color: var(--nf-content-primary);
-    background: color-mix(in oklab, var(--nf-admin-lit) 34%, var(--nf-surface-canvas));
+    background: color-mix(in oklab, var(--nf-lit) 34%, var(--nf-surface-canvas));
     box-shadow:
-      0 0 0 1px color-mix(in oklab, var(--nf-admin-lit-cyan) 45%, transparent),
-      0 0 14px 1px color-mix(in oklab, var(--nf-admin-lit) 50%, transparent);
+      0 0 0 1px color-mix(in oklab, var(--nf-lit-cyan) 45%, transparent),
+      0 0 14px 1px color-mix(in oklab, var(--nf-lit) 50%, transparent);
   }
   .nf-md-toggle:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);

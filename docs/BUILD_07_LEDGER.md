@@ -10095,3 +10095,317 @@ Resolved, and **the condition was re-read rather than assumed**: the migration
 resolves those rows only if the drain has since recorded a successful run LATER
 than the newest of them, and raises with both timestamps if it has not. An
 alert that is still true stays open.
+
+---
+
+## 74. ITEM 8: THE GATE IS THE OTHER WAY UP, AND THE CONTROL IS THE HALF THAT MATTERS
+
+The founder's words: "Remove look around. You must sign in. Nothing inside the
+platform is visible without signing up or signing in." Session A owns the gate,
+Session B owns the Get Started screen. This is the gate, its two accepted
+consequences, and the proof.
+
+Landed as `80097483` (the gate) and `07a510f7` (the proof).
+
+### 74.1 The shape changed, and the shape was the fault
+
+`proxy.ts` held the CLOSED list: `PRODUCT_SEGMENTS`, a set of product first
+segments, with everything else open. **A route added to the app was PUBLIC
+until somebody remembered to classify it.** That is the same shape as section
+67's outage one layer down: the knowledge was in the repository, in prose, and
+the thing that could have enforced it was not a check.
+
+PUBLIC is now the enumerated set and everything else needs a session, so a new
+route is BORN LOCKED, which is rule 21's rule applied to routes. 23 public page
+segments, 4 public exact paths, 16 public API paths, each carrying the reason it
+is there in the file.
+
+**The complete decision, and the reason for each, is in `proxy.ts` and in
+`docs/STORE_SUBMISSION_NOTES.md` section 1.** Public: the landing page; the
+company and support pages off its footer (both stores require a working support
+URL, and `/help` mounts the support chat); the whole legal and policy set;
+`/delete-account`, because Google Play requires it reachable without signing in
+AND because it carries the restore form, which is the one step a person cannot
+perform signed in; the auth doors; `/welcome`; `/offline`; `robots.txt`,
+`sitemap.xml` and the OG image.
+
+Closed, which is the whole of item 8: `/search`, `/listing/[id]`, `/around`,
+`/stays`, `/stay/[id]`, `/restaurants`, `/restaurant/[id]`, `/rent`, `/price`,
+`/u/[handle]`, `/post/[id]`, plus everything that was already closed.
+
+**R15 is resolved by this.** A stranger pressing back from `/search` was landing
+on `/sign-in` because `/home` was gated and the two shelves above it were not.
+There is no stranger on `/search` now. It was never a `route-parents.ts`
+decision and it is no longer a `PRODUCT_SEGMENTS` one either.
+
+### 74.2 Two things were open that nobody had decided were open
+
+Found while enumerating, and neither is browsing:
+
+- **`/escrow` and `/escrow/[id]` were not gated at all.** Every row on that
+  screen is somebody's held money. `resolveSession()` inside the page answered
+  the signed-out state correctly, so nothing leaked, but the route itself asked
+  nobody. It is a product segment and it was never in the product list.
+- **`/verification` was not gated either.** It is the screen that accepts
+  identity documents. Same posture: the page guards itself, the route did not.
+
+Both are closed now, and both were closed by the inversion rather than by
+somebody noticing them, which is the argument for the inversion.
+
+### 74.3 The API routes, because a curtain is not a gate
+
+`/api/map/listings` served the whole catalogue inside a bounding box to anybody
+who asked. It is the map's own endpoint and the map lives on `/search`, which
+is now shut, so the page was closed and the data was not.
+
+Closed: `/api/map/listings`, `/api/crypto/markets`, `/api/crypto/pairs`,
+`/api/crypto/coins/[id]`, `/api/assistant`, `/api/documents/[id]`,
+`/api/push/key`, `/api/push/register`, `/api/push/revoke`,
+`/api/push/self-test`.
+
+**Refused with 401 JSON and not a redirect.** A 307 to an HTML sign-in page is
+not something a `fetch` can read: it follows the redirect, gets a page, and the
+caller tries to parse JSON out of it.
+
+Open, 16, each with its own guard and none of them a session: the three
+webhooks (signature), the seven cron jobs and the push drain (bearer secret,
+and pg_net calls the drain every five minutes), `/api/csp-report` and
+`/api/client-error` (posted by signed-out browsers, and the CSP endpoint is
+named in the `Reporting-Endpoints` header this same middleware stamps on every
+response), `/api/push/sw` (fetched as a script by the service worker), and
+**`/api/support`, which answers the chat mounted on the PUBLIC `/help` page**.
+That last one is the entry closing this list would have broken, and it was
+found by reading where the component is mounted rather than by reading the
+endpoint.
+
+### 74.4 The server actions, checked, and my own first scan was a blind light
+
+65 modules carry `"use server"` as their first line. 56 refuse a signed-out
+caller outright.
+
+**My first scan said 27.** It had grepped for the STRING `"use server"`
+anywhere in a file, and matched it inside docstrings, including
+`lib/legal/acceptance.ts`, whose docstring quotes the directive precisely to
+explain why the file is `server-only` and NOT an action. I was one step from
+filing a service-role write reachable by an anonymous caller as a finding. It
+was never one. The scan now reads the first line, which is where a directive
+has to be.
+
+Of the nine that do not refuse: the auth actions, the newsletter and the two
+support actions are public by necessity and by design; two are `.bind` wrappers
+over checked actions; one is a stub that always refuses; one is a dev fixture.
+
+**The ninth was real.** `loadMoreFeed` paged the whole public timeline for a
+caller with no session. A server action is posted to a PAGE'S path, so closing
+`/around` does not close it: the action id is in the payload of any page that
+renders the control, and the caller chooses the path. It now answers an ended
+page to a stranger, exactly as its "joined" branch always has. RLS is
+untouched.
+
+### 74.5 The deep link, and the hop that was dropping it
+
+A shared listing address opened signed out lands on
+`/sign-in?next=/listing/abc&notice=sign-in-required` and returns there after
+signing in. The existing `?next=` chain is reused rather than a second
+mechanism invented, and `safeReturnPath` still keeps the value a path and not
+somebody else's host.
+
+**`/sign-up/page.tsx` read no `next` at all.** Anybody who pressed Create an
+account, or who was linked straight to `/sign-up?next=...`, reached
+`/sign-up/email` with no destination and finished on `/home`. That was
+survivable while browsing was open because almost nobody met a wall. After item
+8 every shared address on this platform goes through that screen. Fixed.
+
+**A second hop still drops it and it is Session B's file.** R20 below.
+
+### 74.6 Consequence one, written down: no listing will be indexed
+
+`app/sitemap.ts` no longer reads the database. It walked `listings` and
+`accommodations` and emitted a URL per published row; every one of those
+addresses now answers a crawler with a 307. **A sitemap that names pages a
+crawler is then refused at is worse than no sitemap**: Search Console reports
+each row as "Page with redirect" and the one honest public surface is buried
+under the queue of bounces.
+
+`robots.ts` is rewritten from the same decision, `app/(app)/layout.tsx` now
+declares `robots: { index: false }` for the whole consumer group (roughly half
+those routes carried no directive and were inheriting the root layout's
+`index: true`), and `app/sitemap.test.ts` puts every URL the sitemap emits
+through `isPublicPath`, the function the middleware itself calls, so the three
+statements cannot drift apart again.
+
+`lib/listings/syndication.ts` is untouched and still governs the three
+remaining ways a listing reaches a machine.
+
+### 74.7 Consequence two, written down: there is no reviewer account
+
+**Asked plainly and answered plainly: no working reviewer account exists
+today.** Checked against the live project rather than inferred. Seven accounts
+in `auth.users`, oldest 7 August, newest 22 September, and none of them is the
+seeded reviewer. `scripts/seed/store-reviewer.mjs` has **never been run**. The
+script is complete and correct; it has never had the two values it refuses to
+guess.
+
+This mattered less while browsing was open. After item 8 a reviewer cannot see
+one screen of the product, so **without this account both submissions are
+rejected**, and it is the first rejection reason rather than a late one.
+
+Founder only. The script needs `SEED_REVIEWER_EMAIL`,
+`SEED_REVIEWER_PASSWORD` and the service role key, and this container cannot
+reach the project in any case. `docs/STORE_SUBMISSION_NOTES.md` section 2 says
+where each value lives and who sets it, and never what it is.
+
+### 74.8 The proof, and the control, and what is still UNPROVEN
+
+Run in an isolated worktree at `80097483`, `node_modules` hardlinked with
+`cp -al` at both the root and `apps/web`, never the shared tree.
+
+**Signed out, in a real browser, all checks passed**: 41 product routes bounce,
+the address and the reason ride the redirect, a query string survives it, 4
+hostile addresses stay on our origin, 10 data routes refuse with 401 JSON, 10
+webhook and cron and telemetry routes still answer, 25 public routes open AND
+render, `robots.txt` and `sitemap.xml` answer 200, nothing unclassified.
+
+**The not-found guard was not taken on trust.** On the same server `/gallery`
+answers HTTP 200 with the not-found body, 182 characters, 39 elements, and the
+marker fires; `/` reads 3051 characters and `/privacy` 10001. So the 25 green
+public rows are real renders and not 200s over a not-found body.
+
+**My own open-redirect assertion failed on its first run and the product was
+right.** `//evil.example/listing/x` is normalised by Next itself to the ordinary
+same-origin path `/evil.example/listing/x`, and my check was reading a substring
+of a URL rather than a URL. It now resolves the Location and any `next` it
+carries against our origin and compares origins.
+
+**The control.** A gate that refuses everybody passes every row above.
+`src/proxy-session.test.ts` puts the same 41 routes, 10 data routes and 23
+public ones through `proxy()` itself with a session attached: the real
+`createServerClient`, the real cookie adapter, a real `getUser()` over HTTP, the
+real branch. The cookie is minted by the same library the middleware reads it
+with. Five assertions, one of which proves the guard is armed before anything is
+concluded from it, and both directions of the API pair.
+
+Mutated twice, because a control nobody has broken is a claim:
+
+| mutation | what went red |
+| --- | --- |
+| the gate refuses everybody | the 2 control assertions. **The refusal assertions stayed green.** That is the catastrophe-reported-as-a-clean-run, demonstrated. |
+| the gate admits everybody | the mirror image: the 2 refusal assertions, with the 3 control assertions green. |
+
+The classification test was mutated too: adding `search` to the public set
+reddens 2, removing `delete-account` and the Paystack webhook reddens 3. It
+also refuses to run on a thin route list, because every assertion in it is
+vacuously true of no routes.
+
+**UNPROVEN, and it is not a detail. THE PAGES ARE NOT PROVEN TO RENDER FOR A
+SIGNED-IN READER.** This container's egress proxy answers
+`CONNECT <project>.supabase.co:443` with 403, so no real session exists here and
+every read past the middleware goes to a stand-in that serves one endpoint. A
+data-backed screen would draw its empty or not-found state for reasons that
+have nothing to do with who is asking. What is proved is the GATE. One
+signed-in reload of the live site closes the rest.
+
+The browser-level signed-in walk is **built and was not run**.
+`tests/gate.spec.mjs` takes `GATE_SESSION_COOKIE` and runs the control pass
+against a server; `tests/gate-stub-session.mjs` mints the cookie and serves the
+stand-in. It needs a second production build pointed at the stand-in's address,
+because Next inlines a `NEXT_PUBLIC_` value at build time, and that build was
+killed by the OOM killer three times on a box running eight concurrent
+production builds. I stopped retrying rather than take memory from nine other
+workers for a claim I already hold in-process.
+
+### 74.9 Two mirror tests the inversion caught, and both were about nothing
+
+- `lib/price-check/route-openness.test.ts` asserted that `price` was NOT in the
+  closed set, with the strategic case for a cold acquisition surface written
+  out at length. The founder has overruled it. The file now asserts his ruling
+  against the live rule, and **the cost is recorded rather than deleted**: the
+  demand signal is not gone, it is narrowed to people who made an account
+  first, and nobody should "fix" it by reopening the segment.
+- `lib/safety/user-generated-content.test.ts` required the string `"eula"` to be
+  ABSENT from `proxy.ts`, on the reasoning that a `(site)` route is public
+  unless it is named in the protected set. The inversion made the same string's
+  PRESENCE the thing keeping the page open, and the test went red over a
+  correct product.
+
+Both now ask `isPublicPath`, so they answer the same whichever way round the
+list is written next. A grep for a name in a file was never the question.
+
+### 74.10 The biggest thing nobody asked about: the landing page's primary
+     button is now a sign-in button
+
+The landing page is our only public surface, and every route it points into is
+now closed. Measured rather than assumed:
+
+| control | goes to |
+| --- | --- |
+| `Hero.tsx`, the PRIMARY call to action | `/search` |
+| `Hero.tsx`, the secondary | `/stays` |
+| `SiteHeader.tsx`, "Properties" and "Stays" | `/search`, `/stays` |
+| `SearchPill.tsx`, the search box itself, all three intents | `/search`, `/stays/search` |
+| `StaysBand.tsx` | `/stays`, `/restaurants` |
+| `SiteFooter.tsx` | `/stays`, `/restaurants` |
+
+Every one of them now answers `/sign-in?next=...`. **The behaviour is correct
+and it is the founder's instruction**: you must sign in, and the `next` means
+the journey completes on the other side. What is a product question, and not
+one a worker should take, is whether a button that reads "Search properties"
+should read that when what it opens is a sign-in screen. **Not changed.
+Founder's call.** It is the only public surface we have and its main control
+now behaves differently from what it says.
+
+---
+
+## 49sexies. R20 AND R21 TO SESSION B
+
+**R20. BLOCKER. The sign-up swap link drops `next`, and after item 8 that is
+every shared address on the platform.**
+
+`components/auth/AuthChoices.tsx`, the "New to Vallo? Sign up" line:
+
+```tsx
+<Link href={isSignUp ? "/sign-in" : "/sign-up"}>
+```
+
+It carries no `next`. Every other hop in the chain does: the middleware writes
+it, the email form rides it in a hidden field, the Google door rides it, and
+`/auth/callback` honours it. `/sign-up/page.tsx` was the other half and it was
+Session A's, so it is fixed and now reads and forwards `next`.
+
+This was survivable while browsing was open. It is not now: the gate sends
+every stranger who opens a shared listing, search or profile address to
+`/sign-in?next=<that address>`, and a person who chooses to create an account
+instead of signing in loses the thing that was shared and finishes on `/home`.
+
+The fix is one line, and it should preserve the whole query rather than only
+`next`, so `notice` survives too:
+
+```tsx
+const swap = isSignUp ? "/sign-in" : "/sign-up";
+<Link href={next ? `${swap}?next=${encodeURIComponent(next)}` : swap}>
+```
+
+`AuthChoices.tsx` is Session B's by the scope file, so this is flagged and not
+changed.
+
+**R21. NOTE. `proxy.ts` has a new shape and Session B's one line is still
+Session B's.**
+
+`PRODUCT_SEGMENTS` and `PRODUCT_PATHS` no longer exist. The file now declares
+`PUBLIC_SEGMENTS`, `PUBLIC_PATHS` and `PUBLIC_API_PATHS`, and the rule is the
+other way up: enumerated public, everything else gated.
+
+**`welcome` is in `PUBLIC_SEGMENTS` and means exactly what Session B's line
+meant.** The written agreement stands, on the new line. If first run ever needs
+a second public path, it goes in that set.
+
+`tests/gate.spec.mjs` is rewritten, which answers request W4: the two lists are
+current, `/agents` is gone with its tree, `/welcome` and `/start` are in PUBLIC,
+the file reads `proxy.ts` rather than `middleware.ts`, and it now has a control
+pass as well as a refusal pass. Session B's `session-b-welcome.spec.mjs` is
+untouched.
+
+One consequence for item 8's screen half: **any control on Get Started that
+points into the product now opens the sign-in screen.** That is correct after
+item 8, and worth knowing while the "look around" option is being removed,
+because whatever replaces it lands in the same place.

@@ -167,7 +167,7 @@ try {
   check(
     "a stranger headed for sign in meets Sign in as the lit door, with their destination kept",
     (await p3.getByTestId("welcome-sign-in").getAttribute("href")) === "/sign-in?next=%2Fwallet" &&
-      ((await p3.getByTestId("welcome-sign-in").getAttribute("class")) ?? "").includes("nf-gs-btn--lit"),
+      ((await p3.getByTestId("welcome-sign-in").getAttribute("class")) ?? "").includes("nf-btn--primary"),
     [await p3.getByTestId("welcome-sign-in").getAttribute("href")],
   );
   await ctx3.close();

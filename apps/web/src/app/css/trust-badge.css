@@ -35,21 +35,9 @@
  * removed across the product today under the founder's item 2.
  */
 
-:root {
-  /* Gold. The exception named above, and its whole extent. */
-  --nf-badge-gold-top: #ffdc20;
-  --nf-badge-gold-mid: #ffd323;
-  --nf-badge-gold-foot: #ffba0c;
-  --nf-badge-gold-tick-top: #f58207;
-  --nf-badge-gold-tick-foot: #d95c00;
-
-  /* Platinum. Neutral, so it sits inside the palette without an exception. */
-  --nf-badge-platinum-top: #e1e1e1;
-  --nf-badge-platinum-mid: #d6d6d6;
-  --nf-badge-platinum-foot: #c4c4c4;
-  --nf-badge-platinum-tick-top: #666666;
-  --nf-badge-platinum-tick-foot: #454545;
-}
+/* The ten metal stops (--nf-badge-gold-*, --nf-badge-platinum-*) live in
+   packages/design-tokens/src/tokens.css, values unchanged, so this sheet holds
+   no raw colour. Nothing but this badge may read them. */
 
 /*
  * The mark itself. It is a fact drawn beside a name, so it never animates, it
