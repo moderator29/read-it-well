@@ -187,11 +187,50 @@ function label(path: string): string {
     : `packages/i18n/src/${relative(DICTIONARY, path)}`;
 }
 
-function sourceFiles(dir: string, found: string[] = []): string[] {
+/**
+ * THE TREE IS WALKED ONCE AND EVERY FILE IS READ ONCE.
+ *
+ * Two blocks below sweep the same sources, so before this cache the tree was
+ * walked twice and every one of about fifteen hundred files was read from disk
+ * twice, once per block. In isolation that is a second or so. Inside the full
+ * suite, with two hundred and twenty other files running in parallel on the
+ * same box, it went past vitest's five second default and turned main red on a
+ * timeout that had nothing to do with what the test asserts.
+ *
+ * That matters beyond the wasted second. A test that fails for a reason
+ * unrelated to its subject teaches every reader who meets it to press the
+ * button again instead of looking, and that habit is what let five defects
+ * hide behind green lights on this platform in a single day. So the walk and
+ * the reads are shared, and the timeouts below are set on the sweeps rather
+ * than left on the assertions, because what is being bounded is the cost of
+ * reading a tree that grows every day.
+ */
+const WALKED = new Map<string, string[]>();
+const READ = new Map<string, string>();
+
+function readOnce(path: string): string {
+  let text = READ.get(path);
+  if (text === undefined) {
+    text = readFileSync(path, "utf8");
+    READ.set(path, text);
+  }
+  return text;
+}
+
+function sourceFiles(dir: string): string[] {
+  let found = WALKED.get(dir);
+  if (found === undefined) {
+    found = walk(dir);
+    WALKED.set(dir, found);
+  }
+  return found;
+}
+
+function walk(dir: string, found: string[] = []): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const path = join(dir, entry.name);
     if (entry.isDirectory()) {
-      sourceFiles(path, found);
+      walk(path, found);
       continue;
     }
     if (!/\.tsx?$/.test(entry.name)) continue;
@@ -217,10 +256,10 @@ describe("no screen in this product promises a date it cannot keep", () => {
     expect(files.some((path) => path.endsWith("locales/ig.ts"))).toBe(true);
   });
 
-  it("finds no banned schedule promise in any of them", () => {
+  it("finds no banned schedule promise in any of them", { timeout: 60_000 }, () => {
     const offences: string[] = [];
     for (const path of files) {
-      const lines = withoutComments(readFileSync(path, "utf8")).split("\n");
+      const lines = withoutComments(readOnce(path)).split("\n");
       lines.forEach((text, index) => {
         const phrase = firstBannedPhrase(text);
         if (phrase) {
@@ -256,10 +295,10 @@ describe("the terminology table is enforced and not just written down", () => {
     (path) => !EXEMPT.has(relative(SRC, path).split("\\").join("/")),
   );
 
-  it("uses no banned synonym in any copy the product holds as a string", () => {
+  it("uses no banned synonym in any copy the product holds as a string", { timeout: 60_000 }, () => {
     const offences: string[] = [];
     for (const path of files) {
-      for (const { line, text } of stringLiterals(readFileSync(path, "utf8"))) {
+      for (const { line, text } of stringLiterals(readOnce(path))) {
         for (const { label, pattern, instead } of BANNED_SYNONYMS) {
           if (pattern.test(text)) {
             offences.push(
