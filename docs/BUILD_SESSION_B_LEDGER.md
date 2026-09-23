@@ -6464,6 +6464,121 @@ Routes swept: 28 of 28. The three old deck harnesses (`bd/*`, `p3/*` and the
 Proofs: `docs/design/proofs/session-b/sweep-console/pairs-1440/` (before left,
 after right, 28) and `after-390/` (28).
 
+## 13. Platform sweep: wallet family (wallet, send, receive, top up, withdraw, transactions, receipt, pots, result sheets, payment methods; worker "wallet")
+
+Dated 23 September. Commits cc62e78b (SW-ST3, every money card on `Panel`,
+every glyph plate on `IconPlate`, the local material deleted) and 14b43dce
+(the balance card's positioning context, the pay row hover, the after
+proofs). Reference for every container, edge, rim, glow, button and plate:
+the shared layer of Phase 1 (42ea43d9, 9da8f86f), which is the console's
+anatomy and Get started's buttons. The governing renders 6AF37222 (`/wallet`)
+and 77A54EA3 (`/wallet/send`) still win where they measure something the
+shared layer does not; those are listed as governed exceptions below.
+
+### 13.w1 Inventory (before changing anything)
+
+| Item | Where | What it drew | Now |
+|---|---|---|---|
+| Money card material | `wallet.css` `.nf-money .nf-card` and the `--nf-wallet-lit-edge`, `-lit-fill`, `-lit-glow` vars | its own per-side edge, banded fill and halo, 14px corner | deleted; every money card is `panelClass({ variant: "card" })` |
+| Cards in markup | `nf-card` in RecentActivity, TransactionsSection, SendFlow (form, sent, confirm), ReceiveCard (2), Receipt, TrustStrip, MoneySheet, PaymentMethodsPanel, FundingVerifier, three `loading.tsx` skeletons (two with a 22px `radius-xl` override) | the legacy 22px stride card, re-skinned by the rule above | `Panel` (`.nf-panel .nf-panel--card`), 10px container corner |
+| Glyph tiles | `wallet.css` `.nf-glyph-tile`, `--lg`, `--solid`; used by Receipt, TrustStrip, ReceiveCard, PaymentMethodsPanel (2) | own tint, brand edge, drop glow, 14 to 16px corners; a solid blue circle on receive | deleted; `IconPlate` (sm in rows, md in heads) |
+| Transaction circle | `wallet.css` `.nf-tx-tile` (EntryRow, Receipt) | own tint, a local rim var, own glow | `IconPlate size="sm"`; the one local line left is its circle (governed, below) |
+| Result marks | `ResultSheet.tsx`, SendFlow sent and confirm, `.nf-result-mark` | a glass object on a visible dark square (SW-ST3) | `IconPlate size="lg"` with the state's tone (success, error, pending, brand, info); the mark rules deleted |
+| Quick cards, send rows, send trust card, recipient found, pay rows | `wallet.css` | own lit fills and rims | `--nf-panel-edges`, `--nf-panel-fill-card`, `--nf-panel-rim`, `--nf-panel-glow`, container radius |
+| Hero tiles, back control, amount chips, Instant chip | `wallet.css` | own tile fill and rim vars | glass door (`--nf-btn-glass-*`) |
+| Send tile, Send Money CTA | `wallet.css` | own lit fill and cyan edge var | lit bar (`--nf-btn-lit-*`) |
+| Pressed amount chip, pay row hover | `wallet.css` | own gradient and brand-edge ring | `--nf-selected-*` |
+| Round-three overrides | `wallet.css` (hero `--nf-wallet-lit-glow`, radius-sm on rows and form, `brand-edge-soft` row edges, a third copy of the hero rule) | fought the shared tokens | deleted |
+| Unused trust badge | `wallet.css` `.nf-trust__badge` | nothing (no markup uses it) | deleted |
+| Local vars | `--nf-wallet-tile-fill`, `-rim-top`, `-rim-side`, `-rim-foot`, `-lit-edge`, `-lit-fill`, `-lit-glow`, `-cta-edge` | | deleted; only the balance card's three governed fill stops remain |
+| State notices | MoneyWait, ErrorNotice, AddBankAccountSheet notice | 14 to 16px corners | container radius (their state tint stays: a notice, not a panel) |
+| Pot cards | PotsSection | a control-radius box with a brand edge | `Panel` card |
+
+### 13.w2 Governed exceptions (kept, and why)
+
+- The balance card on `/wallet`, `/wallet/send`, top up and withdraw keeps
+  6AF37222's measured fill (three stops) and its 14px corner, on the shared
+  panel edges, rim and glow. The governing image wins for its own surface.
+- The transaction circle stays a circle (`.nf-tx-tile.nf-plate`, one line):
+  6AF37222 draws a 36px circle; the plate's material is the shared one.
+- The send rows' plates are the render's own crops (crop rule), not
+  `IconPlate`.
+- The card brand word plate (`.nf-pay-brand`) is a brand mark, not an icon
+  plate.
+- The status notices keep their state tint.
+
+### 13.w3 Routes (390 and 1440)
+
+Material read from computed style on the running build (14b43dce, harness
+`/preview/session-b/...`). Panel = 10px, `--nf-panel-edges`, panel fill,
+rim, glow. Plate = `.nf-plate`. Before = the legacy card (22px or 14px local
+lit card), local glyph tiles.
+
+| Route (harness) | Container | Edge | Rim | Glow | Buttons | Plate | Match |
+|---|---|---|---|---|---|---|---|
+| `/wallet` (`wallet`) | panel x1 + governed hero | panel | panel | panel | glass door tiles, lit Send | 5 plates (tx circles) | yes |
+| `/wallet/send` (`wallet/send`, `wallet/send-filled`) | panel x1 (form) + governed hero | panel | panel | panel | lit CTA, glass chips, selected chip | render crops (governed) | yes |
+| `/wallet/receive` (`sweep-wallet/receive`) | panel x3 | panel | panel | panel | shared Button | 5 plates | yes |
+| `/wallet/top-up` (`sweep-wallet/topup`) | panel x1 + governed hero | panel | panel | panel | shared Button | none drawn | yes |
+| `/wallet/withdraw` (`sweep-wallet/withdraw`) | panel x1 + governed hero | panel | panel | panel | shared Button | none drawn | yes |
+| `/wallet/transactions` (`sweep-wallet/transactions`) | panel x1 | panel | panel | panel | none | 6 plates | yes |
+| `/wallet/transactions/[id]` (`sweep-wallet/receipt`) | panel x2 | panel | panel | panel | shared Button x4 | 3 plates | yes |
+| Pots (`sweep-wallet/pots`) | panel x2 | panel | panel | panel | shared Button x4 | none drawn | yes |
+| Result sheet pending, failed (`sweep-wallet/result?state=`) | the shared Sheet | sheet | sheet | sheet | shared Button x3 | lg plate, pending and error tones | yes (SW-ST3 closed) |
+| `/settings/payments` and the block on `/settings` (`sweep-wallet/payments`, `sweep-settings?v=payments`, `?v=hub`) | panel x1, pay rows on panel tokens | panel | panel | panel | shared Button (Add), selected hover | 2 plates | yes |
+
+Routes swept: 10 of 10 (12 harness views, 14 with the two settings views).
+
+### 13.w4 Three passes
+
+1. 23 Sept, computed style on every route above: zero `.nf-card`, zero
+   `.nf-glyph-tile` left in the family; every container 10px on the panel
+   edges, the hero 14px (governed). `check-css-tokens`: clean.
+2. 23 Sept, overflow and shape: every 390 proof is 780 device px wide (the
+   send pages first came out 812: the balance card had lost `position:
+   relative` with the deleted duplicate rule, so its wallet object escaped
+   the clip; restored in 14b43dce). `compare-surface --shape-sweep` on
+   wallet, send, send-filled, payments, receive, receipt and the settings
+   payments view: no text-bearing control is a capsule. By hand: hero tiles
+   75x62 r14 (0.23), quick cards 85x82 r10 (0.12), rows 332x56 r10 (0.18),
+   amount chips 64x44 r10 (0.23), Send Money 340x45 r14 (0.31), Add 85x44
+   r14 (0.32), receipt buttons 150x51 r14 (0.28). All under 0.35.
+3. 23 Sept, before beside after at 390 read by eye on every route: the
+   wallet and send surfaces unchanged in layout (the renders still hold);
+   the receipt, receive, payments and pots cards now read as the console's
+   panel; the result sheet's dark square is gone.
+
+### 13.w5 Proofs
+
+`docs/design/proofs/session-b/sweep-wallet/<route>-<390|1440>-<before|after>.jpg`
+for wallet, send, send-filled, receive, topup, withdraw, transactions,
+receipt, pots, result-pending, result-failed, payments; and
+`settings-hub-*-after.jpg`, `settings-payments-*-after.jpg` (their before is
+`payments-*-before.jpg`, the same block drawn by the same component).
+
+### 13.w6 Live proof, signed in as the QA member (reads only)
+
+Run 23 Sept 17:02 UTC against the live project from the production build of
+14b43dce on port 3174 (`next start`, `NODE_USE_ENV_PROXY=1`), by
+`scripts/design/session-b-shots/wallet-live-reads.mjs`; credentials from the
+environment only. Nothing was funded, sent, withdrawn or moved: the only
+POSTs were the sign-in form and the recipient lookup server action. Every
+typed address is blurred in the shots. Read-only SQL beforehand: neither QA
+account has a `wallets` row, so the true balance is N0.00 and the history is
+empty. Evidence: `docs/design/proofs/session-b/wallet-live/` (shots and
+`steps.json`).
+
+| Link | Result |
+|---|---|
+| Sign in as the member, land on `/wallet` | LIVE PROVEN (17:02, 14b43dce, steps.json) |
+| `/wallet` balance read | LIVE PROVEN: the hero reads N0.00, no failure copy (`01-wallet.jpg`) |
+| `/wallet/transactions` history read | LIVE PROVEN: "No transactions yet", no failure copy (`02-transactions.jpg`) |
+| `/wallet/receive` details read | LIVE PROVEN: the identity panel drawn, no failure copy (`03-receive.jpg`) |
+| `/wallet/send` in wallet-to-wallet mode only | LIVE PROVEN: recipient field drawn, zero bank controls (`04-send.jpg`) |
+| Recipient lookup of the QA admin (by email: the schema has no handle, the send form looks up by address) | NOT PROVABLE ON THIS BOX: the server action ran live (POST observed) but answered "unknown" with no reason, because `lookupRecipient` needs the service-role client and this box's `.env.local` carries only the URL and anon key (`05-send-recipient-found.jpg` shows no answer). Proves the moment `SUPABASE_SERVICE_ROLE_KEY` is set for the build; that key is the founder's to give. |
+
+Links proven live: 5 of 6.
+
 ## Push enrolment blind light (founder, 23 Sept)
 
 Worker "push". Files: `components/app/push/{enrol.ts,PushSetting.tsx,PushPrompt.tsx}`,

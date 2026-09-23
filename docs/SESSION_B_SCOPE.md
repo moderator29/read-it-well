@@ -222,6 +222,9 @@ Each group appends "RELEASED <commit>" here when it is done.
     header left by ruling). Requests SW-C1 to SW-C6 in ledger 13 (chrome).
   - already Session B's: wallet family, inspections, auth, admin, welcome.
     **auth: RELEASED** (see ledger 13.A; remainder filed as SW-A1).
+    **wallet family: RELEASED cc62e78b + 14b43dce** (23 September): 10 of 10
+    routes swept, the payment methods block on `/settings` and
+    `/settings/payments` with them; ledger 13, wallet family.
   - **the leftovers no group owns (worker "leftovers", claimed 23 September
     by the lead's instruction):** SW-C5, SW-C6, SW-C1 and the app header.
     Files: `apps/web/src/app/css/glass.css` (ONLY `.nf-card` and its
@@ -286,7 +289,10 @@ and `.nf-field`. Request ids are `SW-ST*` (the social group uses `SW-S1`).
   still a local field well. Add the shared `nf-field` class at those call
   sites; `stays.css` then keeps only the select's chevron and the inline
   width, and deletes its own well.
-- **SW-ST3 (to the wallet family):** `components/app/ResultSheet.tsx` draws its
+- **SW-ST3: CLOSED by the wallet family in cc62e78b** (the mark is the shared
+  `IconPlate`, lg, in the state's tone; `.nf-result-mark` deleted; proofs
+  `sweep-wallet/result-{pending,failed}-{390,1440}-after.jpg`). Original request:
+  `components/app/ResultSheet.tsx` draws its
   glass object on a visible dark square (`.nf-result-mark`, `wallet.css`),
   seen on checkout's payment pending and failed sheets
   (`docs/design/proofs/session-b/sweep-stays/before/pay-failed-390-before.jpg`).
