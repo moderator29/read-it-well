@@ -59,9 +59,8 @@ apps/web/.next-*
 assets/brand-sliced/
 assets/brand-cut/
 
-# Session scratch from the overnight sprint: the implementing agents' local
-# screenshot harnesses. Deleted at sprint close; ignored so a checkpoint
-# commit cannot accidentally ship a preview route or a throwaway script.
+# Local screenshot-harness scratch. Ignored so a commit cannot accidentally
+# ship a throwaway preview route or script under these names.
 scripts/ownerA-*.mjs
 scripts/ownerb-*.mjs
 apps/web/src/app/(app)/ownerb-preview/
