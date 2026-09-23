@@ -46,6 +46,18 @@ export function BackButton({
       aria-label={label ?? t.common.back}
       onClick={back}
       /*
+        THE WALKER'S HANDLE, AND WHY IT IS AN ATTRIBUTE RATHER THAN A CLASS.
+
+        `scripts/design/proof-nav.mjs` opens every route that declares a parent
+        and has to answer two questions a grep cannot: did a back control
+        actually DRAW, and where did pressing it LAND. Matching on a class name
+        would tie the proof to this component's paint, which changes; matching
+        on the accessible name would tie it to whichever language the cookie
+        asked for. This attribute says what the object IS, so the same selector
+        finds the one in `PageHeader` too.
+      */
+      data-nav-back=""
+      /*
         NO CONTAINER. `nf-icon-btn` draws a bordered glass plate, so every
         screen with a back arrow opened with a boxed object in the top left
         competing with the title beside it - and this one component is the back

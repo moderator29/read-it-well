@@ -1,0 +1,371 @@
+{
+  "base": "http://127.0.0.1:3381",
+  "when": "2026-09-23T10:21:29.468Z",
+  "surveying": false,
+  "rows": [
+    {
+      "pattern": "/about",
+      "url": "/about",
+      "declaredParent": "/",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/",
+      "coldNote": null,
+      "warmLanded": "/",
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true
+    },
+    {
+      "pattern": "/cancellations",
+      "url": "/cancellations",
+      "declaredParent": "/",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/",
+      "coldNote": null,
+      "warmLanded": "/",
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true
+    },
+    {
+      "pattern": "/careers",
+      "url": "/careers",
+      "declaredParent": "/",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/",
+      "coldNote": null,
+      "warmLanded": "/",
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true
+    },
+    {
+      "pattern": "/contact",
+      "url": "/contact",
+      "declaredParent": "/",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/",
+      "coldNote": null,
+      "warmLanded": "/",
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true
+    },
+    {
+      "pattern": "/delete-account",
+      "url": "/delete-account",
+      "declaredParent": "/",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/",
+      "coldNote": null,
+      "warmLanded": "/",
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true
+    },
+    {
+      "pattern": "/docs",
+      "url": "/docs",
+      "declaredParent": "/",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/",
+      "coldNote": null,
+      "warmLanded": "/",
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true
+    },
+    {
+      "pattern": "/docs/[slug]",
+      "url": "/docs/what-vallo-is",
+      "declaredParent": "/docs",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/docs",
+      "coldNote": null,
+      "warmLanded": "/docs",
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true
+    },
+    {
+      "pattern": "/eula",
+      "url": "/eula",
+      "declaredParent": "/",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/",
+      "coldNote": null,
+      "warmLanded": "/",
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true
+    },
+    {
+      "pattern": "/help",
+      "url": "/help",
+      "declaredParent": "/",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/",
+      "coldNote": null,
+      "warmLanded": "/",
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true
+    },
+    {
+      "pattern": "/privacy",
+      "url": "/privacy",
+      "declaredParent": "/",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/",
+      "coldNote": null,
+      "warmLanded": "/",
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true
+    },
+    {
+      "pattern": "/safety",
+      "url": "/safety",
+      "declaredParent": "/",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/",
+      "coldNote": null,
+      "warmLanded": "/",
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true
+    },
+    {
+      "pattern": "/standards",
+      "url": "/standards",
+      "declaredParent": "/",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/",
+      "coldNote": null,
+      "warmLanded": "/",
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true
+    },
+    {
+      "pattern": "/styleguide",
+      "url": "/styleguide",
+      "gated": true,
+      "declaredParent": "/",
+      "reachable": false,
+      "refused": "redirected to /welcome"
+    },
+    {
+      "pattern": "/terms",
+      "url": "/terms",
+      "declaredParent": "/",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/",
+      "coldNote": null,
+      "warmLanded": "/",
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true
+    },
+    {
+      "pattern": "/search",
+      "url": "/search",
+      "declaredParent": "/home",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/sign-in",
+      "coldNote": null,
+      "warmLanded": null,
+      "warmNote": "parent /home did not load: redirected to /welcome",
+      "coldCorrect": false,
+      "warmCorrect": false
+    },
+    {
+      "pattern": "/around",
+      "url": "/around",
+      "declaredParent": "/home",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/welcome",
+      "coldNote": null,
+      "warmLanded": null,
+      "warmNote": "parent /home did not load: redirected to /welcome",
+      "coldCorrect": false,
+      "warmCorrect": false
+    },
+    {
+      "pattern": "/settings",
+      "url": "/settings",
+      "gated": true,
+      "declaredParent": "/home",
+      "reachable": false,
+      "refused": "redirected to /welcome"
+    },
+    {
+      "pattern": "/preview",
+      "url": "/preview",
+      "declaredParent": "/",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/",
+      "coldNote": null,
+      "warmLanded": "/",
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true
+    },
+    {
+      "pattern": "/gallery",
+      "url": "/gallery",
+      "declaredParent": "/",
+      "reachable": true,
+      "drawn": true,
+      "controlCount": 1,
+      "controlLabel": "Back",
+      "controlBox": {
+        "w": 20,
+        "h": 20
+      },
+      "coldLanded": "/",
+      "coldNote": null,
+      "warmLanded": "/",
+      "warmNote": null,
+      "coldCorrect": true,
+      "warmCorrect": true
+    },
+    {
+      "pattern": "/offline",
+      "url": "/offline",
+      "declaredParent": "/home",
+      "reachable": true,
+      "drawn": false,
+      "controlCount": 0,
+      "controlLabel": null,
+      "controlBox": null,
+      "coldLanded": null
+    },
+    {
+      "pattern": "/crypto",
+      "url": "/crypto",
+      "declaredParent": "/wallet",
+      "reachable": false,
+      "refused": "not-found body served at 200"
+    },
+    {
+      "pattern": "/crypto/[id]",
+      "url": "/crypto/btc",
+      "declaredParent": "/crypto",
+      "reachable": false,
+      "refused": "not-found body served at 200"
+    }
+  ]
+}

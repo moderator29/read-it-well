@@ -72,6 +72,33 @@
  *                                   Back inside the Console never leaves the
  *                                   Console, which is the founder's first
  *                                   complaint.
+ *
+ * FOUR ENTRIES BELOW DELIBERATELY DRAW NO CONTROL, AND THAT IS NOT THE GAP.
+ *
+ * A declared parent is a fact about where a screen SITS. It is not a promise
+ * that the screen paints an arrow, and four of these cannot:
+ *
+ *   /crypto, /crypto/[id]   the page is `notFound()` by the store ruling in
+ *                           `app/(app)/crypto/page.tsx`. There is no screen to
+ *                           put a control on. The entries stay because the
+ *                           ruling is DEFERRED, not cancelled, and the day the
+ *                           body comes back the hierarchy is already written.
+ *   /gallery                `notFound()` in a production build by its own
+ *                           guard. The control is wired for development, which
+ *                           is the only place the board exists.
+ *   /offline                the service worker's fallback document, served
+ *                           when there is no network at all. Its way up is the
+ *                           brand lockup, which links to `/home` - the same
+ *                           place a back control would push. A second control
+ *                           on a screen that only renders when nothing can be
+ *                           fetched would be a control that cannot work.
+ *
+ * Android is unaffected by all four: `isAppRoot` is false for every one of
+ * them, so the hardware button goes to the parent rather than closing the
+ * shell, which is the half that matters most there.
+ *
+ * `scripts/design/proof-nav.mjs` walks the rest in a real browser and writes
+ * the landed path per route into `docs/design/proofs/nav/`.
  */
 
 /** The top of a hierarchy. Nothing sits above a route marked with this. */

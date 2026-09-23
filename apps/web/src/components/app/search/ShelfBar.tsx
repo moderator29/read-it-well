@@ -33,12 +33,29 @@ export function ShelfBar({
   locale,
   t,
   openFilters = false,
+  leading,
 }: {
   query: ShelfQuery;
   facts: ListingFacts[];
   locale: Locale;
   t: Dictionary;
   openFilters?: boolean;
+  /**
+   * A control placed before the search field, on the bar's own row.
+   *
+   * `/search` puts the platform's back control here and it is the only caller
+   * that does. The route declares `/home` above it in
+   * `lib/nav/route-parents.ts` and drew nothing, and nothing could be drawn
+   * ABOVE this component either: the bar is `position: sticky; top: 0` and
+   * cancels the shell's top padding with a negative margin, so anything
+   * inserted before it stops being flush with the header and starts scrolling
+   * under it. The row is therefore where the control belongs, which is also
+   * where a phone's search screen puts it.
+   *
+   * A slot rather than a fixed control, so the preview deck that mounts this
+   * bar with fixtures is not given a back arrow it did not ask for.
+   */
+  leading?: React.ReactNode;
 }) {
   const copy = t.catalogue.shelf;
   const sheetHref = toShelfFiltersHref(query);
@@ -75,6 +92,7 @@ export function ShelfBar({
   return (
     <div className="nf-shelf-bar nf-glass--chrome">
       <div className="mx-auto flex max-w-3xl items-center gap-inline">
+        {leading}
         <form action="/search" method="get" role="search" className="nf-shelf-field">
           <UiIcon name="search" size={ICON.inline} />
           <label htmlFor="shelf-q" className="sr-only">

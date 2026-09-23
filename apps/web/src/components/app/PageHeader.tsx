@@ -87,6 +87,10 @@ export function PageHeader({
       type="button"
       aria-label={label}
       onClick={back}
+      /* See the note in `components/site/BackButton.tsx`: one attribute names
+         the object for `scripts/design/proof-nav.mjs`, on both drawn controls,
+         so the walk proves the control rather than a class name. */
+      data-nav-back=""
       className="nf-icon-btn nf-icon-btn--glass h-11 w-11 shrink-0"
     >
       <UiIcon name="arrow-left" size={ICON.inline} />

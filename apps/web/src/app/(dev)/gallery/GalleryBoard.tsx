@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 
 import { getDictionary } from "@vallo/i18n";
 
+import { BackButton } from "@/components/site/BackButton";
 import { Sheet } from "@/components/ui/Sheet";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { WaitNotice } from "@/components/app/wallet/MoneyWait";
@@ -208,7 +209,12 @@ export function GalleryBoard() {
 
   return (
     <main className="nf-shell py-section">
-      <h1 className="nf-h1">Gallery</h1>
+      {/* `/gallery` declares `/` above it in `lib/nav/route-parents.ts` and drew
+          no back control. The board is gated by `previewHarnessIsOpen` in
+          `page.tsx`, so this arrow is only ever met by somebody who opened the
+          harness, which is the one place it is wanted anyway. */}
+      <BackButton fallback="/" />
+      <h1 className="nf-h1 mt-sm">Gallery</h1>
       <p className="mt-sm max-w-measure-lede text-[var(--nf-content-secondary)]">
         Components that live behind a session, mounted with fixtures so they can be
         looked at. Development only. Nothing here asserts anything: it is a place to

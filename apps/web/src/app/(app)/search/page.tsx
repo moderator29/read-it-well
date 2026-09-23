@@ -30,6 +30,7 @@ import { KIND_NOUN, type SortKey } from "@/lib/listings/search-params";
 import { readListingReference } from "@/lib/listings/reference";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { ListingCard } from "@/components/app/ListingCard";
+import { BackButton } from "@/components/site/BackButton";
 import { Reveal } from "@/components/site/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/app/Screen";
@@ -243,12 +244,27 @@ export default async function SearchPage({
 
   return (
     <>
+      {/*
+        THE WAY BACK, ON THE BAR'S OWN ROW.
+
+        `/search` declares `/home` above it in `lib/nav/route-parents.ts` and
+        drew no back control at all, which is the whole defect in miniature: the
+        hierarchy said where the screen sits and the screen said nothing. It
+        goes here rather than above the bar because `nf-shelf-bar` is sticky at
+        `top: 0` and pulls itself up over the shell's padding, so a control
+        placed before it would scroll away under the header on the first flick.
+
+        `BackButton` and not `PageHeader`: this screen's title is a `sr-only`
+        h1 and its visible head is the search field, so a second drawn title
+        would be a duplicate of the field's own job.
+      */}
       <ShelfBar
         query={query}
         facts={pool.map(factsOf)}
         locale={locale}
         t={t}
         openFilters={raw.filters === "open"}
+        leading={<BackButton fallback="/home" />}
       />
 
       <h1 className="sr-only">

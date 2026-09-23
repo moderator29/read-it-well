@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
+import { BackButton } from "@/components/site/BackButton";
 import { PaymentMethodsBlock } from "@/components/app/payments/PaymentMethodsBlock";
 import { loadProfileState } from "@/lib/profile/queries";
 import { loadSessions } from "@/lib/security/sessions";
@@ -56,6 +57,16 @@ export default async function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      {/*
+        THE WAY BACK. `/settings` declares `/home` above it in
+        `lib/nav/route-parents.ts`, every screen UNDER it draws a `PageHeader`
+        with a back control, and the hub itself drew none: the one level of the
+        settings tree with no way up was its top. `BackButton` rather than
+        swapping the head for a `PageHeader`, because `nf-hub-head` is the
+        render's own title and lede and a `PageHeader` would replace a designed
+        head to add one control.
+      */}
+      <BackButton fallback="/home" />
       <header className="nf-hub-head">
         <h1 className="nf-hub-head__title">{t.nav.settings}</h1>
         <p className="nf-hub-head__lede">{hub.ledeShort}</p>

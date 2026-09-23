@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { previewHarnessIsOpen } from "@/lib/preview-harness";
 import { GalleryBoard } from "./GalleryBoard";
 
 /**
@@ -22,12 +23,28 @@ import { GalleryBoard } from "./GalleryBoard";
  * place to LOOK, which is the one thing this project has had no way to do. The
  * automated checks stay where they are.
  *
- * DEVELOPMENT ONLY, ENFORCED HERE RATHER THAN BY A ROUTE RULE. `notFound()` in
- * production means this cannot be reached on a deployed site even if something
- * upstream forgets to exclude it, and it is a 404 rather than a redirect
- * because a redirect tells a stranger the route exists.
+ * DEVELOPMENT ONLY, ENFORCED HERE RATHER THAN BY A ROUTE RULE. `notFound()`
+ * means this cannot be reached on a deployed site even if something upstream
+ * forgets to exclude it, and it is a 404 rather than a redirect because a
+ * redirect tells a stranger the route exists.
+ *
+ * THE GATE IS `previewHarnessIsOpen` NOW, NOT A BARE `NODE_ENV` CHECK, and the
+ * reason is written out in `app/(dev)/preview/layout.tsx`: every proof on this
+ * build is retaken on a server that actually hydrates, `next dev` does not
+ * hydrate reliably on this box, and `next start` IS production. A bare
+ * `NODE_ENV` check therefore 404s the board on the only server a proof counts
+ * from, which is exactly the wall four sweep workers hit on `/preview` before
+ * that layout was changed. This route was the last one still holding the old
+ * shape, found by walking it: `scripts/design/proof-nav.mjs` could not reach
+ * the board to prove its back control drew.
+ *
+ * It is not a loosening. `previewHarnessIsOpen` needs an explicit
+ * `VALLO_PREVIEW_HARNESS=1` and refuses outright on Vercel whatever that
+ * variable says, so a deployed vallospaces.com cannot serve this board even by
+ * mistake - which is more than the old check promised, since the old one would
+ * have opened on any non-production build anywhere.
  */
 export default function GalleryPage() {
-  if (process.env.NODE_ENV === "production") notFound();
+  if (!previewHarnessIsOpen(process.env)) notFound();
   return <GalleryBoard />;
 }

@@ -20,6 +20,7 @@ import { LocationChip } from "@/components/social/feed/LocationChip";
 import { StoryRing } from "@/components/social/feed/StoryRing";
 import { AroundFab } from "@/components/social/AroundFab";
 import { SocialPaused } from "@/components/social/SocialPaused";
+import { BackButton } from "@/components/site/BackButton";
 import { isSocialEnabled } from "@/lib/social/flag";
 
 export const metadata: Metadata = { title: "Around" };
@@ -165,19 +166,36 @@ export default async function AroundPage({
       {/* The screen's name for a screen reader; the chip is the visual head. */}
       <h1 className="sr-only">{t.nav.around}</h1>
 
-      <LocationChip
-        place={placeLabel || t.social.locationEverywhere}
-        places={activePlaces}
-        currentSlug={selected?.slug ?? null}
-        signedIn={signedIn}
-        copy={{
-          label: t.social.locationLabel,
-          allPlaces: t.social.allPlaces,
-          changePlace: t.social.changePlace,
-          pickPlaces: t.social.pickPlaces,
-          signIn: t.common.signIn,
-        }}
-      />
+      {/*
+        THE WAY BACK, BESIDE THE PLACE.
+
+        `/around` declares `/home` above it and drew nothing. The paused branch
+        above renders `SocialPaused`, which DOES carry a `PageHeader`, and that
+        is exactly the trap: a static read of this file found a back control in
+        the import graph and the running feed had none, because the only screen
+        that drew one was the kill-switch notice nobody sees.
+
+        It sits on the chip's row rather than above it because the chip IS this
+        screen's head, the same way the search field is `/search`'s. A
+        `PageHeader` here would put the word "Around" over a screen whose first
+        object already says where you are.
+      */}
+      <div className="flex items-center gap-inline">
+        <BackButton fallback="/home" />
+        <LocationChip
+          place={placeLabel || t.social.locationEverywhere}
+          places={activePlaces}
+          currentSlug={selected?.slug ?? null}
+          signedIn={signedIn}
+          copy={{
+            label: t.social.locationLabel,
+            allPlaces: t.social.allPlaces,
+            changePlace: t.social.changePlace,
+            pickPlaces: t.social.pickPlaces,
+            signIn: t.common.signIn,
+          }}
+        />
+      </div>
 
       {/* No rings without keys: an empty row would claim nobody has a story,
           and nothing was read. */}
