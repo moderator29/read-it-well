@@ -7527,3 +7527,73 @@ Eleven local probes and two live ones are green today. **P-7's HTTP half has
 never run and cannot be run from this box**, and that alone keeps the gate
 shut, before conditions 1, 2 and 9 of ADR-E1 section 6 are even reached. The
 founder's sentence stands exactly as he wrote it.
+
+---
+
+## 61. MAIN WAS RED AND NOBODY COULD SEE IT, BECAUSE WE WERE ALL READING THE WRONG TREE
+
+**This one is the most important thing in the ledger today, and it is not the
+defect. It is how the defect stayed invisible.**
+
+Three times in a row this session told the founder main was green. Each time
+the evidence was the full suite run in `/home/user/read-it-well`, the shared
+worktree. **That tree is not main.** Six writers have in-flight edits in it, and
+one of those edits was supplying a file that main does not have. The suite was
+green over a tree that nobody has and nobody deploys.
+
+The measurement that told the truth was a `git worktree` at `origin/main`
+exactly, with `node_modules` hardlinked at BOTH the root and `apps/web` (never
+a symlink, Turbopack panics), and the suite run inside it:
+
+```
+Test Files  2 failed | 203 passed (205)
+     Tests  8 failed | 3430 passed (3438)
+```
+
+**This is the blind light pattern with six people standing in it.** The check
+ran, the check passed, and the check could not see the thing it was reporting
+on. It is the sixteenth of these found in three days and the first one whose
+blind spot was the whole session's working assumption.
+
+**THE STANDING RULE THAT FOLLOWS.** While more than one writer is live in this
+worktree, **nobody may say main is green on the strength of a suite run in the
+shared tree.** The words "main is green" require a run at `origin/main` in an
+isolated worktree. A run in the shared tree measures the shared tree, which is
+a useful thing to know and is not the same sentence.
+
+**The defect itself.** Commit `7da4b0d0`, whose subject is push transports,
+DELETED `apps/web/src/lib/notify/welcome.ts`, 110 lines, while
+`lib/auth/actions.ts` still imported `welcomeOnce` from it. The failure did not
+name the deleted file. It named a module resolution error inside `actions.ts`,
+and it took down eight assertions in `sign-in-ceiling.test.ts` and
+`terms-gate.test.ts`, two files about refusing sign-ups, which have nothing to
+do with either push or the welcome email. **A missing import takes down
+whatever happens to import the importer.** That is why the failure list is no
+guide to the cause.
+
+That commit had no reason to touch this file, and section 60 records the
+mechanism: `git add` and `git commit` are two statements over one shared index,
+and twice today a worker's commit swept up files it never touched. This is the
+third occurrence and the first that cost something. The repository has now
+eaten seven files in one day.
+
+**The repair.** `git show 7da4b0d0^:apps/web/src/lib/notify/welcome.ts`, byte
+for byte, with a provenance note at the top and nothing else changed. A restore
+that improves something is a restore nobody can check. Gated at `origin/main`
+plus this one file in the isolated worktree: the eight assertions pass, `tsc
+--noEmit` exits 0 read from the compiler's own status.
+
+**What was nearly lost, and it is not a small file.** `welcomeOnce` is the only
+thing that has ever made the welcome email send once rather than never or
+twice. It hangs on CONFIRMATION rather than sign-up, because at the moment
+somebody presses Create account the address is only a claim, and mailing an
+unconfirmed address makes this platform the delivery mechanism for somebody
+else's abuse. Exactly once is the DATABASE's answer, not the module's: a
+conditional update that sets the stamp where it is still null and sends only if
+a row came back, so two concurrent confirmations race on the row lock and one
+email leaves. A read then a write would have sent two.
+
+I withdraw the three statements I made to the founder this session that main
+was green. They were measured against the wrong tree. The correct statement is
+that main was RED from `7da4b0d0` until this restore, and that the run which
+would have caught it is the one I only did the fourth time.
