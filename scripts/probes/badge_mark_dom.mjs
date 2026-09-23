@@ -19,7 +19,7 @@
  * component". So the render happens here, under the ordinary client
  * conditions, and `agent-badge-derivation.test.ts` runs this file and asserts
  * on its verdict, which keeps the check inside the suite without changing a
- * shared config that ten workers are running against.
+ * shared config.
  *
  * THE NEGATIVE IS THE ASSERTION THAT MATTERS. A check that only proves gold
  * draws gold and platinum draws platinum passes just as happily over a

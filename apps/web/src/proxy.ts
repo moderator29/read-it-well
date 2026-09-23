@@ -98,8 +98,7 @@ import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/sup
  *
  * `welcome` IS THE FRONT DOOR. First run is the first thing a stranger meets,
  * from the stores and from Sign up or Sign in, so it must answer signed out.
- * This is the line Session B holds by written agreement; it has moved from the
- * closed list to this one and it means the same thing.
+ * It has moved from the closed list to this one and it means the same thing.
  *
  * `offline` is served when there is no network at all, so it cannot depend on
  * an auth call, and `home-or-landing` resolves the word "home" by reading the

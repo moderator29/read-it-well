@@ -9,7 +9,7 @@ Read the first four lines before anything else:
   screenshot.
 - **The key is already set.** As of 23 September a VAPID pair has been
   generated and put on Production and Preview
-  (`docs/BUILD_07_LEDGER.md` section 71). **So part one below is a CHECK, not a
+  (`docs/archive/BUILD_07_LEDGER.md` section 71). **So part one below is a CHECK, not a
   task.** This page was written before that happened and the first draft told
   you to generate a pair; that instruction has been removed, because following
   it now would be destructive. See the warning under part one.
@@ -244,7 +244,7 @@ credential for, so nothing queued today is lost by waiting.
   it, **not something that was observed happening**. The first run of this page
   is yours, and if a step is wrong it is worth saying so.
 - **That the key is on production is taken on the ledger's word, not measured.**
-  `docs/BUILD_07_LEDGER.md` section 71 records the pair being created and set on
+  `docs/archive/BUILD_07_LEDGER.md` section 71 records the pair being created and set on
   Production and Preview on 23 September. This container's egress proxy refuses
   a CONNECT to the production host, so it could not be read from here. **Part
   one settles it in one look** and is the first thing on this page for that

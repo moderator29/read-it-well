@@ -42,7 +42,7 @@ import { UiIcon, type UiIconSize, type UiIconName } from "@/design-system/icons/
  * Stays beside Explore Properties, Contact Hotel beside View booking details,
  * Reset beside Apply. Same glass, but with the BRAND edge and a lit rim, so
  * it reads as part of the same lit object as the primary rather than as a
- * neutral plate next to it. Two workers reached for `variant="glass"` before
+ * neutral plate next to it. Two screens reached for `variant="glass"` before
  * it existed, which is the clearest sign a vocabulary is missing a word.
  */
 export type ButtonVariant =

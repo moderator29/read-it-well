@@ -877,9 +877,9 @@ export default async function ListingDetailPage({
 
                 {/* --------------------- 6. THE NIGERIAN NUMBER, ITEMISED */}
                 {/*
-                  WHAT A TENANT WILL ACTUALLY PAY, and until this commit the
-                  page showed ONE NUMBER while the component that draws the
-                  whole breakdown sat unimported (HANDOFF 09 section 4.1).
+                  WHAT A TENANT WILL ACTUALLY PAY. The page used to show ONE
+                  NUMBER while the component that draws the whole breakdown
+                  sat unimported.
 
                   The block above the fold still leads with the total, which is
                   the figure somebody shops on. This section is the itemised

@@ -217,7 +217,7 @@ export const ig: Dictionary = withFallback({
   },
   nav: {
     /* The two sides. Added 18 September 2026 with the flip; Trips is the
-       Stays side's name for its bookings surface (HANDOFF_05 section 2). */
+       Stays side's name for its bookings surface. */
     stays: "Ebe obibi",
     exploreStays: "Chọọ ebe obibi",
     trips: "Njem",

@@ -60,11 +60,9 @@
  * ---------------------------------------------------------------------------
  * FOR THE SOLICITOR
  *
- * HANDOFF 01 section 4.6 is explicit that provisions are not invented here and
- * that anything carrying real legal consequence goes to the Company Solicitor.
+ * Provisions are not invented here: anything carrying real legal consequence goes to the Company Solicitor.
  * The clauses below are DESCRIPTIVE: each one says what the platform actually
- * does, which is a thing this session can establish from the code and the
- * schema. None of them creates a new right or a new liability.
+ * does, which can be established from the code and the schema. None of them creates a new right or a new liability.
  *
  * These seven need a solicitor's eye before Launch and are marked here rather
  * than in a separate document that would drift away from the text. (The

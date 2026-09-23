@@ -3,7 +3,7 @@ import type { AssistantListingItem } from "@/lib/assistant/types";
 
 /**
  * Fixture listings for the F1 preview pages. Brand-neutral, fictional, and
- * photographed with the reference plates the lead filed under
+ * photographed with the reference plates filed under
  * `public/brand/photos`. They exist because the catalogue cannot be read
  * from this sandbox (the egress proxy refuses the Supabase host), so the
  * home and assistant previews would otherwise draw an empty shelf. Never

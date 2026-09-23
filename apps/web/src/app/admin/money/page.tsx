@@ -36,7 +36,7 @@ export const dynamic = "force-dynamic";
  *   carrying booking's status and settled payment, checked against an exact count.
  * - Stuck debits and the wallets list: `getMoneyConsole`, as before.
  * - Refunds: `getRefundConsole`. Disputes: `getEscrowConsole`, with the
- *   ruling control calling Session A's `resolveEscrow` unchanged.
+ *   ruling control calling `resolveEscrow` unchanged.
  *
  * WHAT IS KEPT FROM THE DESK THIS REPLACES, every piece of it: stuck debits
  * first, the one-subject filter, the wallets list with its narrowed totals,

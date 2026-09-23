@@ -16,8 +16,7 @@ import { moveInLines } from "./move-in-lines";
  * (`total_move_in_cost_minor` and the five parts); this is the first surface to
  * print them.
  *
- * THIS COMPONENT EXISTED, WAS CORRECT, AND NOTHING IMPORTED IT. HANDOFF 09
- * section 4.1 calls that the cheapest win in the whole brief. It is on the
+ * THIS COMPONENT EXISTED, WAS CORRECT, AND NOTHING IMPORTED IT. It is on the
  * screen now, at `listing/[id]/page.tsx`, and the disclosure it used to hide
  * behind is gone: the breakdown is the point, so the breakdown is open.
  *
@@ -35,7 +34,7 @@ import { moveInLines } from "./move-in-lines";
  *     precisely because agents fold fees into each other. When no total was
  *     stated the sum of the named parts is the honest FLOOR, and the figure is
  *     labelled "from" so it cannot read as a quote.
- *   - IT NEVER DRAWS AN UNDECLARED COST AS ZERO. HANDOFF 09 section 4.3:
+ *   - IT NEVER DRAWS AN UNDECLARED COST AS ZERO. The product rule:
  *     "a cost the lister has not declared is drawn as not declared, with the
  *     words, never as zero. Zero is a claim." So an undeclared line is still
  *     LISTED, because the tenant will meet it whether or not the lister named

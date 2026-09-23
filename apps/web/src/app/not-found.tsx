@@ -30,8 +30,8 @@ export default async function NotFound() {
        * OBVIOUS CHECK DOES NOT WORK.
        *
        * `notFound()` called from a layout during streaming answers HTTP 200
-       * with this body, which three workers confirmed independently tonight
-       * while the preview harness was shut. So `verify-shots.mjs` checking the
+       * with this body; this was confirmed independently three times while
+       * the preview harness was shut. So `verify-shots.mjs` checking the
        * status code is necessary and NOT sufficient: it cannot tell this page
        * from a surface, and neither can any of its other assertions. This page
        * loads the same stylesheet and has no Reveal bands to get stuck, so it

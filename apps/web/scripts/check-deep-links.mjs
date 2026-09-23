@@ -145,7 +145,7 @@ for (const problem of problems) {
   console.error("");
 }
 console.error(" The full list of what the founder supplies is in");
-console.error(" docs/BUILD_07_LEDGER.md section 5 and");
+console.error(" docs/archive/BUILD_07_LEDGER.md section 5 and");
 console.error(" docs/research/STORE_REJECTION_RISK_RESEARCH.md Part F.");
 console.error("");
 

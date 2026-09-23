@@ -5,11 +5,10 @@ import "server-only";
  * about push transports and had no reason to touch it, while
  * `lib/auth/actions.ts` still imported `welcomeOnce` from it. Main went red on
  * eight tests in two files, and the failure did not name this file: it named a
- * module resolution error inside `actions.ts`, which is why nobody reading the
- * shared worktree saw it. The shared worktree could not see it either, because
- * five workers' in-flight edits were masking the tip.
+ * module resolution error inside `actions.ts`, which is why the cause was not
+ * obvious, and a working tree with uncommitted edits did not show it at all.
  *
- * The restore was byte for byte what `7da4b0d0^` held. See ledger section 61.
+ * The restore was byte for byte what `7da4b0d0^` held.
  *
  * WHAT CHANGED AFTERWARDS, AND IT IS ONLY THE LAST STEP. The claim, the
  * confirmation guard and the day window below are untouched. The send is not a

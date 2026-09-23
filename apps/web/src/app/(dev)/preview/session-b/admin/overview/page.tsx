@@ -1,4 +1,4 @@
-// Session B admin-shell fixture harness (R-G), behind the preview gate. Renders the real overview on fixture props.
+// Admin console fixture harness, behind the preview gate. Renders the real overview on fixture props.
 import { getDictionary } from "@vallo/i18n";
 import { AdminFrame } from "@/app/admin/_components/AdminFrame";
 import { BackButton } from "@/components/site/BackButton";

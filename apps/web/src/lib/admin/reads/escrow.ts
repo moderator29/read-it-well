@@ -19,7 +19,7 @@ import type { EscrowPipeline, EscrowState } from "./money-types";
  * narrowed, numbered table page. The count reached is checked against an
  * exact count, so a figure is never the total of a capped list.
  *
- * The dispute ruling is NOT here: it is Session A's mutation
+ * The dispute ruling is NOT here: it is a mutation
  * (`resolveEscrow` in `lib/admin/money-actions.ts`), called unchanged.
  */
 

@@ -58,7 +58,7 @@ export function ShelfCount({
         {/*
           WHICH NUMBER THIS ORDER IS ON, SAID OUT LOUD.
 
-          HANDOFF 09 section 4.2: "a silent switch between two bases is worse
+          The product rule: "a silent switch between two bases is worse
           than either one alone". The shelf can now order on the headline price
           or on the total move-in cost, and those are different money, so the
           one in force is printed rather than left to be inferred from a label

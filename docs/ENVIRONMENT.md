@@ -138,7 +138,7 @@ on Google OAuth and two inventory providers that the product no longer has.
    gates it behind the **Pro plan**. It is a paid decision rather than a
    dashboard visit, and calling it a toggle meant it sat on a launch checklist
    for weeks looking like thirty seconds of somebody's time. Moved to the paid
-   items in `docs/FOUNDER_OPEN_ITEMS.md`. `docs/archive/DATABASE_AUDIT.md` section 1.1
+   items in `docs/archive/FOUNDER_OPEN_ITEMS.md`. `docs/archive/DATABASE_AUDIT.md` section 1.1
    still describes what it does.
 7. **`NEXT_PUBLIC_MAPTILER_KEY`. DONE, 22 September.** Key created, origin
    locked, and set in Vercel for production and preview. The origin list

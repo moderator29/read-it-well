@@ -5,7 +5,7 @@ platform. This is the record of what came out, what was struck with it, and the
 handful of things deliberately left behind with the reason for each.
 
 Session A led it because it is the token layer. Session B follows in its seven
-surfaces; the note telling it the floor was laid is `docs/BUILD_07_LEDGER.md`
+surfaces; the note telling it the floor was laid is `docs/archive/BUILD_07_LEDGER.md`
 section 49, R11.
 
 ---
@@ -139,7 +139,7 @@ exists for.
 
 ## 3. What was struck
 
-- **The 121 light twins owed.** `docs/FOUNDER_ARTWORK_NEEDED.md` was a render
+- **The 121 light twins owed.** `docs/archive/FOUNDER_ARTWORK_NEEDED.md` was a render
   order for daylight versions of brand objects. Kept with a STRUCK banner
   rather than deleted, because two things in it are facts about the ARTWORK and
   survive the theme: the pack splits into 80 objects sliced from the supplied
@@ -190,7 +190,7 @@ broken by leaving it and nothing is fixed by leaving it.
 
 Session A has since cleared the four general stylesheets that belong to no
 surface as well: `settings-rows.css`, `side-nav.css`, `social.css` and
-`social-feed.css`. `docs/SESSION_B_SCOPE.md` names `social.css` among the files
+`social-feed.css`. `docs/archive/SESSION_B_SCOPE.md` names `social.css` among the files
 Session B never edits and does not claim the other three.
 
 What is left, measured with the comment-stripped check below rather than with a
@@ -205,7 +205,7 @@ grep:
 | `scripts/design/compare-surface.mjs` | its `--twin-sweep` has nothing left to find | whoever owns it |
 
 Both of the first two are filed with their exact selectors in
-`docs/BUILD_07_LEDGER.md` section 49, R12, so nobody has to re-derive the list.
+`docs/archive/BUILD_07_LEDGER.md` section 49, R12, so nobody has to re-derive the list.
 
 **HOW TO CHECK, AND IT IS NOT A GREP.** After a removal like this most hits for
 the string are comments explaining that the thing is gone, including ones that

@@ -5558,6 +5558,15 @@ When all of that is done, `docs/` should be about 155 MB, nearly all of it the g
   - The `EMAIL_FROM` default differs between `.env.example` (`hello@vallo.ng`) and `DEPLOY.md` (`hello@vallospaces.com`).
 - 24 image links in the held `BUILD_07_LEDGER.md` now point at deleted `proofs/imgc` shots. They still resolve in history at `85c5471`.
 
+**Completed after both build sessions closed (fix pass, 23 September, after 22:25 UTC).** Everything held above has been done:
+- **Root PNGs.** The six byte-identical copies (`2A49E2F7`, `50E032EA`, `55A56F21`, `6AF37222`, `77A54EA3`, `F6A8A482`, md5 re-checked) were deleted from the root. The four admin renders were viewed and moved to `docs/design/references/admin/`: `5EAA44CB` → `admin-01-overview.png`, `C1D98B3C` → `admin-02-listings-review-money.png`, `8E9602E2` → `admin-03-escrow-verification-supply.png`, `01F7DFC7` → `admin-04-moderation-operations-analytics.png`. `CATALOGUE.md` maps the short ids to the new names. `scripts/design/session-b-crops.mjs`, `session-b-shots/admin-money.mjs` and `admin-review-shots.mjs`, the three `public/brand/session-b/*/SOURCES.md` and every comment that said "repository root" now point at `docs/design/references/`.
+- **Archived** to `docs/archive/` (each with a row in its README): `SESSION_B_SCOPE`, `BUILD_SESSION_B_LEDGER`, `BUILD_05_LEDGER`, `BUILD_07_LEDGER`, `HANDOFF_04`, `_05`, `_07`, `_08`, `_09`, `SESSIONS_CLOSE_OUT`, `BUILT_VS_PROVEN`, `PROMPTS_*`, `PROOF_RUN_*`, `PLATFORM_SURVEY_*`, `FOUNDER_ARTWORK_NEEDED`, `REFERENCE_UPLOADS_*`, `TRACK_G_STATE`, `design/SWEEP.md` (generated from the proofs, which are gone), `PLATFORM_STATUS.md` (a cycle report of one moment; correcting 1,375 lines to today would duplicate this audit) and `FOUNDER_OPEN_ITEMS.md` (its still-open items are folded into section 11 below).
+- **Moved:** `AUTH_EMAILS.md` → `docs/email/AUTH_EMAILS.md` (the two code comments and `WHAT_SENDS.md` updated); `WITHDRAWAL_PATH.md` → `docs/wallet/`.
+- **Kept:** `docs/research/`, with a new `README.md` saying it is evidence, not documentation, because code comments and `check-deep-links.mjs` cite it by path.
+- **Deleted:** `docs/design/proofs/session-b/` (≈202 MB). `docs/design/proofs/` is now in `.gitignore`; the scripts that write there still run and their output stays local.
+- **Comments:** every hit of the section's grep was read and rewritten by hand to describe the code (about 180 files, comment-only). The design rules the comments cite as R-A to R-G are now written down in `docs/DESIGN_DIRECTION.md` section 1.1. Left on purpose: "worker" where it means the service worker, a drain worker or a test worker; "this session" where it means a browser session; two lint messages in `eslint-rules/server-actions-export-only-actions.mjs` and three admin-facing strings that still name the build sessions (code, not comments; recorded as a separate finding).
+- **Size:** `docs/` was 387 MB in the fix worktree before this pass and is **162 MB** after (151 MB of it the governing references, including the four admin renders that moved in from the root).
+
 ## 11. TO THE FOUNDER
 
 Everything I would have said out loud is here.
@@ -5599,6 +5608,12 @@ Everything I would have said out loud is here.
     - **Where it stands:** no licence was added. The README says all rights are reserved until the company decides.
     - **For a private commercial codebase:** the usual choice is no open-source licence at all, with a short proprietary notice ("Copyright VALLO SPACES LTD. All rights reserved."), which I would recommend.
     - **If you ever intend to open any part of it:** say so, and we will pick one deliberately.
+
+**Carried from your working list** (`docs/archive/FOUNDER_OPEN_ITEMS.md`, archived 23 September; only what is still open and not already above):
+- **Rotate the Firebase service account key.** A private key for project `vallo-44059` was pasted into a working session on 23 September. Firebase console → Project settings → Service accounts → Generate new private key; then Google Cloud → IAM → Service accounts → the `firebase-adminsdk` account → Keys → delete the key whose id begins `79a7286`; then replace `FCM_SERVICE_ACCOUNT_JSON` in Vercel Production with the new file's contents and redeploy. Nothing has yet proved that the FCM credential authenticates; the first real push will.
+- **Turn on Secure Email Change** (Supabase Dashboard → Authentication → Providers → Email). It does not forbid a change (the code does that), but with it on a stolen session alone cannot move an address.
+- **Leaked password protection** needs the Supabase Pro plan; it is not a free toggle. It comes with the Pro upgrade in item 4.
+- **Deleting an account frees its email address** for a new sign-up, which resets the one-person-one-mailbox link `account_identities` records. Decide whether that stays.
 
 **Decisions only you can make.**
 - **Sign in with Apple, or hide Google on iOS for v1?** I would ship Sign in with Apple. It is a day's work with Supabase, and it removes the argument permanently.

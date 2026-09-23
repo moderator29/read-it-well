@@ -117,8 +117,7 @@
    * the dock occupied 80px and the shell reserved 96, so 16px of dead air sat
    * under every tab route; on a notched phone the dock occupied 114 and the
    * shell still reserved 96, so the last 18px of the page went under the bar.
-   * That is why the founder's listing counts were clipped, and HANDOFF 09
-   * section 6C.1 names it. `.nf-main--docked` below is the shell's side of the
+   * That is why the founder's listing counts were clipped. `.nf-main--docked` below is the shell's side of the
    * same number, so there is now exactly ONE arithmetic and both ends read it.
    *
    * The parts, named rather than added up in one expression, because the dock

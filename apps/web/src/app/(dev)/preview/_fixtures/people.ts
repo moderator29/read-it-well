@@ -1,6 +1,6 @@
 /**
  * Brand-neutral fixtures for the preview harness. Invented names only, never
- * a real person, never a real brand. Shared by every worker's preview pages.
+ * a real person, never a real brand. Shared by every preview page.
  */
 export const PERSON = {
   id: "00000000-0000-4000-8000-000000000001",

@@ -50,7 +50,7 @@ const SIGNED_OUT_ROLES: RoleState[] = [
  * `nf-pf-*`): the cover, the round face on its lit ring, the counts, the
  * Belongings and Posts control, the four belongings rows and Switch role.
  * Every figure on it is read from the database; the whole chain is written
- * out in `docs/BUILD_SESSION_B_LEDGER.md`, section 1.
+ * out in `docs/archive/BUILD_SESSION_B_LEDGER.md`, section 1.
  *
  * **The cover, the counts and the posts all need a claimed handle**, because
  * they all live on `social_profiles`. Somebody who has not claimed one is not

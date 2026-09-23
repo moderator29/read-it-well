@@ -7,7 +7,7 @@ import { P3_PHOTOS } from "../fixtures";
 /**
  * The owner's photograph manager with three photographs on record.
  *
- * The images are the lead's own filed plates rather than bucket objects,
+ * The images are the filed photo plates rather than bucket objects,
  * because this sandbox has no session and therefore no uploads. What is being
  * read here is the surface: the cover's place in the grid, the take-down
  * control beside each one, and the drop target under them.

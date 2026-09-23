@@ -21,7 +21,7 @@
  *      when as well as what.
  *
  * Proving the counter itself denies the twenty fifth question needs a service
- * key and the applied migration; that check belongs to the lead's live run, not
+ * key and the applied migration; that check belongs to a live run, not
  * to a keyless sandbox.
  */
 

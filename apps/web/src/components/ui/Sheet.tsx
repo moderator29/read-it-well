@@ -73,7 +73,7 @@ const FOCUSABLE =
  * jsdom and in older WebViews, and on a desktop browser the two agree.
  *
  * NOT VERIFIED ON A REAL DEVICE. The finding this closes says the same thing
- * about itself, and nothing in this session ran on a phone with a keyboard up.
+ * about itself, and it has not been run on a phone with a keyboard up.
  * What is verified is that the arithmetic now reads the visible height where a
  * visible height exists.
  */

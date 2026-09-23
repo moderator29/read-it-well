@@ -106,7 +106,7 @@ async function emit(kind, name, sheet, index, { resize = true } = {}) {
    * re-encodes whatever is on disk into WebP or AVIF at serve time, so the
    * format in the repository only decides how big a clone is. Changing the
    * extension would also change every `src` in BrandIcon, which is a call site
-   * change this session is not making.
+   * change outside this script.
    */
   const info = await pipe.png({ compressionLevel: 9, palette: true, quality: 90 }).toFile(dest);
   bytes += info.size;

@@ -6,8 +6,7 @@ import { getLocale } from "@/lib/locale";
 import { listStates } from "@/lib/places/queries";
 import { OwnerRegisterForm } from "@/components/supply/OwnerRegisterForm";
 
-/* Back to the declared parent (`route-parents.ts`), Session A's R14: this
-   route declared one and drew no control, so Android back closed the app. */
+/* Back to the declared parent (`route-parents.ts`): this route declared one and drew no control, so Android back closed the app. */
 const BACK = parentOf("/profile/setup/owner");
 
 export const metadata: Metadata = {

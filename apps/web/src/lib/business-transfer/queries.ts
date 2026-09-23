@@ -24,9 +24,9 @@ import { asRecord, callDeletionRpc } from "../account-deletion/rpc";
  * THE TRANSFER TABLE IS READ THROUGH THE UNTYPED POSTGREST DOOR, on the
  * precedent `lib/account-deletion/rpc.ts` sets and for the same reason:
  * `lib/supabase/database.types.ts` does not carry
- * `public.business_transfers` until the LEAD regenerates it after applying the
- * migration, and a worker who edited the generated types by hand would be
- * inventing a schema.
+ * `public.business_transfers` until it is regenerated after applying the
+ * migration, and editing the generated types by hand would be inventing a
+ * schema.
  */
 
 export type TransferableBusiness = {

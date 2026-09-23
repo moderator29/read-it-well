@@ -194,8 +194,8 @@ const config: CapacitorConfig = {
            * `server.url`, so this path is the PACKAGED shell rather than a
            * page on an origin that is by definition unreachable.
            *
-           * The card itself belongs to the worker designing that surface.
-           * This line is only what makes it reachable.
+           * The card itself is designed with the offline surface. This
+           * line is only what makes it reachable.
            */
           errorPath: "index.html",
         },

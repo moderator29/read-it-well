@@ -3,8 +3,8 @@
  *
  * WRITTEN FROM THE PUBLISHED BUNDLE, NOT FROM THE DOCUMENTATION. Every member
  * below was read out of `@paystack/inline-js` 2.25.0's own `es/inline.js`,
- * because Paystack's documentation hosts are refused by this session's egress
- * policy and a type written from memory is a type that lies. The package's
+ * because Paystack's documentation hosts were not reachable where this was
+ * written, and a type written from memory is a type that lies. The package's
  * `package.json` has no `types` field and there is no `@types/` package, so
  * this file is the only thing standing between the checkout and `any`.
  *

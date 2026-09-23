@@ -38,8 +38,7 @@ import {
  * checks a bank code against `wallet/banks.ts`; `withdraw` and
  * `lookupAccountName` both ask `lookupBank` below, which is the same live
  * registry the payments settings page and the send desk ask. `WALLET_BANKS`
- * survives as a picker's seed on a screen this session does not own and as
- * nothing else: it validates nothing, and no money path reads it.
+ * survives as a picker's seed on the withdraw sheet and as nothing else: it validates nothing, and no money path reads it.
  *
  * ---------------------------------------------------------------------------
  * WHAT IS HERE AND WHAT IS DELIBERATELY NOT.

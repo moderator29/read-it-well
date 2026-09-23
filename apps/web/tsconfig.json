@@ -63,8 +63,8 @@
        knowing before somebody thinks the globs are broken. `next build` and
        `next dev` append their own `<distDir>/types` entry to this array
        unless they find that exact STRING already in it; a glob that covers
-       the path is not a match as far as that check is concerned. With nine
-       workers each on their own NEXT_DIST_DIR, this file grew thirty dead
+       the path is not a match as far as that check is concerned. With several
+       builds each on their own NEXT_DIST_DIR, this file grew thirty dead
        lines in an evening and showed up as a modified shared file in
        everybody's `git status`.
 

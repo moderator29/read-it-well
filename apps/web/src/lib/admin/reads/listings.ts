@@ -20,7 +20,7 @@ import { getPersonTiers } from "./shared";
  * a thousand at a time until the window is exhausted.
  *
  * The listing itself (photos, walkthrough, checklist, costs) still comes from
- * Session A's `getListingSubmissions`; these reads add what that one does not
+ * `getListingSubmissions`; these reads add what that one does not
  * return, and never restate it.
  */
 

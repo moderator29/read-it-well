@@ -7,8 +7,8 @@ import type { BrandIconName } from "@/design-system/icons/BrandIcon";
  * The cost lines a Nigerian tenant actually meets, and which of them the
  * lister has declared.
  *
- * PURE, AND IN ITS OWN FILE SO IT CAN BE ASSERTED. The honesty rule of
- * HANDOFF 09 section 4.3 lives entirely in the shape this returns: an
+ * PURE, AND IN ITS OWN FILE SO IT CAN BE ASSERTED. The honesty rule
+ * (an undeclared cost is never drawn as zero) lives entirely in the shape this returns: an
  * UNDECLARED cost carries no `minor` at all and is drawn with the words "Not
  * declared", while a DECLARED ZERO carries 0 and is drawn as "No agency fee",
  * which is the direct-from-owner argument in one line. Those are two different

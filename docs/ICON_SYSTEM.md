@@ -136,7 +136,8 @@ marks) read as a tile on the chip. The preview at `/preview/g2` shows every
 one at 32, 48 and 96 on canvas, card, elevated and the glass card, in both
 themes; the proof shots `docs/design/proofs/g2/objects-390-dark.png` and
 `objects-390-light.png` were removed from the tree with the other build proofs
-and remain in git history (last present at `85c5471`).
+and remain in git history (last present at `85c5471`; the rest of the proofs
+tree was removed at `77cf90ad`).
 
 **What was looked at and left out, and why.** The HOTEL-lettered building on
 `2A49E2F7` (baked text, never cropped). The onboarding coin on the same render
@@ -279,8 +280,9 @@ ADR-003 chose them; ADR-010 reversed that and they were **deleted**.
 This section used to say they were kept in the repository, unused, as a fallback,
 and asked the reader not to delete them without the owner's word. That has been
 wrong for some time. `apps/web/src/design-system/icons/` contains exactly three
-files. Never import `Icon3D`; the standing pre-commit scan greps for it and must
-return empty.
+files. Never import `Icon3D`. Nothing enforces that today: there is no pre-commit hook,
+and the fix is an eslint `no-restricted-imports` rule (THE_AUDIT DOC-11).
+No file under `apps/web/src` imports it today.
 
 Historical name mapping, old vector name to pack object, kept because old
 screenshots and old comments still use the left-hand names:

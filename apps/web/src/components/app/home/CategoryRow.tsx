@@ -13,7 +13,7 @@ import { iconPlateClass } from "@/components/ui/IconPlate";
  * Stays side and putting the door on both sides is the same inconsistency
  * Track E exists to remove (roles README, translation 5).
  *
- * NO COUNTS. The render prints none, and HANDOFF 09 section 1.1 rules that the
+ * NO COUNTS. The render prints none, and the product rule is that the
  * tiles drop their counts rather than print a figure `platform_stats()` cannot
  * yet produce honestly. The render and the honesty rule agree, which is the
  * easiest kind of decision there is.

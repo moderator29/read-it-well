@@ -94,6 +94,36 @@ lists the off-brand details that must be translated rather than copied.
    founder: "the ones we didn't create image should be done too in this
    idea".
 
+### 1.1 The measurement rules, R-A to R-G
+
+Code comments cite these by letter. They settle questions that come up every
+time a surface is built to a render, so the same question gets the same answer
+everywhere.
+
+- **R-A. Type at the render's size, with a floor, per role.** Every text role
+  takes the render's measured size. A role is raised only where that would be
+  unreadable, and only to the floor, never by a whole-surface factor: body,
+  subtitle, caption and label 11px; a value typed into an input 16px (iOS
+  zooms the page below that); names, titles, headings and figures at the
+  render's measured size, not scaled.
+- **R-B. Controls at the render's height, with a 44px floor.** A pressable
+  control takes the render's measured height unless that is under 44px, in
+  which case it is 44px. Everything around it keeps the render's proportions.
+- **R-C. Containers at the render's measured width.** Where a real string
+  cannot fit at the floor sizes, the text wraps before the container grows.
+- **R-D. Controls clear the shape review line.** A clean shape sweep means no
+  control at or above 0.35 (radius over short side), not only none at 0.5.
+- **R-E. The admin console lands on the overview on every entry, including by
+  address.** The first request to any `/admin/**` desk in a browser session
+  goes to `/admin`, which offers the desk the operator was heading for as its
+  first link.
+- **R-F. Real function beats pixel parity, and is drawn compactly.** A control
+  the product needs and the render does not draw stays, drawn in the render's
+  register as compactly as the render's own nearest element.
+- **R-G. Proofs are reproducible.** Every fixture harness a screenshot comes
+  from is committed under `apps/web/src/app/(dev)/preview/`, behind the preview
+  gate, so anyone can re-run the shots and the shape sweep.
+
 ## 2. The five governing images (founder-chosen, named in the folder)
 
 - **`GOVERNING-landing-desktop-hero.png`**: the landing page's top. The

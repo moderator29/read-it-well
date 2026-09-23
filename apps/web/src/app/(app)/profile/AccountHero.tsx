@@ -37,16 +37,15 @@ import { TierBadge } from "@/components/trust/TierBadge";
  *   counts     `social_profiles.follower_count` and `following_count`, kept by
  *              the `follows_count` trigger (`bump_follow_counts`) on every
  *              follow and unfollow
- *   badge      `public.person_badge.tier` (Session A's one derivation), into
- *              `TierBadge`, which draws nothing until Session A's badge
- *              component lands (blocked on B-BADGE)
+ *   badge      `public.person_badge.tier` (the one derivation), into
+ *              `TierBadge`, which draws nothing for a person without a tier
  *   face       `profiles.avatar_url`
  *   cover      `social_profiles.cover_path`, or the founder's villa plate
  *              when nobody has set one
  *
  * These classes are this surface's own (`nf-pf-*`, in `profile.css`) and not
  * the social layer's. The public page at `/u/[handle]` still wears the social
- * classes in `social.css`, which is the other session's file; the two used to
+ * classes in `social.css`, which the social layer owns; the two used to
  * share one set, and every change made for one moved the other.
  *
  * BOTH PHOTOS ARE CHANGED HERE. Tapping the face opens its picker; the
@@ -243,8 +242,8 @@ export function AccountHero({
           (`nf-icon-btn`, 44px), and there is no back: `/profile` is a dock
           destination, and the menu and the dock are the way off it. From 640
           up the cover is a framed band inside the column and the gear sits
-          on its upper right. The header itself is not this surface's; a
-          proper slot for a page action in it is scope request 1d.
+          on its upper right. The header itself is shared; a proper slot
+          for a page action in it would replace this.
         */}
         <Link
           href="/settings"
@@ -273,7 +272,7 @@ export function AccountHero({
               <span aria-hidden="true">{monogram}</span>
             )}
           </span>
-          {/* The person's badge (Session A's, from `person_badge`) sits here;
+          {/* The person's badge (from `person_badge`) sits here;
               the quiet picture mark says the face is a control. */}
           {badgeTier ? <TierBadge tier={badgeTier} size={22} decorative className="nf-pf-avatar__tier" /> : null}
           <span className="nf-pf-avatar__badge nf-pf-avatar__badge--quiet" aria-hidden="true">

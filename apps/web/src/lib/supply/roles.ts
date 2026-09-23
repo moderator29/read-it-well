@@ -63,8 +63,8 @@ import { VERIFICATION_ORDER, type RungDefinition } from "@/lib/trust/verificatio
  * No statutory figure, no penalty, no percentage and no regulator's fee
  * schedule. `docs/research/ROLE_ARCHITECTURE_RESEARCH.md` reaches every
  * Nigerian legal claim through a search index rather than a primary source and
- * its honesty log says so, and HANDOFF 09 section 7 gates the LASRERA and
- * tenancy numbers on a lawyer's confirmation. So LASRERA is named here as a
+ * its honesty log says so, and the LASRERA and tenancy numbers wait on a
+ * lawyer's confirmation. So LASRERA is named here as a
  * field a person may fill in and as a thing a reader may filter on, and the
  * copy never states what the law requires or what it costs to ignore. The
  * ledger's "needs the founder" section carries the rest.

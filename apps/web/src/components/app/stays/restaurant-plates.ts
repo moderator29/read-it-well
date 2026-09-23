@@ -1,5 +1,5 @@
 /**
- * The restaurant photography the lead filed under public/brand/photos,
+ * The restaurant photography filed under public/brand/photos,
  * compressed and served through next/image. Stand-in plates for a venue
  * that has no photographs of its own, drawn with the "No photographs yet"
  * label so a category plate is never read as a picture of this venue.

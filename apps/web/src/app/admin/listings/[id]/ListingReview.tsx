@@ -25,7 +25,7 @@ import { placeLine, priceLine } from "../rows";
  * GOVERNING-12 panel 2 (photos with the walkthrough, the facts, the price
  * breakdown, the description, then Approve, Ask for more, Reject).
  *
- * Presentational. The listing is Session A's `ListingReviewView`; the map pin,
+ * Presentational. The listing is `ListingReviewView`; the map pin,
  * amenity names, availability date, example flag and the lister's
  * verification are `getListingReviewExtras` (lib/admin/reads/listings.ts).
  * When that read fails, `extras` is null and those panels say so.

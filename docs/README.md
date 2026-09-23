@@ -9,8 +9,7 @@ For setup, architecture and the repository layout, start with the [repository RE
 | Document | What it is for |
 |---|---|
 | [PRODUCT.md](PRODUCT.md) | What Vallo is, who it serves, what a listing is, who can do what, and the vocabulary. Read it first |
-| [THE_AUDIT.md](THE_AUDIT.md) | The two-pass pre-store audit of 23 September 2026: every finding with evidence and fix, store readiness, and the order of work |
-| [PLATFORM_STATUS.md](PLATFORM_STATUS.md) | The latest measured state of the platform: what works, what is proven, what is not |
+| [THE_AUDIT.md](THE_AUDIT.md) | The two-pass pre-store audit of 23 September 2026: every finding with evidence and fix, store readiness, the order of work, and (section 11) what only the founder can do |
 | [RECOMMENDATIONS.md](RECOMMENDATIONS.md) | The register of findings and open work. Code comments cite its IDs |
 | [ONE_PERSON_MANY_ACCOUNTS.md](ONE_PERSON_MANY_ACCOUNTS.md) | How one person holding several accounts or workspaces is handled at each gate |
 | [BADGES.md](BADGES.md) | Earned badges for agents and members |
@@ -30,7 +29,7 @@ For setup, architecture and the repository layout, start with the [repository RE
 
 | Document | What it is for |
 |---|---|
-| [WITHDRAWAL_PATH.md](WITHDRAWAL_PATH.md) | What happens after money leaves a wallet: doors, webhook, sweeper and email |
+| [wallet/WITHDRAWAL_PATH.md](wallet/WITHDRAWAL_PATH.md) | What happens after money leaves a wallet: doors, webhook, sweeper and email |
 | [wallet/CRYPTO_DEPOSITS.md](wallet/CRYPTO_DEPOSITS.md) | Crypto top-ups through Yellow Card |
 | [wallet/SAVINGS_POTS.md](wallet/SAVINGS_POTS.md) | Savings pots |
 | [escrow/PROBE_STATE.md](escrow/PROBE_STATE.md) | The escrow probes and what they prove |
@@ -62,6 +61,7 @@ For setup, architecture and the repository layout, start with the [repository RE
 | [push/FIRST_NOTIFICATION.md](push/FIRST_NOTIFICATION.md) | See a push notification work end to end |
 | [push/THE_FORTY_EVENTS.md](push/THE_FORTY_EVENTS.md) | Every notification event, walked through |
 | [email/WHAT_SENDS.md](email/WHAT_SENDS.md) | What sends email, what refuses, and what is unproven |
+| [email/AUTH_EMAILS.md](email/AUTH_EMAILS.md) | The authentication emails: the Send Email Hook route, the templates and their design |
 | [../supabase/README.md](../supabase/README.md) | The auth email templates: how to generate and apply them |
 
 ## Design
@@ -69,7 +69,7 @@ For setup, architecture and the repository layout, start with the [repository RE
 | Document | What it is for |
 |---|---|
 | [DESIGN_DIRECTION.md](DESIGN_DIRECTION.md) | The design direction. The reference images govern the UI |
-| [design/CATALOGUE.md](design/CATALOGUE.md) | An index of every reference image in `design/references/` |
+| [design/CATALOGUE.md](design/CATALOGUE.md) | An index of every reference image in `design/references/`, including the four admin console renders in `design/references/admin/` |
 | [design/GLOW_IDENTITY.md](design/GLOW_IDENTITY.md) | The glow system, measured |
 | [design/LIGHT_MODE_REMOVED.md](design/LIGHT_MODE_REMOVED.md) | Why light mode was removed |
 | [design/NAV_STATE.md](design/NAV_STATE.md) | Where back goes, per route (generated) |
@@ -88,4 +88,8 @@ For setup, architecture and the repository layout, start with the [repository RE
 - [research/](research/) holds research reports and audits written during the build. They are evidence behind decisions, not specifications. Where one disagrees with a live document above, the live document wins.
 - [archive/](archive/) holds retired documents and the scaffolding of earlier build sessions: handoffs, ledgers, sprint notes and audits. It is kept for history and governs nothing. Its [README](archive/README.md) explains more.
 
-A number of top-level files belong to build sessions that are still running: `HANDOFF_04`, `HANDOFF_05`, `HANDOFF_07`, `HANDOFF_08`, `HANDOFF_09`, the `BUILD_*_LEDGER.md` files, `SESSION_B_SCOPE.md`, `SESSIONS_CLOSE_OUT.md`, `BUILT_VS_PROVEN.md`, `FOUNDER_OPEN_ITEMS.md`, `FOUNDER_ARTWORK_NEEDED.md`, `PROMPTS_*.md`, `PROOF_RUN_*.md`, `PLATFORM_SURVEY_*.md`, `design/SWEEP.md`, `design/TRACK_G_STATE.md` and `design/REFERENCE_UPLOADS_*.md`. They move to `archive/` when those sessions close. They are working notes, not documentation.
+The build sessions have closed. Their handoffs, ledgers, scope files, close-out reports, prompts, proof runs, surveys, the platform status cycle reports and the founder's working list were moved to `archive/` on 23 September 2026. The founder's still-open items are in [THE_AUDIT.md](THE_AUDIT.md) section 11.
+
+`research/` is kept where it is, because code comments and one script cite files in it by path. Its [README](research/README.md) says what it is: evidence, not documentation.
+
+`design/proofs/` is ignored by git. Screenshot runs written there by the scripts in `scripts/design/` stay on the machine that made them.

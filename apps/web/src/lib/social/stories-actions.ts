@@ -40,7 +40,7 @@ import {
 import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
 
 /* The generated types are regenerated after a migration, not before it, so the
-   two disagree for exactly as long as it takes the lead to run the generator.
+   two disagree until the generator is run.
    Loosened at the call, never across the whole client. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const loose = (client: unknown) => client as any;
