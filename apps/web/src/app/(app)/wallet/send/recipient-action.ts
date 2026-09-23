@@ -3,7 +3,9 @@
 import { resolveSession } from "@/lib/actions/session";
 import { consume, subjectForUser } from "@/lib/security/rate-limit";
 import { displayNameFor, findUserByEmail, getAdminClient, type AdminClient } from "@/lib/wallet/ledger";
-import type { BadgeTier } from "@/components/app/wallet/BadgeSlot";
+
+/* The recipient's published tier from `public.person_badge`, or none. */
+export type BadgeTier = "gold" | "platinum" | null;
 
 /**
  * The recipient lookup for /wallet/send, as the withdraw sheet's account-name

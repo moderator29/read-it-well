@@ -7,7 +7,7 @@ import { CalmNote, DeskHead, EmptyChart, Framed, Kpi, NumberedPager, Panel, Tabl
 import { Donut, RankBars, RankFrame, SeriesChart, SeriesLegend, StatusBar, type Series } from "../money/_desk/charts";
 import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
 import type { FirmRosters } from "@/lib/admin/reads/supply";
-import { BadgeSlot } from "../money/_desk/BadgeSlot";
+import { PersonTier } from "@/app/admin/_components/PersonTier";
 import type { BadgeTier } from "@/lib/admin/reads/badges";
 import { percentChange } from "@/lib/admin/reads/money-derive";
 import {
@@ -188,7 +188,7 @@ export function SupplyDesk({
                     <tr key={`${row.kind}-${row.id}`}>
                       <td className="nf-md-lead nf-md-strong" data-label="">
                         {row.name}
-                        {row.userId ? <BadgeSlot tier={tiers[row.userId]} /> : null}
+                        {row.userId ? <PersonTier tier={tiers[row.userId]} /> : null}
                       </td>
                       <td data-label={c.role}>{ROLE_LABEL[row.role].one}</td>
                       <td className="nf-md-num" data-label={c.listings}>
@@ -395,7 +395,7 @@ function RostersPanel({
                   <tr key={m.id}>
                     <td data-label={c.agent}>
                       {m.agentName ?? getDictionary(locale).admin.money.noDisplayName}
-                      {m.userId ? <BadgeSlot tier={tiers[m.userId]} /> : null}
+                      {m.userId ? <PersonTier tier={tiers[m.userId]} /> : null}
                     </td>
                     <td data-label={c.role}>{m.role === "principal" ? c.principal : m.role === "staff" ? c.staff : m.role}</td>
                     <td data-label={c.state}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgeSlot } from "./BadgeSlot";
+import { TierBadge } from "@/components/trust/TierBadge";
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -216,7 +216,7 @@ function InspectionRow({
           <span className={`mt-3xs block ${TYPE.rowMeta}`}>
             {whenLine(shown, locale)}
             {inspection.counterpartName ? ` · ${inspection.counterpartName}` : ""}
-            {inspection.counterpartName && <BadgeSlot tier={inspection.counterpartBadge} />}
+            {inspection.counterpartName && inspection.counterpartBadge ? <TierBadge tier={inspection.counterpartBadge} size={14} className="nf-ix-name-tier" /> : null}
           </span>
 
           {/* The time that was ASKED for, kept beside the one that was agreed.

@@ -1,8 +1,8 @@
+import { PersonTier } from "@/app/admin/_components/PersonTier";
 import type { ReactNode } from "react";
 import {
   Avatar,
   Badge,
-  BadgeSlot,
   Bars,
   DeskHead,
   Empty,
@@ -153,7 +153,7 @@ export function VerificationDesk(props: VerificationDeskProps) {
                         <Avatar name={row.name} small />
                         <span>
                           {row.name ?? "No display name"}
-                          <BadgeSlot tier={row.badge} />
+                          <PersonTier tier={row.badge ?? null} />
                         </span>
                       </span>
                       <span className="nf-rv-rows__cell" style={{ color: "var(--nf-brand-secondary)" }}>

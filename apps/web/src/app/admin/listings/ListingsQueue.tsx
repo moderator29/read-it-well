@@ -1,10 +1,10 @@
+import { PersonTier } from "@/app/admin/_components/PersonTier";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import {
   Badge,
-  BadgeSlot,
   DeskHead,
   Donut,
   Empty,
@@ -227,7 +227,7 @@ function QueueTableView({
               <td>
                 <span style={{ display: "block" }}>
                   {row.lister ?? "Not recorded"}
-                  <BadgeSlot tier={row.badge} />
+                  <PersonTier tier={row.badge ?? null} />
                 </span>
                 {row.listerRole ? <RoleTag>{row.listerRole}</RoleTag> : null}
               </td>

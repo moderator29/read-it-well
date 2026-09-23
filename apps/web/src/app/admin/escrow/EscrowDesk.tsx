@@ -17,7 +17,7 @@ import {
 import { EscrowRuling } from "../_components/MoneyDecisions";
 import { CalmNote, DeskHead, EmptyChart, Framed, NumberedPager, Panel, TableNote, Waiting, type CalmNoteProps } from "../money/_desk/Desk";
 import { DisputeEvidence } from "../money/_desk/Evidence";
-import { BadgeSlot } from "../money/_desk/BadgeSlot";
+import { PersonTier } from "@/app/admin/_components/PersonTier";
 import type { BadgeTier } from "@/lib/admin/reads/badges";
 import type { EscrowDeskRow } from "@/lib/admin/reads/escrow";
 import { Donut, SeriesChart, SeriesLegend, type Series } from "../money/_desk/charts";
@@ -364,10 +364,10 @@ function EscrowTable({
               </td>
               <td className="nf-md-desc" data-label={c.fromToLabel}>
                 {escrow.payerName ?? c.payerFallback}
-                {escrow.payerId ? <BadgeSlot tier={tiers[escrow.payerId]} /> : null}{" "}
+                {escrow.payerId ? <PersonTier tier={tiers[escrow.payerId]} /> : null}{" "}
                 <span aria-hidden="true">&rarr;</span>
                 <span className="sr-only">{` ${c.to} `}</span> {escrow.payeeName ?? c.payeeFallback}
-                {escrow.payeeId ? <BadgeSlot tier={tiers[escrow.payeeId]} /> : null}
+                {escrow.payeeId ? <PersonTier tier={tiers[escrow.payeeId]} /> : null}
               </td>
               <td className="nf-md-desc" data-label={c.purposeColumn}>
                 {purposeLabel(t, escrow.purpose)}
@@ -428,7 +428,7 @@ function EscrowCard({
           value={
             <span>
               {escrow.payerName ?? t.admin.money.noDisplayName}
-              {escrow.payerId ? <BadgeSlot tier={tiers[escrow.payerId]} /> : null}
+              {escrow.payerId ? <PersonTier tier={tiers[escrow.payerId]} /> : null}
             </span>
           }
         />
@@ -437,7 +437,7 @@ function EscrowCard({
           value={
             <span>
               {escrow.payeeName ?? t.admin.money.noDisplayName}
-              {escrow.payeeId ? <BadgeSlot tier={tiers[escrow.payeeId]} /> : null}
+              {escrow.payeeId ? <PersonTier tier={tiers[escrow.payeeId]} /> : null}
             </span>
           }
         />

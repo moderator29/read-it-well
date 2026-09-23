@@ -31,7 +31,7 @@ import { LiveWallet } from "./LiveWallet";
 import { MoneyGlyph } from "./MoneyGlyph";
 import { WalletTiles } from "./WalletTiles";
 import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
-import { BadgeSlot } from "./BadgeSlot";
+import { TierBadge } from "@/components/trust/TierBadge";
 import { RollingAmount } from "./RollingAmount";
 import { canonicalNaira } from "./AmountField";
 import { useMoneyWait, WaitNotice } from "./MoneyWait";
@@ -565,7 +565,7 @@ export function SendFlow({
                     </span>
                     <span className="nf-send-found__name flex min-w-0 items-center gap-2xs">
                   <span className="truncate">{recipientName}</span>
-                  <BadgeSlot tier={recipientTier} />
+                  {recipientTier ? <TierBadge tier={recipientTier} size={16} className="nf-send-name-tier" /> : null}
                 </span>
                   </span>
                 </p>
