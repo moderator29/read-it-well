@@ -72,6 +72,23 @@
  *                                   Back inside the Console never leaves the
  *                                   Console, which is the founder's first
  *                                   complaint.
+ *   /sign-in, /sign-up -> /welcome  NOT `/start`, which is a 307 and not a
+ *                                   screen. See the door section below.
+ *   /escrow -> /wallet              The wallet is where this product already
+ *                                   explains money set aside.
+ *   /escrow/[id] -> /escrow         Not the conversation it was proposed in:
+ *                                   an agreement id cannot fill a
+ *                                   conversation id, and the same link also
+ *                                   arrives by email with no thread at all.
+ *   /price/area/[id] -> /price      What the page itself already passes to
+ *                                   `PageHeader`, read off the surface.
+ *   /preview/<four decks>/[screen]  Four decks have no index page, so the
+ *                                   generic pattern sent back to a 404.
+ *
+ * EVERY OTHER ROUTE FILE IN `src/app` IS IN `NON_NAVIGABLE` AT THE FOOT OF
+ * THIS FILE, with the reason it can never carry a back control, and
+ * `route-files.test.ts` fails if any route file is in neither structure. A
+ * route nobody has made a decision about is now impossible to add quietly.
  *
  * FOUR ENTRIES BELOW DELIBERATELY DRAW NO CONTROL, AND THAT IS NOT THE GAP.
  *
@@ -124,16 +141,39 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/styleguide": "/",
   "/terms": "/",
 
-  /* ------------------------------------------------------------- the door */
+  /* ------------------------------------------------------------- the door
+   *
+   * `/start` IS NOT A SCREEN AND MAY NOT BE ANYBODY'S PARENT. It is
+   * `app/(auth)/start/route.ts`, a 307 to `firstRunHref("/sign-up")`, which is
+   * `/welcome?next=/sign-up`. `/sign-in`, `/sign-up` and `/auth/callback` all
+   * named it as their parent, and on a device that has already seen first run
+   * `planFirstRun` forwards that straight on, so BACK FROM SIGN IN LANDED ON
+   * SIGN UP. Walked, cold and warm, in `docs/design/proofs/nav/`.
+   *
+   * The screen above both doors is `/welcome`, whose closing panel IS the
+   * choice between them (Sign in, Create an account, Look around first). With
+   * no `?next` a returning device opens at that choice, which is exactly where
+   * a person who pressed back from a door expects to be.
+   *
+   * `/start` keeps its own entry because it is still a URL that links point at,
+   * and a declared route is one `isAppRoot` answers NO for. Nothing is above a
+   * redirect, so its parent is the landing page, and no control ever draws on
+   * it because no document is ever served from it.
+   */
   "/start": "/",
-  "/sign-in": "/start",
+  "/sign-in": "/welcome",
   "/sign-in/email": "/sign-in",
-  "/sign-up": "/start",
+  "/sign-up": "/welcome",
   "/sign-up/email": "/sign-up",
   "/sign-up/verify": "/sign-up/email",
   "/forgot-password": "/sign-in",
   "/reset-password": "/sign-in",
-  "/auth/callback": "/start",
+  /* The landing place of every link out of Supabase Auth. A person pressing
+     back here has abandoned a verification, and `/sign-in` is where its own
+     refusal path already sends them (`?notice=link-expired`). `/welcome` was
+     the other defensible answer and is one step further from what they were
+     doing. */
+  "/auth/callback": "/sign-in",
 
   /* ------------------------------------------------- the two app homes
    *
@@ -156,6 +196,20 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/rent": "/home",
   "/rent/move-in/[listingId]": "/listing/[listingId]",
   "/rent/pay/[inspectionId]": "/inspections",
+  /*
+   * PRICE CHECK. Both entries reproduce what the two pages already pass to
+   * `PageHeader` as a fallback, which is the honest reading of the surface
+   * rather than a guess from the path: `/price` passes `/home` and
+   * `/price/area/[id]` passes `/price`. Declaring them changes nothing a
+   * person sees on the web and changes the Android answer from "undeclared"
+   * to a named destination.
+   *
+   * `/price` has no inbound link anywhere in the product either. It is reached
+   * by address and by the share cards `lib/price-check/share-card.ts` builds,
+   * which point at `/price/area/[id]`.
+   */
+  "/price": "/home",
+  "/price/area/[id]": "/price",
 
   /* ---------------------------------------------------------- stays side */
   "/stays/search": "/stays",
@@ -186,6 +240,28 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/wallet/transactions/[id]": "/wallet/transactions",
   "/crypto": "/wallet",
   "/crypto/[id]": "/crypto",
+  /*
+   * HELD PAYMENTS. `/escrow/[id]` is linked from a message thread
+   * (`ProposeHeldPayment`) and from the escrow emails, and `/escrow` is linked
+   * from NOWHERE in the product: no drawer row, no tile, no card. It is
+   * reachable by typing the address and by pressing back from a held payment,
+   * which makes the second of those the only way most people will ever see it,
+   * and makes getting its own way up right more rather than less important.
+   *
+   * `/escrow/[id]` -> `/escrow` rather than back to the conversation, and the
+   * choice is forced as well as defensible: an agreement id is not a
+   * conversation id, so `/messages/[id]` cannot be filled from what this route
+   * captures, and the same link arrives by email where there is no thread at
+   * all. The list is the index of exactly these objects.
+   *
+   * `/escrow` -> `/wallet`, because the wallet is where this product already
+   * explains money that is set aside: `BalanceBreakdownSheet` is the sentence
+   * about it and it lives there. `/home` was the other defensible answer and
+   * is the weaker one, because it treats the screen as an orphan rather than
+   * as the detail behind something a person has already been shown.
+   */
+  "/escrow": "/wallet",
+  "/escrow/[id]": "/escrow",
 
   /* -------------------------------------------------------------- social */
   "/around": "/home",
@@ -236,6 +312,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin": "/home",
   "/admin/agents": "/admin",
   "/admin/alerts": "/admin",
+  "/admin/analytics": "/admin",
   "/admin/audit": "/admin",
   "/admin/bookings": "/admin",
   "/admin/bookings/[bookingId]": "/admin/bookings",
@@ -247,14 +324,25 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/flags": "/admin",
   "/admin/kyc": "/admin",
   "/admin/listings": "/admin",
+  "/admin/listings/[id]": "/admin/listings",
   "/admin/moderation": "/admin",
   "/admin/money": "/admin",
+  "/admin/operations": "/admin",
   "/admin/payments": "/admin",
+  /*
+   * `/admin/queue` is a DESK, not the console's landing screen, and that is the
+   * whole of the founder's item 5: the queue used to BE `/admin` and the
+   * console now opens on the overview before any desk. So its way up is
+   * `/admin`, like every other desk, and not the other way round.
+   */
+  "/admin/queue": "/admin",
   "/admin/reference": "/admin",
   "/admin/reports": "/admin",
+  "/admin/settings": "/admin",
   "/admin/social": "/admin",
   "/admin/standing": "/admin",
   "/admin/stops": "/admin",
+  "/admin/supply": "/admin",
   "/admin/support": "/admin",
   "/admin/switches": "/admin",
 
@@ -294,4 +382,108 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/preview/[deck]": "/preview",
   "/preview/[deck]/[screen]": "/preview/[deck]",
   "/preview/[deck]/[screen]/[variant]": "/preview/[deck]/[screen]",
+
+  /* --------------------------------------- the decks with no index screen
+   *
+   * FOUND BY WALKING THE MAP AGAINST THE DIRECTORY TREE, NOT BY READING IT.
+   * The three patterns above say a deck screen's way up is its deck, and for
+   * seventeen decks that is true because `preview/<deck>/page.tsx` exists. For
+   * four of them it does not: `b1b`, `c1`, `imgc` and `session-b` are folders
+   * of screens with no index page, so the generic pattern resolved back to a
+   * URL that answers not-found. Twenty five harness screens had a back control
+   * pointing at a 404, and every one of them read as correctly declared.
+   *
+   * A literal segment beats a dynamic one in `resolve.ts`, left to right, so
+   * each entry below outranks the generic pattern for its own deck and nothing
+   * else is affected. The destination is `/preview`, which is the board that
+   * lists the decks and is the real screen above a deck that has no index.
+   *
+   * These are development surfaces and nobody ships them. They are declared
+   * for the same reason the generic patterns were: a harness that warns on
+   * every screen is a harness people stop reading warnings in.
+   */
+  "/preview/b1b/[screen]": "/preview",
+  "/preview/c1/[screen]": "/preview",
+  "/preview/imgc/[screen]": "/preview",
+  "/preview/session-b/[screen]": "/preview",
+  /* Three more folders one level deeper inside `session-b`, same fault. The
+     fourth and fifth (`wallet`, `inspection`) DO have an index page, so they
+     keep the generic pattern and their screens go up to their own folder. */
+  "/preview/session-b/admin/[screen]": "/preview",
+  "/preview/session-b/admin-money/[screen]": "/preview",
+  "/preview/session-b/admin-review/[desk]": "/preview",
+};
+
+/**
+ * ROUTE FILES WHOSE DECISION IS MADE ONE LITERAL AT A TIME.
+ *
+ * `app/(app)/messages/share/[kind]/[id]/page.tsx` serves four addresses and
+ * only four: the page calls `notFound()` on any `kind` that is not `listing`,
+ * `booking`, `stay` or `into`. Each of those four has a DIFFERENT parent,
+ * because the thing being shared is the parent, so the map declares them
+ * separately and the file's own pattern matches nothing.
+ *
+ * That is correct and it looked exactly like an undeclared route to the gap
+ * test, which is why the relationship is written down rather than argued about
+ * in a comment. `route-files.test.ts` requires every expansion listed here to
+ * be declared above, so adding a fifth kind to the page without declaring its
+ * parent fails.
+ */
+export const LITERAL_EXPANSIONS: Readonly<Record<string, readonly string[]>> = {
+  "/messages/share/[kind]/[id]": [
+    "/messages/share/into/[id]",
+    "/messages/share/listing/[id]",
+    "/messages/share/stay/[id]",
+    "/messages/share/booking/[id]",
+  ],
+};
+
+/**
+ * ROUTE FILES THAT ARE NOT SCREENS, AND THE REASON FOR EACH.
+ *
+ * WHY THIS EXISTS. `ROUTE_PARENTS` above says where a screen sits. It said
+ * nothing at all about the rest of `src/app`, and "nothing at all" is
+ * indistinguishable from "nobody has looked at it yet", which is how sixty
+ * routes drew no back control for months. Every `route.ts` under `src/app` is
+ * listed here with the reason it can never carry a back control, so that the
+ * set of route files nobody has made a decision about is EMPTY and provably so.
+ *
+ * `route-files.test.ts` walks `src/app` and fails if a route file is in
+ * neither structure, or is in both. A new API handler needs one line here; a
+ * new page needs a real decision above. Neither can be added silently.
+ *
+ * NONE OF THESE CAN EVER BE `window.location.pathname` IN THE SHELL. A route
+ * handler answers JSON, JavaScript or a redirect; the web view never settles
+ * on one, so `isAppRoot` is never asked about them. They are written down
+ * because a thing nobody wrote down is a thing nobody checked.
+ */
+export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
+  "/api/assistant": "POST only, the assistant's model call.",
+  "/api/auth/email-hook": "Supabase Auth's send-email webhook.",
+  "/api/client-error": "the browser's error beacon.",
+  "/api/cron/account-purge": "scheduled job, bearer token.",
+  "/api/cron/complete-stays": "scheduled job, bearer token.",
+  "/api/cron/email-outbox": "scheduled job, bearer token.",
+  "/api/cron/hold-sweep": "scheduled job, bearer token.",
+  "/api/cron/inventory-drift": "scheduled job, bearer token.",
+  "/api/cron/pg-cron-watch": "scheduled job, bearer token.",
+  "/api/cron/saved-search-alerts": "scheduled job, bearer token.",
+  "/api/crypto/coins/[id]": "JSON read for the crypto screens.",
+  "/api/crypto/markets": "JSON read for the crypto screens.",
+  "/api/crypto/pairs": "JSON read for the crypto screens.",
+  "/api/csp-report": "the browser's policy violation report.",
+  "/api/documents/[id]": "a signed document stream, not a page.",
+  "/api/map/listings": "JSON read for the map.",
+  "/api/paystack/reconcile": "processor reconciliation.",
+  "/api/paystack/webhook": "processor webhook.",
+  "/api/push/drain": "scheduled job, bearer token.",
+  "/api/push/key": "the public VAPID key as JSON.",
+  "/api/push/register": "POST only, a subscription write.",
+  "/api/push/revoke": "POST only, a subscription delete.",
+  "/api/push/self-test": "POST only, a diagnostic send.",
+  "/api/push/sw": "the service worker's JavaScript.",
+  "/api/support": "POST only, the contact form.",
+  "/api/yellowcard/webhook": "processor webhook.",
+  "/admin/enter": "303 into the console with the entry cookie.",
+  "/home-or-landing": "307 to `/` or `/home`, decided by the caller's cookies.",
 };

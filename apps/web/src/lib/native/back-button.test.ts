@@ -213,6 +213,49 @@ describe("the real Android back listener", () => {
     }
   });
 
+  /**
+   * THE ROUTES THIS PASS ADDED TO THE MAP, PRESSED ON THE REAL HANDLER.
+   *
+   * Every one of these answered `no-parent-declared` before today. That answer
+   * was already SAFE on Android - `isAppRoot` is false for an undeclared route
+   * on purpose, so the shell never closed - and it was safe by accident rather
+   * than by decision, and the same press on the web went to whatever fallback
+   * the component happened to pass. Declaring them changes the destination, so
+   * the destination is pressed here rather than reasoned about.
+   *
+   * The dynamic ones carry a concrete segment, because `isAppRoot("/escrow/[id]")`
+   * is a question about the literal five characters `[id]` and not about any
+   * address a person can be standing on.
+   */
+  it("does NOT close the application on any route this pass declared", () => {
+    const added = [
+      "/escrow",
+      "/escrow/2f1d4c6e-0000-4000-8000-000000000001",
+      "/price",
+      "/price/area/2f1d4c6e-0000-4000-8000-000000000002",
+      "/admin/analytics",
+      "/admin/listings/2f1d4c6e-0000-4000-8000-000000000003",
+      "/admin/operations",
+      "/admin/queue",
+      "/admin/settings",
+      "/admin/supply",
+      "/preview/b1b/chooser",
+      "/preview/c1/listing-review",
+      "/preview/imgc/hotel",
+      "/preview/session-b/profile",
+      "/preview/session-b/admin/overview",
+      "/preview/session-b/admin-money/money",
+      "/preview/session-b/admin-review/kyc",
+    ];
+    for (const path of added) {
+      bridge.exits = 0;
+      backs = [];
+      fake.setPath(path);
+      bridge.press();
+      expect({ path, exits: bridge.exits, backs }).toEqual({ path, exits: 0, backs: [path] });
+    }
+  });
+
   it("never closes the application on a route nobody declared", () => {
     fake.setPath("/a-route-that-is-in-nobodys-map");
     bridge.press();
@@ -282,6 +325,90 @@ describe("where the hardware button sends a person who is not at a root", () => 
     expect(androidDecision("/settings", "/sign-in")).toEqual({
       action: "push",
       href: "/home",
+      reason: "declared-parent",
+    });
+  });
+
+  /**
+   * WHERE THE HARDWARE BUTTON SENDS SOMEBODY ON EACH ROUTE THIS PASS DECLARED.
+   *
+   * Written as concrete path and concrete destination, because the loop above
+   * reads the map and would therefore agree with the map whatever the map said.
+   * A table that is derived from the thing it is checking cannot catch a wrong
+   * entry; these lines can, and will fail the day somebody re-points one.
+   */
+  it("sends the hardware button to the destination each new entry names", () => {
+    const expected: [string, string][] = [
+      ["/escrow", "/wallet"],
+      ["/escrow/2f1d4c6e-0000-4000-8000-000000000001", "/escrow"],
+      ["/price", "/home"],
+      ["/price/area/2f1d4c6e-0000-4000-8000-000000000002", "/price"],
+      ["/admin/analytics", "/admin"],
+      ["/admin/listings/2f1d4c6e-0000-4000-8000-000000000003", "/admin/listings"],
+      ["/admin/operations", "/admin"],
+      ["/admin/queue", "/admin"],
+      ["/admin/settings", "/admin"],
+      ["/admin/supply", "/admin"],
+      /* The four decks with no index page. Before today each of these resolved
+         to `/preview/<deck>`, which answers not-found. */
+      ["/preview/b1b/chooser", "/preview"],
+      ["/preview/c1/listing-review", "/preview"],
+      ["/preview/imgc/hotel", "/preview"],
+      ["/preview/session-b/profile", "/preview"],
+      ["/preview/session-b/admin/overview", "/preview"],
+      ["/preview/session-b/admin-money/money", "/preview"],
+      ["/preview/session-b/admin-review/kyc", "/preview"],
+      /* A deck that DOES have an index page keeps its own folder, which is what
+         proves the four entries above are not a blanket rule. */
+      ["/preview/f3/listing/sale", "/preview/f3/listing"],
+      ["/preview/session-b/wallet/send", "/preview/session-b/wallet"],
+    ];
+    for (const [path, href] of expected) {
+      expect({ path, ...androidDecision(path, null) }).toEqual({
+        path,
+        action: "push",
+        href,
+        reason: "declared-parent",
+      });
+    }
+  });
+
+  /**
+   * THE DOOR, AND THE DEFECT THAT WAS SITTING IN IT.
+   *
+   * `/sign-in`, `/sign-up` and `/auth/callback` all named `/start` as their
+   * parent. `/start` is `app/(auth)/start/route.ts`, a 307 to
+   * `/welcome?next=/sign-up`, and `planFirstRun` forwards that straight on for
+   * any device that has already seen first run. So the hardware button on the
+   * sign-in screen pushed a redirect that landed the person on SIGN UP.
+   *
+   * These three lines are the fix expressed as behaviour rather than as a map
+   * entry, and `not /start` is asserted separately so that re-pointing them at
+   * any other redirect fails here too.
+   */
+  it("never sends the door back through a redirect handler", () => {
+    for (const door of ["/sign-in", "/sign-up", "/auth/callback"]) {
+      const decision = androidDecision(door, null);
+      expect({ door, ...decision }).not.toEqual({
+        door,
+        action: "push",
+        href: "/start",
+        reason: "declared-parent",
+      });
+    }
+    expect(androidDecision("/sign-in", null)).toEqual({
+      action: "push",
+      href: "/welcome",
+      reason: "declared-parent",
+    });
+    expect(androidDecision("/sign-up", null)).toEqual({
+      action: "push",
+      href: "/welcome",
+      reason: "declared-parent",
+    });
+    expect(androidDecision("/auth/callback", null)).toEqual({
+      action: "push",
+      href: "/sign-in",
       reason: "declared-parent",
     });
   });
