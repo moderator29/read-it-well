@@ -69,6 +69,7 @@ function query(over: Partial<DiscoveryQuery> = {}): DiscoveryQuery {
     powerBackup: false,
     powerBandA: false,
     waterSupply: [],
+    listerRoles: [],
     ...over,
   };
 }

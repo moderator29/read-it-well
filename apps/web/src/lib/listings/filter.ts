@@ -1,4 +1,5 @@
 import type { ListingIntent } from "./pricing";
+import type { ListingRole } from "@/lib/supply/roles";
 import type { Listing, ListingKind, ListingSearchFilter } from "./types";
 
 /**
@@ -60,6 +61,15 @@ export type ListingFacts = {
    * server would disagree.
    */
   isDemo: boolean;
+  /**
+   * Who is offering it, where the listing declared one.
+   *
+   * Carried in the facts for the same reason `verified` and `isDemo` are: the
+   * drawer's live match count runs in the browser against this shape alone, so
+   * a filter the count could not see would disagree with the server.
+   * Absent means the listing never said, which every predicate treats as "no".
+   */
+  listerRole?: ListingRole;
   source?: "vallo";
   /**
    * Light and water, where the host has answered.
@@ -85,6 +95,7 @@ export function factsOf(l: Listing): ListingFacts {
     instantBook: l.instantBook,
     verified: l.verified,
     isDemo: l.isDemo,
+    ...(l.listerRole !== undefined ? { listerRole: l.listerRole } : {}),
     source: l.source,
     ...(l.utilities !== undefined ? { utilities: l.utilities } : {}),
   };
@@ -197,6 +208,18 @@ export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = 
 
   if (filter.powerBackup && !hasBackupPower(facts)) return false;
   if (filter.powerBandA && facts.utilities?.powerGrid !== "BAND_A") return false;
+
+  if (filter.listerRoles && filter.listerRoles.length > 0) {
+    /*
+     * OR, not AND: one column, one value, same as water. And strict about
+     * silence, same as power: a listing that never declared a role is not
+     * offered to somebody who asked for an owner direct, because the supply
+     * kind is the entire point of asking and a maybe is not an answer to it.
+     */
+    const role = facts.listerRole;
+    if (role === undefined) return false;
+    if (!filter.listerRoles.includes(role)) return false;
+  }
 
   if (filter.waterSupply && filter.waterSupply.length > 0) {
     // OR, not AND: one column, one value. See the note on the filter type.

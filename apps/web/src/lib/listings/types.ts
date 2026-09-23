@@ -423,6 +423,23 @@ export type ListingSearchFilter = {
   /** Only a Band A feeder, the top grid band the discos sell. */
   powerBandA?: boolean;
   /**
+   * WHO IS OFFERING IT: the owner directly, an agent, or a registered firm.
+   *
+   * OR semantics, like `waterSupply` and for the same reason: `listing_role`
+   * is one column with one value, so asking for an owner AND a firm as an AND
+   * would match nothing, every time, which is not a filter but a trap.
+   *
+   * STRICT ABOUT SILENCE, like the utility filters. `listings.listing_role` is
+   * nullable and a listing that never declared one is excluded the moment this
+   * is asked for, because "we do not know who is offering this" cannot be
+   * shown to somebody who asked for an owner direct. The supply kind is the
+   * whole point of the two-sided platform and a maybe is not an answer to it.
+   *
+   * The index `(listing_role, listing_intent, state_code, city)` was built for
+   * this read in Track G and had nothing querying it until now.
+   */
+  listerRoles?: ListingRole[];
+  /**
    * Water sources, any of which will do. This is the one filter here with OR
    * semantics, because a source is one column with one value: asking for both
    * a borehole and treated mains as an AND would match nothing, every time.

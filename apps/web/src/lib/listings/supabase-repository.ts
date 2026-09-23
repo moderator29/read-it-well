@@ -1224,6 +1224,28 @@ export class SupabaseListingRepository implements ListingRepository {
       }
 
       /*
+       * WHO IS OFFERING IT, pushed down onto the index Track G already built.
+       *
+       * `listings_role_published_idx` is `(listing_role, listing_intent,
+       * state_code, city)`, partial on published rows, and until now nothing
+       * in this tree queried it: the column shipped, the labels shipped in
+       * `LISTING_ROLE_FILTER_LABEL`, and no reader could ask the question.
+       * This is the ask.
+       *
+       * `listings.listing_role` is NOT NULL in the database, so every
+       * published row has an answer and this predicate never silently drops
+       * one. The row type this file maps from still admits null, because the
+       * generated types do, and `isListingRole` already narrows it; the
+       * shared matcher states in words what `in` does here anyway, so a
+       * listing with no declared role is not shown to somebody who asked for
+       * an owner direct. Both halves say so, because a predicate that leans
+       * on a later pass to be correct is one refactor from wrong.
+       */
+      if (filter.listerRoles && filter.listerRoles.length > 0) {
+        query = query.in("listing_role", filter.listerRoles);
+      }
+
+      /*
        * Hiding the example listings is pushed down, unlike most of the flags
        * above, because it is the one filter that will one day match a large
        * fraction of the catalogue. Filtering it in memory would spend the

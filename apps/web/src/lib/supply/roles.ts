@@ -371,6 +371,17 @@ export const LISTING_ROLE_FILTER_LABEL: Record<ListingRole, string> = {
 };
 
 /**
+ * What the drawer calls the question these three answer.
+ *
+ * Here rather than in `packages/i18n` for the same reason the labels above are
+ * here: the three values, the sentence, the short label and the heading are
+ * one vocabulary, and this module exists because there were three of them in
+ * the tree disagreeing with each other. A heading kept somewhere else is the
+ * fourth.
+ */
+export const LISTING_ROLE_FILTER_HEADING = "Who is offering it";
+
+/**
  * The three dated facts, on three different subjects.
  *
  * NONE OF THEM IS A RUNG. `private.agent_tier` counts over a fixed four

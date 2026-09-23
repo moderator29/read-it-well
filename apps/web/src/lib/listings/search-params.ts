@@ -1,3 +1,4 @@
+import { LISTING_ROLES, type ListingRole } from "@/lib/supply/roles";
 import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSupply } from "./types";
 
 /**
@@ -24,6 +25,8 @@ import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSu
  *   power      comma separated, ALL must hold: "backup", "band-a"
  *   water      comma separated water sources, ANY of which will do:
  *              "mains", "borehole", "storage", "tanker"
+ *   by         comma separated supply kinds, ANY of which will do:
+ *              "owner", "agent", "firm"
  *
  * The two utility parameters use opposite set logic on purpose, and the URL
  * says so by naming one after a requirement and one after a source. Backup
@@ -147,6 +150,13 @@ export type DiscoveryQuery = {
   powerBandA: boolean;
   /** Water sources, any of which will do. Empty means the reader did not ask. */
   waterSupply: WaterSupply[];
+  /**
+   * Who is offering it, any of which will do. Empty means the reader did not
+   * ask. The values are the URL's own words as well as the database's, because
+   * `owner`, `agent` and `firm` are already short, lowercase and readable in
+   * an address bar, so unlike water they need no second spelling.
+   */
+  listerRoles: ListingRole[];
 };
 
 /**
@@ -283,6 +293,21 @@ function readWater(value: string | string[] | undefined): WaterSupply[] {
   return out;
 }
 
+/**
+ * Supply kinds named in an address. Duplicates and rubbish are dropped.
+ *
+ * ORDERED BY `LISTING_ROLES`, NOT BY THE ADDRESS BAR. Two links that asked the
+ * same question have to produce the same URL when the drawer writes them back,
+ * or the browser history fills with entries that differ only in the order
+ * somebody happened to tick three boxes in.
+ */
+function readRoles(value: string | string[] | undefined): ListingRole[] {
+  const raw = first(value);
+  if (typeof raw !== "string") return [];
+  const asked = new Set(raw.split(",").map((part) => part.trim().toLowerCase()));
+  return LISTING_ROLES.filter((role) => asked.has(role));
+}
+
 /** Category, accepting the two legacy aliases older links still carry. */
 export function parseKind(type: string | undefined): ListingKind | undefined {
   if (!type) return undefined;
@@ -315,6 +340,7 @@ export function parseDiscoveryQuery(params: RawSearchParams): DiscoveryQuery {
     powerBackup: power.backup,
     powerBandA: power.bandA,
     waterSupply: readWater(params.water),
+    listerRoles: readRoles(params.by),
   };
 
   const q = readText(params.q);
@@ -350,6 +376,7 @@ export function toFilter(query: DiscoveryQuery): ListingSearchFilter {
   if (query.powerBackup) filter.powerBackup = true;
   if (query.powerBandA) filter.powerBandA = true;
   if (query.waterSupply.length > 0) filter.waterSupply = query.waterSupply;
+  if (query.listerRoles.length > 0) filter.listerRoles = query.listerRoles;
   return filter;
 }
 
@@ -400,6 +427,7 @@ export function toSearchHref(query: DiscoveryQuery): string {
   if (query.waterSupply.length > 0) {
     params.set("water", query.waterSupply.map(waterSlug).join(","));
   }
+  if (query.listerRoles.length > 0) params.set("by", query.listerRoles.join(","));
   const qs = params.toString();
   return qs ? `/search?${qs}` : "/search";
 }
@@ -431,6 +459,7 @@ export function clearedFilters(query: DiscoveryQuery): DiscoveryQuery {
     powerBackup: false,
     powerBandA: false,
     waterSupply: [],
+    listerRoles: [],
   };
   if (query.q) cleared.q = query.q;
   if (query.kind) cleared.kind = query.kind;
@@ -457,5 +486,8 @@ export function activeFilterCount(query: DiscoveryQuery): number {
   // Water counts once however many sources are ticked, for the same reason a
   // price range does: the reader set one thing, where the water comes from.
   if (query.waterSupply.length > 0) count += 1;
+  // One thing again: the reader set who they want to deal with, however many
+  // kinds they ticked.
+  if (query.listerRoles.length > 0) count += 1;
   return count;
 }
