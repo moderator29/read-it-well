@@ -9,8 +9,9 @@
 #
 # `npm ci`, never `npm install`: production (Vercel) builds from
 # package-lock.json, so the lockfile tree is the only tree worth testing
-# (DOC-01, DOC-02). The same job fails on a high or critical advisory in the
-# production dependencies, so a vulnerable pin cannot sit in the lock unseen.
+# (DOC-01, DOC-02). A separate, non-required `audit` job fails on a high or
+# critical advisory in the production dependencies, so a vulnerable pin cannot
+# sit in the lock unseen without an advisory service outage blocking a merge.
 #
 # THE BUILD COMPILES PRODUCTION'S CONFIG (DOC-P2-02). `next.config.ts` and
 # several `NEXT_PUBLIC_*` branches fold at build time, so a build with no env
@@ -80,8 +81,21 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run test
 
-      - name: Advisories in production dependencies
-        if: ${{ !cancelled() }}
+  # Its own job, and NOT one of the required checks: a new advisory with no
+  # fix yet, or the npm audit service being down, must not turn the
+  # deterministic gate above red. A red run here is a notice to act on.
+  audit:
+    name: Advisories (production dependencies)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: npm audit
         run: npm audit --omit=dev --audit-level=high
 
   build:
