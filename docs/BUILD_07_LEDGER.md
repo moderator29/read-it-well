@@ -10475,3 +10475,51 @@ past.
 are stale enough that `tsc` could not see this, which is why a compile-time
 language did not catch a missing required column. Regenerating
 `database.types.ts` is filed as R-P2.
+
+---
+
+## 76. THE STALE HOLD SWEEPER IS NOT RUNNING DRY. THERE ARE TWO SCHEDULERS AND THEY DISAGREE
+
+The wallet worker reported that `sweepStaleWithdrawalHolds` defaults `apply` to
+false and that `vercel.json` schedules `/api/paystack/reconcile` hourly with no
+`?apply=1`, concluding that the hourly run releases nothing and a stranded hold
+is not self healing. **The first half is true and the conclusion is wrong**, and
+it is recorded here rather than passed to the founder, because sending him to
+fix something that is not broken is precisely what he told us not to do.
+
+**There are two schedulers on this one route and only one of them is in
+`vercel.json`.**
+
+| caller | schedule | calls | applies |
+| --- | --- | --- | --- |
+| Vercel Cron, `vercel.json` | hourly | `/api/paystack/reconcile` with no query | **no.** Reports and alerts, writes nothing. |
+| pg_cron, `vallo_reconcile_payments` | `47 * * * *`, active | `private.request_money_reconciliation()` | **yes.** Its URL is built inside the function as `/api/paystack/reconcile?hours=48&apply=1`. |
+
+Read off the live catalogue today: the job exists, is `active`, runs at minute
+47 of every hour, and its body carries `apply=1`. And it is answering: when the
+money job's verdict was changed at 10:44 to require the route's own envelope
+rather than a bare 200, the next run at 10:47 recorded `ok_200`, which it could
+only do by receiving the reconciler's real reply.
+
+**So holds are swept, once an hour, by the scheduler nobody was looking at.**
+The Vercel entry is the dry one and it is dry deliberately: the path carries no
+`apply=1` so a preview deployment cannot move money.
+
+**What IS worth saying, and it is a different sentence.** Two schedulers hit
+one money route with different arguments, and only one of them is visible in
+the file a reader would check. Somebody reading `vercel.json` concludes the
+sweeper is dry, and somebody reading the pg_cron catalogue concludes it applies
+hourly, and both are reading a true thing. **That is not a bug, it is a trap**,
+and the next person to touch either will step in it. The remedy is that
+`vercel.json` and the pg_cron job should each say in their own comments that
+the other exists and what it does differently. Named here; not changed, because
+`vercel.json` is contested between sessions.
+
+**The worker's second finding stands unaltered and is the more serious one:**
+the `rm-wd-` rule is really three-way and the layers disagree about which part
+they check. The webhook gates on the prefix, the sweeper gates on
+`kind = 'withdrawal'` and never looks at the prefix, and `settleWithdrawal`
+requires prefix AND kind AND `status = 'PENDING'`. A row satisfying one and not
+another goes stuck silently, because both webhook branches answer HTTP 200.
+Live counts today: 1 withdrawal row, 0 pending holds, 0 mismatches of either
+kind. `docs/WITHDRAWAL_PATH.md` carries the query that finds such a row.
