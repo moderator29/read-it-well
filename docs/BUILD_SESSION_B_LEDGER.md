@@ -2539,6 +2539,77 @@ The rail and the flat panels are admin-shell's and were not touched.
   (`viewing_attended`, `viewing_missed`) are the schema's and unchanged. The
   console copy is English only; no other "viewing" appears in these desks.
 
+### 8.13 Final pass, 23 September
+
+**Re-checked.** Each governing panel (`C1D98B3C` panel 3, `8E9602E2` panels
+1 and 3) beside the latest side-by-side, reshot on main after admin-shell's
+`949930e2`: the rail runs full height, cards take the shell's 10px corner and
+3px halo, and per-desk type is at the converted sizes in 8.2. Every read's
+code path is exercised by unit tests over the real functions against a fake
+RLS client (no write is ever attempted); each desk renders in a production
+build through the committed harness; read-only SQL on the live project gave
+the counts the empty states mirror.
+
+**Commands and output (dark only).**
+
+```
+npx vitest run src/lib/admin/reads          Test Files 15 passed, Tests 96 passed
+tsc --noEmit (6 GB heap)                    no output (clean)
+eslint app/admin/{money,escrow,supply,bookings} lib/admin/reads harness   clean
+node scripts/check-css-tokens.mjs           clean, 0 layer-1 references
+next build (6 GB heap; a first run was OOM-killed, 137)   exit 0
+compare-surface --shape-sweep, 10 routes, 390 and 1536, dark
+  BREACHES 0, WORTH AN EYE 0, ROUND ICON-ONLY 0, ROUTES REFUSED 0
+```
+
+**Fixed in this pass.** The badge (below). Nothing close-but-not-right was
+left from the side-by-sides after 8.12.
+
+**The badge: BLOCKED ON B-BADGE.** The tier is read, never derived:
+`getBadgeTiers` (`lib/admin/reads/badges.ts`, tested in `badges.test.ts`)
+reads `public.person_badge` for exactly the people a page names, through the
+admin's RLS client; a failed read returns no tiers (a missing badge is
+recoverable, a wrong one is not). Grants read live: `authenticated` holds
+SELECT on the view and EXECUTE on its helpers. The slot, `BadgeSlot`
+(`app/admin/money/_desk/BadgeSlot.tsx`), sits beside 9 of the 14 places these
+desks draw a person's name: Money's wallets list, ledger owner, tenancy charge
+tenant and evidence authors; Escrow's table payer and payee, ruling card payer
+and payee, and evidence authors; Supply's role table and firm roster members;
+Bookings' guest. It renders NOTHING: Session A's component
+(`components/app/badge/PersonBadge.tsx`) had not landed, and drawing our own
+artwork is ruled out. When it lands, that one file returns it. The other 5
+places read Session A's `lib/admin/money-queries.ts`, which returns names
+without user ids (Money's disputed holds payer and payee, Money's recent
+entries and refunds guest, Payments' wallets and stale holds): they need a
+user id added there, which is Session A's file.
+
+**English-only copy.** Not moved into the dictionaries in this pass. The
+money, escrow, supply and payments desks' copy is still English in the
+components (bookings reads `t.admin.bookings`). Recorded as not done.
+
+**BUILT AND UNPROVEN.** This box cannot reach Supabase over HTTP, so no
+signed-in run is possible.
+- Every desk page as a signed-in admin: proving it needs one admin session on
+  a machine with egress, opening each of the five routes.
+- The escrow ruling with its evidence (zero disputes exist): needs one
+  disputed test escrow with a filed fact and a file, then a ruling.
+- "Open file" on evidence: needs a filed file and a signed-in admin (the
+  bucket policy is read live; the signing is unit-tested only).
+- The admin booking cancel from a stay (zero bookings exist).
+- Tenancy charges, float history beyond one day, firm rosters with members:
+  proven on fixtures and unit tests only; the live tables hold 0, 1 and 0 rows.
+- The badge tier read: unit-tested; live grants read; no signed-in read.
+
+**Percentage.** Close-gate items met: 5 of 5 (measured match and
+side-by-sides; chain; no claims; checks, dark only; pushed). Chain links
+proven live: read-only SQL proves policies and counts for the tables all 5 desks read,
+but signed-in runs 0 of 5 desks, so **chain links proven end to end:
+0 / 5**. Controls exercised in a production build through the harness: 5 / 5
+desks rendered, every filter link, pager, toggle and hover readout drawn; the
+two writes (escrow ruling, booking cancel) 0 / 2 exercised. Badge: 9 / 14
+name places wired, 0 / 14 drawing (blocked on B-BADGE). Copy in the
+dictionaries: 1 / 5 desks.
+
 ## 9. Inspection
 
 Governing image `F6A8A482-657B-4836-B30A-1A0578BC3FBA.png` (catalogue: "Checklist

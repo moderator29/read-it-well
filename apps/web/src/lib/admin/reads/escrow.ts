@@ -31,6 +31,9 @@ export type EscrowDeskRow = EscrowView & {
   fundedAt: string | null;
   releaseRequestedAt: string | null;
   disputedAt: string | null;
+  /** For the badge slot beside each name. */
+  payerId?: string;
+  payeeId?: string;
 };
 
 export type EscrowDesk = {
@@ -140,6 +143,8 @@ export async function getEscrowDesk(filter: EscrowDeskFilter): Promise<AdminRead
       fundedAt: r.funded_at,
       releaseRequestedAt: r.release_requested_at,
       disputedAt: r.disputed_at,
+      payerId: r.payer_id,
+      payeeId: r.payee_id,
     });
 
     const narrowed = narrowEscrows(all.rows, filter);
@@ -230,6 +235,8 @@ export type EvidenceItem = {
   /** Which side filed it, from the escrow's own payer and payee. */
   side: "payer" | "payee" | "other";
   authorName: string | null;
+  /** For the badge slot. */
+  authorId?: string;
   fact: string | null;
   happenedOn: string | null;
   amountMinor: number | null;
@@ -263,6 +270,7 @@ export function evidenceFromRows(
       kind: field(row, "kind") === "file" ? "file" : "fact",
       side: party?.payerId === author ? "payer" : party?.payeeId === author ? "payee" : "other",
       authorName: names.get(author) ?? null,
+      authorId: author,
       fact: field(row, "fact"),
       happenedOn: field(row, "happened_on"),
       amountMinor: whole(row, "amount_minor"),
