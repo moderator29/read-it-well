@@ -212,3 +212,86 @@ CONTEXT:  PL/pgSQL function private.escrow_guard_transition() line 26 at RAISE
 == P-9 passes under mutation C because every funding in P-9 is affordable, so
 == the removed refusal is never asked a question. That is correct and is not
 == a defect in P-9: P-9 is the float identity, not the overdraft gate.
+
+
+===========================================================================
+== THE SECOND ROUND, 23 September 2026: the directions that had never run
+===========================================================================
+==
+== MUTATION D is mutation C again, unchanged, against the harness AFTER
+==   P-3's reverse orderings were added. This is the point of the exercise.
+== MUTATION E: private.escrow_transition_is_legal returns true for every
+==   pair, so the guard refuses nothing.
+== MUTATION F: it returns false for every pair, so the guard refuses
+==   everything.
+== MUTATION G: ONE legal pair is swapped for an illegal one. The counts do
+==   not move: still 72 pairs, 14 legal, 58 illegal, 0 behaving wrongly.
+
+=============== MUTATION D (spendable refusal removed) ===============
+   P-1                FAIL Expected two open proposals moving nothing, then A ok and B insufficient with exactly one hold. Read the two session outputs above.
+   P-2 (escrow_first) PASS ESCROW ok, then WITHDRAWAL insufficient. Exactly one committed the balance and nothing else was moved.
+   P-2 (withdrawal_first) FAIL Expected WITHDRAWAL ok then ESCROW insufficient. Both paths took the balance, neither did, the wrong one was refused, or one of them never ran.
+   P-3a (escrow_first) PASS ESCROW ok, then POT insufficient. Exactly one of the escrow and the pot took the balance.
+   P-3a (pot_first)   FAIL Expected POT ok then ESCROW insufficient. The pot and the escrow both reached the same naira, neither did, the wrong one was refused, or one of them never ran.
+   P-3b (escrow_first) PASS ESCROW ok, then TRANSFER insufficient. Exactly one of the escrow and the transfer took the balance.
+   P-3b (transfer_first) FAIL Expected TRANSFER ok then ESCROW insufficient. The transfer and the escrow both reached the same naira, neither did, the wrong one was refused, or one of them never ran.
+   P-4                PASS One ok and one already_settled. Exactly one credit, exactly one state change, exactly one audit row, and the payee was paid once.
+   P-5 (sweeper first) PASS The agreement ended in exactly one coherent state (RELEASED) with 1 settlement entries. Never both a release and a dispute.
+   P-5 (dispute first) PASS The agreement ended in exactly one coherent state (DISPUTED) with 0 settlement entries. Never both a release and a dispute.
+   P-6                PASS Serially and concurrently, funding one proposal twice produced exactly one ledger entry and one debit, and the repeat answered not_fundable rather than raising. The unique index backstop, reached on purpose, answered duplicate and left the agreement INITIATED.
+   P-8a (REFUNDED to RELEASED) PASS The trigger refused the update from a plain prompt and the row did not move. The guard is reachable from psql, not only from the functions.
+   P-8b (the whole table) PASS All 72 ordered pairs walked from a plain prompt. Every one of the 58 illegal pairs raised with the trigger's own sentence and left the row where it was, and all 14 legal pairs were allowed through in the same run, so the refusals are a table and not a closed door.
+   P-9                PASS Across a lifecycle mix with a live five per cent commission the two derivations of the float agreed to the kobo, no wallet went negative, and every settlement's net plus commission equalled its gross.
+== RESULT: FAIL. 4 of 14 local probes failed.
+
+== WHAT MUTATION D SETTLES. With the escrow funding door refusing nothing,
+== the three forward orderings STILL READ PASS and the three reverse
+== orderings read FAIL. P-3a (pot_first) and P-3b (transfer_first) had never
+== run before today. They are not a fuller version of a covered direction:
+== they are the only directions of P-3 that ask the escrow door anything.
+
+=============== MUTATION E (every transition legal) ===============
+   P8-COUNTS pairs=72 legal=72 illegal=0 legal_allowed=72 illegal_refused=0 wrong=0
+   P-8a (REFUNDED to RELEASED) FAIL An illegal transition was not refused by the trigger.
+   P-8b (the whole table) FAIL The walk over all 72 ordered pairs did not come back 14 legal allowed and 58 illegal refused. Read the P8-WRONG lines above.
+== RESULT: FAIL. 2 of 14 local probes failed.
+
+=============== MUTATION F (no transition legal) ===============
+== SMOKE: one uncontested proposal and one uncontested funding call, before any probe runs
+== RESULT: FAIL, AND THE HARNESS IS THE SUSPECT, NOT THE PRODUCT.
+
+== WHAT MUTATION F SETTLES, AND IT CHANGED THE HARNESS. A guard that refuses
+== every transition cannot get an agreement from INITIATED to HELD, so the
+== SMOKE CHECK stops the run before P-8b is ever reached. That is the right
+== order of events. But the smoke check's own wording said "THE HARNESS IS
+== THE SUSPECT, NOT THE PRODUCT", and under mutation F the product was
+== exactly the thing at fault. A gate that names a culprit it has not
+== identified is the same error as a probe that claims a verdict it did not
+== take, so the wording now says the harness is the FIRST suspect and names
+== the other possibility. Nothing about what stops the run changed.
+
+=============== MUTATION G (one legal pair swapped) ===============
+   P8-TABLE disagreements=2
+   P8-TABLE-DIFF FUNDED -> CANCELLED
+   P8-TABLE-DIFF REFUNDED -> RELEASED
+   P8-COUNTS pairs=72 legal=14 illegal=58 legal_allowed=14 illegal_refused=58 wrong=0
+   P-8a (REFUNDED to RELEASED) FAIL An illegal transition was not refused by the trigger.
+   P-8b (the whole table) FAIL counts=[P8-COUNTS pairs=72 legal=14 illegal=58 legal_allowed=14 illegal_refused=58 wrong=0] table=[P8-TABLE disagreements=2] wrong_rows=0. The shipped transition table disagreed with the probe's own copy, or a pair behaved against it. Read the P8-TABLE-DIFF and P8-WRONG lines above.
+== RESULT: FAIL. 2 of 14 local probes failed.
+
+== WHAT MUTATION G SETTLES, AND IT IS THE REASON P-8b HOLDS ITS OWN COPY OF
+== THE TABLE. Look at the counts line: 72 pairs, 14 legal, 58 illegal, 14
+== legal allowed, 58 illegal refused, 0 wrong. A probe that asked the shipped
+== function which pairs were legal and then checked that it refused the rest
+== would have gone green over a transition table with REFUNDED to RELEASED in
+== it, which is the single pair P-8 has been testing all week. Only the
+== hand-written list of fourteen pairs in the probe caught it, as two
+== disagreements.
+==
+== ONE DEFECT IN THE PROBE ITSELF, FOUND BY MUTATION G AND FIXED. The first
+== version of the disagreement query read
+== `A except B union all B except A` with no brackets. `except` and `union`
+== share a precedence and associate leftwards, so Postgres read it as
+== `((A except B) union all B) except A` and reported ONE disagreement where
+== there were two. Every leaf is now parenthesised, and the re-run above is
+== after that fix.

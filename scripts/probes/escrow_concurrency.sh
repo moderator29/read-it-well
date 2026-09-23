@@ -568,8 +568,12 @@ smoke_initiated="$(q "select count(*) from public.escrows where state='INITIATED
 smoke_early="$(q "select count(*) from public.wallet_entries where kind='escrow_hold'")"
 echo "   proposal=[$smoke_esc] initiated=$smoke_initiated holds_before_funding=$smoke_early"
 if ! require_escrow "$smoke_esc" "the smoke check" || [ "$smoke_initiated" != "1" ] || [ "$smoke_early" != "0" ]; then
-  echo "== RESULT: FAIL, AND THE HARNESS IS THE SUSPECT, NOT THE PRODUCT."
+  echo "== RESULT: FAIL BEFORE ANY PROBE RAN. THE HARNESS IS THE FIRST SUSPECT."
   echo "   The proposal door did not open exactly one INITIATED agreement with nothing moved."
+  echo "   Usually that is the scratch schema being behind a migration. IT CAN ALSO BE"
+  echo "   THE PRODUCT: a shipped fault in the opening door reaches this line the same"
+  echo "   way. Read the answer above before deciding which, and do not record either"
+  echo "   as a verdict about the other."
   exit 1
 fi
 smoke="$(q "select public.escrow_fund_proposal_as('$PAYER','$smoke_esc'::uuid,21) ->> 'status'")"
@@ -577,11 +581,14 @@ smoke_held="$(q "select count(*) from public.escrows where state='HELD'")"
 smoke_entries="$(q "select count(*) from public.wallet_entries where kind='escrow_hold'")"
 echo "   answer=[$smoke] held=$smoke_held holds=$smoke_entries"
 if [ "$smoke" != "ok" ] || [ "$smoke_held" != "1" ] || [ "$smoke_entries" != "1" ]; then
-  echo "== RESULT: FAIL, AND THE HARNESS IS THE SUSPECT, NOT THE PRODUCT."
+  echo "== RESULT: FAIL BEFORE ANY PROBE RAN. THE HARNESS IS THE FIRST SUSPECT."
   echo "   An uncontested funding call did not produce one HELD agreement and one hold."
   echo "   Nothing below this line would have been evidence about locking, ordering"
   echo "   or the float, so nothing below this line was run. The usual cause is the"
-  echo "   scratch schema being behind a migration: read the answer above."
+  echo "   scratch schema being behind a migration. IT CAN ALSO BE THE PRODUCT: a"
+  echo "   transition table or a door that refuses what it should permit stops the"
+  echo "   funding call here too, and that is a real defect rather than a harness"
+  echo "   fault. Read the answer above before deciding which."
   exit 1
 fi
 echo "== SMOKE: PASS. The harness can propose and then fund an agreement through the door the"
@@ -657,22 +664,42 @@ SQL
   committed="$(q "select count(*) from public.wallet_entries where kind in ('escrow_hold','withdrawal')")"
   bal="$(q "select private.wallet_spendable_locked(id) from public.wallets where user_id='$PAYER'")"
   echo "   ok_answers=$oks committing_entries=$committed payer_spendable=$bal"
-  if both_answered "ESCROW" "WITHDRAWAL" && [ "$oks" = "1" ] && [ "$committed" = "1" ] && [ "$bal" = "0" ]; then
-    record "P-2 ($order)" PASS "Exactly one of the two committed the balance. The other was refused and nothing was moved."
+  # WHICH LEG MUST BE REFUSED IS THE WHOLE POINT OF RUNNING BOTH ORDERS, so it
+  # is named rather than counted. Counting oks cannot tell the direction where
+  # the escrow door refuses from the direction where it is merely second.
+  if [ "$order" = "escrow_first" ]; then
+    wins="ESCROW ok"; refused="WITHDRAWAL insufficient"
   else
-    record "P-2 ($order)" FAIL "Both paths took the balance, neither did, or one of them never ran."
+    wins="WITHDRAWAL ok"; refused="ESCROW insufficient"
+  fi
+  named=no
+  grep -q "$wins" "$scratch/a.out" && grep -q "$refused" "$scratch/b.out" && named=yes
+  echo "   expected [$wins] first and [$refused] second: $named"
+  if both_answered "ESCROW" "WITHDRAWAL" && [ "$named" = "yes" ] && [ "$oks" = "1" ] && [ "$committed" = "1" ] && [ "$bal" = "0" ]; then
+    record "P-2 ($order)" PASS "$wins, then $refused. Exactly one committed the balance and nothing else was moved."
+  else
+    record "P-2 ($order)" FAIL "Expected $wins then $refused. Both paths took the balance, neither did, the wrong one was refused, or one of them never ran."
   fi
 done
 
 # ---------------------------------------------------------------------------
 # P-3. Escrow against the two other committing paths.
 # ---------------------------------------------------------------------------
-echo; echo "== P-3a: an escrow and a pot move for the same 100,000 kobo"
+# BOTH ORDERINGS, AND THE REVERSE ONES ARE THE ONLY ONES THAT ASK THE ESCROW
+# DOOR A QUESTION. Until 23 September only escrow-first ran. A mutation that
+# removed the overdraft refusal from `escrow_fund_proposal_as` entirely left
+# both of these green, because with the escrow going first it wins the balance
+# honestly and the POT or the TRANSFER does all of the refusing. The evidence
+# is scripts/probes/escrow_concurrency_20260923_mutation_tests.log. With the
+# pot or the transfer going first, the leg that must answer `insufficient` is
+# the escrow, which is the thing these probes exist to test.
+for order in escrow_first pot_first; do
+echo; echo "== P-3a ($order): an escrow and a pot move for the same 100,000 kobo"
 reset_with 100000
 q "insert into public.wallet_pots (user_id, name) values ('$PAYER','Probe pot')" >/dev/null
 pot="$(q "select id from public.wallet_pots where user_id='$PAYER'")"
 p3ae="$(propose_id 0 100000)"
-require_escrow "$p3ae" "P-3a" || true
+require_escrow "$p3ae" "P-3a ($order)" || true
 cat > "$scratch/p3a.sql" <<SQL
 begin;
 select 'ESCROW ' || (public.escrow_fund_proposal_as('$PAYER','$p3ae'::uuid,21) ->> 'status');
@@ -681,25 +708,37 @@ commit;
 SQL
 cat > "$scratch/p3b.sql" <<SQL
 begin;
-select 'POT ' || (public.move_into_pot('$PAYER','$pot'::uuid,100000::bigint,'rm-pot-p3a') ->> 'status');
+select 'POT ' || (public.move_into_pot('$PAYER','$pot'::uuid,100000::bigint,'rm-pot-p3a-$order') ->> 'status');
+select pg_sleep(2);
 commit;
 SQL
 chmod 644 "$scratch"/p3*.sql
-two_sessions "$scratch/p3a.sql" "$scratch/p3b.sql" 0.5
+if [ "$order" = "escrow_first" ]; then
+  two_sessions "$scratch/p3a.sql" "$scratch/p3b.sql" 0.5
+  wins="ESCROW ok"; refused="POT insufficient"
+else
+  two_sessions "$scratch/p3b.sql" "$scratch/p3a.sql" 0.5
+  wins="POT ok"; refused="ESCROW insufficient"
+fi
 oks="$(grep -ho "ok" "$scratch/a.out" "$scratch/b.out" | wc -l)"
 committed="$(q "select count(*) from public.wallet_entries where kind in ('escrow_hold','pot_hold')")"
 bal="$(q "select private.wallet_spendable_locked(id) from public.wallets where user_id='$PAYER'")"
+named=no
+grep -q "$wins" "$scratch/a.out" && grep -q "$refused" "$scratch/b.out" && named=yes
 echo "   ok_answers=$oks committing_entries=$committed payer_spendable=$bal"
-if both_answered "ESCROW" "POT" && [ "$oks" = "1" ] && [ "$committed" = "1" ] && [ "$bal" = "0" ]; then
-  record "P-3a (pot)" PASS "Exactly one of the escrow and the pot took the balance."
+echo "   expected [$wins] first and [$refused] second: $named"
+if both_answered "ESCROW" "POT" && [ "$named" = "yes" ] && [ "$oks" = "1" ] && [ "$committed" = "1" ] && [ "$bal" = "0" ]; then
+  record "P-3a ($order)" PASS "$wins, then $refused. Exactly one of the escrow and the pot took the balance."
 else
-  record "P-3a (pot)" FAIL "The pot and the escrow both reached the same naira, neither did, or one of them never ran."
+  record "P-3a ($order)" FAIL "Expected $wins then $refused. The pot and the escrow both reached the same naira, neither did, the wrong one was refused, or one of them never ran."
 fi
+done
 
-echo; echo "== P-3b: an escrow and a transfer to another person for the same 100,000 kobo"
+for order in escrow_first transfer_first; do
+echo; echo "== P-3b ($order): an escrow and a transfer to another person for the same 100,000 kobo"
 reset_with 100000
 p3be="$(propose_id 0 100000)"
-require_escrow "$p3be" "P-3b" || true
+require_escrow "$p3be" "P-3b ($order)" || true
 cat > "$scratch/p3c.sql" <<SQL
 begin;
 select 'ESCROW ' || (public.escrow_fund_proposal_as('$PAYER','$p3be'::uuid,21) ->> 'status');
@@ -708,19 +747,30 @@ commit;
 SQL
 cat > "$scratch/p3d.sql" <<SQL
 begin;
-select 'TRANSFER ' || private.transfer_between_wallets('$PAYER','$PAYEE',100000,'rm-p2p-p3b-out','rm-p2p-p3b-in','probe');
+select 'TRANSFER ' || private.transfer_between_wallets('$PAYER','$PAYEE',100000,'rm-p2p-p3b-$order-out','rm-p2p-p3b-$order-in','probe');
+select pg_sleep(2);
 commit;
 SQL
 chmod 644 "$scratch"/p3*.sql
-two_sessions "$scratch/p3c.sql" "$scratch/p3d.sql" 0.5
+if [ "$order" = "escrow_first" ]; then
+  two_sessions "$scratch/p3c.sql" "$scratch/p3d.sql" 0.5
+  wins="ESCROW ok"; refused="TRANSFER insufficient"
+else
+  two_sessions "$scratch/p3d.sql" "$scratch/p3c.sql" 0.5
+  wins="TRANSFER ok"; refused="ESCROW insufficient"
+fi
 committed="$(q "select count(*) from public.wallet_entries where kind in ('escrow_hold','transfer_out')")"
 bal="$(q "select private.wallet_spendable_locked(id) from public.wallets where user_id='$PAYER'")"
+named=no
+grep -q "$wins" "$scratch/a.out" && grep -q "$refused" "$scratch/b.out" && named=yes
 echo "   committing_entries=$committed payer_spendable=$bal"
-if both_answered "ESCROW" "TRANSFER" && [ "$committed" = "1" ] && [ "$bal" = "0" ]; then
-  record "P-3b (transfer)" PASS "Exactly one of the escrow and the transfer took the balance."
+echo "   expected [$wins] first and [$refused] second: $named"
+if both_answered "ESCROW" "TRANSFER" && [ "$named" = "yes" ] && [ "$committed" = "1" ] && [ "$bal" = "0" ]; then
+  record "P-3b ($order)" PASS "$wins, then $refused. Exactly one of the escrow and the transfer took the balance."
 else
-  record "P-3b (transfer)" FAIL "The transfer and the escrow both reached the same naira, neither did, or one of them never ran."
+  record "P-3b ($order)" FAIL "Expected $wins then $refused. The transfer and the escrow both reached the same naira, neither did, the wrong one was refused, or one of them never ran."
 fi
+done
 
 # ---------------------------------------------------------------------------
 # P-4. Two concurrent settlements of the same agreement.
@@ -891,9 +941,152 @@ after="$(q "select state from public.escrows where id='$esc'::uuid")"
 echo "   before=$before after=$after"
 echo "   answer: $raised"
 if [ "$p8fund" = "ok" ] && [ "$before" = "REFUNDED" ] && [ "$after" = "REFUNDED" ] && echo "$raised" | grep -qi "cannot go from REFUNDED to RELEASED"; then
-  record P-8 PASS "The trigger refused the update from a plain prompt and the row did not move. The guard is reachable from psql, not only from the functions."
+  record "P-8a (REFUNDED to RELEASED)" PASS "The trigger refused the update from a plain prompt and the row did not move. The guard is reachable from psql, not only from the functions."
 else
-  record P-8 FAIL "An illegal transition was not refused by the trigger."
+  record "P-8a (REFUNDED to RELEASED)" FAIL "An illegal transition was not refused by the trigger."
+fi
+
+# ---------------------------------------------------------------------------
+# P-8b. EVERY ORDERED PAIR IN THE TRANSITION TABLE, NOT ONE OF THEM.
+#
+# P-8 tested exactly one illegal pair until 23 September. `escrow_state` has
+# nine values, so there are 72 ordered pairs of two different states. Fourteen
+# of them are legal, which the shipped
+# `private.escrow_transition_is_legal` names, and the other fifty eight are
+# not. A guard that refuses one pair is not a guard that refuses the table.
+#
+# THE CONTROL IS INSIDE THE SAME WALK AND IT IS NOT OPTIONAL. Fifty eight
+# refusals look exactly like a trigger that refuses everything, which would
+# take the product down while reading as a clean sweep. So the fourteen legal
+# pairs are driven through the same statement in the same run and every one of
+# them MUST SUCCEED. The probe fails if a legal transition is refused just as
+# loudly as if an illegal one is allowed.
+#
+# The from-state is reached by inserting the row directly rather than by
+# walking a lifecycle, which is the point: this probe is about what a plain
+# `update` from a prompt can do, not about what the doors permit.
+# ---------------------------------------------------------------------------
+echo; echo "== P-8b: every ordered pair of states, from a plain prompt"
+reset_with 100000
+cat > "$scratch/p8b.sql" <<SQL
+create table public.p8_results (
+  from_state text, to_state text, legal boolean, refused boolean,
+  moved boolean, ok boolean, note text
+);
+
+-- THE PROBE'S OWN COPY OF THE TABLE, and it is here because asking the
+-- shipped function what is legal and then checking that it refused everything
+-- it called illegal is a circle. A mutation that swapped one legal pair for
+-- another would keep the counts at fourteen and fifty eight and go straight
+-- through. These fourteen pairs are transcribed from ADR-E1 and from
+-- private.escrow_transition_is_legal as it stood on 23 September, BY HAND,
+-- and the probe compares the shipped function against them pair by pair.
+create table public.p8_expected (from_state text, to_state text);
+insert into public.p8_expected values
+  ('INITIATED','FUNDED'),
+  ('FUNDED','HELD'),
+  ('HELD','RELEASE_REQUESTED'),
+  ('HELD','RELEASED'),
+  ('RELEASE_REQUESTED','RELEASED'),
+  ('HELD','REFUNDED'),
+  ('RELEASE_REQUESTED','REFUNDED'),
+  ('INITIATED','DISPUTED'),
+  ('FUNDED','DISPUTED'),
+  ('HELD','DISPUTED'),
+  ('RELEASE_REQUESTED','DISPUTED'),
+  ('DISPUTED','RESOLVED'),
+  ('INITIATED','CANCELLED'),
+  ('FUNDED','CANCELLED');
+do \$p8\$
+declare
+  states public.escrow_state[] := enum_range(null::public.escrow_state);
+  f public.escrow_state;
+  t public.escrow_state;
+  eid uuid;
+  is_legal boolean;
+  did_refuse boolean;
+  did_move boolean;
+  msg text;
+  want text;
+begin
+  foreach f in array states loop
+    foreach t in array states loop
+      continue when f = t;
+      is_legal := private.escrow_transition_is_legal(f, t);
+      insert into public.escrows (payer_id, payee_id, purpose, amount_minor, state)
+      values ('$PAYER', '$PAYEE', 'agency_fee', 100000, f)
+      returning id into eid;
+      did_refuse := false;
+      msg := null;
+      begin
+        update public.escrows set state = t where id = eid;
+      exception when others then
+        did_refuse := true;
+        msg := sqlerrm;
+      end;
+      select (state = t) into did_move from public.escrows where id = eid;
+      want := 'cannot go from ' || f::text || ' to ' || t::text;
+      insert into public.p8_results (from_state, to_state, legal, refused, moved, ok, note)
+      values (
+        f::text, t::text, is_legal, did_refuse, did_move,
+        case
+          when is_legal then (not did_refuse) and did_move
+          else did_refuse and (not did_move) and position(want in coalesce(msg, '')) > 0
+        end,
+        case when is_legal then 'legal, must be allowed' else coalesce(msg, 'no message') end
+      );
+    end loop;
+  end loop;
+end
+\$p8\$;
+-- EVERY LEAF IS PARENTHESISED ON PURPOSE. Written without the brackets, this
+-- reads as (((A except B) union all C) except D), because `except` and
+-- `union` share a precedence and associate leftwards, and it UNDER-REPORTED a
+-- deliberately swapped pair as one disagreement instead of two.
+select 'P8-TABLE disagreements=' || count(*) from (
+  ((select from_state, to_state from public.p8_results where legal)
+   except
+   (select from_state, to_state from public.p8_expected))
+  union all
+  ((select from_state, to_state from public.p8_expected)
+   except
+   (select from_state, to_state from public.p8_results where legal))
+) d;
+select 'P8-TABLE-DIFF ' || from_state || ' -> ' || to_state from (
+  ((select from_state, to_state from public.p8_results where legal)
+   except
+   (select from_state, to_state from public.p8_expected))
+  union all
+  ((select from_state, to_state from public.p8_expected)
+   except
+   (select from_state, to_state from public.p8_results where legal))
+) d order by 1;
+select 'P8-COUNTS pairs=' || count(*)
+    || ' legal=' || count(*) filter (where legal)
+    || ' illegal=' || count(*) filter (where not legal)
+    || ' legal_allowed=' || count(*) filter (where legal and ok)
+    || ' illegal_refused=' || count(*) filter (where not legal and ok)
+    || ' wrong=' || count(*) filter (where not ok)
+  from public.p8_results;
+select 'P8-WRONG ' || from_state || ' -> ' || to_state
+    || ' legal=' || legal || ' refused=' || refused || ' moved=' || moved
+    || ' :: ' || replace(note, chr(10), ' ')
+  from public.p8_results where not ok order by from_state, to_state;
+SQL
+chmod 644 "$scratch/p8b.sql"
+su postgres -c "psql -X -q -At -d $db -f $scratch/p8b.sql" > "$scratch/p8b.out" 2>&1
+sed 's/^/   /' "$scratch/p8b.out"
+p8counts="$(grep -h '^P8-COUNTS' "$scratch/p8b.out" || true)"
+p8table="$(grep -h '^P8-TABLE disagreements=' "$scratch/p8b.out" || true)"
+p8wrong="$(grep -hc '^P8-WRONG' "$scratch/p8b.out" || true)"
+q "drop table if exists public.p8_results" >/dev/null
+q "drop table if exists public.p8_expected" >/dev/null
+if [ "$p8counts" = "P8-COUNTS pairs=72 legal=14 illegal=58 legal_allowed=14 illegal_refused=58 wrong=0" ] \
+   && [ "$p8table" = "P8-TABLE disagreements=0" ] \
+   && [ "$p8wrong" = "0" ]; then
+  record "P-8b (the whole table)" PASS "All 72 ordered pairs walked from a plain prompt, against the probe's own hand-written copy of the fourteen legal pairs. Every one of the 58 illegal pairs raised with the trigger's own sentence and left the row where it was, and all 14 legal pairs were allowed through in the same run, so the refusals are a table and not a closed door."
+else
+  record "P-8b (the whole table)" FAIL "counts=[$p8counts] table=[$p8table] wrong_rows=$p8wrong. The shipped transition table disagreed with the probe's own copy, or a pair behaved against it. Read the P8-TABLE-DIFF and P8-WRONG lines above."
 fi
 
 # ---------------------------------------------------------------------------

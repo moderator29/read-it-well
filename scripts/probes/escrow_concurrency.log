@@ -1,4 +1,4 @@
-== probe started 2026-09-23T10:34:01Z
+== probe started 2026-09-23T10:46:15Z
  PostgreSQL 16.13 (Ubuntu 16.13-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit
    private.wallet_for_update                      sha256 107e855012bc50c6  20260809052049_escrow_money_moves_under_a_lock.sql
    private.wallet_spendable_locked                sha256 71cfe97d15e6858b  20260809052049_escrow_money_moves_under_a_lock.sql
@@ -37,12 +37,12 @@
    escrows.conversation_id uuid  (lifted from a migration)
    escrows.opened_by uuid  (lifted from a migration)
 == 2 column addition(s) to public.escrows lifted from the migrations
-psql:/tmp/tmp.tjUfdyr7o6/f9.sql:89: NOTICE:  F-9: private.pay_booking_from_wallet(uuid, uuid, text) now calls private.wallet_spendable_locked
-psql:/tmp/tmp.tjUfdyr7o6/f9.sql:89: NOTICE:  F-9: public.hold_wallet_withdrawal(uuid, bigint, text, jsonb) now calls private.wallet_spendable_locked
+psql:/tmp/tmp.MwmPbC4anS/f9.sql:89: NOTICE:  F-9: private.pay_booking_from_wallet(uuid, uuid, text) now calls private.wallet_spendable_locked
+psql:/tmp/tmp.MwmPbC4anS/f9.sql:89: NOTICE:  F-9: public.hold_wallet_withdrawal(uuid, bigint, text, jsonb) now calls private.wallet_spendable_locked
 == F-9 confirmed in the scratch database: hold_wallet_withdrawal calls the shared spendable
 
 == SMOKE: one uncontested proposal and one uncontested funding call, before any probe runs
-   proposal=[c0ee3363-bde5-481e-bfe8-c990b1e4127c] initiated=1 holds_before_funding=0
+   proposal=[b52bbffa-cd96-4831-9ca7-398dba8be20a] initiated=1 holds_before_funding=0
    answer=[ok] held=1 holds=1
 == SMOKE: PASS. The harness can propose and then fund an agreement through the door the
    product funds through, so a refusal below is a refusal.
@@ -65,8 +65,9 @@ psql:/tmp/tmp.tjUfdyr7o6/f9.sql:89: NOTICE:  F-9: public.hold_wallet_withdrawal(
      WITHDRAWAL insufficient
      
    ok_answers=1 committing_entries=1 payer_spendable=0
+   expected [ESCROW ok] first and [WITHDRAWAL insufficient] second: yes
    BOTH-ANSWERED: yes. ESCROW and WITHDRAWAL both spoke.
-== P-2 (escrow_first): PASS. Exactly one of the two committed the balance. The other was refused and nothing was moved.
+== P-2 (escrow_first): PASS. ESCROW ok, then WITHDRAWAL insufficient. Exactly one committed the balance and nothing else was moved.
 
 == P-2 (withdrawal_first): an escrow and a withdrawal for the same 100,000 kobo
 -- A:
@@ -76,28 +77,57 @@ psql:/tmp/tmp.tjUfdyr7o6/f9.sql:89: NOTICE:  F-9: public.hold_wallet_withdrawal(
      ESCROW insufficient
      
    ok_answers=1 committing_entries=1 payer_spendable=0
+   expected [WITHDRAWAL ok] first and [ESCROW insufficient] second: yes
    BOTH-ANSWERED: yes. ESCROW and WITHDRAWAL both spoke.
-== P-2 (withdrawal_first): PASS. Exactly one of the two committed the balance. The other was refused and nothing was moved.
+== P-2 (withdrawal_first): PASS. WITHDRAWAL ok, then ESCROW insufficient. Exactly one committed the balance and nothing else was moved.
 
-== P-3a: an escrow and a pot move for the same 100,000 kobo
+== P-3a (escrow_first): an escrow and a pot move for the same 100,000 kobo
 -- A:
      ESCROW ok
      
 -- B:
      POT insufficient
+     
    ok_answers=1 committing_entries=1 payer_spendable=0
+   expected [ESCROW ok] first and [POT insufficient] second: yes
    BOTH-ANSWERED: yes. ESCROW and POT both spoke.
-== P-3a (pot): PASS. Exactly one of the escrow and the pot took the balance.
+== P-3a (escrow_first): PASS. ESCROW ok, then POT insufficient. Exactly one of the escrow and the pot took the balance.
 
-== P-3b: an escrow and a transfer to another person for the same 100,000 kobo
+== P-3a (pot_first): an escrow and a pot move for the same 100,000 kobo
+-- A:
+     POT ok
+     
+-- B:
+     ESCROW insufficient
+     
+   ok_answers=1 committing_entries=1 payer_spendable=0
+   expected [POT ok] first and [ESCROW insufficient] second: yes
+   BOTH-ANSWERED: yes. ESCROW and POT both spoke.
+== P-3a (pot_first): PASS. POT ok, then ESCROW insufficient. Exactly one of the escrow and the pot took the balance.
+
+== P-3b (escrow_first): an escrow and a transfer to another person for the same 100,000 kobo
 -- A:
      ESCROW ok
      
 -- B:
      TRANSFER insufficient
+     
    committing_entries=1 payer_spendable=0
+   expected [ESCROW ok] first and [TRANSFER insufficient] second: yes
    BOTH-ANSWERED: yes. ESCROW and TRANSFER both spoke.
-== P-3b (transfer): PASS. Exactly one of the escrow and the transfer took the balance.
+== P-3b (escrow_first): PASS. ESCROW ok, then TRANSFER insufficient. Exactly one of the escrow and the transfer took the balance.
+
+== P-3b (transfer_first): an escrow and a transfer to another person for the same 100,000 kobo
+-- A:
+     TRANSFER ok
+     
+-- B:
+     ESCROW insufficient
+     
+   committing_entries=1 payer_spendable=0
+   expected [TRANSFER ok] first and [ESCROW insufficient] second: yes
+   BOTH-ANSWERED: yes. ESCROW and TRANSFER both spoke.
+== P-3b (transfer_first): PASS. TRANSFER ok, then ESCROW insufficient. Exactly one of the escrow and the transfer took the balance.
 
 == P-4: two sessions release the same HELD agreement at the same instant
    funded through the proposal door: ok
@@ -130,7 +160,7 @@ psql:/tmp/tmp.tjUfdyr7o6/f9.sql:89: NOTICE:  F-9: public.hold_wallet_withdrawal(
 == P-5 (dispute first): PASS. The agreement ended in exactly one coherent state (DISPUTED) with 0 settlement entries. Never both a release and a dispute.
 
 == P-6: the same proposal funded twice, serially
-   derived reference=rm-esc-51cd76e0-70e9-4c11-af33-5d41fc60e218-hold
+   derived reference=rm-esc-3106b782-dfbd-4f7c-ae2d-1d711bb72995-hold
    first=ok second=not_fundable entries=1 payer_spendable=200000
 == P-6: and the same proposal funded from two sessions at once
 -- A:
@@ -147,9 +177,16 @@ psql:/tmp/tmp.tjUfdyr7o6/f9.sql:89: NOTICE:  F-9: public.hold_wallet_withdrawal(
 == P-8: a direct update from REFUNDED to RELEASED, as the owning role
    funded through the proposal door: ok
    before=REFUNDED after=REFUNDED
-   answer: ERROR:  escrow ece94a3c-e40e-48fd-aee5-3634221f0d6e cannot go from REFUNDED to RELEASED
+   answer: ERROR:  escrow cc223c76-e5bf-4190-8e5d-34621b31647f cannot go from REFUNDED to RELEASED
 CONTEXT:  PL/pgSQL function private.escrow_guard_transition() line 26 at RAISE
-== P-8: PASS. The trigger refused the update from a plain prompt and the row did not move. The guard is reachable from psql, not only from the functions.
+== P-8a (REFUNDED to RELEASED): PASS. The trigger refused the update from a plain prompt and the row did not move. The guard is reachable from psql, not only from the functions.
+
+== P-8b: every ordered pair of states, from a plain prompt
+scripts/probes/escrow_concurrency.sh: line 971: except: command not found
+scripts/probes/escrow_concurrency.sh: line 971: union: command not found
+   P8-TABLE disagreements=0
+   P8-COUNTS pairs=72 legal=14 illegal=58 legal_allowed=14 illegal_refused=58 wrong=0
+== P-8b (the whole table): PASS. All 72 ordered pairs walked from a plain prompt, against the probe's own hand-written copy of the fourteen legal pairs. Every one of the 58 illegal pairs raised with the trigger's own sentence and left the row where it was, and all 14 legal pairs were allowed through in the same run, so the refusals are a table and not a closed door.
 
 == P-9: the float identity across a mix of held, released, refunded, disputed and cancelled
    funded through the proposal door: 6 of 6
@@ -166,15 +203,18 @@ CONTEXT:  PL/pgSQL function private.escrow_guard_transition() line 26 at RAISE
 
 == SUMMARY
    P-1                PASS Two proposals opened with nothing moved. A held the balance, B blocked on A's wallet row lock, re-read spendable after A committed and was refused. One escrow HELD, one left INITIATED, one hold, balance zero, never negative.
-   P-2 (escrow_first) PASS Exactly one of the two committed the balance. The other was refused and nothing was moved.
-   P-2 (withdrawal_first) PASS Exactly one of the two committed the balance. The other was refused and nothing was moved.
-   P-3a (pot)         PASS Exactly one of the escrow and the pot took the balance.
-   P-3b (transfer)    PASS Exactly one of the escrow and the transfer took the balance.
+   P-2 (escrow_first) PASS ESCROW ok, then WITHDRAWAL insufficient. Exactly one committed the balance and nothing else was moved.
+   P-2 (withdrawal_first) PASS WITHDRAWAL ok, then ESCROW insufficient. Exactly one committed the balance and nothing else was moved.
+   P-3a (escrow_first) PASS ESCROW ok, then POT insufficient. Exactly one of the escrow and the pot took the balance.
+   P-3a (pot_first)   PASS POT ok, then ESCROW insufficient. Exactly one of the escrow and the pot took the balance.
+   P-3b (escrow_first) PASS ESCROW ok, then TRANSFER insufficient. Exactly one of the escrow and the transfer took the balance.
+   P-3b (transfer_first) PASS TRANSFER ok, then ESCROW insufficient. Exactly one of the escrow and the transfer took the balance.
    P-4                PASS One ok and one already_settled. Exactly one credit, exactly one state change, exactly one audit row, and the payee was paid once.
    P-5 (sweeper first) PASS The agreement ended in exactly one coherent state (RELEASED) with 1 settlement entries. Never both a release and a dispute.
    P-5 (dispute first) PASS The agreement ended in exactly one coherent state (DISPUTED) with 0 settlement entries. Never both a release and a dispute.
    P-6                PASS Serially and concurrently, funding one proposal twice produced exactly one ledger entry and one debit, and the repeat answered not_fundable rather than raising. The unique index backstop, reached on purpose, answered duplicate and left the agreement INITIATED.
-   P-8                PASS The trigger refused the update from a plain prompt and the row did not move. The guard is reachable from psql, not only from the functions.
+   P-8a (REFUNDED to RELEASED) PASS The trigger refused the update from a plain prompt and the row did not move. The guard is reachable from psql, not only from the functions.
+   P-8b (the whole table) PASS All 72 ordered pairs walked from a plain prompt, against the probe's own hand-written copy of the fourteen legal pairs. Every one of the 58 illegal pairs raised with the trigger's own sentence and left the row where it was, and all 14 legal pairs were allowed through in the same run, so the refusals are a table and not a closed door.
    P-9                PASS Across a lifecycle mix with a live five per cent commission the two derivations of the float agreed to the kobo, no wallet went negative, and every settlement's net plus commission equalled its gross.
 
-== RESULT: PASS. 11 of 11 local probes passed. P-7 is proved separately and is not counted here.
+== RESULT: PASS. 14 of 14 local probes passed. P-7 is proved separately and is not counted here.
