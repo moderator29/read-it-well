@@ -4249,6 +4249,256 @@ thumb top -8, expected +4). Visible in `before/hub-390.jpg`.
 
 (Apply, per-route table, Pass 1 to 3: pending Phase 1 RELEASED.)
 
+## 13. Platform sweep: chrome (side drawer, dock and switch sheet, app header, host wizard, agent workspace, landing and site pages; worker "sweep-chrome")
+
+Scope (SESSION_B_SCOPE, "THE WIDE PLATFORM SWEEP"): `app/css/chrome.css`,
+`app/side-nav.css`, `app/css/agent.css`, `app/css/landing.css`,
+`app/css/site.css`, `app/css/chips.css` and the components they style.
+Governing images: `roles/GOVERNING-01` (home, dock, switch sheet, drawer),
+`BCD39CA8` (drawer), `GOVERNING-landing-desktop-hero.png` and
+`founder/landing-fullpage-target.png` (landing), `roles/GOVERNING-02` to `11`
+(host and supplier flows). The dock keeps its five slots and destinations
+(Home, Search, the switch in line, Feed, Profile); nothing here moves them.
+
+### 13.1 Inventory (written before any change, 23 September)
+
+Method: every rule in the six stylesheets that sets `background`,
+`box-shadow`, `border`, `border-radius`, `backdrop-filter` or `filter` was
+listed with a comment-stripping parser (`scratchpad/blocks.mjs`), every
+component of the group was grepped for the classes it draws and for inline
+`style={{ background }}`, Tailwind `rounded-*`, `bg-*` and `shadow-*`, and every
+route was shot at 390 and 1440 (13.4). "Local" means the rule paints its own
+material instead of reading a shared primitive. "Other owner" means the thing
+is drawn on my routes by a stylesheet another group or Phase 1 owns; I do not
+edit it and it is listed so the route's coverage is honest.
+
+**A. The app header (`AppShell.tsx`, chrome.css).** Every signed-in and
+signed-out app route.
+| Item | Drawn by | Local material | Owner |
+|---|---|---|---|
+| Header bar, resting | `.nf-app-header` transparent | none | mine |
+| Header bar, scrolled | `.nf-app-header[data-scrolled]`: brand-tint 1 over canvas 88%, strong blur, `--nf-glow-edge` | local glass fill + edge | mine |
+| Menu button, bell button | `.nf-icon-btn` (controls.css / buttons.css) + `.nf-app-header__btn` position only | shared | Phase 1 |
+| Unread dot on the bell | `.nf-app-header__dot` rose dot, canvas ring | shape (dot), keeps | mine |
+| Avatar | `.nf-app-header__avatar`: brand gradient disc, canvas ring, brand-edge ring, 14px glow-2 | local ring and glow (round is allowed: avatar) | mine |
+| Wordmark and mark | `.nf-logo*` | type only | mine |
+
+**B. The dock (`MobileTabBar.tsx`, chrome.css).** Five slots, every app route
+below 64rem.
+| Item | Drawn by | Local material | Owner |
+|---|---|---|---|
+| Dock bar | `.nf-tabbar`: brand 10% over canvas 92%, `--nf-brand-edge-soft` 1px, `--nf-radius-xl`, strong blur, `--nf-glow-edge` + floor + `0 10px 40px -12px glow-3` + lifted shadow | local panel material, radius xl (not the 10px container) | mine |
+| Active slot plate | `.nf-tabbar__pill`: side accent 10%, inset rim-thin, control radius | local selected state | mine |
+| Slot link, label, icon | `.nf-tab__link`, `__label` 11px/600, `__icon`; active colour brand-secondary + text-shadow, icon drop-shadow glow-3 | local active glow | mine |
+| The switch in line | `.nf-switch-dock` 38px on control radius, brand colour; its plate `nf-switch-mark` | size mine; plate in controls.css | mine / Phase 1 |
+| Dock island (standalone button, Around) | `.nf-dock-island`: canvas 90%, brand edge, blur, glow-edge; `border-radius: pill` on a 56px icon-only circle | local | mine |
+| Hidden on keyboard, reduced motion, no-blur fallback | `.nf-dockrow[data-dock-hidden]`, `@supports not` fallbacks | behaviour | mine |
+
+**C. The switch sheet (`ProfileSwitcher.tsx`).** Opened from the dock switch.
+| Item | Drawn by | Owner |
+|---|---|---|
+| Sheet panel, grabber, head, close | `.nf-sheet*` (overlays.css) | settings group |
+| Profile rows, divider | `.nf-row`, `.nf-row--tap`, `.nf-row-divider-lead` (controls.css, utilities.css) | Phase 1 |
+| Row plates (photo, owner, agent, firm, add) | `.nf-switch-mark*`, `.nf-switch-add` (controls.css) | Phase 1 |
+| Standing badge ("Verified", "Pending review") | `.nf-switch-standing` colour only in chrome.css; badge body is `.nf-badge` (chips.css) | mine |
+| Selected tick | UiIcon | shared |
+
+**D. The side drawer (`AppRail.tsx`, `NavTree.tsx`, side-nav.css) and the
+desktop rail.**
+| Item | Drawn by | Local material | Owner |
+|---|---|---|---|
+| Drawer panel and scrim | `.nf-drawer`, `.nf-drawer-scrim` (overlays.css) | | settings group |
+| Rail column (>= 64rem) | `.nf-nav--rail`: surface-primary, 1px subtle right border | local flat column (no lit edge) | mine |
+| Close button | `.nf-nav__close` md radius, glass-fill hover | local hover | mine |
+| Person card (drawer) | `.nf-nav__who--card` + `nf-glass nf-glass--card` (glass.css) | shared glass, local padding | mine + Phase 1 |
+| Avatar in a lit ring | `.nf-nav__who--card .nf-nav__avatar` 60px, 3px brand rim, glow 24 + 48 | avatar (round allowed), local glow | mine |
+| "View profile" capsule | `.nf-nav__whocta`: xs radius, brand edge, brand tint 1 fill | local secondary control | mine |
+| Rail person row | `.nf-nav__who`: md radius, subtle border, glass-fill-thin | local | mine |
+| Section heading ("WORKSPACES") | `.nf-nav__heading` | type only | mine |
+| Nav rows (rail) | `.nf-nav__row` lg radius, glass-fill-thin hover | local hover | mine |
+| Open row (rail) | `.nf-nav__row--on`: brand 20% flat fill | local selected (flat, not lit) | mine |
+| Nav rows (drawer), chevron | `.nf-nav--drawer .nf-nav__row` lg radius, `::after` chevron corner | local | mine |
+| Open row (drawer) | `.nf-nav--drawer .nf-nav__row--on`: brand to accent gradient, lit-ink rim, glow 20 + 48 | local lit primary | mine |
+| Count badges (Messages, Notifications) | `.nf-nav__badge`: xs radius, brand fill | local filled badge | mine |
+| Agent-mode rows and badges | `.nf-nav__scroll--agent` mode-agent tints | local | mine |
+| The Flip card ("Switch to Stays") | `SideSwitch` + `.nf-side-switch` (side-flip.css; spacing only in side-nav.css) | | not claimed by any group: request SW-C1 |
+| Legal row | `.nf-nav__legal` divider + type | none | mine |
+| Theme control | `.nf-nav__theme` rules | DEAD: the component was deleted with light mode | mine, delete |
+
+**E. The host flow (`components/host/**`, `app/host/**`, agent.css).**
+Routes `/host`, `/host/start`, `/host/apply`, `/host/rooms`, `/host/photos`,
+`/host/reservations`, `/host/transfer`. All are behind the sign-in gate
+(`proxy.ts` PUBLIC_SEGMENTS has no `host`), so a stranger is sent to
+`/welcome`; proofs come from the committed `f5`, `c2` and `imgc` harnesses.
+| Item | Drawn by | Local material | Owner |
+|---|---|---|---|
+| Host top bar | `nf-glass nf-glass--chrome` (glass.css) | shared | Phase 1 |
+| Page head ("Host", "Rooms") | `.nf-agent-head__title` 800 display h1 | type | mine |
+| Door / choice rows (StaysDoors, wizard host type, standing) | `.nf-host-choice`: lg radius, brand edge, well fill, rim-lit + 16px glow-1; selected: edge strong, glow-3 22 + bloom-card | local card and selected state | mine |
+| Choice plate (glass object) | `.nf-host-choice__mark` 36px bare BrandIcon | no plate | mine |
+| Choice radio ring | `.nf-host-choice__ring` circle, brand fill when on | shape (ring) | mine |
+| Field groups (business, registration, representative, payout, consent) | `.nf-host-group`: xl radius, brand edge, well fill, rim-lit + 18px glow-1 | local panel | mine |
+| Upload drop zone, done state | `.nf-host-drop` lg radius dashed edge, well fill; `--done` emerald edge | local | mine |
+| Missing-items list rows | `.nf-host-missing` hairline rows | none | mine |
+| Wizard foot (Back, Next) | `Button` primary / glass | shared | Phase 1 |
+| Saved note | `.nf-host-saved` | type | mine |
+| Every `.nf-card` inside `.nf-host` (reservations board, standing) | `.nf-host .nf-card` override: well fill, brand edge, rim-lit + 18px glow-1 | local override of the shared card | mine |
+| Badges inside host | `.nf-host .nf-badge` radius override | local | mine |
+| Status pills | `StatusPill` | shared | Phase 1 |
+| Facilities chips | `.nf-chip` (chips.css) | chip | mine |
+| Drawn stays steps (hotel, room types, rates, place, house rules, facilities, restaurant, tables) | `.nf-stays-tile`, `.nf-stays-plate` (stays.css, catalogue.css) | | stays group |
+| Transfer form fields | `.nf-field` (controls.css) | shared | Phase 1 |
+
+**F. The agent workspace (`components/agent/**`, `app/agent/**`,
+agent.css).** Routes `/agent/dashboard`, `/analytics`, `/bookings`,
+`/earnings`, `/inspections`, `/list`, `/listings`,
+`/listings/[id]/calendar`, `/messages`, `/reviews`, `/settings`,
+`/verification`, plus loading and error states. Gated like host.
+| Item | Drawn by | Local material | Owner |
+|---|---|---|---|
+| Workspace top bar | `nf-glass nf-glass--chrome` | shared | Phase 1 |
+| Top bar search field | `.nf-agent-bar__search input`: control radius, brand edge, well fill, rim-lit; focus 3px glow-2 ring | local input | mine |
+| Top bar avatar | `.nf-agent-bar__avatar` circle, brand tint 2 | avatar | mine |
+| Language switch in bar | `.nf-agent-bar__lang .nf-btn--primary` repainted as a quiet well button | local override of the primary button | mine |
+| Desktop rail | `AgentRail` on `.nf-nav--rail` (side-nav.css) | as D | mine |
+| Mobile nav sheet | `AgentMobileNav.tsx` inline Tailwind: surface-primary panel, md radius buttons, glass-fill hover, `nf-elev-4` | local in TSX | mine |
+| Mode switcher menu | `ModeSwitcher.tsx` inline Tailwind: xl radius menu, md radius rows, elevated surface, `nf-elev-4` | local in TSX | mine |
+| Mode pill + avatar in AgentNav | `AgentNav.tsx` inline `background: mode-agent 20%`, `rounded-full` 36px avatar with agent gradient | local in TSX (avatar round allowed) | mine |
+| KYC banner | `KycBanner.tsx` md radius, 3px left rule, info or warning surface | local banner | mine |
+| Stat cards | `.nf-agent-stat`: xl radius, brand edge, well fill, rim-lit + floor + 20px glow-2 + bloom-card | local card | mine |
+| Every `.nf-card` inside `.nf-agent` (lists, tables, forms, charts, settings, reviews, messages, verification, earnings, calendar, loading skeleton cards) | `.nf-agent .nf-card, .nf-agent-panel` override: well fill, brand edge, rim-lit + floor + glow-2 + bloom-card | local override of the shared card | mine |
+| Badges and count badges | `.nf-agent .nf-badge/.nf-count-badge` radius override; bodies in chips.css | local | mine |
+| Signed-out / not-agent state | `dashboard/page.tsx`: blurred `rounded-full` agent-gradient halo behind a glass object, `nf-card--interactive` tiles, `nf-icon-tile` | local halo in TSX | mine |
+| Apply wizard step dots | `ApplyWizard.tsx` inline `rounded-full` numbered dots with agent gradient or raised fill (text in a circle) | local; SHAPE: a numeral in a circle, looked at in the sweep | mine |
+| Apply wizard success / warning notes | inline `state-*-surface` | local | mine |
+| Warning notes on earnings, analytics, bookings, listings | inline `background: state-warning-surface` | local | mine |
+| Listing wizard (`/agent/list`) choices, details, done screen | `.nf-lw-*` (catalogue.css) | | home group |
+| Charts, meters | `.nf-chart*`, `.nf-meter*` (admin.css) | | Session B admin (already on the console) |
+| Analytics bars | inline agent gradient, `rounded-t-xs` | local fill | mine |
+| Reservations board note | `rounded-lg bg-surface-raised` | local | mine |
+| Verification notes | `rounded-lg` tinted | local | mine |
+| Video walkthrough progress | `rounded-full` track and fill | shape (progress bar), keeps | mine |
+| Payout accounts, calendar, settings, reviews, inbox buttons | `nf-btn--primary/--glass/--ghost` | shared | Phase 1 |
+| Inspections list | `.nf-console`, `.nf-ix-list` (inspection.css) | | Session B inspection |
+| Error page | `app/agent/error.tsx` | type | mine |
+
+**G. The landing page (`/`, `components/site/landing/**`, landing.css).**
+| Item | Drawn by | Local material |
+|---|---|---|
+| Site bar over the hero, scrolled | `.nf-site-bar` (landing.css) transparent until scrolled; `.nf-site-nav-glass` md radius glass buttons (Sign in, search), `--icon` circle | local glass button |
+| Nav links, current underline | `.nf-site-nav-link` control radius; `::after` pill underline (shape: bar) | local |
+| "More" menu | `.nf-site-nav-menu` lg radius strong glass + elev-3; rows sm radius | local popover |
+| Mobile menu (`MobileMenu.tsx`) | full-screen surface-primary sheet, `nf-card nf-group nf-rows`, `nf-row--tap` | shared card and rows, local sheet |
+| Hero plate and scrims | `.nf-landing-hero-plate::after` gradients | photo scrim, keeps |
+| Hero headline gradient word | `.nf-landing-title .nf-gradient-text` drop-shadow glow-2 | type glow |
+| City chips, lead city | `.nf-landing-city` control radius glass; `--lead` CTA gradient + 18px glow-2 | local chip and lit chip |
+| Hero listing float card | `.nf-landing-float` lg radius ink 70% + blur + rim; media md; `-badge` sm filled brand + glow; `--quiet`; save button circle | local card and badge |
+| Hero pager | `.nf-landing-pager button > span` circle glass (icon only) | local |
+| Search pill | `.nf-landing-pill` xl then control radius, landing pane + strong blur + rim + glow ring; segments control radius; checked segment CTA + 16px glow-2; submit brand fill | local panel, lit segment, flat submit |
+| Stats band and tiles | `.nf-landing-stats` xl band fill + rim + glow ring; `.nf-landing-stat` lg tile fill + rim + 18px glow-1 | local panels |
+| Orbs (icon plates) | `.nf-landing-orb` circle drop-shadow; `--ring` brand tint 1 + edge + rim + 26px glow-2 | local icon plate |
+| Feature tiles and chip row | `.nf-landing-tile` lg + rim + glow-1 (hover glow-2); `.nf-landing-chiprow` xl band | local panels |
+| Community photo stack, cards, tags | `.nf-landing-stack-photo` xl; `-stack-card` lg canvas 82% + blur + rim; `.nf-landing-tag` sm brand fill, `--third` outline | local card and badge |
+| How it works steps | `.nf-landing-step-num` circle brand fill (a numeral in a circle), `.nf-landing-steps::before` rule | local; SHAPE looked at |
+| Category tiles | `.nf-landing-cat` lg + brand edge + rim + glow ring; `-cat-icon` sm plate brand 30% + edge + rim + 12px glow-2 | local tile and icon plate |
+| Stays band | `.nf-landing-band` 2xl band fill + rim + glow ring; photo; list glyph plates sm glass | local panel and icon plate |
+| Buttons on landing | `.nf-landing .nf-btn--primary` and `--glass` shadow overrides (12px glow, 18px glow) | local override of the shared lit button |
+| Store badges | `.nf-landing-store` control radius ink + edge + rim + glow-1 | local |
+| App band phones | `.nf-landing-phone` 2xl, edge, 60px glow-2, elev-4; screen; brand screen | device drawing (presentation), keeps |
+
+**H. The site pages (`(site)/**`, site.css, SiteHeader, SiteHead,
+SiteFooter).** `/about`, `/help`, `/contact`, `/terms`, `/privacy`, `/eula`,
+`/safety`, `/standards`, `/careers`, `/cancellations`, `/delete-account`,
+`/docs`, `/docs/[slug]` (public), `/styleguide` (gated).
+| Item | Drawn by | Local material |
+|---|---|---|
+| Site bar icon buttons | `.nf-site-bar .nf-icon-btn` md radius glass + brand edge + rim + 14px glow-1 | local override |
+| Page head, plate, chip | `.nf-site-head*`; plate 2xl + glow ring + elev-2; `.nf-site-head .nf-chip` | local plate |
+| Every `.nf-card` on a site page | `.nf-site .nf-card` override: xl radius, glow-1 rim, brand edge ring, 28px glow-1 | local override of the shared card |
+| Footer, glow wash, skyline, seal | `.nf-site-footer*`; seal circle with rim + 22px glow-2 (mark, not text) | local |
+| Newsletter field and send | `.nf-site-newsletter-field` control radius glass + rim; send 40px CTA gradient + 14px glow-2 | local input and lit icon button |
+| Social links | `.nf-site-footer-social__link` control radius well fill, hover glow-edge | local icon button |
+| Site badge | `.nf-site-badge` sm radius raised | local badge |
+| Docs sidebar, on-this-page | `DocsSidebar.tsx`, `OnThisPage.tsx` | read in the sweep |
+
+**I. chips.css, the shared small controls (used across the platform).**
+| Item | Local material |
+|---|---|
+| `.nf-chip`, `--active`, `--pill` (+ active, hover) | control radius, glass thin; active CTA gradient + `--nf-rim-primary` + `--nf-bloom-lit-soft` (already the token lit recipe) |
+| `.nf-feedtab(s)` | control radius; current CTA + rim + bloom |
+| `.nf-badge` family (success, brand, warning, pending, approved, rejected, verified, example, neutral), `.nf-badge-overlap`, `.nf-count-badge`, `.nf-tag-pill*` | xs or sm radius, tinted surface; NOT the console's filled badge (state 40% over canvas, 65% ring, lifted word) |
+| `.nf-panel-sunken` | lg radius, deep well, inset shade |
+| `.nf-segmented--pill` and capsule, items, links | control radius glass; capsule brand + rim + 16px glow-3; current link CTA + rim + bloom |
+| `.nf-action-bar-pinned(--lit)`, `.nf-sheet__foot::before` | fades, lit bar rim + upward glow |
+| `.nf-table--glass`, header cells | xl radius, glass thin, rim-thin, elev-1 |
+| `.nf-progress--glass`, `__fill--lit` | progress (shape), well fill, lit fill |
+
+Counted: 6 stylesheets, 174 rules that set a background, shadow, border, radius, blur or filter (not all are materials: fades and scrims are included); 41 components; routes in
+the group listed in 13.4.
+
+**Requests raised by the inventory (to the lead):**
+- **SW-C1.** `SideSwitch` and `side-flip.css` (the Flip card at the foot of
+  the drawer, drawn in `BCD39CA8`) are claimed by no sweep group. Either give
+  them to this group or name the owner; until then the drawer route cannot be
+  closed as swept.
+- **SW-C2.** The drawer panel, the switch sheet body and the scrim are
+  `overlays.css` (settings group). The drawer and switch sheet routes close
+  when that group releases.
+- **SW-C3.** `/agent/list` draws its choices through `catalogue.css` (home
+  group) and the drawn stays steps through `stays.css` (stays group); those
+  items close with those groups.
+- **SW-C4.** The host wizard harness only reaches its first step (Next saves
+  through a server action, which needs a session). The later non-drawn steps
+  (business, registration, representative, payout, consent, review) share the
+  same three classes (`.nf-host-group`, `.nf-host-drop`, `.nf-host-choice`) as
+  the first, so their material is covered by the same change, but they are not
+  individually shot unless the wizard takes an initial-step prop for the
+  harness.
+
+### 13.2 Applied (waits for Phase 1 RELEASED)
+
+(pending: nothing in the six stylesheets has been changed yet.)
+
+### 13.3 Audit passes
+
+(pending: Pass 1, Pass 2, Pass 3 are dated and written here after the change.)
+
+### 13.4 Routes in the group and the before proofs
+
+Taken 23 September on `next start` of `origin/main` at ccf594ba
+(nothing of mine changed), port 3190, `VALLO_PREVIEW_HARNESS=1`, dark,
+390x844 at dpr 2 and 1440x900 at dpr 1, full page. Stored in
+`docs/design/proofs/session-b/sweep-chrome/before/` downscaled for the
+repository (390 shots to 390 px wide, 1440 shots to 960 px, JPEG 68); the dpr 2
+originals stay in the worker's scratchpad for measuring. "Fixture" means a
+committed preview harness rendering the real component on fixture props.
+
+| # | Route | Proof source | Before proof |
+|---|---|---|---|
+| 1 | Home with header and dock (chrome) | fixture `/preview/f1/switch` (AppShell) | `chrome-switch-*` |
+| 2 | Switch sheet open | fixture `/preview/f1/switch`, dock switch pressed | `chrome-switch-sheet-390` (the dock is not drawn at 1440) |
+| 3 | Side drawer | fixture `/preview/lead/drawer` and `/preview/f1/drawer` | `chrome-drawer-*`, `chrome-f1drawer-*` |
+| 4 | Dock alone | fixture `/preview/lead/dock` | `chrome-dock-*` |
+| 5 | Home body under the chrome | fixture `/preview/f1/home` | `chrome-home-*` |
+| 6 | Landing `/` | live | `landing-*` |
+| 7 to 19 | `/about`, `/help`, `/contact`, `/terms`, `/privacy`, `/eula`, `/safety`, `/standards`, `/careers`, `/cancellations`, `/delete-account`, `/docs`, `/docs/getting-started` | live | `<name>-*` |
+| 20 | `/host` standing | fixture `/preview/f5/host-landing` | `host-landing-*` |
+| 21 | `/host/start` doors | fixture `/preview/c2/stays-doors` | `stays-doors-*` |
+| 22 | Host wizard, first step | fixture `/preview/f5/host-wizard` | `host-wizard-*` |
+| 23 | `/host/transfer` | fixture `/preview/f5/host-transfer` | `host-transfer-*` |
+| 24 to 36 | `/agent/dashboard`, `analytics`, `bookings`, `earnings`, `inspections`, `list`, list sent, `listings`, `messages`, `reviews`, `settings`, `verification`, `listings/[id]/calendar` | fixture `/preview/f5/agent-*`, `/preview/o3/agent-calendar` | `agent-*` |
+
+Not shootable signed out and without a harness: `/host/rooms`,
+`/host/photos`, `/host/reservations`, `/host/apply`, `/styleguide` and every
+signed-out state of `/agent/*` and `/host/*`: the sign-in gate (`proxy.ts`)
+sends a stranger to `/welcome` before the page renders, so those states are
+no longer reachable by anyone signed out. They are covered by class: the
+rooms, photos and reservations pages draw only `.nf-agent-head`, `.nf-chip`,
+`.nf-host-group`, `.nf-host-drop` and `.nf-card`, all of which are shot on
+routes 20 to 23.
+
+Routes in group: 36 (plus the gated five above).
+
 ## Skipped or not verified
 
 (appended honestly as work proceeds)
