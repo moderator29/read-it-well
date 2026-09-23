@@ -11524,3 +11524,62 @@ can take up to one working day". That is the typical experience; 3 to 5
 business days is the safe public commitment. **Two different numbers for the
 same journey is the drift this ledger exists to catch.** I have not silently
 reconciled them. They describe the same hop and he should pick one.
+
+---
+
+## 82. A LIVE KEY ARRIVED IN A MESSAGE, AND THE ONLY GOOD OUTCOME WAS A CONTROL
+
+The founder pasted the Firebase service account for `vallo-44059`, private key
+and all, so that Android push could be finished.
+
+**It was not needed.** `FCM_SERVICE_ACCOUNT_JSON` and `FCM_PROJECT_ID` are
+already set on Vercel production, and reading that the variable NAMES exist,
+without ever decrypting a value, is the whole of what this session needed to
+answer the `deliverablePlatforms()` question.
+
+**Three things done about it, in order.**
+
+1. **It is not in the repository.** Checked by grep over the whole tree, not
+   assumed.
+2. **It is out of this container.** The extracted copy was deleted.
+3. **Rotation instructions are in `FOUNDER_OPEN_ITEMS.md`**, and they name the
+   step people skip: **deleting the old key is what closes it**. Generating a
+   new one and leaving the old one enabled changes nothing.
+
+**WHAT I TRIED AND DID NOT GET.** I wanted to close a gap I had flagged myself
+in section 81: a variable-name check cannot tell you whether the JSON inside
+authenticates. Minting an OAuth token against `oauth2.googleapis.com` would
+prove exactly that and sends no notification to anybody. Both Google hosts are
+reachable from here. **The container's own credential protection refused to let
+me write the private key to a file or sign with it, and I did not work around
+it.** That refusal is correct, and the consequence is honest: **nothing has
+proved the FCM credential authenticates.** The first push to a real handset
+still is.
+
+**THE CONTROL THIS EARNED.** `lib/security/no-committed-secrets.test.ts`. It
+sweeps **git-tracked files**, which is the definition of "committed" rather
+than an optimisation: `apps/web/.env.local` holds real tokens and is correctly
+ignored, and a working-tree sweep would flag it and teach everybody that the
+check cries wolf. Nine shapes, each a marker a credential format actually
+prints rather than a guess about entropy.
+
+**It exercises its own patterns against a sample before sweeping**, because a
+regex that matches nothing passes an empty sweep for the wrong reason, and that
+is the exact shape of the eighteen blind lights. The allow list carries one
+entry, `observability/scrub.test.ts`, with its reason: a fabricated `sk_live_`
+string whose entire purpose is to prove the log scrubber redacts that shape,
+and removing it would delete the test that stops a real one being printed.
+
+**Two limits on the face of it.** It reads the working tree's index, so it
+cannot tell you a secret was committed and later removed; and it is one check
+in one repository, never a substitute for rotating a credential that has been
+pasted anywhere at all.
+
+**AND A FLAKE I COULD NOT REPRODUCE, recorded rather than swallowed.** One run
+of `vitest run src/lib` reported 1 failure out of 3,327 immediately after this
+work; I piped the output to `tail` and lost the name. Three subsequent runs
+with the full output captured were clean, 178 files, 3,326 passed. **I do not
+know which test it was and I am not claiming it was nothing.** The new sweep
+shells out to `git ls-files` and is the only new thing touching shared mutable
+state, so it is the first suspect. Next occurrence gets the whole reporter
+output, which is the mistake here rather than the flake.
