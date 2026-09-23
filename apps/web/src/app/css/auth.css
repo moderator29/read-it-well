@@ -191,42 +191,38 @@
        share of the card's width (margin percentages are of the width). */
     margin-top: calc(100% * 58 / 633);
     padding: 1.75rem 1.75rem 1.375rem;
-    border-radius: var(--nf-radius-xl);
-    /* The edge is a border colour and not a border-box background layer: a
-       layer under translucent glass shows through it (it greyed the card to
-       #172E52 once). */
-    border: var(--nf-border-width) solid var(--nf-auth-rim-hot);
     /*
-     * TRANSLUCENT GLASS, sampled. Against the stage behind it the render's
-     * card reads #001A64 at the top left and #0A2C7C at the top right where
-     * a curtain passes behind, #00082E to #001249 through the middle, and
-     * #001658 at the foot where the plinth's light is behind it: a dark tint
-     * that lets the sky through, lit bands at top and foot, and a highlight
-     * at the top centre. That is the glow identity's lit card (d01a5d7):
-     * the top highlight, the lit-ink bands, and here a dark tint under them
-     * with a backdrop blur so the cropped stage shows through.
+     * PLATFORM SWEEP (23 September). The card is the shared panel
+     * (`.nf-panel .nf-panel--glass`, set in the layout): its per-side lit
+     * edges, its catchlight rim and its halo come from the reference
+     * anatomy. What stays here is only what 55A56F21 measures differently,
+     * and the render governs this screen:
+     *   corner  the render's 42 render px (16 at s), not the 10 px
+     *           container corner
+     *   glass   translucent over the stage (the render's card lets the
+     *           curtains through: #001A64 top left, #0A2C7C where a
+     *           curtain passes behind), where the panel fill is opaque
+     *   rim     the render's electric band, 3 px inside the edge, and its
+     *           bloom, added to the panel's own glow
      */
+    border-radius: var(--nf-radius-xl);
     background:
-      radial-gradient(55% 1rem at 50% 0, color-mix(in oklab, var(--nf-auth-rim-hot) 30%, transparent), transparent),
+      radial-gradient(55% 1rem at 50% 0, color-mix(in oklab, var(--nf-lit-cyan) 22%, transparent), transparent),
       linear-gradient(
         180deg,
-        color-mix(in oklab, var(--nf-glow-ink) 52%, transparent) 0,
-        color-mix(in oklab, var(--nf-glow-ink) 26%, transparent) 0.6875rem,
-        color-mix(in oklab, var(--nf-glow-ink) 14%, transparent) 2.125rem,
-        color-mix(in oklab, var(--nf-glow-ink) 6%, transparent) 50%,
-        color-mix(in oklab, var(--nf-glow-ink) 10%, transparent) calc(100% - 1.375rem),
-        color-mix(in oklab, var(--nf-glow-ink) 36%, transparent) 100%
+        color-mix(in oklab, var(--nf-lit) 52%, transparent) 0,
+        color-mix(in oklab, var(--nf-lit) 26%, transparent) 0.6875rem,
+        color-mix(in oklab, var(--nf-lit) 14%, transparent) 2.125rem,
+        color-mix(in oklab, var(--nf-lit) 6%, transparent) 50%,
+        color-mix(in oklab, var(--nf-lit) 10%, transparent) calc(100% - 1.375rem),
+        color-mix(in oklab, var(--nf-lit) 36%, transparent) 100%
       ),
       color-mix(in srgb, var(--nf-surface-canvas) 58%, transparent);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
-    /* The rim, measured across the render's left edge at y 1000: outside
-       #000B4C, one hot line #9BE2FE, then an electric band #0551D0 >
-       #0040D8 > #0137BC three px deep, then the glass; a tight bloom. */
     box-shadow:
+      var(--nf-panel-rim),
+      var(--nf-panel-glow),
       inset 0 0 0 3px var(--nf-glow-brand-rim),
       inset 0 0 12px var(--nf-glow-4),
-      0 0 0 1px var(--nf-glow-3),
       0 0 8px var(--nf-glow-4),
       0 0 28px var(--nf-glow-3),
       var(--nf-elev-3);
@@ -300,15 +296,16 @@
   .nf-auth .nf-auth__back-btn {
     width: 2.75rem;
     height: 2.75rem;
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 10px var(--nf-glow-wash);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
+    -webkit-backdrop-filter: blur(var(--nf-btn-glass-blur));
+    backdrop-filter: blur(var(--nf-btn-glass-blur));
   }
   @media (hover: hover) {
     .nf-auth .nf-auth__back-btn:hover {
       border-color: var(--nf-brand-edge);
+      background: var(--nf-glass-fill-strong);
     }
   }
   .nf-auth__lang {
@@ -328,13 +325,11 @@
   [data-theme="dark"] .nf-auth__lang select.nf-btn.nf-btn--primary {
     min-height: 2.75rem;
     border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    background: var(--nf-btn-glass-fill);
     color: var(--nf-content-primary);
     font-weight: 600;
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 10px var(--nf-glow-wash);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   [data-theme="dark"] .nf-auth__lang select.nf-btn.nf-btn--primary::after {
     display: none;
@@ -342,9 +337,7 @@
   @media (hover: hover) {
     [data-theme="dark"] .nf-auth__lang select.nf-btn.nf-btn--primary:hover:not(:disabled) {
       border-color: var(--nf-brand-edge);
-      box-shadow:
-        inset 0 1px 0 var(--nf-glass-rim-thin),
-        0 0 14px var(--nf-glow-2);
+      background: var(--nf-glass-fill-strong);
     }
   }
 
@@ -388,38 +381,32 @@
   .nf-auth-field > .nf-field {
     padding-left: var(--nf-pad-field-affordance);
   }
-  /*
-   * `.nf-auth[data-theme="dark"]` leads the field and button selectors for
-   * the reason the language control's note gives: `light.css` keys paper
-   * fills for `.nf-field` and the primary's edge on `:root[data-theme="light"]`,
-   * which still MATCH inside this pinned subtree. Measured before the prefix:
-   * in light the field came back rgb(0,0,32) and the button's edge
-   * transparent; after it, both are identical to dark.
-   */
-  .nf-auth[data-theme="dark"] .nf-auth__card .nf-field {
+  /* PLATFORM SWEEP: the fields are the shared glass field (`.nf-field
+     .nf-field--glass`: the well fill over the card's glass, the soft brand
+     edge, the focus halo); only the render's height stays here. Pass 1
+     found the plain `.nf-field` near black (#00050F) where the render's
+     field is navy glass (#00144C); the glass variant reads navy. */
+  .nf-auth__card .nf-field {
     height: 2.75rem;
     padding-block: 0;
-    border: var(--nf-border-width) solid var(--nf-container-edge-lit);
-    background: color-mix(in oklab, var(--nf-auth-glass) 92%, var(--nf-surface-canvas));
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      inset 0 0 18px var(--nf-glow-1),
-      0 0 10px var(--nf-glow-2);
-    font-size: var(--nf-text-body);
   }
-  .nf-auth[data-theme="dark"] .nf-auth__card .nf-field::placeholder {
-    color: var(--nf-content-subtle);
-  }
-  .nf-auth[data-theme="dark"] .nf-auth__card .nf-field:focus {
-    border-color: var(--nf-auth-rim-hot);
-    background: color-mix(in oklab, var(--nf-auth-glass) 92%, var(--nf-surface-canvas));
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 0 3px var(--nf-glow-2),
-      0 0 22px var(--nf-glow-3);
+  /* Pass 2 (23 September) found `.nf-field--glass` drawing no fill and no
+     edge (a gradient nested in a gradient); filed as SW-A2 and fixed in
+     the shared layer (eb9afe04). Pass 3: on the render's card the shared
+     glass field's soft edge all but disappears, where 55A56F21 draws the
+     field's edge as a clear electric line (#0B4FD0). The render governs
+     this card, so the edge takes the panel's edge token; the fill stays
+     the shared well fill. */
+  .nf-auth__card .nf-field.nf-field--glass:not(:focus) {
+    background:
+      var(--nf-well-fill) padding-box,
+      linear-gradient(var(--nf-panel-edge), var(--nf-panel-edge)) border-box;
   }
   .nf-auth-field__glyph {
     position: absolute;
+    /* Above the field it sits in: the glass field paints a fill now, and the
+       glyph comes first in the markup (pass 2). */
+    z-index: 1;
     left: 1.125rem;
     top: 50%;
     translate: 0 -50%;
@@ -433,43 +420,9 @@
     color: var(--nf-content-primary);
   }
 
-  /*
-   * THE CONTINUE BUTTON, LIT. 76 image px tall (52 here, see the field) and
-   * 42 image px under the field (24). The render's fill runs #0380FE at the
-   * top through #0038E8 to #004BFD at the foot, which is `--nf-gradient-cta`
-   * to within a few points; on it a near-white hairline along the top
-   * (#F6FEFE), a second lit line along the foot (#D7FAFE), and a blue bloom
-   * cast on the glass beneath. Label caps 16 image px: 17px semibold.
-   */
-  .nf-auth[data-theme="dark"] .nf-auth__card .nf-btn--primary {
-    font-weight: 600;
-    border-color: var(--nf-glow-brand-rim);
-    background:
-      linear-gradient(180deg, color-mix(in oklab, var(--nf-content-primary) 18%, transparent), transparent 42%),
-      var(--nf-gradient-cta);
-    box-shadow:
-      inset 0 1.5px 0 color-mix(in oklab, var(--nf-content-primary) 90%, transparent),
-      inset 0 -1.5px 0 color-mix(in oklab, var(--nf-auth-rim-hot) 70%, transparent),
-      inset 0 0 12px var(--nf-glow-3),
-      0 0 14px var(--nf-glow-4),
-      0 10px 32px var(--nf-glow-3);
-  }
-  @media (hover: hover) {
-    .nf-auth[data-theme="dark"] .nf-auth__card .nf-btn--primary:hover:not(:disabled) {
-      box-shadow:
-        inset 0 1.5px 0 var(--nf-content-primary),
-        inset 0 -1.5px 0 var(--nf-auth-rim-hot),
-        inset 0 0 14px var(--nf-glow-4),
-        0 0 20px var(--nf-glow-4),
-        0 12px 40px var(--nf-glow-4);
-    }
-  }
-  .nf-auth[data-theme="dark"] .nf-auth__card .nf-btn--primary:active:not(:disabled) {
-    box-shadow:
-      inset 0 1.5px 0 color-mix(in oklab, var(--nf-content-primary) 70%, transparent),
-      inset 0 0 12px var(--nf-glow-3),
-      0 0 10px var(--nf-glow-3);
-  }
+  /* PLATFORM SWEEP: the lit primary is the shared `.nf-btn--primary`
+     (Get started's bar: edges, rim, inner glow, bloom, pooled light). The
+     local sheen, insets and bloom that stood here are deleted. */
   /* The chooser's Continue: the render's height and its gap under the field. */
   .nf-auth .nf-auth__cta {
     --nf-btn-h: 2.75rem;
@@ -499,48 +452,16 @@
     content: "";
     flex: 1;
     height: 1px;
-    background: color-mix(in oklab, var(--nf-container-edge-lit) 70%, transparent);
+    background: var(--nf-panel-edge);
   }
 
-  /*
-   * Continue with Google: 68 image px (48 here), a glass outline, the edge
-   * the brighter electric line of the render (#1481DC at the top), the fill
-   * the card's own glass. Label 16px medium; the G at 20.
-   */
+  /* Continue with Google is the shared glass door (`.nf-btn .nf-btn--glass`,
+     set in AuthChoices); only its size and the gap to the G stay here. */
   .nf-auth__door {
-    display: flex;
-    width: 100%;
     min-height: 2.75rem;
-    align-items: center;
-    justify-content: center;
     gap: var(--nf-space-md);
-    padding: var(--nf-space-xs) var(--nf-space-md);
-    border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-glow-brand-rim);
-    background: color-mix(in oklab, var(--nf-auth-glass) 60%, transparent);
-    color: var(--nf-content-primary);
     font-size: 0.9375rem;
     font-weight: 500;
-    cursor: pointer;
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim-thin),
-      0 0 10px var(--nf-glow-2);
-    transition:
-      border-color var(--nf-duration-fast) var(--nf-ease-standard),
-      background-color var(--nf-duration-fast) var(--nf-ease-standard),
-      box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
-      transform var(--nf-duration-press) var(--nf-ease-press);
-  }
-  .nf-auth__door:active:not(:disabled) {
-    transform: scale(var(--nf-press-scale-lg));
-  }
-  @media (hover: hover) {
-    .nf-auth__door:hover:not(:disabled) {
-      border-color: var(--nf-auth-rim-hot);
-      box-shadow:
-        inset 0 1px 0 var(--nf-glass-rim),
-        0 0 16px var(--nf-glow-3);
-    }
   }
   .nf-auth__door-mark {
     width: 1.25rem;
@@ -576,8 +497,9 @@
     margin-top: var(--nf-space-md);
     padding: var(--nf-space-sm) var(--nf-space-md);
     border-radius: var(--nf-radius-md);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
     background: var(--nf-brand-tint-1);
+    box-shadow: var(--nf-panel-rim);
     font-size: var(--nf-text-caption);
     line-height: 1.5;
     color: var(--nf-content-secondary);

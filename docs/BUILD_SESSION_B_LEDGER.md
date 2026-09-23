@@ -5321,6 +5321,145 @@ proof here shows a live row, and none claims to).
 
 (pending: Pass 1, Pass 2, Pass 3, each dated)
 
+
+## 13. Platform sweep: auth (Welcome back and every auth screen; worker "signin")
+
+Scope: every auth route and every state the password step can show. Files
+this group may change: `app/(auth)/layout.tsx`, `app/(auth)/sign-in/**`,
+`app/(auth)/AuthBackBar.tsx`, `components/auth/AuthChoices.tsx`,
+`EmailAuthForm.tsx`, `fields.tsx`, `app/css/auth.css`, the harness under
+`app/(dev)/preview/session-b/signin/`. The render (55A56F21) still governs
+Welcome back; the shared layer (Phase 1, RELEASED 9da8f86f) governs
+everything the render does not measure.
+
+#### Inventory (before any change), per route
+
+Every place the group drew its own card, panel, button, rim, glow, glass or
+plate, read off the source and the running build:
+
+| Item | Where | Drawn by | Routes it appears on |
+|---|---|---|---|
+| I1 the card | `.nf-auth__card` (+ `::after` top highlight, narrow modifier) | auth.css: own translucent fill, own hot edge, own 3 px band, own bloom, own radius | every auth route |
+| I2 the lit primary | `.nf-auth[data-theme="dark"] .nf-auth__card .nf-btn--primary` (+ hover, active), `.nf-auth__cta` | auth.css: own gradient sheen, own top and foot insets, own bloom, over the shared `.nf-btn--primary` | Continue (chooser), Sign in, the Google-account notice's button, sign-up's Continue and Sign up, verify, forgot and reset submits |
+| I3 the Google door | `.nf-auth__door` | auth.css: own glass fill, own edge, own glow, own hover | chooser (sign in and sign up) |
+| I4 the fields | `.nf-auth[data-theme="dark"] .nf-auth__card .nf-field` (+ focus, placeholder) | auth.css: own navy glass fill, own electric edge, own glows, over the shared `.nf-field` | every field on every auth route |
+| I5 the language control | `[data-theme="dark"] .nf-auth__lang select.nf-btn.nf-btn--primary` | auth.css: own glass square over the site's filled pill | every auth route |
+| I6 the back control | `.nf-auth .nf-auth__back-btn` | auth.css: own glass square | every auth route with a parent |
+| I7 the notice plate | `.nf-auth__notice` | auth.css: own tint and edge | chooser notice, Google-account and no-account answers, provider-off line |
+| I8 the refusal plate | `.nf-auth__alert` | auth.css: own rose tint and edge | refused, unconfirmed, throttled, deactivated |
+| I9 the OR rule | `.nf-auth__rule` | auth.css: hairlines | chooser |
+| I10 the password eye | `fields.tsx` PasswordField toggle, `rounded-[var(--nf-radius-lg)]` | own radius (18 on a 44 box: 0.41, over the shape review line when painted) | every password field |
+| I11 the Optional chip | `fields.tsx` LabelRow, `nf-chip` | shared chip | sign-up form |
+| I12 group dividers | `fields.tsx` FormGroup, `border-[var(--nf-border-subtle)]` | a neutral hairline | sign-up form |
+| I13 strength meter | `fields.tsx` StrengthMeter bars | shapes (bars), not controls | sign-up form |
+| I14 stage, lockup, plinth, terms line | auth.css | the render's own art (crop rule) and small print | every auth route |
+
+Outside this group's files, drawn on its routes, and filed rather than
+edited (request SW-A1 in the scope file): the four inline warning plates in
+`ForgotPasswordForm.tsx` (2), `ResetPasswordForm.tsx`, `VerifyCodeForm.tsx`
+and `EmailTakenNotice.tsx`, which paint refusals in the pending cyan
+(`--nf-state-warning`) and should take `.nf-auth__alert`; the `nf-card`
+confirmation box in `ForgotPasswordForm.tsx`, which should be the shared
+Panel; the reset page's own `nf-btn--lg` primary (shared already, no change
+needed).
+
+#### What moved onto the shared layer (Phase 1, RELEASED 9da8f86f; reflection f440fd21)
+
+| Item | Before | After | Local left, and why |
+|---|---|---|---|
+| I1 card | own fill, hot edge, band, bloom, radius | `Panel` anatomy by class: `.nf-panel .nf-panel--glass` (per-side lit edges, catchlight rim, halo, blur) | corner 18 (the render's 16, not the 10 px container corner), translucent fill so the render's stage shows through (the panel fill is opaque), the render's 3 px electric band and bloom added to the panel glow, the hot top highlight. The render governs Welcome back |
+| I2 lit primary | local override (sheen, insets, bloom) | shared `.nf-btn--primary` (Get started's bar: edges, rim, inner glow, bloom, pooled light) | height 44 and label sizes only (R-A, R-B). Override DELETED |
+| I3 Google door | own glass, edge, glow, hover | shared `.nf-btn .nf-btn--glass` | height, gap, label size only |
+| I4 fields | own navy fill, electric edge, glows | shared `.nf-field .nf-field--glass` (well fill, focus halo), in `fields.tsx` and the chooser | height 44; the resting edge takes `--nf-panel-edge` (token) because the render draws a clear electric field edge and the shared glass edge vanishes on this card (pass 3) |
+| I5 language control | own well fill and edge | shared glass button tokens (`--nf-btn-glass-fill/-edge/-shadow`) | the selector itself, because the site component draws a filled pill (not this group's file) |
+| I6 back control | own well fill and edge | shared glass button tokens | size 44 |
+| I7 notice plate | own edge | `--nf-panel-edge` and `--nf-panel-rim` | the brand tint fill (a calm note inside a card) |
+| I8 refusal plate | rose tint and edge | unchanged: status colour, not anatomy | none |
+| I9 OR rule | own hairline colour | `--nf-panel-edge` | none |
+| I10 password eye | radius-lg (0.41 on 44) | `--nf-radius-control` (0.32) | none |
+| I11 Optional chip | shared chip | unchanged | none |
+| I12 group dividers | neutral hairline | `--nf-panel-hair` | none |
+| I13 strength meter | shapes | unchanged (shapes, not controls) | none |
+| I14 stage, lockup, plinth | the render's art | unchanged (crop rule) | none |
+
+#### Per route
+
+| Route | Swept | Container | Edge | Rim | Glow | Button | Plate |
+|---|---|---|---|---|---|---|---|
+| `/sign-in` | yes | panel (render corner, translucent) | panel edges | panel catch + hot top highlight | panel halo + render bloom | shared lit bar, shared glass door | n/a |
+| `/sign-in/email` (+ harness google, none, refused, unconfirmed, throttled, deactivated, fields) | yes | same card | same | same | same | shared lit bar; notice's Google button shared lit bar | n/a |
+| `/sign-up` | yes | same | same | same | same | shared | n/a |
+| `/sign-up/email` | yes for this group's parts (fields, card, Sign up button); the Optional chip shared | same | same | same | same | shared | n/a |
+| `/sign-up/verify` | card and fields yes; its refusal plate NO (SW-A1, not this group's file) | same | same | same | same | shared | n/a |
+| `/forgot-password` | card and fields yes; its refusal plate and its `nf-card` confirmation box NO (SW-A1) | same | same | same | same | shared | n/a |
+| `/reset-password` | card yes; its refusal plate NO (SW-A1) | same | same | same | same | shared | n/a |
+| `/auth/callback` | n/a: outside the auth layout, draws the Verifying moment only | | | | | | |
+
+Routes swept in full: 3 of 7 drawn auth routes (`/sign-in`, `/sign-in/email`,
+`/sign-up`); swept in this group's files but with a remainder filed to the
+lead as SW-A1: 4 (`/sign-up/email` is complete in practice; verify, forgot and
+reset each keep one cyan refusal plate until SW-A1 lands).
+
+#### Checks (whole project, under the heavy lock, after pull --rebase)
+
+```
+tsc --noEmit -p apps/web (NODE_OPTIONS=--max-old-space-size=6144)   TSC-OK
+vitest run (whole suite)   Test Files 232 passed (232)   Tests 3784 passed | 1 skipped
+check-css-tokens.mjs   clean
+eslint on the changed files   0 errors
+shape sweep, dark, 390 and 1536: /sign-in?welcomed=1, /sign-in/email, /sign-up?welcomed=1,
+  /sign-up/email, /sign-up/verify, /forgot-password, /reset-password, harness refused,
+  google, deactivated: BREACHES 0   WORTH AN EYE 0   ROUND ICON-ONLY 0
+by hand: 59 controls on nine routes, worst radius / short side 0.32
+```
+
+#### Audit passes
+
+**Pass 1, 23 September.** Re-opened every inventory item on the production
+build, against the render and the Get started bar. Found: the plain shared
+`.nf-field` rendered near black (#00050F) where the render's field is navy
+glass (#00144C). Fixed: fields moved to `.nf-field--glass`.
+
+**Pass 2, 23 September.** Found: the glass field drew no fill and no edge at
+all (measured `background-image: none`): the shared `.nf-field--glass`
+nested a gradient token inside `linear-gradient()`. Filed SW-A2 to "shared";
+fixed on main as eb9afe04; the stand-in was removed here. Found: with the
+field painted, the envelope glyph sat under it. Fixed: the glyph is lifted
+above the field.
+
+**Pass 3, 23 September.** Found: with SW-A2 fixed, the shared glass edge all
+but disappears on the render's card (the render's field edge is a clear
+electric line). Fixed: the resting edge takes `--nf-panel-edge`. Re-measured
+on the build: field fill #001C53 (render #00144C), field edge #004AB8 (render
+#0895FA at its brightest pixel, #00309B beside it: ours is between the two), card, button and door
+unchanged in size and place (card 75, 368, 240 x 309; controls 44). Every
+control on nine routes measured by hand: 59 controls, worst radius ratio
+0.32. Nothing left drawing its own version in this group's files.
+
+#### Proofs (`docs/design/proofs/session-b/sweep-auth/`)
+
+`before-<route>-390.jpg` and `-1440.jpg`, `after-<route>-390.jpg` and
+`-1440.jpg` for fifteen routes and states (the seven auth routes, the
+callback, and the harness's seven password-step states), shot from the
+production build (after: pass 3, the final CSS applied to the running build);
+`card-render-before-after.jpg`: the render's card, before, after.
+
+#### Live (LIVE PROOF RULE, 23 September)
+
+| Link | Result |
+|---|---|
+| Gate: signed-out `/home` goes to `/sign-in?next=%2Fhome&notice=sign-in-required` with the notice drawn | LIVE PROVEN 2026-09-23 15:45 UTC, build of ba451343, `tests/session-b-signin-live.spec.mjs`, `sweep-auth/live/live-gate-home.png` |
+| `/welcome` shows signed out | LIVE PROVEN, same run (200) |
+| Chooser hands the address to the password step | LIVE PROVEN, same run |
+| A made-up address (`@example.invalid`) and a wrong password: the real auth server refuses (`invalid_credentials`), drawn as "That email and password do not match. Check them and try again.", still signed out | LIVE PROVEN, same run, `sweep-auth/live/live-refused.png`; the raw reply captured separately: 400 `invalid_credentials` |
+| The no-account and Google-account lookups (`signup_method_for_email`) | NOT PROVABLE on this box: the function is service-role only and this box holds no service key; the page falls back to the ordinary step, as designed |
+| The rate limiter (`consume_rate_limit`) | NOT PROVABLE on this box, same reason: the limiter fails open without the service key, by design |
+| A real sign-in landing on `next` | WAITING ON QA ACCOUNTS: `tests/session-b-signin-live.spec.mjs --signed-in` reads `QA_MEMBER_EMAIL` / `QA_MEMBER_PASSWORD` from the environment and exits 2 until they exist |
+
+Note for anyone running it: the server needs `NODE_USE_ENV_PROXY=1` and
+`NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt` on this box, or Node's fetch
+never reaches the project and the sign-in spins.
+
 ## Skipped or not verified
 
 (appended honestly as work proceeds)

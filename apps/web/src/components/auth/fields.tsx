@@ -33,7 +33,7 @@ export function FormGroup({
   children: React.ReactNode;
 }) {
   return (
-    <section className="border-t border-[var(--nf-border-subtle)] pt-5 first:border-t-0 first:pt-0 [&+section]:mt-7">
+    <section className="border-t border-[var(--nf-panel-hair)] pt-5 first:border-t-0 first:pt-0 [&+section]:mt-7">
       <div className="mb-md flex items-baseline justify-between gap-3">
         <h2 className="text-[0.9375rem] font-semibold text-[var(--nf-content-primary)]">
           {title}
@@ -153,7 +153,7 @@ export function Field({
         inputMode={inputMode}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
-        className={className ? `nf-field ${className}` : "nf-field"}
+        className={className ? `nf-field nf-field--glass ${className}` : "nf-field nf-field--glass"}
         {...(controlled
           ? { value, onChange: (event) => onChange(event.target.value) }
           : {})}
@@ -200,7 +200,7 @@ export function SelectField({
           defaultValue=""
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
-          className="nf-field appearance-none pr-11"
+          className="nf-field nf-field--glass appearance-none pr-11"
         >
           <option value="" disabled>
             {placeholder}
@@ -273,14 +273,14 @@ export function PasswordField({
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           autoFocus={autoFocus}
-          className="nf-field pr-12"
+          className="nf-field nf-field--glass pr-12"
         />
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
           aria-pressed={visible}
           aria-label={visible ? t.signUp.hidePassword : t.signUp.showPassword}
-          className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-[var(--nf-radius-lg)] text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-secondary)]"
+          className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-[var(--nf-radius-control)] text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-secondary)]"
         >
           <EyeGlyph off={visible} />
         </button>

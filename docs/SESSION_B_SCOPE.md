@@ -195,6 +195,7 @@ Each group appends "RELEASED <commit>" here when it is done.
     `app/css/side-flip.css`, the Flip card at the foot of the drawer
     (`BCD39CA8`), are claimed by no group. This group asks for them.
   - already Session B's: wallet family, inspections, auth, admin, welcome.
+    **auth: RELEASED** (see ledger 13.A; remainder filed as SW-A1).
 
 ### Sweep group: home, search and filters, listing detail (worker "sweep-home")
 Routes: `/home`, `/stays` (the home components only; `StayCard` is the stays
@@ -433,6 +434,8 @@ policy, Session B writes it as a request below.
 - `apps/web/src/components/auth/EmailAuthForm.tsx`
 - `apps/web/src/components/auth/fields.tsx`
 - `apps/web/src/app/css/auth.css`
+- `apps/web/tests/session-b-signin-live.spec.mjs` (new): the live proof, signed out now and
+  signed in when the QA account exists
 - `apps/web/src/app/(auth)/AuthBackBar.tsx` and `apps/web/src/app/(auth)/auth-back.test.ts` (new):
   the auth screens' back control (Session A's R14) and its resolver test
 - `apps/web/public/brand/third-party/google-g.svg` (new): Google's standard G for the
@@ -1042,6 +1045,23 @@ cookie `vallo_first_run=seen` for a stranger and in `settings.welcomeSeen` for
 an account. Every landing Get started link already goes through `/start`, so
 it meets first run with no change. What cannot be done from Session B's files:
 
+SW-A1. **Auth screens: four refusal plates in the pending cyan, and one old card
+    (platform sweep, auth group).** Drawn on the auth routes but in files the auth
+    group does not claim: `components/auth/ForgotPasswordForm.tsx` (the refusal at
+    about line 76, and the `nf-card` confirmation box at about line 52),
+    `ResetPasswordForm.tsx` (about 68), `VerifyCodeForm.tsx` (about 178) and
+    `EmailTakenNotice.tsx` (about 81) paint their refusals with
+    `--nf-state-warning`, which in this palette is the pending cyan, in inline
+    Tailwind. Request: give each refusal `className="nf-auth__alert"` (rose,
+    defined in `auth.css`, the same plate the sign-in refusals use) and make the
+    confirmation box the shared `Panel` (`variant="card"`). Note, not a blocker.
+SW-A2. **To "shared": `.nf-field--glass` draws nothing.** `controls.css` writes
+    `linear-gradient(var(--nf-well-fill), var(--nf-well-fill)) padding-box`, and
+    `--nf-well-fill` is itself a gradient, so the declaration is invalid at
+    computed-value time: measured `background-image: none` and a transparent
+    edge on every `Field material="glass"`. Request: `var(--nf-well-fill)
+    padding-box` in both the resting and the focus rule. `auth.css` states the
+    material validly for the auth card until then and drops that the day it lands.
 SIGNIN-1. **An unconfirmed address, answered with the way out.** `lib/auth/actions.ts`
     (Session A's) answers `email not confirmed` on sign-in with "Open the link we
     sent you", but sign-up now confirms with a CODE at `/sign-up/verify`.

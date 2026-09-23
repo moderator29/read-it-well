@@ -93,7 +93,7 @@ export function AuthChoices({
             inputMode="email"
             placeholder={t.auth.emailLabel}
             disabled={!emailReady}
-            className="nf-field nf-auth-input"
+            className="nf-field nf-field--glass nf-auth-input"
           />
         </div>
 
@@ -115,7 +115,7 @@ export function AuthChoices({
           <form action={startGoogleOAuth}>
             {next ? <input type="hidden" name="next" value={next} /> : null}
             <input type="hidden" name="intent" value={mode} />
-            <button type="submit" className="nf-auth__door nf-tap">
+            <button type="submit" className="nf-btn nf-btn--glass nf-btn--full nf-auth__door">
               {/*
                 THE GOOGLE G, IN GOOGLE'S OWN FOUR COLOURS, and it is the one
                 place the house palette steps aside. The render draws it this

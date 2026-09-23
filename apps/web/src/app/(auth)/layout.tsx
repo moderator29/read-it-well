@@ -77,7 +77,9 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
           />
         </Link>
 
-        <div className="nf-auth__card">{children}</div>
+        {/* The shared panel (platform sweep); `nf-auth__card` keeps only
+            what the render measures differently. */}
+        <div className="nf-panel nf-panel--glass nf-auth__card">{children}</div>
         <div className="nf-auth__podium" aria-hidden="true" />
       </div>
 
