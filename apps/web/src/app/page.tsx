@@ -3,6 +3,7 @@ import { getLocale } from "@/lib/locale";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { LandingBody, landingData } from "@/components/site/landing/LandingBody";
+import { requestSurface } from "@/lib/auth/surface";
 
 /*
  * The landing page: the true face.
@@ -45,11 +46,12 @@ export default async function LandingPage() {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
   const data = await landingData(t);
+  const native = (await requestSurface()) !== "web";
 
   return (
     <div className="nf-landing">
       <SiteHeader t={t} locale={locale} variant="landing" />
-      <LandingBody t={t} locale={locale} data={data} />
+      <LandingBody t={t} locale={locale} data={data} native={native} />
       <SiteFooter t={t} />
     </div>
   );

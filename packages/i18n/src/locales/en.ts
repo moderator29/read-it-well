@@ -723,10 +723,10 @@ export const en = {
         android: "Google Play",
         androidSub: "GET IT ON",
         rightTitle: "Property and stays, now on mobile.",
+        /* STORE-06 / UI-07: "Full access to all features" and "Secure and
+           fast" were claims nothing backs, and they are gone. */
         points: {
-          all: "Full access to all features",
           notify: "Instant notifications",
-          fast: "Secure and fast",
           design: "Beautiful, intuitive design",
         },
       },

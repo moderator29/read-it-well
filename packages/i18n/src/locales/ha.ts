@@ -506,9 +506,7 @@ export const ha: Dictionary = withFallback({
            wrong badge rather than a localised one. */
         rightTitle: "Tafiyar gidanka, yanzu a waya.",
         points: {
-          all: "Cikakken damar kowane fasali",
           notify: "Sanarwa nan take",
-          fast: "Tsaro da sauri",
           design: "An yi don hannu ɗaya",
         },
       },

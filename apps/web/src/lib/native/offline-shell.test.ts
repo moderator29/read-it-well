@@ -93,7 +93,7 @@ const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 describe("Try again retries the live origin", () => {
   it("goes to the origin's start path when the origin answers", async () => {
     const shell = run({ origin: "https://www.vallospaces.com", startPath: "/welcome", reachable: true });
-    shell.elements.retry.click?.();
+    shell.elements.retry!.click?.();
     await settle();
     expect(shell.fetch).toHaveBeenCalledTimes(1);
     expect(shell.replace).toHaveBeenCalledWith("https://www.vallospaces.com/welcome");
@@ -101,10 +101,10 @@ describe("Try again retries the live origin", () => {
 
   it("stays and says so when the origin still cannot be reached", async () => {
     const shell = run({ origin: "https://www.vallospaces.com", reachable: false });
-    shell.elements.retry.click?.();
+    shell.elements.retry!.click?.();
     await settle();
     expect(shell.replace).not.toHaveBeenCalled();
-    expect(shell.elements.still.hidden).toBe(false);
+    expect(shell.elements.still!.hidden).toBe(false);
   });
 
   it("retries by itself when the connection comes back", async () => {
