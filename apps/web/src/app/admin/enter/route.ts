@@ -12,11 +12,23 @@ import { ENTRY_COOKIE, ENTRY_COOKIE_OPTIONS, enterTarget } from "../_components/
  */
 export const dynamic = "force-dynamic";
 
+/*
+ * A RELATIVE Location, found by the live proof on 23 September. Built from
+ * `request.url`, the redirect named the host the server believes it is
+ * (`localhost` behind `next start`) rather than the one the browser used, so
+ * a browser on 127.0.0.1 or behind a proxy landed on another origin without
+ * its session and was sent to sign in. A path-only Location resolves against
+ * the address the browser actually asked.
+ */
+function seeOther(path: string): NextResponse {
+  return new NextResponse(null, { status: 303, headers: { Location: path } });
+}
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const access = await requireAdmin();
-  if (access.state !== "admin") return NextResponse.redirect(new URL("/admin", request.url), 303);
+  if (access.state !== "admin") return seeOther("/admin");
   const target = enterTarget(request.nextUrl.searchParams.get("next"));
-  const response = NextResponse.redirect(new URL(target, request.url), 303);
+  const response = seeOther(target);
   response.cookies.set(ENTRY_COOKIE, access.user.id, ENTRY_COOKIE_OPTIONS);
   response.headers.set("Cache-Control", "no-store");
   return response;

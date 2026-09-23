@@ -55,7 +55,7 @@ describe("GET /admin/enter", () => {
     requireAdmin.mockResolvedValue(ADMIN);
     const res = await call("/admin/money");
     expect(res.status).toBe(303);
-    expect(res.headers.get("location")).toBe("https://vallo.test/admin?next=%2Fadmin%2Fmoney");
+    expect(res.headers.get("location")).toBe("/admin?next=%2Fadmin%2Fmoney");
     const cookie = res.headers.get("set-cookie") ?? "";
     expect(cookie).toContain(`${ENTRY_COOKIE}=${ADMIN.user.id}`);
     expect(cookie).toMatch(/Path=\/admin(;|$)/);
@@ -68,13 +68,13 @@ describe("GET /admin/enter", () => {
     requireAdmin.mockResolvedValue(ADMIN);
     const res = await call("/admin?next=%2Fadmin%2Fmoney");
     expect(res.status).toBe(303);
-    expect(res.headers.get("location")).toBe("https://vallo.test/admin?next=%2Fadmin%2Fmoney");
+    expect(res.headers.get("location")).toBe("/admin?next=%2Fadmin%2Fmoney");
   });
 
   it("refuses a target off the allow-list by landing on the overview", async () => {
     requireAdmin.mockResolvedValue(ADMIN);
     const res = await call("https://evil.example/");
-    expect(res.headers.get("location")).toBe("https://vallo.test/admin");
+    expect(res.headers.get("location")).toBe("/admin");
   });
 
   it("gives a non-admin no cookie and sends them to /admin, which explains", async () => {
@@ -82,7 +82,7 @@ describe("GET /admin/enter", () => {
       requireAdmin.mockResolvedValue({ state });
       const res = await call("/admin/money");
       expect(res.status).toBe(303);
-      expect(res.headers.get("location")).toBe("https://vallo.test/admin");
+      expect(res.headers.get("location")).toBe("/admin");
       expect(res.headers.get("set-cookie")).toBeNull();
     }
   });

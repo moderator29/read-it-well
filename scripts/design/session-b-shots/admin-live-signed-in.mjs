@@ -47,10 +47,10 @@ const record = (step, pass, detail, shot) => {
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH ?? "/opt/pw-browsers/chromium" });
 
-async function signIn(email, password) {
+async function signIn(email, password, next = "/admin/money") {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await ctx.newPage();
-  await page.goto(`${base}/sign-in/email?next=${encodeURIComponent("/admin/money")}`, { waitUntil: "networkidle" });
+  await page.goto(`${base}/sign-in/email?next=${encodeURIComponent(next)}`, { waitUntil: "networkidle" });
   await page.fill("#email", email);
   await page.fill("#password", password);
   await Promise.all([page.waitForURL((u) => !u.pathname.startsWith("/sign-in"), { timeout: 30_000 }), page.click('button[type="submit"]')]);
@@ -70,7 +70,8 @@ async function loadsClean(page, path, name) {
   const body = await page.locator("main").innerText().catch(() => "");
   const p = await shot(page, name);
   const onPage = url.pathname + url.search;
-  const failures = [UNAVAILABLE, "Something went wrong", "Application error", "does not carry that role"].filter((t) => body.includes(t));
+  // Every failure sentence the console's desks use, so a desk that could not read is never counted as proven.
+  const failures = [UNAVAILABLE, "could not be loaded", "could not be read", "could not reach", "did not load", "Something went wrong", "Application error", "does not carry that role"].filter((t) => body.toLowerCase().includes(t.toLowerCase()));
   const rail = await page.locator(".nf-admin-rail").count();
   record(`reads on ${path}`, failures.length === 0 && rail > 0 && url.pathname === path.split("?")[0], `landed ${onPage}; console drawn ${rail > 0}; failure copy ${failures.length ? failures.join(", ") : "none"}`, p);
   return body;
@@ -79,13 +80,15 @@ async function loadsClean(page, path, name) {
 // 1 to 3: landing, overview reads, continue.
 {
   const { ctx, page } = await signIn(QA_ADMIN_EMAIL, QA_ADMIN_PASSWORD);
+  // The gate replaces the address in the browser; wait for it rather than read it mid-flight.
+  await page.waitForURL((u) => u.pathname === "/admin", { timeout: 15_000 }).catch(() => {});
   const landed = new URL(page.url());
   const heading = await page.locator(".nf-admin-heading-to").innerText().catch(() => "");
   record("landing by address", landed.pathname === "/admin" && landed.searchParams.get("next") === "/admin/money" && /Money/.test(heading), `asked /admin/money after sign in, landed ${landed.pathname}${landed.search}; heading-to "${heading.replace(/\s+/g, " ").trim()}"`, await shot(page, "01-landing"));
 
   const main = await page.locator("main").innerText();
   const live = await page.locator(".nf-admin-kpi", { hasText: "Live listings" }).first().innerText().catch(() => "");
-  const supplyRows = await page.locator("#ov-supply [role=row], #ov-supply tbody tr").allInnerTexts().catch(() => []);
+  const supplyRows = await page.locator("#ov-supply [role=row]:not(.nf-admin-dist__row--head), #ov-supply tbody tr").allInnerTexts().catch(() => []);
   record("overview reads", !main.includes(UNAVAILABLE), `"${UNAVAILABLE}" ${main.includes(UNAVAILABLE) ? "PRESENT" : "absent"}`, null);
   record("live listings is the live count", /Live listings\s*0\b/.test(live.replace(/\s+/g, " ")), `card reads "${live.replace(/\s+/g, " ").trim()}" (expected 0: 0 real, the 64 examples excluded)`, null);
   const people = await page.locator(".nf-admin-strip").innerText().catch(() => "");
@@ -130,8 +133,12 @@ async function loadsClean(page, path, name) {
 
 // 5: the server-side entry never lands on a desk.
 {
+  // A session with the entry cookie removed, then the entry route typed as an address.
   const { ctx, page } = await signIn(QA_ADMIN_EMAIL, QA_ADMIN_PASSWORD);
-  await ctx.clearCookies({ name: "nf_admin_entry" }).catch(() => {});
+  await page.waitForURL((u) => u.pathname === "/admin", { timeout: 15_000 }).catch(() => {});
+  await page.evaluate(() => {
+    document.cookie = "nf_admin_entry=; Path=/admin; Max-Age=0";
+  });
   await page.goto(`${base}/admin/enter?next=${encodeURIComponent("/admin/money")}`, { waitUntil: "networkidle" });
   const u = new URL(page.url());
   record("/admin/enter lands on the overview", u.pathname === "/admin" && u.searchParams.get("next") === "/admin/money", `landed ${u.pathname}${u.search}`, await shot(page, "20-enter"));

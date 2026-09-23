@@ -1931,6 +1931,59 @@ account never moves real money (LIVE_PROOF); the Supply desk's counts
 (admin-money's `reads/supply.ts`) count agents and businesses, which the QA
 accounts are not; if that changes, `withoutQa` is the one call to add there.
 
+### 6.6f Live proof signed in as the QA admin, 23 September 16:57 UTC
+
+Production build of `baad755f` plus the `/admin/enter` fix below, `next start`
+with `NODE_USE_ENV_PROXY=1` and the box's CA bundle, against the live project,
+signed in through the real form as phantomfcalls+qaadmi@gmail.com (admin
+grant applied by Session A). Read only: the script opens pages and presses
+only navigation (Continue, the back arrow). Evidence: `docs/design/proofs/session-b/admin/live/signed-in/` (a shot per step
+and `steps.json`); the run log is 23 of 44 script steps passing, and every
+failing step is one of the three service-role reads below. Checked against
+read-only SQL at the same minute: 0 real live listings, 64 examples, 9
+profiles (7 without the QA accounts), 1 open alert, 0 push rows, 0
+inspection requests, 0 price checks, 0 successful bookings.
+
+**Found live and fixed: `/admin/enter` sent a signed-in admin to sign in.**
+The redirect was built from `request.url`, which `next start` knows as
+`localhost`; a browser on 127.0.0.1 (or any proxied host) followed it to
+another origin without its session cookies and the proxy sent it to sign in.
+The route now answers a path-only `Location` (`seeOther` in
+`app/admin/enter/route.ts`), tests updated; re-run: lands on
+`/admin?next=%2Fadmin%2Fmoney`.
+
+| Link | State | Evidence |
+|---|---|---|
+| Signed out: `/admin`, a desk, a desk with a query, `/admin/enter` (4) | LIVE PROVEN, 16:02 UTC | `signed-out-doors.json` (6.6d) |
+| Landing: a desk as the first address after sign in lands on the overview carrying it | LIVE PROVEN | `01-landing.jpg` |
+| Continue opens the desk | LIVE PROVEN | `02-continue-money.jpg` |
+| A second desk opens directly for the rest of the session | LIVE PROVEN | `03-second-desk.jpg` |
+| The back arrow on `/admin/money` goes to `/admin` | LIVE PROVEN | `04-back-arrow.jpg` |
+| `/admin/enter?next=/admin/money` lands on the overview, never the desk | LIVE PROVEN after the fix | `20-enter.jpg` |
+| A signed-in member at `/admin` gets no console | LIVE PROVEN (QA member) | `30-member-at-admin.jpg` |
+| `getConsolePulse` (Listings live 0, sign-ups, "7 people in all", naira today, new supply) | LIVE PROVEN | `01-landing.jpg`, `10-overview.jpg` |
+| `getCollectedSeries` (twelve months, one August spike) | LIVE PROVEN | `10-overview.jpg` |
+| `getSupplyByType` (every type 0, examples excluded) | LIVE PROVEN | `10-overview.jpg` |
+| `getNewListingsByRole` (empty state, full scale) | LIVE PROVEN | `10-overview.jpg` |
+| `getJobHealth` (8 of 8 healthy, real last runs) and the database jobs summary | LIVE PROVEN | `11-ops-jobs.jpg` |
+| `getRunDays` (the jobs sparkline) | LIVE PROVEN | `11-ops-jobs.jpg` |
+| `getAlertTrend` (1 open, +1 on a week ago; SQL: 1 open) | LIVE PROVEN | `11-ops-jobs.jpg` |
+| `getInspectionActivity` (six states at 0; SQL: 0) | LIVE PROVEN | `15-ops-inflight.jpg` |
+| `getPushActivity` (queue, outcomes, attempts at 0; SQL: 0 and 0) | LIVE PROVEN | `14-ops-notifications.jpg` |
+| `getBookingOutcomes`, `getSupplySeries`, `getThinAreas`, `getPriceCheckDemand` (30d, 90d, 12m) | LIVE PROVEN (4 links) | `16-analytics-30d.jpg` to `18-analytics-12m.jpg` |
+| `getPersonTiers` (the operator's badge beside the name) | LIVE PROVEN | the identity in every shot |
+| `getQueueCounts` (rail badges, Open reviews) | NOT PROVABLE ON THIS BOX: `lib/admin/queries.ts` (Session A's) reads through the service role, and `SUPABASE_SERVICE_ROLE_KEY` is not in this box's environment; the card says "Unavailable" as designed | `10-overview.jpg` |
+| `getRiskAlerts` (Recent alerts, Alerts desk) | NOT PROVABLE ON THIS BOX, same reason | `10-overview.jpg`, `219-alerts.jpg` |
+| `getAuditLog`, `getAuditActivity` (Audit log panel and tab) | NOT PROVABLE ON THIS BOX, same reason (2 links) | `13-ops-audit.jpg` |
+
+**Admin-shell links proven live: 25 of 29.** The other desks' pages opened
+too (`200-*.jpg` to `223-*.jpg`): the ones that read through the service role
+(queue, listings, agents, businesses, money, reservations, flags, reports,
+support, alerts, audit, switches) show their designed failure state for the
+same reason, and the Supply desk's Firm rosters read (admin-money's) says it
+could not be read; those are the owning workers' links and are reported to
+the lead, not counted here.
+
 ### 6.7 Skipped or not verified
 
 - No proof from the live `/admin` pages with a real admin session (none may be

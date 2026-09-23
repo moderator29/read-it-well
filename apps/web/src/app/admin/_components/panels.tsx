@@ -167,7 +167,7 @@ export function KpiStrip({ items, label }: { items: readonly KpiItem[]; label: s
               <Figure item={item} big={false} />
               {item.value !== null && item.delta && <DeltaLine delta={item.delta} />}
             </span>
-            {item.value !== null && !item.delta && item.caption && (
+            {item.value !== null && item.caption && (
               <span className="nf-admin-kpi__caption">{item.caption}</span>
             )}
           </div>
