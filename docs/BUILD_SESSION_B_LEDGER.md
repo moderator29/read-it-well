@@ -6898,7 +6898,7 @@ this sweep, and what it is on now:
 
 | # | Item | Before (own drawing) | After |
 |---|---|---|---|
-| 1 | Back control beside the bar | `BackButton` (site) | unchanged; the nav law requires it (FEED-4) |
+| 1 | Back control beside the bar | `BackButton` (site) | unchanged; it points at the landing `/` (founder C3.2, FEED-4 closed as ruled) |
 | 2 | Location bar, and its place menu | `.nf-feed-chip` own glass, 44 tall, 14 corner; menu on `.nf-post__menu` (surface-raised, radius-lg) | drawn 359 x 33.4, 8 corner, hit 44 by ::after; menu on the shared panel (`--nf-panel-*`, container corner) |
 | 3 | Story rings, Your story plus, names | own ring, 56px, names 12px | measured ring 50, pitch 62.7, plus badge 19 lit, names 9.1px |
 | 4 | For You / Following track and lit half | own track, 3px inset, brand flat fill | drawn 359 x 35.2, lit half flush; track on `--nf-panel-edges`/`--nf-panel-glow`, lit half on `--nf-selected-*` |
@@ -6949,7 +6949,7 @@ this sweep, and what it is on now:
   (mirrors `reviews_insert_own`) -> `/bookings/[id]/review`; none: the honest empty sheet
   with the way to the bookings list. Signed out, every action is the sign-in door.
 - **Broken links named**: FEED-3 (other `PostCard` surfaces show no mark until they stamp),
-  FEED-4 (back control on a dock root). None routed around.
+  FEED-4 (closed as ruled: the back control goes to the landing). None routed around.
 
 ### 13.F.4 Refused from the render (claims)
 
@@ -6969,7 +6969,7 @@ CSS px = image px x 0.5865.
 | Property | Image (measured) | Built (measured) | Match? |
 |---|---|---|---|
 | Screen gutter | 28 img (16.4 CSS) | 16 CSS (`.nf-feed-page` on a phone) | yes |
-| Location bar | 612 x 57 img, corner 14 img (8.2), fill #011748 | 33.4 CSS tall, corner 8, fill lit 16% into canvas; hit 44 by ::after | height, corner, fill yes; width NO (back control, FEED-4) |
+| Location bar | 612 x 57 img, corner 14 img (8.2), fill #011748 | 33.4 CSS tall, corner 8, fill lit 16% into canvas; hit 44 by ::after | height, corner, fill yes; width shared with the back control (C3.2) |
 | Pin / chevron | 14 / 11.7 CSS glyphs | 20 / 24 boxes = 14.2 / 12 glyph | yes |
 | Location words | "Lekki, Lagos" 110 img | 11.5px, 64.5 CSS | yes |
 | Story ring | 86 img (50 CSS), rim #1d93f1, first ring at 207 | 50, info-blue rim, first ring at 207.0 | yes |
@@ -7080,6 +7080,36 @@ rose glyph, which softens a warning; the glow is off for those two
 plate; bloom geometry still exact (overlay-pass5). Final proofs re-taken after this last
 change.
 
+### 13.F.6a Live proof, signed in (23 September, 17:47 to 17:48 UTC)
+
+Production build of main at `8428129a` (`next build` under the shared lock, `next start` with
+`NODE_USE_ENV_PROXY=1` and `NODE_EXTRA_CA_CERTS`), signed in as the QA member through the
+real sign-in form (credentials from env only), talking to project `uccixoonmbhrnyczyigt`.
+Script: `apps/web/tests/session-b-feed-live.spec.mjs`, expected values taken from a
+read-only SQL check made minutes before the run. Result **17 of 17 passed**. READ AND
+OPEN ONLY: after the run the member has 0 posts, 0 stories, 0 reactions, 0 reposts
+(SQL), and live posts are still 74 (the database holds 74 LIVE and 1 REMOVED; the brief
+said 75, the rows say 74). Evidence: `docs/design/proofs/session-b/feed/live/`.
+
+| Link | Status |
+|---|---|
+| Real sign-in lands on `/around` (`next` carried) | LIVE PROVEN (17:47:33, 8428129a, run log) |
+| Feed read (For You; the member is in no place, so everything readable, newest first): 20 real cards, the newest live root `07de48f8` first | LIVE PROVEN (`live-around-390.jpg`) |
+| The removed post `09f263a9` drawn on no page | LIVE PROVEN (pages one and two) |
+| Counts are the row columns: `f8c57ef4` 1 / 1 / 0 and `07de48f8` 1 / 0 / 0 (like, repost, reply) | LIVE PROVEN (screen text against SQL) |
+| TierBadge from `person_badge`: `dc2a175c`'s author (a platform `super_admin`) drawn `platinum`; platform posts carry no person mark | LIVE PROVEN (`live-tier-card.jpg`) |
+| Next page through `loadMoreAround` with the same badge stamp: 20 -> 40 | LIVE PROVEN |
+| The bloom opens Review, Story, Post in that order | LIVE PROVEN (`live-bloom-open-390.jpg`) |
+| Post opens the real composer (place picker, Say something / Ask a question); Escape closes it, nothing posted | LIVE PROVEN (`live-bloom-post-composer-390.jpg`) |
+| Review opens the picker over the member's real stays: none reviewable, the honest empty sheet | LIVE PROVEN (`live-bloom-review-390.jpg`) |
+| Story opens `/stories/new`, the real composer (the member is in no place, so it says so and offers one) | LIVE PROVEN (`live-story-composer-390.jpg`) |
+| Back control on `/around` goes to the landing `/` (founder ruling C3.2, b2a1ef5f) | LIVE PROVEN |
+| Writes (like, repost, reply, post, story) | NOT EXERCISED by instruction (open and close only); their policies and triggers are verified by SQL in 13.F.3 |
+
+The first run read 0 cards on page one: the script sampled the streamed loading skeleton,
+which also wears `.nf-post`. The script now waits for a real card's open link; the feed
+itself was right both times (page two held 40 real cards in that first run).
+
 ### 13.F.7 Checks
 
 Every push ran the gate after `git pull --rebase` (BRIEF: whole-project tsc, whole
@@ -7107,8 +7137,9 @@ vitest, the token check), each heavy job through the shared lock:
 
 ### 13.F.8 Not matched, and why
 
-- The location bar's width: the back control the nav law requires sits in its row
-  (FEED-4).
+- The location bar's width: the back control sits in its row. The founder ruled
+  `/around`'s parent is the landing `/` (C3.2, b2a1ef5f), so the control stays and points
+  there (FEED-4 closed as ruled; proved live, 13.F.6a).
 - The canvas between the cards is #010d3c in the image and #000612 here: the platform
   canvas is chrome, not the feed's (FEED-2).
 - "For You" is the image's capitalisation; the dictionary says "For you" and this worker
@@ -7205,9 +7236,8 @@ vitest, the token check), each heavy job through the shared lock:
   not run in Safari. Push subscribe was stood in by an init script.
 
 
-- Feed and bloom (section 13, feed): no signed-in run of `/around` (no test user); every
-  proof is fixture-backed through `/preview/session-b/feed`. The badge read is proved by
-  SQL (grants, EXECUTE) and `author-badges.test.ts`, not by a live feed with a gold author
-  on screen. The harness has no dock, so the plus's height is set from the dock's own
-  geometry tokens, not photographed against the dock.
+- Feed and bloom (section 13, feed): the design proofs are fixture-backed through
+  `/preview/session-b/feed`; the wiring is proved live signed in as the QA member (13.F.6a,
+  17 of 17). Not live: a gold author on screen (no gold person has a live post; platinum
+  is proved), and every write, which the live run deliberately does not make.
 
