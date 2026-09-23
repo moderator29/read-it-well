@@ -1431,7 +1431,278 @@ one `AdminRail` sets.
 
 ## 7. Admin review desks: listings queue, listing under review, moderation, verification
 
-(pending)
+Worker admin-review. Routes `/admin/listings`, `/admin/listings/[id]`,
+`/admin/moderation`, `/admin/kyc` (verification); `/admin/queue` and
+`/admin/support` keep their behaviour and inherit the console register from the
+shell. Governing images: `C1D98B3C` panels 1 and 2 (listings queue, listing
+under review), `01F7DFC7` panel 1 (moderation), `8E9602E2` panel 2
+(verification); flow and actions from `roles/GOVERNING-12` panels 1 and 2.
+Files: `app/admin/_review/**` (area stylesheet `review.css`, presentational
+`parts.tsx`, pure `metrics.ts` and `map-tiles.ts`, `LiveRefresh.tsx`,
+`contracts.ts`), `app/admin/listings/**`, `app/admin/moderation/**`,
+`app/admin/kyc/**`, reads `lib/admin/reads/listings.ts`, `moderation.ts`,
+`verification.ts` (read only, admin's RLS-bound client, never the service
+role), harness `app/(dev)/preview/session-b/admin-review/[desk]` (R-G).
+
+Commits: 739a5bf (requests, later withdrawn), e0de89b (reads), c615b23
+(listings), 41197b1 (moderation, verification), d6f886e (handbook sections 4
+to 7, 16 to 18), d646d25 (proof-shot fixes), d08117f (glow identity), 2470bdf
+(designed empty states), 5fe0293 (phone layout), 846819a (held events, blocked
+terms, harness), b09beea (R-B 44px controls), c565f38 (R-A measured type).
+
+### (a) The chain, per desk
+
+**Listings queue.** Control: status tab, search, date range, pager (all URL
+params). Action: none (a read). Query: `getListingSubmissions` (Session A,
+`lib/admin/queries.ts`, waiting bucket paged 40, decided bucket 10) for rows;
+`getListingStatusCounts` (16 head-only exact counts, real and example apart),
+`getListingReviewTimes` (every `audit_log` row `listing.review` in 14 days, a
+thousand a page, paired with `listings.submitted_at`, plus the latest ever),
+`getQueueRowExtras` (`is_demo`, lister role from
+`agent_applications.supply_role` falling back to `agents.type`). Policy:
+`listings_admin_all`, `listing_photos_select` and `listing_videos_select`
+(admin branch), `agents_select_admin`, `agent_applications_select_admin`,
+`audit_log_admin_select` (all read live in `pg_policies`, 22 Sept). Screen:
+tabs with exact counts for every listing state except DRAFT, the table with an
+Example tag on every `is_demo` row, Queue health over real listings only with
+examples counted apart, median review time this week vs last. Refresh:
+`LiveRefresh` every 30 s while visible, and on return to the tab.
+**Broken link, named:** the Live, Rejected and Suspended tabs can only show the
+ten newest, because Session A's read does not page its decided bucket; the tab
+says so (AR-5, left as a stated limit).
+
+**Listing under review.** Control: Approve (Publish once approved), Ask for
+more (disabled until a reason is typed), Reject (press twice). Action:
+`reviewListing` (Session A, `lib/admin/actions.ts`) unchanged. Validation:
+`reviewListingSchema`; notes required for request_changes; DRAFT refused;
+publish only from APPROVED. Policy: the update runs on the admin's own client
+under `listings_admin_all`. Table: `listings.status`, `reviewer_id`,
+`reviewed_at`, `review_notes`, `published_at`. Triggers on `listings`:
+`listings_assign_reference` (the code at publish), `listings_announce_after_publish`,
+`listings_block_suspended_agent`, `listings_catalogue_sync`,
+`listings_location_sync` (read in `pg_trigger`). Notification: `announce`
+(in-app row plus email: `listingPassedReview`, `listingApproved`,
+`listingRejected`, `listingChangesRequested`) to the agent's user. Audit:
+`writeAudit` `listing.review` with before and after status. Query back:
+`getListingReviewExtras(id, status)` (by id: pin, amenity labels via
+`listing_amenities -> amenities`, `available_from`, `is_demo`, lister
+verification from `agents`, `profiles.avatar_url`,
+`agent_verification_checks`, and `nextId` in the queue's order) and the
+listing view from `getListingSubmissions({status, q: title})`. Screen: after
+success the next listing opens (`router.push(nextHref)` then refresh), or the
+queue at the end. Costs name their payee (`t.moveIn.keptByLister/Agent/Estate`,
+`t.purchase.keptBySeller/Agent/State`): rule 15 holds.
+**Named weak link:** the page finds the listing view by title inside Session
+A's read (so the checklist and costs are computed once); a title Session A's
+`orSafe` search cannot match would show "could not be opened" rather than a
+guess.
+
+**Moderation.** Controls: reason tabs (the eight real `reports_category_chk`
+values), Held by the scan, search, dates, pager on a reason tab, and per row
+`ReportDecision` (Start review, Resolve, Dismiss) or `HoldDecision` (Let it
+through, Take it down). Actions: `resolveReport` and `decideHeldItem` (Session
+A) unchanged. Validation: `resolveReportSchema`; takedown needs a reason
+(client and server). Policies: `reports_admin_all`, `posts_admin_write`,
+`stories_admin_write`, `story_comments_admin_write`,
+`social_profiles_admin_write`, `events_admin_write`. Triggers:
+`reports_notify` (`private.notify_report`: reporter told on insert, serious
+categories raise a `risk_alerts` row), `posts_notify_after_status_change`,
+`stories_notify_status`, `story_comments_notify_status`,
+`social_profiles_notify_bio_status` (author told on release or removal),
+`scan_*` triggers that hold. Audit: `report.review` and the moderation
+action's own row. Queries: `getReports` (Session A) on All;
+`getReportsByCategory` (reason narrowed in the query, paged 40) on a reason
+tab; `getModerationQueue` (Session A, 50 per kind, the cap stated on screen)
+for held posts, stories, comments and bios; `getHeldEvents` (every held event,
+whole); `getModerationSummary` (exact counts incl. held events, over 24 hours,
+by reason, response time this week vs last, 14-day new-report series).
+**Broken links, named and filed:** a held EVENT cannot be decided: Session A's
+`decideHeldItem` has no event target (scope AR-10); each held event row says
+so. `public.blocked_terms` has RLS on, no policy and no SELECT grant for
+`authenticated` (read in `pg_policies` and `has_table_privilege`), so the
+console cannot show the list (scope AR-11); the Blocked terms panel says so.
+
+**Verification.** Controls: status filter, date range, per document Approve or
+Reject (reason of 12+ characters) in `DocumentDecision`, and the document
+opened in `DocumentViewer` (bytes from `/api/documents/<id>`, never a storage
+URL). Action: `reviewKycDocument` (Session A) -> RPC
+`public.review_kyc_document` -> `private.review_kyc_document` (read live: it
+writes the audit row and the notification). Validation: zod refine (reason
+12+ on reject), a check constraint, and the function. Policies:
+`agent_documents_admin`, `agent_documents_admin_review`,
+`agent_verification_checks_admin_all`, `profiles_select_admin`,
+`agent_applications_select_admin`. Queries: `getKycQueue` (Session A, grouped
+by person) for the queue; `getVerificationSummary` (exact counts: awaiting,
+passed and failed today and yesterday on the Lagos day, awaiting a week ago,
+decision times over 14 days read whole, per-rung passed, pending, failed, the
+ten latest decisions); `getSupplyRoles` for the Role column. Every
+verification rung is covered: identity, address, payout account, met in
+person (Results by rung). **Named limit:** `getKycQueue` reads the 300 newest
+documents; its `pendingCount` is therefore NOT printed; the cards come from
+exact counts.
+
+**Queue and Support.** Unchanged behaviour (`getQueueCounts`, the five
+readers; `getSupportTickets`, `getTicketThread`, `replySupportTicket`,
+`setTicketStatus`); they take the shell's register from `admin.css`. Not
+restyled beyond it (see skipped).
+
+### (b) The comparison, measured
+
+Scale. Each render panel is about 495 image px wide for a desktop window, but
+the render compresses vertically: the text and control heights read
+consistently at x1.5 image px to CSS (table text cap 6.3 image px /0.72 x1.5 =
+13px; badge 18 -> 27; tab 25.5 -> 38), so type and heights use x1.5 and widths
+follow the window's proportions (content column about 57 per cent, the side
+rail about 16 per cent, drawn at 300px so its labels fit). Built values are
+read from the browser (`getComputedStyle`, bounding boxes) at 1440 dark on the
+harness. Font size from cap height / 0.72 (R-A).
+
+**Listings queue (C1D98B3C panel 1)**
+
+| Property | Image (measured) | Built (measured) | Match |
+| --- | --- | --- | --- |
+| Page title | cap 10.5 image px -> 22px, semibold, white | 22px Poppins 600, #FFF | yes (R-A) |
+| Sub-line | cap 6.25 -> 13px, cyan-blue #36AEF1 max | 13px 400, `--nf-brand-secondary` #5C9FFF | size yes; colour in the one blue family's quiet blue rather than the render's cyan (cyan is reserved for pending) |
+| Tabs | 25.5 image px tall -> 38; label cap 7.5 -> 15.6px; radius 3 -> 4.5 | 44 tall, 15px 500, radius 14 (ratio 0.32) | label yes; height R-B floor 44; radius the shape law's control radius |
+| Active tab | lit blue #71A0FD face, #93BCFE highlight, bloom | brand gradient over `--nf-admin-cta-edges` lit edges, top inset rim, 8/22px bloom | yes |
+| Tab counts | none drawn (render has no counts) | exact counts beside each word | deliberate: the brief asks for real counts |
+| Panel | radius 6.5 -> 10; fill #00143A; edge #00358A | radius 14; `--nf-admin-panel-fill` lit gradient; per-side lit edges; rim; field glow | radius follows the shell's measured 13 on 5EAA44CB and the glow identity, so every desk matches; fill and edge yes |
+| Column heads | cap 5.5 -> 11.5px, #169EE0 | 12px 500, #5C9FFF | yes (floor) |
+| Row | 54 image px -> 81 | 81 | yes |
+| Thumbnail | 29.5 x 37.5 -> 44 x 56, radius ~4 | 44 x 56, radius 6 | yes |
+| Listing code | cap 6.25 -> 13px 500 | 13px 500, tabular | yes |
+| Role tag | 24 x 15 -> 36 x 22, blue fill #2A76D0 | 22 tall, 12px, brand 22% fill, brand edge | yes |
+| Status badge | 29.5 x 18 -> 44 x 27, filled tone, radius 5 -> 7.5 | 26 tall, radius 6 (0.23), tone fill 42% on navy, tone edge, glow | yes; words are the tab's words ("Waiting", "More info needed") |
+| Badge colours | green #027657/#08A47B, red #861833, blue #4F94EC | success #10B981, error #FF1744, pending #00C8FF, info brand | family yes; render's "Under review" green is translated to pending cyan |
+| Queue health donut | 50 image px -> 75 in a 75-wide rail; four slices | 128px ring in the 300px rail; four slices, legend with counts | proportion to rail kept; size up because the rail is wider (R-C note) |
+| Average review time | figure cap 12.5 -> 26px; delta emerald with arrow | 30px 600; emerald arrow delta; caption with the N | +4px: one KPI size across the three desks (26, 31, 40 measured) |
+| Pager | 22 image px -> 33; active lit | 44 x 44 (R-B), active lit | yes |
+
+**Listing under review (C1D98B3C panel 2, GOVERNING-12 flow)**
+
+| Property | Image | Built | Match |
+| --- | --- | --- | --- |
+| Head | back square, title ~22px, "Under review" badge | 44px back (R-B), 22px title, status badge | yes |
+| ID line | cap 9 -> 19px semibold | 20px Poppins 600 | yes |
+| Summary | 13px quiet blue | 13px `--nf-brand-secondary` | yes |
+| Photo strip | lead photo, video tile with play, 6 small, "+6" | lead, walkthrough (poster and play when unsigned), 8 small, "+N" | yes |
+| Property details | icon, label in blue, value right | 16px line icons, blue labels, values right, rows 34 tall | yes |
+| Power and water | glass plates 32 with glyph | 32px plates on `--nf-admin-tile-edges`, lit | yes; water glyph is `pool` (no water glyph in UiIcon) |
+| Amenities | tick rows | tick rows from `amenities.label` | yes |
+| Location | dark map with pin, place label, "View on map" | real tiles from `lib/maps/tiles.ts` (dark and paper sets), pin, place, credit | "View on map" not drawn (it would leave Vallo) |
+| Move-in costs | lines + "Total to move in" | lines each naming its payee + total, stated or summed | deliberate: payee added (R5, rule 15) |
+| Lister verification | avatar, name, role tag, Verified, "ID verified, Bank verified" | same from `agents` and the rungs | yes |
+| Reason for review | one sentence | the status in words, every failing check, last note | yes, real |
+| Action bar | field + Approve (emerald), Ask for more (blue), Reject (rose) | field + three lit buttons 44 tall, gradient, top rim, own-ink bloom | yes; Reject asks twice; Ask disabled until a reason |
+| Extra (not in render) | none | Description, full admission checklist | R-F: real function kept, compact |
+
+**Moderation (01F7DFC7 panel 1)**
+
+| Property | Image | Built | Match |
+| --- | --- | --- | --- |
+| Title / sub | 22px / 13px quiet blue | 22px / 13px | yes |
+| Reason tabs | All, Abuse, Fraud, Spam, Sexual content, Impersonation | All, the eight real reasons (short words), Held by the scan | translated: the render's five are not recorded categories |
+| KPI cards | two, figure cap 20 -> ~40px, sparkline, delta | two, 30px figure, sparkline of 14 real days, delta vs last week; Over 24 hours title in rose | figure 30 (one KPI size, see listings) |
+| Table | item with thumb, reporter + "User", reason, age, status | item with lit plate (a report has no photo), reporter + Member or Safety scan, reason, age, status; rows open to the decision | yes; plate for thumbnail because a report target is not always a listing |
+| Row height | ~47 image -> 71 | 65 | -6: two-line cells at 13px |
+| Breakdown donut | ring, total, five reasons with % | ring, total waiting, every reason with its count, blue ramp by magnitude | palette translated (render teal and pink are off-family; research part four) |
+| Queue health | "Human review 24/7", avg response time | open, in review, held, median response this week vs last | "24/7" refused (a claim) |
+| Community safety | shield, "Our priority" | shield, one sentence of what actually happens | slogan replaced by a fact |
+| Added | none | Blocked terms panel, held events | brief and lead ruling |
+
+**Verification (8E9602E2 panel 2)**
+
+| Property | Image | Built | Match |
+| --- | --- | --- | --- |
+| KPI row | four cards, figure cap 15 -> 31px, delta, "vs last week" | four cards, 30px, delta vs yesterday or a week ago, from exact counts | yes |
+| Queue table | avatar, name, role, tier chip, match score, submitted, Pass/Fail | avatar initial, name, role, Tier badge, rungs passed of 4, latest upload, documents to decide | "match score" refused (not recorded), rungs instead |
+| Row | ~42 image -> 64 | 52 | -12: avatar 28 not 36 |
+| Funnel | tapered funnel, four figures | one status bar with words and counts (awaiting, passed, failed) | translated: the render's funnel is not a funnel (Passed > Under review); one status bar per the founder's chart rule |
+| Provider performance | NIMC, BVN, Bank, Selfie with % | Results by rung: identity, address, payout, met in person, passed, pending, failed | refused provider names and rates (not recorded); every rung covered |
+| Recent verifications | name, role, result, time | name, document, result, time | role column replaced by the document (what was decided) |
+
+Side-by-side proofs (render left, built right, re-shot after the last change):
+`docs/design/proofs/session-b/admin-review/sbs-listings.jpg`,
+`sbs-review.jpg`, `sbs-moderation.jpg`, `sbs-kyc.jpg`. Desktop, phone and paper:
+`<desk>-1440-dark.jpg`, `<desk>-1440-light.jpg`, `<desk>-390-dark.jpg`,
+`<desk>-390-light.jpg` for listings, review, moderation, kyc;
+`listings-1536-dark.jpg`; the empty state as it is live today:
+`listings-empty-1440-dark.jpg`, `listings-empty-1440-light.jpg`,
+`moderation-empty-1440-dark.jpg`, `kyc-empty-1440-dark.jpg`. ALL FIXTURE-BACKED
+(R-G): harness `/preview/session-b/admin-review/<desk>` (`?empty=1`), real
+components, invented figures that never reach a database.
+
+Re-audit. Round one (images beside the first shots) found: badges in a word
+different from their tab; the media strip ending in a "+2" with empty tiles; a
+broken-image mark where a map tile failed; KPI figures floating low in their
+card; tab words too long for moderation. All fixed (d646d25). Round two (after
+R-A to R-G and the glow identity): title 26 -> 22 and tabs 14 -> 15 from cap
+heights, thumbnail 52 -> 44 wide, role tag 20 -> 22, all controls 40 -> 44,
+the lit fill and per-side edges taken from the shell's identity variables
+rather than a flatter local copy (c565f38, b09beea, d08117f).
+
+### (c) Light mode
+
+Every rule in `review.css` has a paper twin under `:root[data-theme="light"]`:
+panels take the shell's paper `--nf-admin-panel-fill` and edges (the same
+variables), tabs, pager, back and quiet buttons white with the brand edge,
+the active tab and page keep the brand fill with white type, badges a 12 per
+cent tone wash with dark tone ink (the moved daylight state tokens, not a
+re-derived hex), plates and avatars pale brand wells with brand ink (no dark
+tile on white), map tiles switch to the provider's light set, glows off.
+Checked on `*-1440-light.jpg` and `*-390-light.jpg`: no white-on-white, no
+vanishing text, the empty calm note readable.
+
+### (d) Shape sweep (R-D)
+
+`node scripts/design/compare-surface.mjs --shape-sweep --routes
+/preview/session-b/admin-review/{listings,review,moderation,kyc} --widths
+390,1440 --theme both`: BREACHES 0; WORTH AN EYE (0.35 to 0.5) 0; round
+icon-only 0. Because that tool lists only controls at or above 0.35, a census
+of every text-bearing control was also taken (`scratchpad/ar/ratios.mjs`):
+listings 61 controls at 1440 (53 at 390), max 0.318 (tab 44 tall, radius
+14); review 16, max 0.318 (reason field); moderation 53, max 0.318; kyc 39,
+max 0.231 (badge 26 tall, radius 6); identical in dark and light.
+`check-css-tokens.mjs`: clean. tsc: clean. eslint on every changed file:
+clean. vitest `src/lib/admin/reads` and `src/app/admin/_review`: 80 passed.
+
+### (e) Refused from the render, with the reason
+
+- Every count, price and percentage in the four panels (73, 28, 8h 24m, 42%,
+  137, 18%, 2h 36m, 86, 92% ...): figures come from the database only.
+- "Match score" and "Provider performance" (NIMC, BVN, Bank, Selfie): nothing
+  records a provider or a score. If the founder wants a provider, that is a
+  product decision, asked here as a question.
+- "Human review 24/7": an operating claim nobody can evidence.
+- "Community safety, Our priority": a slogan; replaced by what the system does.
+- Abuse, Fraud, Spam, Sexual content, Impersonation as tabs: not categories the
+  platform records.
+- "Agency fee (10%)", "Legal fee (2%)" with no owner: each line names who is
+  paid (R5); Vallo takes no fee.
+- "View on map" (to a third-party map): not drawn; the tiles are shown in place.
+- Off-family colours (teal, pink slices): the blue ramp by magnitude.
+- The lister's notification centre and search by listing ID (GOVERNING-12
+  panels 3 and 4): Session A's (R5), not built.
+
+### (f) Skipped or not verified
+
+- No signed-in run of any desk: there is no admin test user and none may be
+  created. Wiring is proven by code, `pg_policies`, `pg_trigger` and
+  `pg_proc` reads (22 Sept, project uccixoonmbhrnyczyigt), and unit tests of
+  the reads' aggregation; not by a live decision. No decision was taken on
+  production (reports 0, documents 0, held items 0, waiting listings 0).
+- Held events cannot be decided (AR-10); the blocked terms list cannot be read
+  (AR-11). Both filed in the scope file.
+- `/admin/queue` and `/admin/support` inherit the shell's register and were not
+  rebuilt to an image (none governs them).
+- The Live, Rejected and Suspended tabs show the ten newest (Session A's read).
+- Most desk copy is English literals (R-107 console decision); the shared words
+  come from the dictionary.
+
+### Requests to admin-shell
+
+None outstanding: the review desks use the shared `CalmNote`, `Sparkline`,
+the glow identity variables and the frame as they are.
 
 ## 8. Admin money desks: money, escrow, supply
 
@@ -2727,6 +2998,12 @@ with a lit edge, a picture rather than an icon chip. Proof:
 ## Skipped or not verified
 
 (appended honestly as work proceeds)
+
+- admin-review (section 7): no signed-in run of the listings, moderation or
+  verification desks (no admin test user); every proof is fixture-backed
+  through `(dev)/preview/session-b/admin-review`. No decision was exercised on
+  production. Held events cannot be decided (AR-10) and the blocked terms list
+  cannot be read (AR-11). Queue and support take the shell's register only.
 
 - Welcome email (section 10): not rendered in any real mail client (Outlook,
   Gmail, Apple Mail); the Resend key in production not verified; links not
