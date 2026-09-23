@@ -5993,6 +5993,45 @@ sense: prose about catchlights and light direction, and the token
 selector, never the word.
 
 
+### R14. BLOCKER. `origin/main` does not build: the sweep-social fixture passes a prop `ThreadView` no longer has
+
+`npm run build` in `apps/web` fails type checking on `origin/main` at
+`37070ff0`. Nothing renders from a production build until this is fixed, so it
+blocks every session's production proofs, not just Session B's.
+
+```
+./src/app/(dev)/preview/session-b/sweep-social/page.tsx:316:13
+Type error: Property 'counterpartVerified' does not exist on type
+'IntrinsicAttributes & ThreadViewProps'. Did you mean 'counterpartId'?
+```
+
+**How it happened, and neither side did anything wrong.** Commit `9b3d254d`,
+"The thread header was drawing the LISTING's verified flag beside a person's
+name", correctly removed `counterpartVerified` from `ThreadViewProps` - the
+flag was the listing's and was being drawn next to a human being's name. Session
+B's fixture harness still hands that prop to `<ThreadView>`, and the harness
+lives in Session B's partition, so the commit that removed the prop did not
+touch it. Both changes are right on their own; the pair is red.
+
+**The fix is one line, and it is in Session B's partition, which is why this is
+filed rather than done.** Delete line 316 of
+`apps/web/src/app/(dev)/preview/session-b/sweep-social/page.tsx`:
+
+```
+            counterpartVerified={!rental}
+```
+
+**Do not touch lines 287 and 295 of the same file.** They also read
+`counterpartVerified`, and they are correct: those are `ShareToThread`'s thread
+descriptors, and `SharePicker.tsx:41` still declares `counterpartVerified:
+boolean` on that shape. Only the prop passed to `<ThreadView>` is stale. A
+blind find-and-replace on the file name breaks the share picker.
+
+Session A has not edited the file. Once it lands, `npm run build` is the check;
+this session will re-run its no-light production proof against the first green
+build.
+
+
 ## 50. TWO PROOFS THAT DISAGREED WITH THE SHIPPED CODE, RETAKEN
 
 The founder's ruling, in his words: **a proof that disagrees with the shipped
@@ -7290,6 +7329,189 @@ every agent and wrong only for a member of staff in a thread. `VerifiedAvatar`
 takes an optional `tier` prop; one line closes it the moment that file is free.
 It is not Session B's to fix and it is not being left silently.
 
+
+---
+
+### R17. SEVEN PRIVATE COPIES OF THE TIER VOCABULARY, AND THE ONE IMPORT THAT CLOSES EACH
+
+Not a second derivation: every one of these reads the published tier. It is the
+same fault one level down, the VOCABULARY declared seven times, and two of the
+copies already disagree with `BadgeTier` about how "no badge" is spelled.
+
+| file | line | what it declares |
+| --- | --- | --- |
+| `app/(app)/profile/belongings.ts` | 30 | `type BadgeTier = "gold" \| "platinum" \| null` |
+| `app/admin/kyc/VerificationDesk.tsx` | 39 | `badge?: "gold" \| "platinum" \| null` |
+| `components/app/wallet/BadgeSlot.tsx` | 3 | `type BadgeTier = "gold" \| "platinum" \| null` |
+| `lib/admin/reads/badges.ts` | 15 | `type BadgeTier = "gold" \| "platinum"` |
+| `lib/admin/reads/listings.ts` | 574 | `type BadgeTier = "gold" \| "platinum"` |
+| `lib/admin/reads/shapes.ts` | 168 | `type PersonTier = "gold" \| "platinum"` |
+| `lib/inspections/badge.ts` | 13 | `type BadgeTier = "gold" \| "platinum"` |
+
+Three of them carry their own narrowing as well, the same line three times:
+`value === "gold" || value === "platinum" ? value : null`.
+
+Each closes with one import, and the local type and parser then delete:
+
+```ts
+import { type BadgeTier, toBadgeTier } from "@/lib/trust/badge-tier";
+```
+
+WHY IT MATTERS RATHER THAN BEING TIDINESS. `BadgeTier` is
+`"none" | "gold" | "platinum"`. Four of these spell the absent case `null` and
+three cannot express it at all, so a person nobody has checked is `null` on one
+screen, `"none"` on another, and on a third is a value the type says cannot
+exist. That is how two surfaces end up disagreeing about a stranger, which is
+the whole fault the founder asked to have closed once.
+
+HOW IT IS HELD WITHOUT TURNING MAIN RED FOR YOU. The guard counts these and
+fails at EIGHT. It is a ceiling, not a list of names, because this guard found
+three copies on its first run and six different ones twenty minutes later as
+your work moved between files; a list of names would go red on your next rename
+and take main down with it, which section 49bis says outranks the scope split.
+Lower the number in `agent-badge-derivation.test.ts` every time one goes. It
+can only fall.
+
+The number was wrong once already and the mutation caught it: it was set at
+nine from a looser pattern when the true count was seven, and adding an eighth
+copy did not turn it red. A ratchet set above the real number is a blind light
+with a number written on it.
+
+---
+
+### R18. THE THIRD WRONG SOURCE WAS ON THE DEPOSIT SCREEN, AND IT WAS A PROPERTY'S FLAG
+
+Recorded because it is the plainest illustration of why the founder asked for
+one derivation, and because two of the three wrong sources were found by
+reading rather than by any test.
+
+`app/(app)/messages/[id]/page.tsx` passed `thread.listing?.verified` into
+`counterpartVerified`, the prop that decides whether a tick appears beside the
+name of the stranger a reader is arranging to send a deposit to. That key is a
+fact about a PROPERTY.
+
+The note above the line had argued it was "the same value", because
+`loadThread` happened to file the person's badge under it, and it named one
+cost honestly: a direct message with no listing attached carried nothing, so a
+checked agent messaging outside a listing drew no mark. The larger cost went
+unnamed, which is that a listing's standing was being spoken aloud as a human
+being's. `VerifiedAvatar`'s own docstring had been warning against this exact
+substitution - "not from the LISTING's verified flag either, which is about the
+property" - for as long as the call site had been doing it. A docstring is not
+a guard.
+
+`loadThread` now returns `counterpartTier` at the top level beside
+`counterpartName`, which is what that note asked the lead for, and both the
+avatar and the header tick read it.
+
+The three wrong sources found today, all of them live on `main` this morning:
+
+1. `social_profiles.is_agent` on the social profile and the people list. True at
+   approval, verification tier 0, before a document has been looked at. Its own
+   column comment calls it a role marker and not an earned badge.
+2. `listings.verified` in the message thread header. A property, drawn as a
+   person.
+3. `agent_badges` keyed by the AGENT rather than the person, so a member of
+   staff in a thread resolved to nothing: the founder's own account, in his own
+   messages, with no mark.
+
+---
+
+### R19. THE FOUNDER'S PLATINUM, VERIFIED AS FAR AS THIS CONTAINER CAN REACH, AND THE EXACT LIMIT
+
+An earlier worker recorded this grant as unverified with
+`permission denied for function is_platform_staff`. That error is now explained
+and it is not a fault in the badge.
+
+NO GRANT WAS NEEDED. `phantomfcalls@gmail.com`, user id
+`2255d905-0f31-437e-b719-aa2e4a18e03d`, handle `phantomfcalls`, already holds
+`super_admin` in `public.user_roles`, alongside `user`. That is the door a real
+grant uses, and the row was already through it.
+
+WHAT WAS VERIFIED, LIVE, AGAINST THE PROJECT:
+
+- The role row exists, read from `public.user_roles`.
+- `public.is_platform_staff` is `SECURITY DEFINER`, `search_path` pinned to
+  `public`, and its body is `private.has_role(id,'admin') or
+  private.has_role(id,'super_admin')`. Read with `pg_get_functiondef`, not
+  assumed. So it returns true for this row.
+- `public.badge_tier` returns `'platinum'` whenever `is_staff`, checked before
+  `is_checked`, so the precedence cannot go the other way.
+- `public.person_badge`'s definition takes its candidates from `user_roles`
+  UNION `agents` UNION `businesses`, so a person who is staff and nothing else
+  still appears in the view.
+- THE GRANTS, which is what the earlier worker could not get past:
+  `has_function_privilege` and `has_table_privilege` confirm that BOTH `anon`
+  and `authenticated` hold EXECUTE on `badge_tier`, `is_platform_staff` and
+  `is_checked_person`, and SELECT on `person_badge`. The view's `reloptions` is
+  null, so it is a non-invoker view: table access resolves as its owner and
+  function EXECUTE as the querying role, which is exactly why those three
+  grants are load-bearing and why rule 21 applies to them.
+
+WHAT COULD NOT BE VERIFIED FROM HERE, STATED PLAINLY. No live `select tier from
+public.person_badge` was run. The MCP connection is
+`supabase_read_only_user`, which `pg_has_role` shows is a member of none of
+`anon`, `authenticated` or `service_role`, so the `revoke all ... from public`
+in migration `20260923111950` correctly denies it EXECUTE on the helpers and
+therefore denies it the view. That is the earlier worker's 42501, and it is the
+revoke doing its job rather than a defect. The REST API was tried as the second
+route and this container has no egress to the project host: HTTP 000.
+
+So the chain is verified by its parts and by its grants, and the single
+end-to-end read is not. Anyone with a session on the deployed app can close it
+in one query; it is not left implied.
+
+ONE OBSERVATION WHILE IN THERE, NOT MINE TO FIX. `private.has_role` is
+executable by `anon`. It predates this work and it leaks nothing the badge does
+not already publish deliberately, since `is_platform_staff` answers the same
+question to the same role by design. Worth a look by whoever owns `private`.
+
+---
+
+### R20. THE GUARD, AND THE NINE MUTATIONS THAT SHOW IT IS NOT A SEVENTEENTH BLIND LIGHT
+
+`apps/web/src/lib/trust/agent-badge-derivation.test.ts`, extended from seven
+assertions to nineteen. Every one was mutated and watched to go red.
+
+| mutation | result |
+| --- | --- |
+| `isAgent ? "gold" : "none"` in a component | RED |
+| `verified ? "platinum" : "none"` in a component | RED |
+| an eighth copy of the tier vocabulary | RED *(after the ceiling was corrected)* |
+| a `<circle>` plate behind the seal | RED |
+| `tier === "none"` stops returning null | RED |
+| gold made to beat platinum in the migration | RED |
+| `is_platform_staff`'s grant to anon removed | RED |
+| a raw `agents.verified` select reappears | RED |
+| the DOM probe deleted | RED |
+
+TWO THINGS THE GUARD CAUGHT THAT NOTHING ELSE WOULD HAVE.
+
+First, its own author's compatibility shim. `VerifiedAvatar` briefly took a
+`verified` boolean beside `tier` and mapped a true onto gold, so `ThreadView`
+could keep compiling while it carried another worker's uncommitted edit. Small,
+defensible, and still a rule about which mark to draw living outside the
+derivation. The shape rule flagged it on its first run. The prop is gone and
+`tier` is required.
+
+Second, and this one is a warning for everybody in this repository: THE TEST
+FILE WAS BRIEFLY `.tsx`, TO GET JSX FOR THE RENDER ASSERTIONS, AND VITEST
+SIMPLY DID NOT RUN IT. `vitest.config.ts` includes `src/**/*.test.ts` and
+nothing else. A `.tsx` test is not excluded, not skipped and not reported: it is
+not collected, the suite goes green, and the tick beside the run means nothing.
+It answered "No test files found" only because it was named on the command
+line. Anybody adding a component test here will hit this.
+
+THE MARK IS READ OFF A REAL RENDER. `scripts/probes/badge_mark_dom.mjs` bundles
+the shipping `TierBadge.tsx` and renders it through `react-dom/server`; the test
+runs it and asserts on its verdict. It cannot be done inside the suite
+directly, and this was measured both ways rather than assumed: the config runs
+everything under the `react-server` condition, where `react-dom/server` throws
+"not supported in React Server Components" by design, and mixing the two React
+builds raises "the react-server condition must be enabled". The probe asserts
+the NEGATIVE first and loudest, that an unchecked person renders the empty
+string, because a check that only proves gold draws gold passes just as happily
+over a component that badges everybody.
 
 ## 49bis. R13 TO SESSION B: ONE DATA LINE ADDED TO A FILE ON YOUR LIST
 
