@@ -280,6 +280,12 @@ thread proposal and the host panels' stylesheet swept bar SW-ST2. Ledger 13 stay
   (scope W4), so (b) cannot complete until that account is upgraded. The
   screen keeps Send off in bank mode (`BANK_SEND_OPEN` in `SendFlow.tsx`) and
   says so.
+- **B-BANK WITHDRAWN (founder, 23 Sept):** Session B removed bank send in
+  `32830d5b`. Session A may now remove `transferToBank` from
+  `lib/wallet/actions.ts` and its tests; nothing in Session B imports it.
+  (That commit also corrected one comment in `lib/wallet/banks.ts`, Session
+  A's file, which named the deleted `BankRecipient.tsx` and would have failed
+  the token check's comment-path rule; nothing else in that file changed.)
 - **B-BADGE, UPDATED 23 SEPTEMBER (founder: whoever began the badge owns all
   of it).** Session A began it (5f19539b: `public.person_badge`,
   `public.badge_tier`), so Session A owns the derivation, the artwork (the

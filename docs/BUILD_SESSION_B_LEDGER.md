@@ -1106,7 +1106,7 @@ founder's send target, governing over `95840448`). Route `/wallet/send`. Same
 **Header row:** shared chrome, as section 4.
 
 **Proofs:** `docs/design/proofs/session-b/send/send-side-by-side.jpg`,
-`send-390-dark.jpg` (empty), `send-filled-390-dark.jpg`, `send-bank-390-dark.jpg` (to bank, the name resolved),
+`send-390-dark.jpg` (empty), `send-filled-390-dark.jpg`, 
 `send-1280-dark.jpg`; harness
 `apps/web/src/app/(dev)/preview/session-b/wallet/send/` and `.../send-filled/`
 (R-G; the recipient lookup there is a fixture that answers "found").
@@ -1115,9 +1115,6 @@ founder's send target, governing over `95840448`). Route `/wallet/send`. Same
 
 | Link | What it is | State |
 | --- | --- | --- |
-| Mode | "To bank" / "To a Vallo wallet", two rounded rectangles at the top of the form panel (founder item 3) | OK |
-| Bank recipient | `BankRecipient.tsx`: bank select from the payout side's `listBanks()` (falling back to `WALLET_BANKS` when Paystack answers an empty list), 10-digit account number, then the payout side's own `resolveBankAccount({ bankCode, accountNumber })`, debounced and ordered; the bank's name is shown in a confirmation row before anything can be confirmed. No second resolver | OK, live today |
-| Bank send | `transferToBank` does not exist yet (scope B-BANK (b), corrected: (a) and (c) already existed). `BANK_SEND_OPEN = false` keeps Send off in bank mode and the page says why; and the only production payout failed on Paystack's starter-business limit (W4) | BROKEN, scope B-BANK (b) and W4 |
 | Control | `SendFlow` compose (Recipient email, Amount, Narration) -> "Send Money" opens the confirm step -> its button submits | OK |
 | Double tap, client | `submit-guard.ts`: a synchronous latch in the confirm form's submit handler refuses a second submit in the same frame, and the button is disabled from the first press until the result returns (`session-b-wallet.test.ts`, 2 cases) | OK. It narrows the window; the server guard below closes it |
 | Lookup | `lookupRecipient` (`app/(app)/wallet/send/recipient-action.ts`): signed in, paced 40 per 10 minutes, found / none / self / unknown | OK |
@@ -1137,7 +1134,7 @@ founder's send target, governing over `95840448`). Route `/wallet/send`. Same
 | --- | --- |
 | "NDIC INSURED" | False: `lib/legal/terms.tsx` section 15 (R1) |
 | "256 BIT ENCRYPTION" | An uncheckable security claim (R1) |
-| (Bank row) | NOW DRAWN, founder item 3: the bank, the account number and the bank's name for it. The send itself waits on B-BANK (b) |
+| Bank row | Removed by founder directive, 23 September (see below): sending to someone else's bank account is licensed activity |
 | Scan / QR button | No scanner exists |
 | Swap, "Top Up" tiles | As section 4 |
 | "Quick. Safe. Reliable." | Adjectives that are claims; replaced by "Wallet to wallet, by email". The dead dictionary key `walletSend.tagline` ("Fast. Safe. Always.") now carries the same true words |
@@ -1158,10 +1155,7 @@ established and are not stated.
 | "Wallet Balance" | 75px wide = 11px | 11px / 500, 16px glyph | Yes |
 | Title | "Send Money" 103.5px wide, Poppins 600 = 17.5px | 17.5px / 600 ("Send money", house sentence case) | Yes |
 | Line under it | 102.9px wide = 14px, quiet blue | 14px / 400 `--nf-content-link` | Yes |
-| Mode choice | not drawn (the render shows only the bank form) | 44px (R-B), 10px corner (0.23), 11px / 600, chosen one lit with the button gradient | Added: founder item 3 |
-| Bank row | plate, "Bank" over "Select bank", chevron right, 52px | the render's own bank plate (cropped, `plate-bank.webp`), label 11px, select value 16px, chevron 20px, 60px | Yes |
-| Account name row | not drawn | the rows' edge and padding, "Name on the account" 11px over the name 14px / 600 | Added: item 3 |
-| Instant chip | 30px tall, "Instant Transfer" 67.3px = 9.2px | 30px, 11px / 600, 6px corner (0.2); wallet mode only (a bank send is not instant) | Yes (type at floor) |
+| Instant chip | 30px tall, "Instant Transfer" 67.3px = 9.2px | 30px, 11px / 600, 6px corner (0.2) | Yes (type at floor) |
 | Form panel | radius 10 to 12 (rim reaches the side 16 to 20 image px down), rim rgb(0 67 131), fill rgb(0 12 43) between rows | 10px (`--nf-radius-sm`, the nearest rung), the identity's lit card | Yes (audit run two) |
 | Rows | sub-panels, radius 10.5 (18 image px), fill rgb(0 21 61), edge rgb(0 75 167), 52px tall | radius 10, fill 20% brand over canvas, edge `--nf-brand-edge-soft`, 60px | Yes; 8px taller for the 16px typed value (R-A) |
 | Row gap | 9px | 10px | Yes |
@@ -1251,6 +1245,51 @@ signed-in run is possible here):
   this box; each is proved by code, tests and read-only SQL instead).
 - Badge slots rendering the real badge: 0 / 3 (recipient wired and blocked on
   B-BADGE; rows and receipt blocked on W6).
+
+### Bank send removed (founder directive, 23 September)
+
+**What changed** (`32830d5b`): the "To bank" choice, `BankRecipient.tsx`
+(the bank picker and the payout-side name check), the `BANK_SEND_OPEN`
+constant, the send-bank harness, the bank plate crop, the bank-send styles and
+every bank-send word in all four locales are gone. Kept, untouched:
+wallet-to-wallet send, receive, withdraw to your OWN bank account (the
+withdraw sheet and `lib/wallet/banks.ts`), funding, statements, receipts.
+Nothing in Session B imports `transferToBank`; scope request B-BANK is
+withdrawn so Session A can remove it.
+
+**The regulatory line, recorded as the founder gave it.** When VALLO SPACES
+LTD's CAC objects clause carried payment, escrow and wallet wording, CAC
+demanded N500,000,000 share capital; the company was incorporated at
+N1,000,000 with that wording removed. Pushing money on bank rails to an
+unrelated third party is licensed activity in Nigeria; movement inside our
+ledger between two Vallo accounts is a different shape. This is a regulatory
+line, not a design gap: it is not to be rebuilt.
+
+**Re-measured against 77A54EA3 after the cut** (390 dark, harness
+`send-filled`, production build, 23 September): balance card 362 x 196 at
+y 144 under the back square; head "Send money" 17.5px / 600 with the Instant
+transfer chip 124 x 30 (6px corner, 0.2); ONE form panel, 362 wide, 10px
+corner, holding Recipient (60px row), the confirmed name (56px), Amount with
+its four 64 x 44 chips (10px corner, 0.23, equal widths), Narration (60px),
+the lit button 340 x 44.5 (14px corner, 0.31) and the reassurance card (141px,
+now four true lines: record not deposit, a failed send moves nothing, no
+recall, and the founder's refund time, "Refunds reach your wallet in 3 to 5
+business days"). Shape sweep, dark, send and send-filled: 0 breaches, 0 over
+0.35; controls measured by hand above because the tool reports combinations
+only when it finds something.
+
+**What the screen looks like with one mode instead of two.** The render
+draws a single form that mixes both shapes: its Recipient row asks for "bank
+name, account number or phone number" and a Bank select sits under it. With
+one mode the form is Recipient (a Vallo email, checked as it is typed) ->
+Amount -> Narration -> Send, and the panel is one row shorter than the
+render's. Intentionally absent from the drawn image: the Bank row (select and
+its chevron), the bank and account-number wording in the Recipient
+placeholder, the scan square (no scanner), and, as before, the NDIC and
+256-bit badges, "Quick. Safe. Reliable." and the Swap and Top Up labels. No
+mode choice is drawn, because there is nothing to choose between.
+`send-side-by-side.jpg` shows the render beside the cut screen.
+
 
 ## 6. Admin shell, overview, operations, analytics
 
