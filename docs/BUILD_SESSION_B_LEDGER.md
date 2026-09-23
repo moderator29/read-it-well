@@ -1721,8 +1721,9 @@ by a signed-in screenshot.
   end: zero escrows and zero bookings exist.
 - `private.reconciliation_watch` not surfaced (request 10, a migration,
   Session A's).
-- `rent_payments` is not surfaced on any desk; it carries no rows and no
-  desk owns it yet. Named here so it is not mistaken for covered.
+- `rent_payments` was the one money path on no desk; closed in round three
+  (8.10). No charge exists, so the panel has only been seen full on the
+  fixture.
 - Card corner: the render draws about 8 CSS px, built 14px, the shell's one
   panel corner. Outer glow: the render has none, the shell's shared
   `--nf-admin-panel-glow` adds 22px. Both left to admin-shell, not overridden
@@ -1816,8 +1817,13 @@ payments, bookings, failed charges on money), booking refund
 by-purpose donut and the handbook section 9), the admin ruling (Session A's
 `escrow_admin_resolve` through admin-shell's `EscrowRuling`, both parties
 notified, read with SQL), reconciliation (`wallet.reconciliation.run` in
-`audit_log`: ring on money, check on escrow). Not surfaced: `rent_payments`
-(8.8).
+`audit_log`: ring on money, check on escrow), tenancy charges
+(`rent_payments`, riding a `bookings` row: the money desk's "Tenancy charges"
+panel, exact counts by state from the booking's status and whether a
+SUCCESSFUL transaction settled it, paid and awaited sums in kobo, the six
+newest; `getRentCharges` in `lib/admin/reads/money.ts` under
+`rent_payments_admin_select`, read live, tested in `money-rent.test.ts` and
+`money-derive.test.ts`). No money path is left off the console.
 
 **Every supply role.** Owner, agent, firm and host, from the application's
 `supply_role` with a fallback to the agent type; businesses count as firms
@@ -1835,6 +1841,17 @@ the toggle asks for them, and the count left out is printed.
 | R-E entering the console lands on the overview | admin-shell's; no money desk redirects |
 | R-F real function drawn compactly | the supply examples toggle, the payments outcome and kind toggles, the reference line under ledger rows |
 | R-G harnesses committed | `apps/web/src/app/(dev)/preview/session-b/admin-money/` |
+
+**Round three (coordinator, 23 September).** Tenancy charges added as above.
+The money proofs (`money-{full,live}-{1440,390}-{dark,light}.jpg`,
+`side-by-side-money.jpg`) were reshot after it; the shape sweep over both
+money routes at 390 and 1536 in both themes is still 0 breaches and 0 worth
+an eye; page width at 390 is 390. `vitest run src/lib/admin/reads`: 11 files,
+75 tests passed; `tsc` and `eslint` clean; `next build` exit 0. The shared
+panel corner and glow stay with admin-shell, which is reconciling them
+against the renders; nothing here overrides them. `EscrowRuling` lives in
+`app/admin/_components/MoneyDecisions.tsx`, admin-shell's, so its second-step
+button is left as the request in 8.9 rather than changed here.
 
 ## 9. Inspection
 

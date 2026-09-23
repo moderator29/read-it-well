@@ -84,3 +84,16 @@ export function paymentsDesk(full: boolean, outcome?: string, kind?: string) {
     : [{ id: "e1", kind: "topup", reference: "ps_8HfL2a", channel: "bank", provider: null, outcome: "succeeded", amountMinor: 100000, bookingId: null, createdAt: "2026-08-09T18:10:06Z" }];
   return { ...buildPayments(attempts, { ...(outcome ? { outcome } : {}), ...(kind ? { kind } : {}), page: 1, pageSize: 12 }, NOW), complete: true };
 }
+/** Tenancy charges. Live mirrors the database (0 rows in rent_payments, read with SQL on 23 September); full is invented layout data. */
+export function rentCharges(full: boolean) {
+  const titles = ["2 bedroom flat, Yaba", "Mini flat, Gbagada", "3 bedroom flat, Lekki", "Self-contained, Wuse", "2 bedroom flat, Ikoyi", "Studio, Maitama"];
+  const who = ["Amaka J.", "Chinedu R.", "Fatima B.", "Bola T.", "Daniel K.", "Grace E."];
+  const states = ["paid", "awaiting", "paid", "cancelled", "check", "paid"] as const;
+  const periods = ["year", "year", "quarter", "year", "month", "year"];
+  const rows = full
+    ? titles.map((t, i) => ({ id: `rc${i}`, bookingId: `7c1e${i}a2b-4d10-4c7e-9b1f-0a6d3e${i}f81c2`, listingTitle: t, tenantName: who[i]!, moveIn: iso(NOW + (10 + i * 6) * DAY).slice(0, 10), rentPeriod: periods[i]!, totalMinor: [320_000_000, 185_000_000, 540_000_000, 90_000_000, 260_000_000, 410_000_000][i]!, currency: "NGN", state: states[i]!, createdAt: iso(NOW - i * 1.7 * DAY - 7_200_000) }))
+    : [];
+  return full
+    ? { total: 23, byState: { awaiting: 5, paid: 13, cancelled: 3, no_show: 1, check: 1 }, paidMinor: 4_120_000_000, awaitingMinor: 1_060_000_000, latest: rows, complete: true }
+    : { total: 0, byState: { awaiting: 0, paid: 0, cancelled: 0, no_show: 0, check: 0 }, paidMinor: 0, awaitingMinor: 0, latest: rows, complete: true };
+}

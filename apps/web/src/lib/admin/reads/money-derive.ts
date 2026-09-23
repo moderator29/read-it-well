@@ -5,6 +5,9 @@ import type {
   LedgerPage,
   MoneyFlow,
   ReconciliationHealth,
+  RentChargeRow,
+  RentCharges,
+  RentChargeState,
 } from "./money-types";
 
 /**
@@ -439,4 +442,70 @@ export function cleanShare(health: ReconciliationHealth): number | null {
   const denominator = health.expectedRuns ?? health.runs;
   if (denominator <= 0) return null;
   return Math.round((health.clean / denominator) * 100);
+}
+
+/** The slice of a `rent_payments` row the rent panel needs, already joined to its booking. */
+export type RentChargeLike = Omit<RentChargeRow, "state" | "listingTitle" | "tenantName"> & {
+  listingTitle?: string | null;
+  tenantName?: string | null;
+  /** The carrying booking's status, null when the booking was not found. */
+  bookingStatus: string | null;
+  /** A SUCCESSFUL transaction has settled against the carrying booking. */
+  paid: boolean;
+};
+
+/**
+ * Where a tenancy charge stands, from its booking and its payment. A cancelled
+ * booking is cancelled whether or not money moved (the refund is the booking
+ * refund's record); a no-show is its own word; a paid charge is paid; an
+ * unpaid PENDING one is awaiting the tenant. Anything else (a CONFIRMED or
+ * COMPLETED booking with no settled payment, or a charge whose booking was not
+ * found) is not guessed at: it is "check", and the desk says a person should look.
+ */
+export function rentChargeState(bookingStatus: string | null, paid: boolean): RentChargeState {
+  if (bookingStatus === "CANCELLED") return "cancelled";
+  if (bookingStatus === "NO_SHOW") return "no_show";
+  if (paid && bookingStatus !== null) return "paid";
+  if (bookingStatus === "PENDING") return "awaiting";
+  return "check";
+}
+
+/** Every rent charge into exact counts by state, two kobo sums and the newest `latest`. */
+export function rentFromWhole(
+  charges: readonly RentChargeLike[],
+  total: number,
+  complete: boolean,
+  latest = 6,
+): RentCharges {
+  const byState: Record<RentChargeState, number> = { awaiting: 0, paid: 0, cancelled: 0, no_show: 0, check: 0 };
+  let paidMinor = 0;
+  let awaitingMinor = 0;
+  const rows: RentChargeRow[] = [];
+  for (const c of charges) {
+    const state = rentChargeState(c.bookingStatus, c.paid);
+    byState[state] += 1;
+    if (state === "paid") paidMinor += c.totalMinor;
+    if (state === "awaiting") awaitingMinor += c.totalMinor;
+    rows.push({
+      id: c.id,
+      bookingId: c.bookingId,
+      listingTitle: c.listingTitle ?? null,
+      tenantName: c.tenantName ?? null,
+      moveIn: c.moveIn,
+      rentPeriod: c.rentPeriod,
+      totalMinor: c.totalMinor,
+      currency: c.currency,
+      state,
+      createdAt: c.createdAt,
+    });
+  }
+  rows.sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
+  return {
+    total,
+    byState,
+    paidMinor,
+    awaitingMinor,
+    latest: rows.slice(0, latest),
+    complete: complete && charges.length === total,
+  };
 }

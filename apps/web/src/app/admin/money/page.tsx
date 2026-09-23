@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getEscrowConsole, getMoneyConsole, getRefundConsole } from "@/lib/admin/money-queries";
-import { getMoneyDesk, getReconciliationHealth } from "@/lib/admin/reads/money";
+import { getMoneyDesk, getReconciliationHealth, getRentCharges } from "@/lib/admin/reads/money";
 import { adminUi } from "../_components/ui";
 import { readQueueQuery } from "../_components/QueueFilters";
 import { flatParams } from "./_desk/Desk";
@@ -30,6 +30,8 @@ export const dynamic = "force-dynamic";
  *   against an exact count. Never a total over a capped list.
  * - Reconciliation: `getReconciliationHealth`, every
  *   `wallet.reconciliation.run` audit row in the last seven days.
+ * - Tenancy charges: `getRentCharges`, every `rent_payments` row with its
+ *   carrying booking's status and settled payment, checked against an exact count.
  * - Stuck debits and the wallets list: `getMoneyConsole`, as before.
  * - Refunds: `getRefundConsole`. Disputes: `getEscrowConsole`, with the
  *   ruling control calling Session A's `resolveEscrow` unchanged.
@@ -62,7 +64,7 @@ export default async function AdminMoneyPage({
   const narrowed = Boolean(query.q || query.from || query.to);
   const page = readPage(params.page);
 
-  const [read, desk, refunds, disputes, runs] = await Promise.all([
+  const [read, desk, refunds, disputes, runs, rent] = await Promise.all([
     getMoneyConsole(query),
     getMoneyDesk({ ...query, page, pageSize: LEDGER_PAGE_SIZE }),
     getRefundConsole(query),
@@ -70,6 +72,7 @@ export default async function AdminMoneyPage({
        decision from it that is a refund question, made reachable here. */
     getEscrowConsole({ status: "DISPUTED" }),
     getReconciliationHealth(),
+    getRentCharges(),
   ]);
 
 
@@ -96,6 +99,7 @@ export default async function AdminMoneyPage({
       refunds={refunds}
       disputes={disputes}
       health={runs.state === "ok" ? runs.data : null}
+      rent={rent.state === "ok" ? rent.data : null}
       now={now}
     />
   );

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  rentChargeState,
+  rentFromWhole,
   cleanShare,
   countdown,
   flowFromWhole,
@@ -244,5 +246,42 @@ describe("pipelineFromWhole against the live schema", () => {
     ]);
     expect(p.byState.CANCELLED).toEqual({ count: 1, amountMinor: 9 });
     expect(p.byPurpose.agency_fee).toEqual({ count: 1, amountMinor: 9 });
+  });
+});
+
+describe("rent charges (rent_payments)", () => {
+  const base = { bookingId: "b", moveIn: "2026-10-01", rentPeriod: "year", currency: "NGN" };
+  it("reads a charge's state from its booking and its settled payment", () => {
+    expect(rentChargeState("PENDING", false)).toBe("awaiting");
+    expect(rentChargeState("PENDING", true)).toBe("paid");
+    expect(rentChargeState("CONFIRMED", true)).toBe("paid");
+    expect(rentChargeState("CANCELLED", true)).toBe("cancelled");
+    expect(rentChargeState("NO_SHOW", false)).toBe("no_show");
+    expect(rentChargeState("CONFIRMED", false)).toBe("check");
+    expect(rentChargeState(null, true)).toBe("check");
+  });
+  it("counts every charge exactly, sums kobo by state and lists the newest first", () => {
+    const out = rentFromWhole(
+      [
+        { ...base, id: "1", totalMinor: 250_000_00, createdAt: "2026-09-01T10:00:00Z", bookingStatus: "PENDING", paid: false },
+        { ...base, id: "2", totalMinor: 180_000_00, createdAt: "2026-09-03T10:00:00Z", bookingStatus: "CONFIRMED", paid: true },
+        { ...base, id: "3", totalMinor: 90_000_00, createdAt: "2026-09-02T10:00:00Z", bookingStatus: "CANCELLED", paid: false },
+        { ...base, id: "4", totalMinor: 70_000_00, createdAt: "2026-09-04T10:00:00Z", bookingStatus: "CONFIRMED", paid: false },
+      ],
+      4,
+      true,
+      3,
+    );
+    expect(out.byState).toEqual({ awaiting: 1, paid: 1, cancelled: 1, no_show: 0, check: 1 });
+    expect(out.paidMinor).toBe(180_000_00);
+    expect(out.awaitingMinor).toBe(250_000_00);
+    expect(out.latest.map((r) => r.id)).toEqual(["4", "2", "3"]);
+    expect(out.complete).toBe(true);
+  });
+  it("says it is not whole when the rows read disagree with the exact count", () => {
+    const out = rentFromWhole([], 2, true);
+    expect(out.total).toBe(2);
+    expect(out.complete).toBe(false);
+    expect(out.latest).toEqual([]);
   });
 });

@@ -9,9 +9,11 @@ import {
   ledgerFromWhole,
   pulseFromWhole,
   reconciliationFromAudit,
+  rentFromWhole,
   settledBetween,
+  type RentChargeLike,
 } from "./money-derive";
-import type { LedgerPage, MoneyFlow, MoneyPulse, ReconciliationHealth } from "./money-types";
+import type { LedgerPage, MoneyFlow, MoneyPulse, ReconciliationHealth, RentCharges } from "./money-types";
 
 /**
  * THE MONEY DESK'S READS. Session B's, under the founder's reads split of 22
@@ -362,6 +364,103 @@ export async function getReconciliationHealth(
       if (last) health.lastRunAt = last.created_at;
     }
     return { state: "ok", data: health };
+  } catch {
+    return UNAVAILABLE;
+  }
+}
+
+/** Ids per `in (...)` filter, so a long list never makes an over-long URL. */
+const IN_CHUNK = 200;
+
+/**
+ * TENANCY CHARGES, `rent_payments`, the one money path no desk showed.
+ *
+ * Every row, checked against an exact count, under `rent_payments_admin_select`
+ * (read live: admin and super_admin). A charge carries no status of its own;
+ * it rides a `bookings` row, so every carrying booking's status is read
+ * (`bookings_admin_all`) and every SUCCESSFUL transaction against those
+ * bookings (`transactions_admin_select`). `rentFromWhole` turns that into
+ * exact counts by state. Titles and tenant names are read only for the rows
+ * the panel prints. Select only; nothing here writes.
+ */
+export async function getRentCharges(latest = 6): Promise<AdminRead<RentCharges>> {
+  const access = await requireAdmin();
+  if (access.state !== "admin") return UNAVAILABLE;
+  const db: Client = access.supabase;
+  try {
+    const [total, charges] = await Promise.all([
+      exactCount(db.from("rent_payments").select("id", { count: "exact", head: true })),
+      readEvery<{
+        id: string;
+        booking_id: string;
+        listing_id: string;
+        tenant_id: string;
+        move_in: string;
+        rent_period: string;
+        total_minor: number;
+        currency: string;
+        created_at: string;
+      }>((from, to) =>
+        db
+          .from("rent_payments")
+          .select("id, booking_id, listing_id, tenant_id, move_in, rent_period, total_minor, currency, created_at")
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: true })
+          .range(from, to),
+      ),
+    ]);
+    if (total === null || !charges) return UNAVAILABLE;
+
+    const bookingIds = [...new Set(charges.rows.map((c) => c.booking_id))];
+    const statusOf = new Map<string, string>();
+    const paid = new Set<string>();
+    for (let i = 0; i < bookingIds.length; i += IN_CHUNK) {
+      const ids = bookingIds.slice(i, i + IN_CHUNK);
+      const [bookings, settled] = await Promise.all([
+        db.from("bookings").select("id, status").in("id", ids),
+        db.from("transactions").select("booking_id").eq("status", "SUCCESSFUL").in("booking_id", ids),
+      ]);
+      if (bookings.error || settled.error) return UNAVAILABLE;
+      for (const b of bookings.data ?? []) statusOf.set(b.id, b.status);
+      for (const t of settled.data ?? []) if (t.booking_id) paid.add(t.booking_id);
+    }
+
+    const like: RentChargeLike[] = charges.rows.map((c) => ({
+      id: c.id,
+      bookingId: c.booking_id,
+      moveIn: c.move_in,
+      rentPeriod: c.rent_period,
+      totalMinor: c.total_minor,
+      currency: c.currency,
+      createdAt: c.created_at,
+      bookingStatus: statusOf.get(c.booking_id) ?? null,
+      paid: paid.has(c.booking_id),
+    }));
+    const out = rentFromWhole(like, total, charges.complete, latest);
+
+    const byId = new Map(charges.rows.map((c) => [c.id, c]));
+    const listingIds = [...new Set(out.latest.map((r) => byId.get(r.id)?.listing_id).filter((x): x is string => Boolean(x)))];
+    const tenantIds = [...new Set(out.latest.map((r) => byId.get(r.id)?.tenant_id).filter((x): x is string => Boolean(x)))];
+    const [titles, people] = await Promise.all([
+      listingIds.length ? db.from("listings").select("id, title").in("id", listingIds) : Promise.resolve({ data: [], error: null }),
+      tenantIds.length ? db.from("profiles").select("id, display_name").in("id", tenantIds) : Promise.resolve({ data: [], error: null }),
+    ]);
+    const titleOf = new Map((titles.data ?? []).map((l: { id: string; title: string | null }) => [l.id, l.title]));
+    const nameOf = new Map((people.data ?? []).map((p: { id: string; display_name: string | null }) => [p.id, p.display_name]));
+    return {
+      state: "ok",
+      data: {
+        ...out,
+        latest: out.latest.map((r) => {
+          const row = byId.get(r.id);
+          return {
+            ...r,
+            listingTitle: (row && titleOf.get(row.listing_id)) ?? null,
+            tenantName: (row && nameOf.get(row.tenant_id)) ?? null,
+          };
+        }),
+      },
+    };
   } catch {
     return UNAVAILABLE;
   }

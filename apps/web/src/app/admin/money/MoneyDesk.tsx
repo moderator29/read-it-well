@@ -9,11 +9,11 @@ import { EscrowRuling } from "../_components/MoneyDecisions";
 import { QueueFilters } from "../_components/QueueFilters";
 import { EntryRow, RefundsPanel } from "./MoneyRows";
 import { CalmNote, DeskHead, EmptyChart, Kpi, NumberedPager, Panel, TableNote, Waiting, lastMonths } from "./_desk/Desk";
-import { SeriesChart, SeriesLegend, type Series } from "./_desk/charts";
+import { SeriesChart, SeriesLegend, StatusBar, type Series } from "./_desk/charts";
 import { ReconciliationPanel } from "./_desk/Reconciliation";
 import { percentChange } from "@/lib/admin/reads/money-derive";
 import type { MoneyDesk as MoneyDeskData } from "@/lib/admin/reads/money";
-import type { LedgerPage, MoneyFlow, ReconciliationHealth } from "@/lib/admin/reads/money-types";
+import type { LedgerPage, MoneyFlow, ReconciliationHealth, RentCharges, RentChargeState } from "@/lib/admin/reads/money-types";
 
 /** Ledger rows per page. The render draws six; ten is a page an operator can scan without paging every few seconds. */
 export const LEDGER_PAGE_SIZE = 10;
@@ -38,6 +38,7 @@ export function MoneyDesk({
   refunds,
   disputes,
   health,
+  rent,
   now,
 }: {
   locale: Locale;
@@ -52,6 +53,8 @@ export function MoneyDesk({
   refunds: AdminRead<RefundConsole>;
   disputes: AdminRead<EscrowConsole>;
   health: ReconciliationHealth | null;
+  /** `getRentCharges`: every tenancy charge by state, and the newest. Null when it could not be read. */
+  rent: RentCharges | null;
   now: number;
 }) {
   const { wallets, recent, stuck, totals } = read;
@@ -164,6 +167,8 @@ export function MoneyDesk({
           )}
         </Panel>
       </div>
+
+      <RentPanel rent={rent} locale={locale} ui={ui} />
 
       <QueueFilters
         base="/admin/money"
@@ -294,6 +299,116 @@ export function MoneyDesk({
   );
 }
 
+const RENT_STATE: Record<RentChargeState, { label: string; tone: "success" | "warning" | "danger" | "info" }> = {
+  awaiting: { label: "Awaiting payment", tone: "warning" },
+  paid: { label: "Paid", tone: "success" },
+  cancelled: { label: "Cancelled", tone: "danger" },
+  no_show: { label: "Did not move in", tone: "danger" },
+  check: { label: "Needs a look", tone: "info" },
+};
+
+const RENT_PERIOD: Record<string, string> = { month: "Monthly", quarter: "Quarterly", year: "Yearly" };
+
+/**
+ * Tenancy charges (`rent_payments`): the move-in money a tenant pays after an
+ * accepted inspection. Exact counts by state on the status four, what is paid
+ * and what is awaited in kobo through the formatter, and the newest charges.
+ * Whole-platform, so it never re-scopes under the filter below it.
+ */
+function RentPanel({ rent, locale, ui }: { rent: RentCharges | null; locale: Locale; ui: AdminUi }) {
+  if (!rent) {
+    return (
+      <Panel title="Tenancy charges">
+        <Waiting
+          title="Tenancy charges could not be read"
+          body="Every move-in charge by where it stands, and the newest ones. The read did not answer just now; nothing about the charges themselves is implied. Reload in a moment."
+        />
+      </Panel>
+    );
+  }
+  const b = rent.byState;
+  const money = (minor: number, currency?: string) => formatMoney(minor, locale, currency);
+  return (
+    <Panel
+      title="Tenancy charges"
+      hint={`${rent.total} ${rent.total === 1 ? "charge" : "charges"}${rent.complete ? "" : ", more than one pass reads"}`}
+    >
+      <StatusBar
+        label="Tenancy charges by state"
+        segments={[
+          { key: "awaiting", label: "Awaiting payment", count: b.awaiting, tone: "pending" },
+          { key: "paid", label: "Paid", count: b.paid, tone: "good" },
+          { key: "ended", label: "Cancelled or did not move in", count: b.cancelled + b.no_show, tone: "bad" },
+          { key: "check", label: "Needs a look", count: b.check, tone: "info" },
+        ]}
+      />
+      <dl className="nf-md-sum mt-md">
+        <div className="nf-md-sum__row">
+          <dt>Paid</dt>
+          <dd className="nf-md-sum__figure nf-numeric">{money(rent.paidMinor)}</dd>
+        </div>
+        <div className="nf-md-sum__row">
+          <dt>Awaiting payment</dt>
+          <dd className="nf-md-sum__figure nf-numeric">{money(rent.awaitingMinor)}</dd>
+        </div>
+      </dl>
+      <table className="nf-md-table mt-md">
+        <caption className="sr-only">The newest tenancy charges</caption>
+        <thead>
+          <tr>
+            <th scope="col">Opened</th>
+            <th scope="col">Tenancy</th>
+            <th scope="col">Move-in</th>
+            <th scope="col" className="nf-md-num">
+              Total
+            </th>
+            <th scope="col">State</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rent.latest.length === 0 ? (
+            <TableNote
+              columns={5}
+              note={{
+                title: "No tenancy charge yet",
+                fills: "Every move-in charge by where it stands, what is paid and what is awaited, and the newest charges.",
+                creates:
+                  "A charge opens when a tenant starts paying the move-in costs on an inspection the lister accepted.",
+                action: { href: "/admin/bookings", label: "Open bookings" },
+              }}
+            />
+          ) : (
+            rent.latest.map((row) => (
+              <tr key={row.id}>
+                <td className="nf-md-date" data-label="Opened">
+                  {ui.day(row.createdAt)}
+                </td>
+                <td className="nf-md-desc" data-label="Tenancy">
+                  <span className="block min-w-0">
+                    <span className="block">
+                      {row.listingTitle ?? "A listing that is no longer there"}
+                      {row.tenantName ? ` · ${row.tenantName}` : ""}
+                    </span>
+                    <span className="nf-md-ref">{row.bookingId}</span>
+                  </span>
+                </td>
+                <td data-label="Move-in">
+                  {ui.day(`${row.moveIn}T12:00:00Z`)} · {RENT_PERIOD[row.rentPeriod] ?? row.rentPeriod}
+                </td>
+                <td className="nf-md-num nf-md-strong" data-label="Total">
+                  {money(row.totalMinor, row.currency)}
+                </td>
+                <td data-label="State">
+                  <ui.StatusChip label={RENT_STATE[row.state].label} tone={RENT_STATE[row.state].tone} />
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </Panel>
+  );
+}
 
 function monthLabel(month: string, locale: Locale, withYear = false): string {
   return formatDate(new Date(`${month}-15T12:00:00Z`), locale, {

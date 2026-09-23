@@ -135,3 +135,40 @@ export type SupplyConsole = {
   topAreas: { area: string; count: number }[];
   byPropertyType: { type: string; count: number }[];
 };
+
+/**
+ * Tenancy charges (`rent_payments`) on the money desk. A charge has no status
+ * column of its own: it rides a `bookings` row through the booking rails, so
+ * where it stands is read from that row's status and from whether a
+ * SUCCESSFUL transaction has settled against it.
+ */
+export type RentChargeState = "awaiting" | "paid" | "cancelled" | "no_show" | "check";
+
+export const RENT_CHARGE_STATES: readonly RentChargeState[] = ["awaiting", "paid", "cancelled", "no_show", "check"];
+
+export type RentChargeRow = {
+  id: string;
+  bookingId: string;
+  listingTitle: string | null;
+  tenantName: string | null;
+  moveIn: string;
+  rentPeriod: string;
+  totalMinor: number;
+  currency: string;
+  state: RentChargeState;
+  createdAt: string;
+};
+
+export type RentCharges = {
+  /** Exact count of `rent_payments`. */
+  total: number;
+  byState: Record<RentChargeState, number>;
+  /** Sum of the frozen totals of paid charges, kobo. */
+  paidMinor: number;
+  /** Sum of the frozen totals of charges still awaiting payment, kobo. */
+  awaitingMinor: number;
+  /** Newest first. */
+  latest: RentChargeRow[];
+  /** False when the table is larger than one pass reads, or the count disagreed. */
+  complete: boolean;
+};

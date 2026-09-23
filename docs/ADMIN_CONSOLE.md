@@ -350,7 +350,8 @@ decides it; it decides nothing itself.
 **Route:** `/admin/money`. **Who:** anyone holding `admin` or `super_admin`
 (checked by `requireAdmin()` in the layout and again inside every read and
 action; RLS policies `wallets_select_admin`, `wallet_entries_select_admin`,
-`escrows_select_admin`, `transactions_admin_select` and
+`escrows_select_admin`, `transactions_admin_select`,
+`rent_payments_admin_select`, `bookings_admin_all` and
 `audit_log_admin_select` decide what the reads can see).
 
 **What it is for.** Answering "where is this person's money" and "is the
@@ -368,6 +369,7 @@ platform's money where it should be" without asking an engineer to run SQL.
 | Money in vs money out | Settled money into wallets against settled money out, per Lagos month, from the first month that had any money, for up to 12 months. Hover a month to read both figures. With fewer than two months there is no line, and the panel says so | `getMoneyDesk()` |
 | Reconciliation health | The share of payment reconciliation runs in the last 7 days that came back clean, the last clean run, and a badge: Healthy, Needs a person, Gone quiet (no run for longer than the 3 hour allowance in `lib/cron/freshness.ts`) or No runs recorded | `getReconciliationHealth()` in `lib/admin/reads/money.ts`, `audit_log` rows with action `wallet.reconciliation.run` |
 | Transaction summary | Money in, money out and the net over the last 30 days | `getMoneyDesk()` |
+| Tenancy charges | Every move-in charge (`rent_payments`: what a tenant pays to take the keys after the lister accepted an inspection), by where it stands, on one status bar with a word and a count per state: Awaiting payment (its booking is PENDING and nothing has settled), Paid (a SUCCESSFUL transaction settled against its booking), Cancelled or did not move in (the booking was cancelled, including by the 48 hour sweep of unpaid holds, or marked no-show), Needs a look (a confirmed or completed booking with no settled payment, or a charge whose booking was not found: never guessed at). Then what is paid and what is awaited in naira, and the six newest charges: opened, listing and tenant, the carrying booking id, move-in day and period, the frozen total, the state. Whole-platform: the filter below never narrows it. With no charge it keeps its bar, key and table head and says what fills it, what creates a charge, and links to bookings | `getRentCharges()` in `lib/admin/reads/money.ts`: every `rent_payments` row against an exact count, every carrying booking's status and every SUCCESSFUL transaction on those bookings; titles and names only for the rows printed |
 | Filter | One search box (a person's name, a wallet id or an entry reference) and a Lagos date range. It narrows the ledger, the wallets and the refunds together. It never changes the four cards, the chart or the summary, which always answer for the whole platform | `QueueFilters`, URL parameters `q`, `from`, `to` |
 | Ledger | Every wallet entry, newest first: date, description (the entry's note, or its kind, and the owner), the reference in full, Credit or Debit, amount, and the platform float straight after that entry. Unsettled entries carry a status badge and leave the balance unchanged. Numbered pages of 10 (`?page=`) | `getMoneyDesk()` |
 | Wallets | Newest forty wallets with settled and held figures, narrowed by the filter | `getMoneyConsole()` |
@@ -397,7 +399,8 @@ word. Nothing else on this desk writes.
 
 **Today's reality (22 September).** One wallet, two entries (one completed
 ₦1,000 top-up, one failed ₦1,000 withdrawal), no escrows, no failed card
-charges, reconciliation clean on every recorded run. The desk draws exactly
+charges, no tenancy charges (`rent_payments` held 0 rows on 23 September),
+reconciliation clean on every recorded run. The desk draws exactly
 that: a float of ₦1,000, zeros elsewhere, no trend line (one month of money
 is not a trend), and a two row ledger.
 
