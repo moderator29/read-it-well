@@ -1,0 +1,57 @@
+P-C2, run 23 September 2026 against `uccixoonmbhrnyczyigt` through
+`mcp__Supabase__apply_migration`, as
+`probe_comparables_admit_the_real_and_refuse_the_example`. The probe ends in a
+deliberate `raise exception`, so the whole transaction unwound.
+
+RUN 1. PASSED, every assertion, first attempt:
+
+  ERROR:  P0001: TWO SIDED PROBE PASSED, ROLLING BACK.
+    1 control: both twins PUBLISHED and readable
+    2 example twin: NOT a comparable
+    3 real twin: IS a comparable, set size 3
+    4 flip: is_demo true removes it, false returns it, nothing else moved
+    4c gate on 3 real: refused / too_few_comparables, count 3
+    5 area report: 1 group of 3 real, 0 groups when the same rows are demo
+    6 as anon: both twins still in the catalogue, examples are not hidden
+      from search
+
+ROLLBACK VERIFIED AFTERWARDS, not assumed. A separate read through
+`execute_sql`:
+
+  listings_total 64 | non_demo 0 | probe_rows_left 0 | probe_titles_left 0
+  | probe_migrations_recorded 0
+
+`non_demo 0` is the estate back exactly as it was: 64 of 64 examples.
+
+---------------------------------------------------------------------------
+WHAT THIS PROVES THAT `price_check_stage_one.sql` COULD NOT.
+
+Stage one's probe asserts that the live estate refuses with `no_comparables`.
+That is true and it is worth asserting, and on its own it is HALF A TEST. On
+an estate where all 64 published listings are examples, a predicate that
+correctly excludes examples and a predicate that excludes everything return
+the identical answer, which is nothing. A green light of that shape is the
+exact blind light that hit this platform twice on 23 September: ledger section
+65, where the whole public catalogue was refused to everybody for eleven and a
+half hours with every check still green, and section 46.
+
+So this probe puts TWO ROWS in front of `comparable_listings` that differ in
+ONE COLUMN and asserts both answers, then flips that one column on a row that
+is already in the set and watches it leave and come back. Assertion 3 is the
+one that no previous test on this build had: A NON-DEMO LISTING CAN REACH A
+COMPARABLE. Assertion 4 is the one that makes 2 and 3 mean something: the row
+that left the set is the same row that was in it, so `is_demo` and nothing
+else decided.
+
+Assertion 6 is the rule's other half, and it is read AS `anon` because that is
+the role a signed-out visitor holds. Example listings are excluded from
+statistics and from Price Check comparables ONLY. They are NOT excluded from
+search, the home page, the feed or a listing page. A probe that only proved
+exclusion would pass just as happily on the day somebody widened the rule and
+hid the whole catalogue, which is what section 67 is about.
+
+NOT PROVEN HERE. Nothing on a screen. This container's egress proxy refuses
+`CONNECT uccixoonmbhrnyczyigt.supabase.co:443` with 403, so no dev server here
+reaches the project and a data-backed route answers the not-found body at HTTP
+200. Everything above is the database answering, which is where the predicate
+lives.
