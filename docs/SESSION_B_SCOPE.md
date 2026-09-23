@@ -180,6 +180,8 @@ policy, Session B writes it as a request below.
 - `apps/web/src/components/auth/EmailAuthForm.tsx`
 - `apps/web/src/components/auth/fields.tsx`
 - `apps/web/src/app/css/auth.css`
+- `apps/web/src/app/(auth)/AuthBackBar.tsx` and `apps/web/src/app/(auth)/auth-back.test.ts` (new):
+  the auth screens' back control (Session A's R14) and its resolver test
 - `apps/web/public/brand/third-party/google-g.svg` (new): Google's standard G for the
   Continue with Google door, as a file because its four colours are Google's, not tokens
 

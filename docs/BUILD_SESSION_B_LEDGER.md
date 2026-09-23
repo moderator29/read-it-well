@@ -574,6 +574,7 @@ swept with it. Proofs: `docs/design/proofs/session-b/signin/`.
 | 11 | Google | `startGoogleOAuth` form action, provider fixed server side, `redirectTo` = `/auth/callback?next=...&intent=sign-in`; the callback page runs `completeEmailVerification` (code exchange) and shows the sign-in moment, not "Verifying your email" | Works in code. Drawn only when `getProviderStates` says Google is on |
 | 12a | First run (request W2) | `/sign-in` sends a device without `vallo_first_run=seen` to `/welcome?next=<the whole sign-in address>`; straight through on the cookie, on `welcomed=1`, and on the account notices (`first-run-gate.ts`, six unit tests) | NEW. Measured: a cookieless browser opening `/sign-in?next=/home` lands on `/welcome?next=%2Fsign-in%3Fnext%3D%252Fhome`. It arrives as a streamed redirect (HTTP 200 with the `NEXT_REDIRECT` marker and a meta refresh), not a 307 header, because the auth layout has begun streaming; a header-level 307 would need `proxy.ts`, which is not mine |
 | 12 | Sign up link | `/sign-up` (the real entry; the welcome worker may route it through `/welcome`) | Works |
+| 12c | Back (Session A's R14) | `AuthBackBar` in the (auth) layout mounts the shared `BackButton` when `parentOf` answers "parent"; a 44 px glass square top left, opposite the language control. Walked on the production build, pressing it on each route: `/sign-in` to `/welcome`, `/sign-in/email` to `/sign-in`, `/sign-up` to `/welcome`, `/sign-up/email` to `/sign-up`, `/sign-up/verify` to `/sign-up/email`, `/forgot-password` and `/reset-password` to `/sign-in`. `/auth/callback` sits outside the group (a moment that navigates itself) and draws none, confirmed. `auth-back.test.ts` holds all eight parents and that none is an app root | NEW. `/sign-in`'s parent is already `/welcome` in `route-parents.ts` (not `/start`), so back from sign in no longer heads to sign up; no request needed |
 | 12b | "What Vallo is" | On the sign-up card only; now `/welcome?next=/sign-up` with prefetch off (it was `/start`, a redirect prefetched on every render, which kept the page's network from ever settling). Sign-in carries no such link: a first-time visitor is already sent to first run by 12a | CHANGED |
 
 Broken links found and not in my files (none blocking):
@@ -646,6 +647,7 @@ render's own midpoint (tile top 14.5 per cent to plinth foot 92.4, midpoint
 | Icon plates | none | none | n/a |
 | Status badges | none | none | n/a |
 | Language control | not drawn | 44 px glass rounded rectangle, top right, clear of the tile | kept: a working control |
+| Back control | not drawn | 44 px glass rounded rectangle (corner 14, ratio 0.32), top left at 16, 16, clear of the tile; card and lockup positions unchanged (card 75, 368, 240 x 309) | added: R14, Android back |
 | Terms line | not drawn | 12 px muted, two lines, under the floor's lit reflection | kept: a Google sign-up passes no tick |
 | Colours | one blue family | one blue family plus Google's G | yes |
 
@@ -679,18 +681,8 @@ above.
 
 ### (c) Light mode
 
-Rule 22 keeps the auth family dark in both themes, so light mode's duty is to
-render the SAME screen. Measured: every element and pseudo-element under
-`main` compared by computed colour, background, border, shadow, display,
-opacity and filter, dark against light: **0 differences on `/sign-in`,
-`/sign-in/email`, `/sign-up`, `/forgot-password` and the harness's refused
-state** (round three). Two light leaks were found and closed on
-the way: `light.css` repainted `.nf-field` rgb(0,0,32) and took the primary's
-edge to transparent inside the pinned subtree (fixed by leading with
-`.nf-auth[data-theme="dark"]`); and `.nf-aurora` / `.nf-grid-veil`, which
-`light.css` hid in light mode (survey 9.5, item 1), are no longer used here.
-The logo is the render crop on a night stage in both themes, so it cannot
-vanish.
+~~Light mode: 0 computed-style differences on five routes.~~ Light mode removed
+by the founder on 23 September; dark only.
 
 ### (d) Shape sweep
 
@@ -713,8 +705,7 @@ files: 0 errors. Unit tests: 49 passing across `app/(auth)/sign-in`,
 ### Proofs (`docs/design/proofs/session-b/signin/`)
 Re-shot after the final round-three change, production build, 390 x 844 at 2x
 unless named. LIVE (no fixtures): `signin-vs-55A56F21-390.jpg` (the render
-beside the build), `signin-390-dark.jpg`, `signin-390-light.jpg` (rule 22: the
-same dark screen), `signin-email-390-dark.jpg`, `signup-390-dark-inherits.jpg`,
+beside the build), `signin-390-dark.jpg`, `signin-email-390-dark.jpg`, `signup-390-dark-inherits.jpg`,
 `forgot-390-dark-inherits.jpg`, `signin-1440-dark.jpg`. FIXTURE-BACKED (R-G,
 harness committed at `apps/web/src/app/(dev)/preview/session-b/signin/`, open
 with `VALLO_PREVIEW_HARNESS=1`): `harness-google-390.jpg`,

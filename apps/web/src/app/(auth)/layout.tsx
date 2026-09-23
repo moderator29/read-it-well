@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
+import { AuthBackBar } from "./AuthBackBar";
 
 /**
  * Auth shell, to its governing image (`55A56F21`, "Welcome back").
@@ -47,13 +48,12 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
      * palette on `:root, [data-theme="dark"]`, so this element and everything
      * inside it take the dark values whatever the document is set to.
      *
-     * The second half of the ruling is that this surface carries NO LIGHT
-     * TWIN, because a rule keyed on `:root[data-theme="light"] .nf-auth__x`
-     * still matches when the document really is light. What light mode owes
-     * this screen is that it renders IDENTICALLY, logo, sky and all, and the
-     * Session B ledger section 3 records the measurement.
+     * DARK ONLY: light mode was removed from the platform on 23 September.
+     * The attribute stays so the tokens resolve dark here whatever the root
+     * says while the rest of the platform finishes that change.
      */
     <main id="main" className="nf-auth" data-theme="dark">
+      <AuthBackBar />
       <div className="nf-auth__lang">
         <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
       </div>

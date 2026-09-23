@@ -3,11 +3,10 @@
   root; `docs/design/references/55A56F21-...png`). Owned by Session B, see
   `docs/SESSION_B_SCOPE.md`.
 
-  THIS FAMILY HAS ONE THEME. The auth screen and first run are dark in both
-  themes, permanently (ledger rule 22), so there are no light-theme rules in
-  this file and adding one would break the ruling rather than complete it.
-  Light mode's obligation here is to render the SAME screen, which the
-  Session B ledger measures.
+  DARK ONLY. Light mode was removed from the platform by the founder on
+  23 September; this family never had a light twin (rule 22) and has none
+  now. The `.nf-auth[data-theme="dark"]` prefixes below out-rank rules
+  `light.css` keys on the document; they are inert once that file goes.
 
   THE NUMBERS. The render is a 1024x1536 poster with no phone frame, so its
   full width is not a phone's width: at the brief's formula the card would be
@@ -286,6 +285,32 @@
     text-decoration: underline;
   }
 
+  /*
+   * The way back (R14), top left, opposite the language control and matched
+   * to it: a 44 px glass square on the control radius (14 / 44 = 0.32, under
+   * the shape review line), the well fill and the soft brand edge. It sits in
+   * the frame's corner, clear of the lockup, so the composition is untouched.
+   */
+  .nf-auth__backbar {
+    position: absolute;
+    left: var(--nf-space-md);
+    top: max(var(--nf-space-md), env(safe-area-inset-top, 0px));
+    z-index: 2;
+  }
+  .nf-auth .nf-auth__back-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    background: var(--nf-well-fill);
+    box-shadow:
+      inset 0 1px 0 var(--nf-glass-rim-thin),
+      0 0 10px var(--nf-glow-wash);
+  }
+  @media (hover: hover) {
+    .nf-auth .nf-auth__back-btn:hover {
+      border-color: var(--nf-brand-edge);
+    }
+  }
   .nf-auth__lang {
     position: absolute;
     right: var(--nf-space-md);
