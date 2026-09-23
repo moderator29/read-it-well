@@ -4,7 +4,6 @@ import "./profile.css";
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatNumber, type Locale } from "@vallo/i18n";
-import Image from "next/image";
 import Link from "next/link";
 import { ProfilePosts } from "@/components/social/profile/ProfilePosts";
 import type { PostView } from "@/components/social/feed/PostCard";
@@ -97,15 +96,6 @@ function BelongingRow({ row, value }: { row: Belonging; value: string | null }) 
         <span className="nf-pf-plate__object">
           <BrandIcon name={row.object} size={68} />
         </span>
-        {/* The same object re-inked for paper, cut from the same box of the
-            render (scripts/design/session-b-crops.mjs, block PROFILE). */}
-        <Image
-          src={`/brand/session-b/profile/${row.object}-day.webp`}
-          alt=""
-          width={57}
-          height={57}
-          className="nf-pf-plate__day"
-        />
       </span>
       <span className="nf-pf-row__body">
         <span className="nf-pf-row__title">{row.title}</span>

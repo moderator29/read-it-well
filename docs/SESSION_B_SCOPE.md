@@ -126,8 +126,6 @@ policy, Session B writes it as a request below.
 - `apps/web/src/app/(dev)/preview/session-b/profile/**` (the proof harness, ruling R-G)
 - `apps/web/tests/profile.spec.mjs`: the spec for this surface; only its
   selectors for the profile's own classes (`.nf-pf-cover`).
-- `apps/web/public/brand/session-b/profile/**` and the PROFILE block of
-  `scripts/design/session-b-crops.mjs` (the paper renditions of the five row objects)
 - `packages/i18n/src/locales/*.ts`: the added `socialProfile.accountPage`
   keys only (the profile's copy; `socialProfile` is the profile namespace)
 - NOT `profile/setup/**` and NOT `profile/application/**`, with ONE exception

@@ -90,13 +90,7 @@ re-sent by the founder as `images/2.jpg`). Worker: profile. Files: `app/(app)/pr
 - **Row icons.** Exactly the shared pack's crops of this render, through `BrandIcon`:
   `calendar-grid`, `bookmark-ribbon`, `wallet-tile`, `shield-check-tile`, `role-switch-tile`.
   Each is drawn at 68px (62 for Switch role) so its glass square, 72 per cent of the artwork,
-  lands on the render's 49px plate. On paper the SAME five objects are drawn in their paper
-  rendition (round two): `public/brand/session-b/profile/<name>-day.webp`, cut from the same
-  render boxes by the PROFILE block of `scripts/design/session-b-crops.mjs` with the glow
-  identity's method (keyed, everything outside the tile's measured rounded square dropped,
-  re-inked on the brand ramp `#9CC2FF` to `#06379A` by how lit it was). The icon is identical in
-  both themes; there is never a dark square on white. Source 96 image px for 57 CSS px is 1.7 px
-  per CSS px, so at 2x and 3x the paper files are soft (`SOURCES.md` there says so).
+  lands on the render's 49px plate. (Paper renditions removed with light mode, 23 September.)
 - **Type (round four, ruling R-A).** The 1.16 factor is withdrawn. Every text role ships at the
   render's measured size: cap height in image px x 0.593, divided by the face's cap ratio
   (Poppins 0.697 for the name, Inter 0.727 for the rest). Names, titles and figures ship exactly
@@ -227,8 +221,7 @@ own `avatar_url`. (5) The glow identity (`docs/design/GLOW_IDENTITY.md`) propose
 edge and a lit interior for cards and tiles; this render measures a dim blue top edge
 (0 42 126) and a brighter foot, and its tiles are its own crops, so the governing image wins
 here. The lit segment reads `--nf-gradient-cta`, `--nf-rim-primary` and `--nf-bloom-lit-soft`
-and will follow the identity when Session A adopts it into the tokens. The paper plate follows
-the identity's pale tile.
+and will follow the identity when Session A adopts it into the tokens. (Light mode removed by the founder on 23 September; dark only.)
 
 **Round three: rows and plates lit to the render (lead review).** Sampled at the same points
 in the render and in the built page (390 dark, 2x, the final build, harness in the signed-in
@@ -273,8 +266,7 @@ saturation on the layer, not the text, gets there), a hot top rim of the ink wit
 
 Every row and plate point is within 10 on every channel; the tightest is the Switch foot rim
 (blue 10). Re-sampled on the round-four build (the harness at `/preview/session-b/profile`), rows
-11px higher than round three because the text column is shorter: identical values. Paper resets all of it: the fill layer is white,
-the plate draws no ground, rim or filter, and the paper objects sit on it as before.
+11px higher than round three because the text column is shorter: identical values.
 
 **Re-audit gate.** Pass one (image beside `v3`): the plate objects drew a second, lighter
 square inside a brand wash, the back square read as a pale blue wash over the sky, and a third
@@ -298,22 +290,10 @@ folder is from the final build.
 **Side by side:** `docs/design/proofs/session-b/profile/profile-side-by-side-390-dark.jpg`
 (render screen left, built 390 dark right, both at 780px wide).
 
-### 1.5 Light mode
+### 1.5 Light mode, and the nine items
 
-Screens: `profile-390-light.jpg`, `profile-390-light-full.jpg`,
-`profile-390-light-nohandle.jpg`, `profile-390-light-signedout.jpg`, `profile-1280-light.jpg`.
-Same anatomy on paper, with explicit `:root[data-theme="light"]` rules in `profile.css`:
-- The cover is still the photograph, with a lighter blue grade, fading into the paper canvas.
-- The gear is the header's own control on paper (white glass, brand hairline, ink glyph).
-- The ring stays lit (brand accent to primary) round a white seam; the tick badge sits on white.
-- Tabs: a white track on a brand hairline; the live half keeps the lit gradient.
-- Rows: white, `--nf-border-brand` edge, `--nf-elev-2` shadow in place of the bloom.
-- Plates: the SAME five objects in their paper rendition (pale blue glass tiles with the line
-  work in deep brand blue, the glow identity's method), with the identity's short brand shadow
-  under them. The night files are hidden on paper by CSS; there is no dark square on white
-  anywhere on the page.
-- Second lines are `--nf-content-secondary`, the chevron `--nf-content-muted`.
-Checked by eye in all five screens. No white-on-white and no vanishing mark found.
+Light mode removed by the founder on 23 September; dark only. The paper rules in `profile.css`, the `-day` object renditions, their crop block in `scripts/design/session-b-crops.mjs` and the light proofs are removed.
+Item 7 (inspection, not viewing): the profile's copy was swept in all four locales; it already says "inspections" everywhere and never "viewing", so nothing changed. Item 5 (badges): waiting on Session A's B-BADGE derivation; nothing drawn meanwhile.
 
 ### 1.6 Shape sweep, checks, and what was not verified
 
@@ -333,10 +313,9 @@ errors, 1 warning (the set-state-in-effect warning in the unchanged details shee
 before this work). `vitest run src/app/(app)/profile`: 12 passed.
 
 **Proofs** (`docs/design/proofs/session-b/profile/`, all from the final build):
-`profile-side-by-side-390-dark.jpg`, `profile-390-dark.jpg`, `profile-390-light.jpg`,
-`profile-390-dark-full.jpg`, `profile-390-light-full.jpg`, `profile-1280-dark.jpg`,
-`profile-1280-light.jpg`, `profile-390-dark-values.jpg` (row values), `-nohandle` dark and
-light, `-posts` and `-posts-empty`, `-signedout` dark and light, `profile-390-dark-switch-sheet.jpg`
+`profile-side-by-side-390-dark.jpg`, `profile-390-dark.jpg`, `profile-390-dark-full.jpg`,
+`profile-1280-dark.jpg`, `profile-390-dark-values.jpg` (row values), `-nohandle`, `-posts`,
+`-posts-empty`, `-signedout`, `profile-390-dark-switch-sheet.jpg`
 (Switch role pressed: the dock's workspace sheet open), `profile-header-before-dark.jpg` and
 `profile-header-after-dark.jpg`.
 

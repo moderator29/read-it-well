@@ -582,8 +582,7 @@
    * THE PLATE. 83 image px: 49 CSS. On night it is the render's own object,
    * cropped from `50E032EA` (`calendar-grid`, `bookmark-ribbon`,
    * `wallet-tile`, `shield-check-tile`, `role-switch-tile`), drawn at 68 so its
-   * glass square lands on 49. On paper the same slot draws the same object's
-   * paper rendition (`-day`, re-inked on the brand ramp), never a dark square.
+   * glass square lands on 49.
    */
   /*
    * The plate is lit from inside as the render draws it: rim 0 49 164 on
@@ -640,17 +639,6 @@
     display: grid;
     inline-size: 4.25rem;
     block-size: 4.25rem;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-  }
-  /* The paper rendition of the same object, centred, drawn so its square
-     lands on the plate (the crop box is 96 around an 83 square). */
-  .nf-pf-plate__day {
-    position: absolute;
-    inset-block-start: 50%;
-    inset-inline-start: 50%;
-    display: none;
-    max-inline-size: none;
     transform: translate(-50%, -50%);
     pointer-events: none;
   }
@@ -775,110 +763,5 @@
     padding: 0.5rem 1.125rem 0.5rem 0.875rem;
     border-radius: var(--nf-radius-control);
     border: 1px solid color-mix(in oklab, var(--nf-container-ink) 30%, transparent);
-  }
-
-  /* ================================================== THE PAPER TWIN */
-
-  /*
-   * Daylight. Same anatomy: the cover still a photograph (graded lighter and
-   * fading into paper rather than night), the ring lit, rows as white glass on
-   * a brand hairline with an ink shadow instead of a bloom, and the plates as
-   * the same objects re-inked for paper, because a dark square on white is the
-   * one thing this theme may never draw.
-   */
-  :root[data-theme="light"] .nf-pf {
-    --nf-pf-mist: var(--nf-content-secondary);
-  }
-  :root[data-theme="light"] .nf-pf-cover__grade {
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-brand-primary) 45%, transparent) 0%,
-      transparent 100%
-    );
-  }
-  :root[data-theme="light"] .nf-pf-cover__fade {
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-surface-canvas) 55%, transparent) 0%,
-        transparent 30%
-      ),
-      linear-gradient(
-        180deg,
-        transparent 55%,
-        color-mix(in oklab, var(--nf-surface-canvas) 75%, transparent) 82%,
-        var(--nf-surface-canvas) 100%
-      );
-  }
-  :root[data-theme="light"] .nf-pf-avatar {
-    background:
-      linear-gradient(var(--nf-surface-primary), var(--nf-surface-primary)) padding-box,
-      linear-gradient(160deg, var(--nf-brand-accent) 0%, var(--nf-brand-primary) 100%) border-box;
-    box-shadow:
-      0 0 0 1px var(--nf-glow-2),
-      0 10px 24px -14px var(--nf-glow-3);
-  }
-  :root[data-theme="light"] .nf-pf-avatar__badge,
-  :root[data-theme="light"] .nf-pf-avatar__badge--quiet {
-    background: var(--nf-surface-primary);
-    box-shadow: 0 0 0 2px var(--nf-surface-canvas);
-  }
-  :root[data-theme="light"] .nf-pf-name__tick {
-    filter: none;
-  }
-  :root[data-theme="light"] .nf-pf-counts__rule {
-    background: var(--nf-border-default);
-  }
-  :root[data-theme="light"] .nf-pf-tabs {
-    background: var(--nf-surface-primary);
-    border-color: var(--nf-border-brand);
-    box-shadow: var(--nf-elev-1);
-  }
-  :root[data-theme="light"] .nf-pf-tab {
-    color: var(--nf-content-secondary);
-  }
-  :root[data-theme="light"] .nf-pf-tab[aria-selected="true"] {
-    color: var(--nf-content-on-brand);
-    box-shadow: var(--nf-rim-primary), var(--nf-elev-2);
-  }
-  :root[data-theme="light"] .nf-pf-row {
-    border-color: var(--nf-border-brand);
-    box-shadow: var(--nf-elev-2);
-  }
-  :root[data-theme="light"] .nf-pf-row::before {
-    background: var(--nf-surface-primary);
-    filter: none;
-  }
-  :root[data-theme="light"] .nf-pf-row:hover {
-    box-shadow: var(--nf-elev-3);
-  }
-  :root[data-theme="light"] .nf-pf-row__value {
-    color: var(--nf-brand-primary);
-  }
-  :root[data-theme="light"] .nf-pf-row__chev {
-    color: var(--nf-content-muted);
-    opacity: 1;
-  }
-  /*
-   * Paper: the SAME objects as night, in their paper rendition (re-inked on
-   * the brand ramp, the glow identity's method), so the icon is identical in
-   * both themes. The rendition draws its own pale glass square, so the slot
-   * draws none; only the identity's short brand shadow sits under it.
-   */
-  :root[data-theme="light"] .nf-pf-plate {
-    border-color: transparent;
-    background: none;
-    filter: none;
-    box-shadow: 0 4px 10px -6px color-mix(in oklab, var(--nf-brand-primary) 45%, transparent);
-  }
-  :root[data-theme="light"] .nf-pf-plate__object {
-    display: none;
-  }
-  :root[data-theme="light"] .nf-pf-plate__day {
-    display: block;
-  }
-  :root[data-theme="light"] .nf-pf-skel-row {
-    border-color: var(--nf-border-default);
-    background: var(--nf-surface-primary);
   }
 }
