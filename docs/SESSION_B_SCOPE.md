@@ -300,6 +300,19 @@ Each group appends "RELEASED <commit>" here when it is done.
     (SW-P1, leftovers), `social-feed.css`, `components/social/**` (feed),
     `ReportSheet.tsx`, `ScreenSkeleton.tsx`, `ui/Skeleton.tsx`,
     `components/app/crypto/**`. Anything needed there is filed as `SW-O*`.
+  - **the audit fixes S1, S2, S3, S6, S7, S8 (worker "auditfix", claimed 23
+    September by the lead's instruction, held for the duration of the fix):**
+    `apps/web/src/components/ui/Chip.tsx` (ONLY `SELECTED_STYLE`),
+    `apps/web/src/app/admin/money/_desk/desk.css` (ONLY `.nf-md-toggle` on),
+    `apps/web/src/app/css/buttons.css` (ONLY the disabled primary),
+    `apps/web/src/app/css/threads.css` (ONLY `.nf-composer__send:disabled`),
+    `apps/web/src/app/(app)/profile/profile.css` (ONLY `.nf-pf-row__title`),
+    `apps/web/src/components/social/profile/social-profile.css` (ONLY the
+    trust labels), `apps/web/src/components/ui/Segmented.tsx` (ONLY the count),
+    the price suffix class in `app/(app)/listing/[id]/{page,ReservePanel,RentalPanel}.tsx`,
+    `apps/web/src/components/social/profile/LoadingPeople.tsx`, and for S8
+    `apps/web/src/app/css/admin.css` (ONLY `.nf-admin-status` and
+    `.nf-admin-chip` sizing). S5 is the leftovers worker's (shared status badge).
 
 ### Sweep group: home, search and filters, listing detail (worker "sweep-home")
 Routes: `/home`, `/stays` (the home components only; `StayCard` is the stays
