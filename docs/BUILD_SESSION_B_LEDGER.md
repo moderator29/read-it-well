@@ -7380,9 +7380,12 @@ No new failures: capsule counts are the same before and after on every measured
 route. The remaining ones are S5 (leftovers) and the harness chrome. Overflow is 0 on
 all 40 shots.
 
-Gate (after `git pull --rebase`): whole-project tsc, the whole vitest suite and
-check-css-tokens, run through the lock. Results are in the commit's report. The
-no-revert check `git diff origin/main HEAD` was run before the push.
+Gate, run through the lock after `git pull --rebase`: whole-project tsc exit 0;
+the whole vitest suite 241 of 241 files, 3855 tests passed and 1 skipped;
+check-css-tokens clean on all ten checks; eslint clean on the four changed TSX
+files. For the no-revert check I read every line `git diff origin/main HEAD`
+removes. Each one is this fix's own replacement or one of the three local
+disabled rules the lead asked to delete. Pushed as c7639c33.
 
 ## Skipped or not verified
 - (13.H, sweep-home) No live row on any proof: this box's egress refuses the Supabase host, so every card, panel and figure in the home group's proofs is fixture-backed or an empty state; the wiring is unchanged by the sweep (material only). `/price/area/[id]` and `/rent/move-in/[listingId]` were swept in their stylesheets and not photographed. The lister's TierBadge on the card waits on R-SH4. `StayCard` still wears `nf-glass--card` itself (stays group, R-SH2). The unmounted `AiAssistantBanner` stays until R-SH1.

@@ -318,6 +318,8 @@ Each group appends "RELEASED <commit>" here when it is done.
     table's wrapper). The listing files were dropped because 9da21a53 fixed
     "/ year" first. Proofs `docs/design/proofs/session-b/audit-fixes/**`.
     S5 is the leftovers worker's (shared status badge).
+    **RELEASED c7639c33** (23 September): S1, S2, S3, S6, S7, S8 fixed and
+    measured, ledger 13, audit fixes. The claim is released.
 
 ### Sweep group: home, search and filters, listing detail (worker "sweep-home")
 Routes: `/home`, `/stays` (the home components only; `StayCard` is the stays
