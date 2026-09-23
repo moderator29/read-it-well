@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { RowLink, RowValue, RowButton, SettingsGroup } from "@/components/app/account/rows";
+import { clearPacks } from "@/lib/offline/pack-store";
 import { signOut } from "@/lib/profile/actions";
 import { DeleteAccountPanel } from "./DeleteAccountPanel";
 import type { Blocker } from "@/lib/account-deletion/preconditions";
@@ -60,6 +61,8 @@ export function AccountSection({
         setSignOutError(result.error);
         return;
       }
+      /* V-35: a shared phone does not keep somebody else's gate code. */
+      await clearPacks();
       router.replace("/");
       router.refresh();
     });

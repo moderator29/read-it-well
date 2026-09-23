@@ -10,6 +10,7 @@ import { ICON } from "@/components/app/Screen";
 import { ROW_GLYPH, RowButton, RowLink, RowSwitch, SettingsGroup } from "@/components/app/account/rows";
 import { LanguageRow } from "@/components/app/account/SettingsGroups";
 import { useNfSettings } from "@/components/app/account/settings-store";
+import { clearPacks } from "@/lib/offline/pack-store";
 import { signOut, updateSettings } from "@/lib/profile/actions";
 import type { ResolvedProfileSettings } from "@/lib/profile/schema";
 import { RemoteImage } from "@/components/ui/RemoteImage";
@@ -293,6 +294,8 @@ export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean })
                 setError(result.error);
                 return;
               }
+              /* V-35: a shared phone does not keep somebody else's gate code. */
+              await clearPacks();
               router.replace("/");
               router.refresh();
             });

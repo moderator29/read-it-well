@@ -196,6 +196,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/saved": "/home",
   "/saved/searches": "/saved",
   "/inspections": "/home",
+  /* V-35: the gate code for one inspection, where a named delegate lands. */
+  "/inspections/gate/[id]": "/inspections",
   "/rent": "/home",
   "/rent/move-in/[listingId]": "/listing/[listingId]",
   "/rent/pay/[inspectionId]": "/inspections",

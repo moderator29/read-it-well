@@ -5,7 +5,8 @@ import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatDate, type Locale } from "@vallo/i18n";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
+import { GateHandshake } from "./GateHandshake";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { IconPlate } from "@/components/ui/IconPlate";
@@ -161,6 +162,7 @@ export function InspectionSheet({
   open = false,
   report = null,
   reportLive = false,
+  gateCopy,
 }: {
   inspection: Inspection;
   side: "lister" | "requester";
@@ -172,6 +174,8 @@ export function InspectionSheet({
   report?: InspectionReport | null;
   /** The one flag: report storage exists. */
   reportLive?: boolean;
+  /** V-35: the gate handshake's copy. Absent, no gate section is drawn. */
+  gateCopy?: Dictionary["platform"]["gate"];
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -475,6 +479,16 @@ export function InspectionSheet({
             while report storage is off; with it on, submitting the report
             is what closes the inspection and I1 has no outcome to carry it
             (request I1a). Drawn and dropped would be worse than not drawn. */}
+        {/* V-35: the gate code, which works with no signal on either phone. */}
+        {inspection.state === "CONFIRMED" && gateCopy && (
+          <GateHandshake
+            inspectionId={inspection.id}
+            listingTitle={inspection.listingTitle}
+            locale={locale}
+            copy={gateCopy}
+          />
+        )}
+
         {inspection.state === "CONFIRMED" && !reportLive && (
           <section className={panelClass({ className: "nf-ix-outcome" })} aria-label="How did it go?">
             <p className="nf-ix-outcome__head" id={`outcome-${inspection.id}`}>

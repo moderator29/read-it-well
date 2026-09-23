@@ -117,6 +117,7 @@ export default async function InspectionsPage({
                 <div className="nf-ix-list">
                   {groups.open.map((row) => (
                     <InspectionSheet
+                      gateCopy={t.platform.gate}
                       key={row.id}
                       inspection={row}
                       side={row.side}
@@ -135,6 +136,7 @@ export default async function InspectionsPage({
                 <div className="nf-ix-list">
                   {groups.closed.map((row) => (
                     <InspectionSheet
+                      gateCopy={t.platform.gate}
                       key={row.id}
                       inspection={row}
                       side={row.side}

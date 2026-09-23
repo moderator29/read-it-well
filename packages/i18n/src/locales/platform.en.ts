@@ -106,4 +106,58 @@ export const platformEn = {
     error: "Error",
     errorNote: "Refused, declined, reversed",
   },
+
+  /* V-35: the gate handshake and the inspection pack. "Signed in as", never
+     "verified": a matching code proves which account's phone is at the gate,
+     not what that account has been checked for. */
+  gate: {
+    title: "Gate code",
+    loading: "Getting this inspection ready for the gate",
+    ready: "Ready for {day}: works without signal",
+    readyNote: "This phone holds what it needs for the gate. It is deleted a day after the inspection.",
+    notReady: "The gate code appears here once the inspection is confirmed for a time.",
+    expired: "This inspection has passed, so its gate code has been deleted.",
+    noPack:
+      "This phone has no gate code for this inspection yet. Open this screen once while you have signal and it will work at the gate without any.",
+    failed: "We could not get the gate code just now. If this phone already has it, it still works; otherwise try again while you have signal.",
+
+    /* The one who shows it. */
+    showHeading: "Show this code at the gate",
+    showBody: "The renter types it into their Vallo app. It changes every 30 seconds and works with no signal on either phone.",
+    secondsLeft: { one: "Changes in 1 second", other: "Changes in {count} seconds" } as PluralForms,
+    showingFor: "You are showing this for {principal}.",
+
+    /* The one who checks it. */
+    checkHeading: "At the gate, ask for their Vallo code",
+    checkBody: "Type the six digits their app shows. This works with no signal on either phone.",
+    codeLabel: "Their six-digit code",
+    check: "Check the code",
+    noCode: "They cannot show me a code",
+    matchTitle: "The code matches",
+    matchBody: "This phone is signed in as {name}, the person Vallo has showing this inspection.",
+    matchDelegate: "{name} is showing this inspection for {principal}. This phone is signed in as {name}.",
+    mismatchTitle: "That code does not match",
+    warning: "This person has not shown you a Vallo code. Do not pay anybody anything.",
+    tryAgain: "Check another code",
+    unnamed: "the person showing it",
+    recorded: "This is recorded when your phone next has signal.",
+
+    /* Naming who shows it. */
+    delegateHeading: "Someone else showing it?",
+    delegateBody:
+      "Name one person to show this inspection for you. They need a Vallo account with a confirmed phone number, or to be in your firm on Vallo. Naming them changes the code.",
+    delegateLabel: "Their email address on Vallo",
+    delegateSave: "Name them",
+    delegateClear: "I will show it myself",
+    delegateNamed: "{name} will show this inspection. Their phone needs signal once before the day.",
+    delegateCleared: "You are showing this inspection yourself. The code has changed.",
+    delegateNotEligible:
+      "We cannot name that person. They need a Vallo account with a confirmed phone number, or to be in your firm on Vallo.",
+    delegateClosed: "This inspection is closed, so nobody else can be named for it.",
+    delegateFailed: "That did not go through. Nothing changed. Try again while you have signal.",
+
+    /* The offline page. */
+    offlineHeading: "Your inspections on this phone",
+    offlineWhen: "{day} at {time}",
+  },
 };
