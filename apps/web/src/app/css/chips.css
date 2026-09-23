@@ -859,10 +859,8 @@
   }
   .nf-segmented--pill .nf-segmented__capsule {
     border-radius: var(--nf-radius-control);
-    background: var(--nf-brand-primary);
-    box-shadow:
-      inset 0 1px 0 var(--nf-glass-rim),
-      0 0 16px var(--nf-glow-3);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
   .nf-segmented--pill .nf-segmented__item {
     border-radius: var(--nf-radius-control);
