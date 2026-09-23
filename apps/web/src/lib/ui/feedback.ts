@@ -1,0 +1,190 @@
+/**
+ * ONE FEEDBACK GRAMMAR, AND HAPTICS THAT EXIST ON AN IPHONE. V-30.
+ *
+ * ---------------------------------------------------------------------------
+ * WHAT WAS WRONG.
+ *
+ * `components/ui/Button.tsx` called `navigator.vibrate?.(8)` on every press of
+ * every primary and danger button. `navigator.vibrate` does not exist in
+ * Safari or in WKWebView, so no iPhone has ever felt Vallo. On Android it
+ * buzzed identically for "pressed" and for "paid", and it buzzed on the press,
+ * before anybody knew whether the action had been accepted: a declined card
+ * felt exactly like a settled one.
+ *
+ * ---------------------------------------------------------------------------
+ * FIVE KINDS AND NOTHING ELSE.
+ *
+ *   select    a tab, a segment, a chip: a choice was taken
+ *   confirm   a primary action was ACCEPTED (not tapped)
+ *   success   money settled, an inspection confirmed: a ResultSheet in a good
+ *             state
+ *   warning   a ResultSheet that is pending or under review
+ *   error     a ResultSheet that failed
+ *
+ * The grammar is the point. A settled payment must feel different from a tap,
+ * and a refusal different from both, or the phone is making noise rather than
+ * saying something. A sixth kind would need an argument that none of these
+ * five says it already.
+ *
+ * ---------------------------------------------------------------------------
+ * THREE CHANNELS, CHOSEN IN ORDER.
+ *
+ *   1. THE NATIVE SHELL, through Capacitor's `Haptics` plugin: impact light
+ *      for select, impact medium for confirm, and the system's own
+ *      success / warning / error notification patterns, which are what an
+ *      iPhone user already knows from Apple Pay.
+ *   2. ANDROID WEB, through `navigator.vibrate`, with a distinct pattern per
+ *      kind so a success is two beats and an error is three.
+ *   3. EVERYWHERE ELSE, NOTHING. iOS Safari has no vibration API; a desktop
+ *      has no motor. Silence there is correct, not a fallback.
+ *
+ * The plugin is reached through `Capacitor.registerPlugin("Haptics")`, the
+ * way `components/app/push/enrol.ts` reaches push, and only after
+ * `looksNative()` has said this is the shell, so the website never evaluates
+ * `@capacitor/core`. If the shell was built without the plugin,
+ * `isPluginAvailable` says so and the call falls through to channel 2 (the
+ * Android web view has `navigator.vibrate`) or to silence. The npm package
+ * `@capacitor/haptics` and its native half are a pipeline change
+ * (`apps/web/package.json`, `npx cap sync`) that belongs to the build owners;
+ * this file works the day they land and costs nothing before.
+ *
+ * ---------------------------------------------------------------------------
+ * REDUCED MOTION TURNS IT DOWN, NOT OFF.
+ *
+ * Somebody who asked the system for less motion gets success and error only:
+ * the two outcomes worth feeling, and nothing for taps, segments or pending.
+ *
+ * ---------------------------------------------------------------------------
+ * EACH KIND HAS ONE MOTION TOKEN.
+ *
+ * `FEEDBACK_MOTION` pairs each kind with the duration and curve it should move
+ * with, so what is felt and what is seen agree: the press curve for select
+ * and confirm, the spring for success, the press curve for warning and error
+ * because a failure should not bounce.
+ */
+
+import { looksNative, nativePlatform } from "@/lib/native/platform";
+
+export type FeedbackKind = "select" | "confirm" | "success" | "warning" | "error";
+
+export const FEEDBACK_KINDS: readonly FeedbackKind[] = ["select", "confirm", "success", "warning", "error"];
+
+/** Android web patterns, in milliseconds (on, off, on, ...). */
+export const VIBRATION: Readonly<Record<FeedbackKind, number | readonly number[]>> = {
+  select: 6,
+  confirm: 14,
+  success: [14, 70, 28],
+  warning: [28, 90, 28],
+  error: [40, 60, 40, 60, 40],
+};
+
+export type NativeCall =
+  | { method: "impact"; options: { style: "LIGHT" | "MEDIUM" } }
+  | { method: "notification"; options: { type: "SUCCESS" | "WARNING" | "ERROR" } };
+
+export const NATIVE: Readonly<Record<FeedbackKind, NativeCall>> = {
+  select: { method: "impact", options: { style: "LIGHT" } },
+  confirm: { method: "impact", options: { style: "MEDIUM" } },
+  success: { method: "notification", options: { type: "SUCCESS" } },
+  warning: { method: "notification", options: { type: "WARNING" } },
+  error: { method: "notification", options: { type: "ERROR" } },
+};
+
+export const FEEDBACK_MOTION: Readonly<Record<FeedbackKind, { duration: string; ease: string }>> = {
+  select: { duration: "var(--nf-duration-press)", ease: "var(--nf-ease-press)" },
+  confirm: { duration: "var(--nf-duration-press)", ease: "var(--nf-ease-press)" },
+  success: { duration: "var(--nf-duration-press)", ease: "var(--nf-ease-spring)" },
+  warning: { duration: "var(--nf-duration-press)", ease: "var(--nf-ease-press)" },
+  error: { duration: "var(--nf-duration-press)", ease: "var(--nf-ease-press)" },
+};
+
+export type FeedbackEnvironment = {
+  /** Inside the Capacitor shell. */
+  native: boolean;
+  /** The shell answered that it has the Haptics plugin. */
+  nativeHaptics: boolean;
+  /** `navigator.vibrate` is a function here. */
+  canVibrate: boolean;
+  /** The platform is iOS (web or shell). iOS web has no vibration at all. */
+  ios: boolean;
+  reducedMotion: boolean;
+};
+
+export type FeedbackPlan =
+  | { channel: "native"; call: NativeCall }
+  | { channel: "vibrate"; pattern: number | readonly number[] }
+  | { channel: "none" };
+
+/** Pure: what one kind should do in one environment. */
+export function planFeedback(kind: FeedbackKind, env: FeedbackEnvironment): FeedbackPlan {
+  if (env.reducedMotion && kind !== "success" && kind !== "error") return { channel: "none" };
+  if (env.native && env.nativeHaptics) return { channel: "native", call: NATIVE[kind] };
+  if (env.canVibrate && !env.ios) return { channel: "vibrate", pattern: VIBRATION[kind] };
+  return { channel: "none" };
+}
+
+type HapticsPlugin = {
+  impact(options: { style: string }): Promise<void>;
+  notification(options: { type: string }): Promise<void>;
+};
+
+let nativeHaptics: HapticsPlugin | null | undefined;
+
+/* Resolved once, lazily, and only in the shell. `null` means "asked and the
+   shell has no plugin", which is remembered so nothing is asked twice. */
+async function haptics(): Promise<HapticsPlugin | null> {
+  if (nativeHaptics !== undefined) return nativeHaptics;
+  try {
+    const { Capacitor } = await import("@capacitor/core");
+    nativeHaptics = Capacitor.isPluginAvailable("Haptics")
+      ? Capacitor.registerPlugin<HapticsPlugin>("Haptics")
+      : null;
+  } catch {
+    nativeHaptics = null;
+  }
+  return nativeHaptics;
+}
+
+function reducedMotion(): boolean {
+  try {
+    return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Say one thing through the hand. Never throws and never awaits anything a
+ * caller would notice: feedback is a nicety and a device that refuses it
+ * changes nothing.
+ */
+export function feedback(kind: FeedbackKind): void {
+  if (typeof window === "undefined") return;
+  const native = looksNative();
+  const run = (plugin: HapticsPlugin | null) => {
+    try {
+      const plan = planFeedback(kind, {
+        native,
+        nativeHaptics: plugin !== null,
+        canVibrate: typeof navigator !== "undefined" && typeof navigator.vibrate === "function",
+        ios: nativePlatform() === "ios" || /iPad|iPhone|iPod/.test(navigator.userAgent ?? ""),
+        reducedMotion: reducedMotion(),
+      });
+      if (plan.channel === "native" && plugin) {
+        const call = plan.call;
+        const done =
+          call.method === "impact" ? plugin.impact(call.options) : plugin.notification(call.options);
+        void done.catch(() => undefined);
+      } else if (plan.channel === "vibrate") {
+        navigator.vibrate(plan.pattern as number | number[]);
+      }
+    } catch {
+      /* A device that refuses feedback changes nothing. */
+    }
+  };
+  if (!native) {
+    run(null);
+    return;
+  }
+  void haptics().then(run, () => run(null));
+}
