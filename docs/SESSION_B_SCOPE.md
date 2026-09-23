@@ -464,10 +464,13 @@ does not own. Until they land, each panel says "Not recorded" or names the gap
 on the screen. The letters match the panel notes.
 
 A5. **An admin-callable read of the database's own scheduled jobs.** The
-    eight pg_cron jobs (`vallo_release_stale_holds`, `vallo_purge_rate_limits`,
-    `vallo_escrow_sweep_timeouts`, `vallo_reconcile_payments`,
-    `vallo-nightly-badges`, `vallo_purge_idempotency`,
-    `vallo_announce_completed_stays`, `vallo-daily-note`) live in `cron.job`
+    twelve pg_cron jobs (`vallo_release_stale_holds`, `vallo_purge_rate_limits`,
+    `vallo_escrow_sweep_timeouts`, `vallo_escrow_invariants`,
+    `vallo_reconcile_payments`, `vallo_purge_idempotency`,
+    `vallo-nightly-badges`, `vallo_escrow_book_the_float`,
+    `vallo_sweep_price_check_events`, `vallo_announce_completed_stays`,
+    `vallo_sweep_price_check_watches`, `vallo-daily-note`; four of them added
+    by the migrations of 22 and 23 September) live in `cron.job`
     and `cron.job_run_details`, which PostgREST does not expose, and
     `public.cron_job_failures` is EXECUTE for `service_role` only. Request: a
     `security definer` function `public.admin_cron_jobs()` that repeats the
@@ -490,9 +493,15 @@ A6. **Admins cannot read `public.notifications`.** Its only SELECT policy is
     per kind plus `day date, sent bigint` per day. Session B's panel
     (`NotificationActivity` in `lib/admin/reads/shapes.ts`) is built and says
     "Not wired yet" until then.
-A7. **Searches are not recorded anywhere.** Analytics draws Total searches,
-    Conversion rate, Demand vs supply, Top areas by searches and Searches vs
-    results. None can exist without a log. Request: a table
+A7. **Site searches are not recorded anywhere.** PARTLY WITHDRAWN on 23
+    September: `price_check_events` (migration `20260922222424_...`, admin
+    SELECT policy `price_check_events_admin_read`) is the first real demand
+    log, and Analytics now reads it (`getPriceCheckDemand` in
+    `lib/admin/reads/analytics.ts`) for Price checks, Checks answered, Demand
+    vs supply, Top areas by price checks and Price checks vs answered. What
+    stays open is the render's own measure, searches of the listings: Total
+    searches and Searches vs results still need a log, because a price check
+    is one kind of demand and not every search. Request, unchanged: a table
     `public.search_events (id uuid, created_at timestamptz default now(),
     side text check in ('property','stays'), state_code text, city text,
     area text, intent text, results int, user_id uuid null)`, insert-only from
@@ -502,8 +511,11 @@ A8. **Listing detail views are not recorded.** Listing views and conversion
     need `public.listing_views (listing_id uuid, created_at timestamptz,
     viewer_id uuid null)` written once per viewer per listing per day from the
     listing page, with an admin SELECT policy.
-A11. **Refusal reasons are free text or nothing.** "Top common refusals"
-    needs a reason chosen from a fixed list when an owner or host declines an
+A11. **Refusal reasons are free text or nothing.** PARTLY COVERED on 23
+    September: the platform's own refusals of a price check carry a
+    `refusal_code`, and "Top common refusals" now draws those. What stays
+    open is the decline of an inspection or a reservation by a person, which
+    still needs a reason chosen from a fixed list when an owner or host declines an
     inspection or a reservation (`declined_reason` as an enum or checked text:
     `price`, `incomplete_details`, `not_available`, `location_mismatch`,
     `not_suitable`, `other`) on the tables that record the decline, and the

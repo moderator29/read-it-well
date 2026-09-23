@@ -1,14 +1,13 @@
 import { formatDate, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
 import { tx } from "@/app/admin/_components/shell-text";
-import { AreaTimeChart } from "@/components/agent/charts/AreaTimeChart";
 import { MeterBar } from "@/components/agent/charts/MeterBar";
-import type { BookingOutcomes, CollectedRange, ThinAreas } from "@/lib/admin/reads/shapes";
+import type { BookingOutcomes, CollectedRange, PriceCheckDemand, ThinAreas } from "@/lib/admin/reads/shapes";
+import { GroupedBarChart } from "@/components/agent/charts/GroupedBarChart";
 import { niceTicks, periodDelta } from "../_components/metrics";
 import {
   CalmNote,
   EmptyChart,
   KpiGrid,
-  NotWired,
   PageHead,
   Panel,
   PanelUnavailable,
@@ -18,17 +17,16 @@ import { RangeSelect } from "../_components/RangeSelect";
 
 /**
  * ANALYTICS, drawn from 01F7DFC7 panel three: four KPI cards, demand against
- * supply, top areas by searches, areas with the fewest listings, searches
- * against results, and the most common refusals.
+ * supply, top areas, areas with the fewest listings, requests against
+ * results, and the most common refusals.
  *
- * HALF OF THAT PICTURE HAS NO SOURCE, and this screen says so rather than
- * drawing it. Nothing on the platform records a search, a listing view or a
- * structured reason for a refusal, so searches, views, conversion, demand,
- * top areas by searches, searches against results and refusals are "Not
- * recorded" with the request that would start recording them (A7, A8, A11
- * in docs/SESSION_B_SCOPE.md). What is real is drawn: bookings that went
- * through, new supply over time and where supply is thinnest, examples
- * excluded from both.
+ * DEMAND IS THE PRICE CHECK LOG. `price_check_events` (23 September) is the
+ * platform's first record of people asking about a place: every check
+ * submitted, whether it was answered, the local government asked about and
+ * the reason when it was refused. The render's searches panels are drawn from
+ * it and named for what they count (price checks), so no figure pretends to
+ * be site search, which is still not recorded. Listing views stay "Not
+ * recorded" (Request A8). Examples are excluded from every supply figure.
  */
 export type AnalyticsProps = {
   locale: Locale;
@@ -36,15 +34,41 @@ export type AnalyticsProps = {
   bookings: BookingOutcomes | null;
   supply: { start: string; listings: number }[] | null;
   thin: ThinAreas | null;
+  demand: PriceCheckDemand | null;
 };
 
+/** Which buckets carry a date under the axis: every month, every third week, every seventh day. */
+function tickFor(index: number, range: CollectedRange): boolean {
+  if (range === "12m") return true;
+  return index % (range === "90d" ? 3 : 7) === 0;
+}
 
-export function AnalyticsView({ locale, range, bookings, supply, thin }: AnalyticsProps) {
+function bucketLabel(start: string, monthly: boolean, withYear: boolean, locale: Locale): string {
+  return formatDate(new Date(`${start.length === 7 ? `${start}-01` : start}T12:00:00+01:00`), locale, {
+    timeZone: "Africa/Lagos",
+    ...(monthly ? { month: "short" } : { day: "numeric", month: "short" }),
+    ...(withYear ? { year: "numeric" } : null),
+  });
+}
+
+export function AnalyticsView({ locale, range, bookings, supply, thin, demand }: AnalyticsProps) {
   const shell = getDictionary(locale).admin.shell;
   const c = shell.analytics;
   const notRecorded = (request: string) => ({ value: null, missingWord: shell.states.notRecorded, pending: `Nothing records this yet. Request ${request}.` });
+  const period = { "30d": c.vsPrev30, "90d": c.vsPrev90, "12m": c.vsPrev12 }[range];
+  const retry = "Did not load; it retries every minute";
+  const answeredShare = demand && demand.checks > 0 ? Math.round((demand.answered / demand.checks) * 100) : null;
   const kpis: KpiItem[] = [
-    { key: "searches", icon: { tier: "ui", name: "search" }, label: c.totalSearches, ...notRecorded("A7") },
+    {
+      key: "checks",
+      icon: { tier: "ui", name: "search" },
+      label: c.priceChecks,
+      value: demand ? formatNumber(demand.checks, locale) : null,
+      delta: demand ? periodDelta(demand.checks, demand.checksPrev) : null,
+      caption: period,
+      spark: demand ? { id: "an-checks", values: demand.buckets.map((b) => b.checks), label: c.priceChecks } : null,
+      pending: retry,
+    },
     { key: "views", icon: { tier: "ui", name: "eye" }, label: c.listingViews, ...notRecorded("A8") },
     {
       key: "bookings",
@@ -52,12 +76,20 @@ export function AnalyticsView({ locale, range, bookings, supply, thin }: Analyti
       label: c.successfulBookings,
       value: bookings ? formatNumber(bookings.successful, locale) : null,
       delta: bookings ? periodDelta(bookings.successful, bookings.successfulPrev) : null,
-      caption: { "30d": c.vsPrev30, "90d": c.vsPrev90, "12m": c.vsPrev12 }[range],
+      caption: period,
       href: "/admin/bookings",
-      pending: "The booking count did not load; it retries every minute",
+      pending: retry,
     },
-    { key: "conversion", icon: { tier: "admin", name: "bars" }, label: c.conversion, ...notRecorded("A7 and A8") },
+    {
+      key: "answered",
+      icon: { tier: "admin", name: "bars" },
+      label: c.checksAnswered,
+      value: demand ? (answeredShare === null ? "\u2013" : `${answeredShare}%`) : null,
+      caption: demand ? `${formatNumber(demand.answered, locale)} of ${formatNumber(demand.checks, locale)}` : undefined,
+      pending: retry,
+    },
   ];
+  const monthly = range === "12m";
 
   return (
     <div className="nf-admin-stack">
@@ -75,22 +107,12 @@ export function AnalyticsView({ locale, range, bookings, supply, thin }: Analyti
       <KpiGrid items={kpis} label={c.title} />
 
       <Panel id="an-demand" title={c.demandSupply}>
-        <DemandSupply supply={supply} range={range} locale={locale} />
+        <DemandSupply supply={supply} demand={demand} range={range} locale={locale} />
       </Panel>
 
       <div className="nf-admin-grid nf-admin-grid--halves">
-        <Panel id="an-top-areas" title={c.topAreas}>
-          <div className="nf-admin-dist" aria-hidden="true">
-            <div className="nf-admin-dist__row nf-admin-dist__row--head nf-admin-dist__row--area">
-              <span>Area</span>
-              <span />
-              <span className="nf-admin-dist__num">Searches</span>
-            </div>
-          </div>
-          <NotWired
-            what={tx(locale, "anTheAreasPeopleSearchMost")}
-            request={tx(locale, "anNothingRecordsASearchYet")}
-          />
+        <Panel id="an-top-areas" title={c.topAreasChecks}>
+          <TopAreas demand={demand} locale={locale} />
         </Panel>
         <Panel id="an-thin" title={c.thinAreas}>
           <ThinAreasTable thin={thin} locale={locale} />
@@ -98,32 +120,37 @@ export function AnalyticsView({ locale, range, bookings, supply, thin }: Analyti
       </div>
 
       <div className="nf-admin-grid nf-admin-grid--halves">
-        <Panel id="an-results" title={c.searchesResults}>
-          <EmptyChart
-            height={160}
-            yLabels={niceTicks(10, 5).map((v) => String(v))}
-            legend={["Searches", "Results"]}
-            xLabels={[]}
-            note={{
-              kind: "unwired",
-              title: tx(locale, "anNotRecordedYet"),
-              fills: tx(locale, "anSearchesAgainstTheSearchesThat"),
-              creates: tx(locale, "anNothingRecordsASearchYet"),
-            }}
-          />
+        <Panel id="an-results" title={c.checksVsAnswered}>
+          {!demand ? (
+            <PanelUnavailable what={c.priceChecks} locale={locale} />
+          ) : demand.checks === 0 ? (
+            <EmptyChart
+              height={160}
+              yLabels={niceTicks(10, 5).map((v) => String(v))}
+              legend={[c.checksLegend, c.answeredLegend]}
+              xLabels={demand.buckets.map((b, i) => (tickFor(i, range) ? bucketLabel(b.start, monthly, false, locale) : ""))}
+              note={{ title: c.noChecksTitle, fills: c.noChecksFills, creates: c.noChecksCreates }}
+            />
+          ) : (
+            <GroupedBarChart
+              label={c.checksVsAnswered}
+              series={[
+                { key: "checks", label: c.checksLegend },
+                { key: "answered", label: c.answeredLegend },
+              ]}
+              groups={demand.buckets.map((b, i) => ({
+                key: b.start,
+                tick: tickFor(i, range) ? bucketLabel(b.start, monthly, false, locale) : "",
+                readout: bucketLabel(b.start, monthly, true, locale),
+                values: [b.checks, b.answered],
+              }))}
+              yTicks={niceTicks(Math.max(...demand.buckets.map((b) => b.checks))).map((v) => ({ value: v, label: formatNumber(v, locale) }))}
+              height={160}
+            />
+          )}
         </Panel>
-        <Panel id="an-refusals" title={c.refusals}>
-          <div className="nf-admin-dist" aria-hidden="true">
-            <div className="nf-admin-dist__row nf-admin-dist__row--head nf-admin-dist__row--area">
-              <span>Reason</span>
-              <span />
-              <span className="nf-admin-dist__num">Count</span>
-            </div>
-          </div>
-          <NotWired
-            what={tx(locale, "anWhyOwnersAndHostsDecline")}
-            request={tx(locale, "anTodayADeclineCarriesFree")}
-          />
+        <Panel id="an-refusals" title={c.refusalsTitle}>
+          <Refusals demand={demand} locale={locale} />
         </Panel>
       </div>
     </div>
@@ -132,62 +159,131 @@ export function AnalyticsView({ locale, range, bookings, supply, thin }: Analyti
 
 function DemandSupply({
   supply,
+  demand,
   range,
   locale,
 }: {
   supply: { start: string; listings: number }[] | null;
+  demand: PriceCheckDemand | null;
   range: CollectedRange;
   locale: Locale;
 }) {
-  if (!supply) return <PanelUnavailable what={tx(locale, "anNewSupplyOverTime")} locale={locale} />;
-  const total = supply.reduce((sum, b) => sum + b.listings, 0);
+  const c = getDictionary(locale).admin.shell.analytics;
+  if (!supply || !demand) return <PanelUnavailable what={c.demandSupply} locale={locale} />;
   const monthly = range === "12m";
-  const label = (start: string, withYear: boolean) =>
-    formatDate(new Date(`${start.length === 7 ? `${start}-01` : start}T12:00:00+01:00`), locale, {
-      timeZone: "Africa/Lagos",
-      ...(monthly ? { month: "short" } : { day: "numeric", month: "short" }),
-      ...(withYear ? { year: "numeric" } : null),
-    });
+  const total = supply.reduce((sum, b) => sum + b.listings, 0) + demand.checks;
+  if (total === 0) {
+    return (
+      <EmptyChart
+        height={200}
+        yLabels={niceTicks(10, 5).map((v) => String(v))}
+        legend={[c.checksLegend, c.listingsCreated]}
+        xLabels={supply.map((b, i) => (tickFor(i, range) ? bucketLabel(b.start, monthly, false, locale) : ""))}
+        note={{
+          title: c.noChecksTitle,
+          fills: c.noChecksFills,
+          creates: c.noChecksCreates,
+          action: { href: "/admin/supply", label: "Open Supply" },
+        }}
+      />
+    );
+  }
+  const max = Math.max(...supply.map((b) => b.listings), ...demand.buckets.map((b) => b.checks));
   return (
-    <>
-      <ul className="nf-chart__legend nf-chart__legend--static" aria-label="Series">
-        <li>
-          <span className="nf-chart__swatch nf-chart__bar--s0" aria-hidden="true" />
-          Listings created
-        </li>
-        <li className="nf-chart__legend-off">
-          <span className="nf-chart__swatch nf-chart__swatch--off" aria-hidden="true" />
-          Searches: not recorded yet (Request A7)
-        </li>
-      </ul>
-      {total === 0 ? (
-        <EmptyChart
-          height={200}
-          yLabels={niceTicks(10, 5).map((v) => String(v))}
-          xLabels={supply.map((b, i) => (monthly || i % (range === "90d" ? 3 : 7) === 0 ? label(b.start, false) : ""))}
-          note={{
-            title: tx(locale, "anNoRealListingCreatedIn"),
-            fills: tx(locale, "anTheLineCountsEachNew"),
-            creates: tx(locale, "anSearchesAreDrawnBesideIt"),
-            action: { href: "/admin/supply", label: "Open Supply" },
-          }}
-        />
-      ) : (
-        <AreaTimeChart
-          label="Listings created per period"
-          points={supply.map((b) => ({
-            key: b.start,
-            tick: label(b.start, false),
-            readout: label(b.start, true),
-            value: b.listings,
-            display: `${formatNumber(b.listings, locale)} listings`,
-          }))}
-          yTicks={niceTicks(Math.max(...supply.map((b) => b.listings))).map((v) => ({ value: v, label: formatNumber(v, locale) }))}
-          height={200}
-          tickEvery={monthly ? 1 : range === "90d" ? 2 : 5}
-        />
-      )}
-    </>
+    <GroupedBarChart
+      label={c.demandSupply}
+      series={[
+        { key: "checks", label: c.checksLegend },
+        { key: "listings", label: c.listingsCreated },
+      ]}
+      groups={supply.map((b, i) => ({
+        key: b.start,
+        tick: tickFor(i, range) ? bucketLabel(b.start, monthly, false, locale) : "",
+        readout: bucketLabel(b.start, monthly, true, locale),
+        values: [demand.buckets[i]?.checks ?? 0, b.listings],
+      }))}
+      yTicks={niceTicks(max).map((v) => ({ value: v, label: formatNumber(v, locale) }))}
+      height={200}
+    />
+  );
+}
+
+function TopAreas({ demand, locale }: { demand: PriceCheckDemand | null; locale: Locale }) {
+  const c = getDictionary(locale).admin.shell.analytics;
+  if (!demand) return <PanelUnavailable what={c.topAreasChecks} locale={locale} />;
+  const head = (
+    <div className="nf-admin-dist__row nf-admin-dist__row--head nf-admin-dist__row--area" role="row">
+      <span role="columnheader">{c.area}</span>
+      <span role="columnheader" className="sr-only">Share</span>
+      <span role="columnheader" className="nf-admin-dist__num">{c.checksColumn}</span>
+    </div>
+  );
+  if (demand.topAreas.length === 0) {
+    return (
+      <>
+        <div className="nf-admin-dist" aria-hidden="true">{head}</div>
+        <CalmNote title={c.noAreasTitle} fills={c.noAreasFills} creates={c.noChecksCreates} />
+      </>
+    );
+  }
+  const max = demand.topAreas[0]?.checks ?? 0;
+  return (
+    <div className="nf-admin-dist" role="table" aria-label={c.topAreasChecks}>
+      {head}
+      {demand.topAreas.map((row, i) => (
+        <div key={`${row.area}-${row.state ?? ""}`} className="nf-admin-dist__row nf-admin-dist__row--area" role="row">
+          <span className="nf-admin-dist__name" role="cell">
+            {row.area}
+            {row.state && <span className="nf-admin-dt__sub">{row.state}</span>}
+          </span>
+          <span role="cell">
+            <MeterBar value={row.checks} max={max} rank={i} />
+          </span>
+          <span className="nf-admin-dist__num nf-numeric" role="cell">{formatNumber(row.checks, locale)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Refusals({ demand, locale }: { demand: PriceCheckDemand | null; locale: Locale }) {
+  const c = getDictionary(locale).admin.shell.analytics;
+  if (!demand) return <PanelUnavailable what={c.refusalsTitle} locale={locale} />;
+  const head = (
+    <div className="nf-admin-dist__row nf-admin-dist__row--head nf-admin-dist__row--area" role="row">
+      <span role="columnheader">{c.reason}</span>
+      <span role="columnheader" className="sr-only">Share</span>
+      <span role="columnheader" className="nf-admin-dist__num">{c.count}</span>
+    </div>
+  );
+  if (demand.refusals.length === 0) {
+    return (
+      <>
+        <div className="nf-admin-dist" aria-hidden="true">{head}</div>
+        <CalmNote title={c.noRefusalsTitle} fills={c.noRefusalsFills} />
+      </>
+    );
+  }
+  const words = c.refusal as Record<string, string | undefined>;
+  const max = demand.refusals[0]?.count ?? 0;
+  return (
+    <div className="nf-admin-dist" role="table" aria-label={c.refusalsTitle}>
+      {head}
+      {demand.refusals.map((row, i) => (
+        <div key={row.code} className="nf-admin-dist__row nf-admin-dist__row--area" role="row">
+          <span className="nf-admin-dist__name" role="cell">
+            {words[row.code] ?? row.code.replace(/_/g, " ")}
+            <span className="nf-admin-dt__sub">
+              {demand.refused > 0 ? `${Math.round((row.count / demand.refused) * 100)}%` : ""}
+            </span>
+          </span>
+          <span role="cell">
+            <MeterBar value={row.count} max={max} rank={i} />
+          </span>
+          <span className="nf-admin-dist__num nf-numeric" role="cell">{formatNumber(row.count, locale)}</span>
+        </div>
+      ))}
+    </div>
   );
 }
 

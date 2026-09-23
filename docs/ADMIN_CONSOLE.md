@@ -598,11 +598,20 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_release_stale_holds | pg_cron `*/15 * * * *` | every 15 min | | database side of the hold release |
 | vallo_purge_rate_limits | pg_cron `30 * * * *` | hourly at :30 | | clears old rate limit rows |
 | vallo_escrow_sweep_timeouts | pg_cron `17 * * * *` | hourly at :17 | | escrow timeouts |
+| vallo_escrow_invariants | pg_cron `23 * * * *` | hourly at :23 | | asserts the escrow float identity (`private.escrow_invariants_check`), six minutes after the sweeper |
 | vallo_reconcile_payments | pg_cron `47 * * * *` | hourly at :47 | | database side of reconciliation |
 | vallo_purge_idempotency | pg_cron `10 2 * * *` | daily 03:10 | | clears old idempotency records |
 | vallo-nightly-badges | pg_cron `20 2 * * *` | daily 03:20 | | awards earned badges |
+| vallo_escrow_book_the_float | pg_cron `5 3 * * *` | daily 04:05 | | books the day's escrow float snapshot as a liability (`private.escrow_float_snapshot_take`) |
+| vallo_sweep_price_check_events | pg_cron `40 3 * * *` | daily 04:40 | | deletes price check events older than 24 months (the retention schedule, run) |
 | vallo_announce_completed_stays | pg_cron `20 5 * * *` | daily 06:20 | | announces completed stays |
+| vallo_sweep_price_check_watches | pg_cron `50 5 * * *` | daily 06:50 | | re-runs the price check gate at each pending watch and tells the watcher once when it opens |
 | vallo-daily-note | pg_cron `0 6 * * *` | daily 07:00 | | the daily note |
+
+Twelve pg_cron jobs in all, as of 23 September. The four newest came with
+the migrations of 22 and 23 September: the two price check sweeps
+(`20260922222424_...`, `20260922222524_...`), the float booking
+(`20260923010000_...`) and the escrow invariants (`20260923011000_...`).
 
 The Vercel jobs' schedules come from `apps/web/vercel.json` (a test fails if
 the console's copy drifts from it) and their allowances from `WATCHED_JOBS` in
@@ -650,23 +659,35 @@ and the five newest audit entries.
 
 Drawn from the render `01F7DFC7`, panel three. `/admin/analytics?range=30d`
 (or `90d`, `12m`). Reads: `lib/admin/reads/analytics.ts`
-(`getBookingOutcomes`, `getSupplySeries`, `getThinAreas`).
+(`getBookingOutcomes`, `getSupplySeries`, `getThinAreas`,
+`getPriceCheckDemand`).
+
+**Demand is price checks.** `price_check_events` is the platform's first
+demand log: one row per stage of one price check (`submit`, then `outcome`
+`answered` or `refused` with a `refusal_code`), located by state, local
+government and a five character geohash, never an address. Admins read it
+under `price_check_events_admin_read`; rows older than 24 months are swept
+daily (`vallo_sweep_price_check_events`). The render's own measure, searches
+of the listings, is still not recorded (A7, partly withdrawn), so the page
+names its figures as price checks and does not call them searches.
 
 | Panel | Source | State today |
 |---|---|---|
-| Total searches | nothing records a search | Not recorded, Request A7 |
+| Price checks | `price_check_events` rows at stage `submit` in the range, against the same length of time before it (exact count), with a spark per bucket | real |
 | Listing views | nothing records a listing view | Not recorded, Request A8 |
 | Successful bookings | exact count of `bookings` confirmed or completed, created in the range, against the same length of time before it | real; zero on 22 September |
-| Conversion rate | needs searches or views | Not recorded, A7 and A8 |
-| Demand vs supply | supply: listings created per bucket, examples excluded; demand: not recorded | the supply line is real; searches are named as missing on the legend |
-| Top areas by searches | nothing records a search | Not wired yet, A7 |
+| Checks answered | outcomes `answered` over checks submitted in the range | real; a dash while nothing was checked |
+| Demand vs supply | price checks submitted per bucket beside listings created per bucket (examples excluded) | real, both series |
+| Top areas by price checks | submitted checks grouped by local government (`lga_code`, named from `local_governments`), top five | real |
 | Areas with fewest listings | live listings grouped by area and city, fewest first, examples excluded | real; empty while no real listing is live |
-| Searches vs results returned | nothing records a search or its result count | Not wired yet, A7 |
-| Top common refusals | declines carry free text or nothing | Not wired yet, A11 |
+| Price checks vs answered | checks submitted and checks answered per bucket | real |
+| Top common refusals | the platform's refusals of a price check by `refusal_code`, in words | real; a person's decline of an inspection or reservation still carries no reason (A11) |
 
-The render also draws an "All areas" filter; it is not built, because no
-figure on the page that exists today varies by area except the thin areas
-table, which already lists them.
+Every row of the range is read whole (the pager refuses rather than returns a
+prefix past 50,000 rows), so no total is capped.
+
+The render also draws an "All areas" filter; it is not built, because the
+figures that vary by area already list their areas.
 
 ## 15. The other desks
 
@@ -802,6 +823,12 @@ Owned by admin-money; handbook section 12.
 - **Effects** the area opens or is refused, the moderator is appointed or
   refused, a paused area stops taking posts; each is audited.
 - **Limits** only a `PROPOSED` area can be decided.
+- **Rejected** gating these actions behind the `social` switch: the likeliest
+  reason Around is switched off is that something needs moderating, so the
+  console keeps its hands on it while members' own actions are refused
+  (`lib/social/admin-actions.ts`). Also rejected: letting any member-facing
+  screen make a place public or a member a moderator; the `areas` and
+  `area_members` insert policies pin new rows to `PROPOSED` and `MEMBER`.
 
 ### 15.10 Standing (Moderation > Standing, `/admin/standing`)
 
@@ -835,6 +862,11 @@ Owned by admin-money; handbook section 12.
   and it says so when it hits that).
 - **Actions** none; the log is read only, and identity documents and
   credentials in a row's detail are withheld (`safeAuditMetadata`).
+- **Limits** forty entries a page (`QUEUE_PAGE_SIZE`), newest first; the
+  search matches an exact id or words in the action and the target id, not
+  the detail bag; the charts on Operations > Audit log read at most 5,000
+  rows and say so when they reach it; a row shows only what its writer kept,
+  nothing is joined in from the target.
 - **Rejected** editing or deleting entries: a log that can be changed is not
   a log.
 
@@ -861,6 +893,10 @@ Owned by admin-money; handbook section 12.
   `reference.occupation.create` or `.update`, and the same for local
   governments.
 - **Limits** no delete: a value in use on profiles is renamed, not removed.
+- **Rejected** a Delete button: both tables are referenced by `profiles`
+  with `on delete set null`, so a delete would quietly empty the answer of
+  every person who had chosen the value, with no way to tell who
+  (`lib/admin/reference-actions.ts`).
 
 ### 15.15 Examples (Settings > Examples, `/admin/examples`)
 
@@ -1043,10 +1079,13 @@ console needs and does not have yet)
 - "Live a week ago" counts the listings live now that were already live then.
   A listing withdrawn during the week is not in it, because nothing records
   when a listing stops being live.
-- Searches, listing views and refusal reasons are not recorded (Requests A7,
-  A8, A11), so demand, conversion, top areas by searches, searches against
-  results and common refusals cannot be shown.
-- The database's own eight scheduled jobs are summarised, not listed
+- Searches of the listings and listing views are not recorded (Requests A7,
+  A8), so the render's Total searches, Conversion rate and Searches vs results
+  are drawn as price checks (the one demand log there is) and listing views
+  say "Not recorded". A person's decline of an inspection or reservation
+  carries no reason (A11), so common refusals are the platform's price check
+  refusals only.
+- The database's own twelve scheduled jobs are summarised, not listed
   (Request A5).
 - Notification volumes cannot be read by an admin (Request A6).
 - Open reviews has no week-on-week change: an open count has no history until

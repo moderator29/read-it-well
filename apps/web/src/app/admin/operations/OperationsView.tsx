@@ -258,7 +258,7 @@ function JobsPanel({ jobs, database, locale, now }: OperationsProps) {
               <tr>
                 <th scope="row" className="nf-admin-dt__name">
                   {c.databaseJobs}
-                  <span className="nf-admin-dt__sub">pg_cron, eight scheduled in the database</span>
+                  <span className="nf-admin-dt__sub">pg_cron, twelve scheduled in the database</span>
                 </th>
                 <td colSpan={3} className="nf-admin-dt__muted">
                   {database

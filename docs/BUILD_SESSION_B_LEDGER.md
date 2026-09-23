@@ -1047,7 +1047,13 @@ path). Covers a typed address, a bookmark, a sent link and the sign-in bounce
 (`/sign-in?next=/admin/money` returns to the desk, which the gate catches), all
 inside `app/admin` with no proxy change. A client navigation after the
 overview reads the cookie in the browser, so the layout (not re-rendered on
-client navigations) cannot send the operator back. Tests:
+client navigations) cannot send the operator back. While the gate waits for
+the browser to replace the address it shows "Opening the overview first." as
+a plain `<a href="/admin?next=<desk>">`, so the hop works with JavaScript
+off (second closing audit). With JavaScript off the entry cookie is never
+written (the overview writes it in the browser), so such an operator is
+offered the overview again at every desk: the link keeps them moving, the
+rule still holds. Tests:
 `_components/session-b-admin-entry.test.ts` (4). Not exercised end to end with
 a real admin session (none may be created); the redirect and the round trip
 are unit tested and the overview's link is in `overview-heading-to-1440-dark.jpg`.
@@ -1092,7 +1098,9 @@ newest first (`entity_type='cron_job' and entity_id=<job>`, or
 `jobStatus`, `durationLabel` (tested); schedules from `VERCEL_JOBS`, which a
 test holds equal to `vercel.json`. Database jobs -> the newest
 `pg-cron-watch` row's metadata -> `databaseJobsSummary`. **Broken link:** the
-eight pg_cron jobs cannot be listed one by one (cron schema not exposed,
+twelve pg_cron jobs (four added by the migrations of 22 and 23 September:
+`vallo_escrow_invariants`, `vallo_escrow_book_the_float`,
+`vallo_sweep_price_check_events`, `vallo_sweep_price_check_watches`) cannot be listed one by one (cron schema not exposed,
 `cron_job_failures` is service role only) -> **Request A5**. Jobs line ->
 `getRunDays` (every cron audit row for 14 days, `readAll`). Active alerts ->
 `getAlertTrend`: exact open count now and open a week ago from `created_at`
@@ -1103,13 +1111,22 @@ Notifications tab -> **broken link:** `notifications` has only
 `notifications_select_own` -> **Request A6**; the tab says so.
 
 **Analytics.** Successful bookings -> `getBookingOutcomes(range)`, two exact
-counts (confirmed or completed, this window and the one before). Demand vs
-supply -> `getSupplySeries(range)` for the supply line. Areas with fewest
-listings -> `getThinAreas(5)` -> `thinnest` (tested). **Broken links:**
-searches (A7), listing views (A8), refusal reasons (A11) are not recorded
-anywhere; Total searches, Listing views and Conversion read "Not recorded",
-Top areas by searches, Searches vs results and Top common refusals read "Not
-wired yet", each naming its request.
+counts (confirmed or completed, this window and the one before). Supply ->
+`getSupplySeries(range)`. Areas with fewest listings -> `getThinAreas(5)` ->
+`thinnest` (tested). **Demand (second closing audit):** `price_check_events`
+(migration `20260922222424`, policy `price_check_events_admin_read`, checked
+in `pg_policies` on 23 September) -> `getPriceCheckDemand(range)`: every row
+at stage `submit` or `outcome` in the range, paged whole by `readAll`, plus
+an exact count of the window before -> `assembleDemand` (tested: buckets,
+answered, refused, top areas by `lga_code` named from `local_governments`,
+refusals by `refusal_code`) -> KPIs Price checks and Checks answered, panels
+Demand vs supply (checks beside listings created), Top areas by price checks,
+Price checks vs answered and Top common refusals. The table is not in the
+generated types yet, so it is reached through an untyped view of the same
+session client. **Broken links left:** searches of the listings (A7, partly
+withdrawn), listing views (A8), and reasons on a person's decline of an
+inspection or reservation (A11, partly covered). Listing views reads "Not
+recorded" naming A8.
 
 **In flight (fa4f4673), from the closing audit's coverage map.** Inspections:
 Operations > In flight -> `getInspectionActivity()` -> six exact counts on
@@ -1149,12 +1166,12 @@ fixture harness. Image values are image px x 0.908.
 | Property | Image (measured) | Built (measured) | Match |
 |---|---|---|---|
 | Canvas | #000921 | #000612 (`--nf-surface-canvas`) plus a faint blue radial | yes |
-| Rail | floating panel, 197 wide, 11px corners, edge #004EBE, fill #001031 | 200 wide, 14px (`--nf-radius-md`), edge brand 62%, fill brand 9% to 5% over canvas | yes (radius on the nearest rung) |
+| Rail | floating panel, 197 wide, 11px corners, edge #004EBE, fill #001031, full height of the screen with the operator at the foot | 200 wide, 10px (`--nf-radius-sm`), per-side lit edge, fill brand 15% to 11% over canvas (measured #00112B), the column runs the page's full height and its contents stick to the viewport, Settings and the operator pinned at the foot | yes |
 | Rail row | 42 tall, 44 pitch, 15px label, line glyph 18 | 42 tall, 44 pitch, 15px/500, glyph 20 | yes |
 | Open row | solid #0065FD, brighter top #0298FC, blue bloom, ~7px corners | `--nf-gradient-cta`, inset white top rim, 18px bloom, 14px `--nf-radius-control` | yes, radius per the shape law (0.33 of 42) |
 | Wordmark | "Vallo" white bold, 28 | 28px/700 display face, content-primary | yes |
 | V mark | cyan line V | the product's own mark (`/brand/vallo-mark.png`) | no: brand asset kept, the render's glyph is not our mark |
-| Pulse strip | 88 tall, 14 corners, lit top edge glow | 96 tall, 14px, inset rim + top glow | yes |
+| Pulse strip | 88 tall, 10 corners (re-measured), lit top edge glow | 96 tall, 10px, blue catchlight + top glow | yes |
 | Strip plate | 44, 9 corners, lit blue | 44, 10px, brand 66% to 40%, white rim | yes |
 | Strip label / figure | 14 / 22 bold | 14px/500 / 22px/700 | yes |
 | KPI card | 147 tall, 298 wide, corner 9.1 (re-measured) | 148 tall, 284 wide, 10px | yes |
@@ -1194,7 +1211,7 @@ are `getComputedStyle` on the production build at 1440 x 900.
 |---|---|---|---|
 | Page title "Operations" | cap 43 crop px, 25.6px bold | 26px/700 | yes |
 | Lede | 12.8px, cyan-blue #3FB8F5 | 13px, `--nf-brand-secondary` #5C9FFF | yes (0.2px); hue translated into the blue family |
-| KPI card box | 223 x 122.5, corner 7.7 | 343 x 148, corner 14 | width follows the wider window (two cards in a 44rem row); height +25 because the build carries a caption line the render does not; corner deliberately the console's 14 (render 13 on 5EAA44CB) |
+| KPI card box | 223 x 122.5, corner 7.7 | 343 x 148, corner 14 | width follows the wider window (two cards in a 44rem row); height +25 because the build carries a caption line the render does not; corner the console's 10 (re-measured on all four renders, 66c2ecf5) |
 | Card plate | none | none | yes (plates removed in 1636070) |
 | Card label | 12.8px, medium | 15px/600 | larger: the console's one card type size from 5EAA44CB (15) |
 | Card figure "24 / 27" | cap 47 crop, 27.8px bold | 32.2px/700 at 1440 (34 at 1536) | larger: one figure size across every console card |
@@ -1205,7 +1222,7 @@ are `getComputedStyle` on the production build at 1440 x 900.
 | Open tab fill | #0A7BF6 to #1B97F8, top rim, bloom ~12 px | `--nf-gradient-cta`, 1px white 55% rim, 18px bloom | yes |
 | Table header | 11.5px, muted | 13px, `--nf-content-secondary` | 1.5px over; `5EAA44CB` draws its table header at 12.7 (14 image px), so the shared table sits between the two |
 | Table row pitch | 39 | 57 | taller: each cell carries a second line (cron expression, "19m ago") the render does not have |
-| Status badge | 71 x 25, corner 5, "Healthy" tinted emerald, "Failed" solid rose | 64 x 24, corner 6 (0.25), 12px/600; Failed solid rose | yes |
+| Status badge | 71 x 25, corner 5, FILLED: Healthy fill #005353, ring #027F7D, pale mint word #A8D7C6; Failed fill #7C2251, ring #C2285B | 64 x 24, corner 6 (0.25), 12px/600, filled: the state at 40% over the canvas, a 65% ring, the word lifted towards white; Failed 58% rose behind a full rose ring | yes (was an outlined chip on a faint tint until the second closing audit) |
 | Lower panels title | 14.4px semibold | 16px/600 | +1.6, the console's one panel title size |
 
 **Analytics (`01F7DFC7` panel three)**
@@ -1296,6 +1313,29 @@ panel carries dead space under it.
 stack; tables scroll inside their panel; chart axes drop alternate labels in
 a container query. `overflowX` measured 0 on every proof.
 
+**Second closing audit: material re-sampled (23 September).** The
+side-by-sides read flatter and darker than the renders and the badges were
+outlined where the renders fill them. Column scans on 5EAA44CB (chart panel,
+KPI card, Recent alerts) and 01F7DFC7 (jobs table), against the build at
+1440 on the committed harness (`atools/scan.mjs`, `samp.mjs`):
+
+| Property | Render (sampled) | Built before | Built now |
+|---|---|---|---|
+| Canvas | #000921 to #000C27 | #000612 | #000C20 (brand 7% over the canvas token) |
+| Rail glass, mid height | #001032 | #000E24 | #00112B |
+| Rail height | the screen's full height, operator at the foot | a box ending under All desks | full height, sticky contents, Settings and operator pinned at the foot |
+| Panel top edge | #0066D1 to #0078E8 (blue) | #89C1E6 then #67A4FC (near white) | #007BFE, #007FFE |
+| Fill under the top edge | #00246D (chart) to #002E89 (card), #001B4C by 14 CSS px | #144D9A falling to #001C45 by 15 px | #0C3E84 falling to #002252 by 26 px (card) |
+| Panel middle | #001537 to #00173C | #00102A | #001637 |
+| Left edge | #004CB0 to #004EBE | #27ABFA (cyan) | #004DBA |
+| Foot lift and edge | #001843, #001B50, #01205D, edge #0181F5 | #001B41 to #002965, edge #007DFE | #001B42 to #002458, edge #0586FD |
+| Info badge | fill #002D67, ring #014291, cyan word | faint info tint, cyan outline, cyan word | fill #00275D, ring #003F96, cyan word |
+| Success badge | fill #00424A to #005353, ring #047E70 to #027F7D, mint word | #003432 tint, bright outline | fill #00473B, ring #216264, word #7BC9B3 (emerald 40% over the canvas, 65% ring, word lifted towards white) |
+| High / Failed badge | fill #351B40 to #7C2251, ring #842550 to #C2285B | rose tint outline; Failed solid bright rose | rose 40% fill, 65% ring; Failed fill #852438, ring #AC3C60 (58% fill, full rose ring) |
+
+Light mode keeps its own paper material; its badges are filled at 14% with
+the state's ink for contrast.
+
 ### 6.3 Light mode
 
 Same anatomy on paper: the canvas `#F4F5F7`, rail and panels on
@@ -1343,6 +1383,14 @@ bd, bc, c1 and p3 admin harnesses), dark and light, 390 and 1536: **0
 breaches, 0 at or above 0.35, 0 round icon-only controls, 0 routes refused;
 the tool reports 31 route/width/theme combinations measured.**
 
+**Re-run after the second closing audit (23 September)**, 26 routes: the
+session-b admin harness (overview and analytics each fixture and
+`?state=live`, operations and `?tab=inflight`), admin-money's money, escrow,
+payments, bookings, supply, admin-review's listings, review, moderation,
+kyc, and the f5, bd, bc, c1 and p3 admin harnesses, dark and light, 390 and
+1536: **0 breaches, 0 over 0.35, 0 round icon-only controls, 0 routes
+refused; the tool reports 32 route/width/theme combinations measured.**
+
 ### 6.4a Glow identity and the designed empty state
 
 `docs/design/GLOW_IDENTITY.md` section 9 (revised, d01a5d7) is applied in
@@ -1352,8 +1400,9 @@ foot, cyan catchlight), per-side lit edges, the inset rims and near glow, the
 icon tile (lit centre, inset edges, glowing glyph; a pale tile on paper, never
 a dark plate), the lit primary edges on the open rail row and tab, and the calm
 info panel. Where the admin renders measure differently they win for the
-console's density: 14px corners (render 13) rather than the identity's 12, a
-middle of about 11% lit (render #00173A) rather than 10%.
+console's density: 10px corners (re-measured on all four renders, 66c2ecf5)
+rather than the identity's 12, and a middle of about 16% lit (re-sampled,
+render #001537 to #00173C; see "Second closing audit" in 6.2).
 
 Every empty panel on these desks is the calm note (round glyph disc, what
 fills the panel, what creates that data, a link to the producing desk) and a
@@ -1371,16 +1420,18 @@ are shared in `_components/panels.tsx` for the other admin workers.
   (`overview-1440-dark-empty.jpg`, `analytics-1440-dark-empty.jpg`).
 - The render's job names ("Sync listings", "Update search index", "Payout
   processing", "Image optimization") are jobs the platform does not run; the
-  real seven Vercel jobs and eight database jobs are listed instead.
+  real seven Vercel jobs and the twelve database jobs (one summary row until
+  A5) are listed instead.
 - The render's alert rows ("Payment webhook failed", "Search index delay")
   and audit rows ("Tunde A. approved listing") are not drawn; the real rows
   are.
 - Off-palette dots (grey-green Hotels, rose Restaurants, green Land) and a
   rose "+9%" on Open reviews; capsule badges; the render's cyan V glyph in
   place of the product mark.
-- Analytics figures whose source does not exist (searches, views,
-  conversion, refusal reasons): drawn as "Not recorded" with requests, never
-  estimated. Question for the founder: should search and view logging be
+- Analytics figures whose source does not exist (searches of the listings,
+  listing views, conversion): drawn as price checks where the price check
+  log answers the same question, and as "Not recorded" with a request where
+  nothing does, never estimated. Question for the founder: should search and view logging be
   built (A7, A8)? That is a product decision, not a pixel one.
 
 ### 6.6 Proofs
@@ -1390,8 +1441,13 @@ Side by side, render left and built right, re-shot after the final change:
 `side-by-side-analytics.jpg`. Desktop 1440 dark and light, 390 dark and light,
 for all three desks, plus the empty (real database) variants.
 
-`docs/design/proofs/session-b/admin/`, all from the running production build
-on the uncommitted fixture harness (`app/(dev)/preview/sbadmin/**`, which
+`docs/design/proofs/session-b/admin/`, all re-shot on 23 September after the
+landing change, the rail, the badge fills and the re-sampled material, from
+the running production build on the COMMITTED fixture harness
+(`apps/web/src/app/(dev)/preview/session-b/admin/**`, routes
+`/preview/session-b/admin/{overview,operations,analytics}` with
+`?state=live` for the empty variants, `?tab=` for the Operations tabs and
+`?next=` for the heading-to proof; run with `VALLO_PREVIEW_HARNESS=1`), which
 renders the real `AdminFrame`, `OverviewView`, `OperationsView` and
 `AnalyticsView` on fixture props, because no admin session can be created on
 the production database). The `-fixture` shots use figures shaped like the
@@ -1420,8 +1476,13 @@ one `AdminRail` sets.
   notification kinds are listed on the tab and in the handbook, not counted.
 - The other swept desks have no admin render of their own; they inherit the
   register through the shared stylesheet and carry no measured table.
-- The pg_cron schedules in the handbook are read from `cron.job` and assumed
-  to be UTC (pg_cron's default).
+- The pg_cron schedules in the handbook are taken from the migrations that
+  schedule them (twelve jobs, the count the second closing audit gave) and
+  assumed to be UTC (pg_cron's default).
+- The empty Analytics proof shows no price checks. Whether the production
+  table holds rows today was not read (row counts are outside the catalog
+  reads this worker may run); the live page reads it through the admin's
+  session.
 
 ## 7. Admin review desks: listings queue, listing under review, moderation, verification
 

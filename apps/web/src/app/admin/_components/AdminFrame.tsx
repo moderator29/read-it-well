@@ -52,12 +52,18 @@ export function AdminFrame({
 
   return (
     <div className="nf-admin">
+      {/* The rail is a full-height lit column as every render draws it: the
+          aside stretches the whole page, and its contents ride a sticky inner
+          column the viewport's height, so Settings and the operator stay
+          pinned at the foot however far the desk scrolls. */}
       <aside className="nf-admin-rail" aria-label={navLabel}>
-        <div className="nf-admin-rail__brand">{brand}</div>
-        <div className="nf-admin-rail__scroll">
-          <AdminRail counts={badges} labels={navLabels} navLabel={navLabel} shell={shell} />
+        <div className="nf-admin-rail__inner">
+          <div className="nf-admin-rail__brand">{brand}</div>
+          <div className="nf-admin-rail__scroll">
+            <AdminRail counts={badges} labels={navLabels} navLabel={navLabel} shell={shell} />
+          </div>
+          <AdminRailFoot identity={identity} counts={badges} shell={shell} />
         </div>
-        <AdminRailFoot identity={identity} counts={badges} shell={shell} />
       </aside>
 
       <div className="nf-admin-main">
