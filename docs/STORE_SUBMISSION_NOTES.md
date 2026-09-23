@@ -14,6 +14,18 @@ the founder's checklist to the stores is `docs/MOBILE_READINESS.md`. This file
 is narrower: what the stores need to know about the platform being closed, and
 the account they sign in with.
 
+**The live checks are on a panel now (V-52).** `/admin/operations?tab=store`
+runs, against the platform as it is this minute, the nine things a reviewer
+checks by hand: the objectionable-content filter, report and block, the
+reviewer login (it reads `STORE_REVIEWER_EMAIL` and `STORE_REVIEWER_PASSWORD`
+from the server environment, falling back to the `SEED_REVIEWER_*` names the
+seed script uses), the public deletion page, the two deep-link association
+files, the processors the privacy notice must name, example labelling on the
+landing page, the native start (V-11: the shell never opens on `/`), and the
+native versions, which cannot be read from a server and say so. Each row says
+what it saw and the one thing to fix. Prefer the panel to this file where the
+two disagree; this file is prose and the panel is a measurement.
+
 ---
 
 ## 0. The instruction this file exists for
