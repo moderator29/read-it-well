@@ -205,9 +205,9 @@
   }
 
   /*
-   * The figure. The render's digits have a cap height of 28.2 CSS px, which
-   * is a 40px face; `10.3vw` paints 40.2px at 390 and reaches the 2.75rem
-   * ceiling at 427px. It never wraps: the kobo stay on the naira's line, as
+   * The figure's base rule. Its size is overruled in round three below (33px,
+   * measured on a single digit); this rule keeps the line height, tracking
+   * and colour. It never wraps: the kobo stay on the naira's line, as
    * the render sets them, and a long balance scales down rather than
    * breaking (`.nf-wallet-figure--long`, set by WalletDeck on a long figure).
    */
@@ -1245,6 +1245,28 @@
     background: radial-gradient(circle, var(--nf-glow-2) 0%, transparent 68%);
   }
 
+  /* ---------------------------------------- round three: measured glow, radii */
+
+  /*
+   * THE RENDERS' GLOW IS IN THE RIM, NOT AROUND THE CARD. Sampled off
+   * 6AF37222 just outside the balance card: the page reads rgb(0 7 37) right
+   * up to the rim on the left (x 186 to 196) and rises only to rgb(3 13 43)
+   * in the two pixels above the top rim. There is no bloom off the card; the
+   * light is the one-pixel rim and the lit bands inside it. So the balance
+   * card keeps the identity's tight halo and drops the two wide blooms.
+   */
+  .nf-wallet-hero {
+    box-shadow: var(--nf-wallet-lit-glow);
+  }
+  /* 77A54EA3: each form row is a sub-panel with a 10px corner (the rim
+     reaches the side 18 image px below the top), filled rgb(0 21 61) inside
+     a panel of rgb(0 12 43). */
+  .nf-send-row,
+  .nf-send-trust,
+  .nf-send-row__notes > .nf-recipient-found {
+    border-radius: var(--nf-radius-sm);
+  }
+
   /* ------------------------------------- round three: lead rulings R-A to R-C */
 
   /*
@@ -1267,6 +1289,22 @@
     }
   }
 
+  /*
+   * THE FIGURE IS 33PX, AND THE 40PX BEFORE THIS WAS A MISREADING.
+   * The drift survey measured 28.2px of "cap height", but that box included
+   * the naira sign's strokes and the comma's tail. One digit alone, the "2"
+   * of 245 (x 272 to 297), runs y 288 to 328: 41 image px, 24.0 CSS px of
+   * cap height, which in Inter (cap 0.727em) is a 33px face. The whole
+   * "₦245,680.00" is 186px wide in the render; ours at 40px was 228.6px, and
+   * 186 / 228.6 x 40 = 32.6. Two measurements, one answer: 33px, bold.
+   */
+  .nf-wallet-figure {
+    font-size: clamp(1.875rem, 8.46vw, 2.375rem);
+    font-weight: 700;
+  }
+  .nf-wallet-figure--long {
+    font-size: clamp(1.5rem, 6.8vw, 2rem);
+  }
   /* Wallet 6AF37222. "Total Balance" 67.8px wide = 11px. */
   .nf-wallet-hero__label {
     font-size: 0.6875rem;
@@ -1288,6 +1326,11 @@
   .nf-tx-card__head .nf-wallet-link {
     min-height: 2.75rem;
     padding-block: 0;
+  }
+  /* The 44px link would push the title down; the head's own top padding
+     gives that height back, so the title sits 15px under the rim as drawn. */
+  .nf-tx-card__head {
+    padding-top: 0.125rem;
   }
   /* Quick cards: title "Send Money" 55.6px = 9.4px, sub 61.4px for "To bank
      or wallet" = 7.7px; both to the 11px floor. */
@@ -1353,6 +1396,21 @@
   .nf-send-chip {
     min-height: 2.75rem;
     font-size: 0.6875rem;
+  }
+  /* "Wallet Balance" under the send figure: 75px wide = 11px. */
+  .nf-send-balance-line {
+    font-size: 0.6875rem;
+  }
+  .nf-send-balance-line > svg {
+    width: 1rem;
+    height: 1rem;
+  }
+  /* The confirmed name under the recipient row, which the render does not
+     draw: set as the row's value would be, one step under the 16px input. */
+  .nf-send-found__name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--nf-content-primary);
   }
   /* The button: 44.5px in the render, "Send Money" 77.8px = 13px. */
   .nf-send-cta {
