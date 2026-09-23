@@ -3928,6 +3928,24 @@ export const en = {
 
     escrow: {
       lede: "Secure transactions. Fair outcomes.",
+      /* The escrow ruling control (`_components/MoneyDecisions.tsx`), English
+         only; the other locales fall back to it. */
+      rulingControl: {
+        thePayer: "the payer",
+        thePayee: "the payee",
+        label: "Your ruling",
+        placeholder: "What you decided and why. Both people are sent this, word for word.",
+        choose: "Choose a direction. You will see exactly what moves, and to whom, before anything happens.",
+        releaseTo: "Release to {name}",
+        refundTo: "Refund to {name}",
+        goesTo: "{money} goes to {recipient}.",
+        payerLoses: "{payer} does not get this money back.",
+        payeeLoses: "{payee} does not receive this money.",
+        finality:
+          "Both people are sent your ruling word for word. This cannot be undone: the state machine will not let a resolved escrow be reopened.",
+        confirmRelease: "Release {money} to {recipient}",
+        confirmRefund: "Refund {money} to {recipient}",
+      },
       /* The values of `escrow_state`, at the destination the staged
          `ESCROW_STATE_WORDS` in `components/app/untranslated.ts` names.
          CANCELLED is `common.status.CANCELLED`, as the desk has always worded it. */

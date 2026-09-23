@@ -1984,6 +1984,19 @@ same reason, and the Supply desk's Firm rosters read (admin-money's) says it
 could not be read; those are the owning workers' links and are reported to
 the lead, not counted here.
 
+### 6.6g The escrow ruling control's copy on the locale layer (after ledger 8.14)
+
+`EscrowRuling` in `_components/MoneyDecisions.tsx`: 13 visible strings (the
+two stand-in names, the label, the placeholder, the direction prompt, the
+two direction buttons, the confirmation line, the two "does not" lines, the
+finality sentence, the two confirm buttons) move to `admin.escrow.rulingControl`
+in `en.ts` (13 English keys, no Yoruba, Hausa or Igbo word), and Cancel
+reuses `admin.payments.sweep.cancel` (1 key reused). Placeholders fill by a
+`{name}` replace, so the English renders the same characters as before:
+checked by reading the old and new text side by side, not by rendering (the
+control needs a router). The console-wide page titles and loading labels on
+the money desks are left as they are.
+
 ### 6.7 Skipped or not verified
 
 - No proof from the live `/admin` pages with a real admin session (none may be
