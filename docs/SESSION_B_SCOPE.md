@@ -109,6 +109,13 @@ Session A's files:
   `lib/social/posts-queries.ts` (claimed below); the `readPostListings` column
   fault is still Session A's.
 
+**TK-1 (23 September, Session A, main is red).** `check-css-tokens.mjs` fails
+on clean main (ff967a20): `app/css/trust-badge.css` lines 40 to 51 carry ten raw
+colour literals (the badge gradients from dd840fee). They belong in the token
+layer as `--nf-badge-*` definitions, which is Session A's to write. Session B
+has not touched the file. The badge swap in Session B's surfaces does not add
+to it.
+
 ### Deleted posts (item 4, new)
 Claimed by the worker "posts" as it finds them, each file added here in the
 same commit it is first edited, before any edit. Session A: if a file it

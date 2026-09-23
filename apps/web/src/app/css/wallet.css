@@ -1516,3 +1516,11 @@
 .nf-send-row :where(.nf-send-row__input):focus-visible {
   outline: none;
 }
+
+@layer components {
+  /* The person tier mark (Session A's TierBadge) beside a name: the mark
+     alone, spaced off the name it belongs to. */
+  .nf-send-name-tier {
+    margin-inline-start: var(--nf-space-2xs);
+  }
+}

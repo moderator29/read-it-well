@@ -588,6 +588,7 @@ export function InspectionHero({
         <button
           type="button"
           aria-label="Back"
+          data-nav-back=""
           onClick={goBack}
           className="nf-icon-btn nf-icon-btn--glass h-11 w-11 shrink-0"
         >

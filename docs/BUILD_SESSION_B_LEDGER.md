@@ -1822,6 +1822,30 @@ ledger block and complete handbook (3). The one not met is item 5, the
 badge, blocked on B-BADGE (the read and the slot are wired; nothing draws). Chain links proven live: 0 of 17 (the list above), for
 the reason given; built, typed and unit tested: 17 of 17.
 
+### 6.6c R19, the back arrow pressed in a browser (fourth audit)
+
+The source-text test was the only proof, because no harness address has a
+console parent. The committed harness `/preview/session-b/admin/back`
+(`app/(dev)/preview/session-b/admin/back/`) renders the real `AdminFrame` and
+the real `BackButton` inside `AsDesk`, which gives every `usePathname()` below
+it the value `/admin/money` (the router is untouched), so the arrow resolves
+exactly as on that desk. `scripts/design/session-b-shots/admin-back.mjs` opens
+it in Chromium against the production build, finds the control by
+`data-nav-back`, checks it drew, presses it and records the navigation:
+
+```
+VALLO_PREVIEW_HARNESS=1 npx next start -p 3175
+node scripts/design/session-b-shots/admin-back.mjs http://127.0.0.1:3175 \
+  docs/design/proofs/session-b/admin/back-arrow-as-admin-money-1440-dark.jpg
+PASS back control: 1 found by data-nav-back, drawn at 240,18 44x44; rail lit
+on "Money"; press requested /admin?_rsc=...; landed
+/sign-in?next=%2Fadmin&notice=sign-in-required
+```
+
+The press asked for `/admin`, the declared parent; the signed-out browser is
+then sent to sign in with `next=/admin` by the proxy, as it would be for
+anyone without a session. Proof: `back-arrow-as-admin-money-1440-dark.jpg`.
+
 ### 6.7 Skipped or not verified
 
 - No proof from the live `/admin` pages with a real admin session (none may be

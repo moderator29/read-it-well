@@ -34,15 +34,7 @@ them is the same drawing as any object here (the nearest, `home-ring`,
 nothing was skipped as already filed. Within the set, where two screens draw
 the same object only the larger drawing was cut, and its row names both screens.
 
-**Light theme.** No render draws these on paper, and a night object on white
-goes green and washed, with its faint bloom showing as a pale square. So each
-object also ships `<name>-day.png` / `.webp` and `-day-256`: the same key
-with the faint bloom (alpha under 50) dropped and every pixel re-inked on the
-brand ramp by how lit it was, `#9CC2FF` for the glass body to `#06379A` for
-the brightest edges. On paper it sits bare, or on the PALE icon tile of
-`docs/design/GLOW_IDENTITY.md` section 4. Never on a dark plate (the light
-survey's condemned defect). It is a derived rendition, not commissioned light
-artwork. See `docs/design/proofs/session-b/identity/roles-pack-paper.png`.
+**Light theme: removed.** The founder removed light mode from the platform on 23 September (dark only), so the 452 `-day` renditions that were cut for paper were deleted. Every object ships in its night form only.
 
 ## Objects
 
