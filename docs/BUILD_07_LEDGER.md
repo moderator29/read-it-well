@@ -10409,3 +10409,69 @@ One consequence for item 8's screen half: **any control on Get Started that
 points into the product now opens the sign-in screen.** That is correct after
 item 8, and worth knowing while the "look around" option is being removed,
 because whatever replaces it lands in the same place.
+
+---
+
+## 75. AN AGENT COULD NOT CREATE A LISTING, AND IT HAD BEEN IMPOSSIBLE FOR A DAY
+
+**This is the most important thing found today and it was found by a worker
+looking at something else.**
+
+`20260922230200_track_g_3` added `listings.listing_role`, backfilled every
+existing row to `'agent'`, and made the column `NOT NULL`. It gave it no
+default and no trigger. `lib/agent/listings-actions.ts` inserts
+`{ ...columns, agent_id, status: 'DRAFT' }` and `columns` has never carried a
+role. **So every listing created from the agent console since 22 September
+failed with 23502 not_null_violation.**
+
+**The backfill is what hid it.** All 64 rows had a role, so every read, every
+probe, every screen and every test looked correct. A migration that repairs the
+rows it can see and leaves the next insert to fail produces exactly this: a
+table that is perfect and a door that is shut.
+
+**Why it outranks everything else on today's list.** This platform has 64
+published listings and all 64 are examples. Real supply is zero, and the
+founder has been told in every report that no engineering moves that number.
+That was not quite true: **the one action that moves it off zero is an agent
+creating a listing, and that action has been refused for a day.**
+
+**The fix.** `private.listing_role_from_its_lister()`, a BEFORE INSERT trigger
+that fills the role from the lister's own declared `supply_role`, which is the
+same source `lib/supply/workspaces-queries.ts` already reads. An explicit value
+passed by a caller is left untouched, so it fills a gap and never overrules an
+intention. `'firm'` is never derived, because `listings_firm_role_needs_a_firm`
+requires `firm_id` alongside it and deriving one without the other would swap a
+refusal for a refusal.
+
+**AND THE FIRST VERSION OF THE FIX DID NOT WORK, WHICH IS THE PART WORTH
+KEEPING.** Under `search_path = ''` every name must be qualified **including a
+type name in a cast**, so `'owner'::listing_role` raised 42704 at insert time.
+The migration's own read-back passed: it checked the grants and checked that
+the trigger was installed and enabled, and both were true. **Neither can see
+that the body does not run.** That is the blind light pattern occurring inside
+the repair for a blind light, in work written by the session that has spent all
+day cataloguing them.
+
+What caught it was the probe that actually inserts a row the way the
+application does. Both migrations are kept rather than squashed, so the record
+shows the mistake.
+
+**Proved by inserting, not by reading**, through `apply_migration` ending in a
+deliberate raise so nothing committed:
+
+```
+PROBE ALL PASS listing_role: filled=agent explicit_kept=owner
+firm_without_firm=refused (23514) rows_before=64 rows_inside=66
+(all rolled back)
+```
+
+Three assertions and two are controls. `filled=agent` is the fix.
+`explicit_kept=owner` is what a trigger filling every row regardless would have
+failed, and it is what stops this silently overruling a caller.
+`firm_without_firm=refused` proves the constraint was not loosened on the way
+past.
+
+**Still owed, and named rather than done:** the application's generated types
+are stale enough that `tsc` could not see this, which is why a compile-time
+language did not catch a missing required column. Regenerating
+`database.types.ts` is filed as R-P2.
