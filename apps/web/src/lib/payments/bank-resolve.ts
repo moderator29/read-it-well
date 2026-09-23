@@ -23,9 +23,9 @@ import {
  *   side. It takes any non-empty bank code, hands it straight to Paystack,
  *   and answers in the `ActionResult` envelope.
  *
- *   `lookupAccountName` (wallet/actions.ts) is the withdraw sheet's courtesy
- *   read. It refuses, silently, any bank code that is not one of the twenty
- *   three in `wallet/banks.ts`, and answers in a shape of its own.
+ *   `lookupAccountName` (wallet/actions.ts) was the withdraw sheet's courtesy
+ *   read. It refused, silently, any bank code that was not one of the twenty
+ *   three in `wallet/banks.ts`, and answered in a shape of its own.
  *
  * So a person could file a Jaiz, Sparkle or VFD account on the payments
  * settings page and then be told nothing at all by the withdraw sheet for the
@@ -33,6 +33,13 @@ import {
  * processor underneath. A third caller with a third opinion is how money ends
  * up at the wrong account, so the send desk does not get one: the body moves
  * here and every caller asks this.
+ *
+ * THE SECOND OPINION IS GONE AS WELL, 23 September. `withdrawSchema` no longer
+ * checks a bank code against `wallet/banks.ts`; `withdraw` and
+ * `lookupAccountName` both ask `lookupBank` below, which is the same live
+ * registry the payments settings page and the send desk ask. `WALLET_BANKS`
+ * survives as a picker's seed on a screen this session does not own and as
+ * nothing else: it validates nothing, and no money path reads it.
  *
  * ---------------------------------------------------------------------------
  * WHAT IS HERE AND WHAT IS DELIBERATELY NOT.
@@ -85,16 +92,67 @@ export async function cachedBanks(): Promise<PaystackBank[]> {
 }
 
 /**
- * The display name for a code, from the live registry. `null` means either
- * that the registry could not be read or that the code is not in it, and both
- * are the same refusal to a caller: choose a bank from the list.
+ * Why a bank code did not become a bank.
+ *
+ *   `unconfigured`     no processor key in this environment, so there is no
+ *                      registry to check against and nothing may proceed on
+ *                      the assumption that the code is good.
+ *   `unreachable`      the registry could not be read. THIS IS NOT THE SAME
+ *                      FACT AS A BAD CODE and it must never be answered with
+ *                      "choose a bank from the list", because the list the
+ *                      person is being sent back to is the one we could not
+ *                      read. Trying again may work.
+ *   `unknown-code`     the registry was read and this code is not in it. The
+ *                      person can fix that by choosing again.
  */
-export async function bankNameForCode(code: string): Promise<string | null> {
+export type BankLookupFailure = "unconfigured" | "unreachable" | "unknown-code";
+
+export type BankLookup =
+  | { ok: true; code: string; name: string }
+  | { ok: false; failure: BankLookupFailure };
+
+/**
+ * IS THIS A REAL NIGERIAN BANK, ASKED OF THE LIVE REGISTRY.
+ *
+ * ---------------------------------------------------------------------------
+ * WHY THIS REPLACED A FUNCTION THAT RETURNED `string | null`.
+ *
+ * `bankNameForCode` answered `null` for three different facts about the
+ * world: no key, no registry, no such bank. Every caller therefore said the
+ * same sentence for all three, and one of those sentences was a lie. Telling
+ * somebody to "choose a bank from the list" when the outage IS the list sends
+ * them back to a picker to make the same choice again, and they will read the
+ * second refusal as the platform calling their bank fake.
+ *
+ * ---------------------------------------------------------------------------
+ * A REGISTRY THAT CANNOT BE READ IS A REFUSAL, NEVER A PASS.
+ *
+ * This is the load-bearing line of the whole module. `withdrawSchema` used to
+ * check the code against a hand-typed list of twenty three, which is why the
+ * withdraw sheet could not pay a Kuda, Opay, Palmpay, Moniepoint, Sparkle,
+ * VFD or Jaiz account that the payments settings page had happily stored. The
+ * fix is to ask the live registry instead, and the whole risk in that fix is
+ * that the registry is a network call: an implementation that shrugged and
+ * let the code through on an unreachable registry would have widened a LIVE
+ * PAYOUT PATH to "any string is a bank". So the failure branch refuses, and
+ * `ok: true` is returned only when a registry was actually read and actually
+ * contained the code.
+ */
+export async function lookupBank(rawCode: string): Promise<BankLookup> {
+  const code = rawCode.trim();
+  if (code.length === 0) return { ok: false, failure: "unknown-code" };
+  if (!isPaystackConfigured()) return { ok: false, failure: "unconfigured" };
+
+  let banks: PaystackBank[];
   try {
-    return (await cachedBanks()).find((bank) => bank.code === code)?.name ?? null;
+    banks = await cachedBanks();
   } catch {
-    return null;
+    return { ok: false, failure: "unreachable" };
   }
+
+  const bank = banks.find((entry) => entry.code === code);
+  if (!bank) return { ok: false, failure: "unknown-code" };
+  return { ok: true, code: bank.code, name: bank.name };
 }
 
 /* ---------------------------------------------------------- the resolve */

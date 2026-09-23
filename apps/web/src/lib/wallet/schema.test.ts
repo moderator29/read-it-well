@@ -49,7 +49,26 @@ describe("withdrawSchema", () => {
     expect(withdrawSchema.safeParse({ ...valid, accountNumber: "12345" }).success).toBe(false);
   });
 
-  it("refuses a bank that is not on the list", () => {
-    expect(withdrawSchema.safeParse({ ...valid, bankCode: "000" }).success).toBe(false);
+  it("refuses a missing bank code", () => {
+    expect(withdrawSchema.safeParse({ ...valid, bankCode: "" }).success).toBe(false);
+    expect(withdrawSchema.safeParse({ ...valid, bankCode: "   " }).success).toBe(false);
+  });
+
+  /**
+   * THE SCHEMA IS NO LONGER WHERE A BANK CODE IS CHECKED, AND THIS SAYS SO.
+   *
+   * It used to refuse anything outside the twenty three in `./banks`, which is
+   * why the withdraw sheet could not pay a Sparkle, VFD or Jaiz account that
+   * the payments settings page had happily stored. The membership check moved
+   * to `withdraw`, which asks the live registry through `lookupBank` before a
+   * kobo is held.
+   *
+   * A test that stopped here would be reporting that the gate is OPEN and
+   * nothing else, so the refusals that replaced it are proved at the action in
+   * `withdraw-door.test.ts`, including the one that matters: an unreachable
+   * registry refuses rather than waving the code through.
+   */
+  it("accepts a code it has never heard of, because the action checks the registry", () => {
+    expect(withdrawSchema.safeParse({ ...valid, bankCode: "51310" }).success).toBe(true);
   });
 });

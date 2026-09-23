@@ -42,8 +42,8 @@ import {
 import { isPaystackConfigured, type PaystackBank } from "./paystack";
 import {
   accountNumberSchema,
-  bankNameForCode,
   cachedBanks,
+  lookupBank,
   resolveBankAccountName,
 } from "./bank-resolve";
 
@@ -200,10 +200,17 @@ async function addBankAccountWork(
   parsed: { data: { bankCode: string; accountNumber: string } },
 ): Promise<ActionResult<BankAccount>> {
 
-  const bankName = await bankNameForCode(parsed.data.bankCode);
-  if (!bankName) {
+  /* The live registry, and its three failures told apart. A registry we could
+     not READ must not be reported as a bank that does not exist: the person
+     would choose the same bank again and read the second refusal as us calling
+     their bank fake. `lookupBank` never passes an unchecked code through. */
+  const bank = await lookupBank(parsed.data.bankCode);
+  if (!bank.ok) {
+    if (bank.failure === "unreachable") return fail(SERVICE_DOWN_MESSAGE);
+    if (bank.failure === "unconfigured") return fail(UNVERIFIABLE_MESSAGE);
     return fail("Choose a bank from the list.", { bankCode: "Choose a bank from the list." });
   }
+  const bankName = bank.name;
 
   const resolved = await resolveBankAccountName(parsed.data);
   if (!resolved.ok) {

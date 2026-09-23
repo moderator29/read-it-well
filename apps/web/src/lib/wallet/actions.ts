@@ -68,9 +68,8 @@ import { CRYPTO_PREFIX, FUND_PREFIX, P2P_PREFIX, WITHDRAW_PREFIX } from "../paym
 import { guardMoney } from "../security/money-limits";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { subjectForUser } from "../security/rate-limit";
-import { bankByCode } from "./banks";
 import {
-  bankNameForCode,
+  lookupBank,
   resolveBankAccountName,
   sameAccountName,
 } from "../payments/bank-resolve";
@@ -109,6 +108,22 @@ const FUNDING_UNCONFIGURED_MESSAGE =
  * real fear is "has my money gone", so the copy answers that first and gives
  * them the one route that can trace it.
  */
+/**
+ * THE BANK LIST ITSELF COULD NOT BE READ.
+ *
+ * Said separately from "choose a bank from the list" on purpose, and this is
+ * the one refusal in the wallet whose wording is a safety property rather than
+ * a courtesy. Both doors check the posted bank code against the live registry
+ * before they hold a kobo. When that registry is unreachable there are exactly
+ * two honest options, and letting the code through is not one of them, because
+ * the code would then reach a live payout path unchecked. So it refuses, and
+ * it must not refuse by telling somebody to pick again from a list we could
+ * not read: they would choose the same bank, get the same sentence, and
+ * reasonably conclude the platform thinks their bank does not exist.
+ */
+const BANK_LIST_UNREADABLE_MESSAGE =
+  "We could not check the bank list just now, so nothing has been sent and your balance is untouched. Please try again in a moment.";
+
 const UNKNOWN_REFERENCE_MESSAGE =
   "That payment reference is not recognised. Open your wallet and start the funding again. If money has already left your account, contact support and we will trace it.";
 
@@ -427,24 +442,61 @@ export type WithdrawReceipt = {
  * releases the money rather than holding it forever.
  *
  * ---------------------------------------------------------------------------
- * THIS ACTION TAKES NO IDEMPOTENCY KEY, AND THAT IS WHY THE DRAWER HAS NO
- * RETRY BUTTON.
+ * TWO TAPS ON A WITHDRAWAL MOVE THE MONEY ONCE.
  *
- * `startCardCheckout` and `payWithWallet` both take an `idempotencyKey` minted
- * per attempt by the caller, so a second submit replays the first answer and
- * the checkout screen can safely offer "Try again" on a stalled payment. This
- * action does not: the reference is generated HERE, per call, so a second
- * submit is a second withdrawal of real money and nothing downstream would
- * collapse them.
+ * WHAT THIS PARAGRAPH USED TO SAY, AND IT WAS TRUE: this action took no
+ * idempotency key, the `rm-wd-<uuid>` reference is generated HERE per call, so
+ * a second submit was a second withdrawal of real money under a reference the
+ * database had never seen and therefore could not refuse. Nothing downstream
+ * could collapse them. That is why `WalletDeck`'s twenty-five second clock
+ * said "Do not send this again" and offered the history instead of a retry
+ * button: the panel was being honest about the function behind it.
  *
- * So when `WalletDeck`'s twenty-five second clock runs out it says "Do not send
- * this again" and offers the history instead of a retry. That is a fact about
- * this function, not a decision about that panel, and it is written here
- * because the next person to look at a money screen with no retry control will
- * reasonably assume it was an oversight. Give this action a key and the panel
- * can have its button.
+ * NOW IT TAKES ONE, and it is the same `withIdempotency` guard
+ * `transferToUser`, `transferToBank`, `fundWallet`, `fundWalletWithSavedCard`
+ * and `addBankAccount` use, under its own scope, never a second mechanism.
+ * The whole body runs inside it, INCLUDING the dispatch to
+ * `withdrawToSavedAccount` below, because both branches hold balance and
+ * initiate a real transfer and a person tapping twice does not know or care
+ * which one they are on.
+ *
+ * `shouldRecord: (r) => r.ok` keeps a refusal retryable: somebody who mistyped
+ * a digit, or who was short by a hundred naira and has just funded, must be
+ * able to try again at once rather than be handed the same refusal for the
+ * whole TTL. A form with no key runs unguarded exactly as before, which is the
+ * state the withdraw sheet is in until it mints one: the request is filed in
+ * `docs/BUILD_07_LEDGER.md` section 49, and the panel can have its retry
+ * button the day it carries a key.
+ *
+ * THE GUARD FAILS OPEN BY DESIGN when it cannot reach its store, so it is not
+ * a substitute for the ledger's unique `reference`. It removes the common
+ * double submit. Belt and braces, both wanted.
  */
 export async function withdraw(
+  _prev: ActionResult<WithdrawReceipt | null>,
+  formData: FormData,
+): Promise<ActionResult<WithdrawReceipt | null>> {
+  const session = await resolveSession();
+  const key = formDataToObject(formData)["idempotencyKey"] ?? null;
+  if (session.state !== "signed-in" || !key) return withdrawWork(_prev, formData);
+
+  const run = await withIdempotency<ActionResult<WithdrawReceipt | null>>(
+    {
+      scope: WITHDRAW_SCOPE,
+      key,
+      subject: subjectForUser(session.user.id),
+      shouldRecord: (result) => result.ok,
+    },
+    () => withdrawWork(_prev, formData),
+  );
+  if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);
+  return run.result;
+}
+
+/** One scope for the withdraw door, matching the shape of the other four. */
+const WITHDRAW_SCOPE = "wallet.withdraw";
+
+async function withdrawWork(
   _prev: ActionResult<WithdrawReceipt | null>,
   formData: FormData,
 ): Promise<ActionResult<WithdrawReceipt | null>> {
@@ -473,8 +525,35 @@ export async function withdraw(
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
-  const bank = bankByCode(parsed.data.bankCode);
-  if (!bank) return fail("Choose a bank from the list.", { bankCode: "Choose a bank from the list." });
+  /*
+   * IS THIS A REAL BANK, ASKED OF THE LIVE REGISTRY.
+   *
+   * This read `bankByCode` against the twenty three hand-typed names in
+   * `./banks` until 23 September, and `withdrawSchema` refused anything else
+   * before the call even got here. Meanwhile the payments settings page was
+   * happily storing Kuda, Opay, Palmpay, Moniepoint, Sparkle, VFD and Jaiz
+   * accounts against the live registry of about a hundred, so a person could
+   * file an account this door could never pay.
+   *
+   * The registry is a network call and this is a payout path, so the three
+   * failures are told apart rather than folded into one sentence. In
+   * particular an UNREACHABLE registry refuses; it never becomes "the code is
+   * probably fine". See `lookupBank`.
+   */
+  const bank = await lookupBank(parsed.data.bankCode);
+  if (!bank.ok) {
+    logMoney({
+      surface: "withdraw",
+      outcome: "rejected",
+      reason: `bank_not_in_registry:${bank.failure}`,
+      userId: session.user.id,
+    });
+    if (bank.failure === "unreachable") return fail(BANK_LIST_UNREADABLE_MESSAGE);
+    if (bank.failure === "unconfigured") {
+      return fail("We cannot send a withdrawal right now. Your balance is untouched.");
+    }
+    return fail("Choose a bank from the list.", { bankCode: "Choose a bank from the list." });
+  }
 
   /*
    * WHO THE MONEY IS GOING TO, ASKED OF THE BANK, BEFORE ANYTHING IS HELD.
@@ -1361,11 +1440,24 @@ async function transferToBankWork(
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
   /* The live registry, which is the list the send screen's picker is built
-     from and the same one the payments settings page checks against. */
-  const bankName = await bankNameForCode(parsed.data.bankCode);
-  if (!bankName) {
+     from and the same one the payments settings page and the withdraw door
+     check against. An unreachable registry is said as itself rather than as
+     "choose a bank from the list"; see BANK_LIST_UNREADABLE_MESSAGE. */
+  const bank = await lookupBank(parsed.data.bankCode);
+  if (!bank.ok) {
+    logMoney({
+      surface: "transfer",
+      outcome: "rejected",
+      reason: `bank_not_in_registry:${bank.failure}`,
+      userId: session.user.id,
+    });
+    if (bank.failure === "unreachable") return fail(BANK_LIST_UNREADABLE_MESSAGE);
+    if (bank.failure === "unconfigured") {
+      return fail("We cannot send to a bank account right now. Your balance is untouched.");
+    }
     return fail("Choose a bank from the list.", { bankCode: "Choose a bank from the list." });
   }
+  const bankName = bank.name;
 
   /*
    * WHO THE MONEY IS GOING TO, ASKED OF THE BANK, BEFORE ANYTHING IS HELD.
@@ -1903,12 +1995,32 @@ export async function lookupAccountName(
   /* Keyed on the CODE, which is what every caller actually holds: the select on
      the withdraw sheet posts `bankCode`, and `withdraw` resolves by code too.
      It took a display name until now, and its only caller was a wallet panel
-     that nothing rendered. */
-  const bank = bankByCode(bankCode.trim());
-  if (!bank) return { ok: false, reason: "" };
+     that nothing rendered.
 
+     THE SAME LIVE REGISTRY `withdraw` CHECKS. It checked the twenty three in
+     `./banks` until 23 September and returned an EMPTY reason for anything
+     else, so the withdraw sheet said nothing at all about a Kuda or Opay
+     account: no name, no refusal, just a field that never answered. A courtesy
+     read that goes quiet is worse than one that refuses, because the person
+     reads the silence as "still checking" and presses Withdraw anyway. */
   const digits = accountNumber.replace(/\D/g, "");
   if (digits.length !== 10) return { ok: false, reason: "" };
+
+  const bank = await lookupBank(bankCode);
+  if (!bank.ok) {
+    /* Unconfigured stays silent: there is no processor in this environment, so
+       there is nothing to say about this pair and the withdrawal itself will
+       say the useful thing. The other two are said, because both are facts
+       about the pair in front of the person. */
+    if (bank.failure === "unconfigured") return { ok: false, reason: "" };
+    if (bank.failure === "unreachable") {
+      return {
+        ok: false,
+        reason: "We could not check the bank list just now. Please try again in a moment.",
+      };
+    }
+    return { ok: false, reason: "Choose a bank from the list." };
+  }
 
   /* Paid per call at Paystack, so counted like the withdrawal it precedes. */
   const limit = await guardMoney("resolveBankAccount", session.user.id);

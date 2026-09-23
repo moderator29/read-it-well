@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { formatMoney } from "@vallo/i18n";
-import { WALLET_BANKS } from "./banks";
 
 /**
  * Wallet input schemas.
@@ -66,8 +65,6 @@ export const nairaAmountSchema = z
     return kobo;
   });
 
-const BANK_CODES = new Set(WALLET_BANKS.map((b) => b.code));
-
 /**
  * One key per submit, minted by the surface. Optional so every existing form
  * keeps working; when present, a dropped connection and a second tap replay
@@ -95,20 +92,47 @@ export const fundWithSavedCardSchema = z.object({
 export const withdrawSchema = z.object({
   /*
    * Named here for the same reason as on `transferSchema`, and with one
-   * honest difference: NO WITHDRAWAL FORM MINTS A KEY YET. `withdraw` is
-   * wrapped in the guard, and the guard steps aside when no key arrives, so
-   * this changes nothing until the form carries one. The request to the
-   * session that owns the withdrawal surfaces is in the ledger. Landing the
-   * server half first means the form is a one-line change rather than a
-   * change that has to arrive with its own backend.
+   * honest difference: NO WITHDRAWAL FORM MINTS A KEY YET.
+   *
+   * A CORRECTION TO WHAT THIS COMMENT SAID UNTIL 23 SEPTEMBER. It read
+   * "`withdraw` is wrapped in the guard, and the guard steps aside when no key
+   * arrives, so this changes nothing until the form carries one". The second
+   * half was true and the first half was not: `withdraw` was not wrapped in
+   * anything, and this field was parsed and then dropped on the floor. So the
+   * schema named a key, the schema's own note claimed a guard, and two taps
+   * on Withdraw made two withdrawals. It is wrapped now, under
+   * `wallet.withdraw`, and the rest of the note holds: the guard steps aside
+   * when no key arrives, so nothing changes until the sheet carries one. The
+   * request to the session that owns the withdrawal surfaces is in the ledger.
    */
   idempotencyKey: idempotencyKeySchema,
   amount: nairaAmountSchema,
-  bankCode: z
-    .string()
-    .trim()
-    .min(1, "Choose your bank.")
-    .refine((code) => BANK_CODES.has(code), "Choose a bank from the list."),
+  /*
+   * THE BANK CODE IS NO LONGER CHECKED AGAINST A HAND-TYPED LIST.
+   *
+   * It used to be checked against the twenty three names in `./banks`, and
+   * that list had drifted away from the LIVE registry of about a hundred that
+   * the payments settings page and the send desk both use. The result was a
+   * person filing a Kuda, Opay, Palmpay, Moniepoint, Sparkle, VFD or Jaiz
+   * account on the settings page and then finding the withdraw sheet could
+   * not pay it: two lists, one processor, and the short one guarding the
+   * money.
+   *
+   * A schema cannot ask a registry: this module is synchronous, imported by
+   * the browser bundle through the send screen, and a network call inside a
+   * Zod refinement would be a network call on every keystroke of every form
+   * that shares it. So the shape is checked here and the MEMBERSHIP is
+   * checked in `withdraw`, by `lookupBank`, against the same live registry
+   * every other door asks, BEFORE a kobo is held and before the processor is
+   * called. That is the same division `bankTransferSchema` below already
+   * uses.
+   *
+   * WIDENING A SCHEMA WIDENS A PAYOUT PATH, so read the rest of that
+   * sentence: `lookupBank` refuses a registry it could not read rather than
+   * letting the code through, which is the one way this change could have
+   * gone wrong.
+   */
+  bankCode: z.string().trim().min(1, "Choose your bank."),
   accountNumber: z
     .string()
     .trim()
@@ -179,16 +203,15 @@ export const transferSchema = z.object({
  * SEND TO A BANK ACCOUNT, the second half of the send desk.
  *
  * ---------------------------------------------------------------------------
- * WHY THE BANK CODE IS NOT CHECKED AGAINST `WALLET_BANKS` HERE.
+ * WHY NO BANK LIST APPEARS IN THIS FILE AT ALL.
  *
- * `withdrawSchema` above checks its code against the twenty three banks in
- * `./banks`, because the withdraw sheet's picker is built from that same
- * constant and a code from anywhere else is a tampered form. The send screen's
- * picker is built from the LIVE registry (`listBanks`, the payout side's own
- * list, which is where Jaiz, Sparkle, VFD and every microfinance bank live),
- * so a valid send can legitimately carry a code this file has never heard of.
- * The action checks the code against that same live registry before it holds a
- * kobo, which is the only list that can be right.
+ * Both pickers, this screen's and the withdraw sheet's, are drawn from the
+ * LIVE registry (`listBanks`, the payout side's own list, which is where
+ * Jaiz, Sparkle, VFD and every microfinance bank live), so a valid submit can
+ * legitimately carry a code this file has never heard of. Both actions check
+ * the code against that same live registry before they hold a kobo, which is
+ * the only list that can be right. See the note on `withdrawSchema` above for
+ * what a second, shorter list cost while it existed.
  *
  * ---------------------------------------------------------------------------
  * `confirmedAccountName` IS NOT THE NAME THE MONEY IS SENT TO.
