@@ -5,6 +5,7 @@ import { resolveSession } from "../actions/session";
 import { callableNumbersFor } from "../security/counterpart-contact";
 import type { Database } from "../supabase/database.types";
 import { isOpen, type Inspection, type InspectionOutcome, type InspectionState } from "./types";
+import { badgeTierFrom, type BadgeTier } from "./badge";
 
 /**
  * READING INSPECTIONS, FROM BOTH SIDES.
@@ -109,9 +110,10 @@ async function readSide(column: "lister_id" | "requester_id"): Promise<Inspectio
        reader's own client can see, so it goes through the one module that
        decides who may be handed whose. One read for the whole page either
        way. */
-    const [names, numbers] = await Promise.all([
+    const [names, numbers, badges] = await Promise.all([
       readDisplayNames(session.supabase, counterpartIds),
       callableNumbersFor(session.user.id, counterpartIds),
+      readBadgeTiers(session.supabase, counterpartIds),
     ]);
 
     const inspections: Inspection[] = rows.map((row) => ({
@@ -130,6 +132,8 @@ async function readSide(column: "lister_id" | "requester_id"): Promise<Inspectio
         names.get(column === "lister_id" ? row.requester_id : row.lister_id) ?? null,
       counterpartPhone:
         numbers.get(column === "lister_id" ? row.requester_id : row.lister_id) ?? null,
+      counterpartBadge:
+        badges.get(column === "lister_id" ? row.requester_id : row.lister_id) ?? null,
       outcome: row.outcome,
     }));
 
@@ -198,6 +202,35 @@ async function readDisplayNames(
   }[]) {
     const name = (row.display_label ?? "").trim() || (row.handle ? `@${row.handle}` : "");
     if (name.length > 0) out.set(row.user_id, name);
+  }
+  return out;
+}
+
+/**
+ * The badge tier of each person, from `public.person_badge` (Session A's one
+ * source, readable by anon and authenticated). An absent row is no badge.
+ * The view is newer than the generated types, so the client is widened for
+ * this one read; the row is narrowed straight back through `badgeTierFrom`.
+ * A failed read is no badge, never a page failure.
+ */
+async function readBadgeTiers(
+  supabase: SupabaseClient<Database>,
+  ids: string[],
+): Promise<Map<string, BadgeTier>> {
+  const out = new Map<string, BadgeTier>();
+  const wanted = [...new Set(ids)];
+  if (wanted.length === 0) return out;
+  try {
+    const { data } = await (supabase as unknown as SupabaseClient)
+      .from("person_badge")
+      .select("user_id, tier")
+      .in("user_id", wanted);
+    for (const row of (data ?? []) as { user_id: string; tier: unknown }[]) {
+      const tier = badgeTierFrom(row.tier);
+      if (tier) out.set(row.user_id, tier);
+    }
+  } catch {
+    /* No badge is the safe failure. */
   }
   return out;
 }
@@ -282,10 +315,11 @@ export async function readOpenInspectionForConversation(
     const row = data as Row;
     const counterpartId =
       row.requester_id === session.user.id ? row.lister_id : row.requester_id;
-    const [titles, names, numbers] = await Promise.all([
+    const [titles, names, numbers, badges] = await Promise.all([
       readListingTitles(session.supabase, [row.listing_id]),
       readDisplayNames(session.supabase, [counterpartId]),
       callableNumbersFor(session.user.id, [counterpartId]),
+      readBadgeTiers(session.supabase, [counterpartId]),
     ]);
     return {
       id: row.id,
@@ -301,6 +335,7 @@ export async function readOpenInspectionForConversation(
       conversationId: row.conversation_id,
       counterpartName: names.get(counterpartId) ?? null,
       counterpartPhone: numbers.get(counterpartId) ?? null,
+      counterpartBadge: badges.get(counterpartId) ?? null,
       outcome: row.outcome,
     };
   } catch {
