@@ -16,6 +16,52 @@ ledger's needs-the-founder section; this file is his.
 
 ---
 
+## 23 September, URGENT: ROTATE THE FIREBASE SERVICE ACCOUNT KEY
+
+**A Firebase service account, private key included, was pasted into a working
+session this evening. Treat it as compromised and replace it.** Not because
+anything went wrong, but because a private key that has been pasted into any
+transcript, log or chat is no longer a secret, and the rule does not have
+exceptions for "it was only us".
+
+**It is not in this repository. I checked rather than assuming:**
+`grep -rl "firebase-adminsdk-fbsvc"` over the whole tree returns nothing, and
+there is now a test, `lib/security/no-committed-secrets.test.ts`, that fails if
+a PEM private key, a service account block, a `.iam.gserviceaccount.com`
+address, a Paystack or Resend key, an AWS key id, a signed JWT or a Slack token
+ever appears in a git-tracked file.
+
+**How to rotate, and it takes about a minute:**
+
+1. Firebase console, project `vallo-44059`, Project settings, **Service
+   accounts**, **Generate new private key**. A JSON file downloads.
+2. Google Cloud console, IAM and admin, **Service accounts**,
+   `firebase-adminsdk-fbsvc@vallo-44059.iam.gserviceaccount.com`, **Keys**.
+   **Delete the key whose id begins `79a7286`.** Deleting the old key is the
+   step that actually closes it; generating a new one on its own changes
+   nothing.
+3. Vercel, project `read-it-well-web`, Settings, Environment Variables. Replace
+   `FCM_SERVICE_ACCOUNT_JSON` with the **whole contents of the new file**, and
+   redeploy so it is picked up.
+
+**You did not need to send it and you do not need to send the next one.**
+`FCM_SERVICE_ACCOUNT_JSON` and `FCM_PROJECT_ID` are already set on Vercel
+production. I can see that both variables exist without ever reading a value,
+which is how I answered the `deliverablePlatforms()` question, and it is the
+only thing I need.
+
+**What I tried to do with it, and why it did not happen.** I wanted to close
+the one gap I had flagged: a name check cannot tell you whether the JSON inside
+authenticates. So I went to mint an OAuth token against
+`oauth2.googleapis.com`, which proves the credential works without sending a
+notification to anybody. **This container's own credential protection refused
+to let me write the private key to a file or sign with it**, and I did not work
+around it. That protection is right, and the gap stays open: **nothing has yet
+proved that the FCM credential authenticates.** The first real push to a real
+handset is still what proves it.
+
+---
+
 ## 23 September: the refund figure, and a conflict only you can settle
 
 **You said 3 to 5 business days. It is now in the support FAQ, but not as the
