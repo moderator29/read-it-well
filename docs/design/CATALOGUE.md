@@ -273,3 +273,8 @@ Photography:
 - EBC8FC19 -> photo-restaurant-03-bar.png
 
 Deletable exact duplicates (13): BC882C5A, 97080069, 8D58A2DA, 8AA6F0DD, C94E4E85, 9BE8F2D4, B8EE3E49, E1CBDA9E, and the five governing copies 0BD2193A, 3594441E, 9A9A4168, AC7A17CE, 94846372.
+
+**Removed on 23 September 2026.** Those thirteen exact duplicates were deleted
+from `references/`; each one's keeper above is byte-identical, so nothing a
+row in this catalogue describes was lost. The rows stay so a UUID quoted in an
+older document still resolves to its keeper.

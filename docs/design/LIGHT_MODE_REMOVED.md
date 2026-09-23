@@ -149,7 +149,8 @@ exists for.
 - **The 49 daylight contrast failures.** A whole-harness sweep on the day of the
   decision measured 60 below the floor in light, on 5,264 text-bearing leaves
   across 136 routes. That number is now about a theme that does not ship.
-- **`docs/design/proofs/paper/`.** Struck with a banner, kept because
+- **`scripts/design/paper/`.** The two daylight tools that still say something
+  true, `model-vs-chromium.mjs` and `measure-object-ground.mjs`, kept because
   `model-vs-chromium.mjs` establishes that compositing these PNGs offline is a
   model of what Chromium paints, mean 1.41 of 255, which is a fact about the
   artwork's alpha key and the licence for any future offline measurement.
@@ -209,7 +210,7 @@ Both of the first two are filed with their exact selectors in
 **HOW TO CHECK, AND IT IS NOT A GREP.** After a removal like this most hits for
 the string are comments explaining that the thing is gone, including ones that
 say so in those words: a plain search reported fourteen files of which eight
-were prose. `docs/design/proofs/no-light/live-light-rules.mjs` blanks `/* */`
+were prose. `scripts/design/no-light/live-light-rules.mjs` blanks `/* */`
 and `//` first, then looks for the selector, prints file and line, and exits
 non-zero if anything is live. It refuses to report a clean result if it read
 zero files, because the first version of it pointed one directory too high and
@@ -217,5 +218,5 @@ printed a confident pass over nothing.
 
 ## 6. The proof
 
-`docs/design/proofs/no-light/prove-no-light.mjs`, run against a production
+`scripts/design/no-light/prove-no-light.mjs`, run against a production
 build with the OS preference forced to light. See section 7 for the run.

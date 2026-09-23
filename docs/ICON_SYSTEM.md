@@ -134,8 +134,9 @@ paper `BrandIcon` paints the navy chip `--nf-icon-ground` behind them, and the
 tile-form objects (which arrive on their own glass tile, like the transaction
 marks) read as a tile on the chip. The preview at `/preview/g2` shows every
 one at 32, 48 and 96 on canvas, card, elevated and the glass card, in both
-themes; the proofs are `docs/design/proofs/g2/objects-390-dark.png` and
-`objects-390-light.png`.
+themes; the proof shots `docs/design/proofs/g2/objects-390-dark.png` and
+`objects-390-light.png` were removed from the tree with the other build proofs
+and remain in git history (last present at `85c5471`).
 
 **What was looked at and left out, and why.** The HOTEL-lettered building on
 `2A49E2F7` (baked text, never cropped). The onboarding coin on the same render
