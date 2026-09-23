@@ -262,6 +262,34 @@ export type Listing = {
    */
   listerRole?: ListingRole;
   /**
+   * WHO THAT LISTER IS, BY NAME, AND ONLY WHEN THE SENTENCE NEEDS ONE.
+   *
+   * `LISTING_ROLE_SENTENCE` carries `{name}` in two of its three sentences:
+   * "Listed by {name}, agent" and "Listed by {name}". The owner sentence names
+   * nobody on purpose, because the offer IS that there is no intermediary.
+   *
+   * Until migration `20260923103838` the public read could not fill either
+   * one. `public.agents` is RLS-bound to the agent themselves and to staff, so
+   * a stranger had no path from `agent_id` to a display name, and `fillLister`
+   * correctly refuses to print a template with its placeholder showing. The
+   * consequence was that on all 64 live listings, every one of them
+   * `listing_role = 'agent'`, the line appeared on zero screens.
+   *
+   * It is filled from `public.listing_lister`, a published view with exactly
+   * two columns, bounded to PUBLISHED listings, which resolves the agent's
+   * display name for `agent`, the firm's name for `firm` and NULL for `owner`.
+   * Nothing else about a lister travels: not a phone number, an email address,
+   * an address, a document number, a user id or a verification tier.
+   *
+   * THIS IS A NAME AND NOT A CLAIM. It says who, not whether anybody checked
+   * them. `verified` is the checked fact and the two never imply each other.
+   *
+   * Optional, and ABSENT rather than empty when there is no name, because the
+   * seed catalogue and the external shapes have no such column and because an
+   * explicit `undefined` survives a spread. Absent draws no line.
+   */
+  listerName?: string;
+  /**
    * THE FLAG EVERY SURFACE MUST BRANCH ON.
    *
    * True when this listing illustrates what the catalogue will hold and **no

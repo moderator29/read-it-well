@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fillLister } from "./lister-role";
+import { fillLister, listerHeading } from "./lister-role";
 import { LISTING_ROLES, LISTING_ROLE_SENTENCE, LISTING_ROLE_FILTER_LABEL } from "@/lib/supply/roles";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -72,6 +72,52 @@ describe("the sentence a reader actually sees", () => {
   });
 });
 
+describe("the card heading matches the role, which it did not", () => {
+  /* THE DEFECT. `ListingAgentCard` printed the agent noun as the name fallback
+     for EVERY listing whatever its role, so an owner's listing read "Agent on
+     Vallo" directly above "Listed by the owner". One of those two is false on
+     every owner listing shipping today. The noun is passed in rather than
+     imported, so this file still holds no copy of any copy. */
+  const NOUN = "AGENT NOUN";
+
+  it("prints the name whenever there is one, for every role", () => {
+    for (const role of LISTING_ROLES) {
+      expect(listerHeading(role, "Chidi Okeke", NOUN)).toBe("Chidi Okeke");
+    }
+  });
+
+  it("prints the agent noun for an agent and for nobody else", () => {
+    expect(listerHeading("agent", null, NOUN)).toBe(NOUN);
+    expect(listerHeading("owner", null, NOUN)).toBeNull();
+    expect(listerHeading("firm", null, NOUN)).toBeNull();
+  });
+
+  /* THE ASSERTION THE OLD CARD WOULD HAVE FAILED, stated as its own case so a
+     regression names itself rather than hiding inside a loop. */
+  it("never puts the agent noun above an owner's listing", () => {
+    expect(listerHeading("owner", null, NOUN)).not.toBe(NOUN);
+    expect(listerHeading("owner", "", NOUN)).not.toBe(NOUN);
+    expect(listerHeading("owner", "   ", NOUN)).not.toBe(NOUN);
+  });
+
+  it("draws what it drew before when the role is absent", () => {
+    /* A listing with no role is the seed catalogue or an external shape, which
+       is the pre Track G state. Changing that is a regression dressed as a
+       fix. */
+    expect(listerHeading(null, null, NOUN)).toBe(NOUN);
+    expect(listerHeading(undefined, null, NOUN)).toBe(NOUN);
+  });
+
+  it("treats a blank name as no name, the same way fillLister does", () => {
+    /* The two layers must agree about what "no name" is, or the heading says
+       one thing and the sentence below says another. */
+    for (const blank of ["", " ", "\t", "\n"]) {
+      expect(listerHeading("agent", blank, NOUN)).toBe(NOUN);
+      expect(fillLister("agent", blank)).toBeNull();
+    }
+  });
+});
+
 describe("the screens mount it, which is what the old green light could not see", () => {
   const read = (file: string) => readFileSync(join(__dirname, file), "utf8");
 
@@ -82,6 +128,15 @@ describe("the screens mount it, which is what the old green light could not see"
        like last time. */
     expect(card).toMatch(/<ListerRoleLine\b/);
     expect(card).toMatch(/listingRole/);
+  });
+
+  it("the card asks the rule for its heading rather than keeping its own", () => {
+    /* A second copy of the rule in the component is how the contradiction got
+       there the first time: the card decided what to print and the line below
+       decided separately. One decision, in a file that can be tested. */
+    const card = withoutComments(read("ListingAgentCard.tsx"));
+    expect(card).toMatch(/listerHeading\(/);
+    expect(card).not.toMatch(/name\s*\?\?\s*copy\.agentRole/);
   });
 
   it("no screen and no component holds a second copy of the vocabulary", () => {

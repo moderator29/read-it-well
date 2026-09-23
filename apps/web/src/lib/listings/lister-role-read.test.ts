@@ -102,10 +102,19 @@ const EMPTY = {
   stats: new Map<string, { rating: number; count: number }>(),
   videos: new Map<string, string>(),
   verified: new Set<string>(),
+  listerNames: new Map<string, string>(),
 };
 
-function map(over: Partial<ListingRow> = {}) {
-  return mapRow(row(over), EMPTY.states, EMPTY.amenities, EMPTY.stats, EMPTY.videos, EMPTY.verified);
+function map(over: Partial<ListingRow> = {}, listerNames = EMPTY.listerNames) {
+  return mapRow(
+    row(over),
+    EMPTY.states,
+    EMPTY.amenities,
+    EMPTY.stats,
+    EMPTY.videos,
+    EMPTY.verified,
+    listerNames,
+  );
 }
 
 describe("the read carries the listing role from the row to the prop", () => {
@@ -158,5 +167,39 @@ describe("the listing page hands it to the card", () => {
   it("passes the mapped field to the agent card's prop", () => {
     const call = page.slice(page.indexOf("<ListingAgentCard"));
     expect(call.slice(0, call.indexOf("/>"))).toMatch(/listingRole=\{listing\.listerRole/);
+  });
+
+  /* THE NAME IS THE OTHER HALF AND IT WAS THE HALF THAT DREW NOTHING.
+     Two of the three sentences carry `{name}` and `fillLister` refuses to
+     print a template with its placeholder showing, so without this prop the
+     agent and firm sentences appear on no screen at all. */
+  it("passes the lister's name to the same card", () => {
+    const call = page.slice(page.indexOf("<ListingAgentCard"));
+    expect(call.slice(0, call.indexOf("/>"))).toMatch(/name=\{listing\.listerName/);
+  });
+});
+
+describe("the read carries the lister's name from the published view to the prop", () => {
+  it("copies a name the view answered with", () => {
+    const named = map({}, new Map([["ed000000-0000-4000-8000-000000000004", "Acme Properties Ltd"]]));
+    expect(named.listerName).toBe("Acme Properties Ltd");
+  });
+
+  /* ABSENT, NOT undefined. An explicit `undefined` survives a spread and
+     overwrites a value a merged repository had already resolved, which is the
+     same trap `listerRole` is written around two describes above. */
+  it("leaves the field absent when the view answered for nobody", () => {
+    expect("listerName" in map()).toBe(false);
+  });
+
+  /* THE READ IS WIRED, not merely written. A helper nothing calls is what the
+     last green light on this track turned out to be. */
+  it("the batched read exists and mapRows calls it", () => {
+    const source = readFileSync(join(__dirname, "supabase-repository.ts"), "utf8");
+    expect(source).toMatch(/from\("listing_lister"\)/);
+    expect(source).toMatch(/getListerNames\(supabase, rows\.map/);
+    /* And it reads the view rather than the table it must never touch. */
+    const helper = source.slice(source.indexOf("async function getListerNames"));
+    expect(helper.slice(0, helper.indexOf("\n}"))).not.toMatch(/from\("agents"\)/);
   });
 });

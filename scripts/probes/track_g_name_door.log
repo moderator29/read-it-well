@@ -1,0 +1,58 @@
+TRACK G NAME DOOR, live project uccixoonmbhrnyczyigt, 2026-09-23.
+scripts/probes/track_g_name_door.sql through mcp__Supabase__apply_migration,
+one transaction ended by a deliberate raise exception, immediately after
+migration 20260923103838.
+
+ERROR:  P0001: PROBE ALL PASS track-g-name-door, 12 assertions, 2
+opposite-shape controls green (anon still reads 0 rows of public.agents and is
+still refused listings.supply_verified_by). anon and a signed-in reader each
+read 64 named rows of public.listing_lister; INSERT, UPDATE and DELETE through
+the view are all refused to anon; a DRAFT publishes no name; the SAME row
+publishes no name as owner and a name as agent; anon and authenticated hold
+SELECT and nothing wider; the view exposes exactly two columns. Rolled back on
+purpose, the draft row is gone.
+
+A FIRST RUN OF THIS PROBE FAILED ON ITS OWN CONTROL, AND THE CONTROL WAS RIGHT
+TO FAIL. Control B was originally "anon must still be refused
+businesses.representative_phone". It came back able to read it. That is not a
+harness fault, it is a finding about public.businesses and it is recorded in
+docs/BUILD_07_LEDGER.md and docs/design/TRACK_G_STATE.md rather than smoothed
+over. The control was moved to listings.supply_verified_by, a refusal that had
+already been demonstrated in the same session, and the probe re-run.
+
+THE SCREEN HALF, taken the same day:
+
+  $ node scripts/probes/track_g_the_sentence_on_a_screen.mjs \
+      --base http://localhost:3210 /preview/track-g
+
+  READ /preview/track-g: 7 agent card(s)
+    [1] data-role=owner sentence="Listed by the owner"
+        card="Listed by the ownerManages this listing on ValloMessage"
+    [2] data-role=owner sentence="Listed by the owner"
+        card="Listed by the ownerManages this listing on ValloMessage"
+    [3] data-role=agent sentence="Listed by Chidi Okeke, agent"
+        card="Chidi OkekeListed by Chidi Okeke, agentManages this listing on ValloMessage"
+    [4] data-role=(none) sentence=null
+        card="Agent on ValloManages this listing on ValloMessage"
+    [5] data-role=firm sentence="Listed by Acme Properties Ltd"
+        card="Acme Properties LtdListed by Acme Properties LtdManages this listing on ValloMessage"
+    [6] data-role=(none) sentence=null
+        card="Manages this listing on ValloMessage"
+    [7] data-role=(none) sentence=null
+        card="Agent on ValloManages this listing on ValloMessage"
+    roles on this screen: agent, firm, owner (4 line(s) of 7 card(s))
+
+  ALL ROUTES PASS
+
+Cards 4, 6 and 7 are the deliberate no-line cases and each one is correct:
+4 is an agent listing whose read carried no name, so the sentence is withheld
+rather than printed with its placeholder showing; 6 is the same for a firm, and
+it prints NO NOUN AT ALL, which is the Block 2 fix (before today it would have
+read "Agent on Vallo" there); 7 is a listing with no role, the pre Track G
+state, which must draw exactly what it always drew.
+
+WHAT THIS RUN IS NOT. It is not the real /listing/[id] against live data. The
+sandbox egress proxy refuses CONNECT uccixoonmbhrnyczyigt.supabase.co:443 with
+403, so the dev server's Supabase client cannot reach the project, every
+listing read returns null, and /listing/[id] answers the not-found body at HTTP
+200. Measured, not assumed. See docs/design/TRACK_G_STATE.md.

@@ -4913,6 +4913,21 @@ export type Database = {
       }
     }
     Views: {
+      listing_lister: {
+        Row: {
+          listing_id: string | null
+          lister_name: string | null
+        }
+        Insert: {
+          listing_id?: never
+          lister_name?: never
+        }
+        Update: {
+          listing_id?: never
+          lister_name?: never
+        }
+        Relationships: []
+      }
       wallet_balances: {
         Row: {
           balance_minor: number | null

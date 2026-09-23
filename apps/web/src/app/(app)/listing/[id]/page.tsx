@@ -1071,11 +1071,21 @@ export default async function ListingDetailPage({
                       column. It does now, so "Listed by the owner" is on a
                       screen rather than in a constant with a passing test.
                       Absent draws no line, which is what this card drew before.
+
+                      AND THE NAME, WHICH IS THE OTHER HALF. Two of the three
+                      sentences carry `{name}` and the public read could not
+                      fill either one, so on all 64 live listings, every one of
+                      them `listing_role = 'agent'`, the line appeared on zero
+                      screens. `listing.listerName` comes from
+                      `public.listing_lister`, a published view of exactly two
+                      columns added by migration `20260923103838`. It carries a
+                      name and nothing else about the person.
                     */}
                     <ListingAgentCard
                       verified={listing.verified}
                       t={t}
                       messageHref={messageHref}
+                      name={listing.listerName ?? null}
                       listingRole={listing.listerRole ?? null}
                     />
                   </Section>

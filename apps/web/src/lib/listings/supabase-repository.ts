@@ -701,6 +701,7 @@ export function mapRow(
   stats: Map<string, { rating: number; count: number }>,
   signedVideos: Map<string, string>,
   verifiedAgents: Set<string>,
+  listerNames: Map<string, string>,
 ): Listing {
   const kind = KIND_BY_PROPERTY_TYPE[row.property_type] ?? "home";
   const stat = stats.get(row.id);
@@ -913,6 +914,26 @@ export function mapRow(
      * page is.
      */
     ...(isListingRole(row.listing_role) ? { listerRole: row.listing_role } : {}),
+    /*
+     * AND WHO THAT IS, WHEN THE SENTENCE NEEDS A NAME.
+     *
+     * Two of the three sentences in `LISTING_ROLE_SENTENCE` carry `{name}`,
+     * and until today the public read had no way to fill it: `agents` is
+     * RLS-bound to the agent themselves and to staff, correctly, so a stranger
+     * has no path from `agent_id` to a display name. `fillLister` refuses to
+     * print a template with its placeholder showing, so the agent and firm
+     * sentences drew nothing at all, on every one of the 64 live listings.
+     *
+     * `public.listing_lister` is the door, added by migration
+     * `20260923103838`. Two columns, published listings only, NULL for an
+     * owner because that sentence names nobody by design. Nothing else about
+     * a lister passes through it.
+     *
+     * ABSENT RATHER THAN EMPTY, for the same reason `listerRole` is: an
+     * explicit `undefined` survives a spread and overwrites a real value in a
+     * merge, and the seed catalogue has no such column at all.
+     */
+    ...(listerNames.has(row.id) ? { listerName: listerNames.get(row.id) } : {}),
     isDemo: row.is_demo,
     /* Instant book is gone from the schema. The whole product moved from
        "reserve a room tonight" to "rent or buy a property", and no property in
@@ -959,10 +980,51 @@ async function getAgentBadges(
   return verified;
 }
 
+/**
+ * WHO PUT THESE LISTINGS UP, BY NAME, FOR THE TWO SENTENCES THAT NEED ONE.
+ *
+ * ONE INDEXED READ FOR THE WHOLE PAGE, the same shape as `getAgentBadges`
+ * above and for the same reason: `agents` is RLS-bound to the agent themselves
+ * and to staff, correctly, so the catalogue cannot join it and must not be
+ * able to. `public.listing_lister` is the published door beside
+ * `agent_badges`: two columns, `listing_id` and `lister_name`, published
+ * listings only, and NULL for an owner listing because "Listed by the owner"
+ * names nobody by design. It publishes no phone number, no email address, no
+ * address, no document number, no user id and no verification tier, and the
+ * migration that created it reads that back in its own body.
+ *
+ * A MISSING ROW IS A MISSING NAME, NOT AN EMPTY ONE. The map holds only the
+ * ids the view answered for with a non-null name, so `mapRow` can leave the
+ * field ABSENT rather than setting it to undefined. `fillLister` then draws no
+ * line at all, which is the behaviour every reader had before this existed.
+ * The failure mode of this function is a sentence that does not appear, never
+ * a sentence with a placeholder or a wrong name in it.
+ */
+async function getListerNames(
+  supabase: Client,
+  listingIds: string[],
+): Promise<Map<string, string>> {
+  const names = new Map<string, string>();
+  if (listingIds.length === 0) return names;
+  const { data, error } = await supabase
+    /* Not in `database.types.ts`, which is generated from the tables. The view
+       is new; the cast is to the row shape this file already asserts in its
+       spec, and nothing else about the client's typing is widened. */
+    .from("listing_lister")
+    .select("listing_id, lister_name")
+    .in("listing_id", listingIds);
+  if (error || !data) return names;
+  for (const row of data as unknown as { listing_id: string; lister_name: string | null }[]) {
+    const trimmed = (row.lister_name ?? "").trim();
+    if (trimmed !== "") names.set(row.listing_id, trimmed);
+  }
+  return names;
+}
+
 /** Map raw rows into listings, resolving references and review stats in bulk. */
 async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]> {
   if (rows.length === 0) return [];
-  const [stateNames, amenityCodes, stats, signedVideos, verifiedAgents] = await Promise.all([
+  const [stateNames, amenityCodes, stats, signedVideos, verifiedAgents, listerNames] = await Promise.all([
     getStateNames(),
     getAmenityCodes(),
     getReviewStats(
@@ -974,9 +1036,10 @@ async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]>
       rows.flatMap((r) => (r.listing_videos ?? []).map((v) => v.storage_path)),
     ),
     getAgentBadges(supabase, [...new Set(rows.map((r) => r.agent_id))]),
+    getListerNames(supabase, rows.map((r) => r.id)),
   ]);
   return rows.map((row) =>
-    mapRow(row, stateNames, amenityCodes, stats, signedVideos, verifiedAgents),
+    mapRow(row, stateNames, amenityCodes, stats, signedVideos, verifiedAgents, listerNames),
   );
 }
 
