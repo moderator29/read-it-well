@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
+import "./notifications.css";
 import { PageHeader } from "@/components/app/PageHeader";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { markNotificationsRead } from "@/lib/messages/notifications-actions";
