@@ -2,6 +2,7 @@
 
 import { Sheet } from "@/components/ui/Sheet";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { panelClass } from "@/components/ui/Panel";
 
 /**
  * The sheet every money form opens in: add money, withdraw, top up with
@@ -52,7 +53,7 @@ export function MoneySheet({
             <UiIcon name="close" size={20} />
           </button>
         </div>
-        <div className="nf-card p-card-sm sm:p-card">{children}</div>
+        <div className={panelClass({ variant: "card", className: "p-card-sm sm:p-card" })}>{children}</div>
       </div>
     </Sheet>
   );

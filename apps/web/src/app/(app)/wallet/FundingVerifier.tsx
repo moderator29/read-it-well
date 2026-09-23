@@ -6,6 +6,7 @@ import type { Locale } from "@vallo/i18n";
 import { Amount } from "@/components/ui/Amount";
 import { verifyFunding } from "@/lib/wallet/actions";
 import { Button } from "@/components/ui/Button";
+import { panelClass } from "@/components/ui/Panel";
 
 /**
  * The funded=1 landing state.
@@ -61,7 +62,7 @@ export function FundingVerifier({ reference, locale }: { reference: string; loca
     <div
       role="status"
       aria-live="polite"
-      className="nf-card mb-group flex items-start justify-between gap-md p-card"
+      className={panelClass({ variant: "card", className: "mb-group flex-row items-start justify-between gap-md p-card" })}
     >
       <div className="min-w-0 flex-1">
         {state.phase === "verifying" && (

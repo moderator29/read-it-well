@@ -6,6 +6,7 @@ import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import type { WalletEntry } from "@/lib/wallet/types";
 import { KIND_ICON, type WalletWords } from "./kinds";
 import { counterpartyLine } from "./counterparty";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 
 /**
  * One ledger movement as a row, the way the governing wallet render draws
@@ -51,9 +52,9 @@ export function EntryRow({
   return (
     <li>
       <Link href={`/wallet/transactions/${entry.id}`} className="nf-tx-row nf-tap">
-        <span className="nf-tx-tile" aria-hidden="true">
-          <UiIcon name={KIND_ICON[entry.kind]} size={20} />
-        </span>
+        <IconPlate size="sm" className="nf-tx-tile">
+          <UiIcon name={KIND_ICON[entry.kind]} size={ICON_PLATE_GLYPH.sm} />
+        </IconPlate>
         <span className="min-w-0 flex-1">
           <span className="nf-tx-row__title">{words.kind[entry.kind]}</span>
           {/* Wrapped, not truncated: the counterparty is the one fact the

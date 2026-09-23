@@ -1,6 +1,8 @@
 import type { Dictionary } from "@vallo/i18n";
 import { TYPE } from "@/components/app/Screen";
 import { MoneyGlyph } from "./MoneyGlyph";
+import { panelClass } from "@/components/ui/Panel";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 
 /**
  * A short, true note about what a wallet balance is.
@@ -20,10 +22,10 @@ import { MoneyGlyph } from "./MoneyGlyph";
  */
 export function TrustStrip({ copy }: { copy: Dictionary["wallet"]["home"] }) {
   return (
-    <aside className="nf-card nf-trust" aria-label={copy.trustTitle}>
-      <span className="nf-glyph-tile" aria-hidden="true">
-        <MoneyGlyph name="shield-check" size={20} />
-      </span>
+    <aside className={panelClass({ variant: "card", className: "nf-trust" })} aria-label={copy.trustTitle}>
+      <IconPlate size="md">
+        <MoneyGlyph name="shield-check" size={ICON_PLATE_GLYPH.md} />
+      </IconPlate>
       <div className="nf-trust__body">
         <p className={TYPE.rowTitle}>{copy.trustTitle}</p>
         <p className={`mt-3xs ${TYPE.rowMeta}`}>{copy.trustBody}</p>

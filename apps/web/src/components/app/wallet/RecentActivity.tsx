@@ -5,6 +5,7 @@ import { TYPE } from "@/components/app/Screen";
 import { walletWords } from "./kinds";
 import { EntryRow } from "./EntryRow";
 import type { WalletEntry } from "@/lib/wallet/types";
+import { panelClass } from "@/components/ui/Panel";
 
 /**
  * The last few movements, on the wallet home, as the governing render draws
@@ -40,7 +41,7 @@ export function RecentActivity({
   const words = walletWords(locale);
 
   return (
-    <section aria-labelledby="nf-wallet-recent" className="nf-card nf-tx-panel">
+    <section aria-labelledby="nf-wallet-recent" className={panelClass({ variant: "card", className: "nf-tx-panel p-0" })}>
       <div className="nf-tx-card__head">
         <h2 id="nf-wallet-recent" className="nf-wallet-section__title">
           {title ?? copy.recentTitle}

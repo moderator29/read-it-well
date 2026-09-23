@@ -24,6 +24,8 @@ import { paymentState } from "@/lib/payments/payment-state";
 import { cardBrandLabel, cardExpired, cardExpiry, maskNumber } from "./format";
 import { AddBankAccountSheet } from "./AddBankAccountSheet";
 import { PaystackCheckout, type ConfirmOutcome } from "./PaystackCheckout";
+import { panelClass } from "@/components/ui/Panel";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 
 /**
  * PAYMENT METHODS, to the block at the foot of the settings render
@@ -176,11 +178,11 @@ export function PaymentMethodsPanel({
 
   return (
     <>
-      <section className="nf-card" aria-labelledby="nf-pay-title" data-testid="payment-methods-block">
+      <section className={panelClass({ variant: "card", className: "p-0" })} aria-labelledby="nf-pay-title" data-testid="payment-methods-block">
         <div className="nf-pay-head">
-          <span className="nf-glyph-tile nf-glyph-tile--lg" aria-hidden="true">
-            <UiIcon name="wallet" size={24} />
-          </span>
+          <IconPlate size="md">
+            <UiIcon name="wallet" size={ICON_PLATE_GLYPH.md} />
+          </IconPlate>
           {/* The title shares its line with the Add control and the sentence
               runs the full width beneath. Beside a 48px plate and a button,
               "Manage your cards and bank accounts." was reading in about 170
@@ -267,9 +269,9 @@ export function PaymentMethodsPanel({
               aria-haspopup="dialog"
               data-testid="payments-account-row"
             >
-              <span className="nf-glyph-tile" aria-hidden="true">
-                <UiIcon name="building-apartment" size={22} />
-              </span>
+              <IconPlate size="sm">
+                <UiIcon name="building-apartment" size={ICON_PLATE_GLYPH.sm} />
+              </IconPlate>
               <span className="min-w-0 flex-1">
                 <span className={`block ${TYPE.rowTitle}`}>{account.bankName}</span>
                 {/* Not truncated. The render shows the masked number and what
