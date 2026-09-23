@@ -68,6 +68,13 @@ Each group appends "RELEASED <commit>" here when it is done.
   rendered change, closing TK-1, since main is red on it), and new shared primitives under
   `apps/web/src/components/ui/` (a panel/card and an icon plate) extracted from
   `app/admin/_components/**` and `components/app/welcome/**`.
+  New files: `components/ui/Panel.tsx`, `components/ui/IconPlate.tsx`, proofs
+  under `docs/design/proofs/session-b/sweep-shared/`. Also touched, as Session
+  B's own: `app/admin/**` (panels.tsx, settings, loading, desk.css,
+  review.css), `app/css/admin.css`, `app/welcome/welcome.css`,
+  `components/app/welcome/FirstRun.tsx`, `tests/session-b-welcome.spec.mjs`.
+  **Phase 1 RELEASED 9da8f86f** (the layer 42ea43d9, the glow step and Switch
+  9da8f86f). Names, props and tokens: ledger section 13.0.
 - **Phase 2, the sweep (one worker per group), each group's stylesheets and the
   components that draw their own card, button, rim, glow or plate:**
   - home (both sides), search and filters, listing detail: `home.css`,
@@ -151,6 +158,25 @@ Each group appends "RELEASED <commit>" here when it is done.
     `app/css/side-flip.css`, the Flip card at the foot of the drawer
     (`BCD39CA8`), are claimed by no group. This group asks for them.
   - already Session B's: wallet family, inspections, auth, admin, welcome.
+
+### Sweep group: home, search and filters, listing detail (worker "sweep-home")
+Routes: `/home`, `/stays` (the home components only; `StayCard` is the stays
+group's), `/search` (bar, chips, sort menu, filter sheet, map view, empty and
+loading states), `/listing/[id]` (gallery, photo viewer, lead card, move-in
+block and costs, spec and amenity tiles, section tabs, agent card, reserve and
+rental panels, sticky Book Inspection bar, loading), `/price` and
+`/price/area/[id]`, and `/rent/move-in/[listingId]` (the Calculate Breakdown
+ledger, styled in `catalogue.css`). Files, besides the five stylesheets above:
+`components/app/home/**`, `components/app/search/**`,
+`components/app/listing/**`, `components/app/price/**`,
+`components/app/filters/**` (the filter sheet), `components/app/ListingCard.tsx`, `app/(app)/{home,search,price,listing}/**`.
+Rules in `catalogue.css` that other groups' components draw (`nf-lw-*` the
+listing wizard, `nf-stay-*`/`nf-room-tile` stay detail, `nf-stays-tile`,
+`nf-tenancy-chip`) are swept here with the file, not in those components.
+The notifications block in `home.css` (`.nf-notif*`) is the settings group's
+and is left alone. New (the fixture and live-row harness, committed):
+`apps/web/src/app/(dev)/preview/session-b/sweep-home/**`, and its proofs in
+`docs/design/proofs/session-b/sweep-home/**`.
 
 ## FOUNDER'S NINE ITEMS, 23 SEPTEMBER: WHAT SESSION B TAKES
 
