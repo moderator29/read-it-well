@@ -775,8 +775,11 @@ R-G and the closing gate.
 must agree: the string's rendered width divided by its width in ems, and a
 single glyph's cap height divided by the face's cap ratio (Inter 0.727).
 
-**Header row: shared chrome, not built.** The render's back square, app tile
-with VALLO, bell and profile button are the app bar `AppShell` draws on every
+**Header row.** The render's back square is now drawn: `WalletBack` mounts the
+platform `BackButton` to the route's declared parent (`/wallet` -> `/home`,
+`/wallet/send` -> `/wallet`, R14, tested in `session-b-wallet.test.ts`), top
+left above the balance card, as the render's 37px glass square at 44px (R-B).
+The app tile with VALLO, bell and profile button are the app bar `AppShell` draws on every
 in-app page (DESIGN_DIRECTION 3.2). It is not Session B's. The page adds no
 second header row; the balance card is the first thing under the app bar.
 
@@ -785,7 +788,7 @@ second header row; the balance card is the first thing under the app bar.
 server, shot after every animation settled):
 `docs/design/proofs/session-b/wallet/wallet-side-by-side.jpg` (render left,
 built right, same scale), `wallet-390-dark.jpg`,
-`wallet-390-dark-reduced-motion.jpg`, `wallet-390-light.jpg`,
+`wallet-390-dark-reduced-motion.jpg`,
 `wallet-1280-dark.jpg`, and `wallet-roll-frozen-midway.png` (every digit strip
 frozen half-way between two digits, the worst frame the roll can paint: each
 digit is clipped to its own band and nothing overlaps).
@@ -803,6 +806,7 @@ Balance and statement (read):
 | "this week" line | `weekChange()` (`components/app/wallet/week-change.ts`): the net of the viewer's COMPLETED rows in the last 7 days as a percentage of the balance the week began on; no line when there are no rows; the net amount when the week began at zero. Computed from real rows; the render's 12.5 is never drawn | OK |
 | Live | `LiveWallet` subscribes to INSERTs on `public.notifications` for this user (`supabase_realtime` publishes `messages` and `notifications`, not `wallet_entries`, read in `pg_publication_tables`). Every COMPLETED ledger row fires `wallet_entries_notify_after_change` -> `private.notify_wallet_entry()` -> `private.notify(owner, 'wallet', ...)`; wallet notices have no mute preference, so a `kind = 'wallet'` insert means the ledger moved, and the page calls `router.refresh()` | OK (added in round one) |
 | Live, pending rows | A PENDING row (a withdrawal hold) notifies nobody, so it shows on the next read | BROKEN, scope request W2 (migration: publish the table) |
+| Back | `WalletBack` -> `BackButton` -> `useBack` -> the declared parent from `lib/nav/route-parents.ts`, so Android's hardware back no longer closes the app on these pages | FIXED (R14, `24eac4c6`) |
 | Eye | `balance-mask.ts`: the hide/show choice in this device's storage, guarded, default shown; shared with the send page | OK |
 
 Every control on the page:
@@ -875,19 +879,17 @@ header (shared chrome); the object sits slightly smaller; our tile corners are
 
 ### (c) Light mode
 
-`data-theme="light"`. Paper page; quick cards and the transactions panel are
-the identity's paper card (brand-tinted top band, brand edge, soft shadow). The
-balance card stays a deep blue card on paper by decision: the glass wallet
-needs something to be glass against, and on white the untwinned object would
-sit on the pack's navy chip. Inside it the text is white and the lit Send tile
-is white with brand ink. The quick plates switch to stroked glyphs on
-brand-tint plates, the row circles to brand tint. No dark plate on white.
-`wallet-390-light.jpg`.
+Light mode removed by the founder on 23 September; dark only. Every
+`[data-theme="light"]` rule, paper twin and paper plate is gone from
+`wallet.css`, `QuickPlate.tsx` and `SendFlow.tsx` (`24eac4c6`).
 
 ### (d) Shape sweep and checks
 
 ```
-shape sweep: /preview/session-b/wallet, /preview/session-b/wallet/send, /preview/session-b/wallet/send-filled at 390px, 1536px in dark and light
+shape sweep (23 Sept, after R14 and item 3, dark only): /preview/session-b/wallet, .../send, .../send-filled, .../send-bank
+BREACHES: 0   WORTH AN EYE: 0   ROUND ICON-ONLY: 0   COVERED: 4 routes, 0 refusals
+
+earlier run: /preview/session-b/wallet, /preview/session-b/wallet/send, /preview/session-b/wallet/send-filled at 390px, 1536px in dark and light
 BREACHES (ratio >= 0.5): 0
 WORTH AN EYE (> 0.35): 0
 ROUND ICON-ONLY CONTROLS: 0
@@ -916,7 +918,7 @@ founder's send target, governing over `95840448`). Route `/wallet/send`. Same
 **Header row:** shared chrome, as section 4.
 
 **Proofs:** `docs/design/proofs/session-b/send/send-side-by-side.jpg`,
-`send-390-dark.jpg` (empty), `send-filled-390-dark.jpg`, `send-390-light.jpg`,
+`send-390-dark.jpg` (empty), `send-filled-390-dark.jpg`, `send-bank-390-dark.jpg` (to bank, the name resolved),
 `send-1280-dark.jpg`; harness
 `apps/web/src/app/(dev)/preview/session-b/wallet/send/` and `.../send-filled/`
 (R-G; the recipient lookup there is a fixture that answers "found").
@@ -925,6 +927,9 @@ founder's send target, governing over `95840448`). Route `/wallet/send`. Same
 
 | Link | What it is | State |
 | --- | --- | --- |
+| Mode | "To bank" / "To a Vallo wallet", two rounded rectangles at the top of the form panel (founder item 3) | OK |
+| Bank recipient | `BankRecipient.tsx`: bank select from the payout side's `listBanks()` (falling back to `WALLET_BANKS` when Paystack answers an empty list), 10-digit account number, then the payout side's own `resolveBankAccount({ bankCode, accountNumber })`, debounced and ordered; the bank's name is shown in a confirmation row before anything can be confirmed. No second resolver | OK, live today |
+| Bank send | `transferToBank` does not exist yet (scope B-BANK (b), corrected: (a) and (c) already existed). `BANK_SEND_OPEN = false` keeps Send off in bank mode and the page says why; and the only production payout failed on Paystack's starter-business limit (W4) | BROKEN, scope B-BANK (b) and W4 |
 | Control | `SendFlow` compose (Recipient email, Amount, Narration) -> "Send Money" opens the confirm step -> its button submits | OK |
 | Double tap, client | `submit-guard.ts`: a synchronous latch in the confirm form's submit handler refuses a second submit in the same frame, and the button is disabled from the first press until the result returns (`session-b-wallet.test.ts`, 2 cases) | OK. It narrows the window; the server guard below closes it |
 | Lookup | `lookupRecipient` (`app/(app)/wallet/send/recipient-action.ts`): signed in, paced 40 per 10 minutes, found / none / self / unknown | OK |
@@ -944,7 +949,7 @@ founder's send target, governing over `95840448`). Route `/wallet/send`. Same
 | --- | --- |
 | "NDIC INSURED" | False: `lib/legal/terms.tsx` section 15 (R1) |
 | "256 BIT ENCRYPTION" | An uncheckable security claim (R1) |
-| Bank row | A send is wallet to wallet; bank payouts do not complete today (W4) |
+| (Bank row) | NOW DRAWN, founder item 3: the bank, the account number and the bank's name for it. The send itself waits on B-BANK (b) |
 | Scan / QR button | No scanner exists |
 | Swap, "Top Up" tiles | As section 4 |
 | "Quick. Safe. Reliable." | Adjectives that are claims; replaced by "Wallet to wallet, by email". The dead dictionary key `walletSend.tagline` ("Fast. Safe. Always.") now carries the same true words |
@@ -965,7 +970,10 @@ established and are not stated.
 | "Wallet Balance" | 75px wide = 11px | 11px / 500, 16px glyph | Yes |
 | Title | "Send Money" 103.5px wide, Poppins 600 = 17.5px | 17.5px / 600 ("Send money", house sentence case) | Yes |
 | Line under it | 102.9px wide = 14px, quiet blue | 14px / 400 `--nf-content-link` | Yes |
-| Instant chip | 30px tall, "Instant Transfer" 67.3px = 9.2px | 30px, 11px / 600, 6px corner (0.2) | Yes (type at floor) |
+| Mode choice | not drawn (the render shows only the bank form) | 44px (R-B), 10px corner (0.23), 11px / 600, chosen one lit with the button gradient | Added: founder item 3 |
+| Bank row | plate, "Bank" over "Select bank", chevron right, 52px | the render's own bank plate (cropped, `plate-bank.webp`), label 11px, select value 16px, chevron 20px, 60px | Yes |
+| Account name row | not drawn | the rows' edge and padding, "Name on the account" 11px over the name 14px / 600 | Added: item 3 |
+| Instant chip | 30px tall, "Instant Transfer" 67.3px = 9.2px | 30px, 11px / 600, 6px corner (0.2); wallet mode only (a bank send is not instant) | Yes (type at floor) |
 | Form panel | radius 10 to 12 (rim reaches the side 16 to 20 image px down), rim rgb(0 67 131), fill rgb(0 12 43) between rows | 10px (`--nf-radius-sm`, the nearest rung), the identity's lit card | Yes (audit run two) |
 | Rows | sub-panels, radius 10.5 (18 image px), fill rgb(0 21 61), edge rgb(0 75 167), 52px tall | radius 10, fill 20% brand over canvas, edge `--nf-brand-edge-soft`, 60px | Yes; 8px taller for the 16px typed value (R-A) |
 | Row gap | 9px | 10px | Yes |
@@ -982,11 +990,9 @@ established and are not stated.
 
 ### (c) Light mode
 
-Balance card deep blue as section 4; the form panel and rows white with brand
-edges; row plates switch from the render's crops (a white glyph that would
-vanish on white) to stroked glyphs on brand-tint discs; chips white with brand
-edges, the chosen one filled brand; the button stays the lit gradient.
-`send-390-light.jpg`.
+Light mode removed by the founder on 23 September; dark only. Every
+`[data-theme="light"]` rule, paper twin and paper plate is gone from
+`wallet.css`, `QuickPlate.tsx` and `SendFlow.tsx` (`24eac4c6`).
 
 ### (d) Shape sweep
 
