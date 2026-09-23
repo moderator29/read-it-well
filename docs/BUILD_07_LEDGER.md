@@ -6902,3 +6902,92 @@ Eleven verbs refuse EXECUTE under a role switch with a control proving the
 harness reaches function bodies, and that closes the EXECUTE layer only.
 PostgREST resolves by argument NAME and serves from a schema cache, so a door
 shut in `pg_proc` can still answer over the wire. **Not counted.**
+
+---
+
+## 59. THE EMAIL JUNCTION IS BUILT, AND EVERY CLAIM I COULD CHECK IS TRUE
+
+Built by the junction worker, commit `5a485f1a`. Verified below against the
+live catalogue by this session rather than taken from the hand-back. The
+founder asked for this junction to be built ONCE, properly, with everything
+else hanging off it. It is one table, `public.email_outbox`, four functions and
+a quarter hourly drain.
+
+**Why a table rather than a call site, which is the part worth keeping.** An
+escrow state change happens in NINE writers, and the ninth is
+`escrow_sweep_timeouts`, a pg_cron job with no TypeScript anywhere near it.
+Wiring a send into each is nine chances to forget the one that releases money
+while nobody is watching. The table is the only thing all nine agree on, and a
+trigger writes the row in the SAME TRANSACTION as the state change, so the
+email cannot exist without the event and cannot survive the event rolling back.
+
+**Read back off the catalogue.**
+
+| claim | what the catalogue says |
+| --- | --- |
+| no address ever sits in the queue | columns are `id, user_id, template, dedupe_key, payload, status, attempts, available_at, claimed_at, settled_at, last_error, created_at`. There is no address column. The drain resolves the address at send time. |
+| born locked | `email_outbox` has RLS **enabled with zero policies**, so nothing but the service role and `postgres` can read it at all. |
+| idempotent | `email_outbox_dedupe_key` is a UNIQUE index; enqueue is `on conflict do nothing`. |
+| rule 21 in all six migrations | all nine `private.*` functions carry `postgres=X` and nothing else. The three the drain needs, `public.email_outbox_claim`, `email_outbox_settle` and `email_outbox_health`, carry exactly `{postgres, service_role}`. No anon, no authenticated, anywhere. |
+
+**THE ONE THING I WENT LOOKING FOR THAT NOBODY CLAIMED, because it is the
+dangerous shape in this work.** There are now two triggers on the `auth`
+schema, and `sessions_enqueue_new_device_email` is `AFTER INSERT ON
+auth.sessions`, which runs on EVERY SIGN IN ON THE PLATFORM. A trigger that
+raises there does not lose an email, it stops anybody logging in. Read the
+body: it ends
+
+```
+exception when others then
+  raise warning '[outbox] new device enqueue failed: %', sqlstate;
+  return new;
+```
+
+and the password trigger carries the same handler. **Signing in cannot be
+broken by the email layer.** That is the right call and it was made without
+being asked for.
+
+Also checked, because a device is personal data: the raw user agent never
+leaves the `auth` schema. What is stored is a 16 character md5 prefix and a
+worded form such as `Safari on iOS`.
+
+**One assertion was relaxed and I looked at it, because a relaxed assertion is
+how a rule dies.** `freshness.test.ts` went from `maxGapHours >= 3` to `>= 2`.
+It is sound. That floor guards against an allowance TIGHTER than the schedule,
+which alarms on a healthy system. The drain runs four times an hour, so a two
+hour allowance is still eight times wider than its schedule, and for the job
+carrying the security email three hours of silence is twelve missed runs.
+Monitoring got stricter here, not looser, and `paystack-reconcile` is still
+pinned at exactly 3.
+
+**WHAT IS STILL FALSE, and it is the whole point.** Not one email will leave
+the building until `RESEND_API_KEY` is set on the deployment. The queue fills
+correctly, nothing is lost, and the drain raises `email.outbox.unconfigured` at
+CRITICAL every fifteen minutes saying so. The worker could not complete a real
+POST either: the egress proxy refuses `api.resend.com:443` by the same
+organisation policy that refuses the Supabase host. **The junction is built and
+unproven on the wire, and it is counted as unproven.**
+
+Two templates are deliberately NOT wired: `escrowFunded` and `escrowReleased`
+both print *"held in escrow"*, the single claim about custody nobody may make
+until the solicitor answers. Wiring them would ship the one sentence the escrow
+copy layer exists to prevent.
+
+---
+
+## 49bis. R13 TO SESSION B: ONE DATA LINE ADDED TO A FILE ON YOUR LIST
+
+`apps/web/src/lib/admin/reads/jobs.ts` is yours. The junction worker added
+**one data line** to `VERCEL_JOBS` for the email drain, and nothing else in the
+file moved.
+
+**Why it could not be left as a request.** `session-b-admin-shell.test.ts`
+asserts that `VERCEL_JOBS` and `vercel.json` are EQUAL. Scheduling the drain in
+`vercel.json` without the matching line turns the tree red for all six writers
+at once, which under the founder's rule of 23 September is the thing that
+outranks the scope split.
+
+The line is additive and data only. The schedule text and the allowance are
+yours to reword; a comment in place says so. If you would rather it were not
+there, say so in your ledger and we will move the drain's registration
+somewhere you do not own.
