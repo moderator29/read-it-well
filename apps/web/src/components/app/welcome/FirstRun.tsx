@@ -21,9 +21,13 @@ import type { BrandIconObject } from "@/design-system/icons/BrandIcon";
  *   1. Two worlds. One platform.  Property and Stays, and the coin between.
  *   2. What verified means.       A person checked the agent, by hand.
  *   3. Talk first, pay when sure. The one safety rule, before money moves.
- *   4. The choice.                A stranger: Create an account, Sign in or
- *                                 Look around first. A member: on to the
- *                                 one question, or home.
+ *   4. The ending.                A stranger: Create account or Sign in.
+ *                                 Somebody signed in: one Continue into the
+ *                                 app, through the interests question only
+ *                                 while it is unanswered.
+ * Shown every time it is asked for, signed in or not (the founder's rule of
+ * 23 September); nothing inside the platform is visible signed out, so there
+ * is no "look around" door.
  * The stage and the chrome stay where they are; only the art and the words
  * change, so moving between slides reads as a change of subject.
  *
@@ -33,14 +37,18 @@ import type { BrandIconObject } from "@/design-system/icons/BrandIcon";
  *   Get Started / Next  move one slide on. Reaching the last slide records
  *                       this device as shown (`rememberFirstRunSeen`).
  *   Skip, a stranger    records the device, then carries on to where they
- *                       were going (`?next=`), or lands on the choice.
+ *                       were going (`?next=`), or lands on the ending.
  *   Skip, a member      records the opener on the profile AND skips the
  *                       question (`markWelcomeSeen` + `skipInterests`, the
  *                       real skip that never asks again), then home.
  *   Continue, a member  `onDone`: records the opener on the profile, then the
  *                       interests question if it is still unasked, else home.
- *   The three doors     real links to `/sign-up`, `/sign-in` and `/search`,
- *                       keeping the address the person asked for.
+ *   The two doors       real links to `/sign-up` and `/sign-in`, keeping the
+ *                       address the person asked for.
+ *   Back                every slide is a history entry, so the drawn back
+ *                       square (slides two to four), the browser's back and
+ *                       Android's hardware back all step to the previous
+ *                       slide; from slide one back leaves as it came.
  *
  * THE INTERESTS QUESTION STAYS, for a signed-in person who has not answered
  * it: it is the only answer the product acts on at the door (it ranks home
@@ -75,7 +83,6 @@ export function FirstRun({
   asked = false,
   viewer = "member",
   next = null,
-  startAtChoice = false,
 }: {
   t: Dictionary;
   interests: ComponentProps<typeof InterestChoices>["initial"];
@@ -87,8 +94,6 @@ export function FirstRun({
   viewer?: Viewer;
   /* A same-origin path the person was on their way to, already vetted. */
   next?: string | null;
-  /* A stranger who has been shown first run before lands on the choice. */
-  startAtChoice?: boolean;
 }) {
   const router = useRouter();
   const w = t.welcomeCards.twoWorlds;
@@ -167,7 +172,7 @@ export function FirstRun({
   const [beat, setBeat] = useState<"slides" | "question">(
     !guest && !showCards ? "question" : "slides",
   );
-  const [index, setIndex] = useState(guest && startAtChoice ? lastIndex : 0);
+  const [index, setIndex] = useState(0);
   const [announce, setAnnounce] = useState("");
   const [pending, start] = useTransition();
   const [error, setError] = useState("");
@@ -200,19 +205,58 @@ export function FirstRun({
      the live region speaks for dots, buttons, swipes and keys alike and says
      nothing on first paint. */
   const titles = slides.map((s) => `${s.titleA} ${s.titleB}`).join("\n");
+  const initialIndex = 0;
+  const titleList = titles.split("\n");
+
+  const announceSlide = useCallback(
+    (n: number) =>
+      setAnnounce(
+        f.slideLive
+          .replace("{n}", String(n + 1))
+          .replace("{total}", String(lastIndex + 1))
+          .replace("{title}", titleList[n] ?? ""),
+      ),
+    // titleList is derived from titles.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [f.slideLive, lastIndex, titles],
+  );
+
+  /*
+   * EVERY SLIDE IS A HISTORY ENTRY, so back means the previous slide.
+   *
+   * A move pushes an entry on the same address carrying the slide number, so
+   * the browser's back, a swipe-back gesture and Android's hardware back
+   * (Capacitor's default hands it to the web view's history) all step back a
+   * slide rather than leaving first run. From the first slide back leaves as
+   * it always did. The current history state is spread in, because the App
+   * Router keeps its own tree in it and an entry without that tree makes it
+   * reload on the way back.
+   */
   const goTo = useCallback(
     (to: number) => {
       const clamped = Math.max(0, Math.min(lastIndex, to));
+      if (clamped === index) return;
+      try {
+        window.history.pushState({ ...(window.history.state ?? {}), nfGsSlide: clamped }, "");
+      } catch {
+        /* A sandbox that refuses history still moves the slide. */
+      }
       setIndex(clamped);
-      setAnnounce(
-        f.slideLive
-          .replace("{n}", String(clamped + 1))
-          .replace("{total}", String(lastIndex + 1))
-          .replace("{title}", titles.split("\n")[clamped] ?? ""),
-      );
+      announceSlide(clamped);
     },
-    [lastIndex, f.slideLive, titles],
+    [lastIndex, index, announceSlide],
   );
+
+  useEffect(() => {
+    const onPop = (e: PopStateEvent) => {
+      const s = (e.state as { nfGsSlide?: unknown } | null)?.nfGsSlide;
+      const n = typeof s === "number" ? s : initialIndex;
+      setIndex(n);
+      announceSlide(n);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [initialIndex, announceSlide]);
 
   /* Reaching the end is having been shown it. Also covers the returning
      stranger who starts on the choice. */
@@ -341,6 +385,21 @@ export function FirstRun({
 
   return (
     <div className="nf-gs-col" data-testid="first-run">
+      {/* Back, on slides two to four only: the render draws none on the
+          first slide, where back leaves first run the way it came. It steps
+          through the same history the hardware button does. */}
+      {index > initialIndex && (
+        <button
+          type="button"
+          className="nf-gs-back"
+          aria-label={t.common.back}
+          data-nav-back=""
+          data-testid="welcome-back"
+          onClick={() => window.history.back()}
+        >
+          <UiIcon name="arrow-left" size={20} />
+        </button>
+      )}
       {lockup}
 
       <section
@@ -437,16 +496,12 @@ export function FirstRun({
             aria-busy={pending || undefined}
             data-testid="welcome-continue"
           >
-            <span>{askQuestion ? f.member.continue : f.member.home}</span>
+            <span>{f.member.continue}</span>
             <UiIcon name="arrow-right" size={20} />
           </button>
         )}
 
-        {onLast && guest ? (
-          <Link href="/search" onClick={door("/search")} className="nf-gs-skip" data-testid="welcome-browse">
-            {f.choice.browse}
-          </Link>
-        ) : onLast && !askQuestion ? null : (
+        {onLast ? null : (
           <button
             type="button"
             className="nf-gs-skip"
