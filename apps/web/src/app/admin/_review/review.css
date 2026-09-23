@@ -14,8 +14,8 @@
  * 26px, tab 21 -> 32px), so type and heights use x1.5 and widths use the
  * window proportions (content column about 57% of the window, side rail about
  * 16%, sized up to 300px so its labels fit). The ledger, section 7, carries
- * the full table. Controls are drawn at 40px or taller so the shape law's
- * control radius (14px) stays at or under a 0.35 ratio; status badges and role
+ * the full table. Controls are drawn at 44px (lead ruling R-B) so the shape
+ * law's control radius (14px) sits at 0.32, under the 0.35 review line (R-D); status badges and role
  * tags are 26px and 20px on `--nf-radius-xs`, the badge rung the product's own
  * `.nf-badge` already uses (0.23 and 0.30).
  */
@@ -96,8 +96,8 @@
   .nf-rv-back {
     display: inline-grid;
     place-items: center;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px; /* R-B */
     border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-border-brand);
     background: color-mix(in oklab, var(--nf-brand-primary) 10%, var(--nf-surface-primary));
@@ -135,7 +135,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--nf-space-xs);
-    min-height: 40px;
+    min-height: 44px; /* R-B: the render's 32, raised to the 44 floor */
     padding: 0 var(--nf-space-md);
     border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-brand-edge-soft);
@@ -701,8 +701,8 @@
   .nf-rv-pager__item {
     display: inline-grid;
     place-items: center;
-    min-width: 40px;
-    height: 40px;
+    min-width: 44px;
+    height: 44px; /* R-B */
     padding: 0 var(--nf-space-xs);
     border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-brand-edge-soft);
