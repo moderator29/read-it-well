@@ -1753,6 +1753,75 @@ one `AdminRail` sets.
 - **ITEM 7 (inspection, not viewing).** The one "view" in this surface's copy
   (In flight's empty note) now says "asks for an inspection".
 
+### 6.6b Final pass, 23 September
+
+**Re-checked.** The three side-by-sides against 5EAA44CB and 01F7DFC7 (panel
+fill, edges, filled badges, full-height rail, the back arrow now drawn on the
+overview harness too, which it lacked); every job count against the
+migrations and `vercel.json` (8 Vercel, 14 pg_cron, now derived and tested);
+the handbook's numbers against code (rail: eleven rows plus Settings = the
+"twelve rows"; pages of forty, `QUEUE_PAGE_SIZE`; the audit chart's 5,000
+cap, `WINDOW_CAP`; fourteen days of runs, `lastDays(14)`); every desk in
+handbook section 15 now carries Shows, Actions, Effects, Limits and Rejected
+(15.1 and 15.12 gained Effects; 15.5 points to admin-money's section 12);
+15.16 names where push, price checks, mandates, firm members, escrow
+evidence and float snapshots are shown.
+
+**Fixed in this pass.** The overview harness drew no back arrow (it builds
+`AdminFrame` directly); a comment path the token check flagged.
+
+**The badge (B-BADGE): wired, blocked on B-BADGE.** `getPersonTiers` in
+`lib/admin/reads/shared.ts` reads `tier` from `public.person_badge` (the one
+source, SELECT granted to authenticated; nothing derived here); `tierMap`
+is tested. One shared slot, `app/admin/_components/PersonTier.tsx`, sits
+beside every name the shared components draw: the operator in the rail and
+bar (`IdentityBlock`, fed by the layout) and the named person in audit and
+alert rows (`AlertList`, fed on Operations). admin-review's and
+admin-money's desks render `<PersonTier tier={...} />` beside a name, with the
+tier from `getPersonTiers`, or pass `tier` on an `AlertRow`. Session A's
+component (`components/app/badge/PersonBadge`) has not landed, so the slot
+renders NOTHING (tested) and no badge appears in the console: blocked on
+B-BADGE.
+
+**Commands and output (run 23 September, final pass):**
+
+```
+npx tsc --noEmit -p .                                -> exit 0, no output
+npx eslint <admin-shell files>                       -> 0 errors, 1 warning
+  (react-hooks/set-state-in-effect, _components/AdminActions.tsx:762,
+   not an admin-shell change)
+node scripts/check-css-tokens.mjs                    -> css tokens: clean
+npx vitest run src/lib/admin/reads src/app/admin     -> 23 files, 145 tests passed
+node scripts/design/compare-surface.mjs --shape-sweep --theme dark (27 admin
+  harness routes)                                    -> BREACHES 0, WORTH AN EYE 0,
+  ROUND ICON-ONLY 0, ROUTES REFUSED 0, 16 combinations measured
+```
+
+**BUILT AND UNPROVEN.** This box cannot reach Supabase over HTTP (egress
+refused) and no admin session may be created, so no read below has run
+against the live project with a signed-in admin. Each is built, typechecked
+against the schema, its policy checked in `pg_policies`, its pure half unit
+tested, and its panel drawn on the committed harness in a production build.
+Proving each needs one signed-in admin load of the page in a deployed build:
+- Overview: `getConsolePulse`, `getCollectedSeries`, `getSupplyByType`,
+  `getNewListingsByRole`, `getRiskAlerts` (existing).
+- Operations: `getJobHealth`, `getRunDays`, `getAlertTrend`,
+  `getInspectionActivity`, `getPushActivity`, `getAuditLog` and
+  `getAuditActivity` (existing).
+- Analytics: `getBookingOutcomes`, `getSupplySeries`, `getThinAreas`,
+  `getPriceCheckDemand`.
+- Shell: `getQueueCounts` badges, `getPersonTiers`, the entry cookie round
+  trip (`EntryGate`, `/admin/enter`, unit tested with `requireAdmin`
+  mocked), the back arrow's landing on a live desk.
+
+**Percentage.** Gate items for this surface: 23 met of 24 (96%). The 24:
+the second audit's six items, its JavaScript-off note and its three handbook
+lines (10); the lead's server-side entry (1); the third audit's six items
+(6); the founder's items 1, 2, 5 and 7 (4); this final hour's real pass,
+ledger block and complete handbook (3). The one not met is item 5, the
+badge, blocked on B-BADGE (the read and the slot are wired; nothing draws). Chain links proven live: 0 of 17 (the list above), for
+the reason given; built, typed and unit tested: 17 of 17.
+
 ### 6.7 Skipped or not verified
 
 - No proof from the live `/admin` pages with a real admin session (none may be
