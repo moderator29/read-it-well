@@ -264,6 +264,15 @@ Each group appends "RELEASED <commit>" here when it is done.
     NOT touched:
     `components/trust/TierBadge.tsx`, `trust-badge.css` (Session A's verified
     badge), the files of groups not yet released (home, feed).
+    **Leftovers RELEASED ffe8989e + ae3f4818** (23 September): SW-C5, SW-C6, SW-C1,
+    the header, R-SH1, R-SH2, R-SH3, SW-P1 and the audit's S4 list and S5
+    closed. Touched beyond the first claim, by the audit's S4 and the lead:
+    `app/(app)/stay/[id]/StayDetailView.tsx`, `app/(app)/restaurant/[id]/page.tsx`,
+    `components/app/stays/StayCategoryTiles.tsx`, `catalogue.css` (the lead card,
+    tiles and badges), `threads.css`, `side-nav.css`, `landing.css`,
+    `price-check.css`, `NavTree.tsx`, `ListingCard.tsx`, `ListingGallery.tsx`,
+    `ResultPanel.tsx`, `MoveInLedger.tsx`, `CommunityBand.tsx`, `ListingMini.tsx`
+    (badge material and markup only). Ledger 13, leftovers (13.L).
   - **the orphans (worker "sweep-orphans", claimed 23 September by the lead's
     instruction on audit finding B3):** the 23 routes no group owned:
     `/around/[slug]`, `/around/manage`, `/around/new`, `/around/settings`,
@@ -309,10 +318,17 @@ Each group appends "RELEASED <commit>" here when it is done.
     `apps/web/src/app/(app)/profile/profile.css` (ONLY `.nf-pf-row__title`),
     `apps/web/src/components/social/profile/social-profile.css` (ONLY the
     trust labels), `apps/web/src/components/ui/Segmented.tsx` (ONLY the count),
-    the price suffix class in `app/(app)/listing/[id]/{page,ReservePanel,RentalPanel}.tsx`,
     `apps/web/src/components/social/profile/LoadingPeople.tsx`, and for S8
     `apps/web/src/app/css/admin.css` (ONLY `.nf-admin-status` and
-    `.nf-admin-chip` sizing). S5 is the leftovers worker's (shared status badge).
+    `.nf-admin-chip` sizing). Added during the fix: `apps/web/src/app/css/home.css`
+    (ONLY deleting `.nf-ai__send:disabled`), `apps/web/src/app/social-feed.css`
+    (ONLY deleting `.nf-btn.nf-composer__send:disabled`) and
+    `apps/web/src/app/admin/money/_desk/charts.tsx` (ONLY the screen-reader
+    table's wrapper). The listing files were dropped because 9da21a53 fixed
+    "/ year" first. Proofs `docs/design/proofs/session-b/audit-fixes/**`.
+    S5 is the leftovers worker's (shared status badge).
+    **RELEASED c7639c33** (23 September): S1, S2, S3, S6, S7, S8 fixed and
+    measured, ledger 13, audit fixes. The claim is released.
 
 ### Sweep group: home, search and filters, listing detail (worker "sweep-home")
 Routes: `/home`, `/stays` (the home components only; `StayCard` is the stays
@@ -341,6 +357,9 @@ that follows from it),
 `app/(app)/around/page.tsx` (ONLY its `BackButton` fallback). C3.3, the
 lister line on the listing card: `components/app/ListingCard.tsx` (already
 claimed) mounting the existing `ListerRoleLine`.
+Added after the independent audit (S9, S10): `components/app/assistant/**`,
+`app/(app)/assistant/**`, `scripts/design/session-b-shots/home-group-live.mjs`
+(new, the read-only live proof).
 **Home group RELEASED cfc7fad4** (the sweep, three dated passes, C3.3) and b2a1ef5f (C3.2). Routes swept 8 / 8. Requests R-SH1 to R-SH4 in ledger 13.H.4 and 13.H.6.
 
 ### Sweep group: stays, stay detail, trips, restaurants, checkout, held payments (worker "sweep-stays")
@@ -806,7 +825,7 @@ refused render element is recorded in `docs/BUILD_SESSION_B_LEDGER.md`.
 1c. **WITHDRAWN.** `tests/profile.spec.mjs` is this surface's spec; Session B
    changed its two `.nf-social-cover` selectors to `.nf-pf-cover` itself.
 1e. **EMAIL-LOCK:** Session B removed the email change affordance in fefc0b4f; Session A to refuse any email change server-side (profile save action and auth updateUser path) with a test.
-1f. **SW-P1 (to the shared worker):** the add-a-workspace chooser at `/profile/setup` draws `.nf-door`, `.nf-door__mark` and `.nf-calmpanel` from `controls.css` (the shared layer's file) on the older edge tokens. Please repoint them onto `--nf-panel-*`, `--nf-plate-*` and `--nf-selected-*`; the chooser markup needs no change.
+1f. **SW-P1: CLOSED by the leftovers worker (ledger 13.L).** Was, to the shared worker: the add-a-workspace chooser at `/profile/setup` draws `.nf-door`, `.nf-door__mark` and `.nf-calmpanel` from `controls.css` (the shared layer's file) on the older edge tokens. Please repoint them onto `--nf-panel-*`, `--nf-plate-*` and `--nf-selected-*`; the chooser markup needs no change.
 - Worker "profile" claims for the sweep: `components/app/account/ProfileIdentityCard.tsx` (the founder's email-lock rule only), its test `profile-identity-card.test.ts`, and `apps/web/tests/session-b-profile-live.spec.mjs` (new).
 1d. **Profile, a page action in the app header.** On `/profile` the settings
    gear sits in the app header's row (left of the bell) so the band over the

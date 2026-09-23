@@ -26,6 +26,7 @@ import {
   type ReserveBase,
   type StayDetail,
 } from "./detail-model";
+import { panelClass } from "@/components/ui/Panel";
 
 type StaysCopy = Dictionary["stayDetail"];
 
@@ -257,7 +258,7 @@ export function StayDetailView({
             strip of spec pairs, then the figure in blue with its unit and the
             rating on the same row, then the capsules. The card is lit glass
             and overlaps the photograph, as every lead card here does. */}
-        <div className="nf-glass nf-glass--card nf-detail-lead relative z-10 -mt-xl sm:-mt-2xl">
+        <div className={panelClass({ variant: "card", className: "nf-detail-lead relative z-10 -mt-xl block sm:-mt-2xl" })}>
           <h1 className="nf-h2 [text-wrap:balance]">{detail.name}</h1>
           {where && (
             <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
@@ -343,7 +344,7 @@ export function StayDetailView({
             <Section title={t.catalogue.detail.amenities}>
               <ul className="nf-amenity-grid" data-testid="stay-amenities">
                 {detail.amenities.map((amenity) => (
-                  <li key={amenity} className="nf-glass nf-glass--tile nf-amenity-tile">
+                  <li key={amenity} className={panelClass({ variant: "card", className: "nf-amenity-tile" })}>
                     <UiIcon name={amenityGlyph(amenity)} size={ICON.inline} />
                     <span>{amenity}</span>
                   </li>

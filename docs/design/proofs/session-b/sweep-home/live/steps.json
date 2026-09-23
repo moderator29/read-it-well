@@ -1,0 +1,68 @@
+{
+  "base": "http://127.0.0.1:3186 (next start, live project)",
+  "steps": [
+    {
+      "step": "sign in",
+      "pass": true,
+      "detail": "landed /home",
+      "shot": null,
+      "at": "2026-09-23T18:41:13.201Z"
+    },
+    {
+      "step": "home",
+      "pass": true,
+      "detail": "landed /home",
+      "shot": "home-390.jpg",
+      "at": "2026-09-23T18:41:20.075Z"
+    },
+    {
+      "step": "stays",
+      "pass": true,
+      "detail": "landed /stays",
+      "shot": "stays-390.jpg",
+      "at": "2026-09-23T18:41:25.921Z"
+    },
+    {
+      "step": "search",
+      "pass": true,
+      "detail": "landed /search",
+      "shot": "search-390.jpg",
+      "at": "2026-09-23T18:41:35.516Z"
+    },
+    {
+      "step": "listing-rent",
+      "pass": true,
+      "detail": "landed /listing/ed000000-0000-4000-8000-00000000000c",
+      "shot": "listing-rent-390.jpg",
+      "at": "2026-09-23T18:41:41.999Z"
+    },
+    {
+      "step": "move-in",
+      "pass": true,
+      "detail": "landed /rent/move-in/ed000000-0000-4000-8000-00000000000c",
+      "shot": "move-in-390.jpg",
+      "at": "2026-09-23T18:41:47.125Z"
+    },
+    {
+      "step": "price",
+      "pass": true,
+      "detail": "landed /price",
+      "shot": "price-390.jpg",
+      "at": "2026-09-23T18:41:50.917Z"
+    },
+    {
+      "step": "price-area-missing",
+      "pass": true,
+      "detail": "landed /price/area/a1d47419-f941-4a19-a4e2-172561684535",
+      "shot": "price-area-missing-390.jpg",
+      "at": "2026-09-23T18:41:54.017Z"
+    },
+    {
+      "step": "assistant",
+      "pass": true,
+      "detail": "landed /assistant",
+      "shot": "assistant-390.jpg",
+      "at": "2026-09-23T18:41:56.728Z"
+    }
+  ]
+}

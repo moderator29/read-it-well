@@ -295,7 +295,7 @@ export function ListingCard({
           {/* Verified and Example can never both be true: a check constraint,
               a trigger and the mapper each enforce it. */}
           {listing.verified && (
-            <span className="nf-pcard__mark nf-pcard__mark--verified">
+            <span className="nf-badge nf-badge--verified nf-pcard__mark nf-pcard__mark--verified">
               <UiIcon name="verified" size={12} />
               {t.common.verified}
             </span>
@@ -304,12 +304,12 @@ export function ListingCard({
               the shared `nf-badge--example` class so the source guard in
               `example-notice.test.ts` can see every card renderer says it. */}
           {listing.isDemo && (
-            <span className="nf-badge--example nf-pcard__mark nf-pcard__mark--example">
+            <span className="nf-badge nf-badge--example nf-pcard__mark nf-pcard__mark--example">
               <UiIcon name="info" size={12} />
               {copy.example}
             </span>
           )}
-          <span className="nf-pcard__mark nf-pcard__mark--market">
+          <span className="nf-badge nf-badge--info nf-pcard__mark nf-pcard__mark--market">
             <UiIcon name={marketKey === "sale" ? "key" : marketKey === "rent" ? "home" : "calendar-booking"} size={12} />
             {market}
           </span>

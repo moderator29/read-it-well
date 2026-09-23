@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { panelClass } from "@/components/ui/Panel";
 
 /**
  * The five category tiles of FD3DFE84, each a glass square with its object.
@@ -34,7 +35,7 @@ export function StayCategoryTiles({ t, active }: { t: Dictionary; active?: strin
             <Link
               href={`/stays/search?type=${tile.type}`}
               aria-current={on ? "true" : undefined}
-              className={`nf-glass nf-glass--tile nf-stays-tile ${on ? "nf-stays-tile--on" : ""}`}
+              className={panelClass({ variant: "card", className: `nf-stays-tile ${on ? "nf-stays-tile--on" : ""}` })}
             >
               <span className="nf-stays-tile__object" aria-hidden="true">
                 <BrandIcon name={tile.icon} fill />

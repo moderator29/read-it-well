@@ -24,6 +24,8 @@ const PAGES: readonly (readonly [string, string])[] = [
   ["price-area", "Price check: the area report and facts panel"],
   ["price-answered", "Price check: an answered range"],
   ["assistant", "The assistant: bubbles, result cards, chips, composer"],
+  ["move-in", "The move-in ledger (Calculate Breakdown), fixture rental"],
+  ["price-share", "The shared area card, as /price/area/[id] draws it (fixture share)"],
 ];
 
 export default function SweepHomeIndex() {

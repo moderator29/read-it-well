@@ -683,6 +683,42 @@ signed-in run is possible):
   screen; unproven: the member write, the signed-in read, the question's
   write). Notification: none deserved, not counted.
 
+### (f) The interests step changed, 23 September (settings sweep, f3ec1eea)
+
+The fifth beat (the interests question a signed-in member meets after the last
+slide) is drawn by `InterestChoices`, which the settings sweep changed for audit
+S11. It was never photographed before; it is now, from this harness (four
+slides, the member's Continue, Apartments chosen), before and after that
+commit, by `scripts/design/session-b-shots/welcome-question.mjs`:
+`question-before-{390,1440}.jpg`, `question-after-{390,1440}.jpg` and
+`side-by-side-question-390.jpg` (image `2A49E2F7`, the last committed welcome
+proof `welcome-member-final-390-fixture.jpg`, before, after).
+
+- What changed: the eleven tiles were near-black cards with a hairline edge and,
+  when chosen, a dim brand tint inside a 2px ring; they are now the shared glass
+  panel (lit blue edge, top rim), and the chosen tile is lit with the shared
+  selected fill (the lit button's blue), its hint in on-brand ink. The corner
+  radius went from the card's to the panel card's, a little tighter. Heading,
+  copy, grid, Continue and Skip did not move.
+- Against the image: `2A49E2F7` draws slide one only, with no tiles, so the step
+  is judged by the image's materials. It still matches them and is closer than
+  before: the tiles now read as the render's glass cards (Property, Stays) with
+  their lit blue edges, and the chosen tile has the Get Started button's lit
+  fill, where before the tiles were flat dark boxes the render does not draw.
+  No fix was needed in `InterestChoices`.
+- Deliberate, by the lead's ruling (23 September): the render's cards are
+  rounder than the panel card's radius, and the tiles keep the shared panel
+  radius. The founder asked for one consistent platform, so this difference is
+  kept on purpose, not left open.
+- Full-page screenshot artefact, not on screen: the flat dark band under Skip
+  in `question-{before,after}-1440.jpg` is not what a person sees. Opened at
+  1440x900 and 1440x800 and scrolled to the bottom (the page is 971px tall),
+  the viewport shots `question-after-1440x900-scrolled.jpg` and
+  `question-after-1440x800-scrolled.jpg` show the stage's ground running under
+  the note to the foot of the window. The band comes from the full-page
+  capture stretching the page past the window, so the stylesheet is not
+  changed.
+
 ## 3. Welcome back
 
 Route `/sign-in` (the chooser) and `/sign-in/email` (the password step).
@@ -3440,6 +3476,30 @@ parent. On the real route the declared parent is `/home` (`lib/nav/route-parents
 Screenshots of where back lands: `docs/design/proofs/session-b/inspection/r18-back-*.jpg`.
 Result: PASS on the harness; the real route BUILT AND UNPROVEN until a QA account exists.
 
+### Audit S12, 23 September: seven differences from the target, each fixed or recorded
+
+The independent audit (`docs/design/proofs/session-b/audit-sweep/AUDIT.md`, S12,
+`sbs-inspection.jpg`) listed seven visible differences from `founder/inspection-target.jpg`
+the ledger did not record. Before / after beside the render:
+`docs/design/proofs/session-b/inspection/s12-render-before-after.jpg` (render, the audit's
+build 8d1ba5a7, this build).
+
+| Difference | Now |
+|---|---|
+| Notes glyph a document, render a pencil | FIXED: the render's pencil, cropped with its faint plate (`glyph-pencil.webp`) |
+| Add Photos glyph a picture, render a camera | FIXED: the render's camera, keyed off the lit bar (`glyph-camera.webp`) |
+| Submit's paper plane filled, render outlined | FIXED: the render's outlined plane (`glyph-plane.webp`) |
+| Checklist head three lines, render a bulleted list | FIXED: the render's list glyph (`glyph-list.webp`) |
+| Date and status glyphs differ | FIXED: the render's calendar, person and clock on their faint plates (`glyph-calendar`, `-person`, `-clock`) |
+| Helper lines and "Open the chat" | FIXED where the render has nothing to say: with the report on, "Tick all eight rooms..." is gone (the "n / 8 Completed" count already says why Submit waits), the photos line is gone (I1b landed, so Add Photos uploads), and "Open the chat" is gone (the thread is reached from Messages and, with the report off, from Add Photos). DELIBERATE, kept: "Choose how it went..." only with the report OFF, and "The report opens once a time is agreed on both sides." only before the inspection is agreed; both carry a state the render (a scheduled inspection with the report on) cannot show |
+| Back control a dark square, render a lit glass square | FIXED: the shared icon plate's material (fill, per-side lit edge, rim, inner light, glow) on the 44px square, the arrow in the plate's lit cyan |
+
+**I1b landed with this** (Session A, 48ae9293: `addReportPhoto`, a unique object per
+photo). Add Photos now opens the file picker, uploads to the private bucket through
+`createInspectionPhotoUpload`'s signed path and records the row with `addReportPhoto`; the
+count moves only when that row came back. Both are Session A's; this surface writes no
+mutation. BUILT AND UNPROVEN until a QA account can upload for real.
+
 ## 10. The welcome email
 
 Owner: Session B worker "email", design and words only. The send is Session
@@ -5113,6 +5173,13 @@ now opened in this group's own harness (`?v=sheet-rows`, `?v=sheet-bottom`, `She
 and shot (`after/sheet-rows-*`, `after/sheet-bottom-*`); the wallet-harness shot is removed.
 Proofs: `after/interests-390.jpg` (Apartments chosen), `side-by-side-interests.jpg`,
 `side-by-side-sheet-rows.jpg`, `side-by-side-sheet-bottom.jpg`.
+Get started's interests step, drawn by the same component, is shot before and after this change
+(`docs/design/proofs/session-b/welcome/question-*`, `side-by-side-question-390.jpg`) and recorded
+in section 2 (f): the tiles went from flat dark boxes to the shared glass panel, the chosen one lit;
+it still matches `2A49E2F7`'s materials, closer than before, and nothing needed fixing. The only
+difference, that the render's cards are rounder, is kept on purpose by the lead's ruling (one
+consistent platform). The flat dark band at the foot of the 1440 full-page shot is a capture
+artefact: viewport shots at 1440x900 and 1440x800, scrolled to the bottom, show no band.
 
 #### Shape sweep (the tool, dark, 390 and 1536, 15 routes)
 
@@ -6273,6 +6340,49 @@ Every route in the group is closed.
 started anatomy were compared side by side at each pass (contact sheets in
 the worker's scratch, not committed).
 
+### 13.H.7 After the independent audit (S9, S10), 23 September
+
+**S10, `/assistant`.** The audit was right: the history aside (1440) and
+the mobile history drawer were still `.nf-card`, the chosen history row and
+the chosen answer in the settings sheet were a 16 per cent tint of their
+own, the loading skeleton was `.nf-card`, and the empty composer's send was
+dimmed to 0.45 with no light. Now: the aside is `nf-panel nf-panel--card`,
+the drawer the same with the panel blur, its head on `--nf-panel-hair`; the
+chosen row and chosen answer are the shared selected state
+(`.nf-ai__row--on`, the console's nav row on); hovers take the glass door's
+fill; the loading cards are the panel card; the empty send keeps the whole
+lit bar (fill, edges, rim, bloom, text glow) at 0.7, so it reads waiting,
+not broken (S3 for this route). Proof: `after/assistant-390.jpg`,
+`after/assistant-1440.jpg` (fixture), `live/assistant-390.jpg` (live).
+Files claimed in the scope file with this commit.
+
+**S9, `/price/area/[id]` and `/rent/move-in/[listingId]`, proved.**
+- Harness (fixture): `after/move-in-390.jpg` and `-1440` (the ledger card,
+  row plates, total, area comparison, lit Proceed), `after/price-share-390.jpg`
+  and `-1440` (the shared area card and the share control).
+- LIVE, signed in as the QA member through the real form, production build
+  of this commit started with the env proxy against the live project, read
+  only (`scripts/design/session-b-shots/home-group-live.mjs`, run 2026-09-23 18:41 UTC):
+  `/home`, `/stays`, `/search`, `/listing/[id]` (rental ...00c),
+  `/rent/move-in/[listingId]` (the same rental; live figures), `/price`,
+  `/price/area/[id]` and `/assistant`: 9 of 9 PASS (sign-in plus eight
+  routes, none bounced to sign-in, none showing failure copy). Shots and
+  `steps.json` in `docs/design/proofs/session-b/sweep-home/live/`.
+  `public.price_check_shares` holds 0 rows (read-only SQL, same hour), so
+  the live `/price/area/[id]` proof is the route's honest "This card is not
+  here" state with its lit Check another area; the filled card is the
+  fixture proof above.
+
+Also from the audit's home findings, in this group's files: the rental and
+sale panels' "/ year" and "asking price" suffix drew at 0.54em (10.3px, S6)
+and now draw at `--nf-text-caption` in the muted ink. NOT fixed here and not
+this group's: the `/search` List/Map toggle (`nf-segmented`, controls.css,
+B2) and the stay day chips (the shared `Chip`, S1).
+
+Register: `/assistant` SWEPT, `/price/area/[id]` SWEPT (live missing state,
+fixture card), `/rent/move-in/[listingId]` SWEPT (live and fixture).
+Routes swept 8 / 8.
+
 ### 13.H.6 The founder's answers in this group (23 September, through the lead)
 
 **C3.2, browsing is signed in only; back goes to the landing page.**
@@ -7239,6 +7349,198 @@ vitest, the token check), each heavy job through the shared lock:
 - The render's type is a narrower face than Inter; each role is sized to its drawn WIDTH
   (so lines break where the image breaks) and so sits a little shorter in cap height.
 
+## 13. Platform sweep: audit fixes (S1, S2, S3, S6, S7, S8 of the independent audit; worker "auditfix")
+
+Fixes six should-fix findings from `docs/design/proofs/session-b/audit-sweep/AUDIT.md`
+(a6c7a80a). S5 went to the leftovers worker (shared status badge) and is not in this
+section. Method: two production builds with `VALLO_PREVIEW_HARNESS=1`, both run
+through the heavy lock. BEFORE is `origin/main` at e93bb8a9 and AFTER is this change.
+Both builds served the committed harnesses, 20 routes and states at 390x844 (DPR 2)
+and 1440x900, dark, reduced motion. Measured with the audit's own script (copied as
+`shoot.mjs.txt`) plus element probes. Numbers per route and width are in
+`docs/design/proofs/session-b/audit-fixes/measure.json`. The side-by-side crops are
+`<finding>-<390|1440>.jpg` in the same folder. The listing's "/ year" was already
+fixed on main by the home group (9da21a53) while this ran, so this change only
+re-measures it.
+
+| Finding | Fix | Before (390 / 1440) | After (390 / 1440) | Evidence |
+|---|---|---|---|---|
+| S1 shared `Chip` selected is a flat blue fill | `components/ui/Chip.tsx` `SELECTED_STYLE` now uses `--nf-selected-fill`, `--nf-selected-edges`, `--nf-selected-shadow-inline` and on-brand ink. It stays inline so it still beats the chip's hover. | flat `rgb(0,105,254)`, transparent edge: transactions "All" 1/1, listing "Fri 25" and "Weekend" 2/2, `/preview/g1` 1/1 | gradient fill, cyan-lit edges, white rim plus 22px bloom; flat selected 0 on all four | `s1-wallet-transactions-*.jpg`, `s1-listing-day-slots-*.jpg` |
+| S2 console payments toggle has its own navy on-state | `.nf-md-toggle[aria-pressed="true"]` (`admin/money/_desk/desk.css`) uses the shared selected tokens. The focus ring turns on-brand on the lit fill. | flat `oklab(0.27 -0.02 -0.10)` on "All outcomes" and "Checkouts and top-ups", 2/2 at both widths | shared lit state, flat selected 0 | `s2-payments-toggle-*.jpg` |
+| S3 a disabled primary goes unlit | ONE shared disabled look in `buttons.css`: `.nf-btn--primary:disabled` / `[aria-disabled]` (not loading) keeps the lit fill, lit edges and the top rim, drops the bloom, pool and inner glow, and turns the bar down with `filter: brightness(0.7)` (no grey fill, no opacity fade). Three local variants deleted so every disabled primary reads the same: the posts composer's (`social-feed.css`, flat gradient at 0.45), the assistant send's (`home.css`, at 0.45 and then, after 9da21a53, the full bar with bloom at 0.7) and the thread composer's (`threads.css`, now the same brightness and rim). | escrow "File this": grey `rgba(255,255,255,.04)` fill, muted ink. Posts "Reply", assistant send and thread send: lit at opacity 0.45. Grey primaries: escrow 1, posts 1, assistant 1 | all four are lit fill + lit edges + rim, brightness 0.7, opacity 1, white label. Grey primaries 0 | `s3-escrow-file-this-*.jpg`, `s3-posts-reply-*.jpg`, `s3-assistant-send-*.jpg`, `s3-thread-send-*.jpg` |
+| S6 text under 11px outside the feed | `/profile` `.nf-pf-row__title` 0.6625rem to 0.6875rem. `/u/[handle]` trust `dt` 0.625rem to 0.6875rem (tracking 0.09em to 0.06em, in `social-profile.css`). `/messages` segment count (`Segmented.tsx`) `0.75em` to `max(0.75em, 0.6875rem)`. Listing "/ year": 9da21a53 (caption size). | 10.6 x5, 10 x3, 10.5 x1, 10.3 x2 | 11, 11, 11 and 13. Under-11 text on these routes: 0 (posts 390 keeps the feed ruling's 54) | `s6-profile-rows-*.jpg`, `s6-trust-labels-*.jpg`, `s6-inbox-count-*.jpg` |
+| S7 followers loading skeleton spills | `LoadingPeople.tsx`: the face skeleton gets `circle width="46px"`. The skeleton's inline `width: 100%` beat the class's 46px, so the disc took the whole row. | face 308px (390) / 638px (1440); layout 115px past 390 | face 46px; overflow 0 | `s7-followers-loading-*.jpg` |
+| S8 escrow desk status chips past 390 | `admin.css`: under 640px `.nf-admin-status` wraps (it scrolled with no scrollbar and no fade, so 7 of 10 states were out of sight). `.nf-admin-chip` min-height 40 to 44 (R-B), radius 10 so ratio 0.23. The page widening was really the chart's screen-reader table, because a `<table class="sr-only">` sizes to its content. In `_desk/charts.tsx` the 1px box is now a wrapping div. | row scrollWidth 1115 in 358, chips 40px, layout 82px past 390 | row 358 in 358, 10 chips all on screen, 44px each; overflow 0. 1440 unchanged (one line) | `s8-escrow-status-*.jpg` |
+
+Also checked, as the lead asked: `/search` List/Map (`.nf-segmented__link[aria-current]`,
+restored in a6edcaaf) reads lit on both `sweep-home/search` and `search-empty?view=map`
+(gradient fill, rim, on-brand ink; flat selected 0 at both widths). Nothing to fix.
+
+No new failures: capsule counts are the same before and after on every measured
+route. The remaining ones are S5 (leftovers) and the harness chrome. Overflow is 0 on
+all 40 shots.
+
+Gate, run through the lock after `git pull --rebase`: whole-project tsc exit 0;
+the whole vitest suite 241 of 241 files, 3855 tests passed and 1 skipped;
+check-css-tokens clean on all ten checks; eslint clean on the four changed TSX
+files. For the no-revert check I read every line `git diff origin/main HEAD`
+removes. Each one is this fix's own replacement or one of the three local
+disabled rules the lead asked to delete. Pushed as c7639c33.
+
+## 13. Platform sweep: leftovers (SW-C5, SW-C6, SW-C1, the app header, R-SH1 to R-SH3, SW-P1, audit S4 and S5; worker "leftovers")
+
+Claimed 23 September in `5de8290a` and `a754c1c9` (scope, "the leftovers no
+group owns"). Everything here reads the Phase 1 layer (13.0); no colour,
+radius or shadow value was written except the one token pair below, which
+is itself a mix of existing tokens.
+
+### 13.L.1 What moved
+
+| Item | Before (measured on the base build) | After (measured, Pass 3) | Reference | Match |
+|---|---|---|---|---|
+| SW-C5 `.nf-card` (glass.css) | canvas veil 88%, conic stride ring, 22px, rung 1 elevation | `--nf-panel-fill-card`, `--nf-panel-edge(s)`, `--nf-panel-rim`, `--nf-panel-glow`, `--nf-container-radius` 10px; `listing-parts` cards measured 10px | console panel card | yes |
+| `.nf-card--interactive:hover` | swapped the shadow for elevation 2 and ran the stride ring once | panel rim + glow + elevation 2 (`.nf-card`, `.nf-panel`, `.nf-elev--hoverable`); the stride `@property` and keyframes deleted | panel hover | yes |
+| `Screen` `RowList boxed` (`/agent/dashboard`, `/host/transfer`, host standing, `/stay/[id]`) | `nf-card` + `rounded-[--nf-radius-xl]` utility: 22px | `panelClass({variant:"card"})`, `block py-0` so its flow is unchanged: 10px | panel | yes |
+| `Screen` `Surface` (card tone; `/restaurant/[id]` and others) | `nf-card` + 22px utility | `panelClass` card, `block`; the glass tone keeps its own corner | panel | yes |
+| Bridge rules | agent.css `:is(.nf-agent,.nf-host) .nf-card`, chips.css `.nf-panel.nf-card--interactive:hover` | deleted; the hover lives in glass.css beside the card | | yes |
+| A card holding the lit primary | pool could fall under the card fill | `.nf-card:has(.nf-btn--primary) { isolation: isolate }` (the panel already had it in chips.css) | 13.0 note | yes |
+| SW-C6 shared status badge | none; `.nf-badge` tints with no edge, `StatusPill` inline fills, a dozen local marks | `components/ui/StatusBadge.tsx` + `.nf-badge` material in chips.css: tint of the hue over the canvas (48% to 34%), ring 65% drawn inside, top catch, 6px halo, word lifted towards white; tones success, pending, error, info, neutral (aliases approved, warning, rejected, brand, verified, example); `--nf-radius-xs`, 11px type floor; `--md` 24px row size | console `.nf-admin-badge` | yes |
+| Badge shapes (33 measured on 16 routes) | 0.23 to 0.32; threads badges 10px on 23 to 28 = 0.36 to 0.43 (audit S5) | 0.21 to 0.33, all 6px except the 32 to 37px tags (10px, 0.27 to 0.31) | ratio under 0.35 | yes |
+| `StatusPill` | inline tinted fill per tone; `shape="pill"` drew r999 (12 capsules on `/preview/g1`) | writes the badge tone class; `outlined` and `shape="pill"` inert | shared badge | yes |
+| Count badges (drawer and rail "5", `.nf-count-badge`, `.nf-badge-overlap`) | flat brand fill, 21px | shared badge (info tone), 22px; the overlap keeps a 3px canvas outline | shared badge | yes |
+| R-SH3 home badges: card Verified / For rent / Example, gallery marks, move-in tag, price confidence, Open now, landing float badge and partner tag | selected-state fills or own tints; landing float badge 10px on 28 = 0.36 | shared badge in the markup (`nf-badge nf-badge--*`), the local classes keep only position and size; `.nf-reg-open` is named in the badge rule because the `f3/restaurant` harness writes it bare | shared badge | yes |
+| SW-C1 Flip card (`SideSwitch`, side-flip.css) | `nf-glass nf-glass--card`, 22px, tint wash, `--nf-glow-edge-strong` | `panelClass` card (10px, measured 286x101 at 390), hover and focus take `--nf-selected-edges` and `--nf-selected-shadow-inline`; the coin's ring wears the plate's light on a disc (56px); label "Flip" kept (founder item 9) | panel, selected state, plate | yes |
+| App header, scrolled | brand tint 1 over canvas 88%, strong blur, `--nf-glow-edge` ringing four sides | canvas 82%, base blur 26px (the console bar, `.nf-admin-bar`), `--nf-bar-glow`: a 1px foot line in `--nf-bar-edge-lit` (the panel's foot edge, lit 70% + info) and the panel halo (info 52%) cast down | console top bar | yes |
+| SW-P1 `/profile/setup` doors, calm panel (controls.css) | 14px, soft brand edge, glass card fill; chosen door tint 2 + glow edge; mark tint 1 | panel card at rest (10px, 0.08 on 123px), selected edges and bloom when chosen, the plate (56px, lg) behind the object, the calm panel on the panel and its glyph on the plate's light | panel, selected state, plate | yes |
+| R-SH2 `StayCard`, and the audit's S4 extras: `/stays/search` category tiles, `/stay/[id]` and `/restaurant/[id]` lead card, `/stay/[id]` amenity tiles | `nf-glass--card` / `--tile`, 22px / 18px | `panelClass({variant:"card"})`, as `ListingCard` and `ListingAmenityTiles` do | panel | yes |
+| R-SH1 `AiAssistantBanner` | unmounted, kept for two comment paths | deleted with `.nf-home__ai*`; the comments in ambient.css and chrome.css no longer name its path | | yes |
+
+Local badge rules deleted: threads.css (10px override, the S5 breach),
+agent.css (`.nf-agent/.nf-host .nf-badge` radius), side-nav.css `.nf-nav__badge`
+material, landing.css `.nf-landing-float-badge(--quiet)` and
+`.nf-landing-tag(--third)` material, catalogue.css `.nf-pcard__mark--*`,
+`.nf-gallery-mark`, `.nf-detail-tag(--market)`, `.nf-reg-open--*` material,
+price-check.css `.nf-pc-confidence--*`.
+
+### 13.L.2 Routes: did the layout move?
+
+Method: the base (`a754c1c9`) and the change built for production in this
+worktree, one at a time, each served with `VALLO_PREVIEW_HARNESS=1`; every
+committed harness route (200 under `app/(dev)/preview/**`, the admin-review
+desk expanded to its four desks) plus `/`, `/about`, `/help`: 204 routes at
+390 and 1440, 408 shots. For each shot, every element's box (x, y, width,
+height) was recorded after scrolling the page through; the base was shot
+twice to learn which pages are not deterministic. Scripts:
+`scratchpad/lo/{shoot,diff,measure,sheet,proof}.mjs`.
+
+Result (Pass 2, the change alone on the same base): **319 of 408 identical,
+5 differ only where the base also differs from itself, 83 moved.** None of the
+83 moved a container: every move is inside a badge.
+- badge width 1 to 4px (weight and ring) (19): `/preview/bd/alerts @390`, `/preview/e/crypto @390`, `/preview/e/crypto-coin @390`, `/preview/f2 @390`, `/preview/f3/restaurant @390`, `/preview/g1/sheet @390`, `/preview/g1/surfaces @390`, `/preview/session-b/sweep-home/search @390`, `/preview/session-b/sweep-stays/pay-failed @390`, `/preview/session-b/sweep-stays/restaurant @390`, `/ @390`, `/preview/bc/audit @1440`, `/preview/bd/alerts @1440`, `/preview/f2 @1440`, `/preview/f3/restaurant @1440`, `/preview/g1/sheet @1440`, `/preview/g1/surfaces @1440`, `/preview/session-b/sweep-stays/restaurant @1440`, `/ @1440`
+- drawer or rail count badge 21 to 22px tall (31): `/preview/f1/drawer @390`, `/preview/lead/drawer @390`, `/preview/e @1440`, `/preview/e/crypto @1440`, `/preview/e/crypto-coin @1440`, `/preview/e/crypto-off @1440`, `/preview/e/payments @1440`, `/preview/e/receipt @1440`, `/preview/e/receive @1440`, `/preview/e/transactions @1440`, `/preview/e/wallet @1440`, `/preview/e/wallet-topup @1440`, `/preview/f1/chrome @1440`, `/preview/f1/dock-stays @1440`, `/preview/f1/drawer @1440`, `/preview/f1/switch @1440`, `/preview/lead/drawer @1440`, `/preview/session-b/profile @1440`, `/preview/session-b/sweep-settings @1440`, `/preview/session-b/sweep-social @1440`, `/preview/session-b/sweep-wallet @1440`, `/preview/session-b/sweep-wallet/payments @1440`, `/preview/session-b/sweep-wallet/pots @1440`, `/preview/session-b/sweep-wallet/receipt @1440`, `/preview/session-b/sweep-wallet/receive @1440`, `/preview/session-b/sweep-wallet/result @1440`, `/preview/session-b/sweep-wallet/withdraw @1440`, `/preview/session-b/sweep-wallet/transactions @1440`, `/preview/session-b/wallet @1440`, `/preview/session-b/wallet/send @1440`, `/preview/session-b/wallet/send-filled @1440`
+- card marks 18 to 16px (restored in Pass 3) (19): `/preview/f1/home @390`, `/preview/f3/saved @390`, `/preview/f3/search @390`, `/preview/f3/stays @390`, `/preview/f3/stays-search @390`, `/preview/session-b/sweep-home/home @390`, `/preview/session-b/sweep-home/stays @390`, `/preview/session-b/sweep-stays/stays @390`, `/preview/session-b/sweep-stays/stays-search @390`, `/preview/f1/home @1440`, `/preview/f3/saved @1440`, `/preview/f3/search @1440`, `/preview/f3/stays @1440`, `/preview/f3/stays-search @1440`, `/preview/session-b/sweep-home/home @1440`, `/preview/session-b/sweep-home/search @1440`, `/preview/session-b/sweep-home/stays @1440`, `/preview/session-b/sweep-stays/stays @1440`, `/preview/session-b/sweep-stays/stays-search @1440`
+- gallery mark glyph 1px (restored in Pass 3) (8): `/preview/f3/listing @390`, `/preview/f3/stay @390`, `/preview/session-b/sweep-home/listing @390`, `/preview/session-b/sweep-stays/stay @390`, `/preview/f3/listing @1440`, `/preview/f3/stay @1440`, `/preview/session-b/sweep-home/listing @1440`, `/preview/session-b/sweep-stays/stay @1440`
+- StatusPill pill retired (height, dev gallery) (2): `/preview/g1 @390`, `/preview/g1 @1440`
+- confidence badge line (height) (4): `/preview/price/answered @390`, `/preview/session-b/sweep-home/price-answered @390`, `/preview/price/answered @1440`, `/preview/session-b/sweep-home/price-answered @1440`
+
+(`/preview/session-b/sweep-home/search` and `/preview/session-b/sweep-stays/pay-failed`
+in the first group were read side by side: identical on screen; the boxes that
+differ are the sticky shelf and an off-screen sheet mid-transition.)
+
+Two of those causes were then removed (Pass 3): the card marks, gallery marks,
+the move-in tag and the confidence badge keep the 1px border they always had,
+transparent, so the shared badge (ring drawn inside) sits at their old size.
+The confidence badge still ends 3px shorter (its padding is the chip's, the
+line box is the badge's). The Pass 3 full diff sits on a newer main and also
+shows the feed, inspection and settings commits that landed meanwhile
+(`c4a519f8`, `444bb3c3`, `a5459f08`, `f3ec1eea`, `e93bb8a9`); of its height
+changes only `/preview/g1` (-4 and -2, the retired capsule) and the two price
+answers (-3) are this change's.
+
+Where a card sits over a lit primary's pool, `isolation: isolate` is now on
+`.nf-card:has(.nf-btn--primary)` as well as on the panel.
+
+### 13.L.3 Audit passes
+
+**Pass 1, 23 September.** First after set. Found: (1) every "after" shot of
+the first two rounds had been served by a stale `next-server` child left on
+the port by the very first run, answering from a rebuilt `.next`: the error
+shells in both sets were that, not the change. The server is now stopped by
+its process (every `next` process whose working directory is the worktree)
+and every set below was re-taken. (2) The shared badge moved rows: a real 1px
+border (the old badges had none) and `line-height: 1.2` made 46 pages 1 to
+23px shorter. Fixed: the ring is an inset shadow, the line height and weight
+are the old badge's. (3) The audit (S4, S5) arrived with more: the
+`/stays/search` tiles, the stay and restaurant lead cards and amenity tiles,
+StatusPill's capsule. Moved in the same pass.
+
+**Pass 2, 23 September.** Re-shot all 408 on the corrected build against the
+base shot twice: 83 moved, all inside badges (13.L.2). Opened side by side:
+the drawer, the rail at 1440, the chooser, the agent dashboard, host transfer
+and standing, stay, restaurant, stays and stays search, home, listing, the
+price answer. Found: the card marks were 2px shorter and the gallery glyphs
+1px left, because those marks had carried a real border. Fixed with a
+transparent 1px border on the four classes that had one.
+
+**Pass 3, 23 September (rebased on main at 55470695).** Whole gate green;
+rebuilt; measured 16 routes with `getComputedStyle` (33 badges, max ratio
+0.33; every `.nf-card` 10px; the Flip card 10px with its ring round; the
+scrolled header `rgba canvas / 0.82`, `blur(26px)`, the foot line and halo);
+the repository's shape sweep over 15 routes at 390 and 1536: **0 breaches**,
+9 worth an eye (the agent search field at 0.35 and the dev gallery's
+segmented control at 0.39, neither this change's), `/` refused on
+`networkidle` (the landing's badge measured by hand: 84x28, 6px, 0.21); the
+full 408 diff again (above); the proof set re-shot.
+
+### 13.L.4 Proofs
+
+`docs/design/proofs/session-b/sweep-leftovers/`: before (base `a754c1c9`) and
+after (Pass 3) side by side: `drawer-390`, `rail-1440`, `chooser-390` and
+`chooser-1440` (the `/profile/setup` chooser; before from `/preview/b1b/chooser`,
+after from the profile harness `?v=setup`, the same component),
+`agent-dashboard-390/-1440`, `host-transfer-390`, `host-standing-390`,
+`stay-390`, `restaurant-390`, `stays-390`, `stays-search-390/-1440`,
+`home-390`, `listing-390`, `price-answered-390`; and `header-scrolled-390`,
+`header-scrolled-1440` (after only; the before is the measured row above).
+All fixture-backed harness renders, 390 at dpr 1, JPEG.
+
+### 13.L.5 Checks
+
+`tsc --noEmit` whole project clean; `vitest run` whole suite 242 of 242 files
+(3859 tests; one earlier run of the same gate failed once in
+`lib/push/service-worker.browser.test.ts`, a headless browser timing test
+this change does not touch, and passed on the rerun); `check-css-tokens`
+clean, all ten; eslint clean on every changed TS file; new test
+`components/ui/StatusBadge.test.ts` (4). The no-revert check (BRIEF, 23
+September) was run after `pull --rebase`: every removed line in
+`git diff origin/main HEAD` is this change's own.
+
+### 13.L.6 Not moved, and why
+
+- `admin.css` `.nf-admin-badge` (the console's own badge, the source the
+  shared one was taken from) and `.nf-admin .nf-badge` (a radius the shared
+  badge now sets itself): the console worker's file; now redundant, left for
+  them.
+- `.nf-detail-verified` ("Verified listing" beside the price, 40 to 44px, the
+  selected state): a control-height mark the home group matched to
+  `7B5335E0`, not a status badge; and the `f3/move-in` harness writes it bare.
+- `.nf-tag-pill` (identifiers such as "P2 . ROW F"): not a status.
+- `components/trust/TierBadge.tsx`, `trust-badge.css`: Session A's, untouched.
+- `crypto.css` `.nf-crypto-surface .nf-card` still restates the card's shadow
+  (`--nf-glow-edge`): another group's file, and both crypto routes are
+  `notFound()`.
+- `social*.css` `.nf-card.nf-post` and friends restate the card for the feed:
+  the feed group's released design, which wins by specificity on purpose.
+- `Chip.tsx`: the audit-fix worker's.
+- The dock, its switch and the dock island: untouched (founder ruling).
+- `scripts/shot-cards.mjs` drives the deleted `--nf-stride-angle`; the note
+  in tokens.css about it and `--nf-edge-stride-stops` are now unread (tokens
+  outside this worker's pair).
+
+**Released**: see the scope file. Items closed: SW-C1, SW-C5, SW-C6, the
+header, R-SH1, R-SH2, R-SH3, SW-P1, audit S4 (all of its list) and S5.
+
+
 ## Skipped or not verified
 - (13.H, sweep-home) No live row on any proof: this box's egress refuses the Supabase host, so every card, panel and figure in the home group's proofs is fixture-backed or an empty state; the wiring is unchanged by the sweep (material only). `/price/area/[id]` and `/rent/move-in/[listingId]` were swept in their stylesheets and not photographed. The lister's TierBadge on the card waits on R-SH4. `StayCard` still wears `nf-glass--card` itself (stays group, R-SH2). The unmounted `AiAssistantBanner` stays until R-SH1.
 
@@ -7328,4 +7630,4 @@ vitest, the token check), each heavy job through the shared lock:
   `/preview/session-b/feed`; the wiring is proved live signed in as the QA member (13.F.6a,
   17 of 17). Not live: a gold author on screen (no gold person has a live post; platinum
   is proved), and every write, which the live run deliberately does not make.
-
+- Sweep leftovers (13.L, 23 September): every proof is fixture-backed (harness renders); no signed-in live page was opened. Hover states were read in code and measured only through `getComputedStyle`, not shot. The shape sweep refused `/` on `networkidle`; its badge was measured by hand. The pixel diff covers the committed harnesses and three public pages, not gated routes without a harness. Not moved: the console's own badge rules, `.nf-detail-verified`, `.nf-tag-pill`, crypto.css's card shadow, the feed's card overrides (13.L.6).

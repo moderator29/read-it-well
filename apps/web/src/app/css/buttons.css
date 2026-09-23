@@ -585,6 +585,26 @@
   /* `.nf-btn--lit` (the `glow` prop) is now the primary's resting state: the
      primary carries the lit bar's bloom and pool at rest, so the class adds
      nothing and is kept only so call sites that pass `glow` stay valid. */
+  /*
+   * A DISABLED PRIMARY STAYS LIT, AT REDUCED STRENGTH (audit S3). The shared
+   * disabled recipe above paints a grey fill, which on the primary read as a
+   * different, unlit control ("any greyed or unlit primary"). The primary
+   * keeps its lit fill, edges and top rim, loses its bloom, pool and inner
+   * glow (it is not casting light it cannot act on), and the whole bar is
+   * turned down by darkening it (brightness, not a grey and not a fade). The
+   * label stays white on the darker bar, so what cannot be done yet is still
+   * readable. Same selector weight as the recipe above and later in the
+   * file, so it wins on source order. A loading primary is excluded, as there.
+   */
+  .nf-btn--primary:disabled:not([data-loading="true"]),
+  .nf-btn--primary[aria-disabled="true"]:not([data-loading="true"]) {
+    color: var(--nf-content-on-brand);
+    border-color: var(--nf-btn-lit-edges);
+    background: var(--nf-btn-lit-fill);
+    box-shadow: var(--nf-btn-lit-rim);
+    text-shadow: none;
+    filter: brightness(0.7);
+  }
   .nf-btn--primary:disabled {
     text-shadow: none;
   }

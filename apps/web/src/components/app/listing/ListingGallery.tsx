@@ -267,12 +267,12 @@ export function ListingGallery({
       */}
       {mark && (
         <p className="nf-gallery-marks" data-testid="gallery-marks">
-          <span className="nf-gallery-mark nf-gallery-mark--market">
+          <span className="nf-badge nf-badge--info nf-gallery-mark">
             {mark.icon && <UiIcon name={mark.icon} size={14} />}
             {mark.label}
           </span>
           {mark.verified && (
-            <span className="nf-gallery-mark">
+            <span className="nf-badge nf-badge--verified nf-gallery-mark">
               <UiIcon name="verified" size={14} />
               {mark.verifiedLabel ?? t.common.verified}
             </span>

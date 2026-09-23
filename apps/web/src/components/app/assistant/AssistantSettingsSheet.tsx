@@ -162,8 +162,8 @@ function OptionRow({
       onClick={onSelect}
       className={`nf-tap flex w-full items-center gap-md rounded-[var(--nf-radius-control)] border px-sm py-sm text-left transition-colors ${
         selected
-          ? "border-[color-mix(in_oklab,var(--nf-brand-primary)_55%,transparent)] bg-[color-mix(in_oklab,var(--nf-brand-primary)_16%,transparent)]"
-          : "border-[var(--nf-border-subtle)] hover:bg-[var(--nf-glass-fill)]"
+          ? "nf-ai__row--on"
+          : "border-[var(--nf-btn-glass-edge)] bg-[image:var(--nf-btn-glass-fill)] hover:border-[var(--nf-selected-edge)]"
       }`}
     >
       <span className="min-w-0 flex-1">

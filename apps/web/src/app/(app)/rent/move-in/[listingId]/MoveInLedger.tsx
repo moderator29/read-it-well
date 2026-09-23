@@ -69,7 +69,7 @@ export function MoveInLedger({
             <span className="nf-body font-semibold leading-snug text-[var(--nf-content-primary)] [overflow-wrap:anywhere]">
               {listing.title}
             </span>
-            <span className="nf-detail-tag nf-detail-tag--market shrink-0">{t.catalogue.card.forRent}</span>
+            <span className="nf-badge nf-badge--info nf-detail-tag shrink-0">{t.catalogue.card.forRent}</span>
           </span>
           <span className="nf-caption mt-2xs flex items-center gap-inline-tight text-[var(--nf-content-secondary)]">
             <UiIcon name="location" size={12} className="text-[var(--nf-brand-secondary)]" />

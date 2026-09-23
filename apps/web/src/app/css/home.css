@@ -85,38 +85,6 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
-
-  /* The assistant card on home: the concierge object beside its promise. */
-  .nf-home__ai {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-  }
-  .nf-home__ai-art {
-    position: absolute;
-    right: calc(-1 * var(--nf-space-md));
-    top: calc(-1 * var(--nf-space-sm));
-    width: 7.5rem;
-    height: 7.5rem;
-    pointer-events: none;
-    opacity: 0.9;
-    filter: drop-shadow(0 0 18px var(--nf-glow-2));
-  }
-  .nf-home__ai-body {
-    padding-right: var(--nf-space-3xl);
-  }
-  @media (min-width: 640px) {
-    .nf-home__ai-art {
-      right: var(--nf-space-md);
-      top: 50%;
-      translate: 0 -50%;
-      width: 9rem;
-      height: 9rem;
-    }
-    .nf-home__ai-body {
-      padding-right: 10rem;
-    }
-  }
 }
 
 /*
@@ -281,6 +249,17 @@
     background: var(--nf-selected-fill);
     box-shadow: var(--nf-selected-shadow-inline);
     color: var(--nf-content-on-brand);
+  }
+  /* The chosen row in the history list and the chosen answer in the
+     settings sheet: the shared selected state, as the console's nav row on. */
+  .nf-ai__row--on {
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-ai__row--on * {
+    color: inherit;
   }
   .nf-ai__stamp {
     display: flex;
@@ -679,17 +658,16 @@
    * square. It stays the brand square and dims, which says "type something"
    * rather than "this is broken".
    *
+   * The local rule that did this (the lit bar at 0.45, then at 0.7 with its
+   * bloom) is deleted: the shared disabled primary in buttons.css now keeps
+   * every disabled primary lit at reduced strength (audit S3), so Send reads
+   * the platform's one disabled look.
+   *
    * The governing render draws a paper plane here. `UiIcon` has no `send`
    * glyph yet and adding one is the icon pipeline's job, not this file's, so
    * the arrow stays and the glyph is reported rather than approximated.
    */
-  .nf-ai__send:disabled:not([data-loading="true"]) {
-    color: var(--nf-content-on-brand);
-    opacity: 0.45;
-    background: var(--nf-btn-lit-fill);
-    border-color: var(--nf-btn-lit-edges);
-    box-shadow: none;
-  }}
+}
 
 /*
   TRACK P: the hero plate, the category row and the featured band.

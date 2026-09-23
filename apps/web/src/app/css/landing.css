@@ -719,18 +719,10 @@
     gap: var(--nf-gap-inline-tight);
     min-height: 1.75rem;
     padding: 0 var(--nf-space-xs);
-    border-radius: var(--nf-radius-sm);
-    font-size: var(--nf-text-overline);
     font-weight: 700;
-    color: var(--nf-content-on-brand);
-    background: var(--nf-brand-primary);
-    box-shadow: 0 0 14px var(--nf-glow-2);
-  }
-  .nf-landing-float-badge--quiet {
-    background: var(--nf-landing-control-on-ink-strong);
-    color: var(--nf-landing-on-ink);
-    box-shadow: none;
-    border: 1px solid var(--nf-landing-hairline-on-ink);
+    /* The material, the 6px corner (0.21 on 28px; 10px was 0.36) and the
+       tone are the shared status badge's (`nf-badge nf-badge--verified` or
+       `--info` in the markup, SW-C6). */
   }
   .nf-landing-float-save {
     position: absolute;
@@ -1365,18 +1357,10 @@
     gap: var(--nf-gap-inline-tight);
     min-height: 1.75rem;
     padding: 0 var(--nf-space-xs);
-    font-size: var(--nf-text-overline);
     font-weight: 700;
-    color: var(--nf-content-on-brand);
-    background: var(--nf-brand-primary);
-    border-radius: var(--nf-radius-xs);
-  }
-  .nf-landing-tag--third {
-    /* Partner inventory is labelled, never dressed as first party: the tag
-       is a quiet outline, the opposite treatment to the verified fill. */
-    color: var(--nf-content-primary);
-    background: transparent;
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    /* Partner inventory is labelled, never dressed as first party: the
+       shared badge's neutral tone (`nf-badge nf-badge--neutral` in the
+       markup, SW-C6), the opposite of the verified brand fill. */
   }
 
   /* The phrases the render sets in the brand ink inside a white headline. */

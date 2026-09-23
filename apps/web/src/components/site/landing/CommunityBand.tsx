@@ -98,7 +98,7 @@ export function CommunityBand({
               </div>
             )}
             <div className="nf-landing-stack-card nf-landing-stack-card--b">
-              <span className="nf-landing-tag nf-landing-tag--third">{c.thirdParty}</span>
+              <span className="nf-badge nf-badge--neutral nf-landing-tag">{c.thirdParty}</span>
               <p className="nf-landing-float-title mt-row text-[var(--nf-content-primary)]">
                 {c.thirdPartyTitle}
               </p>

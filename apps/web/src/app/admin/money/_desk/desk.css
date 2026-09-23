@@ -960,17 +960,20 @@
     color: var(--nf-content-secondary);
     text-decoration: none;
   }
+  /* On: the platform's shared selected state (the console tab's), not a
+     local navy recipe (audit S2). */
   .nf-md-toggle[aria-pressed="true"] {
     border-color: var(--nf-selected-edges);
-    color: var(--nf-content-primary);
-    background: color-mix(in oklab, var(--nf-lit) 34%, var(--nf-surface-canvas));
-    box-shadow:
-      0 0 0 1px color-mix(in oklab, var(--nf-lit-cyan) 45%, transparent),
-      0 0 14px 1px color-mix(in oklab, var(--nf-lit) 50%, transparent);
+    color: var(--nf-content-on-brand);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
   .nf-md-toggle:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: 2px;
+  }
+  .nf-md-toggle[aria-pressed="true"]:focus-visible {
+    --nf-focus-ring: var(--nf-content-on-brand);
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -95,6 +95,24 @@
     object-fit: contain;
   }
 
+  /* The back control as the render draws it: a lit glass square, the
+     shared icon plate's material (fill, per-side lit edge, rim, inner light,
+     glow) on the 44px square, with the arrow in the plate's lit cyan. */
+  .nf-ix .nf-ix-back {
+    display: grid;
+    place-items: center;
+    border-radius: var(--nf-plate-radius);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    border-color: var(--nf-plate-edges);
+    background: var(--nf-plate-fill);
+    box-shadow: var(--nf-plate-shadow);
+    /* The render's arrow is the plate's lit cyan, not white. */
+    color: var(--nf-lit-cyan);
+  }
+  .nf-ix .nf-ix-back > svg {
+    filter: var(--nf-plate-glyph-glow);
+  }
+
   .nf-ix-list {
     display: flex;
     flex-direction: column;
@@ -270,15 +288,13 @@
   .nf-ix-fact + .nf-ix-fact {
     border-left: var(--nf-border-width) solid var(--nf-panel-hair);
   }
+  /* The render's own glyphs on their faint plates (44 render px, 25 CSS);
+     22px here so three cells still sit side by side. */
   .nf-ix-fact__glyph {
-    display: grid;
-    place-items: center;
-    width: 1rem;
-    height: 1rem;
-    margin-top: 1px;
+    display: block;
+    width: 1.375rem;
+    height: 1.375rem;
     flex-shrink: 0;
-    color: var(--nf-lit-cyan);
-    filter: var(--nf-plate-glyph-glow);
   }
   .nf-ix-fact__text {
     min-width: 0;
@@ -407,9 +423,10 @@
     color: var(--nf-content-primary);
     white-space: nowrap;
   }
-  .nf-ix-check__title > svg {
-    color: var(--nf-lit-cyan);
-    filter: var(--nf-plate-glyph-glow);
+  /* The render's bulleted list glyph (34 render px, 20 CSS). */
+  .nf-ix-check__title .nf-ix-check__glyph {
+    width: 1.25rem;
+    height: 1.25rem;
   }
   .nf-ix-check__count {
     display: flex;
@@ -556,11 +573,12 @@
     gap: var(--nf-space-xs);
     padding: var(--nf-space-2xs) var(--nf-space-xs);
   }
+  /* The render's pencil on its faint plate (38 render px, 22 CSS). */
   .nf-ix-notes__glyph {
-    margin-top: 1px;
+    display: block;
+    width: 1.375rem;
+    height: 1.375rem;
     flex-shrink: 0;
-    color: var(--nf-lit-cyan);
-    filter: var(--nf-plate-glyph-glow);
   }
   .nf-ix-notes__label {
     display: block;
@@ -711,6 +729,12 @@
     color: var(--nf-content-on-brand);
     box-shadow: var(--nf-btn-lit-shadow);
   }
+  /* The render's camera and outlined paper plane, cropped. */
+  .nf-ix .nf-ix-cta__glyph {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+  }
   .nf-ix .nf-ix-cta__end {
     position: absolute;
     right: var(--nf-space-md);
@@ -719,15 +743,6 @@
     font-size: 0.6875rem;
     color: var(--nf-content-muted);
     text-align: center;
-  }
-  .nf-ix-link {
-    align-self: center;
-    font-size: var(--nf-text-body-sm);
-    font-weight: 600;
-    color: var(--nf-content-link);
-  }
-  .nf-ix-link:hover {
-    text-decoration: underline;
   }
   .nf-ix-error {
     font-size: var(--nf-text-body-sm);

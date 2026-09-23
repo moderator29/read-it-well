@@ -24,6 +24,7 @@ import { listSavedPlaces } from "@/lib/saved/places-actions";
 import { isSaved, savedKeySet } from "@/lib/saved/places";
 import { RESTAURANT_PLATES } from "@/components/app/stays/restaurant-plates";
 import { siteUrl } from "@/lib/site";
+import { panelClass } from "@/components/ui/Panel";
 
 const WEEKDAY: Record<number, string> = {
   0: "Sunday",
@@ -307,7 +308,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
           differs is the foot: a restaurant's decision is a table, so the
           reservation control and the week's hours close the page. */}
       <div className="mx-auto max-w-2xl px-gutter pb-section">
-        <div className="nf-glass nf-glass--card nf-detail-lead relative z-10 -mt-xl sm:-mt-2xl">
+        <div className={panelClass({ variant: "card", className: "nf-detail-lead relative z-10 -mt-xl block sm:-mt-2xl" })}>
         <div className="flex flex-wrap items-center gap-xs empty:hidden">
           {hours && (
             <span className={`nf-reg-open ${hours.openNow ? "nf-reg-open--open" : "nf-reg-open--closed"}`} data-testid="open-now">

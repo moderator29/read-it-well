@@ -77,7 +77,7 @@ export function NavTree({
             <UiIcon name={item.icon} size="md" filled={current} />
           </span>
           <span className="nf-nav__label">{item.label}</span>
-          {item.badge ? <span className="nf-nav__badge nf-numeric">{item.badge}</span> : null}
+          {item.badge ? <span className="nf-count-badge nf-nav__badge nf-numeric">{item.badge}</span> : null}
         </Link>
       </li>
     );

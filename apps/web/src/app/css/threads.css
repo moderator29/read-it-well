@@ -320,36 +320,9 @@
     box-shadow: var(--nf-panel-rim);
   }
 
-  /*
-   * EVERY BADGE ON THESE SURFACES WAS A CAPSULE, AND THE DEFECT IS NOT HERE.
-   *
-   * `.nf-badge` in `chips.css` sets `--nf-radius-control`, 14px. Measured on
-   * live pages at 390 dark: the thread header's Verified is 80x27, the chat
-   * card's Confirmed 103x27, the share picker's Verified 80x27 and the
-   * inspection sheet's Scheduled 93x23. Twice 14 is 28, which is more than
-   * every one of those heights, so all four drew semicircular ends. It is
-   * 13.5's trap exactly: the token's NAME is the control rung and its NUMBER
-   * is a capsule at this size, rule ten reads the source as correct, and only
-   * the picture beside the reference shows it. `GOVERNING-chat-booking-card.png`
-   * draws Confirmed and `GOVERNING-thread-rental-enquiry.jpg` draws Verified
-   * as small rounded rectangles with straight top and bottom edges.
-   *
-   * THE ONE-LINE FIX IS IN `chips.css` AND THAT FILE IS NOT THIS WORKER'S, so
-   * this corrects the badges on the surfaces this stint owns and the platform
-   * fix is reported rather than reached for. `--nf-radius-sm` is 10px, which
-   * is 13.1's own rung for a chip under about 32px and leaves a straight edge
-   * on a 23px box. When `chips.css` takes the same rung this block becomes a
-   * no-op and can go.
-   */
-  .nf-thread__place .nf-badge,
-  .nf-chat-card .nf-badge,
-  .nf-context-card .nf-badge,
-  .nf-inbox-row .nf-badge,
-  .nf-share-row .nf-badge,
-  .nf-insp-card .nf-badge,
-  .nf-insp-fact .nf-badge {
-    border-radius: var(--nf-radius-sm);
-  }
+  /* The badges in the threads are the shared status badge (chips.css,
+     SW-C6) on its 6px corner; the 10px override that stood here drew 0.43
+     on a 23px badge and is gone. */
 
   /* ------------------------------------------------------------ bubbles */
 
@@ -933,9 +906,12 @@
     box-shadow: var(--nf-btn-lit-shadow);
     transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
   }
+  /* Disabled: the shared disabled primary (buttons.css, audit S3), the lit
+     bar turned down, not faded into the bar behind it. */
   .nf-composer__send:disabled {
-    opacity: 0.45;
-    box-shadow: none;
+    cursor: not-allowed;
+    box-shadow: var(--nf-btn-lit-rim);
+    filter: brightness(0.7);
   }
   .nf-composer__send:active:not(:disabled) {
     transform: scale(var(--nf-press-scale-sm));

@@ -805,6 +805,16 @@
   .nf-admin-status::-webkit-scrollbar {
     display: none;
   }
+  /* On a phone the row WRAPS (audit S8). Scrolling a row with no scrollbar
+     and no fade hid most of the escrow desk's ten states past the edge, where
+     nobody could see there was anything to reach. Wrapped, every state is on
+     screen and every chip keeps its 44px target. */
+  @media (max-width: 639px) {
+    .nf-admin-status {
+      flex-wrap: wrap;
+      overflow-x: visible;
+    }
+  }
   .nf-admin-status__label {
     flex-shrink: 0;
     font-size: var(--nf-text-caption);
@@ -818,7 +828,8 @@
     display: inline-flex;
     align-items: center;
     gap: var(--nf-space-2xs);
-    min-height: 2.5rem;
+    /* 44, the R-B floor for anything pressed (it was 40; audit S8). */
+    min-height: 2.75rem;
     padding: var(--nf-space-2xs) var(--nf-space-sm);
     /*
       A ROUNDED RECTANGLE, AND R1 A24 IS OVERRULED.

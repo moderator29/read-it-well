@@ -272,7 +272,10 @@ export function SeriesChart({
         })}
       </svg>
       {!ghost && <ChartReadout columns={readout} plotLeft={PAD.left / W} plotRight={(W - PAD.right) / W} />}
-      {!ghost && <table className="sr-only">
+      {/* The table is for a screen reader. A table sizes to its content
+          whatever width `sr-only` gives it, so on a phone it widened the page
+          (audit S8); the 1px box is a div around it instead. */}
+      {!ghost && <div className="sr-only"><table>
         <caption>{label}</caption>
         <thead>
           <tr>
@@ -294,7 +297,7 @@ export function SeriesChart({
             </tr>
           ))}
         </tbody>
-      </table>}
+      </table></div>}
     </figure>
   );
 }

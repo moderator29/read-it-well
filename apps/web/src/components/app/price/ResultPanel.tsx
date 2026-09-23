@@ -64,6 +64,16 @@ function fill(template: string, values: Record<string, string | number>): string
 }
 
 /** "quite", "fairly", "not very". Never a percentage: that would be invented. */
+/* The confidence reads on the shared status badge (SW-C6 / R-SH3): one blue,
+   three weights, as the price check has always drawn it. High is the lit
+   brand fill with the cyan word, medium the brand fill with the pale word,
+   low the neutral badge. */
+const CONFIDENCE_TONE: Record<"low" | "medium" | "high", string> = {
+  high: "nf-badge--info",
+  medium: "nf-badge--brand",
+  low: "nf-badge--neutral",
+};
+
 function confidenceWord(band: "low" | "medium" | "high", copy: ResultCopy): string {
   if (band === "high") return copy.confidenceHigh;
   if (band === "medium") return copy.confidenceMedium;
@@ -109,7 +119,7 @@ export function AnsweredResult({
 
       <p className="mt-block flex items-center gap-inline">
         <span className="nf-body-sm text-[var(--nf-content-muted)]">{copy.confidence}</span>
-        <span className={`nf-pc-confidence nf-body-sm nf-pc-confidence--${result.confidence}`}>
+        <span className={`nf-badge ${CONFIDENCE_TONE[result.confidence]} nf-pc-confidence nf-body-sm`}>
           {confidenceWord(result.confidence, copy)}
         </span>
       </p>
