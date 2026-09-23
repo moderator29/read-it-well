@@ -95,7 +95,7 @@ export async function RentalPanel({
           currency={currency}
           suffix={forSale ? PERIOD_SUFFIX.sale : PERIOD_SUFFIX_SLASH[period]}
           className="nf-h3 leading-none tracking-tight text-[var(--nf-content-primary)]"
-          secondaryClassName="text-[0.54em] font-semibold opacity-60"
+          secondaryClassName="text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-muted)]"
         />
       </p>
       <p className={`mt-2xs ${TYPE.rowMeta}`}>

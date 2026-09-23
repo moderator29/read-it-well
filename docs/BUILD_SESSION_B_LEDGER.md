@@ -6273,6 +6273,49 @@ Every route in the group is closed.
 started anatomy were compared side by side at each pass (contact sheets in
 the worker's scratch, not committed).
 
+### 13.H.7 After the independent audit (S9, S10), 23 September
+
+**S10, `/assistant`.** The audit was right: the history aside (1440) and
+the mobile history drawer were still `.nf-card`, the chosen history row and
+the chosen answer in the settings sheet were a 16 per cent tint of their
+own, the loading skeleton was `.nf-card`, and the empty composer's send was
+dimmed to 0.45 with no light. Now: the aside is `nf-panel nf-panel--card`,
+the drawer the same with the panel blur, its head on `--nf-panel-hair`; the
+chosen row and chosen answer are the shared selected state
+(`.nf-ai__row--on`, the console's nav row on); hovers take the glass door's
+fill; the loading cards are the panel card; the empty send keeps the whole
+lit bar (fill, edges, rim, bloom, text glow) at 0.7, so it reads waiting,
+not broken (S3 for this route). Proof: `after/assistant-390.jpg`,
+`after/assistant-1440.jpg` (fixture), `live/assistant-390.jpg` (live).
+Files claimed in the scope file with this commit.
+
+**S9, `/price/area/[id]` and `/rent/move-in/[listingId]`, proved.**
+- Harness (fixture): `after/move-in-390.jpg` and `-1440` (the ledger card,
+  row plates, total, area comparison, lit Proceed), `after/price-share-390.jpg`
+  and `-1440` (the shared area card and the share control).
+- LIVE, signed in as the QA member through the real form, production build
+  of this commit started with the env proxy against the live project, read
+  only (`scripts/design/session-b-shots/home-group-live.mjs`, run 2026-09-23 18:41 UTC):
+  `/home`, `/stays`, `/search`, `/listing/[id]` (rental ...00c),
+  `/rent/move-in/[listingId]` (the same rental; live figures), `/price`,
+  `/price/area/[id]` and `/assistant`: 9 of 9 PASS (sign-in plus eight
+  routes, none bounced to sign-in, none showing failure copy). Shots and
+  `steps.json` in `docs/design/proofs/session-b/sweep-home/live/`.
+  `public.price_check_shares` holds 0 rows (read-only SQL, same hour), so
+  the live `/price/area/[id]` proof is the route's honest "This card is not
+  here" state with its lit Check another area; the filled card is the
+  fixture proof above.
+
+Also from the audit's home findings, in this group's files: the rental and
+sale panels' "/ year" and "asking price" suffix drew at 0.54em (10.3px, S6)
+and now draw at `--nf-text-caption` in the muted ink. NOT fixed here and not
+this group's: the `/search` List/Map toggle (`nf-segmented`, controls.css,
+B2) and the stay day chips (the shared `Chip`, S1).
+
+Register: `/assistant` SWEPT, `/price/area/[id]` SWEPT (live missing state,
+fixture card), `/rent/move-in/[listingId]` SWEPT (live and fixture).
+Routes swept 8 / 8.
+
 ### 13.H.6 The founder's answers in this group (23 September, through the lead)
 
 **C3.2, browsing is signed in only; back goes to the landing page.**

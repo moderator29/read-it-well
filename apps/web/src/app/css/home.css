@@ -282,6 +282,17 @@
     box-shadow: var(--nf-selected-shadow-inline);
     color: var(--nf-content-on-brand);
   }
+  /* The chosen row in the history list and the chosen answer in the
+     settings sheet: the shared selected state, as the console's nav row on. */
+  .nf-ai__row--on {
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
+    color: var(--nf-content-on-brand);
+  }
+  .nf-ai__row--on * {
+    color: inherit;
+  }
   .nf-ai__stamp {
     display: flex;
     align-items: center;
@@ -685,10 +696,13 @@
    */
   .nf-ai__send:disabled:not([data-loading="true"]) {
     color: var(--nf-content-on-brand);
-    opacity: 0.45;
+    /* Lit, not greyed (audit S3): the whole lit bar, rim and bloom included,
+       only quieter, because an empty composer is waiting, not broken. */
+    opacity: 0.7;
     background: var(--nf-btn-lit-fill);
     border-color: var(--nf-btn-lit-edges);
-    box-shadow: none;
+    box-shadow: var(--nf-btn-lit-shadow);
+    text-shadow: var(--nf-btn-lit-text-glow);
   }}
 
 /*

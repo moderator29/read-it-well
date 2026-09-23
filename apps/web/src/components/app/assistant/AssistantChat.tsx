@@ -610,7 +610,7 @@ export function AssistantChat({
         {/* --------------------------------------------- desktop sidebar */}
         <aside
           aria-label="Assistant navigation"
-          className="nf-card hidden w-72 shrink-0 overflow-hidden lg:block"
+          className="nf-panel nf-panel--card hidden w-72 shrink-0 overflow-hidden p-0 lg:block"
         >
           {sidebar()}
         </aside>
@@ -824,11 +824,11 @@ export function AssistantChat({
             role="dialog"
             aria-modal="true"
             aria-label="Conversation history"
-            className={`nf-card absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col rounded-l-none transition-transform duration-200 ease-out ${
+            className={`nf-panel nf-panel--card nf-panel--glass absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col rounded-l-none p-0 transition-transform duration-200 ease-out ${
               historyShown ? "translate-x-0" : "-translate-x-full"
             }`}
           >
-            <div className="flex items-center justify-between border-b border-[var(--nf-border-subtle)] py-xs pl-md pr-xs">
+            <div className="flex items-center justify-between border-b border-[var(--nf-panel-hair)] py-xs pl-md pr-xs">
               <p className="text-[length:var(--nf-text-body-sm)] font-semibold">Conversations</p>
               <button
                 type="button"
