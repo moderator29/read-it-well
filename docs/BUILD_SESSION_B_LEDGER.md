@@ -2681,8 +2681,8 @@ Where to begin
 
 3. Put the whole cost in
    When your listing goes up, state the total a tenant needs to move in,
-   not only the rent. Photographs earn a viewing; a walkthrough video
-   answers the questions before anybody asks them.
+   not only the rent. Photographs bring people to an inspection; a
+   walkthrough video answers the questions before anybody asks them.
    Open the listing form: https://vallospaces.com/agent/list
 
 Step inside:
@@ -2901,6 +2901,15 @@ stripped: a rough stand in for Outlook's Word engine and Gmail's stripping),
 and `{role}-plain.txt`. Rendered in Chromium through Playwright with the
 lockup served from `apps/web/public`, dark colour scheme. The email has no
 light variant by design (theme.ts: dark in the layer every client honours).
+
+### Inspection, not viewing (founder item 7, 23 September)
+
+Swept all six versions, HTML and plain text, for "viewing". One hit, in the
+landlord's third step: "Photographs earn a viewing" is now "Photographs bring
+people to an inspection". The test's banned list now carries `viewings?`, and a
+dedicated test checks subject, HTML and text of every version. Only the
+landlord proofs changed and only they were re-rendered. Nothing else in the
+email was touched: it stays dark as designed, whatever the platform's theme.
 
 ### Evidence for every statement about how Vallo works
 

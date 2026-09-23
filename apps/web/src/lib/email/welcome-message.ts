@@ -231,7 +231,7 @@ const VERSIONS: Record<SignupRole | "general", Version> = {
       VERIFY,
       {
         title: "Put the whole cost in",
-        body: "When your listing goes up, state the total a tenant needs to move in, not only the rent. Photographs earn a viewing; a walkthrough video answers the questions before anybody asks them.",
+        body: "When your listing goes up, state the total a tenant needs to move in, not only the rent. Photographs bring people to an inspection; a walkthrough video answers the questions before anybody asks them.",
         link: { label: "Open the listing form", path: "/agent/list" },
       },
     ],
