@@ -8,11 +8,14 @@ and where a tap lands.
 
 **Read this before the table.**
 
-- **NOTHING HAS EVER REACHED A DEVICE.** Not one notification, not once. "Has
-  a push path" below means a queue row is created and a transport will be
-  called; it does not mean anything arrived, and nothing on this page should
-  be read as though it did. `docs/push/FIRST_NOTIFICATION.md` is how that
-  changes, and it needs a key only the founder can generate.
+- **NOTHING HAS EVER REACHED A DEVICE, and that is measured rather than
+  inferred.** On 23 September the live project answers: `push_tokens` 0 rows,
+  `push_queue` 0 rows, `push_deliveries` 0 rows. No device has ever enrolled,
+  so nothing has ever been queued and nothing has ever been sent. "Has a push
+  path" below means a queue row WOULD be created and a transport WOULD be
+  called; it does not mean anything arrived, and nothing on this page should be
+  read as though it did. `docs/push/FIRST_NOTIFICATION.md` is how that changes,
+  and what remains is one handset: the VAPID pair is already configured.
 - **The titles and bodies quoted here were read out of the live database on 23
   September**, from the function bodies themselves rather than from the
   migrations, so they are what the platform would actually send today.
@@ -43,9 +46,16 @@ So the rule for the whole table below is short:
 > event that does not, does not, and no amount of work in `lib/push` changes
 > that.**
 
-Counted on the live database: **46 functions write notification rows**, through
-21 triggers and the rest through application call sites. That is considerably
-wider than the email junction, which was the reason for choosing this seam.
+Counted on the live database rather than estimated: **exactly one function
+writes into `public.notifications`, and it is `private.notify`. 45 functions
+call it, and 22 triggers sit on those 45**; the rest are reached from
+application call sites. That is considerably wider than the email junction,
+which was the reason for choosing this seam.
+
+(An earlier version of this paragraph said 46 functions and 21 triggers. Both
+were miscounts of my own query output: 46 was the row count including
+`private.notify` itself, and 21 was a hand tally of a column. The numbers above
+were re-read from `pg_proc` and `pg_trigger` and are what the database says.)
 
 ---
 
@@ -101,13 +111,23 @@ none, with the reason in the last column.
 
 ## Counted
 
-- **Has a push path today: 27 of the 40 rows**, plus the seven extra producers
-  found in row 40 that the matrix never listed.
-- **Has none: 11.** Rows 1, 4, 5, 9, 17, 23, 25, 26, 38, 39, and row 27 in
-  part.
+**First, a correction to the name.** The research section is headed "forty
+events" and its table has **39 rows**, counted. Rows 1 to 39 below are those
+39. Row 40 is seven more producers found while walking that the matrix never
+listed at all.
+
+Of the 39 the matrix lists:
+
+- **Has a push path today: 27.**
+- **Has none: 10.** Rows 1, 4, 5, 9, 17, 23, 25, 26, 38 and 39. Row 27 has one
+  for the document decision and none for the rung itself, and is counted as
+  having a path.
 - **Deliberately none: 2.** Rows 2 and 3, the one time codes.
 
-**Every one of the eleven is missing for the same reason and it is not a push
+27 plus 10 plus 2 is 39. Row 40's seven all have a path, so 28 of the 40 rows
+printed above are `Y`.
+
+**Every one of the ten is missing for the same reason and it is not a push
 reason: the event writes no `notifications` row.** Nothing in `lib/push` can
 close any of them. Each is one `private.notify` call in somebody else's
 trigger, and four of them (1, 4, 5, 17) were already recorded as gaps before

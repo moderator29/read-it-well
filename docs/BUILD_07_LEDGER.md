@@ -9816,14 +9816,27 @@ on a shared table.
 
 ### 72.5 The forty events, walked
 
-`docs/push/THE_FORTY_EVENTS.md`. 27 of 40 have a push path, 11 have none, 2 are
-deliberately none and both are one time codes, because a code on a lock screen
-is a code anybody holding the phone can read. **Every one of the eleven is
-missing for the same reason and it is not a push reason**: the event writes no
-`notifications` row, and nothing in `lib/push` can close that. 46 functions
-write notification rows, through 21 triggers and the rest through application
-call sites, which is why the trigger on `notifications` was chosen over the
-email junction.
+`docs/push/THE_FORTY_EVENTS.md`. **The matrix is headed "forty events" and has
+39 rows**, counted. Of those 39: **27 have a push path, 10 have none, and 2 are
+deliberately none**, both one time codes, because a code on a lock screen is a
+code anybody holding the phone can read. Seven more producers were found while
+walking that the matrix never listed, and all seven have a path.
+
+**Every one of the ten is missing for the same reason and it is not a push
+reason**: the event writes no `notifications` row, and nothing in `lib/push`
+can close that.
+
+Counted from `pg_proc` and `pg_trigger` rather than tallied by hand: **exactly
+one function writes into `public.notifications`, `private.notify`; 45 functions
+call it; 22 triggers sit on those 45.** That is why the trigger on
+`notifications` was chosen over the email junction.
+
+**Corrected against myself.** The first version of this paragraph and of that
+page said "46 functions, 21 triggers" and "27 of 40, 11 have none". All four
+numbers were wrong: 46 was a row count that included `private.notify` itself,
+21 was a hand tally of a column, and the 40 was the research section's title
+rather than its 39 rows. Rule 15 is about invented numbers, and a miscounted
+one is the same thing with more confidence behind it.
 
 ### 72.6 The founder's page, and a correction to it within the hour
 
@@ -9887,6 +9900,53 @@ not the code**: the box was at 100 per cent and the failure was `ENOSPC`. Worth
 writing down because a full disk fails a browser test in ways that look nothing
 like a disk problem, and `expected [] to have a length of 1` is exactly what a
 Chromium that cannot write its profile produces.
+
+---
+
+### 72.8 The one in 256 VAPID pair, checked by breaking the fix
+
+The defect and the fix in `lib/push/transport/webpush.ts` are the coordinator's
+and are already on main as `3cd5bafd`. This is what was done to them.
+
+**Measured again, independently, before taking it on report.** 8,000 fresh
+P-256 keys on this box: 26 came out 31 bytes rather than 32, 0.325 per cent
+against a theoretical 0.391. Same phenomenon, same order, arrived at without
+reading the other measurement first. `ecdh.getPrivateKey()` writes the scalar
+the way OpenSSL writes a big integer, shortest form with leading zeros
+stripped, and `npx web-push generate-vapid-keys` base64url encodes exactly that
+buffer.
+
+**THE TEST WAS CHECKED BY BREAKING THE FIX**, which is the only thing that
+makes a test for a one in 256 event worth anything. With `scalar32` cut back to
+a bare length check the new case fails on `expected false to be true`; with the
+padding restored it passes. One other test failed in that run and it was NOT
+the mutation: "signs a JWT that verifies against the public half" timed out
+after 436 seconds of wall clock on a box at load 60, which is the machine
+rather than the code, and saying so is the difference between a mutation proof
+and a coincidence.
+
+**Two things corrected in what was handed over.**
+
+The new `it()` block had been pasted twice under the same name, each copy
+generating up to 20,000 keys. The second, better worded copy is kept.
+
+And a gap the mutation run exposed: **the new case only exercised
+`vapidKeysAgree`, which decides whether we refuse at startup, and not
+`vapidAuthorization`, which is the reader that actually signs what a push
+service sees.** Both had the same 32 byte demand and both were fixed, but only
+one was covered. A later refactor could have reverted the signing path alone
+and the suite would have stayed green 255 runs in 256. The case now signs a
+token with the short scalar pair and verifies it against the public half, in
+`ieee-p1363` like the test beside it.
+
+**Green:** `src/lib/push/transport/webpush.test.ts`, 11 tests, exit 0.
+
+**Recorded against myself:** the mutation was applied to the SHARED working
+tree rather than to my own worktree, and a saturated box left it broken there
+for about ten minutes. Any worker running the full suite in that window would
+have seen `webpush.test.ts` fail and had no reason to suspect somebody else's
+experiment. A mutation check belongs in a private worktree; the restore being
+automatic is not the same as the window being safe.
 
 ---
 

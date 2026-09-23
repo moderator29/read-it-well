@@ -273,43 +273,6 @@ describe("the VAPID header", () => {
    * integer: shortest form, leading zero bytes stripped. So about one key in
    * 256 comes out 31 bytes rather than 32, measured at 17 in 4,000 here
    * against a theoretical 0.39 per cent. Both readers of the private half used
-   * to demand exactly 32 bytes, so **one VAPID pair in every 256 was a
-   * perfectly valid pair that this code refused**, and the message blamed the
-   * key rather than the check. That is also why the test above flaked: it
-   * generates a fresh pair on every run.
-   *
-   * This constructs the case deterministically instead of waiting for it, by
-   * searching for a key whose scalar really is short. It fails outright rather
-   * than passing quietly if it cannot find one, because a test that silently
-   * skips the thing it exists to test is worse than no test.
-   */
-  it("accepts a genuine pair whose private scalar has a leading zero", () => {
-    let short: { publicKey: string; privateKey: string } | null = null;
-    for (let tries = 0; tries < 20_000 && short === null; tries += 1) {
-      const ecdh = createECDH("prime256v1");
-      ecdh.generateKeys();
-      if (ecdh.getPrivateKey().length < 32) {
-        short = {
-          publicKey: base64Url(ecdh.getPublicKey()),
-          privateKey: base64Url(ecdh.getPrivateKey()),
-        };
-      }
-    }
-    expect(short, "no short scalar found in 20,000 keys, which should be all but impossible").not.toBeNull();
-    expect(vapidKeysAgree(short!.publicKey, short!.privateKey)).toBe(true);
-
-    /* And it must still refuse a scalar that is genuinely too long, because
-       that is a different key rather than a shorter spelling of this one. */
-    expect(vapidKeysAgree(short!.publicKey, base64Url(randomBytes(33)))).toBe(false);
-  });
-
-  /*
-   * THE PAIR THIS USED TO CALL INVALID, AND IT IS A REAL ONE.
-   *
-   * `ecdh.getPrivateKey()` writes the scalar the way OpenSSL writes a big
-   * integer: shortest form, leading zero bytes stripped. So about one key in
-   * 256 comes out 31 bytes rather than 32, measured at 17 in 4,000 here
-   * against a theoretical 0.39 per cent. Both readers of the private half used
    * to demand exactly 32 bytes, so ONE VAPID PAIR IN EVERY 256 WAS A PERFECTLY
    * VALID PAIR THAT THIS CODE REFUSED, and the message blamed the key rather
    * than the check. It is also why the test above flaked: it generates a fresh
@@ -321,7 +284,9 @@ describe("the VAPID header", () => {
    * the thing it exists to test is worse than no test at all.
    */
   it("accepts a genuine pair whose private scalar has a leading zero", () => {
-    let short: { publicKey: string; privateKey: string } | null = null;
+    let short:
+      | { publicKey: string; privateKey: string; publicBytes: Buffer }
+      | null = null;
     for (let tries = 0; tries < 20_000 && short === null; tries += 1) {
       const ecdh = createECDH("prime256v1");
       ecdh.generateKeys();
@@ -329,12 +294,56 @@ describe("the VAPID header", () => {
         short = {
           publicKey: base64Url(ecdh.getPublicKey()),
           privateKey: base64Url(ecdh.getPrivateKey()),
+          publicBytes: ecdh.getPublicKey(),
         };
       }
     }
     expect(short, "no short scalar in 20,000 keys, which should be all but impossible").not.toBeNull();
-    const pair = short as { publicKey: string; privateKey: string };
+    const pair = short as { publicKey: string; privateKey: string; publicBytes: Buffer };
     expect(vapidKeysAgree(pair.publicKey, pair.privateKey)).toBe(true);
+
+    /*
+     * THE SECOND READER, WHICH IS THE ONE THAT ACTUALLY SENDS.
+     *
+     * `vapidKeysAgree` only decides whether we refuse at startup. The signing
+     * path is what a push service sees, and it carried the same 32 byte
+     * demand, so showing the short scalar signing a token that verifies is
+     * the half that matters. Without this, the fix to the signing path was
+     * covered only by the tests above, which meet a short scalar about once
+     * in 256 runs.
+     */
+    const header = vapidAuthorization({
+      endpoint: "https://fcm.googleapis.com/fcm/send/abc123",
+      publicKey: pair.publicKey,
+      privateKey: pair.privateKey,
+      subject: "mailto:hello@vallospaces.com",
+      now: 1_700_000_000_000,
+    });
+    const signed = /^vapid t=([^,]+), k=(.+)$/.exec(header);
+    expect(signed).not.toBeNull();
+    const [, shortJwt] = signed as unknown as [string, string, string];
+    const [shortHeader, shortClaims, shortSignature] = shortJwt.split(".") as [
+      string,
+      string,
+      string,
+    ];
+    const shortVerifyKey = createPublicKey({
+      format: "jwk",
+      key: {
+        kty: "EC",
+        crv: "P-256",
+        x: base64Url(pair.publicBytes.subarray(1, 33)),
+        y: base64Url(pair.publicBytes.subarray(33, 65)),
+      },
+    });
+    expect(
+      verifyWithKey(
+        "sha256",
+        Buffer.from(`${shortHeader}.${shortClaims}`, "ascii"),
+        { key: shortVerifyKey, dsaEncoding: "ieee-p1363" },
+        Buffer.from(shortSignature.replace(/-/g, "+").replace(/_/g, "/"), "base64"),
+      ),
+    ).toBe(true);
 
     /* And a scalar that is genuinely too long is still refused, because that
        is a different key rather than a shorter spelling of this one. */
