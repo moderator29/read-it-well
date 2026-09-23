@@ -393,8 +393,15 @@ describe("the seeded term list cannot break the pattern it is joined into", () =
     "utf8",
   );
 
-  /** term, severity, category, reason, one tuple per row of the seed. */
-  const rows = [...seed.matchAll(/^\('((?:[^']|'')+)',\s*'(low|medium|high)',\s*'([a-z.\-]+)',\s*'((?:[^']|'')+)'\)/gm)];
+  /** term, severity, category, reason, one object per row of the seed. */
+  const rows = [
+    ...seed.matchAll(/^\('((?:[^']|'')+)',\s*'(low|medium|high)',\s*'([a-z.\-]+)',\s*'((?:[^']|'')+)'\)/gm),
+  ].map((match) => ({
+    term: match[1] ?? "",
+    severity: match[2] ?? "",
+    category: match[3] ?? "",
+    reason: match[4] ?? "",
+  }));
 
   it("seeds a list rather than a gesture", () => {
     // The proposal asks for roughly 100 to 120 on day one, not a thousand.
@@ -403,7 +410,7 @@ describe("the seeded term list cannot break the pattern it is joined into", () =
 
   it("holds no regular expression metacharacter in any term", () => {
     for (const row of rows) {
-      expect(row[1], `${row[1]} would change the meaning of the whole pattern`).not.toMatch(
+      expect(row.term, `${row.term} would change the meaning of the whole pattern`).not.toMatch(
         /[(){}[\]|*+?^$\\.]/,
       );
     }
@@ -411,10 +418,10 @@ describe("the seeded term list cannot break the pattern it is joined into", () =
 
   it("stores every term lowercase and trimmed, because both scanners match with ~*", () => {
     for (const row of rows) {
-      expect(row[1]).toBe(row[1].toLowerCase());
-      expect(row[1]).toBe(row[1].trim());
-      expect(row[1].length).toBeGreaterThanOrEqual(2);
-      expect(row[1].length).toBeLessThanOrEqual(100);
+      expect(row.term).toBe(row.term.toLowerCase());
+      expect(row.term).toBe(row.term.trim());
+      expect(row.term.length).toBeGreaterThanOrEqual(2);
+      expect(row.term.length).toBeLessThanOrEqual(100);
     }
   });
 
@@ -434,13 +441,113 @@ describe("the seeded term list cannot break the pattern it is joined into", () =
       "abuse.child-safety",
     ]);
     for (const row of rows) {
-      expect(known.has(row[3]), `${row[1]} carries an unknown category`).toBe(true);
-      expect(row[4].trim().length, `${row[1]} has no reason worth reading`).toBeGreaterThanOrEqual(12);
+      expect(known.has(row.category), `${row.term} carries an unknown category`).toBe(true);
+      expect(row.reason.trim().length, `${row.term} has no reason worth reading`).toBeGreaterThanOrEqual(12);
     }
   });
 
   it("carries no term twice, because the table is keyed on the term", () => {
-    const terms = rows.map((row) => row[1]);
+    const terms = rows.map((row) => row.term);
     expect(new Set(terms).size).toBe(terms.length);
+  });
+});
+
+/*
+ * WHAT THE FILTER ACTUALLY CATCHES, AND WHAT IT LEAVES ALONE.
+ *
+ * The tests above prove the seed cannot break the pattern. They say nothing
+ * about whether the pattern is any good, and a filter that is safe but useless
+ * passes them all. So this block rebuilds the pattern the way
+ * `private.objectionable_pattern()` does, word-bounded alternation over every
+ * term, and runs a corpus through it.
+ *
+ * BOTH HALVES OF THE CORPUS ARE THE POINT. Anybody can make a filter that
+ * matches; the reason the clean half is longer than the catch half is that
+ * over-catching is the failure that silences real people. Every clean line
+ * below is a NEAR MISS, chosen to sit one word away from a term that is in the
+ * list: "the certificate of occupancy is ready" against `no certificate of
+ * occupancy`, "the caution fee is refundable" against `caution fee before`,
+ * "the landlord settled the omo onile issue" against `omo onile settled`,
+ * "Opay, Kuda and Moniepoint all work" against `use opay`. An agent writing
+ * any of those is doing their job properly and must not be held for it.
+ *
+ * Postgres `\m` and `\M` are start and end of word. JavaScript `\b` is the
+ * same boundary for the characters the seed is allowed to contain, which the
+ * metacharacter test above restricts to letters, digits, spaces, apostrophes
+ * and hyphens, so this pattern and the database's agree.
+ *
+ * Only fraud terms appear here. The abuse half is not quoted in a test file,
+ * for the same reason the scanner never prints a matched term back into the
+ * moderation queue or the author's screen.
+ */
+describe("the seeded pattern catches fraud and leaves honest listings alone", () => {
+  const seed = readFileSync(
+    join(
+      __dirname,
+      "..",
+      "..",
+      "..",
+      "..",
+      "..",
+      "supabase",
+      "migrations",
+      "20260923113843_seed_blocked_terms_so_the_abuse_filter_matches_something.sql",
+    ),
+    "utf8",
+  );
+
+  const terms = [
+    ...seed.matchAll(/^\('((?:[^']|'')+)',\s*'(?:low|medium|high)',/gm),
+  ].map((match) => (match[1] ?? "").replace(/''/g, "'"));
+
+  /** The same alternation `private.objectionable_pattern()` builds. */
+  const pattern = new RegExp(`\\b(${terms.join("|")})\\b`, "i");
+
+  const CAUGHT = [
+    "Send the money to my personal account and I will release the keys today.",
+    "Please pay before viewing, the agency fee before viewing is standard here.",
+    "Just use Opay, it is faster than the app.",
+    "Transfer to my momo and I will confirm.",
+    "This offer expires today, last chance today.",
+    "WhatsApp me directly, do not tell the agent.",
+    "The land is family land no dispute guaranteed, no C of O needed.",
+    "We can settle this off the app, outside the platform.",
+    "Buy a gift card or an iTunes card and send me the code.",
+    "Pay in BTC or send via crypto, Western Union also works.",
+    "Omo onile settled already, and the fake survey will not be a problem.",
+    "The inspection fee is non refundable, pay to inspect first.",
+  ];
+
+  const LEFT_ALONE = [
+    "The certificate of occupancy is ready and we will show it at the inspection.",
+    "A C of O is available for this plot and the survey is genuine.",
+    "Inspection is free. You pay nothing until you have seen the flat.",
+    "The agency fee is payable after the inspection, never before.",
+    "We accept payment through the Vallo wallet only.",
+    "Opay, Kuda and Moniepoint all work for topping up your wallet.",
+    "The caution fee is refundable when you move out.",
+    "Please do not send money outside Vallo. Everything stays on the platform.",
+    "Three bedroom flat in Lekki Phase 1, 2,500,000 per year, service charge included.",
+    "The landlord settled the omo onile issue in 2019 through his lawyer.",
+    "Card payments and bank transfers are handled by the processor, not by us.",
+    "Message me on Vallo and I will answer within the hour.",
+    "The shortlet has a generator, WiFi and 24 hour security.",
+    "Scamper Estate, Ikoyi. Viewing by appointment.",
+    "He is a classic example of a hardworking agent.",
+  ];
+
+  it.each(CAUGHT)("holds: %s", (body) => {
+    expect(pattern.test(body)).toBe(true);
+  });
+
+  it.each(LEFT_ALONE)("lets through: %s", (body) => {
+    expect(pattern.test(body)).toBe(false);
+  });
+
+  it("is matching on the real list rather than an empty one", () => {
+    // A regression that emptied the seed would make every CAUGHT case fail,
+    // but a regression that dropped the parse would make every LEFT_ALONE case
+    // pass for the wrong reason. This is the line that notices that.
+    expect(terms.length).toBeGreaterThanOrEqual(100);
   });
 });
