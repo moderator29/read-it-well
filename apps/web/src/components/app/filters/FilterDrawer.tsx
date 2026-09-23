@@ -14,6 +14,12 @@ import {
   type WaterSupply,
 } from "@/lib/listings/types";
 import {
+  LISTING_ROLES,
+  LISTING_ROLE_FILTER_HEADING,
+  LISTING_ROLE_FILTER_LABEL,
+  type ListingRole,
+} from "@/lib/supply/roles";
+import {
   KIND_NOUN,
   KIND_ORDER,
   SORTS,
@@ -70,6 +76,7 @@ type Draft = {
   powerBackup: boolean;
   powerBandA: boolean;
   waterSupply: WaterSupply[];
+  listerRoles: ListingRole[];
 };
 
 function draftFrom(query: ShelfQuery): Draft {
@@ -89,6 +96,7 @@ function draftFrom(query: ShelfQuery): Draft {
     powerBackup: query.powerBackup,
     powerBandA: query.powerBandA,
     waterSupply: query.waterSupply,
+    listerRoles: query.listerRoles,
   };
 }
 
@@ -116,6 +124,7 @@ function queryFrom(base: ShelfQuery, draft: Draft): ShelfQuery {
     powerBackup: draft.powerBackup,
     powerBandA: draft.powerBandA,
     waterSupply: draft.waterSupply,
+    listerRoles: draft.listerRoles,
   };
   const q = draft.q.trim();
   if (q.length > 0) next.q = q;
@@ -461,6 +470,17 @@ export function FilterDrawer({
     }));
   }
 
+  function toggleRole(value: ListingRole) {
+    setDraft((current) => ({
+      ...current,
+      /* Rebuilt from LISTING_ROLES rather than appended to, so two people who
+         ticked the same boxes in a different order produce the same URL. */
+      listerRoles: LISTING_ROLES.filter((role) =>
+        role === value ? !current.listerRoles.includes(role) : current.listerRoles.includes(role),
+      ),
+    }));
+  }
+
   function toggleAmenity(code: string, on: boolean) {
     setDraft((current) => ({
       ...current,
@@ -759,12 +779,13 @@ export function FilterDrawer({
               title={copy.trust}
               clearLabel={copy.clear}
               onClear={
-                draft.instantBook || draft.verifiedOnly
+                draft.instantBook || draft.verifiedOnly || draft.listerRoles.length > 0
                   ? () =>
                       setDraft((current) => ({
                         ...current,
                         instantBook: false,
                         verifiedOnly: false,
+                        listerRoles: [],
                       }))
                   : undefined
               }
@@ -784,6 +805,35 @@ export function FilterDrawer({
                   testId="filter-verified"
                   onChange={(next) => setDraft((current) => ({ ...current, verifiedOnly: next }))}
                 />
+              </div>
+              {/*
+                WHO IS OFFERING IT. Chips rather than switches, because this is
+                one column with one value and any of them will do, exactly like
+                water. `LISTING_ROLE_FILTER_LABEL` was written for this control
+                in Track G and had no consumer anywhere until now.
+
+                Offered unconditionally, unlike light and water. Those are
+                hidden when the pool in front of the reader holds no answer,
+                because a filter that can only ever return nothing is a dead
+                end. Hiding the supply-kind control would hide the single
+                question this two-sided platform is about, and the reader is
+                better served by an empty result they asked for than by a
+                control that was never there.
+              */}
+              <p className="nf-filters__hint mt-sm">{LISTING_ROLE_FILTER_HEADING}</p>
+              <div className="flex flex-wrap gap-xs">
+                {LISTING_ROLES.map((role) => (
+                  <button
+                    key={role}
+                    type="button"
+                    aria-pressed={draft.listerRoles.includes(role)}
+                    data-testid={`filter-role-${role}`}
+                    onClick={() => toggleRole(role)}
+                    className="nf-filters__tile"
+                  >
+                    {LISTING_ROLE_FILTER_LABEL[role]}
+                  </button>
+                ))}
               </div>
             </Group>
 

@@ -8,6 +8,7 @@ import {
   WATER_LABEL,
   type DiscoveryQuery,
 } from "@/lib/listings/search-params";
+import { LISTING_ROLE_FILTER_LABEL } from "@/lib/supply/roles";
 import { amenityLabel } from "./amenities";
 
 /**
@@ -179,6 +180,27 @@ export function ActiveFilters({
         href={toSearchHref({ ...query, verifiedOnly: false })}
         label="Verified only"
         removes="verified only"
+      />,
+    );
+  }
+
+  /*
+   * ONE CHIP PER KIND, NOT ONE FOR THE SET. A reader who ticked owner and firm
+   * and now wants only owners removes the firm chip, which is the undo they
+   * mean; a single "Who is offering it" chip could only drop the whole
+   * question. The amenity chips are one each for the same reason.
+   */
+  for (const role of query.listerRoles) {
+    chips.push(
+      <RemoveChip
+        key={`role-${role}`}
+        testId={`active-role-${role}`}
+        href={toSearchHref({
+          ...query,
+          listerRoles: query.listerRoles.filter((value) => value !== role),
+        })}
+        label={LISTING_ROLE_FILTER_LABEL[role]}
+        removes={LISTING_ROLE_FILTER_LABEL[role].toLowerCase()}
       />,
     );
   }
