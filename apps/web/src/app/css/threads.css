@@ -562,9 +562,10 @@
   .nf-chat-card__body {
     padding: var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-2xs);
   }
+  /* Pass 2: the render sets the name in the text face at a semibold weight,
+     not the display face at bold; beside it ours read as a headline. */
   .nf-chat-card__title {
-    font-family: var(--nf-font-display);
-    font-weight: 700;
+    font-weight: 600;
     font-size: var(--nf-text-body);
     line-height: 1.25;
     color: var(--nf-content-primary);
@@ -593,11 +594,26 @@
     padding-block: var(--nf-space-xs);
     border-top: var(--nf-border-width) solid var(--nf-panel-hair);
   }
+  /*
+   * Pass 3: weighting the columns moved the wrap from the dates to the
+   * guests. The room comes back instead from the indent: the glyph sits on
+   * the label's line and the value runs under both from the cell's edge, so
+   * "25 Jun 2026" and "2 adults" each keep to one line at 390.
+   */
   .nf-chat-card__fact {
-    display: flex;
-    gap: var(--nf-space-2xs);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--nf-space-2xs);
+    align-content: start;
     min-width: 0;
     padding-inline: var(--nf-space-2xs);
+  }
+  .nf-chat-card__fact > div {
+    display: contents;
+  }
+  .nf-chat-card__fact dd {
+    grid-column: 1 / -1;
   }
   .nf-chat-card__fact + .nf-chat-card__fact {
     border-left: var(--nf-border-width) solid var(--nf-panel-hair);
@@ -608,7 +624,6 @@
   .nf-chat-card__fact-glyph {
     color: var(--nf-brand-secondary);
     flex-shrink: 0;
-    margin-top: var(--nf-space-3xs);
   }
   .nf-chat-card__fact-label {
     display: block;
@@ -620,7 +635,7 @@
     display: block;
     margin-top: var(--nf-space-3xs);
     font-size: var(--nf-text-caption);
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1.3;
     color: var(--nf-content-primary);
     overflow-wrap: anywhere;
@@ -678,8 +693,7 @@
     margin-top: var(--nf-space-3xs);
   }
   .nf-chat-card__price {
-    font-family: var(--nf-font-display);
-    font-weight: 700;
+    font-weight: 600;
     font-size: var(--nf-text-body);
     color: var(--nf-content-primary);
     font-variant-numeric: tabular-nums;
@@ -717,10 +731,23 @@
      which returns the chevron without shrinking the type. */
   .nf-chat-card__actions > * {
     min-width: 0;
-    gap: var(--nf-space-3xs);
+    gap: var(--nf-space-2xs);
     padding-inline: var(--nf-space-2xs);
     white-space: nowrap;
     font-size: var(--nf-text-caption);
+    font-weight: 600;
+  }
+  /* Pass 4: at 390 the flex row squeezed the chevron glyph to a speck
+     beside a label that filled the button. The glyph never shrinks, and on a
+     phone the label steps down one rung (the render's label is smaller
+     still), which leaves the chevron its room inside the 44px bar. */
+  .nf-chat-card__actions svg {
+    flex-shrink: 0;
+  }
+  @media (max-width: 479px) {
+    .nf-chat-card__actions > * {
+      font-size: var(--nf-text-overline);
+    }
   }
   .nf-chat-card__actions > :only-child {
     grid-column: 1 / -1;

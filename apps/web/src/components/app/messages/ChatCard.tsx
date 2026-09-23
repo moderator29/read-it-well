@@ -188,7 +188,7 @@ export function ChatCard({ card, forwardable = true }: { card: ChatCardData; for
           <div className="nf-chat-card__actions">
             <Link href={shareHref(self)} className="nf-btn nf-btn--primary nf-btn--sm">
               {stay ? "View stay" : "View listing"}
-              <UiIcon name="chevron-right" size={14} />
+              <UiIcon name="chevron-right" size={16} />
             </Link>
             {/* A stay's enquiry thread hangs off its accommodation, which
                 `/messages/new?listing=` cannot open, so the control that
@@ -226,21 +226,21 @@ export function ChatCard({ card, forwardable = true }: { card: ChatCardData; for
 
         <dl className="nf-chat-card__facts">
           <div className="nf-chat-card__fact">
-            <UiIcon name="calendar-booking" size={14} className="nf-chat-card__fact-glyph" />
+            <UiIcon name="calendar-booking" size={12} className="nf-chat-card__fact-glyph" />
             <div className="min-w-0">
               <dt className="nf-chat-card__fact-label">Check in</dt>
               <dd className="nf-chat-card__fact-value">{card.checkInLabel}</dd>
             </div>
           </div>
           <div className="nf-chat-card__fact">
-            <UiIcon name="calendar-booking" size={14} className="nf-chat-card__fact-glyph" />
+            <UiIcon name="calendar-booking" size={12} className="nf-chat-card__fact-glyph" />
             <div className="min-w-0">
               <dt className="nf-chat-card__fact-label">Check out</dt>
               <dd className="nf-chat-card__fact-value">{card.checkOutLabel}</dd>
             </div>
           </div>
           <div className="nf-chat-card__fact">
-            <UiIcon name="user" size={14} className="nf-chat-card__fact-glyph" />
+            <UiIcon name="user" size={12} className="nf-chat-card__fact-glyph" />
             <div className="min-w-0">
               <dt className="nf-chat-card__fact-label">Guests</dt>
               {card.partyLines.map((line, i) => (
@@ -278,7 +278,7 @@ export function ChatCard({ card, forwardable = true }: { card: ChatCardData; for
         <div className="nf-chat-card__actions">
           <Link href={shareHref({ kind: "booking", id: card.id })} className="nf-btn nf-btn--primary nf-btn--sm">
             View booking details
-            <UiIcon name="chevron-right" size={14} />
+            <UiIcon name="chevron-right" size={16} />
           </Link>
           <Link href={`/messages/new?listing=${card.listingId}`} className="nf-btn nf-btn--glass nf-btn--sm">
             <UiIcon name="chat-bubble" size={16} />

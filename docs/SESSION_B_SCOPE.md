@@ -175,6 +175,7 @@ Each group appends "RELEASED <commit>" here when it is done.
     `.nf-social-more`, `.nf-social-round`, `.nf-social-sheet__panel`,
     `.nf-social-trust`, the `--nf-glow-edge` on `.nf-social-chip`, and the
     right-edge offsets of `.nf-social-more__menu` (superseded).
+    **RELEASED (sweep-social), 23 September**: see ledger 13, social.
   - host wizard, agent workspace, side drawer, dock, landing:
     `agent.css`, `chrome.css`, `app/side-nav.css`, `landing.css`, `site.css`,
     `chips.css` and their components.
