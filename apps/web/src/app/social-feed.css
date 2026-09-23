@@ -3697,16 +3697,8 @@
    * somebody is reading before they answer, and a dead grey square is the
    * only primary on the surface for all of it.
    *
-   * It belongs in `buttons.css` as a shared modifier the moment the same
-   * sweep reaches `threads.css` and the assistant; it is local here because
-   * that file is not this scope's to edit.
+   * It now lives in `buttons.css` as the shared disabled primary (audit S3):
+   * every disabled primary keeps its lit bar at reduced strength, so the local
+   * rule that stood here (a flat gradient at 0.45 opacity) is deleted.
    */
-  .nf-btn.nf-composer__send:disabled:not([data-loading="true"]) {
-    background: var(--nf-gradient-cta);
-    background-image: var(--nf-gradient-cta);
-    color: var(--nf-content-on-brand);
-    border-color: var(--nf-brand-edge);
-    opacity: 0.45;
-    box-shadow: none;
-  }
 }

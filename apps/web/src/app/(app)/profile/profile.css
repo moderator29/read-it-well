@@ -628,10 +628,10 @@
     min-inline-size: 0;
     margin-inline-end: -0.625rem;
   }
-  /* Title: cap 13 image px: 7.7 CSS / 0.727 = 10.6, a title, shipped as
-     drawn; semibold (the M's stem measures 0.13 em). */
+  /* Title: cap 13 image px: 7.7 CSS / 0.727 = 10.6, a row label, so the
+     R-A floor of 11 (audit S6); semibold (the M's stem measures 0.13 em). */
   .nf-pf-row__title {
-    font-size: 0.6625rem;
+    font-size: 0.6875rem;
     font-weight: 600;
     line-height: 1.25;
     letter-spacing: -0.005em;

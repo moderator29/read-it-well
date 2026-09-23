@@ -7349,6 +7349,41 @@ vitest, the token check), each heavy job through the shared lock:
 - The render's type is a narrower face than Inter; each role is sized to its drawn WIDTH
   (so lines break where the image breaks) and so sits a little shorter in cap height.
 
+## 13. Platform sweep: audit fixes (S1, S2, S3, S6, S7, S8 of the independent audit; worker "auditfix")
+
+Fixes six should-fix findings from `docs/design/proofs/session-b/audit-sweep/AUDIT.md`
+(a6c7a80a). S5 went to the leftovers worker (shared status badge) and is not in this
+section. Method: two production builds with `VALLO_PREVIEW_HARNESS=1`, both run
+through the heavy lock. BEFORE is `origin/main` at e93bb8a9 and AFTER is this change.
+Both builds served the committed harnesses, 20 routes and states at 390x844 (DPR 2)
+and 1440x900, dark, reduced motion. Measured with the audit's own script (copied as
+`shoot.mjs.txt`) plus element probes. Numbers per route and width are in
+`docs/design/proofs/session-b/audit-fixes/measure.json`. The side-by-side crops are
+`<finding>-<390|1440>.jpg` in the same folder. The listing's "/ year" was already
+fixed on main by the home group (9da21a53) while this ran, so this change only
+re-measures it.
+
+| Finding | Fix | Before (390 / 1440) | After (390 / 1440) | Evidence |
+|---|---|---|---|---|
+| S1 shared `Chip` selected is a flat blue fill | `components/ui/Chip.tsx` `SELECTED_STYLE` now uses `--nf-selected-fill`, `--nf-selected-edges`, `--nf-selected-shadow-inline` and on-brand ink. It stays inline so it still beats the chip's hover. | flat `rgb(0,105,254)`, transparent edge: transactions "All" 1/1, listing "Fri 25" and "Weekend" 2/2, `/preview/g1` 1/1 | gradient fill, cyan-lit edges, white rim plus 22px bloom; flat selected 0 on all four | `s1-wallet-transactions-*.jpg`, `s1-listing-day-slots-*.jpg` |
+| S2 console payments toggle has its own navy on-state | `.nf-md-toggle[aria-pressed="true"]` (`admin/money/_desk/desk.css`) uses the shared selected tokens. The focus ring turns on-brand on the lit fill. | flat `oklab(0.27 -0.02 -0.10)` on "All outcomes" and "Checkouts and top-ups", 2/2 at both widths | shared lit state, flat selected 0 | `s2-payments-toggle-*.jpg` |
+| S3 a disabled primary goes unlit | ONE shared disabled look in `buttons.css`: `.nf-btn--primary:disabled` / `[aria-disabled]` (not loading) keeps the lit fill, lit edges and the top rim, drops the bloom, pool and inner glow, and turns the bar down with `filter: brightness(0.7)` (no grey fill, no opacity fade). Three local variants deleted so every disabled primary reads the same: the posts composer's (`social-feed.css`, flat gradient at 0.45), the assistant send's (`home.css`, at 0.45 and then, after 9da21a53, the full bar with bloom at 0.7) and the thread composer's (`threads.css`, now the same brightness and rim). | escrow "File this": grey `rgba(255,255,255,.04)` fill, muted ink. Posts "Reply", assistant send and thread send: lit at opacity 0.45. Grey primaries: escrow 1, posts 1, assistant 1 | all four are lit fill + lit edges + rim, brightness 0.7, opacity 1, white label. Grey primaries 0 | `s3-escrow-file-this-*.jpg`, `s3-posts-reply-*.jpg`, `s3-assistant-send-*.jpg`, `s3-thread-send-*.jpg` |
+| S6 text under 11px outside the feed | `/profile` `.nf-pf-row__title` 0.6625rem to 0.6875rem. `/u/[handle]` trust `dt` 0.625rem to 0.6875rem (tracking 0.09em to 0.06em, in `social-profile.css`). `/messages` segment count (`Segmented.tsx`) `0.75em` to `max(0.75em, 0.6875rem)`. Listing "/ year": 9da21a53 (caption size). | 10.6 x5, 10 x3, 10.5 x1, 10.3 x2 | 11, 11, 11 and 13. Under-11 text on these routes: 0 (posts 390 keeps the feed ruling's 54) | `s6-profile-rows-*.jpg`, `s6-trust-labels-*.jpg`, `s6-inbox-count-*.jpg` |
+| S7 followers loading skeleton spills | `LoadingPeople.tsx`: the face skeleton gets `circle width="46px"`. The skeleton's inline `width: 100%` beat the class's 46px, so the disc took the whole row. | face 308px (390) / 638px (1440); layout 115px past 390 | face 46px; overflow 0 | `s7-followers-loading-*.jpg` |
+| S8 escrow desk status chips past 390 | `admin.css`: under 640px `.nf-admin-status` wraps (it scrolled with no scrollbar and no fade, so 7 of 10 states were out of sight). `.nf-admin-chip` min-height 40 to 44 (R-B), radius 10 so ratio 0.23. The page widening was really the chart's screen-reader table, because a `<table class="sr-only">` sizes to its content. In `_desk/charts.tsx` the 1px box is now a wrapping div. | row scrollWidth 1115 in 358, chips 40px, layout 82px past 390 | row 358 in 358, 10 chips all on screen, 44px each; overflow 0. 1440 unchanged (one line) | `s8-escrow-status-*.jpg` |
+
+Also checked, as the lead asked: `/search` List/Map (`.nf-segmented__link[aria-current]`,
+restored in a6edcaaf) reads lit on both `sweep-home/search` and `search-empty?view=map`
+(gradient fill, rim, on-brand ink; flat selected 0 at both widths). Nothing to fix.
+
+No new failures: capsule counts are the same before and after on every measured
+route. The remaining ones are S5 (leftovers) and the harness chrome. Overflow is 0 on
+all 40 shots.
+
+Gate (after `git pull --rebase`): whole-project tsc, the whole vitest suite and
+check-css-tokens, run through the lock. Results are in the commit's report. The
+no-revert check `git diff origin/main HEAD` was run before the push.
+
 ## Skipped or not verified
 - (13.H, sweep-home) No live row on any proof: this box's egress refuses the Supabase host, so every card, panel and figure in the home group's proofs is fixture-backed or an empty state; the wiring is unchanged by the sweep (material only). `/price/area/[id]` and `/rent/move-in/[listingId]` were swept in their stylesheets and not photographed. The lister's TierBadge on the card waits on R-SH4. `StayCard` still wears `nf-glass--card` itself (stays group, R-SH2). The unmounted `AiAssistantBanner` stays until R-SH1.
 

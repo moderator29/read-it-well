@@ -221,7 +221,7 @@ export function Segmented<T extends string>({
                 and had nothing to stop it escaping. */}
             <span className="min-w-0 truncate">{o.label}</span>
             {typeof o.count === "number" ? (
-              <span className="nf-numeric text-[0.75em] opacity-70">{o.count}</span>
+              <span className="nf-numeric text-[length:max(0.75em,0.6875rem)] opacity-70">{o.count}</span>
             ) : null}
           </button>
         );

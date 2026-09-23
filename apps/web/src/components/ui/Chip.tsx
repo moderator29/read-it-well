@@ -160,9 +160,18 @@ const THUMB_PX: Record<ChipSize, number> = { sm: 22, md: 26 };
  * is chosen" looks like. The ring goes with it: a filled shape does not need an
  * outline to be found, and the ring was carrying the whole signal before.
  */
+/*
+ * AND FILLED MEANS LIT (the platform sweep audit, S1). The solid brand fill
+ * was a flat plate with no rim and no light, beside a console and a Get
+ * started whose chosen tab is lit. It now reads the shared selected state,
+ * the same tokens as `.nf-chip--active` and the console's open tab: the
+ * brand gradient, cyan-lit edges, the white top rim and the inline glow.
+ * Still inline, for the hover reason above.
+ */
 const SELECTED_STYLE: CSSProperties = {
-  background: "var(--nf-brand-primary)",
-  borderColor: "transparent",
+  background: "var(--nf-selected-fill)",
+  borderColor: "var(--nf-selected-edges)",
+  boxShadow: "var(--nf-selected-shadow-inline)",
   color: "var(--nf-content-on-brand)",
 };
 

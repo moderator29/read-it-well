@@ -309,10 +309,15 @@ Each group appends "RELEASED <commit>" here when it is done.
     `apps/web/src/app/(app)/profile/profile.css` (ONLY `.nf-pf-row__title`),
     `apps/web/src/components/social/profile/social-profile.css` (ONLY the
     trust labels), `apps/web/src/components/ui/Segmented.tsx` (ONLY the count),
-    the price suffix class in `app/(app)/listing/[id]/{page,ReservePanel,RentalPanel}.tsx`,
     `apps/web/src/components/social/profile/LoadingPeople.tsx`, and for S8
     `apps/web/src/app/css/admin.css` (ONLY `.nf-admin-status` and
-    `.nf-admin-chip` sizing). S5 is the leftovers worker's (shared status badge).
+    `.nf-admin-chip` sizing). Added during the fix: `apps/web/src/app/css/home.css`
+    (ONLY deleting `.nf-ai__send:disabled`), `apps/web/src/app/social-feed.css`
+    (ONLY deleting `.nf-btn.nf-composer__send:disabled`) and
+    `apps/web/src/app/admin/money/_desk/charts.tsx` (ONLY the screen-reader
+    table's wrapper). The listing files were dropped because 9da21a53 fixed
+    "/ year" first. Proofs `docs/design/proofs/session-b/audit-fixes/**`.
+    S5 is the leftovers worker's (shared status badge).
 
 ### Sweep group: home, search and filters, listing detail (worker "sweep-home")
 Routes: `/home`, `/stays` (the home components only; `StayCard` is the stays

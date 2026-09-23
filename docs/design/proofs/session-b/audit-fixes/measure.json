@@ -1,0 +1,2026 @@
+[
+ {
+  "route": "/preview/g1",
+  "w": 390,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 1,
+   "greyPrimary": 0,
+   "capsules": 6
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 6
+  },
+  "probeAfter": {
+   "chipSel": [
+    {
+     "t": "Lagos",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    },
+    {
+     "t": "Rectangle",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ],
+   "disabledPrimary": [
+    {
+     "t": "Saving",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "color(srgb 0.8 0.956863 1) 0px 1px 0px 0px inset, color(srgb 0 0.52352",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ],
+   "fonts": [
+    [
+     "3",
+     11.2
+    ]
+   ]
+  },
+  "probeBefore": {
+   "chipSel": [
+    {
+     "t": "Lagos",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    },
+    {
+     "t": "Rectangle",
+     "bgImg": "none",
+     "bg": "rgb(0, 105, 254)",
+     "border": "rgba(0, 0, 0, 0)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ],
+   "disabledPrimary": [
+    {
+     "t": "Saving",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "color(srgb 0.8 0.956863 1) 0px 1px 0px 0px inset, color(srgb 0 0.52352",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ],
+   "fonts": [
+    [
+     "3",
+     11.2
+    ]
+   ]
+  }
+ },
+ {
+  "route": "/preview/g1",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 1,
+   "greyPrimary": 0,
+   "capsules": 6
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 6
+  },
+  "probeAfter": {
+   "chipSel": [
+    {
+     "t": "Lagos",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    },
+    {
+     "t": "Rectangle",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ],
+   "disabledPrimary": [
+    {
+     "t": "Saving",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "color(srgb 0.8 0.956863 1) 0px 1px 0px 0px inset, color(srgb 0 0.52352",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ],
+   "fonts": [
+    [
+     "3",
+     11.2
+    ]
+   ]
+  },
+  "probeBefore": {
+   "chipSel": [
+    {
+     "t": "Lagos",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    },
+    {
+     "t": "Rectangle",
+     "bgImg": "none",
+     "bg": "rgb(0, 105, 254)",
+     "border": "rgba(0, 0, 0, 0)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ],
+   "disabledPrimary": [
+    {
+     "t": "Saving",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "color(srgb 0.8 0.956863 1) 0px 1px 0px 0px inset, color(srgb 0 0.52352",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ],
+   "fonts": [
+    [
+     "3",
+     11.2
+    ]
+   ]
+  }
+ },
+ {
+  "route": "/preview/g1/sheet",
+  "w": 390,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 1,
+   "greyPrimary": 0,
+   "capsules": 6
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 6
+  },
+  "probeAfter": {
+   "chipSel": [
+    {
+     "t": "All",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  },
+  "probeBefore": {
+   "chipSel": [
+    {
+     "t": "All",
+     "bgImg": "none",
+     "bg": "rgb(0, 105, 254)",
+     "border": "rgba(0, 0, 0, 0)",
+     "shadow": "oklab(0.905005 -0.00868015 -0.0512021 / 0.9) 0px 1px 0px 0px inset",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/g1/sheet",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 1,
+   "greyPrimary": 0,
+   "capsules": 6
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 6
+  },
+  "probeAfter": {
+   "chipSel": [
+    {
+     "t": "All",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  },
+  "probeBefore": {
+   "chipSel": [
+    {
+     "t": "All",
+     "bgImg": "none",
+     "bg": "rgb(0, 105, 254)",
+     "border": "rgba(0, 0, 0, 0)",
+     "shadow": "oklab(0.905005 -0.00868015 -0.0512021 / 0.9) 0px 1px 0px 0px inset",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-wallet/transactions",
+  "w": 390,
+  "before": {
+   "overflow": 0,
+   "small": 6,
+   "flatSelected": 1,
+   "greyPrimary": 0,
+   "capsules": 1
+  },
+  "after": {
+   "overflow": 0,
+   "small": 6,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 1
+  },
+  "probeAfter": {
+   "chipSel": [
+    {
+     "t": "All",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  },
+  "probeBefore": {
+   "chipSel": [
+    {
+     "t": "All",
+     "bgImg": "none",
+     "bg": "rgb(0, 105, 254)",
+     "border": "rgba(0, 0, 0, 0)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-wallet/transactions",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 6,
+   "flatSelected": 1,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 6,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "chipSel": [
+    {
+     "t": "All",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  },
+  "probeBefore": {
+   "chipSel": [
+    {
+     "t": "All",
+     "bgImg": "none",
+     "bg": "rgb(0, 105, 254)",
+     "border": "rgba(0, 0, 0, 0)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-home/listing-parts",
+  "w": 390,
+  "before": {
+   "overflow": 0,
+   "small": 2,
+   "flatSelected": 2,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "chipSel": [
+    {
+     "t": "Fri 25",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    },
+    {
+     "t": "Weekend",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  },
+  "probeBefore": {
+   "chipSel": [
+    {
+     "t": "Fri 25",
+     "bgImg": "none",
+     "bg": "rgb(0, 105, 254)",
+     "border": "rgba(0, 0, 0, 0)",
+     "shadow": "oklab(0.905005 -0.00868015 -0.0512021 / 0.9) 0px 1px 0px 0px inset",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    },
+    {
+     "t": "Weekend",
+     "bgImg": "none",
+     "bg": "rgb(0, 105, 254)",
+     "border": "rgba(0, 0, 0, 0)",
+     "shadow": "oklab(0.905005 -0.00868015 -0.0512021 / 0.9) 0px 1px 0px 0px inset",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-home/listing-parts",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 2,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "chipSel": [
+    {
+     "t": "Fri 25",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    },
+    {
+     "t": "Weekend",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  },
+  "probeBefore": {
+   "chipSel": [
+    {
+     "t": "Fri 25",
+     "bgImg": "none",
+     "bg": "rgb(0, 105, 254)",
+     "border": "rgba(0, 0, 0, 0)",
+     "shadow": "oklab(0.905005 -0.00868015 -0.0512021 / 0.9) 0px 1px 0px 0px inset",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    },
+    {
+     "t": "Weekend",
+     "bgImg": "none",
+     "bg": "rgb(0, 105, 254)",
+     "border": "rgba(0, 0, 0, 0)",
+     "shadow": "oklab(0.905005 -0.00868015 -0.0512021 / 0.9) 0px 1px 0px 0px inset",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/admin-money/payments",
+  "w": 390,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 2,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "mdToggleOn": [
+    {
+     "t": "All outcomes",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    },
+    {
+     "t": "Checkouts and top-ups",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  },
+  "probeBefore": {
+   "mdToggleOn": [
+    {
+     "t": "All outcomes",
+     "bgImg": "none",
+     "bg": "oklab(0.27262 -0.0211337 -0.100372)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "oklab(0.864413 -0.0463296 -0.0607503 / 0.45) 0px 0px 0px 1px, oklab(0.",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    },
+    {
+     "t": "Checkouts and top-ups",
+     "bgImg": "none",
+     "bg": "oklab(0.27262 -0.0211337 -0.100372)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "oklab(0.864413 -0.0463296 -0.0607503 / 0.45) 0px 0px 0px 1px, oklab(0.",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/admin-money/payments",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 2,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "mdToggleOn": [
+    {
+     "t": "All outcomes",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    },
+    {
+     "t": "Checkouts and top-ups",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  },
+  "probeBefore": {
+   "mdToggleOn": [
+    {
+     "t": "All outcomes",
+     "bgImg": "none",
+     "bg": "oklab(0.27262 -0.0211337 -0.100372)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "oklab(0.864413 -0.0463296 -0.0607503 / 0.45) 0px 0px 0px 1px, oklab(0.",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    },
+    {
+     "t": "Checkouts and top-ups",
+     "bgImg": "none",
+     "bg": "oklab(0.27262 -0.0211337 -0.100372)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "oklab(0.864413 -0.0463296 -0.0607503 / 0.45) 0px 0px 0px 1px, oklab(0.",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/admin-money/payments?state=full",
+  "w": 390,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 2,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "mdToggleOn": [
+    {
+     "t": "All outcomes",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    },
+    {
+     "t": "Checkouts and top-ups",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  },
+  "probeBefore": {
+   "mdToggleOn": [
+    {
+     "t": "All outcomes",
+     "bgImg": "none",
+     "bg": "oklab(0.27262 -0.0211337 -0.100372)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "oklab(0.864413 -0.0463296 -0.0607503 / 0.45) 0px 0px 0px 1px, oklab(0.",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    },
+    {
+     "t": "Checkouts and top-ups",
+     "bgImg": "none",
+     "bg": "oklab(0.27262 -0.0211337 -0.100372)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "oklab(0.864413 -0.0463296 -0.0607503 / 0.45) 0px 0px 0px 1px, oklab(0.",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/admin-money/payments?state=full",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 2,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "mdToggleOn": [
+    {
+     "t": "All outcomes",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    },
+    {
+     "t": "Checkouts and top-ups",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "lab(100 -0.0000298023 0.0000119209 / 0.55) 0px 1px 0px 0px inset, okla",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  },
+  "probeBefore": {
+   "mdToggleOn": [
+    {
+     "t": "All outcomes",
+     "bgImg": "none",
+     "bg": "oklab(0.27262 -0.0211337 -0.100372)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "oklab(0.864413 -0.0463296 -0.0607503 / 0.45) 0px 0px 0px 1px, oklab(0.",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    },
+    {
+     "t": "Checkouts and top-ups",
+     "bgImg": "none",
+     "bg": "oklab(0.27262 -0.0211337 -0.100372)",
+     "border": "oklab(0.877971 -0.0416921 -0.0546732)",
+     "shadow": "oklab(0.864413 -0.0463296 -0.0607503 / 0.45) 0px 0px 0px 1px, oklab(0.",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-stays/escrow-detail",
+  "w": 390,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 1,
+   "capsules": 1
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 1
+  },
+  "probeAfter": {
+   "disabledPrimary": [
+    {
+     "t": "File this",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "color(srgb 0.8 0.956863 1) 0px 1px 0px 0px inset",
+     "filter": "brightness(0.7)",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 51
+    }
+   ]
+  },
+  "probeBefore": {
+   "disabledPrimary": [
+    {
+     "t": "File this",
+     "bgImg": "none",
+     "bg": "rgba(255, 255, 255, 0.04)",
+     "border": "rgba(255, 255, 255, 0.08)",
+     "shadow": "none",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(142, 156, 196)",
+     "h": 51
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-stays/escrow-detail",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 1,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "disabledPrimary": [
+    {
+     "t": "File this",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "color(srgb 0.8 0.956863 1) 0px 1px 0px 0px inset",
+     "filter": "brightness(0.7)",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 51
+    }
+   ]
+  },
+  "probeBefore": {
+   "disabledPrimary": [
+    {
+     "t": "File this",
+     "bgImg": "none",
+     "bg": "rgba(255, 255, 255, 0.04)",
+     "border": "rgba(255, 255, 255, 0.08)",
+     "shadow": "none",
+     "filter": "none",
+     "opacity": "1",
+     "color": "rgb(142, 156, 196)",
+     "h": 51
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/posts",
+  "w": 390,
+  "before": {
+   "overflow": 0,
+   "small": 54,
+   "flatSelected": 0,
+   "greyPrimary": 1,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 54,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "disabledPrimary": [
+    {
+     "t": "Reply",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "color(srgb 0.8 0.956863 1) 0px 1px 0px 0px inset",
+     "filter": "brightness(0.7)",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 48
+    }
+   ]
+  },
+  "probeBefore": {
+   "disabledPrimary": [
+    {
+     "t": "Reply",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.51934 -0.036581 -0.210006 / 0.7)",
+     "shadow": "none",
+     "filter": "none",
+     "opacity": "0.45",
+     "color": "rgb(255, 255, 255)",
+     "h": 48
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/posts",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 1,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "disabledPrimary": [
+    {
+     "t": "Reply",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "color(srgb 0.8 0.956863 1) 0px 1px 0px 0px inset",
+     "filter": "brightness(0.7)",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 48
+    }
+   ]
+  },
+  "probeBefore": {
+   "disabledPrimary": [
+    {
+     "t": "Reply",
+     "bgImg": "linear-gradient(rgb(0, 116, 252) 0%, rgb",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "oklab(0.51934 -0.036581 -0.210006 / 0.7)",
+     "shadow": "none",
+     "filter": "none",
+     "opacity": "0.45",
+     "color": "rgb(255, 255, 255)",
+     "h": 48
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-home/assistant",
+  "w": 390,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 1,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "disabledPrimary": [
+    {
+     "t": "Send message",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "color(srgb 0.8 0.956863 1) 0px 1px 0px 0px inset",
+     "filter": "brightness(0.7)",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 56
+    }
+   ]
+  },
+  "probeBefore": {
+   "disabledPrimary": [
+    {
+     "t": "Send message",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "none",
+     "filter": "none",
+     "opacity": "0.45",
+     "color": "rgb(255, 255, 255)",
+     "h": 56
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-home/assistant",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 1,
+   "greyPrimary": 1,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "disabledPrimary": [
+    {
+     "t": "Send message",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "color(srgb 0.8 0.956863 1) 0px 1px 0px 0px inset",
+     "filter": "brightness(0.7)",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 56
+    }
+   ]
+  },
+  "probeBefore": {
+   "disabledPrimary": [
+    {
+     "t": "Send message",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "none",
+     "filter": "none",
+     "opacity": "0.45",
+     "color": "rgb(255, 255, 255)",
+     "h": 56
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-social?f=booking",
+  "w": 390,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 2
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 2
+  },
+  "probeAfter": {
+   "disabledPrimary": [
+    {
+     "t": "Send message",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "color(srgb 0.8 0.956863 1) 0px 1px 0px 0px inset",
+     "filter": "brightness(0.7)",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  },
+  "probeBefore": {
+   "disabledPrimary": [
+    {
+     "t": "Send message",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "none",
+     "filter": "none",
+     "opacity": "0.45",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-social?f=booking",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 2
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 2
+  },
+  "probeAfter": {
+   "disabledPrimary": [
+    {
+     "t": "Send message",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "color(srgb 0.8 0.956863 1) 0px 1px 0px 0px inset",
+     "filter": "brightness(0.7)",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  },
+  "probeBefore": {
+   "disabledPrimary": [
+    {
+     "t": "Send message",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "none",
+     "filter": "none",
+     "opacity": "0.45",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-social?f=plain",
+  "w": 390,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "disabledPrimary": [
+    {
+     "t": "Send message",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "color(srgb 0.8 0.956863 1) 0px 1px 0px 0px inset",
+     "filter": "brightness(0.7)",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  },
+  "probeBefore": {
+   "disabledPrimary": [
+    {
+     "t": "Send message",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "none",
+     "filter": "none",
+     "opacity": "0.45",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-social?f=plain",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "disabledPrimary": [
+    {
+     "t": "Send message",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "color(srgb 0.8 0.956863 1) 0px 1px 0px 0px inset",
+     "filter": "brightness(0.7)",
+     "opacity": "1",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  },
+  "probeBefore": {
+   "disabledPrimary": [
+    {
+     "t": "Send message",
+     "bgImg": "radial-gradient(45% 75% at 50% 88%, colo",
+     "bg": "rgba(0, 0, 0, 0)",
+     "border": "color(srgb 0.78 0.952549 1)",
+     "shadow": "none",
+     "filter": "none",
+     "opacity": "0.45",
+     "color": "rgb(255, 255, 255)",
+     "h": 44
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/profile?v=full",
+  "w": 390,
+  "before": {
+   "overflow": 0,
+   "small": 5,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 2
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 2
+  },
+  "probeAfter": {
+   "fonts": [
+    [
+     "My Bookings",
+     11
+    ],
+    [
+     "Saved",
+     11
+    ],
+    [
+     "Wallet",
+     11
+    ],
+    [
+     "Inspections",
+     11
+    ],
+    [
+     "Switch role",
+     11
+    ]
+   ]
+  },
+  "probeBefore": {
+   "fonts": [
+    [
+     "My Bookings",
+     10.6
+    ],
+    [
+     "Saved",
+     10.6
+    ],
+    [
+     "Wallet",
+     10.6
+    ],
+    [
+     "Inspections",
+     10.6
+    ],
+    [
+     "Switch role",
+     10.6
+    ]
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/profile?v=full",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 5,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 1
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 1
+  },
+  "probeAfter": {
+   "fonts": [
+    [
+     "My Bookings",
+     11
+    ],
+    [
+     "Saved",
+     11
+    ],
+    [
+     "Wallet",
+     11
+    ],
+    [
+     "Inspections",
+     11
+    ],
+    [
+     "Switch role",
+     11
+    ]
+   ]
+  },
+  "probeBefore": {
+   "fonts": [
+    [
+     "My Bookings",
+     10.6
+    ],
+    [
+     "Saved",
+     10.6
+    ],
+    [
+     "Wallet",
+     10.6
+    ],
+    [
+     "Inspections",
+     10.6
+    ],
+    [
+     "Switch role",
+     10.6
+    ]
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-social?f=profile",
+  "w": 390,
+  "before": {
+   "overflow": 0,
+   "small": 3,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 1
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 1
+  },
+  "probeAfter": {
+   "fonts": [
+    [
+     "TRUST SCORE",
+     11
+    ],
+    [
+     "COMPLETED DEALS",
+     11
+    ],
+    [
+     "RESPONSE TIME",
+     11
+    ]
+   ]
+  },
+  "probeBefore": {
+   "fonts": [
+    [
+     "TRUST SCORE",
+     10
+    ],
+    [
+     "COMPLETED DEALS",
+     10
+    ],
+    [
+     "RESPONSE TIME",
+     10
+    ]
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-social?f=profile",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 3,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "fonts": [
+    [
+     "TRUST SCORE",
+     11
+    ],
+    [
+     "COMPLETED DEALS",
+     11
+    ],
+    [
+     "RESPONSE TIME",
+     11
+    ]
+   ]
+  },
+  "probeBefore": {
+   "fonts": [
+    [
+     "TRUST SCORE",
+     10
+    ],
+    [
+     "COMPLETED DEALS",
+     10
+    ],
+    [
+     "RESPONSE TIME",
+     10
+    ]
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-social?f=inbox",
+  "w": 390,
+  "before": {
+   "overflow": 0,
+   "small": 1,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 1
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 1
+  },
+  "probeAfter": {
+   "fonts": [
+    [
+     "1",
+     11
+    ]
+   ]
+  },
+  "probeBefore": {
+   "fonts": [
+    [
+     "1",
+     10.5
+    ]
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-social?f=inbox",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 1,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "fonts": [
+    [
+     "1",
+     11
+    ]
+   ]
+  },
+  "probeBefore": {
+   "fonts": [
+    [
+     "1",
+     10.5
+    ]
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-social?f=load-followers",
+  "w": 390,
+  "before": {
+   "overflow": 115,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 1
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 1
+  },
+  "probeAfter": {
+   "faces": [
+    46,
+    46,
+    46,
+    46,
+    46
+   ]
+  },
+  "probeBefore": {
+   "faces": [
+    308,
+    308,
+    308,
+    308,
+    308
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-social?f=load-followers",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "faces": [
+    46,
+    46,
+    46,
+    46,
+    46
+   ]
+  },
+  "probeBefore": {
+   "faces": [
+    638,
+    638,
+    638,
+    638,
+    638
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-social?f=followers",
+  "w": 390,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 4
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 4
+  },
+  "probeAfter": {},
+  "probeBefore": {}
+ },
+ {
+  "route": "/preview/session-b/sweep-social?f=followers",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 3
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 3
+  },
+  "probeAfter": {},
+  "probeBefore": {}
+ },
+ {
+  "route": "/preview/session-b/admin-money/escrow?state=full",
+  "w": 390,
+  "before": {
+   "overflow": 82,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "adminStatus": [
+    {
+     "scrollW": 358,
+     "clientW": 358,
+     "right": 374,
+     "ovx": "visible",
+     "chipH": [
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44
+     ]
+    }
+   ]
+  },
+  "probeBefore": {
+   "adminStatus": [
+    {
+     "scrollW": 1115,
+     "clientW": 358,
+     "right": 374,
+     "ovx": "auto",
+     "chipH": [
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/admin-money/escrow?state=full",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "adminStatus": [
+    {
+     "scrollW": 1184,
+     "clientW": 1184,
+     "right": 1424,
+     "ovx": "auto",
+     "chipH": [
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44
+     ]
+    }
+   ]
+  },
+  "probeBefore": {
+   "adminStatus": [
+    {
+     "scrollW": 1184,
+     "clientW": 1184,
+     "right": 1424,
+     "ovx": "auto",
+     "chipH": [
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/admin-money/escrow",
+  "w": 390,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "adminStatus": [
+    {
+     "scrollW": 358,
+     "clientW": 358,
+     "right": 374,
+     "ovx": "visible",
+     "chipH": [
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44
+     ]
+    }
+   ]
+  },
+  "probeBefore": {
+   "adminStatus": [
+    {
+     "scrollW": 1115,
+     "clientW": 358,
+     "right": 374,
+     "ovx": "auto",
+     "chipH": [
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/admin-money/escrow",
+  "w": 1440,
+  "before": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {
+   "adminStatus": [
+    {
+     "scrollW": 1184,
+     "clientW": 1184,
+     "right": 1424,
+     "ovx": "auto",
+     "chipH": [
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44,
+      44
+     ]
+    }
+   ]
+  },
+  "probeBefore": {
+   "adminStatus": [
+    {
+     "scrollW": 1184,
+     "clientW": 1184,
+     "right": 1424,
+     "ovx": "auto",
+     "chipH": [
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40,
+      40
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "route": "/preview/session-b/sweep-home/search",
+  "w": 390,
+  "before": null,
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 1
+  },
+  "probeAfter": {},
+  "probeBefore": {}
+ },
+ {
+  "route": "/preview/session-b/sweep-home/search",
+  "w": 1440,
+  "before": null,
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {},
+  "probeBefore": {}
+ },
+ {
+  "route": "/preview/session-b/sweep-home/search-empty?view=map",
+  "w": 390,
+  "before": null,
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 1
+  },
+  "probeAfter": {},
+  "probeBefore": {}
+ },
+ {
+  "route": "/preview/session-b/sweep-home/search-empty?view=map",
+  "w": 1440,
+  "before": null,
+  "after": {
+   "overflow": 0,
+   "small": 0,
+   "flatSelected": 0,
+   "greyPrimary": 0,
+   "capsules": 0
+  },
+  "probeAfter": {},
+  "probeBefore": {}
+ }
+]

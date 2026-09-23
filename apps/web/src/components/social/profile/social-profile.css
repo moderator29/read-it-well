@@ -68,6 +68,12 @@
   .nf-social-trust.nf-panel .nf-social-trust__cell + .nf-social-trust__cell {
     border-inline-start: var(--nf-border-width) solid var(--nf-panel-hair);
   }
+  /* The three labels are labels: the R-A floor of 11px, not 10 (audit S6).
+     The tracking comes in a little so the band keeps its two-line rhythm. */
+  .nf-social-trust.nf-panel .nf-social-trust__cell dt {
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+  }
 
   /* The tab bar: the panel's track and the shared SELECTED state (the
      console's chosen row: lit fill, bright edges, the inline glow) on the

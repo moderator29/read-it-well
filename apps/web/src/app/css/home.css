@@ -690,20 +690,16 @@
    * square. It stays the brand square and dims, which says "type something"
    * rather than "this is broken".
    *
+   * The local rule that did this (the lit bar at 0.45, then at 0.7 with its
+   * bloom) is deleted: the shared disabled primary in buttons.css now keeps
+   * every disabled primary lit at reduced strength (audit S3), so Send reads
+   * the platform's one disabled look.
+   *
    * The governing render draws a paper plane here. `UiIcon` has no `send`
    * glyph yet and adding one is the icon pipeline's job, not this file's, so
    * the arrow stays and the glyph is reported rather than approximated.
    */
-  .nf-ai__send:disabled:not([data-loading="true"]) {
-    color: var(--nf-content-on-brand);
-    /* Lit, not greyed (audit S3): the whole lit bar, rim and bloom included,
-       only quieter, because an empty composer is waiting, not broken. */
-    opacity: 0.7;
-    background: var(--nf-btn-lit-fill);
-    border-color: var(--nf-btn-lit-edges);
-    box-shadow: var(--nf-btn-lit-shadow);
-    text-shadow: var(--nf-btn-lit-text-glow);
-  }}
+}
 
 /*
   TRACK P: the hero plate, the category row and the featured band.
