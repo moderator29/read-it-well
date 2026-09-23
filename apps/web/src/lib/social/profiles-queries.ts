@@ -330,7 +330,7 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
     };
   }
 
-  const row = { home_area_id: null, ...(data as Partial<ProfileRow>) } as ProfileRow;
+  const row = { home_area_id: null, ...(data as unknown as Partial<ProfileRow>) } as ProfileRow;
   /*
    * THE BADGE, FROM THE ONE PUBLISHED DOOR, and this read is why the profile
    * header no longer draws a mark off `is_agent`.
