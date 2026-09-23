@@ -1,5 +1,9 @@
 import "server-only";
 
+import {
+  paymentInstrumentChanged,
+  type PaymentInstrumentEvent,
+} from "../email/payment-instrument-messages";
 import { announce } from "../notify/junction";
 import type { AdminClient } from "../wallet/ledger";
 
@@ -47,16 +51,28 @@ import type { AdminClient } from "../wallet/ledger";
  * succeeded is a lie.
  *
  * ---------------------------------------------------------------------------
- * NO EMAIL YET, SAID PLAINLY RATHER THAN LEFT TO BE ASSUMED.
+ * THE EMAIL, WHICH THIS FILE ASKED FOR AND NOW HAS.
  *
- * Every notice here passes `email: null`. `lib/email/messages.ts` has a
- * builder for a password change and for a new device sign-in, which are the
- * two events of this exact class that already exist, and it has none for a
- * payment instrument. Writing one belongs to whoever owns `lib/email`, and
- * inventing a half-shaped builder from this side would be worse than the gap.
- * The gap is recorded in `docs/BUILD_07_LEDGER.md`. When the builder lands,
- * the only change here is the `email` field on each announcement: the call
- * sites, the audit lines and the in-app rows do not move.
+ * Every notice here used to pass `email: null`, with a note saying that
+ * `lib/email` had a builder for a password change and for a new device sign-in
+ * and none for a payment instrument, that writing one belonged to whoever owns
+ * that folder, and that when it landed the only change here would be the
+ * `email` field on each announcement. That is exactly what changed: the
+ * builder is `lib/email/payment-instrument-messages.ts`, and the call sites,
+ * the audit lines and the in-app rows have not moved.
+ *
+ * WHY THE IN-APP ROW WAS NEVER GOING TO BE ENOUGH FOR THESE SIX. The threat
+ * at the head of this file is a stolen session. Somebody holding that session
+ * ALSO holds the notification bell: they can open it, read the row and mark it
+ * read, and the owner never sees it. The email is the one channel of the two
+ * that the person holding the session does not also control, which is the
+ * whole reason these six are worth sending twice.
+ *
+ * NO CHANNEL MUTE, AND THAT IS NOT AN OVERSIGHT. `announce` passes no channel,
+ * so `wallet` being switched off on /settings does not silence these. That
+ * setting is about money moving; this is about the account itself changing,
+ * the same class as a password change, and the message says on its own footer
+ * that it cannot be switched off.
  */
 
 /** Where a payments notification lands. One page, and it is the right one. */
@@ -114,7 +130,13 @@ export function cardSavedNotice(
         body: `We saved ${cardPhrase(card.cardType, card.last4)}. If this was not you, remove it on the payments page and change your password.`,
         href: PAYMENTS_HREF,
       },
-      email: null,
+      email: (contact) =>
+        paymentInstrumentChanged({
+          event: "card_saved" satisfies PaymentInstrumentEvent,
+          name: contact.name,
+          cardType: card.cardType ?? null,
+          last4: card.last4 ?? null,
+        }),
     }),
   );
 }
@@ -134,7 +156,13 @@ export function cardDefaultChangedNotice(
         body: `Payments now use ${cardPhrase(card.cardType, card.last4)} first. If this was not you, change it back and change your password.`,
         href: PAYMENTS_HREF,
       },
-      email: null,
+      email: (contact) =>
+        paymentInstrumentChanged({
+          event: "card_default_changed" satisfies PaymentInstrumentEvent,
+          name: contact.name,
+          cardType: card.cardType ?? null,
+          last4: card.last4 ?? null,
+        }),
     }),
   );
 }
@@ -154,7 +182,13 @@ export function cardRemovedNotice(
         body: `We removed ${cardPhrase(card.cardType, card.last4)} from your account. Nothing was charged. If this was not you, change your password.`,
         href: PAYMENTS_HREF,
       },
-      email: null,
+      email: (contact) =>
+        paymentInstrumentChanged({
+          event: "card_removed" satisfies PaymentInstrumentEvent,
+          name: contact.name,
+          cardType: card.cardType ?? null,
+          last4: card.last4 ?? null,
+        }),
     }),
   );
 }
@@ -181,7 +215,12 @@ export function bankAccountAddedNotice(
         body: `We added an account at ${account.bankName} for your payouts, after the bank confirmed the name on it. If this was not you, remove it and change your password.`,
         href: PAYMENTS_HREF,
       },
-      email: null,
+      email: (contact) =>
+        paymentInstrumentChanged({
+          event: "bank_added" satisfies PaymentInstrumentEvent,
+          name: contact.name,
+          bankName: account.bankName,
+        }),
     }),
   );
 }
@@ -201,7 +240,12 @@ export function bankDefaultChangedNotice(
         body: `Money you withdraw now goes to your account at ${account.bankName}. If this was not you, change it back now and change your password.`,
         href: PAYMENTS_HREF,
       },
-      email: null,
+      email: (contact) =>
+        paymentInstrumentChanged({
+          event: "bank_default_changed" satisfies PaymentInstrumentEvent,
+          name: contact.name,
+          bankName: account.bankName,
+        }),
     }),
   );
 }
@@ -221,7 +265,12 @@ export function bankAccountRemovedNotice(
         body: `We removed your account at ${account.bankName}. Your balance is untouched. If this was not you, change your password.`,
         href: PAYMENTS_HREF,
       },
-      email: null,
+      email: (contact) =>
+        paymentInstrumentChanged({
+          event: "bank_removed" satisfies PaymentInstrumentEvent,
+          name: contact.name,
+          bankName: account.bankName,
+        }),
     }),
   );
 }

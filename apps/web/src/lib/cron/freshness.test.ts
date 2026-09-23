@@ -43,7 +43,16 @@ describe("the watched list", () => {
     expect(names).toContain("inventory-drift");
     for (const entry of WATCHED_JOBS) {
       expect(entry.schedule.length).toBeGreaterThan(0);
-      expect(entry.maxGapHours).toBeGreaterThanOrEqual(3);
+      /*
+       * The floor was 3, which was the right number while every watched job
+       * ran hourly at best: an allowance under the gap between runs alarms on
+       * a healthy system. `email-outbox` runs four times an hour and carries
+       * the security email, where three hours of silence is twelve missed
+       * runs and an attacker's whole head start, so it is allowed 2. The rule
+       * this line is really holding is the one in its own name, an allowance
+       * WIDER THAN THE SCHEDULE, and 2 hours against 15 minutes keeps it.
+       */
+      expect(entry.maxGapHours).toBeGreaterThanOrEqual(2);
       expect(entry.maxGapHours).toBeLessThanOrEqual(48);
     }
   });

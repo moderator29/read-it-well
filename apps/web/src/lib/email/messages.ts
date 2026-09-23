@@ -546,6 +546,25 @@ export type EscrowFundedData = {
 /**
  * To the payer when money enters escrow.
  *
+ * SUPERSEDED, AND DELIBERATELY NOT WIRED. READ THIS BEFORE CONNECTING IT.
+ *
+ * `escrows` now enqueues an email on every state change through
+ * `private.escrow_enqueue_emails`, and the eight builders it reaches live in
+ * `lib/email/escrow-messages.ts`. `heldPaymentSetAside` is the one that has
+ * replaced this.
+ *
+ * THIS ONE MAY NOT BE SENT, and the reason is in its own first line: it says
+ * "held in escrow", which is the single thing nobody at this company may say
+ * to a customer until the founder's solicitor has answered in writing which
+ * structure the funds are held under. `lib/escrow/copy.ts` enforces that in
+ * code, over every string the replacement produces, and this file is outside
+ * that enforcement. Wiring it would ship the one sentence the whole escrow
+ * copy layer exists to prevent.
+ *
+ * It is kept rather than deleted because the fixtures render it and the
+ * sentence craft in it is worth reading when the structure IS decided. It is
+ * not kept because anybody should call it.
+ *
  * The most important sentence in this email is the one that says the money has
  * not been paid to anybody. Somebody who has just parted with two million naira
  * needs to know exactly where it is sitting and exactly what causes it to move,
@@ -595,6 +614,12 @@ export type EscrowReleasedData = {
 
 /**
  * When escrow pays out. Two audiences, one function.
+ *
+ * SUPERSEDED BY `heldPaymentPaidOut` IN `lib/email/escrow-messages.ts`, and
+ * not wired, for exactly the reason given on `escrowFunded` above: the word
+ * "escrow" in its subject is the claim about custody that nobody may make
+ * yet. The replacement is sent by the outbox on every RELEASED transition,
+ * to both parties, with the settlement lines rather than a bare amount.
  *
  * The payer and the recipient need the same facts and a different first
  * sentence, and writing them as one function is what keeps the amount, the

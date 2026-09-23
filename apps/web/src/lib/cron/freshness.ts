@@ -100,6 +100,13 @@ export type WatchedJob = {
  * This list is not a count of the cron entries and must not be read as one.
  */
 export const WATCHED_JOBS: readonly WatchedJob[] = [
+  /* The email outbox drain, and it is the one whose silence is least visible
+     from anywhere else. Every other job here leaves a mark somebody could
+     stumble on; this one stopping means the queue quietly fills while every
+     surface in the product still looks exactly right, because the in-app
+     notification half keeps working. Two hours is eight missed runs on a
+     quarter-hourly schedule, which is a stop rather than a slow afternoon. */
+  { job: "email-outbox", schedule: "every 15 minutes", maxGapHours: 2 },
   { job: "hold-sweep", schedule: "hourly at :05", maxGapHours: 3 },
   { job: "pg-cron-watch", schedule: "hourly at :20", maxGapHours: 3 },
   { job: "complete-stays", schedule: "daily at 02:30 UTC", maxGapHours: 26 },

@@ -39,6 +39,16 @@ export type VercelJob = {
 };
 
 export const VERCEL_JOBS: readonly VercelJob[] = [
+  /*
+   * ADDED BY THE EMAIL JUNCTION WORKER, AND IT IS THE ONE LINE OF THIS FILE
+   * THAT WORKER TOUCHED. This module is Session B's; the entry is here rather
+   * than in a request because `session-b-admin-shell.test.ts` asserts that
+   * this list and `vercel.json` are EQUAL, so adding the drain to the
+   * scheduler without adding it here turns the whole tree red for every
+   * writer sharing it. Additive, data only, nothing else in the file moved.
+   * Session B: reword the schedule text or the allowance as you like.
+   */
+  { name: "email-outbox", cron: "*/15 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "email-outbox" } },
   { name: "hold-sweep", cron: "5 * * * *", schedule: "Hourly at :05", maxGapHours: 3, audit: { entityType: "cron_job", term: "hold-sweep" } },
   {
     name: "paystack-reconcile",
