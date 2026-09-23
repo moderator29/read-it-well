@@ -4,6 +4,7 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { toneForStatus, type StatusTone } from "@/components/ui/StatusPill";
 import { Sparkline } from "@/components/agent/charts/Sparkline";
 import { CalmNote } from "../_components/panels";
+import { PersonTier } from "../_components/PersonTier";
 import { donutArcs, pagerPages, share } from "./metrics";
 
 /**
@@ -518,16 +519,11 @@ export function Avatar({
 }
 
 /**
- * WHERE A PERSON'S BADGE GOES, BESIDE THEIR NAME. BLOCKED ON B-BADGE.
- *
- * The tier is READ from `public.person_badge` (`getBadgeTiers`,
- * lib/admin/reads/listings.ts) and handed here; it is never derived on these
- * desks. The artwork and the one component are Session A's (scope B-BADGE,
- * proposed as a PersonBadge component under components/app/badge) and had not landed when
- * these desks closed, so this renders NOTHING rather than a mark of its own.
- * When it lands this body becomes `<PersonBadge tier={tier} size="sm" />`.
+ * A person's badge beside their name: the console's shared `PersonTier`,
+ * which draws Session A's `TierBadge`. The tier is READ from
+ * `public.person_badge` (`getBadgeTiers`, lib/admin/reads/listings.ts), never
+ * computed on these desks; no tier draws nothing.
  */
 export function BadgeSlot({ tier }: { tier: "gold" | "platinum" | null | undefined }) {
-  void tier;
-  return null;
+  return <PersonTier tier={tier ?? null} />;
 }

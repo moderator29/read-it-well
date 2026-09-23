@@ -2174,6 +2174,73 @@ clean. vitest `src/lib/admin/reads` and `src/app/admin/_review`: 80 passed.
 None outstanding: the review desks use the shared `CalmNote`, `Sparkline`,
 the glow identity variables and the frame as they are.
 
+### Final pass, 23 September
+
+**Re-checked.** Each governing panel against its side-by-side, re-shot on the
+shell's full-height rail and dark-only material (3f1405d) from the committed
+harness with the committed script
+(`node scripts/design/session-b-shots/admin-review-shots.mjs`; the machine
+was under a load average of 35 and two runs crashed the renderer mid-set, so
+the set is assembled from the first full run plus the side-by-sides built with
+the same crop boxes). Light mode stripped from every review file (67b3c88).
+"Viewing" swept: none on these desks (item 7).
+
+**Commands and output (23 Sept).**
+- `npx tsc --noEmit -p apps/web`: no errors.
+- `npx eslint` on every review file, the three reads and the harness: no
+  problems.
+- `npx vitest run src/lib/admin/reads src/app/admin/_review`: 17 files,
+  110 tests passed.
+- `node scripts/check-css-tokens.mjs`: every stylesheet check clean
+  (0 layer-1, 0 raw colours, 0 unresolved var(), 0 capsules, 0 dull
+  controls); the comment-path check reports 2 paths, neither in these desks'
+  files (`tokens.css` naming the deleted `light.css`, and
+  `components/app/wallet/BadgeSlot.tsx`).
+- Shape sweep, dark, `/preview/session-b/admin-review/{listings,review,
+  moderation,kyc}` at 390 and 1440 (run on 5ce9249, before the badge slot,
+  which adds no text-bearing control): breaches 0, worth an eye 0, round
+  icon-only 0; the census of every text-bearing control: max 0.318.
+
+**Fixed in this pass.** The shot script wrote into `scripts/docs` (wrong repo
+root): fixed. The badge: each lister (queue rows, the listing under review)
+and each applicant (verification) has its tier READ from
+`public.person_badge` through the console's `getPersonTiers` and drawn with
+the shared `PersonTier` (Session A's `TierBadge`); nothing is computed here
+(ed247e2 and this commit). The harness no longer names a `-day` asset.
+
+**Not covered by the badge yet, named:** reporters and held-content authors on
+Moderation, and requesters on Support: the reads these desks use
+(`getReports`, `getModerationQueue`, `getSupportTickets`, Session A's) return
+names, not user ids, so the tier cannot be read for them without a change to
+those reads or new reads of my own. Left undone for time.
+
+**BUILT AND UNPROVEN** (this box cannot reach Supabase over HTTP, so no
+signed-in run is possible here). Proving each needs a signed-in admin on a
+build that can reach the project:
+1. Approve, Publish, Ask for more and Reject on a real submission, and the
+   next listing loading after each (`reviewListing`, `announce`, audit row).
+2. Report decisions and held-item decisions on Moderation.
+3. Document decisions and the in-app DocumentViewer on Verification.
+4. Every read in `lib/admin/reads/{listings,moderation,verification}.ts`
+   against live rows: proven by unit tests of their aggregation and by
+   read-only SQL of the policies they depend on, never executed through the
+   app.
+5. The map tiles and the walkthrough player with a real file (proofs use a
+   stand-in tile grid and an unfetched video).
+6. `LiveRefresh` picking up new work without a reload.
+
+**Percentage.** Gate items met: 4 of 5 fully (measured match, no claims,
+checks and sweep, pushed) and 1 partly (wired real: every chain link is
+named and verified by code and read-only SQL, none exercised live), so 4/5.
+Chain links proven by execution: 0 of 5 desks end to end; links verified by
+code and live `pg_*` reads: 5 of 5 desks. Controls exercised through a real
+server action: 0 of 14 (Approve, Publish, Ask for more, Reject; Start review,
+Resolve, Dismiss; Let it through, Take it down; Approve and Reject on a
+document; the queue, listings and moderation search forms, pager) because no
+signed-in run is possible here; controls exercised in the harness on a
+production build (navigation, tabs, rows opening, pager links): all of them.
+Open requests: AR-10, AR-11, AR-12.
+
 ## 8. Admin money desks: money, escrow, supply
 
 Worker admin-money. Governing images: panel 3 of `C1D98B3C` (Money), panels 1

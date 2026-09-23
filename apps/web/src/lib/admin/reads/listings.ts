@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../supabase/database.types";
 import { requireAdmin } from "../guard";
+import { getPersonTiers } from "./shared";
 
 /**
  * The listings review desk's own reads. READ ONLY.
@@ -578,28 +579,14 @@ export function badgeTierOf(value: unknown): BadgeTier | null {
 }
 
 /**
- * Each person's badge tier, READ from `public.person_badge` (Session A's one
- * source, scope B-BADGE), never derived here. An absent row, an unknown value
- * or a failed read is no badge. The view is newer than the generated types, so
- * the client is widened for this one read.
+ * Each person's badge tier, READ from `public.person_badge` through the
+ * console's one tier read (`getPersonTiers`, reads/shared.ts), never derived
+ * here. An absent row or a failed read is no badge.
  */
 export async function getBadgeTiers(userIds: readonly string[]): Promise<Map<string, BadgeTier>> {
-  const out = new Map<string, BadgeTier>();
-  const wanted = [...new Set(userIds.filter(Boolean))];
-  if (wanted.length === 0) return out;
-  const db = await adminDb();
-  if (!db) return out;
   try {
-    const { data } = await (db as unknown as SupabaseClient)
-      .from("person_badge")
-      .select("user_id, tier")
-      .in("user_id", wanted);
-    for (const row of (data ?? []) as { user_id: string; tier: unknown }[]) {
-      const tier = badgeTierOf(row.tier);
-      if (tier) out.set(row.user_id, tier);
-    }
+    return await getPersonTiers(userIds);
   } catch {
-    /* No badge is the safe failure. */
+    return new Map();
   }
-  return out;
 }
