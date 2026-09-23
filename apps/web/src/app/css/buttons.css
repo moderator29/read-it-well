@@ -466,10 +466,10 @@
     height: calc(100% - 8px);
     translate: 0 -50%;
     border-radius: var(--nf-radius-control);
-    /* The shared selected state (sweep phase 1 tokens): the open tab is lit,
-       not a flat raised navy. */
-    background: var(--nf-selected-fill);
-    box-shadow: var(--nf-selected-shadow-inline);
+    background: var(--nf-surface-raised);
+    box-shadow:
+      var(--nf-elev-2-rim),
+      var(--nf-elev-2);
     /* Both properties travel together, or the capsule stretches before it
        moves and reads as a rubber band rather than an object. */
     transition:
@@ -509,9 +509,9 @@
       background var(--nf-duration-base) var(--nf-ease-standard);
   }
   .nf-segmented__link[aria-current="true"] {
-    background: var(--nf-selected-fill);
-    color: var(--nf-content-on-brand);
-    box-shadow: var(--nf-selected-shadow-inline);
+    background: var(--nf-surface-raised);
+    color: var(--nf-content-primary);
+    box-shadow: var(--nf-elev-2-rim), var(--nf-elev-2);
   }
   @media (hover: hover) {
     .nf-segmented__link:not([aria-current="true"]):hover {

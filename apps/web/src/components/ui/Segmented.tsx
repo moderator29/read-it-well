@@ -209,7 +209,7 @@ export function Segmented<T extends string>({
               selected
                 ? pill
                   ? ""
-                  : "text-[var(--nf-content-on-brand)]"
+                  : "text-[var(--nf-content-primary)]"
                 : "text-[var(--nf-content-muted)] hover:text-[var(--nf-content-secondary)]",
             ]
               .filter(Boolean)

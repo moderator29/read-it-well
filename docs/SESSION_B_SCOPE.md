@@ -117,8 +117,8 @@ Each group appends "RELEASED <commit>" here when it is done.
     drawn on these routes: `catalogue.css`, `home.css`, `components/app/home/**`,
     `components/app/listing/**` (home and listing group), `ResultSheet.tsx` and
     `wallet.css` (wallet family), `components/host/stays/**` (host wizard group,
-    which consumes `stays.css`), `components/app/messages/ProposeHeldPayment.tsx`
-    (messages group, which consumes `escrow.css`).
+    which consumes `stays.css`). `components/app/messages/ProposeHeldPayment.tsx`
+    is claimed by this group (see its subsection).
   - settings and children, notifications: `settings-rows.css`,
     `overlays.css`, `system.css` and their route components.
     Worker "sweep-settings" adds (new): the fixture harness
@@ -217,19 +217,18 @@ and is left alone. New (the fixture and live-row harness, committed):
 `docs/design/proofs/session-b/sweep-home/**`.
 
 ### Sweep group: stays, stay detail, trips, restaurants, checkout, held payments (worker "sweep-stays")
-Files as listed under Phase 2 above. Requests this group cannot close in its own files:
-- **SW-S1 (to the messages group):** `components/app/messages/ProposeHeldPayment.tsx`
-  still writes `nf-esc-thread`, `nf-esc-action`, `nf-esc-field` and
-  `nf-esc-choice`. The held-payment routes no longer do. Move the proposal onto
-  `Panel variant="card"`, `Button`/`ButtonLink` and `.nf-field`; then the
-  "HELD FOR ProposeHeldPayment" block at the foot of `escrow.css` is deleted
-  whole (this group will do it on request, or the messages worker may).
-- **SW-S2 (to the host wizard group):** the stays set-up inputs and selects
+Files as listed under Phase 2 above, plus (claimed 23 September, unclaimed by
+any group and drawn entirely by `escrow.css`):
+`components/app/messages/ProposeHeldPayment.tsx`, now on `Panel`, `Button`
+and `.nf-field`. Request ids are `SW-ST*` (the social group uses `SW-S1`).
+- **SW-ST1: closed by this group** (was addressed to the messages group): the
+  thread proposal is swept here and the held block in `escrow.css` is gone.
+- **SW-ST2 (to the host wizard group):** the stays set-up inputs and selects
   (`.nf-stays-input`, `.nf-stays-select` in `components/host/stays/**`) are
   still a local field well. Add the shared `nf-field` class at those call
   sites; `stays.css` then keeps only the select's chevron and the inline
   width, and deletes its own well.
-- **SW-S3 (to the wallet family):** `components/app/ResultSheet.tsx` draws its
+- **SW-ST3 (to the wallet family):** `components/app/ResultSheet.tsx` draws its
   glass object on a visible dark square (`.nf-result-mark`, `wallet.css`),
   seen on checkout's payment pending and failed sheets
   (`docs/design/proofs/session-b/sweep-stays/before/pay-failed-390-before.jpg`).

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useTransition } from "react";
 
 import {
@@ -21,6 +20,8 @@ import {
   type EscrowState,
   type Party,
 } from "@/lib/escrow/copy";
+import { Button, ButtonLink } from "@/components/ui/Button";
+import { Panel } from "@/components/ui/Panel";
 
 /**
  * THE PROPOSAL, INSIDE THE THREAD THE TWO PEOPLE ARE ALREADY IN.
@@ -105,7 +106,7 @@ export function ProposeHeldPayment({
     const payer = agreement.viewer === "payer";
 
     return (
-      <div className="nf-esc-thread" role="group" aria-label="Held payment">
+      <Panel as="div" variant="card" className="nf-esc-thread" role="group" aria-label="Held payment">
         <p className="nf-esc-thread-head">
           <span className="nf-esc-thread-amount nf-numeric">
             {amountLine(agreement.amountMinor)}
@@ -118,28 +119,26 @@ export function ProposeHeldPayment({
 
         <div className="nf-esc-actions">
           {proposed && payer ? (
-            <button
-              type="button"
-              className="nf-esc-action"
+            <Button
+              variant="primary"
               disabled={pending}
               onClick={() => run(() => fundHeldPaymentProposal({ id: agreement.id }))}
             >
               Set this money aside
-            </button>
+            </Button>
           ) : null}
           {proposed ? (
-            <button
-              type="button"
-              className="nf-esc-action"
+            <Button
+              variant="secondary"
               disabled={pending}
               onClick={() => run(() => cancelHeldPayment({ id: agreement.id }))}
             >
               {payer ? "Decline it" : "Withdraw it"}
-            </button>
+            </Button>
           ) : null}
-          <Link className="nf-esc-action" href={`/escrow/${agreement.id}`}>
+          <ButtonLink href={`/escrow/${agreement.id}`} variant="secondary" trailingIcon="arrow-right">
             Open it
-          </Link>
+          </ButtonLink>
         </div>
 
         {proposed && payer ? (
@@ -151,17 +150,16 @@ export function ProposeHeldPayment({
             {message}
           </p>
         ) : null}
-      </div>
+      </Panel>
     );
   }
 
   /* -------------------------------------------------------- the composer */
   if (!open) {
     return (
-      <div className="nf-esc-thread">
-        <button
-          type="button"
-          className="nf-esc-action"
+      <Panel as="div" variant="card" className="nf-esc-thread">
+        <Button
+          variant="secondary"
           disabled={pending}
           onClick={() => {
             setOpen(true);
@@ -169,15 +167,15 @@ export function ProposeHeldPayment({
           }}
         >
           {PROPOSAL_OPENER}
-        </button>
-      </div>
+        </Button>
+      </Panel>
     );
   }
 
   const parsed = nairaToKobo(amount);
 
   return (
-    <div className="nf-esc-thread" role="group" aria-label="Propose a held payment">
+    <Panel as="div" variant="card" className="nf-esc-thread" role="group" aria-label="Propose a held payment">
       <p className="nf-esc-thread-head">{PROPOSAL_OPENER}</p>
       <p className="nf-esc-line">{PROPOSAL_EXPLAINER}</p>
       <p className="nf-esc-line">
@@ -216,7 +214,7 @@ export function ProposeHeldPayment({
         id={`amount-${conversationId}`}
         type="text"
         inputMode="decimal"
-        className="nf-esc-field nf-numeric"
+        className="nf-field nf-numeric"
         value={amount}
         onChange={(event) => setAmount(event.target.value)}
         placeholder="250000"
@@ -225,9 +223,8 @@ export function ProposeHeldPayment({
       {parsed !== null ? <p className="nf-esc-line">{amountLine(parsed)}</p> : null}
 
       <div className="nf-esc-actions">
-        <button
-          type="button"
-          className="nf-esc-action"
+        <Button
+          variant="primary"
           disabled={pending || iPay === null || parsed === null}
           onClick={() => {
             if (iPay === null || parsed === null) return;
@@ -243,10 +240,9 @@ export function ProposeHeldPayment({
           }}
         >
           Propose it
-        </button>
-        <button
-          type="button"
-          className="nf-esc-action"
+        </Button>
+        <Button
+          variant="ghost"
           disabled={pending}
           onClick={() => {
             setOpen(false);
@@ -254,7 +250,7 @@ export function ProposeHeldPayment({
           }}
         >
           Not now
-        </button>
+        </Button>
       </div>
 
       {message ? (
@@ -262,6 +258,6 @@ export function ProposeHeldPayment({
           {message}
         </p>
       ) : null}
-    </div>
+    </Panel>
   );
 }
