@@ -6671,7 +6671,7 @@ the email is drawn as fixed text with the line "Your email address cannot be cha
 card's `save` is only ever called with a name (test `profile-identity-card.test.ts`, 3 passing).
 The account page's own Email row says the same line. **The button is removed, but the server
 door is Session A's, and this is NOT handled until their refusal has a test** (an
-account-takeover surface): scope request EMAIL-LOCK.
+account-takeover surface): scope request EMAIL-LOCK. The button went in fefc0b4f.
 
 ### 13.P.7 Live proofs (network open, 23 September)
 
@@ -6680,9 +6680,10 @@ abd0653d (next build and next start, real project, `NODE_USE_ENV_PROXY=1`). Sign
 QA member only (957b3bd2), credentials from the scratchpad env, never in the repo. Nothing was
 saved: the details sheet was opened and closed, the email never touched. The badge figure is
 checked against a second, independent read of `person_badge` over the REST door as the same
-member. Run: 18 of 18 passed. abd0653d was rebased onto main as eaa95b19: the profile route's files are unchanged by
+member. Run: 18 of 18 passed. abd0653d was rebased onto main as fefc0b4f (the email lock's commit): the profile route's files are unchanged by
 the rebase; the settings group's shared rows (`rows.tsx`, `SettingsGlyph.tsx`) moved under it,
-so the below-the-fold rows proven here are the pre-rebase drawing, same links. Screenshots in `docs/design/proofs/session-b/profile/live/`.
+so the below-the-fold rows proven here are the pre-rebase drawing, same links. Live proofs
+pushed in 9868f652. Screenshots in `docs/design/proofs/session-b/profile/live/`.
 
 | Link | Status |
 |---|---|

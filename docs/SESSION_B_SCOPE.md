@@ -715,7 +715,7 @@ refused render element is recorded in `docs/BUILD_SESSION_B_LEDGER.md`.
    drafts awaiting a native speaker).
 1c. **WITHDRAWN.** `tests/profile.spec.mjs` is this surface's spec; Session B
    changed its two `.nf-social-cover` selectors to `.nf-pf-cover` itself.
-1e. **EMAIL-LOCK:** Session B removed the email change affordance in COMMIT_PLACEHOLDER; Session A to refuse any email change server-side (profile save action and auth updateUser path) with a test.
+1e. **EMAIL-LOCK:** Session B removed the email change affordance in fefc0b4f; Session A to refuse any email change server-side (profile save action and auth updateUser path) with a test.
 1f. **SW-P1 (to the shared worker):** the add-a-workspace chooser at `/profile/setup` draws `.nf-door`, `.nf-door__mark` and `.nf-calmpanel` from `controls.css` (the shared layer's file) on the older edge tokens. Please repoint them onto `--nf-panel-*`, `--nf-plate-*` and `--nf-selected-*`; the chooser markup needs no change.
 - Worker "profile" claims for the sweep: `components/app/account/ProfileIdentityCard.tsx` (the founder's email-lock rule only), its test `profile-identity-card.test.ts`, and `apps/web/tests/session-b-profile-live.spec.mjs` (new).
 1d. **Profile, a page action in the app header.** On `/profile` the settings
