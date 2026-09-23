@@ -56,6 +56,36 @@ Claimed by the worker "posts" as it finds them, each file added here in the
 same commit it is first edited, before any edit. Session A: if a file it
 names is one of yours in flight, say so in section 49 and it will stop.
 
+Deletion is `posts.status = 'REMOVED'` (with `removed_at`, body nulled by the
+author path). `posts_select` hands an author their own REMOVED rows back, so
+every listing read has to exclude them itself. The filter goes into the shared
+read functions once, not into screens.
+- `apps/web/src/lib/social/deleted-posts.ts` (new): the one rule, pure: the
+  status filter and the thread pruning (a tombstone survives only while a
+  reply that is still there hangs off it)
+- `apps/web/src/lib/social/deleted-posts.test.ts` (new)
+- `apps/web/src/lib/social/posts-queries.ts`: ONLY the status filter on the
+  listing reads (feed pages, profile posts, replies, media, activity) and the
+  pruning in `getThread`
+- `apps/web/src/lib/social/profile-tabs-queries.ts`: ONLY the status filter in
+  `getProfileMediaGrid`
+- `apps/web/src/lib/social/comments-queries.ts`: ONLY the pruning in
+  `getComments`
+- `apps/web/src/lib/social/stories-queries.ts`: ONLY the pruning of story
+  comments, and a removed story with nothing under it reading as gone
+- `apps/web/src/lib/social/reads-deleted.test.ts` (new): the reads above
+  against an in-memory posts table
+- `apps/web/src/components/social/feed/PostCard.tsx`: ONLY the removed early
+  return (a card draws nothing for a removed post; no tombstone)
+- `apps/web/src/components/social/feed/Tombstone.tsx`: its header comment only
+- `apps/web/src/app/(app)/post/[id]/ThreadView.tsx`: ONLY rendering the
+  tombstone for a removed post inside the conversation, and leaving the page
+  when the root is deleted with nothing under it
+- `apps/web/src/components/social/comments/CommentsSheet.tsx`: ONLY dropping
+  a deleted comment nobody answered instead of patching it into a tombstone
+- `apps/web/src/lib/social/tombstone-placement.test.ts` (new): the tombstone
+  is reachable from the conversation renderers and nowhere else
+
 ## FOUNDER REASSIGNMENT, 22 SEPTEMBER, READ THIS FIRST
 
 The founder has moved two more areas to Session B, in his words "that's even the
