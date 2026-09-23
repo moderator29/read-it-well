@@ -16,7 +16,6 @@ import { recordAlert } from "@/lib/alerts";
 import { recordTermsAcceptance } from "@/lib/legal/acceptance";
 import { TERMS_VERSION } from "@/lib/legal/versions";
 import { termsRefusal } from "./terms-gate";
-import { welcomeOnce } from "@/lib/notify/welcome";
 import { authOrigin } from "@/lib/site";
 import { getProviderStates } from "./providers";
 import { HEAR_ABOUT_VALUES, REFERRAL_CODE_RE } from "./signup-options";
@@ -575,11 +574,17 @@ export async function verifySignUpCode(
   }
 
   await forgetPendingEmail();
-  /* THE FIRST EMAIL THIS PLATFORM SENDS, at the first moment the address is a
-     fact rather than a claim. Exactly once, whichever of the two confirmation
-     paths a person came down and however many times they came down it: see
-     `lib/notify/welcome.ts`. It cannot fail this action. */
-  if (data.user) await welcomeOnce(data.user.id);
+  /*
+   * NOTHING HERE SENDS THE WELCOME, AND THAT IS THE FIX RATHER THAN A GAP.
+   *
+   * It used to call `welcomeOnce` from here and from the link path below, and
+   * those two are not the only doors: Continue with Google, an invite and the
+   * admin API all mint a confirmed account without passing through either.
+   * `verifyOtp` has just written `auth.users.email_confirmed_at`, and
+   * `users_enqueue_welcome_email_on_confirm` put a row in `email_outbox` in
+   * the SAME TRANSACTION, keyed `account:welcome:<user id>` so a second tap
+   * cannot make a second one. See the migration of 23 September.
+   */
   // The session cookies are set. Drop every cached render so the shell picks
   // the signed-in tree rather than the anonymous one it rendered a moment ago.
   revalidatePath("/", "layout");
@@ -713,10 +718,8 @@ export async function completeEmailVerification(input: {
   }
 
   await forgetPendingEmail();
-  /* The link half of the same moment. `welcomeOnce` is the thing that stops
-     two taps on one email becoming two welcomes. */
-  const { data: confirmed } = await supabase.auth.getUser();
-  if (confirmed.user) await welcomeOnce(confirmed.user.id);
+  /* The link half of the same moment, and it sends nothing either: the
+     confirmation this just completed wrote the outbox row itself. See above. */
   // The session cookies are set. Drop every cached render so the shell picks
   // the signed-in tree rather than the anonymous one behind this screen.
   revalidatePath("/", "layout");

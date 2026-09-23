@@ -14,7 +14,7 @@ import {
   type TemplateNeeds,
   type WithdrawalFacts,
 } from "./templates";
-import type { VerificationRung } from "@/lib/email/messages";
+import type { SignupRole, VerificationRung } from "@/lib/email/messages";
 
 /**
  * THE DRAIN. The half of the junction that runs outside the database.
@@ -265,14 +265,20 @@ export async function readOutboxHealth(admin: AdminClient): Promise<OutboxHealth
 /** Everything a batch of rows asked for, gathered before any of them is built. */
 export type BatchFacts = {
   names: Map<string, string>;
+  /** What an account declared it came here for. Absent is an ordinary state. */
+  roles: Map<string, SignupRole>;
   listings: Map<string, ListingFacts>;
   withdrawals: Map<string, WithdrawalFacts>;
   rungs: Map<string, VerificationRung[]>;
   enquiries: Map<string, EnquiryFacts>;
 };
 
+/** `public.signup_role`, in SQL's own order. A DECLARATION, never a permission. */
+const SIGNUP_ROLES: readonly SignupRole[] = ["renter", "buyer", "landlord", "seller", "agent"];
+
 const EMPTY_FACTS = (): BatchFacts => ({
   names: new Map(),
+  roles: new Map(),
   listings: new Map(),
   withdrawals: new Map(),
   rungs: new Map(),
@@ -290,7 +296,7 @@ function mergeNeeds(rows: readonly OutboxRow[]): Required<TemplateNeeds> {
     if (!template) continue;
     let needs: TemplateNeeds;
     try {
-      needs = template.needs(row.payload);
+      needs = template.needs(row.payload, row.user_id);
     } catch {
       continue;
     }
@@ -330,11 +336,19 @@ export async function gatherFacts(
     try {
       const { data } = await admin
         .from("profiles")
-        .select("id, display_name")
+        .select("id, display_name, signup_role")
         .in("id", needs.users);
       for (const row of data ?? []) {
         const name = (row.display_name ?? "").trim();
         if (name.length > 0) facts.names.set(row.id, name);
+        /* Narrowed against the five labels rather than trusted, because the
+           generated types follow the enum and the welcome picks a document
+           from it. A sixth label added in SQL and not here picks the general
+           version, which is true of everybody, rather than throwing. */
+        const role = row.signup_role;
+        if (role && SIGNUP_ROLES.includes(role as SignupRole)) {
+          facts.roles.set(row.id, role as SignupRole);
+        }
       }
     } catch {
       /* Nameless is a sentence every builder can say. */
@@ -446,6 +460,7 @@ export async function gatherFacts(
 function lookupsFor(facts: BatchFacts): TemplateLookups {
   return {
     userName: (id) => facts.names.get(id) ?? null,
+    signupRole: (id) => facts.roles.get(id) ?? null,
     listing: (id) => facts.listings.get(id) ?? null,
     withdrawal: (id) => facts.withdrawals.get(id) ?? null,
     passedRungs: (id) => facts.rungs.get(id) ?? [],

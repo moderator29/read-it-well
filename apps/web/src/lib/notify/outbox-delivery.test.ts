@@ -60,6 +60,19 @@ function passwordChangedRow(): StoredRow {
   };
 }
 
+/** A welcome row, exactly as `users_enqueue_welcome_email_on_confirm` writes one. */
+function welcomeRow(): StoredRow {
+  return {
+    id: "row-welcome",
+    template: "account.welcome",
+    user_id: RECIPIENT,
+    payload: { at: "2026-09-23T13:05:00.000Z" },
+    attempts: 0,
+    status: "PENDING",
+    error: null,
+  };
+}
+
 function fakeDatabase(rows: StoredRow[]) {
   const settled: { id: string; result: string }[] = [];
   const rpc = async (fn: string, args: Record<string, unknown>) => {
@@ -81,11 +94,37 @@ function fakeDatabase(rows: StoredRow[]) {
     }
     return { data: {}, error: null };
   };
-  const from = () => ({
-    select: () => ({ in: async () => ({ data: [], error: null }) }),
+  /*
+   * The batch read the drain does before it builds anything. It is the real
+   * `gatherFacts` calling this, with the real column list, so `profiles` here
+   * answers with the shape PostgREST answers with: the drain then narrows the
+   * role itself. Every other table answers empty, because no row in this file
+   * asks for one.
+   */
+  const from = (table: string) => ({
+    select: (columns: string) => ({
+      in: async (_column: string, ids: string[]) => {
+        if (table !== "profiles") return { data: [], error: null };
+        /* If the drain ever stops asking for the role, this notices. */
+        if (!columns.includes("signup_role")) {
+          return { data: [], error: new Error("the drain did not ask for signup_role") };
+        }
+        return {
+          data: ids.map((id) => ({
+            id,
+            display_name: "Ada Balogun",
+            signup_role: profileRole,
+          })),
+          error: null,
+        };
+      },
+    }),
   });
   return { admin: { rpc, from } as never, settled, rows };
 }
+
+/** What `profiles.signup_role` answers with for the rows in one test. */
+let profileRole: string | null = null;
 
 /** Everything one intercepted POST tells us. */
 type Captured = {
@@ -127,6 +166,7 @@ function captureFetch(reply: { status: number; body: unknown }): {
 let restoreFetch: (() => void) | null = null;
 
 beforeEach(() => {
+  profileRole = null;
   contactForUser.mockReset();
   contactForUser.mockResolvedValue({ email: "ada@example.com", name: "Ada Balogun" });
   /* A key has to be present or `sendEmail` answers `unconfigured` and never
@@ -179,6 +219,57 @@ describe("a row a database trigger wrote becomes a real HTTP request", () => {
     expect(result.counts).toMatchObject({ claimed: 1, sent: 1 });
     expect(settled).toEqual([{ id: "row-security", result: "sent" }]);
     expect(rows[0]?.status).toBe("SENT");
+  });
+
+  it("posts the welcome, in the version the reader declared, to the confirmed address", async () => {
+    profileRole = "landlord";
+    const { admin, settled, rows } = fakeDatabase([welcomeRow()]);
+    const capture = captureFetch({ status: 200, body: { id: "resend-message-id" } });
+    restoreFetch = capture.restore;
+
+    const result = await drainEmailOutbox(admin);
+
+    expect(capture.calls).toHaveLength(1);
+    const call = capture.calls[0];
+    expect(call?.url).toBe("https://api.resend.com/emails");
+    expect(call?.body.to).toEqual(["ada@example.com"]);
+    expect(call?.body.from).toBe("Vallo <hello@vallospaces.com>");
+
+    /* THE MESSAGE, built by the real `welcome` builder, with the role the
+       real `gatherFacts` read out of `profiles` rather than out of the row. */
+    expect(call?.body.subject).toBe("Welcome to Vallo, Ada");
+    expect(call?.body.html).toContain("You told us you have property to let");
+    expect(call?.body.html).toContain("Register as an owner");
+    /* The button, at the address the first run screen actually lives at. */
+    expect(call?.body.html).toContain("/welcome");
+    /* The general version's opening must NOT be here. It is what a build that
+       lost the role lookup would send, and it would send it to everybody. */
+    expect(call?.body.html).not.toContain("You have not told us what brought you here");
+
+    /* Both parts, and no id and no private address on either. */
+    expect(call?.body.text).toBeTruthy();
+    expect(call?.body.text).toContain("Welcome to Vallo");
+    expect(call?.body.html).not.toContain(RECIPIENT);
+    expect(call?.body.text).not.toContain(RECIPIENT);
+    expect(call?.body.html).not.toContain("vallospacesltd@gmail.com");
+    expect(call?.body.text).not.toContain("vallospacesltd@gmail.com");
+
+    expect(result.counts).toMatchObject({ claimed: 1, sent: 1 });
+    expect(settled).toEqual([{ id: "row-welcome", result: "sent" }]);
+    expect(rows[0]?.status).toBe("SENT");
+  });
+
+  it("welcomes somebody who declared nothing with the version that says so", async () => {
+    profileRole = null;
+    const { admin } = fakeDatabase([welcomeRow()]);
+    const capture = captureFetch({ status: 200, body: { id: "resend-message-id" } });
+    restoreFetch = capture.restore;
+
+    await drainEmailOutbox(admin);
+
+    expect(capture.calls).toHaveLength(1);
+    expect(capture.calls[0]?.body.html).toContain("You have not told us what brought you here");
+    expect(capture.calls[0]?.body.html).not.toContain("You told us you have property to let");
   });
 
   it("puts the row back when Resend refuses it, and posts once, not twice", async () => {

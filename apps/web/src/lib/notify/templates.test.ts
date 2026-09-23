@@ -35,6 +35,8 @@ const MESSAGE = "99999999-9999-4999-8999-999999999999";
 
 const lookups: TemplateLookups = {
   userName: (id) => (id === PAYEE ? "Chidi Okonkwo" : id === PAYER ? "Ada Balogun" : null),
+  /* Only the payer declared one, so the welcome has both branches to walk. */
+  signupRole: (id) => (id === PAYER ? "landlord" : null),
   listing: (id) =>
     id === LISTING ? { title: "2 bedroom flat, Yaba", address: "14 Herbert Macaulay Way" } : null,
   withdrawal: (id) => (id === ENTRY ? { bankName: "GTBank", accountLast4: null } : null),
@@ -73,6 +75,7 @@ function escrowPayload(state: string, viewer: "payer" | "payee", extra: Payload 
  * morning.
  */
 const TEMPLATES_THE_TRIGGERS_WRITE = [
+  "account.welcome",
   "escrow.INITIATED",
   "escrow.HELD",
   "escrow.RELEASE_REQUESTED",
@@ -91,6 +94,8 @@ const TEMPLATES_THE_TRIGGERS_WRITE = [
 
 /** One real payload per template, of the shape its own trigger composes. */
 const PAYLOADS: Record<(typeof TEMPLATES_THE_TRIGGERS_WRITE)[number], Payload> = {
+  /* `private.enqueue_welcome_email` writes the clock and nothing else. */
+  "account.welcome": { at: "2026-09-23T13:05:00.000Z" },
   "escrow.INITIATED": escrowPayload("INITIATED", "payer"),
   "escrow.HELD": escrowPayload("HELD", "payer", {
     auto_release_at: "2026-10-01T09:00:00.000Z",
@@ -169,20 +174,92 @@ describe("the registry covers every template a trigger writes", () => {
   });
 
   it("asks only for the ids its own payload carries", () => {
-    const escrow = OUTBOX_TEMPLATES["escrow.HELD"]?.needs(PAYLOADS["escrow.HELD"]);
+    const escrow = OUTBOX_TEMPLATES["escrow.HELD"]?.needs(PAYLOADS["escrow.HELD"], PAYER);
     expect(escrow?.users).toEqual([PAYEE]);
     expect(escrow?.listings).toEqual([LISTING]);
 
     /* The two security templates need nothing looked up at all, which is what
        lets them send when everything else is unreachable. */
     expect(
-      OUTBOX_TEMPLATES["security.password_changed"]?.needs(PAYLOADS["security.password_changed"]),
+      OUTBOX_TEMPLATES["security.password_changed"]?.needs(
+        PAYLOADS["security.password_changed"],
+        PAYER,
+      ),
     ).toEqual({});
     expect(
       OUTBOX_TEMPLATES["security.new_device_sign_in"]?.needs(
         PAYLOADS["security.new_device_sign_in"],
+        PAYER,
       ),
     ).toEqual({});
+
+    /* The welcome's payload carries no id at all, so the only thing it can
+       ask for is the reader it is addressed to. If it ever asked for an id
+       off the payload, the payload would have to carry one. */
+    expect(
+      OUTBOX_TEMPLATES["account.welcome"]?.needs(PAYLOADS["account.welcome"], PAYER),
+    ).toEqual({ users: [PAYER] });
+  });
+});
+
+describe("the welcome is the version the reader declared, and never a guess", () => {
+  /* The six versions differ in their words, not in their shell, so every
+     assertion here is on a sentence only one version contains. A build that
+     handed `welcome` the wrong role, or no role at all, fails on these. */
+
+  it("sends the landlord the landlord's first steps, because that is what they said", () => {
+    const message = templateFor("account.welcome")?.build(
+      PAYLOADS["account.welcome"],
+      contextFor(PAYER, "Ada Balogun"),
+    );
+    expect(message?.subject).toBe("Welcome to Vallo, Ada");
+    expect(message?.html).toContain("You told us you have property to let");
+    expect(message?.html).toContain("Register as an owner");
+    /* And NOT the renter's opening, which is the failure this catches: a
+       registry that dropped the lookup would send everybody the general one. */
+    expect(message?.html).not.toContain("You told us you are looking for somewhere to live");
+    expect(message?.html).not.toContain("You have not told us what brought you here");
+  });
+
+  it("sends the general version when nothing was declared, and says so honestly", () => {
+    const message = templateFor("account.welcome")?.build(
+      PAYLOADS["account.welcome"],
+      contextFor(PAYEE, "Chidi Okonkwo"),
+    );
+    expect(message?.html).toContain("You have not told us what brought you here");
+    expect(message?.html).not.toContain("You told us you have property to let");
+  });
+
+  it("greets by the first name and never opens with a legal name or an id", () => {
+    const message = templateFor("account.welcome")?.build(
+      PAYLOADS["account.welcome"],
+      contextFor(PAYER, "Ada Balogun"),
+    );
+    expect(message?.html).toContain("Hello Ada.");
+    expect(message?.html).not.toContain("Hello Ada Balogun");
+    expect(message?.html).not.toContain(PAYER);
+    expect(message?.text).not.toContain(PAYER);
+  });
+
+  it("still has a message for somebody we have no name for", () => {
+    const message = templateFor("account.welcome")?.build(
+      PAYLOADS["account.welcome"],
+      contextFor(PAYEE, null),
+    );
+    expect(message?.subject).toBe("Welcome to Vallo");
+    expect(message?.html).not.toContain("Hello ,");
+    expect(message?.html).not.toContain("Hello null");
+  });
+
+  it("points at the first run screen, not at an address nobody can reach", () => {
+    const message = templateFor("account.welcome")?.build(
+      PAYLOADS["account.welcome"],
+      contextFor(PAYER, "Ada"),
+    );
+    expect(message?.text).toContain("/welcome");
+    /* The one private address the founder keeps off every public surface. */
+    expect(message?.html).not.toContain("vallospacesltd@gmail.com");
+    expect(message?.text).not.toContain("vallospacesltd@gmail.com");
   });
 });
 

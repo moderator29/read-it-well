@@ -15,8 +15,10 @@ import {
   newEnquiry,
   passwordChanged,
   verificationRungPassed,
+  welcome,
   withdrawalOutcome,
   type EmailMessage,
+  type SignupRole,
   type VerificationRung,
   type WithdrawalOutcome,
 } from "../email/messages";
@@ -114,6 +116,18 @@ export type TemplateNeeds = {
 /** What the drain hands back, once it has read it. */
 export type TemplateLookups = {
   userName: (id: string) => string | null;
+  /**
+   * What this account said it came here to do, or null.
+   *
+   * Read at send time rather than carried in the row, and that is a rule
+   * rather than a convenience: a declared role is a statement a person made
+   * about themselves, and the queue holds ids so that a row read out of it
+   * describes an event without describing anybody. Reading it late is also
+   * simply more correct, because somebody who confirms and then answers the
+   * first run question before the drain next runs gets the version that
+   * matches what they said.
+   */
+  signupRole: (id: string) => SignupRole | null;
   listing: (id: string) => ListingFacts | null;
   withdrawal: (id: string) => WithdrawalFacts | null;
   /** The `agent_verification_checks.kind` values at `passed`, mapped to rungs. */
@@ -151,8 +165,15 @@ export type OutboxTemplate = {
    * the code quietly ignores is worse than no switch.
    */
   channel?: EmailChannel;
-  /** The ids this template needs looked up, read off its own payload. */
-  needs: (payload: Payload) => TemplateNeeds;
+  /**
+   * The ids this template needs looked up.
+   *
+   * Read off its own payload, and off the row's recipient, which is the one
+   * id every row carries and the payload therefore never repeats. The welcome
+   * is the template that wants it: the only thing it looks up is a fact about
+   * the person it is addressed to.
+   */
+  needs: (payload: Payload, recipientId: string) => TemplateNeeds;
   /**
    * The message, or null when this payload cannot make one.
    *
@@ -314,6 +335,40 @@ function escrowTemplate(
  * plumbing.
  */
 export const OUTBOX_TEMPLATES: Readonly<Record<string, OutboxTemplate>> = {
+  /* -------------------------------------------------------------- account */
+
+  /**
+   * The first thing Vallo ever sends somebody unprompted.
+   *
+   * WRITTEN BY `users_enqueue_welcome_email_on_insert` AND
+   * `..._on_confirm`, both on `auth.users`, at the moment the address stops
+   * being a claim and becomes a fact. Not at sign-up: mailing an unconfirmed
+   * address makes this platform the delivery mechanism for somebody else's
+   * abuse.
+   *
+   * NO `channel`, DELIBERATELY. The four switches on `/settings` are Bookings,
+   * Messages, Wallet and Marketing, and this is none of them. It is the one
+   * message that explains what the account somebody just opened actually is,
+   * and it carries the link to those switches: muting it behind a switch the
+   * reader has not been shown yet would be silencing the letter that tells
+   * them the switches exist.
+   *
+   * THE ROLE IS READ AND NEVER GUESSED. `welcome` writes six versions and
+   * `profiles.signup_role` carries the one the person declared. Null is an
+   * ordinary state, not a lesser one: it means they were never asked or they
+   * skipped, and the general version names both sides of the platform rather
+   * than inferring a role from anything else about them, which would be
+   * inventing a fact about a person.
+   */
+  "account.welcome": {
+    needs: (_payload, recipientId) => ({ users: [recipientId] }),
+    build: (_payload, context) =>
+      welcome({
+        name: context.recipient.name,
+        role: context.lookups.signupRole(context.recipientId),
+      }),
+  },
+
   /* --------------------------------------------------------------- escrow */
 
   "escrow.INITIATED": escrowTemplate((base) => heldPaymentProposed(base)),

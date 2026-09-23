@@ -202,11 +202,34 @@ describe("the decision paths are actually wired to the junction", () => {
     }
   });
 
-  it("confirming an address sends the welcome", async () => {
+  /*
+   * THIS USED TO ASSERT THAT `welcomeOnce` APPEARED TWICE IN THE SOURCE, AND
+   * THAT WAS A BLIND LIGHT OF THE EXACT KIND SECTION 17 SWEPT FOR.
+   *
+   * It watched two call sites and could not see that there were five doors:
+   * Continue with Google, an invite and the admin API all mint a confirmed
+   * account without touching `lib/auth/actions.ts` at all, so the check was
+   * green on a product where a third of new accounts got nothing. The welcome
+   * is now enqueued by a trigger on `auth.users` and the guarantee lives in
+   * the database, which is why the assertion below is the opposite one: the
+   * sign-up action must NOT be the thing that sends it.
+   *
+   * What replaced the coverage: the trigger itself, proven against the live
+   * catalogue by the probe recorded in its migration (insert door, confirm
+   * door, an unconfirmed address queued nothing, a retry made one row, an
+   * anonymous account got none), and `templates.test.ts` plus
+   * `outbox-delivery.test.ts` on the message that comes out.
+   */
+  it("does not send the welcome from a call site, because a call site is one door of five", async () => {
     const source = await read("lib/auth/actions.ts");
-    expect(source).toContain("welcomeOnce");
-    /* Both paths: the six digit code and the emailed link. */
-    expect(source.match(/await welcomeOnce\(/g) ?? []).toHaveLength(2);
+    /* No import of the retired module and no call to it. A comment saying
+       what used to be here is welcome; a line that actually sends is not. */
+    expect(source).not.toContain("notify/welcome");
+    expect(source.match(/welcomeOnce\s*\(/g) ?? []).toHaveLength(0);
+
+    /* And the module itself is gone, so there is nothing to import back by
+       accident. `readFile` rejects on a path that does not exist. */
+    await expect(read("notify/welcome.ts")).rejects.toThrow();
   });
 
   /* The sentence that sent listers hunting for a control only an admin has. */
