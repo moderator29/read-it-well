@@ -702,11 +702,24 @@ export async function completeEmailVerification(input: {
   } else if (input.tokenHash) {
     /* The type decides what is being confirmed. Anything we do not recognise
        is treated as a signup, which is the only one that reaches this screen
-       without a type in practice. */
-    const type = ["signup", "email", "email_change", "recovery", "invite", "magiclink"].includes(
-      input.type ?? "",
-    )
-      ? (input.type as "signup" | "email" | "email_change" | "recovery" | "invite" | "magiclink")
+       without a type in practice.
+
+       `email_change` IS DELIBERATELY NOT IN THIS LIST, 23 September. An email
+       address is permanent on this platform, by the founder's ruling, because
+       an account cannot be merged or corrected afterwards and the link between
+       an account and its underlying mailbox has to mean something. Nothing in
+       the product initiates a change, and this is the other half of that:
+       even a token minted outside the product cannot be redeemed here. An
+       unrecognised type falls through to "signup", which fails against an
+       email-change token rather than confirming one.
+
+       THE ONE PLACE AN ADDRESS IS EVER REWRITTEN is `scrubAuth` in
+       `lib/account-deletion/service.ts`, which replaces it with a
+       `deleted.invalid` pseudonym during a purge. That is erasure, not a
+       change, it runs as the service role in a job, and no signed-in person
+       can reach it. `email-immutable.test.ts` holds both halves as a check. */
+    const type = ["signup", "email", "recovery", "invite", "magiclink"].includes(input.type ?? "")
+      ? (input.type as "signup" | "email" | "recovery" | "invite" | "magiclink")
       : "signup";
     const { error } = await supabase.auth.verifyOtp({ token_hash: input.tokenHash, type });
     if (error) return { ok: false, reason: "expired" };
