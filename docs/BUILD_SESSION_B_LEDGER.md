@@ -1566,7 +1566,7 @@ harness. Font size from cap height / 0.72 (R-A).
 | Tabs | 25.5 image px tall -> 38; label cap 7.5 -> 15.6px; radius 3 -> 4.5 | 44 tall, 15px 500, radius 14 (ratio 0.32) | label yes; height R-B floor 44; radius the shape law's control radius |
 | Active tab | lit blue #71A0FD face, #93BCFE highlight, bloom | brand gradient over `--nf-admin-cta-edges` lit edges, top inset rim, 8/22px bloom | yes |
 | Tab counts | none drawn (render has no counts) | exact counts beside each word | deliberate: the brief asks for real counts |
-| Panel | radius 6.5 -> 10; fill #00143A; edge #00358A | radius 14; `--nf-admin-panel-fill` lit gradient; per-side lit edges; rim; field glow | radius follows the shell's measured 13 on 5EAA44CB and the glow identity, so every desk matches; fill and edge yes |
+| Panel | radius 6.5 -> 10; fill #00143A; edge #00358A | radius 10 (the shell's reconciled `--nf-admin-radius`, 66c2ecf5); `--nf-admin-panel-fill` lit gradient; per-side lit edges; rim; the shell's glow | yes |
 | Column heads | cap 5.5 -> 11.5px, #169EE0 | 12px 500, #5C9FFF | yes (floor) |
 | Row | 54 image px -> 81 | 81 | yes |
 | Thumbnail | 29.5 x 37.5 -> 44 x 56, radius ~4 | 44 x 56, radius 6 | yes |
@@ -1575,8 +1575,8 @@ harness. Font size from cap height / 0.72 (R-A).
 | Status badge | 29.5 x 18 -> 44 x 27, filled tone, radius 5 -> 7.5 | 26 tall, radius 6 (0.23), tone fill 42% on navy, tone edge, glow | yes; words are the tab's words ("Waiting", "More info needed") |
 | Badge colours | green #027657/#08A47B, red #861833, blue #4F94EC | success #10B981, error #FF1744, pending #00C8FF, info brand | family yes; render's "Under review" green is translated to pending cyan |
 | Queue health donut | 50 image px -> 75 in a 75-wide rail; four slices | 128px ring in the 300px rail; four slices, legend with counts | proportion to rail kept; size up because the rail is wider (R-C note) |
-| Average review time | figure cap 12.5 -> 26px; delta emerald with arrow | 30px 600; emerald arrow delta; caption with the N | +4px: one KPI size across the three desks (26, 31, 40 measured) |
-| Pager | 22 image px -> 33; active lit; sits in its own panel; numbered to 12 | 44 x 44 (R-B), active lit; bare under the table; numbers only pages it has evidence for | squares yes; NOT YET: the render's panel behind the pager on the listings queue (moderation has it); the page count is honest by design (a cursor read has no total) |
+| Average review time | figure cap 12.5 -> 26px; delta emerald with arrow | 26px 600 (measured); emerald arrow delta; caption with the N | yes |
+| Pager | 22 image px -> 33; active lit; in its own panel; numbered to 12 | 44 x 44 (R-B), active lit, in its own lit panel; numbers only pages it has evidence for | yes; the page count is honest by design (a cursor read has no total) |
 
 **Listing under review (C1D98B3C panel 2, GOVERNING-12 flow)**
 
@@ -1587,7 +1587,7 @@ harness. Font size from cap height / 0.72 (R-A).
 | Summary | 13px quiet blue | 13px `--nf-brand-secondary` | yes |
 | Photo strip | lead photo, video tile with play, 6 small, "+6" | lead, walkthrough (poster and play when unsigned), 8 small, "+N" | yes |
 | Property details | icon, label in blue, value right | 16px line icons, blue labels, values right, rows 34 tall | yes |
-| Power and water | glass plates 32 with glyph | 32px plates on `--nf-admin-tile-edges`, lit | yes; water glyph is `pool` (no water glyph in UiIcon) |
+| Power and water | glass plates 32 with glyph | 32px plates on `--nf-admin-tile-edges`, lit; bolt, bolt, and a stroked water drop drawn in the line tier | yes; the identity pack's `water-drop-plinth` is a glass object and the plates carry line glyphs, so a glass object would break the set |
 | Amenities | tick rows | tick rows from `amenities.label` | yes |
 | Location | dark map with pin, place label, "View on map" | real tiles from `lib/maps/tiles.ts` (dark and paper sets), pin, place, credit | "View on map" not drawn (it would leave Vallo) |
 | Move-in costs | lines + "Total to move in" | lines each naming its payee + total, stated or summed | deliberate: payee added (R5, rule 15) |
@@ -1602,9 +1602,9 @@ harness. Font size from cap height / 0.72 (R-A).
 | --- | --- | --- | --- |
 | Title / sub | 22px / 13px quiet blue | 22px / 13px | yes |
 | Reason tabs | All, Abuse, Fraud, Spam, Sexual content, Impersonation | All, the eight real reasons (short words), Held by the scan | translated: the render's five are not recorded categories |
-| KPI cards | two, figure cap 20 -> ~40px, sparkline, delta | two, 30px figure, sparkline of 14 real days, delta vs last week; Over 24 hours title in rose | figure 30 (one KPI size, see listings) |
+| KPI cards | two, figure cap 20 -> ~40px, sparkline, delta | two, 40px figure (measured), sparkline of 14 real days, delta vs last week; Over 24 hours title in rose | yes |
 | Table | item with thumb, reporter + "User", reason, age, status | item with lit plate (a report has no photo), reporter + Member or Safety scan, reason, age, status; rows open to the decision | yes; plate for thumbnail because a report target is not always a listing |
-| Row height | ~47 image -> 71 | 65 | -6: two-line cells at 13px |
+| Row height | ~47 image -> 71 | 71 (measured) | yes |
 | Breakdown donut | ring, total, five reasons with % | ring, total waiting, every reason with its count, blue ramp by magnitude | palette translated (render teal and pink are off-family; research part four) |
 | Queue health | "Human review 24/7", avg response time | open, in review, held, median response this week vs last | "24/7" refused (a claim) |
 | Community safety | shield, "Our priority" | shield, one sentence of what actually happens | slogan replaced by a fact |
@@ -1614,9 +1614,9 @@ harness. Font size from cap height / 0.72 (R-A).
 
 | Property | Image | Built | Match |
 | --- | --- | --- | --- |
-| KPI row | four cards, figure cap 15 -> 31px, delta, "vs last week" | four cards, 30px, delta vs yesterday or a week ago, from exact counts | yes |
+| KPI row | four cards, figure cap 15 -> 31px, delta, "vs last week" | four cards, 31px (measured), delta vs yesterday or a week ago, from exact counts | yes |
 | Queue table | avatar, name, role, tier chip, match score, submitted, Pass/Fail | avatar initial, name, role, Tier badge, rungs passed of 4, latest upload, documents to decide | "match score" refused (not recorded), rungs instead |
-| Row | ~42 image -> 64 | 52 | -12: avatar 28 not 36 |
+| Row | ~42 image -> 64, avatar 24 -> 36 | 64 (measured), avatar 36 | yes |
 | Funnel | tapered funnel, four figures | one status bar with words and counts (awaiting, passed, failed) | translated: the render's funnel is not a funnel (Passed > Under review); one status bar per the founder's chart rule |
 | Provider performance | NIMC, BVN, Bank, Selfie with % | Results by rung: identity, address, payout, met in person, passed, pending, failed | refused provider names and rates (not recorded); every rung covered |
 | Recent verifications | name, role, result, time | name, document, result, time | role column replaced by the document (what was decided) |
@@ -1639,7 +1639,12 @@ card; tab words too long for moderation. All fixed (d646d25). Round two (after
 R-A to R-G and the glow identity): title 26 -> 22 and tabs 14 -> 15 from cap
 heights, thumbnail 52 -> 44 wide, role tag 20 -> 22, all controls 40 -> 44,
 the lit fill and per-side edges taken from the shell's identity variables
-rather than a flatter local copy (c565f38, b09beea, d08117f).
+rather than a flatter local copy (c565f38, b09beea, d08117f). Round three
+(5ce9249), closing the four differences this section had listed as not
+matching: the listings pager in its own panel, moderation rows 71 and
+verification rows 64 (avatar 36), KPI figures per desk at 26, 31 and 40, and
+a line water drop; panels on the shell's reconciled 10px corner and glow
+(66c2ecf5). Side-by-sides re-shot after it; they hold.
 
 ### (c) Light mode
 
@@ -1660,9 +1665,9 @@ vanishing text, the empty calm note readable.
 390,1440 --theme both`: BREACHES 0; WORTH AN EYE (0.35 to 0.5) 0; round
 icon-only 0. Because that tool lists only controls at or above 0.35, a census
 of every text-bearing control was also taken (`scratchpad/ar/ratios.mjs`):
-listings 61 controls at 1440 (53 at 390), max 0.318 (tab 44 tall, radius
-14); review 16, max 0.318 (reason field); moderation 53, max 0.318; kyc 39,
-max 0.231 (badge 26 tall, radius 6); identical in dark and light.
+listings max 0.318 (tab 44 tall, radius 14); review max 0.318 (reason
+field); moderation max 0.318; kyc max 0.231 (badge 26 tall, radius 6);
+identical in dark and light, re-run after round three.
 `check-css-tokens.mjs`: clean. tsc: clean. eslint on every changed file:
 clean. vitest `src/lib/admin/reads` and `src/app/admin/_review`: 80 passed.
 
