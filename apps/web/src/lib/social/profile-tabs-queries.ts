@@ -23,6 +23,7 @@ import { createClient } from "../supabase/server";
 import { resolveSession } from "../actions/session";
 import type { Database } from "../supabase/database.types";
 import { listingPhotoUrl, signMedia, type PostMediaItem } from "./posts-media";
+import { DELETED_STATUS } from "./deleted-posts";
 import {
   headlinePeriod,
   headlinePrice,
@@ -212,6 +213,10 @@ export async function getProfileMediaGrid(userId: string): Promise<MediaTile[]> 
       .from("posts")
       .select("id, created_at, post_media!inner ( storage_path, position, width, height )")
       .eq("author_id", userId)
+      /* A deleted post is deleted (founder, item 4). The media rows are dropped
+         by `posts_drop_media_on_remove` as the status lands, and this says the
+         same thing at the read, so the grid never depends on that alone. */
+      .neq("status", DELETED_STATUS)
       .order("created_at", { ascending: false })
       .limit(60);
     if (error || !data) return [];

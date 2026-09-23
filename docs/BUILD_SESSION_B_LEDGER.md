@@ -3110,9 +3110,139 @@ with a lit edge, a picture rather than an icon chip. Proof:
   looked at on paper in the contact sheet and the harness, at 88 and 92 px,
   and nowhere else.
 
+## 12. Deleted posts
+
+Founder, item 4 (23 September): "A DELETED POST IS DELETED. ... It should
+simply not be there. Deleted means gone from every surface that lists posts,
+including my profile grid and the feed. The only place a tombstone is ever
+acceptable is inside a conversation that would otherwise break, where somebody
+replied to it. Nowhere else, and never on a profile."
+
+Commits: `c3fbba35` (scope claim, pushed first), `1385bfc8` (the fix and its
+tests). Files are listed under "Deleted posts (item 4, new)" in
+`docs/SESSION_B_SCOPE.md`.
+
+### 12.1 How deletion is recorded (read-only SQL, 23 September)
+
+- `public.posts.status` is `social_status` (`LIVE`, `HELD`, `REMOVED`), with
+  `removed_at` and `hidden_by`. There is no `deleted_at`. Live: 74 LIVE, 1
+  REMOVED (a root with no replies, the founder's own, 12 September).
+- The author's delete (`removePost`, `lib/social/posts-actions.ts`) is an
+  UPDATE to `status = 'REMOVED'`, `body = null`, `removed_at`. The row is kept
+  on purpose: `parent_id` cascades, so a hard delete would take other people's
+  replies with it.
+- `posts_update_own` allows exactly that transition; `posts_zz_guard_update`
+  guards the rest.
+- **The cause of the bug:** `posts_select` is `(LIVE and visible place and not
+  blocked) OR author_id = auth.uid() OR admin`. The middle branch hands an
+  author their OWN removed rows back, so every listing read returned the
+  founder's deleted post on his own profile and his own feed, and `PostCard`
+  drew it as "This post was removed." The database was never going to hide it
+  from its author; the reads had to.
+- Triggers on the transition: `posts_drop_media_on_remove` deletes the
+  `post_media` rows; `posts_status_counters` (`private.bump_post_status_counters`)
+  decrements the parent's `reply_count`, the place's `areas.post_count` and the
+  author's `social_profiles.post_count`, and re-increments on a restore;
+  `posts_notify_after_status_change` tells the author only when an admin
+  removed it (`hidden_by` set).
+- Stories: `stories.status` and `story_comments.status` carry the same enum.
+
+### 12.2 Every surface that lists posts, its read, before and after
+
+| Surface | Read | Before | After |
+|---|---|---|---|
+| Around, everywhere (`/around`) | `getEverywhereFeed` then `readFeedPage` (`posts-queries.ts`) | author's own removed roots came back through RLS and drew a tombstone in the timeline | `.neq("status", "REMOVED")` at the query |
+| Around, joined places | `getJoinedFeed` then `readFeedPage` | same | same filter (one function) |
+| A place's feed (`/around/[slug]`) and the assistant's `area_intel` | `getAreaFeed` then `readFeedPage` | same | same filter |
+| Own profile Posts (`/profile`, `ProfilePosts`) | `getProfileFeed` | the founder's deleted post drew "This post was removed." | filtered at the query |
+| Public profile Posts (`/u/[handle]`) | `getProfileFeed` | same for the owner viewing their own page | filtered |
+| Profile Replies | `getProfileReplies` | own deleted replies listed as tombstones | filtered |
+| Profile Media (cards) | `getProfileMedia` | a removed post with media rows still stored would list | filtered |
+| Profile media grid | `getProfileMediaGrid` (`profile-tabs-queries.ts`) | relied on the media trigger alone | filtered at the query as well |
+| Profile Activity (likes, reposts) | `getProfileActivity` | a like on your own since-deleted post listed a tombstone | filtered; the entry drops |
+| Post thread (`/post/[id]`) | `getThread` | every removed reply shown as a tombstone, answered or not; a removed root with nothing under it opened as a lone tombstone | `pruneDeleted`: a removed reply stays only while a reply that is still there hangs off it; a removed root with nothing left reads as not found |
+| Comments sheet | `getComments` (`comments-queries.ts`) | every removed comment a tombstone | same pruning |
+| Story page (`/stories/[id]`) | `getStory` (`stories-queries.ts`) | a removed story opened with its headline and place still printed | not found when no comment still hangs off it; otherwise the headline is the removed sentence, no picture, no place |
+| Story comments | `getStoryComments` | every removed comment a tombstone | same pruning |
+| Story rails, story count | `listStories`, `countStories` | already `status = LIVE` | unchanged |
+| Home trending (posts and stories) | `home-queries.ts` | already `status = LIVE` | unchanged (Session A's file, not touched) |
+| Admin moderation queue and counts | `lib/admin/moderation-queries.ts`, `lib/admin/reads/moderation.ts`, `lib/admin/queries.ts` | `status = HELD` only; never lists removed rows | unchanged |
+| Search | none | no read lists posts in search today (search is listings) | nothing to change |
+| Notifications | `notifications` rows written by triggers, linking `/post/<id>` | a list of notifications, not of posts | unchanged; see 12.5 |
+
+`posts-media.ts` `readPostViews` has no caller and was left alone.
+
+### 12.3 The chain
+
+Delete control (card or thread menu, "Delete") then `removePost` (server
+action, `posts-actions.ts`: post id validated, signed-in author, scoped by
+`author_id`, no time window on removal; a HELD post is refused with its own
+sentence) then `posts_update_own` (RLS; the fifteen minutes apply to edits only)
+then `public.posts` UPDATE to REMOVED then triggers (media dropped, counters
+decremented, author told if an admin did it) then the READ (every listing
+function above excludes REMOVED; the thread and comment reads prune) then the
+screen (`PostCard` returns nothing for a removed post; `ThreadView.card` draws
+`Tombstone` for a removed post it was handed, which only `getThread` can hand
+it). After deleting in a feed, `Feed` drops the card locally and refreshes;
+after deleting a thread's root with nothing live under it, the thread view
+now goes to `/around` rather than refreshing into not found; after deleting a
+comment, `CommentsSheet` prunes it locally by the same rule.
+
+Counts: `areas.post_count` (the only post count drawn: CityHero, place page)
+matches the live non-removed root count in all 9 places. Every `reply_count`
+matches its non-removed children (75 of 75). `social_profiles.post_count` is
+decremented on delete, but it is not drawn on any profile today (AccountHero
+takes it and does not print it), and it drifts on one account: 6 stored
+against 8 non-removed rows (4 roots, 4 replies). The drift predates and is
+not caused by the delete (the removed row is correctly out of the 6). If a
+profile count is ever drawn, it needs a recount first: request for Session A,
+not filed as blocking because nothing renders it.
+
+### 12.4 Tests
+
+- `lib/social/deleted-posts.test.ts` (6): the pruning rule (unanswered
+  deleted reply goes, answered one stays, a deep live answer keeps the chain,
+  a dead chain goes, a cycle does not hang), and `conversationIsGone`.
+- `lib/social/reads-deleted.test.ts` (16): each read against an in-memory
+  table that, like `posts_select` for an author, hands back every row including
+  deleted ones: everywhere, a place, joined, profile Posts, Replies, Media,
+  media grid, Activity, no tombstone in any profile read, the thread (pruned,
+  answered kept), a deleted root not found, an answered deleted root as the
+  tombstone, the comments sheet, a deleted story not found, an answered one
+  with none of its words, story comments pruned. Run against the previous
+  reads, 14 of the 15 then-existing cases FAILED (the one that passed is the
+  answered root, which was already a tombstone); all pass now.
+- `lib/social/tombstone-placement.test.ts` (4): only `ThreadView` imports
+  `Tombstone`; only the tombstone and the conversation renderers
+  (`ThreadView`, `CommentsSheet`) print the removed sentence; `PostCard` has
+  `if (post.removed) return null;` and no `<Tombstone`; `ThreadView` draws it
+  only under `post.removed`. The unit config renders no component, so this is
+  a source test, said plainly.
+- Checks at `1385bfc8`: `tsc --noEmit` clean; `eslint` on the twelve changed
+  files clean; `check-css-tokens` clean; `vitest run src/lib/social
+  src/components` 34 files, 285 tests passed.
+
+### 12.5 Not verified
+
+- No live signed-in run: no test account may be created, so the founder's own
+  profile was not opened after the change. Proven by the SQL read of the
+  policy and triggers, the code and the tests above.
+- No screenshot: the change removes a card rather than drawing one.
+- A notification that links to a post which has since been deleted (a like,
+  a reply, or "Your post was removed") now opens not found when nothing is
+  left under that post. The notification rows are written by Session A's
+  triggers; deciding whether they should be withdrawn on delete is a question
+  for Session A, not changed here.
+- `social_profiles.post_count` drift on one account (12.3), not drawn today.
+
 ## Skipped or not verified
 
 (appended honestly as work proceeds)
+
+- Deleted posts (section 12): no live signed-in run (no test user); proven by
+  read-only SQL, code and 26 unit tests. Notifications pointing at a deleted
+  post open not found; profile `post_count` drifts on one account and is not
+  drawn.
 
 - admin-review (section 7): no signed-in run of the listings, moderation or
   verification desks (no admin test user); every proof is fixture-backed

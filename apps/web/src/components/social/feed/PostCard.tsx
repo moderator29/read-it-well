@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { PostBody } from "./PostBody";
-import { Tombstone } from "./Tombstone";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 
@@ -288,19 +287,13 @@ export function PostCard({
   editor?: React.ReactNode;
 }) {
   /*
-   * A post that was taken down is a tombstone and nothing else.
-   *
-   * Before this, only the body was dropped, and every other part of the card
-   * carried on: the pictures, the listing plate with its price, the marks row
-   * inviting a like on something that is gone. `posts_select` hands a person
-   * their own removed rows back, so the surface this was worst on was the
-   * author's own feed and their own profile.
-   *
-   * The early return is why this lives in the card rather than in each screen.
-   * The thread page had its own copy of this and tested `body === null` for it,
-   * which is a different question with a different answer.
+   * A post that was taken down draws NOTHING here (founder, item 4: "a deleted
+   * post is deleted"). Every listing read excludes removed rows at the query,
+   * so a card should never be handed one; this is the second lock. The one
+   * tombstone in the product is drawn by the thread view, inside a
+   * conversation somebody replied into, and never by a card.
    */
-  if (post.removed) return <Tombstone replyCount={post.replyCount} />;
+  if (post.removed) return null;
 
   const isSystem = post.authorKind === "SYSTEM";
   const isBot = post.authorKind === "BOT";

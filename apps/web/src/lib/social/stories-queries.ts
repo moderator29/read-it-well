@@ -23,6 +23,8 @@ import { resolveSession } from "../actions/session";
 import type { Database } from "../supabase/database.types";
 import { signMedia } from "./posts-media";
 import { readMutes } from "./posts-queries";
+import { STORY_COPY } from "./stories-schema";
+import { DELETED_STATUS, conversationIsGone, isDeleted, pruneDeleted } from "./deleted-posts";
 
 /* The generated types are regenerated after a migration, not before it. */
 type Loose = SupabaseClient<Database>;
@@ -130,6 +132,18 @@ export async function getStory(storyId: string): Promise<StoryView | null> {
     const row = data as StoryRow;
     const isMine = Boolean(viewerId && row.author_id === viewerId);
 
+    /* A deleted story is deleted (founder, item 4). It may stand as a
+       tombstone only while a comment that is still there hangs off it; with
+       nothing under it the page reads as not found. */
+    if (isDeleted(row.status)) {
+      const { count } = await loose(supabase)
+        .from("story_comments")
+        .select("id", { count: "exact", head: true })
+        .eq("story_id", row.id)
+        .neq("status", DELETED_STATUS);
+      if (conversationIsGone(true, count ?? 0)) return null;
+    }
+
     const [authors, media, marks, area] = await Promise.all([
       readAuthors(supabase, row.author_id ? [row.author_id] : []),
       signMedia(supabase, [
@@ -141,12 +155,13 @@ export async function getStory(storyId: string): Promise<StoryView | null> {
 
     return {
       id: row.id,
-      headline: row.headline,
-      /* A removed story keeps its place and loses its words, exactly as a
-         removed post does, so a link somebody shared does not 404 into
-         nothing. */
+      /* A deleted story reaches here only when somebody's comment still hangs
+         off it, and then it is the tombstone: its words go too (item 4). */
+      headline: isDeleted(row.status) ? STORY_COPY.removed : row.headline,
+      /* The picture and the rest of its words go with it, exactly as a
+         removed post's do. */
       standfirst: row.status === "REMOVED" ? null : row.standfirst,
-      placeLabel: row.place_label,
+      placeLabel: isDeleted(row.status) ? null : row.place_label,
       imageUrl: row.status === "REMOVED" ? null : (media[0]?.url ?? null),
       author: authors.get(row.author_id ?? "") ?? {
         id: row.author_id,
@@ -365,15 +380,21 @@ export async function getStoryComments(storyId: string): Promise<StoryComment[]>
       .limit(200);
     if (error || !data || data.length === 0) return [];
 
-    const rows = data as {
-      id: string;
-      parent_id: string | null;
-      author_id: string | null;
-      body: string | null;
-      status: string;
-      like_count: number;
-      created_at: string;
-    }[];
+    /* A deleted comment stays only while a comment that is still there
+       answers it; otherwise it is gone (founder, item 4). */
+    const rows = pruneDeleted(
+      data as {
+        id: string;
+        parent_id: string | null;
+        author_id: string | null;
+        body: string | null;
+        status: string;
+        like_count: number;
+        created_at: string;
+      }[],
+      (row) => ({ id: row.id, parentId: row.parent_id, deleted: isDeleted(row.status) }),
+    );
+    if (rows.length === 0) return [];
 
     const [authors, liked] = await Promise.all([
       readAuthors(

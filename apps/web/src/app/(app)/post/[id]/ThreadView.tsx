@@ -8,6 +8,7 @@ import { ReportSheet } from "@/components/social/ReportSheet";
 import { ActionSheet, actionsForPost } from "@/components/social/ActionSheet";
 import { PostEditor } from "@/components/social/feed/PostEditor";
 import { ViewportPost } from "@/components/social/feed/ViewportPost";
+import { Tombstone } from "@/components/social/feed/Tombstone";
 import {
   blockUser,
   muteTarget,
@@ -32,9 +33,10 @@ type Thread = {
  * no bracket. Indentation alone is enough to read a three-deep conversation on
  * a 390px screen, and the depth cap exists precisely so it stays that way.
  *
- * A removed post keeps its place as a tombstone rather than disappearing,
- * because deleting the row would take everybody's replies with it and a thread
- * that suddenly starts halfway through is a thread nobody can follow.
+ * A removed post keeps its place as a tombstone only while somebody's reply
+ * still hangs off it, because a thread that suddenly starts halfway through is
+ * a thread nobody can follow. A removed post nobody answered is not here at
+ * all: `getThread` prunes it at the read.
  */
 export function ThreadView({
   thread,
@@ -189,7 +191,15 @@ export function ThreadView({
       if (action === "delete") {
         if (!window.confirm(POST_COPY.deleteConfirm)) return;
         const result = await removePost({ postId: post.id });
-        setNotice(result.ok ? null : result.error);
+        if (!result.ok) return setNotice(result.error);
+        setNotice(null);
+        /* A deleted root with nothing still under it is not a conversation any
+           more, and `getThread` answers not found for it. Leave for the feed
+           rather than refresh into that. */
+        if (post.id === root.id && replies.every((reply) => reply.removed)) {
+          router.replace("/around");
+          return;
+        }
         router.refresh();
         return;
       }
@@ -248,7 +258,19 @@ export function ThreadView({
     return reply.parentId ?? post.id;
   };
 
-  const card = (post: PostView) => (
+  /*
+   * THE ONE PLACE A TOMBSTONE IS DRAWN (founder, item 4).
+   *
+   * A deleted post reaches this view only when `getThread` kept it, which it
+   * does only while a reply that is still there hangs off it. Here, and only
+   * here, it renders as the minimal "This post was removed" line so the
+   * conversation does not break. `PostCard` itself draws nothing for a removed
+   * post, so no feed or profile can ever show one.
+   */
+  const card = (post: PostView) =>
+    post.removed ? (
+      <Tombstone replyCount={post.replyCount} />
+    ) : (
     <ViewportPost postId={post.id}>
       <PostCard
         post={post}
@@ -276,7 +298,7 @@ export function ThreadView({
         }
       />
     </ViewportPost>
-  );
+    );
 
   return (
     <div className="flex flex-col gap-[var(--nf-feed-gap)]">
@@ -438,13 +460,10 @@ function MutedReply({ who, onShow }: { who: string; onShow: () => void }) {
 }
 
 /*
- * The tombstone that used to live here now lives in
- * `components/social/feed/Tombstone.tsx` and is rendered by `PostCard` itself.
- *
- * It was drawn from `body === null`, which is a different question: a post with
- * no words is not a post that was taken down, and no other surface could tell
- * the two apart at all. Every card everywhere now gets the same answer, and the
- * "replies are still here" line only appears when there are some.
+ * The tombstone lives in `components/social/feed/Tombstone.tsx` and is drawn by
+ * `card` above, in this conversation and nowhere else (founder, item 4). It is
+ * keyed on `post.removed`, never on `body === null`: a post with no words is
+ * not a post that was taken down.
  */
 
 /** The handle to address a reply to, or an honest stand-in for a deleted one. */
