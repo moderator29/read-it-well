@@ -46,6 +46,15 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
  * visitor. `scripts/probes/businesses_column_grants.sql` runs both of them as
  * `anon` against the live database and fails if either is stranded.
  */
+/*
+ * `public.accommodations` carried the same shape as `businesses`: a table-wide
+ * grant to `anon` under a `status = 'PUBLISHED'` policy, over a row holding the
+ * exact street address and the internal reviewer's notes. It is narrowed the
+ * same way and this is the list that survives it.
+ */
+const ACCOMMODATION_PUBLIC_COLUMNS =
+  "id, business_id, name, slug, description, source, fulfilment, star_rating, check_in_from, check_out_by, house_rules, cancellation_policy_id, status, state_code, city, area, latitude, longitude, featured, is_demo, published_at";
+
 const STAY_BUSINESS_COLUMNS = "id, name, slug, kind, source, is_demo";
 const RESTAURANT_BUSINESS_COLUMNS =
   "id, owner_id, agent_id, kind, name, slug, description, source, status, state_code, city, area, latitude, longitude, is_demo, published_at";
@@ -96,8 +105,13 @@ export async function getStayDetail(accommodationId: string): Promise<StayDetail
     const supabase = await staysClient();
 
     const { data: accommodation } = await supabase
+      /* NOT `select("*")`. Same reason as the business read below: this page
+         is opened by signed-out visitors and `accommodations` withholds
+         `address`, `reviewer_id` and `review_notes` from `anon`, exactly as
+         `listings` always has. A star here would be refused outright and the
+         stay page would answer not-found for every property. */
       .from("accommodations")
-      .select("*")
+      .select(ACCOMMODATION_PUBLIC_COLUMNS)
       .eq("id", accommodationId)
       .maybeSingle();
     if (!accommodation) return null;
@@ -186,7 +200,7 @@ export async function getStayDetail(accommodationId: string): Promise<StayDetail
     }));
 
     return {
-      accommodation: accommodation as AccommodationRow,
+      accommodation: accommodation as Omit<AccommodationRow, "address">,
       business: businessRes.data,
       photos: photosRes.data ?? [],
       amenities: amenitiesRes.data ?? [],

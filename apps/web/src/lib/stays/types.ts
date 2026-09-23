@@ -294,7 +294,9 @@ export type StayCatalogueFacts = Pick<
 >;
 
 export type StayDetail = {
-  accommodation: AccommodationRow;
+  /* `address` is not here: `anon` may not read the exact street address of a
+     property, the same rule `listings` has always carried. */
+  accommodation: Omit<AccommodationRow, "address">;
   /* `phone` and `email` are gone from this shape on purpose: `anon` may not
      read them since ledger section 68, and no screen ever drew them. */
   business: Pick<BusinessRow, "id" | "name" | "slug" | "kind" | "source" | "is_demo">;
