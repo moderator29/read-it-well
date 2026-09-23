@@ -196,9 +196,15 @@ Each group appends "RELEASED <commit>" here when it is done.
     panel, the sheet; settings group), `catalogue.css` (`.nf-lw-*` on
     `/agent/list`; home group), `stays.css` (`.nf-stays-*` in the drawn host
     steps; stays group), `admin.css` charts and meters, `inspection.css`.
-    **SW-C1 (to the lead):** `components/app/flip/SideSwitch.tsx` and
+    **SW-C1 (to the lead):** `components/app/SideSwitch.tsx` and
     `app/css/side-flip.css`, the Flip card at the foot of the drawer
     (`BCD39CA8`), are claimed by no group. This group asks for them.
+    SW-ST2 (the stays set-up fields) was done here at the lead's instruction,
+    so `app/css/stays.css` (the field rules only) is touched by this group.
+    **Group RELEASED (see the commit that adds this line)** (23 September):
+    44 of 49 routes swept; not closed: the five chrome rows (the drawer panel,
+    Flip card and switch sheet are other files, SW-C1 and SW-C2; the dock and
+    header left by ruling). Requests SW-C1 to SW-C6 in ledger 13 (chrome).
   - already Session B's: wallet family, inspections, auth, admin, welcome.
     **auth: RELEASED** (see ledger 13.A; remainder filed as SW-A1).
 
@@ -228,7 +234,10 @@ any group and drawn entirely by `escrow.css`):
 and `.nf-field`. Request ids are `SW-ST*` (the social group uses `SW-S1`).
 - **SW-ST1: closed by this group** (was addressed to the messages group): the
   thread proposal is swept here and the held block in `escrow.css` is gone.
-- **SW-ST2 (to the host wizard group):** the stays set-up inputs and selects
+- **SW-ST2: closed by the chrome group** (was addressed to the host wizard
+  group, this one): the sixteen call sites draw `nf-field nf-field--glass`,
+  and `stays.css` keeps only the rhythm, the chevron and the inline width.
+  Original request: the stays set-up inputs and selects
   (`.nf-stays-input`, `.nf-stays-select` in `components/host/stays/**`) are
   still a local field well. Add the shared `nf-field` class at those call
   sites; `stays.css` then keeps only the select's chevron and the inline

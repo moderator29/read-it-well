@@ -5132,13 +5132,168 @@ the group listed in 13.4.
   individually shot unless the wizard takes an initial-step prop for the
   harness.
 
-### 13.2 Applied (waits for Phase 1 RELEASED)
+### 13.2 Applied (after Phase 1 RELEASED 9da8f86f)
 
-(pending: nothing in the six stylesheets has been changed yet.)
+Every item below reads the Phase 1 layer (`Panel`, `IconPlate`/`.nf-plate`,
+`--nf-panel-*`, `--nf-plate-*`, `--nf-selected-*`, `--nf-btn-lit-*`,
+`--nf-btn-glass-*`, `--nf-container-radius`). No colour, radius or shadow
+value was written: every new declaration is a token reference.
+
+**Containers to `Panel`, in the markup.** 162 `nf-panel` uses across 58
+files of the group, where there was `.nf-card` or a hand-drawn box: `nf-panel nf-panel--card`
+(`app/agent/**`, `app/host/**`, `app/(site)/**`, `components/agent/**`,
+`components/host/**`, `components/site/MobileMenu.tsx`), plus the host
+groups, doors, choices and drop zones (`.nf-host-group`, `.nf-host-choice`,
+`.nf-host-drop`), the agent identity card, the mode menu and its options, the
+mobile workspace panel, the inner bordered boxes (payout notes, reply form,
+earnings and analytics sub-cards, listing wizard summaries, transfer offers,
+contact and careers asides) and the drawer's person card
+(`panelClass({ variant: "card" })` in `AppRail`). `Panel` lays out as a padded
+flex column; where the old card was a block, `block` is added so no layout
+moved, and where it was a row, `flex-row`.
+
+**Local material deleted.**
+- agent.css: the dead `.nf-agent-stat` tile (no markup), the
+  `.nf-agent .nf-card, .nf-agent-panel` well, `.nf-host .nf-card`,
+  `.nf-host-group`/`-choice`/`-drop` materials, the language control's
+  primary override (`LanguageSwitcher` now draws the shared glass door, so the
+  locale picker is no longer a second lit primary in any header).
+  One bridge rule remains, `:is(.nf-agent, .nf-host) .nf-card` on the panel
+  tokens, for the `.nf-card` that `Screen`'s `RowList boxed` draws (not this
+  group's file; SW-C5).
+- landing.css: the `.nf-landing/.nf-site .nf-btn--primary` and `--glass`
+  overrides (the shared lit bar and glass door now show), the landing's own
+  glow ring, glass edge, tile fill and band fill tokens; stats band, chip row,
+  stays band, stat tiles, feature tiles, category tiles, float card, stack
+  photos and cards, the "More" menu and the search pill take the panel;
+  city chips, pill segments, Sign in and search take the glass door; the lead
+  city and the checked segment take the selected state; the pill's submit
+  takes the lit bar; orb rings, category icons and the stays list glyphs take
+  the icon plate.
+- site.css: `.nf-site .nf-card` deleted; the bar's opener, the social links
+  take the glass door; the newsletter field the shared field material; its
+  send button the lit bar; the footer seal the plate's light on a disc; the
+  page-head photo plate the panel edge and glow.
+- side-nav.css: the dead theme control rules (the component went with light
+  mode) deleted; the rail column takes the panel fill, edge and halo; the
+  person row and card the panel; "View profile" the glass door; the open row,
+  rail and drawer, and in Agent Mode too, the shared selected state (the flat
+  20% tint and the hand-made gradient and 20 + 48px bloom are gone).
+- chips.css: chips and pill chips take the glass door with its rim and without
+  its bloom (a row of eight lit chips is the shouting the rule was written
+  against); the active chip, current feed tab, segmented capsule and current
+  segment take the selected state; `.nf-table--glass` the panel; the lit
+  action bar the panel edge and rim. Two new rules: a `Panel` that is a link
+  keeps its light on hover (`.nf-panel.nf-card--interactive:hover`, SW-C5
+  asks for it in glass.css), and a panel holding the lit primary gets
+  `isolation: isolate` so the pooled bloom is not drawn under the panel's
+  fill (the lead's instruction).
+- Notes and banners (`KycBanner`, the warning notes on earnings, analytics,
+  bookings, listings, the reservations and verification notes, the restore
+  form's notices): corner to `--nf-container-radius`. Their state tint stays:
+  a notice is not a panel.
+- Icon squares on the listing pitch and the empty listings state: the shared
+  icon plate (lg) with a 24px line glyph, not a hand-painted gradient square.
+- Docs sidebar and "On this page" toggles: the glass door; the chapter list
+  on a phone the panel.
+
+**Left alone, on purpose.**
+- THE DOCK, its switch and the dock island: the founder's ruling ("don't copy
+  the bottom nav, don't touch it") and the governing image: `GOVERNING-01`
+  draws a dark translucent bar with a lit blue edge and the switch as a lit
+  square in line, which is what the dock already draws (`.nf-tabbar` lit edge
+  and lifted glow, `.nf-switch-dock` on the Phase 1 plate). Destinations,
+  layout and material unchanged; chrome.css has no diff.
+- The app header: its scrolled state already carries `--nf-glow-edge` along
+  its foot; there is no shared token for a bottom-edged bar and swapping it
+  for the panel hairline dimmed it, so it was reverted.
+- Avatars and their rings (round is allowed), the glass objects' own
+  drop-shadow glow, the hero's photo scrims, the phones in the app band
+  (presentation), divider gradients, progress tracks.
+- Status badges (`.nf-badge` family, `.nf-count-badge`, `.nf-nav__badge`,
+  landing tags): Phase 1 extracted no shared badge, so they keep their tints;
+  request SW-C6.
 
 ### 13.3 Audit passes
 
-(pending: Pass 1, Pass 2, Pass 3 are dated and written here after the change.)
+All three on `next start` of this worktree's own build (compile then
+generate mode, run through the shared heavy-job lock), port 3190,
+`VALLO_PREVIEW_HARNESS=1`, dark (the only theme), 390x844 at dpr 2 and
+1440x900, full page after scrolling the whole page so every `Reveal` section
+has fired. Every route in 13.4 was re-opened in each pass and set beside its
+before shot and the console / Get started reference (ledger 6.2 panel row:
+10px corner, per-side lit edge, top catchlight, 3px outer glow).
+
+**Pass 1, 23 September (after the first apply).**
+Found and fixed:
+1. The first "before" set of the landing and the site pages was blank below
+   the fold (their sections reveal on scroll and a full-page screenshot does
+   not scroll). The shooter now scrolls the page in 300px steps first, and
+   the before set was re-taken from a clean build of the pre-sweep tree
+   (2104275e) in a throwaway worktree, so before and after are both whole.
+2. A CSS editing slip left four hover rules inside `@media (hover: hover)`
+   in landing.css with their bodies outside their braces (nav glass, lead
+   city, feature tile, category tile). `check-css-tokens` caught it
+   ("Unexpected end of input"); repaired and re-checked, every partial
+   parses.
+3. The landing nav's search glyph had lost its circle with the glass door;
+   `DESIGN_DIRECTION` section 1 names it the one icon button the governing
+   hero draws round. The circle is back.
+4. Landing tags ("Third party") measured 10px on 28px = 0.36 in the shape
+   sweep; moved to `--nf-radius-xs` (0.21).
+5. A panel holding the lit primary drew the primary's pooled bloom under its
+   own fill; `isolation: isolate` on `.nf-panel:has(.nf-btn--primary)`.
+Found and NOT fixable here: `Screen`'s `RowList boxed` forces
+`rounded-[var(--nf-radius-xl)]` as a Tailwind utility, which outranks any
+component rule, so the boxed lists on `/agent/dashboard`, `/host/transfer`
+and the host standing page take the panel's material but keep a 22px corner
+(SW-C5).
+
+**Pass 2, 23 September.**
+Re-opened every route plus the open states the first pass had not shot:
+the agent workspace's mobile drawer, the landing "More" menu, the site
+mobile menu, the switch sheet, the drawer's foot. Measured in the browser
+(13.5). Found and fixed:
+1. THE AGENT WORKSPACE'S MOBILE DRAWER OPENED 60PX TALL. It is a
+   `position: fixed` dialog rendered inside the top bar, whose glass
+   (`nf-glass--chrome`) has a backdrop blur, and a backdrop filter makes the
+   bar the containing block for fixed descendants: the drawer was the height
+   of the bar, with no scrim and no navigation. Present before the sweep (the
+   bar's blur is unchanged); found here because the sweep shot the open
+   state. `AgentMobileNav` now portals the dialog to `document.body`.
+2. Nav rows (rail and drawer) and the open row measured 18px on 52px = 0.35;
+   moved to `--nf-radius-control` (0.27), the console's open-row corner.
+Checked and left: the "More" menu and the site mobile menu open full size
+and read as panels; the switch sheet is the settings group's sheet over the
+Phase 1 plates; the agent search field sits at 14 on 40 = 0.35, the pill
+segments at 0.35 (at the line, not over it).
+
+(Pass 3 below.)
+
+**Pass 3, 23 September (final build, after SW-ST2).**
+Every route re-shot (`after/`), every open state re-opened, the refused
+routes of the first shape sweep re-run, the stays set-up steps added.
+Found and fixed:
+1. With the drawer now full height, its Account rows (Verification,
+   Settings) sat out of sight: the nav list was a shrinking inner scroller
+   squeezed under the identity card. `.nf-agent-drawer .nf-nav__scroll`
+   lets the drawer scroll as one column, as the app drawer does. Re-shot:
+   every row, the identity card and the mode switch in one column.
+2. SW-ST2 (the lead's request): the sixteen stays set-up inputs and selects
+   in `components/host/stays/**` draw the shared `nf-field nf-field--glass`
+   (the glass well of `GOVERNING-10`, fixed in eb9afe04); `stays.css` keeps
+   only their rhythm (height, gap, padding), the select's chevron (carrying
+   the field's two layers under it, in the same tokens) and the inline width,
+   and its own well is deleted. Before and after on all eight steps.
+Checked and left: the "AI" nav link draws 14px on a 38px-wide label (0.37);
+its corner only ever draws the focus ring, and 0.37 is under the capsule
+line. The agent search field and the pill segments sit at 0.35.
+Shape sweep, Pass 3: **0 breaches**; 10 worth an eye (the three above);
+180 round icon-only (the stays step progress dashes, drawn in `stays.css`,
+and the footer's scroll glyph; none carries text); 1 refusal (a site page
+timing out on `networkidle` in the tool, shot and read by hand in `after/`).
+Pass 1 sweep over all 36 routes: 0 breaches, 32 worth an eye (all of them
+the items above plus the tag fixed in Pass 1), 5 refusals of the same kind.
 
 ### 13.4 Routes in the group and the before proofs
 
@@ -5174,7 +5329,113 @@ rooms, photos and reservations pages draw only `.nf-agent-head`, `.nf-chip`,
 `.nf-host-group`, `.nf-host-drop` and `.nf-card`, all of which are shot on
 routes 20 to 23.
 
-Routes in group: 36 (plus the gated five above).
+Routes in group: 36 (plus the gated five above), and from SW-ST2 the eight
+drawn stays set-up steps (`/preview/imgc/{hotel,room-types,rates,place,
+house-rules,facilities,restaurant,tables}`), shot before in `before/`
+(`stays-*-before`) and after. The before set of the landing and the site
+pages was re-taken in Pass 1 from a clean build of the pre-sweep tree, full
+page and scrolled.
+
+### 13.5 Per route: swept or not, and the comparison
+
+Reference (ledger 6.2 and the Phase 1 tokens): container corner 10px
+(`--nf-container-radius`), per-side lit edge (`--nf-panel-edges`), top
+catchlight (`--nf-panel-rim`), 3px outer halo plus inset top and side light
+(`--nf-panel-glow`), the panel fill with its reflection
+(`--nf-panel-fill-card`, a white 12% radial at the top left), lit primary
+(`--nf-btn-lit-*`), glass door (`--nf-btn-glass-*`), selected state
+(`--nf-selected-*`), icon plate (`--nf-plate-*`). Measured with
+`getComputedStyle` on the Pass 2 build (`scratchpad/chrome/measure.mjs`,
+`measure2.txt`).
+
+| Item (route) | Before | After (measured) | Reference | Match |
+|---|---|---|---|---|
+| Host door / choice (`/host/start`, wizard) | 18px, brand edge, well fill, 16px glow-1 | 10px, per-side edges (top L 0.60, side L 0.45), panel fill with reflection, rim + halo | panel | yes |
+| Chosen door | edge strong, 22px glow-3 + bloom-card | selected edges (top L 0.88), panel rim, 22px bloom at 64% + drop 16px | selected state | yes |
+| Workspace card (`/agent/settings` etc.) | 22px `.nf-card` conic hairline + agent well override | 10px panel, same edges and fill as above | panel | yes |
+| Boxed row list (`/agent/dashboard`, `/host/transfer`) | 22px `.nf-card` | panel material, corner still 22px | panel | material yes, corner no (SW-C5) |
+| Glass button (`/agent/settings`) | flat raised fill | 14px, glass fill 22% to 8%, edge 70%, rim, 20px bloom -5 | glass door | yes |
+| Primary button (`/agent/dashboard`) | local override removed in agent bar | lit edges, rim, inner 12px, 6px/16px bloom | lit bar | yes |
+| Rail / drawer open row | flat brand 20% (rail), hand gradient + 20/48px bloom (drawer) | CTA gradient, white 55% rim, 22px bloom at 58%; 14px on 52 (0.27) | selected, console open row | yes |
+| Drawer person card | `.nf-glass--card` 22px | 10px panel card | panel | yes |
+| "View profile" | brand tint capsule on 6px | glass door on 6px (0.19) | glass door | yes |
+| Landing feature strip, stats, stays band (`/`) | 22 to 28px, band fill, glow ring 30px | 10px panel | panel | yes |
+| Landing search pill | 22px then 14px, pane + glow ring + elev-4 | pane kept (photo legibility), panel edges, rim, glow, blur, 14px (a bar, control corner) | panel over imagery | yes |
+| Lead city, checked segment | CTA + 18px / 16px glow-2 | selected state | selected | yes |
+| Pill submit | flat brand | lit bar | lit bar | yes |
+| Category icon, stays list glyph, orb ring | brand 30% square + 12px glow, glass square, tint ring + 26px | plate fill, per-side plate edges, plate rim, inner light, 10px glow; 6px corner on 36px | icon plate | yes |
+| Site cards (`/about` and 12 more) | `.nf-site .nf-card` xl + 28px glow-1 | 10px panel | panel | yes |
+| Newsletter send | CTA + 14px glow | lit bar | lit bar | yes |
+| Footer seal | canvas disc + 22px glow | plate light on a disc | icon plate | yes (round: a mark) |
+| Stays set-up fields (host wizard drawn steps) | local deep well, soft edge | shared `nf-field nf-field--glass` | shared field | yes (SW-ST2) |
+| Dock (every app route) | lit edge bar, 22px, switch plate | unchanged | `GOVERNING-01` | yes, untouched by ruling |
+| Drawer panel, switch sheet body | `overlays.css` | unchanged here | settings group | not this group |
+| Flip card | `side-flip.css` | unchanged here | | SW-C1 |
+| Status badges and counts | tinted | unchanged | no shared badge in Phase 1 | SW-C6 |
+
+**Routes swept / routes in group: 44 of 49** (the 36 rows of 13.4, the five
+gated routes, and the eight drawn stays set-up steps SW-ST2 brought in).
+Swept, every inventory item of this group on the shared layer: the landing,
+the thirteen public site pages, `/styleguide` (by class), the host standing,
+doors, wizard (first step shot; later steps by class, SW-C4), transfer,
+rooms, photos, reservations (by class), the eight drawn stays set-up steps
+(fields, SW-ST2), and all thirteen agent routes with their loading states
+(by class) and the workspace drawer and mode menu.
+Not closed (the five chrome rows of 13.4: home with header and dock, the
+switch sheet, the side drawer, the dock, the home body under the chrome):
+the drawer's panel and Flip card and the sheet are other files (SW-C1, the
+settings group), the dock and header are left by ruling, and the home body is
+the home group's. Noted but counted as swept:
+1. `/agent/dashboard` and `/host/transfer` and the host standing page: the
+   boxed row lists keep a 22px corner from `Screen.tsx` (SW-C5). Counted as
+   swept for this group's files; the corner is another file's.
+   Everything else on those three routes is on the shared layer.
+
+### 13.6 Requests and releases
+
+- **SW-C1 (to the lead):** `components/app/SideSwitch.tsx` and
+  `app/css/side-flip.css`, the Flip card at the foot of the drawer
+  (`BCD39CA8`), are claimed by no sweep group; it still draws
+  `nf-glass nf-glass--card`.
+- **SW-C2:** the drawer panel, its scrim and the switch sheet are
+  `overlays.css` (settings group).
+- **SW-C3:** `/agent/list`'s choices are `catalogue.css` (home group); the
+  drawn stays steps' tiles and plates are `stays.css` (stays group, released;
+  this group touched only the field rules there, for SW-ST2).
+- **SW-C4:** the host wizard harness reaches only its first step; the later
+  non-drawn steps share its three classes and are swept by class, not shot.
+- **SW-C5 (to Phase 1 / the lead):** re-point `.nf-card` itself at the panel
+  tokens, or move `Screen`'s `RowList boxed` to `panelClass` and drop its
+  `rounded-[var(--nf-radius-xl)]` utility; then delete agent.css's bridge rule
+  and chips.css's panel hover rule, and add the panel hover state to glass.css.
+- **SW-C6 (to Phase 1):** no shared badge came out of the console; the
+  platform's status badges and counts keep their own tints until one does.
+- **SW-ST2: closed by this group** (see Pass 3).
+- The dock and its switch: not touched, on the founder's ruling.
+
+### 13.7 Proofs
+
+`docs/design/proofs/session-b/sweep-chrome/`: `before/` (pre-sweep build,
+every route at 390 and 1440, plus `stays-*-before` for SW-ST2), `after/` (the
+final build, every route, the drawer foot, the open workspace drawer, the
+open "More" menu), `sheets/` (before, after and the console overview side by
+side for the workspace settings, the host wizard and the drawer; the landing
+and the hotel step before and after; the open workspace drawer beside the
+app drawer's foot). All from `next start` with `VALLO_PREVIEW_HARNESS=1`;
+every `/preview/**` shot is fixture-backed, the landing and site pages are
+live. Downscaled for the repository (390 shots to 390px, 1440 to 960px, JPEG
+68); the dpr 2 originals are in the worker's scratchpad.
+
+### 13.8 Skipped or not verified
+
+- The host wizard's later non-drawn steps are not individually shot (SW-C4).
+- `/host/rooms`, `/host/photos`, `/host/reservations`, `/host/apply` and
+  `/styleguide` sit behind the sign-in gate and have no harness; covered by
+  class only.
+- Hover states were not shot; the rules were read and the panel hover rule
+  measured in code only.
+- The shape sweep's refusals (site pages timing out on `networkidle` in the
+  tool) were covered by hand-read shots, not by the tool.
 
 ## 13. Platform sweep: social (public profile, follow lists, edit profile, messages, the three thread faces)
 
@@ -5837,6 +6098,11 @@ after right, 28) and `after-390/` (28).
   `ProfileIdentityCard.tsx` not swept (profile worker in flight); the notification centre's filter
   tabs in GOVERNING-12 are Session A's feature and do not exist; every settings and notifications
   proof is fixture-backed (the routes sit behind the sign-in gate).
+- **Platform sweep, chrome group (13, "sweep-chrome"):** the host wizard's
+  later non-drawn steps not shot (SW-C4); five gated routes covered by class
+  only; hover states read, not shot; the boxed row lists' 22px corner
+  (SW-C5), the Flip card (SW-C1) and the status badges (SW-C6) not moved,
+  being other files.
 
 (appended honestly as work proceeds)
 
