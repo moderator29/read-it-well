@@ -593,6 +593,8 @@ encrypted body either.
 
 **Session B's entries.**
 
+> **DONE 23 September 15:20:** the network is open and Session B has proven 104 of 131 chain links live since (B4).
+
 **C1.1 is also Session B's first item.** The same network setting is what
 stands between every signed-in Session B screen and a real proof (PART B, B2):
 profile, wallet and send, inspections and every admin desk have only ever been
@@ -627,6 +629,8 @@ credential must never live in the repository.
 
 **Session B's entries.**
 
+> **Narrower now:** bank send is gone, so this unblocks only withdraw to your own bank.
+
 **C2.5. Upgrade the Paystack account so it may pay out to a bank account.**
 The only real payout ever attempted on production was refused with "You cannot
 initiate third party payouts as a starter business". That is a setting on your
@@ -636,6 +640,8 @@ bank send cannot complete even if C3.1 is answered yes. Roughly half an hour of
 forms, then Paystack's review time. It unblocks withdrawals and bank send.
 
 ### C3. Decisions only he can make
+
+> **ANSWERED 23 September: no.** External bank send is removed (`32830d5b`); wallet to wallet and withdraw to your own bank stay. A regulatory line, recorded in the ledger so nobody rebuilds it.
 
 **C3.1. May Vallo move money to a third party's bank account at all?**
 Wallet send by bank transfer is built, tested and **switched off** behind one
@@ -648,6 +654,8 @@ the rails and the ledger row are identical.
 letter, and leave the flag false until the answer comes.** It costs nothing to
 wait and the flag is one line to flip.
 
+> **ANSWERED 23 September:** browsing is signed-in only; `/search` and `/around` now go back to the landing page (`b2a1ef5f`).
+
 **C3.2. Should `/home` be readable signed out?**
 You have closed the platform, so this is now mostly settled, but it has a tail.
 Two public shelves, `/search` and `/around`, declare `/home` as their parent,
@@ -658,6 +666,8 @@ is the whole public surface.
 **Recommendation: the third, because it is what you have already chosen**, and
 then the back destination for those two shelves should be the landing page
 rather than a wall. That is a small change and it is ours once you say so.
+
+> **ANSWERED 23 September: yes.** The line is on the card (`cfc7fad4`), recorded as your deliberate override of GOVERNING-01.
 
 **C3.3. The lister line on the listing card.** `GOVERNING-01` draws the
 featured card as photo, verified mark, title, locality, price, facts row, and
@@ -676,6 +686,8 @@ over an empty table. No engineering on any list moves this.
 
 **Session B's entries.**
 
+> **ANSWERED 23 September:** you created both; the admin grant is applied; the member account is the store reviewers' account. Live proof ran against them (B4). Consider changing their shared password before handing it to the stores, since it was sent in a chat.
+
 **C3.5. May a session create two labelled test accounts on production, one of
 them an admin?** Session B was told never to create a user in production, so
 every signed-in screen it built is proved only on fixtures (PART B, B2). With
@@ -686,6 +698,8 @@ reviewers (which also serves C2.4).
 listings are, and named in the ledger.** Without them the 84 unproven chain
 links in PART B stay unproven.
 
+> **HALF ANSWERED 23 September:** refund time "3 to 5 business days" is on the screen; custody wording stays off until the solicitor answers.
+
 **C3.6. Two facts the send screen needs from you.** "How a send works" states
 only what the code proves. It deliberately leaves out **who holds the wallet's
 money** (the custody question already with your solicitor under C3.1) and **how
@@ -693,6 +707,25 @@ long a refund takes**, because no session can know either. Tell us both and they
 go on the screen in one line each; until then they stay off it.
 **Recommendation: answer the refund time now** (it is a business promise you
 set), and let the custody wording follow the solicitor.
+
+**C3.7. (Session B) Put a small sum in the QA member's wallet, or say no.**
+Every wallet write (fund, a wallet to wallet send to the QA admin, withdraw) is
+built and unproven because no session may move money without your word. One
+small top up by you proves funding, and then a session can prove the send
+between the two QA wallets. **Recommendation: yes, the smallest amount Paystack
+accepts, recorded in the ledger as QA money.**
+
+**C3.8. (Session B) May the QA member publish one real, labelled listing?**
+Inspections cannot be proven end to end: the database refuses an inspection on
+an example, and all 64 listings are examples. One listing by the QA member,
+labelled QA and excluded from statistics like the examples, lets a session
+prove the request, the eight-room report, the photos and the submission.
+**Recommendation: yes, and unpublish it after the proof.**
+
+**C1.3. (Session B) One tap for push, after the fix deploys.** Open the home
+screen app, sign in inside it (it does not share Safari's sign-in), open
+Settings, Notifications, and tap Turn on. Then tell a session, which reads
+`push_tokens` for the row. Five minutes.
 
 ---
 
