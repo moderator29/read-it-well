@@ -1,8 +1,9 @@
 -- ESC-01: a ruling on a never-funded escrow must credit nothing. An unfunded
 -- proposal cannot be disputed, INITIATED -> DISPUTED is illegal, a DISPUTED
 -- agreement with no posted hold (reached through FUNDED) is refused at
--- settlement as never_funded, a member cannot rule, a ruling is refused while
--- the float is short, and a funded dispute still settles. Always rolls back.
+-- settlement as never_funded, a member cannot rule, a release is refused (and
+-- alerted) while the float is short, and a funded dispute is still refunded.
+-- Always rolls back.
 do $$
 declare
   member uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
@@ -56,24 +57,23 @@ begin
   r := public.escrow_admin_resolve(funded, 'refund', 'probe: the member tries to rule on it');
   if r->>'status' <> 'forbidden' then raise exception 'PROBE_FAIL esc-01: member ruling answered %', r; end if;
 
-  -- REFUSAL: the float is checked before any ruling. A stray credit makes the
-  -- ledger hold less than the live agreements promise.
+  -- The float is checked before any ruling. A stray credit makes the ledger
+  -- hold less than the live agreements promise: a release is refused and an
+  -- alert raised; a refund (this agreement's own hold back to its payer) is
+  -- still allowed.
   reset role;
   insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status, metadata)
   values (aw, 'escrow_release', 'credit', 1, 'probe-esc01-stray-' || gen_random_uuid(), 'COMPLETED', '{}'::jsonb);
   set local role authenticated;
   perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
-  r := public.escrow_admin_resolve(funded, 'refund', 'probe: ruling while the float is short');
-  if r->>'status' <> 'float_out_of_balance' then raise exception 'PROBE_FAIL esc-01: short float answered %', r; end if;
-  reset role;
-  delete from public.wallet_entries where reference like 'probe-esc01-stray-%';
-
-  set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  r := public.escrow_admin_resolve(funded, 'release', 'probe: releasing while the float is short');
+  if r->>'status' <> 'float_out_of_balance' then raise exception 'PROBE_FAIL esc-01: short-float release answered %', r; end if;
   r := public.escrow_admin_resolve(funded, 'refund', 'probe: the funded dispute is refunded');
   reset role;
-  if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL esc-01: control ruling %', r; end if;
+  if r->>'status' <> 'ok' then raise exception 'PROBE_FAIL esc-01: control refund under a short float %', r; end if;
   if private.wallet_spendable_locked(mw) - bal0 <> 100000 then raise exception 'PROBE_FAIL esc-01: control refund did not land'; end if;
+  select count(*) into n from public.risk_alerts where entity_type = 'escrow' and entity_id = funded::text and status = 'open';
+  if n < 1 then raise exception 'PROBE_FAIL esc-01: no alert when the float was short'; end if;
 
   raise exception 'PROBE_OK esc-01';
 end $$;

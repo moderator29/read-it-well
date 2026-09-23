@@ -13,7 +13,8 @@ declare
   stay   uuid := 'ed000000-0000-4000-8000-000000000003';
   rental uuid := 'ed000000-0000-4000-8000-000000000007';
   lagos  date := (now() at time zone 'Africa/Lagos')::date;
-  bk uuid; bk2 uuid; insp uuid; r jsonb; mw uuid; n int; t bigint; st text; rate bigint;
+  claims text := json_build_object('sub', '957b3bd2-cce3-425d-bba9-5cd876ca3d62', 'role', 'authenticated')::text;
+  bk uuid; bk2 uuid; insp uuid; r jsonb; mw uuid; n int; t bigint; rate bigint;
 begin
   -- An example stay made real inside the transaction, and an example rental.
   update public.listings set is_demo = false, status = 'PUBLISHED' where id = stay;
@@ -27,31 +28,45 @@ begin
   insert into public.wallet_entries (wallet_id, kind, direction, amount_minor, reference, status)
   values (mw, 'deposit', 'credit', 1000, 'probe-esc02-dep-' || gen_random_uuid(), 'COMPLETED');
 
-  set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
-
-  -- CONTROL: the deployed reserve() insert, honestly priced, succeeds unchanged.
-  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, adults, children,
-    price_per_night_minor, cleaning_fee_minor, service_fee_minor, subtotal_minor, total_minor, status)
-  values (stay, member, lagos + 30, lagos + 32, 2, 1, 0, rate, 0, 0, rate * 2, rate * 2, 'PENDING')
-  returning id into bk;
-  select total_minor into t from public.bookings where id = bk;
-  if t <> rate * 2 then raise exception 'PROBE_FAIL esc-02: honest booking stored %', t; end if;
-
   -- ATTACK: three nights at 1 kobo, total 3. Stored price must be the listing's.
+  set local role authenticated;
+  perform set_config('request.jwt.claims', claims, true);
   insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, adults, children,
     price_per_night_minor, cleaning_fee_minor, service_fee_minor, subtotal_minor, total_minor, status)
   values (stay, member, lagos + 10, lagos + 13, 3, 1, 0, 1, 0, 0, 3, 3, 'PENDING')
   returning id into bk2;
   select total_minor into t from public.bookings where id = bk2;
   if t <> rate * 3 then raise exception 'PROBE_FAIL esc-02: 3-kobo booking stored total %', t; end if;
-
   -- ...and paying it cannot succeed for 3 kobo.
   reset role;
   r := private.pay_booking_from_wallet(member, bk2, 'probe-esc02-pay-' || gen_random_uuid());
   if r->>'status' <> 'insufficient' then raise exception 'PROBE_FAIL esc-02: pay answered %', r; end if;
+  delete from public.bookings where id = bk2;
+
+  -- ATTACK: the same insert with the rent charge's mark set. The mark is
+  -- honoured only for a non-API session role, so this is priced too.
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', claims, true);
+  perform set_config('vallo.rent_charge', 'true', true);
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, adults, children,
+    price_per_night_minor, cleaning_fee_minor, service_fee_minor, subtotal_minor, total_minor, status)
+  values (stay, member, lagos + 70, lagos + 73, 3, 1, 0, 1, 0, 0, 3, 3, 'PENDING')
+  returning id into bk2;
+  perform set_config('vallo.rent_charge', '', true);
+  select total_minor into t from public.bookings where id = bk2;
+  if t <> rate * 3 then raise exception 'PROBE_FAIL esc-02: marked guest insert stored total %', t; end if;
+  reset role;
+  delete from public.bookings where id = bk2;
+
+  -- CONTROL: the deployed reserve() insert, honestly priced, succeeds unchanged.
+  set local role authenticated;
+  perform set_config('request.jwt.claims', claims, true);
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, adults, children,
+    price_per_night_minor, cleaning_fee_minor, service_fee_minor, subtotal_minor, total_minor, status)
+  values (stay, member, lagos + 30, lagos + 32, 2, 1, 0, rate, 0, 0, rate * 2, rate * 2, 'PENDING')
+  returning id into bk;
+  select total_minor into t from public.bookings where id = bk;
+  if t <> rate * 2 then raise exception 'PROBE_FAIL esc-02: honest booking stored %', t; end if;
 
   -- REFUSAL: past check-in.
   begin
@@ -60,15 +75,6 @@ begin
     values (stay, member, lagos - 10, lagos - 8, 2, 1, 0, rate, 0, 0, rate * 2, rate * 2, 'PENDING');
     raise exception 'PROBE_FAIL esc-02: past booking accepted';
   exception when check_violation then null;
-  end;
-
-  -- REFUSAL: overlapping dates (the exclusion constraint).
-  begin
-    insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, adults, children,
-      price_per_night_minor, cleaning_fee_minor, service_fee_minor, subtotal_minor, total_minor, status)
-    values (stay, member, lagos + 11, lagos + 12, 1, 1, 0, rate, 0, 0, rate, rate, 'PENDING');
-    raise exception 'PROBE_FAIL esc-02: overlap accepted';
-  exception when exclusion_violation then null;
   end;
 
   -- REFUSAL: a stay booking on a rental (no nightly rate).
@@ -80,11 +86,25 @@ begin
   exception when check_violation then null;
   end;
 
-  -- REFUSAL: host-blocked nights.
+  -- REFUSAL: overlapping dates (checked as another guest, so the per-guest
+  -- hold limit is not what refuses it).
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  begin
+    insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, adults, children,
+      price_per_night_minor, cleaning_fee_minor, service_fee_minor, subtotal_minor, total_minor, status)
+    values (stay, admin, lagos + 31, lagos + 33, 2, 1, 0, rate, 0, 0, rate * 2, rate * 2, 'PENDING');
+    raise exception 'PROBE_FAIL esc-02: overlap accepted';
+  exception when exclusion_violation then null;
+  end;
+  perform set_config('request.jwt.claims', claims, true);
+
+  -- REFUSAL: host-blocked nights and an unpublished listing (the honest
+  -- booking is set aside first so only the rule under test can refuse).
   reset role;
+  delete from public.bookings where id = bk;
   insert into public.availability (listing_id, date, status) values (stay, lagos + 50, 'unavailable');
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', claims, true);
   begin
     insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, adults, children,
       price_per_night_minor, cleaning_fee_minor, service_fee_minor, subtotal_minor, total_minor, status)
@@ -92,12 +112,10 @@ begin
     raise exception 'PROBE_FAIL esc-02: blocked night accepted';
   exception when exclusion_violation then null;
   end;
-
-  -- REFUSAL: an unpublished listing.
   reset role;
   update public.listings set status = 'DRAFT' where id = stay;
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', claims, true);
   begin
     insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, adults, children,
       price_per_night_minor, cleaning_fee_minor, service_fee_minor, subtotal_minor, total_minor, status)
@@ -117,14 +135,17 @@ begin
   end if;
 
   -- ESC-P2-01. The guest cannot touch their booking; an admin over the API
-  -- can read it but not rewrite it; even a definer path cannot change the
-  -- price; a status change leaves an audit row.
+  -- can read it but not rewrite it; the owner role cannot change its price;
+  -- a status change leaves an audit row.
   set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', claims, true);
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, adults, children,
+    price_per_night_minor, cleaning_fee_minor, service_fee_minor, subtotal_minor, total_minor, status)
+  values (stay, member, lagos + 30, lagos + 32, 2, 1, 0, rate, 0, 0, rate * 2, rate * 2, 'PENDING')
+  returning id into bk;
   update public.bookings set total_minor = 1, status = 'CONFIRMED' where id = bk;
   get diagnostics n = row_count;
   if n <> 0 then raise exception 'PROBE_FAIL esc-p2-01: guest updated % rows', n; end if;
-
   perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
   select count(*) into n from public.bookings where id = bk;
   if n <> 1 then raise exception 'PROBE_FAIL esc-p2-01: admin cannot read the booking'; end if;
@@ -135,7 +156,6 @@ begin
   get diagnostics n = row_count;
   if n <> 0 then raise exception 'PROBE_FAIL esc-p2-01: admin confirmed % rows over the API', n; end if;
   reset role;
-
   begin
     update public.bookings set total_minor = 0, subtotal_minor = 0, price_per_night_minor = 0 where id = bk;
     raise exception 'PROBE_FAIL esc-p2-01: price rewritten by the owner role';
