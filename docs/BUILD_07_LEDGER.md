@@ -6464,3 +6464,72 @@ session editing one file outside its list and saying so.
 **This session's clock on R12 starts now.** If `agent-badge-derivation` is not
 green by the end of this cycle, this session fixes `reads/supply.ts` itself and
 records the edit here.
+
+---
+
+## 55. R12 CLOSED. MAIN IS GREEN, AND THE EDIT WAS IN SOMEBODY ELSE'S FILE
+
+**The clock ran out and the rule did what it was written to do.** R12 was
+raised in the section above and left with Session B for a cycle. At the end of
+that cycle `agent-badge-derivation` was still red on main, on the same single
+assertion, with the same single offender. Under the founder's standing rule of
+23 September this session fixed it. Recorded here because the rule requires the
+cross-scope edit to be said out loud, not because it needs forgiving.
+
+**Three files changed, all three Session B's:**
+
+- `apps/web/src/lib/admin/reads/supply.ts`
+- `apps/web/src/lib/admin/reads/supply.test.ts`
+- `apps/web/src/app/(dev)/preview/session-b/admin-money/fixtures.ts`
+
+Session B: these are yours again the moment you read this. Nothing else in any
+of the three was touched, and no figure the supply desk prints has changed.
+
+**What the defect was.** The supply desk's agent read asked `agents` for its
+raw `verified` column. That column is not wrong today, but it is a SECOND
+derivation of a fact that is allowed exactly one, and the second derivation is
+the thing that drifts. The fault this guards against is in the test's own
+header: a reader deciding whether to send a deposit to a stranger seeing a tick
+in the message thread and no tick on the listing behind it, with no way to tell
+which screen was lying.
+
+**The fix.** The select now reaches through to the published row,
+`agent_badges(verified)`, which is what every listing surface and the messaging
+read already use. A missing embed reads as NOT verified, the same way
+`lib/messages/live.ts` treats a missing row: the failure mode of this has to be
+a tick that does not appear, never a tick that appears with no check behind it.
+
+**Why this cannot change a number the desk prints, argued from the database
+rather than from a passing test.** Both columns are derived from one source, in
+the same schema, by triggers that are present and were read back today:
+
+| trigger | on | does |
+| --- | --- | --- |
+| `agents_derive_badge` | BEFORE INSERT OR UPDATE OF `verification_tier`, `verified` | `new.verified := coalesce(new.verification_tier, 0) >= 1` |
+| `agents_sync_badge` | AFTER INSERT OR UPDATE OF `verification_tier` | writes `agent_badges.verified` from the same tier |
+
+with `agents_verified_means_identity_chk` standing behind the first. Two
+readings of one tier cannot disagree. The row counts agree as well, but say so
+carefully: there is **one** agent on the platform, one badge row, zero
+disagreements, zero agents without a badge row. One row is not evidence at
+scale. The triggers and the constraint are.
+
+**RLS was checked before the swap, because an embed that RLS refuses would not
+error, it would return null and quietly unverify every agent on the desk.**
+That is the blind-light pattern with a tick on the end of it.
+`agent_badges_select_all` is `for select using (true)` to `public`, so the
+admin's RLS client reads it. This was the one way the change could have been
+silently wrong and it is closed.
+
+**UNPROVEN, and named as such.** The PostgREST embed itself was NOT exercised
+over HTTP from this box: `uccixoonmbhrnyczyigt.supabase.co` is still refused by
+the sandbox egress proxy (`CONNECT tunnel failed, response 403`). What is
+proven is the foreign key `agent_badges_agent_id_fkey`, one-to-one on
+`agents.id`, and that the identical embed string is already shipped and running
+in `lib/messages/live.ts`. That is strong, and it is still not the same thing
+as a 200 with a body. It becomes provable the moment that host is allowed
+through Network access.
+
+**Green:** `agent-badge-derivation` 7 of 7, `supply.test.ts` 8 of 8,
+`tsc --noEmit` on `@vallo/web` exit 0 read from the compiler's own status and
+not from a pipe.

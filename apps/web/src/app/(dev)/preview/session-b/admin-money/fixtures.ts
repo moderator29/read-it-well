@@ -61,8 +61,8 @@ export function escrowDesk(full: boolean) {
 export function supplyDesk(full: boolean) {
   const demoBiz = (id: string, kind: string) => ({ id, owner_id: null, agent_id: null, kind, name: id, verified: false, is_demo: !full, created_at: "2026-06-01T00:00:00Z" });
   const agents = full
-    ? Array.from({ length: 40 }, (_, i) => ({ id: `a${i}`, user_id: `u${i}`, display_name: who[i % 7]!, type: (i % 3 === 0 ? "business" : "individual") as "business" | "individual", verified: i % 5 !== 0, is_demo: false, created_at: iso(NOW - (i * 4 + 1) * DAY), application_id: null }))
-    : [{ id: "a", user_id: "u", display_name: "Example lister", type: "business" as const, verified: false, is_demo: true, created_at: "2026-08-01T00:00:00Z", application_id: null }];
+    ? Array.from({ length: 40 }, (_, i) => ({ id: `a${i}`, user_id: `u${i}`, display_name: who[i % 7]!, type: (i % 3 === 0 ? "business" : "individual") as "business" | "individual", agent_badges: { verified: i % 5 !== 0 }, is_demo: false, created_at: iso(NOW - (i * 4 + 1) * DAY), application_id: null }))
+    : [{ id: "a", user_id: "u", display_name: "Example lister", type: "business" as const, agent_badges: { verified: false }, is_demo: true, created_at: "2026-08-01T00:00:00Z", application_id: null }];
   const areas = ["Lekki", "Ikoyi", "Maitama", "Wuse", "Yaba", "Gbagada"];
   const types = ["home", "apartment", "land", "hotel", "shortlet", "restaurant"];
   const listings = Array.from({ length: 64 }, (_, i) => ({ id: `l${i}`, agent_id: full ? `a${i % 40}` : "a", property_type: types[Math.min(5, Math.floor(Math.sqrt(i * 0.55)))]!, status: "PUBLISHED", area: areas[Math.floor(Math.sqrt(i * 0.5)) % 6]!, city: "Lagos", is_demo: !full }));

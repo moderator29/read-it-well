@@ -7,7 +7,7 @@ const agent = (id: string, over: Partial<SupplyInputs["agents"][number]> = {}) =
   user_id: `u-${id}`,
   display_name: `Agent ${id}`,
   type: "individual" as const,
-  verified: true,
+  agent_badges: { verified: true },
   is_demo: false,
   created_at: "2026-09-01T10:00:00Z",
   application_id: null,

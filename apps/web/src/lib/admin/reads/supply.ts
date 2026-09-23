@@ -48,7 +48,16 @@ type AgentRow = {
   user_id: string;
   display_name: string;
   type: "individual" | "business" | null;
-  verified: boolean;
+  /**
+   * THE PUBLISHED BADGE, NOT THE COLUMN BESIDE IT. `agents.verified` still
+   * exists and still holds the same answer, because `agents_derive_badge`
+   * sets it from `verification_tier` under a check constraint. Reading it
+   * here would still be a SECOND derivation of one fact, and the second
+   * derivation is the thing that drifts. A missing embed reads as not
+   * verified, the same way `lib/messages/live.ts` treats a missing row: the
+   * failure mode has to be a tick that does not appear.
+   */
+  agent_badges: { verified: boolean } | null;
   is_demo: boolean;
   created_at: string;
   application_id: string | null;
@@ -114,7 +123,7 @@ export function buildSupply(inputs: SupplyInputs, filter: SupplyDeskFilter, now:
         kind: "agent",
         name: a.display_name,
         role,
-        verified: a.verified,
+        verified: a.agent_badges?.verified ?? false,
         listings: (listingsByAgent.get(a.id) ?? []).length,
         transactedMinor: (inputs.releasedTo.get(a.user_id) ?? 0) + bookedFor(a.id),
         joinedAt: a.created_at,
@@ -208,7 +217,7 @@ export async function getSupplyDesk(
       readEvery<AgentRow>((f, t) =>
         db
           .from("agents")
-          .select("id, user_id, display_name, type, verified, is_demo, created_at, application_id")
+          .select("id, user_id, display_name, type, agent_badges(verified), is_demo, created_at, application_id")
           .order("id")
           .range(f, t),
       ),
