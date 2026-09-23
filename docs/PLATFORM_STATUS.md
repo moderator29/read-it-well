@@ -259,6 +259,114 @@ And three that were mine or the instruments':
 
 ---
 
+## Cycle 3: the proof run, and a diagnosis of mine that was wrong
+
+Detail in `docs/PROOF_RUN_2026-09-22.md`.
+
+### THE CONSTRAINT THAT SHAPES EVERYTHING ELSE
+
+**This environment cannot reach the live database or the live product.** The
+egress policy refuses `uccixoonmbhrnyczyigt.supabase.co` and the production
+deployment. The database tool still works but connects read-only.
+
+- **92 of 140 product routes redirect a signed-out visitor** and cannot be
+  walked, shot or measured from here **by anybody**.
+- **Six routes answer the not-found body at HTTP 200 because the row cannot be
+  fetched**, including `/listing/<a real published id>`. Written up as product
+  defects those would have been **six false accusations**.
+- **This is a large part of why 94 of 136 surfaces are unproven.** The preview
+  harness is the only surface this environment can reach, because it renders
+  from fixtures with no session and no database.
+
+**Getting that one host through egress is worth more than the rest of the
+register combined.** It unblocks items 2, 3, 6, and most of 7 and 15 at once.
+
+### CONVERTED
+
+| Item | Converted by |
+|---|---|
+| **2** rate limits | **A money call site refused and it was watched.** The 31st bad-signature Paystack webhook answered **HTTP 429 `too_many_failures`, `retry-after: 175`**, counter at exactly 30. **All 18 of 18 money buckets refuse on exactly the attempt their limit declares**, against a real Postgres carrying the live function bodies pulled with `pg_get_functiondef()` |
+| **14** the four state colours | **Observed, not computed. All 16 light combinations clear 4.5:1**, 5.14:1 to 13.70:1. The arithmetic was right, and the browser also found what arithmetic could not: **`.nf-badge--error` and `.nf-badge--info` do not exist.** Four tokens, two classes |
+| **5** the shape law | Run properly for the first time: 163 routes, two widths, both themes. **It returns 48, not zero** |
+
+**The 48 are all `.nf-badge` on `/preview/g1/sheet` and `/preview/g1/surfaces`,
+the two pages that exist to demonstrate the deprecated `shape="pill"` prop. No
+product route breached.** It had only ever covered nine routes because
+`openSurface`'s correct refusals threw out of the sweep's own loop.
+
+### THE CONTRAST NUMBER, CORRECTED, AND MY DIAGNOSIS WITHDRAWN
+
+| | old probe | repaired |
+|---|---|---|
+| below the floor | 123 | **55** |
+| dark / light | 28 / 95 | **2 / 53** |
+| routes with a failure | 21 | 11 |
+
+**The ledger's "150, 51 dark and 99 light" is withdrawn.** The same broken probe
+on today's tree gives 123, so that figure was never reproducible by its own
+instrument. Crop verification of 24 combinations returned 17 real and 2 false,
+so the honest figure is near **49**. **53 of 55 are light**, and that half of
+the original finding survives.
+
+**I told the founder the probe was blind below roughly 4,700 pixels. That was
+wrong and I am withdrawing it.** It was relayed from another worker's report
+and I passed it on without checking. It did not reproduce: on the tallest
+harness route every band down to 8,200px holds hundreds of distinct colours,
+and only 3 of 115 routes are that tall at all. The real faults were different
+and more interesting:
+
+1. **It measured the line box, not the words.** A 222px paragraph holding "5
+   photos" is nine tenths empty ground; the glyphs cover 0.4% of it, so the
+   probe compared the background against itself and reported **1.00:1 on
+   plainly legible text**. It now takes a `Range` over the element's own text
+   nodes.
+2. The ink was looked for among the 60 most common colours, and an antialiased
+   glyph core is rarely there.
+3. Opacity compounds, and it asked only the element, so **every closed sheet
+   read as a contrast failure**.
+
+### THE EIGHTH BLIND LIGHT, IN THE INSTRUMENT THAT COUNTS THE OTHERS
+
+**`sweep-register.mjs` judged a proof's freshness by file mtime, and a git
+checkout stamps every file with the time of the checkout.** Same script, same
+600 files, same minute: **58 fresh and 15 void in a long-lived copy, 73 fresh
+and 0 void in a ten-minute-old worktree.**
+
+**The fifteen surfaces the founder ordered retaken were clearing themselves by
+being cloned.** It asks git now, and both trees agree.
+
+Both wrong governing-image assignments are also fixed, and **`/around` has its
+first proof**: four of the render's five anatomy parts present, cards absent
+because there is no database, recorded rather than glossed.
+
+### THE END-TO-END WALK
+
+```
+140 walked · 15 not clean · 94 redirected · 8 not-found-at-200 · 0 threw · 0 banned copy
+```
+
+**Nothing threw on any of the 140 routes and no banned copy is on any screen.**
+Both are real results.
+
+**Two of the walk's headline findings are correct behaviour, and I checked
+before repeating them.** `/sign-in` landing on `/welcome` signed out is Session
+B's request W2, deliberate: a device that has never seen first run meets it
+first, carrying the whole sign-in address as `next`, with three separate
+escape hatches against a loop. The "double-encoded destination" is that nesting
+encoded correctly.
+
+Real, and ours:
+
+| Finding | State |
+|---|---|
+| **22 routes declare a parent in `route-parents.ts` and draw no back control**, including `/about`, `/privacy`, `/terms`, `/help`, `/search`, `/around`. Verified: all six declare a parent, `BackButton.tsx` exists, none mounts it | **Open. This is the founder's item 1 and the map is built while the controls are missing.** Of 48 reachable routes, 9 back controls were walked and all 9 landed on their declared parent |
+| Wallet quick-action titles at **1.32:1**, feed `@handle` and timestamps at **2.90:1**, agent-calendar day numbers at **1.57:1** | Open, and the worst of the 53 |
+| `/` never reaches networkidle in 60s at 1536, both themes; settles at 390 | Open |
+| `/around/manage` silently redirects to `/around/settings` | Two register surfaces, one screen |
+| `/crypto` not-found at 200 | **Deliberate**, and confirms Track D |
+
+---
+
 ## The unproven register
 
 Everything this file marks UNPROVEN, in one place, so it can be worked through
@@ -267,10 +375,10 @@ rather than rediscovered.
 | # | Claim | Why it is unproven | Cost to prove |
 |---|---|---|---|
 | 1 | Four daily cron routes work | Never had an authorised run; first chance 02:30–07:40 | One query at 08:00 |
-| 2 | Rate limits refuse | No real money call has ever been refused | Needs a card |
+| 2 | Rate limits refuse | **CONVERTED: 18 of 18 money buckets refuse on exactly the declared attempt; a webhook answered 429 with retry-after 175.** The user half, a drawn refusal sentence, still needs a session |
 | 3 | Every consumer money path | 0 bookings, 0 reservations, 0 rent payments | Needs a seeded account |
-| 4 | All light-mode contrast figures | `probe-contrast.mjs` is blind below ~4,700px; 43 of 84 did not reproduce | 2 days |
-| 5 | The shape law returns zero | One genuine run covered 9 routes of ~98 | ~1 day |
+| 4 | All light-mode contrast figures | **CONVERTED and corrected: 55, not 150, and ~49 after crop verification. 53 of 55 are light.** My 4,700px diagnosis was wrong and is withdrawn | done |
+| 5 | The shape law returns zero | **CONVERTED: it returns 48, all `.nf-badge` on two preview pages demonstrating a deprecated prop. No product route breached** | done |
 | 6 | The emails look right | No email has been opened in a mail client; all claims are string assertions | ~2 hours |
 | 7 | 94 of 136 frontend surfaces | 15 void, 29 ambiguous, 34 never shot | ~2 days |
 | 8 | The dock geometry | Proof shows the switch raised; the code sets lift to 0 | ~1 hour |
