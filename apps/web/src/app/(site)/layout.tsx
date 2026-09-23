@@ -1,4 +1,6 @@
+import { headers } from "next/headers";
 import { getDictionary } from "@vallo/i18n";
+import { isShellUserAgent } from "@/lib/native/shell";
 import { getLocale } from "@/lib/locale";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
@@ -24,10 +26,14 @@ export default async function SiteLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const locale = await getLocale();
   const t = getDictionary(locale);
+  /* V-11: inside the store shell the marketing header and footer are never
+     drawn. The pages themselves (privacy, terms, help) are still reachable
+     from the app, framed by the back bar alone. */
+  const shell = isShellUserAgent((await headers()).get("user-agent"));
 
   return (
     <>
-      <SiteHeader t={t} locale={locale} />
+      {!shell && <SiteHeader t={t} locale={locale} />}
 
       <main id="main" className="nf-site relative overflow-hidden">
         <div className="nf-aurora" aria-hidden="true" />
@@ -38,7 +44,7 @@ export default async function SiteLayout({
         </div>
       </main>
 
-      <SiteFooter t={t} />
+      {!shell && <SiteFooter t={t} />}
     </>
   );
 }
