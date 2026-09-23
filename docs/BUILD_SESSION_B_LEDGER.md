@@ -5808,6 +5808,13 @@ after right, 28) and `after-390/` (28).
 
 ## Skipped or not verified
 
+- Sweep, settings group (23 September): the payment methods block on `/settings` and
+  `/settings/payments` is not swept here (wallet family); no before shots of the drawer and the
+  three sheets (added in audit Pass 2); `.nf-sheet` photographed only through the wallet harness;
+  `ProfileIdentityCard.tsx` not swept (profile worker in flight); the notification centre's filter
+  tabs in GOVERNING-12 are Session A's feature and do not exist; every settings and notifications
+  proof is fixture-backed (the routes sit behind the sign-in gate).
+
 (appended honestly as work proceeds)
 
 - Deleted posts (section 12): no live signed-in run (no test user); proven by

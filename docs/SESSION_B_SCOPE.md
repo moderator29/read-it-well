@@ -141,6 +141,9 @@ Each group appends "RELEASED <commit>" here when it is done.
     the wallet family sweeps it), `PageHeader`, `BackButton`, the dock and
     header (chrome group), `components/app/welcome/InterestChoices.tsx`
     (welcome).
+    **Settings group RELEASED be65d995** (18 of 19 routes and states swept; the
+    payment methods block is the wallet family's; `ProfileIdentityCard.tsx` waits
+    for the profile worker; ledger 13, settings).
   - feed, stories, posts, the plus bloom (worker "feed"):
     `components/social/feed/**`, `components/social/bloom/**`,
     `components/social/story/**`, `app/social.css`, `app/social-feed.css`
