@@ -61,6 +61,24 @@
  * A walk that reads the rule it is testing can agree with itself while
  * disagreeing with the product. These are the product decision stated a second
  * time, by hand, and the run is what makes the two meet.
+ *
+ * ===========================================================================
+ * THE CONTROL, WHICH IS NOT OPTIONAL
+ * ===========================================================================
+ *
+ * A GATE THAT REFUSES EVERYBODY PASSES A TEST THAT ONLY CHECKS REFUSALS.
+ * Every check above is satisfied by a middleware that redirects every request
+ * on the platform to `/sign-in`, which would be a catastrophe reported as a
+ * clean run. So the same list is walked a second time WITH a session, and
+ * every route that bounced must now not bounce.
+ *
+ *   GATE_SESSION_COOKIE="sb-...-auth-token=..." \
+ *   BASE_URL=http://127.0.0.1:3493 node apps/web/tests/gate.spec.mjs
+ *
+ * With that variable set the spec runs the control pass INSTEAD of the
+ * signed-out pass, because the two need servers built against different
+ * addresses. `tests/gate-stub-session.mjs` mints the cookie and explains what
+ * a stand-in session can and cannot prove.
  */
 
 import { chromium } from "playwright-core";
@@ -230,6 +248,26 @@ const browser = await chromium.launch({
 });
 const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
 
+/** Set when this run is the control: the same walk, carrying a session. */
+const SESSION_COOKIE = process.env.GATE_SESSION_COOKIE ?? "";
+if (SESSION_COOKIE) {
+  const { hostname } = new URL(BASE_URL);
+  await context.addCookies(
+    SESSION_COOKIE.split(";")
+      .map((pair) => pair.trim())
+      .filter(Boolean)
+      .map((pair) => {
+        const at = pair.indexOf("=");
+        return {
+          name: pair.slice(0, at),
+          value: pair.slice(at + 1),
+          domain: hostname,
+          path: "/",
+        };
+      }),
+  );
+}
+
 /** Everything knowable about a loaded page without pressing anything. */
 async function inspect(page) {
   return page.evaluate(() => {
@@ -251,7 +289,73 @@ const pathOf = (u) => {
   return p === "" ? "/" : p;
 };
 
+/**
+ * THE CONTROL PASS. The same list, carrying a session, and nothing may bounce.
+ *
+ * It asserts about the GATE and deliberately not about the pages. A page past
+ * the middleware reads data, and on a stand-in session there is no data to
+ * read, so a data-backed screen renders its empty or not-found state for
+ * reasons that have nothing to do with who is asking. Claiming those rows as
+ * rendered pages would be the same lie in the other direction.
+ */
+async function control() {
+  console.log("\nThe control: the same routes, carrying a session");
+
+  /* The instrument proves itself first. If the cookie did not take, every
+     route below would bounce and the run would report the gate as broken when
+     the walk was simply signed out. */
+  const armed = await context.request.get(`${BASE_URL}/home`, { maxRedirects: 0 });
+  const armedLocation = armed.headers()["location"] ?? "";
+  if (armedLocation.includes("/sign-in")) {
+    console.log("\n  ABORTED: the session cookie was not accepted, so this walk is signed out.");
+    console.log(`  /home answered ${armed.status()} ${armedLocation}`);
+    console.log("  The server must be BUILT with NEXT_PUBLIC_SUPABASE_URL pointing at the");
+    console.log("  same address the cookie was minted for: Next inlines that value at build");
+    console.log("  time rather than reading it at runtime.");
+    await context.close();
+    await browser.close();
+    process.exit(1);
+  }
+
+  const refused = [];
+  for (const path of PRODUCT) {
+    const res = await context.request.get(BASE_URL + path, { maxRedirects: 0 });
+    const location = res.headers()["location"] ?? "";
+    if (location.includes("/sign-in")) refused.push(`${path} was still sent to sign-in`);
+  }
+  check(`all ${PRODUCT.length} product routes let a session through`, refused.length === 0, refused);
+
+  const shut = [];
+  for (const path of API_CLOSED) {
+    const res = await context.request.get(BASE_URL + path, { maxRedirects: 0 });
+    if (res.status() !== 401) continue;
+    const body = await res.text();
+    /* Only OUR refusal is a failure here. An endpoint answering 401 for its
+       own reasons, with a stand-in session behind it, is not the gate. */
+    if (body.includes("sign-in-required")) shut.push(`${path} was refused by the gate`);
+  }
+  check(`all ${API_CLOSED.length} data routes answer a session`, shut.length === 0, shut);
+
+  const closed = [];
+  for (const path of PUBLIC) {
+    const res = await context.request.get(BASE_URL + path, { maxRedirects: 0 });
+    const location = res.headers()["location"] ?? "";
+    if (location.includes("/sign-in") && !path.startsWith("/sign-in")) {
+      closed.push(`${path} was sent to sign-in`);
+    }
+  }
+  check(`all ${PUBLIC.length} public routes stay open to a session too`, closed.length === 0, closed);
+}
+
 try {
+  if (SESSION_COOKIE) {
+    await control();
+    await context.close();
+    await browser.close();
+    console.log(failures === 0 ? "\nAll checks passed." : `\n${failures} check(s) failed.`);
+    process.exit(failures === 0 ? 0 : 1);
+  }
+
   /* If the gate is not armed the whole run is meaningless, so it is the first
      thing checked and it stops rather than reporting forty false passes. */
   const probe = await context.request.get(`${BASE_URL}/home`, { maxRedirects: 0 });
@@ -294,17 +398,50 @@ try {
     (withQuery.headers()["location"] ?? "").includes("next=%2Fsearch%3Fkind%3Dflat%26bedrooms%3D2"),
     [withQuery.headers()["location"] ?? ""],
   );
-  /* The open-redirect guard, checked from the outside rather than trusted:
-     `safeReturnPath` refuses a protocol-relative path, so the bounce must
-     carry no `next` at all rather than carry somebody else's host. */
-  const evil = await context.request.get(`${BASE_URL}//evil.example/listing/x`, {
-    maxRedirects: 0,
-  });
-  const evilTarget = evil.headers()["location"] ?? "";
+  /*
+   * THE OPEN REDIRECT, CHECKED FROM THE OUTSIDE RATHER THAN TRUSTED.
+   *
+   * `safeReturnPath` refuses a protocol-relative path, a backslash and the
+   * control characters a URL parser DELETES rather than rejects. It has unit
+   * tests. What those cannot see is the server in front of it: Next normalises
+   * some of these itself, with a 308, before the middleware ever runs.
+   *
+   * THE QUESTION IS NOT WHETHER `next` IS ABSENT. The first version of this
+   * check asserted that the Location did not CONTAIN the hostile host, and it
+   * went red on a perfectly safe answer: Next collapsed `//evil.example/x` to
+   * the ordinary same-origin path `/evil.example/x` and redirected there, so
+   * the string was present and the destination was ours. A check that reads a
+   * substring of a URL is not reading a URL.
+   *
+   * So the question asked is the only one that matters: wherever this bounce
+   * would send a browser, and wherever the `next` it carries would send one
+   * afterwards, must resolve to OUR origin.
+   */
+  const hostile = [
+    "//evil.example/listing/x",
+    "/\\evil.example",
+    "/%2f%2fevil.example",
+    "/%09/evil.example",
+  ];
+  const escaped = [];
+  for (const path of hostile) {
+    const res = await context.request.get(BASE_URL + path, { maxRedirects: 0 });
+    const location = res.headers()["location"] ?? "";
+    if (location.length === 0) continue;
+    const resolved = new URL(location, BASE_URL);
+    if (resolved.origin !== new URL(BASE_URL).origin) {
+      escaped.push(`${path} -> ${res.status()} ${location}`);
+      continue;
+    }
+    const carried = resolved.searchParams.get("next");
+    if (carried && new URL(carried, BASE_URL).origin !== new URL(BASE_URL).origin) {
+      escaped.push(`${path} -> next=${carried}`);
+    }
+  }
   check(
-    "a protocol-relative address is never handed back as a destination",
-    !evilTarget.includes("evil.example"),
-    [`${evil.status()} ${evilTarget}`],
+    `none of the ${hostile.length} hostile addresses leaves our origin`,
+    escaped.length === 0,
+    escaped,
   );
 
   /* -------------------------------------------------------- the data routes */

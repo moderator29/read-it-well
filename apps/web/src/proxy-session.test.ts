@@ -1,0 +1,308 @@
+import { createServer, type Server } from "node:http";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+/**
+ * THE CONTROL: THE SAME ROUTES, CARRYING A SESSION, THROUGH THE REAL GUARD.
+ *
+ * ===========================================================================
+ * WHY THIS FILE HAD TO EXIST BEFORE THE GATE COULD BE CALLED PROVEN
+ * ===========================================================================
+ *
+ * A GATE THAT REFUSES EVERYBODY PASSES A TEST THAT ONLY CHECKS REFUSALS.
+ * `tests/gate.spec.mjs` watches forty-one product routes bounce an anonymous
+ * visitor to `/sign-in`, and every one of those rows is equally green over a
+ * middleware that redirects the entire platform, including its owners. That
+ * would be a catastrophe reported as a clean run.
+ *
+ * So the same list is put through `proxy()` again with a session attached, and
+ * every route that bounced must now not bounce.
+ *
+ * ===========================================================================
+ * IT DRIVES THE REAL MIDDLEWARE, NOT A MODEL OF IT
+ * ===========================================================================
+ *
+ * `src/proxy.test.ts` asserts `isPublicPath`, which is the DECISION. This
+ * calls `proxy()` itself: the real `createServerClient`, the real cookie
+ * adapter, a real `getUser()` over HTTP, the real branch, the real response.
+ * The difference matters, because `isPublicPath` can be perfect while the
+ * middleware never consults it, and no test of a pure function can see that.
+ *
+ * WHAT STANDS IN FOR SUPABASE, AND WHAT THAT COSTS. This container's egress
+ * proxy answers `CONNECT <project>.supabase.co:443` with 403, so no real
+ * session can be obtained here at all. A local stand-in serves the ONE
+ * endpoint `proxy()` calls, `GET /auth/v1/user`, and the cookie is minted by
+ * the same library the middleware reads it with, so a cookie the server would
+ * silently fail to parse cannot be mistaken for a session.
+ *
+ * NOTHING HERE IS A CREDENTIAL. The JWT is unsigned, the address is
+ * `example.invalid`, the id is all ones, and it only satisfies a client
+ * pointed at `127.0.0.1`.
+ *
+ * ===========================================================================
+ * WHAT THIS PROVES, AND WHAT IT EXPLICITLY DOES NOT
+ * ===========================================================================
+ *
+ * PROVES: the guard admits a request carrying a session on every route it
+ * refuses without one, answers the API routes rather than refusing them, and
+ * still lets the public routes through.
+ *
+ * DOES NOT PROVE: that those pages RENDER for a signed-in reader. A page past
+ * the middleware reads data, and past this stand-in there is no data, so a
+ * data-backed screen would draw its empty or not-found state for reasons that
+ * have nothing to do with the gate. That half is UNPROVEN in this container
+ * and is closed by one signed-in reload of the live site. Saying so is the
+ * point: presenting an unreachable claim as a green row is the fault this
+ * whole file exists to avoid.
+ */
+
+/** An invented reader. Not a person, not an account, not a credential. */
+const USER = {
+  id: "11111111-1111-4111-8111-111111111111",
+  aud: "authenticated",
+  role: "authenticated",
+  email: "reviewer@example.invalid",
+  email_confirmed_at: new Date().toISOString(),
+  phone: "",
+  app_metadata: { provider: "email", providers: ["email"] },
+  user_metadata: {},
+  identities: [],
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  is_anonymous: false,
+};
+
+const b64 = (value: unknown) => Buffer.from(JSON.stringify(value)).toString("base64url");
+
+/** Structurally valid, deliberately unsigned. The stand-in verifies nothing. */
+function accessToken(expiresAt: number): string {
+  return [
+    b64({ alg: "HS256", typ: "JWT" }),
+    b64({
+      sub: USER.id,
+      aud: "authenticated",
+      role: "authenticated",
+      email: USER.email,
+      iss: "gate-control",
+      iat: Math.floor(Date.now() / 1000) - 60,
+      exp: expiresAt,
+    }),
+    Buffer.from("unsigned").toString("base64url"),
+  ].join(".");
+}
+
+/**
+ * Every route the signed-out walk refuses, plus the data routes and the
+ * public ones.
+ *
+ * Kept in step with `tests/gate.spec.mjs` by hand and on purpose. Two lists
+ * that drift are two lists, and a control that walked a shorter list than the
+ * refusal pass would be a control with holes exactly where nobody looked.
+ */
+const PRODUCT = [
+  "/home",
+  "/search",
+  "/search?view=map",
+  "/listing/anything",
+  "/around",
+  "/around/yaba-unilag",
+  "/stays",
+  "/stays/search",
+  "/stay/anything",
+  "/restaurants",
+  "/restaurant/anything",
+  "/rent",
+  "/price",
+  "/price/area/anything",
+  "/u",
+  "/u/somebody",
+  "/post/anything",
+  "/saved",
+  "/messages",
+  "/notifications",
+  "/profile",
+  "/settings",
+  "/wallet",
+  "/bookings",
+  "/checkout/anything",
+  "/trips",
+  "/host",
+  "/escrow",
+  "/inspections",
+  "/verification",
+  "/assistant",
+  "/stories",
+  "/crypto",
+  "/legal/privacy",
+  "/legal/terms",
+  "/admin",
+  "/admin/support",
+  "/agent/dashboard",
+  "/agent/listings",
+  "/agent/bookings",
+  "/styleguide",
+];
+
+const API_CLOSED = [
+  "/api/map/listings?west=3&south=6&east=4&north=7",
+  "/api/crypto/markets",
+  "/api/crypto/pairs",
+  "/api/crypto/coins/bitcoin",
+  "/api/assistant",
+  "/api/documents/anything",
+  "/api/push/key",
+  "/api/push/register",
+  "/api/push/revoke",
+  "/api/push/self-test",
+];
+
+const PUBLIC = [
+  "/",
+  "/about",
+  "/careers",
+  "/contact",
+  "/help",
+  "/docs",
+  "/docs/what-vallo-is",
+  "/cancellations",
+  "/eula",
+  "/privacy",
+  "/safety",
+  "/standards",
+  "/terms",
+  "/delete-account",
+  "/offline",
+  "/sign-in",
+  "/sign-up",
+  "/auth/callback",
+  "/forgot-password",
+  "/reset-password",
+  "/welcome",
+  "/robots.txt",
+  "/sitemap.xml",
+];
+
+const PORT = 33492;
+const STUB = `http://127.0.0.1:${PORT}`;
+
+let server: Server;
+let cookieHeader = "";
+let proxy: (request: Request) => Promise<Response>;
+let NextRequest: typeof import("next/server").NextRequest;
+
+beforeAll(async () => {
+  server = createServer((req, res) => {
+    const url = new URL(req.url ?? "/", "http://127.0.0.1");
+    res.setHeader("content-type", "application/json");
+    if (url.pathname === "/auth/v1/user") {
+      res.end(JSON.stringify(USER));
+      return;
+    }
+    /* Everything else is refused loudly rather than faked, so nothing this
+       file reports can be traced back to a convenient invention. */
+    res.statusCode = 404;
+    res.end(JSON.stringify({ stub: "serves /auth/v1/user only", path: url.pathname }));
+  });
+  await new Promise<void>((resolve) => server.listen(PORT, "127.0.0.1", resolve));
+
+  /* Set BEFORE the module is loaded: `lib/supabase/env.ts` reads
+     `process.env` at module scope, so an import above this line would arm the
+     guard against the wrong address. */
+  process.env.NEXT_PUBLIC_SUPABASE_URL = STUB;
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "stub-anon-key";
+
+  const { createServerClient } = await import("@supabase/ssr");
+  const jar: { name: string; value: string }[] = [];
+  const client = createServerClient(STUB, "stub-anon-key", {
+    cookies: {
+      getAll: () => jar,
+      setAll: (list) => {
+        for (const cookie of list) jar.push({ name: cookie.name, value: cookie.value });
+      },
+    },
+  });
+  const expiresAt = Math.floor(Date.now() / 1000) + 3600;
+  const { error } = await client.auth.setSession({
+    access_token: accessToken(expiresAt),
+    refresh_token: "unsigned-refresh",
+    expires_in: 3600,
+    expires_at: expiresAt,
+    token_type: "bearer",
+    user: USER as never,
+  });
+  if (error) throw new Error(`the stand-in could not mint a session: ${error.message}`);
+  if (jar.length === 0) throw new Error("no cookie was written, so there is nothing to walk with");
+  cookieHeader = jar.map((cookie) => `${cookie.name}=${cookie.value}`).join("; ");
+
+  ({ proxy } = (await import("./proxy")) as unknown as {
+    proxy: (request: Request) => Promise<Response>;
+  });
+  ({ NextRequest } = await import("next/server"));
+});
+
+afterAll(async () => {
+  await new Promise<void>((resolve) => server.close(() => resolve()));
+});
+
+/** One request through the real middleware, with or without the session. */
+async function ask(path: string, withSession: boolean) {
+  const request = new NextRequest(`http://127.0.0.1${path}`, {
+    headers: withSession ? { cookie: cookieHeader } : {},
+  });
+  const response = await proxy(request as unknown as Request);
+  return {
+    status: response.status,
+    location: response.headers.get("location") ?? "",
+  };
+}
+
+describe("the gate admits a session, which is the half a refusal test cannot see", () => {
+  it("is armed at all, and refuses without the session", async () => {
+    /* THE INSTRUMENT PROVES ITSELF FIRST. If the guard were a pass-through
+       here, because the environment was not set in time or Supabase read as
+       unconfigured, every assertion below would pass over a middleware that
+       does nothing. This is the assertion that says the branch is live. */
+    const anonymous = await ask("/home", false);
+    expect(anonymous.status, "the guard is not armed, so nothing below means anything").toBe(307);
+    expect(anonymous.location).toContain("/sign-in");
+  });
+
+  it("lets a session through every route it bounces an anonymous visitor from", async () => {
+    const refused: string[] = [];
+    for (const path of PRODUCT) {
+      const answer = await ask(path, true);
+      if (answer.location.includes("/sign-in")) {
+        refused.push(`${path} was still sent to ${answer.location}`);
+      }
+    }
+    expect(refused, "the gate refuses its own users").toEqual([]);
+  });
+
+  it("answers the data routes for a session rather than refusing them", async () => {
+    const shut: string[] = [];
+    for (const path of API_CLOSED) {
+      const answer = await ask(path, true);
+      if (answer.status === 401) shut.push(`${path} answered 401`);
+    }
+    expect(shut, "a signed-in caller cannot reach the platform's own data routes").toEqual([]);
+  });
+
+  it("still refuses every one of those data routes without a session", async () => {
+    /* The other direction of the same pair, because "the API answers a
+       session" is also true of an API that answers everybody. */
+    const open: string[] = [];
+    for (const path of API_CLOSED) {
+      const answer = await ask(path, false);
+      if (answer.status !== 401) open.push(`${path} answered ${answer.status}`);
+    }
+    expect(open, "a stranger can still fetch product data").toEqual([]);
+  });
+
+  it("leaves the public routes open to a session too", async () => {
+    const closed: string[] = [];
+    for (const path of PUBLIC) {
+      const answer = await ask(path, true);
+      if (answer.location.includes("/sign-in")) closed.push(`${path} was sent to sign-in`);
+    }
+    expect(closed).toEqual([]);
+  });
+});
