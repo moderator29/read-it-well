@@ -1203,7 +1203,7 @@ was the previous RECOMMENDATIONS.md, and `git show` on any commit before
 | `W-2` | Nothing is rate limited on the money surfaces | OPEN |  |
 | `E-6` | What the escrow UI must never say | NEW |  |
 | `LG-1` | The landing page claims NDPA compliance as a fact | OPEN |  |
-| `T-1` | 83 browser specs, 8 vitest files, and no CI runs any of them | OPEN |  |
+| `T-1` | 83 browser specs, 8 vitest files, and no CI runs any of them | PARTLY CLOSED (23 Sep 2026): CI runs typecheck, lint, the vitest suite (242 files) and the build; the node browser specs are still run by nobody (THE_AUDIT DOC-09) |  |
 | `CASE-1` | A funding was paid for and the wallet showed zero | OPEN |  |
 | `N-6` | There is still no Buy or Sell anywhere in the navigation | OPEN |  |
 | `P-8` | A sale listing must be a different page, and nothing decides what it says | NEW |  |
