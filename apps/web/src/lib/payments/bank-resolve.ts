@@ -84,11 +84,6 @@ export async function cachedBanks(): Promise<PaystackBank[]> {
   return banks;
 }
 
-/** Test seam only: forget the registry so the next read goes to the wire. */
-export function forgetBanksCache(): void {
-  banksCache = null;
-}
-
 /**
  * The display name for a code, from the live registry. `null` means either
  * that the registry could not be read or that the code is not in it, and both
