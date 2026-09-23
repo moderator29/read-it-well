@@ -457,6 +457,24 @@ sweep, route by route (swept, not swept and why), is recorded in ledger section
 13 and summarised in B5b below when it lands. Until B5b says otherwise, treat
 every route outside Session B's original surfaces as NOT YET SWEPT.**
 
+### B5b. The sweep register (interim, 23 September, written at `b6f41ceb`)
+
+**Until this section says otherwise route by route, every route outside
+Session B's original surfaces is NOT YET SWEPT.** This is the register as it
+stands; it is rewritten when each group's three dated passes land, and a route
+moves to "swept" only when its after proof and passes are in ledger section 13.
+
+| Group | Routes | Swept | State at this writing |
+|---|---|---|---|
+| Shared layer (phase 1) | tokens, Panel, IconPlate, Button, Switch | released | `42ea43d9`, `9da8f86f`, `a39d24cb`, `f440fd21`; console and Get started read it; 35 of 38 harness shots pixel-identical before the glow step. Reflection proofs cover the overview and Get started only |
+| Social (public profile, follows, edit profile, messages, three thread faces) | 12 | 11 of 12 | applied `8ac45997`; the twelfth draws nothing of its own; Pass 1 recorded, Passes 2 to 5 pending (thread card is a five-pass surface) |
+| Home, search, listing, price check | 8 | 0 of 8 | inventory and before proofs only; apply pending |
+| Stays, trips, restaurants, checkout, held payments | see ledger 13 stays | 0 | inventory and before proofs only; apply pending |
+| Settings, notifications, system pages | see ledger 13 settings | 0 | inventory and before proofs only; apply pending |
+| Chrome (drawer, dock, header, host wizard, agent, landing) | see ledger 13.4 | 0 | inventory and before proofs only; apply pending |
+| Feed and plus bloom | feed, bloom | 0 | being rebuilt to the founder image; five passes owed |
+| Session B's own surfaces (profile, auth, wallet family, inspection, console) | 8 surfaces | inspection on the shared layer (`890acbde`); the rest pending | the local primary-button overrides in auth, landing, agent and home stylesheets are still to be removed |
+
 ### B6. What the next session needs to know
 
 - **Worktrees, not the main tree.** Session B built in per-worker git worktrees

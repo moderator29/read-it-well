@@ -229,7 +229,7 @@ function ConfirmSend({
   };
 
   return (
-    <div className="nf-context-card mt-block flex-col items-stretch" role="group" aria-label={label}>
+    <div className="nf-panel nf-panel--card nf-context-card mt-block flex-col items-stretch" role="group" aria-label={label}>
       <p className={TYPE.body}>The card lands in the conversation as a message they can open.</p>
       {error && (
         <p role="alert" className={`mt-inline-tight ${TYPE.rowMeta} text-[var(--nf-state-error)]`}>

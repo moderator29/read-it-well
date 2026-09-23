@@ -1,3 +1,4 @@
+import type { Database } from "../supabase/database.types";
 /**
  * Wallet domain types.
  *
@@ -28,23 +29,25 @@ export type EscrowLine = {
   listingTitle: string | null;
 };
 
-/** The eight escrow states, mirroring `public.escrow_state`. */
-export type EscrowState =
-  | "INITIATED"
-  | "FUNDED"
-  | "HELD"
-  | "RELEASE_REQUESTED"
-  | "RELEASED"
-  | "REFUNDED"
-  | "DISPUTED"
-  | "RESOLVED";
+/**
+ * THE ESCROW STATES, READ FROM THE DATABASE RATHER THAN COPIED FROM IT.
+ *
+ * This was a hand written union of eight names "mirroring
+ * `public.escrow_state`". It stopped mirroring it the day the escrow work
+ * added `CANCELLED`, and nothing said so, because a copy cannot notice that
+ * the thing it copies has moved. The generated types carry the enum, so the
+ * ninth state is now a compile error in every consumer rather than a value
+ * that arrives at a screen with no word for it.
+ */
+export type EscrowState = Database["public"]["Enums"]["escrow_state"];
 
 /** The four escrow purposes, mirroring `public.escrow_purpose`. */
-export type EscrowPurpose =
-  | "rent_deposit"
-  | "first_rent"
-  | "purchase_deposit"
-  | "purchase_balance";
+/**
+ * Read from the database, for the reason given above `EscrowState`. This copy
+ * had drifted too: the agency fee purpose, which is the ONE leg open under the
+ * purpose gate, was missing from it.
+ */
+export type EscrowPurpose = Database["public"]["Enums"]["escrow_purpose"];
 
 /**
  * What the one balance figure is made of.
@@ -89,16 +92,12 @@ export type BalanceBreakdown = {
  * exhaustive `Record<WalletEntryKind, ...>` maps in TransactionsSection make a
  * compile error rather than a blank row.
  */
-export type WalletEntryKind =
-  | "deposit"
-  | "withdrawal"
-  | "payment"
-  | "refund"
-  | "transfer_in"
-  | "transfer_out"
-  | "escrow_hold"
-  | "escrow_release"
-  | "escrow_refund";
+/**
+ * Read from the database, same reason again. This copy was missing `pot_hold`
+ * and `pot_release`, both of which are live verbs, so a real ledger row could
+ * already arrive at a surface whose type said it could not exist.
+ */
+export type WalletEntryKind = Database["public"]["Enums"]["wallet_entry_kind"];
 
 export type WalletEntryDirection = "credit" | "debit";
 

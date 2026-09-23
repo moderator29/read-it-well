@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { MediaFrame } from "@/components/app/MediaFrame";
+import { panelClass } from "@/components/ui/Panel";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { ListingKind } from "@/lib/listings/types";
@@ -90,7 +91,7 @@ function Stars({ rating }: { rating: number | null }) {
           glyphs authored as a closed silhouette, so `filled` is real here
           rather than paint poured into an outline. Blue by rule 8. */}
       {Array.from({ length: full }, (_, i) => (
-        <UiIcon key={i} name="star" size={16} filled />
+        <UiIcon key={i} name="star" size={12} filled />
       ))}
     </span>
   );
@@ -115,7 +116,7 @@ function Photo({
           src={photo}
           alt={alt}
           fill
-          sizes="(max-width: 640px) 100vw, 480px"
+          sizes="(max-width: 640px) 90vw, 400px"
           className="object-cover"
         />
       )}
@@ -123,7 +124,13 @@ function Photo({
   );
 }
 
-/** The forward affordance, which every card carries in its foot. */
+/**
+ * The forward affordance: a 44px glyph control at the end of the title row.
+ * The render draws no forward at all; it is a real route into the share
+ * picker, so it stays, but in the title row's spare width rather than in a
+ * foot row of its own, which cost the card 50px of height the founder asked
+ * to have back.
+ */
 function Forward({ target }: { target: SharedRef }) {
   return (
     <Link
@@ -132,10 +139,18 @@ function Forward({ target }: { target: SharedRef }) {
       aria-label={`Forward this ${target.kind} to another conversation`}
     >
       <UiIcon name="share" size={16} />
-      Forward
     </Link>
   );
 }
+
+/*
+ * The material is the shared card (`.nf-panel--card`, glass because it sits
+ * over the thread's scroll): the console's per-side edges, the lit rim, the
+ * reflection and the glow, from the token layer. `.nf-chat-card` in
+ * `threads.css` only lays it out, at the proportions of
+ * `founder/thread-booking-card-target.jpg`.
+ */
+const CARD = panelClass({ variant: "card", glass: true, className: "nf-chat-card" });
 
 export function ChatCard({ card, forwardable = true }: { card: ChatCardData; forwardable?: boolean }) {
   if (card.kind === "listing") {
@@ -144,10 +159,10 @@ export function ChatCard({ card, forwardable = true }: { card: ChatCardData; for
     const stay = card.shareKind === "stay";
     const self: SharedRef = { kind: stay ? "stay" : "listing", id: card.id };
     return (
-      <article className="nf-chat-card" data-testid="chat-card-listing" aria-label={card.title}>
+      <article className={CARD} data-testid="chat-card-listing" aria-label={card.title}>
         <Photo photo={card.photo} hue={card.hue} kind={card.listingKind} alt="" />
         <div className="nf-chat-card__body">
-          <div className="flex items-start justify-between gap-inline-tight">
+          <div className="nf-chat-card__head">
             <p className="nf-chat-card__title">{card.title}</p>
             {card.verified && (
               <span className="nf-badge nf-badge--verified shrink-0">
@@ -155,10 +170,11 @@ export function ChatCard({ card, forwardable = true }: { card: ChatCardData; for
                 Verified
               </span>
             )}
+            {forwardable && <Forward target={self} />}
           </div>
           <Stars rating={card.rating} />
           <p className="nf-chat-card__place">
-            <UiIcon name="location" size={16} className="shrink-0 text-[var(--nf-brand-secondary)]" />
+            <UiIcon name="location" size={14} className="shrink-0 text-[var(--nf-brand-secondary)]" />
             <span>{[card.area, card.city].filter(Boolean).join(", ")}</span>
           </p>
           <div className="nf-chat-card__features mt-inline-tight">
@@ -170,33 +186,27 @@ export function ChatCard({ card, forwardable = true }: { card: ChatCardData; for
             {card.periodLabel && <span className="nf-chat-card__chip">{card.periodLabel}</span>}
           </p>
           <div className="nf-chat-card__actions">
-            <Link href={shareHref(self)} className="nf-btn nf-btn--primary nf-btn--md">
+            <Link href={shareHref(self)} className="nf-btn nf-btn--primary nf-btn--sm">
               {stay ? "View stay" : "View listing"}
-              <UiIcon name="chevron-right" size={16} />
+              <UiIcon name="chevron-right" size={14} />
             </Link>
             {/* A stay's enquiry thread hangs off its accommodation, which
                 `/messages/new?listing=` cannot open, so the control that
                 cannot act is not drawn on that face. */}
             {!stay && (
-              <Link href={`/messages/new?listing=${card.id}`} className="nf-btn nf-btn--glass nf-btn--md">
+              <Link href={`/messages/new?listing=${card.id}`} className="nf-btn nf-btn--glass nf-btn--sm">
                 <UiIcon name="chat-bubble" size={16} />
                 Message agent
               </Link>
             )}
           </div>
-          {forwardable && (
-            <div className="nf-chat-card__foot">
-              <span>{stay ? "Stay on Vallo" : "Listing on Vallo"}</span>
-              <Forward target={self} />
-            </div>
-          )}
         </div>
       </article>
     );
   }
 
   return (
-    <article className="nf-chat-card" data-testid="chat-card-booking" aria-label={card.title}>
+    <article className={CARD} data-testid="chat-card-booking" aria-label={card.title}>
       <Photo photo={card.photo} hue={card.hue} kind={card.listingKind} alt="" />
       <div className="nf-chat-card__badge">
         <StatusPill tone={toneForStatus(card.status)} size="sm">
@@ -204,30 +214,33 @@ export function ChatCard({ card, forwardable = true }: { card: ChatCardData; for
         </StatusPill>
       </div>
       <div className="nf-chat-card__body">
-        <p className="nf-chat-card__title">{card.title}</p>
+        <div className="nf-chat-card__head">
+          <p className="nf-chat-card__title">{card.title}</p>
+          {forwardable && <Forward target={{ kind: "booking", id: card.id }} />}
+        </div>
         <Stars rating={card.rating} />
         <p className="nf-chat-card__place">
-          <UiIcon name="location" size={16} className="shrink-0 text-[var(--nf-brand-secondary)]" />
+          <UiIcon name="location" size={14} className="shrink-0 text-[var(--nf-brand-secondary)]" />
           <span>{[card.area, card.city].filter(Boolean).join(", ")}</span>
         </p>
 
         <dl className="nf-chat-card__facts">
           <div className="nf-chat-card__fact">
-            <UiIcon name="calendar-booking" size={16} className="nf-chat-card__fact-glyph" />
+            <UiIcon name="calendar-booking" size={14} className="nf-chat-card__fact-glyph" />
             <div className="min-w-0">
               <dt className="nf-chat-card__fact-label">Check in</dt>
               <dd className="nf-chat-card__fact-value">{card.checkInLabel}</dd>
             </div>
           </div>
           <div className="nf-chat-card__fact">
-            <UiIcon name="calendar-booking" size={16} className="nf-chat-card__fact-glyph" />
+            <UiIcon name="calendar-booking" size={14} className="nf-chat-card__fact-glyph" />
             <div className="min-w-0">
               <dt className="nf-chat-card__fact-label">Check out</dt>
               <dd className="nf-chat-card__fact-value">{card.checkOutLabel}</dd>
             </div>
           </div>
           <div className="nf-chat-card__fact">
-            <UiIcon name="user" size={16} className="nf-chat-card__fact-glyph" />
+            <UiIcon name="user" size={14} className="nf-chat-card__fact-glyph" />
             <div className="min-w-0">
               <dt className="nf-chat-card__fact-label">Guests</dt>
               {card.partyLines.map((line, i) => (
@@ -263,21 +276,15 @@ export function ChatCard({ card, forwardable = true }: { card: ChatCardData; for
         </div>
 
         <div className="nf-chat-card__actions">
-          <Link href={shareHref({ kind: "booking", id: card.id })} className="nf-btn nf-btn--primary nf-btn--md">
+          <Link href={shareHref({ kind: "booking", id: card.id })} className="nf-btn nf-btn--primary nf-btn--sm">
             View booking details
-            <UiIcon name="chevron-right" size={16} />
+            <UiIcon name="chevron-right" size={14} />
           </Link>
-          <Link href={`/messages/new?listing=${card.listingId}`} className="nf-btn nf-btn--glass nf-btn--md">
+          <Link href={`/messages/new?listing=${card.listingId}`} className="nf-btn nf-btn--glass nf-btn--sm">
             <UiIcon name="chat-bubble" size={16} />
             Contact host
           </Link>
         </div>
-        {forwardable && (
-          <div className="nf-chat-card__foot">
-            <span>Booking on Vallo</span>
-            <Forward target={{ kind: "booking", id: card.id }} />
-          </div>
-        )}
       </div>
     </article>
   );

@@ -3032,6 +3032,81 @@ notes and report photos (request I1).
   link). Their pure logic (status, ladder, grouping, badge narrowing) is covered by the 35
   unit tests.
 
+### Round five, 23 September: the eight rooms, I1 live, the shared layer
+
+**The founder's instruction.** "Build the inspection exactly like this, those glows etc
+all exactly, fully functional like that, make it work end to end." Target
+`docs/design/references/founder/inspection-target.jpg` (the same render as F6A8A482).
+
+**What is built.**
+- The **eight-room checklist** exactly as drawn: Exterior, Interior, Kitchen, Bathrooms,
+  Utilities, Appliances, Safety, Overall Condition, each with the render's subtitle
+  (`lib/inspections/report.ts`, `ROOM_COPY`), the render's own glyph cropped
+  (`room-*.webp`, `session-b-crops.mjs`) on the shared `IconPlate` drawn round (the render
+  draws round discs; the one local change is the corner), and a round check circle with a
+  44px hit area. The count ("n / 8 Completed") and bar read what was saved.
+- The **Notes field** is a real textarea (16px type so iOS does not zoom, R-A); it saves on
+  blur. The two notes on the request row still show above it.
+- **Add Photos** is drawn as the render draws it but, with the report on, disabled with
+  "Photos can be added once this is switched on.": recording a photo needs Session A's
+  `addReportPhoto` (request I1b). With the report off it opens the conversation.
+- **Submit Inspection Report** stays disabled until all eight rooms are ticked, the same
+  rule I1's trigger holds; submitting closes the inspection in the database, which fires the
+  existing notification to both sides.
+- The **lifecycle** (Requested, Time agreed, Inspected, Recorded) stays, as one line of dots
+  between the facts and the checklist.
+- **"Assigned Agent"**: the data model has no assigned agent (`inspection_requests` holds a
+  requester and a lister, nothing else), so the cell keeps the honest "Listed by".
+- **The shared layer** (Phase 1 released, 42ea43d9 / 9da8f86f): every container is `Panel`
+  (the listing card and facts row as `variant="card"`), the room plates `IconPlate`, Add
+  Photos the shared lit primary, Submit the shared glass secondary. `.nf-ix-glass` and its
+  pasted identity values are deleted; this surface's stylesheet now lays out only what sits
+  inside the primitives. One deliberate local rule, from the render: Submit while disabled
+  keeps the blue panel material (#001e62 fill, #003ab1 edge in the render) instead of the
+  shared greyed state.
+
+**I1 landed while this was built, and the screen is switched on.** Session A applied
+migration `20260923135847` (commits 49be9282, a5afdee7). Read-only SQL on production, 23
+September: the three tables with the columns I1 named; RLS on all three (select for a party
+or an admin, insert and update for a party, no delete policy or grant anywhere); the
+triggers `inspection_reports_set_updated_at` and `inspection_reports_submission`; the bucket
+`inspection-photos` private, 10MB, jpeg/png/webp/heic/pdf, with party read, party insert and
+admin read policies; `anon` cannot read the reports; 0 reports exist. The screen writes
+only through Session A's `saveInspectionReport` (one call for ticks, notes and submit). The flag (`lib/inspections/report-flag.ts`) is ON by default;
+`VALLO_INSPECTION_REPORTS=0` turns the report off in one place, and then the rows draw, the
+circles cannot be pressed and a plain line says so. A tick is drawn only from what the
+action read back from the database.
+
+**Differences from what I1 asked, found against the landed code, and filed:**
+- **I1a**: `inspection_reports` has no outcome column, and the parent's outcome can be
+  written only on its move to COMPLETED, which the report's trigger makes. So "Inspected /
+  Deal done / No deal" cannot be recorded with a report. With the report on, the outcome
+  choice is not drawn (drawn and dropped would be worse); with it off, it records through
+  the close action as before.
+- **I5**: `saveInspectionReport` writes `notes: notes ?? null` on every call, so a tick sent
+  without the notes would clear them. The screen sends the current notes with every call;
+  pinned in `report-wiring.test.ts`.
+
+**Broke / corrected.** 890acbde added `recordReportPhoto` in
+`lib/inspections/report-actions.ts`, an insert into `inspection_report_photos` written by
+this surface. That broke the standing rule: Session B never writes a mutation and never
+calls one it did not receive from Session A. Corrected in the next commit: the action, its
+schema and its tests are deleted, Add Photos uploads and writes nothing, and request I1b asks
+Session A for `addReportPhoto({ inspectionId, storagePath, item? })` with the same RLS and
+refusal sentences. When it lands, `REPORT_PHOTOS_LIVE` (`lib/inspections/report.ts`) flips and
+the button calls it.
+
+**Exercised, as far as this box allows (no HTTP path to Supabase, so no signed-in run):**
+`lib/inspections/report-wiring.test.ts` runs Session A's real `saveInspectionReport` over a
+recording client: a tick writes the report row and the item with its stamp, an untick clears
+the stamp, a submit stamps `submitted_at` in the same call, and the database's eight-tick
+refusal and the RLS refusal come back as the screen's sentences. `report.test.ts` pins the
+eight rooms, their words, the Submit rule and the read-back.
+
+**BUILT AND UNPROVEN**: a signed-in party ticking, typing and submitting against
+production, and the other side's screen refreshing. Every listing is an example, which the
+database refuses inspections on, so no real inspection exists to report on.
+
 ## 10. The welcome email
 
 Owner: Session B worker "email", design and words only. The send is Session
@@ -4018,6 +4093,27 @@ values. No ink, fill or text-shadow token moves; no blur is animated; the
 widest halo (the selected row) grows 18 to 22px, inside the console's 16px
 gaps plus the neighbour's own edge.
 
+### More glow and a glass reflection (founder's second message)
+
+Still one block, now called "MORE GLOW AND A GLASS REFLECTION". The fills are
+split so the reflection can be tuned on its own: `--nf-panel-fill` =
+`var(--nf-glass-sheen), var(--nf-panel-fill-base)` (the same for
+`--nf-panel-fill-card`), and `--nf-plate-fill` = `var(--nf-plate-sheen),
+var(--nf-plate-fill-base)`. The measured block sets both sheens to `none`, so
+deleting the glow block restores the console exactly.
+
+| Token | Measured | Glow +1 (9da8f86f) | Glow +2 and reflection |
+|---|---|---|---|
+| `--nf-glass-sheen` | none | none | radial lit-cyan 12% at the top-left corner (60% x 70%), and a 135deg white wash: 7% at the corner, 2% at 22%, clear by 38% |
+| `--nf-plate-sheen` | none | none | a 135deg white glint: 26% at the corner, 6% at 30%, clear by 50% |
+| `--nf-panel-halo` | 0 0 3px info 34% | 0 0 5px 46% | 0 0 6px 52% |
+| `--nf-panel-catch` | lit 78% + info | lit 68% | lit 62% |
+| `--nf-plate-glow` | 0 0 8px lit 25% | 0 0 10px 34% | 0 0 12px 40% |
+
+Sampled against `founder/inspection-target.jpg`: every card there is paler
+in its top-left corner and fades diagonally into the body, and every plate
+has a glint on its upper left. Text sits on the body below the 38% stop.
+
 ### Identity diff (the proof that the extraction changed nothing)
 
 Method: `origin/main` at ccf594ba built for production and started with the
@@ -4835,13 +4931,80 @@ proved, its rows are proved by code only.
 - D3, C17: `MessageThread.tsx` is a second, dead thread renderer with its own
   bubble recipe.
 
-### 13.S.5 Per route result
+### 13.S.5 The thread booking and listing card (founder, 23 September)
 
-(pending Phase 1 RELEASED)
+Founder: "make it a bit smaller on mobile and desktop, a bit smaller in width
+and height, make it clean and magnificent". Target
+`docs/design/references/founder/thread-booking-card-target.jpg` (the same
+drawing as `GOVERNING-chat-booking-card.png`). Measured with a sharp pixel
+reader, screen 660 image px inner edge to inner edge, 0.591 CSS px per image
+px at 390.
 
-### 13.S.6 Audit passes
+| Property | Image (measured) | Before | After (pass 1) | Match? |
+|---|---|---|---|---|
+| Card width at 390 | 524 px = 310 CSS, left edge on the bubble column (82 px in = 48 CSS) | 340 CSS, on the screen gutter | 300 CSS, on the bubble column (avatar column kept empty) | yes, 10px narrower |
+| Card width at 1440 | derived from the phone | 686 CSS | 400 CSS (capped at 25rem) | yes (founder: smaller) |
+| Card height | 520 px = 307 CSS | about 560 CSS | 392 CSS | closer; the 44px tap law (buttons 44 against 30 in the render) and our type one rung larger account for the rest |
+| Photo | inset 6 px (4 CSS) from the card edge, 303 x 82 CSS, 3.7 to 1 | flush, 3 to 1 | inset 4, 37 to 10, corner radius under the card's | yes |
+| Container | per-side lit edge (top `#1159BD`, left `#2553A9` band, right `#004591`, bottom `#11308B`), bright bottom band `#011C8F` | own brand edge, well fill, 26px glow | shared `.nf-panel--card` + `--glass`: the console's per-side edges, lit rim, reflection, glow | yes (shared layer) |
+| Room row | no box, a hairline above (y 706) and below (y 816) | boxed well with its own edge | two `--nf-panel-hair` hairlines, no box | yes |
+| Facts row | 53 CSS, hairlines between cells | 110 CSS, labels wrapping | 64 CSS, labels one line | yes |
+| Buttons | lit primary + glass, 1.26 to 1, 8 apart, 30 tall | `--md` 48 tall | shared lit primary and glass door, `--sm` 44 tall, 1.26 to 1, 8 apart | yes except height (tap law) |
+| Chips (3 nights) | small rounded rectangle, cyan hairline | 23px, tint fill | panel-edge hairline, `--nf-radius-xs` | yes |
+| Forward | not drawn | a foot row, 50px | a 44px glyph in the title row, no height of its own | recorded exception (a real route) |
 
-(Pass 1, Pass 2, Pass 3: pending)
+### 13.S.6 Per route result
+
+| Route | Swept | Container | Edge / rim | Glow | Button | Plate |
+|---|---|---|---|---|---|---|
+| 1 `/u/[handle]` | yes in markup (SW-S1 for the rule deletion) | about and trust on `.nf-panel--card`; tabs on the panel track | panel edges, rim | panel glow | Follow on the shared lit primary; cover and kebab on the glass door | none drawn |
+| 2, 3 followers / following | yes | person rows and empty card on `.nf-panel--card` | panel | panel | shared | AGENT tag on the shared role tag |
+| 4 `/u/[handle]/edit` | yes | six sections on `.nf-panel--card`; held bio on `--held` | panel; choice cards take `--nf-selected-*` when checked | panel | Save on the lit primary | none |
+| 5 `/u` | yes (rows, skeleton) | `.nf-panel--card` rows | panel | panel | shared | none |
+| 6 `/messages` | yes | rows hover on the panel fill and rim; paused note on the panel | ring on `--nf-plate-*` | plate glow | shared | unread count on the lit fill |
+| 7 booking face | yes | context fold and chat card on the shared card | panel | panel | shared | the bed on `IconPlate` |
+| 8 rental face | yes | context and inspection cards on the shared card | panel; bubbles on panel edges (theirs) and the lit primary (mine) | panel / lit bloom | shared | the house on `IconPlate` |
+| 9 plain face | yes | bubbles and safety note (calm panel) | as 8 | as 8 | shared | none |
+| 10 options sheet | yes | listing row and block confirm on the shared card | panel | panel | shared | none |
+| 11 share picker | yes | confirm card on the shared card | panel | panel | shared | ring on the plate tokens |
+| 12 `/messages/new` | nothing of its own | | | | | |
+
+Routes swept: 11 of 12 (the twelfth draws nothing of its own). Deleted local
+recipes: `.nf-chat-card` material, `.nf-chat-card__room` box, `.nf-context-card`
+material and its 40px mark box, the three avatar ring recipes, both bubble
+edge and glow recipes, the composer field and send recipes, the role tag's
+well, the inbox and share row hover fills, `MessageThread.tsx` whole (dead).
+Not deleted, because they are the feed worker's (SW-S1):
+`.nf-social-card`, `.nf-social-more`, `.nf-social-more__menu` offsets,
+`.nf-social-round` material, `.nf-social-chip` edge, `.nf-social-trust` well,
+`.nf-glass-seg__tab[aria-selected]`, `.nf-social-sheet__panel` material,
+`.nf-card.nf-post` for the profile's property cards. The profile family now
+wears `components/social/profile/social-profile.css` (new, shared tokens only)
+and the shared classes in markup; the rules above have no profile consumer
+left except where the feed uses the same selector.
+
+Found for others: the inbox segment's selected state ("All") is still a flat
+navy fill from the shared `Segmented`, which Phase 1 did not touch; reported to
+the lead.
+
+### 13.S.7 Audit passes
+
+**Pass 1, 23 September, after applying** (production build, harness, 390 and
+1440, `proofs/session-b/sweep-social/pass1/`). Found and fixed:
+1. The chat card was 285 wide at 390, narrower than the render: the stack was
+   capped at 84 per cent of a row that already lost the avatar column. Now the
+   column's full width, capped at 25rem: 300 at 390.
+2. The Forward foot row cost 50px of height the founder asked back: moved into
+   the title row as a 44px glyph.
+3. "Check out" and "2 adults" wrapped inside their fact cells: labels are one
+   line, cells a rung tighter.
+4. At 390 the primary's chevron was clipped by its own label: padding a rung
+   down, label and glyph a hairline apart.
+5. The profile "More actions" menu (D1) now opens from its left edge and ends
+   at 362 on a 390 screen: fixed and proven (`pass1/profile-menu-390.jpg`).
+6. A two-word standing chip ("Fast replies") broke over two lines: chips are
+   one line.
+7. The shooter's Requests click hit the wrong tab; corrected for pass 2.
 
 
 ## 13. Platform sweep: home (both sides), search and filters, listing detail, price check (worker "sweep-home")

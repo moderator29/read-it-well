@@ -130,7 +130,7 @@ export default async function PeoplePage({
       ) : (
         <ul className="mt-sm flex flex-col gap-[var(--nf-social-gap)]">
           {view.people.map((person) => (
-            <li key={person.userId} className="nf-card nf-social-card nf-people__row">
+            <li key={person.userId} className="nf-panel nf-panel--card nf-people__row flex-row">
               <Link href={`/u/${person.handle}`} className="nf-people__who">
                 <span className="nf-people__avatar">
                   {person.avatarUrl ? (

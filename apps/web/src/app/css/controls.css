@@ -888,7 +888,7 @@
    */
   .nf-field--glass {
     background:
-      linear-gradient(var(--nf-well-fill), var(--nf-well-fill)) padding-box,
+      var(--nf-well-fill) padding-box,
       linear-gradient(var(--nf-brand-edge-soft), var(--nf-brand-edge-soft)) border-box;
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
     backdrop-filter: blur(var(--nf-glass-blur-thin)) saturate(var(--nf-glass-saturate));
@@ -898,7 +898,7 @@
   }
   .nf-field--glass:focus {
     background:
-      linear-gradient(var(--nf-well-fill), var(--nf-well-fill)) padding-box,
+      var(--nf-well-fill) padding-box,
       linear-gradient(var(--nf-brand-edge-strong), var(--nf-brand-edge-strong)) border-box;
     box-shadow:
       inset 0 1px 0 var(--nf-glass-rim-thin),

@@ -7,9 +7,28 @@
 > it, and no row in the table below is allowed to claim a verdict that the run
 > which would have produced it never performed.
 
-**HOW MUCH OF THAT SENTENCE IS TESTABLE TODAY, IN ONE SENTENCE.** Every local
-probe now exercises the door the product actually funds through and every
-direction named in the sentence has been run except the HTTP half of P-7,
+**THE SENTENCE IS NOW TESTED, AND IT PASSES.** At 15:17 UTC on 23 September the
+founder opened the environment's network access and **P-7's HTTP half ran for
+the first time in the life of this project: 8 of 8, with a control.** Every
+local probe already exercised the door the product actually funds through.
+Every direction the founder named has now been run.
+
+**What that does and does not license.** It licenses the sentence: all nine
+probes have passed in both directions, so the condition the founder set on
+moving naira is met. It does NOT license going live, because the gate has other
+conditions that are not probes, and they are listed at the foot of this file:
+custody is still undecided, `custodySentence()` still returns null, there is
+still no `held_payments` row, and the kill switch still fails closed.
+
+**One honest limit on the run, stated rather than glossed.** It used the
+project's publishable anon key with no session. A signed-in user's JWT was not
+used, so what is proved is that a STRANGER cannot reach those verbs over the
+wire. The EXECUTE half covers `authenticated` and passes, and the two halves
+ask different questions; a signed-in HTTP run would close the last corner and
+is now possible from this container.
+
+**The superseded reading, kept rather than deleted.** Until 15:17 this file
+said, correctly:
 which has never run once and cannot be run from this machine: so the sentence
 is testable everywhere except at the API a person's browser reaches, and that
 one gap is enough to keep the gate shut.
@@ -94,7 +113,7 @@ was written and not the date it last passed at some earlier version.
 | **P-5** | The timeout sweeper and a dispute race on one agreement, **in both orders**: never both a release and a dispute, and the agreement ends in one coherent state. | As P-1. | **PASS** (both orders) | 2026-09-23 |
 | **P-6** | The same proposal funded twice, **serially and concurrently**: one ledger entry, one debit, and the repeat answers `not_fundable` rather than raising. Plus the unique index backstop reached on purpose, which must answer `duplicate` and leave the agreement INITIATED. | As P-1. | **PASS** (all three) | 2026-09-23 |
 | **P-7, the EXECUTE layer** | `anon` and `authenticated` are refused by Postgres itself on every revoked escrow verb, before any body runs. | `scripts/probes/escrow_revoke_roles.sql`, through `mcp__Supabase__apply_migration` against the live project, ending in a deliberate `raise exception` so the whole transaction rolls back. | **PASS.** 22 refusals over 11 verbs and 2 roles, every one `insufficient_privilege` (42501), re-taken today. Two of the eleven are `escrow_propose_as` and `escrow_fund_proposal_as`, so this is about the live door. A control verb granted to `authenticated` on purpose answered `{"status":"forbidden"}` in the same transaction. | 2026-09-23 |
-| **P-7, the HTTP layer** | PostgREST, given a real anon key and a real user JWT over the wire, also refuses every one of those verbs. | `scripts/probes/escrow_revoke.sh`, against `https://uccixoonmbhrnyczyigt.supabase.co`. | **NOT RUN.** It has never run, not once. Re-checked at 2026-09-23T10:59:48Z: `curl (56) CONNECT tunnel failed, response 403`. | never |
+| **P-7, the HTTP layer** | PostgREST, given a real anon key over the wire, also refuses every one of those verbs. | `scripts/probes/escrow_revoke.sh`, against `https://uccixoonmbhrnyczyigt.supabase.co`. | **PASS. 8 of 8, run for the first time at 2026-09-23T15:17:03Z.** Seven verbs each answered HTTP 401 `42501 permission denied for function <name>`, refused by PostgREST before any body ran, and none answered in escrow's own vocabulary. The eighth check is the control: `GET /rest/v1/listings` answered 200, so the refusals are refusals and not a broken URL. Log: `scripts/probes/escrow_revoke.log`. | 2026-09-23 |
 | **P-8a** | A direct `update public.escrows set state = 'RELEASED'` on a REFUNDED row, from a plain prompt as the owning role, raises from the transition trigger and the row does not move. The agreement reaches REFUNDED through the live door. | As P-1. | **PASS** | 2026-09-23 |
 | **P-8b** | **Every one of the 72 ordered pairs of the nine states**, from a plain prompt: the 58 illegal ones must raise with the trigger's own sentence and leave the row where it was, and the 14 legal ones must be ALLOWED THROUGH in the same run. The 14 are compared against the probe's own hand-written copy of the table, not against the shipped function. | As P-1. | **PASS.** 72 pairs, 14 legal allowed, 58 illegal refused, 0 disagreements with the probe's own table. It had **NEVER RUN** before today: P-8 tested one pair. | 2026-09-23 |
 | **P-9, locally** | Across a lifecycle mix of held, released, refunded, disputed and cancelled, with a live commission rate, the two derivations of the float agree to the kobo, no wallet goes negative, and every settlement's net plus commission equals its gross. Seven agreements in seven threads, six funded through the live door and the seventh proposed and cancelled. | As P-1. | **PASS** | 2026-09-23 |
@@ -288,7 +307,7 @@ two questions and only one of them has an answer.**
 | P-5 | Sweeper first, then dispute first. | both run |
 | P-6 | Serially, then concurrently, then the index backstop reached on purpose. | all three run |
 | P-7 | `anon` and `authenticated` on the EXECUTE layer. | both run |
-| P-7 HTTP | `anon` and `authenticated` over HTTP. | **NOT RUN**, neither of them, never |
+| P-7 HTTP | `anon` over HTTP, with the real publishable key. | **RUN AND PASSED**, 2026-09-23T15:17:03Z. A signed-in JWT was not used: see the note below. |
 | P-8 | Every ordered pair of the nine states, both the 58 that must be refused and the 14 that must be allowed. | all run, for the first time today |
 | P-9 | Ledger-derived against agreement-derived, which is the identity's two sides. | run |
 

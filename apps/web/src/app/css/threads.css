@@ -69,12 +69,12 @@
     height: 2.75rem;
     flex-shrink: 0;
     border-radius: var(--nf-radius-circle);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-strong);
-    background: var(--nf-well-fill);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 16px var(--nf-glow-3),
-      inset 0 0 10px var(--nf-glow-wash);
+    /* The avatar stays round (the shape law exempts it); its edge, rim and
+       glow are the shared plate's, so the ring is lit like every plate. */
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    border-color: var(--nf-plate-edges);
+    background: var(--nf-plate-fill);
+    box-shadow: var(--nf-plate-shadow);
   }
   .nf-thread__ring > * {
     border-radius: inherit;
@@ -193,11 +193,16 @@
   .nf-msg--cont > .nf-msg__side {
     visibility: hidden;
   }
-  /* A shared card takes the whole width the bubbles span: no avatar column,
-     because the card is the object of the conversation, not a remark. */
+  /*
+   * A shared card sits in the BUBBLE column, under the name, as
+   * `founder/thread-booking-card-target.jpg` draws it: the card's left edge is
+   * the greeting bubble's left edge (82 image px in from the screen, 48 CSS),
+   * not the screen gutter. So the avatar column is kept and left empty rather
+   * than removed, the way a continuation keeps it.
+   */
   .nf-msg--card > .nf-msg__avatar,
   .nf-msg--card > .nf-msg__side {
-    display: none;
+    visibility: hidden;
   }
   .nf-msg__stack {
     display: flex;
@@ -208,10 +213,19 @@
   .nf-msg--mine .nf-msg__stack {
     align-items: flex-end;
   }
-  /* A shared card wants the room: it takes the whole width the stack allows. */
+  /*
+   * A shared card takes the bubble column's width and no more. Measured on
+   * `founder/thread-booking-card-target.jpg` (screen 660 image px inner edge
+   * to inner edge, so 0.591 CSS px per image px at 390): the card is 524 x 520
+   * image px, 310 x 307 CSS, which is 84 per cent of the thread row, the same
+   * share a bubble's stack takes. The founder asked for the card a bit smaller
+   * on the phone AND the desktop: on a wide thread 84 per cent was 686px of
+   * photograph, so it is capped at 25rem, the width the phone card reads at
+   * with a little room, rather than growing with the window.
+   */
   .nf-msg__stack--wide {
-    max-width: 100%;
     width: 100%;
+    max-width: min(100%, 25rem);
   }
 
   /* The small avatar beside a bubble, in a thinner ring than the header's. */
@@ -222,14 +236,13 @@
     height: 2.25rem;
     flex-shrink: 0;
     border-radius: var(--nf-radius-circle);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    color: var(--nf-brand-secondary);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    border-color: var(--nf-plate-edges);
+    background: var(--nf-plate-fill);
+    color: var(--nf-content-primary);
     font-size: var(--nf-text-caption);
     font-weight: 700;
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 12px var(--nf-glow-2);
+    box-shadow: var(--nf-plate-shadow);
     overflow: hidden;
   }
   .nf-msg__avatar > * {
@@ -298,13 +311,13 @@
     align-items: center;
     padding: var(--nf-space-3xs) var(--nf-space-xs);
     border-radius: var(--nf-radius-xs);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
     font-size: var(--nf-text-overline);
     font-weight: 600;
     line-height: 1.2;
     color: var(--nf-content-secondary);
-    background: var(--nf-well-fill);
-    box-shadow: var(--nf-rim-lit);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim);
   }
 
   /*
@@ -388,27 +401,30 @@
    * own incoming bubble in `home.css`, so the product's two chat surfaces now
    * answer the question the same way.
    */
+  /* SWEEP: the fill stays the sampled tint-3 (the image governs it); the
+     per-side lit edges, the rim and the glow are the shared panel's. */
   .nf-bubble--theirs {
     color: var(--nf-content-primary);
     background: var(--nf-brand-tint-3);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
     border-bottom-left-radius: var(--nf-radius-xs);
     box-shadow:
-      var(--nf-rim-lit),
-      inset 0 0 18px var(--nf-glow-wash),
-      0 0 14px var(--nf-glow-2);
+      var(--nf-panel-rim),
+      var(--nf-panel-glow);
   }
   /* Mine: the CTA gradient, lit at the top, with the bloom the render gives
      the sent side. On-brand ink, never a raw white. */
+  /* SWEEP: the sent side IS the lit primary's material (the image draws it
+     as the same lit gradient), so its fill, edges, rim and bloom are the
+     shared `--nf-btn-lit-*` roles rather than a second recipe. */
   .nf-bubble--mine {
     color: var(--nf-content-on-brand);
-    background: var(--nf-gradient-cta);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-strong);
+    background: var(--nf-btn-lit-fill);
+    border: var(--nf-border-width) solid transparent;
+    border-color: var(--nf-btn-lit-edges);
     border-bottom-right-radius: var(--nf-radius-xs);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 22px var(--nf-glow-3),
-      0 8px 24px -12px var(--nf-glow-3);
+    box-shadow: var(--nf-btn-lit-shadow);
   }
   /* A message that did not send loses its fill, so the shape says it. */
   .nf-bubble--failed {
@@ -488,28 +504,36 @@
 
   /* ------------------------------------------------------ the shared card */
 
-  /* A listing or a booking, shared into the chat: the object of the
-     conversation, so it earns the loudest surface in the room. The render
-     draws it as lit glass, which is the electric hairline at its strong
-     rung, the blue-white catchlight along the top and the card bloom
-     behind: the platform's own card recipe, one rung up. */
+  /*
+   * A listing or a booking, shared into the chat: the object of the
+   * conversation. THE MATERIAL IS THE SHARED CARD. `ChatCard` draws it with
+   * `panelClass({ variant: "card", glass: true })`, so the fill, the per-side
+   * lit edges, the rim, the reflection and the glow are the console's and Get
+   * started's, from `--nf-panel-*`, and this block only lays the card out.
+   * The recipe that used to live here (the strong brand edge, a well fill, a
+   * 26px glow and the card bloom, all its own) is deleted.
+   *
+   * THE PROPORTIONS ARE `founder/thread-booking-card-target.jpg`, measured at
+   * 0.591 CSS px per image px:
+   *   card 310 x 307; photo inset 4 from the card edge, 303 x 82 (3.7 to 1);
+   *   text column 12 in; title to divider 55; facts row 53; room row 65 with
+   *   a 62 x 48 thumbnail; two buttons side by side at 1.26 to 1, 8 apart.
+   * The render's buttons are 30 tall; ours are 44, the smallest the tap law
+   * allows (`.nf-btn--sm`), which is the one place this card is taller than
+   * the picture on purpose. The room row is NOT boxed in the render (a
+   * hairline above and below it), so it is not boxed here.
+   */
   .nf-chat-card {
     width: 100%;
+    padding: var(--nf-space-2xs);
     overflow: hidden;
-    border-radius: var(--nf-radius-xl);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-strong);
-    background: var(--nf-well-fill);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur)) saturate(var(--nf-glass-saturate));
-    box-shadow:
-      var(--nf-rim-lit),
-      inset 0 -1px 0 var(--nf-glass-floor),
-      0 0 26px var(--nf-glow-3),
-      var(--nf-bloom-card);
+    /* The lit primary's pooled bloom stays inside the card. */
+    isolation: isolate;
   }
   .nf-chat-card__photo {
     position: relative;
-    aspect-ratio: 3 / 1;
+    aspect-ratio: 37 / 10;
+    border-radius: calc(var(--nf-container-radius) - var(--nf-space-3xs));
     background: var(--nf-surface-inset);
     overflow: hidden;
   }
@@ -519,47 +543,29 @@
     object-fit: cover;
   }
   /*
-   * The badge sits ON a photograph, and a photograph is any colour. The
-   * status pill's own fill is a translucent wash, which is right on a panel
-   * and washes out over a bright window at dusk, so the badge carries its
-   * own dark plate: the badge keeps its state ink and the plate guarantees
-   * the contrast whatever is behind it.
-   *
-   * THE PLATE WAS A CAPSULE AROUND A RECTANGLE. `StatusPill` defaults to
-   * `shape="control"`, so the badge inside this plate already draws at
-   * `--nf-radius-control`; the plate behind it was at 999px, which put a
-   * stadium behind a rounded rectangle and showed the mismatch at both ends.
-   * `GOVERNING-chat-booking-card.png` draws Confirmed as one rounded
-   * rectangle, and now so does this.
-   *
-   * AND THEN BOTH OF THEM WERE STILL CAPSULES. Matching the plate to the
-   * badge was the right move and it left them matching at the wrong shape.
-   * Measured on a production server this plate is 103x27, and
-   * `--nf-radius-control` is 14px, so twice the radius clears the height and
-   * the plate drew semicircular ends with the badge drawing them again
-   * inside it. The badge takes `--nf-radius-sm` in the block further up this
-   * file; the plate moves with it, because the note above is right that these
-   * two are one object and a stadium behind a rectangle is the fault it was
-   * written to close. 10px on a 27px box leaves the straight edge the render
-   * draws.
+   * The badge sits ON a photograph, and a photograph is any colour, so it
+   * carries its own dark plate that guarantees the contrast whatever is
+   * behind it. One rounded rectangle with the badge (`--nf-radius-sm` on a
+   * 27px box leaves the straight edge the render draws; the control rung
+   * would be a capsule at this height, 13.5's trap).
    */
   .nf-chat-card__badge {
     position: absolute;
-    top: var(--nf-space-sm);
-    right: var(--nf-space-sm);
+    top: var(--nf-space-xs);
+    right: var(--nf-space-xs);
     border-radius: var(--nf-radius-sm);
     background: var(--nf-overlay-media-strong);
     -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
     backdrop-filter: blur(var(--nf-glass-blur-thin));
-    box-shadow: var(--nf-rim-lit);
+    box-shadow: var(--nf-panel-rim);
   }
   .nf-chat-card__body {
-    padding: var(--nf-space-md);
+    padding: var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-2xs);
   }
   .nf-chat-card__title {
     font-family: var(--nf-font-display);
     font-weight: 700;
-    font-size: var(--nf-text-body-lg);
+    font-size: var(--nf-text-body);
     line-height: 1.25;
     color: var(--nf-content-primary);
     overflow-wrap: anywhere;
@@ -568,33 +574,33 @@
   .nf-chat-card__stars {
     display: flex;
     gap: var(--nf-space-3xs);
-    margin-top: var(--nf-space-2xs);
+    margin-top: var(--nf-space-3xs);
     color: var(--nf-rating);
   }
   .nf-chat-card__place {
     display: flex;
     align-items: center;
     gap: var(--nf-space-3xs);
-    margin-top: var(--nf-space-2xs);
-    font-size: var(--nf-text-body-sm);
+    margin-top: var(--nf-space-3xs);
+    font-size: var(--nf-text-caption);
     color: var(--nf-content-secondary);
   }
-  /* Check in, check out, guests: three cells with hairlines between them. */
+  /* Check in, check out, guests: three cells with the panel's hairlines. */
   .nf-chat-card__facts {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-top: var(--nf-space-md);
-    padding-top: var(--nf-space-md);
-    border-top: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    margin-top: var(--nf-space-xs);
+    padding-block: var(--nf-space-xs);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-chat-card__fact {
     display: flex;
     gap: var(--nf-space-2xs);
     min-width: 0;
-    padding-inline: var(--nf-space-xs);
+    padding-inline: var(--nf-space-2xs);
   }
   .nf-chat-card__fact + .nf-chat-card__fact {
-    border-left: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border-left: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-chat-card__fact:first-child {
     padding-left: 0;
@@ -608,12 +614,14 @@
     display: block;
     font-size: var(--nf-text-overline);
     color: var(--nf-content-muted);
+    white-space: nowrap;
   }
   .nf-chat-card__fact-value {
     display: block;
     margin-top: var(--nf-space-3xs);
     font-size: var(--nf-text-caption);
     font-weight: 600;
+    line-height: 1.3;
     color: var(--nf-content-primary);
     overflow-wrap: anywhere;
   }
@@ -622,24 +630,23 @@
     font-size: var(--nf-text-overline);
     color: var(--nf-content-secondary);
   }
-  /* The room row: thumbnail, name, features, price and the nights chip. */
+  /* The room row: thumbnail, name, features, price and the nights chip,
+     between two hairlines and on no plate of its own. */
   .nf-chat-card__room {
     display: flex;
+    align-items: center;
     gap: var(--nf-space-sm);
-    margin-top: var(--nf-space-md);
-    padding: var(--nf-space-sm);
-    border-radius: var(--nf-radius-md);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-well-fill);
-    box-shadow: var(--nf-rim-lit);
+    padding-block: var(--nf-space-xs);
+    border-block: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-chat-card__thumb {
-    width: 4.5rem;
-    height: 3.5rem;
+    width: 3.875rem;
+    height: 3rem;
     flex-shrink: 0;
     overflow: hidden;
-    border-radius: var(--nf-radius-sm);
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-surface-inset);
+    box-shadow: var(--nf-panel-rim);
   }
   .nf-chat-card__thumb img {
     width: 100%;
@@ -648,13 +655,13 @@
   }
   .nf-chat-card__room-name {
     font-weight: 600;
-    font-size: var(--nf-text-body-sm);
+    font-size: var(--nf-text-caption);
     color: var(--nf-content-primary);
   }
   .nf-chat-card__features {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--nf-space-2xs);
+    column-gap: var(--nf-space-2xs);
     margin-top: var(--nf-space-3xs);
     font-size: var(--nf-text-overline);
     color: var(--nf-content-secondary);
@@ -668,99 +675,102 @@
     display: flex;
     align-items: center;
     gap: var(--nf-space-xs);
-    margin-top: var(--nf-space-2xs);
+    margin-top: var(--nf-space-3xs);
   }
   .nf-chat-card__price {
     font-family: var(--nf-font-display);
     font-weight: 700;
-    font-size: var(--nf-text-body-lg);
+    font-size: var(--nf-text-body);
     color: var(--nf-content-primary);
     font-variant-numeric: tabular-nums;
   }
   /*
-   * The chip beside the price: 3 Nights, or the rental period. A chip, and
-   * the shape law names chips, so a rounded rectangle.
-   *
-   * IT WAS NAMED A RECTANGLE AND DRAWN AS A CAPSULE, which is 13.5's trap and
-   * not a second opinion about the shape. Measured on the live booking card
-   * the chip is 63x23 and on the share picker 64x23, and `--nf-radius-control`
-   * is 14px, so twice the radius is more than the whole height and the ends
-   * came out semicircular. `GOVERNING-chat-booking-card.png` draws "3 Nights"
-   * with straight top and bottom edges and small corners.
-   *
-   * `--nf-radius-sm` is 10px, so 20px of corner on a 23px box, which leaves a
-   * straight edge down each end. That is 13.1's own clarification applied
-   * where it was written to be applied: a chip under about 32px takes the
-   * small rung, because the control rung turns back into a capsule there.
+   * The chip beside the price: 3 Nights, or the rental period. A chip under
+   * about 32px takes the small rung (13.1): `--nf-radius-xs` on a 20px box
+   * leaves the straight top and bottom edges the render draws, where the
+   * control rung would meet in the middle. Hairline and fill from the panel.
    */
   .nf-chat-card__chip {
     display: inline-flex;
     align-items: center;
-    padding: var(--nf-space-3xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-sm);
+    padding: 0 var(--nf-space-2xs);
+    border-radius: var(--nf-radius-xs);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
     background: var(--nf-brand-tint-2);
     color: var(--nf-brand-secondary);
     font-size: var(--nf-text-overline);
     font-weight: 600;
+    line-height: 1.5;
     white-space: nowrap;
   }
+  /* The listing face has no room row, so its price row sits on the hairline
+     that opens the actions instead. */
   .nf-chat-card__actions {
     display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.26fr) minmax(0, 1fr);
     gap: var(--nf-space-xs);
-    margin-top: var(--nf-space-md);
+    margin-top: var(--nf-space-xs);
   }
+  /* Pass 1, 23 September: at 390 "View booking details" filled its button
+     and the chevron the render draws after it was clipped. The inline
+     padding comes down a rung and the label and glyph sit a hairline apart,
+     which returns the chevron without shrinking the type. */
   .nf-chat-card__actions > * {
     min-width: 0;
-    padding-inline: var(--nf-space-xs);
+    gap: var(--nf-space-3xs);
+    padding-inline: var(--nf-space-2xs);
     white-space: nowrap;
     font-size: var(--nf-text-caption);
   }
-  .nf-chat-card__foot {
+  .nf-chat-card__actions > :only-child {
+    grid-column: 1 / -1;
+  }
+  /* The title row: the name, the listing's Verified where it has one, and
+     Forward at the end. Forward is the one control the render does not
+     draw: a quiet 44px glyph target in the row's spare width, pulled up
+     into the row so it adds no height of its own. */
+  .nf-chat-card__head {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--nf-space-xs);
-    margin-top: var(--nf-space-sm);
-    font-size: var(--nf-text-overline);
-    color: var(--nf-content-muted);
+    align-items: flex-start;
+    gap: var(--nf-space-2xs);
+  }
+  .nf-chat-card__head > .nf-chat-card__title {
+    flex: 1 1 auto;
+    min-width: 0;
   }
   .nf-chat-card__forward {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nf-space-3xs);
-    min-height: 2.75rem;
-    padding-inline: var(--nf-space-xs);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: calc(var(--nf-space-sm) * -1) calc(var(--nf-space-xs) * -1) calc(var(--nf-space-md) * -1) 0;
     border-radius: var(--nf-radius-control);
-    font-weight: 600;
     color: var(--nf-content-link);
   }
 
   /* ----------------------------------------------------- the context card */
 
-  /* The rental context card under the header (9E06F51C): a glass object with
-     the house glyph on a lit plate, the enquiry, the property, and a chevron
-     that goes to the property. */
+  /*
+   * The rental context card under the header (9E06F51C): the house on a lit
+   * plate, the enquiry, the property, and a chevron to the property. The
+   * MATERIAL is the shared card: every call site draws it with
+   * `nf-panel nf-panel--card`, and the mark is the shared `IconPlate`
+   * (`nf-plate nf-plate--brand nf-plate--md`, a line glyph, as the render draws
+   * the house). This rule only lays it out as a row; its own edge, well fill,
+   * glow and bloom are deleted.
+   */
   .nf-context-card {
-    display: flex;
+    flex-direction: row;
     align-items: center;
     gap: var(--nf-space-sm);
     padding: var(--nf-space-sm) var(--nf-space-md);
-    border-radius: var(--nf-radius-lg);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 20px var(--nf-glow-2),
-      var(--nf-bloom-card);
     color: inherit;
   }
-  /* The glass object, down from 48px: 9E06F51C draws the house as a mark
-     beside the words, not a tile the size of the two lines it labels. */
-  .nf-context-card__mark {
-    width: 2.5rem;
-    height: 2.5rem;
-    flex-shrink: 0;
+  /* The safety note: the calm panel (GLOW_IDENTITY 7), the shared material
+     with its glow taken off, because a note is not an object. */
+  .nf-context-card--calm {
+    box-shadow: var(--nf-panel-rim);
   }
   .nf-context-card__line > span {
     white-space: nowrap;
@@ -862,13 +872,14 @@
     min-height: 2.75rem;
     padding: var(--nf-space-xs) var(--nf-space-md);
     border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill-card);
     color: var(--nf-content-primary);
     font-size: var(--nf-text-body);
     box-shadow:
-      var(--nf-rim-lit),
-      0 0 14px var(--nf-glow-1);
+      var(--nf-panel-rim),
+      var(--nf-panel-glow);
   }
   .nf-composer__field::placeholder {
     color: var(--nf-content-muted);
@@ -888,13 +899,11 @@
     height: 2.75rem;
     flex-shrink: 0;
     border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-strong);
-    background: var(--nf-gradient-cta);
+    border: var(--nf-border-width) solid transparent;
+    border-color: var(--nf-btn-lit-edges);
+    background: var(--nf-btn-lit-fill);
     color: var(--nf-content-on-brand);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 20px var(--nf-glow-3),
-      0 8px 22px -10px var(--nf-glow-3);
+    box-shadow: var(--nf-btn-lit-shadow);
     transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
   }
   .nf-composer__send:disabled {
@@ -909,7 +918,7 @@
     align-items: center;
     gap: var(--nf-gap-inline-tight);
     padding-top: var(--nf-gap-inline);
-    border-top: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border-top: var(--nf-border-width) solid var(--nf-panel-hair);
   }
 
   /* ------------------------------------------------------------- inbox */
@@ -925,7 +934,8 @@
   }
   @media (hover: hover) {
     .nf-inbox-row:hover {
-      background: var(--nf-glass-fill);
+      background: var(--nf-panel-fill-card);
+      box-shadow: var(--nf-panel-rim);
     }
   }
   /*
@@ -947,11 +957,10 @@
     align-self: center;
     aspect-ratio: 1;
     border-radius: var(--nf-radius-circle);
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background: var(--nf-well-fill);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 12px var(--nf-glow-2);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    border-color: var(--nf-plate-edges);
+    background: var(--nf-plate-fill);
+    box-shadow: var(--nf-plate-shadow);
     padding: 2px;
   }
   .nf-inbox-row__ring > * {
@@ -991,7 +1000,8 @@
     height: 1.375rem;
     padding-inline: var(--nf-space-2xs);
     border-radius: var(--nf-radius-xs);
-    background: var(--nf-brand-primary);
+    background: var(--nf-btn-lit-fill);
+    box-shadow: var(--nf-btn-lit-shadow);
     color: var(--nf-content-on-brand);
     font-size: var(--nf-text-overline);
     font-weight: 700;
@@ -1012,7 +1022,8 @@
   }
   @media (hover: hover) {
     .nf-share-row:hover {
-      background: var(--nf-glass-fill);
+      background: var(--nf-panel-fill-card);
+      box-shadow: var(--nf-panel-rim);
     }
   }
 

@@ -2,6 +2,7 @@ import { formatMoney } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { InspectionHero, InspectionSheet } from "@/components/app/inspections/InspectionSheet";
 import type { InspectionState } from "@/lib/inspections/types";
+import { ROOM_ITEMS } from "@/lib/inspections/report";
 import { INSPECTION, INSPECTION_FACTS } from "../../f5/fixtures";
 
 const STATES: readonly InspectionState[] = ["REQUESTED", "CONFIRMED", "PROPOSED", "DECLINED", "COMPLETED", "WITHDRAWN"];
@@ -12,7 +13,22 @@ const STATES: readonly InspectionState[] = ["REQUESTED", "CONFIRMED", "PROPOSED"
  * `shell/page.tsx` draws it inside the app shell, so the first-screen proof
  * can be re-run. FIXTURE-BACKED: it proves the look, never the writes.
  */
-export async function InspectionFixture({ side: sideParam, state: stateParam }: { side?: string; state?: string }) {
+/**
+ * Report storage is live on production (I1), so the harness draws it live
+ * with no rooms saved. `rooms=<n>` draws the first n rooms as saved; `rooms=off`
+ * draws the flag off. FIXTURE: the look of a report, never a save.
+ */
+export async function InspectionFixture({
+  side: sideParam,
+  state: stateParam,
+  rooms: roomsParam,
+}: {
+  side?: string;
+  state?: string;
+  rooms?: string;
+}) {
+  const live = roomsParam !== "off";
+  const rooms = live ? Math.max(0, Math.min(8, Number.parseInt(roomsParam ?? "0", 10) || 0)) : 0;
   const locale = await getLocale();
   const side = sideParam === "lister" ? "lister" : "requester";
   const state = STATES.find((one) => one === stateParam) ?? "CONFIRMED";
@@ -37,6 +53,17 @@ export async function InspectionFixture({ side: sideParam, state: stateParam }: 
           }}
           locale={locale}
           open
+          reportLive={live}
+          report={
+            live
+              ? {
+                  notes: null,
+                  items: Object.fromEntries(ROOM_ITEMS.slice(0, rooms).map((item) => [item, true])),
+                  photoCount: 0,
+                  submittedAt: null,
+                }
+              : null
+          }
         />
       </div>
     </div>

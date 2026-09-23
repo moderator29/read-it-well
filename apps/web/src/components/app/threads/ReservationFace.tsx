@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { ICON, TYPE } from "@/components/app/Screen";
+import { TYPE } from "@/components/app/Screen";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { cancelReservation } from "@/lib/reservations/actions";
 import type { ThreadContext } from "@/lib/messages/live";
@@ -78,11 +78,11 @@ export function ReservationFace({
     <section
       aria-label={reservationLine(reservation, locale, copy)}
       data-testid="thread-reservation-face"
-      className="nf-context-card mb-row flex-col items-stretch"
+      className="nf-panel nf-panel--card nf-context-card mb-row flex-col items-stretch"
     >
       <div className="flex items-center gap-row">
-        <span aria-hidden="true" className="nf-context-card__mark grid place-items-center text-[var(--nf-brand-secondary)]">
-          <UiIcon name="utensils" size={ICON.section} />
+        <span aria-hidden="true" className="nf-plate nf-plate--brand nf-plate--md nf-context-card__mark">
+          <UiIcon name="utensils" size={24} />
         </span>
         <div className="min-w-0 flex-1">
           <p className={TYPE.rowTitle}>{reservationLine(reservation, locale, copy)}</p>

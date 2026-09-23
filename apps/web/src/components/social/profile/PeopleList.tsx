@@ -104,7 +104,7 @@ export function PeopleList({
    */
   if (people.length === 0 && total > 0) {
     return (
-      <div className="nf-card nf-social-card mt-md p-lg text-center sm:p-xl">
+      <div className="nf-panel nf-panel--card mt-md items-center p-lg text-center sm:p-xl">
         <div className="mx-auto w-fit">
           <BrandIcon name="user-check" size={44} />
         </div>
@@ -125,7 +125,7 @@ export function PeopleList({
   if (people.length === 0) {
     const copy = EMPTY[direction];
     return (
-      <div className="nf-card nf-social-card mt-md p-lg text-center sm:p-xl">
+      <div className="nf-panel nf-panel--card mt-md items-center p-lg text-center sm:p-xl">
         <div className="mx-auto w-fit">
           <BrandIcon name="user-check" size={44} />
         </div>
@@ -153,7 +153,7 @@ export function PeopleList({
             .charAt(0)
             .toUpperCase();
           return (
-            <li key={person.userId} className="nf-card nf-social-card nf-social-person">
+            <li key={person.userId} className="nf-panel nf-panel--card nf-social-person flex-row">
               <Link
                 href={`/u/${person.handle}`}
                 className="nf-social-person__face"
@@ -196,7 +196,7 @@ export function PeopleList({
                     seal says what we CHECKED.
                   */}
                   {person.isAgent ? (
-                    <span className="inline-flex shrink-0 items-center rounded-[var(--nf-radius-control)] border border-[var(--nf-border-brand)] px-xs py-3xs text-[length:var(--nf-text-overline)] font-bold uppercase tracking-[0.08em] text-[var(--nf-brand-secondary)]">
+                    <span className="nf-role-tag shrink-0 uppercase tracking-[0.08em]">
                       Agent
                     </span>
                   ) : null}

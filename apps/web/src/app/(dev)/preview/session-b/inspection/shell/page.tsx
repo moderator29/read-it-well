@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 export default async function SessionBInspectionInShell({
   searchParams,
 }: {
-  searchParams: Promise<{ side?: string; state?: string }>;
+  searchParams: Promise<{ side?: string; state?: string; rooms?: string }>;
 }) {
   const params = await searchParams;
   const t = getDictionary(await getLocale());
@@ -40,7 +40,7 @@ export default async function SessionBInspectionInShell({
       workspaces={workspaces}
       currentProfile={current}
     >
-      <InspectionFixture side={params.side} state={params.state} />
+      <InspectionFixture side={params.side} state={params.state} rooms={params.rooms} />
     </AppShell>
   );
 }

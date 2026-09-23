@@ -61,7 +61,7 @@ export function ProfileShare({
     <>
       <button
         type="button"
-        className="nf-social-round"
+        className="nf-social-round nf-btn--glass"
         aria-label={`Share ${who}`}
         onClick={share}
       >

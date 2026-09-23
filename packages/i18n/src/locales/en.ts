@@ -2859,6 +2859,21 @@ export const en = {
       escrow_hold: "On hold",
       escrow_release: "Hold released",
       escrow_refund: "Hold returned",
+      /*
+       * A pot is the person's own money set aside, not an escrow and not a
+       * payment, so neither word borrows from those.
+       *
+       * DELIBERATELY NOT ADDED TO ha, ig OR yo. Putting the English string in a
+       * translation file raises that locale's completeness count while the
+       * screen still reads in English, which is the exact defect
+       * `locale-completeness.test.ts` exists to catch, and it caught this when
+       * it was tried. An undeclared key falls back to English anyway, so the
+       * fallback is identical and the count stays honest. These two join the
+       * five hundred odd keys each locale already leaves undeclared, listed in
+       * `docs/i18n/LOCALE_STATE.md` for a native speaker.
+       */
+      pot_hold: "Moved to a pot",
+      pot_release: "Taken from a pot",
     },
     entryStatus: {
       PENDING: "Going through",

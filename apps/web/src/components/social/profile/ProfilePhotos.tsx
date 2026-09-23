@@ -167,7 +167,7 @@ export function ProfilePhotos({
   }
 
   return (
-    <section className="nf-card nf-social-card overflow-hidden">
+    <section className="nf-panel nf-panel--card overflow-hidden p-0">
       <div className="relative h-[7.5rem] sm:h-[9rem]">
         {cover ? (
           <RemoteImage

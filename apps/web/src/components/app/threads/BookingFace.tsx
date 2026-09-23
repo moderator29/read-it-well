@@ -3,7 +3,6 @@
 import { useState } from "react";
 import type { Dictionary, Locale } from "@vallo/i18n";
 import { TYPE } from "@/components/app/Screen";
-import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { ThreadContext } from "@/lib/messages/live";
 import { deriveBookingSteps, lagosToday, type BookingStepKey } from "./booking-steps";
@@ -76,14 +75,14 @@ export function BookingFace({
     <details
       aria-label={copy.label}
       data-testid="thread-booking-face"
-      className="nf-context-card nf-booking-fold mb-row"
+      className="nf-panel nf-panel--card nf-context-card nf-booking-fold mb-row"
     >
       <summary className="nf-booking-fold__summary">
         {/* The glass object, because the render draws the stay as one: a
             stroked glyph here is the one place the surface language says not
             to use it (rule 5, and the founder's ruling on glass objects). */}
-        <span className="nf-context-card__mark" aria-hidden="true">
-          <BrandIcon name="hotel-room" fill />
+        <span className="nf-plate nf-plate--brand nf-plate--md nf-context-card__mark" aria-hidden="true">
+          <UiIcon name="bed" size={24} />
         </span>
         <span className="min-w-0 flex-1">
           <span className="nf-overline block">{copy.label}</span>

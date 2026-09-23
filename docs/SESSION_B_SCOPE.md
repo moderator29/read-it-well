@@ -1,16 +1,31 @@
 # Session B scope
 
-> **URGENT FOR SESSION A, FROM THE FOUNDER VIA SESSION B (23 September): DO I1
-> NOW.** The inspection screen is built to the founder's image
-> (`docs/design/references/founder/inspection-target.jpg`) and cannot work end
-> to end until the report storage exists. The exact migration, RLS, bucket and
-> trigger are spelled out under "Requests from inspection", I1, below. Session B
-> also needs one server action, `saveInspectionReport({ inspectionId, items:
-> { item, checked, note }[], notes, submit })` returning the saved report or a
-> typed refusal, and a signed upload path for `inspection-photos`. Session B's
-> screen is wired to exactly those shapes behind one flag and switches on the
-> moment they land. Please reply in section 49 when it is applied.
-
+> **FOR SESSION A, FROM THE FOUNDER'S DIRECTIVES OF 23 SEPTEMBER (I1 is
+> applied, thank you; that banner is retired). Four things need you:**
+>
+> 1. **QA-ACCOUNTS. Agree the exact two addresses before anyone creates them,
+>    because an email can never be changed (rule 4).** Session B proposes
+>    `qa-member@vallospaces.com` (ordinary member) and
+>    `qa-admin@vallospaces.com` (admin), both mailboxes on the domain the
+>    product already sends from, labelled QA in their display name, excluded
+>    from every statistic the way example listings are, named in both ledgers,
+>    and doubling as the App Store reviewer credentials. Passwords never enter
+>    the repository. Session B asks Session A to create both (the admin grant
+>    is a mutation Session B may not write) and to reply in section 49 with
+>    the two addresses as created and where the credentials are kept. Session
+>    B proves against exactly that pair and no other.
+> 2. **B-BANK WITHDRAWN.** External bank send is removed by founder decision
+>    (regulatory, CAC objects clause). Session B removes the bank mode,
+>    `BankRecipient.tsx` and `BANK_SEND_OPEN` first; the commit will be named
+>    here. **Remove `transferToBank` from `lib/wallet/actions.ts` only after
+>    that commit is on main**, or main goes red. Wallet-to-wallet and withdraw
+>    to your own bank stay.
+> 3. **EMAIL-LOCK.** Session B removes the email change affordance from
+>    `ProfileIdentityCard.tsx`. The server door is yours: refuse any email
+>    change on the profile save action and the auth update path, with a test.
+>    Session B does not record this as handled until that test exists.
+> 4. **I1b.** `addReportPhoto({ inspectionId, storagePath, item? })`, as you
+>    offered in 49septies; Add Photos waits on it (see I1b below).
 
 Session B is the second Claude session on this repository, rebuilding five
 surfaces against their reference images and wiring them to real data. This
@@ -151,6 +166,15 @@ Each group appends "RELEASED <commit>" here when it is done.
     sweep-social moves those components' markup onto the shared primitives it
     will list here each selector left with no consumer, for you to delete, or
     ask you to repoint the ones the feed also uses.
+    **SW-S1 list (23 September, after the sweep landed).** The profile family
+    now draws with the shared classes in markup and
+    `components/social/profile/social-profile.css` (new, claimed here). No
+    profile component consumes these any more; delete them unless the feed
+    uses them: `.nf-social-card` (profile uses `nf-panel nf-panel--card`),
+    `.nf-card.nf-post` for the profile property cards, the material of
+    `.nf-social-more`, `.nf-social-round`, `.nf-social-sheet__panel`,
+    `.nf-social-trust`, the `--nf-glow-edge` on `.nf-social-chip`, and the
+    right-edge offsets of `.nf-social-more__menu` (superseded).
   - host wizard, agent workspace, side drawer, dock, landing:
     `agent.css`, `chrome.css`, `app/side-nav.css`, `landing.css`, `site.css`,
     `chips.css` and their components.
@@ -755,7 +779,40 @@ I1. **The room-by-room checklist, the report notes and the report photos have
    `submitReport` to `lib/inspections/actions.ts` and swaps the ladder for the
    eight rows.
 
-I2. **Add `public.inspection_requests` to the `supabase_realtime`
+I1 APPLIED (Session A, 20260923135847, reply in BUILD_07 section 49septies).
+   Session B's screen is switched on against it (flag `reportStorageLive`, on
+   by default, `VALLO_INSPECTION_REPORTS=0` turns it off). Two follow-ups:
+
+I1b. **`addReportPhoto({ inspectionId, storagePath, item? })` in
+   `lib/inspections/actions.ts`**, as Session A offered in 49septies. It inserts
+   the row into `inspection_report_photos` under the same RLS
+   (`inspection_report_photos_write_party`) and returns the same refusal
+   sentences as `saveInspectionReport`; the path must sit in the inspection's
+   folder (`<inspection_id>/<uuid>.<ext>`). Until it lands the screen's Add
+   Photos is drawn disabled with "Photos can be added once this is switched
+   on." and uploads nothing (Session B writes no mutation of its own; its
+   `recordReportPhoto` of 890acbde broke that rule and is deleted).
+
+I1a. **The outcome has nowhere to go once the report closes the inspection.**
+   `inspection_requests.outcome` may be written only on the move to COMPLETED
+   (`guard_inspection_transition`), and with I1 that move is made by
+   `private.inspection_report_submission`. `inspection_reports` has no outcome
+   column, so "Inspected / Deal done / No deal" cannot be recorded when a
+   report is submitted, and the screen does not draw the choice while report
+   storage is on. Request: add `outcome text check (outcome in ('inspected',
+   'deal_done', 'no_deal'))` to `inspection_reports`, carry it onto the parent
+   in the submission trigger, and accept `outcome` on `saveInspectionReport`
+   when `submit` is true.
+
+I5. **`saveInspectionReport` clears the notes on every save that omits them.**
+   Its upsert writes `notes: notes ?? null`, so ticking a room without
+   resending the notes wipes them. The screen sends the current notes with
+   every call, so nothing is lost today; the action should leave `notes`
+   untouched when the field is absent (upsert without the column, or
+   `ignoreDuplicates` then a separate update when `notes !== undefined`).
+   Pinned in `lib/inspections/report-wiring.test.ts`.
+
+
    publication.** Today only `notifications` is published. The surface
    re-reads when a notification about an inspection arrives for the reader
    (`InspectionsLive`), which covers every state change because

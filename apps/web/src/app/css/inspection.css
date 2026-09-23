@@ -124,74 +124,38 @@
   }
 
   /*
-   * THE GLASS, one material for every container on the screen. Render: fill
-   * a deep navy a step above the ground (card #000f49 on ground #01071e), a
-   * one-pixel brand edge, the top edge lit (panel rim #2cabf6), and a soft
-   * blue bloom off the edge. Radius: 16 image px on a 142px card, which is
-   * 9 CSS px strict and 14 once the card is carrying real type.
+   * THE CONTAINERS ARE THE SHARED LAYER. The listing card, the facts row,
+   * the checklist, the notes and the outcome are `Panel` (`.nf-panel`,
+   * glass.css): the console's panel material, per-side lit edge, catchlight,
+   * outer glow, the reflection and the 10px container corner, all from
+   * tokens.css. This file only lays out what sits inside them. The render
+   * (16 render px corner on a 142px card, 0.11) agrees with the shared 10px
+   * rung (0.106 on the 94px card).
    */
-  /*
-   * THE PLATFORM GLOW IDENTITY (docs/design/GLOW_IDENTITY.md section 9, the
-   * lit card), expressed through existing tokens because a raw colour may
-   * not live in a stylesheet: the lit ink is `--nf-glow-ink` (#0069FE
-   * against the identity's 0 90 255), the cyan edge and catchlight are
-   * `--nf-state-warning` (the cyan rung). Bands of lit ink along the top and
-   * the foot with a dark middle, a per-side edge (cyan top and left, deep
-   * blue right, mid blue foot), tight rim lines and a short bloom.
-   *
-   * Where F6A8A482 differs, it wins: the radius stays 14 (the render's 16
-   * on a 142px card, scaled with the card) rather than the identity's 12.
-   */
-  .nf-ix-glass {
-    position: relative;
-    border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) solid;
-    border-color:
-      color-mix(in oklab, var(--nf-state-warning) 85%, white)
-      color-mix(in oklab, var(--nf-glow-ink) 70%, black)
-      color-mix(in oklab, var(--nf-glow-ink) 88%, var(--nf-state-warning))
-      color-mix(in oklab, var(--nf-glow-ink) 45%, var(--nf-state-warning));
-    background:
-      radial-gradient(55% 16px at 50% 0, color-mix(in oklab, var(--nf-state-warning) 28%, transparent), transparent),
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-glow-ink) 80%, transparent) 0px,
-        color-mix(in oklab, var(--nf-glow-ink) 52%, transparent) 4px,
-        color-mix(in oklab, var(--nf-glow-ink) 31%, transparent) 11px,
-        color-mix(in oklab, var(--nf-glow-ink) 19%, transparent) 34px,
-        color-mix(in oklab, var(--nf-glow-ink) 10%, transparent) 50%,
-        color-mix(in oklab, var(--nf-glow-ink) 14%, transparent) calc(100% - 22px),
-        color-mix(in oklab, var(--nf-glow-ink) 24%, transparent) calc(100% - 9px),
-        color-mix(in oklab, var(--nf-glow-ink) 50%, transparent) 100%
-      );
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-glow-ink) 90%, transparent),
-      inset 1px 0 0 color-mix(in oklab, var(--nf-glow-ink) 80%, black),
-      0 -1px 0 color-mix(in oklab, var(--nf-glow-ink) 80%, transparent),
-      0 1px 0 color-mix(in oklab, var(--nf-glow-ink) 75%, black),
-      0 0 4px color-mix(in oklab, var(--nf-glow-ink) 38%, transparent),
-      0 0 12px color-mix(in oklab, var(--nf-glow-ink) 18%, transparent);
+  .nf-ix-card.nf-panel,
+  .nf-ix-facts.nf-panel,
+  .nf-ix-check.nf-panel,
+  .nf-ix-notes.nf-panel,
+  .nf-ix-outcome.nf-panel {
+    padding: var(--nf-space-2xs) var(--nf-space-xs);
   }
 
   /* The listing card: photo left, badge, title, place, kind, price, chevron. */
-  .nf-ix-card {
-    display: flex;
+  .nf-ix-card.nf-panel {
+    flex-direction: row;
     align-items: stretch;
-    /* 8px photo to text (the render's 19 render px is 11; the three pixels
-       are what keep a four-word title on one line beside the photo). */
     column-gap: var(--nf-space-sm);
     padding: var(--nf-space-2xs) var(--nf-space-xs) var(--nf-space-2xs) var(--nf-space-2xs);
     color: inherit;
   }
-  /* Render: 180 by 129 render px, 105 by 75 CSS strict, a 1.4 landscape;
-     here 6.5rem wide and the card's height, about 104 by 98. */
+  /* Render: 180 by 129 render px, 105 by 75 CSS strict, a 1.4 landscape. */
   .nf-ix-card__photo {
     position: relative;
     width: 6.5rem;
     min-height: 4.75rem;
     flex-shrink: 0;
     overflow: hidden;
-    border-radius: var(--nf-radius-sm);
+    border-radius: var(--nf-radius-xs);
     background: var(--nf-surface-inset);
   }
   .nf-ix-card__text {
@@ -206,8 +170,6 @@
     flex-wrap: wrap;
     gap: var(--nf-space-2xs);
   }
-  /* The render sets this in the text face, not the display face, which is
-     also what lets a four-word title sit on one line beside the photo. */
   .nf-ix-card__title {
     margin-top: var(--nf-space-3xs);
     font-weight: 600;
@@ -247,19 +209,17 @@
     flex-shrink: 0;
     align-self: center;
     color: var(--nf-content-secondary);
-    transition: transform var(--nf-duration-fast) var(--nf-ease-standard);
   }
 
   /*
-   * THE BADGE, a rounded rectangle (shape law). Render: "Scheduled" is 91 by
-   * 24 render px (14 CSS) with an 8px corner, a ratio of 0.33; drawn here
-   * 18px tall with 11px type and the 6px rung, 0.33. Emerald for scheduled and done, bright cyan for
-   * pending and waiting, rose for refused, quiet for withdrawn.
+   * THE BADGE, a rounded rectangle (shape law). Render: "Scheduled" 91 by 24
+   * render px (14 CSS) with an 8px corner (0.33); 18px tall here with 11px
+   * type and the 6px rung (0.33). Emerald for scheduled and done, bright cyan
+   * for pending and waiting, rose for refused, quiet for withdrawn.
    */
   .nf-ix-badge {
     display: inline-flex;
     align-items: center;
-    /* 18px so the 6px corner stays under the 0.35 review line (R-D). */
     min-height: 1.125rem;
     padding: 0 var(--nf-space-2xs);
     border-radius: var(--nf-radius-xs);
@@ -287,15 +247,13 @@
     background: color-mix(in oklab, var(--nf-content-primary) 8%, transparent);
   }
 
-  /* ----------------------------------------------- date, agent, status */
+  /* ----------------------------------------------- date, party, status */
 
-  /* Render: 616 by 88 image px, three cells split by hairlines at 420 and
-     638, each a glyph then a label, a value and a second line. */
-  .nf-ix-facts {
+  /* Render: 616 by 88 render px, three cells side by side, glyph left of the
+     text, hairlines between. The date and status cells take their content's
+     width; the middle (a name and a number) takes the rest and wraps. */
+  .nf-ix-facts.nf-panel {
     display: grid;
-    /* Side by side at 390, as drawn: the date and status cells take their
-       content's width and the middle cell (a name and a number) takes the
-       rest, wrapping a long name rather than stacking the row. */
     grid-template-columns: max-content minmax(0, 1fr) max-content;
     padding: var(--nf-space-2xs) 0;
   }
@@ -310,19 +268,17 @@
     padding-inline-end: var(--nf-space-xs);
   }
   .nf-ix-fact + .nf-ix-fact {
-    border-left: var(--nf-border-width) solid var(--nf-brand-edge-soft);
+    border-left: var(--nf-border-width) solid var(--nf-panel-hair);
   }
   .nf-ix-fact__glyph {
     display: grid;
     place-items: center;
-    /* Render: 38 render px, 22 strict; 16 here so three cells of 11 and
-       13px text fit side by side on a 342px card. */
     width: 1rem;
     height: 1rem;
     margin-top: 1px;
     flex-shrink: 0;
-    color: var(--nf-brand-secondary);
-    filter: drop-shadow(0 0 6px var(--nf-glow-2));
+    color: var(--nf-lit-cyan);
+    filter: var(--nf-plate-glyph-glow);
   }
   .nf-ix-fact__text {
     min-width: 0;
@@ -353,11 +309,8 @@
   .nf-ix-fact__badge {
     margin-top: var(--nf-space-2xs);
   }
-
-  /* The number, visible under the name as the render draws it (R-C: a
-     string wraps, it never disappears), and itself the tel: link. The
-     44px target is drawn by padding and negative margin, so it takes no
-     height from the row. */
+  /* The number, visible under the name (R-C) and itself the tel: link, with
+     a 44px target drawn by padding and negative margin. */
   .nf-ix-fact__phone {
     display: inline-block;
     margin-top: var(--nf-space-3xs);
@@ -380,12 +333,61 @@
     }
   }
 
+  /* ------------------------------------------------------- the lifecycle */
+
+  /* Not in the render: the four things the record can prove, as one quiet
+     line of dots between the facts and the checklist (founder: "alongside
+     the lifecycle you already show"). Dots and the joining line are shapes. */
+  .nf-ix-life {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: 0 var(--nf-space-2xs);
+  }
+  .nf-ix-life__step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-3xs);
+    text-align: center;
+  }
+  .nf-ix-life__step + .nf-ix-life__step::before {
+    content: "";
+    position: absolute;
+    top: 0.25rem;
+    right: 50%;
+    width: 100%;
+    height: 1px;
+    background: var(--nf-panel-hair);
+  }
+  .nf-ix-life__dot {
+    position: relative;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    background: var(--nf-surface-canvas);
+  }
+  .nf-ix-life__step--done .nf-ix-life__dot {
+    border-color: var(--nf-state-success);
+    background: var(--nf-state-success);
+    box-shadow: 0 0 6px color-mix(in oklab, var(--nf-state-success) 60%, transparent);
+  }
+  .nf-ix-life__label {
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    color: var(--nf-content-secondary);
+  }
+  .nf-ix-life__step--done .nf-ix-life__label {
+    color: var(--nf-content-primary);
+  }
+
   /* ---------------------------------------------------------- the list */
 
-  /* Render: panel 616 by 506 image px; head row with the list glyph, the
-     title, and at the right the count with its bar under it (124 by 6 image
-     px, 72 by 3.5 CSS). Rows inset 15 image px, 54 image px each. */
-  .nf-ix-check {
+  /* Render: panel 616 by 506 render px; head with the list glyph, the title,
+     and at the right the count with its bar under it (124 by 6 render px, 72
+     by 3.5 CSS). Rows inset 15 render px, 54 render px each. */
+  .nf-ix-check.nf-panel {
     padding: var(--nf-space-2xs) var(--nf-space-xs) var(--nf-space-xs);
   }
   .nf-ix-check__head {
@@ -393,7 +395,7 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--nf-space-sm);
-    padding: var(--nf-space-2xs) var(--nf-space-2xs) var(--nf-space-2xs);
+    padding: var(--nf-space-2xs);
   }
   .nf-ix-check__title {
     display: flex;
@@ -406,7 +408,8 @@
     white-space: nowrap;
   }
   .nf-ix-check__title > svg {
-    color: var(--nf-brand-secondary);
+    color: var(--nf-lit-cyan);
+    filter: var(--nf-plate-glyph-glow);
   }
   .nf-ix-check__count {
     display: flex;
@@ -420,170 +423,153 @@
     font-variant-numeric: tabular-nums;
     text-align: right;
   }
+  .nf-ix-check__note {
+    margin: 0 var(--nf-space-2xs) var(--nf-space-2xs);
+    font-size: 0.6875rem;
+    line-height: 1.35;
+    color: var(--nf-content-secondary);
+  }
   /* The bar is a shape, so it is round-ended; it is not a control. */
   .nf-ix-bar {
     position: relative;
     height: 0.25rem;
     overflow: hidden;
     border-radius: var(--nf-radius-circle);
-    /* Identity progress, off: a deep blue with its own edge. */
-    background: linear-gradient(180deg, color-mix(in oklab, var(--nf-glow-ink) 45%, black), color-mix(in oklab, var(--nf-glow-ink) 38%, black));
-    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-glow-ink) 50%, black);
+    /* Render: the empty track is a clear mid blue (#003790), not a shadow. */
+    background: color-mix(in oklab, var(--nf-lit) 55%, black);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nf-lit) 70%, black);
   }
   .nf-ix-bar > span {
     position: absolute;
     inset: 0 auto 0 0;
     border-radius: inherit;
-    /* Identity progress, on: cyan catchlight over the lit blue. */
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--nf-state-warning) 70%, var(--nf-glow-ink)) 0,
-      color-mix(in oklab, var(--nf-glow-ink) 80%, var(--nf-state-warning)) 20%,
-      color-mix(in oklab, var(--nf-glow-ink) 80%, var(--nf-state-warning)) 80%,
-      color-mix(in oklab, var(--nf-glow-ink) 70%, var(--nf-state-warning)) 100%
-    );
-    box-shadow: 0 0 4px color-mix(in oklab, var(--nf-glow-ink) 55%, transparent);
-    transition: width var(--nf-duration-fast) var(--nf-ease-standard);
+    background: linear-gradient(180deg, var(--nf-lit-cyan), var(--nf-lit));
+    box-shadow: 0 0 4px color-mix(in oklab, var(--nf-lit) 55%, transparent);
   }
-  /* Render: rows 1 to 2 render px apart, near enough touching. */
   .nf-ix-check__rows {
     display: flex;
     flex-direction: column;
     gap: var(--nf-space-3xs);
   }
   /* A row: render fill #011f5b over the panel's #000c30, edge #023982, 54
-     render px (31.5 CSS strict), a 12 render px corner (0.22). Here 44px,
-     the least that carries a 13px title and an 11px line, with the 10px
-     rung (0.23). */
-  .nf-ix-step {
+     render px (31.5 CSS strict), a 12 render px corner (0.22); here 40px
+     around the shared small plate, the 6px rung (0.15). */
+  .nf-ix-room {
     display: flex;
     align-items: center;
     gap: var(--nf-space-xs);
     min-height: 2rem;
-    padding: 1px var(--nf-space-xs) 1px var(--nf-space-3xs);
+    padding: var(--nf-space-3xs) var(--nf-space-xs) var(--nf-space-3xs) var(--nf-space-3xs);
     border-radius: var(--nf-radius-xs);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-brand-tint-1);
-    box-shadow: var(--nf-rim-lit);
+    border: var(--nf-border-width) solid var(--nf-panel-hair);
+    background: color-mix(in oklab, var(--nf-lit) 10%, transparent);
+    box-shadow: var(--nf-panel-rim);
   }
   /*
-   * THE LIT DISC, measured off the render: 47 to 48 render px across (27.5
-   * CSS strict, 0.89 of the 54px row), so 28px on the 32px row. Its light,
-   * sampled down the Exterior disc: a lit rim along the top (#003e98), a
-   * navy body (#00236b), and the light pooling at the foot (#003da9 rising
-   * to #003dac, then #0060b0 on the lower rim), with the cyan line glyph
-   * (#47e9ff) glowing inside. That is the glow identity's icon tile, round:
-   * lit from inside, brighter at the foot, a hot rim, a soft outer glow.
+   * The plate is the shared IconPlate (small), drawn ROUND because the
+   * render draws round discs (47 to 48 render px, 27.5 CSS); the one local
+   * change is the corner, recorded in the ledger. The glyph inside is the
+   * render's own, cropped (SOURCES.md).
    */
-  .nf-ix-step__plate {
-    display: grid;
-    place-items: center;
+  .nf-ix-room__plate.nf-plate {
     width: 1.75rem;
     height: 1.75rem;
-    flex-shrink: 0;
     border-radius: var(--nf-radius-circle);
-    border: var(--nf-border-width) solid;
-    border-color:
-      color-mix(in oklab, var(--nf-glow-ink) 70%, var(--nf-state-warning))
-      color-mix(in oklab, var(--nf-glow-ink) 75%, black)
-      color-mix(in oklab, var(--nf-glow-ink) 85%, var(--nf-state-warning))
-      color-mix(in oklab, var(--nf-glow-ink) 60%, var(--nf-state-warning));
-    background:
-      radial-gradient(60% 45% at 50% 100%, color-mix(in oklab, var(--nf-glow-ink) 55%, transparent), transparent),
-      linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--nf-glow-ink) 45%, black) 0,
-        color-mix(in oklab, var(--nf-glow-ink) 30%, black) 45%,
-        color-mix(in oklab, var(--nf-glow-ink) 55%, black) 100%
-      );
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--nf-state-warning) 45%, transparent),
-      inset 0 -2px 3px -1px color-mix(in oklab, var(--nf-glow-ink) 70%, transparent),
-      0 0 8px color-mix(in oklab, var(--nf-glow-ink) 35%, transparent);
-    color: color-mix(in oklab, var(--nf-state-warning) 75%, white);
+    overflow: hidden;
   }
-  .nf-ix-step__plate > svg {
-    filter: drop-shadow(0 0 3px color-mix(in oklab, var(--nf-state-warning) 80%, transparent));
+  .nf-ix-room__plate .nf-ix-crop {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
-  .nf-ix-step__text {
+  .nf-ix-room__text {
     min-width: 0;
     flex: 1;
   }
-  .nf-ix-step__name {
+  .nf-ix-room__name {
     display: block;
     font-weight: 600;
     font-size: 0.6875rem;
-    line-height: 1.2;
+    line-height: 1.25;
     color: var(--nf-content-primary);
   }
-  .nf-ix-step__detail {
+  .nf-ix-room__detail {
     display: block;
-    margin-top: 0;
     font-size: 0.6875rem;
-    line-height: 1.2;
+    line-height: 1.25;
     color: var(--nf-brand-secondary);
   }
-  /* The check circle, a shape: hollow brand ring until the step happened,
-     then filled emerald with a tick. Shape and colour, never colour alone.
-     Render: 20 of the row's 54 render px (0.37); 18px on a 44px row. */
-  .nf-ix-step__ring {
-    display: grid;
-    place-items: center;
-    width: 0.875rem;
-    height: 0.875rem;
+  /*
+   * The check circle, a round shape with no text (render: 20 render px, a
+   * brand ring). Its hit area is 44px, drawn by a transparent ::before so
+   * the ring stays the render's size. Checked: emerald fill and a drawn tick.
+   * Disabled while report storage is off: dimmed, never hidden.
+   */
+  .nf-ix-room__check {
+    position: relative;
     flex-shrink: 0;
+    width: 1.125rem;
+    height: 1.125rem;
     border-radius: var(--nf-radius-circle);
-    border: var(--nf-border-width-strong) solid var(--nf-brand-primary);
-    color: var(--nf-content-on-brand);
+    border: var(--nf-border-width-strong) solid var(--nf-lit);
+    background: transparent;
+    cursor: pointer;
+    box-shadow: 0 0 6px color-mix(in oklab, var(--nf-lit) 45%, transparent);
   }
-  .nf-ix-step--done .nf-ix-step__ring {
+  .nf-ix-room__check::before {
+    content: "";
+    position: absolute;
+    inset: -0.8125rem;
+  }
+  .nf-ix-room__check:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  .nf-ix-room__check:focus-visible {
+    outline: 2px solid var(--nf-lit-cyan);
+    outline-offset: 3px;
+  }
+  .nf-ix-room__check[aria-checked="true"] {
     border-color: var(--nf-state-success);
     background: var(--nf-state-success);
   }
-  /* The tick, drawn as a shape (two borders of a turned box), because the
-     stroked tier has no plain check and the shield glyph read as a badge. */
-  .nf-ix-step--done .nf-ix-step__ring::after,
-  .nf-ix-option[aria-checked="true"] .nf-ix-step__ring::after {
+  .nf-ix-room__check[aria-checked="true"]::after,
+  .nf-ix-option[aria-checked="true"] .nf-ix-option__ring::after {
     content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
     width: 0.1875rem;
     height: 0.375rem;
-    margin-top: -1px;
     border: solid var(--nf-content-on-brand);
     border-width: 0 1.5px 1.5px 0;
-    transform: rotate(45deg);
+    transform: translate(-50%, -60%) rotate(45deg);
   }
 
   /* --------------------------------------------------------- the notes */
 
-  /* Render: 616 by 88 image px; pencil glyph, the label, then a well 545 by
-     45 image px with an 8px corner. The well here holds what is on the
-     record, read-only, because no action writes a note after the fact. */
-  .nf-ix-notes {
-    display: flex;
+  /* Render: 616 by 88 render px; the pen glyph, the label, then a field 545
+     by 45 render px, a step lighter than its panel. The field is a real
+     textarea: it saves through the report contract once storage is live. */
+  .nf-ix-notes.nf-panel {
+    flex-direction: row;
     gap: var(--nf-space-xs);
     padding: var(--nf-space-2xs) var(--nf-space-xs);
   }
   .nf-ix-notes__glyph {
-    padding-top: var(--nf-space-3xs);
+    margin-top: 1px;
     flex-shrink: 0;
-    color: var(--nf-brand-secondary);
+    color: var(--nf-lit-cyan);
+    filter: var(--nf-plate-glyph-glow);
   }
   .nf-ix-notes__label {
+    display: block;
     font-weight: 600;
     font-size: 0.6875rem;
     color: var(--nf-content-primary);
   }
-  .nf-ix-notes__well {
+  .nf-ix-notes__said {
     margin-top: var(--nf-space-2xs);
-    padding: var(--nf-space-3xs) var(--nf-space-xs);
-    min-height: 1.375rem;
-    border-radius: var(--nf-radius-xs);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    /* Render: the well is a step LIGHTER than its panel (#00154b on
-       #00113d), not a hole in it. */
-    background:
-      linear-gradient(var(--nf-brand-tint-1), var(--nf-brand-tint-1)),
-      var(--nf-well-fill);
     font-size: 0.6875rem;
     line-height: 1.4;
     color: var(--nf-content-secondary);
@@ -592,41 +578,55 @@
   }
   .nf-ix-notes__who {
     display: block;
-    font-size: var(--nf-text-overline);
     font-weight: 600;
     color: var(--nf-brand-secondary);
   }
-  .nf-ix-notes__well + .nf-ix-notes__well {
+  /* An input: 16px type so iOS does not zoom the page (R-A), the control
+     corner (a text control, shape law). */
+  .nf-ix-notes__field {
+    display: block;
+    width: 100%;
     margin-top: var(--nf-space-2xs);
+    min-height: 2.25rem;
+    padding: var(--nf-space-3xs) var(--nf-space-xs);
+    resize: vertical;
+    border-radius: var(--nf-radius-control);
+    border: var(--nf-border-width) solid var(--nf-panel-hair);
+    background: color-mix(in oklab, var(--nf-lit) 10%, var(--nf-surface-canvas));
+    font-size: 1rem;
+    line-height: 1.35;
+    color: var(--nf-content-primary);
   }
-  .nf-ix-notes__empty {
+  .nf-ix-notes__field::placeholder {
+    font-size: 0.6875rem;
     color: var(--nf-content-muted);
+  }
+  .nf-ix-notes__field:disabled {
+    cursor: not-allowed;
+  }
+  .nf-ix-notes__field:focus-visible {
+    outline: 2px solid var(--nf-lit-cyan);
+    outline-offset: 1px;
   }
 
   /* ------------------------------------------------------- the outcome */
 
-  /* The outcome choices in the checklist's register and density: the same
-     panel, a head in the checklist head's type, rows of 44px (the least a
-     pressed control may be) with the same ring, 2px apart. */
-  .nf-ix-outcome {
-    padding: var(--nf-space-2xs) var(--nf-space-xs) var(--nf-space-xs);
-  }
   .nf-ix-outcome__head {
-    padding: var(--nf-space-2xs) var(--nf-space-2xs);
-    line-height: 1.2;
+    padding: var(--nf-space-2xs);
     font-family: var(--nf-font-display);
     font-weight: 600;
     font-size: 0.6875rem;
+    line-height: 1.2;
     color: var(--nf-content-primary);
   }
-  /* Lead ruling R-F: one row of three, as compact as the render's own
-     nearest element, so the primary actions stay on the first screen. */
+  /* Lead ruling R-F: one row of three, in the checklist's register. */
   .nf-ix-outcome__options {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--nf-space-2xs);
   }
-  /* A text-bearing control at the 44px floor (R-B): the 10px rung, 0.23. */
+  /* A text-bearing control at the 44px floor (R-B), the 10px rung (0.23);
+     chosen, it takes the shared selected state. */
   .nf-ix-option {
     display: flex;
     align-items: center;
@@ -635,26 +635,33 @@
     min-height: 2.75rem;
     padding: 0 var(--nf-space-xs);
     border-radius: var(--nf-radius-sm);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background: var(--nf-brand-tint-1);
+    border: var(--nf-border-width) solid var(--nf-panel-hair);
+    background: color-mix(in oklab, var(--nf-lit) 10%, transparent);
     font-size: 0.6875rem;
     font-weight: 600;
     color: var(--nf-content-primary);
-    text-align: left;
     cursor: pointer;
-    box-shadow: var(--nf-rim-lit);
+    box-shadow: var(--nf-panel-rim);
   }
   .nf-ix-option[aria-checked="true"] {
-    border-color: var(--nf-brand-primary);
-    background: var(--nf-brand-tint-3);
+    border-color: var(--nf-selected-edge);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow-inline);
   }
   .nf-ix-option:focus-visible {
-    outline: 2px solid var(--nf-brand-primary);
+    outline: 2px solid var(--nf-lit-cyan);
     outline-offset: 2px;
   }
-  .nf-ix-option[aria-checked="true"] .nf-ix-step__ring {
-    border-color: var(--nf-state-success);
-    background: var(--nf-state-success);
+  .nf-ix-option__ring {
+    position: relative;
+    flex-shrink: 0;
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: var(--nf-radius-circle);
+    border: var(--nf-border-width-strong) solid var(--nf-lit);
+  }
+  .nf-ix-option[aria-checked="true"] .nf-ix-option__ring {
+    border-color: var(--nf-content-on-brand);
   }
 
   /* ------------------------------------------------------- the actions */
@@ -669,66 +676,30 @@
     flex-wrap: wrap;
     gap: var(--nf-space-xs);
   }
-  /*
-   * Add Photos, lit. `nf-btn--primary` already carries the CTA gradient
-   * (render: #016bfb top, #0039fd middle, #0472f8 foot; token #0074fc, #0042fd,
-   * #0069f7), the specular rim and the lit bloom. The render's bloom reaches
-   * further down onto the surface than the token's, so this surface adds one
-   * wider, zero-offset layer under the token's own.
-   */
-  /* The identity's lit button: the token gradient with a pool of light in
-     its lower middle, a cyan edge, and a bloom thrown down onto the page
-     with a softer one up. */
-  /* Render: Add Photos 56 render px (33 CSS), Submit 50 (29). Both under
-     the 44px floor, so both are 44 (R-B); labels 11px, the floor for a
-     label (R-A; the render's are about 9). */
-  .nf-ix .nf-ix-cta {
-    --nf-btn-h: 2.75rem;
-    padding-block: 0;
-    font-size: 0.6875rem;
-    justify-content: center;
-    border-color:
-      color-mix(in oklab, var(--nf-state-warning) 90%, white)
-      color-mix(in oklab, var(--nf-state-warning) 60%, var(--nf-glow-ink))
-      color-mix(in oklab, var(--nf-state-warning) 85%, white)
-      color-mix(in oklab, var(--nf-state-warning) 60%, var(--nf-glow-ink));
-    background:
-      radial-gradient(45% 75% at 50% 88%, color-mix(in oklab, var(--nf-glow-ink) 75%, transparent), transparent),
-      var(--nf-gradient-cta);
-    box-shadow:
-      var(--nf-rim-primary),
-      0 6px 18px -2px color-mix(in oklab, var(--nf-glow-ink) 45%, transparent),
-      0 -2px 10px color-mix(in oklab, var(--nf-glow-ink) 20%, transparent);
-  }
-  .nf-ix .nf-ix-cta__end {
-    margin-left: auto;
-  }
-  .nf-ix .nf-ix-cta__start {
-    margin-right: auto;
-    visibility: hidden;
-  }
-  /* Submit, the secondary glass: render fill #001e62, edge #003ab1, label a
-     muted blue while it waits. Disabled reads as waiting, not broken. */
+  /* Add Photos and Submit are the shared lit primary and glass secondary.
+     Only their size is this surface's: the render's 56 and 50 render px
+     (33 and 29 CSS) are under the floor, so both are 44 (R-B), labels 11px
+     (R-A), the icon left of centre and the chevron at the far edge. */
+  .nf-ix .nf-ix-cta,
   .nf-ix .nf-ix-submit {
     --nf-btn-h: 2.75rem;
     padding-block: 0;
     font-size: 0.6875rem;
-    border: var(--nf-border-width) solid var(--nf-brand-edge);
-    background:
-      linear-gradient(180deg, var(--nf-brand-tint-3), var(--nf-brand-tint-1)),
-      var(--nf-well-fill);
-    color: var(--nf-content-primary);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 14px var(--nf-glow-1);
+    justify-content: center;
   }
+  /* Submit while it waits: the render draws it as blue glass with a brand
+     edge and a muted blue label (#001e62, #003ab1, #447cd3), not a greyed
+     control, so the disabled state keeps the shared panel material. */
   .nf-ix .nf-ix-submit:disabled {
     opacity: 1;
-    color: color-mix(in oklab, var(--nf-brand-secondary) 55%, transparent);
-    background:
-      linear-gradient(180deg, var(--nf-brand-tint-2), var(--nf-brand-tint-1)),
-      var(--nf-well-fill);
-    cursor: not-allowed;
+    border-color: var(--nf-panel-edges);
+    background: var(--nf-panel-fill-card);
+    color: color-mix(in oklab, var(--nf-brand-secondary) 70%, transparent);
+    box-shadow: var(--nf-panel-rim);
+  }
+  .nf-ix .nf-ix-cta__end {
+    position: absolute;
+    right: var(--nf-space-md);
   }
   .nf-ix-hint {
     font-size: 0.6875rem;
@@ -751,8 +722,6 @@
 
   /* ------------------------------------------------------------ wider */
 
-  /* Desktop is the phone's character given room: the same column, held at
-     42rem by the page, with the listing card's photo and the house larger. */
   @media (min-width: 640px) {
     .nf-ix-card__photo {
       width: 10rem;
@@ -775,20 +744,5 @@
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .nf-ix-card__chev,
-    .nf-ix-bar > span {
-      transition: none;
-    }
-  }
-}
-
-@layer components {
-  /* The person tier mark (Session A's TierBadge) beside a name: the mark
-     alone, spaced off the name it belongs to. */
-  .nf-ix-name-tier {
-    margin-inline-start: var(--nf-space-2xs);
   }
 }

@@ -10745,3 +10745,227 @@ requires prefix AND kind AND `status = 'PENDING'`. A row satisfying one and not
 another goes stuck silently, because both webhook branches answer HTTP 200.
 Live counts today: 1 withdrawal row, 0 pending holds, 0 mismatches of either
 kind. `docs/WITHDRAWAL_PATH.md` carries the query that finds such a row.
+
+---
+
+## 49septies. I1 IS APPLIED. SESSION B, YOUR SCREEN CAN SWITCH ON
+
+Migration `20260923135847`, on `main`. Everything I1 asked for is there and
+nothing was substituted, so the shapes you built against are the shapes that
+landed.
+
+**The three tables**, exactly as you specified them, plus one index on
+`(inspection_id, created_at)` for the photos.
+
+**RLS on all three.** Select for either party of the parent or for an admin.
+Insert and update only while the parent is `CONFIRMED` and only by a party. No
+update once `submitted_at` is set, and **no delete policy and no DELETE grant
+anywhere**, on any of the three.
+
+**The bucket.** `inspection-photos`, private, 10MB, five mime types, path
+`<inspection_id>/<uuid>.<ext>`. Three policies on `storage.objects`: party
+read, party insert while open, admin read. No update and no delete, for the
+same reason the rows have none.
+
+**The trigger.** `submitted_at` going from null to a value moves the parent to
+`COMPLETED` in the same transaction, so `notify_inspection_change` tells both
+sides, and it **refuses a submission with fewer than eight ticks**. Your
+disabled Submit button is now the polite half of a rule the database holds.
+
+### The action, and it is one call rather than the four you listed
+
+`saveInspectionReport({ inspectionId, items: [{ item, checked, note }], notes,
+submit })` in `lib/inspections/actions.ts`, returning
+`ActionResult<InspectionReport>` where
+
+```ts
+type InspectionReport = {
+  inspectionId: string;
+  notes: string | null;
+  submittedAt: string | null;
+  items: { item: ReportItem; checked: boolean; note: string | null }[];
+};
+```
+
+`item` is one of `exterior, interior, kitchen, bathrooms, utilities,
+appliances, safety, overall`. Items are upserted, so send the whole set or just
+the row that changed; `checked_at` is set when a row is ticked and **cleared
+when it is unticked**, so a stamp never outlives its tick. `submit: true` does
+the submission in the same call.
+
+**I did not build `saveReportItem`, `saveReportNotes`, `addReportPhoto` and
+`submitReport` as four actions**, and you should know why rather than discover
+it: four doors onto one row is four chances for two of them to disagree about
+what "saved" means, and the one shape you actually asked for in the founder's
+message is this one. If the screen genuinely needs the narrow ones, say so and
+they are ten minutes each on top of this.
+
+**The refusals you will actually meet**, each a sentence rather than a code:
+
+| when | what it says |
+| --- | --- |
+| fewer than eight ticked and `submit: true` | Tick all eight rooms before you submit the report. |
+| submitted already, or the inspection is closed | This report cannot be changed now. It is either submitted already or the inspection is closed. |
+| not signed in | Sign in to write this report. |
+| anything else | We could not save that. Try again in a moment. |
+
+### The photo upload
+
+`createInspectionPhotoUpload({ inspectionId, extension, item? })` returns
+`{ path, token }` from `createSignedUploadUrl`. Upload with
+`supabase.storage.from("inspection-photos").uploadToSignedUrl(path, token,
+file)`, then record the row by including it in your next
+`saveInspectionReport` call, or ask and I will add a narrow `addReportPhoto`.
+
+**The extension comes from a closed list** (`jpg, jpeg, png, webp, heic, pdf`),
+not from the file name, because a file name arrives from a browser and the
+bucket's mime rules are not a substitute for not trusting it.
+
+### One thing that changed under you, and it is not mine to hide
+
+Regenerating `database.types.ts` to do this work exposed **four hand written
+unions that had drifted from the database**, and two are in files you own:
+
+- `EscrowState` was missing `CANCELLED`. It now derives from the enum, which
+  made `BalanceBreakdownSheet.tsx`'s two maps a compile error. **I added the
+  ninth key to both rather than file it**, because a red main outranks the
+  scope split. Reword "Called off" freely; only the key must stay.
+- `EscrowPurpose` was missing `agency_fee`, the ONE leg open under the purpose
+  gate, and `WalletEntryKind` was missing `pot_hold` and `pot_release`, both
+  live verbs. Same treatment: `kinds.ts` and the sheet now carry them.
+
+That is R18 closed from this side. The type is no longer a copy of the enum, so
+the tenth value is a compile error rather than a chip rendering a raw column at
+a person.
+
+---
+
+## 77. P-7'S HTTP HALF RAN FOR THE FIRST TIME AND IT PASSES. 8 OF 8
+
+**The founder opened the environment's network access, and the last untested
+condition on the escrow gate is now tested.**
+
+Confirmed reachable at 15:17 UTC before anything was read into a refusal:
+`uccixoonmbhrnyczyigt.supabase.co` 401, `api.resend.com` 200,
+`api.paystack.co` 200. The script's own preflight asked the same question
+independently and printed `answered HTTP 401. Running the probe.`
+
+```
+escrow_fund_from_wallet     HTTP 401  42501 permission denied for function
+escrow_confirm              HTTP 401  42501 permission denied for function
+escrow_request_release      HTTP 401  42501 permission denied for function
+escrow_raise_dispute        HTTP 401  42501 permission denied for function
+escrow_hold                 HTTP 401  42501 permission denied for function
+escrow_cancel_as            HTTP 401  42501 permission denied for function
+escrow_fund_from_wallet_as  HTTP 401  42501 permission denied for function
+GET /rest/v1/listings       HTTP 200  the control
+RESULT: PASS. 8 of 8.
+```
+
+**Why the eighth line is the one that makes the other seven mean anything.** A
+probe where every door is shut cannot tell a shut door from a broken URL, a
+wrong host or an expired key. The control is a plain read that MUST answer, and
+it answered 200. So the seven refusals are refusals.
+
+**And the refusals are the right kind.** Each is `42501 permission denied for
+function`, which is Postgres refusing EXECUTE before the body ran. None
+answered in escrow's own vocabulary, which is what a reachable verb would have
+produced and what the script is written to fail on.
+
+**What this closes.** The founder's sentence was *"no naira moves until all
+nine probes pass in both directions, and right now that sentence is still
+untested."* It is tested. All nine pass in both directions.
+
+**What it does NOT close, said plainly so nobody reads this as a green light to
+move money.** The gate has conditions that are not probes: custody is still
+undecided, `custodySentence()` still returns null with no fallback, there is
+still no `held_payments` row, and the kill switch still fails closed. The
+probes were one condition of several and they are the one that was open.
+
+**One honest limit on the run.** It used the project's publishable key with no
+session, so what is proved over the wire is that **a stranger** cannot reach
+those verbs. A signed-in user's JWT was not used. The EXECUTE half covers
+`authenticated` and passes, and the two halves ask different questions. A
+signed-in HTTP run would close the last corner and is now possible from this
+container for the first time.
+
+**The incidental finding in the control.** `GET /rest/v1/listings` answering
+200 to the anon key is also an independent re-confirmation, over the wire and
+from outside, that the eleven hour catalogue outage of section 67 is genuinely
+repaired. That had only ever been proved from inside the database.
+
+---
+
+## 49octies. QA ACCOUNTS: THE TWO ADDRESSES ARE CONFIRMED. SESSION B, PROVE AGAINST THESE AND NO OTHERS
+
+**Confirmed, exactly as you proposed them:**
+
+```
+qa-member@vallospaces.com    ordinary member
+qa-admin@vallospaces.com     admin
+```
+
+They are right: on the domain the product already sends from, labelled so
+nobody mistakes them for a real person, and two separate accounts so the
+member path and the admin path are provable separately rather than one account
+switching hats. **Nothing else is to be created or used. Prove against this
+pair.**
+
+### TWO THINGS YOUR PROPOSAL DID NOT COVER, AND ONE OF THEM MATTERS A LOT
+
+**1. THE STORE REVIEWER GETS `qa-member@` AND NEVER `qa-admin@.**
+
+The founder's directive says the pair doubles as the App Store reviewer
+credentials. It cannot be the admin one. Handing Apple and Google an account
+that can read the moderation queue, the money desk, every person's support
+thread and the KYC documents is a data protection problem, not a convenience.
+The reviewer needs to see what a member sees.
+
+So: **`qa-member@` goes into App Store Connect and Play Console.
+`qa-admin@` is internal and goes into neither, ever.** I am writing that into
+`docs/STORE_SUBMISSION_NOTES.md` as well so it cannot be lost between us.
+
+**2. I CANNOT VERIFY THAT THE MAILBOXES EXIST, AND IT CHANGES WHAT WORKS.**
+
+This container has no DNS tooling and the egress policy allows only the three
+product hosts, so I cannot read an MX record or test delivery. That is a fact
+about the environment, not a guess about the domain.
+
+It matters because of rule 4, the one that makes these addresses permanent:
+
+- **If the mailboxes exist:** everything works, and the pair becomes the way we
+  finally prove the email junction end to end, which nothing has ever done.
+- **If they do not:** sign in still works, because the accounts will be created
+  already confirmed. But **password reset will not**, and neither will any
+  product email to them, so the junction stays unproven and a reviewer who
+  loses the password is stuck.
+
+Neither case changes the addresses. It changes what we may claim about them,
+so it is written down rather than discovered later.
+
+### WHAT I CAN AND CANNOT DO ABOUT CREATING THEM, SAID PLAINLY
+
+**I cannot create them from here, and it is not a scope question.** Minting an
+`auth.users` row properly needs the service role key. It is a `sensitive`
+variable on the deployment, which Vercel returns as an empty string even when
+asked to decrypt, and it is in neither this container's environment nor
+`.env.local`. I will not hand-write rows into `auth.users` through a migration
+to get around that: GoTrue also expects an `auth.identities` row and a
+correctly formed password hash, and an account that half exists is worse than
+one that does not, especially one whose address can never be changed.
+
+**What I am doing instead, so that creation is one command and not an
+afternoon:**
+
+- extending `scripts/seed/store-reviewer.mjs` to seed BOTH accounts and to
+  apply the `admin` role grant to the second, idempotently, with `--dry-run`
+- the statistics exclusion, so both are out of every count the way an example
+  listing is, because that is a migration and migrations are mine
+- naming both in `STORE_SUBMISSION_NOTES.md` with which one a reviewer gets
+
+**Passwords never enter this repository**, in any file, in any commit message,
+in any log line. The script reads them from the environment and refuses to
+print them, and it signs in afterwards with the anon key to prove the account
+actually works rather than assuming it.
+
+I will reply here again with the addresses as created, the moment they exist.

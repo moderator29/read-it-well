@@ -11,6 +11,7 @@ import type { AgentTrust, Occupation, ProfilePlace, Standing } from "@/lib/socia
 import { BIO_HELD_DETAIL, BIO_HELD_TITLE, linkLabel } from "@/lib/social/profiles-schema";
 import { ExternalLinkSheet } from "@/components/ui/ExternalLinkSheet";
 import { RemoteImage } from "@/components/ui/RemoteImage";
+import "./social-profile.css";
 
 /**
  * The top of a person's page.
@@ -267,7 +268,7 @@ export function ProfileHeader({
 
       {/* -------------------------------------------------- what they are */}
       {(occupation || standing.length > 0 || profile.pidginOk) && (
-        <div className="nf-social-chips">
+        <div className="nf-social-chips nf-profile-chips">
           {occupation ? (
             <span className="nf-social-chip">
               <UiIcon name="user" size={12} />
@@ -291,7 +292,7 @@ export function ProfileHeader({
 
       {/* --------------------------------------------------------- the bio */}
       {isOwner && profile.bioStatus === "HELD" && (
-        <div role="status" className="nf-card nf-social-card mt-md p-md">
+        <div role="status" className="nf-panel nf-panel--card mt-md p-md">
           <p className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-state-warning)]">
             {BIO_HELD_TITLE}
           </p>
@@ -343,7 +344,7 @@ export function ProfileHeader({
 
       {/* --------------------------------------------- agents only, ever */}
       {trust ? (
-        <dl className="nf-social-trust">
+        <dl className="nf-social-trust nf-panel nf-panel--card">
           <div className="nf-social-trust__cell">
             <dt>{copy.trustScore}</dt>
             <dd className="nf-numeric">{trust.score}</dd>

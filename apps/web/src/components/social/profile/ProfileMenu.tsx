@@ -17,6 +17,7 @@ import { displayHost } from "@/lib/brand-domain";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import "./social-profile.css";
 
 /**
  * The `…` on a person's page. The sibling of the one on every card.
@@ -238,7 +239,7 @@ export function ProfileMenu({
         <button
           ref={openerRef}
           type="button"
-          className={onCover ? "nf-social-round" : "nf-social-more"}
+          className={onCover ? "nf-social-round nf-btn--glass" : "nf-social-more nf-btn--glass"}
           aria-label={`More actions for ${who}`}
           aria-haspopup="menu"
           aria-expanded={open}

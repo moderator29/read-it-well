@@ -63,7 +63,7 @@ export function ListingOptionsSheet({
       </div>
 
       {/* ------------------------------------------------ listing mini view */}
-      <div className="nf-card flex items-center gap-md p-sm">
+      <div className="nf-panel nf-panel--card flex-row items-center gap-md p-sm">
         <div
           aria-hidden="true"
           className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[var(--nf-radius-md)]"

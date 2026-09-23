@@ -406,18 +406,21 @@ export type Database = {
       agent_badges: {
         Row: {
           agent_id: string
+          tier: Database["public"]["Enums"]["badge_tier"]
           updated_at: string
           verified: boolean
           verified_at: string | null
         }
         Insert: {
           agent_id: string
+          tier?: Database["public"]["Enums"]["badge_tier"]
           updated_at?: string
           verified?: boolean
           verified_at?: string | null
         }
         Update: {
           agent_id?: string
+          tier?: Database["public"]["Enums"]["badge_tier"]
           updated_at?: string
           verified?: boolean
           verified_at?: string | null
@@ -487,6 +490,20 @@ export type Database = {
             columns: ["application_id"]
             isOneToOne: false
             referencedRelation: "agent_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_documents_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "agent_documents_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
             referencedColumns: ["id"]
           },
           {
@@ -638,6 +655,13 @@ export type Database = {
             columns: ["application_id"]
             isOneToOne: false
             referencedRelation: "agent_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agents_firm_id_fkey"
+            columns: ["firm_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
         ]
@@ -958,6 +982,13 @@ export type Database = {
             foreignKeyName: "availability_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "availability_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
             referencedRelation: "listings"
             referencedColumns: ["id"]
           },
@@ -1038,6 +1069,30 @@ export type Database = {
           resolved_at?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      blocked_terms: {
+        Row: {
+          category: string
+          created_at: string
+          reason: string
+          severity: Database["public"]["Enums"]["alert_severity"]
+          term: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          reason: string
+          severity?: Database["public"]["Enums"]["alert_severity"]
+          term: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          reason?: string
+          severity?: Database["public"]["Enums"]["alert_severity"]
+          term?: string
         }
         Relationships: []
       }
@@ -1228,6 +1283,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bookings_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
           {
             foreignKeyName: "bookings_listing_id_fkey"
             columns: ["listing_id"]
@@ -1796,6 +1858,13 @@ export type Database = {
             foreignKeyName: "conversations_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "conversations_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
             referencedRelation: "listings"
             referencedColumns: ["id"]
           },
@@ -1808,12 +1877,156 @@ export type Database = {
           },
         ]
       }
+      email_outbox: {
+        Row: {
+          attempts: number
+          available_at: string
+          claimed_at: string | null
+          created_at: string
+          dedupe_key: string
+          id: string
+          last_error: string | null
+          payload: Json
+          settled_at: string | null
+          status: string
+          template: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          available_at?: string
+          claimed_at?: string | null
+          created_at?: string
+          dedupe_key: string
+          id?: string
+          last_error?: string | null
+          payload?: Json
+          settled_at?: string | null
+          status?: string
+          template: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          available_at?: string
+          claimed_at?: string | null
+          created_at?: string
+          dedupe_key?: string
+          id?: string
+          last_error?: string | null
+          payload?: Json
+          settled_at?: string | null
+          status?: string
+          template?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      escrow_evidence: {
+        Row: {
+          amount_minor: number | null
+          author_id: string
+          caption: string | null
+          created_at: string
+          escrow_id: string
+          fact: Database["public"]["Enums"]["escrow_fact"] | null
+          file_name: string | null
+          happened_on: string | null
+          id: string
+          kind: Database["public"]["Enums"]["escrow_evidence_kind"]
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string | null
+        }
+        Insert: {
+          amount_minor?: number | null
+          author_id: string
+          caption?: string | null
+          created_at?: string
+          escrow_id: string
+          fact?: Database["public"]["Enums"]["escrow_fact"] | null
+          file_name?: string | null
+          happened_on?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["escrow_evidence_kind"]
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string | null
+        }
+        Update: {
+          amount_minor?: number | null
+          author_id?: string
+          caption?: string | null
+          created_at?: string
+          escrow_id?: string
+          fact?: Database["public"]["Enums"]["escrow_fact"] | null
+          file_name?: string | null
+          happened_on?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["escrow_evidence_kind"]
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escrow_evidence_escrow_id_fkey"
+            columns: ["escrow_id"]
+            isOneToOne: false
+            referencedRelation: "escrows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      escrow_float_snapshots: {
+        Row: {
+          as_of: string
+          commission_booked_minor: number
+          components: Json
+          created_at: string
+          currency: string
+          difference_minor: number
+          escrow_count: number
+          float_minor: number
+          id: string
+          ledger_float_minor: number
+          taken_at: string
+        }
+        Insert: {
+          as_of: string
+          commission_booked_minor: number
+          components?: Json
+          created_at?: string
+          currency?: string
+          difference_minor: number
+          escrow_count: number
+          float_minor: number
+          id?: string
+          ledger_float_minor: number
+          taken_at?: string
+        }
+        Update: {
+          as_of?: string
+          commission_booked_minor?: number
+          components?: Json
+          created_at?: string
+          currency?: string
+          difference_minor?: number
+          escrow_count?: number
+          float_minor?: number
+          id?: string
+          ledger_float_minor?: number
+          taken_at?: string
+        }
+        Relationships: []
+      }
       escrows: {
         Row: {
           amount_minor: number
           auto_release_at: string | null
           commission_minor: number | null
           commission_rate_id: string | null
+          conversation_id: string | null
           created_at: string
           currency: string
           dispute_reason: string | null
@@ -1825,6 +2038,7 @@ export type Database = {
           initiated_at: string
           inspection_confirmation_id: string | null
           listing_id: string | null
+          opened_by: string | null
           payee_confirmed_at: string | null
           payee_id: string
           payer_confirmed_at: string | null
@@ -1845,6 +2059,7 @@ export type Database = {
           auto_release_at?: string | null
           commission_minor?: number | null
           commission_rate_id?: string | null
+          conversation_id?: string | null
           created_at?: string
           currency?: string
           dispute_reason?: string | null
@@ -1856,6 +2071,7 @@ export type Database = {
           initiated_at?: string
           inspection_confirmation_id?: string | null
           listing_id?: string | null
+          opened_by?: string | null
           payee_confirmed_at?: string | null
           payee_id: string
           payer_confirmed_at?: string | null
@@ -1876,6 +2092,7 @@ export type Database = {
           auto_release_at?: string | null
           commission_minor?: number | null
           commission_rate_id?: string | null
+          conversation_id?: string | null
           created_at?: string
           currency?: string
           dispute_reason?: string | null
@@ -1887,6 +2104,7 @@ export type Database = {
           initiated_at?: string
           inspection_confirmation_id?: string | null
           listing_id?: string | null
+          opened_by?: string | null
           payee_confirmed_at?: string | null
           payee_id?: string
           payer_confirmed_at?: string | null
@@ -1911,11 +2129,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "escrows_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "escrows_inspection_confirmation_id_fkey"
             columns: ["inspection_confirmation_id"]
             isOneToOne: false
             referencedRelation: "inspection_confirmations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "escrows_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
           },
           {
             foreignKeyName: "escrows_listing_id_fkey"
@@ -2229,7 +2461,113 @@ export type Database = {
             foreignKeyName: "inspection_confirmations_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "inspection_confirmations_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
             referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_report_items: {
+        Row: {
+          checked: boolean
+          checked_at: string | null
+          inspection_id: string
+          item: string
+          note: string | null
+        }
+        Insert: {
+          checked?: boolean
+          checked_at?: string | null
+          inspection_id: string
+          item: string
+          note?: string | null
+        }
+        Update: {
+          checked?: boolean
+          checked_at?: string | null
+          inspection_id?: string
+          item?: string
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_report_items_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_reports"
+            referencedColumns: ["inspection_id"]
+          },
+        ]
+      }
+      inspection_report_photos: {
+        Row: {
+          created_at: string
+          id: string
+          inspection_id: string
+          item: string | null
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inspection_id: string
+          item?: string | null
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inspection_id?: string
+          item?: string | null
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_report_photos_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_reports"
+            referencedColumns: ["inspection_id"]
+          },
+        ]
+      }
+      inspection_reports: {
+        Row: {
+          author_id: string
+          created_at: string
+          inspection_id: string
+          notes: string | null
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          created_at?: string
+          inspection_id: string
+          notes?: string | null
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string
+          inspection_id?: string
+          notes?: string | null
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_reports_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: true
+            referencedRelation: "inspection_requests"
             referencedColumns: ["id"]
           },
         ]
@@ -2295,10 +2633,41 @@ export type Database = {
             foreignKeyName: "inspection_requests_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "inspection_requests_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
             referencedRelation: "listings"
             referencedColumns: ["id"]
           },
         ]
+      }
+      known_devices: {
+        Row: {
+          device_words: string | null
+          fingerprint: string
+          first_seen_at: string
+          last_seen_at: string
+          user_id: string
+        }
+        Insert: {
+          device_words?: string | null
+          fingerprint: string
+          first_seen_at?: string
+          last_seen_at?: string
+          user_id: string
+        }
+        Update: {
+          device_words?: string | null
+          fingerprint?: string
+          first_seen_at?: string
+          last_seen_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       landmarks: {
         Row: {
@@ -2437,6 +2806,13 @@ export type Database = {
             foreignKeyName: "listing_access_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: true
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "listing_access_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
             referencedRelation: "listings"
             referencedColumns: ["id"]
           },
@@ -2462,6 +2838,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "amenities"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_amenities_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
           },
           {
             foreignKeyName: "listing_amenities_listing_id_fkey"
@@ -2533,6 +2916,13 @@ export type Database = {
             foreignKeyName: "listing_mandates_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "listing_mandates_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
             referencedRelation: "listings"
             referencedColumns: ["id"]
           },
@@ -2561,6 +2951,13 @@ export type Database = {
           storage_path?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "listing_photos_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
           {
             foreignKeyName: "listing_photos_listing_id_fkey"
             columns: ["listing_id"]
@@ -2603,6 +3000,13 @@ export type Database = {
             foreignKeyName: "listing_videos_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "listing_videos_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
             referencedRelation: "listings"
             referencedColumns: ["id"]
           },
@@ -2628,8 +3032,8 @@ export type Database = {
           featured: boolean
           firm_id: string | null
           floor: number | null
-          governors_consent_fee_minor: number | null
           furnished: Database["public"]["Enums"]["furnishing"] | null
+          governors_consent_fee_minor: number | null
           has_estate_access: boolean
           id: string
           is_demo: boolean
@@ -2673,8 +3077,8 @@ export type Database = {
             | Database["public"]["Enums"]["rent_period"]
             | null
           size_sqm: number | null
-          state_code: string | null
           stamp_duty_minor: number | null
+          state_code: string | null
           status: Database["public"]["Enums"]["listing_status"]
           submitted_at: string | null
           supply_verified_by: string | null
@@ -2709,8 +3113,8 @@ export type Database = {
           featured?: boolean
           firm_id?: string | null
           floor?: number | null
-          governors_consent_fee_minor?: number | null
           furnished?: Database["public"]["Enums"]["furnishing"] | null
+          governors_consent_fee_minor?: number | null
           has_estate_access?: boolean
           id?: string
           is_demo?: boolean
@@ -2721,7 +3125,7 @@ export type Database = {
           listing_fee_minor?: number | null
           listing_fee_rate_id?: string | null
           listing_intent?: Database["public"]["Enums"]["listing_intent"]
-          listing_role?: Database["public"]["Enums"]["listing_role"]
+          listing_role: Database["public"]["Enums"]["listing_role"]
           location?: unknown
           longitude?: number | null
           mandate_verified_at?: string | null
@@ -2754,8 +3158,8 @@ export type Database = {
             | Database["public"]["Enums"]["rent_period"]
             | null
           size_sqm?: number | null
-          state_code?: string | null
           stamp_duty_minor?: number | null
+          state_code?: string | null
           status?: Database["public"]["Enums"]["listing_status"]
           submitted_at?: string | null
           supply_verified_by?: string | null
@@ -2790,8 +3194,8 @@ export type Database = {
           featured?: boolean
           firm_id?: string | null
           floor?: number | null
-          governors_consent_fee_minor?: number | null
           furnished?: Database["public"]["Enums"]["furnishing"] | null
+          governors_consent_fee_minor?: number | null
           has_estate_access?: boolean
           id?: string
           is_demo?: boolean
@@ -2835,8 +3239,8 @@ export type Database = {
             | Database["public"]["Enums"]["rent_period"]
             | null
           size_sqm?: number | null
-          state_code?: string | null
           stamp_duty_minor?: number | null
+          state_code?: string | null
           status?: Database["public"]["Enums"]["listing_status"]
           submitted_at?: string | null
           supply_verified_by?: string | null
@@ -2858,6 +3262,13 @@ export type Database = {
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listings_firm_id_fkey"
+            columns: ["firm_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
           {
@@ -3250,6 +3661,13 @@ export type Database = {
             foreignKeyName: "platform_revenue_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "platform_revenue_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
             referencedRelation: "listings"
             referencedColumns: ["id"]
           },
@@ -3479,6 +3897,13 @@ export type Database = {
             foreignKeyName: "posts_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "posts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
             referencedRelation: "listings"
             referencedColumns: ["id"]
           },
@@ -3505,6 +3930,245 @@ export type Database = {
           },
         ]
       }
+      price_check_events: {
+        Row: {
+          bedrooms: number | null
+          check_id: string
+          comparable_count: number | null
+          confidence: string | null
+          created_at: string
+          dispersion: number | null
+          entry_point: string | null
+          geohash5: string | null
+          id: string
+          intent_chosen: string | null
+          lga_code: string | null
+          listing_id: string | null
+          listing_intent: Database["public"]["Enums"]["listing_intent"] | null
+          outcome: string | null
+          property_type: Database["public"]["Enums"]["property_type"] | null
+          radius_m: number | null
+          refusal_code: string | null
+          size_stated: boolean | null
+          stage: string
+          state_code: string | null
+          user_id: string | null
+        }
+        Insert: {
+          bedrooms?: number | null
+          check_id: string
+          comparable_count?: number | null
+          confidence?: string | null
+          created_at?: string
+          dispersion?: number | null
+          entry_point?: string | null
+          geohash5?: string | null
+          id?: string
+          intent_chosen?: string | null
+          lga_code?: string | null
+          listing_id?: string | null
+          listing_intent?: Database["public"]["Enums"]["listing_intent"] | null
+          outcome?: string | null
+          property_type?: Database["public"]["Enums"]["property_type"] | null
+          radius_m?: number | null
+          refusal_code?: string | null
+          size_stated?: boolean | null
+          stage: string
+          state_code?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          bedrooms?: number | null
+          check_id?: string
+          comparable_count?: number | null
+          confidence?: string | null
+          created_at?: string
+          dispersion?: number | null
+          entry_point?: string | null
+          geohash5?: string | null
+          id?: string
+          intent_chosen?: string | null
+          lga_code?: string | null
+          listing_id?: string | null
+          listing_intent?: Database["public"]["Enums"]["listing_intent"] | null
+          outcome?: string | null
+          property_type?: Database["public"]["Enums"]["property_type"] | null
+          radius_m?: number | null
+          refusal_code?: string | null
+          size_stated?: boolean | null
+          stage?: string
+          state_code?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_check_events_lga_code_fkey"
+            columns: ["lga_code"]
+            isOneToOne: false
+            referencedRelation: "local_governments"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "price_check_events_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "price_check_events_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "price_check_events_state_code_fkey"
+            columns: ["state_code"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      price_check_shares: {
+        Row: {
+          area: string | null
+          bedrooms: number | null
+          created_at: string
+          created_by: string | null
+          high_minor: number
+          id: string
+          lga_code: string | null
+          listing_count: number
+          listing_intent: Database["public"]["Enums"]["listing_intent"]
+          low_minor: number
+          mid_minor: number
+          newest_at: string | null
+          oldest_at: string | null
+          property_type: Database["public"]["Enums"]["property_type"] | null
+          scope: Database["public"]["Enums"]["price_check_share_scope"]
+          state_code: string
+        }
+        Insert: {
+          area?: string | null
+          bedrooms?: number | null
+          created_at?: string
+          created_by?: string | null
+          high_minor: number
+          id?: string
+          lga_code?: string | null
+          listing_count: number
+          listing_intent: Database["public"]["Enums"]["listing_intent"]
+          low_minor: number
+          mid_minor: number
+          newest_at?: string | null
+          oldest_at?: string | null
+          property_type?: Database["public"]["Enums"]["property_type"] | null
+          scope: Database["public"]["Enums"]["price_check_share_scope"]
+          state_code: string
+        }
+        Update: {
+          area?: string | null
+          bedrooms?: number | null
+          created_at?: string
+          created_by?: string | null
+          high_minor?: number
+          id?: string
+          lga_code?: string | null
+          listing_count?: number
+          listing_intent?: Database["public"]["Enums"]["listing_intent"]
+          low_minor?: number
+          mid_minor?: number
+          newest_at?: string | null
+          oldest_at?: string | null
+          property_type?: Database["public"]["Enums"]["property_type"] | null
+          scope?: Database["public"]["Enums"]["price_check_share_scope"]
+          state_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_check_shares_lga_code_fkey"
+            columns: ["lga_code"]
+            isOneToOne: false
+            referencedRelation: "local_governments"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "price_check_shares_state_code_fkey"
+            columns: ["state_code"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      price_check_watches: {
+        Row: {
+          answered_at: string | null
+          area: string | null
+          bedrooms: number | null
+          checked_at: string | null
+          created_at: string
+          id: string
+          lat: number
+          lga_code: string | null
+          listing_intent: Database["public"]["Enums"]["listing_intent"]
+          lng: number
+          notified_at: string | null
+          property_type: Database["public"]["Enums"]["property_type"]
+          state_code: string | null
+          user_id: string
+        }
+        Insert: {
+          answered_at?: string | null
+          area?: string | null
+          bedrooms?: number | null
+          checked_at?: string | null
+          created_at?: string
+          id?: string
+          lat: number
+          lga_code?: string | null
+          listing_intent: Database["public"]["Enums"]["listing_intent"]
+          lng: number
+          notified_at?: string | null
+          property_type: Database["public"]["Enums"]["property_type"]
+          state_code?: string | null
+          user_id: string
+        }
+        Update: {
+          answered_at?: string | null
+          area?: string | null
+          bedrooms?: number | null
+          checked_at?: string | null
+          created_at?: string
+          id?: string
+          lat?: number
+          lga_code?: string | null
+          listing_intent?: Database["public"]["Enums"]["listing_intent"]
+          lng?: number
+          notified_at?: string | null
+          property_type?: Database["public"]["Enums"]["property_type"]
+          state_code?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_check_watches_lga_code_fkey"
+            columns: ["lga_code"]
+            isOneToOne: false
+            referencedRelation: "local_governments"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "price_check_watches_state_code_fkey"
+            columns: ["state_code"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -3522,6 +4186,8 @@ export type Database = {
           signup_role: Database["public"]["Enums"]["signup_role"] | null
           state_code: string | null
           surname: string | null
+          terms_accepted_at: string | null
+          terms_version: string | null
           updated_at: string
           welcomed_at: string | null
         }
@@ -3541,6 +4207,8 @@ export type Database = {
           signup_role?: Database["public"]["Enums"]["signup_role"] | null
           state_code?: string | null
           surname?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           updated_at?: string
           welcomed_at?: string | null
         }
@@ -3560,6 +4228,8 @@ export type Database = {
           signup_role?: Database["public"]["Enums"]["signup_role"] | null
           state_code?: string | null
           surname?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           updated_at?: string
           welcomed_at?: string | null
         }
@@ -3963,6 +4633,13 @@ export type Database = {
             foreignKeyName: "rent_payments_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "rent_payments_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
             referencedRelation: "listings"
             referencedColumns: ["id"]
           },
@@ -4064,6 +4741,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "conversations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
           },
           {
             foreignKeyName: "reservations_listing_id_fkey"
@@ -4206,6 +4890,13 @@ export type Database = {
             foreignKeyName: "reviews_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "reviews_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
             referencedRelation: "listings"
             referencedColumns: ["id"]
           },
@@ -4286,6 +4977,7 @@ export type Database = {
         Row: {
           accommodation_id: string
           base_rate_minor: number
+          bedrooms: number | null
           beds: Json
           category: Database["public"]["Enums"]["room_category"]
           created_at: string
@@ -4303,6 +4995,7 @@ export type Database = {
         Insert: {
           accommodation_id: string
           base_rate_minor: number
+          bedrooms?: number | null
           beds?: Json
           category: Database["public"]["Enums"]["room_category"]
           created_at?: string
@@ -4320,6 +5013,7 @@ export type Database = {
         Update: {
           accommodation_id?: string
           base_rate_minor?: number
+          bedrooms?: number | null
           beds?: Json
           category?: Database["public"]["Enums"]["room_category"]
           created_at?: string
@@ -4361,6 +5055,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "saved_items_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
           {
             foreignKeyName: "saved_items_listing_id_fkey"
             columns: ["listing_id"]
@@ -4667,6 +5368,13 @@ export type Database = {
             foreignKeyName: "stories_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
+            referencedRelation: "listing_lister"
+            referencedColumns: ["listing_id"]
+          },
+          {
+            foreignKeyName: "stories_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
             referencedRelation: "listings"
             referencedColumns: ["id"]
           },
@@ -4881,6 +5589,33 @@ export type Database = {
         }
         Relationships: []
       }
+      terms_acceptances: {
+        Row: {
+          accepted_at: string
+          document: string
+          id: string
+          source: string
+          user_id: string
+          version: string
+        }
+        Insert: {
+          accepted_at?: string
+          document: string
+          id?: string
+          source?: string
+          user_id: string
+          version: string
+        }
+        Update: {
+          accepted_at?: string
+          document?: string
+          id?: string
+          source?: string
+          user_id?: string
+          version?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount_minor: number
@@ -5070,6 +5805,36 @@ export type Database = {
           },
         ]
       }
+      wallet_pots: {
+        Row: {
+          archived_at: string | null
+          balance_minor: number
+          created_at: string
+          id: string
+          name: string
+          target_minor: number | null
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string | null
+          balance_minor?: number
+          created_at?: string
+          id?: string
+          name: string
+          target_minor?: number | null
+          user_id: string
+        }
+        Update: {
+          archived_at?: string | null
+          balance_minor?: number
+          created_at?: string
+          id?: string
+          name?: string
+          target_minor?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       wallets: {
         Row: {
           created_at: string
@@ -5098,16 +5863,15 @@ export type Database = {
     Views: {
       listing_lister: {
         Row: {
-          listing_id: string | null
           lister_name: string | null
+          listing_id: string | null
         }
-        Insert: {
-          listing_id?: never
-          lister_name?: never
-        }
-        Update: {
-          listing_id?: never
-          lister_name?: never
+        Relationships: []
+      }
+      person_badge: {
+        Row: {
+          tier: Database["public"]["Enums"]["badge_tier"] | null
+          user_id: string | null
         }
         Relationships: []
       }
@@ -5173,6 +5937,72 @@ export type Database = {
           trust_score: number
         }[]
       }
+      area_asking_summary: {
+        Args: {
+          p_area?: string
+          p_bedrooms?: number
+          p_city?: string
+          p_intent?: Database["public"]["Enums"]["listing_intent"]
+          p_max_age_days?: number
+          p_property_type?: Database["public"]["Enums"]["property_type"]
+          p_state_code: string
+        }
+        Returns: {
+          bedrooms: number
+          listing_count: number
+          median_minor: number
+          median_per_sqm_minor: number
+          newest_at: string
+          oldest_at: string
+          p25_minor: number
+          p75_minor: number
+          property_type: Database["public"]["Enums"]["property_type"]
+          scope: string
+          sized_count: number
+        }[]
+      }
+      area_suggestions: {
+        Args: { p_limit?: number; p_query?: string; p_state_code: string }
+        Returns: {
+          area: string
+          city: string
+          listing_count: number
+        }[]
+      }
+      area_supply_census: {
+        Args: {
+          p_area?: string
+          p_city?: string
+          p_intent?: Database["public"]["Enums"]["listing_intent"]
+          p_state_code: string
+        }
+        Returns: {
+          demo_count: number
+          located_count: number
+          real_count: number
+          sized_count: number
+        }[]
+      }
+      area_utility_facts: {
+        Args: { p_area?: string; p_city?: string; p_state_code: string }
+        Returns: {
+          estate_access_count: number
+          estate_access_known: number
+          listing_count: number
+          power_backup: Database["public"]["Enums"]["power_backup"]
+          power_backup_count: number
+          power_grid: Database["public"]["Enums"]["power_grid"]
+          power_grid_count: number
+          prepaid_meter_count: number
+          prepaid_meter_known: number
+          water_supply: Database["public"]["Enums"]["water_supply"]
+          water_supply_count: number
+        }[]
+      }
+      badge_tier: {
+        Args: { is_checked: boolean; is_staff: boolean }
+        Returns: Database["public"]["Enums"]["badge_tier"]
+      }
       bot_may_run: { Args: { p_user: string }; Returns: string }
       business_transfer_board: { Args: { p_user: string }; Returns: Json }
       cancel_account_deletion: {
@@ -5189,7 +6019,65 @@ export type Database = {
         Returns: Json
       }
       close_future_commitments: { Args: { p_request: string }; Returns: Json }
+      comparable_listings: {
+        Args: {
+          p_bedrooms: number
+          p_exclude_id?: string
+          p_intent: Database["public"]["Enums"]["listing_intent"]
+          p_lat: number
+          p_limit?: number
+          p_lng: number
+          p_max_age_days?: number
+          p_property_type: Database["public"]["Enums"]["property_type"]
+          p_radius_m?: number
+        }
+        Returns: {
+          age_days: number
+          area: string
+          bathrooms: number
+          bedrooms: number
+          city: string
+          condition: Database["public"]["Enums"]["build_condition"]
+          distance_m: number
+          furnished: Database["public"]["Enums"]["furnishing"]
+          id: string
+          listing_intent: Database["public"]["Enums"]["listing_intent"]
+          price_basis: string
+          price_minor: number
+          price_per_sqm_minor: number
+          property_type: Database["public"]["Enums"]["property_type"]
+          published_at: string
+          size_sqm: number
+          state_code: string
+          title: string
+          toilets: number
+        }[]
+      }
+      comparable_supply_near: {
+        Args: {
+          p_bedrooms: number
+          p_intent: Database["public"]["Enums"]["listing_intent"]
+          p_lat: number
+          p_lng: number
+          p_property_type: Database["public"]["Enums"]["property_type"]
+          p_radius_m?: number
+        }
+        Returns: {
+          demo_count: number
+          real_count: number
+          stale_real_count: number
+        }[]
+      }
       complete_ended_stays: { Args: { p_limit?: number }; Returns: Json }
+      confidence_band: {
+        Args: {
+          p_count: number
+          p_dispersion: number
+          p_median_age: number
+          p_radius_m: number
+        }
+        Returns: string
+      }
       consume_rate_limit: {
         Args: {
           bucket: string
@@ -5199,12 +6087,69 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_price_check_share: {
+        Args: {
+          p_area: string
+          p_bedrooms: number
+          p_created_by?: string
+          p_high_minor: number
+          p_lga_code: string
+          p_listing_count: number
+          p_listing_intent: Database["public"]["Enums"]["listing_intent"]
+          p_low_minor: number
+          p_mid_minor: number
+          p_newest_at?: string
+          p_oldest_at?: string
+          p_property_type: Database["public"]["Enums"]["property_type"]
+          p_scope: Database["public"]["Enums"]["price_check_share_scope"]
+          p_state_code: string
+        }
+        Returns: string
+      }
       cron_job_failures: {
         Args: { p_limit?: number; p_since?: string }
         Returns: Json
       }
       current_agent_id: { Args: never; Returns: string }
       due_account_purges: { Args: { p_limit: number }; Returns: Json }
+      email_outbox_claim: {
+        Args: { p_limit?: number }
+        Returns: {
+          attempts: number
+          available_at: string
+          claimed_at: string | null
+          created_at: string
+          dedupe_key: string
+          id: string
+          last_error: string | null
+          payload: Json
+          settled_at: string | null
+          status: string
+          template: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "email_outbox"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      email_outbox_enqueue_welcome: {
+        Args: { p_user: string }
+        Returns: string
+      }
+      email_outbox_health: { Args: { p_stuck_minutes?: number }; Returns: Json }
+      email_outbox_settle: {
+        Args: {
+          p_error?: string
+          p_id: string
+          p_max_attempts?: number
+          p_result: string
+          p_retry_seconds?: number
+        }
+        Returns: string
+      }
       end_other_sessions: { Args: never; Returns: Json }
       end_session: { Args: { p_session: string }; Returns: Json }
       enter_place: {
@@ -5220,7 +6165,31 @@ export type Database = {
         Args: { p_direction: string; p_escrow: string; p_note: string }
         Returns: Json
       }
+      escrow_cancel_as: {
+        Args: { p_actor: string; p_escrow: string; p_reason?: string }
+        Returns: Json
+      }
       escrow_confirm: { Args: { p_escrow: string }; Returns: Json }
+      escrow_confirm_as: {
+        Args: { p_actor: string; p_escrow: string }
+        Returns: Json
+      }
+      escrow_file_evidence_as: {
+        Args: {
+          p_actor: string
+          p_amount_minor?: number
+          p_caption?: string
+          p_escrow: string
+          p_fact?: Database["public"]["Enums"]["escrow_fact"]
+          p_file_name?: string
+          p_happened_on?: string
+          p_kind: Database["public"]["Enums"]["escrow_evidence_kind"]
+          p_mime_type?: string
+          p_size_bytes?: number
+          p_storage_path?: string
+        }
+        Returns: Json
+      }
       escrow_fund_from_wallet: {
         Args: {
           p_amount_minor: number
@@ -5232,10 +6201,27 @@ export type Database = {
         }
         Returns: Json
       }
+      escrow_fund_from_wallet_as: {
+        Args: {
+          p_actor: string
+          p_amount_minor: number
+          p_hold_days?: number
+          p_listing: string
+          p_payee: string
+          p_purpose: Database["public"]["Enums"]["escrow_purpose"]
+          p_reference: string
+        }
+        Returns: Json
+      }
+      escrow_fund_proposal_as: {
+        Args: { p_actor: string; p_escrow: string; p_hold_days?: number }
+        Returns: Json
+      }
       escrow_hold: {
         Args: {
           amount: number
           escrow_id: string
+          hold_days?: number
           hold_reference: string
           note?: string
           payer_user: string
@@ -5252,8 +6238,23 @@ export type Database = {
         }
         Returns: Json
       }
+      escrow_propose_as: {
+        Args: {
+          p_actor: string
+          p_actor_pays: boolean
+          p_amount_minor: number
+          p_conversation: string
+          p_counterparty: string
+          p_purpose: Database["public"]["Enums"]["escrow_purpose"]
+        }
+        Returns: Json
+      }
       escrow_raise_dispute: {
         Args: { p_escrow: string; p_reason: string }
+        Returns: Json
+      }
+      escrow_raise_dispute_as: {
+        Args: { p_actor: string; p_escrow: string; p_reason: string }
         Returns: Json
       }
       escrow_refund: {
@@ -5275,6 +6276,36 @@ export type Database = {
         Returns: Json
       }
       escrow_request_release: { Args: { p_escrow: string }; Returns: Json }
+      escrow_request_release_as: {
+        Args: { p_actor: string; p_escrow: string }
+        Returns: Json
+      }
+      estimate_value: {
+        Args: {
+          p_bedrooms: number
+          p_exclude_id?: string
+          p_intent: Database["public"]["Enums"]["listing_intent"]
+          p_lat: number
+          p_lng: number
+          p_property_type: Database["public"]["Enums"]["property_type"]
+          p_size_sqm?: number
+        }
+        Returns: {
+          basis: string
+          comparable_count: number
+          comparable_ids: string[]
+          confidence: string
+          dispersion: number
+          high_minor: number
+          low_minor: number
+          median_age_days: number
+          median_distance_m: number
+          mid_minor: number
+          outcome: string
+          radius_m: number
+          refusal_code: string
+        }[]
+      }
       expire_booking_holds: {
         Args: { p_limit?: number; p_ttl?: string }
         Returns: Json
@@ -5318,6 +6349,8 @@ export type Database = {
         Returns: Json
       }
       inventory_drift: { Args: { p_limit?: number }; Returns: Json }
+      is_checked_person: { Args: { check_user_id: string }; Returns: boolean }
+      is_platform_staff: { Args: { check_user_id: string }; Returns: boolean }
       join_text_array: { Args: { items: string[] }; Returns: string }
       landmarks_resolve: {
         Args: { p_limit?: number; p_state?: string; p_term: string }
@@ -5361,6 +6394,24 @@ export type Database = {
           state_code: string
           title: string
         }[]
+      }
+      move_into_pot: {
+        Args: {
+          amount: number
+          move_reference: string
+          owner_user: string
+          pot: string
+        }
+        Returns: Json
+      }
+      move_out_of_pot: {
+        Args: {
+          amount: number
+          move_reference: string
+          owner_user: string
+          pot: string
+        }
+        Returns: Json
       }
       my_sessions: {
         Args: never
@@ -5412,6 +6463,30 @@ export type Database = {
       record_idempotency_result: {
         Args: { key: string; result: Json; scope: string; subject: string }
         Returns: boolean
+      }
+      record_price_check_event: {
+        Args: {
+          p_bedrooms?: number
+          p_check_id: string
+          p_comparable_count?: number
+          p_confidence?: string
+          p_dispersion?: number
+          p_entry_point?: string
+          p_geohash5?: string
+          p_intent_chosen?: string
+          p_lga_code?: string
+          p_listing_id?: string
+          p_listing_intent?: Database["public"]["Enums"]["listing_intent"]
+          p_outcome?: string
+          p_property_type?: Database["public"]["Enums"]["property_type"]
+          p_radius_m?: number
+          p_refusal_code?: string
+          p_size_stated?: boolean
+          p_stage: string
+          p_state_code?: string
+          p_user_id?: string
+        }
+        Returns: undefined
       }
       refund_and_cancel_booking: {
         Args: {
@@ -5618,6 +6693,7 @@ export type Database = {
       area_status: "PROPOSED" | "ACTIVE" | "PAUSED" | "ARCHIVED" | "REJECTED"
       availability_status: "available" | "booked" | "unavailable"
       badge_audience: "AGENT" | "MEMBER"
+      badge_tier: "none" | "gold" | "platinum"
       booking_status:
         | "PENDING"
         | "CONFIRMED"
@@ -5635,30 +6711,6 @@ export type Database = {
         | "agency"
       catalogue_entity_kind: "listing" | "accommodation" | "restaurant"
       document_review_status: "pending" | "approved" | "rejected"
-      listing_role: "owner" | "agent" | "firm"
-      push_delivery_state: "sending" | "sent" | "failed" | "gone"
-      push_platform: "web" | "ios" | "android"
-      push_queue_outcome:
-        | "delivered"
-        | "suppressed_preference"
-        | "suppressed_no_device"
-        | "suppressed_expired"
-        | "collapsed"
-        | "gave_up"
-      push_queue_state:
-        | "pending"
-        | "held"
-        | "sending"
-        | "done"
-        | "failed"
-        | "dead"
-      push_revoked_reason:
-        | "by_person"
-        | "provider_gone"
-        | "provider_invalid"
-        | "repeated_failure"
-        | "signed_out"
-      supply_role: "owner" | "agent"
       document_subtype:
         | "passport"
         | "drivers_licence"
@@ -5679,11 +6731,27 @@ export type Database = {
         | "mandate_letter"
         | "lasrera_certificate"
         | "esvarbon_certificate"
+      escrow_evidence_kind: "file" | "fact"
+      escrow_fact:
+        | "viewing_attended"
+        | "viewing_missed"
+        | "keys_received"
+        | "keys_not_received"
+        | "agreement_signed"
+        | "agreement_not_signed"
+        | "service_delivered"
+        | "service_not_delivered"
+        | "property_matched_listing"
+        | "property_differed_from_listing"
+        | "contacted_on"
+        | "no_reply_since"
+        | "amount_agreed"
       escrow_purpose:
         | "rent_deposit"
         | "first_rent"
         | "purchase_deposit"
         | "purchase_balance"
+        | "agency_fee"
       escrow_state:
         | "INITIATED"
         | "FUNDED"
@@ -5693,6 +6761,7 @@ export type Database = {
         | "REFUNDED"
         | "DISPUTED"
         | "RESOLVED"
+        | "CANCELLED"
       event_attendance: "GOING" | "WAITLIST" | "WITHDRAWN"
       event_status: "DRAFT" | "LIVE" | "HELD" | "CANCELLED" | "REMOVED"
       event_venue_kind: "PUBLIC_VENUE" | "ESTATE_COMMON" | "ONLINE"
@@ -5734,6 +6803,7 @@ export type Database = {
         | "worship"
         | "other"
       listing_intent: "rent" | "sale"
+      listing_role: "owner" | "agent" | "firm"
       listing_status:
         | "DRAFT"
         | "SUBMITTED"
@@ -5771,6 +6841,7 @@ export type Database = {
         | "SOLAR"
         | "GENERATOR_INVERTER"
       power_grid: "BAND_A" | "MOSTLY_ON" | "PATCHY" | "RARELY" | "NONE"
+      price_check_share_scope: "area" | "area_and_type"
       property_type:
         | "apartment"
         | "hotel"
@@ -5782,15 +6853,47 @@ export type Database = {
         | "office"
         | "land"
         | "restaurant"
+      push_delivery_state: "sending" | "sent" | "failed" | "gone"
+      push_platform: "web" | "ios" | "android"
+      push_queue_outcome:
+        | "delivered"
+        | "suppressed_preference"
+        | "suppressed_no_device"
+        | "suppressed_expired"
+        | "collapsed"
+        | "gave_up"
+      push_queue_state:
+        | "pending"
+        | "held"
+        | "sending"
+        | "done"
+        | "failed"
+        | "dead"
+      push_revoked_reason:
+        | "by_person"
+        | "provider_gone"
+        | "provider_invalid"
+        | "repeated_failure"
+        | "signed_out"
       rate_period: "night" | "guest"
       rent_period: "month" | "quarter" | "year"
       report_status: "open" | "reviewing" | "resolved" | "dismissed"
       revenue_source: "escrow_commission" | "listing_fee"
-      room_category: "single" | "double" | "twin" | "suite" | "family" | "dorm"
+      room_category:
+        | "entire_flat"
+        | "whole_house"
+        | "private_room"
+        | "single"
+        | "double"
+        | "twin"
+        | "suite"
+        | "family"
+        | "dorm"
       sale_status: "available" | "under_offer" | "sold"
       signup_role: "renter" | "buyer" | "landlord" | "seller" | "agent"
       social_status: "LIVE" | "HELD" | "REMOVED"
       source_kind: "first_party" | "partner" | "licensed_data"
+      supply_role: "owner" | "agent"
       support_ticket_status: "open" | "pending" | "resolved" | "closed"
       thread_context: "listing" | "reservation" | "booking"
       transaction_status: "SUCCESSFUL" | "PENDING" | "FAILED" | "REFUNDED"
@@ -5805,6 +6908,8 @@ export type Database = {
         | "escrow_hold"
         | "escrow_release"
         | "escrow_refund"
+        | "pot_hold"
+        | "pot_release"
       wallet_entry_status: "PENDING" | "COMPLETED" | "FAILED" | "REVERSED"
       water_supply:
         | "TREATED_MAINS"
@@ -5958,6 +7063,7 @@ export const Constants = {
       area_status: ["PROPOSED", "ACTIVE", "PAUSED", "ARCHIVED", "REJECTED"],
       availability_status: ["available", "booked", "unavailable"],
       badge_audience: ["AGENT", "MEMBER"],
+      badge_tier: ["none", "gold", "platinum"],
       booking_status: [
         "PENDING",
         "CONFIRMED",
@@ -5977,8 +7083,6 @@ export const Constants = {
       ],
       catalogue_entity_kind: ["listing", "accommodation", "restaurant"],
       document_review_status: ["pending", "approved", "rejected"],
-      listing_role: ["owner", "agent", "firm"],
-      supply_role: ["owner", "agent"],
       document_subtype: [
         "passport",
         "drivers_licence",
@@ -6000,11 +7104,28 @@ export const Constants = {
         "lasrera_certificate",
         "esvarbon_certificate",
       ],
+      escrow_evidence_kind: ["file", "fact"],
+      escrow_fact: [
+        "viewing_attended",
+        "viewing_missed",
+        "keys_received",
+        "keys_not_received",
+        "agreement_signed",
+        "agreement_not_signed",
+        "service_delivered",
+        "service_not_delivered",
+        "property_matched_listing",
+        "property_differed_from_listing",
+        "contacted_on",
+        "no_reply_since",
+        "amount_agreed",
+      ],
       escrow_purpose: [
         "rent_deposit",
         "first_rent",
         "purchase_deposit",
         "purchase_balance",
+        "agency_fee",
       ],
       escrow_state: [
         "INITIATED",
@@ -6015,6 +7136,7 @@ export const Constants = {
         "REFUNDED",
         "DISPUTED",
         "RESOLVED",
+        "CANCELLED",
       ],
       event_attendance: ["GOING", "WAITLIST", "WITHDRAWN"],
       event_status: ["DRAFT", "LIVE", "HELD", "CANCELLED", "REMOVED"],
@@ -6061,6 +7183,7 @@ export const Constants = {
         "other",
       ],
       listing_intent: ["rent", "sale"],
+      listing_role: ["owner", "agent", "firm"],
       listing_status: [
         "DRAFT",
         "SUBMITTED",
@@ -6102,6 +7225,7 @@ export const Constants = {
         "GENERATOR_INVERTER",
       ],
       power_grid: ["BAND_A", "MOSTLY_ON", "PATCHY", "RARELY", "NONE"],
+      price_check_share_scope: ["area", "area_and_type"],
       property_type: [
         "apartment",
         "hotel",
@@ -6114,15 +7238,51 @@ export const Constants = {
         "land",
         "restaurant",
       ],
+      push_delivery_state: ["sending", "sent", "failed", "gone"],
+      push_platform: ["web", "ios", "android"],
+      push_queue_outcome: [
+        "delivered",
+        "suppressed_preference",
+        "suppressed_no_device",
+        "suppressed_expired",
+        "collapsed",
+        "gave_up",
+      ],
+      push_queue_state: [
+        "pending",
+        "held",
+        "sending",
+        "done",
+        "failed",
+        "dead",
+      ],
+      push_revoked_reason: [
+        "by_person",
+        "provider_gone",
+        "provider_invalid",
+        "repeated_failure",
+        "signed_out",
+      ],
       rate_period: ["night", "guest"],
       rent_period: ["month", "quarter", "year"],
       report_status: ["open", "reviewing", "resolved", "dismissed"],
       revenue_source: ["escrow_commission", "listing_fee"],
-      room_category: ["single", "double", "twin", "suite", "family", "dorm"],
+      room_category: [
+        "entire_flat",
+        "whole_house",
+        "private_room",
+        "single",
+        "double",
+        "twin",
+        "suite",
+        "family",
+        "dorm",
+      ],
       sale_status: ["available", "under_offer", "sold"],
       signup_role: ["renter", "buyer", "landlord", "seller", "agent"],
       social_status: ["LIVE", "HELD", "REMOVED"],
       source_kind: ["first_party", "partner", "licensed_data"],
+      supply_role: ["owner", "agent"],
       support_ticket_status: ["open", "pending", "resolved", "closed"],
       thread_context: ["listing", "reservation", "booking"],
       transaction_status: ["SUCCESSFUL", "PENDING", "FAILED", "REFUNDED"],
@@ -6137,6 +7297,8 @@ export const Constants = {
         "escrow_hold",
         "escrow_release",
         "escrow_refund",
+        "pot_hold",
+        "pot_release",
       ],
       wallet_entry_status: ["PENDING", "COMPLETED", "FAILED", "REVERSED"],
       water_supply: [

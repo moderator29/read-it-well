@@ -915,7 +915,7 @@ export function ThreadView({
 
       {/* ----------------------------------------------- safety education */}
       {educationOpen && (
-        <div role="status" className="nf-context-card mb-xs">
+        <div role="status" className="nf-panel nf-context-card nf-context-card--calm mb-xs">
           <span className="shrink-0 text-[var(--nf-brand-secondary)]" aria-hidden="true">
             <UiIcon name="verified" size={ICON.inline} />
           </span>
