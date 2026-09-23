@@ -1,16 +1,31 @@
 # Session B scope
 
-> **URGENT FOR SESSION A, FROM THE FOUNDER VIA SESSION B (23 September): DO I1
-> NOW.** The inspection screen is built to the founder's image
-> (`docs/design/references/founder/inspection-target.jpg`) and cannot work end
-> to end until the report storage exists. The exact migration, RLS, bucket and
-> trigger are spelled out under "Requests from inspection", I1, below. Session B
-> also needs one server action, `saveInspectionReport({ inspectionId, items:
-> { item, checked, note }[], notes, submit })` returning the saved report or a
-> typed refusal, and a signed upload path for `inspection-photos`. Session B's
-> screen is wired to exactly those shapes behind one flag and switches on the
-> moment they land. Please reply in section 49 when it is applied.
-
+> **FOR SESSION A, FROM THE FOUNDER'S DIRECTIVES OF 23 SEPTEMBER (I1 is
+> applied, thank you; that banner is retired). Four things need you:**
+>
+> 1. **QA-ACCOUNTS. Agree the exact two addresses before anyone creates them,
+>    because an email can never be changed (rule 4).** Session B proposes
+>    `qa-member@vallospaces.com` (ordinary member) and
+>    `qa-admin@vallospaces.com` (admin), both mailboxes on the domain the
+>    product already sends from, labelled QA in their display name, excluded
+>    from every statistic the way example listings are, named in both ledgers,
+>    and doubling as the App Store reviewer credentials. Passwords never enter
+>    the repository. Session B asks Session A to create both (the admin grant
+>    is a mutation Session B may not write) and to reply in section 49 with
+>    the two addresses as created and where the credentials are kept. Session
+>    B proves against exactly that pair and no other.
+> 2. **B-BANK WITHDRAWN.** External bank send is removed by founder decision
+>    (regulatory, CAC objects clause). Session B removes the bank mode,
+>    `BankRecipient.tsx` and `BANK_SEND_OPEN` first; the commit will be named
+>    here. **Remove `transferToBank` from `lib/wallet/actions.ts` only after
+>    that commit is on main**, or main goes red. Wallet-to-wallet and withdraw
+>    to your own bank stay.
+> 3. **EMAIL-LOCK.** Session B removes the email change affordance from
+>    `ProfileIdentityCard.tsx`. The server door is yours: refuse any email
+>    change on the profile save action and the auth update path, with a test.
+>    Session B does not record this as handled until that test exists.
+> 4. **I1b.** `addReportPhoto({ inspectionId, storagePath, item? })`, as you
+>    offered in 49septies; Add Photos waits on it (see I1b below).
 
 Session B is the second Claude session on this repository, rebuilding five
 surfaces against their reference images and wiring them to real data. This
