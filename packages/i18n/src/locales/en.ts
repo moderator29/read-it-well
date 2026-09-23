@@ -2279,6 +2279,8 @@ export const en = {
         "Add at least {min} photos, up to {max}. The first one is the cover, so lead with the wide shot that sells the place.",
       tooNarrow: "Photos must be at least {width}px wide so they look sharp on every screen.",
       choose: "Choose photos",
+      /* STORE-04: the app's own camera, shown only inside the native app. */
+      takePhoto: "Take a photo",
       addMore: "Add more photos",
       uploading: "Uploading",
       progress: "{count} of {min} needed",

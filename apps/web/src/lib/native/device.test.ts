@@ -1,0 +1,102 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+/**
+ * STORE-04: the native share sheet, haptics and camera capture. On the website
+ * none of them loads anything and every caller falls back; inside the shell
+ * each reaches its plugin by name.
+ */
+const seam = vi.hoisted(() => ({
+  available: new Set<string>(),
+  share: vi.fn(),
+  impact: vi.fn(),
+  notification: vi.fn(),
+  getPhoto: vi.fn(),
+}));
+
+vi.mock("@capacitor/core", () => ({
+  Capacitor: {
+    isPluginAvailable: (name: string) => seam.available.has(name),
+    registerPlugin: (name: string) =>
+      name === "Share"
+        ? { share: seam.share }
+        : name === "Haptics"
+          ? { impact: seam.impact, notification: seam.notification }
+          : { getPhoto: seam.getPhoto },
+  },
+}));
+
+import { canCapturePhoto, capturePhoto, nativeHaptic, nativeShare, photoFile } from "./device";
+
+function inShell(native: boolean) {
+  vi.stubGlobal("window", native ? { Capacitor: { isNativePlatform: () => true, getPlatform: () => "ios" } } : {});
+}
+
+beforeEach(() => {
+  seam.available = new Set(["Share", "Haptics", "Camera"]);
+  for (const fn of [seam.share, seam.impact, seam.notification, seam.getPhoto]) fn.mockReset();
+});
+afterEach(() => vi.unstubAllGlobals());
+
+describe("on the website", () => {
+  it("handles nothing and loads no plugin", async () => {
+    inShell(false);
+    expect(await nativeShare({ url: "https://www.vallospaces.com/listing/x" })).toBe("unhandled");
+    expect(await nativeHaptic()).toBe(false);
+    expect(await canCapturePhoto()).toBe(false);
+    expect(await capturePhoto()).toBeNull();
+    expect(seam.share).not.toHaveBeenCalled();
+  });
+});
+
+describe("inside the shell", () => {
+  it("opens the system share sheet with the listing link", async () => {
+    inShell(true);
+    seam.share.mockResolvedValue({});
+    expect(await nativeShare({ title: "A flat", url: "https://www.vallospaces.com/listing/x" })).toBe("shared");
+    expect(seam.share).toHaveBeenCalledWith(expect.objectContaining({ url: "https://www.vallospaces.com/listing/x" }));
+  });
+
+  it("reads a closed sheet as cancelled, not as a failure", async () => {
+    inShell(true);
+    seam.share.mockRejectedValue(new Error("Share canceled"));
+    expect(await nativeShare({ url: "u" })).toBe("cancelled");
+  });
+
+  it("falls back when the binary has no share plugin", async () => {
+    inShell(true);
+    seam.available.delete("Share");
+    expect(await nativeShare({ url: "u" })).toBe("unhandled");
+  });
+
+  it("taps the haptic engine", async () => {
+    inShell(true);
+    expect(await nativeHaptic("tap")).toBe(true);
+    expect(seam.impact).toHaveBeenCalledWith({ style: "LIGHT" });
+    expect(await nativeHaptic("success")).toBe(true);
+    expect(seam.notification).toHaveBeenCalledWith({ type: "SUCCESS" });
+  });
+
+  it("returns the camera's photograph as an image File", async () => {
+    inShell(true);
+    seam.getPhoto.mockResolvedValue({ base64String: Buffer.from("jpegbytes").toString("base64"), format: "jpeg" });
+    const file = await capturePhoto();
+    expect(file).not.toBeNull();
+    expect(file!.type).toBe("image/jpeg");
+    expect(file!.size).toBe("jpegbytes".length);
+    expect(seam.getPhoto).toHaveBeenCalledWith(expect.objectContaining({ source: "CAMERA", resultType: "base64", saveToGallery: false }));
+  });
+
+  it("a cancelled camera is null", async () => {
+    inShell(true);
+    seam.getPhoto.mockRejectedValue(new Error("User cancelled photos app"));
+    expect(await capturePhoto()).toBeNull();
+  });
+});
+
+describe("photoFile", () => {
+  it("names png as png and anything else as jpeg", () => {
+    expect(photoFile(Buffer.from("x").toString("base64"), "png")!.type).toBe("image/png");
+    expect(photoFile(Buffer.from("x").toString("base64"), undefined)!.type).toBe("image/jpeg");
+    expect(photoFile(undefined, "png")).toBeNull();
+  });
+});
