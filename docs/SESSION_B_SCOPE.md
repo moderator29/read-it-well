@@ -65,7 +65,20 @@ the five above are the governing targets for this work.
   (scope W4), so (b) cannot complete until that account is upgraded. The
   screen keeps Send off in bank mode (`BANK_SEND_OPEN` in `SendFlow.tsx`) and
   says so.
-- **B-BADGE.** Export the single badge derivation (tier: none, gold, platinum)
+- **B-BADGE, UPDATED 23 SEPTEMBER (founder: whoever began the badge owns all
+  of it).** Session A began it (5f19539b: `public.person_badge`,
+  `public.badge_tier`), so Session A owns the derivation, the artwork (the
+  founder's `IMG_6169.png` platinum and `IMG_6170.png` gold, background removed
+  entirely, the mark alone) and the one component. Session B renders it and
+  never re-derives it. Session B's surfaces read `tier` from
+  `public.person_badge` (the one source) and render Session A's component,
+  proposed as `components/app/badge/PersonBadge.tsx` with
+  `{ tier: 'gold' | 'platinum' | null, size }`. Session B's surfaces that draw a
+  name: profile, the admin console (every name and avatar), inspections (the
+  lister), wallet and send (counterparties, the resolved recipient). Where the
+  component has not landed when Session B closes, that surface is recorded as
+  blocked on B-BADGE, not faked.
+- **B-BADGE (original).** Export the single badge derivation (tier: none, gold, platinum)
   and the artwork paths, so Session B renders exactly that and nothing of its own.
 - **B-GATE.** Item 8's gate, and the store notes on reviewer credentials.
 
