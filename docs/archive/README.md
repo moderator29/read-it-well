@@ -8,10 +8,10 @@ deleting somebody's reasoning is how a team relearns the same lesson twice. They
 are **not** a plan, **not** a status and **not** a brief.
 
 If a document in here disagrees with the code, the database, `docs/PRODUCT.md`,
-`RECOMMENDATIONS.md`, `ROADMAP.md`, `KNOWN_GAPS.md` or
-`ARCHITECTURE_DECISIONS.md`, the archive is wrong. Every time.
+`docs/PLATFORM_STATUS.md`, `docs/RECOMMENDATIONS.md` or
+`docs/ARCHITECTURE_DECISIONS.md`, the archive is wrong. Every time.
 
-Everything durable and still true was carried into `RECOMMENDATIONS.md` before
+Everything durable and still true was carried into `docs/RECOMMENDATIONS.md` before
 any of these was moved. If you find something in here that is true, still
 relevant and **not** in the live documents, that is a defect in the live
 documents. Fix them, do not restore this.
@@ -69,3 +69,5 @@ CI excludes `docs/archive/`.
 | `intake/00-INTAKE-STATUS.md` | The specification intake for NaijaFinds: 11 references, 12 contradictions, the greenfield recon | Historical only |
 | `intake/01-PROJECT-RULES.md` | The owner's 80 Master Rules, indexed by theme. The ADRs cite these by number, so the index is kept here rather than deleted | The rules that bind day to day are restated in `docs/HANDOFF.md` section 2 |
 | `ui-audit/*` | See the warning above | `RECOMMENDATIONS.md` D-1, D-2 and D-3 |
+| `KNOWN_GAPS.md` | The honest absence list, last updated 9 August 2026 and moved here from the repository root on 23 September. Later surveys found it stale. Code comments and migrations still cite it by name for specific gaps, which is why it is kept rather than deleted | The current state is `docs/PLATFORM_STATUS.md`; open work is `docs/RECOMMENDATIONS.md` |
+| `ROADMAP.md` | What had landed as of 9 August 2026, moved here from the repository root on 23 September. A history, not a plan | `docs/PLATFORM_STATUS.md` and `git log` |
