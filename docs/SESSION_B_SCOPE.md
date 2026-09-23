@@ -400,6 +400,11 @@ policy, Session B writes it as a request below.
 - `apps/web/src/components/app/wallet/**`
 - `apps/web/src/app/css/wallet.css`
 - `apps/web/src/app/(dev)/preview/session-b/wallet/**` (the fixture harness, lead ruling R-G)
+- Platform sweep, wallet family (23 September): `apps/web/src/components/app/ResultSheet.tsx`,
+  `apps/web/src/components/app/payments/PaymentMethodsPanel.tsx` and
+  `AddBankAccountSheet.tsx` (the `.nf-pay-*` block the settings group leaves to
+  the wallet family), the harness `apps/web/src/app/(dev)/preview/session-b/sweep-wallet/**`
+  and the proofs `docs/design/proofs/session-b/sweep-wallet/**`.
 - `apps/web/public/brand/session-b/send/**` and the `send` block of `scripts/design/session-b-crops.mjs`
 
 ### 6. Inspections (worker inspection)
