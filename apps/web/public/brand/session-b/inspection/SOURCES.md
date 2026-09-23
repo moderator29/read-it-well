@@ -10,27 +10,16 @@ edge, brightest-channel key to alpha (floor 12, ceiling 210), unpremultiplied,
 alpha feathered over the outer band of the box, WebP with alpha, never
 upscaled. The house also has a `-day` cut with the floor lifted to 70 so the
 faint night bloom, which reads as a smudge on paper, drops out; the light
-theme swaps to it. The plates have no daylight cut: keyed at 48px they turn
-into pale bubbles with an unreadable glyph on white, so the light theme draws
-them as a pale brand disc with the stroked glyph instead. No lettering in any
-of them.
+theme swaps to it. No lettering in it.
 
 | File | Box | Source size | Displayed at 390 | Sharpness at 2x / 3x |
 |---|---|---|---|---|
-| `house-check.webp`, `house-check-day.webp` | 622, 196, 186, 140 | 186 x 140 | 110 x 83 CSS px | 0.85 / 0.56 of the pixels needed: slightly soft at 3x |
-| `plate-exterior.webp` | 226, 663, 50, 50 | 50 x 50 | 40 x 40 | 0.63 / 0.42: visibly soft at 3x |
-| `plate-interior.webp` | 226, 717, 50, 50 | 50 x 50 | 40 x 40 | same |
-| `plate-safety.webp` | 226, 989, 50, 50 | 50 x 50 | 40 x 40 | same |
-| `plate-overall.webp` | 226, 1045, 50, 50 | 50 x 50 | 40 x 40 | same |
+| `house-check.webp`, `house-check-day.webp` | 622, 196, 186, 140 | 186 x 140 | 100 x 75 CSS px | 0.93 / 0.62 of the pixels needed: slightly soft at 3x |
 
-The softness is the render's own resolution: the plates are 48 render px
-across, so no crop of them can be sharper than that. Nothing was sharpened or
-upscaled to hide it.
-
-What each plate stands for in the built checklist (four rungs, see
-`components/app/inspections/ladder.ts`): exterior (house) for "Viewing
-requested", safety (shield with tick) for "Time agreed", interior (sofa) for
-"Viewing happened", overall (document) for "Outcome recorded".
+The checklist's round plates were cropped here until 23 September. Keyed at
+48 render px they came out dim on the panel, where the render draws lit
+discs, so they are now drawn in CSS to the render's measured size (27.5 CSS
+px) and light; see `apps/web/src/app/css/inspection.css`, `.nf-ix-step__plate`.
 
 Not cropped: the app icon tile and wordmark (shared app header, not this
 surface), the status bar, the dock, the phone frame.

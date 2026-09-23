@@ -2163,7 +2163,7 @@ proven by code, the SQL introspection above and the unit tests
 (`components/app/inspections/status.test.ts`, `ladder.test.ts`, `grouping.test.ts`,
 `lib/inspections/*.test.ts`, 33 passing).
 
-### (b) The comparison, 390 dark (round three, on the lead's rulings R-A to R-G)
+### (b) The comparison, 390 dark (round four, after the second closing audit)
 
 Scale: phone screen 668 render px (inner edge 177 to 845), so 1 CSS px at 390 = 0.584
 render px; "strict" means render px x 0.584. Rulings applied (ledger section 0):
@@ -2174,12 +2174,14 @@ proportions; **R-C** containers at the render's width (342 against 360: the 24px
 gutter, below); **R-D** no text-bearing control at or above 0.35; **R-F** the outcome
 choice kept, drawn as one row of three; **R-G** the harness is committed at
 `apps/web/src/app/(dev)/preview/session-b/inspection/page.tsx`. Built numbers are
-`getBoundingClientRect` and computed style at 390 x 844 on that harness and on the same
-components inside the app shell. Side by side at matched scale:
+`getBoundingClientRect` and computed style at 390 x 844 on that harness and on its
+in-shell twin, `apps/web/src/app/(dev)/preview/session-b/inspection/shell/page.tsx`
+(the same fixture inside the real `AppShell` with the same server facts
+`app/(app)/layout.tsx` passes; committed, R-G). Side by side at matched scale:
 `docs/design/proofs/session-b/inspection/inspection-render-vs-built-390-dark.jpg`.
 
-**Overall: title top to Submit bottom, render 1132 render px = 661 CSS; built 672, 1.02
-times.** Inside the app shell at 390 x 844, Add Photos ends at y 768 and Submit at 820:
+**Overall: title top to Submit bottom, render 1132 render px = 661 CSS; built 688, 1.04
+times.** Inside the app shell at 390 x 844, Add Photos ends at y 784 and Submit at 836:
 both on the first screen (the harness's shell is the signed-out header; a signed-in
 dock would cover the foot of Submit, not Add Photos).
 
@@ -2187,26 +2189,27 @@ dock would cover the foot of Submit, not Add Photos).
 |---|---|---|---|
 | Page gutter | 28 render = 16 CSS | 24 (the app shell's padding on every consumer page) | no, by decision: the shell's 24px is the platform standard, not this surface's to change; containers are 342 against 360 for that reason |
 | Back button | glass rounded square in the header row | 44 x 44 glass square on its own row | shape yes; the render's header row is shared chrome |
-| Title | cap 28 render = 16.4 strict, 23px, bold | 23px / 700, h 26 | yes |
+| Title size | cap 28 render = 16.4 strict, 23px, bold | 23px / 700, h 26 | yes |
+| Title colour | "Property" letter cores #eef0f7; "Inspection" lit cyan, running left to right #b2e9f7, #6ad4f7, #2cb1f6, #22a8f7 (four bands, cores with a channel over 200) | "Property" `--nf-content-primary`; "Inspection" a left-to-right gradient from the cyan rung (`--nf-state-warning`, #00c8ff) mixed 35% into white, through 65%, to cyan leaning into the lit blue; on paper brand ink into the daylight cyan | yes (tokens, so within a few steps of the sampled hexes, not on them) |
 | Sub line | about 10.5px strict, blue #47d0f6 peak, 2 lines | 11px / 400 (floor), 2 lines, h 30, brand quiet | yes |
 | Glass house | object 153 render = 89 CSS, foot over the card edge | the render's own crop, box 100 x 75, foot over the card edge, above it | yes (crop, soft at 3x, SOURCES.md) |
 | Listing card | 616 x 142 render = 360 x 83 | 342 x 94 | yes (1.13 in height) |
-| Card radius | 16 render on 142 (0.11) | 14 on 94 (0.15) | near: the 14 rung is the smallest container radius in the tokens that is not a control's |
+| Container radius (card, info row, panels) | 16 render on the 142 card (0.11) | the 10px rung (`--nf-radius-sm`, the console's container rung) on 94 (0.106) | yes. Correction: the earlier reason given here ("14 is the smallest container radius that is not a control's") was wrong; 10 exists, is the console's container rung, and matches the render's ratio |
 | Card photo | 180 x 129 = 105 x 75, radius 10 render (0.08) | 104 x 84, radius 10 (0.12) | yes |
 | Scheduled / Pending badge | 91 x 24 render = 53 x 14, corner 8 render (0.33) | 18 tall, 11px / 600, corner 6 (0.33), emerald / cyan tokens | yes; 18 not 14 because 11px text needs it; hue emerald (render teal is off-family) |
 | Card title | about 11.7px strict, semibold | 12px / 600, one line | yes |
 | Place and kind lines | about 9px strict | 11px / 400 (floor), 12px glyphs | yes |
 | Price | about 11.4px strict, bold brand blue; "/ year" | 12px / 700 via `formatMoney`; "per year" 11px (the product's `PERIOD_SUFFIX`) | yes |
-| Info row | 616 x 88 = 360 x 51, three cells side by side, glyph left of text | 342 x 57, three cells side by side, glyph left of text, no wrap | yes (1.12) |
+| Info row | 616 x 88 = 360 x 51, three cells side by side, glyph left of text | 342 x 73, three cells side by side, glyph left of text | 1.43: the number is visible under the name and wraps to a second line (R-C) |
 | Info label / value / second line | about 7 / 9 / 7px strict | 11 / 11 / 11px (floor), value 600 | yes |
-| Phone | the number, 7px strict, under the name | a phone glyph (16px) on the name's line, 44px target, tel: link, the grouped number in its accessible name | by ruling: the number cannot fit at the floor without wrapping |
+| Phone | the number, 7px strict, visible under the name | the grouped number, visible under the name, 11px / 500 link colour, itself the tel: link with a 44px target (padding and negative margin), wrapping between groups where the cell is narrow (R-C) | yes |
 | Checklist panel | 616 x 506 (8 rows) = 360 x 296 | 342 x 181 (4 rows, request I1) | per row, below |
 | Checklist head | title about 11px strict, count about 8px, bar 72 x 3.5 under the count | 11px / 600, 11px, bar 4px under the count | yes |
-| Checklist row | 54 render = 31.5 CSS, corner 12 (0.22), 1 to 2 render apart | 32, corner 10 (0.31), 2 apart | height yes; corner a rung larger |
-| Row plate | 42 of 54 (0.78) | the render's own crop, 24 of 32 (0.75) | yes |
+| Checklist row | 54 render = 31.5 CSS, corner 12 (0.22), 1 to 2 render apart | 32, the 6px rung (0.19), 2 apart | yes |
+| Row plate | a lit round disc 47 to 48 render across (27.5 CSS, 0.89 of the row); sampled down the Exterior disc: lit top rim #003e98, navy body #00236b, light pooling at the foot #003da9 to #0060b0, cyan line glyph #47e9ff | 28px disc (0.875 of the row): the identity's lit tile, round (hot rim, navy body, lit pool at the foot, 8px outer glow) through `--nf-glow-ink` and `--nf-state-warning`, with the stroked glyph (house, shield, bed, document) at 16px in cyan with a 3px glow; on paper the identity's pale tile, round, brand glyph | yes. The earlier 24px keyed crops came out dim and are withdrawn |
 | Check circle | 20 of 54 (0.37) | 14 of 32 (0.44), done: emerald fill and a drawn tick | yes |
 | Row title / sub | about 7.8 / 6.5px strict | 11 / 11px (floor), 600 / 400 | yes |
-| Notes panel | 616 x 88 = 360 x 51; well corner 8 render | 342 x 53; well 22 tall, corner 10; label 11px / 600, text 11px | yes (1.04) |
+| Notes panel | 616 x 88 = 360 x 51; well 45 render tall, corner 8 render (0.18) | 342 x 53; well 22 tall, the 6px rung (0.27); label 11px / 600, text 11px | yes (1.04) |
 | Outcome choice | not drawn | one row of three at 44 (R-B), corner 10 (0.23), "Inspected", "Deal done", "No deal", each with its full meaning as its accessible name; panel 79 tall | added by ruling R-F |
 | Add Photos | 56 render = 33 CSS, corner 14 render (0.25), gradient #016bfb / #0039fd / #0472f8 | 44 (floor), corner 14 (0.32), 11px / 650 label, identity lit button over the token gradient (#0074fc / #0042fd / #0069f7) | yes |
 | Submit | 50 render = 29 CSS, fill #001e62, edge #003ab1, muted label | 44 (floor), brand-tint glass, brand edge, label brand quiet at 55% while disabled, 11px / 650 | yes |
@@ -2262,14 +2265,14 @@ Same anatomy on paper: containers become `--nf-surface-on-paper` with
 `--nf-shadow-on-paper` and the brand hairline; rows and options `--nf-surface-raised`;
 no bloom. The glass house swaps to its daylight cut (floor lifted from 12 to 70 so the
 night bloom does not smudge the white) and stands on the paper with no chip. The row
-plates do NOT use their daylight cut: at 48 render px the glass disc keys to a pale
-bubble on white and its cyan glyph all but vanishes (the "Outcome recorded" plate was
-unreadable in the first light proof), so on paper each plate is drawn as a pale brand
-disc with the brand edge and the stroked glyph (house, shield, bed, document), same
-anatomy, crisp. No daylight plate is cut. For the house: `home-check` has no light twin in the pack, so `BrandIcon` would have put it on
+plates are the identity's paper tile, round: pale glass (brand 5% to 15% into white), a
+brand top edge, a soft brand shadow, the brand glyph; never a dark disc on white. The
+title's lit word runs from brand ink into the daylight cyan so it stays legible on
+white. For the house: `home-check` has no light twin in the pack, so `BrandIcon` would have put it on
 a navy chip, which is exactly the rejected "black icon plate". Lit CTA keeps the token
 gradient's light twin. Badges take the daylight state colours from the tokens
-(2596ed9), not re-derived hexes. Proof: `docs/design/proofs/session-b/inspection/inspection-390-light.jpg`.
+(2596ed9), not re-derived hexes. Proofs: `docs/design/proofs/session-b/inspection/inspection-390-light.jpg`,
+`inspection-390-light-first-screen-in-shell.jpg`.
 
 ### Desktop
 
@@ -2280,21 +2283,22 @@ the four checklist rows in two columns, the outcome options in three. Proof:
 
 ### (d) Shape sweep
 
-`node scripts/design/compare-surface.mjs --base http://127.0.0.1:3178 --shape-sweep --routes /preview/session-b/inspection --theme both`
-on the committed harness (R-G), final build of round three, at 390 and 1536, dark and
-light: BREACHES (at or above 0.5) 0; WORTH AN EYE (0.35 to 0.5) 0; round icon-only
-controls 0. The first run of round three found the 16px badges at 0.38; they are 18px
-now (0.33). `/inspections` and `/agent/inspections` redirect to sign-in without a
-session, so the sweep runs on the harness, which renders the same components.
-`check-css-tokens.mjs`: clean.
+`node scripts/design/compare-surface.mjs --base http://127.0.0.1:3178 --shape-sweep --routes /preview/session-b/inspection,/preview/session-b/inspection/shell --theme both`
+on the committed harness and its in-shell twin (R-G), final build of round four, at
+390 and 1536, dark and light. Verbatim: BREACHES (at or above 0.5) 0; WORTH AN EYE
+(0.35 to 0.5) 0; ROUND ICON-ONLY CONTROLS 0; ROUTES REFUSED 0; "COVERED: 2 route(s)
+asked for, 0 refusal(s), 2 route/width/theme combination(s) actually measured" (the
+tool's own count, quoted as printed). `/inspections` and `/agent/inspections` redirect
+to sign-in without a session, so the sweep runs on the harness, which renders the same
+components. `check-css-tokens.mjs`: clean.
 
 ### (e) Proofs, and what I could not verify
 
 - Every screenshot is FIXTURE-BACKED, from the committed harness
   `apps/web/src/app/(dev)/preview/session-b/inspection/page.tsx` (R-G; run with
-  `VALLO_PREVIEW_HARNESS=1`), except `inspection-390-dark-first-screen-in-shell.jpg`, taken
-  from a throwaway copy of the same page inside the app shell (not committed) to show the
-  first screen with the shell's header. Earlier rounds used a throwaway harness route (not committed)
+  `VALLO_PREVIEW_HARNESS=1`), and the first-screen shots `inspection-390-dark-first-screen-in-shell.jpg` and
+  `inspection-390-light-first-screen-in-shell.jpg` come from its committed in-shell twin
+  `.../inspection/shell/page.tsx` (signed-out shell header). Earlier rounds used a throwaway harness route (not committed)
   rendering `InspectionHero` and `InspectionSheet` with the F5 fixture inspection
   (CONFIRMED, requester side) and listing facts. No signed-in production render exists.
 - Not verified live: a real party moving a real inspection, the notification arriving,

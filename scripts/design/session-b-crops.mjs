@@ -172,21 +172,10 @@ SURFACES.inspection = async () => {
   /* The glass house with the tick, beside the title. The box stops above the
      listing card's lit top edge, which runs under the house's foot. */
   await cutObject(render, [622, 196, 186, 140], path.join(dir, "house-check"), { feather: 0.03, dayFloor: 70 });
-  /* The checklist's round glass plates, glyph included (line art, no
-     lettering). Centres at x 251 on the row pitch; each box is the 48px disc
-     plus a pixel of ground. Only the four the built checklist draws are cut:
-     the ladder has four rungs, and the render's other four rooms have no row
-     to sit on until scope request I1 lands (their centres, for then:
-     kitchen 796, bathrooms 850, utilities 904, appliances 958). */
-  const plates = {
-    exterior: 688,
-    interior: 742,
-    safety: 1014,
-    overall: 1070,
-  };
-  for (const [name, cy] of Object.entries(plates)) {
-    await cutObject(render, [226, cy - 25, 50, 50], path.join(dir, `plate-${name}`), { feather: 0.04 });
-  }
+  /* The checklist's round plates are no longer cropped: keyed at 48 render
+     px they came out dim against the panel, where the render draws lit
+     discs. They are drawn in CSS to the render's measured size and light
+     (inspection.css, .nf-ix-step__plate). */
 };
 
 /* ------------------------------------------------------------------ send */
