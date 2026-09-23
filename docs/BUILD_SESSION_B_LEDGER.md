@@ -617,6 +617,72 @@ BREACHES 0, WORTH AN EYE 0. (The first run flagged the four dot buttons at
   the lead's warning. The pop restored exactly my three files and the stash
   list was empty afterwards; I have not used it since.
 
+### Final pass, 23 September
+
+**Re-checked.** The render and the 390 dark side-by-side opened together again
+(`welcome-render-vs-built-390.jpg`, re-shot on this build): lockup, headline,
+sub-line, stage, coin, dots, button, Skip all where the measured rows put them;
+nothing close-but-not-right found on slide one. Slides two to four, the
+always-shows flow, back on every slide and both signed-in endings exercised
+on a fresh production build (`next build` + `next start` with the preview
+harness open).
+
+**Fixed in this pass.** Leaving first run for the app (a member's Continue
+with nothing left to answer, and a member's Skip) hung with the button busy
+when `/home` answered with a redirect: a client-side `router.replace` to a
+redirecting route stalled mid-transition here. `leave` is now a full
+`window.location.replace`, which follows any redirect and leaves no slide
+entries in the app's back stack. Found by exercising the harness, now covered
+by the spec. Added the swipe to the spec, the one input it never drove.
+
+**Commands and output.**
+- `npx tsc --noEmit -p .`: exit 0.
+- `npx eslint` over `app/welcome`, `components/app/welcome`, `app/(auth)/start`,
+  `app/(dev)/preview/session-b/welcome`, the spec: 0 errors, 1 warning (the
+  existing `set-state-in-effect` in `InterestChoices.tsx`, unchanged).
+- `node scripts/check-css-tokens.mjs`: clean.
+- `npx vitest run src/app/welcome`: 12 passed (12).
+- `BASE_URL=http://127.0.0.1:3172 node tests/session-b-welcome.spec.mjs`: 24
+  checks, all passed (reachability, /start, slides by button, key, dot and
+  swipe, live region, back by square and by history, shown every time, the two
+  doors, no look-around door, cookie written, intent kept, the signed-in
+  ending: one Continue, Continue to the real interests question, Continue into
+  the app).
+- `node scripts/design/compare-surface.mjs --shape-sweep --routes
+  /welcome,/preview/session-b/welcome --theme dark`: BREACHES 0, WORTH AN EYE
+  0, ROUND ICON-ONLY 0.
+
+**Badge.** First run draws no person's name or avatar, so there is no badge
+slot on this surface.
+
+**BUILT AND UNPROVEN** (this box cannot reach Supabase over HTTP, so no live
+signed-in run is possible):
+- A member's Continue writing `profiles.settings.welcomeSeen`, and Skip
+  writing `interestsAsked` (`markWelcomeSeen`, `skipInterests`): the calls run
+  in the harness signed out, where they return without writing. Proving it
+  needs a signed-in session against the live project.
+- The interests question's Save and Skip (`saveInterestsAction`,
+  `skipInterests`): rendered and reached; the write needs a session.
+- A signed-in `/welcome` read (`loadInterestsState` with a session): proved
+  by the plan's unit tests and the harness, not by a live row.
+- Android's hardware back on a device: proved through the web view's history
+  in Chromium; a device run needs the native shell (and GS5 once NativeRuntime
+  is mounted).
+- The store first launch opening `/welcome` (W3) and sign up and sign in
+  detouring a first-time visitor here (W1, W2): requests, not built here.
+
+**Percentages.**
+- Close gate items met: 5 / 5 (measured match, wired, no claims, dark checks
+  and sweep, pushed; light removed by the founder, so not counted).
+- Controls exercised in a browser: 12 / 15 (Get Started, Next, dots, arrow
+  keys, swipe, stranger's Skip, back square, history back, Create account,
+  Sign in, Continue to the question, Continue into the app; not exercised
+  with a write: a member's Skip, the question's Save and Skip).
+- Chain links proven: 7 / 10 (control, cookie persistence, the page query's
+  signed-out path, RLS policies, table and triggers read live on 22 September,
+  screen; unproven: the member write, the signed-in read, the question's
+  write). Notification: none deserved, not counted.
+
 ## 3. Welcome back
 
 Route `/sign-in` (the chooser) and `/sign-in/email` (the password step).

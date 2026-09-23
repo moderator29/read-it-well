@@ -103,6 +103,20 @@ try {
   await page.getByTestId("welcome-dot-1").and(page.locator('[aria-current="step"]')).waitFor();
   check("the drawn back square goes to the previous slide", new URL(page.url()).pathname === "/welcome");
 
+  /* A swipe: a pointer drag right to left across the stage moves one slide on. */
+  const box = await page.locator(".nf-gs-carousel").boundingBox();
+  if (box) {
+    const y = box.y + box.height * 0.6;
+    await page.mouse.move(box.x + box.width * 0.8, y);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.2, y, { steps: 6 });
+    await page.mouse.up();
+  }
+  await page.getByTestId("welcome-dot-2").and(page.locator('[aria-current="step"]')).waitFor({ timeout: 5000 }).catch(() => {});
+  check("a swipe across the stage moves one slide on", (await page.getByTestId("welcome-dot-2").getAttribute("aria-current")) === "step");
+  await page.getByTestId("welcome-back").click();
+  await page.getByTestId("welcome-dot-1").and(page.locator('[aria-current="step"]')).waitFor();
+
   console.log("\nShown every time, and the device still remembers");
   await page.getByTestId("welcome-skip-all").click();
   await page.waitForURL((url) => url.pathname === "/sign-up", { waitUntil: "domcontentloaded" });
@@ -157,6 +171,45 @@ try {
     [await p3.getByTestId("welcome-sign-in").getAttribute("href")],
   );
   await ctx3.close();
+
+  /* THE SIGNED-IN ENDING, through the committed fixture harness (lead ruling
+     R-G). It needs the server started with VALLO_PREVIEW_HARNESS=1; without
+     it the harness answers 404 and these checks say so rather than pass. */
+  console.log("\nThe signed-in ending (fixture harness)");
+  const ctx4 = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const p4 = await ctx4.newPage();
+  const h = await p4.goto(`${BASE_URL}/preview/session-b/welcome`, { waitUntil: "domcontentloaded" });
+  if (!h || h.status() !== 200) {
+    check("the harness is open (start the server with VALLO_PREVIEW_HARNESS=1)", false, [String(h?.status())]);
+  } else {
+    await goToSlide(p4, 4);
+    await p4.getByTestId("welcome-continue").waitFor();
+    check(
+      "a member's ending is one Continue: no doors, no skip",
+      (await p4.getByTestId("welcome-continue").count()) === 1 &&
+        (await p4.getByTestId("welcome-create").count()) === 0 &&
+        (await p4.getByTestId("welcome-sign-in").count()) === 0 &&
+        (await p4.getByTestId("welcome-skip-all").count()) === 0,
+    );
+    await p4.getByTestId("welcome-continue").click();
+    await p4.getByTestId("welcome-form").waitFor({ timeout: 15000 });
+    check(
+      "Continue, with the question unanswered, opens the interests question (the real InterestChoices)",
+      (await p4.getByTestId("welcome-save").count()) === 1 && (await p4.locator('[data-testid^="interest-"]').count()) > 0,
+    );
+    const p5 = await ctx4.newPage();
+    await p5.goto(`${BASE_URL}/preview/session-b/welcome?viewer=done`, { waitUntil: "domcontentloaded" });
+    await goToSlide(p5, 4);
+    await p5.getByTestId("welcome-continue").click();
+    await p5.waitForURL((url) => url.pathname !== "/preview/session-b/welcome", { waitUntil: "domcontentloaded", timeout: 15000 });
+    const landed = new URL(p5.url()).pathname;
+    check(
+      "Continue, with nothing left to answer, leaves first run for the app (/home; signed out here, so the proxy sends it on to sign in)",
+      landed === "/home" || landed === "/sign-in",
+      [landed],
+    );
+  }
+  await ctx4.close();
 } finally {
   await browser.close();
 }
