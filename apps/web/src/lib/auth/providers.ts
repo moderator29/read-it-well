@@ -33,6 +33,18 @@ import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/sup
  *           shell it is off. `VALLO_SOCIAL_SIGN_IN=none` switches it off
  *           everywhere without touching the dashboard.
  *
+ * THE CONTROL OF RECORD FOR GOOGLE IS THE SUPABASE DASHBOARD (Providers →
+ * Google → off; docs/store/FOUNDER_STEPS.md §2). The app refuses to start it,
+ * ends a Google session that reaches the callback, and never exchanges a code
+ * in the browser (`detectSessionInUrl: false` in `lib/supabase/client.ts`),
+ * but while the dashboard has it enabled Supabase will still create the
+ * account for a hand-built authorize URL.
+ *
+ * iPadOS NOTE: with TARGETED_DEVICE_FAMILY = 1 the shell runs on an iPad in
+ * iPhone compatibility mode and reports an iPhone User-Agent. A shell that
+ * ever reported "Macintosh" would be read as android-native here, which only
+ * hides the Apple door.
+ *
  * The old `NEXT_PUBLIC_AUTH_PROVIDERS` is deliberately NOT read any more: a
  * deployment that had it set to `google` would otherwise have kept Google on
  * against the decision, and that value was never meant to be public anyway.
@@ -119,6 +131,10 @@ export async function supabaseReportsApple(): Promise<boolean> {
     const response = await fetch(`${SUPABASE_URL}/auth/v1/settings`, {
       headers: { apikey: SUPABASE_ANON_KEY },
       next: { revalidate: 300 },
+      /* Inside a server action the fetch cache does not apply, so this is a
+         live call; a slow settings endpoint must not hang sign-in. A timeout
+         reads as OFF like any other failure. */
+      signal: AbortSignal.timeout(3000),
     });
     if (!response.ok) return false;
     const body = (await response.json()) as { external?: { apple?: unknown } };

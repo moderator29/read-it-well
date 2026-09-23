@@ -74,8 +74,9 @@ jobs:
       # DOC-13 / STORE-03. Red, with one error annotation per placeholder,
       # until the founder's Apple Team ID and Play signing fingerprints are in
       # the association files. `continue-on-error` keeps it from blocking web
-      # work; `npm run cap:sync` runs the same check strictly, so no native
-      # binary can be synced while it is red. Drop `continue-on-error` the day
+      # work; `npm run cap:sync` (the documented release sync) runs the same
+      # check strictly, so a release sync refuses while it is red; a bare
+      # `npx cap sync` is not guarded. Drop `continue-on-error` the day
       # the values land.
       - name: Deep links (founder values)
         if: ${{ !cancelled() }}

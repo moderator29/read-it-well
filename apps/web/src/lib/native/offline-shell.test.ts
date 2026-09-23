@@ -30,6 +30,9 @@ describe("the card is ours, not a developer's", () => {
   it("names no build variable, command or document", () => {
     const text = visibleText(html);
     expect(text).not.toMatch(/CAPACITOR_SERVER_URL|cap sync|docs\/MOBILE|This build has no server|Reload the shell/);
+    /* A screen with no network cannot know the state of anything, so it
+       promises nothing about it. */
+    expect(text).not.toMatch(/\bis safe\b|nothing (has been|was) lost|where you left it/i);
   });
 
   it("uses no window.Capacitor member that Capacitor 8 does not define", () => {
