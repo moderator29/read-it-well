@@ -6,7 +6,7 @@ comes from, what each action does, who may take it, what it changes, and what th
 desk cannot do. The last part records the options that were considered and
 rejected, with the reasons.
 
-Owned by Session B (`docs/SESSION_B_SCOPE.md`). The queries and actions behind
+Owned by Session B (`docs/archive/SESSION_B_SCOPE.md`). The queries and actions behind
 the desks live in `apps/web/src/lib/admin/**`, which the other session owns;
 where a desk needs something that layer does not return yet, the gap is named
 here and raised as a request in the scope file.
@@ -61,7 +61,7 @@ which:
 |---|---|
 | Figures, a chart or rows | Read from the database just now. Every number came back from a query; none is typed into the page. |
 | A quiet panel with a title such as "No money has moved yet in this range" | The read worked and there is genuinely nothing to count. On 22 September that is the normal state: no real listing is live, no booking has been made, no money has been collected. |
-| "Not recorded" (on a figure) or "Not wired yet" (on a panel) | The platform does not record this yet. The panel names the request in `docs/SESSION_B_SCOPE.md` that would start recording it. It is not a fault of the platform or of your data. |
+| "Not recorded" (on a figure) or "Not wired yet" (on a panel) | The platform does not record this yet. The panel names the request in `docs/archive/SESSION_B_SCOPE.md` that would start recording it. It is not a fault of the platform or of your data. |
 | "Unavailable" or "This did not load" | A read failed. Nothing has changed; the page re-reads every minute, or reload. If it persists, check Operations for a failed job or a locked-out scheduler. |
 
 **The console never draws a number the database did not return.** A change

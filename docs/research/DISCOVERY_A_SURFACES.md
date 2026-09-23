@@ -2,7 +2,7 @@
 
 **Discovery Agent A of 3. Snapshot of the tree as pulled 18 September 2026,
 while the HANDOFF_05 build session is concurrently pushing to main.** The
-ledger (`docs/BUILD_05_LEDGER.md`) records commits `bb36563` (Phase A flip and
+ledger (`docs/archive/BUILD_05_LEDGER.md`) records commits `bb36563` (Phase A flip and
 shells), `a8fad5b` (M1 to M15, thread faces, inspections, wallet pages,
 settings/payments) and `70c98d9` (stay detail showcase, trips spine, cancel
 flow, restaurant surface, types regeneration) as landed at snapshot time.
@@ -866,7 +866,7 @@ Each tied to a file; ordered roughly by product damage.
   queue (FE-4 through FE-7, BE items) implies `lib/stays`, host wizard,
   `admin/businesses` and restaurant hours may land within hours.
 - **No database access was used.** Row counts (64 listings, 0 bookings,
-  6 profiles, 75 tables) are quoted from `docs/BUILD_05_LEDGER.md`, not
+  6 profiles, 75 tables) are quoted from `docs/archive/BUILD_05_LEDGER.md`, not
   re-verified. Migration behaviour (RLS, triggers, the oversell probe) is
   taken from the ledger's probe records.
 - **Signed-in behaviour has never been rendered by any session** (ledger

@@ -157,7 +157,7 @@ is sent, which is what keeps it from being a relay.
 ### `verificationCode` is UNPROVEN, and this is the one to act on
 
 The code is finished and correct. **The route is not the live path.** Measured
-in `AUTH_EMAILS.md` section 1A off GoTrue's own `auth_logs`: the hosted
+in [`AUTH_EMAILS.md`](AUTH_EMAILS.md) section 1A off GoTrue's own `auth_logs`: the hosted
 project's `mail.send` events carry
 `mail_from: noreply@mail.app.supabase.io`, Supabase's built-in shared sender.
 That one field rules out both of our routes at once. Custom SMTP is not enabled

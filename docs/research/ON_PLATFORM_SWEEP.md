@@ -738,7 +738,7 @@ section 5.
 records the removal of `GOOGLE_PLACES_API_KEY`, `GOOGLE_ROUTES_API_KEY`, `LITEAPI_KEY` and
 `LITEAPI_WHITELABEL_DOMAIN`, and states `apps/web/src/lib/inventory/` no longer exists.
 `lib/listings/types.ts:48-51` confirms "THERE IS NO PARTNER SHAPE HERE ANY MORE".
-`docs/HANDOFF_04_MARKETPLACE.md:102` confirms the CSP no longer whitelists any LiteAPI
+`docs/archive/HANDOFF_04_MARKETPLACE.md:102` confirms the CSP no longer whitelists any LiteAPI
 host. `lib/security/csp.ts:313-320` confirms the `img-src https:` wildcard was closed for
 the same reason.
 

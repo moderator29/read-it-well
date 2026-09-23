@@ -95,7 +95,7 @@ condition (`:1755-1779`). Section 3.2 is the full table.
 The move-in arithmetic runs live as the lister types
 (`ListingWizard.tsx:471-487`) and prints the real number, which the founder's
 own handoff calls the single cheapest win in the product
-(`docs/HANDOFF_09_THE_DIRECT_PLATFORM.md:321-340`).
+(`docs/archive/HANDOFF_09_THE_DIRECT_PLATFORM.md:321-340`).
 
 ## 1.4 "preview on images or video of the house they are uploading"
 
@@ -327,7 +327,7 @@ The tenancy fee breakdown is excellent. The sale side has an asking price, a
 tenure and a sale status and nothing else. No agency fee, no legal fee, no
 Governor's consent fee, no stamp duty, no registration fee. The founder's own
 handoff already states this: "The sale side has no cost model at all today"
-(`docs/HANDOFF_09_THE_DIRECT_PLATFORM.md:353-355`). Confirmed against the
+(`docs/archive/HANDOFF_09_THE_DIRECT_PLATFORM.md:353-355`). Confirmed against the
 schema: `draftInputSchema` at `apps/web/src/lib/agent/listings-schema.ts:627-646`
 carries `salePriceNaira`, `priceNegotiable`, `tenure`, `saleStatus`, `yearBuilt`
 and `condition` and no sale cost fields.
@@ -604,7 +604,7 @@ but the two are not literally the same test.
 ## 3.4 What a serious Nigerian listing should ask and this does not
 
 Measured against the market and against Track H
-(`docs/HANDOFF_09_THE_DIRECT_PLATFORM.md:321-372`).
+(`docs/archive/HANDOFF_09_THE_DIRECT_PLATFORM.md:321-372`).
 
 | Gap | Why it matters | Verdict |
 | --- | --- | --- |
@@ -1686,7 +1686,7 @@ am less than certain about.
 11. **The Nigerian market gaps in section 3.4 are judgement**, informed by the
     repository's own research documents and by general knowledge of the Lagos
     letting market. They are not derived from this codebase and no user research
-    in this repository was consulted for them. `docs/HANDOFF_09_THE_DIRECT_PLATFORM.md:321-372`
+    in this repository was consulted for them. `docs/archive/HANDOFF_09_THE_DIRECT_PLATFORM.md:321-372`
     is the one internal source I lean on, and where I lean on it I cite it.
 12. **This file is longer than the brief asked for**, 1,690-odd lines against a
     target of 900 to 1,400. I chose to keep the evidence rather than cut

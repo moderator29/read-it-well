@@ -54,5 +54,5 @@ information_schema. Four came back short on 2026-09-23:
 
 Only the first was closed by 20260923103430, because only the first refuses a
 read the product actually makes. The other three are latent hazards of the same
-shape and are recorded in docs/BUILD_07_LEDGER.md rather than changed, because
+shape and are recorded in docs/archive/BUILD_07_LEDGER.md rather than changed, because
 widening a grant nobody has asked for is the mistake in the other direction.

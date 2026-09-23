@@ -105,7 +105,7 @@ Two things this guard is NOT:
   unique `reference` and `hold_wallet_withdrawal`'s row lock are the real
   guarantees.
 - It is not automatic. **A form with no key runs unguarded.** The withdraw
-  sheet does not mint one yet (`docs/BUILD_07_LEDGER.md` section 49), which is
+  sheet does not mint one yet (`docs/archive/BUILD_07_LEDGER.md` section 49), which is
   why `WalletDeck`'s twenty-five second clock says *"Do not send this again"*
   and offers the history instead of a retry button. The panel can have its
   retry button the day it carries a key.

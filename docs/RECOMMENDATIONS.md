@@ -48,8 +48,8 @@ remapped, so a reference to "P-1, a P0" still reads correctly.
 ## 0. The marketplace consolidation, 18 September 2026
 
 **The platform's direction widened: Property, Stays, Restaurants, one
-marketplace.** `docs/HANDOFF_04_MARKETPLACE.md` is the charter and
-`docs/HANDOFF_05_UPGRADED_WIDE_PLATFORM_BUILD.md` is the build brief. This
+marketplace.** `docs/archive/HANDOFF_04_MARKETPLACE.md` is the charter and
+`docs/archive/HANDOFF_05_UPGRADED_WIDE_PLATFORM_BUILD.md` is the build brief. This
 section consolidates the register against that direction, per the map in
 `docs/research/MARKETPLACE_ARCHITECTURE_RESEARCH.md` section 4. **Where a row
 below in this file disagrees with this section, this section wins**; the build
