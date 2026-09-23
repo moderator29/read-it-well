@@ -1576,7 +1576,7 @@ harness. Font size from cap height / 0.72 (R-A).
 | Badge colours | green #027657/#08A47B, red #861833, blue #4F94EC | success #10B981, error #FF1744, pending #00C8FF, info brand | family yes; render's "Under review" green is translated to pending cyan |
 | Queue health donut | 50 image px -> 75 in a 75-wide rail; four slices | 128px ring in the 300px rail; four slices, legend with counts | proportion to rail kept; size up because the rail is wider (R-C note) |
 | Average review time | figure cap 12.5 -> 26px; delta emerald with arrow | 30px 600; emerald arrow delta; caption with the N | +4px: one KPI size across the three desks (26, 31, 40 measured) |
-| Pager | 22 image px -> 33; active lit | 44 x 44 (R-B), active lit | yes |
+| Pager | 22 image px -> 33; active lit; sits in its own panel; numbered to 12 | 44 x 44 (R-B), active lit; bare under the table; numbers only pages it has evidence for | squares yes; NOT YET: the render's panel behind the pager on the listings queue (moderation has it); the page count is honest by design (a cursor read has no total) |
 
 **Listing under review (C1D98B3C panel 2, GOVERNING-12 flow)**
 
