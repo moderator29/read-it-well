@@ -3786,6 +3786,85 @@ not filed as blocking because nothing renders it.
   triggers; deciding whether they should be withdrawn on delete is a question
   for Session A, not changed here.
 - `social_profiles.post_count` drift on one account (12.3), not drawn today.
+  Both are filed by the lead as DP-1 and DP-2 in the scope file.
+
+### 12.6 Final pass, 23 September
+
+**Re-checked against main.** `git grep 'from("posts")' origin/main -- apps/web/src`
+after the last pull: no new read of `posts` since `1385bfc8`, and no commit
+from Session A touched `posts-queries.ts`, `profile-tabs-queries.ts`,
+`comments-queries.ts` or `stories-queries.ts`. The seven `neq("status",
+DELETED_STATUS)` filters and the four `pruneDeleted` calls are all on main.
+The other `posts` reads are writes or single-row lookups inside actions
+(`posts-actions.ts`, `bot-actions.ts`, `moderation-actions.ts`), the replying-to
+parent lookup in `getProfileReplies` (it names a person and lists nothing), the
+HELD-only admin reads, the LIVE-only home read, and `readPostViews`, which has
+no caller.
+
+**Exercised in a production build.** New committed harness
+`/preview/session-b/posts` (`app/(dev)/preview/session-b/posts/page.tsx`,
+FIXTURE PROPS). It hands the real `Feed`, `ProfilePosts` (Posts tab, owner) and
+`ThreadView` a live post, a deleted post with no replies and a deleted post
+with one reply. The thread rows go through `pruneDeleted`, the function
+`getThread` uses. Built with `next build` (exit 0) and served with
+`VALLO_PREVIEW_HARNESS=1 next start -p 3183`. It was shot at 390 dark and the
+DOM counted per panel (`scratchpad/tools/posts-shot.mjs`, not committed):
+
+```
+{"1":{"tombstones":0,"liveBody":1,"replies":[]},
+ "2":{"tombstones":0,"liveBody":1,"replies":[]},
+ "3":{"tombstones":1,"liveBody":1,"replies":["Same here","Which junction"]},
+ "4":{"tombstones":1,"liveBody":0,"replies":["I saw this before"]}}
+```
+
+Feed and profile: live post only, no tombstone. Thread: one tombstone, for the
+deleted reply somebody answered; the one nobody answered is gone. The deleted
+root somebody answered is the tombstone. Proof:
+`docs/design/proofs/session-b/posts/posts-390-dark-full.jpg`, re-shot after the
+fix below.
+
+**Fixed in this pass (`d4e66ffe`).** The first shot drew the always-open reply
+box under a deleted root. `private.place_post` refuses any reply to a parent
+that is not LIVE ("You cannot reply to a post that has been removed ..."),
+so the box would only ever fail. `ThreadView` no longer offers it under a
+removed root.
+
+**Commands and output at the final commit:**
+- `npx vitest run src/lib/social/deleted-posts.test.ts src/lib/social/reads-deleted.test.ts src/lib/social/tombstone-placement.test.ts`:
+  3 files, 26 tests passed.
+- `npx tsc --noEmit -p .`: no output, exit 0.
+- `npx eslint "src/app/(app)/post/[id]/ThreadView.tsx" "src/app/(dev)/preview/session-b/posts/page.tsx"`:
+  no output, exit 0.
+- `node scripts/check-css-tokens.mjs`: "css tokens: clean".
+- `compare-surface.mjs --shape-sweep --routes /preview/session-b/posts --theme dark`:
+  0 breaches, 0 worth an eye, 0 refused. However, it reported "0
+  route/width/theme combination(s) actually measured", so the sweep measured
+  nothing and proves nothing here. This pass draws no new control; the cards
+  and composer are Session A's.
+
+**BUILT AND UNPROVEN:**
+- The live reads on a signed-in session. The box cannot reach Supabase over
+  HTTP, so no read ran against production. Proving it needs a signed-in author
+  with a deleted post opening `/profile`, `/u/<handle>` and `/around`.
+- The delete control end to end (menu, `removePost`, the row turning REMOVED,
+  the card leaving, the thread root going to `/around`). Proven only by code
+  reading and read-only SQL of the policy and triggers.
+- The story page's deleted-story tombstone (the removed sentence as the
+  headline). Proven by unit test only; not in the harness.
+
+**Known edge, not fixed.** At the depth cap, a reply to a depth-three reply
+whose parent is deleted is retargeted by `replyTargetOf` to that deleted
+parent, which `place_post` refuses. The thread "N replies" line also counts a
+tombstone.
+
+**Percentage.** Listing surfaces in 12.2: 18. Correct at the read: 17 of 18
+(94%). The one open is notifications linking to a deleted post (DP-1, Session
+A). Of the 17, 13 are proved by unit tests over the real read functions and 4
+by reading the code (story rails, home, admin, search: none). Chain links in 12.3: 9 (control, action,
+validation, policy, table, trigger, notification, query, screen). Proven: 6 of
+9 (67%): policy, table and trigger by SQL; query by unit tests; screen by the
+harness in a production build; validation by code reading. The control and
+the action were not exercised live; the notification link is DP-1.
 
 ## Skipped or not verified
 
