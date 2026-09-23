@@ -393,6 +393,15 @@ Each group appends "RELEASED <commit>" here when it is done.
     inspection date format recorded as deliberate, the S9 remainder proven (five
     routes live as the QA member, the wizard's later steps on a harness). Ledger 13.A2.
     The claim is released.
+  - **the four items 13.A2.5 and 13.A2.6 left open (worker "last", claimed 23
+    September by the lead's instruction; every other worker has finished; held
+    for the duration of the fix):** `components/app/listing/ListingGallery.tsx`
+    (ONLY the stand-in chip's place), `app/css/admin.css` (ONLY
+    `.nf-admin-bar__search input` height), `app/css/agent.css` (ONLY
+    `.nf-agent-bar__search input` height), `components/ui/Switch.tsx` (ONLY the
+    hit extender), `app/css/landing.css` (ONLY `.nf-site-nav-link` width), the
+    ledger addendum to "13. Platform sweep: audit 2 fixes", proofs
+    `docs/design/proofs/session-b/audit2-fixes/last/**`.
 
 ### Sweep group: home, search and filters, listing detail (worker "sweep-home")
 Routes: `/home`, `/stays` (the home components only; `StayCard` is the stays
