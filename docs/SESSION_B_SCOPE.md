@@ -256,6 +256,42 @@ Each group appends "RELEASED <commit>" here when it is done.
     NOT touched:
     `components/trust/TierBadge.tsx`, `trust-badge.css` (Session A's verified
     badge), the files of groups not yet released (home, feed).
+  - **the orphans (worker "sweep-orphans", claimed 23 September by the lead's
+    instruction on audit finding B3):** the 23 routes no group owned:
+    `/around/[slug]`, `/around/manage`, `/around/new`, `/around/settings`,
+    `/bookings`, `/bookings/[bookingId]`, `/bookings/[bookingId]/review`,
+    `/crypto`, `/crypto/[id]`, `/verification`, `/rent`,
+    `/rent/pay/[inspectionId]`, `/saved`, `/saved/searches`, `/post/[id]`,
+    `/stories/[id]`, `/stories/new`, `/inspections` (the list page only),
+    `/profile/application`, `/profile/setup/[role]`, `/profile/setup/agent`,
+    `/profile/setup/firm`, `/profile/setup/owner`. Files claimed (route
+    components and what only they draw):
+    `app/(app)/around/[slug]/**` (in `page.tsx` everything but the feed
+    worker's badge stamp), `app/(app)/around/{manage,new,settings}/**`,
+    `app/(app)/bookings/**`, `components/app/bookings/**`,
+    `app/(app)/crypto/**` (the two dark routes' `loading.tsx`; the pages stay
+    `notFound()` and nothing under `components/app/crypto/` is touched),
+    `app/(app)/verification/**`, `components/verification/**`,
+    `app/(app)/rent/page.tsx`, `app/(app)/rent/loading.tsx`,
+    `app/(app)/rent/pay/**` (NOT `rent/move-in/**`, the home group's),
+    `app/(app)/saved/**`, `components/app/saved-searches/**`,
+    `app/(app)/post/[id]/**` (the posts worker's tombstone lines in
+    `ThreadView.tsx` are left as they are), `app/(app)/stories/**`,
+    `app/(app)/inspections/page.tsx` and `loading.tsx` (NOT the inspection
+    sheet), `components/app/inspections/InspectionRows.tsx`,
+    `app/(app)/profile/application/**`, `app/(app)/profile/setup/{[role],agent,firm,owner}/**`,
+    `components/supply/{AgentRegisterForm,FirmRegisterForm,OwnerRegisterForm,RegisterField,RegisterShell,UploadCard}.tsx`.
+    New: `app/css/orphans.css` (only what these routes need of their own, on
+    the shared tokens), the fixture harness
+    `app/(dev)/preview/session-b/sweep-orphans/**` (root `page.tsx`), the shot
+    script `scripts/design/session-b-shots/sweep-orphans.mjs`, proofs
+    `docs/design/proofs/session-b/sweep-orphans/**`. NOT touched: the shared
+    layer (`tokens.css`, `Panel`, `IconPlate`, `Button`, `buttons.css`,
+    `controls.css`, `chips.css`, `glass.css`), `components/app/Screen.tsx`,
+    `StatusPill.tsx` (leftovers), `/profile/setup` itself and the chooser
+    (SW-P1, leftovers), `social-feed.css`, `components/social/**` (feed),
+    `ReportSheet.tsx`, `ScreenSkeleton.tsx`, `ui/Skeleton.tsx`,
+    `components/app/crypto/**`. Anything needed there is filed as `SW-O*`.
 
 ### Sweep group: home, search and filters, listing detail (worker "sweep-home")
 Routes: `/home`, `/stays` (the home components only; `StayCard` is the stays
