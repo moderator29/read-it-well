@@ -186,6 +186,22 @@ describe("the decision paths are actually wired to the junction", () => {
     return readFile(`${here}../../${path}`, "utf8");
   };
 
+  /** The one migration whose body declares `needle`, or a failure naming it. */
+  const readMigration = async (needle: string) => {
+    const { readdir, readFile } = await import("node:fs/promises");
+    const { fileURLToPath } = await import("node:url");
+    const here = fileURLToPath(new URL(".", import.meta.url));
+    const dir = `${here}../../../../../supabase/migrations`;
+    const files = (await readdir(dir)).filter((name) => name.endsWith(".sql"));
+    const hits: string[] = [];
+    for (const name of files) {
+      const body = await readFile(`${dir}/${name}`, "utf8");
+      if (new RegExp(`function\\s+(?:\\w+\\.)?${needle}\\s*\\(`).test(body)) hits.push(body);
+    }
+    expect(hits.length, `no migration declares ${needle}`).toBeGreaterThan(0);
+    return hits.join("\n");
+  };
+
   it("the admin console announces every listing and registration decision", async () => {
     const source = await read("lib/admin/actions.ts");
     expect(source).toContain('from "../notify/junction"');
@@ -203,33 +219,39 @@ describe("the decision paths are actually wired to the junction", () => {
   });
 
   /*
-   * THIS USED TO ASSERT THAT `welcomeOnce` APPEARED TWICE IN THE SOURCE, AND
-   * THAT WAS A BLIND LIGHT OF THE EXACT KIND SECTION 17 SWEPT FOR.
+   * THIS USED TO BE THE ONLY THING WATCHING THE WELCOME, AND IT WAS A BLIND
+   * LIGHT: it counted two `welcomeOnce` calls in one file and was green on a
+   * product where THREE OTHER DOORS mint a confirmed account without touching
+   * that file at all (Continue with Google, an invite, the admin API).
    *
-   * It watched two call sites and could not see that there were five doors:
-   * Continue with Google, an invite and the admin API all mint a confirmed
-   * account without touching `lib/auth/actions.ts` at all, so the check was
-   * green on a product where a third of new accounts got nothing. The welcome
-   * is now enqueued by a trigger on `auth.users` and the guarantee lives in
-   * the database, which is why the assertion below is the opposite one: the
-   * sign-up action must NOT be the thing that sends it.
-   *
-   * What replaced the coverage: the trigger itself, proven against the live
-   * catalogue by the probe recorded in its migration (insert door, confirm
-   * door, an unconfirmed address queued nothing, a retry made one row, an
-   * anonymous account got none), and `templates.test.ts` plus
-   * `outbox-delivery.test.ts` on the message that comes out.
+   * The coverage now lives where the event does: two triggers on `auth.users`,
+   * proven in their migration's own probe. The two call sites are kept as the
+   * belt to those braces, so they are still asserted here, together with the
+   * property that makes having two paths safe rather than dangerous: NEITHER
+   * OF THEM SENDS. Both queue the same unique key.
    */
-  it("does not send the welcome from a call site, because a call site is one door of five", async () => {
+  it("confirming an address queues the welcome, from both call sites", async () => {
     const source = await read("lib/auth/actions.ts");
-    /* No import of the retired module and no call to it. A comment saying
-       what used to be here is welcome; a line that actually sends is not. */
-    expect(source).not.toContain("notify/welcome");
-    expect(source.match(/welcomeOnce\s*\(/g) ?? []).toHaveLength(0);
+    expect(source).toContain("welcomeOnce");
+    /* Both paths: the six digit code and the emailed link. */
+    expect(source.match(/await welcomeOnce\(/g) ?? []).toHaveLength(2);
+  });
 
-    /* And the module itself is gone, so there is nothing to import back by
-       accident. `readFile` rejects on a path that does not exist. */
-    await expect(read("notify/welcome.ts")).rejects.toThrow();
+  it("the welcome path queues and never posts, so the trigger cannot make it a second email", async () => {
+    const source = await read("lib/notify/welcome.ts");
+    /* A direct send here would be a second copy in somebody's inbox every time
+       the trigger got there first, which is every time. */
+    expect(source).not.toContain("sendMessage");
+    expect(source).not.toContain("bestEffortEmail");
+    expect(source).toContain("email_outbox_enqueue_welcome");
+
+    /* And the two paths must compose the same key. The SQL owns the string;
+       this holds the two migrations that build it to each other. */
+    const trigger = await readMigration("enqueue_welcome_email");
+    const rpc = await readMigration("email_outbox_enqueue_welcome");
+    for (const sql of [trigger, rpc]) {
+      expect(sql).toContain("'account:welcome:' || ");
+    }
   });
 
   /* The sentence that sent listers hunting for a control only an admin has. */

@@ -249,6 +249,28 @@ export type PasswordResetData = {
  * message: if a mail gateway rewrites the anchor, or the reader wants to
  * finish on a desktop, a dead button with no address beneath it is a locked
  * account rather than an inconvenience.
+ *
+ * ---------------------------------------------------------------------------
+ * DELIBERATELY NOT WIRED, AND IT MUST NOT BE. GoTrue ALREADY SENDS THIS ONE.
+ *
+ * `lib/auth/actions.ts` asks for a reset with
+ * `supabase.auth.resetPasswordForEmail`, and GoTrue composes and sends the
+ * recovery mail itself from its own template, carrying the only link that
+ * works: the recovery token is minted inside GoTrue and never reaches this
+ * process. THERE IS NO `resetUrl` FOR A CALLER HERE TO PASS. Anything this
+ * platform built would therefore be a SECOND email, arriving beside the real
+ * one, with either no link or a link that does not sign anybody in, on the
+ * one screen where a person is already locked out and frightened. Two reset
+ * emails is how somebody presses the wrong one and concludes they have been
+ * phished.
+ *
+ * It is kept rather than deleted for the same reason `escrowFunded` is: the
+ * fixtures render it, `shell.test.ts` holds it to the catalogue's structure,
+ * and the day the Send Email Hook is switched on (`app/api/auth/email-hook`,
+ * built and not enabled) the recovery payload arrives here and this becomes
+ * the message for it. Until that day it has no caller ON PURPOSE, and
+ * `reachability.test.ts` holds that refusal in place so nobody quietly wires
+ * it.
  */
 export function passwordReset(data: PasswordResetData): EmailMessage {
   return message(

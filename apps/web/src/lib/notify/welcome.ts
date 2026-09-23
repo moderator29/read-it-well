@@ -9,22 +9,20 @@ import "server-only";
  * shared worktree saw it. The shared worktree could not see it either, because
  * five workers' in-flight edits were masking the tip.
  *
- * The content below is byte for byte what `7da4b0d0^` held. Nothing was
- * rewritten, because a restore that improves something is a restore nobody can
- * check. See ledger section 61.
+ * The restore was byte for byte what `7da4b0d0^` held. See ledger section 61.
+ *
+ * WHAT CHANGED AFTERWARDS, AND IT IS ONLY THE LAST STEP. The claim, the
+ * confirmation guard and the day window below are untouched. The send is not a
+ * send any more: it is an ENQUEUE onto `public.email_outbox`, so the welcome
+ * gets the durability, the backoff, the dedupe and the desk alarm that every
+ * other email on the junction already has, instead of one best-effort POST
+ * that vanished if Resend blinked.
  */
 
-import { bestEffortEmail, sendMessage } from "@/lib/email/client";
-import { welcome, type SignupRole } from "@/lib/email/messages";
-import { contactForUser } from "@/lib/email/recipients";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
  * The first email this platform sends, and the thing that makes it send once.
- *
- * `welcome` has existed complete since the catalogue was written, in six
- * versions, and has never had a caller. Nobody who has ever signed up here has
- * received it.
  *
  * WHY IT FIRES ON CONFIRMATION AND NOT ON SIGN-UP. At the moment somebody
  * presses Create account the address is a claim. Mailing an unconfirmed
@@ -36,29 +34,55 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * WHY EXACTLY ONCE IS THE DATABASE'S ANSWER AND NOT THIS MODULE'S. Both paths
  * end in the same place and a person can open the emailed link twice. The
  * claim below is a CONDITIONAL UPDATE: set the stamp where it is still null,
- * and send only if a row came back. Two concurrent confirmations race on the
- * row lock, one wins, and exactly one email leaves. A read then a write would
- * send two.
+ * and act only if a row came back. Two concurrent confirmations race on the
+ * row lock and one wins. A read then a write would queue two.
  *
- * WHY THE ROLE IS READ AND NEVER GUESSED. `welcome` writes six versions, and
- * `profiles.signup_role` carries the one the person declared. When it is null
- * they were never asked or they skipped, and the general version goes: the
- * catalogue says plainly that it is not a lesser version but the honest answer
- * when nothing was declared. Inferring a role from the occupation in order to
- * pick a nicer email would be inventing a fact about a person.
+ * ---------------------------------------------------------------------------
+ * THIS IS THE SECOND OF TWO PATHS, AND THE FIRST ONE IS THE ONE THAT COVERS
+ * EVERYBODY. Read this before deciding either is redundant.
+ *
+ * `users_enqueue_welcome_email_on_insert` and `..._on_confirm`, both on
+ * `auth.users`, enqueue the same row in the SAME TRANSACTION as the
+ * confirmation. They exist because THESE TWO CALL SITES ARE ONE DOOR OF FIVE:
+ * Continue with Google, an invite and the admin API each mint a confirmed
+ * account inside GoTrue and return through a callback that has never heard of
+ * this function. For weeks the two call sites looked like coverage and were
+ * not.
+ *
+ * This module is kept as the belt to that pair of braces, because `auth` is
+ * not our schema and a trigger is one object that a GoTrue upgrade, a restore
+ * from an older snapshot, or a migration written by somebody who did not know
+ * it was there can remove without a sound.
+ *
+ * AND THE TWO CANNOT MAKE TWO EMAILS. Both compose the same dedupe key,
+ * `account:welcome:<user id>`, and `email_outbox_dedupe_key` is UNIQUE with
+ * `on conflict do nothing` underneath, so whichever arrives first writes the
+ * row and the other is told `already`. That is proven in the migration's own
+ * probe, not argued here.
+ *
+ * ---------------------------------------------------------------------------
+ * WHY THE ROLE IS NOT READ HERE ANY MORE. It used to be selected alongside the
+ * claim and handed to `welcome`. The drain reads `profiles.signup_role` at
+ * send time instead, which keeps a statement somebody made about themselves
+ * out of the queue row, and is also more correct: confirm, then answer the
+ * first run question, then the drain runs, and the version matches what was
+ * actually said. The builder itself is not imported here at all any more:
+ * this module queues an event, and `lib/notify/templates.ts` under the key
+ * `account.welcome` is the only place that decides what the words are.
  */
-export async function welcomeOnce(userId: string): Promise<"sent" | "already" | "skipped"> {
+export async function welcomeOnce(userId: string): Promise<"queued" | "already" | "skipped"> {
   let claimed = false;
-  let role: SignupRole | null = null;
   try {
     const admin = createAdminClient();
 
     /*
      * REFUSE ON AN ACCOUNT THAT IS NOT NEW. The stamp is on `profiles`, which
-     * its owner can write, so a person could null their own and collect a
-     * second welcome. Rather than restructure the table grants on the most
-     * read table in the product, the send site refuses anything confirmed more
-     * than a day ago. See the migration's note.
+     * its owner can write, so a person could null their own and come back for
+     * a second welcome. That hole is now closed twice over, because the outbox
+     * key is unique for ever on a table nobody but the service role can touch,
+     * but the day window is kept: it is what stops this function queueing
+     * anything at all for an old account, which is a cheaper refusal than one
+     * that has to reach the outbox to be turned down.
      */
     const { data: account } = await admin.auth.admin.getUserById(userId);
     const confirmedAt = account?.user?.email_confirmed_at ?? null;
@@ -70,55 +94,59 @@ export async function welcomeOnce(userId: string): Promise<"sent" | "already" | 
       .update({ welcomed_at: new Date().toISOString() })
       .eq("id", userId)
       .is("welcomed_at", null)
-      .select("id, signup_role")
+      .select("id")
       .maybeSingle();
     claimed = Boolean(data);
-    role = data?.signup_role ?? null;
   } catch {
     /* No service key, no profile row, an unreachable database: all of them
-       mean no welcome, and none of them may interrupt somebody signing in. */
+       mean no welcome from this path, and none of them may interrupt somebody
+       signing in. The trigger has already queued the row in any case. */
     return "skipped";
   }
 
   if (!claimed) return "already";
 
-  let sent = false;
-  await bestEffortEmail(async () => {
-    const admin = createAdminClient();
-    const contact = await contactForUser(admin, userId);
-    if (!contact) return;
-    const result = await sendMessage(contact.email, welcome({ name: contact.name, role }));
-    sent = result.sent;
-  });
+  let answer: string | null = null;
+  try {
+    const { data } = await (
+      createAdminClient() as unknown as {
+        rpc: (
+          fn: string,
+          args: Record<string, unknown>,
+        ) => PromiseLike<{ data: unknown; error: unknown }>;
+      }
+    ).rpc("email_outbox_enqueue_welcome", { p_user: userId });
+    answer = typeof data === "string" ? data : null;
+  } catch {
+    answer = null;
+  }
 
   /*
-   * A CLAIM THAT SENT NOTHING IS GIVEN BACK.
+   * A CLAIM THAT QUEUED NOTHING IS GIVEN BACK.
    *
-   * The stamp exists to make the send happen ONCE, not to make it happen
-   * never. Claiming and then failing would burn the welcome permanently, and
-   * the commonest way to fail is not an outage: `bestEffortEmail` does
-   * nothing at all when there is no Resend key, which is the state of any
-   * deployment that has not been given one. Every account created before the
-   * key arrived would have been marked as welcomed and never written to.
+   * The stamp exists to make this happen ONCE, not to make it happen never.
+   * Claiming and then failing would burn the welcome permanently, and the
+   * commonest failure is not an outage: it is a deployment with no service key
+   * at all. So the stamp is released on anything but a row that is now in the
+   * queue, and the next confirmation tries again.
    *
-   * So the stamp is released on anything but a confirmed send, and the next
-   * confirmation, or the next thing that calls this, tries again. The race
-   * this column exists for is still closed, because the release only happens
-   * on the one call that WON the claim and then got nothing for it.
+   * `already` counts as success and keeps the stamp. It means the trigger got
+   * there first, which is the ordinary case and the whole design: the email is
+   * queued, and releasing the stamp then would leave a column disagreeing with
+   * a queue that is about to send.
    */
-  if (!sent) {
+  const queued = answer === "queued" || answer === "already";
+  if (!queued) {
     try {
-      await createAdminClient()
-        .from("profiles")
-        .update({ welcomed_at: null })
-        .eq("id", userId);
+      await createAdminClient().from("profiles").update({ welcomed_at: null }).eq("id", userId);
     } catch {
-      /* The stamp stays. One lost welcome is a smaller harm than an
-         exception on somebody's first sign-in. */
+      /* The stamp stays. One lost claim on a path that is the SECOND of two is
+         a smaller harm than an exception on somebody's first sign-in, and the
+         trigger's row is unaffected by any of this. */
     }
   }
 
-  return sent ? "sent" : "skipped";
+  return queued ? "queued" : "skipped";
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
