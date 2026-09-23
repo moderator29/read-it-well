@@ -1480,45 +1480,109 @@ desks' parts of 16, 17 and 18.
   out. On 22 September that is every supply row there is, so the live desk
   reads zero across the board and says why.
 
-### 8.2 Measured comparison
+### 8.2 Measured comparison, per desk
 
-Scale. Each render panel is a browser window 485 image px wide
-(`C1D98B3C` panel 3: x 1033 to 1518; `8E9602E2` panels: 490 px). At the
-brief's 1440 CSS px per window that is 2.97 CSS px per image px, and it puts
-body text at about 36 CSS px and KPI cards at 252 CSS px tall, which is not a
-console at 1440; the renders are zoomed. Type-consistent scale, from ledger
-row text (cap height 6 image px against a 13 to 14 px body), is about 1.7. So
-PROPORTIONS (grid fractions, aspect of cards, column shares) are taken from
-the image, and SIZES follow the shell's measured type scale so every desk
-reads alike. Colours sampled with `sample` over 3x3 boxes.
+**How the render was measured and converted.** Each panel is a browser
+window about 486 render px wide. The brief's first rule (486 render px =
+1440 CSS) gives 2.96 CSS px per render px and puts the ledger's body text at
+25px and a KPI figure at 49px, which is a zoomed drawing, not a 1440
+console. So the scale was CALIBRATED on the one element drawn in both a
+three-panel render and the full-window overview render (`5EAA44CB`, 1550
+render px = 1440 CSS, 0.929 CSS per render px): the rail label "Supply"
+measures 44 render px wide in the overview and 26 in every panel of
+`C1D98B3C` and `8E9602E2`. So one panel render px = 44 / 26 x 0.929 =
+**1.57 CSS px**, and the panels draw a window about 763 CSS px wide. Cap
+heights were read with an ink scanner (`ink.mjs`: the rows and columns of
+pixels brighter than a threshold inside a box) and converted: CSS cap =
+render cap x 1.57, font size = CSS cap / 0.72 (the cap-height ratio of
+Poppins and Inter). Colours are 3x3 means (`samp.mjs`); the corner and glow
+were read along lines across the edge. Built values are `getComputedStyle`
+in Chromium at 1440 (`m2.mjs`), fixture-backed harness, after the final
+change.
 
-| Property | Image (measured) | Built (measured, 1440 dark) | Match |
-|---|---|---|---|
-| Page ground | `#000d2a` | shell canvas, same token as every desk | yes (shell's) |
-| Card fill | `#00153e` to `#001646` | `--nf-admin-panel-fill` (shell) | yes |
-| Card border | `#003c8a` to `#1085bc`, lit | `--nf-admin-panel-edge`, 1px | yes |
-| Top rim | brighter hairline on top edge | inset 1px rim at 55% plus a centred catchlight `::before` | yes |
-| Glow | soft blue outside each card | `--nf-admin-panel-glow` (0 0 22px, 22%) | yes |
-| Card radius | 5 img px on 82 px cards (6%) | 14px on ~330px cards (4%), `--nf-radius-md` | close |
-| KPI row | 4 equal cards, gap 7 img px | 4 equal, gap 16px | yes |
-| KPI label | 10 img px wide cap, `#1085bc` blue | 13px 500, `--nf-brand-quiet` | yes |
-| KPI figure | cap 12 img px, white bold | clamp 22 to 34px 700 display face | yes |
-| Delta | green arrow, `+12%`, "vs last week" muted | emerald/rose arrow glyph, whole %, muted "vs ..." | yes |
-| Money chart | full width, 2 series, smooth, filled, legend top right | full width, 2 series, monotone curves, filled, legend top right, dashed second series, hover readout | yes |
-| Recon + summary | 54 : 46 split | 1.17fr : 1fr | yes |
-| Recon ring | emerald ring, % centre, "Last successful run", Healthy badge | same; badge on the shape law | yes |
-| Ledger columns | Date 17%, Description 31%, Type 12%, Amount 17%, Balance 23% | Date, Description (reference under it), Type, Amount, Balance | yes |
-| Credit colour | `#1aba8d` emerald | `--nf-state-success` | yes |
-| Pager | squares, active lit blue, 1 2 3 4 5 ... 12 | rounded squares 44px, active gradient + rim + bloom, same numbering | yes |
-| Escrow pipeline | 6 cards with arrows | 6 linked cards with arrow glyphs | yes |
-| Escrow table | photo thumb, id, amount, from to, purpose, days, countdown in emerald | line glyph plate (no photo in the read), same columns, emerald countdown | partly (no photo) |
-| Float total | figure with short cyan rule | same | yes |
-| Recon check | emerald check disc, Healthy, last run | same, centred | yes |
-| Donuts | teal, mauve, pink slices | one blue ramp by lightness, word + share + count per slice | translated |
-| Supply table | name, role, listings, tick, transacted, joined | same, tick carries the word Yes/No | yes |
-| Supply growth | 4 lines, 4 hues | 4 lines on the blue ramp, dash patterns, direct labels | translated |
-| Top areas | ranked bars | ranked bars | yes |
-| Status badges | pill-ish chips | `StatusPill` rounded rectangle | shape law wins |
+Under lead ruling R-A every text role takes its render's measured size; the
+three panels do not draw their roles at one size, so money, escrow and supply
+each carry their own (`.nf-md--escrow`, `.nf-md--supply` in `desk.css`).
+
+**Money** (`C1D98B3C` panel 3; side-by-side `side-by-side-money.jpg`)
+
+| Property | Render (measured) | Converted | Built (measured) | Match |
+|---|---|---|---|---|
+| Page title "Money" | ink 16 render px incl. the y descender, cap 12 | 18.8 CSS cap, 26px | 26px, 700, white | yes |
+| Lede | cap 7, blue `#1085bc` family | 11 cap, 15px | 14px, `--nf-brand-quiet` rgb(92 159 255) | yes (1px) |
+| KPI label "Wallet float" | ascender 7, `#1085bc` | 11 cap, 15px | 15px, 500, quiet blue | yes |
+| KPI figure "₦842,500" | digit cap 12 (ink 15 with the naira bar) | 18.8 cap, 26px | 24.6px at 1440 (clamp to 26 at 1500+), 700 | yes (1px) |
+| Change "12%" | cap 7, emerald | 11 cap, 15px | 15px, 600, `--nf-state-success` | yes |
+| "vs last week" | smaller than the figure | about 12px | 12px, muted | yes |
+| Panel titles | cap 9 ("Money in vs money out", "Ledger") | 14 cap, 20px | 20px, 600 | yes |
+| Table head | cap 6, quiet blue | 9.4 cap, 13px | 13px, 500, quiet blue | yes |
+| Table row text | cap 6 | 9.4 cap, 13px | 13px | yes |
+| Table row pitch | 25 render px | 39px | 64px | no: each row carries the payment reference on a second line, which support needs and the render omits |
+| Pager box | 25 render px | 39px | 44 x 44 (R-B floor) | yes (R-B) |
+| Pager digit | cap 9 | 14 cap, 20px | 20px | yes |
+| KPI card box | 79 x 85 render px | 124 x 133 | 284 x 124 at 1440 (four across a wider window) | height yes; width follows the 1440 grid |
+| Card corner | about 5 render px, traced by eye (the scanner could not separate the rim from the fill) | about 8px | 14px (`--nf-radius-md`) | no: the console's one panel corner, measured by admin-shell on the overview render, so every desk is one object |
+| Card fill | top under the rim `#002c7c`, 8px down `#001b53`, middle `#00153f`, foot `#011e55` | a lit top, dark middle, lift at the foot | the shell's `--nf-admin-panel-fill`: the same four-stop lit ink over the canvas | yes |
+| Lit rim | top edge `#0373d8`, 1px | a bright top line | inset 0 1px 0 rim-lit ink at 55% plus the centred catchlight | yes |
+| Side edge | left `#003780`, 1px | per-side edge | `--nf-admin-panel-edges` (per side, lit top left) | yes |
+| Outer glow | none: ground `#000a27` flat from 1px outside; a 1px contact line `#000522` | none | the shell's `--nf-admin-panel-glow` 0 0 22px at 22% | no: the shell's shared value; raised to admin-shell rather than overridden per desk |
+| Chart | filled rising area, second series quieter, legend top right | | two filled monotone curves on the ramp, dashed second series, legend top right, hover readout | yes in anatomy; the fixture's monthly sums oscillate, the render's rise |
+| Recon ring | emerald ring, % in the middle, Healthy badge | | emerald ring, %, badge on the shape law | yes |
+| Credit colour | `#1aba8d` | | `--nf-state-success` rgb(16 185 129) | yes |
+| Status badge | pill-like | | `StatusPill` 23 to 28px tall, 6px corner (ratio 0.26) | shape law wins |
+
+**Escrow** (`8E9602E2` panel 1; `side-by-side-escrow.jpg`)
+
+| Property | Render (measured) | Converted | Built (measured) | Match |
+|---|---|---|---|---|
+| Page title "Escrow" | cap 14 | 22 cap, 30px | 30px at 1440 (clamp), 700 | yes |
+| Stage label "Funded" | ascender 7 | 11 cap, 15px | 15px, 500 | yes |
+| Stage count "124" | cap 12 | 18.8 cap, 26px | 24.6px at 1440, 600 | yes (1px) |
+| Stage tile | 6 tiles with arrows, 52 x 70 render px | 82 x 110 | 6 linked tiles with arrow glyphs, 177 x 104 | height yes; width follows 1440 |
+| Panel titles | cap 9 | 14 cap, 20px | 20px | yes |
+| Float figure | digit cap 11 | 17 cap, 24px | 24px, 600 | yes |
+| Float accent rule | short cyan bar | | 48 x 3px, `--nf-state-warning` (the cyan) | yes |
+| Table head, rows | cap 6 | 13px | 13px | yes |
+| Row thumbnail | property photograph, 26 render px | 41px | a 44px line-glyph plate | no: `escrows` carries no photograph |
+| Countdown | emerald "4d 12h" | | emerald "4d 12h", `--nf-state-success` | yes |
+| Donut | teal, mauve, pink slices | | blue ramp by lightness, sixth step hatched, word + share + count | translated (colour law) |
+| Activity dots | emerald, rose, blue, cyan | | the status four with a word beside each | yes |
+| Radius, rim, fill, glow | as money | | as money | as money |
+
+**Supply** (`8E9602E2` panel 3; `side-by-side-supply.jpg`)
+
+| Property | Render (measured) | Converted | Built (measured) | Match |
+|---|---|---|---|---|
+| Page title "Supply" | ink 19 incl. pp and y, cap 14 | 22 cap, 30px | 30px at 1440, 700 | yes |
+| KPI label "Owners" | ascender 8 | 12.6 cap, 17px | 17px | yes |
+| KPI figure "1,248" | cap 13 | 20.4 cap, 28px | 26.2px at 1440, 700 | yes (1px) |
+| Change "12%" | cap 9 | 14 cap, 20px | 20px, 600 | yes |
+| Panel titles | cap 10 | 15.7 cap, 22px | 22px | yes |
+| Table head, rows | cap 6 | 13px | 13px | yes |
+| Verified mark | tick or cross | | tick or cross with the word Yes or No | yes, plus the word |
+| Growth chart | four filled lines in four hues, legend | | four lines on the blue ramp, dash patterns, labels spread at the line ends, legend | translated (research part four) |
+| Top areas bars | gradient bars on a track | | gradient bars on a track | yes |
+| Property type donut | six hues | | ramp by lightness plus hatching for the sixth, words, shares, counts | translated |
+| Examples control | absent | | "Examples left out" toggle, 44px, 14px corner (0.32) | added (R-F: real function, drawn compactly) |
+
+**Bookings and payments, against the register** (no render governs them;
+the register is the money desk above; `side-by-side-bookings-vs-register.jpg`,
+`side-by-side-payments-vs-register.jpg`)
+
+| Property | Register (money desk, measured) | Bookings (measured) | Payments (measured) | Match |
+|---|---|---|---|---|
+| Page title | 26px 700 | 26px 700 | 26px 700 | yes |
+| Lede | 14px quiet blue | 14px quiet blue | 14px quiet blue | yes |
+| KPI card | 14px corner, per-side lit edges, lit fill | same, five across (224 x 138) | same, four across (284 x 124) | yes |
+| KPI label / figure | 15px 500 / 24.6px 700 | 15 / 24.6 | 15 / 24.6 | yes |
+| Change | 15px 600, emerald or rose | none drawn (state counts, no earlier period of the same thing) | 15px, rose when failures rise | yes |
+| Panel title | 20px 600 | 20px | 20px | yes |
+| Table head / rows | 13px / 13px | 13 / 13 | 13 / 13 | yes |
+| Pager | 44 x 44, 10px corner, lit current page | same | same | yes |
+| Status badge | `StatusPill`, 6px corner | same | same | yes |
+| Status bar | none on money | 28px track, words on segments | 28px track, words on segments | new element, register colours |
+| Chips and toggles | 44px, 14px corner (0.32) | shared status chips | outcome and kind toggles, 44px (0.32) | yes |
+| Empty state | shared `CalmNote` over the kept frame | same | same | yes |
 
 ### 8.3 Refused from the render
 
@@ -1535,7 +1599,7 @@ reads alike. Colours sampled with `sample` over 3x3 boxes.
 
 ### 8.4 Light mode
 
-Checked at 1440 on all three desks (`docs/design/proofs/session-b/admin-money/`).
+Checked at 1440 and 390 on all five desks, both fixture states (`docs/design/proofs/session-b/admin-money/*-light.jpg`).
 Cards take the shell's paper surface and edge; no glow; charts follow the
 ramp tokens' light twins; the credit colour and badges take the daylight state
 tokens from `2596ed9`. One defect found and fixed: the escrow row plate was a
@@ -1550,57 +1614,192 @@ self-naming rows below 768px; the pipeline is two columns; charts scale.
 
 ### 8.6 Measured built values, shape sweep and checks
 
-Built, measured in the browser at 1440 dark (`getComputedStyle`): page title
-26px 700 white; lede 14px `rgb(92 159 255)`; KPI card 284 x 122, radius 14px,
-edge the shell's panel edge; KPI label 13px 500 `rgb(92 159 255)`; KPI figure
-28.96px 700; delta 13px 600 `rgb(16 185 129)`; panel title 16px 600; table
-head 13px 500 quiet blue; table row 65px (the render's rows are about 42px at
-the type-consistent scale; ours carry the payment reference on a second line,
-which the render omits and which support needs); pager items 44 x 44, radius
-10px (ratio 0.23), the current one on the lit primary gradient with the
-primary rim and bloom.
+Built values are `getComputedStyle` in Chromium at 1440 dark on the committed
+harness after the final change (`m2.mjs`, 23 September), and are the "Built"
+column of the tables in 8.2. Shared by every desk: KPI and panel card corner
+14px, per-side lit edges, inset rim; pager 44 x 44, corner 10px (ratio 0.23),
+current page on the lit primary with rim and bloom; table head and rows 13px;
+status badge 23 to 28px tall, 6px corner (0.26); calm note corner 10px;
+toggles and chips 44px tall, 14px corner (0.32). Per desk: money title 26 /
+KPI label 15 / KPI figure 24.6 / change 15 / panel title 20; escrow title 30
+/ stage label 15 / stage count 24.6 / float 24 / panel title 20; supply
+title 30 / KPI label 17 / KPI figure 26.2 / change 20 / panel title 22;
+bookings and payments at the money register. KPI cards: money and payments
+284 x 124, supply 284 x 136, bookings 224 x 138 (five across), escrow stage
+tiles 177 x 104.
 
-`node scripts/design/compare-surface.mjs --shape-sweep --theme both` over
-`/preview/zz-am/{money,escrow,supply}?state=full` and
-`/preview/zz-am/{money,supply}?state=live` at 390 and 1536:
+Shape sweep, `node scripts/design/compare-surface.mjs --base
+http://127.0.0.1:3177 --shape-sweep --theme both --routes` over all ten
+harness routes (`/preview/session-b/admin-money/{money,escrow,supply,bookings,payments}?state={full,live}`)
+at 390 and 1536:
 
 ```
 BREACHES, a text-bearing control drawn as a capsule (ratio at or above 0.5): 0
-WORTH AN EYE, text-bearing and over 0.35 but not yet a capsule: 45
+WORTH AN EYE, text-bearing and over 0.35 but not yet a capsule: 0
 ROUND ICON-ONLY CONTROLS, allowed only where a governing image draws them round: 0
-no text-bearing control is a capsule.
+ROUTES REFUSED, so nothing is claimed about them either way: 0
+COVERED: 10 route(s) asked for, 0 refusal(s), 0 route/width/theme combination(s) actually measured.
 ```
 
-All 45 "worth an eye" are the shell's (the "All desks" nav row at 0.39, the
-bar's search input and the shared status chips at 0.35); none is on a money
-desk's own control. `check-css-tokens.mjs`: clean. `tsc --noEmit`: clean (also
-by `next build`). `eslint` on every changed file: clean. `vitest run
-src/lib/admin/reads`: 40 passed.
+The "0 combinations actually measured" line counts only combinations that
+produced a finding at or above 0.35, so a clean run prints 0 there. To prove
+the pages were opened and swept, the same selector was run independently
+(`scratchpad/am/sweepcount.mjs`): 40 route/width/theme combinations, every
+page's `h1` present, 1,096 controls measured, highest text-bearing ratio
+**0.32** (the 44px toggles and chips). Under R-D that is sweep zero. The 45
+shell items seen in round one (the "All desks" row at 0.39, the bar search at
+0.35) are gone since admin-shell's `2fc66f60`.
+
+Phone 390: page scroll width is 390 on all ten routes (`wide.mjs`); the items
+that sit past the right edge are inside the chip-row scroller or are the
+sr-only table twins.
+
+Checks on the final tree: `check-css-tokens.mjs` clean, 0 layer-1
+references; `tsc --noEmit` clean; `next build` exit 0; `eslint` over
+`app/admin/{money,escrow,supply,bookings,payments}`, `lib/admin/reads` and the
+harness: clean; `vitest run src/lib/admin/reads`: 10 files, 70 tests passed.
 
 ### 8.7 Proofs
 
-All desk screenshots come from an uncommitted harness at
-`/preview/zz-am/{money,escrow,supply}` that renders the real desk components
+All desk screenshots come from the committed harness under R-G,
+`apps/web/src/app/(dev)/preview/session-b/admin-money/{money,escrow,supply,bookings,payments}`
+(gated by `VALLO_PREVIEW_HARNESS`), which renders the real desk components
 inside admin-shell's real `AdminFrame` with FIXTURE props, because no admin
-session exists on this box. Two fixture states: `live` mirrors the rows the
-production database held on 22 September (read with SQL: one wallet, two
-entries, no escrows, every supply row an example); `full` is invented data
-used only to prove the layout against the render. The live wiring is proven by
-the reads' code, the SQL introspection above and the 40 unit tests, not by a
-signed-in screenshot.
+session exists on this box. Two fixture states (`fixtures.ts`): `live`
+mirrors what the production database held when read with SQL (one wallet,
+a deposit on 9 August and a withdrawal on 10 August, no escrows, no bookings,
+64 listings all examples, 7 accounts), so it shows the designed empty
+states; `full` is invented data used only to prove the layout against the
+render and never shown on a real page. The live wiring is proven by the
+reads' code, the SQL introspection in 8.1 and 8.9 and the 70 unit tests, not
+by a signed-in screenshot.
+
+`docs/design/proofs/session-b/admin-money/`: 40 shots, each desk x
+`full`/`live` x 1440/390 x dark/light; `side-by-side-{money,escrow,supply}.jpg`
+(render crop beside the built page at 1440 dark);
+`side-by-side-{bookings,payments}-vs-register.jpg`.
 
 ### 8.8 Skipped or not verified
 
 - No signed-in run of the real pages: no admin test user may be created.
-- The escrow ruling was not exercised end to end (zero escrows exist).
-- `private.reconciliation_watch` not surfaced (request 10).
-- Bookings and payments were not restyled beyond the shell's register.
-- The render's escrow row photographs.
+- The escrow ruling and the admin booking cancel were not exercised end to
+  end: zero escrows and zero bookings exist.
+- `private.reconciliation_watch` not surfaced (request 10, a migration,
+  Session A's).
+- `rent_payments` is not surfaced on any desk; it carries no rows and no
+  desk owns it yet. Named here so it is not mistaken for covered.
+- Card corner: the render draws about 8 CSS px, built 14px, the shell's one
+  panel corner. Outer glow: the render has none, the shell's shared
+  `--nf-admin-panel-glow` adds 22px. Both left to admin-shell, not overridden
+  per desk.
+- Ledger row pitch 64px against the render's 39: the second line carries the
+  payment reference.
+- The render's escrow row photographs: `escrows` has no photo.
+- The `full` money fixture's monthly sums oscillate where the render's rise;
+  a fixture matter only.
 - An incident during the work: once, before the coordinator's warning, this
   worker ran `git stash` and `git stash pop` in its worktree; the stash is
   shared across worktrees. The popped change set was this worker's own (the
   file list matched), but it is recorded here in case another worker lost
   work around 20:35.
+
+### 8.9 Round two: bookings, payments, designed empty states, the glow identity
+
+**Bookings** (`/admin/bookings`): chain. Screen, `LiveRefresh`. Query
+`getBookingsDesk` (`lib/admin/reads/bookings.ts`): `bookings` with
+`listings (title, area, city)`, SUCCESSFUL `transactions`, `booking_refunds`,
+guest names from `profiles` where the booking carries none; every table read
+whole, bookings checked against an exact count. Policies `bookings_admin_all`,
+`listings_admin_all`, `transactions_admin_select`,
+`booking_refunds_select_admin`, `profiles_select_admin` (read live). Controls:
+three KPI cards link to status filters, the shared filter, the numbered pager,
+each row opens `/admin/bookings/[bookingId]` where Session A's
+`cancelBookingAsAdmin` (validation, `refund_and_cancel_booking`, the wallet
+credit, the `booking_refunds` row) is unchanged; the restaurant tables link
+and `getReservationWaitingCount` are kept. "Checked in" has no status in
+`booking_status`, so the card is "In stay now": CONFIRMED with today inside
+the dates, and the handbook says so. No broken link; zero bookings exist, so
+nothing on the cancel path was exercised.
+
+**Payments** (`/admin/payments`): chain. Query `getPaymentsDesk`
+(`lib/admin/reads/payments.ts`): every `transactions` row (booking checkouts)
+and every `wallet_entries` row of kind `deposit` (top-ups), each checked
+against an exact count. "Initialised" and "abandoned" are not statuses in the
+schema: both are PENDING, split at 24 hours, and the desk says "Started" and
+"Abandoned" with that definition in the handbook. "Channel" is recorded only
+on top-ups (`metadata.channel`); checkouts show "checkout, unrecorded"
+rather than a guessed channel. Kept unchanged: `getPaymentHealth`,
+`SweepHolds` (`expireStaleWithdrawalHolds`), `LookupPanel` with
+`getSavedMethods`, `getTermsStanding` and the removal actions.
+
+**Designed empty states.** Every empty panel on the five desks now keeps its
+frame (a chart's grid, axis labels and legend through admin-shell's shared
+`EmptyChart`; a table's head; a donut's track and its named categories at
+zero; the ranked bars' five empty tracks) and shows the shared `CalmNote`
+(glow identity section 7): what fills the panel, what creates that data, and
+a link to where it is made (Supply by role to the verification queue, growth
+to agent applications, areas and property types to listing review, the
+ledger and the flow chart to payments, stays to listing review, refunds to
+bookings). Over a ghosted frame the note takes a solid ground so the frame's
+words do not read through it (seen on the first round two proof and fixed).
+A read that failed draws the same note as an error.
+
+**Glow identity (d01a5d7).** Panels take `--nf-admin-panel-edges` (per-side
+lit edge) and the shell's lit fill. Selected KPI cards and pipeline stages
+take section 3's anatomy: cyan-lit edges, a 1px ring of the lit cyan, the fill
+lifted under the rim, the 14px and 30px bloom; paper twin: brand edge and
+ring, pale lift, soft shadow. The current pager page and pressed toggles take
+the lit primary edge. The escrow Release and Refund controls are
+admin-shell's `EscrowRuling`; they are rounded rectangles (sweep below) and
+are deliberately equal glass controls, because drawing one direction as the
+lit primary would press an operator towards it; the committing button is the
+second step. Request to admin-shell below.
+
+**Charts.** The growth chart's end labels are spread to a 14 unit minimum
+gap (`spreadLabels`), so Hosts and Firms no longer collide. Past the fifth
+ramp step every donut slice is the fifth step hatched, at alternating angles,
+with its word, share and count; the sixth property type is now distinct.
+Status bars carry the word on every segment of 7% or more, the count on
+narrower ones, and a key naming all segments with counts. Axis ticks no
+longer collide at the right edge.
+
+**Requests to admin-shell.**
+1. `EscrowRuling` (`_components/MoneyDecisions.tsx`): make the second-step
+   committing button the lit primary and keep the two direction choices as
+   equal glass rounded rectangles. Not changed here: `_components` is
+   admin-shell's.
+
+### 8.10 Coverage and the lead's rulings
+
+**Every money path.** Wallet top-up (`wallet_entries` deposit: money flow,
+ledger, payments attempts), withdrawal (`wallet_entries` withdrawal and its
+hold: ledger, `SweepHolds` on payments), booking checkout (`transactions`:
+payments, bookings, failed charges on money), booking refund
+(`booking_refunds`: money refunds panel, bookings "Refunded", Session A's
+`cancelBookingAsAdmin`), escrow in every state including `CANCELLED`
+(pipeline, table, activity) and every purpose including `agency_fee` (the
+by-purpose donut and the handbook section 9), the admin ruling (Session A's
+`escrow_admin_resolve` through admin-shell's `EscrowRuling`, both parties
+notified, read with SQL), reconciliation (`wallet.reconciliation.run` in
+`audit_log`: ring on money, check on escrow). Not surfaced: `rent_payments`
+(8.8).
+
+**Every supply role.** Owner, agent, firm and host, from the application's
+`supply_role` with a fallback to the agent type; businesses count as firms
+when they are agencies and as hosts otherwise; example rows left out unless
+the toggle asks for them, and the count left out is printed.
+
+**Rulings.**
+
+| Ruling | Where it stands |
+|---|---|
+| R-A type at the render's measured size, floor 11px | per desk, 8.2; smallest built text 12px |
+| R-B controls at the render's height, floor 44px | pager, toggles, chips 44px; the render's 39px pager raised to the floor |
+| R-C containers at the render's width | grid fractions and column shares from the render; absolute widths follow the 1440 grid, 8.2 |
+| R-D sweep zero means under 0.35 | 0.32 highest, 8.6 |
+| R-E entering the console lands on the overview | admin-shell's; no money desk redirects |
+| R-F real function drawn compactly | the supply examples toggle, the payments outcome and kind toggles, the reference line under ledger rows |
+| R-G harnesses committed | `apps/web/src/app/(dev)/preview/session-b/admin-money/` |
 
 ## 9. Inspection
 
