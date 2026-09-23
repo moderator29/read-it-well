@@ -7652,3 +7652,73 @@ named as owed.
 The gate lines in 59.3 and 62.2 (`tsc --noEmit`, `vitest run`) were taken in
 the shared worktree and are statements about that tree, not about main. They
 are reported as what they are.
+
+---
+
+## 57quater. MY COMMIT SWEPT UP SOMEBODY ELSE'S STAGED DELETION, AND THE ASSERTION MEANT TO CATCH IT IS BLIND
+
+### What I did wrong, plainly
+
+`7da4b0d0` carries two entries that are not mine:
+
+| entry | whose | effect |
+| --- | --- | --- |
+| `D apps/web/src/lib/notify/welcome.ts` | the notify worker's | main went red for eight assertions in two files about refusing sign-ups |
+| `A docs/escrow/PROBE_STATE.md` | the escrow worker's | additive, harmless |
+
+**The cause was my procedure, not bad luck.** I ran `git add <my paths>` and
+then a bare `git commit`. The second statement commits THE WHOLE INDEX, and
+the index is shared by every process in this worktree, so anything another
+worker had staged in that window came with it. Naming my paths on the `add`
+bought nothing, because the `commit` did not name them. My other two commits,
+`c8759b7f` and `4f82b27d`, are clean; I checked all three file by file.
+
+Now using the corrected sequence: `git add` for brand new files only, then
+`git commit -m "..." -- <paths>`, which builds a temporary index from those
+paths and never reads the shared one.
+
+**The deletion itself was the notify worker's correct intent**, not a
+corruption of it: the welcome moved to a trigger on `auth.users` because
+`lib/auth/actions.ts` was only one of five doors that mint an account. I
+carried their work across a boundary at a moment they had not chosen, which is
+the whole problem.
+
+### The assertion that was supposed to make this impossible does nothing
+
+`lib/notify/junction.test.ts:232` intends to guarantee the retired module
+cannot be imported back by accident:
+
+```ts
+await expect(read("notify/welcome.ts")).rejects.toThrow();
+```
+
+`read` resolves against `src/`:
+
+```ts
+const here = fileURLToPath(new URL(".", import.meta.url));   // src/lib/notify/
+return readFile(`${here}../../${path}`, "utf8");             // src/ + path
+```
+
+So `read("lib/auth/actions.ts")` is right, and **`read("notify/welcome.ts")`
+looks for `src/notify/welcome.ts`, which has never existed at any commit.**
+The assertion therefore passes unconditionally. It passed while the file was
+deleted and it passes now that it has been restored, which is the proof: I ran
+`junction.test.ts` at `origin/main` in an isolated worktree with the file
+present, and all nine tests passed.
+
+**A blind light of exactly the kind this ledger keeps sweeping for**, and it
+was watching the very thing that just broke. The fix is one word:
+`read("lib/notify/welcome.ts")`. `lib/notify/**` is not mine, so it is
+**R-P7**, raised rather than done. It is not urgent, because main is green;
+it is worth doing because this assertion is currently load bearing in the
+minds of whoever wrote it and is holding nothing.
+
+### Main verified green, in isolation rather than here
+
+The coordinator is right that a suite run in this shared worktree measures a
+tree nobody has. So: a detached worktree at `origin/main` (`c2458016`), with
+`node_modules` hardlinked by `cp -al` at BOTH the root and `apps/web`, both
+confirmed real directories and not symlinks.
+
+**205 test files, 3445 tests, all passing.** The restore holds and nothing of
+mine is red on main.
