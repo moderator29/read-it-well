@@ -103,7 +103,32 @@ function subscribe(): () => void {
   return () => {};
 }
 
-export function PushSetting() {
+/**
+ * THE CONTROL MAY NOT READ ON UNLESS A ROW EXISTS. THIS IS WHY.
+ *
+ * On 23 September the founder tried to register the first device this platform
+ * has ever had. `/api/push/key` answered 401 because the route was gated, the
+ * subscribe never happened, `push_tokens` stayed at zero rows, and **the
+ * control still presented as allowed**, because the phase was read from
+ * `Notification.permission` alone. Permission had genuinely been granted: that
+ * is a fact about the BROWSER and it says nothing whatever about whether Vallo
+ * holds a subscription.
+ *
+ * So a control that reads permission is a control that reports the wrong
+ * thing at exactly the moment it matters, and it reported success over a
+ * failure. Two things stop it now.
+ *
+ * ONE, `registeredDevices` comes from the database, server rendered by the
+ * page that also draws the device list underneath. Zero rows means this
+ * account has registered nothing, whatever the browser says.
+ *
+ * TWO, a failed attempt always settles the phase itself rather than leaving
+ * the browser to drive it. Before, `setNote` was called and `setSettled` was
+ * not, so the next render read permission, found "granted", and drew the
+ * granted copy with the failure note beneath it. One said allowed and the
+ * other said not switched on, about the same device, at the same moment.
+ */
+export function PushSetting({ registeredDevices = 0 }: { registeredDevices?: number } = {}) {
   const router = useRouter();
   const observed = useSyncExternalStore<Phase>(subscribe, readPhase, () => "deciding");
   /* What the person has since done on this screen, which outranks what the
@@ -138,12 +163,18 @@ export function PushSetting() {
         setSettled("denied");
         return;
       }
+      /* THE PHASE IS SETTLED ON EVERY FAILURE, not just on a refusal. Leaving
+         it unset let `Notification.permission` decide, and permission was
+         granted, so the screen drew the allowed copy over a failed attempt. */
+      setSettled("control");
       setNote(
-        outcome.reason === "not_configured"
-          ? "Notifications are not switched on for this version of Vallo yet. Nothing for you to do."
-          : outcome.reason === "unsupported"
-            ? "This browser cannot show notifications. Add Vallo to your home screen and try again."
-            : "That did not work. Try again in a moment.",
+        outcome.reason === "sign_in_required"
+          ? "Your session did not reach us, so this device was not registered. Sign in again and try once more. On an iPhone, the app you added to your home screen signs in separately from Safari."
+          : outcome.reason === "not_configured"
+            ? "Notifications are not switched on for this version of Vallo yet. Nothing for you to do."
+            : outcome.reason === "unsupported"
+              ? "This browser cannot show notifications. Add Vallo to your home screen and try again."
+              : "That did not work. This device was not registered. Try again in a moment.",
       );
     });
   }, [router]);
@@ -188,14 +219,28 @@ export function PushSetting() {
     );
   }
 
-  const granted = phase === "granted";
+  /*
+   * `allowed` is a browser fact. `registered` is a database fact. They are
+   * kept apart on purpose, and the control only ever reads ON when BOTH are
+   * true. A device the browser has allowed but that we hold no row for is the
+   * exact state the founder hit, and it now says so in as many words.
+   */
+  const allowed = phase === "granted";
+  const registered = allowed && registeredDevices > 0;
 
   return (
-    <div className="space-y-row" data-push-setting={granted ? "granted" : "control"}>
+    <div
+      className="space-y-row"
+      data-push-setting={registered ? "granted" : "control"}
+      data-push-allowed={allowed ? "yes" : "no"}
+      data-push-registered={registered ? "yes" : "no"}
+    >
       <p className="nf-body-sm text-content-2">
-        {granted
+        {registered
           ? "Notifications are allowed on this device. If it is not in the list below, switch it back on."
-          : "Get told when a host answers, when somebody writes back, and when money moves. Nothing at night unless it is about your money."}
+          : allowed
+            ? "You have allowed notifications on this device, but it is not registered yet, so nothing will reach it. Switch it on below."
+            : "Get told when a host answers, when somebody writes back, and when money moves. Nothing at night unless it is about your money."}
       </p>
       {note && (
         <p role="status" className="nf-body-sm text-content">
@@ -209,7 +254,7 @@ export function PushSetting() {
         data-testid="push-turn-on"
         className="nf-btn nf-btn--sm nf-btn--ghost w-full"
       >
-        {busy ? "Just a moment" : granted ? "Switch this device back on" : "Turn on for this device"}
+        {busy ? "Just a moment" : registered ? "Switch this device back on" : "Turn on for this device"}
       </button>
     </div>
   );

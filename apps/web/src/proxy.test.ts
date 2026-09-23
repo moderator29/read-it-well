@@ -197,6 +197,14 @@ function routePaths(): string[] {
  * Dynamic segments are written as they appear on disk.
  */
 const EXPECTED_PUBLIC = new Set([
+  /*
+   * DECIDED, 23 SEPTEMBER, AFTER IT COST THE FIRST REGISTRATION EVER ATTEMPTED.
+   * The public half of the VAPID pair. A browser cannot call
+   * `pushManager.subscribe` without it, so gating it made push impossible
+   * rather than secure. Its own route header always said publishing it was
+   * the intended use, and its variable is named `NEXT_PUBLIC_`.
+   */
+  "/api/push/key",
   "/",
   "/robots.txt",
   "/sitemap.xml",
@@ -337,13 +345,32 @@ describe("who may see the platform with no session", () => {
       "/api/crypto/coins/btc",
       "/api/assistant",
       "/api/documents/anything",
-      "/api/push/key",
       "/api/push/register",
       "/api/push/revoke",
       "/api/push/self-test",
     ]) {
       expect(isPublicPath(path), `${path} hands product data to a stranger`).toBe(false);
       expect(isApiPath(path), `${path} must be refused as JSON, not redirected to HTML`).toBe(true);
+    }
+  });
+
+  /*
+   * THE ONE THAT WAS SHUT AND SHOULD NOT HAVE BEEN.
+   *
+   * `/api/push/key` answers the PUBLIC half of the VAPID pair. A browser
+   * cannot call `pushManager.subscribe` without it, so gating it made the
+   * first device anybody ever tried to register impossible: on 23 September
+   * the live site answered `{"error":"Sign in to use this."}` inside a home
+   * screen web app, which keeps a cookie store separate from Safari.
+   *
+   * This asserts the decision in BOTH directions, because an assertion that
+   * only says "open" would pass just as happily if somebody opened the three
+   * beside it.
+   */
+  it("serves the public VAPID key to a stranger, and still shuts the three that write or send", () => {
+    expect(isPublicPath("/api/push/key"), "a browser cannot subscribe without this").toBe(true);
+    for (const path of ["/api/push/register", "/api/push/revoke", "/api/push/self-test"]) {
+      expect(isPublicPath(path), `${path} writes or sends and must stay shut`).toBe(false);
     }
   });
 

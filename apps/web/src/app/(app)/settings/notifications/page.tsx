@@ -88,7 +88,10 @@ export default async function NotificationsSettingsPage() {
       {push.state === "signed-in" && (
         <section id="settings-push" className="mt-block scroll-mt-28 space-y-block">
           <h2 className="nf-title-sm text-content">On your phone</h2>
-          <PushSetting />
+          {/* The same rows the list below draws. The control is not allowed
+              to decide it is on from the browser's permission alone: see the
+              header of `PushSetting`. */}
+          <PushSetting registeredDevices={rows.length} />
           <PushDevices rows={rows} readable={push.readable} />
         </section>
       )}

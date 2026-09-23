@@ -193,9 +193,24 @@ const PUBLIC_PATHS = new Set(["/", "/robots.txt", "/sitemap.xml", "/opengraph-im
  *                      `/help` page. Somebody locked out is exactly who needs
  *                      it.
  *
+ *   the VAPID key  `/api/push/key` answers the PUBLIC half of the key pair,
+ *                      and a browser cannot call `pushManager.subscribe`
+ *                      without it. Gating it was a real defect: on 23
+ *                      September the founder tried to register the first
+ *                      device this platform has ever had and got
+ *                      `{"error":"Sign in to use this."}` from inside a home
+ *                      screen web app, which keeps its own cookie store and so
+ *                      had no session. The route's own header said all along
+ *                      that "publishing it is the intended use, not a leak",
+ *                      and its variable is literally named `NEXT_PUBLIC_`.
+ *                      Two parts of this codebase disagreed about one route
+ *                      and the wall won. It is open now and the three that
+ *                      matter stay shut.
+ *
  * Closed by absence, and checked: `/api/assistant`, `/api/crypto/*`,
- * `/api/documents/[id]`, `/api/map/listings`, `/api/push/key`,
- * `/api/push/register`, `/api/push/revoke` and `/api/push/self-test`.
+ * `/api/documents/[id]`, `/api/map/listings`, `/api/push/register`,
+ * `/api/push/revoke` and `/api/push/self-test`. Those three write or send;
+ * the key only tells a browser who to bind a subscription to.
  */
 const PUBLIC_API_PATHS = new Set([
   "/api/auth/email-hook",
@@ -208,6 +223,7 @@ const PUBLIC_API_PATHS = new Set([
   "/api/cron/pg-cron-watch",
   "/api/cron/saved-search-alerts",
   "/api/csp-report",
+  "/api/push/key",
   "/api/paystack/reconcile",
   "/api/paystack/webhook",
   "/api/push/drain",

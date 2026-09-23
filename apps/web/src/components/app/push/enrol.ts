@@ -47,6 +47,21 @@ export type EnrolOutcome =
         /* The deployment has no VAPID key, so there is nothing to subscribe
            against. Nothing the person can do. */
         | "not_configured"
+        /*
+         * THE REQUEST CARRIED NO SESSION, WHICH IS A DIFFERENT FAULT WITH A
+         * DIFFERENT FIX AND IT USED TO BE REPORTED AS THE ONE ABOVE.
+         *
+         * "The deployment has no key" and "your session did not reach us" are
+         * told apart here because they are told apart nowhere else: the first
+         * is ours and the person can do nothing, the second is theirs and
+         * signing in fixes it in five seconds. Collapsing them told the
+         * founder push was not set up on a deployment where it was.
+         *
+         * It is most likely on iOS, where a home screen web app keeps a
+         * cookie store separate from Safari: signed in in one, signed out in
+         * the other, same device, same person.
+         */
+        | "sign_in_required"
         /* The subscription or token was obtained and the server would not
            record it. */
         | "not_saved"
@@ -99,13 +114,26 @@ async function enrolWeb(): Promise<EnrolOutcome> {
   let publicKey: string;
   try {
     const response = await fetch("/api/push/key", { cache: "no-store" });
+
+    /*
+     * A 401 IS NOT A MISSING KEY. The route is public now, so this should not
+     * happen; it is kept because it DID happen, on the live site, to the first
+     * device anybody ever tried to register, and a reply this specific must
+     * never again be flattened into "not set up".
+     */
+    if (response.status === 401 || response.status === 403) {
+      return { ok: false, reason: "sign_in_required" };
+    }
+
     const body = (await response.json()) as { configured?: boolean; publicKey?: string };
     if (!body.configured || typeof body.publicKey !== "string") {
       return { ok: false, reason: "not_configured" };
     }
     publicKey = body.publicKey;
   } catch {
-    return { ok: false, reason: "not_configured" };
+    /* The fetch itself did not complete: offline, DNS, a proxy. Not a
+       statement about our configuration, so it does not claim to be one. */
+    return { ok: false, reason: "failed" };
   }
 
   try {

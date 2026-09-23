@@ -149,13 +149,16 @@ const API_CLOSED = [
   "/api/crypto/coins/bitcoin",
   "/api/assistant",
   "/api/documents/anything",
-  "/api/push/key",
   "/api/push/register",
   "/api/push/revoke",
   "/api/push/self-test",
 ];
 
 const PUBLIC = [
+  /* The public half of the VAPID pair. Shut until 23 September, which is why
+     push_tokens had zero rows: no browser could ever reach the key it needs to
+     subscribe with. */
+  "/api/push/key",
   "/",
   "/about",
   "/careers",
