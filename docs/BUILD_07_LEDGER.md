@@ -8417,3 +8417,233 @@ section 4. It is listed here only so that Session B does not add a second,
 different vocabulary for the same three values on an admin screen: the three
 sentences and the three filter labels live in `apps/web/src/lib/supply/roles.ts`
 and nowhere else, and that rule has already been broken three times.
+
+---
+
+## 63. ESCROW4: THE PROBES NOW TEST THE DOOR PEOPLE ACTUALLY WALK THROUGH, AND THE HARNESS FOUND FIVE LIVE BODIES THAT ARE NOT THE MIGRATION TEXT
+
+Worker: ESCROW4. Files: `scripts/probes/escrow_concurrency.sh`,
+`scripts/probes/escrow_live_catalogue.tsv` (new),
+`scripts/probes/escrow_concurrency_20260923_mutation_tests.log` (new),
+`scripts/probes/escrow_concurrency.log`,
+`scripts/probes/escrow_revoke_roles.log`,
+`scripts/probes/escrow_invariants.log`, `docs/escrow/PROBE_STATE.md`. No
+migration, no application code, nothing of Session B's.
+
+**The rules were restated before the first edit** and the two that bit hardest
+were rule 18 and the stop list's ban on writing test rows to live product
+tables. Every live probe below ends in a deliberate `raise exception` and
+rolled back. Money stayed integer kobo throughout. **Custody was not touched
+and no path added here puts VALLO SPACES LTD in custody of anything.**
+
+### 63.1 BLOCK 1. Six probes were proving a door nobody can open
+
+Section 59 retired `escrow_fund_from_wallet_as` and section 62 recorded the
+honest consequence: P-1 to P-6, P-8 and P-9 funded through it, so a green run
+was evidence about shared locking and ledger machinery and not about the door
+the product funds through. That was named as owed twice and not done.
+
+**It is done.** Every funding call in the harness now goes through
+`escrow_propose_as` to open the agreement in INITIATED with nothing moved, and
+`escrow_fund_proposal_as` to take the money. Verified from the catalogue
+first: the retired pair reads `{postgres=X/postgres}` and the proposal pair
+reads `service_role=X/postgres`, from `pg_proc.proacl`, not
+`information_schema`.
+
+**Three gates moved from beside the probes to inside them**: the thread
+membership test, one live agreement per thread, and a funding reference
+derived from the row rather than chosen by the caller.
+
+**A structural fact the retired verb could not express, which nobody asked
+about.** `conversations` is unique on `(guest_id, agent_id, listing_id)`, read
+from `pg_constraint`, and the proposal door refuses a second live agreement in
+one thread. **So two simultaneously fundable proposals between the same two
+people require two different properties.** P-1 races exactly that, so P-1 now
+needs two listings and two threads, and P-9's lifecycle mix needs seven of
+each. The scratch schema gained `public.listings` and `public.conversations`
+with production's own unique key, and the F-4 demo listing trigger, which the
+old probes never exercised because they always passed a null listing.
+
+**P-6 changed shape rather than changing door, and this is the interesting
+one.** The reference is now derived, so a retry cannot carry a different key
+and the first line of defence is no longer the unique index at all: it is the
+row lock plus the state test, and the repeat answers `not_fundable`. The index
+is now a BACKSTOP THE ORDINARY PATH NEVER REACHES, which is exactly the shape
+that quietly stops working, so a third case puts the derived reference in the
+ledger by hand while the agreement is still INITIATED and forces the
+`exception when unique_violation` branch to run. It answers `duplicate` and
+leaves the agreement INITIATED.
+
+### 63.2 BLOCK 2, and the day's second blind light, which came out of a mutation
+
+P-3 ran escrow-first only and P-8 tested one illegal pair out of fifty eight.
+Both are closed. But the reason P-3's reverse orderings matter turned out to
+be sharper than "a direction that has never run".
+
+**Mutation C removed the overdraft refusal from `escrow_fund_proposal_as`
+altogether**, so the escrow door would let a payer spend money they do not
+have. Run against the harness as it stood after block 1:
+
+```
+P-1                      FAIL
+P-2 (escrow_first)       PASS
+P-2 (withdrawal_first)   FAIL
+P-3a (pot)               PASS
+P-3b (transfer)          PASS
+P-9                      PASS
+```
+
+**P-3a and P-3b went green over a door that refused nothing.** It is P-2's
+blind light seen from the other side: with the escrow going first it wins the
+balance honestly, and the leg that then has to be refused is the POT or the
+TRANSFER, whose own spendable check is untouched. "Exactly one of them took
+the naira" is satisfied by the other path doing all of the refusing.
+
+So the reverse orderings are not a fuller version of a covered direction.
+**They are the only directions of P-3 in which the escrow door's own refusal
+is tested at all.** They run now and they go red under that mutation.
+P-2 and P-3 also stopped counting how many sessions said `ok` and started
+NAMING which leg must win and which must be refused, because a count cannot
+tell those two directions apart.
+
+**P-8b walks all 72 ordered pairs of the nine states from a plain prompt.**
+Fifty eight must raise with the trigger's own sentence and leave the row where
+it was, and **the fourteen legal pairs must be allowed through in the same
+run**, because a column of fifty eight refusals looks exactly like a trigger
+that refuses everything and would take the product down while reading as a
+clean sweep.
+
+**And P-8b holds its own hand-written copy of the fourteen legal pairs.**
+Mutation G swapped one legal pair for `REFUNDED -> RELEASED`, the single pair
+P-8 has been testing all week, and the counts did not move: 72 pairs, 14
+legal, 58 illegal, 0 behaving wrongly. Asking the shipped function what is
+legal and then checking it refused the rest is a circle. Only the independent
+list caught it.
+
+**Two defects in my own probe work, found by the mutations and fixed.** The
+smoke check said "THE HARNESS IS THE SUSPECT, NOT THE PRODUCT", and mutation F
+stopped the run there with the product at fault, so it now says first suspect
+and names the other possibility. And the query comparing the two transition
+tables was `A except B union all B except A` with no brackets, which Postgres
+reads leftwards as `((A except B) union all B) except A`; it reported one
+disagreement where there were two.
+
+### 63.3 BLOCK 3. THE GUARD FOUND FIVE LIVE BODIES THAT ARE NOT WHAT THIS REPOSITORY SAYS
+
+The brief asked for a guard against the hole section 59.4 named: the lift
+scans for `create or replace function`, a `drop` is neither, so a verb dropped
+in production goes on passing here against a body that no longer exists.
+
+`scripts/probes/escrow_live_catalogue.tsv` records the live catalogue for all
+32 probed functions, read from `pg_proc` through `execute_sql`: identity
+arguments, sha256 of `prosrc`, sha256 of `prosrc` with comments and trailing
+whitespace removed, `prosecdef`, and the acl. After the bodies load, the
+harness reads its own `pg_proc` with the same normalising expression and
+compares row by row, before the smoke check, and stops the run on any code
+disagreement, missing function, moved signature, moved SECURITY DEFINER flag,
+`drop` seen in a migration, defining migration newer than the live head, or
+missing manifest.
+
+**IT FIRED ON ITS FIRST REAL RUN AND THE FIVE ARE NOT AN ARTEFACT OF THE
+GUARD.**
+
+| Function | What differs | Verdict |
+| --- | --- | --- |
+| `private.compute_fee` | live copy is the same code with its `--` comments stripped out | **UNEXPLAINED** |
+| `private.notify` | same | **UNEXPLAINED** |
+| `public.move_into_pot` | same | **UNEXPLAINED** |
+| `private.escrow_invariants_check` | same | **UNEXPLAINED** |
+| `private.pay_booking_from_wallet` | says `RentMe` here, says `Vallo` live | **REAL, and fixed today** |
+
+**The fifth was real and it exposed a general fault nobody had stated.** SIX
+migrations rewrite function bodies through `pg_get_functiondef` and `execute`
+rather than through `create or replace`, and this harness replayed TWO of
+them, the F-9 pair. The brand rewrite of `20260922130000` is now replayed too,
+for the functions the harness holds, skipping an edit whose search string a
+later migration already removed and skipping one signature,
+`public.escrow_hold` with five arguments, which no longer exists anywhere.
+After that the code hashes agree for all 32.
+
+**WHO STRIPPED THE COMMENTS OUT OF THOSE FOUR LIVE BODIES IS NOT KNOWN.** It is
+written up as unexplained rather than guessed at. The live copies are
+otherwise identical, the code hashes agree, and no probe is running different
+logic from production. But something edits this database outside a migration
+and nobody has found what. **That is the reason there are two hashes and not
+one:** refusing the whole suite over a missing comment would have meant the
+guard was deleted within a day, and passing over a changed statement would
+have meant it was worthless. The code hash stops the run; the raw hash warns
+by name and the run continues.
+
+**The query that refreshes the manifest**, so the next worker does not have to
+reconstruct it:
+
+```sql
+select n.nspname||'.'||p.proname||chr(9)||pg_get_function_identity_arguments(p.oid)||chr(9)
+    || encode(sha256(p.prosrc::bytea),'hex')||chr(9)
+    || encode(sha256(btrim(regexp_replace(regexp_replace(regexp_replace(regexp_replace(
+         p.prosrc, '/\*.*?\*/', '', 'gs'), '--[^\n]*', '', 'g'),
+         '[ \t]+(\n)', '\1', 'g'), '\n+', chr(10), 'g'))::bytea),'hex')||chr(9)
+    || case when p.prosecdef then 't' else 'f' end||chr(9)
+    || coalesce(p.proacl::text,'(default)')
+from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+where n.nspname||'.'||p.proname in (the WANTED list in the harness);
+```
+
+Plus `select max(version) from supabase_migrations.schema_migrations` for the
+head. **The acl column is recorded and deliberately NOT compared**: the
+scratch cluster has no `anon`, `authenticated` or `service_role` at all, so a
+comparison would be theatre. P-7 proves the EXECUTE layer.
+
+**The guard was proved by making it fail four ways and then pass**: a probed
+body changed to open `purchase_balance`, a probed function dropped in a
+migration, a defining migration newer than the live head, and the manifest
+deleted. Each stops the run naming what it found. All eleven mutation runs are
+in `scripts/probes/escrow_concurrency_20260923_mutation_tests.log`, every one
+of them made in an ISOLATED COPY of the migrations and the script under
+`/tmp`. **Nothing in this repository's `supabase/migrations` and nothing on
+the live project was mutated at any point.**
+
+**One consequence for the last cycle's UNPROVEN.** Section 62 and the old
+`PROBE_STATE.md` recorded, honestly, that an untracked migration from another
+worker could redefine one of the probed bodies and the harness would silently
+lift it, because "the last definition in filename order" is exactly what an
+untracked file wins. **That is now caught**, because such a file changes the
+lifted code hash and the guard stops the run.
+
+### 63.4 BLOCK 4. Everything re-run, everything re-dated
+
+| Probe | Where | Verdict | Date |
+| --- | --- | --- | --- |
+| P-1 to P-6, P-8a, P-8b, P-9 local, fourteen results | local scratch cluster | **14 of 14 PASS**, through the proposal door | 2026-09-23 |
+| P-7, the EXECUTE layer | live project, rolled back | **PASS.** 22 refusals over 11 verbs and 2 roles, 0 reached a body, control answered `{"status":"forbidden"}` | 2026-09-23 |
+| P-9 against the live database | live project, rolled back | **PASS**, and **baseline clean** | 2026-09-23 |
+| P-7, the HTTP layer | needs egress this box does not have | **NOT RUN, and has never run** | never |
+
+P-7's HTTP half was checked twice while doing this work, at 10:30:15Z and
+again at 10:59:48Z, both `curl (56) CONNECT tunnel failed, response 403`. It
+was checked and nothing more was spent on it, and **nothing anywhere in this
+work claims a verdict that run would have produced.**
+
+**The one sentence at the top of `PROBE_STATE.md`:** every local probe now
+exercises the door the product actually funds through and every direction
+named in the founder's sentence has been run except the HTTP half of P-7, so
+the sentence is testable everywhere except at the API a person's browser
+reaches, and that one gap is enough to keep the gate shut.
+
+### 63.5 What I deliberately did not do
+
+- **`public.escrow_open` is still lifted and no longer funded through.** No
+  server action calls it, so P-9's cancel leg moved to the proposal door. The
+  verb still holds `service_role` and is still covered by P-7 and by the
+  catalogue guard. **Revoking it is not mine**: it is a revoke of something
+  somebody may legitimately hold, which is on the stop list.
+- **The four stripped-comment bodies were not "corrected".** Rewriting a live
+  body to match a comment is a change to production made to satisfy a probe,
+  which is the wrong way round, and the cause is unknown. It is recorded.
+- **`private.pay_booking_from_wallet` is in the probed set only so that the
+  `public.bookings` row type resolves for the F-9 replay.** No probe calls it.
+  It is left in the set because dropping it from the set would shrink what the
+  catalogue guard watches.
+- **The gate lines for the application (`tsc`, `vitest`) were not taken**,
+  because nothing in this work touches `apps/web` or any TypeScript file. The
+  only artefacts are bash, SQL, a TSV and three documents.

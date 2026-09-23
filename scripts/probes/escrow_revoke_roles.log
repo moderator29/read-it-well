@@ -56,3 +56,23 @@ information_schema.role_table_grants or information_schema.column_privileges,
 which only return rows where the querying role is grantor or grantee, so an
 empty result from those views is a fact about the observer and not about the
 object.
+
+---------------------------------------------------------------------------
+== RE-TAKEN 23 September 2026, by ESCROW4, after the local probes moved to
+== the proposal door. Same file, same project, rolled back. Verbatim:
+
+  ERROR:  P0001: PROBE ALL PASS (rolled back). 22 refusals over 11 verbs and
+  2 roles, 0 reached a body. THE CONTROL ANSWERED: escrow_admin_resolve, under
+  role authenticated in the same transaction, returned {"status": "forbidden"}.
+  This is the EXECUTE layer; the HTTP layer is a separate claim and is not made
+  here.
+
+The two doors the product now funds through, `escrow_propose_as` and
+`escrow_fund_proposal_as`, are two of the eleven, so this verdict is about the
+live door and not only about the retired one.
+
+STILL NOT THE HTTP LAYER. Checked again while writing this:
+
+  == checked at 2026-09-23T10:59:48Z
+  curl: (56) CONNECT tunnel failed, response 403
+  HTTP 000

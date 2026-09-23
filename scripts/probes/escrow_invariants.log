@@ -72,3 +72,25 @@ and the identity itself is one of the three.
 about the probe: at the moment of the run, the float derived from the ledger
 and the float derived from the agreement rows agreed, and no wallet was
 overdrawn.
+
+---------------------------------------------------------------------------
+== RE-TAKEN 23 September 2026, by ESCROW4. Same file, same project, rolled
+== back. Verbatim:
+
+  ERROR:  P0001: PROBE ALL PASS. Baseline clean. I-3a caught an agreement
+  holding money the ledger never took. I-2 stayed quiet on a sound agreement
+  and caught a 100 kobo disagreement with difference_minor = -100 exactly.
+  I-3b caught a double hold. Five passes opened exactly one alert for I-2 and
+  one for I-3a. Rolling back.
+
+BASELINE CLEAN is the half of this that is about production rather than about
+the probe: at the moment of the run the float derived from the ledger and the
+float derived from the agreement rows agreed exactly, and no wallet was
+overdrawn.
+
+A NOTE THE CATALOGUE GUARD ADDED TODAY, and it is about THIS function.
+`private.escrow_invariants_check()` is one of four whose live body is not the
+text in `supabase/migrations`: the live copy is the same code with its
+comments stripped out. The code hashes agree, which is what the guard gates
+on, so the body this probe just exercised is the body the migration carries.
+WHO STRIPPED THE COMMENTS IS NOT KNOWN.
