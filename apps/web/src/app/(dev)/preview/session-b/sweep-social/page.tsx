@@ -313,7 +313,7 @@ async function Face({ f, tab, member, empty }: { f: string; tab?: string; member
             conversationId={CONVERSATION_ID}
             meId={PERSON.id}
             counterpartName={booking ? HOTEL.name : rental ? "Michael T." : COUNTERPART.name}
-            counterpartVerified={!rental}
+            counterpartTier={rental ? "none" : "gold"}
             counterpartPhone="+2348010000000"
             listing={
               booking
