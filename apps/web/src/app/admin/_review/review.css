@@ -79,7 +79,7 @@
   .nf-rv-head__title {
     margin: 0;
     font-family: var(--nf-font-display);
-    font-size: 1.625rem; /* 17 image px x1.5 = 25.5 */
+    font-size: 1.375rem; /* cap 10.5 image px / 0.72 = 14.6, x1.5 = 22 (R-A) */
     font-weight: 600;
     line-height: 1.2;
     letter-spacing: -0.01em;
@@ -140,7 +140,7 @@
     border-radius: var(--nf-radius-control);
     border: 1px solid var(--nf-brand-edge-soft);
     background: color-mix(in oklab, var(--nf-brand-primary) 9%, var(--nf-surface-primary));
-    font-size: var(--nf-text-body-sm);
+    font-size: 0.9375rem; /* cap 7.5 image px / 0.72 x1.5 = 15.6 (R-A) */
     font-weight: 500;
     color: var(--nf-content-primary);
     white-space: nowrap;
@@ -345,8 +345,8 @@
 
   .nf-rv-thumb {
     flex: none;
-    width: 52px;
-    height: 56px; /* 30 x 38 image px x1.5, rounded down to the row */
+    width: 44px;
+    height: 56px; /* 29.5 x 37.5 image px x1.5 */
     border-radius: var(--nf-radius-xs);
     object-fit: cover;
     border: 1px solid var(--nf-brand-edge-soft);
@@ -468,7 +468,7 @@
   .nf-rv-role {
     display: inline-flex;
     align-items: center;
-    min-height: 20px;
+    min-height: 22px; /* 15 image px x1.5 */
     margin-top: var(--nf-space-3xs);
     padding: 0 var(--nf-space-xs);
     border-radius: var(--nf-radius-xs);

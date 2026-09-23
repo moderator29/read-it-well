@@ -193,9 +193,9 @@ function QueueTableView({
                     <RemoteImage
                       src={row.thumb}
                       alt=""
-                      width={52}
+                      width={44}
                       height={56}
-                      sizes="52px"
+                      sizes="44px"
                       loading="lazy"
                       className="nf-rv-thumb"
                     />
