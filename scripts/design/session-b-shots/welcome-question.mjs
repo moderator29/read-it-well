@@ -5,6 +5,7 @@
  *
  *   cd apps/web && npx next build && VALLO_PREVIEW_HARNESS=1 npx next start -p 3188
  *   node scripts/design/session-b-shots/welcome-question.mjs --phase before|after [--base http://127.0.0.1:3188]
+ *   node scripts/design/session-b-shots/welcome-question.mjs --phase after --scrolled
  *   node scripts/design/session-b-shots/welcome-question.mjs --sides
  *
  * Dark only. 390x844 at 2x and 1440x900 at 1x, full page, JPEG q80, into
@@ -41,9 +42,14 @@ ${col("Question beat after f3ec1eea", img(`${D}/question-after-390.jpg`))}
   process.exit(0);
 }
 
-for (const width of [390, 1440]) {
+/* `--scrolled`: what a person sees at the foot of the step on a desktop
+   window, the viewport only (not full page), at 1440x900 and 1440x800. */
+const SCROLLED = process.argv.includes("--scrolled");
+const SIZES = SCROLLED ? [[1440, 900], [1440, 800]] : [[390, 844], [1440, 900]];
+
+for (const [width, height] of SIZES) {
   const ctx = await browser.newContext({
-    viewport: { width, height: width > 800 ? 900 : 844 },
+    viewport: { width, height },
     deviceScaleFactor: width > 800 ? 1 : 2,
     colorScheme: "dark",
     reducedMotion: "reduce",
@@ -61,8 +67,16 @@ for (const width of [390, 1440]) {
   await p.getByTestId("interest-apartment").click();
   await p.mouse.move(0, 0);
   await p.waitForTimeout(600);
-  await p.screenshot({ path: `${D}/question-${PHASE}-${width}.jpg`, fullPage: true, type: "jpeg", quality: 80 });
+  if (SCROLLED) {
+    await p.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await p.waitForTimeout(400);
+    const m = await p.evaluate(() => ({ doc: document.documentElement.scrollHeight, y: window.scrollY }));
+    console.log(`${width}x${height}: page ${m.doc}px, scrolled to ${m.y}`);
+    await p.screenshot({ path: `${D}/question-${PHASE}-${width}x${height}-scrolled.jpg`, type: "jpeg", quality: 80 });
+  } else {
+    await p.screenshot({ path: `${D}/question-${PHASE}-${width}.jpg`, fullPage: true, type: "jpeg", quality: 80 });
+  }
   await ctx.close();
 }
 await browser.close();
-console.log(`question-${PHASE} shot at 390 and 1440 in ${D}`);
+console.log(`question-${PHASE} shot at ${SIZES.map((x) => x.join("x")).join(", ")} in ${D}`);

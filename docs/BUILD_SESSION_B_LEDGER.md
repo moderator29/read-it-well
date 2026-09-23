@@ -706,12 +706,18 @@ proof `welcome-member-final-390-fixture.jpg`, before, after).
   their lit blue edges, and the chosen tile has the Get Started button's lit
   fill, where before the tiles were flat dark boxes the render does not draw.
   No fix was needed in `InterestChoices`.
-- One difference left, not changed: the render's cards are rounder than the
-  panel card's radius. Matching them would take the tiles off the shared
-  panel, which is what S11 asked for, so the lead decides whether it is worth
-  it.
-- Not caused by this change, seen in both shots: at 1440 the full-page shot
-  runs past the stage's ground, so the note under Skip sits on a flat dark band.
+- Deliberate, by the lead's ruling (23 September): the render's cards are
+  rounder than the panel card's radius, and the tiles keep the shared panel
+  radius. The founder asked for one consistent platform, so this difference is
+  kept on purpose, not left open.
+- Full-page screenshot artefact, not on screen: the flat dark band under Skip
+  in `question-{before,after}-1440.jpg` is not what a person sees. Opened at
+  1440x900 and 1440x800 and scrolled to the bottom (the page is 971px tall),
+  the viewport shots `question-after-1440x900-scrolled.jpg` and
+  `question-after-1440x800-scrolled.jpg` show the stage's ground running under
+  the note to the foot of the window. The band comes from the full-page
+  capture stretching the page past the window, so the stylesheet is not
+  changed.
 
 ## 3. Welcome back
 
@@ -5171,7 +5177,9 @@ Get started's interests step, drawn by the same component, is shot before and af
 (`docs/design/proofs/session-b/welcome/question-*`, `side-by-side-question-390.jpg`) and recorded
 in section 2 (f): the tiles went from flat dark boxes to the shared glass panel, the chosen one lit;
 it still matches `2A49E2F7`'s materials, closer than before, and nothing needed fixing. The only
-difference left is that the render's cards are rounder, which is the lead's call.
+difference, that the render's cards are rounder, is kept on purpose by the lead's ruling (one
+consistent platform). The flat dark band at the foot of the 1440 full-page shot is a capture
+artefact: viewport shots at 1440x900 and 1440x800, scrolled to the bottom, show no band.
 
 #### Shape sweep (the tool, dark, 390 and 1536, 15 routes)
 
