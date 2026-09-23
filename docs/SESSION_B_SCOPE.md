@@ -402,6 +402,10 @@ Each group appends "RELEASED <commit>" here when it is done.
     hit extender), `app/css/landing.css` (ONLY `.nf-site-nav-link` width), the
     ledger addendum to "13. Platform sweep: audit 2 fixes", proofs
     `docs/design/proofs/session-b/audit2-fixes/last/**`.
+    **RELEASED** in the commit that carries ledger 13.A2.7 (23 September): the
+    gallery's stand-in chip centred (0 overlaps at 390 and 1440), both bar search
+    fields 44 at 1440, the Switch's hit area 44 on an unchanged 52x32 track, the
+    "AI" link 44 wide at 0.318. The claim is released.
 
 ### Sweep group: home, search and filters, listing detail (worker "sweep-home")
 Routes: `/home`, `/stays` (the home components only; `StayCard` is the stays

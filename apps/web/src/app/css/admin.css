@@ -359,10 +359,11 @@
       display: flex;
     }
   }
-  /* The render's field: a quiet glass well with a thin lit edge, 40px tall. */
+  /* The render's field: a quiet glass well with a thin lit edge. 44px tall,
+     the platform's target floor (audit 2 follow-up; it was 40). */
   .nf-admin-bar__search input {
     width: 100%;
-    min-height: 2.5rem;
+    min-height: 2.75rem;
     padding: var(--nf-space-xs) var(--nf-space-sm) var(--nf-space-xs) 2.5rem;
     border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid var(--nf-panel-edge);

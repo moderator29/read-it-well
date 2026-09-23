@@ -103,10 +103,14 @@ export function Switch({
          * grow a target rather than to draw something. So the span reported
          * as 52x32 and failed a floor it was actually meeting.
          *
-         * -6px top and bottom on a 32px track is 44. The track still paints
-         * at 32 and the settings row keeps its rhythm.
+         * A fixed 44px, centred on the track. It was -6px top and bottom, which
+         * reads as 44 on a 32px track but measured 42: an absolute box is laid
+         * out on the padding box, inside the 1px hairline, so it grew 30, not
+         * 32 (audit 2, N2). Giving it its own height makes the target 44
+         * whatever the border is. The track still paints at 52x32 and the
+         * settings row keeps its rhythm.
          */
-        "after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-['']",
+        "after:absolute after:inset-x-0 after:top-1/2 after:h-11 after:-translate-y-1/2 after:content-['']",
         "disabled:cursor-not-allowed disabled:opacity-45",
         label ? "" : className ?? "",
       ]

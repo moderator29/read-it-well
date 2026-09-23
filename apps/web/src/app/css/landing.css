@@ -138,6 +138,11 @@
     align-items: center;
     gap: var(--nf-gap-inline-tight);
     min-height: 2.75rem;
+    /* A two-letter label ("AI") drew 38 wide, so the control radius read
+       14 / 38 = 0.37 on the short side. At least square, and centred, keeps
+       every link on 14 / 44 = 0.32 (audit 2 follow-up). */
+    min-width: 2.75rem;
+    justify-content: center;
     padding: var(--nf-gap-inline) var(--nf-space-sm);
     border-radius: var(--nf-radius-control);
     font-size: var(--nf-text-body-sm);

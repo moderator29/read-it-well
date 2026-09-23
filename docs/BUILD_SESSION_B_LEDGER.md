@@ -7986,6 +7986,39 @@ nav's "AI" link, 0.37, chrome's and unchanged); `/` refused on `networkidle` as 
 earlier run, and was measured by hand instead: at 390 and 1440 the three segments and the newsletter submit are 44 tall on radius 14 (0.318), the newsletter field 44, the search input 48; the wallet send rows keep their height by construction (60.3 and 112.3 at 390 after). The gate,
 the no-revert check and the release are in the commit that carries this section.
 
+### 13.A2.7 Closed after 13.A2.6 (addendum, 23 September; worker "last")
+
+The three items 13.A2.5 left open and the one 13.A2.6's sweep flagged, taken by the
+lead's instruction after every other worker had finished (claim fdfd0853, scope file,
+released in the commit that carries this addendum). Measured BEFORE on a production
+build of the untouched tree (fdfd0853, `VALLO_PREVIEW_HARNESS=1 next build` through
+`flock heavy.lock`) and AFTER on a production build of the fixed tree, 390 and 1440,
+dark, one script (`proofs/session-b/audit2-fixes/last/measure.mjs.txt`; raw numbers in
+`measure-before.json` and `measure-after.json`; shots in `before/` and `after/`). All
+proofs are fixture-backed harness renders except `/about`, which is the live route.
+
+| Item | Fix | Before | After | Closed? |
+|---|---|---|---|---|
+| Verified chip over "No photographs yet" (`ListingGallery`, restaurant harness, a verified venue on stand-in plates) | The stand-in chip leaves the foot's right corner and is centred on the photograph (`left-1/2 top-1/2`, translated back by half), as the card did for the same collision with its market tag (`.nf-pcard__nophoto`, 13.H H10). It is `pointer-events-none`, so a tap on it still opens the lightbox. The marks, the counter and the dots are untouched. | 390: Verified 144.8 to 242.7, the chip from 238.4: **4.3px overlap** over its full 28.6 height. 1440: no overlap. | 390: the chip at x 125.2, y 192 (hero 60 to 352.5), the marks at y 268.5: **0 overlaps**. 1440: 0. `after/gallery-390.jpg`, `gallery-1440.jpg` | **closed** |
+| Console bar search 40 tall (`.nf-admin-bar__search input`, `admin.css`) | `min-height` 2.5rem to 2.75rem. | 1440: 352 x **40**, radius 10 (0.25). 390: the field is not drawn (`display: none` under 768). | 1440: 352 x **44**, radius 10 (0.227). `after/admin-search-1440.jpg` | **closed** |
+| Agent bar search 40 tall (`.nf-agent-bar__search input`, `agent.css`) | `min-height` 2.5rem to 2.75rem. | 1440: 448 x **40**, radius 14 (0.35). 390: not drawn (under 640). | 1440: 448 x **44**, radius 14 (0.318). `after/agent-search-1440.jpg` | **closed** |
+| The Switch's hit area 42 (audit N2, `components/ui/Switch.tsx`) | The extender was `-inset-y-1.5` (6px out top and bottom). An absolute box is laid out on the padding box, inside the track's 1px hairline, so it grew from 30, not 32: 42. It is now its own height, `h-11` centred on the track (`top-1/2`, `-translate-y-1/2`), which is 44 whatever the border. | `/preview/g1`, both widths: track 52 x 32, `::after` **42** tall. | Track **52 x 32** (unchanged), `::after` **44** tall, every switch on the page. `after/switch-*.jpg` | **closed** |
+| Site nav "AI" at radius ratio 0.37 (`.nf-site-nav-link`, `landing.css`) | The two-letter link drew 37.8 wide on a 14px control radius. The link takes `min-width: 2.75rem` and centres its label, so no link is narrower than it is tall. Height, padding and radius unchanged. | `/about` 1440: AI 37.8 x 44, **0.371**; Home 0.318, Properties 0.318, Stays 0.318, More 0.318. 390: the rail is not drawn (lg up). | AI **44 x 44, 0.318**; the other four unchanged (the same widths and ratios). `after/site-nav-1440.jpg` | **closed** |
+
+Shape sweep after (`last/shape-sweep.txt`, `/about`, the restaurant harness, the console
+overview, the agent dashboard and `/preview/g1`, dark): 0 breaches; the "AI" link is no
+longer listed. Still worth an eye, not touched here: the `/preview/g1` styleguide's
+`nf-segmented__item` at 0.39 (72 x 36 on 14), and `/about`'s 20px round icon control
+(0.50, icon only). `/about` at 390 was refused on a 60s `goto` timeout in the saved run
+(an earlier run on the same server measured `/about` at 390 and 1536 with the same
+result: 0 breaches, no "AI" entry).
+
+Checks: the whole-project `tsc --noEmit`, the whole `vitest` suite and
+`check-css-tokens` after `git pull --rebase`, every directory under
+`app/(dev)/preview/session-b/` with its own `page.tsx`, and the no-revert check
+(`git diff origin/main HEAD` for every file outside the claim) are recorded in the
+commit that carries this addendum.
+
 ## Skipped or not verified
 
 - Orphans Pass 4 (13.O.9, SW-O1 to SW-O4): the place chip being entered (`aria-busy`) and every hover state were read in code, not shot; the report sheet was not opened in a browser (its change is class names only); no live write.
@@ -8079,4 +8112,4 @@ the no-revert check and the release are in the commit that carries this section.
   17 of 17). Not live: a gold author on screen (no gold person has a live post; platinum
   is proved), and every write, which the live run deliberately does not make.
 - Sweep leftovers (13.L, 23 September): every proof is fixture-backed (harness renders); no signed-in live page was opened. Hover states were read in code and measured only through `getComputedStyle`, not shot. The shape sweep refused `/` on `networkidle`; its badge was measured by hand. The pixel diff covers the committed harnesses and three public pages, not gated routes without a harness. Not moved: the console's own badge rules, `.nf-detail-verified`, `.nf-tag-pill`, crypto.css's card shadow, the feed's card overrides (13.L.6).
-- Audit 2 fixes (13.A2, 23 September): the restaurant, chat card, options sheet, feed, docs and wizard-step proofs are fixture-backed (harness renders); the five S9 routes are live signed in as the QA member, member state only (a host's filled rooms, photos and table requests not proven). Left open: a verified venue with no photographs overlaps two gallery chips at 390 (`ListingGallery`, home group); the console and agent bar search fields are 40 tall at 1440; the Switch's hit area is 42 (N2).
+- Audit 2 fixes (13.A2, 23 September): the restaurant, chat card, options sheet, feed, docs and wizard-step proofs are fixture-backed (harness renders); the five S9 routes are live signed in as the QA member, member state only (a host's filled rooms, photos and table requests not proven). Left open: a verified venue with no photographs overlaps two gallery chips at 390 (`ListingGallery`, home group); the console and agent bar search fields are 40 tall at 1440; the Switch's hit area is 42 (N2). All three, and the site nav's "AI" link at 0.37, closed afterwards (13.A2.7).

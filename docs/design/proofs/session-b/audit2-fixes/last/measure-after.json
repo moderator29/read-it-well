@@ -1,0 +1,187 @@
+{
+ "390": {
+  "gallery": {
+   "marks": [
+    {
+     "text": "Restaurants",
+     "x": 12,
+     "y": 268.5,
+     "w": 124.8,
+     "h": 36
+    },
+    {
+     "text": "Verified",
+     "x": 144.8,
+     "y": 268.5,
+     "w": 97.9,
+     "h": 36
+    }
+   ],
+   "standin": {
+    "text": "No photographs yet",
+    "x": 125.2,
+    "y": 192,
+    "w": 139.6,
+    "h": 28.6
+   },
+   "overlaps": [],
+   "hero": {
+    "x": 0,
+    "y": 60,
+    "w": 390,
+    "h": 292.5
+   }
+  },
+  "adminSearch": {
+   "visible": false,
+   "w": 0,
+   "h": 0,
+   "radius": "10px",
+   "ratio": null
+  },
+  "agentSearch": {
+   "visible": false,
+   "w": 0,
+   "h": 0,
+   "radius": "14px",
+   "ratio": null
+  },
+  "switch": [
+   {
+    "w": 52,
+    "h": 32,
+    "afterW": 50,
+    "afterH": 44,
+    "hit": 44
+   },
+   {
+    "w": 52,
+    "h": 32,
+    "afterW": 50,
+    "afterH": 44,
+    "hit": 44
+   },
+   {
+    "w": 52,
+    "h": 32,
+    "afterW": 50,
+    "afterH": 44,
+    "hit": 44
+   }
+  ],
+  "navLinks": []
+ },
+ "1440": {
+  "gallery": {
+   "marks": [
+    {
+     "text": "Restaurants",
+     "x": 280,
+     "y": 496,
+     "w": 124.8,
+     "h": 36
+    },
+    {
+     "text": "Verified",
+     "x": 412.8,
+     "y": 496,
+     "w": 97.9,
+     "h": 36
+    }
+   ],
+   "standin": {
+    "text": "No photographs yet",
+    "x": 782.2,
+    "y": 279.7,
+    "w": 139.6,
+    "h": 28.6
+   },
+   "overlaps": [],
+   "hero": {
+    "x": 264,
+    "y": 0,
+    "w": 1176,
+    "h": 588
+   }
+  },
+  "adminSearch": {
+   "visible": true,
+   "w": 352,
+   "h": 44,
+   "radius": "10px",
+   "ratio": 0.227
+  },
+  "agentSearch": {
+   "visible": true,
+   "w": 448,
+   "h": 44,
+   "radius": "14px",
+   "ratio": 0.318
+  },
+  "switch": [
+   {
+    "w": 52,
+    "h": 32,
+    "afterW": 50,
+    "afterH": 44,
+    "hit": 44
+   },
+   {
+    "w": 52,
+    "h": 32,
+    "afterW": 50,
+    "afterH": 44,
+    "hit": 44
+   },
+   {
+    "w": 52,
+    "h": 32,
+    "afterW": 50,
+    "afterH": 44,
+    "hit": 44
+   }
+  ],
+  "navLinks": [
+   {
+    "text": "Home",
+    "visible": true,
+    "w": 63.5,
+    "h": 44,
+    "radius": 14,
+    "ratio": 0.318
+   },
+   {
+    "text": "Properties",
+    "visible": true,
+    "w": 93.2,
+    "h": 44,
+    "radius": 14,
+    "ratio": 0.318
+   },
+   {
+    "text": "Stays",
+    "visible": true,
+    "w": 61.2,
+    "h": 44,
+    "radius": 14,
+    "ratio": 0.318
+   },
+   {
+    "text": "AI",
+    "visible": true,
+    "w": 44,
+    "h": 44,
+    "radius": 14,
+    "ratio": 0.318
+   },
+   {
+    "text": "More",
+    "visible": true,
+    "w": 78.6,
+    "h": 44,
+    "radius": 14,
+    "ratio": 0.318
+   }
+  ]
+ }
+}
