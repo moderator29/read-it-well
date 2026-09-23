@@ -124,8 +124,8 @@ export const withdrawSchema = z.object({
    * that shares it. So the shape is checked here and the MEMBERSHIP is
    * checked in `withdraw`, by `lookupBank`, against the same live registry
    * every other door asks, BEFORE a kobo is held and before the processor is
-   * called. That is the same division `bankTransferSchema` below already
-   * uses.
+   * called. That was the same division the send-to-a-bank schema below used,
+   * before that door was removed.
    *
    * WIDENING A SCHEMA WIDENS A PAYOUT PATH, so read the rest of that
    * sentence: `lookupBank` refuses a registry it could not read rather than
@@ -199,49 +199,19 @@ export const transferSchema = z.object({
   idempotencyKey: idempotencyKeySchema,
 });
 
-/**
- * SEND TO A BANK ACCOUNT, the second half of the send desk.
+/*
+ * `bankTransferSchema` WAS HERE AND IS GONE, 23 September.
  *
- * ---------------------------------------------------------------------------
- * WHY NO BANK LIST APPEARS IN THIS FILE AT ALL.
+ * It shaped the send-to-a-bank form. That door was removed on the founder's
+ * direction: moving a member's money to a third party's bank account is a
+ * licensed activity VALLO SPACES LTD is not licensed for. The action, its
+ * receipt type, its idempotency scope and its socket test went at the same
+ * time; see the note in `lib/wallet/actions.ts`. A schema with no caller is
+ * a door left ajar, so it goes too rather than waiting to be noticed.
  *
- * Both pickers, this screen's and the withdraw sheet's, are drawn from the
- * LIVE registry (`listBanks`, the payout side's own list, which is where
- * Jaiz, Sparkle, VFD and every microfinance bank live), so a valid submit can
- * legitimately carry a code this file has never heard of. Both actions check
- * the code against that same live registry before they hold a kobo, which is
- * the only list that can be right. See the note on `withdrawSchema` above for
- * what a second, shorter list cost while it existed.
- *
- * ---------------------------------------------------------------------------
- * `confirmedAccountName` IS NOT THE NAME THE MONEY IS SENT TO.
- *
- * It is the name the browser was SHOWN at the confirmation step, posted back
- * so the action can check that it is still the answer the bank gives. The
- * action resolves the account again itself and refuses on any disagreement.
- * Nothing the browser sends ever reaches a payout instruction: a field a
- * person can edit must never be able to address money.
+ * `withdrawSchema` above is the surviving payout shape, and it is a different
+ * thing: a person taking their own money out.
  */
-export const bankTransferSchema = z.object({
-  idempotencyKey: idempotencyKeySchema,
-  amount: nairaAmountSchema,
-  bankCode: z.string().trim().min(1, "Choose the bank."),
-  accountNumber: z
-    .string()
-    .trim()
-    .transform((v) => v.replace(/\D/g, ""))
-    .refine((v) => /^\d{10}$/.test(v), "A Nigerian account number is 10 digits."),
-  confirmedAccountName: z
-    .string()
-    .trim()
-    .min(1, "Check the account name before sending."),
-  note: z
-    .string()
-    .trim()
-    .max(140, "Keep the note under 140 characters.")
-    .optional()
-    .transform((v) => (v && v.length > 0 ? v : undefined)),
-});
 
 /** Funding references we generate: rm-fund-<uuid v4-shaped>. */
 export const fundReferenceSchema = z
@@ -254,4 +224,3 @@ export const fundReferenceSchema = z
 export type FundInput = z.infer<typeof fundSchema>;
 export type WithdrawInput = z.infer<typeof withdrawSchema>;
 export type TransferInput = z.infer<typeof transferSchema>;
-export type BankTransferInput = z.infer<typeof bankTransferSchema>;

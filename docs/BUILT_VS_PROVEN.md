@@ -709,7 +709,7 @@ for somebody with a warm build.
 | Money that has actually moved | `public.wallet_entries`: **2 rows**, in total, ever | see below |
 | Funding | `wallet.funding.started` 1 (2026-09-19), `wallet.funding.recovered` 1 (2026-08-09) | **BUILT AND UNPROVEN** |
 | Withdrawal | `wallet.withdrawal.hold_placed` 1 and `wallet.withdrawal.not_started` 1, both 2026-08-10, **and nothing since** | **BUILT AND UNPROVEN** |
-| `transferToBank`, request B-BANK (b) from Session B | **it exists**: `apps/web/src/lib/wallet/actions.ts:1384`, with `lib/wallet/bank-send.test.ts` beside it, passing at `origin/main`. **`BANK_SEND_OPEN = false`** at `components/app/wallet/SendFlow.tsx:99`, so the Send screen keeps bank mode switched off and the action is unreachable from any UI | **BUILT AND UNPROVEN, and deliberately gated off** |
+| `transferToBank`, request B-BANK (b) from Session B | **REMOVED 23 September** on the founder's direction. The action, `transferToBankWork`, `BankTransferReceipt`, `bankTransferSchema`, `BANK_TRANSFER_SCOPE`, `bank-send.test.ts` and the withdrawal email's `third_party` branch are all gone, and `BankRecipient.tsx` and the send-bank preview went with Session B's own commit. The reason is licensing: moving a member's money to a third party's bank account is not what VALLO SPACES LTD is licensed to do. A flag set to false was a switch somebody could turn back on; this is the code not existing. **`transferToUser` and `withdraw()` stay**, because neither is a third party payment. | **GONE, on purpose** |
 
 **Mark for the block: BUILT AND UNPROVEN.** Two wallet entries in the lifetime
 of the platform, the last money event of any kind six weeks ago, and the one

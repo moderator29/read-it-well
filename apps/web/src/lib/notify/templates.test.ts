@@ -45,7 +45,7 @@ const lookups: TemplateLookups = {
     id === ENTRY
       ? { bankName: "GTBank", accountLast4: null, destination: "own_account" }
       : id === SENT_ENTRY
-        ? { bankName: "Sparkle Microfinance Bank", accountLast4: "6789", destination: "third_party" }
+        ? { bankName: "Sparkle Microfinance Bank", accountLast4: "6789", destination: "own_account" }
         : null,
   passedRungs: (id) => (id === AGENT ? ["identity"] : []),
   enquiry: (id) =>
@@ -445,38 +445,54 @@ describe("the withdrawal, the inspection and the rung", () => {
    * which entry the drain looked up, which is the only thing that differs in
    * production.
    */
-  it("calls a send to somebody else a transfer, and a withdrawal a withdrawal", () => {
+  /*
+   * THESE TWO TESTS USED TO ASSERT THE SEND-TO-A-BANK WORDING, and that door
+   * was removed on 23 September. A test whose subject no longer exists is
+   * deleted, but deleting it silently would lose the reason it was written,
+   * so it is replaced by the assertion that now matters: there is ONE door,
+   * and every row gets the withdrawal wording whatever the ledger says.
+   *
+   * This is the guard that would fail if somebody quietly reintroduced a
+   * third-party send without reintroducing the words to go with it.
+   */
+  it("gives every row the withdrawal wording, because there is one door left", () => {
     const own = templateFor("wallet.withdrawal_outcome")?.build(
       PAYLOADS["wallet.withdrawal_outcome"],
       contextFor(PAYER, "Ada"),
     );
-    const sent = templateFor("wallet.withdrawal_outcome")?.build(
+    /* SENT_ENTRY is the row that used to carry a third-party destination. It
+       must now read exactly like every other row. */
+    const legacy = templateFor("wallet.withdrawal_outcome")?.build(
       { ...PAYLOADS["wallet.withdrawal_outcome"], entry_id: SENT_ENTRY },
       contextFor(PAYER, "Ada"),
     );
 
     expect(own?.subject).toBe("Your withdrawal did not go through");
-    expect(sent?.subject).toBe("Your transfer did not go through");
-    expect(sent?.text).not.toMatch(/withdrawal/i);
-    expect(sent?.html).not.toMatch(/withdrawal/i);
-    /* And it does not tell them to "try the withdrawal again" either. The
-       plain-text part is hard wrapped, so both are read with the wrapping
-       folded away rather than asserted against one particular line break. */
+    expect(legacy?.subject).toBe("Your withdrawal did not go through");
+
+    /* The two rows carry different bank details, so the bodies are not byte
+       identical and asserting that they are would be asserting the fixtures
+       rather than the wording. What must be identical is every sentence that
+       used to branch on the destination. */
     const flat = (raw: string | undefined) => (raw ?? "").replace(/\s+/g, " ");
-    expect(flat(sent?.text)).toContain("send it again");
-    expect(flat(own?.text)).toContain("try the withdrawal again");
+    for (const built of [own, legacy]) {
+      expect(flat(built?.text)).toContain("The transfer to your bank did not complete");
+      expect(flat(built?.text)).toContain("try the withdrawal again");
+      /* And nobody is addressed as having sent money to somebody else. */
+      expect(flat(built?.text)).not.toContain("the account you sent it to");
+      expect(flat(built?.text)).not.toContain("send it again");
+    }
   });
 
-  it("a paid send says the money is on its way to the account they chose", () => {
-    const sent = templateFor("wallet.withdrawal_outcome")?.build(
+  it("a paid withdrawal says the money is on its way to their bank", () => {
+    const paid = templateFor("wallet.withdrawal_outcome")?.build(
       { ...PAYLOADS["wallet.withdrawal_outcome"], entry_id: SENT_ENTRY, outcome: "paid" },
       contextFor(PAYER, "Ada"),
     );
-    expect(sent?.subject).toContain("on its way to the account you sent it to");
-    expect(sent?.text).toContain("Sent to the account you chose");
-    expect(sent?.text).not.toMatch(/withdrawal/i);
+    expect(paid?.subject).toContain("on its way to your bank");
+    expect(paid?.text).toContain("Sent to your bank");
     /* The bank and four digits, and no holder's name anywhere (rule 16). */
-    expect(sent?.text).toContain("Sparkle Microfinance Bank ****6789");
+    expect(paid?.text).toContain("Sparkle Microfinance Bank ****6789");
   });
 
   it("an entry the drain could not read is treated as the person's own withdrawal", () => {

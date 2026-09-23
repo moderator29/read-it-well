@@ -395,15 +395,19 @@ export async function gatherFacts(
         const bank = typeof metadata["bank_name"] === "string" ? metadata["bank_name"].trim() : "";
         const last4 =
           typeof metadata["account_last4"] === "string" ? metadata["account_last4"].trim() : "";
-        /* `transferToBank` writes exactly this string and the withdraw door
-           writes nothing, so anything else on the row is read as the withdraw
-           door: an unrecognised value must never be allowed to turn a
-           person's own withdrawal into "you sent money to somebody". */
-        const sent = metadata["destination"] === "third_party";
+        /* THERE IS ONE DOOR NOW. The send desk's bank mode was removed on 23
+           September and nothing writes `third_party` any more, so every row is
+           the withdraw door. `metadata.destination` is deliberately NOT read
+           back here: an unrecognised or stale value must never be allowed to
+           turn a person's own withdrawal into "you sent money to somebody",
+           and the only way to guarantee that is to not consult it. Checked
+           against the live table before this was written: both wallet_entries
+           rows carry a null destination, so nothing historical is
+           mis-described. */
         facts.withdrawals.set(row.id, {
           bankName: bank.length > 0 ? bank : null,
           accountLast4: /^\d{4}$/.test(last4) ? last4 : null,
-          destination: sent ? "third_party" : "own_account",
+          destination: "own_account",
         });
       }
     } catch {

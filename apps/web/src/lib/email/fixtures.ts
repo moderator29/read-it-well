@@ -110,7 +110,7 @@ export const EVERY_MESSAGE: NamedMessage[] = [
       amountMinor: 250_000,
       bankName: "Sparkle Microfinance Bank",
       accountLast4: "6789",
-      destination: "third_party",
+      destination: "own_account",
       reference: "rm-wd-9k2m",
     }),
   },
@@ -122,7 +122,7 @@ export const EVERY_MESSAGE: NamedMessage[] = [
       amountMinor: 250_000,
       bankName: "Sparkle Microfinance Bank",
       accountLast4: "6789",
-      destination: "third_party",
+      destination: "own_account",
     }),
   },
   {
