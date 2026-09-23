@@ -313,6 +313,25 @@ Each group appends "RELEASED <commit>" here when it is done.
     **Orphans RELEASED 64074bec** (with 155ac97a, d1f69c6b; 23 September): 18 of 23
     routes fully swept, every item this group draws swept on all 23; the rest wait on SW-O2
     (feed), SW-O3 (`controls.css`) and SW-O4 (home). Ledger 13, orphans.
+  - **the orphans' requests SW-O1 to SW-O4 (worker "ofix", claimed 23 September
+    by the lead's instruction; the owning groups have finished):**
+    `apps/web/src/app/social-feed.css` (ONLY `.nf-district__chip*`,
+    `.nf-enter__chip*` and `.nf-enter__back`),
+    `apps/web/src/components/social/feed/DistrictHeader.tsx` (ONLY `DistrictChips`),
+    `apps/web/src/components/social/PlacePicker.tsx` (ONLY the chip and back
+    classes), `apps/web/src/app/(app)/around/[slug]/page.tsx` (ONLY the
+    within chips and the up link's classes),
+    `apps/web/src/app/css/controls.css` (ONLY `.nf-regfield*`,
+    `.nf-fieldgroup*` and `.nf-totalpanel`), `apps/web/src/app/css/orphans.css`,
+    `components/supply/{AgentRegisterForm,FirmRegisterForm,OwnerRegisterForm,RegisterField}.tsx`,
+    `apps/web/src/components/app/ListingCard.tsx` (ONLY the rent line's
+    suffix size), `apps/web/src/components/ui/Skeleton.tsx` (ONLY
+    `SkeletonCard`'s class), `apps/web/src/components/app/ScreenSkeleton.tsx`
+    (ONLY `CardRowsSkeleton`'s class), `apps/web/src/components/app/ReportSheet.tsx`
+    (ONLY its four `nf-card` class names), the orphans harness
+    `app/(dev)/preview/session-b/sweep-orphans/**` (two new views) and its
+    shot script, proofs `docs/design/proofs/session-b/sweep-orphans/pass4-*/**`.
+    Held for the duration of the fix.
   - **the audit fixes S1, S2, S3, S6, S7, S8 (worker "auditfix", claimed 23
     September by the lead's instruction, held for the duration of the fix):**
     `apps/web/src/components/ui/Chip.tsx` (ONLY `SELECTED_STYLE`),
