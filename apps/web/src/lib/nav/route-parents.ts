@@ -127,6 +127,9 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* ---------------------------------------------------------- the website */
   "/": ROOT,
   "/about": "/",
+  /* V-82: a public area price page sits under the landing page, as the
+     company pages do; it is a statement about a market, not a shelf. */
+  "/areas/[state]/[area]": "/",
   "/cancellations": "/",
   "/careers": "/",
   "/contact": "/",
@@ -174,6 +177,12 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
      the other defensible answer and is one step further from what they were
      doing. */
   "/auth/callback": "/sign-in",
+  /* The share door (V-07). A stranger arrives from outside Vallo and the
+     card's own button is the only way on; the door draws no back control.
+     Declared under the landing page because that is the public surface it
+     sits beside, and a hardware back that had to go somewhere should go
+     there rather than into the platform it is a door to. */
+  "/s/[token]": "/",
 
   /* ------------------------------------------------- the two app homes
    *

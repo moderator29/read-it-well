@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { shareAreaPrices } from "@/lib/price-check/actions";
+import { createShareLink } from "@/lib/share/actions";
 import { shareHref } from "@/lib/price-check/share-card";
 import type { ListingIntent, PriceCheckPropertyType } from "@/lib/price-check/types";
 
@@ -147,9 +148,19 @@ function MintableShare({
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<"idle" | "making" | "made" | "failed">("idle");
   const [id, setId] = useState<string | null>(null);
+  const [doorPath, setDoorPath] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const href = id === null ? null : shareHref(id);
+  /*
+   * THE CARD TRAVELS AS ITS DOOR (V-07). `/price/area/<id>` is inside the
+   * platform, so since 23 September it answers a stranger, and every link
+   * unfurler, with a sign-in redirect: the card this component mints was
+   * unreachable by the people it was minted for. `/s/<token>` is the public
+   * door onto the same stored row, drawn by the same `shareLines`, with no
+   * address because the row has none. The in-app address stays the fallback
+   * only if the door could not be made, and the sheet still works.
+   */
+  const href = doorPath ?? (id === null ? null : shareHref(id));
 
   async function mint() {
     setState("making");
@@ -181,6 +192,8 @@ function MintableShare({
       return;
     }
     setId(result.data.id);
+    const door = await createShareLink({ kind: "price_area", targetId: result.data.id });
+    if (door.ok) setDoorPath(door.data.path);
     setState("made");
   }
 

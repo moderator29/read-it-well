@@ -211,6 +211,8 @@ const EXPECTED_PUBLIC = new Set([
   "/opengraph-image.png",
   /* Company and support. */
   "/about",
+  /* V-82: area price pages, aggregates only, 404 below the floor. */
+  "/areas/[state]/[area]",
   "/careers",
   "/contact",
   "/docs",
@@ -236,6 +238,8 @@ const EXPECTED_PUBLIC = new Set([
   "/sign-up/verify",
   "/start",
   "/welcome",
+  /* The share door (V-07): one card, area only, one button into sign in. */
+  "/s/[token]",
   /* No network, and which home. */
   "/home-or-landing",
   "/offline",
@@ -404,5 +408,25 @@ describe("who may see the platform with no session", () => {
        not-found page is still served to anybody signed in; a stranger is sent
        to the door. */
     expect(isPublicPath("/definitely-not-a-route")).toBe(false);
+  });
+});
+
+describe("the store shell never opens on the landing page (V-11)", () => {
+  const SHELL =
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 ValloShell";
+
+  it("sends the shell's request for / to its own start, with the policy still stamped", async () => {
+    const response = await proxy(new NextRequest("http://localhost/", { headers: { "user-agent": SHELL } }));
+    expect(response.status).toBe(307);
+    expect(new URL(response.headers.get("location") ?? "").pathname).toBe("/home-or-landing");
+    expect(new URL(response.headers.get("location") ?? "").searchParams.get("app")).toBe("1");
+    expect(response.headers.get("content-security-policy")).toBeTruthy();
+  });
+
+  it("leaves a browser, and every other path in the shell, alone", async () => {
+    const browser = await proxy(new NextRequest("http://localhost/"));
+    expect(browser.status).not.toBe(307);
+    const privacy = await proxy(new NextRequest("http://localhost/privacy", { headers: { "user-agent": SHELL } }));
+    expect(privacy.status).not.toBe(307);
   });
 });
