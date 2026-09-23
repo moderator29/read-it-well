@@ -1,5 +1,6 @@
 import "server-only";
 
+import { escrowHoldsTakenMoney } from "@/lib/escrow/money-taken";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import { ESCROW_PREFIX, isEscrowReference } from "../payments/references";
@@ -86,6 +87,7 @@ type EscrowRow = {
   payee_id: string;
   listing_id: string | null;
   created_at: string;
+  funded_at: string | null;
 };
 
 /**
@@ -108,13 +110,14 @@ export async function readBalanceBreakdown(
   try {
     const { data, error } = await supabase
       .from("escrows")
-      .select("id, amount_minor, state, purpose, payer_id, payee_id, listing_id, created_at")
+      .select("id, amount_minor, state, purpose, payer_id, payee_id, listing_id, created_at, funded_at")
       .in("state", HELD_STATES)
       .or(`payer_id.eq.${userId},payee_id.eq.${userId}`)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
 
-    const rows = (data ?? []) as EscrowRow[];
+    // ESC-01: a dispute on money that was never taken is not held money.
+    const rows = ((data ?? []) as EscrowRow[]).filter(escrowHoldsTakenMoney);
     const titles = await readListingTitles(
       supabase,
       rows.map((row) => row.listing_id),
