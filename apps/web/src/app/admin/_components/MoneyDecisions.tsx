@@ -136,7 +136,10 @@ export function EscrowRuling({
             reopened.
           </p>
           <div className="mt-group flex flex-wrap gap-inline">
-            <Button type="button" size="sm" variant="danger" loading={pending} onClick={run}>
+            {/* The second step is the lit primary (admin-money's request, 23
+                September): the ruling is the consequential action and the
+                confirmation above already says, in words, what cannot be undone. */}
+            <Button type="button" size="sm" variant="primary" loading={pending} onClick={run}>
               {direction === "release" ? "Release" : "Refund"} {money} to {recipient}
             </Button>
             <Button

@@ -1163,10 +1163,10 @@ fixture harness. Image values are image px x 0.908.
 | Pulse strip | 88 tall, 14 corners, lit top edge glow | 96 tall, 14px, inset rim + top glow | yes |
 | Strip plate | 44, 9 corners, lit blue | 44, 10px, brand 66% to 40%, white rim | yes |
 | Strip label / figure | 14 / 22 bold | 14px/500 / 22px/700 | yes |
-| KPI card | 147 tall, 298 wide, 11 corners | 148 tall, 284 wide, 14px | yes |
+| KPI card | 147 tall, 298 wide, corner 9.1 (re-measured) | 148 tall, 284 wide, 10px | yes |
 | Card title / figure / change / caption | 15 semibold / 34 bold / 14 bold emerald / 12.5 | 15px/600 / 32.2px/700 (clamp; 34 at 1536) / 14px/700 #10B981 / 13px | yes |
 | Sparkline | glowing blue line, bottom right | same, `drop-shadow` glow, bottom right | yes |
-| Panel | 13 corners, edge #004EBE, fill #00173A to #002E77 | 14px, brand 62% edge, brand 14% to 8% fill, top catchlight, bloom | yes |
+| Panel | corner 9.8 (re-measured), 1px edge #004EBE, fill #00173A to #002E77, no outer bloom | 10px, 1px per-side lit edge, lit fill, top catchlight, 3px outer glow | yes |
 | Panel title | 16 semibold | 16px/600 | yes |
 | Area chart | glowing line, blue fill fading down, grid, M axis, hover card | same; axis `formatMoney` compact ("₦80m"); crosshair, dot and card on hover or arrow keys | yes |
 | Range select | "Last 12 months", 32 tall | native select, 36 tall, 10px | yes |
@@ -1239,6 +1239,33 @@ up to the edge (the render draws almost no outer glow on its cards; the
 light is inside, #00184F just inside the edge). Built: per-side lit edges, an
 inner catchlight, `0 0 4px` info 38% and `0 0 12px` brand 18% (the glow
 identity's revised numbers, which the founder asked for platform-wide).
+
+**The console container, measured on all four renders (23 September,
+after admin-money's report).** Corners read on 10x and 12x crops of one card
+per render, from the edge's straight run to the tangent; each converted at
+that render's own scale.
+
+| Render, element | Corner (image px) | CSS at 0.908 (overview) or 1.28 (panels, rail pitch) | At admin-money's 1.57 | Edge | Outer halo |
+|---|---|---|---|---|---|
+| `5EAA44CB`, KPI card | 10 | 9.1 | n/a | 1 image px lit line, #004CB0 to #004EBE | canvas #00091F flat to within 2 image px (about 2 CSS) |
+| `5EAA44CB`, Supply by type panel | 10.8 | 9.8 | n/a | same | same |
+| `01F7DFC7` p2, Jobs healthy card | 5.7 | 7.3 | 9.0 | 1 image px | about 1 to 2 image px |
+| `8E9602E2` p1, Live escrows panel | 4.8 | 6.2 | 7.6 | 1 image px | about 1 to 2 image px |
+| `C1D98B3C` p1, listings table panel | 3.8 | 4.9 | 6.0 | 1 image px | about 1 image px |
+
+One value set, the renders governing over GLOW_IDENTITY where they differ:
+- **Corner: 10px** (`--nf-radius-sm`, via `--nf-admin-radius`) on the rail,
+  panels, KPI cards, pulse strip, every desk's cards and tables. The measured
+  range is 4.9 to 9.8 CSS; the full-resolution overview (9.1 and 9.8) decides
+  between the two token rungs (6 and 10). Was 14.
+- **Edge: 1px**, per-side lit colours (unchanged).
+- **Outer glow: 3px** (`0 0 3px` info 34%), plus the inner top and left
+  catchlights. Was a 4px, 12px and 22px stack. The pulse strip's top glow is
+  6px (was 18px) and a KPI card's hover glow 8px (was 30px). The renders put
+  the light inside the edge, not around it.
+
+Built, measured with `getComputedStyle` after the change: `.nf-admin-panel`
+and `.nf-admin-kpi` border-radius 10px, border 1px, box-shadow outer blur 3px.
 
 **Rail badges (lead review, 22 September).** Each badge is work waiting on
 that one desk, from `getQueueCounts()` (exact `head: true` counts), with a
@@ -1313,6 +1340,14 @@ COVERED: 14 route(s) asked for, 0 refusal(s), 32 route/width/theme combination(s
 Zero at or above 0.35. The harness is committed under
 `apps/web/src/app/(dev)/preview/session-b/admin/` (R-G), so anyone can re-run
 it with `VALLO_PREVIEW_HARNESS=1`.
+
+**Re-run after the container reconciliation (23 September)** on every admin
+harness in the tree, now including admin-money's and admin-review's committed
+harnesses (23 routes: session-b admin, admin-money money, escrow, payments,
+bookings, supply, admin-review listings, review, moderation, kyc, and the f5,
+bd, bc, c1 and p3 admin harnesses), dark and light, 390 and 1536: **0
+breaches, 0 at or above 0.35, 0 round icon-only controls, 0 routes refused;
+the tool reports 31 route/width/theme combinations measured.**
 
 ### 6.4a Glow identity and the designed empty state
 

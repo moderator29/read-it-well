@@ -51,12 +51,19 @@
         color-mix(in oklab, var(--nf-admin-lit) 21%, var(--nf-surface-canvas)) calc(100% - 9px),
         color-mix(in oklab, var(--nf-admin-lit) 40%, var(--nf-surface-canvas)) 100%
       );
+    /* MEASURED ON ALL FOUR ADMIN RENDERS (ledger 6.2, 23 September): the
+       container edge is a 1px lit line and the canvas is flat within about
+       2 CSS px of it on every render, so the outer halo is a hair, not a
+       bloom. The inner catchlight and the per-side edges carry the light. */
     --nf-admin-panel-glow:
       inset 0 1px 0 color-mix(in oklab, var(--nf-admin-lit) 90%, transparent),
       inset 1px 0 0 color-mix(in oklab, var(--nf-admin-lit) 70%, var(--nf-surface-canvas)),
-      0 0 4px color-mix(in oklab, var(--nf-state-info) 38%, transparent),
-      0 0 12px color-mix(in oklab, var(--nf-admin-lit) 18%, transparent),
-      0 0 22px color-mix(in oklab, var(--nf-brand-primary) 14%, transparent);
+      0 0 3px color-mix(in oklab, var(--nf-state-info) 34%, transparent);
+    /* The container corner, measured: 9 to 10 CSS px on 5EAA44CB (0.908 CSS
+       per image px), 5 to 7 on the three-panel renders at the rail-pitch scale
+       (1.28), 6 to 9 at admin-money's 1.57; the full-resolution render decides
+       between the two token rungs, so 10px (`--nf-radius-sm`). */
+    --nf-admin-radius: var(--nf-radius-sm);
     --nf-admin-tile-fill:
       radial-gradient(60% 55% at 50% 48%, color-mix(in oklab, var(--nf-admin-lit) 55%, transparent), transparent 70%),
       linear-gradient(
@@ -119,7 +126,7 @@
     width: 200px;
     flex-shrink: 0;
     padding: var(--nf-space-sm) var(--nf-space-xs);
-    border-radius: var(--nf-radius-md);
+    border-radius: var(--nf-admin-radius);
     border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
     background: linear-gradient(
       180deg,
@@ -943,7 +950,7 @@
      it, the card bloom behind, per the founder's ruling on container
      edges; every token is the platform's own. */
   .nf-admin-table {
-    border-radius: var(--nf-radius-md);
+    border-radius: var(--nf-admin-radius);
     border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
     background: var(--nf-admin-panel-fill);
     box-shadow:
@@ -1267,7 +1274,7 @@
      soft bloom, 14px corners), so a desk that has not been rebuilt yet still
      reads as the same object as the overview. */
   .nf-admin .nf-card {
-    border-radius: var(--nf-radius-md);
+    border-radius: var(--nf-admin-radius);
     background: var(--nf-admin-panel-fill);
     border-color: var(--nf-admin-panel-edge);
     box-shadow:
@@ -1363,7 +1370,7 @@
     position: relative;
     min-width: 0;
     padding: var(--nf-space-md) var(--nf-space-md) var(--nf-space-md);
-    border-radius: var(--nf-radius-md);
+    border-radius: var(--nf-admin-radius);
     border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
     background: var(--nf-admin-panel-fill);
     box-shadow:
@@ -1506,12 +1513,12 @@
   .nf-admin-strip {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    border-radius: var(--nf-radius-md);
+    border-radius: var(--nf-admin-radius);
     border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
     background: var(--nf-admin-panel-fill);
     box-shadow:
       inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 70%, transparent),
-      0 -2px 18px -6px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent),
+      0 -1px 6px -2px color-mix(in oklab, var(--nf-brand-primary) 60%, transparent),
       var(--nf-admin-panel-glow);
   }
   @media (min-width: 1100px) {
@@ -1597,7 +1604,7 @@
     align-items: start;
     gap: var(--nf-space-sm);
     padding: var(--nf-space-md);
-    border-radius: var(--nf-radius-md);
+    border-radius: var(--nf-admin-radius);
     border: var(--nf-border-width) solid var(--nf-admin-panel-edge);
     background: var(--nf-admin-panel-fill);
     box-shadow:
@@ -1608,7 +1615,7 @@
   a.nf-admin-kpi:hover {
     box-shadow:
       inset 0 1px 0 color-mix(in oklab, var(--nf-rim-lit-ink) 70%, transparent),
-      0 0 30px color-mix(in oklab, var(--nf-brand-primary) 32%, transparent);
+      0 0 8px color-mix(in oklab, var(--nf-brand-primary) 40%, transparent);
   }
   a.nf-admin-kpi:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
