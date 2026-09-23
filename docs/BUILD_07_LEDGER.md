@@ -7616,3 +7616,39 @@ I withdraw the three statements I made to the founder this session that main
 was green. They were measured against the wrong tree. The correct statement is
 that main was RED from `7da4b0d0` until this restore, and that the run which
 would have caught it is the one I only did the fourth time.
+
+### 62.6 Which tree each verdict is about, after the coordinator's warning
+
+Main was red for a stretch today and nobody could see it, because suites were
+being run in the shared worktree where five workers' in-flight edits were
+supplying a module main did not have. The warning was applied to this work
+rather than noted, and the answer is written into `docs/escrow/PROBE_STATE.md`
+as its own section.
+
+**No row of the probe table is a verdict about main, and none needs to be.**
+P-7's EXECUTE half and the live P-9 are verdicts about the LIVE DATABASE, run
+through `apply_migration` and rolled back; the shared worktree cannot reach
+them. P-7's HTTP half is a verdict about nothing, because it has never run.
+
+**The local eleven are a verdict about the `.sql` text in
+`supabase/migrations/` and the harness script as they stood at 10:20:15Z**, and
+that transfers to `origin/main` for three checked reasons. The harness has no
+JavaScript in it at all: bash, `psql` and a local cluster, no `node_modules`,
+no build, no import, and it never touches `apps/web`, so the failure mode the
+coordinator describes has no path into it. Its only inputs are those migrations
+and its own script, and `git diff origin/main` over exactly those two paths
+returns **empty**. And every lifted body prints its source migration; all
+twenty nine come from files that are on `origin/main`.
+
+**Said rather than hidden:** there WERE untracked migrations in that directory
+during the run, from other workers (`20260923094423`, `20260923094710`,
+`20260923101422`), and the harness's glob would have read them. None supplied a
+body, because none defines an escrow or wallet function, and the provenance
+lines say so. **But the harness does not CHECK that the migrations it read are
+the migrations on `origin/main`**, and "the last definition in filename order"
+is exactly what an untracked file can win. That check is not added and is now
+named as owed.
+
+The gate lines in 59.3 and 62.2 (`tsc --noEmit`, `vitest run`) were taken in
+the shared worktree and are statements about that tree, not about main. They
+are reported as what they are.

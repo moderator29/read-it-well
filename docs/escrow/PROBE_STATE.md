@@ -179,6 +179,57 @@ orderings and P-8's other illegal transitions have never been executed.**
 
 ---
 
+## WHICH TREE EACH VERDICT IS ABOUT, WHICH IS NOT THE SAME AS WHICH BRANCH
+
+Main was red for a stretch on 23 September and nobody could see it, because
+suites were being run in the shared worktree where five workers' in-flight
+edits were supplying a module main did not have. **A suite run in that tree
+measures a tree nobody has and nobody deploys.** Every row above was taken in
+that same shared worktree, so the question has to be answered rather than
+waved past.
+
+**No row in this table is a verdict about main, and none of them needs to be.**
+
+| Row | What it is actually a verdict about |
+| --- | --- |
+| P-7 EXECUTE, P-9 live | **The live database.** Not a tree at all. Run through `apply_migration` against project `uccixoonmbhrnyczyigt` and rolled back. The shared worktree cannot reach them. |
+| P-7 HTTP | Nothing. It has never run. |
+| P-1 to P-6, P-8, P-9 local | **The `.sql` text of `supabase/migrations/*.sql` and the harness script, as they stood in the shared worktree at 2026-09-23T10:20:15Z.** |
+
+**Why the last row transfers to `origin/main` anyway, and it is checked rather
+than assumed.**
+
+1. **The harness has no JavaScript in it.** It is bash plus `psql` plus a local
+   Postgres 16 cluster. It does not read `node_modules`, does not build, does
+   not import a module, and does not touch `apps/web`. The failure mode above,
+   an in-flight edit supplying a module main does not have, has no path into
+   it.
+2. **Its only inputs are `supabase/migrations/*.sql` and its own script**, and
+   `git diff origin/main -- supabase/migrations scripts/probes/escrow_concurrency.sh`
+   returns EMPTY. Those inputs are byte-identical to `origin/main`.
+3. **Every lifted body prints the migration file it came from**, and the run's
+   own header lists all twenty nine. All twenty nine are files that are on
+   `origin/main`. There WERE untracked migrations sitting in that directory
+   during the run, from other workers, and the harness's glob would have read
+   them: `20260923094423`, `20260923094710` and `20260923101422`. **None of
+   them supplied a body**, because none of them defines an escrow or wallet
+   function, and the provenance line beside each lifted body says so. They have
+   since been committed by their owners.
+
+**UNPROVEN, and it is a small thing rather than a hidden one:** point 3 rests
+on reading the run's own provenance lines. If a future in-flight migration DID
+redefine one of the twenty nine, the harness would silently lift it, because
+"the last definition in filename order" is exactly what an untracked file can
+win. **The harness does not check that the migrations it read are the
+migrations on `origin/main`, and it should.** That is the next thing to add to
+it and it is not added.
+
+**Separately: the gate lines in ledger sections 59 and 62 (`tsc --noEmit`,
+`vitest run`) were taken in the shared worktree and are therefore statements
+about that tree, not about main.** They are reported as what they are.
+
+---
+
 ## What is owed before any of this reads green
 
 1. **DONE, 23 September.** The scratch schema now lifts its column additions
