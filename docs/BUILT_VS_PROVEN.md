@@ -61,6 +61,41 @@ stated rather than worked around.
 | Gate | How, today | Result |
 |---|---|---|
 | Test suite at `origin/main` | `git worktree add --detach` at `92d6eb2b`, `node_modules` hardlinked with `cp -al` at BOTH the root and `apps/web`, never a symlink; `npx vitest run` from `apps/web` | **222 files, 3613 passed, 1 skipped, exit 0**, 185s, 11:31 to 11:35 UTC |
+| Typecheck at `origin/main` | `npx tsc --noEmit -p tsconfig.json`, same worktree | **exit 0, no diagnostics** |
+| Lint at `origin/main` | `npx eslint src`, same worktree | **exit 1. 335 problems, 2 ERRORS, 333 warnings.** See below |
+| Build at `origin/main` | not run | **unknown** |
+
+### MAIN FAILS THE LINT GATE RIGHT NOW, AND NOTHING HAS SAID SO
+
+This is the one thing in this register that is a defect rather than a
+measurement, so it goes at the top rather than in a footnote.
+
+`BUILD_07_LEDGER.md` section 1 records the floor as **"exit 0, 339 problems, 0
+errors, 339 warnings"** and says a worker that makes one of the four gates
+worse has not finished. Measured at `origin/main` `92d6eb2b` today:
+
+```
+/apps/web/src/app/(app)/settings/SettingsHub.tsx
+   10:30  error  'RowSelect' is defined but never used   @typescript-eslint/no-unused-vars
+  180:9   error  'copy' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+✖ 335 problems (2 errors, 333 warnings)
+exit 1
+```
+
+**Both errors are in one file and both are still there at the current tip.**
+Re-checked after the tip moved to `d4e66ffe`: `git diff --stat 92d6eb2b
+origin/main` over that path is empty, and line 10 still imports `RowSelect`
+while line 180 still assigns `const copy = t.settings.appearance`. They are
+almost certainly the residue of the light-mode removal, which took the
+appearance control out and left its import and its copy behind.
+
+**Nobody reported this.** It is a two-line fix and the gate has been red for
+as long as that removal has been on main. It is also precisely the shape the
+ledger warns about: the warning count went DOWN, from 339 to 333, so anybody
+glancing at the number would have read it as an improvement. **The number
+improved and the gate broke, in the same change.**
+
 
 **Mark: DONE, and it is a verdict about main rather than about the shared
 worktree.** The shared tree `/home/user/read-it-well` has thirteen modified
@@ -764,10 +799,11 @@ checked-and-fine.**
    checked its privilege claims against the catalogue and nothing else.
    Specifically I did not re-verify the catalogue-guard hashes, the mutation
    log, or that the harness was run from a `git archive` of `origin/main`.
-4. **No build was run**, at `origin/main` or anywhere. The ledger's floor is
-   four gates; the suite and the typecheck were measured at `92d6eb2b` and
-   both are green. `next build` at `92d6eb2b` is **unknown**, and so is the
-   lint count if the run below did not land before this file was closed.
+4. **No build was run**, at `origin/main` or anywhere. Three of the ledger's
+   four gates were measured at `92d6eb2b`: the suite green, the typecheck
+   green, the lint **red**. `next build` is **unknown**, and a red lint is
+   often accompanied by a green build, so nothing should be inferred from the
+   one about the other.
 5. **RLS was not tested and cannot be tested from here**, because the only SQL
    role available holds `rolbypassrls`. Every policy on every table in this
    register is unverified. The grants are checked; the policies are not.
@@ -842,7 +878,7 @@ omitted, because omitting it would flatter the total.
 |---|---|
 | Test suite at `origin/main` `92d6eb2b` | **222 files, 3613 passed, 1 skipped, exit 0.** Isolated worktree, `cp -al` hardlinks at root and `apps/web`. **DONE.** |
 | Typecheck at `origin/main` | `npx tsc --noEmit -p tsconfig.json` in the same isolated worktree: **exit 0, no diagnostics.** **DONE.** |
-| Lint at `origin/main` | **not run today. Unknown.** |
+| Lint at `origin/main` | `npx eslint src`: **exit 1, 2 errors, 333 warnings. RED.** Both errors in `app/(app)/settings/SettingsHub.tsx`, both still present at the current tip `d4e66ffe`. See section 0. |
 | Build at `origin/main` | **not run today. Unknown.** |
 | Production deployment | Live and serving: seven cron routes reached it and wrote audit rows between 02:30Z and 11:30Z today. |
 
@@ -896,7 +932,12 @@ correct code running correctly, and **none of them can fail for the reason the
 feature would fail**, which is the definition of a blind light and the reason
 this platform found seventeen of them.
 
-**The thing to do about it is not more code.** Three of the four blockers are
+**One thing to do about it IS code, and it takes two minutes:** delete the
+unused `RowSelect` import and the unused `copy` binding in
+`app/(app)/settings/SettingsHub.tsx` and main passes lint again. Everything
+else below is the founder's.
+
+**The rest is not more code.** Three of the four blockers are
 one action each by the founder, and each one converts a whole block from
 unproven to provable in an afternoon:
 
