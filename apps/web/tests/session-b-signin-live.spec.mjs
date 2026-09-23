@@ -99,6 +99,10 @@ if (!SIGNED_IN) {
   await page.click("button[type=submit]:has-text('Sign in')");
   await page.waitForURL((u) => !u.pathname.startsWith("/sign-in"), { timeout: 30000 }).catch(() => {});
   check("a real sign-in lands on next", path().startsWith("/wallet"), path());
+  /* Let the wallet finish its first read so the proof shows the page, not
+     its skeleton. */
+  await page.waitForLoadState("networkidle", { timeout: 20000 }).catch(() => {});
+  await page.waitForTimeout(3000);
   await page.screenshot({ path: `${OUT}/live-signed-in.png` });
   const cookies = await ctx.cookies();
   check("the session cookie is set", cookies.some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token")));
