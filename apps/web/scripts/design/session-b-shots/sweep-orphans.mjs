@@ -19,6 +19,7 @@
  */
 import { chromium } from "playwright-core";
 import { mkdirSync, writeFileSync } from "node:fs";
+import { horizontalOverflow } from "../../../tests/_overflow.mjs";
 
 const BASE = process.argv[2] ?? "http://127.0.0.1:3391";
 const PHASE = process.argv[3] ?? "before";
@@ -94,6 +95,9 @@ const LIVE = [
 const measure = () => {
   const out = { overflow: 0, small: [], capsules: [], short: [], primaries: [], flatSelected: [], legacy: [], oddContainers: [] };
   const de = document.documentElement;
+  // Kept for comparison only: the root is `overflow-x: clip`, so this is 0
+  // whatever the page does (UI-P2-02). `ovf` below comes from
+  // tests/_overflow.mjs, which counts elements past the viewport edge.
   out.overflow = Math.max(de.scrollWidth, document.body.scrollWidth) - window.innerWidth;
   const vis = (el) => {
     const r = el.getBoundingClientRect();
@@ -252,6 +256,8 @@ async function shoot(list, storageState) {
       let m;
       try {
         m = await page.evaluate(measure);
+        m.overflowing = await page.evaluate(horizontalOverflow);
+        m.overflow = m.overflowing.length;
       } catch (e) {
         m = { error: String(e) };
       }
