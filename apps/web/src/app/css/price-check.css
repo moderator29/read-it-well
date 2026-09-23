@@ -213,24 +213,8 @@
     border-radius: var(--nf-radius-sm);
     border: var(--nf-border-width) solid transparent;
   }
-  .nf-pc-confidence--high {
-    border: var(--nf-border-width) solid var(--nf-selected-edge);
-    border-color: var(--nf-selected-edges);
-    background: var(--nf-selected-fill);
-    box-shadow: var(--nf-selected-shadow-inline);
-    color: var(--nf-content-on-brand);
-  }
-  .nf-pc-confidence--medium {
-    color: var(--nf-brand-secondary);
-    background: var(--nf-btn-glass-fill);
-    border-color: var(--nf-btn-glass-edge);
-    box-shadow: var(--nf-btn-glass-shadow);
-  }
-  .nf-pc-confidence--low {
-    background: transparent;
-    color: var(--nf-content-muted);
-    border-color: var(--nf-panel-hair);
-  }
+  /* The three weights are the shared status badge's tones now, chosen in
+     `ResultPanel.tsx` (info, brand, neutral; SW-C6 / R-SH3). */
 
   /* ------------------------------------------------------ the disclaimer */
 

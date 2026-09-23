@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { panelClass } from "@/components/ui/Panel";
 
 /**
  * THE SCREEN LANGUAGE.
@@ -34,7 +35,7 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
  *             Sections of a screen live here. They are grouped by a heading,
  *             by space and by alignment, never by a border. `Section`.
  *
- *   RAISED    `.nf-card`. Reserved for a discrete OBJECT: a thing you could
+ *   RAISED    The panel (`panelClass`, SW-C5). Reserved for a discrete OBJECT: a thing you could
  *             pick up and move somewhere else and it would still make sense.
  *             A listing card in a grid. A booking panel. A preview floating
  *             over a map. A section of a page is not an object, so a section
@@ -334,10 +335,13 @@ export function RowList({
   "data-testid"?: string;
 }) {
   return (
+    /* Boxed, the list is the shared panel (SW-C5): the 10px container corner
+       and the lit edge come from the panel, never from a utility here. `block`
+       and `py-0` keep the list's own flow and rhythm, so nothing moves. */
     <ul
       data-testid={testId}
       className={`nf-rows ${inset ? "nf-rows--inset" : ""} ${
-        boxed ? "nf-card overflow-hidden rounded-[var(--nf-radius-xl)] px-lg sm:px-xl" : ""
+        boxed ? panelClass({ variant: "card", className: "block overflow-hidden py-0 px-lg sm:px-xl" }) : ""
       } ${className ?? ""}`}
     >
       {children}
@@ -375,9 +379,10 @@ export function Row({
 /**
  * One large, calm, generous glass surface.
  *
- * THE MATERIAL IS OURS AND STAYS. This is `.nf-card`: the edge-lit glass with
- * its gradient rim and its corner glow, which is the best surface on the
- * platform. What changed is the SHAPE, the SCALE and what goes inside.
+ * THE MATERIAL IS THE PANEL. Since the platform sweep (SW-C5) the raised
+ * surface is the console's panel card: the 10px container corner, the per-side
+ * lit edge, the catchlight and the halo, all from the shared layer. What this
+ * primitive decides is the SCALE and what goes inside.
  *
  * ONE CONTAINER PER GROUP, NOT ONE PER ITEM. This is the whole idea and it is
  * most of why the reference platform's screens feel calm: their settings screen
@@ -387,7 +392,7 @@ export function Row({
  * about to render two of these next to each other, they are almost certainly
  * one of these with a `RowList` inside it.
  *
- * BIG RADIUS, BIG PADDING. `--nf-radius-xl` (22px) and `p-card` stepping to
+ * BIG PADDING. The corner is the panel's (10px); `p-card` stepping to
  * `p-cell`, against the `p-4`/`p-5` and medium radius that was everywhere. A
  * surface should feel roomy. If it feels tight it is holding too much, not
  * padded too little. Those two are the scale's own names for "the inside of an
@@ -429,8 +434,10 @@ export function Surface({
     <div
       data-testid={testId}
       className={`${
-        tone === "glass" ? "nf-glass nf-surface--glass" : "nf-card"
-      } rounded-[var(--nf-radius-xl)] p-card sm:p-cell ${className ?? ""}`}
+        tone === "glass"
+          ? "nf-glass nf-surface--glass rounded-[var(--nf-radius-xl)]"
+          : panelClass({ variant: "card", className: "block" })
+      } p-card sm:p-cell ${className ?? ""}`}
     >
       {children}
     </div>

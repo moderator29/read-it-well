@@ -387,105 +387,101 @@
    * It is fixed at the root here instead, because the landing, the cards and
    * the profile draw the same class and were still drawing capsules.
    */
+  /*
+   * THE SHARED STATUS BADGE (the platform sweep's leftovers, SW-C6 and R-SH3,
+   * 23 September). The console's filled badge (`.nf-admin-badge`, sampled on
+   * 5EAA44CB and 01F7DFC7) made the platform's one badge, drawn by
+   * `components/ui/StatusBadge.tsx` and by every `.nf-badge` in the markup:
+   * a tinted glass fill of the state's own hue over the canvas, brighter at
+   * the top, a ring of the same hue at 65 per cent (drawn inside), the lit edge (a catch of
+   * the hue lifted towards white under the top edge and the console's 6px
+   * halo) and the word in the hue lifted towards white. Every value is a
+   * token or a mix of tokens; a tone is one custom property.
+   *
+   * THE CORNER IS `--nf-radius-xs` BECAUSE THE SHAPE LAW IS A RATIO. The
+   * control radius is 14px and a badge draws 20 to 26px tall, so 14px would
+   * meet in the middle and draw the capsule the law forbids. 6px on the
+   * shortest badge (20px) is 0.30, on the console's 24px 0.25: a rounded
+   * rectangle at every size. The type has an 11px floor.
+   *
+   * Tones: success (emerald), pending (cyan), error (rose), info (the brand
+   * fill with the cyan word, as the console draws it), neutral. The older
+   * names stay as aliases so no call site breaks: approved = success,
+   * warning = pending, rejected = error, brand and verified = the brand fill
+   * with the pale brand word, example = pending (the disclosure on an
+   * illustrative listing: cyan, never read as a promotion).
+   */
+  .nf-badge,
+  .nf-count-badge,
+  .nf-badge-overlap,
+  .nf-reg-open {
+    --nf-badge-hue: var(--nf-content-muted);
+    --nf-badge-ink: color-mix(in oklab, var(--nf-badge-hue) 70%, white);
+    border-radius: var(--nf-radius-xs);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--nf-badge-hue) 48%, var(--nf-surface-canvas)),
+      color-mix(in oklab, var(--nf-badge-hue) 34%, var(--nf-surface-canvas))
+    );
+    /* The ring is drawn inside, as an inset shadow, not as a border: the
+       badges it replaced had no border, and a 1px one would move every row
+       that carries a badge by two pixels. */
+    box-shadow:
+      inset 0 0 0 var(--nf-border-width) color-mix(in oklab, var(--nf-badge-hue) 65%, var(--nf-surface-canvas)),
+      inset 0 2px 0 color-mix(in oklab, var(--nf-badge-hue) 45%, white),
+      0 0 6px -1px color-mix(in oklab, var(--nf-badge-hue) 35%, transparent);
+    color: var(--nf-badge-ink);
+    font-size: max(0.6875rem, var(--nf-text-overline));
+    white-space: nowrap;
+  }
   .nf-badge {
     display: inline-flex;
     align-items: center;
     gap: var(--nf-gap-inline-tight);
     padding: var(--nf-space-2xs) var(--nf-gap-inline);
-    border-radius: var(--nf-radius-xs);
-    font-size: var(--nf-text-overline);
     font-weight: 700;
     letter-spacing: 0.02em;
   }
-  .nf-badge--success {
-    background: var(--nf-state-success-surface);
-    color: var(--nf-state-success);
+  .nf-badge--success,
+  .nf-badge--approved,
+  .nf-reg-open--open {
+    --nf-badge-hue: var(--nf-state-success);
   }
-  .nf-badge--brand {
-    /* Rung 2: a badge is a surface the platform has singled out. Was 22%, two
-       points off the rung, and two points is not a decision. */
-    background: var(--nf-brand-tint-2);
-    color: var(--nf-brand-secondary);
-  }
-  .nf-badge--warning {
-    background: var(--nf-state-warning-surface);
-    color: var(--nf-state-warning);
-  }
-
-  /*
-   * The four status badges. One meaning per colour, platform-wide.
-   *
-   * These are NOT synonyms for the tone classes above. A tone says how loud a
-   * chip is; a status says what the platform has decided about a thing. Read
-   * the reasoning in packages/design-tokens/src/tokens.css. If a badge is not
-   * one of these four states it must not use one of these four classes.
-   */
-  .nf-badge--pending {
-    background: var(--nf-status-pending-surface);
-    color: var(--nf-status-pending);
-  }
-  .nf-badge--approved {
-    background: var(--nf-status-approved-surface);
-    color: var(--nf-status-approved);
-  }
-  .nf-badge--rejected {
-    background: var(--nf-status-rejected-surface);
-    color: var(--nf-status-rejected);
-  }
-  .nf-badge--verified {
-    background: var(--nf-status-verified-surface);
-    color: var(--nf-status-verified);
-  }
-  /*
-   * The example mark, in the corner where a verified tick would go.
-   *
-   * The warning tone rather than the brand one, deliberately: a filled pill in
-   * that position is the visual grammar of Featured and Superhost, and the one
-   * thing this must never be read as is an endorsement. Drawn in the same shape
-   * as the tick so the eye finds it in the same place, in a colour that means
-   * "take note" rather than "well done".
-   *
-   * They cannot both appear. A demo listing is never verified, by the badge
-   * rule in the repository and by a database constraint under it.
-   */
-  /*
-   * A 12 PER CENT WASH IS NOT A SURFACE, and this badge is usually pinned to a
-   * photograph or a pale media ground rather than to a card.
-   *
-   * `--nf-state-warning-surface` is the cyan at 12 per cent of itself over
-   * whatever is behind it. On a card that is a readable tint. On the pale media
-   * ground a listing without a photograph paints, in the light theme, it is
-   * twelve per cent of a deep teal over near-white, which leaves the label
-   * floating on almost nothing: the badge reads as text somebody forgot to
-   * style. Colour alone cannot carry a chip that does not know what is behind
-   * it.
-   *
-   * So it gets a ground of its own and an edge. The tone is unchanged, because
-   * the tone is the meaning: cyan is attention, and this badge says "this is an
-   * example, not a real listing", which is exactly an attention state.
-   */
-  /*
-   * The tint is LAYERED over an opaque surface rather than mixed into one. A
-   * `color-mix` of a translucent tint and a solid colour produces a third
-   * translucent colour, which is the same problem again; two background layers
-   * composite, which is what "a tint on a surface" actually means. Both themes
-   * are answered by one declaration, because `--nf-surface-elevated` is the
-   * card colour at night and white on paper.
-   */
+  .nf-badge--pending,
+  .nf-badge--warning,
   .nf-badge--example {
-    background:
-      linear-gradient(var(--nf-state-warning-surface), var(--nf-state-warning-surface)),
-      var(--nf-surface-elevated);
-    border: var(--nf-border-width) solid color-mix(in oklab, var(--nf-state-warning) 42%, transparent);
-    color: var(--nf-state-warning);
-    letter-spacing: 0.02em;
+    --nf-badge-hue: var(--nf-status-pending);
   }
-
-  /* A label that is not a status: a category, a tier, a device. Quiet, so the
-     four status colours keep their monopoly on meaning. */
-  .nf-badge--neutral {
-    background: var(--nf-surface-raised);
-    color: var(--nf-content-secondary);
+  .nf-badge--error,
+  .nf-badge--rejected {
+    --nf-badge-hue: var(--nf-state-error);
+  }
+  .nf-badge--info,
+  .nf-count-badge,
+  .nf-badge-overlap {
+    --nf-badge-hue: var(--nf-brand-primary);
+    --nf-badge-ink: var(--nf-state-info);
+  }
+  .nf-badge--brand,
+  .nf-badge--verified {
+    --nf-badge-hue: var(--nf-brand-primary);
+    --nf-badge-ink: color-mix(in oklab, var(--nf-brand-secondary) 55%, white);
+  }
+  .nf-badge--neutral,
+  .nf-reg-open--closed {
+    --nf-badge-hue: var(--nf-content-muted);
+  }
+  /* `.nf-reg-open` (Open now / Closed on the register's stays and
+     restaurants, catalogue.css keeps its layout) is named here rather than
+     given the class in markup because a committed harness writes it bare. */
+  /* The console's row badge: 24px tall, a floor on its width so a column of
+     them lines up. */
+  .nf-badge--md {
+    justify-content: center;
+    min-height: 1.5rem;
+    min-width: 4rem;
+    padding-block: 0;
+    padding-inline: var(--nf-space-xs);
   }
 
   /*
@@ -502,25 +498,15 @@
     display: inline-flex;
     align-items: center;
     padding: var(--nf-space-2xs) var(--nf-space-sm);
-        /*
-     * THE RATIO, NOT THE NAME. This carries a word on 12px type with 4px of
-     * block padding, so it draws about 24px tall and 14px over 24px is 0.59:
-     * a capsule, and no grep can see it. `.nf-badge` beside it already moved
-     * to `--nf-radius-xs` for the same reason. 6px over 24px is 0.25.
-     */
-    border-radius: var(--nf-radius-xs);
-    font-size: var(--nf-text-overline);
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: 0.02em;
-    color: var(--nf-content-on-brand);
-    background: var(--nf-gradient-brand);
-    box-shadow: 0 6px 16px -4px var(--nf-glow-4),
-      0 0 0 3px var(--nf-surface-canvas);
+    /* The shared badge material (above), and a ring of the canvas round it so
+       the badge reads as pinned over the edge it straddles. */
+    outline: 3px solid var(--nf-surface-canvas);
   }
   .nf-badge-overlap--success {
-    background: var(--nf-state-success);
-    box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--nf-state-success) 60%, transparent),
-      0 0 0 3px var(--nf-surface-canvas);
+    --nf-badge-hue: var(--nf-state-success);
+    --nf-badge-ink: color-mix(in oklab, var(--nf-state-success) 70%, white);
   }
 
   /*
@@ -544,7 +530,7 @@
    * shape that carries NO text. A count badge carries a numeral, and a numeral
    * is text. The law reaches it.
    *
-   * So it is `--nf-radius-xs` like every other small text plate, it is one
+   * So it is the shared badge on `--nf-radius-xs` like every other small text plate, it is one
    * shape at one digit and at three, and `threads.css`, `admin.css` and
    * `check-css-tokens.mjs` are brought onto this answer rather than left to
    * disagree. The font size next to it was a raw literal outside the type
@@ -557,14 +543,10 @@
     min-width: 1.375rem;
     height: 1.375rem;
     padding: var(--nf-space-0) var(--nf-space-2xs);
-    border-radius: var(--nf-radius-xs);
-    font-size: var(--nf-text-overline);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
-    color: var(--nf-brand-secondary);
-    /* Rung 2, exactly where it already was. A count is a badge that happens to
-       hold a number. */
-    background: var(--nf-brand-tint-2);
+    /* The material, corner and ink are the shared badge's (above, the info
+       tone): a count is a badge that happens to hold a number. */
   }
 
   /*
@@ -1000,24 +982,6 @@
    * and a fill that carries the glow at its leading edge so "how far" is lit.
    * `material="glass"` on Progress.
    */
-  /*
-   * A PANEL THAT IS A LINK KEEPS ITS LIGHT ON HOVER.
-   *
-   * `.nf-card--interactive:hover` (glass.css) swaps the whole shadow for the
-   * elevation rung, which on a `Panel` would put the lit rim and the outer
-   * glow out the moment a pointer arrived. On a panel the lift is added to the
-   * panel's own light instead. Request SW-C5 asks for this in glass.css beside
-   * the panel; it lives here until then.
-   */
-  @media (hover: hover) {
-    .nf-panel.nf-card--interactive:hover {
-      box-shadow:
-        var(--nf-panel-rim),
-        var(--nf-panel-glow),
-        var(--nf-elev-2);
-    }
-  }
-
   /*
    * A PANEL HOLDING THE LIT PRIMARY KEEPS ITS POOL OF LIGHT. The primary's
    * pooled bloom is an `::after` drawn under the bar; inside a panel without

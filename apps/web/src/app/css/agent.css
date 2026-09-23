@@ -17,55 +17,14 @@
   THE PLATFORM SWEEP (23 September) moved every container here onto the
   shared layer: `Panel` for cards, groups, choices and drop zones, the shared
   selected state for a chosen door or mode, the field material for the bar's
-  search. What stays in this file is layout and type, and one bridge rule for
-  the `.nf-card` that shared primitives draw inside the two roots.
+  search. What stays in this file is layout and type. The bridge rule that
+  pointed `.nf-card` at the panel inside the two roots went when `.nf-card`
+  itself became the panel (SW-C5).
 */
 @layer components {
-  /*
-   * THE STATUS CHIP AND THE COUNT ARE ROUNDED RECTANGLES IN HERE, AND THE
-   * REASON IS THE RATIO RATHER THAN THE TOKEN NAME.
-   *
-   * `.nf-badge` and `.nf-count-badge` are the shared primitives in
-   * `app/css/chips.css`, which belongs to the primitives worker. `.nf-badge`
-   * asks for `--nf-radius-control`, which is 14px, and it is drawn on this
-   * surface between 19px and 26.6px tall, measured on a live page rather than
-   * guessed. Twice the radius is more than the height, so the corners meet in
-   * the middle and every status chip in this console drew SEMICIRCULAR ENDS
-   * while its source text said "control radius" and every check passed. It is
-   * the dock's fault exactly (ledger 13.5): a shape ruling is about the ratio,
-   * never about the token name, and only a picture catches it.
-   * `.nf-count-badge` is worse, asking for `--nf-radius-circle` on a box with
-   * a 22px floor that grows sideways, so it draws a circle at one digit and an
-   * ellipse at two.
-   *
-   * `GOVERNING-landing-desktop-hero.png` draws its one badge, the listing
-   * card's Verified mark, as a small rounded rectangle, and `278CC66A` draws
-   * all four of its status chips the same way with a clear straight edge down
-   * each side.
-   *
-   * THE RUNG IS `--nf-radius-xs`, 6px, AND NOT `--nf-radius-sm`, WHICH IS THE
-   * RATIO RULE APPLIED ONE STEP FURTHER RATHER THAN A DEPARTURE FROM IT. The
-   * founder's clarification puts a chip under about 32px on `--nf-radius-sm`,
-   * 10px, and that clarification was written about a 28px chip. These badges
-   * are 19px at the `xs` size, so 10px is still half the height and still
-   * draws the capsule: the first pass of this rule set `sm` and the probe
-   * measured 19px against 10px and said capsule again, which is the same trap
-   * a third time in one night. 6px leaves 7px of straight edge on the
-   * shortest of them and reads as the reference's chip at every size this
-   * surface draws.
-   *
-   * SCOPED HERE RATHER THAN CHANGED AT THE SOURCE, per the ledger's shared
-   * class rule in section 2: a worker who needs a change to a shared class
-   * defines it inside its own partial under its surface's root and reports it.
-   * Reported for `chips.css` so the lead can promote it to every surface,
-   * because this is a product-wide capsule and not an agent console one.
-   */
-  .nf-agent .nf-badge,
-  .nf-agent .nf-count-badge,
-  .nf-host .nf-badge,
-  .nf-host .nf-count-badge {
-    border-radius: var(--nf-radius-xs);
-  }
+  /* The status chips and counts in here are the shared status badge
+     (chips.css, SW-C6), already on the 6px corner this file used to set
+     under its own roots; the local override is gone. */
 
   /* ------------------------------------------------------- the console */
 
@@ -91,29 +50,6 @@
     color: var(--nf-content-primary);
   }
 
-  /*
-   * THE SHARED SCREEN PRIMITIVES INSIDE THE WORKSPACE TAKE THE PANEL.
-   *
-   * Every container this family draws itself is now `Panel`
-   * (`nf-panel nf-panel--card`, the console's material from the shared
-   * layer). What is left on `.nf-card` inside the two roots is drawn by
-   * primitives this group does not own: `RowList boxed` and `Row` from
-   * `components/app/Screen`, the offer panels on /host/transfer and the
-   * dashboard's row lists. This rule points them at the same panel tokens,
-   * token for token, so a boxed list in the workspace is the console's panel
-   * and not the older conic hairline. No value is written here; when `.nf-card`
-   * itself is re-pointed (request SW-C5) this rule is deleted.
-   */
-  .nf-agent .nf-card,
-  .nf-host .nf-card {
-    border-radius: var(--nf-container-radius);
-    border: var(--nf-border-width) solid var(--nf-panel-edge);
-    border-color: var(--nf-panel-edges);
-    background: var(--nf-panel-fill-card);
-    box-shadow:
-      var(--nf-panel-rim),
-      var(--nf-panel-glow);
-  }
   /* The top bar's search well, in the same material as the console's. */
   .nf-agent-bar__search {
     position: relative;

@@ -85,38 +85,6 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
-
-  /* The assistant card on home: the concierge object beside its promise. */
-  .nf-home__ai {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-  }
-  .nf-home__ai-art {
-    position: absolute;
-    right: calc(-1 * var(--nf-space-md));
-    top: calc(-1 * var(--nf-space-sm));
-    width: 7.5rem;
-    height: 7.5rem;
-    pointer-events: none;
-    opacity: 0.9;
-    filter: drop-shadow(0 0 18px var(--nf-glow-2));
-  }
-  .nf-home__ai-body {
-    padding-right: var(--nf-space-3xl);
-  }
-  @media (min-width: 640px) {
-    .nf-home__ai-art {
-      right: var(--nf-space-md);
-      top: 50%;
-      translate: 0 -50%;
-      width: 9rem;
-      height: 9rem;
-    }
-    .nf-home__ai-body {
-      padding-right: 10rem;
-    }
-  }
 }
 
 /*

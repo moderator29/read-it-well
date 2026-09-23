@@ -27,29 +27,23 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 export type StatusTone = "success" | "warning" | "danger" | "info" | "brand" | "neutral";
 
 /**
- * Tinted fill, saturated text, no border. The fills are the shared
- * `--nf-state-*-surface` tokens, so a tone change happens once for everything.
- *
- * `neutral` is a wash of the content colour rather than a surface token, so it
- * reads as "no state" on any of the four surface families without carrying a
- * panel colour into a card that is already that colour.
+ * THE PAINT IS THE SHARED BADGE NOW (SW-C6, 23 September). The pill used to
+ * paint an inline tinted fill per tone; it now writes the shared status
+ * badge's tone class (`components/ui/StatusBadge.tsx`, `.nf-badge` in
+ * chips.css), so every status mark on the platform is the console's filled
+ * badge with the lit edge. The inline-paint argument above still holds: a
+ * bare `.nf-badge` now draws the neutral tone, so a pill is visible by
+ * construction. The pill's own tones map onto the badge's five: warning is
+ * pending (cyan), danger is error (rose), and brand keeps the brand fill
+ * (Verified, rule 12) through the badge's `brand` alias.
  */
-const TONE_STYLE: Record<StatusTone, CSSProperties> = {
-  success: { background: "var(--nf-state-success-surface)", color: "var(--nf-state-success)" },
-  warning: { background: "var(--nf-state-warning-surface)", color: "var(--nf-state-warning)" },
-  danger: { background: "var(--nf-state-error-surface)", color: "var(--nf-state-error)" },
-  info: { background: "var(--nf-state-info-surface)", color: "var(--nf-state-info)" },
-  brand: {
-    // Rung 2 of the brand tint ladder. The four tones above this one all read a
-    // `--nf-state-*-surface` token and only the brand tone reached for a raw mix,
-    // which is how one colour in the product ended up with thirteen strengths.
-    background: "var(--nf-brand-tint-2)",
-    color: "var(--nf-brand-secondary)",
-  },
-  neutral: {
-    background: "color-mix(in oklab, var(--nf-content-primary) 10%, transparent)",
-    color: "var(--nf-content-secondary)",
-  },
+const TONE_CLASS: Record<StatusTone, string> = {
+  success: "nf-badge--success",
+  warning: "nf-badge--pending",
+  danger: "nf-badge--error",
+  info: "nf-badge--info",
+  brand: "nf-badge--brand",
+  neutral: "nf-badge--neutral",
 };
 
 const SIZE_CLASS = {
@@ -63,22 +57,10 @@ const SIZE_CLASS = {
 const ICON_PX = { xs: 11, sm: 13, md: 14 } as const;
 
 /**
- * THE RENDERS' PILL IS OUTLINED, AND THE BASE PILL IS NOT.
- *
- * The admin queue draws every status as a tinted capsule with a hairline in
- * its own colour and a lit dot at its leading edge: Pending cyan, In Review
- * blue, Approved and Completed emerald, Rejected rose, Verified brand. The
- * base pill is a tinted fill with no border and the six greyscale shapes, and
- * twenty-seven call sites stand on it, so the render's look is two opt-in
- * props rather than a new default: `outlined` for the hairline, `mark="dot"`
- * for the lit dot. Colour is still never the only signal: the word is always
- * there, and the outlined dot pill keeps the tone's ink on the word.
+ * `outlined` WAS THE RENDERS' HAIRLINE AS AN OPT-IN; the shared badge carries
+ * a ring of its own hue on every tone, so the prop is kept for its callers
+ * and no longer changes the paint.
  */
-const OUTLINED_STYLE: CSSProperties = {
-  border: "var(--nf-border-width) solid color-mix(in oklab, currentColor 45%, transparent)",
-  boxShadow: "inset 0 1px 0 color-mix(in oklab, currentColor 12%, transparent)",
-};
-
 const DOT_CLASS = { xs: "size-1.5", sm: "size-2", md: "size-2" } as const;
 
 /** The lit dot: a filled circle in the tone's ink with its own small bloom,
@@ -168,7 +150,7 @@ export type StatusPillProps = {
    * where a silent swap would otherwise go unnoticed.
    */
   live?: boolean;
-  /** The renders' hairline in the tone's own colour. Off by default. */
+  /** Inert since SW-C6: the shared badge always carries its ring. */
   outlined?: boolean;
   /**
    * `shape` is the six greyscale-safe marks above. `dot` is the lit dot the
@@ -181,7 +163,8 @@ export type StatusPillProps = {
    * word, so it is a rounded rectangle. No product surface passes "pill";
    * only `app/(dev)/preview/g1/` does.
    *
-   * @deprecated The shape law leaves one control shape. Do not pass "pill".
+   * @deprecated The shape law leaves one control shape. Inert since SW-C6:
+   * "pill" draws the same rounded rectangle as "control".
    */
   shape?: "control" | "pill";
   className?: string;
@@ -193,9 +176,7 @@ export function StatusPill({
   icon,
   size = "xs",
   live = false,
-  outlined = false,
   mark = "shape",
-  shape = "control",
   className,
   children,
 }: StatusPillProps) {
@@ -204,13 +185,12 @@ export function StatusPill({
       role={live ? "status" : undefined}
       className={[
         "nf-badge",
+        TONE_CLASS[tone],
         SIZE_CLASS[size],
-        shape === "pill" ? "rounded-[var(--nf-radius-pill)]" : "",
         className ?? "",
       ]
         .filter(Boolean)
         .join(" ")}
-      style={outlined ? { ...TONE_STYLE[tone], ...OUTLINED_STYLE } : TONE_STYLE[tone]}
     >
       {icon ? (
         <UiIcon name={icon} size={ICON_PX[size]} />

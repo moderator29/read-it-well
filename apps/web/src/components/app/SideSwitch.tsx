@@ -5,12 +5,13 @@ import type { Dictionary } from "@vallo/i18n";
 import { otherSide } from "@/lib/side.constants";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { panelClass } from "@/components/ui/Panel";
 import { useSideFlip } from "./flip/SideFlip";
 
 /**
  * The coin: the control that turns the app over.
  *
- * Lives in the nav foot, above ThemeToggle, in both the rail and the drawer.
+ * Lives in the nav foot, in both the rail and the drawer.
  * It shows the OTHER side's name and glass mark, the way `ModeSwitcher`'s menu
  * variant shows the other workspace, so the row reads as a destination rather
  * than a state. It is deliberately not a toggle switch (`Switch.tsx` means a
@@ -61,12 +62,13 @@ export function SideSwitch({
     <button
       ref={button}
       type="button"
-      /* The material is the shared glass card's, not this file's own. The
-         drawer render draws the coin card as the brightest container on the
-         panel, and `.nf-glass--card` is the composition the founder's ruling
-         put on every container; `.nf-side-switch` adds only the brand wash,
-         the geometry and the star's stronger rung on top of it. */
-      className="nf-side-switch nf-tap nf-glass nf-glass--card"
+      /* The material is the shared panel card's (SW-C1, the platform
+         sweep): the 10px corner, the per-side lit edge, the card fill with
+         its reflection, the catchlight and the halo. `.nf-side-switch` adds
+         the row geometry, and on hover and focus the shared selected edge
+         and bloom, which is what makes it the drawer's brightest object
+         the moment it is reached for. */
+      className={panelClass({ variant: "card", className: "nf-side-switch nf-tap" })}
       disabled={pending}
       data-spinning={spinning || undefined}
       style={{ "--nf-flip-dir": other === "stays" ? -1 : 1 } as React.CSSProperties}

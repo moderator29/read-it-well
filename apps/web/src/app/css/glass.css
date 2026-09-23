@@ -18,70 +18,10 @@
   /* ----------------------------------------------------- Vallo Material */
 
   /*
-   * THE STRIDES, AND WHY THEY ARE A RING AND NOT A RAMP.
-   *
-   * The pass before this one made the hairline blue end to end, which fixed
-   * the complaint that the brand was invisible on our containers and left the
-   * real one standing: the founder asked for STRIDES on the edge, and a
-   * corner-to-corner linear ramp cannot make one. A 135deg ramp paints a value
-   * per diagonal band, so the top edge and the left edge of the same card get
-   * the same treatment and the run of light reads as a tint that happens to be
-   * brighter at one end. Glass does not do that. Light hits an edge, travels
-   * along it, and leaves; what you see is a short, hard, bright run with quiet
-   * either side of it.
-   *
-   * A conic gradient in the border box is that, exactly. Its angle maps to
-   * POSITION AROUND THE PERIMETER rather than to a diagonal, so a stop is a
-   * place on the edge: 0 is where the light enters and 180 is where it leaves.
-   * Two strides, on a quiet hairline. The stops live on `--nf-edge-stride-stops`
-   * in the token file, where the note beside them says why there are two and
-   * not four.
-   *
-   * NONE OF IT IS BLURRED and none of it is a shadow. The founder asked for
-   * sharp twice. Every stride is a stop on a 1px line, so it is as sharp as
-   * the display can draw and it costs one gradient, not a layer.
-   *
-   * The angle is a registered property so it can be ANIMATED, which an
-   * unregistered custom property cannot be. At rest it never moves: the sweep
-   * is an event, on the pointer, once, and reduced motion turns it off. One
-   * ambient animation per viewport is still the rule and this is not spending
-   * it.
+   * THE STRIDE RING IS GONE (SW-C5, 23 September). `.nf-card` drew a conic
+   * ring on a registered `--nf-stride-angle` and turned it once on hover; the
+   * card is the panel now, so the property and its keyframes went with it.
    */
-  /*
-   * 152 AND NOT 135, AND THAT SEVENTEEN DEGREES WAS THE LAST THING IN THE
-   * PRODUCT LIT FROM A SECOND DIRECTION.
-   *
-   * L-140's answer was one light source at `--nf-light-angle`, 152 degrees,
-   * everywhere. The note beside that token records two literals that survive on
-   * purpose, this one and `--nf-spin` in ambient.css, because a `@property`
-   * initial value has to be computationally independent and so may not read a
-   * `var()`. That is true about the MECHANISM and says nothing about the VALUE:
-   * the constraint is that the number must be written out, not that it must be
-   * the number it happened to be already.
-   *
-   * It matters here more than anywhere, because of where the stops sit.
-   * `--nf-edge-stride-stops` puts its brightest stop, `peak`, at 0deg, and this
-   * is the `from` angle of the conic that carries them. So this value IS the
-   * position of the ring's primary highlight, and at 135 it sat seventeen
-   * degrees anticlockwise of every other lit edge on the same card. The proof
-   * that 152 was intended is its own sibling: `--nf-spin` is already 152.
-   *
-   * The keyframe follows it, 152 to 512, which is the same full turn from the
-   * new rest position.
-   */
-  @property --nf-stride-angle {
-    syntax: "<angle>";
-    inherits: false;
-    initial-value: 152deg;
-  }
-  @keyframes nf-edge-stride {
-    from {
-      --nf-stride-angle: 152deg;
-    }
-    to {
-      --nf-stride-angle: 512deg;
-    }
-  }
 
   /*
    * Glass depth: floating nav, overlays, controls.
@@ -269,10 +209,10 @@
    *   rim      `--nf-rim-lit`, the blue-white top edge, on every card
    *   border   `--nf-brand-edge`, a uniform electric hairline. Uniform on
    *            purpose: the renders' cards are outlined evenly, and the
-   *            strides belong to `.nf-card`, which stays exactly as it is.
-   *            The two classes are two answers and both stay: `.nf-card` is
-   *            the calm container for a surface with no reference; this is
-   *            the lit one for a surface that has one
+   *            per-side edge belongs to `.nf-card`, which is the panel now
+   *            (SW-C5). The two classes are two answers and both stay:
+   *            `.nf-card` is the platform container; this is the lit one for
+   *            a surface over imagery that has its own reference
    *   bloom    `--nf-bloom-card` behind it, which is what the renders mean by
    *            floating
    *   blur     the base rung, inherited. A card in a thread sits over a
@@ -616,133 +556,60 @@
    */
 
   /*
-   * The card. SIX LAYERS BECAME TWO: a fill and an edge.
+   * THE CARD IS THE PANEL NOW (the platform sweep's leftovers, SW-C5,
+   * 23 September).
    *
-   * It carried, in one declaration: a radial brand bloom, a three stop linear
-   * fill, a four stop gradient border, a backdrop blur, an inset rim and an
-   * elevation shadow. The audit counts 423 call sites and over forty of them on
-   * the landing page alone, which is forty individually glowing top-left
-   * corners and forty composited blur passes on one screen. Six layers around a
-   * 24px icon, repeated, is most of what reads as choked. The counts are the
-   * audit's; the layers are countable in the declaration below.
-   *
-   * THE BLUR IS DELETED, and it is the single biggest paint saving available. A
-   * card sits on a FIXED canvas, so there is nothing moving behind it to blur:
-   * the filter was compositing a fresh backdrop for every card on every scroll
-   * frame in order to sample a background that never changed. Glass belongs to
-   * surfaces that float over content, which is the chrome bars, the sheets and
-   * the tab bar, and those keep it. This is also what the direction means by
-   * "a page where everything is glass is a page where nothing is".
-   *
-   * THE FILL IS ONE VEIL OF THE CANVAS, NOT THREE, AND IT IS DEEPER THAN IT WAS.
-   * The three stops ran 58, 70 and 78 percent of the canvas colour, which on a
-   * page whose ambient bloom is considerably brighter than `--nf-surface-canvas`
-   * meant the bloom came straight through the card and a panel was lighter than
-   * the token that names it. One stop at 88 percent is a real pane: still the
-   * page's own colour, so the card cannot drift into a different blue the way
-   * the hand-mixed fill did, but now visibly a surface rather than a tint.
-   *
-   * THE BORDER IS A CORNER CATCH ON A COMPLETE HAIRLINE. The four stop ramp
-   * started at a near-opaque `rgb(92 124 255 / 0.82)` and ran to TRANSPARENT at
-   * 68 percent, so every card had one shouting corner and three quarters of its
-   * perimeter had no edge at all. Now the brand catches the upper left for about
-   * a fifth of the ramp and settles into the ordinary glass hairline for the
-   * rest, so the object is fully outlined and the light still comes from one
-   * place: the same upper left every other surface in this file is lit from.
-   *
-   * What is left is a fill and an edge, where the edge is the border and the
-   * elevation rung it belongs to. This file's own argument is that on this
-   * canvas depth comes from the rim rather than from a black shadow, so the rim
-   * is part of the rung and not a seventh layer.
-   */
-  /*
-   * THE EDGE IS THE BRAND NOW, AND THE FOUNDER ASKED FOR IT BY NAME.
-   *
-   * The first calm pass gave the card a corner catch that faded into a
-   * neutral hairline by 42 per cent, and the founder looked at the product
-   * and said the one thing the artwork is made of, the electric blue edge
-   * light, was invisible on the containers. Right. The logo is a glass object
-   * whose identity IS the lit edge; a card in the same product with a grey
-   * outline is a box from a different company.
-   *
-   * So the hairline itself is blue now, end to end. Not a glow: a SHARP 1px
-   * electric line, and it CATCHES IN TWO PLACES rather than shading evenly
-   * from one corner to the other: where the light enters and where it leaves.
-   * Between them it is the ordinary hairline with brand in it, which is what
-   * keeps forty of these on one page from reading as forty drawn boxes. See
-   * the stride note at the top of this file for why that is a conic ring and
-   * not a diagonal ramp. The sharpness is that none of it is blurred, and the
-   * interior stays calm: the blue lives on one crisp line, exactly like the
-   * artwork.
+   * `.nf-card` was the calm container of the older register: a canvas veil
+   * inside a conic "stride" ring, a 22px corner and the rung 1 elevation. The
+   * sweep made the console's panel (`.nf-panel`, below) the platform's one
+   * container, and every group moved its own markup onto it; what was left
+   * on `.nf-card` was drawn by shared primitives no group owned (`Screen`'s
+   * boxed rows, the wallet's and the catalogue's cards under their own
+   * overrides, Get started's interest tiles) and it outranked the panel
+   * wherever the two met. So the class itself is re-pointed, token for token,
+   * at the panel's card material: the 10px container corner, the per-side lit
+   * edge, the card fill with its reflection, the catchlight and the halo.
+   * Nothing here is a value of its own. Layout is untouched (no padding, no
+   * display), so no reader moves; only the material and the corner change.
+   * Surfaces that restate `.nf-card` under their own root (wallet.css,
+   * crypto.css, catalogue.css, social*.css) still win by specificity and are
+   * listed in ledger 13 (leftovers).
    */
   .nf-card {
-    background:
-      linear-gradient(
-          color-mix(in oklab, var(--nf-surface-canvas) 88%, transparent),
-          color-mix(in oklab, var(--nf-surface-canvas) 88%, transparent)
-        )
-        padding-box,
-      conic-gradient(from var(--nf-stride-angle), var(--nf-edge-stride-stops))
-        border-box;
-    border: 1px solid transparent;
-    /*
-     * 22px, up from 18px.
-     *
-     * The reference platform's surfaces sit around 20 to 24px and read as
-     * roomy. At 18px, with our padding, a card reads as a box holding content
-     * rather than as a space content lives in, and the difference between those
-     * two readings is most of what "mature" means when somebody looks at a
-     * screen and cannot say why one feels expensive.
-     *
-     * A radius change is cheap to make and expensive to get wrong, so it is
-     * made once, here, on the shared material, rather than as a per-component
-     * override that drifts.
-     */
-    border-radius: var(--nf-radius-xl);
-    /* The inner top catchlight rides in brand ink too, so the edge reads as
-       lit glass rather than as a painted outline. Still one line, still sharp. */
+    background: var(--nf-panel-fill-card);
+    border: var(--nf-border-width) solid var(--nf-panel-edge);
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
     box-shadow:
-      /* A mix OF a mix: `--nf-brand-edge-soft` is already 35% of the glow ink,
-         so 60% of it landed at 21% - between rungs 1 and 2, nearer 1. A rung of
-         a rung is how a value ends up somewhere nobody chose. */
-      inset 0 1px 0 var(--nf-glow-1),
-      var(--nf-elev-1);
+      var(--nf-panel-rim),
+      var(--nf-panel-glow);
     transition: box-shadow var(--nf-duration-base) var(--nf-ease-standard);
+  }
+  /*
+   * A CARD THAT HOLDS THE LIT PRIMARY KEEPS ITS POOL. The primary's pooled
+   * bloom is an `::after` at z-index -1; inside a card with no stacking
+   * context of its own it falls behind the card's fill. `isolation` gives
+   * the card that context (the same rule the panel carries in chips.css).
+   */
+  .nf-card:has(.nf-btn--primary) {
+    isolation: isolate;
   }
   @media (prefers-reduced-motion: reduce) {
     .nf-card {
       transition: none;
     }
-    /* The strides stay, because they are the material. Only the travel stops. */
-    .nf-card--interactive:hover {
-      animation: none;
-    }
   }
 
   /*
    * An interactive card answers the finger first and the pointer second.
+   * `.nf-press` physics on `:active`; the hover sits behind `(hover: hover)`
+   * so a tap on a phone does not leave a card lifted.
    *
-   * THE PRESS IS THE ONE THAT MATTERS AND IT DID NOT EXIST. A card that is a
-   * link had a hover lift, which no phone ever sees, and nothing at all on
-   * touch. `.nf-press` in motion.css is the shared physics and this simply
-   * takes it: a scale down on `:active` that settles on one curve.
-   *
-   * THE HOVER IS BEHIND `(hover: hover)`, which it was not. A plain `:hover`
-   * sticks after a tap on iOS and Android, so a card a person tapped stayed
-   * lifted and lit until they touched something else.
-   *
-   * AND THE CURSOR-TRACKING LIGHT IS DELETED. A soft radial followed the
-   * pointer across every interactive card, driven by a delegated pointermove
-   * listener writing `--mx` and `--my` across the whole page. On the landing
-   * page that was forty lights answering one cursor, it is invisible on the
-   * phone this product is built for, and the hover shadow it sat inside was a
-   * bespoke three layer stack including its own brand bloom, written beside a
-   * rule two lines below that already said the same thing with the ladder. The
-   * two rules disagreed about one interaction; now there is one rule and it is
-   * a rung change.
-   *
-   * `TiltField` in components/site still writes `--mx` and `--my`, and nothing
-   * reads them any more.
+   * A CARD OR PANEL THAT IS A LINK KEEPS ITS LIGHT ON HOVER. The hover used to
+   * swap the whole shadow for the elevation rung, and on the panel material
+   * that put the lit rim and the outer glow out the moment a pointer arrived.
+   * The lift is now added to the panel's own light. The stride ring's one
+   * turn on hover went with the ring.
    */
   .nf-card--interactive {
     position: relative;
@@ -756,23 +623,14 @@
   @media (hover: hover) {
     .nf-card--interactive:hover {
       box-shadow: var(--nf-elev-2-rim), var(--nf-elev-2);
-      /*
-       * The light travels once and stops where it started.
-       *
-       * A stride is a place the light is, so the way to say "this one answers
-       * you" is to move the light rather than to add another. One full turn of
-       * the ring in 900ms, on the pointer, once per entry: the strides run
-       * round the card and settle back on the same axis every other surface is
-       * lit from. Nothing loops, nothing is left brighter than it started, and
-       * it costs one animated angle on one element instead of a fifth layer on
-       * all 423.
-       */
-      animation: nf-edge-stride var(--nf-duration-cinematic) var(--nf-ease-standard) 1;
     }
-  }
-  @media (hover: hover) {
-    .nf-card.nf-elev--hoverable:hover {
-      box-shadow: var(--nf-elev-2-rim), var(--nf-elev-2);
+    .nf-card.nf-card--interactive:hover,
+    .nf-card.nf-elev--hoverable:hover,
+    .nf-panel.nf-card--interactive:hover {
+      box-shadow:
+        var(--nf-panel-rim),
+        var(--nf-panel-glow),
+        var(--nf-elev-2);
     }
   }
   @media (prefers-reduced-motion: reduce) {

@@ -90,7 +90,8 @@
    *
    * The assistant's card is now real type on `.nf-card--live`, the surface the
    * landing page's closing card and the agents band already use, and it is as
-   * tall as its own content. See components/app/AiAssistantBanner.tsx.
+   * tall as its own content. (The banner itself was unmounted and then
+   * deleted in the platform sweep, R-SH1.)
    */
 
   /* Mobile tab bar: glass slab pinned to the bottom, above the safe area. */
@@ -932,9 +933,9 @@
    *
    * So the veil is not removed, it is deferred. At rest the header is
    * transparent and the page reads straight through it. Once the page has
-   * moved, `AppShell` sets `data-scrolled` and the bar frosts: the brand tint
-   * the founder's ruling put on every container, the strong blur, and
-   * `--nf-glow-edge` at its foot rather than a grey hairline. The `::after`
+   * moved, `AppShell` sets `data-scrolled` and the bar frosts: the console's
+   * bar material, and its lit foot (`--nf-bar-glow`) rather
+   * than a grey hairline. The `::after`
    * exit scrim `.nf-glass--chrome` contributed goes with the class, and
    * nothing wants it back, because a lit edge IS the separation.
    *
@@ -948,15 +949,16 @@
       background-color var(--nf-duration-base) var(--nf-ease-standard),
       box-shadow var(--nf-duration-base) var(--nf-ease-standard);
   }
+  /* THE CONSOLE'S TOP BAR (SW sweep leftovers, 23 September): the canvas at
+     82 per cent under the base blur, as `.nf-admin-bar` draws it, and lit
+     along its foot by `--nf-bar-glow`, the panel's foot edge and halo. The
+     old `--nf-glow-edge` ringed all four sides of a bar that has only a
+     foot. */
   .nf-app-header[data-scrolled] {
-    background: color-mix(
-      in oklab,
-      var(--nf-brand-tint-1),
-      color-mix(in oklab, var(--nf-surface-canvas) 88%, transparent)
-    );
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    backdrop-filter: blur(var(--nf-glass-blur-strong)) saturate(var(--nf-glass-saturate));
-    box-shadow: var(--nf-glow-edge);
+    background: color-mix(in oklab, var(--nf-surface-canvas) 82%, transparent);
+    -webkit-backdrop-filter: blur(var(--nf-glass-blur));
+    backdrop-filter: blur(var(--nf-glass-blur));
+    box-shadow: var(--nf-bar-glow);
   }
   /* No blur available means nothing is being separated by one, so the frosted
      state goes opaque rather than leaving type to read through a wash. */

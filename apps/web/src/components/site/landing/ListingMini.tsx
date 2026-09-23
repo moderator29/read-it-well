@@ -46,7 +46,7 @@ export function ListingMini({
           />
         )}
         <span
-          className={`nf-landing-float-badge ${listing.verified ? "" : "nf-landing-float-badge--quiet"}`}
+          className={`nf-badge ${listing.verified ? "nf-badge--verified" : "nf-badge--info"} nf-landing-float-badge`}
         >
           {listing.verified && <UiIcon name="verified" size={12} aria-hidden />}
           {listing.verified ? verifiedLabel : listing.market}

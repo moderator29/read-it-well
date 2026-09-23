@@ -6,6 +6,7 @@ import { formatRating, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Amount } from "@/components/ui/Amount";
 import { MediaFrame } from "@/components/app/MediaFrame";
+import { panelClass } from "@/components/ui/Panel";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
 import { amenityLabel } from "@/components/app/filters/amenities";
 import type { StayCardData } from "./stay-card-model";
@@ -60,7 +61,10 @@ export function StayCard({
 
   return (
     <article
-      className={`nf-glass nf-glass--card nf-pcard nf-pcard--wide ${index !== undefined ? "nf-card-in" : ""}`}
+      className={panelClass({
+        variant: "card",
+        className: `nf-pcard nf-pcard--wide ${index !== undefined ? "nf-card-in" : ""}`,
+      })}
       style={style}
       data-testid="stay-card"
     >
@@ -89,13 +93,13 @@ export function StayCard({
             </span>
           )}
           {stay.verified && (
-            <span className="nf-pcard__mark nf-pcard__mark--verified">
+            <span className="nf-badge nf-badge--verified nf-pcard__mark nf-pcard__mark--verified">
               <UiIcon name="verified" size={12} />
               {t.common.verified}
             </span>
           )}
           {stay.isDemo && (
-            <span className="nf-badge--example nf-pcard__mark nf-pcard__mark--example">
+            <span className="nf-badge nf-badge--example nf-pcard__mark nf-pcard__mark--example">
               <UiIcon name="info" size={12} />
               {t.catalogue.card.example}
             </span>

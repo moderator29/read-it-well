@@ -258,26 +258,21 @@
     font-size: var(--nf-pcard-fact, var(--nf-text-overline));
     font-weight: 650;
     line-height: 1;
-    color: var(--nf-content-on-media);
     pointer-events: none;
+    /* The 1px border this mark always had, kept transparent so the shared
+       badge (whose ring is drawn inside) sits at the same size. */
+    border: var(--nf-border-width) solid transparent;
   }
+  /* The material is the shared status badge (`nf-badge nf-badge--verified`,
+     `--info`, `--example` in the markup; SW-C6 / R-SH3): only the place on
+     the photograph is this file's. */
   .nf-pcard__mark--verified {
     top: var(--nf-space-2xs);
     left: var(--nf-space-2xs);
-    border: var(--nf-border-width) solid var(--nf-selected-edge);
-    border-color: var(--nf-selected-edges);
-    background: var(--nf-selected-fill);
-    box-shadow: var(--nf-selected-shadow-inline);
-    color: var(--nf-content-on-brand);
   }
   .nf-pcard__mark--market {
     bottom: var(--nf-space-2xs);
     left: var(--nf-space-2xs);
-    border: var(--nf-border-width) solid var(--nf-selected-edge);
-    border-color: var(--nf-selected-edges);
-    background: var(--nf-selected-fill);
-    box-shadow: var(--nf-selected-shadow-inline);
-    color: var(--nf-content-on-brand);
   }
   /* The disclosure on an illustrative row. Cyan outline, never a fill, so it
      cannot be mistaken for a promotion; it never appears with Verified. */
@@ -905,16 +900,11 @@
     font-size: var(--nf-text-caption);
     font-weight: 650;
     line-height: 1;
-    border: var(--nf-border-width) solid var(--nf-selected-edge);
-    border-color: var(--nf-selected-edges);
-    background: var(--nf-selected-fill);
-    box-shadow: var(--nf-selected-shadow-inline);
-    color: var(--nf-content-on-brand);
-  }
-  .nf-gallery-mark > svg {
-    color: var(--nf-content-on-media);
-  }
-  .nf-gallery-mark--market {
+    /* The 1px border this mark always had, kept transparent so the shared
+       badge (whose ring is drawn inside) sits at the same size. */
+    border: var(--nf-border-width) solid transparent;
+    /* The material is the shared status badge (SW-C6 / R-SH3); the plate is
+       36px tall here, so 10px of corner is 0.28. */
   }
   /* A lettered tag, so a rounded rectangle (the founder's shape law). */
   /*
@@ -950,20 +940,11 @@
     border-radius: var(--nf-radius-sm);
     font-size: var(--nf-text-caption);
     font-weight: 600;
-    color: var(--nf-content-primary);
-    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
-    background: var(--nf-btn-glass-fill);
-    box-shadow: var(--nf-btn-glass-shadow);
-  }
-  .nf-detail-tag > svg {
-    color: var(--nf-brand-secondary);
-  }
-  .nf-detail-tag--market {
-    border: var(--nf-border-width) solid var(--nf-selected-edge);
-    border-color: var(--nf-selected-edges);
-    background: var(--nf-selected-fill);
-    box-shadow: var(--nf-selected-shadow-inline);
-    color: var(--nf-content-on-brand);
+    /* The 1px border this mark always had, kept transparent so the shared
+       badge (whose ring is drawn inside) sits at the same size. */
+    border: var(--nf-border-width) solid transparent;
+    /* The material is the shared status badge, `nf-badge nf-badge--info` in
+       the markup (SW-C6 / R-SH3). */
   }
   .nf-detail-verified {
     display: inline-flex;
@@ -1887,8 +1868,8 @@
   .nf-stays-tiles > li {
     min-width: 0;
   }
-  /* The ring is `.nf-glass--tile`'s, from the shared partial; this is the
-     tile's own layout only. */
+  /* The material is the shared panel card's (`panelClass` in the markup,
+     the sweep's leftovers); this is the tile's own layout only. */
   .nf-stays-tile {
     position: relative;
     display: flex;
@@ -1932,12 +1913,12 @@
   }
   @media (hover: hover) {
     .nf-stays-tile:hover {
-    border-color: var(--nf-selected-edges);
+      border-color: var(--nf-selected-edges);
+    }
   }
-  }
-  /* Two classes deep on purpose: the tile also wears `.nf-glass--tile`,
-     which is one class, and the standing tile has to beat it whichever
-     order the partials happen to bundle in. */
+  /* Two classes deep on purpose: the tile also wears `.nf-panel`, which is
+     one class, and the standing tile has to beat it whichever order the
+     partials happen to bundle in. */
   .nf-stays-tile.nf-stays-tile--on {
     border: var(--nf-border-width) solid var(--nf-selected-edge);
     border-color: var(--nf-selected-edges);
@@ -2134,14 +2115,8 @@
     font-size: var(--nf-text-overline);
     font-weight: 650;
   }
-  .nf-reg-open--open {
-    background: var(--nf-state-success-surface);
-    color: var(--nf-state-success);
-  }
-  .nf-reg-open--closed {
-    background: color-mix(in oklab, var(--nf-content-primary) 10%, transparent);
-    color: var(--nf-content-secondary);
-  }
+  /* Its material and the two tones are the shared status badge's
+     (chips.css, SW-C6). */
 
   @media (prefers-reduced-motion: reduce) {
     .nf-pcard,

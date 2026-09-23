@@ -404,7 +404,7 @@
   /* ------------------------------------------------------------- the coin */
 
   /*
-   * The switch control in the nav foot, above ThemeToggle. A full-width row:
+   * The switch control in the nav foot. A full-width row:
    * a circular two-faced token on the left showing the OTHER side's glass
    * mark, the label, and a one-line sub. Not the ModeSwitcher, not the
    * RoleSwitcher, not a settings Switch: three controls, three questions,
@@ -416,52 +416,38 @@
    */
   .nf-side-switch {
     display: flex;
+    flex-direction: row;
     align-items: center;
     gap: 0.875rem;
     width: 100%;
     min-height: 5rem;
     padding: 0.75rem 0.875rem;
-    border-radius: var(--nf-radius-xl);
     /*
-     * THE STRONGER RUNG, DELIBERATELY, AND THIS IS THE ONE PLACE ON THE PANEL
-     * THAT GETS IT.
-     *
-     * The coin card is the star of the drawer render: it is the brightest
-     * container on that screen, brighter than the user card above it and
-     * brighter than the theme row below it, because it is the control that
-     * turns the whole product over. The card wears `.nf-glass--card` from the
-     * shared ladder in the markup, and this promotes its ring one rung to
-     * `--nf-glow-edge-strong` - the full brand-edge-strong outline, a 18px
-     * bloom at `--nf-glow-3` and a 56px far bloom - so the panel has a clear
-     * order of brightness rather than three containers shouting equally.
-     *
-     * The wash on top of the shared fill is the render's: the card is tinted
-     * blue inside, not neutral glass, which is what separates it from the
-     * user card at a glance rather than by reading it.
+     * THE MATERIAL IS THE PANEL CARD'S, in the markup (`panelClass`, SW-C1,
+     * 23 September). This rule drew its own: a brand-tinted wash over the
+     * glass fill, a 22px corner and the strong glow-edge rung. Now the card
+     * is the console's panel like every container on the drawer, and what
+     * makes it the star of `BCD39CA8` is its coin: the ring below wears the
+     * shared icon plate's light, the brightest object on the panel. Reached
+     * for (hover, keyboard focus), the card takes the shared selected edge
+     * and bloom over its own catchlight.
      */
-    border: 1px solid var(--nf-brand-edge-strong);
-    background:
-      linear-gradient(var(--nf-light-angle), var(--nf-brand-tint-2), var(--nf-brand-tint-1) 60%, transparent),
-      var(--nf-glass-fill);
-    box-shadow:
-      var(--nf-glow-edge-strong),
-      inset 0 -1px 0 var(--nf-glass-floor);
     color: var(--nf-content-secondary);
     text-align: left;
     transition:
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard),
+      border-color var(--nf-duration-fast) var(--nf-ease-standard),
       transform var(--nf-duration-press) var(--nf-ease-press);
   }
-  .nf-side-switch:hover:not(:disabled) {
-    border-color: var(--nf-glow-brand-rim);
+  .nf-side-switch:hover:not(:disabled),
+  .nf-side-switch:focus-visible {
+    border-color: var(--nf-selected-edges);
     box-shadow:
-      inset 0 1px 0 var(--nf-rim-lit-ink),
-      0 0 0 1px var(--nf-glow-brand-rim),
-      0 0 26px var(--nf-glow-4),
-      0 0 64px -6px var(--nf-glow-2);
+      var(--nf-panel-rim),
+      var(--nf-selected-shadow-inline);
   }
   .nf-side-switch:active:not(:disabled) {
-    transform: scale(0.985);
+    transform: scale(var(--nf-press-scale-lg));
   }
   .nf-side-switch:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
@@ -470,41 +456,21 @@
   .nf-side-switch:disabled {
     cursor: progress;
   }
-  /* The lit ring around the coin: the render's circle with a bright rim and
-     a soft bloom, the coin itself a glass disc holding the other side's mark. */
+  /* The lit ring around the coin: the shared icon plate's light (its fill
+     with the glint, its per-side edge, rim, inner light and glow) on a disc,
+     because a ring round a coin is a shape and stays round. The coin itself
+     is a glass disc holding the other side's mark. */
   .nf-side-switch__ring {
     display: grid;
     place-items: center;
     flex: none;
-    width: 3.5rem;
-    height: 3.5rem;
+    width: var(--nf-plate-size-lg);
+    height: var(--nf-plate-size-lg);
     border-radius: var(--nf-radius-circle);
-    /*
-     * THE LIT RIM, matched to `GOVERNING-flip-mid-turn.png` rather than to a
-     * guess. The rim on the turning pane in that render is not a blue line:
-     * it is a near-white core with the brand blue bleeding off both sides of
-     * it into a wide bloom. `--nf-glow-brand-rim` is the last rung of the
-     * edge ladder and `--nf-rim-lit-ink` is the white-hot core, so the ring
-     * reads as light catching an edge rather than as a drawn outline. Two
-     * blooms, a tight bright one and a wide soft one, because the render has
-     * both and one alone reads either as a halo or as a smudge.
-     */
-    border: 1.5px solid var(--nf-glow-brand-rim);
-    /* The annulus itself is lit, not a dark gap between two rings. In the
-       drawer render the band around the coin is the brightest blue on the
-       panel; a tint that faded to nothing at 72 per cent left a grey ring
-       with a bright hairline on the outside of it. */
-    background: radial-gradient(
-      circle at 50% 40%,
-      var(--nf-brand-primary) 0%,
-      var(--nf-brand-tint-3) 78%,
-      transparent 100%
-    );
-    box-shadow:
-      inset 0 1px 0 var(--nf-rim-lit-ink),
-      0 0 0 3px var(--nf-glow-1),
-      0 0 18px var(--nf-glow-4),
-      0 0 48px -6px var(--nf-glow-2);
+    border: var(--nf-border-width) solid var(--nf-plate-edge);
+    border-color: var(--nf-plate-edges);
+    background: var(--nf-plate-fill);
+    box-shadow: var(--nf-plate-shadow);
     perspective: 400px;
   }
   .nf-side-switch__coin {

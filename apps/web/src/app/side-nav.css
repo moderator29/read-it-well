@@ -765,34 +765,12 @@
     text-align: start;
   }
 
+  /* The count is the shared count badge (`nf-count-badge` in the markup,
+     chips.css, SW-C6): its material, its 6px corner (0.27 on its 22px, a
+     rounded rectangle, never the ellipse or capsule this rule once drew) and
+     its ink. Only the place in the row is this file's. */
   .nf-nav__badge {
     flex: none;
-    min-width: 1.375rem;
-    padding: 0.125rem 0.4375rem;
-    /*
-       A ROUNDED RECTANGLE, AND THIS WAS ALSO DRAWING THE WRONG SHAPE.
-
-       The badge carries a number, so the shape law puts it on the control
-       rung. It read `--nf-radius-circle`, which is 50 per cent, and 50 per
-       cent on a box that is wider than it is tall is an ELLIPSE, not a
-       capsule and not a circle: at "12" this badge is about 30 by 22 and the
-       corners were elliptical. map.css carries the same argument in full
-       beside the price pin. One rung, one shape, both faults closed.
-
-       AND THE CONTROL RUNG IS ITSELF THE CAPSULE ON AN OBJECT THIS SMALL.
-       Moving off `--nf-radius-circle` was right in principle and the rung it
-       landed on is 14px on a badge that MEASURES 22 by 21 on a production
-       server: ratio 0.67, so the ellipse became a capsule and the shape law
-       is still broken. `.nf-badge` already made exactly this move down to
-       `--nf-radius-xs` at chips.css, for the reason spelled out there, and
-       this now follows it. 6px over 21px is 0.29.
-    */
-    border-radius: var(--nf-radius-xs);
-    background: var(--nf-brand-primary);
-    color: var(--nf-content-on-brand);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    text-align: center;
   }
 
   /* ----------------------------------------------------------- the parent */
@@ -831,6 +809,6 @@
      platform sweep (a flat agent tint was a second, dimmer "you are here");
      the accent is left on the count badge. */
   .nf-nav__scroll--agent .nf-nav__badge {
-    background: var(--nf-mode-agent);
+    --nf-badge-hue: var(--nf-mode-agent);
   }
 }
