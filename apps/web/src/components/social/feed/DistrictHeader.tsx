@@ -219,7 +219,13 @@ export function DistrictChips({
             /* Only the live chip has a panel to name. See ProfileTabs. */
             aria-controls={selected ? districtPanelId(chip.key) : undefined}
             tabIndex={selected ? 0 : -1}
-            className="nf-district__chip"
+            /* The shared chip's material (`.nf-chip`, chips.css: 44px, the
+               control corner, the glass door's edge and rim) and, when chosen,
+               the shared selected state (`.nf-chip--active`). The markup stays
+               here rather than on `Chip` because these are tabs: `Chip` speaks
+               radio, toggle and link, and a tab needs `role="tab"`,
+               `aria-selected`, `aria-controls` and this row's roving focus. */
+            className={`nf-chip nf-district__chip${selected ? " nf-chip--active" : ""}`}
             onClick={() => onPick(chip.key)}
           >
             {chip.label}

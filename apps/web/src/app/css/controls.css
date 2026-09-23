@@ -1085,7 +1085,6 @@
  *   .nf-marklabel         14 on 44 = 0.318
  *   .nf-feestep           14 on 56 = 0.250
  *   .nf-feestep__step     14 on 48 = 0.292
- *   .nf-totalpanel        22 on 176 and up = 0.125 and below
  *   .nf-nextrow__tick     6 on 24 = 0.250
  *   .nf-regobject         the brand object's glow plate, no text
  */
@@ -1237,24 +1236,11 @@
   }
 
   /*
-   * WHAT A TENANT ACTUALLY PAYS: the lit panel under the two fees.
-   *
-   * The glass card with its lit top rim, the brand wash, and the total set
-   * large in the numeral face, which is the one figure on the screen that a
-   * tenant would read. 22px on a panel that is never shorter than 11rem is
-   * 0.125 and below.
+   * WHAT A TENANT ACTUALLY PAYS. The panel under the two fees is the shared
+   * panel card (`nf-panel nf-panel--card` on the markup since the orphans
+   * sweep), so `.nf-totalpanel`'s own box was deleted with SW-O3; only its
+   * figure and its undeclared line are drawn here.
    */
-  .nf-totalpanel {
-    padding: var(--nf-pad-card);
-    border-radius: var(--nf-radius-xl);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-strong);
-    background:
-      linear-gradient(180deg, var(--nf-wash-4) 0%, transparent 64%),
-      var(--nf-brand-tint-1);
-    box-shadow:
-      var(--nf-glow-edge),
-      inset 0 1px 0 var(--nf-glass-rim);
-  }
   /* Same as `.nf-feestep__value` above: the deleted token, and the tabular
      figures it was reaching for, set the right way. */
   .nf-totalpanel__figure {
@@ -1352,39 +1338,26 @@
  *
  * THE RATIOS, because the shape law's test is the ratio and not the token:
  *
- *   .nf-regfield          14 on 88 and up  = 0.159 and below
- *   .nf-regfield .nf-field 14 on 48        = 0.292
+ *   .nf-regfield .nf-field 14 on 48        = 0.292 (the shared field)
  *   .nf-regfield__tag      6 on 24         = 0.250
- *   .nf-fieldgroup         22 on 200 and up = 0.110 and below
  *   .nf-door__mark--avatar round, and an avatar is the law's own exception
  *   .nf-fieldnote__glyph   a bare glyph with no text: a shape, not a control
  */
 @layer components {
+  /*
+   * ONE PANEL, NOT A BOX PER FIELD (the orphans' request SW-O3, 23 September).
+   *
+   * `.nf-regfield` drew every field as its own 14px glass box with a brand
+   * hairline and a top wash, and a local well inside it; on `/profile/setup/firm`
+   * and `/owner` that was five and three boxes stacked. The questions of a
+   * screen now share one shared panel card (`RegFieldGroup`, `nf-panel
+   * nf-panel--card`), the value sits in the shared field (`.nf-field`, the
+   * material the field layer draws for a form input on a card), and this
+   * class keeps no material at all: it is the positioning context for the
+   * "optional" tag and the scope for the label and small print below.
+   */
   .nf-regfield {
-    /*
-     * THE WELL IS A RECESS IN THE CONTAINER, NOT A HOLE CUT THROUGH IT.
-     *
-     * The first pass reached for `--nf-surface-inset`, which is the ordinary
-     * form fill, and on a glass container it painted a near black slab: the
-     * images draw a dark navy a shade below the container it sits in, with a
-     * faint lit rim, and you can still see the container's own wash through
-     * it. So the fill is the inset colour carried at part strength over the
-     * container rather than laid opaquely on top of it, and the rim carries
-     * the brand rather than plain white.
-     *
-     * A local custom property and not a raw colour: the light theme needs a
-     * different strength (a few per cent of a pale grey over white is white),
-     * and one name keeps both answers in one place.
-     */
-    --nf-regfield-well: color-mix(in oklab, var(--nf-surface-inset) 58%, transparent);
     position: relative;
-    padding: var(--nf-space-sm) var(--nf-space-md) var(--nf-space-md);
-    border-radius: var(--nf-radius-control);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background:
-      linear-gradient(180deg, var(--nf-wash-3) 0%, transparent 58%),
-      var(--nf-glass-card-fill);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
   }
 
   /*
@@ -1402,42 +1375,6 @@
   }
 
   /*
-   * THE WELL THE VALUE SITS IN.
-   *
-   * Quieter than a field standing on its own, because it is already inside a
-   * lit container and two lit edges a millimetre apart is a seam rather than a
-   * material. The inset fill and the shadow stay, so the value still reads as
-   * recessed, which is what the images draw.
-   */
-  .nf-regfield .nf-field {
-    border-color: transparent;
-    background:
-      linear-gradient(var(--nf-regfield-well), var(--nf-regfield-well)) padding-box,
-      linear-gradient(
-          var(--nf-light-angle),
-          color-mix(in oklab, var(--nf-brand-primary) 30%, transparent) 0%,
-          var(--nf-wash-2) 68%
-        )
-        border-box;
-    box-shadow: inset 0 1px 4px var(--nf-shade-2);
-  }
-  /* Focus is the one state that must still shout, so it is the field's own
-     focus paint restated over the quieter resting one rather than dropped. */
-  .nf-regfield .nf-field:focus {
-    background:
-      linear-gradient(var(--nf-regfield-well), var(--nf-regfield-well)) padding-box,
-      linear-gradient(
-          var(--nf-light-angle),
-          var(--nf-focus-ring),
-          color-mix(in oklab, var(--nf-brand-accent) 70%, transparent)
-        )
-        border-box;
-    box-shadow:
-      inset 0 1px 4px var(--nf-shade-2),
-      0 0 0 3px var(--nf-glow-2),
-      0 0 26px -6px var(--nf-glow-4);
-  }
-  /*
    * "OPTIONAL", AND IT IS A RECTANGLE.
    *
    * `GOVERNING-05` draws it as a capsule in the top right corner of the field
@@ -1450,8 +1387,8 @@
    */
   .nf-regfield__tag {
     position: absolute;
-    top: var(--nf-space-sm);
-    right: var(--nf-space-md);
+    top: 0;
+    right: 0;
     display: inline-flex;
     align-items: center;
     min-height: 1.5rem;
@@ -1518,37 +1455,6 @@
     color: var(--nf-brand-primary);
     background: var(--nf-brand-tint-1);
   }
-  /*
-   * ONE PANEL AROUND SEVERAL FIELDS, which is how `GOVERNING-04` draws its
-   * first screen and its fee screen: the three questions share a single glass
-   * card and each one keeps its own name above its own well.
-   *
-   * The member fields therefore drop their own container and keep everything
-   * else, so one anatomy serves both images without a second set of rules.
-   */
-  .nf-fieldgroup {
-    display: grid;
-    gap: var(--nf-space-md);
-    padding: var(--nf-pad-card);
-    border-radius: var(--nf-radius-xl);
-    border: var(--nf-border-width) solid var(--nf-brand-edge-soft);
-    background:
-      linear-gradient(180deg, var(--nf-wash-3) 0%, transparent 46%),
-      var(--nf-glass-card-fill);
-    box-shadow: inset 0 1px 0 var(--nf-glass-rim-thin);
-  }
-  .nf-fieldgroup > .nf-regfield {
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: none;
-    box-shadow: none;
-  }
-  .nf-fieldgroup > .nf-regfield > .nf-regfield__tag {
-    top: 0;
-    right: 0;
-  }
-
   /*
    * THE ROUND AVATAR ON A TEAM ROW, `GOVERNING-05` screen three.
    *

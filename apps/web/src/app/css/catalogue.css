@@ -313,6 +313,24 @@
   .nf-pcard__heart[aria-pressed="true"] {
     color: var(--nf-content-on-media-accent);
   }
+  /*
+   * THE HEART DRAWS 36 AND IS TAPPED AT 44 (the second audit, S-E). The glass
+   * square keeps the size the card draws; an invisible square centred on it,
+   * at least 44 in each axis, is the target, as `.nf-tap` and the feed's
+   * post actions do it. It paints nothing.
+   */
+  .nf-pcard__heart {
+    position: relative;
+  }
+  .nf-pcard__heart::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+  }
   /* Carries a word, so it is a rounded rectangle like every other lettered
      plate on this platform (the founder's shape law, 19 September).
 
@@ -421,6 +439,19 @@
     flex-shrink: 0;
     border-radius: var(--nf-radius-sm);
     color: var(--nf-content-secondary);
+  }
+  /* Drawn 40 tall inside the field; tapped at 44 (the second audit, S-E). */
+  .nf-shelf-field__go {
+    position: relative;
+  }
+  .nf-shelf-field__go::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
   }
   .nf-shelf-field__go:focus-visible {
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);

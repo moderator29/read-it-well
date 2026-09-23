@@ -208,11 +208,11 @@ export function ChatCard({ card, forwardable = true }: { card: ChatCardData; for
   return (
     <article className={CARD} data-testid="chat-card-booking" aria-label={card.title}>
       <Photo photo={card.photo} hue={card.hue} kind={card.listingKind} alt="" />
-      <div className="nf-chat-card__badge">
-        <StatusPill tone={toneForStatus(card.status)} size="sm">
-          {card.statusLabel}
-        </StatusPill>
-      </div>
+      {/* The shared status badge itself, pinned to the photograph: no plate
+          of its own round it (the second audit's S-A). */}
+      <StatusPill tone={toneForStatus(card.status)} size="sm" className="nf-chat-card__badge">
+        {card.statusLabel}
+      </StatusPill>
       <div className="nf-chat-card__body">
         <div className="nf-chat-card__head">
           <p className="nf-chat-card__title">{card.title}</p>

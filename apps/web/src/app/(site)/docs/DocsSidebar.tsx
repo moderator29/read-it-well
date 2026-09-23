@@ -107,8 +107,10 @@ export function DocsSidebar({ items }: { items: DocChapterIndexEntry[] }) {
 /**
  * One row.
  *
- * The active row is marked three ways and not one: an electric left rail, a
- * lifted surface, and `aria-current`, so it reads for somebody looking at it,
+ * The active row is marked three ways and not one: an electric left rail, the
+ * platform's shared selected state (the `--nf-selected-*` gradient, rim and
+ * bloom, as the console's open rail row draws it; it was a flat 14 per cent
+ * brand tint until the second audit's S-F), and `aria-current`, so it reads for somebody looking at it,
  * somebody listening to it, and somebody who cannot separate the two blues.
  * The whole row is the target and it is 44px tall, not a 14px word.
  */
@@ -129,7 +131,7 @@ function ChapterLink({
       aria-current={active ? "page" : undefined}
       className={`nf-tap flex min-h-11 items-center gap-inline rounded-[var(--nf-radius-sm)] border-l-2 py-inline pr-inline pl-inline text-[0.8125rem] leading-snug transition-colors ${
         active
-          ? "border-l-[var(--nf-brand-secondary)] bg-[var(--nf-brand-primary-soft)] font-semibold text-[var(--nf-content-primary)]"
+          ? "border-l-[var(--nf-selected-edge)] bg-[image:var(--nf-selected-fill)] shadow-[var(--nf-selected-shadow-inline)] font-semibold text-[var(--nf-content-on-brand)]"
           : "border-l-transparent text-[var(--nf-content-secondary)] hover:bg-[var(--nf-glass-fill-thin)] hover:text-[var(--nf-content-primary)]"
       }`}
     >
@@ -137,7 +139,7 @@ function ChapterLink({
         <span
           aria-hidden="true"
           className={`nf-numeric w-4 shrink-0 text-right text-[0.6875rem] ${
-            active ? "text-[var(--nf-brand-secondary)]" : "text-[var(--nf-content-muted)]"
+            active ? "text-[var(--nf-content-on-brand)]" : "text-[var(--nf-content-muted)]"
           }`}
         >
           {number}

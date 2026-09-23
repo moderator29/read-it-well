@@ -65,7 +65,8 @@
   }
   .nf-agent-bar__search input {
     width: 100%;
-    min-height: 2.5rem;
+    /* 44px, the platform's target floor (audit 2 follow-up; it was 40). */
+    min-height: 2.75rem;
     padding: var(--nf-space-2xs) var(--nf-space-sm) var(--nf-space-2xs) 2.5rem;
     /* The shared field material (controls.css `.nf-field`, Phase 1): the
        glass door fill over the well, the panel edge, the lit rim. */

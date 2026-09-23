@@ -10,8 +10,9 @@
  * number of its own.
  *
  * The register forms' field group (`/profile/setup/{agent,firm,owner}`) is a
- * panel card that lays its fields out on a grid and takes the member fields'
- * own box away, so the questions share one container (GOVERNING-04).
+ * panel card that lays its fields out on a grid, so the questions share one
+ * container (GOVERNING-04). The member fields draw no box of their own since
+ * SW-O3 (controls.css), so nothing here takes one away.
  *
  * Imported by `app/(app)/around/new/ProposeAreaForm.tsx` and
  * `components/supply/RegisterField.tsx`.
@@ -35,16 +36,5 @@
   .nf-panel.nf-orph-fieldgroup {
     display: grid;
     gap: var(--nf-space-md);
-  }
-  .nf-orph-fieldgroup > .nf-regfield {
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: none;
-    box-shadow: none;
-  }
-  .nf-orph-fieldgroup > .nf-regfield > .nf-regfield__tag {
-    top: 0;
-    right: 0;
   }
 }

@@ -279,18 +279,20 @@ export function AgentRegisterForm({
             accept="image/png,image/jpeg"
             {...(errors.selfiePath ? { error: errors.selfiePath } : {})}
           />
-          <RegField optional={copy.optional}>
-            <TextField
-              label={mine.identity.nin}
-              placeholder={mine.identity.ninPlaceholder}
-              hint={mine.identity.ninHint}
-              value={nin}
-              onChange={(e) => setNin(e.target.value.replace(/\D/g, "").slice(0, 11))}
-              inputMode="numeric"
-              autoComplete="off"
-              {...(errors.nin ? { error: errors.nin } : {})}
-            />
-          </RegField>
+          <RegFieldGroup>
+            <RegField optional={copy.optional}>
+              <TextField
+                label={mine.identity.nin}
+                placeholder={mine.identity.ninPlaceholder}
+                hint={mine.identity.ninHint}
+                value={nin}
+                onChange={(e) => setNin(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                inputMode="numeric"
+                autoComplete="off"
+                {...(errors.nin ? { error: errors.nin } : {})}
+              />
+            </RegField>
+          </RegFieldGroup>
         </div>
       ),
     },
@@ -330,15 +332,17 @@ export function AgentRegisterForm({
             </RegField>
           </RegFieldGroup>
 
-          <RegField>
-            <TextField
-              label={mine.fees.exampleLabel}
-              hint={mine.fees.exampleHint}
-              value={exampleRent}
-              onChange={(e) => setExampleRent(e.target.value.replace(/[^\d]/g, ""))}
-              inputMode="numeric"
-            />
-          </RegField>
+          <RegFieldGroup>
+            <RegField>
+              <TextField
+                label={mine.fees.exampleLabel}
+                hint={mine.fees.exampleHint}
+                value={exampleRent}
+                onChange={(e) => setExampleRent(e.target.value.replace(/[^\d]/g, ""))}
+                inputMode="numeric"
+              />
+            </RegField>
+          </RegFieldGroup>
 
           {/* THE LIVE TENANT TOTAL. Everything in it moves the moment either
               control moves, which is the whole point: the agent is looking at

@@ -80,13 +80,21 @@
     border-radius: inherit;
   }
 
+  /*
+   * THE NAME IN THE TEXT FACE, AS THE RENDER SETS IT (the second audit, 23
+   * September). GOVERNING-chat-booking-card.png draws "Grand Vista Hotel" in
+   * the text face at a semibold weight, 174 image px wide = 103 CSS px at
+   * 0.591. Ours was the display face at 700 and 16px, 144px wide in a 128px
+   * column at 390 (two 44px controls on the right, R-B), so it drew "Grand
+   * Vista H...". The text face at 600 and 14px, one rung above the render's
+   * size, fits the name whole beside its tier mark.
+   */
   .nf-thread__title {
     display: flex;
     align-items: center;
     gap: var(--nf-gap-inline-tight);
-    font-family: var(--nf-font-display);
-    font-weight: 700;
-    font-size: var(--nf-text-body);
+    font-weight: 600;
+    font-size: var(--nf-text-body-sm);
     line-height: 1.2;
     color: var(--nf-content-primary);
     min-width: 0;
@@ -516,21 +524,19 @@
     object-fit: cover;
   }
   /*
-   * The badge sits ON a photograph, and a photograph is any colour, so it
-   * carries its own dark plate that guarantees the contrast whatever is
-   * behind it. One rounded rectangle with the badge (`--nf-radius-sm` on a
-   * 27px box leaves the straight edge the render draws; the control rung
-   * would be a capsule at this height, 13.5's trap).
+   * The badge sits ON a photograph. It is the shared status badge itself
+   * (`.nf-badge` through `StatusPill`, chips.css), whose fill is the tone mixed
+   * into the canvas and so opaque whatever the photograph is: the contrast
+   * needs no plate of its own. The plate that stood here drew a second
+   * rounded rectangle round the badge on `--nf-radius-sm`, 10px on a 26 to
+   * 28px box, 0.36 to 0.38 against the 0.35 review line (the second audit's
+   * S-A). This rule now only pins the badge; the corner is the badge's own
+   * `--nf-radius-xs`.
    */
   .nf-chat-card__badge {
     position: absolute;
     top: var(--nf-space-xs);
     right: var(--nf-space-xs);
-    border-radius: var(--nf-radius-sm);
-    background: var(--nf-overlay-media-strong);
-    -webkit-backdrop-filter: blur(var(--nf-glass-blur-thin));
-    backdrop-filter: blur(var(--nf-glass-blur-thin));
-    box-shadow: var(--nf-panel-rim);
   }
   .nf-chat-card__body {
     padding: var(--nf-space-xs) var(--nf-space-xs) var(--nf-space-2xs);

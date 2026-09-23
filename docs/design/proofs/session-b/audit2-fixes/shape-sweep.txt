@@ -1,0 +1,18 @@
+shape sweep: /preview/session-b/sweep-social?f=booking, /preview/session-b/sweep-stays/restaurant, /docs, /, /preview/session-b/admin/analytics, /preview/session-b/audit2-fixes?step=review at 390px, 1536px in dark
+
+BREACHES, a text-bearing control drawn as a capsule (ratio at or above 0.5): 0
+
+WORTH AN EYE, text-bearing and over 0.35 but not yet a capsule: 1
+  /docs @1536 dark  nf-site-nav-link  "AI"  38x44  radius 14px  ratio 0.37
+
+ROUND ICON-ONLY CONTROLS, allowed only where a governing image draws them round: 24
+  /docs @390 dark  nf-tap.grid.place-items-center  ""  20x20  radius 10px  ratio 0.50
+  /docs @1536 dark  nf-tap.grid.place-items-center  ""  20x20  radius 10px  ratio 0.50
+
+ROUTES REFUSED, so nothing is claimed about them either way: 2
+  / @390 dark: page.goto: Timeout 60000ms exceeded.
+  / @1536 dark: page.goto: Timeout 60000ms exceeded.
+
+COVERED: 6 route(s) asked for, 2 refusal(s), 4 route/width/theme combination(s) actually measured.
+
+no text-bearing control is a capsule.

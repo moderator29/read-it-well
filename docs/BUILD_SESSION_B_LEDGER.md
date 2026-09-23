@@ -3225,6 +3225,10 @@ disabled. Refused from the render: see below.
   row, the listing and the counterpart read; nothing is typed in.
 - **The teal fill of the Scheduled badge.** Off the blue family; drawn in the emerald
   token.
+- **The date and time format** ("24 Jun 2026", "10:00" against "Jun 24, 2025",
+  "10:00 AM"; recorded after the second audit, 13.A2.3). The shared `formatDate` (`en` is
+  `en-NG` to Intl) writes day, month, year and the 24-hour clock, as every other date on
+  the platform does; the render's US order on one screen would be the only such date.
 - **The app icon tile, VALLO wordmark, bell and profile.** Shared app header, not this
   page; not cropped, not rebuilt.
 
@@ -5721,6 +5725,12 @@ live. Downscaled for the repository (390 shots to 390px, 1440 to 960px, JPEG
   measured in code only.
 - The shape sweep's refusals (site pages timing out on `networkidle` in the
   tool) were covered by hand-read shots, not by the tool.
+- **After the second audit (S9 remainder, 13.A2.4):** `/host/rooms`, `/host/photos`,
+  `/host/reservations`, `/host/apply` and `/styleguide` are LIVE PROVEN signed in as
+  the QA member (reads only, 23 September 22:00 UTC); the filled host states of the
+  first three are NOT PROVEN (the member owns no business; making one is a write). The
+  wizard's later steps are proven on the fixture harness
+  `/preview/session-b/audit2-fixes?step=<id>`. The two bullets above are superseded.
 
 ## 13. Platform sweep: social (public profile, follow lists, edit profile, messages, the three thread faces)
 
@@ -6011,6 +6021,15 @@ glyph because it opens a conversation, not a call.
 
 Final figures: routes in the group 12, swept 11 (the twelfth draws nothing of
 its own), audit passes 3 on every route, 5 on the card.
+
+**After the second audit (23 September, worker "final", 13.A2).** The card's
+"Confirmed" is the shared badge alone, 0.213 (S-A); the options sheet's Close is
+the sheet's 44px header control and nothing clips (S-C). Of the four differences
+from `thread-booking-card-target.jpg` the audit found unrecorded: the header name no
+longer truncates (text face, 600, 14px) and the header's overflow mark is upright,
+as drawn (both fixed); the 24-hour times (the platform's one message clock,
+`lib/messages/time.ts`, not this group's) and the picture glyph on attach (the
+composer takes images only) are kept on purpose. Reasons in 13.A2.2.
 
 
 ## 13. Platform sweep: home (both sides), search and filters, listing detail, price check (worker "sweep-home")
@@ -7348,6 +7367,9 @@ vitest, the token check), each heavy job through the shared lock:
   taller and higher than the image's; the plus is seated on the dock exactly (41.8 CSS).
 - The render's type is a narrower face than Inter; each role is sized to its drawn WIDTH
   (so lines break where the image breaks) and so sits a little shorter in cap height.
+- The band between the app header and the location bar (the second audit's S-D) is
+  FIXED, not recorded: it was the shell's `py-section-tight` the feed had not taken back.
+  At 390 the bar now starts 12px under the header (72 against 104). 13.A2.1.
 
 ## 13. Platform sweep: audit fixes (S1, S2, S3, S6, S7, S8 of the independent audit; worker "auditfix")
 
@@ -7725,17 +7747,17 @@ everything this group draws is on the shared layer; the named items belong to an
 
 | # | Route | Result | What is left, and whose |
 |---|---|---|---|
-| 1 | `/around/[slug]` | SWEPT, BAR SW-O2 | district chips 38px at ratio 0.37 with a flat brand "All"; post text under 11px is the feed's ruling (feed) |
+| 1 | `/around/[slug]` | SWEPT (SW-O2 closed in Pass 4, 13.O.9; was BAR SW-O2) | district chips 38px at ratio 0.37 with a flat brand "All"; post text under 11px is the feed's ruling (feed) |
 | 2 | `/around/manage` | SWEPT | (a redirect; its loading is swept) |
 | 3 | `/around/new` | SWEPT | none |
-| 4 | `/around/settings` | SWEPT, BAR SW-O2 | the place picker's state chips, 40px at ratio 0.35 (`.nf-enter__chip`, feed) |
+| 4 | `/around/settings` | SWEPT (SW-O2 closed in Pass 4; was BAR SW-O2) | the place picker's state chips, 40px at ratio 0.35 (`.nf-enter__chip`, feed) |
 | 5 | `/bookings` | SWEPT | none (the boxed lists and badges closed with the leftovers release) |
 | 6 | `/bookings/[bookingId]` | SWEPT | none |
 | 7 | `/bookings/[bookingId]/review` | SWEPT | none |
 | 8 | `/crypto` | SWEPT | the page is the swept 404; nothing crypto added |
 | 9 | `/crypto/[id]` | SWEPT | as `/crypto` |
 | 10 | `/verification` | SWEPT | none (the disabled Continue is lit since c7639c33) |
-| 11 | `/rent` | SWEPT, BAR SW-O4 | the listing card's "/yr" at 10.2px (`ListingCard`, home group); its card and the loading cards still carry the class name `.nf-card`, which now draws the panel (SW-O1 is naming only) |
+| 11 | `/rent` | SWEPT (SW-O4 and SW-O1 closed in Pass 4; was BAR SW-O4) | the listing card's "/yr" at 10.2px (`ListingCard`, home group); its card and the loading cards still carry the class name `.nf-card`, which now draws the panel (SW-O1 is naming only) |
 | 12 | `/rent/pay/[inspectionId]` | SWEPT | none |
 | 13 | `/saved` | SWEPT | none (StayCard closed with R-SH2) |
 | 14 | `/saved/searches` | SWEPT | none |
@@ -7746,8 +7768,8 @@ everything this group draws is on the shared layer; the named items belong to an
 | 19 | `/profile/application` | SWEPT | none (it draws only `RowList boxed` and the badge, both closed) |
 | 20 | `/profile/setup/[role]` | SWEPT | none (the doors closed with SW-P1) |
 | 21 | `/profile/setup/agent` | SWEPT | none |
-| 22 | `/profile/setup/firm` | SWEPT, BAR SW-O3 | each field is its own 14px box (`.nf-regfield`, `controls.css`) |
-| 23 | `/profile/setup/owner` | SWEPT, BAR SW-O3 | as firm |
+| 22 | `/profile/setup/firm` | SWEPT (SW-O3 closed in Pass 4; was BAR SW-O3) | each field is its own 14px box (`.nf-regfield`, `controls.css`) |
+| 23 | `/profile/setup/owner` | SWEPT (SW-O3 closed in Pass 4; was BAR SW-O3) | as firm |
 
 **Fully swept on main with this push: 18 of 23.** **Every item this group draws: 23 of 23.**
 Five close with requests to other owners: SW-O2 (feed: 1, 4), SW-O3 (`controls.css`: 22,
@@ -7763,22 +7785,23 @@ accent glow / the shared lit selected fill / match.
 
 ### 13.O.5 Requests
 
-- **SW-O1 (to the lead: unowned shared files; naming only since SW-C5).** `components/ui/Skeleton.tsx` `SkeletonCard`
+- **CLOSED in Pass 4 (13.O.9).** **SW-O1 (to the lead: unowned shared files; naming only since SW-C5).** `components/ui/Skeleton.tsx` `SkeletonCard`
   (`nf-card`, which now draws the panel) and `components/app/ScreenSkeleton.tsx` `CardRowsSkeleton` (`nf-card`) are
   drawn on the loading states of `/rent`, `/saved`, `/saved/searches` and many other routes;
-  `components/social/ReportSheet.tsx` has four `nf-card`s. Onto `panelClass`.
-- **SW-O2 (to the feed worker, `social-feed.css`).** `.nf-district__chip` is 38px tall at ratio
+  `components/social/ReportSheet.tsx` has four `nf-card`s. Onto `panelClass`. (The four are in
+  `components/app/ReportSheet.tsx`; `components/social/ReportSheet.tsx` has none. Fixed there.)
+- **CLOSED in Pass 4 (13.O.9).** **SW-O2 (to the feed worker, `social-feed.css`).** `.nf-district__chip` is 38px tall at ratio
   0.37 and its selected state is a flat brand fill (measured `rgb(0, 105, 254)`, no rim or
   glow) on `/around/[slug]`; `.nf-enter__chip` is 40px at ratio 0.35 in the place picker on
   `/around/settings` and `/around` and the up link `.nf-enter__back`. 44px, under 0.35, and
   `--nf-selected-*`.
-- **SW-O3 (to the lead: `controls.css`, shared layer).** `.nf-regfield` draws each register
+- **CLOSED in Pass 4 (13.O.9).** **SW-O3 (to the lead: `controls.css`, shared layer).** `.nf-regfield` draws each register
   field as its own 14px box (342x102 at 390); `.nf-feestep`, `.nf-nextrow__tick` and
   `.nf-regfield__tag` carry local tint fills; `.nf-steprow__bar[data-on]` is a flat brand fill
   with `--nf-glow-edge`. `.nf-totalpanel` and `.nf-fieldgroup` have no consumer since this
   sweep (the markup is the panel card), so they can be deleted.
 
-- **SW-O4 (to the home group).** `ListingCard`'s price suffix ("/yr", `text-[0.85em]`) measures
+- **CLOSED in Pass 4 (13.O.9).** **SW-O4 (to the home group).** `ListingCard`'s price suffix ("/yr", `text-[0.85em]`) measures
   10.2px at 390 on `/rent`; the 11px floor.
 
 ### 13.O.6 Proofs
@@ -7800,6 +7823,66 @@ After `git pull --rebase` onto 261e3257, 19:48 UTC: `tsc --noEmit` whole project
 predate this sweep). The claim commit 1bd26df0 (scope file only) was pushed before the whole-suite gate was
 run; it touched no code.
 
+### 13.O.9 Pass 4, 23 September 20:05 to 20:25 UTC: the requests SW-O1 to SW-O4 (worker "ofix")
+
+Claimed in the scope file (85c5471c) on the lead's instruction once the owning groups had
+finished. Worktree `wt-ofix` from `origin/main` at ebf0d0e5. Measured before and after on
+production builds of this tree (`next start`, `VALLO_PREVIEW_HARNESS=1`, builds and checks
+under the shared lock), 390 (2x) and 1440, dark, reduced motion, through the committed shot
+script (`sweep-orphans.mjs`, two views added) and the committed harnesses (`sweep-orphans`,
+`b1b`, `sweep-home/search`), and live as the QA member (read only) on `/around/yaba-unilag`,
+`/around/settings`, `/rent` and the three `/profile/setup` forms. Proofs:
+`docs/design/proofs/session-b/sweep-orphans/pass4-before/` and `pass4-after/` (each with
+`measure.json`; `pass4-after/crops/` holds four 390 crops). The harness gained two views,
+FIXTURE-BACKED: `?v=district` (the feed's filter tabs, `DistrictChips`, chosen tab held in
+state) and `?v=picker` (the real `PlacePicker` inside Lagos, two places already open;
+`&s=none` for the state grid). Neither existed before, so their before is the live route.
+
+| Request | Before (measured) | After (measured) | Closed? |
+|---|---|---|---|
+| **SW-O2** district tabs, `/around/[slug]` | 38px, ratio 0.368, resting lit brand edge plus `--nf-glow-edge`, chosen "All" a flat `rgb(0, 105, 254)` fill (no gradient, rim or glow), 44px only through a transparent `::before` | 44px painted, ratio 0.318 (resting) and 0.322 (chosen), resting on the shared chip's glass door edge and rim, chosen on `.nf-chip--active` (`--nf-selected-fill` gradient, `-edges`, `-shadow-inline`); live and harness, both widths | **Closed** |
+| **SW-O2** place chips, `/around/settings` picker and the "within" chips | 40px, ratio 0.35, local brand edge, inset fill and grey hover; the back chip `.nf-enter__back` 34px with a grey hairline | 44px, ratio 0.318, on `.nf-chip`; back chip 44px, 0.318; an open place keeps its brand ring and brand ink (open is not chosen); the chip being entered (`aria-busy`) takes the shared selected tokens | **Closed** |
+| **SW-O3** `/profile/setup/firm`, `/owner` fields | every field its own 14px box (firm five boxes of 342x102 at 390, owner three) with a local well (`--nf-regfield-well`) | the screen's fields sit in one `RegFieldGroup` (the shared `Panel` card, 10px); `.nf-regfield` draws nothing (it is only the tag's positioning context); the value is the shared `.nf-field`; firm 5 of 5 and owner 3 of 3 fields inside the panel, zero boxes on a 12 to 40px corner (`odd` 5 and 3 before, 0 after) | **Closed** |
+| **SW-O4** `ListingCard` "/yr", `/rent` | 10.2px (`0.85em` of the 12px sub line), one card in eight (the ones whose rent carries kobo) | 12px on every card (`--nf-text-overline`, the sub line's own size); `small` 1 before, 0 after, both widths | **Closed** |
+| **SW-O1** `SkeletonCard`, `CardRowsSkeleton`, `ReportSheet` | `nf-card` (legacy count 6 on `/rent` loading, 4 on `/saved` loading, 3 on `/saved/searches` loading) | `panelClass({ variant: "card" })` with `block` (and `p-0` on `SkeletonCard`) so the panel's column flow and padding do not apply; legacy 0; geometry identical (342x355 pad 0 and 342x122 pad 16 at 390, 355x364, 372x378 and 672x138 pad 24 at 1440), corner 10px before and after | **Closed** (naming only, no visual change) |
+
+Decisions, and why:
+- **District tabs on the chip's class, not the `Chip` component.** They are tabs
+  (`role="tab"`, `aria-selected`, `aria-controls`, the row's roving focus); `Chip` speaks
+  radio, toggle and link only. The markup wears `.nf-chip` and `.nf-chip--active`, which is
+  the material `Chip` itself draws, so nothing is restated. Their label moved from caption
+  (13px) to the chip's body-sm (14px) with the material.
+- **The register well is the default shared field, not the glass one.** The field layer says
+  `.nf-field--glass` is for a field on the page or over a photograph and the default is "a
+  form input on a card"; these sit on a panel card, and the owner form's `ChoicePicker`
+  (not in this claim) draws the default field, so the whole panel reads as one material.
+- **The agent form's two lone fields** (NIN, the example rent) drew the same 14px box, so
+  they became panels of one; the agent route was already counted swept.
+- **Deleted, after a grep of `apps/web/src` (no consumer):** `.nf-fieldgroup` and its two
+  child rules, `.nf-totalpanel` (its `__figure` and `__undeclared` stay, both used by the
+  agent form), `.nf-regfield`'s box and well, `.nf-regfield .nf-field` and its focus
+  override, and in `orphans.css` the member-field reset that only undid that box.
+  `social-feed.css` lost the district chip's material, its hit extender and the enter
+  chip's and back chip's material.
+
+Not in these requests and left, named: `SceneBanner` on `/rent` still wears
+`nf-card nf-card--interactive` (legacy 1 on the live route, before and after; home group's
+file); `ReportSheet`'s category rows draw a local brand-edge selected state and two
+hand-written `nf-btn` strings (SW-O1 was naming only); `.nf-regfield__tag`, `.nf-feestep`,
+`.nf-nextrow__tick` and `.nf-steprow__bar[data-on]` keep their local tints (the original
+SW-O3 text named them; the lead's instruction for this pass did not). Post text under 11px on
+`/around/[slug]` is the feed's ruling, unchanged.
+
+Result: `/around/[slug]`, `/around/settings`, `/rent`, `/profile/setup/firm` and
+`/profile/setup/owner` close. **Fully swept on main: 23 of 23** (the named leftovers above
+belong to other files and other requests).
+
+Checks, after `git pull --rebase` onto 85c5471c (20:30 UTC): `tsc --noEmit` whole project,
+clean; `vitest run` whole suite, 242 files, 3859 passed, 1 skipped; `check-css-tokens` clean,
+all ten; `next build` exit 0 (the after build); eslint on every changed file, 0 problems; every
+directory under `(dev)/preview/session-b/` has its own `page.tsx` (16 of 16). The
+no-revert check (`git diff origin/main HEAD`) removed nothing outside this claim.
+
 ### 13.O.8 Skipped or not verified
 
 - `components/app/crypto/**` (13 legacy cards) is not swept: no route renders it (the two
@@ -7811,8 +7894,134 @@ run; it touched no code.
   proposal rows are fixture-proven only: the QA member has none.
 - No live writes: nothing was submitted, joined, cancelled or paid.
 
+## 13. Platform sweep: audit 2 fixes (the second audit's S-A to S-G, the thread card and inspection differences, the S9 remainder; worker "final")
+
+The second independent audit (`docs/design/proofs/session-b/audit-sweep-2/AUDIT2.md`,
+measured at 0ab215f6) left seven should-fix findings and five unrecorded differences
+from founder images. This worker took all of them on the lead's instruction after every
+other worker had finished (claim 8da4048a, scope file, released at the end of this
+section). Every finding was measured BEFORE on a production build of the untouched tree
+(8da4048a, `VALLO_PREVIEW_HARNESS=1 next build`, through `flock heavy.lock`) and AFTER
+on a production build of the fixed tree, at 390 and 1440, with the same script
+(`proofs/session-b/audit2-fixes/measure.mjs.txt`; raw numbers in `measure-before.json`
+and `measure-after.json`). Shots are under `proofs/session-b/audit2-fixes/before/`,
+`after/` and `s9/`.
+
+### 13.A2.1 The findings
+
+| Finding | Fix | Evidence (before, then after; 390 and 1440 unless said) | Closed / recorded |
+|---|---|---|---|
+| **S-A** chat card "Confirmed" badge over the review line | The badge's own plate is deleted: `.nf-chat-card__badge` in `threads.css` now only pins the shared status badge (`StatusPill`, which writes `.nf-badge`) to the photograph; `ChatCard.tsx` passes the class to the badge itself. The badge's fill is the tone mixed into the canvas, so it keeps its contrast over any photograph without a plate. | Before: the plate 108 x 28.1, radius 10, **0.355** (the audit read 0.38 / 0.36 on its build); the badge inside it radius 6. After: one element, the `.nf-badge`, 108 x 28.1, radius 6, **0.213**, at both widths. `after/card-390.jpg`, `card-1440.jpg` | **closed** |
+| **S-B** restaurant proof was not the route | The route's face is lifted into `app/(app)/restaurant/[id]/RestaurantFace.tsx`; `page.tsx` keeps the two reads and the flattening and hands the face its props. `sweep-stays/restaurant/page.tsx` no longer re-exports F3: it mounts `RestaurantFace` on F3's fixture venue. | Before: `.nf-detail-lead` was `nf-glass nf-glass--card`, radius 22px. After: `nf-panel nf-panel--card`, radius 10px, the panel's reflection fill, and the route's "Getting there" section now in the proof (it was missing). `before/restaurant-*.jpg`, `after/restaurant-*.jpg` | **closed** |
+| **S-C** options sheet clipped, Close 36px | The sheet takes `<Sheet closeLabel="Close">`: the title and a 44px glass Close in the sheet's own header row. The second row that sat in the scrolling body with `-mt-xs` (and its own `h-9` Close) is deleted; "Conversation with ..." is a plain caption at the top of the body. | Before: Close 36 x 36 at y 501.8 with the body's top at 509.8, the caption at 501.8 (both cut 8px); 1440 586.3 against 594.3. After: Close 44 x 44 at y 461.7 in the header, outside the body; caption at 517.7 = the body's top, nothing clipped; one heading. `before/options-sheet-*.jpg`, `after/options-sheet-*.jpg` | **closed** |
+| **S-D** feed location bar 45px low in the real shell | It was our spacing to take back: the shell opens every page with `py-section-tight` (32px at 390) under the header, and the feed had not cancelled it. `social-feed.css` phone block: `.nf-feed-page` takes `margin-block-start: calc(var(--nf-gap-section-tight) * -1)`, as the search shelf already does (`catalogue.css`). Header, dock and shell untouched. | 390 before: header foot 60, bar top 104 (44 of air). After: bar top 72 (12 of air, the page's own `pt-sm`; the render draws about 11). 1440: unchanged (no app header at `lg`, bar at 60). `before/`, `after/feed-viewport-390.jpg` | **closed** |
+| **S-E** controls under 44 with no hit extender | Drawn look kept where it is drawn small, target grown: `.nf-pcard__heart` and `.nf-shelf-field__go` gain a centred `::after` at `max(100%, 44px)` (`catalogue.css`); the text buttons take the platform's `.nf-tap` (Cancel in `MyBookings.tsx` and `CancelBookingSheet.tsx`, which is the trips and booking-detail control; Take it down and Send for review in `ListingsWorkspace.tsx`; Read more in `ListingAbout.tsx`; Clear in `ChoicePicker.tsx`; the wizard's Back in `StaysParts.tsx`). Where no pseudo-element can exist or R-B asks for the height: the wallet send inputs are 44 tall with 8px taken back above and below, so the row does not move (`wallet.css`); the landing search input fills its 48px field (`landing.css`); the landing segments, the newsletter field and its submit, the console range select and the reservation party input are 44 (`landing.css`, `site.css`, `admin.css`, `ReserveTable.tsx` `h-11`); the console desks' role rows `min-h-11` (`ReferenceEditors.tsx`). | Before (27 routes, the audit's list, 390 and 1440): heart 36 on 10 routes, Cancel 19.5 / 20.1, Take it down and Send for review 20.1, Read more 21.7, Clear 18.6, send inputs 28, party input 39.7, shelf Search 40, landing segments 40, landing input 21.7, newsletter 40 (4 routes), range select 36, wizard Back 40 (2 routes), role rows 42.3. After: **none of these under 44 at either width.** Left, not in the audit's list: the Switch's 42 extender (audit note N2), and at 1440 only the console bar's and the agent bar's desktop search fields at 40 (a 390 probe cannot see them; `admin.css` and `agent.css` bar rules, not claimed here). | **closed** (two desktop fields open, below) |
+| **S-F** `/docs` selected chapter a flat tint | `DocsSidebar.tsx` `ChapterLink`: the active row takes the shared selected state, `--nf-selected-fill` (the gradient), `--nf-selected-shadow-inline` (rim and bloom), the rail in `--nf-selected-edge`, the words and number on `--nf-content-on-brand`. | Before: `background-image: none`, `oklab(0.57 -0.04 -0.23 / 0.14)`, no shadow. After: `linear-gradient(rgb(0,116,252) 0%, rgb(0,66,253) 64%, ...)` with the selected shadow, at 390 (in the opened list) and 1440. `after/docs-1440.jpg` | **closed** |
+| **S-G** "sample" in user copy | `en.ts` `agentAnalytics.emptyBody`: "...because a chart drawn from nothing would tell you about nobody." `yo`, `ha` and `ig` carry their own translations of the sentence (not English copies), so they were left alone; no word was invented. | grep of `packages/i18n/src/locales/en.ts` for "sample" in a string: 0 | **closed** |
+
+### 13.A2.2 The thread card against `founder/thread-booking-card-target.jpg`
+
+| Difference the audit found unrecorded | Decision | Evidence |
+|---|---|---|
+| Header name truncated "Grand Vista H..." | **Fixed.** The render sets the name in the text face at a semibold weight, 174 image px = 103 CSS px wide at 0.591. Ours was the display face at 700 and 16px: 144px in a 128px column at 390 (two 44px controls on the right, R-B). `.nf-thread__title` is now the text face at 600 and 14px (one rung above the render's size): 119px in its column at 390, not truncated; 1440 the same. | `after/thread-head-390.jpg`, `thread-head-1440.jpg`; `title.mjs.txt` |
+| Header overflow drawn horizontal, the render vertical | **Fixed.** The shared "more" glyph turned a quarter (`rotate-90`) on the thread header's options control only; `UiIcon` is not Session B's, so no new glyph. The feed keeps its horizontal mark (13.F.8). | `after/thread-head-*.jpg` |
+| Times "09:18" (24-hour) against "9:18 AM" | **Recorded, deliberate.** Every message time is written by `lib/messages/time.ts` (`lagosTimeLabel`, en-GB on the Lagos clock, 24-hour), which the thread, the inbox and the notifications all read and which is not a Session B file. Changing the card alone would put two clocks in one conversation; the platform clock is a single decision for its owner. | `lib/messages/time.ts` |
+| Composer attach drawn as a picture, the render a paperclip | **Recorded, deliberate.** The composer attaches images only (`accept="image/*"`, the retry payload is text or image), so the picture glyph says what it does; a paperclip would promise any file. | `ThreadView.tsx` composer |
+
+### 13.A2.3 Inspection against `founder/inspection-target.jpg`
+
+The date and time format ("24 Jun 2026", "10:00" against "Jun 24, 2025", "10:00 AM") is
+**recorded, deliberate**: `InspectionSheet.tsx` formats through the shared `formatDate`
+(`packages/i18n`, `en` is `en-NG` to Intl), which writes day, month, year and the 24-hour
+clock, as every other date on the platform does (the booking card's "22 Jun 2026", trips,
+wallet). The render's US order and AM/PM on this one screen would make it the only such
+date on Vallo. The values themselves come from the row (section 9).
+
+### 13.A2.4 The S9 remainder (chrome): proven, and how
+
+Live, signed in as the QA member (reads only: pages opened, nothing pressed), on this
+fix's production build, 23 September 22:00 UTC, 390 and 1440 (`s9/live-*.jpg`,
+`s9/s9.json`). Each answered 200 on its own path; legacy material 0, unlit primaries 0,
+text capsules 0, sideways overflow 0:
+
+| Route | What a member sees | Result |
+|---|---|---|
+| `/host/rooms` | "No property yet" with the lit "Start an application" | **LIVE PROVEN** (the member's state) |
+| `/host/photos` | "No venue yet" with the lit "Start an application" | **LIVE PROVEN** (the member's state) |
+| `/host/reservations` | "Tables", "No tables yet", the glass "Your venue" | **LIVE PROVEN** (the member's state) |
+| `/host/apply` | the wizard's first step, three host types on the panel | **LIVE PROVEN** |
+| `/styleguide` | the whole styleguide, 14 panels, 6 lit primaries | **LIVE PROVEN** |
+
+The filled states of the first three (a host's rooms, photos and table requests) are
+**NOT PROVEN**: the QA member owns no business and making one is a write this proof may
+not make. They draw from the same components, which carry no legacy class.
+
+The host wizard's later steps (business, registration, representative, payout, consent,
+review) are proven on a new harness, `/preview/session-b/audit2-fixes?step=<id>`, which
+mounts the real `HostWizard` over a fixture registered hotel through a new
+`initialStep` prop (harness only; the routes never pass it; moving forward in the live
+wizard is a write, `saveHostDraft`, so it could not be clicked through). Fixture-backed:
+all six steps at 390 and 1440 on the panel, the shared field and the lit primary; legacy
+0, unlit 0, capsules 0, overflow 0 (`s9/wizard-*.jpg`). The eight drawn stays steps were
+already proven on `/preview/imgc/*` (SW-ST2).
+
+### 13.A2.5 Found while fixing, left open
+
+- **A verified venue with no photographs draws its Verified chip over "No photographs
+  yet" at 390** (`after/restaurant-verified-chip-overlap-390.jpg`, a few px of overlap in
+  the gallery's chip row). It is `ListingGallery` (home group's
+  `components/app/listing/**`), not claimed here. The restaurant harness draws a verified
+  venue, as the route does for one, so the defect stays visible in the proof; recorded
+  for the owner.
+- The console bar search (`.nf-admin-bar__search`) and the agent bar search
+  (`.nf-agent-bar__search`) inputs are 40 tall at 1440 (desktop only; not in the audit's
+  390 list).
+- The Switch's hit area is 42, not 44 (audit N2), untouched.
+
+### 13.A2.6 Checks
+
+Shape sweep (`shape-sweep.txt`) over the booking card, the restaurant proof, `/docs`,
+the console analytics and the wizard's review step: 0 breaches, 1 worth an eye (the site
+nav's "AI" link, 0.37, chrome's and unchanged); `/` refused on `networkidle` as in every
+earlier run, and was measured by hand instead: at 390 and 1440 the three segments and the newsletter submit are 44 tall on radius 14 (0.318), the newsletter field 44, the search input 48; the wallet send rows keep their height by construction (60.3 and 112.3 at 390 after). The gate,
+the no-revert check and the release are in the commit that carries this section.
+
+### 13.A2.7 Closed after 13.A2.6 (addendum, 23 September; worker "last")
+
+The three items 13.A2.5 left open and the one 13.A2.6's sweep flagged, taken by the
+lead's instruction after every other worker had finished (claim fdfd0853, scope file,
+released in the commit that carries this addendum). Measured BEFORE on a production
+build of the untouched tree (fdfd0853, `VALLO_PREVIEW_HARNESS=1 next build` through
+`flock heavy.lock`) and AFTER on a production build of the fixed tree, 390 and 1440,
+dark, one script (`proofs/session-b/audit2-fixes/last/measure.mjs.txt`; raw numbers in
+`measure-before.json` and `measure-after.json`; shots in `before/` and `after/`). All
+proofs are fixture-backed harness renders except `/about`, which is the live route.
+
+| Item | Fix | Before | After | Closed? |
+|---|---|---|---|---|
+| Verified chip over "No photographs yet" (`ListingGallery`, restaurant harness, a verified venue on stand-in plates) | The stand-in chip leaves the foot's right corner and is centred on the photograph (`left-1/2 top-1/2`, translated back by half), as the card did for the same collision with its market tag (`.nf-pcard__nophoto`, 13.H H10). It is `pointer-events-none`, so a tap on it still opens the lightbox. The marks, the counter and the dots are untouched. | 390: Verified 144.8 to 242.7, the chip from 238.4: **4.3px overlap** over its full 28.6 height. 1440: no overlap. | 390: the chip at x 125.2, y 192 (hero 60 to 352.5), the marks at y 268.5: **0 overlaps**. 1440: 0. `after/gallery-390.jpg`, `gallery-1440.jpg` | **closed** |
+| Console bar search 40 tall (`.nf-admin-bar__search input`, `admin.css`) | `min-height` 2.5rem to 2.75rem. | 1440: 352 x **40**, radius 10 (0.25). 390: the field is not drawn (`display: none` under 768). | 1440: 352 x **44**, radius 10 (0.227). `after/admin-search-1440.jpg` | **closed** |
+| Agent bar search 40 tall (`.nf-agent-bar__search input`, `agent.css`) | `min-height` 2.5rem to 2.75rem. | 1440: 448 x **40**, radius 14 (0.35). 390: not drawn (under 640). | 1440: 448 x **44**, radius 14 (0.318). `after/agent-search-1440.jpg` | **closed** |
+| The Switch's hit area 42 (audit N2, `components/ui/Switch.tsx`) | The extender was `-inset-y-1.5` (6px out top and bottom). An absolute box is laid out on the padding box, inside the track's 1px hairline, so it grew from 30, not 32: 42. It is now its own height, `h-11` centred on the track (`top-1/2`, `-translate-y-1/2`), which is 44 whatever the border. | `/preview/g1`, both widths: track 52 x 32, `::after` **42** tall. | Track **52 x 32** (unchanged), `::after` **44** tall, every switch on the page. `after/switch-*.jpg` | **closed** |
+| Site nav "AI" at radius ratio 0.37 (`.nf-site-nav-link`, `landing.css`) | The two-letter link drew 37.8 wide on a 14px control radius. The link takes `min-width: 2.75rem` and centres its label, so no link is narrower than it is tall. Height, padding and radius unchanged. | `/about` 1440: AI 37.8 x 44, **0.371**; Home 0.318, Properties 0.318, Stays 0.318, More 0.318. 390: the rail is not drawn (lg up). | AI **44 x 44, 0.318**; the other four unchanged (the same widths and ratios). `after/site-nav-1440.jpg` | **closed** |
+
+Shape sweep after (`last/shape-sweep.txt`, `/about`, the restaurant harness, the console
+overview, the agent dashboard and `/preview/g1`, dark): 0 breaches; the "AI" link is no
+longer listed. Still worth an eye, not touched here: the `/preview/g1` styleguide's
+`nf-segmented__item` at 0.39 (72 x 36 on 14), and `/about`'s 20px round icon control
+(0.50, icon only). `/about` at 390 was refused on a 60s `goto` timeout in the saved run
+(an earlier run on the same server measured `/about` at 390 and 1536 with the same
+result: 0 breaches, no "AI" entry).
+
+Checks: the whole-project `tsc --noEmit`, the whole `vitest` suite and
+`check-css-tokens` after `git pull --rebase`, every directory under
+`app/(dev)/preview/session-b/` with its own `page.tsx`, and the no-revert check
+(`git diff origin/main HEAD` for every file outside the claim) are recorded in the
+commit that carries this addendum.
+
 ## Skipped or not verified
 
+- Orphans Pass 4 (13.O.9, SW-O1 to SW-O4): the place chip being entered (`aria-busy`) and every hover state were read in code, not shot; the report sheet was not opened in a browser (its change is class names only); no live write.
 - Orphans sweep (ledger 13, orphans, 13.O.8): `components/app/crypto/**` not swept (no route renders it); `KycFlow` steps past the first and `ProposeAreaForm` done and error states swept in code only.
 - (13.H, sweep-home) No live row on any proof: this box's egress refuses the Supabase host, so every card, panel and figure in the home group's proofs is fixture-backed or an empty state; the wiring is unchanged by the sweep (material only). `/price/area/[id]` and `/rent/move-in/[listingId]` were swept in their stylesheets and not photographed. The lister's TierBadge on the card waits on R-SH4. `StayCard` still wears `nf-glass--card` itself (stays group, R-SH2). The unmounted `AiAssistantBanner` stays until R-SH1.
 
@@ -7903,3 +8112,4 @@ run; it touched no code.
   17 of 17). Not live: a gold author on screen (no gold person has a live post; platinum
   is proved), and every write, which the live run deliberately does not make.
 - Sweep leftovers (13.L, 23 September): every proof is fixture-backed (harness renders); no signed-in live page was opened. Hover states were read in code and measured only through `getComputedStyle`, not shot. The shape sweep refused `/` on `networkidle`; its badge was measured by hand. The pixel diff covers the committed harnesses and three public pages, not gated routes without a harness. Not moved: the console's own badge rules, `.nf-detail-verified`, `.nf-tag-pill`, crypto.css's card shadow, the feed's card overrides (13.L.6).
+- Audit 2 fixes (13.A2, 23 September): the restaurant, chat card, options sheet, feed, docs and wizard-step proofs are fixture-backed (harness renders); the five S9 routes are live signed in as the QA member, member state only (a host's filled rooms, photos and table requests not proven). Left open: a verified venue with no photographs overlaps two gallery chips at 390 (`ListingGallery`, home group); the console and agent bar search fields are 40 tall at 1440; the Switch's hit area is 42 (N2). All three, and the site nav's "AI" link at 0.37, closed afterwards (13.A2.7).
