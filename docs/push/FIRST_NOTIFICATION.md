@@ -3,13 +3,17 @@
 **For the founder. Everything on this page you can do alone, in about a
 minute, with no account to open and no money to spend.**
 
-Read the first three lines before anything else:
+Read the first four lines before anything else:
 
 - **Nothing has ever reached a device.** Not once, not in a test, not in a
-  screenshot. Push is built end to end and has never been switched on, because
-  switching it on needs a key that is yours and not a build session's.
-- **Web Push needs nobody.** You generate the key yourself in one command. It
-  costs nothing, involves no company, and it works on Android phones, on
+  screenshot.
+- **The key is already set.** As of 23 September a VAPID pair has been
+  generated and put on Production and Preview
+  (`docs/BUILD_07_LEDGER.md` section 71). **So part one below is a CHECK, not a
+  task.** This page was written before that happened and the first draft told
+  you to generate a pair; that instruction has been removed, because following
+  it now would be destructive. See the warning under part one.
+- **Web Push needs nobody and costs nothing.** It works on Android phones, on
   desktop browsers, and on iPhones from iOS 16.4 once Vallo is added to the
   home screen.
 - **Android through Firebase and iPhone through Apple are separate, later, and
@@ -18,58 +22,24 @@ Read the first three lines before anything else:
 
 ---
 
-## Part one: the key
+## Part one: check the key, and DO NOT GENERATE A NEW ONE
 
-Run this anywhere you have Node. Your own laptop is fine.
-
-```
-npx web-push generate-vapid-keys
-```
-
-It prints two strings, a Public Key and a Private Key. That pair is the whole
-of Web Push.
-
-**Generate it once and keep it.** It is an identity, not a password. Every
-browser that subscribes is bound to the public half, so generating a new pair
-later silently kills every device already enrolled, and they only come back if
-the person opens Vallo again. Put the private half in Vault the same day. Do
-not regenerate the pair to fix something.
-
----
-
-## Part two: the two variables
-
-**In Vercel: your project, Settings, Environment Variables.** Set both for
-**Production** and for **Preview**.
-
-| Variable | Value | Note |
-|---|---|---|
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | the Public Key | Public by design. A browser cannot subscribe without it, so it has to be in the page. |
-| `VAPID_PRIVATE_KEY` | the Private Key | **Never give this one the `NEXT_PUBLIC_` prefix.** That prefix compiles a value into the browser bundle, where anybody can read it, and anybody holding this key can send notifications to every Vallo device. |
-
-There is a third, optional: `VAPID_SUBJECT`. It is a contact address a push
-service can use if our sending misbehaves, and it is a real requirement of the
-standard rather than a courtesy. It already defaults to
-`mailto:hello@vallospaces.com`, so you can leave it alone.
-
-**NOW REDEPLOY.** This is the step that is easy to miss and it wastes the most
-time when it is missed. `NEXT_PUBLIC_` values are compiled in at **build**
-time, not read at run time, so a key you set in Vercel does nothing at all
-until the next deployment. Setting the variables and then wondering why the
-button says "not switched on for this version of Vallo yet" is the same
-mistake everybody makes once.
-
-For local development instead of Vercel, put the same two lines in
-`apps/web/.env.local` and restart the dev server. `apps/web/.env.local.example`
-has them with the same notes. `.env.local` is not in the repository and must
-never be.
-
----
-
-## Part three: did the deployment take the key
+> ### Read this before you run anything
+>
+> **A VAPID pair is an identity, not a password, and replacing it is a
+> destructive act.** Every browser that subscribes is bound to the PUBLIC half.
+> Generate a new pair and every device already enrolled goes silent for ever,
+> with nothing on the device and nothing in the database saying why; they come
+> back only if each person opens Vallo again and re-enrols.
+>
+> It was safe to create the first pair because `push_tokens` was empty. **It
+> will never be that safe again.** So: do not run
+> `npx web-push generate-vapid-keys` against production to "fix" anything. If
+> something is wrong, part one tells you what, and almost nothing is fixed by a
+> new pair.
 
 Open this in any browser, on the phone or the laptop. It is a plain page you
-can read with your eyes:
+can read with your eyes, and it prints **no secret value ever**:
 
 ```
 https://<your site>/api/push/key
@@ -77,17 +47,33 @@ https://<your site>/api/push/key
 
 | What it says | What it means | What to do |
 |---|---|---|
-| `{"configured":true,"publicKey":"B..."}` | The deployment has the pair and they belong together. | Go to part four. |
-| `{"configured":false,"missing":["NEXT_PUBLIC_VAPID_PUBLIC_KEY",...],"supplier":"..."}` | The build does not have the key or keys it names. | You set them and did not redeploy, or you set them on the wrong environment. The `missing` list is variable names and the `supplier` line says who provides them. **No value is ever printed here**, so this page is safe to read over somebody's shoulder. |
-| `{"configured":false,"reason":"public_key_malformed"...}` | The value is set but is not a key. | A character was lost in the paste. Regenerate both halves and set them together. |
-| `{"configured":false,"reason":"keys_are_not_a_pair"...}` | Two halves from two different runs. | **This is the one that wastes an afternoon**, because every send is then refused 401 with no explanation. Regenerate both halves at once and set them together. |
+| `{"configured":true,"publicKey":"B..."}` | The deployment has the pair and the two halves belong together. **This is what it should say today.** | Go to part two, then part three. |
+| `{"configured":false,"missing":["NEXT_PUBLIC_VAPID_PUBLIC_KEY",...],"supplier":"..."}` | The build does not have the key or keys it names. | The variables are set but the build predates them: `NEXT_PUBLIC_` values are compiled in at BUILD time, not read at run time, so **redeploy**. If they are genuinely not in Vercel, they are in Vault and go back in as they came out. |
+| `{"configured":false,"reason":"public_key_malformed"}` | The value is set but is not a key. | A character was lost in the paste. Paste it again from Vault. |
+| `{"configured":false,"reason":"keys_are_not_a_pair"}` | The two halves do not belong together. | **This is the one that would otherwise waste an afternoon**, because every send is then refused 401 with no explanation. It means one half was replaced without the other. Put the matching half back from Vault. **Only if both halves are genuinely lost is a new pair the answer, and then read the warning above first.** |
 
 That last check is done by the deployment itself, arithmetically, from the two
 halves. It is not a guess.
 
+**Locally instead of on Vercel**, `apps/web/.env.local` takes the same two
+variables and `apps/web/.env.local.example` has them with the same notes.
+A LOCAL pair may be a different pair: nothing on your machine shares
+subscriptions with production, so generating one for local work is safe and
+costs nothing. `.env.local` is not in the repository and must never be.
+
 ---
 
-## Part four: the handset
+## Part two: what each variable is, for when you need to look
+
+| Variable | What it is | Note |
+|---|---|---|
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | the Public Key | Public by design. A browser cannot subscribe without it, so it has to be in the page. |
+| `VAPID_PRIVATE_KEY` | the Private Key | **Never give this one the `NEXT_PUBLIC_` prefix.** That prefix compiles a value into the browser bundle, where anybody can read it, and anybody holding this key can send notifications to every Vallo device. |
+| `VAPID_SUBJECT` | a contact address | Optional. A real requirement of the standard rather than a courtesy: some push services refuse a request without one. Defaults to `mailto:hello@vallospaces.com`, so you can leave it alone. |
+
+---
+
+## Part three: the handset
 
 1. **On the phone, open Vallo and sign in.**
    - **On an iPhone you must add Vallo to the home screen first**, with Share
@@ -112,7 +98,7 @@ has it. **That is not yet a notification.**
 
 ---
 
-## Part five: the one request
+## Part four: the one request
 
 **Do this from a laptop, signed in to the same Vallo account, in the same
 browser you are signed in with.** `POST /api/push/self-test` sends to **every
@@ -167,7 +153,7 @@ different one from a bad key.
 | `503 {"reason":"unconfigured"}` | The deployment has no Supabase connection at all. | Nothing to do with push. |
 | `401 {"reason":"signed_out"}` | You are not signed in in that browser. | Sign in and run it again. |
 | `409 {"reason":"no_devices"}` | No live device on a platform this deployment can reach. | Part four did not finish, or every device was turned off from the settings list. |
-| `502` with `"status": 401` on a result | The push service refused our signature. | The two halves are not a pair, or the private key was pasted with a character missing. Go back to part three. |
+| `502` with `"status": 401` on a result | The push service refused our signature. | The two halves are not a pair, or the private key was pasted with a character missing. Go back to part one, which settles it arithmetically. |
 | `502` with `"status": 403` | The subscription belongs to a different public key. | The pair was regenerated after that device enrolled. Turn the device off in Settings and turn it on again. |
 | `502` with `"status": 404` or `410` | The subscription is dead. | Normal after a browser reinstall or a long absence. Enrol the device again. The drain retires a gone token by itself. |
 | `502` with `"status": 0` | The request never completed: a timeout, a reset, a blocked host. | A network problem between the deployment and the push service, not a credential problem. |
@@ -257,3 +243,9 @@ credential for, so nothing queued today is lost by waiting.
   status from the Web Push standard and from this repository's own handling of
   it, **not something that was observed happening**. The first run of this page
   is yours, and if a step is wrong it is worth saying so.
+- **That the key is on production is taken on the ledger's word, not measured.**
+  `docs/BUILD_07_LEDGER.md` section 71 records the pair being created and set on
+  Production and Preview on 23 September. This container's egress proxy refuses
+  a CONNECT to the production host, so it could not be read from here. **Part
+  one settles it in one look** and is the first thing on this page for that
+  reason.
