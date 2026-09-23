@@ -42,28 +42,35 @@ const TOKENS = join(
 );
 
 /**
- * The DARK declarations only.
+ * The platform's declarations, which are now the only ones there are.
  *
- * The paper twin restates many of these under `:root[data-theme="light"]`, and
- * an OG card has no theme to follow: it is rendered once on a server and shown
- * inside an app that has its own idea of dark and light. So the source is the
- * dark block, and everything from the light selector onwards is cut away
- * before anything is read.
+ * THIS USED TO CUT THE FILE AT THE LIGHT SELECTOR. The paper twin restated
+ * many of these under `:root[data-theme="light"]`, and an OG card has no theme
+ * to follow: it is rendered once on a server and shown inside an app that has
+ * its own idea of dark and light. So the source was the dark block and
+ * everything from the light selector onwards was thrown away.
+ *
+ * The founder removed light mode on 23 September 2026 and `tokens.css` has one
+ * palette, so there is nothing to cut and the assertion that a light selector
+ * exists was the only thing in this file that failed. The cut is gone rather
+ * than made conditional: a conditional cut is a cut that silently does nothing
+ * and still reads as a guard.
+ *
+ * FIRST DECLARATION WINS is what makes the removal safe to do this way. It was
+ * already true within the dark block, where a later declaration inside a
+ * narrower selector is a variant rather than the base value, and it is the
+ * same rule over the whole file.
  */
 function darkDeclarations(): Map<string, string> {
   /* COMMENTS FIRST, and the first run of this test is why: `tokens.css`
-     EXPLAINS the light twin in its header, so the cut was being made at a
+     EXPLAINED the light twin in its header, so the cut was being made at a
      sentence about the selector rather than at the selector, and two thirds of
-     the dark block was thrown away before anything was read. */
+     the dark block was thrown away before anything was read. The stripping
+     stays, because the header still carries prose full of token names. */
   const css = readFileSync(TOKENS, "utf8").replace(/\/\*[\s\S]*?\*\//g, " ");
-  const lightAt = css.indexOf(':root[data-theme="light"]');
-  expect(lightAt, "tokens.css no longer declares a light twin the way this test reads it").toBeGreaterThan(-1);
-  const dark = css.slice(0, lightAt);
   const out = new Map<string, string>();
-  for (const match of dark.matchAll(/(--nf-[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
+  for (const match of css.matchAll(/(--nf-[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
     const name = match[1] ?? "";
-    /* FIRST DECLARATION WINS, because a later one inside a narrower selector
-       is a variant rather than the base value. */
     if (!out.has(name)) out.set(name, (match[2] ?? "").trim());
   }
   return out;
