@@ -1266,6 +1266,11 @@
   .nf-send-row__notes > .nf-recipient-found {
     border-radius: var(--nf-radius-sm);
   }
+  /* The form panel: its rim reaches the side 16 to 20 image px below the
+     top, a 10 to 12px corner, so the nearest rung, 10px. */
+  .nf-money .nf-card.nf-send-form {
+    border-radius: var(--nf-radius-sm);
+  }
 
   /* ------------------------------------- round three: lead rulings R-A to R-C */
 

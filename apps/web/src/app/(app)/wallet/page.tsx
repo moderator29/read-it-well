@@ -124,7 +124,10 @@ export default async function WalletPage({
               cryptoEnabled={isYellowCardConfigured()}
               usdRate={usdRate}
               initialAction={initialAction}
-              settings={<WalletSettingsSheet card={{ title: copy.settingsLink, sub: copy.quickSettingsSub }} />}
+              settings={<WalletSettingsSheet
+                card={{ title: copy.settingsLink, sub: copy.quickSettingsSub }}
+                heading={copy.settingsHeading}
+              />}
             />
           </Reveal>
 
