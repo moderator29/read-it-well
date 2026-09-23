@@ -7541,6 +7541,104 @@ September) was run after `pull --rebase`: every removed line in
 header, R-SH1, R-SH2, R-SH3, SW-P1, audit S4 (all of its list) and S5.
 
 
+## 13. Platform sweep: orphans (the 23 routes no group owned, audit B3; worker "sweep-orphans")
+
+Claimed in the scope file (1bd26df0) on the lead's instruction after the independent audit's
+finding B3. Worktree `wt-orphans` from `origin/main` at a6c7a80a. Harness (new, fixture-backed,
+R-G): `app/(dev)/preview/session-b/sweep-orphans/` (`?v=` one view per route state, root
+`page.tsx`, inside the real `AppShell`). Five page-only blocks were lifted, unchanged, into
+components the harness can draw (9e7ce8c3): `BookingDetailCard`, `ReviewPanels`, `RentSummary`,
+`PlacePanels`, `PlaceRows`. Live proofs: the real routes on a production build against the real
+project, signed in as the QA member (read only; the script never submits). Shot and measured by
+`scripts/design/session-b-shots/sweep-orphans.mjs` (the audit's in-browser measure, plus a 44px
+control check). Dark only.
+
+### 13.O.1 Inventory, written before any change (23 September)
+
+Owner: **mine** = claimed here, swept here. **shared** = Phase 1's layer, lands by itself.
+**leftovers** = `Screen.tsx` `RowList boxed` / `Surface`, `StatusPill`, `.nf-card` (SW-C5, SW-C6;
+the leftovers worker's commit 2b534841 is in its worktree and NOT on main at the time of writing).
+**feed** = `social-feed.css` / `components/social/**` (released group). **other** = named.
+
+| Route | Visible item | Drawn by | Owner |
+|---|---|---|---|
+| `/around/[slug]` | place-unreachable note | `page.tsx` `p.nf-card` | mine |
+| | proposed note (brand edge), paused note | `PlacePanels` `p.nf-card` + local `border-[--nf-border-brand]` | mine |
+| | slow-mode note | local inset box (`rounded-md`, subtle border, inset fill) | mine |
+| | about panel: blurb, members / posts / looked-after figures, keepers line | `PlacePanels` `section.nf-card` (22px) | mine |
+| | look-after card (button), pending card with Withdraw, the form (can / cannot lists, textarea, error box, Send, Not now) | `ModeratorApply`: `nf-card` x3, hand-written `nf-btn` strings at 36 and 40px, local error box, ghost secondary | mine |
+| | moderator note | `PlacePanels` `div.nf-card` + brand border | mine |
+| | "Part of" up link, "within" chips | `.nf-enter__back`, `.nf-enter__chip` (`social-feed.css`) | feed |
+| | the district feed: head, chips (flat selected "All", 38px), post cards (text under 11px, feed ruling), stories, join | `Feed` and `components/social/**` | feed |
+| | loading: head bars, about card, two post cards | `loading.tsx` `nf-card`, `nf-card nf-post` | mine |
+| `/around/manage` | permanent redirect to `/around/settings`; loading: five `nf-card` rows | `page.tsx`, `loading.tsx` | mine |
+| `/around/new` | intro card | `page.tsx` `section.nf-card` | mine |
+| | form: signed-out note (brand edge card), kind choices (local radius, local 2px border, local selected edge and `--nf-glow-accent`), fields, address well, error box, primary | `ProposeAreaForm` | mine (fields shared) |
+| | done state: card, verified glyph, primary, ghost "Suggest another" | `ProposeAreaForm` `nf-card`, hand-written `nf-btn` | mine |
+| | loading: form card, next card | `loading.tsx` `nf-card` x2 | mine |
+| `/around/settings` | header action "Suggest a place" (ghost, 40px) | `page.tsx` hand-written `nf-btn--ghost h-10` | mine |
+| | unconfigured note, "your places" empty, "open places" empty card with primary (40px) | `page.tsx` `nf-card` x3 | mine |
+| | waiting / answered proposal rows, "With us" and "Paused" badges | `PlaceRows` `li.nf-card`, local outlined badges | mine |
+| | place rows with join | `PlaceRows` `AreaRow` `li.nf-card`; `JoinButton` | mine / JoinButton shared |
+| | the place picker (state chips 40px at 0.35) | `PlacePicker`, `.nf-enter__*` | feed |
+| | loading rows | `loading.tsx` `li.nf-card` | mine |
+| `/bookings` | stay cards: container, photo well, status badge, footer hairline, Pay now, Leave a review (hand-written primary at caption size), text actions | `MyBookings` `li.nf-card` (+ `nf-confirm-sweep` just-booked) | mine / badge leftovers |
+| | tenancy cards | `TenancyCard` `li.nf-glass nf-glass--card` | mine |
+| | tabs | `Segmented` (B2) | shared |
+| | cancel sheet: error box | `CancelBookingSheet` local error box | mine |
+| | inspections block, "How it works" three rows | `InspectionRows` / `RowList boxed` | leftovers |
+| | empty states | `EmptyState`, `EmptyActions` | shared |
+| | loading: summary card, three cards | `loading.tsx` `nf-card` | mine |
+| `/bookings/[bookingId]` | the stay card (as the hub's) | `BookingDetailCard` `article.nf-card` | mine |
+| | missing / signed-out / unavailable | `EmptyState` | shared |
+| `/bookings/[bookingId]/review` | stay panel, already-reviewed panel, its two actions | `ReviewPanels` `section.nf-card` | mine |
+| | form: card, star buttons (44, radius md), textarea, warning box, primary | `ReviewForm` `form.nf-card`, local warning box | mine |
+| | result states | `ResultScreen` | shared (wallet swept) |
+| | loading | `loading.tsx` `nf-card` | mine |
+| `/crypto`, `/crypto/[id]` | the page is `notFound()` (ruling, HANDOFF 08 5.2): the swept 404 | `not-found.tsx` | settings group |
+| | loading of `/crypto`: rail card, 390 layout 119px wider than the viewport | `loading.tsx` `nf-card`, `nf-coin-rail` | mine |
+| | loading of `/crypto/[id]` | `loading.tsx` skeletons only | mine |
+| | `components/app/crypto/**` (13 legacy cards) | drawn only by `(dev)/preview/e/*`; no route renders it | not visible; not touched |
+| `/verification` | flow: header, progress, uploader card, file row (local radius lg well, `nf-role-mark` plate), Replace (ghost), choose (secondary), business choice rows, business sections, consent cards, review list, gaps card, primaries | `KycFlow`, `DocumentUploader`: `nf-card` x5 | mine |
+| | status card with plate and badge (five states) | `KycStatus` `section.nf-card`, `nf-role-mark` | mine / badge leftovers |
+| | reviewer's words card | `page.tsx` `p.nf-card` | mine |
+| | disabled Continue unlit | shared primary disabled (S3) | shared |
+| `/rent` | safety card with verified glyph | `page.tsx` `div.nf-card` | mine |
+| | city chips (selected on `nf-chip--active`) | `chips.css` | shared |
+| | scene banner, listing cards, Message agent primaries | `SceneBanner`, `ListingCard` | other (home) |
+| | no-rentals card | `page.tsx` `div.nf-card` | mine |
+| | loading: safety card; chips; cards | `loading.tsx` `nf-card`; `SkeletonCard` | mine / `ScreenSkeleton` |
+| `/rent/pay/[inspectionId]` | summary panel | `RentSummary` `section.nf-card` | mine |
+| | options (glass objects), their actions, the ghost "Open my wallet" | `PayPanel` `Option` `li.nf-card` | mine |
+| | action bar, saved card picker, result screens | shared / wallet | shared |
+| `/saved` | board, undo card, Remove / Undo chips | `SavedBoard` `nf-card`; `nf-shelf-chip` (`catalogue.css`) | mine / home |
+| | cards | `StayCard` (R-SH2), `ListingCard` | leftovers / home |
+| | loading | `SkeletonCard` | `ScreenSkeleton` |
+| `/saved/searches` | the list surface; rows with plate, Rename / Cancel (ghost), delete confirm | `SavedSearchBoard` on `Surface`, `RowGlyph`, `Button` | leftovers / mine (ghosts) |
+| | loading | `CardRowsSkeleton` | `ScreenSkeleton` |
+| `/post/[id]` | notice box (local brand edge inset), muted-reply box (dashed, radius lg) | `ThreadView` | mine |
+| | posts, composer, report sheet | `components/social/**`, `ReportSheet` | feed / unowned shared |
+| | loading: two post cards | `loading.tsx` `nf-card nf-post` | mine |
+| `/stories/[id]` | viewer | `StoryViewer` | feed |
+| | loading (no card) | `loading.tsx` on `.nf-story*` | mine (nothing local) |
+| `/stories/new` | composer, empty panel | `StoryComposer`, `EmptyPanel` | feed |
+| | loading: card | `loading.tsx` `nf-card nf-social-card` | mine |
+| `/inspections` | hero, sheets | `InspectionHero`, `InspectionSheet` (inspection worker, done) | Session B inspection |
+| | empty state, primary | `EmptyState`, `ButtonLink` | shared |
+| | loading (skeleton blocks) | `loading.tsx` | mine (nothing local) |
+| `/profile/application` | reference, badge, journey dots, reviewer note | `RowList boxed`, `StatusPill` | leftovers |
+| | empty states | `EmptyState` | shared |
+| `/profile/setup/[role]` | intro, the professional door list | `page.tsx`, `ApplyWizard` (chrome group) / `AddWorkspaceChooser` | chrome / SW-P1 |
+| `/profile/setup/{agent,firm,owner}` | step rows, fields, field groups (22px `nf-fieldgroup`, 14px `nf-regfield` boxes), doors, fee stepper, total panel (22px), tags, choice marks, upload doors, secondary (ghost) | `RegisterShell`, `RegisterField`, the three forms, `UploadCard`: every rule in `controls.css` | controls.css (shared layer) / mine (the ghost) |
+
+Pieces the audit named as unowned and shared, NOT claimed (other routes draw them too):
+`ReportSheet.tsx`, `ScreenSkeleton.tsx` (`SkeletonCard`, `CardRowsSkeleton`), `ui/Skeleton.tsx`,
+`Screen.tsx` (`RowList boxed`, `Surface`: leftovers).
+
+Before proofs: `docs/design/proofs/session-b/sweep-orphans/before/` (125 shots, 390 and 1440,
+`h-*` harness, `l-*` live as the QA member at 20:0x UTC on the build of 9e7ce8c3), with
+`measure.json`.
+
 ## Skipped or not verified
 - (13.H, sweep-home) No live row on any proof: this box's egress refuses the Supabase host, so every card, panel and figure in the home group's proofs is fixture-backed or an empty state; the wiring is unchanged by the sweep (material only). `/price/area/[id]` and `/rent/move-in/[listingId]` were swept in their stylesheets and not photographed. The lister's TierBadge on the card waits on R-SH4. `StayCard` still wears `nf-glass--card` itself (stays group, R-SH2). The unmounted `AiAssistantBanner` stays until R-SH1.
 
