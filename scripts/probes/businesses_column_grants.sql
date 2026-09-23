@@ -42,10 +42,18 @@
 -- RUN BEFORE THE NARROWING and it fails naming every column `anon` could still
 -- read, which is the exposure stated as evidence. Run after and it passes.
 --
--- LAST RUN: 2026-09-23, live project, after migration 20260923123407.
+-- LAST RUN: 2026-09-23, live project, after migration 20260923113850, with
+-- this file's own text and not a variant of it:
 --   PROBE ALL PASS businesses-columns: 12 of 12 withheld columns refused to
---   anon, 4 of 4 anon control select lists succeeded, authenticated read all
---   37 columns. Rolled back on purpose.
+--   anon, 5 of 5 control select lists succeeded (4 as anon, 1 as authenticated
+--   over every withheld column at once). Rolled back on purpose.
+--
+-- The run immediately BEFORE migration 20260923113850, same file, same
+-- project, is the exposure stated as evidence:
+--   0 of 12 withheld columns refused to anon, 5 of 5 controls succeeded.
+--   [anon STILL READS address] [phone] [email] [cac_number] [registered_name]
+--   [tin] [representative_name] [representative_phone] [consents]
+--   [reviewer_id] [review_notes] [verification_tier]
 
 do $probe$
 declare
