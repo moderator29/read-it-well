@@ -325,7 +325,13 @@ than assumed.**
 2. **Its inputs are `supabase/migrations/*.sql`, its own script and
    `scripts/probes/escrow_live_catalogue.tsv`**, all three of which are pushed
    to `origin/main` in the same commit as the run that produced the log.
-3. **The catalogue guard now closes the hole that used to sit here.** The old
+3. **AND IT WAS RUN THERE, rather than argued about.** `git archive
+   origin/main supabase/migrations scripts/probes` was extracted into an empty
+   directory under `/tmp`, with none of this tree's in-flight files anywhere
+   near it, and the harness was run from that extraction. It read **14 of 14
+   PASS** with the catalogue guard green, at 2026-09-23. So the local rows are
+   a verdict about `origin/main` as well, by a run and not by an inference.
+4. **The catalogue guard now closes the hole that used to sit here.** The old
    version of this file recorded, as UNPROVEN, that an untracked migration from
    another worker could redefine one of the probed bodies and the harness would
    silently lift it, because "the last definition in filename order" is exactly
