@@ -148,3 +148,76 @@ half. `BrandIcon` writes `data-object` and `data-twinned` onto every plate for
 exactly this purpose, and `sweep-untwinned.mjs` walks the whole preview harness
 in daylight and collects them.
 
+**136 harness routes swept. 82 of them draw at least one object with no light
+twin. 19 of those 82 draw one that is still under 3:1** on the lit plate, and
+those 19 are the screens this order is actually for. Three routes could not be
+opened and are named at the foot of the sweep's own output rather than counted
+as clean: `/preview/f4/assistant` and `/preview/g4/error` timed out, and
+`/preview/g4/not-found` serves a not-found body at HTTP 200, which is what that
+route is for.
+
+| surface | untwinned objects on it | the ones still under 3:1 |
+|---|---|---|
+| `/preview/session-b/profile` | 6 | `bookmark-ribbon`, `calendar-grid`, `shield-check-tile`, `wallet-tile` |
+| `/preview/f4/profile` | 5 | `bookmark-ribbon`, `calendar-grid`, `shield-check-tile`, `wallet-tile` |
+| `/preview/f4/settings` | 6 | `bell-tile`, `headset`, `shield-check-tile` |
+| `/preview/session-b/wallet` | 6 | `shield-check-tile`, `wallet-naira` |
+| `/preview/b1b/chooser` | 3 | `home-ring`, `key-ring` |
+| `/preview/f5/agent-list` | 15 | `home-ring` |
+| `/preview/f3/listing` | 9 | `manage-ring` |
+| `/preview/e/wallet` | 5 | `wallet-naira` |
+| `/preview/e/wallet-topup` | 5 | `wallet-naira` |
+| `/preview/f5/agent-analytics` | 5 | `reviews` |
+| `/preview/f1/home` | 4 | `manage-ring` |
+| `/preview/e/send` | 2 | `wallet-naira` |
+| `/preview/f5/agent-reviews` | 2 | `reviews` |
+| `/preview/o3/agent-calendar` | 2 | `calendar-grid` |
+| `/preview/session-b/wallet/send` | 2 | `wallet-naira` |
+| `/preview/session-b/wallet/send-filled` | 2 | `wallet-naira` |
+| `/preview/b1b/agent-done` | 1 | `key-ring` |
+| `/preview/b1b/owner` | 1 | `home-ring` |
+| `/preview/imgc/hotel` | 1 | `stays-hotel-palms` |
+
+**Read the middle column before the right one.** A route that draws fifteen
+untwinned objects and none under 3:1, like `/preview/f5/agent-list`, is not a
+problem screen: the plate is carrying those fifteen. The screens that want
+artwork are the ones in the right-hand column, and they concentrate hard:
+`shield-check-tile`, `wallet-naira`, `bookmark-ribbon`, `calendar-grid` and
+`wallet-tile` between them account for most of the list, and four of those five
+sit on the profile and the wallet, which are the two surfaces the founder looks
+at most.
+
+**The harness is a stand-in for the product, not the product.** A preview route
+is built to draw a surface's components with fixture data, so an object that
+appears here appears on the real screen; an object drawn only in a state the
+harness does not cover would be missed. `/preview/session-b/profile` and
+`/preview/f4/profile` draw the same four, which is the harness agreeing with
+itself about one screen.
+
+
+## 6. How to check a delivered render before it is wired
+
+Two commands, in this order, and neither needs a designer's eye.
+
+```
+node docs/design/proofs/paper/measure-object-ground.mjs
+npm --prefix apps/web test -- brand-icon-assets
+```
+
+The first reports the object's median contrast against the plate it will sit
+on. A delivered twin should not need the plate at all: a light twin is drawn
+for paper, so once its name is in `LIGHT_TWINS` the plate switches off for that
+mark and the object is composited on the white card directly. Measure it
+against white before wiring it, not against the plate.
+
+The second is the correspondence test. It fails if a name is in `LIGHT_TWINS`
+with no file, which is the worst of the three ways this can go wrong: the
+component sets `data-twinned="true"`, the plate is suppressed as though a
+paper-ready mark were about to paint, and a person in daylight gets a missing
+image on a white page with nothing behind it.
+
+**And one mark is deliberately withheld.** `escrow-hold` has a light twin in
+`glass/light/` with no dark original and no entry in either list. It is not an
+oversight: `docs/BRAND_MARKS.md` says build it and do not ship it until escrow
+exists, because `lib/legal/terms.tsx` states that Vallo does not hold your
+money. Do not wire it while that is true.
