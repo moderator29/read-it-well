@@ -90,6 +90,16 @@
 @import "./css/wallet.css";
 @import "./css/crypto.css";
 @import "./css/system.css";
-@import "./css/light.css";
+/*
+ * `light.css` WAS IMPORTED HERE AND IS DELETED. The founder removed light mode
+ * from the platform on 23 September 2026. It was 1,200 lines of paper twins for
+ * rules whose dark original is now the only one there is, so it is gone rather
+ * than left unimported: an unimported stylesheet is a stylesheet somebody
+ * imports again. `docs/design/LIGHT_MODE_REMOVED.md` is the record.
+ *
+ * `data-saver.css` still sits here for the reason its own header gives, which
+ * was never about light: it must cascade after the surface partials so its
+ * opt-outs win.
+ */
 @import "./css/data-saver.css";
 @import "./css/touch.css";

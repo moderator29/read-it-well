@@ -179,30 +179,31 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   /*
-   * ONE DECLARED VALUE, NOT A PAIR KEYED ON `prefers-color-scheme`.
+   * ONE DECLARED VALUE, AND NOW THERE IS ONLY ONE VALUE TO DECLARE.
    *
-   * The pair was right while the theme followed the operating system and became
-   * wrong the day the default stopped following it. A `media` query answers the
-   * OS. This product's theme answers STORAGE. They disagreed for exactly the
-   * visitor the dark default was written for: a phone set to light, opening
-   * Vallo for the first time, got the dark canvas under a #F4F5F7 browser
-   * chrome, which is the hard seam the pair was added to remove, reintroduced
-   * by the half of the system that could not be told about the change.
-   * Measured across all six combinations of stored choice and OS preference
-   * rather than reasoned about; three of the six were mismatched.
+   * This was a pair keyed on `prefers-color-scheme` until the theme stopped
+   * following the operating system, and then a single dark value with two
+   * runtime writers that could paint the light one: the before-paint script in
+   * the body, and `applyThemeColour` in the settings store. **Both writers are
+   * gone with light mode, removed by the founder on 23 September 2026.** The
+   * meta tag is now the only thing that ever sets the chrome colour, and it
+   * sets it once, on the server, to the only colour the product has.
    *
-   * So dark is declared, because dark is what somebody who has not chosen will
-   * see, and the light value is written by the two places that know: the
-   * before-paint script below, and `applyThemeColour` in the settings store
-   * when somebody moves the setting.
+   * The history is worth keeping because it names the failure mode. A `media`
+   * query answers the OS; this product's theme answered STORAGE; the two
+   * disagreed for exactly the visitor the dark default was written for, a phone
+   * set to light opening Vallo for the first time, which got the dark canvas
+   * under a #F4F5F7 browser chrome. Three of the six combinations of stored
+   * choice and OS preference were mismatched, measured rather than reasoned
+   * about. None of those combinations exists any more.
    *
-   * IT READS `CHROME_COLOUR.dark` RATHER THAN RESTATING IT. This was the third
-   * of four places the same hex was written out by hand, beside the manifest,
-   * the before-paint script below and the Capacitor `StatusBar` block. All four
-   * are serialised where no CSS has run, so none of them can hold a token, and
-   * four literals with no stylesheet between them drift with nothing to report
-   * it. `lib/theme/chrome.ts` is the one home, and it carries the measurement
-   * showing why this value is not `--nf-surface-canvas`.
+   * IT READS `CHROME_COLOUR.dark` RATHER THAN RESTATING IT. This was one of
+   * four places the same hex was written out by hand, beside the manifest and
+   * the Capacitor `StatusBar` block. All of them are serialised where no CSS
+   * has run, so none can hold a token, and literals with no stylesheet between
+   * them drift with nothing to report it. `lib/theme/chrome.ts` is the one
+   * home, and it carries the measurement showing why this value is not
+   * `--nf-surface-canvas`.
    */
   themeColor: CHROME_COLOUR.dark,
   width: "device-width",
@@ -257,25 +258,36 @@ export default async function RootLayout({
       </head>
       <body>
         {/*
-          Apply the stored theme before first paint, so a chosen light mode
-          never flashes dark.
+          THE THEME SCRIPT THAT STOOD HERE IS GONE, and the absence is the
+          point rather than a tidy-up.
 
-          DARK IS THE DEFAULT AND NOTHING OVERRIDES IT SILENTLY. This used to
-          fall back to the operating system when nothing was stored, which meant
-          almost every first-time visitor opened Vallo in light: phones ship
-          set to light, so the brand's own theme was the one people saw least.
-          Now only an explicit choice moves it. No key, or "dark", is dark.
-          "light" is light. "system" follows the OS, and it is something someone
-          has to go into Settings and ask for.
+          It read `nf_theme` from storage before first paint and, for a stored
+          "light" or a "system" that resolved to light, put `data-theme="light"`
+          on the root element and rewrote the `theme-color` meta. Every light
+          rule in the product keyed off that one attribute. The founder removed
+          light mode on 23 September 2026, so the attribute has nothing to turn
+          on: the light half of `tokens.css` is deleted, `light.css` is deleted,
+          and `html { color-scheme: dark }` in `base.css` is what now stops a
+          browser or an operating system set to light painting its own white
+          into the form controls, scrollbars and native pickers this stylesheet
+          cannot reach.
+
+          THE SCRIPT IS DELETED RATHER THAN MADE A NO-OP. A before-paint script
+          that still reads a storage key is a mechanism waiting for somebody to
+          give it a branch again, and this one ran on every route in the
+          product. `docs/design/LIGHT_MODE_REMOVED.md` is the record.
+
+          The two scripts below keep their `suppressHydrationWarning` for the
+          reason that follows, which was never about the theme.
         */}
         {/*
-          `suppressHydrationWarning` on all three before-paint scripts, and it
+          `suppressHydrationWarning` on both before-paint scripts, and it
           is the sanctioned suppression rather than a silenced bug.
 
           React deliberately does not serialise `nonce` to the client: the
           server renders `nonce="uXXrY..."` and the client tree carries
           `nonce=""`, so the two can never agree and every route logged a
-          hydration mismatch on these three elements. R1 caught it in the dev
+          hydration mismatch on these elements. R1 caught it in the dev
           log and then found it staring out of a shipped proof, as the "2
           Issues" badge in `docs/design/proofs/f5/inbox-390-dark.png`.
 
@@ -284,14 +296,6 @@ export default async function RootLayout({
           `suppressHydrationWarning` already on <html> does not reach
           descendants, so each script needs its own.
         */}
-        <script
-          nonce={nonce}
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{
-            __html:
-              `try{var t=localStorage.getItem('nf_theme');if(t==='light'||(t==='system'&&matchMedia('(prefers-color-scheme: light)').matches)){document.documentElement.dataset.theme='light';var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content','${CHROME_COLOUR.light}')}}catch(e){}`,
-          }}
-        />
         {/*
           THE SIDE, BEFORE PAINT, the same way as the theme.
 

@@ -52,7 +52,36 @@
   }
 }
 
+/*
+ * THE LINE THAT STOPS A LIGHT OPERATING SYSTEM PAINTING WHITE INTO A DARK PAGE.
+ *
+ * The founder removed light mode on 23 September 2026, so there is one palette
+ * and `:root` carries it. Deleting the light tokens is not on its own enough,
+ * because a browser does not take its cue for the things it draws ITSELF from
+ * a stylesheet's custom properties. It takes them from `color-scheme`, and the
+ * initial value is `normal`, which means "follow the user".
+ *
+ * WHAT IS DRAWN BY THE BROWSER RATHER THAN BY THIS STYLESHEET, and therefore
+ * what goes white on a phone set to light without this line: the inside of a
+ * `<select>` when it is open, a native date and time picker, the spin buttons
+ * on a number input, the autofill background Chrome paints over a filled
+ * field, a checkbox and a radio that keep their native appearance, the
+ * scrollbars, the caret, and the canvas the browser flashes before the first
+ * paint. None of those is reachable with CSS.
+ *
+ * `dark` rather than `only dark`. `only dark` also opts out of the browser's
+ * own automatic adjustments, and the difference has never been needed here;
+ * the value that matters is that `light` is not in the list at all, so a user
+ * agent set to light has nothing to honour.
+ *
+ * It is on `html` and unlayered, beside the other element defaults, because
+ * this is an element default. It is checked rather than assumed: see
+ * `docs/design/LIGHT_MODE_REMOVED.md` for the shots of real screens rendered
+ * with the OS preference forced to light, including a form with native
+ * controls on it.
+ */
 html {
+  color-scheme: dark;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
 }

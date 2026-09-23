@@ -5845,6 +5845,48 @@ Not done here because `wallet.css` is outside this session's partition. It is
 the same shape as R8's warning: the FILL was given a daylight answer and the
 INK that rides on it was not.
 
+### R11. THE TOKENS FOR THE LIGHT-MODE REMOVAL HAVE LANDED. Session B can start.
+
+Founder decision, 23 September 2026: **light mode is removed from the
+platform.** Session A leads it because it is the token layer, Session B follows
+in its seven surfaces. This entry exists so Session B knows the floor is laid.
+
+**LANDED, on main:**
+
+- `packages/design-tokens/src/tokens.css`: the entire `:root[data-theme="light"]`
+  block, 932 lines, is DELETED. There is one palette and `:root` carries it.
+- `apps/web/src/app/css/light.css`: DELETED, and its `@import` is out of
+  `globals.css`.
+- `apps/web/src/app/css/base.css`: `html { color-scheme: dark }`. This is the
+  line that stops a browser or an OS set to light painting its own white into
+  the things a stylesheet cannot reach: an open `<select>`, a native date
+  picker, number spinners, Chrome's autofill fill, native checkboxes and
+  radios, scrollbars and the pre-paint canvas.
+- `apps/web/src/app/layout.tsx`: the before-paint script that read `nf_theme`
+  and set `data-theme="light"` is DELETED, so nothing can set the attribute any
+  more, and `viewport.themeColor` is the only writer of the chrome colour.
+
+**WHAT THIS MEANS FOR SESSION B'S FILES.** Every `:root[data-theme="light"]`
+rule in `admin.css`, `wallet.css`, `auth.css`, `inspection.css`, `escrow.css`,
+`price-check.css`, `settings-rows.css`, `app/admin/**/*.css` and
+`app/welcome/welcome.css` is now DEAD CODE: the attribute it keys on can no
+longer appear. Nothing is broken by leaving it and nothing is fixed by leaving
+it; it should come out, and it is yours to remove. Session A is removing the
+same pattern from every file in its own partition.
+
+**Two things not to do.**
+
+Do not delete a rule that merely MENTIONS light in prose without reading it;
+several of those comments carry measurements that are still true about the dark
+theme.
+
+Do not go near `lib/email/**`. The founder's ruling is that emails stay exactly
+as designed, because Gmail strips the `prefers-color-scheme` query and runs its
+own inversion anyway. Their `color-scheme: dark` meta and their dark-mode media
+block are deliberate and are not part of this.
+
+The full record is `docs/design/LIGHT_MODE_REMOVED.md`.
+
 ## 50. TWO PROOFS THAT DISAGREED WITH THE SHIPPED CODE, RETAKEN
 
 The founder's ruling, in his words: **a proof that disagrees with the shipped
