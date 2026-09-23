@@ -15,7 +15,9 @@
  *      lands on the overview, carrying the desk ("You were heading to");
  *   2. the overview's reads return the live state: no panel says "This did
  *      not load", Live listings reads 0 (0 real listings; the 64 example
- *      listings are excluded), and Supply by type shows 0 on every row;
+ *      listings are excluded), the sign-ups cell reads "7 people in all" (9
+ *      accounts less the two QA accounts; EXPECT_PEOPLE overrides) and
+ *      Supply by type shows 0 on every row;
  *   3. Continue opens the desk, and a second desk now opens directly;
  *   4. every inner page of this surface and every tab loads without "This
  *      did not load": Operations (jobs, alerts, audit, notifications, in
@@ -84,6 +86,9 @@ async function loadsClean(page, path, name) {
   const supplyRows = await page.locator("#ov-supply [role=row], #ov-supply tbody tr").allInnerTexts().catch(() => []);
   record("overview reads", !main.includes(UNAVAILABLE), `"${UNAVAILABLE}" ${main.includes(UNAVAILABLE) ? "PRESENT" : "absent"}`, null);
   record("live listings is the live count", /Live listings\s*0\b/.test(live.replace(/\s+/g, " ")), `card reads "${live.replace(/\s+/g, " ").trim()}" (expected 0: 0 real, the 64 examples excluded)`, null);
+  const people = await page.locator(".nf-admin-strip").innerText().catch(() => "");
+  const expectPeople = process.env.EXPECT_PEOPLE ?? "7";
+  record("real people exclude the QA accounts", new RegExp(`\\b${expectPeople} people in all`).test(people), `sign-ups cell reads "${(people.match(/\d[\d,]* people in all/) ?? ["(none)"])[0]}" (expected ${expectPeople}: 9 accounts less the two QA accounts)`, null);
   record("supply by type is empty", supplyRows.length === 0 || supplyRows.every((r) => /\b0\b/.test(r)), `${supplyRows.length} rows: ${supplyRows.map((r) => r.replace(/\s+/g, " ").trim()).join(" | ")}`, null);
 
   await Promise.all([page.waitForURL((u) => u.pathname === "/admin/money", { timeout: 20_000 }), page.click(".nf-admin-heading-to")]);

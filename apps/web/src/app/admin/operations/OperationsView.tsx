@@ -4,7 +4,7 @@ import type { AuditActivity, AuditRowView } from "@/lib/admin/audit-queries";
 import { actionLabel, entityTypeLabel } from "@/lib/admin/audit-filter";
 import type { AlertView } from "@/lib/admin/queries";
 import { AreaTimeChart } from "@/components/agent/charts/AreaTimeChart";
-import type { AlertTrend, InspectionActivity, JobHealth, NotificationActivity, PersonTier, PushActivity } from "@/lib/admin/reads/shapes";
+import { isQaAccount, type AlertTrend, type InspectionActivity, type JobHealth, type NotificationActivity, type PersonTier, type PushActivity } from "@/lib/admin/reads/shapes";
 import { EmailOutboxPanel, PushActivityPanels } from "./PushActivityPanels";
 import { InFlight } from "./InFlight";
 import {
@@ -86,6 +86,8 @@ export function auditRows(
 ): AlertRow[] {
   return rows.map((row) => {
     const system = row.actorId === null;
+    // A QA account stays in the log, labelled, as example listings stay labelled.
+    const qa = isQaAccount(row.actorId);
     return {
       id: row.id,
       title: `${row.actorName ?? (system ? "System" : "An admin")}: ${actionLabel(row.action)}`,
@@ -94,7 +96,7 @@ export function auditRows(
         formatDate(d, locale, { timeZone: "Africa/Lagos", day: "numeric", month: "short" }),
       ),
       tone: "info",
-      word: system ? "System" : "Admin",
+      word: system ? "System" : qa ? "QA" : "Admin",
       icon: { tier: "admin", name: system ? "operations" : "user-check" },
       href: row.entityId ? `/admin/audit?q=${encodeURIComponent(row.entityId)}` : "/admin/audit",
       tier: row.actorId ? (tiers?.get(row.actorId) ?? null) : null,

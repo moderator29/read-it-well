@@ -1896,17 +1896,40 @@ lock) whose `.env.local` points at the live project `uccixoonmbhrnyczyigt`.
 | Signed out at a desk (`/admin/money`, `/admin/operations?tab=jobs`) | LIVE PROVEN, same run | 307 to sign in carrying the desk and its query as `next` |
 | Signed out at `/admin/enter?next=/admin/money` | LIVE PROVEN, same run | 307 to sign in carrying the whole entry address, so signing in resumes through the entry route |
 | A forged session cookie at each of the four doors | LIVE PROVEN for the build, same run | 307 to sign in, as signed out. The project's edge logs for that minute show no `/auth/v1/user` call, so the forged token was refused before the project was asked: this proves the running build's doors, not the project's token check |
-| Signed in as a non-admin at `/admin` (access screen, no console) | WAITING ON QA ACCOUNTS | step 6 of `scripts/design/session-b-shots/admin-live-signed-in.mjs` |
-| Landing: a desk as the first request of a session lands on the overview carrying it | WAITING ON QA ACCOUNTS | step 1 |
-| Overview reads against live data (no panel unavailable; Live listings 0, the 64 examples excluded; Supply by type all 0) | WAITING ON QA ACCOUNTS | step 2 |
-| Continue opens the desk; a second desk opens directly | WAITING ON QA ACCOUNTS | step 3 |
-| Every Operations tab, Analytics at 30d, 90d and 12m, Settings load without "This did not load" | WAITING ON QA ACCOUNTS | step 4 |
-| `/admin/enter?next=/admin/money` signed in lands on the overview, never the desk | WAITING ON QA ACCOUNTS | step 5 |
+| Signed in as a non-admin at `/admin` (access screen, no console) | WAITING ON QA CREDENTIALS (accounts exist, passwords not in this box) | step 6 of `scripts/design/session-b-shots/admin-live-signed-in.mjs` |
+| Landing: a desk as the first request of a session lands on the overview carrying it | WAITING ON QA CREDENTIALS (accounts exist, passwords not in this box) | step 1 |
+| Overview reads against live data (no panel unavailable; Live listings 0, the 64 examples excluded; Supply by type all 0) | WAITING ON QA CREDENTIALS (accounts exist, passwords not in this box) | step 2 |
+| Continue opens the desk; a second desk opens directly | WAITING ON QA CREDENTIALS (accounts exist, passwords not in this box) | step 3 |
+| Every Operations tab, Analytics at 30d, 90d and 12m, Settings load without "This did not load" | WAITING ON QA CREDENTIALS (accounts exist, passwords not in this box) | step 4 |
+| `/admin/enter?next=/admin/money` signed in lands on the overview, never the desk | WAITING ON QA CREDENTIALS (accounts exist, passwords not in this box) | step 5 |
 
 The signed-in script reads `QA_ADMIN_EMAIL`, `QA_ADMIN_PASSWORD` (and
 optionally `QA_MEMBER_EMAIL`, `QA_MEMBER_PASSWORD`) from the environment only,
 signs in through the real form, opens pages and writes nothing. Without the
 variables it exits 2 with "WAITING ON QA ACCOUNTS".
+
+### 6.6e The QA accounts, out of every statistic (founder, 23 September)
+
+One list, `QA_ACCOUNT_IDS` in `lib/admin/reads/shapes.ts` (re-exported with
+`QA_NOT_IN`, `isQaAccount` and `withoutQa` from `reads/shared.ts`), names the
+two accounts the founder created for live proof: the member
+957b3bd2-cce3-425d-bba9-5cd876ca3d62 and the admin
+03f3dd52-ea28-4852-9abe-e5b0a67c2a43. Left out of: sign-ups (the pulse's
+profiles read), the new people total (`peopleTotal`, an exact count, shown as
+"7 people in all" under Sign-ups today), successful bookings (by
+`guest_id`), and price checks and their answers (by `user_id`, anonymous
+checks still counted). Still present and labelled: a QA account's audit rows
+read "QA" instead of "Admin". Tests: `reads/qa-accounts.test.ts` (4).
+
+Live check, read-only SQL on the project, 23 September: profiles 9, profiles
+less the two QA accounts 7; sign-ups in 14 days 5, less QA 3; the QA accounts
+own no agent, business, booking or price check yet. The console reading 7 on
+screen is step 2 of the signed-in script: WAITING ON QA CREDENTIALS.
+
+Not done, and why: money collected is keyed by wallet, not person, and a QA
+account never moves real money (LIVE_PROOF); the Supply desk's counts
+(admin-money's `reads/supply.ts`) count agents and businesses, which the QA
+accounts are not; if that changes, `withoutQa` is the one call to add there.
 
 ### 6.7 Skipped or not verified
 

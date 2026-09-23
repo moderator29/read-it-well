@@ -200,3 +200,7 @@ export async function getPersonTiers(userIds: readonly (string | null | undefine
     return new Map();
   }
 }
+
+/* THE QA ACCOUNTS live in `./shapes` (no server-only import) so a page can
+   label a row with `isQaAccount`; the statistics' filter is re-exported here. */
+export { QA_ACCOUNT_IDS, QA_NOT_IN, isQaAccount, withoutQa } from "./shapes";
