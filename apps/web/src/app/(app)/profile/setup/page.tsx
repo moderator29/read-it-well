@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
+import { BackButton } from "@/components/site/BackButton";
+import { parentOf } from "@/lib/nav/resolve";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getSide } from "@/lib/side";
 import { isSide, type Side } from "@/lib/side.constants";
 import { AddWorkspaceChooser } from "@/components/supply/AddWorkspaceChooser";
+
+/* Back to the declared parent (`route-parents.ts`), Session A's R14: this
+   route declared one and drew no control, so Android back closed the app. */
+const BACK = parentOf("/profile/setup");
 
 export const metadata: Metadata = {
   title: "Add a workspace",
@@ -55,5 +61,12 @@ export default async function AddWorkspacePage({
      whole top the way `RegisterShell` owns the top of the three forms it leads
      into. A `PageHeader` here would set that name small on the top row and
      draw a second, competing heading under it. */
-  return <AddWorkspaceChooser t={t} side={side} />;
+  return (
+    <>
+      <div className="pb-sm">
+        <BackButton fallback={BACK.kind === "parent" ? BACK.href : "/profile"} />
+      </div>
+      <AddWorkspaceChooser t={t} side={side} />
+    </>
+  );
 }
