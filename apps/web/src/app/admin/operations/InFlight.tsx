@@ -1,3 +1,4 @@
+import { PG_CRON_JOBS } from "@/lib/admin/reads/jobs";
 import { formatDate, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
 import { tx } from "@/app/admin/_components/shell-text";
 import { MeterBar } from "@/components/agent/charts/MeterBar";
@@ -121,7 +122,9 @@ export function InFlight({ locale, inspections }: { locale: Locale; inspections:
         </Panel>
         <Panel id="ops-db-jobs" title={tx(locale, "inflightDatabaseJobsOneByOne")}>
           <NotWired
-            what={tx(locale, "inflightEachOfTheDatabaseJobs")}
+            what={tx(locale, "inflightEachOfTheDatabaseJobs")
+              .replace("{count}", String(PG_CRON_JOBS.length))
+              .replace("{names}", PG_CRON_JOBS.map((j) => j.name).join(", "))}
             request={tx(locale, "inflightTheDatabaseDoesNotExpose")}
           />
         </Panel>

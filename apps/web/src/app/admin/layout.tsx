@@ -10,6 +10,7 @@ import { AccessScreen } from "./_components/AccessScreen";
 import { AdminFrame } from "./_components/AdminFrame";
 import type { AdminIdentity } from "./_components/AdminNav";
 import { EntryGate } from "./_components/EntryGate";
+import { BackButton } from "@/components/site/BackButton";
 import { ENTRY_COOKIE } from "./_components/entry";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -64,6 +65,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       searchLabel={t.admin.common.searchLabel}
       bellLabel={t.uiCommon.console.notifications}
       shell={t.admin.shell}
+      back={<BackButton fallback="/admin" label={t.common.back} className="nf-admin-back" />}
     >
       <EntryGate entered={entered} userId={access.user.id} opening={t.admin.shell.entry.opening}>
         {children}

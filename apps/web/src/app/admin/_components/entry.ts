@@ -48,7 +48,10 @@ export function entryRedirect(pathname: string, search: string, entered: boolean
  * the overview again at every desk. Every link that means "go on into the
  * console" (the overview's Continue, the gate's plain link) goes through
  * `/admin/enter?next=<target>`, which checks `requireAdmin`, sets the same
- * cookie on the server and answers 303 to the target.
+ * cookie on the server and answers 303 to the overview (never to a desk).
+ * The gate's link goes through it; the overview's Continue is a plain link
+ * to the desk, because by the time anyone presses it the cookie is set, by
+ * the overview in the browser or by `/admin/enter` without JavaScript.
  */
 export const ENTER_PATH = "/admin/enter";
 
@@ -61,19 +64,21 @@ export function enterHref(target: string): string {
 }
 
 /**
- * Where `/admin/enter` may send the operator: the overview (`/admin`), the
- * overview carrying a desk (`/admin?next=<desk>`), or a console desk. Anything
- * else (another site, another part of the app, the entry route itself, a
- * path that climbs out with `..`) lands on the overview.
+ * Where `/admin/enter` may send the operator: ONLY the overview, bare
+ * (`/admin`) or carrying a desk (`/admin?next=<desk>`). Never a desk itself:
+ * a typed, bookmarked or sent `/admin/enter?next=/admin/money` would
+ * otherwise skip the overview, which R-E forbids (third closing audit). A
+ * bare desk is turned into the overview carrying it; anything else (another
+ * site, another part of the app, the entry route itself, a path that climbs
+ * out with `..`) lands on the bare overview.
  */
-export function enterTarget(next: string | null | undefined): string {
+export function enterTarget(next: string | null | undefined): "/admin" | `/admin?next=${string}` {
   if (!next) return "/admin";
   if (next === "/admin" || next === "/admin/") return "/admin";
-  if (next.startsWith("/admin?")) {
-    const desk = allowedDesk(new URLSearchParams(next.slice("/admin?".length)).get("next"));
-    return desk ? `/admin?next=${encodeURIComponent(desk)}` : "/admin";
-  }
-  return allowedDesk(next) ?? "/admin";
+  const desk = next.startsWith("/admin?")
+    ? allowedDesk(new URLSearchParams(next.slice("/admin?".length)).get("next"))
+    : allowedDesk(next);
+  return desk ? `/admin?next=${encodeURIComponent(desk)}` : "/admin";
 }
 
 function allowedDesk(next: string | null): string | null {

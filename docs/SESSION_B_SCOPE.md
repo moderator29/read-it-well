@@ -576,13 +576,10 @@ does not own. Until they land, each panel says "Not recorded" or names the gap
 on the screen. The letters match the panel notes.
 
 A5. **An admin-callable read of the database's own scheduled jobs.** The
-    twelve pg_cron jobs (`vallo_release_stale_holds`, `vallo_purge_rate_limits`,
-    `vallo_escrow_sweep_timeouts`, `vallo_escrow_invariants`,
-    `vallo_reconcile_payments`, `vallo_purge_idempotency`,
-    `vallo-nightly-badges`, `vallo_escrow_book_the_float`,
-    `vallo_sweep_price_check_events`, `vallo_announce_completed_stays`,
-    `vallo_sweep_price_check_watches`, `vallo-daily-note`; four of them added
-    by the migrations of 22 and 23 September) live in `cron.job`
+    pg_cron jobs (the list is `PG_CRON_JOBS` in `lib/admin/reads/jobs.ts`,
+    held equal to every `cron.schedule` in `supabase/migrations` by
+    `lib/admin/reads/jobs.test.ts`, so this request never states a count that
+    can drift) live in `cron.job`
     and `cron.job_run_details`, which PostgREST does not expose, and
     `public.cron_job_failures` is EXECUTE for `service_role` only. Request: a
     `security definer` function `public.admin_cron_jobs()` that repeats the
@@ -594,7 +591,10 @@ A5. **An admin-callable read of the database's own scheduled jobs.** The
     Session B then lists them row by row in the Operations jobs table beside
     the seven Vercel Cron jobs; today they are one summary row drawn from the
     newest `pg-cron-watch` audit row.
-A6. **Admins cannot read `public.notifications`.** Its only SELECT policy is
+A6. **Admins cannot read `public.notifications`.** NARROWED on 23 September:
+    push is readable now (`push_queue_staff_read`, `push_deliveries_staff_read`)
+    and Operations > Notifications counts it (`getPushActivity`). What remains
+    is the in-app notifications table's volumes by kind. Its only SELECT policy is
     `notifications_select_own`. The founder's update puts "every notification
     the platform sends" on the Operations desk. Request, either: a policy
     `notifications_select_admin` (the same `has_role` check the other admin
@@ -645,6 +645,23 @@ A13. **Admins cannot read `public.business_transfers`.** Its only SELECT
     `business_transfers_select_admin` policy with the same role check, so
     Operations > In flight can count pending transfers and show when each
     offer expires.
+A14. **Admins cannot read `public.email_outbox`.** Row security is on and it
+    has no admin SELECT policy (checked in `pg_policies`, 23 September), so
+    the console cannot say whether email is flowing. Request, like A12: a
+    `security definer` read `public.admin_email_outbox_health()` repeating
+    the admin role check and returning, without `payload` or `user_id`,
+    `status, count, oldest_available_at, newest_settled_at` per status and the
+    ten newest failures as `template, attempts, left(last_error, 200),
+    created_at`; or an `email_outbox_select_admin` policy if the payloads are
+    judged safe for operators. Operations > Notifications has the panel built
+    and says "Not readable by an admin yet" until then.
+R13 (answered 23 September). Session A's `email-outbox` line in
+    `lib/admin/reads/jobs.ts` stays: data only, it keeps the `VERCEL_JOBS` =
+    `vercel.json` equality test green, and nothing else moved. Its comment
+    now records the ruling.
+R14 (answered 23 September). The console mounts the shared `BackButton`
+    once, in `app/admin/layout.tsx`, as the top bar's first control, so all
+    23 admin routes draw it and it goes to each route's declared parent.
 
 ### Requests from email (the welcome email's design and words)
 

@@ -36,15 +36,23 @@ browser closes; signing in as someone else starts a new session. This lives
 in `app/admin/_components/EntryGate.tsx` and `entry.ts`, and only a console
 address is ever offered back.
 
-It works with JavaScript off. The Continue link, and the "Opening the
-overview first." link a desk shows while it hands you to the Overview, both
-go through `/admin/enter?next=<where>` (`app/admin/enter/route.ts`). That
-address checks you are an admin, sets the same session cookie on the server
-(path `/admin`, SameSite Lax, no expiry) and sends you on with a 303. It
-only ever sends you to the Overview, the Overview carrying a desk, or a
-console desk; anything else, including another site, lands on the Overview.
-Someone who is not an admin gets no cookie and is sent to `/admin`, which
-says why.
+It works with JavaScript off. The "Opening the overview first." link a desk
+shows while it hands you to the Overview goes through
+`/admin/enter?next=<where>` (`app/admin/enter/route.ts`). That address checks
+you are an admin, sets the same session cookie on the server (path `/admin`,
+SameSite Lax, no expiry) and sends you on with a 303, always to the
+Overview: bare, or carrying the desk you asked for. It never sends you
+straight to a desk, so even a typed or bookmarked `/admin/enter` link
+cannot skip the Overview; anything that is not a console desk, including
+another site, lands on the bare Overview. Someone who is not an admin gets
+no cookie and is sent to `/admin`, which says why. The Overview's Continue
+is then a plain link to the desk, because the cookie is already set.
+
+**The back arrow.** The top bar opens with the platform's back arrow. It
+goes up the console's declared hierarchy (`lib/nav/route-parents.ts`), not
+back through your browser history: from any desk to the Overview, from a
+record (a listing under review, a booking) to its desk, and from the
+Overview to Home.
 
 **How to read a panel.** Every panel is one of four things, and it always says
 which:
@@ -135,7 +143,7 @@ and the existing `getQueueCounts` and `getRiskAlerts`.
 | Listings live | exact count of `listings` with `status = 'PUBLISHED'` and `is_demo = false` | against the same count of listings that were already live seven days ago (`published_at` on or before then) |
 | Sign-ups today | `profiles.created_at` on today's Lagos date | against yesterday |
 | Naira transacted today | money collected today (see below) | against yesterday |
-| Jobs healthy | the share of the seven Vercel Cron jobs whose last run was on time and did not fail (Operations has the table) | none; a job count has no history |
+| Jobs healthy | the share of the Vercel Cron jobs (every one in `VERCEL_JOBS`) whose last run was on time and did not fail (Operations has the table) | none; a job count has no history |
 
 **The four cards.** Live listings (as above), New supply this week (listings
 submitted for review in the last seven days, examples excluded, against the
@@ -604,7 +612,7 @@ Reads: `lib/admin/reads/operations.ts` (`getJobHealth`, `getRunDays`,
 `getAlertTrend`) and the existing `getRiskAlerts`, `getAuditLog` and
 `getAuditActivity`. Nothing on this desk changes anything; it reads.
 
-**Jobs healthy.** How many of the seven Vercel Cron jobs are on schedule and
+**Jobs healthy.** How many of the Vercel Cron jobs (all of `VERCEL_JOBS`) are on schedule and
 did not fail on their last run, with the share in words and a line of the
 scheduled runs that did not fail per day for fourteen days.
 
@@ -617,6 +625,7 @@ a fall is emerald. The line is alerts raised per day.
 
 | Job | Scheduler | When (Lagos) | Allowed silence | What it does |
 |---|---|---|---|---|
+| email-outbox | Vercel Cron `*/15 * * * *` | every 15 min | 2 h | sends the queued emails in `email_outbox` |
 | hold-sweep | Vercel Cron `5 * * * *` | hourly at :05 | 3 h | releases wallet holds past their window |
 | paystack-reconcile | Vercel Cron `10 * * * *` | hourly at :10 | 3 h | matches Paystack charges to the ledger |
 | pg-cron-watch | Vercel Cron `20 * * * *` | hourly at :20 | 3 h | watches the database's own jobs and raises failures |
@@ -624,6 +633,7 @@ a fall is emerald. The line is alerts raised per day.
 | inventory-drift | Vercel Cron `45 2 * * *` | daily 03:45 | 26 h | checks room inventory against bookings |
 | account-purge | Vercel Cron `15 3 * * *` | daily 04:15 | 26 h | honours account deletions after thirty days |
 | saved-search-alerts | Vercel Cron `40 7 * * *` | daily 08:40 | 26 h | tells people about new matches for saved searches |
+| vallo_push_drain | pg_cron `*/5 * * * *` | every 5 min | | asks the app to drain the push queue (`private.request_push_drain`) |
 | vallo_release_stale_holds | pg_cron `*/15 * * * *` | every 15 min | | database side of the hold release |
 | vallo_purge_rate_limits | pg_cron `30 * * * *` | hourly at :30 | | clears old rate limit rows |
 | vallo_escrow_sweep_timeouts | pg_cron `17 * * * *` | hourly at :17 | | escrow timeouts |
@@ -631,16 +641,20 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_reconcile_payments | pg_cron `47 * * * *` | hourly at :47 | | database side of reconciliation |
 | vallo_purge_idempotency | pg_cron `10 2 * * *` | daily 03:10 | | clears old idempotency records |
 | vallo-nightly-badges | pg_cron `20 2 * * *` | daily 03:20 | | awards earned badges |
+| vallo_purge_email_outbox | pg_cron `25 2 * * *` | daily 03:25 | | forgets emails the outbox has already delivered |
 | vallo_escrow_book_the_float | pg_cron `5 3 * * *` | daily 04:05 | | books the day's escrow float snapshot as a liability (`private.escrow_float_snapshot_take`) |
 | vallo_sweep_price_check_events | pg_cron `40 3 * * *` | daily 04:40 | | deletes price check events older than 24 months (the retention schedule, run) |
 | vallo_announce_completed_stays | pg_cron `20 5 * * *` | daily 06:20 | | announces completed stays |
 | vallo_sweep_price_check_watches | pg_cron `50 5 * * *` | daily 06:50 | | re-runs the price check gate at each pending watch and tells the watcher once when it opens |
 | vallo-daily-note | pg_cron `0 6 * * *` | daily 07:00 | | the daily note |
 
-Twelve pg_cron jobs in all, as of 23 September. The four newest came with
-the migrations of 22 and 23 September: the two price check sweeps
-(`20260922222424_...`, `20260922222524_...`), the float booking
-(`20260923010000_...`) and the escrow invariants (`20260923011000_...`).
+8 Vercel Cron jobs and 14 pg_cron jobs in all. The numbers are derived,
+not remembered: the Vercel list is `VERCEL_JOBS` in
+`lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
+database list is `PG_CRON_JOBS` in the same file, held equal by
+`lib/admin/reads/jobs.test.ts` to every `cron.schedule` the migrations leave
+in place. The same test holds this table and the sentence above to both
+lists, so a new job fails the build until it is written down here.
 
 The Vercel jobs' schedules come from `apps/web/vercel.json` (a test fails if
 the console's copy drifts from it) and their allowances from `WATCHED_JOBS` in
@@ -668,10 +682,17 @@ and the latest entries. Each entry opens the Audit log desk filtered to that
 record. The Audit log desk searches by id, by words in the action, by kind
 and by date.
 
-**Notifications tab.** Every notification the platform sends has one of eight
-kinds: booking, message, wallet, listing, agent, support, system, social. An
-admin cannot read the notifications table today (its only read policy is the
-recipient's own), so this tab says "Not wired yet" and names Request A6.
+**Notifications tab.** Push first, from `push_queue` and `push_deliveries`
+(both readable by an admin, `getPushActivity`): the push queue now, by state
+(Waiting, Held for quiet hours, Sending, Retrying, Out of attempts, Done);
+how pushes settled in the last seven days (Delivered, Push off, No device,
+Expired, Summarised, Gave up); device attempts in the last seven days (Sent,
+No reply yet, Failed, Device gone) with the newest attempts; and the newest
+failures with the provider's status and error. No token or device reference
+is shown. Beside them, two panels that cannot be read yet and say so: in-app
+notifications by kind (booking, message, wallet, listing, agent, support,
+system, social; the table's only read policy is the recipient's own, Request
+A6) and the email outbox (row security on, no admin policy, Request A14).
 
 **In flight tab.** Inspections, read by state (Requested, New time
 proposed, Confirmed, Completed, Declined, Withdrawn: six exact counts from
@@ -1116,9 +1137,10 @@ console needs and does not have yet)
   say "Not recorded". A person's decline of an inspection or reservation
   carries no reason (A11), so common refusals are the platform's price check
   refusals only.
-- The database's own twelve scheduled jobs are summarised, not listed
+- The database's own scheduled jobs (`PG_CRON_JOBS`) are summarised, not listed
   (Request A5).
-- Notification volumes cannot be read by an admin (Request A6).
+- In-app notification volumes (Request A6) and the email outbox (Request
+  A14) cannot be read by an admin; push can, and is shown.
 - Open reviews has no week-on-week change: an open count has no history until
   something snapshots it.
 - The render's "All areas" filter on Analytics is not built.

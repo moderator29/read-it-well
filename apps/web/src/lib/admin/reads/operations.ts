@@ -1,7 +1,19 @@
 import "server-only";
 
 import { VERCEL_JOBS, databaseJobsSummary, jobRow, type DatabaseJobsSummary, type RunRow } from "./jobs";
-import type { AlertTrend, InspectionActivity, InspectionState, JobHealth } from "./shapes";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  PUSH_DELIVERY_STATES,
+  PUSH_OUTCOMES,
+  PUSH_QUEUE_STATES,
+  type AlertTrend,
+  type InspectionActivity,
+  type InspectionState,
+  type JobHealth,
+  type PushActivity,
+  type PushDeliveryRow,
+  type PushDeliveryState,
+} from "./shapes";
 import {
   DAY_MS,
   UNAVAILABLE,
@@ -195,6 +207,69 @@ export async function getInspectionActivity(): Promise<Read<InspectionActivity>>
             outcome: row.outcome,
           };
         }),
+      },
+    };
+  } catch {
+    return UNAVAILABLE;
+  }
+}
+
+type RawDelivery = {
+  id: string;
+  platform: string | null;
+  state: string;
+  provider_status: number | null;
+  provider_error: string | null;
+  attempted_at: string;
+};
+
+/** One device attempt as the console shows it: no token, no device reference, the error cut short. Tested. */
+export function pushDeliveryRow(raw: RawDelivery): PushDeliveryRow {
+  const state = (PUSH_DELIVERY_STATES as readonly string[]).includes(raw.state) ? (raw.state as PushDeliveryState) : "failed";
+  const error = raw.provider_error ? raw.provider_error.replace(/\s+/g, " ").trim().slice(0, 160) : null;
+  return { id: raw.id, platform: raw.platform ?? "web", state, providerStatus: raw.provider_status, error: error || null, attemptedAt: raw.attempted_at };
+}
+
+/**
+ * Push notifications (third closing audit): `push_queue` and
+ * `push_deliveries`, both readable under their `*_staff_read` admin policies,
+ * through the operator's own session. Exact counts of every queue row by the
+ * state it is in now, of rows settled in the window by outcome, and of device
+ * attempts in the window by state; the eight newest attempts, and the eight
+ * newest that failed or found the device gone. Neither table is in the
+ * generated types yet, so they are reached through an untyped view of the
+ * same session client, reading only the columns their migration declares.
+ */
+export async function getPushActivity(now: number, days = 7): Promise<Read<PushActivity>> {
+  const db = await adminReader();
+  if (!db) return UNAVAILABLE;
+  try {
+    const loose = db as unknown as SupabaseClient;
+    const fromIso = new Date(now - days * DAY_MS).toISOString();
+    const count = (table: string) => loose.from(table).select("id", { count: "exact", head: true });
+    const [queue, outcomes, deliveries] = await Promise.all([
+      Promise.all(PUSH_QUEUE_STATES.map((state) => exactCount(count("push_queue").eq("state", state)))),
+      Promise.all(PUSH_OUTCOMES.map((outcome) => exactCount(count("push_queue").eq("outcome", outcome).gte("settled_at", fromIso)))),
+      Promise.all(PUSH_DELIVERY_STATES.map((state) => exactCount(count("push_deliveries").eq("state", state).gte("attempted_at", fromIso)))),
+    ]);
+    if ([...queue, ...outcomes, ...deliveries].some((c) => c === null)) return UNAVAILABLE;
+    const columns = "id, platform, state, provider_status, provider_error, attempted_at";
+    const [recent, failures] = await Promise.all([
+      loose.from("push_deliveries").select(columns).order("attempted_at", { ascending: false }).limit(8),
+      loose.from("push_deliveries").select(columns).in("state", ["failed", "gone"]).order("attempted_at", { ascending: false }).limit(8),
+    ]);
+    if (recent.error || failures.error) return UNAVAILABLE;
+    const zip = <K extends string>(keys: readonly K[], values: (number | null)[]) =>
+      Object.fromEntries(keys.map((k, i) => [k, values[i] ?? 0])) as Record<K, number>;
+    return {
+      state: "ok",
+      data: {
+        windowDays: days,
+        queue: zip(PUSH_QUEUE_STATES, queue),
+        outcomes: zip(PUSH_OUTCOMES, outcomes),
+        deliveries: zip(PUSH_DELIVERY_STATES, deliveries),
+        recent: ((recent.data ?? []) as RawDelivery[]).map(pushDeliveryRow),
+        failures: ((failures.data ?? []) as RawDelivery[]).map(pushDeliveryRow),
       },
     };
   } catch {

@@ -1,7 +1,7 @@
 import { getLocale } from "@/lib/locale";
 import { getAuditActivity, getAuditLog } from "@/lib/admin/audit-queries";
 import { getRiskAlerts } from "@/lib/admin/queries";
-import { getAlertTrend, getInspectionActivity, getJobHealth, getRunDays } from "@/lib/admin/reads/operations";
+import { getAlertTrend, getInspectionActivity, getJobHealth, getPushActivity, getRunDays } from "@/lib/admin/reads/operations";
 import { LiveRefresh } from "../_components/LiveRefresh";
 import { OperationsView, type OpsTab } from "./OperationsView";
 
@@ -19,9 +19,11 @@ function requestTime(): number {
  * Reads, all under the admin gate: `getJobHealth` and `getRunDays` (the
  * audit rows every scheduled run writes), `getAlertTrend` (exact counts from
  * the alerts' own dates), `getRiskAlerts`, `getAuditLog` and
- * `getAuditActivity`. Notification volumes are not readable by an admin
- * today (the notifications table's only SELECT policy is the recipient's
- * own), so that tab says so and names Request A6.
+ * `getAuditActivity`, and on the Notifications tab `getPushActivity` (push
+ * queue and device attempts, under their staff read policies). In-app
+ * notification volumes are not readable by an admin today (the
+ * notifications table's only SELECT policy is the recipient's own, Request
+ * A6), nor is the email outbox (Request A14); both panels say so.
  */
 export default async function AdminOperationsPage({
   searchParams,
@@ -33,7 +35,7 @@ export default async function AdminOperationsPage({
   const tab = TABS.find((t) => t === params.tab) ?? "jobs";
   const now = requestTime();
 
-  const [jobs, runDays, trend, alerts, audit, activity, inspections] = await Promise.all([
+  const [jobs, runDays, trend, alerts, audit, activity, inspections, push] = await Promise.all([
     getJobHealth(now),
     getRunDays(now),
     getAlertTrend(now),
@@ -41,6 +43,7 @@ export default async function AdminOperationsPage({
     getAuditLog(),
     tab === "audit" ? getAuditActivity() : Promise.resolve(null),
     tab === "inflight" ? getInspectionActivity() : Promise.resolve(null),
+    tab === "notifications" ? getPushActivity(now) : Promise.resolve(null),
   ]);
 
   return (
@@ -58,6 +61,7 @@ export default async function AdminOperationsPage({
         audit={audit.state === "ok" ? audit.data.rows : "unavailable"}
         activity={activity && activity.state === "ok" ? activity.data : null}
         notifications={null}
+        push={push && push.state === "ok" ? push.data : null}
         inspections={inspections && inspections.state === "ok" ? inspections.data : null}
       />
     </>
