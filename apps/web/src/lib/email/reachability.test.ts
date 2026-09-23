@@ -79,9 +79,38 @@ const NOT_A_CALLER = new Set([
   ...DECLARING,
 ]);
 
-/** A function that returns a message somebody reads. */
+/**
+ * A function that returns a message somebody reads.
+ *
+ * FOUR RETURN TYPES AND NOT ONE, WHICH IS A TRAP THIS FILE ALREADY FELL INTO.
+ * The first version of this sweep matched `EmailMessage` alone and therefore
+ * could not see the eight escrow builders, which return `EscrowEmail`. It went
+ * green over a third of the catalogue it was not looking at, which is the
+ * exact failure it exists to prevent, one level up. `EVERY_RETURN_TYPE` below
+ * is the guard against it happening again.
+ */
 const BUILDER_RE =
-  /export function (\w+)\s*\([^)]*\)\s*:\s*(?:EmailMessage|PaymentInstrumentEmail|DeletionEmail)\b/g;
+  /export function (\w+)\s*\([^)]*\)\s*:\s*(?:EmailMessage|EscrowEmail|PaymentInstrumentEmail|DeletionEmail)\b/g;
+
+/** Every exported function in those files, whatever it answers with. */
+const EXPORT_RE = /export function (\w+)\s*\([^)]*\)\s*:\s*([\w<>[\]| ]+?)\s*\{/g;
+
+/**
+ * Every type an exported function in the email layer is allowed to return.
+ *
+ * A builder that answered with a fifth type would be invisible to
+ * `BUILDER_RE`, so this list is asserted to cover the files exhaustively. Add
+ * a type here and you must add it to `BUILDER_RE` too, or say why it is not a
+ * message.
+ */
+const EVERY_RETURN_TYPE = new Set([
+  "EmailMessage",
+  "EscrowEmail",
+  "PaymentInstrumentEmail",
+  "DeletionEmail",
+  /* `cardPhrase`: "Visa ending 4242". A phrase inside a message, not one. */
+  "string",
+]);
 
 /** A module that can put something on the wire, or the registry that does. */
 function canSend(source: string, relative: string): boolean {
@@ -138,11 +167,23 @@ describe("no email builder is built and unreachable", () => {
         const name = match[1];
         if (name) declared.set(name, relative);
       }
+
+      /* NOTHING IN THESE FILES IS ALLOWED TO BE INVISIBLE TO THE SWEEP. A
+         builder introduced with a new return type would otherwise be
+         unreachable and unnoticed, which is the whole defect. */
+      for (const match of source.matchAll(EXPORT_RE)) {
+        const [, name, returns] = match;
+        expect(
+          EVERY_RETURN_TYPE.has((returns ?? "").trim()),
+          `${relative}: ${name} returns ${returns}, which this sweep cannot see`,
+        ).toBe(true);
+      }
     }
 
     /* If the regex ever stops finding builders, this whole file would pass on
-       an empty set, which is the classic way a sweep like this goes blind. */
-    expect(declared.size).toBeGreaterThanOrEqual(30);
+       an empty set, which is the classic way a sweep like this goes blind.
+       Thirty eight is the count on 23 September and it only ever grows. */
+    expect(declared.size).toBeGreaterThanOrEqual(38);
 
     const files = await walk(SRC);
     const reached = new Set<string>();

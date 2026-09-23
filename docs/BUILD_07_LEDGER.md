@@ -7825,3 +7825,246 @@ vitest run     exit 0     209 files, 3464 passed, 1 skipped
 ```
 
 The one skip is the live web push proof, reporting NOT RUN with its reason.
+
+---
+
+## 63. THE WELCOME EMAIL SENDS, EVERY BUILDER IS ACCOUNTED FOR, AND ONE FAILED WITHDRAWAL IS TWO EMAILS
+
+JUNCTION2, 23 September. Four blocks hung off the junction that section 59
+verified. The register the founder can act on is `docs/email/WHAT_SENDS.md`;
+this is the working record behind it.
+
+### What was true before any of it
+
+Measured off the live database, not taken from anybody's report: **seven
+accounts, five of them with a confirmed address, and `profiles.welcomed_at`
+NULL on every single row.** Nobody who has ever signed up to Vallo has been
+written to. The welcome has existed complete, in six versions, with a test
+file and a place in the fixtures, since the catalogue was written.
+
+### Block 1. The welcome, and why two call sites were never coverage
+
+`welcomeOnce` had callers, exactly as the brief warned. Two of them, in
+`lib/auth/actions.ts`: the six digit code and the emailed link. **Those are
+one door of five.** Continue with Google, an invite and the admin API each
+mint a CONFIRMED account inside GoTrue and return through a callback that has
+never heard of that function. A third of new accounts were never going to get
+anything, and a mirror test in `junction.test.ts` was asserting that
+`welcomeOnce` appeared twice in the source and passing.
+
+An address becoming confirmed is visible in exactly one place, which is the
+column that records it. So the welcome hangs on two triggers on `auth.users`,
+one for the door that arrives already confirmed and one for the door that
+confirms later, both enqueuing into `public.email_outbox` in the same
+transaction as the change. Still on confirmation and not on the insert alone,
+because at sign-up the address is a claim and mailing an unconfirmed address
+makes this platform the delivery mechanism for somebody else's abuse.
+
+Both triggers swallow their own exceptions and return, as
+`private.enqueue_new_device_email` does. **A trigger on `auth.users` may never
+break signing up.**
+
+**Once for ever is now the UNIQUE dedupe key `account:welcome:<user id>`**, on
+a table with RLS on and no policy. That is strictly stronger than the
+`profiles.welcomed_at` claim it replaces, which sat on a table the account
+holder can write, and which is why the old send site also had to refuse
+anything confirmed more than a day ago. The column is left in place, NULL on
+every row, with a comment saying what replaced it; dropping a column is
+data-losing and the stop list forbids one for tidiness.
+
+**The role is not in the queue row.** A declared role is a statement somebody
+made about themselves. The drain reads `profiles.signup_role` at send time,
+which is also more correct: confirm, answer the first run question, then the
+drain runs, and the version matches what was actually said.
+
+**Nobody is backfilled.** Those five confirmed accounts predate the wire and a
+welcome months late is a surprise, not a welcome.
+
+**The copy was checked against the product rather than assumed.** All eleven
+routes in `WELCOME_ROUTES` exist. `market=rent` and `market=buy` on the renter
+and buyer steps are honoured: `parseDiscoveryQuery` does NOT read `market`,
+which is what the URL contract in `lib/listings/search-params.ts` says, but the
+results page parses with `parseShelfQuery`, and that reads `market` and turns
+it into `intent`. `sort=move-in-asc` is a real sort and the read is pushed down
+to `listings_move_in_cost_idx`. Restaurant tables really are reservable.
+`/settings/notifications` really does carry the four email switches, so "Change
+what Vallo emails you" is true. **No claim in the welcome needed changing, and
+`welcome-message.ts` is Session B's file, so nothing in it was touched.**
+
+**Proven, and how.** A probe migration installed the same DDL, drove four cases
+and rolled everything back on a deliberate raise: `PROBE ALL PASS welcome:
+insert-door=1 unconfirmed=0 confirm-door=1 dedupe=1 anonymous=0`. The
+`unconfirmed=0` line is the one that matters most: it fails if the `when`
+clause is wrong and we start mailing addresses that are still claims.
+
+### Block 1, second pass, after the lead's correction
+
+The lead restored `lib/notify/welcome.ts` (see below) and asked for it kept
+with its two properties intact and only its last step changed. Done, and it is
+the better answer: the module now ENQUEUES through
+`public.email_outbox_enqueue_welcome` instead of posting through
+`sendMessage`, both call sites are back, and the conditional update stays
+exactly where it was.
+
+**Two paths, and the reason that is safe rather than dangerous.** Both compose
+the SAME key, and the unique index collapses them, so whichever arrives first
+writes the row and the other is told `already`. `welcomeOnce` counts `already`
+as success and KEEPS its stamp, because a column disagreeing with a queue that
+is about to send is how a second email gets ordered later. The caller passes an
+id and nothing else: the key is the SQL's to compose, because a caller that
+could pass one could pass a different one from the trigger's, and that is the
+second email. The four guards live in the function beside the data, so a server
+action can ask for a welcome for any id it likes and still not get one queued
+for an address that is still a claim.
+
+`PROBE ALL PASS welcome enqueue: locked=1 unconfirmed=refused
+anonymous=refused trigger-then-server=already,1
+server-alone=queued,then-already`. The `trigger-then-server` line re-proved the
+trigger is live AND that a server call after it leaves one row.
+
+### Block 2. Every builder named, and the count held at zero by a test
+
+**Thirty eight builders. Thirty five reachable. Three refused. Zero built and
+unreachable with no decision recorded.**
+
+REFUSED, each with the reason in a comment beside the builder itself:
+
+- **`passwordReset`.** GoTrue owns it. `resetPasswordForEmail` mints the
+  recovery token inside GoTrue and it never reaches this process, so there is
+  no `resetUrl` for a caller to pass. Ours would be a SECOND email with no
+  working link, beside the real one, on the one screen where somebody is
+  already locked out. **It had no written refusal before today; it has one
+  now.**
+- **`escrowFunded`.** Prints "held in escrow", the custody claim rule 11
+  forbids until it operates. Superseded by `heldPaymentSetAside`.
+- **`escrowReleased`.** Same claim in its subject. Superseded by
+  `heldPaymentPaidOut`.
+
+`apps/web/src/lib/email/reachability.test.ts` holds this. It walks every
+non-test module outside the email layer, keeps only those that can actually
+send, and asserts the set of unreachable builders is EXACTLY the set with a
+written refusal. **Both directions fail**, so a builder that loses its last
+caller goes red with its name in the message, and so does a refusal somebody
+quietly wires. It also holds every outbox template key against the migrations
+that write it, which catches a trigger renamed in SQL.
+
+**My own sweep was blind on its first run and I caught it writing the count.**
+It matched `EmailMessage` and therefore could not see the eight escrow
+builders, which return `EscrowEmail`: a third of the catalogue, passing. It now
+asserts that every exported function in those five files returns one of four
+known message types or the single `string` helper, so a builder introduced with
+a fifth type fails rather than hides. **That is the sixteenth blind light found
+in this repository in three days and the first one I wrote myself.**
+
+**One thing the test cannot see, and it says so in its own head.**
+`verificationCode` passes, because `/api/auth/email-hook` names it and sends
+it. THAT ROUTE IS NOT THE LIVE PATH: the Send Email Hook is not enabled and
+`SUPABASE_AUTH_HOOK_SECRET` is not set, both already measured in
+`AUTH_EMAILS.md` section 1A off GoTrue's own `mail.send` events. Code
+reachable, deployment not. Recorded as UNPROVEN in the register with what is
+missing, because no test in this repository can tell the difference.
+
+### Block 3. Every template through the socket, and what that does and does not prove
+
+The wire proof covered two of fifteen templates. The other thirteen were tested
+at the builder and never through the real registry, the real `gatherFacts`, the
+real `sendMessage` and `sendEmail`, the From line, the text alternative, the
+JSON body or the settle.
+
+One test now drains a batch carrying every key the registry answers to, with
+the payload its own trigger composes, and asserts on each POST: one per
+template and `dropped: 0`; no `undefined`, no `NaN`, no `[object Object]` and
+no `${` anywhere in the subject, the document or the text; a subject with no id
+in it at all and under 140 characters; and no id about another person or
+another private record anywhere in any part.
+
+**Proven not blind.** Mutating `templates.ts` to read `amount_minor` under the
+wrong key turned it red while the five older tests in the same file stayed
+green. The welcome's own assertion was mutation-checked the same way, by
+forcing the role to null.
+
+**What it does not prove, stated plainly. NO SEND HAS BEEN PROVED ON THE WIRE
+AND NONE CAN BE FROM THIS BOX.** The egress proxy refuses
+`api.resend.com:443` by organisation policy and there is no Resend key here.
+The only thing replaced anywhere in `outbox-delivery.test.ts` is
+`globalThis.fetch`. Delivery, the From line as a real inbox shows it, the dark
+rendering in Gmail and Apple Mail and the spam verdict are all UNPROVEN and
+cannot be proved by a test.
+
+### Block 4. The register
+
+`docs/email/WHAT_SENDS.md`. Every template, its trigger, its dedupe key,
+whether a `/settings` mute applies, and its state as SENDS, REFUSED or
+UNPROVEN, with the two sentences the founder needs at the top: nothing leaves
+until `RESEND_API_KEY` is set, and no send has ever been proved on the wire
+from this box. It ends with four things to do in order, and the second is
+finding 1 below, because it has to be fixed BEFORE the key is set.
+
+### FINDING 1, WHICH NOBODY ASKED FOR: ONE FAILED WITHDRAWAL IS TWO EMAILS
+
+`wallet_entries_enqueue_withdrawal_email` fires on `after update of status on
+public.wallet_entries` and queues `wallet.withdrawal_outcome`. Both
+`settleWithdrawal` (the Paystack `transfer.failed` and `transfer.reversed`
+webhook) and `setEntryStatus` (the two catch paths in `lib/wallet/actions.ts`
+that mark a hold FAILED) perform exactly that UPDATE. **All three of those call
+sites then ALSO send `withdrawalFailed` directly through `sendMessage`.**
+
+The same person is told twice, in two different sets of words, about the same
+money. `withdrawalOutcome` distinguishes `reversed` from `failed`, which
+matters because reversed means the money left and came back and the reader will
+see a debit and then a credit on their statement. `withdrawalFailed` says only
+that it failed.
+
+**MEASURED, NOT REASONED.** A probe created a wallet and a PENDING withdrawal
+entry, ran the same UPDATE the TypeScript runs, and rolled back on a deliberate
+raise: `PROBE ALL PASS double send: status-update-queues=
+wallet.withdrawal_outcome`.
+
+`walletFunded` does NOT have this shape, and the contrast is the fix. It is
+gated on `posted === "posted"` and `recordFunding` is idempotent on the
+`rm-fund` reference, so whichever of the webhook and the redirect runs second
+credits nothing and emails nothing. The withdrawal side has no such gate.
+
+**Nothing reaches anybody today, so this is a defect to fix BEFORE the key is
+set rather than after.** The remedy is in the register. **I did not make the
+change: `app/api/paystack/webhook/route.ts` and `lib/wallet/actions.ts` belong
+to the money worker's scope, and a copy and behaviour change in somebody else's
+money path mid-stint is exactly the collision the partition exists to
+prevent.** It is a request to whoever holds those two files.
+
+### FINDING 2: the escrow emails print a raw uuid at a reader
+
+`heldPaymentProposed` and its seven siblings print `data.id`, a 36 character
+uuid, as the visible **Reference** row and again in full under the button. A
+person asked to quote `33333333-3333-4333-8333-333333333333` to support over
+the phone will not. Not a personal datum and not dangerous, but it is our
+plumbing on somebody's screen where a short human reference belongs, as
+`supportTicketFiled` and `withdrawalOutcome` both already have.
+`outbox-delivery.test.ts` forbids every other id from appearing anywhere and
+exempts this one explicitly, under protest, with a note saying to delete the
+exemption the day escrow grows a short reference. **Not fixed here:
+`escrow-messages.ts` is the escrow copy layer and a copy change there is not
+mine to make mid-stint.**
+
+### THE SHARED INDEX RACE CAUGHT ME TOO, AND IT IS WORTH THE LINE
+
+At 10:15 I ran `git rm` on `lib/notify/welcome.ts`. Four seconds later the push
+worker's commit `7da4b0d0`, about push transports, swept up my staged deletion.
+Its message says nothing about it. From then until 10:26 `lib/auth/actions.ts`
+imported a module that no longer existed and **main did not typecheck for
+anybody**, and the failure named a module resolution error rather than the
+file. That is the third instance of the same race in one day and the reason
+the commit procedure changed to a pathspec. The lead restored the file; the
+second pass above builds on the restored copy rather than on a rewrite.
+
+### WHAT I DELIBERATELY LEFT, WITH THE REASON
+
+- **The welcome's copy.** `lib/email/welcome-message.ts` is Session B's under
+  scope item 8. I checked every claim in it against the product and found none
+  untrue, so there was nothing to request.
+- **The three direct `withdrawalFailed` sends.** Finding 1. Somebody else's
+  scope.
+- **The escrow reference row.** Finding 2. Somebody else's scope.
+- **Backfilling the five confirmed accounts.** A welcome months late is a
+  surprise.
+- **`profiles.welcomed_at`.** Dropping a column is data-losing.
