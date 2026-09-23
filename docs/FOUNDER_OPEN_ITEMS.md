@@ -16,6 +16,31 @@ ledger's needs-the-founder section; this file is his.
 
 ---
 
+## 23 September: the refund figure, and a conflict only you can settle
+
+**You said 3 to 5 business days. It is now in the support FAQ, but not as the
+sentence you may have pictured, because on this platform a refund is instant.**
+
+Checked in the code rather than assumed: `refund_and_cancel_booking` credits
+the wallet in the same transaction that cancels the booking, and there is **no
+Paystack refund call anywhere**. Nothing on Vallo ever sends money back to a
+card. So the money is in the wallet the moment the cancellation is decided, and
+3 to 5 business days would understate our own product.
+
+Where your figure is true is the next step: moving that money from the wallet
+to a bank. That is a withdrawal, and the bank is not us. So the FAQ now reads:
+the money is in the wallet immediately, and allow 3 to 5 business days for your
+bank to show it once you move it.
+
+**THE CONFLICT, AND IT IS YOURS TO SETTLE.** The withdrawal email already tells
+people a bank "normally credits within minutes, and can take up to one working
+day". That is the typical experience. Your 3 to 5 business days is the safe
+public commitment. **They describe the same hop and they do not agree.** I have
+not quietly changed either one. Pick the number you want to be held to and I
+will make every surface say it.
+
+---
+
 ## 23 September: Android push. ONE LINE IS MISSING AND IT IS THE API KEY
 
 **You sent the `google-services.json` content, but the Android API key inside

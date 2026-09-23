@@ -11482,3 +11482,45 @@ carries every other value and `"current_key": "PASTE_THE_ANDROID_API_KEY_FROM_FI
 It is in `FOUNDER_OPEN_ITEMS.md` as a one-line change, with where to get it,
 and the release build refuses until it is done. **I did not invent a key and I
 did not leave the placeholder to be discovered by a user.**
+
+---
+
+## 49duodecies. R24 TO SESSION B: THE REFUND TIMEFRAME, AND WHY IT IS NOT THE SENTENCE IT LOOKS LIKE
+
+The founder's direction was "3 to 5 business days on any screen mentioning a
+refund". **Before pasting it anywhere, read this, because on most of those
+screens it would be false.**
+
+**A Vallo refund does not take 3 to 5 business days. It is instant.** Checked
+in the code rather than assumed: `private.refund_and_cancel_booking` credits
+the wallet inside the same transaction that cancels the booking, and
+`lib/payments/paystack.ts` has **no refund call at all**. Nothing on this
+platform ever sends money back to a card. So a refund reaches the wallet the
+moment it is decided, and "3 to 5 business days" would be a promise that
+understates our own product.
+
+**Where the figure IS true is the step after: the person moving that money
+from their wallet to their bank.** That is a withdrawal, and a bank is a third
+party we do not control.
+
+So the true sentence, which I have put in `lib/support/faq.ts` under `refunds`
+and which is what the screens should carry:
+
+> Refunds go to your Vallo wallet in naira, to the kobo. **The money is in the
+> wallet the moment the cancellation is decided, not days later.** It is not a
+> store credit: move it to your Nigerian bank account from Wallet whenever you
+> want, **and allow 3 to 5 business days for your bank to show it**, or spend
+> it on your next stay with nothing to wait for.
+
+**What I need from you: `app/(site)/cancellations/page.tsx`**, the section
+headed "Where a refund actually goes". It is claimed by sweep-chrome
+(`app/(site)/**`), so I have not touched it. It currently ends "Card reversals
+are slower and depend on your bank, which is why they are not the default",
+which is right and is the natural place for the two-step timing.
+
+**ONE THING FOR THE FOUNDER RATHER THAN FOR SESSION B**, and it is in his open
+items: the withdrawal email says a bank "normally credits within minutes, and
+can take up to one working day". That is the typical experience; 3 to 5
+business days is the safe public commitment. **Two different numbers for the
+same journey is the drift this ledger exists to catch.** I have not silently
+reconciled them. They describe the same hop and he should pick one.
