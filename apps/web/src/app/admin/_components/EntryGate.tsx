@@ -2,7 +2,7 @@
 
 import { useEffect, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ENTRY_COOKIE, entryRedirect } from "./entry";
+import { ENTRY_COOKIE, enterHref, entryRedirect } from "./entry";
 
 /**
  * Enforces the landing rule (R-E) inside `app/admin`, without the proxy.
@@ -48,8 +48,10 @@ export function EntryGate({
   if (target) {
     return (
       <p className="nf-admin-entry" role="status">
-        {/* A plain anchor, so the hop works with JavaScript off too. */}
-        <a href={target} className="nf-admin-entry__link">
+        {/* A plain anchor through the server-side entry, so the hop works with
+            JavaScript off: `/admin/enter` sets the cookie and lands on the
+            overview carrying the desk. */}
+        <a href={enterHref(target)} className="nf-admin-entry__link">
           {opening}
         </a>
       </p>

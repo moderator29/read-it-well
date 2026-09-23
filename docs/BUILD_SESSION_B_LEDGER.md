@@ -1047,13 +1047,23 @@ path). Covers a typed address, a bookmark, a sent link and the sign-in bounce
 (`/sign-in?next=/admin/money` returns to the desk, which the gate catches), all
 inside `app/admin` with no proxy change. A client navigation after the
 overview reads the cookie in the browser, so the layout (not re-rendered on
-client navigations) cannot send the operator back. While the gate waits for
-the browser to replace the address it shows "Opening the overview first." as
-a plain `<a href="/admin?next=<desk>">`, so the hop works with JavaScript
-off (second closing audit). With JavaScript off the entry cookie is never
-written (the overview writes it in the browser), so such an operator is
-offered the overview again at every desk: the link keeps them moving, the
-rule still holds. Tests:
+client navigations) cannot send the operator back. **JavaScript off (after the second closing audit).** The
+browser-written cookie alone left a JavaScript-off operator offered the
+overview again at every desk. `app/admin/enter/route.ts` closes that loop:
+`GET /admin/enter?next=<target>` -> `requireAdmin()` (not an admin: 303 to
+`/admin`, no cookie) -> `enterTarget(next)`, the allow-list (`/admin`,
+`/admin?next=<desk>`, or a console desk through `safeDesk`; never another
+origin, never outside `/admin/`, never a `..` segment, never `/admin/enter`
+itself; anything else becomes `/admin`) -> sets `nf_admin_entry=<user id>`
+with the browser's own attributes (`ENTRY_COOKIE_OPTIONS`: path `/admin`,
+SameSite Lax, readable by the page, no expiry) -> 303 to the target. The
+gate's "Opening the overview first." link is `enterHref("/admin?next=<desk>")`,
+so a JavaScript-off operator still lands on the overview first, and the
+overview's "Continue" is `enterHref(<desk>)`, so the desk then opens with the
+cookie held. Tests: `session-b-admin-enter.test.ts` (7: the allow-list both
+ways, the gate-to-overview round trip, and the handler itself with
+`requireAdmin` mocked: 303, Location, Set-Cookie attributes, refusal for
+signed-out, not-admin and unconfigured). Earlier tests:
 `_components/session-b-admin-entry.test.ts` (4). Not exercised end to end with
 a real admin session (none may be created); the redirect and the round trip
 are unit tested and the overview's link is in `overview-heading-to-1440-dark.jpg`.

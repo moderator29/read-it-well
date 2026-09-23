@@ -36,6 +36,16 @@ browser closes; signing in as someone else starts a new session. This lives
 in `app/admin/_components/EntryGate.tsx` and `entry.ts`, and only a console
 address is ever offered back.
 
+It works with JavaScript off. The Continue link, and the "Opening the
+overview first." link a desk shows while it hands you to the Overview, both
+go through `/admin/enter?next=<where>` (`app/admin/enter/route.ts`). That
+address checks you are an admin, sets the same session cookie on the server
+(path `/admin`, SameSite Lax, no expiry) and sends you on with a 303. It
+only ever sends you to the Overview, the Overview carrying a desk, or a
+console desk; anything else, including another site, lands on the Overview.
+Someone who is not an admin gets no cookie and is sent to `/admin`, which
+says why.
+
 **How to read a panel.** Every panel is one of four things, and it always says
 which:
 
