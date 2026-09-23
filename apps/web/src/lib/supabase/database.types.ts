@@ -239,6 +239,27 @@ export type Database = {
         }
         Relationships: []
       }
+      account_identities: {
+        Row: {
+          canonical_rule: string
+          email_canonical: string
+          recorded_at: string
+          user_id: string
+        }
+        Insert: {
+          canonical_rule: string
+          email_canonical: string
+          recorded_at?: string
+          user_id: string
+        }
+        Update: {
+          canonical_rule?: string
+          email_canonical?: string
+          recorded_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_bootstrap: {
         Row: {
           added_by: string | null
@@ -4436,6 +4457,27 @@ export type Database = {
             | Database["public"]["Enums"]["push_revoked_reason"]
             | null
           token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      qa_accounts: {
+        Row: {
+          added_at: string
+          label: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          label: string
+          reason: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          label?: string
+          reason?: string
           user_id?: string
         }
         Relationships: []
