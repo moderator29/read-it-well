@@ -310,6 +310,9 @@ Each group appends "RELEASED <commit>" here when it is done.
     (SW-P1, leftovers), `social-feed.css`, `components/social/**` (feed),
     `ReportSheet.tsx`, `ScreenSkeleton.tsx`, `ui/Skeleton.tsx`,
     `components/app/crypto/**`. Anything needed there is filed as `SW-O*`.
+    **Orphans RELEASED 64074bec** (with 155ac97a, d1f69c6b; 23 September): 18 of 23
+    routes fully swept, every item this group draws swept on all 23; the rest wait on SW-O2
+    (feed), SW-O3 (`controls.css`) and SW-O4 (home). Ledger 13, orphans.
   - **the audit fixes S1, S2, S3, S6, S7, S8 (worker "auditfix", claimed 23
     September by the lead's instruction, held for the duration of the fix):**
     `apps/web/src/components/ui/Chip.tsx` (ONLY `SELECTED_STYLE`),

@@ -7547,7 +7547,7 @@ Claimed in the scope file (1bd26df0) on the lead's instruction after the indepen
 finding B3. Worktree `wt-orphans` from `origin/main` at a6c7a80a. Harness (new, fixture-backed,
 R-G): `app/(dev)/preview/session-b/sweep-orphans/` (`?v=` one view per route state, root
 `page.tsx`, inside the real `AppShell`). Five page-only blocks were lifted, unchanged, into
-components the harness can draw (9e7ce8c3): `BookingDetailCard`, `ReviewPanels`, `RentSummary`,
+components the harness can draw (d1f69c6b): `BookingDetailCard`, `ReviewPanels`, `RentSummary`,
 `PlacePanels`, `PlaceRows`. Live proofs: the real routes on a production build against the real
 project, signed in as the QA member (read only; the script never submits). Shot and measured by
 `scripts/design/session-b-shots/sweep-orphans.mjs` (the audit's in-browser measure, plus a 44px
@@ -7636,7 +7636,7 @@ Pieces the audit named as unowned and shared, NOT claimed (other routes draw the
 `Screen.tsx` (`RowList boxed`, `Surface`: leftovers).
 
 Before proofs: `docs/design/proofs/session-b/sweep-orphans/before/` (125 shots, 390 and 1440,
-`h-*` harness, `l-*` live as the QA member at 18:55 UTC on the build of 9e7ce8c3), with
+`h-*` harness, `l-*` live as the QA member at 18:55 UTC on the build of d1f69c6b), with
 `measure.json`.
 
 ### 13.O.2 Applied (23 September, on Phase 1 as released at 9da8f86f)
@@ -7708,10 +7708,15 @@ measured in the browser (`measure.json` per pass) and read by eye against the co
   files: the 48 remaining findings (out of 172 page-width measurements) are each on an item
   another owner draws, listed in 13.O.4. Found by eye and fixed: `InspectionRows` still drew
   the local `nf-role-mark` plate (on `/bookings`).
-- **Pass 3, 23 September 19:37 and 19:45 UTC** (`after/measure.json`, the after proofs):
-  identical findings to pass 2, all other owners'. Zero legacy material, zero capsules, zero
-  controls under 44px, zero flat selected states, zero unlit enabled primaries and no layout
-  wider than 390 on any item this group draws.
+- **Pass 3, 23 September 19:37 to 19:56 UTC** (`after/measure.json`, the after proofs). At
+  19:45 the same findings as pass 2. Then `git pull --rebase` brought the leftovers release
+  (ffe8989e, ae3f4818: `.nf-card` on the panel tokens, `RowList boxed` and `Surface` on the
+  panel, the shared status badge, `StayCard`, the `/profile/setup` doors, SW-P1) and the audit
+  fixes (c7639c33: one lit disabled primary, S3; the 11px floor, S6). Rebuilt on the rebased
+  tree and shot again (19:50 to 19:56): 28 findings left of 172, every one another owner's
+  (13.O.4). Zero legacy material with an old corner, zero capsules, zero controls under 44px,
+  zero flat selected states and zero unlit primaries on any item this group draws; no layout
+  wider than 390 anywhere.
 
 ### 13.O.4 Per route (23 routes)
 
@@ -7720,36 +7725,36 @@ everything this group draws is on the shared layer; the named items belong to an
 
 | # | Route | Result | What is left, and whose |
 |---|---|---|---|
-| 1 | `/around/[slug]` | SWEPT, BAR SW-O2 | district chips 38px, ratio 0.37, flat brand "All"; post text under 11px (feed ruling); `.nf-enter` chips (feed) |
-| 2 | `/around/manage` | SWEPT | (redirect; loading swept) |
+| 1 | `/around/[slug]` | SWEPT, BAR SW-O2 | district chips 38px at ratio 0.37 with a flat brand "All"; post text under 11px is the feed's ruling (feed) |
+| 2 | `/around/manage` | SWEPT | (a redirect; its loading is swept) |
 | 3 | `/around/new` | SWEPT | none |
-| 4 | `/around/settings` | SWEPT, BAR SW-O2 | the place picker's state chips 40px, ratio 0.35 (`.nf-enter__chip`, feed) |
-| 5 | `/bookings` | SWEPT, BAR SW-C5, SW-C6 | "How it works" and the inspections block on `RowList boxed` (leftovers); status badges |
-| 6 | `/bookings/[bookingId]` | SWEPT, BAR SW-C6 | status badge (`StatusPill`, leftovers) |
+| 4 | `/around/settings` | SWEPT, BAR SW-O2 | the place picker's state chips, 40px at ratio 0.35 (`.nf-enter__chip`, feed) |
+| 5 | `/bookings` | SWEPT | none (the boxed lists and badges closed with the leftovers release) |
+| 6 | `/bookings/[bookingId]` | SWEPT | none |
 | 7 | `/bookings/[bookingId]/review` | SWEPT | none |
-| 8 | `/crypto` | SWEPT | the page is the swept 404; no crypto surface added |
+| 8 | `/crypto` | SWEPT | the page is the swept 404; nothing crypto added |
 | 9 | `/crypto/[id]` | SWEPT | as `/crypto` |
-| 10 | `/verification` | SWEPT, BAR S3, SW-C6 | the disabled Continue is unlit (shared primary, audit S3); badge |
-| 11 | `/rent` | SWEPT, BAR SW-C5, SW-O1, S6 | `ListingCard` on `.nf-card--interactive` (home / leftovers); "/yr" 10.2px (home, audit S6); loading `SkeletonCard` (SW-O1) |
+| 10 | `/verification` | SWEPT | none (the disabled Continue is lit since c7639c33) |
+| 11 | `/rent` | SWEPT, BAR SW-O4 | the listing card's "/yr" at 10.2px (`ListingCard`, home group); its card and the loading cards still carry the class name `.nf-card`, which now draws the panel (SW-O1 is naming only) |
 | 12 | `/rent/pay/[inspectionId]` | SWEPT | none |
-| 13 | `/saved` | SWEPT, BAR R-SH2, SW-O1 | `StayCard` on `.nf-glass--card` (leftovers R-SH2); loading `SkeletonCard` |
-| 14 | `/saved/searches` | SWEPT, BAR SW-C5, SW-O1 | `Surface` (leftovers); loading `CardRowsSkeleton` |
-| 15 | `/post/[id]` | SWEPT, BAR S3 | disabled Reply unlit (S3); post text sizes are the feed's ruling |
+| 13 | `/saved` | SWEPT | none (StayCard closed with R-SH2) |
+| 14 | `/saved/searches` | SWEPT | none |
+| 15 | `/post/[id]` | SWEPT | post text sizes are the feed's ruling |
 | 16 | `/stories/[id]` | SWEPT | nothing local; the viewer is the feed's |
 | 17 | `/stories/new` | SWEPT | none |
 | 18 | `/inspections` | SWEPT | nothing local; the sheets are the inspection surface's |
-| 19 | `/profile/application` | SWEPT, BAR SW-C5, SW-C6 | nothing of its own: `RowList boxed`, `StatusPill` |
-| 20 | `/profile/setup/[role]` | SWEPT, BAR SW-P1 | the door list (`controls.css` `.nf-door`, leftovers) |
-| 21 | `/profile/setup/agent` | SWEPT, BAR SW-P1, SW-O3, S3 | calm panel, fee stepper, boxed fields; disabled Continue |
-| 22 | `/profile/setup/firm` | SWEPT, BAR SW-P1, SW-O3, S3 | doors, boxed fields (14px `nf-regfield` boxes read as containers) |
-| 23 | `/profile/setup/owner` | SWEPT, BAR SW-P1, SW-O3, S3 | as firm |
+| 19 | `/profile/application` | SWEPT | none (it draws only `RowList boxed` and the badge, both closed) |
+| 20 | `/profile/setup/[role]` | SWEPT | none (the doors closed with SW-P1) |
+| 21 | `/profile/setup/agent` | SWEPT | none |
+| 22 | `/profile/setup/firm` | SWEPT, BAR SW-O3 | each field is its own 14px box (`.nf-regfield`, `controls.css`) |
+| 23 | `/profile/setup/owner` | SWEPT, BAR SW-O3 | as firm |
 
-**Fully closed on main with this commit: 9 of 23** (2, 3, 7, 8, 9, 12, 16, 17, 18; 6 closes
-with SW-C6). **Every item this group draws: 23 of 23.** The rest close when the leftovers work
-(2b534841, SW-C5, SW-C6, R-SH2, SW-P1; not on main at 19:45) lands and SW-O1 to SW-O3 are done.
+**Fully swept on main with this push: 18 of 23.** **Every item this group draws: 23 of 23.**
+Five close with requests to other owners: SW-O2 (feed: 1, 4), SW-O3 (`controls.css`: 22,
+23), SW-O4 (home: 11).
 
 Comparison (container, edge, rim, glow, button, plate; before / after / reference), 390:
-`sbs-*-before-after-reference.jpg` (twelve routes; the reference column is the console's
+`sbs-*-before-after-reference.jpg` (fourteen routes; the reference column is the console's
 operations desk). Container: 22px stride ring on flat glass / 10px panel card with the per-side
 lit edge, catchlight, reflection and halo / the same: match. Button: 36 to 40px local strings,
 ghost secondaries / the lit primary and glass door at 44px / match. Plate: local 44px role mark
@@ -7758,8 +7763,8 @@ accent glow / the shared lit selected fill / match.
 
 ### 13.O.5 Requests
 
-- **SW-O1 (to the lead: unowned shared files).** `components/ui/Skeleton.tsx` `SkeletonCard`
-  (`nf-card`, 22px) and `components/app/ScreenSkeleton.tsx` `CardRowsSkeleton` (`nf-card`) are
+- **SW-O1 (to the lead: unowned shared files; naming only since SW-C5).** `components/ui/Skeleton.tsx` `SkeletonCard`
+  (`nf-card`, which now draws the panel) and `components/app/ScreenSkeleton.tsx` `CardRowsSkeleton` (`nf-card`) are
   drawn on the loading states of `/rent`, `/saved`, `/saved/searches` and many other routes;
   `components/social/ReportSheet.tsx` has four `nf-card`s. Onto `panelClass`.
 - **SW-O2 (to the feed worker, `social-feed.css`).** `.nf-district__chip` is 38px tall at ratio
@@ -7773,22 +7778,26 @@ accent glow / the shared lit selected fill / match.
   with `--nf-glow-edge`. `.nf-totalpanel` and `.nf-fieldgroup` have no consumer since this
   sweep (the markup is the panel card), so they can be deleted.
 
+- **SW-O4 (to the home group).** `ListingCard`'s price suffix ("/yr", `text-[0.85em]`) measures
+  10.2px at 390 on `/rent`; the 11px floor.
+
 ### 13.O.6 Proofs
 
-`docs/design/proofs/session-b/sweep-orphans/`: `before/` and `after/` (each 125 shots: 36
-harness views and 23 live routes (plus the manage redirect), 390 and 1440, with
-`measure.json`), `pass1/` and `pass2/` (measurements), `sbs-*` (before, after, reference).
+`docs/design/proofs/session-b/sweep-orphans/`: `before/` and `after/` (each 124 shots, 62
+states at 390 and 1440: 39 harness views and 23 live routes, with `measure.json`), `pass1/` and
+`pass2/` (measurements), `sbs-*` (fourteen routes: before, after, reference).
 Harness views are FIXTURE-BACKED (`h-*`); live views (`l-*`) are the real routes on a
 production build of this tree against the real project, signed in as the QA member, read only,
-at 18:55 (before) and 19:45 UTC (after). The QA member has no bookings, tenancies, saves,
+at 18:55 (before) and 19:50 to 19:56 UTC (after, on the tree rebased onto 261e3257). The QA member has no bookings, tenancies, saves,
 inspections or application, so live shows those routes' empty and missing states; the populated
 states are the harness's.
 
 ### 13.O.7 Checks
 
-`tsc --noEmit` (whole project), `vitest run` (whole suite), `check-css-tokens` (clean, all ten)
-and eslint on every changed file, after `git pull --rebase`: see the commit that carries this
-section. The claim commit 1bd26df0 (scope file only) was pushed before the whole-suite gate was
+After `git pull --rebase` onto 261e3257, 19:48 UTC: `tsc --noEmit` whole project, clean;
+`vitest run` whole suite, 242 files, 3859 passed, 1 skipped; `check-css-tokens` clean, all ten;
+`next build` exit 0; eslint on every changed file, 0 errors (two warnings in `SavedBoard.tsx`
+predate this sweep). The claim commit 1bd26df0 (scope file only) was pushed before the whole-suite gate was
 run; it touched no code.
 
 ### 13.O.8 Skipped or not verified

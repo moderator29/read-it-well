@@ -39,8 +39,8 @@
    "primaries": [
     {
      "t": "Send application",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -59,8 +59,8 @@
    "primaries": [
     {
      "t": "Send application",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -125,8 +125,8 @@
    "primaries": [
     {
      "t": "Suggest this place",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -145,8 +145,8 @@
    "primaries": [
     {
      "t": "Suggest this place",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -428,8 +428,8 @@
    "primaries": [
     {
      "t": "Continue",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -448,8 +448,8 @@
    "primaries": [
     {
      "t": "Continue",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -659,25 +659,10 @@
    "short": [],
    "primaries": [],
    "flatSelected": [],
-   "legacy": [
-    "article.nf-glass.nf-glass--card.nf-pcard.nf-pcard--wide"
-   ],
-   "oddContainers": [
-    {
-     "r": 22,
-     "w": 342,
-     "h": 312,
-     "el": "article.nf-glass.nf-glass--card.nf-pcard.nf-pcard--wide"
-    },
-    {
-     "r": 22,
-     "w": 342,
-     "h": 312,
-     "el": "article.nf-glass.nf-glass--card.nf-pcard.nf-pcard--wide"
-    }
-   ],
+   "legacy": [],
+   "oddContainers": [],
    "smallCount": 0,
-   "legacyCount": 2,
+   "legacyCount": 0,
    "status": 200,
    "finalUrl": "/preview/session-b/sweep-orphans?v=saved"
   },
@@ -688,25 +673,10 @@
    "short": [],
    "primaries": [],
    "flatSelected": [],
-   "legacy": [
-    "article.nf-glass.nf-glass--card.nf-pcard.nf-pcard--wide"
-   ],
-   "oddContainers": [
-    {
-     "r": 22,
-     "w": 372,
-     "h": 339,
-     "el": "article.nf-glass.nf-glass--card.nf-pcard.nf-pcard--wide"
-    },
-    {
-     "r": 22,
-     "w": 372,
-     "h": 339,
-     "el": "article.nf-glass.nf-glass--card.nf-pcard.nf-pcard--wide"
-    }
-   ],
+   "legacy": [],
+   "oddContainers": [],
    "smallCount": 0,
-   "legacyCount": 2,
+   "legacyCount": 0,
    "status": 200,
    "finalUrl": "/preview/session-b/sweep-orphans?v=saved"
   },
@@ -720,19 +690,10 @@
    "short": [],
    "primaries": [],
    "flatSelected": [],
-   "legacy": [
-    "div.nf-card.rounded-[var(--nf-radius-xl)].p-card.sm:p-cell"
-   ],
-   "oddContainers": [
-    {
-     "r": 22,
-     "w": 342,
-     "h": 443,
-     "el": "div.nf-card.rounded-[var(--nf-radius-xl)].p-card.sm:p-cell"
-    }
-   ],
+   "legacy": [],
+   "oddContainers": [],
    "smallCount": 0,
-   "legacyCount": 1,
+   "legacyCount": 0,
    "status": 200,
    "finalUrl": "/preview/session-b/sweep-orphans?v=saved-searches"
   },
@@ -743,19 +704,10 @@
    "short": [],
    "primaries": [],
    "flatSelected": [],
-   "legacy": [
-    "div.nf-card.rounded-[var(--nf-radius-xl)].p-card.sm:p-cell"
-   ],
-   "oddContainers": [
-    {
-     "r": 22,
-     "w": 672,
-     "h": 349,
-     "el": "div.nf-card.rounded-[var(--nf-radius-xl)].p-card.sm:p-cell"
-    }
-   ],
+   "legacy": [],
+   "oddContainers": [],
    "smallCount": 0,
-   "legacyCount": 1,
+   "legacyCount": 0,
    "status": 200,
    "finalUrl": "/preview/session-b/sweep-orphans?v=saved-searches"
   },
@@ -822,7 +774,7 @@
     {
      "t": "Reply",
      "lit": true,
-     "grey": true
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -842,7 +794,7 @@
     {
      "t": "Reply",
      "lit": true,
-     "grey": true
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -863,19 +815,10 @@
    "short": [],
    "primaries": [],
    "flatSelected": [],
-   "legacy": [
-    "ul.nf-rows.nf-rows--inset.nf-card.overflow-hidden"
-   ],
-   "oddContainers": [
-    {
-     "r": 22,
-     "w": 342,
-     "h": 429,
-     "el": "ul.nf-rows.nf-rows--inset.nf-card.overflow-hidden"
-    }
-   ],
+   "legacy": [],
+   "oddContainers": [],
    "smallCount": 0,
-   "legacyCount": 1,
+   "legacyCount": 0,
    "status": 200,
    "finalUrl": "/preview/session-b/sweep-orphans?v=inspection-rows"
   },
@@ -886,19 +829,10 @@
    "short": [],
    "primaries": [],
    "flatSelected": [],
-   "legacy": [
-    "ul.nf-rows.nf-rows--inset.nf-card.overflow-hidden"
-   ],
-   "oddContainers": [
-    {
-     "r": 22,
-     "w": 672,
-     "h": 268,
-     "el": "ul.nf-rows.nf-rows--inset.nf-card.overflow-hidden"
-    }
-   ],
+   "legacy": [],
+   "oddContainers": [],
    "smallCount": 0,
-   "legacyCount": 1,
+   "legacyCount": 0,
    "status": 200,
    "finalUrl": "/preview/session-b/sweep-orphans?v=inspection-rows"
   },
@@ -1194,44 +1128,7 @@
    "legacy": [
     "div.nf-card.overflow-hidden"
    ],
-   "oddContainers": [
-    {
-     "r": 22,
-     "w": 342,
-     "h": 355,
-     "el": "div.nf-card.overflow-hidden"
-    },
-    {
-     "r": 22,
-     "w": 342,
-     "h": 355,
-     "el": "div.nf-card.overflow-hidden"
-    },
-    {
-     "r": 22,
-     "w": 342,
-     "h": 355,
-     "el": "div.nf-card.overflow-hidden"
-    },
-    {
-     "r": 22,
-     "w": 342,
-     "h": 355,
-     "el": "div.nf-card.overflow-hidden"
-    },
-    {
-     "r": 22,
-     "w": 342,
-     "h": 355,
-     "el": "div.nf-card.overflow-hidden"
-    },
-    {
-     "r": 22,
-     "w": 342,
-     "h": 355,
-     "el": "div.nf-card.overflow-hidden"
-    }
-   ],
+   "oddContainers": [],
    "smallCount": 0,
    "legacyCount": 6,
    "status": 200,
@@ -1247,44 +1144,7 @@
    "legacy": [
     "div.nf-card.overflow-hidden"
    ],
-   "oddContainers": [
-    {
-     "r": 22,
-     "w": 355,
-     "h": 364,
-     "el": "div.nf-card.overflow-hidden"
-    },
-    {
-     "r": 22,
-     "w": 355,
-     "h": 365,
-     "el": "div.nf-card.overflow-hidden"
-    },
-    {
-     "r": 22,
-     "w": 355,
-     "h": 364,
-     "el": "div.nf-card.overflow-hidden"
-    },
-    {
-     "r": 22,
-     "w": 355,
-     "h": 364,
-     "el": "div.nf-card.overflow-hidden"
-    },
-    {
-     "r": 22,
-     "w": 355,
-     "h": 365,
-     "el": "div.nf-card.overflow-hidden"
-    },
-    {
-     "r": 22,
-     "w": 355,
-     "h": 364,
-     "el": "div.nf-card.overflow-hidden"
-    }
-   ],
+   "oddContainers": [],
    "smallCount": 0,
    "legacyCount": 6,
    "status": 200,
@@ -1303,32 +1163,7 @@
    "legacy": [
     "div.nf-card.overflow-hidden"
    ],
-   "oddContainers": [
-    {
-     "r": 22,
-     "w": 342,
-     "h": 355,
-     "el": "div.nf-card.overflow-hidden"
-    },
-    {
-     "r": 22,
-     "w": 342,
-     "h": 355,
-     "el": "div.nf-card.overflow-hidden"
-    },
-    {
-     "r": 22,
-     "w": 342,
-     "h": 355,
-     "el": "div.nf-card.overflow-hidden"
-    },
-    {
-     "r": 22,
-     "w": 342,
-     "h": 355,
-     "el": "div.nf-card.overflow-hidden"
-    }
-   ],
+   "oddContainers": [],
    "smallCount": 0,
    "legacyCount": 4,
    "status": 200,
@@ -1344,32 +1179,7 @@
    "legacy": [
     "div.nf-card.overflow-hidden"
    ],
-   "oddContainers": [
-    {
-     "r": 22,
-     "w": 372,
-     "h": 378,
-     "el": "div.nf-card.overflow-hidden"
-    },
-    {
-     "r": 22,
-     "w": 372,
-     "h": 378,
-     "el": "div.nf-card.overflow-hidden"
-    },
-    {
-     "r": 22,
-     "w": 372,
-     "h": 378,
-     "el": "div.nf-card.overflow-hidden"
-    },
-    {
-     "r": 22,
-     "w": 372,
-     "h": 378,
-     "el": "div.nf-card.overflow-hidden"
-    }
-   ],
+   "oddContainers": [],
    "smallCount": 0,
    "legacyCount": 4,
    "status": 200,
@@ -1388,26 +1198,7 @@
    "legacy": [
     "li.nf-card.p-md.sm:p-lg"
    ],
-   "oddContainers": [
-    {
-     "r": 22,
-     "w": 342,
-     "h": 122,
-     "el": "li.nf-card.p-md.sm:p-lg"
-    },
-    {
-     "r": 22,
-     "w": 342,
-     "h": 122,
-     "el": "li.nf-card.p-md.sm:p-lg"
-    },
-    {
-     "r": 22,
-     "w": 342,
-     "h": 122,
-     "el": "li.nf-card.p-md.sm:p-lg"
-    }
-   ],
+   "oddContainers": [],
    "smallCount": 0,
    "legacyCount": 3,
    "status": 200,
@@ -1423,26 +1214,7 @@
    "legacy": [
     "li.nf-card.p-md.sm:p-lg"
    ],
-   "oddContainers": [
-    {
-     "r": 22,
-     "w": 672,
-     "h": 138,
-     "el": "li.nf-card.p-md.sm:p-lg"
-    },
-    {
-     "r": 22,
-     "w": 672,
-     "h": 138,
-     "el": "li.nf-card.p-md.sm:p-lg"
-    },
-    {
-     "r": 22,
-     "w": 672,
-     "h": 138,
-     "el": "li.nf-card.p-md.sm:p-lg"
-    }
-   ],
+   "oddContainers": [],
    "smallCount": 0,
    "legacyCount": 3,
    "status": 200,
@@ -1583,20 +1355,13 @@
    "primaries": [
     {
      "t": "Continue",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
    "legacy": [],
-   "oddContainers": [
-    {
-     "r": 14,
-     "w": 342,
-     "h": 115,
-     "el": "div.nf-calmpanel"
-    }
-   ],
+   "oddContainers": [],
    "smallCount": 0,
    "legacyCount": 0,
    "status": 200,
@@ -1610,20 +1375,13 @@
    "primaries": [
     {
      "t": "Continue",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
    "legacy": [],
-   "oddContainers": [
-    {
-     "r": 14,
-     "w": 672,
-     "h": 93,
-     "el": "div.nf-calmpanel"
-    }
-   ],
+   "oddContainers": [],
    "smallCount": 0,
    "legacyCount": 0,
    "status": 200,
@@ -1640,8 +1398,8 @@
    "primaries": [
     {
      "t": "Continue",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -1691,8 +1449,8 @@
    "primaries": [
     {
      "t": "Continue",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -1745,8 +1503,8 @@
    "primaries": [
     {
      "t": "Continue",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -1769,12 +1527,6 @@
      "w": 342,
      "h": 148,
      "el": "div.nf-regfield"
-    },
-    {
-     "r": 14,
-     "w": 342,
-     "h": 93,
-     "el": "div.nf-calmpanel"
     }
    ],
    "smallCount": 0,
@@ -1790,8 +1542,8 @@
    "primaries": [
     {
      "t": "Continue",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -1814,12 +1566,6 @@
      "w": 672,
      "h": 129,
      "el": "div.nf-regfield"
-    },
-    {
-     "r": 14,
-     "w": 672,
-     "h": 82,
-     "el": "div.nf-calmpanel"
     }
    ],
    "smallCount": 0,
@@ -4146,25 +3892,17 @@
     }
    ],
    "flatSelected": [],
-   "legacy": [
-    "ul.nf-rows.nf-rows--inset.nf-card.overflow-hidden"
-   ],
+   "legacy": [],
    "oddContainers": [
     {
      "r": 14,
      "w": 342,
      "h": 54,
      "el": "div.nf-segmented.relative.inline-flex.items-center"
-    },
-    {
-     "r": 22,
-     "w": 342,
-     "h": 293,
-     "el": "ul.nf-rows.nf-rows--inset.nf-card.overflow-hidden"
     }
    ],
    "smallCount": 0,
-   "legacyCount": 1,
+   "legacyCount": 0,
    "status": 200,
    "finalUrl": "/bookings"
   },
@@ -4181,25 +3919,17 @@
     }
    ],
    "flatSelected": [],
-   "legacy": [
-    "ul.nf-rows.nf-rows--inset.nf-card.overflow-hidden"
-   ],
+   "legacy": [],
    "oddContainers": [
     {
      "r": 14,
      "w": 672,
      "h": 54,
      "el": "div.nf-segmented.relative.inline-flex.items-center"
-    },
-    {
-     "r": 22,
-     "w": 672,
-     "h": 228,
-     "el": "ul.nf-rows.nf-rows--inset.nf-card.overflow-hidden"
     }
    ],
    "smallCount": 0,
-   "legacyCount": 1,
+   "legacyCount": 0,
    "status": 200,
    "finalUrl": "/bookings"
   },
@@ -4386,8 +4116,8 @@
    "primaries": [
     {
      "t": "Continue",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -4406,8 +4136,8 @@
    "primaries": [
     {
      "t": "Continue",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -4714,7 +4444,7 @@
     {
      "t": "Reply",
      "lit": true,
-     "grey": true
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -4734,7 +4464,7 @@
     {
      "t": "Reply",
      "lit": true,
-     "grey": true
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -4971,20 +4701,13 @@
    "primaries": [
     {
      "t": "Continue",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
    "legacy": [],
-   "oddContainers": [
-    {
-     "r": 14,
-     "w": 342,
-     "h": 115,
-     "el": "div.nf-calmpanel"
-    }
-   ],
+   "oddContainers": [],
    "smallCount": 0,
    "legacyCount": 0,
    "status": 200,
@@ -4998,20 +4721,13 @@
    "primaries": [
     {
      "t": "Continue",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
    "legacy": [],
-   "oddContainers": [
-    {
-     "r": 14,
-     "w": 672,
-     "h": 93,
-     "el": "div.nf-calmpanel"
-    }
-   ],
+   "oddContainers": [],
    "smallCount": 0,
    "legacyCount": 0,
    "status": 200,
@@ -5028,8 +4744,8 @@
    "primaries": [
     {
      "t": "Continue",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -5079,8 +4795,8 @@
    "primaries": [
     {
      "t": "Continue",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -5133,8 +4849,8 @@
    "primaries": [
     {
      "t": "Continue",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -5157,12 +4873,6 @@
      "w": 342,
      "h": 148,
      "el": "div.nf-regfield"
-    },
-    {
-     "r": 14,
-     "w": 342,
-     "h": 93,
-     "el": "div.nf-calmpanel"
     }
    ],
    "smallCount": 0,
@@ -5178,8 +4888,8 @@
    "primaries": [
     {
      "t": "Continue",
-     "lit": false,
-     "grey": true
+     "lit": true,
+     "grey": false
     }
    ],
    "flatSelected": [],
@@ -5202,12 +4912,6 @@
      "w": 672,
      "h": 129,
      "el": "div.nf-regfield"
-    },
-    {
-     "r": 14,
-     "w": 672,
-     "h": 82,
-     "el": "div.nf-calmpanel"
     }
    ],
    "smallCount": 0,
