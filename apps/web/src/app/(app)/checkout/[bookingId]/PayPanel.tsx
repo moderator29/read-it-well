@@ -13,7 +13,7 @@ import { savedCardMoment, type SavedCardPhase } from "@/components/app/payments/
 import type { PaymentMethod } from "@/lib/payments/methods";
 import type { ChargeSavedCardOutcome } from "@/lib/payments/charge-saved-card";
 import type { ActionResult } from "@/lib/actions/envelope";
-import { failureConsequence } from "./payment-copy";
+import { failureConsequence, STAY_PAID_SHEET_CONSEQUENCE } from "./payment-copy";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ActionBar } from "@/components/ui/ActionBar";
 import { Amount } from "@/components/ui/Amount";
@@ -581,7 +581,7 @@ export function PayPanel({
         verdict="Payment sent"
         fact={fact}
         locale={view.locale}
-        consequence="The agent has been paid and these dates are yours."
+        consequence={STAY_PAID_SHEET_CONSEQUENCE}
         actions={[
           { label: "See your stays", href: "/bookings", tone: "primary" },
           { label: "Back to the stay", href: `/listing/${view.listingId}`, tone: "quiet" },

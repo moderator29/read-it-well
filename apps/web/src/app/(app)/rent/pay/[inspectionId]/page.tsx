@@ -8,6 +8,7 @@ import { ResultScreen } from "@/components/app/ResultSheet";
 import { PageHeader } from "@/components/app/PageHeader";
 import { Reveal } from "@/components/site/Reveal";
 import { PaymentReturn } from "@/app/(app)/checkout/[bookingId]/PaymentReturn";
+import { RENT_PAID_PAGE_CONSEQUENCE } from "@/app/(app)/checkout/[bookingId]/payment-copy";
 import { PayPanel } from "./PayPanel";
 import { RentSummary } from "./RentSummary";
 import { chargeRentSavedCardFor } from "./saved-card-action";
@@ -163,7 +164,7 @@ export default async function RentPayPage({
           state="confirmed"
           mark="shield-check"
           verdict="The rent is paid"
-          consequence="The move-in total is paid and recorded to the kobo, and the agent has been paid. Arrange the keys with them in your thread."
+          consequence={RENT_PAID_PAGE_CONSEQUENCE}
           actions={[
             { label: "Open messages", href: "/messages", tone: "primary" },
             { label: "Back to the listing", href: `/listing/${view.listingId}`, tone: "quiet" },
