@@ -302,7 +302,7 @@ Use these words. Do not invent synonyms.
 | **Agent** | A verified supplier who lists | Host, landlord, vendor, seller |
 | **Member** | A signed-in person who is not an agent | User, customer, guest, unless they are actually staying |
 | **Guest** | A member who has booked a stay | |
-| **Stay** | A nightly booking | Trip, reservation, unless it is a restaurant table |
+| **Stay** | A nightly booking | Reservation, unless it is a restaurant table. ("Trips" is the Stays surface that lists them, `/trips`.) |
 | **Reservation** | A restaurant table request | |
 | **Around** | The social layer | Feed, community, compound. A compound is a different thing in Nigerian property |
 | **Place** | A named area inside Around, backed by a local government | Hub, district, neighbourhood |

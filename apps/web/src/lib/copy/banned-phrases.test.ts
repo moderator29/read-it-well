@@ -295,6 +295,11 @@ describe("the terminology table is enforced and not just written down", () => {
     (path) => !EXEMPT.has(relative(SRC, path).split("\\").join("/")),
   );
 
+  it("has synonyms to look for, each of which matches its own label (DOC-08)", () => {
+    expect(BANNED_SYNONYMS.length).toBeGreaterThan(0);
+    for (const { label, pattern } of BANNED_SYNONYMS) expect(pattern.test(label), label).toBe(true);
+  });
+
   it("uses no banned synonym in any copy the product holds as a string", { timeout: 60_000 }, () => {
     const offences: string[] = [];
     for (const path of files) {
