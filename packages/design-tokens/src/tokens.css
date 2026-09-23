@@ -520,6 +520,31 @@
    * Daylight softens it and moves it to the neutral ink, because a 62 percent
    * pure black behind a white sheet is a hole in the page. */
   --nf-overlay-backdrop: rgb(0 0 0 / 0.62);
+  /*
+   * THE DRAWER'S SCRIM IS ITS OWN TOKEN, AND IT IS HERE BECAUSE IT HAD BEEN
+   * BORROWING A SHADOW.
+   *
+   * A navigation drawer dims a page that is meant to stay alive behind it, so
+   * it is deliberately a step softer than the modal backdrop above: the panel
+   * reads as a pane sliding over the app rather than as a second screen, and
+   * `overlays.css` has the argument and the render it comes from.
+   *
+   * It expressed that step by reaching for `--nf-shade-3`, which is the DEEPEST
+   * INSET SHADOW INK and not a scrim at all. In the dark theme the two happen
+   * to land near each other, 0.55 against this 0.62, so nothing ever showed.
+   * On paper they do not: the shade ladder is tuned so an inset well is a
+   * whisper, `--nf-shade-3` is ink at 18 per cent, and the drawer dimmed a
+   * white page by less than half what the sheet beside it dims the same page
+   * by. `overlays.css` is one of the files with no `[data-theme="light"]` rule
+   * in it, and this is what that turned out to mean: not a missing rule, a
+   * token of the wrong KIND, which no light rule would have found either.
+   *
+   * The step itself is preserved rather than invented. Night keeps the exact
+   * 0.55 the drawer has always painted; paper takes the same fraction of its
+   * own backdrop, 0.62 to 0.55 being 0.887, so 0.42 becomes 0.37. The drawer is
+   * softer than the sheet by the same amount in both themes, which is what
+   * made it a designed step in the first place. */
+  --nf-scrim-drawer: rgb(0 0 0 / 0.55);
 
   /* Media overlay
    *
@@ -792,6 +817,18 @@
    * The light value is where the token still earns its place. See the note in
    * the daylight block below. */
   --nf-icon-ground: transparent;
+  /*
+   * THE PLATE IS THREE TOKENS NOW, AND AT NIGHT ALL THREE PAINT NOTHING.
+   *
+   * `--nf-icon-ground` is the colour under the OBJECT, `--nf-icon-ground-edge`
+   * is the colour that meets the PAGE, and `--nf-icon-plate` is the background
+   * the two of them make. They are separate because the two jobs pull in
+   * opposite directions and one colour cannot do both: see the daylight block.
+   * Here the plate is switched off entirely, which is the acceptance test the
+   * note above describes, so all three are the absence of a plate rather than a
+   * value that happens not to show. */
+  --nf-icon-ground-edge: transparent;
+  --nf-icon-plate: none;
 
   /* State
    *
@@ -3153,6 +3190,11 @@
   --nf-interactive-disabled: rgb(18 21 26 / 0.035);
 
   --nf-overlay-backdrop: rgb(18 21 26 / 0.42);
+  /* The drawer's own scrim, a designed step softer than the sheet's, at the
+     same fraction of it as at night. See the long note beside the night value:
+     this is the value the drawer had never had, because it was painting a
+     shadow ink at 18 per cent instead. */
+  --nf-scrim-drawer: rgb(18 21 26 / 0.37);
 
   /*
    * The photographic ground follows the theme; the media OVERLAY tokens
@@ -3313,7 +3355,68 @@
    * tiles are deep NAVY with the brand visible in them, so the mix turns
    * round: the brand leads and the ink deepens it.
    */
-  --nf-icon-ground: color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-ink-950));
+  /*
+   * AND THEN THE PLATE WAS MEASURED, AND THE COLOUR THAT ANSWERS THE PAGE IS
+   * NOT THE COLOUR THAT ANSWERS THE OBJECT. THIS IS THE WHOLE REASON THE PLATE
+   * IS A GRADIENT AND NOT A FILL.
+   *
+   * The two paragraphs above are a record of the plate being tuned twice in
+   * opposite directions, and both tunings were right about the thing they were
+   * looking at. The bare `--nf-ink-950` was the best possible ground for the
+   * artwork and read as a hole punched in the page. Brand at 62 per cent reads
+   * as the night canvas beside the logo and is, measured, the worst ground for
+   * the artwork of any value tried. One flat colour has to pick one of those
+   * two, and a flat colour is what the plate had always been.
+   *
+   * WHAT THE ARTWORK PHYSICALLY IS, which is the fact that settles it.
+   * `scripts/cut-icon-ground.mjs` keyed these objects out of renders of
+   * GLOWING OBJECTS ON BLACK: alpha is the brightest channel and the colour is
+   * unpremultiplied by it. So a composited object pixel is `a*C + (1-a)*G` and
+   * its distance from the ground is `a*(C - G)`. The object is LIGHTER than any
+   * plate it can sit on, so that distance grows as the ground darkens, monotonic
+   * in one variable with no trade-off in it at all. The plate's fill is the only
+   * thing standing between the artwork and the contrast it was drawn with.
+   *
+   * MEASURED, over all 121 objects with no light twin, by
+   * `docs/design/proofs/paper/measure-object-ground.mjs`, which composites each
+   * PNG over each candidate ground and takes the median contrast of the object's
+   * own body against the plate under it:
+   *
+   *     ground                       object median   under 2:1   plate on white
+   *     brand 62% + ink (#052A6D)         2.37:1        25 of 121    13.44:1
+   *     brand 40% + ink                   2.97:1         7           16.84:1
+   *     brand 14% + ink (#020629)         3.43:1         1           19.80:1
+   *     bare --nf-ink-950                 3.57:1         1           20.61:1
+   *
+   * So the fill the founder rejected was buying about a third of the artwork's
+   * contrast, and buying it for a reason that is real: at 19.80:1 a grid of
+   * these is eight black holes in a white page.
+   *
+   * THE PLATE IS LIT FROM ITS EDGE, WHICH GIVES BOTH ANSWERS AT ONCE. A radial
+   * from the deep core out to the 62 per cent navy at the rim puts the object on
+   * `#020629` and puts `#052A6D` against the paper. The object measures 3.40:1,
+   * up from 2.37:1, and the objects under 2:1 fall from 25 to 1; the edge that
+   * touches the page stays at 13.44:1, exactly where it is today, so nothing the
+   * founder objected to comes back. It is also the only reading of the plate
+   * that is physically coherent: `--nf-glow-edge` already lights its boundary,
+   * and light entering at an edge is darkest in the middle.
+   *
+   * ONE BLUE. Both stops are `--nf-brand-primary` mixed into `--nf-ink-950` at
+   * two strengths. There is no second family in the gradient.
+   *
+   * WHAT IT IS NOT. It is not artwork and it does not pretend to be. 29 of the
+   * 121 still sit under 3:1 on the best ground that exists without a render, and
+   * `docs/FOUNDER_ARTWORK_NEEDED.md` names them. A ground can only ever hand the
+   * artwork back the contrast it was drawn with; it cannot add any.
+   */
+  --nf-icon-ground: color-mix(in oklab, var(--nf-brand-primary) 14%, var(--nf-ink-950));
+  --nf-icon-ground-edge: color-mix(in oklab, var(--nf-brand-primary) 62%, var(--nf-ink-950));
+  --nf-icon-plate: radial-gradient(
+    circle at 50% 50%,
+    var(--nf-icon-ground) 0%,
+    var(--nf-icon-ground) 35%,
+    var(--nf-icon-ground-edge) 100%
+  );
 
   /*
    * The artwork ground, in daylight. See the long note beside the night value.
@@ -3792,6 +3895,36 @@
    * recorded in the ledger rather than hidden: a conic decoration is not the
    * card's only boundary, the shadow and the fill are there too, and taking
    * this rung to 3:1 would make every card on paper wear a hard blue outline.
+   *
+   * AND THEN THE RING WAS MEASURED OFF THE PIXELS RATHER THAN OFF THE TOKENS,
+   * AND THE 1.82 ABOVE IS NOT WHAT A CARD DRAWS. This whole paragraph, and the
+   * survey line it came from, is arithmetic on a token's flattened value.
+   *
+   * Measured 23 September on a production server, `/preview/f4/settings`,
+   * `.nf-card.nf-hub-profile` at 342 by 80 in daylight: 836 samples taken right
+   * around the card's perimeter, each one the darkest pixel in the border band
+   * against the page a few pixels outside it. **Median 3.66:1**, p25 3.32,
+   * p75 3.92, and 12 per cent of the samples under 3:1. The low tail is the
+   * ROUNDED CORNERS, where the sampler walks off the border and reads the page
+   * against itself at 1.00, not a rung of the ring.
+   *
+   * Walking the perimeter is the right shape of measurement here and it is
+   * worth saying why: the ring is a conic gradient and `--nf-stride-angle`
+   * ROTATES it, from 152deg to 512deg (`glass.css`). So no single edge has a
+   * stable reading, but every instant of the rotation shows all 360 degrees of
+   * stops somewhere around the box. The distribution around the perimeter is
+   * therefore the distribution over the stops, and it does not depend on when
+   * the shot was taken.
+   *
+   * WHAT IS STILL OPEN, said precisely rather than closed by one card. This is
+   * ONE card on ONE route. It is enough to retire "three quarters of every
+   * card's circumference on paper is a 1.31:1 line", which was never observed,
+   * and not enough to claim the ring clears the floor everywhere. The sampler
+   * is `scratch` work rather than a standing probe because it needs a card
+   * wholly on screen and most routes do not have one at the top; making it a
+   * proof means giving it the scroll walk that `probe-contrast.mjs` already
+   * has. That is the follow-up, and until it is done the honest statement is
+   * the one measured above and the one card it was measured on.
    */
   --nf-edge-stride-base: color-mix(in oklab, var(--nf-glass-border) 55%, var(--nf-brand-edge));
   --nf-edge-stride-lit: var(--nf-brand-edge-soft);

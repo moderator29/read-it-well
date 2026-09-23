@@ -29,12 +29,26 @@ import Image from "next/image";
  *
  * WHAT IS STILL TRUE. A glass object is see-through by design, so its interior
  * alpha is partial. That is correct against a dark ground and it reads thin on
- * white paper, which is why the light theme gives the 80 single objects a navy
- * chip (`--nf-icon-ground`, one token, see `tokens.css`) and gives the 23
- * transaction marks their own light twin instead. The twins were tested rather
- * than assumed: no filter gets from one to the other, because the difference is
+ * white paper, which is why the light theme gives the untwinned objects a navy
+ * plate (`--nf-icon-plate`, see `tokens.css`) and gives the 23 transaction
+ * marks their own light twin instead. The twins were tested rather than
+ * assumed: no filter gets from one to the other, because the difference is
  * which parts of the object are transparent, so a frosted-white mark keyed off
  * white inverts on a dark ground.
+ *
+ * (That sentence used to say 80 untwinned objects. It is 121. `BRAND_ICONS` is
+ * 144 names and `LIGHT_TWINS` is 23, and the live number is always
+ * `BRAND_ICONS.length - LIGHT_TWINS.size`.)
+ *
+ * AND THE CHIP IS A LIT PLATE RATHER THAN A FILL, which is what makes those 121
+ * legible on paper without waiting for their twins. An object keyed off black is
+ * composited `a*C + (1-a)*G`, so its distance from its ground grows as the
+ * ground darkens; the chip is therefore a radial from a deep core under the
+ * object out to the same navy at the rim the page sees. It takes the median
+ * object from 2.37:1 to 3.40:1 and leaves the page-facing edge at 13.44:1.
+ * `--nf-icon-plate` in `tokens.css` carries the argument and the table, and
+ * `docs/FOUNDER_ARTWORK_NEEDED.md` names the 29 objects that are still under
+ * 3:1 on the best ground that exists without a render.
  *
  * THE TILE IS OFF BY DEFAULT, and it used to be on.
  *

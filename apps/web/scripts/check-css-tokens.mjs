@@ -728,14 +728,21 @@ const DULL_ALLOWED = new Set([
    */
   'src/app/css/controls.css  :root[data-theme="light"] .nf-switch',
   /*
-   * PERMANENT, and it is the SAME TRACK AGAIN, in its off state, written where
-   * the product keeps its cross-file paper answers. It raises the track's
-   * hairline from `--nf-border-default` at 1.31:1 to `--nf-border-strong` at
-   * 1.61:1, which is the strongest rung this check calls neutral, because on
-   * paper a white thumb on a `#EFF1F4` track measures 1.13:1 and an off switch
-   * had no visible thumb at all. A brand edge here would say the switch is on.
+   * THE THIRD SWITCH ENTRY WAS REMOVED ON 23 SEPTEMBER AND THIS NOTE IS WHAT IS
+   * LEFT OF IT, because a spent exception is the same fault family as a comment
+   * describing a mechanism the code no longer has.
+   *
+   * `light.css  :root[data-theme="light"] .nf-switch:not([aria-checked="true"])`
+   * was excused here while it raised the off track's hairline from
+   * `--nf-border-default` at 1.31:1 to `--nf-border-strong` at 1.61:1. Both are
+   * rungs of the neutral BORDER ladder, which is why this check saw it, and
+   * 1.61 was still a long way under the 3:1 boundary floor. That rule now paints
+   * `--nf-content-muted`, 5.16:1 on a white card, which is the same ink the
+   * thumb's own outline uses and is not a border token at all, so the check no
+   * longer matches the selector and the exception had nothing left to excuse.
+   * Deleting it means a future revert to a border token fires here again, which
+   * is the whole point of the list.
    */
-  'src/app/css/light.css  :root[data-theme="light"] .nf-switch:not([aria-checked="true"])',
   "src/app/css/utilities.css  .nf-option",
   "src/app/css/catalogue.css  .nf-shelf-sort > summary",
   "src/app/css/catalogue.css  .nf-stay-card__chip",

@@ -698,13 +698,38 @@
    * the canvas, so the disc has a real outline at both ends. It is neutral
    * ink, so nothing about it says "on".
    *
-   * The track's own hairline comes off `--nf-border-default` at 1.31:1 onto
-   * `--nf-border-strong` at 1.61:1, which is the strongest NEUTRAL rung there
-   * is. The track fill is still only 1.13:1 against a white card and that is
-   * recorded in the ledger rather than solved by making a switch blue.
+   * AND THE TRACK'S OWN HAIRLINE IS THE SAME INK NOW, WHICH IS WHAT TAKES THE
+   * CONTROL OVER THE 3:1 BOUNDARY FLOOR.
+   *
+   * It went `--nf-border-default` (1.31:1) to `--nf-border-strong` (1.61:1),
+   * which is the strongest rung in the NEUTRAL BORDER ladder, and 1.61 is still
+   * a long way under 3. The ladder was the wrong place to look: every rung of
+   * it is a divider inside a surface, tuned to be nearly invisible, and no
+   * amount of climbing a ladder of hairlines reaches a floor that is about
+   * being seen.
+   *
+   * WHAT THE FLOOR IS ACTUALLY ASKING. 1.4.11 wants the boundary that
+   * identifies the control to clear 3:1 against what is beside it. For an off
+   * switch that is the outline of the track, and the ink that outlines the
+   * THUMB three lines below is already doing exactly this job at 5.16:1. Using
+   * two different greys for the two outlines of one control was never a
+   * decision; it was the border ladder being reached for because it is called
+   * border. So the track takes the same `--nf-content-muted`: 5.16:1 on a white
+   * card, 4.73:1 on the canvas, 4.60:1 on inset, over the floor on every light
+   * surface the switch lands on, and an off switch is now one coherent neutral
+   * outline drawing rather than a grey smudge with a firmer dot in it.
+   *
+   * IT IS STILL NOT BLUE AND IT IS STILL NOT ON. Neutral ink says nothing about
+   * state; the state is the thumb's position and the track's fill.
+   *
+   * THE FILL IS STILL 1.13:1 AND STAYS THERE ON PURPOSE. A fill is not a
+   * boundary and it is not what identifies a switch: an off track that reached
+   * 3:1 as a FILL would be a mid-grey slab, which on paper reads as a disabled
+   * control rather than an off one. Grey off and brand on is the semantics, and
+   * `check-css-tokens.mjs` excuses this track in both themes for that reason.
    */
   :root[data-theme="light"] .nf-switch:not([aria-checked="true"]) {
-    border-color: var(--nf-border-strong);
+    border-color: var(--nf-content-muted);
   }
   :root[data-theme="light"] .nf-switch:not([aria-checked="true"]) .nf-switch__thumb {
     box-shadow:

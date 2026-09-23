@@ -77,6 +77,28 @@ const arg = (name, fallback = null) => {
 };
 const BASE = arg("base", "http://127.0.0.1:3184").replace(/\/$/, "");
 const JSON_OUT = process.argv.includes("--json");
+/*
+ * `--faded` MEASURES THE ELEMENTS THE SWEEP OTHERWISE DECLINES TO LOOK AT, and
+ * it is off by default so that a run with it and a run without it are the same
+ * run as far as the headline number is concerned.
+ *
+ * The guard below walks past anything whose effective opacity is under nine
+ * tenths, for the good reason written there: a sheet that is closed and a band
+ * that has not been revealed are not statements about contrast. But a faded
+ * element is not always a sheet. The agent calendar draws a PAST DAY as
+ * `--nf-content-muted` at `opacity: 0.35`, which composites to about 1.55:1 on
+ * a white page, and a date a person cannot read is a real defect that this
+ * sweep has been silently walking past since the guard went in. "We decline to
+ * measure this" and "this passes" are different facts, and only one of them was
+ * reaching the report.
+ *
+ * So with the flag these are measured and reported in a bucket of their own.
+ * They are NEVER counted in `fails`, because a faint element may be faint for a
+ * frame rather than by design and the sweep cannot tell which from one
+ * screenshot. The bucket is a list for a person to read, exactly like
+ * `onMedia`.
+ */
+const FADED = process.argv.includes("--faded");
 const WIDTH = Number(arg("width", "390"));
 const VIEWPORT_H = Number(arg("height", "844"));
 const THEMES = arg("themes", "dark,light")
@@ -167,7 +189,7 @@ const blankFrames = [];
  * `page.evaluate` twice, from two different loops, and duplicating it is how
  * the two loops drift apart.
  */
-const MEASURE = async ({ src, dpr, onlyTall, vw, vh }) => {
+const MEASURE = async ({ src, dpr, onlyTall, vw, vh, faded }) => {
   const img = new Image();
   img.src = "data:image/png;base64," + src;
   await img.decode();
@@ -250,7 +272,10 @@ const MEASURE = async ({ src, dpr, onlyTall, vw, vh }) => {
       const o = Number(getComputedStyle(a).opacity);
       if (!Number.isNaN(o)) effective *= o;
     }
-    if (effective < 0.9) continue;
+    /* `faded` is the `--faded` flag: without it this is the skip the note above
+       describes, with it the reading is taken and carried out marked. */
+    if (effective < 0.9 && !faded) continue;
+    const isFaded = effective < 0.9;
     /*
      * THE RECT HAS TO BE CLIPPED TO WHAT IS ACTUALLY ON SCREEN, AND THE
      * ODOMETER IS WHY.
@@ -450,6 +475,8 @@ const MEASURE = async ({ src, dpr, onlyTall, vw, vh }) => {
       large,
       painted,
       partial: !whole,
+      faded: isFaded,
+      opacity: Math.round(effective * 100) / 100,
     });
   }
   return { blank: false, out };
@@ -565,6 +592,7 @@ for (const theme of THEMES) {
           onlyTall: false,
           vw: metrics.vw,
           vh: metrics.vh,
+          faded: FADED,
         });
         if (res.blank) {
           blankFrames.push(`${theme} ${route} @y=${y}`);
@@ -610,6 +638,7 @@ for (const theme of THEMES) {
           onlyTall: true,
           vw: metrics.vw,
           vh: metrics.vh,
+          faded: FADED,
         });
         if (res.blank) {
           blankFrames.push(`${theme} ${route} @tall y=${next}`);
@@ -661,11 +690,21 @@ await browser.close();
  * there is no flat ground under the words.
  */
 const FLAT = 0.5;
-const fails = findings.filter(
+/*
+ * A FADED READING IS NEVER A FAILURE HERE. See the note beside `--faded`: the
+ * sweep cannot tell a designed fade from a frame caught mid-animation, so these
+ * are listed for a person and kept out of every count. Without the flag there
+ * are none of them and this changes nothing.
+ */
+const solid = findings.filter((f) => !f.faded);
+const fails = solid.filter(
   (f) => f.painted && f.surfaceShare >= FLAT && f.ratio < (f.large ? 3 : 4.5),
 );
-const onMedia = findings.filter((f) => f.painted && f.surfaceShare < FLAT && f.ratio < 4.5);
-const unpainted = findings.filter((f) => !f.painted);
+const onMedia = solid.filter((f) => f.painted && f.surfaceShare < FLAT && f.ratio < 4.5);
+const unpainted = solid.filter((f) => !f.painted);
+const faded = findings.filter(
+  (f) => f.faded && f.painted && f.surfaceShare >= FLAT && f.ratio < (f.large ? 3 : 4.5),
+);
 
 if (JSON_OUT) {
   console.log(
@@ -673,6 +712,7 @@ if (JSON_OUT) {
       {
         fails,
         onMedia,
+        faded,
         unpainted: unpainted.length,
         errors,
         unreached,
@@ -704,6 +744,15 @@ if (JSON_OUT) {
   console.log(
     `\nNOTHING PAINTED IN THE ELEMENT'S OWN BOX, so no ratio can be read from it: ${unpainted.length}`,
   );
+  if (FADED) {
+    console.log(
+      `\nFADED BELOW NINE TENTHS AND UNDER THE FLOOR ANYWAY, counted in nothing above` +
+        ` because the sweep cannot tell a designed fade from a frame caught mid-animation: ${faded.length}`,
+    );
+    faded
+      .sort((a, b) => a.ratio - b.ratio)
+      .forEach((f) => console.log(`${line(f)}  [opacity ${f.opacity}]`));
+  }
   if (unreached.length) {
     console.log(`\nLEAVES NEVER SEEN WHOLE ON SCREEN, so nothing is claimed about them: ${unreached.length}`);
     unreached.forEach((u) => console.log(`  ${u}`));

@@ -1034,7 +1034,17 @@
     overflow: hidden;
     aspect-ratio: 1;
     border-radius: var(--nf-radius-squircle);
-    background: var(--nf-icon-ground);
+    /*
+     * THE PLATE IS ONE TOKEN AND IT IS A GRADIENT NOW, not a fill. At night it
+     * resolves to `none` and this paints exactly nothing, which is the same
+     * acceptance test the transparent fill was passing before. In daylight it
+     * is a radial from a deep core out to the navy rim that meets the page:
+     * the whole argument, with the measurements, is beside `--nf-icon-plate` in
+     * `tokens.css`, and the short version is that the colour the OBJECT needs
+     * under it and the colour the PAGE needs against it are not the same colour
+     * and a fill can only be one of them.
+     */
+    background: var(--nf-icon-plate);
     /*
      * ROOM AROUND THE OBJECT. The note above says the artwork carries its own
      * transparent margin so the chip needs no padding, and on the marks with
@@ -1073,13 +1083,13 @@
    * mark would be nested chrome, is the right worry aimed at the wrong theme.
    *
    * WHAT WAS MEASURED. 121 of 144 objects have no light twin, so on paper they
-   * keep painting their DARK artwork on `--nf-icon-ground`, which is `#052A6D`.
-   * The median object pixel falls from 2.42:1 against the night canvas to
-   * 1.60:1 against that navy chip, a 33 per cent median loss, and 45 of the 121
-   * fall under 1.5:1. The chip itself is 13.47:1 against the white page. So the
-   * eye resolves the SQUARE and not the object in it, by a factor of about six,
-   * and that is the whole mechanism of the founder's "images not showing": the
-   * image is there and the chip is louder than it.
+   * keep painting their DARK artwork on `--nf-icon-ground`, which was `#052A6D`
+   * when this was written. The median object pixel falls from 2.42:1 against the
+   * night canvas to 1.60:1 against that navy chip, a 33 per cent median loss,
+   * and 45 of the 121 fall under 1.5:1. The chip itself is 13.47:1 against the
+   * white page. So the eye resolves the SQUARE and not the object in it, by a
+   * factor of about six, and that is the whole mechanism of the founder's
+   * "images not showing": the image is there and the chip is louder than it.
    *
    * WHY THIS RULE AND NOT A RECOLOUR. The one surface in the product where the
    * founder says the objects read correctly on paper is the home market grid,
@@ -1098,11 +1108,21 @@
    * never "plate or no plate", it was "plate that reads as a container" or
    * "plate that reads as a hole".
    *
-   * THIS IS A HOLDING ANSWER AND IT SAYS SO. It makes the 121 legible without
-   * new artwork, which is the whole of what this session can honestly do.
-   * Commissioning the missing light twins is a render order and the founder's
-   * to place; the surfaces still owed the real thing are listed in the ledger
-   * rather than left to be rediscovered.
+   * THE RIM WAS A HOLDING ANSWER AND THE FILL UNDER IT HAS SINCE BEEN FIXED.
+   * The rim is still right and still here: it is what stops the plate reading
+   * as a hole, and the home grid is still the surface that proved it. What it
+   * never did was change the number above, because a shadow outside the plate
+   * cannot alter what the object is composited against INSIDE it. That is now
+   * a gradient, `--nf-icon-plate`, deep under the object and the same navy at
+   * the rim, which takes the object's median from 2.37:1 to 3.40:1 without
+   * moving the 13.44:1 edge the page sees. The measurements and the reasoning
+   * are beside the token in `tokens.css`, and the instrument is
+   * `docs/design/proofs/paper/measure-object-ground.mjs`.
+   *
+   * IT IS STILL NOT ARTWORK. 29 of the 121 remain under 3:1 on the best ground
+   * that exists without a render. Commissioning the missing light twins is a
+   * render order and the founder's to place: `docs/FOUNDER_ARTWORK_NEEDED.md`
+   * names every surface and every object still owed one.
    */
   :root[data-theme="light"] .nf-brand-icon-ground {
     box-shadow: var(--nf-glow-edge);
