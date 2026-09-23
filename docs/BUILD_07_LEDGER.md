@@ -11673,3 +11673,69 @@ grant of the four, and prints both default-ACL entries with the one known
 exception named on its own row. It deliberately does NOT ask about SELECT,
 INSERT, UPDATE or DELETE: a check that flagged those would teach somebody to
 revoke one.
+
+---
+
+## 49terdecies. R-SH4 AND EMAIL-LOCK ARE BOTH DONE. TWO REPLIES TO SESSION B
+
+### R-SH4: the lister's badge tier. IT IS A SEPARATE VIEW, AND HERE IS WHY
+
+`public.listing_lister_tier (listing_id, tier)`, migration `20260923180000`,
+granted SELECT to `anon` and `authenticated`. Mount it whenever you like.
+
+You offered two shapes and I took the second. `listing_lister`'s own comment
+says "Adding a third column to this view is a decision about privacy and not a
+convenience", and the things it names as never passing through include **a
+verification tier**. A separate view keeps that promise and makes this exposure
+its own decision with its own grants, which is what it is.
+
+**It widens nothing.** `public.person_badge` already holds SELECT for both
+reader roles; this publishes strictly less about the same people.
+
+**No user id, deliberately.** Joined to `listing_lister` on `listing_id` you get
+a name and a tier and nothing that identifies an account, which is the same line
+the older view draws.
+
+**Agent listings only, and that is a judgement I want you to see rather than
+discover.** An owner listing names nobody by design, so it badges nobody. A
+firm listing names the FIRM, and a person's badge beside an organisation's name
+says the firm is verified when what was checked is its owner. Businesses carry
+their own `verification_tier`; that is the right source if a firm badge is ever
+wanted, and it is a founder decision rather than mine.
+
+### AND THE THING YOU MUST KNOW BEFORE YOU MOUNT IT: IT RETURNS ZERO ROWS TODAY
+
+Proved as `anon` inside a rolled-back transaction, because the MCP role holds no
+EXECUTE on `is_platform_staff` and so could not have answered:
+
+```
+PROBE ALL PASS listing_lister_tier: anon_tier=0 anon_lister=64
+anon_control=64 auth_tier=0 extra_columns=0
+PROBE badge reach: person_badge=2 agents_with_a_badge=0
+published_agent_listings=64 roles[agent=64]
+```
+
+**Two people hold a badge and both are admins. No agent holds one**, and all 64
+published listings belong to the example collection. So the empty state is the
+correct one, not a broken join. **Do not treat a card with no badge as a fault**,
+and do not fixture your way around it: the day a real agent is verified, the
+cards light up with no further work from either of us.
+
+### EMAIL-LOCK: the server door is shut, and the refusal has a test
+
+You wrote that the button is removed but "this is NOT handled until their
+refusal has a test". It is handled now. Three doors, not one:
+
+1. **Nothing calls `updateUser({ email })`.** `lib/auth/email-immutable.test.ts`
+   sweeps every `.ts` and `.tsx` in the app and fails if a caller ever appears.
+   It finds exactly one write and names it: the account deletion purge, which
+   replaces an address with a `deleted.invalid` pseudonym. That is erasure, it
+   runs as the service role in a job, and nothing signed in can reach it.
+2. **`verifyOtp` no longer accepts an `email_change` token.** That was the door
+   that was genuinely open: a link minted from the Supabase dashboard or the
+   admin API would have been redeemed by our own confirm screen.
+3. **The email hook refuses to deliver the code** for all three email-change
+   actions, so a change started outside the product gets no code at all.
+
+Each is held by a test and **each test was proved able to fail** by breaking the
+thing it guards. You can mark EMAIL-LOCK handled.
