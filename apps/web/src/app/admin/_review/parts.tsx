@@ -516,3 +516,18 @@ export function Avatar({
     </span>
   );
 }
+
+/**
+ * WHERE A PERSON'S BADGE GOES, BESIDE THEIR NAME. BLOCKED ON B-BADGE.
+ *
+ * The tier is READ from `public.person_badge` (`getBadgeTiers`,
+ * lib/admin/reads/listings.ts) and handed here; it is never derived on these
+ * desks. The artwork and the one component are Session A's (scope B-BADGE,
+ * proposed as a PersonBadge component under components/app/badge) and had not landed when
+ * these desks closed, so this renders NOTHING rather than a mark of its own.
+ * When it lands this body becomes `<PersonBadge tier={tier} size="sm" />`.
+ */
+export function BadgeSlot({ tier }: { tier: "gold" | "platinum" | null | undefined }) {
+  void tier;
+  return null;
+}

@@ -6,7 +6,7 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import type { ListingReviewView } from "@/lib/admin/queries";
 import { SALE_STATUS_LABEL, TENURE_LABEL } from "@/lib/listings/pricing";
 import type { AdminCopy } from "../../_components/copy";
-import { Avatar, Badge, DeskHead, Panel, RoleTag } from "../../_review/parts";
+import { Avatar, Badge, BadgeSlot, DeskHead, Panel, RoleTag } from "../../_review/parts";
 import type { ListingReviewExtras } from "../../_review/contracts";
 import { tileMosaic } from "../../_review/map-tiles";
 import {
@@ -586,7 +586,10 @@ function ListerBlock({
       <div className="nf-rv-person">
         <Avatar name={name} src={lister?.avatarUrl ?? null} />
         <div style={{ minWidth: 0, flex: 1 }}>
-          <p style={{ margin: 0, fontWeight: 600, color: "var(--nf-content-primary)" }}>{name}</p>
+          <p style={{ margin: 0, fontWeight: 600, color: "var(--nf-content-primary)" }}>
+            {name}
+            <BadgeSlot tier={lister?.badge} />
+          </p>
           {lister?.role ? <RoleTag>{ROLE_WORD[lister.role]}</RoleTag> : null}
         </div>
         {lister ? (

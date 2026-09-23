@@ -4,6 +4,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import {
   Badge,
+  BadgeSlot,
   DeskHead,
   Donut,
   Empty,
@@ -224,7 +225,10 @@ function QueueTableView({
               </td>
               <td>{row.address}</td>
               <td>
-                <span style={{ display: "block" }}>{row.lister ?? "Not recorded"}</span>
+                <span style={{ display: "block" }}>
+                  {row.lister ?? "Not recorded"}
+                  <BadgeSlot tier={row.badge} />
+                </span>
                 {row.listerRole ? <RoleTag>{row.listerRole}</RoleTag> : null}
               </td>
               <td className="nf-rv-table__num">{row.price}</td>

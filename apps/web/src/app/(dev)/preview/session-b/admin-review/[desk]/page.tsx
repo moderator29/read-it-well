@@ -130,6 +130,7 @@ function rows(): QueueRow[] {
     lister,
     listerRole,
     isExample,
+    badge: null,
     price,
     submittedAge: `${age}h ago`,
     status,
@@ -240,6 +241,7 @@ export default async function Harness({
             role: "owner",
             avatarUrl: null,
             verified: true,
+            badge: null,
             tier: 2,
             rungs: [
               { kind: "identity", status: "passed" },

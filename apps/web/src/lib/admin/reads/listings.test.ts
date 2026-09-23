@@ -93,3 +93,14 @@ describe("listings reads: mandates", () => {
     expect(mandateExpired(null, "2026-09-22")).toBe(false);
   });
 });
+
+describe("listings reads: the badge tier, as read", () => {
+  it("draws a mark only for gold and platinum, never anything else", async () => {
+    const { badgeTierOf } = await import("./listings");
+    expect(badgeTierOf("gold")).toBe("gold");
+    expect(badgeTierOf("platinum")).toBe("platinum");
+    expect(badgeTierOf("none")).toBeNull();
+    expect(badgeTierOf("silver")).toBeNull();
+    expect(badgeTierOf(null)).toBeNull();
+  });
+});
