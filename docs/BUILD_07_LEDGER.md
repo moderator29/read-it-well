@@ -7122,6 +7122,124 @@ copy layer exists to prevent.
 
 ---
 
+---
+
+### R16. BLOCKER FOR ITEM 5. THE BADGE DERIVATION IS LIVE. HERE IS EXACTLY WHAT TO RENDER, AND WHERE
+
+Filed early and deliberately, before this session's own rendering sweep is
+finished, so Session B can work in parallel rather than wait. Everything below
+is on `main` now.
+
+**THE ONE RENDERER. Import it, pass it a tier, and draw nothing else.**
+
+```tsx
+import { TierBadge } from "@/components/trust/TierBadge";
+
+<TierBadge tier={badgeTier} size={16} />              // beside a name
+<TierBadge tier={badgeTier} size={14} decorative />   // where a label already says it
+```
+
+| prop | type | notes |
+| --- | --- | --- |
+| `tier` | `BadgeTier` = `"none" \| "gold" \| "platinum"` | **Required, no default.** `"none"` renders `null`, so there is no empty box and no guard needed at the call site. |
+| `size` | `number`, default 16 | Pixels. 16 is the floor at which the eight lobes are countable. |
+| `className` | `string` | Optional. |
+| `decorative` | `boolean`, default false | True when neighbouring text already carries the meaning; it then goes `aria-hidden` instead of `role="img"`. |
+
+It brings its own stylesheet (`app/css/trust-badge.css`) and **draws no
+background**: no disc, no ring, no plate, no halo, on the founder's instruction.
+Do not wrap it in one. Do not recolour it. Do not compare a tier yourself.
+
+**WHERE THE TIER COMES FROM. Three doors, all the same derivation.**
+
+```ts
+import { readPersonBadges, type BadgeTier } from "@/lib/trust/badge-tier";
+
+const badges = await readPersonBadges(supabase, rows.map((r) => r.user_id));
+// Map<string, BadgeTier>; a person with no badge is simply absent
+const tier = badges.get(row.user_id) ?? "none";
+```
+
+1. `readPersonBadges(client, userIds)` above, one read for a whole page. Use
+   this for anything keyed by a person.
+2. `public.person_badge` directly: two columns, `user_id` and `tier`, readable
+   by `anon` and `authenticated`, RLS-free by design because the badge is drawn
+   on public surfaces. `.from("person_badge").select("user_id, tier")`.
+3. **A read that already joins `agent_badges` gets it for free.**
+   `agent_badges(verified, tier)` instead of `agent_badges(verified)`. That is
+   the cheapest change for `lib/admin/reads/supply.ts`, which selects
+   `agent_badges(verified)` today.
+
+Migration `20260923111950`. Gold is `public.is_checked_person`, which reads only
+`agent_badges.verified` and `businesses.verified`, both trigger-derived off
+their own KYC ladders and both constrained, so **gold cannot exist without a
+rung a named member of staff passed**. Platinum is `public.is_platform_staff`,
+which is `private.has_role` over `public.user_roles`. Platinum beats gold and
+that precedence is `public.badge_tier` in the database, so no renderer decides
+it.
+
+**NEVER DERIVE A TIER IN A COMPONENT OR A READ.** Specifically, and this is not
+hypothetical:
+
+- **`social_profiles.is_agent` is NOT the badge.** Its own column comment in the
+  database reads "a role marker, not an earned badge". It is true the moment an
+  agent application is APPROVED, at verification tier 0, before a document has
+  been looked at. `ProfileHeader` and `PeopleList` drew the verified tick from
+  it and both shipped that way until today. That is the second derivation the
+  founder means, it was live, and no test caught it.
+- Nor `verificationTier >= 1`, nor an `isAdmin` off a session, nor
+  `agents.verified`.
+- `apps/web/src/lib/trust/agent-badge-derivation.test.ts` now fails the build
+  for any of these, across the whole of `src`, including Session B's files.
+
+**THE FILE LIST. Generated from the tree, not remembered.** Every `.tsx` under
+`apps/web/src` outside `(dev)/preview` that draws a person's name or avatar,
+filtered to the ones Session B owns. Verdict per entry.
+
+| file | draws | what is needed |
+| --- | --- | --- |
+| `app/(app)/profile/AccountHero.tsx` | the account holder's name and avatar | badge beside the name; the viewer's own tier |
+| `app/(app)/profile/page.tsx` | passes the person down | resolve the tier and hand it to the hero |
+| `components/social/feed/PostCard.tsx` | **every post in the feed**, author name + avatar | badge beside the author name. It reads `post.author.isAgent` today and draws nothing; `isAgent` must not become the badge |
+| `components/social/comments/CommentsSheet.tsx` | every comment's author | badge beside each name |
+| `app/(app)/post/[id]/ThreadView.tsx` | the post and its replies | badge on the root author and each reply |
+| `app/(app)/post/[id]/page.tsx` | passes authors down | carry the tier through |
+| `components/app/inspections/InspectionRows.tsx` | the other party's name | badge beside it |
+| `components/app/inspections/InspectionSheet.tsx` | the other party's name | badge beside it |
+| `app/admin/_components/AdminNav.tsx` | the signed-in admin's name and avatar | **platinum, and this is the founder's own console** |
+| `app/admin/layout.tsx` | the admin identity in the shell | same |
+| `app/admin/kyc/SubjectCard.tsx` | the subject under review | badge, so the desk sees what the public sees |
+| `app/admin/kyc/page.tsx` | the queue rows | badge per row |
+| `app/admin/listings/[id]/ListingReview.tsx` | the lister | badge beside the lister's name |
+| `app/admin/money/_desk/Evidence.tsx` | who filed each piece of evidence | badge beside each party |
+| `app/admin/payments/LookupPanel.tsx` | the person a payment belongs to | badge |
+| `app/admin/social/page.tsx` | authors on the moderation desk | badge |
+| `app/admin/stops/StopsDesk.tsx` | the stopped agent | badge |
+| `app/admin/examples/page.tsx` | the example lister | **none, and deliberately**: an example listing may never wear the trust mark (`20260809080524`). The derivation already returns `none` for it, verified on the live row today. Draw the component anyway and let it return null; do not special-case it |
+| `lib/admin/reads/supply.ts` | feeds the supply desk | change `agent_badges(verified)` to `agent_badges(verified, tier)` |
+| `lib/social/posts-queries.ts` | the feed's author rows | add `badgeTier` from `readPersonBadges` |
+| `lib/social/comments-queries.ts` | comment authors | same |
+| `lib/social/stories-queries.ts` | story authors | same |
+| `lib/social/profile-tabs-queries.ts` | the media grid's authors | same |
+
+**What this session has already done on its own side**, so you do not do it
+twice: `components/messages/VerifiedAvatar.tsx`, `messages/Inbox.tsx`,
+`messages/share/SharePicker.tsx`, `components/social/profile/ProfileHeader.tsx`,
+`components/social/profile/PeopleList.tsx`, and the reads behind them
+(`lib/messages/live.ts`, `lib/social/profiles-queries.ts`,
+`people-queries.ts`, `follows-queries.ts`). The rest of Session A's list is in
+section 69 with its verdicts.
+
+**One honest gap on our side, named rather than hidden.**
+`app/(app)/messages/[id]/ThreadView.tsx` carried another worker's uncommitted
+edit all afternoon, so committing it would have swept up work this session did
+not write, which is the collision sections 60 and 61 record twice in one day.
+It still passes only the boolean and therefore draws GOLD, which is right for
+every agent and wrong only for a member of staff in a thread. `VerifiedAvatar`
+takes an optional `tier` prop; one line closes it the moment that file is free.
+It is not Session B's to fix and it is not being left silently.
+
+
 ## 49bis. R13 TO SESSION B: ONE DATA LINE ADDED TO A FILE ON YOUR LIST
 
 `apps/web/src/lib/admin/reads/jobs.ts` is yours. The junction worker added
