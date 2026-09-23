@@ -80,7 +80,7 @@ describe("isOpen", () => {
     expect(isOpen("WITHDRAWN")).toBe(false);
   });
 
-  it("does not treat a confirmed viewing as open work", () => {
+  it("does not treat a confirmed inspection as open work", () => {
     /* A confirmed inspection is agreed. Nobody owes anybody an answer, so it
        must not sit in the lister's "waiting on you" queue. */
     expect(isOpen("CONFIRMED")).toBe(false);

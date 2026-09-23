@@ -2918,7 +2918,7 @@ export const yo: Dictionary = withFallback({
      until a native reviewer rewrites them (see the note at the top of this file). */
   inspectionsPage: {
     title: "Àyẹ̀wò ilé",
-    lede: "Every viewing you asked for or were asked to show. Both of you see the same state on the same request.",
+    lede: "Every inspection you asked for or were asked to host. Both of you see the same state on the same request.",
     openTitle: "Ṣí sílẹ̀",
     openDescription: "Your move first, then what is booked in, then what is waiting on them.",
     closedTitle: "Ti parí",
@@ -2926,7 +2926,7 @@ export const yo: Dictionary = withFallback({
       "We could not load your inspections just now, so this is not showing you an empty list that might not be true. Nothing has been lost. Try again in a moment.",
     emptyTitle: "Kò sí àyẹ̀wò tí a ṣètò síbẹ̀",
     emptyBody:
-      "Ask to view a property from its page and it lands here, with the answer beside it the moment it comes.",
+      "Request an inspection from a property's page and it lands here, with the answer beside it the moment it comes.",
     emptyAction: "Wá ibi kan",
     loading: "Ń gbé àyẹ̀wò rẹ wọlé",
   },

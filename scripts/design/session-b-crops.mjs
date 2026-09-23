@@ -171,7 +171,7 @@ SURFACES.inspection = async () => {
   await mkdir(dir, { recursive: true });
   /* The glass house with the tick, beside the title. The box stops above the
      listing card's lit top edge, which runs under the house's foot. */
-  await cutObject(render, [622, 196, 186, 140], path.join(dir, "house-check"), { feather: 0.03, dayFloor: 70 });
+  await cutObject(render, [622, 196, 186, 140], path.join(dir, "house-check"), { feather: 0.03 });
   /* The checklist's round plates are no longer cropped: keyed at 48 render
      px they came out dim against the panel, where the render draws lit
      discs. They are drawn in CSS to the render's measured size and light

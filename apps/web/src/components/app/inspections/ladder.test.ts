@@ -25,7 +25,7 @@ describe("the inspection ladder", () => {
     expect(ladderCount(ladderFor({ state: "DECLINED", outcome: null })).done).toBe(1);
   });
 
-  it("only lets a report go while the viewing is agreed", () => {
+  it("only lets a report go while the inspection is agreed", () => {
     expect(canReport("CONFIRMED")).toBe(true);
     expect(canReport("REQUESTED")).toBe(false);
     expect(canReport("COMPLETED")).toBe(false);

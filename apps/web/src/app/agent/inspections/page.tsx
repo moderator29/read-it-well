@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * EVERY VIEWING SOMEBODY HAS ASKED YOU FOR.
+ * EVERY INSPECTION SOMEBODY HAS ASKED YOU FOR.
  *
  * The full list behind the dashboard's section. Two groups and only two: the
  * ones waiting on somebody, and the ones that are done. That split is the
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
  *
  * The open group is not sorted by date. It is sorted by arrival, newest first,
  * which is what the read returns, because the question is "what have I not
- * answered" and not "what is soonest". A viewing on Saturday that has already
+ * answered" and not "what is soonest". An inspection on Saturday that has already
  * been confirmed needs nothing; one that came in an hour ago for next month
  * does.
  */
@@ -42,7 +42,7 @@ export default async function AgentInspectionsPage() {
         <EmptyState
           icon="calendar-check"
           title="Inspections live behind an approved profile"
-          body="Once your Listing or selling profile is approved, every request to view one of your properties arrives here with a state on it that the other side can see too."
+          body="Once your Listing or selling profile is approved, every request to inspect one of your properties arrives here with a state on it that the other side can see too."
           action={
             <ButtonLink href="/profile/setup/owner" variant="primary" size="lg">
               Set up this profile
@@ -92,7 +92,7 @@ export default async function AgentInspectionsPage() {
         ) : list.inspections.length === 0 ? (
           <EmptyState
             icon="calendar-check"
-            title="Nobody has asked to view a property yet"
+            title="Nobody has asked to inspect a property yet"
             body="When somebody requests an inspection from one of your listings it lands here, and you can confirm it, offer another time, or say no."
             action={
               <ButtonLink href="/agent/listings" variant="primary" size="lg">

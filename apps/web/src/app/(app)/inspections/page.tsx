@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * /inspections: the Property side's diary of viewings, in the anatomy of
+ * /inspections: the Property side's diary of inspections, in the anatomy of
  * F6A8A482.
  *
  * A person can be both sides of this table: the flat they rent and the one
@@ -36,7 +36,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
  * Each inspection is one sheet: the scheduled listing card, the date and
  * party and state row, the ladder, the notes, and the two actions. The first
  * open one arrives expanded; the rest fold to their card so a diary of nine
- * viewings is nine cards, not nine screens.
+ * inspections is nine cards, not nine screens.
  *
  * Both reads come back with `readFailed` rather than throwing, and either one
  * failing makes the whole screen say so: a list that is half true is not a

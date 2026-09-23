@@ -3984,7 +3984,7 @@ export const en = {
    */
   inspectionsPage: {
     title: "Inspections",
-    lede: "Every viewing you asked for or were asked to show. Both of you see the same state on the same request.",
+    lede: "Every inspection you asked for or were asked to host. Both of you see the same state on the same request.",
     openTitle: "Open",
     openDescription: "Your move first, then what is booked in, then what is waiting on them.",
     closedTitle: "Closed",
@@ -3992,7 +3992,7 @@ export const en = {
       "We could not load your inspections just now, so this is not showing you an empty list that might not be true. Nothing has been lost. Try again in a moment.",
     emptyTitle: "Nothing booked to see yet",
     emptyBody:
-      "Ask to view a property from its page and it lands here, with the answer beside it the moment it comes.",
+      "Request an inspection from a property's page and it lands here, with the answer beside it the moment it comes.",
     emptyAction: "Find a place",
     loading: "Loading your inspections",
   },

@@ -2243,6 +2243,17 @@ allows `COMPLETED` from `CONFIRMED` for requester or lister), so the same sheet 
 both: the requester sees "Listed by" and the lister's number, the lister sees
 "Requested by" and the requester's, and the controls follow whose move it is.
 
+**It is an inspection, not a viewing (founder's item 7, 23 September).** Every
+"viewing" in this surface's copy now says inspection: the checklist rows read
+"Inspection requested" and "Inspection happened", the empty notes well "No notes on this
+inspection yet.", the Add Photos accessible name "in the conversation about this
+inspection", the agent page's empty state "Nobody has asked to inspect a property yet"
+and "every request to inspect one of your properties", the example refusal in
+`lib/inspections/actions.ts` "there is nothing to inspect", and in all four locales
+`inspectionsPage.lede` ("Every inspection you asked for or were asked to host") and
+`inspectionsPage.emptyBody` ("Request an inspection from a property's page"). Comments and
+test names in these files were swept the same way.
+
 ### (a) The chain
 
 | Link | What is there | State |
@@ -2294,7 +2305,7 @@ dock would cover the foot of Submit, not Add Photos).
 | Page gutter | 28 render = 16 CSS | 24 (the app shell's padding on every consumer page) | no, by decision: the shell's 24px is the platform standard, not this surface's to change; containers are 342 against 360 for that reason |
 | Back button | glass rounded square in the header row | 44 x 44 glass square on its own row | shape yes; the render's header row is shared chrome |
 | Title size | cap 28 render = 16.4 strict, 23px, bold | 23px / 700, h 26 | yes |
-| Title colour | "Property" letter cores #eef0f7; "Inspection" lit cyan, running left to right #b2e9f7, #6ad4f7, #2cb1f6, #22a8f7 (four bands, cores with a channel over 200) | "Property" `--nf-content-primary`; "Inspection" a left-to-right gradient from the cyan rung (`--nf-state-warning`, #00c8ff) mixed 35% into white, through 65%, to cyan leaning into the lit blue; on paper brand ink into the daylight cyan | yes (tokens, so within a few steps of the sampled hexes, not on them) |
+| Title colour | "Property" letter cores #eef0f7; "Inspection" lit cyan, running left to right #b2e9f7, #6ad4f7, #2cb1f6, #22a8f7 (four bands, cores with a channel over 200) | "Property" `--nf-content-primary`; "Inspection" a left-to-right gradient from the cyan rung (`--nf-state-warning`, #00c8ff) mixed 35% into white, through 65%, to cyan leaning into the lit blue | yes (tokens, so within a few steps of the sampled hexes, not on them) |
 | Sub line | about 10.5px strict, blue #47d0f6 peak, 2 lines | 11px / 400 (floor), 2 lines, h 30, brand quiet | yes |
 | Glass house | object 153 render = 89 CSS, foot over the card edge | the render's own crop, box 100 x 75, foot over the card edge, above it | yes (crop, soft at 3x, SOURCES.md) |
 | Listing card | 616 x 142 render = 360 x 83 | 342 x 94 | yes (1.13 in height) |
@@ -2310,7 +2321,7 @@ dock would cover the foot of Submit, not Add Photos).
 | Checklist panel | 616 x 506 (8 rows) = 360 x 296 | 342 x 181 (4 rows, request I1) | per row, below |
 | Checklist head | title about 11px strict, count about 8px, bar 72 x 3.5 under the count | 11px / 600, 11px, bar 4px under the count | yes |
 | Checklist row | 54 render = 31.5 CSS, corner 12 (0.22), 1 to 2 render apart | 32, the 6px rung (0.19), 2 apart | yes |
-| Row plate | a lit round disc 47 to 48 render across (27.5 CSS, 0.89 of the row); sampled down the Exterior disc: lit top rim #003e98, navy body #00236b, light pooling at the foot #003da9 to #0060b0, cyan line glyph #47e9ff | 28px disc (0.875 of the row): the identity's lit tile, round (hot rim, navy body, lit pool at the foot, 8px outer glow) through `--nf-glow-ink` and `--nf-state-warning`, with the stroked glyph (house, shield, bed, document) at 16px in cyan with a 3px glow; on paper the identity's pale tile, round, brand glyph | yes. The earlier 24px keyed crops came out dim and are withdrawn |
+| Row plate | a lit round disc 47 to 48 render across (27.5 CSS, 0.89 of the row); sampled down the Exterior disc: lit top rim #003e98, navy body #00236b, light pooling at the foot #003da9 to #0060b0, cyan line glyph #47e9ff | 28px disc (0.875 of the row): the identity's lit tile, round (hot rim, navy body, lit pool at the foot, 8px outer glow) through `--nf-glow-ink` and `--nf-state-warning`, with the stroked glyph (house, shield, bed, document) at 16px in cyan with a 3px glow| yes. The earlier 24px keyed crops came out dim and are withdrawn |
 | Check circle | 20 of 54 (0.37) | 14 of 32 (0.44), done: emerald fill and a drawn tick | yes |
 | Row title / sub | about 7.8 / 6.5px strict | 11 / 11px (floor), 600 / 400 | yes |
 | Notes panel | 616 x 88 = 360 x 51; well 45 render tall, corner 8 render (0.18) | 342 x 53; well 22 tall, the 6px rung (0.27); label 11px / 600, text 11px | yes (1.04) |
@@ -2365,18 +2376,9 @@ screen has no selectable card (the outcome options use it only as a checked bord
 
 ### (c) Light mode
 
-Same anatomy on paper: containers become `--nf-surface-on-paper` with
-`--nf-shadow-on-paper` and the brand hairline; rows and options `--nf-surface-raised`;
-no bloom. The glass house swaps to its daylight cut (floor lifted from 12 to 70 so the
-night bloom does not smudge the white) and stands on the paper with no chip. The row
-plates are the identity's paper tile, round: pale glass (brand 5% to 15% into white), a
-brand top edge, a soft brand shadow, the brand glyph; never a dark disc on white. The
-title's lit word runs from brand ink into the daylight cyan so it stays legible on
-white. For the house: `home-check` has no light twin in the pack, so `BrandIcon` would have put it on
-a navy chip, which is exactly the rejected "black icon plate". Lit CTA keeps the token
-gradient's light twin. Badges take the daylight state colours from the tokens
-(2596ed9), not re-derived hexes. Proofs: `docs/design/proofs/session-b/inspection/inspection-390-light.jpg`,
-`inspection-390-light-first-screen-in-shell.jpg`.
+~~Light mode rows and proofs.~~ Light mode removed by the founder on 23 September; dark
+only. The paper twin in `inspection.css`, the daylight cut of the glass house
+(`house-check-day.webp`) and the two light proofs are deleted; the surface draws dark only.
 
 ### Desktop
 
@@ -2387,11 +2389,11 @@ the four checklist rows in two columns, the outcome options in three. Proof:
 
 ### (d) Shape sweep
 
-`node scripts/design/compare-surface.mjs --base http://127.0.0.1:3178 --shape-sweep --routes /preview/session-b/inspection,/preview/session-b/inspection/shell --theme both`
-on the committed harness and its in-shell twin (R-G), final build of round four, at
-390 and 1536, dark and light. Verbatim: BREACHES (at or above 0.5) 0; WORTH AN EYE
+`node scripts/design/compare-surface.mjs --base http://127.0.0.1:3178 --shape-sweep --routes /preview/session-b/inspection,/preview/session-b/inspection/shell --theme dark`
+on the committed harness and its in-shell twin (R-G), final build after the founder's items 2 and 7 (dark only), at
+390 and 1536, dark. Verbatim: BREACHES (at or above 0.5) 0; WORTH AN EYE
 (0.35 to 0.5) 0; ROUND ICON-ONLY CONTROLS 0; ROUTES REFUSED 0; "COVERED: 2 route(s)
-asked for, 0 refusal(s), 2 route/width/theme combination(s) actually measured" (the
+asked for, 0 refusal(s), 1 route/width/theme combination(s) actually measured" (the
 tool's own count, quoted as printed). `/inspections` and `/agent/inspections` redirect
 to sign-in without a session, so the sweep runs on the harness, which renders the same
 components. `check-css-tokens.mjs`: clean.
@@ -2400,15 +2402,15 @@ components. `check-css-tokens.mjs`: clean.
 
 - Every screenshot is FIXTURE-BACKED, from the committed harness
   `apps/web/src/app/(dev)/preview/session-b/inspection/page.tsx` (R-G; run with
-  `VALLO_PREVIEW_HARNESS=1`), and the first-screen shots `inspection-390-dark-first-screen-in-shell.jpg` and
-  `inspection-390-light-first-screen-in-shell.jpg` come from its committed in-shell twin
+  `VALLO_PREVIEW_HARNESS=1`), and the first-screen shot `inspection-390-dark-first-screen-in-shell.jpg` comes from its
+  committed in-shell twin
   `.../inspection/shell/page.tsx` (signed-out shell header). Earlier rounds used a throwaway harness route (not committed)
   rendering `InspectionHero` and `InspectionSheet` with the F5 fixture inspection
   (CONFIRMED, requester side) and listing facts. No signed-in production render exists.
 - Not verified live: a real party moving a real inspection, the notification arriving,
   and `InspectionsLive` refreshing the other screen. No test user may be created and all
   64 listings are examples, so no inspection can be created.
-- Crops are soft at 3x (house 0.56, plates 0.42 of the pixels needed); numbers in
+- The house crop is soft at 3x (0.62 of the pixels needed; the plate crops are withdrawn); numbers in
   `public/brand/session-b/inspection/SOURCES.md`.
 
 ## 10. The welcome email
