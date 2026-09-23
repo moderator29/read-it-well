@@ -15,7 +15,7 @@ import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { ButtonLink } from "@/components/ui/Button";
 import { accountCopy, type BadgeTier } from "./belongings";
-import { BadgeSlot } from "./BadgeSlot";
+import { TierBadge } from "@/components/trust/TierBadge";
 
 /**
  * THE TOP OF YOUR OWN PROFILE, BUILT TO `50E032EA`.
@@ -38,7 +38,7 @@ import { BadgeSlot } from "./BadgeSlot";
  *              the `follows_count` trigger (`bump_follow_counts`) on every
  *              follow and unfollow
  *   badge      `public.person_badge.tier` (Session A's one derivation), into
- *              `BadgeSlot`, which draws nothing until Session A's badge
+ *              `TierBadge`, which draws nothing until Session A's badge
  *              component lands (blocked on B-BADGE)
  *   face       `profiles.avatar_url`
  *   cover      `social_profiles.cover_path`, or the founder's villa plate
@@ -275,7 +275,7 @@ export function AccountHero({
           </span>
           {/* The person's badge (Session A's, from `person_badge`) sits here;
               the quiet picture mark says the face is a control. */}
-          <BadgeSlot tier={badgeTier} place="avatar" />
+          {badgeTier ? <TierBadge tier={badgeTier} size={22} decorative className="nf-pf-avatar__tier" /> : null}
           <span className="nf-pf-avatar__badge nf-pf-avatar__badge--quiet" aria-hidden="true">
             <UiIcon name={busy === "avatar" ? "sparkle" : "picture"} size="2xs" />
           </span>
@@ -284,7 +284,7 @@ export function AccountHero({
         <div className="nf-pf-id__text">
           <h1 className="nf-pf-name" data-badge-tier={badgeTier ?? "none"}>
             <span className="nf-pf-name__text">{shownName}</span>
-            <BadgeSlot tier={badgeTier} place="name" />
+            {badgeTier ? <TierBadge tier={badgeTier} size={18} className="nf-pf-name__tier" /> : null}
           </h1>
           <p className="nf-pf-handle">{identity ? `@${identity.handle}` : email}</p>
 

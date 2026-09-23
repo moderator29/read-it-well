@@ -12,7 +12,7 @@ import { CalmNote, DeskHead, EmptyChart, Kpi, NumberedPager, Panel, TableNote, W
 import { SeriesChart, SeriesLegend, StatusBar, type Series } from "./_desk/charts";
 import { ReconciliationPanel } from "./_desk/Reconciliation";
 import { DisputeEvidence } from "./_desk/Evidence";
-import { BadgeSlot } from "./_desk/BadgeSlot";
+import { PersonTier } from "@/app/admin/_components/PersonTier";
 import type { BadgeTier } from "@/lib/admin/reads/badges";
 import type { EvidenceItem } from "@/lib/admin/reads/escrow";
 import { percentChange } from "@/lib/admin/reads/money-derive";
@@ -230,7 +230,7 @@ export function MoneyDesk({
                 <span className="min-w-0">
                   <span className="block text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-primary)]">
                     {wallet.ownerName ?? c.noDisplayName}
-                    <BadgeSlot tier={tiers[wallet.userId]} />
+                    <PersonTier tier={tiers[wallet.userId]} />
                   </span>
                   {/* The owner's profile id, printed whole: it is what an
                       operator pastes into the search box above. */}
@@ -410,7 +410,7 @@ function RentPanel({
                     <span className="block">
                       {row.listingTitle ?? c.listingGone}
                       {row.tenantName ? ` · ${row.tenantName}` : ""}
-                      {row.tenantId ? <BadgeSlot tier={tiers[row.tenantId]} /> : null}
+                      {row.tenantId ? <PersonTier tier={tiers[row.tenantId]} /> : null}
                     </span>
                     <span className="nf-md-ref">{row.bookingId}</span>
                   </span>
@@ -573,7 +573,7 @@ function LedgerPanel({
                       <span className="flex flex-wrap items-center justify-end gap-xs md:justify-start">
                         {row.note ?? ui.columnLabel("walletEntryKind", row.kind)}
                         {row.ownerName ? ` · ${row.ownerName}` : ""}
-                        {row.ownerId ? <BadgeSlot tier={tiers[row.ownerId]} /> : null}
+                        {row.ownerId ? <PersonTier tier={tiers[row.ownerId]} /> : null}
                         {row.status !== "COMPLETED" && (
                           <ui.StatusChip label={ui.columnLabel("walletEntryStatus", row.status)} status={row.status} />
                         )}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BadgeSlot } from "../money/_desk/BadgeSlot";
+import { PersonTier } from "@/app/admin/_components/PersonTier";
 import type { BadgeTier } from "@/lib/admin/reads/badges";
 import { formatDate, formatMoney, plural, type Locale, type Dictionary } from "@vallo/i18n";
 import type { BookingsDesk as BookingsDeskData } from "@/lib/admin/reads/bookings";
@@ -170,7 +170,7 @@ export function BookingsDesk({
                       </td>
                       <td data-label="Guest">
                         {stay.guestName ?? copy.unnamed}
-                        {stay.guestId ? <BadgeSlot tier={tiers[stay.guestId]} /> : null}
+                        {stay.guestId ? <PersonTier tier={tiers[stay.guestId]} /> : null}
                       </td>
                       <td data-label="Dates" className="whitespace-nowrap">
                         {ui.day(stay.checkIn)} to {ui.day(stay.checkOut)}

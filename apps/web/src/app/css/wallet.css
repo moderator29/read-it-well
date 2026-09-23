@@ -53,78 +53,14 @@
     --nf-wallet-glass-top: color-mix(in srgb, var(--nf-brand-primary) 44%, var(--nf-surface-canvas));
     --nf-wallet-glass-mid: color-mix(in srgb, var(--nf-brand-primary) 20%, var(--nf-surface-canvas));
     --nf-wallet-glass-foot: color-mix(in srgb, var(--nf-brand-primary) 27%, var(--nf-surface-canvas));
-    --nf-wallet-tile-fill: color-mix(in srgb, var(--nf-brand-primary) 32%, var(--nf-surface-canvas));
-    --nf-wallet-rim-top: color-mix(in oklab, var(--nf-brand-primary) 70%, var(--nf-state-info));
-    --nf-wallet-rim-side: color-mix(in oklab, var(--nf-brand-primary) 45%, var(--nf-state-info));
-    --nf-wallet-rim-foot: color-mix(in oklab, var(--nf-brand-primary) 30%, var(--nf-state-info));
-    /*
-     * THE PLATFORM GLOW IDENTITY (docs/design/GLOW_IDENTITY.md section 9),
-     * restated from tokens because this file may not carry a raw colour.
-     * The lit card: a per-side edge (cyan top, deep blue right, lit bottom,
-     * sky left), a fill that is bright in a band under the top rim and above
-     * the foot and dark through the middle, and a tight blue halo.
-     */
-    --nf-wallet-lit-edge:
-      color-mix(in srgb, var(--nf-state-info) 55%, var(--nf-content-on-brand))
-      var(--nf-brand-primary-strong)
-      color-mix(in srgb, var(--nf-brand-primary) 50%, var(--nf-state-info))
-      color-mix(in srgb, var(--nf-state-info) 80%, var(--nf-brand-primary));
-    --nf-wallet-lit-fill:
-      radial-gradient(55% 16px at 50% 0, color-mix(in srgb, var(--nf-state-info) 28%, transparent), transparent),
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--nf-brand-primary) 80%, transparent) 0px,
-        color-mix(in srgb, var(--nf-brand-primary) 52%, transparent) 4px,
-        color-mix(in srgb, var(--nf-brand-primary) 31%, transparent) 11px,
-        color-mix(in srgb, var(--nf-brand-primary) 19%, transparent) 34px,
-        color-mix(in srgb, var(--nf-brand-primary) 10%, transparent) 50%,
-        color-mix(in srgb, var(--nf-brand-primary) 14%, transparent) calc(100% - 22px),
-        color-mix(in srgb, var(--nf-brand-primary) 24%, transparent) calc(100% - 9px),
-        color-mix(in srgb, var(--nf-brand-primary) 50%, transparent) 100%
-      );
-    --nf-wallet-lit-glow:
-      inset 0 1px 0 color-mix(in srgb, var(--nf-brand-primary) 90%, transparent),
-      inset 1px 0 0 color-mix(in srgb, var(--nf-brand-primary-strong) 80%, transparent),
-      0 0 4px color-mix(in srgb, var(--nf-brand-primary) 38%, transparent),
-      0 0 12px color-mix(in srgb, var(--nf-brand-primary) 18%, transparent);
-    /* The lit button's cyan edge and lift, per the identity. */
-    --nf-wallet-cta-edge:
-      color-mix(in srgb, var(--nf-state-info) 60%, var(--nf-content-on-brand))
-      var(--nf-state-info)
-      color-mix(in srgb, var(--nf-state-info) 70%, var(--nf-content-on-brand))
-      var(--nf-state-info);
   }
   /*
-   * THE MONEY CARDS take the identity's lit card. THE BALANCE CARD keeps the
-   * governing render's own measured fill (below), because 6AF37222 measures
-   * a brighter middle than the identity's generic card, and the governing
-   * image wins for its surface; it takes the identity's edges and halo. The
-   * identity's 12px corner is also overruled by the render's measured 14px.
+   * THE MONEY CARDS are the shared `Panel` (components/ui/Panel.tsx, the
+   * platform sweep of 23 September): no local card material remains here.
+   * THE BALANCE CARD is the one governed exception: it keeps 6AF37222's own
+   * measured fill and 14px corner (below) on the shared panel edges, rim and
+   * glow, because the governing image wins for its surface.
    */
-  .nf-money .nf-card {
-    position: relative;
-    border: 1px solid;
-    border-color: var(--nf-wallet-lit-edge);
-    border-radius: var(--nf-radius-md);
-    background: var(--nf-wallet-lit-fill), var(--nf-surface-canvas);
-    box-shadow: var(--nf-wallet-lit-glow);
-  }
-  .nf-wallet-hero {
-    position: relative;
-    border: 1px solid;
-    border-color: var(--nf-wallet-lit-edge);
-    border-radius: var(--nf-radius-md);
-    background: linear-gradient(
-      180deg,
-      var(--nf-wallet-glass-top) 0%,
-      var(--nf-wallet-glass-mid) 46%,
-      var(--nf-wallet-glass-foot) 100%
-    );
-    box-shadow:
-      var(--nf-wallet-lit-glow),
-      0 0 22px -4px var(--nf-glow-3),
-      0 14px 36px -14px var(--nf-glow-4);
-  }
 
   /* ------------------------------------------------------------- the hero */
 
@@ -134,8 +70,14 @@
    * the left, and the tile band ends 12px above the foot.
    */
   .nf-wallet-hero {
+    position: relative;
     overflow: hidden;
     padding: 0.875rem 1.125rem var(--nf-space-sm);
+    border: var(--nf-border-width) solid;
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-radius-md);
+    background: linear-gradient(180deg, var(--nf-wallet-glass-top) 0%, var(--nf-wallet-glass-mid) 46%, var(--nf-wallet-glass-foot) 100%);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   /* The render's deep blue bloom sits behind the wallet object, top right. */
   .nf-wallet-hero::after {
@@ -299,14 +241,9 @@
     justify-content: center;
     gap: var(--nf-space-2xs);
     padding: var(--nf-space-xs) 0.125rem;
-    border: 1px solid var(--nf-wallet-rim-side);
-    border-radius: var(--nf-radius-control);
     /* Resting tiles are a lighter blue glass than the card: rgb(0 22 80)
        against the card's rgb(0 17 63) at the same height, with a brighter
        edge that glows inward. */
-    background:
-      linear-gradient(180deg, var(--nf-wash-2) 0%, transparent 55%),
-      var(--nf-wallet-tile-fill);
     color: var(--nf-content-primary);
     /* 12px on all four so "Add money" sits inside its 64px with room at both
        ends and the four labels match. No ellipsis, no wrap. */
@@ -315,13 +252,13 @@
     line-height: 1.2;
     text-align: center;
     white-space: nowrap;
-    box-shadow:
-      var(--nf-rim-lit),
-      inset 0 0 12px -4px var(--nf-glow-4),
-      0 8px 20px -14px var(--nf-glow-4);
     transition:
       transform var(--nf-duration-press) var(--nf-ease-press),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   /* The render's glyph measures 22px. */
   .nf-wallet-tile__glyph {
@@ -351,14 +288,10 @@
    * the card beneath it. Gradient fill, bright rim, bloom: lit, not flat.
    */
   .nf-wallet-tile--primary {
-    border-color: var(--nf-wallet-cta-edge);
-    background: var(--nf-gradient-cta);
     color: var(--nf-content-on-brand);
-    box-shadow:
-      inset 0 1px 0 var(--nf-rim-specular),
-      inset 0 -8px 14px -8px var(--nf-wallet-rim-foot),
-      0 10px 24px -8px var(--nf-glow-4),
-      0 0 18px -4px var(--nf-glow-4);
+    border-color: var(--nf-btn-lit-edges);
+    background: var(--nf-btn-lit-fill);
+    box-shadow: var(--nf-btn-lit-shadow);
   }
   .nf-wallet-tile--primary .nf-wallet-tile__glyph {
     color: inherit;
@@ -443,14 +376,14 @@
     /* The render's plate stands 9px in from the card's top and left, and the
        title and sub share its left edge. */
     padding: 0.5625rem;
-    border: 1px solid;
-    border-color: var(--nf-wallet-lit-edge);
-    border-radius: var(--nf-radius-control);
-    background: var(--nf-wallet-lit-fill), var(--nf-surface-canvas);
     color: var(--nf-content-primary);
     text-align: left;
-    box-shadow: var(--nf-wallet-lit-glow);
     transition: transform var(--nf-duration-press) var(--nf-ease-press);
+    border: var(--nf-border-width) solid;
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-wallet-quick__card:active {
     transform: scale(var(--nf-press-scale));
@@ -517,44 +450,7 @@
     }
   }
 
-  /* A stroked glyph on a small brand-tinted plate. Used where the glyph is a
-     verb (send, request, withdraw) rather than a thing, which is the UiIcon
-     tier's job; the glass objects keep the rows and the heroes. */
-  .nf-glyph-tile {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-brand-edge);
-    background: var(--nf-brand-tint-2);
-    color: var(--nf-brand-secondary);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 6px 16px -12px var(--nf-glow-3);
-  }
-  .nf-glyph-tile--lg {
-    width: 2.875rem;
-    height: 2.875rem;
-    border-radius: var(--nf-radius-lg);
-  }
-  /*
-   * The send render's section heads are not tinted plates: they are SOLID
-   * BLUE CIRCLES carrying a white glyph, one before each of Recipient,
-   * Amount, Bank and Add a Note. The wallet render's quick-action cards use
-   * the tinted rounded square above, so the two shapes are two readings and
-   * both stay; this is the one the governing send image shows.
-   */
-  .nf-glyph-tile--solid {
-    border-radius: var(--nf-radius-circle);
-    border-color: var(--nf-brand-edge-strong);
-    background: var(--nf-gradient-cta);
-    color: var(--nf-content-on-brand);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 8px 20px -12px var(--nf-glow-4);
-  }
+  /* The glyph plates are the shared `IconPlate` (`.nf-plate`, controls.css). */
 
   /* ---------------------------------------------------------- transactions */
 
@@ -656,19 +552,8 @@
    * holding one stroked glyph. A shape, not a control: the whole row is the
    * control and it is 57px tall.
    */
-  .nf-tx-tile {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: 2.25rem;
-    height: 2.25rem;
+  .nf-tx-tile.nf-plate {
     border-radius: var(--nf-radius-circle);
-    border: 1px solid var(--nf-wallet-rim-side);
-    background: var(--nf-brand-tint-2);
-    color: var(--nf-brand-secondary);
-    box-shadow:
-      var(--nf-rim-lit),
-      0 0 12px -4px var(--nf-glow-4);
   }
 
   /* ------------------------------------------------------------ send money */
@@ -719,14 +604,14 @@
     gap: var(--nf-space-2xs);
     min-height: 2.25rem;
     padding-inline: var(--nf-space-sm);
-    border: 1px solid var(--nf-wallet-rim-side);
-    border-radius: var(--nf-radius-sm);
-    background: var(--nf-brand-tint-2);
     color: var(--nf-content-link);
     font-size: var(--nf-text-caption);
     font-weight: 600;
     white-space: nowrap;
-    box-shadow: var(--nf-rim-lit), 0 0 14px -6px var(--nf-glow-4);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    border-radius: var(--nf-radius-xs);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-send-form {
     display: flex;
@@ -742,10 +627,11 @@
     column-gap: var(--nf-space-sm);
     min-height: 3.5rem;
     padding: 0.5rem 0.75rem;
-    border: 1px solid var(--nf-wallet-rim-side);
-    border-radius: var(--nf-radius-control);
-    background: var(--nf-wallet-glass-mid);
-    box-shadow: var(--nf-rim-lit);
+    border: var(--nf-border-width) solid;
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   /*
    * ONE FOCUS INDICATOR PER ROW. The row carries it: its lit glow, and a
@@ -754,7 +640,6 @@
    * row gives up its own ring, below, so keyboard focus is obvious and single.
    */
   .nf-send-row:focus-within {
-    border-color: var(--nf-wallet-rim-foot);
     outline: var(--nf-focus-ring-width) solid var(--nf-focus-ring);
     outline-offset: var(--nf-focus-ring-offset);
     box-shadow:
@@ -840,19 +725,20 @@
     text-align: center;
     min-height: 2.25rem;
     padding-inline: 0.125rem;
-    border: 1px solid var(--nf-wallet-rim-side);
-    border-radius: var(--nf-radius-sm);
-    background: var(--nf-wallet-tile-fill);
     color: var(--nf-content-primary);
     font-size: var(--nf-text-overline);
     font-weight: 500;
     white-space: nowrap;
-    box-shadow: var(--nf-rim-lit);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
+    border-radius: var(--nf-radius-sm);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
   .nf-send-chip[aria-pressed="true"] {
-    border-color: var(--nf-wallet-rim-foot);
-    background: var(--nf-gradient-cta);
     color: var(--nf-content-on-brand);
+    border-color: var(--nf-selected-edges);
+    background: var(--nf-selected-fill);
+    box-shadow: var(--nf-selected-shadow);
   }
   .nf-send-chip:focus-visible,
   .nf-send-cta:focus-visible {
@@ -893,18 +779,14 @@
     min-height: 3rem;
     margin-top: 0.25rem;
     padding: 0.375rem 1rem 0.375rem 0.375rem;
-    border: 1px solid;
-    border-color: var(--nf-wallet-cta-edge);
-    border-radius: var(--nf-radius-control);
-    background: var(--nf-gradient-cta);
     color: var(--nf-content-on-brand);
     text-align: left;
-    box-shadow:
-      inset 0 1px 0 var(--nf-rim-specular),
-      inset 0 -8px 16px -8px var(--nf-wallet-rim-foot),
-      0 12px 28px -10px var(--nf-glow-4),
-      0 0 22px -6px var(--nf-glow-4);
     transition: transform var(--nf-duration-press) var(--nf-ease-press);
+    border: var(--nf-border-width) solid;
+    border-color: var(--nf-btn-lit-edges);
+    border-radius: var(--nf-radius-control);
+    background: var(--nf-btn-lit-fill);
+    box-shadow: var(--nf-btn-lit-shadow);
   }
   .nf-send-cta:active:not(:disabled) {
     transform: scale(var(--nf-press-scale));
@@ -943,10 +825,11 @@
     align-items: start;
     column-gap: var(--nf-space-sm);
     padding: 0.75rem;
-    border: 1px solid var(--nf-wallet-rim-side);
-    border-radius: var(--nf-radius-control);
-    background: var(--nf-wallet-glass-mid);
-    box-shadow: var(--nf-rim-lit);
+    border: var(--nf-border-width) solid;
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   .nf-send-trust__title {
     font-size: var(--nf-text-caption);
@@ -1053,10 +936,11 @@
     align-items: center;
     gap: var(--nf-gap-inline);
     padding: var(--nf-space-xs) var(--nf-space-sm);
-    border-radius: var(--nf-radius-md);
-    border: 1px solid var(--nf-brand-edge);
-    background: var(--nf-glass-fill-thin);
-    box-shadow: var(--nf-rim-lit);
+    border: var(--nf-border-width) solid;
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
 
   /* The trust strip, from 77A54EA3's foot. Only what is true is claimed. */
@@ -1079,23 +963,6 @@
   }
   .nf-trust__body {
     min-width: 0;
-  }
-  .nf-trust__badge {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--nf-gap-inline-tight);
-    margin-top: var(--nf-space-xs);
-    flex: none;
-    padding: var(--nf-space-2xs) var(--nf-space-xs);
-    border-radius: var(--nf-radius-sm);
-    border: 1px solid var(--nf-brand-edge);
-    background: var(--nf-glass-fill-thin);
-    box-shadow: var(--nf-rim-lit);
-    color: var(--nf-content-secondary);
-    font-size: var(--nf-text-overline);
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    white-space: nowrap;
   }
 
   /* ------------------------------------------------------ payment methods */
@@ -1128,24 +995,21 @@
     align-items: center;
     gap: var(--nf-gap-row);
     padding: var(--nf-space-sm);
-    border-radius: var(--nf-radius-lg);
-    border: 1px solid var(--nf-brand-edge);
-    background:
-      linear-gradient(180deg, var(--nf-wash-3) 0%, transparent 60%),
-      var(--nf-glass-fill-thin);
     color: var(--nf-content-primary);
     text-align: left;
-    box-shadow:
-      var(--nf-rim-lit),
-      0 8px 20px -16px var(--nf-glow-3);
     transition:
       background-color var(--nf-duration-fast) var(--nf-ease-standard),
       box-shadow var(--nf-duration-fast) var(--nf-ease-standard);
+    border: var(--nf-border-width) solid;
+    border-color: var(--nf-panel-edges);
+    border-radius: var(--nf-container-radius);
+    background: var(--nf-panel-fill-card);
+    box-shadow: var(--nf-panel-rim), var(--nf-panel-glow);
   }
   @media (hover: hover) {
     button.nf-pay-row:hover {
-      background: var(--nf-glass-fill);
-      box-shadow: 0 0 0 1px var(--nf-brand-edge-soft);
+      border-color: var(--nf-selected-edges);
+      background: var(--nf-selected-fill);
     }
   }
   .nf-pay-row:focus-visible {
@@ -1203,8 +1067,6 @@
   .nf-money .nf-odometer-figure {
     color: var(--nf-content-primary);
   }
-  /* The money cards' material is `.nf-money .nf-card` under "the glass" at
-     the top of this file, measured off the renders. */
   /* The four presets in the send render sit four across inside the gutters.
      At the shared chip padding the fourth ran off the screen. */
   .nf-money .nf-send-presets .nf-chip {
@@ -1213,21 +1075,6 @@
     font-size: var(--nf-text-caption);
   }
 
-  /* --------------------------------------------------------- result marks */
-
-  /* One soft disc of light under the mark on a good outcome. The sheet
-     decides which states get it; this only paints it. */
-  .nf-result-mark {
-    position: relative;
-  }
-  .nf-result-mark--lit::before {
-    content: "";
-    position: absolute;
-    inset: -18%;
-    z-index: -1;
-    border-radius: var(--nf-radius-circle);
-    background: radial-gradient(circle, var(--nf-glow-2) 0%, transparent 68%);
-  }
 
   /* ------------------------------------------------------------- the way back */
 
@@ -1243,39 +1090,14 @@
   .nf-wallet-back {
     width: 2.75rem;
     height: 2.75rem;
-    border: 1px solid;
-    border-color: var(--nf-wallet-lit-edge);
+    border: var(--nf-border-width) solid var(--nf-btn-glass-edge);
     border-radius: var(--nf-radius-control);
-    background: var(--nf-wallet-lit-fill), var(--nf-surface-canvas);
-    box-shadow: var(--nf-wallet-lit-glow);
+    background: var(--nf-btn-glass-fill);
+    box-shadow: var(--nf-btn-glass-shadow);
   }
 
-  /* ---------------------------------------- round three: measured glow, radii */
-
-  /*
-   * THE RENDERS' GLOW IS IN THE RIM, NOT AROUND THE CARD. Sampled off
-   * 6AF37222 just outside the balance card: the page reads rgb(0 7 37) right
-   * up to the rim on the left (x 186 to 196) and rises only to rgb(3 13 43)
-   * in the two pixels above the top rim. There is no bloom off the card; the
-   * light is the one-pixel rim and the lit bands inside it. So the balance
-   * card keeps the identity's tight halo and drops the two wide blooms.
-   */
-  .nf-wallet-hero {
-    box-shadow: var(--nf-wallet-lit-glow);
-  }
-  /* 77A54EA3: each form row is a sub-panel with a 10px corner (the rim
-     reaches the side 18 image px below the top), filled rgb(0 21 61) inside
-     a panel of rgb(0 12 43). */
-  .nf-send-row,
-  .nf-send-trust,
-  .nf-send-row__notes > .nf-recipient-found {
-    border-radius: var(--nf-radius-sm);
-  }
-  /* The form panel: its rim reaches the side 16 to 20 image px below the
-     top, a 10 to 12px corner, so the nearest rung, 10px. */
-  .nf-money .nf-card.nf-send-form {
-    border-radius: var(--nf-radius-sm);
-  }
+  /* 77A54EA3's form panel and its rows measure a 10px corner, which is the
+     shared `--nf-container-radius`; they take it from the panel tokens. */
 
   /* ------------------------------------- round three: lead rulings R-A to R-C */
 
@@ -1397,10 +1219,6 @@
   }
   /* The render's rows are quiet sub-panels inside the lit panel, their edge a
      soft glow and not a bright outline. */
-  .nf-send-row,
-  .nf-send-trust {
-    border-color: var(--nf-brand-edge-soft);
-  }
   /* Amount chips: drawn 24px tall with "₦5,000" 31px wide = 9.4px. R-B takes
      the height to 44, R-A the type to 11. */
   .nf-send-chip {

@@ -3,7 +3,7 @@ import type { EvidenceItem } from "@/lib/admin/reads/escrow";
 import type { AdminUi } from "../../_components/ui";
 import { CalmNote, Waiting } from "./Desk";
 import { fill } from "../../_components/copy";
-import { BadgeSlot } from "./BadgeSlot";
+import { PersonTier } from "@/app/admin/_components/PersonTier";
 import type { BadgeTier } from "@/lib/admin/reads/badges";
 
 /**
@@ -98,7 +98,7 @@ export function DisputeEvidence({
             <li key={item.id} className="nf-md-evidence__item" data-side={item.side}>
               <span className="nf-md-evidence__who">
                 {who(item)}
-                {item.authorId ? <BadgeSlot tier={tiers[item.authorId]} /> : null}
+                {item.authorId ? <PersonTier tier={tiers[item.authorId]} /> : null}
               </span>
               <span className="nf-md-evidence__what">
                 {item.kind === "fact" ? (

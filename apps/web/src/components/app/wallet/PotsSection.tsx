@@ -9,6 +9,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { TextField } from "@/components/ui/Field";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";
+import { panelClass } from "@/components/ui/Panel";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { createPot, moveIntoPot, moveOutOfPot } from "@/lib/wallet/pot-actions";
 import type { Pot } from "@/lib/wallet/pots";
@@ -77,7 +78,7 @@ export function PotsSection({ pots, locale }: { pots: Pot[]; locale: Locale }) {
           {pots.map((pot) => (
             <li
               key={pot.id}
-              className="rounded-[var(--nf-radius-control)] border border-[var(--nf-brand-edge)] p-card-sm"
+              className={panelClass({ variant: "card", className: "p-card-sm" })}
             >
               <div className="flex items-baseline justify-between gap-md">
                 <p className={TYPE.rowTitle}>{pot.name}</p>

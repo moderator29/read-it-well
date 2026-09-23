@@ -8,6 +8,7 @@ import { walletWords } from "./kinds";
 import { EntryRow } from "./EntryRow";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { EmptyState } from "@/components/app/Screen";
+import { panelClass } from "@/components/ui/Panel";
 
 /**
  * Wallet transaction history.
@@ -142,7 +143,7 @@ export function TransactionsSection({
          * still announced with the rows under it.
          */
         <Reveal>
-          <section className="nf-card">
+          <section className={panelClass({ variant: "card", className: "p-0" })}>
             {groups.map((group) => {
               const headingId = `nf-tx-day-${group.key}`;
               return (

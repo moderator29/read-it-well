@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/Skeleton";
+import { panelClass } from "@/components/ui/Panel";
 import { LoadingShell, PageHeaderSkeleton } from "@/components/app/ScreenSkeleton";
 
 /**
@@ -16,7 +17,7 @@ export default function LoadingWallet() {
     <LoadingShell label="Loading your wallet" className="mx-auto w-full max-w-2xl">
       <PageHeaderSkeleton />
 
-      <div className="nf-card nf-wallet-hero p-card-sm sm:p-card">
+      <div className="nf-wallet-hero p-card-sm sm:p-card">
         <Skeleton width="7rem" height="0.90625rem" radius="sm" />
         <Skeleton className="mt-inline" width="58%" height="2.5rem" radius="sm" />
         <Skeleton className="mt-inline" width="40%" height="0.8125rem" radius="sm" />
@@ -36,7 +37,7 @@ export default function LoadingWallet() {
         </div>
       </div>
 
-      <div className="nf-card mt-block p-card-sm">
+      <div className={panelClass({ variant: "card", className: "mt-block p-card-sm" })}>
         <Skeleton width="10rem" height="1.25rem" radius="sm" />
         <ul className="mt-row divide-y divide-[var(--nf-divider)]">
           {Array.from({ length: 5 }, (_, i) => (

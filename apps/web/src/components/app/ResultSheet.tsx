@@ -5,7 +5,9 @@ import type { Locale } from "@vallo/i18n";
 import { Sheet } from "@/components/ui/Sheet";
 import { Amount } from "@/components/ui/Amount";
 import { Button, ButtonLink } from "@/components/ui/Button";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
+import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { IconPlate, ICON_PLATE_GLYPH, type IconPlateTone } from "@/components/ui/IconPlate";
 
 /**
  * One confirmation, for every flow.
@@ -101,7 +103,10 @@ type Common = {
   locale?: Locale;
   /** At most two. The tuple is what enforces it. */
   actions?: readonly [ResultAction] | readonly [ResultAction, ResultAction];
-  /** Overrides the state's mark. Use sparingly; the state should be enough. */
+  /**
+   * Kept for existing callers and no longer drawn: the mark is the state's
+   * glyph on the shared `IconPlate` (SW-ST3), so the state alone decides it.
+   */
   mark?: BrandIconName;
   /** Small print under the actions. A receipt link, a support route. */
   footnote?: ReactNode;
@@ -139,21 +144,48 @@ export type ResultSheetProps = Common &
  * `expired` is deliberately not rose. A hold running out is not a failure and
  * painting it as one manufactures alarm.
  */
-const STATE: Record<ResultState, { ink: string; mark: BrandIconName }> = {
-  sent: { ink: "var(--nf-state-success)", mark: "payment-sent" },
-  received: { ink: "var(--nf-state-success)", mark: "payment-received" },
-  confirmed: { ink: "var(--nf-brand-primary)", mark: "seal-check" },
-  /* `seal-pending` is the mark drawn for exactly this state (BRAND_MARKS
-     section 7); `hourglass`, its sibling, takes review, where a person is
-     waiting out a horizon somebody else holds. */
-  pending: { ink: "var(--nf-state-warning)", mark: "seal-pending" },
-  review: { ink: "var(--nf-state-warning)", mark: "hourglass" },
-  failed: { ink: "var(--nf-state-error)", mark: "payment-failed" },
-  expired: { ink: "var(--nf-content-muted)", mark: "clock-expired" },
+/*
+ * THE MARK SITS ON THE SHARED ICON PLATE (platform sweep, SW-ST3).
+ *
+ * The glass marks this sheet used to draw (`seal-pending`, `payment-failed`
+ * and the rest) are tile-form artwork: each arrives on its own dark rounded
+ * square, so a pending or failed sheet showed a dark square behind the glass.
+ * The platform's reference anatomy has one answer for "an icon on a surface",
+ * `IconPlate`, with a tone per state: pending takes the pending tone, a
+ * failure the error tone, a settled movement the success tone. The glyph is
+ * the stroked tier, as the primitive expects.
+ */
+const PLATE: Record<ResultState, { tone: IconPlateTone; glyph: UiIconName }> = {
+  sent: { tone: "success", glyph: "arrow-up" },
+  received: { tone: "success", glyph: "arrow-down" },
+  confirmed: { tone: "brand", glyph: "verified" },
+  pending: { tone: "pending", glyph: "history" },
+  review: { tone: "pending", glyph: "history" },
+  failed: { tone: "error", glyph: "close" },
+  expired: { tone: "info", glyph: "history" },
+};
+
+function ResultPlate({ state }: { state: ResultState }) {
+  const plate = PLATE[state];
+  return (
+    <IconPlate size="lg" tone={plate.tone}>
+      <UiIcon name={plate.glyph} size={ICON_PLATE_GLYPH.lg} />
+    </IconPlate>
+  );
+}
+
+const STATE: Record<ResultState, { ink: string }> = {
+  sent: { ink: "var(--nf-state-success)" },
+  received: { ink: "var(--nf-state-success)" },
+  confirmed: { ink: "var(--nf-brand-primary)" },
+  pending: { ink: "var(--nf-state-warning)" },
+  review: { ink: "var(--nf-state-warning)" },
+  failed: { ink: "var(--nf-state-error)" },
+  expired: { ink: "var(--nf-content-muted)" },
 };
 
 export function ResultSheet(props: ResultSheetProps) {
-  const { open, onOpenChange, state, verdict, fact, locale, actions, mark, footnote } = props;
+  const { open, onOpenChange, state, verdict, fact, locale, actions, footnote } = props;
   const consequence = props.consequence;
   const blocking = state === "pending" && props.blocking === true;
   const tone = STATE[state];
@@ -237,16 +269,10 @@ export function ResultSheet(props: ResultSheetProps) {
           />
         )}
 
-        {/* The mark. The emotional payload, and the one place in this product
-            where an object should be large. No tile, no plate, no circle: the
-            glass marks carry their own ground. */}
-        <span
-          className={`nf-result-mark block h-24 w-24 sm:h-28 sm:w-28 ${
-            state === "failed" || state === "expired" ? "" : "nf-result-mark--lit"
-          }`}
-        >
-          <BrandIcon name={mark ?? tone.mark} fill priority />
-        </span>
+        {/* The mark: the state's glyph on the shared icon plate, in the
+            state's tone. The glass tile artwork that stood here brought its
+            own dark square (SW-ST3). */}
+        <ResultPlate state={state} />
 
         {/* `text-wrap: balance` is what stops "Payment not / confirmed"
             orphaning its second word, which is the break the three existing
@@ -397,7 +423,6 @@ export function ResultScreen({
   verdict,
   consequence,
   actions,
-  mark,
   footnote,
   "data-testid": testId,
 }: {
@@ -405,6 +430,7 @@ export function ResultScreen({
   verdict: string;
   consequence: string;
   actions?: readonly [ResultAction] | readonly [ResultAction, ResultAction];
+  /** Kept for existing callers and no longer drawn (SW-ST3). */
   mark?: BrandIconName;
   footnote?: ReactNode;
   "data-testid"?: string;
@@ -417,13 +443,7 @@ export function ResultScreen({
       className="flex flex-col items-center px-lg py-section text-center"
       style={{ "--nf-result-ink": tone.ink } as React.CSSProperties}
     >
-      <span
-        className={`nf-result-mark block h-20 w-20 sm:h-24 sm:w-24 ${
-          bad || state === "expired" ? "" : "nf-result-mark--lit"
-        }`}
-      >
-        <BrandIcon name={mark ?? tone.mark} fill />
-      </span>
+      <ResultPlate state={state} />
       {/*
         THE VERDICT CARRIES THE STATE'S INK, which is the whole point of the
         component. `role="alert"` on a failure because nothing in this product

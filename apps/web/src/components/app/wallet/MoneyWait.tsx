@@ -117,7 +117,7 @@ export function WaitNotice({
     <div
       role="status"
       aria-live="polite"
-      className="nf-body-sm mt-row rounded-[var(--nf-radius-lg)] border border-[color-mix(in_oklab,var(--nf-status-pending)_45%,transparent)] bg-[var(--nf-status-pending-surface)] p-row leading-relaxed text-[var(--nf-content-secondary)]"
+      className="nf-body-sm mt-row rounded-[var(--nf-container-radius)] border border-[color-mix(in_oklab,var(--nf-status-pending)_45%,transparent)] bg-[var(--nf-status-pending-surface)] p-row leading-relaxed text-[var(--nf-content-secondary)]"
     >
       <span className="flex items-start gap-inline">
         <UiIcon

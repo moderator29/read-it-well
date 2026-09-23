@@ -21,7 +21,7 @@ export function ErrorNotice<T>({
   return (
     <div
       role="alert"
-      className="nf-body-sm mt-row flex items-start gap-inline rounded-[var(--nf-radius-lg)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] bg-[var(--nf-state-error-surface)] p-row leading-relaxed text-[var(--nf-content-secondary)]"
+      className="nf-body-sm mt-row flex items-start gap-inline rounded-[var(--nf-container-radius)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] bg-[var(--nf-state-error-surface)] p-row leading-relaxed text-[var(--nf-content-secondary)]"
     >
       <UiIcon name="close" size="xs" className="mt-3xs shrink-0 text-[var(--nf-state-error)]" />
       <span className="min-w-0">

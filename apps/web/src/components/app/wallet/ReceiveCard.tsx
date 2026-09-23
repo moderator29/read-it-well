@@ -11,6 +11,8 @@ import { ICON, TYPE } from "@/components/app/Screen";
 import { MAX_MOVE_KOBO, MIN_MOVE_KOBO, parseNairaToKobo } from "@/lib/wallet/schema";
 import { useClientMount } from "@/lib/ui/client-mount";
 import { RollingAmount } from "./RollingAmount";
+import { panelClass } from "@/components/ui/Panel";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 
 /**
  * RECEIVE: who you are, where money lands, and a request to share.
@@ -87,7 +89,7 @@ export function ReceiveCard({
 
   return (
     <div className="space-y-group">
-      <section className="nf-card p-card-sm" aria-labelledby="nf-receive-identity">
+      <section className={panelClass({ variant: "card", className: "p-card-sm" })} aria-labelledby="nf-receive-identity">
         <Head id="nf-receive-identity" icon="user" title={copy.identityTitle} sub={copy.identitySub} />
         <dl className="mt-row">
           <div className="flex items-baseline justify-between gap-md">
@@ -118,7 +120,7 @@ export function ReceiveCard({
         <p className={`mt-row ${TYPE.rowMeta}`}>{copy.where.replace("{email}", email)}</p>
       </section>
 
-      <section className="nf-card p-card-sm" aria-labelledby="nf-receive-request">
+      <section className={panelClass({ variant: "card", className: "p-card-sm" })} aria-labelledby="nf-receive-request">
         <Head id="nf-receive-request" icon="share" title={copy.requestTitle} sub={copy.requestSub} />
 
         {amountGiven && (
@@ -196,9 +198,9 @@ export function ReceiveCard({
 function Head({ id, icon, title, sub }: { id: string; icon: UiIconName; title: string; sub: string }) {
   return (
     <div className="nf-money-sec__head">
-      <span className="nf-glyph-tile nf-glyph-tile--solid" aria-hidden="true">
-        <UiIcon name={icon} size={22} />
-      </span>
+      <IconPlate size="md">
+        <UiIcon name={icon} size={ICON_PLATE_GLYPH.md} />
+      </IconPlate>
       <div className="min-w-0">
         <h2 id={id} className={TYPE.rowTitle}>
           {title}

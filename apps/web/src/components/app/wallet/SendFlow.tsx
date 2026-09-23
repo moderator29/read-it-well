@@ -30,7 +30,8 @@ import { useBalanceMask } from "./balance-mask";
 import { LiveWallet } from "./LiveWallet";
 import { MoneyGlyph } from "./MoneyGlyph";
 import { WalletTiles } from "./WalletTiles";
-import { BadgeSlot } from "./BadgeSlot";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
+import { TierBadge } from "@/components/trust/TierBadge";
 import { RollingAmount } from "./RollingAmount";
 import { canonicalNaira } from "./AmountField";
 import { useMoneyWait, WaitNotice } from "./MoneyWait";
@@ -49,6 +50,7 @@ import {
   writeRecentRecipients,
   type RecentRecipient,
 } from "./recent-recipients";
+import { panelClass } from "@/components/ui/Panel";
 
 /**
  * SEND, to its governing render (77A54EA3). Wallet to wallet only.
@@ -320,10 +322,10 @@ export function SendFlow({
         {entry ? (
           <Receipt entry={entry} locale={locale} />
         ) : (
-          <div className="nf-card p-card text-center">
-            <span className="nf-result-mark nf-result-mark--lit mx-auto block h-20 w-20">
-              <BrandIcon name="payment-sent" fill />
-            </span>
+          <div className={panelClass({ variant: "card", className: "p-card text-center" })}>
+            <IconPlate size="lg" tone="success" className="mx-auto">
+              <UiIcon name="arrow-up" size={ICON_PLATE_GLYPH.lg} />
+            </IconPlate>
             <p className={`mt-block ${TYPE.sectionTitle}`}>{copy.sentTitle}</p>
             <p className="mt-row">
               <Amount
@@ -381,20 +383,17 @@ export function SendFlow({
         <input type="hidden" name="note" value={note.trim()} />
         <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
 
-        <div className="nf-card p-card text-center">
+        <div className={panelClass({ variant: "card", className: "p-card text-center" })}>
           {/* While it is in flight the mark, the amount and the consequence
               line stay on screen together: the three things BRAND_MARKS
               section 7 found missing from every pending state. */}
-          <span
-            className={`nf-result-mark mx-auto block h-20 w-20 ${
-              pending ? "" : "nf-result-mark--lit"
-            }`}
-          >
-            <BrandIcon
-              name={pending ? "seal-pending" : "transfer-arrow"}
-              fill
-            />
-          </span>
+          <IconPlate size="lg" tone={pending ? "pending" : "brand"} className="mx-auto">
+            {pending ? (
+              <UiIcon name="history" size={ICON_PLATE_GLYPH.lg} />
+            ) : (
+              <MoneyGlyph name="send-arrow" size={ICON_PLATE_GLYPH.lg} />
+            )}
+          </IconPlate>
           <p className={`mt-block ${TYPE.label}`}>
             {pending ? copy.sendingTitle : copy.confirmTitle}
           </p>
@@ -510,7 +509,7 @@ export function SendFlow({
         wallets inside the ledger. The scan button is refused too (there is
         no scanner).
       */}
-      <div className="nf-card nf-send-form">
+      <div className={panelClass({ variant: "card", className: "nf-send-form" })}>
             <div className="nf-send-row">
               <RowPlate art="plate-recipient" />
               <div className="nf-send-row__body">
@@ -566,7 +565,7 @@ export function SendFlow({
                     </span>
                     <span className="nf-send-found__name flex min-w-0 items-center gap-2xs">
                   <span className="truncate">{recipientName}</span>
-                  <BadgeSlot tier={recipientTier} />
+                  {recipientTier ? <TierBadge tier={recipientTier} size={16} className="nf-send-name-tier" /> : null}
                 </span>
                   </span>
                 </p>

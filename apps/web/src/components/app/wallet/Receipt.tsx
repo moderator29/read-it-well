@@ -7,6 +7,8 @@ import { TYPE } from "@/components/app/Screen";
 import { KIND_ICON, walletWords } from "./kinds";
 import type { WalletEntry } from "@/lib/wallet/types";
 import { ReceiptActions } from "./ReceiptActions";
+import { panelClass } from "@/components/ui/Panel";
+import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 
 /**
  * The receipt for one movement of money.
@@ -85,7 +87,7 @@ export function Receipt({
   });
 
   return (
-    <div className="nf-card overflow-hidden">
+    <div className={panelClass({ variant: "card", className: "overflow-hidden p-0" })}>
       {/*
         The head is the one place the brand appears, and it appears because a
         receipt travels: this image ends up in a WhatsApp thread with no
@@ -94,9 +96,9 @@ export function Receipt({
         are recognisably the same movement.
       */}
       <div className="flex items-center gap-inline border-b border-[var(--nf-divider)] p-card">
-        <span className="nf-tx-tile" aria-hidden="true">
-          <UiIcon name={KIND_ICON[entry.kind]} size={20} />
-        </span>
+        <IconPlate size="sm" className="nf-tx-tile">
+          <UiIcon name={KIND_ICON[entry.kind]} size={ICON_PLATE_GLYPH.sm} />
+        </IconPlate>
         <div className="min-w-0 flex-1">
           <p className={TYPE.rowTitle}>{words.kind[entry.kind]}</p>
           <p className={TYPE.rowMeta}>Vallo wallet receipt</p>
@@ -166,9 +168,9 @@ export function Receipt({
           data-testid="receipt-paid-for"
           className="nf-tap flex items-center gap-md border-t border-[var(--nf-divider)] px-card py-row text-left transition-colors hover:bg-[var(--nf-glass-fill)]"
         >
-          <span className="nf-glyph-tile" aria-hidden="true">
-            <UiIcon name={paidFor.kind === "tenancy" ? "key" : "calendar-booking"} size={20} />
-          </span>
+          <IconPlate size="sm">
+            <UiIcon name={paidFor.kind === "tenancy" ? "key" : "calendar-booking"} size={ICON_PLATE_GLYPH.sm} />
+          </IconPlate>
           <span className="min-w-0 flex-1 leading-tight">
             <span className="nf-overline block">
               {paidFor.kind === "tenancy" ? "Tenancy" : "Stay"}

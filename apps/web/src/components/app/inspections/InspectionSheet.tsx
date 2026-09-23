@@ -43,7 +43,7 @@ import {
 } from "@/lib/inspections/types";
 import { ladderFor, type LadderKey } from "./ladder";
 import { statusFor, type BadgeTone } from "./status";
-import { BadgeSlot } from "./BadgeSlot";
+import { TierBadge } from "@/components/trust/TierBadge";
 
 /**
  * ONE INSPECTION, EXACTLY IN THE ANATOMY OF F6A8A482 / founder/inspection-target.jpg.
@@ -295,7 +295,7 @@ export function InspectionSheet({
               <dt className="nf-ix-fact__label">{side === "requester" ? "Listed by" : "Requested by"}</dt>
               <dd className="nf-ix-fact__value">
                 {inspection.counterpartName ?? "Not named yet"}
-                <BadgeSlot tier={inspection.counterpartBadge} />
+                {inspection.counterpartBadge ? <TierBadge tier={inspection.counterpartBadge} size={14} className="nf-ix-name-tier" /> : null}
               </dd>
               {/* The number, visible under the name and itself the tel: link,
                   when `lib/security/counterpart-contact.ts` hands one over. */}

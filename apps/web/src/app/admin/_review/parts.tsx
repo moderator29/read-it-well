@@ -4,7 +4,6 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { toneForStatus, type StatusTone } from "@/components/ui/StatusPill";
 import { Sparkline } from "@/components/agent/charts/Sparkline";
 import { CalmNote } from "../_components/panels";
-import { PersonTier } from "../_components/PersonTier";
 import { donutArcs, pagerPages, share } from "./metrics";
 
 /**
@@ -518,12 +517,3 @@ export function Avatar({
   );
 }
 
-/**
- * A person's badge beside their name: the console's shared `PersonTier`,
- * which draws Session A's `TierBadge`. The tier is READ from
- * `public.person_badge` (`getBadgeTiers`, lib/admin/reads/listings.ts), never
- * computed on these desks; no tier draws nothing.
- */
-export function BadgeSlot({ tier }: { tier: "gold" | "platinum" | null | undefined }) {
-  return <PersonTier tier={tier ?? null} />;
-}

@@ -222,6 +222,9 @@ Each group appends "RELEASED <commit>" here when it is done.
     header left by ruling). Requests SW-C1 to SW-C6 in ledger 13 (chrome).
   - already Session B's: wallet family, inspections, auth, admin, welcome.
     **auth: RELEASED** (see ledger 13.A; remainder filed as SW-A1).
+    **wallet family: RELEASED de290b2b + 24bbdda5** (23 September): 10 of 10
+    routes swept, the payment methods block on `/settings` and
+    `/settings/payments` with them; ledger 13, wallet family.
   - **the leftovers no group owns (worker "leftovers", claimed 23 September
     by the lead's instruction):** SW-C5, SW-C6, SW-C1 and the app header.
     Files: `apps/web/src/app/css/glass.css` (ONLY `.nf-card` and its
@@ -238,7 +241,15 @@ Each group appends "RELEASED <commit>" here when it is done.
     `apps/web/src/components/ui/StatusPill.tsx` and a new
     `apps/web/src/components/ui/StatusBadge.tsx` with its test, and the call
     sites of local status badges in files of released groups. Proofs under
-    `docs/design/proofs/session-b/sweep-leftovers/**`. NOT touched:
+    `docs/design/proofs/session-b/sweep-leftovers/**`. Added by the lead the
+    same day: R-SH1 (delete `components/app/AiAssistantBanner.tsx` and its
+    `.nf-home__ai*` rules in `home.css`, after the comment paths in
+    `ambient.css` and `chrome.css` stop naming it; comments only there),
+    R-SH2 (`components/app/stays/StayCard.tsx` onto `panelClass`), R-SH3 (the
+    home group's filled badges onto the shared badge, at their call sites and
+    their rules), SW-P1 (`controls.css`, ONLY `.nf-door*` and `.nf-calmpanel`,
+    the `/profile/setup` chooser, onto the panel, plate and selected state).
+    NOT touched:
     `components/trust/TierBadge.tsx`, `trust-badge.css` (Session A's verified
     badge), the files of groups not yet released (home, feed).
 
@@ -286,7 +297,10 @@ and `.nf-field`. Request ids are `SW-ST*` (the social group uses `SW-S1`).
   still a local field well. Add the shared `nf-field` class at those call
   sites; `stays.css` then keeps only the select's chevron and the inline
   width, and deletes its own well.
-- **SW-ST3 (to the wallet family):** `components/app/ResultSheet.tsx` draws its
+- **SW-ST3: CLOSED by the wallet family in de290b2b** (the mark is the shared
+  `IconPlate`, lg, in the state's tone; `.nf-result-mark` deleted; proofs
+  `sweep-wallet/result-{pending,failed}-{390,1440}-after.jpg`). Original request:
+  `components/app/ResultSheet.tsx` draws its
   glass object on a visible dark square (`.nf-result-mark`, `wallet.css`),
   seen on checkout's payment pending and failed sheets
   (`docs/design/proofs/session-b/sweep-stays/before/pay-failed-390-before.jpg`).
@@ -470,7 +484,7 @@ policy, Session B writes it as a request below.
 - `apps/web/src/app/(app)/profile/*.test.ts` (new)
 - `apps/web/src/app/(app)/profile/belongings.ts` (new: pure helpers for the row values and the Switch role line)
 - `apps/web/src/app/(app)/profile/belongings-queries.ts` (new: the head counts and balance the rows carry)
-- `apps/web/src/app/(app)/profile/BadgeSlot.tsx` (new: where Session A's badge renders; empty until B-BADGE lands)
+- `apps/web/src/app/(app)/profile/BadgeSlot.tsx` (deleted 23 September: every badge now renders Session A's `TierBadge` directly, or the console's `PersonTier`)
 - `apps/web/src/app/(app)/profile/SwitchRoleRow.tsx` (new: the Switch role row, opening the dock's own workspace sheet)
 - `apps/web/src/app/(dev)/preview/session-b/profile/**` (the proof harness, ruling R-G)
 - `apps/web/tests/profile.spec.mjs`: the spec for this surface; only its
