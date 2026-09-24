@@ -40,13 +40,19 @@ export default async function SafetySharePage({ params }: { params: Promise<{ to
     const words =
       view.state === "expired"
         ? { title: copy.expiredTitle, body: copy.expiredBody }
-        : view.state === "failed"
-          ? { title: copy.failedTitle, body: copy.failedBody }
-          : { title: copy.unknownTitle, body: copy.unknownBody };
+        : view.state === "cancelled"
+          ? { title: copy.cancelledTitle, body: copy.cancelledBody }
+          : view.state === "moved"
+            ? { title: copy.movedTitle, body: copy.movedBody }
+            : view.state === "stopped"
+              ? { title: copy.stoppedTitle, body: copy.stoppedBody }
+              : view.state === "failed"
+                ? { title: copy.failedTitle, body: copy.failedBody }
+                : { title: copy.unknownTitle, body: copy.unknownBody };
     return (
       <Frame>
         <ResultScreen
-          state={view.state === "failed" ? "failed" : view.state === "expired" ? "expired" : "pending"}
+          state={view.state === "failed" ? "failed" : view.state === "unknown" ? "pending" : "expired"}
           verdict={words.title}
           consequence={words.body}
           data-testid={`safety-${view.state}`}

@@ -22,9 +22,12 @@ describe("readSafetyShare", () => {
     expect(JSON.stringify(view)).not.toContain("Secret");
   });
 
-  it("falls back to the city, and to failed on anything unreadable", () => {
-    const view = readSafetyShare({ state: "live", area: " ", city: "Lagos" });
-    expect(view.state === "live" && view.area).toBe("Lagos");
+  it("never falls back to a city, and is failed on anything unreadable", () => {
+    const view = readSafetyShare({ state: "live", area: " ", city: "Plot 5 Bourdillon Road" });
+    expect(view.state === "live" && view.area).toBeNull();
+    expect(readSafetyShare({ state: "cancelled" }).state).toBe("cancelled");
+    expect(readSafetyShare({ state: "moved" }).state).toBe("moved");
+    expect(readSafetyShare({ state: "stopped" }).state).toBe("stopped");
     expect(readSafetyShare(null).state).toBe("failed");
     expect(readSafetyShare({ state: "something" }).state).toBe("failed");
     expect(readSafetyShare({ state: "unknown" }).state).toBe("unknown");
@@ -54,6 +57,11 @@ describe("shareableInspections", () => {
     expect(shareableInspections([row({})], now)).toHaveLength(1);
     expect(shareableInspections([row({ slotAt: "2026-09-24T09:00:00Z" })], now)).toHaveLength(1);
     expect(shareableInspections([row({ slotAt: "2026-09-24T07:00:00Z" })], now)).toHaveLength(0);
+  });
+
+  it("is not offered more than 24 hours ahead", () => {
+    expect(shareableInspections([row({ slotAt: "2026-09-25T12:00:00Z" })], now)).toHaveLength(1);
+    expect(shareableInspections([row({ slotAt: "2026-09-25T12:30:00Z" })], now)).toHaveLength(0);
   });
 
   it("never offers the lister's side, an unconfirmed one, or one with no time", () => {

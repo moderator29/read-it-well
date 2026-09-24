@@ -66,13 +66,16 @@ export async function readMySafetyShares(
     const { data, error } = await (db.from("inspection_safety_shares" as never) as unknown as {
       select: (cols: string) => {
         in: (col: string, values: readonly string[]) => {
-          is: (col: string, value: null) => PromiseLike<{ data: { inspection_id?: unknown; checked_in_at?: unknown }[] | null; error: unknown }>;
+          is: (col: string, value: null) => {
+            is: (col: string, value: null) => PromiseLike<{ data: { inspection_id?: unknown; checked_in_at?: unknown }[] | null; error: unknown }>;
+          };
         };
       };
     })
       .select("inspection_id, checked_in_at")
       .in("inspection_id", inspectionIds.slice(0, 100))
-      .is("revoked_at", null);
+      .is("revoked_at", null)
+      .is("stopped_at", null);
     if (error || !Array.isArray(data)) return {};
     const out: Record<string, { checkedIn: boolean }> = {};
     for (const row of data) {

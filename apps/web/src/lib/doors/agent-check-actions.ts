@@ -13,11 +13,11 @@ import { readCheckQuery, readCheckResult, type CheckResult } from "./agent-check
  * V-61. THE CHECK, AND THE LIMIT THAT KEEPS IT FROM BEING A PHONE BOOK.
  *
  * `public.agent_lookup` is callable by the service role only, so this action
- * is the one door to it, and it spends two limits before every lookup: ten an
- * hour from one address, and three thousand an hour across the platform. The
- * second is the one that matters against somebody with many addresses: a
- * lookup open to the world is otherwise ninety million guesses from a list of
- * every registered number. Both limits refuse in words and record nothing.
+ * is the one door to it. A code lookup spends a per-address allowance only. A
+ * number lookup spends a per-address allowance and, when it misses, a
+ * platform-wide budget of three thousand misses an hour, so the number space
+ * cannot be walked from many addresses; number lookups fail closed when the
+ * limiter is down. Every limit refuses in words and records nothing.
  *
  * Signed out by design. A renter holding a flyer has no account yet.
  */
@@ -38,17 +38,39 @@ export async function checkAgent(
   if (!query) return ok({ state: "unreadable" });
 
   const ip = ipFromHeaders(await headers());
-  const perAddress = await consume({ bucket: "agent_check", subject: subjectForIp(ip), limit: 10, windowSeconds: 3600 });
-  if (!perAddress.allowed) return ok({ state: "limited", retryIn: perAddress.retryIn });
-  const global = await consume({ bucket: "agent_check_global", subject: "platform", limit: 3000, windowSeconds: 3600 });
-  if (!global.allowed) return ok({ state: "limited", retryIn: global.retryIn });
-
   const admin = getAdminClient();
   if (!admin) return fail(FAILED);
+
+  if (query.kind === "code") {
+    /* A code names one agent and proves only that the code exists, so it is
+       no phone book: per address only, with room for a busy shared address. */
+    const perAddress = await consume({ bucket: "agent_check_code", subject: subjectForIp(ip), limit: 60, windowSeconds: 3600 });
+    if (!perAddress.allowed) return ok({ state: "limited", retryIn: perAddress.retryIn });
+    const { data, error } = await callLandlordRpc(admin, "agent_lookup", { p_query: query.value });
+    if (error) return fail(FAILED);
+    const result = readCheckResult(data, query);
+    return result ? ok({ state: "result", query: query.value, result }) : fail(FAILED);
+  }
+
+  /* A NUMBER. Enumerating numbers is what the limits exist for, so here they
+     fail CLOSED: if the limiter cannot answer, nothing is looked up. A hit
+     costs only the address's allowance (generous, for addresses shared by a
+     whole network); a miss also spends the platform-wide budget, so somebody
+     with many addresses cannot walk the number space, and nobody can exhaust
+     the budget for everyone else by looking up real agents. */
+  const perAddress = await consume({ bucket: "agent_check_phone", subject: subjectForIp(ip), limit: 30, windowSeconds: 3600 });
+  if (!perAddress.allowed) return ok({ state: "limited", retryIn: perAddress.retryIn });
+  if (perAddress.degraded) return fail(FAILED);
+
   const { data, error } = await callLandlordRpc(admin, "agent_lookup", { p_query: query.value });
   if (error) return fail(FAILED);
   const result = readCheckResult(data, query);
   if (!result) return fail(FAILED);
+  if (!result.found) {
+    const misses = await consume({ bucket: "agent_check_phone_miss", subject: "platform", limit: 3000, windowSeconds: 3600 });
+    if (!misses.allowed) return ok({ state: "limited", retryIn: misses.retryIn });
+    if (misses.degraded) return fail(FAILED);
+  }
   return ok({ state: "result", query: query.value, result });
 }
 

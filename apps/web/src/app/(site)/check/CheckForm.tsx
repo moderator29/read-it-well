@@ -64,32 +64,49 @@ function Answer({ outcome, copy, locale }: { outcome: CheckOutcome; copy: CheckC
   const result = outcome.result;
   if (!result.found) {
     return (
-      <div className="rounded-[var(--nf-container-radius)] border border-[color-mix(in_oklab,var(--nf-state-error)_45%,transparent)] p-md" data-testid="check-no">
-        <p className="flex items-center gap-xs font-semibold text-[var(--nf-state-error)]">
-          <UiIcon name="shield-stop" size={20} className="shrink-0" />
+      <div className="rounded-[var(--nf-container-radius)] border border-[var(--nf-border-subtle)] p-md" data-testid="check-no">
+        <p className="flex items-center gap-xs font-semibold text-[var(--nf-content-primary)]">
+          <UiIcon name="info" size={20} className="shrink-0" />
           {result.kind === "code" ? copy.noCodeTitle : copy.noTitle}
         </p>
-        <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">{copy.noBody}</p>
+        <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
+          {result.kind === "code" ? copy.noCodeBody : copy.noBody}
+        </p>
       </div>
     );
   }
+  /* THE CLAIMS RULE. A code proves only that the code exists: a scammer can
+     quote a real agent's code. So a code answer names the owner of the code
+     and says to message them on Vallo; no badge unless an identity document
+     was actually checked, and no sentence at all when it was not. */
   const checked = result.identityCheckedAt
     ? copy.yesIdentity.replace(
         "{date}",
         formatDate(new Date(result.identityCheckedAt), locale, { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Lagos" }),
       )
-    : copy.yesNoIdentity;
+    : null;
+  const title =
+    result.kind === "code"
+      ? (result.displayName ? copy.codeTitle.replace("{name}", result.displayName) : copy.codeTitleNoName).replace("{code}", result.code ?? "")
+      : result.displayName
+        ? copy.yesTitle.replace("{name}", result.displayName)
+        : copy.yesTitleNoName;
   return (
-    <div className="rounded-[var(--nf-container-radius)] border border-[color-mix(in_oklab,var(--nf-state-success)_45%,transparent)] p-md" data-testid="check-yes">
-      <p className="flex items-center gap-xs font-semibold text-[var(--nf-state-success)]">
-        <UiIcon name="verified-badge" size={20} className="shrink-0" />
-        {result.displayName ? copy.yesTitle.replace("{name}", result.displayName) : copy.yesTitleNoName}
+    <div className="rounded-[var(--nf-container-radius)] border border-[var(--nf-border-subtle)] p-md" data-testid="check-yes">
+      <p className="flex items-center gap-xs font-semibold text-[var(--nf-content-primary)]">
+        {checked && <UiIcon name="verified-badge" size={20} className="shrink-0 text-[var(--nf-state-success)]" />}
+        {title}
       </p>
-      <p className="mt-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
-        {[result.role ? copy.yesRole[result.role] : null, result.code].filter(Boolean).join(" · ")}
+      {result.role && (
+        <p className="mt-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">{copy.yesRole[result.role]}</p>
+      )}
+      {result.kind === "code" && result.hint && (
+        <p className="mt-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">{copy.codeHint.replace("{hint}", result.hint)}</p>
+      )}
+      {checked && <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">{checked}</p>}
+      <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
+        {result.kind === "code" ? copy.codeCheck : copy.yesWhy}
       </p>
-      <p className="mt-xs text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">{checked}</p>
-      <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">{copy.yesWhy}</p>
       {result.handle && (
         <ButtonLink href={`/u/${encodeURIComponent(result.handle)}`} variant="secondary" size="md" full className="mt-sm">
           {copy.yesTalk}

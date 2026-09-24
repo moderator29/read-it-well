@@ -13,6 +13,9 @@
 export type SafetyShareView =
   | { state: "unknown" }
   | { state: "expired" }
+  | { state: "cancelled" }
+  | { state: "moved" }
+  | { state: "stopped" }
   | { state: "failed" }
   | {
       state: "live";
@@ -36,11 +39,16 @@ export function readSafetyShare(data: unknown): SafetyShareView {
   const row = data as Record<string, unknown>;
   if (row.state === "unknown") return { state: "unknown" };
   if (row.state === "expired") return { state: "expired" };
+  if (row.state === "cancelled") return { state: "cancelled" };
+  if (row.state === "moved") return { state: "moved" };
+  if (row.state === "stopped") return { state: "stopped" };
   if (row.state !== "live") return { state: "failed" };
   return {
     state: "live",
     firstName: text(row.first_name),
-    area: text(row.area) ?? text(row.city),
+    /* The place from the closed list, else the state, built in the database.
+       Never a city: that is free text a lister types. */
+    area: text(row.area),
     agentName: text(row.agent_name),
     identityCheckedAt: text(row.identity_checked_at),
     slotAt: text(row.slot_at),
@@ -59,14 +67,15 @@ type Shareable = { id: string; state: string; slotAt: string | null; side: "requ
 
 /**
  * Which of a person's inspections can be shared: their own confirmed ones,
- * with a time, from now until four hours after the slot (when the page itself
- * closes). The database refuses anything else; this only decides what to draw.
+ * with a time, from 24 hours before the slot until four hours after it (when
+ * the page itself closes). The database refuses anything else; this only
+ * decides what to draw.
  */
 export function shareableInspections<T extends Shareable>(rows: readonly T[], nowMs: number = Date.now()): T[] {
   return rows.filter((row) => {
     if (row.side !== "requester" || row.state !== "CONFIRMED" || !row.slotAt) return false;
     const slot = Date.parse(row.slotAt);
     if (Number.isNaN(slot)) return false;
-    return slot + 4 * 3600_000 > nowMs && slot - 7 * 24 * 3600_000 < nowMs;
+    return slot + 4 * 3600_000 > nowMs && slot - 24 * 3600_000 <= nowMs;
   });
 }

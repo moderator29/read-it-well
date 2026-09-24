@@ -38,6 +38,8 @@ export type CheckResult =
       displayName: string | null;
       role: "agent" | "owner" | "firm" | null;
       code: string | null;
+      /** Last three digits of the registered number, on a code answer only. */
+      hint: string | null;
       identityCheckedAt: string | null;
       handle: string | null;
     }
@@ -58,6 +60,7 @@ export function readCheckResult(raw: unknown, asked: CheckQuery): CheckResult | 
     displayName: str(row.display_name),
     role: role === "agent" || role === "owner" || role === "firm" ? role : null,
     code: str(row.code),
+    hint: asked.kind === "code" && typeof row.hint === "string" && /^[0-9]{3}$/.test(row.hint) ? row.hint : null,
     identityCheckedAt: str(row.identity_checked_at),
     handle: str(row.handle),
   };
