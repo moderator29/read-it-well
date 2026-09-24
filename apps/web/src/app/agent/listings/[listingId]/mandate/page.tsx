@@ -83,7 +83,6 @@ export default async function ListingMandatePage({ params }: { params: Promise<{
   const m = read.mandate;
   const cur = read.current;
   const pending = m && m.status === "pending" ? m : null;
-  const todayIso = new Date(requestNow() + 3_600_000).toISOString().slice(0, 10);
   const graceOpen = requestNow() < Date.parse(`${MANDATE_GRACE_ENDS}T00:00:00+01:00`);
   return (
     <AgentShell t={t} locale={locale} active="/agent/listings" profile={profile}>
@@ -107,21 +106,21 @@ export default async function ListingMandatePage({ params }: { params: Promise<{
              ended. A renewal waits beside it and takes over once confirmed. */
           <>
             <p className="nf-body-sm" role="status" data-testid="mandate-renewal-due">
-              {(cur.expiresOn && cur.expiresOn < todayIso ? copy.renewEnded : copy.renewDue)
+              {(read.currentExpired ? copy.renewEnded : copy.renewDue)
                 .replace("{name}", cur.principalName)
                 .replace("{date}", cur.expiresOn ? day(cur.expiresOn) : "")}
             </p>
             {pending && (
               <p className="nf-body-sm" role="status" data-testid="mandate-renewal-waiting">
-                {copy.renewWaiting.replace("{name}", pending.principalName)}
+                {(read.currentExpired ? copy.renewWaitingEnded : copy.renewWaiting).replace("{name}", pending.principalName)}
               </p>
             )}
-            {m?.status === "rejected" && m.rejectionReason && (
-              <p className="nf-body-sm" role="alert" style={{ color: "var(--nf-state-error)" }}>
-                {copy.rejected.replace("{reason}", m.rejectionReason)}
+            {!pending && read.lastRefusal?.reason && (
+              <p className="nf-body-sm" role="alert" style={{ color: "var(--nf-state-error)" }} data-testid="mandate-renewal-refused">
+                {copy.rejected.replace("{reason}", read.lastRefusal.reason)}
               </p>
             )}
-            <MandateForm listingId={listingId} copy={copy} initial={pending} template={cur} renewing />
+            <MandateForm listingId={listingId} copy={copy} initial={pending} template={cur} renewing today={read.today} />
           </>
         ) : m?.status === "approved" ? (
           <p className="nf-body-sm" role="status" data-testid="mandate-approved">
@@ -139,7 +138,7 @@ export default async function ListingMandatePage({ params }: { params: Promise<{
                 {copy.rejected.replace("{reason}", m.rejectionReason ?? "")}
               </p>
             )}
-            <MandateForm listingId={listingId} copy={copy} initial={m && m.status === "pending" ? m : null} />
+            <MandateForm listingId={listingId} copy={copy} initial={m && m.status === "pending" ? m : null} today={read.today} />
           </>
         )}
       </div>

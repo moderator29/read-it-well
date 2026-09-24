@@ -22,6 +22,7 @@
  * anyone posting straight at the endpoint.
  */
 
+import { LISTING_KEPT_MESSAGE, isMandateRetentionRefusal } from "../compliance/beneficial-ownership";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { hashListingPhotos } from "../photo-hash/hash-server";
@@ -1287,6 +1288,8 @@ export async function deleteListing(input: {
     .delete()
     .eq("id", listing.id)
     .eq("agent_id", gate.agentId);
+  /* SCUML item 17: a listing that has been live, or had a mandate approved, keeps its record. */
+  if (isMandateRetentionRefusal(error)) return fail(LISTING_KEPT_MESSAGE);
   if (error) return fail("We could not delete this draft just now. Please try again.");
 
   const paths = (photos ?? []).map((p) => p.storage_path);

@@ -204,6 +204,8 @@ export default async function AdminListingsPage({
             today={lagosToday()}
             decideFor={(row) => <MandateDecision mandateId={row.id} copy={t.complianceBeneficialOwnership} />}
             consentFor={(row) => {
+              /* SCUML item 17: a superseded mandate is history; consent is recorded on the current one. */
+              if (row.supersededAt) return null;
               const consent = consents?.get(row.id) ?? null;
               return (
                 <MandateConsent

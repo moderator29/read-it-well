@@ -24,6 +24,7 @@ async function BeneficialOwnership({ t, locale, params }: ComplianceLaneProps) {
   const copy = t.complianceBeneficialOwnership.lane;
   const desk = await readBeneficialOwnershipDesk();
   const acting = readActingForParams(params, "transaction");
+  const graceOpen = desk?.graceEnds ? requestNow() < Date.parse(desk.graceEnds) : true;
   const day = (iso: string) =>
     formatDate(new Date(iso), locale, { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" });
 
@@ -37,12 +38,13 @@ async function BeneficialOwnership({ t, locale, params }: ComplianceLaneProps) {
         </p>
       ) : (
         <>
-          <dl className="grid grid-cols-2 gap-sm sm:grid-cols-5" data-testid="bo-counts">
+          <dl className="grid grid-cols-2 gap-sm sm:grid-cols-6" data-testid="bo-counts">
             {(
               [
                 ["live", desk.counts.liveIntermediary],
                 ["withMandate", desk.counts.liveWithMandate],
                 ["withoutMandate", desk.counts.liveWithoutMandate],
+                ["awaiting", desk.counts.awaitingDecision],
                 ["takenDown", desk.counts.takenDown],
                 ["waiting", desk.counts.mandatesWaiting],
               ] as const
@@ -55,7 +57,7 @@ async function BeneficialOwnership({ t, locale, params }: ComplianceLaneProps) {
           </dl>
           {desk.graceEnds && (
             <p className="nf-caption">
-              {fill(requestNow() < Date.parse(desk.graceEnds) ? copy.grace : copy.graceOver, { date: day(desk.graceEnds) })}
+              {fill(graceOpen ? copy.grace : copy.graceOver, { date: day(desk.graceEnds) })}
             </p>
           )}
 
@@ -63,6 +65,11 @@ async function BeneficialOwnership({ t, locale, params }: ComplianceLaneProps) {
             <h3 className="nf-h4" id="bo-needs">
               {copy.needsTitle}
             </h3>
+            {desk.counts.awaitingDecision > 0 && (
+              <p className="nf-caption mt-xs" data-testid="bo-awaiting">
+                {fill(copy.awaitingNote, { count: desk.counts.awaitingDecision })}
+              </p>
+            )}
             {desk.needs.length === 0 ? (
               <p className="nf-body-sm mt-xs" data-testid="bo-empty">
                 {copy.needsEmpty}
@@ -81,7 +88,7 @@ async function BeneficialOwnership({ t, locale, params }: ComplianceLaneProps) {
                       {row.agentName ? <span className="text-[var(--nf-content-secondary)]"> · {row.agentName}</span> : null}
                     </span>
                     <span className="text-[var(--nf-content-secondary)]">
-                      {row.status === "PUBLISHED" ? copy.live : row.since ? fill(copy.takenDownSince, { date: day(row.since) }) : row.status}
+                      {row.status === "PUBLISHED" ? (graceOpen ? copy.live : copy.liveAfterGrace) : row.since ? fill(copy.takenDownSince, { date: day(row.since) }) : row.status}
                       {" · "}
                       {copy.lastMandate[row.lastMandate ?? "none"]}
                     </span>

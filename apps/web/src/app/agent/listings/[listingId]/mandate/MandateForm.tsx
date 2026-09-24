@@ -19,6 +19,7 @@ export function MandateForm({
   initial,
   template = null,
   renewing = false,
+  today = null,
 }: {
   listingId: string;
   copy: Copy;
@@ -27,6 +28,8 @@ export function MandateForm({
   /** The mandate being renewed: its principal is filled in, its dates are not. */
   template?: MyMandate | null;
   renewing?: boolean;
+  /** The Lagos date, from the database: an end date before it is refused. */
+  today?: string | null;
 }) {
   const seed = initial ?? template;
   const [kind, setKind] = useState<string>(seed?.kind ?? "letting");
@@ -147,7 +150,7 @@ export function MandateForm({
       <label className="nf-label" htmlFor="mandate-expires">
         {copy.expiresOn}
       </label>
-      <input id="mandate-expires" className="nf-field" type="date" value={expiresOn} onChange={(e) => setExpiresOn(e.target.value)} />
+      <input id="mandate-expires" className="nf-field" type="date" min={today ?? undefined} value={expiresOn} onChange={(e) => setExpiresOn(e.target.value)} />
       {error && (
         <p role="alert" className="nf-body-sm" style={{ color: "var(--nf-state-error)" }}>
           {error}

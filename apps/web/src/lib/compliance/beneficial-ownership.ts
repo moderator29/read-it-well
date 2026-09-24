@@ -27,18 +27,20 @@ export type Relationship = (typeof RELATIONSHIPS)[number];
 export const VERIFIED_HOW = ["call_back", "in_person", "video_call", "document"] as const;
 export type VerifiedHow = (typeof VERIFIED_HOW)[number];
 
-/** No NIN kind on purpose: a NIN is never stored here. */
+/**
+ * No NIN, and no national ID card either: the card carries the NIN, so its
+ * reference would be one (20260924171200).
+ */
 export const ID_DOCUMENT_KINDS = [
   "international_passport",
   "drivers_licence",
   "voters_card",
-  "national_id_card",
   "cac_certificate",
   "other",
 ] as const;
 export type IdDocumentKind = (typeof ID_DOCUMENT_KINDS)[number];
 
-export const ACTING_FOR_KINDS = ["listing", "booking", "transaction", "rent_payment"] as const;
+export const ACTING_FOR_KINDS = ["listing", "booking", "transaction", "rent_payment", "escrow"] as const;
 export type ActingForKind = (typeof ACTING_FOR_KINDS)[number];
 
 /** The day listings already live must have a mandate by (Lagos). */
@@ -54,12 +56,15 @@ export const isMandateKind = (v: unknown): v is MandateKind => includes(MANDATE_
 export const isActingForKind = (v: unknown): v is ActingForKind => includes(ACTING_FOR_KINDS, v);
 
 /**
- * NEVER A RAW NIN. A NIN and a BVN are both eleven digits; the database
- * refuses one written with spaces, dashes, dots or slashes, and so does this,
- * before the form is sent.
+ * NEVER A NIN. A NIN and a BVN are both eleven digits. The same rule as the
+ * database's `listing_mandates_id_ref_is_never_a_nin`: anything that is not
+ * plain ASCII is refused (so digits from another script cannot slip past),
+ * and so is any run of eleven or more digits once everything that is not a
+ * letter or a digit is stripped.
  */
 export function looksLikeNin(ref: string): boolean {
-  return /^[0-9]{11}$/.test(ref.replace(/[\s\-./]/g, ""));
+  if (/[^\x20-\x7E]/.test(ref)) return true;
+  return /[0-9]{11}/.test(ref.replace(/[^A-Za-z0-9]/g, ""));
 }
 
 /** The publish gate's refusal (23514), so a reviewer reads why and not "service down". */
@@ -68,6 +73,16 @@ export function isMandateRefusal(error: unknown): boolean {
   const e = error as { code?: unknown; message?: unknown };
   return e.code === "23514" && typeof e.message === "string" && /SCUML item 17/.test(e.message);
 }
+
+/** A delete the five-year rule refused (42501, SCUML item 17). */
+export function isMandateRetentionRefusal(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as { code?: unknown; message?: unknown };
+  return e.code === "42501" && typeof e.message === "string" && /SCUML item 17/.test(e.message);
+}
+
+export const LISTING_KEPT_MESSAGE =
+  "This listing cannot be deleted: it has been live, or the owner's mandate for it was approved, so we keep its record for five years after it closes. Take it down instead.";
 
 export const MANDATE_NEEDED_MESSAGE =
   "This agent listing cannot go live yet: it needs an approved mandate naming the owner it is let for. Approve the mandate on the listings desk first (SCUML item 17).";
@@ -94,13 +109,14 @@ export type MandateFormValue = {
   expiresOn: string | null;
 };
 
-export type MandateFormField = "kind" | "principalName" | "principalPhone" | "relationship" | "dates";
+export type MandateFormField = "kind" | "principalName" | "principalPhone" | "relationship" | "dates" | "endsInThePast";
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
-/** The lister's form, checked the way the database will check it. */
+/** The lister's form, checked the way the database will check it. `today` is the Lagos date. */
 export function readMandateForm(
   input: MandateFormInput,
+  today: string,
 ): { ok: true; value: MandateFormValue } | { ok: false; field: MandateFormField } {
   if (!isMandateKind(input.kind)) return { ok: false, field: "kind" };
   const name = input.principalName.trim();
@@ -113,6 +129,7 @@ export function readMandateForm(
   const expiresOn = input.expiresOn.trim() || null;
   if ((signedOn && !DAY.test(signedOn)) || (expiresOn && !DAY.test(expiresOn))) return { ok: false, field: "dates" };
   if (signedOn && expiresOn && expiresOn < signedOn) return { ok: false, field: "dates" };
+  if (expiresOn && expiresOn < today) return { ok: false, field: "endsInThePast" };
   return {
     ok: true,
     value: {
@@ -158,6 +175,12 @@ export type MyMandateRead =
       current: MyMandate | null;
       /** Within 30 days of the current mandate's end, or past it: a renewal may be filed. */
       renewalOpen: boolean;
+      /** The current mandate's end date has passed. */
+      currentExpired: boolean;
+      /** The Lagos date the database read this on. */
+      today: string | null;
+      /** A refusal since the current mandate (a refused renewal), with the reason the lister reads. */
+      lastRefusal: { reason: string | null; reviewedAt: string | null } | null;
     };
 
 const str = (v: unknown): string | null => (typeof v === "string" && v.length > 0 ? v : null);
@@ -183,6 +206,15 @@ export function readMyMandate(data: unknown): MyMandateRead {
     mandate,
     current,
     renewalOpen: d.renewal_open === true,
+    currentExpired: d.current_expired === true,
+    today: str(d.today),
+    lastRefusal:
+      d.last_refusal && typeof d.last_refusal === "object"
+        ? {
+            reason: str((d.last_refusal as Record<string, unknown>).reason),
+            reviewedAt: str((d.last_refusal as Record<string, unknown>).reviewed_at),
+          }
+        : null,
   };
 }
 
@@ -231,14 +263,19 @@ export type ActingForMandate = {
   hasDocument: boolean;
   /** When an approved replacement took over; the record is kept. */
   supersededAt: string | null;
+  /** In force at the moment of the record looked up (its created_at). */
+  inForce: boolean;
   retainedUntil: string | null;
 };
 
 export type ActingFor =
   | { state: "failed" }
+  | { state: "not_found" }
   | { state: "no_listing" }
   | {
       state: "ok";
+      /** The moment the answer is for: the record's own created_at, or now for a listing. */
+      asOf: string | null;
       /** themselves: an owner listing. principal: an approved, current mandate. */
       acting: "themselves" | "principal" | "unconfirmed" | "example";
       listing: {
@@ -258,6 +295,7 @@ export function readActingFor(data: unknown): ActingFor {
   if (!data || typeof data !== "object") return { state: "failed" };
   const d = data as Record<string, unknown>;
   if (d.state === "no_listing") return { state: "no_listing" };
+  if (d.state === "not_found") return { state: "not_found" };
   if (d.state !== "ok") return { state: "failed" };
   const acting =
     d.acting === "themselves" || d.acting === "principal" || d.acting === "unconfirmed" || d.acting === "example"
@@ -293,11 +331,13 @@ export function readActingFor(data: unknown): ActingFor {
       idDocumentRef: str(m.id_document_ref),
       hasDocument: m.has_document === true,
       supersededAt: str(m.superseded_at),
+      inForce: m.in_force === true,
       retainedUntil: str(m.retained_until),
     });
   }
   return {
     state: "ok",
+    asOf: str(d.as_of),
     acting,
     listing: {
       id: l.id,
@@ -320,6 +360,8 @@ export type OwnershipDesk = {
     liveIntermediary: number;
     liveWithMandate: number;
     liveWithoutMandate: number;
+    /** Live without a current mandate, with one filed and waiting for us. */
+    awaitingDecision: number;
     takenDown: number;
     mandatesWaiting: number;
   };
@@ -346,6 +388,7 @@ export function readOwnershipDesk(data: unknown): OwnershipDesk | null {
     liveIntermediary: count(c.live_intermediary),
     liveWithMandate: count(c.live_with_mandate),
     liveWithoutMandate: count(c.live_without_mandate),
+    awaitingDecision: count(c.awaiting_decision),
     takenDown: count(c.taken_down),
     mandatesWaiting: count(c.mandates_waiting),
   };

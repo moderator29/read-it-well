@@ -6,6 +6,7 @@ import { fail, ok, type ActionResult } from "../actions/envelope";
 import { adminRefusal, requireAdmin } from "../admin/guard";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
+import { lagosToday } from "../bookings/schema";
 import {
   isIdDocumentKind,
   isRelationship,
@@ -35,6 +36,7 @@ const FIELD_MESSAGE: Record<MandateFormField, string> = {
   principalPhone: "Write a Nigerian mobile number we can ring, or leave it empty.",
   relationship: "Say how this person stands to the property.",
   dates: "The end date cannot be before the signing date.",
+  endsInThePast: "The end date has already passed. Give the date the owner's new instruction ends, or leave it empty.",
 };
 
 export async function fileListingMandate(input: {
@@ -42,7 +44,7 @@ export async function fileListingMandate(input: {
   form: MandateFormInput;
 }): Promise<ActionResult<{ state: string }>> {
   if (!UUID.test(input.listingId)) return fail(FAILED);
-  const read = readMandateForm(input.form);
+  const read = readMandateForm(input.form, lagosToday());
   if (!read.ok) return fail(FIELD_MESSAGE[read.field], { [read.field]: FIELD_MESSAGE[read.field] });
   if (!isSupabaseConfigured()) return fail(FAILED);
   try {
@@ -65,6 +67,8 @@ export async function fileListingMandate(input: {
     if (state === "owner") return fail("You listed this as the owner, so there is no mandate to file.");
     if (state === "example") return fail("This is an example listing, so it needs no mandate.");
     if (state === "closed") return fail("This listing is closed, so there is nothing to file.");
+    if (state === "ends_in_the_past") return fail(FIELD_MESSAGE.endsInThePast, { endsInThePast: FIELD_MESSAGE.endsInThePast });
+    if (state === "on_file") return fail("The owner's mandate is on file and has more than 30 days to run. You can renew it from 30 days before it ends.");
     revalidatePath(`/agent/listings/${input.listingId}/mandate`);
     revalidatePath("/agent/listings");
     return ok({ state });
@@ -115,6 +119,7 @@ export async function decideListingMandate(input: {
     const state = (data as { state?: unknown } | null)?.state;
     if (state === "gone") return fail("That mandate is no longer there. Refresh the desk.");
     if (state === "already") return fail("Someone has already decided this mandate. Refresh the desk.");
+    if (state === "ended") return fail("This mandate's end date has passed, so it cannot be approved. Refuse it and ask the lister to file a current one.");
     if (state !== "approved" && state !== "rejected") return fail(FAILED);
     revalidatePath("/admin/listings");
     revalidatePath("/admin/compliance");

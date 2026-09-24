@@ -39,6 +39,10 @@ export async function ActingFor({ kind, id, locale }: { kind: ActingForKind; id:
         <p className="nf-body-sm mt-xs" role="alert" style={{ color: "var(--nf-state-error)" }}>
           {copy.failed}
         </p>
+      ) : read.state === "not_found" ? (
+        <p className="nf-body-sm mt-xs" data-testid="acting-for-not-found">
+          {copy.notFound}
+        </p>
       ) : read.state === "no_listing" ? (
         <p className="nf-body-sm mt-xs">{copy.noListing}</p>
       ) : (
@@ -50,10 +54,13 @@ export async function ActingFor({ kind, id, locale }: { kind: ActingForKind; id:
                 ? copy.example
                 : read.acting === "principal"
                   ? fill(copy.principal, {
-                      name: read.mandates.find((m) => m.status === "approved")?.principalName ?? "",
+                      name: read.mandates.find((m) => m.inForce)?.principalName ?? "",
                     })
                   : copy.unconfirmed}
           </p>
+          {kind !== "listing" && read.asOf && (
+            <p className="nf-caption mt-2xs text-[var(--nf-content-muted)]">{fill(copy.asOf, { date: day(read.asOf) })}</p>
+          )}
           <p className="nf-body-sm mt-2xs text-[var(--nf-content-secondary)]">
             {copy.listing}:{" "}
             <Link className="text-[var(--nf-content-link)]" href={`/admin/listings/${read.listing.id}`}>
@@ -100,6 +107,7 @@ function MandateLine({ m, copy, day }: { m: ActingForMandate; copy: Copy; day: (
         {copy.principalLabel}: {m.principalName} (
         {m.principalPhoneLast4 ? fill(copy.phoneEnds, { last4: m.principalPhoneLast4 }) : copy.noPhone}) ·{" "}
         {copy.status[m.status]}
+        {m.inForce ? ` · ${copy.inForce}` : ""}
       </p>
       <p>
         {copy.relationship}: {m.relationship ? copy.relationships[m.relationship] : copy.notGiven} · {copy.kind}: {kind}
