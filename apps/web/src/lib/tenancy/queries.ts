@@ -87,6 +87,8 @@ export type TenancyFile = {
   title: string;
   area: string;
   listerName: string | null;
+  /** V-85: the tenant's first name and last initial, for their own letter. */
+  tenantName: string | null;
   moveIn: string;
   moveInLabel: string;
   endsOn: string;
@@ -462,6 +464,15 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
       unavailable: Boolean(offerRead.error || answerRead.error || exitRead.error),
     };
 
+    /* ---------------------------------------------------------- tenant name */
+    let tenantName: string | null = null;
+    if (viewer === "tenant") {
+      const { data: me } = await db.from("profiles").select("first_name, surname").eq("id", rp.tenant_id).maybeSingle();
+      const first = me?.first_name?.trim();
+      const initial = me?.surname?.trim()?.charAt(0);
+      tenantName = first ? `${first}${initial ? ` ${initial}.` : ""}` : null;
+    }
+
     /* ---------------------------------------------------------- flatmates */
     const contributorsRead = await loose.from("rent_payment_contributors").select("id, user_id, share_minor").eq("rent_payment_id", id).order("added_at");
     const contributorRows = contributorsRead.error ? [] : rows(contributorsRead.data);
@@ -504,6 +515,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         title: listing?.title?.trim() || "Your tenancy",
         area: [listing?.area, listing?.city].filter((part): part is string => Boolean(part)).join(", "),
         listerName,
+        tenantName,
         moveIn: rp.move_in,
         moveInLabel: day(rp.move_in),
         endsOn,

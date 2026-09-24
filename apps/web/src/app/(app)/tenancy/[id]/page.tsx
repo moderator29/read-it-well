@@ -3,6 +3,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getTenancyFile, type TenancyFile } from "@/lib/tenancy/queries";
 import { PageHeader } from "@/components/app/PageHeader";
+import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState, FactGrid, Section, Stack, TYPE } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { ROOM_COPY } from "@/lib/inspections/report";
@@ -104,6 +105,13 @@ export default async function TenancyPage({ params }: { params: Promise<{ id: st
           ))}
         </div>
       </Section>
+      {file.viewer === "tenant" && file.paid && (
+        <Section>
+          <ButtonLink href={`/tenancy/${file.id}/complaint`} variant="secondary" full trailingIcon="arrow-right">
+            {t.afterTheGate.complaint.open}
+          </ButtonLink>
+        </Section>
+      )}
       {file.pins.length > 0 && (
         <Section title={copy.pinsHeading} divided>
           <ul className="grid gap-sm">
