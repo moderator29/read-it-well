@@ -295,7 +295,7 @@ export function useSaveControl(
       setOverride(settled);
       say(settled ? "Saved" : "Removed");
     }
-  }, [listingId, pending, place, saved, say]);
+  }, [listingId, pending, place, saved, say, OUTBOX_COPY]);
 
   return { saved, note, pending, toggle };
 }

@@ -37,7 +37,6 @@ import { createClient } from "@/lib/supabase/client";
 import { getDictionary } from "@vallo/i18n";
 import { OUTBOX_SENT_EVENT, type OutboxSentDetail } from "@/lib/offline/outbox";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
-
 import {
   ProposeHeldPayment,
   type ThreadAgreement,

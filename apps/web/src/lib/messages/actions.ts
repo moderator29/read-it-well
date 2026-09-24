@@ -417,8 +417,13 @@ export async function sendMessage(input: {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
-  return oncePerTap("outbox.message", session.user.id, tapKey(input.tapKey), () =>
-    sendMessageWork(session, { conversationId: input.conversationId, body: input.body }),
+  /* Kept for replay: the id, the thread and the time, never the words. */
+  return oncePerTap(
+    "outbox.message",
+    session.user.id,
+    tapKey(input.tapKey),
+    () => sendMessageWork(session, { conversationId: input.conversationId, body: input.body }),
+    (sent) => ({ id: sent.id, conversationId: sent.conversationId, createdAt: sent.createdAt }),
   );
 }
 

@@ -6,7 +6,11 @@ import type { ActionResult } from "@/lib/actions/envelope";
 import { submitReview, type ReviewWritten } from "@/lib/reviews/actions";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
 import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
-
+import { BODY_MAX, RATING_LABELS, RATING_MAX, RATING_MIN } from "@/lib/reviews/schema";
+import type { ReviewSubject } from "@/lib/reviews/queries";
+import { UiIcon } from "@/design-system/icons/UiIcon";
+import { ResultScreen } from "@/components/app/ResultSheet";
+import { Button } from "@/components/ui/Button";
 
 /**
  * V-40: the review goes now, or, with no signal, is kept and sent when the
@@ -40,11 +44,6 @@ async function sendReview(
   if (done.state === "not_kept") return { ok: false, error: couldNotKeep };
   return done.result;
 }
-import { BODY_MAX, RATING_LABELS, RATING_MAX, RATING_MIN } from "@/lib/reviews/schema";
-import type { ReviewSubject } from "@/lib/reviews/queries";
-import { UiIcon } from "@/design-system/icons/UiIcon";
-import { ResultScreen } from "@/components/app/ResultSheet";
-import { Button } from "@/components/ui/Button";
 
 /**
  * The review form.
@@ -108,7 +107,7 @@ export function ReviewForm({
         mark="reviews"
         verdict={OUTBOX.reviewKeptVerdict}
         consequence={OUTBOX.waiting}
-        actions={[{ label: "See your stays", href: "/bookings", tone: "quiet" }]}
+        actions={[{ label: plansAction.label, href: plansAction.href, tone: "quiet" }]}
       />
     );
   }

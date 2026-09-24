@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { forgetPacksKeepQueue } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
-import { clearOutbox } from "@/lib/offline/outbox";
+import { clearOutbox, rememberedOutboxUser, sessionUserId } from "@/lib/offline/outbox";
 import { forgetWidget } from "@/lib/native/widget";
 import { clearAllInflight } from "@/lib/offline/inflight";
 
@@ -29,18 +28,17 @@ export function ForgetOnSignOut() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      let signedIn = false;
-      try {
-        const { data } = await createClient().auth.getSession();
-        signedIn = data.session !== null;
-      } catch {
-        signedIn = false;
-      }
-      if (cancelled || signedIn) return;
+      /* Before the session is asked (which forgets it on a clean "nobody"). */
+      const hadUser = rememberedOutboxUser() !== null;
+      /* V-40: an expired token with no signal is "could not tell", not a
+         sign-out: nothing is cleared until the session answers cleanly. */
+      const who = await sessionUserId();
+      if (cancelled || who !== null) return;
       await forgetPacksKeepQueue();
       await clearShelf();
-      /* V-40: another person's queued saves and payment notes go too. */
-      await clearOutbox();
+      /* V-40: somebody signed out on this phone, so their queued taps and
+         payment notes go. A guest who never signed in keeps their own saves. */
+      if (hadUser) await clearOutbox();
       await forgetWidget();
       clearAllInflight();
     })();

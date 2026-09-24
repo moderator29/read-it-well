@@ -5,7 +5,7 @@ import type { getDictionary } from "@vallo/i18n";
 import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 import { ResultSheet } from "@/components/app/ResultSheet";
 import { deviceSavesChanged } from "@/components/app/SaveControl";
-import { announceSent, currentUserId, due, forget, isCreate, readOutbox, reschedule, type OutboxEntry } from "@/lib/offline/outbox";
+import { announceSent, due, forget, isCreate, readOutbox, reschedule, sessionUserId, type OutboxEntry } from "@/lib/offline/outbox";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { sendMessage } from "@/lib/messages/actions";
 import { requestInspection } from "@/lib/inspections/actions";
@@ -129,10 +129,16 @@ export function OfflineTray() {
       /* 1. The outbox. */
       const refused: { what: WhatKey; reason: string }[] = [];
       let sentAny = false;
-      const me = await currentUserId();
+      /* Could not tell who is signed in (an expired token, no signal yet):
+         send nothing and try again on the next kick. */
+      const me = await sessionUserId();
+      if (me === undefined) return;
       for (const entry of due(await readOutbox(), Date.now())) {
-        /* Tapped by somebody else on this phone (or as a guest): never sent as me. */
+        /* Tapped under another account on this phone, as a guest, or before
+           entries carried an owner: never sent as me, and never dropped
+           without a word. It is named in the sheet. */
         if ((entry.userId ?? null) !== me) {
+          refused.push({ what: whatOf(entry), reason: copy.outbox.notYours });
           await forget(entry.key);
           continue;
         }

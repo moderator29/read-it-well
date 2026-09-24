@@ -10,7 +10,6 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";
 import { requestInspection } from "@/lib/inspections/actions";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
-
 import type { Inspection } from "@/lib/inspections/types";
 
 /**

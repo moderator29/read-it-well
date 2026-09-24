@@ -189,20 +189,63 @@ function changed(): void {
   for (const listener of listeners) listener();
 }
 
-/** The signed-in user on this phone, or null. */
-export async function currentUserId(): Promise<string | null> {
+/*
+ * WHO IS SIGNED IN, WITHOUT MISTAKING "OFFLINE" FOR "SIGNED OUT".
+ *
+ * After an hour offline the access token has expired and `getSession()`
+ * cannot refresh it, so it answers with an error and no session. That is not
+ * a sign-out. The last user the session CONFIRMED is remembered on this
+ * phone (`vallo.outbox.who`), set on every confirmed read and cleared only by
+ * a clean "no session" answer or by sign-out (`forgetOutboxUser`).
+ */
+const WHO = "vallo.outbox.who";
+
+export function rememberedOutboxUser(): string | null {
   try {
-    const { createClient } = await import("../supabase/client");
-    const { data } = await createClient().auth.getSession();
-    return data.session?.user.id ?? null;
+    return window.localStorage.getItem(WHO);
   } catch {
     return null;
   }
 }
 
+/** The session's answer: a user id, null for a clean "nobody", undefined for "could not tell". */
+export async function sessionUserId(): Promise<string | null | undefined> {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const { createClient } = await import("../supabase/client");
+    const { data, error } = await createClient().auth.getSession();
+    const id = data.session?.user.id ?? null;
+    if (id) {
+      try {
+        window.localStorage.setItem(WHO, id);
+      } catch {
+        /* Remembering is a convenience. */
+      }
+      return id;
+    }
+    if (error || (typeof navigator !== "undefined" && navigator.onLine === false)) return undefined;
+    forgetOutboxUser();
+    return null;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Sign-out: nobody is remembered any more. */
+export function forgetOutboxUser(): void {
+  try {
+    window.localStorage.removeItem(WHO);
+  } catch {
+    /* Nothing stored. */
+  }
+}
+
 /** Keep an intent, stamped with who tapped it. The latest tap on the same thing replaces the earlier one. */
 export async function enqueue(entry: OutboxEntry): Promise<boolean> {
-  const stamped = { ...entry, userId: await currentUserId() };
+  const now = await sessionUserId();
+  /* Offline with an expired token: the last user the session confirmed. */
+  const userId = now === undefined ? rememberedOutboxUser() : now;
+  const stamped = { ...entry, userId };
   const done = await run("readwrite", (s) => s.put(stamped, entry.key));
   changed();
   return done !== null;
@@ -234,6 +277,7 @@ export function announceSent(detail: OutboxSentDetail): void {
 }
 
 export async function clearOutbox(): Promise<void> {
+  forgetOutboxUser();
   await run("readwrite", (s) => s.clear());
   changed();
 }
