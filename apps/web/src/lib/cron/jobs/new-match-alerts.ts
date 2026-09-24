@@ -54,6 +54,22 @@ type Untyped = {
   };
 };
 
+type WalkTable = {
+  from: (table: "match_alert_walk" | "listing_match_queue") => {
+    select: (cols: string) => {
+      eq: (col: string, value: number) => {
+        maybeSingle: () => PromiseLike<{ data: unknown; error: { message: string } | null }>;
+      };
+    };
+    upsert: (rows: unknown[], opts: { onConflict: string }) => PromiseLike<{ error: { message: string } | null }>;
+    update: (row: Record<string, unknown>) => {
+      in: (col: string, values: string[]) => {
+        lte: (col: string, value: string) => PromiseLike<{ error: { message: string } | null }>;
+      };
+    };
+  };
+};
+
 export async function newMatchAlerts(admin: AdminClient): Promise<JobVerdict> {
   const now = Date.now();
   const stamp = new Date(now).toISOString();
@@ -86,10 +102,21 @@ export async function newMatchAlerts(admin: AdminClient): Promise<JobVerdict> {
   const overQuota = new Set(((capped as { user_id: string }[] | null) ?? []).map((row) => row.user_id));
 
   /* Every alerting search, paged BY ID so the walk always moves forward,
-     up to MAX_SEARCH_PAGES pages. A run that stops at the cap leaves the
-     queue open for the next one. */
+     up to MAX_SEARCH_PAGES pages, RESUMING where the last run stopped
+     (`match_alert_walk`, review V-15). A run that stops at the cap saves its
+     place and leaves the queue open; the run that reaches the end closes the
+     pass. */
+  const walkDb = admin as unknown as WalkTable;
+  const { data: walkRow, error: walkError } = await walkDb
+    .from("match_alert_walk")
+    .select("after_id, pass_started_at")
+    .eq("id", 1)
+    .maybeSingle();
+  if (walkError) throw new Error(`match_alert_walk: ${walkError.message}`);
+  const walk = (walkRow as { after_id: string | null; pass_started_at: string | null } | null) ?? null;
+  const passStartedAt = walk?.after_id ? (walk.pass_started_at ?? stamp) : stamp;
   const rows: Parameters<typeof subjectOf>[0][] = [];
-  let lastId: string | null = null;
+  let lastId: string | null = walk?.after_id ?? null;
   let moreSearches = false;
   for (let page = 0; ; page += 1) {
     if (page >= MAX_SEARCH_PAGES) {
@@ -206,8 +233,20 @@ export async function newMatchAlerts(admin: AdminClient): Promise<JobVerdict> {
      candidate fitted in one page; otherwise the next run repeats, which the
      watermarks make harmless. */
   const complete = !moreSearches && candidates.length < CANDIDATE_LIMIT;
+  const { error: walkWrite } = await walkDb
+    .from("match_alert_walk")
+    .upsert([{ id: 1, after_id: moreSearches ? lastId : null, pass_started_at: moreSearches ? passStartedAt : null, updated_at: stamp }], {
+      onConflict: "id",
+    });
+  if (walkWrite) console.warn(`[cron] new-match-alerts walk: ${walkWrite.message}`);
+  /* Only listings enqueued before this pass began have been seen by every
+     page of it. */
   const { error: doneError } = complete
-    ? await db.from("listing_match_queue").update({ processed_at: stamp }).in("listing_id", queueIds)
+    ? await walkDb
+        .from("listing_match_queue")
+        .update({ processed_at: stamp })
+        .in("listing_id", queueIds)
+        .lte("enqueued_at", passStartedAt)
     : { error: null };
 
   if (stuck || doneError) {
