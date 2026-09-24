@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getDictionary } from "@vallo/i18n";
 
-import { recallPreviewFrom, recallReason, recallSendFrom, willTell } from "./recall";
+import { recallPreviewFrom, recallReason, recallSendFrom, reportRef, willTell } from "./recall";
 
 const desk = getDictionary("en").trustVisible.desk;
 
@@ -42,6 +42,7 @@ describe("recalling a stop (V-60)", () => {
     expect(recallSendFrom({ status: "forbidden" }, desk)).toEqual({ ok: false, message: desk.recallForbidden });
     expect(recallSendFrom({ status: "sent" }, desk).ok).toBe(false);
     expect(recallSendFrom({ status: "no_upheld_report" }, desk)).toEqual({ ok: false, message: desk.recallNoReport });
+    expect(recallSendFrom({ status: "report_changed" }, desk)).toEqual({ ok: false, message: desk.recallReportChanged });
     expect(recallSendFrom(null, desk).ok).toBe(false);
   });
 
@@ -65,5 +66,22 @@ describe("recalling a stop (V-60)", () => {
     expect(panel.match(/sendRecall\(/g)?.length).toBe(1);
     expect(panel).toContain("onClick={send}");
     expect(panel.indexOf("willTell(preview.audience, desk)")).toBeLessThan(panel.indexOf("onClick={send}"));
+  });
+
+  it("names the report it rests on, and sends only on that report", () => {
+    expect(reportRef("1a2b3c4d-0000-4000-8000-000000000001")).toBe("1A2B3C4D");
+    expect(desk.recallReport).toContain("{ref}");
+    const root = join(__dirname, "..", "..");
+    const action = readFileSync(join(root, "lib/admin/recall-actions.ts"), "utf8");
+    expect(action).toContain("p_report: parsed.data.reportId");
+    const panel = readFileSync(join(root, "app/admin/stops/RecallPanel.tsx"), "utf8");
+    expect(panel).toContain("sendRecall({ suspensionId, reportId })");
+    expect(panel).toContain('data-testid="recall-report"');
+    const sql = readFileSync(
+      join(__dirname, "../../../../../supabase/migrations/20260924131300_v60_scam_exposure_recall.sql"),
+      "utf8",
+    );
+    expect(sql).toContain("if p_report is null or rc_report is distinct from p_report then");
+    expect(sql).toContain("order by t.uid, (t.conversation_id is not null) desc, t.at desc;");
   });
 });

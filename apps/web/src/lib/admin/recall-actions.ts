@@ -21,7 +21,7 @@ const desk = getDictionary("en").trustVisible.desk;
 type RpcCaller = { rpc(fn: string, args: Record<string, unknown>): Promise<{ data: unknown; error: unknown }> };
 
 const previewSchema = z.object({ suspensionId: z.string().uuid() });
-const sendSchema = z.object({ suspensionId: z.string().uuid() });
+const sendSchema = z.object({ suspensionId: z.string().uuid(), reportId: z.string().uuid() });
 
 export async function previewRecall(input: unknown): Promise<ActionResult<RecallPreview>> {
   const access = await requireAdmin();
@@ -44,6 +44,9 @@ export async function sendRecall(input: unknown): Promise<ActionResult<{ recipie
      every recipient reads are these, from the dictionary. */
   const { data, error } = await (access.supabase as unknown as RpcCaller).rpc("scam_recall_send", {
     p_suspension: parsed.data.suspensionId,
+    /* The report the desk was shown; the database refuses if the stop now
+       rests on another. */
+    p_report: parsed.data.reportId,
     p_title: desk.recallTitle2,
     p_body_about: desk.recallBodyAbout,
     p_body_plain: desk.recallBodyPlain,

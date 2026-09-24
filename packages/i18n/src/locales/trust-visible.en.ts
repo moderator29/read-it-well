@@ -332,7 +332,9 @@ export const trustVisibleEn = {
     recallBodyPlain: "An account you arranged a viewing with, about {listing}, was stopped by Vallo {reason}. If you paid them anything, tell us now.",
     recallListingFallback: "a place on Vallo",
     /** `{date}` is when the upheld report behind this stop was resolved. */
-    recallReport: "It rests on the report upheld on {date}.",
+    /** `{ref}` is the report's short reference, `{date}` when it was upheld. */
+    recallReport: "It rests on report {ref}, upheld on {date}.",
+    recallReportChanged: "The report behind this stop has changed since you counted. Nothing was sent. Count again.",
     recallReasonPay: "for asking people to pay outside Vallo",
     recallReasonRules: "for breaking Vallo's safety rules",
     recallAlready: "This stop has already been recalled. Nobody is told twice.",

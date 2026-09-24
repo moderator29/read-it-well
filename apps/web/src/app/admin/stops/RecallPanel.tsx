@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { getDictionary } from "@vallo/i18n";
 import { previewRecall, sendRecall } from "@/lib/admin/recall-actions";
+import { reportRef } from "@/lib/admin/recall";
 import { recallReason, willTell, type RecallPreview } from "@/lib/admin/recall";
 
 /**
@@ -40,7 +41,10 @@ export function RecallPanel({ suspensionId }: { suspensionId: string }) {
   function send() {
     setMessage(null);
     startTransition(async () => {
-      const result = await sendRecall({ suspensionId });
+      /* The report the desk was shown: the database sends only on it. */
+      const reportId = preview?.report?.id;
+      if (!reportId) return;
+      const result = await sendRecall({ suspensionId, reportId });
       if (result.ok) {
         const today = day(new Date().toISOString());
         setMessage({
@@ -82,12 +86,21 @@ export function RecallPanel({ suspensionId }: { suspensionId: string }) {
             <>
               <p className="nf-body-sm text-[var(--nf-content-secondary)]">
                 {desk.recallBecause.replace("{reason}", recallReason(preview.category, desk))}
-                {preview.report ? ` ${desk.recallReport.replace("{date}", day(preview.report.resolvedAt))}` : ""}
+                {preview.report ? (
+                  <>
+                    {" "}
+                    <span data-testid="recall-report">
+                      {desk.recallReport
+                        .replace("{ref}", reportRef(preview.report.id))
+                        .replace("{date}", day(preview.report.resolvedAt))}
+                    </span>
+                  </>
+                ) : null}
               </p>
               <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]" data-testid="recall-count">
                 {willTell(preview.audience, desk)}
               </p>
-              {preview.audience > 0 && (
+              {preview.audience > 0 && preview.report && (
                 <button type="button" onClick={send} disabled={pending} className="nf-btn nf-btn--danger nf-btn--sm">
                   {pending ? desk.recallSending : desk.recallConfirm}
                 </button>

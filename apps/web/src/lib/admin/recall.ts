@@ -44,6 +44,7 @@ export function recallSendFrom(
   if (status === "lifted") return { ok: false, message: desk.recallLifted };
   if (status === "already") return { ok: false, message: desk.recallAlready };
   if (status === "no_upheld_report") return { ok: false, message: desk.recallNoReport };
+  if (status === "report_changed") return { ok: false, message: desk.recallReportChanged };
   return { ok: false, message: desk.recallFailed };
 }
 
@@ -56,4 +57,12 @@ export function willTell(audience: number, desk: Dictionary["trustVisible"]["des
 /** The reason phrase for a derived category. */
 export function recallReason(category: "off_platform_payment" | "scam", desk: Dictionary["trustVisible"]["desk"]): string {
   return category === "off_platform_payment" ? desk.recallReasonPay : desk.recallReasonRules;
+}
+
+/**
+ * A report's short reference, as staff read it back: the first eight
+ * characters of its id, upper case. The full id is what the database checks.
+ */
+export function reportRef(id: string): string {
+  return id.replace(/-/g, "").slice(0, 8).toUpperCase();
 }

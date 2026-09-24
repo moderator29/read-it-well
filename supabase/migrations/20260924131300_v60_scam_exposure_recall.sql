@@ -43,7 +43,8 @@
 --                                       about and their conversation, if any.
 --   public.scam_recall_preview(stop)    staff: the audience size, the derived
 --                                       category, and the recall already sent.
---   public.scam_recall_send(stop, ...)  staff: notifies and queues the email
+--   public.scam_recall_send(stop, report, ...)  staff, on the report the
+--                                       desk was shown: notifies and queues the email
 --                                       (template 'safety.scam_recall') for
 --                                       every counterparty, once, audited.
 --
@@ -54,7 +55,9 @@ create table if not exists public.scam_recalls (
   category      text not null check (category in ('off_platform_payment', 'scam')),
   sent_by       uuid not null references auth.users(id),
   sent_at       timestamptz not null default now(),
-  recipients    integer not null default 0 check (recipients >= 0)
+  recipients    integer not null default 0 check (recipients >= 0),
+  /* The upheld report the desk was shown and sent on. */
+  report_id     uuid references public.reports(id) on delete set null
 );
 
 comment on table public.scam_recalls is
@@ -131,14 +134,16 @@ as $$
      where s.stopped in (r.lister_id, r.requester_id)
        and r.created_at >= s.suspended_at - interval '60 days'
   )
-  select distinct on (t.uid) t.uid, l.title,
-         (select t2.conversation_id from touch t2 where t2.uid = t.uid and t2.conversation_id is not null
-           order by t2.at desc limit 1)
+  /* ONE ROW PER PERSON, and its listing and its thread come from the SAME
+     touch: their latest conversation if they had one, else their latest
+     inspection. A title from one row beside a thread from another would send
+     somebody to a conversation about a different listing. */
+  select distinct on (t.uid) t.uid, l.title, t.conversation_id
     from touch t
     cross join s
     left join public.listings l on l.id = t.listing_id
    where t.uid is not null and t.uid <> s.stopped
-   order by t.uid, t.at desc;
+   order by t.uid, (t.conversation_id is not null) desc, t.at desc;
 $$;
 
 revoke all on function private.recall_audience(uuid) from public, anon, authenticated;
@@ -176,8 +181,10 @@ grant execute on function public.scam_recall_preview(uuid) to authenticated;
 /* The words are the app's, in the dictionary: a title, a body with
    `{listing}` and `{reason}`, a body without the listing, and the two reason
    phrases. The category is derived here, never taken from the caller. */
+drop function if exists public.scam_recall_send(uuid, text, text, text, text, text, text);
 create or replace function public.scam_recall_send(
   p_suspension uuid,
+  p_report uuid,
   p_title text,
   p_body_about text,
   p_body_plain text,
@@ -194,6 +201,7 @@ declare
   actor uuid := auth.uid();
   stop public.agent_suspensions;
   cat text;
+  rc_report uuid;
   who record;
   told integer := 0;
   reason_words text;
@@ -210,11 +218,17 @@ begin
   select * into stop from public.agent_suspensions where id = p_suspension for update;
   if stop.id is null then return jsonb_build_object('status', 'not_found'); end if;
   if stop.lifted_at is not null then return jsonb_build_object('status', 'lifted'); end if;
-  select rc.category into cat from private.recall_category(p_suspension) rc;
+  select rc.category, rc.report_id into cat, rc_report from private.recall_category(p_suspension) rc;
   if cat is null then return jsonb_build_object('status', 'no_upheld_report'); end if;
+  /* THE REPORT THE DESK WAS SHOWN. The same conditions pick it again here;
+     if it is no longer the one this stop rests on (another was upheld, or it
+     was reopened), nothing is sent and the desk counts again. */
+  if p_report is null or rc_report is distinct from p_report then
+    return jsonb_build_object('status', 'report_changed');
+  end if;
 
-  insert into public.scam_recalls (suspension_id, category, sent_by)
-  values (p_suspension, cat, actor)
+  insert into public.scam_recalls (suspension_id, category, sent_by, report_id)
+  values (p_suspension, cat, actor, p_report)
   on conflict (suspension_id) do nothing;
   if not found then return jsonb_build_object('status', 'already'); end if;
 
@@ -244,17 +258,17 @@ begin
 
   insert into public.audit_log (actor_id, action, entity_type, entity_id, metadata)
   values (actor, 'stop.recalled', 'agent', stop.agent_id::text,
-          jsonb_build_object('suspension_id', p_suspension, 'category', cat, 'recipients', told));
+          jsonb_build_object('suspension_id', p_suspension, 'report_id', p_report, 'category', cat, 'recipients', told));
 
   return jsonb_build_object('status', 'sent', 'recipients', told, 'category', cat);
 end;
 $$;
 
-comment on function public.scam_recall_send(uuid, text, text, text, text, text, text) is
-  'V-60. Staff: when an upheld fraud report stands against a stopped account, tell every member who talked to it in the 60 days before the stop, once, by notification and email, in the app''s words. Never names the reporter or the account. Refuses a lifted stop and a stop with no upheld report.';
+comment on function public.scam_recall_send(uuid, uuid, text, text, text, text, text, text) is
+  'V-60. Staff: when an upheld fraud report stands against a stopped account, tell every member who talked to it in the 60 days before the stop, once, by notification and email, in the app''s words. Never names the reporter or the account. Refuses a lifted stop, a stop with no upheld report, and a send whose report is no longer the one the stop rests on.';
 
-revoke all on function public.scam_recall_send(uuid, text, text, text, text, text, text) from public, anon;
-grant execute on function public.scam_recall_send(uuid, text, text, text, text, text, text) to authenticated;
+revoke all on function public.scam_recall_send(uuid, uuid, text, text, text, text, text, text) from public, anon;
+grant execute on function public.scam_recall_send(uuid, uuid, text, text, text, text, text, text) to authenticated;
 
 do $readback$
 declare bad text := '';
