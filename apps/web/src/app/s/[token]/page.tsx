@@ -66,7 +66,7 @@ async function summary(
   if (card.kind === "listing") {
     const lines = doorLines(card, copy, locale);
     const parts = [card.place, lines.headline, lines.second].filter(Boolean);
-    return { title: card.title, description: parts.join(". ") };
+    return { title: lines.title, description: parts.join(". ") };
   }
   if (card.kind === "example") {
     return { title: EXAMPLE_LABEL, description: copy.exampleBody };

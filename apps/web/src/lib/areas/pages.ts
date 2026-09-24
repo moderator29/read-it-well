@@ -1,5 +1,6 @@
 import { MINIMUM_COMPARABLES } from "../price-check/gate";
-import { safeAreaName } from "../price-check/area-name";
+import { publicAreaName } from "../share/public-text";
+import { nairaDecimal } from "../listings/syndication";
 import type { AreaAskingRow, AreaShare } from "../price-check/types";
 
 /**
@@ -84,7 +85,7 @@ export function qualifyingPages(rows: readonly AreaPageRow[]): AreaPage[] {
   const out: AreaPage[] = [];
   for (const row of rows) {
     if (row.listingCount < MINIMUM_COMPARABLES) continue;
-    const name = safeAreaName(row.area);
+    const name = publicAreaName(row.area);
     if (name === null) continue;
     const stateSlug = slugify(row.stateName);
     const areaSlug = slugify(name);
@@ -174,9 +175,19 @@ export function areaDatasetJsonLd(
       "@type": "PropertyValue",
       name: `${row.bedrooms} bedroom ${row.propertyType}, yearly asking rent`,
       unitCode: "NGN",
-      minValue: Math.round(row.p25Minor / 100),
-      maxValue: Math.round(row.p75Minor / 100),
+      minValue: nairaDecimal(row.p25Minor),
+      maxValue: nairaDecimal(row.p75Minor),
       description: `Interquartile range of ${row.listingCount} listings`,
     })),
   };
+}
+
+/**
+ * The asking rows a public page may print: only a type and bedroom count with
+ * at least the Price Check minimum behind it. `area_asking_summary` answers
+ * from three, which is right for the signed-in area report and too few for a
+ * page any crawler can index, so the public page applies the stricter floor.
+ */
+export function publicAskingRows<T extends { listingCount: number }>(rows: readonly T[]): T[] {
+  return rows.filter((row) => row.listingCount >= MINIMUM_COMPARABLES);
 }

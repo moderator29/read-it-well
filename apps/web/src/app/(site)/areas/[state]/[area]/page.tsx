@@ -9,7 +9,7 @@ import { areaAsking } from "@/lib/price-check/queries";
 import { shareLines } from "@/lib/price-check/share-card";
 import { PRICE_CHECK_DISCLAIMER } from "@/lib/price-check/disclaimer";
 import { structuredDataJson } from "@/lib/listings/syndication";
-import { areaDatasetJsonLd, resolveAreaPage, rowAsShare } from "@/lib/areas/pages";
+import { areaDatasetJsonLd, publicAskingRows, resolveAreaPage, rowAsShare } from "@/lib/areas/pages";
 import { areaPricePages } from "@/lib/areas/queries";
 import { siteUrl } from "@/lib/site";
 
@@ -78,7 +78,8 @@ export default async function AreaPricePage({ params }: Params) {
   const t = getDictionary(locale);
   const copy = t.frontDoor.areas;
   const place = `${found.area}, ${found.stateName}`;
-  const rows = await areaAsking(found.stateCode, null, found.area, "rent", null, null);
+  const asked = await areaAsking(found.stateCode, null, found.area, "rent", null, null);
+  const rows = asked === null ? null : publicAskingRows(asked);
   const cardCopy = shareCardCopy(t);
   const searchNext = `/search?q=${encodeURIComponent(found.area)}`;
   const signIn = `/sign-in?next=${encodeURIComponent(searchNext)}`;

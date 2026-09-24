@@ -40,6 +40,17 @@ export const frontDoorEn = {
     rate: "{amount} a night",
     askForPrice: "Ask the lister for the price once you are in",
     bedrooms: { one: "1 bedroom", other: "{count} bedrooms", studio: "Studio" },
+    /** A title composed from facts, when the lister's own could carry an address. */
+    composed: {
+      flat: "flat",
+      house: "house",
+      shop: "Shop",
+      office: "Office space",
+      land: "Land",
+      studio: "Self contain",
+      bedrooms: "{count} bedroom {noun}",
+      inArea: "{shape} in {area}",
+    },
     codeLabel: "Listing code",
     codeHint: "Type this code into Vallo search to find it again.",
     areaOnly: "A shared card shows the area and never the address.",

@@ -40,6 +40,11 @@ import { siteUrl } from "@/lib/site";
  * names exactly the pages a crawler will be served, and none today. An
  * outage lists none rather than failing the whole file.
  */
+/* Built at most once a day. The area list grows with real supply, which is
+   measured in weeks; a crawler does not need it fresher than that, and a
+   sitemap regenerated per request is a database read per crawler hit. */
+export const revalidate = 86400;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const pages = await areaPricePages();
   return buildSitemap(

@@ -176,7 +176,7 @@ function face(input: DoorImageFace, copy: Dictionary["frontDoor"]["door"]) {
         <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
           <div style={EYEBROW}>Vallo</div>
           <div style={{ display: "flex", marginTop: 16, color: OG_INK, fontSize: 52, lineHeight: 1.15 }}>
-            {card.title.length > 60 ? `${card.title.slice(0, 57)}...` : card.title}
+            {lines.title.length > 60 ? `${lines.title.slice(0, 57)}...` : lines.title}
           </div>
           {sub && <div style={{ display: "flex", marginTop: 14, color: OG_INK_SECONDARY, fontSize: 32 }}>{sub}</div>}
         </div>

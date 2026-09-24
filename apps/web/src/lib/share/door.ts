@@ -1,6 +1,6 @@
 import { formatMoneyGlance, type Dictionary, type Locale } from "@vallo/i18n";
 import { moveInTotal, type MoveInColumns } from "../listings/pricing";
-import { safeAreaName } from "../price-check/area-name";
+import { publicAreaName, publicTitle } from "./public-text";
 
 /**
  * THE SHARE DOOR, AS PURE FUNCTIONS: what a row from `public.share_door` may
@@ -28,10 +28,14 @@ import { safeAreaName } from "../price-check/area-name";
  *      `doorCardFromRow` reads them by name. A row that somehow carried an
  *      `address` key is ignored, because nothing here reads it; the test
  *      `door.test.ts` hands it exactly such a row and searches the output.
- *   3. The area itself is free text a lister typed, so it is read through
- *      `doorPlace`, which refuses a string shaped like a street address (the
- *      Price Check rule) or naming an estate, and falls back to the city and
- *      then the state rather than printing it.
+ *   3. The TITLE and the AREA are free text a lister typed, and a lister can
+ *      type "2 bed flat, 14 Admiralty Way" into either. Both are read through
+ *      `lib/share/public-text.ts` (street and estate words, house and plot
+ *      numbers, landmark phrasing, the Price Check address shapes), which the
+ *      database applies too (`private.public_text_is_safe`). A title that
+ *      fails is not printed: `doorTitle` composes one from facts ("2 bedroom
+ *      flat in Yaba"). An area that fails falls back to the city, then the
+ *      state.
  *
  * ---------------------------------------------------------------------------
  * AN EXAMPLE LISTING GETS A DOOR AND NO FIGURES. The database already blanks
@@ -86,7 +90,12 @@ export type DoorCard =
       kind: "listing";
       listingId: string;
       reference: string | null;
-      title: string;
+      /** The lister's title, or null when it failed the public-text test. */
+      title: string | null;
+      /** For composing a title when the lister's cannot be printed. */
+      propertyType: string | null;
+      /** The area alone, for a composed title. */
+      area: string | null;
       /** "Yaba, Lagos". Area and state only; see `doorPlace`. */
       place: string | null;
       bedrooms: number | null;
@@ -124,13 +133,6 @@ export function doorPath(token: string): string {
   return `/s/${token}`;
 }
 
-/**
- * An estate name is a location a stranger can walk to, which is the exact
- * thing rule 10 forbids on a share artefact. "Lekki Gardens Estate" is not an
- * area; it is a gate with a guard who can be asked which house.
- */
-const ESTATE_WORD = /\b(estate|court|gardens|close|crescent|avenue|street|road|lane|drive|way)\b/i;
-
 function clean(text: string | null | undefined): string | null {
   if (text === null || text === undefined) return null;
   const trimmed = text.trim();
@@ -150,11 +152,7 @@ export function doorPlace(
   stateName: string | null | undefined,
 ): string | null {
   const state = clean(stateName);
-  const pick = (candidate: string | null | undefined): string | null => {
-    const safe = safeAreaName(candidate);
-    if (safe === null || ESTATE_WORD.test(safe)) return null;
-    return safe;
-  };
+  const pick = (candidate: string | null | undefined): string | null => publicAreaName(candidate);
   const local = pick(area) ?? pick(city);
   if (local === null) return state;
   if (state === null || local.toLowerCase() === state.toLowerCase()) return local;
@@ -232,13 +230,13 @@ export function doorCardFromRow(row: DoorRow | null | undefined): DoorCard | nul
     return { kind: "example", listingId: row.listing_id, reference };
   }
 
-  const title = clean(row.title);
-  if (title === null) return null;
   return {
     kind: "listing",
     listingId: row.listing_id,
     reference,
-    title,
+    title: publicTitle(row.title),
+    propertyType: clean(row.property_type),
+    area: publicAreaName(row.area) ?? publicAreaName(row.city),
     place: doorPlace(row.area, row.city, row.state_name),
     bedrooms: row.bedrooms !== null && row.bedrooms >= 0 ? row.bedrooms : null,
     figures: doorFigures(row),
@@ -264,6 +262,8 @@ function fill(template: string, values: Record<string, string | number>): string
 }
 
 export type DoorLines = {
+  /** The title to print: the lister's if it passed, else composed. */
+  title: string;
   /** The big figure, or null when nothing was stated. */
   headline: string | null;
   /** The line under it: the rent for a tenancy. */
@@ -303,5 +303,38 @@ export function doorLines(
         : card.bedrooms === 1
           ? copy.bedrooms.one
           : fill(copy.bedrooms.other, { count: card.bedrooms });
-  return { headline, second, bedrooms };
+  return { title: doorTitle(card, copy), headline, second, bedrooms };
+}
+
+const HOUSE_TYPES = new Set(["home", "villa"]);
+
+/**
+ * The title a card prints: the lister's, when it passed the public-text test,
+ * otherwise one composed only from facts the card already shows ("2 bedroom
+ * flat in Yaba", "Shop in Ikeja", "Home"). Never a word the lister typed that
+ * failed the test.
+ */
+export function doorTitle(card: Extract<DoorCard, { kind: "listing" }>, copy: Dictionary["frontDoor"]["door"]): string {
+  if (card.title !== null) return card.title;
+  const t = copy.composed;
+  const type = card.propertyType ?? "";
+  const noun =
+    type === "shop"
+      ? t.shop
+      : type === "office"
+        ? t.office
+        : type === "land"
+          ? t.land
+          : HOUSE_TYPES.has(type)
+            ? t.house
+            : t.flat;
+  const shape =
+    type === "shop" || type === "office" || type === "land"
+      ? noun
+      : card.bedrooms === 0
+        ? t.studio
+        : card.bedrooms !== null && card.bedrooms > 0
+          ? fill(t.bedrooms, { count: card.bedrooms, noun })
+          : noun.charAt(0).toUpperCase() + noun.slice(1);
+  return card.area ? fill(t.inArea, { shape, area: card.area }) : shape;
 }

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   areaDatasetJsonLd,
   areaPageRowFromRow,
+  publicAskingRows,
   qualifyingPages,
   resolveAreaPage,
   rowAsShare,
@@ -54,9 +55,15 @@ describe("the gate: a page exists only where the Price Check floor is met", () =
     expect(yaba?.path).toBe("/areas/lagos/yaba");
   });
 
-  it("never builds a page titled with a street address, whatever the count", () => {
-    expect(qualifyingPages([page({ area: "14 Admiralty Way", listingCount: 40 })])).toEqual([]);
-    expect(qualifyingPages([page({ area: "No. 3 Bode Thomas", listingCount: 40 })])).toEqual([]);
+  it("never builds a page titled with a street, an estate or a house number, whatever the count", () => {
+    for (const area of ["14 Admiralty Way", "No. 3 Bode Thomas", "Admiralty Way", "Chevron Drive", "Lekki Gardens Estate", "Plot 12"]) {
+      expect(qualifyingPages([page({ area, listingCount: 40 })]), area).toEqual([]);
+    }
+  });
+
+  it("prints a type and bedroom count only with the Price Check minimum behind it", () => {
+    const rows = [{ listingCount: 3 }, { listingCount: 4 }, { listingCount: 5 }, { listingCount: 9 }];
+    expect(publicAskingRows(rows)).toEqual([{ listingCount: 5 }, { listingCount: 9 }]);
   });
 
   it("folds two spellings that slug alike into one page, keeping the first", () => {

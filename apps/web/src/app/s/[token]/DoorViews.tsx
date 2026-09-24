@@ -52,7 +52,7 @@ export function DoorListingView({
           <img src={photo} alt="" width={88} height={88} className="nf-door__photo" loading="eager" />
         )}
         <div className="min-w-0">
-          <h1 className="nf-door__title">{card.title}</h1>
+          <h1 className="nf-door__title">{lines.title}</h1>
           {(card.place || lines.bedrooms) && (
             <p className="nf-door__place">{[lines.bedrooms, card.place].filter(Boolean).join(" · ")}</p>
           )}

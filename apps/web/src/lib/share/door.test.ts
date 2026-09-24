@@ -99,6 +99,41 @@ describe("the door cannot carry an address, whatever it is handed", () => {
   });
 });
 
+describe("the lister's TITLE is text a lister typed, and it is held to the same rule", () => {
+  const cases: [string, string][] = [
+    ["2 bed flat, 14 Admiralty Way", "2 bedroom flat in Yaba"],
+    ["Lovely duplex on Admiralty Way", "2 bedroom flat in Yaba"],
+    ["Flat in Lekki Gardens Estate", "2 bedroom flat in Yaba"],
+    ["No. 5 Bode Thomas mini flat", "2 bedroom flat in Yaba"],
+    ["Plot 12 serviced apartment", "2 bedroom flat in Yaba"],
+    ["2 bed flat opposite the Mobil filling station", "2 bedroom flat in Yaba"],
+  ];
+  for (const [typed, shown] of cases) {
+    it(`never prints "${typed}"`, () => {
+      const card = doorCardFromRow(row({ title: typed }));
+      if (card?.kind !== "listing") throw new Error("expected a listing card");
+      const lines = doorLines(card, copy, "en");
+      expect(lines.title).toBe(shown);
+      expect(JSON.stringify({ card, lines })).not.toContain(typed);
+    });
+  }
+
+  it("keeps an ordinary title as the lister wrote it", () => {
+    const card = doorCardFromRow(row({ title: "Bright two bedroom flat with a prepaid meter" }));
+    if (card?.kind !== "listing") throw new Error("expected a listing card");
+    expect(doorLines(card, copy, "en").title).toBe("Bright two bedroom flat with a prepaid meter");
+  });
+
+  it("composes by type when there is no area it may print", () => {
+    const shop = doorCardFromRow(row({ title: "Shop at 3 Allen Avenue", property_type: "shop", area: "Allen Avenue", city: null, bedrooms: null }));
+    if (shop?.kind !== "listing") throw new Error("expected a listing card");
+    expect(doorLines(shop, copy, "en").title).toBe("Shop");
+    const house = doorCardFromRow(row({ title: "12 Chevron Drive", property_type: "home", bedrooms: 4, area: "Lekki" }));
+    if (house?.kind !== "listing") throw new Error("expected a listing card");
+    expect(doorLines(house, copy, "en").title).toBe("4 bedroom house in Lekki");
+  });
+});
+
 describe("the card rule: move-in total first, rent second", () => {
   it("leads a tenancy with the stated move-in total", () => {
     const card = doorCardFromRow(row());
@@ -183,7 +218,10 @@ describe("examples, gone listings and nonsense", () => {
     expect(doorCardFromRow(row({ state: "gone" }))).toEqual({ kind: "gone" });
     expect(doorCardFromRow(null)).toBeNull();
     expect(doorCardFromRow(row({ state: "something" }))).toBeNull();
-    expect(doorCardFromRow(row({ title: "  " }))).toBeNull();
+    /* An empty title is composed from facts, never a card with no heading. */
+    const blank = doorCardFromRow(row({ title: "  " }));
+    if (blank?.kind !== "listing") throw new Error("expected a listing card");
+    expect(doorLines(blank, copy, "en").title).toBe("2 bedroom flat in Yaba");
   });
 
   it("opens a price area card by its share id", () => {
