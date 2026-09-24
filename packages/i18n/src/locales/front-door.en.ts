@@ -483,6 +483,33 @@ export const frontDoorEn = {
     lostRow: "{count} of {total}",
     unreachable: "We could not read this just now. Try again in a moment.",
   },
+  /** V-74: pricing guidance in the wizard's pricing step. Asking prices, always said so. */
+  guide: {
+    title: "What similar homes here are asking",
+    /** "Similar 2 bedroom flats in Yaba are advertised at ₦1,300,000 to ₦1,800,000 a year." */
+    rangeRent: "Similar {similar} in {area} are advertised at {low} to {high} a year.",
+    rangeSale: "Similar {similar} for sale in {area} are advertised at {low} to {high}.",
+    basis: "{count} listings on Vallo, asking prices. The middle half: a quarter ask less and a quarter ask more.",
+    foundOnly: "We found {count}, and a range needs at least five.",
+    nouns: {
+      flats: "flats",
+      houses: "houses",
+      shops: "shops",
+      offices: "offices",
+      bedrooms: "{count} bedroom {noun}",
+      studio: "studio {noun}",
+    },
+    refusals: {
+      unsupported_type: "Asking figures are not shown for this kind of property. It is priced another way.",
+      yearly_only: "Asking figures are yearly. Choose a yearly rent to compare.",
+      no_area: "Type the area on the location step to see what similar homes there are asking.",
+      too_few: "Not enough similar listings nearby to compare yet.",
+    },
+    unreachable: "We could not read the figures just now. Your listing is not affected.",
+    loading: "Looking at similar listings",
+    agencyNorm: "Agency fees here are usually {pct}% of the yearly rent ({count} listings).",
+    legalNorm: "Legal fees here are usually {pct}% of the yearly rent ({count} listings).",
+  },
 };
 
 export type FrontDoorCopy = typeof frontDoorEn;

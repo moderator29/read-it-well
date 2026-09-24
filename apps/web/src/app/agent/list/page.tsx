@@ -113,6 +113,7 @@ export default async function Page({
         initial={draft}
         canPersist
         broadcastCopy={t.frontDoor.broadcast}
+        guideCopy={t.frontDoor.guide}
       />
     </AgentShell>
   );

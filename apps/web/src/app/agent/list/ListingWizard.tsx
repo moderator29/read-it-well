@@ -18,6 +18,8 @@ import {
 import type { WizardDraft } from "@/lib/agent/listings-queries";
 import { BROADCAST_MONEY_KEYS, type BroadcastKey, type BroadcastParse } from "@/lib/agent/broadcast";
 import { BroadcastPaste } from "./BroadcastPaste";
+import { PriceGuidePanel, usePriceGuide } from "./PriceGuide";
+import { feeNormLine, type GuideSubject } from "@/lib/price-check/wizard-guide";
 import {
   MAX_ACCESS_CODE,
   MAX_BACKUP_HOURS,
@@ -808,8 +810,14 @@ export function ListingWizard({
   canPersist,
   startAt = 0,
   broadcastCopy,
+  guideCopy,
 }: {
   copy: WizardCopy;
+  /**
+   * V-74: the pricing step's guide. Absent in the harnesses, which then draw
+   * exactly what they did.
+   */
+  guideCopy?: Dictionary["frontDoor"]["guide"];
   /**
    * V-09, "Start from your WhatsApp message". Absent in the harnesses that
    * photograph the governing screens, which then draw exactly what they did.
@@ -948,6 +956,21 @@ export function ListingWizard({
   /* The headline figure, resolved exactly the way the catalogue resolves it, so
      the preview card on step 7 shows the number a renter will see. */
   const priceMinor = forSale ? saleMinor : tenancy ? rentMinor : rateMinor;
+
+  /* V-74: what similar homes in the area are asking, on the pricing step only. */
+  const guideSubject = useMemo<GuideSubject>(
+    () => ({
+      stateCode: values.stateCode,
+      city: values.city.trim() === "" ? null : values.city.trim(),
+      area: values.area.trim() === "" ? null : values.area.trim(),
+      propertyType: values.propertyType as GuideSubject["propertyType"],
+      intent: values.intent,
+      rentPeriod: forSale ? null : values.rentPeriod,
+      bedrooms: values.bedrooms,
+    }),
+    [values.stateCode, values.city, values.area, values.propertyType, values.intent, values.rentPeriod, values.bedrooms, forSale],
+  );
+  const priceGuide = usePriceGuide(guideSubject, Boolean(guideCopy) && step === 5 && !shortStay);
 
   /* What has to be found before the keys change hands. Summed live so the
      lister watches the real number appear as they type the parts, which is the
@@ -2455,6 +2478,17 @@ export function ListingWizard({
                   />
                 </Field>
 
+                {/* V-74: what similar homes in the area are asking. */}
+                {guideCopy && (
+                  <PriceGuidePanel
+                    subject={guideSubject}
+                    loading={priceGuide.loading}
+                    guide={priceGuide.guide}
+                    copy={guideCopy}
+                    locale={locale}
+                  />
+                )}
+
                 <Switch
                   label="The price is negotiable"
                   description="Say so and a buyer will open the conversation rather than scroll past."
@@ -2683,6 +2717,17 @@ export function ListingWizard({
                   />
                 </Field>
 
+                {/* V-74: what similar homes in the area are asking. */}
+                {guideCopy && (
+                  <PriceGuidePanel
+                    subject={guideSubject}
+                    loading={priceGuide.loading}
+                    guide={priceGuide.guide}
+                    copy={guideCopy}
+                    locale={locale}
+                  />
+                )}
+
                 <fieldset>
                   <legend className="nf-label mb-inline">
                     How often is it paid?
@@ -2745,7 +2790,12 @@ export function ListingWizard({
                         placeholder="450,000"
                       />
                     </Field>
-                    <Field fromMessage={mark("agencyFeeNaira")} label="Agency fee" error={fieldErrors.agencyFeeNaira}>
+                    <Field
+                      fromMessage={mark("agencyFeeNaira")}
+                      label="Agency fee"
+                      error={fieldErrors.agencyFeeNaira}
+                      hint={guideCopy ? (feeNormLine("agency", priceGuide.norms, guideCopy) ?? undefined) : undefined}
+                    >
                       <input
                         className="nf-field"
                         inputMode="decimal"
@@ -2754,7 +2804,12 @@ export function ListingWizard({
                         placeholder="450,000"
                       />
                     </Field>
-                    <Field fromMessage={mark("legalFeeNaira")} label="Legal fee" error={fieldErrors.legalFeeNaira}>
+                    <Field
+                      fromMessage={mark("legalFeeNaira")}
+                      label="Legal fee"
+                      error={fieldErrors.legalFeeNaira}
+                      hint={guideCopy ? (feeNormLine("legal", priceGuide.norms, guideCopy) ?? undefined) : undefined}
+                    >
                       <input
                         className="nf-field"
                         inputMode="decimal"
