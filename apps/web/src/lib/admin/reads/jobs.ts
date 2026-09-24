@@ -83,6 +83,7 @@ export const PG_CRON_JOBS: readonly PgCronJob[] = [
   { name: "vallo_escrow_sweep_timeouts", cron: "17 * * * *", when: "hourly at :17", what: "escrow timeouts" },
   { name: "vallo_escrow_invariants", cron: "23 * * * *", when: "hourly at :23", what: "asserts the escrow float identity" },
   { name: "vallo_purge_rate_limits", cron: "30 * * * *", when: "hourly at :30", what: "clears old rate limit rows" },
+  { name: "vallo_escrow_age_watch", cron: "41 * * * *", when: "hourly at :41", what: "alerts on old disputes, expires unfunded proposals" },
   { name: "vallo_reconcile_payments", cron: "47 * * * *", when: "hourly at :47", what: "database side of reconciliation" },
   { name: "vallo_purge_idempotency", cron: "10 2 * * *", when: "daily 03:10", what: "clears old idempotency records" },
   { name: "vallo-nightly-badges", cron: "20 2 * * *", when: "daily 03:20", what: "awards earned badges" },
