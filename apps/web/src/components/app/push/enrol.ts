@@ -54,7 +54,69 @@ export type EnrolOutcome =
        * told the founder push was not set up on a deployment where it was.
        */
       reason: EnrolFailureReason;
+      /*
+       * WHICH STEP FAILED, AND WHAT THE BROWSER CALLED THE ERROR.
+       *
+       * Every real attempt from the iPhone home screen app on 23 September
+       * died in the browser before the register POST was sent (the database
+       * logs show the settings page read `push_tokens` thirty times and no
+       * write ever arrived), and "That did not work" could not say where. The
+       * step and the DOMException name are shown with the failure sentence so
+       * the next attempt names its own cause. Neither carries a token or a key.
+       */
+      step?: EnrolStep;
+      detail?: string;
     };
+
+export type EnrolStep = "permission" | "key" | "worker" | "ready" | "subscribe" | "keys" | "register";
+
+/** A short reference for a failure, e.g. `subscribe/NotAllowedError`, or null. */
+export function failureReference(outcome: EnrolOutcome): string | null {
+  if (outcome.ok || !outcome.step) return null;
+  const detail = (outcome.detail ?? "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40);
+  return detail ? `${outcome.step}/${detail}` : outcome.step;
+}
+
+function errorName(error: unknown): string {
+  if (error && typeof error === "object" && "name" in error && typeof error.name === "string") {
+    return error.name;
+  }
+  return "Error";
+}
+
+/* A promise that settles within `ms` or rejects with a TimeoutError. Used on
+   the two waits that can hang for ever on a worker that never activates. */
+function within<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      const error = new Error("timed out");
+      error.name = "TimeoutError";
+      reject(error);
+    }, ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
+/* Two keys are the same key when their bytes are. */
+function sameKey(a: ArrayBuffer | null | undefined, b: ArrayBuffer): boolean {
+  if (!a) return false;
+  const left = new Uint8Array(a);
+  const right = new Uint8Array(b);
+  if (left.length !== right.length) return false;
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index] !== right[index]) return false;
+  }
+  return true;
+}
 
 /**
  * How a reply from one of our push routes reads, as a failure, or null when it
@@ -140,12 +202,15 @@ export async function enrol(): Promise<EnrolOutcome> {
 async function enrolWeb(): Promise<EnrolOutcome> {
   if (currentPermission() === "unsupported") return { ok: false, reason: "unsupported" };
 
-  /* FIRST, AND SYNCHRONOUSLY FROM THE GESTURE. See the note above. */
+  /* FIRST, AND SYNCHRONOUSLY FROM THE GESTURE. See the note above. Skipped
+     when the permission is already granted: there is nothing to ask, and on
+     WebKit `pushManager.subscribe` needs no gesture once it is granted. */
   let permission: NotificationPermission;
   try {
-    permission = await Notification.requestPermission();
-  } catch {
-    return { ok: false, reason: "failed" };
+    permission =
+      Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
+  } catch (error) {
+    return { ok: false, reason: "failed", step: "permission", detail: errorName(error) };
   }
   if (permission !== "granted") return { ok: false, reason: "permission_denied" };
 
@@ -160,60 +225,79 @@ async function enrolWeb(): Promise<EnrolOutcome> {
      * never again be flattened into "not set up".
      */
     const refused = replyFailure(response.status);
-    if (refused) return { ok: false, reason: refused };
+    if (refused) return { ok: false, reason: refused, step: "key", detail: String(response.status) };
 
     const body = (await response.json()) as { configured?: boolean; publicKey?: string };
     if (!body.configured || typeof body.publicKey !== "string") {
-      return { ok: false, reason: "not_configured" };
+      return { ok: false, reason: "not_configured", step: "key" };
     }
     publicKey = body.publicKey;
-  } catch {
+  } catch (error) {
     /* The fetch itself did not complete: offline, DNS, a proxy. Not a
        statement about our configuration, so it does not claim to be one. */
-    return { ok: false, reason: "failed" };
+    return { ok: false, reason: "failed", step: "key", detail: errorName(error) };
   }
 
+  /* ONE WORKER AT `/`, WHICH IS `public/sw.js`, AND IT CARRIES THE PUSH
+     HANDLERS ITSELF. Registering the same script at the same scope is
+     idempotent: if `ServiceWorkerRegistrar` has already installed it, this
+     resolves with the registration that exists rather than replacing it.
+
+     It is called here anyway rather than trusting the registrar, because
+     the registrar is production-only and a person granting the permission
+     must end up with a worker whatever the build. */
+  let registration: ServiceWorkerRegistration;
   try {
-    /* ONE WORKER AT `/`, WHICH IS `public/sw.js`, AND IT NOW CARRIES THE PUSH
-       HANDLERS ITSELF. Registering the same script at the same scope is
-       idempotent: if `ServiceWorkerRegistrar` has already installed it, this
-       resolves with the registration that exists rather than replacing it.
+    registration = await within(navigator.serviceWorker.register("/sw.js", { scope: "/" }), 15_000);
+  } catch (error) {
+    return { ok: false, reason: "failed", step: "worker", detail: errorName(error) };
+  }
+  try {
+    /* `ready` never rejects: a worker that fails to activate leaves it
+       pending for ever, and the button on "Just a moment" for ever with it.
+       Bounded, so the person is told instead. */
+    registration = await within(navigator.serviceWorker.ready, 15_000);
+  } catch (error) {
+    return { ok: false, reason: "failed", step: "ready", detail: errorName(error) };
+  }
+  await retireLegacyPushWorker();
 
-       It is called here anyway rather than trusting the registrar, because
-       the registrar is production-only and a person granting the permission
-       must end up with a worker whatever the build. */
-    const registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
-    await navigator.serviceWorker.ready.catch(() => undefined);
-    await retireLegacyPushWorker();
-
-    /* An existing subscription is reused rather than replaced. Unsubscribing
-       and re-subscribing mints a new endpoint and leaves the old row to be
-       discovered as dead later, which is churn for nothing. */
-    const existing = await registration.pushManager.getSubscription();
-    const subscription =
+  const serverKey = urlBase64ToBuffer(publicKey);
+  let subscription: PushSubscription;
+  try {
+    /* An existing subscription is reused rather than replaced, WHEN IT WAS
+       MADE WITH TODAY'S KEY. One made against an earlier key would be
+       registered happily and then refused by the push service on the first
+       send, so it is dropped and a fresh one taken. */
+    let existing = await registration.pushManager.getSubscription();
+    if (existing && !sameKey(existing.options?.applicationServerKey, serverKey)) {
+      await existing.unsubscribe().catch(() => false);
+      existing = null;
+    }
+    subscription =
       existing ??
       (await registration.pushManager.subscribe({
         /* Required by every browser: a push must result in something the
            person can see. It is also the honest description of what this
            feature is for. */
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToBuffer(publicKey),
+        applicationServerKey: serverKey,
       }));
-
-    const json = subscription.toJSON();
-    const keys = json.keys ?? {};
-    if (!keys.p256dh || !keys.auth) return { ok: false, reason: "failed" };
-
-    return await postRegistration({
-      platform: "web",
-      token: subscription.endpoint,
-      p256dh: keys.p256dh,
-      auth: keys.auth,
-      deviceLabel: browserLabel(),
-    });
-  } catch {
-    return { ok: false, reason: "failed" };
+  } catch (error) {
+    return { ok: false, reason: "failed", step: "subscribe", detail: errorName(error) };
   }
+
+  const json = subscription.toJSON();
+  const keys = json.keys ?? {};
+  if (!keys.p256dh || !keys.auth) return { ok: false, reason: "failed", step: "keys" };
+
+  return postRegistration({
+    platform: "web",
+    token: subscription.endpoint,
+    p256dh: keys.p256dh,
+    auth: keys.auth,
+    deviceLabel: browserLabel(),
+  });
 }
 
 /**
@@ -338,11 +422,11 @@ async function postRegistration(body: {
        "not_saved": the fix is to sign in inside the app, and saying "try
        again in a moment" would send the person round the same loop. */
     const refused = replyFailure(response.status);
-    if (refused) return failedAndForgotten(refused);
-    if (!response.ok) return failedAndForgotten("not_saved");
+    if (refused) return failedAndForgotten(refused, String(response.status));
+    if (!response.ok) return failedAndForgotten("not_saved", String(response.status));
     const result = (await response.json()) as { ok?: boolean; deviceRef?: string };
     if (!result.ok || typeof result.deviceRef !== "string" || result.deviceRef.length === 0) {
-      return failedAndForgotten("not_saved");
+      return failedAndForgotten("not_saved", "no-ref");
     }
     /* THE ONLY PLACE A DEVICE IS RECORDED AS ON. The server has just said it
        holds a live row for this token and named it. See `device-state.ts`. */
@@ -351,16 +435,16 @@ async function postRegistration(body: {
       endpoint: body.platform === "web" ? body.token : null,
     });
     return { ok: true, deviceRef: result.deviceRef, platform: body.platform };
-  } catch {
-    return failedAndForgotten("not_saved");
+  } catch (error) {
+    return failedAndForgotten("not_saved", errorName(error));
   }
 }
 
 /* A failed registration also forgets any earlier one, so a stale record can
    never be the thing that lights the control after a refusal. */
-function failedAndForgotten(reason: EnrolFailureReason): EnrolOutcome {
+function failedAndForgotten(reason: EnrolFailureReason, detail?: string): EnrolOutcome {
   clearLocalDevice();
-  return { ok: false, reason };
+  return { ok: false, reason, step: "register", ...(detail ? { detail } : {}) };
 }
 
 /**

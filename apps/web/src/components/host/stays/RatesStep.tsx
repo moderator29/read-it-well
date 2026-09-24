@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { formatMoney } from "@vallo/i18n";
+import { countOf, formatMoney } from "@vallo/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
@@ -99,7 +99,7 @@ export function RatesStep({
             <span className="min-w-0 flex-1">
               <span className="nf-stays-card__title block">{room.name}</span>
               <span className="nf-stays-row__meta">
-                {room.unitsTotal} room{room.unitsTotal === 1 ? "" : "s"}, sleeps {room.sleeps}
+                {countOf(room.unitsTotal, "rooms", locale)}, sleeps {room.sleeps}
               </span>
             </span>
           </div>

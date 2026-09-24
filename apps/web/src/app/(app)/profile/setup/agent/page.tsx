@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
+import { requireSignedInPage } from "@/lib/actions/signed-in-page";
 import { BackButton } from "@/components/site/BackButton";
 import { parentOf } from "@/lib/nav/resolve";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentRegisterForm } from "@/components/supply/AgentRegisterForm";
 
-/* Back to the declared parent (`route-parents.ts`), Session A's R14: this
-   route declared one and drew no control, so Android back closed the app. */
+/* Back to the declared parent (`route-parents.ts`): this route declared one and drew no control, so Android back closed the app. */
 const BACK = parentOf("/profile/setup/agent");
 
 export const metadata: Metadata = {
@@ -30,6 +30,7 @@ export const metadata: Metadata = {
  * percentage and a naira figure, and neither may be built out of strings.
  */
 export default async function AgentRegistrationPage() {
+  await requireSignedInPage("/profile/setup/agent");
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
   return (

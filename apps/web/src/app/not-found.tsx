@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { resolveSession } from "@/lib/actions/session";
@@ -23,6 +24,9 @@ const LOST = getDictionary("en").trustVisible.state;
  * meant to reach often, and the screen still renders in full if that read
  * comes back with nothing.
  */
+/* OPS-17: the not-found page is never a page to index. */
+export const metadata: Metadata = { robots: { index: false, follow: false } };
+
 export default async function NotFound() {
   const session = await resolveSession();
   const home = session.state === "signed-in" ? "/home" : "/";
@@ -33,8 +37,8 @@ export default async function NotFound() {
        * OBVIOUS CHECK DOES NOT WORK.
        *
        * `notFound()` called from a layout during streaming answers HTTP 200
-       * with this body, which three workers confirmed independently tonight
-       * while the preview harness was shut. So `verify-shots.mjs` checking the
+       * with this body; this was confirmed independently three times while
+       * the preview harness was shut. So `verify-shots.mjs` checking the
        * status code is necessary and NOT sufficient: it cannot tell this page
        * from a surface, and neither can any of its other assertions. This page
        * loads the same stylesheet and has no Reveal bands to get stuck, so it

@@ -2,17 +2,17 @@ import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 
 /**
- * Unit tests, for the handful of things a browser cannot reach.
+ * The unit suite: every `.test.ts` file under `src`, in Node, with NO database and no
+ * running server. It covers most of `lib/` and the route handlers with their
+ * dependencies stubbed; what lives in SQL (RLS, grants, triggers, the money
+ * functions) is tested by the database probes in `supabase/tests/probes`
+ * (`scripts/db-probes/run.mjs`, CI job "Database probes"), and the browser
+ * scripts in `tests/*.spec.mjs` are run by hand, not by this config.
  *
- * Nearly everything on this platform is proved by a Playwright spec against a
- * running server, and that stays the rule: a test that drives the real screen
- * is worth more than one that drives a function. This config exists for the
- * exception, which is code whose whole job is to interpret somebody else's
- * payload. The partner providers map Google and Amadeus responses, and the only
- * honest way to test that mapping is to hand them a response, which a browser
- * spec cannot do without either a live key or a stand-in for Google.
+ * `retry: 0` is explicit so a flaky test is a red run with its name on it,
+ * never a pass on the second try (DOC-P2-04).
  *
- * Every module under `lib/inventory` opens with `import "server-only"`. That
+ * Server modules open with `import "server-only"`. That
  * package exports an empty module under the `react-server` condition and a
  * module that throws on purpose under every other one, which is exactly the
  * guard we want in a build and exactly the thing that stops a test importing
@@ -36,21 +36,64 @@ import { fileURLToPath } from "node:url";
  * `react-server` at. Every module under test here is a server module; nothing
  * in this suite renders a component or calls a client hook.
  */
+const shared = {
+  "@": fileURLToPath(new URL("./src", import.meta.url)),
+  "server-only": fileURLToPath(new URL("../../node_modules/server-only/empty.js", import.meta.url)),
+};
+
 export default defineConfig({
-  resolve: {
-    conditions: ["react-server", "node", "import", "default"],
-    alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
-      "server-only": fileURLToPath(
-        new URL("../../node_modules/server-only/empty.js", import.meta.url),
-      ),
-      react: fileURLToPath(
-        new URL("../../node_modules/react/react.react-server.js", import.meta.url),
-      ),
-    },
-  },
   test: {
-    environment: "node",
-    include: ["src/**/*.test.ts"],
+    retry: 0,
+    /* A generous per-test budget can hide a test creeping towards it, so the
+       report names every test over 5 s, in CI's log as well as locally. */
+    slowTestThreshold: 5_000,
+    projects: [
+      {
+        resolve: {
+          conditions: ["react-server", "node", "import", "default"],
+          alias: {
+            ...shared,
+            react: fileURLToPath(
+              new URL("../../node_modules/react/react.react-server.js", import.meta.url),
+            ),
+          },
+        },
+        test: {
+          name: "unit",
+          environment: "node",
+          include: ["src/**/*.test.ts"],
+          retry: 0,
+          /*
+           * BUDGETS FOR A BUSY MACHINE, NOT AN IDLE ONE. Vitest's 5 s and
+           * 10 s defaults assume nothing else is running. Several test
+           * files read the whole source tree or import most of the server
+           * graph; on a machine running other suites beside this one they
+           * took 5 to 12 s and failed as timeouts with nothing wrong. A real
+           * hang still fails, at these limits, with its name on it.
+           */
+          testTimeout: 30_000,
+          hookTimeout: 60_000,
+        },
+      },
+      /*
+       * THE COMPONENT PROJECT. `*.dom.test.tsx` renders a client component to
+       * HTML with the ordinary (client) React build, loads it into a real
+       * Chromium and runs axe-core over it (`src/lib/a11y/axe.ts`). The
+       * react-server alias above cannot render hooks, which is exactly why
+       * these files live in their own project with no React alias at all.
+       */
+      {
+        resolve: { alias: shared },
+        esbuild: { jsx: "automatic" },
+        test: {
+          name: "dom",
+          environment: "node",
+          include: ["src/**/*.dom.test.tsx"],
+          retry: 0,
+          testTimeout: 30_000,
+          hookTimeout: 60_000,
+        },
+      },
+    ],
   },
 });

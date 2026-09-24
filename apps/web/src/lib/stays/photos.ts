@@ -14,7 +14,7 @@ import { SUPABASE_URL } from "../supabase/env";
  * row) and an absolute PUBLIC PATH starting with a slash, which the app serves
  * itself from `apps/web/public`. The example stays seed carries the second
  * shape (`/brand/photos/bedroom-01.jpg`), so the photograph a demo hotel shows
- * is one the lead compressed and filed, not a bucket object that does not
+ * is one compressed and filed in the repository, not a bucket object that does not
  * exist. A bucket path never starts with a slash, so the two cannot collide.
  */
 const BUCKET = "accommodation-photos";

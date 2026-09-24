@@ -149,7 +149,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
    * `/welcome?next=/sign-up`. `/sign-in`, `/sign-up` and `/auth/callback` all
    * named it as their parent, and on a device that has already seen first run
    * `planFirstRun` forwards that straight on, so BACK FROM SIGN IN LANDED ON
-   * SIGN UP. Walked, cold and warm, in `docs/design/proofs/nav/`.
+   * SIGN UP. Walked, cold and warm, by `scripts/design/proof-nav.mjs`.
    *
    * The screen above both doors is `/welcome`, whose closing panel IS the
    * choice between them (Sign in, Create an account, Look around first). With
@@ -341,6 +341,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/escrow": "/admin",
   "/admin/examples": "/admin",
   "/admin/fees": "/admin",
+  "/admin/account-recovery": "/admin",
   "/admin/kyc": "/admin",
   "/admin/compliance": "/admin/kyc",
   "/admin/listings": "/admin",
@@ -385,6 +386,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/agent/settings": "/agent/dashboard",
   "/agent/portfolio": "/agent/dashboard",
   "/agent/verification": "/agent/dashboard",
+  "/agent/firm": "/agent/dashboard",
 
   /* ----------------------------------------------------- the host console */
   "/host": "/home",
@@ -486,11 +488,13 @@ export const LITERAL_EXPANSIONS: Readonly<Record<string, readonly string[]>> = {
 export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/agent/listings/[listingId]/board/image": "V-08: the board as a PNG, not a page.",
   "/s/[token]/status": "V-71: the door's card as a Status PNG, not a page.",
+  "/api/account/export": "the member's own data as a JSON download, not a page.",
   "/api/assistant": "POST only, the assistant's model call.",
   "/api/auth/email-hook": "Supabase Auth's send-email webhook.",
   "/api/client-error": "the browser's error beacon.",
   "/api/vitals": "the browser's field speed beacon (V-80).",
   "/api/cron/account-purge": "scheduled job, bearer token.",
+  "/api/cron/canary": "scheduled job, bearer token.",
   "/api/cron/complete-stays": "scheduled job, bearer token.",
   "/api/cron/email-outbox": "scheduled job, bearer token.",
   "/api/cron/hold-sweep": "scheduled job, bearer token.",
@@ -501,6 +505,7 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/cron/saved-search-alerts": "scheduled job, bearer token.",
   "/api/cron/store-readiness": "scheduled job, bearer token.",
   "/api/cron/new-match-alerts": "scheduled job, bearer token.",
+  "/api/health/catalogue": "health check polled by an external uptime monitor; answers JSON, not a page.",
   "/api/csp-report": "the browser's policy violation report.",
   "/api/documents/[id]": "a signed document stream, not a page.",
   "/api/landlord/inbound": "the SMS aggregator's inbound webhook, bearer token.",
@@ -523,4 +528,5 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
     "a landlord's single-use reply page, opened from an SMS by somebody with no account; there is nowhere inside the platform for it to go back to.",
   "/safe/[token]":
     "the page a renter's trusted contact opens from a link the renter sent; the contact has no account and nowhere inside the platform to go back to.",
+  "/open": "307 to `/home`, `/search` or `/welcome`: where the native app starts (STORE-04).",
 };

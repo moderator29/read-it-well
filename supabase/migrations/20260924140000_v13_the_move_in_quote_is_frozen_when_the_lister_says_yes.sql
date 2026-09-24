@@ -243,16 +243,21 @@ on conflict (inspection_id) do nothing;
 
 /* ------------------------------------------------ the charge reads the quote */
 
-create or replace function private.open_rent_charge(p_tenant uuid, p_inspection uuid, p_move_in date)
- returns jsonb
- language plpgsql
- security definer
- set search_path to 'public'
-as $function$
+/* Rebuilt on the audit's latest definition (20260924073151, SUP-09), which
+   carries ESC-03's date_taken, ESC-17's Lagos date and SUP-09's listing row
+   lock with private.listing_is_let / already_let. The one V-13 change is the
+   frozen quote read below, placed after the lister checks and before the
+   total is worked out. Keep this body in step with the audit's if either
+   side changes it again. */
+CREATE OR REPLACE FUNCTION private.open_rent_charge(p_tenant uuid, p_inspection uuid, p_move_in date)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
 declare
   insp        public.inspection_requests%rowtype;
   lst         public.listings%rowtype;
-  q           public.move_in_quotes%rowtype;
   lister_user uuid;
   existing    public.rent_payments%rowtype;
   existing_bk public.bookings%rowtype;
@@ -261,11 +266,12 @@ declare
   stated      boolean;
   v_booking   uuid;
   charge_id   uuid;
+  q           public.move_in_quotes%rowtype;
 begin
   if p_tenant is null or p_inspection is null or p_move_in is null then
     return jsonb_build_object('status', 'bad_request');
   end if;
-  if p_move_in < current_date then
+  if p_move_in < (now() at time zone 'Africa/Lagos')::date then
     return jsonb_build_object('status', 'move_in_past');
   end if;
   select * into insp from public.inspection_requests where id = p_inspection;
@@ -308,7 +314,6 @@ begin
     lst.rent_period           := q.rent_period;
     lst.total_move_in_cost_minor := case when q.total_stated then q.total_minor else null end;
   end if;
-
   parts_sum := coalesce(lst.rent_amount_minor, 0)
              + coalesce(lst.caution_deposit_minor, 0)
              + coalesce(lst.service_charge_minor, 0)
@@ -337,6 +342,11 @@ begin
         'total_minor', existing.total_minor
       );
     end if;
+  end if;
+  -- SUP-09. Once a move-in total on this home is paid, no other charge opens.
+  perform 1 from public.listings where id = lst.id for update;
+  if private.listing_is_let(lst.id, null) then
+    return jsonb_build_object('status', 'already_let');
   end if;
   perform set_config('vallo.rent_charge', 'true', true);
   /* ESC-03. A stay held on the move-in date makes this insert collide with

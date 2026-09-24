@@ -81,7 +81,7 @@ export function isOptimisable(src: string): boolean {
    * would throw; and a signed URL carries its token in the query string, which
    * is exactly the thing that should not be handed to a shared image cache.
    * Chat photographs and KYC documents are signed, so they stay unoptimised
-   * until the lead decides whether that host pattern belongs in the config.
+   * until it is decided whether that host pattern belongs in the config.
    */
   if (
     SUPABASE_HOST.length > 0 &&

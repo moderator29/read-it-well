@@ -51,6 +51,8 @@ export type ServiceRow = {
 };
 
 export const SERVICE_COLUMNS = "service_charge_covers, service_charge_reconciled, estate_type, service_charge_minor";
+/** The same columns keyed by listing id, for a read of many listings at once. */
+export const SERVICE_BY_ID_COLUMNS = `id, ${SERVICE_COLUMNS}`;
 
 /**
  * Serviced: a service charge is stated AND it covers power, water and

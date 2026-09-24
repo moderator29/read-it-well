@@ -186,6 +186,7 @@ founder's own accounts.
 - [ ] `npm run sync:versions` with `VALLO_BUILD` set (CI already provides `$PROJECT_BUILD_NUMBER` on Codemagic or `$GITHUB_RUN_NUMBER` on Actions); `npm run sync:versions -- --check` in CI
 - [ ] `CAPACITOR_SERVER_URL=... npx cap sync` from `apps/web`
 - [ ] Android: `./gradlew assembleRelease` on a machine with the SDK; confirm the R8-minified bundle opens
+- [ ] Android upload: `./gradlew bundleRelease` → `app/build/outputs/bundle/release/app-release.aab`. Play accepts only the bundle for a new app, never the APK above; enrol in Play App Signing on the first upload
 - [ ] iOS: open `npx cap open ios`, confirm the hand-edited `project.pbxproj` opens in Xcode, archive
 
 **Device tests before the first upload (none has happened)**

@@ -11,9 +11,9 @@ import type { createClient } from "../supabase/server";
  * typecheck until that file is regenerated. Regenerating it is the obvious
  * move and it is the wrong one this week.
  *
- * THE FILE IS A SHARED ARTEFACT AND SIX WRITERS ARE IN THIS TREE. Regenerating
- * it pulls in every table, column, enum and function that every other worker
- * has applied to the live project today - the supply role axis, the mandates,
+ * THE FILE IS A SHARED ARTEFACT. Regenerating it pulls in every table,
+ * column, enum and function applied to the live project since it was last
+ * generated - the supply role axis, the mandates,
  * the escrow states - into a commit whose subject is Price Check. That is a
  * merge conflict on a generated file, which is the worst kind, and it is a
  * diff no reviewer can read. Worse, it would make this commit LOOK like it
@@ -239,7 +239,7 @@ type LooseSelect = {
  *
  * The same narrow cast as the RPC door above and for the same reason:
  * `price_check_shares` is not in `lib/supabase/database.types.ts`, and
- * regenerating that file would pull every other worker's schema change into a
+ * regenerating that file would pull every other schema change into a
  * commit whose subject is a share button.
  *
  * Through the caller's own client rather than the service-role one, and

@@ -14,8 +14,8 @@ import type { AdminClient } from "./rpc";
  * the admin audit viewer already reads, and the only way a job that has
  * quietly STOPPED firing is visible: its last row has a date on it. A run
  * that failed, or one that found something a person must look at, ALSO
- * raises an alert through `lib/alerts` (BC's writer, the contract in
- * BUILD_06_LEDGER 2.1) so it lands on the admin alerts desk with the ids
+ * raises an alert through `lib/alerts` (`recordAlert`, the one writer every
+ * job uses) so it lands on the admin alerts desk with the ids
  * beside it. A clean run raises nothing: the desk is for things that need a
  * person, and the history is in the audit log.
  *

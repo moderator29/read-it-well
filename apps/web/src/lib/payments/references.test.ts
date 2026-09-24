@@ -5,6 +5,7 @@ import {
   FUND_PREFIX,
   escrowReference,
   isBookingReference,
+  escrowIdFromReference,
   isEscrowReference,
   isFundReference,
 } from "./references";
@@ -78,5 +79,20 @@ describe("escrow references", () => {
     expect(isEscrowReference(`${ESCROW_PREFIX}${UUID}`)).toBe(false);
     expect(isEscrowReference(`${ESCROW_PREFIX}not-a-uuid-hold`)).toBe(false);
     expect(isEscrowReference(`${FUND_PREFIX}${UUID}`)).toBe(false);
+  });
+});
+
+describe("escrowIdFromReference (ESC-P2-03)", () => {
+  const ID = "3f2504e0-4f89-41d3-9a0c-0305e82c3301";
+  it("reads the agreement from the hold and from both settlement credits", () => {
+    expect(escrowIdFromReference(`rm-esc-${ID}-hold`)).toBe(ID);
+    expect(escrowIdFromReference(`escrow:release:${ID}`)).toBe(ID);
+    expect(escrowIdFromReference(`escrow:refund:${ID}`)).toBe(ID);
+    expect(escrowIdFromReference(`escrow:refund:${ID}:reversed:1`)).toBe(ID);
+  });
+  it("reads nothing from anything else", () => {
+    expect(escrowIdFromReference(`escrow:commission:${ID}`)).toBeNull();
+    expect(escrowIdFromReference("escrow:release:not-a-uuid")).toBeNull();
+    expect(escrowIdFromReference(`rm-fund-${ID}`)).toBeNull();
   });
 });

@@ -11,7 +11,7 @@ import { ORDER, type Segment } from "./segments";
  * THE SEGMENTS AND THE HEADLINE ARE ONE THING. The landing headline reads
  * "Rent, buy or stay. Without the runaround." and it names these three
  * segments on purpose, so the headline teaches the control and the control
- * proves the headline (HANDOFF 09 section 2.1). IF ONE CHANGES, THE OTHER
+ * proves the headline. IF ONE CHANGES, THE OTHER
  * CHANGES IN THE SAME COMMIT. The order and the reasoning live in
  * `segments.ts` beside this file, the words in `landing.face` in
  * `packages/i18n`, and `headline-coupling.test.ts` fails if they drift.

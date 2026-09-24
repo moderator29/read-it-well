@@ -5,7 +5,7 @@ import type { ListingReview, ReviewSubject } from "@/lib/reviews/queries";
 import type { SavedSearchView } from "@/lib/saved/searches";
 
 /*
- * Fixture props for the orphans sweep harness (ruling R-G): every value here is
+ * Fixture props for the orphans sweep harness (rule R-G): every value here is
  * made up for the proof and says so by living under `(dev)/preview`. The
  * booking, tenancy, saved and inspection fixtures are the committed ones in
  * `../../f3/fixtures.ts` and `../../f5/fixtures.ts`, read, not copied.

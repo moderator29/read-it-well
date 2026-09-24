@@ -24,7 +24,7 @@ describe("demandLetter", () => {
     expect(body).toContain("₦500,000 is still owed");
     expect(body).toContain("by Sat 1 Jan 2028");
     expect(body).toContain("- Kitchen: ₦40,000");
-    expect(body).toContain("checked at https://vallospaces.com/r");
+    expect(body).toContain("look the payment up at https://vallospaces.com/r");
     expect(body).toContain("To Musa Okafor,");
   });
   it("never names an address, and marks the tenant's own words as theirs", () => {

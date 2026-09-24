@@ -15,7 +15,43 @@ const seam = vi.hoisted(() => ({
   consume: vi.fn(),
   findUserByEmail: vi.fn(),
   displayNameFor: vi.fn(),
-  admin: { from: vi.fn() } as unknown,
+  adminFrom: vi.fn() as unknown as (table: string) => unknown,
+  /* Block rows as (user_id, other_id) pairs, read by the recipient check. */
+  blocks: [] as Array<[string, string]>,
+  handleOwner: vi.fn(),
+  admin: null as unknown,
+}));
+seam.admin = {
+  from: (table: string) =>
+    table === "blocks"
+      ? {
+          select: () => ({
+            or: () => ({
+              limit: async () => ({
+                data: seam.blocks.map(([user_id, other_id]) => ({ user_id, other_id })),
+                error: null,
+              }),
+            }),
+          }),
+        }
+      : seam.adminFrom(table),
+};
+
+/* The viewer's own client: social_profiles as RLS would answer it. A blocked
+   handle is simply absent (null), exactly as social_profiles_select hides it. */
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: async () => ({
+    from: () => ({
+      select: () => ({
+        eq: (_col: string, handle: string) => ({
+          maybeSingle: async () => {
+            const owner = seam.handleOwner(handle);
+            return { data: owner ? { user_id: owner } : null, error: null };
+          },
+        }),
+      }),
+    }),
+  }),
 }));
 
 vi.mock("@/lib/actions/session", () => ({ resolveSession: seam.session }));
@@ -38,6 +74,46 @@ beforeEach(() => {
   seam.consume.mockReset().mockResolvedValue({ allowed: true, degraded: false });
   seam.findUserByEmail.mockReset().mockResolvedValue({ id: "them", email: "them@example.com" });
   seam.displayNameFor.mockReset().mockResolvedValue("Tunde Adebayo");
+  seam.blocks = [];
+  seam.adminFrom = vi.fn();
+  seam.handleOwner.mockReset().mockImplementation((h: string) => (h === "tunde" ? "them" : null));
+});
+
+describe("lookupRecipient by @handle", () => {
+  it("names the person behind a handle and never reads or returns an address", async () => {
+    const answer = await lookupRecipient("@Tunde");
+    expect(answer).toEqual({ state: "found", name: "Tunde Adebayo", tier: null });
+    expect(seam.findUserByEmail).not.toHaveBeenCalled();
+    expect(JSON.stringify(answer)).not.toMatch(/[^\s@"]+@[^\s@"]+\.[a-z]/i);
+  });
+
+  it("falls back to the handle, not an address, when the profile has no name", async () => {
+    seam.displayNameFor.mockResolvedValue(null);
+    expect(await lookupRecipient("@tunde")).toEqual({ state: "found", name: "@tunde", tier: null });
+  });
+
+  it("answers none for a handle the viewer cannot see (unclaimed or blocked)", async () => {
+    expect(await lookupRecipient("@blocked_person")).toEqual({ state: "none" });
+    expect(seam.findUserByEmail).not.toHaveBeenCalled();
+  });
+
+  it("reads a blocked person exactly like an address nobody uses (NEW-A2-04)", async () => {
+    seam.blocks = [["them", "me"]];
+    const blocked = await lookupRecipient("them@example.com");
+    seam.blocks = [];
+    seam.findUserByEmail.mockResolvedValue(null);
+    const nobody = await lookupRecipient("nobody@example.com");
+    expect(blocked).toEqual({ state: "none" });
+    expect(blocked).toEqual(nobody);
+    seam.findUserByEmail.mockResolvedValue({ id: "them", email: "them@example.com" });
+    seam.blocks = [["me", "them"]];
+    expect(await lookupRecipient("@tunde")).toEqual({ state: "none" });
+  });
+
+  it("names the viewer's own handle as self", async () => {
+    seam.handleOwner.mockReturnValue("me");
+    expect(await lookupRecipient("@myself")).toEqual({ state: "self" });
+  });
 });
 
 describe("lookupRecipient", () => {
@@ -104,7 +180,7 @@ describe("lookupRecipient, the badge tier (B-BADGE)", () => {
 
   it("carries the tier person_badge answers, and asks for exactly that row", async () => {
     const from = vi.fn(() => chain({ data: { tier: "gold" }, error: null }));
-    (seam.admin as { from: unknown }).from = from;
+    seam.adminFrom = from;
     expect(await lookupRecipient("them@example.com")).toEqual({
       state: "found",
       name: "Tunde Adebayo",
@@ -114,11 +190,11 @@ describe("lookupRecipient, the badge tier (B-BADGE)", () => {
   });
 
   it("answers no badge for no row, an unknown value, or a failed read", async () => {
-    (seam.admin as { from: unknown }).from = () => chain({ data: null, error: null });
+    seam.adminFrom = () => chain({ data: null, error: null });
     expect(await lookupRecipient("them@example.com")).toMatchObject({ tier: null });
-    (seam.admin as { from: unknown }).from = () => chain({ data: { tier: "diamond" }, error: null });
+    seam.adminFrom = () => chain({ data: { tier: "diamond" }, error: null });
     expect(await lookupRecipient("them@example.com")).toMatchObject({ tier: null });
-    (seam.admin as { from: unknown }).from = () => chain({ data: null, error: { message: "denied" } });
+    seam.adminFrom = () => chain({ data: null, error: { message: "denied" } });
     expect(await lookupRecipient("them@example.com")).toMatchObject({ tier: null });
   });
 });

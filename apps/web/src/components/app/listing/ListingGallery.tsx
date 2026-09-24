@@ -48,13 +48,19 @@ export function ListingGallery({
   mark,
   shareKind = "listing",
   place,
+  shareTitle,
 }: {
   listingId: string;
   title: string;
+  /**
+   * STORE-16: what the share sheet carries, when the page has one built
+   * from structured fields. The lister's own title can name a street.
+   */
+  shareTitle?: string;
   hue: number;
   /**
    * Stand-in photography for a place with no photographs of its own: the
-   * category plates the lead filed (restaurant-01 and its siblings). Drawn
+   * filed category plates (restaurant-01 and its siblings). Drawn
    * in the hero, never counted as this place's photos, and labelled so.
    */
   plates?: string[];
@@ -176,6 +182,13 @@ export function ListingGallery({
       <div
         ref={track}
         onScroll={onScroll}
+        /* A scroller a keyboard could not reach (axe
+           `scrollable-region-focusable`). Focusable and named, so the arrow
+           keys move through the photographs. A group, not a region: the
+           section around it is already the landmark. */
+        tabIndex={0}
+        role="group"
+        aria-label={t.a11y.photoGallery.replace("{title}", title)}
         className="nf-scroll-x flex aspect-[4/3] w-full snap-x snap-mandatory sm:aspect-[16/9] lg:aspect-[2/1]"
       >
         {panes.map((photo, i) => (
@@ -254,7 +267,7 @@ export function ListingGallery({
 
       <ListingActions
         listingId={listingId}
-        title={title}
+        title={shareTitle ?? title}
         initialSaved={initialSaved}
         shareKind={shareKind}
         place={place}

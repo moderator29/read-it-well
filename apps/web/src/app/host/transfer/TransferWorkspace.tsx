@@ -16,6 +16,8 @@ import type {
   TransferOffer,
   TransferableBusiness,
 } from "@/lib/business-transfer/queries";
+import { countOf } from "@vallo/i18n";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * The route out of the business precondition, drawn as the two doors it is.
@@ -78,6 +80,7 @@ export function TransferWorkspace({
   incoming: TransferOffer[];
   partial: boolean;
 }) {
+  const locale = useClientLocale();
   const trading = businesses.filter((business) => business.stillTrading).length;
 
   return (
@@ -91,15 +94,13 @@ export function TransferWorkspace({
               : trading === 0
                 ? "Nothing here is trading, so none of it is holding anything up."
                 : /*
-                     THE VERB AGREES WITH `trading`, NOT WITH `businesses.length`,
-                     and it used to agree with the wrong one. Two businesses with
-                     one of them trading read "1 of your businesses are still
-                     trading", which is the first sentence on a screen somebody
-                     reaches while closing their account. The subject of the
-                     sentence is the number that is trading; the plural of the
-                     set it is drawn from is the possessive and is separate.
+                     THE VERB AGREES WITH `trading`, NOT WITH `businesses.length`.
+                     Two businesses with one of them trading once read "1 of
+                     your businesses are still trading". The subject is the
+                     number that is trading, so that count picks the form; a
+                     single business on the account has its own sentence.
                   */
-                  `${trading} of your ${businesses.length === 1 ? "business" : "businesses"} ${trading === 1 ? "is" : "are"} still trading. A business a stranger can book cannot be left with nobody behind it, so it has to move or close before an account can be deleted.`}
+                  `${countOf(trading, businesses.length > 1 ? "businessesStillTrading" : "yourBusinessTrading", locale)} A business a stranger can book cannot be left with nobody behind it, so it has to move or close before an account can be deleted.`}
           </p>
         </div>
       </div>
@@ -247,16 +248,12 @@ function BusinessRow({
           {business.status === "PUBLISHED" && <li>It is live, so anybody can find it.</li>}
           {business.publishedRooms > 0 && (
             <li>
-              {business.publishedRooms === 1
-                ? "One property under it is live and bookable."
-                : `${business.publishedRooms} properties under it are live and bookable.`}
+              {countOf(business.publishedRooms, "propertiesLive")}
             </li>
           )}
           {business.futureReservations > 0 && (
             <li>
-              {business.futureReservations === 1
-                ? "One table is still booked here."
-                : `${business.futureReservations} tables are still booked here.`}{" "}
+              {countOf(business.futureReservations, "tablesBooked")}{" "}
               <Link
                 href="/agent/bookings"
                 className="font-semibold text-[var(--nf-content-link)] hover:underline"

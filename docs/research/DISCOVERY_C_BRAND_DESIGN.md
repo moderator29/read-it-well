@@ -8,7 +8,7 @@ WORKS / INCOMPLETE / FRONTEND ONLY / MOCK-DEMO / PLACEHOLDER / NOT
 IMPLEMENTED / UNCLEAR.
 
 **Read first, because it changes how to read everything else:** the tree was
-snapshotted mid-build. `docs/BUILD_05_LEDGER.md` records that the HANDOFF_05
+snapshotted mid-build. `docs/archive/BUILD_05_LEDGER.md` records that the HANDOFF_05
 two-side build landed three commits today (`bb36563`, `a8fad5b`, `70c98d9`):
 the side flip, six stays route shells, `/stays` and `/stays/search`, the stay
 detail showcase, `/trips`, the three thread faces, `/inspections`, the

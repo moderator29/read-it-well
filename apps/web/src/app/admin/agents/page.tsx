@@ -258,6 +258,9 @@ function ApplicationCard({
         {application.reviewNotes && (
           <ui.DetailRow label={f.lastNote} value={application.reviewNotes} />
         )}
+        {application.applicantResponse && (
+          <ui.DetailRow label={f.applicantAnswer} value={application.applicantResponse} />
+        )}
         {application.reviewedAt && (
           <ui.DetailRow label={f.lastReviewed} value={ui.when(application.reviewedAt)} />
         )}

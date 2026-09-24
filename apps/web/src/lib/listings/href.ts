@@ -1,3 +1,4 @@
+import { marketOf, type MarketFacts } from "./market";
 import type { ListingKind } from "./types";
 
 /**
@@ -21,18 +22,17 @@ import type { ListingKind } from "./types";
  * asking the caller a question the DATA already answers. A hotel is a stay
  * wherever it is drawn - on the property search, on the shortlist, in a chat
  * card, in an assistant recommendation - so the destination is a function of
- * `listing.kind` and of nothing else, and there is no prop left to forget.
+ * the listing's own data, and there is no prop left to forget.
  *
- * THE THREE DESTINATIONS.
+ * THE THREE DESTINATIONS, by market (`lib/listings/market.ts`).
  *
- *   `/stay/<id>`        the nightly lodging kinds. `hotel`, `shortlet`,
- *                       `villa` and `apartment` are priced per night and
- *                       reserved, which is the Stays side by definition.
- *   `/restaurant/<id>`  a table is booked, not slept in, and it has its own
- *                       shell on the Stays side.
- *   `/listing/<id>`     everything else: `home`, `rental`, `land`, `shop`,
- *                       `office` and `experience`. Annual tenancies and
- *                       sales, arranged with an agent and inspected. The
+ *   `/stay/<id>`        a stay by the night: a rate per night, or a nightly
+ *                       kind (`hotel`, `shortlet`, `villa`, `apartment`) with
+ *                       no stated price.
+ *   `/restaurant/<id>`  a table, priced per head. It has its own shell on the
+ *                       Stays side.
+ *   `/listing/<id>`     everything let on a tenancy or sold, whatever the
+ *                       kind: a villa let by the year is a tenancy. The
  *                       Property side.
  *
  * `/stay/[id]` falls through to the listing page when no accommodation row
@@ -45,8 +45,8 @@ import type { ListingKind } from "./types";
  */
 
 /**
- * The kinds that are slept in by the night. Named rather than inlined so a
- * new lodging kind is added in one place and every surface follows.
+ * The kinds that are slept in by the night, when nothing else is known. Named
+ * rather than inlined so a new lodging kind is added in one place.
  */
 const STAY_KINDS = new Set<ListingKind>(["hotel", "shortlet", "villa", "apartment"]);
 
@@ -54,8 +54,28 @@ export function isStayKind(kind: ListingKind): boolean {
   return STAY_KINDS.has(kind);
 }
 
-export function hrefForListing(kind: ListingKind, id: string): string {
-  if (kind === "restaurant") return `/restaurant/${id}`;
-  if (isStayKind(kind)) return `/stay/${id}`;
+/**
+ * UX-10 / UI-P2-03: the destination follows the MARKET (`marketOf`), not the
+ * kind alone. A villa or apartment let by the year is a tenancy and opens on
+ * `/listing/<id>`; restaurant premises let on a rent do too. A caller that has
+ * only the kind (an old assistant card) still gets the kind's default.
+ */
+export function hrefForListing(
+  kind: ListingKind,
+  id: string,
+  facts: Omit<MarketFacts, "kind"> = {},
+): string {
+  const market = marketOf({ kind, ...facts });
+  if (market === "dining") return `/restaurant/${id}`;
+  if (market === "stay") return `/stay/${id}`;
   return `/listing/${id}`;
+}
+
+/** The facts `hrefForListing` needs, off a listing. */
+export function marketFactsOf(listing: {
+  intent?: MarketFacts["intent"];
+  pricePeriod?: MarketFacts["pricePeriod"];
+  priceMinor?: number;
+}): Omit<MarketFacts, "kind"> {
+  return { intent: listing.intent, pricePeriod: listing.pricePeriod, priceMinor: listing.priceMinor };
 }

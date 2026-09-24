@@ -1,5 +1,14 @@
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { failureConsequence, vettedFailureSentence } from "./payment-copy";
+import {
+  failureConsequence,
+  RENT_PAID_PAGE_CONSEQUENCE,
+  RENT_PAID_SHEET_CONSEQUENCE,
+  STAY_PAID_SHEET_CONSEQUENCE,
+  vettedFailureSentence,
+} from "./payment-copy";
 
 /**
  * The boundary between whatever the server put in `result.error` and the person
@@ -73,5 +82,53 @@ describe("failureConsequence", () => {
 
   it("never returns the sentence the brief bans", () => {
     expect(failureConsequence("Something went wrong", money)).not.toMatch(/something went wrong/i);
+  });
+});
+
+/*
+ * V-33. A success screen said "the agent has been paid" while the charge
+ * credited nobody and no payout existed. The sentence is a claim about a
+ * payout, so both the shipped sentences and the whole source tree are held
+ * to never making it again.
+ */
+const PAYOUT_CLAIM =
+  /\b(agent|host|lister|landlord|owner)\s+(has|have|was|were|is|got)\s+(been\s+)?(paid|credited|settled)\b|\b(paid|sent|gone|settled)\s+(out\s+)?to\s+the\s+(agent|host|lister|landlord)\b/i;
+
+describe("the paid screens (V-33)", () => {
+  it.each([
+    ["rent page", RENT_PAID_PAGE_CONSEQUENCE],
+    ["rent sheet", RENT_PAID_SHEET_CONSEQUENCE],
+    ["stay sheet", STAY_PAID_SHEET_CONSEQUENCE],
+  ])("the %s says the charge is recorded and claims no payout", (_name, sentence) => {
+    expect(sentence).toMatch(/recorded to the kobo/);
+    expect(sentence).not.toMatch(PAYOUT_CLAIM);
+  });
+
+  it("catches the sentence that used to ship", () => {
+    expect("The agent has been paid and these dates are yours.").toMatch(PAYOUT_CLAIM);
+    expect("the agent has been paid. Arrange the keys").toMatch(PAYOUT_CLAIM);
+  });
+
+  it("no screen or dictionary anywhere tells a payer the agent has been paid", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const webSrc = resolve(here, "../../../..");
+    const i18n = resolve(webSrc, "../../../packages/i18n/src");
+    const offenders: string[] = [];
+    const walk = (dir: string) => {
+      for (const name of readdirSync(dir)) {
+        if (name === "node_modules" || name.startsWith(".")) continue;
+        const full = join(dir, name);
+        if (statSync(full).isDirectory()) {
+          walk(full);
+        } else if (/\.(tsx?|json)$/.test(name) && !/\.test\.tsx?$/.test(name)) {
+          if (/\b(agent|host|lister|landlord)\s+has\s+been\s+paid\b/i.test(readFileSync(full, "utf8"))) {
+            offenders.push(full);
+          }
+        }
+      }
+    };
+    walk(webSrc);
+    walk(i18n);
+    expect(offenders).toEqual([]);
   });
 });

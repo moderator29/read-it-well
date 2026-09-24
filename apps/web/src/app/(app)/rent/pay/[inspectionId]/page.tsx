@@ -48,6 +48,7 @@ export default async function RentPayPage({
   const { inspectionId } = await params;
   const { paid, reference } = await searchParams;
   const locale = await getLocale();
+  const c = getDictionary(locale).checkout;
   const read = await getRentPayView(inspectionId, locale);
 
   const settling =
@@ -59,9 +60,9 @@ export default async function RentPayPage({
         <ResultScreen
           state="pending"
           mark="card-lock"
-          verdict="We cannot reach payment right now"
-          consequence="This is on our side, not yours. Nothing has been charged and your inspection is unchanged. Try again in a few minutes."
-          actions={[{ label: "See your inspections", href: "/bookings?kind=inspection&from=property", tone: "primary" }]}
+          verdict={c.cannotReachPayment}
+          consequence={c.cannotReachRent}
+          actions={[{ label: c.seeInspections, href: "/bookings?kind=inspection&from=property", tone: "primary" }]}
         />
       </Shell>
     );
@@ -73,9 +74,9 @@ export default async function RentPayPage({
         <ResultScreen
           state="confirmed"
           mark="shield-check"
-          verdict="Sign in to pay the rent"
-          consequence="Your inspection is kept safe. Sign in and you land straight back here."
-          actions={[{ label: "Sign in", href: "/sign-in", tone: "primary" }]}
+          verdict={c.signInToPayRent}
+          consequence={c.signInKeptRent}
+          actions={[{ label: c.signIn, href: "/sign-in", tone: "primary" }]}
         />
       </Shell>
     );
@@ -85,11 +86,10 @@ export default async function RentPayPage({
     return (
       <Shell>
         <ResultScreen
-          state="failed"
-          mark="seal-cross"
-          verdict="We could not find that inspection"
-          consequence="It may have been withdrawn, or it belongs to another account. Your inspections are all in one place."
-          actions={[{ label: "See your inspections", href: "/bookings?kind=inspection&from=property", tone: "primary" }]}
+          state="missing"
+          verdict={c.inspectionNotFound}
+          consequence={c.inspectionNotFoundBody}
+          actions={[{ label: c.seeInspections, href: "/bookings?kind=inspection&from=property", tone: "primary" }]}
         />
       </Shell>
     );
@@ -101,9 +101,9 @@ export default async function RentPayPage({
         <ResultScreen
           state="failed"
           mark="alert-triangle"
-          verdict="The payment step did not open"
-          consequence="Nothing has been charged. Try again in a few minutes."
-          actions={[{ label: "See your inspections", href: "/bookings?kind=inspection&from=property", tone: "primary" }]}
+          verdict={c.rentStepDidNotOpen}
+          consequence={c.rentStepDidNotOpenBody}
+          actions={[{ label: c.seeInspections, href: "/bookings?kind=inspection&from=property", tone: "primary" }]}
         />
       </Shell>
     );
@@ -115,9 +115,9 @@ export default async function RentPayPage({
         <ResultScreen
           state="confirmed"
           mark="shield-check"
-          verdict="This is your listing"
-          consequence="The person who inspected it pays the move-in total here, and you are told the moment it lands."
-          actions={[{ label: "See your inspections", href: "/agent/inspections", tone: "primary" }]}
+          verdict={c.yourListing}
+          consequence={c.yourListingBody}
+          actions={[{ label: c.seeInspections, href: "/agent/inspections", tone: "primary" }]}
         />
       </Shell>
     );
@@ -129,11 +129,11 @@ export default async function RentPayPage({
         <ResultScreen
           state="pending"
           mark="calendar-check"
-          verdict="Waiting on the lister"
-          consequence="Nothing can be paid until the lister accepts your inspection. You will be told the moment they do, and this page opens then."
+          verdict={c.waitingOnLister}
+          consequence={c.waitingOnListerBody}
           actions={[
-            { label: "See your inspections", href: "/bookings?kind=inspection&from=property", tone: "primary" },
-            { label: "Back to the listing", href: `/listing/${read.listingId}`, tone: "quiet" },
+            { label: c.seeInspections, href: "/bookings?kind=inspection&from=property", tone: "primary" },
+            { label: c.backToListing, href: `/listing/${read.listingId}`, tone: "quiet" },
           ]}
         />
       </Shell>
@@ -146,11 +146,11 @@ export default async function RentPayPage({
         <ResultScreen
           state="failed"
           mark="seal-cross"
-          verdict="There is no figure to pay yet"
-          consequence="This listing does not state a rent and its fees, so there is nothing to charge. Ask the lister in your thread to put the move-in figure on the listing."
+          verdict={c.noFigure}
+          consequence={c.noFigureBody}
           actions={[
-            { label: "Open messages", href: "/messages", tone: "primary" },
-            { label: "Back to the listing", href: `/listing/${read.listingId}`, tone: "quiet" },
+            { label: c.openMessages, href: "/messages", tone: "primary" },
+            { label: c.backToListing, href: `/listing/${read.listingId}`, tone: "quiet" },
           ]}
         />
       </Shell>
@@ -165,11 +165,11 @@ export default async function RentPayPage({
         <ResultScreen
           state="confirmed"
           mark="shield-check"
-          verdict="The rent is paid"
-          consequence="The move-in total is paid and recorded to the kobo, and the agent has been paid. Arrange the keys with them in your thread."
+          verdict={c.rentIsPaid}
+          consequence={c.paidRent}
           actions={[
-            { label: "Open messages", href: "/messages", tone: "primary" },
-            { label: "Back to the listing", href: `/listing/${view.listingId}`, tone: "quiet" },
+            { label: c.openMessages, href: "/messages", tone: "primary" },
+            { label: c.backToListing, href: `/listing/${view.listingId}`, tone: "quiet" },
           ]}
           footnote={
             /* V-32: the landlord's answer to these figures, as a dated fact,
@@ -218,10 +218,11 @@ export default async function RentPayPage({
   );
 }
 
-function Shell({ subtitle, children }: { subtitle?: string; children: React.ReactNode }) {
+async function Shell({ subtitle, children }: { subtitle?: string; children: React.ReactNode }) {
+  const c = getDictionary(await getLocale()).checkout;
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Pay the rent" subtitle={subtitle ?? "The move-in total, paid inside Vallo"} fallback="/bookings?kind=inspection&from=property" />
+      <PageHeader title={c.rentTitle} subtitle={subtitle ?? c.rentSubtitle} fallback="/bookings?kind=inspection&from=property" />
       {children}
     </div>
   );

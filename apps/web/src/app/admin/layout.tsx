@@ -30,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * gets the access screen and never receives markup carrying platform data.
  * The gate is `requireAdmin` exactly as before; nothing about it moved.
  *
- * WHERE THE CONSOLE LANDS (lead ruling R-E). Every door in the product links
+ * WHERE THE CONSOLE LANDS (rule R-E). Every door in the product links
  * `/admin`, and an arrival BY ADDRESS lands there too: the first request to
  * any desk in a browser session is sent to `/admin?next=<desk>` by
  * `EntryGate`, which the overview answers with "You were heading to" as its

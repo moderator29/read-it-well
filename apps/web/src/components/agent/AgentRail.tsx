@@ -4,6 +4,7 @@ import type { AgentProfile } from "@/lib/agent/types";
 import { Logo } from "@/design-system/brand/Logo";
 import { ModeSwitcher } from "./ModeSwitcher";
 import { AgentIdentityCard, AgentModePill } from "./AgentNav";
+import { noWorkspaceDoor } from "./agent-doors";
 import { buildAgentNav } from "./agent-nav-model";
 import { NavTree } from "@/components/app/NavTree";
 
@@ -55,8 +56,7 @@ export function AgentRail({
         <AgentIdentityCard
           profile={profile}
           verifiedLabel={t.agent.mode.verifiedAgent}
-          visitorLabel={t.agent.mode.visitor}
-          signInLabel={t.agent.mode.signInToWorkspace}
+          door={noWorkspaceDoor(t.agent.mode)}
         />
         {/* This rail only renders inside Agent Mode, so the switch always
             offers Personal, independent of the cookie's current value. */}

@@ -35,3 +35,24 @@ settlement).
 | `apps/web/src/lib/admin/actions.ts` | SCUML 15 | One import and one line in `reviewListing`: the EDD gate refusal (RM175) is named for the admin | Claimed |
 | `apps/web/src/lib/payments/bank-accounts-actions.ts` | SCUML 15, 20 | Two imports, a PEP-answer check for listers only, and a neutral line for the EDD gate refusal (RM175) | Claimed |
 | `apps/web/src/components/agent/AgentShell.tsx` | SCUML 20 | One import and one element: the PEP banner until a lister has answered | Claimed |
+
+## The audit session's statement of ownership
+
+The **audit fix session** works on branch `claude/vallo-audit-app-store-jzmmd4`. It owns:
+- security, RLS and the schema;
+- money and escrow correctness;
+- store compliance;
+- the build pipeline and the tests;
+- the claims sweep;
+- the repository cleanup;
+- every file named in a finding in `docs/THE_AUDIT.md`;
+- V-33, the live rent charge, taken from THE_HUNDRED;
+- the items THE_HUNDRED lists as "Handed to the audit session".
+
+The **recommendations session** owns the new features and surfaces from `docs/THE_HUNDRED.md` that no audit finding touches.
+
+**To claim a file the other session holds,** add a line below and work on something else until the other session releases it.
+
+### Claims by the audit session
+
+(none yet)

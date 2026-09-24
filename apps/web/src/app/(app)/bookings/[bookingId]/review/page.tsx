@@ -69,8 +69,7 @@ export default async function ReviewPage({
         {/* Rose and a cross. This said "We could not find that stay" under a
             calendar with a tick, in the pending colour. */}
         <ResultScreen
-          state="failed"
-          mark="seal-cross"
+          state="missing"
           verdict="We could not find that stay"
           consequence="It may belong to another account. Your stays are all in one place."
           actions={[{ label: plans.seeStays, href: "/bookings?side=stays&from=stays", tone: "primary" }]}
@@ -109,6 +108,16 @@ export default async function ReviewPage({
         title: "Your stay is not finished yet",
         description: `You can share a review from ${read.subject.checkOutDisplay}, once you have checked out. Enjoy the rest of it.`,
       },
+      "no-show": {
+        title: "This stay was recorded as not attended",
+        description:
+          "Reviews are for stays that happened. If you did arrive, contact support from your bookings and we will look into it.",
+      },
+      tenancy: {
+        title: "A tenancy is not reviewed as a stay",
+        description:
+          "Your move-in and rent are on the tenancy page. Support can help with anything about the home.",
+      },
     }[read.reason];
 
     return (
@@ -117,7 +126,7 @@ export default async function ReviewPage({
             and one that was cancelled is a window that closed. Neither is a
             failure, so neither is rose. */}
         <ResultScreen
-          state={read.reason === "cancelled" ? "expired" : "pending"}
+          state={read.reason === "cancelled" || read.reason === "no-show" || read.reason === "tenancy" ? "expired" : "pending"}
           mark="calendar-clock"
           verdict={copy.title}
           consequence={copy.description}

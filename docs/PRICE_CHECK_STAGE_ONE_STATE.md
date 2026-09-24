@@ -4,8 +4,8 @@ Written 23 September 2026 against the live project `uccixoonmbhrnyczyigt`. Every
 number below was read from that database on that date and the query that
 produced it is given, so a reader can re-run it rather than believe it.
 
-Stage one was scoped in `docs/PROMPTS_THE_FINISH.md` section 3 and in
-`docs/HANDOFF_09_THE_DIRECT_PLATFORM.md` section 5:
+Stage one was scoped in `docs/archive/PROMPTS_THE_FINISH.md` section 3 and in
+`docs/archive/HANDOFF_09_THE_DIRECT_PLATFORM.md` section 5:
 
 > the area report from asking prices described as asking, the neighbourhood
 > power and water facts, the refusal states with notify-me, the map pin ladder

@@ -18,6 +18,8 @@ import {
   toggleRepost,
 } from "@/lib/social/posts-actions";
 import { POST_COPY, POST_REPORT_REASONS } from "@/lib/social/posts-schema";
+import { countOf } from "@vallo/i18n";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
 
 type ThreadReply = PostView & { depth: number; parentId: string | null; mutedAuthor: boolean };
 
@@ -48,6 +50,7 @@ export function ThreadView({
   /** Arrived from a card's comment glyph: open addressed to the root. */
   openReply?: boolean;
 }) {
+  const locale = useClientLocale();
   const router = useRouter();
   const [root, setRoot] = useState(thread.root);
   const [replies, setReplies] = useState(thread.replies);
@@ -346,7 +349,7 @@ export function ThreadView({
 
       {replies.length > 0 ? (
         <h2 className="mt-xs text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-[0.14em] text-[var(--nf-content-muted)]">
-          {replies.length === 1 ? "1 reply" : `${replies.length} replies`}
+          {countOf(replies.length, "replies", locale)}
         </h2>
       ) : (
         /*

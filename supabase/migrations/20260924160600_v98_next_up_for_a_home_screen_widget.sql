@@ -202,9 +202,11 @@ $function$;
 
 do $$
 begin
-  if exists (select 1 from information_schema.role_table_grants
-              where table_schema = 'public' and table_name = 'widget_tokens'
-                and grantee in ('anon', 'authenticated', 'PUBLIC')) then
+  /* has_table_privilege answers for the named role (a grant to PUBLIC
+     included, a column grant not); information_schema's grant views answer
+     only for the observer and pass by seeing nothing. */
+  if has_table_privilege('anon', 'public.widget_tokens', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')
+     or has_table_privilege('authenticated', 'public.widget_tokens', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER') then
     raise exception 'widget_tokens is not born locked';
   end if;
   if has_function_privilege('anon', 'public.widget_next_up(text)', 'EXECUTE')

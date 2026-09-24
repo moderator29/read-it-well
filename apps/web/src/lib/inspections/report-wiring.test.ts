@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * THE REPORT, EXERCISED OVER THE REAL ACTIONS.
  *
  * This box cannot reach Supabase over HTTP, so the live run is impossible
- * here. What can be proved is that the screen's calls go through Session A's
- * real `saveInspectionReport` (I1) with the shapes the tables take, that the database's refusals come back as the
+ * here. What can be proved is that the screen's calls go through the
+ * real `saveInspectionReport` with the shapes the tables take, that the database's refusals come back as the
  * sentences the screen shows, and that `fromSaved` turns what the action read
  * back into the ticks the screen draws. The database end (RLS, the eight-tick
  * trigger, the bucket) was confirmed read-only on production.

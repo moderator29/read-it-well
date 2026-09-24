@@ -14,8 +14,8 @@ import { MoneyGlyph } from "./MoneyGlyph";
  * under the product's own name for it, "Add money". Withdraw was the obvious
  * fourth and is NOT drawn: the only production withdrawal failed with
  * Paystack's "You cannot initiate third party payouts as a starter
- * business", so a bank payout does not work end to end today (a founder
- * question in the Session B ledger). The fourth slot is the statement, which
+ * business", so a bank payout does not work end to end today (an open
+ * question for the founder). The fourth slot is the statement, which
  * is real. Send is the lit tile on both pages, as both renders light it.
  *
  * Add money opens the funding sheet where the page has one (`onAddMoney`),

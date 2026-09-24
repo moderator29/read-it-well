@@ -136,9 +136,11 @@ create trigger notifications_whatsapp_enqueue
 
 do $$
 begin
-  if exists (select 1 from information_schema.role_table_grants
-              where table_schema = 'public' and table_name = 'whatsapp_queue'
-                and grantee in ('anon', 'authenticated', 'PUBLIC')) then
+  /* has_table_privilege answers for the named role (a grant to PUBLIC
+     included, a column grant not); information_schema's grant views answer
+     only for the observer and pass by seeing nothing. */
+  if has_table_privilege('anon', 'public.whatsapp_queue', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')
+     or has_table_privilege('authenticated', 'public.whatsapp_queue', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER') then
     raise exception 'whatsapp_queue is not born locked';
   end if;
   if exists (select 1 from public.feature_flags where key = 'whatsapp_doorbell' and enabled) then

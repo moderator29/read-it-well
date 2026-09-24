@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getDictionary, type Dictionary } from "@vallo/i18n";
+import { countOf, getDictionary, type Dictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
@@ -150,9 +150,7 @@ export function AgentSettingsBody({
                 {preferred.accountName}
               </p>
               <p className="mt-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-                {accounts.length === 1
-                  ? "This is the account your payouts are sent to."
-                  : `Your payouts go here. You have ${accounts.length} accounts on file.`}
+                {countOf(accounts.length, "payoutAccounts")}
               </p>
             </>
           ) : (

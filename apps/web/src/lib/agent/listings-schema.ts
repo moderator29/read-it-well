@@ -690,6 +690,12 @@ export const draftInputSchema = z.object({
   ),
   waterSupply: z.preprocess(emptyToUndefined, z.enum(WATER_SUPPLY_VALUES).optional()),
   prepaidMeter: z.preprocess(emptyToUndefined, z.boolean().optional()),
+  /**
+   * V-09: the wizard fields a pasted broadcast filled and the lister has not
+   * yet confirmed, written beside the draft in the same save. Absent leaves
+   * what is stored alone; an empty list clears it.
+   */
+  broadcastUnconfirmed: z.array(z.string().regex(/^[A-Za-z]{1,40}$/)).max(40).optional(),
 
   /* V-28. The compound's five answers. NULL clears an answer the lister took
      back (the wizard holds all five and sends null for unanswered); undefined
@@ -1077,7 +1083,7 @@ export type ListingStatus =
  * notification that made it worse by telling them to publish it themselves is
  * fixed (`lib/admin/actions.ts`), and so is the email. The CHIP is not, for
  * two reasons that are both about not making things worse: the live string
- * lives in a dictionary namespace this worker may only add to, and the colour
+ * lives in a shared dictionary namespace, and the colour
  * comes from `toneForStatus`, which maps APPROVED to success for bookings,
  * payments, support tickets and six other families at once. Both belong to
  * whoever owns those, and both are in the report.

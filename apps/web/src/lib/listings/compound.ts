@@ -42,6 +42,8 @@ export type CompoundRow = {
 
 export const COMPOUND_COLUMNS =
   "parking_type, flats_in_compound, landlord_on_site, waste_disposal, car_access";
+/** The same columns keyed by listing id, for a read of many listings at once. */
+export const COMPOUND_BY_ID_COLUMNS = `id, ${COMPOUND_COLUMNS}`;
 
 function isParkingType(value: unknown): value is ParkingType {
   return typeof value === "string" && (PARKING_TYPES as readonly string[]).includes(value);

@@ -2,7 +2,7 @@ import { PersonTier } from "@/app/admin/_components/PersonTier";
 import { payeeCaption, type MoneyMapCopy, type PayeeContext } from "@/lib/listings/money-map";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { countOf, formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import type { ListingReviewView } from "@/lib/admin/queries";
@@ -27,7 +27,7 @@ import { placeLine, priceLine } from "../rows";
  * GOVERNING-12 panel 2 (photos with the walkthrough, the facts, the price
  * breakdown, the description, then Approve, Ask for more, Reject).
  *
- * Presentational. The listing is Session A's `ListingReviewView`; the map pin,
+ * Presentational. The listing is `ListingReviewView`; the map pin,
  * amenity names, availability date, example flag and the lister's
  * verification are `getListingReviewExtras` (lib/admin/reads/listings.ts).
  * When that read fails, `extras` is null and those panels say so.
@@ -187,7 +187,7 @@ export function ListingReview(props: ListingReviewProps) {
               value={
                 listing.facts.parkingSpaces === null
                   ? null
-                  : `${listing.facts.parkingSpaces} ${listing.facts.parkingSpaces === 1 ? "space" : "spaces"}`
+                  : countOf(listing.facts.parkingSpaces, "spaces")
               }
             />
             <Fact
@@ -286,9 +286,7 @@ export function ListingReview(props: ListingReviewProps) {
             ) : (
               <>
                 <p className="nf-rv-msg" style={{ marginBottom: "var(--nf-space-xs)" }}>
-                  {listing.amenityCount === 1
-                    ? "1 amenity chosen."
-                    : `${listing.amenityCount} amenities chosen.`}
+                  {countOf(listing.amenityCount, "amenitiesChosen")}
                 </p>
                 <p className="nf-rv-panel__note">Their names could not be read just now.</p>
               </>

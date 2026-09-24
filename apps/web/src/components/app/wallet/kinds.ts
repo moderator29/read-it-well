@@ -41,13 +41,20 @@ export const KIND_ICON: Record<WalletEntryKind, UiIconName> = {
   /*
    * A POT IS NOT AN ESCROW, so it does not get the padlock. Money in a pot is
    * still the person's own and they can take it back; the arrows say which way
-   * it went and nothing more. Added by Session A on 23 September when
+   * it went and nothing more. Added on 23 September when
    * `WalletEntryKind` began deriving from the database enum: both verbs are
    * live, so a real ledger row could already have reached this map and found
    * no icon.
    */
   pot_hold: "arrow-up",
   pot_release: "arrow-down",
+  /*
+   * V-33. A tenant's move-in payment arriving in the lister's wallet at the
+   * moment of charge, and the same money leaving again when support refunds
+   * the tenant. Arrows, because the money went somewhere.
+   */
+  payment_in: "arrow-down",
+  payment_in_return: "arrow-up",
 };
 
 /*

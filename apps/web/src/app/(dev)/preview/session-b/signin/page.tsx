@@ -41,7 +41,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * Welcome back, the states a sandbox cannot reach live (ledger R-G).
+ * Welcome back, the states a sandbox cannot reach live (rule R-G).
  *
  * The real shell, the real `AuthChoices` and the real `EmailAuthForm`, on
  * fixture props, behind the preview gate in `../../layout.tsx`. The live

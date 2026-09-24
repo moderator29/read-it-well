@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { bpsAsPercentText } from "@/lib/money/percent";
+import { stayDateLabel } from "@/lib/stays/date-label";
 import { redirect } from "next/navigation";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -71,15 +72,13 @@ export default async function RoomCheckoutPage({
         ? cancelCopy.shareNow.replace("{percent}", bpsAsPercentText(standing.refundBps))
         : cancelCopy.nonRefundable
     : null;
-  const checkInLabel = checkIn ? (formatMoneyDate(checkIn, locale) ?? checkIn) : null;
-  const checkOutLabel = checkOut ? (formatMoneyDate(checkOut, locale) ?? checkOut) : null;
   const backHref = detail
     ? `/stay/${detail.accommodation.id}${checkIn && checkOut ? `?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}` : ""}`
     : "/stays";
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Checkout" subtitle={detail?.accommodation.name} fallback={backHref} />
+      <PageHeader title={t.checkout.title} subtitle={detail?.accommodation.name} fallback={backHref} />
 
       {detail && room && plan && (
         <Panel variant="card" aria-labelledby="nf-room-pick" data-testid="room-pick">
@@ -94,7 +93,7 @@ export default async function RoomCheckoutPage({
               <div className="flex items-start justify-between gap-md">
                 <dt className={TYPE.rowMeta}>{t.catalogue.stays.checkIn}</dt>
                 <dd className={`text-right ${TYPE.rowTitle}`}>
-                  <span className="nf-numeric">{checkInLabel}</span>
+                  <span className="nf-numeric">{stayDateLabel(checkIn, locale) ?? checkIn}</span>
                 </dd>
               </div>
             )}
@@ -102,7 +101,7 @@ export default async function RoomCheckoutPage({
               <div className="flex items-start justify-between gap-md">
                 <dt className={TYPE.rowMeta}>{t.catalogue.stays.checkOut}</dt>
                 <dd className={`text-right ${TYPE.rowTitle}`}>
-                  <span className="nf-numeric">{checkOutLabel}</span>
+                  <span className="nf-numeric">{stayDateLabel(checkOut, locale) ?? checkOut}</span>
                 </dd>
               </div>
             )}
@@ -134,16 +133,16 @@ export default async function RoomCheckoutPage({
       )}
 
       <ResultScreen
-        state="expired"
-        mark="calendar-check"
-        verdict={detail ? "Vallo cannot hold this room" : "We could not find that stay"}
+        state={detail ? "expired" : "missing"}
+        mark={detail ? "calendar-check" : undefined}
+        verdict={detail ? t.checkout.cannotHoldRoom : t.checkout.stayNotFound}
         consequence={
           detail
-            ? "Rooms at this property are not reserved through Vallo, so nothing has been held and nothing has been charged. Go back to the stay for its rates and the ways to reach the property, or find another stay."
-            : "It may have been taken off the shelf, or the link is incomplete. Nothing has been held and nothing has been charged."
+            ? t.checkout.cannotHoldRoomBody
+            : t.checkout.stayNotFoundBody
         }
         actions={[
-          { label: detail ? "Back to the stay" : t.stays.findStay, href: backHref, tone: "primary" },
+          { label: detail ? t.checkout.backToStay : t.stays.findStay, href: backHref, tone: "primary" },
           { label: t.stays.findStay, href: "/stays/search", tone: "quiet" },
         ]}
         data-testid="room-checkout-state"
@@ -151,7 +150,7 @@ export default async function RoomCheckoutPage({
 
       <p className={`flex items-start gap-inline ${TYPE.caption}`}>
         <UiIcon name="verified" size={ICON.inline} className="mt-3xs shrink-0 text-[var(--nf-brand-secondary)]" />
-        <span>Money moves inside Vallo only once a booking exists and its total is stored to the kobo.</span>
+        <span>{t.checkout.onlyYourBooking}</span>
       </p>
     </div>
   );

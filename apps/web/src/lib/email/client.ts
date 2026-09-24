@@ -62,7 +62,34 @@ export type SendEmailMessage = {
   text?: string;
   /** Where a reply should land, when it is not the sending address. */
   replyTo?: string;
+  /**
+   * Extra message headers, e.g. `List-Unsubscribe` on mail a preference can
+   * switch off (OPS-14). Sent as Resend's `headers` object.
+   */
+  headers?: Record<string, string>;
 };
+
+/*
+ * OPS-14: A BLIP IS RETRIED, NOT LOST. A 429, a 5xx or a failed connection is
+ * tried again twice, after a short wait, with the same Idempotency-Key, so
+ * Resend delivers it at most once even if an earlier attempt did reach it. A
+ * 4xx other than 429 is Resend saying no, and trying again changes nothing.
+ * The waits are short because most sends sit inside a person's request;
+ * anything longer than this belongs to the outbox, which retries on a cron.
+ */
+export const RETRY_DELAYS_MS = [400, 1200] as const;
+let sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/** For tests: replace the wait between attempts. */
+export function setEmailRetrySleep(fn: (ms: number) => Promise<void>): void {
+  sleep = fn;
+}
+
+function transient(result: SendEmailResult): boolean {
+  if (result.sent) return false;
+  if (result.reason === "unreachable" || result.reason === "timeout") return true;
+  return result.reason === "rejected" && (result.status === 429 || (result.status ?? 0) >= 500);
+}
 
 function apiKey(): string {
   return (process.env.RESEND_API_KEY ?? "").trim();
@@ -150,6 +177,22 @@ export async function sendEmail(message: SendEmailMessage): Promise<SendEmailRes
   const to = message.to.trim();
   if (!ADDRESS_RE.test(to)) return { sent: false, reason: "invalid-recipient" };
 
+  const idempotencyKey = crypto.randomUUID();
+  let result = await attemptSend(key, to, message, idempotencyKey);
+  for (const wait of RETRY_DELAYS_MS) {
+    if (!transient(result)) break;
+    await sleep(wait);
+    result = await attemptSend(key, to, message, idempotencyKey);
+  }
+  return result;
+}
+
+async function attemptSend(
+  key: string,
+  to: string,
+  message: SendEmailMessage,
+  idempotencyKey: string,
+): Promise<SendEmailResult> {
   /* The message wins when it says, the environment answers when it does not,
      and when neither speaks no `reply_to` is sent, which is exactly what this
      module did before the default existed. */
@@ -162,6 +205,7 @@ export async function sendEmail(message: SendEmailMessage): Promise<SendEmailRes
       headers: {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
+        "Idempotency-Key": idempotencyKey,
       },
       // The REST API speaks snake_case: reply_to, not the SDK's replyTo.
       body: JSON.stringify({
@@ -173,6 +217,7 @@ export async function sendEmail(message: SendEmailMessage): Promise<SendEmailRes
           ? { text: message.text }
           : {}),
         ...(replyTo.length > 0 ? { reply_to: replyTo } : {}),
+        ...(message.headers && Object.keys(message.headers).length > 0 ? { headers: message.headers } : {}),
       }),
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       cache: "no-store",
@@ -215,7 +260,7 @@ export async function sendEmail(message: SendEmailMessage): Promise<SendEmailRes
 export async function sendMessage(
   to: string,
   message: { subject: string; html: string; text: string },
-  options?: { replyTo?: string },
+  options?: { replyTo?: string; headers?: Record<string, string> },
 ): Promise<SendEmailResult> {
   return sendEmail({
     to,
@@ -223,7 +268,18 @@ export async function sendMessage(
     html: message.html,
     text: message.text,
     ...(options?.replyTo ? { replyTo: options.replyTo } : {}),
+    ...(options?.headers ? { headers: options.headers } : {}),
   });
+}
+
+/**
+ * OPS-14: the List-Unsubscribe header for mail a /settings switch can turn
+ * off, pointing at that switch. Not one-click (no List-Unsubscribe-Post):
+ * that needs a signed, sign-in-free endpoint, which does not exist yet.
+ */
+export function listUnsubscribeHeaders(origin: string, channel: string): Record<string, string> {
+  const base = origin.replace(/\/+$/, "");
+  return { "List-Unsubscribe": `<${base}/settings/notifications?channel=${encodeURIComponent(channel)}>` };
 }
 
 /**

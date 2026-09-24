@@ -14,7 +14,7 @@ proxy refused. **This is product-requirements research and not legal advice.**
 
 Ground truth read first: `docs/PRODUCT.md` sections 3 to 5;
 `docs/research/HOST_ONBOARDING_RESEARCH.md` in full, which is the model this
-document follows; `docs/PLATFORM_SURVEY_2026-09-22.md` section 1;
+document follows; `docs/archive/PLATFORM_SURVEY_2026-09-22.md` section 1;
 `supabase/migrations/20260728152104_agents_core.sql`;
 `20260805095946_an_agent_climbs_a_verification_ladder.sql`;
 `20260809052558_verification_becomes_a_real_review_and_only_for_the_side_that_is_paid.sql`;
@@ -159,7 +159,7 @@ repository.** It is referenced by
 `20260918130452_m09_catalogue_entries_and_stays_search.sql:152` and `:494` and by
 `20260919220000_p3_a_restaurant_can_carry_photographs.sql:355`, typed at
 `database.types.ts:376` as `{ agent_id, verified, verified_at, updated_at }`, and
-named in `docs/HANDOFF_04_MARKETPLACE.md:154` as "written only by
+named in `docs/archive/HANDOFF_04_MARKETPLACE.md:154` as "written only by
 `private.sync_agent_badge`". No `create table` for it exists under
 `supabase/migrations/`. Honesty log item.
 
@@ -444,7 +444,7 @@ vocabulary that should become a view over the real one.
 
 ## 2.1 What the data actually is
 
-`docs/PLATFORM_SURVEY_2026-09-22.md:26`, measured against the live project on 22
+`docs/archive/PLATFORM_SURVEY_2026-09-22.md:26`, measured against the live project on 22
 September 2026: **64 listings, 64 published, 64 of 64 `is_demo`. 0 bookings. 0
 escrows. 1 wallet. 8 conversations. 6 profiles. 1 agent. 8 businesses.** That one
 agent row is the platform's own example lister
@@ -1545,11 +1545,11 @@ require a C of O, holds under either.
 **Repository claims I could not close.** `public.agent_badges` is a live table
 whose `create table` is not in `supabase/migrations/`; it is evidenced only by
 `database.types.ts:376`, three later migrations and three docs.
-`private.sync_agent_badge`, named in `docs/HANDOFF_04_MARKETPLACE.md:154`, is
+`private.sync_agent_badge`, named in `docs/archive/HANDOFF_04_MARKETPLACE.md:154`, is
 likewise absent. I did not query the database to resolve either.
 
 **Row counts are second-hand.** The 64 listings, 64 demo, 1 agent and 8 businesses
-figures come from `docs/PLATFORM_SURVEY_2026-09-22.md:26`, dated the same day as
+figures come from `docs/archive/PLATFORM_SURVEY_2026-09-22.md:26`, dated the same day as
 this document.
 
 **Not measured.** How many of the twenty-five files under `apps/web/src/lib/agent/`

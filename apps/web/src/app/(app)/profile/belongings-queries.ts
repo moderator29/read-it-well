@@ -117,7 +117,7 @@ async function readWallet(
 
 /**
  * The signed-in person's badge tier, read from `public.person_badge`, the one
- * source (Session A's derivation; SELECT is granted to authenticated). Never
+ * source (SELECT is granted to authenticated). Never
  * computed here. The view is newer than the generated types, so the read goes
  * through an untyped client; the value is narrowed by `badgeTierFrom`. A failed
  * read is no badge, never a guessed one.

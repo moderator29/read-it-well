@@ -63,8 +63,8 @@ import { VERIFICATION_ORDER, type RungDefinition } from "@/lib/trust/verificatio
  * No statutory figure, no penalty, no percentage and no regulator's fee
  * schedule. `docs/research/ROLE_ARCHITECTURE_RESEARCH.md` reaches every
  * Nigerian legal claim through a search index rather than a primary source and
- * its honesty log says so, and HANDOFF 09 section 7 gates the LASRERA and
- * tenancy numbers on a lawyer's confirmation. So LASRERA is named here as a
+ * its honesty log says so, and the LASRERA and tenancy numbers wait on a
+ * lawyer's confirmation. So LASRERA is named here as a
  * field a person may fill in and as a thing a reader may filter on, and the
  * copy never states what the law requires or what it costs to ignore. The
  * ledger's "needs the founder" section carries the rest.
@@ -276,7 +276,15 @@ export type SupplyDoor = {
  * platform now wants is landlords who are not agents and never will be, and
  * until today the only door into the supply side was marked "become an agent".
  */
-export const SUPPLY_DOOR_ORDER: readonly WorkspaceKind[] = ["owner", "agent", "firm"] as const;
+/*
+ * THE FIRM DOOR IS NOT OFFERED, AND ITS COPY BELOW IS KEPT FOR THE DAY IT IS.
+ * Approving a firm application makes one agent: nothing creates the agency
+ * business, a `firm_members` row or `agents.firm_id`, and no listing can say
+ * "listed by <firm>". A door promising that is a door with nothing behind it,
+ * so the chooser lists the two that are real and `/profile/setup/firm` sends
+ * a firm's principal to the agent form, which is what approval gave them.
+ */
+export const SUPPLY_DOOR_ORDER: readonly WorkspaceKind[] = ["owner", "agent"] as const;
 
 export const SUPPLY_DOORS: Record<"owner" | "agent" | "firm", SupplyDoor> = {
   owner: {

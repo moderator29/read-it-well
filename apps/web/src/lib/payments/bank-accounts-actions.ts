@@ -18,12 +18,11 @@
  * Removing an account is a soft delete. There is no delete policy.
  */
 
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { moneyHoldRefusal } from "../wallet/money-hold";
 import { eddGateMessage, isEddGateRefusal } from "../compliance/gate";
 import { listerPepRefusal } from "../compliance/pep-gate";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import type { Database } from "../supabase/database.types";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import {
   NOT_CONFIGURED_MESSAGE,
@@ -32,7 +31,7 @@ import {
 } from "../actions/session";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { guardMoney } from "../security/money-limits";
-import { accountHoldRefusal, holdRefusalForFailure } from "../security/account-hold-guard";
+import { accountHoldRefusal } from "../security/account-hold-guard";
 import { moneyLockRefusalFor } from "../security/money-lock-guard";
 import { subjectForUser } from "../security/rate-limit";
 import { recordMoneyAudit } from "../wallet/audit";
@@ -206,7 +205,7 @@ export async function addBankAccount(input: {
       subject: subjectForUser(session.user.id),
       shouldRecord: (result) => result.ok,
     },
-    () => addBankAccountWork(session.user.id, session.supabase, parsed),
+    () => addBankAccountWork(session.user.id, parsed),
   );
   if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);
   return run.result;
@@ -217,7 +216,6 @@ const BANK_ACCOUNT_SCOPE = "payments.bank.add";
 
 async function addBankAccountWork(
   userId: string,
-  supabase: SupabaseClient<Database>,
   parsed: { data: { bankCode: string; accountNumber: string } },
 ): Promise<ActionResult<BankAccount>> {
 
@@ -243,7 +241,12 @@ async function addBankAccountWork(
   }
   const accountName = resolved.accountName;
 
-  const { data: created, error } = await supabase
+  /* Written by the service role, for the signed-in owner: a member's own
+     client holds no INSERT on bank_accounts, so the bank's name, the time it
+     answered and the processor's recipient can only ever come from here. */
+  const writer = getAdminClient();
+  if (!writer) return fail(NOT_CONFIGURED_MESSAGE);
+  const { data: created, error } = await writer
     .from("bank_accounts")
     .insert({
       user_id: userId,
@@ -257,8 +260,7 @@ async function addBankAccountWork(
     .single();
 
   if (error || !created) {
-    /* V-19: the hold trigger (RM050) refused a call that raced the check. */
-    const held = error ? await holdRefusalForFailure(supabase, error.message ?? "") : null;
+    const held = moneyHoldRefusal(error);
     if (held) return fail(held);
     /* SCUML item 15: the gate refused a lister; say nothing that would tip them off. */
     if (isEddGateRefusal(error)) return fail(eddGateMessage("member"));

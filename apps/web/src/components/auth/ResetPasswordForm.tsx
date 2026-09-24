@@ -30,7 +30,7 @@ export function ResetPasswordForm({ t }: { t: Dictionary }) {
   const [confirm, setConfirm] = useState("");
 
   const mismatch = confirm.length > 0 && confirm !== password;
-  const confirmError = mismatch ? "Passwords do not match." : state.fieldErrors?.confirmPassword;
+  const confirmError = mismatch ? t.authFlow.passwordsDiffer : state.fieldErrors?.confirmPassword;
 
   return (
     <div className="w-full">

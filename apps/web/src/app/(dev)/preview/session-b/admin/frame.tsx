@@ -1,4 +1,4 @@
-// Session B admin-shell fixture harness (R-G), behind the preview gate.
+// Admin console fixture harness, behind the preview gate.
 import type { ReactNode } from "react";
 import { getDictionary } from "@vallo/i18n";
 import { AdminFrame } from "@/app/admin/_components/AdminFrame";

@@ -184,9 +184,10 @@
                 <data android:pathPrefix="/u/" />
                 <data android:pathPrefix="/post/" />
                 <data android:pathPrefix="/stories/" />
-                <!-- The OAuth return. Last in the list and first in importance:
-                     without it, Continue with Google cannot complete on this
-                     platform. See the long note above. -->
+                <!-- The auth return. Social sign-in is off inside the shell
+                     (STORE-02/03), but email confirmation and reset links for
+                     an account made in the app still need to come back to the
+                     web view that holds the PKCE verifier. See the note above. -->
                 <data android:pathPrefix="/auth/callback" />
             </intent-filter>
         </activity>

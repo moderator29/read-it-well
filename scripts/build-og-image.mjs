@@ -41,12 +41,14 @@ import sharp from "sharp";
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const BRAND = path.join(ROOT, "apps/web/public/brand");
 const PLATE = path.join(BRAND, "photos/villa-pool-skyline-02.jpg");
-const OUT = path.join(ROOT, "apps/web/src/app/opengraph-image.png");
+const OUT = path.join(ROOT, "apps/web/src/app/opengraph-image.jpg");
 
 const W = 1200, H = 630;
-/* 290KB by the loop, so the file that ships is never within a rounding error
-   of the 300KB line the unfurlers are happy with. */
-const BUDGET = 290 * 1024;
+/* OPS-16: a JPEG of at most 120KB. The palette PNG this used to write was
+   294KB, a hair under the roughly 300KB some unfurlers drop previews above;
+   a photograph ground is what JPEG is for, and at this size every unfurler
+   and every metered connection takes it without thinking. */
+const BUDGET = 120 * 1024;
 
 /* The brand anchors from packages/design-tokens/src/tokens.css. Hex is
    correct here for the same reason it is correct in an email: this is a
@@ -142,19 +144,20 @@ const composed = sharp(plate)
  */
 const raw = await composed.png().toBuffer();
 let written = null;
-for (const colours of [256, 192, 128, 96, 64]) {
+for (const quality of [86, 82, 78, 74, 70]) {
   const info = await sharp(raw)
-    .png({ compressionLevel: 9, palette: true, colours, dither: 0.6, effort: 10 })
+    .flatten({ background: "#010118" })
+    .jpeg({ quality, mozjpeg: true, chromaSubsampling: "4:4:4" })
     .toFile(OUT);
-  written = { colours, size: statSync(OUT).size, width: info.width, height: info.height };
+  written = { quality, size: statSync(OUT).size, width: info.width, height: info.height };
   if (written.size <= BUDGET) break;
 }
 
 if (written === null || written.size > BUDGET) {
-  console.error(`opengraph-image.png is ${written?.size ?? 0} bytes, over the ${BUDGET} byte budget`);
+  console.error(`opengraph-image.jpg is ${written?.size ?? 0} bytes, over the ${BUDGET} byte budget`);
   process.exit(1);
 }
 
 console.log(
-  `opengraph-image.png ${written.width}x${written.height} ${(written.size / 1024).toFixed(0)}kB (${written.colours} colours)`,
+  `opengraph-image.jpg ${written.width}x${written.height} ${(written.size / 1024).toFixed(0)}kB (quality ${written.quality})`,
 );

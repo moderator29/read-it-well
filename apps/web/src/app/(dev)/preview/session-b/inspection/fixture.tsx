@@ -8,8 +8,8 @@ import { INSPECTION, INSPECTION_FACTS } from "../../f5/fixtures";
 const STATES: readonly InspectionState[] = ["REQUESTED", "CONFIRMED", "PROPOSED", "DECLINED", "COMPLETED", "WITHDRAWN"];
 
 /**
- * The inspection surface on fixture props, shared by the two Session B
- * harness pages (lead ruling R-G): `page.tsx` draws it bare and
+ * The inspection surface on fixture props, shared by the two
+ * harness pages: `page.tsx` draws it bare and
  * `shell/page.tsx` draws it inside the app shell, so the first-screen proof
  * can be re-run. FIXTURE-BACKED: it proves the look, never the writes.
  */

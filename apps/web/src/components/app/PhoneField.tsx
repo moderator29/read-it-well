@@ -2,6 +2,8 @@
 
 import { useId } from "react";
 import { maskNational, readPhone, type PhoneReading } from "@/lib/phone";
+import { countOf, type Locale } from "@vallo/i18n";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * A Nigerian mobile number field.
@@ -62,7 +64,7 @@ export type PhoneFieldProps = {
   id?: string;
 };
 
-function advice(reading: PhoneReading): { tone: "muted" | "error"; text: string } | null {
+function advice(reading: PhoneReading, locale: Locale): { tone: "muted" | "error"; text: string } | null {
   switch (reading.state) {
     case "empty":
       return null;
@@ -71,7 +73,7 @@ function advice(reading: PhoneReading): { tone: "muted" | "error"; text: string 
          "seven of ten" is a status report the person has to do sums on. */
       return {
         tone: "muted",
-        text: `${10 - reading.digits} more ${10 - reading.digits === 1 ? "digit" : "digits"} to go.`,
+        text: countOf(10 - reading.digits, "digitsToGo", locale),
       };
     case "invalid":
       return { tone: "error", text: reading.reason };
@@ -96,12 +98,13 @@ export function PhoneField({
   autoComplete = "tel",
   id,
 }: PhoneFieldProps) {
+  const locale = useClientLocale();
   const generated = useId();
   const fieldId = id ?? `${generated}-phone`;
   const noteId = `${fieldId}-note`;
 
   const reading = readPhone(value);
-  const note = advice(reading);
+  const note = advice(reading, locale);
   /* The server's word beats ours: it has seen things this field has not. */
   const shown = error ? { tone: "error" as const, text: error } : note;
   const invalid = Boolean(error) || reading.state === "invalid";
@@ -129,10 +132,10 @@ export function PhoneField({
           type="tel"
           inputMode="tel"
           autoComplete={autoComplete}
-          /* Ten digits plus two spaces. A paste longer than this is still
-             accepted, because `maskNational` trims it to the ten that matter
-             rather than silently keeping the wrong end. */
-          maxLength={12}
+          /* No maxLength (UX-12): browsers clip a paste or an autofill to
+             maxlength BEFORE onChange, so "+234 803 123 4567" arrived as
+             "+234 803 123". `maskNational` strips 234 or 0 and keeps the ten
+             digits that matter, which is the only limit the field needs. */
           value={maskNational(value)}
           onChange={(event) => onChange(maskNational(event.target.value))}
           placeholder="803 123 4567"

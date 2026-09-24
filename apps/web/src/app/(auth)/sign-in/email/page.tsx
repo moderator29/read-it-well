@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
-import { getProviderStates } from "@/lib/auth/providers";
+import { resolveProviderStates } from "@/lib/auth/providers";
+import { requestSurface } from "@/lib/auth/surface";
 import { signInWithEmail, signUpMethodForEmail } from "@/lib/auth/actions";
 import type { EmailStatus } from "@/lib/auth/form-state";
 import { EmailAuthForm } from "@/components/auth/EmailAuthForm";
@@ -34,7 +35,7 @@ export default async function SignInEmailPage({
   const locale = await getLocale();
   const t = getDictionary(locale);
   const address = emailFromQuery(email);
-  const providers = getProviderStates();
+  const providers = await resolveProviderStates(await requestSurface());
   const googleReady = providers.some((p) => p.id === "google" && p.configured);
 
   let accountMethod: EmailStatus = "unknown";

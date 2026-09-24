@@ -11,6 +11,8 @@ import { ICON } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
 import { useDeviceIdentity } from "./device-identity";
+import { AiConsentSheet } from "@/components/app/ai/AiConsentSheet";
+import { AI_CONSENT_REQUIRED_CODE } from "@/lib/ai/consent";
 
 /**
  * Help and support, AI first.
@@ -52,7 +54,7 @@ type Message = {
 const THREAD_KEY = "nf_support_thread";
 
 const GREETING =
-  "Hello, I am Vallo's support agent. Ask me anything about your bookings, payments, the wallet, listing a property, verification or cancellations. If you are signed in I can look at your own bookings and wallet, and I bring in a person whenever that is the right answer.";
+  "Hello, I am Vallo's AI support helper, not a person. Ask me anything about your bookings, payments, the wallet, listing a property, verification or cancellations. If you are signed in I can look at your own bookings and wallet, and I bring in a person whenever that is the right answer.";
 
 const STARTERS = [
   "Where is my booking?",
@@ -130,8 +132,14 @@ function transcriptSummary(messages: Message[]): string {
   return `Conversation so far:\n${lines.join("\n")}`;
 }
 
-export function SupportChat() {
+export function SupportChat({ aiConsented = false }: { aiConsented?: boolean } = {}) {
   const [open, setOpen] = useState(false);
+  /* STORE-07: the AI half of this chat runs only after this person agrees to
+     the disclosure; declining keeps the chat, answered from the help pages
+     and a person, with no AI. The route refuses without agreement anyway. */
+  const [consent, setConsent] = useState<"yes" | "ask" | "declined">(aiConsented ? "yes" : "ask");
+  const [consentSheet, setConsentSheet] = useState(false);
+  const [pending, setPending] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [streaming, setStreaming] = useState(false);
@@ -218,9 +226,17 @@ export function SupportChat() {
   );
 
   const send = useCallback(
-    async (raw: string) => {
+    async (raw: string, decided?: "yes" | "declined") => {
+      /* `decided` is the answer the consent sheet has just given, passed in
+         because the state set beside it is not visible until the next render. */
+      const answer = decided ?? consent;
       const text = raw.trim();
       if (!text || streaming) return;
+      if (!keywordOnly && answer === "ask") {
+        setPending(text);
+        setConsentSheet(true);
+        return;
+      }
       setDraft("");
 
       const userMessage: Message = { id: makeId(), role: "user", text };
@@ -232,8 +248,9 @@ export function SupportChat() {
         { id: replyId, role: "assistant" as const, text: "" },
       ]);
 
-      // Already told the platform cannot answer: stay local, stay useful.
-      if (keywordOnly) {
+      // Already told the platform cannot answer, or the person said no to the
+      // AI: stay local, stay useful.
+      if (keywordOnly || answer === "declined") {
         answerFromKeywords(replyId, text);
         return;
       }
@@ -255,6 +272,17 @@ export function SupportChat() {
           const j = (await res.json().catch(() => null)) as { message?: string } | null;
           patch(replyId, (m) => ({ ...m, text: j?.message ?? PACE_FALLBACK_MESSAGE }));
           return;
+        }
+        if (res.status === 403) {
+          const j = (await res.json().catch(() => null)) as { code?: string } | null;
+          if (j?.code === AI_CONSENT_REQUIRED_CODE) {
+            /* Nothing went to the AI. Ask, and answer this one from the help
+               pages meanwhile. */
+            setConsent("ask");
+            setConsentSheet(true);
+            answerFromKeywords(replyId, text);
+            return;
+          }
         }
         if (!res.ok || !res.body) {
           patch(replyId, (m) => ({ ...m, text: NETWORK_ERROR_MESSAGE, error: true }));
@@ -322,8 +350,9 @@ export function SupportChat() {
         setStreaming(false);
       }
     },
-    [answerFromKeywords, keywordOnly, patch, streaming],
+    [answerFromKeywords, keywordOnly, patch, streaming, consent],
   );
+
 
   /** Talk to a person: always available, never behind a failed answer. */
   const askForHuman = () => {
@@ -372,7 +401,9 @@ export function SupportChat() {
               take the row interval. This was mt-0.5, which is 2px: a heading
               and a sentence touching rather than an interval. */}
           <p className="mt-row nf-caption text-[var(--nf-content-muted)]">
-            An agent that reads your own bookings and hands you to a person when it should.
+            {/* UX-15: said plainly that this is AI, and "agent" is kept for estate
+                agents, which is what the word means everywhere else here. */}
+            An AI helper that reads your own bookings and hands you to a person when it should.
           </p>
         </div>
         <button
@@ -492,6 +523,24 @@ export function SupportChat() {
               )}
             </div>
 
+            {consentSheet ? (
+              <div className="p-row">
+                <AiConsentSheet
+                  onAgreed={() => {
+                    setConsentSheet(false);
+                    setConsent("yes");
+                    if (pending) void send(pending, "yes");
+                    setPending(null);
+                  }}
+                  onDeclined={() => {
+                    setConsentSheet(false);
+                    setConsent("declined");
+                    if (pending) void send(pending, "declined");
+                    setPending(null);
+                  }}
+                />
+              </div>
+            ) : null}
             <form
               onSubmit={(e) => {
                 e.preventDefault();

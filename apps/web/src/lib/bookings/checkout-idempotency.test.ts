@@ -15,6 +15,7 @@ const seam = vi.hoisted(() => ({
   withIdempotency: vi.fn(),
   rpc: vi.fn(),
   featureOn: true,
+  bookingGuest: "guest-1",
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
@@ -65,7 +66,7 @@ vi.mock("../actions/session", () => ({
               ? {
                   id: BOOKING,
                   listing_id: "l1",
-                  guest_id: "guest-1",
+                  guest_id: seam.bookingGuest,
                   status: "PENDING",
                   check_in: "2026-10-01",
                   check_out: "2026-10-02",
@@ -83,6 +84,7 @@ vi.mock("../actions/session", () => ({
 beforeEach(() => {
   seam.withIdempotency.mockReset();
   seam.featureOn = true;
+  seam.bookingGuest = "guest-1";
 });
 
 describe("the payment paths share one per-booking guard", () => {
@@ -123,6 +125,19 @@ describe("the payment paths share one per-booking guard", () => {
     const { payWithWallet } = await import("./checkout");
     const result = await payWithWallet({ bookingId: BOOKING, idempotencyKey: "k1" });
     expect(result.ok).toBe(false);
+    expect(seam.withIdempotency).not.toHaveBeenCalled();
+  });
+});
+
+describe("only the guest pays for a booking (SEC-P2-04)", () => {
+  it("refuses a card checkout by somebody who can read the booking but is not its guest", async () => {
+    /* The host and admins can read a booking through RLS. */
+    seam.bookingGuest = "someone-else";
+    const { startCardCheckout, payWithSavedCard } = await import("./checkout");
+    const card = await startCardCheckout({ bookingId: BOOKING, idempotencyKey: "k3" });
+    const saved = await payWithSavedCard({ bookingId: BOOKING, methodId: BOOKING, idempotencyKey: "k2" });
+    expect(card.ok).toBe(false);
+    expect(saved.ok).toBe(false);
     expect(seam.withIdempotency).not.toHaveBeenCalled();
   });
 });

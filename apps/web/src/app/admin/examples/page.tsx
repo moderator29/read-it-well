@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { formatMoney, getDictionary } from "@vallo/i18n";
+import { countOf, formatMoney, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getExamplesConsole, isOverdue, lagosToday } from "@/lib/admin/examples-queries";
 import { adminUi, type AdminUi } from "../_components/ui";
@@ -98,7 +98,7 @@ export default async function AdminExamplesPage({
           hint={
             totals.liveCount === 0
               ? "The catalogue is all real supply"
-              : `Across ${totals.cities === 1 ? "1 city" : `${totals.cities} cities`}`
+              : `Across ${countOf(totals.cities, "cities")}`
           }
           tone={totals.liveCount === 0 ? "success" : "warning"}
         />
@@ -123,7 +123,7 @@ export default async function AdminExamplesPage({
 
       {totals.overdueCount > 0 && (
         <ui.QueueAlarm
-          title={`${totals.overdueCount === 1 ? "1 example is" : `${totals.overdueCount} examples are`} past the day they were due out`}
+          title={`${countOf(totals.overdueCount, "examplesAre")} past the day they were due out`}
           body="The retirement date is a decision that was recorded on each row, and it has passed. Nothing hides these automatically, on purpose: a catalogue that empties itself overnight would take search and the map down with it and give nobody a reason why."
         />
       )}

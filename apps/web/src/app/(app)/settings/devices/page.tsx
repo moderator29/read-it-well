@@ -108,6 +108,8 @@ export default async function DevicesPage() {
           endOthers: copy.endOthers,
           endOthersSub: copy.endOthersSub,
           endOthersNone: copy.endOthersNone,
+          endEverywhere: copy.endEverywhere,
+          endEverywhereSub: copy.endEverywhereSub,
           confirm: copy.confirm,
           working: copy.working,
           endedOne: copy.endedOne,

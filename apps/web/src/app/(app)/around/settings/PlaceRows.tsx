@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { formatNumber, type Locale } from "@vallo/i18n";
+import { type Locale } from "@vallo/i18n";
 import type { AreaProposal, AreaSummary } from "@/lib/social/areas-queries";
 import { AREA_COPY, AREA_KIND_LABEL } from "@/lib/social/areas-schema";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { JoinButton } from "../JoinButton";
+import { countOf } from "@vallo/i18n";
 
 /**
  * The rows of `/around/settings`: a suggestion still waiting, one we
@@ -107,8 +108,7 @@ export function AreaRow({
         </div>
         <p className="mt-3xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
           {AREA_KIND_LABEL[area.kind]} &middot; {area.city} &middot;{" "}
-          <span className="nf-numeric">{formatNumber(area.memberCount, locale)}</span>{" "}
-          {area.memberCount === 1 ? "member" : "members"}
+          {countOf(area.memberCount, "members", locale)}
         </p>
         {area.blurb ? (
           <p className="mt-2xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">

@@ -81,6 +81,11 @@ type FlipApi = {
 
 const SideFlipContext = createContext<FlipApi | null>(null);
 
+/** The same API, or null outside a `<SideFlip>` (a preview, a test). */
+export function useOptionalSideFlip(): FlipApi | null {
+  return useContext(SideFlipContext);
+}
+
 export function useSideFlip(): FlipApi {
   const api = useContext(SideFlipContext);
   if (!api) throw new Error("useSideFlip must be used inside <SideFlip>");

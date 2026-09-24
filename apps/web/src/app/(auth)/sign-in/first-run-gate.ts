@@ -6,7 +6,7 @@ import {
 
 /**
  * Whether the sign-in screen sends this visitor to first run before it paints,
- * and where (request W2 in `docs/SESSION_B_SCOPE.md`).
+ * and where.
  *
  * A device that has never been shown `/welcome` meets it first, with the whole
  * sign-in address (its `next`, its `notice`) carried as `/welcome?next=...`,

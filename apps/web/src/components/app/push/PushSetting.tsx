@@ -10,9 +10,8 @@ import {
   failureMessage,
   readLocalDevice,
   refsKeyOf,
-  type EnrolFailureReason,
 } from "./device-state";
-import { currentEndpoint, currentPermission, enrol, onIosHomeScreenApp } from "./enrol";
+import { currentEndpoint, currentPermission, enrol, failureReference, onIosHomeScreenApp, type EnrolOutcome } from "./enrol";
 import { PushPrompt } from "./PushPrompt";
 import { offerVerdict, readMemory, rememberSystemAsked, writeMemory } from "./moments";
 
@@ -195,10 +194,13 @@ export function PushSetting({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, refsKey]);
 
-  const fail = useCallback((reason: EnrolFailureReason) => {
+  const fail = useCallback((outcome: EnrolOutcome & { ok: false }) => {
+    const reference = failureReference(outcome);
     setNote({
-      text: failureMessage(reason, { iosHomeScreenApp: onIosHomeScreenApp(), where: "settings" }),
-      signIn: reason === "signed_out",
+      text:
+        failureMessage(outcome.reason, { iosHomeScreenApp: onIosHomeScreenApp(), where: "settings" }) +
+        (reference ? ` (Reference: ${reference}.)` : ""),
+      signIn: outcome.reason === "signed_out",
       tone: "problem",
     });
   }, []);
@@ -234,7 +236,7 @@ export function PushSetting({
          shown. Leaving it to `Notification.permission` is how the screen
          drew the allowed copy over a failed attempt. */
       setSettled("control");
-      fail(outcome.reason);
+      fail(outcome);
     });
   }, [router, refsKey, registeredRefs, fail]);
 

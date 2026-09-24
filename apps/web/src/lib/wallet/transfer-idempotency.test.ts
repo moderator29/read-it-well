@@ -42,6 +42,7 @@ type Claim = { state: "running" } | { state: "done"; result: unknown };
 const store = new Map<string, Claim>();
 const moves: { out: string; in: string; amount: number }[] = [];
 
+const blockState = vi.hoisted(() => ({ blocked: false }));
 const rpc = vi.hoisted(() => ({ callSecurityRpc: vi.fn(), hasServiceRole: vi.fn(() => true) }));
 const money = vi.hoisted(() => ({ callMoneyRpc: vi.fn(), readMoneyStatus: vi.fn() }));
 
@@ -78,7 +79,16 @@ vi.mock("./ledger", () => ({
   displayNameFor: async () => "Ada",
   ensureWalletId: async () => "w",
   findUserByEmail: async () => ({ id: "user-2" }),
-  getAdminClient: () => ({ from: vi.fn() }),
+  getAdminClient: () => ({
+    /* Block rows: user-2 has blocked the sender only when blockedPair says so. */
+    from: () => ({
+      select: () => ({
+        or: () => ({
+          limit: async () => ({ data: blockState.blocked ? [{ user_id: "user-2" }] : [], error: null }),
+        }),
+      }),
+    }),
+  }),
   postEntry: vi.fn(),
   recordFunding: vi.fn(),
   setEntryStatus: vi.fn(),
@@ -89,6 +99,22 @@ vi.mock("./rpc", () => ({
   readMoneyStatus: money.readMoneyStatus,
 }));
 vi.mock("./repository", () => ({ readStatement: vi.fn() }));
+/* The viewer's own client. "blocked" is the handle social_profiles_select
+   hides from this viewer, so it reads as nobody. */
+vi.mock("../supabase/server", () => ({
+  createClient: async () => ({
+    from: () => ({
+      select: () => ({
+        eq: (_col: string, handle: string) => ({
+          maybeSingle: async () => ({
+            data: handle === "kofi" ? { user_id: "user-2" } : null,
+            error: null,
+          }),
+        }),
+      }),
+    }),
+  }),
+}));
 vi.mock("../actions/session", () => ({
   NOT_CONFIGURED_MESSAGE: "unconfigured",
   SIGNED_OUT_MESSAGE: "signed out",
@@ -108,6 +134,7 @@ function form(entries: Record<string, string>): FormData {
 const SEND = { recipientEmail: "kofi@example.invalid", amount: "5000" };
 
 beforeEach(() => {
+  blockState.blocked = false;
   store.clear();
   moves.length = 0;
   vi.resetModules();
@@ -277,6 +304,98 @@ describe("sending money twice on one tap moves it once", () => {
        on, and the guard steps aside exactly as it does for funding. This is
        what the withdrawal forms still look like today. */
     expect(moves).toHaveLength(2);
-    expect(rpc.callSecurityRpc).not.toHaveBeenCalled();
+    /* The recipient pace (NEW-A2-04) still counts; no idempotency call is made. */
+    const idempotencyCalls = rpc.callSecurityRpc.mock.calls.filter(([fn]) =>
+      String(fn).includes("idempotency"),
+    );
+    expect(idempotencyCalls).toHaveLength(0);
   });
 });
+
+describe("sending to an @handle", () => {
+  it("resolves the handle as the payer and moves the money to that account", async () => {
+    const { transferToUser } = await import("./actions");
+    const sent = await transferToUser(
+      { ok: true, data: null },
+      form({ recipientEmail: "@Kofi", amount: "5000", idempotencyKey: "handle-send" }),
+    );
+    expect(sent.ok).toBe(true);
+    expect(moves).toHaveLength(1);
+    expect(money.callMoneyRpc.mock.calls[0]?.[3]).toMatchObject({ recipient_user: "user-2" });
+  });
+
+  it("refuses an address whose owner blocked the payer with the no-account answer (NEW-A2-04)", async () => {
+    const { transferToUser } = await import("./actions");
+    blockState.blocked = true;
+    const sent = await transferToUser(
+      { ok: true, data: null },
+      form({ ...SEND, idempotencyKey: "blocked-email" }),
+    );
+    expect(sent.ok).toBe(false);
+    expect(moves).toHaveLength(0);
+    expect(sent.ok ? "" : sent.error).toMatch(/No Vallo account uses that email address or handle/);
+  });
+
+  it("refuses a send once the shared recipient-lookup budget is spent, before resolving anybody", async () => {
+    const { transferToUser } = await import("./actions");
+    const base = rpc.callSecurityRpc.getMockImplementation();
+    rpc.callSecurityRpc.mockImplementation(async (fn: string, args: Record<string, unknown>) =>
+      fn === "consume_rate_limit" && args["bucket"] === "wallet_recipient_lookup"
+        ? { ok: true, data: false }
+        : base!(fn, args),
+    );
+    const sent = await transferToUser(
+      { ok: true, data: null },
+      form({ ...SEND, idempotencyKey: "paced-send" }),
+    );
+    expect(sent.ok).toBe(false);
+    expect(sent.ok ? "" : sent.error).toMatch(/looked up a lot of recipients/);
+    expect(moves).toHaveLength(0);
+  });
+
+  it("refuses a handle the payer cannot see, and moves nothing", async () => {
+    const { transferToUser } = await import("./actions");
+    const sent = await transferToUser(
+      { ok: true, data: null },
+      form({ recipientEmail: "@blocked", amount: "5000", idempotencyKey: "blocked-send" }),
+    );
+    expect(sent.ok).toBe(false);
+    expect(moves).toHaveLength(0);
+  });
+});
+
+describe("MON-11: the key is tied to what it asks for and to the ledger", () => {
+  it("refuses a replay of the same key that asks for a different amount, and moves nothing more", async () => {
+    const { transferToUser } = await import("./actions");
+    const first = await transferToUser({ ok: true, data: null }, form({ ...SEND, idempotencyKey: "same-key" }));
+    const second = await transferToUser(
+      { ok: true, data: null },
+      form({ ...SEND, amount: "9000", idempotencyKey: "same-key" }),
+    );
+    expect(first.ok).toBe(true);
+    expect(second.ok).toBe(false);
+    expect(second.ok ? "" : second.error).toMatch(/already sent something different/);
+    expect(moves).toHaveLength(1);
+  });
+
+  it("refuses rather than sending unguarded when the key store cannot be asked", async () => {
+    rpc.callSecurityRpc.mockImplementation(async () => ({ ok: false, data: null }));
+    const { transferToUser } = await import("./actions");
+    const sent = await transferToUser({ ok: true, data: null }, form({ ...SEND, idempotencyKey: "store-down" }));
+    expect(sent.ok).toBe(false);
+    expect(sent.ok ? "" : sent.error).toMatch(/cannot make sure this happens only once/);
+    expect(moves).toHaveLength(0);
+  });
+
+  it("derives the ledger references from the key, so a retry after the store forgot is a database duplicate", async () => {
+    const { transferToUser } = await import("./actions");
+    await transferToUser({ ok: true, data: null }, form({ ...SEND, idempotencyKey: "long-lost" }));
+    store.clear();
+    await transferToUser({ ok: true, data: null }, form({ ...SEND, idempotencyKey: "long-lost" }));
+    expect(moves).toHaveLength(2);
+    expect(moves[0]?.out).toBe(moves[1]?.out);
+    expect(moves[0]?.in).toBe(moves[1]?.in);
+    expect(moves[0]?.out).toMatch(/^rm-p2p-[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}-out$/);
+  });
+});
+

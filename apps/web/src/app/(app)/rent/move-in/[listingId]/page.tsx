@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { formatNumber, getDictionary, type Locale } from "@vallo/i18n";
+import { getDictionary, plural, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import { readOpenInspectionFor } from "@/lib/inspections/queries";
@@ -110,8 +110,13 @@ export default async function MoveInPage({ params }: { params: Promise<{ listing
         t={t}
         proceed={
           listing.isDemo ? (
-            <ButtonLink href="/search" variant="primary" full size="lg">
-              Browse real listings
+            <ButtonLink
+              href={`/search?q=${encodeURIComponent(listing.area || listing.city)}`}
+              variant="primary"
+              full
+              size="lg"
+            >
+              Get told when real homes arrive
             </ButtonLink>
           ) : payHref ? (
             <AuthGate action="pay">
@@ -133,7 +138,7 @@ export default async function MoveInPage({ params }: { params: Promise<{ listing
           {t.common.back}
         </Link>
         {" · "}
-        {formatNumber(lines.length, locale)} {lines.length === 1 ? "line" : "lines"}
+        {plural(lines.length, t.units.lines, locale)}
       </p>
     </div>
   );

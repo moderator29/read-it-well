@@ -66,13 +66,15 @@ declare
   bad text := '';
   n bigint;
 
-  -- THE TWELVE `anon` MUST NOT READ. Personal data, a document or tax number,
+  -- THE FIFTEEN `anon` MUST NOT READ. Personal data, a document or tax number, the exact point,
   -- a firm's legal registration identity, or an internal reviewer's note.
   withheld text[] := array[
     'address', 'phone', 'email',
     'cac_number', 'registered_name', 'tin',
     'representative_name', 'representative_phone', 'consents',
-    'reviewer_id', 'review_notes', 'verification_tier'
+    'reviewer_id', 'review_notes', 'verification_tier',
+    -- NEW-A4-01: the exact point.
+    'latitude', 'longitude', 'location'
   ];
 
   -- THE CONTROLS. Every select list the product issues against `businesses`
@@ -83,8 +85,9 @@ declare
   --   4 the bare existence read every embed and count reduces to
   anon_lists text[] := array[
     'id, name, slug, kind, source, is_demo',
-    'id, name, slug, area, city, state_code, source, is_demo, latitude, longitude',
-    'id, name, slug, kind, status, description, area, city, state_code, latitude, longitude, source, is_demo, verified, published_at, host_type, hygiene_attested_at, licence_attested_at',
+    -- NEW-A4-01: signed out, the point is the public one (lib/supabase/public-point.ts).
+    'id, name, slug, area, city, state_code, source, is_demo, latitude_public, longitude_public',
+    'id, name, slug, kind, status, description, area, city, state_code, latitude_public, longitude_public, source, is_demo, verified, published_at, host_type, hygiene_attested_at, licence_attested_at',
     'id, status'
   ];
 

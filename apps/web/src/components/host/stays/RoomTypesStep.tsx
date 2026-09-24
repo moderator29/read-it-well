@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { formatMoney } from "@vallo/i18n";
+import { countOf, formatMoney } from "@vallo/i18n";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
@@ -110,13 +110,13 @@ export function RoomTypesStep({
                   <span className="mt-[var(--nf-space-2xs)] flex items-center gap-[var(--nf-space-xs)]">
                     <UiIcon name="bed" size={16} className="text-[var(--nf-brand-secondary)]" />
                     <span className="nf-stays-row__meta">
-                      {room.unitsTotal} room{room.unitsTotal === 1 ? "" : "s"}
+                      {countOf(room.unitsTotal, "rooms", locale)}
                     </span>
                   </span>
                   <span className="flex items-center gap-[var(--nf-space-xs)]">
                     <UiIcon name="user" size={16} className="text-[var(--nf-brand-secondary)]" />
                     <span className="nf-stays-row__meta">
-                      {room.sleeps} guest{room.sleeps === 1 ? "" : "s"}
+                      {countOf(room.sleeps, "guests", locale)}
                     </span>
                   </span>
                   <span className="nf-stays-row__meta block">

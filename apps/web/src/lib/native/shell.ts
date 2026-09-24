@@ -34,8 +34,14 @@
  * a listing, and what differs is where the product's own front door is.
  */
 
-/** Appended to the web view's user agent by `capacitor.config.ts`. */
-export const SHELL_UA_MARK = "ValloShell";
+/**
+ * Appended to the web view's user agent by `capacitor.config.ts`. The same
+ * token as `NATIVE_UA_TOKEN` in `lib/auth/providers.ts`, which the sign-in
+ * screen reads to leave out doors a web view cannot complete: the shell
+ * announces itself once, and both readers hear it. Written out rather than
+ * imported so this module stays free of the auth layer.
+ */
+export const SHELL_UA_MARK = "VALLO-NATIVE";
 
 /** Does this user agent belong to the Vallo store shell? */
 export function isShellUserAgent(userAgent: string | null | undefined): boolean {

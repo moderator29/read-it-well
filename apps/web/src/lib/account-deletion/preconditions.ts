@@ -21,6 +21,11 @@ export type BlockerReading = {
   walletBalanceMinor: number;
   /** Kobo sitting in escrow in either direction. Must be zero. */
   walletHeldMinor: number;
+  /** STORE-12 / MON-09: money set aside in savings pots. */
+  potBalanceMinor: number;
+  /** Rent refunds this person owes as a lister, and refunds owed to them. */
+  rentRefundsOwedMinor: number;
+  rentRefundsDueMinor: number;
   activeBookings: number;
   activeReservations: number;
   pendingPayouts: number;
@@ -36,6 +41,9 @@ export type BlockerReading = {
 export const EMPTY_READING: BlockerReading = {
   walletBalanceMinor: 0,
   walletHeldMinor: 0,
+  potBalanceMinor: 0,
+  rentRefundsOwedMinor: 0,
+  rentRefundsDueMinor: 0,
   activeBookings: 0,
   activeReservations: 0,
   pendingPayouts: 0,
@@ -50,6 +58,9 @@ export const EMPTY_READING: BlockerReading = {
 export type BlockerKind =
   | "wallet-balance"
   | "wallet-held"
+  | "pot-balance"
+  | "rent-refunds-owed"
+  | "rent-refunds-due"
   | "active-bookings"
   | "active-reservations"
   | "pending-payouts"
@@ -82,6 +93,15 @@ export function blockersFrom(reading: BlockerReading): Blocker[] {
   }
   if (reading.walletHeldMinor > 0) {
     blockers.push({ kind: "wallet-held", href: "/wallet", amount: reading.walletHeldMinor });
+  }
+  if (reading.potBalanceMinor > 0) {
+    blockers.push({ kind: "pot-balance", href: "/wallet", amount: reading.potBalanceMinor });
+  }
+  if (reading.rentRefundsOwedMinor > 0) {
+    blockers.push({ kind: "rent-refunds-owed", href: "/wallet", amount: reading.rentRefundsOwedMinor });
+  }
+  if (reading.rentRefundsDueMinor > 0) {
+    blockers.push({ kind: "rent-refunds-due", href: "/wallet", amount: reading.rentRefundsDueMinor });
   }
   if (reading.pendingPayouts > 0) {
     blockers.push({ kind: "pending-payouts", href: "/wallet", amount: reading.pendingPayouts });
@@ -158,6 +178,9 @@ export function readingFrom(value: unknown): BlockerReading {
   return {
     walletBalanceMinor: num("wallet_balance_minor"),
     walletHeldMinor: num("wallet_held_minor"),
+    potBalanceMinor: num("pot_balance_minor"),
+    rentRefundsOwedMinor: num("rent_refunds_owed_minor"),
+    rentRefundsDueMinor: num("rent_refunds_due_minor"),
     activeBookings: num("active_bookings"),
     activeReservations: num("active_reservations"),
     pendingPayouts: num("pending_payouts"),

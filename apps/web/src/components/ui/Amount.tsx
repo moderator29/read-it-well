@@ -1,4 +1,4 @@
-import { intlTag, isGlanceCompact, type Locale } from "@vallo/i18n";
+import { COMPACT_FROM_MINOR, intlTag, isGlanceCompact, type Locale } from "@vallo/i18n";
 
 /**
  * Money, set the way the reference set sets money.
@@ -69,7 +69,7 @@ export function Amount({
   minorUnits,
   locale = "en",
   currency = "NGN",
-  showFraction = false,
+  showFraction,
   suffix,
   compact = false,
   glance = false,
@@ -77,7 +77,11 @@ export function Amount({
   secondaryClassName,
 }: AmountProps) {
   const major = minorUnits / 100;
-  const short = compact || (glance && isGlanceCompact(minorUnits));
+  /* UI-13: compact never applies under ₦1,000, where it would round kobo. */
+  const short = (compact || (glance && isGlanceCompact(minorUnits))) && Math.abs(minorUnits) >= COMPACT_FROM_MINOR;
+  /* UI-13: kobo shows when there is kobo, as `formatMoney` does, unless the
+     caller says otherwise. It used to round ₦42,000.75 to ₦42,001 by default. */
+  const withKobo = showFraction ?? Math.abs(Math.round(minorUnits)) % 100 !== 0;
 
   const parts = new Intl.NumberFormat(intlTag[locale], {
     style: "currency",
@@ -109,10 +113,11 @@ export function Amount({
           notation: "compact" as const,
           minimumFractionDigits: 0,
           maximumFractionDigits: 1,
+          roundingMode: "trunc" as const,
         }
       : {
-          minimumFractionDigits: showFraction ? 2 : 0,
-          maximumFractionDigits: showFraction ? 2 : 0,
+          minimumFractionDigits: withKobo ? 2 : 0,
+          maximumFractionDigits: withKobo ? 2 : 0,
         }),
   }).formatToParts(major);
 

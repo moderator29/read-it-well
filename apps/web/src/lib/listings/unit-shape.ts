@@ -95,6 +95,8 @@ export type UnitRow = {
 };
 
 export const UNIT_COLUMNS = "unit_shape, ensuite_count, has_bq";
+/** The same columns keyed by listing id, for a read of many listings at once. */
+export const UNIT_BY_ID_COLUMNS = `id, ${UNIT_COLUMNS}`;
 
 /** A row's answers, or null when it gave none. An unknown shape is dropped. */
 export function readUnit(row: UnitRow | null | undefined): UnitFacts | null {

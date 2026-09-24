@@ -9,7 +9,8 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Row, RowList, TYPE } from "@/components/app/Screen";
 import { writeModeCookie, writeWorkspaceCookie } from "@/lib/mode.constants";
-import { SIDE_HOME, writeSideCookie, type Side } from "@/lib/side.constants";
+import { SIDE_HOME, otherSide, writeSideCookie, type Side } from "@/lib/side.constants";
+import { useOptionalSideFlip } from "@/components/app/flip/SideFlip";
 import type { WorkspaceKind } from "@/lib/supply/roles";
 import {
   needsFlip,
@@ -169,7 +170,7 @@ export function ProfileSwitcher({
   /**
    * DRAW YOUR OWN TRIGGER INSTEAD OF THE DOCK SLOT.
    *
-   * Session B asked for this and the request was right. `/profile` has a
+   * `/profile` has a
    * "Switch role" row that must open this sheet, and the only way it could was
    * to find the dock's button by its class name and click it:
    *
@@ -191,6 +192,7 @@ export function ProfileSwitcher({
   renderTrigger?: (open: () => void) => React.ReactNode;
 }) {
   const router = useRouter();
+  const flipApi = useOptionalSideFlip();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -327,6 +329,24 @@ export function ProfileSwitcher({
         detents={[0.6, 0.92]}
         closeLabel={t.pickers.close}
       >
+        {flipApi && (
+          /* UX-06: the side switch sits at the top of this sheet too. The ⇄
+             in the dock is the control people reach for when they want the
+             other side; it opens the profile list, so the side is offered
+             first here rather than only at the foot of the drawer. */
+          <button
+            type="button"
+            disabled={flipApi.pending}
+            onClick={() => {
+              setOpen(false);
+              flipApi.flip(otherSide(side));
+            }}
+            className="nf-btn nf-btn--secondary nf-btn--full mb-sm"
+            data-testid="switcher-side-flip"
+          >
+            {side === "stays" ? t.side.switchToProperty : t.side.switchToStays}
+          </button>
+        )}
         <RowList inset className="[--nf-row-divider-lead:3.25rem]">
           <Row className="p-0">
             <button

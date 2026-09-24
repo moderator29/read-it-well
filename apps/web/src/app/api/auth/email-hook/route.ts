@@ -17,7 +17,7 @@ import { verificationCode } from "@/lib/email/messages";
  * built-in shared sender, which ruled the hook out.
  *
  * THAT CORRECTION IS NOW ITSELF OUT OF DATE. The founder switched the hook on
- * in the dashboard on 22 September (`docs/FOUNDER_OPEN_ITEMS.md`), and the
+ * in the dashboard on 22 September (`docs/archive/FOUNDER_OPEN_ITEMS.md`), and the
  * comment did not follow. Measured again on 23 September, from `auth_logs`
  * over the preceding twenty four hours:
  *

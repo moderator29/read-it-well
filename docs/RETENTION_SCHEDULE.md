@@ -16,8 +16,12 @@ questions in section 7.
 ## 1. Why this document exists
 
 The privacy notice states that personal data is kept only as long as it is
-needed. **Nothing in the database enforces that.** Every period the notice
-promises is, today, a sentence rather than a mechanism.
+needed. **Most of it is not enforced.** Since this was written, two periods
+have become mechanisms: the account purge (`/api/cron/account-purge`, daily)
+and the price-check events sweep (`vallo_sweep_price_check_events`), described
+in the later sections below. Every other period the notice promises, including
+the case below, is still a sentence rather than a mechanism (checked 23
+September 2026 against `cron.job` and `apps/web/vercel.json`).
 
 The sharpest case is the one that names a real person: an applicant who applied
 to become an agent, uploaded a government identity document and a NIN, and was
@@ -105,6 +109,7 @@ data is still held and the notice currently implies it is not.
 | Platform revenue, fee rates | `public.platform_revenue`, `public.fee_rates` | Entry date | **6 years [C]** | Keep, no personal data |
 | Tenancy evidence: the rent charge, the move-in quote, the promise snapshot, the caution register (obligation, deductions, answers, returns), the move-in and move-out reports and their photos, and pins | `public.rent_payments`, `public.move_in_quotes`, `public.tenancy_snapshots`, `public.caution_obligations`, `public.caution_deductions`, `public.caution_deduction_answers`, `public.caution_returns`, `public.tenancy_reports`, `public.tenancy_report_items`, `public.tenancy_report_photos`, `public.tenancy_pins`, the `tenancy-evidence` bucket, the viewing report (`public.inspection_report*`) of the inspection behind the charge | **Tenancy end** (move-in plus one rent period) | **6 years [C]** | Keep until tenancy end plus six years, then redact the subject. V-47 |
 | Refund requests | `public.refund_requests` | Booking completion or cancellation | **6 years [C]** | Redact the subject, keep the record. V-24 |
+| Threshold reports (SCUML item 7): the monitor's observations, the reportable events, the officer's decisions and the second approvals, and the reminders sent | `public.aml_ledger_observations`, `public.threshold_events`, `public.threshold_decisions`, `public.threshold_approvals`, `public.threshold_reminders` | Entry date | **At least 5 years (SCUML item 11)** | Never purged and never edited: triggers refuse update, delete and truncate. A party is a plain uuid, so an account deletion anonymises the person and leaves the record whole |
 
 **Tenancy evidence runs from the end of the tenancy, not from the payment.**
 A multi-year tenancy is argued about years after the move-in money moved, and

@@ -4,7 +4,7 @@
 this repository was changed to produce it. A build session was pushing to main
 while it ran, so every finding below is a snapshot of the working tree and of
 the live Supabase project `uccixoonmbhrnyczyigt` as they stood on that date.
-`docs/BUILD_06_LEDGER.md` and `docs/BUILD_05_LEDGER.md` were read first to know
+`docs/BUILD_06_LEDGER.md` and `docs/archive/BUILD_05_LEDGER.md` were read first to know
 what the build believes it landed; every claim here was then re-derived from
 code, from the live database, or from a script run against the tree, and where
 the ledger and the tree disagree the tree wins and the disagreement is named.

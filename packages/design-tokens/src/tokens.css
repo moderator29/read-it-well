@@ -1199,7 +1199,7 @@
 
   /*
    * THE RENDERS' CARD IS A PANE OF THE CANVAS WITH LIGHT LET IN, and this is
-   * the fill `.nf-glass--card` in glass.css paints. Build 06, DESIGN_DIRECTION
+   * the fill `.nf-glass--card` in glass.css paints. DESIGN_DIRECTION
    * section 1.2: extend the system deliberately where a render's geometry
    * disagrees with a token.
    *
@@ -1825,7 +1825,7 @@
   --nf-glow-brand-rim: color-mix(in oklab, var(--nf-glow-ink) 90%, transparent);
 
   /* ---------------------------------------------------------------------
-   * THE RENDERS' LIGHT, AS THREE RECIPES. Build 06, DESIGN_DIRECTION 1.2.
+   * THE RENDERS' LIGHT, AS THREE RECIPES. DESIGN_DIRECTION 1.2.
    *
    * The governing renders draw the same three things on every floating
    * surface, and until now each was assembled by hand at the call site from
@@ -3048,8 +3048,8 @@
    * corner, the icon plate, the selected row) and `app/welcome/welcome.css`
    * (the lit primary with its top and foot bands and its pooled bloom, the
    * glass secondary). The console and Get started now read these and hold no
-   * copy of their own; `docs/BUILD_SESSION_B_LEDGER.md` section 13.0 has the
-   * table of where each value came from.
+   * copy of their own; `docs/archive/BUILD_SESSION_B_LEDGER.md` section 13.0 has
+   * the table of where each value came from.
    *
    * The components that carry them: `components/ui/Panel.tsx` (`.nf-panel`,
    * glass.css), `components/ui/IconPlate.tsx` (`.nf-plate`, controls.css) and
@@ -3240,7 +3240,7 @@
   --nf-btn-glass-blur: var(--nf-glass-blur-soft);
 
   /*
-   * THE TIER BADGE'S TWO METALS (Session A's TierBadge, moved here from
+   * THE TIER BADGE'S TWO METALS (TierBadge, moved here from
    * `app/css/trust-badge.css` so no stylesheet under `app/` holds a raw
    * colour; values unchanged). Gold is the one amber in the product and is
    * scoped to the badge by rule 8: nothing but `.nf-tier-badge` may read these.

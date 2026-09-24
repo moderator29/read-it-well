@@ -55,6 +55,18 @@ export type IdempotencyRequest<T> = {
   shouldRecord?: (result: T) => boolean;
 };
 
+/** MON-11: the stricter request, for doors where a second run moves money twice. */
+export type GuardedIdempotencyRequest<T> = IdempotencyRequest<T> & {
+  /**
+   * A digest of what this submit asks for. A replay whose digest differs
+   * answers "conflict" instead of replaying the first receipt, so a reused key
+   * never silently swallows a different instruction.
+   */
+  fingerprint: string;
+  /** When the key store cannot be reached, refuse instead of running unguarded. */
+  failClosed: true;
+};
+
 export type IdempotentRun<T> =
   | {
       status: "done";
@@ -66,9 +78,42 @@ export type IdempotentRun<T> =
     }
   | { status: "in-flight" };
 
+export type GuardedRun<T> =
+  | IdempotentRun<T>
+  /** MON-11: the same key arrived carrying a different request. */
+  | { status: "conflict" }
+  /** MON-11: the key store could not be asked, so nothing ran. */
+  | { status: "unavailable" };
+
 /** Copy for the in-flight case: what happened, and what to do about it. */
 export const IN_FLIGHT_MESSAGE =
   "Your earlier attempt is still going through. Give it a moment and check before trying again, so nothing is done twice.";
+
+export const CONFLICT_MESSAGE =
+  "That button already sent something different. Refresh the page and start again, so nothing is done twice.";
+
+export const UNGUARDED_REFUSAL_MESSAGE =
+  "We cannot make sure this happens only once right now, so nothing was done. Please try again in a moment.";
+
+/* The stored value carries the request's digest beside the result. A value
+   recorded before this wrapper existed has no digest and replays as it was. */
+const FINGERPRINT_FIELD = "__vallo_fingerprint";
+const RESULT_FIELD = "__vallo_result";
+
+function wrapForRecord(result: unknown, fingerprint: string | undefined): unknown {
+  return fingerprint ? { [FINGERPRINT_FIELD]: fingerprint, [RESULT_FIELD]: result } : result;
+}
+
+function unwrapRecorded(stored: unknown): { fingerprint: string | null; result: unknown } {
+  if (typeof stored === "object" && stored !== null && FINGERPRINT_FIELD in stored) {
+    const row = stored as Record<string, unknown>;
+    return {
+      fingerprint: typeof row[FINGERPRINT_FIELD] === "string" ? (row[FINGERPRINT_FIELD] as string) : null,
+      result: row[RESULT_FIELD] ?? null,
+    };
+  }
+  return { fingerprint: null, result: stored };
+}
 
 const DEFAULT_TTL_SECONDS = 15 * 60;
 const MAX_KEY_LENGTH = 200;
@@ -107,6 +152,23 @@ export async function withIdempotency<T>(
   request: IdempotencyRequest<T>,
   work: () => Promise<T>,
 ): Promise<IdempotentRun<T>> {
+  /* Without a fingerprint nothing is a conflict, and without failClosed an
+     unreachable store runs the work, so only the two original answers come back. */
+  return (await runIdempotent({ ...request, fingerprint: undefined, failClosed: false }, work)) as IdempotentRun<T>;
+}
+
+/** MON-11: withIdempotency, plus the request digest and a closed failure. */
+export async function withGuardedIdempotency<T>(
+  request: GuardedIdempotencyRequest<T>,
+  work: () => Promise<T>,
+): Promise<GuardedRun<T>> {
+  return runIdempotent(request, work);
+}
+
+async function runIdempotent<T>(
+  request: IdempotencyRequest<T> & { fingerprint: string | undefined; failClosed: boolean },
+  work: () => Promise<T>,
+): Promise<GuardedRun<T>> {
   const { scope, subject } = request;
   const key = (request.key ?? "").trim().slice(0, MAX_KEY_LENGTH);
   const ttlSeconds = Math.max(30, request.ttlSeconds ?? DEFAULT_TTL_SECONDS);
@@ -124,8 +186,10 @@ export async function withIdempotency<T>(
 
   const claim = claimed.ok ? readClaim(claimed.data) : null;
   if (!claim) {
-    // Store unreachable, or an answer this code does not recognise. Run the
-    // work; see the fail-open note at the top of this file.
+    // Store unreachable, or an answer this code does not recognise. A door
+    // that moves money refuses (MON-11); the rest run the work, see the
+    // fail-open note at the top of this file.
+    if (request.failClosed) return { status: "unavailable" };
     return { status: "done", result: await work(), replayed: false, degraded: true };
   }
 
@@ -134,7 +198,11 @@ export async function withIdempotency<T>(
   if (claim.state === "replay") {
     // The stored value is the same shape this action returned the first time,
     // round-tripped through JSON by Postgres.
-    return { status: "done", result: claim.result as T, replayed: true, degraded: false };
+    const stored = unwrapRecorded(claim.result);
+    if (request.fingerprint && stored.fingerprint && stored.fingerprint !== request.fingerprint) {
+      return { status: "conflict" };
+    }
+    return { status: "done", result: stored.result as T, replayed: true, degraded: false };
   }
 
   let result: T;
@@ -149,7 +217,7 @@ export async function withIdempotency<T>(
 
   const keep = request.shouldRecord ? request.shouldRecord(result) : true;
   if (keep) {
-    await record(scope, subject, key, result);
+    await record(scope, subject, key, wrapForRecord(result, request.fingerprint));
   } else {
     await release(scope, subject, key);
   }
