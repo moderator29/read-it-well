@@ -643,6 +643,7 @@ export const frontDoorEn = {
     openPlans: "Open my Plans",
     taken: "That time was just taken. Pick another.",
     already: "You already have a viewing of this home. It is in your Plans.",
+    ownHome: "This is your own home, so there is nothing to book. Renters see these times.",
     failed: "We could not book that time. Nothing was booked, so try again.",
     signIn: "Sign in to book a viewing.",
     notePlaceholder: "Anything the lister should know (optional)",

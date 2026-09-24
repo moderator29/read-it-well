@@ -84,10 +84,11 @@ export default async function AgentInspectionsPage() {
      booked viewings drawn as a route (today when there are none). */
   const [windows, mine] = await Promise.all([
     readMyViewingWindows(),
-    readMyListings(context.supabase, context.agent.id).catch(() => []),
+    /* A failed read is null, never "no published homes". */
+    readMyListings(context.supabase, context.agent.id).catch(() => null),
   ]);
-  const homes = mine.filter((one) => one.status === "PUBLISHED").map((one) => ({ id: one.id, title: one.title }));
-  const areaOf = new Map(mine.map((one) => [one.id, one.area]));
+  const homes = mine === null ? null : mine.filter((one) => one.status === "PUBLISHED").map((one) => ({ id: one.id, title: one.title }));
+  const areaOf = new Map((mine ?? []).map((one) => [one.id, one.area]));
   const clock = lagosToday();
   const booked = list.inspections.filter(
     (one) => one.state === "CONFIRMED" && one.slotAt !== null && lagosDay(one.slotAt) >= clock.day,
@@ -137,7 +138,7 @@ export default async function AgentInspectionsPage() {
         <SaturdayRoute
           dayLabel={routeLabel}
           route={route}
-          next={routeDay === clock.day ? nextStop(route, clock.now) : (route[0] ?? null)}
+          next={routeDay === clock.day ? nextStop(route, clock.now) : null}
           copy={t.frontDoor.viewings}
           locale={locale}
         />

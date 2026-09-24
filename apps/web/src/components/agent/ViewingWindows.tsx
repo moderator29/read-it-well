@@ -25,7 +25,8 @@ export function ViewingWindows({
   copy,
 }: {
   windows: ViewingWindow[] | null;
-  homes: { id: string; title: string }[];
+  /** The lister's published homes; null when they could not be read. */
+  homes: { id: string; title: string }[] | null;
   copy: Copy;
 }) {
   const router = useRouter();
@@ -64,7 +65,7 @@ export function ViewingWindows({
       </h2>
       <p className="mt-inline nf-body-sm text-[var(--nf-content-secondary)]">{copy.windowsNote}</p>
 
-      {windows === null ? (
+      {windows === null || homes === null ? (
         <p className="mt-group nf-body-sm text-[var(--nf-content-muted)]">{copy.unreachable}</p>
       ) : windows.length === 0 ? (
         <p className="mt-group nf-body-sm text-[var(--nf-content-muted)]">{copy.windowsEmpty}</p>
@@ -99,7 +100,7 @@ export function ViewingWindows({
         </ul>
       )}
 
-      {windows !== null &&
+      {windows !== null && homes !== null &&
         (adding ? (
           <div className="mt-group flex flex-col gap-row" data-testid="viewing-window-form">
             {homes.length === 0 ? (

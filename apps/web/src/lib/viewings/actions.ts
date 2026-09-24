@@ -46,6 +46,7 @@ export async function bookViewingSlot(input: unknown): Promise<ActionResult<{ id
   if (error || typeof data !== "string") {
     if (error?.hint === "viewing_slot_taken") return fail(t.taken);
     if (error?.hint === "viewing_already_booked") return fail(t.already);
+    if (error?.hint === "viewing_own_home") return fail(t.ownHome);
     return fail(t.failed);
   }
   const thread = await startConversation({ listingId: parsed.data.listingId });
