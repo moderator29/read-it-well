@@ -58,6 +58,14 @@ export type LandlordRpcArgs = {
   safety_share_create: { p_inspection: string; p_minutes: number };
   safety_share_done: { p_inspection: string };
   safety_share_read: { p_token: string };
+  /* V-42: migration 20260924110600. */
+  my_buildings: Record<string, never>;
+  mandate_invite: { p_listing: string; p_min_minor: number; p_max_minor: number };
+  mandate_withdraw: { p_invitation: string };
+  mandate_briefs: Record<string, never>;
+  mandate_pitch: { p_invitation: string; p_note: string };
+  mandate_pitches_for: { p_invitation: string };
+  mandate_award: { p_pitch: string };
 };
 
 export type LandlordRpcName = keyof LandlordRpcArgs;
