@@ -65,20 +65,20 @@ merges to `main`.
 | V-31 | The owner confirms vacancy | 1 | FOUNDER | Consent capture live on the mandate desk; fortnightly/weekly-capped question, reply door, inbound, 21-day Not reconfirmed; owner in-app heartbeat. Behind landlord_line (founder question 2). | loop.test.ts (whole loop with the stub); PROBE_OK chain 110000-110400; round-3 fixes in progress |
 | V-32 | The landlord countersigns the rent | 1 | FOUNDER | Paid rent charge queues the landlord question with the frozen figures; tenant sees a dated fact. Behind landlord_line. | PROBE_OK rent half |
 | V-33 | Rent never rests at Vallo | audit | AUDIT | Owned by the audit session. |  |
-| V-34 | The Vallo Record | 3 | PARTIAL | Counted, dated facts with denominators (n>=5), record code. In review. | migration 131100 |
+| V-34 | The Vallo Record | 3 | SHIPPED | Counted, dated facts with denominators (n>=5), VR- record code and /record/[code]; shadow enquiries and self-reported checks excluded; doors rate limited, never answer for a stopped lister. | PROBE_OK V-34 (3 probes); record.test.ts 13 tests; reviews rv3, rv3b PASS |
 | V-35 | The gate handshake and the offline pack | 6 | PARTIAL | Per-inspection TOTP seed, offline match, delegates only after acceptance, per-account packs, area not title. QR, photos, offline checklist, 18:00 refresh not built. | totp (14), pack (9); PROBE_OK V-35b |
-| V-36 | The caution register | 4 | PARTIAL | Obligations, itemised deductions tied to submitted move-out photos, return through return_caution (wallet to wallet, clamped); record at 5+. | model.test.ts; PROBE_OK; round-2 fixes committed, re-review pending |
+| V-36 | The caution register | 4 | SHIPPED | Caution obligations, itemised deductions, key-bound return (a retry answers already_returned), clamp at 100%, lister record counts overdue and excludes examples; money lock wiring on caution return. | zz_probe_rv4_a4_money_doors; review of 69c7fa4c..8e372b87 PASS |
 | V-37 | One flat, one page | 1 | SHIPPED | Properties keyed on the HMAC of approved-mandate principals, reviewer match panel, offers side by side, search collapse. | PROBE_OK; collapse representative fix in progress |
-| V-38 | The flat remembers | 4 | PARTIAL | In progress. |  |
+| V-38 | The flat remembers | 4 | SHIPPED | Relist from the let flat; last-let line hidden when the successor differs in state, area, type or bedrooms; softened exit copy. | review c7a6967d PASS |
 | V-39 | Price Check learns what people paid | 4 | SHIPPED | area_paid_summary at >=5 tenancies from >=3 listers, fixed window, banded count, rounded. | paid-prices.test.ts; PROBE_OK V-39 |
-| V-40 | The outbox | 6 | DEFERRED | Queued in builder 6's batch 3. |  |
-| V-41 | The neighbours' account | 5 | PARTIAL | First slice in progress. |  |
+| V-40 | The outbox | 6 | PARTIAL | Offline outbox for saves, messages, inspection requests, reviews and new posts, bound to the tapping user, idempotent by a 120s lease and a 3-day kept answer; payment references resolved on reconnect. Not built: replies and posts with pictures, bell dot. | PROBE_OK lease/keep; replay-guard.test, outbox.test; review d5261d41 MERGE-READY |
+| V-41 | The neighbours' account | 5 | FOUNDER | Neighbours account behind flag neighbours_account: area pulses, flood answer, No flooding reported filter (positive evidence only). Not built: push delivery, private note to contradicted lister. | PROBE_OK V-41 flag off/on; pulse.test; review d5f37826 PASS. On: update public.feature_flags set enabled = true where key = 'neighbours_account'; |
 | V-42 | The owner's buildings | 1 | PARTIAL | /agent/portfolio, invitations to verified agents in the place, pitches, award. Award does not write a mandate yet. | PROBE_OK V-42; review pending |
-| V-43 | Commute by the clock | 5 | PARTIAL | First slice in progress. |  |
+| V-43 | Commute by the clock | 5 | FOUNDER | Commute by the clock behind flag commute_by_the_clock: residents report (one per member median, n>=5), guide bands, card line, Location section, drawer count. Needs the route guide and landmark seed written by a person. | PROBE_OK V-43 per-member; commute.test; review 9872f58d. On: update public.feature_flags set enabled = true where key = 'commute_by_the_clock'; |
 | V-44 | A licensed lender pays the frozen charge | - | DEFERRED | Needs a licensed lending partner with an embedded API; not started. |  |
-| V-45 | Taken in Vallo | 3 | PARTIAL | Queued in builder 3's batch 3. |  |
+| V-45 | Taken in Vallo | 3 | PARTIAL | 64-bit photo hashes (service role), staff-only matches across listers and rejected listings, coverage line and bounded backfill. In-app camera deferred (needs @capacitor/camera). | PROBE_OK V-45 hashes and coverage; dhash.test, hash-server.test |
 | V-46 | The money map | 4 | PARTIAL | Captions name a landlord only with a dated staff check; 'all goes to the agent's account' withheld until V-33. | money-map.test.ts |
-| V-47 | The tenancy file | 4 | PARTIAL | /tenancy/[id] with snapshot, money, caution, reports, retention to end + 6 years. Photo copy and pin UI not built. | PROBE_OK V-36/V-47/V-54 |
+| V-47 | The tenancy file | 4 | SHIPPED | /tenancy/[id] file, pin control scoped to the one tenant-lister-listing thread, retention six years. | pin probe PASS (all refusals 42501) |
 | V-48 | Let is an event | 1 | SHIPPED | Close with a reason; let cascades only with payment proof or the same approved principal; closed stays closed; staff reopen with audit. | PROBE_OK (no resurrection, key-scoped cascade) |
 | V-49 | vNIN identity and payout-name matching | 3 | FOUNDER | Stub provider behind vnin_identity (founder question 4); name matcher live as a desk suggestion. No liveness capture. | name-match (24); PROBE_OK V-49 |
 | V-50 | The phone is the scarcity anchor | 3 | FOUNDER | OTP with hashed codes, one phone per account, gates at three moments, behind phone_confirmation (founder question 7). | PROBE_OK V-50 |
@@ -86,49 +86,49 @@ merges to `main`.
 | V-52 | A store readiness desk | 2 | SHIPPED | Store tab: eight live checks and a manual step, nightly run. | readiness.test.ts (20); PROBE_OK v52 |
 | V-53 | Native push through Vallo's drain | 6 | PARTIAL | Tap listener, same-origin hrefs, one button per notification on web push; APNs behind native_push_apns (Apple account). | push tests |
 | V-54 | Inspection report stages | 4 | SHIPPED | Tenancy move-in and move-out reports, 8-tick submit, countersign, private evidence bucket (authenticated-only policies). | PROBE_OK; storage blocker fixed |
-| V-55 | A verifiable receipt | 4 | PARTIAL | In progress (migration 140700). |  |
+| V-55 | A verifiable receipt | 4 | SHIPPED | Receipts verifiable at /r by hashed code, service-role RPC with hashed IP, public place from closed lists, lister shown as first name and initial with contact-shaped words dropped. | public-place-model.test; review 97c7b94a |
 | V-56 | Held agency fee by default | 4 | FOUNDER | To be built to the boundary behind a flag (founder question 9). |  |
-| V-57 | Nothing at the door | - | DEFERRED | Not started. |  |
+| V-57 | Nothing at the door | 4 | PARTIAL | Hosts declare five arrival charges; frozen per booking at payment (append-only, delete-guarded); At the door line on stays only; guest report after check-in with alerts at 3 in 90 days; publish refused until declared. Not built: confirmation email line (audit-named), support ticket (needs name/email). | zz_probe_v57_a4_frozen, zz_probe_a4_review4 |
 | V-58 | The collusion graph | 3 | PARTIAL | Mailbox, phone, card, bank keys (device removed as a user-agent hash); fix round in progress. | PROBE_OK V-58 |
 | V-59 | The rental review asks about the door | 3 | SHIPPED | Tenant only, 30 days after move-in, door question first, alert at two distinct yes, public count at 5+. | PROBE_OK V-59 |
-| V-60 | Scam-exposure recall | 3 | PARTIAL | Queued in builder 3's batch 3. |  |
-| V-61 | Is this a Vallo agent? | 1 | PARTIAL | /check with VA- codes and HMAC phone opt-in; wording and limits being fixed after review. |  |
-| V-62 | Going to an inspection alone | 1 | PARTIAL | /safe/[token], place from facts, I'm done, reminder; state and revoke fixes in progress. |  |
-| V-63 | I feel unsafe | 3 | PARTIAL | Queued in builder 3's batch 3. |  |
+| V-60 | Scam-exposure recall | 3 | SHIPPED | Recall only on an upheld scam or pay-outside report tied to this stop by p_report; desk shows the report; audience from real contacts; wording never names the account. | PROBE_OK V-60; recall.test |
+| V-61 | Is this a Vallo agent? | 1 | SHIPPED | /check with VA- codes and phone; per-address and platform miss budgets reserved before lookup, refunded to the reserved window, fail closed; limited reveals nothing. | agent-check-actions.test 4 tests; review r4 PASS |
+| V-62 | Going to an inspection alone | 1 | SHIPPED | /safe/[token] trusted-contact page, controls for every live share, WITHDRAWN quiet, COMPLETED live, MOVED not overdue, no names on the page. | PROBE_OK fourth review; review 8cfc5658 PASS |
+| V-63 | I feel unsafe | 3 | SHIPPED | I feel unsafe sheet (112, leave and block, tell Vallo); safety hold scoped to the filer, lapses at 72h, cleared or extended on the queue held lane; refusal identical to RLS. Known limit recorded in the migration. | PROBE_OK V-63 indistinct; unsafe.test |
 | V-64 | Supplier trust page; member page shrinks | 5 | PARTIAL | Occupation and home town opt-in per field; people-search leak being closed; supplier page deferred to V-34/V-49/V-87 data. | PROBE_OK V-64 |
 | V-65 | Cash in hand | 5 | PARTIAL | Budget on the cash at the door, upfront line and filter; the charge taking the demanded months is audit money work. | upfront.test.ts (17) |
 | V-66 | Search in the words Nigerians use | 5 | PARTIAL | Unit shapes, en-suite, BQ, shorthand reader; tokeniser fixes in progress. | query-parse (23), unit-shape (10); PROBE_OK V-66 |
 | V-67 | Side-true property search | 5 | SHIPPED | Stays out of the property shelf, redirects to Stays, Instant book and Top rated removed, ceilings per market. | property-side.test.ts |
 | V-68 | Serviced, defined | 5 | PARTIAL | Covers, reconciled, estate type, derived is_serviced; must also require a stated service charge (fix in progress). | service.test.ts; PROBE_OK V-68 |
-| V-69 | Show me | 5 | PARTIAL | First slice in progress. |  |
-| V-70 | The shot list | - | DEFERRED | Not started. |  |
+| V-69 | Show me | 5 | FOUNDER | Show me behind flag show_me: renter asks for clips, lister uploads (30s, 25 MB, private bucket), data saver waits for a tap and states only the stored size; examples refused. | PROBE_OK V-69 real storage inserts. On: update public.feature_flags set enabled = true where key = 'show_me'; |
+| V-70 | The shot list | 4 | PARTIAL | Photo slot labels, shot list in the wizard, Photographed line on listing and search cards (only while claimed, never on examples). Not built: submit gate and gallery deep link (audit-named). | zz_probe; photographed test |
 | V-71 | The Status kit | 2 | SHIPPED | 1080x1920 Status image, per-listing first touch, attribution to the lister's own door, cached route. | first-touch.test.ts; PROBE_OK v71 |
 | V-72 | The enquiry desk | 2 | SHIPPED | Stages from New to Let or Lost with reason, auto-advanced by events. In review. | migration 121100 |
-| V-73 | Per-listing funnel | 5 | PARTIAL | Daily stats and funnel; SQL k-rule, salted hash and rate limit being fixed after review. | funnel.test.ts |
+| V-73 | Per-listing funnel | 5 | SHIPPED | Per-listing funnel at k>=5 peers, salted daily hashes, prefetches and staff not counted, 300/day cap. | prefetch.test; funnel.test; PROBE_OK V-73 |
 | V-74 | Pricing guidance in the wizard | 2 | SHIPPED | Area's usual fees beside the fee lines, refusal when thin. In review. | migration 121200 |
 | V-75 | One word: workspace | 5 | PARTIAL | One noun, one chooser, dock centre; glyph and caption fixes in progress. | workspace-terms.test.ts |
-| V-76 | Plans: one dated list | 5 | PARTIAL | /bookings as Plans with redirects; side-path blocker being fixed before merge. | plans.test.ts |
+| V-76 | Plans: one dated list | 5 | SHIPPED | /bookings is Plans; /inspections, /trips redirect; only ?from= moves the shell. | side-paths.test |
 | V-77 | The shortlist works on the bus | 6 | PARTIAL | IndexedDB shelf with owner key, offline compare; no photos, no SW routing of /saved. | shelf.test.ts |
 | V-78 | The data diet | 6 | SHIPPED | SW asset cache key without dpl, naira font subset (1.2 KB), wordmark at drawn size, image widths, AVIF/WebP, TTLs. | sw-cache.test.ts |
 | V-79 | A data saver people can find | 6 | PARTIAL | Switch at the top of Settings and first run, server honours the vallo_lite cookie, meter in MB. | lite-cookie, data-meter tests |
 | V-80 | Weight budget and field vitals | 6 | PARTIAL | web_vitals_samples, /api/vitals, /admin/field-speed; budgets null until recorded; CI wiring is the audit's. | PROBE_OK V-80 |
-| V-81 | Face ID and fingerprint on money | 6 | PARTIAL | In progress. |  |
+| V-81 | Face ID and fingerprint on money | 6 | PARTIAL | WebAuthn money lock checked on the server, each proof bound to one action digest; gates on withdraw, send, wallet pay, held payments, bank and payout accounts, caution and share returns; emailed-code fallback. Not built: native Face ID plugin, app-switcher blur. | money-step-up.test, money-intent.test, webauthn.test; review PASS |
 | V-82 | Area price pages | 2 | SHIPPED | /areas/[state]/[area] only for closed-list areas with 5 real listings; zero pages today by design; noindex soft 404. | pages.test.ts (11); PROBE_OK v82 |
 | V-83 | Crypto out of the shipped app | 6 | SHIPPED | 2,959 lines removed; parked on branch claude/parked-crypto-deferred; Yellow Card top-up kept. The 204 preview routes are the audit's cleanup. |  |
-| V-84 | The wallet leads with what money is for | 4 | PARTIAL | In progress. |  |
-| V-85 | The tribunal pack | - | DEFERRED | Not started (needs the tenancy file, now built). |  |
-| V-86 | Split the move-in between flatmates | 4 | PARTIAL | In progress. |  |
+| V-84 | The wallet leads with what money is for | 4 | PARTIAL | Coming up strip from cautions, accepted shares, renewals and held payments; WalletDeck changes are audit-named. | upcoming-model.test |
+| V-85 | The tribunal pack | 4 | SHIPPED | Printable complaint pack and caution demand letter from the record, no lister free text (place from closed lists, name as first and initial, pins only when ticked). | letter.test; review 97c7b94a |
+| V-86 | Split the move-in between flatmates | 4 | SHIPPED | Rent shares are invitations accepted or declined, rate limited, paid only while payable, returnable in one tap when the charge goes void. | zz_probe_rv4_a4_money_doors |
 | V-87 | LASRERA, ESVARBON, CAC as dated credentials | 3 | PARTIAL | Staff-recorded dated credentials; CAC director wording fix in progress. | PROBE_OK V-87 |
-| V-88 | One desk: queue lanes | 5 | PARTIAL | Reports, Flags, Held as lanes; Held lane de-duplication in progress. |  |
-| V-89 | The queue becomes a desk | 6 | PARTIAL | In progress. |  |
+| V-88 | One desk: queue lanes | 5 | SHIPPED | Reports, Flags and Held are lanes of /admin/queue; old pages redirect. | merge reviews PASS |
+| V-89 | The queue becomes a desk | 6 | SHIPPED | Queue desk: claims, due order, weighted reports, lanes, bulk with audit rows, saved views, reporters can withdraw. Deviations: no j/k keys; spam classified at read. | queue-desk.test; PROBE_OK |
 | V-90 | The person file and the ban that follows the person | 1 | PARTIAL | /admin/people/[id] with timeline and HMAC-linked accounts; super_admin-only fraud uphold; deny-list checks. | PROBE_OK V-90; review pending |
-| V-91 | Arrival check and host payout | - | DEFERRED | Payout timing is the audit's money work. |  |
+| V-91 | Arrival check and host payout | 1 | PARTIAL | Arrival check: Is it as listed? in the window, photos in a private bucket, ticket, refund ask and high alert; staff ruling on the check. Host payout at check-in plus 24h is the audit's (private.arrival_report_open provided). | PROBE_OK V-91 and follow-ups |
 | V-92 | Shortlet caution hold | 4 | FOUNDER | To be built to the boundary behind a flag (founder question 8). |  |
-| V-93 | The renewal clock | 4 | PARTIAL | In progress. |  |
-| V-94 | Viewing windows and the Saturday route | 2 | PARTIAL | In progress. |  |
-| V-95 | The brief | 2 | PARTIAL | Queued. |  |
-| V-96 | WhatsApp is a doorbell | 6 | PARTIAL | Queued. |  |
-| V-97 | One state kit and one voice | - | DEFERRED | Not started. |  |
-| V-98 | Next up widget | 6 | PARTIAL | Queued (endpoint and token; native halves likely deferred). |  |
-| V-99 | The firm desk | 2 | PARTIAL | Queued. |  |
-| V-100 | The renter passport | 3 | PARTIAL | Queued. |  |
+| V-93 | The renewal clock | 4 | PARTIAL | Renewal clock with offers, notices on first offer or change at most daily, per-viewer copy. Paying the renewal needs the audit's charge schema. | review PASS |
+| V-94 | Viewing windows and the Saturday route | 2 | PARTIAL | Viewing windows, slot booking under an advisory lock, group viewings allowed, Saturday route, running-late. Not built: back-to-back homes. | PROBE_OK v94 review |
+| V-95 | The brief | 2 | SHIPPED | Renter briefs answered only with matching listings by verified listers, three answers, rate limited. | PROBE_OK V-95 |
+| V-96 | WhatsApp is a doorbell | 6 | FOUNDER | WhatsApp doorbell: five events, one link each, flag whatsapp_doorbell, opt-in, confirmed phone, quiet hours, signed inbound with dedupe. Needs number, Meta credentials, template approval. | PROBE_OK; whatsapp.test, drain and inbound tests. On: update public.feature_flags set enabled = true where key = 'whatsapp_doorbell'; |
+| V-97 | One state kit and one voice | 3 | PARTIAL | State kit (State.tsx), voice rules and sweep, VOICE.md, 404 copy; owed lines down to 3 (wallet, audit-owned). Remaining: SystemMoment and loading files. | voice.test; state-sweep |
+| V-98 | Next up widget | 6 | PARTIAL | /api/plans/next with hashed 90-day tokens revoked on deletion, holds and end_other_sessions; area-only answer. Native Glance and WidgetKit deferred (no SDK here). | PROBE_OK V-98; route.test |
+| V-99 | The firm desk | 2 | PARTIAL | Firm desk with routing recorded on each enquiry (no access widened), team counts. Coordinator role blocked on the audit's admit_firm_member. | PROBE_OK V-99 |
+| V-100 | The renter passport | 3 | SHIPPED | Opt-in renter passport shown per thread: phone confirmed, NIMC match date, inspections attended (both phones, no shadows), tenancies paid. | PROBE_OK V-100; passport.test |
