@@ -29,6 +29,8 @@ import { isModestExample } from "@/lib/listings/example-imagery";
 import { ListingCompound } from "@/components/app/listing/ListingCompound";
 import { ListingService } from "@/components/app/listing/ListingService";
 import { RecordViews } from "@/components/app/search/RecordViews";
+import { ListingNeighbours } from "@/components/app/listing/ListingNeighbours";
+import { readFlooding, readNeighbours } from "@/lib/around/pulse-queries";
 import { getBlockedDates } from "@/lib/bookings/queries";
 import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";
@@ -366,11 +368,20 @@ export default async function ListingDetailPage({
      booking on this listing. A refusal and an absence are the same answer here
      on purpose, so nobody can learn whether a code exists by watching the page
      change. */
-  const [access, bookingConfirmed] = await Promise.all([
+  /* V-41: the neighbours' account, for a home to let or sell. Read with the
+     caller's session; the summary function applies its own threshold. */
+  const neighboursOn = (isRental || isSale) && session.state === "signed-in";
+  const [access, bookingConfirmed, neighbours, flooding] = await Promise.all([
     readListingAccess(listing.id),
     session.state === "signed-in"
       ? hasConfirmedBooking(session.supabase, listing.id, session.user.id)
       : Promise.resolve(false),
+    neighboursOn && session.state === "signed-in"
+      ? readNeighbours(session.supabase, listing.stateCode, listing.area)
+      : Promise.resolve({ state: "unavailable" } as const),
+    neighboursOn && session.state === "signed-in"
+      ? readFlooding(session.supabase, listing.id)
+      : Promise.resolve(undefined),
   ]);
 
   // An area is only worth naming when it says something the city does not.
@@ -1064,18 +1075,30 @@ export default async function ListingDetailPage({
                 </Section>
 
                 {/* ------------------------- 7. LIGHT, WATER AND THE GATE */}
-                {listing.utilities && (
+                {(listing.utilities || neighbours.state !== "unavailable" || flooding !== undefined) && (
                   <Reveal>
                     <Section
                       title="Light, water and getting in"
-                      description="The three things worth knowing before you commit, answered by the agent."
+                      description="The three things worth knowing before you commit: what the agent says, and what residents report where enough have answered."
                       divided
                     >
-                      <ListingUtilities
-                        utilities={listing.utilities}
-                        access={access}
-                        bookingConfirmed={bookingConfirmed}
-                      />
+                      {listing.utilities && (
+                        <ListingUtilities
+                          utilities={listing.utilities}
+                          access={access}
+                          bookingConfirmed={bookingConfirmed}
+                        />
+                      )}
+                      {/* V-41: the lister's flooding answer, and what residents
+                          report, beside the claims above. */}
+                      <div className="mt-md">
+                        <ListingNeighbours
+                          neighbours={neighbours}
+                          flooding={flooding}
+                          area={listing.area || listing.city}
+                          copy={t.shape.neighbours}
+                        />
+                      </div>
                     </Section>
                   </Reveal>
                 )}

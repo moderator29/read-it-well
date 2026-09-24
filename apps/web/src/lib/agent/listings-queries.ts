@@ -38,6 +38,8 @@ import {
   type ServiceForm,
   type ServiceRow,
 } from "../listings/service";
+import { readFlooding } from "../around/pulse-queries";
+import type { Flooding } from "../around/pulse";
 import { UNIT_COLUMNS, readUnit, unitFormOf, type UnitFacts, type UnitForm, type UnitRow } from "../listings/unit-shape";
 
 /**
@@ -196,7 +198,7 @@ export type ListingSummary = {
 
 /** Everything the wizard needs to reopen a draft exactly as it was left. */
 /** The answer groups kept in their own columns. */
-export type OwnAnswers = "compound" | "service" | "unit";
+export type OwnAnswers = "compound" | "service" | "unit" | "flood";
 
 export type WizardDraft = {
   id: string;
@@ -264,7 +266,9 @@ export type WizardDraft = {
   service?: ServiceForm;
   /** V-66: the unit's shape, as the wizard's controls hold it. */
   unit?: UnitForm;
-  /** Which of those three could not be read, so a save leaves them alone. */
+  /** V-41: the lister's flooding answer; "" is unanswered. */
+  flooding?: Flooding | "";
+  /** Which of those groups could not be read, so a save leaves them alone. */
   unread?: OwnAnswers[];
   /** Never public. Read from public.listing_access, which only the host,
       an admin and a guest with a CONFIRMED booking may select from. */
@@ -549,20 +553,23 @@ async function toDraft(
 async function ownAnswers(
   supabase: SupabaseClient<Database>,
   listingId: string,
-): Promise<Pick<WizardDraft, "compound" | "service" | "unit" | "unread">> {
-  const [compound, service, unit] = await Promise.all([
+): Promise<Pick<WizardDraft, "compound" | "service" | "unit" | "flooding" | "unread">> {
+  const [compound, service, unit, flooding] = await Promise.all([
     readCompoundFor(supabase, listingId),
     readServiceFor(supabase, listingId),
     readUnitFor(supabase, listingId),
+    readFlooding(supabase, listingId),
   ]);
   const unread: OwnAnswers[] = [];
   if (compound === undefined) unread.push("compound");
   if (service === undefined) unread.push("service");
   if (unit === undefined) unread.push("unit");
+  if (flooding === undefined) unread.push("flood");
   return {
     compound: compoundFormOf(compound ?? null),
     service: serviceFormOf(service ?? null),
     unit: unitFormOf(unit ?? null),
+    flooding: flooding ?? "",
     unread,
   };
 }

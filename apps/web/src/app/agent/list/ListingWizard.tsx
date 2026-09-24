@@ -72,6 +72,8 @@ import { EMPTY_COMPOUND_FORM, compoundPayload, type CompoundForm } from "@/lib/l
 import { EMPTY_SERVICE_FORM, servicePayload, type ServiceForm } from "@/lib/listings/service";
 import { ServiceQuestions } from "@/components/agent/ServiceQuestions";
 import { UnitQuestions } from "@/components/agent/UnitQuestions";
+import { FloodQuestion } from "@/components/agent/FloodQuestion";
+import type { Flooding } from "@/lib/around/pulse";
 import { EMPTY_UNIT_FORM, takesShape, unitPayload, type UnitForm } from "@/lib/listings/unit-shape";
 
 /**
@@ -197,6 +199,8 @@ type Values = {
   service: ServiceForm;
   /** V-66: the unit's shape, en-suite rooms and BQ. */
   unit: UnitForm;
+  /** V-41: the lister's flooding answer; "" is unanswered. */
+  flooding: Flooding | "";
   estateName: string;
   gateDirections: string;
   securityPhone: string;
@@ -268,6 +272,7 @@ const EMPTY: Values = {
   compound: EMPTY_COMPOUND_FORM,
   service: EMPTY_SERVICE_FORM,
   unit: EMPTY_UNIT_FORM,
+  flooding: "",
   estateName: "",
   gateDirections: "",
   securityPhone: "",
@@ -326,6 +331,7 @@ function valuesFrom(draft: WizardDraft): Values {
     compound: draft.compound ?? EMPTY_COMPOUND_FORM,
     service: draft.service ?? EMPTY_SERVICE_FORM,
     unit: draft.unit ?? EMPTY_UNIT_FORM,
+    flooding: draft.flooding ?? "",
     estateName: draft.access.estateName,
     gateDirections: draft.access.gateDirections,
     securityPhone: draft.access.securityPhone,
@@ -796,6 +802,7 @@ export function ListingWizard({
   compoundCopy,
   serviceCopy,
   unitCopy,
+  floodCopy,
   remainderCopy,
   moneyMapCopy,
   locale,
@@ -821,6 +828,8 @@ export function ListingWizard({
   serviceCopy: Dictionary["shape"]["service"];
   /** V-66: the unit shape question. */
   unitCopy: Dictionary["shape"]["unit"];
+  /** V-41: the flooding question. */
+  floodCopy: Dictionary["shape"]["neighbours"];
   /** V-13: the sentence that refuses an unexplained remainder in the total. */
   remainderCopy?: Dictionary["afterTheGate"]["remainder"];
   /** V-46: the captions that say who each move-in line is paid to. */
@@ -1240,6 +1249,7 @@ export function ListingWizard({
       ...(untouchedUnread(unread, "compound", values.compound, EMPTY_COMPOUND_FORM) ? {} : compoundPayload(values.compound)),
       ...(untouchedUnread(unread, "service", values.service, EMPTY_SERVICE_FORM) ? {} : servicePayload(values.service)),
       ...(untouchedUnread(unread, "unit", values.unit, EMPTY_UNIT_FORM) ? {} : unitPayload(values.unit, values.bedrooms)),
+      ...(untouchedUnread(unread, "flood", values.flooding, "") ? {} : { flooding: values.flooding === "" ? null : values.flooding }),
     });
 
     if (!result.ok) {
@@ -2268,6 +2278,13 @@ export function ListingWizard({
               value={values.service}
               onChange={(next) => set("service", next)}
               chargeMinor={(tenancy || forSale) ? parseNairaToKobo(values.serviceChargeNaira) : null}
+            />
+
+            {/* ------------------------------------- flooding (V-41) */}
+            <FloodQuestion
+              copy={floodCopy}
+              value={values.flooding}
+              onChange={(next) => set("flooding", next)}
             />
 
             {/* ---------------------------------------- the compound (V-28) */}

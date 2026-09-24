@@ -77,6 +77,7 @@ export default async function Page({
           compoundCopy={t.shape.compound}
           serviceCopy={t.shape.service}
           unitCopy={t.shape.unit}
+          floodCopy={t.shape.neighbours}
           remainderCopy={t.afterTheGate.remainder}
           moneyMapCopy={t.afterTheGate.moneyMap}
           locale={locale}
@@ -114,6 +115,7 @@ export default async function Page({
         compoundCopy={t.shape.compound}
         serviceCopy={t.shape.service}
         unitCopy={t.shape.unit}
+        floodCopy={t.shape.neighbours}
         remainderCopy={t.afterTheGate.remainder}
         moneyMapCopy={t.afterTheGate.moneyMap}
         locale={locale}

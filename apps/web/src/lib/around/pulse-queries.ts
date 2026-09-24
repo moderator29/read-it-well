@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { resolveSession } from "../actions/session";
 import type { Database } from "../supabase/database.types";
 import { isFlooding, summarise, type AreaSummary, type Flooding, type PulseEligibility, type SummaryRow } from "./pulse";
 
@@ -81,4 +82,11 @@ export async function readMyPulse(
   } catch {
     return null;
   }
+}
+
+/** The same, with the caller's own session: null when signed out. */
+export async function readMyPulseSession(areaId: string): Promise<PulseEligibility | null> {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return null;
+  return readMyPulse(session.supabase, areaId);
 }

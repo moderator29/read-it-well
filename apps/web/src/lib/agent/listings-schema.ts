@@ -2,6 +2,7 @@ import { z } from "zod";
 import { PARKING_TYPES, WASTE_DISPOSALS } from "@/lib/listings/compound";
 import { ESTATE_TYPES, SERVICE_COVERS } from "@/lib/listings/service";
 import { UNIT_SHAPES, takesShape } from "@/lib/listings/unit-shape";
+import { FLOODING } from "@/lib/around/pulse";
 
 import {
   BUILD_CONDITION_VALUES,
@@ -710,6 +711,9 @@ export const draftInputSchema = z.object({
   unitShape: z.enum(UNIT_SHAPES).nullable().optional(),
   ensuiteCount: z.number().int().min(0, "Enter 0 or more rooms.").max(20, "Enter 20 or fewer rooms.").nullable().optional(),
   hasBq: z.boolean().nullable().optional(),
+
+  /* V-41. The lister's flooding answer; null clears, undefined leaves alone. */
+  flooding: z.enum(FLOODING).nullable().optional(),
 });
 
 export type DraftInput = z.input<typeof draftInputSchema>;

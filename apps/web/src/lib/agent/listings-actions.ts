@@ -370,6 +370,9 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     if (!(await writeUnit(gate.supabase, value.id, gate.agentId, value))) {
       return fail(SAVE_FAILED_MESSAGE);
     }
+    if (!(await writeFlooding(gate.supabase, value.id, gate.agentId, value.flooding))) {
+      return fail(SAVE_FAILED_MESSAGE);
+    }
 
     refreshAgentSurfaces();
     return ok({ id: value.id, status: existing.status });
@@ -403,6 +406,9 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     return fail(SAVE_FAILED_MESSAGE);
   }
   if (!(await writeUnit(gate.supabase, created.id, gate.agentId, value))) {
+    return fail(SAVE_FAILED_MESSAGE);
+  }
+  if (!(await writeFlooding(gate.supabase, created.id, gate.agentId, value.flooding))) {
     return fail(SAVE_FAILED_MESSAGE);
   }
 
@@ -502,6 +508,22 @@ async function writeUnit(
   const { error } = await supabase
     .from("listings")
     .update(row as never)
+    .eq("id", listingId)
+    .eq("agent_id", agentId);
+  return !error || isMissingColumnError(error);
+}
+
+/** V-41: the lister's flooding answer, by its own update for the same reason. */
+async function writeFlooding(
+  supabase: SupabaseClient<Database>,
+  listingId: string,
+  agentId: string,
+  flooding: string | null | undefined,
+): Promise<boolean> {
+  if (flooding === undefined) return true;
+  const { error } = await supabase
+    .from("listings")
+    .update({ flooding } as never)
     .eq("id", listingId)
     .eq("agent_id", agentId);
   return !error || isMissingColumnError(error);
