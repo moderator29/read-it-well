@@ -100,7 +100,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "cancellations",
     keywords: ["cancel", "call it off", "not as described", "not as listed"],
     answer:
-      "One cancellation schedule covers every stay on Vallo, not a different one for each host. The free-cancellation deadline is 72 hours before check-in: cancel before it and everything you paid comes back to your wallet, cancel inside it and half comes back, and once check-in day has started nothing does. A stay you have not paid for is only a hold on the calendar, so you can call it off from Bookings at any hour for nothing.",
+      "A listed stay is priced under Vallo's platform schedule, and the exact terms are fixed on your booking when you pay, so they cannot change afterwards. Under that schedule the free-cancellation deadline is 72 hours before check-in: cancel before it and everything you paid comes back to your wallet, cancel inside it and half comes back, and once check-in day has started nothing does. A stay you have not paid for is only a hold on the calendar, so you can call it off from Bookings at any hour for nothing.",
   },
   {
     id: "cancel-a-paid-stay",
@@ -112,7 +112,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "refunds",
     keywords: ["refund", "money back", "my money", "reimburse", "paid twice", "double charge", "reversal"],
     answer:
-      "Refunds go to your Vallo wallet in naira, to the kobo, because that is the fastest route in this market. The money is in the wallet the moment the cancellation is decided, not days later. It is not a store credit: move it to your Nigerian bank account from Wallet whenever you want, and banks normally credit within minutes and can take up to one working day, or spend it on your next stay with nothing to wait for. If the host cancelled, the place was not what was listed, or you could not get in, you get everything back whatever the hour.",
+      "Refunds go to your Vallo wallet in naira, to the kobo, because that is the fastest route in this market. It is due in the wallet within five Nigerian business days of the decision, and the booking shows the exact date. It is not a store credit: move it to your Nigerian bank account from Wallet whenever you want, and banks normally credit within minutes and can take up to one working day, or spend it on your next stay with nothing to wait for. If the host cancelled, the place was not what was listed, or you could not get in, you get everything back whatever the hour.",
   },
   {
     id: "arrival",

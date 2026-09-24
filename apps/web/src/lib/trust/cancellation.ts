@@ -46,7 +46,7 @@ export const CANCELLATION_STOPS: CancellationStop[] = [
     refundBasisPoints: 10_000,
     label: "Everything back",
     detail:
-      "Cancel more than 72 hours before check-in and the full amount you paid returns to your Vallo wallet, usually within minutes.",
+      "Cancel more than 72 hours before check-in and the full amount you paid is due back in your Vallo wallet within five Nigerian business days of the decision. Your booking shows the exact date.",
   },
   {
     tier: "half",
@@ -212,6 +212,198 @@ export function refundForReason(
     stop: full,
     refundMinor: paid,
     retainedMinor: 0,
+    hoursBeforeCheckIn: scheduled.hoursBeforeCheckIn,
+  };
+}
+
+/* ------------------------------------------------------------------------- */
+/*  V-20: the terms that priced a stay, as data, and frozen at payment        */
+/* ------------------------------------------------------------------------- */
+
+/**
+ * One window of a cancellation schedule: while there are MORE than
+ * `closesHoursBefore` hours to check-in, `refundBps` of what was paid comes
+ * back. The first open window decides; after the last one nothing does.
+ */
+export type CancellationTier = { closesHoursBefore: number; refundBps: number };
+
+/**
+ * The exact terms a booking was priced under. `source` is
+ * "platform_schedule_v1" or "policy:<cancellation_policies.id>".
+ *
+ * WHY THIS EXISTS. The platform schedule above is a code constant and the
+ * per-property policies are an editable table, so either a deploy or a host's
+ * edit could quietly change the refund on a stay already paid for. Terms are
+ * therefore written onto the booking at payment
+ * (`public.booking_cancellation_terms`, migration 20260924140200) and every
+ * refund is computed from that row. Twin of
+ * `private.platform_cancellation_terms_v1()`, held equal by a test.
+ */
+export type CancellationTerms = {
+  source: string;
+  checkInHour: number;
+  tiers: CancellationTier[];
+};
+
+export const PLATFORM_TERMS_V1: CancellationTerms = {
+  source: "platform_schedule_v1",
+  checkInHour: 15,
+  tiers: CANCELLATION_STOPS.filter(
+    (stop): stop is CancellationStop & { closesHoursBeforeCheckIn: number } =>
+      stop.closesHoursBeforeCheckIn !== null,
+  ).map((stop) => ({ closesHoursBefore: stop.closesHoursBeforeCheckIn, refundBps: stop.refundBasisPoints })),
+};
+
+function isBps(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 10_000;
+}
+
+function isHours(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0;
+}
+
+/**
+ * Read a frozen terms row defensively. A jsonb the database shaped is still
+ * somebody else's payload until it has been read; anything malformed answers
+ * null, and the caller falls back to the platform schedule, which is what
+ * every catalogue booking has been priced under.
+ */
+export function readCancellationTerms(source: unknown, raw: unknown): CancellationTerms | null {
+  if (typeof source !== "string" || source.length === 0) return null;
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return null;
+  const record = raw as Record<string, unknown>;
+  const hour = record.check_in_hour;
+  if (typeof hour !== "number" || !Number.isInteger(hour) || hour < 0 || hour > 23) return null;
+  if (!Array.isArray(record.tiers)) return null;
+  const tiers: CancellationTier[] = [];
+  for (const entry of record.tiers) {
+    if (typeof entry !== "object" || entry === null) return null;
+    const tier = entry as Record<string, unknown>;
+    if (!isHours(tier.closes_hours_before) || !isBps(tier.refund_bps)) return null;
+    tiers.push({ closesHoursBefore: tier.closes_hours_before, refundBps: tier.refund_bps });
+  }
+  return { source, checkInHour: hour, tiers: normaliseTiers(tiers) };
+}
+
+/** Most generous window first, the order a person meets them in. */
+function normaliseTiers(tiers: CancellationTier[]): CancellationTier[] {
+  return [...tiers].sort((a, b) => b.closesHoursBefore - a.closesHoursBefore);
+}
+
+/**
+ * A property's policy (`cancellation_policies.rules`, `[{refund_bps,
+ * hours_before}]`) as terms. The rules are what is computed from; the
+ * policy's summary sentence is shown verbatim and is not parsed.
+ */
+export function termsFromPolicyRules(policyId: string, rules: unknown, checkInHour = 15): CancellationTerms | null {
+  if (!Array.isArray(rules)) return null;
+  const tiers: CancellationTier[] = [];
+  for (const entry of rules) {
+    if (typeof entry !== "object" || entry === null) return null;
+    const rule = entry as Record<string, unknown>;
+    if (!isHours(rule.hours_before) || !isBps(rule.refund_bps)) return null;
+    tiers.push({ closesHoursBefore: rule.hours_before, refundBps: rule.refund_bps });
+  }
+  return { source: `policy:${policyId}`, checkInHour, tiers: normaliseTiers(tiers) };
+}
+
+/** The check-in instant the hours are measured to, in Lagos (UTC+1, no DST). */
+export function checkInInstant(checkInIso: string, checkInHour = 15): Date | null {
+  const hour = String(Math.max(0, Math.min(23, Math.trunc(checkInHour)))).padStart(2, "0");
+  const stamp = checkInIso.length <= 10 ? `${checkInIso}T${hour}:00:00+01:00` : checkInIso;
+  const at = new Date(stamp);
+  return Number.isNaN(at.getTime()) ? null : at;
+}
+
+/** The share that comes back if cancelled at `now`, in basis points. */
+export function refundBpsUnderTerms(terms: CancellationTerms, checkInIso: string, now: Date = new Date()): number {
+  const checkIn = checkInInstant(checkInIso, terms.checkInHour);
+  if (!checkIn) return 0;
+  const hours = (checkIn.getTime() - now.getTime()) / 3_600_000;
+  const open = terms.tiers.find((tier) => hours > tier.closesHoursBefore);
+  return open ? open.refundBps : 0;
+}
+
+/** What comes back under frozen terms, in kobo. Integer arithmetic, never below zero. */
+export function refundUnderTerms(
+  paidMinor: number,
+  checkInIso: string,
+  terms: CancellationTerms,
+  now: Date = new Date(),
+): { refundMinor: number; retainedMinor: number; refundBps: number } {
+  const paid = Math.max(0, Math.trunc(paidMinor));
+  const refundBps = refundBpsUnderTerms(terms, checkInIso, now);
+  const refundMinor = Math.round((paid * refundBps) / 10_000);
+  return { refundMinor, retainedMinor: paid - refundMinor, refundBps };
+}
+
+/**
+ * The schedule as dated windows for one booking: "Until Wed 14 Oct, 3pm:
+ * everything back", then each later window, then "From check-in: nothing".
+ * `until` null means the window runs to check-in and beyond. The screens
+ * render these through `formatMoneyDate`; no screen does the arithmetic.
+ */
+export type TermsWindow = { refundBps: number; from: Date | null; until: Date | null };
+
+export function termsWindows(terms: CancellationTerms, checkInIso: string): TermsWindow[] {
+  const checkIn = checkInInstant(checkInIso, terms.checkInHour);
+  if (!checkIn) return [];
+  const windows: TermsWindow[] = [];
+  let from: Date | null = null;
+  for (const tier of terms.tiers) {
+    const until = new Date(checkIn.getTime() - tier.closesHoursBefore * 3_600_000);
+    windows.push({ refundBps: tier.refundBps, from, until });
+    from = until;
+  }
+  windows.push({ refundBps: 0, from: from ?? checkIn, until: null });
+  // Two adjacent windows with the same share are one window to a reader.
+  return windows.reduce<TermsWindow[]>((merged, window) => {
+    const last = merged[merged.length - 1];
+    if (last && last.refundBps === window.refundBps) {
+      merged[merged.length - 1] = { ...last, until: window.until };
+    } else {
+      merged.push(window);
+    }
+    return merged;
+  }, []);
+}
+
+/** The instant a full refund stops being available, or null when it never is. */
+export function freeToCancelUntil(terms: CancellationTerms, checkInIso: string): Date | null {
+  const first = termsWindows(terms, checkInIso)[0];
+  if (!first || first.refundBps < 10_000 || first.until === null) return null;
+  return first.until;
+}
+
+/** True when nothing ever comes back under these terms. */
+export function isNonRefundable(terms: CancellationTerms): boolean {
+  return terms.tiers.every((tier) => tier.refundBps === 0);
+}
+
+/**
+ * `refundForReason` with the booking's frozen terms. The three overriding
+ * reasons still return everything; a guest's own choice is priced by the
+ * terms the booking was paid under, not by today's schedule.
+ */
+export function refundForReasonUnderTerms(
+  reason: CancellationReason,
+  paidMinor: number,
+  checkInIso: string,
+  terms: CancellationTerms | null,
+  now: Date = new Date(),
+): RefundOutcome {
+  const scheduled = refundForReason(reason, paidMinor, checkInIso, now);
+  if (!terms || cancellationReason(reason).overridesToFull) {
+    return scheduled;
+  }
+  const priced = refundUnderTerms(paidMinor, checkInIso, terms, now);
+  const tier: RefundTier = priced.refundBps >= 10_000 ? "full" : priced.refundBps <= 0 ? "none" : "half";
+  const stop = CANCELLATION_STOPS.find((candidate) => candidate.tier === tier) ?? scheduled.stop;
+  return {
+    tier,
+    stop,
+    refundMinor: priced.refundMinor,
+    retainedMinor: priced.retainedMinor,
     hoursBeforeCheckIn: scheduled.hoursBeforeCheckIn,
   };
 }

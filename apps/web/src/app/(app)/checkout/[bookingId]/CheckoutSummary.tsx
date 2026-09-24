@@ -3,6 +3,8 @@ import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { Amount } from "@/components/ui/Amount";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Panel } from "@/components/ui/Panel";
+import { formatMoneyDate } from "@/lib/money/dates";
+import { PLATFORM_TERMS_V1, freeToCancelUntil, isNonRefundable } from "@/lib/trust/cancellation";
 
 /**
  * What is being bought, on the checkout screen.
@@ -14,7 +16,23 @@ import { Panel } from "@/components/ui/Panel";
  * the guest and night counts pick their form through `Intl.PluralRules`.
  */
 export function CheckoutSummary({ view, locale }: { view: CheckoutView; locale: Locale }) {
-  const counts = getDictionary(locale).counts;
+  const t = getDictionary(locale);
+  const counts = t.counts;
+  /* V-20. What cancelling costs, said under the total at a size somebody
+     reads before they pay, not in the grey type under a heading. A catalogue
+     booking is priced under the platform schedule; the terms are frozen onto
+     it at payment. */
+  const cancelCopy = t.afterTheGate.cancel;
+  // A server component rendered per request (the route is dynamic), so the
+  // instant it renders is the instant the guest reads the line.
+  const renderedAt = new Date();
+  const freeUntil = freeToCancelUntil(PLATFORM_TERMS_V1, view.checkIn);
+  const freeUntilLabel = freeUntil ? formatMoneyDate(freeUntil, locale, { withTime: true }) : null;
+  const cancelLine = isNonRefundable(PLATFORM_TERMS_V1)
+    ? cancelCopy.nonRefundable
+    : freeUntilLabel && freeUntil && freeUntil > renderedAt
+      ? cancelCopy.freeUntil.replace("{date}", freeUntilLabel)
+      : null;
   return (
     <Panel aria-labelledby="nf-checkout-summary" variant="card">
       <h2 id="nf-checkout-summary" className="nf-h3">
@@ -65,6 +83,14 @@ export function CheckoutSummary({ view, locale }: { view: CheckoutView; locale: 
             secondaryClassName="text-[0.34em] font-bold text-[var(--nf-content-muted)]"
           />
         </p>
+        {cancelLine && (
+          <p
+            className="nf-body mt-xs font-semibold text-[var(--nf-content-primary)]"
+            data-testid="checkout-cancel-line"
+          >
+            {cancelLine}
+          </p>
+        )}
         {view.platformTakesNothing && (
           <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
             Vallo adds nothing of its own to this total. Every naira goes to the stay.
