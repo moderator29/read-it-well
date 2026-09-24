@@ -1087,8 +1087,9 @@
    * UI-06: five tiles squeezed onto one line at 390 came to about 55px each,
    * and `overflow-wrap: anywhere` then broke words at any letter ("Parkin g",
    * "Backu p power"). The row now wraps: a tile is at least a third of the
-   * row, so five tiles sit three and two, and a word only ever breaks at a
-   * hyphenation point, never mid-letter.
+   * row, so five tiles sit three and two, and a word breaks at a
+   * hyphenation point; only a word longer than the whole tile (a long
+   * translation or figure) breaks mid-letter rather than spilling out.
    */
   .nf-spec-row--fit {
     flex-wrap: wrap;
@@ -1101,7 +1102,7 @@
     padding-inline: var(--nf-space-xs);
     font-size: var(--nf-text-overline);
     white-space: normal;
-    overflow-wrap: normal;
+    overflow-wrap: break-word;
     hyphens: auto;
   }
   .nf-spec-row--fit .nf-spec-tile > span {

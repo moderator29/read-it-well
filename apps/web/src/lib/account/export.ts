@@ -26,8 +26,12 @@ import "server-only";
  * refusal does not cost the member the rest of their data.
  */
 
-/** Tables with a column naming the member, read with `.eq(column, userId)`. */
-export const OWNED_TABLES: readonly { table: string; column: string }[] = [
+/**
+ * Tables with a column naming the member, read with `.eq(column, userId)`.
+ * `key` names the table in the file when one table is read twice (as payer
+ * and as payee, as guest and as host).
+ */
+export const OWNED_TABLES: readonly { table: string; column: string; key?: string }[] = [
   { table: "social_profiles", column: "user_id" },
   { table: "user_roles", column: "user_id" },
   { table: "terms_acceptances", column: "user_id" },
@@ -36,19 +40,25 @@ export const OWNED_TABLES: readonly { table: string; column: string }[] = [
   { table: "agent_applications", column: "user_id" },
   { table: "agent_documents", column: "uploader_id" },
   { table: "businesses", column: "owner_id" },
+  { table: "business_transfers", column: "from_user_id", key: "business_transfers_offered" },
+  { table: "business_transfers", column: "to_user_id", key: "business_transfers_received" },
   { table: "wallets", column: "user_id" },
   { table: "wallet_pots", column: "user_id" },
   { table: "bank_accounts", column: "user_id" },
   { table: "payment_methods", column: "user_id" },
   { table: "bookings", column: "guest_id" },
+  { table: "booking_state_events", column: "actor_id" },
   { table: "booking_refunds", column: "guest_id" },
   { table: "reservations", column: "guest_id" },
   { table: "rent_payments", column: "tenant_id" },
+  { table: "escrows", column: "payer_id", key: "escrows_as_payer" },
+  { table: "escrows", column: "payee_id", key: "escrows_as_payee" },
   { table: "inspection_requests", column: "requester_id" },
   { table: "inspection_confirmations", column: "user_id" },
   { table: "inspection_reports", column: "author_id" },
   { table: "escrow_evidence", column: "author_id" },
   { table: "conversations", column: "guest_id" },
+  { table: "conversations", column: "agent_id", key: "conversations_as_host" },
   { table: "messages", column: "sender_id" },
   { table: "support_tickets", column: "user_id" },
   { table: "support_ticket_messages", column: "sender_id" },
@@ -73,20 +83,87 @@ export const OWNED_TABLES: readonly { table: string; column: string }[] = [
   { table: "follows", column: "follower_id" },
   { table: "blocks", column: "user_id" },
   { table: "mutes", column: "user_id" },
+  { table: "areas", column: "created_by" },
   { table: "area_members", column: "user_id" },
   { table: "area_moderator_applications", column: "user_id" },
+  { table: "events", column: "host_id" },
   { table: "event_attendees", column: "user_id" },
   { table: "user_badges", column: "user_id" },
 ];
 
-/** Held about the member, not readable with their own session. Named, not hidden. */
+/**
+ * Tables reached through the member's own parent rows (no owner column of
+ * their own), read with `.in(column, <ids of the parent's rows>)`, in order:
+ * a parent is always read before its children.
+ */
+export const CHILD_TABLES: readonly { table: string; column: string; parent: string }[] = [
+  { table: "wallet_entries", column: "wallet_id", parent: "wallets" },
+  { table: "ai_messages", column: "conversation_id", parent: "ai_conversations" },
+  { table: "transactions", column: "booking_id", parent: "bookings" },
+  { table: "listings", column: "agent_id", parent: "agents" },
+  { table: "listing_photos", column: "listing_id", parent: "listings" },
+  { table: "accommodations", column: "business_id", parent: "businesses" },
+  { table: "accommodation_photos", column: "accommodation_id", parent: "accommodations" },
+  { table: "business_documents", column: "business_id", parent: "businesses" },
+  { table: "business_photos", column: "business_id", parent: "businesses" },
+];
+
+/**
+ * Columns that name a member of staff (or a firm principal) who acted on the
+ * member's rows: another person's identity, and which admin decided is not
+ * the member's data. Removed from every row. The decision itself stays, and
+ * so do `review_notes`, `decision_note` and `resolution_note`: those are the
+ * reasons the member is already shown in the app (application status, the
+ * listing and business review banners), so they are data about the member.
+ */
+export const STAFF_KEYS: ReadonlySet<string> = new Set([
+  "reviewer_id",
+  "reviewed_by",
+  "resolved_by",
+  "decided_by",
+  "hidden_by",
+  "verified_by",
+  "supply_verified_by",
+  "granted_by",
+  "revoked_by",
+  "admitted_by",
+  "suspended_by",
+  "lifted_by",
+]);
+
+/** `*_by` columns that name a party to the row (the member or their counterpart), kept on purpose. */
+export const PARTY_KEYS: ReadonlySet<string> = new Set([
+  "created_by",
+  "uploaded_by",
+  "opened_by",
+  "disputed_by",
+  "release_requested_by",
+]);
+
+/** Held about the member, not in this file. Named, not hidden. */
 export const NOT_INCLUDED: readonly { what: string; why: string }[] = [
   {
     what: "known_devices, account_identities",
     why: "Security records (a device fingerprint digest and the canonical form of your email) that only our systems read. Ask support for them.",
   },
+  {
+    what: "price_check_shares",
+    why: "The Price Check cards you shared hold area figures, not data about you, and are read only through their link. Ask support for the list.",
+  },
   { what: "email_outbox", why: "Copies of emails queued to you, kept for delivery and then purged. Ask support for them." },
   { what: "Files", why: "Uploaded photographs and documents are listed by their storage path on the rows above, not embedded." },
+  {
+    what: "Messages you received, support's replies",
+    why: "The file holds the messages you sent. The other side's words are theirs; the conversations they belong to are listed so you can read them in the app.",
+  },
+  {
+    what: "Staff identities",
+    why: "Which member of staff reviewed, verified or resolved something is removed from the rows. The decision and the reason you were given stay.",
+  },
+  {
+    what: "Firm listings, room types, rates and opening hours",
+    why: "Listings held by a firm you belong to, and the configuration of your venues, are the business's records, not personal data about you. Ask support if you need them.",
+  },
 ];
 
 const PAGE = 1000;
@@ -130,27 +207,41 @@ async function readAll(
   return { rows, truncated: true };
 }
 
+function withoutStaff(t: TableExport): TableExport {
+  if (!("rows" in t)) return t;
+  const rows = t.rows.map((row) => Object.fromEntries(Object.entries(row).filter(([k]) => !STAFF_KEYS.has(k))));
+  return t.truncated ? { rows, truncated: true } : { rows };
+}
+
+/** Reads run this many at a time: quick enough for a download, gentle on the pool. */
+const PARALLEL = 8;
+
 export async function buildDataExport(
   client: ExportClient,
   user: { id: string; email?: string | null; created_at?: string | null },
   now: Date = new Date(),
 ): Promise<DataExport> {
   const byOwner = (table: string, column: string, value: string) =>
-    readAll((a, b) => client.from(table).select("*").eq(column, value).range(a, b));
+    readAll((a, b) => client.from(table).select("*").eq(column, value).range(a, b)).then(withoutStaff);
   const byParents = (table: string, column: string, parents: string[]) =>
     parents.length === 0
       ? Promise.resolve<TableExport>({ rows: [] })
-      : readAll((a, b) => client.from(table).select("*").in(column, parents).range(a, b));
+      : readAll((a, b) => client.from(table).select("*").in(column, parents).range(a, b)).then(withoutStaff);
 
   const tables: Record<string, TableExport> = {};
-  for (const { table, column } of OWNED_TABLES) {
-    tables[table] = await byOwner(table, column, user.id);
+  for (let i = 0; i < OWNED_TABLES.length; i += PARALLEL) {
+    const group = OWNED_TABLES.slice(i, i + PARALLEL);
+    const read = await Promise.all(group.map(({ table, column }) => byOwner(table, column, user.id)));
+    group.forEach(({ table, key }, j) => {
+      tables[key ?? table] = read[j] as TableExport;
+    });
   }
 
   const ids = (t: TableExport | undefined) =>
     t && "rows" in t ? t.rows.map((r) => r["id"]).filter((v): v is string => typeof v === "string") : [];
-  tables["wallet_entries"] = await byParents("wallet_entries", "wallet_id", ids(tables["wallets"]));
-  tables["ai_messages"] = await byParents("ai_messages", "conversation_id", ids(tables["ai_conversations"]));
+  for (const { table, column, parent } of CHILD_TABLES) {
+    tables[table] = await byParents(table, column, ids(tables[parent]));
+  }
 
   return {
     format: "vallo.data-export.v1",
