@@ -72,3 +72,15 @@ describe("planFeedback", () => {
     expect(planFeedback("error", calm).channel).toBe("vibrate");
   });
 });
+
+describe("the website pays nothing for native haptics", () => {
+  it("never imports a Capacitor package statically, only lazily behind looksNative", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { fileURLToPath } = await import("node:url");
+    const source = readFileSync(fileURLToPath(new URL("./feedback.ts", import.meta.url)), "utf8");
+    expect(source).not.toMatch(/^import[^;]*@capacitor/m);
+    expect(source).toMatch(/await import\("@capacitor\/core"\)/);
+    /* The lazy import sits after the looksNative() gate. */
+    expect(source.indexOf("if (!native)")).toBeLessThan(source.lastIndexOf("void haptics()"));
+  });
+});
