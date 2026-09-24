@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { destroyExpiredKyc } from "./kyc-retention";
+import { destroyExpiredKyc, destroyExpiredMoneyRecords } from "./kyc-retention";
 import type { StorageDoor } from "./storage";
 
 /**
@@ -44,5 +44,24 @@ describe("destroyExpiredKyc", () => {
     const result = await destroyExpiredKyc(w.deps, 50);
     expect(result).toEqual({ due: 1, destroyed: 0, retried: 1, failures: ["u1"] });
     expect(w.calls).not.toContain("rpc:destroy_expired_kyc:u1");
+  });
+});
+
+describe("destroyExpiredMoneyRecords", () => {
+  it("redacts the expired financial records in one call", async () => {
+    const calls: Array<[string, Record<string, unknown>]> = [];
+    const rpc = async (fn: string, args: Record<string, unknown>) => {
+      calls.push([fn, args]);
+      return { redacted: 3 };
+    };
+    await expect(destroyExpiredMoneyRecords({ rpc }, 50)).resolves.toEqual({ redacted: 3, failed: false });
+    expect(calls).toEqual([["destroy_expired_money_records", { p_limit: 50 }]]);
+  });
+
+  it("reports a failed call instead of throwing", async () => {
+    const rpc = async () => {
+      throw new Error("destroy_expired_money_records: boom");
+    };
+    await expect(destroyExpiredMoneyRecords({ rpc }, 50)).resolves.toEqual({ redacted: 0, failed: true });
   });
 });

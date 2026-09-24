@@ -71,7 +71,7 @@ the obligation ends.
 | `id_type`, `id_number`, `residential_address`, `bank_name`, `account_number`, `account_name` | `public.agent_applications` | Same | **30 days [L]** | Redact, keep the row |
 | The application row itself, minus the redacted fields | `public.agent_applications` | Same | 2 years [L] | Purge |
 | Identity document for an `APPROVED` agent | `agent-documents` bucket | The agent relationship ends, by account closure or termination | **5 years [C]** | Purge |
-| `id_number` and payout details for an approved agent | `public.agent_applications`, `public.payout_accounts` | Same | **5 years [C]** | Redact |
+| `id_number` and payout details for an approved agent | `public.agent_applications`, `public.payout_accounts` | Same | **5 years [C]** | Redact. The payout account is kept with its Paystack recipient code cleared, so nothing can be paid to it. It ends on the same date as the identity document (`kyc_retain_until`, equal to `money_retain_until`) |
 | Application abandoned at `DRAFT`, never submitted | `public.agent_applications`, `agent-documents` | Last update to the row | 12 months [L] | Purge, row and objects |
 
 **The 5 year figure is the anti money laundering floor, not an NDPA period.**
@@ -106,12 +106,23 @@ data is still held and the notice currently implies it is not.
 | Bookings, reservations, refunds | `public.bookings`, `public.reservations`, `public.booking_refunds` | Booking completion or cancellation | **6 years [C]** | Redact the subject, keep the record |
 | Wallet and ledger entries, transactions, escrows | `public.wallet_entries`, `public.ledger_entries`, `public.transactions`, `public.escrows` | Entry date | **6 years [C]** | Redact, never purge |
 | Platform revenue, fee rates | `public.platform_revenue`, `public.fee_rates` | Entry date | **6 years [C]** | Keep, no personal data |
+| Bank accounts, payout accounts, and a withdrawal's destination (`account_name`, `account_number`, `name` in `wallet_entries.metadata`) of a closed account **with money history** | `public.bank_accounts`, `public.payout_accounts`, `public.wallet_entries` | Account purge; the date is `account_deletion_requests.money_retain_until` | **5 years [C]** | Keep, marked deleted and with the recipient code cleared so nothing can be paid to it. Then `destroy_expired_money_records`, run by the daily account-purge job, deletes the accounts and strips the destination keys; the entry itself stays |
+| The same, for a closed account with **no** money history | Same | Account purge | 30 days [L] | Purge |
+| Saved card tokens | `public.payment_methods` | Account purge | 30 days [L] | Purge. A token is a credential to charge, not a record; a card payment is reconstructed from its processor reference on the transaction |
 
 **A ledger is never purged.** Company accounting records carry a statutory
 retention period and a financial record with a hole in it is worse than one that
 names a person. The disposal action here is always redaction of the subject,
 never deletion of the entry. Confirm the exact period with the solicitor,
 question 2 in section 7.
+
+**Where the money went is part of the record (AML-11).** The SCUML AML/CFT
+checklist, item 11, requires transaction records to be kept for 5 years and to be
+reconstructable. A withdrawal that no longer says which account it was paid to
+cannot be reconstructed, so for an account that moved money (any wallet entry,
+card transaction on a booking, escrow or rent charge) this obligation beats NDPA
+minimisation: the person is anonymised at the purge, the destination is not.
+Contact data on the ledger (email, phone) still goes at the purge.
 
 ### 3.4 Communications and support
 
