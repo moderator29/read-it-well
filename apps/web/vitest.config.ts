@@ -60,6 +60,16 @@ export default defineConfig({
           environment: "node",
           include: ["src/**/*.test.ts"],
           retry: 0,
+          /*
+           * BUDGETS FOR A BUSY MACHINE, NOT AN IDLE ONE. Vitest's 5 s and
+           * 10 s defaults assume nothing else is running. Several test
+           * files read the whole source tree or import most of the server
+           * graph; on a machine running other suites beside this one they
+           * took 5 to 12 s and failed as timeouts with nothing wrong. A real
+           * hang still fails, at these limits, with its name on it.
+           */
+          testTimeout: 30_000,
+          hookTimeout: 60_000,
         },
       },
       /*
@@ -78,6 +88,7 @@ export default defineConfig({
           include: ["src/**/*.dom.test.tsx"],
           retry: 0,
           testTimeout: 30_000,
+          hookTimeout: 60_000,
         },
       },
     ],
