@@ -25,7 +25,9 @@ export const dynamic = "force-dynamic";
  * worth trusting. It never names the regulation to them.
  *
  * States: the pitch (not a lister), not theirs, owner-listed, an example, a
- * failed read, and the form with the mandate's own state above it.
+ * failed read, the form with the mandate's own state above it, and the
+ * renewal: from 30 days before the current mandate ends, a replacement may be
+ * filed beside it (20260924171100).
  */
 export default async function ListingMandatePage({ params }: { params: Promise<{ listingId: string }> }) {
   const { listingId } = await params;
@@ -79,6 +81,9 @@ export default async function ListingMandatePage({ params }: { params: Promise<{
   }
 
   const m = read.mandate;
+  const cur = read.current;
+  const pending = m && m.status === "pending" ? m : null;
+  const todayIso = new Date(requestNow() + 3_600_000).toISOString().slice(0, 10);
   const graceOpen = requestNow() < Date.parse(`${MANDATE_GRACE_ENDS}T00:00:00+01:00`);
   return (
     <AgentShell t={t} locale={locale} active="/agent/listings" profile={profile}>
@@ -92,12 +97,33 @@ export default async function ListingMandatePage({ params }: { params: Promise<{
           <p className="nf-body-sm" role="status" data-testid="mandate-taken-down">
             {copy.takenDown}
           </p>
-        ) : read.listingStatus === "PUBLISHED" && graceOpen && m?.status !== "approved" ? (
+        ) : read.listingStatus === "PUBLISHED" && graceOpen && !cur ? (
           <p className="nf-body-sm" role="status">
             {copy.grace.replace("{date}", day(MANDATE_GRACE_ENDS))}
           </p>
         ) : null}
-        {m?.status === "approved" ? (
+        {cur && read.renewalOpen ? (
+          /* Renewal (SCUML item 17): the current mandate is running out or has
+             ended. A renewal waits beside it and takes over once confirmed. */
+          <>
+            <p className="nf-body-sm" role="status" data-testid="mandate-renewal-due">
+              {(cur.expiresOn && cur.expiresOn < todayIso ? copy.renewEnded : copy.renewDue)
+                .replace("{name}", cur.principalName)
+                .replace("{date}", cur.expiresOn ? day(cur.expiresOn) : "")}
+            </p>
+            {pending && (
+              <p className="nf-body-sm" role="status" data-testid="mandate-renewal-waiting">
+                {copy.renewWaiting.replace("{name}", pending.principalName)}
+              </p>
+            )}
+            {m?.status === "rejected" && m.rejectionReason && (
+              <p className="nf-body-sm" role="alert" style={{ color: "var(--nf-state-error)" }}>
+                {copy.rejected.replace("{reason}", m.rejectionReason)}
+              </p>
+            )}
+            <MandateForm listingId={listingId} copy={copy} initial={pending} template={cur} renewing />
+          </>
+        ) : m?.status === "approved" ? (
           <p className="nf-body-sm" role="status" data-testid="mandate-approved">
             {copy.approved.replace("{name}", m.principalName).replace("{date}", m.reviewedAt ? day(m.reviewedAt) : "")}
           </p>
@@ -113,11 +139,7 @@ export default async function ListingMandatePage({ params }: { params: Promise<{
                 {copy.rejected.replace("{reason}", m.rejectionReason ?? "")}
               </p>
             )}
-            <MandateForm
-              listingId={listingId}
-              copy={copy}
-              initial={m && m.status === "pending" ? m : null}
-            />
+            <MandateForm listingId={listingId} copy={copy} initial={m && m.status === "pending" ? m : null} />
           </>
         )}
       </div>

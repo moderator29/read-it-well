@@ -144,6 +144,8 @@ describe("SCUML item 17: the lister's own view and the lane", () => {
       mandate: { id: "m1", kind: "letting", principal_name: "Ada", review_status: "pending" },
     });
     expect(read.state === "ok" && read.mandate?.status).toBe("pending");
+    expect(read.state === "ok" && read.current).toBe(null);
+    expect(read.state === "ok" && read.renewalOpen).toBe(false);
     expect(readMyMandate({ state: "not_yours" })).toEqual({ state: "not_yours" });
     expect(readMyMandate("nope")).toEqual({ state: "failed" });
   });
@@ -155,6 +157,54 @@ describe("SCUML item 17: the lister's own view and the lane", () => {
     expect(desk?.needs[0]?.lastMandate).toBe(null);
     expect(readOwnershipDesk({ counts: { ...counts, taken_down: undefined }, needs: [] })).toBe(null);
     expect(readOwnershipDesk({ counts })).toBe(null);
+  });
+});
+
+describe("SCUML item 17: renewal", () => {
+  it("reads the current mandate beside a waiting renewal", () => {
+    const read = readMyMandate({
+      state: "ok",
+      role: "agent",
+      renewal_open: true,
+      mandate: { id: "m2", kind: "letting", principal_name: "Ada", review_status: "pending" },
+      current: { id: "m1", kind: "letting", principal_name: "Ada", review_status: "approved", expires_on: "2026-10-01" },
+    });
+    expect(read.state).toBe("ok");
+    if (read.state !== "ok") return;
+    expect(read.renewalOpen).toBe(true);
+    expect(read.mandate?.status).toBe("pending");
+    expect(read.current).toMatchObject({ id: "m1", status: "approved", expiresOn: "2026-10-01" });
+  });
+
+  it("fails the read on a malformed current mandate rather than hiding it", () => {
+    expect(readMyMandate({ state: "ok", current: { id: "m1" } })).toEqual({ state: "failed" });
+  });
+
+  it("carries when a mandate was replaced into the lookup", () => {
+    const read = readActingFor({
+      state: "ok",
+      acting: "principal",
+      listing: { id: "l1", title: "Flat", status: "PUBLISHED" },
+      lister: {},
+      mandates: [
+        { id: "m2", review_status: "approved", principal_name: "Ada" },
+        { id: "m1", review_status: "approved", principal_name: "Ada", superseded_at: "2026-09-24T10:00:00Z" },
+      ],
+    });
+    expect(read.state === "ok" && read.mandates.map((m) => m.supersededAt)).toEqual([null, "2026-09-24T10:00:00Z"]);
+  });
+
+  const dir = join(__dirname, "../../../../../supabase/migrations");
+  const file = readdirSync(dir).find((f) => f.startsWith("20260924171100_scuml_item_17"));
+  const sql = file ? readFileSync(join(dir, file), "utf8") : "";
+
+  it("splits the one-live index, supersedes on approval, and reminds at 30 and 7 days", () => {
+    expect(sql.startsWith("-- SCUML item 17")).toBe(true);
+    expect(sql).toContain("drop index if exists public.listing_mandates_one_live");
+    expect(sql).toContain("listing_mandates_one_waiting");
+    expect(sql).toContain("listing_mandates_one_current");
+    expect(sql).toContain("set superseded_at = now(), superseded_by = m.id");
+    expect(sql).toContain("check (days_before in (30, 7))");
   });
 });
 

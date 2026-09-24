@@ -9,16 +9,32 @@ import { MANDATE_KINDS, RELATIONSHIPS, type MyMandate } from "@/lib/compliance/b
 type Copy = Dictionary["complianceBeneficialOwnership"]["lister"];
 
 /**
- * SCUML item 17: the lister's mandate form. Sends a new mandate, or corrects
- * one still waiting; once staff approve it the page shows the date instead.
+ * SCUML item 17: the lister's mandate form. Sends a new mandate, corrects
+ * one still waiting, or files the renewal of one that is running out (the
+ * current mandate stays in force until staff approve the renewal).
  */
-export function MandateForm({ listingId, copy, initial }: { listingId: string; copy: Copy; initial: MyMandate | null }) {
-  const [kind, setKind] = useState<string>(initial?.kind ?? "letting");
-  const [name, setName] = useState(initial?.principalName ?? "");
-  const [phone, setPhone] = useState(initial?.principalPhone ?? "");
-  const [relationship, setRelationship] = useState<string>(initial?.relationship ?? "");
+export function MandateForm({
+  listingId,
+  copy,
+  initial,
+  template = null,
+  renewing = false,
+}: {
+  listingId: string;
+  copy: Copy;
+  /** A waiting mandate being corrected. */
+  initial: MyMandate | null;
+  /** The mandate being renewed: its principal is filled in, its dates are not. */
+  template?: MyMandate | null;
+  renewing?: boolean;
+}) {
+  const seed = initial ?? template;
+  const [kind, setKind] = useState<string>(seed?.kind ?? "letting");
+  const [name, setName] = useState(seed?.principalName ?? "");
+  const [phone, setPhone] = useState(seed?.principalPhone ?? "");
+  const [relationship, setRelationship] = useState<string>(seed?.relationship ?? "");
   const [exclusive, setExclusive] = useState<"yes" | "no" | "unknown">(
-    initial?.exclusive === true ? "yes" : initial?.exclusive === false ? "no" : "unknown",
+    seed?.exclusive === true ? "yes" : seed?.exclusive === false ? "no" : "unknown",
   );
   const [signedOn, setSignedOn] = useState(initial?.signedOn ?? "");
   const [expiresOn, setExpiresOn] = useState(initial?.expiresOn ?? "");
@@ -138,7 +154,7 @@ export function MandateForm({ listingId, copy, initial }: { listingId: string; c
         </p>
       )}
       <Button type="submit" variant="primary" loading={pending} data-testid="mandate-send">
-        {initial ? copy.update : copy.send}
+        {initial ? copy.update : renewing ? copy.renew : copy.send}
       </Button>
     </form>
   );

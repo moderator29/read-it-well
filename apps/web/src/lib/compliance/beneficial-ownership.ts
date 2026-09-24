@@ -152,7 +152,12 @@ export type MyMandateRead =
       isDemo: boolean;
       listingStatus: string;
       needsMandateSince: string | null;
+      /** The waiting mandate if any, else the current one, else the latest refusal. */
       mandate: MyMandate | null;
+      /** The approved mandate in force now (possibly run out), if any. */
+      current: MyMandate | null;
+      /** Within 30 days of the current mandate's end, or past it: a renewal may be filed. */
+      renewalOpen: boolean;
     };
 
 const str = (v: unknown): string | null => (typeof v === "string" && v.length > 0 ? v : null);
@@ -166,26 +171,9 @@ export function readMyMandate(data: unknown): MyMandateRead {
   if (d.state === "not_yours") return { state: "not_yours" };
   if (d.state !== "ok") return { state: "failed" };
   const role = d.role === "owner" || d.role === "agent" || d.role === "firm" ? d.role : null;
-  let mandate: MyMandate | null = null;
-  if (d.mandate && typeof d.mandate === "object") {
-    const m = d.mandate as Record<string, unknown>;
-    const status = reviewStatus(m.review_status);
-    const id = str(m.id);
-    if (!status || !id || !isMandateKind(m.kind) || typeof m.principal_name !== "string") return { state: "failed" };
-    mandate = {
-      id,
-      kind: m.kind,
-      principalName: m.principal_name,
-      principalPhone: str(m.principal_phone),
-      relationship: isRelationship(m.relationship) ? m.relationship : null,
-      exclusive: bool(m.exclusive),
-      signedOn: str(m.signed_on),
-      expiresOn: str(m.expires_on),
-      status,
-      rejectionReason: str(m.rejection_reason),
-      reviewedAt: str(m.reviewed_at),
-    };
-  }
+  const mandate = readOneMandate(d.mandate);
+  const current = readOneMandate(d.current);
+  if (mandate === "bad" || current === "bad") return { state: "failed" };
   return {
     state: "ok",
     role,
@@ -193,6 +181,30 @@ export function readMyMandate(data: unknown): MyMandateRead {
     listingStatus: typeof d.status === "string" ? d.status : "",
     needsMandateSince: str(d.needs_mandate_since),
     mandate,
+    current,
+    renewalOpen: d.renewal_open === true,
+  };
+}
+
+function readOneMandate(raw: unknown): MyMandate | null | "bad" {
+  if (raw === null || raw === undefined) return null;
+  if (typeof raw !== "object") return "bad";
+  const m = raw as Record<string, unknown>;
+  const status = reviewStatus(m.review_status);
+  const id = str(m.id);
+  if (!status || !id || !isMandateKind(m.kind) || typeof m.principal_name !== "string") return "bad";
+  return {
+    id,
+    kind: m.kind,
+    principalName: m.principal_name,
+    principalPhone: str(m.principal_phone),
+    relationship: isRelationship(m.relationship) ? m.relationship : null,
+    exclusive: bool(m.exclusive),
+    signedOn: str(m.signed_on),
+    expiresOn: str(m.expires_on),
+    status,
+    rejectionReason: str(m.rejection_reason),
+    reviewedAt: str(m.reviewed_at),
   };
 }
 
@@ -217,6 +229,8 @@ export type ActingForMandate = {
   idDocumentKind: IdDocumentKind | null;
   idDocumentRef: string | null;
   hasDocument: boolean;
+  /** When an approved replacement took over; the record is kept. */
+  supersededAt: string | null;
   retainedUntil: string | null;
 };
 
@@ -278,6 +292,7 @@ export function readActingFor(data: unknown): ActingFor {
       idDocumentKind: isIdDocumentKind(m.id_document_kind) ? m.id_document_kind : null,
       idDocumentRef: str(m.id_document_ref),
       hasDocument: m.has_document === true,
+      supersededAt: str(m.superseded_at),
       retainedUntil: str(m.retained_until),
     });
   }

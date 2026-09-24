@@ -118,6 +118,7 @@ function MandateLine({ m, copy, day }: { m: ActingForMandate; copy: Copy; day: (
           ? fill(copy.idDocument, { kind: copy.idKinds[m.idDocumentKind], ref: m.idDocumentRef })
           : copy.noIdDocument}
       </p>
+      {m.supersededAt && <p>{fill(copy.superseded, { date: day(m.supersededAt) })}</p>}
       {m.status === "rejected" && m.rejectionReason && (
         <p style={{ color: "var(--nf-state-error)" }}>{fill(copy.refused, { reason: m.rejectionReason })}</p>
       )}

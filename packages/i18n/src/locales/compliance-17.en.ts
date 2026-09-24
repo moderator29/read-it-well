@@ -68,6 +68,7 @@ export const complianceBeneficialOwnershipEn = {
     refused: "Refused: {reason}",
     retained: "Kept until {date}",
     retainedOpen: "Kept for five years after the listing closes",
+    superseded: "Replaced by a renewal on {date}",
     status: { pending: "Waiting", approved: "Approved", rejected: "Refused" },
     relationships: {
       owner: "Owner",
@@ -153,5 +154,9 @@ export const complianceBeneficialOwnershipEn = {
     update: "Save the correction",
     sent: "Sent. We will ring the owner to confirm.",
     link: "Owner's mandate",
+    renewDue: "Your mandate from {name} ends on {date}. File the renewal now and we will ring them to confirm, so the listing stays live without a break.",
+    renewEnded: "Your mandate from {name} ended on {date}. File the renewal and we will ring them to confirm.",
+    renewWaiting: "We have your renewal and will ring {name} to confirm. The current mandate stays in force until we do.",
+    renew: "Send the renewal",
   },
 } as const;
