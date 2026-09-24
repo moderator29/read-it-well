@@ -119,6 +119,7 @@ export function AgentInbox({
   stages,
   stage,
   deskCopy,
+  briefsLabel,
 }: {
   inbox: Inbox;
   filter: InboxFilter;
@@ -134,6 +135,8 @@ export function AgentInbox({
   /** V-14: thread ids with an unanswered still-available question. */
   asked?: ReadonlySet<string>;
   askedLabel?: string;
+  /** V-95: the label of the Briefs filter; absent draws no such chip. */
+  briefsLabel?: string;
 }) {
   const staged = stages && deskCopy ? stages : null;
   const activeStage = staged ? (stage ?? null) : null;
@@ -171,6 +174,11 @@ export function AgentInbox({
               {chip.label}
             </Chip>
           ))}
+          {briefsLabel && (
+            <Chip behaviour="link" href="/agent/messages?filter=briefs" selected={false}>
+              {briefsLabel}
+            </Chip>
+          )}
         </ChipRow>
       </nav>
 

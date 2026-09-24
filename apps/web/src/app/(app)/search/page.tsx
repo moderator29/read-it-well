@@ -167,6 +167,7 @@ export default async function SearchPage({
 }) {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
+  const briefsCopy = t.frontDoor.briefs;
   const raw = await searchParams;
   const query: ShelfQuery = parseShelfQuery(raw);
 
@@ -432,6 +433,20 @@ export default async function SearchPage({
       {query.view === "list" && (
         <div className="mt-md">
           {listings.length === 0 ? (
+            <>
+            {/* V-95: nothing matches, so the renter can say what they need and
+                let verified listers answer with a listing. */}
+            {(narrowed || Boolean(query.q)) && (
+              <p className="mb-md text-center nf-body-sm text-[var(--nf-content-secondary)]" data-testid="empty-post-brief">
+                {briefsCopy.zeroResults}{" "}
+                <Link
+                  href={`/saved/searches?brief=1${canonical.key ? `&${canonical.key}` : ""}#briefs`}
+                  className="nf-link-quiet text-[var(--nf-content-link)]"
+                >
+                  {briefsCopy.post}
+                </Link>
+              </p>
+            )}
             <EmptyState
               className="pb-4xl"
               icon="search-home"
@@ -476,6 +491,7 @@ export default async function SearchPage({
                 ) : undefined
               }
             />
+            </>
           ) : (
             /* Two across on a phone, four from `lg`: the decision a person is
                making here is a comparison, and you cannot compare things you
