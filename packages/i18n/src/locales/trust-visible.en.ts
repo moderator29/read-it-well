@@ -297,6 +297,15 @@ export const trustVisibleEn = {
     photoNoReference: "a listing with no code",
     photosNotCompared: "These photographs have not been compared: hashing needs the server's storage key, which this environment does not have.",
     photosFailed: "The comparison could not be read just now. Try again before deciding.",
+    /** `{hashed}` of `{photos}` on this listing compared against `{pool}` hashed photographs elsewhere. */
+    photosCoverage: "{hashed} of {photos} photographs compared, against {pool} hashed photographs on other listings.",
+    photosPartial: "Not every photograph here could be compared yet, so no match is not the same as no copy.",
+    /** `{count}` photographs across Vallo still without a hash. */
+    photosWaiting: "{count} photographs across Vallo are not hashed yet.",
+    photosBackfill: "Hash the next 60",
+    photosBackfilling: "Hashing",
+    /** `{count}` photographs hashed by one press. */
+    photosBackfilled: "Hashed {count} more. Reload to compare again.",
     /** V-60: recalling a stop for fraud. */
     recallTitle: "Tell the people this account talked to",
     recallLede: "Everybody who had a conversation or an inspection with this account in the 60 days before the stop is told, by notification and email. The account, the reason written above and whoever reported it are never named.",

@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import {
+  comparedFully,
+  coverageFrom,
   HASH_HEIGHT,
   HASH_WIDTH,
   MATCH_MAX_BITS,
@@ -72,5 +74,26 @@ describe("the reviewer's summary", () => {
       "utf8",
     );
     expect(sql).toContain(`bit_count((ph.phash # oh.phash)::bit(64)) <= ${MATCH_MAX_BITS}`);
+  });
+});
+
+describe("how much was compared", () => {
+  it("reads the coverage and refuses a row it cannot trust", () => {
+    expect(coverageFrom([{ photos: 8, hashed: 6, pool: 120, pool_waiting: 40 }])).toEqual({ photos: 8, hashed: 6, pool: 120, poolWaiting: 40 });
+    expect(coverageFrom([{ photos: 8 }])).toBeNull();
+  });
+
+  it("calls a listing fully compared only with every photo hashed and something to compare against", () => {
+    expect(comparedFully({ photos: 8, hashed: 8, pool: 120 })).toBe(true);
+    expect(comparedFully({ photos: 8, hashed: 6, pool: 120 })).toBe(false);
+    expect(comparedFully({ photos: 8, hashed: 8, pool: 0 })).toBe(false);
+  });
+
+  it("never says no match on a partial comparison, and imports sharp only when hashing", () => {
+    const panel = readFileSync(join(__dirname, "../../app/admin/listings/[id]/PhotoProvenance.tsx"), "utf8");
+    expect(panel).toContain(": full\n            ? DESK.photosNone");
+    const server = readFileSync(join(__dirname, "hash-server.ts"), "utf8");
+    expect(server).toContain('await import("sharp")');
+    expect(server).not.toMatch(/^import sharp/m);
   });
 });

@@ -94,3 +94,25 @@ export function matchSummary(matches: PhotoMatch[], total: number): { matched: n
   const onRejected = new Set(matches.filter((m) => m.matchRejected).map((m) => m.photoId));
   return { matched: matched.size, onRejected: onRejected.size, total };
 }
+
+/** `public.listing_photo_hash_coverage`, narrowed; null when it does not parse. */
+export function coverageFrom(data: unknown): { photos: number; hashed: number; pool: number; poolWaiting: number } | null {
+  const r = (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | undefined;
+  if (!r || typeof r !== "object") return null;
+  const n = (v: unknown) => (typeof v === "number" && Number.isInteger(v) && v >= 0 ? v : null);
+  const photos = n(r.photos);
+  const hashed = n(r.hashed);
+  const pool = n(r.pool);
+  const poolWaiting = n(r.pool_waiting);
+  if (photos === null || hashed === null || pool === null || poolWaiting === null) return null;
+  return { photos, hashed, pool, poolWaiting };
+}
+
+/**
+ * The desk's summary sentence has to say how much was compared. "None of
+ * these look like another" is true only when every photograph was hashed and
+ * there was something to compare against.
+ */
+export function comparedFully(c: { photos: number; hashed: number; pool: number }): boolean {
+  return c.photos > 0 && c.hashed === c.photos && c.pool > 0;
+}

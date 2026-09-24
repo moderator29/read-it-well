@@ -35,6 +35,11 @@
 -- which is a new native dependency; it is deferred, and nothing on a screen
 -- says a photograph was taken in Vallo.
 --
+-- BACKFILL. Photographs uploaded before this file have no hash. The desk
+-- offers staff a bounded "hash the next photographs" action (service role,
+-- sixty at a time), and says how many still wait, so an old listing is never
+-- reported as matching nothing when it was never compared.
+--
 -- The comparison is a scan with `bit_count` over hashed photos, which is
 -- cheap at today's thousands of photos; past a few hundred thousand it wants a
 -- BK-tree or a bucketed index, and the function signature does not change.
@@ -109,6 +114,64 @@ begin
      order by p.position, 7, ol.id;
 end;
 $$;
+
+/* The backfill's queue: photographs with no hash yet, listings awaiting a
+   decision first, then published ones. Service role only. */
+create or replace function public.listing_photos_without_hash(p_limit integer)
+returns table (id uuid, storage_path text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.id, p.storage_path
+    from public.listing_photos p
+    join public.listings l on l.id = p.listing_id
+   where not exists (select 1 from public.listing_photo_hashes h where h.photo_id = p.id)
+   order by case l.status
+              when 'SUBMITTED'::public.listing_status then 0
+              when 'UNDER_REVIEW'::public.listing_status then 0
+              when 'PUBLISHED'::public.listing_status then 1
+              else 2
+            end, p.created_at desc
+   limit greatest(1, least(coalesce(p_limit, 60), 200));
+$$;
+
+revoke all on function public.listing_photos_without_hash(integer) from public, anon, authenticated;
+grant execute on function public.listing_photos_without_hash(integer) to service_role;
+
+/* How much of the comparison actually happened: this listing's photographs,
+   how many of them are hashed, and how many hashed photographs across Vallo
+   they were compared against (and how many are still waiting). A desk that
+   says "no matches" must be able to say "out of what". */
+create or replace function public.listing_photo_hash_coverage(p_listing uuid)
+returns table (photos integer, hashed integer, pool integer, pool_waiting integer)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if not (private.has_role((select auth.uid()), 'admin'::public.app_role)
+          or private.has_role((select auth.uid()), 'super_admin'::public.app_role)) then
+    return;
+  end if;
+  return query
+    select (select count(*)::integer from public.listing_photos p where p.listing_id = p_listing),
+           (select count(*)::integer from public.listing_photos p
+              join public.listing_photo_hashes h on h.photo_id = p.id where p.listing_id = p_listing),
+           (select count(*)::integer from public.listing_photo_hashes h
+              join public.listing_photos p on p.id = h.photo_id where p.listing_id <> p_listing),
+           (select count(*)::integer from public.listing_photos p
+             where not exists (select 1 from public.listing_photo_hashes h where h.photo_id = p.id));
+end;
+$$;
+
+comment on function public.listing_photo_hash_coverage(uuid) is
+  'V-45. Staff: how many of this listing''s photographs are hashed, how many hashed photographs elsewhere they were compared against, and how many across Vallo still wait.';
+
+revoke all on function public.listing_photo_hash_coverage(uuid) from public, anon;
+grant execute on function public.listing_photo_hash_coverage(uuid) to authenticated;
 
 comment on function public.listing_photo_matches(uuid) is
   'V-45. Staff only. This listing''s photographs that sit within six bits of a photograph on another lister''s listing or on a rejected listing.';
