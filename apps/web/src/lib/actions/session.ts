@@ -71,4 +71,4 @@ export const resolveSession = cache(async function resolveSession(): Promise<Ses
 /** The two copy lines every action reuses for the non-signed-in outcomes. */
 export const NOT_CONFIGURED_MESSAGE =
   "We cannot reach this part of the platform right now. Nothing you entered was lost.";
-export const SIGNED_OUT_MESSAGE = "Sign in to continue. Your details are kept safe.";
+export const SIGNED_OUT_MESSAGE = "Sign in to continue.";

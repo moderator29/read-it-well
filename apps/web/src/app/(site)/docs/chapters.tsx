@@ -89,7 +89,7 @@ export const CHAPTERS: DocChapter[] = [
             <p>
               It has two sides. <strong>Property</strong> is renting, buying and
               selling across Nigeria: annual rentals, homes, villas, shops, offices
-              and land, listed by people a person has checked, with inspections before
+              and land, listed by people a person here approved, with inspections before
               any money moves. <strong>Vallo Stays</strong> is the nightly side:
               hotels, apartments, guest houses, resorts, serviced apartments,
               shortlets and restaurant tables. One account carries both, along with
@@ -770,13 +770,13 @@ export const CHAPTERS: DocChapter[] = [
         body: (
           <>
             <p>
-              Every listing on Vallo was listed on Vallo, by a real person who applied,
-              was verified and was approved. Nothing is imported from an outside feed,
+              Every real listing on Vallo was listed on Vallo, by a real person who
+              applied and was approved, and every example says it is one. Nothing is imported from an outside feed,
               nothing is scraped, and no third party fills the catalogue for us.
             </p>
             <p>
               That is the ground the rest of the trust stands on. The verified badge can
-              mean something because there is a checked person behind every listing:
+              mean something because a person here checked the ID of the agent who earns it:
               somebody to message, somebody to inspect the property with, and somebody
               accountable if it is not as described.
             </p>
@@ -1964,9 +1964,9 @@ export const CHAPTERS: DocChapter[] = [
               It does not mean the mattress is comfortable. Read the reviews for that.
             </p>
             <p>
-              Every listing here was put up by a person we have checked. There is no
-              outside inventory on Vallo at all, which is the only reason the badge can
-              carry any weight.
+              Every real listing here was put up by a person we approved, and every
+              example says it is one. There is no outside inventory on Vallo at all,
+              which is the only reason the badge can carry any weight.
             </p>
             <p>
               <strong>Verified and Third party are different words and they never

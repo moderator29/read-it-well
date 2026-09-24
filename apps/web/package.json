@@ -6,7 +6,7 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
-    "lint": "eslint . && node scripts/check-css-tokens.mjs && node scripts/check-valuation-words.mjs",
+    "lint": "eslint . --max-warnings=333 && node scripts/check-css-tokens.mjs && node scripts/check-valuation-words.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check:deep-links": "node scripts/check-deep-links.mjs",
@@ -37,6 +37,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "server-only": "^0.0.1",
+    "sharp": "^0.35.4",
     "zod": "^4.4.3"
   },
   "devDependencies": {

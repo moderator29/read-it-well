@@ -420,7 +420,7 @@ export const CONSENTS: readonly Consent[] = [
     id: "processing",
     label: "Vallo may process my details for identity and fraud checks",
     detail:
-      "Your name, document numbers and business registration are checked against identity, business and sanctions records through a processor. Your documents are not sold, and not used for anything else.",
+      "A person at Vallo checks your name, document numbers and business registration against the documents you upload and the CAC record. Your documents are not sold, and not used for anything else.",
   },
 ] as const;
 

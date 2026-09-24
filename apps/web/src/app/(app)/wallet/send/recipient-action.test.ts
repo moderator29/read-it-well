@@ -16,6 +16,24 @@ const seam = vi.hoisted(() => ({
   findUserByEmail: vi.fn(),
   displayNameFor: vi.fn(),
   admin: { from: vi.fn() } as unknown,
+  handleOwner: vi.fn(),
+}));
+
+/* The viewer's own client: social_profiles as RLS would answer it. A blocked
+   handle is simply absent (null), exactly as social_profiles_select hides it. */
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: async () => ({
+    from: () => ({
+      select: () => ({
+        eq: (_col: string, handle: string) => ({
+          maybeSingle: async () => {
+            const owner = seam.handleOwner(handle);
+            return { data: owner ? { user_id: owner } : null, error: null };
+          },
+        }),
+      }),
+    }),
+  }),
 }));
 
 vi.mock("@/lib/actions/session", () => ({ resolveSession: seam.session }));
@@ -38,6 +56,31 @@ beforeEach(() => {
   seam.consume.mockReset().mockResolvedValue({ allowed: true, degraded: false });
   seam.findUserByEmail.mockReset().mockResolvedValue({ id: "them", email: "them@example.com" });
   seam.displayNameFor.mockReset().mockResolvedValue("Tunde Adebayo");
+  seam.handleOwner.mockReset().mockImplementation((h: string) => (h === "tunde" ? "them" : null));
+});
+
+describe("lookupRecipient by @handle", () => {
+  it("names the person behind a handle and never reads or returns an address", async () => {
+    const answer = await lookupRecipient("@Tunde");
+    expect(answer).toEqual({ state: "found", name: "Tunde Adebayo", tier: null });
+    expect(seam.findUserByEmail).not.toHaveBeenCalled();
+    expect(JSON.stringify(answer)).not.toMatch(/[^\s@"]+@[^\s@"]+\.[a-z]/i);
+  });
+
+  it("falls back to the handle, not an address, when the profile has no name", async () => {
+    seam.displayNameFor.mockResolvedValue(null);
+    expect(await lookupRecipient("@tunde")).toEqual({ state: "found", name: "@tunde", tier: null });
+  });
+
+  it("answers none for a handle the viewer cannot see (unclaimed or blocked)", async () => {
+    expect(await lookupRecipient("@blocked_person")).toEqual({ state: "none" });
+    expect(seam.findUserByEmail).not.toHaveBeenCalled();
+  });
+
+  it("names the viewer's own handle as self", async () => {
+    seam.handleOwner.mockReturnValue("me");
+    expect(await lookupRecipient("@myself")).toEqual({ state: "self" });
+  });
 });
 
 describe("lookupRecipient", () => {

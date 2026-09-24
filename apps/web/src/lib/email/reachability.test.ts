@@ -46,13 +46,11 @@ import { OUTBOX_TEMPLATE_KEYS } from "@/lib/notify/templates";
  * ONE THING THIS FILE CANNOT SEE, SAID HERE RATHER THAN LEFT OUT.
  *
  * `verificationCode` passes the check below: `app/api/auth/email-hook/route.ts`
- * names it and sends it. THAT ROUTE IS NOT THE LIVE PATH. Supabase's Send
- * Email Hook is not enabled on the hosted project and
- * `SUPABASE_AUTH_HOOK_SECRET` is not set, both measured in `docs/email/AUTH_EMAILS.md`
- * section 1A off GoTrue's own `mail.send` events. So the code is reachable and
- * the deployment is not, and no test running in this repository can tell the
- * difference. It is recorded as UNPROVEN in `docs/email/WHAT_SENDS.md` with
- * what is missing, and that is the honest place for it.
+ * names it and sends it. Whether that route is the LIVE path is a fact about
+ * the hosted project (the Send Email Hook switched on, and
+ * `SUPABASE_AUTH_HOOK_SECRET` set), which no test in this repository can see.
+ * It was switched on on 22 September and measured live from `auth_logs` on
+ * 23 September; `docs/email/AUTH_EMAILS.md` section 1 records how.
  */
 
 const here = fileURLToPath(new URL(".", import.meta.url));

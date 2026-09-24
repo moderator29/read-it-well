@@ -724,6 +724,11 @@ export async function settleCardPayment(
   if (settlement.outcome === "unknown-reference") {
     return fail("That payment could not be matched to a booking. Our team reconciles it for you.");
   }
+  if (settlement.outcome === "returned-to-wallet") {
+    return fail(
+      "Your payment went through but could not be applied to this booking, so the whole amount is in your Vallo wallet now. Nothing is lost; you can use it from your wallet.",
+    );
+  }
 
   const confirmed = settlement.outcome === "settled" ? settlement.confirmed : false;
 

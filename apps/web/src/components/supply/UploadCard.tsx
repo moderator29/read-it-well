@@ -101,13 +101,21 @@ export function UploadCard({
         setFailure(copy.signInFirst);
         return;
       }
-      const path = `${user.id}/${batchId}/${slot}.${extensionFor(file)}`;
+      /* A new path for every file chosen, never an overwrite (SEC-12): a filed
+         document is fixed, so re-choosing is a new object and the submit files
+         whichever path is current. */
+      const path = `${user.id}/${batchId}/${slot}-${crypto.randomUUID()}.${extensionFor(file)}`;
       const upload = await supabase.storage
         .from(DOCUMENT_BUCKET)
-        .upload(path, file, { contentType: file.type, upsert: true });
+        .upload(path, file, { contentType: file.type, upsert: false });
       if (upload.error) {
         setFailure(copy.fileFailed);
         return;
+      }
+      if (value?.path && value.path !== path) {
+        /* Best effort: remove the slot's previous upload. The storage policy
+           allows it only while that object has not been filed. */
+        void supabase.storage.from(DOCUMENT_BUCKET).remove([value.path]);
       }
       onChange({ path, fileName: file.name });
     } catch {

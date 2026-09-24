@@ -1,5 +1,7 @@
 # Vallo design reference catalogue
 
+**Light mode was removed on 23 September 2026** (`LIGHT_MODE_REMOVED.md`). Rows below that describe light-theme captures or light twins are kept as history; they are not work to do.
+
 Source: `docs/design/references/` and its two SUBFOLDERS. Every UUID file was opened and inspected. Exact duplicates were confirmed by MD5 checksum, so "exact duplicate" below means byte-identical, not merely similar.
 
 **THIS CATALOGUE INDEXED ONLY THE TOP LEVEL FOLDER UNTIL 22 SEPTEMBER, AND THAT WAS A MAP WITH THE MOST IMPORTANT ROADS MISSING.** Two subfolders hold twenty three files between them, eleven of them the founder's own corrective targets and twelve a complete new governing set, and this document had never mentioned either. Every worker doing image work has been reading a stale map. A FOUNDER TARGET BEATS A GENERATED RENDER, ALWAYS, and that is the ordering rule for every conflict below.

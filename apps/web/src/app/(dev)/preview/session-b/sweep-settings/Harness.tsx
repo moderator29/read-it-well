@@ -195,6 +195,8 @@ export function SweepSettingsHarness({ v }: { v: string }) {
               lastSeen: "Last seen 3 days ago",
             },
           ]}
+          folded={null}
+          othersCount={1}
           copy={{
             intro: copy.intro,
             caveat: copy.caveat,
@@ -203,6 +205,8 @@ export function SweepSettingsHarness({ v }: { v: string }) {
             endOthers: copy.endOthers,
             endOthersSub: copy.endOthersSub,
             endOthersNone: copy.endOthersNone,
+            endEverywhere: copy.endEverywhere,
+            endEverywhereSub: copy.endEverywhereSub,
             confirm: copy.confirm,
             working: copy.working,
             endedOne: copy.endedOne,

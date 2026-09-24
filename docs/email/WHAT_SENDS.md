@@ -120,7 +120,7 @@ stops a second copy is named per row, and where nothing does, the row says so.
 
 | Builder | What sends it | What stops a second copy | `/settings` mute | State |
 |---|---|---|---|---|
-| `verificationCode` | `POST /api/auth/email-hook`, Supabase's Send Email Hook | GoTrue's own throttle; the route also bounds the signed timestamp to 5 minutes | none | **UNPROVEN**, see below |
+| `verificationCode` | `POST /api/auth/email-hook`, Supabase's Send Email Hook | GoTrue's own throttle; the route also bounds the signed timestamp to 5 minutes | none | **LIVE, proven 23 September**, see below |
 | `walletFunded` | Paystack `charge.success` webhook, and the verify-on-redirect path | Gated on `posted === "posted"`; `recordFunding` is idempotent on the `rm-fund` reference, so whichever runs second credits nothing and emails nothing | Wallet | **SENDS** |
 | `withdrawalFailed` | Paystack `transfer.failed`/`reversed` webhook, and two catch paths in `lib/wallet/actions.ts` | `settleWithdrawal` only moves a PENDING row, so a replayed delivery is silent | Wallet | **SENDS**, and see finding 1 |
 | `listingApproved` | admin listing decision `publish`, through `announce` | nothing: a reviewer who clicks twice emails twice | none | **SENDS** |
@@ -154,27 +154,25 @@ support ticket can be filed signed out, so there is no session to resolve, and
 the address on the form is the only one there is. It is rate limited before it
 is sent, which is what keeps it from being a relay.
 
-### `verificationCode` is UNPROVEN, and this is the one to act on
+### `verificationCode` is LIVE and proven
 
-The code is finished and correct. **The route is not the live path.** Measured
-in [`AUTH_EMAILS.md`](AUTH_EMAILS.md) section 1A off GoTrue's own `auth_logs`: the hosted
-project's `mail.send` events carry
-`mail_from: noreply@mail.app.supabase.io`, Supabase's built-in shared sender.
-That one field rules out both of our routes at once. Custom SMTP is not enabled
-(the from-address would be our own domain) and the Send Email Hook is not
-enabled (with the hook on, GoTrue does not send at all, so there would be no
-event in the log to read).
+**Corrected 23 September 2026.** This section used to say the route was not
+the live path. The Send Email Hook was switched on on 22 September, and
+`auth_logs` on 23 September show a successful `run_hook` against
+`/api/auth/email-hook` on every sign-up that day, no GoTrue `mail_from` at all,
+and each account then verified. See [`AUTH_EMAILS.md`](AUTH_EMAILS.md)
+section 1. `SUPABASE_AUTH_HOOK_SECRET` is set; without it the route refuses
+every request with 401 by design, because an endpoint whose protection is
+optional ships unprotected the first time a variable is forgotten.
 
-**What is missing, in order.** The Send Email Hook switched on in the Supabase
-dashboard pointing at `https://<deployment>/api/auth/email-hook`, and
-`SUPABASE_AUTH_HOOK_SECRET` set in the environment. Without the secret the
-route refuses every request with 401 by design, because an endpoint whose
-protection is optional ships unprotected the first time a variable is
-forgotten.
+The transactional outbox is proven the same way. Measured at 23:47 UTC on 23
+September, `public.email_outbox` holds 5 rows, all SENT (15:57 to 20:39 UTC),
+the first after a real sign-up, and none PENDING. `/api/cron/email-outbox`
+drains it every fifteen minutes.
 
-**Until then, sign-up mail leaves from `noreply@mail.app.supabase.io` with
-Supabase's template on it, and the screen and the inbox disagree**: our screen
-asks for six digits and Supabase's default confirm template carries a link.
+**What is still missing is the reply path, not the send path.**
+`EMAIL_REPLY_TO` is not set and `vallospaces.com` has no MX, so a reply to any
+of these messages reaches no one (THE_AUDIT OPS-06).
 
 ---
 
@@ -295,18 +293,18 @@ welcome, it is a surprise. The triggers fire forward only.
 
 ## 5. What a person should do next, in order
 
-1. **Set `RESEND_API_KEY` on the deployment.** Until then the platform emails
-   nobody, and `email.outbox.unconfigured` says so at CRITICAL every fifteen
-   minutes on the scheduled-jobs desk.
-2. **Fix finding 1 before doing step 1**, or the first failed withdrawal after
-   the key lands sends two emails about the same money.
-3. **Read the first email that actually arrives.** Everything in this file is
-   proved as far as the socket and no further. Delivery, the From line as a
-   real inbox shows it, the dark rendering in Gmail and Apple Mail, and the
-   spam verdict are all unproved and cannot be proved from a test.
-4. **Then, separately, enable the Send Email Hook** and set
-   `SUPABASE_AUTH_HOOK_SECRET`, so sign-up mail stops coming from
-   `noreply@mail.app.supabase.io` with Supabase's own template on it.
+**Updated 23 September 2026.** `RESEND_API_KEY` is set, the Send Email Hook is
+on, and every row in the outbox has been sent (5 SENT, 0 PENDING at 23:47 UTC on
+23 September). What remains:
+
+1. **Check finding 1 is closed** before relying on withdrawal emails: two
+   sends about the same failed withdrawal is the defect it describes.
+2. **Give replies somewhere to go.** Set `EMAIL_REPLY_TO` (not set today) to a
+   mailbox on a domain that receives mail, and add MX and DMARC records for
+   `vallospaces.com` (THE_AUDIT OPS-06).
+3. **Read the first emails that arrive in real inboxes.** The From line as an
+   inbox shows it, the dark rendering in Gmail and Apple Mail and the spam
+   verdict cannot be proved from a test.
 
 The public address on every message is `hello@vallospaces.com`. The private
 gmail appears on no surface and in no email, and

@@ -142,7 +142,7 @@ const FAQS: Faq[] = [
   },
   {
     category: "Payments and refunds",
-    q: "Is it safe to pay through Vallo?",
+    q: "How do payments through Vallo work?",
     a: "Payments run through licensed Nigerian payment processors and we never store your full card details. Every payment leaves a reference against your booking that both you and our support team can open, which is what makes a dispute solvable. Cash at an inspection, or a transfer to a stranger's account, leaves us nothing to work from.",
   },
   {

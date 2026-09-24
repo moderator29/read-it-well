@@ -462,16 +462,19 @@ export const LITERAL_EXPANSIONS: Readonly<Record<string, readonly string[]>> = {
  * because a thing nobody wrote down is a thing nobody checked.
  */
 export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
+  "/api/account/export": "the member's own data as a JSON download, not a page.",
   "/api/assistant": "POST only, the assistant's model call.",
   "/api/auth/email-hook": "Supabase Auth's send-email webhook.",
   "/api/client-error": "the browser's error beacon.",
   "/api/cron/account-purge": "scheduled job, bearer token.",
+  "/api/cron/canary": "scheduled job, bearer token.",
   "/api/cron/complete-stays": "scheduled job, bearer token.",
   "/api/cron/email-outbox": "scheduled job, bearer token.",
   "/api/cron/hold-sweep": "scheduled job, bearer token.",
   "/api/cron/inventory-drift": "scheduled job, bearer token.",
   "/api/cron/pg-cron-watch": "scheduled job, bearer token.",
   "/api/cron/saved-search-alerts": "scheduled job, bearer token.",
+  "/api/health/catalogue": "health check polled by an external uptime monitor; answers JSON, not a page.",
   "/api/crypto/coins/[id]": "JSON read for the crypto screens.",
   "/api/crypto/markets": "JSON read for the crypto screens.",
   "/api/crypto/pairs": "JSON read for the crypto screens.",

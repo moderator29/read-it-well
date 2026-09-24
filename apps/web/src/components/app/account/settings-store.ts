@@ -31,7 +31,6 @@ export type NfSettings = {
   personalisedRecs: boolean;
   defaultCity: string;
   distanceUnit: DistanceUnit;
-  appLock: boolean;
   /**
    * Spend less of this person's data.
    *
@@ -55,7 +54,6 @@ export const SETTINGS_DEFAULTS: NfSettings = {
   personalisedRecs: true,
   defaultCity: "",
   distanceUnit: "km",
-  appLock: false,
   dataSaver: false,
 };
 

@@ -1,4 +1,5 @@
 import "server-only";
+import { settleBookingCharge } from "../bookings/settlement";
 
 import { failureReason, logMoney } from "../payments/observability";
 import {
@@ -318,7 +319,7 @@ export type LedgerGap = {
   reference: string;
   amountMinor: number;
   paidAt: string | null;
-  /** "funding" is ours to post. "booking" is reported and never posted here. */
+  /** "funding" and, on an applied run, "booking" are posted here (OPS-02). */
   family: "funding" | "booking";
   /** What we did about it on this run. */
   action: "posted" | "reported" | "unmatched" | "failed";
@@ -374,7 +375,9 @@ async function settledTransactionReferences(
       .from("transactions")
       .select("provider_ref, status")
       .in("provider_ref", slice)
-      .eq("status", "SUCCESSFUL");
+      /* REFUNDED is handled too: the charge was returned to the payer's
+         wallet by the settlement (MON-05), so it is not a gap. */
+      .in("status", ["SUCCESSFUL", "REFUNDED"]);
     if (error) throw new Error(error.message);
     for (const row of data ?? []) {
       if (row.provider_ref) found.add(row.provider_ref);
@@ -465,13 +468,15 @@ async function postGapFunding(
  * `apply: false` reports and changes nothing, which is what a first run on a
  * live database should always be. `apply: true` posts the funding gaps.
  *
- * BOOKING GAPS ARE REPORTED AND NEVER POSTED HERE, on purpose. Settling a
- * booking charge does far more than write a ledger row: it confirms the stay,
- * closes calendar nights and emails the guest and the host. A sweeper doing
- * that unattended at three in the morning, possibly for dates that have already
- * passed, is a worse outcome than a loud report naming the reference. The
- * report says exactly which references need lib/bookings/settlement.ts run
- * against them, and that is a decision with a human in it.
+ * BOOKING GAPS ARE SETTLED ON AN APPLIED RUN (OPS-02). They used to be only
+ * reported, because settling confirms a stay and closes nights, and a sweeper
+ * doing that unattended for dates already passed was worse than a report.
+ * Meanwhile the hold sweep released the booking and the guest's money sat at
+ * the processor. The settlement now makes that call safely in the database:
+ * a charge that matches an open booking settles it; a booking that is
+ * cancelled, finished, already paid, past its check-in while unconfirmed, or
+ * priced differently gets the money back in the payer's wallet, with an alert.
+ * It sends no email from here; a confirmed guest sees the stay in Bookings.
  */
 export async function sweepUnrecordedCharges(
   admin: AdminClient,
@@ -564,30 +569,81 @@ export async function sweepUnrecordedCharges(
 
   for (const charge of booking) {
     if (knownBooking.has(charge.reference)) continue;
-    // Reported, never posted. See the note on this function.
-    logMoney({
-      surface: "reconcile",
-      outcome: "failed",
-      reason: "booking_charge_unsettled",
-      reference: charge.reference,
-      amountMinor: charge.amountMinor,
-    });
-    await recordMoneyAudit(admin, {
-      actor,
-      action: "wallet.booking.unsettled",
-      reference: charge.reference,
-      amountMinor: charge.amountMinor,
-      outcome: "reported",
-      detail: { found_by: "sweep" },
-    });
-    gaps.push({
-      reference: charge.reference,
-      amountMinor: charge.amountMinor,
-      paidAt: charge.paidAt,
-      family: "booking",
-      action: "reported",
-      reason: "needs_booking_settlement",
-    });
+    /*
+     * OPS-02. Settled here, not only reported. The settlement decides under
+     * the booking's lock: an open booking whose price the charge matches is
+     * confirmed, and anything else (cancelled by the hold sweep, already
+     * paid, check-in passed, wrong amount) is returned to the payer's wallet
+     * with an alert. So a charge whose webhook and return both went missing
+     * no longer sits at the processor while the hold is released.
+     */
+    if (!apply) {
+      logMoney({
+        surface: "reconcile",
+        outcome: "failed",
+        reason: "booking_charge_unsettled",
+        reference: charge.reference,
+        amountMinor: charge.amountMinor,
+      });
+      await recordMoneyAudit(admin, {
+        actor,
+        action: "wallet.booking.unsettled",
+        reference: charge.reference,
+        amountMinor: charge.amountMinor,
+        outcome: "reported",
+        detail: { found_by: "sweep" },
+      });
+      gaps.push({
+        reference: charge.reference,
+        amountMinor: charge.amountMinor,
+        paidAt: charge.paidAt,
+        family: "booking",
+        action: "reported",
+        reason: "dry_run",
+      });
+      continue;
+    }
+    const metaBooking = charge.metadata["booking_id"];
+    try {
+      const settlement = await settleBookingCharge(admin, {
+        reference: charge.reference,
+        amountMinor: charge.amountMinor,
+        processorFeeMinor: null,
+        fallbackBookingId: typeof metaBooking === "string" ? metaBooking : null,
+      });
+      await recordMoneyAudit(admin, {
+        actor,
+        action: "wallet.booking.charge_settled",
+        reference: charge.reference,
+        amountMinor: charge.amountMinor,
+        outcome: settlement.outcome,
+        detail: { found_by: "sweep" },
+      });
+      gaps.push({
+        reference: charge.reference,
+        amountMinor: charge.amountMinor,
+        paidAt: charge.paidAt,
+        family: "booking",
+        action: settlement.outcome === "unknown-reference" ? "unmatched" : "posted",
+        reason: settlement.outcome,
+      });
+    } catch (error) {
+      logMoney({
+        surface: "reconcile",
+        outcome: "failed",
+        reason: `booking_settle_failed:${failureReason(error)}`,
+        reference: charge.reference,
+        amountMinor: charge.amountMinor,
+      });
+      gaps.push({
+        reference: charge.reference,
+        amountMinor: charge.amountMinor,
+        paidAt: charge.paidAt,
+        family: "booking",
+        action: "failed",
+        reason: failureReason(error),
+      });
+    }
   }
 
   logMoney({

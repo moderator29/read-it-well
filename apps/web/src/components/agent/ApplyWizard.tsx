@@ -178,10 +178,11 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
   const restored = useRef(false);
 
   /* A lazy ref rather than `useMemo`, because a restored draft has to be able
-     to REPLACE this before the first upload runs. Re-uploading a slot into the
-     batch its earlier attempt used overwrites that object (`upsert: true`)
-     instead of leaving a stray copy of somebody's identity document behind in
-     a private bucket that nothing will ever collect. */
+     to REPLACE this before the first upload runs. Every file chosen goes to a
+     new path (a filed document can never be overwritten, SEC-12), and the
+     slot's previous, never-filed upload is removed once the new one lands, so
+     no stray copy of somebody's identity document is left in a private bucket
+     that nothing will ever collect. */
   const batchId = useRef<string | null>(null);
   if (batchId.current === null) batchId.current = newBatchId();
 
@@ -349,16 +350,26 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
         return;
       }
 
-      const path = `${user.id}/${batchId.current}/${name}.${extensionFor(file)}`;
+      /* A new path for every file chosen, never an overwrite (SEC-12): once a
+         document is filed against the application it cannot be replaced, so
+         re-choosing a slot is a new object, and only the path handed to the
+         submit is filed. */
+      const path = `${user.id}/${batchId.current}/${name}-${crypto.randomUUID()}.${extensionFor(file)}`;
       const upload = await supabase.storage
         .from(DOCUMENT_BUCKET)
-        .upload(path, file, { contentType: file.type, upsert: true });
+        .upload(path, file, { contentType: file.type, upsert: false });
 
       if (upload.error) {
         finish({ error: "That upload did not go through. Please try again." });
         return;
       }
 
+      const replaced = docs[name]?.path;
+      if (replaced && replaced !== path) {
+        /* Best effort: the storage policy allows removing an upload that was
+           never filed, and refuses one that was. */
+        void supabase.storage.from(DOCUMENT_BUCKET).remove([replaced]);
+      }
       finish({ path });
     } catch {
       finish({ error: "That upload did not go through. Please try again." });

@@ -107,6 +107,8 @@ export const WATCHED_JOBS: readonly WatchedJob[] = [
      notification half keeps working. Two hours is eight missed runs on a
      quarter-hourly schedule, which is a stop rather than a slow afternoon. */
   { job: "email-outbox", schedule: "every 15 minutes", maxGapHours: 2 },
+  /* V-01: the catalogue canary. If it stops firing, nobody is watching the shop. */
+  { job: "canary", schedule: "every 5 minutes", maxGapHours: 2 },
   { job: "hold-sweep", schedule: "hourly at :05", maxGapHours: 3 },
   { job: "pg-cron-watch", schedule: "hourly at :20", maxGapHours: 3 },
   { job: "complete-stays", schedule: "daily at 02:30 UTC", maxGapHours: 26 },
