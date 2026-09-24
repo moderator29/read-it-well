@@ -107,8 +107,10 @@ and the code carries it as one server-side variable, `VALLO_PUBLIC_CATALOGUE`
   a session. Every other route sends a stranger to sign in.
 - **On.** The six read-only catalogue screens also answer a stranger:
   `/search`, `/stays` (and `/stays/search`), `/restaurants`, `/listing/<id>`,
-  `/stay/<id>` and `/restaurant/<id>`. A stranger's catalogue page reads are
-  rate-limited per address (120 per five minutes). **Whatever the switch says,**
+  `/stay/<id>` and `/restaurant/<id>`. A stranger's catalogue page loads are
+  rate-limited per address (120 per five minutes; navigations inside the app
+  and link prefetches are not counted), which costs one database round trip
+  per anonymous page load while the switch is on. **Whatever the switch says,**
   `/u` and people search, messages, saved, bookings, wallet, checkout, settings
   and every API route except the map's pins (`/api/map/listings`, which the
   search page calls and which has its own per-address limit) stay behind a

@@ -269,6 +269,22 @@ export function isPublicPath(
   return PUBLIC_SEGMENTS.has(first);
 }
 
+/**
+ * A top-level page load, as opposed to Next's RSC navigation fetches and the
+ * intent prefetches a listing card fires on hover or touch. Only these count
+ * against a stranger's catalogue allowance: a person scrolling a list would
+ * otherwise spend several counts per page they never opened, and a refusal
+ * sent to an RSC fetch surfaces as a broken navigation, not a sentence.
+ */
+export function isDocumentRequest(request: { headers: Headers }): boolean {
+  const headers = request.headers;
+  if (headers.get("rsc") === "1" || headers.has("next-router-prefetch")) return false;
+  const purpose = `${headers.get("purpose") ?? ""} ${headers.get("sec-purpose") ?? ""}`.toLowerCase();
+  if (purpose.includes("prefetch")) return false;
+  const dest = headers.get("sec-fetch-dest");
+  return dest === null || dest === "document";
+}
+
 /** An `/api` path, which is answered rather than redirected. See `refuse`. */
 export function isApiPath(path: string): boolean {
   return path === "/api" || path.startsWith("/api/");
@@ -371,7 +387,7 @@ export async function proxy(request: NextRequest) {
     /* A stranger reading the open catalogue is counted per address, so the
        switch cannot be used to walk every listing at machine speed. Only the
        pages are counted; a person reads a few a minute. */
-    if (publicCatalogue && isPublicCataloguePath(path)) {
+    if (publicCatalogue && isPublicCataloguePath(path) && isDocumentRequest(request)) {
       const verdict = await consume({
         bucket: "anon_catalogue",
         subject: subjectForIp(ipFromHeaders(request.headers)),
@@ -379,20 +395,18 @@ export async function proxy(request: NextRequest) {
         windowSeconds: ANON_CATALOGUE_WINDOW_SECONDS,
       });
       if (!verdict.allowed) {
-        return withSecurityPolicy(
-          new NextResponse(
-            `Too many pages opened from this connection. Try again ${verdict.retryIn}, or sign in to keep browsing.`,
-            {
-              status: 429,
-              headers: {
-                "content-type": "text/plain; charset=utf-8",
-                "retry-after": String(verdict.retryAfterSeconds),
-                "cache-control": "no-store",
-              },
-            },
-          ),
-          nonce,
-        );
+        /* A page, so a page answers: the sign-in screen with the reason, and
+           the address they wanted kept. Sign in and browsing carries on. */
+        const target = request.nextUrl.clone();
+        target.pathname = "/sign-in";
+        target.search = "";
+        const back = safeReturnPath(request.nextUrl.pathname, request.nextUrl.search);
+        if (back) target.searchParams.set("next", back);
+        target.searchParams.set("notice", "catalogue-paced");
+        const response = NextResponse.redirect(target);
+        response.headers.set("retry-after", String(verdict.retryAfterSeconds));
+        response.headers.set("cache-control", "no-store");
+        return withSecurityPolicy(response, nonce);
       }
     }
 

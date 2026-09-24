@@ -24,14 +24,14 @@ vi.mock("@/lib/security/rate-limit", async () => {
 const CATALOGUE = ["/search", "/stays", "/stays/search", "/restaurants", "/listing/ed000000-0000-4000-8000-00000000003a", "/stay/abc", "/restaurant/abc"];
 const ALWAYS_GATED = ["/u/somebody", "/messages", "/messages/new?listing=abc", "/wallet", "/bookings", "/saved", "/home", "/settings"];
 
-async function visit(path: string, env: Record<string, string>) {
+async function visit(path: string, env: Record<string, string>, extraHeaders: Record<string, string> = {}) {
   vi.unstubAllEnvs();
   vi.resetModules();
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://project.supabase.co");
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "anon-key");
   for (const [key, value] of Object.entries(env)) vi.stubEnv(key, value);
   const { proxy } = await import("./proxy");
-  return proxy(new NextRequest(new URL(path, "https://www.vallospaces.com"), { headers: { "x-forwarded-for": "203.0.113.9" } }));
+  return proxy(new NextRequest(new URL(path, "https://www.vallospaces.com"), { headers: { "x-forwarded-for": "203.0.113.9", ...extraHeaders } }));
 }
 
 function bounced(response: Response): boolean {
@@ -81,7 +81,28 @@ describe("switch ON: the catalogue reads, nothing else opens", () => {
     );
     seam.consume.mockResolvedValue({ allowed: false, retryAfterSeconds: 120, retryIn: "in about 2 minutes" });
     const response = await visit("/listing/abc", { VALLO_PUBLIC_CATALOGUE: "true" });
-    expect(response.status).toBe(429);
+    /* A page answers a page: sign in with the reason, the address kept. */
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/sign-in?next=%2Flisting%2Fabc&notice=catalogue-paced");
     expect(response.headers.get("retry-after")).toBe("120");
+  });
+
+  it("does not count RSC navigations or prefetches, so a refusal never breaks a client navigation", async () => {
+    seam.consume.mockResolvedValue({ allowed: false, retryAfterSeconds: 120, retryIn: "in about 2 minutes" });
+    for (const headers of <Record<string, string>[]>[
+      { rsc: "1" },
+      { "next-router-prefetch": "1", rsc: "1" },
+      { purpose: "prefetch" },
+      { "sec-purpose": "prefetch;prerender" },
+      { "sec-fetch-dest": "empty" },
+    ]) {
+      seam.consume.mockClear();
+      const response = await visit("/listing/abc", { VALLO_PUBLIC_CATALOGUE: "true" }, headers);
+      expect(seam.consume).not.toHaveBeenCalled();
+      expect(response.status).toBe(200);
+    }
+    seam.consume.mockClear();
+    await visit("/listing/abc", { VALLO_PUBLIC_CATALOGUE: "true" }, { "sec-fetch-dest": "document" });
+    expect(seam.consume).toHaveBeenCalledTimes(1);
   });
 });

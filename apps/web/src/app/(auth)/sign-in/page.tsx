@@ -35,6 +35,10 @@ const NOTICES: Record<string, string> = {
    * enough to read as a bug.
    */
   "sign-in-required": "Sign in to open that. It takes a moment, and new accounts are free.",
+  /* STORE-P2-04: a stranger who has opened a great many catalogue pages in a
+     few minutes (`anon_catalogue` in the proxy). */
+  "catalogue-paced":
+    "You have opened a lot of pages in a few minutes. Sign in to keep browsing, or come back in a few minutes.",
 };
 
 export default async function SignInPage({
