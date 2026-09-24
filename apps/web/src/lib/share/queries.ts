@@ -4,6 +4,7 @@ import { cache } from "react";
 import { photoUrl } from "../listings/supabase-repository";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
+import { createAdminClient } from "../supabase/admin";
 import { doorCardFromRow, isDoorKey, type DoorRead, type DoorRow } from "./door";
 
 /**
@@ -72,15 +73,20 @@ export const readDoor = cache(async function readDoor(key: string): Promise<Door
 });
 
 /**
- * Count one opening. A bare counter; nothing about the reader is recorded.
- * Best effort: a counter that failed is not worth a broken page.
+ * Count one opening. A bare counter; nothing about the reader is recorded, and
+ * the number is never displayed to anybody as a claim.
+ *
+ * THROUGH THE SERVICE ROLE, BECAUSE ONLY THE SERVER MAY COUNT. The function is
+ * closed to every client role (migration 20260924120700), so a stranger cannot
+ * inflate a door by calling it in a loop; the page render is the one counter.
+ * Where the service key is absent (a local build) nothing is counted. Best
+ * effort: a counter that failed is not worth a broken page.
  */
 export async function noteDoorOpen(key: string): Promise<void> {
   if (!isDoorKey(key)) return;
-  const supabase = await client();
-  if (!supabase) return;
   try {
-    const rpc = supabase.rpc.bind(supabase) as unknown as NoteRpc;
+    const admin = createAdminClient();
+    const rpc = admin.rpc.bind(admin) as unknown as NoteRpc;
     await rpc("note_share_door_open", { p_token: key.trim() });
   } catch {
     /* The card still renders. */

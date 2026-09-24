@@ -5,7 +5,6 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { shareAreaPrices } from "@/lib/price-check/actions";
 import { createShareLink } from "@/lib/share/actions";
-import { shareHref } from "@/lib/price-check/share-card";
 import type { ListingIntent, PriceCheckPropertyType } from "@/lib/price-check/types";
 
 /**
@@ -147,7 +146,6 @@ function MintableShare({
 }: ShareAreaProps & { figures: ShareFigures }) {
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<"idle" | "making" | "made" | "failed">("idle");
-  const [id, setId] = useState<string | null>(null);
   const [doorPath, setDoorPath] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -157,10 +155,10 @@ function MintableShare({
    * unfurler, with a sign-in redirect: the card this component mints was
    * unreachable by the people it was minted for. `/s/<token>` is the public
    * door onto the same stored row, drawn by the same `shareLines`, with no
-   * address because the row has none. The in-app address stays the fallback
-   * only if the door could not be made, and the sheet still works.
+   * address because the row has none. If the door cannot be made the sheet
+   * says so; it never falls back to the gated address.
    */
-  const href = doorPath ?? (id === null ? null : shareHref(id));
+  const href = doorPath;
 
   async function mint() {
     setState("making");
@@ -191,9 +189,14 @@ function MintableShare({
       setState("failed");
       return;
     }
-    setId(result.data.id);
     const door = await createShareLink({ kind: "price_area", targetId: result.data.id });
-    if (door.ok) setDoorPath(door.data.path);
+    if (!door.ok) {
+      /* No door, no link. The in-app address answers a stranger with a
+         sign-in page, so offering it would be offering a dead card. */
+      setState("failed");
+      return;
+    }
+    setDoorPath(door.data.path);
     setState("made");
   }
 
