@@ -61,6 +61,8 @@ export const complianceEn = {
     proposed: "{who} proposed: {decision}. A second person must approve.",
     approve: "Approve",
     ownProposal: "You proposed this; a second person must approve it.",
+    byYou: "You",
+    byColleague: "A colleague",
     decided: "Decided",
     cleared: "Cleared: not the same person",
     confirmed: "Confirmed: money on the account is held",

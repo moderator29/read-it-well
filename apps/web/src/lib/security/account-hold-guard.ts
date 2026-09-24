@@ -22,7 +22,9 @@ export async function accountHoldRefusal(client: unknown): Promise<string | null
   const locale = await getLocale();
   const until = formatHoldUntil(hold.until, locale);
   const copy = getDictionary(locale).platform.hold;
-  return (hold.reason === "not_me" ? copy.refusalNotMe : hold.reason === "staff" ? copy.refusalPlain : copy.refusalOther).replace("{until}", until);
+  /* A plain hold says no cause and no date (no tipping off). */
+  if (hold.reason === "plain") return copy.refusalPlain;
+  return (hold.reason === "not_me" ? copy.refusalNotMe : copy.refusalOther).replace("{until}", until);
 }
 
 /**

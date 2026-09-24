@@ -265,6 +265,8 @@ const EXPECTED_PUBLIC = new Set([
   "/api/cron/hold-sweep",
   "/api/cron/inventory-drift",
   "/api/cron/landlord-line",
+  "/api/cron/sanctions-lists",
+  "/api/cron/sanctions-screen",
   "/api/cron/pg-cron-watch",
   "/api/cron/saved-search-alerts",
   "/api/cron/store-readiness",

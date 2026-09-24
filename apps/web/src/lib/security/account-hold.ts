@@ -25,10 +25,15 @@
 
 import { formatDate, type Locale } from "@vallo/i18n";
 
-/* "staff": a hold staff placed by hand (SCUML item 6, `str_place_hold`). The
-   member is told the money is held and when it ends, and never why: that
-   is the no-tipping-off rule. */
-export type HoldReason = "not_me" | "other" | "staff";
+/*
+ * `plain`: a hold whose reason code names nothing (no review, no compliance,
+ * no staff), because the member can read the row. Staff place it after two of
+ * them agree (SCUML item 8, a confirmed sanctions match; item 6, an STR). The
+ * member is told that money cannot leave, and nothing about why or until
+ * when: naming the cause, or a date years away, would tip them off, which the
+ * Money Laundering Act forbids.
+ */
+export type HoldReason = "not_me" | "plain" | "other";
 
 export type AccountHold =
   | { state: "none" }
@@ -50,7 +55,7 @@ export function holdFromRows(rows: unknown, now: number): AccountHold {
       latest = at;
       found = {
         until: row.hold_until,
-        reason: row.reason === "not_me" ? "not_me" : row.reason === "staff_review" ? "staff" : "other",
+        reason: row.reason === "not_me" ? "not_me" : row.reason === "plain" ? "plain" : "other",
       };
     }
   }

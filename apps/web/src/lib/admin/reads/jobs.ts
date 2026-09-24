@@ -68,6 +68,9 @@ export const VERCEL_JOBS: readonly VercelJob[] = [
   { name: "store-readiness", cron: "0 5 * * *", schedule: "Daily at 06:00", maxGapHours: 26, audit: { entityType: "cron_job", term: "store-readiness" } },
   /* V-31 and V-32, the landlord line. A no-op while `landlord_line` is off. */
   { name: "landlord-line", cron: "*/15 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "landlord-line" } },
+  /* SCUML items 8 and 9: sanctions lists refreshed daily, the screening queue drained every 15 minutes. */
+  { name: "sanctions-lists", cron: "10 5 * * *", schedule: "Daily at 06:10", maxGapHours: 26, audit: { entityType: "cron_job", term: "sanctions-lists" } },
+  { name: "sanctions-screen", cron: "7,22,37,52 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "sanctions-screen" } },
 ];
 
 /**

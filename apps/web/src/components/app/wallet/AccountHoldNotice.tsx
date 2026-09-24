@@ -43,7 +43,12 @@ export function AccountHoldNotice({
       </IconPlate>
       <div className="min-w-0">
         <p className="nf-body font-semibold text-content">{copy.title}</p>
-        <p className="nf-body-sm mt-row text-content-2">{(hold.reason === "not_me" ? copy.bodyNotMe : hold.reason === "staff" ? copy.bodyPlain : copy.bodyOther).replace("{until}", until)}</p>
+        <p className="nf-body-sm mt-row text-content-2">
+          {/* A plain hold names no cause and no date (no tipping off). */}
+          {hold.reason === "plain"
+            ? copy.bodyPlain
+            : (hold.reason === "not_me" ? copy.bodyNotMe : copy.bodyOther).replace("{until}", until)}
+        </p>
       </div>
     </div>
   );

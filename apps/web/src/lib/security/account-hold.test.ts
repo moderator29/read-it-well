@@ -25,13 +25,6 @@ describe("holdFromRows", () => {
       reason: "other",
     });
   });
-  it("reads a staff hold (SCUML item 6) as staff, which the wallet shows without a reason", () => {
-    expect(holdFromRows([{ hold_until: "2026-09-25T09:00:00Z", reason: "staff_review" }], NOW)).toEqual({
-      state: "held",
-      until: "2026-09-25T09:00:00Z",
-      reason: "staff",
-    });
-  });
   it("is unknown, never none, when the answer is not a list", () => {
     expect(holdFromRows(null, NOW)).toEqual({ state: "unknown" });
   });
@@ -82,5 +75,12 @@ describe("formatHoldUntil", () => {
   });
   it("prints nothing for an unparseable time", () => {
     expect(formatHoldUntil("nonsense", "en")).toBe("");
+  });
+});
+
+describe("a plain hold (SCUML items 6 and 8)", () => {
+  it("reads as plain, so the member is told no cause and no date", () => {
+    const later = new Date(NOW + 86_400_000).toISOString();
+    expect(holdFromRows([{ hold_until: later, reason: "plain" }], NOW)).toEqual({ state: "held", until: later, reason: "plain" });
   });
 });
