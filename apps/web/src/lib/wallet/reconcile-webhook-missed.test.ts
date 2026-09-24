@@ -80,6 +80,16 @@ describe("the sweep pages on a missed webhook (MON-P2-03)", () => {
     expect(alerts.recordAlert).toHaveBeenCalledWith(expect.objectContaining({ subjectId: BOOK }));
   });
 
+  it("passes the fee the processor reported to the booking settlement (MON-14)", async () => {
+    paystack.listSuccessfulCharges.mockResolvedValue([{ ...charge(BOOK, 90), feesMinor: 1_600 }]);
+    settlement.settleBookingCharge.mockResolvedValue({ outcome: "settled", bookingId: "b-1" });
+    await sweepUnrecordedCharges(emptyAdmin(), { apply: true });
+    expect(settlement.settleBookingCharge).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ processorFeeMinor: 1_600 }),
+    );
+  });
+
   it("does not page on a booking charge the webhook had already settled", async () => {
     paystack.listSuccessfulCharges.mockResolvedValue([charge(BOOK, 90)]);
     settlement.settleBookingCharge.mockResolvedValue({ outcome: "already-settled", bookingId: "b-1" });

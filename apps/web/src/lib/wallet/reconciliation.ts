@@ -637,7 +637,8 @@ export async function sweepUnrecordedCharges(
       const settlement = await settleBookingCharge(admin, {
         reference: charge.reference,
         amountMinor: charge.amountMinor,
-        processorFeeMinor: null,
+        /* MON-14: the fee the list reported, as the webhook would have passed it. */
+        processorFeeMinor: charge.feesMinor ?? null,
         fallbackBookingId: typeof metaBooking === "string" ? metaBooking : null,
       });
       await recordMoneyAudit(admin, {

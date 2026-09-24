@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
@@ -67,5 +69,18 @@ describe("reverseEscrowRuling (ESC-07)", () => {
     const result = await reverseEscrowRuling({ rulingId: RULING, note: "mistake" });
     expect(result.ok).toBe(false);
     expect(seam.rpc).not.toHaveBeenCalled();
+  });
+});
+
+describe("no ruling door runs as the service role (ESC-16)", () => {
+  it("never calls escrow_admin_resolve through the admin client, where auth.uid() is null", () => {
+    const dir = join(__dirname);
+    const offenders = readdirSync(dir)
+      .filter((name) => name.endsWith(".ts") && !name.endsWith(".test.ts"))
+      .filter((name) => {
+        const source = readFileSync(join(dir, name), "utf8");
+        return source.includes("escrow_admin_resolve") && /getAdminClient|createAdminClient/.test(source);
+      });
+    expect(offenders).toEqual([]);
   });
 });
