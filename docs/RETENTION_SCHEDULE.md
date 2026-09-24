@@ -86,6 +86,18 @@ attach to them, and the storage limitation principle is the only rule left. This
 is the pivot the whole schedule turns on and it is question 1 for the solicitor
 in section 7.
 
+**The AML policy relies on these periods.** `docs/AML_CFT_CPF_POLICY.md`
+section 10 relies on the 5-year identity periods here and the 6-year
+financial periods in 3.3 to meet its record-keeping duty (SCUML checklist item
+11). The purge now keeps an approved agent's identification record for 5
+years (migration `20260924020602`). One gap remains, D-16. When a member's
+account closes, the purge still deletes their `bank_accounts` and strips the
+payee's name and account number from their withdrawal entries in
+`wallet_entries`. Until that is fixed, no account with a withdrawal on record
+is deleted until the Compliance Officer has exported its withdrawal records.
+If a period in this schedule changes, section 10 of the policy must change
+with it.
+
 ### 3.2 Account and profile
 
 | Data | Where it lives | Trigger | Period | Action |
