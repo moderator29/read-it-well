@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { resolveSession } from "@/lib/actions/session";
 import { getDictionary, type Dictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { listStates } from "@/lib/places/queries";
@@ -118,8 +120,15 @@ export default async function DoorPage({ params }: Params) {
   if (card.kind === "gone") return <DoorStateView state="gone" copy={copy} stay={card.stay === true} />;
 
   /* Counted once per page render, never by the image or the metadata, so an
-     unfurler fetching the image three times is not three opens. */
-  await noteDoorOpen(token);
+     unfurler fetching the image three times is not three opens; a known
+     link-preview fetcher is not counted at all, and neither is the sharer's
+     own view (the viewer id is compared in SQL and never stored). The page
+     served is the same whoever asks: the user agent decides only the count. */
+  const session = await resolveSession();
+  await noteDoorOpen(token, {
+    userAgent: (await headers()).get("user-agent"),
+    userId: session.state === "signed-in" ? session.user.id : null,
+  });
 
   if (card.kind === "price_area") {
     const share = await shareById(card.shareId);

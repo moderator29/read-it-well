@@ -396,3 +396,16 @@ export function stayLines(card: Extract<DoorCard, { kind: "stay" }>, copy: Dicti
   const title = card.area ? fill(copy.stay.inArea, { area: card.area }) : copy.stay.plain;
   return { title, headline: copy.stay.rates, second: null, bedrooms: null };
 }
+
+/**
+ * Link-preview fetchers: WhatsApp, Telegram, iMessage, Slack, Discord and the
+ * like, and search crawlers. They are served exactly what a person is (the
+ * page never reads this); they are only left out of the COUNT, because an
+ * unfurl is not somebody opening the door.
+ */
+export const PREVIEW_AGENTS =
+  /whatsapp|facebookexternalhit|facebot|twitterbot|telegrambot|slackbot|slack-imgproxy|discordbot|linkedinbot|skypeuripreview|applebot|googlebot|bingbot|pinterest|embedly|redditbot|bot\b|crawler|spider|preview/i;
+
+export function isPreviewAgent(userAgent: string | null | undefined): boolean {
+  return typeof userAgent === "string" && PREVIEW_AGENTS.test(userAgent);
+}

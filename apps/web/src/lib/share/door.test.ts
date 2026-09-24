@@ -9,6 +9,7 @@ import {
   doorSignInHref,
   doorUtilities,
   isDoorKey,
+  isPreviewAgent,
   stayLines,
   type DoorRow,
 } from "./door";
@@ -343,5 +344,15 @@ describe("a door for a stay (V-07 carry-over)", () => {
 
   it("says gone in a stay's words when the stay is unpublished", () => {
     expect(doorCardFromRow(stayRow({ state: "gone", listing_id: null }))).toEqual({ kind: "gone", stay: true });
+  });
+});
+
+describe("the counter leaves link previews out (V-71 review)", () => {
+  it("knows the common unfurlers and not a phone's browser", () => {
+    expect(isPreviewAgent("WhatsApp/2.23.20.0 A")).toBe(true);
+    expect(isPreviewAgent("facebookexternalhit/1.1")).toBe(true);
+    expect(isPreviewAgent("TelegramBot (like TwitterBot)")).toBe(true);
+    expect(isPreviewAgent("Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36")).toBe(false);
+    expect(isPreviewAgent(null)).toBe(false);
   });
 });

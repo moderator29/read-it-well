@@ -389,7 +389,7 @@ export const frontDoorEn = {
     copyLink: "Copy your link",
     copied: "Link copied",
     linkLabel: "Your link",
-    stats: "Your link has been opened {opens} times and brought {enquiries} enquiries.",
+    stats: "Your link has had {opens} page views by other people and brought {enquiries} enquiries. Your own views and link previews are not counted, and one person opening it twice counts twice.",
     statsNone: "Nobody has opened your link yet. Put the picture on your Status and share the link beside it.",
     statsUnavailable: "We could not read your numbers just now.",
     note: "The picture shows the area and never the address. Your phone number is not on it: people reach you through Vallo, where every message is kept.",

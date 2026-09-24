@@ -6,7 +6,7 @@ import { accommodationPhotoUrl } from "../stays/photos";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { createAdminClient } from "../supabase/admin";
-import { doorCardFromRow, isDoorKey, type DoorRead, type DoorRow } from "./door";
+import { doorCardFromRow, isDoorKey, isPreviewAgent, type DoorRead, type DoorRow } from "./door";
 
 /**
  * READING A DOOR, THROUGH THE CALLER'S OWN CLIENT.
@@ -35,7 +35,7 @@ type DoorRpc = (
 
 type NoteRpc = (
   fn: "note_share_door_open",
-  args: { p_token: string },
+  args: { p_token: string; p_viewer: string | null },
 ) => PromiseLike<{ data: unknown; error: unknown }>;
 
 async function client(): Promise<Db | null> {
@@ -83,12 +83,14 @@ export const readDoor = cache(async function readDoor(key: string): Promise<Door
  * Where the service key is absent (a local build) nothing is counted. Best
  * effort: a counter that failed is not worth a broken page.
  */
-export async function noteDoorOpen(key: string): Promise<void> {
+export async function noteDoorOpen(key: string, viewer: { userAgent: string | null; userId: string | null }): Promise<void> {
   if (!isDoorKey(key)) return;
+  /* An unfurl is not an open. The sharer's own view is skipped in SQL. */
+  if (isPreviewAgent(viewer.userAgent)) return;
   try {
     const admin = createAdminClient();
     const rpc = admin.rpc.bind(admin) as unknown as NoteRpc;
-    await rpc("note_share_door_open", { p_token: key.trim() });
+    await rpc("note_share_door_open", { p_token: key.trim(), p_viewer: viewer.userId });
   } catch {
     /* The card still renders. */
   }
