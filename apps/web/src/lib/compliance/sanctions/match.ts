@@ -3,14 +3,16 @@
  *
  * Pure. A name is NORMALISED before it is compared: case folded, diacritics
  * removed (Ọ̀ becomes o, é becomes e), punctuation and hyphens turned into
- * spaces, honorifics dropped, one-letter tokens and two-letter ones that are
- * not a handled particle (Al, El, Ul, Md) dropped while two real words remain
- * (padding "a b c d" cannot dilute a match), and the words SORTED, so "Musa Ibrahim",
+ * spaces, honorifics dropped, and the words SORTED, so "Musa Ibrahim",
  * "IBRAHIM, Musa" and "Ibrahim Músa" are one name. A listed person is
  * matched on the primary name and on every alias.
  *
  * Two kinds of match, recorded separately:
- *   - EXACT: the normalised names are the same words.
+ *   - EXACT: the normalised names are the same words, every token counted.
+ * For FUZZY scoring only, one-letter tokens and two-letter ones that are not
+ * a handled particle (Al, El, Ul, Md) are dropped while two real words remain
+ * (`dropJunk`), so padding "a b c d" cannot dilute a match, and dropping
+ * "Ag" or "Ri" can never make a partial name exact.
  *   - FUZZY: close but not the same, scored 0..1, and raised only at or above
  *     `FUZZY_THRESHOLD`. The score is the better of two views: the whole
  *     sorted string by edit distance, and word by word (each word of the
@@ -21,7 +23,7 @@
  * TRANSLITERATION. Before scoring (and indexing), each word is FOLDED to a
  * rough sound: "ph" to f, "ou"/"oo" to u, "kh" to k, "q" and a "c" not in
  * "ch" to k, doubled letters to one, then o to u and e to a, a leading "wu"
- * to u (Ould/Wuld), and an assimilated article back to Abdul (Abdurrahman,
+ * to u (Ould/Wuld), a final y after a consonant to i (Ghaly/Ghali), and an assimilated article back to Abdul (Abdurrahman,
  * Abdussalam), so "Mohammed Yousef" and "Muhammad Yusuf" land on the same
  * letters. Exact still means the unfolded names are the same words; a match
  * only through folding is fuzzy.
@@ -75,7 +77,11 @@
  * match is worse than a wrong one. A close match resting only on names common
  * in Nigeria ("Muhammad Yusuf" inside "Mohammed Yusuf Bello") is raised like
  * any other, marked `common`, and the desk shows it in a lower group: "common
- * name, check identifiers". No match, of any kind, holds money by itself.
+ * name, check identifiers". So is an EXACT match on a listing made only of
+ * common names ("Muhammad Yusuf" exactly): thousands carry that name, so it
+ * is treated like a close match until two people confirm it (it does not
+ * change a risk class while open; migration 20260924176700). No match, of any
+ * kind, holds money by itself.
  *
  * A CLOSE MATCH NEEDS THE FACTS NOT TO DISAGREE. A fuzzy match becomes a
  * queue item only when the listing's date of birth or nationality is
@@ -123,6 +129,8 @@ export function foldWord(word: string): string {
     .replace(/e/g, "a")
     /* Ould and Wuld ("son of") are one word. */
     .replace(/^wu/, "u")
+    /* A final y after a consonant is an i: Ghaly/Ghali, Fathy/Fathi, Mahdy/Mahdi. */
+    .replace(/([^aeiou])y$/, "$1i")
     /* The assimilated article: Abdurrahman, Abdussalam, Abduzzahir are Abdul-names. */
     .replace(/^abd[ua](?=[rstzn])/, "abdul");
 }
@@ -150,12 +158,20 @@ export function normaliseName(raw: string): string {
     .trim()
     .split(/\s+/)
     .filter((w) => w.length > 0 && !HONORIFICS.has(w));
-  /* Junk tokens pad a name to dilute its score ("Abubakar Shekau a b c d"):
-     one-letter tokens and two-letter ones that are not a handled particle
-     are dropped, as long as two real words remain ("Li Wei" keeps "Li"). */
+  return words.sort().join(" ");
+}
+
+/**
+ * A normalised name without junk tokens, for FUZZY scoring only (exact is
+ * decided on the whole normalised name, so "Iyad Ghali" is never an exact
+ * match for "Iyad Ag Ghali"). Padding ("Abubakar Shekau a b c d") is one-
+ * letter tokens and two-letter ones that are not a handled particle; they are
+ * dropped as long as two real words remain ("Li Wei" keeps "Li").
+ */
+export function dropJunk(normalised: string): string {
+  const words = normalised.split(" ").filter(Boolean);
   const real = words.filter((w) => w.length >= 3 || SHORT_KEPT.has(w));
-  const kept = real.filter((w) => !SHORT_KEPT.has(w)).length >= 2 ? real : words;
-  return kept.sort().join(" ");
+  return (real.filter((w) => !SHORT_KEPT.has(w)).length >= 2 ? real : words).join(" ");
 }
 
 function levenshtein(a: string, b: string): number {
@@ -549,8 +565,12 @@ export function createMatcher(
         for (const stored of entry.names) {
           /* Normalised again: a version loaded before a normalising rule changed still compares like for like. */
           const name = normaliseName(stored);
+          /* Exact on the whole normalised names; junk tokens are dropped for fuzzy scoring only. */
           const exact = person.norm === name;
-          const assessed = exact ? { score: 1, common: false } : nameAssess(person.norm, name, weight);
+          /* An exact match on a listing of common names only is still in the common group. */
+          const assessed = exact
+            ? { score: 1, common: foldName(name).split(" ").every(isCommonWord) }
+            : nameAssess(dropJunk(person.norm), dropJunk(name), weight);
           const score = exact ? 1 : Math.min(assessed.score, 0.999);
           if (score < threshold) continue;
           const kind = exact ? "exact" : "fuzzy";
@@ -564,7 +584,7 @@ export function createMatcher(
               screenedName: person.raw,
               matchedName: entry.primaryName,
               raise: kind === "exact" || factsAllowHit(entry, facts),
-              common: kind === "fuzzy" && assessed.common,
+              common: assessed.common,
             };
           }
         }
