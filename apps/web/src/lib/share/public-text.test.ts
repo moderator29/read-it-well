@@ -1,38 +1,47 @@
 import { describe, expect, it } from "vitest";
-import { isPublicSafe, publicAreaName, publicTitle } from "./public-text";
+import cases from "./rule-ten-cases.json";
+import { NEIGHBOURHOODS } from "../places/neighbourhoods";
+import { publicAreaName, publicCityName } from "./public-text";
 
-describe("text a lister typed, before it reaches a public surface", () => {
-  it("refuses streets, estates, house and plot numbers and landmarks", () => {
-    for (const text of [
-      "14 Admiralty Way",
-      "Admiralty Way",
-      "Chevron Drive",
-      "Lekki Gardens Estate",
-      "Bourdillon Road",
-      "Allen Avenue",
-      "Plot 12",
-      "Block C4",
-      "No. 3 Bode Thomas",
-      "House 7",
-      "opposite Shoprite",
-      "Off Awolowo",
-      "Victoria Garden City",
-    ]) {
-      expect(isPublicSafe(text), text).toBe(false);
-      expect(publicAreaName(text), text).toBeNull();
+/**
+ * RULE 10, BY CONSTRUCTION. The reviewer's cases (`rule-ten-cases.json`,
+ * copied from the review of 24 September) are strings a lister can type as
+ * an area or a city. None of them may reach a public surface unless the
+ * whole string is a name on the closed list, and then only in the list's
+ * spelling. The SQL twin is probed against the same cases.
+ */
+
+const LIST_NAMES = new Set(NEIGHBOURHOODS.map((n) => n.area.toLowerCase()));
+
+describe("a place a lister typed, before it reaches a public surface", () => {
+  it("admits none of the reviewer's cases except whole names on the closed list", () => {
+    for (const text of cases as string[]) {
+      const area = publicAreaName(text);
+      const city = publicCityName(text);
+      if (LIST_NAMES.has(text.trim().toLowerCase())) {
+        expect(area?.toLowerCase(), text).toBe(text.trim().toLowerCase());
+      } else {
+        expect(area, text).toBeNull();
+        expect(city, text).toBeNull();
+      }
     }
   });
 
-  it("keeps neighbourhood names and ordinary titles", () => {
-    for (const text of ["Yaba", "Lekki Phase 1", "Wuse 2", "Ikeja GRA", "Victoria Island", "Ogudu"]) {
-      expect(publicAreaName(text), text).toBe(text);
-    }
-    expect(publicTitle("2 bedroom flat with a prepaid meter")).toBe("2 bedroom flat with a prepaid meter");
-    expect(publicTitle("  Spacious   mini flat  ")).toBe("Spacious mini flat");
+  it("prints a list name in the list's spelling, whatever the case, spacing or width", () => {
+    expect(publicAreaName("  YABA ")).toBe("Yaba");
+    expect(publicAreaName("lekki   phase 1")).toBe("Lekki Phase 1");
+    expect(publicAreaName("Ｙａｂａ")).toBe("Yaba");
+    expect(publicAreaName("VI")).toBe("Victoria Island");
   });
 
-  it("refuses nothing-at-all as well, so a blank never prints", () => {
-    expect(isPublicSafe("")).toBe(false);
-    expect(isPublicSafe(null)).toBe(false);
+  it("refuses a lookalike letter from another alphabet", () => {
+    expect(publicAreaName("Yаba")).toBeNull();
+  });
+
+  it("holds a name to its own state", () => {
+    expect(publicAreaName("Wuse 2", "LA")).toBeNull();
+    expect(publicAreaName("Wuse 2", "FC")).toBe("Wuse 2");
+    expect(publicCityName("Lagos", "FC")).toBeNull();
+    expect(publicCityName("lagos", "LA")).toBe("Lagos");
   });
 });

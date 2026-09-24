@@ -8,11 +8,13 @@ import { areaPageRowFromRow, qualifyingPages, type AreaPage, type AreaPageRow } 
 /**
  * THE LIST OF AREA PAGES THAT MAY EXIST (V-82), read the way a stranger reads.
  *
- * `public.area_price_pages` is security invoker and granted to `anon`, and it
- * is read here as `anon` with NO COOKIES, literally as a stranger: a crawler,
- * a person and the sitemap all get the same list, under the same RLS, whoever
- * happens to be signed in on the device asking. A signed-in admin must never
- * see a page exist that a stranger would get a 404 for.
+ * `public.area_price_pages` is SECURITY DEFINER (since 20260924120600, so a
+ * stranger can call it without a grant on the private helpers) and returns
+ * only names on the closed neighbourhood list and counts, never a listing.
+ * It is read here as `anon` with NO COOKIES, literally as a stranger: a
+ * crawler, a person and the sitemap all get the same list whoever happens to
+ * be signed in on the device asking. A signed-in admin must never see a page
+ * exist that a stranger would get a 404 for.
  *
  * NULL IS "WE COULD NOT ASK", distinct from an empty list. The route turns
  * both into a 404 (a page we cannot vouch for is not served), but the sitemap

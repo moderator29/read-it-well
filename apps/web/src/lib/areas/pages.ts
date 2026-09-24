@@ -85,7 +85,9 @@ export function qualifyingPages(rows: readonly AreaPageRow[]): AreaPage[] {
   const out: AreaPage[] = [];
   for (const row of rows) {
     if (row.listingCount < MINIMUM_COMPARABLES) continue;
-    const name = publicAreaName(row.area);
+    /* Only a name on the closed neighbourhood list, in its own state, can
+       have a page (rule 10): the database applies the same list. */
+    const name = publicAreaName(row.area, row.stateCode);
     if (name === null) continue;
     const stateSlug = slugify(row.stateName);
     const areaSlug = slugify(name);

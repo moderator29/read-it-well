@@ -1,6 +1,6 @@
 import { formatMoneyGlance, type Dictionary, type Locale } from "@vallo/i18n";
 import { moveInTotal, type MoveInColumns } from "../listings/pricing";
-import { publicAreaName, publicTitle } from "./public-text";
+import { publicAreaName, publicCityName } from "./public-text";
 
 /**
  * THE SHARE DOOR, AS PURE FUNCTIONS: what a row from `public.share_door` may
@@ -19,23 +19,23 @@ import { publicAreaName, publicTitle } from "./public-text";
  * unfurler, because serving machines something humans are refused is cloaking.
  *
  * ---------------------------------------------------------------------------
- * THE ADDRESS RULE IS ENFORCED THREE TIMES, AND THIS IS THE SECOND.
+ * THE ADDRESS RULE IS A CONSTRUCTION, NOT A FILTER (rule 10).
  *
  *   1. `public.share_door` returns a fixed row type with no address, landmark,
- *      coordinate, location, estate, lister or contact column. The migration's
- *      probe inserts a listing with an address and fails if it comes back.
+ *      coordinate, location, estate, lister or contact column, returns NO
+ *      title at all, and returns an area or city only when the whole of it is
+ *      a name on the closed lists (`private.public_neighbourhood`,
+ *      `private.public_city`).
  *   2. `DoorRow` below names only the columns that function returns, and
  *      `doorCardFromRow` reads them by name. A row that somehow carried an
- *      `address` key is ignored, because nothing here reads it; the test
- *      `door.test.ts` hands it exactly such a row and searches the output.
- *   3. The TITLE and the AREA are free text a lister typed, and a lister can
- *      type "2 bed flat, 14 Admiralty Way" into either. Both are read through
- *      `lib/share/public-text.ts` (street and estate words, house and plot
- *      numbers, landmark phrasing, the Price Check address shapes), which the
- *      database applies too (`private.public_text_is_safe`). A title that
- *      fails is not printed: `doorTitle` composes one from facts ("2 bedroom
- *      flat in Yaba"). An area that fails falls back to the city, then the
- *      state.
+ *      `address` or a `title` is ignored, because nothing here reads it; the
+ *      test `door.test.ts` hands it exactly such a row and searches the
+ *      output.
+ *   3. NO TEXT A LISTER TYPED IS PRINTED. The heading is always composed from
+ *      facts (`doorTitle`: "2 bedroom flat in Yaba"; a stay: "A stay in
+ *      Ikoyi"), and the place is a closed-list neighbourhood, else a
+ *      closed-list city, else the state (`lib/share/public-text.ts`). A filter
+ *      over free text cannot be made provable; a closed list can.
  *
  * ---------------------------------------------------------------------------
  * AN EXAMPLE LISTING GETS A DOOR AND NO FIGURES. The database already blanks
@@ -51,6 +51,7 @@ export type DoorRow = {
   listing_id: string | null;
   reference: string | null;
   is_demo: boolean | null;
+  /** Always null since migration 20260924121300, and never read here: no lister text is printed. */
   title: string | null;
   area: string | null;
   city: string | null;
@@ -93,9 +94,7 @@ export type DoorCard =
       kind: "listing";
       listingId: string;
       reference: string | null;
-      /** The lister's title, or null when it failed the public-text test. */
-      title: string | null;
-      /** For composing a title when the lister's cannot be printed. */
+      /** For composing the title. The lister's own title is never carried. */
       propertyType: string | null;
       /** The area alone, for a composed title. */
       area: string | null;
@@ -116,8 +115,7 @@ export type DoorCard =
   | {
       kind: "stay";
       stayId: string;
-      /** The stay's name, or null when it failed the public-text test. */
-      title: string | null;
+      /** A closed-list neighbourhood or city. The stay's name is never carried. */
       area: string | null;
       place: string | null;
       photoPath: string | null;
@@ -163,9 +161,9 @@ function clean(text: string | null | undefined): string | null {
 /**
  * The place a door may print: AREA AND STATE ONLY.
  *
- * The lister's area first, if it is a neighbourhood name rather than an
- * address or an estate; otherwise the city; otherwise the state alone. Never
- * anything finer than the area, and never a string that failed either test.
+ * The area when the whole of it is a name on the closed neighbourhood list;
+ * otherwise the city when it is on the closed city list; otherwise the state
+ * alone. Always in the list's spelling, never the lister's.
  */
 export function doorPlace(
   area: string | null | undefined,
@@ -173,8 +171,7 @@ export function doorPlace(
   stateName: string | null | undefined,
 ): string | null {
   const state = clean(stateName);
-  const pick = (candidate: string | null | undefined): string | null => publicAreaName(candidate);
-  const local = pick(area) ?? pick(city);
+  const local = publicAreaName(area) ?? publicCityName(city);
   if (local === null) return state;
   if (state === null || local.toLowerCase() === state.toLowerCase()) return local;
   return `${local}, ${state}`;
@@ -248,8 +245,7 @@ export function doorCardFromRow(row: DoorRow | null | undefined): DoorCard | nul
     return {
       kind: "stay",
       stayId: row.listing_id,
-      title: publicTitle(row.title),
-      area: publicAreaName(row.area) ?? publicAreaName(row.city),
+      area: publicAreaName(row.area) ?? publicCityName(row.city),
       place: doorPlace(row.area, row.city, row.state_name),
       photoPath: clean(row.photo_path),
     };
@@ -267,9 +263,8 @@ export function doorCardFromRow(row: DoorRow | null | undefined): DoorCard | nul
     kind: "listing",
     listingId: row.listing_id,
     reference,
-    title: publicTitle(row.title),
     propertyType: clean(row.property_type),
-    area: publicAreaName(row.area) ?? publicAreaName(row.city),
+    area: publicAreaName(row.area) ?? publicCityName(row.city),
     place: doorPlace(row.area, row.city, row.state_name),
     bedrooms: row.bedrooms !== null && row.bedrooms >= 0 ? row.bedrooms : null,
     figures: doorFigures(row),
@@ -303,7 +298,7 @@ function fill(template: string, values: Record<string, string | number>): string
 }
 
 export type DoorLines = {
-  /** The title to print: the lister's if it passed, else composed. */
+  /** The title to print, always composed from facts (rule 10). */
   title: string;
   /** The big figure, or null when nothing was stated. */
   headline: string | null;
@@ -350,13 +345,11 @@ export function doorLines(
 const HOUSE_TYPES = new Set(["home", "villa"]);
 
 /**
- * The title a card prints: the lister's, when it passed the public-text test,
- * otherwise one composed only from facts the card already shows ("2 bedroom
- * flat in Yaba", "Shop in Ikeja", "Home"). Never a word the lister typed that
- * failed the test.
+ * The title a card prints, ALWAYS composed only from facts the card already
+ * shows ("2 bedroom flat in Yaba", "Shop in Ikeja", "Home"). The lister's own
+ * title is never printed on a public surface (rule 10).
  */
 export function doorTitle(card: Extract<DoorCard, { kind: "listing" }>, copy: Dictionary["frontDoor"]["door"]): string {
-  if (card.title !== null) return card.title;
   const t = copy.composed;
   const type = card.propertyType ?? "";
   const noun =
@@ -395,11 +388,11 @@ export function doorUtilities(
 }
 
 /**
- * The words on a stay's card. The name when it passed the public-text test,
- * otherwise "A stay in Victoria Island"; no figure, only the line saying the
- * rate is chosen by dates inside.
+ * The words on a stay's card: ALWAYS "A stay in Victoria Island" (or "A stay
+ * on Vallo" with no listed place), never the business's own name; no figure,
+ * only the line saying the rate is chosen by dates inside.
  */
 export function stayLines(card: Extract<DoorCard, { kind: "stay" }>, copy: Dictionary["frontDoor"]["door"]): DoorLines {
-  const title = card.title ?? (card.area ? fill(copy.stay.inArea, { area: card.area }) : copy.stay.plain);
+  const title = card.area ? fill(copy.stay.inArea, { area: card.area }) : copy.stay.plain;
   return { title, headline: copy.stay.rates, second: null, bedrooms: null };
 }

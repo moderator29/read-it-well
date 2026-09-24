@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import reviewerCases from "./rule-ten-cases.json";
 import { getDictionary } from "@vallo/i18n";
 import {
   doorCardFromRow,
@@ -81,13 +82,16 @@ describe("the door cannot carry an address, whatever it is handed", () => {
 
   it("refuses an area typed as a street address, and prints the state instead", () => {
     expect(doorPlace("14 Admiralty Way", null, "Lagos")).toBe("Lagos");
-    expect(doorPlace("No. 3 Bode Thomas", "Surulere", "Lagos")).toBe("Surulere, Lagos");
+    expect(doorPlace("No. 3 Bode Thomas", "Lagos", "Lagos")).toBe("Lagos");
+    /* A city not on the closed city list is free text too, and falls to the state. */
+    expect(doorPlace("No. 3 Bode Thomas", "Surulere", "Lagos")).toBe("Lagos");
   });
 
   it("refuses an estate or street name as an area", () => {
-    expect(doorPlace("Lekki Gardens Estate", "Lekki", "Lagos")).toBe("Lekki, Lagos");
+    expect(doorPlace("Lekki Gardens Estate", "Lagos", "Lagos")).toBe("Lagos");
     expect(doorPlace("Admiralty Way", null, "Lagos")).toBe("Lagos");
-    expect(doorPlace("Bourdillon Road", "Ikoyi", "Lagos")).toBe("Ikoyi, Lagos");
+    expect(doorPlace("Bourdillon Road", "Ikoyi", "Lagos")).toBe("Lagos");
+    expect(doorPlace("Ikota Villa", null, "Lagos")).toBe("Lagos");
   });
 
   it("keeps an ordinary neighbourhood name, with the state", () => {
@@ -120,10 +124,24 @@ describe("the lister's TITLE is text a lister typed, and it is held to the same 
     });
   }
 
-  it("keeps an ordinary title as the lister wrote it", () => {
+  it("never prints the lister's title, however ordinary: the heading is always composed", () => {
     const card = doorCardFromRow(row({ title: "Bright two bedroom flat with a prepaid meter" }));
     if (card?.kind !== "listing") throw new Error("expected a listing card");
-    expect(doorLines(card, copy, "en").title).toBe("Bright two bedroom flat with a prepaid meter");
+    expect(doorLines(card, copy, "en").title).toBe("2 bedroom flat in Yaba");
+  });
+
+  it("prints none of the reviewer's cases, typed as a title, an area or a city", () => {
+    const listed = new Set(["lekki phase 1", "yaba", "ikeja gra", "wuse 2", "victoria island", "parkview", "banana island"]);
+    for (const text of reviewerCases as string[]) {
+      const card = doorCardFromRow(row({ title: text, area: text, city: text }));
+      if (card?.kind !== "listing") throw new Error("expected a listing card");
+      const lines = doorLines(card, copy, "en");
+      const printed = JSON.stringify({ card, lines, place: card.place });
+      if (listed.has(text.trim().toLowerCase())) continue;
+      /* "2 bedroom flat" is also what the card composes from its own facts. */
+      if (lines.title.startsWith(text)) continue;
+      expect(printed, text).not.toContain(text);
+    }
   });
 
   it("composes by type when there is no area it may print", () => {
@@ -297,12 +315,13 @@ describe("a door for a stay (V-07 carry-over)", () => {
     });
   }
 
-  it("prints the name, the area and no figure, and leads to /stay/<id> through sign in", () => {
+  it("prints the area and no name and no figure, and leads to /stay/<id> through sign in", () => {
     const card = doorCardFromRow(stayRow());
     if (card?.kind !== "stay") throw new Error("expected a stay card");
     expect(card.place).toBe("Ikoyi, Lagos");
     const lines = stayLines(card, copy);
-    expect(lines.title).toBe("The Palms Rest");
+    expect(lines.title).toBe("A stay in Ikoyi");
+    expect(JSON.stringify({ card, lines })).not.toContain("Palms");
     expect(lines.headline).toBe(copy.stay.rates);
     expect(JSON.stringify({ card, lines })).not.toMatch(/85,000|8500000|85k/);
     expect(doorSignInHref(card)).toBe("/sign-in?next=%2Fstay%2Fea000000-0000-4000-8000-000000000001");

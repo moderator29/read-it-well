@@ -76,8 +76,36 @@ export const NEIGHBOURHOODS: readonly Neighbourhood[] = (
   .map(([area, city, stateCode]) => ({ area, city, stateCode }))
   .sort((a, b) => b.area.length - a.area.length);
 
+/**
+ * Cities a public surface may name when the area is not on the list above.
+ * Closed for the same reason: a city a lister typed is free text too. Each
+ * with its state, so "Lagos" is only ever printed for a listing in Lagos.
+ * The SQL twin is `private.public_city` (migration 20260924121300), and a
+ * test holds the two lists equal.
+ */
+export const PUBLIC_CITIES: readonly { city: string; stateCode: string }[] = [
+  ["Lagos", "LA"],
+  ["Abuja", "FC"],
+  ["Ibadan", "OY"],
+  ["Port Harcourt", "RI"],
+  ["Kano", "KN"],
+  ["Enugu", "EN"],
+  ["Benin City", "ED"],
+  ["Abeokuta", "OG"],
+  ["Kaduna", "KD"],
+  ["Jos", "PL"],
+  ["Ilorin", "KW"],
+  ["Owerri", "IM"],
+  ["Uyo", "AK"],
+  ["Calabar", "CR"],
+  ["Warri", "DE"],
+  ["Asaba", "DE"],
+  ["Awka", "AN"],
+  ["Onitsha", "AN"],
+].map(([city, stateCode]) => ({ city: city!, stateCode: stateCode! }));
+
 /** "VI" is how half of Lagos writes Victoria Island. */
-const PLACE_ALIASES: Readonly<Record<string, string>> = {
+export const PLACE_ALIASES: Readonly<Record<string, string>> = {
   vi: "Victoria Island",
   "v.i": "Victoria Island",
   "lekki phase one": "Lekki Phase 1",
@@ -104,3 +132,40 @@ export function findNeighbourhood(text: string): Neighbourhood | null {
   return null;
 }
 
+
+/**
+ * The one normal form every exact comparison below uses: compatibility
+ * normalised (so full-width letters fold), trimmed, single-spaced, lower
+ * case. A lookalike letter from another alphabet does not fold and so does
+ * not match, which is the point: the list admits names, not near misses.
+ */
+export function placeKey(text: string): string {
+  return text.normalize("NFKC").trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+/**
+ * The canonical neighbourhood when the WHOLE text is a name on the closed
+ * list (or one of its aliases), in the given state when one is given. Not a
+ * search: "Ikota Villa" is not "Ikota", and "Yaba, 14 Herbert Macaulay" is
+ * not "Yaba". Used by every public surface (rule 10).
+ */
+export function exactNeighbourhood(text: string | null | undefined, stateCode?: string | null): Neighbourhood | null {
+  if (typeof text !== "string") return null;
+  const key = placeKey(text);
+  if (key === "") return null;
+  const name = PLACE_ALIASES[key] ?? null;
+  const place = NEIGHBOURHOODS.find((p) => p.area.toLowerCase() === (name ?? key).toLowerCase()) ?? null;
+  if (!place) return null;
+  if (stateCode && place.stateCode !== stateCode.toUpperCase()) return null;
+  return place;
+}
+
+/** The canonical city when the whole text is a city on the closed list. */
+export function exactCity(text: string | null | undefined, stateCode?: string | null): string | null {
+  if (typeof text !== "string") return null;
+  const key = placeKey(text);
+  const found = PUBLIC_CITIES.find((c) => c.city.toLowerCase() === key);
+  if (!found) return null;
+  if (stateCode && found.stateCode !== stateCode.toUpperCase()) return null;
+  return found.city;
+}
