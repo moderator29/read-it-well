@@ -28,10 +28,17 @@
  *    migration `20260924012454_staff_assisted_email_recovery`), with reason
  *    `not_me`. That hold is already enforced by the audit's triggers
  *    (`wallet_entries_00_money_hold`, `bank_accounts_00_money_hold`,
- *    `payout_accounts_00_money_hold`): no withdrawal, no send, no payment or
- *    escrow hold from the balance, and no change of payout account, while it
- *    stands. This migration adds no second hold and no second trigger; it
- *    writes one row into the audit's table, under these rules:
+ *    `payout_accounts_00_money_hold`, all calling
+ *    `private.refuse_money_out_during_hold`). Read from the live function,
+ *    while it stands it refuses: a wallet DEBIT of kind withdrawal,
+ *    transfer_out, payment or escrow_hold; adding a bank account or changing
+ *    one's number or bank; and the same on an agent's payout account.
+ *    Credits, card payments (which never debit the wallet) and removing an
+ *    account still work. The trigger's own RM050 text names a support email
+ *    change whatever the reason, so the app never shows it raw:
+ *    `lib/security/account-hold-guard.ts` maps RM050 to the sentence for the
+ *    hold's actual reason. This migration adds no second hold and no second
+ *    trigger; it writes one row into the audit's table, under these rules:
  *
  *    - NO HOLD IN FORCE: a 24-hour hold is placed.
  *    - A HOLD IN FORCE, pressed from a session OLDER than the hold: the
@@ -44,6 +51,9 @@
  *    - An existing hold with another reason (a support email change) keeps its
  *      reason and is only ever lengthened, never shortened.
  *    - Five presses an hour per account, through `private.consume_rate_limit`.
+ *      The limit gates ONLY the hold and its notification. Every press ends
+ *      every other session, so a thief who presses five times first cannot
+ *      use up the owner's press; the owner's press still signs them out.
  *
  *    The password change is the step the server cannot take for them, so the
  *    screen sends them straight to it. Note for the audit, reported, not
@@ -75,13 +85,11 @@ declare
   v_until timestamptz;
   v_placed boolean := false;
   v_extended boolean := false;
+  v_allowed boolean;
+  v_reason text;
 begin
   if actor is null then
     return jsonb_build_object('status', 'forbidden');
-  end if;
-
-  if not private.consume_rate_limit('security_not_me', actor::text, 5, 3600) then
-    return jsonb_build_object('status', 'rate_limited');
   end if;
 
   select s.created_at into v_session_started from auth.sessions s where s.id = current_session;
@@ -94,9 +102,16 @@ begin
      and s.id is distinct from current_session;
   get diagnostics v_ended = row_count;
 
-  select * into v_hold from public.account_money_holds h where h.user_id = actor for update;
+  /* The limit gates only the hold and the notification, never the signing
+     out: a thief pressing five times must not use up the owner's press. */
+  v_allowed := private.consume_rate_limit('security_not_me', actor::text, 5, 3600);
 
-  if not found or v_hold.hold_until <= now() then
+  select * into v_hold from public.account_money_holds h where h.user_id = actor for update;
+  v_reason := case when found and v_hold.hold_until > now() then v_hold.reason else null end;
+
+  if not v_allowed then
+    v_until := case when v_reason is not null then v_hold.hold_until else null end;
+  elsif not found or v_hold.hold_until <= now() then
     v_until := now() + interval '24 hours';
     insert into public.account_money_holds (user_id, hold_until, reason, created_at)
     values (actor, v_until, 'not_me', now())
@@ -119,7 +134,8 @@ begin
   insert into public.audit_log (actor_id, action, entity_type, entity_id, metadata)
   values (actor, 'security.not_me', 'account', actor::text,
           jsonb_build_object('sessions_ended', v_ended, 'hold_until', v_until,
-                             'hold_placed', v_placed, 'hold_extended', v_extended));
+                             'hold_placed', v_placed, 'hold_extended', v_extended,
+                             'rate_limited', not v_allowed));
 
   if v_placed or v_extended then
     perform private.notify(
@@ -136,7 +152,9 @@ begin
     'ended', v_ended,
     'hold_until', v_until,
     'hold_placed', v_placed,
-    'hold_extended', v_extended
+    'hold_extended', v_extended,
+    'hold_reason', v_reason,
+    'rate_limited', not v_allowed
   );
 end;
 $$;
@@ -145,7 +163,7 @@ revoke all on function public.report_not_me() from public, anon, authenticated;
 grant execute on function public.report_not_me() to authenticated;
 
 comment on function public.report_not_me() is
-  'V-19. The owner says a sign-in was not them: every other session ends and a not_me row is written to the audit-owned public.account_money_holds (24h; extended to at most 72h only when pressed from a session older than the hold). Five an hour. Authorises off auth.uid() only.';
+  'V-19. The owner says a sign-in was not them: every other session ends, always, and a not_me row is written to the audit-owned public.account_money_holds (24h; extended to at most 72h only when pressed from a session older than the hold). The hold and its notification are limited to five an hour; the sign-out is not. Authorises off auth.uid() only.';
 
 -- ----------------------------------------------------------------------------
 -- WHICH DEVICE THE ALERT IS ABOUT, FOR ITS OWNER ONLY.
@@ -177,10 +195,21 @@ set search_path to ''
 as $$
 declare
   v_known integer;
+  /* The digest of Node's own agent, which GoTrue recorded on nearly every
+     web session before `agent-client.ts` forwarded the browser's. It is our
+     server, not a device, so it neither counts as a first device nor is one. */
+  c_node constant text := left(md5('node'), 16);
 begin
+  if new.fingerprint = c_node then
+    return new;
+  end if;
   /* The same rule as the email: the first device an account ever sees is
-     the sign-up, not a stranger. */
-  select count(*) into v_known from public.known_devices where user_id = new.user_id;
+     the sign-up, not a stranger. The node digest does not count, so the
+     first real browser after the fix is not announced as a stranger. */
+  select count(*) into v_known
+    from public.known_devices
+   where user_id = new.user_id
+     and fingerprint <> c_node;
   if v_known < 2 then
     return new;
   end if;

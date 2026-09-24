@@ -33,17 +33,21 @@ type Loose = { rpc: (fn: string, args?: Record<string, unknown>) => Promise<unkn
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const loose = (client: unknown) => client as any as Loose;
 
-export type DeviceAlertError = "signed-out" | "unconfigured" | "failed" | "invalid" | "rate-limited";
+export type DeviceAlertError = "signed-out" | "unconfigured" | "failed" | "invalid";
 
 export type NotMeResult = {
   /** How many other sessions were ended. Zero is an honest answer. */
   ended: number;
-  /** ISO 8601. When withdrawals and sends open again. */
-  holdUntil: string;
+  /** ISO 8601. When withdrawals and sends open again; null when no hold stands. */
+  holdUntil: string | null;
   /** False when a hold was already in force and this press did not add one. */
   holdPlaced: boolean;
   /** True when a press from an older session lengthened a hold already in force. */
   holdExtended: boolean;
+  /** Why the hold that stands was placed: this person's own press, or support. */
+  holdReason: "not_me" | "other" | null;
+  /** The press signed everything else out, but the hourly limit left the hold alone. */
+  rateLimited: boolean;
 };
 
 export async function reportNotMe(): Promise<ActionResult<NotMeResult>> {
@@ -63,18 +67,24 @@ export async function reportNotMe(): Promise<ActionResult<NotMeResult>> {
       hold_until?: unknown;
       hold_placed?: unknown;
       hold_extended?: unknown;
+      hold_reason?: unknown;
+      rate_limited?: unknown;
     };
-    if (answer.status === "rate_limited") return fail("rate-limited" satisfies DeviceAlertError);
-    if (answer.status !== "ok" || typeof answer.hold_until !== "string") {
+    const rateLimited = answer.rate_limited === true;
+    if (answer.status !== "ok") return fail("failed" satisfies DeviceAlertError);
+    /* A hold always has an end, except when the limit was hit with no hold in force. */
+    if (typeof answer.hold_until !== "string" && !(rateLimited && answer.hold_until === null)) {
       return fail("failed" satisfies DeviceAlertError);
     }
     revalidatePath("/settings/devices");
     revalidatePath("/wallet");
     return ok({
       ended: typeof answer.ended === "number" ? answer.ended : 0,
-      holdUntil: answer.hold_until,
+      holdUntil: typeof answer.hold_until === "string" ? answer.hold_until : null,
       holdPlaced: answer.hold_placed === true,
       holdExtended: answer.hold_extended === true,
+      holdReason: answer.hold_reason === "not_me" ? "not_me" : answer.hold_reason ? "other" : null,
+      rateLimited,
     });
   } catch {
     return fail("failed" satisfies DeviceAlertError);

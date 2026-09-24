@@ -32,7 +32,7 @@ export type NotMeCopy = Dictionary["platform"]["notMe"];
 
 type Outcome =
   | { kind: "held"; result: NotMeResult }
-  | { kind: "failed"; signedOut: boolean; rateLimited: boolean }
+  | { kind: "failed"; signedOut: boolean }
   | null;
 
 export function NotMePanel({
@@ -65,7 +65,6 @@ export function NotMePanel({
         setOutcome({
           kind: "failed",
           signedOut: result.error === "signed-out",
-          rateLimited: result.error === "rate-limited",
         });
     });
   };
@@ -76,7 +75,16 @@ export function NotMePanel({
         ? copy.endedNone
         : plural(outcome.result.ended, copy.ended, locale)
       : "";
-  const until = outcome?.kind === "held" ? formatHoldUntil(outcome.result.holdUntil, locale) : "";
+  const until =
+    outcome?.kind === "held" && outcome.result.holdUntil ? formatHoldUntil(outcome.result.holdUntil, locale) : "";
+  const heldConsequence = (result: NotMeResult): string => {
+    if (result.rateLimited) return result.holdUntil ? copy.rateLimitedHeld : copy.rateLimitedNoHold;
+    if (result.holdPlaced) return copy.heldConsequence;
+    if (result.holdExtended) return copy.extendedConsequence;
+    /* Pressing again does not change a hold, and the sentence says whose
+       hold it is: the person's own earlier press, or a support change. */
+    return result.holdReason === "not_me" ? copy.alreadyHeldConsequence : copy.alreadyHeldOtherConsequence;
+  };
 
   return (
     <div className="nf-panel nf-panel--card block p-card" data-testid="not-me-panel">
@@ -100,14 +108,8 @@ export function NotMePanel({
             if (!open) setOutcome(null);
           }}
           state="confirmed"
-          verdict={copy.heldVerdict}
-          consequence={(outcome.result.holdPlaced
-            ? copy.heldConsequence
-            : outcome.result.holdExtended
-              ? copy.extendedConsequence
-              : copy.alreadyHeldConsequence)
-            .replace("{until}", until)
-            .replace("{ended}", endedLine)}
+          verdict={outcome.result.holdUntil ? copy.heldVerdict : copy.signedOutVerdict}
+          consequence={heldConsequence(outcome.result).replace("{until}", until).replace("{ended}", endedLine).trim()}
           actions={[
             { label: copy.changePassword, href: "/reset-password", tone: "primary" },
             { label: copy.close, onClick: () => setOutcome(null), tone: "quiet" },
@@ -124,7 +126,7 @@ export function NotMePanel({
           state="failed"
           verdict={copy.failedVerdict}
           consequence={
-            outcome.signedOut ? copy.signedOut : outcome.rateLimited ? copy.rateLimited : copy.failedConsequence
+            outcome.signedOut ? copy.signedOut : copy.failedConsequence
           }
           actions={[{ label: copy.close, onClick: () => setOutcome(null), tone: "quiet" }]}
         />

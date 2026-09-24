@@ -77,7 +77,13 @@ export const platformEn = {
       "The hold now lasts until {until}. {ended} Change your password now: until you do, whoever has it can sign in again.",
     alreadyHeldConsequence:
       "Your wallet was already on hold until {until}; pressing again does not change that. {ended} Change your password now if you have not.",
-    rateLimited: "You have pressed this several times in the last hour. Your wallet is already protected; try again later if you need to.",
+    alreadyHeldOtherConsequence:
+      "Your wallet was already on hold until {until} while a change to your account is checked; pressing this does not shorten it. {ended} Change your password now if you have not.",
+    rateLimitedHeld:
+      "{ended} You have pressed this several times in the last hour, so the hold was left as it was: no money can leave your wallet until {until}. Change your password now if you have not.",
+    rateLimitedNoHold:
+      "{ended} You have pressed this several times in the last hour, so no new hold was placed this time. Change your password now, and press again later if you still need the hold.",
+    signedOutVerdict: "Every other device is signed out",
     ended: { one: "We signed out 1 other device.", other: "We signed out {count} other devices." } as PluralForms,
     endedNone: "Nothing else was signed in.",
     changePassword: "Change your password",
