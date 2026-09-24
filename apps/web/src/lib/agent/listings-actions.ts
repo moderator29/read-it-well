@@ -388,8 +388,15 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     .single();
 
   if (error || !created) return fail(SAVE_FAILED_MESSAGE);
-  if (value.broadcastUnconfirmed !== undefined && value.broadcastUnconfirmed.length > 0) {
-    await writeBroadcastMarks(gate.supabase, created.id, value.broadcastUnconfirmed);
+  if (
+    value.broadcastUnconfirmed !== undefined &&
+    value.broadcastUnconfirmed.length > 0 &&
+    !(await writeBroadcastMarks(gate.supabase, created.id, value.broadcastUnconfirmed))
+  ) {
+    /* V-09: a draft whose unchecked figures were not recorded could be sent
+       for review unchecked. The new draft is taken back and the save fails. */
+    await gate.supabase.from("listings").delete().eq("id", created.id).eq("agent_id", gate.agentId);
+    return fail(SAVE_FAILED_MESSAGE);
   }
 
   refreshAgentSurfaces();

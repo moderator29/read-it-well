@@ -188,6 +188,9 @@ export const frontDoorEn = {
     /** The server's refusal when a money figure from a pasted message is still unchecked. */
     unconfirmedOnServer:
       "Some figures were read from your pasted message and have not been checked yet. Tap Looks right on each one, or change it, then send.",
+    /** When the unchecked set could not be read: submit waits for a reload. */
+    marksUnreachable:
+      "We could not check which figures from your pasted message still need a look. Reload the page before you send.",
     open: "Start from your WhatsApp message",
     openBody: "Paste the message you already send. We fill in what it says, mark it, and leave the rest for you. Nothing is sent to anybody.",
     label: "Your message",

@@ -830,8 +830,10 @@ export function ListingWizard({
   /**
    * V-09: the unconfirmed set as the server holds it for this draft
    * (`listing_broadcast_marks`), so another device starts from the truth.
+   * Null when the read failed: the set is then never written from here (an
+   * empty set would wipe the server's) and submit waits until it is read.
    */
-  initialUnconfirmed?: readonly string[];
+  initialUnconfirmed?: readonly string[] | null;
   copy: WizardCopy;
   /**
    * V-74: the pricing step's guide. Absent in the harnesses, which then draw
@@ -897,7 +899,8 @@ export function ListingWizard({
    * is still in it: a figure read from a WhatsApp message is not sent for
    * review until a person has looked at it.
    */
-  const [fromMessage, setFromMessage] = useState<ReadonlySet<string>>(() => new Set(initialUnconfirmed));
+  const [fromMessage, setFromMessage] = useState<ReadonlySet<string>>(() => new Set(initialUnconfirmed ?? []));
+  const marksUnread = initialUnconfirmed === null;
 
   /*
    * The unconfirmed set survives a reload, keyed by the listing it belongs to
@@ -1322,7 +1325,7 @@ export function ListingWizard({
     const result = await saveDraft({
       id: listingId ?? undefined,
       /* V-09: the unconfirmed set goes to the server in the same save. */
-      broadcastUnconfirmed: [...fromMessage],
+      broadcastUnconfirmed: marksUnread ? undefined : [...fromMessage],
       title: values.title,
       description: values.description,
       propertyType: values.propertyType,
@@ -1405,7 +1408,7 @@ export function ListingWizard({
     if (!accessResult.ok) setNotice(accessResult.error);
 
     return result.data.id;
-  }, [canPersist, chosenAmenities, listingId, values, fromMessage]);
+  }, [canPersist, chosenAmenities, listingId, values, fromMessage, marksUnread]);
 
   function go(next: number) {
     const target = Math.min(STEP_KEYS.length - 1, Math.max(0, next));
@@ -3341,6 +3344,11 @@ export function ListingWizard({
               })}
             </ul>
 
+            {broadcastCopy && marksUnread && (
+              <p className="nf-body-sm mt-heading text-[var(--nf-content-secondary)]" role="status" data-testid="broadcast-unread">
+                {broadcastCopy.marksUnreachable}
+              </p>
+            )}
             {broadcastCopy && unconfirmedMoney.length > 0 && (
               <div className="mt-heading" role="status" data-testid="broadcast-confirm">
                 <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]">
@@ -3358,7 +3366,7 @@ export function ListingWizard({
               full
               className="mt-heading"
               onClick={send}
-              disabled={unmet.length > 0 || unconfirmedMoney.length > 0}
+              disabled={unmet.length > 0 || unconfirmedMoney.length > 0 || marksUnread}
               loading={pending}
             >
               {copy.submit.action}
