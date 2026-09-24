@@ -145,7 +145,7 @@ export default async function BookingDetailPage({
         locale={locale}
       />
       {/* V-91: "Is it as listed?", from check-in time until three hours after. */}
-      <ArrivalCheck bookingId={booking.id} locale={locale} />
+      <ArrivalCheck bookingId={booking.id} checkIn={booking.checkIn} locale={locale} />
     </>,
   );
 }

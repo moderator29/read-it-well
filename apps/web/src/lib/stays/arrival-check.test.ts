@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { arrivalPhotoPath, readArrivalCheckState, reportReady } from "./arrival-check";
+import { arrivalCheckMayBeOpen, arrivalPhotoPath, readArrivalCheckState, reportReady } from "./arrival-check";
 
 describe("the arrival check", () => {
   it("reads each state the database returns, and nothing else", () => {
@@ -33,5 +33,15 @@ describe("the arrival check", () => {
     expect(reportReady("not_as_listed", 0)).toBe(false);
     expect(reportReady("no_access", 1)).toBe(true);
     expect(reportReady("no_access", 7)).toBe(false);
+  });
+});
+
+describe("a failed read on the day", () => {
+  it("may be open on the check-in date and the day after, never otherwise", () => {
+    expect(arrivalCheckMayBeOpen("2026-09-30", "2026-09-30")).toBe(true);
+    expect(arrivalCheckMayBeOpen("2026-09-30", "2026-10-01")).toBe(true);
+    expect(arrivalCheckMayBeOpen("2026-09-30", "2026-09-29")).toBe(false);
+    expect(arrivalCheckMayBeOpen("2026-09-30", "2026-10-02")).toBe(false);
+    expect(arrivalCheckMayBeOpen("soon", "2026-09-30")).toBe(false);
   });
 });

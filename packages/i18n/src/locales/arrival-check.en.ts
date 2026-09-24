@@ -30,6 +30,7 @@ export const arrivalCheckEn = {
   back: "Back",
   uploadFailed: "That photo did not upload. Try again.",
   failed: "We could not send this just now. Try again. If you cannot get in and feel unsafe, call 112.",
+  readFailed: "We could not load the arrival check just now. Refresh in a minute. If you cannot get in and feel unsafe, call 112.",
   closedOrAnswered: "The arrival check for this stay is closed.",
   answeredYes: "You told us it was as listed at {time}.",
   answeredReport: "You reported this stay at {time}. Our team has your photos and will contact you. Your reference is {reference}.",

@@ -71,3 +71,15 @@ export function arrivalPhotoPath(bookingId: string, fileName: string, random: st
 export function reportReady(reason: ArrivalReportReason | null, photoCount: number): boolean {
   return reason !== null && photoCount >= 1 && photoCount <= MAX_ARRIVAL_PHOTOS;
 }
+
+/**
+ * Whether the check could be open today, for a page whose read failed: on the
+ * check-in date, or the day after (a late check-in hour can run past
+ * midnight). Dates are Lagos calendar days, YYYY-MM-DD.
+ */
+export function arrivalCheckMayBeOpen(checkIn: string, today: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(checkIn) || !/^\d{4}-\d{2}-\d{2}$/.test(today)) return false;
+  const next = new Date(`${checkIn}T00:00:00Z`);
+  next.setUTCDate(next.getUTCDate() + 1);
+  return today === checkIn || today === next.toISOString().slice(0, 10);
+}
