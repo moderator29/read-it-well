@@ -294,6 +294,7 @@ export const shapeEn = {
     anywhere: "Nowhere in particular",
     within: "Under {n} minutes at the morning rush",
     withinHint: "Only homes whose area has a time to this place, from our route guide or from residents.",
+    countAfterApply: "The count does not include the time limit to a newly chosen place yet. It applies when you show the results.",
     reportTitle: "How long did it take you?",
     locationTitle: "Getting to work from here",
     locationLede: "Rush-hour times from {area}, never a distance: a range, a window and whose figure it is.",

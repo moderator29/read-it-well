@@ -496,10 +496,19 @@ export function FilterDrawer({
   }, []);
 
   const pending = useMemo(() => queryFrom(query, draft), [query, draft]);
+  /* V-43: the pool carries bands to the anchor the shelf was loaded with, so
+     "within" is counted only for that anchor; a newly chosen one is counted
+     after Apply, and the sheet says so. */
+  const commuteCountable = draft.withinOn && draft.to !== "" && draft.to === (query.to ?? "");
+  const commutePending = draft.withinOn && draft.to !== "" && !commuteCountable;
   const matchCount = useMemo(() => {
     const filter = shelfFilter(pending);
-    return facts.filter((fact) => matchesFacts(fact, filter)).length;
-  }, [facts, pending]);
+    return facts.filter(
+      (fact) =>
+        matchesFacts(fact, filter) &&
+        (!commuteCountable || (fact.commuteAmHigh !== undefined && fact.commuteAmHigh <= RUSH_WITHIN)),
+    ).length;
+  }, [facts, pending, commuteCountable]);
 
   /* THE PRICE CONTROL IS SCALED TO THE MARKET (V-67). A fixed range per
      market (`PRICE_BOUNDS`), the Rent scale when no market is chosen, so the
@@ -744,6 +753,11 @@ export function FilterDrawer({
                       onChange={(next) => setDraft((current) => ({ ...current, withinOn: next }))}
                     />
                   </div>
+                )}
+                {commutePending && (
+                  <p className="nf-filters__hint mt-inline-tight" role="status">
+                    {commuteCopy.countAfterApply}
+                  </p>
                 )}
               </Group>
             )}
