@@ -6295,6 +6295,10 @@ export type Database = {
         Args: { p_escrow: string; p_reason: string }
         Returns: Json
       }
+      escrow_reverse_ruling: {
+        Args: { p_note: string; p_ruling: string }
+        Returns: Json
+      }
       escrow_raise_dispute_as: {
         Args: { p_actor: string; p_escrow: string; p_reason: string }
         Returns: Json
