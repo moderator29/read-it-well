@@ -1,28 +1,29 @@
 "use client";
 
 import { useEffect } from "react";
-import { FIRST_TOUCH_COOKIE, firstTouchCookie, readFirstTouch } from "@/lib/share/first-touch";
+import { FIRST_TOUCH_COOKIE, firstTouchCookie, withFirstTouch } from "@/lib/share/first-touch";
 
 /**
- * V-71: remembers, on this device, the first lister's door it opened, for
- * fourteen days, so an enquiry it later makes is credited to that lister.
- * First touch only: an existing, unexpired memory is never replaced. Draws
- * nothing; holds a token and a time, nothing about the person.
+ * V-71: remembers, on this device, the first lister's door it opened FOR THIS
+ * LISTING, for fourteen days, so an enquiry it later makes about the listing
+ * is credited to that lister. First touch per listing: an existing, unexpired
+ * memory for the listing is never replaced. Draws nothing; holds listing ids,
+ * door tokens and times, nothing about the person.
  */
-export function RememberDoor({ token }: { token: string }) {
+export function RememberDoor({ token, listingId }: { token: string; listingId: string }) {
   useEffect(() => {
     try {
-      const now = Date.now();
       const current = document.cookie
         .split(";")
         .map((part) => part.trim())
         .find((part) => part.startsWith(`${FIRST_TOUCH_COOKIE}=`))
         ?.slice(FIRST_TOUCH_COOKIE.length + 1);
-      if (readFirstTouch(current, now)) return;
-      document.cookie = firstTouchCookie(token, now, window.location.protocol === "https:");
+      const next = withFirstTouch(current, listingId, token, Date.now());
+      if (next === null) return;
+      document.cookie = firstTouchCookie(next, window.location.protocol === "https:");
     } catch {
       /* no cookies: no credit, and nothing else changes */
     }
-  }, [token]);
+  }, [token, listingId]);
   return null;
 }

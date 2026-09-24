@@ -2,7 +2,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 import type { createClient } from "../supabase/server";
-import { FIRST_TOUCH_COOKIE, readFirstTouch } from "./first-touch";
+import { FIRST_TOUCH_COOKIE, firstTouchFor } from "./first-touch";
 
 type Db = Awaited<ReturnType<typeof createClient>>;
 type Rpc = (fn: "attribute_conversation", args: Record<string, unknown>) => PromiseLike<{ error: unknown }>;
@@ -15,7 +15,16 @@ type Rpc = (fn: "attribute_conversation", args: Record<string, unknown>) => Prom
  */
 export async function attributeConversation(supabase: Db, conversationId: string): Promise<void> {
   try {
-    const touch = readFirstTouch((await cookies()).get(FIRST_TOUCH_COOKIE)?.value, Date.now());
+    /* The conversation's listing, read under the caller's own RLS: the touch
+       that counts is the one this device kept for THAT listing. */
+    const { data: row } = await supabase
+      .from("conversations")
+      .select("listing_id")
+      .eq("id", conversationId)
+      .maybeSingle();
+    const listingId = (row as { listing_id: string | null } | null)?.listing_id;
+    if (!listingId) return;
+    const touch = firstTouchFor((await cookies()).get(FIRST_TOUCH_COOKIE)?.value, listingId, Date.now());
     if (!touch) return;
     const rpc = supabase.rpc.bind(supabase) as unknown as Rpc;
     await rpc("attribute_conversation", {

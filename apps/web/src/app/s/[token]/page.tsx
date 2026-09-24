@@ -142,7 +142,7 @@ export default async function DoorPage({ params }: Params) {
   return (
     <>
       {/* V-71: first touch, for the lister whose link this is. */}
-      <RememberDoor token={token} />
+      <RememberDoor token={token} listingId={card.listingId} />
       <DoorListingView
         card={card}
         lines={doorLines(card, copy, locale)}
