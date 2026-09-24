@@ -4,11 +4,13 @@ import { agencyHoldIsOpen } from "@/lib/after-gate/money-holds-flags";
 import { formatMoneyDate } from "@/lib/money/dates";
 
 /**
- * V-56, to the boundary. The two lines under a move-in total once the agency
- * fee is held: what the agent is paid now, and what is set aside until the
- * keys. Renders NOTHING while `rent_agency_hold` or `held_payments` is off,
- * which is today, because the charge does not yet split: printing the lines
- * before the money moves that way would be a claim the ledger contradicts.
+ * V-56, to the boundary, and NOT MOUNTED ANYWHERE. The two lines under a
+ * move-in total once the agency fee is held: what the agent is paid now, and
+ * what is set aside until the keys. A flag cannot make them true: only an
+ * escrow row for the agency part of this booking can, and nothing writes one
+ * until the audit's `open_rent_charge` carve-out exists. Mount this where the
+ * charge is read, beside that row, once it does, and draw it only when the
+ * row is there.
  */
 export async function AgencyHoldLines({
   totalMinor,
