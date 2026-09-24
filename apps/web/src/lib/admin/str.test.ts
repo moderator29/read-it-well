@@ -184,7 +184,9 @@ describe("SCUML item 6: what the database holds to", () => {
     expect(own).toContain("if r.requested_by = actor then return 'same_person'; end if;");
     /* A live non-plain hold is not touched; the claims wait, and the job takes over. */
     expect(own).not.toMatch(/reason <> 'plain' then\s+if v_latest/);
-    expect(own).toContain("create or replace function private.hold_recompute_due()");
+    expect(own).toContain("create or replace function private.hold_claims_sweep()");
+    expect(own).toContain("grant execute on function public.hold_claims_sweep() to service_role;");
+    expect(own).toContain("select cron.schedule('vallo_hold_claims_sweep', '*/15 * * * *', 'select private.hold_claims_sweep();');");
     /* A plain freeze this model did not write, later than every claim, is left alone. */
     expect(own).toContain("if v_written is distinct from v_row.hold_until and (v_latest is null or v_row.hold_until > v_latest) then");
   });

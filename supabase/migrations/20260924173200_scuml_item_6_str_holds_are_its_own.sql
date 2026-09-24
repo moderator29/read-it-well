@@ -32,11 +32,12 @@
 --           ended (hold_until = now()) when no claim is live;
 --         `plain` is written only when a hold is created or replaces one that
 --           has ended.
---   private.hold_recompute_due()
+--   private.hold_claims_sweep()
 --       recomputes every person with a live claim, so pending claims take
---       over the moment a "this was not me" hold ends. Called by the
---       compliance desk's 15-minute screening job; returns how many rows it
---       looked at.
+--       over once a "this was not me" hold ends. Run every 15 minutes by
+--       pg_cron (`vallo_hold_claims_sweep`); public.hold_claims_sweep() is the
+--       same, as a service-role-only wrapper. Returns how many people it
+--       recomputed.
 --   Execute on all four is granted to nobody; only definer functions call
 --   them.
 --
@@ -126,7 +127,7 @@ begin
 end;
 $$;
 
-create or replace function private.hold_recompute_due()
+create or replace function private.hold_claims_sweep()
 returns integer
 language plpgsql
 security definer
@@ -178,7 +179,18 @@ end;
 $$;
 
 revoke all on function private.hold_recompute(uuid) from public, anon, authenticated, service_role;
-revoke all on function private.hold_recompute_due() from public, anon, authenticated, service_role;
+revoke all on function private.hold_claims_sweep() from public, anon, authenticated, service_role;
+
+/* The service role's door to the sweep, and nobody else's. */
+create or replace function public.hold_claims_sweep()
+returns integer
+language sql
+security definer
+set search_path = ''
+as $$ select private.hold_claims_sweep() $$;
+
+revoke all on function public.hold_claims_sweep() from public, anon, authenticated;
+grant execute on function public.hold_claims_sweep() to service_role;
 revoke all on function private.hold_claim_set(uuid, text, timestamptz, uuid) from public, anon, authenticated, service_role;
 revoke all on function private.hold_claim_clear(uuid, text) from public, anon, authenticated, service_role;
 
@@ -410,3 +422,9 @@ begin
   if bad <> '' then raise exception 'READ-BACK FAILED:%', bad; end if;
 end;
 $readback$;
+
+/* Pending claims take over within 15 minutes of a "this was not me" hold
+   ending. Scheduled with the rest of this migration, in its transaction. */
+select cron.unschedule('vallo_hold_claims_sweep')
+ where exists (select 1 from cron.job where jobname = 'vallo_hold_claims_sweep');
+select cron.schedule('vallo_hold_claims_sweep', '*/15 * * * *', 'select private.hold_claims_sweep();');
