@@ -464,5 +464,14 @@ export const trustVisibleEn = {
     /** The shared 404. No hotel pun: renters and landlords read this too. */
     lostTitle: "We could not find that page",
     lostBody: "The link may be old, or the page may have moved. Search for what you came for, or go back home.",
+    /** A screen inside the app that failed to load. No promise that nothing was lost: no code checks it. */
+    screenErrorOverline: "Error",
+    screenErrorTitle: "That screen did not load",
+    screenErrorBody: "Something on our side stopped part way through. Trying again usually settles it.",
+    /** `{digest}` is the server's id for the failure, for support to find it. */
+    screenErrorRef: "Reference {digest}",
+    offlineOverline: "Connection",
+    offlineTitle: "You are offline",
+    offlineBody: "The connection dropped before this page could load. Your balance, messages and bookings are never shown from an old copy, so they are real when you are back.",
   },
 };

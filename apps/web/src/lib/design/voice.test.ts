@@ -98,4 +98,22 @@ describe("the State kit and the old families", () => {
     const out = execFileSync("node", [join(__dirname, "../../../../../scripts/design/state-sweep.mjs")], { encoding: "utf8" });
     expect(out).toContain("state sweep: clean");
   });
+
+  it("draws the full-screen states through the kit, in the voice", () => {
+    const copy = getDictionary("en").trustVisible.state;
+    expect(
+      stateCopyProblems({ kind: "error", title: copy.screenErrorTitle, body: copy.screenErrorBody, actions: ["Try again", "Back to home"] }),
+    ).toEqual([]);
+    expect(
+      stateCopyProblems({ kind: "offline", title: copy.offlineTitle, body: copy.offlineBody, actions: ["Try again", "Back to home"] }),
+    ).toEqual([]);
+    expect(src("app/(app)/error.tsx")).toContain("<StateMoment");
+    expect(src("app/offline/page.tsx")).toContain("<StateMoment");
+    expect(bannedPhrasesIn(src("app/(app)/error.tsx"))).toEqual([]);
+  });
+
+  it("announces every shared loading shell through the kit", () => {
+    expect(src("components/app/ScreenSkeleton.tsx")).toContain('<State kind="loading" title={label}');
+    expect(src("components/social/profile/LoadingPeople.tsx")).toContain('<State kind="loading"');
+  });
 });

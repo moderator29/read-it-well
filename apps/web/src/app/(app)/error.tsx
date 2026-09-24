@@ -3,7 +3,10 @@
 import { useEffect } from "react";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { reportClientError } from "@/lib/observability/client";
-import { SystemMoment } from "../offline/SystemMoment";
+import { getDictionary } from "@vallo/i18n";
+import { StateMoment } from "@/components/ui/StateMoment";
+
+const COPY = getDictionary("en").trustVisible.state;
 
 /**
  * Personal Mode's error boundary: the brand moment, inside the chrome.
@@ -42,27 +45,30 @@ export default function AppError({
     reportClientError(error, { kind: "client.app_boundary", digest: error.digest });
   }, [error]);
 
+  /* V-97: the state kit's full-screen form, in the voice's words. */
   return (
-    <SystemMoment home="/home" inset>
-      <p className="nf-system__overline">Something went wrong</p>
-      <h1 className="nf-system__title">That screen did not load</h1>
-      <p className="nf-system__body">
-        Something on our side stopped part way through. Nothing you were doing
-        was lost, and trying again usually settles it.
-      </p>
-
-      {error.digest && (
-        <p className="nf-system__ref">Reference {error.digest}</p>
-      )}
-
-      <div className="nf-system__actions">
-        <Button variant="primary" size="lg" full onClick={reset}>
-          Try again
-        </Button>
-        <ButtonLink href="/home" variant="secondary" size="lg" full>
-          Back to home
-        </ButtonLink>
-      </div>
-    </SystemMoment>
+    <StateMoment
+      kind="error"
+      home="/home"
+      inset
+      overline={COPY.screenErrorOverline}
+      title={COPY.screenErrorTitle}
+      body={COPY.screenErrorBody}
+      detail={
+        error.digest ? (
+          <p className="nf-system__ref">{COPY.screenErrorRef.replace("{digest}", error.digest)}</p>
+        ) : null
+      }
+      actions={
+        <div className="nf-system__actions">
+          <Button variant="primary" size="lg" full onClick={reset}>
+            Try again
+          </Button>
+          <ButtonLink href="/home" variant="secondary" size="lg" full>
+            Back to home
+          </ButtonLink>
+        </div>
+      }
+    />
   );
 }

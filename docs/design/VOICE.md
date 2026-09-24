@@ -82,9 +82,9 @@ their call sites move to it route by route, and the wrappers are then deleted.
 | `EmptyState` | `components/app/Screen.tsx` | Now a wrapper over `State`. |
 | `EmptyPanel` | `components/social/profile/EmptyPanel.tsx` | Wraps `EmptyState`, so it already draws the kit. |
 | `EmptyActions` | `components/app/EmptyActions.tsx` | The kit's action shape, so it stays. |
-| `SystemMoment` | `app/offline/SystemMoment.tsx` | To migrate. It is the full-screen brand moment for the 404, offline and error pages. The 404's words are rewritten to these rules. |
+| `SystemMoment` | `app/offline/SystemMoment.tsx` | Now the stage under `StateMoment` (`components/ui/StateMoment.tsx`), the kit's full-screen form. The offline screen and the in-app error boundary draw through it. The 404 and the root error boundary are audit-named: the 404's words are rewritten, and the root boundary is left for the audit session. |
 | `ResultScreen`, `ResultSheet` | `components/app/ResultSheet.tsx` | To migrate onto `kind="done"` and `kind="error"`. |
-| Route `loading.tsx` files | 93 files | To migrate onto `kind="loading"`. |
+| Route `loading.tsx` files | 87 files | Every one but the share door's announces through `State kind="loading"`, directly or through `LoadingShell` (and the shells over it). Each keeps its own skeleton, the shape of the page that is coming, as the kit's children. |
 
 ## The ratchet
 

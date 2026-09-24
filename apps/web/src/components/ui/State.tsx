@@ -68,6 +68,11 @@ export type StateProps = {
   action?: ReactNode;
   /** A quiet line under the action, where a link will not do. */
   footnote?: ReactNode;
+  /**
+   * Loading only: the route's own skeleton, in the shape of the page that is
+   * coming, drawn in place of the three default lines.
+   */
+  children?: ReactNode;
   className?: string;
   "data-testid"?: string;
 };
@@ -82,21 +87,27 @@ export function State({
   action,
   footnote,
   className,
+  children,
   "data-testid": testId,
 }: StateProps) {
   const role = stateRole(kind);
 
   if (kind === "loading") {
+    /* The title is read out, not shown: a live region announces its text, and
+       an aria-label on a status region is not reliably spoken. A route that
+       draws its own skeleton (the shape of the page that is coming) passes it
+       as children; without one, three lines stand in. */
     return (
       <div
         data-testid={testId}
         data-state-kind="loading"
         role={role}
         aria-busy="true"
-        aria-label={title}
-        className={`flex flex-col px-lg py-section ${className ?? ""}`}
+        aria-live="polite"
+        className={children ? className : `flex flex-col px-lg py-section ${className ?? ""}`}
       >
-        <SkeletonText lines={3} />
+        <span className="sr-only">{title}</span>
+        {children ?? <SkeletonText lines={3} />}
       </div>
     );
   }

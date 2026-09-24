@@ -7,11 +7,11 @@
  * that has neither, and the layout would jump the moment the names arrived.
  */
 import { Skeleton } from "@/components/ui/Skeleton";
+import { State } from "@/components/ui/State";
 
 export function LoadingPeople() {
   return (
-    <div className="mx-auto max-w-2xl" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading people</span>
+    <State kind="loading" title="Loading people" className="mx-auto max-w-2xl">
 
       <div className="mb-md space-y-sm" aria-hidden="true">
         <Skeleton width="9rem" height="1.75rem" radius="xs" />
@@ -33,6 +33,6 @@ export function LoadingPeople() {
           </li>
         ))}
       </ul>
-    </div>
+    </State>
   );
 }

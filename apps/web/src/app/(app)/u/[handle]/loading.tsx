@@ -19,11 +19,11 @@
  * they will have read it before the truth arrives.
  */
 import { Skeleton } from "@/components/ui/Skeleton";
+import { State } from "@/components/ui/State";
 
 export default function LoadingProfile() {
   return (
-    <div className="mx-auto max-w-2xl" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading this page</span>
+    <State kind="loading" title="Loading this page" className="mx-auto max-w-2xl">
 
       <div className="nf-social-cover">
         <div className="nf-social-cover__art" aria-hidden="true" />
@@ -53,6 +53,6 @@ export default function LoadingProfile() {
         </div>
         <Skeleton height="2.75rem" radius="md" className="mt-lg" />
       </div>
-    </div>
+    </State>
   );
 }

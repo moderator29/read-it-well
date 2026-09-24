@@ -10,17 +10,16 @@
  * three post-shaped cards, so nothing jumps when the posts land.
  */
 import { Skeleton } from "@/components/ui/Skeleton";
+import { State } from "@/components/ui/State";
 
 export default function LoadingAround() {
   return (
-    <div
-      className="mx-auto w-full max-w-3xl pt-md"
-      style={{ paddingBottom: "var(--nf-tabbar-clearance)" }}
-      aria-busy="true"
-      aria-live="polite"
+    <State
+      kind="loading"
+      title="Loading your feed"
+      /* Clear of the tab bar, as the real feed is. */
+      className="mx-auto w-full max-w-3xl pt-md pb-[var(--nf-tabbar-clearance)]"
     >
-      <span className="sr-only">Loading your feed</span>
-
       <div className="mb-md flex items-center gap-md" aria-hidden="true">
         <Skeleton circle width="2.25rem" />
         <Skeleton width="8rem" height="1.75rem" radius="xs" />
@@ -59,6 +58,6 @@ export default function LoadingAround() {
           </div>
         ))}
       </div>
-    </div>
+    </State>
   );
 }
