@@ -18,6 +18,14 @@ Facts that apply to every row:
   headers), `cleartext: false` in the shell.
 - **Deletion: YES.** In the app: Settings → Account → Delete my account. On the
   web, with no install and no sign-in needed: `https://www.vallospaces.com/delete-account`.
+  Some data is kept after deletion for legal reasons, and Play's form allows
+  for that:
+  - Transaction records are kept for five years with the name and contact
+    details removed.
+  - An approved agent's identification is kept for five years under the AML
+    rules.
+
+  The notice (§7) and `/delete-account` say both.
 - **Processors are service providers, not "sharing".** Supabase, Vercel,
   Paystack, Resend, Anthropic, MapTiler/CARTO, FCM/APNs and Sentry process
   data on our instructions. Under Play's definitions that is not sharing.

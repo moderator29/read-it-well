@@ -14,10 +14,10 @@ import {
 
 /**
  * Record that this person agreed to the AI disclosure (STORE-07): a cookie on
- * this device, and on the account when signed in. Returns whether it was
- * recorded on the account as well.
+ * this device, and on the account when signed in. Signed in, the account
+ * record is the one the routes read, so a failed write is a failure.
  */
-export async function recordAiConsent(): Promise<{ ok: true; onAccount: boolean }> {
+export async function recordAiConsent(): Promise<{ ok: boolean; onAccount: boolean }> {
   const now = new Date();
   const jar = await cookies();
   jar.set(AI_CONSENT_COOKIE, consentCookieValue(now), {
@@ -43,7 +43,7 @@ export async function recordAiConsent(): Promise<{ ok: true; onAccount: boolean 
       }),
     })
     .eq("id", session.user.id);
-  return { ok: true, onAccount: !error };
+  return { ok: !error, onAccount: !error };
 }
 
 /** Withdraw it: the cookie goes and the account record is cleared. */

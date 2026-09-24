@@ -9,28 +9,33 @@ import { parseSettings } from "@/lib/profile/schema";
 import { AI_CONSENT_COOKIE, consentCurrent, parseConsentCookie } from "./consent";
 
 /**
- * Has the person making this request agreed (STORE-07)? The account record
- * when signed in, else this device's cookie. Any read failure is NO: the
- * routes then refuse rather than send.
+ * Has the person making this request agreed (STORE-07)?
+ *
+ * Signed in, the ACCOUNT RECORD decides and the cookie is not consulted: the
+ * stored setting is the record of consent that can be shown later, and a
+ * cookie from an earlier signed-out visit on a shared device is not this
+ * person's agreement. Signed out, this device's cookie is all there is. Any
+ * read failure is NO: the routes then refuse rather than send.
  */
 export async function hasAiConsent(input: {
   supabase?: SupabaseClient | null;
   userId?: string | null;
 }): Promise<boolean> {
+  if (input.supabase && input.userId) {
+    try {
+      const { data } = await input.supabase
+        .from("profiles")
+        .select("settings")
+        .eq("id", input.userId)
+        .maybeSingle();
+      return consentCurrent(parseSettings((data as { settings?: unknown } | null)?.settings).aiConsent);
+    } catch {
+      return false;
+    }
+  }
   try {
     const jar = await cookies();
-    if (consentCurrent(parseConsentCookie(jar.get(AI_CONSENT_COOKIE)?.value))) return true;
-  } catch {
-    /* no request context: fall through to the account */
-  }
-  if (!input.supabase || !input.userId) return false;
-  try {
-    const { data } = await input.supabase
-      .from("profiles")
-      .select("settings")
-      .eq("id", input.userId)
-      .maybeSingle();
-    return consentCurrent(parseSettings((data as { settings?: unknown } | null)?.settings).aiConsent);
+    return consentCurrent(parseConsentCookie(jar.get(AI_CONSENT_COOKIE)?.value));
   } catch {
     return false;
   }

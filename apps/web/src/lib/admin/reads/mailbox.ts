@@ -30,7 +30,7 @@ import { UNAVAILABLE, adminReader, readAll, type Read } from "./shared";
  */
 
 /** How the canonical form was reached, so an operator can weigh the link. */
-export type CanonicalRule = "gmail" | "plus_strip" | "lowercase_only" | "unparseable";
+export type CanonicalRule = "gmail" | "plus_strip" | "lowercase_only" | "unparseable" | "erased";
 
 export type MailboxLink = {
   /** The canonical address. Personal data: never put it in a log or a URL. */
@@ -51,7 +51,9 @@ export type SharedMailbox = {
 export type IdentityRow = { user_id: string; email_canonical: string; canonical_rule: string };
 
 function asRule(raw: string): CanonicalRule {
-  return raw === "gmail" || raw === "plus_strip" || raw === "unparseable" ? raw : "lowercase_only";
+  return raw === "gmail" || raw === "plus_strip" || raw === "unparseable" || raw === "erased"
+    ? raw
+    : "lowercase_only";
 }
 
 /**
@@ -142,4 +144,40 @@ export function sharedMailboxes(rows: readonly IdentityRow[]): SharedMailbox[] {
   }
   shared.sort((a, b) => b.userIds.length - a.userIds.length || a.canonical.localeCompare(b.canonical));
   return shared;
+}
+
+/* ------------------------------------------------ erased mailboxes */
+
+/**
+ * A live account on the same mailbox as a DELETED one.
+ *
+ * A deleted account keeps no address, only a keyed hash of its canonical
+ * mailbox (`erased:<hmac>`, written by the purge). Grouping by the stored
+ * value can never join that to a live row, so the database does the
+ * comparison: `admin_erased_identity_matches` hashes every live canonical with
+ * the same key and returns the pairs. Admin-only in the database; read
+ * through the operator's own session. The same ceiling as above applies:
+ * where to look, not what was found.
+ */
+export type ErasedMatch = { userId: string; erasedUserId: string; rule: CanonicalRule };
+
+export function erasedMatches(
+  rows: readonly { user_id: string; erased_user_id: string; canonical_rule: string }[],
+): ErasedMatch[] {
+  return rows.map((row) => ({
+    userId: row.user_id,
+    erasedUserId: row.erased_user_id,
+    rule: asRule(row.canonical_rule),
+  }));
+}
+
+export async function readErasedMatches(): Promise<Read<ErasedMatch[]>> {
+  const db = await adminReader();
+  if (!db) return UNAVAILABLE;
+  const { data, error } = await db.rpc("admin_erased_identity_matches" as never);
+  if (error || !Array.isArray(data)) return UNAVAILABLE;
+  return {
+    state: "ok",
+    data: erasedMatches(data as { user_id: string; erased_user_id: string; canonical_rule: string }[]),
+  };
 }

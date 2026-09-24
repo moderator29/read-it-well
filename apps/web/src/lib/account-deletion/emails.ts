@@ -61,7 +61,7 @@ export function deletionStarted(data: DeletionStartedData): DeletionEmail {
         `${hello(data.name)} We have received your request. Your account is now signed out everywhere and deactivated, and nothing has been destroyed yet.`,
       ),
       paragraph(
-        `On ${when}, which is ${GRACE_WINDOW_DAYS} days from now, we will destroy your profile, your photographs, your posts, your saved items, your messages' attachments and every file you uploaded, including any identity or host documents.`,
+        `On ${when}, which is ${GRACE_WINDOW_DAYS} days from now, we will destroy your profile, your photographs, your posts, your saved items, your messages' attachments and every file you uploaded, including any host documents. If you were approved as an agent, your identification documents and details are kept for five years, as the money laundering rules require, and then destroyed.`,
       ),
       paragraph(
         "Records of money will be kept. Bookings, wallet entries, payments and payout records stay on file because Nigerian anti-money-laundering rules require them, and your name, email address and telephone number are removed from every one of them. Messages you sent stay in the other person's conversation with an anonymous sender, so their side of the thread still reads.",
@@ -109,7 +109,7 @@ export function deletionCompleted(data: DeletionCompletedData): DeletionEmail {
         "Your posts, comments, stories and drafts.",
         "Your saved items, interests and saved searches.",
         "Every device you were signed in on, and every notification.",
-        "Every file you uploaded, including identity and host documents.",
+        "Every file you uploaded, including host documents. An approved agent's identification is kept for five years, as the money laundering rules require, and then destroyed.",
       ]),
       heading("What was kept, and why"),
       paragraph(

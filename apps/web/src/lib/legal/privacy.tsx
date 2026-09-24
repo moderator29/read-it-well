@@ -151,8 +151,10 @@ export const PRIVACY_SECTIONS: { id?: string; title: string; body: React.ReactNo
             tracking in Vallo.
           </li>
           <li>
-            <strong>Emails we send you,</strong> kept for a short time so we can see
-            whether they were delivered.
+            <strong>Emails we send you.</strong> A record of each one is kept for 90
+            days after it is delivered, so we can answer whether it arrived. A record of
+            an email that could not be delivered is kept until a person at Vallo has
+            dealt with it.
           </li>
         </ul>
       </>
@@ -327,14 +329,16 @@ export const PRIVACY_SECTIONS: { id?: string; title: string; body: React.ReactNo
           to warn you about new sign-ins, your notification addresses, your
           notifications, the emails we had queued or sent you, your price checks and saved
           price-check spots, your assistant conversations, your saved cards and bank
-          accounts, and every file you have uploaded, including identity, agency and host
-          documents. The files are removed from storage, not merely the records that
-          point at them.
+          accounts, and every file you have uploaded, including host documents and the
+          identity and agency documents of anybody who applied to be an agent and was not
+          approved. The files are removed from storage, not merely the records that
+          point at them. The one exception is an approved agent&rsquo;s identification,
+          described below.
         </p>
         <p>
           <strong>Your email address is not kept.</strong> We keep only a one-way keyed
-          code made from it, which cannot be turned back into the address, so the same
-          mailbox can be recognised if it is used to open a new account.
+          code made from it, which cannot be turned back into the address. Our staff can
+          use it only to see that a new account uses the same mailbox as a deleted one.
         </p>
         <p>
           <strong>Money is never deleted with an account.</strong> On the day the deletion
@@ -364,10 +368,15 @@ export const PRIVACY_SECTIONS: { id?: string; title: string; body: React.ReactNo
           else.
         </p>
         <p>
-          Verification documents are the clearest example of the line: while you are an
-          agent or a host we keep them because the law requires us to hold them; when you
-          delete your account we destroy the documents themselves and keep only the record
-          that a check took place, with the document type and number removed.
+          Verification documents are the clearest example of the line. If you were
+          approved as an agent, you were a customer under the same anti money laundering
+          law, which requires us to keep your identification. So when you delete your
+          account we keep, for five years after it closes, your identity and agency
+          documents, your name, residential address, ID type and number, business
+          registration and payout account details. Only our staff can read them, and at
+          the end of the five years they are destroyed. If you applied and were not
+          approved, none of this is kept: the documents and the numbers are destroyed with
+          the rest of your account.
         </p>
         <p>
           The full list of what is destroyed and what is kept, and the form that stops a

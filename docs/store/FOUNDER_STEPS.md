@@ -109,3 +109,21 @@ it to close the catalogue again.
    (`current_key`). It is not a secret.
 5. Record 30 seconds for the review notes: a push arriving, the share sheet on
    a listing, and "Take a photo" in the listing wizard.
+
+## 7. Account deletion: two things only you can settle (SEC-13, STORE-P2-02)
+
+1. **The AML retention period.** When an approved agent deletes their account,
+   their identification is kept for five years: the identity and agency
+   documents, and the name, address, ID number, business registration and
+   payout details. This follows `docs/RETENTION_SCHEDULE.md` 3.1, and the
+   privacy notice §7 says it. Confirm the period with counsel. If it changes,
+   change the interval in `purge_account_rows` and the notice in the same
+   commit. The records are stamped `agent_applications.kyc_retain_until`.
+   Nothing expires before 2031, and the job that destroys them on that date
+   is a recorded follow-up. It is not built yet.
+2. **The key in the vault.** A deleted account keeps a keyed hash of its
+   mailbox, so staff can see when a new account uses the same mailbox. The
+   key is the Supabase Vault secret `account_identity_pepper`.
+   - Include the Vault in any backup or restore plan. A restored database
+     without the key can no longer match erased mailboxes.
+   - Never rotate the key without re-hashing every erased row.

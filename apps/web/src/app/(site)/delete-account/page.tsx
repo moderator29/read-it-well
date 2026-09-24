@@ -111,8 +111,12 @@ export default function DeleteAccountPage() {
               Your profile, your photograph and cover picture, your posts, comments, stories and
               drafts, your saved items, interests and searches, your devices and notifications,
               your saved cards and bank accounts, and every file you have uploaded, including any
-              identity, agency or host documents. The files are removed from storage, not just the
-              records that point at them.
+              host documents. The files are removed from storage, not just the records that point
+              at them. An approved agent&rsquo;s identification (identity and agency documents, ID
+              number, name, address and payout details) is the exception: the money laundering
+              rules require it to be kept for five years after the account closes, readable only
+              by our staff, and then it is destroyed. An applicant who was not approved keeps
+              nothing.
             </p>
             <ul className="mt-sm grid gap-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)] sm:grid-cols-2">
               {DESTROYED_TABLES.map((entry) => (

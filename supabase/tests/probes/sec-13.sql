@@ -1,10 +1,22 @@
 -- SEC-13 / STORE-P2-02 / ESC-06 / MON-09 / STORE-12: the account purge erases
 -- what it promises and never erases money. Two throwaway accounts, created and
--- purged inside this transaction; always rolls back.
+-- purged inside this transaction; always rolls back. Also: an approved
+-- agent's identification record is kept for the AML period, staff can match
+-- a new account to an erased mailbox, and delivered emails are pruned.
 do $$
 declare
   rich   constant uuid := 'a5ec1300-0000-4000-8000-00000000000a';
   clean  constant uuid := 'b5ec1300-0000-4000-8000-00000000000b';
+  agent  constant uuid := 'c5ec1300-0000-4000-8000-00000000000c';
+  again  constant uuid := 'd5ec1300-0000-4000-8000-00000000000d';
+  admin  constant uuid := '03f3dd52-ea28-4852-9abe-e5b0a67c2a43';
+  member constant uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
+  req_a  uuid;
+  app_c  uuid;
+  app_a  uuid;
+  o_old  uuid;
+  o_new  uuid;
+  o_fail uuid;
   req_r  uuid;
   req_c  uuid;
   res    jsonb;
@@ -20,7 +32,24 @@ begin
     (rich,  '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
      'probe.rich.sec13@gmail.com', '', now(), now(), now(), '{}'::jsonb, '{"first_name":"Probe","surname":"Rich"}'::jsonb),
     (clean, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-     'Probe.Clean.SEC13+x@gmail.com', '', now(), now(), now(), '{}'::jsonb, '{"first_name":"Probe","surname":"Clean"}'::jsonb);
+     'Probe.Clean.SEC13+x@gmail.com', '', now(), now(), now(), '{}'::jsonb, '{"first_name":"Probe","surname":"Clean"}'::jsonb),
+    (agent, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+     'probe.agent.sec13@example.invalid', '', now(), now(), now(), '{}'::jsonb, '{"first_name":"Probe","surname":"Agent"}'::jsonb);
+
+  -- The clean account applied to be an agent and was rejected: nothing kept.
+  insert into public.agent_applications (user_id, status, full_name, phone, id_type, id_number, bank_name, account_number)
+  values (clean, 'REJECTED', 'Probe Clean', '08000000000', 'nin', '12345678901', 'Probe Bank', '0123456789')
+  returning id into app_c;
+  insert into public.agent_documents (application_id, uploader_id, kind, storage_path)
+  values (app_c, clean, 'identity', clean::text || '/probe-id.jpg');
+
+  -- The agent account was approved: its identification record is kept.
+  insert into public.agent_applications (user_id, status, full_name, phone, email, residential_address, id_type, id_number, bank_name, account_number, account_name)
+  values (agent, 'APPROVED', 'Probe Agent', '08000000001', 'probe.agent.sec13@example.invalid', '1 Probe Road', 'nin', '10987654321', 'Probe Bank', '9876543210', 'Probe Agent')
+  returning id into app_a;
+  insert into public.agent_documents (application_id, uploader_id, kind, storage_path)
+  values (app_a, agent, 'identity', agent::text || '/probe-id.jpg');
+  insert into public.agents (user_id, display_name) values (agent, 'Probe Agent');
 
   -- The rich account has money in a savings pot.
   insert into public.wallet_pots (user_id, name, balance_minor) values (rich, 'Rent pot', 250000);
@@ -116,6 +145,69 @@ begin
   select email_canonical into canon from public.account_identities where user_id = clean;
   if canon not like 'erased:%' then
     raise exception 'PROBE_FAIL sec-13: the auth trigger overwrote the erased identity with %', canon;
+  end if;
+
+  -- The rejected applicant's identification is gone.
+  if exists (select 1 from public.agent_documents where uploader_id = clean) then
+    raise exception 'PROBE_FAIL sec-13: a rejected applicant''s document survived';
+  end if;
+  if (select id_number is not null or full_name is not null or kyc_retain_until is not null
+        from public.agent_applications where id = app_c) then
+    raise exception 'PROBE_FAIL sec-13: a rejected applicant''s ID number or name survived';
+  end if;
+
+  -- 3. The approved agent: purged, identification record kept for five years.
+  insert into public.account_deletion_requests (user_id, purge_after) values (agent, now() - interval '1 minute') returning id into req_a;
+  res := public.purge_account_rows(req_a);
+  if (res ->> 'purged')::boolean is not true or (res -> 'counts' ->> 'kyc_retained')::boolean is not true then
+    raise exception 'PROBE_FAIL sec-13: the approved agent was not purged with retention: %', res;
+  end if;
+  if res -> 'storage' ? 'agent-documents' then
+    raise exception 'PROBE_FAIL sec-13: the retained identity files were listed for deletion';
+  end if;
+  if not exists (select 1 from public.agent_documents where uploader_id = agent) then
+    raise exception 'PROBE_FAIL sec-13: the approved agent''s document was destroyed';
+  end if;
+  if not exists (select 1 from public.agent_applications
+                  where id = app_a and id_number = '10987654321' and full_name = 'Probe Agent'
+                    and account_number = '9876543210' and phone is null and email is null
+                    and kyc_retain_until > now() + interval '4 years 11 months') then
+    raise exception 'PROBE_FAIL sec-13: the approved agent''s record was not kept as scheduled';
+  end if;
+
+  -- 4. Staff can see that a new account uses an erased mailbox; a member cannot ask.
+  insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
+                          created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
+  values (again, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+          'probecleansec13@gmail.com', '', now(), now(), now(), '{}'::jsonb, '{}'::jsonb);
+  set local role authenticated;
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  select count(*) into n from public.admin_erased_identity_matches() m
+   where m.user_id = again and m.erased_user_id = clean;
+  if n <> 1 then
+    raise exception 'PROBE_FAIL sec-13: staff could not match the new account to the erased mailbox';
+  end if;
+  perform set_config('request.jwt.claims', json_build_object('sub', member, 'role', 'authenticated')::text, true);
+  begin
+    perform public.admin_erased_identity_matches();
+    raise exception 'PROBE_FAIL sec-13: a member read the erased-mailbox matches';
+  exception when insufficient_privilege then null;
+  end;
+  reset role;
+  perform set_config('request.jwt.claims', '', true);
+
+  -- 5. Delivered emails are pruned after 90 days; failed ones wait for a person.
+  insert into public.email_outbox (dedupe_key, template, user_id, status, settled_at)
+  values ('probe-sec13-old-' || gen_random_uuid(), 'probe', member, 'SENT', now() - interval '91 days') returning id into o_old;
+  insert into public.email_outbox (dedupe_key, template, user_id, status, settled_at)
+  values ('probe-sec13-new-' || gen_random_uuid(), 'probe', member, 'SENT', now() - interval '1 day') returning id into o_new;
+  insert into public.email_outbox (dedupe_key, template, user_id, status, settled_at)
+  values ('probe-sec13-fail-' || gen_random_uuid(), 'probe', member, 'FAILED', now() - interval '400 days') returning id into o_fail;
+  perform private.purge_email_outbox();
+  if exists (select 1 from public.email_outbox where id = o_old)
+     or not exists (select 1 from public.email_outbox where id = o_new)
+     or not exists (select 1 from public.email_outbox where id = o_fail) then
+    raise exception 'PROBE_FAIL sec-13: the outbox prune did not keep 90 days of delivered mail and every failure';
   end if;
 
   raise exception 'PROBE_OK sec-13';

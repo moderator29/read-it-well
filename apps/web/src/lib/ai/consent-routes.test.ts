@@ -93,11 +93,12 @@ describe.each([
     expect(seam.fetches.some((url) => url.includes("api.anthropic.com"))).toBe(true);
   });
 
-  it("goes ahead on this device's consent cookie", async () => {
+  it("signed in, a device cookie without the account record is refused", async () => {
     const { consentCookieValue } = await import("./consent");
     seam.cookie = consentCookieValue();
     const POST = await load();
     const response = await POST(post(`https://www.vallospaces.com${path}`));
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(403);
+    expect(seam.fetches.some((url) => url.includes("anthropic.com"))).toBe(false);
   });
 });

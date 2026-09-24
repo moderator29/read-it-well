@@ -1679,7 +1679,7 @@ export const en = {
       losesContent: "Your posts, comments, stories, saved items, interests and drafts.",
       losesDevices: "Every device you are signed in on, and every notification.",
       losesFiles:
-        "Every file you have uploaded, including any identity or host documents.",
+        "Every file you have uploaded, including any host documents. If you were approved as an agent, your identification is kept for five years, as the money laundering rules require, and then destroyed.",
       /* The founder's ruling of 19 September: a future event is cancelled with
          notice to everyone attending, never left with a host who has gone.
          Named here so nobody discovers it afterwards, which is the whole

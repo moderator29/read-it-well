@@ -452,10 +452,12 @@ export function AssistantChat({
   );
 
   const send = useCallback(
-    (raw: string) => {
+    (raw: string, decided?: "yes") => {
+      /* `decided` is the sheet's fresh yes, passed in because the state set
+         beside it is not visible until the next render. */
       const text = raw.trim();
       if (!text) return;
-      if (consent !== "yes") {
+      if ((decided ?? consent) !== "yes") {
         /* Asked before anything leaves the device. The draft stays put. */
         setPending(text);
         setConsentSheet(true);
@@ -500,15 +502,6 @@ export function AssistantChat({
     [activeId, threads, runAssistant, consent],
   );
 
-  /* Agreeing sends the question they had asked; declining leaves the draft
-     where it was and the assistant off. */
-  useEffect(() => {
-    if (consent === "yes" && pending) {
-      const question = pending;
-      setPending(null);
-      send(question);
-    }
-  }, [consent, pending, send]);
 
   /** Re-run the last turn after a failure: drop the failed bubble, resend. */
   const retry = useCallback(
@@ -801,8 +794,12 @@ export function AssistantChat({
           {consentSheet ? (
             <AiConsentSheet
               onAgreed={() => {
+                /* Agreeing sends the question they had asked; declining
+                   leaves the draft where it was and the assistant off. */
                 setConsentSheet(false);
                 setConsent("yes");
+                if (pending) send(pending, "yes");
+                setPending(null);
               }}
               onDeclined={() => {
                 setConsentSheet(false);

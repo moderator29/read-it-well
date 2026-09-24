@@ -21,6 +21,7 @@ export function AiConsentSheet({
   onDeclined: () => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
   return (
     <section
       role="dialog"
@@ -45,8 +46,10 @@ export function AiConsentSheet({
           disabled={busy}
           onClick={() => {
             setBusy(true);
+            setFailed(false);
             void recordAiConsent()
-              .then(() => onAgreed())
+              .then((result) => (result.ok ? onAgreed() : setFailed(true)))
+              .catch(() => setFailed(true))
               .finally(() => setBusy(false));
           }}
         >
@@ -56,6 +59,11 @@ export function AiConsentSheet({
           {AI_DISCLOSURE.decline}
         </button>
       </div>
+      {failed ? (
+        <p role="alert" className="nf-body-sm mt-sm" data-testid="ai-consent-failed">
+          That was not saved, so nothing has been sent. Try again.
+        </p>
+      ) : null}
       <p className="nf-body-sm mt-sm">
         <Link href="/contact" className="underline" data-testid="ai-consent-human">
           {AI_DISCLOSURE.human}

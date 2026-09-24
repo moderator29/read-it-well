@@ -226,10 +226,13 @@ export function SupportChat({ aiConsented = false }: { aiConsented?: boolean } =
   );
 
   const send = useCallback(
-    async (raw: string) => {
+    async (raw: string, decided?: "yes" | "declined") => {
+      /* `decided` is the answer the consent sheet has just given, passed in
+         because the state set beside it is not visible until the next render. */
+      const answer = decided ?? consent;
       const text = raw.trim();
       if (!text || streaming) return;
-      if (!keywordOnly && consent === "ask") {
+      if (!keywordOnly && answer === "ask") {
         setPending(text);
         setConsentSheet(true);
         return;
@@ -247,7 +250,7 @@ export function SupportChat({ aiConsented = false }: { aiConsented?: boolean } =
 
       // Already told the platform cannot answer, or the person said no to the
       // AI: stay local, stay useful.
-      if (keywordOnly || consent === "declined") {
+      if (keywordOnly || answer === "declined") {
         answerFromKeywords(replyId, text);
         return;
       }
@@ -350,17 +353,6 @@ export function SupportChat({ aiConsented = false }: { aiConsented?: boolean } =
     [answerFromKeywords, keywordOnly, patch, streaming, consent],
   );
 
-  useEffect(() => {
-    if (consent === "yes" && pending) {
-      const question = pending;
-      setPending(null);
-      void send(question);
-    } else if (consent === "declined" && pending) {
-      const question = pending;
-      setPending(null);
-      void send(question);
-    }
-  }, [consent, pending, send]);
 
   /** Talk to a person: always available, never behind a failed answer. */
   const askForHuman = () => {
@@ -535,10 +527,14 @@ export function SupportChat({ aiConsented = false }: { aiConsented?: boolean } =
                   onAgreed={() => {
                     setConsentSheet(false);
                     setConsent("yes");
+                    if (pending) void send(pending, "yes");
+                    setPending(null);
                   }}
                   onDeclined={() => {
                     setConsentSheet(false);
                     setConsent("declined");
+                    if (pending) void send(pending, "declined");
+                    setPending(null);
                   }}
                 />
               </div>
