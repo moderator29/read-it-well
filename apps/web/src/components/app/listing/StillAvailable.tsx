@@ -1,0 +1,59 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import type { Dictionary } from "@vallo/i18n";
+import { Button } from "@/components/ui/Button";
+import { askStillAvailable } from "@/lib/availability/actions";
+
+/**
+ * V-14: "STILL AVAILABLE?", the first button on a rental page.
+ *
+ * One tap opens (or reopens) the thread with the lister, records the question
+ * and sends "Is this still available?" in the renter's name, then lands them in
+ * the chat where the answer will arrive. A second tap on a question that is
+ * still open changes nothing and simply opens the chat. The refusals (asked
+ * already today, an example or unpublished listing, signed out) are sentences
+ * under the button, never a silent nothing.
+ */
+export function StillAvailable({
+  listingId,
+  copy,
+}: {
+  listingId: string;
+  copy: Dictionary["frontDoor"]["available"];
+}) {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+
+  return (
+    <div className="nf-panel nf-panel--card p-card-sm" data-testid="still-available">
+      <Button
+        variant="primary"
+        full
+        loading={pending}
+        leadingIcon="chat-bubble"
+        onClick={() => {
+          setError(null);
+          start(async () => {
+            const result = await askStillAvailable({ listingId });
+            if (!result.ok) {
+              setError(result.error);
+              return;
+            }
+            router.push(`/messages/${result.data.conversationId}`);
+          });
+        }}
+      >
+        {pending ? copy.asking : copy.ask}
+      </Button>
+      <p className="mt-inline nf-caption text-[var(--nf-content-muted)]">{copy.askNote}</p>
+      {error && (
+        <p className="mt-inline nf-body-sm font-medium text-[var(--nf-state-error)]" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}

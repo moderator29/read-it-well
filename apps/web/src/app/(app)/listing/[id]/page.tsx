@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { StillAvailable } from "@/components/app/listing/StillAvailable";
 import { panelClass } from "@/components/ui/Panel";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -532,6 +533,10 @@ export default async function ListingDetailPage({
     </div>
   ) : isRental || isSale ? (
     /*
+      V-14: on a rental, "Still available?" comes first. It is the first
+      WhatsApp message about every Nigerian listing; here it is one tap each
+      way and a counted answer. A sale keeps its panel as it was.
+
       The panel gets the SAME period the hero above it gets.
 
       It used to get none and print "/ year" regardless, so this page could
@@ -542,14 +547,17 @@ export default async function ListingDetailPage({
       falling back to the year the rest of this page assumes is better than
       labelling annual rent as nightly.
     */
-    <RentalPanel
-      listingId={listing.id}
-      priceMinor={listing.priceMinor}
-      currency={listing.currency}
-      locale={locale}
-      period={isSale ? "sale" : rentPeriodOf(listing.pricePeriod)}
-      minimumTenancyMonths={listing.minimumTenancyMonths}
-    />
+    <div className="flex flex-col gap-md">
+      {isRental && <StillAvailable listingId={listing.id} copy={t.frontDoor.available} />}
+      <RentalPanel
+        listingId={listing.id}
+        priceMinor={listing.priceMinor}
+        currency={listing.currency}
+        locale={locale}
+        period={isSale ? "sale" : rentPeriodOf(listing.pricePeriod)}
+        minimumTenancyMonths={listing.minimumTenancyMonths}
+      />
+    </div>
   ) : (
     <ReservePanel
       listingId={listing.id}

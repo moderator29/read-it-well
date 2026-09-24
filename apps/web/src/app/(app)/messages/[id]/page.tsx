@@ -11,6 +11,8 @@ import { heldPaymentsAreOpen } from "@/lib/escrow/flag";
 import { readHeldPaymentForConversation } from "@/lib/escrow/queries";
 import { ThreadView, type ThreadBubble } from "./ThreadView";
 import { resolveCards } from "./cards";
+import { readAvailabilityForConversation } from "@/lib/availability/queries";
+import { AvailabilityCard } from "@/components/app/messages/AvailabilityCard";
 import { InboxEmpty } from "../Inbox";
 
 /**
@@ -33,6 +35,11 @@ import { InboxEmpty } from "../Inbox";
  * telling somebody a real thing does not exist is the same class of lie in the
  * other direction.
  */
+
+/** Today in Lagos, `YYYY-MM-DD`, for the still-available date field (V-14). */
+function lagosDayNow(): string {
+  return new Date(Date.now() + 3_600_000).toISOString().slice(0, 10);
+}
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -155,6 +162,9 @@ export default async function ConversationPage({
        ask, structurally. */
     const inspection =
       context.kind === "listing" ? await readOpenInspectionForConversation(id) : null;
+    /* V-14: the still-available question on this thread, if one was asked. */
+    const availability = context.kind === "listing" ? await readAvailabilityForConversation(id) : null;
+    const lagosToday = lagosDayNow();
 
     return (
       <ThreadView
@@ -210,6 +220,16 @@ export default async function ConversationPage({
             : null
         }
         inspected={thread.inspected}
+        availabilitySlot={
+          availability ? (
+            <AvailabilityCard
+              check={availability}
+              copy={t.frontDoor.available}
+              locale={locale}
+              today={lagosToday}
+            />
+          ) : null
+        }
         openAttach={(Array.isArray(attach) ? attach[0] : attach) === "1"}
         heldPaymentsOpen={heldPaymentsOpen}
         agreement={

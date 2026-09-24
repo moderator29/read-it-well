@@ -147,6 +147,12 @@ export type ThreadViewProps = {
    */
   heldPaymentsOpen?: boolean;
   agreement?: ThreadAgreement | null;
+  /**
+   * V-14: the "Still available?" card, already drawn by the page from the
+   * thread's `availability_checks` row. A slot rather than data, so this
+   * component learns nothing new about the question's rules.
+   */
+  availabilitySlot?: React.ReactNode;
 };
 
 const INSPECTIONS_KEY = "nf_inspections";
@@ -272,6 +278,7 @@ export function ThreadView({
   openAttach = false,
   heldPaymentsOpen = false,
   agreement = null,
+  availabilitySlot = null,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
   /*
@@ -721,6 +728,8 @@ export function ThreadView({
           onAccepted={() => setCeremony(true)}
         />
       )}
+
+      {availabilitySlot}
 
       {/* ------------------------------------------------------ chat thread */}
       <div

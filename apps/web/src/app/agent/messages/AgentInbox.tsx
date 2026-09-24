@@ -25,7 +25,7 @@ function waitLabel(hours: number): string {
   return days === 1 ? "1 day waiting" : `${days} days waiting`;
 }
 
-function ThreadRow({ thread }: { thread: AgentThread }) {
+function ThreadRow({ thread, askedLabel }: { thread: AgentThread; askedLabel?: string | undefined }) {
   return (
     <li>
       <Link
@@ -64,6 +64,13 @@ function ThreadRow({ thread }: { thread: AgentThread }) {
           {thread.lastMessage}
         </p>
 
+        {/* V-14: a still-available question waiting on a one-tap answer. */}
+        {askedLabel && (
+          <p className="mt-sm" data-testid="inbox-still-available">
+            <span className="nf-badge nf-badge--info">{askedLabel}</span>
+          </p>
+        )}
+
         {thread.waitingOnYou && (
           <p className="mt-sm flex items-center gap-xs text-[length:var(--nf-text-overline)] font-semibold text-[var(--nf-state-warning)]">
             <UiIcon name="bell" size={12} className="shrink-0" />
@@ -75,7 +82,18 @@ function ThreadRow({ thread }: { thread: AgentThread }) {
   );
 }
 
-export function AgentInbox({ inbox, filter }: { inbox: Inbox; filter: InboxFilter }) {
+export function AgentInbox({
+  inbox,
+  filter,
+  asked,
+  askedLabel,
+}: {
+  inbox: Inbox;
+  filter: InboxFilter;
+  /** V-14: thread ids with an unanswered still-available question. */
+  asked?: ReadonlySet<string>;
+  askedLabel?: string;
+}) {
   const threads = filter === "waiting" ? inbox.threads.filter((t) => t.waitingOnYou) : inbox.threads;
 
   const chips: { key: InboxFilter; label: string; count: number }[] = [
@@ -111,7 +129,7 @@ export function AgentInbox({ inbox, filter }: { inbox: Inbox; filter: InboxFilte
            reviews list came to be 395px wide inside a 358px column. */
         <ul className="mt-md grid grid-cols-1 gap-sm">
           {threads.map((thread) => (
-            <ThreadRow key={thread.id} thread={thread} />
+            <ThreadRow key={thread.id} thread={thread} askedLabel={asked?.has(thread.id) ? askedLabel : undefined} />
           ))}
         </ul>
       ) : (

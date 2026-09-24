@@ -7,6 +7,7 @@ import { getAgentInbox } from "@/lib/agent/messages-queries";
 import { Unreachable } from "@/components/app/Unreachable";
 import { ListingPitch } from "../list/ListingPitch";
 import { AgentInbox, type InboxFilter } from "./AgentInbox";
+import { readOpenQuestionsForLister } from "@/lib/availability/queries";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -69,7 +70,7 @@ export default async function Page({
     );
   }
 
-  const read = await getAgentInbox();
+  const [read, asked] = await Promise.all([getAgentInbox(), readOpenQuestionsForLister()]);
   const profile = agentProfileFrom(context.agent);
 
   return (
@@ -86,7 +87,12 @@ export default async function Page({
       </div>
 
       {read.state === "ready" ? (
-        <AgentInbox inbox={read.inbox} filter={filter} />
+        <AgentInbox
+          inbox={read.inbox}
+          filter={filter}
+          asked={asked}
+          askedLabel={t.frontDoor.available.inboxWaiting}
+        />
       ) : (
         /* The same state, hand-rolled a second time in one file with different
            words, different spacing and a different type size. `Unreachable` is
