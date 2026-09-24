@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { resolveSession } from "@/lib/actions/session";
@@ -20,6 +21,9 @@ import { SystemMoment } from "./offline/SystemMoment";
  * meant to reach often, and the screen still renders in full if that read
  * comes back with nothing.
  */
+/* OPS-17: the not-found page is never a page to index. */
+export const metadata: Metadata = { robots: { index: false, follow: false } };
+
 export default async function NotFound() {
   const session = await resolveSession();
   const home = session.state === "signed-in" ? "/home" : "/";
