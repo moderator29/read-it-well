@@ -17,8 +17,9 @@ type Copy = Dictionary["afterTheGate"]["tenancy"];
  * One tenancy report, move-in or move-out. V-54.
  *
  * The same eight rooms the viewing report ticks, so a move-out reads against
- * the move-in item by item. The author ticks, notes and photographs; the
- * other party countersigns once it is submitted. After submission the report
+ * the move-in item by item. Each party writes their own record of each
+ * stage; the author ticks, notes and photographs, and the other party
+ * countersigns once it is submitted. After submission the report
  * is fixed: the database refuses any change but the countersignature.
  *
  * Photos go straight from the browser to the private `tenancy-evidence`
@@ -53,7 +54,8 @@ export function TenancyReportCard({
   const countersign =
     canWrite && !report.authorIsViewer && report.id !== null && (status.kind === "submitted" || status.kind === "not_answered");
   const ticked = ROOM_ITEMS.filter((room) => items[room]).length;
-  const title = report.stage === "move_in" ? copy.moveIn : copy.moveOut;
+  const stageName = report.stage === "move_in" ? copy.moveIn : copy.moveOut;
+  const title = (report.authorIsViewer ? copy.reportOwn : copy.reportOther).replace("{stage}", stageName);
   const day = (iso: string) => formatMoneyDate(iso, locale) ?? iso;
 
   const statusLine =
@@ -109,7 +111,7 @@ export function TenancyReportCard({
   }
 
   return (
-    <article className="nf-panel nf-panel--card block p-md" data-testid={`tenancy-report-${report.stage}`}>
+    <article className="nf-panel nf-panel--card block p-md" data-testid={`tenancy-report-${report.stage}-${report.authorIsViewer ? "own" : "other"}`}>
       <h3 className="nf-h4">{title}</h3>
       {statusLine && <p className="nf-caption mt-2xs">{statusLine}</p>}
 

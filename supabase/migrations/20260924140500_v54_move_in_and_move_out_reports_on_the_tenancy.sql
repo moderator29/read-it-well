@@ -11,8 +11,10 @@
 -- submission, photos in a private bucket whose path is the permission. The
 -- viewing report stays the first page of the tenancy file's evidence.
 --
--- WHAT IS NEW IS THE SECOND SIGNATURE. A tenancy report is written by one
--- party and countersigned by the other. A report the other side has not
+-- WHAT IS NEW IS THE SECOND SIGNATURE. Each party writes their own report of
+-- each stage (one per author, so whoever opens first cannot take the stage
+-- from the other), and each report can be countersigned by the other party.
+-- Submitting one tells the other party. A report the other side has not
 -- countersigned seven days after submission is shown as "not answered" with
 -- the date, derived at read time (`lib/tenancy/reports.ts`).
 --
@@ -34,13 +36,13 @@ create table if not exists public.tenancy_reports (
   countersigned_at timestamptz,
   countersigned_by uuid,
   created_at       timestamptz not null default now(),
-  unique (rent_payment_id, stage),
+  unique (rent_payment_id, stage, author_id),
   check (countersigned_at is null or (submitted_at is not null and countersigned_by is not null)),
   check (countersigned_by is null or countersigned_by <> author_id)
 );
 
 comment on table public.tenancy_reports is
-  'V-54. The move-in and move-out reports of a tenancy, one per stage, in the same eight-item vocabulary as the viewing report. Written by one party, countersigned by the other. Frozen once submitted, apart from the countersignature.';
+  'V-54. The move-in and move-out reports of a tenancy, one per stage per party, in the same eight-item vocabulary as the viewing report. Each is written by its author and may be countersigned by the other party. Frozen once submitted, apart from the countersignature.';
 
 create table if not exists public.tenancy_report_items (
   report_id  uuid not null references public.tenancy_reports(id) on delete cascade,
@@ -135,6 +137,7 @@ as $function$
 declare
   caller uuid := (select auth.uid());
   rep    public.tenancy_reports%rowtype;
+  rp     public.rent_payments%rowtype;
   entry  jsonb;
   ticked int;
 begin
@@ -152,14 +155,16 @@ begin
   end if;
 
   select * into rep from public.tenancy_reports
-   where rent_payment_id = p_rent_payment and stage = p_stage for update;
+   where rent_payment_id = p_rent_payment and stage = p_stage and author_id = caller for update;
   if rep.id is null then
     insert into public.tenancy_reports (rent_payment_id, stage, author_id)
     values (p_rent_payment, p_stage, caller)
+    on conflict (rent_payment_id, stage, author_id) do nothing
     returning * into rep;
-  end if;
-  if rep.author_id <> caller then
-    return jsonb_build_object('status', 'other_party_writes', 'report_id', rep.id);
+    if rep.id is null then
+      select * into rep from public.tenancy_reports
+       where rent_payment_id = p_rent_payment and stage = p_stage and author_id = caller for update;
+    end if;
   end if;
   if rep.submitted_at is not null then
     return jsonb_build_object('status', 'submitted', 'report_id', rep.id);
@@ -187,6 +192,11 @@ begin
       return jsonb_build_object('status', 'needs_all_eight', 'report_id', rep.id, 'ticked', ticked);
     end if;
     update public.tenancy_reports set submitted_at = now() where id = rep.id;
+    select * into rp from public.rent_payments where id = p_rent_payment;
+    perform private.tenancy_tell(
+      case when caller = rp.tenant_id then rp.lister_id else rp.tenant_id end,
+      case when p_stage = 'move_in' then 'A move-in report was submitted' else 'A move-out report was submitted' end,
+      'Read it and countersign it in the tenancy file.', p_rent_payment);
   end if;
   return jsonb_build_object('status', 'ok', 'report_id', rep.id);
 end;
@@ -213,6 +223,12 @@ begin
   if p_path is null or split_part(p_path, '/', 1) <> rep.rent_payment_id::text
      or split_part(p_path, '/', 2) <> rep.id::text then
     return jsonb_build_object('status', 'bad_path');
+  end if;
+  -- The photograph must already be in the bucket. A row naming a file that
+  -- was never uploaded would be evidence of nothing.
+  if not exists (select 1 from storage.objects so
+                  where so.bucket_id = 'tenancy-evidence' and so.name = p_path) then
+    return jsonb_build_object('status', 'no_such_file');
   end if;
   if p_item is not null and p_item not in ('exterior','interior','kitchen','bathrooms','utilities','appliances','safety','overall') then
     return jsonb_build_object('status', 'bad_item');
@@ -249,6 +265,8 @@ begin
     return jsonb_build_object('status', 'already_countersigned');
   end if;
   update public.tenancy_reports set countersigned_at = now(), countersigned_by = caller where id = rep.id;
+  perform private.tenancy_tell(rep.author_id, 'Your report was countersigned',
+                               'The other party signed your tenancy report.', rep.rent_payment_id);
   return jsonb_build_object('status', 'ok');
 end;
 $function$;
@@ -305,7 +323,7 @@ set search_path to ''
 as $function$
   select case
     when p_name is null or position('/' in p_name) = 0 then false
-    when split_part(p_name, '/', 1) !~ '^[0-9a-f-]{36}$' then false
+    when split_part(p_name, '/', 1) !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then false
     else private.tenancy_party(split_part(p_name, '/', 1)::uuid)
   end;
 $function$;
@@ -313,16 +331,45 @@ $function$;
 revoke all on function private.tenancy_evidence_path_access(text) from public, anon;
 grant execute on function private.tenancy_evidence_path_access(text) to authenticated;
 
+/* An upload lands only in a report the caller wrote and has not submitted:
+   <rent_payment_id>/<report_id>/<file>. */
+create or replace function private.tenancy_evidence_upload_access(p_name text)
+returns boolean
+language sql
+stable
+security definer
+set search_path to ''
+as $function$
+  select case
+    when p_name is null or split_part(p_name, '/', 3) = '' then false
+    when split_part(p_name, '/', 1) !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then false
+    when split_part(p_name, '/', 2) !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then false
+    else exists (
+      select 1 from public.tenancy_reports r
+       where r.id = split_part(p_name, '/', 2)::uuid
+         and r.rent_payment_id = split_part(p_name, '/', 1)::uuid
+         and r.author_id = (select auth.uid())
+         and r.submitted_at is null
+    )
+  end;
+$function$;
+
+revoke all on function private.tenancy_evidence_upload_access(text) from public, anon;
+grant execute on function private.tenancy_evidence_upload_access(text) to authenticated;
+
 drop policy if exists tenancy_evidence_objects_party_read on storage.objects;
 create policy tenancy_evidence_objects_party_read on storage.objects
-  for select using (bucket_id = 'tenancy-evidence' and private.tenancy_evidence_path_access(name));
+  for select to authenticated
+  using (bucket_id = 'tenancy-evidence' and private.tenancy_evidence_path_access(name));
 
 drop policy if exists tenancy_evidence_objects_party_insert on storage.objects;
 create policy tenancy_evidence_objects_party_insert on storage.objects
-  for insert with check (bucket_id = 'tenancy-evidence' and private.tenancy_evidence_path_access(name));
+  for insert to authenticated
+  with check (bucket_id = 'tenancy-evidence' and private.tenancy_evidence_upload_access(name));
 
 drop policy if exists tenancy_evidence_objects_admin_read on storage.objects;
 create policy tenancy_evidence_objects_admin_read on storage.objects
-  for select using (bucket_id = 'tenancy-evidence' and private.is_staff());
+  for select to authenticated
+  using (bucket_id = 'tenancy-evidence' and private.is_staff());
 
 /* No update and no delete policy: a photograph of a flat on a day is evidence. */
