@@ -36,6 +36,8 @@ export type RecordRow = {
   /** V-35: confirmed inspections the renter's phone matched at the gate, and of how many. */
   kept: number | null;
   keptOf: number | null;
+  /** The lister is stopped. With no date the Record shows nothing at all. */
+  stopped: boolean;
 };
 
 export type RecordLineKey = "stopped" | "replies" | "answered" | "kept" | "described" | "lets" | "since";
@@ -80,6 +82,7 @@ export function recordFrom(row: unknown): RecordRow | null {
     lets: int(o.lets),
     kept: int(o.kept),
     keptOf: int(o.kept_of),
+    stopped: o.stopped === true || str(o.stopped_at) !== null,
   };
 }
 
@@ -107,7 +110,9 @@ export function recordLines(record: RecordRow | null, copy: Copy, locale: Locale
   if (!record) return [];
   const fmt = (n: number) => formatNumber(n, locale);
 
-  /* A stopped lister's Record is the stop and nothing else. */
+  /* A stopped lister's Record is the stop and nothing else, and a stop the
+     database cannot date is nothing at all: no counts, no code. */
+  if (record.stopped && !validIso(record.stoppedAt)) return [];
   if (validIso(record.stoppedAt)) {
     const date = formatDate(new Date(record.stoppedAt), locale, {
       day: "numeric",

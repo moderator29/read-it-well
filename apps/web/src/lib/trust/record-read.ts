@@ -10,8 +10,8 @@ import { recordFrom, type RecordRow } from "./record";
  * load is not a Record with nothing in it, and the screen must not print one
  * as the other.
  *
- *   by listing   the listing page's agent card. `listings.agent_id` is
- *                readable, then `public.lister_record(agent)`.
+ *   by listing   the listing page's agent card, `lister_record_for_listing`,
+ *                which takes the listing and never an agent id.
  *   by person    the supplier page. `agents` is select own plus staff, so a
  *                visitor cannot walk from a person to an agent id; the
  *                function answers by person instead.
@@ -26,15 +26,8 @@ async function client(): Promise<SupabaseClient> {
 export async function readListingRecord(listingId: string): Promise<RecordRow | null> {
   try {
     const supabase = await client();
-    const { data: listing, error } = await supabase
-      .from("listings")
-      .select("agent_id")
-      .eq("id", listingId)
-      .maybeSingle();
-    const agentId = (listing as { agent_id?: string } | null)?.agent_id;
-    if (error || !agentId) return null;
-    const { data, error: rpcError } = await supabase.rpc("lister_record", { p_agent: agentId });
-    if (rpcError) return null;
+    const { data, error } = await supabase.rpc("lister_record_for_listing", { p_listing: listingId });
+    if (error) return null;
     return recordFrom(data);
   } catch {
     return null;

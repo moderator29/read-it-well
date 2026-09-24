@@ -61,6 +61,16 @@ describe("the Vallo Record (V-34)", () => {
     expect(lines).toEqual([{ key: "stopped", text: "Stopped by Vallo on 4 October 2026" }]);
   });
 
+  it("shows nothing at all, not even the code, for a stop the database cannot date", () => {
+    expect(recordLines(recordFrom({ ...FULL, stopped: true, stopped_at: null }), copy, "en")).toEqual([]);
+  });
+
+  it("reads the listing's Record through the listing, never an agent id", () => {
+    const src = readFileSync(join(__dirname, "record-read.ts"), "utf8");
+    expect(src).toContain('rpc("lister_record_for_listing", { p_listing: listingId })');
+    expect(src).not.toContain('rpc("lister_record",');
+  });
+
   it("bands the median reply and prints nothing past three days", () => {
     expect(replyBand(30)).toBe("hour");
     expect(replyBand(60)).toBe("hour");
