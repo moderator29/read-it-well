@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BackButton } from "@/components/site/BackButton";
 import { parentOf } from "@/lib/nav/resolve";
+import { requireSignedInPage } from "@/lib/actions/signed-in-page";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { listStates } from "@/lib/places/queries";
@@ -44,6 +45,7 @@ export const metadata: Metadata = {
  * a metered connection should pay for them before they have decided to answer.
  */
 export default async function OwnerRegistrationPage() {
+  await requireSignedInPage("/profile/setup/owner");
   const [locale, states] = await Promise.all([getLocale(), listStates()]);
   const t = getDictionary(locale);
 
