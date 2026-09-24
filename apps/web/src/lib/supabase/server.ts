@@ -16,6 +16,15 @@ async function visitorAgent(): Promise<string | null> {
   }
 }
 
+/** The protocol the visitor used, as Vercel forwards it, or null outside a request scope. */
+async function visitorProtocol(): Promise<string | null> {
+  try {
+    return (await headers()).get("x-forwarded-proto");
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Request-scoped server Supabase client.
  *
@@ -29,6 +38,7 @@ async function visitorAgent(): Promise<string | null> {
 export async function createClient() {
   const { url, anonKey } = requireSupabasePublicEnv();
   const cookieStore = await cookies();
+  const secure = serverCookiesSecure(await visitorProtocol());
 
   return createServerClient<Database>(url, anonKey, {
     /*
@@ -45,7 +55,7 @@ export async function createClient() {
       setAll(cookiesToSet) {
         try {
           for (const { name, value, options } of cookiesToSet) {
-            cookieStore.set(name, value, withAuthCookiePolicy(options, serverCookiesSecure()));
+            cookieStore.set(name, value, withAuthCookiePolicy(options, secure));
           }
         } catch {
           // Called from a server component where cookies cannot be set. The

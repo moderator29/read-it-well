@@ -46,6 +46,7 @@ import {
 import { ladderFor, type LadderKey } from "./ladder";
 import { statusFor, type BadgeTone } from "./status";
 import { TierBadge } from "@/components/trust/TierBadge";
+import { earliestLagosInput, lagosWallClockToIso } from "@/lib/inspections/when";
 
 /**
  * ONE INSPECTION, EXACTLY IN THE ANATOMY OF F6A8A482 / founder/inspection-target.jpg.
@@ -673,10 +674,13 @@ function ProposeSheet({
         They will see the time you offer and can take it in one tap. The time they asked for stays on the record.
       </p>
       <label className="mt-md block">
-        <span className="nf-label">When you can do it</span>
+        <span className="nf-label">When you can do it (Lagos time)</span>
         <input
           type="datetime-local"
           value={when}
+          /* UX-20: Lagos time, two hours ahead at the earliest, as the request is. */
+          min={earliestLagosInput()}
+          step={900}
           onChange={(event) => setWhen(event.target.value)}
           className="nf-field mt-2xs w-full"
         />
@@ -697,7 +701,7 @@ function ProposeSheet({
         variant="primary"
         className="mt-lg"
         disabled={pending || when.length === 0}
-        onClick={() => onSubmit(new Date(when).toISOString(), note.trim())}
+        onClick={() => onSubmit(lagosWallClockToIso(when) ?? when, note.trim())}
       >
         Send this time
       </Button>

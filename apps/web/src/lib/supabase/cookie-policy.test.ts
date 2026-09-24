@@ -2,7 +2,27 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { DEFAULT_COOKIE_OPTIONS } from "@supabase/ssr";
-import { AUTH_COOKIE_MAX_AGE_SECONDS, browserCookieMethods, withAuthCookiePolicy } from "./cookie-policy";
+// The library's own storage layer, which decides chunks and removals; the adapter only writes.
+import { createStorageFromOptions } from "@supabase/ssr/dist/main/cookies.js";
+import { AUTH_COOKIE_MAX_AGE_SECONDS, browserCookieMethods, serverCookiesSecure, withAuthCookiePolicy } from "./cookie-policy";
+
+/** A browser-like cookie jar: document.cookie writes one cookie; Max-Age=0 deletes it. */
+function jar() {
+  const store = new Map<string, { value: string; attrs: string }>();
+  const doc = {
+    get cookie() {
+      return [...store].map(([n, c]) => `${n}=${c.value}`).join("; ");
+    },
+    set cookie(line: string) {
+      const [pair = "", ...attrs] = line.split("; ");
+      const eq = pair.indexOf("=");
+      const name = pair.slice(0, eq);
+      if (attrs.some((a) => /^Max-Age=0$/i.test(a))) store.delete(name);
+      else store.set(name, { value: pair.slice(eq + 1), attrs: attrs.join("; ") });
+    },
+  };
+  return { doc, store };
+}
 
 /**
  * SEC-07: the session cookies are Secure on HTTPS and live 30 days, sliding,
@@ -53,5 +73,43 @@ describe("the auth cookie policy", () => {
       { name: "a", value: "b", options: { ...DEFAULT_COOKIE_OPTIONS } },
     ]);
     expect(doc.cookie).not.toContain("Secure");
+  });
+
+  it("decides Secure from the request's protocol, falling back to production only when it is unknown", () => {
+    expect(serverCookiesSecure("https")).toBe(true);
+    expect(serverCookiesSecure("https:")).toBe(true);
+    expect(serverCookiesSecure("https,http")).toBe(true);
+    expect(serverCookiesSecure("http:")).toBe(false);
+    expect(serverCookiesSecure(null)).toBe(process.env.NODE_ENV === "production");
+    const src = (p: string) => readFileSync(join(__dirname, p), "utf8");
+    expect(src("../../proxy.ts")).toContain("serverCookiesSecure(request.nextUrl.protocol)");
+    expect(src("server.ts")).toMatch(/serverCookiesSecure\(await visitorProtocol\(\)\)/);
+  });
+
+  it("chunks a large session, leaves no stale chunk behind, and sign-out empties the jar", async () => {
+    const { doc, store } = jar();
+    const { storage } = createStorageFromOptions(
+      { cookieEncoding: "base64url", cookies: browserCookieMethods(() => ({ doc, https: true })) },
+      false,
+    );
+    const key = "sb-project-auth-token";
+    const big = JSON.stringify({ access_token: "a".repeat(6000), refresh_token: "r" });
+    await storage.setItem(key, big);
+    const chunks = [...store.keys()].sort();
+    expect(chunks).toEqual([`${key}.0`, `${key}.1`, `${key}.2`]);
+    for (const c of store.values()) {
+      expect(c.attrs).toContain("Secure");
+      expect(c.attrs).toContain(`Max-Age=${AUTH_COOKIE_MAX_AGE_SECONDS}`);
+    }
+    expect(await storage.getItem(key)).toBe(big);
+
+    const small = JSON.stringify({ access_token: "a", refresh_token: "r" });
+    await storage.setItem(key, small);
+    expect([...store.keys()]).toEqual([key]);
+    expect(await storage.getItem(key)).toBe(small);
+
+    await storage.setItem(key, big);
+    await storage.removeItem(key);
+    expect(store.size).toBe(0);
   });
 });

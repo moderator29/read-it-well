@@ -526,6 +526,10 @@ a type re-export, so `tsc --noEmit` was silent; it is not a runtime value,
 so 1,937 tests were silent; `eslint` and the CSS checker have nothing to
 say about it. `next build` is the only gate that sees it, and it was the
 one gate not being run before a push. It is now run before every push, and
+[CORRECTION, DOC-15 in docs/THE_AUDIT.md: not true as a standing claim.
+`next build` was run by hand, once, at 56bb587a on 23 September, against an
+unlocked dependency tree (commit 6e0ee6d); it was not run per push, and there
+was no automated build while CI was dead. The CI build job is the gate now.]
 the rule is written here: a type alias DECLARED inside a "use server"
 module is erased whole and is legal; a re-export statement is not.
 

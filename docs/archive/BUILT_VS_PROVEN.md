@@ -993,7 +993,7 @@ checked-and-fine.**
    log, or that the harness was run from a `git archive` of `origin/main`.
 4. **No build was run**, at `origin/main` or anywhere. Three of the ledger's
    four gates were measured at `92d6eb2b`: the suite green, the typecheck
-   green, the lint **red**. `next build` is **unknown**, and a red lint is
+   green, the lint **red**. `next build` is **unknown** [superseded by commit 6e0ee6d: run by hand once at 56bb587a on 23 September, exit 0; DOC-15], and a red lint is
    often accompanied by a green build, so nothing should be inferred from the
    one about the other.
 5. **RLS was not tested and cannot be tested from here**, because the only SQL

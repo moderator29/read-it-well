@@ -398,7 +398,7 @@ export async function proxy(request: NextRequest) {
         }
         response = NextResponse.next({ request });
         for (const { name, value, options } of cookiesToSet) {
-          response.cookies.set(name, value, withAuthCookiePolicy(options, serverCookiesSecure()));
+          response.cookies.set(name, value, withAuthCookiePolicy(options, serverCookiesSecure(request.nextUrl.protocol)));
         }
       },
     },

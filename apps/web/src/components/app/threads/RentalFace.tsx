@@ -15,6 +15,7 @@ import {
 } from "@/lib/inspections/actions";
 import type { Inspection, InspectionOutcome, InspectionState } from "@/lib/inspections/types";
 import { fill, lagosWhen } from "./when";
+import { earliestLagosInput, lagosWallClockToIso } from "@/lib/inspections/when";
 
 /**
  * THE RENTAL FACE: the inspection request, inside the chat it was made in.
@@ -321,6 +322,9 @@ function ProposeSheet({
         <input
           type="datetime-local"
           value={when}
+          /* UX-20: Lagos time, two hours ahead at the earliest, as the request is. */
+          min={earliestLagosInput()}
+          step={900}
           onChange={(event) => setWhen(event.target.value)}
           className="nf-field mt-2xs w-full"
         />
@@ -341,7 +345,7 @@ function ProposeSheet({
         variant="primary"
         className="mt-lg"
         disabled={pending || when.length === 0}
-        onClick={() => onSubmit(new Date(when).toISOString(), note.trim())}
+        onClick={() => onSubmit(lagosWallClockToIso(when) ?? when, note.trim())}
       >
         {copy.proposeSend}
       </Button>
