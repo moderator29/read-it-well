@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
 import { fill } from "../_copy";
 import { createClient } from "@/lib/supabase/client";
+import { canCapturePhoto, capturePhoto } from "@/lib/native/device";
 import { Switch } from "@/components/ui/Switch";
 import {
   addPhoto,
@@ -818,6 +819,17 @@ export function ListingWizard({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [photoNotice, setPhotoNotice] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  /* STORE-04: the shell's own camera, when the running binary carries it. */
+  const [nativeCamera, setNativeCamera] = useState(false);
+  useEffect(() => {
+    let live = true;
+    void canCapturePhoto().then((able) => {
+      if (live) setNativeCamera(able);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
   const [submitted, setSubmitted] = useState(false);
   const [pending, startTransition] = useTransition();
   const restored = useRef(false);
@@ -1303,7 +1315,7 @@ export function ListingWizard({
     }
   }
 
-  async function onFiles(files: FileList | null) {
+  async function onFiles(files: FileList | readonly File[] | null) {
     if (!files || files.length === 0) return;
     setPhotoNotice(null);
 
@@ -1944,6 +1956,26 @@ export function ListingWizard({
                       <UiIcon name="plus" size={18} />
                     </span>
                     <span>{uploading ? copy.photos.uploading : copy.drawn.photos.add}</span>
+                  </button>
+                </li>
+              )}
+              {photos.length < MAX_PHOTOS && nativeCamera && (
+                <li className="contents">
+                  <button
+                    type="button"
+                    className="nf-lw-add"
+                    data-testid="listing-photo-camera"
+                    onClick={() =>
+                      void capturePhoto().then((shot) => {
+                        if (shot) void onFiles([shot]);
+                      })
+                    }
+                    disabled={uploading}
+                  >
+                    <span className="nf-lw-add__plus" aria-hidden="true">
+                      <UiIcon name="picture" size={18} />
+                    </span>
+                    <span>{copy.photos.takePhoto}</span>
                   </button>
                 </li>
               )}

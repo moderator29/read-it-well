@@ -53,6 +53,21 @@ import { KeyboardResize } from "@capacitor/keyboard";
  */
 const liveOrigin = (process.env.CAPACITOR_SERVER_URL ?? "").trim();
 
+/*
+ * STORE-04: WHERE THE APP OPENS. Never the marketing page. `/open` is a
+ * server route that sends a signed-in person to `/home` and anybody else to
+ * the public catalogue (when `VALLO_PUBLIC_CATALOGUE` is on) or to `/welcome`.
+ * The same value is written into the offline card's retry target by
+ * `scripts/write-shell-config.mjs`, from `native-shell/start-path.json`.
+ *
+ * iOS CHECKS THAT THE PATH EXISTS INSIDE `webDir` BEFORE LOADING THE SERVER
+ * URL (`CAPBridgeViewController.loadWebView` → `appStartFileURL`), and calls
+ * `fatalLoadError()` if it does not, so `native-shell/open/index.html` exists
+ * for that check alone.
+ */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const nativeStartPath: string = require("./native-shell/start-path.json").startPath;
+
 const config: CapacitorConfig = {
   /*
    * Reverse DNS on a domain the owner controls. This string is permanent: it is
@@ -208,6 +223,7 @@ const config: CapacitorConfig = {
            * line is only what makes it reachable.
            */
           errorPath: "index.html",
+          appStartPath: nativeStartPath,
         },
       }
     : {}),

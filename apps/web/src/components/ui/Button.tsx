@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Children, forwardRef } from "react";
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from "react";
 import { UiIcon, type UiIconSize, type UiIconName } from "@/design-system/icons/UiIcon";
+import { nativeHaptic } from "@/lib/native/device";
+import { looksNative } from "@/lib/native/platform";
 
 /**
  * The button.
@@ -179,6 +181,12 @@ function buttonClass({
  */
 function pulse(enabled: boolean) {
   if (!enabled) return;
+  /* STORE-04: inside the app the native haptic engine takes the tap (iOS has
+     no `navigator.vibrate`); on the website nothing native is loaded. */
+  if (looksNative()) {
+    void nativeHaptic("tap");
+    return;
+  }
   try {
     navigator.vibrate?.(8);
   } catch {

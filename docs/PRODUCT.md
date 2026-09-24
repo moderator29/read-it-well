@@ -95,20 +95,34 @@ Four roles, in `public.app_role`: `user`, `agent`, `admin`, `super_admin`. A
 person can hold more than one. Roles are read through helpers in a private,
 non-exposed schema, never from a client.
 
-**The access rule: view only, then gate. This is now built.**
+**The access rule: closed by default, opened by one switch.**
 
-A signed-out visitor can browse the product and cannot act in it. That line is
-drawn in two places and they have to agree:
+Whether a signed-out visitor may read the catalogue is the founder's decision,
+and the code carries it as one server-side variable, `VALLO_PUBLIC_CATALOGUE`
+(read at request time by `apps/web/src/proxy.ts`; no rebuild):
 
-- `apps/web/src/middleware.ts` decides whole routes. **Open to anybody:**
-  `search`, `listing`, `rent`, `around`, `u`, `post`, the marketing site, the
-  public `/privacy` and `/terms`, and `/agents` as the supplier pitch. **Behind a
-  session:** `assistant`, `bookings`, `checkout`, `home`, `legal`, `messages`,
-  `notifications`, `profile`, `saved`, `settings`, `stories`, `wallet`,
-  `welcome`, plus `admin` and `agent` which carry their own role checks, plus
-  the exact paths `/agents/apply`, `/agents/status` and `/styleguide`.
-- `components/auth/AuthGate.tsx` decides individual controls on a page a stranger
-  is allowed to read. Saving, messaging, requesting an inspection, paying and
+- **Off (unset, or anything but `on`, `true` or `1`) — the default.** Only the
+  landing page, the company, help and legal pages, `/delete-account`, the
+  sign-in and sign-up doors, `/welcome`, `/offline` and `/open` answer without
+  a session. Every other route sends a stranger to sign in.
+- **On.** The six read-only catalogue screens also answer a stranger:
+  `/search`, `/stays` (and `/stays/search`), `/restaurants`, `/listing/<id>`,
+  `/stay/<id>` and `/restaurant/<id>`. A stranger's catalogue page loads are
+  rate-limited per address (120 per five minutes; navigations inside the app
+  and link prefetches are not counted), which costs one database round trip
+  per anonymous page load while the switch is on. **Whatever the switch says,**
+  `/u` and people search, messages, saved, bookings, wallet, checkout, settings
+  and every API route except the map's pins (`/api/map/listings`, which the
+  search page calls and which has its own per-address limit) stay behind a
+  session, and an exact address never
+  reaches a stranger because the `anon` role holds no SELECT on the address
+  columns.
+
+The native app starts on `/open`, which sends a session to `/home` and a
+stranger to `/search` when the switch is on, `/welcome` when it is off.
+
+On a page a stranger is allowed to read, `components/auth/AuthGate.tsx` decides
+the individual controls. Saving, messaging, requesting an inspection, paying and
   listing all raise sign up or sign in.
 
 Two deliberate exceptions to "browsing is open", both correct: **stories** are
