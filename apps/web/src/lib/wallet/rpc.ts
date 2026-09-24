@@ -127,14 +127,13 @@ export type WalletRpcResult =
  */
 const UNDEFINED_FUNCTION_CODES = new Set(["PGRST202", "42883"]);
 
-function isMissing(error: RpcError): boolean {
-  if (error.code && UNDEFINED_FUNCTION_CODES.has(error.code)) return true;
-  const message = (error.message ?? "").toLowerCase();
-  return (
-    message.includes("could not find the function") ||
-    message.includes("does not exist") ||
-    message.includes("schema cache")
-  );
+/*
+ * MON-12. By code only. A message containing "does not exist" is as likely to
+ * be a relation or column missing INSIDE a function that ran, or PostgREST's
+ * schema cache reloading mid-deploy, and neither means the function is absent.
+ */
+export function isMissing(error: RpcError): boolean {
+  return Boolean(error.code && UNDEFINED_FUNCTION_CODES.has(error.code));
 }
 
 /**

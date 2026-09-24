@@ -76,7 +76,6 @@ import {
   displayNameFor,
   ensureWalletId,
   getAdminClient,
-  postEntry,
   annotateEntry,
   recordFunding,
   setEntryStatus,
@@ -707,55 +706,22 @@ async function withdrawWork(
     });
   } else {
     /*
-     * THE FALLBACK. See the identical note in transferToUser: the public
-     * wrapper is not applied yet, and refusing every withdrawal would be a
-     * worse answer than running the path that already shipped. It says so on
-     * the money channel every time, and it goes the day
-     * public.hold_wallet_withdrawal lands.
+     * MON-12. No unlocked fallback. public.hold_wallet_withdrawal is the only
+     * way a withdrawal hold is placed, as it is for the saved-account door: a
+     * balance read followed by a separate insert let two withdrawals in a
+     * deploy window both pass the check and overdraw the wallet.
      */
     logMoney({
       surface: "withdraw",
       outcome: "unconfigured",
-      reason: "atomic_hold_unavailable_using_unlocked_path",
+      reason: "atomic_hold_unavailable_refused",
       reference,
       amountMinor,
       userId: session.user.id,
     });
-    try {
-      const walletId = await ensureWalletId(admin, session.user.id);
-      const available = await availableBalanceMinor(admin, walletId);
-      if (amountMinor > available) {
-        return fail(
-          `Your available balance is ${nairaExact(available)}, so this withdrawal of ${nairaExact(amountMinor)} cannot go through.`,
-          { amount: "There is not enough in your wallet for this amount." },
-        );
-      }
-
-      await postEntry(admin, {
-        walletId,
-        kind: "withdrawal",
-        direction: "debit",
-        amountMinor,
-        reference,
-        status: "PENDING",
-        metadata: holdMetadata,
-      });
-
-      await recordMoneyAudit(admin, {
-        actor: { kind: "user", userId: session.user.id },
-        action: "wallet.withdrawal.hold_placed",
-        reference,
-        amountMinor,
-        subjectUserId: session.user.id,
-        walletId,
-        outcome: "posted",
-        detail: { bank_code: bank.code, account_last4: accountLast4, atomic: false },
-      });
-    } catch {
-      return fail(
-        "The withdrawal could not be recorded. Your balance is untouched. Please try again.",
-      );
-    }
+    return fail(
+      "Withdrawals are not available for a moment. Your balance is untouched. Please try again shortly.",
+    );
   }
 
   let transferAttempted = false;
