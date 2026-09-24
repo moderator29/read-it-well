@@ -20,6 +20,8 @@ function run(over: Partial<ReconcileRunSummary> = {}): ReconcileRunSummary {
       holds_examined: 3,
       released_minor: 0,
       overdrawn: 0,
+      paid_checked: 0,
+      paid_reversed: 0,
     },
     ...over,
   };
@@ -49,6 +51,8 @@ describe("reconcileAlert", () => {
         holds_examined: 3,
         released_minor: 0,
         overdrawn: 0,
+        paid_checked: 0,
+        paid_reversed: 0,
       },
       subjectId: RECONCILE_SUBJECT,
     });

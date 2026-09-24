@@ -26,6 +26,8 @@ export type ReconcileRunSummary = {
     holds_examined: number;
     released_minor: number;
     overdrawn: number;
+    paid_checked: number;
+    paid_reversed: number;
   };
 };
 
