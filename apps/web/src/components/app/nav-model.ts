@@ -178,7 +178,7 @@ export function buildNav({
            pointed at each other; they are one dated page now, which opens on
            the side the shell is on. */
         {
-          href: stays ? "/bookings?side=stays" : "/bookings",
+          href: stays ? "/bookings?side=stays&from=stays" : "/bookings",
           label: t.shape.plans.title,
           icon: "calendar-booking",
         } as NavNode,

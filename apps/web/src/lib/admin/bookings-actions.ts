@@ -471,7 +471,7 @@ export async function decideReservationAsAdmin(input: {
         kind: "booking",
         title: notice.title,
         body: notice.body,
-        href: "/bookings?side=stays",
+        href: "/bookings?side=stays&from=stays",
       });
     }
   } catch {

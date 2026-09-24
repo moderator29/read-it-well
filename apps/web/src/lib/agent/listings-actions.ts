@@ -37,6 +37,7 @@ import {
 } from "../listings/compound";
 import { serviceColumns, type ServicePayload } from "../listings/service";
 import { unitColumns, type UnitPayload } from "../listings/unit-shape";
+import { flagIsOn, NEIGHBOURS_FLAG } from "../flags/read";
 import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/closed";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
@@ -521,6 +522,8 @@ async function writeFlooding(
   flooding: string | null | undefined,
 ): Promise<boolean> {
   if (flooding === undefined) return true;
+  /* Behind the V-41 flag: with it off the answer is dropped, not written. */
+  if (!(await flagIsOn(NEIGHBOURS_FLAG))) return true;
   const { error } = await supabase
     .from("listings")
     .update({ flooding } as never)

@@ -15,14 +15,15 @@ describe("sideOfPath", () => {
 
 describe("sideOfPlansQuery (V-76 review)", () => {
   const q = (s: string) => new URLSearchParams(s);
-  it("lets the address say which half of Plans it shows", () => {
-    expect(sideOfPlansQuery("/bookings", q("side=stays"))).toBe("stays");
-    expect(sideOfPlansQuery("/bookings", q("kind=inspection"))).toBe("property");
-    expect(sideOfPlansQuery("/bookings", q("side=property"))).toBe("property");
+  it("lets a deep link say where it came from", () => {
+    expect(sideOfPlansQuery("/bookings", q("side=stays&from=stays"))).toBe("stays");
+    expect(sideOfPlansQuery("/bookings", q("kind=inspection&from=property"))).toBe("property");
   });
-  it("leaves the cookie in charge otherwise, and elsewhere", () => {
+  it("never lets the page's own filter move the shell", () => {
+    expect(sideOfPlansQuery("/bookings", q("side=stays"))).toBeNull();
+    expect(sideOfPlansQuery("/bookings", q("side=property"))).toBeNull();
+    expect(sideOfPlansQuery("/bookings", q("kind=inspection"))).toBeNull();
     expect(sideOfPlansQuery("/bookings", q(""))).toBeNull();
-    expect(sideOfPlansQuery("/bookings", q("side=all"))).toBeNull();
-    expect(sideOfPlansQuery("/messages", q("side=stays"))).toBeNull();
+    expect(sideOfPlansQuery("/messages", q("from=stays"))).toBeNull();
   });
 });

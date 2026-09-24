@@ -195,8 +195,8 @@ const nextConfig: NextConfig = {
        * the inspection a thread just answered, and `/trips?justBooked=<id>`
        * still marks the stay checkout confirmed.
        */
-      { source: "/trips", destination: "/bookings?side=stays", permanent: true },
-      { source: "/inspections", destination: "/bookings?kind=inspection", permanent: true },
+      { source: "/trips", destination: "/bookings?side=stays&from=stays", permanent: true },
+      { source: "/inspections", destination: "/bookings?kind=inspection&from=property", permanent: true },
       /*
        * THE CONSOLE'S THREE MODERATION DESKS ARE LANES OF THE QUEUE (V-88).
        * Reports, message flags and held content were three destinations for

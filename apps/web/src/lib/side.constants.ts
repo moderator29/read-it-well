@@ -57,18 +57,20 @@ const PROPERTY_PATHS = /^\/(home|search|agent|listing|rent|inspections)(\/|$)/;
 
 /**
  * Plans (`/bookings`) belongs to neither side, so the cookie decides, EXCEPT
- * when the address says which half it is showing: `?side=stays`,
- * `?side=property` or `?kind=inspection` (the Property diary). Then the
- * address wins, like every other side-owned URL (V-76 review).
+ * for a DEEP LINK that says where it came from: `?from=stays` or
+ * `?from=property` (a paid stay, a booked table, the inspections redirect).
+ * Only `from` moves the shell. The page's own filter uses `?side=`, and
+ * filtering Plans to one half must never flip the shell or the cookie
+ * (V-76 review, twice).
  */
 export function sideOfPlansQuery(
   pathname: string,
   params: { get(name: string): string | null },
 ): Side | null {
   if (!/^\/bookings(\/|$)/.test(pathname)) return null;
-  const side = params.get("side");
-  if (side === "stays") return "stays";
-  if (side === "property" || params.get("kind") === "inspection") return "property";
+  const from = params.get("from");
+  if (from === "stays") return "stays";
+  if (from === "property") return "property";
   return null;
 }
 

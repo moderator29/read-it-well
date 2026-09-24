@@ -31,13 +31,13 @@
  *                       now, for the one-tap card.
  *
  * BORN LOCKED: area_pulses has RLS on and no grants; only the three functions
- * touch it.
+ * touch it. No existing table or policy is changed; `flooding` is an additive
+ * nullable column written by the agent's own update.
  *
  * OFF UNTIL THE FOUNDER TURNS IT ON (review): every function checks the
  * fail-closed `feature_flags` row 'neighbours_account' and does nothing
  * (refuses, or returns no rows) unless it exists and says true. To open it:
- *   update public.feature_flags set enabled = true where key = 'neighbours_account'; No existing table or policy is changed; `flooding` is an additive
- * nullable column written by the agent's own update.
+ *   update public.feature_flags set enabled = true where key = 'neighbours_account';
  */
 
 begin;
@@ -61,9 +61,18 @@ revoke all on function private.neighbours_account_open() from public, anon, auth
 alter table public.listings
   add column if not exists flooding text;
 
-alter table public.listings
-  add constraint listings_flooding_known
-    check (flooding is null or flooding in ('none', 'road', 'compound'));
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+     where conname = 'listings_flooding_known' and conrelid = 'public.listings'::regclass
+  ) then
+    alter table public.listings
+      add constraint listings_flooding_known
+        check (flooding is null or flooding in ('none', 'road', 'compound'));
+  end if;
+end
+$$;
 
 comment on column public.listings.flooding is
   'The lister''s answer to "in heavy rain, does water cut off the road or enter the compound?": none, road, compound. Null is unanswered (V-41).';

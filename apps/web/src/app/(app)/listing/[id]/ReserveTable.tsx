@@ -116,7 +116,7 @@ export function ReserveTable({
           your bookings.
         </p>
         <Link
-          href="/bookings?side=stays"
+          href="/bookings?side=stays&from=stays"
           className="mt-md inline-flex text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)] underline underline-offset-4"
         >
           See your bookings
