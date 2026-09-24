@@ -71,7 +71,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "wallet",
     keywords: ["wallet", "balance", "top up", "topup", "fund", "withdraw", "transaction"],
     answer:
-      `Your naira wallet lives in the Wallet tab: balance at the top, then every entry grouped by day. The balance is always computed from the ledger rather than stored, and a withdrawal you have started is held out of what you can spend until it settles, so the two figures can differ for a while. ${WALLET_MONEY_USES}`,
+      `Your naira wallet lives in the Wallet tab: balance at the top, then every entry grouped by day. The balance is always computed from the ledger rather than stored. ${WALLET_MONEY_USES}`,
   },
   {
     id: "verified-badge",

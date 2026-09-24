@@ -31,6 +31,9 @@ const SITES = [
   "lib/email/messages.ts",
   "lib/email/escrow-messages.ts",
   "lib/support/faq.ts",
+  "app/(site)/safety/page.tsx",
+  "app/(site)/docs/chapters.tsx",
+  "lib/email/payment-instrument-messages.ts",
 ];
 
 /** Sentences that promised a way out to a bank. */
@@ -45,6 +48,12 @@ const RETIRED = [
   /Funding, withdrawals and transfers need the payment provider/i,
   /your earnings are paid to the Nigerian bank account you added during your application/i,
   /Card reversals are slower/i,
+  /you move (it|them) to your bank from there/i,
+  /Withdraw it to your bank whenever you want it/i,
+  /withdraw to\s+a Nigerian bank account, send money/i,
+  /you can move money to a Nigerian bank\s+account whenever you want/i,
+  /From there, withdraw to your bank/i,
+  /a withdrawal you have started is held out of what you can spend/i,
 ];
 
 describe("bank payouts are closed, and the copy says so (MON-04)", () => {
@@ -92,6 +101,9 @@ describe("bank payouts are closed, and the copy says so (MON-04)", () => {
       "lib/support/faq.ts",
       "app/(app)/settings/DeleteAccountPanel.tsx",
       "components/app/payments/PaymentMethodsPanel.tsx",
+      "app/(site)/safety/page.tsx",
+      "app/(site)/docs/chapters.tsx",
+      "lib/email/payment-instrument-messages.ts",
     ]) {
       expect(read(path)).toMatch(/bank-payouts"/);
     }

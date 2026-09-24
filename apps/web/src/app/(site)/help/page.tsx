@@ -148,7 +148,7 @@ const FAQS: Faq[] = [
   {
     category: "Payments and refunds",
     q: "How do refunds work?",
-    a: "One schedule applies to every stay on Vallo. Cancel more than 72 hours before check-in and you get everything back; inside that window you get half; once check-in day has started the stay is the agent's. If the agent cancels, or the property was not what was listed, you get everything back whenever it happens. Refunds land in your Vallo wallet, and you move them to your bank from there.",
+    a: `One schedule applies to every stay on Vallo. Cancel more than 72 hours before check-in and you get everything back; inside that window you get half; once check-in day has started the stay is the agent's. If the agent cancels, or the property was not what was listed, you get everything back whenever it happens. Refunds land in your Vallo wallet. ${WALLET_MONEY_USES}`,
   },
   {
     category: "Payments and refunds",

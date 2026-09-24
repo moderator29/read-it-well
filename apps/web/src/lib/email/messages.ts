@@ -726,7 +726,7 @@ export function escrowReleased(data: EscrowReleasedData): EmailMessage {
       button("Open my wallet", appUrl("/wallet")),
       note(
         toRecipient
-          ? "Withdraw it to your bank whenever you want it, or leave it in your wallet."
+          ? WALLET_MONEY_NEXT
           : "If you believe this was released in error, contact support with the reference above and a person will look at it.",
       ),
     ],
