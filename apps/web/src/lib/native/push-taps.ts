@@ -9,7 +9,8 @@
  * Capacitor push plugin, which emits `pushNotificationActionPerformed`. Until
  * this file nothing listened, so a tap on a native Vallo notification opened
  * the app wherever it happened to be, and the `href` the drain had carefully
- * put in the payload (`transport/fcm.ts` `data.href`, `transport/apns.ts`
+ * put in the payload (`lib/push/transport/fcm.ts` `data.href`,
+ * `lib/push/transport/apns.ts`
  * `href`) was read by nobody.
  *
  * The destination is chosen exactly as the service worker chooses it: the
