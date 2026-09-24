@@ -72,27 +72,51 @@ export function SanctionsUpload({ copy }: { copy: Copy }) {
   );
 }
 
-function useDeskRun(failed: string) {
+/** A refusal's own sentence; anything unrecognised is "not recorded". */
+export function deskRefusal(copy: Copy, code: string): string {
+  switch (code) {
+    case "superseded":
+      return copy.refusedSuperseded;
+    case "own_case":
+      return copy.refusedOwnCase;
+    case "own_proposal":
+      return copy.refusedOwnProposal;
+    case "own_upload":
+      return copy.ownUpload;
+    case "incomplete":
+      return copy.refusedIncomplete;
+    default:
+      return copy.decisionFailed;
+  }
+}
+
+function useDeskRun(copy: Copy) {
   const [error, setError] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const run = (work: () => Promise<DeskAnswer>) =>
     start(async () => {
       setError(null);
+      setNote(null);
       const answer = await work().catch(() => ({ ok: false as const, error: "failed" }));
-      if (!answer.ok) setError(failed);
+      if (!answer.ok) setError(deskRefusal(copy, answer.error));
+      else if (answer.message === "proposed") setNote(copy.listProposed);
     });
-  return { error, pending, run };
+  return { error, note, pending, run };
 }
 
 /** A waiting list version, activated by somebody other than who loaded it (items 9 and 19). */
 export function SanctionsActivate({ copy, list, me }: { copy: Copy; list: WaitingList; me: string }) {
-  const { error, pending, run } = useDeskRun(copy.decisionFailed);
-  if (list.loadedBy === me || list.proposedBy === me) return <p className="nf-caption mt-inline">{copy.ownUpload}</p>;
+  const { error, note, pending, run } = useDeskRun(copy);
+  /* Loaded by me (an upload), or proposed by me (a short list from its URL): a second person acts. */
+  if (list.loadedBy === me) return <p className="nf-caption mt-inline">{copy.ownUpload}</p>;
+  if (list.proposedBy === me) return <p className="nf-caption mt-inline">{copy.ownListProposal}</p>;
   return (
     <div className="mt-inline">
       <Button variant="secondary" loading={pending} onClick={() => run(() => activateSanctionsList({ versionId: list.id }))}>
         {copy.activate}
       </Button>
+      {note && <p className="nf-caption" role="status">{note}</p>}
       {error && <p className="nf-caption" role="alert">{error}</p>}
     </div>
   );
@@ -101,7 +125,7 @@ export function SanctionsActivate({ copy, list, me }: { copy: Copy; list: Waitin
 /** Propose, or approve or reject somebody else's proposal (SCUML item 19). */
 export function SanctionsDecision({ copy, hit, me }: { copy: Copy; hit: SanctionsHit; me: string }) {
   const [note, setNote] = useState("");
-  const { error, pending, run } = useDeskRun(copy.decisionFailed);
+  const { error, pending, run } = useDeskRun(copy);
 
   if (hit.pending) {
     const decision =

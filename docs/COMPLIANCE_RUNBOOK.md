@@ -53,7 +53,10 @@ say nothing more on the phone, in support or by email.
    fetch activates itself unless it has fewer than 90% of the entries in force
    (checked again at activation) or cannot prove it is whole; a short one needs
    a proposer and a different person to activate it. An older file can never
-   replace a newer one already in force. The file limit is 4 MB.
+   replace a newer one already in force. The file limit is 4 MB. The desk
+   lists only versions someone can still activate: an older version (a newer
+   one is in force) or one that cannot prove it is whole is not waiting, and
+   activating it is refused. Load the whole file again instead.
 6. **De-listing.** When a new version no longer carries the reference of a
    confirmed match, the desk flags it. Consider a release (below).
 
@@ -61,6 +64,14 @@ say nothing more on the phone, in support or by email.
 
 1. **Nothing happens to the person automatically.** Neither an exact nor a
    close match places a hold, because a name is not an identity.
+   How a close match is found: each word of the list name must be paired
+   with a different word of ours (one to one) that is the same after
+   transliteration folding, has the same consonants, or differs by at most
+   15% of its letters. A shared "Abdul" does not count; the rest of the word
+   must match. Short list names (three words or fewer) need every word; longer
+   ones need two thirds by rarity, including one uncommon word. A list name
+   made only of names common in Nigeria, found inside a longer name of ours,
+   is recorded on the screening but raises no match.
 2. **Check it.** Compare the list entry's date of birth, nationality and
    aliases with what Vallo holds: the NIN name on an agent application, the
    bank-resolved account name, and the documents.
@@ -98,6 +109,10 @@ say nothing more on the phone, in support or by email.
   Nothing was screened, and nothing should be read as clear.
 - `sanctions.list_refresh_failed` (warning) when a configured URL could not be
   loaded.
+- `sanctions.list_waiting` (warning) when a version waits for a second person
+  to activate it; `sanctions.list_incomplete` when a fetched file could not
+  prove it is whole; `sanctions.list_waiting_unreadable` when the waiting count
+  could not be read (treat it as needing a look, not as zero).
 
 **Accepted limitation.** The triggers that queue a screening swallow every
 error, but a statement cancelled from outside (a timeout or an operator

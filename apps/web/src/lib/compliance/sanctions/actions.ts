@@ -23,7 +23,10 @@ async function staffRpc(fn: string, args: Record<string, unknown>, done: string)
   const { data, error } = await (access.supabase as unknown as Rpc).rpc(fn, args);
   revalidatePath("/admin/compliance");
   const status = !error && data && typeof data === "object" ? (data as { status?: unknown }).status : null;
-  return status === "ok" ? { ok: true, message: done } : { ok: false, error: typeof status === "string" ? status : "failed" };
+  if (status === "ok") return { ok: true, message: done };
+  /* A short URL list's first step: proposed, waiting on a second person. */
+  if (status === "proposed") return { ok: true, message: "proposed" };
+  return { ok: false, error: typeof status === "string" ? status : "failed" };
 }
 
 /** A different staff member activates a waiting list version (items 9 and 19). */

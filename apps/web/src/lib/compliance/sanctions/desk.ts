@@ -39,6 +39,8 @@ export type SanctionsHit = {
   delisted: boolean;
   /** Whether a hold on the person's money is actually in force right now. */
   moneyHeld: boolean;
+  /** Each desk's claim on the hold (sanctions, STR) and when it ends. */
+  claims: { owner: string; until: string }[];
   pending: PendingDecision | null;
 };
 export type RecentScreening = { id: string; subject: "person" | "transaction"; trigger: string; outcome: string; at: string };
@@ -85,6 +87,9 @@ export function readSanctionsDesk(data: unknown, error: unknown): SanctionsDesk 
       nationalities: Array.isArray(raw.nationalities) ? raw.nationalities.filter(str) : [],
       delisted: raw.delisted === true,
       moneyHeld: raw.moneyHeld === true,
+      claims: Array.isArray(raw.claims)
+        ? (raw.claims as Record<string, unknown>[]).filter((c) => str(c.owner) && str(c.until)).map((c) => ({ owner: c.owner as string, until: c.until as string }))
+        : [],
       pending:
         p && str(p.id) && (p.decision === "clear" || p.decision === "confirm" || p.decision === "release") && str(p.proposedBy)
           ? { id: p.id, decision: p.decision, note: str(p.note) ? p.note : "", proposedBy: p.proposedBy, proposedAt: str(p.proposedAt) ? p.proposedAt : "" }

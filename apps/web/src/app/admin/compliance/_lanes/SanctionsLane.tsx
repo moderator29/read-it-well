@@ -123,6 +123,20 @@ async function SanctionsLaneView({ t, locale }: ComplianceLaneProps) {
                 <p className="nf-caption" role="status">
                   {hit.moneyHeld ? c.moneyHeld : c.moneyNotHeld}
                 </p>
+                {hit.claims.length === 0 ? (
+                  <p className="nf-caption">{c.claimNone}</p>
+                ) : (
+                  <ul className="nf-caption">
+                    {hit.claims.map((claim) => (
+                      <li key={claim.owner}>
+                        {fill(c.claimRow, {
+                          owner: c.claimOwner[claim.owner as keyof Dictionary["compliance"]["sanctions"]["claimOwner"]] ?? claim.owner,
+                          until: ui.when(claim.until),
+                        })}
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 {hit.delisted && (
                   <p className="nf-caption" role="alert">
                     {c.delisted}

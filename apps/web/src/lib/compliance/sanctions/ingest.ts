@@ -112,6 +112,8 @@ export async function ingestList(admin: Admin, source: ListSource, loadedBy: str
     .update({
       entry_count: entries,
       previous_entries: inForce,
+      /* An incomplete file (no END row) can never be activated: staff load a whole one. */
+      complete: parsed.complete,
       ...(verdict === "yes" ? { activated_at: new Date().toISOString() } : {}),
     })
     .eq("id", versionId)

@@ -162,7 +162,8 @@ async function partiesFor(admin: Admin, row: QueueRow): Promise<Party[]> {
   return [];
 }
 
-type Lists = { unVersion: string | null; ngVersion: string | null; listed: ListedName[] };
+/** `ourNames`: names we screened lately, so a name common among OUR people weighs less. */
+type Lists = { unVersion: string | null; ngVersion: string | null; listed: ListedName[]; ourNames: string[] };
 
 export async function currentLists(admin: Admin): Promise<Lists | null> {
   const { data: versions, error } = await admin
@@ -198,7 +199,16 @@ export async function currentLists(admin: Admin): Promise<Lists | null> {
       if (!page || page.length < 1000) break;
     }
   }
-  return { unVersion, ngVersion, listed };
+  const { data: recent, error: recentError } = await admin
+    .from("sanctions_screenings")
+    .select("names_screened")
+    .order("screened_at", { ascending: false })
+    .limit(5000);
+  if (recentError) return null;
+  const ourNames = (Array.isArray(recent) ? recent : []).flatMap((r: { names_screened?: string[] | null }) =>
+    Array.isArray(r.names_screened) ? r.names_screened : [],
+  );
+  return { unVersion, ngVersion, listed, ourNames };
 }
 
 export type DrainCounts = {
@@ -221,7 +231,7 @@ export async function drainScreenQueue(admin: Admin, now: Date = new Date(), lim
   else counts.renewed = Number(renewed) || 0;
   const lists = await currentLists(admin);
   if (!lists) return { ...counts, listsUnreadable: true };
-  const matcher = lists.listed.length > 0 ? createMatcher(lists.listed) : null;
+  const matcher = lists.listed.length > 0 ? createMatcher(lists.listed, undefined, lists.ourNames) : null;
 
   /* Claimed, not read: update ... returning, for update skip locked,
      transactions first; a row a dead run took is claimable after 30 min. */

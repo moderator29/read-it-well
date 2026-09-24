@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin/guard";
 import { ingestList } from "@/lib/compliance/sanctions/ingest";
 import { uploadSource } from "@/lib/compliance/sanctions/sources";
 import { getAdminClient } from "@/lib/wallet/ledger";
+import { siteUrl } from "@/lib/site";
 
 /**
  * POST /api/compliance/sanctions-upload. SCUML items 8 and 9.
@@ -14,7 +15,9 @@ import { getAdminClient } from "@/lib/wallet/ledger";
  *   - `requireAdmin` runs BEFORE the body is read, so nobody else gets a
  *     byte of it parsed;
  *   - the declared length is refused above 4 MB before reading, and the file
- *     itself is checked again after.
+ *     itself is checked again after;
+ *   - a request whose Origin is not this site's is refused (a staff member's
+ *     cookie must not load a list from another page).
  * The version loads INACTIVE; a different staff member activates it on the
  * desk (`sanctions_list_activate`).
  */
@@ -28,7 +31,26 @@ const FRAMING = 64 * 1024;
 
 type Answer = { ok: true; message: string } | { ok: false; error: string };
 
+/** Same site only: the Origin must be this deployment's (or the request's own) origin. */
+function sameOrigin(request: Request): boolean {
+  const origin = request.headers.get("origin");
+  if (!origin) return false;
+  const allowed = new Set<string>();
+  try {
+    allowed.add(new URL(request.url).origin);
+  } catch {
+    /* no request origin */
+  }
+  try {
+    allowed.add(new URL(siteUrl()).origin);
+  } catch {
+    /* no configured site */
+  }
+  return allowed.has(origin);
+}
+
 export async function POST(request: Request): Promise<NextResponse<Answer>> {
+  if (!sameOrigin(request)) return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
   const access = await requireAdmin();
   if (access.state !== "admin") return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
 

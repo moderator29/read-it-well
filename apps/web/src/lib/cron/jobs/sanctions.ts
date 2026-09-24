@@ -23,9 +23,10 @@ import type { AdminClient } from "../rpc";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Loose = any;
 
-export function listsVerdict(results: { source: string; result: IngestResult }[], waiting = 0): JobVerdict {
+export function listsVerdict(results: { source: string; result: IngestResult }[], waiting: number | null = 0): JobVerdict {
   const counts = {
-    waiting,
+    waiting: waiting ?? 0,
+    incomplete: results.filter((r) => r.result.state === "waiting" && r.result.why === "unverified").length,
     sources: results.length,
     loaded: results.filter((r) => r.result.state === "loaded").length,
     same: results.filter((r) => r.result.state === "same").length,
@@ -40,6 +41,24 @@ export function listsVerdict(results: { source: string; result: IngestResult }[]
       counts,
       detail,
       alert: { kind: "sanctions.list_refresh_failed", severity: "warning", detail: { sources: broken, scuml_item: 9 } },
+    };
+  }
+  if (waiting === null) {
+    /* The count could not be read: never "nothing waiting". */
+    return {
+      outcome: "attention",
+      counts,
+      detail,
+      alert: { kind: "sanctions.list_waiting_unreadable", severity: "warning", detail: { scuml_item: 9 } },
+    };
+  }
+  if (counts.incomplete > 0) {
+    /* A fetched file that cannot prove it is whole: load the whole file on the desk. */
+    return {
+      outcome: "attention",
+      counts,
+      detail,
+      alert: { kind: "sanctions.list_incomplete", severity: "warning", detail: { incomplete: counts.incomplete, scuml_item: 9 } },
     };
   }
   if (waiting > 0) {
@@ -57,12 +76,9 @@ export function listsVerdict(results: { source: string; result: IngestResult }[]
 export async function sanctionsLists(admin: AdminClient, sources: ListSource[] = configuredSources()): Promise<JobVerdict> {
   const results: { source: string; result: IngestResult }[] = [];
   for (const source of sources) results.push({ source: source.source, result: await ingestList(admin as Loose, source) });
-  const { count, error } = await (admin as Loose)
-    .from("sanctions_list_versions")
-    .select("id", { count: "exact", head: true })
-    .is("activated_at", null)
-    .gt("entry_count", 0);
-  return listsVerdict(results, error ? 0 : Number(count) || 0);
+  /* The same rule the desk uses: loaded, not active, complete, not superseded. */
+  const { data, error } = await (admin as Loose).rpc("sanctions_lists_waiting");
+  return listsVerdict(results, error ? null : Number(data) || 0);
 }
 
 export function screenVerdict(counts: DrainCounts): JobVerdict {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FUZZY_THRESHOLD, createMatcher, factsAllowHit, matchNames, nameScore, normaliseName, outcomeOf, type ListedName } from "./match";
+import { FUZZY_THRESHOLD, createMatcher, factsAllowHit, foldWord, matchNames, nameScore, normaliseName, outcomeOf, rarityWeights, type ListedName } from "./match";
 
 const LISTED: ListedName[] = [
   { entryId: "e1", source: "un", reference: "FXi.001", primaryName: "ZEPHYRIN QUILLAN BRAXTOVÉ", names: ["braxtove quillan zephyrin", "braxtove zeph"] },
@@ -54,11 +54,33 @@ describe("matching (SCUML item 8)", () => {
     expect(m[0]!.score).toBeGreaterThanOrEqual(FUZZY_THRESHOLD);
   });
 
-  it("never matches one word from our side, and needs two thirds of the listed name", () => {
-    const listed = [{ entryId: "e8", source: "un" as const, reference: "FXi.008", primaryName: "Musa Ibrahim Kabiru Danjuma", names: ["danjuma ibrahim kabiru musa"] }];
-    expect(matchNames(["Danjuma"], listed)).toEqual([]);
+  it("never matches one word from our side, and needs two thirds of the listed name with a distinctive word", () => {
+    const listed = [{ entryId: "e8", source: "un" as const, reference: "FXi.008", primaryName: "Musa Ibrahim Kabiru Braxtove", names: ["braxtove ibrahim kabiru musa"] }];
+    expect(matchNames(["Braxtove"], listed)).toEqual([]);
     expect(matchNames(["Musa Ibrahim"], listed)).toEqual([]);
-    expect(matchNames(["Musa Ibrahim Danjuma"], listed)).toHaveLength(1);
+    /* Three common words of four: no distinctive word covered. */
+    expect(matchNames(["Musa Ibrahim Kabiru"], listed)).toEqual([]);
+    expect(matchNames(["Musa Ibrahim Braxtove"], listed)).toHaveLength(1);
+  });
+
+  it("pairs words one to one: Muhammad Musa does not cover Muhammad Mustafa Musa", () => {
+    const listed = [{ entryId: "b", source: "un" as const, reference: "FXi.020", primaryName: "Muhammad Mustafa Musa", names: ["muhammad musa mustafa"] }];
+    expect(matchNames(["Muhammad Musa"], listed)).toEqual([]);
+    expect(matchNames(["Mustapha Musa"], listed)).toEqual([]);
+  });
+
+  it("never lets a shared Abdul- prefix cover a word", () => {
+    const listed = [{ entryId: "a", source: "un" as const, reference: "FXi.021", primaryName: "Ahmad Abdullahi", names: ["abdullahi ahmad"] }];
+    for (const abdul of ["Abdulkadir", "Abdulrahman", "Abdulaziz", "Abdulmalik", "Abdul"]) {
+      expect(matchNames([`Ahmad ${abdul}`], listed)).toEqual([]);
+    }
+    expect(matchNames(["Ahmed Abdullahi"], listed)).toHaveLength(1);
+  });
+
+  it("records a listing of common names inside a longer name of ours, without raising it", () => {
+    const listed = [{ entryId: "y", source: "un" as const, reference: "FXi.022", primaryName: "Muhammad Yusuf", names: ["muhammad yusuf"] }];
+    expect(matchNames(["Mohammed Yousef"], listed)[0]).toMatchObject({ kind: "fuzzy", raise: true });
+    expect(matchNames(["Mohammed Yousef Bello"], listed)[0]).toMatchObject({ raise: false });
   });
 
   it("reads Mohd as Muhammad, and an al- prefix joined or apart as the same word", () => {
@@ -75,13 +97,17 @@ describe("matching (SCUML item 8)", () => {
     expect(matchNames(["Musa Ibrahim"], listed)).toEqual([]);
   });
 
-  it("weights coverage by rarity: common words do not carry a four-word listing", () => {
+  it("weights coverage by rarity, with names common in Nigeria capped: they do not carry a four-word listing", () => {
     const common = (i: number) => ({ entryId: `x${i}`, source: "un" as const, reference: `FXc.${i}`, primaryName: `Muhammad Ali ${i}`, names: [`ali muhammad w${i}zz`] });
-    const target = { entryId: "t", source: "un" as const, reference: "FXi.013", primaryName: "Muhammad Ali Musa Danjuma", names: ["ali danjuma muhammad musa"] };
+    const target = { entryId: "t", source: "un" as const, reference: "FXi.013", primaryName: "Muhammad Ali Musa Braxtove", names: ["ali braxtove muhammad musa"] };
     const listed = [target, ...Array.from({ length: 20 }, (_, i) => common(i))];
     /* Three of four words, but the one missing is the rare one. */
     expect(matchNames(["Muhammad Ali Musa"], listed).filter((m) => m.reference === "FXi.013")).toEqual([]);
-    expect(matchNames(["Muhammad Musa Danjuma"], listed).map((m) => m.reference)).toContain("FXi.013");
+    expect(matchNames(["Muhammad Musa Braxtove"], listed).map((m) => m.reference)).toContain("FXi.013");
+    /* Our own screened names count too: a word common among them weighs less. */
+    const weight = rarityWeights([target], ["Braxtove Ada", "Braxtove Obi", "Braxtove Eze"]);
+    expect(weight(foldWord("braxtove"))).toBeLessThan(rarityWeights([target], ["Ada Obi", "Eze Nnamdi", "Obi Uche"])(foldWord("braxtove")));
+    expect(weight(foldWord("bello"))).toBeLessThanOrEqual(0.35);
   });
 
   it("raises a close match only when the facts do not disagree; an exact one always", () => {
