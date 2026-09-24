@@ -26,4 +26,18 @@ describe("firstNameAndInitial", () => {
     expect(firstNameAndInitial("  ")).toBeNull();
     expect(firstNameAndInitial("12 34")).toBeNull();
   });
+  it("never prints a phone number, an email or a link", () => {
+    expect(firstNameAndInitial("Call08031234567 Homes")).toBe("Homes");
+    expect(firstNameAndInitial("08031234567")).toBeNull();
+    expect(firstNameAndInitial("+234 803 123 4567")).toBeNull();
+    expect(firstNameAndInitial("ade@gmail.com")).toBeNull();
+    expect(firstNameAndInitial("wa.me/2348031234567")).toBeNull();
+    expect(firstNameAndInitial("https://vallo-homes.ng Tunde")).toBe("Tunde");
+    expect(firstNameAndInitial("Tunde www.tunde.ng")).toBe("Tunde");
+  });
+  it("keeps names with apostrophes and hyphens, and caps a long first word", () => {
+    expect(firstNameAndInitial("Ngozi-Ada O'Neil")).toBe("Ngozi-Ada O.");
+    expect(firstNameAndInitial("Abcdefghijklmnopqrstuvwxyz")).toBe("Abcdefghijklmnopqrst");
+    expect(firstNameAndInitial("!!!")).toBeNull();
+  });
 });

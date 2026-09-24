@@ -80,9 +80,9 @@ export default async function ReceiptCheckPage({ params }: { params: Promise<{ c
       <p className="nf-h3 nf-numeric mt-sm">
         {copy.paidLine.replace("{amount}", formatMoney(receipt.paidMinor, locale)).replace("{month}", month)}
       </p>
-      {receipt.tenant && receipt.lister && (
+      {receipt.tenant && (
         <p className="nf-body mt-xs">
-          {copy.byLine.replace("{tenant}", receipt.tenant).replace("{lister}", receipt.lister)}
+          {copy.byLine.replace("{tenant}", receipt.tenant).replace("{lister}", receipt.lister ?? getDictionary(locale).afterTheGate.moneyMap.theLister)}
         </p>
       )}
       {where && <p className="nf-body mt-2xs">{copy.forLine.replace("{period}", period).replace("{area}", where)}</p>}

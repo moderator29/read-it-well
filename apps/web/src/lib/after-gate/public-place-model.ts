@@ -23,14 +23,25 @@ export function placeFrom(
 
 /**
  * A person's name as a third party may read it: the first word and the
- * initial of the last, "Adaeze O.". A single word stays as it is; nothing
- * typed, or only symbols, gives null so the caller says "the lister".
+ * initial of the last, "Adaeze O.". A word with a digit, @, slash, colon or
+ * dot is dropped whole; of the rest only letters, apostrophes and hyphens
+ * survive, and the first word is capped at 20, so a phone number, an email
+ * or a link typed as a name never prints. Nothing left gives null, and the
+ * caller says "the lister".
  */
 export function firstNameAndInitial(name: string | null | undefined): string | null {
-  const words = (name ?? "").trim().split(/\s+/).filter((word) => /\p{L}/u.test(word));
+  const clean = (word: string) => word.replace(/[^\p{L}'-]/gu, "").replace(/^['-]+|['-]+$/g, "");
+  const words = (name ?? "")
+    .trim()
+    .split(/\s+/)
+    // A word carrying a digit, @, a slash, a colon or a dot is a number, an
+    // email or a link, not a name: it goes whole, not just its symbols.
+    .filter((word) => !/[\p{N}@/:.\\_]/u.test(word))
+    .map(clean)
+    .filter((word) => /\p{L}/u.test(word));
   if (words.length === 0) return null;
-  const first = (words[0] as string).slice(0, 40);
+  const first = Array.from(words[0] as string).slice(0, 20).join("");
   if (words.length === 1) return first;
-  const initial = Array.from((words[words.length - 1] as string).replace(/[^\p{L}]/gu, ""))[0];
+  const initial = Array.from(words[words.length - 1] as string).find((ch) => /\p{L}/u.test(ch));
   return initial ? `${first} ${initial.toUpperCase()}.` : first;
 }

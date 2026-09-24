@@ -13,7 +13,7 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { panelClass } from "@/components/ui/Panel";
 import { CheckoutSummary } from "./CheckoutSummary";
 import { ArrivalChargesLine } from "@/components/stays/ArrivalChargesLine";
-import { bookingChargeKind, isRentChargeBooking } from "@/lib/after-gate/is-rent-charge";
+import { bookingChargeKind } from "@/lib/after-gate/is-rent-charge";
 import { HoldCountdown } from "./HoldCountdown";
 import { PayPanel } from "./PayPanel";
 import { PaymentReturn } from "./PaymentReturn";
@@ -188,7 +188,8 @@ export default async function CheckoutPage({
       <Reveal>
         {/* What is being bought, as one component the preview harness draws
             with fixture props and this route draws with the real read. */}
-        <CheckoutSummary view={view} locale={locale} tenancy={await isRentChargeBooking(view.bookingId)} />
+        {/* No stay terms on a rent charge, nor when that could not be read. */}
+        <CheckoutSummary view={view} locale={locale} tenancy={(await bookingChargeKind(view.bookingId)) !== "stay"} />
       </Reveal>
 
       {view.paid ? (
