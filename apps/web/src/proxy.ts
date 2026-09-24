@@ -9,6 +9,7 @@ import {
 } from "@/lib/security/csp";
 import { safeReturnPath } from "@/lib/security/return-path";
 import { forwardedAgentHeaders } from "./lib/supabase/agent";
+import { serverCookiesSecure, withAuthCookiePolicy } from "./lib/supabase/cookie-policy";
 import { consume, ipFromHeaders, subjectForIp } from "@/lib/security/rate-limit";
 import {
   ANON_CATALOGUE_LIMIT,
@@ -371,7 +372,7 @@ export async function proxy(request: NextRequest) {
         }
         response = NextResponse.next({ request });
         for (const { name, value, options } of cookiesToSet) {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, withAuthCookiePolicy(options, serverCookiesSecure()));
         }
       },
     },
