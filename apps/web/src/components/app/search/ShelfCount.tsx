@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
+import type { Dictionary, Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { SORTS, sortBasisOf } from "@/lib/listings/search-params";
 import { ViewToggle } from "@/components/app/filters/ViewToggle";
 import { toShelfHref, toShelfViewHref, type ShelfQuery } from "./shelf-query";
+import { shelfCountLine } from "./shelf-count-line";
 
 /**
  * "342 properties found" and the sort control beside it, to 3EB3E2A9.
@@ -18,12 +19,19 @@ export function ShelfCount({
   narrowed,
   locale,
   t,
+  more = false,
+  later = false,
 }: {
   query: ShelfQuery;
+  /** The listings on this page. */
   count: number;
   narrowed: boolean;
   locale: Locale;
   t: Dictionary;
+  /** A next page exists (OPS-11): the count is this page's, not a total. */
+  more?: boolean;
+  /** This is not the first page. */
+  later?: boolean;
 }) {
   const copy = t.catalogue.shelf;
   const current = SORTS.find((sort) => sort.key === query.sort) ?? SORTS[0]!;
@@ -34,14 +42,7 @@ export function ShelfCount({
       : currentBasis === "move-in"
         ? t.moveIn.basisMoveIn
         : null;
-  const line =
-    count === 0
-      ? narrowed
-        ? copy.foundNone
-        : ""
-      : count === 1
-        ? copy.foundOne
-        : copy.found.replace("{count}", formatNumber(count, locale));
+  const line = shelfCountLine({ count, narrowed, more, later }, copy, locale);
 
   return (
     <div className="nf-shelf-count">
@@ -49,6 +50,7 @@ export function ShelfCount({
         <p
           data-testid="results-count"
           data-count={count}
+          data-more={more ? "true" : undefined}
           aria-live="polite"
           aria-atomic="true"
           className="nf-body-sm min-w-0 whitespace-nowrap font-medium text-[var(--nf-content-secondary)]"

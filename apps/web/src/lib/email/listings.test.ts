@@ -57,6 +57,7 @@ function obedientRepository(rows: Listing[]): ListingRepository {
     byReference: async () => rows[0] ?? null,
     search: async (filter: ListingSearchFilter = {}) =>
       filter.excludeDemo ? rows.filter((row) => !row.isDemo) : rows,
+    searchPage: async () => ({ listings: rows, next: null }),
   };
 }
 
@@ -68,6 +69,7 @@ function leakyRepository(rows: Listing[]): ListingRepository {
     byId: async () => rows[0] ?? null,
     byReference: async () => rows[0] ?? null,
     search: async () => rows,
+    searchPage: async () => ({ listings: rows, next: null }),
   };
 }
 

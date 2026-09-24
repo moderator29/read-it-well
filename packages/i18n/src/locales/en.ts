@@ -5444,6 +5444,10 @@ export const en = {
       found: "{count} properties found",
       foundOne: "1 property found",
       foundNone: "No properties found",
+      /* OPS-11: a page of a longer list states what it shows, never a total it does not know. */
+      foundPage: "{count} shown, more below",
+      foundLaterPage: "{count} more shown, more below",
+      foundLastPage: "{count} more shown, the last of them",
       sort: "Sort",
       sortRecommended: "Recommended",
       sortTopRated: "Top rated",

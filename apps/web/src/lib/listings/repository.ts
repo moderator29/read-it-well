@@ -7,6 +7,8 @@ import type {
   Listing,
   ListingRepository,
   ListingSearchFilter,
+  ListingPage,
+  ListingPageOptions,
   ListingSearchOptions,
 } from "./types";
 
@@ -67,6 +69,10 @@ class EmptyListingRepository implements ListingRepository {
     return [];
   }
 
+  async searchPage(_filter?: ListingSearchFilter): Promise<ListingPage> {
+    return { listings: [], next: null };
+  }
+
   async byId(_id: string): Promise<Listing | null> {
     return null;
   }
@@ -111,6 +117,13 @@ class PlatformListingRepository implements ListingRepository {
     return this.fromDb(() => this.db.search(filter, opts), [] as Listing[]);
   }
 
+  async searchPage(
+    filter: ListingSearchFilter = {},
+    opts: ListingPageOptions = {},
+  ): Promise<ListingPage> {
+    return this.fromDb(() => this.db.searchPage(filter, opts), { listings: [], next: null } as ListingPage);
+  }
+
   async recommended(limit = 6): Promise<Listing[]> {
     const live = await this.fromDb(() => this.db.recommended(limit), [] as Listing[]);
     // Diversity is applied so the rail reads as a tour of the catalogue rather
@@ -142,6 +155,12 @@ class ApiListingRepository implements ListingRepository {
     );
   }
   async search(): Promise<Listing[]> {
+    throw new Error(
+      "NF_DATA_SOURCE is set to 'api' but the platform API is not implemented yet. " +
+        "Unset it to fall back to the platform catalogue.",
+    );
+  }
+  async searchPage(): Promise<ListingPage> {
     throw new Error(
       "NF_DATA_SOURCE is set to 'api' but the platform API is not implemented yet. " +
         "Unset it to fall back to the platform catalogue.",

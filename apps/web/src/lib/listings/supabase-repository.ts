@@ -9,6 +9,8 @@ import { pointSelect } from "../supabase/public-point";
 import { isListingRole } from "../supply/roles";
 import { catalogueReadFailed } from "./read-failure";
 import { diversePick, matchesFilter } from "./filter";
+import { decodeCursor, encodeCursor, keyOfRow, keysetFilter, type CatalogueOrder, type CursorKey } from "./keyset";
+import { fillPage } from "./page-fill";
 import {
   headlinePrice,
   moveInTotal,
@@ -23,6 +25,8 @@ import type {
   Listing,
   ListingKind,
   ListingRepository,
+  ListingPage,
+  ListingPageOptions,
   ListingSearchFilter,
   ListingSearchOptions,
 } from "./types";
@@ -601,66 +605,78 @@ function warnIfTruncated(rows: number, what: string, scope: number): void {
 }
 
 /**
- * Published listing ids carrying EVERY requested amenity, through the join
- * table.
+ * The amenity ids for the requested codes, or null when any code is unknown
+ * (nothing can carry an amenity that does not exist, so nothing matches).
  *
- * The join is the only place this can be answered in SQL: one filtered read of
- * `listing_amenities`, then the ids that turned up with the full set. It is
- * pushed down rather than filtered in memory because a listing that fails it
- * should never occupy one of the catalogue page's rows.
- *
- * Returns an empty list, never a throw: an unknown code, an unreachable table
- * or an empty reference table all mean "the database half contributes nothing",
- * and the seed half still answers with the same rule applied by the matcher.
+ * The set itself is applied in SQL by `withAmenities`: one inner embed per
+ * amenity, so a row comes back only if it carries every one. That replaced a
+ * read of `listing_amenities` capped at 5,000 rows whose result was turned
+ * into an id list for `.in()`: past the cap a listing carrying the whole set
+ * silently dropped out, and the id list grew with the catalogue.
  */
-async function listingIdsWithAllAmenities(
-  supabase: Client,
-  codes: string[],
-): Promise<string[]> {
-  try {
-    const codeById = await getAmenityCodes();
-    const idByCode = new Map<string, string>();
-    for (const [id, code] of codeById) idByCode.set(code, id);
-
-    const wanted: string[] = [];
-    for (const code of codes) {
-      const id = idByCode.get(code);
-      if (!id) return [];
-      wanted.push(id);
-    }
-    if (wanted.length === 0) return [];
-
-    const { data, error } = await supabase
-      .from("listing_amenities")
-      .select("listing_id, amenity_id")
-      .in("amenity_id", wanted)
-      .limit(JOIN_ROW_LIMIT);
-    if (error) {
-      await catalogueReadFailed("amenity_join", error);
-      return [];
-    }
-    if (!data) return [];
-    warnIfTruncated(data.length, "listing_amenities", wanted.length);
-
-    const found = new Map<string, Set<string>>();
-    for (const row of data) {
-      const set = found.get(row.listing_id) ?? new Set<string>();
-      set.add(row.amenity_id);
-      found.set(row.listing_id, set);
-    }
-    const out: string[] = [];
-    for (const [listingId, set] of found) {
-      if (set.size === wanted.length) out.push(listingId);
-    }
-    return out;
-  } catch (error) {
-    await catalogueReadFailed("amenity_join", error);
-    return [];
+async function amenityIdsFor(codes: string[]): Promise<string[] | null> {
+  const codeById = await getAmenityCodes();
+  const idByCode = new Map<string, string>();
+  for (const [id, code] of codeById) idByCode.set(code, id);
+  const wanted: string[] = [];
+  for (const code of new Set(codes)) {
+    const id = idByCode.get(code);
+    if (!id) return null;
+    wanted.push(id);
   }
+  return wanted;
 }
 
-/** Rating average and count per listing, in one query for the whole page. */
+/**
+ * The select with one aliased inner embed per required amenity. PostgREST
+ * returns a parent row only when each `!inner` embed has a child passing its
+ * filter, which is "carries every one of them", decided by the database.
+ */
+export function withAmenities(select: string, amenityIds: readonly string[]): string {
+  if (amenityIds.length === 0) return select;
+  const embeds = amenityIds.map((_, n) => `am${n}:listing_amenities!inner(amenity_id)`);
+  return `${select.trimEnd()},\n  ${embeds.join(",\n  ")}\n`;
+}
+
+/**
+ * Rating average and count per listing for one page, grouped in SQL by
+ * `public.listing_review_stats` (OPS-11) under the caller's RLS.
+ *
+ * The row read below it is kept only for a database the function has not
+ * reached yet: it fetched every review row and averaged in memory, capped at
+ * 5,000 rows, which past the cap averaged a truncated sample.
+ */
 async function getReviewStats(
+  supabase: Client,
+  listingIds: string[],
+): Promise<Map<string, { rating: number; count: number }>> {
+  const stats = new Map<string, { rating: number; count: number }>();
+  if (listingIds.length === 0) return stats;
+  const { data, error } = await (supabase.rpc as unknown as ReviewStatsRpc)("listing_review_stats", {
+    p_listing_ids: listingIds,
+  });
+  if (error || !data) return getReviewStatsFromRows(supabase, listingIds);
+  for (const row of data) {
+    const count = Number(row.review_count);
+    if (!(count > 0)) continue;
+    stats.set(row.listing_id, {
+      rating: Math.round(Number(row.rating_avg) * 10) / 10,
+      count,
+    });
+  }
+  return stats;
+}
+
+type ReviewStatsRpc = (
+  fn: "listing_review_stats",
+  args: { p_listing_ids: string[] },
+) => PromiseLike<{
+  data: { listing_id: string; rating_avg: number | string; review_count: number }[] | null;
+  error: unknown;
+}>;
+
+/** The pre-OPS-11 read, for a database without `listing_review_stats`. */
+async function getReviewStatsFromRows(
   supabase: Client,
   listingIds: string[],
 ): Promise<Map<string, { rating: number; count: number }>> {
@@ -1083,6 +1099,224 @@ export async function loadListingsByIds(
   }
 }
 
+/** Results per catalogue page (OPS-11). Two across on a phone, four on a wide screen. */
+const PAGE_SIZE = 24;
+
+/**
+ * The part of the PostgREST builder the catalogue read uses. The select is
+ * built at run time (the amenity embeds), which the client's type-level parser
+ * cannot follow, so the builder is held by this shape instead.
+ */
+type CatalogueQuery = {
+  eq(column: string, value: unknown): CatalogueQuery;
+  neq(column: string, value: unknown): CatalogueQuery;
+  gte(column: string, value: unknown): CatalogueQuery;
+  in(column: string, values: readonly unknown[]): CatalogueQuery;
+  not(column: string, operator: string, value: unknown): CatalogueQuery;
+  or(filters: string): CatalogueQuery;
+  order(column: string, options: { ascending: boolean; nullsFirst?: boolean }): CatalogueQuery;
+  limit(count: number): PromiseLike<{ data: unknown[] | null; error: unknown }>;
+};
+
+/**
+ * The published catalogue with every filter the database can decide, not yet
+ * ordered or limited. Null when nothing can match (an unknown amenity code).
+ *
+ * What runs where, and why:
+ *
+ *   In SQL   category, free text, price floor and ceiling, bedroom and
+ *            bathroom minimums, light and water, who is offering it, hiding
+ *            the examples, and the amenity set (one inner embed per amenity).
+ *            Every one of them is a predicate, so a row that cannot match
+ *            never occupies a place in a read.
+ *   In memory  `matchesFilter`, over every row that comes back: the budget on
+ *            the one price a row leads with, party size, verified-only. SQL
+ *            narrows, the matcher decides, and the two cannot disagree.
+ */
+async function catalogueQuery(
+  supabase: Client,
+  filter: ListingSearchFilter,
+): Promise<{ query: CatalogueQuery } | null> {
+  let amenityIds: string[] = [];
+  if (filter.amenities && filter.amenities.length > 0) {
+    const ids = await amenityIdsFor(filter.amenities);
+    if (!ids) return null;
+    amenityIds = ids;
+  }
+  let query = (supabase
+    .from("listings")
+    .select(withAmenities(await pointSelect(supabase, LISTING_SELECT), amenityIds))
+    .eq("status", "PUBLISHED") as unknown as CatalogueQuery);
+  amenityIds.forEach((id, n) => {
+    query = query.eq(`am${n}.amenity_id`, id);
+  });
+  if (filter.kind) {
+    const propertyType = propertyTypeFor(filter.kind);
+    if (propertyType) {
+      query = query.eq(
+        "property_type",
+        propertyType as Database["public"]["Enums"]["property_type"],
+      );
+    }
+  }
+
+  /*
+   * The search term, one `or` parameter per word.
+   *
+   * PostgREST ANDs repeated top-level parameters, and `.or()` appends
+   * rather than replaces, so six words become six groups that must all
+   * hold. `listings_title_trgm_idx` and its two neighbours are trigram
+   * indexes over these same columns, which is what keeps an unanchored
+   * `%term%` off a sequential scan.
+   */
+  const term = filter.q?.trim();
+  if (term) {
+    for (const group of freeTextGroups(term, await getStateNames())) {
+      query = query.or(group);
+    }
+  }
+
+  if (filter.intent) {
+    query = query.eq(
+      "listing_intent",
+      filter.intent as Database["public"]["Enums"]["listing_intent"],
+    );
+    /* UX-07: the rent market is tenancies. A row that leads with a nightly
+       or per-head rate is a stay or a table (headlinePrice checks the rate
+       first), so it is narrowed out here; matchesFacts decides the rest. */
+    if (filter.intent === "rent") query = query.or("rate_minor.is.null,rate_minor.lte.0");
+  }
+
+  /*
+   * Budget, across three money columns rather than one.
+   *
+   * A row leads with an asking price, a nightly rate or a rent, and which
+   * one it leads with is a property of the row rather than of the query, so
+   * the predicate has to allow any of the three to satisfy the bound. An OR
+   * of three AND groups does exactly that in one PostgREST call.
+   *
+   * This stays an optimisation and never the authority: `matchesFilter`
+   * runs `headlinePrice` over every row that comes back and judges the one
+   * figure the row actually leads with, so a listing whose rent fits the
+   * budget but whose nightly rate does not is filtered out in memory. SQL
+   * narrows, the matcher decides, and the two cannot disagree.
+   */
+  const wantsBudget =
+    filter.minPriceMinor !== undefined || filter.maxPriceMinor !== undefined;
+  if (wantsBudget) {
+    const bounds = (column: string) => {
+      const parts = [`${column}.gt.0`];
+      if (filter.minPriceMinor !== undefined) {
+        parts.push(`${column}.gte.${filter.minPriceMinor}`);
+      }
+      if (filter.maxPriceMinor !== undefined) {
+        parts.push(`${column}.lte.${filter.maxPriceMinor}`);
+      }
+      return `and(${parts.join(",")})`;
+    };
+    query = query.or(
+      [bounds("rent_amount_minor"), bounds("rate_minor"), bounds("sale_price_minor")].join(
+        ",",
+      ),
+    );
+  }
+  if (filter.bedrooms !== undefined) query = query.gte("bedrooms", filter.bedrooms);
+  if (filter.bathrooms !== undefined) query = query.gte("bathrooms", filter.bathrooms);
+  /*
+   * Party size and instant book are decided in memory now, and there is no
+   * predicate to push down for either.
+   *
+   * `max_guests` and `instant_book` were dropped with the short-stay model.
+   * The matcher still answers both: `sleeps` falls back to the
+   * two-per-bedroom convention where no capacity is declared, which is now
+   * every database row, and `instantBook` is false on every one of them.
+   * Naming that here rather than deleting the branch silently, because the
+   * filter drawer still offers both controls and a reader of this method is
+   * entitled to know why they are missing from the SQL.
+   */
+
+  /*
+   * Light and water, pushed down rather than filtered after the fact.
+   *
+   * `listings_power_idx` and `listings_water_idx` are partial indexes on
+   * `status = 'PUBLISHED'`, which is the predicate already on this query,
+   * so these three land on an index rather than a scan.
+   *
+   * The null half matters as much as the value half: a row where the host
+   * never answered must not come back for somebody who asked for a
+   * generator, and `neq` alone would not exclude it, because in SQL
+   * `null <> 'NONE'` is null and a null predicate is not true. The
+   * shared matcher runs afterwards and would catch it, but a predicate
+   * that leans on a later pass to be correct is one refactor from being
+   * wrong, so it is stated here too.
+   */
+  if (filter.powerBackup) {
+    query = query.not("power_backup", "is", null).neq("power_backup", "NONE");
+  }
+  if (filter.powerBandA) query = query.eq("power_grid", "BAND_A");
+  if (filter.waterSupply && filter.waterSupply.length > 0) {
+    query = query.in("water_supply", filter.waterSupply);
+  }
+
+  /*
+   * WHO IS OFFERING IT, pushed down onto the index Track G already built.
+   *
+   * `listings_role_published_idx` is `(listing_role, listing_intent,
+   * state_code, city)`, partial on published rows, and until now nothing
+   * in this tree queried it: the column shipped, the labels shipped in
+   * `LISTING_ROLE_FILTER_LABEL`, and no reader could ask the question.
+   * This is the ask.
+   *
+   * `listings.listing_role` is NOT NULL in the database, so every
+   * published row has an answer and this predicate never silently drops
+   * one. The row type this file maps from still admits null, because the
+   * generated types do, and `isListingRole` already narrows it; the
+   * shared matcher states in words what `in` does here anyway, so a
+   * listing with no declared role is not shown to somebody who asked for
+   * an owner direct. Both halves say so, because a predicate that leans
+   * on a later pass to be correct is one refactor from wrong.
+   */
+  if (filter.listerRoles && filter.listerRoles.length > 0) {
+    query = query.in("listing_role", filter.listerRoles);
+  }
+
+  /*
+   * Hiding the example listings is pushed down, unlike most of the flags
+   * above, because it is the one filter that will one day match a large
+   * fraction of the catalogue. Filtering it in memory would spend the
+   * page's whole row budget on rows that are then discarded, which is the
+   * exact shape that makes a ceiling silently return too few results.
+   *
+   * `listings_demo_idx` is partial on `is_demo = true`, so this predicate
+   * is answered from the small side of the table.
+   */
+  if (filter.excludeDemo) query = query.eq("is_demo", false);
+
+  /* Wrapped, never returned bare: a PostgREST builder is thenable, so an async
+     function returning it would run the query instead of handing it back. */
+  return { query };
+}
+
+/**
+ * The catalogue's two total orders (`lib/listings/keyset.ts`). Each ends in
+ * `id`, so a cursor names one position and a page continues exactly.
+ *
+ * THE MOVE-IN COST ORDER. `nullsFirst: false` is the honesty half: a listing
+ * whose lister declared no total is not cheap, it is unstated, so it sorts
+ * after every listing that said a number rather than ahead of all of them.
+ */
+function inCatalogueOrder(query: CatalogueQuery, order: CatalogueOrder): CatalogueQuery {
+  let ordered = query;
+  if (order === "move-in") {
+    ordered = ordered.order("total_move_in_cost_minor", { ascending: true, nullsFirst: false });
+  }
+  return ordered
+    .order("featured", { ascending: false })
+    .order("published_at", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false });
+}
+
 export class SupabaseListingRepository implements ListingRepository {
   readonly isSeed = false;
 
@@ -1126,183 +1360,10 @@ export class SupabaseListingRepository implements ListingRepository {
     if (filter.kind && propertyTypeFor(filter.kind) === null) return [];
     try {
       const supabase = await this.connect();
-
-      // The amenity join is resolved first: with no listing carrying the whole
-      // set there is nothing to ask the catalogue for.
-      let amenityIds: string[] | null = null;
-      if (filter.amenities && filter.amenities.length > 0) {
-        amenityIds = await listingIdsWithAllAmenities(supabase, filter.amenities);
-        if (amenityIds.length === 0) return [];
-      }
-
-      let query = supabase
-        .from("listings")
-        .select(await pointSelect(supabase, LISTING_SELECT))
-        .eq("status", "PUBLISHED");
-      if (filter.kind) {
-        const propertyType = propertyTypeFor(filter.kind);
-        if (propertyType) {
-          query = query.eq(
-            "property_type",
-            propertyType as Database["public"]["Enums"]["property_type"],
-          );
-        }
-      }
-      if (amenityIds) query = query.in("id", amenityIds);
-
-      /*
-       * The search term, one `or` parameter per word.
-       *
-       * PostgREST ANDs repeated top-level parameters, and `.or()` appends
-       * rather than replaces, so six words become six groups that must all
-       * hold. `listings_title_trgm_idx` and its two neighbours are trigram
-       * indexes over these same columns, which is what keeps an unanchored
-       * `%term%` off a sequential scan.
-       */
-      const term = filter.q?.trim();
-      if (term) {
-        for (const group of freeTextGroups(term, await getStateNames())) {
-          query = query.or(group);
-        }
-      }
-
-      if (filter.intent) {
-        query = query.eq(
-          "listing_intent",
-          filter.intent as Database["public"]["Enums"]["listing_intent"],
-        );
-        /* UX-07: the rent market is tenancies. A row that leads with a nightly
-           or per-head rate is a stay or a table (headlinePrice checks the rate
-           first), so it is narrowed out here; matchesFacts decides the rest. */
-        if (filter.intent === "rent") query = query.or("rate_minor.is.null,rate_minor.lte.0");
-      }
-
-      /*
-       * Budget, across three money columns rather than one.
-       *
-       * A row leads with an asking price, a nightly rate or a rent, and which
-       * one it leads with is a property of the row rather than of the query, so
-       * the predicate has to allow any of the three to satisfy the bound. An OR
-       * of three AND groups does exactly that in one PostgREST call.
-       *
-       * This stays an optimisation and never the authority: `matchesFilter`
-       * runs `headlinePrice` over every row that comes back and judges the one
-       * figure the row actually leads with, so a listing whose rent fits the
-       * budget but whose nightly rate does not is filtered out in memory. SQL
-       * narrows, the matcher decides, and the two cannot disagree.
-       */
-      const wantsBudget =
-        filter.minPriceMinor !== undefined || filter.maxPriceMinor !== undefined;
-      if (wantsBudget) {
-        const bounds = (column: string) => {
-          const parts = [`${column}.gt.0`];
-          if (filter.minPriceMinor !== undefined) {
-            parts.push(`${column}.gte.${filter.minPriceMinor}`);
-          }
-          if (filter.maxPriceMinor !== undefined) {
-            parts.push(`${column}.lte.${filter.maxPriceMinor}`);
-          }
-          return `and(${parts.join(",")})`;
-        };
-        query = query.or(
-          [bounds("rent_amount_minor"), bounds("rate_minor"), bounds("sale_price_minor")].join(
-            ",",
-          ),
-        );
-      }
-      if (filter.bedrooms !== undefined) query = query.gte("bedrooms", filter.bedrooms);
-      if (filter.bathrooms !== undefined) query = query.gte("bathrooms", filter.bathrooms);
-      /*
-       * Party size and instant book are decided in memory now, and there is no
-       * predicate to push down for either.
-       *
-       * `max_guests` and `instant_book` were dropped with the short-stay model.
-       * The matcher still answers both: `sleeps` falls back to the
-       * two-per-bedroom convention where no capacity is declared, which is now
-       * every database row, and `instantBook` is false on every one of them.
-       * Naming that here rather than deleting the branch silently, because the
-       * filter drawer still offers both controls and a reader of this method is
-       * entitled to know why they are missing from the SQL.
-       */
-
-      /*
-       * Light and water, pushed down rather than filtered after the fact.
-       *
-       * `listings_power_idx` and `listings_water_idx` are partial indexes on
-       * `status = 'PUBLISHED'`, which is the predicate already on this query,
-       * so these three land on an index rather than a scan.
-       *
-       * The null half matters as much as the value half: a row where the host
-       * never answered must not come back for somebody who asked for a
-       * generator, and `neq` alone would not exclude it, because in SQL
-       * `null <> 'NONE'` is null and a null predicate is not true. The
-       * shared matcher runs afterwards and would catch it, but a predicate
-       * that leans on a later pass to be correct is one refactor from being
-       * wrong, so it is stated here too.
-       */
-      if (filter.powerBackup) {
-        query = query.not("power_backup", "is", null).neq("power_backup", "NONE");
-      }
-      if (filter.powerBandA) query = query.eq("power_grid", "BAND_A");
-      if (filter.waterSupply && filter.waterSupply.length > 0) {
-        query = query.in("water_supply", filter.waterSupply);
-      }
-
-      /*
-       * WHO IS OFFERING IT, pushed down onto the index Track G already built.
-       *
-       * `listings_role_published_idx` is `(listing_role, listing_intent,
-       * state_code, city)`, partial on published rows, and until now nothing
-       * in this tree queried it: the column shipped, the labels shipped in
-       * `LISTING_ROLE_FILTER_LABEL`, and no reader could ask the question.
-       * This is the ask.
-       *
-       * `listings.listing_role` is NOT NULL in the database, so every
-       * published row has an answer and this predicate never silently drops
-       * one. The row type this file maps from still admits null, because the
-       * generated types do, and `isListingRole` already narrows it; the
-       * shared matcher states in words what `in` does here anyway, so a
-       * listing with no declared role is not shown to somebody who asked for
-       * an owner direct. Both halves say so, because a predicate that leans
-       * on a later pass to be correct is one refactor from wrong.
-       */
-      if (filter.listerRoles && filter.listerRoles.length > 0) {
-        query = query.in("listing_role", filter.listerRoles);
-      }
-
-      /*
-       * Hiding the example listings is pushed down, unlike most of the flags
-       * above, because it is the one filter that will one day match a large
-       * fraction of the catalogue. Filtering it in memory would spend the
-       * page's whole row budget on rows that are then discarded, which is the
-       * exact shape that makes a ceiling silently return too few results.
-       *
-       * `listings_demo_idx` is partial on `is_demo = true`, so this predicate
-       * is answered from the small side of the table.
-       */
-      if (filter.excludeDemo) query = query.eq("is_demo", false);
-
-      /*
-       * THE MOVE-IN COST ORDER, AND THE INDEX THAT HAS NEVER BEEN QUERIED.
-       *
-       * `listings_move_in_cost_idx` is partial on published rows with a stated
-       * total, and until this read nothing in the tree asked for it. `nullsFirst: false` is the honesty
-       * half: a listing whose lister declared no total is not cheap, it is
-       * unstated, so it sorts after every listing that said a number rather
-       * than ahead of all of them as a null would.
-       */
-      if (opts.order === "move-in") {
-        query = query.order("total_move_in_cost_minor", {
-          ascending: true,
-          nullsFirst: false,
-        });
-      }
-
-      const { data, error } = await query
-        .order("featured", { ascending: false })
-        .order("published_at", { ascending: false, nullsFirst: false })
-        .order("created_at", { ascending: false })
-        .limit(rowCap(opts.limit));
+      const read = await catalogueQuery(supabase, filter);
+      if (!read) return [];
+      const order: CatalogueOrder = opts.order === "move-in" ? "move-in" : "default";
+      const { data, error } = await inCatalogueOrder(read.query, order).limit(rowCap(opts.limit));
       if (error) {
         await catalogueReadFailed("search", error);
         return [];
@@ -1314,6 +1375,51 @@ export class SupabaseListingRepository implements ListingRepository {
     } catch (error) {
       await catalogueReadFailed("search", error);
       return [];
+    }
+  }
+
+  /**
+   * One page of the catalogue, and where the next one starts (OPS-11).
+   *
+   * The same filters as `search`, read in one of the two keyset orders from
+   * the row after `opts.after`. `fillPage` keeps reading until the page is
+   * full after `matchesFilter`, so a page is short only at the end of the
+   * results. A cursor that does not decode for this order reads as the first
+   * page.
+   */
+  async searchPage(
+    filter: ListingSearchFilter = {},
+    opts: ListingPageOptions = {},
+  ): Promise<ListingPage> {
+    const empty: ListingPage = { listings: [], next: null };
+    if (filter.kind && propertyTypeFor(filter.kind) === null) return empty;
+    const order: CatalogueOrder = opts.order === "move-in" ? "move-in" : "default";
+    const pageSize = Math.min(Math.max(Math.floor(opts.pageSize ?? PAGE_SIZE), 1), CATALOGUE_LIMIT);
+    try {
+      const supabase = await this.connect();
+      const after = decodeCursor(order, opts.after);
+      const page = await fillPage<Listing, CursorKey>({
+        pageSize,
+        after,
+        accept: (listing) => matchesFilter(listing, filter),
+        fetchBatch: async (from, limit) => {
+          const read = await catalogueQuery(supabase, filter);
+          if (!read) return [];
+          const narrowed = from ? read.query.or(keysetFilter(order, from)) : read.query;
+          const { data, error } = await inCatalogueOrder(narrowed, order).limit(limit);
+          if (error) throw error;
+          const rows = (data ?? []) as unknown as ListingRow[];
+          const listings = await mapRows(supabase, rows);
+          return rows.map((row, n) => ({ item: listings[n]!, key: keyOfRow(row, order) }));
+        },
+      });
+      return {
+        listings: page.items,
+        next: page.next ? encodeCursor(order, page.next) : null,
+      };
+    } catch (error) {
+      await catalogueReadFailed("search", error);
+      return empty;
     }
   }
 
