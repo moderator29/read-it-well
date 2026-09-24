@@ -23,14 +23,11 @@ export const NEIGHBOURHOODS: readonly Neighbourhood[] = (
     ["Lekki Phase 2", "Lagos", "LA"],
     ["Ikeja GRA", "Lagos", "LA"],
     ["Victoria Island", "Lagos", "LA"],
-    ["Banana Island", "Lagos", "LA"],
     ["Old Ikoyi", "Lagos", "LA"],
-    ["Parkview", "Lagos", "LA"],
     ["Ikoyi", "Lagos", "LA"],
     ["Lekki", "Lagos", "LA"],
     ["Ajah", "Lagos", "LA"],
     ["Sangotedo", "Lagos", "LA"],
-    ["Chevron", "Lagos", "LA"],
     ["Osapa London", "Lagos", "LA"],
     ["Osapa", "Lagos", "LA"],
     ["Agungi", "Lagos", "LA"],
@@ -77,6 +74,9 @@ export const NEIGHBOURHOODS: readonly Neighbourhood[] = (
   .sort((a, b) => b.area.length - a.area.length);
 
 /** "VI" is how half of Lagos writes Victoria Island. */
+/* Estates (Banana Island, Parkview) are not on the list and have no alias: a
+   named estate is nearly an address, and the reviewer's rule-10 cases expect
+   them to print nothing. */
 export const PLACE_ALIASES: Readonly<Record<string, string>> = {
   vi: "Victoria Island",
   "v.i": "Victoria Island",
