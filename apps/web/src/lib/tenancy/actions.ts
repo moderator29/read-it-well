@@ -27,12 +27,8 @@ import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { ROOM_ITEMS } from "../inspections/report";
 import { parseNairaToKobo } from "../agent/listings-schema";
-import { isFeatureEnabled } from "../flags";
-import { guardMoney } from "../security/money-limits";
-import { getAdminClient } from "../wallet/ledger";
-import { callMoneyRpc } from "../wallet/rpc";
+import { callMoneyDoor } from "./money-door";
 
-const WALLET_OFF = "The wallet is switched off for a moment. Nothing was sent. Try again shortly.";
 const SERVICE_DOWN = "That did not go through. Nothing was changed. Try again in a moment.";
 
 const STATUS_WORDS: Record<string, string> = {
@@ -45,7 +41,7 @@ const STATUS_WORDS: Record<string, string> = {
   already_answered: "You have already answered that line.",
   void: "This tenancy was cancelled or refunded, so no caution is owed on it.",
   not_ended: "Deductions open once the tenancy has ended.",
-  already_returned: "That return has already gone through.",
+  already_returned: "That return has already gone through. It is on the record below.",
   insufficient: "There is not enough in your wallet for this amount.",
   no_such_file: "That photo did not finish uploading. Upload it again.",
   bad_stage: "That report does not exist.",
@@ -143,9 +139,11 @@ export async function returnCaution(input: {
   tenancyId: string;
   obligationId: string;
   amountNaira: string;
+  /** Minted when the form is drawn: the same form sent twice moves money once. */
+  idempotencyKey: string;
 }): Promise<ActionResult<Record<string, unknown>>> {
   const parsed = validate(
-    z.object({ tenancyId: uuid, obligationId: uuid, amountNaira: z.string() }),
+    z.object({ tenancyId: uuid, obligationId: uuid, amountNaira: z.string(), idempotencyKey: uuid }),
     input,
   );
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
@@ -153,31 +151,24 @@ export async function returnCaution(input: {
   if (amount === null || amount <= 0) {
     return fail("Enter an amount above zero.", { amountNaira: "Enter an amount above zero." });
   }
-  if (!(await isFeatureEnabled("wallet"))) return fail(WALLET_OFF);
-
-  const session = await resolveSession();
-  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
-  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
-  const limit = await guardMoney("transferToUser", session.user.id);
-  if (!limit.allowed) return fail(limit.message);
-  const admin = getAdminClient();
-  if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
-
-  const call = await callMoneyRpc(
-    admin,
-    "transfer",
-    "return_caution",
-    { p_obligation: parsed.data.obligationId, p_amount: amount, p_lister: session.user.id },
-    { amountMinor: amount, userId: session.user.id },
-  );
-  if (call.outcome !== "ok" || typeof call.data !== "object" || call.data === null) {
-    return fail(SERVICE_DOWN);
+  const result = await callMoneyDoor({
+    fn: "return_caution",
+    args: (userId) => ({
+      p_obligation: parsed.data.obligationId,
+      p_amount: amount,
+      p_lister: userId,
+      p_key: parsed.data.idempotencyKey,
+    }),
+    amountMinor: amount,
+    action: "tenancy.caution.returned",
+    words: STATUS_WORDS,
+    detail: { obligation_id: parsed.data.obligationId },
+  });
+  if (result.ok) {
+    revalidatePath(`/tenancy/${parsed.data.tenancyId}`);
+    revalidatePath("/wallet");
   }
-  const answer = call.data as Record<string, unknown>;
-  if (answer.status !== "ok") return fail(STATUS_WORDS[String(answer.status)] ?? SERVICE_DOWN);
-  revalidatePath(`/tenancy/${parsed.data.tenancyId}`);
-  revalidatePath("/wallet");
-  return ok(answer);
+  return result;
 }
 
 export async function saveTenancyReport(input: {

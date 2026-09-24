@@ -172,18 +172,40 @@ export function ReturnCaution({
   outstandingNaira: string;
   copy: Copy;
 }) {
-  const { pending, error, run } = useRun();
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
   const [amount, setAmount] = useState(outstandingNaira);
+  // One key per drawn form: a double tap or a retry of this form is the
+  // same transfer, and the database moves the money once.
+  const [key, setKey] = useState(() => crypto.randomUUID());
+  const [sent, setSent] = useState<string | null>(null);
   return (
     <form
       className="grid gap-md"
       data-testid="caution-return"
       onSubmit={(event) => {
         event.preventDefault();
-        run(() => returnCaution({ tenancyId, obligationId, amountNaira: amount }));
+        setError(null);
+        start(async () => {
+          const result = await returnCaution({ tenancyId, obligationId, amountNaira: amount, idempotencyKey: key });
+          if (!result.ok) {
+            setError(result.error ?? null);
+            return;
+          }
+          setSent(copy.returnSent);
+          setAmount("");
+          setKey(crypto.randomUUID());
+          router.refresh();
+        });
       }}
     >
       <p className="nf-body-sm text-[var(--nf-content-secondary)]">{copy.returnHelp.replace("{outstanding}", outstanding)}</p>
+      {sent && (
+        <p className="nf-body-sm text-[var(--nf-state-success)]" role="status" data-testid="caution-return-sent">
+          {sent}
+        </p>
+      )}
       <Field label={copy.returnAmount} error={error ?? undefined}>
         {(control) => (
           <input
@@ -192,7 +214,10 @@ export function ReturnCaution({
             inputMode="decimal"
             autoComplete="off"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => {
+              setAmount(e.target.value);
+              setSent(null);
+            }}
           />
         )}
       </Field>

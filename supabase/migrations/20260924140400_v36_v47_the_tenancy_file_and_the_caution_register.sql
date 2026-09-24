@@ -29,9 +29,12 @@
 -- NO CUSTODY. Vallo records the debt; it never holds the caution. A return
 -- is made only through `return_caution`, which moves the lister's own money
 -- to the tenant's wallet through the ordinary transfer, under a reference
--- derived from the obligation and what it has already covered, so a double
--- tap is the same transfer twice and the second is a no-op. It is clamped so
--- returns plus accepted deductions can never exceed the caution. A transfer
+-- derived from the obligation and an idempotency key the form mints when it
+-- is drawn, so a double tap or a retry of the same form is the same transfer
+-- twice and the second is a no-op. It is clamped so returns plus every
+-- deduction not disputed (accepted or still unanswered) can never exceed the
+-- caution: the same sum the proposal door uses, so neither door can take the
+-- record past 100%. A transfer
 -- made any other way is never counted as a caution return, so a refund, a
 -- round trip or an unrelated payment cannot inflate the record.
 --
@@ -524,6 +527,18 @@ begin
   if p_answer not in ('accepted', 'disputed') then
     return jsonb_build_object('status', 'bad_answer');
   end if;
+  -- Serialise with returns and proposals on this caution, and never let an
+  -- acceptance take returns plus agreed lines past the caution.
+  perform 1 from public.caution_obligations where id = o.id for update;
+  if p_answer = 'accepted' and
+     coalesce((select sum(r.amount_minor) from public.caution_returns r where r.obligation_id = o.id), 0)
+     + coalesce((select sum(d.amount_minor) from public.caution_deductions d
+                   join public.caution_deduction_answers a on a.deduction_id = d.id and a.answer = 'accepted'
+                  where d.obligation_id = o.id), 0)
+     + (select d.amount_minor from public.caution_deductions d where d.id = p_deduction)
+     > o.amount_minor then
+    return jsonb_build_object('status', 'exceeds_caution');
+  end if;
   insert into public.caution_deduction_answers (deduction_id, answer, answered_by)
   values (p_deduction, p_answer, (select auth.uid()))
   on conflict (deduction_id) do nothing;
@@ -539,12 +554,12 @@ $function$;
 
 /* The lister returns caution money from their own wallet to the tenant's.
    The ordinary transfer does the moving; the reference is derived from the
-   obligation and what it already covers, so a repeat of the same tap is the
-   same transfer and is refused as a duplicate. SERVICE ROLE ONLY, like the
+   obligation and the form's idempotency key, so a repeat of the same tap is
+   the same transfer and is refused as a duplicate. SERVICE ROLE ONLY, like the
    transfer it wraps: money never moves from a browser. The server action
    checks the session, the wallet flag and the money limits, then names the
    caller as p_lister. */
-create or replace function public.return_caution(p_obligation uuid, p_amount bigint, p_lister uuid)
+create or replace function public.return_caution(p_obligation uuid, p_amount bigint, p_lister uuid, p_key uuid)
 returns jsonb
 language plpgsql
 security definer
@@ -566,27 +581,31 @@ begin
   if private.tenancy_void(o.rent_payment_id) then
     return jsonb_build_object('status', 'void');
   end if;
-  if p_amount is null or p_amount <= 0 then
+  if p_amount is null or p_amount <= 0 or p_key is null then
     return jsonb_build_object('status', 'bad_amount');
   end if;
+  pair := md5('caution:' || o.id || ':' || p_key)::uuid;
+  out_ref := 'rm-p2p-' || pair || '-out';
+  if exists (select 1 from public.caution_returns r where r.reference = out_ref) then
+    return jsonb_build_object('status', 'already_returned', 'reference', out_ref);
+  end if;
   select coalesce(sum(r.amount_minor), 0) into returned from public.caution_returns r where r.obligation_id = o.id;
+  -- The proposal door's sum: every line not disputed, answered or not.
   select coalesce(sum(d.amount_minor), 0) into accepted
     from public.caution_deductions d
-    join public.caution_deduction_answers a on a.deduction_id = d.id and a.answer = 'accepted'
-   where d.obligation_id = o.id;
+    left join public.caution_deduction_answers a on a.deduction_id = d.id
+   where d.obligation_id = o.id and coalesce(a.answer, 'accepted') <> 'disputed';
   if returned + accepted + p_amount > o.amount_minor then
     return jsonb_build_object('status', 'exceeds_caution');
   end if;
   -- The platform's own transfer shape (rm-p2p-<uuid>-out / -in, see
   -- lib/payments/references.ts), with the uuid derived from the obligation and
-  -- what it already covers instead of drawn fresh: the same tap twice is the
-  -- same reference, and the ledger's unique index refuses the second.
-  pair := md5('caution:' || o.id || ':' || (returned + accepted))::uuid;
-  out_ref := 'rm-p2p-' || pair || '-out';
+  -- the form's key instead of drawn fresh: the same tap twice is the same
+  -- reference, and the ledger's unique index refuses the second.
   outcome := private.transfer_between_wallets(o.lister_id, o.tenant_id, p_amount, out_ref,
                                               'rm-p2p-' || pair || '-in', 'Caution return');
   if outcome = 'duplicate' then
-    return jsonb_build_object('status', 'already_returned');
+    return jsonb_build_object('status', 'already_returned', 'reference', out_ref);
   end if;
   if outcome <> 'ok' then
     return jsonb_build_object('status', outcome);
@@ -596,7 +615,7 @@ begin
   values (o.id, entry.id, out_ref, p_amount, entry.created_at);
   perform private.tenancy_tell(o.tenant_id, 'Caution money is back in your wallet',
                                'Your tenancy file shows what was returned.', o.rent_payment_id);
-  return jsonb_build_object('status', 'ok', 'amount_minor', p_amount);
+  return jsonb_build_object('status', 'ok', 'amount_minor', p_amount, 'reference', out_ref);
 end;
 $function$;
 
@@ -632,11 +651,11 @@ $function$;
 
 revoke all on function public.propose_caution_deduction(uuid, text, bigint, uuid, text) from public, anon;
 revoke all on function public.answer_caution_deduction(uuid, text) from public, anon;
-revoke all on function public.return_caution(uuid, bigint, uuid) from public, anon, authenticated;
+revoke all on function public.return_caution(uuid, bigint, uuid, uuid) from public, anon, authenticated;
 revoke all on function public.lister_caution_record(uuid) from public, anon;
 grant execute on function public.propose_caution_deduction(uuid, text, bigint, uuid, text) to authenticated;
 grant execute on function public.answer_caution_deduction(uuid, text) to authenticated;
-grant execute on function public.return_caution(uuid, bigint, uuid) to service_role;
+grant execute on function public.return_caution(uuid, bigint, uuid, uuid) to service_role;
 grant execute on function public.lister_caution_record(uuid) to authenticated;
 
 /* ------------------------------------------------------------ retention */
