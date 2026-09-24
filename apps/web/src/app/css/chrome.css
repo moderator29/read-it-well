@@ -1097,3 +1097,25 @@
     color: var(--nf-status-approved);
   }
 }
+
+/* V-75: the dock centre draws the current workspace, glyph over two letters. */
+@layer components {
+  .nf-switch-dock__face {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1;
+  }
+  /* Personal, in the dock: the account photograph at the tab glyph step. */
+  .nf-switch-mark__photo.nf-switch-dock__photo {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  .nf-switch-dock__caption {
+    margin-top: 1px;
+    font-size: var(--nf-text-overline);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--nf-content-primary);
+  }
+}

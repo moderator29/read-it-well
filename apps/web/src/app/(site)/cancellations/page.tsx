@@ -60,8 +60,7 @@ export default function CancellationPolicyPage() {
           <div className="nf-panel nf-panel--card block mt-group p-card">
             <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
               A reservation you have not paid for is a hold on the calendar and
-              nothing more. Cancel it from Bookings, or from Trips on the Stays
-              side, at any hour, for nothing, and the nights reopen for somebody
+              nothing more. Cancel it from Plans, at any hour, for nothing, and the nights reopen for somebody
               else immediately. A hold you walk away from releases itself, so you
               cannot accidentally block an agent&apos;s calendar by forgetting
               about it.

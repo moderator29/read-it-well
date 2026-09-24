@@ -34,7 +34,7 @@ export function ListingMini({
   return (
     <Link href={listing.href} className="block" prefetch={false}>
       <div className="nf-landing-float-media">
-        <MediaFrame hue={listing.hue} kind={listing.kind} />
+        <MediaFrame hue={listing.hue} kind={listing.kind} drawn={listing.drawn} />
         {listing.photo && (
           <Image
             src={listing.photo}

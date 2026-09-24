@@ -158,7 +158,7 @@ export async function decideHeldItem(input: {
     // Best effort. The decision has already committed; see the note above.
   }
 
-  revalidatePath("/admin/moderation");
+  revalidatePath("/admin/queue");
   revalidatePath("/admin");
   return ok(null);
 }

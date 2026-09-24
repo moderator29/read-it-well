@@ -202,8 +202,6 @@ export const ha: Dictionary = withFallback({
     restaurantsEmptyBody: "Gidajen abinci suna zuwa Vallo ta hannun masu su. Idan ɗaya kusa da kai ya lissafa, zai bayyana a nan.",
     tripsTitle: "Tafiye-tafiye",
     tripsLine: "Masaukinka da ajiyoyinka, bisa rana.",
-    tripsEmptyTitle: "Babu tafiya tukuna",
-    tripsEmptyBody: "Ajiye masauki ko tebur kuma zai zo nan da tabbaci da tattaunawarsa.",
     findStay: "Nemo masauki",
     tripsToday: "Yau",
     tripsPast: "Tafiye-tafiyen baya",
@@ -219,13 +217,10 @@ export const ha: Dictionary = withFallback({
        Stays side's name for its bookings surface (HANDOFF_05 section 2). */
     stays: "Masauki",
     exploreStays: "Bincika masauki",
-    trips: "Tafiye-tafiye",
-    inspections: "Duba",
     home: "Gida",
     hotels: "Otal",
     apartments: "Gidaje",
     homes: "Muhalli",
-    rent: "Hayar gida",
     buy: "Siyan gida",
     shortlets: "Zaman ɗan lokaci",
     land: "Fili",
@@ -309,12 +304,10 @@ export const ha: Dictionary = withFallback({
     myBookingsSub: "Duba ajiyen gidaje da na masauki",
     savedSub: "Gidaje, otal da wuraren da ka ajiye",
     walletSub: "Sarrafa ma'aunin kuɗi, katunanka da ma'amaloli",
-    inspectionsSub: "Duba dubawa da aka shirya da waɗanda suka wuce",
     /** The phone's wording for the four Belongings rows: one line each. */
     myBookingsRow: "Ajiyen gidaje da masauki",
     savedRow: "Gidaje, otal da wurare",
     walletRow: "Ma'auni, katuna da ma'amaloli",
-    inspectionsRow: "Dubawa mai zuwa da wadda ta wuce",
     /* The account page (`/profile`). Hausa draft, awaiting a native speaker's review. */
     accountPage: {
       upcoming: "{count} masu zuwa",
@@ -965,10 +958,6 @@ export const ha: Dictionary = withFallback({
 
     privacy: {
       label: "Sirri",
-      note: "Wa zai iya ganina ya shafi sunanka da sharhinka a kan kadarori.",
-      whoCanSeeMe: "Wa zai iya ganina",
-      everyone: "Kowa",
-      onlyMe: "Ni kaɗai",
       readReceipts: "Alamar karantawa",
       readReceiptsSub: "Bari masu gida su ga lokacin da ka karanta saƙonninsu.",
       personalised: "Shawarwarin da suka dace da kai",
@@ -2900,17 +2889,11 @@ export const ha: Dictionary = withFallback({
      until a native reviewer rewrites them. */
   inspectionsPage: {
     title: "Duba gida",
-    lede: "Every inspection you asked for or were asked to host. Both of you see the same state on the same request.",
     openTitle: "A buɗe",
     openDescription: "Your move first, then what is booked in, then what is waiting on them.",
     closedTitle: "An rufe",
     readFailed:
       "We could not load your inspections just now, so this is not showing you an empty list that might not be true. Nothing has been lost. Try again in a moment.",
-    emptyTitle: "Babu wani duba da aka shirya tukuna",
-    emptyBody:
-      "Request an inspection from a property's page and it lands here, with the answer beside it the moment it comes.",
-    emptyAction: "Nemo wuri",
-    loading: "Ana ɗora dubawarku",
   },
 
   threads: {
@@ -3271,7 +3254,6 @@ export const ha: Dictionary = withFallback({
       backupPower: "Wutar ajiya",
       bandA: "Layin Band A",
       water: "Inda ruwa ke fitowa",
-      instant: "Ajiye nan take",
       verifiedOnly: "Tabbatattu kawai",
       trust: "Ajiyewa da aminci",
       location: "Wuri",
@@ -3345,15 +3327,6 @@ export const ha: Dictionary = withFallback({
       upcoming: "Mai zuwa",
       completed: "An kammala",
       cancelled: "An soke",
-      emptyUpcomingTitle: "Ba a yi ajiya ba tukuna",
-      emptyUpcomingBody:
-        "Sa'ad da ka ajiye wuri, zai bayyana a nan da kwanakinka, jimlarka da duk abin da kake bukata a ranar.",
-      emptyCompletedTitle: "Babu masaukin da aka kammala tukuna",
-      emptyCompletedBody:
-        "Masauki na zuwa nan bayan ka fita, kuma a nan ne za ka iya barin sharhinka.",
-      emptyCancelledTitle: "Ba a soke komai ba",
-      emptyCancelledBody:
-        "Muna ajiye ajiyoyin da aka soke a nan don ka kasance da tarihi koyaushe, ko bayan kwanakin sun wuce.",
       findPlace: "Nemi wuri",
       payNow: "Biya yanzu",
       cancel: "Soke",
@@ -3370,11 +3343,6 @@ export const ha: Dictionary = withFallback({
         "Kowane masaukin da ka ajiye yana da alaƙa da asusunka, don haka naka kaɗai muke nuna maka. Ka shiga, duk abin da aka ajiye da wannan asusun zai bayyana a nan.",
       signIn: "Shiga",
       findStay: "Nemi wurin kwana",
-      inspectionsTitle: "Dubanka",
-      inspectionsBody: "Wanda ya saka gidan yana ganin matsayi ɗaya da kai.",
-      alsoOnTrips: "Masaukanka da teburanka, bisa tsarin lokacinsu, suna kan Tafiye-tafiye.",
-      openTrips: "Buɗe Tafiye-tafiye",
-      alsoOnBookings: "Hayoyi da duba suna kan Ajiya.",
       openBookings: "Buɗe Ajiya",
       detailMissingTitle: "Wannan ajiyar ba ta nan",
       detailMissingBody:

@@ -10,12 +10,9 @@ import "server-only";
  * originally cut. Every profile link on the platform assumed you already knew
  * the name.
  *
- * **Four ways in, because people are looked for in four ways.** A name, a
- * handle, what somebody does, or where they are. All four columns sit on
- * `social_profiles` and the last three are projected there by trigger from
- * `public.profiles`, so they are unspoofable and public: nobody can type
- * themselves an occupation or a state, which is the only reason searching by
- * either of them is worth anything.
+ * **Two ways in: a name or a handle.** Occupation and place used to be two
+ * more, searched for everybody; they are a member's own facts and are shown
+ * only where that member published them (V-64), and searched by nobody.
  *
  * **`citext` is not installed**, and this is exactly where that bites. Every
  * comparison here is `ilike`, on the profile columns and on both reference
@@ -62,13 +59,11 @@ export type PeopleDirectory =
       /** What was searched for, echoed back so the page can say so. */
       query: string;
       /** Which routes actually matched, so the page can say why these people. */
-      matchedOn: ("name" | "occupation" | "place")[];
+      matchedOn: "name"[];
       people: PersonRow[];
     };
 
 const LIMIT = 30;
-/** A reference lookup matching half the country is not a search term. */
-const CODE_LIMIT = 40;
 
 /**
  * PostgREST's `or` filter is a comma separated expression, so a comma or a
@@ -81,8 +76,6 @@ function safePattern(raw: string): string {
     .replace(/\s+/g, " ")
     .trim();
 }
-
-type Reference = { code: string; name: string };
 
 export async function findPeople(rawQuery: string): Promise<PeopleDirectory> {
   if (!isSupabaseConfigured()) return { state: "unconfigured" };
@@ -103,57 +96,22 @@ export async function findPeople(rawQuery: string): Promise<PeopleDirectory> {
 
   try {
     /*
-     * The reference lookups first, because a search for "nurse" or for "Ikeja"
-     * has to become a set of codes before profiles can be filtered on it. Three
-     * small reads that start at once, and every one is allowed to come back
-     * empty: somebody typing a name is not typing an occupation, and nothing
-     * found there is the ordinary case rather than a failure.
+     * NAMES AND HANDLES ONLY (V-64 review fix). This used to read the
+     * occupation, local government and state codes for every member from
+     * `social_profiles`, print them on each row and match people BY them,
+     * while the member's own settings said those facts were theirs alone
+     * unless switched on. The codes are no longer selected or matched here;
+     * each row's occupation and place come from `profile_public_facts_many`,
+     * which returns a name only for a field its member published.
      */
-    const [occupations, lgas, states] = pattern
-      ? await Promise.all([
-          supabase
-            .from("occupations")
-            .select("code, name")
-            .ilike("name", `%${pattern}%`)
-            .limit(CODE_LIMIT),
-          supabase
-            .from("local_governments")
-            .select("code, name")
-            .ilike("name", `%${pattern}%`)
-            .limit(CODE_LIMIT),
-          supabase
-            .from("states")
-            .select("code, name")
-            .ilike("name", `%${pattern}%`)
-            .limit(CODE_LIMIT),
-        ])
-      : [
-          { data: [] as Reference[] },
-          { data: [] as Reference[] },
-          { data: [] as Reference[] },
-        ];
-
-    const occupationCodes = ((occupations.data ?? []) as Reference[]).map((r) => r.code);
-    const lgaCodes = ((lgas.data ?? []) as Reference[]).map((r) => r.code);
-    const stateCodes = ((states.data ?? []) as Reference[]).map((r) => r.code);
-
-    const columns =
-      "user_id, handle, display_label, avatar_path, is_agent, bio, bio_status, occupation_code, lga_code, state_code";
+    const columns = "user_id, handle, display_label, avatar_path, is_agent, bio, bio_status";
 
     let read = supabase.from("social_profiles").select(columns).limit(LIMIT);
 
     if (pattern) {
-      /* The codes come from our own reference tables and are safe to place in
-         the expression; the typed text never is, and it appears only as an
-         `ilike` value that `safePattern` has already stripped of the characters
-         PostgREST reads as structure. */
-      const clauses = [`handle.ilike.%${pattern}%`, `display_label.ilike.%${pattern}%`];
-      if (occupationCodes.length > 0) {
-        clauses.push(`occupation_code.in.(${occupationCodes.join(",")})`);
-      }
-      if (lgaCodes.length > 0) clauses.push(`lga_code.in.(${lgaCodes.join(",")})`);
-      if (stateCodes.length > 0) clauses.push(`state_code.in.(${stateCodes.join(",")})`);
-      read = read.or(clauses.join(",")).order("handle");
+      /* The typed text appears only as an `ilike` value that `safePattern`
+         has already stripped of the characters PostgREST reads as structure. */
+      read = read.or(`handle.ilike.%${pattern}%,display_label.ilike.%${pattern}%`).order("handle");
     } else {
       /* Newest first when nothing is typed, rather than most followed. A
          leaderboard of the best connected accounts entrenches itself, and the
@@ -173,22 +131,14 @@ export async function findPeople(rawQuery: string): Promise<PeopleDirectory> {
       is_agent: boolean;
       bio: string | null;
       bio_status: string | null;
-      occupation_code: string | null;
-      lga_code: string | null;
-      state_code: string | null;
     }[];
     if (rows.length === 0) return nobody();
 
-    /*
-     * The labels for the rows that came back. Only the codes actually present
-     * are resolved, so a page of thirty people costs three small reads however
-     * large the reference tables are, and they hold 749 occupations and 774
-     * local governments.
-     */
-    const [occLabels, lgaLabels, stateLabels] = await Promise.all([
-      labelsFor(supabase, "occupations", codesIn(rows, "occupation_code")),
-      labelsFor(supabase, "local_governments", codesIn(rows, "lga_code")),
-      labelsFor(supabase, "states", codesIn(rows, "state_code")),
+    const ids = rows.map((row) => row.user_id);
+    const [published, badges] = await Promise.all([
+      readPublishedMany(supabase, ids),
+      /* The published badge for everybody on this page, in one read. */
+      readPersonBadges(supabase, ids),
     ]);
 
     /* One read for the whole page rather than one per row. `follows_select` is
@@ -200,33 +150,17 @@ export async function findPeople(rawQuery: string): Promise<PeopleDirectory> {
         .from("follows")
         .select("followee_id")
         .eq("follower_id", viewerId)
-        .in(
-          "followee_id",
-          rows.map((row) => row.user_id),
-        );
+        .in("followee_id", ids);
       for (const row of (mine ?? []) as { followee_id: string }[]) following.add(row.followee_id);
     }
-
-    const matchedOn: ("name" | "occupation" | "place")[] = [];
-    if (pattern) {
-      matchedOn.push("name");
-      if (occupationCodes.length > 0) matchedOn.push("occupation");
-      if (lgaCodes.length > 0 || stateCodes.length > 0) matchedOn.push("place");
-    }
-
-    /* The published badge for everybody on this page, in one read. A directory
-       row draws the same mark as a profile page and a message thread, because
-       all three ask the same view. */
-    const badges = await readPersonBadges(supabase, rows.map((row) => row.user_id));
 
     return {
       state: "ready",
       signedIn: Boolean(viewerId),
       query,
-      matchedOn,
+      matchedOn: pattern ? ["name"] : [],
       people: rows.map((row) => {
-        const lga = row.lga_code ? (lgaLabels.get(row.lga_code) ?? null) : null;
-        const state = row.state_code ? (stateLabels.get(row.state_code) ?? null) : null;
+        const facts = published.get(row.user_id);
         return {
           userId: row.user_id,
           handle: row.handle,
@@ -237,10 +171,8 @@ export async function findPeople(rawQuery: string): Promise<PeopleDirectory> {
           /* A bio the scanner is holding is shown to nobody but its author, and
              a directory is nobody's own page. */
           bio: row.bio_status === "HELD" ? "" : (row.bio ?? ""),
-          occupation: row.occupation_code ? (occLabels.get(row.occupation_code) ?? null) : null,
-          /* Never a fragment and never a dangling comma. Half a place is still
-             worth printing; no place at all prints nothing at all. */
-          place: [lga, state].filter(Boolean).join(", ") || null,
+          occupation: facts?.occupation ?? null,
+          place: facts?.place ?? null,
           viewerFollows: following.has(row.user_id),
           isViewer: row.user_id === viewerId,
         };
@@ -251,27 +183,29 @@ export async function findPeople(rawQuery: string): Promise<PeopleDirectory> {
   }
 }
 
-function codesIn(
-  rows: Record<string, unknown>[],
-  key: "occupation_code" | "lga_code" | "state_code",
-): string[] {
-  return [
-    ...new Set(rows.map((row) => row[key]).filter((value): value is string => Boolean(value))),
-  ];
-}
-
-async function labelsFor(
+/**
+ * What each member on the page PUBLISHED, and nothing else: a name only for a
+ * field its member switched on. A read that fails (a database without the
+ * function) shows nobody's occupation or place, never everybody's.
+ */
+async function readPublishedMany(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  table: "occupations" | "local_governments" | "states",
-  codes: string[],
-): Promise<Map<string, string>> {
-  const out = new Map<string, string>();
-  if (codes.length === 0) return out;
+  ids: string[],
+): Promise<Map<string, { occupation: string | null; place: string | null }>> {
+  const out = new Map<string, { occupation: string | null; place: string | null }>();
+  if (ids.length === 0) return out;
   try {
-    const { data } = await supabase.from(table).select("code, name").in("code", codes);
-    for (const row of (data ?? []) as Reference[]) out.set(row.code, row.name);
-    return out;
+    const { data, error } = await (
+      supabase as unknown as { rpc: (fn: string, args: object) => Promise<{ data: unknown; error: unknown }> }
+    ).rpc("profile_public_facts_many", { p_users: ids });
+    if (error || !Array.isArray(data)) return out;
+    for (const row of data as { user_id: string; occupation: string | null; lga: string | null; state: string | null }[]) {
+      /* Never a fragment and never a dangling comma. */
+      const place = [row.lga, row.state].filter(Boolean).join(", ") || null;
+      out.set(row.user_id, { occupation: row.occupation ?? null, place });
+    }
   } catch {
-    return out;
+    /* Nobody's facts is the honest answer to a read that failed. */
   }
+  return out;
 }

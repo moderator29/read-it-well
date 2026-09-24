@@ -89,7 +89,7 @@ export function ThreadContextBanner({
             </span>
           </div>
           <div className="nf-context-card__actions">
-            <Link href="/trips" className="nf-btn nf-btn--primary nf-btn--md">
+            <Link href="/bookings?side=stays&from=stays" className="nf-btn nf-btn--primary nf-btn--md">
               {words.viewTrips}
               <UiIcon name="chevron-right" size={16} />
             </Link>

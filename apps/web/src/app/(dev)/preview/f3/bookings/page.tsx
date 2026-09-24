@@ -1,7 +1,8 @@
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
-import { MyBookings } from "@/app/(app)/bookings/MyBookings";
+import { TripSpine } from "@/components/app/plans/TripSpine";
+import { TenancyCard } from "@/components/app/bookings/TenancyCard";
 import { BOOKINGS, TENANCIES } from "../fixtures";
 
 /** /bookings with the fixture stays in their tabs and the fixture tenancies
@@ -9,20 +10,17 @@ import { BOOKINGS, TENANCIES } from "../fixtures";
 export default async function BookingsPreview() {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
-  const groups = {
-    upcoming: BOOKINGS.filter((b) => b.status === "CONFIRMED"),
-    completed: BOOKINGS.filter((b) => b.status === "COMPLETED"),
-    cancelled: [],
-    /* `BookingGroups` grew a fourth half when a rent charge stopped being
-       dropped from /bookings (lib/bookings/queries.ts). A tenancy is not a
-       stay and is drawn by `TenancyCard`: a move-in day, a period word, the
-       charge's frozen total and one door to `/rent/pay`. */
-    rent: TENANCIES,
-  };
+  /* Plans (V-76) draws tenancies with `TenancyCard` and stays on the date
+     spine; the tabbed `MyBookings` record is gone. */
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title={t.nav.bookings} fallback="/preview/f3" />
-      <MyBookings groups={groups} locale={locale} />
+      <PageHeader title={t.shape.plans.title} fallback="/preview/f3" />
+      <div className="flex flex-col gap-md">
+        {TENANCIES.map((tenancy) => (
+          <TenancyCard key={tenancy.id} tenancy={tenancy} locale={locale} />
+        ))}
+      </div>
+      <TripSpine bookings={BOOKINGS} today="2026-09-24" locale={locale} />
     </div>
   );
 }

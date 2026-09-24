@@ -1,3 +1,4 @@
+import { rentMeansTenancy } from "@/lib/listings/filter";
 import {
   KIND_NOUN,
   WATER_LABEL,
@@ -8,7 +9,7 @@ import {
   toShelfHref,
   type ShelfQuery,
 } from "@/components/app/search/shelf-query";
-import { formatMoney, type Locale } from "@vallo/i18n";
+import { formatMoney, getDictionary, type Locale } from "@vallo/i18n";
 
 /**
  * A SAVED SEARCH, AS A VALUE. The vocabulary the actions, the list screen, the
@@ -203,7 +204,12 @@ export function summariseSearch(
   if (query.q) chips.push(query.q);
   if (query.kind) chips.push(sentence(KIND_NOUN[query.kind].many));
   if (query.intent) chips.push(query.intent === "sale" ? "For sale" : "To rent");
-  const money = moneyClause(query, locale);
+  /* V-65: on the Rent market the budget is the cash at the door, and a saved
+     search's chip says so, since its meaning changed (batch 4 review). */
+  const cashBudget = rentMeansTenancy(query) && query.maxMinor !== undefined && query.minMinor === undefined;
+  const money = cashBudget
+    ? getDictionary(locale).shape.cash.savedBudget.replace("{amount}", formatMoney(query.maxMinor!, locale))
+    : moneyClause(query, locale);
   if (money) chips.push(sentence(money));
   if (query.bedrooms !== undefined) chips.push(`${query.bedrooms}+ beds`);
   if (query.bathrooms !== undefined) chips.push(`${query.bathrooms}+ baths`);
@@ -213,6 +219,20 @@ export function summariseSearch(
   if (query.powerBackup) chips.push("Backup power");
   if (query.powerBandA) chips.push("Band A feeder");
   for (const source of query.waterSupply) chips.push(WATER_LABEL[source]);
+  if (query.landlordAway) chips.push("Landlord lives elsewhere");
+  if (query.parkingInside) chips.push("Parking inside the compound");
+  if (query.servicedOnly) chips.push("Serviced");
+  if (query.gatedEstate) chips.push("Gated estate");
+  if (query.maxUpfront !== undefined) {
+    const cash = getDictionary(locale).shape.cash;
+    chips.push(
+      query.maxUpfront === 12 ? cash.savedUpfrontYear : cash.savedUpfrontMonths.replace("{n}", String(query.maxUpfront)),
+    );
+  }
+  /* V-66: the shapes and areas, in the words the dictionary uses. */
+  for (const shape of query.shapes ?? []) chips.push(getDictionary(locale).shape.unit.shapes[shape]);
+  if (query.withBq) chips.push(getDictionary(locale).shape.unit.filterBq);
+  for (const area of query.areas ?? []) chips.push(sentence(area));
   for (const code of query.amenities) chips.push(amenityWord(code));
 
   return chips;

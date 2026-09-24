@@ -1,4 +1,6 @@
 import "server-only";
+/* V-64: the two publish switches live in the settings blob, read through its one parser. */
+import { parseSettings } from "../profile/schema";
 
 /**
  * The parts of a person's page that come from outside `social_profiles`.
@@ -89,21 +91,34 @@ export async function readOccupationAndPlace(
   supabase: Loose,
   userId: string,
   isSelf: boolean,
-): Promise<{ occupation: Occupation | null; place: ProfilePlace | null }> {
-  if (!isSelf) return { occupation: null, place: null };
+): Promise<{
+  occupation: Occupation | null;
+  place: ProfilePlace | null;
+  /**
+   * V-64. Which of the two this member has put on their public page. Read for
+   * the owner only, so their own page can say "only you can see this" beside
+   * a fact nobody else is shown. Null for anybody else, who sees only what is
+   * published and has no business knowing what is not.
+   */
+  published: { occupation: boolean; homeTown: boolean } | null;
+}> {
+  if (!isSelf) return { ...(await readPublishedFacts(supabase, userId)), published: null };
 
   let occupationCode: string | null = null;
   let lgaCode: string | null = null;
+  let published = { occupation: false, homeTown: false };
 
   try {
     const { data, error } = await loose(supabase)
       .from("profiles")
-      .select("occupation_code, lga_code")
+      .select("occupation_code, lga_code, settings")
       .eq("id", userId)
       .maybeSingle();
     if (!error && data) {
       occupationCode = data.occupation_code ?? null;
       lgaCode = data.lga_code ?? null;
+      const privacy = parseSettings(data.settings).privacy;
+      published = { occupation: privacy.showOccupation, homeTown: privacy.showHomeTown };
     }
   } catch {
     /* Nothing to show, and nothing broken. */
@@ -114,6 +129,44 @@ export async function readOccupationAndPlace(
     readPlace(supabase, lgaCode),
   ]);
 
+  return { occupation, place, published };
+}
+
+/**
+ * WHAT A MEMBER HAS CHOSEN TO PUBLISH, AND NOTHING ELSE (V-64).
+ *
+ * A member's occupation and home town are private by default: "a market
+ * trader from Dunukofia" is a scammer's opening line and helps nobody rent a
+ * flat. `public.profile_public_facts` returns each one only when its owner
+ * switched it on in Privacy, and names only, never codes. Any failure (the
+ * function not deployed yet, a signed-out read) is nothing published, which
+ * is the private default.
+ */
+async function readPublishedFacts(
+  supabase: Loose,
+  userId: string,
+): Promise<{ occupation: Occupation | null; place: ProfilePlace | null }> {
+  try {
+    const { data, error } = await loose(supabase).rpc("profile_public_facts", { p_user: userId });
+    const row = Array.isArray(data) ? data[0] : data;
+    if (error || !row) return { occupation: null, place: null };
+    return publishedFactsOf(row);
+  } catch {
+    return { occupation: null, place: null };
+  }
+}
+
+/** The function's row as the header's two shapes. Pure, and tested. */
+export function publishedFactsOf(row: {
+  occupation?: string | null;
+  lga?: string | null;
+  state?: string | null;
+}): { occupation: Occupation | null; place: ProfilePlace | null } {
+  const occupation = row.occupation ? { code: "", name: row.occupation } : null;
+  const lga = row.lga ?? null;
+  const state = row.state ?? null;
+  const place =
+    lga || state ? { lga, state, label: [lga, state, "Nigeria"].filter(Boolean).join(", ") } : null;
   return { occupation, place };
 }
 

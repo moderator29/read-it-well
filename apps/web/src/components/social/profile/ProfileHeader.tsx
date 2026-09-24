@@ -75,6 +75,7 @@ export function ProfileHeader({
   occupation,
   standing,
   place,
+  published = null,
   trust,
   joinedLabel,
   follow,
@@ -91,6 +92,8 @@ export function ProfileHeader({
   occupation: Occupation | null;
   standing: Standing[];
   place: ProfilePlace | null;
+  /** V-64: for the owner, which of occupation and home town the page publishes. */
+  published?: { occupation: boolean; homeTown: boolean } | null;
   /** Agents only. Null on everybody else, and the band is then absent. */
   trust: AgentTrust | null;
   /** Already formatted in the reader's language by the page. */
@@ -342,6 +345,23 @@ export function ProfileHeader({
           ) : null}
         </div>
       )}
+
+      {/* V-64. The owner sees their occupation and home town; nobody else
+          does unless the owner switched each one on. Say so, beside them, so
+          "my page shows this" is never a guess. */}
+      {isOwner && published && ((occupation && !published.occupation) || (place && !published.homeTown)) ? (
+        <p className="nf-caption mt-xs text-[var(--nf-content-muted)]" data-testid="profile-private-note">
+          {/* Per field: say only what is actually held back (review 9). */}
+          {occupation && !published.occupation && place && !published.homeTown
+            ? t.shape.profile.privateNote
+            : occupation && !published.occupation
+              ? t.shape.profile.privateNoteOccupation
+              : t.shape.profile.privateNoteHomeTown}{" "}
+          <Link href="/settings/privacy" className="nf-link-quiet text-[var(--nf-content-link)]">
+            {t.shape.profile.privateNoteLink}
+          </Link>
+        </p>
+      ) : null}
 
       {/* --------------------------------------------- agents only, ever */}
       {trust ? (

@@ -128,6 +128,7 @@ export default async function ListingUnderReviewPage({
           purchase: t.purchase,
           payee: payeeCtx ? { ctx: payeeCtx, copy: t.afterTheGate.moneyMap } : null,
         }}
+        compoundCopy={t.shape.compound}
         exampleNote={
           extra?.isDemo ? (
             <p className="nf-rv-unwired" role="note">

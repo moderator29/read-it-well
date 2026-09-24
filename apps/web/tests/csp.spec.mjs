@@ -443,7 +443,7 @@ const WALK = [
   "/preview/f1/chrome",
   // The signed-out browse surface, opened by N-1.
   "/search",
-  "/rent",
+  "/search?market=rent",
   "/around",
   "/listing/ed000000-0000-4000-8000-000000000003",
   "/u/example_collect",

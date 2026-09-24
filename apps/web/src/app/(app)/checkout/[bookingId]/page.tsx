@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getLocale } from "@/lib/locale";
+import { getDictionary } from "@vallo/i18n";
 import { getCheckoutView } from "@/lib/bookings/checkout-view";
 import { isBookingReference } from "@/lib/payments/references";
 import { ResultScreen } from "@/components/app/ResultSheet";
@@ -51,6 +52,8 @@ export default async function CheckoutPage({
   const { bookingId } = await params;
   const { paid, reference } = await searchParams;
   const locale = await getLocale();
+  const plans = getDictionary(locale).shape.plans;
+  const staysAction = { label: plans.seeStays, href: "/bookings?side=stays&from=stays" };
   const read = await getCheckoutView(bookingId, locale);
 
   const settling =
@@ -72,7 +75,7 @@ export default async function CheckoutPage({
           mark="card-lock"
           verdict="We cannot reach payment right now"
           consequence="This is on our side, not yours. Nothing has been charged and your dates are unchanged. Try again in a few minutes."
-          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
+          actions={[{ label: plans.seeStays, href: "/bookings?side=stays&from=stays", tone: "primary" }]}
         />
       </Shell>
     );
@@ -104,7 +107,7 @@ export default async function CheckoutPage({
           mark="seal-cross"
           verdict="We could not find that booking"
           consequence="It may have been cancelled, or it belongs to another account. Your stays are all in one place."
-          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
+          actions={[{ label: plans.seeStays, href: "/bookings?side=stays&from=stays", tone: "primary" }]}
         />
       </Shell>
     );
@@ -118,7 +121,7 @@ export default async function CheckoutPage({
           mark="alert-triangle"
           verdict="Checkout did not open"
           consequence="Your booking is unchanged and nothing has been charged. Try again in a few minutes."
-          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
+          actions={[{ label: plans.seeStays, href: "/bookings?side=stays&from=stays", tone: "primary" }]}
         />
       </Shell>
     );
@@ -150,6 +153,7 @@ export default async function CheckoutPage({
           subject={view.title}
           locale={locale}
           retryHref={`/checkout/${bookingId}`}
+          plansAction={staysAction}
         />
       )}
 
@@ -193,7 +197,7 @@ export default async function CheckoutPage({
             mark="receipt-check"
             verdict="This stay is paid for"
             consequence={`${view.totalDisplay} has been received and your dates are confirmed.`}
-            actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
+            actions={[{ label: plans.seeStays, href: "/bookings?side=stays&from=stays", tone: "primary" }]}
           />
         </Reveal>
       ) : view.status === "CANCELLED" ? (
@@ -271,7 +275,7 @@ export default async function CheckoutPage({
             fired is content that sometimes does not exist.
           */}
           <div className="mt-block">
-            <PayPanel view={view} savedCards={savedCards} chargeSavedCard={chargeSavedCard} />
+            <PayPanel view={view} savedCards={savedCards} chargeSavedCard={chargeSavedCard} plansAction={staysAction} />
           </div>
         </>
       )}
@@ -344,7 +348,7 @@ function Shell({
     <div className="nf-cat-surface mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="calendar-check" />
-        <PageHeader title="Checkout" subtitle={subtitle} fallback="/bookings" />
+        <PageHeader title="Checkout" subtitle={subtitle} fallback="/bookings?side=stays&from=stays" />
       </div>
       {children}
     </div>

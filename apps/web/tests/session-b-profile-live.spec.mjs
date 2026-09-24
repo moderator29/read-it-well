@@ -142,7 +142,7 @@ if (!email || !password) {
   );
   record(
     "belongings rows link to their routes (figures drawn only above zero)",
-    ["/bookings", "/saved", "/wallet", "/inspections"].every((h) => read.rows.some((r) => r.href === h)),
+    ["/bookings", "/saved", "/wallet"].every((h) => read.rows.some((r) => r.href === h)),
     `${stamp()} ${JSON.stringify(read.rows)}`,
   );
   record("Switch role line says no admin to a member", !read.adminWord, `${stamp()} ${JSON.stringify(read.switchLine)}`);

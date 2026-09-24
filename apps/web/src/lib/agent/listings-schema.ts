@@ -1,4 +1,8 @@
 import { z } from "zod";
+import { PARKING_TYPES, WASTE_DISPOSALS } from "@/lib/listings/compound";
+import { ESTATE_TYPES, SERVICE_COVERS } from "@/lib/listings/service";
+import { UNIT_SHAPES, takesShape } from "@/lib/listings/unit-shape";
+import { FLOODING } from "@/lib/around/pulse";
 
 import {
   BUILD_CONDITION_VALUES,
@@ -692,6 +696,30 @@ export const draftInputSchema = z.object({
    * what is stored alone; an empty list clears it.
    */
   broadcastUnconfirmed: z.array(z.string().regex(/^[A-Za-z]{1,40}$/)).max(40).optional(),
+
+  /* V-28. The compound's five answers. NULL clears an answer the lister took
+     back (the wizard holds all five and sends null for unanswered); undefined
+     leaves the column as it was, like every other draft field. */
+  parkingType: z.enum(PARKING_TYPES).nullable().optional(),
+  flatsInCompound: z.number().int().min(1, "Enter 1 or more homes.").max(500, "Enter 500 or fewer homes.").nullable().optional(),
+  landlordOnSite: z.boolean().nullable().optional(),
+  wasteDisposal: z.enum(WASTE_DISPOSALS).nullable().optional(),
+  carAccess: z.boolean().nullable().optional(),
+
+  /* V-68. What the service charge covers, how it is charged, and the gate.
+     Null clears an answer taken back, undefined leaves the column alone. */
+  serviceChargeCovers: z.array(z.enum(SERVICE_COVERS)).max(SERVICE_COVERS.length).nullable().optional(),
+  serviceChargeReconciled: z.boolean().nullable().optional(),
+  estateType: z.enum(ESTATE_TYPES).nullable().optional(),
+
+  /* V-66. The unit's shape, en-suite rooms and BQ; null clears, undefined
+     leaves alone. En-suite rooms are capped at the bedrooms by the database. */
+  unitShape: z.enum(UNIT_SHAPES).nullable().optional(),
+  ensuiteCount: z.number().int().min(0, "Enter 0 or more rooms.").max(20, "Enter 20 or fewer rooms.").nullable().optional(),
+  hasBq: z.boolean().nullable().optional(),
+
+  /* V-41. The lister's flooding answer; null clears, undefined leaves alone. */
+  flooding: z.enum(FLOODING).nullable().optional(),
 });
 
 export type DraftInput = z.input<typeof draftInputSchema>;
@@ -842,6 +870,11 @@ export type SubmitSubject = {
   tenure: LandTenure | null | undefined;
   bedrooms: number | null | undefined;
   bathrooms: number | null | undefined;
+  /**
+   * V-66: the unit's shape. Undefined means it could not be read (a database
+   * without the column) and is not asked for; null means unanswered.
+   */
+  unitShape?: string | null | undefined;
   amenityCount: number;
   photoCount: number;
   /** True when a photo sits at position 0, which is the cover. */
@@ -980,6 +1013,16 @@ export function submitRequirements(subject: SubmitSubject): GateRequirement[] {
     }
   }
 
+  /* V-66: a home to let or sell says its shape. Stays, shops, offices and
+     plots have none. Skipped when the shape could not be read at all. */
+  if (
+    subject.unitShape !== undefined &&
+    !subject.unitShape &&
+    subject.propertyType &&
+    takesShape(subject.propertyType)
+  ) {
+    unmet.push({ field: "unitShape", message: "Choose the shape of the home." });
+  }
   if ((subject.bedrooms ?? -1) < 0) {
     unmet.push({ field: "bedrooms", message: "Say how many bedrooms the property has." });
   }

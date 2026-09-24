@@ -94,8 +94,8 @@ try {
   check("nothing overflows sideways at 390px", overflow <= 1);
 
   // ------------------------------------------------------- a deeper queue
-  console.log("/admin/flags");
-  await page.goto(`${BASE_URL}/admin/flags`, { waitUntil: "load" });
+  console.log("/admin/queue?tab=flags");
+  await page.goto(`${BASE_URL}/admin/queue?tab=flags`, { waitUntil: "load" });
   await page.waitForTimeout(WAIT);
 
   const flagsText = await page.locator("body").innerText();

@@ -57,10 +57,10 @@ export type OverviewCounts = {
  * DESK, and they were never the same word.
  */
 const DESKS: { key: keyof OverviewCounts; href: string; icon: UiIconName }[] = [
-  { key: "flags", href: "/admin/flags", icon: "chat-bubble" },
-  { key: "moderation", href: "/admin/moderation", icon: "sliders" },
+  { key: "flags", href: "/admin/queue?tab=flags", icon: "chat-bubble" },
+  { key: "moderation", href: "/admin/queue?tab=held", icon: "sliders" },
   { key: "alerts", href: "/admin/alerts", icon: "bell" },
-  { key: "reports", href: "/admin/reports", icon: "flag" },
+  { key: "reports", href: "/admin/queue?tab=reports", icon: "flag" },
   { key: "applications", href: "/admin/agents", icon: "user" },
   { key: "listings", href: "/admin/listings", icon: "building-apartment" },
   { key: "tickets", href: "/admin/support", icon: "ticket" },

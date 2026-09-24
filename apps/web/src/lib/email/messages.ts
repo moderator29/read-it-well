@@ -1019,11 +1019,11 @@ export type AgentApplicationData = {
 export function agentApplicationApproved(data: AgentApplicationData): EmailMessage {
   return message(
     "Your Vallo agent application is approved",
-    "Agent Mode is open. Verification is a separate step.",
+    "Your agent workspace is open. Verification is a separate step.",
     [
       heading("You can start listing"),
       paragraph(
-        `${hello(data.name)} Your application has been accepted, so Agent Mode is open on your account and you can put up your first property.`,
+        `${hello(data.name)} Your application has been accepted, so your agent workspace is open and you can put up your first property.`,
       ),
       rows([
         { label: "Reference", value: data.reference },

@@ -24,7 +24,7 @@ export default async function TenancyReviewPage({ params }: { params: Promise<{ 
   const target = await readTenancyReviewTarget(paymentId);
 
   const header = (subtitle?: string) => (
-    <PageHeader title={copy.title} {...(subtitle ? { subtitle } : {})} fallback="/inspections" />
+    <PageHeader title={copy.title} {...(subtitle ? { subtitle } : {})} fallback="/bookings?kind=inspection&from=property" />
   );
 
   if (target.state === "signed-out") {
@@ -53,7 +53,7 @@ export default async function TenancyReviewPage({ params }: { params: Promise<{ 
           title={copy.missingTitle}
           body={copy.missingBody}
           action={
-            <ButtonLink href="/inspections" variant="primary" size="lg">
+            <ButtonLink href="/bookings?kind=inspection&from=property" variant="primary" size="lg">
               {copy.openInspections}
             </ButtonLink>
           }

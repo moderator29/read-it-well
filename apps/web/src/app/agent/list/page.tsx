@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { flagIsOn, NEIGHBOURS_FLAG } from "@/lib/flags/read";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
@@ -75,6 +76,10 @@ export default async function Page({
           copy={t.agentListings}
           reference={t.listingReference}
           moveInCopy={t.moveIn}
+          compoundCopy={t.shape.compound}
+          serviceCopy={t.shape.service}
+          unitCopy={t.shape.unit}
+          floodCopy={t.shape.neighbours}
           remainderCopy={t.afterTheGate.remainder}
           moneyMapCopy={t.afterTheGate.moneyMap}
           locale={locale}
@@ -113,6 +118,11 @@ export default async function Page({
         copy={t.agentListings}
         reference={t.listingReference}
         moveInCopy={t.moveIn}
+        compoundCopy={t.shape.compound}
+        serviceCopy={t.shape.service}
+        unitCopy={t.shape.unit}
+        floodCopy={t.shape.neighbours}
+        floodOpen={await flagIsOn(NEIGHBOURS_FLAG)}
         remainderCopy={t.afterTheGate.remainder}
         moneyMapCopy={t.afterTheGate.moneyMap}
         locale={locale}

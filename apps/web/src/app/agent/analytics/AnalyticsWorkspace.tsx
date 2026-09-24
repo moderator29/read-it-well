@@ -602,12 +602,18 @@ export function AnalyticsWorkspace({
   statusLabels,
   analytics,
   locale,
+  funnels = null,
+  viewsLine,
 }: {
   t: AnalyticsCopy;
   hours: HoursCopy;
   statusLabels: Record<ListingStatus, string>;
   analytics: AgentAnalytics;
   locale: Locale;
+  /** V-73: the per-listing funnel panel, when the counting is running. */
+  funnels?: React.ReactNode;
+  /** V-73: replaces the "views are not counted" line once they are. */
+  viewsLine?: string;
 }) {
   const { earnings, requests, listings, calendar, reviews } = analytics;
 
@@ -763,10 +769,12 @@ export function AnalyticsWorkspace({
         one, and it is also the only reason a host will trust the numbers that
         ARE here.
       */}
+      {funnels}
+
       <section className="nf-panel nf-panel--card block p-md sm:p-panel">
         <h2 className="nf-h3">{t.notCounted.title}</h2>
         <ul className="mt-sm space-y-sm">
-          {[t.notCounted.views, t.notCounted.saves, t.notCounted.occupancy].map((line) => (
+          {[viewsLine ?? t.notCounted.views, t.notCounted.saves, t.notCounted.occupancy].map((line) => (
             <li
               key={line}
               className="max-w-[76ch] text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"

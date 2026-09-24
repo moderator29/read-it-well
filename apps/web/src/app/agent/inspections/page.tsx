@@ -8,7 +8,7 @@ import { InspectionHero, InspectionSheet } from "@/components/app/inspections/In
 import { InspectionsLive } from "@/components/app/inspections/InspectionsLive";
 import { EmptyState, Section, Stack, TYPE } from "@/components/app/Screen";
 import { resolveSession } from "@/lib/actions/session";
-import { readListingFacts } from "@/app/(app)/inspections/facts";
+import { readListingFacts } from "@/components/app/plans/inspection-facts";
 import { readReportsFor } from "@/lib/inspections/report-queries";
 import { reportStorageLive } from "@/lib/inspections/report-flag";
 import { ButtonLink } from "@/components/ui/Button";
