@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { missingRequired, offeredSlots, photographed } from "./shot-list";
+import { claimsOf, missingRequired, offeredSlots, photographed, photographedClaimed } from "./shot-list";
 
 describe("shot list", () => {
   it("offers a utility slot only when the utility is claimed", () => {
@@ -16,5 +16,15 @@ describe("shot list", () => {
   });
   it("lists what was photographed once each, in shot-list order", () => {
     expect(photographed(["water", "kitchen", "kitchen", undefined, "meter"])).toEqual(["kitchen", "meter", "water"]);
+  });
+});
+
+describe("photographedClaimed", () => {
+  it("drops a utility label once its claim is withdrawn", () => {
+    const labels = ["kitchen", "meter", "water", "power"] as const;
+    const none = claimsOf({ prepaid_meter: false, water_supply: "NONE", power_backup: null });
+    expect(photographedClaimed([...labels], none)).toEqual(["kitchen"]);
+    const all = claimsOf({ prepaid_meter: true, water_supply: "BOREHOLE", power_backup: "INVERTER" });
+    expect(photographedClaimed([...labels], all)).toEqual(["kitchen", "meter", "water", "power"]);
   });
 });

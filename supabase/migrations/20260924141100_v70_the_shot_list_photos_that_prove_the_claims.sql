@@ -9,7 +9,9 @@
 --
 -- A SIDE TABLE, not a column. `listing_photos` is existing schema and its
 -- writer (`addPhoto`) is audit-named, so the label lives beside the photo row,
--- keyed by it and deleted with it. The 64 examples simply have no labels.
+-- keyed by it and deleted with it. An example listing's labels are never
+-- public: the read policy excludes examples, so no card or page says an
+-- example was photographed.
 --
 -- THE SUBMIT GATE IS NOT CHANGED HERE. The entry asks for "the four required
 -- slots" (front, living room, kitchen, a bedroom) in place of "four photos";
@@ -40,7 +42,7 @@ grant select on public.listing_photo_slots to anon, authenticated;
 grant all on public.listing_photo_slots to service_role;
 
 create policy listing_photo_slots_public_read on public.listing_photo_slots for select to anon, authenticated
-  using (exists (select 1 from public.listings l where l.id = listing_id and l.status = 'PUBLISHED'));
+  using (exists (select 1 from public.listings l where l.id = listing_id and l.status = 'PUBLISHED' and not l.is_demo));
 create policy listing_photo_slots_owner_read on public.listing_photo_slots for select to authenticated
   using (private.owns_listing(listing_id)
          or private.has_role((select auth.uid()), 'admin'::public.app_role)

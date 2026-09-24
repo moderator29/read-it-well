@@ -636,17 +636,27 @@ as $function$
                       where d.obligation_id = o.id), 0) as deducted,
            (select max(r.returned_at) from public.caution_returns r where r.obligation_id = o.id) as last_return
       from public.caution_obligations o
+      join public.rent_payments rp on rp.id = o.rent_payment_id
+      join public.listings l on l.id = rp.listing_id
      where o.lister_id = p_lister
+       and not l.is_demo
        and not private.tenancy_void(o.rent_payment_id)
   ), settled as (
     select * from per where returned + deducted >= amount_minor
   )
-  select case when count(*) >= 5 then jsonb_build_object(
-           'settled', count(*),
-           'on_time', count(*) filter (where last_return is null or (last_return at time zone 'Africa/Lagos')::date <= due_on),
-           'average_deduction_bps', (sum(deducted) * 10000 / nullif(sum(amount_minor), 0))::int
-         ) end
-    from settled;
+  select case when (select count(*) from settled) >= 5 then jsonb_build_object(
+           'settled', (select count(*) from settled),
+           -- On time means money came back by the due date: a caution kept
+           -- whole by agreed deductions returned nothing and is not counted.
+           'on_time', (select count(*) from settled
+                        where returned > 0 and (last_return at time zone 'Africa/Lagos')::date <= due_on),
+           -- Every obligation past its due date and still not settled, so a
+           -- lister cannot show five good returns over twenty kept cautions.
+           'overdue', (select count(*) from per
+                        where returned + deducted < amount_minor
+                          and due_on < (now() at time zone 'Africa/Lagos')::date),
+           'average_deduction_bps', (select (sum(deducted) * 10000 / nullif(sum(amount_minor), 0))::int from settled)
+         ) end;
 $function$;
 
 revoke all on function public.propose_caution_deduction(uuid, text, bigint, uuid, text) from public, anon;

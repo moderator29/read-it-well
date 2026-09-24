@@ -36,3 +36,22 @@ export function photographed(labelled: (ShotSlot | null | undefined)[]): ShotSlo
   const have = new Set(labelled.filter(isShotSlot));
   return SHOT_SLOTS.filter((slot) => have.has(slot));
 }
+
+/** A listing row's utility claims, as the shot list reads them. */
+export function claimsOf(row: { prepaid_meter?: unknown; water_supply?: unknown; power_backup?: unknown }): UtilityClaims {
+  return {
+    prepaidMeter: typeof row.prepaid_meter === "boolean" ? row.prepaid_meter : null,
+    waterSupply: typeof row.water_supply === "string" ? row.water_supply : null,
+    powerBackup: typeof row.power_backup === "string" ? row.power_backup : null,
+  };
+}
+
+/**
+ * The slots photographed that the listing still claims: a meter, water or
+ * power label outlives the claim it was set under, so a caption drops it once
+ * the claim is withdrawn rather than show a photo of something not offered.
+ */
+export function photographedClaimed(labelled: (ShotSlot | null | undefined)[], claims: UtilityClaims): ShotSlot[] {
+  const offered = new Set(offeredSlots(claims));
+  return photographed(labelled).filter((slot) => offered.has(slot));
+}
