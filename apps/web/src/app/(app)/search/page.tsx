@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { readListingFactsFor } from "@/lib/landlord/queries";
+import { collapseByProperty, ownerConfirmedLine, requestNow, sinkNotReconfirmed } from "@/lib/landlord/facts";
+import { LandlordCardLine } from "@/components/app/listing/LandlordCardLine";
 import Link from "next/link";
 import { formatMoney, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
 import { RealMap } from "@/components/app/search/RealMap";
@@ -38,6 +41,7 @@ import { BackButton } from "@/components/site/BackButton";
 import { Reveal } from "@/components/site/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/app/Screen";
+import { looksCheckable } from "@/lib/doors/agent-check";
 
 export const metadata: Metadata = {
   title: "Search",
@@ -242,8 +246,25 @@ export default async function SearchPage({
   const tuning = await readIntentTuning();
   const statedIntent = hasOwnRequest(query) ? [] : tuning.interests;
   const ordered = orderByStatedIntent(sorted, statedIntent);
+  /*
+   * V-31: WHAT THE OWNER SAID, beside each card, and "Not reconfirmed" sorted
+   * last. Read in one call beside the catalogue rather than inside it, so a
+   * failed read changes nothing: no line on any card and the order untouched.
+   * Only a listing whose owner let a question go 21 days unanswered moves,
+   * and it moves to the end of whatever order the page chose, not out of it.
+   */
+  const shelf = codeHit ? [codeHit] : ordered;
+  const landlordFacts = await readListingFactsFor(shelf.map((l) => l.id));
+  const notReconfirmed = new Set(
+    [...landlordFacts].filter(([, facts]) => facts.notReconfirmed).map(([id]) => id),
+  );
+  /* V-37: the copies of one property become one card that says how many
+     offers it carries. A code hit is the one listing the person asked for and
+     is never collapsed. */
+  const collapsed = codeHit ? { listings: shelf, offerCounts: new Map<string, number>() } : collapseByProperty(shelf, landlordFacts);
   /* The one listing the code named, or the ordinary shelf. */
-  const listings = codeHit ? [codeHit] : ordered;
+  const listings = sinkNotReconfirmed(collapsed.listings, notReconfirmed);
+  const landlordNow = requestNow();
   const intentApplied = !codeHit && ordered !== sorted;
   const intentKinds: ListingKind[] = intentApplied
     ? intentKindsPresent(ordered, statedIntent)
@@ -315,6 +336,19 @@ export default async function SearchPage({
       {codeRead.state === "code" && codeRead.explicit && !codeHit && (
         <p data-testid="reference-miss" className="nf-caption mt-inline text-[var(--nf-content-muted)]">
           {t.listingReference.noneCarry}
+        </p>
+      )}
+      {/* V-61: A NUMBER OR A VALLO AGENT CODE IN THE SEARCH BOX is somebody
+          holding an advert. One line sends them to the check, carrying what
+          they typed; the results underneath are untouched. */}
+      {looksCheckable(query.q) && (
+        <p data-testid="search-check-agent" className="nf-caption mt-inline">
+          <Link
+            href={`/check?q=${encodeURIComponent((query.q ?? "").slice(0, 40))}`}
+            className="inline-flex min-h-11 items-center text-[var(--nf-content-secondary)] underline underline-offset-2"
+          >
+            {t.trustDoors.check.inSearch.replace("{query}", (query.q ?? "").trim().slice(0, 40))}
+          </Link>
         </p>
       )}
       {codeRead.state === "impossible" && (
@@ -441,6 +475,13 @@ export default async function SearchPage({
                     dense
                     saved={savedIds.has(l.id)}
                     intent={tuning.signedIn ? tuning.interests : undefined}
+                  />
+                  <LandlordCardLine
+                    notReconfirmed={notReconfirmed.has(l.id)}
+                    confirmed={ownerConfirmedLine(t.landlord.listing, landlordFacts.get(l.id)?.ownerConfirmedAt, landlordNow)}
+                    copy={t.landlord.listing}
+                    offerCount={collapsed.offerCounts.get(l.id) ?? 1}
+                    offersCopy={t.landlord.offers.card}
                   />
                 </li>
               ))}

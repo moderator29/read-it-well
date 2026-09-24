@@ -139,6 +139,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/r/[code]": "/r",
   "/privacy": "/",
   "/safety": "/",
+  "/check": "/",
   "/standards": "/",
   "/styleguide": "/",
   "/terms": "/",
@@ -368,6 +369,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/agent/messages": "/agent/dashboard",
   "/agent/reviews": "/agent/dashboard",
   "/agent/settings": "/agent/dashboard",
+  "/agent/portfolio": "/agent/dashboard",
   "/agent/verification": "/agent/dashboard",
 
   /* ----------------------------------------------------- the host console */
@@ -476,6 +478,7 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/cron/email-outbox": "scheduled job, bearer token.",
   "/api/cron/hold-sweep": "scheduled job, bearer token.",
   "/api/cron/inventory-drift": "scheduled job, bearer token.",
+  "/api/cron/landlord-line": "scheduled job, bearer token.",
   "/api/cron/pg-cron-watch": "scheduled job, bearer token.",
   "/api/cron/saved-search-alerts": "scheduled job, bearer token.",
   "/api/crypto/coins/[id]": "JSON read for the crypto screens.",
@@ -483,6 +486,7 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/crypto/pairs": "JSON read for the crypto screens.",
   "/api/csp-report": "the browser's policy violation report.",
   "/api/documents/[id]": "a signed document stream, not a page.",
+  "/api/landlord/inbound": "the SMS aggregator's inbound webhook, bearer token.",
   "/api/map/listings": "JSON read for the map.",
   "/api/paystack/reconcile": "processor reconciliation.",
   "/api/paystack/webhook": "processor webhook.",
@@ -496,4 +500,8 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/yellowcard/webhook": "processor webhook.",
   "/admin/enter": "303 into the console with the entry cookie.",
   "/home-or-landing": "307 to `/` or `/home`, decided by the caller's cookies.",
+  "/landlord/[token]":
+    "a landlord's single-use reply page, opened from an SMS by somebody with no account; there is nowhere inside the platform for it to go back to.",
+  "/safe/[token]":
+    "the page a renter's trusted contact opens from a link the renter sent; the contact has no account and nowhere inside the platform to go back to.",
 };

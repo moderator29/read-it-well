@@ -6,6 +6,8 @@ import type { CountForms } from "../plural";
 import { priceCheckEn } from "./price-check.en";
 import { afterTheGateEn } from "./after-the-gate.en";
 import { trustVisibleEn } from "./trust-visible.en";
+import { landlordEn } from "./landlord.en";
+import { trustDoorsEn } from "./trust-doors.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -5886,6 +5888,10 @@ export const en = {
   priceCheck: priceCheckEn,
   afterTheGate: afterTheGateEn,
   trustVisible: trustVisibleEn,
+
+  landlord: landlordEn,
+
+  trustDoors: trustDoorsEn,
 
 };
 

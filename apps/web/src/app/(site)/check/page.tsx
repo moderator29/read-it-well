@@ -1,0 +1,47 @@
+import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
+import { CheckForm } from "./CheckForm";
+
+/**
+ * V-61. /check: "IS THIS A VALLO AGENT?" A public door.
+ *
+ * Nigeria's property market runs on WhatsApp statuses, Instagram posts and
+ * flyers, and Vallo cannot and should not stop agents advertising there. This
+ * turns every such advert into a door back in: paste the number or the Vallo
+ * code, and the answer is either the agent's public name (with the date their
+ * identity was checked, only when it was), with a way to talk to them inside
+ * Vallo, or one plain no that tells a renter not to pay.
+ *
+ * Open signed out, because the person holding the flyer has no account yet.
+ * Rate limited in the action, never cached, never indexed with a query in it.
+ */
+
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return { title: t.trustDoors.check.metaTitle, description: t.trustDoors.check.lede };
+}
+
+export default async function CheckPage({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+  const params = await searchParams;
+  const q = Array.isArray(params.q) ? params.q[0] : params.q;
+  const copy = t.trustDoors.check;
+
+  return (
+    <div className="nf-shell pb-section">
+      <div className="mx-auto max-w-xl pt-block">
+        <section className="nf-panel nf-panel--card block p-lg">
+          <p className="nf-overline text-[var(--nf-content-muted)]">{copy.chip}</p>
+          <h1 className="nf-h2 mt-xs">{copy.title}</h1>
+          <p className="nf-body mt-sm leading-relaxed text-[var(--nf-content-secondary)]">{copy.lede}</p>
+          <CheckForm copy={copy} locale={locale} initial={typeof q === "string" ? q.slice(0, 40) : ""} />
+        </section>
+        <p className="nf-caption mt-md text-center text-[var(--nf-content-muted)]">{copy.privacy}</p>
+      </div>
+    </div>
+  );
+}

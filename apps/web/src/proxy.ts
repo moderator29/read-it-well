@@ -143,6 +143,17 @@ const PUBLIC_SEGMENTS = new Set([
   "sign-up",
   "start",
   "welcome",
+  // V-31 and V-32: the landlord's reply page. The landlord has no account and
+  // needs none; the single-use token in the link is the authorisation, checked
+  // against its sha256 inside the database. The page shows the area and never
+  // the address, and nothing else inside the platform is reachable from it.
+  "landlord",
+  // V-61: "Is this a Vallo agent?" A renter holding a flyer has no account;
+  // the lookup behind it is rate limited and answers yes with a public name or
+  // one plain no. V-62: the page a renter's trusted contact opens, by a token,
+  // showing the area and never the address.
+  "check",
+  "safe",
   // Serving with no network, and resolving which home the caller means.
   "home-or-landing",
   "offline",
@@ -225,9 +236,11 @@ const PUBLIC_API_PATHS = new Set([
   "/api/cron/email-outbox",
   "/api/cron/hold-sweep",
   "/api/cron/inventory-drift",
+  "/api/cron/landlord-line",
   "/api/cron/pg-cron-watch",
   "/api/cron/saved-search-alerts",
   "/api/csp-report",
+  "/api/landlord/inbound",
   "/api/push/key",
   "/api/paystack/reconcile",
   "/api/paystack/webhook",
@@ -247,7 +260,7 @@ const PUBLIC_API_PATHS = new Set([
 export function isPublicPath(path: string): boolean {
   if (PUBLIC_PATHS.has(path)) return true;
   /* An API path is decided by its WHOLE path and never by its first segment,
-     because `api` is not a public tree: exactly sixteen endpoints under it
+     because `api` is not a public tree: only the endpoints enumerated above
      answer a caller with no session and the rest do not. */
   if (isApiPath(path)) return PUBLIC_API_PATHS.has(path);
   const [, first = ""] = path.split("/");
