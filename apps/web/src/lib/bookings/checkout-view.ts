@@ -138,9 +138,11 @@ export async function getCheckoutView(
         .select("balance_minor")
         .eq("user_id", session.user.id)
         .maybeSingle(),
+      /* SEC-02. The caller's own wallet: an admin reads every entry. */
       session.supabase
         .from("wallet_entries")
-        .select("amount_minor")
+        .select("amount_minor, wallets!inner(user_id)")
+        .eq("wallets.user_id", session.user.id)
         .eq("status", "PENDING")
         .eq("direction", "debit"),
     ]);

@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { isAuthRetryableFetchError, type User } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import {
   contentSecurityPolicy,
@@ -407,9 +408,14 @@ export async function proxy(request: NextRequest) {
   });
 
   // Rotates the token when needed. Do not remove: this call is the refresh.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const reader = await readSessionUser(() => supabase.auth.getUser(), carriesSessionCookie(request));
+
+  /* OPS-05. A request that carries a session while auth cannot answer (a
+     5xx, a network failure, no answer in time) is let through: the page's
+     own reads decide, and fail visibly, instead of every member being sent
+     to sign-in at once. */
+  if (reader === "unknown") return withSecurityPolicy(response, nonce);
+  const user = reader;
 
   if (!user) {
     const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
@@ -507,6 +513,42 @@ export async function proxy(request: NextRequest) {
   }
 
   return withSecurityPolicy(response, nonce);
+}
+
+/** OPS-05. How long the guard waits for auth before it stops waiting. */
+const AUTH_ANSWER_TIMEOUT_MS = 3000;
+
+/** Whether the request carries a Supabase session cookie at all. */
+function carriesSessionCookie(request: NextRequest): boolean {
+  return request.cookies.getAll().some(({ name }) => name.startsWith("sb-") && name.includes("-auth-token"));
+}
+
+/**
+ * The signed-in reader, null when there is none, or "unknown" when a request
+ * that carries a session could not be answered: auth returned a 5xx or a
+ * network failure (AuthRetryableFetchError), or did not answer in time. A
+ * refusal from auth itself (an expired, revoked or malformed session) and a
+ * request with no session cookie are both null, never "unknown".
+ */
+async function readSessionUser(
+  getUser: () => Promise<{ data: { user: User | null }; error: unknown }>,
+  hasSessionCookie: boolean,
+): Promise<User | null | "unknown"> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<"timeout">((resolve) => {
+    timer = setTimeout(() => resolve("timeout"), AUTH_ANSWER_TIMEOUT_MS);
+  });
+  try {
+    const answer = await Promise.race([getUser(), timeout]);
+    if (answer === "timeout") return hasSessionCookie ? "unknown" : null;
+    if (answer.data.user) return answer.data.user;
+    if (hasSessionCookie && isAuthRetryableFetchError(answer.error)) return "unknown";
+    return null;
+  } catch {
+    return hasSessionCookie ? "unknown" : null;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export const config = {
