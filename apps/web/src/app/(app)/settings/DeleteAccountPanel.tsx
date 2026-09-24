@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import { useClientMount } from "@/lib/ui/client-mount";
+import { clearPacks } from "@/lib/offline/pack-store";
+import { clearShelf } from "@/lib/offline/shelf-store";
 import { DELETE_CONFIRM_PHRASE, GRACE_WINDOW_DAYS } from "@/lib/account-deletion/constants";
 import type { Blocker } from "@/lib/account-deletion/preconditions";
 import {
@@ -320,6 +322,10 @@ function DeleteDrawer({
   // behind this drawer to return to.
   useEffect(() => {
     if (!state?.ok) return;
+    /* V-35, V-77: the account is going, so its gate codes, unsent
+       check-ins and shortlist copy leave this phone now. */
+    void clearPacks();
+    void clearShelf();
     const timer = window.setTimeout(() => {
       router.replace("/");
       router.refresh();

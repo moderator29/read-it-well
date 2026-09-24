@@ -8,6 +8,7 @@ import { decide, planCollapse, type QueuedNotification } from "./policy";
 import type { NotificationKind } from "./preferences";
 import type { PushClient, PushPlatform, PushQueueOutcome } from "./schema";
 import { sendApns } from "./transport/apns";
+import { apnsIsOpen, gatePlatforms } from "./apns-flag";
 import { sendFcm } from "./transport/fcm";
 import { sendWebPush } from "./transport/webpush";
 import { isRetryable, type ProviderReply, type PushPayload, type PushTarget } from "./types";
@@ -140,7 +141,13 @@ export async function pushDrain(admin: PushClient): Promise<JobVerdict> {
      `AdminClient` is the same `SupabaseClient<Database>` this now takes, so
      the drain and the runner check against each other rather than meeting
      through an `unknown`. */
-  const platforms = deliverablePlatforms();
+  /* V-53: iOS only once the founder has opened `native_push_apns`. The
+     flag is read only when APNs credentials exist, so a deployment without
+     them pays for no extra query. */
+  const configured = deliverablePlatforms();
+  const platforms = configured.includes("ios")
+    ? gatePlatforms(configured, await apnsIsOpen(admin))
+    : configured;
 
   /* NO CREDENTIALS MEANS DO NOT TOUCH THE QUEUE.
      A deployment with no keys must not claim rows, burn attempts against a
@@ -149,6 +156,9 @@ export async function pushDrain(admin: PushClient): Promise<JobVerdict> {
      is still there to send. */
   if (platforms.length === 0) {
     const depth = await queueDepth(admin);
+    /* V-53: keys present but every one is iOS behind the shut flag. That is a
+       decision waiting, not a missing key, and it is named as one. */
+    const flagShut = configured.length > 0;
     return {
       outcome: depth.waiting > 0 ? "attention" : "ok",
       counts: { ...ZERO_COUNTS, waiting: depth.waiting },
@@ -156,13 +166,18 @@ export async function pushDrain(admin: PushClient): Promise<JobVerdict> {
       alert:
         depth.waiting > 0
           ? {
-              kind: "push.no_credentials",
-              severity: "critical",
-              detail: {
-                waiting: depth.waiting,
-                /* Variable NAMES, never values. */
-                note: "Push has no transport configured and notifications are queueing. See lib/push/credentials.ts for which variable is missing and who supplies it.",
-              },
+              kind: flagShut ? "push.apns_flag_shut" : "push.no_credentials",
+              severity: flagShut ? "warning" : "critical",
+              detail: flagShut
+                ? {
+                    waiting: depth.waiting,
+                    note: "Only APNs is configured and the native_push_apns flag is shut, so notifications are queueing. Open the flag (lib/push/apns-flag.ts) when the signed iOS build is ready.",
+                  }
+                : {
+                    waiting: depth.waiting,
+                    /* Variable NAMES, never values. */
+                    note: "Push has no transport configured and notifications are queueing. See lib/push/credentials.ts for which variable is missing and who supplies it.",
+                  },
             }
           : null,
     };

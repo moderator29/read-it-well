@@ -48,8 +48,12 @@
  * user on last week's shell.
  */
 
-/* Bumped to v2 when the push handlers moved in from `/api/push/sw`. */
-const CACHE_VERSION = "v2";
+/* Bumped to v2 when the push handlers moved in from `/api/push/sw`.
+   Bumped to v3 (V-35, V-78) when the offline page began carrying the gate
+   code and its script chunks were precached, and when the asset cache key
+   stopped including the deployment id. v4 (V-53) when notifications gained
+   buttons. */
+const CACHE_VERSION = "v4";
 const SHELL_CACHE = `vallo-shell-${CACHE_VERSION}`;
 const ASSET_CACHE = `vallo-assets-${CACHE_VERSION}`;
 const CURRENT_CACHES = [SHELL_CACHE, ASSET_CACHE];
@@ -146,26 +150,70 @@ function carriesCredentials(request) {
 }
 
 /*
- * The offline document's stylesheet is a hashed Next chunk whose name this
- * file cannot know, so it is discovered by reading the precached HTML once at
- * install time. Without this the offline page would render as unstyled markup
- * for a visitor whose first ever action after installing is losing signal.
+ * THE ASSET CACHE KEY, WITHOUT THE DEPLOYMENT ID. V-78.
+ *
+ * On Vercel every `/_next/static/` URL carries `?dpl=<deployment id>` for
+ * skew protection. The fetch handler used to cache only URLs with an empty
+ * query string, so on production it cached NOTHING: every chunk carries the
+ * query. And had it cached them with the query, each deploy would change every
+ * key, and a returning person would re-download about 450 KB of JavaScript
+ * whose bytes had not changed (fifty deploys reached main on 23 September).
+ *
+ * The chunk's file name is a hash of its content, so the query adds nothing
+ * to identity: the key is the path, with `dpl` dropped. Any OTHER query
+ * parameter still refuses the cache, because an unknown parameter might
+ * change the bytes.
  */
-async function precacheOfflineStyles(cache) {
+function assetCacheKey(url) {
+  const params = new URLSearchParams(url.search);
+  params.delete("dpl");
+  if (Array.from(params.keys()).length > 0) return null;
+  return url.origin + url.pathname;
+}
+
+/*
+ * The offline document's stylesheet and scripts are hashed Next chunks whose
+ * names this file cannot know, so they are discovered by reading the
+ * precached HTML once at install time. Without the stylesheet the offline page
+ * renders as unstyled markup; without the scripts (V-35) the gate code on it
+ * cannot run, and the gate is exactly where there is no signal.
+ *
+ * A KNOWN LIMIT. The precached page carries the server-action ids of the
+ * deploy that installed this worker. After a later deploy those ids are stale,
+ * so the offline page never calls a server action: it only reads IndexedDB,
+ * and queued check-ins are handed over from live pages (`GateHandshake`
+ * with `live`), which always carry current ids.
+ */
+function offlineAssetUrls(html) {
+  const found = new Set();
+  const pattern = /(?:href|src)="(\/_next\/static\/[^"]+\.(?:css|js)(?:\?[^"]*)?)"/g;
+  let match = pattern.exec(html);
+  while (match !== null) {
+    found.add(match[1].replace(/&amp;/g, "&"));
+    match = pattern.exec(html);
+  }
+  return Array.from(found);
+}
+
+async function precacheOfflineAssets(shell) {
   try {
-    const response = await cache.match(OFFLINE_URL);
+    const response = await shell.match(OFFLINE_URL);
     if (!response) return;
     const html = await response.clone().text();
-    const hrefs = new Set();
-    const pattern = /href="(\/_next\/static\/[^"]+\.css)"/g;
-    let match = pattern.exec(html);
-    while (match !== null) {
-      hrefs.add(match[1]);
-      match = pattern.exec(html);
-    }
-    if (hrefs.size > 0) {
-      await cache.addAll(Array.from(hrefs));
-    }
+    const assets = await caches.open(ASSET_CACHE);
+    await Promise.all(
+      offlineAssetUrls(html).map(async (path) => {
+        try {
+          const url = new URL(path, self.location.origin);
+          const key = assetCacheKey(url);
+          if (!key) return;
+          const fetched = await fetch(url.href);
+          if (isStorableResponse(fetched)) await assets.put(key, fetched);
+        } catch {
+          /* One missing chunk costs that chunk, never the install. */
+        }
+      }),
+    );
   } catch {
     /* A missing stylesheet costs styling, never correctness. */
   }
@@ -179,7 +227,7 @@ self.addEventListener("install", (event) => {
       try {
         const cache = await caches.open(SHELL_CACHE);
         await cache.addAll(SHELL_ASSETS);
-        await precacheOfflineStyles(cache);
+        await precacheOfflineAssets(cache);
       } catch {
         /*
          * A failed precache must not wedge the install. The worker simply has
@@ -237,15 +285,15 @@ async function handleNavigation(request) {
  * a background fetch refreshes it for next time. Under Save-Data the cache is
  * read but never written, so the user pays for exactly what they asked for.
  */
-async function handleAsset(request) {
+async function handleAsset(request, key) {
   const cache = await caches.open(ASSET_CACHE);
-  const cached = await cache.match(request);
+  const cached = await cache.match(key);
   const allowWrite = !saveDataRequested(request);
 
   const network = fetch(request)
     .then((response) => {
       if (allowWrite && isStorableResponse(response)) {
-        cache.put(request, response.clone()).catch(() => {
+        cache.put(key, response.clone()).catch(() => {
           /* Quota or a rejected key. Not worth failing the request over. */
         });
       }
@@ -282,9 +330,12 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (isCacheableAssetPath(url.pathname) && url.search === "") {
-    event.respondWith(handleAsset(request));
-    return;
+  if (isCacheableAssetPath(url.pathname)) {
+    const key = assetCacheKey(url);
+    if (key) {
+      event.respondWith(handleAsset(request, key));
+      return;
+    }
   }
 
   // Everything else, including every API and authenticated data response, is
@@ -367,6 +418,7 @@ function notificationFromPayload(raw) {
   const tag =
     typeof payload.tag === "string" && payload.tag.trim().length > 0 ? payload.tag : "vallo";
   const urgent = payload.urgent === true;
+  const actions = pushActionsFrom(payload.actions);
 
   return {
     title,
@@ -395,7 +447,16 @@ function notificationFromPayload(raw) {
       requireInteraction: urgent,
       /* Everything the tap handler needs, and nothing that identifies a
          device. `count` is what makes a summary countable; see below. */
-      data: { href: safePushHref(payload.href), urgent, count: 1 },
+      data: {
+        href: safePushHref(payload.href),
+        urgent,
+        count: 1,
+        /* V-53: where each button goes, keyed by its id. */
+        actionHrefs: Object.fromEntries(actions.map((a) => [a.action, a.href])),
+      },
+      /* V-53: at most two buttons, each a destination inside Vallo. A
+         browser that draws none simply ignores this. */
+      actions: actions.map((a) => ({ action: a.action, title: a.title })),
     },
   };
 }
@@ -404,16 +465,45 @@ function notificationFromPayload(raw) {
  * A destination, or the notifications list.
  *
  * Only a path on our own origin is ever carried. `//host` is a
- * protocol-relative URL and leaves the origin, which is the one that gets
- * missed. This mirrors `safeHref` in `lib/push/policy.ts` deliberately: the
+ * protocol-relative URL and leaves the origin, and so do "/\\host" and a
+ * tab or newline after the slash. This mirrors `lib/push/same-origin.ts`
+ * (a test runs both over the same escapes) deliberately: the
  * sender checks and the receiver checks, and neither trusts the other.
  */
 function safePushHref(href) {
   if (typeof href !== "string") return PUSH_FALLBACK_HREF;
   const trimmed = href.trim();
-  if (trimmed.charAt(0) !== "/") return PUSH_FALLBACK_HREF;
-  if (trimmed.charAt(1) === "/") return PUSH_FALLBACK_HREF;
-  return trimmed;
+  if (trimmed.charAt(0) !== "/" || trimmed.length > 2000) return PUSH_FALLBACK_HREF;
+  /* "/\\host" and "/\t/host" resolve off the origin just as "//host" does. */
+  if (/[\\\u0000-\u001f\u007f]/.test(trimmed)) return PUSH_FALLBACK_HREF;
+  let resolved;
+  try {
+    resolved = new URL(trimmed, "https://vallo.invalid");
+  } catch (_) {
+    return PUSH_FALLBACK_HREF;
+  }
+  if (resolved.origin !== "https://vallo.invalid") return PUSH_FALLBACK_HREF;
+  return resolved.pathname + resolved.search + resolved.hash;
+}
+
+/*
+ * The buttons, re-checked. The sender builds them from a fixed list
+ * (`lib/push/actions.ts`); this refuses anything that is not a short id, a
+ * short title and a path on our own origin, and keeps two at most.
+ */
+function pushActionsFrom(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const item of raw) {
+    if (out.length >= 2) break;
+    if (!item || typeof item !== "object") continue;
+    const id = typeof item.id === "string" && /^[a-z-]{1,24}$/.test(item.id) ? item.id : null;
+    const title = typeof item.title === "string" && item.title.length > 0 && item.title.length <= 40 ? item.title : null;
+    const href = safePushHref(item.href);
+    if (!id || !title || href === PUSH_FALLBACK_HREF) continue;
+    out.push({ action: id, title, href });
+  }
+  return out;
 }
 
 /* How many real events an already-displayed notification stands for. */
@@ -535,7 +625,13 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
   const data = event.notification.data || {};
-  const href = safePushHref(data.href);
+  /* V-53: a button carries its own destination; the body of the
+     notification carries the default one. */
+  const byAction =
+    event.action && data.actionHrefs && typeof data.actionHrefs === "object"
+      ? data.actionHrefs[event.action]
+      : undefined;
+  const href = safePushHref(byAction !== undefined ? byAction : data.href);
 
   event.waitUntil(
     (async () => {

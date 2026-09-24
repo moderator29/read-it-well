@@ -4,6 +4,7 @@ import { createPrivateKey, sign as signWithKey } from "node:crypto";
 
 import { FCM_PROJECT_ID_VAR, FCM_SERVICE_ACCOUNT_VAR, fcmStatus } from "../credentials";
 import { replyFromStatus, type ProviderReply, type PushPayload, type PushTarget } from "../types";
+import { actionsAsData } from "../actions";
 
 /**
  * FIREBASE CLOUD MESSAGING, HTTP v1.
@@ -215,7 +216,7 @@ export async function sendFcm(target: PushTarget, payload: PushPayload): Promise
           notification: { title: payload.title, body: payload.body },
           /* Data values must be strings. A number here is a 400 that reads
              as a generic INVALID_ARGUMENT. */
-          data: { href: payload.href, tag: payload.tag },
+          data: { href: payload.href, tag: payload.tag, actions: actionsAsData(payload.actions) },
           android: {
             priority: payload.urgent ? "HIGH" : "NORMAL",
             notification: {

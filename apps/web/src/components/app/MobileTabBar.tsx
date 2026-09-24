@@ -117,7 +117,7 @@ export const TAB_BAR_ROUTES = [
   "/bookings",
   "/trips",
   "/inspections",
-  "/crypto",
+  /* "/crypto" left with the crypto market (V-83), parked on a branch. */
   "/restaurants",
   "/assistant",
   /*

@@ -47,6 +47,17 @@ const nextConfig: NextConfig = {
   // hardcoded, and the pattern is omitted entirely when the URL is absent,
   // which keeps the allowlist tight in a build without keys.
   images: {
+    /*
+     * V-78, THE DATA DIET. A card in the two-column grid is about 170px wide
+     * at 390px, and the smallest device width the optimiser offered was 640,
+     * so every card photo was fetched at 640 wide. 384 and 480 are added so a
+     * 1.5x or 2x phone gets a file the size it draws. AVIF first, WebP next,
+     * each smaller than the JPEG it replaces, and the optimised results are
+     * kept for 30 days rather than re-made after 60 seconds.
+     */
+    deviceSizes: [384, 480, 640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 2_592_000,
     remotePatterns: [
       {
         protocol: "https",
@@ -167,6 +178,16 @@ const nextConfig: NextConfig = {
       {
         source: "/fonts/:file*.woff2",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      /*
+       * V-78: the brand artwork answered `max-age=0, must-revalidate`, a
+       * revalidation round trip per image per page on a 3G phone. Thirty days,
+       * not `immutable`: unlike the fonts these files are not versioned by
+       * name, so a replaced logo must still reach people within the month.
+       */
+      {
+        source: "/brand/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=2592000, stale-while-revalidate=86400" }],
       },
       /*
        * The Apple app site association file, which is the iOS half of the deep

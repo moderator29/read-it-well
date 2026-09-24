@@ -372,6 +372,8 @@ export async function sendWebPush(target: PushTarget, payload: PushPayload): Pro
           body: payload.body,
           href: payload.href,
           tag: payload.tag,
+          /* V-53: the buttons, re-checked by the service worker. */
+          actions: payload.actions ?? [],
           urgent: payload.urgent,
         }),
         "utf8",

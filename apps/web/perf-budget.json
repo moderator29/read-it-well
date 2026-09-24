@@ -1,0 +1,13 @@
+{
+  "$comment": "V-80. Transferred kilobytes for a cold load at 390x844, per route. null means not yet measured against a production build: run `node scripts/check-weight.mjs --record` against one and the budget becomes the measured weight minus 20 percent. Ratchet down, never up without a reason in the commit.",
+  "routes": [
+    { "path": "/", "signedIn": false, "budgetKb": null },
+    { "path": "/welcome", "signedIn": false, "budgetKb": null },
+    { "path": "/sign-in", "signedIn": false, "budgetKb": null },
+    { "path": "/home", "signedIn": true, "budgetKb": null },
+    { "path": "/search", "signedIn": true, "budgetKb": null },
+    { "path": "/listing/seed-2", "signedIn": true, "budgetKb": null },
+    { "path": "/wallet", "signedIn": true, "budgetKb": null },
+    { "path": "/stays/search", "signedIn": true, "budgetKb": null }
+  ]
+}
