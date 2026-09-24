@@ -23,6 +23,8 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { hashListingPhotos } from "../photo-hash/hash-server";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import {
   NOT_CONFIGURED_MESSAGE,
@@ -495,6 +497,11 @@ export async function addPhoto(input: {
     .single();
 
   if (error || !created) return fail(PHOTO_FAILED_MESSAGE);
+
+  /* V-45: hash the stored photograph after the response, as the service
+     role, so the review desk can compare it. Never slows the upload and
+     never fails it. */
+  after(() => hashListingPhotos(listingId));
 
   refreshAgentSurfaces();
   return ok({ photoId: created.id, position: created.position });

@@ -282,6 +282,21 @@ export const trustVisibleEn = {
     credentialNoName: "Enter the name exactly as the register shows it.",
     credentialNeedsAggregator: "A CAC directorship waits for the identity aggregator.",
     credentialFailed: "The check was not recorded. Try again in a moment.",
+    /** V-45: the review desk's photograph comparison. A resemblance, never a verdict. */
+    photosTitle: "Photographs that look like others on Vallo",
+    /** `{total}` photographs on this listing. */
+    photosNone: "None of these {total} photographs look like one on another lister's listing or on a listing Vallo rejected.",
+    /** `{matched}` of `{total}`. */
+    photosSome:
+      "{matched} of these {total} photographs look like photographs on another lister's listing or on a listing Vallo rejected. Look before you decide: a shared stock photo, a firm's two agents and a relisted flat all match too.",
+    /** `{count}` photographs matched a rejected listing. */
+    photosRejected: "{count} of them look like photographs on a listing Vallo rejected.",
+    /** `{position}` is the photo's number, `{reference}` the other listing's code, `{distance}` bits apart out of 64. */
+    photoLine: "Photo {position} looks like one on {reference}, {distance} of 64 bits apart",
+    photoLineRejected: "Photo {position} looks like one on {reference}, which Vallo rejected, {distance} of 64 bits apart",
+    photoNoReference: "a listing with no code",
+    photosNotCompared: "These photographs have not been compared: hashing needs the server's storage key, which this environment does not have.",
+    photosFailed: "The comparison could not be read just now. Try again before deciding.",
   },
   /** V-34: the Vallo Record, counted facts, never a score. */
   record: {

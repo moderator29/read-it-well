@@ -14,6 +14,8 @@ import { referenceOf } from "../rows";
 import { listingStatusWord, queueHrefFrom, reviewHref } from "../tabs";
 import { ListingReview } from "./ListingReview";
 import { ReviewActionBar } from "./ReviewActionBar";
+import { PhotoProvenance } from "./PhotoProvenance";
+import { readPhotoProvenance } from "@/lib/photo-hash/matches-read";
 import "../../_review/review.css";
 
 export const metadata: Metadata = {
@@ -95,6 +97,9 @@ export default async function ListingUnderReviewPage({
   }
 
   const decidable = found.status !== "PUBLISHED" && found.status !== "REJECTED";
+  /* V-45: compared at review, whatever the status, so a published listing can
+     still be checked after a report. */
+  const provenance = await readPhotoProvenance(found.id);
   const dark = tileProvider("dark");
   const nextId = extra?.nextId ?? null;
   const { offset: _offset, ...carried } = query;
@@ -127,6 +132,7 @@ export default async function ListingUnderReviewPage({
             </p>
           ) : null
         }
+        photoProvenance={<PhotoProvenance provenance={provenance} total={found.photos.length} />}
         actions={
           decidable ? (
             <ReviewActionBar
