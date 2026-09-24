@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isRecipientInput } from "./recipient-input";
 import { formatMoney } from "@vallo/i18n";
 
 /**
@@ -166,11 +167,12 @@ export const withdrawToSavedAccountSchema = z.object({
 });
 
 export const transferSchema = z.object({
+  /* An email address or a public @handle (recipient-input.ts). */
   recipientEmail: z
     .string()
     .trim()
     .toLowerCase()
-    .pipe(z.email("Enter a valid email address.")),
+    .refine(isRecipientInput, "Enter a valid email address or @handle."),
   amount: nairaAmountSchema,
   note: z
     .string()

@@ -75,7 +75,6 @@ import {
   availableBalanceMinor,
   displayNameFor,
   ensureWalletId,
-  findUserByEmail,
   getAdminClient,
   postEntry,
   annotateEntry,
@@ -84,6 +83,8 @@ import {
   type AdminClient,
 } from "./ledger";
 import { callMoneyRpc, readMoneyStatus } from "./rpc";
+import { resolveRecipientId } from "./handle-recipient";
+import { parseRecipientInput } from "./recipient-input";
 import { readStatement } from "./repository";
 import { chargeSavedCard } from "../payments/charge-saved-card";
 import {
@@ -1169,13 +1170,15 @@ async function transferToUserWork(
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
-  const recipient = await findUserByEmail(parsed.data.recipientEmail);
+  const target = parseRecipientInput(parsed.data.recipientEmail);
+  const recipientId = target ? await resolveRecipientId(target) : null;
+  const recipient = recipientId ? { id: recipientId } : null;
   if (!recipient) {
     return fail(
-      "No Vallo account uses that email address yet. Check the spelling, or ask them to sign up for Vallo and send it once they have.",
+      "No Vallo account uses that email address or handle yet. Check the spelling, or ask them to sign up for Vallo and send it once they have.",
       {
         recipientEmail:
-          "No account uses this address. Check the spelling, or ask them to sign up first.",
+          "No account uses this address or handle. Check the spelling, or ask them to sign up first.",
       },
     );
   }

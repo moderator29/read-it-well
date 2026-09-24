@@ -1,26 +1,33 @@
 import "server-only";
 
-import { getAdminClient } from "./ledger";
+import { createClient } from "@/lib/supabase/server";
+import { findUserByEmail } from "./ledger";
+import type { RecipientInput } from "./recipient-input";
 
 /**
- * The account email behind a public handle, for prefilling a payer's send
- * form from a shared request (see request-link.ts). Server only: the address
- * goes to the signed-in payer's own form and nowhere else. Null when the
- * handle is unclaimed or anything fails, in which case the form opens empty.
+ * The account behind a public handle, read AS THE VIEWER. The viewer's own
+ * client is used on purpose: `social_profiles_select` hides a profile when
+ * either person has blocked the other, so a blocked handle resolves to
+ * nobody. Only the account id comes back; the address behind it is never
+ * read here, so it cannot reach a page or a form.
  */
-export async function emailForHandle(handle: string): Promise<string | null> {
-  const admin = getAdminClient();
-  if (!admin) return null;
+export async function userIdForHandle(handle: string): Promise<string | null> {
   try {
-    const { data } = await admin
+    const supabase = await createClient();
+    const { data } = await supabase
       .from("social_profiles")
       .select("user_id")
       .eq("handle", handle.toLowerCase())
       .maybeSingle();
-    if (!data?.user_id) return null;
-    const { data: user } = await admin.auth.admin.getUserById(data.user_id);
-    return user?.user?.email ?? null;
+    return data?.user_id ?? null;
   } catch {
     return null;
   }
+}
+
+/** The account a send form's recipient field names, or null. */
+export async function resolveRecipientId(input: RecipientInput): Promise<string | null> {
+  if (input.kind === "handle") return userIdForHandle(input.handle);
+  const user = await findUserByEmail(input.email);
+  return user?.id ?? null;
 }
