@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import type { Dictionary } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
-import { addRentContributor, payRentShare, removeRentContributor } from "@/lib/tenancy/share-actions";
+import { addRentContributor, answerRentShare, payRentShare, removeRentContributor, returnRentShare } from "@/lib/tenancy/share-actions";
 
 type Copy = Dictionary["afterTheGate"]["flatmates"];
 
 /**
- * V-86. The lead adds a flatmate and a share, or removes one not yet paid;
- * a flatmate pays their share from their wallet into the lead's. Every rule
+ * V-86. The lead invites a flatmate to a share, removes one not yet paid, or
+ * returns a paid one when the move-in falls through; a flatmate accepts or
+ * declines, then pays an accepted share from their wallet into the lead's. Every rule
  * is the database door's; these forms collect and report.
  */
 function useRun() {
@@ -82,6 +83,43 @@ export function PayShare({ contributorId, label }: { contributorId: string; labe
   return (
     <div className="grid gap-xs">
       <Button variant="primary" full loading={pending} disabled={pending} onClick={() => run(() => payRentShare({ contributorId }))}>
+        {label}
+      </Button>
+      {error && (
+        <p className="nf-caption text-[var(--nf-state-error)]" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+export function ShareAnswer({ contributorId, copy }: { contributorId: string; copy: Copy }) {
+  const { pending, error, run } = useRun();
+  return (
+    <div className="grid gap-xs" data-testid="share-answer">
+      <div className="flex flex-wrap gap-sm">
+        <Button variant="primary" disabled={pending} onClick={() => run(() => answerRentShare({ contributorId, answer: "accepted" }))}>
+          {copy.accept}
+        </Button>
+        <Button variant="secondary" disabled={pending} onClick={() => run(() => answerRentShare({ contributorId, answer: "declined" }))}>
+          {copy.decline}
+        </Button>
+      </div>
+      {error && (
+        <p className="nf-caption text-[var(--nf-state-error)]" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+export function ReturnShare({ tenancyId, contributorId, label }: { tenancyId: string; contributorId: string; label: string }) {
+  const { pending, error, run } = useRun();
+  return (
+    <div className="grid gap-xs">
+      <Button size="sm" variant="secondary" loading={pending} disabled={pending} onClick={() => run(() => returnRentShare({ tenancyId, contributorId }))}>
         {label}
       </Button>
       {error && (

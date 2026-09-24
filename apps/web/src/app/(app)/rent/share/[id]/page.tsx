@@ -6,7 +6,7 @@ import { resolveSession } from "@/lib/actions/session";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, Section, TYPE } from "@/components/app/Screen";
-import { PayShare } from "@/components/app/tenancy/FlatmateControls";
+import { PayShare, ShareAnswer } from "@/components/app/tenancy/FlatmateControls";
 
 /** A private record. Never indexed. */
 export const metadata: Metadata = { title: "Your share", robots: { index: false, follow: false } };
@@ -52,9 +52,48 @@ export default async function RentSharePage({ params }: { params: Promise<{ id: 
   if (!row || !Number.isSafeInteger(share) || !Number.isSafeInteger(total)) return missing;
 
   const area = [row.area, row.city].filter((part): part is string => typeof part === "string" && part.length > 0).join(", ");
-  const moveIn = typeof row.move_in === "string" ? (formatMoneyDate(row.move_in, locale) ?? row.move_in) : null;
-  const paidAt = typeof row.paid_at === "string" ? formatMoneyDate(row.paid_at, locale) : null;
+  const day = (value: unknown) => (typeof value === "string" ? (formatMoneyDate(value, locale) ?? value) : null);
+  const moveIn = day(row.move_in);
+  const paidAt = day(row.paid_at);
+  const returnedAt = day(row.returned_at);
+  const paidMinor = Number(row.paid_minor);
+  const paidAmount = Number.isSafeInteger(paidMinor) && paidMinor > 0 ? formatMoney(paidMinor, locale) : null;
   const lead = typeof row.lead === "string" ? row.lead : null;
+  const answer = row.answer === "accepted" || row.answer === "declined" ? row.answer : null;
+
+  let state: React.ReactNode;
+  if (returnedAt && paidAmount && paidAt) {
+    state = <p className={TYPE.body}>{copy.shareReturned.replace("{amount}", paidAmount).replace("{date}", paidAt).replace("{returned}", returnedAt)}</p>;
+  } else if (row.void === true && paidAmount && paidAt) {
+    state = (
+      <p className={TYPE.body} data-testid="share-paid-void">
+        {(lead ? copy.sharePaidVoid.replaceAll("{name}", lead) : copy.sharePaidVoidUnknown)
+          .replace("{amount}", paidAmount)
+          .replace("{date}", paidAt)}
+      </p>
+    );
+  } else if (paidAt) {
+    state = (
+      <p className="nf-body-sm text-[var(--nf-state-success)]">
+        {(lead ? copy.sharePaid.replace("{name}", lead) : copy.sharePaidUnknown).replace("{date}", paidAt)}
+      </p>
+    );
+  } else if (row.void === true) {
+    state = <p className={TYPE.body}>{copy.shareVoid}</p>;
+  } else if (answer === "declined") {
+    state = <p className={TYPE.body}>{copy.shareDeclined}</p>;
+  } else if (row.payable !== true) {
+    state = <p className={TYPE.body}>{copy.shareClosed}</p>;
+  } else if (answer === null) {
+    state = (
+      <>
+        <p className={TYPE.body}>{copy.shareInvited}</p>
+        <ShareAnswer contributorId={id} copy={copy} />
+      </>
+    );
+  } else {
+    state = <PayShare contributorId={id} label={copy.sharePay.replace("{share}", formatMoney(share, locale))} />;
+  }
 
   return shell(
     <Section>
@@ -67,13 +106,7 @@ export default async function RentSharePage({ params }: { params: Promise<{ id: 
         </p>
         {moveIn && <p className={TYPE.rowMeta}>{copy.shareDue.replace("{date}", moveIn)}</p>}
         <p className={TYPE.body}>{lead ? copy.shareLead.replace("{name}", lead) : copy.shareLeadUnknown}</p>
-        {row.void === true ? (
-          <p className={TYPE.body}>{copy.shareVoid}</p>
-        ) : paidAt ? (
-          <p className="nf-body-sm text-[var(--nf-state-success)]">{copy.sharePaid.replace("{date}", paidAt)}</p>
-        ) : (
-          <PayShare contributorId={id} label={copy.sharePay.replace("{share}", formatMoney(share, locale))} />
-        )}
+        {state}
       </div>
     </Section>,
   );
