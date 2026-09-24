@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getRentPayView } from "@/lib/rent/queries";
 import { isBookingReference } from "@/lib/payments/references";
@@ -196,7 +197,12 @@ export default async function RentPayPage({
       </Reveal>
 
       <div className="mt-lg">
-        <PayPanel view={view} savedCards={savedCards} chargeSavedCard={chargeSavedCard} />
+        <PayPanel
+          view={view}
+          savedCards={savedCards}
+          chargeSavedCard={chargeSavedCard}
+          payCopy={getDictionary(locale).afterTheGate.pay}
+        />
       </div>
     </Shell>
   );

@@ -47,6 +47,7 @@ import {
   PICKER_TREE,
   PROPOSALS,
   RENT_VIEW,
+  RENT_VIEW_LARGE,
   REVIEW,
   REVIEW_SUBJECT,
   SAVED_SEARCHES,
@@ -246,9 +247,18 @@ function View({ v, s }: { v: string; s?: string }) {
     case "rent-pay":
       return (
         <Frame title="Pay the rent">
-          <RentSummary view={RENT_VIEW} />
+          <RentSummary view={s === "large" ? RENT_VIEW_LARGE : RENT_VIEW} />
           <div className="mt-lg">
-            <PayPanel view={s === "wallet" ? { ...RENT_VIEW, walletCovers: true, cardAvailable: false } : RENT_VIEW} />
+            <PayPanel
+              view={
+                s === "wallet"
+                  ? { ...RENT_VIEW, walletCovers: true, cardAvailable: false }
+                  : s === "large"
+                    ? RENT_VIEW_LARGE
+                    : RENT_VIEW
+              }
+              payCopy={getDictionary(locale).afterTheGate.pay}
+            />
           </div>
         </Frame>
       );
