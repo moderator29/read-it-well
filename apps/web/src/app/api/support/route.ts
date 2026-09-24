@@ -1,3 +1,4 @@
+import { requestSignal, roundWatchdog } from "@/lib/ai/upstream-deadline";
 import { NextRequest } from "next/server";
 import type { SessionState } from "@/lib/actions/session";
 import { isFeatureEnabled } from "@/lib/flags";
@@ -32,6 +33,8 @@ import type { SupportAction, SupportStreamEvent, SupportTurn } from "@/lib/suppo
  */
 
 export const runtime = "nodejs";
+/* OPS-18: above the 50 s upstream budget, so the route always answers first. */
+export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
@@ -257,74 +260,80 @@ async function streamOneRound(
   signal: AbortSignal,
   onText: (text: string) => void,
 ): Promise<RoundResult> {
-  const res = await fetch(ANTHROPIC_URL, {
-    method: "POST",
-    signal,
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": ANTHROPIC_VERSION,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: MAX_TOKENS,
-      stream: true,
-      system,
-      tools: SUPPORT_TOOLS,
-      messages,
-    }),
-  });
+  const watchdog = roundWatchdog(signal);
+  try {
+    const res = await fetch(ANTHROPIC_URL, {
+      method: "POST",
+      signal: watchdog.signal,
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": ANTHROPIC_VERSION,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: MAX_TOKENS,
+        stream: true,
+        system,
+        tools: SUPPORT_TOOLS,
+        messages,
+      }),
+    });
 
-  if (!res.ok || !res.body) {
-    throw new Error(`Claude API responded ${res.status}`);
-  }
-
-  const blocks: AnthropicBlock[] = [];
-  const jsonBuffers = new Map<number, string>();
-  let stopReason: string | null = null;
-
-  for await (const event of anthropicEvents(res.body)) {
-    const type = event.type;
-    if (type === "content_block_start") {
-      const index = event.index as number;
-      const block = { ...(event.content_block as AnthropicBlock) };
-      blocks[index] = block;
-      if (block.type === "tool_use") jsonBuffers.set(index, "");
-    } else if (type === "content_block_delta") {
-      const index = event.index as number;
-      const delta = event.delta as Record<string, unknown>;
-      const block = blocks[index];
-      if (!block) continue;
-      if (delta.type === "text_delta" && typeof delta.text === "string") {
-        block.text = `${typeof block.text === "string" ? block.text : ""}${delta.text}`;
-        onText(delta.text);
-      } else if (delta.type === "input_json_delta" && typeof delta.partial_json === "string") {
-        jsonBuffers.set(index, `${jsonBuffers.get(index) ?? ""}${delta.partial_json}`);
-      } else if (delta.type === "thinking_delta" && typeof delta.thinking === "string") {
-        block.thinking = `${typeof block.thinking === "string" ? block.thinking : ""}${delta.thinking}`;
-      } else if (delta.type === "signature_delta" && typeof delta.signature === "string") {
-        block.signature = delta.signature;
-      }
-    } else if (type === "content_block_stop") {
-      const index = event.index as number;
-      const block = blocks[index];
-      if (block?.type === "tool_use") {
-        const raw = jsonBuffers.get(index) ?? "";
-        try {
-          block.input = raw ? (JSON.parse(raw) as unknown) : {};
-        } catch {
-          block.input = {};
-        }
-      }
-    } else if (type === "message_delta") {
-      const delta = event.delta as Record<string, unknown> | undefined;
-      if (delta && typeof delta.stop_reason === "string") stopReason = delta.stop_reason;
-    } else if (type === "error") {
-      throw new Error("Claude API stream error");
+    if (!res.ok || !res.body) {
+      throw new Error(`Claude API responded ${res.status}`);
     }
-  }
 
-  return { blocks: blocks.filter(Boolean), stopReason };
+    const blocks: AnthropicBlock[] = [];
+    const jsonBuffers = new Map<number, string>();
+    let stopReason: string | null = null;
+
+    for await (const event of anthropicEvents(res.body)) {
+      watchdog.touch();
+      const type = event.type;
+      if (type === "content_block_start") {
+        const index = event.index as number;
+        const block = { ...(event.content_block as AnthropicBlock) };
+        blocks[index] = block;
+        if (block.type === "tool_use") jsonBuffers.set(index, "");
+      } else if (type === "content_block_delta") {
+        const index = event.index as number;
+        const delta = event.delta as Record<string, unknown>;
+        const block = blocks[index];
+        if (!block) continue;
+        if (delta.type === "text_delta" && typeof delta.text === "string") {
+          block.text = `${typeof block.text === "string" ? block.text : ""}${delta.text}`;
+          onText(delta.text);
+        } else if (delta.type === "input_json_delta" && typeof delta.partial_json === "string") {
+          jsonBuffers.set(index, `${jsonBuffers.get(index) ?? ""}${delta.partial_json}`);
+        } else if (delta.type === "thinking_delta" && typeof delta.thinking === "string") {
+          block.thinking = `${typeof block.thinking === "string" ? block.thinking : ""}${delta.thinking}`;
+        } else if (delta.type === "signature_delta" && typeof delta.signature === "string") {
+          block.signature = delta.signature;
+        }
+      } else if (type === "content_block_stop") {
+        const index = event.index as number;
+        const block = blocks[index];
+        if (block?.type === "tool_use") {
+          const raw = jsonBuffers.get(index) ?? "";
+          try {
+            block.input = raw ? (JSON.parse(raw) as unknown) : {};
+          } catch {
+            block.input = {};
+          }
+        }
+      } else if (type === "message_delta") {
+        const delta = event.delta as Record<string, unknown> | undefined;
+        if (delta && typeof delta.stop_reason === "string") stopReason = delta.stop_reason;
+      } else if (type === "error") {
+        throw new Error("Claude API stream error");
+      }
+    }
+
+    return { blocks: blocks.filter(Boolean), stopReason };
+  } finally {
+    watchdog.done();
+  }
 }
 
 /* ------------------------------------------------------------------- route */
@@ -420,8 +429,9 @@ export async function POST(req: NextRequest) {
       let ranOutOfRounds = false;
 
       try {
+        const upstream = requestSignal(req.signal);
         for (let round = 0; round <= MAX_TOOL_ROUNDS; round += 1) {
-          const result = await streamOneRound(apiKey, model, system, convo, req.signal, (t) => {
+          const result = await streamOneRound(apiKey, model, system, convo, upstream, (t) => {
             spoke = true;
             emit({ type: "text", text: t });
           });
