@@ -3,8 +3,9 @@ import { classifyRisk, readRiskFactors } from "../risk-rules";
 
 /*
  * SCUML items 8 and 15. The database hook `private.sanctions_hit_for`
- * (migration 20260924176600) answers true only for a confirmed match or an
- * open exact one; an open fuzzy or common-name match answers false. These
+ * (migrations 20260924176600 and 176700) answers true only for a confirmed
+ * match or an open exact one that is not on common names only; an open fuzzy
+ * match, or an open match of any kind on common names only, answers false. These
  * are the answers as the risk job reads them (the SQL side is probed with
  * the migration chain).
  */

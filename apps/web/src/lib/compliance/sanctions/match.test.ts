@@ -89,8 +89,9 @@ describe("matching (SCUML item 8)", () => {
     expect(one("Ibrahim Musa Garba Lawal", "FXi.023")).toMatchObject({ raise: true, common: true });
     /* A whole name of ours of three words inside a four-word listing. */
     expect(one("Abubakar Muhammad Bello", "FXi.024")).toMatchObject({ raise: true, common: true });
-    /* An exact match is never put in the lower group. */
-    expect(one("Ibrahim Musa Garba", "FXi.023")).toMatchObject({ kind: "exact", raise: true, common: false });
+    /* An exact match on common names only is in the lower group too. */
+    expect(one("Ibrahim Musa Garba", "FXi.023")).toMatchObject({ kind: "exact", raise: true, common: true });
+    expect(one("Muhammad Yusuf", "FXi.022")).toMatchObject({ kind: "exact", raise: true, common: true });
   });
 
   it("catches the standard spellings of Abdul- names and a y between vowels", () => {
@@ -183,5 +184,29 @@ describe("matching (SCUML item 8)", () => {
     /* A real two-letter name is kept when it is one of only two words. */
     expect(normaliseName("Li Wei")).toBe("li wei");
     expect(normaliseName("Md Yusuf")).toBe("md yusuf");
+  });
+
+  it("reads a final y after a consonant as i: the UN's own spellings", () => {
+    const listed = [
+      { entryId: "q", source: "un" as const, reference: "QDi.316", primaryName: "IYAD AG GHALY", names: [normaliseName("IYAD AG GHALY")] },
+      { entryId: "h", source: "un" as const, reference: "R10", primaryName: "Hamdy Ramzy Mahdy", names: [normaliseName("Hamdy Ramzy Mahdy")] },
+    ];
+    const hit = (name: string, ref: string) => matchNames([name], listed).some((m) => m.reference === ref && m.raise);
+    expect(hit("Iyad Ag Ghali", "QDi.316")).toBe(true);
+    expect(hit("Hamdy Ramzy Mahdi", "R10")).toBe(true);
+    const w = (a: string, b: string) => wordsCover(foldWord(a), foldWord(b));
+    for (const [a, b] of [["ghali", "ghaly"], ["ali", "aly"], ["fathi", "fathy"], ["mahdi", "mahdy"]]) {
+      expect(w(a!, b!), `${a}/${b}`).toBeGreaterThan(0);
+    }
+  });
+
+  it("never makes a partial name exact by dropping a short token", () => {
+    const listed = [
+      { entryId: "q", source: "un" as const, reference: "QDi.316", primaryName: "Iyad Ag Ghali", names: [normaliseName("Iyad Ag Ghali")] },
+      { entryId: "k", source: "un" as const, reference: "KPi.1", primaryName: "Ri Song Chol", names: [normaliseName("Ri Song Chol")] },
+    ];
+    expect(matchNames(["Iyad Ghali"], listed).find((m) => m.reference === "QDi.316")).toMatchObject({ kind: "fuzzy" });
+    expect(matchNames(["Song Chol"], listed).find((m) => m.reference === "KPi.1")).toMatchObject({ kind: "fuzzy" });
+    expect(matchNames(["Iyad Ag Ghali"], listed).find((m) => m.reference === "QDi.316")).toMatchObject({ kind: "exact" });
   });
 });

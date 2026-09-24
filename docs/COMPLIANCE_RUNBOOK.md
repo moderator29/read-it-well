@@ -81,13 +81,19 @@ say nothing more on the phone, in support or by email.
    **Common names.** A close match resting only on names many Nigerians carry
    is still a match: it appears under "Common name, check identifiers", after
    the others. Decide it the same way, on the date of birth, nationality and
-   documents. An exact match is never put in that group.
+   documents. An exact match on a list name made only of common names
+   ("Muhammad Yusuf" exactly) is in that group too: until two people confirm
+   it, it is treated like a close match.
    **Padding and long names.** Stray one- and two-letter tokens are ignored
-   (not Al, El, Ul or Md), a list name found word for word is scored on those
-   words alone, and a long name is never passed over for its length.
+   (not Al, El, Ul or Md) when scoring a close match, but never to make a
+   match exact ("Iyad Ghali" is close to "Iyad Ag Ghali", not exact); a
+   final y after a consonant reads as i (Ghaly/Ghali); a list name found word
+   for word is scored on those words alone; and a long name is never passed
+   over for its length.
    **Risk class (SCUML item 15).** A match changes a person's risk class only
-   once it is confirmed by two people, or while it is an open exact match. An
-   open close match, common names included, never does, so it never blocks a
+   once it is confirmed by two people, or while it is an open exact match on
+   a name that is not made only of common names. An open close match, and an
+   open exact match on common names only, never does, so it never blocks a
    listing or a payout account. A decision on a match puts the person in the
    next risk run.
 2. **Check it.** Compare the list entry's date of birth, nationality and
