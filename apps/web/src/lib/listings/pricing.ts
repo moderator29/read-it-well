@@ -116,6 +116,22 @@ export function headlinePrice(row: PriceColumns): Headline {
   return { kind: "rent", minor: 0, period: asRentPeriod(row.rent_period) };
 }
 
+/**
+ * A tenancy: rent by the month, quarter or year. ONE PREDICATE for every
+ * surface that has to tell a tenancy from a stay (the rent market, the card's
+ * Message agent, the listing page's move-in lead, the modest examples), so
+ * they cannot drift into four different answers.
+ *
+ * It reads the resolved period, which `headlinePrice` derives from ONE
+ * column: a row with a positive `rate_minor` is a rate (a night or a head),
+ * anything else not for sale is a rent. The SQL half of the rent market reads
+ * the same column (`rate_minor` null or zero), so the shelf, the drawer's
+ * count and the saved-search alerts all ask the same question.
+ */
+export function isTenancyPeriod(period: PricePeriod | undefined): boolean {
+  return period === "year" || period === "month" || period === "quarter";
+}
+
 /** The unit a headline is quoted in, flattened for callers that only need one. */
 export function headlinePeriod(headline: Headline): PricePeriod | "sale" {
   return headline.kind === "sale" ? "sale" : headline.period;

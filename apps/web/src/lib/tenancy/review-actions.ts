@@ -39,6 +39,6 @@ export async function submitTenancyReview(input: unknown): Promise<ActionResult<
     return fail("Your review did not send. Nothing was recorded. Try again.");
   }
   revalidatePath(`/rent/review/${parsed.data.paymentId}`);
-  revalidatePath("/inspections");
+  revalidatePath("/bookings");
   return ok({ recorded: true });
 }

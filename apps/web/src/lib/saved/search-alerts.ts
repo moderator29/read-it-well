@@ -1,6 +1,6 @@
 import { matchesFilter } from "../listings/filter";
 import type { Listing, ListingSearchFilter } from "../listings/types";
-import { parseShelfQuery, shelfFilter } from "@/components/app/search/shelf-query";
+import { parseShelfQuery, shelfFilter, staySideHref } from "@/components/app/search/shelf-query";
 import type { SavedSearchParams } from "./searches";
 
 /**
@@ -91,6 +91,12 @@ export type AlertPlan = {
   matchedSearches: number;
   /** How many new listings matched at least one search. */
   matchedListings: number;
+  /**
+   * Searches saved for a stay category (hotel, shortlet, restaurant) on the
+   * Property side, which holds no stays since V-67. They are not judged, so
+   * they can never match, and are listed here for the run to report.
+   */
+  staySide: string[];
 };
 
 /** The floor a search is judged from. */
@@ -156,7 +162,12 @@ export function planAlerts(
   const byUser = new Map<string, { search: AlertSubject; matches: number }[]>();
   const matchedIds: string[] = [];
 
+  const staySide: string[] = [];
   for (const search of searches) {
+    if (staySideHref(parseShelfQuery(search.params).kind, {}) !== null) {
+      staySide.push(search.id);
+      continue;
+    }
     const floor = floorOf(search);
     const filter = filterFor(search.params);
     let matches = 0;
@@ -203,5 +214,6 @@ export function planAlerts(
     matchedIds,
     matchedSearches: matchedIds.length,
     matchedListings: matchedListings.size,
+    staySide,
   };
 }

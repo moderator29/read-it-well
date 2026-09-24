@@ -166,6 +166,9 @@ export async function savedSearchAlerts(admin: AdminClient): Promise<JobVerdict>
     matched_searches: plan.matchedSearches,
     matched_listings: plan.matchedListings,
     notices: plan.notices.length,
+    /* Saved on the Property side for a stay category, which it no longer
+       holds (V-67): counted so the run says how many can never match. */
+    stay_side_skipped: plan.staySide.length,
   };
 
   /* The notifications first, then the stamps, in that order and never the

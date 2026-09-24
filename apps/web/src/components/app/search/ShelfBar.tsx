@@ -3,6 +3,7 @@ import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { FilterDrawer } from "@/components/app/filters/FilterDrawer";
 import type { ListingFacts } from "@/lib/listings/filter";
+import type { Anchor } from "@/lib/listings/commute";
 import { kindLabel } from "@/lib/listings/search-params";
 import { ICON } from "@/components/app/Screen";
 import {
@@ -34,6 +35,7 @@ export function ShelfBar({
   t,
   openFilters = false,
   leading,
+  anchors = [],
 }: {
   query: ShelfQuery;
   facts: ListingFacts[];
@@ -56,11 +58,23 @@ export function ShelfBar({
    * bar with fixtures is not given a back arrow it did not ask for.
    */
   leading?: React.ReactNode;
+  /** V-43: the anchors a renter can pick; none means the group is not drawn. */
+  anchors?: Anchor[];
 }) {
   const copy = t.catalogue.shelf;
   const sheetHref = toShelfFiltersHref(query);
 
-  const marketLabel = query.intent === "sale" ? "Buy" : query.kind ? kindLabel(query.kind) : copy.anyMarket;
+  /* A category names itself first; the rent market names itself when no
+     category narrows it (V-26: `/rent` lands here as `market=rent`, and the
+     chip said "Any market" over a shelf of tenancies). */
+  const marketLabel =
+    query.intent === "sale"
+      ? "Buy"
+      : query.kind
+        ? kindLabel(query.kind)
+        : query.intent === "rent"
+          ? t.shape.market.rent
+          : copy.anyMarket;
   const bedsLabel =
     query.bedrooms !== undefined ? copy.beds.replace("{count}", String(query.bedrooms)) : copy.bedsAny;
   const priceLabel =
@@ -121,6 +135,14 @@ export function ShelfBar({
           locale={locale}
           copy={t.catalogue.filters}
           costCopy={t.moveIn}
+          compoundCopy={t.shape.compound}
+          sortCopy={t.shape.sorts}
+          serviceCopy={t.shape.service}
+          cashCopy={t.shape.cash}
+          unitCopy={t.shape.unit}
+          anchors={anchors}
+          commuteCopy={t.shape.commute}
+          noFloodLabel={{ label: t.shape.neighbours.filterNoFlood, hint: t.shape.neighbours.filterNoFloodHint }}
           feesBasis={t.trustVisible.fees.sortBasis}
           openOnMount={openFilters}
         />

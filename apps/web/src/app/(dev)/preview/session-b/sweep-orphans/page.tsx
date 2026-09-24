@@ -11,7 +11,7 @@ import { ModeratorApply } from "@/app/(app)/around/[slug]/ModeratorApply";
 import { ModeratorNote, PlaceAbout, PlaceNotes } from "@/app/(app)/around/[slug]/PlacePanels";
 import { ProposeAreaForm } from "@/app/(app)/around/new/ProposeAreaForm";
 import { AreaRow, ProposalsAnswered, ProposalsWaiting } from "@/app/(app)/around/settings/PlaceRows";
-import { MyBookings } from "@/app/(app)/bookings/MyBookings";
+import { TripSpine } from "@/components/app/plans/TripSpine";
 import { BookingDetailCard } from "@/app/(app)/bookings/[bookingId]/BookingDetailCard";
 import { ReviewForm } from "@/app/(app)/bookings/[bookingId]/review/ReviewForm";
 import { AlreadyReviewedPanel, ReviewSubjectPanel } from "@/app/(app)/bookings/[bookingId]/review/ReviewPanels";
@@ -26,14 +26,12 @@ import LoadingAroundSettings from "@/app/(app)/around/settings/loading";
 import LoadingBookings from "@/app/(app)/bookings/loading";
 import LoadingReview from "@/app/(app)/bookings/[bookingId]/review/loading";
 import LoadingVerification from "@/app/(app)/verification/loading";
-import LoadingRent from "@/app/(app)/rent/loading";
 import LoadingSaved from "@/app/(app)/saved/loading";
 import LoadingSavedSearches from "@/app/(app)/saved/searches/loading";
 import LoadingThread from "@/app/(app)/post/[id]/loading";
 import LoadingNewStory from "@/app/(app)/stories/new/loading";
 import LoadingStory from "@/app/(app)/stories/[id]/loading";
-import LoadingInspections from "@/app/(app)/inspections/loading";
-import { BOOKINGS, RESTAURANTS, SHELF, STAYS, TENANCIES } from "../../f3/fixtures";
+import { BOOKINGS, RESTAURANTS, SHELF, STAYS } from "../../f3/fixtures";
 import { INSPECTION } from "../../f5/fixtures";
 import { THREAD } from "../../f4/fixtures";
 import { PlacePicker } from "@/components/social/PlacePicker";
@@ -88,13 +86,11 @@ const LOADING: Record<string, { route: string; view: () => ReactNode }> = {
   "loading-bookings": { route: "/bookings", view: () => <LoadingBookings /> },
   "loading-review": { route: "/bookings/b/review", view: () => <LoadingReview /> },
   "loading-kyc": { route: "/verification", view: () => <LoadingVerification /> },
-  "loading-rent": { route: "/rent", view: () => <LoadingRent /> },
   "loading-saved": { route: "/saved", view: () => <LoadingSaved /> },
   "loading-saved-searches": { route: "/saved/searches", view: () => <LoadingSavedSearches /> },
   "loading-post": { route: "/post/p", view: () => <LoadingThread /> },
   "loading-story-new": { route: "/stories/new", view: () => <LoadingNewStory /> },
   "loading-story": { route: "/stories/s", view: () => <LoadingStory /> },
-  "loading-inspections": { route: "/inspections", view: () => <LoadingInspections /> },
 };
 
 const KYC: Record<string, KycStatusView> = {
@@ -185,16 +181,8 @@ function View({ v, s }: { v: string; s?: string }) {
       );
     case "bookings":
       return (
-        <Frame title={t.nav.bookings}>
-          <MyBookings
-            groups={{
-              upcoming: BOOKINGS.filter((b) => b.status === "CONFIRMED" || b.status === "PENDING"),
-              completed: BOOKINGS.filter((b) => b.status === "COMPLETED"),
-              cancelled: [],
-              rent: TENANCIES,
-            }}
-            locale={locale}
-          />
+        <Frame title={t.shape.plans.title}>
+          <TripSpine bookings={BOOKINGS} today="2026-09-24" locale={locale} />
         </Frame>
       );
     case "booking":
@@ -218,7 +206,7 @@ function View({ v, s }: { v: string; s?: string }) {
         <Frame title="Review your stay">
           <ReviewSubjectPanel subject={REVIEW_SUBJECT} />
           <div className="mt-block">
-            <ReviewForm subject={REVIEW_SUBJECT} />
+            <ReviewForm subject={REVIEW_SUBJECT} plansAction={{ label: t.shape.plans.seeStays, href: "/bookings?side=stays&from=stays" }} />
           </div>
         </Frame>
       );

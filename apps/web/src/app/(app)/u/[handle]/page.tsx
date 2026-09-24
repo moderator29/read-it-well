@@ -177,6 +177,7 @@ export default async function SocialProfilePage({
           occupation={view.occupation}
           standing={view.standing}
           place={view.place}
+          published={view.published}
           trust={view.trust}
           joinedLabel={monthYear(view.profile.claimedAt, locale)}
           follow={

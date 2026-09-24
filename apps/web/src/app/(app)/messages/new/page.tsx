@@ -97,9 +97,11 @@ function Bridge({
 export default async function NewMessagePage({
   searchParams,
 }: {
-  searchParams: Promise<{ listing?: string }>;
+  searchParams: Promise<{ listing?: string; then?: string }>;
 }) {
-  const { listing } = await searchParams;
+  const { listing, then } = await searchParams;
+  /* V-69: "Show me..." on a listing opens the thread with the ask ready. */
+  const suffix = then === "showme" ? "?showme=1" : "";
   if (!listing) redirect("/messages");
 
   const session = await resolveSession();
@@ -109,7 +111,7 @@ export default async function NewMessagePage({
     if (result.ok) {
       /* V-71: credit the lister whose link this device first came through. */
       await attributeConversation(session.supabase, result.data.conversationId);
-      redirect(`/messages/${result.data.conversationId}`);
+      redirect(`/messages/${result.data.conversationId}${suffix}`);
     }
     return (
       <Bridge
@@ -133,7 +135,7 @@ export default async function NewMessagePage({
      * auth routes validate the path again server side because `next` is the
      * classic open redirect.
      */
-    const next = returnHref("/messages/new", `?listing=${listing}`, "message");
+    const next = returnHref("/messages/new", `?listing=${listing}${then === "showme" ? "&then=showme" : ""}`, "message");
     return (
       <Bridge
         title="Sign in to message the agent"

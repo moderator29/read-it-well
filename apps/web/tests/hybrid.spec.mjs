@@ -120,8 +120,8 @@ try {
   check("no Google attribution on the restaurant shelf", !restaurants.attribution);
 
   // ------------------------------------------------------------------ /rent
-  console.log("/rent with no provider keys");
-  await page.goto(`${BASE_URL}/rent`, { waitUntil: "load" });
+  console.log("/search?market=rent with no provider keys");
+  await page.goto(`${BASE_URL}/search?market=rent`, { waitUntil: "load" });
   await page.waitForTimeout(WAIT);
 
   const rent = await partnerMarkers();

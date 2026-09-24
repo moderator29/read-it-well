@@ -503,6 +503,8 @@
     font-size: var(--nf-text-caption);
     line-height: 1.5;
     color: var(--nf-content-secondary);
+    /* The notice can quote a searched word back (V-18). */
+    overflow-wrap: anywhere;
   }
   /*
    * A refusal from the server (wrong password, unconfirmed address, too many

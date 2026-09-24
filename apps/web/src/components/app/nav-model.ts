@@ -40,8 +40,9 @@ import type { Side } from "@/lib/side.constants";
  *    market the catalogue actually holds rather than five of them. Five rows in
  *    a drawer were a worse copy of a filter.
  *
- *  - **Rent.** `/rent` is discovery filtered to the long-let market, which is
- *    the same thing again: a filter presented as a destination.
+ *  - **Rent.** `/rent` was discovery filtered to the long-let market, which is
+ *    the same thing again: a filter presented as a destination. The page is
+ *    deleted now (V-26) and the address redirects to `/search?market=rent`.
  *
  *  - **The three Feed children.** Feed, Places and People are the feed screen
  *    and two indexes reachable from it. The first child pointed at the same
@@ -172,30 +173,15 @@ export function buildNav({
     sections.push({
       heading: t.nav.accountLabel,
       items: [
-        /* Trips is the Stays side's name for the same idea: your stays and
-           reservations, by date. On Property the row stays Bookings and gains
-           Inspections beside it, because an inspection is the Property side's
-           own transaction and it finally has a page of its own. */
-        ...(stays
-          ? [{ href: "/trips", label: t.nav.trips, icon: "ticket" } as NavNode]
-          : [
-              { href: "/bookings", label: t.nav.bookings, icon: "calendar-booking" } as NavNode,
-              /*
-               * The shield-check, not an eye. `/profile` already draws
-               * Inspections with a shield and the drawer drew it with an eye,
-               * which is two glyphs for one destination two taps apart; an
-               * eye also says "look at this" where an inspection is somebody
-               * going and CHECKING, which is exactly what the shield-check
-               * says. (R1 finding A33.)
-               *
-               * `verified` is that shield-check. It is also, today, the
-               * identity tick across the product, which R1 finding A12 moves
-               * to a new circular badge so the shield can mean "checked" and
-               * nothing else. Until A12 lands this glyph carries both
-               * meanings; after it, only this one.
-               */
-              { href: "/inspections", label: t.nav.inspections, icon: "verified" } as NavNode,
-            ]),
+        /* PLANS, ONE ROW ON BOTH SIDES (V-76). Bookings and Inspections on
+           Property and Trips on Stays were three lists whose empty states
+           pointed at each other; they are one dated page now, which opens on
+           the side the shell is on. */
+        {
+          href: stays ? "/bookings?side=stays&from=stays" : "/bookings",
+          label: t.shape.plans.title,
+          icon: "calendar-booking",
+        } as NavNode,
         { href: "/messages", label: t.nav.messages, icon: "chat-bubble" },
         {
           href: "/notifications",

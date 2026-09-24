@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 const PAGES = [
-  ["stays-doors", "Add a workspace: the three stays doors"],
   ["host-property-photos", "A hotel's own photographs of its property"],
   ["host-property-photos-empty", "The same surface before the first photograph"],
   ["facilities-and-photos", "Facilities and photos, GOVERNING-10 screen four"],

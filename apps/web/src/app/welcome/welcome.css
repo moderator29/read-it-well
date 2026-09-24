@@ -146,6 +146,8 @@
   .nf-gs-title__a,
   .nf-gs-title__b {
     display: block;
+    /* A searched word can be forty letters with no space (V-18). */
+    overflow-wrap: anywhere;
   }
   .nf-gs-title__a {
     color: var(--nf-content-primary);

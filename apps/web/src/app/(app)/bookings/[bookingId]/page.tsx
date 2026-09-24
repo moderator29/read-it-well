@@ -71,7 +71,7 @@ export default async function BookingDetailPage({
 
   const shell = (children: React.ReactNode) => (
     <div className="nf-cat-surface mx-auto max-w-2xl">
-      <PageHeader title={t.nav.bookings} fallback="/bookings" />
+      <PageHeader title={t.shape.plans.kinds.stay} fallback="/bookings?side=stays&from=stays" />
       <Reveal>{children}</Reveal>
     </div>
   );
@@ -126,7 +126,7 @@ export default async function BookingDetailPage({
         icon="calendar-check"
         title={copy.detailMissingTitle}
         body={copy.detailMissingBody}
-        action={<EmptyActions primary={{ label: copy.openBookings, href: "/bookings" }} />}
+        action={<EmptyActions primary={{ label: copy.openBookings, href: "/bookings?side=stays&from=stays" }} />}
         data-testid="booking-missing"
       />,
     );

@@ -236,6 +236,8 @@ export type PublicProfileState =
       occupation: Occupation | null;
       /** Local government, state, Nigeria. Same visibility as the occupation. */
       place: ProfilePlace | null;
+      /** V-64: for the owner, which of the two their public page shows. */
+      published: { occupation: boolean; homeTown: boolean } | null;
       /** Admin-granted badges only. Never anything a code path awarded. */
       standing: Standing[];
       /** Null for anybody `public.agent_trust` returns no row for. */
@@ -392,6 +394,7 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
     moderatorOf,
     occupation: occupationAndPlace.occupation,
     place: occupationAndPlace.place,
+    published: occupationAndPlace.published,
     standing,
     trust,
     storyCount,

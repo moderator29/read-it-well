@@ -3,6 +3,11 @@ import "server-only";
 import { readCountedReviews } from "../reviews/weight";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { memo } from "../cache/memo";
+import { honestExamplePhotos } from "./example-imagery";
+import { rentMeansTenancy } from "./filter";
+import { COMPOUND_COLUMNS, readCompound, type Compound, type CompoundRow } from "./compound";
+import { SERVICE_COLUMNS, readService, type ServiceFacts, type ServiceRow } from "./service";
+import { UNIT_COLUMNS, readUnit, type UnitFacts, type UnitRow } from "./unit-shape";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import { createClient } from "../supabase/server";
@@ -749,6 +754,20 @@ export function mapRow(
   const moveIn = moveInTotal(row);
   const purchase = purchaseTotal(row);
 
+  /* A modest example wears honest imagery or none (see
+     `lib/listings/example-imagery.ts`): the aspirational renders on its rows
+     are not shown in place of a mini flat. Every other row is untouched. */
+  const shownPhotos = honestExamplePhotos(
+    {
+      kind,
+      bedrooms: row.bedrooms ?? 0,
+      intent: row.listing_intent === "sale" ? "sale" : "rent",
+      isDemo: row.is_demo,
+      ...(headline.kind === "sale" ? {} : { pricePeriod: headline.period }),
+    },
+    photos,
+  );
+
   return {
     id: row.id,
     slug: slugFor(row),
@@ -970,6 +989,7 @@ export function mapRow(
      */
     ...(listerNames.has(row.id) ? { listerName: listerNames.get(row.id) } : {}),
     isDemo: row.is_demo,
+    ...(row.published_at ? { publishedAt: row.published_at } : {}),
     /* Instant book is gone from the schema. The whole product moved from
        "reserve a room tonight" to "rent or buy a property", and no property in
        either of those markets changes hands without a person on both sides.
@@ -977,7 +997,7 @@ export function mapRow(
        still read it; it is false for every database row, which is the truth. */
     instantBook: false,
     amenities,
-    photos,
+    photos: shownPhotos,
     videos,
     hue: hueFor(row.id),
   };
@@ -1108,8 +1128,14 @@ async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]>
     getListerNames(supabase, rows.map((r) => r.id)),
     getRenterTruth(supabase, rows.filter((r) => !r.is_demo).map((r) => r.id)),
   ]);
-  return rows.map((row) =>
-    mapRow(
+  const ids = rows.map((r) => r.id);
+  const [compounds, services, units] = await Promise.all([
+    getCompoundFacts(supabase, ids),
+    getServiceFacts(supabase, ids),
+    getUnitFacts(supabase, ids),
+  ]);
+  return rows.map((row) => {
+    const listing = mapRow(
       row,
       stateNames,
       amenityCodes,
@@ -1119,8 +1145,101 @@ async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]>
       listerNames,
       badges.seenAt,
       renterTruth,
-    ),
-  );
+    );
+    const compound = compounds.get(row.id);
+    const service = services.get(row.id);
+    const unit = units.get(row.id);
+    return {
+      ...listing,
+      ...(compound ? { compound } : {}),
+      ...(service ? { service } : {}),
+      ...(unit ? { unit } : {}),
+    };
+  });
+}
+
+/**
+ * THE UNIT'S SHAPE (V-66), READ ON ITS OWN for the reason `getCompoundFacts`
+ * gives: without migration `20260924150600` the read errors, which means no
+ * shapes, and never costs the catalogue.
+ */
+async function getUnitFacts(supabase: Client, ids: string[]): Promise<Map<string, UnitFacts>> {
+  const out = new Map<string, UnitFacts>();
+  if (ids.length === 0) return out;
+  try {
+    const { data, error } = await supabase.from("listings").select(`id, ${UNIT_COLUMNS}`).in("id", ids);
+    if (error || !data) return out;
+    for (const row of data as unknown as (UnitRow & { id: string })[]) {
+      const unit = readUnit(row);
+      if (unit) out.set(row.id, unit);
+    }
+  } catch {
+    /* No shapes is the honest answer to a read that failed. */
+  }
+  return out;
+}
+
+/**
+ * THE SERVICE CHARGE'S ANSWERS (V-68), READ ON THEIR OWN for the reason
+ * `getCompoundFacts` gives: a database without migration `20260924150400`
+ * answers with an error, which means nobody answered, and never costs the
+ * catalogue.
+ */
+async function getServiceFacts(
+  supabase: Client,
+  ids: string[],
+): Promise<Map<string, ServiceFacts>> {
+  const out = new Map<string, ServiceFacts>();
+  if (ids.length === 0) return out;
+  try {
+    const { data, error } = await supabase
+      .from("listings")
+      .select(`id, ${SERVICE_COLUMNS}`)
+      .in("id", ids);
+    if (error || !data) return out;
+    for (const row of data as unknown as (ServiceRow & { id: string })[]) {
+      const service = readService(row);
+      if (service) out.set(row.id, service);
+    }
+  } catch {
+    /* No service facts is the honest answer to a read that failed. */
+  }
+  return out;
+}
+
+/**
+ * THE COMPOUND'S FIVE ANSWERS (V-28), READ ON THEIR OWN.
+ *
+ * Not in the catalogue selects above, on purpose. A PostgREST select naming a
+ * column that does not exist fails the whole read, and the catalogue has
+ * already been taken off the air once by code that reached production ahead of
+ * its migration. So these five come from their own small read, and a database
+ * without migration `20260924150200` answers with an error that is treated as
+ * "nobody answered", which is exactly what it means.
+ *
+ * After the batch above rather than inside it, so it can never fail that
+ * batch; it is one primary key read either way.
+ */
+async function getCompoundFacts(
+  supabase: Client,
+  ids: string[],
+): Promise<Map<string, Compound>> {
+  const out = new Map<string, Compound>();
+  if (ids.length === 0) return out;
+  try {
+    const { data, error } = await supabase
+      .from("listings")
+      .select(`id, ${COMPOUND_COLUMNS}`)
+      .in("id", ids);
+    if (error || !data) return out;
+    for (const row of data as unknown as (CompoundRow & { id: string })[]) {
+      const compound = readCompound(row);
+      if (compound) out.set(row.id, compound);
+    }
+  } catch {
+    /* No compound facts is the honest answer to a read that failed. */
+  }
+  return out;
 }
 
 /**
@@ -1224,12 +1343,28 @@ export class SupabaseListingRepository implements ListingRepository {
           query = query.or(group);
         }
       }
+      /* V-66: any of the areas, as ONE or-group. Each area contributes the
+         group for its first word, which every row matching the whole area
+         also matches, so SQL stays a superset of what `matchesFilter` keeps. */
+      if (filter.areas && filter.areas.length > 0) {
+        const stateNames = await getStateNames();
+        const parts = filter.areas.flatMap((area) => freeTextGroups(area, stateNames).slice(0, 1));
+        if (parts.length === filter.areas.length) query = query.or(parts.join(","));
+      }
 
       if (filter.intent) {
         query = query.eq(
           "listing_intent",
           filter.intent as Database["public"]["Enums"]["listing_intent"],
         );
+        /* The rent market is tenancies (V-26): a row with no positive rate,
+           which is the column `headlinePrice` reads to call a row a rate.
+           `rentMeansTenancy` and `isTenancyPeriod` hold the same rule for
+           the drawer's count and the alerts. */
+      }
+      /* V-26 and V-67 ask the same question of the same column. */
+      if (filter.propertySide || rentMeansTenancy(filter)) {
+        query = query.or("rate_minor.is.null,rate_minor.lte.0");
       }
 
       /*
@@ -1246,13 +1381,21 @@ export class SupabaseListingRepository implements ListingRepository {
        * budget but whose nightly rate does not is filtered out in memory. SQL
        * narrows, the matcher decides, and the two cannot disagree.
        */
-      const wantsBudget =
-        filter.minPriceMinor !== undefined || filter.maxPriceMinor !== undefined;
+      /*
+       * V-65: on the Rent market the budget is the cash at the door, which is
+       * never less than one period's rent. So a rent CEILING is still a safe
+       * narrowing (cash within budget implies rent within budget), but a rent
+       * FLOOR is not (a 2m rent can be 4m at the door), and the floor is left
+       * to `matchesFacts` alone.
+       */
+      const cashBudget = rentMeansTenancy(filter);
+      const sqlMin = cashBudget ? undefined : filter.minPriceMinor;
+      const wantsBudget = sqlMin !== undefined || filter.maxPriceMinor !== undefined;
       if (wantsBudget) {
         const bounds = (column: string) => {
           const parts = [`${column}.gt.0`];
-          if (filter.minPriceMinor !== undefined) {
-            parts.push(`${column}.gte.${filter.minPriceMinor}`);
+          if (sqlMin !== undefined) {
+            parts.push(`${column}.gte.${sqlMin}`);
           }
           if (filter.maxPriceMinor !== undefined) {
             parts.push(`${column}.lte.${filter.maxPriceMinor}`);
@@ -1347,6 +1490,11 @@ export class SupabaseListingRepository implements ListingRepository {
        * unstated, so it sorts after every listing that said a number rather
        * than ahead of all of them as a null would.
        */
+      /* V-22: Newest orders on the date it went live BEFORE the ceiling, for
+         the same reason move-in does; the page still sorts what comes back. */
+      if (opts.order === "newest") {
+        query = query.order("published_at", { ascending: false, nullsFirst: false });
+      }
       if (opts.order === "move-in") {
         query = query.order("total_move_in_cost_minor", {
           ascending: true,

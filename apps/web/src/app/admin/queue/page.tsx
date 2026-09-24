@@ -11,6 +11,9 @@ import {
   getSupportTickets,
 } from "@/lib/admin/queries";
 import { adminUi } from "../_components/ui";
+import { ReportsLane } from "../_lanes/ReportsLane";
+import { FlagsLane } from "../_lanes/FlagsLane";
+import { HeldLane } from "../_lanes/HeldLane";
 import { QueueFilters, readQueueQuery } from "../_components/QueueFilters";
 import { QueueTable, QueueTabs, shortRef, type QueueRowData } from "../_components/QueueTable";
 
@@ -46,7 +49,14 @@ export const dynamic = "force-dynamic";
  * `?tab=` narrows to one kind; `?q=` runs the search each desk already has.
  */
 
-type TabKey = "all" | "listings" | "applications" | "reports" | "tickets" | "flags";
+type TabKey = "all" | "listings" | "applications" | "reports" | "tickets" | "flags" | "held";
+
+/* V-88. ONE NOUN, ONE DESK. Reports, Flags and Held were three desks of their
+   own (/admin/reports, /admin/flags, /admin/moderation), the same "somebody
+   told us something bad" on four screens. They are lanes of this queue now:
+   the tab renders the desk's own working view, with every decision control it
+   had, and the three old addresses redirect here. */
+const LANES = new Set<TabKey>(["reports", "flags", "held"]);
 
 const TABS: { key: TabKey; label: string; href: string }[] = [
   { key: "all", label: "All", href: "/admin/queue" },
@@ -55,11 +65,11 @@ const TABS: { key: TabKey; label: string; href: string }[] = [
   { key: "reports", label: "Reports", href: "/admin/queue?tab=reports" },
   { key: "tickets", label: "Support", href: "/admin/queue?tab=tickets" },
   { key: "flags", label: "Flags", href: "/admin/queue?tab=flags" },
+  { key: "held", label: "Held", href: "/admin/queue?tab=held" },
 ];
 
 /** The other queues the table does not fold in yet, still one tap away. */
 const MORE: { key: string; icon: UiIconName; href: string }[] = [
-  { key: "moderation", icon: "sliders", href: "/admin/moderation" },
   { key: "alerts", icon: "bell", href: "/admin/alerts" },
 ];
 
@@ -78,6 +88,44 @@ export default async function AdminQueuePage({
   const tab: TabKey = TABS.some((entry) => entry.key === tabRaw) ? (tabRaw as TabKey) : "all";
   const filter = query.q ? { q: query.q } : {};
   const wants = (key: TabKey) => tab === "all" || tab === key;
+
+  if (LANES.has(tab)) {
+    const counts = await getQueueCounts();
+    const laneCount: Partial<Record<TabKey, number>> =
+      counts.state === "ok"
+        ? {
+            listings: counts.data.listings,
+            applications: counts.data.applications,
+            reports: counts.data.reports,
+            tickets: counts.data.tickets,
+            flags: counts.data.flags,
+            held: counts.data.moderation,
+          }
+        : {};
+    return (
+      <>
+        <div className="nf-console">
+          <QueueTabs
+            label="Queues"
+            tabs={TABS.map((entry) => ({
+              key: entry.key,
+              label: entry.label,
+              href: entry.href,
+              ...(laneCount[entry.key] !== undefined ? { count: laneCount[entry.key]! } : {}),
+              on: entry.key === tab,
+            }))}
+          />
+        </div>
+        {tab === "reports" ? (
+          <ReportsLane params={params} />
+        ) : tab === "flags" ? (
+          <FlagsLane params={params} />
+        ) : (
+          <HeldLane params={params} />
+        )}
+      </>
+    );
+  }
 
   const [counts, listings, applications, reports, tickets, flags] = await Promise.all([
     getQueueCounts(),
@@ -110,6 +158,7 @@ export default async function AdminQueuePage({
     reports: counts.data.reports,
     tickets: counts.data.tickets,
     flags: counts.data.flags,
+    held: counts.data.moderation,
   };
 
   const rows: (QueueRowData & { at: string })[] = [];
@@ -166,7 +215,7 @@ export default async function AdminQueuePage({
         status: report.status,
         statusLabel: ui.statusLabel(report.status),
         submitted: ui.when(report.createdAt),
-        href: `/admin/reports?q=${encodeURIComponent(report.reason.slice(0, 40))}`,
+        href: `/admin/queue?tab=reports&q=${encodeURIComponent(report.reason.slice(0, 40))}`,
         at: report.createdAt,
       });
     }
@@ -203,7 +252,7 @@ export default async function AdminQueuePage({
         status: flag.status,
         statusLabel: ui.statusLabel(flag.status),
         submitted: ui.when(flag.createdAt),
-        href: `/admin/flags?q=${encodeURIComponent(flag.matched)}`,
+        href: `/admin/queue?tab=flags&q=${encodeURIComponent(flag.matched)}`,
         at: flag.createdAt,
       });
     }

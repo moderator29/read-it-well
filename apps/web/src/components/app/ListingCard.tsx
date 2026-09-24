@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { formatNumber, isGlanceCompact, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatDate, formatMoney, formatNumber, isGlanceCompact, type Dictionary, type Locale } from "@vallo/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { hrefForListing } from "@/lib/listings/href";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -14,9 +14,15 @@ import { MediaFrame } from "@/components/app/MediaFrame";
 import { isPropertyType, type PropertyType } from "@/lib/interests/schema";
 import { isDataSaver } from "@/lib/ui/data-saver";
 import { SaveButton, useSaveControl } from "@/components/app/SaveControl";
-import { cardFacts, cardMarket, cardPrice, cardUtility } from "./listing-card-model";
+import { cardFacts, cardMarket, cardMessageHref, cardPrice, cardUtility } from "./listing-card-model";
+import { ButtonLink } from "@/components/ui/Button";
+import { isModestExample } from "@/lib/listings/example-imagery";
 import { panelClass } from "@/components/ui/Panel";
 import { ListerRoleLine } from "@/components/app/listing/ListerRoleLine";
+import { isNewSince, listedAge, listedAgeText, staleMonthOptions } from "@/lib/listings/listed-age";
+import { useLastVisit } from "@/components/app/search/LastVisit";
+import { cashAtDoor, upfrontDuration, upfrontText } from "@/lib/listings/upfront";
+import { unitLine } from "@/lib/listings/unit-shape";
 import { ProofStrip } from "@/components/app/listing/ProofStrip";
 import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
 
@@ -65,6 +71,8 @@ export function ListingCard({
   saved,
   wide = false,
   dense = false,
+  messageAgent = false,
+  commute = null,
 }: {
   listing: Listing;
   locale: Locale;
@@ -102,6 +110,15 @@ export function ListingCard({
    * fact there would be hiding something for no reason.
    */
   dense?: boolean;
+  /**
+   * Draw Message agent under a tenancy (V-26: it moved here from the deleted
+   * `/rent` shelf). Passed by the results shelf; `cardMessageHref` still
+   * decides whether this listing may carry it, so an example or a stay never
+   * does, whatever the page asks.
+   */
+  messageAgent?: boolean;
+  /** V-43: the rush-hour line to the reader's chosen anchor, or null. */
+  commute?: string | null;
 }) {
   const router = useRouter();
   const photo = listing.photos[0];
@@ -156,6 +173,8 @@ export function ListingCard({
       : listing.area || listing.city;
 
   const price = cardPrice(listing);
+  /* V-65: the months of rent asked for up front, for the line under the rent. */
+  const cash = cashAtDoor(listing);
   const facts = cardFacts(listing, t);
   const power = cardUtility(listing);
   const marketKey = cardMarket(listing);
@@ -174,6 +193,26 @@ export function ListingCard({
     index !== undefined
       ? ({ "--card-i": Math.min(index, 5) } as React.CSSProperties)
       : undefined;
+
+  /*
+   * HOW OLD IT IS (V-22), and never on an example: an example illustrates a
+   * flat that does not exist, so "Listed 3 days ago" would be false about the
+   * world. `new Date()` here is the reader's clock; the words change only at a
+   * Lagos midnight, so the server and the browser agree on all but a moment
+   * of the day, and the span says so to React rather than warning.
+   */
+  const now = new Date();
+  const age = listing.isDemo ? null : listedAge(listing.publishedAt, now);
+  const ageText = age
+    ? listedAgeText(
+        age,
+        t.shape.listed,
+        age.kind === "stale" ? formatDate(age.since, locale, staleMonthOptions(age.since, now)) : "",
+      )
+    : null;
+  const lastVisit = useLastVisit();
+  const messageHref = messageAgent ? cardMessageHref(listing) : null;
+  const isNew = !listing.isDemo && isNewSince(listing.publishedAt, lastVisit);
 
   const tunableKind: PropertyType | null = isPropertyType(listing.kind) ? listing.kind : null;
   const save = useSaveControl(listing.id, saved);
@@ -227,9 +266,16 @@ export function ListingCard({
    * A card that is not two-up (the saved board, the rent shelf, the wide
    * card) has the width for all three and keeps them.
    */
+  /* V-66: "2 bed flat, both en-suite, with BQ" in place of "2 beds 2 baths
+     +1", when the lister named the shape. Null otherwise, and the facts row
+     stands as it was. */
+  const shapeLine = unitLine(listing.bedrooms, listing.unit, t.shape.unit);
   const factLimit = dense ? 2 : 3;
-  const shown = ranked.slice(0, factLimit);
-  const spilled = ranked.slice(factLimit, 3);
+  /* With the shape line drawn, the beds live in it ("2 bed flat"); the other
+     facts stay (batch 4 review). */
+  const factRow = shapeLine ? ranked.filter((fact) => fact.key !== "beds") : ranked;
+  const shown = factRow.slice(0, factLimit);
+  const spilled = factRow.slice(factLimit, 3);
 
   return (
     <article
@@ -281,6 +327,7 @@ export function ListingCard({
               hue={listing.hue}
               index={index ?? 0}
               kind={listing.kind}
+              drawn={isModestExample(listing)}
               sizes={wide ? "(max-width: 640px) 100vw, 50vw" : "(max-width: 640px) 50vw, 25vw"}
             />
             {photo && (
@@ -336,6 +383,18 @@ export function ListingCard({
             card's fact size so the card keeps its measured proportions. A
             listing with no role (the seed catalogue) draws no line.
           */}
+          {ageText && (
+            <p className="nf-pcard__sub nf-pcard__age" data-testid="card-listed-age" suppressHydrationWarning>
+              {isNew && (
+                <span className="nf-badge nf-badge--info nf-pcard__new" title={t.shape.listed.newMarkLabel}>
+                  <span aria-hidden="true">{t.shape.listed.newMark}</span>
+                  <span className="sr-only">{t.shape.listed.newMarkLabel}. </span>
+                </span>
+              )}
+              {ageText}
+            </p>
+          )}
+
           {listing.listerRole ? (
             <ListerRoleLine role={listing.listerRole} name={listing.listerName ?? null} className="nf-pcard__lister" />
           ) : null}
@@ -403,11 +462,33 @@ export function ListingCard({
                   secondaryClassName={fractionClass(price.rentMinor, "text-[length:var(--nf-text-overline)] font-semibold")}
                 />
               </p>
+              {/* V-65. How much rent is asked for at the start, and when that
+                  is several years, what that means at the door. */}
+              {cash && cash.upfrontMonths !== null && (
+                <p className="nf-pcard__sub break-words" data-testid="card-upfront">
+                  {cash.restated
+                    ? t.shape.cash.listerAsks
+                        .replace("{duration}", upfrontDuration(cash.upfrontMonths, t.shape.cash))
+                        .replace("{amount}", formatMoney(cash.minor, locale, listing.currency))
+                    : upfrontText(cash.upfrontMonths, t.shape.cash)}
+                </p>
+              )}
             </>
           )}
 
+          {shapeLine && (
+            <p className="nf-pcard__facts" data-testid="card-shape">
+              <span className="nf-pcard__fact min-w-0 items-start whitespace-normal">
+                <UiIcon name="house" size={11} className="mt-3xs shrink-0" />
+                <span className="break-words">{shapeLine}</span>
+              </span>
+            </p>
+          )}
           {shown.length > 0 && (
-            <ul className="nf-pcard__facts" data-testid="card-facts">
+            <ul
+              className={`nf-pcard__facts${shapeLine ? " mt-0 border-t-0 pt-2xs" : ""}`}
+              data-testid="card-facts"
+            >
               {shown.map((fact) => (
                 <li key={fact.key} className="nf-pcard__fact">
                   <UiIcon name={fact.icon} size={11} />
@@ -429,6 +510,41 @@ export function ListingCard({
             </ul>
           )}
 
+          {/* V-43. The rush-hour band to where the reader goes every day, with
+              whose figure it is. Absent when no band exists for this area. */}
+          {commute && (
+            <p className="nf-pcard__sub inline-flex items-start gap-inline-tight" data-testid="card-commute">
+              <UiIcon name="history" size={12} className="mt-3xs shrink-0" />
+              <span className="break-words">{commute}</span>
+            </p>
+          )}
+
+          {/* V-68. Serviced, only when the charge covers power, water and
+              security; the word is derived, never typed by the lister. */}
+          {listing.service?.serviced && (
+            <p className="nf-pcard__sub inline-flex items-start gap-inline-tight" data-testid="card-serviced">
+              <UiIcon name="bolt" size={12} className="mt-3xs shrink-0" />
+              <span className="break-words">{t.shape.service.serviced}</span>
+            </p>
+          )}
+
+          {/* V-28. The one compound answer that earns a line on a card:
+              whether the landlord lives there. Absent when unanswered. */}
+          {listing.compound?.landlordOnSite !== undefined && (
+            <p className="nf-pcard__sub inline-flex items-start gap-inline-tight" data-testid="card-landlord">
+              <UiIcon name="house" size={12} className="mt-3xs shrink-0" />
+              <span className="break-words">
+                {/* The lister's answer, and the line says so (V-28 review). */}
+                {t.shape.compound.listerSays.replace(
+                  "{fact}",
+                  listing.compound.landlordOnSite
+                    ? t.shape.compound.landlordOnSite
+                    : t.shape.compound.landlordElsewhere,
+                )}
+              </span>
+            </p>
+          )}
+
           {/* The one Nigerian field that earns a line in a grid: what happens
               when the light goes. Absent when the host has not answered. */}
           {power && (
@@ -439,6 +555,20 @@ export function ListingCard({
           )}
         </div>
       </Link>
+      {messageHref && (
+        <div className="nf-pcard__action">
+          <ButtonLink
+            href={messageHref}
+            variant="secondary"
+            size="sm"
+            full
+            leadingIcon="chat-bubble"
+            data-testid="card-message-agent"
+          >
+            {t.shape.card.messageAgent}
+          </ButtonLink>
+        </div>
+      )}
     </article>
   );
 }

@@ -134,7 +134,12 @@ export function AuthChoices({
 
       <p className="nf-auth__swap">
         {isSignUp ? t.auth.haveAccount : t.auth.newToVallo}{" "}
-        <Link href={isSignUp ? "/sign-in" : "/sign-up"}>
+        {/* The other door keeps the destination too (audit UX-02, R16):
+            a stranger who arrived to sign in and chose to make an account
+            instead used to lose the thing that was shared with them here. */}
+        <Link
+          href={`${isSignUp ? "/sign-in" : "/sign-up"}${next ? `?next=${encodeURIComponent(next)}` : ""}`}
+        >
           {isSignUp ? t.common.signIn : t.common.signUp}
         </Link>
       </p>

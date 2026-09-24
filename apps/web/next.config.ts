@@ -168,6 +168,44 @@ const nextConfig: NextConfig = {
        * who types the obvious thing.
        */
       { source: "/agent", destination: "/agent/dashboard", permanent: false },
+      /*
+       * `/rent`, THE SECOND RENT SHELF, DELETED (V-26).
+       *
+       * It read `kind: "rental"` only, so a flat typed as an apartment or a
+       * house for yearly rent never appeared on it: two shelves on one
+       * platform that disagreed about what was for rent, and only one of them
+       * had the filter drawer. The rent market is `/search?market=rent`, and
+       * the one good idea on the old page, Message agent on each card, moved
+       * there. `/rent/move-in` and `/rent/pay` are the transaction rather than
+       * a shelf, and stay exactly where they are.
+       *
+       * Permanent, because this address is not coming back as a shelf. The
+       * request's own query rides along (Next.js passes it through and merges
+       * it with the destination's), so `/rent?q=Yaba` lands on
+       * `/search?market=rent&q=Yaba` and a shared link keeps its words.
+       */
+      { source: "/rent", destination: "/search?market=rent", permanent: true },
+      /*
+       * `/trips` AND `/inspections`, FOLDED INTO PLANS (V-76).
+       *
+       * Three lists (`/bookings`, `/trips`, `/inspections`) whose empty
+       * states were signposts to each other are one page at `/bookings`,
+       * titled Plans. The two old addresses land on the half they held, and
+       * their own query rides along: `/inspections?changed=<id>` still opens
+       * the inspection a thread just answered, and `/trips?justBooked=<id>`
+       * still marks the stay checkout confirmed.
+       */
+      { source: "/trips", destination: "/bookings?side=stays&from=stays", permanent: true },
+      { source: "/inspections", destination: "/bookings?kind=inspection&from=property", permanent: true },
+      /*
+       * THE CONSOLE'S THREE MODERATION DESKS ARE LANES OF THE QUEUE (V-88).
+       * Reports, message flags and held content were three destinations for
+       * one noun; the unified queue renders each as a lane with every control
+       * the desk had. The query rides along, so a filtered link still filters.
+       */
+      { source: "/admin/reports", destination: "/admin/queue?tab=reports", permanent: true },
+      { source: "/admin/flags", destination: "/admin/queue?tab=flags", permanent: true },
+      { source: "/admin/moderation", destination: "/admin/queue?tab=held", permanent: true },
     ];
   },
 

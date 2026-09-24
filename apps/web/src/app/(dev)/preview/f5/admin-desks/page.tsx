@@ -6,7 +6,7 @@ import { StandingDesk } from "@/app/admin/standing/StandingDesk";
 import { StopsDesk } from "@/app/admin/stops/StopsDesk";
 import { RetireExamples } from "@/app/admin/examples/RetireExamples";
 import { OccupationEditor, LocalGovernmentEditor } from "@/app/admin/reference/ReferenceEditors";
-import { HoldDecision } from "@/app/admin/moderation/HoldDecision";
+import { HoldDecision } from "@/app/admin/_lanes/HoldDecision";
 import { AreaDecision } from "@/app/admin/social/SocialDecisions";
 import {
   ADMIN_BADGES,

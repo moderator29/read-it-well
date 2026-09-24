@@ -32,15 +32,18 @@ import { ORDER, type Segment } from "./segments";
  * the number lives and the next person to add a segment changes one line.
  *
  * Every remaining segment is a real route. Buy and Rent are the discovery
- * page with the matching market (`type` is the parameter search-params.ts
- * reads; homes for sale, yearly rentals); Stay is the stays search. The
+ * page with the matching MARKET (`market`, which `shelf-query.ts` reads).
+ * They used to send `type=home` and `type=rental`, which are categories, not
+ * markets: Buy showed houses to let as well as for sale, and Rent missed every
+ * flat or house to let that was not typed "rental", the same disagreement
+ * that got the second rent shelf deleted (V-26). Stay is the stays search. The
  * form submits with GET, so the pill works with no JavaScript at all and
  * the segment only decides where the text goes. The filter glyph opens the
  * discovery page, whose own drawer holds every filter this platform has.
  */
-const ROUTES: Record<Segment, { action: string; type?: string; icon: UiIconName }> = {
-  buy: { action: "/search", type: "home", icon: "home" },
-  rent: { action: "/search", type: "rental", icon: "key" },
+const ROUTES: Record<Segment, { action: string; market?: string; icon: UiIconName }> = {
+  buy: { action: "/search", market: "buy", icon: "home" },
+  rent: { action: "/search", market: "rent", icon: "key" },
   stay: { action: "/stays/search", icon: "bed" },
 };
 
@@ -74,7 +77,7 @@ export function SearchPill({
         <span className="sr-only">{labels.placeholder}</span>
         <input type="search" name="q" placeholder={labels.placeholder} autoComplete="off" />
       </label>
-      {route.type && <input type="hidden" name="type" value={route.type} />}
+      {route.market && <input type="hidden" name="market" value={route.market} />}
       <div
         className="nf-landing-pill-segments"
         role="radiogroup"
