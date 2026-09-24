@@ -521,8 +521,9 @@ least five years, in a form from which any transaction can be reconstructed.
   the closing account has any money history: a wallet entry, a card payment
   on a booking, an escrow, or a rent payment. In that case
   `purge_account_rows`:
-  - keeps the member's bank and payout accounts, marked deleted, with the
-    Paystack recipient code cleared so nothing can be paid out through them;
+  - keeps the member's bank accounts (marked deleted) and payout accounts,
+    with the Paystack recipient code cleared on both so nothing can be paid
+    out through them;
   - keeps each withdrawal's destination on its `wallet_entries` row: the
     account name, the account number and the payee's name. Only the
     contact fields (email, phone and the guest name, email and phone keys)
@@ -530,8 +531,10 @@ least five years, in a form from which any transaction can be reconstructed.
   - stamps `account_deletion_requests.money_retain_until` five years ahead.
 
   After that date, `destroy_expired_money_records`, run by the daily purge
-  job, redacts the kept accounts and destination fields and writes one audit
-  row per account. Saved card tokens are still deleted: they are a
+  job, deletes the kept bank and payout accounts (an approved agent's payout
+  accounts wait for `kyc_retain_until`). It redacts the name, account name
+  and account number on the wallet entries, and writes one audit row per
+  account. Saved card tokens are still deleted: they are a
   credential to charge, not a record. A card payment is reconstructed from
   its Paystack reference. An account with no money history is purged as
   before.
