@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { panelClass } from "@/components/ui/Panel";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -37,6 +38,7 @@ import { ListingAmenities } from "@/components/app/listing/ListingAmenities";
 import { ListingAmenityTiles } from "@/components/app/listing/ListingAmenityTiles";
 import { ListingAgentCard } from "@/components/app/listing/ListingAgentCard";
 import { ListingMoveInBlock } from "@/components/app/listing/ListingMoveInBlock";
+import { OwnerAvailabilityLine, PropertyOffers } from "@/components/app/listing/LandlordFacts";
 import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
 import { ListingPurchase } from "@/components/app/listing/ListingPurchase";
@@ -788,6 +790,14 @@ export default async function ListingDetailPage({
                       disclosure lands before the belief the figure forms. */}
                   {listing.isDemo && <ExampleNotice variant="page" className="mt-row" />}
 
+                  {/* V-31: what the OWNER said about availability, or nothing.
+                      Streams on its own and never holds the page. */}
+                  {isRental && !isSale && (
+                    <Suspense fallback={null}>
+                      <OwnerAvailabilityLine listingId={listing.id} isDemo={listing.isDemo} copy={t.landlord.listing} />
+                    </Suspense>
+                  )}
+
                   <div className="nf-detail-price-row mt-md">
                     {listing.priceMinor > 0 && (
                       <p className="nf-detail-price" data-testid="detail-price">
@@ -844,6 +854,20 @@ export default async function ListingDetailPage({
                     <div className="mt-md">
                       <ListingMoveInBlock listing={listing} locale={locale} t={t} />
                     </div>
+                  )}
+
+                  {/* V-37: every offer on this property, side by side, each with
+                      its own move-in total. Nothing when there is one offer. */}
+                  {isRental && !isSale && (
+                    <Suspense fallback={null}>
+                      <PropertyOffers
+                        listingId={listing.id}
+                        isDemo={listing.isDemo}
+                        copy={t.landlord.offers}
+                        listingCopy={t.landlord.listing}
+                        locale={locale}
+                      />
+                    </Suspense>
                   )}
 
                   {listing.amenities.length > 0 && (

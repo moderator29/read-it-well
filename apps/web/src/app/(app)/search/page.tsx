@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { readListingFactsFor } from "@/lib/landlord/queries";
+import { ownerConfirmedLine, requestNow, sinkNotReconfirmed } from "@/lib/landlord/facts";
+import { LandlordCardLine } from "@/components/app/listing/LandlordCardLine";
 import Link from "next/link";
 import { formatMoney, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
 import { RealMap } from "@/components/app/search/RealMap";
@@ -217,8 +220,21 @@ export default async function SearchPage({
   const tuning = await readIntentTuning();
   const statedIntent = hasOwnRequest(query) ? [] : tuning.interests;
   const ordered = orderByStatedIntent(sorted, statedIntent);
+  /*
+   * V-31: WHAT THE OWNER SAID, beside each card, and "Not reconfirmed" sorted
+   * last. Read in one call beside the catalogue rather than inside it, so a
+   * failed read changes nothing: no line on any card and the order untouched.
+   * Only a listing whose owner let a question go 21 days unanswered moves,
+   * and it moves to the end of whatever order the page chose, not out of it.
+   */
+  const shelf = codeHit ? [codeHit] : ordered;
+  const landlordFacts = await readListingFactsFor(shelf.map((l) => l.id));
+  const notReconfirmed = new Set(
+    [...landlordFacts].filter(([, facts]) => facts.notReconfirmed).map(([id]) => id),
+  );
   /* The one listing the code named, or the ordinary shelf. */
-  const listings = codeHit ? [codeHit] : ordered;
+  const listings = sinkNotReconfirmed(shelf, notReconfirmed);
+  const landlordNow = requestNow();
   const intentApplied = !codeHit && ordered !== sorted;
   const intentKinds: ListingKind[] = intentApplied
     ? intentKindsPresent(ordered, statedIntent)
@@ -416,6 +432,11 @@ export default async function SearchPage({
                     dense
                     saved={savedIds.has(l.id)}
                     intent={tuning.signedIn ? tuning.interests : undefined}
+                  />
+                  <LandlordCardLine
+                    notReconfirmed={notReconfirmed.has(l.id)}
+                    confirmed={ownerConfirmedLine(t.landlord.listing, landlordFacts.get(l.id)?.ownerConfirmedAt, landlordNow)}
+                    copy={t.landlord.listing}
                   />
                 </li>
               ))}

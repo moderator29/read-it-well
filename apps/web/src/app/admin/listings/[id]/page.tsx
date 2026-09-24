@@ -14,6 +14,7 @@ import { referenceOf } from "../rows";
 import { listingStatusWord, queueHrefFrom, reviewHref } from "../tabs";
 import { ListingReview } from "./ListingReview";
 import { ReviewActionBar } from "./ReviewActionBar";
+import { PropertyMatchPanel } from "./PropertyMatchPanel";
 import "../../_review/review.css";
 
 export const metadata: Metadata = {
@@ -128,7 +129,8 @@ export default async function ListingUnderReviewPage({
           ) : null
         }
         actions={
-          decidable ? (
+          <>
+          {decidable ? (
             <ReviewActionBar
               listingId={found.id}
               status={found.status}
@@ -141,7 +143,13 @@ export default async function ListingUnderReviewPage({
                 {found.status === "PUBLISHED" ? copy.liveInSearch : copy.closed} {common.inAuditLog}
               </p>
             </Panel>
-          )
+          )}
+          {/* V-37: the listings that may be this same flat, proposed for the
+              reviewer to join or keep apart. Never decided automatically. */}
+          {extra?.isDemo ? null : (
+            <PropertyMatchPanel listingId={found.id} copy={t.landlord.admin} locale={locale} />
+          )}
+          </>
         }
       />
     </>

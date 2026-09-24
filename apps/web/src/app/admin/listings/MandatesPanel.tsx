@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { MandateQueue, MandateRow } from "@/lib/admin/reads/listings";
 import { Badge, Empty, Panel, ReadFailed, StatusBar } from "../_review/parts";
 
@@ -22,10 +23,17 @@ export function MandatesPanel({
   queue,
   day,
   today,
+  consentFor,
 }: {
   queue: MandateQueue | null;
   day: (iso: string | null) => string;
   today: string;
+  /**
+   * V-31: the principal's consent control for one mandate, drawn inside the
+   * opened row under the number it is about. Optional, so the panel draws
+   * exactly what it drew before when a caller does not pass it.
+   */
+  consentFor?: (row: MandateRow) => ReactNode;
 }) {
   const rows = queue ? [...queue.pending, ...queue.decided] : [];
   return (
@@ -60,7 +68,7 @@ export function MandatesPanel({
             <span>Status</span>
           </div>
           {rows.map((row) => (
-            <MandateLine key={row.id} row={row} day={day} today={today} />
+            <MandateLine key={row.id} row={row} day={day} today={today} consent={consentFor?.(row)} />
           ))}
         </div>
       ) : null}
@@ -68,7 +76,17 @@ export function MandatesPanel({
   );
 }
 
-function MandateLine({ row, day, today }: { row: MandateRow; day: (iso: string | null) => string; today: string }) {
+function MandateLine({
+  row,
+  day,
+  today,
+  consent,
+}: {
+  row: MandateRow;
+  day: (iso: string | null) => string;
+  today: string;
+  consent?: ReactNode;
+}) {
   const expired = Boolean(row.expiresOn && row.expiresOn < today);
   return (
     <details className="nf-rv-rows__row">
@@ -99,6 +117,7 @@ function MandateLine({ row, day, today }: { row: MandateRow; day: (iso: string |
           {row.principalPhone ? `, ${row.principalPhone}` : ", no number given"}. The call to this number
           is the check; the document is a photograph.
         </p>
+        {consent}
         <p className="nf-rv-msg">
           {row.hasDocument ? "A mandate document is on file (open it on the verification desk)." : "No document was uploaded."}
           {row.expiresOn ? ` Expires ${day(row.expiresOn)}${expired ? ", which has passed" : ""}.` : ""}

@@ -10,6 +10,7 @@ import {
 import { ListingPitch } from "../list/ListingPitch";
 import { ListingsWorkspace } from "./ListingsWorkspace";
 import { ButtonLink } from "@/components/ui/Button";
+import { readClosedReasons } from "@/lib/landlord/queries";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -62,6 +63,9 @@ export default async function Page({
   }
 
   const listings = await readMyListings(context.supabase, context.agent.id);
+  /* V-48: which of these were closed with a reason, read beside the list and
+     failing soft into "none", which draws the workspace as it was. */
+  const closed = await readClosedReasons(listings.map((listing) => listing.id));
 
   return (
     <AgentShell
@@ -88,6 +92,8 @@ export default async function Page({
         listings={listings}
         locale={locale}
         query={query}
+        closed={closed}
+        closeCopy={t.landlord.close}
       />
     </AgentShell>
   );

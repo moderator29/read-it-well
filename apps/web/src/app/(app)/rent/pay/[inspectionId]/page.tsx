@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getRentPayView } from "@/lib/rent/queries";
 import { isBookingReference } from "@/lib/payments/references";
@@ -10,6 +12,7 @@ import { Reveal } from "@/components/site/Reveal";
 import { PaymentReturn } from "@/app/(app)/checkout/[bookingId]/PaymentReturn";
 import { PayPanel } from "./PayPanel";
 import { RentSummary } from "./RentSummary";
+import { RentLandlordFact } from "./RentLandlordFact";
 import { chargeRentSavedCardFor } from "./saved-card-action";
 
 export const metadata: Metadata = { title: "Pay the rent" };
@@ -168,6 +171,13 @@ export default async function RentPayPage({
             { label: "Open messages", href: "/messages", tone: "primary" },
             { label: "Back to the listing", href: `/listing/${view.listingId}`, tone: "quiet" },
           ]}
+          footnote={
+            /* V-32: the landlord's answer to these figures, as a dated fact,
+               or nothing when no question was ever sent. Streams on its own. */
+            <Suspense fallback={null}>
+              <RentLandlordFact inspectionId={inspectionId} copy={getDictionary(locale).landlord.rentFact} locale={locale} />
+            </Suspense>
+          }
         />
       </Shell>
     );
