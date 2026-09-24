@@ -1,3 +1,4 @@
+import { initial } from "@/lib/text/initial";
 import Link from "next/link";
 import type { Dictionary, Locale } from "@vallo/i18n";
 import type { AgentProfile } from "@/lib/agent/types";
@@ -94,7 +95,7 @@ export async function AgentShell({
             </Link>
             {profile && (
               <span className="nf-agent-bar__avatar" aria-hidden="true">
-                {profile.displayName.trim().charAt(0).toUpperCase() || "V"}
+                {initial(profile.displayName, "V")}
               </span>
             )}
             <span className="nf-agent-bar__lang">

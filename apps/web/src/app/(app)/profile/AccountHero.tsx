@@ -1,5 +1,6 @@
 "use client";
 
+import { initial } from "@/lib/text/initial";
 import "./profile.css";
 import { useRef, useState } from "react";
 import Image from "next/image";
@@ -115,9 +116,7 @@ export function AccountHero({
   const [error, setError] = useState<string | null>(null);
 
   const shownName = displayName.trim() || email || "Your account";
-  const monogram = (displayName.trim() || identity?.handle || email || "?")
-    .charAt(0)
-    .toUpperCase();
+  const monogram = initial(displayName.trim() || identity?.handle || email);
 
   async function prepare(file: File, square: boolean): Promise<Blob | null> {
     setError(null);

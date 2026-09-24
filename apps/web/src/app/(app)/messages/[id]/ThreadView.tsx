@@ -1,5 +1,6 @@
 "use client";
 
+import { initial } from "@/lib/text/initial";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Dictionary, Locale } from "@vallo/i18n";
@@ -807,7 +808,7 @@ export function ThreadView({
                 </span>
               ) : (
                 <span className="nf-msg__avatar" aria-hidden="true">
-                  {counterpartName.charAt(0)}
+                  {initial(counterpartName)}
                 </span>
               )}
 
@@ -908,7 +909,7 @@ export function ThreadView({
         {counterpartTyping && (
           <div className="nf-msg nf-msg-in--theirs">
             <span className="nf-msg__avatar" aria-hidden="true">
-              {counterpartName.charAt(0)}
+              {initial(counterpartName)}
             </span>
             <div
               className="nf-bubble nf-bubble--theirs flex items-center gap-inline-tight"

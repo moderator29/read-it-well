@@ -884,7 +884,7 @@ export const yo: Dictionary = withFallback({
       off: "Ti pa",
       privacy: "Àṣírí & Ààbò",
       privacySub: "Ọ̀rọ̀ aṣínà, ìwọlé àti àwọn ẹ̀rọ",
-      appearanceSub: "Àwòrán, ìwọ̀n ọ̀rọ̀, ìṣíkiri",
+      appearanceSub: "Ìwọ̀n ọ̀rọ̀, ìṣíkiri",
       languageSub: "Èdè app",
       help: "Ìrànlọ́wọ́ & Àtìlẹ́yìn",
       helpSub: "Àwọn ìbéèrè, kàn sí wa",
@@ -1130,7 +1130,7 @@ export const yo: Dictionary = withFallback({
       // reader actually needs.
       note: "Àwọn ètò tí a fi pamọ́ sórí ẹ̀rọ yìí yóò dúró sórí ẹ̀rọ yìí. A fi row level security bo àwọn ètò àkàǹtì, nítorí náà ìwọ nìkan ni ó lè ka tàbí yí àwọn tirẹ padà.",
       help: "Ìrànlọ́wọ́",
-      helpSub: "Gba ìdáhùn lọ́wọ́ ènìyàn",
+      helpSub: "Àwọn ìbéèrè, kàn sí wa",
       terms: "Àdéhùn",
       privacy: "Ìlànà àṣírí",
       version: "Ẹ̀yà",

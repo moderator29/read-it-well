@@ -1,5 +1,6 @@
 "use client";
 
+import { initial as initialOf } from "@/lib/text/initial";
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
@@ -149,9 +150,7 @@ export function PeopleList({
       <ul className="mt-md flex flex-col gap-[var(--nf-social-gap)]">
         {people.map((person) => {
           const name = person.displayLabel || `@${person.handle}`;
-          const monogram = (person.displayLabel || person.handle)
-            .charAt(0)
-            .toUpperCase();
+          const monogram = initialOf(person.displayLabel || person.handle);
           return (
             <li key={person.userId} className="nf-panel nf-panel--card nf-social-person flex-row">
               <Link

@@ -1,5 +1,6 @@
 "use client";
 
+import { initial as initialOf } from "@/lib/text/initial";
 import { DEFAULT_LOCALE, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
 import Link from "next/link";
 import Image from "next/image";
@@ -133,7 +134,7 @@ function compact(n: number, locale: Locale): string {
 }
 
 function Avatar({ author }: { author: PostAuthor | null }) {
-  const initial = (author?.displayLabel ?? author?.handle ?? "?").charAt(0).toUpperCase();
+  const initial = initialOf(author?.displayLabel ?? author?.handle);
   return (
     /* The glass ring the render draws around every face: a thin luminous
        border box with the photo cut inside it, lit from the upper left like

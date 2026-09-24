@@ -215,6 +215,8 @@ export const en = {
     staysName: "Stays",
     switchToStays: "Switch to Stays",
     switchToProperty: "Switch to Property",
+    /* UX-04: the header names the side the app is on, so a turn is never silent. */
+    indicatorPrefix: "You are browsing",
     /* The founder's wording, 23 September: it is "Flip", not "Flip coin".
        The KEY is left as `flipCoin` on purpose. Four locale files change
        together and the standing rule on this
@@ -1433,7 +1435,7 @@ export const en = {
       off: "Off",
       privacy: "Privacy & Security",
       privacySub: "Password, sign-in and devices",
-      appearanceSub: "Theme, text size, motion",
+      appearanceSub: "Text size, motion, data",
       languageSub: "App language",
       help: "Help & Support",
       helpSub: "FAQs, contact us",
@@ -1786,7 +1788,7 @@ export const en = {
       label: "About",
       note: "Preferences kept on this device stay on this device. Only you can see or change your account preferences.",
       help: "Help",
-      helpSub: "Get an answer from a person",
+      helpSub: "FAQs, contact us",
       terms: "Terms",
       privacy: "Privacy policy",
       version: "Version",
@@ -4984,6 +4986,9 @@ export const en = {
    * the total as the headline. Added 18 September 2026.
    */
   stayDetail: {
+    /* UX-08: the in-page date form on a stay. */
+    datesTitle: "Your dates",
+    datesSubmit: "Show prices for these dates",
     aboutTitle: "About this place",
     roomsTitle: "Rooms",
     roomsDescription: "Tap a room to see its rates and what each one includes.",
@@ -5682,6 +5687,9 @@ export const en = {
       back: "Back",
       howLongTitle: "How long it takes",
       selected: "Selected",
+      /* UX-05: both groups are always shown; the current side's comes first. */
+      groupProperty: "Property: to rent or to sell",
+      groupStays: "Stays and tables: by the night or by the table",
     },
     doors: {
       owner: {

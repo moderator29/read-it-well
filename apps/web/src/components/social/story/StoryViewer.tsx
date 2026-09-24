@@ -1,5 +1,6 @@
 "use client";
 
+import { initial } from "@/lib/text/initial";
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -249,7 +250,7 @@ export function StoryViewer({
                   sizes="38px"
                 />
               ) : (
-                <span aria-hidden="true">{who.charAt(0).toUpperCase()}</span>
+                <span aria-hidden="true">{initial(who)}</span>
               )}
             </span>
             <span className="min-w-0">
@@ -439,7 +440,7 @@ export function StoryViewer({
                         sizes="32px"
                       />
                     ) : (
-                      <span aria-hidden="true">{face.label.charAt(0).toUpperCase()}</span>
+                      <span aria-hidden="true">{initial(face.label)}</span>
                     )}
                   </Link>
                 ))}

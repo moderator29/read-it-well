@@ -82,7 +82,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "where-listings-come-from",
     keywords: ["partner", "third party", "feed", "where do listings come from", "real listing", "scrape"],
     answer:
-      "Every listing on Vallo was put up by somebody on Vallo. We import nothing from outside feeds, so there is always a real person behind a listing: somebody to message, somebody to inspect the place with, and somebody accountable if it is not as described.",
+      "Every listing on Vallo was put up on Vallo. We import nothing from outside feeds. Many listings today are examples, marked Example, that show how Vallo works and cannot be rented, bought or booked; a real listing has somebody behind it to message, to inspect the place with, and to hold accountable if it is not as described.",
   },
   {
     id: "agents",

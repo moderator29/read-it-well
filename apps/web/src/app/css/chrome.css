@@ -886,6 +886,19 @@
     flex: none;
     border-radius: var(--nf-radius-sm);
   }
+  /* UX-04: the side the app is on, beside the lockup. A label, not a control:
+     it has no hover or press state on purpose. Text size follows the root. */
+  .nf-side-tag {
+    flex: none;
+    padding: 0.125rem 0.5rem;
+    border: 1px solid var(--nf-brand-edge);
+    border-radius: var(--nf-radius-sm);
+    font-size: var(--nf-text-caption);
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--nf-content-secondary);
+    white-space: nowrap;
+  }
   /*
    * ON A NARROW SIGNED-OUT HEADER THE WORDMARK STANDS DOWN, AND THE NUMBERS
    * ARE WHY RATHER THAN A PREFERENCE.
