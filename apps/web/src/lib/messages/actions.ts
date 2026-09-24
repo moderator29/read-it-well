@@ -401,6 +401,9 @@ export type SentMessage = {
   createdAt: string;
 };
 
+/** What a replayed send answers (V-40): the id, thread and time, never the words. */
+export type ReplayedMessage = Pick<SentMessage, "id" | "conversationId" | "createdAt">;
+
 /**
  * Send a message. One insert under the sender's RLS client; the database
  * triggers bump the conversation, notify the other participant and run the
@@ -413,7 +416,7 @@ export async function sendMessage(input: {
   body: string;
   /** V-40: the UUID minted when this was tapped; a replay answers with the first send. */
   tapKey?: string;
-}): Promise<ActionResult<SentMessage>> {
+}): Promise<ActionResult<SentMessage | ReplayedMessage>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
@@ -423,7 +426,7 @@ export async function sendMessage(input: {
     session.user.id,
     tapKey(input.tapKey),
     () => sendMessageWork(session, { conversationId: input.conversationId, body: input.body }),
-    (sent) => ({ id: sent.id, conversationId: sent.conversationId, createdAt: sent.createdAt }),
+    (sent): ReplayedMessage => ({ id: sent.id, conversationId: sent.conversationId, createdAt: sent.createdAt }),
   );
 }
 

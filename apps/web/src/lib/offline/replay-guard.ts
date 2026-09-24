@@ -34,13 +34,13 @@ import { callSecurityRpc, hasServiceRole } from "../security/service-rpc";
 const LEASE_SECONDS = 120;
 const KEEP_SECONDS = 3 * 86_400;
 
-export async function oncePerTap<T>(
+export async function oncePerTap<T, R = T>(
   scope: string,
   userId: string,
   key: string | null | undefined,
   work: () => Promise<ActionResult<T>>,
-  remember?: (data: T) => unknown,
-): Promise<ActionResult<T>> {
+  remember?: (data: T) => R,
+): Promise<ActionResult<T | R>> {
   if (!key || !hasServiceRole()) return work();
   const subject = subjectForUser(userId);
 
@@ -48,7 +48,7 @@ export async function oncePerTap<T>(
   const answer = claimed.ok && claimed.data && typeof claimed.data === "object" ? (claimed.data as Record<string, unknown>) : null;
   if (answer?.state === "in_flight") return fail(IN_FLIGHT_MESSAGE, { idempotency: "in_flight" });
   if (answer?.state === "replay" && answer.result && typeof answer.result === "object") {
-    return answer.result as ActionResult<T>;
+    return answer.result as ActionResult<T | R>;
   }
   if (answer?.state !== "fresh") return work();
 
@@ -61,7 +61,11 @@ export async function oncePerTap<T>(
   }
   if (result.ok) {
     const stored = remember ? ok(remember(result.data)) : result;
-    await callSecurityRpc("record_idempotency_result_kept", { scope, subject, key, result: stored, keep_seconds: KEEP_SECONDS });
+    const args = { scope, subject, key, result: stored, keep_seconds: KEEP_SECONDS };
+    /* Once more if it fails: an unrecorded success leaves only the lease,
+       and a replay after it would run the work again. */
+    const kept = (await callSecurityRpc("record_idempotency_result_kept", args)).ok || (await callSecurityRpc("record_idempotency_result_kept", args)).ok;
+    if (!kept) console.error(`[outbox] could not keep the answer for ${scope}; a replay after two minutes may repeat it`);
   } else {
     await callSecurityRpc("release_idempotency", { scope, subject, key });
   }
