@@ -26,6 +26,7 @@ import { listedAge, listedAgeText, staleMonthOptions } from "@/lib/listings/list
 import { isTenancyPeriod } from "@/lib/listings/pricing";
 import { isModestExample } from "@/lib/listings/example-imagery";
 import { ListingCompound } from "@/components/app/listing/ListingCompound";
+import { ListingService } from "@/components/app/listing/ListingService";
 import { getBlockedDates } from "@/lib/bookings/queries";
 import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";
@@ -898,6 +899,14 @@ export default async function ListingDetailPage({
                   {listing.compound && (
                     <div className="mt-md">
                       <ListingCompound compound={listing.compound} copy={t.shape.compound} />
+                    </div>
+                  )}
+
+                  {/* What the service charge covers, and Serviced only when
+                      the database derived it (V-68). */}
+                  {listing.service && (
+                    <div className="mt-md">
+                      <ListingService service={listing.service} copy={t.shape.service} />
                     </div>
                   )}
 

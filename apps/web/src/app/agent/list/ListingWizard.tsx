@@ -69,6 +69,8 @@ import { ListingSentForReview } from "./ListingSentForReview";
 import { TextField, TextArea } from "@/components/ui/Field";
 import { CompoundQuestions } from "@/components/agent/CompoundQuestions";
 import { EMPTY_COMPOUND_FORM, compoundPayload, type CompoundForm } from "@/lib/listings/compound";
+import { EMPTY_SERVICE_FORM, servicePayload, type ServiceForm } from "@/lib/listings/service";
+import { ServiceQuestions } from "@/components/agent/ServiceQuestions";
 
 /**
  * The List Apartment wizard: eight steps, canon reference 03.
@@ -189,6 +191,8 @@ type Values = {
   prepaidMeter: boolean;
   /** V-28: the compound's five answers; "" is unanswered. */
   compound: CompoundForm;
+  /** V-68: the service charge's answers. */
+  service: ServiceForm;
   estateName: string;
   gateDirections: string;
   securityPhone: string;
@@ -258,6 +262,7 @@ const EMPTY: Values = {
   waterSupply: "",
   prepaidMeter: false,
   compound: EMPTY_COMPOUND_FORM,
+  service: EMPTY_SERVICE_FORM,
   estateName: "",
   gateDirections: "",
   securityPhone: "",
@@ -314,6 +319,7 @@ function valuesFrom(draft: WizardDraft): Values {
     waterSupply: draft.waterSupply,
     prepaidMeter: draft.prepaidMeter,
     compound: draft.compound ?? EMPTY_COMPOUND_FORM,
+    service: draft.service ?? EMPTY_SERVICE_FORM,
     estateName: draft.access.estateName,
     gateDirections: draft.access.gateDirections,
     securityPhone: draft.access.securityPhone,
@@ -765,6 +771,7 @@ export function ListingWizard({
   reference,
   moveInCopy,
   compoundCopy,
+  serviceCopy,
   locale,
   userId,
   states,
@@ -784,6 +791,8 @@ export function ListingWizard({
   moveInCopy: Dictionary["moveIn"];
   /** V-28: the compound's five questions. */
   compoundCopy: Dictionary["shape"]["compound"];
+  /** V-68: the service charge questions. */
+  serviceCopy: Dictionary["shape"]["service"];
   locale: Locale;
   userId: string | null;
   states: { code: string; name: string }[];
@@ -1178,6 +1187,7 @@ export function ListingWizard({
       waterSupply: values.waterSupply === "" ? undefined : values.waterSupply,
       prepaidMeter: values.prepaidMeter,
       ...compoundPayload(values.compound),
+      ...servicePayload(values.service),
     });
 
     if (!result.ok) {
@@ -2185,6 +2195,13 @@ export function ListingWizard({
               description={copy.drawn.supply.prepaidBody}
               checked={values.prepaidMeter}
               onCheckedChange={(v) => set("prepaidMeter", v)}
+            />
+
+            {/* ------------------------ the service charge and the gate (V-68) */}
+            <ServiceQuestions
+              copy={serviceCopy}
+              value={values.service}
+              onChange={(next) => set("service", next)}
             />
 
             {/* ---------------------------------------- the compound (V-28) */}

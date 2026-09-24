@@ -79,6 +79,8 @@ type Draft = {
   listerRoles: ListingRole[];
   landlordAway: boolean;
   parkingInside: boolean;
+  servicedOnly: boolean;
+  gatedEstate: boolean;
 };
 
 function draftFrom(query: ShelfQuery): Draft {
@@ -101,6 +103,8 @@ function draftFrom(query: ShelfQuery): Draft {
     listerRoles: query.listerRoles,
     landlordAway: query.landlordAway,
     parkingInside: query.parkingInside,
+    servicedOnly: query.servicedOnly,
+    gatedEstate: query.gatedEstate,
   };
 }
 
@@ -131,6 +135,8 @@ function queryFrom(base: ShelfQuery, draft: Draft): ShelfQuery {
     listerRoles: draft.listerRoles,
     landlordAway: draft.landlordAway,
     parkingInside: draft.parkingInside,
+    servicedOnly: draft.servicedOnly,
+    gatedEstate: draft.gatedEstate,
   };
   const q = draft.q.trim();
   if (q.length > 0) next.q = q;
@@ -296,6 +302,7 @@ export function FilterDrawer({
   costCopy,
   compoundCopy,
   sortCopy,
+  serviceCopy,
   openOnMount = false,
 }: {
   query: ShelfQuery;
@@ -311,6 +318,8 @@ export function FilterDrawer({
   compoundCopy: Dictionary["shape"]["compound"];
   /** The sort names, from the dictionary rather than `SORTS[].label`. */
   sortCopy: Dictionary["shape"]["sorts"];
+  /** V-68: the service charge's words, for its two filters. */
+  serviceCopy: Dictionary["shape"]["service"];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(openOnMount);
@@ -416,6 +425,17 @@ export function FilterDrawer({
     }
     return { landlord, parking };
   }, [facts, draft.landlordAway, draft.parkingInside]);
+
+  /* V-68. The same rule for Serviced and the gated estate. */
+  const serviceOptions = useMemo(() => {
+    let serviced = draft.servicedOnly;
+    let gated = draft.gatedEstate;
+    for (const fact of facts) {
+      if (fact.service?.serviced) serviced = true;
+      if (fact.service?.estateType === "gated_estate") gated = true;
+    }
+    return { serviced, gated };
+  }, [facts, draft.servicedOnly, draft.gatedEstate]);
 
   const pending = useMemo(() => queryFrom(query, draft), [query, draft]);
   const matchCount = useMemo(() => {
@@ -832,6 +852,41 @@ export function FilterDrawer({
                       checked={draft.parkingInside}
                       testId="filter-parking-inside"
                       onChange={(next) => setDraft((current) => ({ ...current, parkingInside: next }))}
+                    />
+                  )}
+                </div>
+              </Group>
+            )}
+
+            {/* ------------------------------------------ service (V-68) */}
+            {(serviceOptions.serviced || serviceOptions.gated) && (
+              <Group
+                id="filter-service"
+                title={serviceCopy.filterTitle}
+                clearLabel={copy.clear}
+                onClear={
+                  draft.servicedOnly || draft.gatedEstate
+                    ? () => setDraft((current) => ({ ...current, servicedOnly: false, gatedEstate: false }))
+                    : undefined
+                }
+              >
+                <div className="divide-y divide-[var(--nf-panel-hair)]">
+                  {serviceOptions.serviced && (
+                    <SwitchRow
+                      icon="bolt"
+                      label={serviceCopy.filterServiced}
+                      checked={draft.servicedOnly}
+                      testId="filter-serviced"
+                      onChange={(next) => setDraft((current) => ({ ...current, servicedOnly: next }))}
+                    />
+                  )}
+                  {serviceOptions.gated && (
+                    <SwitchRow
+                      icon="key"
+                      label={serviceCopy.filterGated}
+                      checked={draft.gatedEstate}
+                      testId="filter-gated-estate"
+                      onChange={(next) => setDraft((current) => ({ ...current, gatedEstate: next }))}
                     />
                   )}
                 </div>

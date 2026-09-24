@@ -31,6 +31,8 @@ import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSu
  *              "owner", "agent", "firm"
  *   landlord   "away": the lister said the landlord lives elsewhere (V-28)
  *   parking    "inside": the lister said a car parks inside the compound (V-28)
+ *   serviced   "1": Serviced, derived from what the charge covers (V-68)
+ *   estate     "gated": a gated estate with controlled entry (V-68)
  *
  * The two utility parameters use opposite set logic on purpose, and the URL
  * says so by naming one after a requirement and one after a source. Backup
@@ -166,6 +168,9 @@ export type DiscoveryQuery = {
   /** V-28. Strict: an unanswered listing never satisfies either. */
   landlordAway: boolean;
   parkingInside: boolean;
+  /** V-68. Strict: an unanswered listing never satisfies either. */
+  servicedOnly: boolean;
+  gatedEstate: boolean;
 };
 
 /**
@@ -352,6 +357,8 @@ export function parseDiscoveryQuery(params: RawSearchParams): DiscoveryQuery {
     listerRoles: readRoles(params.by),
     landlordAway: readText(params.landlord) === "away",
     parkingInside: readText(params.parking) === "inside",
+    servicedOnly: readFlag(params.serviced),
+    gatedEstate: readText(params.estate) === "gated",
   };
 
   const q = readText(params.q);
@@ -390,6 +397,8 @@ export function toFilter(query: DiscoveryQuery): ListingSearchFilter {
   if (query.listerRoles.length > 0) filter.listerRoles = query.listerRoles;
   if (query.landlordAway) filter.landlordAway = true;
   if (query.parkingInside) filter.parkingInside = true;
+  if (query.servicedOnly) filter.servicedOnly = true;
+  if (query.gatedEstate) filter.gatedEstate = true;
   return filter;
 }
 
@@ -443,6 +452,8 @@ export function toSearchHref(query: DiscoveryQuery): string {
   if (query.listerRoles.length > 0) params.set("by", query.listerRoles.join(","));
   if (query.landlordAway) params.set("landlord", "away");
   if (query.parkingInside) params.set("parking", "inside");
+  if (query.servicedOnly) params.set("serviced", "1");
+  if (query.gatedEstate) params.set("estate", "gated");
   const qs = params.toString();
   return qs ? `/search?${qs}` : "/search";
 }
@@ -477,6 +488,8 @@ export function clearedFilters(query: DiscoveryQuery): DiscoveryQuery {
     listerRoles: [],
     landlordAway: false,
     parkingInside: false,
+    servicedOnly: false,
+    gatedEstate: false,
   };
   if (query.q) cleared.q = query.q;
   if (query.kind) cleared.kind = query.kind;
@@ -508,5 +521,7 @@ export function activeFilterCount(query: DiscoveryQuery): number {
   if (query.listerRoles.length > 0) count += 1;
   if (query.landlordAway) count += 1;
   if (query.parkingInside) count += 1;
+  if (query.servicedOnly) count += 1;
+  if (query.gatedEstate) count += 1;
   return count;
 }

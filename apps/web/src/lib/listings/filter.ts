@@ -1,5 +1,6 @@
 import type { ListingIntent, PricePeriod } from "./pricing";
 import { matchesCompound, type Compound } from "./compound";
+import { matchesService, type ServiceFacts } from "./service";
 
 
 /**
@@ -88,6 +89,8 @@ export type ListingFacts = {
   pricePeriod?: PricePeriod;
   /** The compound's five answers (V-28), absent when none was given. */
   compound?: Compound;
+  /** V-68, under the Listing's own name. */
+  service?: ServiceFacts;
   bedrooms: number;
   bathrooms: number;
   /** The host's declared capacity, where the source carries one. */
@@ -133,6 +136,7 @@ export function factsOf(l: Listing): ListingFacts {
     ...(l.intent !== undefined ? { intent: l.intent } : {}),
     ...(l.pricePeriod !== undefined ? { pricePeriod: l.pricePeriod } : {}),
     ...(l.compound !== undefined ? { compound: l.compound } : {}),
+    ...(l.service !== undefined ? { service: l.service } : {}),
     bedrooms: l.bedrooms,
     bathrooms: l.bathrooms,
     ...(l.maxGuests !== undefined ? { maxGuests: l.maxGuests } : {}),
@@ -277,6 +281,8 @@ export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = 
 
   /* V-28: the two compound filters, strict about silence like power. */
   if (!matchesCompound(facts.compound, filter)) return false;
+  /* V-68: Serviced and gated estate, strict in the same way. */
+  if (!matchesService(facts.service, filter)) return false;
 
   if (filter.waterSupply && filter.waterSupply.length > 0) {
     // OR, not AND: one column, one value. See the note on the filter type.

@@ -215,6 +215,8 @@ export function summariseSearch(
   for (const source of query.waterSupply) chips.push(WATER_LABEL[source]);
   if (query.landlordAway) chips.push("Landlord lives elsewhere");
   if (query.parkingInside) chips.push("Parking inside the compound");
+  if (query.servicedOnly) chips.push("Serviced");
+  if (query.gatedEstate) chips.push("Gated estate");
   for (const code of query.amenities) chips.push(amenityWord(code));
 
   return chips;

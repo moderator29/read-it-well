@@ -5,6 +5,7 @@ import { memo } from "../cache/memo";
 import { honestExamplePhotos } from "./example-imagery";
 import { rentMeansTenancy } from "./filter";
 import { COMPOUND_COLUMNS, readCompound, type Compound, type CompoundRow } from "./compound";
+import { SERVICE_COLUMNS, readService, type ServiceFacts, type ServiceRow } from "./service";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import { createClient } from "../supabase/server";
@@ -1056,12 +1057,49 @@ async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]>
     getAgentBadges(supabase, [...new Set(rows.map((r) => r.agent_id))]),
     getListerNames(supabase, rows.map((r) => r.id)),
   ]);
-  const compounds = await getCompoundFacts(supabase, rows.map((r) => r.id));
+  const ids = rows.map((r) => r.id);
+  const [compounds, services] = await Promise.all([
+    getCompoundFacts(supabase, ids),
+    getServiceFacts(supabase, ids),
+  ]);
   return rows.map((row) => {
     const listing = mapRow(row, stateNames, amenityCodes, stats, signedVideos, verifiedAgents, listerNames);
     const compound = compounds.get(row.id);
-    return compound ? { ...listing, compound } : listing;
+    const service = services.get(row.id);
+    return {
+      ...listing,
+      ...(compound ? { compound } : {}),
+      ...(service ? { service } : {}),
+    };
   });
+}
+
+/**
+ * THE SERVICE CHARGE'S ANSWERS (V-68), READ ON THEIR OWN for the reason
+ * `getCompoundFacts` gives: a database without migration `20260924150400`
+ * answers with an error, which means nobody answered, and never costs the
+ * catalogue.
+ */
+async function getServiceFacts(
+  supabase: Client,
+  ids: string[],
+): Promise<Map<string, ServiceFacts>> {
+  const out = new Map<string, ServiceFacts>();
+  if (ids.length === 0) return out;
+  try {
+    const { data, error } = await supabase
+      .from("listings")
+      .select(`id, ${SERVICE_COLUMNS}`)
+      .in("id", ids);
+    if (error || !data) return out;
+    for (const row of data as unknown as (ServiceRow & { id: string })[]) {
+      const service = readService(row);
+      if (service) out.set(row.id, service);
+    }
+  } catch {
+    /* No service facts is the honest answer to a read that failed. */
+  }
+  return out;
 }
 
 /**

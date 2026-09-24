@@ -133,6 +133,7 @@ export function ShelfBar({
           costCopy={t.moveIn}
           compoundCopy={t.shape.compound}
           sortCopy={t.shape.sorts}
+          serviceCopy={t.shape.service}
           openOnMount={openFilters}
         />
       </div>

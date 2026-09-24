@@ -2,6 +2,7 @@
 
 import type { ListingRole } from "@/lib/supply/roles";
 import type { Compound } from "./compound";
+import type { ServiceFacts } from "./service";
 import type {
   BuildCondition,
   Furnishing,
@@ -168,6 +169,8 @@ export type Listing = {
    * gets in. Absent when the lister answered none of them.
    */
   compound?: Compound;
+  /** V-68: what the service charge covers, how it is charged, the gate. Absent: unanswered. */
+  service?: ServiceFacts;
   furnished?: Furnishing;
   /**
    * WHAT A BUYER ACTUALLY PAYS, in kobo, as the lister stated it.
@@ -467,6 +470,10 @@ export type ListingSearchFilter = {
   landlordAway?: boolean;
   /** V-28: only listings whose lister said the parking is inside the compound. Strict. */
   parkingInside?: boolean;
+  /** V-68: only listings that are Serviced (diesel, water and security covered). Strict. */
+  servicedOnly?: boolean;
+  /** V-68: only listings in a gated estate with controlled entry. Strict. */
+  gatedEstate?: boolean;
 };
 
 /**

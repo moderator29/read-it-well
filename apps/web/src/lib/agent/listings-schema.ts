@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { PARKING_TYPES, WASTE_DISPOSALS } from "@/lib/listings/compound";
+import { ESTATE_TYPES, SERVICE_COVERS } from "@/lib/listings/service";
 
 import {
   BUILD_CONDITION_VALUES,
@@ -696,6 +697,12 @@ export const draftInputSchema = z.object({
   landlordOnSite: z.boolean().nullable().optional(),
   wasteDisposal: z.enum(WASTE_DISPOSALS).nullable().optional(),
   carAccess: z.boolean().nullable().optional(),
+
+  /* V-68. What the service charge covers, how it is charged, and the gate.
+     Null clears an answer taken back, undefined leaves the column alone. */
+  serviceChargeCovers: z.array(z.enum(SERVICE_COVERS)).max(SERVICE_COVERS.length).nullable().optional(),
+  serviceChargeReconciled: z.boolean().nullable().optional(),
+  estateType: z.enum(ESTATE_TYPES).nullable().optional(),
 });
 
 export type DraftInput = z.input<typeof draftInputSchema>;

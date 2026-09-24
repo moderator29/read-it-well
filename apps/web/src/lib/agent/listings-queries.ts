@@ -29,6 +29,14 @@ import {
   type CompoundForm,
   type CompoundRow,
 } from "../listings/compound";
+import {
+  SERVICE_COLUMNS,
+  readService,
+  serviceFormOf,
+  type ServiceFacts,
+  type ServiceForm,
+  type ServiceRow,
+} from "../listings/service";
 
 /**
  * Server-side reads for the agent supply loop.
@@ -247,6 +255,8 @@ export type WizardDraft = {
   prepaidMeter: boolean;
   /** V-28: the compound's five answers, as the wizard's controls hold them. */
   compound?: CompoundForm;
+  /** V-68: the service charge's answers, as the wizard's controls hold them. */
+  service?: ServiceForm;
   /** Never public. Read from public.listing_access, which only the host,
       an admin and a guest with a CONFIRMED booking may select from. */
   access: {
@@ -509,6 +519,7 @@ async function toDraft(
     waterSupply: row.water_supply ?? "",
     prepaidMeter: row.prepaid_meter ?? false,
     compound: compoundFormOf(await readCompoundFor(supabase, row.id)),
+    service: serviceFormOf(await readServiceFor(supabase, row.id)),
     access: {
       estateName: row.listing_access?.estate_name ?? "",
       gateDirections: row.listing_access?.gate_directions ?? "",
@@ -539,6 +550,24 @@ async function readCompoundFor(
       .maybeSingle();
     if (error || !data) return null;
     return readCompound(data as unknown as CompoundRow);
+  } catch {
+    return null;
+  }
+}
+
+/** V-68: the service charge's answers for one draft, by their own read. */
+async function readServiceFor(
+  supabase: SupabaseClient<Database>,
+  listingId: string,
+): Promise<ServiceFacts | null> {
+  try {
+    const { data, error } = await supabase
+      .from("listings")
+      .select(SERVICE_COLUMNS)
+      .eq("id", listingId)
+      .maybeSingle();
+    if (error || !data) return null;
+    return readService(data as unknown as ServiceRow);
   } catch {
     return null;
   }

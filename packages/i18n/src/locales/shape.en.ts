@@ -98,6 +98,39 @@ export const shapeEn = {
   market: {
     rent: "Rent",
   },
+  /** V-68: what the service charge buys, and the word Serviced, derived. */
+  service: {
+    title: "What the service charge covers",
+    serviced: "Serviced",
+    servicedMeaning: "Power, water and security are all covered by the service charge.",
+    covers: {
+      diesel: "Generator diesel and maintenance",
+      water: "Water treatment",
+      security: "Security guards",
+      estate_dues: "Estate dues",
+      waste: "Rubbish collection",
+      cleaning: "Cleaning of shared areas",
+      lift: "Lift",
+    },
+    coversNone: "The lister says it covers none of these.",
+    fixed: "A fixed sum",
+    reconciled: "Estimated, then balanced at year end",
+    estateTypes: {
+      gated_estate: "Gated estate with controlled entry",
+      gated_compound: "Gated compound with a gateman",
+      open_street: "On an open street",
+    },
+    wizardTitle: "The service charge and the gate",
+    wizardHint:
+      "Say what the service charge pays for. Vallo calls a home Serviced only when it covers diesel, water and security, whatever the title says.",
+    coversLabel: "What does the service charge cover?",
+    reconciledLabel: "How is it charged?",
+    estateLabel: "What kind of gate is it behind?",
+    unanswered: "Not answered",
+    filterTitle: "Service and the gate",
+    filterServiced: "Serviced: power, water and security covered",
+    filterGated: "Gated estate with controlled entry",
+  },
   /** V-28: the compound's five answers, as the page, the wizard and the drawer say them. */
   compound: {
     title: "The compound",

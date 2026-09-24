@@ -461,6 +461,15 @@ export function ListingCard({
             </ul>
           )}
 
+          {/* V-68. Serviced, only when the charge covers power, water and
+              security; the word is derived, never typed by the lister. */}
+          {listing.service?.serviced && (
+            <p className="nf-pcard__sub inline-flex items-start gap-inline-tight" data-testid="card-serviced">
+              <UiIcon name="bolt" size={12} className="mt-3xs shrink-0" />
+              <span className="break-words">{t.shape.service.serviced}</span>
+            </p>
+          )}
+
           {/* V-28. The one compound answer that earns a line on a card:
               whether the landlord lives there. Absent when unanswered. */}
           {listing.compound?.landlordOnSite !== undefined && (
