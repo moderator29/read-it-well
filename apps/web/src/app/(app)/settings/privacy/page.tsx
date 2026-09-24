@@ -7,6 +7,8 @@ import { loadSettingsState } from "@/lib/profile/queries";
 import { loadSessions } from "@/lib/security/sessions";
 import { AccountPrivacyCard } from "../AccountToggles";
 import { DevicesRow } from "../DevicesCard";
+import { loadPendingAddressMove } from "@/lib/auth/pending-address-move";
+import { PendingAddressMove } from "./PendingAddressMove";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.hub.privacy };
@@ -19,7 +21,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function PrivacySettingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const [account, sessions] = await Promise.all([loadSettingsState(), loadSessions()]);
+  const [account, sessions, pendingMove] = await Promise.all([
+    loadSettingsState(),
+    loadSessions(),
+    loadPendingAddressMove(locale),
+  ]);
   const signedIn = account.state === "signed-in";
   const deviceCount =
     sessions.state === "signed-in" && sessions.readable ? sessions.sessions.length : null;
@@ -32,6 +38,11 @@ export default async function PrivacySettingsPage() {
         fallback="/settings"
       />
       <div className="space-y-block">
+        {pendingMove && (
+          <section id="settings-address-move" className="scroll-mt-28">
+            <PendingAddressMove t={t} move={pendingMove} />
+          </section>
+        )}
         <section id="settings-privacy" className="scroll-mt-28">
           {signedIn ? (
             <AccountPrivacyCard

@@ -5,6 +5,7 @@ import {
   cancelEmailRecovery,
   completeEmailRecovery,
   openEmailRecovery,
+  resendRecoveryNotice,
 } from "@/lib/admin/email-recovery-actions";
 
 export type RecoveryRow = {
@@ -76,14 +77,22 @@ function OpenForm() {
 function RowActions({ row, isSuperAdmin }: { row: RecoveryRow; isSuperAdmin: boolean }) {
   const [completed, complete, completing] = useActionState(completeEmailRecovery, null);
   const [cancelled, cancel, cancelling] = useActionState(cancelEmailRecovery, null);
+  const [resent, resend, resending] = useActionState(resendRecoveryNotice, null);
   if (row.status !== "cooling_off") return null;
   return (
     <div className="mt-xs flex flex-wrap items-end gap-sm">
+      <form action={resend}>
+        <input type="hidden" name="requestId" value={row.id} />
+        <button type="submit" className="nf-btn nf-btn--secondary nf-btn--sm" disabled={resending}>
+          Send the notice again
+        </button>
+        <Result state={resent ? (resent.ok ? { ok: true } : { ok: false, error: resent.error }) : null} />
+      </form>
       {isSuperAdmin && (
         <form action={complete}>
           <input type="hidden" name="requestId" value={row.id} />
           <button type="submit" className="nf-btn nf-btn--primary nf-btn--sm" disabled={completing}>
-            Move the account (after the 72 hours)
+            Move the account (a second super admin, 72 hours after the notice)
           </button>
           <Result state={completed ? (completed.ok ? { ok: true } : { ok: false, error: completed.error }) : null} />
         </form>

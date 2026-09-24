@@ -1390,6 +1390,19 @@ export const en = {
    * languages.
    */
   settings: {
+    /**
+     * SEC-15: a request by support to move this account to another email
+     * address, shown to its owner while it is cooling off, with the one
+     * action that matters: stop it.
+     */
+    addressMove: {
+      title: "A request to move your account to another email address",
+      body: "Our support team opened a request to move this account to {address}. It completes no earlier than {when}.",
+      afterNotice: "72 hours after we email this address about it",
+      ifYou: "If you asked for this, there is nothing to do.",
+      cancel: "This was not me, cancel it",
+      cancelled: "Cancelled. Your account stays at this address.",
+    },
     /** The settings home to `7F96BE6C`: the headline, the profile row, the hub rows. */
     hub: {
       lede: "Manage your account, preferences and payment methods.",

@@ -32,9 +32,11 @@ export default async function AccountRecoveryPage() {
       <h1 className="nf-h2">Account recovery</h1>
       <p className="mt-sm text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
         For a person who has lost the mailbox on their account. A super admin opens a request with the
-        NIN the person gives, which must match an approved identity on file. The old address is told at
-        once. After 72 hours, a different super admin from the account&apos;s owner can complete it; any
-        admin can cancel it before then. Every step is in the audit log.
+        NIN the person gives, which must match an approved identity on file, and the old address is
+        told at once. The 72 hours count from that notice; if it did not go, send it again. After
+        them, a different super admin from the one who opened it completes the move, which signs the
+        account out everywhere and holds money leaving it for 7 days. Any admin, or the owner from
+        their settings, can cancel before then. Every step is in the audit log.
       </p>
       {error ? (
         <p className="mt-md text-[length:var(--nf-text-body-sm)]">The requests could not be read just now.</p>

@@ -410,8 +410,9 @@ export function emailRecoveryOpened(data: EmailRecoveryData): EmailMessage {
       rows([{ label: "It completes, at the earliest", value: data.eligibleAt ?? "in 72 hours" }]),
       paragraph("If that was you, there is nothing to do. Nothing changes before the time above."),
       paragraph(
-        "If it was not you, reply to this email or write to support now. The request is cancelled and your account stays at this address.",
+        "If it was not you, cancel it from Settings, Privacy while you can still sign in, or contact us now. The request is cancelled and your account stays at this address.",
       ),
+      button("Contact us", appUrl("/contact"), true),
     ],
     [
       "You are receiving this because it is the address on the account.",
@@ -430,7 +431,8 @@ export function emailRecoveryCompleted(data: EmailRecoveryData): EmailMessage {
       paragraph(
         `${hello(data.name)} Your Vallo account now signs in with ${data.newAddressMasked}. This address no longer reaches it.`,
       ),
-      paragraph("If this was not you, write to support straight away and quote this email."),
+      paragraph("If this was not you, contact us straight away and quote this email."),
+      button("Contact us", appUrl("/contact"), true),
     ],
     [
       "You are receiving this because it was the address on the account.",

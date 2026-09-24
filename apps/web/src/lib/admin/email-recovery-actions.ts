@@ -11,11 +11,22 @@
  *
  *   1. OPEN   the NIN the person gives must match the NIN on an APPROVED
  *             identity on file; the old address is told at once.
- *   2. WAIT   72 hours of cooling-off, during which any admin can cancel.
- *   3. MOVE   `admin_begin_email_recovery` refuses before the 72 hours; the
- *             auth row is changed here with the service role; the outcome is
- *             recorded by `admin_finish_email_recovery`; the OLD address is
- *             told again.
+ *   2. WAIT   72 hours of cooling-off counted from the moment that notice
+ *             went out (not from the opening), during which any admin, or
+ *             the account's owner from Settings, can cancel. If the notice
+ *             failed, the desk sends it again; nothing can complete until one
+ *             has gone.
+ *   3. MOVE   TWO PEOPLE: a super admin other than the one who opened it
+ *             begins (`admin_begin_email_recovery`), the auth row is changed
+ *             here with the service role, and the same super admin records
+ *             the outcome (`admin_finish_email_recovery`). A successful move
+ *             signs the account out everywhere and puts a 7-day hold on money
+ *             leaving it (withdrawals, sends, new or changed bank accounts),
+ *             enforced by triggers in the database. The OLD address is told
+ *             again.
+ *
+ * The notice goes by email only. A phone notice needs an SMS transport the
+ * product does not have yet (recorded as deferred).
  *
  * Every step writes `audit_log` in the database. Nobody can move their own
  * account.
@@ -27,6 +38,7 @@ import { fail, formDataToObject, ok, validate, type ActionResult } from "../acti
 import { sendMessage } from "../email/client";
 import { emailRecoveryCompleted, emailRecoveryOpened } from "../email/messages";
 import { createAdminClient } from "../supabase/admin";
+import { createClient } from "../supabase/server";
 import { adminRefusal, requireAdmin } from "./guard";
 
 const SUPER_ONLY = "Only a super admin can move an account to a new address.";
@@ -134,13 +146,21 @@ export async function completeEmailRecovery(
     email_confirm: true,
   });
 
-  await access.supabase.rpc("admin_finish_email_recovery" as never, {
+  const { error: finishError } = await access.supabase.rpc("admin_finish_email_recovery" as never, {
     p_request: requestId,
     p_ok: !moveError,
     p_error: moveError ? moveError.message : null,
   } as never);
 
   if (moveError) return fail("The address could not be changed, so nothing was changed. The request is back in its cooling-off state.");
+  if (finishError) {
+    const code = (finishError as { code?: string }).code ?? "";
+    return fail(
+      code === "RM041" || code === "42501"
+        ? ((finishError as { message?: string }).message ?? SERVICE_DOWN)
+        : "The address was changed but the record of it was not written. Tell engineering before doing anything else.",
+    );
+  }
 
   const noticeSent = await noticeOldAddress(requestId, "completed");
   revalidatePath("/admin/account-recovery");
@@ -175,6 +195,59 @@ export async function cancelEmailRecovery(
 }
 
 /**
+ * The desk's "send the notice again", for a request whose first notice did
+ * not go. Only while it is cooling off. The clock is stamped by the first
+ * notice that actually went, so sending again never restarts it.
+ */
+export async function resendRecoveryNotice(
+  _prev: ActionResult<RecoveryOpened> | null,
+  formData: FormData,
+): Promise<ActionResult<RecoveryOpened>> {
+  const access = await requireAdmin();
+  if (access.state !== "admin") return fail(adminRefusal(access));
+
+  const parsed = validate(requestSchema, formDataToObject(formData));
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const { requestId } = parsed.data;
+
+  const { data } = await access.supabase
+    .from("email_recovery_requests" as never)
+    .select("status")
+    .eq("id", requestId)
+    .maybeSingle();
+  if ((data as { status?: string } | null)?.status !== "cooling_off") {
+    return fail("Only a request still in its cooling-off can be told again.");
+  }
+  const noticeSent = await noticeOldAddress(requestId, "opened");
+  revalidatePath("/admin/account-recovery");
+  return noticeSent ? ok({ requestId, noticeSent }) : fail("The notice did not go. Try again in a moment.");
+}
+
+/**
+ * The owner's own "this was not me", from Settings, Privacy. The database
+ * checks the request is on the caller's account and still cooling off.
+ */
+export async function ownerCancelEmailRecovery(
+  _prev: ActionResult<{ requestId: string }> | null,
+  formData: FormData,
+): Promise<ActionResult<{ requestId: string }>> {
+  const parsed = validate(requestSchema, formDataToObject(formData));
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("admin_cancel_email_recovery" as never, {
+    p_request: parsed.data.requestId,
+    p_reason: null,
+  } as never);
+  if (error) {
+    const code = (error as { code?: string }).code ?? "";
+    return fail(code === "RM041" || code === "42501" ? ((error as { message?: string }).message ?? SERVICE_DOWN) : SERVICE_DOWN);
+  }
+  revalidatePath("/settings/privacy");
+  return ok({ requestId: parsed.data.requestId });
+}
+
+/**
  * Tell the OLD address, read from the request row (never from the auth row,
  * which after a move is the new address), and stamp when it went.
  */
@@ -183,26 +256,38 @@ async function noticeOldAddress(requestId: string, moment: "opened" | "completed
     const admin = createAdminClient();
     const { data } = await admin
       .from("email_recovery_requests" as never)
-      .select("user_id, old_email, new_email, eligible_at")
+      .select("user_id, old_email, new_email, eligible_at, opened_notice_at")
       .eq("id", requestId)
       .maybeSingle();
-    const row = data as { user_id: string; old_email: string; new_email: string; eligible_at: string } | null;
+    const row = data as {
+      user_id: string;
+      old_email: string;
+      new_email: string;
+      eligible_at: string;
+      opened_notice_at: string | null;
+    } | null;
     if (!row) return false;
+    // The 72 hours count from the first notice that went, so a first notice
+    // promises 72 hours from now and a repeat promises what the first did.
+    const noticeClock = row.opened_notice_at ? new Date(row.opened_notice_at).getTime() : Date.now();
+    const earliest = new Date(Math.max(new Date(row.eligible_at).getTime(), noticeClock + 72 * 60 * 60 * 1000));
     const { data: profile } = await admin.from("profiles").select("display_name").eq("id", row.user_id).maybeSingle();
     const content = {
       name: profile?.display_name ?? null,
       newAddressMasked: await maskAddress(row.new_email),
-      eligibleAt: lagosStamp(row.eligible_at),
+      eligibleAt: lagosStamp(earliest.toISOString()),
     };
     const result = await sendMessage(
       row.old_email,
       moment === "opened" ? emailRecoveryOpened(content) : emailRecoveryCompleted(content),
     );
     if (result.sent) {
+      const column = moment === "opened" ? "opened_notice_at" : "completed_notice_at";
       await admin
         .from("email_recovery_requests" as never)
-        .update({ [moment === "opened" ? "opened_notice_at" : "completed_notice_at"]: new Date().toISOString() } as never)
-        .eq("id", requestId);
+        .update({ [column]: new Date().toISOString() } as never)
+        .eq("id", requestId)
+        .is(column, null);
     }
     return result.sent;
   } catch {
