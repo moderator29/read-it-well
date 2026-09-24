@@ -1,0 +1,165 @@
+# Store privacy answers: Apple App Privacy and Google Play Data safety
+
+Derived from the code on 24 September 2026 (branch fix/a4), not from memory.
+Each answer names the code or table it comes from, so the next change to what
+is collected changes this file in the same commit. The privacy notice
+(`apps/web/src/lib/legal/privacy.tsx`, version 2026-09-24) says the same
+things in prose. **If this file and the notice ever disagree, the store forms
+are wrong. Stop and reconcile before submitting.** A mismatch on Play's Data
+safety form is grounds for suspension.
+
+Facts that apply to every row:
+
+- **Tracking: NO, for every data type.** There is no advertising SDK, no IDFA
+  or Android advertising ID, no third-party analytics, and no data is shared
+  with data brokers (`grep -ri "firebase-analytics\|mixpanel\|segment\|amplitude\|gtag\|fbq" apps/web/src` returns nothing). So on iOS there is no App
+  Tracking Transparency prompt and no `NSUserTrackingUsageDescription`.
+- **Encrypted in transit: YES.** HTTPS only, HSTS with preload (`next.config.ts`
+  headers), `cleartext: false` in the shell.
+- **Deletion: YES.** In the app: Settings → Account → Delete my account. On the
+  web, with no install and no sign-in needed: `https://www.vallospaces.com/delete-account`.
+- **Processors are service providers, not "sharing".** Supabase, Vercel,
+  Paystack, Resend, Anthropic, MapTiler/CARTO, FCM/APNs and Sentry process
+  data on our instructions. Under Play's definitions that is not sharing.
+  Showing your booking details to the lister you booked with is a transfer the
+  user starts, which Play also exempts. **So "Shared" is NO for every type.**
+
+---
+
+## Part A: Apple App Store Connect → App Privacy
+
+### Q1. "Do you or your third-party partners collect data from this app?"
+**Yes, we collect data from this app.**
+
+### Q2. The data types we collect, with the three follow-up questions for each
+
+For each type Apple asks: (a) how it is used, (b) is it linked to the user's
+identity, (c) is it used for tracking. **(c) is No for every row.**
+
+| Apple category → type | Collected? | (a) Purposes to tick | (b) Linked to the user? | Where in the code |
+|---|---|---|---|---|
+| Contact Info → **Name** | Yes | App Functionality | Yes | `profiles.first_name/surname/display_name`, `agent_applications.full_name` |
+| Contact Info → **Email Address** | Yes | App Functionality, Customer Support | Yes | `auth.users.email`, `support_tickets.email` |
+| Contact Info → **Phone Number** | Yes | App Functionality | Yes | `profiles.phone` (optional), `agent_applications.phone` |
+| Contact Info → **Physical Address** | Yes | App Functionality | Yes | `agent_applications.residential_address` (agents), the address of a listed property |
+| Contact Info → Other User Contact Info | No | | | |
+| Health & Fitness (both) | No | | | |
+| Financial Info → **Payment Info** | Yes | App Functionality | Yes | `payment_methods` keeps Paystack's card token, card type, last four digits and expiry. The full card number never reaches us. |
+| Financial Info → Credit Info | No | | | |
+| Financial Info → **Other Financial Info** | Yes | App Functionality | Yes | wallet and pot balances, `bank_accounts` (payout account), `wallet_entries` |
+| Location → **Precise Location** | Yes | App Functionality | Yes | Listing and stay pin from "use my location"; `price_check_watches.lat/lng` (3 decimals, about 110 m, which Apple counts as precise). Only when the person taps; never in the background. |
+| Location → Coarse Location | No | | | State and local government are typed or picked by the person, not derived from the device. That is User Content, not Location. |
+| Sensitive Info | No | | | Nothing about race, religion, health, sexuality, politics, biometrics or genetics is collected. |
+| Contacts | No | | | No address-book access (no `NSContactsUsageDescription`). |
+| User Content → **Emails or Text Messages** | Yes | App Functionality | Yes | In-app messages between members (`messages`). |
+| User Content → **Photos or Videos** | Yes | App Functionality | Yes | Listing photos and walkthrough videos, avatars and covers, photos sent in a thread, post and story media. |
+| User Content → Audio Data | No | | | The only sound is in a walkthrough video, which is already declared under Photos or Videos. Nothing records audio on its own. |
+| User Content → Gameplay Content | No | | | |
+| User Content → **Customer Support** | Yes | Customer Support | Yes | `support_tickets`, the support chat |
+| User Content → **Other User Content** | Yes | App Functionality | Yes | posts, comments, stories, reviews, listings' descriptions, questions typed to the AI assistant (`ai_conversations`), bio |
+| Browsing History | No | | | |
+| Search History | **Yes** | App Functionality | Yes | `saved_searches`, `price_check_events` (area and property searched) |
+| Identifiers → **User ID** | Yes | App Functionality | Yes | the account id |
+| Identifiers → **Device ID** | Yes | App Functionality | Yes | `push_tokens` (APNs or FCM token, if notifications are on); `known_devices.fingerprint` (a code derived from the device, used for new-sign-in warnings) |
+| Purchases → **Purchase History** | Yes | App Functionality | Yes | bookings, reservations, payments |
+| Usage Data → **Product Interaction** | **Yes** | Analytics | Yes | `price_check_events.stage` records how far a person got in the price check. This is the only usage record. Declare it; do not answer "no usage data". |
+| Usage Data → Advertising Data | No | | | |
+| Usage Data → Other Usage Data | No | | | |
+| Diagnostics → **Crash Data** | Yes (only when `SENTRY_DSN` is set) | App Functionality | **No** | `lib/observability/report.ts` scrubs identifiers before sending. If Sentry is not configured at submission time, answer No, and change it the day it is switched on. |
+| Diagnostics → Performance Data | No | | | |
+| Diagnostics → Other Diagnostic Data | No | | | |
+| Surroundings, Body | No | | | |
+| Other Data → **Other Data Types** | Yes | App Functionality | Yes | Government ID and NIN, business registration documents (agents and hosts); occupation and interests (optional, on the profile) |
+
+### Q3. "Does your app use data for tracking?"
+**No.**
+
+### The privacy policy URL
+`https://www.vallospaces.com/privacy`
+
+### Things to know on submission day
+- **Third-party AI (guideline 5.1.2(i)).** Say in the review notes: "The in-app
+  assistant and support chat use Anthropic. The app discloses this and asks
+  for agreement before the first message. Without agreement nothing is sent,
+  and the server refuses. Support by a person, with no AI, is at /contact."
+- **Sign-in.** Email and password only (Google is off, and Sign in with Apple
+  turns on only when configured), so guideline 4.8 does not apply.
+
+---
+
+## Part B: Google Play Console → App content → Data safety
+
+### Section 1: Data collection and security
+
+| Question | Answer |
+|---|---|
+| Does your app collect or share any of the required user data types? | **Yes** |
+| Is all of the user data collected by your app encrypted in transit? | **Yes** |
+| Do you provide a way for users to request that their data is deleted? | **Yes.** In the app, and at `https://www.vallospaces.com/delete-account` |
+
+### Section 2: Data types
+
+For each type Play asks: **Collected?** / **Shared?** (No for every row; see
+the top of this file) / **Processed ephemerally?** (No for every row: all of it
+is stored) / **Required or optional?** / **Purposes**.
+
+| Play category → type | Collected | Required / optional | Purposes to tick |
+|---|---|---|---|
+| Location → Approximate location | **No** | | |
+| Location → **Precise location** | Yes | Optional (only when the person taps "use my location" or saves a price-check spot) | App functionality |
+| Personal info → **Name** | Yes | Required | App functionality, Account management |
+| Personal info → **Email address** | Yes | Required | App functionality, Account management, Developer communications |
+| Personal info → **User IDs** | Yes | Required | App functionality, Account management |
+| Personal info → **Address** | Yes | Optional (agents and listers only) | App functionality |
+| Personal info → **Phone number** | Yes | Optional | App functionality, Account management |
+| Personal info → Race and ethnicity, Political or religious beliefs, Sexual orientation | **No** | | |
+| Personal info → **Other info** | Yes | Optional | App functionality, Fraud prevention, security and compliance (Government ID / NIN, business registration, occupation) |
+| Financial info → **User payment info** | Yes | Optional (only if a card is saved) | App functionality (Paystack card token, last four digits) |
+| Financial info → **Purchase history** | Yes | Optional | App functionality |
+| Financial info → Credit score | **No** | | |
+| Financial info → **Other financial info** | Yes | Optional | App functionality (wallet, pot balances, payout bank account) |
+| Health and fitness (both) | **No** | | |
+| Messages → Emails | **No** | | We send emails. We do not read the user's email. |
+| Messages → SMS or MMS | **No** | | |
+| Messages → **Other in-app messages** | Yes | Optional | App functionality |
+| Photos and videos → **Photos** | Yes | Optional | App functionality |
+| Photos and videos → **Videos** | Yes | Optional | App functionality |
+| Audio → Voice or sound recordings / Music / Other audio | **No** | | Video sound is part of Videos. |
+| Files and docs → **Files and docs** | Yes | Optional (agents and hosts) | App functionality, Fraud prevention, security and compliance (identity and business documents) |
+| Calendar | **No** | | |
+| Contacts | **No** | | |
+| App activity → **App interactions** | Yes | Optional | Analytics (price-check steps, `price_check_events`) |
+| App activity → **In-app search history** | Yes | Optional | App functionality (saved searches, price-check areas) |
+| App activity → Installed apps | **No** | | |
+| App activity → **Other user-generated content** | Yes | Optional | App functionality (posts, reviews, listings, questions to the AI assistant) |
+| App activity → Other actions | **No** | | |
+| Web browsing → Web browsing history | **No** | | |
+| App info and performance → **Crash logs** | Yes if `SENTRY_DSN` is set at submission, otherwise No | Optional | App functionality |
+| App info and performance → Diagnostics / Other app performance data | **No** | | |
+| Device or other IDs → **Device or other IDs** | Yes | Optional | App functionality, Fraud prevention, security and compliance (FCM token; new-device fingerprint) |
+
+### Section 3: Security practices (shown on the listing)
+- Data is encrypted in transit: **Yes**
+- You can request that data be deleted: **Yes**
+- Committed to Play Families Policy: **No** (18+ only; see the Terms)
+- Independent security review: **No**
+
+### Other Play declarations that must agree with this
+- **Financial features:** see STORE-09. Answer from what ships: digital wallet
+  and P2P transfer yes if wallet Send/Request is live at submission; crypto no;
+  loans no.
+- **Target audience:** 18 and over.
+- **Ads:** "No, my app does not contain ads."
+
+---
+
+## When to change this file
+Change this file in the same commit as any of the following:
+- a new table or column holding personal data;
+- a new third-party host in `apps/web/src`;
+- a new permission in `Info.plist` or `AndroidManifest.xml`;
+- Sentry being switched on or off.
+
+`apps/web/src/lib/legal/privacy-truth.test.ts` fails if the code starts
+calling a processor the notice does not name. It does not read this file:
+reconciling this file is the job of the person who makes the change.

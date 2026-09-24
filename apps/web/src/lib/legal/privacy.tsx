@@ -141,7 +141,13 @@ export const PRIVACY_SECTIONS: { id?: string; title: string; body: React.ReactNo
             <strong>Technical data.</strong> IP address, browser and device type in our
             hosting and database logs, used to keep the service working and secure. If
             something crashes, a crash report with the error, the page and the device
-            type, with personal details removed. There is no analytics or advertising
+            type, with personal details removed.
+          </li>
+          <li>
+            <strong>Price checks.</strong> When you use the price check, we record the
+            area, the kind of property and how far you got, against your account, so we
+            can see whether it gives useful answers. That is the only record we keep of
+            how the product is used. There is no other analytics and no advertising
             tracking in Vallo.
           </li>
           <li>
