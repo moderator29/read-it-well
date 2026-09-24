@@ -18,7 +18,7 @@ Fixing started at 23 Sep 2026, from `77cf90a`: the audit branch with `origin/mai
 
 ## Progress
 
-Compiled 2026-09-23 23:37 UTC from the six fixers' running ledgers.
+Compiled 2026-09-24 00:01 UTC from the six fixers' running ledgers.
 
 ## Agent 1: the live holes and the supply blockage
 
@@ -79,14 +79,14 @@ Compiled 2026-09-23 23:37 UTC from the six fixers' running ledgers.
 
 ### NEW-A1-01 — a live listing's photos, videos and amenities (and the stored photo bytes) change without re-review
 - SEVERITY: HIGH (latent: 0 real listers today). It bypasses moderation on public content, the same class as DB-02's ATTACK A. Proved on live after DB-02: `PROBE_FAIL new-a1-01: owner added a photo to a live listing`. A second vector the table rule alone would miss: storage policies let the owner UPDATE (overwrite) or DELETE any object under their uid folder, so the bytes behind an approved photo could be swapped in place.
-- STATE: AWAITING-REVIEW (proved, not applied). Draft: scratchpad/work/fix-a1/new_a1_01_migration.sql. It adds a SECURITY INVOKER guard_listing_child_write trigger (00-named, BEFORE I/U/D) on listing_photos, listing_videos and listing_amenities: API non-staff writes only while the parent listing is DRAFT, MORE_INFO_REQUIRED or REJECTED. It adds a definer private.listing_media_locked(name) (EXECUTE for authenticated, which the storage policies need). It re-creates the four owner storage UPDATE/DELETE policies on listing-photos and listing-videos with `and not listing_media_locked(name)`, keeping roles={authenticated}.
+- STATE: FIXED — Agent 2 APPROVE (reviews/a1-batch2b-by-a2.md); applied to live as 20260923234045 with the reviewer's recommended indexes (listing_photos.storage_path, listing_videos.storage_path, listing_videos.poster_path); `PROBE_OK new-a1-01` against live; commit 62a7eac3. Was: Draft scratchpad/work/fix-a1/new_a1_01_migration.sql. It adds a SECURITY INVOKER guard_listing_child_write trigger (00-named, BEFORE I/U/D) on listing_photos, listing_videos and listing_amenities: API non-staff writes only while the parent listing is DRAFT, MORE_INFO_REQUIRED or REJECTED. It adds a definer private.listing_media_locked(name) (EXECUTE for authenticated, which the storage policies need). It re-creates the four owner storage UPDATE/DELETE policies on listing-photos and listing-videos with `and not listing_media_locked(name)`, keeping roles={authenticated}.
 - APP FLOWS CHECKED: every listing photo, video and amenity write in listings-actions.ts is already gated on EDITABLE (LOCKED_MESSAGE). deleteListing deletes the listing row first, which cascades the photo rows as owner, then removes the storage objects, which are no longer referenced, so they are not locked. Uploads use INSERT; only ApplyWizard and UploadCard use upsert, and those write document buckets, not listing media.
 - NOT COVERED, by design: business_photos and accommodation_photos. The host flow files venue photographs at ANY status on purpose (lib/host/actions.ts ownedBusiness: "the moment a venue is APPROVED or PUBLISHED is exactly when its photographs arrive").
 - EVIDENCE (rolled back): `PROBE_OK new-a1-01`. Covered: draft controls; after publish, refusals of photo add, reorder and remove, amenity add and remove, and storage overwrite (rows=0); service-role removal still works; after unpublish, reorder and storage update work again. Note: listing_photos has no admin RLS policy, so staff remove photos through the service role (unchanged).
 - TEST: supabase/tests/probes/new-a1-01.sql (edfd0d26)
 
 ### DB-03 follow-up — firm staff could DELETE another firm member's listing (reviewer note)
-- STATE: AWAITING-REVIEW (proved, not applied). Draft: scratchpad/work/fix-a1/listings_split_migration.sql. It replaces listings_owner_all with listings_owner_select (agent OR active firm member) plus insert/update/delete policies for the lister alone.
+- STATE: FIXED — Agent 2 APPROVE; applied to live as 20260923234031; `PROBE_OK db-03` against live (including firm-staff delete rows=0 and owner draft delete rows=1); commit 62a7eac3. It replaces listings_owner_all with listings_owner_select (agent OR active firm member) plus insert/update/delete policies for the lister alone.
 - EVIDENCE: live now gives `PROBE_FAIL db-03: firm staff deleted the principal's listing rows=1`. With the split, rolled back, the whole db-03 probe returns `PROBE_OK db-03`: the app-shape insert…returning still works; firm staff update and delete touch 0 rows; the owner deletes their own draft.
 - TEST: supabase/tests/probes/db-03.sql (edfd0d26; the firm-staff update check accepts 0 rows or 42501, so the probe holds before and after the split)
 
@@ -227,6 +227,42 @@ Compiled 2026-09-23 23:37 UTC from the six fixers' running ledgers.
 - TESTS: supabase/tests/probes/esc-01.sql; apps/web/src/lib/escrow/money-taken.test.ts.
 - REVIEW:
 
+### BATCH 1 AMENDMENT (after Agent 1's review, reviews/a2-batch1-by-a1.md)
+- m3 (ESC-02): api_caller now reads `current_setting('role', true)`. In a SECURITY DEFINER function current_user is
+  always the owner, so the old guard was dead. The audit trigger's `db_role` was fixed the same way. The same fix is
+  in pending m7. esc-02.sql adds the attack: a guest insert with `vallo.rent_charge` set is still priced from the
+  listing. Re-proved: `PROBE_OK esc-02` (probe_esc02_proof_v2). The probe now resets between attacks so it also
+  survives m7's hold limits.
+- m2 (V-33) DECISIONS:
+  - PROCESSOR FEE ON A REFUND. The lister carries the processor's fee on the charge (credited gross − fee). On a
+    refund the tenant gets back what they paid. The lister gives back at most what that charge credited them
+    (`private.lister_rent_credit_left`), never the fee they never received. The fee is the platform's cost, because
+    Paystack does not return it.
+  - LISTER HAS MOVED THE MONEY (minimal safe path). The refund door answers `lister_short` and moves nothing. It
+    records the sum in `public.rent_refunds_owed` (one row per booking, RLS: the lister and staff read; no API
+    writes) and raises a high risk alert. `private.wallet_spendable_locked` subtracts the owed sum, so nothing more
+    leaves the lister's wallet by any door (all spend doors use that one function) until the refund is covered.
+    Support retries, and the retry pays and clears the debt. The admin sentence says this in words.
+  - ONE CREDIT PER CHARGE. The trigger credits only the booking's first positive ledger row. MON-05's
+    settle_booking_charge (m5) returns any second payment to the payer with no ledger row, so the two must be
+    applied together.
+  - Re-proved: `PROBE_OK v-33` (probe_v33_proof_v2, stand-in kinds). It covers the wallet credit, full refund, a
+    refund the lister cannot cover → recorded debt, income held against it, retry ok and debt cleared, a card
+    credit of gross − fee, a second positive ledger row → no second credit, and a card full refund → ok with the
+    lister back to the start.
+- FOUNDER (V-33): "When a tenant is owed a refund of rent that the lister has already moved, should Vallo refund the
+  tenant at once from its own funds and carry the debt against the lister (a receivable), or should the tenant wait
+  until the lister's wallet covers it (what ships: the debt is recorded and the lister's spending is frozen up to
+  it)? Answer one of: 'platform pays first' / 'tenant waits'." Also: a firm listing's rent credits the individual
+  agent who listed it (lister_id = agents.user_id of the listing's agent), not the firm.
+- m4 (ESC-01) recommendation taken. While the float is short, escrow_admin_resolve raises a high alert on every
+  ruling attempt, refuses a release, and still allows a refund: the refund returns this agreement's own posted hold
+  (escrow_settle proves it) to its payer, so it cannot deepen the gap. Re-proved: `PROBE_OK esc-01`
+  (probe_esc01_proof_v2).
+- Commit 268adce0: probes rebuilt; the lister_short and float sentences in the admin actions updated.
+- Apply order when approved: m1 (enum, alone) → m2 → m3 → m4, then batch 2's m5 in the same window, because m2's
+  one-credit rule assumes m5. m5b (the unique index) goes only after the code release.
+
 ## Agent 3: the pipeline, the tests and the blind lights
 
 ### Ledger — Agent 3 (fix/a3): the pipeline, the tests and the blind lights
@@ -339,6 +375,36 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 - EVIDENCE: with the exception removed and the page moved away: FAIL `expected [ '/preview/session-b' ] to deeply equal []`; with the page: 12/12.
 - NOTE: Agent 6's comment sweep edited the old exception comment in the same test; expect a trivial merge conflict (take this version).
 
+### Batch 2 commits and gates
+- 9401fb60 DOC-03 runner + CI job (NOTE: this commit also carries the staged `git rm scripts/probes/policy_callers_hold_execute.sql`, and its contract.test.ts needs the probe folder added in the next commit, so 9401fb60 on its own is red in vitest; 830a729f is green)
+- 830a729f probes db-20, db-04-anon-storage-read, mon-10-money-grants, mon-07, info-schema-guards + GRANT_STATE.md
+- 10578594 blind lights (overflow, guardMoney AST, BANNED_SYNONYMS)
+- 6adb440b preview session-b index + no exception
+- Gates at 6adb440b (worktree, lockfile tree): typecheck 0; lint 0 errors / 333 warnings; vitest 245 files, 3893 passed, 1 skipped; build exit 0 ("▲ Next.js 16.3.6", `ƒ /preview/session-b` in the route list); tsconfig.json not rewritten.
+- No migrations applied. No pending migrations of mine (the DB fixes the red probes need belong to DB-04/DB-20, MON-10 and MON-07's owners).
+
+### DB-04 + DB-20 (DB half) — scope the four PUBLIC policies to authenticated (assigned to a3 by the orchestrator)
+- STATE: AWAITING-REVIEW, PENDING MIGRATION (not applied)
+- MIGRATION (pending): scratchpad/work/fix-a3/db04_db20_migration.sql. It runs `alter policy … to authenticated` on inspection_photos_objects_party_read, _party_insert and _admin_read (storage.objects) and on listing_access_select (public.listing_access), then asserts that all 4 now have polroles = {authenticated}.
+- RE-VERIFIED LIVE: all four have polroles {-} (PUBLIC). db-20 FAIL 3/791; db-04-anon-storage-read FAIL 42501.
+- COMPATIBILITY (origin/main e1395cfb): every caller is signed in or uses the service role. InspectionSheet.tsx:249 is a client storage call made signed in. lib/inspections/actions.ts:452 is a server action with a session. lib/listings/access-queries.ts:34 uses session.supabase after `signed-in`. lib/bookings/arrival.ts:69 and lib/agent/listings-actions.ts:940 use the admin/service client. No anon path used these policies; anon got 42501 before and gets an empty set after.
+- PROOF (rolled back, apply_migration "proof_db04_db20"): "PROOF OK db04/db20: 0 policy gaps; admin reads inspection-photos objects=0; member and anon read without 42501 (anon listing_access rows=0)". The admin's own authenticated client and a member both read storage.objects and listing_access, and anon reads without error. Earlier probe proofs: db-20 → PROBE_OK 788 pairs; db-04-anon-storage-read → PROBE_OK.
+- AFTER APPLY: read schema_migrations for the version, then commit supabase/migrations/<version>_db04_db20_scope_policies_to_authenticated.sql; db-20 and db-04-anon-storage-read should then be PROBE_OK live.
+- MON-10 and MON-07 DB fixes → Agent 2 (orchestrator). My probes mon-10-money-grants.sql and mon-07.sql are their tests.
+
+### Batch 2 review (Agent 6, reviews/a3-batch2-by-a6.md) and amendments — commit f1ccdc3e
+- REVIEW: APPROVED db-20, the blind lights, the preview index and the DB-04/DB-20 migration. CHANGES REQUIRED on the runner: a NOTICE PROBE_OK with exit 0 passed. Note on CI: the job without the secret was green with a warning.
+- DONE:
+  - judgeRun now requires a non-zero exit AND `PROBE_OK <id>` on an `ERROR:` line (the psql `psql:<stdin>:N:` prefix and the MCP "Failed to apply database migration:" prefix are allowed; a NOTICE that spells an ERROR line is not). contract.test.ts adds: notice-only exit 0 → FAIL; notice-spelled-ERROR then another error → FAIL; psql ERROR line exit 3 → PASS; same line exit 0 → FAIL. The reviewer's fake-01 now gives "FAIL fake-01 … finished without raising" against local PG.
+  - The contract refuses `dblink…(` and `net.http_…(`.
+  - CI: the no-secret step now `exit 1`s.
+  - horizontal-overflow fails under CI when no Chromium is present.
+  - The dedicated `probe_runner` role was NOT adopted. Peer probes (a2 esc-01/esc-02, a1 ux-24/new-a1-01) build fixtures as the owner after `reset role`, which a role that can only become anon/authenticated cannot do. README explains why the postgres URL is used and what mitigates it (rollback, no dblink/pg_net, the secret's exposure, a GitHub environment if writers change).
+- DB-04/DB-20 MIGRATION APPLIED: server version **20260923234749** `db04_db20_scope_policies_to_authenticated`, committed as supabase/migrations/20260923234749_db04_db20_scope_policies_to_authenticated.sql (same SQL). The in-migration assertion (4 policies = {authenticated}) passed.
+- LIVE AFTER APPLY: db-20 → "PROBE_OK db-20: 796 policy/function/role pairs, all hold EXECUTE"; db-04-anon-storage-read → PROBE_OK. Over the wire with the publishable key: `POST /storage/v1/object/list/avatars` → `[]` (before: "permission denied for function inspection_photo_path_access"); `GET /rest/v1/listing_access` → `[]` (before: 42501).
+- db-20 control changed. At apply time the probe went red on its harness control "outage pair (anon, private.owns_listing, listings) not examined", because a1's DB-03 migration (20260923234031) moved the listings policies to private.listing_agent_is_me / firm_member_is_me. The control now requires any (anon, helper, public.listings) pair. Re-proved with a rolled-back revoke of private.listing_agent_is_me from anon → 4 listings policies flagged.
+- STATE: DB-04 FIXED; DB-20 FIXED (probe + DB). REVIEW: approved by Agent 6; the runner amendment is done per its exact instruction.
+
 ## Agent 4: the store, code side
 
 ### Ledger — Agent 4 (store, code side) — branch fix/a4
@@ -417,7 +483,7 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 ### Ledger — Agent 5 (truth on screen, content safety)
 
 ### SEC-05 + STORE-P2-01 — objectionable-content filter on 2 of 8 surfaces; reviews/businesses not reportable
-- STATE: AWAITING-REVIEW (code committed; migration PENDING, proven by rolled-back proof)
+- STATE: FIXED — migration 20260923235821_content_scanner_on_every_surface applied to live after Agent 4's approval of the amendment
 - RE-VERIFIED LIVE (2026-09-23): `blocked_terms` holds 133 rows in 12 categories (the handed claim "NO rows" is FALSE; A04's count stands). Only `scan_post` and `scan_social_profile` call `objectionable_pattern()`; `scan_message/review/review_response/story/story_comment/event` look only for 10-digit runs and payment words; no scan trigger on listings, businesses, accommodations, room_types or profile names. Old-DB demonstration (rolled back, `probe_a5_sec05_old_db`): spaced-slur post=LIVE, slur story comment=LIVE, "Mrs Loli Adeyemi is my landlady" post=HELD.
 - CHANGED:
   - Pending migration: scratchpad/work/fix-a5/sec05.sql (to be committed as supabase/migrations/<version>_content_scanner_on_every_surface.sql after apply). It: adds `blocked_terms.action` (hold|flag); deletes `loli`, adds `lolicon`/`shotacon` + 8 more hold terms and 2 flag terms; demotes to FLAG (alert, content stays up) `coon, paki, wog, spic, chink, sambo, i will deal with you, call me on whatsapp, western union, moneygram` (real names/places/idioms/landmarks in Nigeria: Sambo is a surname, "spic and span", Western Union as a landmark); new `private.content_forms` (NFKD, accent strip, leetspeak in both 1->i and 1->l forms, edge punctuation stripped, spelled-out letters joined), `private.blocked_pattern(action)` (space in a term = optional space), `private.content_verdict(text)`, `private.open_content_alert` (dedupes open alerts), `private.content_writer_is_member()` (role GUC in authenticated/anon and not admin/super_admin — definer functions cannot use current_user; verified live that `current_setting('role')` stays 'authenticated' inside a definer). Rewrites the 8 scanners: posts/stories/story comments/events HOLD; reviews/host replies REFUSE with RM004 (no held state); messages open a risk alert (delivered, not dropped); handles/names REFUSE with RM004 for a member, and on the sign-up path (auth trigger) the public name becomes "Member" + alert so sign-up never breaks; bio no longer re-held on unrelated edits. New scan triggers `*_zz_content_scan` on listings, businesses, accommodations, room_types (see SEC-06 for the hold behaviour).
@@ -426,16 +492,24 @@ IMPORTANT: these gates ran against the hardlinked node_modules tree (next 16.3.6
 - Gates (batch 1): typecheck 0 errors; lint 0 errors (335 warnings, pre-existing); vitest 244 files / 3893 passed / 1 skipped; build exit 0 (tsconfig unchanged).
 - TEST THAT WOULD HAVE CAUGHT IT: supabase/tests/probes/sec-05.sql; apps/web/src/lib/safety/user-generated-content.test.ts ("reporting reaches every public surface (STORE-P2-01)"); apps/web/src/lib/safety/content-refusal.test.ts
 - NOT DONE / NOTES: there is no event page in the app UI (events are not surfaced anywhere a member can view one), so no event report control is mounted; `event` is an accepted target for when one exists. Deployed main shows its generic "could not save" copy for an RM004 refusal until the release branch ships (nothing published; compatible). Seeded terms beyond the 12 added are founder's call (FOR THE FOUNDER #5 answered by this demotion list).
-- REVIEW:
+- REVIEW: Agent 4 (a5-batch1-by-a4.md): 5 CHANGES REQUIRED. AMENDED (commit 32a7fb06 + migration v2 in scratchpad/work/fix-a5/sec05.sql): (1 HIGH) reviews/host replies now refuse only `abuse.*` (`content_verdict(text, 'abuse')`); `fraud.*` in a review/reply publishes and opens an alert; listings likewise hold only for abuse/tenant preference, scam wording → alert. (2) tenant-preference exclusions: boys' quarters/BQ, ladies' bar/salon/hairdresser/wear/toilet/hostel, "allowed in the rooms", "visitors after", Igbo Efon/Ora/Elerin/Ukwu. (3) normaliser: zero-width + soft hyphen stripped, 30 Cyrillic/Greek look-alikes mapped, runs of 3+ letters collapsed to 1 and 2 as extra forms, edge punctuation read before and after the leet map; new preference shapes: "X tenants not allowed / preferred / not welcome", "(we) prefer X", "strictly for X". (4) sec-06 re-proved against the LIVE owner guard (20260923232741): member DRAFT → reword → SUBMITTED (+1 alert); member publish branch kept only as defence in depth. (5) admin/server publish clears the scanner's own note (unless the admin wrote a new one). Proof `probe_a5_sec05_sec06_proof3` (whole v2 migration + both probe files as rolled-back temp functions): `RESULTS PROBE_OK sec-06 || PROBE_OK sec-05`; no migration row, nothing leaked. Matcher run `probe_a5_matcher_try2`: ALL PASS on 47 abuse cases + 7 scoped + 44 preference cases. AWAITING re-check.
 
 ### SEC-06 — discriminatory tenant preferences
-- STATE: AWAITING-REVIEW (migration PENDING, same file as SEC-05)
+- STATE: FIXED — same migration 20260923235821 (live)
 - RE-VERIFIED: no scanner on listings; "No Igbo tenants", "Muslims only", "Married couples only" pass untouched today.
 - CHANGED: `private.discriminatory_phrase(text)` (ethnic groups, religions, marital/family status, gender, in "no X" / "X only" / "only X" shapes, on the normalised forms); `private.scan_catalogue_text()` on listings (title, description), businesses (name, description), accommodations (name, description, house_rules), room_types (name, description): for a member writer, a match (or a hold-tier abuse term) HOLDS FOR REVIEW — reason written to `review_notes` (shown to the lister in /agent/listings), a PUBLISHED/APPROVED row goes back to SUBMITTED, a DRAFT keeps its status (not pushed into the queue), one alert when it is submitted/live; rewording clears the note; admins (own authenticated client) and server writers are never held. Never refuses. Wizard: inline warning while typing (lib/safety/tenant-preference.ts mirrors the SQL; commit 11326ced).
 - EVIDENCE: proof `probe_a5_sec06_proof2` → `PROBE_OK sec-06`: 12 positive + 13 negative cases (near the mosque, Igbo Efon, No family land dispute, Men's salon, Muslim prayer room, no single room available…); member DRAFT "No Igbo tenants" saved as DRAFT with note "Held for review: … ("no igbo") …"; member setting it PUBLISHED lands SUBMITTED with 1 open alert; rewording clears the note; admin publishing a "Ladies only" listing stays PUBLISHED. vitest tenant-preference.test.ts (same table) passes.
 - TEST THAT WOULD HAVE CAUGHT IT: supabase/tests/probes/sec-06.sql; apps/web/src/lib/safety/tenant-preference.test.ts
 - FOUNDER: add "marital status" to the /standards non-discrimination sentence (the hold note already names it) — one line of copy, a policy decision.
 - REVIEW:
+
+### SEC-05 / STORE-P2-01 / SEC-06 — APPLIED
+- Applied 2026-09-23 as version 20260923235821 `content_scanner_on_every_surface`; committed byte-identical (md5 d5789855b3ef20e6c89831aef9fa8e14; the MCP transport turned the `\u0300`-style regex escapes into the literal characters, which are the same regex, and the committed file carries them as recorded). Includes the LOW follow-up from the re-check: "Men only barbershop" is not a tenant preference.
+- Live probes after apply: `probe_sec_06` → PROBE_OK sec-06; `probe_sec_05` → PROBE_OK sec-05 (both against the live owner guard, nothing left behind).
+- Live smoke through PostgREST as the QA member: benign DM ("Hello, is this place still available for an inspection next week?") inserted, 0 risk alerts; PATCH nickname to a slur → HTTP error `RM004 "That name uses words our content standards do not allow."` (proves the role-GUC member detection under PostgREST). A live review cannot be written: the QA member has no booking (demo listings refuse transactions); the review path is proven by the probe on the live function.
+- blocked_terms now 144 rows (12 flag tier).
+- Commits: 11326ced, 32a7fb06, and the migration commit.
+- REVIEW: Agent 4 — APPROVED on re-check (a5-batch1-by-a4.md).
 
 ## Agent 6: the long tail, the documents and the repository
 
@@ -477,4 +551,45 @@ Worktree /home/user/wt/a6, branch fix/a6, base 77cf90ad.
 ### BATCH 1 REVIEW (Agent 3: scratchpad/reviews/a6-batch1-by-a3.md)
 - CLEAN-01/02/03 APPROVED. CLEAN-04 CHANGES REQUIRED, done in 1c474874: pointers to where data lives are repointed to docs/archive/ in registration.ts, registration.test.ts, profile.css, profile/page.tsx, push/devices.ts, desk.css, inspection.css, wallet.css, welcome.css, tokens.css (13.0), HomeScreen, MobileTabBar, PaystackCheckout and push/preferences. The two probe .log files are reverted to 77cf90ad. sweep-register usage writes to /tmp and names the archived copy. ICON_SYSTEM.md and design/audits/r1/findings.md note the proofs are in history at 77cf90ad. (ICON_SYSTEM.md in that commit also carries the DOC-11 line, which belongs to batch 2.)
 - REVIEW: CLEAN-01..03 APPROVE; CLEAN-04 amended in 1c474874.
+
+#### BATCH 2: documents and the audit record (commit f0993d5e)
+
+### AUDIT-FACTS — THE_AUDIT updated with the post-audit facts
+- STATE: AWAITING-REVIEW
+- CHANGED: docs/THE_AUDIT.md. Each "could not confirm" or UNVERIFIED about EMAIL_REPLY_TO, SENTRY_DSN, NEXT_PUBLIC_SUPPORT_EMAIL or ANTHROPIC_API_KEY is now a confirmed finding marked "Confirmed after the audit (founder's read of Vercel, 23 September)". Lines touched: section 1 Vercel line, SEC-11 area (EMAIL_REPLY_TO), the unverified list and the founder steps in the A-sections, the STORE-08 nutrition row, the STORE unverified lines, OPS-03 fix step 3, OPS-06 WHY, the dependency table Sentry row, OPS unverified list and founder steps, the section 7-ish "CORRECTLY EMPTY" row (outbox SENT 16:00:05 + PENDING; push_tokens 0), section 8 Vercel line, section 11 item 6, "What worried me" (sessions closed 22:25 UTC), and section 10's opening line. Other agents' findings text was otherwise left alone.
+- EVIDENCE: grep for "UNVERIFIED|could not be confirmed" now shows only the Vercel plan and runtime logs as unverified.
+
+### DOC-12 + sign-in ruling — PRODUCT.md
+- STATE: AWAITING-REVIEW. Section 4 now carries the 23 Sep ruling, the inverted PUBLIC list in proxy.ts, what the ruling accepts, and the public catalogue flag described generically (Agent 4 builds it; its name and default go into ENVIRONMENT.md when it ships). Section 7: Trips is allowed; banned copy is enforced by the vitest scan; BANNED_SYNONYMS is empty (DOC-08, code half not mine). Section 8: dark only; "fails the build" replaced with lint.
+### DEPLOY.md — STATE: AWAITING-REVIEW. Changes: inline iframe replaces hosted redirect; proxy.ts replaces middleware.ts; AMADEUS_* and GOOGLE_PLACES_API_KEY removed from "optional" and added to "removed" (grep: no src reads them); the wrong MapTiler "never read" row dropped; sections renumbered 2.4/2.5/2.6 (ENVIRONMENT.md pointer fixed); vercel.json has 8 jobs; 4.4 now describes the Send Email Hook; section 1 counts refreshed; CI and its two repository Variables documented (from the a3 review); section 7 no longer says lint/test do not run or asks for light shots; section 9 rewritten to today.
+### EMAIL_FROM default — the code default is `Vallo <hello@vallospaces.com>` (lib/email/client.ts:25, BRAND_DOMAIN). .env.example now says the same; DEPLOY and ENVIRONMENT already did.
+### Env templates — .env.example adds YELLOWCARD_API_BASE/KEY/SECRET, VALLO_INSPECTION_REPORTS and VALLO_PREVIEW_HARNESS, drops the dangling HYBRID_INVENTORY header, and replaces the model-identifier default with a neutral note. apps/web/.env.local.example is DELETED (its two keys, MapTiler and VAPID, are in .env.example with fuller notes); FIRST_NOTIFICATION.md is repointed.
+### DOC-16 — STATE: FIXED (AWAITING-REVIEW). ENVIRONMENT.md gains rows for every variable read. TEST: apps/web/src/lib/env-documented.test.ts scans apps/web/src for process.env/env./_VAR names and asserts each appears in .env.example and ENVIRONMENT.md, and that .env.local.example stays gone. Against the old files: 3 failed (the 5 missing from the template, 14 missing from ENVIRONMENT.md, and the second template). New files: 4/4 pass.
+### DOC-10 / DOC-11 / DOC-14 (doc halves) — STATE: FIXED. Changed files: DESIGN_DIRECTION (rule 10 is lint; light-theme closing criterion; "103 objects + light twins"), design-tokens README, ADMIN_CONSOLE:657 (the test still passes), ICON_SYSTEM (no pre-commit scan exists; the eslint rule is the fix, not done: code, LOW), RECOMMENDATIONS T-1 is PARTLY CLOSED, RETENTION_SCHEDULE:19, CATALOGUE header.
+### Auth email docs — AUTH_EMAILS.md section 1 and 1A are replaced by the measured truth. auth_logs 23 Sep show run_hook "Hook ran successfully" against /api/auth/email-hook on every sign-up, no mail_from, and the accounts verified. WHAT_SENDS.md verificationCode is LIVE and section 5 is refreshed. reachability.test.ts comment is updated.
+- GATES: tsc 0; lint 0 errors / 335 warnings, css clean, valuation clean; vitest 243 files, 3863 passed, 1 skipped; markdown link scan 0 broken outside archive.
+- NOT DONE (owned elsewhere or code): DOC-08 BANNED_SYNONYMS guard (content, A5); DOC-17 vitest.config header (tests, A3); README CI paragraph waits for CI green.
+
+### BATCH 2 REVIEW (Agent 3: scratchpad/reviews/a6-batch2-by-a3.md) — amended in 12c88b52
+- AUDIT-FACTS: now stated as measured at 23:47 UTC: email_outbox has 5 SENT and 0 PENDING; push_tokens has 1 web token, created 23:07:53 and revoked 23:08:21 (a test enrolment). The same numbers are in WHAT_SENDS.md and DEPLOY.md.
+- DOC-16 test strengthened. It now scans helper-literal reads (envInt("NAME")), next.config.ts and capacitor.config.ts, and fails on an unexplained process.env[expr]. It requires a NAME= line (a comment mention does not count) and a code-formatted name in ENVIRONMENT.md. It found BOT_INPUT/OUTPUT_KOBO_PER_MTOK, NEXT_DIST_DIR and CAPACITOR_SERVER_URL (2 tests red before the docs were added); all are now documented. 7/7 pass.
+- LOW fixes: VAPID_SUBJECT fallback order (SUPPORT_EMAIL first); PRODUCT open list adds start, preview and gallery.
+- VALLO_PUBLIC_CATALOGUE (Agent 4) is documented in PRODUCT §4, ENVIRONMENT.md and .env.example. Note: it describes Agent 4's batch 2, which has not been integrated yet.
+- PRODUCT Stay row and the BANNED_SYNONYMS sentence are aligned with fix/a3 (to avoid a merge conflict, and true once a3 batch 2 lands).
+- Gates: tsc 0; vitest 243 files, 3866 passed, 1 skipped.
+
+#### BATCH 3: the long tail
+
+### SEC-08 + V-19 (the parts assigned to me) — commit c71b1878
+- STATE: AWAITING-REVIEW (code), FOUNDER (two settings)
+- RE-VERIFIED: lib/profile/actions.ts signOut() had no scope (default 'global'); updatePassword only called updateUser; live `auth.sessions` for the QA member: 92 rows with user_agent `node` and 2 with curl. So sign-in from the server action recorded the server's agent, and the proxy's forwarding only covers refreshes.
+- CHANGED: lib/supabase/agent.ts (shared forwardedAgentHeaders); lib/supabase/server.ts forwards the request's User-Agent (via headers(), with try/catch outside a request); proxy.ts uses the helper; profile/actions.ts signOut is 'local' and signOutEverywhere is 'global'; auth/actions.ts updatePassword calls signOut({scope:'others'}) after a successful update; lib/security/session-groups.ts folds non-current sessions with no recorded device into one line; the devices page and DeviceList show the folded line and a "Sign out everywhere" control (confirm-then-act; full reload to /sign-in); en.ts gains 5 keys (other locales fall back to English) and the caveat no longer claims a password change "ends every key at once".
+- TESTS (each shown failing on the old code first):
+  - lib/supabase/server-agent.test.ts drives the real @supabase/ssr client with mocked fetch and asserts the User-Agent reaches GoTrue /token, capped at 512. Old: 2 of 3 fail.
+  - lib/profile/sign-out-scope.test.ts. Old: 2 of 3 fail.
+  - lib/auth/password-change-ends-others.test.ts asserts signOut({scope:'others'}) after updateUser, none when updateUser fails, and that the change completes if ending others fails. Old: 1 fails.
+  - lib/security/session-groups.test.ts (92 node sessions become one line; the current session is always listed).
+- GATES: tsc 0; vitest 247 files, 3878 passed, 1 skipped; eslint on touched dirs: no new warning.
+- FOUNDER: (1) Supabase → Authentication → Providers → Email → "Secure password change" ON (reauthentication before password change). (2) Supabase → Authentication → Settings → JWT expiry: lower from 3600 to 900 seconds, to shrink the window in which a revoked device's access token still reaches PostgREST.
+- NOT DONE (V-19 beyond my brief): the new-device push, "This was not me", and the 24h withdrawal hold. Old sessions keep reading `node` until they expire. New sign-ins record the device only once this is deployed.
 
