@@ -1,7 +1,9 @@
 import { createECDH } from "node:crypto";
 import { createServer } from "node:http";
 import { connect } from "node:net";
-import { existsSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { encryptForSubscription, vapidAuthorization } from "./webpush";
@@ -62,7 +64,6 @@ import { encryptForSubscription, vapidAuthorization } from "./webpush";
  * is why this uses `launchPersistentContext`.
  */
 
-const PORT = 8123;
 const CHROMIUM_CANDIDATES = [
   "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
   "/opt/pw-browsers/chromium/chrome-linux/chrome",
@@ -193,7 +194,17 @@ describe("web push, carried the whole way to a real browser", () => {
       response.writeHead(200, { "Content-Type": "text/html" });
       response.end(PAGE);
     });
-    await new Promise<void>((resolve) => server.listen(PORT, resolve));
+    /* A port the operating system picks and a profile of this run's own, so
+       two copies of the suite on one machine cannot collide on either. */
+    const PORT = await new Promise<number>((resolve, reject) => {
+      server.once("error", reject);
+      server.listen(0, () => {
+        const address = server.address();
+        if (address && typeof address === "object") resolve(address.port);
+        else reject(new Error("the proof server reported no port"));
+      });
+    });
+    const profile = mkdtempSync(join(tmpdir(), "vallo-push-proof-"));
 
     /* Imported here rather than at the top so a host without playwright-core
        installed skips at the preflight instead of failing to collect. */
@@ -201,7 +212,7 @@ describe("web push, carried the whole way to a real browser", () => {
 
     /* A PERSISTENT context. Chrome refuses the Push API in incognito and
        every ordinary Playwright context is incognito. */
-    const browserContext = await chromium.launchPersistentContext("/tmp/vallo-push-proof-profile", {
+    const browserContext = await chromium.launchPersistentContext(profile, {
       executablePath: ready.chromium,
       args: ["--no-sandbox"],
     });
@@ -262,6 +273,7 @@ describe("web push, carried the whole way to a real browser", () => {
     } finally {
       await browserContext.close();
       server.close();
+      rmSync(profile, { recursive: true, force: true });
     }
   }, 120_000);
 });

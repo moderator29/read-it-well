@@ -360,6 +360,51 @@ multiple-permissive-policy notes and unused indexes on empty tables; that is
 expected pre-launch noise, not a regression. Re-run both after the first real
 month, which is the first point at which the performance list means anything.
 
+### 4.8 Removing a person: never "Delete user"
+
+**Authentication, Users, Delete user** (and a hard delete through the Admin
+API) fails with `Database error deleting user` for almost anybody who has used
+the product, and that is deliberate. A person's wallet, bookings, escrows, rent
+records, escrow evidence, conversations, messages, reports and agent profile
+all refuse the delete (`ON DELETE RESTRICT`), because deleting one person must
+never take the other party's thread, money trail or moderation evidence with
+them.
+
+Remove a person with the account deletion flow instead: they ask from
+Settings, or staff open it for them, and the purge anonymises the account in
+place and keeps what the law and the other party need
+(`docs/RETENTION_SCHEDULE.md`). The same applies to a booking or a table
+reservation: one with a conversation cannot be deleted, and a draft listing
+whose reservations have threads stays as a draft (hidden from everybody but
+its lister) rather than being deleted.
+
+### 4.9 The migration history and the files
+
+Every row in the live `supabase_migrations.schema_migrations` has a file in
+`supabase/migrations` with the same version and name
+(`supabase/tests/probes/db-11.sql` checks it). Apply every new migration
+through the history (the CLI or the MCP), never by pasting SQL into the
+dashboard, so the history and the directory keep matching.
+
+What a reset or a branch rebuilds from the directory is not yet exactly live.
+33 files were edited after they were applied, most by a few characters and
+about a dozen materially. The SQL live actually ran is kept in the history's
+`statements` column for each version. `supabase migration fetch` (with the
+database password) writes those statements back out as files; run it and
+review the diff before building a branch or a disaster recovery from the
+repository. Until then, treat live as the source of truth. The versions
+concerned:
+
+20260812090000, 20260812090100, 20260915090000, 20260918120200,
+20260918120400, 20260918120500, 20260918140000, 20260918140100,
+20260918151000, 20260918151100, 20260919103000, 20260919160000,
+20260919160100, 20260919190000, 20260922120000, 20260922130000,
+20260922140000, 20260922150000, 20260922160000, 20260922170000,
+20260922190000, 20260922190200, 20260922193000, 20260922200100,
+20260922220000, 20260922230000, 20260922230300, 20260922230400,
+20260922230500, 20260923011000, 20260923011500, 20260923012500,
+20260923081500.
+
 ---
 
 ## 5. Paystack

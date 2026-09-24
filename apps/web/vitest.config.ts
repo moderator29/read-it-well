@@ -36,22 +36,61 @@ import { fileURLToPath } from "node:url";
  * `react-server` at. Every module under test here is a server module; nothing
  * in this suite renders a component or calls a client hook.
  */
+const shared = {
+  "@": fileURLToPath(new URL("./src", import.meta.url)),
+  "server-only": fileURLToPath(new URL("../../node_modules/server-only/empty.js", import.meta.url)),
+};
+
 export default defineConfig({
-  resolve: {
-    conditions: ["react-server", "node", "import", "default"],
-    alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
-      "server-only": fileURLToPath(
-        new URL("../../node_modules/server-only/empty.js", import.meta.url),
-      ),
-      react: fileURLToPath(
-        new URL("../../node_modules/react/react.react-server.js", import.meta.url),
-      ),
-    },
-  },
   test: {
-    environment: "node",
-    include: ["src/**/*.test.ts"],
     retry: 0,
+    projects: [
+      {
+        resolve: {
+          conditions: ["react-server", "node", "import", "default"],
+          alias: {
+            ...shared,
+            react: fileURLToPath(
+              new URL("../../node_modules/react/react.react-server.js", import.meta.url),
+            ),
+          },
+        },
+        test: {
+          name: "unit",
+          environment: "node",
+          include: ["src/**/*.test.ts"],
+          retry: 0,
+          /*
+           * BUDGETS FOR A BUSY MACHINE, NOT AN IDLE ONE. Vitest's 5 s and
+           * 10 s defaults assume nothing else is running. Several test
+           * files read the whole source tree or import most of the server
+           * graph; on a machine running other suites beside this one they
+           * took 5 to 12 s and failed as timeouts with nothing wrong. A real
+           * hang still fails, at these limits, with its name on it.
+           */
+          testTimeout: 30_000,
+          hookTimeout: 60_000,
+        },
+      },
+      /*
+       * THE COMPONENT PROJECT. `*.dom.test.tsx` renders a client component to
+       * HTML with the ordinary (client) React build, loads it into a real
+       * Chromium and runs axe-core over it (`src/lib/a11y/axe.ts`). The
+       * react-server alias above cannot render hooks, which is exactly why
+       * these files live in their own project with no React alias at all.
+       */
+      {
+        resolve: { alias: shared },
+        esbuild: { jsx: "automatic" },
+        test: {
+          name: "dom",
+          environment: "node",
+          include: ["src/**/*.dom.test.tsx"],
+          retry: 0,
+          testTimeout: 30_000,
+          hookTimeout: 60_000,
+        },
+      },
+    ],
   },
 });
