@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { generateCode, otpMessage, phoneGateNeeded, isConfirmOutcome } from "./core";
+import { AUTO_REPORT_PREFIX, countsAsOwnReport, generateCode, otpMessage, phoneGateNeeded, isConfirmOutcome } from "./core";
 import { runSendCode, type SendDeps } from "./send";
 import { capturingTransport, otpTransport, unconfiguredTransport, type CapturedMessage } from "./transport";
 
@@ -138,6 +138,28 @@ describe("send then confirm, end to end with the capturing stub", () => {
   });
 });
 
+describe("which earlier reports use up the first-report moment", () => {
+  it("counts a report the member chose to write", () => {
+    expect(countsAsOwnReport({ category: "scam", reason: "They asked me to pay first" })).toBe(true);
+    expect(countsAsOwnReport({ category: null, reason: null })).toBe(true);
+  });
+
+  it("never counts a danger report or one V-05 filed from a renter's answers", () => {
+    expect(countsAsOwnReport({ category: "unsafe", reason: "I was threatened" })).toBe(false);
+    expect(
+      countsAsOwnReport({ category: "off_platform_payment", reason: `${AUTO_REPORT_PREFIX} abc: the renter was asked for money outside Vallo.` }),
+    ).toBe(false);
+  });
+
+  it("matches the words the database writes on the automatic report", () => {
+    const sql = readFileSync(
+      join(__dirname, "../../../../../supabase/migrations/20260924130500_v50_the_phone_is_the_scarcity_anchor.sql"),
+      "utf8",
+    );
+    expect(sql).toContain(`'${AUTO_REPORT_PREFIX} '`);
+  });
+});
+
 describe("the wiring", () => {
   const root = join(__dirname, "..", "..");
   it("gates the three actions, each after sign-in and before the write", () => {
@@ -153,6 +175,20 @@ describe("the wiring", () => {
       expect(gate).toBeGreaterThan(0);
       expect(gate).toBeLessThan(body.indexOf(".insert("));
     }
+  });
+
+  it("counts a tenancy review as a review, and reads only the member's own non-danger reports", () => {
+    const gate = readFileSync(join(root, "lib/phone-otp/gate.ts"), "utf8");
+    expect(gate).toContain('from("tenancy_reviews")');
+    expect(gate).toContain("rows.filter(countsAsOwnReport)");
+    const tenancy = readFileSync(join(root, "lib/tenancy/actions.ts"), "utf8");
+    expect(tenancy).toContain('phoneGateFor(session.supabase, session.user.id, "review")');
+  });
+
+  it("limits codes per number per account, so a stranger cannot spend the owner's hour", () => {
+    const src = readFileSync(join(root, "lib/phone-otp/actions.ts"), "utf8");
+    expect(src).toContain("`phone:${phone}:${subjectForUser(userId)}`");
+    expect(src).not.toContain('allowed("phone_otp_number", `phone:${phone}`, 3)');
   });
 
   it("the code is never returned by the send action", () => {

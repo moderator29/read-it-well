@@ -7,7 +7,7 @@
  * moments, and only at the first of each:
  *
  *   inspection  the first inspection request (it costs an agent a Saturday)
- *   review      the first review
+ *   review      the first review, a stay review or a tenancy review alike
  *   report      the first report that is NOT about immediate danger. A report
  *               that somebody is unsafe is never delayed by a code, ever.
  *
@@ -22,6 +22,24 @@ export type PhoneMoment = "inspection" | "review" | "report";
 
 /** Report categories that are about immediate danger and are never gated. */
 export const DANGER_CATEGORIES: readonly string[] = ["unsafe"];
+
+/**
+ * The opening words of the report V-05 files by itself when a renter answers
+ * that money was asked for outside Vallo. That report is the renter's answer,
+ * not a report they chose to write, so it is not their "first report".
+ */
+export const AUTO_REPORT_PREFIX = "Filed automatically from the questions after inspection";
+
+/**
+ * Does this earlier report count as the member's own first report? Not a
+ * danger report (never gated, so it cannot have used up the moment) and not
+ * one V-05 filed on their behalf.
+ */
+export function countsAsOwnReport(row: { category: string | null; reason: string | null }): boolean {
+  if (row.category && DANGER_CATEGORIES.includes(row.category)) return false;
+  if (typeof row.reason === "string" && row.reason.startsWith(AUTO_REPORT_PREFIX)) return false;
+  return true;
+}
 
 /**
  * A six-digit code from a source of random integers. The source is injected so

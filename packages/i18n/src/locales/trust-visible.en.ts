@@ -139,6 +139,23 @@ export const trustVisibleEn = {
     confirming: "Confirming",
     resend: "Send a new code",
     done: "Confirmed. Your number is never shown to anybody.",
+    /** The sentence a gated action refuses with. */
+    required:
+      "Confirm your mobile number first. It is asked once, it is never shown to anybody, and it keeps one person to one account. Open Settings, then Phone.",
+    closed: "Vallo is not asking for phone numbers at the moment. Nothing is needed from you.",
+    numberEmpty: "Enter your mobile number.",
+    codeShape: "The code is six digits.",
+    sendLimited: "That is a lot of codes in a short time. Wait an hour and try again.",
+    sendTaken: "That number is already confirmed on another Vallo account. One number can confirm one account.",
+    sendAlready: "That number is already confirmed on your account.",
+    sendInvalid: "That is not a Nigerian mobile number we can send to. Check the digits.",
+    sendUnconfigured: "We could not send a code just now. Nothing was changed. Try again later.",
+    sendFailed: "We could not send a code just now. Nothing was changed. Try again in a moment.",
+    confirmWrong: "That code does not match. Check the message and try again.",
+    confirmExpired: "That code has expired. Ask for a new one.",
+    confirmLocked: "Too many wrong codes. Ask for a new one.",
+    confirmNoCode: "There is no code waiting for this account. Ask for one first.",
+    confirmTaken: "That number was confirmed on another Vallo account in the meantime. One number can confirm one account.",
   },
   /** V-49: confirming identity with a NIMC virtual NIN. */
   vnin: {
