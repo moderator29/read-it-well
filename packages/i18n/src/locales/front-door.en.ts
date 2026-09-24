@@ -380,6 +380,8 @@ export const frontDoorEn = {
     budgetSale: ", up to {amount}",
     budgetOver: ", over {amount}",
     counts: "{searches} people searched, {unmet} of them found fewer than three homes. {supply}",
+    /** When the unmet figure would count fewer than five people, it is not shown. */
+    countsNoUnmet: "{searches} people searched. {supply}",
     noneMatch: "No real listing on Vallo matches today.",
     oneMatches: "1 real listing on Vallo matches today.",
     manyMatch: "{count} real listings on Vallo match today.",

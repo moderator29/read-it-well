@@ -15,7 +15,8 @@ export type DemandRow = {
   bedroomsMin: number | null;
   budgetBand: number | null;
   searches: number;
-  unmet: number;
+  /** Null when it would count fewer than five people (either way round). */
+  unmet: number | null;
   realSupply: number;
 };
 
@@ -41,7 +42,7 @@ export async function readDemandBoard(weeks = 4): Promise<DemandRow[] | null | "
       bedroomsMin: row.bedrooms_min === null || row.bedrooms_min === undefined ? null : Number(row.bedrooms_min),
       budgetBand: row.budget_band === null || row.budget_band === undefined ? null : Number(row.budget_band),
       searches: Number(row.searches ?? 0),
-      unmet: Number(row.unmet ?? 0),
+      unmet: row.unmet === null || row.unmet === undefined ? null : Number(row.unmet),
       realSupply: Number(row.real_supply ?? 0),
     }));
   } catch {
