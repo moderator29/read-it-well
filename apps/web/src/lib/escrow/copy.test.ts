@@ -134,6 +134,14 @@ describe("the held payment copy", () => {
     }
   });
 
+  it("names what a settled dispute did, not who decided it (ESC-13)", () => {
+    expect(STATE_LABEL.RESOLVED).not.toMatch(/vallo/i);
+    for (const party of PARTIES) {
+      expect(stateLine("RESOLVED", party)).not.toMatch(/vallo has made a decision/i);
+      expect(stateLine("RESOLVED", party)).toMatch(/money has moved/i);
+    }
+  });
+
   it("renders the countdown as a date and never as a duration", () => {
     const now = new Date("2026-09-22T12:00:00Z");
     const c = countdown("2026-10-14T09:00:00Z", "HELD", now);

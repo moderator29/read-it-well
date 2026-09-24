@@ -106,7 +106,7 @@ export const STATE_LABEL: Record<EscrowState, string> = {
   RELEASED: "Paid out",
   REFUNDED: "Returned",
   DISPUTED: "Under review",
-  RESOLVED: "Settled by Vallo",
+  RESOLVED: "Settled after review",
   CANCELLED: "Withdrawn",
 };
 
@@ -145,7 +145,7 @@ export function stateLine(state: EscrowState, viewer: Party): string {
     case "DISPUTED":
       return "Somebody at Vallo is reading what both of you have filed. Nothing moves until they have.";
     case "RESOLVED":
-      return "Vallo has made a decision and the money has moved. The decision is on this page.";
+      return "The dispute was reviewed and settled, and the money has moved as the ruling on this page says.";
     case "CANCELLED":
       return "This was withdrawn before any money moved. Nothing left either balance.";
   }

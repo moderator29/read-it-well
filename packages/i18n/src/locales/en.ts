@@ -3935,7 +3935,7 @@ export const en = {
     },
 
     escrow: {
-      lede: "Secure transactions. Fair outcomes.",
+      lede: "Money set aside between two people, and the rulings on it.",
       /* The escrow ruling control (`_components/MoneyDecisions.tsx`), English
          only; the other locales fall back to it. */
       rulingControl: {
