@@ -25,9 +25,10 @@ import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "../supaba
  *
  * It fails when either read errors, when the public count is lower than the
  * control, or when the control itself is zero (a catalogue with nothing
- * published is an outage for a marketplace, whatever caused it). A failure
- * is a critical `canary.catalogue` alert, which `lib/alerts/record.ts` sends
- * to Sentry and to a person (`lib/ops/page.ts`).
+ * published is an outage for a marketplace, whatever caused it). A refused or
+ * short read is a critical `canary.catalogue` alert, which `lib/alerts/record.ts`
+ * sends to Sentry and to a person (`lib/ops/page.ts`); an empty catalogue pages
+ * once on the transition and is a warning after that (`emptyAlreadyRaised`).
  *
  * `probeCatalogue` is shared with the public `/api/health/catalogue` route,
  * which an EXTERNAL uptime monitor polls, so the same check still reaches a
@@ -119,12 +120,48 @@ export async function probeCatalogue(admin: AdminClient | null, reader?: Reader)
   return { ok: true, control, visible, cardRead: true, code: null, reason: "ok" };
 }
 
+/** The title `recordAlert` gives `canary.catalogue_empty` (see `alertTitle`). */
+const EMPTY_TITLE = "Canary: catalogue empty";
+
+/** How long an empty catalogue stays a non-paging warning after it first paged. */
+const EMPTY_REPAGE_MS = 7 * 24 * 60 * 60 * 1_000;
+
+/**
+ * Has the empty catalogue already been raised recently? An empty catalogue is
+ * a STATE, not an event: once the examples are retired and before real supply
+ * arrives it can last weeks, and paging on every run would teach the founder to
+ * mute the pager. So `empty` pages on the transition (no such alert in the last
+ * week) and is a visible, non-paging warning after that. A failed read counts
+ * as "not raised", so the first sighting always pages.
+ */
+async function emptyAlreadyRaised(admin: AdminClient): Promise<boolean> {
+  try {
+    const { count, error } = await (admin as unknown as Reader)
+      .from("risk_alerts")
+      .select("id", { count: "exact", head: true })
+      .eq("title", EMPTY_TITLE)
+      .gte("created_at", new Date(Date.now() - EMPTY_REPAGE_MS).toISOString());
+    return !error && (count ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
 /** The cron job: the probe, turned into the verdict `runCronJob` records and alerts on. */
-export async function catalogueCanary(admin: AdminClient): Promise<JobVerdict> {
-  const probe = await probeCatalogue(admin);
+export async function catalogueCanary(admin: AdminClient, reader?: Reader): Promise<JobVerdict> {
+  const probe = await probeCatalogue(admin, reader);
   const counts = { control: probe.control ?? -1, visible: probe.visible ?? -1 };
   const detail = { reason: probe.reason, code: probe.code, card_read: probe.cardRead, ...counts };
   if (probe.ok) return { outcome: "ok", counts, detail, alert: null };
+  if (probe.reason === "empty") {
+    const raised = await emptyAlreadyRaised(admin);
+    return {
+      outcome: "attention",
+      counts,
+      detail,
+      alert: { kind: "canary.catalogue_empty", severity: raised ? "warning" : "critical", detail },
+    };
+  }
   return {
     outcome: "attention",
     counts,

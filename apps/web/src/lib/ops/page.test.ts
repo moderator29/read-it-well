@@ -7,11 +7,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const sendEmail = vi.fn(async (_m: unknown) => ({ sent: true, id: "e1" }));
 vi.mock("../email/client", () => ({ sendEmail: (m: unknown) => sendEmail(m) }));
 
-const { pageHuman } = await import("./page");
+const { pageHuman, pagedAt } = await import("./page");
 
 const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response("ok", { status: 200 }));
 
 beforeEach(() => {
+  pagedAt.clear();
   sendEmail.mockClear();
   fetchMock.mockClear();
   vi.stubGlobal("fetch", fetchMock);
@@ -64,5 +65,18 @@ describe("pageHuman", () => {
       throw new TypeError("fetch failed");
     });
     expect(await pageHuman(INPUT)).toEqual({ paged: false, reason: "failed" });
+  });
+
+  it("pages once per title per hour however many alerts arrive (the database-down storm)", async () => {
+    vi.stubEnv("OPS_ALERT_WEBHOOK_URL", "https://ntfy.sh/x");
+    vi.stubEnv("OPS_ALERT_EMAIL", "ops@example.com");
+    const results = [];
+    for (let i = 0; i < 20; i += 1) results.push(await pageHuman(INPUT));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    expect(results.filter((r) => r.paged)).toHaveLength(1);
+    expect(results.at(-1)).toEqual({ paged: false, reason: "throttled" });
+    // A different alert still gets through.
+    expect(await pageHuman({ ...INPUT, title: "Cron: schedule, silent" })).toMatchObject({ paged: true });
   });
 });

@@ -23,6 +23,7 @@ function client(count: Result | "throw", card: Result = { data: [{ id: "x" }], e
         const answer = opts?.head ? count : card;
         const chain = {
           eq: () => chain,
+          gte: () => chain,
           limit: () => chain,
           then: (resolve: (v: unknown) => void, reject: (e: unknown) => void) =>
             answer === "throw" ? reject(new TypeError("fetch failed")) : resolve({ count: null, data: null, error: null, ...answer }),
@@ -81,5 +82,20 @@ describe("catalogueCanary (the cron job)", () => {
     const bad = await catalogueCanary(client({ error: DENIED }) as never);
     expect(bad.outcome).toBe("attention");
     expect(bad.alert).toMatchObject({ kind: "canary.catalogue", severity: "critical", detail: { reason: "control_failed", code: "42501" } });
+  });
+
+  it("an empty catalogue pages on the transition, then stays a non-paging warning", async () => {
+    // `client` answers every head count with the same count: 0 published, and
+    // the risk_alerts lookup answers 0 (not raised yet) then 1 (raised).
+    const first = await catalogueCanary(client({ count: 0 }) as never, client({ count: 0 }) as never);
+    expect(first.alert).toMatchObject({ kind: "canary.catalogue_empty", severity: "critical" });
+    const later = await catalogueCanary(
+      {
+        from: (table: string) =>
+          table === "risk_alerts" ? client({ count: 1 }).from() : client({ count: 0 }).from(),
+      } as never,
+      client({ count: 0 }) as never,
+    );
+    expect(later.alert).toMatchObject({ kind: "canary.catalogue_empty", severity: "warning" });
   });
 });

@@ -41,9 +41,20 @@ export type PageInput = {
 
 export type PageOutcome =
   | { paged: true; via: ("email" | "webhook")[] }
-  | { paged: false; reason: "not_configured" | "failed" };
+  | { paged: false; reason: "not_configured" | "failed" | "throttled" };
 
 const TIMEOUT_MS = 4_000;
+
+/**
+ * The last line of defence against a paging storm: once per title per hour
+ * per warm instance, whatever the database says. `recordAlert` also dedupes
+ * through `risk_alerts`, but in the outage that matters most, the database is
+ * the thing that is down, that dedupe read fails, and every failing page view
+ * would otherwise page. Exported for tests only.
+ */
+const PAGE_QUIET_MS = 60 * 60 * 1_000;
+const MAX_REMEMBERED = 200;
+export const pagedAt = new Map<string, number>();
 
 function webhookUrl(): string | null {
   const raw = (process.env.OPS_ALERT_WEBHOOK_URL ?? "").trim();
@@ -71,6 +82,17 @@ export async function pageHuman(input: PageInput): Promise<PageOutcome> {
   if (!hook && !email) {
     console.warn(`[page] not sent kind=${input.kind} reason=not_configured (set OPS_ALERT_EMAIL or OPS_ALERT_WEBHOOK_URL)`);
     return { paged: false, reason: "not_configured" };
+  }
+
+  const now = Date.now();
+  const last = pagedAt.get(input.title);
+  if (last !== undefined && now - last < PAGE_QUIET_MS) return { paged: false, reason: "throttled" };
+  pagedAt.set(input.title, now);
+  if (pagedAt.size > MAX_REMEMBERED) {
+    for (const [title, at] of pagedAt) {
+      if (now - at >= PAGE_QUIET_MS || pagedAt.size > MAX_REMEMBERED) pagedAt.delete(title);
+      if (pagedAt.size <= MAX_REMEMBERED) break;
+    }
   }
 
   const env = environmentLabel();
