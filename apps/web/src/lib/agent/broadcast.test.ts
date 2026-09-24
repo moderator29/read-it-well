@@ -283,3 +283,54 @@ describe("every money key is a key the submit gate checks", () => {
     for (const key of BROADCAST_MONEY_KEYS) expect(keys.has(key)).toBe(true);
   });
 });
+
+describe("review fixes: nothing is cut out of a word, no contact survives, no figure is invented", () => {
+  it("does not cut letters out of words that contain dm, chat or text", () => {
+    const r = parseBroadcast("2 bedroom flat near Admiralty, Yaba. Context: tastefully finished, textured walls. Rent 1.5m per annum.");
+    expect(String(r.values.description)).toContain("Admiralty");
+    expect(String(r.values.description)).toContain("Context");
+    expect(String(r.values.description)).toContain("textured");
+    expect(r.notCarried.some((n) => n.kind === "phrase")).toBe(false);
+  });
+
+  it("strips every way a number, an account, an email, a handle or a link is written", () => {
+    const r = parseBroadcast(
+      [
+        "3 bedroom flat, Surulere. Rent 2m per annum. Caution 200k.",
+        "Call +234 (0) 803 123 4567 or 0803-123-4567 or 0803.123.4567",
+        "Pay into 0123 456 789 or 0123-456-789 GTB",
+        "Email tunde.homes@example.com, IG @tundehomes, wa.me/2348031234567, https://bit.ly/abc t.me/tunde",
+      ].join("\n"),
+    );
+    const carried = JSON.stringify(r.values);
+    for (const leak of ["803", "0123", "456 789", "@", "example.com", "tundehomes", "wa.me", "bit.ly", "t.me", "https"]) {
+      expect(carried, leak).not.toContain(leak);
+    }
+    const kinds = new Set(r.notCarried.map((n) => n.kind));
+    for (const kind of ["phone", "account", "email", "handle", "link"]) expect(kinds.has(kind as never), kind).toBe(true);
+    expect(r.kobo.rentNaira).toBe(200_000_000);
+    expect(r.kobo.cautionDepositNaira).toBe(20_000_000);
+  });
+
+  it("reads 150% as nothing, not as 50%, and says so", () => {
+    const r = parseBroadcast("2 bedroom flat, Yaba. Rent 1m per annum. Agency 150%.");
+    expect(r.kobo.agencyFeeNaira).toBeUndefined();
+    expect(r.notCarried.some((n) => n.kind === "unreadable" && n.text.startsWith("150"))).toBe(true);
+  });
+
+  it("hands back a sum under a thousand naira and a figure with a minus in front", () => {
+    const small = parseBroadcast("Self contain, Yaba. Rent 450k per annum. Agreement fee N500.");
+    expect(small.kobo.agreementFeeNaira).toBeUndefined();
+    expect(small.notCarried.some((n) => n.kind === "tooSmall")).toBe(true);
+    const minus = parseBroadcast("Mini flat, Yaba. Rent 600k per annum. Caution -100k.");
+    expect(minus.kobo.cautionDepositNaira).toBeUndefined();
+    expect(minus.notCarried.some((n) => n.kind === "ambiguous")).toBe(true);
+  });
+
+  it("still reads a range of figures that happen to follow a dash in a list", () => {
+    const r = parseBroadcast("Mini flat - Yaba\nRent - 600k per annum\nCaution - 100k");
+    expect(r.kobo.rentNaira).toBe(60_000_000);
+    expect(r.kobo.cautionDepositNaira).toBe(10_000_000);
+  });
+});
+

@@ -347,19 +347,15 @@ function Field({
   label: string;
   hint?: string;
   error?: string;
-  /** V-09: the words "From your message", when this value came from a pasted broadcast. */
-  fromMessage?: string;
+  /** V-09: the "From your message" mark and its "Looks right" control, when this value came from a pasted broadcast. */
+  fromMessage?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <label className="block">
       <span className="nf-label">
         {label}
-        {fromMessage && (
-          <span className="nf-badge nf-badge--info ml-inline-tight align-middle" data-testid="from-message">
-            {fromMessage}
-          </span>
-        )}
+        {fromMessage}
       </span>
       {children}
       {error ? (
@@ -764,6 +760,40 @@ function TenantPays({
   );
 }
 
+/**
+ * V-09: THE "FROM YOUR MESSAGE" MARK, AND THE ONE-TAP WAY TO CONFIRM IT.
+ *
+ * Drawn beside every field a pasted broadcast filled. "Looks right" confirms
+ * the value without retyping it, which is what clears it from the set the
+ * submit gate reads; editing the field clears it too. Nothing is drawn once
+ * the agent has confirmed or changed the value.
+ */
+function FromMessageMark({
+  tag,
+  confirm,
+  onConfirm,
+}: {
+  tag: string;
+  confirm: string;
+  onConfirm: () => void;
+}) {
+  return (
+    <span className="ml-inline-tight inline-flex flex-wrap items-center gap-2xs align-middle" data-testid="from-message">
+      <span className="nf-badge nf-badge--info">{tag}</span>
+      <button
+        type="button"
+        className="nf-btn nf-btn--ghost nf-btn--sm min-h-11"
+        onClick={(event) => {
+          event.preventDefault();
+          onConfirm();
+        }}
+      >
+        {confirm}
+      </button>
+    </span>
+  );
+}
+
 /* ------------------------------------------------------------- the wizard */
 
 export function ListingWizard({
@@ -836,6 +866,40 @@ export function ListingWizard({
    * review until a person has looked at it.
    */
   const [fromMessage, setFromMessage] = useState<ReadonlySet<string>>(() => new Set());
+
+  /*
+   * The unconfirmed set survives a reload, keyed by the listing it belongs to
+   * (or "new" before the first save). Without this a reload would quietly
+   * treat every figure read from a WhatsApp message as confirmed. Storage
+   * that is unavailable costs only the reminder: the values themselves are in
+   * the draft.
+   */
+  const unconfirmedKey = `vallo_broadcast_unconfirmed:${listingId ?? "new"}`;
+  const [unconfirmedLoaded, setUnconfirmedLoaded] = useState<string | null>(null);
+  useEffect(() => {
+    if (unconfirmedLoaded === unconfirmedKey) return;
+    try {
+      const raw = localStorage.getItem(unconfirmedKey) ?? (listingId ? localStorage.getItem("vallo_broadcast_unconfirmed:new") : null);
+      const keys = raw ? (JSON.parse(raw) as unknown) : null;
+      if (Array.isArray(keys) && keys.length > 0) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring from storage, once per key
+        setFromMessage((prev) => new Set([...prev, ...keys.filter((k): k is string => typeof k === "string")]));
+      }
+    } catch {
+      /* storage unavailable */
+    }
+    setUnconfirmedLoaded(unconfirmedKey);
+  }, [unconfirmedKey, unconfirmedLoaded, listingId]);
+  useEffect(() => {
+    if (unconfirmedLoaded !== unconfirmedKey) return;
+    try {
+      if (fromMessage.size === 0) localStorage.removeItem(unconfirmedKey);
+      else localStorage.setItem(unconfirmedKey, JSON.stringify([...fromMessage]));
+      if (listingId) localStorage.removeItem("vallo_broadcast_unconfirmed:new");
+    } catch {
+      /* storage unavailable */
+    }
+  }, [fromMessage, unconfirmedKey, unconfirmedLoaded, listingId]);
 
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -1165,9 +1229,28 @@ export function ListingWizard({
     return taken;
   }
 
-  /** The "From your message" mark for one field, or nothing. */
-  const mark = (key: keyof Values): string | undefined =>
-    broadcastCopy && fromMessage.has(key as string) ? broadcastCopy.tag : undefined;
+  /** Confirm a filled value as it stands: it leaves the set the gate reads. */
+  function confirmFromMessage(keys: readonly string[]) {
+    setFromMessage((prev) => {
+      const next = new Set(prev);
+      for (const key of keys) next.delete(key);
+      return next;
+    });
+  }
+
+  /** The "From your message" mark for one or more fields, or nothing. */
+  const mark = (...keys: (keyof Values)[]): React.ReactNode => {
+    if (!broadcastCopy) return undefined;
+    const live = keys.filter((key) => fromMessage.has(key as string)) as string[];
+    if (live.length === 0) return undefined;
+    return (
+      <FromMessageMark
+        tag={broadcastCopy.tag}
+        confirm={broadcastCopy.confirm}
+        onConfirm={() => confirmFromMessage(live)}
+      />
+    );
+  };
 
   const unconfirmedMoney = BROADCAST_MONEY_KEYS.filter((key) => fromMessage.has(key));
 
@@ -1658,9 +1741,13 @@ export function ListingWizard({
               placeholder={copy.basics.titlePlaceholder}
               maxLength={80}
             />
+            {mark("title")}
 
             <div>
-              <span className="nf-label">{copy.basics.propertyTypeLabel}</span>
+              <span className="nf-label">
+                {copy.basics.propertyTypeLabel}
+                {mark("propertyType")}
+              </span>
               {/*
                 06 screen one draws the property types THREE ACROSS, each one
                 a centred glass object over a single word, with no description
@@ -1709,6 +1796,7 @@ export function ListingWizard({
               placeholder={copy.basics.descriptionPlaceholder}
               textAreaClassName="min-h-[9rem]"
             />
+            {mark("description")}
 
             {/*
               THE ROOMS, DRAWN AS GOVERNING-06 SCREEN THREE DRAWS THEM.
@@ -1728,7 +1816,10 @@ export function ListingWizard({
               number nothing stores is asking somebody to type into a void.
             */}
             <div>
-              <span className="nf-label">{copy.drawn.rooms.title}</span>
+              <span className="nf-label">
+                {copy.drawn.rooms.title}
+                {mark("bedrooms", "bathrooms", "toilets", "parkingSpaces")}
+              </span>
               <div className="nf-lw-facts">
                 <FactRow
                   glyph="bed"
@@ -2029,7 +2120,7 @@ export function ListingWizard({
         {/* ------------------------------------------------------ 3 location */}
         {step === 2 && (
           <div className="space-y-lg">
-            <Field label={copy.location.stateLabel} error={fieldErrors.stateCode}>
+            <Field fromMessage={mark("stateCode")} label={copy.location.stateLabel} error={fieldErrors.stateCode}>
               <select
                 className="nf-field"
                 value={values.stateCode}
@@ -2148,7 +2239,10 @@ export function ListingWizard({
               Every blurb is on its own card now.
             */}
             <fieldset>
-              <legend className="nf-label mb-inline">{copy.drawn.supply.power}</legend>
+              <legend className="nf-label mb-inline">
+                {copy.drawn.supply.power}
+                {mark("powerGrid")}
+              </legend>
               <div className="nf-lw-choices">
                 {POWER_GRID_CHOICES.map((choice) => (
                   <Choice
@@ -2166,7 +2260,10 @@ export function ListingWizard({
             </fieldset>
 
             <fieldset>
-              <legend className="nf-label mb-inline">{copy.drawn.supply.backup}</legend>
+              <legend className="nf-label mb-inline">
+                {copy.drawn.supply.backup}
+                {mark("powerBackup")}
+              </legend>
               <div className="nf-lw-choices">
                 {POWER_BACKUP_CHOICES.map((choice) => (
                   <Choice
@@ -2215,7 +2312,10 @@ export function ListingWizard({
             )}
 
             <fieldset>
-              <legend className="nf-label mb-inline">{copy.drawn.supply.water}</legend>
+              <legend className="nf-label mb-inline">
+                {copy.drawn.supply.water}
+                {mark("waterSupply")}
+              </legend>
               <div className="nf-lw-choices">
                 {WATER_SUPPLY_CHOICES.map((choice) => (
                   <Choice
@@ -2241,6 +2341,7 @@ export function ListingWizard({
               checked={values.prepaidMeter}
               onCheckedChange={(v) => set("prepaidMeter", v)}
             />
+            {mark("prepaidMeter")}
 
             {/* ------------------------------------------------ the gate */}
             <div className="nf-panel nf-panel--card block p-card">
@@ -2315,7 +2416,10 @@ export function ListingWizard({
               tell half the listers they are in the wrong place.
             */}
             <fieldset>
-              <legend className="nf-label mb-inline">What are you listing it for?</legend>
+              <legend className="nf-label mb-inline">
+                What are you listing it for?
+                {mark("intent")}
+              </legend>
               <div className="nf-lw-choices">
                 {LISTING_INTENT_CHOICES.map((choice) => (
                   <Choice
@@ -2357,6 +2461,7 @@ export function ListingWizard({
                   checked={values.priceNegotiable}
                   onCheckedChange={(v) => set("priceNegotiable", v)}
                 />
+                {mark("priceNegotiable")}
 
                 {/*
                   WHAT A BUYER ACTUALLY PAYS.
@@ -2579,7 +2684,10 @@ export function ListingWizard({
                 </Field>
 
                 <fieldset>
-                  <legend className="nf-label mb-inline">How often is it paid?</legend>
+                  <legend className="nf-label mb-inline">
+                    How often is it paid?
+                    {mark("rentPeriod", "rentNegotiable")}
+                  </legend>
                   <div className="flex flex-wrap gap-inline">
                     {RENT_PERIOD_CHOICES.map((choice) => (
                       <button
@@ -2782,7 +2890,7 @@ export function ListingWizard({
                   </Field>
                 </div>
 
-                <Field label="Furnishing">
+                <Field fromMessage={mark("furnished")} label="Furnishing">
                   <select
                     className="nf-field"
                     value={values.furnished}

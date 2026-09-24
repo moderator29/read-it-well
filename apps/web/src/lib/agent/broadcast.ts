@@ -92,7 +92,19 @@ export const BROADCAST_MONEY_KEYS: readonly BroadcastKey[] = [
   "saleLegalFeeNaira",
 ];
 
-export type NotCarriedKind = "phone" | "account" | "phrase" | "noField" | "ambiguous" | "noBase" | "tooLarge";
+export type NotCarriedKind =
+  | "phone"
+  | "account"
+  | "email"
+  | "handle"
+  | "link"
+  | "phrase"
+  | "noField"
+  | "ambiguous"
+  | "noBase"
+  | "tooLarge"
+  | "tooSmall"
+  | "unreadable";
 
 export type NotCarried = { kind: NotCarriedKind; text: string };
 
@@ -104,6 +116,12 @@ export type BroadcastParse = {
   /** Every key filled, in a stable order, for the "from your message" marks. */
   filled: BroadcastKey[];
   notCarried: NotCarried[];
+  /**
+   * The message with every phone number, account number, email, handle, link
+   * and WhatsApp phrase already removed. The only text any second reader is
+   * ever shown.
+   */
+  cleaned: string;
 };
 
 /* ------------------------------------------------------------ money text */
@@ -146,7 +164,7 @@ export function amountToKobo(digits: string, suffix: string | undefined): number
 
 /** A percentage in integer basis points: "10%" is 1,000, "7.5%" is 750. */
 export function percentToBasisPoints(text: string): number | null {
-  const match = /^(\d{1,2})(?:\.(\d{1,2}))?$/.exec(text);
+  const match = /^(\d{1,3})(?:\.(\d{1,2}))?$/.exec(text);
   if (!match) return null;
   const whole = Number(match[1]);
   const fraction = (match[2] ?? "").padEnd(2, "0");
@@ -275,20 +293,34 @@ function countFrom(text: string): number | null {
 /* ---------------------------------------------------------------- stripping */
 
 /** Nigerian mobile numbers, with or without +234, spaced or dashed. */
-const PHONE = /(?:\+?234[\s-]?|\b0)[789][01](?:[\s-]?\d){8}\b/g;
+/**
+ * Nigerian mobile numbers however they are written: +234 803 123 4567,
+ * +234 (0) 803-123-4567, 0803 123 4567, 08031234567.
+ */
+const PHONE = /(?:\+?\s?234[\s.-]*(?:\(0\)[\s.-]*)?|\b0)[789][01](?:[\s.-]?\d){8}\b/g;
 /**
  * The contact words that lead up to a number ("Call 0803...", "WhatsApp or
  * call: +234..."). They go WITH the number, so stripping the number does not
  * leave a lone "Call" behind to be reported as wording of its own.
  */
 const CONTACT_LEAD =
-  /(?:\b(?:call|whatsapp|text|dm|contact|tel|phone|reach)\b[\s:.,/&-]*(?:or\s+|and\s+)?)+(?:(?:me|us)\s+)?(?:on\s+|via\s+)?(?=(?:\+?234|0)[789][01])/gi;
-/** A ten digit NUBAN standing alone, which is an account number, not a price. */
-const ACCOUNT = /\b\d{10}\b/g;
+  /(?:\b(?:call|whatsapp|text|dm|contact|tel|phone|reach)\b[\s:.,/&-]*(?:or\s+|and\s+)?)+(?:(?:me|us)\s+)?(?:on\s+|via\s+)?(?=\+?\s?(?:234|0)[\s(]*[0789])/gi;
+/**
+ * A ten digit NUBAN, run together or grouped with spaces or dashes ("0123 456
+ * 789"), which is an account number and not a price. Never taken when a naira
+ * sign sits in front of it: "₦1500000000" is a figure for the money reader to
+ * judge (and refuse as too large), not an account.
+ */
+const ACCOUNT = /(?<![₦#\d]\s?)(?<!\bn\s?)\b\d(?:[\s-]?\d){9}\b(?![\s-]?\d)/gi;
+/** An email address, a social handle, and links of every kind. */
+const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g;
+const HANDLE = /(?<![\w.@])@[a-z0-9_.]{2,30}\b/gi;
+const LINK =
+  /\b(?:https?:\/\/|www\.)\S+|\b(?:wa\.me|t\.me|bit\.ly|tinyurl\.com|instagram\.com|facebook\.com|fb\.me|tiktok\.com|x\.com|twitter\.com)\/\S*/gi;
 /** Phrases that belong to WhatsApp and to nothing on a listing. */
 const PHRASES: readonly RegExp[] = [
   /serious\s+(?:clients?|buyers?|tenants?|people)\s+only/gi,
-  /(?:call|whatsapp|chat|dm|text)(?:\s*(?:\/|or|&)\s*(?:call|whatsapp|chat|dm|text))*\s*(?:me|us)?\s*(?:on|via)?\s*(?:for\s+(?:more\s+)?(?:details|info|inspection|enquiries))?/gi,
+  /\b(?:call|whatsapp|chat|dm|text)\b(?:\s*(?:\/|\bor\b|&)\s*\b(?:call|whatsapp|chat|dm|text)\b)*(?:\s*\b(?:me|us)\b)?(?:\s*\b(?:on|via)\b)?(?:\s*\bfor\s+(?:more\s+)?(?:details|info|inspection|enquiries)\b)?/gi,
   /inspection\s+(?:fee|charge)\s*(?:of\s*)?(?:₦|n|#)?\s*[\d.,]*\s*[km]?/gi,
   /no\s+time\s+wasters?/gi,
   /first\s+come,?\s*first\s+served/gi,
@@ -320,14 +352,23 @@ const LABELS: readonly { kind: LabelKind; re: RegExp }[] = [
 
 const AMOUNT =
   /(?:₦|\bn(?=\s?\d)|\bngn\s?|#)?\s?(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s?(k|thousand|mil|mill|millions?|m|bn|b|billion)?(?![a-z0-9%])/gi;
-const PERCENT = /(\d{1,2}(?:\.\d{1,2})?)\s?(?:%|per\s?cent|percent)/gi;
+/* No digit or point may sit in front: "150%" is not "50%", and it is refused. */
+const PERCENT = /(?<![\d.])(\d{1,3}(?:\.\d{1,2})?)\s?(?:%|per\s?cent|percent)/gi;
 
 type Token =
   | { type: "label"; kind: LabelKind; at: number; end: number }
   | { type: "amount"; kobo: number; at: number; end: number; raw: string; explicit: boolean }
   | { type: "percent"; bp: number; at: number; end: number; raw: string };
 
-function tokens(clause: string): Token[] {
+/** The smallest figure that is plausibly money on a listing: one thousand naira. */
+export const MIN_MONEY_KOBO = 100_000;
+
+/**
+ * Every figure the reader could not use is reported, never dropped: a
+ * percentage over a hundred, a sum under a thousand naira, a figure with a
+ * minus in front, a figure that does not come out to whole kobo.
+ */
+function tokens(clause: string, rejects: NotCarried[] = []): Token[] {
   const out: Token[] = [];
   const taken: [number, number][] = [];
   const overlaps = (a: number, b: number) => taken.some(([x, y]) => a < y && b > x);
@@ -345,8 +386,13 @@ function tokens(clause: string): Token[] {
   for (const m of clause.matchAll(PERCENT)) {
     const at = m.index ?? 0;
     const end = at + m[0].length;
+    if (overlaps(at, end)) continue;
     const bp = percentToBasisPoints(m[1] ?? "");
-    if (bp === null || overlaps(at, end)) continue;
+    if (bp === null) {
+      rejects.push({ kind: "unreadable", text: m[0].trim() });
+      taken.push([at, end]);
+      continue;
+    }
     taken.push([at, end]);
     out.push({ type: "percent", bp, at, end, raw: m[0].trim() });
   }
@@ -362,9 +408,25 @@ function tokens(clause: string): Token[] {
     /* A bare small number ("2 bedroom", "24 hours") is not money. Only a
        figure with a sign, a k/m/b, or at least five digits is. */
     if (!suffix && !hasSign && !bigBare) continue;
-    const kobo = amountToKobo(digits, suffix);
-    if (kobo === null) continue;
     taken.push([at, end]);
+    /* "-200k" is a discount, a range or a typo, and a guess would be one of
+       three different figures. It is handed back. */
+    const first = at + (m[0].length - m[0].trimStart().length);
+    const attachedMinus =
+      clause[first - 1] === "-" && (first - 2 < 0 || /\s/.test(clause[first - 2] ?? ""));
+    if (attachedMinus) {
+      rejects.push({ kind: "ambiguous", text: clause.slice(first - 1, end).trim() });
+      continue;
+    }
+    const kobo = amountToKobo(digits, suffix);
+    if (kobo === null) {
+      rejects.push({ kind: "unreadable", text: m[0].trim() });
+      continue;
+    }
+    if (kobo < MIN_MONEY_KOBO) {
+      rejects.push({ kind: "tooSmall", text: m[0].trim() });
+      continue;
+    }
     out.push({ type: "amount", kobo, at, end, raw: m[0].trim(), explicit: Boolean(suffix || hasSign) });
   }
   return out.sort((a, b) => a.at - b.at);
@@ -441,7 +503,13 @@ export function parseBroadcast(message: string): BroadcastParse {
   text = text.replace(CONTACT_LEAD, "");
   for (const m of text.matchAll(PHONE)) notCarried.push({ kind: "phone", text: m[0].trim() });
   text = text.replace(PHONE, " ");
-  for (const m of text.matchAll(ACCOUNT)) notCarried.push({ kind: "account", text: m[0] });
+  for (const m of text.matchAll(LINK)) notCarried.push({ kind: "link", text: m[0] });
+  text = text.replace(LINK, " ");
+  for (const m of text.matchAll(EMAIL)) notCarried.push({ kind: "email", text: m[0] });
+  text = text.replace(EMAIL, " ");
+  for (const m of text.matchAll(HANDLE)) notCarried.push({ kind: "handle", text: m[0] });
+  text = text.replace(HANDLE, " ");
+  for (const m of text.matchAll(ACCOUNT)) notCarried.push({ kind: "account", text: m[0].trim() });
   text = text.replace(ACCOUNT, " ");
   text = text.replace(/\b(?:acct|account)\s*(?:no|number|name|details)?\s*[:.-]?/gi, " ");
   for (const re of PHRASES) {
@@ -517,7 +585,7 @@ export function parseBroadcast(message: string): BroadcastParse {
   let period: "year" | "month" | "quarter" | null = null;
 
   for (const clause of clauses(text)) {
-    const list = tokens(clause);
+    const list = tokens(clause, notCarried);
     const labels = list.filter((t) => t.type === "label") as Extract<Token, { type: "label" }>[];
     const valuesIn = list.filter((t) => t.type !== "label") as Exclude<Token, { type: "label" }>[];
     const used = new Set<Token>();
@@ -681,7 +749,7 @@ export function parseBroadcast(message: string): BroadcastParse {
   if (description.length >= 20) put("description", description.slice(0, 4000));
 
   const filled = ORDER.filter((key) => values[key] !== undefined);
-  return { values, kobo, filled, notCarried: dedupe(notCarried) };
+  return { values, kobo, filled, notCarried: dedupe(notCarried), cleaned: text.trim() };
 }
 
 function dedupe(list: NotCarried[]): NotCarried[] {

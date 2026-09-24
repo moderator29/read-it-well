@@ -179,8 +179,16 @@ export const frontDoorEn = {
       ambiguous: "Unclear, so left for you",
       noBase: "A percentage with nothing to be a percentage of",
       tooLarge: "Larger than a draft can hold, so type it in",
+      tooSmall: "Too small to be a listing figure, so type it in",
+      unreadable: "A figure we could not read, so type it in",
+      email: "Email address",
+      handle: "Social handle",
+      link: "Link",
     },
     tag: "From your message",
+    confirm: "Looks right",
+    agentsOnly: "Starting from a message is for listers. Set up your lister profile first.",
+    capped: "You have pasted a lot of messages today. Type the details in, or try again tomorrow.",
     /** How a filled enum value reads in the panel's list. */
     words: {
       rent: "To let",

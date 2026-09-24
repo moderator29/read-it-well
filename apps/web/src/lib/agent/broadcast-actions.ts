@@ -3,6 +3,9 @@
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { resolveSession, SIGNED_OUT_MESSAGE } from "../actions/session";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "../locale";
+import { consume, subjectForUser } from "../security/rate-limit";
 import { parseBroadcast, type BroadcastParse } from "./broadcast";
 import { refineWithModel } from "./broadcast-model";
 
@@ -41,10 +44,31 @@ export async function draftFromBroadcast(input: unknown): Promise<ActionResult<B
   if (!parsed.ok) return fail(parsed.fieldErrors.text ?? parsed.error, parsed.fieldErrors);
   const session = await resolveSession();
   if (session.state !== "signed-in") return fail(SIGNED_OUT_MESSAGE);
+  const copy = getDictionary(await getLocale()).frontDoor.broadcast;
+
+  /* Listers only: this reads a listing, and the wizard it fills is theirs. */
+  const { data: agent } = await session.supabase
+    .from("agents")
+    .select("id")
+    .eq("user_id", session.user.id)
+    .maybeSingle();
+  if (!agent) return fail(copy.agentsOnly);
+
+  /* A generous daily ceiling, because the optional model pass costs money per
+     call and a paste box is easy to hammer. The limiter fails open. */
+  const verdict = await consume({
+    bucket: "broadcast_parse",
+    subject: subjectForUser(session.user.id),
+    limit: 60,
+    windowSeconds: 24 * 60 * 60,
+  });
+  if (!verdict.allowed) return fail(copy.capped);
 
   const base = parseBroadcast(parsed.data.text);
   try {
-    return ok(await refineWithModel(parsed.data.text, base));
+    /* The model, when it runs at all, is shown the STRIPPED text: no number,
+       account, email, handle or link ever leaves for a third party. */
+    return ok(await refineWithModel(base.cleaned, base));
   } catch {
     return ok(base);
   }

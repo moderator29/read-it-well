@@ -3,6 +3,7 @@ import "server-only";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { parseBroadcast, type BroadcastKey, type BroadcastParse } from "./broadcast";
+import { koboToNairaInput } from "./listings-schema";
 
 /**
  * THE OPTIONAL SECOND READER FOR A PASTED BROADCAST (V-09), AND ITS FENCE.
@@ -91,7 +92,7 @@ export function mergeSpans(base: BroadcastParse, spans: Record<string, string>):
   /* The rent the first pass found is the base any percentage is a share of,
      so it is carried into the synthetic message rather than re-guessed. */
   const rentKobo = base.kobo.rentNaira ?? base.kobo.salePriceNaira;
-  if (rentKobo !== undefined && !spans.rent) lines.unshift(`Rent ${rentKobo / 100}`);
+  if (rentKobo !== undefined && !spans.rent) lines.unshift(`Rent ${koboToNairaInput(rentKobo)}`);
   const second = parseBroadcast(lines.join(". "));
 
   const values = { ...base.values };
