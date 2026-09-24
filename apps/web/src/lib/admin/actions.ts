@@ -191,6 +191,8 @@ export async function resolveReport(input: {
   reportId: string;
   decision: "reviewing" | "resolved" | "dismissed";
   notes?: string;
+  /** V-89: a line the reporter sees; staff notes never reach them. */
+  reporterNote?: string;
 }): Promise<ActionResult<null>> {
   const access = await requireAdmin();
   if (access.state !== "admin") return fail(adminRefusal(access));
@@ -207,7 +209,7 @@ export async function resolveReport(input: {
   if (readError) return fail(SERVICE_DOWN);
   if (!report) return fail(GONE);
   if (report.status === decision) return fail("This report already sits in that state.");
-  if (report.status === "resolved" || report.status === "dismissed") {
+  if (report.status === "resolved" || report.status === "dismissed" || (report.status as string) === "withdrawn") {
     return fail("This report has already been closed. Refresh the queue to see the current state.");
   }
 
@@ -236,6 +238,8 @@ export async function resolveReport(input: {
         target_type: report.target_type,
         target_id: report.target_id,
         notes: parsed.data.notes ?? null,
+        /* V-89: read by public.my_reports() and nothing else of this row. */
+        reporter_note: parsed.data.reporterNote && parsed.data.reporterNote.length > 0 ? parsed.data.reporterNote : null,
       },
     });
   } catch {

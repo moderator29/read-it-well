@@ -37,6 +37,8 @@ export const resolveReportSchema = z.object({
   reportId: uuid,
   decision: z.enum(reportDecisions),
   notes,
+  /* V-89: one line the reporter will see on /settings/help. Optional. */
+  reporterNote: z.string().trim().max(200).optional(),
 });
 
 export const applicationDecisions = ["approve", "reject", "request_changes"] as const;
