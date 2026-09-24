@@ -324,6 +324,8 @@ export const frontDoorEn = {
     failed: "We could not ask just now. Nothing was sent, so try again in a moment.",
     rateLimited: "You asked about this listing today already. The lister's answer will arrive in the chat.",
     notAskable: "This listing cannot take questions, so nothing was sent.",
+    /** After the lister answered "let" in the last week (V-14 review). */
+    recentlyLet: "The lister said on {date} that this home has been let, so there is nothing to ask. You can still message them.",
     cardTitle: "Still available?",
     askedOn: "Asked {when}",
     waiting: "Waiting for the lister to answer.",

@@ -42,3 +42,24 @@ export async function readOpenQuestionsForLister(): Promise<Set<string>> {
     return new Set();
   }
 }
+
+/**
+ * When the lister last said "let" about this listing, within seven days and
+ * not since contradicted, or null. The listing page shows that sentence in
+ * place of the ask button (V-14 review). A failed read is null: the database
+ * refuses the ask itself either way.
+ */
+export async function readRecentlyLet(listingId: string): Promise<string | null> {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return null;
+  try {
+    const rpc = session.supabase.rpc.bind(session.supabase) as unknown as (
+      fn: "listing_recently_let",
+      args: { p_listing: string },
+    ) => PromiseLike<{ data: unknown; error: unknown }>;
+    const { data, error } = await rpc("listing_recently_let", { p_listing: listingId });
+    return !error && typeof data === "string" ? data : null;
+  } catch {
+    return null;
+  }
+}

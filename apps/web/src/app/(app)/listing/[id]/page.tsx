@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { StillAvailable } from "@/components/app/listing/StillAvailable";
+import { readRecentlyLet } from "@/lib/availability/queries";
 import { panelClass } from "@/components/ui/Panel";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -548,7 +549,14 @@ export default async function ListingDetailPage({
       labelling annual rent as nightly.
     */
     <div className="flex flex-col gap-md">
-      {isRental && <StillAvailable listingId={listing.id} copy={t.frontDoor.available} />}
+      {isRental && (
+        <StillAvailable
+          listingId={listing.id}
+          copy={t.frontDoor.available}
+          recentlyLet={await readRecentlyLet(listing.id)}
+          locale={locale}
+        />
+      )}
       <RentalPanel
         listingId={listing.id}
         priceMinor={listing.priceMinor}

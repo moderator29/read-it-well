@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import type { Dictionary } from "@vallo/i18n";
+import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
 import { askStillAvailable } from "@/lib/availability/actions";
 
@@ -19,13 +19,27 @@ import { askStillAvailable } from "@/lib/availability/actions";
 export function StillAvailable({
   listingId,
   copy,
+  recentlyLet = null,
+  locale = "en",
 }: {
   listingId: string;
   copy: Dictionary["frontDoor"]["available"];
+  /** When the lister last said "let", within a week and not since contradicted. */
+  recentlyLet?: string | null;
+  locale?: Locale;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
+
+  if (recentlyLet) {
+    const date = formatDate(new Date(recentlyLet), locale, { day: "numeric", month: "short", timeZone: "Africa/Lagos" });
+    return (
+      <div className="nf-panel nf-panel--card p-card-sm" data-testid="still-available-let">
+        <p className="nf-body-sm text-[var(--nf-content-secondary)]">{copy.recentlyLet.replace("{date}", date)}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="nf-panel nf-panel--card p-card-sm" data-testid="still-available">

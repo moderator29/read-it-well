@@ -57,6 +57,7 @@ export async function askStillAvailable(input: unknown): Promise<ActionResult<{ 
   const { error } = await rpc("ask_availability", { p_conversation: conversationId });
   if (error) {
     if (error.hint === "availability_rate_limited") return fail(t.rateLimited);
+    if (error.hint === "availability_recently_let") return fail(t.recentlyLet.replace(" on {date}", ""));
     if (error.code === "22023") return fail(t.notAskable);
     return fail(t.failed);
   }
