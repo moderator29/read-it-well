@@ -4,7 +4,8 @@
 -- rent_payments row) is not a stay: it is never reviewed as one and never
 -- earns a stay badge. Controls: a CONFIRMED stay with a past check-out is
 -- still reviewable and counted; a stay not finished, a cancelled one and a
--- no-show are refused. Rolls back.
+-- no-show are refused. Both hold without the reviewer's own read of
+-- rent_payments. Rolls back.
 do $$
 declare
   member constant uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';   -- guest
@@ -70,6 +71,16 @@ begin
   if exists (select 1 from public.user_badges where user_id = admin and badge_code = 'first_stay') then
     raise exception 'PROBE_FAIL new-a1-03: a tenancy earned a first_stay badge';
   end if;
+
+  -- The review rule does not rest on the reviewer's own read of
+  -- rent_payments: with that read taken away (no grant, no tenant policy), a
+  -- stay is still reviewable and a tenancy still is not.
+  if to_regprocedure('private.booking_is_tenancy(uuid)') is null
+     or not has_function_privilege('authenticated', 'private.booking_is_tenancy(uuid)', 'EXECUTE') then
+    raise exception 'PROBE_FAIL new-a1-03: reviews_insert_own cannot ask whether a booking is a tenancy';
+  end if;
+  revoke select on public.rent_payments from authenticated;
+  drop policy rent_payments_select_tenant on public.rent_payments;
 
   -- Reviews, as the guest through the API role.
   set local role authenticated;
