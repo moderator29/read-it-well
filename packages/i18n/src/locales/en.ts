@@ -1527,6 +1527,15 @@ export const en = {
      * asks "do you recognise this?" about a row that was never about the reader
      * is worse than one that admits it does not know.
      */
+    /* OPS-12: the member's own data, downloaded as JSON from /api/account/export. */
+    dataExport: {
+      label: "A copy of your data",
+      action: "Download your data",
+      sub: "Your account, profile, bookings, wallet, messages you sent and more, as one JSON file.",
+      note: "It is made when you ask and holds only your own records. Files you uploaded are listed, not included. For anything it leaves out, contact support.",
+      signedOut: "Sign in to download the data held on your account.",
+    },
+
     devices: {
       rowLabel: "Devices and sessions",
       rowNote:
