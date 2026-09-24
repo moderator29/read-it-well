@@ -86,6 +86,16 @@ attach to them, and the storage limitation principle is the only rule left. This
 is the pivot the whole schedule turns on and it is question 1 for the solicitor
 in section 7.
 
+**The AML policy relies on these periods.** `docs/AML_CFT_CPF_POLICY.md`
+section 10 relies on the 5-year identity periods here and the 6-year
+financial periods in 3.3 to meet its record-keeping duty (SCUML checklist item
+11). It also records one conflict: the account-deletion purge deletes
+`agent_documents`, `bank_accounts` and `payout_accounts`, which removes
+identity records that must be kept for 5 years. Until that is fixed, no
+approved agent's account is deleted without the Compliance Officer first
+exporting its records. If a period in this schedule changes, section 10 of
+the policy must change with it.
+
 ### 3.2 Account and profile
 
 | Data | Where it lives | Trigger | Period | Action |
