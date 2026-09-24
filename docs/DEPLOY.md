@@ -28,6 +28,37 @@ Order of operations, because some steps depend on earlier ones:
 
 ---
 
+## 0. Who owns the accounts (OPS-P2-02, FOUNDER)
+
+**Today the company does not own its own production.** The live database is Supabase project `uccixoonmbhrnyczyigt`. It sits in a project named after a personal Gmail address, inside an organisation called `Naijafinds`. Hosting is Vercel team `boosthubservice-2204's projects`, next to unrelated projects. A lost personal login or a lapsed personal card would take VALLO SPACES LTD's customer data, wallet ledger and KYC store with it.
+
+Only the founder can move them. Both moves keep the same URLs, keys and data.
+
+1. **A company identity.**
+   - Create `ops@vallospaces.com`, or any company-domain mailbox that is not one person's.
+   - Turn on 2FA and store the recovery codes somewhere a second director can reach.
+2. **Supabase.**
+   - Signed in as `ops@`, create the organisation **VALLO SPACES LTD**.
+   - Invite a second person as **Owner**.
+   - Put the company card on it and choose **Pro** (OPS-07 needs Pro for backups and point-in-time recovery).
+   - From an account that owns both organisations, open project `uccixoonmbhrnyczyigt`, then **Project Settings → General → Transfer project**, and choose VALLO SPACES LTD.
+   - The project URL and API keys do not change, so no Vercel variable changes.
+3. **Vercel.**
+   - Signed in as `ops@`, create the team **Vallo**.
+   - Invite a second **Owner**, and put the company card on it.
+   - In `boosthubservice-2204's projects`, open the Vallo project, then **Settings → General → Transfer Project**, and choose Vallo.
+   - Environment variables, deployments and cron jobs move with the project. Afterwards, check three things:
+     - `vallospaces.com` still shows *Valid Configuration* under Domains;
+     - the GitHub app is installed for the new team, so pushes still deploy;
+     - the next cron run appears in the logs.
+4. **Write it down here.** Fill in the table below. Remove the old personal accounts' access only after one deploy and one cron run have succeeded under the new owners.
+
+| Account | Organisation / team | Owners (two, by role) | Recovery codes kept at |
+|---|---|---|---|
+| Supabase | *to fill: VALLO SPACES LTD* | *to fill* | *to fill* |
+| Vercel | *to fill: Vallo* | *to fill* | *to fill* |
+| GitHub | *to fill* | *to fill* | *to fill* |
+
 ## 1. What is in the box
 
 Counted on 23 September 2026. Counts go stale within days on this repository;
