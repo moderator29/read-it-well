@@ -1,17 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
+import type { getDictionary } from "@vallo/i18n";
+import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 import { ResultSheet } from "@/components/app/ResultSheet";
 import { deviceSavesChanged } from "@/components/app/SaveControl";
-import { announceSent, due, forget, isCreate, readOutbox, reschedule, type OutboxEntry } from "@/lib/offline/outbox";
+import { announceSent, currentUserId, due, forget, isCreate, readOutbox, reschedule, type OutboxEntry } from "@/lib/offline/outbox";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { sendMessage } from "@/lib/messages/actions";
 import { requestInspection } from "@/lib/inspections/actions";
 import { submitReview } from "@/lib/reviews/actions";
 import { dropPost } from "@/lib/social/posts-actions";
 import { clearInflight, listInflight } from "@/lib/offline/inflight";
-import { paymentState } from "@/lib/payments/payment-state";
+import { inflightState } from "@/lib/offline/inflight-state";
 import { toggleSave } from "@/lib/saved/actions";
 import { addLocalSave, removeLocalSave } from "@/lib/saved/local";
 import { saveRestaurant, saveStay, unsaveRestaurant, unsaveStay } from "@/lib/saved/places-actions";
@@ -38,19 +39,26 @@ import { saveRestaurant, saveStay, unsaveRestaurant, unsaveStay } from "@/lib/sa
 type Copy = ReturnType<typeof getDictionary>["platform"];
 
 type News =
-  | { kind: "paid" | "failed" | "pending"; reference: string }
+  | { kind: "paid" | "failed" | "returned" | "pending"; reference: string; history: string }
   | { kind: "outbox_failed"; reasons: { what: WhatKey; reason: string }[] }
   | null;
 
 type WhatKey = keyof Copy["outbox"]["what"];
-const WHAT: Record<OutboxEntry["kind"], WhatKey> = {
-  save_listing: "save",
-  save_place: "save",
+const WHAT: Record<Exclude<OutboxEntry["kind"], "save_listing" | "save_place">, WhatKey> = {
   send_message: "message",
   request_inspection: "inspection",
   submit_review: "review",
   drop_post: "post",
 };
+
+const NEVER_STARTED_MS = 30 * 60 * 1000;
+
+/** What the failed thing was, in the words of what the person did. */
+function whatOf(entry: OutboxEntry): WhatKey {
+  if (entry.kind === "save_listing") return entry.want ? "saveListing" : "unsaveListing";
+  if (entry.kind === "save_place") return entry.want ? "save" : "unsave";
+  return WHAT[entry.kind];
+}
 
 type Outcome = "sent" | "retry" | { refused: string };
 
@@ -109,7 +117,7 @@ async function replayOne(entry: OutboxEntry): Promise<Outcome> {
 }
 
 export function OfflineTray() {
-  const copy: Copy = getDictionary(DEFAULT_LOCALE).platform;
+  const copy: Copy = useClientDictionary().platform;
   const [news, setNews] = useState<News>(null);
   const running = useRef(false);
   const toldPending = useRef(new Set<string>());
@@ -121,7 +129,13 @@ export function OfflineTray() {
       /* 1. The outbox. */
       const refused: { what: WhatKey; reason: string }[] = [];
       let sentAny = false;
+      const me = await currentUserId();
       for (const entry of due(await readOutbox(), Date.now())) {
+        /* Tapped by somebody else on this phone (or as a guest): never sent as me. */
+        if ((entry.userId ?? null) !== me) {
+          await forget(entry.key);
+          continue;
+        }
         const outcome = await replayOne(entry);
         if (outcome === "sent") {
           sentAny = true;
@@ -130,7 +144,7 @@ export function OfflineTray() {
           await reschedule(entry, Date.now());
           break;
         } else {
-          refused.push({ what: WHAT[entry.kind], reason: outcome.refused });
+          refused.push({ what: whatOf(entry), reason: outcome.refused });
           await forget(entry.key);
         }
       }
@@ -142,18 +156,25 @@ export function OfflineTray() {
 
       /* 2. Payments that lost their connection. Read only. */
       for (const item of listInflight()) {
-        const state = await paymentState(item.reference).catch(() => null);
-        if (!state || !state.ok) continue;
-        if (state.data === "paid" || state.data === "failed") {
-          clearInflight(item.reference);
-          setNews({ kind: state.data, reference: item.reference });
-          return;
+        const answer = await inflightState(item.reference).catch(() => null);
+        if (!answer || answer.state === "unknown") continue;
+        if (answer.state === "none") {
+          /* No row: nothing was charged under this reference. Say nothing;
+             after half an hour it was never started, and the note goes. */
+          if (Date.now() - item.at > NEVER_STARTED_MS) clearInflight(item.reference);
+          continue;
         }
-        if (!toldPending.current.has(item.reference)) {
-          toldPending.current.add(item.reference);
-          setNews({ kind: "pending", reference: item.reference });
-          return;
+        if (answer.state === "pending") {
+          if (!toldPending.current.has(item.reference)) {
+            toldPending.current.add(item.reference);
+            setNews({ kind: "pending", reference: item.reference, history: answer.history });
+            return;
+          }
+          continue;
         }
+        clearInflight(item.reference);
+        setNews({ kind: answer.state, reference: item.reference, history: answer.history });
+        return;
       }
     } finally {
       running.current = false;
@@ -204,7 +225,22 @@ export function OfflineTray() {
         verdict={inflight.paidVerdict}
         consequence={inflight.paidBody.replace("{reference}", news.reference)}
         actions={[
-          { label: inflight.history, href: "/wallet/transactions", tone: "primary" },
+          { label: inflight.history, href: news.history, tone: "primary" },
+          { label: inflight.close, onClick: close, tone: "quiet" },
+        ]}
+      />
+    );
+  }
+  if (news.kind === "returned") {
+    return (
+      <ResultSheet
+        open
+        onOpenChange={(open) => !open && close()}
+        state="received"
+        verdict={inflight.returnedVerdict}
+        consequence={inflight.returnedBody.replace("{reference}", news.reference)}
+        actions={[
+          { label: inflight.history, href: news.history, tone: "primary" },
           { label: inflight.close, onClick: close, tone: "quiet" },
         ]}
       />

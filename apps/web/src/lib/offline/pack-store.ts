@@ -151,21 +151,36 @@ export async function queueCheckin(checkin: QueuedCheckin): Promise<void> {
 }
 
 export async function readCheckins(): Promise<QueuedCheckin[]> {
-  /* Keys and values come back in the same key order, so a row that no
-     longer parses (an older shape, a damaged record) can be deleted by its
-     key rather than sitting in the queue for ever. */
-  const keys = (await run<IDBValidKey[]>(CHECKINS, "readonly", (s) => s.getAllKeys())) ?? [];
-  const values = (await run<unknown[]>(CHECKINS, "readonly", (s) => s.getAll())) ?? [];
-  const out: QueuedCheckin[] = [];
-  for (let i = 0; i < values.length; i += 1) {
-    const checkin = asCheckin(values[i]);
-    if (checkin) out.push(checkin);
-    else if (keys.length === values.length && keys[i] !== undefined) {
-      const key = keys[i]!;
-      await run(CHECKINS, "readwrite", (s) => s.delete(key));
+  /* One cursor in one readwrite transaction: each record is read and, if it
+     no longer parses (an older shape, a damaged record), deleted where it
+     stands, so a bad row cannot sit in the queue for ever and no key can
+     drift out of step with its value. */
+  const db = await open();
+  if (!db) return [];
+  return new Promise((resolve) => {
+    const out: QueuedCheckin[] = [];
+    const done = () => {
+      db.close();
+      resolve(out);
+    };
+    try {
+      const tx = db.transaction(CHECKINS, "readwrite");
+      const cursorRequest = tx.objectStore(CHECKINS).openCursor();
+      cursorRequest.onsuccess = () => {
+        const cursor = cursorRequest.result;
+        if (!cursor) return;
+        const checkin = asCheckin(cursor.value);
+        if (checkin) out.push(checkin);
+        else cursor.delete();
+        cursor.continue();
+      };
+      tx.oncomplete = done;
+      tx.onerror = done;
+      tx.onabort = done;
+    } catch {
+      done();
     }
-  }
-  return out;
+  });
 }
 
 export async function forgetCheckin(checkin: QueuedCheckin): Promise<void> {

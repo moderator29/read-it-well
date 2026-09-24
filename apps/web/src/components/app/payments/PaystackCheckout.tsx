@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Locale } from "@vallo/i18n";
+import { DEFAULT_LOCALE, getDictionary, type Locale } from "@vallo/i18n";
 import { ResultSheet } from "@/components/app/ResultSheet";
 import { clearInflight, noteInflight } from "@/lib/offline/inflight";
 
@@ -155,7 +155,7 @@ type Phase =
   | { kind: "opening" }
   | { kind: "open" }
   | { kind: "settling" }
-  | { kind: "unavailable"; message: string };
+  | { kind: "unavailable"; message: string; offline?: true };
 
 /**
  * MOUNTING IS OPENING. There is no `open` prop and that is deliberate: one
@@ -285,7 +285,7 @@ export function PaystackCheckout({
     if (typeof navigator !== "undefined" && navigator.onLine === false) {
       /* Deferred a tick: the sentence is state, not a synchronous effect write. */
       void Promise.resolve().then(() => {
-        if (!cancelled) setPhase({ kind: "unavailable", message: "You are offline. Paying needs a connection. Nothing has been charged." });
+        if (!cancelled) setPhase({ kind: "unavailable", message: "", offline: true });
       });
       return () => {
         cancelled = true;
@@ -445,7 +445,7 @@ export function PaystackCheckout({
         }}
         state="failed"
         verdict="Cannot pay here"
-        consequence={`${phase.message} You can try again in a moment, or open the payment page on Paystack's own site, which will take you off Vallo until it is done.`}
+        consequence={`${phase.offline ? getDictionary(locale ?? DEFAULT_LOCALE).platform.inflight.offline : phase.message} You can try again in a moment, or open the payment page on Paystack's own site, which will take you off Vallo until it is done.`}
         fact={fact}
         locale={locale}
         actions={

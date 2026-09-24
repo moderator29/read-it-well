@@ -8,9 +8,8 @@ import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import { createClient } from "@/lib/supabase/client";
 import { attachPostMedia, dropPost, replyToPost } from "@/lib/social/posts-actions";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
-import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
+import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
-const OUTBOX = getDictionary(DEFAULT_LOCALE).platform.outbox;
 import { summonBot } from "@/lib/social/bot-actions";
 import { mentionsBot } from "@/lib/social/bot-schema";
 import {
@@ -97,6 +96,7 @@ export function Composer({
   const [error, setError] = useState<string | null>(null);
   /* V-40: the post was kept for when the signal returns. */
   const [keptNote, setKeptNote] = useState<string | null>(null);
+  const OUTBOX = useClientDictionary().platform.outbox;
   const [held, setHeld] = useState(false);
   const [pictures, setPictures] = useState<Picture[]>([]);
   /* The post that landed without its pictures. While this is set, the retry is

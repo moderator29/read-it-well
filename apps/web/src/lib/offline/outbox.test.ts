@@ -60,7 +60,8 @@ describe("creates in the outbox (V-40)", () => {
     ];
     for (const entry of made) {
       expect(entry?.key).toBe(`${entry?.kind}:${ID}`);
-      expect(asEntry(JSON.parse(JSON.stringify(entry)))).toEqual(entry);
+      expect(asEntry(JSON.parse(JSON.stringify(entry)))).toEqual({ ...entry, userId: null });
+      expect(asEntry({ ...entry, userId: "u-1" })?.userId).toBe("u-1");
     }
   });
 

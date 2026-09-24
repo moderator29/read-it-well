@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { submitReview, type ReviewWritten } from "@/lib/reviews/actions";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
-import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
+import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
-const OUTBOX = getDictionary(DEFAULT_LOCALE).platform.outbox;
 
 /**
  * V-40: the review goes now, or, with no signal, is kept and sent when the
@@ -18,6 +17,7 @@ async function sendReview(
   prev: ActionResult<ReviewWritten> | null,
   formData: FormData,
   onKept: () => void,
+  couldNotKeep: string,
 ): Promise<ActionResult<ReviewWritten> | null> {
   const field = (key: string) => {
     const value = formData.get(key);
@@ -37,7 +37,7 @@ async function sendReview(
     onKept();
     return prev;
   }
-  if (done.state === "not_kept") return { ok: false, error: OUTBOX.couldNotKeep };
+  if (done.state === "not_kept") return { ok: false, error: couldNotKeep };
   return done.result;
 }
 import { BODY_MAX, RATING_LABELS, RATING_MAX, RATING_MIN } from "@/lib/reviews/schema";
@@ -62,10 +62,11 @@ import { Button } from "@/components/ui/Button";
 export function ReviewForm({ subject }: { subject: ReviewSubject }) {
   const router = useRouter();
   const [kept, setKept] = useState(false);
+  const OUTBOX = useClientDictionary().platform.outbox;
   const [state, formAction, pending] = useActionState<
     ActionResult<ReviewWritten> | null,
     FormData
-  >((prev, formData) => sendReview(prev, formData, () => setKept(true)), null);
+  >((prev, formData) => sendReview(prev, formData, () => setKept(true), OUTBOX.couldNotKeep), null);
 
   const [rating, setRating] = useState(0);
   const [body, setBody] = useState("");

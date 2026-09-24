@@ -21,7 +21,7 @@ import { ActionBar } from "@/components/ui/ActionBar";
 import { Amount } from "@/components/ui/Amount";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { DEFAULT_LOCALE, getDictionary, formatMoney, type Dictionary } from "@vallo/i18n";
+import { getDictionary, formatMoney, type Dictionary } from "@vallo/i18n";
 
 /**
  * The three ways to pay the rent.
@@ -237,7 +237,7 @@ export function PayPanel({
     const stepUp = await moneyLock.prove({ kind: "pay_wallet", target: bookingId });
     if (stepUp === null) {
       clearTimers();
-      setPhase({ kind: "error", message: getDictionary(DEFAULT_LOCALE).platform.moneyLock.notConfirmed });
+      setPhase({ kind: "error", message: getDictionary(view.locale).platform.moneyLock.notConfirmed });
       return;
     }
     setPhase({ kind: "wallet-paying" });

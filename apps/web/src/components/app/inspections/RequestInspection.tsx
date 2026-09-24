@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { DEFAULT_LOCALE, formatDate, getDictionary, type Locale } from "@vallo/i18n";
+import { formatDate, getDictionary, type Locale } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { AuthGate } from "@/components/auth/AuthGate";
@@ -11,7 +11,6 @@ import { TYPE } from "@/components/app/Screen";
 import { requestInspection } from "@/lib/inspections/actions";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
 
-const OUTBOX = getDictionary(DEFAULT_LOCALE).platform.outbox;
 import type { Inspection } from "@/lib/inspections/types";
 
 /**
@@ -49,6 +48,7 @@ export function RequestInspection({
   const [when, setWhen] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const OUTBOX = getDictionary(locale).platform.outbox;
   const [pending, startTransition] = useTransition();
   /* V-40: asked with no signal; kept, and sent when it returns. */
   const [kept, setKept] = useState(false);

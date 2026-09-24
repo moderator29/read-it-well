@@ -18,9 +18,8 @@ import {
 } from "@/lib/saved/places-actions";
 import { addLocalSave, readLocalSaves, removeLocalSave } from "@/lib/saved/local";
 import { enqueue, makeEntry } from "@/lib/offline/outbox";
-import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
+import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
-const OUTBOX_COPY = getDictionary(DEFAULT_LOCALE).platform.outbox;
 
 /**
  * The heart, on anything that shows a listing.
@@ -184,6 +183,8 @@ export function useSaveControl(
    */
   place?: SavePlaceTarget,
 ) {
+  /* V-40 copy in the viewer's own language. */
+  const OUTBOX_COPY = useClientDictionary().platform.outbox;
   /**
    * The person's own answer, once they have given one. `null` means they have
    * not touched this heart on this page, so the stored truth wins.

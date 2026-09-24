@@ -64,6 +64,12 @@ export type OutboxEntry = {
   want: boolean;
   /** A create's fields; absent on a save. */
   payload?: OutboxPayload;
+  /**
+   * Who tapped it: the signed-in user's id, or null for a guest. Stamped by
+   * `enqueue`; the tray replays only the current session's entries and drops
+   * the rest, so nothing one person did is ever sent as another.
+   */
+  userId?: string | null;
   createdAt: number;
   attempts: number;
   nextAt: number;
@@ -119,7 +125,8 @@ export function asEntry(value: unknown): OutboxEntry | null {
     : makeEntry(v.kind, v.target, v.want, 0);
   if (!made) return null;
   const num = (x: unknown) => (typeof x === "number" && Number.isFinite(x) ? x : 0);
-  return { ...made, createdAt: num(v.createdAt), attempts: num(v.attempts), nextAt: num(v.nextAt) };
+  const userId = typeof v.userId === "string" && v.userId.length <= 64 ? v.userId : null;
+  return { ...made, userId, createdAt: num(v.createdAt), attempts: num(v.attempts), nextAt: num(v.nextAt) };
 }
 
 /* --------------------------------------------------------------- storage */
@@ -182,9 +189,21 @@ function changed(): void {
   for (const listener of listeners) listener();
 }
 
-/** Keep an intent. The latest tap on the same thing replaces the earlier one. */
+/** The signed-in user on this phone, or null. */
+export async function currentUserId(): Promise<string | null> {
+  try {
+    const { createClient } = await import("../supabase/client");
+    const { data } = await createClient().auth.getSession();
+    return data.session?.user.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Keep an intent, stamped with who tapped it. The latest tap on the same thing replaces the earlier one. */
 export async function enqueue(entry: OutboxEntry): Promise<boolean> {
-  const done = await run("readwrite", (s) => s.put(entry, entry.key));
+  const stamped = { ...entry, userId: await currentUserId() };
+  const done = await run("readwrite", (s) => s.put(stamped, entry.key));
   changed();
   return done !== null;
 }

@@ -34,11 +34,10 @@ import {
   type LiveMessageRow,
 } from "@/lib/messages/useRealtime";
 import { createClient } from "@/lib/supabase/client";
-import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
+import { getDictionary } from "@vallo/i18n";
 import { OUTBOX_SENT_EVENT, type OutboxSentDetail } from "@/lib/offline/outbox";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
 
-const OUTBOX_WAITING = getDictionary(DEFAULT_LOCALE).platform.outbox.waitingShort;
 import {
   ProposeHeldPayment,
   type ThreadAgreement,
@@ -1013,7 +1012,7 @@ export function ThreadView({
                       {m.state === "sending" ? (
                         <span>Sending</span>
                       ) : m.state === "waiting" ? (
-                        <span data-testid="bubble-waiting">{OUTBOX_WAITING}</span>
+                        <span data-testid="bubble-waiting">{getDictionary(locale).platform.outbox.waitingShort}</span>
                       ) : (
                         <span className="nf-numeric">{m.timeLabel}</span>
                       )}

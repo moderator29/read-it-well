@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
-import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
+import { getDictionary } from "@vallo/i18n";
 import { payWithWallet, startCardCheckout } from "@/lib/bookings/checkout";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { ResultSheet } from "@/components/app/ResultSheet";
@@ -311,7 +311,7 @@ export function PayPanel({
     const stepUp = await moneyLock.prove({ kind: "pay_wallet", target: view.bookingId });
     if (stepUp === null) {
       clearTimers();
-      setPhase({ kind: "error", message: getDictionary(DEFAULT_LOCALE).platform.moneyLock.notConfirmed });
+      setPhase({ kind: "error", message: getDictionary(view.locale).platform.moneyLock.notConfirmed });
       return;
     }
     setPhase({ kind: "wallet-paying" });
