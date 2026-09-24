@@ -1713,6 +1713,11 @@ export const en = {
       blockerWalletBalanceCta: "Withdraw it",
       blockerWalletHeld: "{amount} of yours is held in escrow.",
       blockerWalletHeldCta: "Open my wallet",
+      /* STORE-12 / MON-09: money in a pot, and rent refunds either way. The
+         deletion is also re-checked for these on the day it runs. */
+      blockerPotBalance: "{amount} of yours is set aside in a savings pot.",
+      blockerRentRefundsOwed: "You owe {amount} in rent refunds to people who paid you.",
+      blockerRentRefundsDue: "{amount} in rent refunds is owed to you.",
       blockerPendingPayouts: "You have {count} withdrawal that has not settled.",
       blockerPendingPayoutsPlural: "You have {count} withdrawals that have not settled.",
       blockerPendingPayoutsCta: "Open my wallet",
