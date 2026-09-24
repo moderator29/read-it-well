@@ -30,6 +30,8 @@ import { KIND_NOUN, type SortKey } from "@/lib/listings/search-params";
 import { rankRecommended } from "@/lib/listings/ranking";
 import { feeSortKey } from "@/lib/listings/fee-share";
 import { readListingReference } from "@/lib/listings/reference";
+import { readRecordCode } from "@/lib/trust/record";
+import { redirect } from "next/navigation";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { ListingCard } from "@/components/app/ListingCard";
 import { BackButton } from "@/components/site/BackButton";
@@ -227,6 +229,12 @@ export default async function SearchPage({
    * GOVERNING-12 screen four draws the found listing under a line saying how
    * it was found, and a redirect has nowhere to put that line.
    */
+  /* V-34: a Record code (`VR-`) is a person, not a listing, and has its own
+     page. Only with the prefix, so a six-letter place name is never taken
+     for one. */
+  const recordCode = readRecordCode(query.q ?? "");
+  if (recordCode) redirect(`/record/${recordCode}`);
+
   const codeRead = readListingReference(query.q ?? "");
   const codeHit = codeRead.state === "code" ? await repo.byReference(codeRead.value) : null;
 

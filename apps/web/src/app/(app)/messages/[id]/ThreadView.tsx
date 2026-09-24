@@ -167,6 +167,12 @@ export type ThreadViewProps = {
    */
   personLine?: { key: string; text: string }[];
   personLabel?: string;
+  /**
+   * V-34: the other party's Vallo Record when they are a lister, already
+   * worded and gated at five. Empty draws nothing.
+   */
+  recordLine?: { key: string; text: string }[];
+  recordLabel?: string;
 };
 
 const INSPECTIONS_KEY = "nf_inspections";
@@ -296,6 +302,8 @@ export function ThreadView({
   accountCopy,
   personLine = [],
   personLabel,
+  recordLine = [],
+  recordLabel,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
   /*
@@ -721,7 +729,7 @@ export function ThreadView({
           names the flat, so the person gets their own slim line: the avatar
           with their one published mark, their name, and only the dated facts
           Vallo holds about them. Nothing that is null is drawn. */}
-      {live && (propertyFace || personLine.length > 0) && (
+      {live && (propertyFace || personLine.length > 0 || recordLine.length > 0) && (
         <div className="nf-thread__person flex items-center gap-sm px-gutter py-xs" aria-label={personLabel} data-testid="thread-person">
           {propertyFace && <VerifiedAvatar name={counterpartName} tier={counterpartTier} size="sm" />}
           <div className="min-w-0 flex-1">
@@ -735,6 +743,20 @@ export function ThreadView({
               <p className="nf-caption text-[var(--nf-content-muted)]">
                 {personLine.map((fact) => fact.text).join(" · ")}
               </p>
+            )}
+            {recordLine.length > 0 && (
+              <ul className="mt-3xs grid gap-3xs" aria-label={recordLabel} data-testid="thread-record">
+                {recordLine.map((line) => (
+                  <li
+                    key={line.key}
+                    className={`nf-caption ${
+                      line.key === "stopped" ? "text-[var(--nf-state-error)]" : "text-[var(--nf-content-secondary)]"
+                    }`}
+                  >
+                    {line.text}
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
         </div>

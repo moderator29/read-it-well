@@ -13,6 +13,8 @@ import { ThreadView, type ThreadBubble } from "./ThreadView";
 import { resolveCards } from "./cards";
 import { readAccountMoment } from "@/lib/messages/account-moment-read";
 import { counterpartFactsFrom, personFacts } from "@/lib/messages/person-line";
+import { recordLines } from "@/lib/trust/record";
+import { readThreadRecord } from "@/lib/trust/record-read";
 import { InboxEmpty } from "../Inbox";
 
 /**
@@ -169,6 +171,12 @@ export default async function ConversationPage({
     } catch {
       counterpartFactsLine = [];
     }
+    /* V-34: when the other party is a lister, their Record, counted, under
+       the person line. "On Vallo since" is already on the person line, so the
+       Record's copy of it is not drawn twice. No row, no line. */
+    const counterpartRecordLine = recordLines(await readThreadRecord(id), t.trustVisible.record, locale).filter(
+      (line) => line.key !== "since",
+    );
     /* V-04: the receiver's account card. Skipped, at no cost, unless a
        message from the other side carries an account number. */
     const accountMoment =
@@ -241,6 +249,8 @@ export default async function ConversationPage({
         heldPaymentsOpen={heldPaymentsOpen}
         accountMoment={accountMoment}
         personLine={counterpartFactsLine}
+        recordLine={counterpartRecordLine}
+        recordLabel={t.trustVisible.record.title}
         personLabel={t.trustVisible.person.label}
         accountCopy={t.trustVisible.account}
         agreement={

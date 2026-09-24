@@ -199,6 +199,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/rent": "/home",
   "/rent/move-in/[listingId]": "/listing/[listingId]",
   "/rent/review/[paymentId]": "/inspections",
+  "/record/[code]": "/search",
   "/rent/pay/[inspectionId]": "/inspections",
   /*
    * PRICE CHECK. Both entries reproduce what the two pages already pass to

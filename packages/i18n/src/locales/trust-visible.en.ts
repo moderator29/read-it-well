@@ -283,4 +283,34 @@ export const trustVisibleEn = {
     credentialNeedsAggregator: "A CAC directorship waits for the identity aggregator.",
     credentialFailed: "The check was not recorded. Try again in a moment.",
   },
+  /** V-34: the Vallo Record, counted facts, never a score. */
+  record: {
+    title: "The Vallo Record",
+    /** The honest caveat under every Record. */
+    note: "Counted by Vallo from what happened on Vallo. Each line has its own count and is never added up into a score.",
+    /** `{count}` is the number of answered enquiries the median is taken over. */
+    replies: {
+      hour: "Replies usually within an hour ({count} enquiries, last 90 days)",
+      twoHours: "Replies usually within 2 hours ({count} enquiries, last 90 days)",
+      fewHours: "Replies usually within a few hours ({count} enquiries, last 90 days)",
+      day: "Replies usually within a day ({count} enquiries, last 90 days)",
+      threeDays: "Replies usually within 3 days ({count} enquiries, last 90 days)",
+    },
+    answered: "Enquiries answered within a day: {count} of {total}, last 90 days",
+    described: "Found as described at inspection: {count} of {total} renters, last 12 months",
+    lets: "Let through Vallo: {count} in the last 12 months",
+    since: "On Vallo since {month}",
+    /** `{date}` is the date of the stop. */
+    stopped: "Stopped by Vallo on {date}",
+    /** `{code}` is VR- and six characters. */
+    code: "Record code {code}",
+    codeHint: "Anybody signed in to Vallo can type this code into search to see this Record as it stands today.",
+    lookupTitle: "A Vallo Record",
+    lookupMissingTitle: "No Record has that code",
+    lookupMissingBody: "Check the code with the person who gave it to you. Record codes start VR- and never contain 0, 1, I, L, O or U.",
+    lookupLimited: "You have looked up a lot of codes in the last hour. Try again later.",
+    lookupFailed: "The Record did not load. Try again.",
+    lookupEmpty: "This lister is new to Vallo, so nothing has been counted yet.",
+    search: "Back to search",
+  },
 };

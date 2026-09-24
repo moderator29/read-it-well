@@ -39,6 +39,8 @@ import { ListingAgentCard } from "@/components/app/listing/ListingAgentCard";
 import { ProofStrip } from "@/components/app/listing/ProofStrip";
 import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
 import { doorHonestyLine, readDoorHonesty } from "@/lib/tenancy/door";
+import { readListingRecord } from "@/lib/trust/record-read";
+import { ValloRecord } from "@/components/app/trust/ValloRecord";
 import { readListingCredentials } from "@/lib/trust/credentials-read";
 import { ListingMoveInBlock } from "@/components/app/listing/ListingMoveInBlock";
 import { ListingCodeRow } from "@/components/app/listing/ListingCode";
@@ -272,6 +274,9 @@ export default async function ListingDetailPage({
   const doorLine = listing.isDemo
     ? null
     : doorHonestyLine(await readDoorHonesty(listing.id), t.trustVisible.tenancy);
+  /* V-34: the lister's Record under the agent card. An example listing has
+     no Record, and a null draws nothing. */
+  const record = listing.isDemo ? null : await readListingRecord(listing.id);
 
   /*
    * WHERE "MESSAGE AGENT" GOES, AND THE DEAD END THIS REPLACES.
@@ -1112,6 +1117,7 @@ export default async function ListingDetailPage({
                       name={listing.listerName ?? null}
                       listingRole={listing.listerRole ?? null}
                     />
+                    <ValloRecord record={record} t={t} locale={locale} className="mt-row" />
                   </Section>
                 </Reveal>
 
