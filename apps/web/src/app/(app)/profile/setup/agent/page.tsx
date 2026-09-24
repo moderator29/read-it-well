@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { requireSignedInPage } from "@/lib/actions/signed-in-page";
 import { BackButton } from "@/components/site/BackButton";
 import { parentOf } from "@/lib/nav/resolve";
 import { getDictionary, type Locale } from "@vallo/i18n";
@@ -29,6 +30,7 @@ export const metadata: Metadata = {
  * percentage and a naira figure, and neither may be built out of strings.
  */
 export default async function AgentRegistrationPage() {
+  await requireSignedInPage("/profile/setup/agent");
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
   return (

@@ -294,9 +294,25 @@ export function isDocumentRequest(request: { headers: Headers }): boolean {
 }
 
 /**
+ * The form pages a signed-out server action may reach. Each one checks the
+ * session in the page itself, so a render caused by an action shows nobody
+ * anything gated: the three supply registration pages call
+ * `requireSignedInPage`, and /host/apply and /agent/list draw their own
+ * signed-out state. A page is added here only with that check and a test of it
+ * (proxy-server-action.test.ts).
+ */
+export const SELF_GUARDING_FORM_PATHS: ReadonlySet<string> = new Set([
+  "/profile/setup/owner",
+  "/profile/setup/agent",
+  "/profile/setup/professional",
+  "/host/apply",
+  "/agent/list",
+]);
+
+/**
  * A server action call: a POST carrying the `next-action` header that Next's
- * client sets on every action it invokes. It is answered by the action, never
- * redirected; see the signed-out branch of `proxy`.
+ * client sets on every action it invokes. Signed out, it reaches the action
+ * only on `SELF_GUARDING_FORM_PATHS`; see the signed-out branch of `proxy`.
  */
 export function isServerActionRequest(request: { method: string; headers: Headers }): boolean {
   return request.method === "POST" && request.headers.has("next-action");
@@ -477,18 +493,26 @@ export async function proxy(request: NextRequest) {
       }
 
       /*
-       * A SERVER ACTION ANSWERS FOR ITSELF, NEVER BY REDIRECT.
+       * ON A FORM PAGE, A SERVER ACTION ANSWERS FOR ITSELF, NOT BY REDIRECT.
        *
        * An action is a POST the page's own code makes with `fetch`. A 307 to
        * the sign-in page is followed, returns HTML, and React throws "An
        * unexpected response was received from the server": the route error
-       * boundary replaces the form and everything typed into it is gone. The
-       * action reads the session itself and refuses in its own envelope
-       * ("Sign in to continue."), which the form shows with its answers still
-       * in place. Nothing is opened by this: an action's id is callable at
-       * any address, public ones included, so this gate never guarded one.
+       * boundary replaces the form and everything typed into it is gone. On
+       * the form pages below, the action reads the session itself and refuses
+       * in its own envelope ("Sign in to continue."), which the form shows
+       * with its answers still in place.
+       *
+       * ONLY THOSE PAGES. When an action revalidates, Next renders the page
+       * at the posted address into the response, so a signed-out action POST
+       * to any other gated address (a listing, /home) would come back with
+       * that page drawn for nobody. Each page listed here checks the session
+       * itself (`requireSignedInPage`, or its own signed-out state), and
+       * everything else keeps the redirect.
        */
-      if (isServerActionRequest(request)) return withSecurityPolicy(response, nonce);
+      if (isServerActionRequest(request) && SELF_GUARDING_FORM_PATHS.has(path)) {
+        return withSecurityPolicy(response, nonce);
+      }
 
       /* OPS-17: an address this app does not answer at is a 404 for a
          stranger too, not a trip to the sign-in screen. */

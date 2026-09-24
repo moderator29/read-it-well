@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { requireSignedInPage } from "@/lib/actions/signed-in-page";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { ApplyWizard, type SetupRole } from "@/components/agent/ApplyWizard";
@@ -57,6 +58,7 @@ export default async function ProfileSetupPage({
 }) {
   const { role } = await params;
   if (!isSetupRole(role)) notFound();
+  await requireSignedInPage(`/profile/setup/${role}`);
 
   const locale = await getLocale();
   const t = getDictionary(locale);
