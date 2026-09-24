@@ -189,7 +189,8 @@ describe("SCUML item 6: what the database holds to", () => {
     /* A plain freeze this model did not write, later than every claim, is left alone. */
     expect(own).toContain("raise warning 'hold_claims_sweep: % could not be recomputed: %', u, sqlerrm;");
     /* Clear, then look, in two statements (one snapshot would see the old row). */
-    expect(own).toContain("v_had := private.hold_claim_clear(r.user_id, 'str');");
+    expect(own).toContain("perform private.hold_claim_clear(r.user_id, 'str');");
+    expect(own).toContain("where h.user_id = r.user_id and h.owner = 'str' and h.until > now());");
     expect(own).toContain("v_absorbed := v_row.hold_until;");
   });
 });

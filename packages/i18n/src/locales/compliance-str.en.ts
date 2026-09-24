@@ -110,7 +110,7 @@ export const complianceStrEn = {
     no_subject: "This case has no person on it, so there is nobody to hold.",
     conflicted: "You are the person this case is about, or linked to it, so you cannot act on it. Another staff member has to.",
     before_approval: "A filing cannot be dated before a second person approved filing. Check the time.",
-    other_hold: "This desk has no hold on their wallet to end. Any other hold stays as it is.",
+    other_hold: "This desk's hold is ended. Another hold keeps their money held, and stays as it is.",
     no_hold: "There is no hold from this desk to release.",
     released: "Released: this desk's hold is ended. Any other hold on their wallet stays as it is.",
     expired: "This desk's hold had already run out, and nothing holds their money now.",

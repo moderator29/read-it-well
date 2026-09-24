@@ -409,9 +409,14 @@ begin
      both would read the row as it was before the clear. The answer is about
      the money: other_hold while anything still holds it (another claim, a
      not_me hold, a relabel by email recovery, an unregistered freeze);
-     released when this desk's claim was the last thing holding it; expired
-     when this desk's claim had already run out and nothing holds it. */
-  v_had := private.hold_claim_clear(r.user_id, 'str');
+     released when this desk's claim was live and was the last thing holding
+     it; expired when this desk's claim had already run out (between the ask
+     and the approval) and nothing holds it. */
+  /* Was this desk's claim still live? Read before the clear, which deletes it
+     whether or not it had run out. */
+  v_had := exists (select 1 from private.hold_claims h
+                    where h.user_id = r.user_id and h.owner = 'str' and h.until > now());
+  perform private.hold_claim_clear(r.user_id, 'str');
   if exists (select 1 from public.account_money_holds h where h.user_id = r.user_id and h.hold_until > now()) then
     v_outcome := 'other_hold';
   elsif v_had then
