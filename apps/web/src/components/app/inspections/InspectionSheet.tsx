@@ -161,6 +161,7 @@ export function InspectionSheet({
   open = false,
   report = null,
   reportLive = false,
+  quoteLine = null,
 }: {
   inspection: Inspection;
   side: "lister" | "requester";
@@ -172,6 +173,8 @@ export function InspectionSheet({
   report?: InspectionReport | null;
   /** The one flag: report storage exists. */
   reportLive?: boolean;
+  /** V-13: "Quoted at ₦3,900,000 on Thu 1 Oct", once the lister's yes froze it. */
+  quoteLine?: string | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -302,6 +305,12 @@ export function InspectionSheet({
             {facts?.priceLabel && (
               <p className="nf-ix-card__price">
                 {facts.priceLabel} {facts.periodLabel && <small>{facts.periodLabel}</small>}
+              </p>
+            )}
+            {quoteLine && (
+              <p className="nf-ix-card__line" data-testid="inspection-quote">
+                <UiIcon name="key" size={12} />
+                <span className="truncate">{quoteLine}</span>
               </p>
             )}
           </div>

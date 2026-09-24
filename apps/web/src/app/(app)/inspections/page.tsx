@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { readQuoteLinesFor } from "@/lib/after-gate/quotes";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { Reveal } from "@/components/site/Reveal";
@@ -71,12 +72,16 @@ export default async function InspectionsPage({
     ...tagSide(shown.inspections, "lister"),
   ]);
   const all = [...groups.open, ...groups.closed];
-  const [facts, reports] = await Promise.all([
+  const [facts, reports, quotes] = await Promise.all([
     readListingFacts(
       all.map((row) => row.listingId),
       locale,
     ),
     readReportsFor(all.map((row) => row.id)),
+    readQuoteLinesFor(
+      all.map((row) => row.id),
+      locale,
+    ),
   ]);
   const reportLive = reportStorageLive();
   const empty = all.length === 0;
@@ -123,6 +128,7 @@ export default async function InspectionsPage({
                       facts={facts.get(row.listingId) ?? null}
                       report={reports.get(row.id) ?? null}
                       reportLive={reportLive}
+                      quoteLine={quotes.get(row.id) ?? null}
                       locale={locale}
                       open={row.id === expanded}
                     />
@@ -141,6 +147,7 @@ export default async function InspectionsPage({
                       facts={facts.get(row.listingId) ?? null}
                       report={reports.get(row.id) ?? null}
                       reportLive={reportLive}
+                      quoteLine={quotes.get(row.id) ?? null}
                       locale={locale}
                       open={row.id === expanded}
                     />

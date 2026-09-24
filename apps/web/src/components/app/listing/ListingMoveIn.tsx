@@ -4,6 +4,7 @@ import { Amount } from "@/components/ui/Amount";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { TYPE } from "@/components/app/Screen";
 import { moveInLines } from "./move-in-lines";
+import { unexplainedRemainder } from "@/lib/rent/ledger";
 
 /**
  * What it actually costs to move in.
@@ -70,6 +71,14 @@ export function ListingMoveIn({
   if (total <= 0 && declared.length === 0) return null;
 
   const undeclared = lines.length - declared.length;
+  /* V-13. A stated total above the parts beside it has a gap nobody named.
+     It is its own row, in words, never folded silently into the total. */
+  const remainder = unexplainedRemainder(
+    total,
+    declared.map((line) => line.minor ?? 0),
+    stated,
+  );
+  const gateCopy = t.afterTheGate.remainder;
   /* A declared zero agency fee is the direct-from-owner argument in one line,
      so it gets said in words rather than left as a ₦0 in a column. */
   const noAgencyFee = listing.agencyFeeMinor === 0;
@@ -120,6 +129,20 @@ export function ListingMoveIn({
             </li>
           );
         })}
+        {remainder > 0 && (
+          <li className="nf-movein__row" data-declared data-testid="move-in-line-remainder">
+            <span className="nf-movein__plate" aria-hidden="true">
+              <BrandIcon name="alert-triangle" fill />
+            </span>
+            <span className="nf-movein__name">
+              <span className="nf-movein__label text-[var(--nf-state-warning)]">{gateCopy.line}</span>
+              <span className="nf-movein__keeper">{gateCopy.note}</span>
+            </span>
+            <span className="nf-movein__figure text-[var(--nf-state-warning)]">
+              <Amount minorUnits={remainder} locale={locale} currency={listing.currency} />
+            </span>
+          </li>
+        )}
       </ul>
 
       <div className="nf-movein__total" data-testid="move-in-total">

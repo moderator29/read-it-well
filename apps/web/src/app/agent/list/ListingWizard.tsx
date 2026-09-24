@@ -758,6 +758,7 @@ export function ListingWizard({
   copy,
   reference,
   moveInCopy,
+  remainderCopy,
   locale,
   userId,
   states,
@@ -775,6 +776,8 @@ export function ListingWizard({
      breakdown GOVERNING-08 screen two draws is the searcher's block turned
      round to face the agent, and it has to read in exactly the same words. */
   moveInCopy: Dictionary["moveIn"];
+  /** V-13: the sentence that refuses an unexplained remainder in the total. */
+  remainderCopy?: Dictionary["afterTheGate"]["remainder"];
   locale: Locale;
   userId: string | null;
   states: { code: string; name: string }[];
@@ -912,6 +915,9 @@ export function ListingWizard({
     serviceChargePeriod: values.serviceChargePeriod,
   };
   const statedTotalMinor = parseNairaToKobo(values.totalMoveInNaira);
+  /* V-13. The part of a stated total the fee boxes do not explain. */
+  const moveInRemainderMinor =
+    statedTotalMinor !== null && statedTotalMinor > partsSumMinor ? statedTotalMinor - partsSumMinor : 0;
 
   /* THE SAME ARITHMETIC ON THE SALE SIDE, and the price is one of the parts.
      "The total to buy" means the asking price plus everything on top of it, so
@@ -961,6 +967,8 @@ export function ListingWizard({
         amenityCount: chosenAmenities.length,
         photoCount: photos.length,
         hasCover: photos.length > 0,
+        moveInStatedMinor: tenancy ? statedTotalMinor : null,
+        moveInPartsMinor: tenancy ? [partsSumMinor] : [],
       }),
     [
       values,
@@ -972,6 +980,8 @@ export function ListingWizard({
       saleMinor,
       chosenAmenities.length,
       photos.length,
+      statedTotalMinor,
+      partsSumMinor,
     ],
   );
 
@@ -1029,6 +1039,10 @@ export function ListingWizard({
         return g.bedrooms;
       case "bathrooms":
         return g.bathrooms;
+      case "totalMoveIn":
+        return remainderCopy && moveInRemainderMinor > 0
+          ? fill(remainderCopy.gate, { amount: formatMoney(moveInRemainderMinor, locale) })
+          : fallback;
       default:
         return fallback;
     }
@@ -2631,7 +2645,12 @@ export function ListingWizard({
                   <div className="mt-group">
                     <Field
                       label="Total to move in"
-                      error={fieldErrors.totalMoveInNaira}
+                      error={
+                        fieldErrors.totalMoveInNaira ??
+                        (remainderCopy && moveInRemainderMinor > 0
+                          ? fill(remainderCopy.gate, { amount: formatMoney(moveInRemainderMinor, locale) })
+                          : undefined)
+                      }
                       hint={
                         statedTotalMinor === null
                           ? partsSumMinor > 0
@@ -3031,6 +3050,9 @@ export function ListingWizard({
                     : copy.submit.checklist.priceNight,
                 },
                 { field: "bathrooms", label: copy.submit.checklist.rooms },
+                ...(remainderCopy && unmet.some((u) => u.field === "totalMoveIn")
+                  ? [{ field: "totalMoveIn", label: remainderCopy.gateShort }]
+                  : []),
               ].map((item) => {
                 const problem = unmet.find((u) => u.field === item.field);
                 return (
