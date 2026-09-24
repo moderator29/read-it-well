@@ -5,6 +5,10 @@
 -- and it then hides the whole agent band. The new reader never reads it, so
 -- code first, then this file, loses nothing.
 --
+-- V-58 (20260924130800) recreates `agent_trust` again, to leave withheld
+-- reviews out of the count, and drops it first itself, so the two apply in
+-- timestamp order after the code and either can stand without the other.
+--
 -- `public.agent_trust(uuid)` returned five columns and the first was a number
 -- out of 100 printed on every agent's public profile. It collapsed the signals
 -- `docs/PRODUCT.md` section 6 says must stay separate into one, and it was
