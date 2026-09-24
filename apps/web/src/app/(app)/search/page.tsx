@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { demandRecorder } from "@/lib/demand/record";
 import { demandCell } from "@/lib/demand/cell";
 import { readListingFactsFor } from "@/lib/landlord/queries";
+import { readPhotographedCaptions } from "@/lib/listings/photographed";
 import { collapseByProperty, ownerConfirmedLine, requestNow, sinkNotReconfirmed } from "@/lib/landlord/facts";
 import { LandlordCardLine } from "@/components/app/listing/LandlordCardLine";
 import Link from "next/link";
@@ -367,6 +368,8 @@ export default async function SearchPage({
   };
   const within = query.within;
   const listings = anchor && within !== undefined ? ranked.filter((l) => withinCommute(commuteOf(l), within)) : ranked;
+  /* V-70: "Photographed: kitchen, prepaid meter" under a card whose lister labelled its photos. */
+  const photographedCaptions = await readPhotographedCaptions(listings.map((l) => l.id), locale);
   const landlordNow = requestNow();
   const intentApplied = !codeHit && ordered !== sorted;
   const intentKinds: ListingKind[] = intentApplied
@@ -592,6 +595,7 @@ export default async function SearchPage({
                     intent={tuning.signedIn ? tuning.interests : undefined}
                     messageAgent
                     commute={anchor ? commuteLine(commuteOf(l), anchor.name, t.shape.commute) : null}
+                    photographed={photographedCaptions.get(l.id) ?? null}
                   />
                   <LandlordCardLine
                     notReconfirmed={notReconfirmed.has(l.id)}

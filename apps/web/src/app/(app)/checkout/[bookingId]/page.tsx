@@ -12,7 +12,8 @@ import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { panelClass } from "@/components/ui/Panel";
 import { CheckoutSummary } from "./CheckoutSummary";
-import { isRentChargeBooking } from "@/lib/after-gate/is-rent-charge";
+import { ArrivalChargesLine } from "@/components/stays/ArrivalChargesLine";
+import { bookingChargeKind } from "@/lib/after-gate/is-rent-charge";
 import { HoldCountdown } from "./HoldCountdown";
 import { PayPanel } from "./PayPanel";
 import { PaymentReturn } from "./PaymentReturn";
@@ -187,7 +188,8 @@ export default async function CheckoutPage({
       <Reveal>
         {/* What is being bought, as one component the preview harness draws
             with fixture props and this route draws with the real read. */}
-        <CheckoutSummary view={view} locale={locale} tenancy={await isRentChargeBooking(view.bookingId)} />
+        {/* No stay terms on a rent charge, nor when that could not be read. */}
+        <CheckoutSummary view={view} locale={locale} tenancy={(await bookingChargeKind(view.bookingId)) !== "stay"} />
       </Reveal>
 
       {view.paid ? (
@@ -292,6 +294,13 @@ export default async function CheckoutPage({
         real rather than abstract. Not shown once a stay is paid or cancelled:
         by then the schedule is support's business and there is a person on it.
       */}
+      {/* V-57: what the host declared at the door, and the sentence for the gate. */}
+      {view.status !== "CANCELLED" && (await bookingChargeKind(view.bookingId)) === "stay" && (
+        <div className="mt-lg">
+          <ArrivalChargesLine listingId={view.listingId} bookingId={view.bookingId} locale={view.locale} />
+        </div>
+      )}
+
       {!view.paid && view.status !== "CANCELLED" && (
         <Reveal delay={180} className="mt-xl">
           <CancellationTimeline

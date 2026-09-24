@@ -3,6 +3,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getTenancyFile, type TenancyFile } from "@/lib/tenancy/queries";
 import { PageHeader } from "@/components/app/PageHeader";
+import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState, FactGrid, Section, Stack, TYPE } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { ROOM_COPY } from "@/lib/inspections/report";
@@ -10,6 +11,9 @@ import { DeductionAnswer, ProposeDeduction, ReturnCaution } from "@/components/a
 import { koboToNairaInput } from "@/lib/agent/listings-schema";
 import { TenancyReportCard } from "@/components/app/tenancy/TenancyReportCard";
 import { ReceiptCodePanel } from "@/components/app/tenancy/ReceiptCodePanel";
+import { PinMessages } from "@/components/app/tenancy/PinMessages";
+import { AddFlatmate, RemoveFlatmate, ReturnShare } from "@/components/app/tenancy/FlatmateControls";
+import { ExitAccountForm, RelistButton, RenewalAnswer, RenewalOfferForm } from "@/components/app/tenancy/RenewalControls";
 
 /** A private record. Never indexed, never in a tab title. */
 export const metadata: Metadata = { title: "Tenancy", robots: { index: false, follow: false } };
@@ -66,16 +70,22 @@ export default async function TenancyPage({ params }: { params: Promise<{ id: st
   }
 
   const file = read.file;
+  const mates = t.afterTheGate.flatmates;
   return shell(
     <Stack>
       <TenancyHead file={file} copy={copy} />
       <MoneySection file={file} copy={copy} />
+      {/* Flatmates' shares are the lead tenant's business, not the lister's. */}
+      {file.viewer === "tenant" && (!file.void || file.flatmates.rows.some((row) => row.paid)) && (
+        <FlatmatesSection file={file} copy={mates} />
+      )}
       {file.viewer === "tenant" && file.paid && (
         <Section>
           <ReceiptCodePanel tenancyId={file.id} live={file.receiptCode} copy={t.afterTheGate.receipt} />
         </Section>
       )}
       <CautionSection file={file} copy={copy} />
+      {file.paid && !file.void && <RenewalSection file={file} copy={copy} />}
       <PromiseSection file={file} copy={copy} />
       <Section title={copy.evidenceHeading} divided>
         <p className={TYPE.body} data-testid="tenancy-viewing">
@@ -97,16 +107,26 @@ export default async function TenancyPage({ params }: { params: Promise<{ id: st
           ))}
         </div>
       </Section>
-      {file.pins.length > 0 && (
+      {file.viewer === "tenant" && file.paid && (
+        <Section>
+          <ButtonLink href={`/tenancy/${file.id}/complaint`} variant="secondary" full trailingIcon="arrow-right">
+            {t.afterTheGate.complaint.open}
+          </ButtonLink>
+        </Section>
+      )}
+      {(file.pins.length > 0 || file.pinCandidates.length > 0) && (
         <Section title={copy.pinsHeading} divided>
-          <ul className="grid gap-sm">
-            {file.pins.map((pin) => (
-              <li key={pin.id} className="nf-card p-card">
-                <p className="nf-caption">{pin.date}</p>
-                <p className="nf-body-sm mt-2xs whitespace-pre-line">{pin.body}</p>
-              </li>
-            ))}
-          </ul>
+          {file.pins.length > 0 && (
+            <ul className="mb-md grid gap-sm">
+              {file.pins.map((pin) => (
+                <li key={pin.id} className="nf-card p-card">
+                  <p className="nf-caption">{pin.date}</p>
+                  <p className="nf-body-sm mt-2xs whitespace-pre-line">{pin.body}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+          <PinMessages tenancyId={file.id} candidates={file.pinCandidates} copy={copy} />
         </Section>
       )}
       <p className="nf-caption">{copy.retention.replace("{date}", file.keptUntilLabel)}</p>
@@ -271,7 +291,7 @@ function CautionSection({ file, copy }: { file: TenancyFile; copy: Copy }) {
                     tenancyId={file.id}
                     obligationId={caution.obligationId}
                     outstanding={caution.outstanding}
-                    outstandingNaira={koboToNairaInput(caution.outstandingMinor)}
+                    outstandingNaira={koboToNairaInput(caution.returnableMinor)}
                     copy={copy}
                   />
                 </div>
@@ -280,6 +300,170 @@ function CautionSection({ file, copy }: { file: TenancyFile; copy: Copy }) {
           )}
         </div>
       )}
+    </Section>
+  );
+}
+
+function FlatmatesSection({ file, copy }: { file: TenancyFile; copy: ReturnType<typeof getDictionary>["afterTheGate"]["flatmates"] }) {
+  const mates = file.flatmates;
+  if (mates.unavailable) {
+    return (
+      <Section title={copy.heading} divided>
+        <p className={TYPE.body}>{copy.unavailable}</p>
+      </Section>
+    );
+  }
+  return (
+    <Section title={copy.heading} description={copy.lede} divided>
+      <div id="flatmates" className="grid gap-md" data-testid="tenancy-flatmates">
+        {mates.rows.length > 0 && (
+          <ul className="grid gap-sm">
+            {mates.rows.map((row) => (
+              <li key={row.id} className="nf-card flex flex-wrap items-start justify-between gap-sm p-card">
+                <div className="min-w-0">
+                  <p className="nf-body-sm nf-numeric font-semibold">
+                    {copy.row.replace("{name}", row.name ?? copy.someone).replace("{share}", row.share)}
+                  </p>
+                  <p className="nf-caption mt-2xs">
+                    {row.returned
+                      ? copy.returnedLine
+                      : row.paid
+                        ? copy.paid
+                        : row.answer === "declined"
+                          ? copy.declined
+                          : row.answer === "accepted"
+                            ? copy.accepted
+                            : copy.invited}
+                  </p>
+                  {row.cautionPart && (
+                    <p className="nf-caption mt-2xs nf-numeric">{copy.cautionPart.replace("{amount}", row.cautionPart)}</p>
+                  )}
+                </div>
+                {!row.paid && !file.void && <RemoveFlatmate tenancyId={file.id} contributorId={row.id} copy={copy} />}
+                {row.paid && !row.returned && file.void && (
+                  <ReturnShare tenancyId={file.id} contributorId={row.id} label={copy.returnShare} />
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        {file.void && <p className={TYPE.body}>{copy.voidLead}</p>}
+        {!file.void && (
+          <>
+            <p className="nf-body-sm nf-numeric font-semibold">{copy.lead.replace("{share}", mates.leadShare)}</p>
+            {mates.leadCautionPart && mates.rows.length > 0 && (
+              <p className="nf-caption nf-numeric">{copy.leadCautionPart.replace("{amount}", mates.leadCautionPart)}</p>
+            )}
+            <div className="nf-panel nf-panel--card block p-md">
+              <AddFlatmate tenancyId={file.id} copy={copy} />
+            </div>
+          </>
+        )}
+      </div>
+    </Section>
+  );
+}
+
+function RenewalSection({ file, copy }: { file: TenancyFile; copy: Copy }) {
+  const renewal = file.renewal;
+  if (renewal.unavailable) {
+    return (
+      <Section title={copy.renewalHeading} divided>
+        <p className={TYPE.body}>{copy.renewalUnavailable}</p>
+      </Section>
+    );
+  }
+  const party = file.viewer !== "staff";
+  return (
+    <Section title={copy.renewalHeading} divided>
+      <div className="grid gap-md" data-testid="tenancy-renewal">
+        <p className="nf-body nf-numeric">
+          {renewal.daysLeft >= 0
+            ? copy.renewalDays.replace("{days}", String(renewal.daysLeft)).replace("{date}", file.endsOnLabel)
+            : copy.renewalEnded.replace("{date}", file.endsOnLabel)}
+        </p>
+        {renewal.offer ? (
+          <div>
+            <p className="nf-body-sm nf-numeric font-semibold">
+              {copy.renewalOffer
+                .replace("{date}", renewal.offer.offeredOn)
+                .replace("{total}", renewal.offer.total)
+                .replace("{rent}", renewal.offer.rent)}
+            </p>
+            {renewal.offer.service && (
+              <p className={`mt-2xs nf-numeric ${TYPE.rowMeta}`}>{copy.renewalService.replace("{amount}", renewal.offer.service)}</p>
+            )}
+            {renewal.offer.rise && (
+              <p className={`mt-2xs nf-numeric ${TYPE.rowMeta}`}>
+                {(file.viewer === "lister" ? copy.renewalRiseLister : copy.renewalRise)
+                  .replace("{amount}", renewal.offer.rise)
+                  .replace("{percent}", renewal.offer.percent ?? "")}
+              </p>
+            )}
+            {renewal.offer.fall && (
+              <p className={`mt-2xs nf-numeric ${TYPE.rowMeta}`}>
+                {(file.viewer === "lister" ? copy.renewalFallLister : copy.renewalFall)
+                  .replace("{amount}", renewal.offer.fall)
+                  .replace("{percent}", renewal.offer.percent ?? "")}
+              </p>
+            )}
+            {renewal.offer.fees && (
+              <p className="nf-body-sm mt-2xs nf-numeric text-[var(--nf-state-warning)]">
+                {copy.renewalFees.replace("{amount}", renewal.offer.fees)}
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className={TYPE.body}>{copy.renewalNoOffer}</p>
+        )}
+        {renewal.answer && (
+          <p className={TYPE.rowMeta}>{renewal.answer === "renewing" ? copy.renewalAnswerRenewing : copy.renewalAnswerLeaving}</p>
+        )}
+        {file.viewer === "tenant" && renewal.answer === null && renewal.daysLeft >= 0 && (
+          <RenewalAnswer tenancyId={file.id} copy={copy} />
+        )}
+        {party && renewal.answer === "renewing" && <p className="nf-caption">{copy.renewalPayNote}</p>}
+
+        {file.viewer === "lister" && renewal.daysLeft >= 0 && (
+          <div className="nf-panel nf-panel--card block p-md">
+            <h3 className="nf-h4">{copy.renewalOfferHeading}</h3>
+            <div className="mt-sm">
+              <RenewalOfferForm
+                tenancyId={file.id}
+                rentNaira={koboToNairaInput(renewal.rentMinor)}
+                serviceNaira={koboToNairaInput(renewal.serviceMinor)}
+                copy={copy}
+              />
+            </div>
+          </div>
+        )}
+        {file.viewer === "lister" && (
+          <div className="nf-panel nf-panel--card block p-md">
+            <h3 className="nf-h4">{copy.relistHeading}</h3>
+            <div className="mt-sm">
+              {renewal.successorId || renewal.relistOpen ? (
+                <RelistButton tenancyId={file.id} successorId={renewal.successorId} copy={copy} />
+              ) : (
+                <p className="nf-body-sm text-[var(--nf-content-secondary)]">
+                  {renewal.answer === "renewing" ? copy.relistBlocked : copy.relistOpensOn.replace("{date}", renewal.relistOpensOnLabel)}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+        {file.viewer === "tenant" && (renewal.exitAnswered || renewal.exitOpen) && (
+          <div className="nf-panel nf-panel--card block p-md">
+            <h3 className="nf-h4">{copy.exitHeading}</h3>
+            <div className="mt-sm">
+              {renewal.exitAnswered ? (
+                <p className="nf-body-sm">{copy.exitDone}</p>
+              ) : (
+                <ExitAccountForm tenancyId={file.id} copy={copy} />
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </Section>
   );
 }

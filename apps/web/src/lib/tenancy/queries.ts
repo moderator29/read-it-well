@@ -1,5 +1,7 @@
 import "server-only";
 
+import { firstNameAndInitial } from "../after-gate/public-place-model";
+
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { formatMoney, type Locale } from "@vallo/i18n";
 import { resolveSession } from "../actions/session";
@@ -17,6 +19,9 @@ import {
   type RentPeriod,
   type ReportStatus,
 } from "./model";
+import { attributeCaution, leadShare } from "./shares";
+import { bpsAsPercentText } from "../money/percent";
+import { daysUntil, exitAccountOpen, relistOpen, relistOpensOn, renewalCarriesFees, renewalTotal, rentChange } from "./renewal";
 
 /**
  * THE TENANCY FILE, READ. V-47, with V-36's caution and V-54's reports.
@@ -64,6 +69,8 @@ export type TenancyCaution = {
   deducted: string;
   outstanding: string;
   outstandingMinor: number;
+  /** What a return can still be: the caution less returns and every line not disputed. */
+  returnableMinor: number;
   deductions: TenancyDeduction[];
   returns: { amount: string; date: string }[];
 };
@@ -84,7 +91,12 @@ export type TenancyFile = {
   viewer: "tenant" | "lister" | "staff";
   title: string;
   area: string;
+  /** For surfaces a third party reads: the raw place parts, to go through the closed lists. */
+  place: { area: string | null; city: string | null; stateCode: string | null };
+  bedrooms: number | null;
   listerName: string | null;
+  /** V-85: the tenant's first name and last initial, for their own letter. */
+  tenantName: string | null;
   moveIn: string;
   moveInLabel: string;
   endsOn: string;
@@ -107,8 +119,58 @@ export type TenancyFile = {
   viewing: { submittedLabel: string | null; ticked: number } | null;
   reports: TenancyReportView[];
   pins: { id: string; body: string; date: string }[];
+  /** Recent messages in the tenant-lister thread that can still be pinned. */
+  pinCandidates: { id: string; body: string; date: string }[];
+  /** V-93 and V-38: the renewal clock, the relist and the exit account. */
+  renewal: TenancyRenewal;
+  /** V-86: flatmates' shares of the move-in, the lead's as the remainder. */
+  flatmates: TenancyFlatmates;
   /** V-55: the tenant's live receipt code, when they have made one. */
-  receiptCode: { id: string; code: string } | null;
+  /** Only a hint: the code itself is shown once, when it is made, and never stored. */
+  receiptCode: { id: string; hint: string } | null;
+};
+
+export type TenancyRenewal = {
+  /** Whole days to the end; negative once it has ended. */
+  daysLeft: number;
+  offer: {
+    total: string;
+    rent: string;
+    service: string | null;
+    fees: string | null;
+    offeredOn: string;
+    /** Signed change against the rent paid, formatted, or null when it did not move. */
+    rise: string | null;
+    fall: string | null;
+    /** The change as a percentage of the rent paid, for the sentence. */
+    percent: string | null;
+  } | null;
+  /** The lister's figures to prefill a new offer, in kobo. */
+  rentMinor: number | null;
+  serviceMinor: number | null;
+  answer: "renewing" | "leaving" | null;
+  relistOpen: boolean;
+  relistOpensOnLabel: string;
+  successorId: string | null;
+  exitOpen: boolean;
+  exitAnswered: boolean;
+  /** A read failed: the section says so instead of offering controls. */
+  unavailable: boolean;
+};
+
+export type TenancyFlatmates = {
+  rows: {
+    id: string;
+    name: string | null;
+    share: string;
+    answer: "accepted" | "declined" | null;
+    paid: boolean;
+    returned: boolean;
+    cautionPart: string | null;
+  }[];
+  leadShare: string;
+  leadCautionPart: string | null;
+  unavailable: boolean;
 };
 
 export type TenancyRead =
@@ -182,7 +244,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
     const today = lagosToday(now);
 
     const [listingRead, txRead, snapshotRead, obligationRead, reportsRead, viewingRead, pinsRead, codeRead, voidRead] = await Promise.all([
-      db.from("listings").select("title, area, city, agent_id").eq("id", rp.listing_id).maybeSingle(),
+      db.from("listings").select("title, area, city, state_code, bedrooms, agent_id").eq("id", rp.listing_id).maybeSingle(),
       db
         .from("transactions")
         .select("id, amount_minor, created_at, provider_ref")
@@ -197,7 +259,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
       // Owner-only under RLS, so only the tenant ever gets a row back.
       loose
         .from("receipt_codes")
-        .select("id, code")
+        .select("id, code_hint")
         .eq("subject_kind", "rent_payment")
         .eq("subject_id", id)
         .is("revoked_at", null)
@@ -210,7 +272,8 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
     let listerName: string | null = null;
     if (listing?.agent_id) {
       const { data: agent } = await db.from("agents").select("display_name").eq("id", listing.agent_id).maybeSingle();
-      listerName = agent?.display_name?.trim() || null;
+      // Printed on the pack and the letter a third party reads: first name and initial only.
+      listerName = firstNameAndInitial(agent?.display_name);
     }
 
     const ledger = ledgerFromCharge(rp);
@@ -282,6 +345,15 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         deducted: money(reading.deductedMinor),
         outstanding: money(reading.outstandingMinor),
         outstandingMinor: reading.outstandingMinor,
+        returnableMinor: Math.max(
+          0,
+          amountMinor -
+            reading.returnedMinor -
+            deductionRows.reduce((sum, row) => {
+              const value = kobo(row.amount_minor) ?? 0;
+              return answers.get(String(row.id)) === "disputed" ? sum : sum + value;
+            }, 0),
+        ),
         deductions,
         returns: returns.map((row) => ({ amount: money(row.amountMinor), date: day(row.date) })),
       };
@@ -375,6 +447,135 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
       pins = (messages ?? []).map((message) => ({ id: message.id, body: message.body, date: day(message.created_at, true) }));
     }
 
+    /* ---------------------------------------------------------- renewal */
+    const [offerRead, answerRead, exitRead, lineageRead] = await Promise.all([
+      loose.from("tenancy_renewal_offers").select("*").eq("rent_payment_id", id).order("offered_at", { ascending: false }).limit(1),
+      loose.from("tenancy_renewal_answers").select("answer").eq("rent_payment_id", id).maybeSingle(),
+      loose.from("tenancy_exit_accounts").select("rent_payment_id").eq("rent_payment_id", id).maybeSingle(),
+      // Readable by the successor's owner only, so only the lister sees it.
+      loose.from("listing_lineage").select("successor_listing_id").eq("predecessor_rent_payment_id", id).maybeSingle(),
+    ]);
+    const offerRow = offerRead.error ? null : (rows(offerRead.data)[0] ?? null);
+    const offerRent = offerRow ? kobo(offerRow.rent_minor) : null;
+    const offer =
+      offerRow && offerRent !== null && offerRent > 0
+        ? {
+            rentMinor: offerRent,
+            serviceMinor: kobo(offerRow.service_minor),
+            agencyMinor: kobo(offerRow.agency_minor) ?? 0,
+            legalMinor: kobo(offerRow.legal_minor) ?? 0,
+            agreementMinor: kobo(offerRow.agreement_minor) ?? 0,
+          }
+        : null;
+    const change = offer ? rentChange(rp.rent_minor ?? null, offer) : null;
+    const answerValue = answerRead.error ? null : (answerRead.data as Row | null)?.answer;
+    const answer = answerValue === "renewing" || answerValue === "leaving" ? answerValue : null;
+    const cautionSettled = caution ? caution.state === "returned" : !(rp.caution_minor && rp.caution_minor > 0);
+    const renewal: TenancyRenewal = {
+      daysLeft: daysUntil(endsOn, today),
+      offer: offer
+        ? {
+            total: money(renewalTotal(offer)),
+            rent: money(offer.rentMinor),
+            service: offer.serviceMinor ? money(offer.serviceMinor) : null,
+            fees: renewalCarriesFees(offer) ? money(offer.agencyMinor + offer.legalMinor + offer.agreementMinor) : null,
+            offeredOn: day(str(offerRow?.offered_at)),
+            rise: change !== null && change > 0 ? money(change) : null,
+            fall: change !== null && change < 0 ? money(-change) : null,
+            percent:
+              change !== null && change !== 0 && rp.rent_minor && rp.rent_minor > 0
+                ? bpsAsPercentText(Math.round((Math.abs(change) * 10_000) / rp.rent_minor))
+                : null,
+          }
+        : null,
+      rentMinor: offer?.rentMinor ?? rp.rent_minor ?? null,
+      serviceMinor: offer?.serviceMinor ?? rp.service_minor ?? null,
+      answer,
+      relistOpen: relistOpen(endsOn, today, answer === "renewing"),
+      relistOpensOnLabel: day(relistOpensOn(endsOn)),
+      successorId: lineageRead.error ? null : (str((lineageRead.data as Row | null)?.successor_listing_id) ?? null),
+      exitOpen: exitAccountOpen(endsOn, today, cautionSettled),
+      exitAnswered: !exitRead.error && exitRead.data !== null,
+      unavailable: Boolean(offerRead.error || answerRead.error || exitRead.error),
+    };
+
+    /* ---------------------------------------------------------- tenant name */
+    let tenantName: string | null = null;
+    if (viewer === "tenant") {
+      const { data: me } = await db.from("profiles").select("first_name, surname").eq("id", rp.tenant_id).maybeSingle();
+      const first = me?.first_name?.trim();
+      const initial = me?.surname?.trim()?.charAt(0);
+      tenantName = first ? `${first}${initial ? ` ${initial}.` : ""}` : null;
+    }
+
+    /* ---------------------------------------------------------- flatmates */
+    const contributorsRead = await loose.from("rent_payment_contributors").select("id, user_id, share_minor").eq("rent_payment_id", id).order("added_at");
+    const contributorRows = contributorsRead.error ? [] : rows(contributorsRead.data);
+    const coShares = contributorRows.flatMap((row) => {
+      const share = kobo(row.share_minor);
+      return share === null ? [] : [{ id: String(row.id), userId: String(row.user_id), shareMinor: share }];
+    });
+    const shareIds = coShares.map((row) => row.id);
+    const [sharePaidRead, namesRead, answersRead, returnsRead] = coShares.length
+      ? await Promise.all([
+          loose.from("rent_share_payments").select("contributor_id").in("contributor_id", shareIds),
+          db.from("profiles").select("id, first_name").in("id", coShares.map((row) => row.userId)),
+          loose.from("rent_share_answers").select("contributor_id, answer").in("contributor_id", shareIds),
+          loose.from("rent_share_returns").select("contributor_id").in("contributor_id", shareIds),
+        ])
+      : [{ data: [], error: null }, { data: [], error: null }, { data: [], error: null }, { data: [], error: null }];
+    const sharePaid = new Set(rows(sharePaidRead.data).map((row) => String(row.contributor_id)));
+    const shareReturned = new Set(rows(returnsRead.data).map((row) => String(row.contributor_id)));
+    const shareAnswer = new Map(rows(answersRead.data).map((row) => [String(row.contributor_id), row.answer]));
+    // A declined share does not count: the lead carries it again.
+    const standing = coShares.filter((row) => shareAnswer.get(row.id) !== "declined");
+    const firstNames = new Map(rows(namesRead.data).map((row) => [String(row.id), str(row.first_name)]));
+    const cautionMinor = rp.caution_minor ?? 0;
+    const attributed = attributeCaution(cautionMinor, rp.total_minor, standing);
+    const flatmates: TenancyFlatmates = {
+      rows: coShares.map((row) => ({
+        id: row.id,
+        name: firstNames.get(row.userId) ?? null,
+        share: money(row.shareMinor),
+        answer: (() => {
+          const value = shareAnswer.get(row.id);
+          return value === "accepted" || value === "declined" ? value : null;
+        })(),
+        paid: sharePaid.has(row.id),
+        returned: shareReturned.has(row.id),
+        cautionPart: cautionMinor > 0 && attributed.byId[row.id] !== undefined ? money(attributed.byId[row.id] ?? 0) : null,
+      })),
+      leadShare: money(leadShare(rp.total_minor, standing)),
+      leadCautionPart: cautionMinor > 0 ? money(attributed.lead) : null,
+      unavailable: Boolean(contributorsRead.error || sharePaidRead.error || answersRead.error || returnsRead.error),
+    };
+
+    /* ---------------------------------------------------------- pin candidates */
+    // The pin policy allows only THE conversation between this tenant and this
+    // lister about this listing, so only its messages are offered.
+    let pinCandidates: TenancyFile["pinCandidates"] = [];
+    if (viewer !== "staff") {
+      const { data: threads } = await db
+        .from("conversations")
+        .select("id")
+        .eq("listing_id", rp.listing_id)
+        .eq("guest_id", rp.tenant_id)
+        .eq("agent_id", rp.lister_id);
+      const threadIds = (threads ?? []).map((thread) => thread.id);
+      if (threadIds.length > 0) {
+        const pinned = new Set(pins.map((pin) => pin.id));
+        const { data: recent } = await db
+          .from("messages")
+          .select("id, body, created_at")
+          .in("conversation_id", threadIds)
+          .order("created_at", { ascending: false })
+          .limit(30);
+        pinCandidates = (recent ?? [])
+          .filter((message) => !pinned.has(message.id) && typeof message.body === "string" && message.body.trim().length > 0)
+          .map((message) => ({ id: message.id, body: message.body, date: day(message.created_at, true) }));
+      }
+    }
+
     /* ---------------------------------------------------------- promise */
     const snap = snapshotRead.error ? null : (snapshotRead.data as Row | null);
     const snapListing = snap && typeof snap.listing === "object" && snap.listing !== null ? (snap.listing as Row) : null;
@@ -386,7 +587,10 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         viewer,
         title: listing?.title?.trim() || "Your tenancy",
         area: [listing?.area, listing?.city].filter((part): part is string => Boolean(part)).join(", "),
+        place: { area: listing?.area ?? null, city: listing?.city ?? null, stateCode: listing?.state_code ?? null },
+        bedrooms: typeof listing?.bedrooms === "number" ? listing.bedrooms : null,
         listerName,
+        tenantName,
         moveIn: rp.move_in,
         moveInLabel: day(rp.move_in),
         endsOn,
@@ -416,11 +620,14 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         viewing,
         reports,
         pins,
+        pinCandidates,
+        renewal,
+        flatmates,
         receiptCode: (() => {
           const row = codeRead.error ? null : rows(codeRead.data)[0];
           const codeId = row ? str(row.id) : null;
-          const codeText = row ? str(row.code) : null;
-          return codeId && codeText ? { id: codeId, code: codeText } : null;
+          const hint = row ? str(row.code_hint) : null;
+          return codeId && hint ? { id: codeId, hint } : null;
         })(),
       },
     };

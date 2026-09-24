@@ -471,6 +471,16 @@ function ListingRow({
           <UiIcon name="calendar-booking" size={16} />
           Calendar
         </Link>
+        {/* V-57: a nightly stay declares its charges at the door before it can be published. */}
+        {listing.pricePeriod === "night" && (
+          <Link
+            href={`/agent/listings/${listing.id}/arrival`}
+            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
+          >
+            <UiIcon name="info" size={16} />
+            Charges at the door
+          </Link>
+        )}
         {duplicateCopy && <DuplicateListing listingId={listing.id} copy={duplicateCopy} />}
         {/* V-71: a published listing's Status picture and the lister's own link. */}
         {statusLabel && listing.status === "PUBLISHED" && (

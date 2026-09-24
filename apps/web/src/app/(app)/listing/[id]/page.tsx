@@ -61,6 +61,9 @@ import { OwnerAvailabilityLine, PropertyOffers } from "@/components/app/listing/
 import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
 import { readPayeeRecords } from "@/lib/after-gate/payee";
+import { LastLetLine } from "@/components/app/listing/LastLetLine";
+import { PhotographedLine } from "@/components/app/listing/PhotographedLine";
+import { CautionRecordLine } from "@/components/app/listing/CautionRecordLine";
 import { ListingPurchase } from "@/components/app/listing/ListingPurchase";
 import { ListingSectionTabs } from "@/components/app/listing/ListingSectionTabs";
 import { ListingSpecChips, specChips } from "@/components/app/listing/ListingSpecChips";
@@ -1070,6 +1073,12 @@ export default async function ListingDetailPage({
                     className="scroll-mt-16"
                   >
                     <ListingMoveIn listing={listing} locale={locale} t={t} records={await readPayeeRecords(listing.id)} />
+                    {/* V-38: what this flat was last let at through Vallo. Nothing when there is no such let. */}
+                    <LastLetLine listingId={listing.id} locale={locale} />
+                    {/* V-70: which of the shot list's photos this listing has. */}
+                    <PhotographedLine listingId={listing.id} locale={locale} />
+                    {/* V-36: the lister's caution record, once five have settled. */}
+                    <CautionRecordLine listingId={listing.id} listerName={null} locale={locale} />
                   </Section>
                 )}
 

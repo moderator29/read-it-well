@@ -18,6 +18,8 @@ import { AccountHoldNotice } from "@/components/app/wallet/AccountHoldNotice";
 import { loadAccountHold } from "@/lib/security/account-hold";
 import { FundingVerifier } from "./FundingVerifier";
 import { WalletDeck } from "./WalletDeck";
+import { ComingUp } from "@/components/app/wallet/ComingUp";
+import { readUpcoming } from "@/lib/wallet/upcoming";
 
 export const metadata: Metadata = { title: "Wallet" };
 
@@ -61,6 +63,8 @@ export default async function WalletPage({
   /* Pots answer "unavailable" until their migration is applied and are
      simply not drawn in that state. */
   const pots = await readPots();
+  /* V-84: what this money is for, next. Nothing renders when nothing is. */
+  const upcoming = wallet.live && !wallet.readFailed ? await readUpcoming() : [];
   /* The saved cards, for the Top Up sheet. An unreadable list is an empty
      one here: the hosted window is always still offered. */
   const cards = wallet.live && !wallet.readFailed ? await listPaymentMethods() : null;
@@ -141,6 +145,12 @@ export default async function WalletPage({
               />}
             />
           </Reveal>
+
+          {upcoming !== null && upcoming.length === 0 ? null : (
+            <Reveal delay={80} className="nf-wallet-section">
+              <ComingUp items={upcoming} locale={locale} />
+            </Reveal>
+          )}
 
           <Reveal delay={120} className="nf-wallet-section">
             <RecentActivity entries={wallet.entries} locale={locale} copy={copy} />

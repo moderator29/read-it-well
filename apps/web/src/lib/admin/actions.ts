@@ -19,6 +19,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { ARRIVAL_DECLARATION_NEEDED, arrivalChargesDeclared } from "../stays/arrival-gate";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { createAdminClient } from "../supabase/admin";
 import { writeAudit, type AuditDetail } from "./audit";
@@ -521,6 +522,11 @@ export async function reviewListing(input: {
   }
   if (decision === "publish" && listing.status !== "APPROVED") {
     return fail("Approve this listing first, then publish it.");
+  }
+  /* V-57: a nightly stay is published only once its arrival charges are
+     declared (all five, an amount or none). Lets and sales are untouched. */
+  if (decision === "publish" && !(await arrivalChargesDeclared(access.supabase, { listingId }))) {
+    return fail(ARRIVAL_DECLARATION_NEEDED);
   }
   if (decision !== "publish" && listing.status === "PUBLISHED") {
     return fail("This listing is already live. Refresh the queue to see the current state.");

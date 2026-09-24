@@ -1,3 +1,5 @@
+import { firstNameAndInitial } from "../after-gate/public-place-model";
+
 /**
  * V-55. Receipt codes, the pure half.
  *
@@ -30,6 +32,7 @@ export type VerifiedReceipt = {
   rentPeriod: "year" | "quarter" | "month";
   area: string | null;
   city: string | null;
+  stateCode: string | null;
   parts: Partial<Record<"rent" | "caution" | "service" | "agency" | "legal" | "agreement", number>>;
 };
 
@@ -64,10 +67,12 @@ export function readVerifyAnswer(raw: unknown): VerifyOutcome {
       paidMinor: paid,
       paidAt: row.paid_at,
       tenant: text(row.tenant),
-      lister: text(row.lister),
+      // Rule 10: a display name is typed, so a third party reads the first name and initial only.
+      lister: firstNameAndInitial(text(row.lister)),
       rentPeriod: period,
       area: text(row.area),
       city: text(row.city),
+      stateCode: text(row.state_code),
       parts,
     },
   };

@@ -209,7 +209,11 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/rent/review/[paymentId]": "/bookings",
   "/record/[code]": "/search",
   "/rent/pay/[inspectionId]": "/bookings",
+  "/rent/share/[id]": "/wallet",
   "/tenancy/[id]": "/bookings",
+  "/tenancy/[id]/complaint": "/tenancy/[id]",
+  "/host/arrival": "/host",
+  "/agent/listings/[listingId]/arrival": "/agent/listings",
   /*
    * PRICE CHECK. Both entries reproduce what the two pages already pass to
    * `PageHeader` as a fallback, which is the honest reading of the surface

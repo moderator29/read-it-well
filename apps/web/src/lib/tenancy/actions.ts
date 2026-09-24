@@ -27,12 +27,8 @@ import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { ROOM_ITEMS } from "../inspections/report";
 import { parseNairaToKobo } from "../agent/listings-schema";
-import { isFeatureEnabled } from "../flags";
-import { guardMoney } from "../security/money-limits";
-import { getAdminClient } from "../wallet/ledger";
-import { callMoneyRpc } from "../wallet/rpc";
+import { callMoneyDoor } from "./money-door";
 
-const WALLET_OFF = "The wallet is switched off for a moment. Nothing was sent. Try again shortly.";
 const SERVICE_DOWN = "That did not go through. Nothing was changed. Try again in a moment.";
 
 const STATUS_WORDS: Record<string, string> = {
@@ -45,7 +41,7 @@ const STATUS_WORDS: Record<string, string> = {
   already_answered: "You have already answered that line.",
   void: "This tenancy was cancelled or refunded, so no caution is owed on it.",
   not_ended: "Deductions open once the tenancy has ended.",
-  already_returned: "That return has already gone through.",
+  already_returned: "That return has already gone through. It is on the record below.",
   insufficient: "There is not enough in your wallet for this amount.",
   no_such_file: "That photo did not finish uploading. Upload it again.",
   bad_stage: "That report does not exist.",
@@ -57,6 +53,9 @@ const STATUS_WORDS: Record<string, string> = {
   own_report: "You wrote this report, so the other party countersigns it.",
   not_submitted: "It can be countersigned once it is submitted.",
   already_countersigned: "It is already countersigned.",
+  too_early: "This opens later in the tenancy.",
+  tenant_renewing: "Your tenant has said they are renewing, so the flat is not relisted.",
+  caution_not_settled: "Your account of the flat opens once your caution is settled.",
 };
 
 async function door(
@@ -140,9 +139,11 @@ export async function returnCaution(input: {
   tenancyId: string;
   obligationId: string;
   amountNaira: string;
+  /** Minted when the form is drawn: the same form sent twice moves money once. */
+  idempotencyKey: string;
 }): Promise<ActionResult<Record<string, unknown>>> {
   const parsed = validate(
-    z.object({ tenancyId: uuid, obligationId: uuid, amountNaira: z.string() }),
+    z.object({ tenancyId: uuid, obligationId: uuid, amountNaira: z.string(), idempotencyKey: uuid }),
     input,
   );
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
@@ -150,31 +151,24 @@ export async function returnCaution(input: {
   if (amount === null || amount <= 0) {
     return fail("Enter an amount above zero.", { amountNaira: "Enter an amount above zero." });
   }
-  if (!(await isFeatureEnabled("wallet"))) return fail(WALLET_OFF);
-
-  const session = await resolveSession();
-  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
-  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
-  const limit = await guardMoney("transferToUser", session.user.id);
-  if (!limit.allowed) return fail(limit.message);
-  const admin = getAdminClient();
-  if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
-
-  const call = await callMoneyRpc(
-    admin,
-    "transfer",
-    "return_caution",
-    { p_obligation: parsed.data.obligationId, p_amount: amount, p_lister: session.user.id },
-    { amountMinor: amount, userId: session.user.id },
-  );
-  if (call.outcome !== "ok" || typeof call.data !== "object" || call.data === null) {
-    return fail(SERVICE_DOWN);
+  const result = await callMoneyDoor({
+    fn: "return_caution",
+    args: (userId) => ({
+      p_obligation: parsed.data.obligationId,
+      p_amount: amount,
+      p_lister: userId,
+      p_key: parsed.data.idempotencyKey,
+    }),
+    amountMinor: amount,
+    action: "tenancy.caution.returned",
+    words: STATUS_WORDS,
+    detail: { obligation_id: parsed.data.obligationId },
+  });
+  if (result.ok) {
+    revalidatePath(`/tenancy/${parsed.data.tenancyId}`);
+    revalidatePath("/wallet");
   }
-  const answer = call.data as Record<string, unknown>;
-  if (answer.status !== "ok") return fail(STATUS_WORDS[String(answer.status)] ?? SERVICE_DOWN);
-  revalidatePath(`/tenancy/${parsed.data.tenancyId}`);
-  revalidatePath("/wallet");
-  return ok(answer);
+  return result;
 }
 
 export async function saveTenancyReport(input: {
@@ -238,4 +232,102 @@ export async function countersignTenancyReport(input: {
   const parsed = validate(z.object({ tenancyId: uuid, reportId: uuid }), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   return door("countersign_tenancy_report", { p_report: parsed.data.reportId }, `/tenancy/${parsed.data.tenancyId}`);
+}
+
+/* ------------------------------------------------------------ V-93 and V-38 */
+
+export async function offerRenewal(input: {
+  tenancyId: string;
+  rentNaira: string;
+  serviceNaira?: string;
+  feesNaira?: string;
+}): Promise<ActionResult<Record<string, unknown>>> {
+  const parsed = validate(
+    z.object({ tenancyId: uuid, rentNaira: z.string(), serviceNaira: z.string().optional(), feesNaira: z.string().optional() }),
+    input,
+  );
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const rent = parseNairaToKobo(parsed.data.rentNaira);
+  if (rent === null || rent <= 0) return fail("Enter the renewal rent.", { rentNaira: "Enter the renewal rent." });
+  const service = parsed.data.serviceNaira?.trim() ? parseNairaToKobo(parsed.data.serviceNaira) : null;
+  const fees = parsed.data.feesNaira?.trim() ? parseNairaToKobo(parsed.data.feesNaira) : 0;
+  if ((service !== null && service < 0) || fees === null || fees < 0) return fail("Enter amounts of zero or more.");
+  return door(
+    "offer_renewal",
+    { p_rent_payment: parsed.data.tenancyId, p_rent: rent, p_service: service, p_agency: fees, p_legal: 0, p_agreement: 0 },
+    `/tenancy/${parsed.data.tenancyId}`,
+  );
+}
+
+export async function answerRenewal(input: {
+  tenancyId: string;
+  answer: "renewing" | "leaving";
+}): Promise<ActionResult<Record<string, unknown>>> {
+  const parsed = validate(z.object({ tenancyId: uuid, answer: z.enum(["renewing", "leaving"]) }), input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  return door("answer_renewal", { p_rent_payment: parsed.data.tenancyId, p_answer: parsed.data.answer }, `/tenancy/${parsed.data.tenancyId}`);
+}
+
+export async function relistFromTenancy(input: { tenancyId: string }): Promise<ActionResult<Record<string, unknown>>> {
+  const parsed = validate(z.object({ tenancyId: uuid }), input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const result = await door("relist_from_tenancy", { p_rent_payment: parsed.data.tenancyId }, `/tenancy/${parsed.data.tenancyId}`);
+  revalidatePath("/agent/listings");
+  return result;
+}
+
+export async function answerExitAccount(input: {
+  tenancyId: string;
+  light: string;
+  water: string;
+  flooding: string;
+}): Promise<ActionResult<Record<string, unknown>>> {
+  const parsed = validate(
+    z.object({
+      tenancyId: uuid,
+      light: z.enum(["most_of_the_day", "some_of_the_day", "rarely"], { message: "Choose how much light there was." }),
+      water: z.enum(["always", "sometimes", "rarely"], { message: "Choose how the water was." }),
+      flooding: z.enum(["never", "sometimes", "often"], { message: "Choose whether it flooded." }),
+    }),
+    input,
+  );
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  return door(
+    "answer_exit_account",
+    { p_rent_payment: parsed.data.tenancyId, p_light: parsed.data.light, p_water: parsed.data.water, p_flooding: parsed.data.flooding },
+    `/tenancy/${parsed.data.tenancyId}`,
+  );
+}
+
+/* ------------------------------------------------------------ V-47 pins */
+
+/**
+ * Pin a message from the tenant-lister thread to the tenancy as evidence. The
+ * insert policy is the rule (a party, as themselves, a message in THE
+ * conversation between this tenant and this lister about this listing), and
+ * a pin is append-only: kept until tenancy end plus six years.
+ */
+export async function pinTenancyMessage(input: {
+  tenancyId: string;
+  messageId: string;
+}): Promise<ActionResult<Record<string, unknown>>> {
+  const parsed = validate(z.object({ tenancyId: uuid, messageId: uuid }), input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+  try {
+    const loose = session.supabase as unknown as SupabaseClient;
+    const { error } = await loose
+      .from("tenancy_pins")
+      .insert({ rent_payment_id: parsed.data.tenancyId, message_id: parsed.data.messageId, pinned_by: session.user.id });
+    if (error) {
+      if (error.code === "23505") return fail("That message is already pinned.");
+      return fail("Only a message from your thread with the other party about this flat can be pinned.");
+    }
+    revalidatePath(`/tenancy/${parsed.data.tenancyId}`);
+    return ok({});
+  } catch {
+    return fail(SERVICE_DOWN);
+  }
 }
