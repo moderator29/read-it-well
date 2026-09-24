@@ -9,7 +9,7 @@ import { getLocale } from "../locale";
 import { writeAudit } from "./audit";
 import { requireAdmin } from "./guard";
 import { reviewAgentApplication, reviewListing, setTicketStatus } from "./actions";
-import { readItemKey, readViewFilters, viewHref, type QueueKind } from "./queue-desk";
+import { claimIsLive, probablyNotAPerson, readItemKey, readViewFilters, viewHref, type QueueKind } from "./queue-desk";
 
 /**
  * THE QUEUE DESK'S VERBS. V-89.
@@ -77,18 +77,36 @@ export async function bulkAct(formData: FormData): Promise<void> {
 
   const reasons = getDictionary(await getLocale()).platform.queueDesk.sendBackReasons;
   const reasonKey = String(formData.get("reason") ?? "");
-  const reason = (reasons as Record<string, string>)[reasonKey] ?? null;
+  /* A reason belongs to a kind: "the photos" is a listing's, "the documents" an application's. */
+  const reasonFor = (kind: QueueKind): string | null =>
+    kind === "listing" || kind === "application" ? ((reasons[kind] as Record<string, string>)[reasonKey] ?? null) : null;
   const assignee = String(formData.get("to") ?? "");
   const batchId = randomUUID();
   const rpc = access.supabase as unknown as Rpc;
+
+  /* Another operator's live claim is theirs: bulk skips it and says so. */
+  const { data: claimRows } = await (access.supabase as unknown as {
+    from: (t: string) => { select: (c: string) => { in: (c: string, v: string[]) => PromiseLike<{ data: unknown }> } };
+  })
+    .from("queue_claims")
+    .select("kind, item_id, claimed_by, touched_at")
+    .in("item_id", items.map((i) => i.id));
+  const heldByOther = new Set(
+    (Array.isArray(claimRows) ? (claimRows as { kind: string; item_id: string; claimed_by: string; touched_at: string }[]) : [])
+      .filter((c) => c.claimed_by !== access.user.id && claimIsLive(c.touched_at, Date.now()))
+      .map((c) => `${c.kind}:${c.item_id}`),
+  );
   let done = 0;
   let skipped = 0;
   let failed = 0;
 
   for (const item of items) {
     let outcome: "done" | "skipped" | "failed" = "skipped";
+    const reason = reasonFor(item.kind);
     try {
-      if (verb === "take" || verb === "assign") {
+      if (heldByOther.has(`${item.kind}:${item.id}`) && verb !== "take") {
+        outcome = "skipped";
+      } else if (verb === "take" || verb === "assign") {
         if (verb === "assign" && !/^[0-9a-f-]{36}$/i.test(assignee)) {
           outcome = "failed";
         } else {
@@ -113,8 +131,21 @@ export async function bulkAct(formData: FormData): Promise<void> {
           outcome = r.ok ? "done" : "failed";
         }
       } else if (verb === "close_spam" && item.kind === "ticket") {
-        const r = await setTicketStatus({ ticketId: item.id, status: "closed" });
-        outcome = r.ok ? "done" : "failed";
+        /* The lane is a read-time guess; the server checks it again before closing anything. */
+        const { data: ticket } = await (access.supabase as unknown as {
+          from: (t: string) => {
+            select: (c: string) => { eq: (c: string, v: string) => { maybeSingle: () => PromiseLike<{ data: unknown }> } };
+          };
+        })
+          .from("support_tickets")
+          .select("user_id, body, topic")
+          .eq("id", item.id)
+          .maybeSingle();
+        const row = ticket as { user_id: string | null; body: string; topic: string | null } | null;
+        if (row && probablyNotAPerson({ hasAccount: row.user_id !== null, body: row.body, topic: row.topic })) {
+          const r = await setTicketStatus({ ticketId: item.id, status: "closed" });
+          outcome = r.ok ? "done" : "failed";
+        }
       }
     } catch {
       outcome = "failed";
@@ -125,13 +156,17 @@ export async function bulkAct(formData: FormData): Promise<void> {
 
     /* take and assign write their own row, with the batch id, in the database. */
     if (verb !== "take" && verb !== "assign" && outcome !== "skipped") {
-      await writeAudit(createAdminClient(), {
-        actorId: access.user.id,
-        action: "queue.bulk",
-        entityType: item.kind,
-        entityId: item.id,
-        detail: { batch_id: batchId, verb, outcome, reason_key: verb === "send_back" ? reasonKey : null },
-      });
+      try {
+        await writeAudit(createAdminClient(), {
+          actorId: access.user.id,
+          action: "queue.bulk",
+          entityType: item.kind,
+          entityId: item.id,
+          detail: { batch_id: batchId, verb, outcome, reason_key: verb === "send_back" ? reasonKey : null },
+        });
+      } catch {
+        /* No service key: the per-item action's own audit row still stands. */
+      }
     }
   }
 

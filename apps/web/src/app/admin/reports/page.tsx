@@ -50,7 +50,7 @@ function ReportCard({
   common: AdminCommon;
   ui: AdminUi;
 }) {
-  const closed = report.status === "resolved" || report.status === "dismissed";
+  const closed = report.status === "resolved" || report.status === "dismissed" || (report.status as string) === "withdrawn";
 
   return (
     <li className="nf-panel nf-panel--card nf-admin-card p-md sm:p-lg">
@@ -176,7 +176,8 @@ export default async function AdminReportsPage({
     (report) => report.status === "open" || report.status === "reviewing",
   );
   const closed = rows.filter(
-    (report) => report.status === "resolved" || report.status === "dismissed",
+    /* V-89: a report its reporter withdrew is closed too. */
+    (report) => report.status === "resolved" || report.status === "dismissed" || (report.status as string) === "withdrawn",
   );
   /* A page past the first counts as narrowed for the empty copy. Landing on
      page three of a queue that has run out is a RESULT; "nothing has ever

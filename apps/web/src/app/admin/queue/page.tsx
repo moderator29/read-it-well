@@ -331,14 +331,17 @@ export default async function AdminQueuePage({
     return {
       ...row,
       lead: (
-        <input
-          type="checkbox"
-          name="item"
-          value={key}
-          form="queue-bulk"
-          aria-label={desk.select.replace("{ref}", row.reference)}
-          className="mr-2xs size-4 shrink-0"
-        />
+        /* A 44px target around a 16px box. */
+        <label className="mr-2xs inline-flex size-11 shrink-0 cursor-pointer items-center justify-center">
+          <input
+            type="checkbox"
+            name="item"
+            value={key}
+            form="queue-bulk"
+            aria-label={desk.select.replace("{ref}", row.reference)}
+            className="size-4"
+          />
+        </label>
       ),
       extra: (
         <span className="nf-admin-row__sub flex flex-wrap items-center gap-2xs" data-testid="queue-desk-line">
@@ -358,7 +361,7 @@ export default async function AdminQueuePage({
             <form action={claim ? releaseRow : takeRow} className="inline">
               <input type="hidden" name="item" value={key} />
               {hidden}
-              <button type="submit" className="nf-link-quiet text-[length:var(--nf-text-overline)] text-[var(--nf-content-link)]">
+              <button type="submit" className="nf-link-quiet inline-flex min-h-11 items-center px-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-link)]">
                 {claim ? desk.release : desk.take}
               </button>
             </form>
@@ -442,18 +445,22 @@ export default async function AdminQueuePage({
         <label className="nf-caption flex flex-col gap-3xs">
           {desk.bulkReason}
           <select name="reason" className="nf-admin-select" defaultValue="">
-            <option value="">-</option>
-            {(Object.keys(desk.sendBackReasons) as (keyof typeof desk.sendBackReasons)[]).map((key) => (
-              <option key={key} value={key}>
-                {desk.sendBackReasons[key].split(".")[0]}
-              </option>
+            <option value="">{desk.bulkNoReason}</option>
+            {(Object.keys(desk.sendBackReasons) as (keyof typeof desk.sendBackReasons)[]).map((group) => (
+              <optgroup key={group} label={desk.sendBackGroups[group]}>
+                {Object.keys(desk.sendBackReasons[group]).map((key) => (
+                  <option key={key} value={key}>
+                    {desk.sendBackLabels[key as keyof typeof desk.sendBackLabels]}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </label>
         <label className="nf-caption flex flex-col gap-3xs">
           {desk.bulkTo}
           <select name="to" className="nf-admin-select" defaultValue="">
-            <option value="">-</option>
+            <option value="">{desk.bulkNoOperator}</option>
             {reads.operators.map((operator) => (
               <option key={operator.id} value={operator.id}>
                 {operator.name ?? desk.someone}

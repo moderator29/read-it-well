@@ -129,8 +129,8 @@ export default async function AdminModerationPage({
   ].sort((a, b) => {
     /* Work still waiting first, oldest first, because the longest wait is the
        one that matters; closed reports after it, newest first. */
-    const aClosed = a.status === "resolved" || a.status === "dismissed";
-    const bClosed = b.status === "resolved" || b.status === "dismissed";
+    const aClosed = a.status === "resolved" || a.status === "dismissed" || (a.status as string) === "withdrawn";
+    const bClosed = b.status === "resolved" || b.status === "dismissed" || (b.status as string) === "withdrawn";
     if (aClosed !== bClosed) return aClosed ? 1 : -1;
     return aClosed ? b.at.localeCompare(a.at) : a.at.localeCompare(b.at);
   });
@@ -243,7 +243,7 @@ function reportRow(
   common: AdminCommon,
   now: number,
 ): ModerationRow & { at: string } {
-  const closed = report.status === "resolved" || report.status === "dismissed";
+  const closed = report.status === "resolved" || report.status === "dismissed" || (report.status as string) === "withdrawn";
   const href = targetHref(report);
   return {
     id: `report:${report.id}`,

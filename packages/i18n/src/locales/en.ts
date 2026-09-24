@@ -3033,6 +3033,8 @@ export const en = {
         reviewing: "In review",
         resolved: "Resolved",
         dismissed: "Dismissed",
+        /* V-89: the reporter took it back. */
+        withdrawn: "Withdrawn by the reporter",
         pending: "Awaiting reply",
         closed: "Closed",
         DRAFT: "Draft",
