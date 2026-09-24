@@ -48,11 +48,16 @@ export const SIDE_HOME: Record<Side, string> = {
  * Property. Notification taps obey the same rule. Everything shared returns
  * null and the cookie decides.
  *
+ * `/checkout` is Stays because everything paid there is a stay: a room
+ * (`?stay=`) or a nightly booking (`/checkout/<id>`); a tenancy is paid on
+ * `/rent/pay` (UX-04 review). It is drawn on the side of what is being paid
+ * for, whatever the saved preference says.
+ *
  * `/home` and `/search` stay the Property roots on purpose: their URLs are
  * the product's muscle memory and every existing link. `/stays` and
  * `/stays/search` are the Stays roots.
  */
-const STAYS_PATHS = /^\/(stays|stay|restaurants|restaurant|trips|host)(\/|$)/;
+const STAYS_PATHS = /^\/(stays|stay|restaurants|restaurant|trips|host|checkout)(\/|$)/;
 const PROPERTY_PATHS = /^\/(home|search|agent|listing|rent|inspections|bookings)(\/|$)/;
 
 export function sideOfPath(pathname: string): Side | null {
@@ -62,11 +67,12 @@ export function sideOfPath(pathname: string): Side | null {
 }
 
 /**
- * A single listing, stay or restaurant. UX-04: these paint the side they
- * belong to (the URL wins) but do not move the stored preference, so opening
- * one card does not silently turn the rest of the app over.
+ * A single listing, stay or restaurant, or a checkout. UX-04: these paint
+ * the side they belong to (the URL wins) but do not move the stored
+ * preference, so opening one card, or paying for it, does not silently turn
+ * the rest of the app over.
  */
-const DETAIL_PATHS = /^\/(listing|stay|restaurant)\/[^/]+\/?$/;
+const DETAIL_PATHS = /^\/((listing|stay|restaurant)\/[^/]+\/?$|checkout(\/|$))/;
 
 export function isDetailPath(pathname: string): boolean {
   return DETAIL_PATHS.test(pathname);

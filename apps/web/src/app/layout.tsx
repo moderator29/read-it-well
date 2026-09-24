@@ -135,7 +135,9 @@ export const metadata: Metadata = {
     description:
       "Homes, land, hotels and shortlets across Nigeria, with the cost of moving in written down before you call anybody. Hotels, apartments and restaurant tables on Vallo Stays. One account, one naira wallet.",
   },
-  robots: { index: true, follow: true },
+  /* UI-16: no site-wide robots tag. Indexable is the default with no tag at
+     all; stating "index, follow" here put it beside the "noindex" that a
+     not-found page or a private page adds, so those pages carried both. */
 
   /*
    * Installable app metadata. Emitted by Next rather than hand written tags:

@@ -274,7 +274,17 @@ export async function loadConversationSummaries(
 
   const identities = await identitiesOf(counterparts);
 
-  return conversations.map((c) => {
+  /* UX-P2-03: a listing thread with no message in it is a tap somebody
+     abandoned (the old "Message" page opened one on load). It is not shown in
+     either inbox. Only when the recent sweep was not cut off, so an old,
+     quiet thread is never mistaken for an empty one. */
+  const sweepComplete = (recent ?? []).length < 400;
+  const shown = conversations.filter(
+    (c) =>
+      !(sweepComplete && !lastByConversation.has(c.id) && (c.context_kind ?? "listing") === "listing"),
+  );
+
+  return shown.map((c) => {
     const counterpartId = c.guest_id === user.id ? c.agent_id : c.guest_id;
     const last = lastByConversation.get(c.id);
     const identity = identities.get(counterpartId);

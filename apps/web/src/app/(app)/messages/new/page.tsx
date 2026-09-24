@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/app/PageHeader";
 import { resolveSession } from "@/lib/actions/session";
-import { startConversation } from "@/lib/messages/actions";
+import { findConversationForListing } from "@/lib/messages/actions";
+import { getListingRepository } from "@/lib/listings/repository";
+import { FirstMessage } from "./FirstMessage";
 import { getMessageRepository } from "@/lib/messages/repository";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
 import { EmptyActions } from "@/components/app/EmptyActions";
@@ -104,8 +106,19 @@ export default async function NewMessagePage({
   const session = await resolveSession();
 
   if (session.state === "signed-in") {
-    const result = await startConversation({ listingId: listing });
-    if (result.ok) redirect(`/messages/${result.data.conversationId}`);
+    /* UX-P2-03: look, do not write. An existing thread opens; otherwise the
+       first message makes the thread, so an abandoned tap leaves nothing. */
+    const result = await findConversationForListing({ listingId: listing });
+    if (result.ok && result.data.conversationId) redirect(`/messages/${result.data.conversationId}`);
+    if (result.ok) {
+      const found = await getListingRepository().byId(listing);
+      return (
+        <div className="mx-auto max-w-2xl">
+          <PageHeader title="Message the agent" fallback={`/listing/${listing}`} />
+          <FirstMessage listingId={listing} listingTitle={found?.title ?? null} />
+        </div>
+      );
+    }
     return (
       <Bridge
         title="This chat cannot open yet"

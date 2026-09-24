@@ -20,6 +20,13 @@ describe("the side is only moved on purpose", () => {
     }
     /* The URL still paints the side: a stay is drawn in the Stays shell. */
     expect(sideOfPath("/stay/abc")).toBe("stays");
+    /* A checkout is drawn on the side of what is paid for (always a stay),
+       and does not move the saved preference either. */
+    expect(sideOfPath("/checkout")).toBe("stays");
+    expect(sideOfPath("/checkout/b1")).toBe("stays");
+    expect(isDetailPath("/checkout")).toBe(true);
+    expect(isDetailPath("/checkout/b1")).toBe(true);
+    expect(sideOfPath("/rent/pay/i1")).toBe("property");
   });
 
   it("does not write the cookie from a detail page", () => {
