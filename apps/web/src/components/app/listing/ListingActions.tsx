@@ -140,14 +140,21 @@ export function ListingActions({
    * Minted as the sheet opens rather than on the tap, because
    * `navigator.share` needs the user's gesture and Safari withdraws it across
    * a server round trip: by the time "Share elsewhere" is tapped the door is
-   * usually already in hand. A stay (an accommodation id) and a venue (a
-   * business id) have no door yet and keep sharing their own address.
+   * usually already in hand. A stay (an accommodation id) mints a stay door,
+   * whose button carries `/stay/<id>` through sign in; a venue (a business
+   * id) has no door yet and keeps sharing its own address.
    */
-  const doorable = shareKind === "listing" && !place;
+  const doorKind: "listing" | "stay" | null =
+    shareKind === "listing" && !place
+      ? "listing"
+      : shareKind === "stay" && place?.kind === "accommodation"
+        ? "stay"
+        : null;
+  const doorable = doorKind !== null;
   const door = useRef<Promise<string | null> | null>(null);
   const mintDoor = useCallback((): Promise<string | null> => {
-    if (!door.current) {
-      door.current = createShareLink({ kind: "listing", targetId: listingId })
+    if (!door.current && doorKind !== null) {
+      door.current = createShareLink({ kind: doorKind, targetId: listingId })
         .then((result) => (result.ok ? `${window.location.origin}${result.data.path}` : null))
         .catch(() => null)
         .then((url) => {
@@ -156,8 +163,8 @@ export function ListingActions({
           return url;
         });
     }
-    return door.current;
-  }, [listingId]);
+    return door.current ?? Promise.resolve(null);
+  }, [listingId, doorKind]);
   const [pending, startTransition] = useTransition();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -355,7 +362,13 @@ export function ListingActions({
         id={listingId}
         title={title}
         onShareElsewhere={() => void shareElsewhere()}
-        elsewhereBody={doorable ? t.frontDoor.share.elsewhereBody : undefined}
+        elsewhereBody={
+          doorKind === "stay"
+            ? t.frontDoor.share.elsewhereBodyStay
+            : doorable
+              ? t.frontDoor.share.elsewhereBody
+              : undefined
+        }
       />
     </div>
   );

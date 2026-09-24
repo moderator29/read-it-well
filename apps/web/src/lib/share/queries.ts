@@ -2,6 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 import { photoUrl } from "../listings/supabase-repository";
+import { accommodationPhotoUrl } from "../stays/photos";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { createAdminClient } from "../supabase/admin";
@@ -96,4 +97,9 @@ export async function noteDoorOpen(key: string): Promise<void> {
 /** The public URL of the card's one photograph, or null. */
 export function doorPhotoUrl(path: string | null): string | null {
   return path === null ? null : photoUrl(path);
+}
+
+/** The same for a stay, whose photographs live in their own bucket. */
+export function stayDoorPhotoUrl(path: string | null): string | null {
+  return path === null ? null : accommodationPhotoUrl(path);
 }

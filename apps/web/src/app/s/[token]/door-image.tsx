@@ -36,7 +36,8 @@ export type DoorImageFace =
   | { kind: "example"; card: Extract<DoorCard, { kind: "example" }> }
   | {
       kind: "listing";
-      card: Extract<DoorCard, { kind: "listing" }>;
+      /** A listing, or a stay, which has no code and whose headline is the dates line. */
+      card: Extract<DoorCard, { kind: "listing" | "stay" }>;
       lines: DoorLines;
       /** A data URL, already fetched with a timeout, or null. */
       photo: string | null;
@@ -156,8 +157,8 @@ function face(input: DoorImageFace, copy: Dictionary["frontDoor"]["door"]) {
       <Frame>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={EYEBROW}>Vallo</div>
-          <div style={{ display: "flex", marginTop: 28, color: OG_INK, fontSize: 72 }}>{copy.example}</div>
-          <div style={{ display: "flex", marginTop: 20, color: OG_INK_SECONDARY, fontSize: 32, lineHeight: 1.3 }}>{copy.exampleBody}</div>
+          <div style={{ display: "flex", marginTop: 28, color: OG_INK, fontSize: 72 }}>{input.card.stay ? copy.stay.example : copy.example}</div>
+          <div style={{ display: "flex", marginTop: 20, color: OG_INK_SECONDARY, fontSize: 32, lineHeight: 1.3 }}>{input.card.stay ? copy.stay.exampleBody : copy.exampleBody}</div>
         </div>
         {input.card.reference ? <Code code={input.card.reference} /> : <div style={{ display: "flex" }} />}
       </Frame>
@@ -186,7 +187,7 @@ function face(input: DoorImageFace, copy: Dictionary["frontDoor"]["door"]) {
           <div style={{ display: "flex", color: OG_INK, fontSize: 64, letterSpacing: -1 }}>{lines.headline ?? copy.askForPrice}</div>
           {lines.second && <div style={{ display: "flex", marginTop: 10, color: OG_INK_SECONDARY, fontSize: 34 }}>{lines.second}</div>}
         </div>
-        {card.reference && <Code code={card.reference} />}
+        {card.kind === "listing" && card.reference && <Code code={card.reference} />}
       </div>
     </Frame>
   );
@@ -238,10 +239,12 @@ export async function statusImage(
         <>
           <div style={{ display: "flex", color: OG_INK_MUTED, fontSize: 40, letterSpacing: 6 }}>VALLO</div>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", color: OG_INK, fontSize: 96 }}>{example ? copy.example : "Vallo"}</div>
+            <div style={{ display: "flex", color: OG_INK, fontSize: 96 }}>
+              {example ? (input.card.stay ? copy.stay.example : copy.example) : "Vallo"}
+            </div>
             {example && (
               <div style={{ display: "flex", marginTop: 28, color: OG_INK_SECONDARY, fontSize: 44, lineHeight: 1.3 }}>
-                {copy.exampleBody}
+                {input.card.stay ? copy.stay.exampleBody : copy.exampleBody}
               </div>
             )}
           </div>
@@ -272,7 +275,7 @@ export async function statusImage(
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ display: "flex", color: OG_INK, fontSize: 104, letterSpacing: -2 }}>{lines.headline ?? copy.askForPrice}</div>
           {lines.second && <div style={{ display: "flex", marginTop: 12, color: OG_INK_SECONDARY, fontSize: 52 }}>{lines.second}</div>}
-          {card.reference && (
+          {card.kind === "listing" && card.reference && (
             <div style={{ display: "flex", marginTop: 56 }}>
               <Code code={card.reference} />
             </div>

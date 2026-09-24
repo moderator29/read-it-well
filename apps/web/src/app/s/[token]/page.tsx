@@ -5,8 +5,8 @@ import { listStates } from "@/lib/places/queries";
 import { shareById } from "@/lib/price-check/queries";
 import { shareLines } from "@/lib/price-check/share-card";
 import { shareCardCopy } from "@/components/app/price/share-copy";
-import { doorLines, type DoorCard } from "@/lib/share/door";
-import { doorPhotoUrl, noteDoorOpen, readDoor } from "@/lib/share/queries";
+import { doorLines, stayLines, type DoorCard } from "@/lib/share/door";
+import { doorPhotoUrl, noteDoorOpen, readDoor, stayDoorPhotoUrl } from "@/lib/share/queries";
 import { EXAMPLE_LABEL } from "@/lib/listings/syndication";
 import { DoorAreaView, DoorExampleView, DoorListingView, DoorStateView } from "./DoorViews";
 import { RememberDoor } from "./RememberDoor";
@@ -69,7 +69,12 @@ async function summary(
     const parts = [card.place, lines.headline, lines.second].filter(Boolean);
     return { title: lines.title, description: parts.join(". ") };
   }
+  if (card.kind === "stay") {
+    const lines = stayLines(card, copy);
+    return { title: lines.title, description: [card.place, lines.headline].filter(Boolean).join(". ") };
+  }
   if (card.kind === "example") {
+    if (card.stay) return { title: copy.stay.example, description: copy.stay.exampleBody };
     return { title: EXAMPLE_LABEL, description: copy.exampleBody };
   }
   if (card.kind === "price_area") {
@@ -110,7 +115,7 @@ export default async function DoorPage({ params }: Params) {
   if (read.state === "unreachable") return <DoorStateView state="unreachable" copy={copy} />;
   if (read.state === "missing") return <DoorStateView state="missing" copy={copy} />;
   const card = read.card;
-  if (card.kind === "gone") return <DoorStateView state="gone" copy={copy} />;
+  if (card.kind === "gone") return <DoorStateView state="gone" copy={copy} stay={card.stay === true} />;
 
   /* Counted once per page render, never by the image or the metadata, so an
      unfurler fetching the image three times is not three opens. */
@@ -124,6 +129,15 @@ export default async function DoorPage({ params }: Params) {
   }
 
   if (card.kind === "example") return <DoorExampleView card={card} copy={copy} />;
+
+  /* A stay (V-07 carry-over): the same card with no figure and no code, and
+     the button carries `next=/stay/<id>`. No first touch is remembered: the
+     V-71 credit is for a lister's listing, and a stay has no such thread. */
+  if (card.kind === "stay") {
+    return (
+      <DoorListingView card={card} lines={stayLines(card, copy)} photo={stayDoorPhotoUrl(card.photoPath)} copy={copy} />
+    );
+  }
 
   return (
     <>

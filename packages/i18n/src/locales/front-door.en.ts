@@ -69,6 +69,17 @@ export const frontDoorEn = {
     loading: "Opening the card",
     imageAlt: "A home on Vallo",
     areaEyebrow: "Vallo Price Check",
+    /** A stay's door. No rate is printed: it depends on dates and a room. */
+    stay: {
+      /** A title composed when the stay's own name could carry an address. */
+      inArea: "A stay in {area}",
+      plain: "A stay on Vallo",
+      rates: "Choose your dates inside to see the rate",
+      example: "Example stay",
+      exampleBody: "This is an example stay. No such place takes bookings, and it has no rate to show.",
+      goneTitle: "This stay is no longer on Vallo",
+      goneBody: "It has been taken down. Sign in to see the stays on Vallo now.",
+    },
   },
   areas: {
     /** "What homes in Yaba, Lagos are asking" */
@@ -406,6 +417,7 @@ export const frontDoorEn = {
     copied: "Link copied",
     copyFallback: "Copy this link",
     elsewhereBody: "A card with the area and the move-in total. Never the address.",
+    elsewhereBodyStay: "A card with the name and the area. Never the address.",
   },
 };
 

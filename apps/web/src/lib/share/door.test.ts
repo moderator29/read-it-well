@@ -8,6 +8,7 @@ import {
   doorSignInHref,
   doorUtilities,
   isDoorKey,
+  stayLines,
   type DoorRow,
 } from "./door";
 
@@ -267,5 +268,61 @@ describe("power and water in words, for the Status picture (V-71)", () => {
 
   it("carries no utility on an example", () => {
     expect(doorCardFromRow(row({ is_demo: true, power_grid: "BAND_A" }))).not.toHaveProperty("powerGrid");
+  });
+});
+
+describe("a door for a stay (V-07 carry-over)", () => {
+  /** A published, real stay, as the stay branch of `public.share_door` returns it. */
+  function stayRow(overrides: Partial<DoorRow> = {}): DoorRow {
+    return row({
+      state: "stay",
+      listing_id: "ea000000-0000-4000-8000-000000000001",
+      reference: null,
+      title: "The Palms Rest",
+      area: "Ikoyi",
+      city: "Lagos",
+      property_type: "stay",
+      listing_intent: null,
+      bedrooms: null,
+      rent_amount_minor: null,
+      caution_deposit_minor: null,
+      agency_fee_minor: null,
+      legal_fee_minor: null,
+      total_move_in_cost_minor: null,
+      /* A rate that somehow arrived is never printed: a stay's rate depends on dates. */
+      rate_minor: 8500000,
+      rate_period: "night",
+      photo_path: "owner/stay/one.webp",
+      ...overrides,
+    });
+  }
+
+  it("prints the name, the area and no figure, and leads to /stay/<id> through sign in", () => {
+    const card = doorCardFromRow(stayRow());
+    if (card?.kind !== "stay") throw new Error("expected a stay card");
+    expect(card.place).toBe("Ikoyi, Lagos");
+    const lines = stayLines(card, copy);
+    expect(lines.title).toBe("The Palms Rest");
+    expect(lines.headline).toBe(copy.stay.rates);
+    expect(JSON.stringify({ card, lines })).not.toMatch(/85,000|8500000|85k/);
+    expect(doorSignInHref(card)).toBe("/sign-in?next=%2Fstay%2Fea000000-0000-4000-8000-000000000001");
+  });
+
+  it("composes a title when the stay's name carries a street", () => {
+    const card = doorCardFromRow(stayRow({ title: "12 Admiralty Way Suites", area: "Victoria Island" }));
+    if (card?.kind !== "stay") throw new Error("expected a stay card");
+    expect(stayLines(card, copy).title).toBe("A stay in Victoria Island");
+    expect(JSON.stringify(card)).not.toContain("Admiralty");
+  });
+
+  it("turns an example stay into an example card that still leads to the stay", () => {
+    const card = doorCardFromRow(stayRow({ is_demo: true }));
+    expect(card).toEqual({ kind: "example", listingId: "ea000000-0000-4000-8000-000000000001", reference: null, stay: true });
+    if (!card) throw new Error("expected a card");
+    expect(doorSignInHref(card)).toBe("/sign-in?next=%2Fstay%2Fea000000-0000-4000-8000-000000000001");
+  });
+
+  it("says gone in a stay's words when the stay is unpublished", () => {
+    expect(doorCardFromRow(stayRow({ state: "gone", listing_id: null }))).toEqual({ kind: "gone", stay: true });
   });
 });

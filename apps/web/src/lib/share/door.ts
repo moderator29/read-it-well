@@ -108,9 +108,24 @@ export type DoorCard =
       powerGrid: string | null;
       waterSupply: string | null;
     }
-  | { kind: "example"; listingId: string; reference: string | null }
+  /**
+   * A stay (an accommodation), carry-over of V-07. No figure: a stay's rate
+   * depends on dates and a room, and a card quoting one would be quoting a
+   * rate nobody chose. `stayId` is the accommodation id behind `/stay/<id>`.
+   */
+  | {
+      kind: "stay";
+      stayId: string;
+      /** The stay's name, or null when it failed the public-text test. */
+      title: string | null;
+      area: string | null;
+      place: string | null;
+      photoPath: string | null;
+    }
+  /** `stay` is set for an example STAY, whose way in is `/stay/<id>`. */
+  | { kind: "example"; listingId: string; reference: string | null; stay?: true }
   | { kind: "price_area"; shareId: string }
-  | { kind: "gone" };
+  | { kind: "gone"; stay?: true };
 
 /** What reading a door can come back as. */
 export type DoorRead =
@@ -223,9 +238,21 @@ export function doorFigures(row: DoorRow): DoorFigures {
  */
 export function doorCardFromRow(row: DoorRow | null | undefined): DoorCard | null {
   if (!row || typeof row !== "object") return null;
-  if (row.state === "gone") return { kind: "gone" };
+  if (row.state === "gone") return row.property_type === "stay" ? { kind: "gone", stay: true } : { kind: "gone" };
   if (row.state === "price_area") {
     return row.price_share_id ? { kind: "price_area", shareId: row.price_share_id } : null;
+  }
+  if (row.state === "stay") {
+    if (!row.listing_id) return null;
+    if (row.is_demo !== false) return { kind: "example", listingId: row.listing_id, reference: null, stay: true };
+    return {
+      kind: "stay",
+      stayId: row.listing_id,
+      title: publicTitle(row.title),
+      area: publicAreaName(row.area) ?? publicAreaName(row.city),
+      place: doorPlace(row.area, row.city, row.state_name),
+      photoPath: clean(row.photo_path),
+    };
   }
   if (row.state !== "listing" || !row.listing_id) return null;
 
@@ -254,6 +281,12 @@ export function doorCardFromRow(row: DoorRow | null | undefined): DoorCard | nul
 
 /** Where the button goes: sign in, then the thing that was shared. */
 export function doorSignInHref(card: DoorCard): string {
+  if (card.kind === "stay") {
+    return `/sign-in?next=${encodeURIComponent(`/stay/${card.stayId}`)}`;
+  }
+  if (card.kind === "example" && card.stay) {
+    return `/sign-in?next=${encodeURIComponent(`/stay/${card.listingId}`)}`;
+  }
   if (card.kind === "listing" || card.kind === "example") {
     return `/sign-in?next=${encodeURIComponent(`/listing/${card.listingId}`)}`;
   }
@@ -359,4 +392,14 @@ export function doorUtilities(
   const water = card.waterSupply ? (copy.water as Record<string, string | undefined>)[card.waterSupply] : undefined;
   const parts = [power, water].filter((part): part is string => typeof part === "string" && part.length > 0);
   return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+/**
+ * The words on a stay's card. The name when it passed the public-text test,
+ * otherwise "A stay in Victoria Island"; no figure, only the line saying the
+ * rate is chosen by dates inside.
+ */
+export function stayLines(card: Extract<DoorCard, { kind: "stay" }>, copy: Dictionary["frontDoor"]["door"]): DoorLines {
+  const title = card.title ?? (card.area ? fill(copy.stay.inArea, { area: card.area }) : copy.stay.plain);
+  return { title, headline: copy.stay.rates, second: null, bedrooms: null };
 }

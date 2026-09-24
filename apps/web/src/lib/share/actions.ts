@@ -19,8 +19,9 @@ import { createClient } from "../supabase/server";
  * reads `auth.uid()` and records the sharer against the door so they alone can
  * revoke it; the service-role client has no uid and would mint an ownerless
  * door nobody could close. The function refuses a listing that is not
- * published and a price card that does not exist, so a caller cannot mint a
- * public door onto a draft by posting an id.
+ * published (a stay likewise, migration 20260924121000) and a price card
+ * that does not exist, so a caller cannot mint a public door onto a draft by
+ * posting an id.
  *
  * Sharing the same thing twice returns the same door (the function answers
  * the live token for the same sharer and target), so the counter on it means
@@ -30,7 +31,7 @@ import { createClient } from "../supabase/server";
  */
 
 const shareSchema = z.object({
-  kind: z.enum(["listing", "price_area"]),
+  kind: z.enum(["listing", "price_area", "stay"]),
   targetId: z.string().uuid(),
 });
 

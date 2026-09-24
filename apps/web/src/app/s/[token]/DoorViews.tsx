@@ -35,7 +35,8 @@ export function DoorListingView({
   photo,
   copy,
 }: {
-  card: Extract<DoorCard, { kind: "listing" }>;
+  /** A listing, or a stay (V-07 carry-over), which has no code and no figure. */
+  card: Extract<DoorCard, { kind: "listing" | "stay" }>;
   lines: DoorLines;
   photo: string | null;
   copy: Copy;
@@ -68,7 +69,7 @@ export function DoorListingView({
       ) : (
         <p className="nf-door__second">{copy.askForPrice}</p>
       )}
-      {card.reference && <DoorCode code={card.reference} copy={copy} />}
+      {card.kind === "listing" && card.reference && <DoorCode code={card.reference} copy={copy} />}
       <ButtonLink href={doorSignInHref(card)} variant="primary" full data-testid="door-sign-in">
         {copy.signIn}
       </ButtonLink>
@@ -87,8 +88,8 @@ export function DoorExampleView({
   return (
     <article className="nf-panel nf-door__card" data-testid="door-card-example">
       <p className="nf-door__eyebrow">{copy.eyebrow}</p>
-      <p className="nf-badge nf-badge--info nf-door__example">{copy.example}</p>
-      <p className="nf-door__second">{copy.exampleBody}</p>
+      <p className="nf-badge nf-badge--info nf-door__example">{card.stay ? copy.stay.example : copy.example}</p>
+      <p className="nf-door__second">{card.stay ? copy.stay.exampleBody : copy.exampleBody}</p>
       {card.reference && <DoorCode code={card.reference} copy={copy} />}
       <ButtonLink href={doorSignInHref(card)} variant="primary" full data-testid="door-sign-in">
         {copy.signIn}
@@ -123,7 +124,16 @@ export function DoorAreaView({
 }
 
 /** Gone, missing and unreachable: each says what is true and offers one step. */
-export function DoorStateView({ state, copy }: { state: "gone" | "missing" | "unreachable"; copy: Copy }) {
+export function DoorStateView({
+  state,
+  copy,
+  stay = false,
+}: {
+  state: "gone" | "missing" | "unreachable";
+  copy: Copy;
+  /** A stay that is gone says so in a stay's words. */
+  stay?: boolean;
+}) {
   if (state === "unreachable") {
     return (
       <div className="nf-panel nf-door__card" data-testid="door-unreachable">
@@ -141,8 +151,8 @@ export function DoorStateView({ state, copy }: { state: "gone" | "missing" | "un
     <div className="nf-panel nf-door__card" data-testid={gone ? "door-gone" : "door-missing"}>
       <EmptyState
         icon="home-search"
-        title={gone ? copy.goneTitle : copy.missingTitle}
-        body={gone ? copy.goneBody : copy.missingBody}
+        title={gone ? (stay ? copy.stay.goneTitle : copy.goneTitle) : copy.missingTitle}
+        body={gone ? (stay ? copy.stay.goneBody : copy.goneBody) : copy.missingBody}
         action={
           <ButtonLink href="/sign-in" variant="primary" full>
             {copy.goneAction}

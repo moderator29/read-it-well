@@ -1,6 +1,6 @@
 import { getDictionary, DEFAULT_LOCALE } from "@vallo/i18n";
-import { doorLines, doorUtilities } from "@/lib/share/door";
-import { doorPhotoUrl, readDoor } from "@/lib/share/queries";
+import { doorLines, doorUtilities, stayLines } from "@/lib/share/door";
+import { doorPhotoUrl, readDoor, stayDoorPhotoUrl } from "@/lib/share/queries";
 import { photoData, statusImage } from "../door-image";
 
 /**
@@ -21,6 +21,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tok
   }
   const card = read.card;
   if (card.kind === "example") return statusImage({ kind: "example", card }, copy, null);
+  if (card.kind === "stay") {
+    return statusImage(
+      { kind: "listing", card, lines: stayLines(card, copy), photo: await photoData(stayDoorPhotoUrl(card.photoPath)) },
+      copy,
+      null,
+    );
+  }
   const image = await statusImage(
     {
       kind: "listing",

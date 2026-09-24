@@ -3,8 +3,8 @@ import { listStates } from "@/lib/places/queries";
 import { shareById } from "@/lib/price-check/queries";
 import { shareLines } from "@/lib/price-check/share-card";
 import { shareCardCopy } from "@/components/app/price/share-copy";
-import { doorLines } from "@/lib/share/door";
-import { doorPhotoUrl, readDoor } from "@/lib/share/queries";
+import { doorLines, stayLines } from "@/lib/share/door";
+import { doorPhotoUrl, readDoor, stayDoorPhotoUrl } from "@/lib/share/queries";
 import { doorImage, photoData } from "./door-image";
 
 /**
@@ -49,6 +49,12 @@ export default async function Image({ params }: { params: Promise<{ token: strin
     return doorImage({ kind: "area", lines: shareLines(share, shareCardCopy(t), DEFAULT_LOCALE, stateName) }, copy);
   }
   if (card.kind === "example") return doorImage({ kind: "example", card }, copy);
+  if (card.kind === "stay") {
+    return doorImage(
+      { kind: "listing", card, lines: stayLines(card, copy), photo: await photoData(stayDoorPhotoUrl(card.photoPath)) },
+      copy,
+    );
+  }
 
   return doorImage(
     {
