@@ -3,7 +3,9 @@
  *
  * Pure. A name is NORMALISED before it is compared: case folded, diacritics
  * removed (Ọ̀ becomes o, é becomes e), punctuation and hyphens turned into
- * spaces, honorifics dropped, and the words SORTED, so "Musa Ibrahim",
+ * spaces, honorifics dropped, one-letter tokens and two-letter ones that are
+ * not a handled particle (Al, El, Ul, Md) dropped while two real words remain
+ * (padding "a b c d" cannot dilute a match), and the words SORTED, so "Musa Ibrahim",
  * "IBRAHIM, Musa" and "Ibrahim Músa" are one name. A listed person is
  * matched on the primary name and on every alias.
  *
@@ -62,6 +64,12 @@
  * covered word must be a distinctive one, UNLESS every word of a name of ours
  * of three or more words is found in the listing ("Abubakar Muhammad Bello"
  * inside "Abubakar Muhammad Bello Usman").
+ *
+ * A listing covered word for word is SCORED ON THE WORDS THAT COVER IT, so
+ * extra words on our side cannot pull the score under the threshold. At most
+ * MAX_OUR_WORDS of our words are paired with one listing: those that cover
+ * one of its words, best first. A long name is never "no match" because it
+ * is long.
  *
  * COMMON NAMES ARE RAISED, IN THEIR OWN GROUP. For a screening duty a missed
  * match is worse than a wrong one. A close match resting only on names common
@@ -127,6 +135,12 @@ export function foldName(normalised: string): string {
     .join(" ");
 }
 
+/** Two-letter tokens with a meaning the matcher handles: articles and the Md abbreviation. */
+const SHORT_KEPT = new Set(["al", "el", "ul", "md"]);
+
+/** Our words considered against one listing, at most: the ones that pair with it, best first. */
+export const MAX_OUR_WORDS = 10;
+
 export function normaliseName(raw: string): string {
   const words = raw
     .normalize("NFKD")
@@ -136,7 +150,12 @@ export function normaliseName(raw: string): string {
     .trim()
     .split(/\s+/)
     .filter((w) => w.length > 0 && !HONORIFICS.has(w));
-  return words.sort().join(" ");
+  /* Junk tokens pad a name to dilute its score ("Abubakar Shekau a b c d"):
+     one-letter tokens and two-letter ones that are not a handled particle
+     are dropped, as long as two real words remain ("Li Wei" keeps "Li"). */
+  const real = words.filter((w) => w.length >= 3 || SHORT_KEPT.has(w));
+  const kept = real.filter((w) => !SHORT_KEPT.has(w)).length >= 2 ? real : words;
+  return kept.sort().join(" ");
 }
 
 function levenshtein(a: string, b: string): number {
@@ -281,7 +300,7 @@ export function wordsCover(mine: string, theirs: string): number {
   return closeWords(mine, theirs);
 }
 
-type Pairing = { covered: Set<number>; mineUsed: number };
+type Pairing = { covered: Set<number>; mineUsed: number; mine: number[] };
 
 /**
  * The best ONE-TO-ONE pairing of our words with the listed words: each of
@@ -309,13 +328,17 @@ function pairWords(ours: string[], listed: string[], weight: WordWeight = EVEN):
     memo.set(key, top);
     return top;
   };
-  if (ours.length > 16) return { covered: new Set(), mineUsed: 0 };
-  const picks = best(0, 0).picks;
+  /* Callers pass at most MAX_OUR_WORDS (see `nameAssess`); this is a backstop. */
+  const picks = ours.length > 16 ? [] : best(0, 0).picks;
   const covered = new Set<number>();
+  const mine: number[] = [];
   picks.forEach((i, j) => {
-    if (i >= 0) covered.add(j);
+    if (i >= 0) {
+      covered.add(j);
+      mine.push(i);
+    }
   });
-  return { covered, mineUsed: covered.size };
+  return { covered, mineUsed: covered.size, mine };
 }
 
 /** The listed words our words cover, one to one (see `pairWords`). */
@@ -346,10 +369,16 @@ export function rarityWeights(listed: readonly { names: string[] }[], ourNames: 
  * How ours covers a listing: null when not well enough to be the same person;
  * otherwise whether the covered words are all names common in Nigeria.
  */
-function listingCovered(ours: string[], listed: string[], weight: WordWeight): { common: boolean } | null {
-  const { covered, mineUsed } = pairWords(ours, listed, weight);
+function listingCovered(
+  ours: string[],
+  listed: string[],
+  weight: WordWeight,
+  oursTotal = ours.length,
+): { common: boolean; full: boolean; mine: string[] } | null {
+  const { covered, mineUsed, mine } = pairWords(ours, listed, weight);
   const common = [...covered].every((j) => isCommonWord(listed[j]!));
-  if (covered.size === listed.length) return { common };
+  const used = mine.map((i) => ours[i]!);
+  if (covered.size === listed.length) return { common, full: true, mine: used };
   if (listed.length <= SHORT_LISTING) return null;
   let got = 0;
   let total = 0;
@@ -362,8 +391,25 @@ function listingCovered(ours: string[], listed: string[], weight: WordWeight): {
   /* Every word of a name of ours of three or more words found in the listing
      is enough: the distinctive-word rule is for partial names, not for a
      whole name of ours that the listing contains. */
-  if (ours.length >= 3 && mineUsed === ours.length) return { common };
-  return common ? null : { common };
+  if (oursTotal >= 3 && mineUsed === oursTotal) return { common, full: false, mine: used };
+  return common ? null : { common, full: false, mine: used };
+}
+
+/**
+ * Our words worth pairing with a listing: those that cover one of its words,
+ * best first, at most MAX_OUR_WORDS. A long name is never "no match" for its
+ * length: its words that could matter are kept, the rest cannot change the
+ * pairing.
+ */
+function relevantWords(ours: string[], listed: string[]): string[] {
+  const scored = ours
+    .map((word) => ({ word, best: Math.max(0, ...listed.map((theirs) => wordsCover(word, theirs))) }))
+    .filter((x) => x.best > 0);
+  if (scored.length <= MAX_OUR_WORDS) return scored.map((x) => x.word);
+  return scored
+    .sort((x, y) => y.best - x.best)
+    .slice(0, MAX_OUR_WORDS)
+    .map((x) => x.word);
 }
 
 /**
@@ -394,11 +440,14 @@ export function nameAssess(screened: string, listed: string, weight: WordWeight 
   for (const aw of wordVariants(screened)) {
     for (const bw of wordVariants(listed)) {
       if (aw.length < 2 || bw.length < 2) continue;
-      const cover = listingCovered(aw, bw, weight);
+      const cover = listingCovered(relevantWords(aw, bw), bw, weight, aw.length);
       if (!cover) continue;
-      const a = [...aw].sort().join(" ");
+      /* A listing covered word for word is scored on the words that cover
+         it: padding a name with other words cannot dilute the score. */
+      const mineScored = cover.full ? cover.mine : aw;
+      const a = [...mineScored].sort().join(" ");
       const b = [...bw].sort().join(" ");
-      const score = a === b ? 1 : Math.max(editRatio(a, b), wordScore(aw, bw));
+      const score = a === b ? 1 : Math.max(editRatio(a, b), wordScore(mineScored, bw));
       if (score > top.score) top = { score, common: cover.common };
     }
   }
@@ -497,7 +546,9 @@ export function createMatcher(
       for (const index of candidates) {
         const entry = listed[index]!;
         let best: NameMatch | null = null;
-        for (const name of entry.names) {
+        for (const stored of entry.names) {
+          /* Normalised again: a version loaded before a normalising rule changed still compares like for like. */
+          const name = normaliseName(stored);
           const exact = person.norm === name;
           const assessed = exact ? { score: 1, common: false } : nameAssess(person.norm, name, weight);
           const score = exact ? 1 : Math.min(assessed.score, 0.999);
