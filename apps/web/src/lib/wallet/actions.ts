@@ -28,7 +28,7 @@
  * email failure can change what the ledger says or what the caller is told.
  */
 
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
@@ -67,7 +67,13 @@ import {
 } from "../payments/yellowcard";
 import { CRYPTO_PREFIX, FUND_PREFIX, P2P_PREFIX, WITHDRAW_PREFIX } from "../payments/references";
 import { guardMoney } from "../security/money-limits";
-import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
+import {
+  CONFLICT_MESSAGE,
+  IN_FLIGHT_MESSAGE,
+  UNGUARDED_REFUSAL_MESSAGE,
+  withGuardedIdempotency,
+  withIdempotency,
+} from "../security/idempotency";
 import { subjectForUser } from "../security/rate-limit";
 import { lookupBank, resolveBankAccountName } from "../payments/bank-resolve";
 import { recordMoneyAudit } from "./audit";
@@ -1101,17 +1107,49 @@ export async function transferToUser(
   const key = formDataToObject(formData)["idempotencyKey"] ?? null;
   if (session.state !== "signed-in" || !key) return transferToUserWork(_prev, formData);
 
-  const run = await withIdempotency<ActionResult<TransferReceipt | null>>(
+  const run = await withGuardedIdempotency<ActionResult<TransferReceipt | null>>(
     {
       scope: TRANSFER_SCOPE,
       key,
       subject: subjectForUser(session.user.id),
       shouldRecord: (result) => result.ok,
+      /* MON-11: a replay that asks for something else is a conflict, and a
+         key store that cannot be asked is a refusal, not an unguarded send. */
+      fingerprint: transferFingerprint(formData),
+      failClosed: true,
     },
     () => transferToUserWork(_prev, formData),
   );
   if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);
+  if (run.status === "conflict") return fail(CONFLICT_MESSAGE);
+  if (run.status === "unavailable") return fail(UNGUARDED_REFUSAL_MESSAGE);
   return run.result;
+}
+
+/** What a send asks for, canonically: who, how much, and the note. */
+function transferFingerprint(formData: FormData): string {
+  const raw = formDataToObject(formData);
+  const canonical = JSON.stringify([
+    String(raw["recipientEmail"] ?? "").trim().toLowerCase(),
+    String(raw["amount"] ?? "").trim(),
+    String(raw["note"] ?? "").trim(),
+  ]);
+  return createHash("sha256").update(canonical).digest("hex");
+}
+
+/**
+ * MON-11. The transfer's ledger references come from the payer and the key,
+ * so a retry that outlives the key store's window (or a process that died
+ * after the transfer committed) meets the database's unique reference and is
+ * a duplicate for ever, never a second transfer. Without a key they are fresh.
+ */
+function transferPairId(userId: string, key: string | undefined): string {
+  if (!key) return randomUUID();
+  const hex = createHash("sha256").update(`wallet.transfer:${userId}:${key}`).digest("hex");
+  // Shaped as a version-5-style uuid so every reader of the reference parses it.
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-5${hex.slice(13, 16)}-${((parseInt(hex.slice(16, 18), 16) & 0x3f) | 0x80)
+    .toString(16)
+    .padStart(2, "0")}${hex.slice(18, 20)}-${hex.slice(20, 32)}`;
 }
 
 /** One scope for the send door, matching the two funding doors' shape. */
@@ -1162,7 +1200,7 @@ async function transferToUserWork(
   }
 
   const amountMinor = parsed.data.amount;
-  const pairId = randomUUID();
+  const pairId = transferPairId(session.user.id, parsed.data.idempotencyKey);
   const outReference = `${P2P_PREFIX}${pairId}-out`;
   const inReference = `${P2P_PREFIX}${pairId}-in`;
 

@@ -362,3 +362,39 @@ describe("sending to an @handle", () => {
     expect(moves).toHaveLength(0);
   });
 });
+
+describe("MON-11: the key is tied to what it asks for and to the ledger", () => {
+  it("refuses a replay of the same key that asks for a different amount, and moves nothing more", async () => {
+    const { transferToUser } = await import("./actions");
+    const first = await transferToUser({ ok: true, data: null }, form({ ...SEND, idempotencyKey: "same-key" }));
+    const second = await transferToUser(
+      { ok: true, data: null },
+      form({ ...SEND, amount: "9000", idempotencyKey: "same-key" }),
+    );
+    expect(first.ok).toBe(true);
+    expect(second.ok).toBe(false);
+    expect(second.ok ? "" : second.error).toMatch(/already sent something different/);
+    expect(moves).toHaveLength(1);
+  });
+
+  it("refuses rather than sending unguarded when the key store cannot be asked", async () => {
+    rpc.callSecurityRpc.mockImplementation(async () => ({ ok: false, data: null }));
+    const { transferToUser } = await import("./actions");
+    const sent = await transferToUser({ ok: true, data: null }, form({ ...SEND, idempotencyKey: "store-down" }));
+    expect(sent.ok).toBe(false);
+    expect(sent.ok ? "" : sent.error).toMatch(/cannot make sure this happens only once/);
+    expect(moves).toHaveLength(0);
+  });
+
+  it("derives the ledger references from the key, so a retry after the store forgot is a database duplicate", async () => {
+    const { transferToUser } = await import("./actions");
+    await transferToUser({ ok: true, data: null }, form({ ...SEND, idempotencyKey: "long-lost" }));
+    store.clear();
+    await transferToUser({ ok: true, data: null }, form({ ...SEND, idempotencyKey: "long-lost" }));
+    expect(moves).toHaveLength(2);
+    expect(moves[0]?.out).toBe(moves[1]?.out);
+    expect(moves[0]?.in).toBe(moves[1]?.in);
+    expect(moves[0]?.out).toMatch(/^rm-p2p-[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}-out$/);
+  });
+});
+

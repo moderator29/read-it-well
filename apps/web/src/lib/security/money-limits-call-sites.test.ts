@@ -80,7 +80,8 @@ describe("a refusal is never remembered as a success", () => {
     for (const file of callers) {
       /* One shouldRecord per opened scope, and every one of them the same
          predicate: only an `ok` envelope is worth replaying. */
-      const opened = file.text.split("withIdempotency<").length - 1;
+      const opened =
+        file.text.split("withIdempotency<").length - 1 + (file.text.split("withGuardedIdempotency<").length - 1);
       const recorded = file.text.split("shouldRecord: (result) => result.ok").length - 1;
       expect(recorded, file.path).toBe(opened);
     }
