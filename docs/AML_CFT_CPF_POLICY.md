@@ -174,14 +174,11 @@ below.
    with the member. It cannot, because an unverified member has no verified
    name to compare against. A member can withdraw to any valid Nigerian bank
    account. Deficiency D-02.
-4. **Every movement is on the ledger** (section 10). While the account is
-   open, a withdrawal's ledger entry carries the payee's bank, account name
-   and account number. **After the account is closed it no longer does.** The
-   account purge removes `account_name` and `account_number` (and the
-   member's name, email and phone) from their `wallet_entries` metadata, and
-   deletes their `bank_accounts`. The amount, date, reference, bank and last
-   four digits remain, but the payee's name and full number do not.
-   Deficiency D-16 (section 10.4).
+4. **Every movement is on the ledger** (section 10). A withdrawal's
+   ledger entry carries the payee's bank, account name and account number.
+   It keeps them for five years after the member's account closes (D-16,
+   closed; section 10.4). The purge removes only the contact fields (email,
+   phone and the guest name, email and phone keys).
 
 **Plan for D-02.** For withdrawals, and for any single payment at or above
 the threshold in section 7.2, identify the member before the money moves. The
@@ -415,9 +412,8 @@ letter as the custody question (section 9.2).
 
 - Each payment that came through Paystack keeps its Paystack reference on
   the ledger or the transaction row.
-- Each withdrawal keeps the resolved bank, account name and account number
-  while the account is open. After closure only the bank and last four digits
-  remain (D-16).
+- Each withdrawal keeps the resolved bank, account name and account number,
+  including for five years after the account closes (section 10.4).
 
 ---
 
@@ -520,25 +516,46 @@ least five years, in a form from which any transaction can be reconstructed.
   application. The kept row is stamped `kyc_retain_until`. Only after that
   date does `destroy_expired_kyc` delete the rows and redact the
   application, and it writes an audit row when it does.
-- **Members who withdrew: not kept (D-16, open).** At closure,
-  `purge_account_rows` deletes the member's `bank_accounts` and removes
-  `account_name`, `account_number`, name, email and phone from their
-  `wallet_entries` metadata. After closure, a withdrawal can no longer be
-  tied to the named account it went to.
+- **Members with money history: kept (D-16, closed).** Migration
+  `20260924095920_aml11_retain_money_records` (applied live) applies when
+  the closing account has any money history: a wallet entry, a card payment
+  on a booking, an escrow, or a rent payment. In that case
+  `purge_account_rows`:
+  - keeps the member's bank accounts (marked deleted) and payout accounts,
+    with the Paystack recipient code cleared on both so nothing can be paid
+    out through them;
+  - keeps each withdrawal's destination on its `wallet_entries` row: the
+    account name, the account number and the payee's name. Only the
+    contact fields (email, phone and the guest name, email and phone keys)
+    are removed;
+  - stamps `account_deletion_requests.money_retain_until` five years ahead.
 
-**Plan for D-16.** Keep the payee's bank-resolved name and account number on
-withdrawal entries for five years after closure. Do this by retaining those
-keys, or by moving them to a staff-only retained record like the agents'.
-Until that lands, no account with a withdrawal on record is deleted until
-the Compliance Officer has exported its withdrawal records to secure
-storage and noted the export in the deficiency register.
+  After that date, `destroy_expired_money_records`, run by the daily purge
+  job, deletes the kept bank and payout accounts (an approved agent's payout
+  accounts wait for `kyc_retain_until`). It redacts the name, account name
+  and account number on the wallet entries, and writes one audit row per
+  account. Saved card tokens are still deleted: they are a
+  credential to charge, not a record. A card payment is reconstructed from
+  its Paystack reference. An account with no money history is purged as
+  before.
+- **A guest who only paid by card: no name kept (D-18, open, for the
+  Compliance Officer).** Such a guest has no bank or payout account and no
+  withdrawal. Once their account is purged, Vallo's records keep the
+  payment, its amount, date and Paystack reference, but no name for the
+  payer. The card holder's identity sits with Paystack and the issuing bank,
+  not with Vallo. The Compliance Officer must decide, with the solicitor,
+  whether SCUML's CDD retention (checklist items 2 and 11) requires Vallo to
+  keep a sealed identity record for such a guest. That would be a
+  staff-only name and contact record, held five years like the agents' and
+  destroyed on the same schedule. Or is the Paystack reference enough? The
+  decision and its reasons are recorded in the deficiency register.
 
 10.5 **Reconstruction.** For any transaction the Compliance Officer must be
 able to produce:
 
 - who paid, and by which Paystack reference;
-- who received it, and to which bank-resolved account. For a closed member
-  account this is not possible today (D-16);
+- who received it, and to which bank-resolved account, for five years
+  after a member's account closes (section 10.4);
 - the listing and, for an agent listing, the principal (section 11);
 - every admin action on it, from `audit_log`.
 
@@ -617,8 +634,9 @@ document kept with this policy. It opens with these entries:
 | D-13 | Risk assessment not done against the NRA | 3 | Compliance Officer |
 | D-14 | No training given or recorded | 14 | Compliance Officer |
 | D-15 | No internal audit arrangement | 13 | Board |
-| D-16 | Account closure strips the payee name and number from a member's withdrawal records | 4.1, 10.4 | Engineering |
+| D-16 | Account closure stripped the payee name and number from a member's withdrawal records. Closed by migration `20260924095920` | 4.1, 10.4 | Closed |
 | D-17 | Bank payouts closed by copy only; `withdraw` and `hold_wallet_withdrawal` do not check the payout flag | 4.1 | Engineering |
+| D-18 | A card-only guest keeps no name once purged; decide whether CDD retention needs a sealed identity record | 10.4 | Compliance Officer, with the solicitor |
 
 12.2 **Compliance reviews.** The Compliance Officer reviews compliance against
 this policy at least every six months. They record the gaps found in the
