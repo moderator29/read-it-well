@@ -87,7 +87,7 @@ export const frontDoorEn = {
   store: {
     tab: "Store",
     title: "Store readiness",
-    lede: "The checks an App Store or Play reviewer runs by hand, run here against the live platform. Each one says what it saw and, when it is not green, the one thing to do.",
+    lede: "Eight of the checks an App Store or Play reviewer runs by hand, run here against the live platform, plus one manual step (native versions) that a server cannot read. Each says what it saw and, when it is not green, the one thing to do. The same checks run every night and raise an alert when one turns red.",
     summary: "{pass} of {total} ready",
     summaryRed: "{fail} to fix before submitting",
     summaryUnknown: "{unknown} could not be run here",
@@ -99,6 +99,20 @@ export const frontDoorEn = {
     fixLabel: "What to do",
     couldNotRun: "This check could not be run: {why}.",
     couldNotRunFix: "Run the checks again in a minute. If it stays unrun, the reason above is the thing to look at.",
+    why: {
+      database: "the database did not answer",
+      signIn: "the sign-in service did not answer",
+      page: "the page did not answer in time",
+      files: "one of the two files did not answer",
+      privacy: "the privacy notice did not answer",
+      landing: "the landing page or the listings did not answer",
+      start: "the start address did not answer",
+    },
+    problems: {
+      placeholder: "a placeholder is still in the file",
+      aasaNotJson: "apple-app-site-association is not JSON",
+      linksNotJson: "assetlinks.json is not JSON",
+    },
     unavailable: "The store checks could not be run. Nothing about the platform was changed.",
     checks: {
       abuseFilter: {
@@ -117,6 +131,7 @@ export const frontDoorEn = {
         title: "The reviewer account signs in",
         pass: "The reviewer account in the store notes signed in with the password on file.",
         fail: "The reviewer account did not sign in.",
+        notConfigured: "No reviewer account is set on the server, so it cannot be signed in.",
         fix: "Set STORE_REVIEWER_EMAIL and STORE_REVIEWER_PASSWORD in Vercel to the account in the store notes, and reseed it with scripts/seed/store-reviewer.mjs if the password has drifted.",
       },
       deleteAccount: {

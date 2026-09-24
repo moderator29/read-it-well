@@ -63,9 +63,11 @@ export const STORE_CHECK_ORDER: readonly StoreCheckKey[] = [
 ];
 
 export type StoreCopy = {
-  checks: Record<StoreCheckKey, { title: string; pass: string; fail: string; fix: string; passNone?: string }>;
+  checks: Record<StoreCheckKey, { title: string; pass: string; fail: string; fix: string; passNone?: string; notConfigured?: string }>;
   couldNotRun: string;
   couldNotRunFix: string;
+  why: { database: string; signIn: string; page: string; files: string; privacy: string; landing: string; start: string };
+  problems: { placeholder: string; aasaNotJson: string; linksNotJson: string };
 };
 
 function fill(template: string, values: Record<string, string | number>): string {
@@ -95,9 +97,9 @@ export type StoreFacts = {
 };
 
 /** 1. The objectionable-content filter has terms and a pattern that matches. */
-export function abuseFilterCheck(facts: StoreFacts | null, copy: StoreCopy, why = "the database did not answer"): StoreCheck {
+export function abuseFilterCheck(facts: StoreFacts | null, copy: StoreCopy, why?: string): StoreCheck {
   const c = copy.checks.abuseFilter;
-  if (facts === null) return unknown("abuseFilter", copy, why);
+  if (facts === null) return unknown("abuseFilter", copy, why ?? copy.why.database);
   const ok = facts.blocked_terms > 0 && facts.pattern_ready;
   return {
     key: "abuseFilter",
@@ -108,9 +110,9 @@ export function abuseFilterCheck(facts: StoreFacts | null, copy: StoreCopy, why 
 }
 
 /** 2. A member's report and block are accepted by the database. */
-export function reportBlockCheck(facts: StoreFacts | null, copy: StoreCopy, why = "the database did not answer"): StoreCheck {
+export function reportBlockCheck(facts: StoreFacts | null, copy: StoreCopy, why?: string): StoreCheck {
   const c = copy.checks.reportBlock;
-  if (facts === null) return unknown("reportBlock", copy, why);
+  if (facts === null) return unknown("reportBlock", copy, why ?? copy.why.database);
   const ok =
     facts.report_insert_grant &&
     facts.report_insert_policy &&
@@ -128,9 +130,9 @@ export type ReviewerEvidence =
 /** 3. The reviewer account in the store notes signs in with that password. */
 export function reviewerCheck(evidence: ReviewerEvidence | null, copy: StoreCopy): StoreCheck {
   const c = copy.checks.reviewer;
-  if (evidence === null) return unknown("reviewer", copy, "the sign-in service did not answer");
+  if (evidence === null) return unknown("reviewer", copy, copy.why.signIn);
   if (!evidence.configured) {
-    return { key: "reviewer", state: "fail", detail: c.fail, fix: c.fix };
+    return { key: "reviewer", state: "fail", detail: c.notConfigured ?? c.fail, fix: c.fix };
   }
   return evidence.signedIn
     ? { key: "reviewer", state: "pass", detail: c.pass, fix: null }
@@ -145,7 +147,7 @@ export function reviewerCheck(evidence: ReviewerEvidence | null, copy: StoreCopy
 /** 4. Play's deletion URL answers a stranger. */
 export function deleteAccountCheck(status: number | null, copy: StoreCopy): StoreCheck {
   const c = copy.checks.deleteAccount;
-  if (status === null) return unknown("deleteAccount", copy, "the page did not answer in time");
+  if (status === null) return unknown("deleteAccount", copy, copy.why.page);
   const ok = status === 200;
   return {
     key: "deleteAccount",
@@ -172,23 +174,23 @@ export function deepLinksCheck(
 ): StoreCheck {
   const c = copy.checks.deepLinks;
   if (aasaText === null || assetlinksText === null) {
-    return unknown("deepLinks", copy, "one of the two files did not answer");
+    return unknown("deepLinks", copy, copy.why.files);
   }
   const problems: string[] = [];
   if (aasaText.includes(PLACEHOLDER) || assetlinksText.includes(PLACEHOLDER)) {
-    problems.push("a placeholder is still in the file");
+    problems.push(copy.problems.placeholder);
   }
   let aasa: unknown = null;
   let assetlinks: unknown = null;
   try {
     aasa = JSON.parse(aasaText);
   } catch {
-    problems.push("apple-app-site-association is not JSON");
+    problems.push(copy.problems.aasaNotJson);
   }
   try {
     assetlinks = JSON.parse(assetlinksText);
   } catch {
-    problems.push("assetlinks.json is not JSON");
+    problems.push(copy.problems.linksNotJson);
   }
   if (aasa !== null && assetlinks !== null) {
     for (const problem of deepLinkProblems(aasa, assetlinks)) {
@@ -232,7 +234,7 @@ export function privacyProcessorsCheck(
   copy: StoreCopy,
 ): StoreCheck {
   const c = copy.checks.privacyProcessors;
-  if (privacyHtml === null) return unknown("privacyProcessors", copy, "the privacy notice did not answer");
+  if (privacyHtml === null) return unknown("privacyProcessors", copy, copy.why.privacy);
   const text = privacyHtml.replace(/<[^>]+>/g, " ");
   const missing = inUse.filter((name) => !text.toLowerCase().includes(name.toLowerCase()));
   if (missing.length === 0) {
@@ -271,7 +273,7 @@ export function exampleLabelCheck(
 ): StoreCheck {
   const c = copy.checks.exampleLabel;
   if (html === null || exampleIds === null) {
-    return unknown("exampleLabel", copy, "the landing page or the listings did not answer");
+    return unknown("exampleLabel", copy, copy.why.landing);
   }
   if (exampleIds.length === 0) return { key: "exampleLabel", state: "pass", detail: c.pass, fix: null };
   const labelled = html.includes(label);
@@ -299,7 +301,7 @@ export function nativeStartCheck(
 ): StoreCheck {
   const c = copy.checks.nativeStart;
   if (startLocation === null && landingLocation === null) {
-    return unknown("nativeStart", copy, "the start address did not answer");
+    return unknown("nativeStart", copy, copy.why.start);
   }
   const path = (location: string | null) => {
     if (location === null) return null;

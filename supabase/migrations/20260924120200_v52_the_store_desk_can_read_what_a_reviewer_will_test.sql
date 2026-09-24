@@ -24,7 +24,9 @@
 -- SECURITY DEFINER WITH AN INTERNAL GUARD, per rule 21: the function checks
 -- `private.has_role` for admin or super admin itself and raises otherwise,
 -- and EXECUTE is revoked from public and anon and granted to authenticated
--- only so the guard, not the grant, is what answers a member.
+-- only so the guard, not the grant, is what answers a member. The nightly
+-- run (`/api/cron/store-readiness`) reads it as the service role, which the
+-- guard admits by role, never by a missing uid.
 
 create or replace function public.store_readiness_facts()
 returns jsonb
@@ -36,9 +38,11 @@ as $function$
 declare
   caller uuid := (select auth.uid());
 begin
-  if caller is null
-     or not (private.has_role(caller, 'admin'::public.app_role)
-             or private.has_role(caller, 'super_admin'::public.app_role)) then
+  /* Staff, or the nightly run, which uses the service role and has no uid. */
+  if (select auth.role()) is distinct from 'service_role'
+     and (caller is null
+          or not (private.has_role(caller, 'admin'::public.app_role)
+                  or private.has_role(caller, 'super_admin'::public.app_role))) then
     raise exception 'staff only' using errcode = '42501';
   end if;
 
@@ -63,4 +67,4 @@ comment on function public.store_readiness_facts() is
   'V-52. Staff only. Facts, never rows, for the Store panel on /admin/operations: the objectionable-content filter has terms and a pattern, and a member may insert a report and a block. Returns no term.';
 
 revoke all on function public.store_readiness_facts() from public, anon;
-grant execute on function public.store_readiness_facts() to authenticated;
+grant execute on function public.store_readiness_facts() to authenticated, service_role;

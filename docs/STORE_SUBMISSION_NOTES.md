@@ -22,9 +22,18 @@ from the server environment, falling back to the `SEED_REVIEWER_*` names the
 seed script uses), the public deletion page, the two deep-link association
 files, the processors the privacy notice must name, example labelling on the
 landing page, the native start (V-11: the shell never opens on `/`), and the
-native versions, which cannot be read from a server and say so. Each row says
-what it saw and the one thing to fix. Prefer the panel to this file where the
-two disagree; this file is prose and the panel is a measurement.
+native versions, which cannot be read from a server and say so: eight live
+checks and one manual step. Each row says what it saw and the one thing to
+fix. The same checks run every night (`/api/cron/store-readiness`) and raise
+one alert when any is red. Prefer the panel to this file where the two
+disagree; this file is prose and the panel is a measurement.
+
+**A binary built before V-11 still opens on `/`.** The shell is kept off the
+marketing page by the `ValloShell` mark it appends to its user agent, which is
+set in `capacitor.config.ts` and baked in at `cap sync`. A build synced before
+that change sends no mark, so the server cannot tell it from a browser. Rebuild
+and resubmit both binaries after this change merges; do not submit an older
+build.
 
 ---
 
