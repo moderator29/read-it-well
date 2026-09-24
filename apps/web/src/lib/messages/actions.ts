@@ -238,6 +238,8 @@ async function findOrStartConversation(
   });
   if (!verdict.allowed) return fail(newConversationLimitMessage(verdict.retryIn));
 
+  /* `conversations.agent_id` is the host's AUTH USER id, not an `agents.id`
+     (docs/schema/NAMES.md), which is why it takes `agentUserId`. */
   const { data: created, error: insertError } = await session.supabase
     .from("conversations")
     .insert({ guest_id: session.user.id, agent_id: agentUserId, listing_id: listingId })
