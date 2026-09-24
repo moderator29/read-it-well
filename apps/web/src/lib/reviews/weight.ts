@@ -1,47 +1,43 @@
 /**
- * WHICH REVIEWS CARRY NO WEIGHT (V-58).
+ * WHICH REVIEWS A PUBLIC LIST READS (V-58).
  *
  * A review written by an account that shares an identity key with the lister
- * (a mailbox, a phone, a device, a card, a bank account) is kept and does not
- * count. `public.weight_withheld` publishes the review ids, never the reasons,
- * so every public read of reviews can leave them out: the listing's list, its
- * average, and the landing page's quotes.
+ * (a mailbox, a confirmed phone, a card, a bank account) is kept and does not
+ * count. The register that says which reviews those are, `weight_withheld`, is
+ * STAFF ONLY: a list of withheld review ids readable by anybody would be a
+ * public accusation against the person who wrote each one.
  *
- * FAILS OPEN, DELIBERATELY AND ONLY HERE. If the register cannot be read (the
- * migration not yet applied, a blip), nothing is excluded and the page shows
- * what it showed before V-58, which is the state it was already in. The
- * database side (the catalogue's rating, the agent band) never depends on this
- * read.
+ * So public lists read `public.reviews_counted` instead of `reviews`: the same
+ * rows the reviews select policy shows, less the withheld ones, and always
+ * including the reader's own. The author of a withheld review still sees it,
+ * and no read hands anybody a list of what was withheld.
+ *
+ * The stamp itself is a BEFORE INSERT trigger in the database, so the
+ * catalogue's rating and the badge award (after-insert triggers) never count a
+ * self-review either; nothing in this file is needed for those.
+ *
+ * FAILS OPEN, ONLY WHEN THE VIEW IS MISSING. Before the migration is applied
+ * the view does not exist, and the read falls back to the table, which is the
+ * state the page was in before V-58. Any other error is returned as it is, so
+ * a failure never widens what a reader sees.
  */
 
-type Reader = {
-  from(table: string): {
-    select(columns: string): {
-      eq(column: string, value: string): {
-        in(column: string, values: string[]): Promise<{ data: unknown; error: unknown }>;
-      };
-    };
-  };
-};
+export const COUNTED_REVIEWS = "reviews_counted";
 
-export async function withheldReviewIds(supabase: unknown, reviewIds: string[]): Promise<Set<string>> {
-  const out = new Set<string>();
-  if (reviewIds.length === 0) return out;
-  try {
-    const { data, error } = await (supabase as Reader)
-      .from("weight_withheld")
-      .select("subject_id")
-      .eq("kind", "review")
-      .in("subject_id", reviewIds);
-    if (error || !Array.isArray(data)) return out;
-    for (const row of data as { subject_id: string }[]) out.add(row.subject_id);
-  } catch {
-    return out;
-  }
-  return out;
+type Result<T> = { data: T[] | null; error: unknown };
+
+/** PostgREST's "no such relation" answers, before and after its schema cache. */
+export function isMissingRelation(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null)?.code;
+  return code === "42P01" || code === "PGRST205";
 }
 
-/** The rows that count, in their order. */
-export function withoutWithheld<T extends { id: string }>(rows: readonly T[], withheld: Set<string>): T[] {
-  return rows.filter((row) => !withheld.has(row.id));
+/**
+ * Run a read against the counted view, and against the table only when the
+ * view does not exist yet.
+ */
+export async function readCountedReviews<T>(run: (table: string) => PromiseLike<Result<T>>): Promise<Result<T>> {
+  const counted = await run(COUNTED_REVIEWS);
+  if (counted.error && isMissingRelation(counted.error)) return run("reviews");
+  return counted;
 }

@@ -7,27 +7,47 @@
 --                 creation "as an investigative signal and nothing else": this
 --                 is its first consumer)
 --   phone         the same confirmed mobile (V-50's `confirmed_phones`)
---   device        a device fingerprint both accounts have signed in from
---                 (`known_devices`)
 --   card          the same card, by the processor's own card signature
 --                 (`payment_methods.signature`)
 --   bank_account  the same bank account (bank code and number) on either
 --                 side's `bank_accounts` or `payout_accounts`
 --
+-- NOT A DEVICE. `known_devices.fingerprint` is `left(md5(user_agent), 16)`: a
+-- browser model, shared by every person on the same phone model and browser
+-- version. As a key it would have withheld the reviews of strangers who happen
+-- to own the same handset, so it is not one.
+--
 -- NOTHING IS REFUSED. Refusing the insert would teach a colluder which key
--- tripped. The row is stored, its author sees it written, and it simply does
--- not count: public averages, the catalogue's rating, the agent band and every
--- V-05 count read only rows with no reason. Staff read the reasons.
+-- tripped. The row is stored, its author still sees it on every screen that
+-- shows them their own review, and it simply does not count: public lists,
+-- public averages, the catalogue's rating, the agent band and every V-05 count
+-- read only rows with no reason. Staff read the reasons, and staff can clear a
+-- stamp (with an audit row) when two accounts turn out to be two people.
 --
 --   private.shares_identity_with(a, b)  the list of shared keys, or empty.
 --   public.weight_withheld              one row per withheld review or report:
---                                       the kind, the id, and the reasons. The
---                                       review ids are readable by anybody
---                                       (a public list must be able to leave
---                                       them out); the REASONS are staff only,
---                                       through `public.weight_withheld_reasons`.
+--                                       the kind, the id, the reasons. STAFF
+--                                       ONLY: a public list of withheld review
+--                                       ids would be a public accusation.
+--   public.reviews_counted              a definer view: the reviews a reader
+--                                       may see (the reviews select policy,
+--                                       restated), less the withheld ones, but
+--                                       always including the reader's own.
+--                                       Every public list reads this.
+--   public.weight_withheld_reasons()    staff read the register.
+--   public.clear_weight_withheld(...)   staff clear one stamp, audited.
 --   inspection_truth.weight_withheld_reason   stamped by a before-insert
 --                                       trigger here; the column is V-05's.
+--
+-- THE REVIEW STAMP IS A BEFORE TRIGGER, so the register row exists before the
+-- after-insert catalogue sync and badge award read the reviews, and neither
+-- ever counts a self-review, even for the length of one statement.
+--
+-- REPORT STAMPS ARE RECORDED AND NOT YET READ. Nothing in the moderation desk
+-- reads `kind = 'report'` today; the stamp is there for the desk to use.
+--
+-- ORDER: APPLY AFTER THE CODE, AND AFTER V-21 (20260924130300). This file
+-- drops and recreates `public.agent_trust` itself, so it also stands alone.
 --
 -- THE PAID-BOOKING CONDITION from ONE_PERSON gate 3 is NOT in this file: the
 -- reviews insert policy is the audit session's, and the condition is handed
@@ -51,10 +71,6 @@ as $$
       select 1 from public.confirmed_phones x join public.confirmed_phones y on y.phone = x.phone
        where x.user_id = a and y.user_id = b)
     union all
-    select 'device' where a <> b and exists (
-      select 1 from public.known_devices x join public.known_devices y on y.fingerprint = x.fingerprint
-       where x.user_id = a and y.user_id = b)
-    union all
     select 'card' where a <> b and exists (
       select 1 from public.payment_methods x join public.payment_methods y on y.signature = x.signature
        where x.user_id = a and y.user_id = b and x.signature is not null and x.signature <> '')
@@ -73,7 +89,7 @@ as $$
 $$;
 
 comment on function private.shares_identity_with(uuid, uuid) is
-  'V-58. The identity keys two accounts share: mailbox, phone, device, card, bank_account. Empty when they share none, and always empty for a person compared with themselves.';
+  'V-58. The identity keys two accounts share: mailbox, phone, card, bank_account. Empty when they share none, and always empty for a person compared with themselves.';
 
 revoke all on function private.shares_identity_with(uuid, uuid) from public, anon, authenticated;
 
@@ -101,18 +117,35 @@ create table if not exists public.weight_withheld (
 );
 
 comment on table public.weight_withheld is
-  'V-58. Reviews and reports written by an account that shares an identity key with the lister. Kept, and not counted. Review ids are public so a public list can leave them out; the reasons are staff only.';
+  'V-58. Reviews and reports written by an account that shares an identity key with the lister. Kept, and not counted. Staff only: public lists read public.reviews_counted instead.';
 
 revoke all on public.weight_withheld from public, anon, authenticated;
 alter table public.weight_withheld enable row level security;
 
 drop policy if exists weight_withheld_reviews_are_public on public.weight_withheld;
-create policy weight_withheld_reviews_are_public on public.weight_withheld
-  for select to anon, authenticated
-  using (kind = 'review');
-
-grant select (kind, subject_id) on public.weight_withheld to anon, authenticated;
 grant all on public.weight_withheld to service_role;
+
+/* The reviews a reader may see, less the withheld ones, always with their own.
+   A definer view so the register stays unreadable; the first condition
+   restates `reviews_select` exactly, because a definer view does not run it. */
+create or replace view public.reviews_counted as
+  select r.id, r.listing_id, r.booking_id, r.author_id, r.rating, r.body, r.author_label, r.created_at
+    from public.reviews r
+   where ((exists (select 1 from public.listings l
+                    where l.id = r.listing_id and l.status = 'PUBLISHED'::public.listing_status))
+          or (select auth.uid()) = r.author_id
+          or private.owns_listing(r.listing_id)
+          or private.has_role((select auth.uid()), 'admin'::public.app_role)
+          or private.has_role((select auth.uid()), 'super_admin'::public.app_role))
+     and ((select auth.uid()) = r.author_id
+          or not exists (select 1 from public.weight_withheld w
+                          where w.kind = 'review' and w.subject_id = r.id));
+
+comment on view public.reviews_counted is
+  'V-58. The reviews a reader may see (reviews_select restated) less those written from the lister''s own shadow, always including the reader''s own. A definer view granted to readers, the same recorded exception as public.listing_lister: the register it filters on is staff only.';
+
+revoke all on public.reviews_counted from public, anon, authenticated;
+grant select on public.reviews_counted to anon, authenticated;
 
 create or replace function public.weight_withheld_reasons()
 returns table (kind text, subject_id uuid, reasons text[], stamped_at timestamptz)
@@ -133,6 +166,55 @@ $$;
 
 revoke all on function public.weight_withheld_reasons() from public, anon;
 grant execute on function public.weight_withheld_reasons() to authenticated;
+
+/* Staff clear one stamp when two accounts turn out to be two people. The
+   review counts again at once: the catalogue row is refreshed here. */
+create or replace function public.clear_weight_withheld(p_kind text, p_subject uuid, p_note text)
+returns text
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  actor uuid := auth.uid();
+  touched integer := 0;
+  lst uuid;
+begin
+  if actor is null or not (private.has_role(actor, 'admin'::public.app_role)
+                           or private.has_role(actor, 'super_admin'::public.app_role)) then
+    return 'forbidden';
+  end if;
+  if p_note is null or length(btrim(p_note)) < 3 then return 'no_note'; end if;
+  if p_kind in ('review', 'report') then
+    delete from public.weight_withheld w where w.kind = p_kind and w.subject_id = p_subject;
+    get diagnostics touched = row_count;
+    if p_kind = 'review' and touched > 0 then
+      select r.listing_id into lst from public.reviews r where r.id = p_subject;
+      if lst is not null then perform private.catalogue_refresh_listing(lst); end if;
+    end if;
+  elsif p_kind = 'truth' then
+    update public.inspection_truth t set weight_withheld_reason = null
+     where t.inspection_id = p_subject and t.weight_withheld_reason is not null;
+    get diagnostics touched = row_count;
+  elsif p_kind = 'tenancy' then
+    update public.tenancy_reviews t set weight_withheld_reason = null
+     where t.rent_payment_id = p_subject and t.weight_withheld_reason is not null;
+    get diagnostics touched = row_count;
+  else
+    return 'invalid';
+  end if;
+  if touched = 0 then return 'not_found'; end if;
+  insert into public.audit_log (actor_id, action, entity_type, entity_id, metadata)
+  values (actor, 'weight_withheld.cleared', p_kind, p_subject::text, jsonb_build_object('note', btrim(p_note)));
+  return 'cleared';
+end;
+$$;
+
+comment on function public.clear_weight_withheld(text, uuid, text) is
+  'V-58. Staff clear one withheld-weight stamp (review, report, truth answer or tenancy review) with a note, audited. Refuses anybody else inside the function.';
+
+revoke all on function public.clear_weight_withheld(text, uuid, text) from public, anon;
+grant execute on function public.clear_weight_withheld(text, uuid, text) to authenticated;
 
 /* --------------------------------------------------------------- stamping */
 
@@ -158,7 +240,7 @@ revoke all on function private.weigh_review() from public, anon, authenticated;
 
 drop trigger if exists reviews_weigh_against_the_lister on public.reviews;
 create trigger reviews_weigh_against_the_lister
-  after insert on public.reviews
+  before insert on public.reviews
   for each row execute function private.weigh_review();
 
 create or replace function private.weigh_report()
@@ -217,7 +299,10 @@ create trigger inspection_truth_weigh
 
 /* --------------------------- the counts that read reviews leave them out */
 
-create or replace function public.agent_trust(p_user uuid)
+/* Dropped first, so this file does not depend on V-21 having changed the
+   return type before it. */
+drop function if exists public.agent_trust(uuid);
+create function public.agent_trust(p_user uuid)
 returns table (completed_deals integer, response_minutes integer, review_count integer, average_rating numeric)
 language sql
 stable
@@ -331,9 +416,9 @@ $function$;
 do $readback$
 declare bad text := '';
 begin
-  if has_column_privilege('anon', 'public.weight_withheld', 'reasons', 'select')
-     or has_column_privilege('authenticated', 'public.weight_withheld', 'reasons', 'select') then
-    bad := bad || ' [the reasons are public]';
+  if has_table_privilege('anon', 'public.weight_withheld', 'select')
+     or has_table_privilege('authenticated', 'public.weight_withheld', 'select') then
+    bad := bad || ' [the register is public]';
   end if;
   if has_table_privilege('authenticated', 'public.weight_withheld', 'insert') then
     bad := bad || ' [a member can withhold weight]';

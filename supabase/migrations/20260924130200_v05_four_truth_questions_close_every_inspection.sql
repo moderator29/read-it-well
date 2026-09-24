@@ -76,7 +76,7 @@ create table if not exists public.inspection_truth (
   off_platform_ask text not null check (off_platform_ask in ('yes', 'no', 'not_sure')),
   answered_at      timestamptz not null default now(),
   /* V-58 stamps this when the renter shares an identity key (a mailbox, a
-     phone, a device, a card, a bank account) with the lister. The answer is
+     phone, a card, a bank account) with the lister. The answer is
      kept and carries no weight: every count below reads only null rows. */
   weight_withheld_reason text[]
 );
