@@ -639,6 +639,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_purge_rate_limits | pg_cron `30 * * * *` | hourly at :30 | | clears old rate limit rows |
 | vallo_escrow_sweep_timeouts | pg_cron `17 * * * *` | hourly at :17 | | escrow timeouts |
 | vallo_escrow_invariants | pg_cron `23 * * * *` | hourly at :23 | | asserts the escrow float identity (`private.escrow_invariants_check`), six minutes after the sweeper |
+| vallo_escrow_age_watch | pg_cron `41 * * * *` | hourly at :41 | | alerts on disputes older than 48 hours and 7 days, and cancels escrows never funded within 14 days (`private.escrow_age_watch`) |
 | vallo_reconcile_payments | pg_cron `47 * * * *` | hourly at :47 | | database side of reconciliation |
 | vallo_purge_idempotency | pg_cron `10 2 * * *` | daily 03:10 | | clears old idempotency records |
 | vallo-nightly-badges | pg_cron `20 2 * * *` | daily 03:20 | | awards earned badges |
@@ -649,7 +650,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_sweep_price_check_watches | pg_cron `50 5 * * *` | daily 06:50 | | re-runs the price check gate at each pending watch and tells the watcher once when it opens |
 | vallo-daily-note | pg_cron `0 6 * * *` | daily 07:00 | | the daily note |
 
-9 Vercel Cron jobs and 14 pg_cron jobs in all. The numbers are derived,
+9 Vercel Cron jobs and 15 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by
