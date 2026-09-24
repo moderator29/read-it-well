@@ -26,6 +26,7 @@
  * ownership check that is the entire point.
  */
 
+import { moneyHoldRefusal } from "../wallet/money-hold";
 import { revalidatePath } from "next/cache";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE } from "../actions/session";
@@ -133,6 +134,8 @@ export async function addPayoutAccount(
     .single();
 
   if (insertError) {
+    const held = moneyHoldRefusal(insertError);
+    if (held) return fail(held);
     // 23505 is the per-agent unique NUBAN.
     if (insertError.code === "23505") {
       return fail(

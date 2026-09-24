@@ -31,6 +31,15 @@ const SRC = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 /** The single file allowed to write an email onto an auth row, and why. */
 const ERASURE_ONLY = "lib/account-deletion/service.ts";
 
+/**
+ * SEC-15: the staff-assisted recovery. It writes a NEW address, but only a
+ * super admin can reach it and only after the database has matched the NIN on
+ * file and let 72 hours pass (`admin_begin_email_recovery`). It is not
+ * reachable by the account's owner. `staff-recovery.test` below pins the
+ * gates in the file itself.
+ */
+const STAFF_RECOVERY = "lib/admin/email-recovery-actions.ts";
+
 function sources(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (entry.name === "node_modules" || entry.name === ".next") continue;
@@ -55,7 +64,7 @@ describe("nothing changes an email address", () => {
    * a regex that over-reports is a conversation, and one that under-reports is
    * the hole this file exists to close.
    */
-  it("has exactly one caller that writes an email onto an auth row, and it is the purge", () => {
+  it("has exactly two callers that write an email onto an auth row: the purge and staff recovery", () => {
     const writers: string[] = [];
     for (const file of FILES) {
       const text = readFileSync(file, "utf8");
@@ -79,7 +88,7 @@ describe("nothing changes an email address", () => {
         }
       }
     }
-    expect([...new Set(writers)]).toEqual([ERASURE_ONLY]);
+    expect([...new Set(writers)].sort()).toEqual([ERASURE_ONLY, STAFF_RECOVERY].sort());
   });
 
   /**
@@ -116,3 +125,26 @@ describe("nothing changes an email address", () => {
     expect(offenders).toEqual([]);
   });
 });
+
+describe("the staff recovery path cannot be self-service", () => {
+  const source = readFileSync(join(SRC, STAFF_RECOVERY), "utf8");
+
+  it("checks for a super admin before the database is asked anything", () => {
+    for (const action of ["openEmailRecovery", "completeEmailRecovery"]) {
+      const body = source.slice(source.indexOf(`export async function ${action}`));
+      const guard = body.indexOf("if (!access.isSuperAdmin)");
+      const rpc = body.indexOf(".rpc(");
+      expect(guard, `${action} checks isSuperAdmin`).toBeGreaterThan(-1);
+      expect(guard, `${action} checks before its first call`).toBeLessThan(rpc);
+    }
+  });
+
+  it("changes the address only after admin_begin_email_recovery has cleared the request", () => {
+    const begin = source.indexOf('"admin_begin_email_recovery"');
+    const write = source.indexOf("updateUserById(");
+    expect(begin).toBeGreaterThan(-1);
+    expect(write).toBeGreaterThan(begin);
+    expect(source.indexOf('"admin_finish_email_recovery"')).toBeGreaterThan(write);
+  });
+});
+

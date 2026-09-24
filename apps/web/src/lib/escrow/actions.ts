@@ -39,6 +39,7 @@
  * derived inside the database), which is ADR-E1 section 4 departure 2 closed.
  */
 
+import { moneyHoldRefusal } from "../wallet/money-hold";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
@@ -171,7 +172,7 @@ async function callGuarded(
     amountMinor: options.amountMinor ?? null,
     userId: session.user.id,
   });
-  if (call.outcome !== "ok") return fail(SERVICE_DOWN);
+  if (call.outcome !== "ok") return fail((call.outcome === "failed" ? moneyHoldRefusal(call) : null) ?? SERVICE_DOWN);
 
   const status = readMoneyStatus(call.data);
   if (status.status !== "ok") return fail(refusalFor(status.status));
