@@ -972,8 +972,9 @@ export async function sweepStaleWithdrawalHolds(
 
 /* ------------------------------------------------- paid withdrawals */
 
-/** NEW-A2-05. How far back the daily check re-asks about paid withdrawals. */
-export const PAID_VERIFY_DAYS = 3;
+/** NEW-A2-05. How far back the daily check re-asks about paid withdrawals.
+    A bank can send a transfer back days after it confirmed it. */
+export const PAID_VERIFY_DAYS = 7;
 /** NEW-A2-05. The UTC hour of the daily check: 23:00 UTC is midnight in Lagos. */
 export const PAID_VERIFY_UTC_HOUR = 23;
 const PAID_VERIFY_LIMIT = 100;
@@ -995,8 +996,8 @@ export type PaidVerifyReport = {
  * NEW-A2-05. A COMPLETED withdrawal whose bank later sends the money back is
  * credited by the webhook (`transfer.reversed`, MON-03). When that delivery is
  * lost the member's balance stays short and nothing else would notice. Once a
- * day this asks Paystack about every withdrawal paid in the last few days that
- * has no reversal credit yet, and posts the same credit, audit and critical
+ * day this asks Paystack about each withdrawal paid in the last week that has
+ * no reversal credit yet (newest first, up to 100), and posts the same credit, audit and critical
  * alert the webhook would have. creditReversedWithdrawal is keyed on the
  * reversal reference, so a webhook arriving at the same time posts once.
  */
@@ -1017,7 +1018,9 @@ export async function verifyPaidWithdrawals(
     .eq("kind", "withdrawal")
     .eq("status", "COMPLETED")
     .gte("created_at", since)
-    .order("created_at", { ascending: true })
+    /* Newest first: past the cap it is the oldest that go unasked, and a
+       recent payout is the likeliest to still come back. */
+    .order("created_at", { ascending: false })
     .limit(PAID_VERIFY_LIMIT);
   if (error) {
     logMoney({ surface: "withdraw", outcome: "failed", reason: `paid_verify_read_failed:${error.message}` });

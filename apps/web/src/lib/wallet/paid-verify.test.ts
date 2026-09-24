@@ -39,13 +39,25 @@ vi.mock("../bookings/settlement", () => ({ settleBookingCharge: vi.fn() }));
 const { verifyPaidWithdrawals, isPaidVerifyHour } = await import("./reconciliation");
 
 function adminWith(paid: string[], credited: string[] = []) {
-  const paidRows = paid.map((reference) => ({ reference, amount_minor: 500_000 }));
+  /* Listed oldest first; the chain honours order() and limit() like the database. */
+  const paidRows = paid.map((reference, i) => ({
+    reference,
+    amount_minor: 500_000,
+    created_at: new Date(Date.UTC(2026, 8, 20, 0, i)).toISOString(),
+  }));
+  let ascending = true;
   const paidChain = {
     select: () => paidChain,
     eq: () => paidChain,
     gte: () => paidChain,
-    order: () => paidChain,
-    limit: async () => ({ data: paidRows, error: null }),
+    order: (_column: string, options: { ascending: boolean }) => {
+      ascending = options.ascending;
+      return paidChain;
+    },
+    limit: async (n: number) => {
+      const sorted = ascending ? [...paidRows] : [...paidRows].reverse();
+      return { data: sorted.slice(0, n), error: null };
+    },
   };
   const creditedChain = {
     in: async () => ({ data: credited.map((reference) => ({ reference })), error: null }),
@@ -108,6 +120,19 @@ describe("verifyPaidWithdrawals", () => {
     expect(report.reversed).toEqual([{ reference: "wd-back", amountMinor: 500_000, credited: false }]);
     expect(reversal.creditReversedWithdrawal).not.toHaveBeenCalled();
     expect(alerts.recordAlert).not.toHaveBeenCalled();
+  });
+
+  it("past the cap, asks about the newest withdrawals, not the oldest", async () => {
+    const refs = Array.from({ length: 101 }, (_, i) => `wd-${i}`);
+    paystack.verifyTransfer.mockImplementation(async (reference: string) => ({
+      status: reference === "wd-100" ? "reversed" : "success",
+      amountMinor: 500_000,
+      reference,
+    }));
+    const report = await verifyPaidWithdrawals(adminWith(refs), { apply: true });
+    expect(report.checked).toBe(100);
+    expect(paystack.verifyTransfer).not.toHaveBeenCalledWith("wd-0");
+    expect(report.reversed).toEqual([{ reference: "wd-100", amountMinor: 500_000, credited: true }]);
   });
 
   it("counts a Paystack failure instead of stopping the run", async () => {
