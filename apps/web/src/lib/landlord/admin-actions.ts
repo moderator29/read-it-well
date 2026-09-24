@@ -32,6 +32,8 @@ const FAILED_DECISION = "That decision was not recorded. Nothing has changed.";
 export async function recordPrincipalConsent(input: {
   mandateId: string;
   answer: "given" | "withdrawn";
+  /** Required by the database when this number has asked us to stop before. */
+  note?: string | null;
 }): Promise<ActionResult<{ consentedAt: string | null; withdrawnAt: string | null }>> {
   const access = await requireAdmin();
   if (access.state !== "admin") return fail(adminRefusal(access));
@@ -42,8 +44,12 @@ export async function recordPrincipalConsent(input: {
     p_mandate: id.data,
     p_answer: input.answer,
     p_sentence: input.answer === "given" ? CONSENT_SENTENCE : null,
+    p_note: input.note?.trim() ? input.note.trim().slice(0, 400) : null,
   });
   if (error) {
+    if ((error.message ?? "").includes("asked us to stop")) {
+      return fail("This number asked us to stop before. Record what the principal said on this call.");
+    }
     if ((error.message ?? "").includes("no number")) {
       return fail("This mandate has no number for the principal, so there is nobody to ask.");
     }
@@ -85,5 +91,18 @@ export async function splitFromProperty(input: { listingId: string }): Promise<A
   const { error } = await callLandlordRpc(access.supabase, "property_split", { p_listing: a.data });
   if (error) return fail(FAILED_DECISION);
   revalidatePath(`/admin/listings/${a.data}`);
+  return ok(null);
+}
+
+/** V-48: staff reopen a closed listing, with a reason the database audits. */
+export async function reopenClosedListing(input: { listingId: string; note: string }): Promise<ActionResult<null>> {
+  const access = await requireAdmin();
+  if (access.state !== "admin") return fail(adminRefusal(access));
+  const id = ID.safeParse(input.listingId);
+  const note = input.note.trim();
+  if (!id.success || note.length < 8) return fail("Say why the listing is being reopened, in a sentence.");
+  const { error } = await callLandlordRpc(access.supabase, "reopen_listing", { p_listing: id.data, p_note: note });
+  if (error) return fail(FAILED_DECISION);
+  revalidatePath(`/admin/listings/${id.data}`);
   return ok(null);
 }

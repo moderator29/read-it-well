@@ -130,6 +130,8 @@ export type MandateConsent = {
   readByName: string | null;
   withdrawnAt: string | null;
   hasNumber: boolean;
+  /** When this NUMBER last asked us to stop, on any mandate, or null. */
+  numberStoppedAt: string | null;
 };
 
 /** Consent for a set of mandates, for the console. Null when the read failed. */
@@ -150,6 +152,7 @@ export async function readMandateConsents(ids: readonly string[]): Promise<Map<s
         readByName: typeof row.read_by_name === "string" ? row.read_by_name : null,
         withdrawnAt: typeof row.withdrawn_at === "string" ? row.withdrawn_at : null,
         hasNumber: row.has_number === true,
+        numberStoppedAt: typeof row.number_stopped_at === "string" ? row.number_stopped_at : null,
       });
     }
     return out;
@@ -166,6 +169,8 @@ export type PropertyCandidate = {
   listerName: string | null;
   propertyId: string | null;
   samePrincipal: boolean;
+  /** Both listings have an approved principal on record and they differ. */
+  differentPrincipal: boolean;
   distanceM: number | null;
   sameShape: boolean;
   moveInMinor: number | null;
@@ -190,6 +195,7 @@ export async function readPropertyCandidates(listingId: string): Promise<Propert
           listerName: typeof row.lister_name === "string" ? row.lister_name : null,
           propertyId: typeof row.property_id === "string" ? row.property_id : null,
           samePrincipal: row.same_principal === true,
+          differentPrincipal: row.different_principal === true,
           distanceM: typeof row.distance_m === "number" ? row.distance_m : null,
           sameShape: row.same_shape === true,
           moveInMinor: typeof row.move_in_total_minor === "number" ? row.move_in_total_minor : null,
@@ -254,5 +260,18 @@ export async function readClosedReasons(ids: readonly string[]): Promise<Record<
     return out;
   } catch {
     return {};
+  }
+}
+
+/** V-48, for the console: how many listings are closed, or null. Staff only. */
+export async function readClosedListingCount(): Promise<number | null> {
+  if (!isSupabaseConfigured()) return null;
+  try {
+    const db = await createClient();
+    const { data, error } = await callLandlordRpc(db, "closed_listing_count", {});
+    if (error || typeof data !== "number") return null;
+    return data;
+  } catch {
+    return null;
   }
 }

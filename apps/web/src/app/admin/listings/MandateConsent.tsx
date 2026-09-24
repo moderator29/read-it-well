@@ -34,6 +34,7 @@ export function MandateConsent({
   readFailed,
   lineOpen,
   copy,
+  stoppedLine = null,
 }: {
   mandateId: string;
   hasNumber: boolean;
@@ -42,10 +43,13 @@ export function MandateConsent({
   readFailed: boolean;
   lineOpen: boolean;
   copy: AdminCopy;
+  /** Pre-formatted: "This number asked us to stop on 3 Oct..." when it has. */
+  stoppedLine?: string | null;
 }) {
   const [status, setStatus] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [note, setNote] = useState("");
 
   if (!hasNumber) {
     return (
@@ -58,7 +62,7 @@ export function MandateConsent({
   function run(answer: "given" | "withdrawn") {
     setError(null);
     startTransition(async () => {
-      const result = await recordPrincipalConsent({ mandateId, answer });
+      const result = await recordPrincipalConsent({ mandateId, answer, note: answer === "given" ? note : null });
       if (!result.ok) {
         setError(result.error);
         return;
@@ -87,9 +91,35 @@ export function MandateConsent({
           </blockquote>
         </>
       )}
+      {stoppedLine && status.state !== "given" && (
+        <>
+          <p className="nf-rv-msg" style={{ color: "var(--nf-state-warning)" }} data-testid="consent-stopped-before">
+            {stoppedLine}
+          </p>
+          <label className="nf-label" htmlFor={`consent-note-${mandateId}`}>
+            {copy.reconsentNote}
+          </label>
+          <textarea
+            id={`consent-note-${mandateId}`}
+            className="nf-field"
+            rows={2}
+            maxLength={400}
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+          />
+        </>
+      )}
       <div className="flex flex-wrap gap-sm">
         {status.state !== "given" && (
-          <Button type="button" variant="primary" size="sm" loading={pending} onClick={() => run("given")} data-testid="consent-given">
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            loading={pending}
+            disabled={Boolean(stoppedLine) && note.trim().length < 8}
+            onClick={() => run("given")}
+            data-testid="consent-given"
+          >
             {copy.consentGiven}
           </Button>
         )}

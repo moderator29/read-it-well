@@ -36,6 +36,7 @@ export function landlordLineVerdict(result: DrainResult, production: boolean): J
     sent: result.sent,
     failed: result.failed,
     refused: result.refused,
+    unlogged: result.unlogged,
   };
   const detail = { open: result.open, transport: result.transport };
 
@@ -45,6 +46,18 @@ export function landlordLineVerdict(result: DrainResult, production: boolean): J
       counts,
       detail: { ...detail, error: result.error },
       alert: { kind: "landlord_line.failed", severity: "warning", detail: { ...detail, error: result.error } },
+    };
+  }
+  if (result.unlogged > 0) {
+    return {
+      outcome: "attention",
+      counts,
+      detail,
+      alert: {
+        kind: "landlord_line.unlogged",
+        severity: "critical",
+        detail: { ...detail, unlogged: result.unlogged, note: "A landlord was messaged and the message log write failed." },
+      },
     };
   }
   if (result.open && production && result.transport === "stub") {

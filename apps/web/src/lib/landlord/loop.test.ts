@@ -139,6 +139,12 @@ function fakeDatabase(opts: { open: boolean }) {
       const answer = ask.purpose === "vacancy" ? ["available", "let", "not_instructed"][digit - 1] : ["confirmed", "disputed"][digit - 1];
       return answer ? apply(ask, answer) : { state: "invalid" };
     },
+    landlord_line_requeue: () => 0,
+    landlord_line_claim: (args) => {
+      if (!open) return false;
+      const ask = asks.find((a) => a.id === args.p_ask);
+      return Boolean(ask && ask.sent && !ask.answer && may(ask.mandateId));
+    },
     landlord_line_stop_number: (args) => {
       let n = 0;
       for (const m of mandates.values()) {
@@ -310,6 +316,46 @@ describe("the server refuses to message a principal without consent (NDPA)", () 
       mayMessagePrincipal({ ...approvedWithConsent, withdrawnAt: "2026-09-10T00:00:00Z", consentedAt: "2026-09-20T00:00:00Z" }, TODAY),
     ).toBe(true);
     expect(mayMessagePrincipal({ ...approvedWithConsent, expiresOn: TODAY }, TODAY)).toBe(true);
+  });
+});
+
+describe("a STOP between issue and send is honoured", () => {
+  it("claims immediately before the send, and a withdrawn number is not messaged", async () => {
+    const fake = fakeDatabase({ open: true });
+    fake.addListing("l1", "+2348031234567", approvedWithConsent);
+    await fake.db.rpc("landlord_line_enqueue", {});
+    // Issue reports consent as it was; the claim reads it as it is now.
+    const realIssue = fake.db.rpc.bind(fake.db);
+    const db = {
+      async rpc(fn: string, args: Record<string, unknown>) {
+        const out = await realIssue(fn, args);
+        if (fn === "landlord_line_issue") {
+          fake.mandates.get("m-l1")!.consent = { ...approvedWithConsent, withdrawnAt: "2026-09-24T09:00:00Z" };
+          const rows = out.data as Record<string, unknown>[];
+          return { data: rows.map((r) => ({ ...r, withdrawn_at: null })), error: null };
+        }
+        return out;
+      },
+    };
+    const channel = new StubChannel();
+    const result = await drainLandlordLine(deps(db, channel));
+    expect(channel.sent).toHaveLength(0);
+    expect(result.refused).toBe(1);
+  });
+
+  it("counts a delivered message the log refused, for the job to raise", async () => {
+    const fake = fakeDatabase({ open: true });
+    fake.addListing("l1", "+2348031234567", approvedWithConsent);
+    const base = fake.db.rpc.bind(fake.db);
+    const db = {
+      async rpc(fn: string, args: Record<string, unknown>) {
+        if (fn === "landlord_line_record" && args.p_delivered === true) return { data: null, error: { message: "boom" } };
+        return base(fn, args);
+      },
+    };
+    const result = await drainLandlordLine(deps(db));
+    expect(result.sent).toBe(1);
+    expect(result.unlogged).toBe(1);
   });
 });
 

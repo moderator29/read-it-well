@@ -7,10 +7,10 @@ const day = (iso: string) => iso.slice(0, 10);
 
 describe("the consent sentence", () => {
   it("names the purpose, the frequency, the rent message and the way out", () => {
-    expect(CONSENT_SENTENCE).toMatch(/every two weeks/);
+    expect(CONSENT_SENTENCE).toMatch(/never more than once a week/);
     expect(CONSENT_SENTENCE).toMatch(/still available/);
     expect(CONSENT_SENTENCE).toMatch(/tenant pays rent/);
-    expect(CONSENT_SENTENCE).toMatch(/ask us to stop at any time/);
+    expect(CONSENT_SENTENCE).toMatch(/reply STOP at any time/);
     expect(CONSENT_SENTENCE.endsWith("Do you agree?")).toBe(true);
   });
 

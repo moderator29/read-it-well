@@ -11,9 +11,12 @@ import { callLandlordRpc } from "./rpc";
  *
  * One call to `public.close_listing`, which checks the caller holds the
  * listing, that it is a live or approved rental, and, for "Let through Vallo",
- * that a rent charge on it was actually paid. It closes every copy of the same
- * property in the same transaction when the reason is a let, and tells everyone
- * following any copy. Nothing here decides any of that; this is the door.
+ * that a rent charge on it was actually paid. A let through Vallo closes every
+ * copy of the same property in the same transaction, because the payment proves
+ * it. Any other reason closes this copy only, since one lister's word never
+ * takes a rival's listing down; after "Let elsewhere" the other copies' listers
+ * are told and their own principals are asked, within the weekly limit.
+ * Nothing here decides any of that; this is the door.
  *
  * The workspace draws this in place of "Take down" on a live rental.
  * `unpublishListing` in `lib/agent/listings-actions.ts` still exists and still

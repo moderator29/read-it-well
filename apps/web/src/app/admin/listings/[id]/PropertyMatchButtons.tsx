@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { decidePropertyMatch, splitFromProperty } from "@/lib/landlord/admin-actions";
+import { decidePropertyMatch, reopenClosedListing, splitFromProperty } from "@/lib/landlord/admin-actions";
+import type { Dictionary } from "@vallo/i18n";
 
 /**
  * V-37. The reviewer's one-tap decision on a proposed match: "Same property"
@@ -73,6 +74,56 @@ export function PropertySplitButton({ listingId, label }: { listingId: string; l
       >
         {label}
       </Button>
+      {error && (
+        <p role="alert" className="nf-rv-msg" style={{ color: "var(--nf-state-error)" }}>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * V-48: staff reopen a listing closed by mistake. A reason is required and is
+ * written to the audit log with the reopen; nothing else can bring a closed
+ * listing back.
+ */
+export function ReopenControl({ listingId, copy }: { listingId: string; copy: Dictionary["landlord"]["admin"] }) {
+  const router = useRouter();
+  const [note, setNote] = useState("");
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <div className="mt-sm grid gap-xs">
+      <label className="nf-label" htmlFor={`reopen-${listingId}`}>
+        {copy.reopenLabel}
+      </label>
+      <textarea
+        id={`reopen-${listingId}`}
+        className="nf-field"
+        rows={2}
+        maxLength={400}
+        value={note}
+        onChange={(event) => setNote(event.target.value)}
+      />
+      <div>
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          loading={pending}
+          disabled={note.trim().length < 8}
+          onClick={() =>
+            startTransition(async () => {
+              const result = await reopenClosedListing({ listingId, note });
+              if (!result.ok) setError(result.error);
+              else router.refresh();
+            })
+          }
+        >
+          {copy.reopen}
+        </Button>
+      </div>
       {error && (
         <p role="alert" className="nf-rv-msg" style={{ color: "var(--nf-state-error)" }}>
           {error}

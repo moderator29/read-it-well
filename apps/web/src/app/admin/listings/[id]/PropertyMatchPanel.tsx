@@ -18,7 +18,9 @@ type AdminCopy = Dictionary["landlord"]["admin"];
  *                              never the owner and never the number.
  *   the pins                   within 40 metres,
  *
- * and always with the same bedrooms and type. One tap joins them on a
+ * and always with the same bedrooms and type. When both listings carry an
+ * approved principal and the two differ, the row says "Different owner on
+ * record", because a pin alone is not a flat. One tap joins them on a
  * property (the renter then sees one page with every offer side by side), or
  * records them as different so the pair is never proposed again.
  *
@@ -65,6 +67,7 @@ export async function PropertyMatchPanel({
               </div>
               <div className="flex flex-wrap gap-xs">
                 {candidate.samePrincipal && <Badge tone="info">{copy.signalPrincipal}</Badge>}
+                {candidate.differentPrincipal && <Badge tone="warning">{copy.signalDifferent}</Badge>}
                 {candidate.distanceM !== null && candidate.distanceM <= 40 && (
                   <Badge tone="info">{copy.signalNear.replace("{m}", String(candidate.distanceM))}</Badge>
                 )}

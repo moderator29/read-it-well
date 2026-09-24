@@ -22,12 +22,14 @@ import { callLandlordRpc } from "./rpc";
  * "the day a tenant pays".
  *
  * ---------------------------------------------------------------------------
- * TWO CONSENT GATES, AND THIS IS THE SECOND. The database refuses to create or
- * issue a question for a principal who may not be messaged. The drain checks
- * again, from the consent state `landlord_line_issue` returns beside each
- * question, before a transport is called, and a refused question is recorded
- * as not delivered, which returns it to unsent, where the next issue deletes
- * it. Nothing here can reach a transport without both saying yes.
+ * THREE CONSENT GATES. The database refuses to create or issue a question for
+ * a principal who may not be messaged. The drain checks again, from the
+ * consent state `landlord_line_issue` returns beside each question, and then
+ * CLAIMS the question (`landlord_line_claim`) immediately before the send, so
+ * a STOP that arrived between issue and send is honoured. A refused question
+ * is recorded as not delivered, which returns it to unsent, where the next
+ * issue deletes it. A delivered message whose log write fails is counted as
+ * `unlogged` and raised by the job as critical.
  *
  * ---------------------------------------------------------------------------
  * NOTHING IDENTIFYING IS LOGGED. The number and the token exist in this
@@ -68,6 +70,8 @@ export type DrainResult = {
   sent: number;
   failed: number;
   refused: number;
+  /** Sends whose log write failed: delivered, but not on the record. */
+  unlogged: number;
   transport: PrincipalChannel["name"];
   error: string | null;
 };
@@ -136,9 +140,14 @@ export async function drainLandlordLine(deps: DrainDeps): Promise<DrainResult> {
     sent: 0,
     failed: 0,
     refused: 0,
+    unlogged: 0,
     transport: deps.channel.name,
     error: null,
   };
+
+  /* A question marked sent an hour ago with nothing logged never reached
+     anybody (a run that died between issue and record): back to the queue. */
+  await callLandlordRpc(deps.db, "landlord_line_requeue", {});
 
   const queued = await callLandlordRpc(deps.db, "landlord_line_enqueue", {});
   if (queued.error) {
@@ -178,6 +187,21 @@ export async function drainLandlordLine(deps: DrainDeps): Promise<DrainResult> {
       continue;
     }
 
+    /* Claim, immediately before the send: the consent, the approval, the
+       expiry and the flag, read again now rather than when it was issued. */
+    const claim = await callLandlordRpc(deps.db, "landlord_line_claim", { p_ask: ask.askId });
+    if (claim.error || claim.data !== true) {
+      result.refused += 1;
+      await callLandlordRpc(deps.db, "landlord_line_record", {
+        p_ask: ask.askId,
+        p_channel: deps.channel.name,
+        p_body: "",
+        p_ref: null,
+        p_delivered: false,
+      });
+      continue;
+    }
+
     let outcome: Awaited<ReturnType<PrincipalChannel["send"]>>;
     try {
       outcome = await deps.channel.send({ askId: ask.askId, to: ask.phone, body });
@@ -185,7 +209,7 @@ export async function drainLandlordLine(deps: DrainDeps): Promise<DrainResult> {
       outcome = { ok: false, reason: "transport threw" };
     }
 
-    await callLandlordRpc(deps.db, "landlord_line_record", {
+    const logged = await callLandlordRpc(deps.db, "landlord_line_record", {
       p_ask: ask.askId,
       p_channel: deps.channel.name,
       p_body: redactToken(body),
@@ -194,6 +218,9 @@ export async function drainLandlordLine(deps: DrainDeps): Promise<DrainResult> {
     });
     if (outcome.ok) result.sent += 1;
     else result.failed += 1;
+    /* A delivered message that is not on the record is the one thing this job
+       must shout about: the landlord was messaged and the log does not say so. */
+    if (logged.error && outcome.ok) result.unlogged += 1;
   }
 
   return result;

@@ -15,6 +15,8 @@ import { listingStatusWord, queueHrefFrom, reviewHref } from "../tabs";
 import { ListingReview } from "./ListingReview";
 import { ReviewActionBar } from "./ReviewActionBar";
 import { PropertyMatchPanel } from "./PropertyMatchPanel";
+import { ReopenControl } from "./PropertyMatchButtons";
+import { readClosedReasons } from "@/lib/landlord/queries";
 import "../../_review/review.css";
 
 export const metadata: Metadata = {
@@ -95,7 +97,10 @@ export default async function ListingUnderReviewPage({
     );
   }
 
-  const decidable = found.status !== "PUBLISHED" && found.status !== "REJECTED";
+  /* V-48: a closed listing is SUSPENDED underneath and is not a decision; it
+     shows how it closed, and staff may reopen it with a reason. */
+  const closedReason = (await readClosedReasons([found.id]))[found.id] ?? null;
+  const decidable = found.status !== "PUBLISHED" && found.status !== "REJECTED" && closedReason === null;
   const dark = tileProvider("dark");
   const nextId = extra?.nextId ?? null;
   const { offset: _offset, ...carried } = query;
@@ -130,7 +135,18 @@ export default async function ListingUnderReviewPage({
         }
         actions={
           <>
-          {decidable ? (
+          {closedReason ? (
+            <Panel>
+              <p className="nf-rv-msg" data-testid="review-closed">
+                {t.landlord.close.closedLabel.replace(
+                  "{reason}",
+                  t.landlord.close.closedReasons[closedReason as keyof typeof t.landlord.close.closedReasons] ?? closedReason,
+                )}{" "}
+                {t.landlord.admin.closedStays}
+              </p>
+              <ReopenControl listingId={found.id} copy={t.landlord.admin} />
+            </Panel>
+          ) : decidable ? (
             <ReviewActionBar
               listingId={found.id}
               status={found.status}

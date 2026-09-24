@@ -10,6 +10,7 @@ function result(over: Partial<DrainResult> = {}): DrainResult {
     sent: 4,
     failed: 0,
     refused: 0,
+    unlogged: 0,
     transport: "sms",
     error: null,
     ...over,
@@ -34,6 +35,11 @@ describe("the landlord line job's verdict", () => {
 
   it("does not alarm about the stub outside production", () => {
     expect(landlordLineVerdict(result({ transport: "stub" }), false).alert).toBeNull();
+  });
+
+  it("raises a delivered message that is not on the record as critical", () => {
+    const verdict = landlordLineVerdict(result({ unlogged: 1 }), true);
+    expect(verdict.alert).toMatchObject({ kind: "landlord_line.unlogged", severity: "critical" });
   });
 
   it("raises a failed send and a failed run", () => {

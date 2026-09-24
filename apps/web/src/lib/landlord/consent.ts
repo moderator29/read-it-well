@@ -17,13 +17,17 @@
  * old sentence keep the old sentence on their row, which is exactly the
  * record a regulator would ask for.
  *
- * It says what we will send (a question every two weeks, and the rent
- * figures the day a tenant pays), how they answer (a reply or a link), and how
- * they stop. It promises nothing we cannot keep: no "we will never share",
- * because the number is also rung by our own reviewers, and no fixed day.
+ * It says what we will send and the TRUE MAXIMUM: a vacancy question never
+ * more than once a week to this number (the database caps it per number, not
+ * per listing, so four agents on one flat do not mean four messages; the usual
+ * rhythm is once a fortnight, with a question on the day an inspection is
+ * confirmed or another copy is let, inside the same weekly cap), and the rent
+ * figures the day a tenant pays. It says how they answer and how they stop. It
+ * promises nothing we cannot keep: no "we will never share", because the
+ * number is also rung by our own reviewers, and no fixed day.
  */
 export const CONSENT_SENTENCE =
-  "Vallo will send a short message to this number about every two weeks to ask whether the property is still available, and on the day a tenant pays rent through Vallo, to show you what they paid. You can answer each one by reply or by the link in it, and you can ask us to stop at any time. Do you agree?";
+  "Vallo will send a short message to this number to ask whether the property is still available, never more than once a week, and on the day a tenant pays rent through Vallo, to show you what they paid. You can answer each one by reply or by the link in it, and you can reply STOP at any time. Do you agree?";
 
 /** What the sender knows about a mandate at the moment of sending. */
 export type ConsentState = {

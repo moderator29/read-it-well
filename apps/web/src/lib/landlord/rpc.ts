@@ -15,7 +15,12 @@
  */
 
 export type LandlordRpcArgs = {
-  record_principal_consent: { p_mandate: string; p_answer: "given" | "withdrawn"; p_sentence: string | null };
+  record_principal_consent: {
+    p_mandate: string;
+    p_answer: "given" | "withdrawn";
+    p_sentence: string | null;
+    p_note: string | null;
+  };
   mandate_consents: { p_mandates: string[] };
   landlord_line_enqueue: Record<string, never>;
   landlord_line_issue: { p_limit: number };
@@ -39,6 +44,11 @@ export type LandlordRpcArgs = {
   property_keep_apart: { p_listing: string; p_other: string };
   property_split: { p_listing: string };
   close_listing: { p_listing: string; p_reason: string; p_rent_payment: string | null };
+  /* The review fixes: migration 20260924110300. */
+  landlord_line_requeue: Record<string, never>;
+  landlord_line_claim: { p_ask: string };
+  reopen_listing: { p_listing: string; p_note: string };
+  closed_listing_count: Record<string, never>;
 };
 
 export type LandlordRpcName = keyof LandlordRpcArgs;

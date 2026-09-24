@@ -30,7 +30,8 @@
  *   2. Add one branch to `selectPrincipalChannel` below for
  *      `LANDLORD_LINE_TRANSPORT=sms`.
  *   3. Point the aggregator's inbound webhook at `/api/landlord/inbound` with
- *      the header `x-landlord-inbound-secret: <LANDLORD_INBOUND_SECRET>`.
+ *      the header `Authorization: Bearer <LANDLORD_INBOUND_SECRET>`, which is what
+ *      the route checks.
  *
  * Nothing else changes: not the drain, not the page, not the database.
  */

@@ -15,7 +15,7 @@ import { LiveRefresh } from "../_review/LiveRefresh";
 import { ListingsQueue } from "./ListingsQueue";
 import { MandatesPanel } from "./MandatesPanel";
 import { MandateConsent } from "./MandateConsent";
-import { landlordLineIsOpen, readMandateConsents } from "@/lib/landlord/queries";
+import { landlordLineIsOpen, readClosedListingCount, readClosedReasons, readMandateConsents } from "@/lib/landlord/queries";
 import { consentLine } from "@/lib/landlord/consent";
 import { toQueueRow } from "./rows";
 import { LISTING_TABS, isDecidedStatus, listingStatusWord, reviewHref } from "./tabs";
@@ -97,10 +97,14 @@ export default async function AdminListingsPage({
     readMandateConsents(mandateRows.map((row) => row.id)),
     landlordLineIsOpen(),
   ]);
+  /* V-48: a listing closed with a reason is SUSPENDED underneath, and it is
+     not a suspension. It is kept out of the Suspended tab and its count. */
+  const closedCount = await readClosedListingCount();
   const total = (key: string) =>
     counts.state === "ok"
       ? (counts.data.real[key as keyof typeof counts.data.real] ?? 0) +
-        (counts.data.examples[key as keyof typeof counts.data.examples] ?? 0)
+        (counts.data.examples[key as keyof typeof counts.data.examples] ?? 0) -
+        (key === "SUSPENDED" ? (closedCount ?? 0) : 0)
       : null;
   const allCount =
     counts.state === "ok"
@@ -147,7 +151,9 @@ export default async function AdminListingsPage({
 
   const { waiting, decided, full } = read.data;
   const decidedTab = Boolean(status && isDecidedStatus(status));
-  const main = decidedTab ? decided : waiting;
+  const closedReasons = await readClosedReasons([...waiting, ...decided].map((listing) => listing.id));
+  const notClosedSuspension = (listing: { id: string }) => !(status === "SUSPENDED" && listing.id in closedReasons);
+  const main = (decidedTab ? decided : waiting).filter(notClosedSuspension);
   const shownDecided = !status && offset === 0 ? decided : [];
   const extras = await getQueueRowExtras([...main, ...shownDecided].map((listing) => listing.id));
   const rowOf = (listing: (typeof main)[number]) => {
@@ -158,6 +164,8 @@ export default async function AdminListingsPage({
       listerRole: extra?.role ? ROLE_WORD[extra.role] : null,
       isExample: extra ? extra.isDemo : null,
       badge: extra?.badge ?? null,
+      /* V-48: a closed listing reads as closed, never as suspended. */
+      status: listing.id in closedReasons ? "CLOSED" : row.status,
     };
   };
   const narrowed = queueNarrowed(query) || offset > 0;
@@ -182,7 +190,7 @@ export default async function AdminListingsPage({
         rows={main.map(rowOf)}
         decided={shownDecided.length > 0 ? shownDecided.map(rowOf) : undefined}
         decidedTitle={common.recentlyDecided}
-        statusLabel={(status) => listingStatusWord(status, ui.statusLabel)}
+        statusLabel={(status) => (status === "CLOSED" ? t.landlord.close.groupTitle : listingStatusWord(status, ui.statusLabel))}
         counts={counts.state === "ok" ? counts.data.real : null}
         examples={
           counts.state === "ok"
@@ -205,6 +213,11 @@ export default async function AdminListingsPage({
                   readFailed={consents === null}
                   lineOpen={lineOpen}
                   copy={t.landlord.admin}
+                  stoppedLine={
+                    consent?.numberStoppedAt
+                      ? t.landlord.admin.stoppedBefore.replace("{date}", ui.day(consent.numberStoppedAt))
+                      : null
+                  }
                 />
               );
             }}

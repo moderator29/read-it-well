@@ -26,9 +26,10 @@
  *
  * ---------------------------------------------------------------------------
  * THE REPLY. Landlords type what they type: "1", "1 K7QX", "K7QX 1", "1k7qx",
- * "2." and "STOP". `parseReply` accepts all of them and nothing looser: a
- * digit from 1 to 3, an optional four character code from the reply alphabet,
- * in either order, or the word STOP. Anything else is not guessed at, because
+ * "2." and "please stop". `parseReply` accepts all of them and nothing looser:
+ * a digit from 1 to 3 and an optional four character code from the reply
+ * alphabet, in either order; or ANY text containing STOP, UNSUBSCRIBE, QUIT,
+ * CANCEL or END as a word, which is a stop whatever else it says. Anything else is not guessed at, because
  * a misread "let" takes a real listing down.
  */
 
@@ -88,9 +89,13 @@ export type ParsedReply =
  * read with certainty.
  */
 export function parseReply(text: string): ParsedReply | null {
+  /* A STOP anywhere in the text is a stop, and it wins over any digit beside
+     it: "2 stop", "Please stop texting me" and "STOP." are all withdrawals of
+     consent, and misreading one as an answer would keep messaging somebody who
+     asked us not to. Checked before any length limit for the same reason. */
+  if (/\b(STOP|STOPALL|UNSUBSCRIBE|QUIT|CANCEL|END)\b/i.test(text)) return { kind: "stop" };
   const cleaned = text.trim().toUpperCase().replace(/[.,!]+$/g, "");
   if (cleaned.length === 0 || cleaned.length > 40) return null;
-  if (/^(STOP|STOPALL|UNSUBSCRIBE|END|QUIT|CANCEL)$/.test(cleaned)) return { kind: "stop" };
 
   const code = `[${REPLY_CODE_ALPHABET}]{4}`;
   const patterns = [
