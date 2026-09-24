@@ -67,6 +67,7 @@ import {
 import { CRYPTO_PREFIX, FUND_PREFIX, P2P_PREFIX, WITHDRAW_PREFIX } from "../payments/references";
 import { guardMoney } from "../security/money-limits";
 import { accountHoldRefusal, holdRefusalForFailure } from "../security/account-hold-guard";
+import { moneyLockRefusal } from "../security/money-lock-guard";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { subjectForUser } from "../security/rate-limit";
 import { lookupBank, resolveBankAccountName } from "../payments/bank-resolve";
@@ -523,6 +524,9 @@ async function withdrawWork(
      the sentence. */
   const accountHold = await accountHoldRefusal(session.supabase);
   if (accountHold) return fail(accountHold);
+  /* V-81: an enrolled phone lock means this needs a fresh proof. */
+  const moneyLock = await moneyLockRefusal(session.user.id, formData);
+  if (moneyLock) return fail(moneyLock);
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
@@ -845,6 +849,9 @@ async function withdrawToSavedAccount(
      the sentence. */
   const accountHold = await accountHoldRefusal(session.supabase);
   if (accountHold) return fail(accountHold);
+  /* V-81: an enrolled phone lock means this needs a fresh proof. */
+  const moneyLock = await moneyLockRefusal(session.user.id, formData);
+  if (moneyLock) return fail(moneyLock);
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
@@ -1136,6 +1143,9 @@ async function transferToUserWork(
      the sentence. */
   const accountHold = await accountHoldRefusal(session.supabase);
   if (accountHold) return fail(accountHold);
+  /* V-81: an enrolled phone lock means this needs a fresh proof. */
+  const moneyLock = await moneyLockRefusal(session.user.id, formData);
+  if (moneyLock) return fail(moneyLock);
 
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);

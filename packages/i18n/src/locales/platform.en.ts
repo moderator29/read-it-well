@@ -260,4 +260,33 @@ export const platformEn = {
     emptyBody: "Phones report their speed as people use the app. Nothing has arrived in the last seven days, so there is nothing to show rather than a guess.",
     what: "the field speed figures",
   },
+
+  /* V-81: the lock on money. */
+  moneyLock: {
+    needed: "Confirm it is you with this phone's face or fingerprint lock, or your password, before money leaves your wallet. Nothing has left.",
+    confirmTitle: "Confirm it is you",
+    confirmBody: "Money is leaving your wallet. Use this phone's face or fingerprint lock.",
+    confirm: "Use face or fingerprint",
+    usePassword: "Use my password instead",
+    passwordLabel: "Your Vallo password",
+    passwordConfirm: "Confirm",
+    cancel: "Cancel",
+    rejected: "That did not confirm it is you. Nothing has left your wallet. Try again.",
+    failed: "We could not check that just now. Nothing has left your wallet. Try again in a moment.",
+    settingsTitle: "Lock money with this phone",
+    settingsBody:
+      "Sending and withdrawing will ask for this phone's face or fingerprint lock. If the lock will not answer, your password still works.",
+    settingsEnrol: "Lock money with this phone",
+    settingsEnrolled: "Money is locked with {count}",
+    phones: { one: "{count} phone", other: "{count} phones" } as PluralForms,
+    settingsRemove: "Remove this phone",
+    settingsPasswordFirst: "Enter your password first. It stops somebody holding your unlocked phone from adding their own finger.",
+    settingsDone: "Done. Sending and withdrawing will now ask for this phone's lock.",
+    settingsRemoved: "Removed. This phone no longer locks your money.",
+    settingsUnsupported: "This browser cannot use the phone's face or fingerprint lock for Vallo.",
+    thisPhone: "This phone",
+    settingsUnknown: "We could not read which phones lock your money just now. Your lock still works.",
+    settingsRemoveNeedsProof: "Removing a phone asks for the same proof as sending money.",
+    added: "Added {when}",
+  },
 };

@@ -38,6 +38,7 @@ import { useMoneyWait, WaitNotice } from "./MoneyWait";
 import { ErrorNotice } from "./ErrorNotice";
 import { mintIdempotencyKey } from "./idempotency";
 import { createSubmitGuard } from "./submit-guard";
+import { useMoneyStepUp } from "./MoneyStepUp";
 import {
   lookupRecipient,
   type RecipientLookup,
@@ -136,6 +137,8 @@ export function SendFlow({
   const [recent, setRecent] = useState<RecentRecipient[]>([]);
   const [idempotencyKey] = useState(mintIdempotencyKey);
   const [state, formAction, pending] = useActionState(transferToUser, INITIAL);
+  /* V-81: the phone lock on money, when this person has set one. */
+  const moneyLock = useMoneyStepUp(locale);
   const wait = useMoneyWait(pending);
   const [entry, setEntry] = useState<WalletEntry | null>(null);
   /* The double-tap latch and the button's own disabled state from the first
@@ -371,6 +374,7 @@ export function SendFlow({
         noValidate
         data-testid="wallet-send-confirm"
         onSubmit={(event) => {
+          if (!moneyLock.pass(event)) return;
           if (!guard.current.tryEnter()) {
             event.preventDefault();
             return;
@@ -382,6 +386,8 @@ export function SendFlow({
         <input type="hidden" name="amount" value={amountText.trim()} />
         <input type="hidden" name="note" value={note.trim()} />
         <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
+        <input type="hidden" name="stepUp" value={moneyLock.token} />
+        {moneyLock.sheet}
 
         <div className={panelClass({ variant: "card", className: "p-card text-center" })}>
           {/* While it is in flight the mark, the amount and the consequence

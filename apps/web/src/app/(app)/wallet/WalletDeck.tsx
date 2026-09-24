@@ -1,5 +1,6 @@
 "use client";
 
+import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
 import { useActionState, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -487,6 +488,8 @@ function WithdrawForm({
   onDone: () => void;
 }) {
   const [state, formAction, pending] = useActionState(withdraw, WITHDRAW_INITIAL);
+  /* V-81: the phone lock on money, when this person has set one. */
+  const moneyLock = useMoneyStepUp(locale);
   const wait = useMoneyWait(pending);
   const router = useRouter();
   const [amount, setAmount] = useState("");
@@ -568,7 +571,16 @@ function WithdrawForm({
   }
 
   return (
-    <form action={formAction} noValidate className="space-y-row">
+    <form
+      action={formAction}
+      noValidate
+      className="space-y-row"
+      onSubmit={(event) => {
+        moneyLock.pass(event);
+      }}
+    >
+      <input type="hidden" name="stepUp" value={moneyLock.token} />
+      {moneyLock.sheet}
       {live && <BalanceLine balanceMinor={balanceMinor} locale={locale} />}
       <AmountField
         value={amount}
