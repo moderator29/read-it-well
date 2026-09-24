@@ -25,8 +25,8 @@ export async function arrivalChargesDeclared(
     const column = target.listingId ? "listing_id" : "accommodation_id";
     const id = target.listingId ?? target.accommodationId;
     if (!id) return false;
-    const { data, error } = await db.from("arrival_charge_declarations").select("id").eq(column, id).maybeSingle();
-    return !error && data !== null;
+    const { data, error } = await db.from("arrival_charge_declarations").select("id").eq(column, id).limit(1);
+    return !error && Array.isArray(data) && data.length > 0;
   } catch {
     return false;
   }

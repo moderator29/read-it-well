@@ -11,6 +11,7 @@ import { BookingDetailCard } from "./BookingDetailCard";
 import { BookingMoneyRecord } from "@/components/app/after-gate/BookingMoneyRecord";
 import { ArrivalChargesLine } from "@/components/stays/ArrivalChargesLine";
 import { DoorChargeReport } from "@/components/stays/DoorChargeReport";
+import { isRentChargeBooking } from "@/lib/after-gate/is-rent-charge";
 
 /** A receipt for one commitment. Never indexed, and never in a tab title. */
 export const metadata: Metadata = {
@@ -145,10 +146,12 @@ export default async function BookingDetailPage({
         cancelled={booking.status === "CANCELLED"}
         locale={locale}
       />
-      {/* V-57: what the host declared at the door, and the report if asked for more. */}
-      {booking.status !== "CANCELLED" && (
+      {/* V-57: what the host declared at the door (as frozen at payment), and
+          the report if asked for more. A stay only: a rent charge is settled
+          in its own agreement, and every other bookings row is a nightly stay. */}
+      {booking.status !== "CANCELLED" && !(await isRentChargeBooking(booking.id)) && (
         <div className="mt-lg grid gap-md">
-          <ArrivalChargesLine listingId={booking.listingId} locale={locale} />
+          <ArrivalChargesLine listingId={booking.listingId} bookingId={booking.id} locale={locale} />
           {(booking.status === "CONFIRMED" || booking.status === "COMPLETED") && (
             <DoorChargeReport bookingId={booking.id} copy={t.afterTheGate.arrival} />
           )}

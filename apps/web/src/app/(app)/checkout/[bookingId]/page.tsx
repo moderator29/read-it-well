@@ -292,7 +292,7 @@ export default async function CheckoutPage({
       {/* V-57: what the host declared at the door, and the sentence for the gate. */}
       {view.status !== "CANCELLED" && !(await isRentChargeBooking(view.bookingId)) && (
         <div className="mt-lg">
-          <ArrivalChargesLine listingId={view.listingId} locale={view.locale} />
+          <ArrivalChargesLine listingId={view.listingId} bookingId={view.bookingId} locale={view.locale} />
         </div>
       )}
 

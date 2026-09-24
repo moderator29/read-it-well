@@ -16,10 +16,22 @@
 -- guest | unit}. `private.arrival_charges_valid` is the check, and a
 -- declaration is only accepted with all five keys answered.
 --
--- THE DOOR REPORT. A guest with a paid stay taps "I was asked for money at
--- the door": one row per booking, a medium risk alert on the booking, and a
--- high alert once for a host with three such reports in 90 days. The report
--- is recorded; the refund desk decides anything owed, as for every refund.
+-- APPEND-ONLY, AND FROZEN AT PAYMENT. Every declaration is a new row (the
+-- latest for a listing or property is the current one), so what a host
+-- declared on any day stays on record. When a stay's payment settles, the
+-- then-current declaration is copied onto the booking
+-- (`arrival_charge_snapshots`, by a trigger on `transactions` that never
+-- raises inside the settlement, exactly as V-20 freezes cancellation terms),
+-- and the booking shows its own copy for ever, readable by its guest even if
+-- the listing is later suspended or edited.
+--
+-- THE DOOR REPORT. A guest with a paid, confirmed or completed stay whose
+-- check-in day has come taps "I was asked for money at the door": one row per
+-- booking, a medium risk alert on the booking, and a high alert once for a
+-- listing with three such reports in 90 days. The entry asked for a support
+-- ticket with reason not_as_listed; `support_tickets` needs a name and email
+-- this door does not hold, so the report and the risk alert are the record,
+-- and the desk reads them together. The refund desk decides anything owed.
 
 create or replace function private.arrival_charges_valid(p jsonb)
 returns boolean
@@ -51,16 +63,30 @@ revoke all on function private.arrival_charges_valid(jsonb) from public, anon, a
 
 create table if not exists public.arrival_charge_declarations (
   id               uuid primary key default gen_random_uuid(),
-  listing_id       uuid unique references public.listings(id) on delete cascade,
-  accommodation_id uuid unique references public.accommodations(id) on delete cascade,
+  listing_id       uuid references public.listings(id) on delete cascade,
+  accommodation_id uuid references public.accommodations(id) on delete cascade,
   charges          jsonb not null check (private.arrival_charges_valid(charges)),
   declared_by      uuid not null,
-  declared_at      timestamptz not null default now(),
+  declared_at      timestamptz not null default clock_timestamp(),
   check ((listing_id is null) <> (accommodation_id is null))
 );
 
 comment on table public.arrival_charge_declarations is
   'V-57. Every charge a guest can be asked for on arrival at a stay, each in kobo or none, from a closed key set. On a nightly listing or an accommodation. Written through declare_arrival_charges by the owner.';
+
+create index if not exists arrival_charge_declarations_listing_idx on public.arrival_charge_declarations (listing_id, declared_at desc);
+create index if not exists arrival_charge_declarations_accommodation_idx on public.arrival_charge_declarations (accommodation_id, declared_at desc);
+
+/* The declaration as it stood when a stay was paid, on the booking. */
+create table if not exists public.arrival_charge_snapshots (
+  booking_id     uuid primary key references public.bookings(id) on delete cascade,
+  declaration_id uuid references public.arrival_charge_declarations(id) on delete set null,
+  charges        jsonb check (charges is null or private.arrival_charges_valid(charges)),
+  frozen_at      timestamptz not null default now()
+);
+
+comment on table public.arrival_charge_snapshots is
+  'V-57. The arrival-charge declaration as it stood when the stay was paid, or null charges when none had been declared. Read by the booking''s guest and the listing''s owner. Append-only.';
 
 create table if not exists public.door_charge_reports (
   booking_id  uuid primary key references public.bookings(id) on delete cascade,
@@ -74,10 +100,17 @@ comment on table public.door_charge_reports is
 
 alter table public.arrival_charge_declarations enable row level security;
 alter table public.door_charge_reports enable row level security;
-revoke all on public.arrival_charge_declarations, public.door_charge_reports from public, anon, authenticated;
+alter table public.arrival_charge_snapshots enable row level security;
+revoke all on public.arrival_charge_declarations, public.door_charge_reports, public.arrival_charge_snapshots from public, anon, authenticated;
 grant select on public.arrival_charge_declarations to anon, authenticated;
-grant select on public.door_charge_reports to authenticated;
-grant all on public.arrival_charge_declarations, public.door_charge_reports to service_role;
+grant select on public.door_charge_reports, public.arrival_charge_snapshots to authenticated;
+grant all on public.arrival_charge_declarations, public.door_charge_reports, public.arrival_charge_snapshots to service_role;
+
+create policy arrival_charge_snapshots_read on public.arrival_charge_snapshots for select to authenticated
+  using (exists (select 1 from public.bookings b where b.id = booking_id
+                  and (b.guest_id = (select auth.uid()) or private.owns_listing(b.listing_id)))
+         or private.has_role((select auth.uid()), 'admin'::public.app_role)
+         or private.has_role((select auth.uid()), 'super_admin'::public.app_role));
 
 /* A published stay's declaration is public: it is what the guest is promised. */
 create policy arrival_charge_declarations_public_read on public.arrival_charge_declarations for select to anon, authenticated
@@ -102,7 +135,7 @@ language plpgsql
 set search_path to 'pg_catalog', 'public'
 as $function$
 begin
-  raise exception 'public.door_charge_reports is append-only' using errcode = '42501';
+  raise exception 'public.% is append-only', tg_table_name using errcode = '42501';
 end;
 $function$;
 
@@ -111,6 +144,62 @@ revoke all on function private.door_charge_reports_frozen() from public, anon, a
 drop trigger if exists door_charge_reports_frozen on public.door_charge_reports;
 create trigger door_charge_reports_frozen before update on public.door_charge_reports
   for each row execute function private.door_charge_reports_frozen();
+drop trigger if exists arrival_charge_declarations_frozen on public.arrival_charge_declarations;
+create trigger arrival_charge_declarations_frozen before update on public.arrival_charge_declarations
+  for each row execute function private.door_charge_reports_frozen();
+drop trigger if exists arrival_charge_snapshots_frozen on public.arrival_charge_snapshots;
+create trigger arrival_charge_snapshots_frozen before update on public.arrival_charge_snapshots
+  for each row execute function private.door_charge_reports_frozen();
+
+/* ------------------------------------------------------------ frozen at payment */
+
+create or replace function private.freeze_arrival_charges_on_payment()
+returns trigger
+language plpgsql
+security definer
+set search_path to 'pg_catalog', 'public'
+as $function$
+declare
+  decl public.arrival_charge_declarations%rowtype;
+begin
+  if new.booking_id is null or new.status <> 'SUCCESSFUL' then
+    return new;
+  end if;
+  if tg_op = 'UPDATE' and old.status = 'SUCCESSFUL' then
+    return new;
+  end if;
+  -- INSIDE THE SETTLEMENT TRANSACTION: NEVER RAISE.
+  begin
+    if exists (select 1 from public.rent_payments rp where rp.booking_id = new.booking_id) then
+      return new;
+    end if;
+    select d.* into decl
+      from public.arrival_charge_declarations d join public.bookings b on b.listing_id = d.listing_id
+     where b.id = new.booking_id
+     order by d.declared_at desc limit 1;
+    insert into public.arrival_charge_snapshots (booking_id, declaration_id, charges)
+    values (new.booking_id, decl.id, decl.charges)
+    on conflict (booking_id) do nothing;
+  exception when others then
+    begin
+      insert into public.risk_alerts (severity, status, title, description, entity_type, entity_id)
+      values ('medium', 'open', 'Arrival charges were not frozen at payment',
+              format('Booking %s settled but its arrival-charge snapshot was not written: %s', new.booking_id, sqlerrm),
+              'booking', new.booking_id::text);
+    exception when others then
+      null;
+    end;
+  end;
+  return new;
+end;
+$function$;
+
+revoke all on function private.freeze_arrival_charges_on_payment() from public, anon, authenticated;
+
+drop trigger if exists transactions_freeze_arrival_charges on public.transactions;
+create trigger transactions_freeze_arrival_charges
+  after insert or update of status on public.transactions
+  for each row execute function private.freeze_arrival_charges_on_payment();
 
 /* ------------------------------------------------------------ the doors */
 
@@ -134,15 +223,9 @@ begin
   if p_charges is null or not private.arrival_charges_valid(p_charges) then
     return jsonb_build_object('status', 'incomplete');
   end if;
-  if p_listing is not null then
-    insert into public.arrival_charge_declarations (listing_id, charges, declared_by)
-    values (p_listing, p_charges, (select auth.uid()))
-    on conflict (listing_id) do update set charges = excluded.charges, declared_by = excluded.declared_by, declared_at = now();
-  else
-    insert into public.arrival_charge_declarations (accommodation_id, charges, declared_by)
-    values (p_accommodation, p_charges, (select auth.uid()))
-    on conflict (accommodation_id) do update set charges = excluded.charges, declared_by = excluded.declared_by, declared_at = now();
-  end if;
+  -- A new row every time: the latest is current, the rest are the history.
+  insert into public.arrival_charge_declarations (listing_id, accommodation_id, charges, declared_by)
+  values (p_listing, p_accommodation, p_charges, (select auth.uid()));
   return jsonb_build_object('status', 'ok');
 end;
 $function$;
@@ -164,8 +247,12 @@ begin
     return jsonb_build_object('status', 'not_found');
   end if;
   if exists (select 1 from public.rent_payments rp where rp.booking_id = b.id)
-     or not exists (select 1 from public.transactions t where t.booking_id = b.id and t.status = 'SUCCESSFUL') then
+     or not exists (select 1 from public.transactions t where t.booking_id = b.id and t.status = 'SUCCESSFUL')
+     or b.status not in ('CONFIRMED', 'COMPLETED') then
     return jsonb_build_object('status', 'not_a_paid_stay');
+  end if;
+  if b.check_in > (now() at time zone 'Africa/Lagos')::date then
+    return jsonb_build_object('status', 'not_arrived');
   end if;
   if p_asked is not null and p_asked <= 0 then
     return jsonb_build_object('status', 'bad_amount');
