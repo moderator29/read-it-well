@@ -92,7 +92,7 @@ export function SafetySharePanel({
                 : copy.pageWaiting}
           </span>
         </p>
-        {status === "overdue" && (
+        {status !== "done" && (
           <a href="tel:112" className="nf-btn nf-btn--danger nf-btn--md mt-sm inline-flex min-h-11">
             {copy.call}
           </a>

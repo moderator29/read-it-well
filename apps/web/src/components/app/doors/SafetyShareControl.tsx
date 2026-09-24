@@ -190,10 +190,15 @@ export function SafetyShareControl({
       )}
 
       {phase.kind === "done" && (
-        <p className="mt-sm flex items-center gap-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-state-success)]" role="status">
-          <UiIcon name="verified" size={16} className="shrink-0" />
-          {copy.doneThanks}
-        </p>
+        <div className="mt-sm">
+          <p className="flex items-center gap-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-state-success)]" role="status">
+            <UiIcon name="verified" size={16} className="shrink-0" />
+            {copy.doneThanks}
+          </p>
+          {/* The page still shows "done" to whoever holds the link until it
+              expires; the renter can take it down now. */}
+          {stopButton}
+        </div>
       )}
 
       {error && (

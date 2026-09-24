@@ -49,6 +49,9 @@ export default async function SafetySharePage({ params }: { params: Promise<{ to
               : view.state === "failed"
                 ? { title: copy.failedTitle, body: copy.failedBody }
                 : { title: copy.unknownTitle, body: copy.unknownBody };
+    /* V-62 review: a lister closing or moving the inspection must not quieten
+       this page while the renter has not checked in. */
+    const stillOut = (view.state === "cancelled" || view.state === "moved") && !view.checkedIn;
     return (
       <Frame>
         <ResultScreen
@@ -57,6 +60,16 @@ export default async function SafetySharePage({ params }: { params: Promise<{ to
           consequence={words.body}
           data-testid={`safety-${view.state}`}
         />
+        {stillOut && (
+          <div role="status" className="mx-lg mt-lg rounded-[var(--nf-container-radius)] border border-[var(--nf-border-subtle)] p-md" data-testid="safety-still-out">
+            <p className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+              {view.overdue ? copy.pageOverdue : copy.worried}
+            </p>
+            <a href="tel:112" className="nf-btn nf-btn--danger nf-btn--md mt-sm inline-flex min-h-11">
+              {copy.call}
+            </a>
+          </div>
+        )}
       </Frame>
     );
   }

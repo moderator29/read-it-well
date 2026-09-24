@@ -4,7 +4,8 @@
  *
  * `public.safety_share_read` returns the renter's first name, the listing's
  * AREA (never the address or a landmark), the agent's public name and the
- * date Vallo checked their identity, the slot, when the renter expects to be
+ * date Vallo checked their identity (the agent's name is no longer returned:
+ * it is text a lister typed), the slot, when the renter expects to be
  * back, and whether they have tapped "I'm done". This file reads that JSON
  * into a view without trusting any field, and decides which of a renter's
  * inspections can be shared at all. Pure: the page and the tests both use it.
@@ -13,8 +14,11 @@
 export type SafetyShareView =
   | { state: "unknown" }
   | { state: "expired" }
-  | { state: "cancelled" }
-  | { state: "moved" }
+  /* A cancelled or moved inspection still says whether the renter has checked
+     in, so closing or moving it can never quieten the page while nobody has
+     heard from them. */
+  | { state: "cancelled"; checkedIn: boolean; overdue: boolean }
+  | { state: "moved"; checkedIn: boolean; overdue: boolean }
   | { state: "stopped" }
   | { state: "failed" }
   | {
@@ -39,8 +43,9 @@ export function readSafetyShare(data: unknown): SafetyShareView {
   const row = data as Record<string, unknown>;
   if (row.state === "unknown") return { state: "unknown" };
   if (row.state === "expired") return { state: "expired" };
-  if (row.state === "cancelled") return { state: "cancelled" };
-  if (row.state === "moved") return { state: "moved" };
+  if (row.state === "cancelled" || row.state === "moved") {
+    return { state: row.state, checkedIn: text(row.checked_in_at) !== null, overdue: row.overdue === true };
+  }
   if (row.state === "stopped") return { state: "stopped" };
   if (row.state !== "live") return { state: "failed" };
   return {

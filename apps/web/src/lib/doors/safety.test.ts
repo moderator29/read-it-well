@@ -27,6 +27,19 @@ describe("readSafetyShare", () => {
     expect(view.state === "live" && view.area).toBeNull();
     expect(readSafetyShare({ state: "cancelled" }).state).toBe("cancelled");
     expect(readSafetyShare({ state: "moved" }).state).toBe("moved");
+  });
+
+  it("keeps saying whether the renter checked in when the inspection is cancelled or moved", () => {
+    expect(readSafetyShare({ state: "cancelled", overdue: true, checked_in_at: null })).toEqual({
+      state: "cancelled",
+      checkedIn: false,
+      overdue: true,
+    });
+    expect(readSafetyShare({ state: "moved", overdue: false, checked_in_at: "2026-09-24T10:00:00Z" })).toEqual({
+      state: "moved",
+      checkedIn: true,
+      overdue: false,
+    });
     expect(readSafetyShare({ state: "stopped" }).state).toBe("stopped");
     expect(readSafetyShare(null).state).toBe("failed");
     expect(readSafetyShare({ state: "something" }).state).toBe("failed");
