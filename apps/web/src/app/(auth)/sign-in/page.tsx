@@ -43,7 +43,9 @@ export default async function SignInPage({
   const t = getDictionary(locale);
   const notice = typeof params.notice === "string" ? params.notice : undefined;
   const next = typeof params.next === "string" ? params.next : undefined;
-  const noticeText = notice ? t.authFlow.notices[notice] : undefined;
+  /* The key comes from the URL, so only the table's own keys count
+     (`?notice=constructor` must not reach the prototype). */
+  const noticeText = notice && Object.hasOwn(t.authFlow.notices, notice) ? t.authFlow.notices[notice] : undefined;
 
   const surface = await requestSurface();
   return (
