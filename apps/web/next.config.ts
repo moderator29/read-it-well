@@ -180,6 +180,15 @@ const nextConfig: NextConfig = {
        */
       { source: "/trips", destination: "/bookings?side=stays", permanent: true },
       { source: "/inspections", destination: "/bookings?kind=inspection", permanent: true },
+      /*
+       * THE CONSOLE'S THREE MODERATION DESKS ARE LANES OF THE QUEUE (V-88).
+       * Reports, message flags and held content were three destinations for
+       * one noun; the unified queue renders each as a lane with every control
+       * the desk had. The query rides along, so a filtered link still filters.
+       */
+      { source: "/admin/reports", destination: "/admin/queue?tab=reports", permanent: true },
+      { source: "/admin/flags", destination: "/admin/queue?tab=flags", permanent: true },
+      { source: "/admin/moderation", destination: "/admin/queue?tab=held", permanent: true },
     ];
   },
 

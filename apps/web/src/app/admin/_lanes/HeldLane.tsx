@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -27,12 +26,11 @@ import { HoldDecision } from "./HoldDecision";
 import { ModerationDesk, type ModerationRow } from "./ModerationDesk";
 import "../_review/review.css";
 
-export const metadata: Metadata = {
-  title: "Moderation",
-  robots: { index: false, follow: false },
-};
-
-export const dynamic = "force-dynamic";
+/* V-88: this was the /admin/moderation desk, reports by reason beside what
+   the safety scan held. It is the Held lane of the unified queue now
+   (`/admin/queue?tab=held`), its reason chips (Payment outside, Scam,
+   Unsafe and the rest) kept as the lane's own filters, and the old address
+   redirects there. */
 
 /**
  * Moderation, 01F7DFC7 panel 1, and the two queues it is made of.
@@ -68,10 +66,10 @@ const TAB_WORD: Record<(typeof REPORT_CATEGORIES)[number], string> = {
   other: "Other",
 };
 
-export default async function AdminModerationPage({
-  searchParams,
+export async function HeldLane({
+  params,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  params: Record<string, string | string[] | undefined>;
 }) {
   const access = await requireAdmin();
   const locale = await getLocale();
@@ -92,7 +90,6 @@ export default async function AdminModerationPage({
     );
   }
 
-  const params = await searchParams;
   const query = readQueueQuery(params);
   const rawTab = Array.isArray(params.reason) ? params.reason[0] : params.reason;
   const tab: Tab =
@@ -135,7 +132,7 @@ export default async function AdminModerationPage({
     return aClosed ? b.at.localeCompare(a.at) : a.at.localeCompare(b.at);
   });
 
-  const base = "/admin/moderation";
+  const base = "/admin/queue?tab=held";
   const withReason = (href: string, key: Tab) =>
     key === "all" ? href : `${href}${href.includes("?") ? "&" : "?"}reason=${key}`;
   const tabHref = (key: Tab) =>
@@ -178,7 +175,7 @@ export default async function AdminModerationPage({
                 body: "No report is open and the safety scan is holding nothing. When either changes it lands here, oldest first.",
                 cause:
                   "Members report from any listing, post or profile; the safety scan holds words as they are posted, and the author is told they are being checked.",
-                link: { href: "/admin/reports", label: "See every report, including closed ones" },
+                link: { href: "/admin/queue?tab=reports", label: "See every report, including closed ones" },
               }
         }
         notes={

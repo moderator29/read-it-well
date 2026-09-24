@@ -122,7 +122,7 @@ export async function reviewMessageFlag(input: {
     // The flag is genuinely reviewed either way.
   }
 
-  revalidatePath("/admin/flags");
+  revalidatePath("/admin/queue");
   revalidatePath("/admin");
   return ok(null);
 }
@@ -242,7 +242,7 @@ export async function resolveReport(input: {
     // Best effort.
   }
 
-  revalidatePath("/admin/reports");
+  revalidatePath("/admin/queue");
   revalidatePath("/admin");
   return ok(null);
 }

@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { getDictionary, type Dictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -19,12 +18,10 @@ import {
 import { Constants } from "@/lib/supabase/database.types";
 import { dueChip } from "../_components/due";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = getDictionary(await getLocale());
-  return { title: t.admin.flags.title, robots: { index: false, follow: false } };
-}
-
-export const dynamic = "force-dynamic";
+/* V-88: this was the /admin/flags desk; it is the Flags lane of the
+   unified queue now (`/admin/queue?tab=flags`), and the old address
+   redirects there. */
+const BASE = "/admin/queue?tab=flags";
 
 type FlagCopy = Dictionary["admin"]["flags"];
 
@@ -182,10 +179,10 @@ function statusFilters(ui: AdminUi): readonly QueueStatusOption[] {
   }));
 }
 
-export default async function AdminFlagsPage({
-  searchParams,
+export async function FlagsLane({
+  params,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  params: Record<string, string | string[] | undefined>;
 }) {
   const locale = await getLocale();
   const t = getDictionary(locale);
@@ -195,7 +192,6 @@ export default async function AdminFlagsPage({
 
   /* The shared queue frame. The search is over what the safety scan matched,
      which is what an operator is chasing when they come back to a flag. */
-  const params = await searchParams;
   const query = readQueueQuery(params);
   const flags = await getMessageFlags({
     ...(query.q ? { q: query.q } : {}),
@@ -230,7 +226,7 @@ export default async function AdminFlagsPage({
       <ui.QueueHeader title={copy.title} lede={copy.lede} count={open.length} />
 
       <QueueFilters
-        base="/admin/flags"
+        base={BASE}
         query={query}
         common={common}
         statuses={statusFilters(ui)}
@@ -290,7 +286,7 @@ export default async function AdminFlagsPage({
       )}
 
       <QueuePager
-        base="/admin/flags"
+        base={BASE}
         query={query}
         pageSize={QUEUE_PAGE_SIZE}
         full={flags.data.full}

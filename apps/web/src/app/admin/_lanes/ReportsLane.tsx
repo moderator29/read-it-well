@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getReports, type ReportView } from "@/lib/admin/queries";
@@ -20,12 +19,10 @@ import { QueueTable, shortRef, type QueueRowData } from "../_components/QueueTab
 import { gradeForReportCategory } from "@/lib/trust/standards";
 import { dueChip } from "../_components/due";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = getDictionary(await getLocale());
-  return { title: t.admin.reports.title, robots: { index: false, follow: false } };
-}
-
-export const dynamic = "force-dynamic";
+/* V-88: this was the /admin/reports desk; it is the Reports lane of the
+   unified queue now (`/admin/queue?tab=reports`), and the old address
+   redirects there. */
+const BASE = "/admin/queue?tab=reports";
 
 /**
  * Abuse and content reports raised by members.
@@ -126,10 +123,10 @@ function statusFilters(ui: AdminUi): readonly QueueStatusOption[] {
   }));
 }
 
-export default async function AdminReportsPage({
-  searchParams,
+export async function ReportsLane({
+  params,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  params: Record<string, string | string[] | undefined>;
 }) {
   const locale = await getLocale();
   const t = getDictionary(locale);
@@ -142,7 +139,6 @@ export default async function AdminReportsPage({
      no date range, no pagination. The narrowing lives in the query, so the page
      cap applies to the rows that matched rather than to the rows that happened
      to be newest. */
-  const params = await searchParams;
   const query = readQueueQuery(params);
   /*
    * THE PROMISE, MEASURED. `lib/legal/eula.tsx` says "We act on every report
@@ -211,7 +207,7 @@ export default async function AdminReportsPage({
       )}
 
       <QueueFilters
-        base="/admin/reports"
+        base={BASE}
         query={query}
         common={common}
         statuses={statusFilters(ui)}
@@ -264,7 +260,7 @@ export default async function AdminReportsPage({
       )}
 
       <QueuePager
-        base="/admin/reports"
+        base={BASE}
         query={query}
         pageSize={QUEUE_PAGE_SIZE}
         full={reports.data.full}

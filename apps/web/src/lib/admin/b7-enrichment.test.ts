@@ -254,7 +254,7 @@ describe("decideReservationAsAdmin", () => {
     const audit = calls.find((c) => c.table === "audit_log" && c.op === "insert");
     expect(audit?.payload).toMatchObject({ action: "reservation.confirm", entity_id: ROW_ID });
     const notice = calls.find((c) => c.table === "notifications" && c.op === "insert");
-    expect(notice?.payload).toMatchObject({ kind: "booking", href: "/trips" });
+    expect(notice?.payload).toMatchObject({ kind: "booking", href: "/bookings?side=stays" });
   });
 
   it("refuses to confirm a table already answered, and writes nothing", async () => {

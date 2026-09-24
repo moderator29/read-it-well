@@ -301,7 +301,7 @@ by title, city or date to reach older ones.
 
 ## 5. Moderation
 
-**Where:** `/admin/moderation`. Built to `01F7DFC7` panel 1.
+**Where:** the Held lane of the unified queue, `/admin/queue?tab=held` (V-88: `/admin/moderation` redirects there). Built to `01F7DFC7` panel 1.
 
 Two kinds of work in one table. **Reports** are what members filed about a
 listing, a post, a story or a person (`reports`). **Held items** are what the
@@ -841,7 +841,7 @@ Owned by admin-money; handbook section 12.
   what it applies to (rule 15).
 - **Rejected** editing a rate in place: a new row keeps the history true.
 
-### 15.7 Message flags (Moderation > Message flags, `/admin/flags`)
+### 15.7 Message flags (the Flags lane, `/admin/queue?tab=flags`; `/admin/flags` redirects there, V-88)
 
 - **Shows** messages the safety scan flagged (`message_flags`), with the
   surrounding thread lines and each party's role, filterable by status.
@@ -853,7 +853,7 @@ Owned by admin-money; handbook section 12.
 - **Rejected** deleting the message: evidence is kept; the scan's decision
   is reviewed, not erased.
 
-### 15.8 Reports (Moderation > Reports, `/admin/reports`)
+### 15.8 Reports (the Reports lane, `/admin/queue?tab=reports`; `/admin/reports` redirects there, V-88)
 
 - **Shows** reports people filed (`reports`), with category, target and the
   response clock (`REPORT_RESPONSE_HOURS`, overdue count via
@@ -1013,7 +1013,7 @@ back to Waiting when they resubmit.
 (not the lister's to let, a scam, a duplicate). Write why, press Reject, press
 it again to confirm. The lister is told and may still edit and resubmit.
 
-**Deciding a report.** `/admin/moderation`. Work top down: waiting items are
+**Deciding a report.** `/admin/queue?tab=held` (or the Reports lane). Work top down: waiting items are
 oldest first. Open the row, read the reporter's words and open what was
 reported. Start review if it will take time (the reporter's report now shows
 as in review under your name). Resolve when you have acted (for a listing,
