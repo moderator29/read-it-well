@@ -25,16 +25,28 @@ export function publicListingTitle(
 }
 
 /**
- * A house number followed by a street word: "3 Adeola Odeku Street",
- * "12B Admiralty Way". The title is shown to everybody; the exact address is
- * shared only after a booking, so a title that carries one is refused.
+ * A HOUSE NUMBER AND A NAMED STREET: "3 Adeola Odeku Street", "12B Admiralty
+ * Way". Everybody can read a title and the exact address is shared only after
+ * a booking, so a title that looks like one gets a WARNING to the lister. It
+ * is never a refusal: ordinary titles are full of numbers and of the words
+ * "close" and "way", and a false refusal blocks somebody from listing at all.
+ *
+ * The shape, tuned against real titles:
+ * - the number is not a count ("3 bedroom", "5 minutes", "2 units");
+ * - the words between it and the street word are Capitalised, a name;
+ * - the street word is Capitalised and is a street type used in Nigerian
+ *   addresses. "Estate", "Place" and "Court" are left out: they name
+ *   developments far more often than streets.
  */
-const STREET_ADDRESS =
-  /\b\d+[a-z]?\s+(?:[a-z'.-]+\s+){0,4}(?:street|st|road|rd|close|avenue|ave|crescent|cres|drive|dr|lane|ln|way|estate|boulevard|blvd|place|court|ct)\b/i;
+const COUNT_WORD =
+  "(?:bed|beds|bedroom|bedrooms|bedroomed|br|room|rooms|flat|flats|unit|units|min|mins|minute|minutes|km|plot|plots|storey|storeys|floor|floors|toilet|toilets|bath|baths|bathroom|bathrooms|sqm|acre|acres|hectare|hectares)";
+const STREET_ADDRESS = new RegExp(
+  String.raw`(?:^|[\s,(])\d{1,4}[A-Za-z]?(?!\s*${COUNT_WORD}\b)(?:,)?\s+(?:[A-Z][\w'.-]*\s+){1,4}(?:Street|St|Road|Rd|Close|Avenue|Ave|Crescent|Cres|Drive|Dr|Lane|Ln|Way|Boulevard|Blvd)\b\.?`,
+);
 
-export function namesAStreetAddress(title: string): boolean {
+export function looksLikeStreetAddress(title: string): boolean {
   return STREET_ADDRESS.test(title);
 }
 
-export const STREET_IN_TITLE_MESSAGE =
-  "Leave the street address out of the title. Everybody can read the title; the exact address is shared only after a booking.";
+export const STREET_IN_TITLE_WARNING =
+  "This looks like a street address. Everybody can read the title, and the exact address is shared only after a booking, so consider leaving the house number out.";

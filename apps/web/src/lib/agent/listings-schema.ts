@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { namesAStreetAddress, STREET_IN_TITLE_MESSAGE } from "@/lib/listings/public-title";
 
 import {
   BUILD_CONDITION_VALUES,
@@ -591,8 +590,7 @@ export const draftInputSchema = z.object({
       z
         .string()
         .min(MIN_DRAFT_TITLE_LENGTH, "Give your listing a title so we can save it.")
-        .max(MAX_TITLE_LENGTH, `Keep the title under ${MAX_TITLE_LENGTH} characters.`)
-        .refine((title) => !namesAStreetAddress(title), STREET_IN_TITLE_MESSAGE),
+        .max(MAX_TITLE_LENGTH, `Keep the title under ${MAX_TITLE_LENGTH} characters.`),
     ),
   description: optionalText(4000, "Keep the description under 4000 characters."),
   propertyType: z.preprocess(emptyToUndefined, z.enum(PROPERTY_TYPE_VALUES).optional()),
@@ -866,8 +864,6 @@ export function submitRequirements(subject: SubmitSubject): GateRequirement[] {
       field: "title",
       message: `Shorten the title to ${MAX_TITLE_LENGTH} characters or fewer.`,
     });
-  } else if (namesAStreetAddress(title)) {
-    unmet.push({ field: "title", message: STREET_IN_TITLE_MESSAGE });
   }
 
   const words = countWords(subject.description);
