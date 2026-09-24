@@ -209,6 +209,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/rent/move-in/[listingId]": "/listing/[listingId]",
   "/rent/review/[paymentId]": "/inspections",
   "/record/[code]": "/search",
+  "/settings/passport": "/settings",
   "/rent/pay/[inspectionId]": "/inspections",
   "/tenancy/[id]": "/bookings",
   /*

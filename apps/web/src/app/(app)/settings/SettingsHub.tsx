@@ -54,6 +54,8 @@ export type SettingsHubProps = {
    * "nothing is needed" is not drawn).
    */
   phoneRow?: { label: string; sub: string } | null;
+  /** V-100: the renter passport row, for a signed-in person. Absent draws nothing. */
+  passportRow?: { label: string; sub: string } | null;
 };
 
 const ALL_ON: ResolvedProfileSettings["notifications"] = {
@@ -157,6 +159,7 @@ export function SettingsHub({
   notifications,
   deviceCount,
   phoneRow = null,
+  passportRow = null,
 }: SettingsHubProps) {
   const hub = t.settings.hub;
   /* The appearance group and its theme row went with light mode on 23
@@ -258,6 +261,15 @@ export function SettingsHub({
             label={phoneRow.label}
             sub={phoneRow.sub}
             testId="hub-phone"
+          />
+        )}
+        {passportRow && (
+          <RowLink
+            href="/settings/passport"
+            glyph={<HubGlyph name="user" />}
+            label={passportRow.label}
+            sub={passportRow.sub}
+            testId="hub-passport"
           />
         )}
         {/*

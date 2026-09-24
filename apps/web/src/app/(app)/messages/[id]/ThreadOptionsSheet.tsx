@@ -12,6 +12,7 @@ import { SAFETY_EDUCATION_COPY } from "@/lib/messages/education";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { UnsafeSheet } from "@/components/app/safety/UnsafeSheet";
+import { PassportShareRow } from "@/components/app/safety/PassportShareRow";
 import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
 /**
@@ -68,6 +69,7 @@ export function ThreadOptionsSheet({
   canShare,
   onConfirmInspection,
   onClose,
+  passportShare = null,
 }: {
   open: boolean;
   conversationId: string;
@@ -92,6 +94,8 @@ export function ThreadOptionsSheet({
   canShare: boolean;
   onConfirmInspection: () => void;
   onClose: () => void;
+  /** V-100: the renter's own passport switch for this thread. Null draws nothing. */
+  passportShare?: { enabled: boolean; shared: boolean } | null;
 }) {
   const dictionary = useClientDictionary();
   const [confirmingBlock, setConfirmingBlock] = useState(false);
@@ -227,6 +231,14 @@ export function ThreadOptionsSheet({
       {/* ------------------------------------------- report, and then block */}
       {counterpartId && (
         <div data-testid="thread-safety-controls">
+          {/* V-100: show or take back the renter passport, in this thread only. */}
+          {passportShare && (
+            <PassportShareRow
+              copy={dictionary.trustVisible.passport}
+              conversationId={conversationId}
+              initial={passportShare}
+            />
+          )}
           {/* V-63: the moment of fear first, before any report category. */}
           {signedIn && (
             <UnsafeSheet

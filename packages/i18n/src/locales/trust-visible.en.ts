@@ -379,4 +379,43 @@ export const trustVisibleEn = {
     footer: "The person you report is never told who reported them. If you are in danger,",
     call: "call 112 now",
   },
+  /** V-100: the renter passport. Opt in, never required, one thread at a time. */
+  passport: {
+    title: "Renter passport",
+    subtitle: "What Vallo recorded about you, shown only where you choose",
+    lede: "Instead of a guarantor letter, you can show a lister what Vallo itself recorded about you. It is off unless you turn it on, it is shown only in the conversations you choose, and you can take it back at any time. No lister may ask you for it.",
+    on: "Passport on",
+    off: "Passport off",
+    turnOn: "Turn it on",
+    turnOff: "Turn it off",
+    offNote: "Turning it off takes it back from every conversation it was shown in.",
+    preview: "What a lister would see",
+    previewEmpty: "Nothing yet. As you confirm your phone, attend inspections and rent through Vallo, it fills itself in.",
+    /** `{count}` conversations. */
+    sharedIn: "Shown in {count} conversations.",
+    sharedInOne: "Shown in 1 conversation.",
+    sharedInNone: "Not shown in any conversation yet. Open a conversation with a lister to show it there.",
+    phone: "Phone confirmed",
+    /** `{date}` is a date. */
+    nimc: "Identity matched with NIMC, {date}",
+    attendedOne: "1 inspection attended, confirmed by the code at the gate",
+    /** `{count}` inspections. */
+    attended: "{count} inspections attended, confirmed by the code at the gate",
+    tenancyOne: "1 tenancy paid through Vallo",
+    /** `{count}` tenancies. */
+    tenancies: "{count} tenancies paid through Vallo",
+    /** `{month}` is a month and year. */
+    since: "On Vallo since {month}",
+    heading: "Renter passport, shared by them",
+    share: "Show my renter passport to this lister",
+    shareHint: "Only what Vallo recorded. You can take it back.",
+    unshare: "Stop showing my renter passport here",
+    shared: "Shown here. You can take it back at any time.",
+    turnOnFirst: "Turn your passport on in Settings first.",
+    failed: "That did not save. Nothing changed. Try again.",
+    signedOut: "Sign in to see your renter passport.",
+    signIn: "Sign in",
+    readFailed: "Your passport did not load. Nothing was changed. Try again in a moment.",
+    working: "Saving",
+  },
 };
