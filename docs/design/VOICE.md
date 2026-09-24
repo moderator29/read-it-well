@@ -55,8 +55,9 @@ your wallet". Never write "OK", "Continue", "Go", "Submit" or "Click here".
 **No shrugs.** "Oops", "Whoops", "Uh oh" and "Something went wrong" say nothing.
 Say what happened instead.
 
-**No promises about the future.** "Coming soon" is banned here, as it is in the
-banned-word specs.
+**No promises about the future.** No state says when something will arrive.
+The banned-word specs in `lib/copy/banned-phrases.test.ts` already fail those
+promises everywhere in the product.
 
 **A state that would leave somebody stuck offers a way onward.** Empty, offline
 and error states each carry an action. Loading and done may not need one.

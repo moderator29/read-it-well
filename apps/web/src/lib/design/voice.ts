@@ -21,7 +21,9 @@ export const BODY_MAX = 180;
 /**
  * Phrases no state says, with the reason each is banned. Matched whole-word and
  * case-blind. A reason is kept beside each so a writer who trips one learns
- * why rather than finding a synonym.
+ * why rather than finding a synonym. Schedule promises ("soon", "the moment
+ * the keys land") are not repeated here: `lib/copy/banned-phrases.test.ts`
+ * already fails them everywhere in the product.
  */
 export const BANNED_PHRASES: ReadonlyArray<{ phrase: string; why: string }> = [
   { phrase: "checked out", why: "a hotel joke, on a screen renters and landlords share" },
@@ -30,7 +32,6 @@ export const BANNED_PHRASES: ReadonlyArray<{ phrase: string; why: string }> = [
   { phrase: "uh oh", why: "a shrug; say what happened" },
   { phrase: "something went wrong", why: "says nothing; say what did not happen and what is safe" },
   { phrase: "click here", why: "the action names its destination" },
-  { phrase: "coming soon", why: "a promise the code cannot keep; the banned-word specs forbid it" },
   { phrase: "all good", why: "asserts what the code has not checked" },
   { phrase: "don't worry", why: "asserts what the code has not checked" },
 ];
