@@ -112,8 +112,7 @@ export function DetailCapsules({
   const shown = items.slice(0, 4);
   if (shown.length === 0) return null;
   return (
-    /* DOC-21: a scrolling strip takes focus so a keyboard can scroll it. */
-    <ul className="nf-detail-capsules nf-scroll-x" aria-label={label} tabIndex={0} data-testid="detail-capsules">
+    <ul className="nf-detail-capsules nf-scroll-x" aria-label={label} data-testid="detail-capsules">
       {shown.map((item) => (
         <li key={item.key} className="nf-detail-capsule">
           <UiIcon name={item.icon} size={14} />

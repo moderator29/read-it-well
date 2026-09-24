@@ -2014,14 +2014,12 @@
   .nf-stay-card__rating > svg {
     color: var(--nf-brand-secondary);
   }
-  /* DOC-21: clipped, not scrolled. The card is one link, so a scrollable
-     strip inside it could never take keyboard focus; the stay page lists
-     every amenity, and a screen reader still reads the clipped chips. */
   .nf-stay-card__chips {
     display: flex;
     gap: var(--nf-space-xs);
     margin-top: var(--nf-space-xs);
-    overflow: hidden;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
   .nf-stay-card__chips::-webkit-scrollbar {
     display: none;
