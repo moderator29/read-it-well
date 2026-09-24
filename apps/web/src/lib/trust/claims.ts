@@ -15,6 +15,21 @@
  * `npm run build`. Adding a claim means adding its mechanism here, in the same
  * change, where a reviewer can read both.
  *
+ * WHEN IT STOPS A BUILD. Because the check is in `prebuild`, a hotfix that
+ * adds a sentence with one of these words will not build until the claim is
+ * backed. The remedy is one line: add `{ phrase: /the exact words/i,
+ * mechanism: "what makes it true" }` to BACKED_CLAIMS below (or reword the
+ * sentence). The failure message prints the file, line and sentence. Do not
+ * remove the check from `prebuild` to get a build out; a false claim shipped
+ * is the thing it exists to stop.
+ *
+ * The check runs under vitest, so `prebuild` needs the web app's
+ * devDependencies installed (a production-only install cannot build).
+ *
+ * Scope: the app's copy, the four locale catalogues, the auth email templates
+ * in supabase/templates, the native shell's offline page and the iOS and
+ * Android native strings.
+ *
  * Client-safe: plain data and pure functions.
  */
 

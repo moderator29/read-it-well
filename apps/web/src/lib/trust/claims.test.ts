@@ -11,7 +11,10 @@ import { BACKED_CLAIMS, claimMatches, unbackedClaim } from "./claims";
  * the four locale catalogues and every .ts/.tsx file under apps/web/src,
  * except tests, the development previews and the staff console (app/admin,
  * lib/admin, components/admin), whose readers are staff looking at the
- * mechanism itself. Wired into `npm run lint` and `prebuild`.
+ * mechanism itself. Also the copy outside the app bundle: the auth emails in
+ * supabase/templates (html and text), the native shell's offline page, the
+ * iOS permission strings in Info.plist and the Android strings.xml. Wired
+ * into `npm run lint` and `prebuild`.
  */
 const WEB = process.cwd();
 const REPO = join(WEB, "..", "..");
@@ -115,12 +118,50 @@ const FILES = [
   ...["en", "ha", "ig", "yo"].map((locale) => join(REPO, "packages/i18n/src/locales", `${locale}.ts`)),
 ].filter((file) => !SKIPPED.test(file.split("\\").join("/")));
 
-const COPY = FILES.flatMap(copyIn);
+/** Readable text in a markup or plain-text file: element text, alt/title/aria-label, and plist/xml string values. */
+function copyInMarkup(file: string): Copy[] {
+  const rel = relative(REPO, file);
+  const source = readFileSync(file, "utf8");
+  if (file.endsWith(".txt")) {
+    return source
+      .split("\n")
+      .map((line, index) => ({ where: `${rel}:${index + 1}`, text: line.trim() }))
+      .filter((copy) => /[A-Za-z]/.test(copy.text) && !/^https?:\/\/\S+$|^\{\{[^}]*\}\}$/.test(copy.text));
+  }
+  const markup = source
+    .replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n]/g, " "))
+    .replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, (m) => m.replace(/[^\n]/g, " "));
+  const found: Copy[] = [];
+  const line = (index: number) => markup.slice(0, index).split("\n").length;
+  const text = />([^<>]*[A-Za-z][^<>]*)</g;
+  let match: RegExpExecArray | null;
+  while ((match = text.exec(markup))) {
+    const value = (match[1] ?? "").replace(/\s+/g, " ").trim();
+    if (value && !CODE_SHAPED.test(value) && !/^\$\([A-Z_]+\)$/.test(value)) found.push({ where: `${rel}:${line(match.index)}`, text: value });
+  }
+  const attribute = /\b(?:alt|title|aria-label)="([^"]*[A-Za-z][^"]*)"/g;
+  while ((match = attribute.exec(markup))) {
+    found.push({ where: `${rel}:${line(match.index)}`, text: (match[1] ?? "").trim() });
+  }
+  return found;
+}
+
+const MARKUP_FILES = [
+  ...readdirSync(join(REPO, "supabase/templates"))
+    .filter((name) => /\.(html|txt)$/.test(name))
+    .map((name) => join(REPO, "supabase/templates", name)),
+  join(WEB, "native-shell/index.html"),
+  join(WEB, "ios/App/App/Info.plist"),
+  join(WEB, "android/app/src/main/res/values/strings.xml"),
+];
+
+const COPY = [...FILES.flatMap(copyIn), ...MARKUP_FILES.flatMap(copyInMarkup)];
 
 describe("every claim in the product names its mechanism", () => {
   it("reads enough of the product to mean something", () => {
     expect(FILES.length).toBeGreaterThan(800);
     expect(COPY.length).toBeGreaterThan(5000);
+    expect(MARKUP_FILES.flatMap(copyInMarkup).length).toBeGreaterThan(40);
   });
 
   it("finds no claim word that nothing backs", () => {

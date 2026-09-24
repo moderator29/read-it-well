@@ -52,7 +52,7 @@ const NOT_ALLOWED: { title: string; body: string }[] = [
   },
   {
     title: "Harassment, threats or discrimination",
-    body: "Refusing a guest or an agent on the grounds of ethnicity, religion, state of origin, gender or disability. Anything that makes a person unsafe, in a property or in a message.",
+    body: "Refusing a guest or an agent on the grounds of ethnicity, religion, state of origin, gender, marital status or disability. Anything that makes a person unsafe, in a property or in a message.",
   },
   {
     title: "Fake accounts and manufactured reputation",
