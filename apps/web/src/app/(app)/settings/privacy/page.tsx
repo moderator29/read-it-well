@@ -7,6 +7,7 @@ import { loadSettingsState } from "@/lib/profile/queries";
 import { loadSessions } from "@/lib/security/sessions";
 import { AccountPrivacyCard } from "../AccountToggles";
 import { DevicesRow } from "../DevicesCard";
+import { DataExportCard } from "../DataExportCard";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.hub.privacy };
@@ -50,6 +51,9 @@ export default async function PrivacySettingsPage() {
         </section>
         <section id="settings-data" className="scroll-mt-28">
           <DataCard t={t} />
+        </section>
+        <section id="settings-data-export" className="scroll-mt-28">
+          <DataExportCard t={t} signedIn={signedIn} />
         </section>
       </div>
     </div>

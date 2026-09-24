@@ -5,6 +5,7 @@ import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { loadSessions, type DeviceSession } from "@/lib/security/sessions";
+import { groupSessions } from "@/lib/security/session-groups";
 import { sessionWhen, type SessionWhen } from "@/lib/security/when";
 import { DeviceList, type DeviceRow } from "./DeviceList";
 
@@ -78,13 +79,29 @@ export default async function DevicesPage() {
   }
 
   /* The clock comes from the read, not from the render. See `SessionsState`. */
-  const rows = state.sessions.map((session) => toRow(session, t, state.readAt));
+  const groups = groupSessions(state.sessions);
+  const rows = groups.listed.map((session) => toRow(session, t, state.readAt));
+  const folded =
+    groups.unrecorded.count > 0
+      ? {
+          label:
+            groups.unrecorded.count === 1
+              ? copy.unrecordedGroupOne
+              : copy.unrecordedGroupMany.replace("{count}", String(groups.unrecorded.count)),
+          sub: copy.unrecordedGroupSub,
+          lastSeen: groups.unrecorded.newestLastSeenAt
+            ? phrase(copy.lastSeenAt, sessionWhen(groups.unrecorded.newestLastSeenAt, state.readAt), t)
+            : "",
+        }
+      : null;
 
   return (
     <div className="mx-auto max-w-lg" data-testid="devices-settings">
       <PageHeader title={copy.screenTitle} fallback="/settings" />
       <DeviceList
         rows={rows}
+        folded={folded}
+        othersCount={state.sessions.filter((session) => !session.isCurrent).length}
         readable={state.readable}
         copy={{
           intro: copy.intro,
@@ -94,6 +111,8 @@ export default async function DevicesPage() {
           endOthers: copy.endOthers,
           endOthersSub: copy.endOthersSub,
           endOthersNone: copy.endOthersNone,
+          endEverywhere: copy.endEverywhere,
+          endEverywhereSub: copy.endEverywhereSub,
           confirm: copy.confirm,
           working: copy.working,
           endedOne: copy.endedOne,

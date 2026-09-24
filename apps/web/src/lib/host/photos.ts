@@ -25,16 +25,16 @@
 /** The column's own ceiling: `position >= 0 and position < 10`. */
 export const MAX_BUSINESS_PHOTOS = 10;
 
-/** The bucket's `allowed_mime_types`, exactly. */
-export const PHOTO_ACCEPTED_MIME = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/heic",
-  "image/heif",
-] as const;
+/**
+ * What the picker offers. Narrower than the bucket's `allowed_mime_types`
+ * (which still lists HEIC and HEIF) on purpose: the server step that strips a
+ * photograph's metadata before it is published (`lib/images/scrub.ts`) cannot
+ * decode HEIC, and HEIC does not render in Chrome or on Android anyway. With
+ * HEIC left out of `accept`, iOS converts the photo to JPEG as it is picked.
+ */
+export const PHOTO_ACCEPTED_MIME = ["image/jpeg", "image/png", "image/webp"] as const;
 
-export const PHOTO_ACCEPTED_LABEL = "JPG, PNG, WEBP or HEIC";
+export const PHOTO_ACCEPTED_LABEL = "JPG, PNG or WEBP";
 
 /** The bucket's `file_size_limit`, exactly. */
 export const PHOTO_MAX_BYTES = 10 * 1024 * 1024;
@@ -71,3 +71,6 @@ export function nextPhotoPosition(used: readonly number[]): number | null {
   }
   return null;
 }
+
+/** The public bucket host, venue and stay photographs are uploaded to. */
+export const HOST_PHOTO_BUCKET = "accommodation-photos";

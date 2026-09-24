@@ -1539,6 +1539,15 @@ export const en = {
      * asks "do you recognise this?" about a row that was never about the reader
      * is worse than one that admits it does not know.
      */
+    /* OPS-12: the member's own data, downloaded as JSON from /api/account/export. */
+    dataExport: {
+      label: "A copy of your data",
+      action: "Download your data",
+      sub: "Your account, profile, bookings, wallet, messages you sent and more, as one JSON file.",
+      note: "It is made when you ask and holds only your own records. Files you uploaded are listed, not included. For anything it leaves out, contact support.",
+      signedOut: "Sign in to download the data held on your account.",
+    },
+
     devices: {
       rowLabel: "Devices and sessions",
       rowNote:
@@ -1552,7 +1561,7 @@ export const en = {
       intro:
         "Every device holding a live sign-in to this account. If one of these is not you, end it and change your password straight after.",
       caveat:
-        "Ending a session stops that device from getting a new key. The key it is already holding keeps working until it runs out, so there can be a short gap. If a device is in somebody else's hands, change your password as well: that is the step that ends every key at once.",
+        "Ending a session stops that device from getting a new key. The key it is already holding keeps working until it runs out, so there can be a short gap. If a device is in somebody else's hands, change your password as well: that signs every other device out and makes the old password useless.",
 
       thisDevice: "This device",
       signedInAt: "Signed in {when}",
@@ -1566,11 +1575,17 @@ export const en = {
       deviceUnknownSub:
         "This sign-in is older than the change that started recording which device it came from.",
       deviceUnrecognised: "Unrecognised device",
+      unrecordedGroupOne: "1 older sign-in whose device was not recorded",
+      unrecordedGroupMany: "{count} older sign-ins whose device was not recorded",
+      unrecordedGroupSub:
+        "These started before Vallo recorded which device a sign-in came from, so there is nothing to recognise them by. Sign out everywhere else ends all of them.",
+      endEverywhere: "Sign out everywhere, this device included",
+      endEverywhereSub: "Ends every session on this account, the one you are using now as well. You will need to sign in again here.",
 
       endThis: "Sign out this device",
       endCurrent: "Sign out of this browser",
       endOthers: "Sign out everywhere else",
-      endOthersSub: "Ends every session except the one you are using right now.",
+      endOthersSub: "Ends every session except this one. You stay signed in on this device.",
       endOthersNone: "Nothing else is signed in, so there is nothing to end.",
       confirm: "Tap again to confirm",
       working: "Ending it",

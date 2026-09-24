@@ -38,8 +38,9 @@ import {
   resolveSession,
 } from "../actions/session";
 import type { Database } from "../supabase/database.types";
+import { SCRUB_REFUSED_MESSAGE, scrubPublicPhoto } from "../images/scrub";
 import { documentPathBelongsTo, missingFrom, type HostType } from "./onboarding";
-import { MAX_BUSINESS_PHOTOS, nextPhotoPosition } from "./photos";
+import { HOST_PHOTO_BUCKET, MAX_BUSINESS_PHOTOS, nextPhotoPosition } from "./photos";
 import { MAX_NIGHTS_IN_ONE_ACT, nightsBetween } from "../stays/inventory";
 import { getMyHostDraft } from "./queries";
 import { orderFacilities } from "./facilities";
@@ -722,6 +723,11 @@ export async function addBusinessPhoto(input: unknown): Promise<ActionResult<{ i
     );
   }
 
+  /* SEC-04: the object is public the moment a row points at it, so its
+     metadata (GPS included) is stripped here, on the server, first. */
+  const scrubbed = await scrubPublicPhoto(HOST_PHOTO_BUCKET, parsed.data.storagePath);
+  if (!scrubbed.ok) return fail(SCRUB_REFUSED_MESSAGE);
+
   const { data, error } = await session.supabase
     .from("business_photos")
     .insert({
@@ -862,6 +868,10 @@ export async function addAccommodationPhoto(
       `A property carries up to ${MAX_BUSINESS_PHOTOS} photographs. Take one down and add this in its place.`,
     );
   }
+
+  /* SEC-04: stripped on the server before any row makes it public. */
+  const scrubbed = await scrubPublicPhoto(HOST_PHOTO_BUCKET, parsed.data.storagePath);
+  if (!scrubbed.ok) return fail(SCRUB_REFUSED_MESSAGE);
 
   const { data, error } = await session.supabase
     .from("accommodation_photos")
