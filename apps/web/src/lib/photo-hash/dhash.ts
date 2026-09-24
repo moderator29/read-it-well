@@ -110,9 +110,11 @@ export function coverageFrom(data: unknown): { photos: number; hashed: number; p
 
 /**
  * The desk's summary sentence has to say how much was compared. "None of
- * these look like another" is true only when every photograph was hashed and
- * there was something to compare against.
+ * these look like another" is true only when every photograph was hashed,
+ * there was something to compare against, and nothing on Vallo is waiting.
  */
-export function comparedFully(c: { photos: number; hashed: number; pool: number }): boolean {
-  return c.photos > 0 && c.hashed === c.photos && c.pool > 0;
+export function comparedFully(c: { photos: number; hashed: number; pool: number; poolWaiting?: number }): boolean {
+  /* Photographs elsewhere on Vallo still waiting to be hashed are photographs
+     this listing has not been compared with, so "no match" waits for them. */
+  return c.photos > 0 && c.hashed === c.photos && c.pool > 0 && (c.poolWaiting ?? 0) === 0;
 }

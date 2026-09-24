@@ -87,6 +87,8 @@ describe("how much was compared", () => {
     expect(comparedFully({ photos: 8, hashed: 8, pool: 120 })).toBe(true);
     expect(comparedFully({ photos: 8, hashed: 6, pool: 120 })).toBe(false);
     expect(comparedFully({ photos: 8, hashed: 8, pool: 0 })).toBe(false);
+    expect(comparedFully({ photos: 8, hashed: 8, pool: 120, poolWaiting: 0 })).toBe(true);
+    expect(comparedFully({ photos: 8, hashed: 8, pool: 120, poolWaiting: 3 })).toBe(false);
   });
 
   it("never says no match on a partial comparison, and imports sharp only when hashing", () => {
