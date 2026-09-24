@@ -61,7 +61,7 @@ export function SafetyShareControl({
         setError(copy.failed);
         return;
       }
-      const url = `${window.location.origin}/s/${result.data.token}`;
+      const url = `${window.location.origin}/safe/${result.data.token}`;
       const area = result.data.area ?? "";
       const text = result.data.firstName
         ? copy.shareText.replace("{name}", result.data.firstName).replace("{area}", area)

@@ -242,7 +242,7 @@ const EXPECTED_PUBLIC = new Set([
   /* V-61: the agent check, open to a renter with no account. V-62: the page a
      renter's trusted contact opens by a token, the area only. */
   "/check",
-  "/s/[token]",
+  "/safe/[token]",
   /* No network, and which home. */
   "/home-or-landing",
   "/offline",

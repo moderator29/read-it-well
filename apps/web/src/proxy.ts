@@ -148,7 +148,7 @@ const PUBLIC_SEGMENTS = new Set([
   // one plain no. V-62: the page a renter's trusted contact opens, by a token,
   // showing the area and never the address.
   "check",
-  "s",
+  "safe",
   // Serving with no network, and resolving which home the caller means.
   "home-or-landing",
   "offline",

@@ -15,7 +15,7 @@ import { SafetySharePanel } from "./SafetySharePanel";
  * page is safe to forward, and says so. Half an hour past the time they
  * expected to be back with no check-in, it says that plainly and gives 112.
  *
- * Open (`proxy.ts`, segment `s`), never indexed, never referred, and it
+ * Open (`proxy.ts`, segment `safe`), never indexed, never referred, and it
  * closes four hours after the slot.
  */
 

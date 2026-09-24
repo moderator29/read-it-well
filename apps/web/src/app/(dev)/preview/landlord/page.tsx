@@ -6,7 +6,7 @@ import { LandlordCardLine } from "@/components/app/listing/LandlordCardLine";
 import { MandateConsent } from "@/app/admin/listings/MandateConsent";
 import { ownerConfirmedLine } from "@/lib/landlord/facts";
 import { PreviewClose } from "./PreviewClose";
-import { SafetySharePanel } from "@/app/(site)/s/[token]/SafetySharePanel";
+import { SafetySharePanel } from "@/app/(site)/safe/[token]/SafetySharePanel";
 import { AgentLookupCard } from "@/components/app/doors/AgentLookupCard";
 import { SafetyShareControl } from "@/components/app/doors/SafetyShareControl";
 
