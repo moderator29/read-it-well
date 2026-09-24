@@ -11,6 +11,8 @@
     { "path": "/api/cron/saved-search-alerts", "schedule": "40 7 * * *" },
     { "path": "/api/cron/store-readiness", "schedule": "0 5 * * *" },
     { "path": "/api/cron/new-match-alerts", "schedule": "0,5,10,15,20,25,30,35,45,50,55 * * * *" },
-    { "path": "/api/cron/landlord-line", "schedule": "*/15 * * * *" }
+    { "path": "/api/cron/landlord-line", "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/sanctions-lists", "schedule": "10 5 * * *" },
+    { "path": "/api/cron/sanctions-screen", "schedule": "7,22,37,52 * * * *" }
   ]
 }

@@ -638,6 +638,8 @@ a fall is emerald. The line is alerts raised per day.
 | new-match-alerts | Vercel Cron `0,5,10,15,20,25,30,35,45,50,55 * * * *` | every 5 min except :40, so it never runs beside the 07:40 digest | 2 h | tells people within minutes about a listing just published, three times a day at most; the rest wait for the morning digest (V-15) |
 | store-readiness | Vercel Cron `0 5 * * *` | daily 06:00 | 26 h | runs the Store tab's checks against production and raises an alert when one is red (V-52) |
 | landlord-line | Vercel Cron `*/15 * * * *` | every 15 min | 2 h | asks consenting landlords whether the flat is still free and shows them the rent paid (V-31, V-32); a no-op while `landlord_line` is off |
+| sanctions-lists | Vercel Cron `10 5 * * *` | daily 06:10 | 26 h | loads the UN and Nigeria sanctions lists from their configured URLs when they changed; a new version re-screens everyone (SCUML items 8, 9); a no-op with no URL set |
+| sanctions-screen | Vercel Cron `7,22,37,52 * * * *` | every 15 min | 2 h | screens the people and transactions the triggers queued against the lists in force and raises matches on the compliance desk (SCUML item 8) |
 | vallo_push_drain | pg_cron `*/5 * * * *` | every 5 min | | asks the app to drain the push queue (`private.request_push_drain`) |
 | vallo_safety_share_sweep | pg_cron `*/10 * * * *` | every 10 min | | reminds a renter once when half an hour has passed since they expected to be back from an inspection they shared and they have not tapped I'm done (V-62) |
 | vallo_release_stale_holds | pg_cron `*/15 * * * *` | every 15 min | | database side of the hold release |
@@ -663,7 +665,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_remind_renewals | pg_cron `20 7 * * *` | daily 08:20 | | tells tenants and listers a tenancy ends in 90, 60 or 30 days (V-93) |
 | vallo_notify_void_shares | pg_cron `25 7 * * *` | daily 08:25 | | tells a flatmate once when a move-in they paid a share of fell through (V-86) |
 
-11 Vercel Cron jobs and 24 pg_cron jobs in all. The numbers are derived,
+13 Vercel Cron jobs and 24 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by

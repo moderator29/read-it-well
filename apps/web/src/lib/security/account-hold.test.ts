@@ -77,3 +77,10 @@ describe("formatHoldUntil", () => {
     expect(formatHoldUntil("nonsense", "en")).toBe("");
   });
 });
+
+describe("a compliance hold (SCUML item 8)", () => {
+  it("reads as review, so the member is told no cause and no date", () => {
+    const later = new Date(NOW + 86_400_000).toISOString();
+    expect(holdFromRows([{ hold_until: later, reason: "compliance_review" }], NOW)).toEqual({ state: "held", until: later, reason: "review" });
+  });
+});

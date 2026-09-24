@@ -105,6 +105,8 @@ export const platformEn = {
     refusalOther:
       "No money can leave this wallet until {until}, because the email address on this account was changed with help from support. Nothing has left your wallet.",
     refusalUnknown: "No money can leave this wallet while a hold is on it. Nothing has left your wallet.",
+    bodyReview:
+      "Nothing can leave this wallet for now: no withdrawal, no send, no payment from the balance, and payout accounts cannot be changed. Money can still arrive.",
   },
 
   /* V-30: the five kinds of the feedback grammar, as the styleguide names them. */

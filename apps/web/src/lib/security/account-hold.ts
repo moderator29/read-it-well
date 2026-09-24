@@ -25,7 +25,13 @@
 
 import { formatDate, type Locale } from "@vallo/i18n";
 
-export type HoldReason = "not_me" | "other";
+/*
+ * `review`: a hold staff placed after two of them agreed (SCUML item 8, a
+ * confirmed sanctions match, reason `compliance_review`). The member is told
+ * that money cannot leave, and nothing about why or until when: naming the
+ * cause would tip them off, which the Money Laundering Act forbids.
+ */
+export type HoldReason = "not_me" | "review" | "other";
 
 export type AccountHold =
   | { state: "none" }
@@ -45,7 +51,10 @@ export function holdFromRows(rows: unknown, now: number): AccountHold {
     if (!Number.isFinite(at) || at <= now) continue;
     if (latest === null || at > latest) {
       latest = at;
-      found = { until: row.hold_until, reason: row.reason === "not_me" ? "not_me" : "other" };
+      found = {
+        until: row.hold_until,
+        reason: row.reason === "not_me" ? "not_me" : row.reason === "compliance_review" ? "review" : "other",
+      };
     }
   }
   return found === null ? { state: "none" } : { state: "held", ...found };
