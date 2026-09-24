@@ -19,6 +19,7 @@ import type { WizardDraft } from "@/lib/agent/listings-queries";
 import { BROADCAST_MONEY_KEYS, type BroadcastKey, type BroadcastParse } from "@/lib/agent/broadcast";
 import { BroadcastPaste } from "./BroadcastPaste";
 import { PriceGuidePanel, usePriceGuide } from "./PriceGuide";
+import { DraftMatches } from "./DraftMatches";
 import { feeNormLine, type GuideSubject } from "@/lib/price-check/wizard-guide";
 import {
   MAX_ACCESS_CODE,
@@ -822,7 +823,10 @@ export function ListingWizard({
   broadcastCopy,
   guideCopy,
   initialUnconfirmed = [],
+  demandCopy,
 }: {
+  /** V-10: the saved-search count on the last step. Absent in harnesses. */
+  demandCopy?: Dictionary["frontDoor"]["demand"];
   /**
    * V-09: the unconfirmed set as the server holds it for this draft
    * (`listing_broadcast_marks`), so another device starts from the truth.
@@ -3056,6 +3060,12 @@ export function ListingWizard({
         {step === 6 && (
           <div>
             <Note>{copy.guestView.intro}</Note>
+            {/* V-10: whose saved searches this would reach, once it exists. */}
+            {demandCopy && listingId && (
+              <div className="mt-group">
+                <DraftMatches listingId={listingId} copy={demandCopy} />
+              </div>
+            )}
             <article className="nf-panel nf-panel--card block mt-group overflow-hidden">
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--nf-surface-raised)]">
                 {photos[0] ? (

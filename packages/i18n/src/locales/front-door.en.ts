@@ -383,6 +383,11 @@ export const frontDoorEn = {
     empty: "No neighbourhood has five people searching for the same thing yet. As more people search, the gaps will show here.",
     unavailable: "We could not read the demand board just now. Nothing is wrong with your listings.",
     approvedOnly: "The demand board opens once your lister profile is approved.",
+    /** The wizard's count (V-10): other people's saved searches this draft would match. */
+    matchCount: "{count} people have a saved search this listing would match today. They are told when it is published.",
+    matchFew: "Fewer than three people have a saved search this would match yet.",
+    matchLoading: "Checking saved searches",
+    matchUnreachable: "We could not check saved searches just now. Your listing is not affected.",
     listCta: "List a home that fits",
   },
   status: {
