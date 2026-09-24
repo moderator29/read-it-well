@@ -23,6 +23,9 @@ export const MONEY_KINDS = [
   "escrow_fund",
   "pay_wallet",
   "caution_return",
+  /* V-86: a flatmate paying their share of a move-in, and the lead returning it. */
+  "rent_share",
+  "rent_share_return",
   "remove_lock",
 ] as const;
 export type MoneyKind = (typeof MONEY_KINDS)[number];

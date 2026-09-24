@@ -141,9 +141,11 @@ export async function returnCaution(input: {
   amountNaira: string;
   /** Minted when the form is drawn: the same form sent twice moves money once. */
   idempotencyKey: string;
+  /** V-81: the phone-lock proof for this return, when the lister has a lock. */
+  stepUp?: string;
 }): Promise<ActionResult<Record<string, unknown>>> {
   const parsed = validate(
-    z.object({ tenancyId: uuid, obligationId: uuid, amountNaira: z.string(), idempotencyKey: uuid }),
+    z.object({ tenancyId: uuid, obligationId: uuid, amountNaira: z.string(), idempotencyKey: uuid, stepUp: z.string().max(200).optional() }),
     input,
   );
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
@@ -163,6 +165,8 @@ export async function returnCaution(input: {
     action: "tenancy.caution.returned",
     words: STATUS_WORDS,
     detail: { obligation_id: parsed.data.obligationId },
+    intent: async () => ({ kind: "caution_return", target: parsed.data.obligationId, amountKobo: amount }),
+    stepUp: parsed.data.stepUp,
   });
   if (result.ok) {
     revalidatePath(`/tenancy/${parsed.data.tenancyId}`);
