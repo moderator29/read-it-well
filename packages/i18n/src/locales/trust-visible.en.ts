@@ -349,4 +349,33 @@ export const trustVisibleEn = {
     lookupEmpty: "This lister is new to Vallo, so nothing has been counted yet.",
     search: "Back to search",
   },
+  /** V-63: "I feel unsafe", one sheet, the actions in order. */
+  unsafe: {
+    opener: "I feel unsafe",
+    openerHint: "Call for help, leave, or tell Vallo. The other person is not told.",
+    title: "If you feel unsafe",
+    lede: "Do what you need to in this order. Nothing here tells the other person anything.",
+    call: "Call 112",
+    callHint: "Nigeria's emergency number. If you are in danger, call now.",
+    leave: "Leave and block",
+    leaveHint: "They can no longer message you, Vallo is told, and they cannot arrange new inspections until a person here has looked.",
+    tell: "Tell Vallo",
+    tellHint: "A person here reads it {clock}, and they cannot arrange new inspections until then.",
+    working: "One moment",
+    /** `{clock}` is the promised time, e.g. "within 4 hours". */
+    told: "Vallo has it. A person here reads it {clock}. They have not been told.",
+    left: "You have left and they are blocked. Vallo has it and a person here reads it {clock}.",
+    failed: "That did not go through. If you are in danger, call 112 now.",
+    notAParty: "This is not a conversation you are part of.",
+    signedOut: "Sign in to tell Vallo. If you are in danger, call 112 now.",
+    close: "Close",
+    held: "Inspection requests are paused on this account while Vallo looks at a safety report. A person here will be in touch.",
+  },
+  /** V-63: the report sheet's promise, read from the category's own clock. */
+  report: {
+    /** `{clock}` is the promised time for the chosen category, e.g. "within 4 hours". */
+    filed: "A person here reads every report. For this kind of report that is {clock}. You will not have to chase it, and the person you reported is never told who reported them.",
+    footer: "The person you report is never told who reported them. If you are in danger,",
+    call: "call 112 now",
+  },
 };

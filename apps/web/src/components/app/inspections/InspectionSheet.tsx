@@ -1,6 +1,7 @@
 "use client";
 
 import "@/app/css/inspection.css";
+import { UnsafeSheet } from "@/components/app/safety/UnsafeSheet";
 import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -164,6 +165,7 @@ export function InspectionSheet({
   reportLive = false,
   truth = null,
   tenancyReview = null,
+  unsafe = null,
 }: {
   inspection: Inspection;
   side: "lister" | "requester";
@@ -182,6 +184,8 @@ export function InspectionSheet({
   truth?: { answeredAt: string | null; copy: Dictionary["trustVisible"]["truth"] } | null;
   /** V-59: the tenancy review, when one is waiting for this renter. */
   tenancyReview?: { href: string; label: string } | null;
+  /** V-63: "I feel unsafe", on an inspection that is still ahead or under way. */
+  unsafe?: Dictionary["trustVisible"]["unsafe"] | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -392,6 +396,9 @@ export function InspectionSheet({
             {tenancyReview.label}
           </ButtonLink>
         )}
+
+        {/* V-63: one control, whichever side of the viewing this person is. */}
+        {unsafe && <UnsafeSheet copy={unsafe} inspectionId={inspection.id} trigger="button" />}
 
         {/* ------------------------------------------ V-05, the truth questions */}
         {truth && (

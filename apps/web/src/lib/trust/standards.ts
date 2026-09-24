@@ -80,6 +80,17 @@ export function gradeForReportCategory(category: string | null): ResponseGrade {
   return "standard";
 }
 
+/**
+ * V-63: the promise a reporter reads for the category they chose, as the
+ * sentence fragment the report sheet and the "I feel unsafe" sheet print:
+ * "within 4 hours". One source, the same as the console's clock.
+ */
+export function responseTimeFor(category: string | null): { grade: ResponseGrade; hours: number; phrase: string } {
+  const grade = gradeForReportCategory(category);
+  const commitment = RESPONSE_COMMITMENTS[grade];
+  return { grade, hours: commitment.hours, phrase: commitment.label.charAt(0).toLowerCase() + commitment.label.slice(1) };
+}
+
 export type DueState = {
   grade: ResponseGrade;
   /** When the commitment runs out. */

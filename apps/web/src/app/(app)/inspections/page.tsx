@@ -142,6 +142,7 @@ export default async function InspectionsPage({
                       reportLive={reportLive}
                       truth={truthFor(row)}
                       tenancyReview={tenancyFor(row)}
+                      unsafe={t.trustVisible.unsafe}
                       locale={locale}
                       open={row.id === expanded}
                     />

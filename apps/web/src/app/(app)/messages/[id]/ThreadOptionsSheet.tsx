@@ -11,6 +11,8 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { SAFETY_EDUCATION_COPY } from "@/lib/messages/education";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
+import { UnsafeSheet } from "@/components/app/safety/UnsafeSheet";
+import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * The conversation's options sheet, behind the kebab in the header.
@@ -91,6 +93,7 @@ export function ThreadOptionsSheet({
   onConfirmInspection: () => void;
   onClose: () => void;
 }) {
+  const dictionary = useClientDictionary();
   const [confirmingBlock, setConfirmingBlock] = useState(false);
   const [blockNote, setBlockNote] = useState<string | null>(null);
   const [blocking, startBlocking] = useTransition();
@@ -224,6 +227,15 @@ export function ThreadOptionsSheet({
       {/* ------------------------------------------- report, and then block */}
       {counterpartId && (
         <div data-testid="thread-safety-controls">
+          {/* V-63: the moment of fear first, before any report category. */}
+          {signedIn && (
+            <UnsafeSheet
+              copy={dictionary.trustVisible.unsafe}
+              conversationId={conversationId}
+              trigger="row"
+              afterLeave="/messages"
+            />
+          )}
           <ReportSheet
             targetType="conversation"
             targetId={conversationId}
