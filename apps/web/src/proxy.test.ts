@@ -218,6 +218,9 @@ const EXPECTED_PUBLIC = new Set([
   "/docs",
   "/docs/[slug]",
   "/help",
+  // V-55: the receipt check, a door for people who are not members.
+  "/r",
+  "/r/[code]",
   /* Legal and policy. */
   "/cancellations",
   "/eula",
@@ -242,6 +245,13 @@ const EXPECTED_PUBLIC = new Set([
   "/s/[token]",
   /* V-71: the same card as a 9:16 Status picture. */
   "/s/[token]/status",
+  /* V-31 and V-32: the landlord's reply page, a door for somebody with no
+     account, opened by a single-use token and showing the area only. */
+  "/landlord/[token]",
+  /* V-61: the agent check, open to a renter with no account. V-62: the page a
+     renter's trusted contact opens by a token, the area only. */
+  "/check",
+  "/safe/[token]",
   /* No network, and which home. */
   "/home-or-landing",
   "/offline",
@@ -254,11 +264,14 @@ const EXPECTED_PUBLIC = new Set([
   "/api/cron/email-outbox",
   "/api/cron/hold-sweep",
   "/api/cron/inventory-drift",
+  "/api/cron/landlord-line",
   "/api/cron/pg-cron-watch",
   "/api/cron/saved-search-alerts",
   "/api/cron/store-readiness",
   "/api/cron/new-match-alerts",
   "/api/csp-report",
+  /* V-31: a landlord's SMS reply from the aggregator, behind its own bearer. */
+  "/api/landlord/inbound",
   "/api/paystack/reconcile",
   "/api/paystack/webhook",
   "/api/push/drain",

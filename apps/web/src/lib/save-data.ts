@@ -1,5 +1,6 @@
 import "server-only";
 import { headers } from "next/headers";
+import { liteCookieOn } from "./ui/lite-cookie";
 
 /**
  * Does this visitor want less data?
@@ -26,5 +27,8 @@ import { headers } from "next/headers";
  */
 export async function prefersLessData(): Promise<boolean> {
   const store = await headers();
-  return store.get("save-data")?.toLowerCase() === "on";
+  if (store.get("save-data")?.toLowerCase() === "on") return true;
+  /* V-79: the switch in Settings writes this cookie, because Chrome no longer
+     sends Save-Data by default. See `lib/ui/lite.ts`. */
+  return liteCookieOn(store.get("cookie"));
 }

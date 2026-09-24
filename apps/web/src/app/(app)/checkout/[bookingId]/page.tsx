@@ -11,6 +11,7 @@ import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { panelClass } from "@/components/ui/Panel";
 import { CheckoutSummary } from "./CheckoutSummary";
+import { isRentChargeBooking } from "@/lib/after-gate/is-rent-charge";
 import { HoldCountdown } from "./HoldCountdown";
 import { PayPanel } from "./PayPanel";
 import { PaymentReturn } from "./PaymentReturn";
@@ -182,7 +183,7 @@ export default async function CheckoutPage({
       <Reveal>
         {/* What is being bought, as one component the preview harness draws
             with fixture props and this route draws with the real read. */}
-        <CheckoutSummary view={view} locale={locale} />
+        <CheckoutSummary view={view} locale={locale} tenancy={await isRentChargeBooking(view.bookingId)} />
       </Reveal>
 
       {view.paid ? (

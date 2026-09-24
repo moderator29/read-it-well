@@ -19,6 +19,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import {
   NOT_CONFIGURED_MESSAGE,
@@ -29,6 +30,8 @@ import { isFeatureEnabled } from "../flags";
 import { getListingRepository } from "../listings/repository";
 import { reservationHostUserId, reservationSpine } from "../reservations/host";
 import { consume, subjectForUser } from "../security/rate-limit";
+import { checkAccountAfterSend } from "./account-check-run";
+import { isAccountMoment } from "./account-moment";
 import { createAdminClient } from "../supabase/admin";
 import {
   BLOCKED_MESSAGE,
@@ -437,6 +440,20 @@ export async function sendMessage(input: {
   if (error || !row) {
     if (error?.code === "42501") return fail(NOT_YOUR_CONVERSATION_MESSAGE);
     return fail(SEND_FAILED_MESSAGE);
+  }
+
+  /*
+   * V-04, THE ACCOUNT-NUMBER MOMENT. When the message carries a ten-digit
+   * account number, the receiver is told whether it belongs to the lister
+   * Vallo verified. The check calls the payment processor, so it runs AFTER
+   * the response through `after()`: the message is already in, and nothing
+   * about the check can delay or refuse it. It stores a boolean and the last
+   * four digits, never the number or the resolved name, and the sender never
+   * sees the answer. See `account-check.ts`.
+   */
+  if (isAccountMoment(row.body)) {
+    const sent = { messageId: row.id, conversationId: row.conversation_id, senderId: session.user.id, body: row.body };
+    after(() => checkAccountAfterSend(sent));
   }
 
   return ok({

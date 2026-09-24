@@ -13,6 +13,10 @@ import { ThreadView, type ThreadBubble } from "./ThreadView";
 import { resolveCards } from "./cards";
 import { readAvailabilityForConversation } from "@/lib/availability/queries";
 import { AvailabilityCard } from "@/components/app/messages/AvailabilityCard";
+import { readAccountMoment } from "@/lib/messages/account-moment-read";
+import { counterpartFactsFrom, personFacts } from "@/lib/messages/person-line";
+import { recordLines } from "@/lib/trust/record";
+import { readThreadRecord } from "@/lib/trust/record-read";
 import { InboxEmpty } from "../Inbox";
 import { readDeskStage } from "@/lib/enquiry/queries";
 import { quickReplies } from "@/lib/enquiry/quick-replies";
@@ -183,6 +187,37 @@ export default async function ConversationPage({
             : Promise.resolve(null),
         ])
       : [null, null];
+    /* V-23: the dated facts about the other person, for the line under the
+       header. One RPC that answers only to a party; a failure is no line. */
+    let counterpartFactsLine: { key: string; text: string }[] = [];
+    try {
+      const { data: factsRows } = await (session.supabase as unknown as {
+        rpc(fn: string, args: Record<string, unknown>): Promise<{ data: unknown }>;
+      }).rpc("thread_counterpart_facts", { p_conversation: id });
+      const first = Array.isArray(factsRows) ? factsRows[0] : null;
+      counterpartFactsLine = personFacts(counterpartFactsFrom(first), t.trustVisible.person, locale);
+    } catch {
+      counterpartFactsLine = [];
+    }
+    /* V-34: when the other party is a lister, their Record, counted, under
+       the person line. "On Vallo since" is already on the person line, so the
+       Record's copy of it is not drawn twice. No row, no line. */
+    const counterpartRecordLine = recordLines(await readThreadRecord(id), t.trustVisible.record, locale).filter(
+      (line) => line.key !== "since",
+    );
+    /* V-04: the receiver's account card. Skipped, at no cost, unless a
+       message from the other side carries an account number. */
+    const accountMoment =
+      context.kind === "listing"
+        ? await readAccountMoment(session.supabase, {
+            conversationId: id,
+            meId: session.user.id,
+            role,
+            listingId: thread.listing?.id ?? null,
+            messages: thread.messages,
+            locale,
+          })
+        : null;
 
     return (
       <ThreadView
@@ -253,6 +288,12 @@ export default async function ConversationPage({
         quickRepliesTitle={t.frontDoor.desk.quickTitle}
         openAttach={(Array.isArray(attach) ? attach[0] : attach) === "1"}
         heldPaymentsOpen={heldPaymentsOpen}
+        accountMoment={accountMoment}
+        personLine={counterpartFactsLine}
+        recordLine={counterpartRecordLine}
+        recordLabel={t.trustVisible.record.title}
+        personLabel={t.trustVisible.person.label}
+        accountCopy={t.trustVisible.account}
         agreement={
           heldPayment.payment
             ? {
@@ -273,6 +314,7 @@ export default async function ConversationPage({
             timeLabel: m.timeLabel,
             imageUrl: m.imageUrl,
             read: read.has(m.id),
+            ...(m.createdAt ? { createdAt: m.createdAt } : {}),
             ...(card ? { card } : {}),
           };
         })}

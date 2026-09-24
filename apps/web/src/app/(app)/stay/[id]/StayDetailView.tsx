@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
 import { Amount } from "@/components/ui/Amount";
+import { formatMoneyDate } from "@/lib/money/dates";
+import { freeToCancelUntil, termsFromPolicyRules } from "@/lib/trust/cancellation";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
@@ -18,7 +20,7 @@ import {
 } from "@/components/app/listing/DetailAnatomy";
 import {
   ROOM_CATEGORY_KEY,
-  cheapestBookable,
+  bookNowChoice,
   maxSleeps,
   reserveHref,
   roomFromMinor,
@@ -198,7 +200,33 @@ export function StayDetailView({
    * about it. Three states, three honest destinations, no dead button.
    */
   const datesPicked = Boolean(checkIn && checkOut && nights !== null && nights > 0);
-  const bookable = datesPicked ? cheapestBookable(detail, nights, guests) : null;
+  /* V-20. Book now picks the cheapest rate that can be cancelled for free,
+     else the cheapest, and says which; `cheapestBookable` is kept for the
+     room list's own ordering. */
+  // A server render per request, so this instant is when the reader sees it.
+  const renderedAt = new Date();
+  const choice = datesPicked ? bookNowChoice(detail, nights, guests, checkIn, renderedAt) : null;
+  const bookable = choice?.pick ?? null;
+  /* The total under Book now is the total of the rate Book now opens, not the
+     cheapest rate on the property, or the button and its figure disagree. */
+  const bookNowTotal = bookable && nights !== null ? bookable.plan.rateMinor * nights : total;
+  const checkInHour = Number.parseInt(detail.checkInFrom ?? "", 10);
+  const gateCopy = t.afterTheGate.cancel;
+  const choiceNote = choice ? (choice.refundable ? gateCopy.bookNowRefundable : gateCopy.bookNowCheapest) : null;
+  const bothRates = (() => {
+    if (!choice?.cheaperNonRefundable || nights === null || !checkIn) return null;
+    const flexPlan = choice.pick.plan;
+    const terms = flexPlan.policy
+      ? termsFromPolicyRules(flexPlan.policy.id, flexPlan.policy.rules, Number.isInteger(checkInHour) ? checkInHour : 15)
+      : null;
+    const until = terms ? freeToCancelUntil(terms, checkIn) : null;
+    const untilLabel = until && until > renderedAt ? formatMoneyDate(until, locale, { withTime: true }) : null;
+    if (!untilLabel) return null;
+    return gateCopy.bothRates
+      .replace("{cheap}", formatMoney(choice.cheaperNonRefundable.plan.rateMinor * nights, locale))
+      .replace("{flex}", formatMoney(flexPlan.rateMinor * nights, locale))
+      .replace("{date}", untilLabel);
+  })();
   const action = bookable
     ? {
         label: detailCopy.bookNow,
@@ -331,8 +359,8 @@ export function StayDetailView({
             fields={fields}
             action={action}
             note={
-              total !== null && nights !== null
-                ? `${copy.totalFor.replace("{count}", formatNumber(nights, locale))}: ${formatMoney(total, locale)}`
+              bookNowTotal !== null && nights !== null
+                ? `${copy.totalFor.replace("{count}", formatNumber(nights, locale))}: ${formatMoney(bookNowTotal, locale)}`
                 : copy.pickDatesForTotal
             }
           />
@@ -424,6 +452,15 @@ export function StayDetailView({
 
           {/* The policy, in its own words. A refund rule this screen rewrote
               is a refund rule nobody can be held to. */}
+          {(bothRates || choiceNote) && (
+            <Section title={gateCopy.heading}>
+              <div className="nf-detail-panel" data-testid="stay-book-now-choice">
+                {bothRates && <p className={`${TYPE.rowTitle} nf-numeric`}>{bothRates}</p>}
+                {choiceNote && <p className={`${bothRates ? "mt-inline" : ""} ${TYPE.body}`}>{choiceNote}</p>}
+              </div>
+            </Section>
+          )}
+
           {detail.policy && (
             <Section title={copy.policyTitle}>
               <div className="nf-detail-panel">

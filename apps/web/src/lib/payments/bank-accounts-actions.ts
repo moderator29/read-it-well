@@ -30,6 +30,7 @@ import {
 } from "../actions/session";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { guardMoney } from "../security/money-limits";
+import { accountHoldRefusal, holdRefusalForFailure } from "../security/account-hold-guard";
 import { subjectForUser } from "../security/rate-limit";
 import { recordMoneyAudit } from "../wallet/audit";
 import { getAdminClient } from "../wallet/ledger";
@@ -170,6 +171,10 @@ export async function addBankAccount(input: {
 
   const limit = await guardMoney("addBankAccount", session.user.id);
   if (!limit.allowed) return fail(limit.message);
+  /* V-19: while a money hold stands, adding an account is refused by the
+     audit's trigger; say so in words before Paystack is paid to resolve it. */
+  const accountHold = await accountHoldRefusal(session.supabase);
+  if (accountHold) return fail(accountHold);
 
   /* IDEMPOTENT FROM HERE. The resolution below is a paid call to Paystack and
      the insert below that is the row somebody gets paid into. The allowance
@@ -236,6 +241,9 @@ async function addBankAccountWork(
     .single();
 
   if (error || !created) {
+    /* V-19: the hold trigger (RM050) refused a call that raced the check. */
+    const held = error ? await holdRefusalForFailure(supabase, error.message ?? "") : null;
+    if (held) return fail(held);
     // 23505 is the per-person unique NUBAN among live rows.
     if (error?.code === "23505") {
       return fail(

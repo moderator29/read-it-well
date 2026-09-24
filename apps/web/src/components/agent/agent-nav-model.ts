@@ -35,6 +35,9 @@ export function buildAgentNav(t: Dictionary, unreadMessages = 0): NavSection[] {
            destination beside it, so opening a group to find it was a tap spent
            discovering something that was already in view. */
         { href: "/agent/listings", label: t.nav.properties, icon: "house" },
+        /* V-42: an owner's units and the mandates on them, and for a verified
+           agent the owners nearby choosing one. */
+        { href: "/agent/portfolio", label: t.landlord.portfolio.nav, icon: "building-apartment" },
         /*
          * INSPECTIONS ARE A DESTINATION, not a filter on bookings.
          *

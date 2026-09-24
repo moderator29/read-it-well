@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { randomUUID } from "node:crypto";
+import { areaPaid } from "@/lib/after-gate/paid-queries";
+import { PaidPanel } from "@/components/app/price/PaidPanel";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -125,7 +127,7 @@ export default async function PriceCheckPage({
    * the gate and must not wait behind it: on the day this ships the gate
    * refuses every call, and those two panels are what the reader came for.
    */
-  const [states, lgas, check, rows, census, facts] = await Promise.all([
+  const [states, lgas, check, rows, census, facts, paid] = await Promise.all([
     listStates(),
     stateCode ? listLocalGovernments(stateCode) : Promise.resolve([]),
     lat !== null && lng !== null
@@ -134,6 +136,8 @@ export default async function PriceCheckPage({
     stateCode ? areaAsking(stateCode, null, area, intent, null, null) : Promise.resolve(null),
     stateCode ? areaCensus(stateCode, null, area, intent) : Promise.resolve(null),
     stateCode ? utilityFacts(stateCode, null, area) : Promise.resolve(null),
+    // V-39: what tenancies here actually settled at, beside the asking report.
+    stateCode && area ? areaPaid(stateCode, area) : Promise.resolve(undefined),
   ]);
 
   const result =
@@ -198,6 +202,21 @@ export default async function PriceCheckPage({
           checkId={randomUUID()}
         />
       </div>
+      {stateCode && (
+        <div className="mt-section-tight">
+          <PaidPanel
+            rows={paid}
+            locale={locale}
+            copy={t.afterTheGate.paid}
+            typeNames={{
+              apartment: t.priceCheck.subject.apartment,
+              home: t.priceCheck.subject.home,
+              shop: t.priceCheck.subject.shop,
+              office: t.priceCheck.subject.office,
+            }}
+          />
+        </div>
+      )}
     </>
   );
 }

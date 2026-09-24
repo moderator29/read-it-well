@@ -130,6 +130,12 @@ export const RENT_VIEW: RentPayView = {
   walletBalanceMinor: 12_500_000,
   walletBalanceDisplay: "₦125,000.00",
   walletCovers: false,
+  moveInDisplay: "Thu 1 Oct",
+  quotedAt: null,
+  quotedOnDisplay: null,
+  remainderMinor: 0,
+  remainderDisplay: "₦0.00",
+  routes: { leadWithTransfer: true, walletOffered: true, walletLimitMinor: 1_000_000_000 },
 };
 
 export const SAVED_SEARCHES: SavedSearchView[] = [
@@ -178,3 +184,24 @@ export const PICKER_OPEN: OpenPlace[] = [
   { lgaCode: "la_eti_osa", slug: "eti-osa", name: "Eti-Osa", status: "ACTIVE", memberCount: 412, postCount: 90 },
   { lgaCode: "la_lagos_mainland", slug: "lagos-mainland", name: "Lagos Mainland", status: "ACTIVE", memberCount: 128, postCount: 31 },
 ];
+
+/** V-13 and V-25: a Banana Island move-in, quoted, with ₦150,000 nobody itemised. */
+export const RENT_VIEW_LARGE: RentPayView = {
+  ...RENT_VIEW,
+  title: "Four bedroom maisonette, Banana Island",
+  location: "Banana Island, Lagos",
+  lines: [
+    { label: "Rent, one year", display: "₦30,000,000.00", minor: 3_000_000_000 },
+    { label: "Caution deposit", display: "₦3,000,000.00", minor: 300_000_000 },
+    { label: "Agency fee", display: "₦3,000,000.00", minor: 300_000_000 },
+    { label: "Legal fee", display: "₦150,000.00", minor: 15_000_000 },
+  ],
+  totalStated: true,
+  totalMinor: 3_630_000_000,
+  totalDisplay: "₦36,300,000.00",
+  quotedAt: "2026-10-01T10:00:00Z",
+  quotedOnDisplay: "Thu 1 Oct",
+  remainderMinor: 15_000_000,
+  remainderDisplay: "₦150,000.00",
+  routes: { leadWithTransfer: true, walletOffered: false, walletLimitMinor: 1_000_000_000 },
+};

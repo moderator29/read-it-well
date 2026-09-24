@@ -1,3 +1,4 @@
+import { phoneConfirmationOn } from "@/lib/phone-otp/flag";
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -93,6 +94,11 @@ export default async function SettingsPage() {
           }
           notifications={profile ? profile.settings.notifications : null}
           deviceCount={deviceCount}
+          phoneRow={
+            signedIn && (await phoneConfirmationOn())
+              ? { label: t.trustVisible.phone.title, sub: t.trustVisible.phone.subtitle }
+              : null
+          }
         />
 
         {/* Worker E's block, on the real `listPaymentMethods` and

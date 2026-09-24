@@ -5976,7 +5976,6 @@ export type Database = {
           completed_deals: number
           response_minutes: number
           review_count: number
-          trust_score: number
         }[]
       }
       area_asking_summary: {

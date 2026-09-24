@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { StillAvailable } from "@/components/app/listing/StillAvailable";
 import { readRecentlyLet } from "@/lib/availability/queries";
+import { Suspense } from "react";
 import { panelClass } from "@/components/ui/Panel";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -38,9 +39,17 @@ import { ListingAbout } from "@/components/app/listing/ListingAbout";
 import { ListingAmenities } from "@/components/app/listing/ListingAmenities";
 import { ListingAmenityTiles } from "@/components/app/listing/ListingAmenityTiles";
 import { ListingAgentCard } from "@/components/app/listing/ListingAgentCard";
+import { ProofStrip } from "@/components/app/listing/ProofStrip";
+import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
+import { doorHonestyLine, readDoorHonesty } from "@/lib/tenancy/door";
+import { readListingRecord } from "@/lib/trust/record-read";
+import { ValloRecord } from "@/components/app/trust/ValloRecord";
+import { readListingCredentials } from "@/lib/trust/credentials-read";
 import { ListingMoveInBlock } from "@/components/app/listing/ListingMoveInBlock";
+import { OwnerAvailabilityLine, PropertyOffers } from "@/components/app/listing/LandlordFacts";
 import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
+import { readPayeeRecords } from "@/lib/after-gate/payee";
 import { ListingPurchase } from "@/components/app/listing/ListingPurchase";
 import { ListingSectionTabs } from "@/components/app/listing/ListingSectionTabs";
 import { ListingSpecChips, specChips } from "@/components/app/listing/ListingSpecChips";
@@ -263,6 +272,16 @@ export default async function ListingDetailPage({
   // Written reviews for this listing. Public by policy for a PUBLISHED listing,
   // so this read works for a signed-out visitor too.
   const reviews = await getListingReviews(listing.id, locale);
+  /* V-59: "Moved in for the Vallo price", the one public number from the
+     tenancy reviews. Null (and no line) on every example listing. */
+  /* V-87: the lister's dated credential checks, for the proof strip. */
+  const credentials = listing.isDemo ? [] : await readListingCredentials(listing.id);
+  const doorLine = listing.isDemo
+    ? null
+    : doorHonestyLine(await readDoorHonesty(listing.id), t.trustVisible.tenancy);
+  /* V-34: the lister's Record under the agent card. An example listing has
+     no Record, and a null draws nothing. */
+  const record = listing.isDemo ? null : await readListingRecord(listing.id);
 
   /*
    * WHERE "MESSAGE AGENT" GOES, AND THE DEAD END THIS REPLACES.
@@ -804,6 +823,14 @@ export default async function ListingDetailPage({
                       disclosure lands before the belief the figure forms. */}
                   {listing.isDemo && <ExampleNotice variant="page" className="mt-row" />}
 
+                  {/* V-31: what the OWNER said about availability, or nothing.
+                      Streams on its own and never holds the page. */}
+                  {isRental && !isSale && (
+                    <Suspense fallback={null}>
+                      <OwnerAvailabilityLine listingId={listing.id} isDemo={listing.isDemo} copy={t.landlord.listing} />
+                    </Suspense>
+                  )}
+
                   <div className="nf-detail-price-row mt-md">
                     {listing.priceMinor > 0 && (
                       <p className="nf-detail-price" data-testid="detail-price">
@@ -855,11 +882,37 @@ export default async function ListingDetailPage({
                     </ul>
                   )}
 
+                  {/* V-03, THE PROOF STRIP: the dated facts the database holds,
+                      in a fixed order, each opening what the check is and is
+                      not. It renders nothing at all when there is nothing
+                      dated, which today is every example listing. */}
+                  <ProofStrip
+                    lines={proofLines({ ...proofFactsOf(listing), credentials })}
+                    variant="full"
+                    t={t}
+                    locale={locale}
+                    className="mt-md"
+                  />
+
                   {/* The Nigerian number, on a tenancy: the total to move in. */}
                   {isRental && !isSale && (
                     <div className="mt-md">
                       <ListingMoveInBlock listing={listing} locale={locale} t={t} />
                     </div>
+                  )}
+
+                  {/* V-37: every offer on this property, side by side, each with
+                      its own move-in total. Nothing when there is one offer. */}
+                  {isRental && !isSale && (
+                    <Suspense fallback={null}>
+                      <PropertyOffers
+                        listingId={listing.id}
+                        isDemo={listing.isDemo}
+                        copy={t.landlord.offers}
+                        listingCopy={t.landlord.listing}
+                        locale={locale}
+                      />
+                    </Suspense>
                   )}
 
                   {listing.amenities.length > 0 && (
@@ -913,7 +966,7 @@ export default async function ListingDetailPage({
                     divided
                     className="scroll-mt-16"
                   >
-                    <ListingMoveIn listing={listing} locale={locale} t={t} />
+                    <ListingMoveIn listing={listing} locale={locale} t={t} records={await readPayeeRecords(listing.id)} />
                   </Section>
                 )}
 
@@ -1105,6 +1158,7 @@ export default async function ListingDetailPage({
                       name={listing.listerName ?? null}
                       listingRole={listing.listerRole ?? null}
                     />
+                    <ValloRecord record={record} t={t} locale={locale} className="mt-row" />
                   </Section>
                 </Reveal>
 
@@ -1114,6 +1168,11 @@ export default async function ListingDetailPage({
                     behaviours are correct and are preserved exactly. */}
                 <Reveal>
                   <Section id="reviews" title={t.catalogue.detail.reviews} divided className="scroll-mt-16">
+                    {doorLine && (
+                      <p className={`mb-row ${TYPE.body}`} data-testid="door-honesty">
+                        {doorLine}
+                      </p>
+                    )}
                     <ListingReviews
                       rating={listing.rating}
                       reviewCount={listing.reviewCount}

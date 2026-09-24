@@ -48,6 +48,8 @@ export type NativeRuntimeHandlers = {
    * owns the router and hands the one capability the runtime needs.
    */
   goBack: () => void;
+  /** V-53: the Android notification channel's name, in the reader's words. */
+  notificationChannelName?: string;
 };
 
 const NOOP = (): void => {};
@@ -118,6 +120,14 @@ export function startNativeRuntime(handlers: NativeRuntimeHandlers): () => void 
       /* Capacitor's own navigation delegate still refuses to load a foreign
          origin in the shell, so payments and OAuth leave to the full browser
          application instead of an in-app tab. */
+    }
+
+    try {
+      /* V-53: a tap on a native notification opens the screen it names. */
+      const { startPushTaps } = await import("./push-taps");
+      collect(await startPushTaps(handlers.notificationChannelName ?? "Vallo"));
+    } catch {
+      /* A tap opens the app where it was, which is what it did before. */
     }
 
     try {

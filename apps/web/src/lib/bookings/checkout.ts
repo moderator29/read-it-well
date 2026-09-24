@@ -53,6 +53,8 @@ import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { bookingPaymentSubject } from "./payment-subject";
 import { checkoutReturnPath } from "../rent/return-path";
 import { guardMoney } from "../security/money-limits";
+import { accountHoldRefusal, holdRefusalForFailure } from "../security/account-hold-guard";
+import { createClient } from "../supabase/server";
 import { availableBalanceMinor, ensureWalletId, getAdminClient } from "../wallet/ledger";
 import { announceConfirmedStay } from "./arrival";
 import { cancelInputSchema } from "./schema";
@@ -533,6 +535,14 @@ async function payWithWalletWork(
   const amountMinor = booking.total_minor;
   const reference = bookingReference();
 
+  /* V-19: while a money hold stands, paying from the balance is refused by
+     the audit's trigger. Said in words first, from the payer's own RLS read. */
+  const own = await createClient().catch(() => null);
+  if (own) {
+    const accountHold = await accountHoldRefusal(own);
+    if (accountHold) return fail(accountHold);
+  }
+
   // A first read of the spendable balance, so a guest who plainly cannot afford
   // the stay is told so without a write being attempted. The figure that
   // actually decides the payment is re-read inside the database function, under
@@ -559,7 +569,11 @@ async function payWithWalletWork(
       target_booking: booking.id,
       payment_reference: reference,
     });
-    if (error) return fail(SERVICE_DOWN_MESSAGE);
+    if (error) {
+      /* V-19: the hold trigger (RM050) refused a call that raced the check. */
+      const held = own ? await holdRefusalForFailure(own, error.message ?? "") : null;
+      return fail(held ?? SERVICE_DOWN_MESSAGE);
+    }
     outcome = readOutcome(data);
   } catch {
     return fail(SERVICE_DOWN_MESSAGE);

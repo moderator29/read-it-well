@@ -43,6 +43,10 @@ import { useBack } from "@/lib/nav/use-back";
 import { ThreadOptionsSheet, type SheetListing } from "./ThreadOptionsSheet";
 import { Button } from "@/components/ui/Button";
 import { Chip, ChipRow } from "@/components/ui/Chip";
+import { AccountMomentCard } from "@/components/app/messages/AccountMomentCard";
+import { accountNumbersIn, isAccountMoment } from "@/lib/messages/account-moment";
+import type { AccountCheckView } from "@/lib/messages/account-check";
+import type { ChargeOffer } from "@/lib/messages/charge-offer";
 
 /**
  * The conversation thread, one component for both data sources.
@@ -80,6 +84,8 @@ export type ThreadBubble = {
   read?: boolean;
   /** The card a share expands into, resolved by the page. Absent otherwise. */
   card?: ChatCardData;
+  /** The row's timestamp, when known. Read by the account card's "checking" window. */
+  createdAt?: string;
 };
 
 export type ThreadViewProps = {
@@ -166,6 +172,26 @@ export type ThreadViewProps = {
    */
   quickReplies?: { key: string; label: string; text: string }[];
   quickRepliesTitle?: string;
+  /**
+   * V-04, THE ACCOUNT-NUMBER MOMENT. The stored check per message from the
+   * other side (only the receiver's RLS can read one) and the real charge on
+   * offer. Absent draws no card, which is every thread with no account number
+   * in it from the other side.
+   */
+  accountMoment?: { checks: Record<string, AccountCheckView>; offer: ChargeOffer } | null;
+  accountCopy?: Dictionary["trustVisible"]["account"];
+  /**
+   * V-23: dated facts about the other person, already worded, in order.
+   * Empty draws nothing: a null fact is never a line.
+   */
+  personLine?: { key: string; text: string }[];
+  personLabel?: string;
+  /**
+   * V-34: the other party's Vallo Record when they are a lister, already
+   * worded and gated at five. Empty draws nothing.
+   */
+  recordLine?: { key: string; text: string }[];
+  recordLabel?: string;
 };
 
 const INSPECTIONS_KEY = "nf_inspections";
@@ -295,6 +321,12 @@ export function ThreadView({
   stageSlot = null,
   quickReplies = [],
   quickRepliesTitle = "",
+  accountMoment = null,
+  accountCopy,
+  personLine = [],
+  personLabel,
+  recordLine = [],
+  recordLabel,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
   /*
@@ -371,6 +403,7 @@ export function ThreadView({
           body: row.body,
           timeLabel: lagosTimeLabel(row.created_at),
           imageUrl: null,
+          createdAt: row.created_at,
         },
       ];
     });
@@ -715,6 +748,43 @@ export function ThreadView({
         </div>
       </header>
 
+      {/* V-23: WHO THIS IS, under the header. On a property thread the header
+          names the flat, so the person gets their own slim line: the avatar
+          with their one published mark, their name, and only the dated facts
+          Vallo holds about them. Nothing that is null is drawn. */}
+      {live && (propertyFace || personLine.length > 0 || recordLine.length > 0) && (
+        <div className="nf-thread__person flex items-center gap-sm px-gutter py-xs" aria-label={personLabel} data-testid="thread-person">
+          {propertyFace && <VerifiedAvatar name={counterpartName} tier={counterpartTier} size="sm" />}
+          <div className="min-w-0 flex-1">
+            {propertyFace && (
+              <p className="flex items-center gap-inline-tight nf-body-sm font-semibold text-[var(--nf-content-primary)]">
+                <span className="truncate">{counterpartName}</span>
+                <TierBadge tier={counterpartTier} size={14} />
+              </p>
+            )}
+            {personLine.length > 0 && (
+              <p className="nf-caption text-[var(--nf-content-muted)]">
+                {personLine.map((fact) => fact.text).join(" · ")}
+              </p>
+            )}
+            {recordLine.length > 0 && (
+              <ul className="mt-3xs grid gap-3xs" aria-label={recordLabel} data-testid="thread-record">
+                {recordLine.map((line) => (
+                  <li
+                    key={line.key}
+                    className={`nf-caption ${
+                      line.key === "stopped" ? "text-[var(--nf-state-error)]" : "text-[var(--nf-content-secondary)]"
+                    }`}
+                  >
+                    {line.text}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+
       <ThreadOptionsSheet
         open={sheetOpen}
         conversationId={conversationId}
@@ -804,6 +874,14 @@ export function ThreadView({
           const caption = run.length > 1 ? run.find((p) => isCaption(p)) : null;
           const words = run.length === 1 ? m.body : (caption?.body ?? "");
           const last = run[run.length - 1]!;
+          /* V-04: the first message in this run from the other side that
+             carries an account number gets the receiver's card above it. */
+          /* Only where a check can run: a listing thread, read by the renter,
+             about a message from the lister (the conversation's agent). */
+          const accountMessage =
+            live && accountCopy && !m.mine && role === "guest" && context?.kind === "listing"
+              ? run.find((p) => isAccountMoment(p.body))
+              : undefined;
           return (
             <div
               key={m.id}
@@ -831,6 +909,19 @@ export function ThreadView({
                     {tags && <span className="nf-role-tag">{tags.theirs}</span>}
                     <span className="nf-numeric">{m.timeLabel}</span>
                   </p>
+                )}
+
+                {accountMessage && accountCopy && (
+                  <AccountMomentCard
+                    messageId={accountMessage.id}
+                    createdAt={accountMessage.createdAt ?? null}
+                    initialCheck={accountMoment?.checks[accountMessage.id] ?? null}
+                    numberCount={accountNumbersIn(accountMessage.body).length}
+                    offer={accountMoment?.offer ?? { kind: "none" }}
+                    copy={accountCopy}
+                    locale={locale}
+                    onBlock={counterpartId ? () => setSheetOpen(true) : undefined}
+                  />
                 )}
 
                 {m.card ? (

@@ -7,6 +7,11 @@ import {
 import type { StatusTone } from "@/components/ui/StatusPill";
 import { DocumentDecision } from "../_components/MoneyDecisions";
 import { DocumentViewer } from "../_components/DocumentViewer";
+import { CredentialForm } from "./CredentialForm";
+import { getDictionary } from "@vallo/i18n";
+
+/* V-49 and V-87 copy on this card. The desk reads English. */
+const DESK = getDictionary("en").trustVisible.desk;
 
 /* The document vocabulary, staged in `components/app/untranslated.ts` with the
    rest of this owner's untranslated copy. These are NOT the F2-060 fault: that
@@ -96,6 +101,28 @@ export function SubjectCard({
           ))}
         </ul>
       )}
+
+      {/* V-49: the Nigerian-name matcher's suggestion for the payout rung,
+          both names side by side, marked as a suggestion. A person decides. */}
+      {subject.payoutNameCheck && (
+        <p
+          className="mt-xs max-w-[60ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
+          data-testid="payout-name-suggestion"
+        >
+          <span className="font-semibold text-[var(--nf-content-primary)]">
+            {DESK.payoutLabel}{" "}
+            {subject.payoutNameCheck.match ? DESK.payoutMatch : DESK.payoutDiffer}
+          </span>
+          .{" "}
+          {DESK.payoutNames
+            .replace("{holder}", subject.payoutNameCheck.holder)
+            .replace("{onRecord}", subject.payoutNameCheck.onRecord)}{" "}
+          {subject.payoutNameCheck.reason}.
+        </p>
+      )}
+
+      {/* V-87: dated credentials, recorded by the desk, never required. */}
+      {decidable && subject.userId && <CredentialForm subjectId={subject.userId} />}
 
       {subject.business && (
         <dl className="mt-sm">

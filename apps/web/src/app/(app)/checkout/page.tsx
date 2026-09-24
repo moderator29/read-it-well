@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { bpsAsPercentText } from "@/lib/money/percent";
 import { redirect } from "next/navigation";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -10,6 +11,8 @@ import { Amount } from "@/components/ui/Amount";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Panel } from "@/components/ui/Panel";
 import { ICON, TYPE } from "@/components/app/Screen";
+import { formatMoneyDate } from "@/lib/money/dates";
+import { cancelStanding, termsFromPolicyRules } from "@/lib/trust/cancellation";
 
 export const metadata: Metadata = { title: "Checkout", robots: { index: false, follow: false } };
 
@@ -50,6 +53,26 @@ export default async function RoomCheckoutPage({
   const room = detail?.room_types.find((row) => row.id === roomId) ?? null;
   const plan = room?.rate_plans.find((row) => row.id === rateId) ?? null;
   const total = plan && nights !== null && nights > 0 ? plan.rate_minor * nights : null;
+  /* V-20 and V-24. The chosen rate's own cancellation terms, as a date, under
+     the total; and the stay's dates as weekdays rather than ISO strings. The
+     terms come from the policy's rules, never its sentence. */
+  const cancelCopy = t.afterTheGate.cancel;
+  const checkInHour = Number.parseInt(detail?.accommodation.check_in_from ?? "", 10);
+  const terms = plan?.policy
+    ? termsFromPolicyRules(plan.policy.id, plan.policy.rules, Number.isInteger(checkInHour) ? checkInHour : 15)
+    : null;
+  // A closed free window is never printed as a promise: from now the rate
+  // is priced by its next tier (a dynamic route, so this is the reading time).
+  const standing = terms && checkIn ? cancelStanding(terms, checkIn, new Date()) : null;
+  const cancelLine = standing
+    ? standing.kind === "free"
+      ? cancelCopy.freeUntil.replace("{date}", formatMoneyDate(standing.until, locale, { withTime: true }) ?? "")
+      : standing.kind === "share"
+        ? cancelCopy.shareNow.replace("{percent}", bpsAsPercentText(standing.refundBps))
+        : cancelCopy.nonRefundable
+    : null;
+  const checkInLabel = checkIn ? (formatMoneyDate(checkIn, locale) ?? checkIn) : null;
+  const checkOutLabel = checkOut ? (formatMoneyDate(checkOut, locale) ?? checkOut) : null;
   const backHref = detail
     ? `/stay/${detail.accommodation.id}${checkIn && checkOut ? `?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}` : ""}`
     : "/stays";
@@ -71,7 +94,7 @@ export default async function RoomCheckoutPage({
               <div className="flex items-start justify-between gap-md">
                 <dt className={TYPE.rowMeta}>{t.catalogue.stays.checkIn}</dt>
                 <dd className={`text-right ${TYPE.rowTitle}`}>
-                  <span className="nf-numeric">{checkIn}</span>
+                  <span className="nf-numeric">{checkInLabel}</span>
                 </dd>
               </div>
             )}
@@ -79,7 +102,7 @@ export default async function RoomCheckoutPage({
               <div className="flex items-start justify-between gap-md">
                 <dt className={TYPE.rowMeta}>{t.catalogue.stays.checkOut}</dt>
                 <dd className={`text-right ${TYPE.rowTitle}`}>
-                  <span className="nf-numeric">{checkOut}</span>
+                  <span className="nf-numeric">{checkOutLabel}</span>
                 </dd>
               </div>
             )}
@@ -102,6 +125,11 @@ export default async function RoomCheckoutPage({
               </div>
             )}
           </dl>
+          {cancelLine && total !== null && (
+            <p className="nf-body mt-xs font-semibold text-[var(--nf-content-primary)]" data-testid="room-cancel-line">
+              {cancelLine}
+            </p>
+          )}
         </Panel>
       )}
 

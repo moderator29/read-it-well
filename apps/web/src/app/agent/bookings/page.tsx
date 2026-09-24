@@ -13,6 +13,7 @@ import {
   EMPTY_RESERVATION_BOARD,
 } from "@/lib/agent/reservations-queries";
 import { ButtonLink } from "@/components/ui/Button";
+import { ListerTenancies } from "@/components/app/tenancy/ListerTenancies";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -91,6 +92,9 @@ export default async function Page() {
       </div>
 
       <BookingsWorkspace t={t.agentBookings} board={board ?? EMPTY_BOARD} locale={locale} />
+
+      {/* V-47: the lister's way into the tenancy files. Nothing when there are none. */}
+      <ListerTenancies locale={locale} />
 
       {/* Renders nothing at all for an agent with no restaurant, rather than
           three empty headings explaining a product they do not sell. */}

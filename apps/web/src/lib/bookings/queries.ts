@@ -120,6 +120,8 @@ export type RentChargeView = {
   payable: boolean;
   /** Where paying it happens. Never a stay checkout. */
   href: string;
+  /** V-47: the tenancy file, the one page for the whole tenancy once it is paid. */
+  fileHref: string;
 };
 
 export type BookingGroups = {
@@ -147,6 +149,7 @@ function labelDate(iso: string): string {
 
 /** The columns of `rent_payments` this screen needs to speak about a tenancy. */
 type RentChargeRow = {
+  id: string;
   booking_id: string;
   inspection_id: string;
   listing_id: string;
@@ -217,7 +220,7 @@ export async function getMyBookings(
   if (rows.length > 0) {
     const { data: charges } = await session.supabase
       .from("rent_payments")
-      .select("booking_id, inspection_id, listing_id, move_in, rent_period, total_minor, currency")
+      .select("id, booking_id, inspection_id, listing_id, move_in, rent_period, total_minor, currency")
       .in(
         "booking_id",
         rows.map((r) => r.id),
@@ -403,6 +406,7 @@ export async function getMyBookings(
          honest state rather than by a control here that would refuse. */
       payable: !paid && row.status === "PENDING",
       href: `/rent/pay/${charge.inspection_id}`,
+      fileHref: `/tenancy/${charge.id}`,
     });
   }
 

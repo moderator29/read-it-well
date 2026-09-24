@@ -58,8 +58,27 @@
   font-display: swap;
   src: url("/fonts/inter-latin-ext.woff2") format("woff2");
   unicode-range: U+100-2BA, U+2BD-2C5, U+2C7-2CC, U+2CE-2D7, U+2DD-2FF, U+304, U+308, U+329,
-    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
-    U+A720-A7FF;
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20A5, U+20A7-20AB, U+20AD-20C0, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+
+/*
+ * THE NAIRA SIGN, ON ITS OWN. V-78.
+ *
+ * ₦ (U+20A6) lived only in latin-ext, so every English page preloaded 85KB,
+ * larger than the 48KB latin file, to draw one glyph. It is cut out here into
+ * a 1.2KB file (`pyftsubset inter-latin-ext.woff2 --unicodes=U+20A6`, the
+ * variable weight axis kept), and U+20A6 is taken out of latin-ext's range
+ * above so the two can never compete for it. English preloads this; Hausa,
+ * which needs the hooked letters, still preloads latin-ext as well.
+ */
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter-naira.woff2") format("woff2");
+  unicode-range: U+20A6;
 }
 
 @font-face {

@@ -1,3 +1,4 @@
+import { getDictionary } from "@vallo/i18n";
 import type { RentPayView } from "@/lib/rent/queries";
 import { RENT_PERIOD_LABEL } from "@/lib/listings/pricing";
 import { Amount } from "@/components/ui/Amount";
@@ -10,6 +11,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  * charge and decides every other state.
  */
 export function RentSummary({ view }: { view: RentPayView }) {
+  const copy = getDictionary(view.locale).afterTheGate;
   return (
     <section aria-labelledby="nf-rent-summary" className="nf-panel nf-panel--card block p-md sm:p-lg">
       <h2 id="nf-rent-summary" className="nf-h3">
@@ -47,6 +49,23 @@ export function RentSummary({ view }: { view: RentPayView }) {
             </dd>
           </div>
         ))}
+        {/* V-13. The part of the stated total nobody itemised, on its own
+            line and in the attention colour, with the words beside it so the
+            colour is never the only signal. */}
+        {view.remainderMinor > 0 && (
+          <div
+            className="flex items-baseline justify-between gap-group"
+            data-testid="rent-remainder"
+          >
+            <dt className="nf-body-sm text-[var(--nf-state-warning)]">
+              {copy.remainder.line}
+              <span className="nf-caption block text-[var(--nf-content-muted)]">{copy.remainder.note}</span>
+            </dt>
+            <dd className="nf-body-sm font-semibold tabular-nums text-[var(--nf-state-warning)]">
+              {view.remainderDisplay}
+            </dd>
+          </div>
+        )}
         <div className="flex items-baseline justify-between gap-group border-t border-[var(--nf-line)] pt-inline">
           <dt className="nf-body font-semibold text-[var(--nf-content-primary)]">Total to pay</dt>
           <dd className="nf-body font-semibold tabular-nums text-[var(--nf-content-primary)]">
@@ -55,8 +74,18 @@ export function RentSummary({ view }: { view: RentPayView }) {
         </div>
       </dl>
 
-      <p className="nf-caption mt-block leading-relaxed text-[var(--nf-content-muted)]">
-        Rent is {RENT_PERIOD_LABEL[view.rentPeriod].toLowerCase()}, moving in from {view.moveIn}.
+      {/* V-13. Once the lister said yes, the figure is a quote with a date. */}
+      <p
+        className="nf-body-sm mt-block leading-relaxed text-[var(--nf-content-secondary)]"
+        data-testid={view.quotedOnDisplay ? "rent-quote-frozen" : "rent-quote-open"}
+      >
+        {view.quotedOnDisplay
+          ? copy.quote.frozen.replace("{amount}", view.totalDisplay).replace("{date}", view.quotedOnDisplay)
+          : copy.quote.notYetFrozen}
+      </p>
+
+      <p className="nf-caption mt-inline leading-relaxed text-[var(--nf-content-muted)]">
+        Rent is {RENT_PERIOD_LABEL[view.rentPeriod].toLowerCase()}, moving in from {view.moveInDisplay}.
         Vallo charges nothing on this payment; a card processor may show its own charge on the
         payment page.
       </p>
