@@ -131,6 +131,15 @@ export const trustVisibleEn = {
     resend: "Send a new code",
     done: "Confirmed. Your number is never shown to anybody.",
   },
+  /** V-49: confirming identity with a NIMC virtual NIN. */
+  vnin: {
+    title: "Confirm with your NIN instead",
+    /** `{code}` is Vallo's NIMC merchant code, from configuration. */
+    lede: "Dial *346*3*your NIN*{code}# on the phone linked to your NIN, and paste the sixteen-character virtual NIN NIMC sends you. Vallo never stores your NIN.",
+    label: "Virtual NIN",
+    submit: "Confirm with NIMC",
+    checking: "Checking with NIMC",
+  },
   /** V-21: the agent band on a profile, with no score in it. */
   profile: {
     reviews: "Reviews",

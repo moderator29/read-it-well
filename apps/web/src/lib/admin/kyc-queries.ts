@@ -1,3 +1,4 @@
+import { businessNamesMatch, namesMatch } from "@/lib/identity/name-match";
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -81,6 +82,16 @@ export type KycSubjectView = {
     address: string | null;
   } | null;
   documents: KycDocumentView[];
+  /**
+   * V-49: THE NIGERIAN-NAME MATCHER'S SUGGESTION FOR THE PAYOUT RUNG. The
+   * bank's holder name for the agent's payout account against the name on the
+   * application (and the registered business name, for a firm), by the rule in
+   * `lib/identity/name-match.ts`: titles stripped, order ignored, a missing
+   * middle name forgiven. A SUGGESTION for the person deciding, never a
+   * decision: the rung is still passed or failed by a human. Null when there
+   * is no resolved payout name or no application name to compare.
+   */
+  payoutNameCheck: { match: boolean; reason: string; holder: string; onRecord: string } | null;
 };
 
 export type KycQueue = {
@@ -162,6 +173,7 @@ export async function getKycQueue(filter?: AdminQueueFilter): Promise<AdminRead<
         user_id: string;
         reference: string;
         business_name: string | null;
+        full_name: string | null;
         business_rc: string | null;
         business_tax_id: string | null;
         business_email: string | null;
@@ -174,7 +186,7 @@ export async function getKycQueue(filter?: AdminQueueFilter): Promise<AdminRead<
       const { data } = await access.supabase
         .from("agent_applications")
         .select(
-          "id, user_id, reference, business_name, business_rc, business_tax_id, business_email, business_phone, business_established_on, business_address",
+          "id, user_id, reference, full_name, business_name, business_rc, business_tax_id, business_email, business_phone, business_established_on, business_address",
         )
         .in("id", applicationIds);
       for (const row of data ?? []) applications.set(row.id, row);
@@ -196,10 +208,16 @@ export async function getKycQueue(filter?: AdminQueueFilter): Promise<AdminRead<
       agentsFor(access.supabase, userIds),
     ]);
 
-    const ladders = await laddersFor(
-      access.supabase,
-      [...agents.values()].map((a) => a.id),
-    );
+    const [ladders, payoutNames] = await Promise.all([
+      laddersFor(
+        access.supabase,
+        [...agents.values()].map((a) => a.id),
+      ),
+      payoutHoldersFor(
+        access.supabase,
+        [...agents.values()].map((a) => a.id),
+      ),
+    ]);
 
     const bySubject = new Map<string, KycSubjectView>();
     for (const doc of documents) {
@@ -231,6 +249,11 @@ export async function getKycQueue(filter?: AdminQueueFilter): Promise<AdminRead<
                 }
               : null,
           documents: [],
+          payoutNameCheck: payoutSuggestion(
+            agent ? payoutNames.get(agent.id) : undefined,
+            application?.full_name ?? null,
+            application?.business_name ?? null,
+          ),
         };
         bySubject.set(key, subject);
       }
@@ -270,6 +293,42 @@ export async function getKycQueue(filter?: AdminQueueFilter): Promise<AdminRead<
   } catch {
     return UNAVAILABLE;
   }
+}
+
+/* ------------------------------------------------ V-49 payout suggestion */
+
+async function payoutHoldersFor(
+  supabase: SupabaseClient<Database>,
+  agentIds: string[],
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  if (agentIds.length === 0) return out;
+  const { data } = await supabase
+    .from("payout_accounts")
+    .select("agent_id, resolved_account_name, is_default")
+    .in("agent_id", agentIds);
+  for (const row of data ?? []) {
+    const name = row.resolved_account_name?.trim();
+    if (!name) continue;
+    /* The default account's name wins; otherwise the first resolved one. */
+    if (row.is_default || !out.has(row.agent_id)) out.set(row.agent_id, name);
+  }
+  return out;
+}
+
+/** The desk's suggestion, from the pure matcher. Exported for its spec. */
+export function payoutSuggestion(
+  holder: string | undefined,
+  fullName: string | null,
+  businessName: string | null,
+): KycSubjectView["payoutNameCheck"] {
+  if (!holder) return null;
+  const person = fullName?.trim() ? namesMatch(holder, fullName) : null;
+  const firm = businessName?.trim() ? businessNamesMatch(holder, businessName) : null;
+  const hit = [person, firm].find((r) => r?.match) ?? person ?? firm;
+  if (!hit) return null;
+  const onRecord = hit === firm && businessName ? businessName : (fullName ?? businessName ?? "");
+  return { match: hit.match, reason: hit.reason, holder, onRecord };
 }
 
 /* ------------------------------------------------------------------ shared */

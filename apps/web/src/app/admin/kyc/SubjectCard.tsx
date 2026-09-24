@@ -97,6 +97,22 @@ export function SubjectCard({
         </ul>
       )}
 
+      {/* V-49: the Nigerian-name matcher's suggestion for the payout rung,
+          both names side by side, marked as a suggestion. A person decides. */}
+      {subject.payoutNameCheck && (
+        <p
+          className="mt-xs max-w-[60ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]"
+          data-testid="payout-name-suggestion"
+        >
+          <span className="font-semibold text-[var(--nf-content-primary)]">
+            Payout name check (suggestion):{" "}
+            {subject.payoutNameCheck.match ? "the names match" : "the names do not match"}
+          </span>
+          . Bank holder {subject.payoutNameCheck.holder}; on record {subject.payoutNameCheck.onRecord}.{" "}
+          {subject.payoutNameCheck.reason}.
+        </p>
+      )}
+
       {subject.business && (
         <dl className="mt-sm">
           <ui.DetailRow label="Business" value={subject.business.name} />
