@@ -354,6 +354,9 @@ export const frontDoorEn = {
     making: "Making the drafts",
     made: "Made {count} drafts. Open each one to change what differs, like the floor or the price.",
     madeOne: "Made a draft. Open it to change what differs, like the floor or the price.",
+    /** When the limit on new listings stopped the run part way (V-29 review). */
+    madePartial: "Made {made} of {asked}. The limit on new listings in a short time stopped the rest, so try again later for the others.",
+    limited: "The limit on new listings in a short time was reached, so no copy was made. Try again later.",
     open: "Open the draft",
     failed: "We could not make the copy just now. Nothing was created, so try again.",
     agentsOnly: "Only the lister can copy a listing.",

@@ -26,6 +26,7 @@ export function DuplicateListing({
   const [open, setOpen] = useState(false);
   const [count, setCount] = useState(1);
   const [made, setMade] = useState<string[] | null>(null);
+  const [asked, setAsked] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
@@ -49,7 +50,11 @@ export function DuplicateListing({
         {made ? (
           <div className="mt-group flex flex-col gap-row" data-testid="duplicate-made">
             <p className="nf-body-sm text-[var(--nf-content-primary)]">
-              {made.length === 1 ? copy.madeOne : copy.made.replace("{count}", String(made.length))}
+              {made.length < asked
+                ? copy.madePartial.replace("{made}", String(made.length)).replace("{asked}", String(asked))
+                : made.length === 1
+                  ? copy.madeOne
+                  : copy.made.replace("{count}", String(made.length))}
             </p>
             <ButtonLink href={`/agent/list?id=${made[0]}`} variant="primary" full>
               {copy.open}
@@ -82,6 +87,7 @@ export function DuplicateListing({
                     return;
                   }
                   setMade(result.data.ids);
+                  setAsked(result.data.asked);
                   router.refresh();
                 });
               }}

@@ -1,24 +1,25 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getDictionary } from "@vallo/i18n";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { getLocale } from "../locale";
-import { getAgentContext, readDraft } from "./listings-queries";
-import { saveDraft, setAmenities, setListingAccess } from "./listings-actions";
-import { copiesAsked, draftInputFrom, MAX_COPIES } from "./duplicate";
+import { getAgentContext } from "./listings-queries";
+import { copiesAsked, MAX_COPIES } from "./duplicate";
 
 /**
  * V-29: LIST ANOTHER LIKE THIS. One of the lister's own listings becomes one
- * or more new DRAFTS, each saved through the wizard's own `saveDraft` (so a
- * copy is validated exactly as a typed draft is), with its amenities and its
- * gate details copied. Photographs, walkthroughs, the code and any mandate are
- * not copied; see `duplicate.ts`.
+ * or more new DRAFTS, made in ONE database call (`duplicate_listing`,
+ * migration 20260924121800): an allowlist of facts, fees, utilities and place,
+ * plus amenities and gate details. Photographs, walkthroughs, the code, any
+ * verification and any mandate are never copied.
  *
- * Ownership is proven by `readDraft`, which reads the source under the
- * agent's own client AND their agent id, never by trusting the posted id.
- * Nothing is submitted: every copy is a draft the lister opens, changes (the
- * floor, the flat number, the price) and sends for review themselves.
+ * Ownership is proven by the function (only the listing's own agent), never
+ * by trusting the posted id. When the per-person ceiling on new listings stops
+ * the run part way, the copies already made stand and the answer says how many
+ * of how many, so the screen can say "Made 10 of 20" rather than pretend.
+ * Nothing is submitted.
  *
  * This module exports only async functions, per the server-actions rule.
  */
@@ -28,7 +29,12 @@ const schema = z.object({
   copies: z.number().int().min(1).max(MAX_COPIES).optional(),
 });
 
-export async function duplicateListing(input: unknown): Promise<ActionResult<{ ids: string[] }>> {
+type Rpc = (
+  fn: "duplicate_listing",
+  args: { p_listing: string; p_copies: number },
+) => PromiseLike<{ data: unknown; error: { code?: string } | null }>;
+
+export async function duplicateListing(input: unknown): Promise<ActionResult<{ ids: string[]; asked: number }>> {
   const copy = getDictionary(await getLocale()).frontDoor.duplicate;
   const parsed = validate(schema, input);
   if (!parsed.ok) return fail(copy.failed);
@@ -36,23 +42,16 @@ export async function duplicateListing(input: unknown): Promise<ActionResult<{ i
   const context = await getAgentContext();
   if (context.state !== "agent") return fail(copy.agentsOnly);
 
-  const source = await readDraft(context.supabase, context.agent.id, parsed.data.listingId);
-  if (!source) return fail(copy.notYours);
-
-  const input_ = draftInputFrom(source);
-  const count = copiesAsked(parsed.data.copies ?? 1);
-  const ids: string[] = [];
-  for (let i = 0; i < count; i += 1) {
-    const saved = await saveDraft(input_);
-    if (!saved.ok) {
-      return ids.length === 0 ? fail(saved.error) : ok({ ids });
-    }
-    ids.push(saved.data.id);
-    if (source.amenityCodes.length > 0) await setAmenities({ listingId: saved.data.id, codes: source.amenityCodes });
-    const access = source.access;
-    if (access.estateName || access.gateDirections || access.securityPhone || access.accessCode) {
-      await setListingAccess({ listingId: saved.data.id, ...access });
-    }
+  const asked = copiesAsked(parsed.data.copies ?? 1);
+  try {
+    const rpc = context.supabase.rpc.bind(context.supabase) as unknown as Rpc;
+    const { data, error } = await rpc("duplicate_listing", { p_listing: parsed.data.listingId, p_copies: asked });
+    if (error) return fail(error.code === "42501" ? copy.notYours : copy.failed);
+    const ids = Array.isArray(data) ? data.filter((id): id is string => typeof id === "string") : [];
+    if (ids.length === 0) return fail(copy.limited);
+    revalidatePath("/agent/listings");
+    return ok({ ids, asked });
+  } catch {
+    return fail(copy.failed);
   }
-  return ok({ ids });
 }
