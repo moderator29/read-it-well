@@ -1,4 +1,5 @@
 import { getDictionary, type Locale } from "@vallo/i18n";
+import { bpsAsPercentText } from "@/lib/money/percent";
 import { Amount } from "@/components/ui/Amount";
 import { formatMoneyDate, formatMoneyTime } from "@/lib/money/dates";
 import {
@@ -61,7 +62,7 @@ export function CancellationTimeline({
   const frozenOn = frozenAt ? formatMoneyDate(frozenAt, locale) : null;
 
   const share = (bps: number) =>
-    bps >= 10_000 ? copy.everything : bps <= 0 ? copy.nothing : copy.share.replace("{percent}", String(bps / 100));
+    bps >= 10_000 ? copy.everything : bps <= 0 ? copy.nothing : copy.share.replace("{percent}", bpsAsPercentText(bps));
 
   return (
     <div data-testid="cancellation-timeline">

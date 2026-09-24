@@ -43,7 +43,7 @@ export const afterTheGateEn = {
     nothing: "Nothing back",
     back: "{amount} back to you",
     measured: "Hours are measured to check-in at {hour} Lagos time.",
-    refundsTo: "Refunds go to your Vallo wallet the moment the cancellation is decided, and never later than five Nigerian business days after you ask from the booking.",
+    refundsTo: "Ask from the booking and support decides within five Nigerian business days. A refund it decides on is in your Vallo wallet the moment it does.",
     frozenAt: "These terms were fixed when you paid on {date}.",
     /** Stay page: two rates at once, when the cheapest is non-refundable. */
     bothRates: "{cheap} non-refundable, {flex} free cancellation until {date}",

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { bpsAsPercentText } from "@/lib/money/percent";
 import { redirect } from "next/navigation";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -67,7 +68,7 @@ export default async function RoomCheckoutPage({
     ? standing.kind === "free"
       ? cancelCopy.freeUntil.replace("{date}", formatMoneyDate(standing.until, locale, { withTime: true }) ?? "")
       : standing.kind === "share"
-        ? cancelCopy.shareNow.replace("{percent}", String(standing.refundBps / 100))
+        ? cancelCopy.shareNow.replace("{percent}", bpsAsPercentText(standing.refundBps))
         : cancelCopy.nonRefundable
     : null;
   const checkInLabel = checkIn ? (formatMoneyDate(checkIn, locale) ?? checkIn) : null;

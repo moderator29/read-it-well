@@ -1,4 +1,5 @@
 import { getDictionary, plural, type Locale } from "@vallo/i18n";
+import { bpsAsPercentText } from "@/lib/money/percent";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { Amount } from "@/components/ui/Amount";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -41,7 +42,7 @@ export function CheckoutSummary({
     : standing.kind === "free"
       ? cancelCopy.freeUntil.replace("{date}", formatMoneyDate(standing.until, locale, { withTime: true }) ?? "")
       : standing.kind === "share"
-        ? cancelCopy.shareNow.replace("{percent}", String(standing.refundBps / 100))
+        ? cancelCopy.shareNow.replace("{percent}", bpsAsPercentText(standing.refundBps))
         : cancelCopy.nonRefundable;
   return (
     <Panel aria-labelledby="nf-checkout-summary" variant="card">
