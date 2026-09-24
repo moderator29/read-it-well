@@ -2,7 +2,8 @@
 -- columns. The lister (and staff) read a listing's address, landmark and
 -- reviewer note through listing_private_fields; a business owner (and staff)
 -- read its contact, registration and tier through business_private_fields;
--- anyone else gets no row, and anon cannot call either. The step 2 probe
+-- anyone else gets no row, a call takes at most 500 ids, and anon cannot
+-- call either. The step 2 probe
 -- (authenticated loses the columns on the tables) is
 -- tests/pending/db-10-step2.sql.
 do $$
@@ -48,6 +49,12 @@ begin
   if n <> 0 then raise exception 'PROBE_FAIL db-10: stranger listing private rows=%', n; end if;
   select count(*) into n from public.business_private_fields(array[biz]);
   if n <> 0 then raise exception 'PROBE_FAIL db-10: stranger business private rows=%', n; end if;
+
+  -- More than 500 ids in one call is refused.
+  begin
+    perform * from public.listing_private_fields(array(select gen_random_uuid() from generate_series(1, 501)));
+    raise exception 'PROBE_FAIL db-10: 501 ids accepted';
+  exception when invalid_parameter_value then null; end;
 
   -- anon cannot call it at all.
   reset role;

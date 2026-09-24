@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   LISTING_PRIVATE_COLUMNS,
+  PRIVATE_FIELDS_CHUNK,
   PrivateFieldsUnavailable,
   withBusinessPrivate,
   withListingPrivate,
@@ -36,6 +37,13 @@ describe("withListingPrivate", () => {
     expect(calls).toEqual([{ fn: "listing_private_fields", args: { p_ids: ["a", "b"] } }]);
     expect(rows[0]).toMatchObject({ id: "a", address: "1 Road", landmark: "Gate" });
     expect(rows[1]).toMatchObject({ id: "b", address: null, landmark: null, review_notes: null, reviewer_id: null });
+  });
+
+  it("asks in chunks the function accepts", async () => {
+    const { client, calls } = rpcClient({ data: [], error: null });
+    const rows = Array.from({ length: PRIVATE_FIELDS_CHUNK * 2 + 1 }, (_, i) => ({ id: `id-${i}` }));
+    await withListingPrivate(client, rows);
+    expect(calls.map((c) => (c.args.p_ids as string[]).length)).toEqual([PRIVATE_FIELDS_CHUNK, PRIVATE_FIELDS_CHUNK, 1]);
   });
 
   it("does not call the database for no rows", async () => {

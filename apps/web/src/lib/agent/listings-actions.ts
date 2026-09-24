@@ -1119,5 +1119,7 @@ export async function deleteListing(input: {
 export async function getMyListings(): Promise<ActionResult<ListingSummary[]>> {
   const gate = await requireAgent();
   if (!gate.ok) return fail(gate.error);
-  return ok(await readMyListings(gate.supabase, gate.agentId));
+  const listings = await readMyListings(gate.supabase, gate.agentId);
+  if (listings === null) return fail("We could not load your listings just now. Nothing has changed. Try again in a moment.");
+  return ok(listings);
 }

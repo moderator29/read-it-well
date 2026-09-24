@@ -43,7 +43,7 @@ import { SCRUB_REFUSED_MESSAGE, scrubPublicPhoto } from "../images/scrub";
 import { documentPathBelongsTo, missingFrom, type HostType } from "./onboarding";
 import { HOST_PHOTO_BUCKET, MAX_BUSINESS_PHOTOS, nextPhotoPosition } from "./photos";
 import { MAX_NIGHTS_IN_ONE_ACT, nightsBetween } from "../stays/inventory";
-import { getMyHostDraft } from "./queries";
+import { readMyHostDraft } from "./queries";
 import { orderFacilities } from "./facilities";
 import {
   accommodationDraftSchema,
@@ -354,7 +354,9 @@ export async function submitHostApplication(): Promise<ActionResult<{ businessId
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
 
-  const draft = await getMyHostDraft();
+  const read = await readMyHostDraft();
+  if (read.state === "unavailable") return fail(SERVICE_DOWN_MESSAGE);
+  const draft = read.draft;
   if (!draft.businessId) return fail(NO_DRAFT_MESSAGE);
   if (draft.status === "SUBMITTED") {
     return fail("This application is already with our team. We will write to you when it is read.");

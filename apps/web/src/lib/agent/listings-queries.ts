@@ -533,23 +533,26 @@ async function toDraft(
   };
 }
 
-/** Every listing the agent owns, newest activity first, all statuses. */
+/**
+ * Every listing the agent owns, newest activity first, all statuses. Null
+ * when they could not be read, which is not the same as having none.
+ */
 export async function readMyListings(
   supabase: SupabaseClient<Database>,
   agentId: string,
-): Promise<ListingSummary[]> {
+): Promise<ListingSummary[] | null> {
   const { data, error } = await supabase
     .from("listings")
     .select(LISTING_PUBLIC_SELECT)
     .eq("agent_id", agentId)
     .order("updated_at", { ascending: false });
 
-  if (error || !data) return [];
+  if (error || !data) return null;
   try {
     const rows = await withListingPrivate(supabase, data as unknown as ListingWithChildren[]);
     return rows.map(toSummary);
   } catch {
-    return [];
+    return null;
   }
 }
 

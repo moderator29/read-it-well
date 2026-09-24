@@ -65,6 +65,9 @@ export type BusinessPrivate = {
 
 type RpcClient = Pick<SupabaseClient, "rpc">;
 
+/** The functions take at most 500 ids a call. */
+export const PRIVATE_FIELDS_CHUNK = 500;
+
 async function fetchById<T extends { id: string }>(
   client: RpcClient,
   fn: string,
@@ -72,12 +75,14 @@ async function fetchById<T extends { id: string }>(
 ): Promise<Map<string, T>> {
   const out = new Map<string, T>();
   const unique = [...new Set(ids.filter(Boolean))];
-  if (unique.length === 0) return out;
-  const { data, error } = await (client as unknown as {
+  const rpc = (client as unknown as {
     rpc: (name: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
-  }).rpc(fn, { p_ids: unique });
-  if (error || !Array.isArray(data)) throw new PrivateFieldsUnavailable(fn);
-  for (const row of data as T[]) out.set(row.id, row);
+  }).rpc.bind(client);
+  for (let start = 0; start < unique.length; start += PRIVATE_FIELDS_CHUNK) {
+    const { data, error } = await rpc(fn, { p_ids: unique.slice(start, start + PRIVATE_FIELDS_CHUNK) });
+    if (error || !Array.isArray(data)) throw new PrivateFieldsUnavailable(fn);
+    for (const row of data as T[]) out.set(row.id, row);
+  }
   return out;
 }
 
