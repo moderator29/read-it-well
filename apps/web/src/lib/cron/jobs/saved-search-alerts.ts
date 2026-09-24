@@ -77,7 +77,7 @@ const NOTIFICATION_KIND = "listing" as const;
 /** Where a notice points when several of one person's searches matched. */
 const SEARCHES_HREF = "/saved/searches";
 
-function subjectOf(row: SavedSearchRow): AlertSubject {
+export function subjectOf(row: SavedSearchRow): AlertSubject {
   const canonical = readStoredSearch(row.query);
   const named = (row.label ?? "").trim();
   return {
@@ -92,7 +92,7 @@ function subjectOf(row: SavedSearchRow): AlertSubject {
 }
 
 /** The oldest instant this run has to look back to, floored by the window. */
-function windowStart(subjects: readonly AlertSubject[], now: number): string {
+export function windowStart(subjects: readonly AlertSubject[], now: number): string {
   const floor = now - MAX_LOOKBACK_DAYS * DAY_MS;
   let oldest = now;
   for (const subject of subjects) {

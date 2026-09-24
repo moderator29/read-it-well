@@ -64,6 +64,8 @@ export const VERCEL_JOBS: readonly VercelJob[] = [
     maxGapHours: 26,
     audit: { entityType: "cron_job", term: "saved-search-alerts" },
   },
+  { name: "new-match-alerts", cron: "0,5,10,15,20,25,30,35,45,50,55 * * * *", schedule: "Every 5 minutes except minute 40", maxGapHours: 2, audit: { entityType: "cron_job", term: "new-match-alerts" } },
+  { name: "store-readiness", cron: "0 5 * * *", schedule: "Daily at 06:00", maxGapHours: 26, audit: { entityType: "cron_job", term: "store-readiness" } },
   /* V-31 and V-32, the landlord line. A no-op while `landlord_line` is off. */
   { name: "landlord-line", cron: "*/15 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "landlord-line" } },
 ];

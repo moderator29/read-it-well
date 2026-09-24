@@ -122,6 +122,9 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* ---------------------------------------------------------- the website */
   "/": ROOT,
   "/about": "/",
+  /* V-82: a public area price page sits under the landing page, as the
+     company pages do; it is a statement about a market, not a shelf. */
+  "/areas/[state]/[area]": "/",
   "/cancellations": "/",
   "/careers": "/",
   "/contact": "/",
@@ -172,6 +175,12 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
      the other defensible answer and is one step further from what they were
      doing. */
   "/auth/callback": "/sign-in",
+  /* The share door (V-07). A stranger arrives from outside Vallo and the
+     card's own button is the only way on; the door draws no back control.
+     Declared under the landing page because that is the public surface it
+     sits beside, and a hardware back that had to go somewhere should go
+     there rather than into the platform it is a door to. */
+  "/s/[token]": "/",
 
   /* ------------------------------------------------- the two app homes
    *
@@ -359,6 +368,10 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/agent/inspections": "/agent/dashboard",
   "/agent/listings": "/agent/dashboard",
   "/agent/listings/[listingId]/calendar": "/agent/listings",
+  /* V-08: the TO LET board, under the listing's workspace like its calendar. */
+  "/agent/listings/[listingId]/board": "/agent/listings",
+  /* V-71: the Status kit, under the listing's workspace like its board. */
+  "/agent/listings/[listingId]/status": "/agent/listings",
   "/agent/list": "/agent/listings",
   "/agent/messages": "/agent/dashboard",
   "/agent/reviews": "/agent/dashboard",
@@ -464,6 +477,8 @@ export const LITERAL_EXPANSIONS: Readonly<Record<string, readonly string[]>> = {
  * because a thing nobody wrote down is a thing nobody checked.
  */
 export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
+  "/agent/listings/[listingId]/board/image": "V-08: the board as a PNG, not a page.",
+  "/s/[token]/status": "V-71: the door's card as a Status PNG, not a page.",
   "/api/assistant": "POST only, the assistant's model call.",
   "/api/auth/email-hook": "Supabase Auth's send-email webhook.",
   "/api/client-error": "the browser's error beacon.",
@@ -476,6 +491,8 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/cron/landlord-line": "scheduled job, bearer token.",
   "/api/cron/pg-cron-watch": "scheduled job, bearer token.",
   "/api/cron/saved-search-alerts": "scheduled job, bearer token.",
+  "/api/cron/store-readiness": "scheduled job, bearer token.",
+  "/api/cron/new-match-alerts": "scheduled job, bearer token.",
   "/api/csp-report": "the browser's policy violation report.",
   "/api/documents/[id]": "a signed document stream, not a page.",
   "/api/landlord/inbound": "the SMS aggregator's inbound webhook, bearer token.",

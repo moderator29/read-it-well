@@ -76,6 +76,12 @@ export function startNativeRuntime(handlers: NativeRuntimeHandlers): () => void 
     const { Capacitor } = await import("@capacitor/core");
     if (!Capacitor.isNativePlatform() || stopped) return;
 
+    /* V-11: mark the document as the shell, so the marketing header and
+       footer are hidden by CSS even on a page the server did not recognise
+       as the shell's (`app/css/site.css`). Set after the authoritative
+       check, so a website can never be marked. */
+    document.documentElement.dataset.shell = "native";
+
     /* First, and alone. See the note above about the splash. */
     try {
       const { startSplash } = await import("./splash");

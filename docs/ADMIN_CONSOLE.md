@@ -635,6 +635,8 @@ a fall is emerald. The line is alerts raised per day.
 | inventory-drift | Vercel Cron `45 2 * * *` | daily 03:45 | 26 h | checks room inventory against bookings |
 | account-purge | Vercel Cron `15 3 * * *` | daily 04:15 | 26 h | honours account deletions after thirty days |
 | saved-search-alerts | Vercel Cron `40 7 * * *` | daily 08:40 | 26 h | tells people about new matches for saved searches |
+| new-match-alerts | Vercel Cron `0,5,10,15,20,25,30,35,45,50,55 * * * *` | every 5 min except :40, so it never runs beside the 07:40 digest | 2 h | tells people within minutes about a listing just published, three times a day at most; the rest wait for the morning digest (V-15) |
+| store-readiness | Vercel Cron `0 5 * * *` | daily 06:00 | 26 h | runs the Store tab's checks against production and raises an alert when one is red (V-52) |
 | landlord-line | Vercel Cron `*/15 * * * *` | every 15 min | 2 h | asks consenting landlords whether the flat is still free and shows them the rent paid (V-31, V-32); a no-op while `landlord_line` is off |
 | vallo_push_drain | pg_cron `*/5 * * * *` | every 5 min | | asks the app to drain the push queue (`private.request_push_drain`) |
 | vallo_safety_share_sweep | pg_cron `*/10 * * * *` | every 10 min | | reminds a renter once when half an hour has passed since they expected to be back from an inspection they shared and they have not tapped I'm done (V-62) |
@@ -658,7 +660,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo-daily-note | pg_cron `0 6 * * *` | daily 07:00 | | the daily note |
 | vallo_remind_caution_due | pg_cron `15 7 * * *` | daily 08:15 | | reminds listers and tenants when a caution is due back (V-36) |
 
-9 Vercel Cron jobs and 21 pg_cron jobs in all. The numbers are derived,
+11 Vercel Cron jobs and 21 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by

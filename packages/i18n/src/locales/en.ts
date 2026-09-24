@@ -5,6 +5,9 @@ import type { CountForms } from "../plural";
    namespace can have here. */
 import { priceCheckEn } from "./price-check.en";
 import { shapeEn } from "./shape.en";
+/* The front of the funnel (share door, area pages, store desk, broadcast,
+   board): its own module for the same reason. */
+import { frontDoorEn } from "./front-door.en";
 import { afterTheGateEn } from "./after-the-gate.en";
 import { trustVisibleEn } from "./trust-visible.en";
 import { landlordEn } from "./landlord.en";
@@ -5807,6 +5810,7 @@ export const en = {
 
   priceCheck: priceCheckEn,
   shape: shapeEn,
+  frontDoor: frontDoorEn,
   afterTheGate: afterTheGateEn,
   trustVisible: trustVisibleEn,
 

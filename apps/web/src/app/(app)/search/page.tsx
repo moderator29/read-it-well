@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { after } from "next/server";
+import { demandRecorder } from "@/lib/demand/record";
+import { demandCell } from "@/lib/demand/cell";
 import { readListingFactsFor } from "@/lib/landlord/queries";
 import { collapseByProperty, ownerConfirmedLine, requestNow, sinkNotReconfirmed } from "@/lib/landlord/facts";
 import { LandlordCardLine } from "@/components/app/listing/LandlordCardLine";
@@ -217,6 +220,23 @@ export default async function SearchPage({
     repo.search({ propertySide: true }),
   ]);
   const sorted = sortListings(rawResults, query.sort);
+
+  /*
+   * V-10: THIS SEARCH AS A DEMAND CELL. A neighbourhood from the closed list
+   * (the typed words are read and dropped), the market, a bedroom minimum, a
+   * budget band and whether it found fewer than three REAL homes. Example
+   * listings are not supply, so they are not counted as results here either.
+   */
+  const demand = demandCell({
+    q: query.q,
+    intent: query.intent,
+    bedrooms: query.bedrooms,
+    maxMinor: query.maxMinor,
+    results: rawResults.filter((listing) => !listing.isDemo).length,
+  });
+  /* Recorded on the server after the response, never by the client. */
+  const recordDemand = await demandRecorder(demand);
+  if (recordDemand) after(recordDemand);
 
   /*
    * WHICH OF THESE ARE ALREADY ON THE SHORTLIST.

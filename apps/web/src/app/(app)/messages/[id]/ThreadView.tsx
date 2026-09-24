@@ -42,6 +42,7 @@ import "@/app/css/escrow.css";
 import { useBack } from "@/lib/nav/use-back";
 import { ThreadOptionsSheet, type SheetListing } from "./ThreadOptionsSheet";
 import { Button } from "@/components/ui/Button";
+import { Chip, ChipRow } from "@/components/ui/Chip";
 import { AccountMomentCard } from "@/components/app/messages/AccountMomentCard";
 import { accountNumbersIn, isAccountMoment } from "@/lib/messages/account-moment";
 import type { AccountCheckView } from "@/lib/messages/account-check";
@@ -153,6 +154,24 @@ export type ThreadViewProps = {
    */
   heldPaymentsOpen?: boolean;
   agreement?: ThreadAgreement | null;
+  /**
+   * V-14: the "Still available?" card, already drawn by the page from the
+   * thread's `availability_checks` row. A slot rather than data, so this
+   * component learns nothing new about the question's rules.
+   */
+  availabilitySlot?: React.ReactNode;
+  /**
+   * V-72: the enquiry's stage, drawn by the page for the thread's lister only.
+   * A slot, like the availability card, so this component learns no stage rules.
+   */
+  stageSlot?: React.ReactNode;
+  /**
+   * V-72: the lister's quick replies, already worded from the listing's own
+   * facts. A tap puts the sentence in the composer; nothing is sent until the
+   * lister sends it. Empty or absent draws no tray.
+   */
+  quickReplies?: { key: string; label: string; text: string }[];
+  quickRepliesTitle?: string;
   /**
    * V-04, THE ACCOUNT-NUMBER MOMENT. The stored check per message from the
    * other side (only the receiver's RLS can read one) and the real charge on
@@ -300,6 +319,10 @@ export function ThreadView({
   openAttach = false,
   heldPaymentsOpen = false,
   agreement = null,
+  availabilitySlot = null,
+  stageSlot = null,
+  quickReplies = [],
+  quickRepliesTitle = "",
   accountMoment = null,
   accountCopy,
   personLine = [],
@@ -796,6 +819,8 @@ export function ThreadView({
       )}
 
       {showMe}
+      {availabilitySlot}
+      {stageSlot}
 
       {/* ------------------------------------------------------ chat thread */}
       <div
@@ -1063,6 +1088,23 @@ export function ThreadView({
             Remove
           </Button>
         </div>
+      )}
+      {quickReplies.length > 0 && (
+        /* V-72: the tray. A tap adds the sentence to whatever is already typed. */
+        <nav aria-label={quickRepliesTitle} className="px-md pb-xs" data-testid="quick-replies">
+          <ChipRow bleed={false}>
+            {quickReplies.map((reply) => (
+              <Chip
+                key={reply.key}
+                size="sm"
+                onSelectedChange={() => onDraftChange(draft.trim() ? `${draft.trimEnd()} ${reply.text}` : reply.text)}
+                data-testid={`quick-reply-${reply.key}`}
+              >
+                {reply.label}
+              </Chip>
+            ))}
+          </ChipRow>
+        </nav>
       )}
       <form
         onSubmit={(e) => {
