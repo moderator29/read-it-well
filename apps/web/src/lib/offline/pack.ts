@@ -8,11 +8,14 @@
  *
  *   - the seed, which is useless after the pack expires (the database answers
  *     `expired` and the codes it made name a slot that has passed);
- *   - the listing's title as the product already shows it, the slot time, and
- *     the name of the person showing it (and of the lister, for a delegate);
+ *   - the listing's AREA AND STATE (never its free-text title, which a lister
+ *     can fill with a street), the slot time, and the name of the person
+ *     showing it (and of the lister, for a delegate);
+ *   - the id of the account it was issued to, so a shared phone shows each
+ *     person only their own packs;
  *   - NO ADDRESS. Rule 10 is about share artefacts and a pack is not shared,
  *     but a phone left in a taxi is a kind of sharing, so the pack follows the
- *     same rule: the area in the title, never a street, pin or landmark.
+ *     same rule.
  *   - no wallet figure, no message, no contact number.
  *
  * It deletes itself 24 hours after the slot, the same moment the database
@@ -23,19 +26,22 @@
  * `pack-store.ts`, which is the only file that touches a browser API.
  */
 
-export const PACK_VERSION = 1;
+export const PACK_VERSION = 2;
 
 export type PackRole = "shower" | "checker";
 
 export type InspectionPack = {
   version: typeof PACK_VERSION;
   inspectionId: string;
+  /** The account the seed was released to. */
+  userId: string;
   role: PackRole;
   /** Hex, 40 characters: the 160-bit seed. */
   seed: string;
   slotAt: string;
   expiresAt: string;
-  listingTitle: string | null;
+  /** "Yaba, LA": area and state only. */
+  place: string | null;
   /** Who shows the code: the delegate if one is named, otherwise the lister. */
   shownByName: string | null;
   /** The lister, named beside a delegate so "Tunde is showing this for Chidi". */
@@ -46,8 +52,14 @@ export type InspectionPack = {
 };
 
 export type HandshakeAnswer =
-  | { state: "ok"; pack: Omit<InspectionPack, "listingTitle" | "savedAt" | "version"> }
+  | { state: "ok"; pack: Omit<InspectionPack, "savedAt" | "version"> }
+  | { state: "invite"; principalName: string | null; slotAt: string | null; place: string | null }
   | { state: "not_ready" | "expired" | "not_found" | "failed" };
+
+function placeOf(area: unknown, state: unknown): string | null {
+  const parts = [area, state].filter((p): p is string => typeof p === "string" && p.trim().length > 0);
+  return parts.length > 0 ? parts.join(", ") : null;
+}
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SEED = /^[0-9a-f]{40}$/;
@@ -68,17 +80,28 @@ export function readHandshake(inspectionId: string, data: unknown): HandshakeAns
   if (answer.status === "not_ready" || answer.status === "expired" || answer.status === "not_found") {
     return { state: answer.status };
   }
+  if (answer.status === "invite") {
+    return {
+      state: "invite",
+      principalName: text(answer.principal_name),
+      slotAt: iso(answer.slot_at),
+      place: placeOf(answer.area, answer.state),
+    };
+  }
   if (answer.status !== "ok") return { state: "failed" };
+  const viewer = typeof answer.viewer === "string" && UUID.test(answer.viewer) ? answer.viewer : null;
   const role = answer.role === "shower" || answer.role === "checker" ? answer.role : null;
   const seed = typeof answer.seed === "string" && SEED.test(answer.seed) ? answer.seed : null;
   const slotAt = iso(answer.slot_at);
   const expiresAt = iso(answer.expires_at);
-  if (!role || !seed || !slotAt || !expiresAt || !UUID.test(inspectionId)) return { state: "failed" };
+  if (!viewer || !role || !seed || !slotAt || !expiresAt || !UUID.test(inspectionId)) return { state: "failed" };
   return {
     state: "ok",
     pack: {
       inspectionId,
+      userId: viewer,
       role,
+      place: placeOf(answer.area, answer.state),
       seed,
       slotAt,
       expiresAt,
@@ -90,17 +113,8 @@ export function readHandshake(inspectionId: string, data: unknown): HandshakeAns
   };
 }
 
-export function buildPack(
-  answer: Extract<HandshakeAnswer, { state: "ok" }>["pack"],
-  listingTitle: string | null,
-  now: number,
-): InspectionPack {
-  return {
-    version: PACK_VERSION,
-    ...answer,
-    listingTitle: text(listingTitle),
-    savedAt: new Date(now).toISOString(),
-  };
+export function buildPack(answer: Extract<HandshakeAnswer, { state: "ok" }>["pack"], now: number): InspectionPack {
+  return { version: PACK_VERSION, ...answer, savedAt: new Date(now).toISOString() };
 }
 
 export function isExpired(pack: Pick<InspectionPack, "expiresAt">, now: number): boolean {
@@ -114,6 +128,7 @@ export function asPack(value: unknown): InspectionPack | null {
   const v = value as Record<string, unknown>;
   if (v.version !== PACK_VERSION) return null;
   if (typeof v.inspectionId !== "string" || !UUID.test(v.inspectionId)) return null;
+  if (typeof v.userId !== "string" || !UUID.test(v.userId)) return null;
   if (v.role !== "shower" && v.role !== "checker") return null;
   if (typeof v.seed !== "string" || !SEED.test(v.seed)) return null;
   const slotAt = iso(v.slotAt);
@@ -123,12 +138,13 @@ export function asPack(value: unknown): InspectionPack | null {
   return {
     version: PACK_VERSION,
     inspectionId: v.inspectionId,
+    userId: v.userId,
     role: v.role,
     seed: v.seed,
     slotAt,
     expiresAt,
     savedAt,
-    listingTitle: text(v.listingTitle),
+    place: text(v.place),
     shownByName: text(v.shownByName),
     principalName: text(v.principalName),
     isDelegate: v.isDelegate === true,
@@ -136,11 +152,16 @@ export function asPack(value: unknown): InspectionPack | null {
   };
 }
 
-/** The packs worth showing, soonest slot first, expired ones gone. */
-export function livePacks(values: readonly unknown[], now: number): InspectionPack[] {
+/**
+ * The packs worth showing, soonest slot first, expired ones gone, and only
+ * the ones issued to `owner` (the last account that saved a pack on this
+ * phone), so a shared phone never shows one person another's gate code.
+ */
+export function livePacks(values: readonly unknown[], now: number, owner: string | null): InspectionPack[] {
+  if (!owner) return [];
   return values
     .map(asPack)
-    .filter((pack): pack is InspectionPack => pack !== null && !isExpired(pack, now))
+    .filter((pack): pack is InspectionPack => pack !== null && pack.userId === owner && !isExpired(pack, now))
     .sort((a, b) => Date.parse(a.slotAt) - Date.parse(b.slotAt));
 }
 

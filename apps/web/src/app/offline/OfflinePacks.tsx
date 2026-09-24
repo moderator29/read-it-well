@@ -48,11 +48,10 @@ export function OfflinePacks({ copy, locale }: { copy: Dictionary["platform"]["g
           .replace("{time}", formatDate(at, locale, { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" }));
         return (
           <div key={pack.inspectionId}>
-            <p className="nf-body font-semibold text-content">{pack.listingTitle ?? copy.title}</p>
+            <p className="nf-body font-semibold text-content">{pack.place ?? copy.title}</p>
             <p className="nf-caption mb-row text-muted">{when}</p>
             <GateHandshake
               inspectionId={pack.inspectionId}
-              listingTitle={pack.listingTitle}
               locale={locale}
               copy={copy}
               live={false}

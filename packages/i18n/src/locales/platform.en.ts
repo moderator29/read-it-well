@@ -131,6 +131,8 @@ export const platformEn = {
 
     /* The one who shows it. */
     showHeading: "Show this code at the gate",
+    showButton: "Show the code",
+    showPrompt: "When the renter is in front of you, show them the code. Showing it is recorded.",
     showBody: "The renter types it into their Vallo app. It changes every 30 seconds and works with no signal on either phone.",
     secondsLeft: { one: "Changes in 1 second", other: "Changes in {count} seconds" } as PluralForms,
     showingFor: "You are showing this for {principal}.",
@@ -142,8 +144,8 @@ export const platformEn = {
     check: "Check the code",
     noCode: "They cannot show me a code",
     matchTitle: "The code matches",
-    matchBody: "This phone is signed in as {name}, the person Vallo has showing this inspection.",
-    matchDelegate: "{name} is showing this inspection for {principal}. This phone is signed in as {name}.",
+    matchBody: "The code matches the one Vallo gave {name} for this inspection.",
+    matchDelegate: "The code matches the one Vallo gave {name}, who is showing this inspection for {principal}.",
     mismatchTitle: "That code does not match",
     warning: "This person has not shown you a Vallo code. Do not pay anybody anything.",
     tryAgain: "Check another code",
@@ -153,11 +155,23 @@ export const platformEn = {
     /* Naming who shows it. */
     delegateHeading: "Someone else showing it?",
     delegateBody:
-      "Name one person to show this inspection for you. They need a Vallo account with a confirmed phone number, or to be in your firm on Vallo. Naming them changes the code.",
+      "Ask one person to show this inspection for you. They need a Vallo account with a confirmed phone number, or to be in your firm on Vallo, and they have to say yes. When they do, the code changes and the renter is told to refresh it.",
     delegateLabel: "Their email address on Vallo",
-    delegateSave: "Name them",
+    delegateSave: "Ask them",
     delegateClear: "I will show it myself",
-    delegateNamed: "{name} will show this inspection. Their phone needs signal once before the day.",
+    delegateNamed:
+      "We have asked them. Once they say yes they will show this inspection, and the renter will be told to refresh their code.",
+    delegateTooLate:
+      "It is too close to the inspection to change who shows it; the renter may already be on the way with their code.",
+    delegateRateLimited: "You have asked several people in the last hour. Try again later.",
+    inviteHeading: "You have been asked to show an inspection",
+    inviteBody:
+      "{principal} asked you to show an inspection in {place} on {when}. If you say yes, your phone gets the gate code for it, and the renter is told who is coming.",
+    inviteAccept: "Yes, I will show it",
+    inviteDecline: "No",
+    inviteAccepted: "Thank you. Open this again while you have signal before you go, so the code works at the gate.",
+    inviteDeclined: "We have told them you will not show it.",
+    inviteGone: "This request has ended.",
     delegateCleared: "You are showing this inspection yourself. The code has changed.",
     delegateNotEligible:
       "We cannot name that person. They need a Vallo account with a confirmed phone number, or to be in your firm on Vallo.",

@@ -177,6 +177,12 @@ function assetCacheKey(url) {
  * precached HTML once at install time. Without the stylesheet the offline page
  * renders as unstyled markup; without the scripts (V-35) the gate code on it
  * cannot run, and the gate is exactly where there is no signal.
+ *
+ * A KNOWN LIMIT. The precached page carries the server-action ids of the
+ * deploy that installed this worker. After a later deploy those ids are stale,
+ * so the offline page never calls a server action: it only reads IndexedDB,
+ * and queued check-ins are handed over from live pages (`GateHandshake`
+ * with `live`), which always carry current ids.
  */
 function offlineAssetUrls(html) {
   const found = new Set();

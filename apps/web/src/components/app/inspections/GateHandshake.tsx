@@ -10,7 +10,7 @@ import { feedback } from "@/lib/ui/feedback";
 import { buildPack, type InspectionPack } from "@/lib/offline/pack";
 import { deletePack, forgetCheckin, queueCheckin, readCheckins, readPack, savePack } from "@/lib/offline/pack-store";
 import { hexToBytes, matchesCode, secondsLeft, totp } from "@/lib/offline/totp";
-import { nameDelegate, prepareHandshake, recordCheckins } from "@/lib/inspections/handshake-actions";
+import { answerDelegation, nameDelegate, prepareHandshake, recordCheckins } from "@/lib/inspections/handshake-actions";
 
 /**
  * THE GATE HANDSHAKE. V-35.
@@ -25,10 +25,9 @@ import { nameDelegate, prepareHandshake, recordCheckins } from "@/lib/inspection
  * gate.
  *
  * WHAT A MATCH SAYS, AND WHAT IT DOES NOT. Emerald, a tick and the words
- * "This phone is signed in as Ada Okafor, the person Vallo has showing this
- * inspection". Not "verified": the code proves which account's phone is at
- * the gate, and the verification ladder is a separate fact that lives on the
- * listing. A mismatch, or no code at all, is cyan with a stop glyph and the
+ * "The code matches the one Vallo gave Ada Okafor for this inspection". Not
+ * "verified", and not "this is Ada": a code proves which account Vallo
+ * released it to, not who is holding the phone. A mismatch, or no code at all, is cyan with a stop glyph and the
  * one sentence that matters: do not pay anybody anything. Colour is never the
  * only signal; every state has a glyph and words.
  *
@@ -38,7 +37,13 @@ import { nameDelegate, prepareHandshake, recordCheckins } from "@/lib/inspection
  * signal, here or on the offline page.
  *
  * `live` is false on the offline page, which has no server to ask and is
- * handed the pack directly.
+ * handed the pack directly. It also never flushes check-ins from there: the
+ * offline page is precached, and after a deploy its server-action id is
+ * stale, so the queue is handed over only from live pages.
+ *
+ * "SHOWN" IS EARNED BY A TAP. The shower sees a "Show the code" button; the
+ * code appears, and a `shown` check-in is queued, only when it is pressed at
+ * the gate. Opening the inspection list records nothing.
  */
 
 type Copy = Dictionary["platform"]["gate"];
@@ -46,6 +51,7 @@ type Copy = Dictionary["platform"]["gate"];
 type Phase =
   | { kind: "loading" }
   | { kind: "ready"; pack: InspectionPack }
+  | { kind: "invite"; principalName: string | null; slotAt: string | null; place: string | null }
   | { kind: "none"; reason: "notReady" | "expired" | "noPack" | "failed" };
 
 type Verdict = null | "match" | "mismatch" | "skipped";
@@ -75,14 +81,12 @@ function dayOf(iso: string, locale: Locale): string {
 
 export function GateHandshake({
   inspectionId,
-  listingTitle,
   locale,
   copy,
   live = true,
   initialPack = null,
 }: {
   inspectionId: string;
-  listingTitle: string | null;
   locale: Locale;
   copy: Copy;
   live?: boolean;
@@ -100,8 +104,12 @@ export function GateHandshake({
       return;
     }
     const answer = await prepareHandshake(inspectionId);
+    if (answer.state === "invite") {
+      setPhase({ kind: "invite", principalName: answer.principalName, slotAt: answer.slotAt, place: answer.place });
+      return;
+    }
     if (answer.state === "ok") {
-      const pack = buildPack(answer.pack, listingTitle, Date.now());
+      const pack = buildPack(answer.pack, Date.now());
       await savePack(pack);
       setPhase({ kind: "ready", pack });
       return;
@@ -118,7 +126,7 @@ export function GateHandshake({
     }
     /* The server could not answer: a pack already on the phone still works. */
     setPhase(stored ? { kind: "ready", pack: stored } : { kind: "none", reason: "failed" });
-  }, [inspectionId, listingTitle, live]);
+  }, [inspectionId, live]);
 
   useEffect(() => {
     if (initialPack) return;
@@ -128,11 +136,12 @@ export function GateHandshake({
   }, [initialPack, load]);
 
   useEffect(() => {
+    if (!live) return;
     void flushCheckins();
     const onOnline = () => void flushCheckins();
     window.addEventListener("online", onOnline);
     return () => window.removeEventListener("online", onOnline);
-  }, []);
+  }, [live]);
 
   return (
     <section className="nf-panel nf-panel--card block p-card" aria-label={copy.title} data-testid="gate-handshake">
@@ -152,6 +161,9 @@ export function GateHandshake({
                 ? copy.failed
                 : copy.noPack}
         </p>
+      )}
+      {phase.kind === "invite" && (
+        <Invite inspectionId={inspectionId} phase={phase} copy={copy} locale={locale} onAnswered={load} />
       )}
       {phase.kind === "ready" && (
         <>
@@ -176,10 +188,12 @@ export function GateHandshake({
 /* ------------------------------------------------------------- the shower */
 
 function ShowCode({ pack, copy, locale }: { pack: InspectionPack; copy: Copy; locale: Locale }) {
+  const [showing, setShowing] = useState(false);
   const [code, setCode] = useState<string | null>(null);
   const [left, setLeft] = useState<number>(30);
 
   useEffect(() => {
+    if (!showing) return;
     const key = hexToBytes(pack.seed);
     if (!key) return;
     let cancelled = false;
@@ -192,30 +206,112 @@ function ShowCode({ pack, copy, locale }: { pack: InspectionPack; copy: Copy; lo
     };
     void tick();
     const timer = window.setInterval(() => void tick(), 1000);
-    /* Shown is recorded once per opening, queued for signal. */
-    void queueCheckin({ inspectionId: pack.inspectionId, result: "shown", observedAt: new Date().toISOString() });
     return () => {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [pack.seed, pack.inspectionId]);
+  }, [showing, pack.seed]);
+
+  const show = () => {
+    setShowing(true);
+    /* Recorded on the tap at the gate, queued for signal. */
+    void queueCheckin({ inspectionId: pack.inspectionId, result: "shown", observedAt: new Date().toISOString() });
+  };
 
   return (
     <div className="mt-group">
       <p className="nf-body font-semibold text-content">{copy.showHeading}</p>
-      <p className="nf-body-sm mt-row text-content-2">{copy.showBody}</p>
-      <p
-        className="nf-h1 mt-group text-center font-semibold tabular-nums tracking-[0.2em] text-content"
-        aria-live="polite"
-        data-testid="gate-code"
-      >
-        {code ? `${code.slice(0, 3)} ${code.slice(3)}` : "--- ---"}
-      </p>
-      <p className="nf-caption mt-row text-center text-muted">{plural(left, copy.secondsLeft, locale)}</p>
+      <p className="nf-body-sm mt-row text-content-2">{showing ? copy.showBody : copy.showPrompt}</p>
+      {!showing ? (
+        <Button variant="primary" full className="mt-group" onClick={show} data-testid="gate-show">
+          {copy.showButton}
+        </Button>
+      ) : (
+        <>
+          <p
+            className="nf-h1 mt-group text-center font-semibold tabular-nums tracking-[0.2em] text-content"
+            aria-live="polite"
+            data-testid="gate-code"
+          >
+            {code ? `${code.slice(0, 3)} ${code.slice(3)}` : "--- ---"}
+          </p>
+          <p className="nf-caption mt-row text-center text-muted">{plural(left, copy.secondsLeft, locale)}</p>
+        </>
+      )}
       {pack.isDelegate && pack.principalName && (
         <p className="nf-caption mt-row text-center text-content-2">
           {copy.showingFor.replace("{principal}", pack.principalName)}
         </p>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------- the invite */
+
+function Invite({
+  inspectionId,
+  phase,
+  copy,
+  locale,
+  onAnswered,
+}: {
+  inspectionId: string;
+  phase: Extract<Phase, { kind: "invite" }>;
+  copy: Copy;
+  locale: Locale;
+  onAnswered: () => Promise<void>;
+}) {
+  const [message, setMessage] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  const when = phase.slotAt
+    ? formatDate(new Date(phase.slotAt), locale, {
+        weekday: "long",
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Africa/Lagos",
+      })
+    : "";
+  const answer = (accept: boolean) =>
+    startTransition(async () => {
+      const result = await answerDelegation({ inspectionId, accept });
+      setMessage(
+        result.state === "accepted"
+          ? copy.inviteAccepted
+          : result.state === "declined"
+            ? copy.inviteDeclined
+            : result.state === "too_late"
+              ? copy.delegateTooLate
+              : result.state === "gone"
+                ? copy.inviteGone
+                : copy.delegateFailed,
+      );
+      if (result.state === "accepted") await onAnswered();
+    });
+  return (
+    <div className="mt-group" data-testid="gate-invite">
+      <p className="nf-body font-semibold text-content">{copy.inviteHeading}</p>
+      <p className="nf-body-sm mt-row text-content-2">
+        {copy.inviteBody
+          .replace("{principal}", phase.principalName ?? copy.unnamed)
+          .replace("{place}", phase.place ?? "")
+          .replace("{when}", when)}
+      </p>
+      {message ? (
+        <p role="status" className="nf-body-sm mt-row text-content">
+          {message}
+        </p>
+      ) : (
+        <>
+          <Button variant="primary" full className="mt-group" disabled={pending} onClick={() => answer(true)}>
+            {copy.inviteAccept}
+          </Button>
+          <Button variant="ghost" size="sm" full className="mt-row" disabled={pending} onClick={() => answer(false)}>
+            {copy.inviteDecline}
+          </Button>
+        </>
       )}
     </div>
   );
@@ -255,7 +351,7 @@ function CheckCode({ pack, copy }: { pack: InspectionPack; copy: Copy }) {
           <p className="nf-body font-semibold text-content">{copy.matchTitle}</p>
           <p className="nf-body-sm mt-row text-content-2">
             {pack.isDelegate && pack.principalName
-              ? copy.matchDelegate.replaceAll("{name}", name).replace("{principal}", pack.principalName)
+              ? copy.matchDelegate.replace("{name}", name).replace("{principal}", pack.principalName)
               : copy.matchBody.replace("{name}", name)}
           </p>
           <p className="nf-caption mt-row text-muted">{copy.recorded}</p>
@@ -355,8 +451,8 @@ function DelegateForm({
   const submit = (value: string) =>
     startTransition(async () => {
       const answer = await nameDelegate({ inspectionId, email: value });
-      if (answer.state === "ok") {
-        setMessage({ tone: "done", text: copy.delegateNamed.replace("{name}", answer.name ?? value) });
+      if (answer.state === "asked") {
+        setMessage({ tone: "done", text: copy.delegateNamed });
         setEmail("");
         await onChanged();
       } else if (answer.state === "cleared") {
@@ -370,7 +466,11 @@ function DelegateForm({
               ? copy.delegateNotEligible
               : answer.state === "closed"
                 ? copy.delegateClosed
-                : copy.delegateFailed,
+                : answer.state === "too_late"
+                  ? copy.delegateTooLate
+                  : answer.state === "rate_limited"
+                    ? copy.delegateRateLimited
+                    : copy.delegateFailed,
         });
       }
     });

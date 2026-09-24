@@ -17,19 +17,24 @@
  * error. Every read is validated by `pack.ts` before it is believed, because
  * storage on a device is not ours.
  *
- * SIGNING OUT CLEARS IT. `clearPacks` is called by both sign-out controls in
- * settings (`SettingsHub`, `AccountSection`) so a shared phone does not keep
- * somebody else's gate code. A session that ends some other way (expiry, the
- * devices screen from another phone) leaves the pack until it expires on its
- * own, a day after the slot.
+ * ONE OWNER AT A TIME. Every pack carries the account it was issued to, and a
+ * `meta` record names the account that last saved one here. Only that
+ * account's packs are ever read back, and a pack saved by a different
+ * account clears the previous one's first. `clearPacks` also runs from both
+ * sign-out controls in settings and whenever a signed-out screen renders
+ * (`components/app/offline/ForgetOnSignOut.tsx` in the sign-in layout), so a
+ * session that ended some other way (expiry, the devices screen from another
+ * phone) is cleared the next time the phone shows the way in.
  */
 
 import { asCheckin, asPack, checkinKey, isExpired, livePacks, type InspectionPack, type QueuedCheckin } from "./pack";
 
 const DB_NAME = "vallo-packs";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const PACKS = "packs";
 const CHECKINS = "checkins";
+/* One record, "owner": the account that last saved a pack on this phone. */
+const META = "meta";
 
 function open(): Promise<IDBDatabase | null> {
   return new Promise((resolve) => {
@@ -43,6 +48,7 @@ function open(): Promise<IDBDatabase | null> {
         const db = request.result;
         if (!db.objectStoreNames.contains(PACKS)) db.createObjectStore(PACKS);
         if (!db.objectStoreNames.contains(CHECKINS)) db.createObjectStore(CHECKINS);
+        if (!db.objectStoreNames.contains(META)) db.createObjectStore(META);
       };
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => resolve(null);
@@ -90,7 +96,22 @@ function run<T>(
   );
 }
 
+async function readOwner(): Promise<string | null> {
+  const value = await run<unknown>(META, "readonly", (s) => s.get("owner"));
+  return typeof value === "string" ? value : null;
+}
+
+/**
+ * Save a pack. If it was issued to a different account from the one that
+ * last saved here, that account's packs and queued check-ins go first: one
+ * phone, one owner of gate codes at a time.
+ */
 export async function savePack(pack: InspectionPack): Promise<boolean> {
+  const owner = await readOwner();
+  if (owner !== pack.userId) {
+    await clearPacks();
+    await run(META, "readwrite", (s) => s.put(pack.userId, "owner"));
+  }
   const done = await run(PACKS, "readwrite", (s) => s.put(pack, pack.inspectionId));
   return done !== null;
 }
@@ -98,7 +119,7 @@ export async function savePack(pack: InspectionPack): Promise<boolean> {
 export async function readPack(inspectionId: string, now: number): Promise<InspectionPack | null> {
   const value = await run<unknown>(PACKS, "readonly", (s) => s.get(inspectionId));
   const pack = asPack(value);
-  if (!pack) return null;
+  if (!pack || pack.userId !== (await readOwner())) return null;
   if (isExpired(pack, now)) {
     await deletePack(inspectionId);
     return null;
@@ -109,7 +130,7 @@ export async function readPack(inspectionId: string, now: number): Promise<Inspe
 /** Every live pack, soonest first. Expired ones are deleted on the way. */
 export async function readPacks(now: number): Promise<InspectionPack[]> {
   const values = (await run<unknown[]>(PACKS, "readonly", (s) => s.getAll())) ?? [];
-  const live = livePacks(values, now);
+  const live = livePacks(values, now, await readOwner());
   if (live.length !== values.length) {
     const keep = new Set(live.map((p) => p.inspectionId));
     for (const value of values) {
@@ -137,8 +158,9 @@ export async function forgetCheckin(checkin: QueuedCheckin): Promise<void> {
   await run(CHECKINS, "readwrite", (s) => s.delete(checkinKey(checkin)));
 }
 
-/** Everything, for signing out. */
+/** Everything, for signing out and for a phone that changes hands. */
 export async function clearPacks(): Promise<void> {
   await run(PACKS, "readwrite", (s) => s.clear());
   await run(CHECKINS, "readwrite", (s) => s.clear());
+  await run(META, "readwrite", (s) => s.clear());
 }

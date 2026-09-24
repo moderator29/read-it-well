@@ -33,7 +33,7 @@ export default async function GatePage({ params }: { params: Promise<{ id: strin
   return (
     <div className="mx-auto max-w-lg" data-testid="gate-page">
       <PageHeader title={t.platform.gate.title} fallback="/inspections" />
-      <GateHandshake inspectionId={id} listingTitle={null} locale={locale} copy={t.platform.gate} />
+      <GateHandshake inspectionId={id} locale={locale} copy={t.platform.gate} />
     </div>
   );
 }

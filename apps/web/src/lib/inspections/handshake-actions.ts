@@ -42,9 +42,9 @@ export async function prepareHandshake(inspectionId: unknown): Promise<Handshake
   }
 }
 
-export type DelegateAnswer =
-  | { state: "ok"; name: string | null }
-  | { state: "cleared" | "not_eligible" | "closed" | "failed" };
+export type DelegateAnswer = {
+  state: "asked" | "cleared" | "not_eligible" | "closed" | "too_late" | "rate_limited" | "failed";
+};
 
 const delegateSchema = z.object({
   inspectionId: id,
@@ -52,6 +52,11 @@ const delegateSchema = z.object({
   email: z.union([z.literal(""), z.string().trim().email().max(254)]),
 });
 
+/**
+ * Ask somebody to show an inspection. The answer never carries a name: the
+ * database does not return one, so this cannot be used to learn who holds an
+ * email address. The person named must accept before the seed reaches them.
+ */
 export async function nameDelegate(input: unknown): Promise<DelegateAnswer> {
   const parsed = delegateSchema.safeParse(input);
   if (!parsed.success) return { state: "not_eligible" };
@@ -63,11 +68,40 @@ export async function nameDelegate(input: unknown): Promise<DelegateAnswer> {
       p_email: parsed.data.email,
     })) as { data: unknown; error: unknown };
     if (error || !data || typeof data !== "object") return { state: "failed" };
-    const answer = data as { status?: unknown; name?: unknown };
-    if (answer.status === "ok") return { state: "ok", name: typeof answer.name === "string" ? answer.name : null };
-    if (answer.status === "cleared" || answer.status === "not_eligible" || answer.status === "closed") {
-      return { state: answer.status };
+    const status = (data as { status?: unknown }).status;
+    if (status === "ok") return { state: "asked" };
+    if (
+      status === "cleared" ||
+      status === "not_eligible" ||
+      status === "closed" ||
+      status === "too_late" ||
+      status === "rate_limited"
+    ) {
+      return { state: status };
     }
+    return { state: "failed" };
+  } catch {
+    return { state: "failed" };
+  }
+}
+
+export type DelegationAnswer = { state: "accepted" | "declined" | "too_late" | "gone" | "failed" };
+
+/** The person asked says yes or no. */
+export async function answerDelegation(input: unknown): Promise<DelegationAnswer> {
+  const parsed = z.object({ inspectionId: id, accept: z.boolean() }).safeParse(input);
+  if (!parsed.success) return { state: "failed" };
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return { state: "failed" };
+  try {
+    const { data, error } = (await loose(session.supabase).rpc("answer_inspection_delegation", {
+      p_inspection: parsed.data.inspectionId,
+      p_accept: parsed.data.accept,
+    })) as { data: unknown; error: unknown };
+    if (error || !data || typeof data !== "object") return { state: "failed" };
+    const status = (data as { status?: unknown }).status;
+    if (status === "accepted" || status === "declined" || status === "too_late") return { state: status };
+    if (status === "not_found") return { state: "gone" };
     return { state: "failed" };
   } catch {
     return { state: "failed" };

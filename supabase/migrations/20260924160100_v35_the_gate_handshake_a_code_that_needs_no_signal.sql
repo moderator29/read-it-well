@@ -9,44 +9,47 @@
  * For each CONFIRMED inspection the database mints one random seed. It is
  * released, by `public.inspection_handshake`, to the two people on the
  * inspection and to nobody else: the lister (or the delegate the lister has
- * named) as the one who SHOWS, the requester as the one who CHECKS. Each
- * phone stores the seed in its own inspection pack while it has signal, and
- * at the gate both compute the same RFC 6238 six-digit code from it and the
- * clock (`apps/web/src/lib/offline/totp.ts`). If the code the renter types
- * matches, the person in front of them is holding the phone Vallo released
- * the seed to. When either phone next has signal, what happened is recorded
- * in `public.inspection_checkins`.
+ * named AND who has accepted) as the one who SHOWS, the requester as the one
+ * who CHECKS. Each phone keeps the seed in its own inspection pack while it
+ * has signal, and at the gate both compute the same RFC 6238 six-digit code
+ * from it and the clock (`apps/web/src/lib/offline/totp.ts`). When either
+ * phone next has signal, what happened is recorded in
+ * `public.inspection_checkins`.
  *
- * WHAT A MATCH PROVES, SAID EXACTLY, because the screen must not say more.
- * It proves the code came from a phone signed in to the account Vallo has on
- * this inspection as the one showing it. It does NOT prove that account's
- * owner is a verified agent (the verification ladder says that, separately),
- * and it does not prove the flat is available. The copy in `platform.en.ts`
- * says "signed in as", never "verified".
+ * WHAT A MATCH PROVES, SAID EXACTLY. The code the person at the gate showed
+ * is the one Vallo gave, for this inspection, to the account it has showing
+ * it. Not that the person is verified (the verification ladder is a separate
+ * fact), and not that the phone is in its owner's hand. The screen says "The
+ * code matches the one Vallo gave {name} for this inspection", and no more.
  *
- * DELEGATES, BECAUSE LAGOS AGENTS SEND RUNNERS. A check that demanded the
- * principal in person would fail on day one. The lister can name one person
- * to show an inspection. That person must either have confirmed a phone
- * number on their account or be an active member of a firm the lister is an
- * active member of (`firm_members`); anything else is refused with the same
- * answer as "no such account", so the door cannot be used to test whether an
- * email address holds a Vallo account. Naming or changing a delegate ROTATES
- * the seed, so a pack held by a runner who has been replaced proves nothing.
+ * DELEGATES, BECAUSE LAGOS AGENTS SEND RUNNERS, AND ONLY WITH THEIR CONSENT.
+ * The lister names one person by email. That person must have confirmed a
+ * phone number or be an active member of a firm the lister is an active
+ * member of (`firm_members`). Every refusal is the same answer, the name is
+ * never echoed back, and naming is throttled (ten an hour per lister), so the
+ * door is not an email-to-name lookup. The person named is asked, and the
+ * seed reaches them only after they ACCEPT (`accept_inspection_delegation`).
+ * Accepting, or clearing an accepted delegate, rotates the seed so a replaced
+ * runner's pack proves nothing; because that makes the renter's saved pack
+ * stale, the renter is notified to open Vallo once with signal, and no change
+ * is allowed inside the three hours before the slot, when the renter may
+ * already be on the road.
+ *
+ * "THIS WAS NOT ME" ROTATES TOO. When `report_not_me` (V-19) writes its audit
+ * row, every seed on an inspection that person is party to is deleted, so a
+ * pack copied onto a thief's phone stops matching the next time either party
+ * refreshes.
  *
  * THE ENTRY NAMED TWO COLUMNS ON `inspection_requests` (`delegate_user_id`,
- * `handshake_secret`). Both are tables here instead. The seed sits in the
- * `private` schema, which no API role can read, rather than in a column of a
- * table the parties can already select; and the delegate is a row with its
- * basis and who named it, which a column could not carry. Nothing on
- * `inspection_requests` changes, so no existing grant or policy is touched.
+ * `handshake_secret`). Both are tables here instead: the seed in `private`,
+ * which no API role can read, and the delegate as a row with its basis, who
+ * named it and when it was accepted. Nothing on `inspection_requests` changes.
  *
  * THE WINDOW. The seed is released from confirmation until 24 hours after the
- * slot, and the pack on each phone deletes itself at the same moment. After
- * that the function answers `expired` and the seed is dead weight.
+ * slot, and the pack on each phone deletes itself at the same moment.
  *
- * NO LOCATION IS RECORDED. `inspection_checkins` holds who, which result and
- * when. The founder's file rejected live GPS during inspections, and a
- * check-in that carried coordinates would be that by another name.
+ * NO LOCATION IS RECORDED, and the pack carries the listing's area and state
+ * only, never its free-text title, which a lister can fill with a street.
  */
 
 -- ----------------------------------------------------------------------------
@@ -61,7 +64,7 @@ create table if not exists private.inspection_handshake_seeds (
 revoke all on table private.inspection_handshake_seeds from public, anon, authenticated;
 
 comment on table private.inspection_handshake_seeds is
-  'V-35. One random 160-bit seed per inspection, released only by public.inspection_handshake to the parties. Rotated when a delegate is named or cleared.';
+  'V-35. One random 160-bit seed per inspection, released only by public.inspection_handshake to the parties. Rotated when a delegate accepts or an accepted one is replaced or cleared, and after the person reports a sign-in was not them.';
 
 -- ----------------------------------------------------------------------------
 -- THE DELEGATE. WHO, ON WHAT BASIS, NAMED BY WHOM.
@@ -71,7 +74,9 @@ create table if not exists public.inspection_delegates (
   delegate_user_id uuid not null references auth.users(id) on delete cascade,
   basis text not null check (basis in ('phone_confirmed', 'firm_member')),
   named_by uuid not null references auth.users(id) on delete cascade,
-  named_at timestamptz not null default now()
+  named_at timestamptz not null default now(),
+  /* Null until the person named says yes. Only then does the seed reach them. */
+  accepted_at timestamptz
 );
 
 alter table public.inspection_delegates enable row level security;
@@ -148,6 +153,23 @@ $$;
 
 revoke all on function private.person_name(uuid) from public, anon, authenticated;
 
+
+-- ----------------------------------------------------------------------------
+-- WHO SHOWS IT: THE LISTER, OR AN ACCEPTED DELEGATE.
+
+create or replace function private.active_delegate(p_inspection uuid)
+returns uuid
+language sql
+stable
+security definer
+set search_path to ''
+as $$
+  select d.delegate_user_id from public.inspection_delegates d
+   where d.inspection_id = p_inspection and d.accepted_at is not null;
+$$;
+
+revoke all on function private.active_delegate(uuid) from public, anon, authenticated;
+
 -- ----------------------------------------------------------------------------
 -- THE PACK'S SECRET HALF, FOR THE TWO PARTIES ONLY.
 
@@ -162,9 +184,12 @@ declare
   actor uuid := (select auth.uid());
   r public.inspection_requests%rowtype;
   d public.inspection_delegates%rowtype;
+  v_active uuid;
   v_role text;
   v_seed bytea;
   v_expires timestamptz;
+  v_area text;
+  v_state text;
 begin
   if actor is null then
     return jsonb_build_object('status', 'forbidden');
@@ -175,10 +200,24 @@ begin
     return jsonb_build_object('status', 'not_found');
   end if;
   select * into d from public.inspection_delegates where inspection_id = p_inspection;
+  v_active := case when d.accepted_at is not null then d.delegate_user_id else null end;
+  select l.area, l.state_code into v_area, v_state from public.listings l where l.id = r.listing_id;
+
+  /* Named and not yet accepted: the person may see the invitation and
+     nothing else. No seed until they say yes. */
+  if d.delegate_user_id is not null and actor = d.delegate_user_id and d.accepted_at is null then
+    return jsonb_build_object(
+      'status', 'invite',
+      'principal_name', private.person_name(r.lister_id),
+      'slot_at', r.slot_at,
+      'area', v_area,
+      'state', v_state
+    );
+  end if;
 
   v_role := case
     when actor = r.requester_id then 'checker'
-    when actor = r.lister_id or actor = d.delegate_user_id then 'shower'
+    when actor = r.lister_id or actor = v_active then 'shower'
     else null
   end;
   /* A stranger is told the same as for an inspection that does not exist. */
@@ -202,15 +241,17 @@ begin
 
   return jsonb_build_object(
     'status', 'ok',
+    'viewer', actor,
     'role', v_role,
     'seed', encode(v_seed, 'hex'),
     'slot_at', r.slot_at,
     'expires_at', v_expires,
-    'shown_by_name', private.person_name(coalesce(d.delegate_user_id, r.lister_id)),
+    /* The area and state only: the free-text title can carry a street. */
+    'area', v_area,
+    'state', v_state,
+    'shown_by_name', private.person_name(coalesce(v_active, r.lister_id)),
     'principal_name', private.person_name(r.lister_id),
-    'is_delegate', d.delegate_user_id is not null,
-    /* The viewer is the lister, not the delegate: only the lister may name
-       or change who shows it. */
+    'is_delegate', v_active is not null,
     'can_name_delegate', actor = r.lister_id
   );
 end;
@@ -220,10 +261,10 @@ revoke all on function public.inspection_handshake(uuid) from public, anon, auth
 grant execute on function public.inspection_handshake(uuid) to authenticated;
 
 comment on function public.inspection_handshake(uuid) is
-  'V-35. Releases the per-inspection TOTP seed to the requester (checker) and to the lister or named delegate (shower), only while the inspection is CONFIRMED and until 24 hours after the slot.';
+  'V-35. Releases the per-inspection TOTP seed to the requester (checker) and to the lister or an ACCEPTED delegate (shower), only while CONFIRMED and until 24 hours after the slot. A delegate who has not accepted sees an invitation only.';
 
 -- ----------------------------------------------------------------------------
--- NAMING WHO SHOWS IT.
+-- NAMING WHO SHOWS IT. THROTTLED, NEVER ECHOES A NAME, ASKS FIRST.
 
 create or replace function public.name_inspection_delegate(p_inspection uuid, p_email text)
 returns jsonb
@@ -235,6 +276,7 @@ as $$
 declare
   actor uuid := (select auth.uid());
   r public.inspection_requests%rowtype;
+  d public.inspection_delegates%rowtype;
   v_delegate uuid;
   v_basis text;
   v_email text := lower(btrim(coalesce(p_email, '')));
@@ -251,11 +293,31 @@ begin
                      'CONFIRMED'::public.inspection_state) then
     return jsonb_build_object('status', 'closed');
   end if;
+  /* Inside three hours of a confirmed slot the renter may already be on the
+     road with the pack they have; a change now would make it stop matching. */
+  if r.state = 'CONFIRMED'::public.inspection_state and r.slot_at is not null
+     and r.slot_at - now() < interval '3 hours' then
+    return jsonb_build_object('status', 'too_late');
+  end if;
+  if not private.consume_rate_limit('inspection_delegate', actor::text, 10, 3600) then
+    return jsonb_build_object('status', 'rate_limited');
+  end if;
 
-  /* An empty address clears the delegate: the lister shows it themselves. */
+  select * into d from public.inspection_delegates where inspection_id = p_inspection;
+
   if v_email = '' then
     delete from public.inspection_delegates where inspection_id = p_inspection;
-    delete from private.inspection_handshake_seeds where inspection_id = p_inspection;
+    if d.accepted_at is not null then
+      /* A delegate who could show it no longer can: rotate, and tell the
+         renter their pack needs signal once. */
+      delete from private.inspection_handshake_seeds where inspection_id = p_inspection;
+      perform private.notify(
+        r.requester_id, 'listing'::public.notification_kind,
+        'Your inspection code has changed',
+        'The person showing your inspection has changed. Open the inspection once while you have signal so your gate code matches.',
+        '/inspections'
+      );
+    end if;
     insert into public.audit_log (actor_id, action, entity_type, entity_id, metadata)
     values (actor, 'inspection.delegate_cleared', 'inspection', p_inspection::text, '{}'::jsonb);
     return jsonb_build_object('status', 'cleared');
@@ -280,21 +342,30 @@ begin
   end if;
 
   /* One answer for "no account", "that is you", "that is the renter" and
-     "not eligible", so this cannot be used to probe who holds an account. */
+     "not eligible", and no name on success either, so this is not a lookup. */
   if v_basis is null then
     return jsonb_build_object('status', 'not_eligible');
   end if;
 
-  insert into public.inspection_delegates (inspection_id, delegate_user_id, basis, named_by)
-  values (p_inspection, v_delegate, v_basis, actor)
+  insert into public.inspection_delegates (inspection_id, delegate_user_id, basis, named_by, named_at, accepted_at)
+  values (p_inspection, v_delegate, v_basis, actor, now(), null)
   on conflict (inspection_id) do update
     set delegate_user_id = excluded.delegate_user_id,
         basis = excluded.basis,
         named_by = excluded.named_by,
-        named_at = now();
+        named_at = now(),
+        accepted_at = null;
 
-  /* ROTATE. A pack minted before this change proves nothing now. */
-  delete from private.inspection_handshake_seeds where inspection_id = p_inspection;
+  /* A previously ACCEPTED delegate is replaced: their pack must stop working. */
+  if d.accepted_at is not null and d.delegate_user_id is distinct from v_delegate then
+    delete from private.inspection_handshake_seeds where inspection_id = p_inspection;
+    perform private.notify(
+      r.requester_id, 'listing'::public.notification_kind,
+      'Your inspection code has changed',
+      'The person showing your inspection has changed. Open the inspection once while you have signal so your gate code matches.',
+      '/inspections'
+    );
+  end if;
 
   insert into public.audit_log (actor_id, action, entity_type, entity_id, metadata)
   values (actor, 'inspection.delegate_named', 'inspection', p_inspection::text,
@@ -303,17 +374,81 @@ begin
   perform private.notify(
     v_delegate,
     'agent'::public.notification_kind,
-    'You are showing an inspection',
-    coalesce(private.person_name(actor), 'A lister') || ' named you to show an inspection. Open it on your phone before you go so the gate code works without signal.',
+    'You have been asked to show an inspection',
+    coalesce(private.person_name(actor), 'A lister') || ' asked you to show an inspection for them. Open it to say yes or no.',
     '/inspections/gate/' || p_inspection::text
   );
 
-  return jsonb_build_object('status', 'ok', 'name', private.person_name(v_delegate), 'basis', v_basis);
+  return jsonb_build_object('status', 'ok');
 end;
 $$;
 
 revoke all on function public.name_inspection_delegate(uuid, text) from public, anon, authenticated;
 grant execute on function public.name_inspection_delegate(uuid, text) to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- THE PERSON NAMED SAYS YES OR NO.
+
+create or replace function public.answer_inspection_delegation(p_inspection uuid, p_accept boolean)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path to ''
+as $$
+declare
+  actor uuid := (select auth.uid());
+  r public.inspection_requests%rowtype;
+  d public.inspection_delegates%rowtype;
+begin
+  if actor is null then
+    return jsonb_build_object('status', 'forbidden');
+  end if;
+  select * into d from public.inspection_delegates where inspection_id = p_inspection for update;
+  if not found or d.delegate_user_id <> actor or d.accepted_at is not null then
+    return jsonb_build_object('status', 'not_found');
+  end if;
+  select * into r from public.inspection_requests where id = p_inspection;
+
+  if not coalesce(p_accept, false) then
+    delete from public.inspection_delegates where inspection_id = p_inspection;
+    perform private.notify(
+      r.lister_id, 'listing'::public.notification_kind,
+      'The person you asked said no',
+      'They will not show this inspection. You are showing it yourself unless you ask somebody else.',
+      '/agent/inspections'
+    );
+    return jsonb_build_object('status', 'declined');
+  end if;
+
+  if r.state = 'CONFIRMED'::public.inspection_state and r.slot_at is not null
+     and r.slot_at - now() < interval '3 hours' then
+    return jsonb_build_object('status', 'too_late');
+  end if;
+
+  update public.inspection_delegates set accepted_at = now() where inspection_id = p_inspection;
+  /* The shower changed: rotate, and tell the renter to refresh once. */
+  delete from private.inspection_handshake_seeds where inspection_id = p_inspection;
+  perform private.notify(
+    r.requester_id, 'listing'::public.notification_kind,
+    'Your inspection code has changed',
+    coalesce(private.person_name(actor), 'Somebody') || ' will show your inspection for ' || coalesce(private.person_name(r.lister_id), 'the lister') || '. Open the inspection once while you have signal so your gate code matches.',
+    '/inspections'
+  );
+  perform private.notify(
+    r.lister_id, 'listing'::public.notification_kind,
+    'The person you asked said yes',
+    coalesce(private.person_name(actor), 'They') || ' will show this inspection for you.',
+    '/agent/inspections'
+  );
+  insert into public.audit_log (actor_id, action, entity_type, entity_id, metadata)
+  values (actor, 'inspection.delegate_accepted', 'inspection', p_inspection::text, '{}'::jsonb);
+  return jsonb_build_object('status', 'accepted');
+end;
+$$;
+
+revoke all on function public.answer_inspection_delegation(uuid, boolean) from public, anon, authenticated;
+grant execute on function public.answer_inspection_delegation(uuid, boolean) to authenticated;
 
 -- ----------------------------------------------------------------------------
 -- RECORDING THE GATE, LATER.
@@ -332,7 +467,6 @@ as $$
 declare
   actor uuid := (select auth.uid());
   r public.inspection_requests%rowtype;
-  v_delegate uuid;
   v_role text;
 begin
   if actor is null then
@@ -342,11 +476,10 @@ begin
   if not found then
     return jsonb_build_object('status', 'not_found');
   end if;
-  select delegate_user_id into v_delegate from public.inspection_delegates where inspection_id = p_inspection;
 
   v_role := case
     when actor = r.requester_id then 'checker'
-    when actor = r.lister_id or actor = v_delegate then 'shower'
+    when actor = r.lister_id or actor = private.active_delegate(p_inspection) then 'shower'
     else null
   end;
   if v_role is null then
@@ -381,6 +514,41 @@ revoke all on function public.record_inspection_checkin(uuid, text, timestamptz)
 grant execute on function public.record_inspection_checkin(uuid, text, timestamptz) to authenticated;
 
 -- ----------------------------------------------------------------------------
+-- "THIS WAS NOT ME" ROTATES EVERY SEED THE PERSON COULD HOLD.
+
+create or replace function private.rotate_handshakes_after_not_me()
+returns trigger
+language plpgsql
+security definer
+set search_path to ''
+as $$
+begin
+  if new.action = 'security.not_me' and new.actor_id is not null then
+    delete from private.inspection_handshake_seeds s
+     using public.inspection_requests r
+     where s.inspection_id = r.id
+       and (r.requester_id = new.actor_id
+            or r.lister_id = new.actor_id
+            or private.active_delegate(r.id) = new.actor_id);
+  end if;
+  return new;
+exception when others then
+  /* Never let a rotation failure undo the audit row or the hold. */
+  raise warning '[v35] handshake rotation after not_me failed: %', sqlstate;
+  return new;
+end;
+$$;
+
+revoke all on function private.rotate_handshakes_after_not_me() from public, anon, authenticated;
+
+drop trigger if exists audit_log_rotate_handshakes_after_not_me on public.audit_log;
+create trigger audit_log_rotate_handshakes_after_not_me
+  after insert on public.audit_log
+  for each row
+  when (new.action = 'security.not_me')
+  execute function private.rotate_handshakes_after_not_me();
+
+-- ----------------------------------------------------------------------------
 -- READ BACK.
 
 do $$
@@ -406,7 +574,10 @@ begin
   if has_function_privilege('anon', 'public.inspection_handshake(uuid)', 'EXECUTE')
      or has_function_privilege('anon', 'public.name_inspection_delegate(uuid, text)', 'EXECUTE')
      or has_function_privilege('anon', 'public.record_inspection_checkin(uuid, text, timestamptz)', 'EXECUTE')
-     or has_function_privilege('authenticated', 'private.person_name(uuid)', 'EXECUTE') then
+     or has_function_privilege('anon', 'public.answer_inspection_delegation(uuid, boolean)', 'EXECUTE')
+     or has_function_privilege('authenticated', 'private.person_name(uuid)', 'EXECUTE')
+     or has_function_privilege('authenticated', 'private.active_delegate(uuid)', 'EXECUTE')
+     or has_function_privilege('authenticated', 'private.rotate_handshakes_after_not_me()', 'EXECUTE') then
     raise exception 'a V-35 function is executable by a role that should not hold it';
   end if;
 end

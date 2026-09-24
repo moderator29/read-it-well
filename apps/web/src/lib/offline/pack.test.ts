@@ -5,8 +5,12 @@ const ID = "3653d202-e498-4db0-ab71-882649f7f446";
 const SEED = "0123456789abcdef0123456789abcdef01234567";
 const NOW = Date.parse("2026-09-26T08:00:00Z");
 
+const USER = "11111111-2222-4333-8444-555555555555";
 const ok = {
   status: "ok",
+  viewer: USER,
+  area: "Yaba",
+  state: "LA",
   role: "checker",
   seed: SEED,
   slot_at: "2026-09-26T10:00:00Z",
@@ -30,6 +34,17 @@ describe("readHandshake", () => {
     expect(readHandshake(ID, { status: "expired" })).toEqual({ state: "expired" });
     expect(readHandshake(ID, { status: "not_found" })).toEqual({ state: "not_found" });
   });
+  it("reads an invitation to show one, with no seed", () => {
+    expect(readHandshake(ID, { status: "invite", principal_name: "Chidi Okeke", slot_at: "2026-09-26T10:00:00Z", area: "Yaba", state: "LA" })).toEqual({
+      state: "invite",
+      principalName: "Chidi Okeke",
+      slotAt: "2026-09-26T10:00:00Z",
+      place: "Yaba, LA",
+    });
+  });
+  it("fails without the account it was issued to", () => {
+    expect(readHandshake(ID, { ...ok, viewer: undefined }).state).toBe("failed");
+  });
   it("fails on a malformed seed, role or date, and on nonsense", () => {
     expect(readHandshake(ID, { ...ok, seed: "xyz" }).state).toBe("failed");
     expect(readHandshake(ID, { ...ok, role: "admin" }).state).toBe("failed");
@@ -42,14 +57,15 @@ describe("readHandshake", () => {
 describe("the pack", () => {
   const answer = readHandshake(ID, ok);
   if (answer.state !== "ok") throw new Error("fixture");
-  const pack = buildPack(answer.pack, "2 bedroom flat, Yaba", NOW);
+  const pack = buildPack(answer.pack, NOW);
 
   it("round-trips through storage", () => {
     expect(asPack(JSON.parse(JSON.stringify(pack)))).toEqual(pack);
   });
-  it("carries no address field of any kind", () => {
+  it("carries the area and state, and no title or address field of any kind", () => {
+    expect(pack.place).toBe("Yaba, LA");
     const keys = Object.keys(pack);
-    for (const banned of ["address", "street", "lat", "lng", "latitude", "longitude", "landmark"]) {
+    for (const banned of ["title", "listingTitle", "address", "street", "lat", "lng", "latitude", "longitude", "landmark"]) {
       expect(keys).not.toContain(banned);
     }
   });
@@ -65,10 +81,15 @@ describe("the pack", () => {
   it("lists live packs soonest first and drops the expired", () => {
     const later = { ...pack, inspectionId: "3653d202-e498-4db0-ab71-882649f7f447", slotAt: "2026-09-26T15:00:00Z" };
     const gone = { ...pack, inspectionId: "3653d202-e498-4db0-ab71-882649f7f448", expiresAt: "2026-09-25T00:00:00Z" };
-    expect(livePacks([later, gone, pack, null], NOW).map((p) => p.inspectionId)).toEqual([
+    expect(livePacks([later, gone, pack, null], NOW, USER).map((p) => p.inspectionId)).toEqual([
       pack.inspectionId,
       later.inspectionId,
     ]);
+  });
+  it("shows nobody another account's packs, and nothing with no owner", () => {
+    const theirs = { ...pack, userId: "99999999-2222-4333-8444-555555555555" };
+    expect(livePacks([pack, theirs], NOW, USER).map((p) => p.userId)).toEqual([USER]);
+    expect(livePacks([pack], NOW, null)).toEqual([]);
   });
 });
 
