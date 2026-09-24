@@ -20,8 +20,10 @@
 --       deletes only that desk's claim, then recomputes the row.
 --   private.hold_rows(user_id, written_until, absorbed_until)
 --       the end hold_recompute last wrote to each person's row, and the end
---       of any unregistered plain freeze it absorbed, so a shorter freeze
---       outlives an STR claim laid over it and that claim's clear.
+--       of the unregistered plain freeze it last saw set by hand. A hand-set
+--       end replaces the one absorbed before (so a freeze staff shorten stays
+--       short) and a row that ended or was lifted forgets it (so a lifted
+--       freeze never comes back).
 --   private.hold_recompute(user)
 --       the row follows the latest live claim:
 --         a live hold with a NON-plain reason (a "this was not me" hold) is
@@ -123,7 +125,11 @@ begin
     /* A live plain row this model did not write is an unregistered freeze:
        remember its end, and never go below it while it is live. */
     if v_written is distinct from v_row.hold_until then
-      v_absorbed := greatest(v_absorbed, v_row.hold_until);
+      /* The row's end is not the one this model wrote: somebody set it by
+         hand (a freeze placed, shortened or lengthened by staff). That end
+         REPLACES what was absorbed before, so a freeze staff shortened
+         stays short. */
+      v_absorbed := v_row.hold_until;
     end if;
     v_new := coalesce(v_latest, now());
     if v_absorbed is not null then v_new := greatest(v_new, v_absorbed); end if;
@@ -131,9 +137,11 @@ begin
       update public.account_money_holds set hold_until = v_new where user_id = p_user;
     end if;
   elsif v_latest is not null then
-    /* A hold that has ended is replaced by the pending claims. */
+    /* A hold that has ended (or that staff lifted by hand) is replaced by the
+       pending claims, and nothing absorbed before survives it. */
     update public.account_money_holds set hold_until = v_latest, reason = 'plain' where user_id = p_user;
     v_new := v_latest;
+    v_absorbed := null;
   else
     return;
   end if;
@@ -257,7 +265,7 @@ create table if not exists private.str_hold_releases (
 
 create table if not exists private.str_hold_release_decisions (
   release_id   uuid primary key references private.str_hold_releases(id),
-  outcome      text not null check (outcome in ('released', 'other_hold')),
+  outcome      text not null check (outcome in ('released', 'expired', 'other_hold')),
   approved_by  uuid not null,
   decided_at   timestamptz not null default now()
 );
@@ -383,6 +391,7 @@ as $$
 declare
   actor uuid := (select auth.uid());
   r private.str_hold_releases%rowtype;
+  v_had boolean;
   v_outcome text;
 begin
   if not private.str_is_staff(actor) then return 'forbidden'; end if;
@@ -396,14 +405,19 @@ begin
 
   /* Only this desk's claim is cleared. Any other claim (a sanctions freeze)
      keeps the money held; the row follows what is left. */
-  /* 'released' only when money can move: a row still live after the clear
-     (another claim, a not_me hold, a relabel by email recovery, an
-     unregistered freeze) is reported as other_hold. */
-  if private.hold_claim_clear(r.user_id, 'str')
-     and not exists (select 1 from public.account_money_holds h where h.user_id = r.user_id and h.hold_until > now()) then
+  /* Clear first, then look, in a separate statement: a condition that did
+     both would read the row as it was before the clear. The answer is about
+     the money: other_hold while anything still holds it (another claim, a
+     not_me hold, a relabel by email recovery, an unregistered freeze);
+     released when this desk's claim was the last thing holding it; expired
+     when this desk's claim had already run out and nothing holds it. */
+  v_had := private.hold_claim_clear(r.user_id, 'str');
+  if exists (select 1 from public.account_money_holds h where h.user_id = r.user_id and h.hold_until > now()) then
+    v_outcome := 'other_hold';
+  elsif v_had then
     v_outcome := 'released';
   else
-    v_outcome := 'other_hold';
+    v_outcome := 'expired';
   end if;
 
   insert into private.str_hold_release_decisions (release_id, outcome, approved_by)

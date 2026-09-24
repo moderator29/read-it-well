@@ -175,7 +175,7 @@ export function strResultText(answer: unknown, copy: Copy): { ok: boolean; text:
       : answer && typeof answer === "object" && typeof (answer as { status?: unknown }).status === "string"
         ? ((answer as { status: string }).status)
         : "failed";
-  const good = new Set(["opened", "decided", "approved", "rejected", "recorded", "linked", "held", "released", "release_asked"]);
+  const good = new Set(["opened", "decided", "approved", "rejected", "recorded", "linked", "held", "released", "expired", "release_asked"]);
   const key = (status in copy.results ? status : "failed") as ResultKey;
   if (status === "opened") return { ok: true, text: "" };
   if (status === "held") {

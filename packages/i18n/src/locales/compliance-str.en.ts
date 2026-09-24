@@ -113,6 +113,7 @@ export const complianceStrEn = {
     other_hold: "This desk has no hold on their wallet to end. Any other hold stays as it is.",
     no_hold: "There is no hold from this desk to release.",
     released: "Released: this desk's hold is ended. Any other hold on their wallet stays as it is.",
+    expired: "This desk's hold had already run out, and nothing holds their money now.",
     release_asked: "Release asked for. A second staff member has to approve it.",
     release_waiting: "A release of this hold is already waiting for a second person.",
     failed: "That did not go through. Nothing was changed. Try again in a moment.",
