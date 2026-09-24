@@ -125,34 +125,63 @@ export async function availableBalanceMinor(
   return settled - held;
 }
 
-/** Flip one entry, matched by unique reference, to a new status. */
+/**
+ * Move a PENDING entry to another status, merging metadata as it goes.
+ *
+ * MON-01. Only a PENDING row moves. It used to update by reference whatever the
+ * status, so a withdrawal already settled by a webhook could be flipped back
+ * to FAILED (and its money handed back) by a late catch block. Returns whether
+ * this call moved the row.
+ */
 export async function setEntryStatus(
   admin: AdminClient,
   reference: string,
   status: EntryStatus,
   extraMetadata?: Record<string, Json>,
-): Promise<void> {
-  if (extraMetadata) {
-    const current = await admin
-      .from("wallet_entries")
-      .select("metadata")
-      .eq("reference", reference)
-      .maybeSingle();
-    const merged = {
-      ...(current.data && typeof current.data.metadata === "object" && current.data.metadata !== null && !Array.isArray(current.data.metadata)
-        ? (current.data.metadata as Record<string, Json>)
-        : {}),
-      ...extraMetadata,
-    };
-    const { error } = await admin
-      .from("wallet_entries")
-      .update({ status, metadata: merged })
-      .eq("reference", reference);
-    if (error) throw new Error(error.message);
-    return;
-  }
-  const { error } = await admin.from("wallet_entries").update({ status }).eq("reference", reference);
+): Promise<boolean> {
+  const update: { status: EntryStatus; metadata?: Json } = { status };
+  if (extraMetadata) update.metadata = await mergedMetadata(admin, reference, extraMetadata);
+  const { data, error } = await admin
+    .from("wallet_entries")
+    .update(update)
+    .eq("reference", reference)
+    .eq("status", "PENDING")
+    .select("id");
   if (error) throw new Error(error.message);
+  return (data?.length ?? 0) > 0;
+}
+
+/**
+ * Add to an entry's metadata without touching its status: a caption on a
+ * completed transfer leg. The status of a settled row is not this helper's to
+ * change (MON-01, MON-10).
+ */
+export async function annotateEntry(
+  admin: AdminClient,
+  reference: string,
+  extraMetadata: Record<string, Json>,
+): Promise<void> {
+  const metadata = await mergedMetadata(admin, reference, extraMetadata);
+  const { error } = await admin.from("wallet_entries").update({ metadata }).eq("reference", reference);
+  if (error) throw new Error(error.message);
+}
+
+async function mergedMetadata(
+  admin: AdminClient,
+  reference: string,
+  extraMetadata: Record<string, Json>,
+): Promise<Json> {
+  const current = await admin
+    .from("wallet_entries")
+    .select("metadata")
+    .eq("reference", reference)
+    .maybeSingle();
+  return {
+    ...(current.data && typeof current.data.metadata === "object" && current.data.metadata !== null && !Array.isArray(current.data.metadata)
+      ? (current.data.metadata as Record<string, Json>)
+      : {}),
+    ...extraMetadata,
+  };
 }
 
 /** The entry a settlement actually moved, for the caller to notify against. */

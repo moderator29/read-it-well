@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isRecipientInput } from "./recipient-input";
 import { formatMoney } from "@vallo/i18n";
 
 /**
@@ -91,8 +92,8 @@ export const fundWithSavedCardSchema = z.object({
 
 export const withdrawSchema = z.object({
   /*
-   * Named here for the same reason as on `transferSchema`, and with one
-   * honest difference: NO WITHDRAWAL FORM MINTS A KEY YET.
+   * Named here for the same reason as on `transferSchema`. The withdraw sheet
+   * in WalletDeck mints one per open sheet (MON-01).
    *
    * A CORRECTION TO WHAT THIS COMMENT SAID UNTIL 23 SEPTEMBER. It read
    * "`withdraw` is wrapped in the guard, and the guard steps aside when no key
@@ -101,9 +102,7 @@ export const withdrawSchema = z.object({
    * anything, and this field was parsed and then dropped on the floor. So the
    * schema named a key, the schema's own note claimed a guard, and two taps
    * on Withdraw made two withdrawals. It is wrapped now, under
-   * `wallet.withdraw`, and the rest of the note holds: the guard steps aside
-   * when no key arrives, so nothing changes until the sheet carries one. The
-   * request to the session that owns the withdrawal surfaces is in the ledger.
+   * `wallet.withdraw`, and the guard steps aside when no key arrives.
    */
   idempotencyKey: idempotencyKeySchema,
   amount: nairaAmountSchema,
@@ -168,11 +167,12 @@ export const withdrawToSavedAccountSchema = z.object({
 });
 
 export const transferSchema = z.object({
+  /* An email address or a public @handle (recipient-input.ts). */
   recipientEmail: z
     .string()
     .trim()
     .toLowerCase()
-    .pipe(z.email("Enter a valid email address.")),
+    .refine(isRecipientInput, "Enter a valid email address or @handle."),
   amount: nairaAmountSchema,
   note: z
     .string()

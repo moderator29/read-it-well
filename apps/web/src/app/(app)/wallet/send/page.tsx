@@ -1,5 +1,4 @@
 import { handleFromRecipientParam } from "@/lib/wallet/request-link";
-import { emailForHandle } from "@/lib/wallet/handle-recipient";
 import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -41,14 +40,13 @@ export default async function WalletSendPage({
   const userId = session.state === "signed-in" ? session.user.id : null;
   const t = getDictionary(locale);
   const copy = t.walletSend;
-  /* A request names its requester by handle (lib/wallet/request-link.ts). The
-     address it stands for is resolved here, for a signed-in payer only, so
-     it never has to travel in a shared link. */
+  /* A request names its requester by handle (lib/wallet/request-link.ts).
+     The form is prefilled with the handle itself; the account behind it is
+     resolved on the server, as the payer, when the lookup runs and again when
+     the money moves. No address is read here, so none can reach the form. */
   const requestedHandle = handleFromRecipientParam(params.to);
   const initialRecipient = requestedHandle
-    ? userId
-      ? ((await emailForHandle(requestedHandle)) ?? "")
-      : ""
+    ? `@${requestedHandle}`
     : typeof params.to === "string"
       ? params.to.slice(0, 254)
       : "";

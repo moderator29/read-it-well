@@ -1,7 +1,9 @@
 -- ESC-03 and SUP-P2-02: holding a calendar costs something. Three unconfirmed
 -- stays per guest and one per listing, at most 90 nights; OPS-02 (b): the hold
--- sweep spares a hold whose payment started in the last two hours and releases
--- a stale one; a rent move-in date already held answers date_taken. Rolls back.
+-- sweep spares a hold whose payment started in the last two hours, never past
+-- its TTL plus two hours, and releases a stale one; two host declines do not
+-- start a guest's cooldown, two lapsed holds do; a rent move-in date already
+-- held answers date_taken. Rolls back.
 do $$
 declare
   member uuid := '957b3bd2-cce3-425d-bba9-5cd876ca3d62';
@@ -13,7 +15,7 @@ declare
   rental uuid := 'ed000000-0000-4000-8000-000000000007';
   lagos date := (now() at time zone 'Africa/Lagos')::date;
   claims text := json_build_object('sub', '957b3bd2-cce3-425d-bba9-5cd876ca3d62', 'role', 'authenticated')::text;
-  b uuid; b_old uuid; b_paying uuid; insp uuid; r jsonb; st text;
+  b uuid; b_old uuid; b_paying uuid; b_capped uuid; d1 uuid; d2 uuid; host uuid := '03f3dd52-ea28-4852-9abe-e5b0a67c2a43'; insp uuid; r jsonb; st text;
 begin
   update public.listings set is_demo = false, status = 'PUBLISHED' where id in (s1, s2, s3, s4);
   set local role authenticated;
@@ -62,11 +64,46 @@ begin
   insert into public.transactions (booking_id, provider, provider_ref, amount_minor, status, created_at) values
     (b_paying, 'paystack', 'probe-m7-paying', 1, 'PENDING', now() - interval '1 hour'),
     (b_old, 'paystack', 'probe-m7-old', 1, 'PENDING', now() - interval '3 hours');
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status, created_at)
+  values (s3, member, lagos + 30, lagos + 31, 1, 1, 1, 1, 'PENDING', now() - interval '51 hours') returning id into b_capped;
+  insert into public.transactions (booking_id, provider, provider_ref, amount_minor, status, created_at) values
+    (b_capped, 'paystack', 'probe-m7-capped', 1, 'PENDING', now() - interval '30 minutes');
   r := private.expire_booking_holds(interval '48 hours', 500);
   select status::text into st from public.bookings where id = b_paying;
   if st <> 'PENDING' then raise exception 'PROBE_FAIL ops-02: a hold with a payment in flight was released (%)', r; end if;
   select status::text into st from public.bookings where id = b_old;
   if st <> 'CANCELLED' then raise exception 'PROBE_FAIL ops-02: a stale hold was kept (%)', r; end if;
+  select status::text into st from public.bookings where id = b_capped;
+  if st <> 'CANCELLED' then raise exception 'PROBE_FAIL esc-03: a fresh checkout kept a hold past its cap (%)', r; end if;
+
+  -- Two holds the HOST declined do not start the guest's cooldown.
+  delete from public.transactions where booking_id in (b_paying, b_old, b_capped);
+  delete from public.booking_state_events where booking_id in (b_paying, b_old, b_capped);
+  delete from public.bookings where id in (b_paying, b_old, b_capped);
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
+  values (s4, member, lagos + 60, lagos + 61, 1, 1, 1, 1, 'CANCELLED') returning id into d1;
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
+  values (s4, member, lagos + 62, lagos + 63, 1, 1, 1, 1, 'CANCELLED') returning id into d2;
+  insert into public.booking_state_events (booking_id, from_status, to_status, actor_id, note) values
+    (d1, 'PENDING', 'CANCELLED', host, 'declined'), (d2, 'PENDING', 'CANCELLED', host, 'declined');
+  set local role authenticated;
+  perform set_config('request.jwt.claims', claims, true);
+  insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
+  values (s4, member, lagos + 64, lagos + 65, 1, 1, 1, 1, 'PENDING') returning id into b;
+  reset role;
+  delete from public.bookings where id = b;
+  -- ...but two the guest let lapse do.
+  update public.booking_state_events set actor_id = null where booking_id in (d1, d2);
+  set local role authenticated;
+  perform set_config('request.jwt.claims', claims, true);
+  begin
+    insert into public.bookings (listing_id, guest_id, check_in, check_out, nights, price_per_night_minor, subtotal_minor, total_minor, status)
+    values (s4, member, lagos + 66, lagos + 67, 1, 1, 1, 1, 'PENDING');
+    raise exception 'PROBE_FAIL esc-03: the cooldown did not start after two lapsed holds';
+  exception when check_violation then
+    if sqlerrm not like 'booking_rate_limit%' then raise; end if;
+  end;
+  reset role;
 
   -- ESC-03 amendment: a rent move-in date held by a stay answers date_taken.
   update public.listings set is_demo = false, status = 'PUBLISHED', listing_intent = 'rent',
