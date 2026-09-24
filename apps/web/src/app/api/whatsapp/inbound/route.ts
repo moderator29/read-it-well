@@ -27,7 +27,10 @@ import { siteUrl } from "@/lib/site";
  *
  * Meta redelivers anything it did not see a 200 for, so the answer is 200 at
  * once and the work runs after the response (`after`); each message id
- * (wamid) is handled once however often it is delivered.
+ * (wamid) is handled once however often it is delivered: its hash is
+ * inserted into `whatsapp_inbound_seen` (on conflict do nothing), and only
+ * the insert that made the row acts. When that cannot be written, nothing is
+ * sent: a missed reply is better than a doubled one.
  *
  * FAILS CLOSED: no WHATSAPP_APP_SECRET is a 503 for every caller. The
  * response never echoes a number or a message.
@@ -57,6 +60,23 @@ const DAY = 86_400;
 
 const hashed = (value: string) => createHash("sha256").update(value).digest("hex").slice(0, 32);
 
+/** True only for the delivery that inserted this message id's row. */
+async function firstSighting(admin: NonNullable<ReturnType<typeof getAdminClient>>, wamid: string): Promise<boolean> {
+  try {
+    const { data, error } = await (admin as unknown as {
+      from: (t: string) => {
+        upsert: (row: object, options: object) => { select: (c: string) => PromiseLike<{ data: unknown; error: unknown }> };
+      };
+    })
+      .from("whatsapp_inbound_seen")
+      .upsert({ wamid_hash: hashed(wamid) }, { onConflict: "wamid_hash", ignoreDuplicates: true })
+      .select("wamid_hash");
+    return !error && Array.isArray(data) && data.length === 1;
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: Request): Promise<NextResponse> {
   const secret = process.env.WHATSAPP_APP_SECRET;
   if (!secret) return NextResponse.json({ ok: false, reason: "not_configured" }, { status: 503 });
@@ -82,10 +102,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const reply = getDictionary(DEFAULT_LOCALE).platform.whatsapp.autoReply.replace("{link}", `${siteUrl()}/messages`);
     for (const message of messages) {
       /* Once per message, however many times Meta delivers it. */
-      if (message.id) {
-        const first = await consume({ bucket: "whatsapp_inbound_wamid", subject: `wamid:${hashed(message.id)}`, limit: 1, windowSeconds: DAY });
-        if (!first.allowed) continue;
-      }
+      if (!message.id || !admin || !(await firstSighting(admin, message.id))) continue;
       if (message.text && parseReply(message.text) && admin) {
         /* The landlord line's reply; it owns the answer. */
         await handleInboundReply(admin, { from: message.from, text: message.text, channel: "whatsapp" });

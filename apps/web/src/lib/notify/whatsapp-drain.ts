@@ -13,11 +13,18 @@ import { DOORBELL_TEMPLATES, cloudTransport, doorbellParam, e164, templateLangua
  *     have the switch on, or the row is dead (a switch turned off an hour ago
  *     is not overridden by a row queued before it);
  *   - a row older than six hours is dead: a bell about something that far in
- *     the past is noise, and the app already shows it;
- *   - quiet hours are honoured, except for money (the urgent class), and a
- *     held row simply waits for the next drain;
+ *     the past is noise, and the app already shows it. Age counts from when
+ *     the bell was FREE to ring: `not_before` for a bell held through quiet
+ *     hours, `created_at` otherwise, so a ten-hour night kills nothing;
+ *   - quiet hours are honoured, except for money (the urgent class): a held
+ *     row gets `not_before` = the end of the window and is not even read
+ *     again until then;
+ *   - money bells are read first, so a queue of social bells cannot starve
+ *     them out of a drain's fifty;
  *   - the row is CLAIMED first (status `queued`/`failed` to `sending` in one
- *     update), so two drains cannot both send it;
+ *     update, with `claimed_at`), so two drains cannot both send it; a claim
+ *     older than ten minutes (a drain that died mid-send) is swept back to
+ *     `failed` at the start of every drain;
  *   - the one variable, the path, is re-checked by `doorbellParam`, and the
  *     number is read from the account's confirmed phone, never stored here.
  *
@@ -26,8 +33,18 @@ import { DOORBELL_TEMPLATES, cloudTransport, doorbellParam, e164, templateLangua
  */
 
 const MAX_AGE_MS = 6 * 60 * 60 * 1000;
+const STUCK_CLAIM_MS = 10 * 60 * 1000;
+const SEEN_KEEP_MS = 7 * 86_400_000;
 
-type Row = { id: string; user_id: string; event: DoorbellEvent; path: string; attempts: number; created_at: string };
+type Row = {
+  id: string;
+  user_id: string;
+  event: DoorbellEvent;
+  path: string;
+  attempts: number;
+  created_at: string;
+  not_before: string | null;
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Loose = any;
@@ -60,22 +77,40 @@ export async function whatsappDrain(
   const counts: DrainCounts = { sent: 0, failed: 0, skipped: 0, held: 0, idle: false };
   if (!transport.configured) return { ...counts, idle: true };
   const open = await flagOn(admin);
+  const nowIso = now.toISOString();
 
-  const { data } = await admin
+  /* A drain that died mid-send left its claim: hand the row back. */
+  await admin
     .from("whatsapp_queue")
-    .select("id, user_id, event, path, attempts, created_at")
-    .in("status", ["queued", "failed"])
-    .lt("attempts", 5)
-    .order("created_at", { ascending: true })
-    .limit(limit);
+    .update({ status: "failed", last_error: "claim_expired" })
+    .eq("status", "sending")
+    .lt("claimed_at", new Date(now.getTime() - STUCK_CLAIM_MS).toISOString());
+  await admin.from("whatsapp_inbound_seen").delete().lt("seen_at", new Date(now.getTime() - SEEN_KEEP_MS).toISOString());
 
-  for (const row of (Array.isArray(data) ? data : []) as Row[]) {
+  /* Money first, then the rest; neither reads a row still held. */
+  const due = (urgent: boolean, room: number) => {
+    const query = admin
+      .from("whatsapp_queue")
+      .select("id, user_id, event, path, attempts, created_at, not_before")
+      .in("status", ["queued", "failed"])
+      .lt("attempts", 5)
+      .or(`not_before.is.null,not_before.lte.${nowIso}`);
+    return (urgent ? query.eq("event", "money_update") : query.neq("event", "money_update"))
+      .order("created_at", { ascending: true })
+      .limit(room);
+  };
+  const { data: money } = await due(true, limit);
+  const moneyRows = (Array.isArray(money) ? money : []) as Row[];
+  const { data: rest } = moneyRows.length < limit ? await due(false, limit - moneyRows.length) : { data: [] };
+  const rows = [...moneyRows, ...((Array.isArray(rest) ? rest : []) as Row[])];
+
+  for (const row of rows) {
     if (!open) {
       await dead(admin, row.id, "flag_shut");
       counts.skipped += 1;
       continue;
     }
-    if (now.getTime() - Date.parse(row.created_at) > MAX_AGE_MS) {
+    if (now.getTime() - Date.parse(row.not_before ?? row.created_at) > MAX_AGE_MS) {
       await dead(admin, row.id, "too_old");
       counts.skipped += 1;
       continue;
@@ -89,6 +124,7 @@ export async function whatsappDrain(
     }
     const quiet = quietVerdict({ quiet: readQuietHours(settings), at: now, urgent: row.event === "money_update" });
     if (quiet.held) {
+      await admin.from("whatsapp_queue").update({ not_before: quiet.until.toISOString() }).eq("id", row.id);
       counts.held += 1;
       continue;
     }
@@ -105,7 +141,7 @@ export async function whatsappDrain(
     /* Claim it: only one drain gets the row. */
     const { data: claimed } = await admin
       .from("whatsapp_queue")
-      .update({ status: "sending", attempts: row.attempts + 1 })
+      .update({ status: "sending", attempts: row.attempts + 1, claimed_at: nowIso })
       .eq("id", row.id)
       .in("status", ["queued", "failed"])
       .select("id");

@@ -36,6 +36,12 @@ create table if not exists public.whatsapp_queue (
   attempts integer not null default 0 check (attempts >= 0),
   last_error text check (last_error is null or char_length(last_error) <= 60),
   created_at timestamptz not null default now(),
+  /* Held through the person's quiet hours until this instant; its age
+     counts from here, so a long quiet window does not kill a bell. */
+  not_before timestamptz,
+  /* When a drain claimed it for sending; a claim older than ten minutes is
+     swept back to failed, so a drain that died mid-send cannot strand it. */
+  claimed_at timestamptz,
   sent_at timestamptz
 );
 
@@ -44,6 +50,19 @@ create index if not exists whatsapp_queue_due_idx on public.whatsapp_queue (stat
 
 alter table public.whatsapp_queue enable row level security;
 revoke all on table public.whatsapp_queue from public, anon, authenticated;
+
+/*
+ * Inbound message ids already handled. Meta redelivers anything it did not
+ * see a 200 for; a message id is inserted once (on conflict do nothing) and
+ * only the insert that made the row acts on it. A hash, never the id itself,
+ * and swept after a week by the drain.
+ */
+create table if not exists public.whatsapp_inbound_seen (
+  wamid_hash text primary key check (wamid_hash ~ '^[0-9a-f]{32}$'),
+  seen_at timestamptz not null default now()
+);
+alter table public.whatsapp_inbound_seen enable row level security;
+revoke all on table public.whatsapp_inbound_seen from public, anon, authenticated;
 
 comment on table public.whatsapp_queue is
   'V-96. One doorbell per row: an event and one path into Vallo, never content. Written by the notifications trigger when the whatsapp_doorbell flag is on and the person opted in; service role only.';
