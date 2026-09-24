@@ -22,6 +22,7 @@ const FULL: ProofFacts = {
   isDemo: false,
   identitySeenAt: "2026-08-12T10:00:00Z",
   identityMethod: "seen",
+  credentials: [{ kind: "lasrera", number: "LASRERA/AG/12345", company: null, checkedAt: "2026-09-03T09:00:00Z" }],
   mandateVerifiedAt: "2026-08-14T09:00:00Z",
   ownerConfirmedAvailableAt: "2026-09-20T09:00:00Z",
   photographedAt: "2026-09-04T09:00:00Z",
@@ -81,7 +82,7 @@ describe("the proof strip model", () => {
   });
 
   it("gives the card at most two lines, the first two, in order", () => {
-    expect(compactProofLines(proofLines(FULL)).map((l) => l.kind)).toEqual(["identity", "authority"]);
+    expect(compactProofLines(proofLines(FULL)).map((l) => l.kind)).toEqual(["identity", "credentials"]);
   });
 });
 
@@ -171,5 +172,24 @@ describe("a firm's listing says whose identity was seen", () => {
     );
     expect(proofExplainKey(line)).toBe("identityFirm");
     expect(copy.explain.identityFirm.isNot).toContain("CAC");
+  });
+});
+
+describe("dated credentials (V-87)", () => {
+  it("prints each credential with its number and date, and a CAC line only with its company", () => {
+    const lines = proofLines({
+      isDemo: false,
+      credentials: [
+        { kind: "lasrera", number: "LASRERA/AG/12345", company: null, checkedAt: "2026-09-03T09:00:00Z" },
+        { kind: "cac_director", number: "RC 1234567", company: "Acme Properties Ltd", checkedAt: "2026-09-03T09:00:00Z" },
+        { kind: "cac_director", number: "RC 1", company: null, checkedAt: "2026-09-03T09:00:00Z" },
+        { kind: "esvarbon", number: "ESV/1", company: null, checkedAt: "not a date" },
+      ],
+    });
+    expect(lines.map((l) => proofLineText(l, copy, "en"))).toEqual([
+      "Registered with LASRERA, number LASRERA/AG/12345 checked on the LASRERA register 3 Sept 2026",
+      "A director of Acme Properties Ltd (RC 1234567), checked with the CAC 3 Sept 2026",
+    ]);
+    expect(proofExplainKey(lines[0]!)).toBe("credential");
   });
 });

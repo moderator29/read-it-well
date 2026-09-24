@@ -29,6 +29,10 @@ export const trustVisibleEn = {
     ownership: "Title document seen in the lister's name, {date}",
     mandate: "Owner's instruction seen and owner spoken to, {date}",
     availability: "Owner confirmed available, {date}",
+    /** V-87. `{number}`, `{company}` and `{date}` come from the credential check. */
+    lasrera: "Registered with LASRERA, number {number} checked on the LASRERA register {date}",
+    esvarbon: "Registered estate surveyor and valuer (ESVARBON), number {number} checked {date}",
+    cacDirector: "A director of {company} ({number}), checked with the CAC {date}",
     photographs: "Photographed at the property, {date}",
     /** `{count}` renters answered; `{listed}` said as listed; `{month}` e.g. "September 2026". */
     rentersAll:
@@ -59,6 +63,10 @@ export const trustVisibleEn = {
       mandate: {
         is: "A member of Vallo staff saw a written instruction from the owner to the lister, and spoke to the owner named on it.",
         isNot: "It does not say the instruction is still in force today, or that the owner agreed any particular fee. We are not a land registry.",
+      },
+      credential: {
+        is: "A member of Vallo staff checked this registration against the public register on this date. Checks older than a year are not shown.",
+        isNot: "It is not required to list on Vallo, and it says nothing about this property, the price or whether the place is still available.",
       },
       availability: {
         is: "The owner, not the agent, told Vallo on this date that the place was still available.",

@@ -7,6 +7,7 @@ import {
 import type { StatusTone } from "@/components/ui/StatusPill";
 import { DocumentDecision } from "../_components/MoneyDecisions";
 import { DocumentViewer } from "../_components/DocumentViewer";
+import { CredentialForm } from "./CredentialForm";
 
 /* The document vocabulary, staged in `components/app/untranslated.ts` with the
    rest of this owner's untranslated copy. These are NOT the F2-060 fault: that
@@ -112,6 +113,9 @@ export function SubjectCard({
           {subject.payoutNameCheck.reason}.
         </p>
       )}
+
+      {/* V-87: dated credentials, recorded by the desk, never required. */}
+      {decidable && subject.userId && <CredentialForm subjectId={subject.userId} />}
 
       {subject.business && (
         <dl className="mt-sm">

@@ -39,6 +39,7 @@ import { ListingAgentCard } from "@/components/app/listing/ListingAgentCard";
 import { ProofStrip } from "@/components/app/listing/ProofStrip";
 import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
 import { doorHonestyLine, readDoorHonesty } from "@/lib/tenancy/door";
+import { readListingCredentials } from "@/lib/trust/credentials-read";
 import { ListingMoveInBlock } from "@/components/app/listing/ListingMoveInBlock";
 import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
@@ -266,6 +267,8 @@ export default async function ListingDetailPage({
   const reviews = await getListingReviews(listing.id, locale);
   /* V-59: "Moved in for the Vallo price", the one public number from the
      tenancy reviews. Null (and no line) on every example listing. */
+  /* V-87: the lister's dated credential checks, for the proof strip. */
+  const credentials = listing.isDemo ? [] : await readListingCredentials(listing.id);
   const doorLine = listing.isDemo
     ? null
     : doorHonestyLine(await readDoorHonesty(listing.id), t.trustVisible.tenancy);
@@ -852,7 +855,7 @@ export default async function ListingDetailPage({
                       not. It renders nothing at all when there is nothing
                       dated, which today is every example listing. */}
                   <ProofStrip
-                    lines={proofLines(proofFactsOf(listing))}
+                    lines={proofLines({ ...proofFactsOf(listing), credentials })}
                     variant="full"
                     t={t}
                     locale={locale}

@@ -46,11 +46,17 @@ import {
 
 const ICON: Record<ProofLineKind, UiIconName> = {
   identity: "user",
+  credentials: "verified",
   authority: "document",
   availability: "calendar-booking",
   photographs: "picture",
   renters: "eye",
 };
+
+/** A line's key: its kind, and for a credential which one (several may show). */
+function lineKey(line: ProofLine): string {
+  return line.kind === "credentials" ? `${line.kind}-${line.credential}` : line.kind;
+}
 
 export function ProofStrip({
   lines,
@@ -76,7 +82,7 @@ export function ProofStrip({
       <ul className={`grid gap-3xs ${className}`} aria-label={copy.label} data-testid="proof-strip-compact">
         {shown.map((line) => (
           <li
-            key={line.kind}
+            key={lineKey(line)}
             className="flex items-start gap-inline-tight text-[length:var(--nf-text-caption)] leading-snug text-[var(--nf-content-secondary)]"
           >
             <UiIcon name={ICON[line.kind]} size={12} className="mt-3xs shrink-0 text-[var(--nf-status-verified)]" />
@@ -93,7 +99,7 @@ export function ProofStrip({
     <>
       <ul className={`grid gap-inline ${className}`} aria-label={copy.label} data-testid="proof-strip">
         {shown.map((line) => (
-          <li key={line.kind}>
+          <li key={lineKey(line)}>
             <button
               type="button"
               onClick={() => setOpen(line)}

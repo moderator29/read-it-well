@@ -63,6 +63,7 @@ import type { Listing } from "@/lib/listings/types";
 
 export const PROOF_LINE_ORDER = [
   "identity",
+  "credentials",
   "authority",
   "availability",
   "photographs",
@@ -89,6 +90,8 @@ export type ProofFacts = {
    * so the line has to say whose identity it was.
    */
   listedForFirm?: boolean;
+  /** V-87: the lister's dated credential checks from the last year. */
+  credentials?: { kind: CredentialKind; number: string; company: string | null; checkedAt: string }[];
   /** `listings.ownership_verified_at`: a title document seen in the lister's name. */
   ownershipVerifiedAt?: string;
   /** `listings.mandate_verified_at`: the owner's instruction seen, the owner spoken to. */
@@ -105,8 +108,11 @@ export type ProofFacts = {
   renters?: { attended: number; asListed: number; lastAt: string };
 };
 
+export type CredentialKind = "lasrera" | "esvarbon" | "cac_director";
+
 export type ProofLine =
   | { kind: "identity"; at: string; method: IdentityMethod; forFirm: boolean }
+  | { kind: "credentials"; at: string; credential: CredentialKind; number: string; company: string | null }
   | { kind: "authority"; at: string; basis: "ownership" | "mandate" }
   | { kind: "availability"; at: string }
   | { kind: "photographs"; at: string }
@@ -122,7 +128,7 @@ export function provableDate(value: string | null | undefined): string | null {
 /** The fewest renters whose answers may be counted in public. Matches `listing_truth_summary`. */
 export const MIN_PUBLIC_RENTERS = 5;
 
-type Spec = (facts: ProofFacts) => ProofLine | null;
+type Spec = (facts: ProofFacts) => ProofLine | ProofLine[] | null;
 
 /**
  * One spec per line. Each returns null unless its own timestamp is provable.
@@ -130,6 +136,11 @@ type Spec = (facts: ProofFacts) => ProofLine | null;
  * also being given a place in `PROOF_LINE_ORDER`.
  */
 const SPECS: Record<ProofLineKind, Spec> = {
+  credentials: (f) =>
+    (f.credentials ?? [])
+      .filter((c) => provableDate(c.checkedAt) !== null && c.number.trim() !== "")
+      .filter((c) => c.kind !== "cac_director" || (c.company ?? "").trim() !== "")
+      .map((c) => ({ kind: "credentials" as const, at: c.checkedAt, credential: c.kind, number: c.number, company: c.company })),
   identity: (f) => {
     const at = provableDate(f.identitySeenAt);
     return at
@@ -174,7 +185,8 @@ export function proofLines(facts: ProofFacts): ProofLine[] {
   const lines: ProofLine[] = [];
   for (const kind of PROOF_LINE_ORDER) {
     const line = SPECS[kind](facts);
-    if (line) lines.push(line);
+    if (Array.isArray(line)) lines.push(...line);
+    else if (line) lines.push(line);
   }
   return lines;
 }
@@ -223,6 +235,11 @@ export function proofLineText(line: ProofLine, copy: ProofCopy, locale: Locale):
       ).replace("{date}", date);
     case "authority":
       return (line.basis === "ownership" ? copy.ownership : copy.mandate).replace("{date}", date);
+    case "credentials": {
+      const template =
+        line.credential === "lasrera" ? copy.lasrera : line.credential === "esvarbon" ? copy.esvarbon : copy.cacDirector;
+      return template.replace("{number}", line.number).replace("{company}", line.company ?? "").replace("{date}", date);
+    }
     case "availability":
       return copy.availability.replace("{date}", date);
     case "photographs":
@@ -246,6 +263,8 @@ export function proofExplainKey(line: ProofLine): keyof ProofCopy["explain"] {
       return line.method === "nimc" ? "identityNimc" : line.forFirm ? "identityFirm" : "identity";
     case "authority":
       return line.basis;
+    case "credentials":
+      return "credential";
     default:
       return line.kind;
   }
