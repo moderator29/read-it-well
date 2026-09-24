@@ -66,3 +66,25 @@ export async function createShareLink(input: unknown): Promise<ActionResult<{ pa
     return fail(SHARE_FAILED);
   }
 }
+
+type RevokeRpc = (fn: "revoke_share_link", args: { p_token: string }) => PromiseLike<{ data: unknown; error: unknown }>;
+
+/**
+ * Close one of the caller's own doors (V-07 carry-over). `revoke_share_link`
+ * closes only a door the caller minted; somebody else's token changes nothing
+ * and is answered as a failure. The next share mints a fresh door.
+ */
+export async function revokeShareLink(input: unknown): Promise<ActionResult<null>> {
+  const parsed = validate(z.object({ token: z.string().regex(/^[23456789abcdefghjkmnpqrstvwxyz]{10}$/) }), input);
+  if (!parsed.ok) return fail(SHARE_FAILED);
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return fail(SIGNED_OUT_MESSAGE);
+  try {
+    const supabase = await createClient();
+    const rpc = supabase.rpc.bind(supabase) as unknown as RevokeRpc;
+    const { data, error } = await rpc("revoke_share_link", { p_token: parsed.data.token });
+    return error || data !== true ? fail(SHARE_FAILED) : ok(null);
+  } catch {
+    return fail(SHARE_FAILED);
+  }
+}

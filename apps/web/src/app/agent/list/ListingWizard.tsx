@@ -20,7 +20,7 @@ import type { OwnAnswers, WizardDraft } from "@/lib/agent/listings-queries";
 import { BROADCAST_MONEY_KEYS, type BroadcastKey, type BroadcastParse } from "@/lib/agent/broadcast";
 import { BroadcastPaste } from "./BroadcastPaste";
 import { PriceGuidePanel, usePriceGuide } from "./PriceGuide";
-import { saveBroadcastMarks } from "@/lib/agent/broadcast-marks";
+import { DraftMatches } from "./DraftMatches";
 import { feeNormLine, type GuideSubject } from "@/lib/price-check/wizard-guide";
 import {
   MAX_ACCESS_CODE,
@@ -863,14 +863,19 @@ export function ListingWizard({
   guideCopy,
   initialUnconfirmed = [],
   shotsCopy,
+  demandCopy,
 }: {
   /** V-70: the shot list's words. Without them the shot list is not drawn. */
   shotsCopy?: Dictionary["afterTheGate"]["shots"];
+  /** V-10: the saved-search count on the last step. Absent in harnesses. */
+  demandCopy?: Dictionary["frontDoor"]["demand"];
   /**
    * V-09: the unconfirmed set as the server holds it for this draft
    * (`listing_broadcast_marks`), so another device starts from the truth.
+   * Null when the read failed: the set is then never written from here (an
+   * empty set would wipe the server's) and submit waits until it is read.
    */
-  initialUnconfirmed?: readonly string[];
+  initialUnconfirmed?: readonly string[] | null;
   copy: WizardCopy;
   /**
    * V-74: the pricing step's guide. Absent in the harnesses, which then draw
@@ -948,7 +953,8 @@ export function ListingWizard({
    * is still in it: a figure read from a WhatsApp message is not sent for
    * review until a person has looked at it.
    */
-  const [fromMessage, setFromMessage] = useState<ReadonlySet<string>>(() => new Set(initialUnconfirmed));
+  const [fromMessage, setFromMessage] = useState<ReadonlySet<string>>(() => new Set(initialUnconfirmed ?? []));
+  const marksUnread = initialUnconfirmed === null;
 
   /*
    * The unconfirmed set survives a reload, keyed by the listing it belongs to
@@ -973,21 +979,6 @@ export function ListingWizard({
     }
     setUnconfirmedLoaded(unconfirmedKey);
   }, [unconfirmedKey, unconfirmedLoaded, listingId]);
-  /* And on the server, beside the draft, once the draft exists: the submit
-     gate there reads it (review fix, V-09). Debounced; a failure is retried
-     on the next change and the server gate still holds. */
-  const savedMarks = useRef<string>(JSON.stringify([...initialUnconfirmed].sort()));
-  useEffect(() => {
-    if (!listingId || !canPersist || unconfirmedLoaded !== unconfirmedKey) return;
-    const next = JSON.stringify([...fromMessage].sort());
-    if (next === savedMarks.current) return;
-    const timer = setTimeout(() => {
-      void saveBroadcastMarks({ listingId, keys: [...fromMessage] }).then((result) => {
-        if (result.ok) savedMarks.current = next;
-      });
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [fromMessage, listingId, canPersist, unconfirmedLoaded, unconfirmedKey]);
   useEffect(() => {
     if (unconfirmedLoaded !== unconfirmedKey) return;
     try {
@@ -1390,6 +1381,8 @@ export function ListingWizard({
 
     const result = await saveDraft({
       id: listingId ?? undefined,
+      /* V-09: the unconfirmed set goes to the server in the same save. */
+      broadcastUnconfirmed: marksUnread ? undefined : [...fromMessage],
       title: values.title,
       description: values.description,
       propertyType: values.propertyType,
@@ -1479,7 +1472,7 @@ export function ListingWizard({
     if (!accessResult.ok) setNotice(accessResult.error);
 
     return result.data.id;
-  }, [canPersist, chosenAmenities, listingId, values, unread]);
+  }, [canPersist, chosenAmenities, listingId, values, unread, fromMessage, marksUnread]);
 
   function go(next: number) {
     const target = Math.min(STEP_KEYS.length - 1, Math.max(0, next));
@@ -1725,7 +1718,9 @@ export function ListingWizard({
 
   function send() {
     startTransition(async () => {
-      const id = listingId ?? (await persist());
+      /* Saved first, always: the draft and its unconfirmed set (V-09) must be
+         what the server checks, not what it held before the last tap. */
+      const id = (await persist()) ?? listingId;
       if (!id) {
         setNotice(canPersist ? copy.submit.needsTitle : copy.submit.needsKeys);
         return;
@@ -3179,6 +3174,12 @@ export function ListingWizard({
         {step === 6 && (
           <div>
             <Note>{copy.guestView.intro}</Note>
+            {/* V-10: whose saved searches this would reach, once it exists. */}
+            {demandCopy && listingId && (
+              <div className="mt-group">
+                <DraftMatches listingId={listingId} copy={demandCopy} />
+              </div>
+            )}
             <article className="nf-panel nf-panel--card block mt-group overflow-hidden">
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--nf-surface-raised)]">
                 {photos[0] ? (
@@ -3454,6 +3455,11 @@ export function ListingWizard({
               })}
             </ul>
 
+            {broadcastCopy && marksUnread && (
+              <p className="nf-body-sm mt-heading text-[var(--nf-content-secondary)]" role="status" data-testid="broadcast-unread">
+                {broadcastCopy.marksUnreachable}
+              </p>
+            )}
             {broadcastCopy && unconfirmedMoney.length > 0 && (
               <div className="mt-heading" role="status" data-testid="broadcast-confirm">
                 <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]">
@@ -3471,7 +3477,7 @@ export function ListingWizard({
               full
               className="mt-heading"
               onClick={send}
-              disabled={unmet.length > 0 || unconfirmedMoney.length > 0}
+              disabled={unmet.length > 0 || unconfirmedMoney.length > 0 || marksUnread}
               loading={pending}
             >
               {copy.submit.action}

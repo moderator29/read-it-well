@@ -263,9 +263,9 @@ export function ListingActions({
         /* Rule 10: a door goes out with NO title. The lister's own title (or a
            stay's business name) is free text, and the share sheet hands it to
            whatever app is chosen next to the link; the door's card composes
-           its own heading from facts. Only an undoored place, whose own gated
-           address is shared, keeps its title. */
-        await navigator.share(doorable ? { url } : { title, url });
+           its own heading from facts. An undoored place (a venue) goes out
+           with no title either: its name is text somebody typed as well. */
+        await navigator.share({ url });
         return;
       } catch (error) {
         // A cancelled sheet is not a failure and must not raise a message.
