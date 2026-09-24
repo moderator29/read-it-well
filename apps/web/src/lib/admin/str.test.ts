@@ -171,14 +171,16 @@ describe("SCUML item 6: what the database holds to", () => {
     expect(fixes).toContain("where private.str_overdue(x.id)");
   });
 
-  it("ends only its own hold, never shortens one, and needs a second person to release (173200)", () => {
+  it("holds through one shared claims model, and a release clears only this desk's claim (173200)", () => {
     const own = readFileSync(
       join(__dirname, "../../../../../supabase/migrations/20260924173200_scuml_item_6_str_holds_are_its_own.sql"),
       "utf8",
     );
-    expect(own).toContain("v_until := greatest(v_existing.hold_until, v_until);");
-    expect(own).toContain("and v_now.hold_until = v_ours and not private.str_sanctions_confirmed(r.user_id) then");
+    expect(own).toContain("create table if not exists private.hold_claims");
+    expect(own).toContain("owner    text not null check (owner in ('str', 'sanctions'))");
+    expect(own).toContain("v_until := private.hold_claim_set(c.subject_id, 'str', v_until, actor);");
+    expect(own).toContain("if private.hold_claim_clear(r.user_id, 'str') then");
+    expect(own).toContain("elsif v_row.hold_until > now() and v_row.reason <> 'plain' then");
     expect(own).toContain("if r.requested_by = actor then return 'same_person'; end if;");
-    expect(own).toContain("create table if not exists private.str_holds");
   });
 });
