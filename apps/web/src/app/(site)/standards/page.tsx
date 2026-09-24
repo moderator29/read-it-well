@@ -40,7 +40,7 @@ const NOT_ALLOWED: { title: string; body: string }[] = [
   },
   {
     title: "Listing a place you do not control",
-    body: "Somebody else's photographs, an address that is not yours to let, a property that has already gone, or a hotel, guest house or restaurant you do not run. Duplicate and stolen photographs are checked before anything is published.",
+    body: "Somebody else's photographs, an address that is not yours to let, a property that has already gone, or a hotel, guest house or restaurant you do not run. If you recognise photographs from somewhere else, report the listing; a person reads every report.",
   },
   {
     title: "Misrepresenting a property or a stay",
