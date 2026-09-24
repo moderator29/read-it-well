@@ -527,6 +527,37 @@ Against the real production URL, on a real Android phone if possible.
    delivered a 200.
 10. Withdraw that amount back out and confirm the hold settles.
 
+### 8.1 Paging a human (OPS-03, V-01)
+
+Three layers, each switched on by the founder once. None of them needs code.
+
+1. **Inside the app: critical alerts reach a phone.** Set `OPS_ALERT_WEBHOOK_URL`
+   (simplest: install the ntfy app, subscribe to a long random topic, and set
+   `https://ntfy.sh/<that topic>`) and/or `OPS_ALERT_EMAIL` in Vercel
+   Production. Every critical alert then pages, at most once an hour per alert.
+   The catalogue canary (`/api/cron/canary`, every 5 minutes) raises one when
+   the published catalogue cannot be read as the public role, reads fewer
+   listings than exist, or is empty.
+   Alerts the DATABASE writes itself (the escrow float check, the money
+   reconciliation and push drain watchers, the content scanners) page through
+   the database instead, so they still leave when Vercel is down: in the
+   Supabase SQL editor run, once, with the same URL,
+   `select vault.create_secret('https://ntfy.sh/<that topic>', 'vallo_ops_alert_webhook_url');`
+   (trigger `risk_alerts_page_on_high`; checked by `supabase/tests/probes/ops-03.sql`).
+2. **Outside the app: an uptime monitor.** If Vercel itself is down, nothing
+   inside it can page. Create a free monitor at UptimeRobot or Better Stack:
+   type HTTP(s), URL **`https://www.vallospaces.com/api/health/catalogue`**,
+   every 5 minutes, alert when the status is not 200 (it answers 503 with a
+   reason token when the catalogue read fails), alert contact your phone or
+   email. Add a second monitor on `https://www.vallospaces.com/` for the site
+   itself.
+3. **Crashes: Sentry.** At sentry.io create a project (platform **Next.js**,
+   or "Other JavaScript"; the app posts envelopes itself and needs no SDK),
+   copy its **DSN**, and paste it as `SENTRY_DSN` in Vercel for
+   **Production** and **Preview** (server only; never a `NEXT_PUBLIC_` name).
+   Then in Sentry, Alerts, create a rule "a new issue is created" that emails
+   you. Critical alerts are also sent to Sentry, so the same rule covers them.
+
 ---
 
 ## 9. Not yet wired, honestly

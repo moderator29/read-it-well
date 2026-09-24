@@ -205,6 +205,10 @@ const EXPECTED_PUBLIC = new Set([
    * the intended use, and its variable is named `NEXT_PUBLIC_`.
    */
   "/api/push/key",
+  /* OPS-03 / V-01: the uptime monitor's URL (a yes or no, no rows) and the
+     canary cron, which authenticates itself with the cron secret. */
+  "/api/health/catalogue",
+  "/api/cron/canary",
   "/",
   "/robots.txt",
   "/sitemap.xml",
