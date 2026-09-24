@@ -1,3 +1,5 @@
+import { freeCancellationOpen, termsFromPolicyRules } from "@/lib/trust/cancellation";
+
 /**
  * THE STAY DETAIL, AS THE SCREEN NEEDS IT.
  *
@@ -35,6 +37,12 @@ export type StayCancellationPolicy = {
   summary: string;
   /** Free cancellation window in hours, when the policy grants one. */
   freeUntilHours: number | null;
+  /**
+   * V-20. The policy's rules as stored (`[{refund_bps, hours_before}]`), the
+   * thing refunds are computed from. Optional so harness fixtures still
+   * compile; absent reads as "refundable when a free window is named".
+   */
+  rules?: unknown;
 };
 
 /** One row of `rate_plans`, with its policy resolved. */
@@ -256,4 +264,69 @@ export function reserveHref(base: ReserveBase, roomTypeId: string, ratePlanId: s
   }
   search.set("guests", String(base.guests));
   return `${base.basePath ?? "/checkout"}?${search.toString()}`;
+}
+
+/* ------------------------------------------------------------------ V-20 */
+
+/**
+ * Whether a plan is refundable in the sense a guest means it: its first
+ * window gives EVERYTHING back and, given a check-in, that window is still
+ * open now. Read from the policy's rules (what a refund is computed from),
+ * else from the named free window. A plan with no policy is not called
+ * refundable: a promise nobody wrote down is not one this screen makes.
+ */
+export function planRefundable(plan: StayRatePlan, checkIn?: string | null, now: Date = new Date()): boolean {
+  const policy = plan.policy;
+  if (!policy) return false;
+  const terms = Array.isArray(policy.rules)
+    ? termsFromPolicyRules(policy.id, policy.rules)
+    : policy.freeUntilHours !== null
+      ? termsFromPolicyRules(policy.id, [{ refund_bps: 10_000, hours_before: policy.freeUntilHours }])
+      : null;
+  return terms !== null && freeCancellationOpen(terms, checkIn, now);
+}
+
+/**
+ * What "Book now" picks, and the cheaper rate it passed over.
+ *
+ * On the walk, Book now chose a non-refundable rate on a page advertising free
+ * cancellation, and said so only in small grey type at checkout. So the
+ * default is the CHEAPEST REFUNDABLE rate that takes this party for these
+ * nights, else the cheapest rate outright, and the choice is labelled. When
+ * the cheapest rate overall is non-refundable and a refundable one exists,
+ * both are returned so the page can show both prices side by side.
+ */
+export function bookNowChoice(
+  detail: StayDetail,
+  nights: number | null,
+  guests: number,
+  checkIn?: string | null,
+  now: Date = new Date(),
+): {
+  pick: { room: StayRoomType; plan: StayRatePlan };
+  refundable: boolean;
+  cheaperNonRefundable: { room: StayRoomType; plan: StayRatePlan } | null;
+} | null {
+  let cheapest: { room: StayRoomType; plan: StayRatePlan } | null = null;
+  let cheapestRefundable: { room: StayRoomType; plan: StayRatePlan } | null = null;
+  for (const room of detail.roomTypes) {
+    if (guests > 0 && room.sleeps < guests) continue;
+    for (const plan of room.ratePlans) {
+      if (!planAcceptsNights(plan, nights)) continue;
+      if (cheapest === null || plan.rateMinor < cheapest.plan.rateMinor) cheapest = { room, plan };
+      if (planRefundable(plan, checkIn, now) && (cheapestRefundable === null || plan.rateMinor < cheapestRefundable.plan.rateMinor)) {
+        cheapestRefundable = { room, plan };
+      }
+    }
+  }
+  if (cheapest === null) return null;
+  if (cheapestRefundable === null) return { pick: cheapest, refundable: false, cheaperNonRefundable: null };
+  return {
+    pick: cheapestRefundable,
+    refundable: true,
+    cheaperNonRefundable:
+      cheapest.plan.rateMinor < cheapestRefundable.plan.rateMinor && !planRefundable(cheapest.plan, checkIn, now)
+        ? cheapest
+        : null,
+  };
 }

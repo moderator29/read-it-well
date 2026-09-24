@@ -1,4 +1,10 @@
 import type { Metadata } from "next";
+import { getDictionary } from "@vallo/i18n";
+import { PulseCard } from "@/components/app/around/PulseCard";
+import { nextQuestion } from "@/lib/around/pulse";
+import { readMyPulseSession } from "@/lib/around/pulse-queries";
+import { CommuteCard } from "@/components/app/around/CommuteCard";
+import { readAnchors } from "@/lib/listings/commute-queries";
 import { formatNumber } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import Link from "next/link";
@@ -109,6 +115,15 @@ export default async function AreaPage({
   ]);
   /* Each author's published badge (`public.person_badge`), as on `/around`. */
   const posts = await stampAuthorTiers(feed.posts);
+  /* V-41: what this member may be asked here, or null (not a member, or the
+     counting is not running). */
+  const pulse =
+    viewer.member && area.status === "ACTIVE" ? await readMyPulseSession(area.id) : null;
+  /* V-43: the anchors in this place's city, for a member (empty with the flag off). */
+  const commuteAnchors =
+    viewer.member && area.status === "ACTIVE"
+      ? (await readAnchors()).filter((a) => a.city.toLowerCase() === area.city.toLowerCase())
+      : [];
   const isModerator = viewer.role === "MODERATOR";
 
   return (
@@ -130,6 +145,26 @@ export default async function AreaPage({
       ) : null}
 
       <PlaceNotes status={area.status} slowMode={area.slowMode} />
+
+      {/* V-43: a member's journey time, once a day, in the rush hours. */}
+      {commuteAnchors.length > 0 ? (
+        <CommuteCard
+          areaId={area.id}
+          areaName={area.name}
+          anchors={commuteAnchors}
+          copy={getDictionary(locale).shape.commute}
+        />
+      ) : null}
+
+      {/* V-41: one tap for the neighbours' account, for members only. */}
+      {pulse ? (
+        <PulseCard
+          areaId={area.id}
+          areaName={area.name}
+          question={nextQuestion(pulse, lagosNow())}
+          copy={getDictionary(locale).shape.neighbours}
+        />
+      ) : null}
 
       <section className="mb-lg">
         <Feed
@@ -222,4 +257,9 @@ export default async function AreaPage({
       <AroundFab currentAreaId={area.status === "ACTIVE" ? area.id : undefined} />
     </div>
   );
+}
+
+/** The clock, read once per request, outside render purity rules. */
+function lagosNow(): Date {
+  return new Date();
 }

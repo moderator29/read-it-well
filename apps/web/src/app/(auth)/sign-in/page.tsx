@@ -8,6 +8,8 @@ import { getLocale } from "@/lib/locale";
 import { resolveProviderStates } from "@/lib/auth/providers";
 import { requestSurface } from "@/lib/auth/surface";
 import { AuthChoices } from "@/components/auth/AuthChoices";
+import { arrivalOf } from "@/app/welcome/plan";
+import { wallHeading } from "@/components/app/welcome/wall-heading";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -43,9 +45,19 @@ export default async function SignInPage({
   const t = getDictionary(locale);
   const notice = typeof params.notice === "string" ? params.notice : undefined;
   const next = typeof params.next === "string" ? params.next : undefined;
+  /* THE WALL NAMES WHAT THEY ASKED FOR (V-18), here as well as on first
+     run. A device that has already seen first run comes straight to this
+     screen from the wall, and "Sign in to open that" said nothing about what
+     "that" was. The same pure heading first run uses names it. */
+  const arrival = notice === "sign-in-required" && next ? arrivalOf(next) : null;
+  const wall = arrival ? wallHeading(arrival.reason, t.shape.wall) : null;
   /* The key comes from the URL, so only the table's own keys count
      (`?notice=constructor` must not reach the prototype). */
-  const noticeText = notice && Object.hasOwn(t.authFlow.notices, notice) ? t.authFlow.notices[notice] : undefined;
+  const noticeText = wall
+    ? `${wall.titleA} ${wall.titleB}. ${wall.body}`
+    : notice && Object.hasOwn(t.authFlow.notices, notice)
+      ? t.authFlow.notices[notice]
+      : undefined;
 
   const surface = await requestSurface();
   return (

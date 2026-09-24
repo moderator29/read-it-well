@@ -15,7 +15,7 @@ import { ListingsQueue } from "@/app/admin/listings/ListingsQueue";
 import { MandatesPanel } from "@/app/admin/listings/MandatesPanel";
 import { ListingReview } from "@/app/admin/listings/[id]/ListingReview";
 import { ReviewActionBar } from "@/app/admin/listings/[id]/ReviewActionBar";
-import { ModerationDesk } from "@/app/admin/moderation/ModerationDesk";
+import { ModerationDesk } from "@/app/admin/_lanes/ModerationDesk";
 import { VerificationDesk } from "@/app/admin/kyc/VerificationDesk";
 import { Pager } from "@/app/admin/_review/parts";
 import type { QueueRow } from "@/app/admin/listings/rows";
@@ -321,7 +321,7 @@ export default async function Harness({
           title: "Nothing to moderate",
           body: "No report is open and the safety scan is holding nothing. When either changes it lands here, oldest first.",
           cause: "Members report from any listing, post or profile; the safety scan holds words as they are posted, and the author is told they are being checked.",
-          link: { href: "/admin/reports", label: "See every report, including closed ones" },
+          link: { href: "/admin/queue?tab=reports", label: "See every report, including closed ones" },
         }}
         pager={empty ? null : <Pager page={1} hasNext hrefFor={() => "#"} />}
       />

@@ -41,7 +41,11 @@ export function ShelfCount({
       ? t.moveIn.basisPrice
       : currentBasis === "move-in"
         ? t.moveIn.basisMoveIn
-        : null;
+        : currentBasis === "listed"
+          ? t.shape.listed.basis
+          : currentBasis === "fees"
+            ? t.trustVisible.fees.sortBasis
+          : null;
   const line = shelfCountLine({ count, narrowed, more, later }, copy, locale);
 
   return (
@@ -72,6 +76,16 @@ export function ShelfCount({
             {basis}
           </p>
         )}
+        {/* V-06: Recommended is a published formula, one tap away, and the
+            promise that nobody can pay to move it is said where the order is. */}
+        {query.sort === "recommended" && count > 1 && (
+          <p data-testid="sort-basis" className="nf-caption text-[var(--nf-content-muted)]">
+            {t.trustVisible.ranking.shelfLine}{" "}
+            <Link href="/standards#ranking" className="font-semibold text-[var(--nf-content-secondary)] underline">
+              {t.trustVisible.ranking.shelfLink}
+            </Link>
+          </p>
+        )}
       </div>
       {/* One control on the right, as the image draws it. The map view is
           the last item of the same menu rather than a second control that
@@ -80,7 +94,7 @@ export function ShelfCount({
         <details className="nf-shelf-sort shrink-0" data-testid="sort-control">
           <summary>
             <UiIcon name="sliders" size={14} />
-            {current.label}
+            {t.shape.sorts[current.key]}
             <UiIcon name="chevron-down" size={14} />
           </summary>
           <ul className="nf-shelf-sort__menu" aria-label={copy.sort}>
@@ -94,7 +108,7 @@ export function ShelfCount({
                     aria-current={active ? "true" : undefined}
                     className="nf-shelf-sort__item"
                   >
-                    {sort.label}
+                    {t.shape.sorts[sort.key]}
                     {active && <UiIcon name="verified" size={14} />}
                   </Link>
                 </li>

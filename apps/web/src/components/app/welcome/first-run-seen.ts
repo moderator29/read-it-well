@@ -102,3 +102,50 @@ export function withPassedFlag(path: string): string {
   const joiner = base.includes("?") ? "&" : "?";
   return `${base}${joiner}${FIRST_RUN_PASSED_PARAM}=1${hash ? `#${hash}` : ""}`;
 }
+
+/**
+ * THE MARKET A STRANGER TAPPED, CARRIED TO THE QUESTION THAT ASKS FOR IT (V-18).
+ *
+ * A landing tile such as Apartments sends a stranger to `/search?type=apartment`,
+ * which the wall turns into an account choice. After sign-up the interests
+ * question asks which markets they came for, and it would be a small insult to
+ * ask with nothing ticked. So the first run writes the tile's market here, and
+ * `/welcome` reads it back to pre-tick that one card.
+ *
+ * It is a suggestion, not an answer: nothing is saved until the person presses
+ * Continue, and a person who has already answered is never shown it. The value
+ * is one `property_type` word, it identifies nobody, and it lasts a day.
+ */
+export const FIRST_INTEREST_COOKIE = "vallo_first_interest";
+export const FIRST_INTEREST_MAX_AGE = 60 * 60 * 24;
+
+/** The Set-Cookie style string for the carried market. Exported for the test. */
+export function firstInterestCookieString(value: string, secure: boolean): string {
+  return [
+    `${FIRST_INTEREST_COOKIE}=${encodeURIComponent(value)}`,
+    "Path=/",
+    `Max-Age=${FIRST_INTEREST_MAX_AGE}`,
+    "SameSite=Lax",
+    ...(secure ? ["Secure"] : []),
+  ].join("; ");
+}
+
+/** Client only. Clears the carried market once the question is answered or skipped. */
+export function forgetFirstInterest(): void {
+  if (typeof document === "undefined") return;
+  try {
+    document.cookie = `${FIRST_INTEREST_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
+  } catch {
+    /* Nothing to clear. */
+  }
+}
+
+/** Client only. Quiet: a refused cookie only means nothing is pre-ticked. */
+export function rememberFirstInterest(value: string): void {
+  if (typeof document === "undefined") return;
+  try {
+    document.cookie = firstInterestCookieString(value, window.location.protocol === "https:");
+  } catch {
+    /* Storage blocked; the question simply arrives unticked. */
+  }
+}

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getRentPayView } from "@/lib/rent/queries";
 import { isBookingReference } from "@/lib/payments/references";
@@ -10,8 +12,8 @@ import { Reveal } from "@/components/site/Reveal";
 import { PaymentReturn } from "@/app/(app)/checkout/[bookingId]/PaymentReturn";
 import { PayPanel } from "./PayPanel";
 import { RentSummary } from "./RentSummary";
+import { RentLandlordFact } from "./RentLandlordFact";
 import { chargeRentSavedCardFor } from "./saved-card-action";
-import { getDictionary } from "@vallo/i18n";
 
 export const metadata: Metadata = { title: "Pay the rent" };
 
@@ -60,7 +62,7 @@ export default async function RentPayPage({
           mark="card-lock"
           verdict={c.cannotReachPayment}
           consequence={c.cannotReachRent}
-          actions={[{ label: c.seeInspections, href: "/inspections", tone: "primary" }]}
+          actions={[{ label: c.seeInspections, href: "/bookings?kind=inspection&from=property", tone: "primary" }]}
         />
       </Shell>
     );
@@ -87,7 +89,7 @@ export default async function RentPayPage({
           state="missing"
           verdict={c.inspectionNotFound}
           consequence={c.inspectionNotFoundBody}
-          actions={[{ label: c.seeInspections, href: "/inspections", tone: "primary" }]}
+          actions={[{ label: c.seeInspections, href: "/bookings?kind=inspection&from=property", tone: "primary" }]}
         />
       </Shell>
     );
@@ -101,7 +103,7 @@ export default async function RentPayPage({
           mark="alert-triangle"
           verdict={c.rentStepDidNotOpen}
           consequence={c.rentStepDidNotOpenBody}
-          actions={[{ label: c.seeInspections, href: "/inspections", tone: "primary" }]}
+          actions={[{ label: c.seeInspections, href: "/bookings?kind=inspection&from=property", tone: "primary" }]}
         />
       </Shell>
     );
@@ -130,7 +132,7 @@ export default async function RentPayPage({
           verdict={c.waitingOnLister}
           consequence={c.waitingOnListerBody}
           actions={[
-            { label: c.seeInspections, href: "/inspections", tone: "primary" },
+            { label: c.seeInspections, href: "/bookings?kind=inspection&from=property", tone: "primary" },
             { label: c.backToListing, href: `/listing/${read.listingId}`, tone: "quiet" },
           ]}
         />
@@ -169,6 +171,13 @@ export default async function RentPayPage({
             { label: c.openMessages, href: "/messages", tone: "primary" },
             { label: c.backToListing, href: `/listing/${view.listingId}`, tone: "quiet" },
           ]}
+          footnote={
+            /* V-32: the landlord's answer to these figures, as a dated fact,
+               or nothing when no question was ever sent. Streams on its own. */
+            <Suspense fallback={null}>
+              <RentLandlordFact inspectionId={inspectionId} copy={getDictionary(locale).landlord.rentFact} locale={locale} />
+            </Suspense>
+          }
         />
       </Shell>
     );
@@ -189,6 +198,7 @@ export default async function RentPayPage({
           subject={view.title}
           locale={locale}
           retryHref={`/rent/pay/${inspectionId}`}
+          plansAction={{ label: getDictionary(locale).shape.plans.seePlans, href: "/bookings?side=property&from=property" }}
         />
       )}
 
@@ -197,7 +207,12 @@ export default async function RentPayPage({
       </Reveal>
 
       <div className="mt-lg">
-        <PayPanel view={view} savedCards={savedCards} chargeSavedCard={chargeSavedCard} />
+        <PayPanel
+          view={view}
+          savedCards={savedCards}
+          chargeSavedCard={chargeSavedCard}
+          payCopy={getDictionary(locale).afterTheGate.pay}
+        />
       </div>
     </Shell>
   );
@@ -207,7 +222,7 @@ async function Shell({ subtitle, children }: { subtitle?: string; children: Reac
   const c = getDictionary(await getLocale()).checkout;
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title={c.rentTitle} subtitle={subtitle ?? c.rentSubtitle} fallback="/inspections" />
+      <PageHeader title={c.rentTitle} subtitle={subtitle ?? c.rentSubtitle} fallback="/bookings?kind=inspection&from=property" />
       {children}
     </div>
   );

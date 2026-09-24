@@ -2,31 +2,41 @@
 
 import { clearListingDrafts } from "@/lib/agent/listing-draft-storage";
 import { useState, useTransition } from "react";
+import { plural, type Locale, type PluralForms } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { Disclosure } from "@/components/app/Disclosure";
 import { endOtherSessions, endSession } from "@/lib/security/sessions-actions";
+import { endSessionGroup } from "@/lib/security/device-alert-actions";
+import { NotMePanel, type NotMeCopy } from "./NotMePanel";
 import { signOutEverywhere } from "@/lib/profile/actions";
 
 /**
- * The list, and the two buttons that end things.
+ * The list, and the buttons that end things.
  *
- * A client component for one reason: both actions are destructive and neither
- * may fire on a single tap. Everything else, including every string on the
- * screen, is decided by the server component above, so this holds no copy of
- * the session data. The actions call `revalidatePath` and the page re-renders
- * from the database, which is what keeps the screen from ever claiming a device
- * is still signed in after it was thrown off.
+ * A client component for one reason: every action here is destructive and
+ * none may fire on a single tap. Everything else, including every string on
+ * the screen, is decided by the server component above, so this holds no copy
+ * of the session data. The actions call `revalidatePath` and the page
+ * re-renders from the database, which is what keeps the screen from ever
+ * claiming a device is still signed in after it was thrown off.
  *
- * ## Confirm-then-act, and why it is per row
+ * ## One line per device type (V-19)
  *
- * `armed` holds the id of the one row, or the word "others", that is currently
- * one tap from firing. A single piece of state rather than a flag per row means
- * arming a second control disarms the first by construction, so a person who
- * changes their mind and taps a different row cannot end the wrong session with
- * the tap that was meant to select it.
+ * The page folds the sessions (`lib/security/session-groups.ts`): the one in
+ * your hand on its own at the top, then one line per device type, most
+ * recently used first, each saying how many sessions it holds. A line can be
+ * ended as a whole, and its individual sessions sit behind a `Disclosure` so
+ * a person who wants to end exactly one still can. Below the list sits the
+ * "This was not me" panel, which does more than sign things out: it holds
+ * money leaving the account for 24 hours.
  *
- * This is `DataCard`'s tap-again pattern rather than a modal, and the choice is
- * the same one that file made: a sheet over a list of sessions puts a dialog
- * between somebody and the thing they are trying to read while deciding.
+ * ## Confirm-then-act, and why it is one piece of state
+ *
+ * `armed` holds the key of the one control that is currently one tap from
+ * firing: a session id, a group key, or the word "others". A single piece of
+ * state rather than a flag per row means arming a second control disarms the
+ * first by construction, so a person who changes their mind and taps a
+ * different line cannot end the wrong thing with the tap meant to select it.
  */
 
 export type DeviceRow = {
@@ -39,6 +49,20 @@ export type DeviceRow = {
   thisDevice: string;
   signedIn: string;
   lastSeen: string;
+};
+
+export type DeviceGroupRow = {
+  key: string;
+  device: string;
+  deviceNote?: string;
+  /** "89 sessions", already counted in the reader's language. */
+  count: string;
+  firstSignedIn: string;
+  lastUsed: string;
+  endLabel: string;
+  showLabel: string;
+  sessionIds: string[];
+  sessions: DeviceRow[];
 };
 
 export type DeviceListCopy = {
@@ -57,33 +81,42 @@ export type DeviceListCopy = {
   endedOthers: string;
   endedNone: string;
   unreadable: string;
+  currentTitle: string;
+  othersTitle: string;
+  othersEmpty: string;
+  strangerHint: string;
+  groupFailed: string;
+  endedGroup: PluralForms;
+  notMeTitle: string;
+  notMeBody: string;
+  notMe: string;
+  notMeConfirm: string;
+  notMeWorking: string;
 };
 
 type Outcome = { tone: "done" | "problem"; message: string } | null;
 
-/** Sessions with no recorded device, shown as one line rather than one card each. */
-export type FoldedSessions = { label: string; sub: string; lastSeen: string };
-
 export function DeviceList({
-  rows,
-  folded,
+  current,
+  groups,
   othersCount,
   readable,
   copy,
+  notMeCopy,
+  locale,
 }: {
-  rows: DeviceRow[];
-  folded: FoldedSessions | null;
-  /** Every non-current session, listed or folded: what "everywhere else" ends. */
+  current: DeviceRow | null;
+  groups: DeviceGroupRow[];
   othersCount: number;
   /** False when the read itself failed. Not the same as an empty list. */
   readable: boolean;
   copy: DeviceListCopy;
+  notMeCopy: NotMeCopy;
+  locale: Locale;
 }) {
   const [armed, setArmed] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<Outcome>(null);
   const [pending, startTransition] = useTransition();
-
-  const others = othersCount;
 
   const run = (key: string, work: () => Promise<Outcome>) => {
     if (armed !== key) {
@@ -106,14 +139,24 @@ export function DeviceList({
        * it is the right thing: a shared machine, a browser you want off the
        * account. The page is reloaded rather than routed, so the middleware
        * runs against cookies whose refresh token no longer resolves and sends
-       * this browser to sign in. Routing would leave a signed-out person
-       * looking at a rendered account screen until they navigated.
+       * this browser to sign in.
        */
       if (result.data.wasCurrent) {
         window.location.assign("/sign-in?notice=sign-in-required");
         return null;
       }
       return { tone: "done", message: copy.endedOne };
+    });
+
+  const endGroup = (group: DeviceGroupRow) =>
+    run(`group:${group.key}`, async () => {
+      const result = await endSessionGroup({ sessionIds: group.sessionIds.slice(0, 200) });
+      if (!result.ok) return { tone: "problem", message: copy.groupFailed };
+      return {
+        tone: "done",
+        message:
+          result.data.ended === 0 ? copy.endedNone : plural(result.data.ended, copy.endedGroup, locale),
+      };
     });
 
   const endRest = () =>
@@ -164,85 +207,139 @@ export function DeviceList({
         </p>
       )}
 
-      <ul className="space-y-row">
-        {rows.map((row) => (
-          <li key={row.id} className="nf-panel nf-panel--card block p-card" data-testid="device-row">
+      {current && (
+        <section aria-labelledby="devices-current-title">
+          <h2 id="devices-current-title" className="nf-caption mb-row text-muted">
+            {copy.currentTitle}
+          </h2>
+          <div className="nf-panel nf-panel--card block p-card" data-testid="device-row">
             <div className="flex items-start justify-between gap-inline">
-              <div>
-                <p className="nf-body font-semibold text-content">{row.device}</p>
-                {row.deviceNote && (
-                  <p className="nf-caption mt-row text-muted">{row.deviceNote}</p>
+              <div className="min-w-0">
+                <p className="nf-body font-semibold text-content">{current.device}</p>
+                {current.deviceNote && (
+                  <p className="nf-caption mt-row text-muted">{current.deviceNote}</p>
                 )}
               </div>
-              {row.isCurrent && (
-                <span className="nf-caption shrink-0 text-brand" data-testid="device-current">
-                  {row.thisDevice}
-                </span>
-              )}
+              <span className="nf-caption shrink-0 text-brand" data-testid="device-current">
+                {current.thisDevice}
+              </span>
             </div>
-
-            <dl className="mt-row space-y-row">
-              {row.signedIn && (
-                <div className="flex items-center gap-inline-tight">
-                  <UiIcon name="key" size="xs" />
-                  <dd className="nf-body-sm text-content-2">{row.signedIn}</dd>
-                </div>
-              )}
-              {row.lastSeen && (
-                <div className="flex items-center gap-inline-tight">
-                  <UiIcon name="history" size="xs" />
-                  <dd className="nf-body-sm text-content-2">{row.lastSeen}</dd>
-                </div>
-              )}
-            </dl>
-
+            <Facts first={current.signedIn} last={current.lastSeen} />
             <button
               type="button"
-              onClick={() => endOne(row)}
+              onClick={() => endOne(current)}
               disabled={pending}
               data-testid="device-end"
               className={`nf-btn nf-btn--sm mt-group w-full ${
-                armed === row.id ? "nf-btn--danger" : "nf-btn--glass"
+                armed === current.id ? "nf-btn--danger" : "nf-btn--glass"
               }`}
             >
-              {pending && armed === null
-                ? copy.working
-                : armed === row.id
-                  ? copy.confirm
-                  : row.isCurrent
-                    ? copy.endCurrent
-                    : copy.endThis}
+              {armed === current.id ? copy.confirm : copy.endCurrent}
             </button>
-          </li>
-        ))}
-      </ul>
+          </div>
+        </section>
+      )}
 
-      {folded && (
-        <div className="nf-panel nf-panel--card block p-card" data-testid="devices-folded">
-          <p className="nf-body font-semibold text-content">{folded.label}</p>
-          <p className="nf-caption mt-row text-muted">{folded.sub}</p>
-          {folded.lastSeen && <p className="nf-body-sm mt-row text-content-2">{folded.lastSeen}</p>}
-        </div>
+      {readable && (
+        <section aria-labelledby="devices-others-title" data-testid="device-groups">
+          <h2 id="devices-others-title" className="nf-caption mb-row text-muted">
+            {copy.othersTitle}
+          </h2>
+          {groups.length === 0 ? (
+            <p
+              className="nf-panel nf-panel--card block p-card nf-body-sm text-content-2"
+              data-testid="device-groups-empty"
+            >
+              {copy.othersEmpty}
+            </p>
+          ) : (
+            <>
+              <p className="nf-caption mb-row text-muted">{copy.strangerHint}</p>
+              <ul className="space-y-row">
+                {groups.map((group) => {
+                  const key = `group:${group.key}`;
+                  return (
+                    <li key={group.key} className="nf-panel nf-panel--card block p-card" data-testid="device-group">
+                      <div className="flex items-start justify-between gap-inline">
+                        <div className="min-w-0">
+                          <p className="nf-body font-semibold text-content">{group.device}</p>
+                          {group.deviceNote && (
+                            <p className="nf-caption mt-row text-muted">{group.deviceNote}</p>
+                          )}
+                        </div>
+                        <span className="nf-caption shrink-0 text-content-2" data-testid="device-group-count">
+                          {group.count}
+                        </span>
+                      </div>
+                      <Facts first={group.firstSignedIn} last={group.lastUsed} />
+                      <button
+                        type="button"
+                        onClick={() => endGroup(group)}
+                        disabled={pending}
+                        data-testid="device-group-end"
+                        className={`nf-btn nf-btn--sm mt-group w-full ${
+                          armed === key ? "nf-btn--danger" : "nf-btn--glass"
+                        }`}
+                      >
+                        {armed === key ? copy.confirm : group.endLabel}
+                      </button>
+                      {group.sessions.length > 1 && (
+                        <div className="mt-row">
+                          <Disclosure label={group.showLabel} hint={group.count} title={group.device}>
+                            <ul className="space-y-row">
+                              {group.sessions.map((row) => (
+                                <li key={row.id} className="nf-panel nf-panel--card block p-card" data-testid="device-row">
+                                  <Facts first={row.signedIn} last={row.lastSeen} />
+                                  <button
+                                    type="button"
+                                    onClick={() => endOne(row)}
+                                    disabled={pending}
+                                    className={`nf-btn nf-btn--sm mt-group w-full ${
+                                      armed === row.id ? "nf-btn--danger" : "nf-btn--glass"
+                                    }`}
+                                  >
+                                    {armed === row.id ? copy.confirm : copy.endThis}
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          </Disclosure>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
+        </section>
       )}
 
       <div className="nf-panel nf-panel--card block p-card">
         <p className="nf-body font-semibold text-content">{copy.endOthers}</p>
         <p className="nf-body-sm mt-row text-content-2">
-          {others === 0 ? copy.endOthersNone : copy.endOthersSub}
+          {othersCount === 0 ? copy.endOthersNone : copy.endOthersSub}
         </p>
         <button
           type="button"
           onClick={endRest}
-          disabled={pending || others === 0}
+          disabled={pending || othersCount === 0}
           data-testid="devices-end-others"
           className={`nf-btn nf-btn--sm mt-group w-full ${
             armed === "others" ? "nf-btn--danger" : "nf-btn--glass"
           }`}
         >
-          {armed === "others" ? copy.confirm : copy.endOthers}
+          {pending && armed === null ? copy.working : armed === "others" ? copy.confirm : copy.endOthers}
         </button>
       </div>
 
+      <NotMePanel
+        title={copy.notMeTitle}
+        body={copy.notMeBody}
+        button={{ idle: copy.notMe, confirm: copy.notMeConfirm, working: copy.notMeWorking }}
+        copy={notMeCopy}
+        locale={locale}
+      />
       <div className="nf-panel nf-panel--card block p-card">
         <p className="nf-body font-semibold text-content">{copy.endEverywhere}</p>
         <p className="nf-body-sm mt-row text-content-2">{copy.endEverywhereSub}</p>
@@ -264,5 +361,25 @@ export function DeviceList({
           that makes them hesitate before doing the right thing. */}
       <p className="nf-caption text-muted">{copy.caveat}</p>
     </div>
+  );
+}
+
+function Facts({ first, last }: { first: string; last: string }) {
+  if (!first && !last) return null;
+  return (
+    <dl className="mt-row space-y-row">
+      {first && (
+        <div className="flex items-center gap-inline-tight">
+          <UiIcon name="key" size="xs" />
+          <dd className="nf-body-sm text-content-2">{first}</dd>
+        </div>
+      )}
+      {last && (
+        <div className="flex items-center gap-inline-tight">
+          <UiIcon name="history" size="xs" />
+          <dd className="nf-body-sm text-content-2">{last}</dd>
+        </div>
+      )}
+    </dl>
   );
 }

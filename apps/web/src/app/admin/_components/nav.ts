@@ -47,7 +47,17 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
     href: "/admin",
     icon: glyph("home-solid"),
     label: "Overview",
-    children: [{ key: "queue", href: "/admin/queue", icon: ui("panel-left"), label: "Unified queue" }],
+    children: [
+      {
+        key: "queue",
+        href: "/admin/queue",
+        icon: ui("panel-left"),
+        label: "Unified queue",
+        /* V-88: reports, flags and held content are lanes of the queue now. */
+        countKeys: ["reports", "flags", "moderation"],
+        countLabel: "reports, flagged messages and held content waiting on a decision",
+      },
+    ],
   },
   {
     key: "listings",
@@ -68,7 +78,14 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
       { key: "stops", href: "/admin/stops", icon: ui("shield-stop"), label: "Stops" },
     ],
   },
-  { key: "kyc", href: "/admin/kyc", icon: glyph("check-square"), label: "Verification" },
+  {
+    key: "kyc",
+    href: "/admin/kyc",
+    icon: glyph("check-square"),
+    label: "Verification",
+    /* SCUML: the AML/CFT duties, one lane each. */
+    children: [{ key: "compliance", href: "/admin/compliance", icon: glyph("shield-lock"), label: "Compliance" }],
+  },
   {
     key: "money",
     href: "/admin/money",
@@ -82,15 +99,13 @@ export const ADMIN_PRIMARY: AdminDestination[] = [
   { key: "escrow", href: "/admin/escrow", icon: glyph("shield-lock"), label: "Escrow" },
   { key: "bookings", href: "/admin/bookings", icon: ui("calendar-booking"), label: "Bookings" },
   {
+    /* V-88: Moderation keeps what is not a queue. Its three queues (message
+       flags, reports, held content) are lanes of the unified queue. */
     key: "moderation",
-    href: "/admin/moderation",
+    href: "/admin/social",
     icon: glyph("moderation"),
     label: "Moderation",
-    countKeys: ["moderation"],
-    countLabel: "held posts, stories, comments and bios waiting on a decision",
     children: [
-      { key: "flags", href: "/admin/flags", icon: ui("chat-bubble"), label: "Message flags", countKeys: ["flags"], countLabel: "flagged messages waiting on a decision" },
-      { key: "reports", href: "/admin/reports", icon: ui("flag"), label: "Reports", countKeys: ["reports"], countLabel: "reports open or under review" },
       { key: "social", href: "/admin/social", icon: ui("compass"), label: "Around" },
       { key: "standing", href: "/admin/standing", icon: ui("star"), label: "Standing" },
     ],

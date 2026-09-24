@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getLocale } from "@/lib/locale";
+import { getDictionary } from "@vallo/i18n";
 import { getCheckoutView } from "@/lib/bookings/checkout-view";
 import { isBookingReference } from "@/lib/payments/references";
 import { ResultScreen } from "@/components/app/ResultSheet";
@@ -11,13 +12,14 @@ import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { panelClass } from "@/components/ui/Panel";
 import { CheckoutSummary } from "./CheckoutSummary";
+import { ArrivalChargesLine } from "@/components/stays/ArrivalChargesLine";
+import { bookingChargeKind } from "@/lib/after-gate/is-rent-charge";
 import { HoldCountdown } from "./HoldCountdown";
 import { PayPanel } from "./PayPanel";
 import { PaymentReturn } from "./PaymentReturn";
 import { chargeSavedCardFor } from "./saved-card-action";
 import { listPaymentMethods } from "@/lib/payments/methods-actions";
 import type { PaymentMethod } from "@/lib/payments/methods";
-import { getDictionary } from "@vallo/i18n";
 
 export const metadata: Metadata = { title: "Checkout" };
 
@@ -51,6 +53,8 @@ export default async function CheckoutPage({
   const { bookingId } = await params;
   const { paid, reference } = await searchParams;
   const locale = await getLocale();
+  const plans = getDictionary(locale).shape.plans;
+  const staysAction = { label: plans.seeStays, href: "/bookings?side=stays&from=stays" };
   const c = getDictionary(locale).checkout;
   const read = await getCheckoutView(bookingId, locale);
 
@@ -73,7 +77,7 @@ export default async function CheckoutPage({
           mark="card-lock"
           verdict={c.cannotReachPayment}
           consequence={c.cannotReachStay}
-          actions={[{ label: c.seeStays, href: "/bookings", tone: "primary" }]}
+          actions={[{ label: staysAction.label, href: staysAction.href, tone: "primary" }]}
         />
       </Shell>
     );
@@ -104,7 +108,7 @@ export default async function CheckoutPage({
           state="missing"
           verdict={c.bookingNotFound}
           consequence={c.bookingNotFoundBody}
-          actions={[{ label: c.seeStays, href: "/bookings", tone: "primary" }]}
+          actions={[{ label: staysAction.label, href: staysAction.href, tone: "primary" }]}
         />
       </Shell>
     );
@@ -118,7 +122,7 @@ export default async function CheckoutPage({
           mark="alert-triangle"
           verdict={c.checkoutDidNotOpen}
           consequence={c.checkoutDidNotOpenBody}
-          actions={[{ label: c.seeStays, href: "/bookings", tone: "primary" }]}
+          actions={[{ label: staysAction.label, href: staysAction.href, tone: "primary" }]}
         />
       </Shell>
     );
@@ -150,6 +154,7 @@ export default async function CheckoutPage({
           subject={view.title}
           locale={locale}
           retryHref={`/checkout/${bookingId}`}
+          plansAction={staysAction}
         />
       )}
 
@@ -183,7 +188,8 @@ export default async function CheckoutPage({
       <Reveal>
         {/* What is being bought, as one component the preview harness draws
             with fixture props and this route draws with the real read. */}
-        <CheckoutSummary view={view} locale={locale} />
+        {/* No stay terms on a rent charge, nor when that could not be read. */}
+        <CheckoutSummary view={view} locale={locale} tenancy={(await bookingChargeKind(view.bookingId)) !== "stay"} />
       </Reveal>
 
       {view.paid ? (
@@ -193,7 +199,7 @@ export default async function CheckoutPage({
             mark="receipt-check"
             verdict={c.stayPaidFor}
             consequence={c.stayPaidBody.replace("{total}", view.totalDisplay)}
-            actions={[{ label: c.seeStays, href: "/bookings", tone: "primary" }]}
+            actions={[{ label: staysAction.label, href: staysAction.href, tone: "primary" }]}
           />
         </Reveal>
       ) : view.status === "CANCELLED" ? (
@@ -267,7 +273,7 @@ export default async function CheckoutPage({
             fired is content that sometimes does not exist.
           */}
           <div className="mt-block">
-            <PayPanel view={view} savedCards={savedCards} chargeSavedCard={chargeSavedCard} />
+            <PayPanel view={view} savedCards={savedCards} chargeSavedCard={chargeSavedCard} plansAction={staysAction} />
           </div>
         </>
       )}
@@ -284,6 +290,13 @@ export default async function CheckoutPage({
         real rather than abstract. Not shown once a stay is paid or cancelled:
         by then the schedule is support's business and there is a person on it.
       */}
+      {/* V-57: what the host declared at the door, and the sentence for the gate. */}
+      {view.status !== "CANCELLED" && (await bookingChargeKind(view.bookingId)) === "stay" && (
+        <div className="mt-lg">
+          <ArrivalChargesLine listingId={view.listingId} bookingId={view.bookingId} locale={view.locale} />
+        </div>
+      )}
+
       {!view.paid && view.status !== "CANCELLED" && (
         <Reveal delay={180} className="mt-xl">
           <CancellationTimeline
@@ -340,7 +353,7 @@ async function Shell({
     <div className="nf-cat-surface mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="calendar-check" />
-        <PageHeader title={c.title} subtitle={subtitle} fallback="/bookings" />
+        <PageHeader title={c.title} subtitle={subtitle} fallback="/bookings?side=stays&from=stays" />
       </div>
       {children}
     </div>

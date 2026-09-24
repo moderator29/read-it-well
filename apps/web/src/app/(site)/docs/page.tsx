@@ -8,7 +8,7 @@ import { CHAPTERS, CHAPTER_INDEX } from "./chapters";
 export const metadata: Metadata = {
   title: "Documentation",
   description:
-    "The full Vallo documentation, both sides: property search and its power and water filters, the stays journey from dated search to Trips, holding a restaurant table, the wallet, Around, agent mode, trust and safety, and your rights under the NDPA.",
+    "The full Vallo documentation, both sides: property search and its power and water filters, the stays journey from dated search to Plans, holding a restaurant table, the wallet, Around, the agent workspace, trust and safety, and your rights under the NDPA.",
 };
 
 /**
@@ -37,7 +37,7 @@ export default function DocsHomePage() {
           place to rent or buy, what the light and water rows on a listing actually
           tell you, and how an inspection comes before any money moves. On Vallo
           Stays: searching against dates and guests, how a booking holds your nights,
-          asking a restaurant for a table, and where it all lands in Trips. Then the
+          asking a restaurant for a table, and where it all lands in Plans. Then the
           wallet that pays for both, how Around works, and what happens when something
           goes wrong. The platform charges no fees, and this document says so wherever
           it matters.

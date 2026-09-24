@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getLocale } from "@/lib/locale";
+import { getDictionary } from "@vallo/i18n";
 import { getReviewView, type ReviewRead } from "@/lib/reviews/queries";
 import { ResultScreen } from "@/components/app/ResultSheet";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -31,6 +32,7 @@ export default async function ReviewPage({
 }) {
   const { bookingId } = await params;
   const locale = await getLocale();
+  const plans = getDictionary(locale).shape.plans;
   const read: ReviewRead = await getReviewView(bookingId, locale);
 
   if (read.state === "unconfigured") {
@@ -41,7 +43,7 @@ export default async function ReviewPage({
           mark="reviews"
           verdict="We cannot reach reviews right now"
           consequence="This is on our side, not yours. Nothing has been lost. Try again in a few minutes."
-          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
+          actions={[{ label: plans.seeStays, href: "/bookings?side=stays&from=stays", tone: "primary" }]}
         />
       </Shell>
     );
@@ -70,7 +72,7 @@ export default async function ReviewPage({
           state="missing"
           verdict="We could not find that stay"
           consequence="It may belong to another account. Your stays are all in one place."
-          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
+          actions={[{ label: plans.seeStays, href: "/bookings?side=stays&from=stays", tone: "primary" }]}
         />
       </Shell>
     );
@@ -84,7 +86,7 @@ export default async function ReviewPage({
           mark="alert-triangle"
           verdict="Reviews did not load"
           consequence="Your stay is unchanged and nothing was lost. Try again in a few minutes."
-          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
+          actions={[{ label: plans.seeStays, href: "/bookings?side=stays&from=stays", tone: "primary" }]}
         />
       </Shell>
     );
@@ -129,7 +131,7 @@ export default async function ReviewPage({
           verdict={copy.title}
           consequence={copy.description}
           actions={[
-            { label: "See your stays", href: "/bookings", tone: "primary" },
+            { label: plans.seeStays, href: "/bookings?side=stays&from=stays", tone: "primary" },
             {
               label: "View the stay",
               href: `/listing/${read.subject.listingId}`,
@@ -155,7 +157,7 @@ export default async function ReviewPage({
       <ReviewSubjectPanel subject={read.subject} />
 
       <Reveal delay={80} className="mt-block">
-        <ReviewForm subject={read.subject} />
+        <ReviewForm subject={read.subject} plansAction={{ label: plans.seeStays, href: "/bookings?side=stays&from=stays" }} />
       </Reveal>
     </Shell>
   );
@@ -173,7 +175,7 @@ function Shell({
     <div className="mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="calendar-check" />
-        <PageHeader title="Review your stay" subtitle={subtitle} fallback="/bookings" />
+        <PageHeader title="Review your stay" subtitle={subtitle} fallback="/bookings?side=stays&from=stays" />
       </div>
       {children}
     </div>

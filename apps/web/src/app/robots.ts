@@ -41,7 +41,14 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: "/",
+        /* `/areas/` is named although `/` already allows it, so the one
+           public inventory-shaped surface (V-82: aggregates, never a listing)
+           is visibly a decision rather than an accident. `/s/` (the share
+           door, V-07) is deliberately in NEITHER list: doors carry
+           `noindex` in their own metadata, and several link unfurlers honour
+           robots.txt, so disallowing the door would make every shared card
+           unfurl as nothing. */
+        allow: ["/", "/areas/"],
         disallow: [
           /* The consoles and the data routes. */
           "/admin/",

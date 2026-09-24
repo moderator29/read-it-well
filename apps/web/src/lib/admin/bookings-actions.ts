@@ -34,6 +34,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { readFrozenTerms } from "../after-gate/refunds";
 import { z } from "zod";
 import { formatMoney } from "@vallo/i18n";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
@@ -44,7 +45,7 @@ import { refundReference } from "../payments/references";
 import { createAdminClient } from "../supabase/admin";
 import {
   CANCELLATION_REASON_CODES,
-  refundForReason,
+  refundForReasonUnderTerms,
   type CancellationReason,
 } from "../trust/cancellation";
 import { writeAudit } from "./audit";
@@ -186,7 +187,11 @@ export async function cancelBookingAsAdmin(
   let paidMinor = 0;
   for (const payment of payments ?? []) paidMinor += payment.amount_minor;
 
-  const outcome = refundForReason(reason, paidMinor, booking.check_in);
+  // V-20. A guest's own cancellation is priced by the terms frozen onto the
+  // booking at payment; with none frozen (no payment, or paid before V-20),
+  // the platform schedule, exactly as before.
+  const frozen = await readFrozenTerms(access.supabase, booking.id);
+  const outcome = refundForReasonUnderTerms(reason, paidMinor, booking.check_in, frozen?.terms ?? null);
   const reference = refundReference();
 
   let data: unknown = null;
@@ -431,7 +436,13 @@ export async function previewCancellation(input: {
   let paidMinor = 0;
   for (const payment of payments ?? []) paidMinor += payment.amount_minor;
 
-  const outcome = refundForReason(parsed.data.reason, paidMinor, booking.check_in);
+  const frozen = await readFrozenTerms(access.supabase, booking.id);
+  const outcome = refundForReasonUnderTerms(
+    parsed.data.reason,
+    paidMinor,
+    booking.check_in,
+    frozen?.terms ?? null,
+  );
   return ok({
     paidMinor,
     refundMinor: outcome.refundMinor,
@@ -564,7 +575,7 @@ export async function decideReservationAsAdmin(input: {
         kind: "booking",
         title: notice.title,
         body: notice.body,
-        href: "/trips",
+        href: "/bookings?side=stays&from=stays",
       });
     }
   } catch {
@@ -573,7 +584,6 @@ export async function decideReservationAsAdmin(input: {
 
   revalidatePath("/admin/bookings");
   revalidatePath("/admin/bookings/reservations");
-  revalidatePath("/trips");
   revalidatePath("/bookings");
   revalidatePath("/agent/bookings");
 

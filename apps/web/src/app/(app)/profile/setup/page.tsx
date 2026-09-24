@@ -11,7 +11,7 @@ import { AddWorkspaceChooser } from "@/components/supply/AddWorkspaceChooser";
 const BACK = parentOf("/profile/setup");
 
 export const metadata: Metadata = {
-  title: "Add a listing account",
+  title: "Add a workspace",
   robots: { index: false, follow: false },
 };
 

@@ -11,7 +11,14 @@ import { SettingsGlyph, type SettingsGlyphName } from "@/components/app/account/
 import { ICON } from "@/components/app/Screen";
 import { ROW_GLYPH, RowButton, RowLink, RowSwitch, SettingsGroup } from "@/components/app/account/rows";
 import { LanguageRow } from "@/components/app/account/SettingsGroups";
+import { DataSaverRow } from "@/components/app/account/DataSaverRow";
 import { useNfSettings } from "@/components/app/account/settings-store";
+import { clearPacks } from "@/lib/offline/pack-store";
+import { clearShelf } from "@/lib/offline/shelf-store";
+import { clearOutbox } from "@/lib/offline/outbox";
+import { forgetWidget } from "@/lib/native/widget";
+import { revokeWidgetTokens } from "@/lib/native/widget-actions";
+import { clearAllInflight } from "@/lib/offline/inflight";
 import { signOut, updateSettings } from "@/lib/profile/actions";
 import type { ResolvedProfileSettings } from "@/lib/profile/schema";
 import { RemoteImage } from "@/components/ui/RemoteImage";
@@ -47,6 +54,14 @@ export type SettingsHubProps = {
   notifications: ResolvedProfileSettings["notifications"] | null;
   /** Real count of signed-in devices, or null when it could not be read. */
   deviceCount: number | null;
+  /**
+   * V-50: the Phone row, drawn only when the page decided phone confirmation
+   * is on for a signed-in person. Absent draws nothing (a row that leads to
+   * "nothing is needed" is not drawn).
+   */
+  phoneRow?: { label: string; sub: string } | null;
+  /** V-100: the renter passport row, for a signed-in person. Absent draws nothing. */
+  passportRow?: { label: string; sub: string } | null;
 };
 
 const ALL_ON: ResolvedProfileSettings["notifications"] = {
@@ -142,7 +157,16 @@ function Checked({ children }: { children: string }) {
   );
 }
 
-export function SettingsHub({ t, locale, signedIn, person, notifications, deviceCount }: SettingsHubProps) {
+export function SettingsHub({
+  t,
+  locale,
+  signedIn,
+  person,
+  notifications,
+  deviceCount,
+  phoneRow = null,
+  passportRow = null,
+}: SettingsHubProps) {
   const hub = t.settings.hub;
   /* The appearance group and its theme row went with light mode on 23
      September. `t.settings.appearance` still exists in the dictionary and is
@@ -194,6 +218,9 @@ export function SettingsHub({ t, locale, signedIn, person, notifications, device
     <div className="nf-hub space-y-block" data-testid="settings-hub">
       <ProfileRow t={t} person={person} />
 
+      {/* V-79: the data saver, at the top where people look for it. */}
+      <DataSaverRow copy={t.platform.lite} />
+
       <SettingsGroup
         note={
           saveError ? (
@@ -233,6 +260,24 @@ export function SettingsHub({ t, locale, signedIn, person, notifications, device
           }
           testId="hub-privacy"
         />
+        {phoneRow && (
+          <RowLink
+            href="/settings/phone"
+            glyph={<HubGlyph name="user" />}
+            label={phoneRow.label}
+            sub={phoneRow.sub}
+            testId="hub-phone"
+          />
+        )}
+        {passportRow && (
+          <RowLink
+            href="/settings/passport"
+            glyph={<HubGlyph name="user" />}
+            label={passportRow.label}
+            sub={passportRow.sub}
+            testId="hub-passport"
+          />
+        )}
         {/*
           THE APPEARANCE ROW IS GONE, and it was the theme. The founder removed
           light mode from the platform on 23 September 2026, so this hub has
@@ -290,13 +335,22 @@ export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean })
           onClick={() => {
             setError(null);
             startSignOut(async () => {
+              /* V-98: the widget stops reading this account before the session ends. */
+              await revokeWidgetTokens().catch(() => undefined);
               const result = await signOut();
               if (!result.ok) {
                 setError(result.error);
                 return;
               }
+              /* V-35, V-77: a shared phone keeps neither somebody else's gate code
+                 nor their shortlist. */
+              await clearPacks();
+              await clearShelf();
               /* SUP-16: a listing draft never outlives the session that wrote it. */
               clearListingDrafts();
+              await clearOutbox();
+              await forgetWidget();
+              clearAllInflight();
               router.replace("/");
               router.refresh();
             });

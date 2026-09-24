@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { resolveSession } from "@/lib/actions/session";
+import { FIRST_RUN_COOKIE, isFirstRunSeen } from "@/components/app/welcome/first-run-seen";
+import { isShellRequest, shellStartPath } from "@/lib/native/shell";
 
 /**
  * "Home", resolved by who is asking.
@@ -27,6 +30,18 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const session = await resolveSession();
+  const url = new URL(request.url);
+  /*
+   * THE STORE SHELL NEVER GETS THE LANDING PAGE (V-11). `?app=1`, or the
+   * shell's own user agent mark, resolves to `/home`, `/welcome` or
+   * `/sign-in`, and never to `/`. See `lib/native/shell.ts` for why this is
+   * decided here rather than by pointing `server.url` at a path.
+   */
+  if (isShellRequest({ userAgent: request.headers.get("user-agent"), app: url.searchParams.get("app") })) {
+    const seen = isFirstRunSeen((await cookies()).get(FIRST_RUN_COOKIE)?.value);
+    const start = shellStartPath({ signedIn: session.state === "signed-in", firstRunSeen: seen });
+    return NextResponse.redirect(new URL(start, request.url), { status: 307 });
+  }
   /* Unconfigured is landing too, and deliberately so. With no platform keys
      nothing inside can load, so sending somebody to `/home` would swap one
      dead end for another. */

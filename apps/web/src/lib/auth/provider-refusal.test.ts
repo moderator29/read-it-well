@@ -38,6 +38,11 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ from: vi.fn() }) }));
+/* V-19: the auth actions build their client through `createClientWithAgent`
+   so GoTrue records the browser; it is the same client, so it is the same seam. */
+vi.mock("@/lib/security/agent-client", async () => ({
+  createClientWithAgent: async () => (await import("@/lib/supabase/server")).createClient(),
+}));
 vi.mock("@/lib/site", () => ({ authOrigin: async () => "https://example.invalid" }));
 vi.mock("@/lib/notify/welcome", () => ({ welcomeOnce: vi.fn() }));
 vi.mock("@/lib/supabase/env", () => ({

@@ -256,6 +256,8 @@ export type PublicProfileState =
       occupation: Occupation | null;
       /** Local government, state, Nigeria. Same visibility as the occupation. */
       place: ProfilePlace | null;
+      /** V-64: for the owner, which of the two their public page shows. */
+      published: { occupation: boolean; homeTown: boolean } | null;
       /** Admin-granted badges only. Never anything a code path awarded. */
       standing: Standing[];
       /** Null for anybody `public.agent_trust` returns no row for. */
@@ -388,7 +390,7 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
 
        THE CLIENT IS NOT ALWAYS THE VIEWER'S. `EXECUTE` on `agent_trust` was
        revoked from `anon` on 22 September, because signed out it answered for
-       ANY user id: somebody's trust score, completed deal count, median reply
+       ANY user id: somebody's (since deleted) trust score, stays count, median reply
        time, review count and average rating, for a uuid nobody had to be able
        to see the profile of. The band itself is public and stays public, so a
        signed-out read is served from the server after this profile row has
@@ -412,6 +414,7 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
     moderatorOf,
     occupation: occupationAndPlace.occupation,
     place: occupationAndPlace.place,
+    published: occupationAndPlace.published,
     standing,
     trust,
     storyCount,

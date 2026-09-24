@@ -161,6 +161,9 @@ export function Logo({
         decoration to a reader and the picture to everyone else.
       */}
       <span className="nf-logo__text">
+        {/* V-78 and OPS-10: `sizes` names the DRAWN width, so the optimiser
+            serves a file the size of the lockup instead of 828 or 1920 wide
+            on every page. */}
         <Image
           src="/brand/vallo-wordmark.png"
           alt=""

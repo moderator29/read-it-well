@@ -1,7 +1,7 @@
 import { initial } from "@/lib/text/initial";
 import Image from "next/image";
 import Link from "next/link";
-import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatNumber, formatRating, type Dictionary, type Locale } from "@vallo/i18n";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
@@ -76,6 +76,7 @@ export function ProfileHeader({
   occupation,
   standing,
   place,
+  published = null,
   trust,
   joinedLabel,
   follow,
@@ -92,6 +93,8 @@ export function ProfileHeader({
   occupation: Occupation | null;
   standing: Standing[];
   place: ProfilePlace | null;
+  /** V-64: for the owner, which of occupation and home town the page publishes. */
+  published?: { occupation: boolean; homeTown: boolean } | null;
   /** Agents only. Null on everybody else, and the band is then absent. */
   trust: AgentTrust | null;
   /** Already formatted in the reader's language by the page. */
@@ -104,6 +107,7 @@ export function ProfileHeader({
   share?: React.ReactNode;
 }) {
   const copy = t.socialProfile;
+  const visible = t.trustVisible.profile;
   const name = profile.displayLabel || `@${profile.handle}`;
   const monogram = initial(profile.displayLabel || profile.handle);
   /*
@@ -343,17 +347,47 @@ export function ProfileHeader({
         </div>
       )}
 
+      {/* V-64. The owner sees their occupation and home town; nobody else
+          does unless the owner switched each one on. Say so, beside them, so
+          "my page shows this" is never a guess. */}
+      {isOwner && published && ((occupation && !published.occupation) || (place && !published.homeTown)) ? (
+        <p className="nf-caption mt-xs text-[var(--nf-content-muted)]" data-testid="profile-private-note">
+          {/* Per field: say only what is actually held back (review 9). */}
+          {occupation && !published.occupation && place && !published.homeTown
+            ? t.shape.profile.privateNote
+            : occupation && !published.occupation
+              ? t.shape.profile.privateNoteOccupation
+              : t.shape.profile.privateNoteHomeTown}{" "}
+          <Link href="/settings/privacy" className="nf-link-quiet text-[var(--nf-content-link)]">
+            {t.shape.profile.privateNoteLink}
+          </Link>
+        </p>
+      ) : null}
+
       {/* --------------------------------------------- agents only, ever */}
       {trust ? (
         <dl className="nf-social-trust nf-panel nf-panel--card">
-          <div className="nf-social-trust__cell">
-            <dt>{copy.trustScore}</dt>
-            <dd className="nf-numeric">{trust.score}</dd>
-          </div>
-          <div className="nf-social-trust__cell">
-            <dt>{copy.completedDeals}</dt>
-            <dd className="nf-numeric">{formatNumber(trust.completedDeals, locale)}</dd>
-          </div>
+          {/* V-21: NO SCORE. The "Trust score" cell was a number out of 100
+              nobody could explain, and it is gone with its column. What is
+              left are plain facts, each printed only when there is one: the
+              reviews, the stays hosted (never a zero, which told every rental
+              agent their lets did not count), and the reply time. */}
+          {trust.reviewCount > 0 && trust.averageRating !== null ? (
+            <div className="nf-social-trust__cell">
+              <dt>{visible.reviews}</dt>
+              <dd className="nf-numeric">
+                {visible.reviewsValue
+                  .replace("{rating}", formatRating(trust.averageRating, locale))
+                  .replace("{count}", formatNumber(trust.reviewCount, locale))}
+              </dd>
+            </div>
+          ) : null}
+          {trust.completedDeals > 0 ? (
+            <div className="nf-social-trust__cell">
+              <dt>{visible.staysHosted}</dt>
+              <dd className="nf-numeric">{formatNumber(trust.completedDeals, locale)}</dd>
+            </div>
+          ) : null}
           <div className="nf-social-trust__cell">
             <dt>{copy.responseTime}</dt>
             <dd className="nf-numeric">{trust.responseTime}</dd>

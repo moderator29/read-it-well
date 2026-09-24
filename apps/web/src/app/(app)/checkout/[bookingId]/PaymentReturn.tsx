@@ -65,6 +65,7 @@ export function PaymentReturn({
   locale,
   /** Where c.tryAgain goes. The checkout screen this sits on. */
   retryHref,
+  plansAction,
 }: {
   reference: string;
   amountMinor?: number;
@@ -72,6 +73,8 @@ export function PaymentReturn({
   subject?: string;
   locale?: Locale;
   retryHref: string;
+  /** Where "done" sends somebody, in the dictionary's words (V-76 review). */
+  plansAction: { label: string; href: string };
 }) {
   const c = getDictionary(locale ?? DEFAULT_LOCALE).checkout;
   const [phase, setPhase] = useState<Phase>({ kind: "checking" });
@@ -166,7 +169,7 @@ export function PaymentReturn({
             : c.alreadyRecorded
         }
         actions={[
-          { label: c.seeStays, href: "/bookings", tone: "primary" },
+          { label: plansAction.label, href: plansAction.href, tone: "primary" },
           { label: "Close", onClick: () => setOpen(false), tone: "quiet" },
         ]}
       />
@@ -184,7 +187,7 @@ export function PaymentReturn({
         locale={locale}
         consequence={c.returnStalled}
         actions={[
-          { label: c.seeStays, href: "/bookings", tone: "primary" },
+          { label: plansAction.label, href: plansAction.href, tone: "primary" },
           { label: c.getHelp, href: "/help", tone: "quiet" },
         ]}
       />

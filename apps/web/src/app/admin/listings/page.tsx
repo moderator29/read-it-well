@@ -14,6 +14,9 @@ import { QueueFilters, queueHref, queueNarrowed, readQueueQuery } from "../_comp
 import { LiveRefresh } from "../_review/LiveRefresh";
 import { ListingsQueue } from "./ListingsQueue";
 import { MandatesPanel } from "./MandatesPanel";
+import { MandateConsent } from "./MandateConsent";
+import { landlordLineIsOpen, readClosedReasons, readMandateConsents } from "@/lib/landlord/queries";
+import { consentLine } from "@/lib/landlord/consent";
 import { toQueueRow } from "./rows";
 import { LISTING_TABS, isDecidedStatus, listingStatusWord, reviewHref } from "./tabs";
 import "../_review/review.css";
@@ -86,6 +89,17 @@ export default async function AdminListingsPage({
     getListingReviewTimes(),
     getMandateQueue(),
   ]);
+  /* V-31: the principal's consent on every mandate, read beside the queue and
+     failing soft. A failed read draws the control with "nothing is sent
+     without it", which is the true consequence of not knowing. */
+  const mandateRows = mandates.state === "ok" ? [...mandates.data.pending, ...mandates.data.decided] : [];
+  const [consents, lineOpen] = await Promise.all([
+    readMandateConsents(mandateRows.map((row) => row.id)),
+    landlordLineIsOpen(),
+  ]);
+  /* V-48: a listing closed with a reason is SUSPENDED underneath, and it is
+     not a suspension. The count and the Suspended tab's query leave it out
+     themselves, so nothing is subtracted or filtered here. */
   const total = (key: string) =>
     counts.state === "ok"
       ? (counts.data.real[key as keyof typeof counts.data.real] ?? 0) +
@@ -136,6 +150,7 @@ export default async function AdminListingsPage({
 
   const { waiting, decided, full } = read.data;
   const decidedTab = Boolean(status && isDecidedStatus(status));
+  const closedReasons = await readClosedReasons([...waiting, ...decided].map((listing) => listing.id));
   const main = decidedTab ? decided : waiting;
   const shownDecided = !status && offset === 0 ? decided : [];
   const extras = await getQueueRowExtras([...main, ...shownDecided].map((listing) => listing.id));
@@ -147,6 +162,8 @@ export default async function AdminListingsPage({
       listerRole: extra?.role ? ROLE_WORD[extra.role] : null,
       isExample: extra ? extra.isDemo : null,
       badge: extra?.badge ?? null,
+      /* V-48: a closed listing reads as closed, never as suspended. */
+      status: listing.id in closedReasons ? "CLOSED" : row.status,
     };
   };
   const narrowed = queueNarrowed(query) || offset > 0;
@@ -171,7 +188,7 @@ export default async function AdminListingsPage({
         rows={main.map(rowOf)}
         decided={shownDecided.length > 0 ? shownDecided.map(rowOf) : undefined}
         decidedTitle={common.recentlyDecided}
-        statusLabel={(status) => listingStatusWord(status, ui.statusLabel)}
+        statusLabel={(status) => (status === "CLOSED" ? t.landlord.close.groupTitle : listingStatusWord(status, ui.statusLabel))}
         counts={counts.state === "ok" ? counts.data.real : null}
         examples={
           counts.state === "ok"
@@ -184,6 +201,24 @@ export default async function AdminListingsPage({
             queue={mandates.state === "ok" ? mandates.data : null}
             day={ui.day}
             today={lagosToday()}
+            consentFor={(row) => {
+              const consent = consents?.get(row.id) ?? null;
+              return (
+                <MandateConsent
+                  mandateId={row.id}
+                  hasNumber={consent ? consent.hasNumber : Boolean(row.principalPhone)}
+                  initial={consentLine(consent, t.landlord.admin, (iso) => ui.day(iso))}
+                  readFailed={consents === null}
+                  lineOpen={lineOpen}
+                  copy={t.landlord.admin}
+                  stoppedLine={
+                    consent?.numberStoppedAt
+                      ? t.landlord.admin.stoppedBefore.replace("{date}", ui.day(consent.numberStoppedAt))
+                      : null
+                  }
+                />
+              );
+            }}
           />
         }
         page={decidedTab ? 1 : page}

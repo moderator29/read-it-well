@@ -1,5 +1,8 @@
 import "server-only";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { readCountedReviews } from "../reviews/weight";
+
 /**
  * What guests said about the stays in one place.
  *
@@ -67,15 +70,25 @@ export async function getPlaceReviews(place: {
     const rows = listings as { id: string; title: string }[];
     const titleById = new Map(rows.map((row) => [row.id, row.title]));
 
-    const { data, error } = await supabase
-      .from("reviews")
-      .select("id, rating, body, created_at, listing_id, author_id")
-      .in(
-        "listing_id",
-        rows.map((row) => row.id),
-      )
-      .order("created_at", { ascending: false })
-      .limit(REVIEW_LIMIT);
+    /* V-58: a review from the lister's own shadow is not in the area's list. */
+    const { data, error } = await readCountedReviews<{
+      id: string;
+      rating: number;
+      body: string | null;
+      created_at: string;
+      listing_id: string;
+      author_id: string | null;
+    }>((table) =>
+      (supabase as unknown as SupabaseClient)
+        .from(table)
+        .select("id, rating, body, created_at, listing_id, author_id")
+        .in(
+          "listing_id",
+          rows.map((row) => row.id),
+        )
+        .order("created_at", { ascending: false })
+        .limit(REVIEW_LIMIT),
+    );
     if (error || !data || data.length === 0) return [];
 
     /* One keyed lookup for the names, not one per review. A guest who never

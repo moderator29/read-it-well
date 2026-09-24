@@ -1,4 +1,5 @@
 import "server-only";
+import { COMPOUND_COLUMNS, readCompound, type Compound, type CompoundRow } from "@/lib/listings/compound";
 
 import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -118,6 +119,7 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
       heldStories,
       heldComments,
       heldBios,
+      heldEvents,
     ] = await Promise.all([
       admin.from("message_flags").select("id", { count: "exact", head: true }).eq("status", "open"),
       admin.from("risk_alerts").select("id", { count: "exact", head: true }).eq("status", "open"),
@@ -147,6 +149,8 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
         .from("social_profiles")
         .select("user_id", { count: "exact", head: true })
         .eq("bio_status", "HELD"),
+      /* V-88 review: the Held lane lists held events too, so it counts them. */
+      admin.from("events").select("id", { count: "exact", head: true }).eq("status", "HELD"),
     ]);
 
     return {
@@ -162,7 +166,8 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
           (heldPosts.count ?? 0) +
           (heldStories.count ?? 0) +
           (heldComments.count ?? 0) +
-          (heldBios.count ?? 0),
+          (heldBios.count ?? 0) +
+          (heldEvents.count ?? 0),
       },
     };
   } catch {
@@ -833,6 +838,8 @@ export type ListingReviewView = {
   reviewNotes: string | null;
   createdAt: string;
   checks: QualityCheck[];
+  /** V-28: the compound's five answers, read on their own. Null: none, or unreadable. */
+  compound?: Compound | null;
 };
 
 const LISTING_COLUMNS =
@@ -1205,29 +1212,65 @@ export async function getListingSubmissions(
         /* One row more than the page, so `takePage` can tell "there is another
            page" from "this is the last one" with no second count query. */
         .range(page.from, page.to),
-      narrow(
-        admin.from("listings").select(LISTING_COLUMNS).in("status", inBucket(decidedStatuses)),
-      )
-        .order("reviewed_at", { ascending: false, nullsFirst: false })
-        .limit(10),
+      (() => {
+        const decidedQuery = narrow(
+          admin.from("listings").select(LISTING_COLUMNS).in("status", inBucket(decidedStatuses)),
+        );
+        /* V-48: a closed listing is SUSPENDED underneath and is neither a
+           suspension nor a reviewer's decision, so the decided list (the
+           Suspended tab and the All tab's "recently decided" alike) leaves it
+           out in the query itself, before the limit, never after it. */
+        return decidedQuery
+          .is("closed_at", null)
+          .order("reviewed_at", { ascending: false, nullsFirst: false })
+          .limit(10);
+      })(),
     ]);
     if (waiting.error || decided.error) return UNAVAILABLE;
 
     const waitingPage = takePage((waiting.data ?? []) as ListingRow[]);
     const rows = [...waitingPage.rows, ...((decided.data ?? []) as ListingRow[])];
-    const signedVideos = await signListingVideos(admin, rows);
+    const [signedVideos, compounds] = await Promise.all([
+      signListingVideos(admin, rows),
+      readCompounds(admin, rows.map((row) => row.id)),
+    ]);
+    /* V-28 review: the reviewer sees the compound answers the renter will. */
+    const view = (row: ListingRow) => ({
+      ...toListingView(admin, row, signedVideos),
+      compound: compounds.get(row.id) ?? null,
+    });
 
     return {
       state: "ok",
       data: {
-        waiting: waitingPage.rows.map((row) => toListingView(admin, row, signedVideos)),
-        decided: (decided.data ?? []).map((row) => toListingView(admin, row, signedVideos)),
+        waiting: waitingPage.rows.map(view),
+        decided: ((decided.data ?? []) as ListingRow[]).map(view),
         full: waitingPage.full,
       },
     };
   } catch {
     return UNAVAILABLE;
   }
+}
+
+/**
+ * The compound answers for a page of listings (V-28), by their own read so a
+ * database without migration `20260924150200` still loads the queue.
+ */
+async function readCompounds(admin: SupabaseClient<Database>, ids: string[]): Promise<Map<string, Compound>> {
+  const out = new Map<string, Compound>();
+  if (ids.length === 0) return out;
+  try {
+    const { data, error } = await admin.from("listings").select(`id, ${COMPOUND_COLUMNS}`).in("id", ids);
+    if (error || !data) return out;
+    for (const row of data as unknown as (CompoundRow & { id: string })[]) {
+      const compound = readCompound(row);
+      if (compound) out.set(row.id, compound);
+    }
+  } catch {
+    /* No answers shown is the honest result of a read that failed. */
+  }
+  return out;
 }
 
 /** ---------------------------------------------------------- support tickets */

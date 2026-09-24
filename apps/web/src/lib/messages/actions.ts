@@ -18,7 +18,9 @@
  * Sending inside an existing thread is never throttled.
  */
 
+import { oncePerTap, tapKey } from "../offline/replay-guard";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import {
   NOT_CONFIGURED_MESSAGE,
@@ -29,6 +31,8 @@ import { isFeatureEnabled } from "../flags";
 import { getListingRepository } from "../listings/repository";
 import { reservationHostUserId, reservationSpine } from "../reservations/host";
 import { consume, subjectForUser } from "../security/rate-limit";
+import { checkAccountAfterSend } from "./account-check-run";
+import { isAccountMoment } from "./account-moment";
 import { createAdminClient } from "../supabase/admin";
 import {
   BLOCKED_MESSAGE,
@@ -46,6 +50,7 @@ import {
   startReservationThreadSchema,
 } from "./schema";
 import { dbLimitRefusal } from "../security/db-limit";
+import { attributeConversation } from "../share/attribution";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -151,6 +156,10 @@ export async function startConversationWithMessage(input: {
   if (!body) return fail("Type a message before sending.", { body: "Type a message before sending." });
   const started = await startConversation({ listingId: input.listingId });
   if (!started.ok) return started;
+  /* V-71: credit the lister whose link this device first came through, now
+     that the thread exists. Best effort: no credit is the only cost. */
+  const session = await resolveSession();
+  if (session.state === "signed-in") await attributeConversation(session.supabase, started.data.conversationId);
   const sent = await sendMessage({ conversationId: started.data.conversationId, body });
   if (!sent.ok) return fail(sent.error, sent.fieldErrors);
   return ok({ conversationId: started.data.conversationId });
@@ -446,6 +455,9 @@ export type SentMessage = {
   createdAt: string;
 };
 
+/** What a replayed send answers (V-40): the id, thread and time, never the words. */
+export type ReplayedMessage = Pick<SentMessage, "id" | "conversationId" | "createdAt">;
+
 /**
  * Send a message. One insert under the sender's RLS client; the database
  * triggers bump the conversation, notify the other participant and run the
@@ -456,10 +468,26 @@ export type SentMessage = {
 export async function sendMessage(input: {
   conversationId: string;
   body: string;
-}): Promise<ActionResult<SentMessage>> {
+  /** V-40: the UUID minted when this was tapped; a replay answers with the first send. */
+  tapKey?: string;
+}): Promise<ActionResult<SentMessage | ReplayedMessage>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+  /* Kept for replay: the id, the thread and the time, never the words. */
+  return oncePerTap(
+    "outbox.message",
+    session.user.id,
+    tapKey(input.tapKey),
+    () => sendMessageWork(session, { conversationId: input.conversationId, body: input.body }),
+    (sent): ReplayedMessage => ({ id: sent.id, conversationId: sent.conversationId, createdAt: sent.createdAt }),
+  );
+}
+
+async function sendMessageWork(
+  session: Extract<Awaited<ReturnType<typeof resolveSession>>, { state: "signed-in" }>,
+  input: { conversationId: string; body: string },
+): Promise<ActionResult<SentMessage>> {
 
   if (!(await isFeatureEnabled("messaging"))) return fail(PAUSED_MESSAGE);
 
@@ -488,6 +516,20 @@ export async function sendMessage(input: {
     const limited = dbLimitRefusal(error);
     if (limited) return fail(limited);
     return fail(SEND_FAILED_MESSAGE);
+  }
+
+  /*
+   * V-04, THE ACCOUNT-NUMBER MOMENT. When the message carries a ten-digit
+   * account number, the receiver is told whether it belongs to the lister
+   * Vallo verified. The check calls the payment processor, so it runs AFTER
+   * the response through `after()`: the message is already in, and nothing
+   * about the check can delay or refuse it. It stores a boolean and the last
+   * four digits, never the number or the resolved name, and the sender never
+   * sees the answer. See `account-check.ts`.
+   */
+  if (isAccountMoment(row.body)) {
+    const sent = { messageId: row.id, conversationId: row.conversation_id, senderId: session.user.id, body: row.body };
+    after(() => checkAccountAfterSend(sent));
   }
 
   return ok({

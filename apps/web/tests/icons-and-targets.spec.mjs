@@ -220,7 +220,7 @@ const ROUTES = [
   "/settings",
   "/wallet",
   "/bookings",
-  "/rent",
+  "/search?market=rent",
   "/agents",
   "/agents/apply",
   "/help",

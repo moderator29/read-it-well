@@ -1,5 +1,13 @@
 import type { Metadata } from "next";
+import { after } from "next/server";
+import { demandRecorder } from "@/lib/demand/record";
+import { demandCell } from "@/lib/demand/cell";
+import { readListingFactsFor } from "@/lib/landlord/queries";
+import { readPhotographedCaptions } from "@/lib/listings/photographed";
+import { collapseByProperty, ownerConfirmedLine, requestNow, sinkNotReconfirmed } from "@/lib/landlord/facts";
+import { LandlordCardLine } from "@/components/app/listing/LandlordCardLine";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { formatMoney, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
 import { RealMap } from "@/components/app/search/RealMap";
 import { ShelfBar } from "@/components/app/search/ShelfBar";
@@ -7,6 +15,11 @@ import { ShelfCount } from "@/components/app/search/ShelfCount";
 import {
   clearedShelf,
   parseShelfQuery,
+  applyWords,
+  wordsHref,
+  wordsShown,
+  SAID_PARAM,
+  staySideHref,
   shelfActiveCount,
   shelfFilter,
   shelfPoolFilter,
@@ -27,13 +40,24 @@ import { canonicalSearch } from "@/lib/saved/searches";
 import { findSavedSearch } from "@/lib/saved/searches-queries";
 import { SaveSearchControl } from "@/components/app/saved-searches/SaveSearchControl";
 import { KIND_NOUN, type SortKey } from "@/lib/listings/search-params";
+import { rankRecommended } from "@/lib/listings/ranking";
+import { feeSortKey } from "@/lib/listings/fee-share";
 import { readListingReference } from "@/lib/listings/reference";
+import { readRecordCode } from "@/lib/trust/record";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { ListingCard } from "@/components/app/ListingCard";
 import { BackButton } from "@/components/site/BackButton";
 import { Reveal } from "@/components/site/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/app/Screen";
+import { LastVisitProvider } from "@/components/app/search/LastVisit";
+import { RecordViews } from "@/components/app/search/RecordViews";
+import { ReadAs } from "@/components/app/search/ReadAs";
+import { floodClearFor } from "@/lib/around/flood-facts";
+import { readAnchors, readCommutes } from "@/lib/listings/commute-queries";
+import { commuteLine, originKey, withinCommute, type CommuteBand } from "@/lib/listings/commute";
+import { parseWords } from "@/lib/listings/query-parse";
+import { looksCheckable } from "@/lib/doors/agent-check";
 
 export const metadata: Metadata = {
   title: "Search",
@@ -86,10 +110,15 @@ function moveInFigure(listing: Listing): number | null {
 function sortListings(listings: Listing[], sort: SortKey): Listing[] {
   const out = [...listings];
   switch (sort) {
-    case "top-rated":
-      out.sort(
-        (a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount || byVerification(a, b),
-      );
+    /* V-22. Newest first by the date the listing went live; a row with no
+       date sorts last, because an unknown age is not a young one. */
+    case "newest":
+      out.sort((a, b) => {
+        const left = a.publishedAt ? Date.parse(a.publishedAt) : Number.NEGATIVE_INFINITY;
+        const right = b.publishedAt ? Date.parse(b.publishedAt) : Number.NEGATIVE_INFINITY;
+        if (left === right) return byVerification(a, b);
+        return right > left ? 1 : -1;
+      });
       break;
     /*
      * THE NUMBER A NIGERIAN TENANT ACTUALLY SHOPS ON.
@@ -111,6 +140,18 @@ function sortListings(listings: Listing[], sort: SortKey): Listing[] {
         return left - right || byVerification(a, b);
       });
       break;
+    /* V-12: the fees paid to the agent, as one share of a year's rent.
+       A listing that stated no fee is unstated, not cheap: it sorts last. */
+    case "fees-asc":
+      out.sort((a, b) => {
+        const left = feeSortKey(a);
+        const right = feeSortKey(b);
+        if (left === null && right === null) return byVerification(a, b);
+        if (left === null) return 1;
+        if (right === null) return -1;
+        return left - right || byVerification(a, b);
+      });
+      break;
     case "price-asc":
       out.sort((a, b) => a.priceMinor - b.priceMinor || byVerification(a, b));
       break;
@@ -118,9 +159,12 @@ function sortListings(listings: Listing[], sort: SortKey): Listing[] {
       out.sort((a, b) => b.priceMinor - a.priceMinor || byVerification(a, b));
       break;
     default:
-      // Recommended keeps the repository's order and lifts the checked rows.
-      out.sort(byVerification);
-      break;
+      /* V-06: Recommended is the published formula in `ranking.ts` (real
+         before example, then points for facts about the listing, then
+         newest), the same constants /standards prints in words. It still
+         lifts a checked lister, as one point among four, never above
+         everything. Nobody can pay to be higher. */
+      return rankRecommended(out);
   }
   return out;
 }
@@ -141,44 +185,107 @@ export default async function SearchPage({
 }) {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
+  const briefsCopy = t.frontDoor.briefs;
   const raw = await searchParams;
   const query: ShelfQuery = parseShelfQuery(raw);
+  /* A stay typed on the Property side is sent to the Stays side, words kept (V-67). */
+  const staySide = staySideHref(query.kind, raw);
+  if (staySide) redirect(staySide);
+  /* V-66: WhatsApp shorthand becomes filters, once. What is left over reads
+     nothing, so this never redirects twice. */
+  if (query.q) {
+    const words = parseWords(query.q);
+    if (words.recognised) {
+      const href = wordsHref(applyWords(query, words), query.q);
+      /* The open filter sheet survives the redirect (batch 4 review). */
+      redirect(raw.filters === "open" ? `${href}&filters=open` : href);
+    }
+  }
+  const saidRaw = raw[SAID_PARAM];
+  const saidText = typeof saidRaw === "string" && saidRaw.trim() ? saidRaw.trim().slice(0, 120) : null;
+  /* Shown only while it still describes the chips on screen. */
+  const said = saidText && wordsShown(query, parseWords(saidText)) ? saidText : null;
 
   const repo = getListingRepository();
 
   /*
    * PAGES, FOR THE TWO ORDERS THE DATABASE KEEPS (OPS-11).
    *
-   * "Recommended" and "cheapest to move into" are orders the database reads
-   * in, so the shelf is paged by keyset: `after` is where the previous page
-   * ended, the next page starts at the very next row, and a page is short only
-   * at the end of the results. The other sorts order on a figure computed in
-   * memory (the headline price, the rating), so they still read one bounded
-   * batch and sort it, as before.
+   * "Newest" and "cheapest to move into" are orders the database reads in, so
+   * the shelf is paged by keyset: `after` is where the previous page ended,
+   * the next page starts at the very next row, and a page is short only at
+   * the end of the results. The other sorts order on a figure computed in
+   * memory, so they still read one bounded batch and sort it. That includes
+   * "Recommended" (V-06): it is the published formula in `ranking.ts`,
+   * computed over the newest RANK_CEILING rows as /standards says, and ranking
+   * one page at a time would be a different order from the one published.
    */
-  const paged = query.sort === "recommended" || query.sort === "move-in-asc";
+  const paged = query.sort === "newest" || query.sort === "move-in-asc";
   const afterRaw = Array.isArray(raw.after) ? raw.after[0] : raw.after;
-  const after = paged && typeof afterRaw === "string" && afterRaw.length > 0 ? afterRaw : null;
+  /* Not `after`: that name is next/server's, which records demand below. */
+  const afterCursor = paged && typeof afterRaw === "string" && afterRaw.length > 0 ? afterRaw : null;
   const order = query.sort === "move-in-asc" ? "move-in" : "default";
 
   /* Three reads: the results, the pool the sheet counts against (the whole
      catalogue for the current text), and the whole catalogue for the map. */
-  const [page, pool, whole] = await Promise.all([
+  /* V-41: "No flooding reported" is judged on facts this page reads, not in
+     the repository's SQL, so the repository is asked without it and the
+     results are narrowed below, once the flood facts are in. Like every
+     in-memory filter here it narrows what the read returned: on a paged order
+     that is this page, so a page can show fewer than it read while the next
+     page still starts where this one's read ended. */
+  const { noFlood: wantsNoFlood, ...shelfAsked } = shelfFilter(query);
+  const [page, rawPool, whole] = await Promise.all([
     /* The move-in ordering is pushed into the read, because the read has a row
        ceiling: sorting afterwards alone would order the newest rows rather
        than the cheapest ones to move into. See `ListingSearchOptions.order`. */
     paged
-      ? repo.searchPage(shelfFilter(query), { order, after })
-      : repo.search(shelfFilter(query)).then((listings) => ({ listings, next: null })),
+      ? repo.searchPage(shelfAsked, { order, after: afterCursor })
+      : repo
+          .search(shelfAsked, query.sort === "newest" ? { order: "newest" } : {})
+          .then((listings) => ({ listings, next: null })),
     repo.search(shelfPoolFilter(query)),
-    repo.search({}),
+    /* The Property side's catalogue, never its stays: a nightly rate must
+       not become a city's "from" price on this map (V-67 review). */
+    repo.search({ propertySide: true }),
   ]);
   const rawResults = page.listings;
-  const shelfHref = toShelfHref(query);
-  const nextHref = page.next
-    ? `${shelfHref}${shelfHref.includes("?") ? "&" : "?"}after=${encodeURIComponent(page.next)}`
-    : null;
-  const sorted = sortListings(rawResults, query.sort);
+  const floodClear = await floodClearFor([...rawResults, ...rawPool]);
+  /* Fail closed (review): with no flood facts (flag off, signed out, a read
+     that failed) "No flooding reported" is not a filter at all: no narrowing,
+     no switch, no count. */
+  if (!floodClear && query.noFlood) delete query.noFlood;
+  const noFloodApplies = Boolean(wantsNoFlood && floodClear);
+  const judged = (l: Listing): Listing =>
+    floodClear && floodClear.has(l.id) ? { ...l, floodClear: floodClear.get(l.id)! } : l;
+  const pool = rawPool.map(judged);
+  const floodNarrowed = rawResults
+    .map(judged)
+    .filter((l) => !noFloodApplies || l.floodClear === true);
+  const sorted = sortListings(floodNarrowed, query.sort);
+
+  /*
+   * V-10: THIS SEARCH AS A DEMAND CELL. A neighbourhood from the closed list
+   * (the typed words are read and dropped), the market, a bedroom minimum, a
+   * budget band and whether it found fewer than three REAL homes. Example
+   * listings are not supply, so they are not counted as results here either.
+   *
+   * Only on the first page (OPS-11): a later page is the same search read
+   * further, not a second search, and its page alone says nothing about how
+   * many homes the search found.
+   */
+  if (!afterCursor) {
+    const demand = demandCell({
+      q: query.q,
+      intent: query.intent,
+      bedrooms: query.bedrooms,
+      maxMinor: query.maxMinor,
+      results: rawResults.filter((listing) => !listing.isDemo).length,
+    });
+    /* Recorded on the server after the response, never by the client. */
+    const recordDemand = await demandRecorder(demand);
+    if (recordDemand) after(recordDemand);
+  }
 
   /*
    * WHICH OF THESE ARE ALREADY ON THE SHORTLIST.
@@ -233,6 +340,12 @@ export default async function SearchPage({
    * GOVERNING-12 screen four draws the found listing under a line saying how
    * it was found, and a redirect has nowhere to put that line.
    */
+  /* V-34: a Record code (`VR-`) is a person, not a listing, and has its own
+     page. Only with the prefix, so a six-letter place name is never taken
+     for one. */
+  const recordCode = readRecordCode(query.q ?? "");
+  if (recordCode) redirect(`/record/${recordCode}`);
+
   const codeRead = readListingReference(query.q ?? "");
   const codeHit = codeRead.state === "code" ? await repo.byReference(codeRead.value) : null;
 
@@ -240,8 +353,59 @@ export default async function SearchPage({
   const tuning = await readIntentTuning();
   const statedIntent = hasOwnRequest(query) ? [] : tuning.interests;
   const ordered = orderByStatedIntent(sorted, statedIntent);
+  /*
+   * V-31: WHAT THE OWNER SAID, beside each card, and "Not reconfirmed" sorted
+   * last. Read in one call beside the catalogue rather than inside it, so a
+   * failed read changes nothing: no line on any card and the order untouched.
+   * Only a listing whose owner let a question go 21 days unanswered moves,
+   * and it moves to the end of whatever order the page chose, not out of it.
+   */
+  const shelf = codeHit ? [codeHit] : ordered;
+  const landlordFacts = await readListingFactsFor(shelf.map((l) => l.id));
+  const notReconfirmed = new Set(
+    [...landlordFacts].filter(([, facts]) => facts.notReconfirmed).map(([id]) => id),
+  );
+  /* V-37: the copies of one property become one card that says how many
+     offers it carries. A code hit is the one listing the person asked for and
+     is never collapsed. */
+  const collapsed = codeHit ? { listings: shelf, offerCounts: new Map<string, number>() } : collapseByProperty(shelf, landlordFacts);
   /* The one listing the code named, or the ordinary shelf. */
-  const listings = codeHit ? [codeHit] : ordered;
+  const ranked = sinkNotReconfirmed(collapsed.listings, notReconfirmed);
+
+  /*
+   * V-43: WHERE YOU GO EVERY DAY. With an anchor chosen, each card carries the
+   * rush-hour band from its area to it (the route guide, or residents once
+   * five have reported), and "within" keeps only homes whose morning band
+   * ends inside it. Nothing is shown for an area with no band: the claims
+   * rule. The drawer count does not see commutes yet; the shelf does.
+   */
+  const anchors = await readAnchors();
+  const anchor = query.to ? (anchors.find((a) => a.slug === query.to) ?? null) : null;
+  /* An anchor that does not resolve (unknown, or the flag off) is not a
+     filter: it leaves the query, so no count or chip claims it (review). */
+  if (query.to && !anchor) {
+    delete query.to;
+    delete query.within;
+  }
+  /* The next page's address, built from the query as it finally stands (a
+     filter that failed closed above has left it). */
+  const shelfHref = toShelfHref(query);
+  const nextHref = page.next
+    ? `${shelfHref}${shelfHref.includes("?") ? "&" : "?"}after=${encodeURIComponent(page.next)}`
+    : null;
+  /* The results AND the drawer's pool, so the drawer can count "within". */
+  const commutes = anchor ? await readCommutes(anchor.id, [...ranked, ...pool]) : new Map<string, CommuteBand[]>();
+  const commuteOf = (l: Listing): CommuteBand[] => {
+    /* An example has no real journey to it (review). */
+    if (l.isDemo) return [];
+    const key = originKey(l.stateCode, l.area);
+    return key ? (commutes.get(key) ?? []) : [];
+  };
+  const within = query.within;
+  const listings = anchor && within !== undefined ? ranked.filter((l) => withinCommute(commuteOf(l), within)) : ranked;
+  /* V-70: "Photographed: kitchen, prepaid meter" under a card whose lister labelled its photos. */
+  const photographedCaptions = await readPhotographedCaptions(listings.map((l) => l.id), locale);
+  const landlordNow = requestNow();
   const intentApplied = !codeHit && ordered !== sorted;
   const intentKinds: ListingKind[] = intentApplied
     ? intentKindsPresent(ordered, statedIntent)
@@ -283,12 +447,19 @@ export default async function SearchPage({
       */}
       <ShelfBar
         query={query}
-        facts={pool.map(factsOf)}
+        facts={pool.map((l) => {
+          /* V-43: the morning band's upper end to the chosen anchor, for the
+             drawer's live count of "Under 45 minutes". */
+          const band = anchor ? commuteOf(l).find((b) => b.peak === "am") : undefined;
+          return band ? { ...factsOf(l), commuteAmHigh: band.highMin } : factsOf(l);
+        })}
         locale={locale}
         t={t}
         openFilters={raw.filters === "open"}
+        anchors={anchors}
         leading={<BackButton fallback="/" />}
       />
+      <ReadAs query={query} said={said} locale={locale} copy={t.shape.unit} />
 
       <h1 className="sr-only">
         {query.q ? `Results for ${query.q}` : query.kind ? `Explore ${noun.many}` : "Explore properties"}
@@ -301,7 +472,7 @@ export default async function SearchPage({
         locale={locale}
         t={t}
         more={!codeHit && Boolean(nextHref)}
-        later={!codeHit && Boolean(after)}
+        later={!codeHit && Boolean(afterCursor)}
       />
 
       {/* HOW A CODE ANSWERED. A hit always says so, because a single result
@@ -321,6 +492,19 @@ export default async function SearchPage({
       {codeRead.state === "code" && codeRead.explicit && !codeHit && (
         <p data-testid="reference-miss" className="nf-caption mt-inline text-[var(--nf-content-muted)]">
           {t.listingReference.noneCarry}
+        </p>
+      )}
+      {/* V-61: A NUMBER OR A VALLO AGENT CODE IN THE SEARCH BOX is somebody
+          holding an advert. One line sends them to the check, carrying what
+          they typed; the results underneath are untouched. */}
+      {looksCheckable(query.q) && (
+        <p data-testid="search-check-agent" className="nf-caption mt-inline">
+          <Link
+            href={`/check?q=${encodeURIComponent((query.q ?? "").slice(0, 40))}`}
+            className="inline-flex min-h-11 items-center text-[var(--nf-content-secondary)] underline underline-offset-2"
+          >
+            {t.trustDoors.check.inSearch.replace("{query}", (query.q ?? "").trim().slice(0, 40))}
+          </Link>
         </p>
       )}
       {codeRead.state === "impossible" && (
@@ -384,6 +568,20 @@ export default async function SearchPage({
       {query.view === "list" && (
         <div className="mt-md">
           {listings.length === 0 ? (
+            <>
+            {/* V-95: nothing matches, so the renter can say what they need and
+                let verified listers answer with a listing. */}
+            {(narrowed || Boolean(query.q)) && (
+              <p className="mb-md text-center nf-body-sm text-[var(--nf-content-secondary)]" data-testid="empty-post-brief">
+                {briefsCopy.zeroResults}{" "}
+                <Link
+                  href={`/saved/searches?brief=1${canonical.key ? `&${canonical.key}` : ""}#briefs`}
+                  className="nf-link-quiet text-[var(--nf-content-link)]"
+                >
+                  {briefsCopy.post}
+                </Link>
+              </p>
+            )}
             <EmptyState
               className="pb-4xl"
               icon="search-home"
@@ -428,10 +626,16 @@ export default async function SearchPage({
                 ) : undefined
               }
             />
+            </>
           ) : (
             /* Two across on a phone, four from `lg`: the decision a person is
                making here is a comparison, and you cannot compare things you
                can only see one at a time. */
+            /* The New mark reads the reader's previous visit on this device
+               (V-22); the provider records this one. */
+            <LastVisitProvider>
+            {/* V-73: the first twenty cards drawn were seen. */}
+            <RecordViews seen={listings.slice(0, 20).map((l) => l.id)} />
             <ul
               key={toShelfHref(query)}
               data-testid="results-grid"
@@ -447,21 +651,32 @@ export default async function SearchPage({
                     dense
                     saved={savedIds.has(l.id)}
                     intent={tuning.signedIn ? tuning.interests : undefined}
+                    messageAgent
+                    commute={anchor ? commuteLine(commuteOf(l), anchor.name, t.shape.commute) : null}
+                    photographed={photographedCaptions.get(l.id) ?? null}
+                  />
+                  <LandlordCardLine
+                    notReconfirmed={notReconfirmed.has(l.id)}
+                    confirmed={ownerConfirmedLine(t.landlord.listing, landlordFacts.get(l.id)?.ownerConfirmedAt, landlordNow)}
+                    copy={t.landlord.listing}
+                    offerCount={collapsed.offerCounts.get(l.id) ?? 1}
+                    offersCopy={t.landlord.offers.card}
                   />
                 </li>
               ))}
             </ul>
+            </LastVisitProvider>
           )}
         </div>
       )}
 
-      {query.view === "list" && !codeHit && (nextHref || after) && (
+      {query.view === "list" && !codeHit && (nextHref || afterCursor) && (
         <nav
           aria-label="More results"
           className="mt-block flex flex-wrap items-center justify-center gap-sm"
           data-testid="shelf-pages"
         >
-          {after && (
+          {afterCursor && (
             <ButtonLink href={shelfHref} variant="secondary" data-testid="shelf-first-page">
               Back to the first results
             </ButtonLink>

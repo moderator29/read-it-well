@@ -406,6 +406,7 @@ export const TENANCIES: RentChargeView[] = [
     paid: false,
     payable: true,
     href: "/rent/pay/00000000-0000-4000-8000-00000000f381",
+    fileHref: "/tenancy/00000000-0000-4000-8000-00000000f391",
   },
   {
     id: "00000000-0000-4000-8000-00000000f372",
@@ -424,6 +425,7 @@ export const TENANCIES: RentChargeView[] = [
     paid: true,
     payable: false,
     href: "/rent/pay/00000000-0000-4000-8000-00000000f382",
+    fileHref: "/tenancy/00000000-0000-4000-8000-00000000f392",
   },
 ];
 

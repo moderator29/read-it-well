@@ -16,6 +16,8 @@ import type { ActionResult } from "@/lib/actions/envelope";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { panelClass } from "@/components/ui/Panel";
+import { responseTimeFor } from "@/lib/trust/standards";
+import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * Report this.
@@ -63,6 +65,7 @@ export function ReportSheet({
   onOpen?: () => void;
 }) {
   const noun = REPORT_TARGET_NOUN[targetType];
+  const reportCopy = useClientDictionary().trustVisible.report;
   const uid = useId();
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState<ReportCategory | null>(null);
@@ -173,10 +176,11 @@ export function ReportSheet({
                     <p className="mt-sm text-[length:var(--nf-text-body-lg)] font-semibold text-[var(--nf-content-primary)]">
                       Thank you, we have it
                     </p>
+                    {/* V-63: the promise for THIS category, from the one table the
+                        standards page prints and the console counts down, not a
+                        single day's promise for every kind of report. */}
                     <p className="mx-auto mt-xs max-w-[42ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-                      Our team reads every report and acts on it within twenty four
-                      hours. You will not have to chase this, and the person you
-                      reported is never told who reported them.
+                      {reportCopy.filed.replace("{clock}", responseTimeFor(category).phrase)}
                     </p>
                     <button type="button" onClick={close} className="nf-btn nf-btn--glass mt-md">
                       Back to the {noun}
@@ -286,10 +290,14 @@ export function ReportSheet({
                       </button>
                     </div>
 
+                    {/* V-63: 112 as a number a frightened person can tap, not
+                        "the emergency services" to look up. */}
                     <p className="text-center text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-muted)]">
-                      The person you report is never told who reported them, and we act
-                      within twenty four hours. If you are in danger, contact the
-                      emergency services first.
+                      {reportCopy.footer}{" "}
+                      <a href="tel:112" className="font-semibold text-[var(--nf-content-primary)] underline underline-offset-2" data-testid="report-call-112">
+                        {reportCopy.call}
+                      </a>
+                      .
                     </p>
                   </form>
                 )}

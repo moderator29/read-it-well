@@ -91,6 +91,12 @@ const config: CapacitorConfig = {
    * lands in the system browser's cookie jar, not the app's), on the first
    * frame rather than drawing it and removing it on the client. Read by
    * `surfaceFromUserAgent` in `src/lib/auth/providers.ts`; keep the two equal.
+   *
+   * THE SAME TOKEN IS THE SHELL'S MARK FOR V-11: the landing page and
+   * `/home-or-landing` read it (`SHELL_UA_MARK` in `src/lib/native/shell.ts`)
+   * and send the shell to `/home`, `/welcome` or `/sign-in`, never `/`.
+   * `server.url` stays the bare origin; the full reading of why is in that
+   * file. One token, two readers, so the shell announces itself once.
    */
   appendUserAgent: "VALLO-NATIVE",
 

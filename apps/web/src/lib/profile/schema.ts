@@ -87,6 +87,10 @@ export type NotificationSettings = {
 
 export type PrivacySettings = {
   hideActivity: boolean;
+  /** V-64: publish the occupation on the member's page. Off by default. */
+  showOccupation: boolean;
+  /** V-64: publish the home town (local government and state). Off by default. */
+  showHomeTown: boolean;
 };
 
 export type ProfileSettings = {
@@ -131,7 +135,9 @@ export type ResolvedProfileSettings = Required<ProfileSettings>;
 
 export const SETTINGS_DEFAULTS: ResolvedProfileSettings = {
   notifications: { bookings: true, messages: true, wallet: true, marketing: false },
-  privacy: { hideActivity: false },
+  /* V-64: occupation and home town are private until the member turns each
+     one on. `public.profile_public_facts` reads these two keys. */
+  privacy: { hideActivity: false, showOccupation: false, showHomeTown: false },
   locale: "en",
   dataSaver: false,
   interestsAsked: false,
@@ -155,7 +161,9 @@ const storedSettingsSchema = z
       })
       .partial()
       .catch({}),
-    privacy: z.object({ hideActivity: z.boolean() }).partial().catch({}),
+    privacy: z
+      .object({ hideActivity: z.boolean(), showOccupation: z.boolean(), showHomeTown: z.boolean() })
+      .partial().catch({}),
     locale: z.enum(LOCALE_CODES).optional().catch(undefined),
     dataSaver: z.boolean().optional().catch(undefined),
     interestsAsked: z.boolean().optional().catch(undefined),
@@ -194,7 +202,9 @@ export const settingsPatchSchema = z
       })
       .partial()
       .optional(),
-    privacy: z.object({ hideActivity: z.boolean() }).partial().optional(),
+    privacy: z
+      .object({ hideActivity: z.boolean(), showOccupation: z.boolean(), showHomeTown: z.boolean() })
+      .partial().optional(),
     locale: z.enum(LOCALE_CODES).optional(),
     dataSaver: z.boolean().optional(),
     interestsAsked: z.boolean().optional(),

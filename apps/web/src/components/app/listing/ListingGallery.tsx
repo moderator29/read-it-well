@@ -42,6 +42,7 @@ export function ListingGallery({
   kind,
   photos,
   plates = [],
+  drawn = false,
   initialSaved = false,
   backFallback = "/home",
   mark,
@@ -63,6 +64,11 @@ export function ListingGallery({
    * in the hero, never counted as this place's photos, and labelled so.
    */
   plates?: string[];
+  /**
+   * Draw the kind rather than a scene photograph behind a missing
+   * photograph: a modest example (`lib/listings/example-imagery.ts`).
+   */
+  drawn?: boolean;
   /**
    * Which market this is, so the frame drawn behind a missing photograph is a
    * drawing of THIS kind of place rather than the same city skyline every
@@ -198,7 +204,7 @@ export function ListingGallery({
              */
             style={i === 0 ? { viewTransitionName: `listing-photo-${listingId}` } : undefined}
           >
-            <PhotoFrame hue={hue} index={i} kind={kind} />
+            <PhotoFrame hue={hue} index={i} kind={kind} drawn={drawn} />
             {photo && !broken[i] && (
               <Image
                 src={photo}

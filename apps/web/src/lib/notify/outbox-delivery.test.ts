@@ -337,6 +337,11 @@ const EVERY_PAYLOAD: Record<string, Payload> = {
     listing_id: "44444444-4444-4444-8444-444444444444",
     enquirer_id: "22222222-2222-4222-8222-222222222222",
   },
+  /* V-60: `public.scam_recall_send` writes the title and the category only. */
+  "safety.scam_recall": {
+    listing_title: "Two bedroom flat in Ikeja GRA",
+    category: "off_platform_payment",
+  },
 };
 
 /**

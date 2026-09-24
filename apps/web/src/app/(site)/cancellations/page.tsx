@@ -10,7 +10,7 @@ import { WALLET_MONEY_USES } from "@/lib/wallet/bank-payouts";
 export const metadata: Metadata = {
   title: "Cancellation policy",
   description:
-    "One cancellation schedule for every paid stay on Vallo: everything back until 72 hours before check-in, half back inside that window, nothing back once check-in day starts. A restaurant table is free to cancel and a tenancy is settled in its own agreement.",
+    "How cancelling works on Vallo: a listed stay follows the platform schedule, everything back until 72 hours before check-in, half back inside that window, nothing back once check-in day starts, fixed on the booking when it is paid. A hotel room shows its own rate's terms. A restaurant table is free to cancel and a tenancy is settled in its own agreement.",
 };
 
 /**
@@ -33,14 +33,14 @@ export default function CancellationPolicyPage() {
         plate="bedroom-02"
         icon="calendar-clock"
         chip="Cancellations"
-        title="One cancellation policy, on every stay"
+        title="Cancelling a stay, and what comes back"
         /* THE LEDE IS THE PROMISE, NOT THE EXCEPTIONS. A2.
            It ran to four sentences and drew NINE CENTRED LINES at 390px, which
            is a wall rather than an opening, and two of those sentences were
            exclusions the page already answers in full further down. The hero
            keeps the promise; the exclusions have their own sections, where
            somebody looking for one will actually find it. */
-        lede="Not one policy per agent. The same three steps apply to every stay booked and paid for on Vallo, so you never have to work out which rules you agreed to."
+        lede="A stay listed by an owner or agent follows the three steps below; a hotel room shows its own rate's terms before you choose it. Either way the terms are fixed on your booking when you pay, so they cannot change afterwards."
       />
     <div className="nf-shell pb-section">
       <div className="mx-auto max-w-3xl">
@@ -61,8 +61,7 @@ export default function CancellationPolicyPage() {
           <div className="nf-panel nf-panel--card block mt-group p-card">
             <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
               A reservation you have not paid for is a hold on the calendar and
-              nothing more. Cancel it from Bookings, or from Trips on the Stays
-              side, at any hour, for nothing, and the nights reopen for somebody
+              nothing more. Cancel it from Plans, at any hour, for nothing, and the nights reopen for somebody
               else immediately. A hold you walk away from releases itself, so you
               cannot accidentally block an agent&apos;s calendar by forgetting
               about it.

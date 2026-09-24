@@ -180,7 +180,7 @@ export default async function ContactPage({
                 Listing a property you own, working as an agent, running a firm,
                 or letting a place by the night? Start at{" "}
                 <Link href={SUPPLY_DOOR_HREF} className="font-semibold text-[var(--nf-content-link)] hover:underline">
-                  Add a listing account
+                  Add a workspace
                 </Link>
                 . Checking on an application you already sent is in your profile.
               </p>

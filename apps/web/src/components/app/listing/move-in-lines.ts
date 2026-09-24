@@ -2,6 +2,7 @@ import type { Dictionary } from "@vallo/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { RENT_PERIOD_LABEL, type RentPeriod } from "@/lib/listings/pricing";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
+import { payeeCaption, type MoneyMapCopy, type PayeeContext } from "@/lib/listings/money-map";
 
 /**
  * The cost lines a Nigerian tenant actually meets, and which of them the
@@ -62,7 +63,18 @@ export type MoveInFacts = Pick<
   | "serviceChargePeriod"
 >;
 
-export function moveInLines(listing: MoveInFacts, copy: Dictionary["moveIn"]): Part[] {
+/**
+ * `map` (V-46) replaces the old fixed captions with ones a record stands
+ * behind: "Paid to the landlord" appears only where staff dated the owner's
+ * ownership or the agent's mandate. Without it, no caption is drawn at all,
+ * which is the claims rule's answer to not knowing.
+ */
+export function moveInLines(
+  listing: MoveInFacts,
+  copy: Dictionary["moveIn"],
+  map?: { ctx: PayeeContext; copy: MoneyMapCopy },
+): Part[] {
+  const keeper = (key: string) => (map ? payeeCaption(key, map.ctx, map.copy) : undefined);
   const rentPeriod: RentPeriod =
     listing.pricePeriod === "month" || listing.pricePeriod === "quarter"
       ? listing.pricePeriod
@@ -75,21 +87,21 @@ export function moveInLines(listing: MoveInFacts, copy: Dictionary["moveIn"]): P
       key: "rent",
       label: copy.rent,
       basis: RENT_PERIOD_LABEL[rentPeriod].toLowerCase(),
-      keeper: copy.keptByLister,
+      keeper: keeper("rent"),
       icon: "keys-home",
       minor: listing.priceMinor > 0 ? listing.priceMinor : undefined,
     },
     {
       key: "agency",
       label: copy.agencyFee,
-      keeper: copy.keptByAgent,
+      keeper: keeper("agency"),
       icon: "person-card",
       minor: listing.agencyFeeMinor,
     },
     {
       key: "legal",
       label: copy.legalFee,
-      keeper: copy.keptByAgent,
+      keeper: keeper("legal"),
       /* NOT `contract-sign` and NOT `doc-review`, which read better and are
          both in the 23 transaction marks that ship a LIGHT TWIN. Beside five
          untwinned objects they drew as pale frosted marks on a white row while
@@ -102,7 +114,7 @@ export function moveInLines(listing: MoveInFacts, copy: Dictionary["moveIn"]): P
     {
       key: "agreement",
       label: copy.agreementFee,
-      keeper: copy.keptByAgent,
+      keeper: keeper("agreement"),
       icon: "doc-home",
       minor: listing.agreementFeeMinor,
     },
@@ -110,7 +122,7 @@ export function moveInLines(listing: MoveInFacts, copy: Dictionary["moveIn"]): P
       key: "caution",
       label: copy.cautionDeposit,
       basis: copy.cautionBasis,
-      keeper: copy.keptByLister,
+      keeper: keeper("caution"),
       icon: "shield-check",
       minor: listing.cautionDepositMinor,
     },
@@ -118,7 +130,7 @@ export function moveInLines(listing: MoveInFacts, copy: Dictionary["moveIn"]): P
       key: "service",
       label: copy.serviceCharge,
       basis: servicePeriod ? RENT_PERIOD_LABEL[servicePeriod].toLowerCase() : undefined,
-      keeper: copy.keptByEstate,
+      keeper: keeper("service"),
       icon: "manage-ring",
       minor: listing.serviceChargeMinor,
     },

@@ -4,11 +4,14 @@
  * The catalogue is read in one of two total orders, each ending in `id` so no
  * two rows share a position:
  *
- *   default   featured desc, published_at desc nulls last, created_at desc, id desc
+ *   default   published_at desc nulls last, created_at desc, id desc
  *   move-in   total_move_in_cost_minor asc nulls last, then the default order
  *
- * `listings_catalogue_keyset_idx` and `listings_move_in_keyset_idx` are those
- * orders, partial on published rows.
+ * NO `featured` (V-06). The column is locked to false and leaves the select,
+ * so nothing orders on it and a cursor does not carry it. The indexes
+ * migration 20260924100344 built still lead with it; with every row false
+ * they order the same rows, and a replacement index without it goes with the
+ * column's drop.
  *
  * A cursor is the sort key of the last row a page consumed. The next page is
  * every row strictly after it in the same order, written as one PostgREST
@@ -28,7 +31,6 @@ export type CatalogueOrder = "default" | "move-in";
 
 /** The sort key of one row, exactly as PostgREST returned it. */
 export type CursorKey = {
-  featured: boolean;
   /** Timestamps are carried as the database wrote them, to the microsecond, so equality holds. */
   publishedAt: string | null;
   createdAt: string;
@@ -37,10 +39,9 @@ export type CursorKey = {
   moveInMinor?: number | null;
 };
 
-/** The row fields a key is read from. Both catalogue selects carry all five. */
+/** The row fields a key is read from. Both catalogue selects carry all four. */
 export type KeyedRow = {
   id: string;
-  featured: boolean;
   published_at: string | null;
   created_at: string;
   total_move_in_cost_minor: number | null;
@@ -48,7 +49,6 @@ export type KeyedRow = {
 
 export function keyOfRow(row: KeyedRow, order: CatalogueOrder): CursorKey {
   const key: CursorKey = {
-    featured: row.featured,
     publishedAt: row.published_at,
     createdAt: row.created_at,
     id: row.id,
@@ -68,11 +68,12 @@ function isSafeInteger(value: unknown): value is number {
   return typeof value === "number" && Number.isSafeInteger(value);
 }
 
-type Wire = { v: 1; o: "d" | "m"; f: boolean; p: string | null; c: string; i: string; t?: number | null };
+/* Version 2 has no `featured` (V-06); a version 1 cursor reads as the first page. */
+type Wire = { v: 2; o: "d" | "m"; p: string | null; c: string; i: string; t?: number | null };
 
 /** The opaque value that goes in `?after=`. */
 export function encodeCursor(order: CatalogueOrder, key: CursorKey): string {
-  const wire: Wire = { v: 1, o: order === "move-in" ? "m" : "d", f: key.featured, p: key.publishedAt, c: key.createdAt, i: key.id };
+  const wire: Wire = { v: 2, o: order === "move-in" ? "m" : "d", p: key.publishedAt, c: key.createdAt, i: key.id };
   if (order === "move-in") wire.t = key.moveInMinor ?? null;
   return Buffer.from(JSON.stringify(wire), "utf8").toString("base64url");
 }
@@ -91,12 +92,11 @@ export function decodeCursor(order: CatalogueOrder, raw: string | null | undefin
   }
   if (wire === null || typeof wire !== "object") return null;
   const w = wire as Record<string, unknown>;
-  if (w.v !== 1 || w.o !== (order === "move-in" ? "m" : "d")) return null;
-  if (typeof w.f !== "boolean") return null;
+  if (w.v !== 2 || w.o !== (order === "move-in" ? "m" : "d")) return null;
   if (w.p !== null && !isTimestamp(w.p)) return null;
   if (!isTimestamp(w.c)) return null;
   if (typeof w.i !== "string" || !UUID.test(w.i)) return null;
-  const key: CursorKey = { featured: w.f, publishedAt: w.p as string | null, createdAt: w.c, id: w.i };
+  const key: CursorKey = { publishedAt: w.p as string | null, createdAt: w.c, id: w.i };
   if (order === "move-in") {
     if (w.t !== null && !isSafeInteger(w.t)) return null;
     key.moveInMinor = w.t as number | null;
@@ -123,11 +123,9 @@ function afterPublished(key: CursorKey): string {
   return `or(published_at.lt.${p},published_at.is.null,and(published_at.eq.${p},${afterCreated(key)}))`;
 }
 
-/** The default order: featured desc first. */
+/** The default order, newest first (V-06: no `featured` ahead of it). */
 function afterDefault(key: CursorKey): string {
-  const sameFeatured = `and(featured.eq.${q(key.featured)},${afterPublished(key)})`;
-  // Featured rows come first, so after a featured row the unfeatured ones all follow.
-  return key.featured ? `or(featured.eq.${q(false)},${sameFeatured})` : `or(${sameFeatured})`;
+  return afterPublished(key);
 }
 
 /**

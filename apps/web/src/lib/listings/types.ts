@@ -1,6 +1,9 @@
 /** Domain types for discovery results. Shared by every data source. */
 
 import type { ListingRole } from "@/lib/supply/roles";
+import type { Compound } from "./compound";
+import type { ServiceFacts } from "./service";
+import type { UnitFacts, UnitShape } from "./unit-shape";
 import type {
   BuildCondition,
   Furnishing,
@@ -80,6 +83,12 @@ export type Listing = {
   city: string;
   state: string;
   /**
+   * `listings.state_code` ("LA"), when the row has one. V-12 reads it to
+   * print a state's published fee rule beside the listing's own ratios.
+   * Absent on the seed catalogue.
+   */
+  stateCode?: string;
+  /**
    * Where the place actually is, when the source knows.
    *
    * Optional because the source genuinely may not know:
@@ -155,6 +164,24 @@ export type Listing = {
   minimumTenancyMonths?: number;
   /** ISO date the property can be occupied from. */
   availableFrom?: string;
+  /**
+   * When the listing went live, as an ISO timestamp (`listings.published_at`).
+   * Absent on a row that was never published and on the seed catalogue. Read
+   * by the listed age on the card and the page (V-22) and by the Newest sort.
+   */
+  publishedAt?: string;
+  /**
+   * The compound's five answers (V-28): parking, how many homes share it,
+   * whether the landlord lives there, how rubbish leaves, and whether a car
+   * gets in. Absent when the lister answered none of them.
+   */
+  compound?: Compound;
+  /** V-68: what the service charge covers, how it is charged, the gate. Absent: unanswered. */
+  service?: ServiceFacts;
+  /** V-66: the unit's shape, en-suite rooms and BQ. Absent: unanswered. */
+  unit?: UnitFacts;
+  /** V-41: set by the search page from the flood reads; absent means not judged. */
+  floodClear?: boolean;
   furnished?: Furnishing;
   /**
    * WHAT A BUYER ACTUALLY PAYS, in kobo, as the lister stated it.
@@ -205,6 +232,27 @@ export type Listing = {
   inspectedAt?: string;
   /** When the stated address was checked against the pin. */
   addressVerifiedAt?: string;
+  /**
+   * THE PROOF STRIP'S INPUTS (V-03). Each is a date a member of staff or a
+   * trigger set when something happened, and each is ABSENT, never null or
+   * empty, when nothing happened. `lib/trust/proof-strip.ts` prints a line
+   * only from a present, parseable date.
+   *
+   * `listerIdentitySeenAt` is `agent_badges.verified_at`: when the lister's
+   * identity rung passed and the published badge turned true. The other two
+   * are `listings.ownership_verified_at` and `listings.mandate_verified_at`,
+   * which the database refuses to hold at once. None of them is ever carried
+   * on an example listing.
+   */
+  listerIdentitySeenAt?: string;
+  ownershipVerifiedAt?: string;
+  mandateVerifiedAt?: string;
+  /**
+   * V-05's aggregate: renters who attended an inspection and answered the
+   * truth questions, and how many found the agent and the flat as listed.
+   * Absent until at least one renter has answered.
+   */
+  renterTruth?: { attended: number; asListed: number; lastAt: string };
   /**
    * Where the listing comes from. There is one answer and it is "vallo":
    * inventory listed on this platform by a person on this platform.
@@ -445,6 +493,41 @@ export type ListingSearchFilter = {
    * a borehole and treated mains as an AND would match nothing, every time.
    */
   waterSupply?: WaterSupply[];
+  /**
+   * V-67: the Property side's shelf. Leaves out everything let by the night
+   * or by the head (stays, hotel rooms, tables), which live on the Stays side.
+   */
+  propertySide?: boolean;
+  /** V-28: only listings whose lister said the landlord lives elsewhere. Strict. */
+  landlordAway?: boolean;
+  /** V-28: only listings whose lister said the parking is inside the compound. Strict. */
+  parkingInside?: boolean;
+  /** V-68: only listings that are Serviced (diesel, water and security covered). Strict. */
+  servicedOnly?: boolean;
+  /** V-68: only listings in a gated estate with controlled entry. Strict. */
+  gatedEstate?: boolean;
+  /**
+   * V-65: at most this many months of rent asked for up front (the larger of
+   * one rent period and the shortest tenancy). Strict: not a tenancy, no match.
+   * On the Rent market the budget bounds above are judged against the cash at
+   * the door, see `budgetFigure`.
+   */
+  maxUpfrontMonths?: number;
+  /** V-66: unit shapes, any of which will do. Strict: an unshaped listing matches none. */
+  shapes?: UnitShape[];
+  /** V-66: a boys' quarters comes with it. Strict. */
+  withBq?: boolean;
+  /**
+   * V-66: areas, ANY of which will do, each matched like the free text (a
+   * substring of title, area, city, state or kind). "Yaba/Akoka" in the search
+   * box becomes two of these.
+   */
+  areas?: string[];
+  /**
+   * V-41: only listings with no flooding reported. Judged on facts the page
+   * annotates (`floodClear`), never in the repository's SQL.
+   */
+  noFlood?: boolean;
 };
 
 /**
@@ -481,7 +564,7 @@ export type ListingSearchOptions = {
   /**
    * WHICH NUMBER THE DATABASE ORDERS ON BEFORE THE CEILING IS APPLIED.
    *
-   * "default" is the catalogue's own order: featured, then newest. "move-in"
+   * "default" is the catalogue's own order: newest first. "move-in"
    * orders on `total_move_in_cost_minor`, cheapest first, which is what
    * `listings_move_in_cost_idx` exists for and which nothing queried before
    * this sort. It matters for the same reason the budget predicate
@@ -495,7 +578,7 @@ export type ListingSearchOptions = {
    * two can never disagree, exactly as SQL narrows and `matchesFilter`
    * decides.
    */
-  order?: "default" | "move-in";
+  order?: "default" | "move-in" | "newest";
 };
 
 /** One page of the catalogue (OPS-11). */

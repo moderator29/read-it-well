@@ -1,6 +1,7 @@
 "use server";
 
 import { farEnoughAhead, lagosWallClockToIso } from "./when";
+import { oncePerTap, tapKey } from "../offline/replay-guard";
 import { revalidatePath } from "next/cache";
 import { PHOTO_EXTENSIONS, photoPathBelongsTo } from "./report-photo-path";
 import { z } from "zod";
@@ -8,6 +9,7 @@ import { resolveSession } from "../actions/session";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { startConversation } from "../messages/actions";
 import { INSPECTION_OUTCOMES, type InspectionState } from "./types";
+import { phoneGateFor } from "../phone-otp/gate";
 
 /**
  * MOVING AN INSPECTION.
@@ -80,6 +82,21 @@ export async function requestInspection(input: unknown): Promise<ActionResult<{ 
   if (session.state !== "signed-in") {
     return fail("Sign in to arrange an inspection.");
   }
+  /* V-40: a replay of the same tap answers with the first request. */
+  const key = tapKey((input as { tapKey?: unknown } | null)?.tapKey);
+  return oncePerTap("outbox.inspection", session.user.id, key, () => requestInspectionWork(session, parsed.data));
+}
+
+async function requestInspectionWork(
+  session: Extract<Awaited<ReturnType<typeof resolveSession>>, { state: "signed-in" }>,
+  input: z.infer<typeof requestSchema>,
+): Promise<ActionResult<{ id: string }>> {
+  const parsed = { data: input };
+
+  /* V-50: the first inspection request needs a confirmed phone, when the
+     phone_confirmation flag is on. Null, and nothing read, when it is off. */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "inspection");
+  if (phoneGate) return fail(phoneGate);
 
   /* Before the write, so the person reads the truth rather than a constraint
      violation. The trigger refuses again underneath: this is the courtesy and
@@ -91,6 +108,12 @@ export async function requestInspection(input: unknown): Promise<ActionResult<{ 
     .eq("id", parsed.data.listingId)
     .maybeSingle();
   if (listing?.is_demo) return fail(EXAMPLE_LISTING_MESSAGE);
+
+  /* V-63: a person on a safety hold is refused by the database, in the same
+     words as a listing that is not taking requests (the row-level security
+     branch below). There is deliberately no earlier check and no sentence of
+     its own: either would tell the held person a report exists, and who
+     made it. */
 
   const { data, error } = await session.supabase
     .from("inspection_requests")
@@ -146,7 +169,6 @@ export async function requestInspection(input: unknown): Promise<ActionResult<{ 
 
   revalidatePath(`/listing/${parsed.data.listingId}`);
   revalidatePath("/bookings");
-  revalidatePath("/inspections");
   if (thread.ok) revalidatePath(`/messages/${thread.data.conversationId}`);
   return ok({ id: data.id });
 }
@@ -214,7 +236,7 @@ export async function answerInspection(input: unknown): Promise<ActionResult<nul
 
   revalidatePath("/agent/dashboard");
   revalidatePath("/agent/inspections");
-  revalidatePath("/inspections");
+  revalidatePath("/bookings");
   revalidatePath(`/listing/${existing.data.listing_id}`);
   return ok(null);
 }
@@ -244,7 +266,6 @@ export async function acceptProposedTime(input: unknown): Promise<ActionResult<n
   if (error) return fail(refusalMessage(error.message));
 
   revalidatePath("/bookings");
-  revalidatePath("/inspections");
   return ok(null);
 }
 
@@ -287,7 +308,6 @@ export async function closeInspection(input: unknown): Promise<ActionResult<null
   if (error) return fail(refusalMessage(error.message));
 
   revalidatePath("/bookings");
-  revalidatePath("/inspections");
   revalidatePath("/agent/dashboard");
   revalidatePath("/agent/inspections");
   return ok(null);
@@ -415,7 +435,6 @@ export async function saveInspectionReport(
   const saved = await readReport(db, inspectionId);
   if (!saved) return fail("We saved that but could not read it back. Refresh to see where it stands.");
 
-  revalidatePath("/inspections");
   revalidatePath("/bookings");
   revalidatePath("/agent/inspections");
   return ok(saved);
@@ -525,7 +544,7 @@ export async function addReportPhoto(input: unknown): Promise<ActionResult<Repor
     return fail(reportRefusal(error?.message ?? ""));
   }
 
-  revalidatePath("/inspections");
+  revalidatePath("/bookings");
   revalidatePath("/agent/inspections");
   return ok({
     id: data.id,

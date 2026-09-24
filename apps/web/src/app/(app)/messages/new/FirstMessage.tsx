@@ -10,7 +10,16 @@ import { startConversationWithMessage } from "@/lib/messages/actions";
  * writes nothing, so an abandoned "Message" tap no longer puts an empty
  * thread in both inboxes or spends the daily new-conversation allowance.
  */
-export function FirstMessage({ listingId, listingTitle }: { listingId: string; listingTitle: string | null }) {
+export function FirstMessage({
+  listingId,
+  listingTitle,
+  suffix = "",
+}: {
+  listingId: string;
+  listingTitle: string | null;
+  /** V-69: `?showme=1` when "Show me..." sent them, so the thread opens with the ask ready. */
+  suffix?: string;
+}) {
   const router = useRouter();
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +30,7 @@ export function FirstMessage({ listingId, listingTitle }: { listingId: string; l
     setError(null);
     startTransition(async () => {
       const result = await startConversationWithMessage({ listingId, body });
-      if (result.ok) router.replace(`/messages/${result.data.conversationId}`);
+      if (result.ok) router.replace(`/messages/${result.data.conversationId}${suffix}`);
       else setError(result.error);
     });
   }

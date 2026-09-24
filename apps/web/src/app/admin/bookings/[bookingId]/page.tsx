@@ -8,6 +8,7 @@ import type { CancellationReason } from "@/lib/trust/cancellation";
 import { StayCancel } from "../../_components/AdminActions";
 import { fill } from "../../_components/copy";
 import { adminUi } from "../../_components/ui";
+import { ArrivalCheckRecord } from "@/components/app/arrival-check/ArrivalCheckRecord";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -111,6 +112,9 @@ export default async function AdminBookingPage({
         </p>
       </header>
 
+      {/* V-91: what the guest answered on arrival, with the photos. */}
+      <ArrivalCheckRecord bookingId={stay.id} locale={locale} />
+
       <div className="nf-panel nf-panel--card nf-admin-card p-md sm:p-lg">
         <ui.DetailSection title={copy.sections.stay}>
           <ui.DetailRow label={f.reference} value={<span className="nf-numeric">{stay.id}</span>} />
@@ -132,7 +136,15 @@ export default async function AdminBookingPage({
         </ui.DetailSection>
 
         <ui.DetailSection title={copy.sections.people}>
-          <ui.DetailRow label={f.guest} value={stay.guestName ?? copy.unnamed} />
+          {/* V-90: the guest's name opens their person file. */}
+          <ui.DetailRow
+            label={f.guest}
+            value={
+              <Link href={`/admin/people/${stay.guestId}`} className="underline underline-offset-2">
+                {stay.guestName ?? copy.unnamed}
+              </Link>
+            }
+          />
           <ui.DetailRow label={f.host} value={stay.agentName} />
           <ui.DetailRow
             label={f.listing}

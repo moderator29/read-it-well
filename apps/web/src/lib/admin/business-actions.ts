@@ -32,6 +32,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { ARRIVAL_DECLARATION_NEEDED, arrivalChargesDeclared } from "../stays/arrival-gate";
 import { withBusinessPrivate } from "../supabase/private-fields";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
@@ -271,6 +272,11 @@ export async function publishAccommodation(input: {
   const bookableRooms = property.room_types.filter((roomType) => roomType.rate_plans.length > 0);
   if (bookableRooms.length === 0) {
     return fail("This property has no room with a rate, so nobody could book it.");
+  }
+  /* V-57: nothing at the door that is not declared. A property is published
+     only once its host has answered all five arrival charges. */
+  if (!(await arrivalChargesDeclared(access.supabase, { accommodationId: property.id }))) {
+    return fail(ARRIVAL_DECLARATION_NEEDED);
   }
 
   const now = new Date().toISOString();

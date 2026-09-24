@@ -88,7 +88,7 @@ function walk(dir: string, out: string[]): string[] {
 const SKIPPED = /\/app\/\(dev\)\/|\/app\/admin\/|\/lib\/admin\/|\/components\/admin\/|database\.types\.ts$|\/lib\/trust\/claims\.ts$/;
 
 /** An identifier, a column list or a cookie attribute, never copy. */
-const CODE_SHAPED = /^[a-z0-9_]+$|^[a-z0-9_*]+(?:\s*,\s*[a-z0-9_*().!:]+)+$|^(?:Secure|HttpOnly|Path=\/|SameSite=\w+)$/;
+const CODE_SHAPED = /^[a-z0-9_]+$|^[a-z0-9_*]+(?:\s*,\s*[a-z0-9_*().!:]+)+$|^(?:Secure|HttpOnly|Path=\/|SameSite=\w+)$|^(?:\/[a-z0-9_\-[\]]+)+\/?$/;
 
 type Copy = { where: string; text: string };
 

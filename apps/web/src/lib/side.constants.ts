@@ -58,7 +58,26 @@ export const SIDE_HOME: Record<Side, string> = {
  * `/stays/search` are the Stays roots.
  */
 const STAYS_PATHS = /^\/(stays|stay|restaurants|restaurant|trips|host|checkout)(\/|$)/;
-const PROPERTY_PATHS = /^\/(home|search|agent|listing|rent|inspections|bookings)(\/|$)/;
+const PROPERTY_PATHS = /^\/(home|search|agent|listing|rent|inspections)(\/|$)/;
+
+/**
+ * Plans (`/bookings`) belongs to neither side, so the cookie decides, EXCEPT
+ * for a DEEP LINK that says where it came from: `?from=stays` or
+ * `?from=property` (a paid stay, a booked table, the inspections redirect).
+ * Only `from` moves the shell. The page's own filter uses `?side=`, and
+ * filtering Plans to one half must never flip the shell or the cookie
+ * (V-76 review, twice).
+ */
+export function sideOfPlansQuery(
+  pathname: string,
+  params: { get(name: string): string | null },
+): Side | null {
+  if (!/^\/bookings(\/|$)/.test(pathname)) return null;
+  const from = params.get("from");
+  if (from === "stays") return "stays";
+  if (from === "property") return "property";
+  return null;
+}
 
 export function sideOfPath(pathname: string): Side | null {
   if (STAYS_PATHS.test(pathname)) return "stays";

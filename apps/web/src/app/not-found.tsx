@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { resolveSession } from "@/lib/actions/session";
+import { getDictionary } from "@vallo/i18n";
 import { SystemMoment } from "./offline/SystemMoment";
+
+const LOST = getDictionary("en").trustVisible.state;
 
 /**
  * 404: the brand moment with a way to search.
@@ -52,11 +55,11 @@ export default async function NotFound() {
       <p className="nf-system__code" aria-hidden="true">
         404
       </p>
-      <h1 className="nf-system__title">This page has checked out</h1>
-      <p className="nf-system__body">
-        The link may be out of date, or the page may have moved. Every place on
-        Vallo is still where it should be.
-      </p>
+      {/* V-97: the words follow the voice rules. The old title was a hotel
+          pun on a screen every side of the market reaches, and the old body
+          promised every place was where it should be, which no code checks. */}
+      <h1 className="nf-system__title">{LOST.lostTitle}</h1>
+      <p className="nf-system__body">{LOST.lostBody}</p>
 
       <form action="/search" method="get" role="search">
         <label htmlFor="nf-lost-search" className="sr-only">

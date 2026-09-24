@@ -89,6 +89,13 @@ export async function startRentPayment(input: {
     if (error) {
       // 23514 is the demo-refusal trigger: the listing is an example and no
       // charge may ever exist against it. Said in the trigger's own words.
+      // VQ013 is V-13's guard: the charge would not match the quote frozen
+      // when the lister said yes. Refused, and said, rather than charged.
+      if (error.code === "VQ013") {
+        return fail(
+          "The figure on this listing no longer matches the quote you were given, so the payment has not been opened. Nothing has been charged. Contact support with this page open.",
+        );
+      }
       if (error.code === "23514") {
         return fail(
           "This listing is an example of what the catalogue will hold, so there is nothing to pay for. Open a real listing from search.",
@@ -138,7 +145,7 @@ export async function startRentPayment(input: {
   }
 
   revalidatePath(`/rent/pay/${parsed.data.inspectionId}`);
-  revalidatePath("/inspections");
+  revalidatePath("/bookings");
   return ok({
     inspectionId: parsed.data.inspectionId,
     bookingId: outcome.booking_id,

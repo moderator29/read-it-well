@@ -133,8 +133,6 @@ export default async function ProfilePage({
     myBookingsSub: t.socialProfile.myBookingsSub,
     savedSub: t.socialProfile.savedSub,
     walletSub: t.socialProfile.walletSub,
-    inspections: t.nav.inspections,
-    inspectionsSub: t.socialProfile.inspectionsSub,
   };
 
   if (account.state !== "signed-in") {

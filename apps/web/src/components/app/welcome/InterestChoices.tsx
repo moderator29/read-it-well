@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState, useTransition } from "react";
+import { DataSaverRow } from "@/components/app/account/DataSaverRow";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -12,6 +13,7 @@ import {
 } from "@/lib/interests/actions";
 import type { Dictionary } from "@vallo/i18n";
 import { PROPERTY_TYPES, type PropertyType } from "@/lib/interests/schema";
+import { forgetFirstInterest } from "./first-run-seen";
 
 /**
  * The one question worth asking at the door.
@@ -83,6 +85,8 @@ export function InterestChoices({
 
   useEffect(() => {
     if (!state?.ok) return;
+    /* Answered: the market a landing tile carried has done its job (V-18). */
+    forgetFirstInterest();
     if (!firstRun) {
       /*
        * Settings stays where it is. Bouncing somebody to home the moment they
@@ -118,6 +122,7 @@ export function InterestChoices({
         setSkipError(result.error);
         return;
       }
+      forgetFirstInterest();
       router.replace("/home");
       router.refresh();
     });
@@ -176,6 +181,16 @@ export function InterestChoices({
           );
         })}
       </div>
+
+      {/* V-79: asked once, on the first run, where a person on a small
+          bundle is deciding how the app will treat them. */}
+      {firstRun && (
+        <div className="mt-md">
+          <DataSaverRow
+            copy={{ ...t.platform.lite, label: t.platform.lite.welcomeTitle, sub: t.platform.lite.welcomeSub }}
+          />
+        </div>
+      )}
 
       {state && !state.ok && (
         <p

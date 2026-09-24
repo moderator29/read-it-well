@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { attributeConversation } from "@/lib/share/attribution";
 import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/app/PageHeader";
 import { resolveSession } from "@/lib/actions/session";
@@ -98,9 +99,11 @@ function Bridge({
 export default async function NewMessagePage({
   searchParams,
 }: {
-  searchParams: Promise<{ listing?: string }>;
+  searchParams: Promise<{ listing?: string; then?: string }>;
 }) {
-  const { listing } = await searchParams;
+  const { listing, then } = await searchParams;
+  /* V-69: "Show me..." on a listing opens the thread with the ask ready. */
+  const suffix = then === "showme" ? "?showme=1" : "";
   if (!listing) redirect("/messages");
 
   const session = await resolveSession();
@@ -109,13 +112,18 @@ export default async function NewMessagePage({
     /* UX-P2-03: look, do not write. An existing thread opens; otherwise the
        first message makes the thread, so an abandoned tap leaves nothing. */
     const result = await findConversationForListing({ listingId: listing });
-    if (result.ok && result.data.conversationId) redirect(`/messages/${result.data.conversationId}`);
+    if (result.ok && result.data.conversationId) {
+      /* V-71: credit the lister whose link this device first came through.
+         A thread made by the first message is credited in its action. */
+      await attributeConversation(session.supabase, result.data.conversationId);
+      redirect(`/messages/${result.data.conversationId}${suffix}`);
+    }
     if (result.ok) {
       const found = await getListingRepository().byId(listing);
       return (
         <div className="mx-auto max-w-2xl">
           <PageHeader title="Message the agent" fallback={`/listing/${listing}`} />
-          <FirstMessage listingId={listing} listingTitle={found?.title ?? null} />
+          <FirstMessage listingId={listing} listingTitle={found?.title ?? null} suffix={suffix} />
         </div>
       );
     }
@@ -141,7 +149,7 @@ export default async function NewMessagePage({
      * auth routes validate the path again server side because `next` is the
      * classic open redirect.
      */
-    const next = returnHref("/messages/new", `?listing=${listing}`, "message");
+    const next = returnHref("/messages/new", `?listing=${listing}${then === "showme" ? "&then=showme" : ""}`, "message");
     return (
       <Bridge
         title="Sign in to message the agent"

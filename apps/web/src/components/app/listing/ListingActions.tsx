@@ -19,6 +19,8 @@ import {
 } from "@/components/app/SaveControl";
 import { ShareSheet } from "@/components/app/messages/ShareSheet";
 import type { SharedKind } from "@/components/app/messages/share";
+import { createShareLink } from "@/lib/share/actions";
+import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 import { nativeHaptic, nativeShare } from "@/lib/native/device";
 
 /**
@@ -127,6 +129,43 @@ export function ListingActions({
   const [message, setMessage] = useState<string | null>(null);
   const [signInPrompt, setSignInPrompt] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const t = useClientDictionary();
+  /*
+   * THE SHARE DOOR (V-07), MINTED WHEN THE SHEET OPENS.
+   *
+   * A platform listing is shared as its door, `/s/<token>`, never as its own
+   * address: `/listing/<id>` is gated, so it unfurls in WhatsApp as a sign-in
+   * page. The door is a public card (area only, move-in total, the code) whose
+   * button carries the listing through sign in.
+   *
+   * Minted as the sheet opens rather than on the tap, because
+   * `navigator.share` needs the user's gesture and Safari withdraws it across
+   * a server round trip: by the time "Share elsewhere" is tapped the door is
+   * usually already in hand. A stay (an accommodation id) mints a stay door,
+   * whose button carries `/stay/<id>` through sign in; a venue (a business
+   * id) has no door yet and keeps sharing its own address.
+   */
+  const doorKind: "listing" | "stay" | null =
+    shareKind === "listing" && !place
+      ? "listing"
+      : shareKind === "stay" && place?.kind === "accommodation"
+        ? "stay"
+        : null;
+  const doorable = doorKind !== null;
+  const door = useRef<Promise<string | null> | null>(null);
+  const mintDoor = useCallback((): Promise<string | null> => {
+    if (!door.current && doorKind !== null) {
+      door.current = createShareLink({ kind: doorKind, targetId: listingId })
+        .then((result) => (result.ok ? `${window.location.origin}${result.data.path}` : null))
+        .catch(() => null)
+        .then((url) => {
+          /* A failure is not remembered: the next open asks again. */
+          if (url === null) door.current = null;
+          return url;
+        });
+    }
+    return door.current ?? Promise.resolve(null);
+  }, [listingId, doorKind]);
   const [pending, startTransition] = useTransition();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -208,8 +247,18 @@ export function ListingActions({
    * this was the whole of what "share" meant. This is the second answer.
    */
   async function shareElsewhere() {
-    const url = typeof window === "undefined" ? "" : window.location.href;
-    if (!url) return;
+    if (typeof window === "undefined") return;
+    let url = window.location.href;
+    if (doorable) {
+      const minted = await mintDoor();
+      if (minted === null) {
+        /* No door, no share. The listing's own address would unfurl as a
+           sign-in page, which is the failure this replaces. */
+        say(t.frontDoor.share.failed);
+        return;
+      }
+      url = minted;
+    }
 
     /* STORE-04: inside the app, the operating system's own share sheet. */
     const native = await nativeShare({ title, url });
@@ -217,11 +266,18 @@ export function ListingActions({
 
     if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
       try {
-        await navigator.share({ title, url });
+        /* Rule 10: a door goes out with NO title. The lister's own title (or a
+           stay's business name) is free text, and the share sheet hands it to
+           whatever app is chosen next to the link; the door's card composes
+           its own heading from facts. An undoored place (a venue) goes out
+           with no title either: its name is text somebody typed as well. */
+        await navigator.share({ url });
         return;
       } catch (error) {
         // A cancelled sheet is not a failure and must not raise a message.
         if (error instanceof DOMException && error.name === "AbortError") return;
+        /* NotAllowedError (the gesture expired across the mint) falls
+           through to the clipboard below, which is the same link. */
       }
     }
 
@@ -232,7 +288,13 @@ export function ListingActions({
     } catch {
       copied = copyByExecCommand(url);
     }
-    say(copied ? "Link copied" : "Copy the link from your browser's address bar");
+    say(
+      copied
+        ? t.frontDoor.share.copied
+        : doorable
+          ? `${t.frontDoor.share.copyFallback}: ${url}`
+          : "Copy the link from your browser's address bar",
+    );
   }
 
   return (
@@ -245,7 +307,10 @@ export function ListingActions({
       <div className="flex items-center gap-xs">
         <button
           type="button"
-          onClick={() => setShareOpen(true)}
+          onClick={() => {
+            setShareOpen(true);
+            if (doorable) void mintDoor();
+          }}
           aria-haspopup="dialog"
           aria-expanded={shareOpen}
           aria-label="Share this listing"
@@ -308,6 +373,13 @@ export function ListingActions({
         id={listingId}
         title={title}
         onShareElsewhere={() => void shareElsewhere()}
+        elsewhereBody={
+          doorKind === "stay"
+            ? t.frontDoor.share.elsewhereBodyStay
+            : doorable
+              ? t.frontDoor.share.elsewhereBody
+              : undefined
+        }
       />
     </div>
   );

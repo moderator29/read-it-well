@@ -1,4 +1,9 @@
 import type { Metadata } from "next";
+import { DemandBoard } from "@/components/agent/DemandBoard";
+import { readDemandBoard } from "@/lib/demand/queries";
+import { EnquiryFunnel, LostByAreaPanel } from "@/components/agent/EnquiryDesk";
+import { readDeskStages, readLostReasonsByArea } from "@/lib/enquiry/queries";
+import { countByStage } from "@/lib/enquiry/stage";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
@@ -8,6 +13,8 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { ListingPitch } from "../list/ListingPitch";
 import { AnalyticsWorkspace } from "./AnalyticsWorkspace";
+import { readFunnelBoard } from "@/lib/agent/funnel-queries";
+import { ListingFunnels } from "@/components/agent/ListingFunnels";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -71,7 +78,13 @@ export default async function Page() {
    * page falls through to the same "we could not read this" rendering rather
    * than to an error boundary.
    */
-  const analytics = await readAgentAnalytics(context).catch(() => null);
+  const [analytics, funnels, demand, stages, lost] = await Promise.all([
+    readAgentAnalytics(context).catch(() => null),
+    readFunnelBoard(context.supabase, context.agent.id),
+    readDemandBoard(4),
+    readDeskStages(),
+    readLostReasonsByArea(12),
+  ]);
 
   return (
     <AgentShell
@@ -95,6 +108,22 @@ export default async function Page() {
           statusLabels={t.agentListings.workspace.status}
           analytics={analytics}
           locale={locale}
+          /* V-73: once the funnel is counting, the "views are not counted"
+             line would be false, so it is replaced by what is counted. */
+          {...(funnels.state === "ok" ? { viewsLine: t.shape.funnel.viewsCounted } : {})}
+          funnels={
+            funnels.state === "ok" ? (
+              <section className="nf-panel nf-panel--card block p-md sm:p-panel">
+                <h2 className="nf-h3">{t.shape.funnel.title}</h2>
+                <p className="mt-2xs text-[length:var(--nf-text-caption)] text-[var(--nf-content-secondary)]">
+                  {t.shape.funnel.blurb}
+                </p>
+                <div className="mt-md">
+                  <ListingFunnels board={funnels} copy={t.shape.funnel} locale={locale} />
+                </div>
+              </section>
+            ) : null
+          }
         />
       ) : (
         <p
@@ -108,6 +137,13 @@ export default async function Page() {
           {t.agentAnalytics.unavailable}
         </p>
       )}
+
+      {/* V-10: what renters asked for and could not find, by neighbourhood. */}
+      <DemandBoard rows={demand} copy={t.frontDoor.demand} locale={locale} listHref="/agent/list" />
+
+      {/* V-72: the lister's enquiries by stage, and why enquiries are lost by area. */}
+      <EnquiryFunnel counts={stages ? countByStage(stages.values()) : null} copy={t.frontDoor.desk} />
+      <LostByAreaPanel areas={lost} copy={t.frontDoor.desk} />
     </AgentShell>
   );
 }

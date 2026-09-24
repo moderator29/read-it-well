@@ -8,6 +8,7 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { IconPlate, ICON_PLATE_GLYPH, type IconPlateTone } from "@/components/ui/IconPlate";
+import { feedback, type FeedbackKind } from "@/lib/ui/feedback";
 
 /**
  * One confirmation, for every flow.
@@ -182,6 +183,21 @@ function ResultPlate({ state }: { state: ResultScreenState }) {
   );
 }
 
+/*
+ * V-30: WHAT EACH STATE FEELS LIKE. The outcome is felt when it is known,
+ * which is when this sheet opens, not when the button was pressed. `expired`
+ * is felt as nothing: a window closing is neither news nor a fault.
+ */
+const FEEL: Record<ResultState, FeedbackKind | null> = {
+  sent: "success",
+  received: "success",
+  confirmed: "success",
+  pending: "warning",
+  review: "warning",
+  failed: "error",
+  expired: null,
+};
+
 const STATE: Record<ResultScreenState, { ink: string }> = {
   sent: { ink: "var(--nf-state-success)" },
   received: { ink: "var(--nf-state-success)" },
@@ -217,6 +233,14 @@ export function ResultSheet(props: ResultSheetProps) {
     const id = window.setTimeout(() => primaryRef.current?.focus(), 0);
     return () => window.clearTimeout(id);
   }, [open]);
+
+  /* Felt once per opening, and again only if the state itself changes while
+     open (pending becoming sent is a second piece of news). */
+  useEffect(() => {
+    if (!open) return;
+    const kind = FEEL[state];
+    if (kind) feedback(kind);
+  }, [open, state]);
 
   return (
     <Sheet

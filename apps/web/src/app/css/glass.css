@@ -572,7 +572,7 @@
    * Nothing here is a value of its own. Layout is untouched (no padding, no
    * display), so no reader moves; only the material and the corner change.
    * Surfaces that restate `.nf-card` under their own root (wallet.css,
-   * crypto.css, catalogue.css, social*.css) still win by specificity and are
+   * catalogue.css, social*.css) still win by specificity and are
    * listed in ledger 13 (leftovers).
    */
   .nf-card {

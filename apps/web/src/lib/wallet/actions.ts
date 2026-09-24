@@ -69,6 +69,9 @@ import {
 } from "../payments/yellowcard";
 import { CRYPTO_PREFIX, FUND_PREFIX, P2P_PREFIX, WITHDRAW_PREFIX } from "../payments/references";
 import { guardMoney } from "../security/money-limits";
+import { accountHoldRefusal } from "../security/account-hold-guard";
+import { moneyLockRefusalFor } from "../security/money-lock-guard";
+import { sendIntent, withdrawIntent } from "../security/money-intent";
 import {
   CONFLICT_MESSAGE,
   IN_FLIGHT_MESSAGE,
@@ -568,6 +571,17 @@ async function withdrawWork(
 
   const limit = await guardMoney("withdraw", session.user.id);
   if (!limit.allowed) return fail(limit.message);
+  /* V-19: a "this was not me" hold. The ledger trigger is the rule; this is
+     the sentence. */
+  const accountHold = await accountHoldRefusal(session.supabase);
+  if (accountHold) return fail(accountHold);
+  /* V-81: an enrolled phone lock means this needs a fresh proof. */
+  const moneyLock = await moneyLockRefusalFor(
+    session.user.id,
+    formData.get("stepUp"),
+    withdrawIntent(parsed.data.amount, { bankCode: parsed.data.bankCode, accountNumber: parsed.data.accountNumber }),
+  );
+  if (moneyLock) return fail(moneyLock);
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
@@ -862,6 +876,17 @@ async function withdrawToSavedAccount(
 
   const limit = await guardMoney("withdraw", session.user.id);
   if (!limit.allowed) return fail(limit.message);
+  /* V-19: a "this was not me" hold. The ledger trigger is the rule; this is
+     the sentence. */
+  const accountHold = await accountHoldRefusal(session.supabase);
+  if (accountHold) return fail(accountHold);
+  /* V-81: an enrolled phone lock means this needs a fresh proof. */
+  const moneyLock = await moneyLockRefusalFor(
+    session.user.id,
+    formData.get("stepUp"),
+    withdrawIntent(parsed.data.amount, { bankAccountId: parsed.data.bankAccountId }),
+  );
+  if (moneyLock) return fail(moneyLock);
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
@@ -1215,6 +1240,17 @@ async function transferToUserWork(
 
   const limit = await guardMoney("transferToUser", session.user.id);
   if (!limit.allowed) return fail(limit.message);
+  /* V-19: a "this was not me" hold. The ledger trigger is the rule; this is
+     the sentence. */
+  const accountHold = await accountHoldRefusal(session.supabase);
+  if (accountHold) return fail(accountHold);
+  /* V-81: an enrolled phone lock means this needs a fresh proof. */
+  const moneyLock = await moneyLockRefusalFor(
+    session.user.id,
+    formData.get("stepUp"),
+    sendIntent(parsed.data.amount, parsed.data.recipientEmail),
+  );
+  if (moneyLock) return fail(moneyLock);
 
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);

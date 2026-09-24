@@ -1,4 +1,5 @@
 import { PersonTier } from "@/app/admin/_components/PersonTier";
+import { payeeCaption, type MoneyMapCopy, type PayeeContext } from "@/lib/listings/money-map";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { countOf, formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
@@ -6,6 +7,7 @@ import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import type { ListingReviewView } from "@/lib/admin/queries";
 import { SALE_STATUS_LABEL, TENURE_LABEL } from "@/lib/listings/pricing";
+import { compoundFacts } from "@/lib/listings/compound";
 import type { AdminCopy } from "../../_components/copy";
 import { Avatar, Badge, DeskHead, Panel, RoleTag } from "../../_review/parts";
 import type { ListingReviewExtras } from "../../_review/contracts";
@@ -50,16 +52,29 @@ export type ListingReviewProps = {
    * "Agency fee (10%)" with no owner, which reads as the platform's; Vallo
    * charges no platform fee and this screen must not imply one (rule 15).
    */
-  keepers: { moveIn: Dictionary["moveIn"]; purchase: Dictionary["purchase"] };
+  keepers: {
+    moveIn: Dictionary["moveIn"];
+    purchase: Dictionary["purchase"];
+    /**
+     * V-46: who a rent listing's lines are paid to, by the same rule as the
+     * listing page. Without it the rent and caution lines carry no caption
+     * rather than naming a landlord no record stands behind.
+     */
+    payee?: { ctx: PayeeContext; copy: MoneyMapCopy } | null;
+  };
   /** Said above everything when the listing may be an example (AR-10). */
   exampleNote?: ReactNode;
+  /** V-45: the photograph comparison, drawn under the photographs. */
+  photoProvenance?: ReactNode;
+  /** V-28: the compound's words, for the reviewer's view of the five answers. */
+  compoundCopy?: Dictionary["shape"]["compound"];
 };
 
 /** The payee of each cost line, keyed as `lib/listings/pricing` keys them. */
 export function keeperFor(
   intent: string,
   key: string,
-  words: { moveIn: Dictionary["moveIn"]; purchase: Dictionary["purchase"] },
+  words: ListingReviewProps["keepers"],
 ): string | null {
   if (intent === "sale") {
     if (key === "price") return words.purchase.keptBySeller;
@@ -67,7 +82,9 @@ export function keeperFor(
     if (key === "consent" || key === "stamp" || key === "registration") return words.purchase.keptByState;
     return null;
   }
-  if (key === "rent" || key === "caution") return words.moveIn.keptByLister;
+  if (words.payee) return payeeCaption(key, words.payee.ctx, words.payee.copy) ?? null;
+  // No payee context: never name a landlord no record stands behind.
+  if (key === "rent" || key === "caution") return null;
   if (key === "agency" || key === "legal" || key === "agreement") return words.moveIn.keptByAgent;
   if (key === "service") return words.moveIn.keptByEstate;
   return null;
@@ -90,6 +107,7 @@ export function ListingReview(props: ListingReviewProps) {
     actions,
     keepers,
     exampleNote,
+    photoProvenance,
   } = props;
   const type = copy.propertyType[listing.propertyType];
   const summary = [
@@ -121,6 +139,7 @@ export function ListingReview(props: ListingReviewProps) {
       {exampleNote}
 
       <MediaStrip listing={listing} copy={copy} />
+      {photoProvenance}
 
       <div className="nf-rv-grid2">
         <Panel title="Property details" labelledBy="rv-details">
@@ -192,6 +211,20 @@ export function ListingReview(props: ListingReviewProps) {
         </Panel>
 
         <div className="nf-rv-stack">
+          {/* V-28 review: the five compound answers, as the renter reads them. */}
+          {props.compoundCopy ? (
+            <Panel title={props.compoundCopy.title} labelledBy="rv-compound">
+              {compoundFacts(listing.compound ?? undefined, props.compoundCopy).length > 0 ? (
+                <ul className="nf-rv-utils">
+                  {compoundFacts(listing.compound ?? undefined, props.compoundCopy).map((fact) => (
+                    <li key={fact.key}>{fact.label}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="nf-caption text-[var(--nf-content-muted)]">{props.compoundCopy.unanswered}</p>
+              )}
+            </Panel>
+          ) : null}
           <Panel title="Power and water" labelledBy="rv-utilities">
             <ul className="nf-rv-utils">
               <Utility

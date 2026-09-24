@@ -3,7 +3,12 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { FirstRun } from "@/components/app/welcome/FirstRun";
 import { WelcomeStage } from "@/components/app/welcome/WelcomeStage";
-import { firstRunNext } from "@/components/app/welcome/first-run-seen";
+import { cookies } from "next/headers";
+import {
+  FIRST_INTEREST_COOKIE,
+  firstRunNext,
+} from "@/components/app/welcome/first-run-seen";
+import { isPropertyType } from "@/lib/interests/schema";
 import { loadInterestsState } from "@/lib/interests/queries";
 import { planFirstRun } from "./plan";
 
@@ -27,6 +32,12 @@ export const metadata: Metadata = {
  * REACHABLE SIGNED OUT, and it never redirects: `planFirstRun` in `./plan.ts`
  * (a pure function with its own test) only chooses the ending.
  *
+ * AN ARRIVAL WITH A DESTINATION SKIPS THE SLIDES (V-18). A stranger who was
+ * stopped on the way to a search, a listing or a stay opens on the account
+ * choice, headed with what they asked for ("Create an account to see homes in
+ * Lagos"). The four slides stay for the cold start, where nobody has asked
+ * for anything yet and the founder's art is the introduction.
+ *
  * Rendered outside the app shell on purpose: a dock underneath would offer six
  * more ways out of a screen that has exactly the ones it names.
  */
@@ -43,12 +54,24 @@ export default async function WelcomePage({
   const next = firstRunNext(rawNext);
   const session = await loadInterestsState();
 
-  const plan = planFirstRun({ session, next });
+  /* The market a landing tile named before they had an account (V-18). */
+  const carriedRaw = (await cookies()).get(FIRST_INTEREST_COOKIE)?.value ?? "";
+  const carried = isPropertyType(carriedRaw) ? carriedRaw : null;
+
+  const plan = planFirstRun({ session, next, carried });
 
   if (plan.kind === "guest") {
     return (
       <WelcomeStage>
-        <FirstRun t={t} interests={[]} showCards asked viewer="guest" next={plan.next} />
+        <FirstRun
+          t={t}
+          interests={[]}
+          showCards
+          asked
+          viewer="guest"
+          next={plan.next}
+          arrival={plan.arrival}
+        />
       </WelcomeStage>
     );
   }

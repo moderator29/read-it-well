@@ -46,8 +46,6 @@ export default function ProfilePreview() {
             myBookingsSub: t.socialProfile.myBookingsRow,
             savedSub: t.socialProfile.savedRow,
             walletSub: t.socialProfile.walletRow,
-            inspections: t.nav.inspections,
-            inspectionsSub: t.socialProfile.inspectionsRow,
           }}
           email="seyi@example.com"
           placeLabel="Eti-Osa, Lagos"

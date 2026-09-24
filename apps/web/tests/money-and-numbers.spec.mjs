@@ -187,7 +187,7 @@ const SWEEP = () => {
 };
 
 const ROUTES = [
-  "/", "/home", "/search", "/search?view=map", "/listing/lekki-palm-grove", "/rent",
+  "/", "/home", "/search", "/search?view=map", "/listing/lekki-palm-grove", "/search?market=rent",
   "/wallet", "/bookings", "/saved",
   "/agent/dashboard", "/agent/listings", "/agent/earnings", "/agent/reviews",
 ];

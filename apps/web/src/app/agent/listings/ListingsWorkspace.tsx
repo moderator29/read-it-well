@@ -1,5 +1,6 @@
 "use client";
 
+import { DuplicateListing } from "./DuplicateListing";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,6 +24,8 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
+import { CloseListingSheet } from "./CloseListingSheet";
+import { OwnerAskStrip } from "./OwnerAskStrip";
 
 /**
  * The agent's listings workspace.
@@ -62,6 +65,9 @@ import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
 const UNDO_WINDOW_MS = 6000;
 
 export type WorkspaceCopy = Dictionary["agentListings"];
+
+/** V-48: the close sheet's words and the closed labels. */
+type CloseCopy = Dictionary["landlord"]["close"];
 
 type Group = {
   key: keyof WorkspaceCopy["workspace"]["groups"];
@@ -289,8 +295,22 @@ function ListingRow({
   error,
   onAction,
   onDelete,
+  boardLabel,
+  duplicateCopy,
+  statusLabel,
+  closedReason,
+  closeCopy,
+  onCloseListing,
+  ownerAsk = false,
+  ownerCopy,
 }: {
   t: WorkspaceCopy;
+  /** V-08: the board action's words, when the board is switched on. */
+  boardLabel?: string;
+  /** V-29: "List another like this". */
+  duplicateCopy?: Dictionary["frontDoor"]["duplicate"];
+  /** V-71: "Share to Status". */
+  statusLabel?: string;
   /* The listing code's own namespace, shared with the search page and the
      public listing page so one set of words governs the code everywhere. */
   reference: Dictionary["listingReference"];
@@ -300,9 +320,20 @@ function ListingRow({
   error?: string | undefined;
   onAction: (kind: SheetKind, listing: ListingSummary) => void;
   onDelete: (listing: ListingSummary) => void;
+  /** V-48: why this listing was closed, when it was. */
+  closedReason?: string | undefined;
+  closeCopy?: CloseCopy | undefined;
+  /** V-48: opens the close sheet. Present only where closing replaces taking down. */
+  onCloseListing?: ((listing: ListingSummary) => void) | undefined;
+  /** V-31: the owner of this listing has an open "still available?" question. */
+  ownerAsk?: boolean;
+  ownerCopy?: Dictionary["landlord"]["owner"] | undefined;
 }) {
-  const editable = EDITABLE.includes(listing.status);
+  const editable = EDITABLE.includes(listing.status) && !closedReason;
   const live = listing.status === "PUBLISHED" || listing.status === "APPROVED";
+  /* A live RENTAL is closed with a reason rather than taken down. A stay or a
+     sale keeps "Take down", which is the right control for them. */
+  const closesWithReason = Boolean(onCloseListing && closeCopy && live && listing.intent === "rent");
 
   return (
     <li className="nf-panel nf-panel--card block overflow-hidden p-0">
@@ -347,9 +378,18 @@ function ListingRow({
             <h3 className="line-clamp-2 min-w-0 text-[length:var(--nf-text-body-sm)] font-semibold">
               {listing.title}
             </h3>
-            <StatusPill tone={toneForStatus(listing.status)} className="shrink-0">
-              {t.workspace.status[listing.status]}
-            </StatusPill>
+            {closedReason && closeCopy ? (
+              <StatusPill tone="neutral" className="shrink-0">
+                {closeCopy.closedLabel.replace(
+                  "{reason}",
+                  closeCopy.closedReasons[closedReason as keyof CloseCopy["closedReasons"]] ?? closedReason,
+                )}
+              </StatusPill>
+            ) : (
+              <StatusPill tone={toneForStatus(listing.status)} className="shrink-0">
+                {t.workspace.status[listing.status]}
+              </StatusPill>
+            )}
           </div>
 
           {(listing.area || listing.city) && (
@@ -408,6 +448,10 @@ function ListingRow({
         </p>
       )}
 
+      {ownerAsk && ownerCopy && live && !closedReason && (
+        <OwnerAskStrip listingId={listing.id} copy={ownerCopy} onLet={() => onCloseListing?.(listing)} />
+      )}
+
       <div className="flex flex-wrap items-center gap-x-md gap-y-xs border-t border-[var(--nf-border-subtle)] px-md py-sm">
         {editable && (
           <Link
@@ -427,6 +471,39 @@ function ListingRow({
           <UiIcon name="calendar-booking" size={16} />
           Calendar
         </Link>
+        {/* V-57: a nightly stay declares its charges at the door before it can be published. */}
+        {listing.pricePeriod === "night" && (
+          <Link
+            href={`/agent/listings/${listing.id}/arrival`}
+            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
+          >
+            <UiIcon name="info" size={16} />
+            Charges at the door
+          </Link>
+        )}
+        {duplicateCopy && <DuplicateListing listingId={listing.id} copy={duplicateCopy} />}
+        {/* V-71: a published listing's Status picture and the lister's own link. */}
+        {statusLabel && listing.status === "PUBLISHED" && (
+          <Link
+            href={`/agent/listings/${listing.id}/status`}
+            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
+            data-testid="listing-status"
+          >
+            <UiIcon name="share" size={16} />
+            {statusLabel}
+          </Link>
+        )}
+        {/* V-08: a board needs a code, and a code needs a published listing. */}
+        {boardLabel && listing.reference && listing.status === "PUBLISHED" && (
+          <Link
+            href={`/agent/listings/${listing.id}/board`}
+            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
+            data-testid="listing-board"
+          >
+            <UiIcon name="document" size={16} />
+            {boardLabel}
+          </Link>
+        )}
         {editable && (
           <button
             type="button"
@@ -436,7 +513,17 @@ function ListingRow({
             {t.workspace.actions.submit}
           </button>
         )}
-        {live && (
+        {live && closesWithReason && (
+          <button
+            type="button"
+            className="nf-tap text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
+            onClick={() => onCloseListing?.(listing)}
+            data-testid="close-listing"
+          >
+            {closeCopy?.action}
+          </button>
+        )}
+        {live && !closesWithReason && (
           <button
             type="button"
             className="nf-tap text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
@@ -479,6 +566,13 @@ export function ListingsWorkspace({
   listings: all,
   locale,
   query = "",
+  boardLabel,
+  duplicateCopy,
+  statusLabel,
+  closed = {},
+  closeCopy,
+  ownerAsks = [],
+  ownerCopy,
 }: {
   t: WorkspaceCopy;
   reference: Dictionary["listingReference"];
@@ -486,12 +580,28 @@ export function ListingsWorkspace({
   locale: Locale;
   /** The top bar's search term. Narrows by title; empty shows everything. */
   query?: string;
+  /**
+   * V-08, "Print or paint your board". Present only while
+   * `feature_flags.listing_board` is on; absent, no row draws the action.
+   */
+  boardLabel?: string;
+  /** V-29, "List another like this". Absent in harnesses, which then draw no action. */
+  duplicateCopy?: Dictionary["frontDoor"]["duplicate"];
+  /** V-71, "Share to Status". */
+  statusLabel?: string;
+  /** V-48: closed listings and why, keyed by id. Absent draws what it drew before. */
+  closed?: Record<string, string>;
+  closeCopy?: CloseCopy;
+  /** V-31: listings whose owner has an open "still available?" question. */
+  ownerAsks?: string[];
+  ownerCopy?: Dictionary["landlord"]["owner"];
 }) {
   /* The bar's search lands here with `?q=`, so it is a real narrowing and
      not a field that does nothing. */
   const term = query.trim().toLowerCase();
   const listings = term ? all.filter((row) => row.title.toLowerCase().includes(term)) : all;
   const [sheet, setSheet] = useState<SheetState | null>(null);
+  const [closing, setClosing] = useState<ListingSummary | null>(null);
 
   /* Drafts whose delete is scheduled but has not been sent, and the failure a
      rejected delete came back with. A row in `pending` is off the screen and
@@ -584,7 +694,7 @@ export function ListingsWorkspace({
   return (
     <div className="space-y-7">
       {GROUPS.map((group) => {
-        const rows = listings.filter((l) => group.statuses.includes(l.status));
+        const rows = listings.filter((l) => group.statuses.includes(l.status) && !(l.id in closed));
         if (rows.length === 0) return null;
         const heading = t.workspace.groups[group.key];
         /* A draft on its way out is not in the group any more, as far as the
@@ -618,6 +728,13 @@ export function ListingsWorkspace({
                     error={errors[listing.id]}
                     onAction={(kind, target) => setSheet({ kind, listing: target })}
                     onDelete={scheduleDelete}
+                    boardLabel={boardLabel}
+                    duplicateCopy={duplicateCopy}
+                    statusLabel={statusLabel}
+                    closeCopy={closeCopy}
+                    onCloseListing={closeCopy ? setClosing : undefined}
+                    ownerAsk={ownerAsks.includes(listing.id)}
+                    ownerCopy={ownerCopy}
                   />
                 ),
               )}
@@ -626,7 +743,46 @@ export function ListingsWorkspace({
         );
       })}
 
+      {/* V-48: closed with a reason. Last, because nothing here needs doing. */}
+      {closeCopy && listings.some((l) => l.id in closed) && (
+        <section data-testid="closed-group">
+          <span className="flex items-center gap-xs">
+            <h2 className="nf-h3">{closeCopy.groupTitle}</h2>
+            <span className="nf-count-badge">{listings.filter((l) => l.id in closed).length}</span>
+          </span>
+          <p className="mb-sm mt-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+            {closeCopy.groupBlurb}
+          </p>
+          <ul className="space-y-sm">
+            {listings
+              .filter((l) => l.id in closed)
+              .map((listing) => (
+                <ListingRow
+                  key={listing.id}
+                  t={t}
+                  reference={reference}
+                  listing={listing}
+                  locale={locale}
+                  error={errors[listing.id]}
+                  onAction={(kind, target) => setSheet({ kind, listing: target })}
+                  onDelete={scheduleDelete}
+                  closedReason={closed[listing.id]}
+                  closeCopy={closeCopy}
+                />
+              ))}
+          </ul>
+        </section>
+      )}
+
       {sheet && <ConfirmSheet t={t} state={sheet} onClose={() => setSheet(null)} />}
+      {closing && closeCopy && (
+        <CloseListingSheet
+          listingId={closing.id}
+          title={closing.title}
+          copy={closeCopy}
+          onClose={() => setClosing(null)}
+        />
+      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createClientWithAgent } from "@/lib/security/agent-client";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   consume,
@@ -346,7 +347,7 @@ export async function signInWithEmail(
     };
   }
 
-  const supabase = await createClient();
+  const supabase = await createClientWithAgent(); // V-19: GoTrue records the browser, not Node
   const landing = landingAfterAuth(formData);
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -578,7 +579,7 @@ export async function verifySignUpCode(
   const pacedIp = await throttle("sign_up_verify_ip", subjectForIp(await callerIp()), 20, 60);
   if (pacedIp) return pacedIp;
 
-  const supabase = await createClient();
+  const supabase = await createClientWithAgent(); // V-19: GoTrue records the browser, not Node
   const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "signup" });
 
   if (error || !data.session) {
@@ -710,7 +711,7 @@ export async function completeEmailVerification(input: {
   if (!emailConfigured()) return { ok: false, reason: "unconfigured" };
 
   const next = landingFromPath(input.next);
-  const supabase = await createClient();
+  const supabase = await createClientWithAgent(); // V-19: GoTrue records the browser, not Node
 
   if (input.code) {
     const { error } = await supabase.auth.exchangeCodeForSession(input.code);

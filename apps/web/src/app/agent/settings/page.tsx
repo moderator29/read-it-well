@@ -13,6 +13,8 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ListingPitch } from "../list/ListingPitch";
 import { AccountNotificationsCard } from "../../(app)/settings/AccountToggles";
+import { AgentLookupCard } from "@/components/app/doors/AgentLookupCard";
+import { readMyAgentLookup, type MyAgentLookup } from "@/lib/doors/queries";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -68,7 +70,7 @@ export default async function Page() {
     );
   }
 
-  const [account, payout] = await Promise.all([loadSettingsState(), getPayoutAccounts()]);
+  const [account, payout, lookup] = await Promise.all([loadSettingsState(), getPayoutAccounts(), readMyAgentLookup()]);
   const agent = context.agent;
   const accounts = payout.state === "ready" ? payout.accounts : [];
 
@@ -79,6 +81,7 @@ export default async function Page() {
         agent={agentProfileFrom(agent)}
         accounts={accounts}
         notifications={account.state === "signed-in" ? account.settings.notifications : null}
+        lookup={lookup}
       />
     </AgentShell>
   );
@@ -96,12 +99,15 @@ export function AgentSettingsBody({
   agent,
   accounts,
   notifications,
+  lookup = null,
 }: {
   t: Dictionary;
   agent: AgentProfile;
   accounts: PayoutAccount[];
   /** Null when the preference document could not be read. */
   notifications: ResolvedProfileSettings["notifications"] | null;
+  /** V-61: the agent's code and number hint. Null draws no card, as before. */
+  lookup?: MyAgentLookup | null;
 }) {
   const preferred = accounts.find((a) => a.isDefault) ?? accounts[0] ?? null;
 
@@ -201,6 +207,9 @@ export function AgentSettingsBody({
             Ask support to change it
           </Link>
         </div>
+
+        {/* ------------------------------------------- V-61: let renters check */}
+        {lookup && <AgentLookupCard copy={t.trustDoors.agentCard} code={lookup.code} hint={lookup.hint} />}
 
         {/* ------------------------------------------------------ the rest */}
         <div className="nf-panel nf-panel--card block p-panel">

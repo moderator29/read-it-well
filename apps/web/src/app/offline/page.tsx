@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
 import { RetryButton } from "./RetryButton";
+import { OfflinePacks } from "./OfflinePacks";
+import { OfflineShelf } from "./OfflineShelf";
 import { SystemMoment } from "./SystemMoment";
 
 /**
@@ -42,6 +45,16 @@ export default function OfflinePage() {
       </p>
 
       <RetryButton />
+      {/* V-35: this phone's inspection packs, with their gate codes. The
+          page is precached and static, so the copy is English, the same as
+          every other sentence on it. */}
+      <OfflinePacks copy={getDictionary(DEFAULT_LOCALE).platform.gate} locale={DEFAULT_LOCALE} />
+      {/* V-77: the shortlist this phone holds, with a compare. */}
+      <OfflineShelf
+        copy={getDictionary(DEFAULT_LOCALE).platform.shelf}
+        exampleLabel={getDictionary(DEFAULT_LOCALE).catalogue.card.example}
+        locale={DEFAULT_LOCALE}
+      />
     </SystemMoment>
   );
 }

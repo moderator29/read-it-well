@@ -63,8 +63,8 @@ export function CategoryGrid({
   }[] = [
     { key: "apartment", href: "/search?type=apartment", kind: "apartment", label: c.apartments, photo: "tower-entrance-dusk", icon: "serviced-block" },
     { key: "home", href: "/search?type=home", kind: "home", label: c.houses, photo: "villa-exterior-gate", icon: "modern-house" },
-    { key: "shortlet", href: "/search?type=shortlet", kind: "shortlet", label: c.shortlets, photo: "villa-pool-terrace", icon: "calendar-home" },
-    { key: "hotel", href: "/search?type=hotel", kind: "hotel", label: c.hotels, photo: "bedroom-02", icon: "hotel" },
+    { key: "shortlet", href: "/stays/search?type=shortlet", kind: "shortlet", label: c.shortlets, photo: "villa-pool-terrace", icon: "calendar-home" },
+    { key: "hotel", href: "/stays/search?type=hotel", kind: "hotel", label: c.hotels, photo: "bedroom-02", icon: "hotel" },
     { key: "resort", href: "/stays/search?type=resort", label: c.resorts, photo: "resort-pool-deck", icon: "palm-tree" },
     { key: "guest_house", href: "/stays/search?type=guest_house", label: c.guestHouses, photo: "villa-pool-skyline-01", icon: "hotel-star" },
     { key: "office", href: "/search?type=office", kind: "office", label: c.commercial, photo: "skyline-waterfront-dusk", icon: "building-chip" },

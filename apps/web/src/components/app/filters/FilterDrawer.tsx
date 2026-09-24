@@ -6,7 +6,19 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
-import { hasBackupPower, matchesFacts, type ListingFacts } from "@/lib/listings/filter";
+import { priceScale } from "@/lib/listings/price-bounds";
+import {
+  hasBackupPower,
+  matchesFacts,
+  rentMeansTenancy,
+  type ListingFacts,
+} from "@/lib/listings/filter";
+
+import { UNIT_SHAPES, takesShape, type UnitShape } from "@/lib/listings/unit-shape";
+import { RUSH_WITHIN, commuteCount, type Anchor } from "@/lib/listings/commute";
+
+/* V-65: the drawer's one upfront choice, "One year upfront at most". */
+const ONE_YEAR = 12;
 import {
   WATER_SOURCES,
   type ListingIntent,
@@ -58,7 +70,7 @@ import { useClientMount } from "@/lib/ui/client-mount";
  */
 
 /** The three markets the Market group offers; see `marketOptions`. */
-type Market = ListingIntent | "shortlet";
+type Market = ListingIntent;
 
 type Draft = {
   q: string;
@@ -77,6 +89,20 @@ type Draft = {
   powerBandA: boolean;
   waterSupply: WaterSupply[];
   listerRoles: ListingRole[];
+  landlordAway: boolean;
+  parkingInside: boolean;
+  servicedOnly: boolean;
+  gatedEstate: boolean;
+  /** V-65: at most this many months up front; absent means not asked. */
+  maxUpfront?: number;
+  /** V-66: the shapes the reader will take, any of them. */
+  shapes: UnitShape[];
+  withBq: boolean;
+  /** V-41: no flooding reported. */
+  noFlood: boolean;
+  /** V-43: the anchor's slug, and whether the rush-hour limit is on. */
+  to: string;
+  withinOn: boolean;
 };
 
 function draftFrom(query: ShelfQuery): Draft {
@@ -97,6 +123,16 @@ function draftFrom(query: ShelfQuery): Draft {
     powerBandA: query.powerBandA,
     waterSupply: query.waterSupply,
     listerRoles: query.listerRoles,
+    landlordAway: query.landlordAway,
+    parkingInside: query.parkingInside,
+    servicedOnly: query.servicedOnly,
+    gatedEstate: query.gatedEstate,
+    ...(query.maxUpfront !== undefined ? { maxUpfront: query.maxUpfront } : {}),
+    shapes: query.shapes ?? [],
+    withBq: query.withBq === true,
+    noFlood: query.noFlood === true,
+    to: query.to ?? "",
+    withinOn: query.within !== undefined,
   };
 }
 
@@ -125,6 +161,10 @@ function queryFrom(base: ShelfQuery, draft: Draft): ShelfQuery {
     powerBandA: draft.powerBandA,
     waterSupply: draft.waterSupply,
     listerRoles: draft.listerRoles,
+    landlordAway: draft.landlordAway,
+    parkingInside: draft.parkingInside,
+    servicedOnly: draft.servicedOnly,
+    gatedEstate: draft.gatedEstate,
   };
   const q = draft.q.trim();
   if (q.length > 0) next.q = q;
@@ -135,23 +175,23 @@ function queryFrom(base: ShelfQuery, draft: Draft): ShelfQuery {
   if (draft.bedrooms > 0) next.bedrooms = draft.bedrooms;
   if (draft.bathrooms > 0) next.bathrooms = draft.bathrooms;
   if (draft.guests > 0) next.guests = draft.guests;
+  /* The upfront limit only means something on the Rent market's tenancies. */
+  if (draft.maxUpfront !== undefined && rentMeansTenancy(draft)) next.maxUpfront = draft.maxUpfront;
+  /* V-66: shapes only mean something for homes; areas are the address's own. */
+  const homes = !draft.kind || takesShape(draft.kind);
+  if (homes && draft.shapes.length > 0) next.shapes = draft.shapes;
+  if (homes && draft.withBq) next.withBq = true;
+  if (base.areas && base.areas.length > 0) next.areas = base.areas;
+  if (draft.noFlood) next.noFlood = true;
+  if (draft.to) {
+    next.to = draft.to;
+    if (draft.withinOn) next.within = RUSH_WITHIN;
+  }
   return next;
 }
 
 /* Any, then 1+ to 4+. Zero is "any", which the query does not carry. */
 const ROOM_STEPS: number[] = [0, 1, 2, 3, 4];
-
-function sliderScale(high: number | undefined) {
-  const floor = 0;
-  const ceiling = high !== undefined && high > 0 ? Math.ceil(koboToNaira(high) / 1000) * 1000 : 5_000_000;
-  const span = Math.max(1, ceiling - floor);
-  // A hundred stops across the range, rounded to something a person would
-  // type, so dragging lands on round numbers rather than on 187,431.
-  const raw = Math.max(1, Math.round(span / 100));
-  const magnitude = 10 ** Math.max(0, String(Math.floor(raw)).length - 1);
-  const step = Math.max(1, Math.round(raw / magnitude) * magnitude);
-  return { floor, ceiling, span, step };
-}
 
 const AMENITY_ICON: Record<string, UiIconName> = {
   pool: "pool",
@@ -288,6 +328,15 @@ export function FilterDrawer({
   locale,
   copy,
   costCopy,
+  compoundCopy,
+  sortCopy,
+  serviceCopy,
+  cashCopy,
+  unitCopy,
+  feesBasis,
+  anchors = [],
+  commuteCopy,
+  noFloodLabel,
   openOnMount = false,
 }: {
   query: ShelfQuery;
@@ -299,6 +348,23 @@ export function FilterDrawer({
      chooses between two different money columns and has to name the one in
      force. */
   costCopy: Dictionary["moveIn"];
+  /** V-28: the compound's words, for its two filters. */
+  compoundCopy: Dictionary["shape"]["compound"];
+  /** The sort names, from the dictionary rather than `SORTS[].label`. */
+  sortCopy: Dictionary["shape"]["sorts"];
+  /** V-68: the service charge's words, for its two filters. */
+  serviceCopy: Dictionary["shape"]["service"];
+  /** V-65: on the Rent market the budget is the cash at the door. */
+  cashCopy: Dictionary["shape"]["cash"];
+  /** V-66: the unit shapes' words, for the shape chips. */
+  unitCopy: Dictionary["shape"]["unit"];
+  /** V-43: the anchors a renter can pick, and the words for the group. */
+  anchors?: Anchor[];
+  commuteCopy: Dictionary["shape"]["commute"];
+  /** V-41: the "No flooding reported" switch's words. */
+  noFloodLabel?: { label: string; hint: string };
+  /** V-12: the sentence under the "Lowest fees on top of rent" order. */
+  feesBasis?: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(openOnMount);
@@ -336,18 +402,12 @@ export function FilterDrawer({
   }, [facts, draft.kind]);
 
   /*
-   * BUY, RENT, SHORTLET, as the target render draws the Market group.
-   *
-   * Two of the three are `listing_intent` values and the third is not:
-   * a shortlet is rented, by the night, and the column that tells it apart
-   * from a tenancy is `kind`. So the control answers in markets and writes
-   * whichever pair of columns that market means, which is the same shape
-   * the card's own `cardMarket` uses to read them back. Each option is
+   * BUY AND RENT: the Property side's two markets, each a `listing_intent`
+   * value. Shortlet was a third and left with the stays (V-67). Buy is
    * offered only where the pool holds something it could return.
    */
   const marketOptions = useMemo(() => {
     const sale = facts.some((fact) => fact.intent === "sale") || draft.intent === "sale";
-    const shortlet = facts.some((fact) => fact.kind === "shortlet") || draft.kind === "shortlet";
     const options: { value: Market; label: string; icon: UiIconName }[] = [];
     /*
      * BUY IS THE HOUSE AND RENT IS THE KEY, and these two were the other way
@@ -361,14 +421,12 @@ export function FilterDrawer({
      */
     if (sale) options.push({ value: "sale", label: "Buy", icon: "home" });
     options.push({ value: "rent", label: "Rent", icon: "key" });
-    if (shortlet) options.push({ value: "shortlet", label: "Shortlet", icon: "calendar-booking" });
+    /* No Shortlet: a shortlet is a stay and lives on the Stays side (V-67). */
     return options;
-  }, [facts, draft.intent, draft.kind]);
+  }, [facts, draft.intent]);
 
-  /* Which of the three the draft currently stands on. A shortlet is a rent
-     with a kind, so it is read before the bare intent. */
-  const market: Market | undefined =
-    draft.kind === "shortlet" ? "shortlet" : draft.intent === undefined ? undefined : draft.intent;
+  /* Which market the draft currently stands on. */
+  const market: Market | undefined = draft.intent;
 
   const amenityOptions = useMemo(() => {
     const codes = new Set<string>();
@@ -392,21 +450,69 @@ export function FilterDrawer({
   const showUtilities =
     utilityOptions.backup || utilityOptions.bandA || utilityOptions.water.length > 0;
 
+  /* V-28. The compound filters are strict about silence, so they are offered
+     only when the pool in front of the reader holds an answer, the same rule
+     light and water follow: a switch that can only ever return nothing is a
+     dead end. A switch already on is always shown, so it can be turned off. */
+  const compoundOptions = useMemo(() => {
+    let landlord = draft.landlordAway;
+    let parking = draft.parkingInside;
+    for (const fact of facts) {
+      if (fact.compound?.landlordOnSite === false) landlord = true;
+      if (fact.compound?.parkingType === "inside") parking = true;
+    }
+    return { landlord, parking };
+  }, [facts, draft.landlordAway, draft.parkingInside]);
+
+  /* V-68. The same rule for Serviced and the gated estate. */
+  /* V-41: offered only when the page could judge flooding (flag on). */
+  const floodJudged = useMemo(() => facts.some((fact) => fact.floodClear !== undefined), [facts]);
+  const serviceOptions = useMemo(() => {
+    let serviced = draft.servicedOnly;
+    let gated = draft.gatedEstate;
+    for (const fact of facts) {
+      if (fact.service?.serviced) serviced = true;
+      if (fact.service?.estateType === "gated_estate") gated = true;
+    }
+    return { serviced, gated };
+  }, [facts, draft.servicedOnly, draft.gatedEstate]);
+
+  /* V-66: the shapes the pool holds, in the list's order, plus any already
+     chosen, so a chip never offers an empty result by construction. */
+  const shapeOptions = useMemo(() => {
+    const present = new Set<UnitShape>(draft.shapes);
+    let bq = draft.withBq;
+    for (const fact of facts) {
+      if (fact.unit?.shape) present.add(fact.unit.shape);
+      if (fact.unit?.hasBq) bq = true;
+    }
+    return { shapes: UNIT_SHAPES.filter((shape) => present.has(shape)), bq };
+  }, [facts, draft.shapes, draft.withBq]);
+  const toggleShape = useCallback((shape: UnitShape) => {
+    setDraft((current) => ({
+      ...current,
+      shapes: UNIT_SHAPES.filter((s) => (s === shape ? !current.shapes.includes(s) : current.shapes.includes(s))),
+    }));
+  }, []);
+
   const pending = useMemo(() => queryFrom(query, draft), [query, draft]);
+  /* V-43: the pool carries bands to the anchor the shelf was loaded with, so
+     "within" is counted only for that anchor; a newly chosen one is counted
+     after Apply, and the sheet says so. */
+  const commute = commuteCount(draft, query.to);
+  const commutePending = commute.pending;
   const matchCount = useMemo(() => {
     const filter = shelfFilter(pending);
-    return facts.filter((fact) => matchesFacts(fact, filter)).length;
-  }, [facts, pending]);
+    const counted = commuteCount({ to: draft.to, withinOn: draft.withinOn }, query.to);
+    return facts.filter((fact) => matchesFacts(fact, filter) && counted.passes(fact.commuteAmHigh)).length;
+  }, [facts, pending, draft.to, draft.withinOn, query.to]);
 
-  const bounds = useMemo(() => {
-    let high: number | undefined;
-    for (const fact of facts) {
-      if (fact.priceMinor <= 0) continue;
-      if (high === undefined || fact.priceMinor > high) high = fact.priceMinor;
-    }
-    return { high };
-  }, [facts]);
-  const scale = useMemo(() => sliderScale(bounds.high), [bounds.high]);
+  /* THE PRICE CONTROL IS SCALED TO THE MARKET (V-67). A fixed range per
+     market (`PRICE_BOUNDS`), the Rent scale when no market is chosen, so the
+     track never runs to the dearest sale. V-65: on the Rent market the figure
+     it bounds is the cash at the door. */
+  const cashMarket = rentMeansTenancy(draft);
+  const scale = useMemo(() => priceScale(draft.intent), [draft.intent]);
 
   const noun = draft.kind ? KIND_NOUN[draft.kind] : { one: "place", many: "places" };
 
@@ -418,7 +524,9 @@ export function FilterDrawer({
       ? costCopy.basisPrice
       : draftBasisKey === "move-in"
         ? costCopy.basisMoveIn
-        : null;
+        : draftBasisKey === "fees"
+          ? (feesBasis ?? null)
+          : null;
 
   // Naira, because that is what the control holds. It becomes kobo the moment
   // it is shown or stored, and never before.
@@ -448,16 +556,11 @@ export function FilterDrawer({
 
   function pickMarket(value: Market) {
     setDraft((current) => {
-      const { intent: _wasIntent, kind: _wasKind, ...rest } = current;
-      const wasShortlet = current.kind === "shortlet";
-      const standing = wasShortlet ? "shortlet" : current.intent;
+      const { intent: _wasIntent, ...rest } = current;
       /* Tapping the market you are already in clears it, which is how every
          other group in this sheet behaves. */
-      if (standing === value) return current.kind && !wasShortlet ? { ...rest, kind: current.kind } : rest;
-      if (value === "shortlet") return { ...rest, intent: "rent", kind: "shortlet" };
-      return current.kind && !wasShortlet
-        ? { ...rest, intent: value, kind: current.kind }
-        : { ...rest, intent: value };
+      if (current.intent === value) return rest;
+      return { ...rest, intent: value };
     });
   }
 
@@ -546,6 +649,116 @@ export function FilterDrawer({
               </Group>
             )}
 
+            {/* ------------------------------------------ shape (V-66) */}
+            {(!draft.kind || takesShape(draft.kind)) && (shapeOptions.shapes.length > 0 || shapeOptions.bq) && (
+              <Group
+                id="filter-shape"
+                title={unitCopy.filterTitle}
+                clearLabel={copy.clear}
+                onClear={
+                  draft.shapes.length > 0 || draft.withBq
+                    ? () => setDraft((current) => ({ ...current, shapes: [], withBq: false }))
+                    : undefined
+                }
+              >
+                {shapeOptions.shapes.length > 0 && (
+                  <div className="flex flex-wrap gap-xs" role="group">
+                    {shapeOptions.shapes.map((shape) => (
+                      <button
+                        key={shape}
+                        type="button"
+                        aria-pressed={draft.shapes.includes(shape)}
+                        data-testid={`filter-shape-${shape}`}
+                        onClick={() => toggleShape(shape)}
+                        className="nf-filters__tile"
+                      >
+                        {unitCopy.shapes[shape]}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {shapeOptions.bq && (
+                  <div className="mt-sm divide-y divide-[var(--nf-panel-hair)]">
+                    <SwitchRow
+                      icon="key"
+                      label={unitCopy.filterBq}
+                      checked={draft.withBq}
+                      testId="filter-bq"
+                      onChange={(next) => setDraft((current) => ({ ...current, withBq: next }))}
+                    />
+                  </div>
+                )}
+              </Group>
+            )}
+
+            {/* -------------------------- no flooding reported (V-41) */}
+            {floodJudged && noFloodLabel && (
+              <Group
+                id="filter-flood"
+                title={noFloodLabel.label}
+                clearLabel={copy.clear}
+                onClear={draft.noFlood ? () => setDraft((current) => ({ ...current, noFlood: false })) : undefined}
+              >
+                <div className="divide-y divide-[var(--nf-panel-hair)]">
+                  <SwitchRow
+                    icon="sun"
+                    label={noFloodLabel.label}
+                    hint={noFloodLabel.hint}
+                    checked={draft.noFlood}
+                    testId="filter-no-flood"
+                    onChange={(next) => setDraft((current) => ({ ...current, noFlood: next }))}
+                  />
+                </div>
+              </Group>
+            )}
+
+            {/* --------------------------------- commute (V-43) */}
+            {anchors.length > 0 && (
+              <Group
+                id="filter-commute"
+                title={commuteCopy.filterTitle}
+                clearLabel={copy.clear}
+                onClear={draft.to ? () => setDraft((current) => ({ ...current, to: "", withinOn: false })) : undefined}
+              >
+                <label className="block">
+                  <span className="sr-only">{commuteCopy.filterTitle}</span>
+                  <select
+                    className="nf-field"
+                    value={draft.to}
+                    data-testid="filter-commute-to"
+                    onChange={(event) => {
+                      const to = event.target.value;
+                      setDraft((current) => ({ ...current, to, withinOn: to ? current.withinOn : false }));
+                    }}
+                  >
+                    <option value="">{commuteCopy.anywhere}</option>
+                    {anchors.map((anchor) => (
+                      <option key={anchor.id} value={anchor.slug}>
+                        {anchor.name}, {anchor.city}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {draft.to && (
+                  <div className="mt-sm divide-y divide-[var(--nf-panel-hair)]">
+                    <SwitchRow
+                      icon="history"
+                      label={commuteCopy.within.replace("{n}", String(RUSH_WITHIN))}
+                      hint={commuteCopy.withinHint}
+                      checked={draft.withinOn}
+                      testId="filter-commute-within"
+                      onChange={(next) => setDraft((current) => ({ ...current, withinOn: next }))}
+                    />
+                  </div>
+                )}
+                {commutePending && (
+                  <p className="nf-filters__hint mt-inline-tight" role="status">
+                    {commuteCopy.countAfterApply}
+                  </p>
+                )}
+              </Group>
+            )}
+
             {/* -------------------------------------------------- market */}
             <Group
               id="filter-market"
@@ -556,9 +769,7 @@ export function FilterDrawer({
                   ? () =>
                       setDraft((current) => {
                         const { intent: _wasIntent, ...rest } = current;
-                        if (current.kind !== "shortlet") return rest;
-                        const { kind: _wasKind, ...bare } = rest;
-                        return bare;
+                        return rest;
                       })
                   : undefined
               }
@@ -575,7 +786,7 @@ export function FilterDrawer({
             {/* --------------------------------------------------- price */}
             <Group
               id="filter-price"
-              title={copy.priceRange}
+              title={cashMarket ? cashCopy.budgetTitle : copy.priceRange}
               clearLabel={copy.clear}
               onClear={
                 draft.minNaira || draft.maxNaira
@@ -639,6 +850,28 @@ export function FilterDrawer({
               </div>
               {sliderMax >= scale.ceiling && (
                 <p className="nf-filters__hint mt-inline-tight">{copy.noUpperLimit}</p>
+              )}
+              {cashMarket && (
+                <>
+                  <p className="nf-filters__hint mt-inline-tight" data-testid="filter-cash-basis">
+                    {cashCopy.budgetBasis}
+                  </p>
+                  <div className="mt-sm divide-y divide-[var(--nf-panel-hair)]">
+                    <SwitchRow
+                      icon="wallet"
+                      label={cashCopy.oneYearAtMost}
+                      checked={draft.maxUpfront !== undefined}
+                      testId="filter-upfront"
+                      onChange={(next) =>
+                        setDraft((current) => {
+                          const { maxUpfront: _dropped, ...rest } = current;
+                          void _dropped;
+                          return next ? { ...rest, maxUpfront: ONE_YEAR } : rest;
+                        })
+                      }
+                    />
+                  </div>
+                </>
               )}
             </Group>
 
@@ -773,6 +1006,77 @@ export function FilterDrawer({
               </Group>
             )}
 
+            {/* ---------------------------------------------- compound */}
+            {(compoundOptions.landlord || compoundOptions.parking) && (
+              <Group
+                id="filter-compound"
+                title={compoundCopy.title}
+                clearLabel={copy.clear}
+                onClear={
+                  draft.landlordAway || draft.parkingInside
+                    ? () =>
+                        setDraft((current) => ({ ...current, landlordAway: false, parkingInside: false }))
+                    : undefined
+                }
+              >
+                <div className="divide-y divide-[var(--nf-panel-hair)]">
+                  {compoundOptions.landlord && (
+                    <SwitchRow
+                      icon="house"
+                      label={compoundCopy.filterLandlordAway}
+                      checked={draft.landlordAway}
+                      testId="filter-landlord-away"
+                      onChange={(next) => setDraft((current) => ({ ...current, landlordAway: next }))}
+                    />
+                  )}
+                  {compoundOptions.parking && (
+                    <SwitchRow
+                      icon="parking"
+                      label={compoundCopy.filterParkingInside}
+                      checked={draft.parkingInside}
+                      testId="filter-parking-inside"
+                      onChange={(next) => setDraft((current) => ({ ...current, parkingInside: next }))}
+                    />
+                  )}
+                </div>
+              </Group>
+            )}
+
+            {/* ------------------------------------------ service (V-68) */}
+            {(serviceOptions.serviced || serviceOptions.gated) && (
+              <Group
+                id="filter-service"
+                title={serviceCopy.filterTitle}
+                clearLabel={copy.clear}
+                onClear={
+                  draft.servicedOnly || draft.gatedEstate
+                    ? () => setDraft((current) => ({ ...current, servicedOnly: false, gatedEstate: false }))
+                    : undefined
+                }
+              >
+                <div className="divide-y divide-[var(--nf-panel-hair)]">
+                  {serviceOptions.serviced && (
+                    <SwitchRow
+                      icon="bolt"
+                      label={serviceCopy.filterServiced}
+                      checked={draft.servicedOnly}
+                      testId="filter-serviced"
+                      onChange={(next) => setDraft((current) => ({ ...current, servicedOnly: next }))}
+                    />
+                  )}
+                  {serviceOptions.gated && (
+                    <SwitchRow
+                      icon="key"
+                      label={serviceCopy.filterGated}
+                      checked={draft.gatedEstate}
+                      testId="filter-gated-estate"
+                      onChange={(next) => setDraft((current) => ({ ...current, gatedEstate: next }))}
+                    />
+                  )}
+                </div>
+              </Group>
+            )}
+
             {/* ------------------------------------------------ trust */}
             <Group
               id="filter-booking"
@@ -791,13 +1095,6 @@ export function FilterDrawer({
               }
             >
               <div className="divide-y divide-[var(--nf-panel-hair)]">
-                <SwitchRow
-                  icon="sparkle"
-                  label={copy.instant}
-                  checked={draft.instantBook}
-                  testId="filter-instant"
-                  onChange={(next) => setDraft((current) => ({ ...current, instantBook: next }))}
-                />
                 <SwitchRow
                   icon="verified"
                   label={copy.verifiedOnly}
@@ -891,7 +1188,7 @@ export function FilterDrawer({
                 >
                   {SORTS.map((sort) => (
                     <option key={sort.key} value={sort.key}>
-                      {sort.label}
+                      {sortCopy[sort.key]}
                     </option>
                   ))}
                 </select>

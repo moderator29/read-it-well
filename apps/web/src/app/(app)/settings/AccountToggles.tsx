@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, useTransition } from "react";
+import { setLite } from "@/lib/ui/lite";
 import { RowSwitch, SettingsGroup } from "@/components/app/account/rows";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { updateSettings } from "@/lib/profile/actions";
@@ -159,6 +160,8 @@ export function AccountPrivacyCard({
   initialDataSaver: boolean;
 }) {
   const [hideActivity, setHideActivity] = useState(initialPrivacy.hideActivity);
+  const [showOccupation, setShowOccupation] = useState(initialPrivacy.showOccupation);
+  const [showHomeTown, setShowHomeTown] = useState(initialPrivacy.showHomeTown);
   const [dataSaver, setDataSaver] = useState(initialDataSaver);
   const { save, error, saved, pending } = useSettingsSaver();
   const copy = t.settings.notify;
@@ -177,6 +180,31 @@ export function AccountPrivacyCard({
         }}
         disabled={pending}
       />
+      {/* V-64: private by default, one switch per fact. */}
+      <RowSwitch
+        icon="user"
+        label={t.shape.profile.showOccupation}
+        sub={t.shape.profile.showOccupationSub}
+        checked={showOccupation}
+        onChange={(next) => {
+          const previous = showOccupation;
+          setShowOccupation(next);
+          save({ privacy: { showOccupation: next } }, () => setShowOccupation(previous));
+        }}
+        disabled={pending}
+      />
+      <RowSwitch
+        icon="location"
+        label={t.shape.profile.showHomeTown}
+        sub={t.shape.profile.showHomeTownSub}
+        checked={showHomeTown}
+        onChange={(next) => {
+          const previous = showHomeTown;
+          setShowHomeTown(next);
+          save({ privacy: { showHomeTown: next } }, () => setShowHomeTown(previous));
+        }}
+        disabled={pending}
+      />
       <RowSwitch
         icon="compass"
         label={copy.dataSaver}
@@ -185,6 +213,8 @@ export function AccountPrivacyCard({
         onChange={(next) => {
           const previous = dataSaver;
           setDataSaver(next);
+          /* V-79: the cookie the server reads, and the device setting. */
+          setLite(next);
           save({ dataSaver: next }, () => setDataSaver(previous));
         }}
         disabled={pending}

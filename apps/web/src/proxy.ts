@@ -9,6 +9,7 @@ import {
   REPORTING_ENDPOINTS,
 } from "@/lib/security/csp";
 import { safeReturnPath } from "@/lib/security/return-path";
+import { isShellUserAgent, SHELL_START } from "@/lib/native/shell";
 import { forwardedAgentHeaders } from "./lib/supabase/agent";
 import { serverCookiesSecure, withAuthCookiePolicy } from "./lib/supabase/cookie-policy";
 import { consume, ipFromHeaders, subjectForIp } from "@/lib/security/rate-limit";
@@ -129,6 +130,12 @@ import { detailIsMissing, type ListingCounter } from "@/lib/routing/listing-exis
 const PUBLIC_SEGMENTS = new Set([
   // The company and support surfaces around the landing page.
   "about",
+  // V-82: the public area price pages. Aggregates only (what an area is
+  // asking, the count and the dates), never a listing, a photograph, an agent
+  // or an address; a statement about a market, like the landing page. An area
+  // without the Price Check minimum of REAL listings is a 404, so today every
+  // address under it is one.
+  "areas",
   "careers",
   "contact",
   "docs",
@@ -144,6 +151,11 @@ const PUBLIC_SEGMENTS = new Set([
   // deletion already started.
   "delete-account",
   // The doors.
+  // `r` is V-55's receipt check: a code a tenant hands to an employer, an
+  // embassy or a new landlord, none of whom are members. It answers
+  // area-level facts about a genuine payment and nothing else, the same page
+  // to every visitor.
+  "r",
   "auth",
   "forgot-password",
   "reset-password",
@@ -151,6 +163,26 @@ const PUBLIC_SEGMENTS = new Set([
   "sign-up",
   "start",
   "welcome",
+  // THE SHARE DOOR (V-07). `/s/<token>` is a door in exactly the sense the
+  // five above are: a public page whose only purpose is to lead somebody
+  // inside with a `next`. It shows ONE card (area only, never an address, no
+  // sharer) and one button, "Sign in to open it on Vallo". It exists because
+  // every Share on the platform otherwise unfurls as "Sign in | Vallo". The
+  // card is read through `public.share_door`, whose row type cannot carry an
+  // address, and the same card goes to a person and to an unfurler: nothing
+  // here or in the page reads the user agent.
+  "s",
+  // V-31 and V-32: the landlord's reply page. The landlord has no account and
+  // needs none; the single-use token in the link is the authorisation, checked
+  // against its sha256 inside the database. The page shows the area and never
+  // the address, and nothing else inside the platform is reachable from it.
+  "landlord",
+  // V-61: "Is this a Vallo agent?" A renter holding a flyer has no account;
+  // the lookup behind it is rate limited and answers yes with a public name or
+  // one plain no. V-62: the page a renter's trusted contact opens, by a token,
+  // showing the area and never the address.
+  "check",
+  "safe",
   // Serving with no network, and resolving which home the caller means.
   // `open` is where the native app starts (STORE-04): it answers /home for a
   // session and /welcome or the open catalogue for anybody else.
@@ -237,16 +269,24 @@ const PUBLIC_API_PATHS = new Set([
   "/api/cron/email-outbox",
   "/api/cron/hold-sweep",
   "/api/cron/inventory-drift",
+  "/api/cron/landlord-line",
   "/api/cron/pg-cron-watch",
   "/api/cron/saved-search-alerts",
+  "/api/cron/store-readiness",
+  "/api/cron/new-match-alerts",
   "/api/csp-report",
   "/api/health/catalogue",
+  "/api/landlord/inbound",
   "/api/push/key",
   "/api/paystack/reconcile",
   "/api/paystack/webhook",
+  /* V-98: the home-screen widget, behind its device-bound token. */
+  "/api/plans/next",
   "/api/push/drain",
   "/api/push/sw",
   "/api/support",
+  /* V-96: Meta's WhatsApp webhook, behind the app-secret signature. */
+  "/api/whatsapp/inbound",
   "/api/yellowcard/webhook",
 ]);
 
@@ -270,7 +310,7 @@ export function isPublicPath(
   if (options.publicCatalogue && isPublicCataloguePath(path)) return true;
   if (options.publicCatalogue && PUBLIC_CATALOGUE_API_PATHS.has(path)) return true;
   /* An API path is decided by its WHOLE path and never by its first segment,
-     because `api` is not a public tree: exactly sixteen endpoints under it
+     because `api` is not a public tree: only the endpoints enumerated above
      answer a caller with no session and the rest do not. */
   if (isApiPath(path)) return PUBLIC_API_PATHS.has(path);
   const [, first = ""] = path.split("/");
@@ -378,6 +418,19 @@ export async function proxy(request: NextRequest) {
     closed.pathname = HARNESS_CLOSED_PATH;
     closed.search = "";
     return withSecurityPolicy(NextResponse.rewrite(closed, { request }), nonce);
+  }
+
+  /*
+   * V-11: THE STORE SHELL NEVER GETS THE LANDING PAGE. The shell appends
+   * `VALLO-NATIVE` to its user agent (`capacitor.config.ts`), and its first
+   * request is for `/`. It is sent to its own start before anything renders,
+   * here rather than in the page, because the root `loading.tsx` streams and
+   * a page-level redirect would arrive as a refresh after a skeleton. A
+   * browser is untouched. See `lib/native/shell.ts` for why `server.url` is
+   * not used for this.
+   */
+  if (request.nextUrl.pathname === "/" && isShellUserAgent(request.headers.get("user-agent"))) {
+    return withSecurityPolicy(NextResponse.redirect(new URL(SHELL_START, request.url), 307), nonce);
   }
 
   let response = NextResponse.next({ request });

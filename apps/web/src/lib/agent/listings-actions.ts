@@ -23,6 +23,8 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { hashListingPhotos } from "../photo-hash/hash-server";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import {
   NOT_CONFIGURED_MESSAGE,
@@ -30,6 +32,19 @@ import {
   resolveSession,
 } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
+import {
+  compoundColumns,
+  isMissingColumnError,
+  type CompoundPayload,
+} from "../listings/compound";
+import { serviceColumns, type ServicePayload } from "../listings/service";
+import { unitColumns, type UnitPayload } from "../listings/unit-shape";
+import { flagIsOn, NEIGHBOURS_FLAG } from "../flags/read";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "../locale";
+import { BROADCAST_MONEY_KEYS } from "./broadcast";
+import { readBroadcastMarks, writeBroadcastMarks } from "./broadcast-marks-queries";
+import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/closed";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import { SCRUB_REFUSED_MESSAGE, scrubPublicPhoto } from "../images/scrub";
@@ -142,7 +157,7 @@ async function ownedListing(
   const { data } = await supabase
     .from("listings")
     .select(
-      "id, status, title, description, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, sale_status, tenure, caution_deposit_minor, service_charge_minor, agency_fee_minor, legal_fee_minor, agreement_fee_minor, sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, stamp_duty_minor, survey_registration_fee_minor, state_code, city, area, bedrooms, bathrooms",
+      "id, status, title, description, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, sale_status, tenure, caution_deposit_minor, service_charge_minor, agency_fee_minor, legal_fee_minor, agreement_fee_minor, total_move_in_cost_minor, sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, stamp_duty_minor, survey_registration_fee_minor, state_code, city, area, bedrooms, bathrooms",
     )
     .eq("id", listingId)
     .eq("agent_id", agentId)
@@ -355,6 +370,22 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
       .eq("id", value.id)
       .eq("agent_id", gate.agentId);
     if (error) return fail(SAVE_FAILED_MESSAGE);
+    if (!(await writeCompound(gate.supabase, value.id, gate.agentId, value))) {
+      return fail(SAVE_FAILED_MESSAGE);
+    }
+    if (!(await writeService(gate.supabase, value.id, gate.agentId, value))) {
+      return fail(SAVE_FAILED_MESSAGE);
+    }
+    if (!(await writeUnit(gate.supabase, value.id, gate.agentId, value))) {
+      return fail(SAVE_FAILED_MESSAGE);
+    }
+    if (!(await writeFlooding(gate.supabase, value.id, gate.agentId, value.flooding))) {
+      return fail(SAVE_FAILED_MESSAGE);
+    }
+    /* V-09: the unconfirmed set, in the same save, so it cannot lag the draft. */
+    if (value.broadcastUnconfirmed !== undefined && !(await writeBroadcastMarks(gate.supabase, value.id, value.broadcastUnconfirmed))) {
+      return fail(SAVE_FAILED_MESSAGE);
+    }
 
     refreshAgentSurfaces();
     return ok({ id: value.id, status: existing.status });
@@ -381,9 +412,165 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     .single();
 
   if (error || !created) return fail(dbLimitRefusal(error) ?? SAVE_FAILED_MESSAGE);
+  /* Every follow-up write belongs to the draft just made. If any fails, the
+     draft is taken back and the save fails, so a retry starts clean and no
+     half-written draft (above all one whose unchecked figures were not
+     recorded, V-09) is left behind. The marks go first. */
+  const followUps = [
+    () =>
+      value.broadcastUnconfirmed !== undefined && value.broadcastUnconfirmed.length > 0
+        ? writeBroadcastMarks(gate.supabase, created.id, value.broadcastUnconfirmed)
+        : Promise.resolve(true),
+    () => writeCompound(gate.supabase, created.id, gate.agentId, value),
+    () => writeService(gate.supabase, created.id, gate.agentId, value),
+    () => writeUnit(gate.supabase, created.id, gate.agentId, value),
+    () => writeFlooding(gate.supabase, created.id, gate.agentId, value.flooding),
+  ];
+  for (const write of followUps) {
+    if (!(await write())) {
+      const { error: rollbackError } = await gate.supabase
+        .from("listings")
+        .delete()
+        .eq("id", created.id)
+        .eq("agent_id", gate.agentId);
+      /* A draft left behind is harmless to the lister (it is theirs, and a
+         draft) but must not go unseen. */
+      if (rollbackError) console.warn(`[saveDraft] rollback of draft ${created.id} failed: ${rollbackError.message}`);
+      return fail(SAVE_FAILED_MESSAGE);
+    }
+  }
 
   refreshAgentSurfaces();
   return ok({ id: created.id, status: created.status });
+}
+
+/**
+ * THE COMPOUND'S FIVE ANSWERS (V-28), WRITTEN BY THEIR OWN UPDATE.
+ *
+ * Separate from `columns` above for one reason: an update naming a column that
+ * does not exist fails whole, so if this code reaches production before
+ * migration `20260924150200`, folding these into the main write would stop
+ * every draft saving. Written on their own, a missing column costs the five
+ * answers and nothing else, and `isMissingColumnError` treats that as saved.
+ * Any other failure is a failure. Nothing is sent when no answer changed.
+ */
+async function writeCompound(
+  supabase: SupabaseClient<Database>,
+  listingId: string,
+  agentId: string,
+  value: {
+    parkingType?: CompoundPayload["parkingType"] | undefined;
+    flatsInCompound?: CompoundPayload["flatsInCompound"] | undefined;
+    landlordOnSite?: CompoundPayload["landlordOnSite"] | undefined;
+    wasteDisposal?: CompoundPayload["wasteDisposal"] | undefined;
+    carAccess?: CompoundPayload["carAccess"] | undefined;
+  },
+): Promise<boolean> {
+  const row = compoundColumns({
+    ...(value.parkingType !== undefined ? { parkingType: value.parkingType } : {}),
+    ...(value.flatsInCompound !== undefined ? { flatsInCompound: value.flatsInCompound } : {}),
+    ...(value.landlordOnSite !== undefined ? { landlordOnSite: value.landlordOnSite } : {}),
+    ...(value.wasteDisposal !== undefined ? { wasteDisposal: value.wasteDisposal } : {}),
+    ...(value.carAccess !== undefined ? { carAccess: value.carAccess } : {}),
+  });
+  if (Object.keys(row).length === 0) return true;
+  const { error } = await supabase
+    .from("listings")
+    .update(row as never)
+    .eq("id", listingId)
+    .eq("agent_id", agentId);
+  return !error || isMissingColumnError(error);
+}
+
+/**
+ * THE SERVICE CHARGE'S ANSWERS (V-68), by their own update for the reason
+ * `writeCompound` gives. `is_serviced` is generated by the database and is
+ * never written from here.
+ */
+async function writeService(
+  supabase: SupabaseClient<Database>,
+  listingId: string,
+  agentId: string,
+  value: {
+    serviceChargeCovers?: ServicePayload["serviceChargeCovers"] | undefined;
+    serviceChargeReconciled?: ServicePayload["serviceChargeReconciled"] | undefined;
+    estateType?: ServicePayload["estateType"] | undefined;
+  },
+): Promise<boolean> {
+  const row = serviceColumns({
+    ...(value.serviceChargeCovers !== undefined ? { serviceChargeCovers: value.serviceChargeCovers } : {}),
+    ...(value.serviceChargeReconciled !== undefined
+      ? { serviceChargeReconciled: value.serviceChargeReconciled }
+      : {}),
+    ...(value.estateType !== undefined ? { estateType: value.estateType } : {}),
+  });
+  if (Object.keys(row).length === 0) return true;
+  const { error } = await supabase
+    .from("listings")
+    .update(row as never)
+    .eq("id", listingId)
+    .eq("agent_id", agentId);
+  return !error || isMissingColumnError(error);
+}
+
+/**
+ * THE UNIT'S SHAPE (V-66), by its own update for the reason `writeCompound`
+ * gives. A check violation (more en-suite rooms than bedrooms) is a failure.
+ */
+async function writeUnit(
+  supabase: SupabaseClient<Database>,
+  listingId: string,
+  agentId: string,
+  value: {
+    unitShape?: UnitPayload["unitShape"] | undefined;
+    ensuiteCount?: UnitPayload["ensuiteCount"] | undefined;
+    hasBq?: UnitPayload["hasBq"] | undefined;
+  },
+): Promise<boolean> {
+  const row = unitColumns({
+    ...(value.unitShape !== undefined ? { unitShape: value.unitShape } : {}),
+    ...(value.ensuiteCount !== undefined ? { ensuiteCount: value.ensuiteCount } : {}),
+    ...(value.hasBq !== undefined ? { hasBq: value.hasBq } : {}),
+  });
+  if (Object.keys(row).length === 0) return true;
+  const { error } = await supabase
+    .from("listings")
+    .update(row as never)
+    .eq("id", listingId)
+    .eq("agent_id", agentId);
+  return !error || isMissingColumnError(error);
+}
+
+/** V-41: the lister's flooding answer, by its own update for the same reason. */
+async function writeFlooding(
+  supabase: SupabaseClient<Database>,
+  listingId: string,
+  agentId: string,
+  flooding: string | null | undefined,
+): Promise<boolean> {
+  if (flooding === undefined) return true;
+  /* Behind the V-41 flag: with it off the answer is dropped, not written. */
+  if (!(await flagIsOn(NEIGHBOURS_FLAG))) return true;
+  const { error } = await supabase
+    .from("listings")
+    .update({ flooding } as never)
+    .eq("id", listingId)
+    .eq("agent_id", agentId);
+  return !error || isMissingColumnError(error);
+}
+
+/** V-66: the shape for the submit gate. Undefined when the column cannot be read. */
+async function readUnitShape(
+  supabase: SupabaseClient<Database>,
+  listingId: string,
+): Promise<string | null | undefined> {
+  try {
+    const { data, error } = await supabase.from("listings").select("unit_shape").eq("id", listingId).maybeSingle();
+    if (error || !data) return undefined;
+    return ((data as { unit_shape?: string | null }).unit_shape ?? null);
+  } catch {
+    return undefined;
+  }
 }
 
 /** Kobo as naira text, for one error sentence. Integer division, never a float. */
@@ -505,6 +692,11 @@ export async function addPhoto(input: {
     .single();
 
   if (error || !created) return fail(PHOTO_FAILED_MESSAGE);
+
+  /* V-45: hash the stored photograph after the response, as the service
+     role, so the review desk can compare it. Never slows the upload and
+     never fails it. */
+  after(() => hashListingPhotos(listingId));
 
   refreshAgentSurfaces();
   return ok({ photoId: created.id, position: created.position });
@@ -999,9 +1191,19 @@ export async function submitListing(input: {
     return fail("This listing has already been through review. Return it to a draft to change it.");
   }
 
-  const [photoRes, amenityRes] = await Promise.all([
+  /* V-09: a figure read from a pasted WhatsApp message is not sent for review
+     until a person has looked at it. The set is kept beside the draft on the
+     server, so this holds on every device, not only the one that pasted. */
+  const unconfirmed = await readBroadcastMarks(gate.supabase, listingId);
+  /* Fails closed: a set we could not read is treated as unchecked. */
+  if (unconfirmed === null || unconfirmed.some((key) => (BROADCAST_MONEY_KEYS as readonly string[]).includes(key))) {
+    return fail(getDictionary(await getLocale()).frontDoor.broadcast.unconfirmedOnServer);
+  }
+
+  const [photoRes, amenityRes, unitShape] = await Promise.all([
     gate.supabase.from("listing_photos").select("id, position").eq("listing_id", listingId),
     gate.supabase.from("listing_amenities").select("amenity_id").eq("listing_id", listingId),
+    readUnitShape(gate.supabase, listingId),
   ]);
 
   const photos = photoRes.data ?? [];
@@ -1021,9 +1223,19 @@ export async function submitListing(input: {
     tenure: listing.tenure,
     bedrooms: listing.bedrooms,
     bathrooms: listing.bathrooms,
+    ...(unitShape !== undefined ? { unitShape } : {}),
     amenityCount: (amenityRes.data ?? []).length,
     photoCount: photos.length,
     hasCover: photos.some((p) => p.position === 0),
+    moveInStatedMinor: listing.total_move_in_cost_minor,
+    moveInPartsMinor: [
+      listing.rent_amount_minor,
+      listing.caution_deposit_minor,
+      listing.service_charge_minor,
+      listing.agency_fee_minor,
+      listing.legal_fee_minor,
+      listing.agreement_fee_minor,
+    ],
   });
 
   if (unmet.length > 0) {
@@ -1038,6 +1250,7 @@ export async function submitListing(input: {
     .select("id, status")
     .single();
 
+  if (isClosedListingRefusal(error)) return fail(CLOSED_LISTING_MESSAGE);
   if (error || !updated) {
     return fail("We could not send this listing for review just now. Please try again.");
   }
@@ -1071,6 +1284,7 @@ export async function unpublishListing(input: {
     .update({ status: "DRAFT" })
     .eq("id", listing.id)
     .eq("agent_id", gate.agentId);
+  if (isClosedListingRefusal(error)) return fail(CLOSED_LISTING_MESSAGE);
   if (error) return fail("We could not take this listing down just now. Please try again.");
 
   refreshAgentSurfaces();

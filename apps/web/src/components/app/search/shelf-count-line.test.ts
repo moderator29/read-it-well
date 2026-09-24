@@ -38,6 +38,6 @@ describe("the results header on a paged shelf", () => {
     const { join } = await import("node:path");
     const page = readFileSync(join(process.cwd(), "src/app/(app)/search/page.tsx"), "utf8");
     expect(page).toContain("more={!codeHit && Boolean(nextHref)}");
-    expect(page).toContain("later={!codeHit && Boolean(after)}");
+    expect(page).toContain("later={!codeHit && Boolean(afterCursor)}");
   });
 });

@@ -1,0 +1,51 @@
+/*
+ * V-85, the complaint pack. On screen it is an ordinary dark page. In print
+ * only the pack prints, on paper tokens, so a tribunal gets black text on a
+ * white page and no navigation. Tokens only.
+ */
+@layer components {
+  .nf-pack table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .nf-pack th,
+  .nf-pack td {
+    padding: var(--nf-space-2xs) var(--nf-space-xs);
+    border-bottom: 1px solid var(--nf-divider);
+    text-align: left;
+    vertical-align: top;
+  }
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 16mm;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .nf-pack,
+  .nf-pack * {
+    visibility: visible;
+  }
+  .nf-pack {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    background: var(--nf-surface-on-paper);
+    color: var(--nf-content-on-paper);
+  }
+  .nf-pack * {
+    color: var(--nf-content-on-paper) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  .nf-pack th,
+  .nf-pack td {
+    border-bottom-color: var(--nf-border-on-paper);
+  }
+  .nf-pack-noprint {
+    display: none !important;
+  }
+}

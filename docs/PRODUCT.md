@@ -338,7 +338,7 @@ Use these words. Do not invent synonyms.
 | **Standing** | Badges and trust, as a whole | Reputation, score, karma |
 | **Stop** | An admin suspending an agent's ability to trade | Ban, block. Block is a member muting another member |
 | **The console** | `/admin` | Dashboard, backend, admin panel |
-| **Workspace** | `/agent/*` | Portal, host dashboard |
+| **Workspace** | Who you are being: Personal, or one of owner, agent, firm, hotel, shortlet, restaurant (`/agent/*`, `/host/*`). One "Add a workspace" chooser at `/profile/setup` | Profile, role, mode, portal, host dashboard. `apps/web/src/lib/i18n/workspace-terms.test.ts` fails on them in English UI copy |
 
 **Banned in UI copy:** `demo`, `sample`, `preview`, `not live`, `coming soon`,
 `lorem`. Enforced by the vitest scan in `apps/web/src/lib/copy/`

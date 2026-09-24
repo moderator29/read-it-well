@@ -1,7 +1,13 @@
 import "server-only";
 
+import { readCountedReviews } from "../reviews/weight";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { memo } from "../cache/memo";
+import { honestExamplePhotos } from "./example-imagery";
+import { rentMeansTenancy } from "./filter";
+import { COMPOUND_BY_ID_COLUMNS, readCompound, type Compound, type CompoundRow } from "./compound";
+import { SERVICE_BY_ID_COLUMNS, readService, type ServiceFacts, type ServiceRow } from "./service";
+import { UNIT_BY_ID_COLUMNS, readUnit, type UnitFacts, type UnitRow } from "./unit-shape";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import { createClient } from "../supabase/server";
@@ -202,7 +208,6 @@ const LISTING_SELECT = `
   total_floors,
   bedrooms,
   bathrooms,
-  featured,
   is_demo,
   agent_id,
   listing_role,
@@ -276,7 +281,6 @@ const LISTING_DETAIL_SELECT = `
   total_floors,
   bedrooms,
   bathrooms,
-  featured,
   is_demo,
   agent_id,
   listing_role,
@@ -346,7 +350,6 @@ export type ListingRow = {
   total_floors: number | null;
   bedrooms: number;
   bathrooms: number;
-  featured: boolean;
   is_demo: boolean;
   agent_id: string;
   listing_role: string | null;
@@ -365,6 +368,10 @@ export type ListingRow = {
   created_at: string;
   address_verified_at: string | null;
   physically_inspected_at: string | null;
+  /* V-03: the two supply dates, granted to anon by migration 20260924130000.
+     Optional on the type so a fixture written before them still builds. */
+  ownership_verified_at?: string | null;
+  mandate_verified_at?: string | null;
   listing_photos: { storage_path: string; position: number }[];
   listing_videos: {
     storage_path: string;
@@ -652,7 +659,13 @@ async function getReviewStats(
 ): Promise<Map<string, { rating: number; count: number }>> {
   const stats = new Map<string, { rating: number; count: number }>();
   if (listingIds.length === 0) return stats;
-  const { data, error } = await (supabase.rpc as unknown as ReviewStatsRpc)("listing_review_stats", {
+  /* V-58 and OPS-11 together: grouped in SQL over `public.reviews_counted`,
+     so a review from the lister's own shadow is neither averaged nor counted.
+     Any error (a database the function has not reached) falls back to the
+     row read below, which is V-58's own and caps at JOIN_ROW_LIMIT. The
+     OPS-11 function over the bare table, `listing_review_stats`, is never
+     called: it would count the withheld reviews back in. */
+  const { data, error } = await (supabase.rpc as unknown as ReviewStatsRpc)("listing_review_counted_stats", {
     p_listing_ids: listingIds,
   });
   if (error || !data) return getReviewStatsFromRows(supabase, listingIds);
@@ -668,25 +681,28 @@ async function getReviewStats(
 }
 
 type ReviewStatsRpc = (
-  fn: "listing_review_stats",
+  fn: "listing_review_counted_stats",
   args: { p_listing_ids: string[] },
 ) => PromiseLike<{
   data: { listing_id: string; rating_avg: number | string; review_count: number }[] | null;
   error: unknown;
 }>;
 
-/** The pre-OPS-11 read, for a database without `listing_review_stats`. */
+/** The row read, for a database without `listing_review_counted_stats`. */
 async function getReviewStatsFromRows(
   supabase: Client,
   listingIds: string[],
 ): Promise<Map<string, { rating: number; count: number }>> {
   const stats = new Map<string, { rating: number; count: number }>();
   if (listingIds.length === 0) return stats;
-  const { data, error } = await supabase
-    .from("reviews")
-    .select("listing_id, rating")
-    .in("listing_id", listingIds)
-    .limit(JOIN_ROW_LIMIT);
+  /* V-58: a review from the lister's own shadow is not in the average. */
+  const { data, error } = await readCountedReviews<{ id: string; listing_id: string; rating: number }>((table) =>
+    (supabase as unknown as SupabaseClient)
+      .from(table)
+      .select("id, listing_id, rating")
+      .in("listing_id", listingIds)
+      .limit(JOIN_ROW_LIMIT),
+  );
   if (error || !data) return stats;
   warnIfTruncated(data.length, "reviews", listingIds.length);
 
@@ -725,6 +741,13 @@ export function mapRow(
   signedVideos: Map<string, string>,
   verifiedAgents: Set<string>,
   listerNames: Map<string, string>,
+  /* V-03: when each checked agent's identity rung passed, from
+     `agent_badges.verified_at`. Optional and last so every existing caller
+     and spec reads exactly as before. */
+  identitySeenAt: Map<string, string> = new Map(),
+  /* V-05: the public count of renters' truth answers, from
+     `public.listing_truth_summary` (two answers up, real listings only). */
+  renterTruth: Map<string, { attended: number; asListed: number; lastAt: string }> = new Map(),
 ): Listing {
   const kind = KIND_BY_PROPERTY_TYPE[row.property_type] ?? "home";
   const stat = stats.get(row.id);
@@ -756,6 +779,20 @@ export function mapRow(
   const moveIn = moveInTotal(row);
   const purchase = purchaseTotal(row);
 
+  /* A modest example wears honest imagery or none (see
+     `lib/listings/example-imagery.ts`): the aspirational renders on its rows
+     are not shown in place of a mini flat. Every other row is untouched. */
+  const shownPhotos = honestExamplePhotos(
+    {
+      kind,
+      bedrooms: row.bedrooms ?? 0,
+      intent: row.listing_intent === "sale" ? "sale" : "rent",
+      isDemo: row.is_demo,
+      ...(headline.kind === "sale" ? {} : { pricePeriod: headline.period }),
+    },
+    photos,
+  );
+
   return {
     id: row.id,
     slug: slugFor(row),
@@ -767,6 +804,7 @@ export function mapRow(
     area: row.area ?? row.city ?? "",
     city: row.city ?? "",
     state: (row.state_code ? stateNames.get(row.state_code) : undefined) ?? row.state_code ?? "",
+    ...(row.state_code ? { stateCode: row.state_code } : {}),
     /* Both columns are nullable and the wizard does not force a pin, so a row
        carries a coordinate or it carries neither. A half pair is refused rather
        than mapped, because a latitude with no longitude places a property on
@@ -853,6 +891,24 @@ export function mapRow(
     ...(row.total_floors === null ? {} : { totalFloors: row.total_floors }),
     ...(row.physically_inspected_at ? { inspectedAt: row.physically_inspected_at } : {}),
     ...(row.address_verified_at ? { addressVerifiedAt: row.address_verified_at } : {}),
+    /*
+     * THE PROOF STRIP'S DATES (V-03), and none of them on an example listing.
+     * The database already refuses the two supply stamps on an example and
+     * refuses a verified lister behind one; the clamp here is the same second
+     * lock `verified` carries, for the same reason. The identity date is only
+     * carried where the badge itself is true, so the strip can never print an
+     * identity line beside a listing that draws no badge.
+     */
+    ...(!row.is_demo && row.ownership_verified_at
+      ? { ownershipVerifiedAt: row.ownership_verified_at }
+      : {}),
+    ...(!row.is_demo && row.mandate_verified_at
+      ? { mandateVerifiedAt: row.mandate_verified_at }
+      : {}),
+    ...(!row.is_demo && verifiedAgents.has(row.agent_id) && identitySeenAt.has(row.agent_id)
+      ? { listerIdentitySeenAt: identitySeenAt.get(row.agent_id) }
+      : {}),
+    ...(!row.is_demo && renterTruth.has(row.id) ? { renterTruth: renterTruth.get(row.id) } : {}),
     source: "vallo",
     bedrooms: row.bedrooms,
     bathrooms: row.bathrooms,
@@ -958,6 +1014,7 @@ export function mapRow(
      */
     ...(listerNames.has(row.id) ? { listerName: listerNames.get(row.id) } : {}),
     isDemo: row.is_demo,
+    ...(row.published_at ? { publishedAt: row.published_at } : {}),
     /* Instant book is gone from the schema. The whole product moved from
        "reserve a room tonight" to "rent or buy a property", and no property in
        either of those markets changes hands without a person on both sides.
@@ -965,7 +1022,7 @@ export function mapRow(
        still read it; it is false for every database row, which is the truth. */
     instantBook: false,
     amenities,
-    photos,
+    photos: shownPhotos,
     videos,
     hue: hueFor(row.id),
   };
@@ -989,18 +1046,24 @@ export function mapRow(
 async function getAgentBadges(
   supabase: Client,
   agentIds: string[],
-): Promise<Set<string>> {
+): Promise<{ verified: Set<string>; seenAt: Map<string, string> }> {
   const verified = new Set<string>();
-  if (agentIds.length === 0) return verified;
+  /* V-03: the date the badge turned true, which is the date the identity rung
+     passed. Read in the same query, so the proof strip costs no round trip. */
+  const seenAt = new Map<string, string>();
+  if (agentIds.length === 0) return { verified, seenAt };
   const { data, error } = await supabase
     .from("agent_badges")
-    .select("agent_id, verified")
+    .select("agent_id, verified, verified_at")
     .in("agent_id", agentIds);
-  if (error || !data) return verified;
-  for (const row of data as { agent_id: string; verified: boolean }[]) {
-    if (row.verified) verified.add(row.agent_id);
+  if (error || !data) return { verified, seenAt };
+  for (const row of data as { agent_id: string; verified: boolean; verified_at: string | null }[]) {
+    if (row.verified) {
+      verified.add(row.agent_id);
+      if (row.verified_at) seenAt.set(row.agent_id, row.verified_at);
+    }
   }
-  return verified;
+  return { verified, seenAt };
 }
 
 /**
@@ -1044,10 +1107,38 @@ async function getListerNames(
   return names;
 }
 
+/**
+ * V-05: WHAT RENTERS WHO WENT THERE FOUND, AS A COUNT. One read of the
+ * published view for the whole page, in parallel with the others. The view
+ * only answers for published real listings with two answers or more, so a
+ * missing row is the ordinary case and draws no line. A failed read is an
+ * empty map: the failure mode is a line that does not appear.
+ */
+async function getRenterTruth(
+  supabase: Client,
+  listingIds: string[],
+): Promise<Map<string, { attended: number; asListed: number; lastAt: string }>> {
+  const out = new Map<string, { attended: number; asListed: number; lastAt: string }>();
+  if (listingIds.length === 0) return out;
+  try {
+    const { data, error } = await (supabase as unknown as SupabaseClient)
+      .from("listing_truth_summary")
+      .select("listing_id, attended, as_listed, last_at")
+      .in("listing_id", listingIds);
+    if (error || !data) return out;
+    for (const row of data as { listing_id: string; attended: number; as_listed: number; last_at: string }[]) {
+      out.set(row.listing_id, { attended: row.attended, asListed: row.as_listed, lastAt: row.last_at });
+    }
+  } catch {
+    return new Map();
+  }
+  return out;
+}
+
 /** Map raw rows into listings, resolving references and review stats in bulk. */
 async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]> {
   if (rows.length === 0) return [];
-  const [stateNames, amenityCodes, stats, signedVideos, verifiedAgents, listerNames] = await Promise.all([
+  const [stateNames, amenityCodes, stats, signedVideos, badges, listerNames, renterTruth] = await Promise.all([
     getStateNames(),
     getAmenityCodes(),
     getReviewStats(
@@ -1060,10 +1151,120 @@ async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]>
     ),
     getAgentBadges(supabase, [...new Set(rows.map((r) => r.agent_id))]),
     getListerNames(supabase, rows.map((r) => r.id)),
+    getRenterTruth(supabase, rows.filter((r) => !r.is_demo).map((r) => r.id)),
   ]);
-  return rows.map((row) =>
-    mapRow(row, stateNames, amenityCodes, stats, signedVideos, verifiedAgents, listerNames),
-  );
+  const ids = rows.map((r) => r.id);
+  const [compounds, services, units] = await Promise.all([
+    getCompoundFacts(supabase, ids),
+    getServiceFacts(supabase, ids),
+    getUnitFacts(supabase, ids),
+  ]);
+  return rows.map((row) => {
+    const listing = mapRow(
+      row,
+      stateNames,
+      amenityCodes,
+      stats,
+      signedVideos,
+      badges.verified,
+      listerNames,
+      badges.seenAt,
+      renterTruth,
+    );
+    const compound = compounds.get(row.id);
+    const service = services.get(row.id);
+    const unit = units.get(row.id);
+    return {
+      ...listing,
+      ...(compound ? { compound } : {}),
+      ...(service ? { service } : {}),
+      ...(unit ? { unit } : {}),
+    };
+  });
+}
+
+/**
+ * THE UNIT'S SHAPE (V-66), READ ON ITS OWN for the reason `getCompoundFacts`
+ * gives: without migration `20260924150600` the read errors, which means no
+ * shapes, and never costs the catalogue.
+ */
+async function getUnitFacts(supabase: Client, ids: string[]): Promise<Map<string, UnitFacts>> {
+  const out = new Map<string, UnitFacts>();
+  if (ids.length === 0) return out;
+  try {
+    const { data, error } = await supabase.from("listings").select(UNIT_BY_ID_COLUMNS).in("id", ids);
+    if (error || !data) return out;
+    for (const row of data as unknown as (UnitRow & { id: string })[]) {
+      const unit = readUnit(row);
+      if (unit) out.set(row.id, unit);
+    }
+  } catch {
+    /* No shapes is the honest answer to a read that failed. */
+  }
+  return out;
+}
+
+/**
+ * THE SERVICE CHARGE'S ANSWERS (V-68), READ ON THEIR OWN for the reason
+ * `getCompoundFacts` gives: a database without migration `20260924150400`
+ * answers with an error, which means nobody answered, and never costs the
+ * catalogue.
+ */
+async function getServiceFacts(
+  supabase: Client,
+  ids: string[],
+): Promise<Map<string, ServiceFacts>> {
+  const out = new Map<string, ServiceFacts>();
+  if (ids.length === 0) return out;
+  try {
+    const { data, error } = await supabase
+      .from("listings")
+      .select(SERVICE_BY_ID_COLUMNS)
+      .in("id", ids);
+    if (error || !data) return out;
+    for (const row of data as unknown as (ServiceRow & { id: string })[]) {
+      const service = readService(row);
+      if (service) out.set(row.id, service);
+    }
+  } catch {
+    /* No service facts is the honest answer to a read that failed. */
+  }
+  return out;
+}
+
+/**
+ * THE COMPOUND'S FIVE ANSWERS (V-28), READ ON THEIR OWN.
+ *
+ * Not in the catalogue selects above, on purpose. A PostgREST select naming a
+ * column that does not exist fails the whole read, and the catalogue has
+ * already been taken off the air once by code that reached production ahead of
+ * its migration. So these five come from their own small read, and a database
+ * without migration `20260924150200` answers with an error that is treated as
+ * "nobody answered", which is exactly what it means.
+ *
+ * After the batch above rather than inside it, so it can never fail that
+ * batch; it is one primary key read either way.
+ */
+async function getCompoundFacts(
+  supabase: Client,
+  ids: string[],
+): Promise<Map<string, Compound>> {
+  const out = new Map<string, Compound>();
+  if (ids.length === 0) return out;
+  try {
+    const { data, error } = await supabase
+      .from("listings")
+      .select(COMPOUND_BY_ID_COLUMNS)
+      .in("id", ids);
+    if (error || !data) return out;
+    for (const row of data as unknown as (CompoundRow & { id: string })[]) {
+      const compound = readCompound(row);
+      if (compound) out.set(row.id, compound);
+    }
+  } catch {
+    /* No compound facts is the honest answer to a read that failed. */
+  }
+  return out;
 }
 
 /**
@@ -1175,16 +1376,30 @@ async function catalogueQuery(
       query = query.or(group);
     }
   }
+  /* V-66: any of the areas, as ONE or-group. Each area contributes the
+     group for its first word, which every row matching the whole area
+     also matches, so SQL stays a superset of what `matchesFilter` keeps. */
+  if (filter.areas && filter.areas.length > 0) {
+    const stateNames = await getStateNames();
+    const parts = filter.areas.flatMap((area) => freeTextGroups(area, stateNames).slice(0, 1));
+    if (parts.length === filter.areas.length) query = query.or(parts.join(","));
+  }
 
   if (filter.intent) {
     query = query.eq(
       "listing_intent",
       filter.intent as Database["public"]["Enums"]["listing_intent"],
     );
-    /* UX-07: the rent market is tenancies. A row that leads with a nightly
-       or per-head rate is a stay or a table (headlinePrice checks the rate
-       first), so it is narrowed out here; matchesFacts decides the rest. */
-    if (filter.intent === "rent") query = query.or("rate_minor.is.null,rate_minor.lte.0");
+    /* The rent market is tenancies (V-26, UX-07): a row with no positive
+       rate, which is the column `headlinePrice` reads to call a row a
+       rate. A row that leads with a nightly or per-head rate is a stay or
+       a table, so it is narrowed out here; `matchesFacts` decides the
+       rest with the same `rentMeansTenancy` rule, for the drawer's count
+       and the alerts. */
+  }
+  /* V-26 and V-67 ask the same question of the same column. */
+  if (filter.propertySide || rentMeansTenancy(filter)) {
+    query = query.or("rate_minor.is.null,rate_minor.lte.0");
   }
 
   /*
@@ -1201,13 +1416,21 @@ async function catalogueQuery(
    * budget but whose nightly rate does not is filtered out in memory. SQL
    * narrows, the matcher decides, and the two cannot disagree.
    */
-  const wantsBudget =
-    filter.minPriceMinor !== undefined || filter.maxPriceMinor !== undefined;
+  /*
+   * V-65: on the Rent market the budget is the cash at the door, which is
+   * never less than one period's rent. So a rent CEILING is still a safe
+   * narrowing (cash within budget implies rent within budget), but a rent
+   * FLOOR is not (a 2m rent can be 4m at the door), and the floor is left
+   * to `matchesFacts` alone.
+   */
+  const cashBudget = rentMeansTenancy(filter);
+  const sqlMin = cashBudget ? undefined : filter.minPriceMinor;
+  const wantsBudget = sqlMin !== undefined || filter.maxPriceMinor !== undefined;
   if (wantsBudget) {
     const bounds = (column: string) => {
       const parts = [`${column}.gt.0`];
-      if (filter.minPriceMinor !== undefined) {
-        parts.push(`${column}.gte.${filter.minPriceMinor}`);
+      if (sqlMin !== undefined) {
+        parts.push(`${column}.gte.${sqlMin}`);
       }
       if (filter.maxPriceMinor !== undefined) {
         parts.push(`${column}.lte.${filter.maxPriceMinor}`);
@@ -1301,6 +1524,10 @@ async function catalogueQuery(
  * The catalogue's two total orders (`lib/listings/keyset.ts`). Each ends in
  * `id`, so a cursor names one position and a page continues exactly.
  *
+ * NEWEST FIRST IS THE DEFAULT (V-06, V-22). There is no `featured` any more;
+ * "Recommended" is decided over what comes back by the published formula in
+ * `ranking.ts`, which nobody can pay to move, and "Newest" is this order.
+ *
  * THE MOVE-IN COST ORDER. `nullsFirst: false` is the honesty half: a listing
  * whose lister declared no total is not cheap, it is unstated, so it sorts
  * after every listing that said a number rather than ahead of all of them.
@@ -1311,10 +1538,32 @@ function inCatalogueOrder(query: CatalogueQuery, order: CatalogueOrder): Catalog
     ordered = ordered.order("total_move_in_cost_minor", { ascending: true, nullsFirst: false });
   }
   return ordered
-    .order("featured", { ascending: false })
     .order("published_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false })
     .order("id", { ascending: false });
+}
+
+/**
+ * V-10: one listing in ANY status, as the card model, read under the caller's
+ * own client, so RLS decides (a draft comes back only to its owner). Used to
+ * ask which saved searches a draft would match before it is published; never
+ * for anything shown to somebody else. Null when it cannot be read.
+ */
+export async function loadOwnListingAnyStatus(supabase: Client, id: string): Promise<Listing | null> {
+  try {
+    /* NEW-A4-01: through `pointSelect`, like every other listing read, so a
+       caller without a session asks for the public point. */
+    const { data, error } = await supabase
+      .from("listings")
+      .select(await pointSelect(supabase, LISTING_SELECT))
+      .eq("id", id)
+      .limit(1);
+    if (error || !data || data.length === 0) return null;
+    const [listing] = await mapRows(supabase, data as unknown as ListingRow[]);
+    return listing ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export class SupabaseListingRepository implements ListingRepository {
@@ -1329,7 +1578,7 @@ export class SupabaseListingRepository implements ListingRepository {
   constructor(private readonly connect: () => Promise<Client> = createClient) {}
 
   /**
-   * The published catalogue, newest and featured first.
+   * The published catalogue, newest first (V-06: nothing is featured).
    *
    * What runs where, and why:
    *

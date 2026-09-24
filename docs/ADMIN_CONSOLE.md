@@ -301,12 +301,14 @@ by title, city or date to reach older ones.
 
 ## 5. Moderation
 
-**Where:** `/admin/moderation`. Built to `01F7DFC7` panel 1.
+**Where:** the Held lane of the unified queue, `/admin/queue?tab=held` (V-88: `/admin/moderation` redirects there). Built to `01F7DFC7` panel 1. The lanes are addressed with `?tab=`, not the `?lane=` the V-88 entry wrote, because the queue already named its tabs that way.
 
-Two kinds of work in one table. **Reports** are what members filed about a
-listing, a post, a story or a person (`reports`). **Held items** are what the
-safety scan stopped before anybody saw them: posts, stories, story comments
-and bios (`status = 'HELD'`).
+The Held lane lists only what the safety scan stopped before anybody saw it:
+posts, stories, story comments, bios and events (`status = 'HELD'`), and its
+count on the queue tab counts exactly those. **Reports** (what members filed
+about a listing, a post, a story or a person) are the Reports lane, where the
+reason chips (Payment outside, Scam, Unsafe and the rest) filter with
+`?tab=reports&reason=<category>`.
 
 - **Reason tabs**: All, then the eight reasons a member can choose (payment
   off the platform, scam, unsafe, not as described, unavailable, offensive,
@@ -634,9 +636,15 @@ a fall is emerald. The line is alerts raised per day.
 | inventory-drift | Vercel Cron `45 2 * * *` | daily 03:45 | 26 h | checks room inventory against bookings |
 | account-purge | Vercel Cron `15 3 * * *` | daily 04:15 | 26 h | honours account deletions after thirty days |
 | saved-search-alerts | Vercel Cron `40 7 * * *` | daily 08:40 | 26 h | tells people about new matches for saved searches |
+| new-match-alerts | Vercel Cron `0,5,10,15,20,25,30,35,45,50,55 * * * *` | every 5 min except :40, so it never runs beside the 07:40 digest | 2 h | tells people within minutes about a listing just published, three times a day at most; the rest wait for the morning digest (V-15) |
+| store-readiness | Vercel Cron `0 5 * * *` | daily 06:00 | 26 h | runs the Store tab's checks against production and raises an alert when one is red (V-52) |
+| landlord-line | Vercel Cron `*/15 * * * *` | every 15 min | 2 h | asks consenting landlords whether the flat is still free and shows them the rent paid (V-31, V-32); a no-op while `landlord_line` is off |
 | vallo_push_drain | pg_cron `*/5 * * * *` | every 5 min | | asks the app to drain the push queue (`private.request_push_drain`) |
+| vallo_safety_share_sweep | pg_cron `*/10 * * * *` | every 10 min | | reminds a renter once when half an hour has passed since they expected to be back from an inspection they shared and they have not tapped I'm done (V-62) |
 | vallo_release_stale_holds | pg_cron `*/15 * * * *` | every 15 min | | database side of the hold release |
 | vallo_purge_rate_limits | pg_cron `30 * * * *` | hourly at :30 | | clears old rate limit rows |
+| vallo_purge_view_marks | pg_cron `41 * * * *` | hourly at :41 | | forgets the day's listing view marks and salt once the day ends (V-73) |
+| vallo_alert_overdue_refunds | pg_cron `12 * * * *` | hourly at :12 | | alerts on refunds past their due-by date (V-24) |
 | vallo_escrow_sweep_timeouts | pg_cron `17 * * * *` | hourly at :17 | | escrow timeouts |
 | vallo_escrow_invariants | pg_cron `23 * * * *` | hourly at :23 | | asserts the escrow float identity (`private.escrow_invariants_check`), six minutes after the sweeper |
 | vallo_escrow_age_watch | pg_cron `41 * * * *` | hourly at :41 | | alerts on a dispute older than 48 hours and cancels a proposal nobody funded in 14 days (`private.escrow_age_watch`, ESC-09) |
@@ -644,13 +652,21 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_purge_idempotency | pg_cron `10 2 * * *` | daily 03:10 | | clears old idempotency records |
 | vallo-nightly-badges | pg_cron `20 2 * * *` | daily 03:20 | | awards earned badges |
 | vallo_purge_email_outbox | pg_cron `25 2 * * *` | daily 03:25 | | forgets emails the outbox has already delivered |
+| vallo_purge_web_vitals | pg_cron `35 2 * * *` | daily 03:35 | | deletes field speed figures older than 30 days (V-80) |
+| vallo_purge_money_step_ups | pg_cron `45 2 * * *` | daily 03:45 | | forgets used money-lock challenges and proofs after a day (V-81) |
 | vallo_escrow_book_the_float | pg_cron `5 3 * * *` | daily 04:05 | | books the day's escrow float snapshot as a liability (`private.escrow_float_snapshot_take`) |
 | vallo_sweep_price_check_events | pg_cron `40 3 * * *` | daily 04:40 | | deletes price check events older than 24 months (the retention schedule, run) |
 | vallo_announce_completed_stays | pg_cron `20 5 * * *` | daily 06:20 | | announces completed stays |
 | vallo_sweep_price_check_watches | pg_cron `50 5 * * *` | daily 06:50 | | re-runs the price check gate at each pending watch and tells the watcher once when it opens |
+| vallo_landlord_not_reconfirmed | pg_cron `35 4 * * *` | daily 05:35 | | marks a listing Not reconfirmed after a delivered owner question goes 21 days unanswered, and clears every mark while the line is off (V-31) |
+| vallo_owner_heartbeat | pg_cron `15 8 * * *` | daily 09:15 | | asks a lister who says they own the flat, in the app, whether it is still available, once a fortnight (V-31); a no-op while `landlord_line` is off |
 | vallo-daily-note | pg_cron `0 6 * * *` | daily 07:00 | | the daily note |
+| vallo_remind_caution_due | pg_cron `15 7 * * *` | daily 08:15 | | reminds listers and tenants when a caution is due back (V-36) |
+| vallo_remind_renewals | pg_cron `20 7 * * *` | daily 08:20 | | tells tenants and listers a tenancy ends in 90, 60 or 30 days (V-93) |
+| vallo_notify_void_shares | pg_cron `25 7 * * *` | daily 08:25 | | tells a flatmate once when a move-in they paid a share of fell through (V-86) |
+| vallo_threshold_reminders | pg_cron `5 * * * *` | hourly at :05 | | tells staff three days and one day before a threshold report to the NFIU is due (SCUML item 7) |
 
-9 Vercel Cron jobs and 15 pg_cron jobs in all. The numbers are derived,
+12 Vercel Cron jobs and 26 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by
@@ -843,7 +859,7 @@ Owned by admin-money; handbook section 12.
   what it applies to (rule 15).
 - **Rejected** editing a rate in place: a new row keeps the history true.
 
-### 15.7 Message flags (Moderation > Message flags, `/admin/flags`)
+### 15.7 Message flags (the Flags lane, `/admin/queue?tab=flags`; `/admin/flags` redirects there, V-88)
 
 - **Shows** messages the safety scan flagged (`message_flags`), with the
   surrounding thread lines and each party's role, filterable by status.
@@ -855,7 +871,7 @@ Owned by admin-money; handbook section 12.
 - **Rejected** deleting the message: evidence is kept; the scan's decision
   is reviewed, not erased.
 
-### 15.8 Reports (Moderation > Reports, `/admin/reports`)
+### 15.8 Reports (the Reports lane, `/admin/queue?tab=reports`; `/admin/reports` redirects there, V-88)
 
 - **Shows** reports people filed (`reports`), with category, target and the
   response clock (`REPORT_RESPONSE_HOURS`, overdue count via
@@ -1015,7 +1031,7 @@ back to Waiting when they resubmit.
 (not the lister's to let, a scam, a duplicate). Write why, press Reject, press
 it again to confirm. The lister is told and may still edit and resubmit.
 
-**Deciding a report.** `/admin/moderation`. Work top down: waiting items are
+**Deciding a report.** The Reports lane, `/admin/queue?tab=reports`, narrowed by reason with `&reason=` if you like. Work top down: waiting items are
 oldest first. Open the row, read the reporter's words and open what was
 reported. Start review if it will take time (the reporter's report now shows
 as in review under your name). Resolve when you have acted (for a listing,

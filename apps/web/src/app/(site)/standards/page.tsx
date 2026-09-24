@@ -8,6 +8,7 @@ import {
   RESPONSE_ORDER,
 } from "@/lib/trust/standards";
 import { TIER_NAME, VERIFICATION_ORDER } from "@/lib/trust/verification";
+import { RankingExplained } from "@/components/site/RankingExplained";
 
 export const metadata: Metadata = {
   title: "Trust and safety standards",
@@ -246,6 +247,9 @@ export default function StandardsPage() {
             the agent is told why.
           </p>
         </section>
+
+        {/* ------------------------- V-06: Recommended, and no paid placement */}
+        <RankingExplained />
 
         {/* ---------------------------------------------------- appeals */}
         <section className="mt-section" aria-labelledby="appeals">

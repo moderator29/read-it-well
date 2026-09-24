@@ -124,11 +124,11 @@ export const dynamic = "force-dynamic";
 export default async function PreviewAgentList({
   searchParams,
 }: {
-  searchParams: Promise<{ step?: string; draft?: string }>;
+  searchParams: Promise<{ step?: string; draft?: string; broadcast?: string }>;
 }) {
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
-  const { step, draft } = await searchParams;
+  const { step, draft, broadcast } = await searchParams;
   const startAt = Math.max(0, (Number(step) || 1) - 1);
   /* `?draft=rental` opens on the tenancy above. Without it the wizard opens
      blank, which is the state a first-time lister meets and is worth a
@@ -140,6 +140,10 @@ export default async function PreviewAgentList({
         copy={t.agentListings}
         reference={t.listingReference}
         moveInCopy={t.moveIn}
+        compoundCopy={t.shape.compound}
+        serviceCopy={t.shape.service}
+        unitCopy={t.shape.unit}
+        floodCopy={t.shape.neighbours}
         locale={locale}
         userId={null}
         states={STATE_CODES.map((code) => ({ code, name: code }))}
@@ -147,6 +151,8 @@ export default async function PreviewAgentList({
         initial={initial}
         canPersist={false}
         startAt={startAt}
+        /* `?broadcast=1` draws V-09's paste panel on step one. */
+        broadcastCopy={broadcast === "1" ? t.frontDoor.broadcast : undefined}
       />
     </AgentShell>
   );

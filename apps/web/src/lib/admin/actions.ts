@@ -19,6 +19,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { ARRIVAL_DECLARATION_NEEDED, arrivalChargesDeclared } from "../stays/arrival-gate";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { createAdminClient } from "../supabase/admin";
 import { writeAudit, type AuditDetail } from "./audit";
@@ -38,6 +39,7 @@ import type { Database } from "../supabase/database.types";
 /* ONE VOCABULARY, READ HERE TOO. The three doors narrow onto the two person
    values in exactly one place and this is a caller of it, not a second copy. */
 import { personRoleFrom } from "../supply/roles";
+import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/closed";
 import {
   replySupportTicketSchema,
   resolveReportSchema,
@@ -122,7 +124,7 @@ export async function reviewMessageFlag(input: {
     // The flag is genuinely reviewed either way.
   }
 
-  revalidatePath("/admin/flags");
+  revalidatePath("/admin/queue");
   revalidatePath("/admin");
   return ok(null);
 }
@@ -191,6 +193,8 @@ export async function resolveReport(input: {
   reportId: string;
   decision: "reviewing" | "resolved" | "dismissed";
   notes?: string;
+  /** V-89: a line the reporter sees; staff notes never reach them. */
+  reporterNote?: string;
 }): Promise<ActionResult<null>> {
   const access = await requireAdmin();
   if (access.state !== "admin") return fail(adminRefusal(access));
@@ -207,7 +211,7 @@ export async function resolveReport(input: {
   if (readError) return fail(SERVICE_DOWN);
   if (!report) return fail(GONE);
   if (report.status === decision) return fail("This report already sits in that state.");
-  if (report.status === "resolved" || report.status === "dismissed") {
+  if (report.status === "resolved" || report.status === "dismissed" || (report.status as string) === "withdrawn") {
     return fail("This report has already been closed. Refresh the queue to see the current state.");
   }
 
@@ -236,13 +240,15 @@ export async function resolveReport(input: {
         target_type: report.target_type,
         target_id: report.target_id,
         notes: parsed.data.notes ?? null,
+        /* V-89: read by public.my_reports() and nothing else of this row. */
+        reporter_note: parsed.data.reporterNote && parsed.data.reporterNote.length > 0 ? parsed.data.reporterNote : null,
       },
     });
   } catch {
     // Best effort.
   }
 
-  revalidatePath("/admin/reports");
+  revalidatePath("/admin/queue");
   revalidatePath("/admin");
   return ok(null);
 }
@@ -302,6 +308,11 @@ export async function reviewAgentApplication(input: {
       review_notes: notes,
     })
     .eq("id", application.id);
+  /* V-90: an application matching an identity stopped for fraud is decided by
+     a senior reviewer; the database says which identity and when. */
+  if (updateError && updateError.code === "42501" && (updateError.message ?? "").includes("senior reviewer")) {
+    return fail(updateError.message);
+  }
   if (updateError) return fail(SERVICE_DOWN);
 
   /*
@@ -427,7 +438,7 @@ export async function reviewAgentApplication(input: {
                verification queue has not seen a document. The body already
                said the true thing; the title now does too. */
             title: "Your agent application is approved",
-            body: "Agent Mode is open, so you can list your first property. Verification is a separate step and you can start it from your dashboard.",
+            body: "Your agent workspace is open, so you can list your first property. Verification is a separate step and you can start it from your dashboard.",
           }
         : decision === "reject"
           ? {
@@ -556,7 +567,7 @@ export async function reviewListing(input: {
 
   const { data: listing, error: readError } = await access.supabase
     .from("listings")
-    .select("id, title, status, agent_id, reference, agents ( user_id )")
+    .select("id, title, status, agent_id, reference, published_at, agents ( user_id )")
     .eq("id", listingId)
     .maybeSingle();
   if (readError) return fail(SERVICE_DOWN);
@@ -567,6 +578,11 @@ export async function reviewListing(input: {
   }
   if (decision === "publish" && listing.status !== "APPROVED") {
     return fail("Approve this listing first, then publish it.");
+  }
+  /* V-57: a nightly stay is published only once its arrival charges are
+     declared (all five, an amount or none). Lets and sales are untouched. */
+  if (decision === "publish" && !(await arrivalChargesDeclared(access.supabase, { listingId }))) {
+    return fail(ARRIVAL_DECLARATION_NEEDED);
   }
   if (decision !== "publish" && listing.status === "PUBLISHED") {
     return fail("This listing is already live. Refresh the queue to see the current state.");
@@ -589,9 +605,14 @@ export async function reviewListing(input: {
       reviewer_id: access.user.id,
       reviewed_at: now,
       review_notes: notes,
-      ...(decision === "publish" ? { published_at: now } : {}),
+      /* The FIRST time it went live, kept (V-22, batch 1 review finding 4):
+         a listing sent back to draft and published again is not new, and
+         "Listed today", the Newest sort, the New mark and saved-search alerts
+         all read this column. */
+      ...(decision === "publish" && !listing.published_at ? { published_at: now } : {}),
     })
     .eq("id", listing.id);
+  if (isClosedListingRefusal(updateError)) return fail(CLOSED_LISTING_MESSAGE);
   if (updateError) return fail(SERVICE_DOWN);
 
   try {

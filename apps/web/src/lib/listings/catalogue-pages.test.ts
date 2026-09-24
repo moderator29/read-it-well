@@ -112,6 +112,8 @@ function byOrders(orders: Order[]) {
 
 type Tables = Record<string, Row[]>;
 
+const rpcCalls: string[] = [];
+
 function standIn(tables: Tables, log: { listingsReads: number }) {
   function from(table: string) {
     const filters: ((row: Row) => boolean)[] = [];
@@ -162,10 +164,11 @@ function standIn(tables: Tables, log: { listingsReads: number }) {
     auth: { getSession: async () => ({ data: { session: null } }) },
     storage: { from: () => ({ createSignedUrls: async () => ({ data: [], error: null }) }) },
     rpc: async (fn: string, args: { p_listing_ids: string[] }) => {
-      if (fn !== "listing_review_stats") return { data: null, error: { message: "unknown function" } };
+      rpcCalls.push(fn);
+      if (fn !== "listing_review_counted_stats") return { data: null, error: { message: "unknown function" } };
       const out: { listing_id: string; rating_avg: number; review_count: number }[] = [];
       for (const id of args.p_listing_ids) {
-        const mine = (tables.reviews ?? []).filter((r) => r.listing_id === id);
+        const mine = (tables.reviews_counted ?? []).filter((r) => r.listing_id === id);
         if (mine.length === 0) continue;
         const avg = mine.reduce((sum, r) => sum + (r.rating as number), 0) / mine.length;
         out.push({ listing_id: id, rating_avg: avg, review_count: mine.length });
@@ -240,7 +243,6 @@ function listingRow(n: number): ListingRow & { listing_amenities: { amenity_id: 
     total_floors: null,
     bedrooms: 1 + (n % 4),
     bathrooms: 1,
-    featured: n % 11 === 0,
     is_demo: false,
     agent_id: "ag000000-0000-4000-8000-000000000001",
     listing_role: "agent",
@@ -270,6 +272,9 @@ const tables: Tables = {
   amenities: AMENITIES,
   states: [{ code: "LA", name: "Lagos" }],
   reviews: [],
+  /* V-58's view: the reviews that count. One withheld review sits only in
+     `reviews`, so a rating read from the bare table would show it. */
+  reviews_counted: [],
   agent_badges: [],
   listing_lister: [],
 };
@@ -372,7 +377,6 @@ describe("no short pages when rows are refused (OPS-11)", () => {
 
 describe("the cursor", () => {
   const key: CursorKey = {
-    featured: true,
     publishedAt: "2026-09-01T10:00:00.123456+00:00",
     createdAt: "2026-08-01T00:00:00+00:00",
     id: "0b3c1d2e-0000-4000-8000-000000000001",
@@ -386,11 +390,12 @@ describe("the cursor", () => {
 
   it("refuses anything that could reach the filter as syntax", () => {
     const forged = (wire: Record<string, unknown>) =>
-      Buffer.from(JSON.stringify({ v: 1, o: "d", f: false, p: null, c: key.createdAt, i: key.id, ...wire })).toString("base64url");
+      Buffer.from(JSON.stringify({ v: 2, o: "d", p: null, c: key.createdAt, i: key.id, ...wire })).toString("base64url");
     expect(decodeCursor("default", forged({}))).not.toBeNull();
     expect(decodeCursor("default", forged({ c: '2026-08-01T00:00:00Z",id.gt."0' }))).toBeNull();
     expect(decodeCursor("default", forged({ i: "x),or(id.gt.0" }))).toBeNull();
-    expect(decodeCursor("default", forged({ f: "true" }))).toBeNull();
+    /* A version 1 cursor (it carried `featured`, which V-06 took away) reads as the first page. */
+    expect(decodeCursor("default", forged({ v: 1, f: false }))).toBeNull();
     expect(decodeCursor("default", "not base64 !")).toBeNull();
     expect(decodeCursor("default", "")).toBeNull();
   });
@@ -402,10 +407,36 @@ describe("the cursor", () => {
   });
 
   it("places a null publication date and a null move-in cost last", () => {
-    expect(keysetFilter("default", { ...key, featured: false, publishedAt: null })).toBe(
-      `and(featured.eq."false",and(published_at.is.null,or(created_at.lt."${key.createdAt}",and(created_at.eq."${key.createdAt}",id.lt."${key.id}"))))`,
+    expect(keysetFilter("default", { ...key, publishedAt: null })).toBe(
+      `and(published_at.is.null,or(created_at.lt."${key.createdAt}",and(created_at.eq."${key.createdAt}",id.lt."${key.id}")))`,
     );
+    /* V-06: nothing in the order or the cursor names `featured`. */
+    expect(keysetFilter("default", key)).not.toContain("featured");
+    expect(keysetFilter("move-in", key)).not.toContain("featured");
     expect(keysetFilter("move-in", { ...key, moveInMinor: null }).startsWith("and(total_move_in_cost_minor.is.null,")).toBe(true);
+  });
+});
+
+describe("ratings (OPS-11 with V-58)", () => {
+  it("are grouped over the counted reviews, never the bare table", async () => {
+    const [first] = tables.listings as { id: string }[];
+    tables.reviews = [
+      { id: "r1", listing_id: first!.id, rating: 5 },
+      { id: "r2", listing_id: first!.id, rating: 1 },
+    ];
+    tables.reviews_counted = [{ id: "r1", listing_id: first!.id, rating: 5 }];
+    rpcCalls.length = 0;
+    try {
+      const page = await repo.searchPage({}, { pageSize: 61 });
+      const listing = page.listings.find((l) => l.id === first!.id)!;
+      expect(listing.rating).toBe(5);
+      expect(listing.reviewCount).toBe(1);
+      expect(rpcCalls).toContain("listing_review_counted_stats");
+      expect(rpcCalls).not.toContain("listing_review_stats");
+    } finally {
+      tables.reviews = [];
+      tables.reviews_counted = [];
+    }
   });
 });
 

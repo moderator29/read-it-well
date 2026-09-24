@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import {
   liftAgentStop,
@@ -10,6 +11,7 @@ import {
 import type { AgentStanding, StopRecord } from "@/lib/admin/suspension-queries";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { RecallPanel } from "./RecallPanel";
 import { countOf } from "@vallo/i18n";
 
 /**
@@ -64,9 +66,11 @@ function signedBy(record: StopRecord): string {
 function WithdrawnList({
   withdrawn,
   lifted,
+  closedIds,
 }: {
   withdrawn: StopRecord["withdrawn"];
   lifted: boolean;
+  closedIds: ReadonlySet<string>;
 }) {
   if (withdrawn.length === 0) {
     return (
@@ -82,7 +86,11 @@ function WithdrawnList({
         // A listing that is no longer where the stop left it will not move when
         // the stop is lifted, and saying so here is the difference between an
         // operator expecting three listings back and getting two.
-        const willReturn = listing.statusNow === "SUSPENDED";
+        // A listing closed as let or unavailable while the agent was stopped is
+        // held down by the database, not by the stop: lifting it leaves it
+        // closed, and only a staff reopen on the listing page brings it back.
+        const closed = closedIds.has(listing.id);
+        const willReturn = !closed && listing.statusNow === "SUSPENDED";
         return (
           <li
             key={listing.id}
@@ -92,7 +100,9 @@ function WithdrawnList({
               {listing.title ?? "A listing that has since been deleted"}
             </span>
             <span className="nf-caption text-[var(--nf-content-muted)]">
-              {lifted
+              {closed
+                ? "closed, stays closed"
+                : lifted
                 ? `was ${statusWord(listing.from).toLowerCase()}`
                 : willReturn
                   ? `returns to ${statusWord(listing.from).toLowerCase()}`
@@ -146,8 +156,10 @@ function StoppedCard({
   action,
   state,
   pending,
+  closedIds,
 }: {
   agent: AgentStanding;
+  closedIds: ReadonlySet<string>;
   action: (formData: FormData) => void;
   state: ActionResult<LiftReceipt> | null;
   pending: boolean;
@@ -168,7 +180,9 @@ function StoppedCard({
           Stopped
         </span>
         <h3 className="nf-lede font-semibold text-[var(--nf-content-primary)]">
-          {agent.displayName}
+          <Link href={`/admin/people/${agent.userId}`} className="underline-offset-2 hover:underline">
+            {agent.displayName}
+          </Link>
         </h3>
       </div>
 
@@ -193,7 +207,10 @@ function StoppedCard({
           <h4 className="mt-heading nf-overline text-[var(--nf-content-muted)]">
             What came down
           </h4>
-          <WithdrawnList withdrawn={stop.withdrawn} lifted={false} />
+          <WithdrawnList withdrawn={stop.withdrawn} lifted={false} closedIds={closedIds} />
+
+          {/* V-60: tell everybody this account talked to, counted first. */}
+          <RecallPanel suspensionId={stop.id} />
         </>
       ) : (
         <p className="mt-heading nf-body-sm leading-relaxed text-[var(--nf-state-warning)]">
@@ -258,7 +275,9 @@ function TradingCard({
     <li className="nf-panel nf-panel--card nf-admin-card p-card">
       <div className="flex flex-wrap items-center gap-xs">
         <h3 className="min-w-0 flex-1 nf-body font-semibold text-[var(--nf-content-primary)]">
-          {agent.displayName}
+          <Link href={`/admin/people/${agent.userId}`} className="underline-offset-2 hover:underline">
+            {agent.displayName}
+          </Link>
         </h3>
         <span className="nf-numeric nf-caption text-[var(--nf-content-muted)]">
           {countOf(agent.liveListingCount, "liveListings")}
@@ -344,10 +363,14 @@ function TradingCard({
 export function StopsDesk({
   stopped,
   trading,
+  closedIds = [],
 }: {
   stopped: AgentStanding[];
   trading: AgentStanding[];
+  /** Withdrawn listings since closed as let or unavailable. They stay closed when a stop lifts. */
+  closedIds?: readonly string[];
 }) {
+  const closed = new Set(closedIds);
   const [stopState, stopAction, stopPending] = useActionState<
     ActionResult<StopReceipt> | null,
     FormData
@@ -399,6 +422,7 @@ export function StopsDesk({
               <StoppedCard
                 key={agent.agentId}
                 agent={agent}
+                closedIds={closed}
                 action={liftAction}
                 state={liftState}
                 pending={liftPending}

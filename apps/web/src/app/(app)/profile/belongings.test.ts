@@ -39,7 +39,7 @@ describe("switchRoleLine: names only what the account holds", () => {
   });
 
   it("offers what can be applied for when nothing is held", () => {
-    expect(switchRoleLine([])).toBe("Add a listing account: owner, agent or firm");
+    expect(switchRoleLine([])).toBe("Add a workspace");
   });
 
   it("reads as the render only for an agent who is also staff", () => {

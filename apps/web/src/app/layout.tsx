@@ -38,7 +38,10 @@ import { CHROME_COLOUR } from "@/lib/theme/chrome";
  * A preload only raises priority; the other subsets still arrive when the
  * stylesheet asks for them, with `font-display: swap` covering the gap. The
  * first screen's body text is Inter latin and its heading Poppins 700 latin
- * (Inter vietnamese on the two locales whose headings need it).
+ * (Inter vietnamese on the two locales whose headings need it). The naira
+ * sign's own 1.2 KB face, `inter-naira` (V-78), is not preloaded either: the
+ * stylesheet fetches it the first time a price is drawn, so English no longer
+ * pulls the 85 KB latin-ext file for one glyph.
  */
 const PRELOADED_FONTS: Record<string, readonly string[]> = {
   yo: ["inter-latin", "inter-vietnamese"],

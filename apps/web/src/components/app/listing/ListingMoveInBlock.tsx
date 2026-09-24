@@ -1,4 +1,5 @@
-import { plural, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, plural, type Dictionary, type Locale } from "@vallo/i18n";
+import { cashAtDoor, upfrontDuration, upfrontText } from "@/lib/listings/upfront";
 import type { Listing } from "@/lib/listings/types";
 import { PERIOD_SUFFIX_SLASH, type RentPeriod } from "@/lib/listings/pricing";
 import { Amount } from "@/components/ui/Amount";
@@ -32,6 +33,9 @@ export function ListingMoveInBlock({
       ? listing.pricePeriod
       : "year";
   const hasTotal = total > 0;
+  /* V-65: the rent asked for at the start, restated at the door when it is
+     several whole periods. */
+  const cash = cashAtDoor(listing);
 
   return (
     <div className="nf-detail-movein" data-testid="move-in-block">
@@ -61,6 +65,20 @@ export function ListingMoveInBlock({
               className="font-semibold text-[var(--nf-content-primary)]"
             />{" "}
             {PERIOD_SUFFIX_SLASH[period]}
+          </p>
+        )}
+        {cash && cash.upfrontMonths !== null && (
+          <p className="nf-caption mt-inline-tight break-words text-[var(--nf-content-primary)]" data-testid="move-in-upfront">
+            {/* The lister's DEMAND, labelled as theirs: the move-in charge on
+                Vallo still takes one rent period (audit-owned), so this is not
+                a figure Vallo collects. */}
+            {cash.restated ? (
+              t.shape.cash.listerAsks
+                .replace("{duration}", upfrontDuration(cash.upfrontMonths, t.shape.cash))
+                .replace("{amount}", formatMoney(cash.minor, locale, listing.currency))
+            ) : (
+              <strong>{upfrontText(cash.upfrontMonths, t.shape.cash)}</strong>
+            )}
           </p>
         )}
         <p className="nf-caption mt-inline-tight text-[var(--nf-content-muted)]">{copy.moveInInfo}</p>

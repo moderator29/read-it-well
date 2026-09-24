@@ -11,6 +11,8 @@ import { flatParams } from "./_desk/Desk";
 import { readPage } from "@/lib/admin/reads/money-derive";
 import { LEDGER_PAGE_SIZE, MoneyDesk, MoneyHead } from "./MoneyDesk";
 import "./_desk/desk.css";
+import { readRefundClockBoard } from "@/lib/after-gate/refunds";
+import { RefundClock } from "./RefundClock";
 
 export const metadata: Metadata = {
   title: "Money",
@@ -66,7 +68,7 @@ export default async function AdminMoneyPage({
   const narrowed = Boolean(query.q || query.from || query.to);
   const page = readPage(params.page);
 
-  const [read, desk, refunds, disputes, runs, rent] = await Promise.all([
+  const [read, desk, refunds, disputes, runs, rent, clock] = await Promise.all([
     getMoneyConsole(query),
     getMoneyDesk({ ...query, page, pageSize: LEDGER_PAGE_SIZE }),
     getRefundConsole(query),
@@ -75,6 +77,7 @@ export default async function AdminMoneyPage({
     getEscrowConsole({ status: "DISPUTED" }),
     getReconciliationHealth(),
     getRentCharges(),
+    readRefundClockBoard(locale),
   ]);
 
 
@@ -100,6 +103,7 @@ export default async function AdminMoneyPage({
 
   const now = new Date().getTime();
   return (
+    <>
     <MoneyDesk
       locale={locale}
       ui={ui}
@@ -117,5 +121,9 @@ export default async function AdminMoneyPage({
       tiers={tiers}
       now={now}
     />
+    <div className="nf-console nf-md">
+      <RefundClock board={clock} copy={t.afterTheGate.admin} />
+    </div>
+    </>
   );
 }

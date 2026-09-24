@@ -130,8 +130,8 @@ try {
   check("free text and category filters still apply", /shortlets? across Nigeria/.test(filteredText));
   check("filtered search still returns places", (await searchCards.count()) > 0);
 
-  console.log("/rent");
-  await page.goto(`${BASE_URL}/rent`, { waitUntil: "load" });
+  console.log("/search?market=rent");
+  await page.goto(`${BASE_URL}/search?market=rent`, { waitUntil: "load" });
   await page.waitForTimeout(WAIT);
   const rentCards = page.locator("a[href^='/listing/']");
   check("rent still renders rentals", (await rentCards.count()) > 0);

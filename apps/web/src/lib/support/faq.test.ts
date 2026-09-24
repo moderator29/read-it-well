@@ -56,7 +56,9 @@ describe("what the store says about money", () => {
     const answer = faqAnswerById("cancellations") ?? "";
     expect(answer).toContain(`${FULL_REFUND_HOURS} hours before check-in`);
     expect(answer).toContain("free-cancellation deadline");
-    expect(answer).toMatch(/not a different one for each host/i);
+    // V-20: the terms are frozen onto the booking at payment, so the answer
+    // says so instead of claiming one schedule covers every stay on the shelf.
+    expect(answer).toMatch(/fixed on your booking when you pay/i);
     expect(answer).not.toMatch(/that listing's cancellation policy/i);
   });
 

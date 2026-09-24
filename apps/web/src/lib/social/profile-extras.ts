@@ -1,4 +1,6 @@
 import "server-only";
+/* V-64: the two publish switches live in the settings blob, read through its one parser. */
+import { parseSettings } from "../profile/schema";
 
 /**
  * The parts of a person's page that come from outside `social_profiles`.
@@ -57,8 +59,14 @@ export type ProfilePlace = {
 };
 
 export type AgentTrust = {
-  /** 0 to 100, computed from real bookings and real message timings. */
-  score: number;
+  /*
+   * THERE IS NO SCORE (V-21). A number out of 100 collapsed the separate
+   * signals PRODUCT.md section 6 says must stay separate, and it counted
+   * "completed deals" only from stays, so every rental agent read that their
+   * work did not count. The column is gone from `public.agent_trust` and the
+   * field is gone from here, so no screen can print one.
+   */
+  /** Stays hosted through to check-out on this agent's listings. Rent lets are not counted here. */
   completedDeals: number;
   /** Already fit to print: "2 hrs", "40 mins", "Not yet". */
   responseTime: string;
@@ -84,21 +92,34 @@ export async function readOccupationAndPlace(
   supabase: Loose,
   userId: string,
   isSelf: boolean,
-): Promise<{ occupation: Occupation | null; place: ProfilePlace | null }> {
-  if (!isSelf) return { occupation: null, place: null };
+): Promise<{
+  occupation: Occupation | null;
+  place: ProfilePlace | null;
+  /**
+   * V-64. Which of the two this member has put on their public page. Read for
+   * the owner only, so their own page can say "only you can see this" beside
+   * a fact nobody else is shown. Null for anybody else, who sees only what is
+   * published and has no business knowing what is not.
+   */
+  published: { occupation: boolean; homeTown: boolean } | null;
+}> {
+  if (!isSelf) return { ...(await readPublishedFacts(supabase, userId)), published: null };
 
   let occupationCode: string | null = null;
   let lgaCode: string | null = null;
+  let published = { occupation: false, homeTown: false };
 
   try {
     const { data, error } = await loose(supabase)
       .from("profiles")
-      .select("occupation_code, lga_code")
+      .select("occupation_code, lga_code, settings")
       .eq("id", userId)
       .maybeSingle();
     if (!error && data) {
       occupationCode = data.occupation_code ?? null;
       lgaCode = data.lga_code ?? null;
+      const privacy = parseSettings(data.settings).privacy;
+      published = { occupation: privacy.showOccupation, homeTown: privacy.showHomeTown };
     }
   } catch {
     /* Nothing to show, and nothing broken. */
@@ -109,6 +130,44 @@ export async function readOccupationAndPlace(
     readPlace(supabase, lgaCode),
   ]);
 
+  return { occupation, place, published };
+}
+
+/**
+ * WHAT A MEMBER HAS CHOSEN TO PUBLISH, AND NOTHING ELSE (V-64).
+ *
+ * A member's occupation and home town are private by default: "a market
+ * trader from Dunukofia" is a scammer's opening line and helps nobody rent a
+ * flat. `public.profile_public_facts` returns each one only when its owner
+ * switched it on in Privacy, and names only, never codes. Any failure (the
+ * function not deployed yet, a signed-out read) is nothing published, which
+ * is the private default.
+ */
+async function readPublishedFacts(
+  supabase: Loose,
+  userId: string,
+): Promise<{ occupation: Occupation | null; place: ProfilePlace | null }> {
+  try {
+    const { data, error } = await loose(supabase).rpc("profile_public_facts", { p_user: userId });
+    const row = Array.isArray(data) ? data[0] : data;
+    if (error || !row) return { occupation: null, place: null };
+    return publishedFactsOf(row);
+  } catch {
+    return { occupation: null, place: null };
+  }
+}
+
+/** The function's row as the header's two shapes. Pure, and tested. */
+export function publishedFactsOf(row: {
+  occupation?: string | null;
+  lga?: string | null;
+  state?: string | null;
+}): { occupation: Occupation | null; place: ProfilePlace | null } {
+  const occupation = row.occupation ? { code: "", name: row.occupation } : null;
+  const lga = row.lga ?? null;
+  const state = row.state ?? null;
+  const place =
+    lga || state ? { lga, state, label: [lga, state, "Nigeria"].filter(Boolean).join(", ") } : null;
   return { occupation, place };
 }
 
@@ -214,9 +273,9 @@ export async function readStanding(
  *
  * `public.agent_trust(user_id)` returns **no row at all** for somebody who is
  * not an agent, which is how this decides whether the band is rendered rather
- * than asking a second question and hoping the two agree. A trust score of zero
- * and no trust score are very different claims, and an empty result is the
- * database saying the second one.
+ * than asking a second question and hoping the two agree. Zero stays and no
+ * row are very different claims, and an empty result is the database saying
+ * the second one.
  *
  * `response_minutes` is a median in minutes, and the band prints a duration, so
  * the conversion happens here: one place decides that 95 minutes reads as
@@ -233,15 +292,13 @@ export async function readAgentTrust(
     const row = Array.isArray(data) ? data[0] : data;
     if (!row) return null;
 
-    const score = Number(row.trust_score);
     const deals = Number(row.completed_deals);
-    if (!Number.isFinite(score) || !Number.isFinite(deals)) return null;
+    if (!Number.isFinite(deals)) return null;
 
     const minutes = Number(row.response_minutes);
     const rating = Number(row.average_rating);
 
     return {
-      score: Math.max(0, Math.min(100, Math.round(score))),
       completedDeals: Math.max(0, Math.round(deals)),
       responseTime: durationLabel(Number.isFinite(minutes) ? minutes : null),
       reviewCount: Math.max(0, Math.round(Number(row.review_count) || 0)),

@@ -1,4 +1,7 @@
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { getDictionary, type Locale } from "@vallo/i18n";
+import { isShellUserAgent, SHELL_START } from "@/lib/native/shell";
 import { getLocale } from "@/lib/locale";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
@@ -43,6 +46,11 @@ import { requestSurface } from "@/lib/auth/surface";
  */
 
 export default async function LandingPage() {
+  /* V-11. The store shell loads this origin's `/` and must never be shown
+     the marketing page: it announces itself in its user agent and is sent to
+     its own start, which answers home, welcome or sign in. A browser is
+     untouched. See `lib/native/shell.ts`. */
+  if (isShellUserAgent((await headers()).get("user-agent"))) redirect(SHELL_START);
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
   const data = await landingData(t);

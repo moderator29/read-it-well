@@ -80,7 +80,7 @@ const FAQS: Faq[] = [
   {
     category: "Property and Stays",
     q: "What are the two sides, and what does switching do?",
-    a: "Vallo is one app with two faces. The Property side is renting, buying and selling: listings, agents, inspections and Bookings, priced as a sale price or a yearly rent. Vallo Stays is the nightly side: hotels, apartments, guest houses, resorts, serviced apartments, shortlets and restaurant tables, priced per night against your dates. The switch sits at the foot of the side menu. Flipping it changes the vocabulary and the bottom bar and nothing else: same account, same profile, same wallet and balance, same inbox, same saved places. Bookings is the Property side's word for what is coming up and Trips is the Stays side's word for it.",
+    a: "Vallo is one app with two faces. The Property side is renting, buying and selling: listings, agents, inspections and Plans, priced as a sale price or a yearly rent. Vallo Stays is the nightly side: hotels, apartments, guest houses, resorts, serviced apartments, shortlets and restaurant tables, priced per night against your dates. The switch sits at the foot of the side menu. Flipping it changes the vocabulary and the bottom bar and nothing else: same account, same profile, same wallet and balance, same inbox, same saved places. Plans is one dated list of what you have lined up on both sides.",
   },
   {
     category: "Property and Stays",
@@ -107,12 +107,12 @@ const FAQS: Faq[] = [
   {
     category: "Booking a stay",
     q: "How do I book a stay on Vallo?",
-    a: "Open Stays, type where you are going and set your check-in, your check-out and how many of you there are. Every price on the results page then becomes the total for those nights rather than a rate. Open one, reserve, and the nights are held for 48 hours for nothing while you decide. Pay by card or from your wallet and the stay appears under Trips on the Stays side, or Bookings on the Property side, with its reference.",
+    a: "Open Stays, type where you are going and set your check-in, your check-out and how many of you there are. Every price on the results page then becomes the total for those nights rather than a rate. Open one, reserve, and the nights are held for 48 hours for nothing while you decide. Pay by card or from your wallet and the stay appears in Plans with its reference.",
   },
   {
     category: "Booking a stay",
     q: "How do I hold a table at a restaurant?",
-    a: "Open Restaurants, open the one you want, and ask for a date, a time and a party size. The time is read as Lagos time whatever your phone is set to. The restaurant confirms it or turns it down and you are told either way, the reservation opens its own conversation, and it sits with your stays on Trips at its hour.",
+    a: "Open Restaurants, open the one you want, and ask for a date, a time and a party size. The time is read as Lagos time whatever your phone is set to. The restaurant confirms it or turns it down and you are told either way, the reservation opens its own conversation, and it sits with your stays in Plans at its hour.",
   },
   {
     category: "Booking a stay",
@@ -157,7 +157,7 @@ const FAQS: Faq[] = [
     /* This answer used to promise card reversals in three to ten business
        days. Refunds do not go back to a card: they land in the wallet, which
        is what the docs, the cancellation policy and the product itself say. */
-    a: `A refund lands in your Vallo wallet, usually within minutes of the decision. ${WALLET_MONEY_USES} If nothing has appeared in your wallet statement, contact support with your booking reference.`,
+    a: `A refund lands in your Vallo wallet the moment the cancellation is decided. Ask from the booking and the request is dated: never later than five Nigerian business days after you ask, and the booking shows that date. ${WALLET_MONEY_USES} If nothing has appeared in your wallet statement, contact support with your booking reference.`,
   },
 
   // ------------------------------------------------------------ listing
@@ -170,14 +170,14 @@ const FAQS: Faq[] = [
     category: "Listing your property",
     q: "How do I list my property on Vallo?",
     /* "Agent dashboard" is not a Vallo word: the agent surface is the
-       workspace, called Agent Mode in the product. PRODUCT.md section 7.
+       agent workspace (PRODUCT.md section 7 retired "Agent Mode").
        AND IT NO LONGER SENDS A LANDLORD TO BECOME AN AGENT. This answer
        described the six step agent application as the only route in, which is
        the exact reason this platform has one `agents` row in it: a man with one
        flat in Bwari is not becoming an agent and never will be, and we were
        showing him the door rather than the room. The three doors are named from
        `SUPPLY_DOORS`, so renaming one changes this sentence too. */
-    a: `Add a listing account from your profile and pick the door that fits: ${doorsSentence()}. The owner form takes about five minutes and asks for your name, an ID and whatever you hold on the property, and there is an honest answer if you hold no document at all. Once you are through you publish from that listing account.`,
+    a: `Add a workspace from your profile and pick the door that fits: ${doorsSentence()}. The owner form takes about five minutes and asks for your name, an ID and whatever you hold on the property, and there is an honest answer if you hold no document at all. Once you are through you publish from that workspace.`,
   },
   {
     category: "Listing your property",

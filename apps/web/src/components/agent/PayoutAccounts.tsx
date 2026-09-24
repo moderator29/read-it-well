@@ -1,6 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
+import { useLockRecovery, useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
 import { useRouter } from "next/navigation";
 import type { ActionResult } from "@/lib/actions/envelope";
 import {
@@ -48,10 +50,16 @@ export function PayoutAccounts({
     ActionResult<ResolvedName> | null,
     FormData
   >(resolvePayoutAccount, null);
+  /* V-81: where payouts go asks for the phone lock, when there is one. */
+  const addLock = useMoneyStepUp(useClientLocale(), (form) => ({
+    kind: "payout_add",
+    target: `${String(form.get("bankCode") ?? "")}:${String(form.get("accountNumber") ?? "")}`,
+  }));
   const [addState, addAction, adding] = useActionState<ActionResult<null> | null, FormData>(
     addPayoutAccount,
     null,
   );
+  useLockRecovery(addLock, addState);
 
   const bankName = banks.find((b) => b.code === bankCode)?.name ?? "";
   const complete = digitsOnly(accountNumber).length === NUBAN_LENGTH && bankCode.length > 0;
@@ -181,7 +189,9 @@ export function PayoutAccounts({
               </button>
             </form>
           ) : (
-            <form action={addAction} className="mt-md">
+            <form action={addAction} className="mt-md" onSubmit={(event) => void addLock.pass(event)}>
+              {addLock.sheet}
+              <input type="hidden" name="stepUp" value={addLock.token} />
               <input type="hidden" name="bankCode" value={bankCode} />
               <input type="hidden" name="bankName" value={bankName} />
               <input type="hidden" name="accountNumber" value={digitsOnly(accountNumber)} />
@@ -245,6 +255,8 @@ export function PayoutAccounts({
 /** One saved account, with the two things an agent can do to it. */
 function AccountRow({ account }: { account: PayoutAccount }) {
   const router = useRouter();
+  const locale = useClientLocale();
+  const defaultLock = useMoneyStepUp(locale, (form) => ({ kind: "payout_default", target: String(form.get("accountId") ?? "") }));
   const [defaultState, defaultAction, settingDefault] = useActionState<
     ActionResult<null> | null,
     FormData
@@ -253,6 +265,10 @@ function AccountRow({ account }: { account: PayoutAccount }) {
     ActionResult<null> | null,
     FormData
   >(removePayoutAccount, null);
+  /* V-81: removing the account payouts go to promotes another one. */
+  const removeLock = useMoneyStepUp(locale, (form) => ({ kind: "payout_remove", target: `payout:${String(form.get("accountId") ?? "")}` }));
+  useLockRecovery(defaultLock, defaultState);
+  useLockRecovery(removeLock, removeState);
 
   useEffect(() => {
     if (defaultState?.ok || removeState?.ok) router.refresh();
@@ -286,7 +302,9 @@ function AccountRow({ account }: { account: PayoutAccount }) {
 
       <div className="mt-sm flex flex-wrap items-center gap-md border-t border-[var(--nf-border-subtle)] pt-sm">
         {!account.isDefault && (
-          <form action={defaultAction}>
+          <form action={defaultAction} onSubmit={(event) => void defaultLock.pass(event)}>
+            {defaultLock.sheet}
+            <input type="hidden" name="stepUp" value={defaultLock.token} />
             <input type="hidden" name="accountId" value={account.id} />
             <button
               type="submit"
@@ -297,7 +315,9 @@ function AccountRow({ account }: { account: PayoutAccount }) {
             </button>
           </form>
         )}
-        <form action={removeAction}>
+        <form action={removeAction} onSubmit={account.isDefault ? (event) => void removeLock.pass(event) : undefined}>
+          {account.isDefault && removeLock.sheet}
+          {account.isDefault && <input type="hidden" name="stepUp" value={removeLock.token} />}
           <input type="hidden" name="accountId" value={account.id} />
           <button
             type="submit"

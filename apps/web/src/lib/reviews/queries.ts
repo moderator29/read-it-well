@@ -1,5 +1,7 @@
 import "server-only";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { readCountedReviews } from "./weight";
 import { formatDate, type Locale } from "@vallo/i18n";
 import { resolveSession } from "../actions/session";
 import { lagosToday } from "../bookings/schema";
@@ -7,6 +9,9 @@ import { reviewIneligibility, type ReviewIneligibility } from "./eligibility";
 import { getListingRepository } from "../listings/repository";
 import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
+
+/** The columns every public review list reads. */
+type ReviewRow = { id: string; rating: number; body: string | null; author_label: string | null; created_at: string };
 
 /**
  * Read side of the reviews loop.
@@ -73,12 +78,16 @@ export async function getListingReviews(
   if (!isSupabaseConfigured() || !UUID_RE.test(listingId)) return [];
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("reviews")
-      .select("id, rating, body, author_label, created_at")
-      .eq("listing_id", listingId)
-      .order("created_at", { ascending: false })
-      .limit(limit);
+    /* V-58: a review from the lister's own shadow is kept and not shown
+       (to anybody but its author), through the counted view. */
+    const { data, error } = await readCountedReviews<ReviewRow>((table) =>
+      (supabase as unknown as SupabaseClient)
+        .from(table)
+        .select("id, rating, body, author_label, created_at")
+        .eq("listing_id", listingId)
+        .order("created_at", { ascending: false })
+        .limit(limit),
+    );
     if (error || !data) return [];
 
     // The hosts' answers, in one keyed read. review_responses_select mirrors
@@ -224,13 +233,16 @@ export async function getPlatformReviews(
   if (!isSupabaseConfigured()) return [];
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("reviews")
-      .select("id, rating, body, author_label, created_at")
-      .not("body", "is", null)
-      .neq("body", "")
-      .order("created_at", { ascending: false })
-      .limit(limit);
+    /* V-58: a review from the lister's own shadow is never quoted. */
+    const { data, error } = await readCountedReviews<ReviewRow>((table) =>
+      (supabase as unknown as SupabaseClient)
+        .from(table)
+        .select("id, rating, body, author_label, created_at")
+        .not("body", "is", null)
+        .neq("body", "")
+        .order("created_at", { ascending: false })
+        .limit(limit),
+    );
     if (error || !data) return [];
     return data.map((row) => ({
       id: row.id,

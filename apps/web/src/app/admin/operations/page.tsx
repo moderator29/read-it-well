@@ -4,11 +4,15 @@ import { getRiskAlerts } from "@/lib/admin/queries";
 import { getPersonTiers } from "@/lib/admin/reads/shared";
 import { getAlertTrend, getInspectionActivity, getJobHealth, getPushActivity, getRunDays } from "@/lib/admin/reads/operations";
 import { LiveRefresh } from "../_components/LiveRefresh";
+import { getDictionary } from "@vallo/i18n";
+import { adminReader } from "@/lib/admin/reads/shared";
+import { authOrigin } from "@/lib/site";
+import { runStoreChecks } from "@/lib/store/run";
 import { OperationsView, type OpsTab } from "./OperationsView";
 
 export const dynamic = "force-dynamic";
 
-const TABS: readonly OpsTab[] = ["jobs", "alerts", "audit", "notifications", "inflight"];
+const TABS: readonly OpsTab[] = ["jobs", "alerts", "audit", "notifications", "inflight", "store"];
 
 function requestTime(): number {
   return Date.now();
@@ -36,7 +40,20 @@ export default async function AdminOperationsPage({
   const tab = TABS.find((t) => t === params.tab) ?? "jobs";
   const now = requestTime();
 
-  const [jobs, runDays, trend, alerts, audit, activity, inspections, push] = await Promise.all([
+  /* V-52: the store checks run only when their tab is open, because they
+     fetch our own public pages and sign the reviewer account in. */
+  const storeRun = async () => {
+    if (tab !== "store") return null;
+    const db = await adminReader();
+    if (!db) return null;
+    try {
+      return await runStoreChecks(db, await authOrigin(), getDictionary(locale).frontDoor.store);
+    } catch {
+      return null;
+    }
+  };
+
+  const [jobs, runDays, trend, alerts, audit, activity, inspections, push, store] = await Promise.all([
     getJobHealth(now),
     getRunDays(now),
     getAlertTrend(now),
@@ -45,6 +62,7 @@ export default async function AdminOperationsPage({
     tab === "audit" ? getAuditActivity() : Promise.resolve(null),
     tab === "inflight" ? getInspectionActivity() : Promise.resolve(null),
     tab === "notifications" ? getPushActivity(now) : Promise.resolve(null),
+    storeRun(),
   ]);
 
   // B-BADGE: the published tier of every person the audit rows name.
@@ -52,7 +70,9 @@ export default async function AdminOperationsPage({
 
   return (
     <>
-      <LiveRefresh />
+      {/* Not on the Store tab: its checks sign the reviewer in and fetch our
+          own pages, which is an operator's deliberate act, not a timer's. */}
+      {tab !== "store" && <LiveRefresh />}
       <OperationsView
         locale={locale}
         now={now}
@@ -68,6 +88,7 @@ export default async function AdminOperationsPage({
         push={push && push.state === "ok" ? push.data : null}
         tiers={tiers}
         inspections={inspections && inspections.state === "ok" ? inspections.data : null}
+        store={store}
       />
     </>
   );

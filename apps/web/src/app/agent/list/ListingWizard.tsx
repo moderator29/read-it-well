@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { ShotList } from "@/components/agent/ShotList";
 import { fill } from "../_copy";
 import { createClient } from "@/lib/supabase/client";
 import { canCapturePhoto, capturePhoto } from "@/lib/native/device";
@@ -16,7 +17,12 @@ import {
   setListingAccess,
   submitListing,
 } from "@/lib/agent/listings-actions";
-import type { WizardDraft } from "@/lib/agent/listings-queries";
+import type { OwnAnswers, WizardDraft } from "@/lib/agent/listings-queries";
+import { BROADCAST_MONEY_KEYS, type BroadcastKey, type BroadcastParse } from "@/lib/agent/broadcast";
+import { BroadcastPaste } from "./BroadcastPaste";
+import { PriceGuidePanel, usePriceGuide } from "./PriceGuide";
+import { DraftMatches } from "./DraftMatches";
+import { feeNormLine, type GuideSubject } from "@/lib/price-check/wizard-guide";
 import {
   MAX_ACCESS_CODE,
   MAX_BACKUP_HOURS,
@@ -68,6 +74,14 @@ import { VideoWalkthrough, type WalkthroughVideo } from "@/components/agent/Vide
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ListingSentForReview } from "./ListingSentForReview";
 import { TextField, TextArea } from "@/components/ui/Field";
+import { CompoundQuestions } from "@/components/agent/CompoundQuestions";
+import { EMPTY_COMPOUND_FORM, compoundPayload, type CompoundForm } from "@/lib/listings/compound";
+import { EMPTY_SERVICE_FORM, servicePayload, type ServiceForm } from "@/lib/listings/service";
+import { ServiceQuestions } from "@/components/agent/ServiceQuestions";
+import { UnitQuestions } from "@/components/agent/UnitQuestions";
+import { FloodQuestion } from "@/components/agent/FloodQuestion";
+import type { Flooding } from "@/lib/around/pulse";
+import { EMPTY_UNIT_FORM, takesShape, unitPayload, type UnitForm } from "@/lib/listings/unit-shape";
 import { listingDraftKey } from "@/lib/agent/listing-draft-storage";
 import { looksLikeStreetAddress, STREET_IN_TITLE_WARNING } from "@/lib/listings/public-title";
 import { tenantPreference } from "@/lib/safety/tenant-preference";
@@ -189,6 +203,14 @@ type Values = {
   powerBackupHours: string;
   waterSupply: WaterSupply | "";
   prepaidMeter: boolean;
+  /** V-28: the compound's five answers; "" is unanswered. */
+  compound: CompoundForm;
+  /** V-68: the service charge's answers. */
+  service: ServiceForm;
+  /** V-66: the unit's shape, en-suite rooms and BQ. */
+  unit: UnitForm;
+  /** V-41: the lister's flooding answer; "" is unanswered. */
+  flooding: Flooding | "";
   estateName: string;
   gateDirections: string;
   securityPhone: string;
@@ -257,6 +279,10 @@ const EMPTY: Values = {
   powerBackupHours: "",
   waterSupply: "",
   prepaidMeter: false,
+  compound: EMPTY_COMPOUND_FORM,
+  service: EMPTY_SERVICE_FORM,
+  unit: EMPTY_UNIT_FORM,
+  flooding: "",
   estateName: "",
   gateDirections: "",
   securityPhone: "",
@@ -312,6 +338,10 @@ function valuesFrom(draft: WizardDraft): Values {
     powerBackupHours: draft.powerBackupHours,
     waterSupply: draft.waterSupply,
     prepaidMeter: draft.prepaidMeter,
+    compound: draft.compound ?? EMPTY_COMPOUND_FORM,
+    service: draft.service ?? EMPTY_SERVICE_FORM,
+    unit: draft.unit ?? EMPTY_UNIT_FORM,
+    flooding: draft.flooding ?? "",
     estateName: draft.access.estateName,
     gateDirections: draft.access.gateDirections,
     securityPhone: draft.access.securityPhone,
@@ -343,16 +373,22 @@ function Field({
   label,
   hint,
   error,
+  fromMessage,
   children,
 }: {
   label: string;
   hint?: string;
   error?: string;
+  /** V-09: the "From your message" mark and its "Looks right" control, when this value came from a pasted broadcast. */
+  fromMessage?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <label className="block">
-      <span className="nf-label">{label}</span>
+      <span className="nf-label">
+        {label}
+        {fromMessage}
+      </span>
       {children}
       {error ? (
         <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
@@ -681,14 +717,22 @@ function TenantPays({
   locale,
   copy,
   moveInCopy,
+  moneyMap,
 }: {
   facts: Parameters<typeof moveInLines>[0];
   currency: string;
   locale: Locale;
   copy: WizardCopy;
   moveInCopy: Dictionary["moveIn"];
+  moneyMap?: Dictionary["afterTheGate"]["moneyMap"];
 }) {
-  const lines = moveInLines(facts, moveInCopy);
+  /* V-46: the agent sees the captions a tenant will, and before a mandate is
+     dated by staff no caption names a landlord. */
+  const lines = moveInLines(
+    facts,
+    moveInCopy,
+    moneyMap ? { ctx: { mandateVerified: false, ownershipVerified: false }, copy: moneyMap } : undefined,
+  );
   const declared = lines.filter((line) => line.minor !== undefined && line.minor !== null);
   const total = declared.reduce((sum, line) => sum + (line.minor ?? 0), 0);
 
@@ -756,12 +800,62 @@ function TenantPays({
   );
 }
 
+/**
+ * V-09: THE "FROM YOUR MESSAGE" MARK, AND THE ONE-TAP WAY TO CONFIRM IT.
+ *
+ * Drawn beside every field a pasted broadcast filled. "Looks right" confirms
+ * the value without retyping it, which is what clears it from the set the
+ * submit gate reads; editing the field clears it too. Nothing is drawn once
+ * the agent has confirmed or changed the value.
+ */
+function FromMessageMark({
+  tag,
+  confirm,
+  onConfirm,
+}: {
+  tag: string;
+  confirm: string;
+  onConfirm: () => void;
+}) {
+  return (
+    <span className="ml-inline-tight inline-flex flex-wrap items-center gap-2xs align-middle" data-testid="from-message">
+      <span className="nf-badge nf-badge--info">{tag}</span>
+      <button
+        type="button"
+        className="nf-btn nf-btn--ghost nf-btn--sm min-h-11"
+        onClick={(event) => {
+          event.preventDefault();
+          onConfirm();
+        }}
+      >
+        {confirm}
+      </button>
+    </span>
+  );
+}
+
 /* ------------------------------------------------------------- the wizard */
+
+/**
+ * True when a group's saved answers could not be read AND the lister has not
+ * touched the empty form standing in for them. Such a group is left out of
+ * the save rather than written back as nulls (review 13).
+ */
+function untouchedUnread(unread: readonly OwnAnswers[], group: OwnAnswers, value: unknown, empty: unknown): boolean {
+  return unread.includes(group) && JSON.stringify(value) === JSON.stringify(empty);
+}
 
 export function ListingWizard({
   copy,
   reference,
   moveInCopy,
+  compoundCopy,
+  serviceCopy,
+  unitCopy,
+  floodCopy,
+  floodOpen = false,
+  remainderCopy,
+  moneyMapCopy,
   locale,
   userId,
   states,
@@ -769,8 +863,34 @@ export function ListingWizard({
   initial,
   canPersist,
   startAt = 0,
+  broadcastCopy,
+  guideCopy,
+  initialUnconfirmed = [],
+  shotsCopy,
+  demandCopy,
 }: {
+  /** V-70: the shot list's words. Without them the shot list is not drawn. */
+  shotsCopy?: Dictionary["afterTheGate"]["shots"];
+  /** V-10: the saved-search count on the last step. Absent in harnesses. */
+  demandCopy?: Dictionary["frontDoor"]["demand"];
+  /**
+   * V-09: the unconfirmed set as the server holds it for this draft
+   * (`listing_broadcast_marks`), so another device starts from the truth.
+   * Null when the read failed: the set is then never written from here (an
+   * empty set would wipe the server's) and submit waits until it is read.
+   */
+  initialUnconfirmed?: readonly string[] | null;
   copy: WizardCopy;
+  /**
+   * V-74: the pricing step's guide. Absent in the harnesses, which then draw
+   * exactly what they did.
+   */
+  guideCopy?: Dictionary["frontDoor"]["guide"];
+  /**
+   * V-09, "Start from your WhatsApp message". Absent in the harnesses that
+   * photograph the governing screens, which then draw exactly what they did.
+   */
+  broadcastCopy?: Dictionary["frontDoor"]["broadcast"];
   /* Its own slice rather than a key inside `agentListings`, because the same
      words are read by the search page, the public listing page and the
      lister's console, and one namespace owns them. */
@@ -779,6 +899,20 @@ export function ListingWizard({
      breakdown GOVERNING-08 screen two draws is the searcher's block turned
      round to face the agent, and it has to read in exactly the same words. */
   moveInCopy: Dictionary["moveIn"];
+  /** V-28: the compound's five questions. */
+  compoundCopy: Dictionary["shape"]["compound"];
+  /** V-68: the service charge questions. */
+  serviceCopy: Dictionary["shape"]["service"];
+  /** V-66: the unit shape question. */
+  unitCopy: Dictionary["shape"]["unit"];
+  /** V-41: the flooding question. */
+  floodCopy: Dictionary["shape"]["neighbours"];
+  /** V-41 is behind a fail-closed flag; the question shows only when it is on. */
+  floodOpen?: boolean;
+  /** V-13: the sentence that refuses an unexplained remainder in the total. */
+  remainderCopy?: Dictionary["afterTheGate"]["remainder"];
+  /** V-46: the captions that say who each move-in line is paid to. */
+  moneyMapCopy?: Dictionary["afterTheGate"]["moneyMap"];
   locale: Locale;
   userId: string | null;
   states: { code: string; name: string }[];
@@ -800,6 +934,8 @@ export function ListingWizard({
     Math.min(Math.max(Math.trunc(startAt), 0), STEP_KEYS.length - 1),
   );
   const [values, setValues] = useState<Values>(initial ? valuesFrom(initial) : EMPTY);
+  /* The answer groups whose saved values could not be read (review 13). */
+  const unread = useMemo(() => initial?.unread ?? [], [initial]);
   const [photos, setPhotos] = useState<Photo[]>(initial?.photos ?? []);
   const [chosenAmenities, setChosenAmenities] = useState<string[]>(initial?.amenityCodes ?? []);
   /* The walkthroughs already attached to this draft. Every layer behind them
@@ -814,6 +950,49 @@ export function ListingWizard({
     })),
   );
   const [listingId, setListingId] = useState<string | null>(initial?.id ?? null);
+  /*
+   * V-09: THE FIELDS A PASTED BROADCAST FILLED, until the agent touches them.
+   * A key leaves this set the moment the agent edits that field, which is
+   * what "confirmed" means here. The submit gate refuses while any MONEY key
+   * is still in it: a figure read from a WhatsApp message is not sent for
+   * review until a person has looked at it.
+   */
+  const [fromMessage, setFromMessage] = useState<ReadonlySet<string>>(() => new Set(initialUnconfirmed ?? []));
+  const marksUnread = initialUnconfirmed === null;
+
+  /*
+   * The unconfirmed set survives a reload, keyed by the listing it belongs to
+   * (or "new" before the first save). Without this a reload would quietly
+   * treat every figure read from a WhatsApp message as confirmed. Storage
+   * that is unavailable costs only the reminder: the values themselves are in
+   * the draft.
+   */
+  const unconfirmedKey = `vallo_broadcast_unconfirmed:${listingId ?? "new"}`;
+  const [unconfirmedLoaded, setUnconfirmedLoaded] = useState<string | null>(null);
+  useEffect(() => {
+    if (unconfirmedLoaded === unconfirmedKey) return;
+    try {
+      const raw = localStorage.getItem(unconfirmedKey) ?? (listingId ? localStorage.getItem("vallo_broadcast_unconfirmed:new") : null);
+      const keys = raw ? (JSON.parse(raw) as unknown) : null;
+      if (Array.isArray(keys) && keys.length > 0) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring from storage, once per key
+        setFromMessage((prev) => new Set([...prev, ...keys.filter((k): k is string => typeof k === "string")]));
+      }
+    } catch {
+      /* storage unavailable */
+    }
+    setUnconfirmedLoaded(unconfirmedKey);
+  }, [unconfirmedKey, unconfirmedLoaded, listingId]);
+  useEffect(() => {
+    if (unconfirmedLoaded !== unconfirmedKey) return;
+    try {
+      if (fromMessage.size === 0) localStorage.removeItem(unconfirmedKey);
+      else localStorage.setItem(unconfirmedKey, JSON.stringify([...fromMessage]));
+      if (listingId) localStorage.removeItem("vallo_broadcast_unconfirmed:new");
+    } catch {
+      /* storage unavailable */
+    }
+  }, [fromMessage, unconfirmedKey, unconfirmedLoaded, listingId]);
 
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -874,6 +1053,21 @@ export function ListingWizard({
      the preview card on step 7 shows the number a renter will see. */
   const priceMinor = forSale ? saleMinor : tenancy ? rentMinor : rateMinor;
 
+  /* V-74: what similar homes in the area are asking, on the pricing step only. */
+  const guideSubject = useMemo<GuideSubject>(
+    () => ({
+      stateCode: values.stateCode,
+      city: values.city.trim() === "" ? null : values.city.trim(),
+      area: values.area.trim() === "" ? null : values.area.trim(),
+      propertyType: values.propertyType as GuideSubject["propertyType"],
+      intent: values.intent,
+      rentPeriod: forSale ? null : values.rentPeriod,
+      bedrooms: values.bedrooms,
+    }),
+    [values.stateCode, values.city, values.area, values.propertyType, values.intent, values.rentPeriod, values.bedrooms, forSale],
+  );
+  const priceGuide = usePriceGuide(guideSubject, Boolean(guideCopy) && step === 5 && !shortStay);
+
   /* What has to be found before the keys change hands. Summed live so the
      lister watches the real number appear as they type the parts, which is the
      figure a Nigerian tenant is actually shopping on and the one the platform
@@ -927,6 +1121,9 @@ export function ListingWizard({
     serviceChargePeriod: values.serviceChargePeriod,
   };
   const statedTotalMinor = parseNairaToKobo(values.totalMoveInNaira);
+  /* V-13. The part of a stated total the fee boxes do not explain. */
+  const moveInRemainderMinor =
+    statedTotalMinor !== null && statedTotalMinor > partsSumMinor ? statedTotalMinor - partsSumMinor : 0;
 
   /* THE SAME ARITHMETIC ON THE SALE SIDE, and the price is one of the parts.
      "The total to buy" means the asking price plus everything on top of it, so
@@ -976,9 +1173,12 @@ export function ListingWizard({
         tenure: values.tenure === "" ? null : values.tenure,
         bedrooms: values.bedrooms,
         bathrooms: values.bathrooms,
+        unitShape: values.unit.shape === "" ? null : values.unit.shape,
         amenityCount: chosenAmenities.length,
         photoCount: photos.length,
         hasCover: photos.length > 0,
+        moveInStatedMinor: tenancy ? statedTotalMinor : null,
+        moveInPartsMinor: tenancy ? [partsSumMinor] : [],
       }),
     [
       values,
@@ -990,6 +1190,8 @@ export function ListingWizard({
       saleMinor,
       chosenAmenities.length,
       photos.length,
+      statedTotalMinor,
+      partsSumMinor,
     ],
   );
 
@@ -1047,6 +1249,12 @@ export function ListingWizard({
         return g.bedrooms;
       case "bathrooms":
         return g.bathrooms;
+      case "unitShape":
+        return unitCopy.wizardRequired;
+      case "totalMoveIn":
+        return remainderCopy && moveInRemainderMinor > 0
+          ? fill(remainderCopy.gate, { amount: formatMoney(moveInRemainderMinor, locale) })
+          : fallback;
       default:
         return fallback;
     }
@@ -1124,6 +1332,12 @@ export function ListingWizard({
 
   function set<K extends keyof Values>(key: K, value: Values[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
+    setFromMessage((prev) => {
+      if (!prev.has(key as string)) return prev;
+      const next = new Set(prev);
+      next.delete(key as string);
+      return next;
+    });
     setFieldErrors((prev) => {
       if (!(key in prev)) return prev;
       const next = { ...prev };
@@ -1131,6 +1345,55 @@ export function ListingWizard({
       return next;
     });
   }
+
+  /**
+   * V-09: put a pasted broadcast into the form. ONLY FIELDS STILL AT THEIR
+   * EMPTY STARTING VALUE are filled, so nothing the agent typed is ever
+   * overwritten, and every field filled is marked "from your message".
+   * Returns the keys actually filled, for the panel's list.
+   */
+  function applyBroadcast(result: BroadcastParse): BroadcastKey[] {
+    const taken: BroadcastKey[] = [];
+    const next: Partial<Values> = {};
+    for (const key of result.filled) {
+      const incoming = result.values[key];
+      if (incoming === undefined) continue;
+      const current = values[key as keyof Values];
+      const blank = EMPTY[key as keyof Values];
+      if (current !== blank) continue;
+      (next as Record<string, unknown>)[key] = incoming;
+      taken.push(key);
+    }
+    if (taken.length === 0) return taken;
+    setValues((prev) => ({ ...prev, ...next }));
+    setFromMessage((prev) => new Set([...prev, ...taken]));
+    return taken;
+  }
+
+  /** Confirm a filled value as it stands: it leaves the set the gate reads. */
+  function confirmFromMessage(keys: readonly string[]) {
+    setFromMessage((prev) => {
+      const next = new Set(prev);
+      for (const key of keys) next.delete(key);
+      return next;
+    });
+  }
+
+  /** The "From your message" mark for one or more fields, or nothing. */
+  const mark = (...keys: (keyof Values)[]): React.ReactNode => {
+    if (!broadcastCopy) return undefined;
+    const live = keys.filter((key) => fromMessage.has(key as string)) as string[];
+    if (live.length === 0) return undefined;
+    return (
+      <FromMessageMark
+        tag={broadcastCopy.tag}
+        confirm={broadcastCopy.confirm}
+        onConfirm={() => confirmFromMessage(live)}
+      />
+    );
+  };
+
+  const unconfirmedMoney = BROADCAST_MONEY_KEYS.filter((key) => fromMessage.has(key));
 
   /* --------------------------------------------------------------- saving */
 
@@ -1141,6 +1404,8 @@ export function ListingWizard({
 
     const result = await saveDraft({
       id: listingId ?? undefined,
+      /* V-09: the unconfirmed set goes to the server in the same save. */
+      broadcastUnconfirmed: marksUnread ? undefined : [...fromMessage],
       title: values.title,
       description: values.description,
       propertyType: values.propertyType,
@@ -1191,6 +1456,13 @@ export function ListingWizard({
       powerBackupHours: values.powerBackupHours === "" ? undefined : values.powerBackupHours,
       waterSupply: values.waterSupply === "" ? undefined : values.waterSupply,
       prepaidMeter: values.prepaidMeter,
+      /* A group whose saved answers could not be read, and which the lister
+         has not touched, is left out: sending its empty form would write
+         nulls over answers this screen never saw (review 13). */
+      ...(untouchedUnread(unread, "compound", values.compound, EMPTY_COMPOUND_FORM) ? {} : compoundPayload(values.compound)),
+      ...(untouchedUnread(unread, "service", values.service, EMPTY_SERVICE_FORM) ? {} : servicePayload(values.service)),
+      ...(untouchedUnread(unread, "unit", values.unit, EMPTY_UNIT_FORM) ? {} : unitPayload(values.unit, values.bedrooms)),
+      ...(untouchedUnread(unread, "flood", values.flooding, "") ? {} : { flooding: values.flooding === "" ? null : values.flooding }),
     });
 
     if (!result.ok) {
@@ -1223,7 +1495,7 @@ export function ListingWizard({
     if (!accessResult.ok) setNotice(accessResult.error);
 
     return result.data.id;
-  }, [canPersist, chosenAmenities, listingId, values]);
+  }, [canPersist, chosenAmenities, listingId, values, unread, fromMessage, marksUnread]);
 
   function go(next: number) {
     const target = Math.min(STEP_KEYS.length - 1, Math.max(0, next));
@@ -1469,7 +1741,9 @@ export function ListingWizard({
 
   function send() {
     startTransition(async () => {
-      const id = listingId ?? (await persist());
+      /* Saved first, always: the draft and its unconfirmed set (V-09) must be
+         what the server checks, not what it held before the last tap. */
+      const id = (await persist()) ?? listingId;
       if (!id) {
         setNotice(canPersist ? copy.submit.needsTitle : copy.submit.needsKeys);
         return;
@@ -1599,6 +1873,9 @@ export function ListingWizard({
         {/* ---------------------------------------------------- 1 basic info */}
         {step === 0 && (
           <div className="space-y-lg">
+            {broadcastCopy && (
+              <BroadcastPaste copy={broadcastCopy} locale={locale} onApply={applyBroadcast} />
+            )}
             {/*
               The two fields that can actually fail validation use the shared
               TextField/TextArea. The local `Field` above them only draws a
@@ -1618,9 +1895,13 @@ export function ListingWizard({
               placeholder={copy.basics.titlePlaceholder}
               maxLength={80}
             />
+            {mark("title")}
 
             <div>
-              <span className="nf-label">{copy.basics.propertyTypeLabel}</span>
+              <span className="nf-label">
+                {copy.basics.propertyTypeLabel}
+                {mark("propertyType")}
+              </span>
               {/*
                 06 screen one draws the property types THREE ACROSS, each one
                 a centred glass object over a single word, with no description
@@ -1669,6 +1950,7 @@ export function ListingWizard({
               placeholder={copy.basics.descriptionPlaceholder}
               textAreaClassName="min-h-[9rem]"
             />
+            {mark("description")}
             {preference && (
               <div className="mt-row" data-testid="tenant-preference-warning">
                 <Note glyph="info">
@@ -1695,8 +1977,22 @@ export function ListingWizard({
               short-stay model, for the reason recorded before: asking for a
               number nothing stores is asking somebody to type into a void.
             */}
+            {/* ------------------------------------ the shape (V-66) */}
+            {takesShape(values.propertyType) && (
+              <UnitQuestions
+                copy={unitCopy}
+                value={values.unit}
+                bedrooms={values.bedrooms}
+                error={fieldErrors.unitShape}
+                onChange={(next) => set("unit", next)}
+              />
+            )}
+
             <div>
-              <span className="nf-label">{copy.drawn.rooms.title}</span>
+              <span className="nf-label">
+                {copy.drawn.rooms.title}
+                {mark("bedrooms", "bathrooms", "toilets", "parkingSpaces")}
+              </span>
               <div className="nf-lw-facts">
                 <FactRow
                   glyph="bed"
@@ -1988,6 +2284,15 @@ export function ListingWizard({
                 </li>
               )}
             </ul>
+            {/* V-70: say what each photo shows. Additive; drawn only with its copy. */}
+            {shotsCopy && (
+              <ShotList
+                listingId={listingId}
+                photos={photos.map((photo) => ({ id: photo.id, url: photo.url }))}
+                claims={{ prepaidMeter: values.prepaidMeter, waterSupply: values.waterSupply || null, powerBackup: values.powerBackup || null }}
+                copy={shotsCopy}
+              />
+            )}
 
             <p className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {fill(copy.photos.progress, { count: photos.length, min: MIN_PHOTOS })}
@@ -2017,7 +2322,7 @@ export function ListingWizard({
         {/* ------------------------------------------------------ 3 location */}
         {step === 2 && (
           <div className="space-y-lg">
-            <Field label={copy.location.stateLabel} error={fieldErrors.stateCode}>
+            <Field fromMessage={mark("stateCode")} label={copy.location.stateLabel} error={fieldErrors.stateCode}>
               <select
                 className="nf-field"
                 value={values.stateCode}
@@ -2031,7 +2336,7 @@ export function ListingWizard({
                 ))}
               </select>
             </Field>
-            <Field label={copy.location.cityLabel} error={fieldErrors.city}>
+            <Field fromMessage={mark("city")} label={copy.location.cityLabel} error={fieldErrors.city}>
               <input
                 className="nf-field"
                 value={values.city}
@@ -2039,7 +2344,7 @@ export function ListingWizard({
                 placeholder={copy.location.cityPlaceholder}
               />
             </Field>
-            <Field
+            <Field fromMessage={mark("area")}
               label={copy.location.areaLabel}
               error={fieldErrors.area}
               hint={copy.location.areaHint}
@@ -2136,7 +2441,10 @@ export function ListingWizard({
               Every blurb is on its own card now.
             */}
             <fieldset>
-              <legend className="nf-label mb-inline">{copy.drawn.supply.power}</legend>
+              <legend className="nf-label mb-inline">
+                {copy.drawn.supply.power}
+                {mark("powerGrid")}
+              </legend>
               <div className="nf-lw-choices">
                 {POWER_GRID_CHOICES.map((choice) => (
                   <Choice
@@ -2154,7 +2462,10 @@ export function ListingWizard({
             </fieldset>
 
             <fieldset>
-              <legend className="nf-label mb-inline">{copy.drawn.supply.backup}</legend>
+              <legend className="nf-label mb-inline">
+                {copy.drawn.supply.backup}
+                {mark("powerBackup")}
+              </legend>
               <div className="nf-lw-choices">
                 {POWER_BACKUP_CHOICES.map((choice) => (
                   <Choice
@@ -2203,7 +2514,10 @@ export function ListingWizard({
             )}
 
             <fieldset>
-              <legend className="nf-label mb-inline">{copy.drawn.supply.water}</legend>
+              <legend className="nf-label mb-inline">
+                {copy.drawn.supply.water}
+                {mark("waterSupply")}
+              </legend>
               <div className="nf-lw-choices">
                 {WATER_SUPPLY_CHOICES.map((choice) => (
                   <Choice
@@ -2228,6 +2542,34 @@ export function ListingWizard({
               description={copy.drawn.supply.prepaidBody}
               checked={values.prepaidMeter}
               onCheckedChange={(v) => set("prepaidMeter", v)}
+            />
+            {mark("prepaidMeter")}
+
+            {/* ------------------------ the service charge and the gate (V-68) */}
+            {/* What the charge covers is asked only where a charge is stated on
+                a home to let or sell (batch 4 review); the gate always is. */}
+            <ServiceQuestions
+              copy={serviceCopy}
+              value={values.service}
+              onChange={(next) => set("service", next)}
+              chargeMinor={(tenancy || forSale) ? parseNairaToKobo(values.serviceChargeNaira) : null}
+            />
+
+            {/* ------------------------------------- flooding (V-41) */}
+            {floodOpen && (
+              <FloodQuestion
+                copy={floodCopy}
+                value={values.flooding}
+                onChange={(next) => set("flooding", next)}
+              />
+            )}
+
+            {/* ---------------------------------------- the compound (V-28) */}
+            <CompoundQuestions
+              copy={compoundCopy}
+              value={values.compound}
+              onChange={(next) => set("compound", next)}
+              flatsError={fieldErrors.flatsInCompound}
             />
 
             {/* ------------------------------------------------ the gate */}
@@ -2303,7 +2645,10 @@ export function ListingWizard({
               tell half the listers they are in the wrong place.
             */}
             <fieldset>
-              <legend className="nf-label mb-inline">What are you listing it for?</legend>
+              <legend className="nf-label mb-inline">
+                What are you listing it for?
+                {mark("intent")}
+              </legend>
               <div className="nf-lw-choices">
                 {LISTING_INTENT_CHOICES.map((choice) => (
                   <Choice
@@ -2321,7 +2666,7 @@ export function ListingWizard({
             {/* ------------------------------------------------------- a sale */}
             {forSale && (
               <>
-                <Field
+                <Field fromMessage={mark("salePriceNaira")}
                   label="Asking price"
                   error={fieldErrors.salePrice ?? fieldErrors.salePriceNaira}
                   hint={
@@ -2339,12 +2684,24 @@ export function ListingWizard({
                   />
                 </Field>
 
+                {/* V-74: what similar homes in the area are asking. */}
+                {guideCopy && (
+                  <PriceGuidePanel
+                    subject={guideSubject}
+                    loading={priceGuide.loading}
+                    guide={priceGuide.guide}
+                    copy={guideCopy}
+                    locale={locale}
+                  />
+                )}
+
                 <Switch
                   label="The price is negotiable"
                   description="Say so and a buyer will open the conversation rather than scroll past."
                   checked={values.priceNegotiable}
                   onCheckedChange={(v) => set("priceNegotiable", v)}
                 />
+                {mark("priceNegotiable")}
 
                 {/*
                   WHAT A BUYER ACTUALLY PAYS.
@@ -2375,7 +2732,7 @@ export function ListingWizard({
                   </p>
 
                   <div className="mt-group grid grid-cols-2 gap-row">
-                    <Field label="Agency fee" error={fieldErrors.saleAgencyFeeNaira}>
+                    <Field fromMessage={mark("saleAgencyFeeNaira")} label="Agency fee" error={fieldErrors.saleAgencyFeeNaira}>
                       <input
                         className="nf-field"
                         inputMode="decimal"
@@ -2384,7 +2741,7 @@ export function ListingWizard({
                         placeholder="9,000,000"
                       />
                     </Field>
-                    <Field label="Legal fee" error={fieldErrors.saleLegalFeeNaira}>
+                    <Field fromMessage={mark("saleLegalFeeNaira")} label="Legal fee" error={fieldErrors.saleLegalFeeNaira}>
                       <input
                         className="nf-field"
                         inputMode="decimal"
@@ -2548,7 +2905,7 @@ export function ListingWizard({
             {/* ---------------------------------------------------- a tenancy */}
             {tenancy && (
               <>
-                <Field
+                <Field fromMessage={mark("rentNaira")}
                   label="Rent"
                   error={fieldErrors.rent ?? fieldErrors.rentNaira}
                   hint={
@@ -2566,8 +2923,22 @@ export function ListingWizard({
                   />
                 </Field>
 
+                {/* V-74: what similar homes in the area are asking. */}
+                {guideCopy && (
+                  <PriceGuidePanel
+                    subject={guideSubject}
+                    loading={priceGuide.loading}
+                    guide={priceGuide.guide}
+                    copy={guideCopy}
+                    locale={locale}
+                  />
+                )}
+
                 <fieldset>
-                  <legend className="nf-label mb-inline">How often is it paid?</legend>
+                  <legend className="nf-label mb-inline">
+                    How often is it paid?
+                    {mark("rentPeriod", "rentNegotiable")}
+                  </legend>
                   <div className="flex flex-wrap gap-inline">
                     {RENT_PERIOD_CHOICES.map((choice) => (
                       <button
@@ -2616,7 +2987,7 @@ export function ListingWizard({
                   </p>
 
                   <div className="mt-group grid grid-cols-2 gap-row">
-                    <Field label="Caution deposit" error={fieldErrors.cautionDepositNaira}>
+                    <Field fromMessage={mark("cautionDepositNaira")} label="Caution deposit" error={fieldErrors.cautionDepositNaira}>
                       <input
                         className="nf-field"
                         inputMode="decimal"
@@ -2625,7 +2996,12 @@ export function ListingWizard({
                         placeholder="450,000"
                       />
                     </Field>
-                    <Field label="Agency fee" error={fieldErrors.agencyFeeNaira}>
+                    <Field
+                      fromMessage={mark("agencyFeeNaira")}
+                      label="Agency fee"
+                      error={fieldErrors.agencyFeeNaira}
+                      hint={guideCopy ? (feeNormLine("agency", priceGuide.norms, guideCopy) ?? undefined) : undefined}
+                    >
                       <input
                         className="nf-field"
                         inputMode="decimal"
@@ -2634,7 +3010,12 @@ export function ListingWizard({
                         placeholder="450,000"
                       />
                     </Field>
-                    <Field label="Legal fee" error={fieldErrors.legalFeeNaira}>
+                    <Field
+                      fromMessage={mark("legalFeeNaira")}
+                      label="Legal fee"
+                      error={fieldErrors.legalFeeNaira}
+                      hint={guideCopy ? (feeNormLine("legal", priceGuide.norms, guideCopy) ?? undefined) : undefined}
+                    >
                       <input
                         className="nf-field"
                         inputMode="decimal"
@@ -2643,7 +3024,7 @@ export function ListingWizard({
                         placeholder="225,000"
                       />
                     </Field>
-                    <Field label="Agreement fee" error={fieldErrors.agreementFeeNaira}>
+                    <Field fromMessage={mark("agreementFeeNaira")} label="Agreement fee" error={fieldErrors.agreementFeeNaira}>
                       <input
                         className="nf-field"
                         inputMode="decimal"
@@ -2655,7 +3036,7 @@ export function ListingWizard({
                   </div>
 
                   <div className="mt-row grid grid-cols-2 gap-row">
-                    <Field label="Service charge" error={fieldErrors.serviceChargeNaira}>
+                    <Field fromMessage={mark("serviceChargeNaira")} label="Service charge" error={fieldErrors.serviceChargeNaira}>
                       <input
                         className="nf-field"
                         inputMode="decimal"
@@ -2682,9 +3063,14 @@ export function ListingWizard({
                   </div>
 
                   <div className="mt-group">
-                    <Field
+                    <Field fromMessage={mark("totalMoveInNaira")}
                       label="Total to move in"
-                      error={fieldErrors.totalMoveInNaira}
+                      error={
+                        fieldErrors.totalMoveInNaira ??
+                        (remainderCopy && moveInRemainderMinor > 0
+                          ? fill(remainderCopy.gate, { amount: formatMoney(moveInRemainderMinor, locale) })
+                          : undefined)
+                      }
                       hint={
                         statedTotalMinor === null
                           ? partsSumMinor > 0
@@ -2729,6 +3115,7 @@ export function ListingWizard({
                     locale={locale}
                     copy={copy}
                     moveInCopy={moveInCopy}
+                    moneyMap={moneyMapCopy}
                   />
                   {statedTotalMinor !== null && statedTotalMinor > partsSumMinor && (
                     <div className="mt-row">
@@ -2770,7 +3157,7 @@ export function ListingWizard({
                   </Field>
                 </div>
 
-                <Field label="Furnishing">
+                <Field fromMessage={mark("furnished")} label="Furnishing">
                   <select
                     className="nf-field"
                     value={values.furnished}
@@ -2793,7 +3180,7 @@ export function ListingWizard({
 
             {/* ------------------------------------------------- a short stay */}
             {shortStay && (
-              <Field
+              <Field fromMessage={mark("rateNaira")}
                 label={perHead ? "Price per head" : copy.pricing.priceNightLabel}
                 error={fieldErrors.rate ?? fieldErrors.rateNaira}
                 hint={
@@ -2840,6 +3227,12 @@ export function ListingWizard({
         {step === 6 && (
           <div>
             <Note>{copy.guestView.intro}</Note>
+            {/* V-10: whose saved searches this would reach, once it exists. */}
+            {demandCopy && listingId && (
+              <div className="mt-group">
+                <DraftMatches listingId={listingId} copy={demandCopy} />
+              </div>
+            )}
             <article className="nf-panel nf-panel--card block mt-group overflow-hidden">
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--nf-surface-raised)]">
                 {photos[0] ? (
@@ -3084,6 +3477,9 @@ export function ListingWizard({
                     : copy.submit.checklist.priceNight,
                 },
                 { field: "bathrooms", label: copy.submit.checklist.rooms },
+                ...(remainderCopy && unmet.some((u) => u.field === "totalMoveIn")
+                  ? [{ field: "totalMoveIn", label: remainderCopy.gateShort }]
+                  : []),
               ].map((item) => {
                 const problem = unmet.find((u) => u.field === item.field);
                 return (
@@ -3112,12 +3508,29 @@ export function ListingWizard({
               })}
             </ul>
 
+            {broadcastCopy && marksUnread && (
+              <p className="nf-body-sm mt-heading text-[var(--nf-content-secondary)]" role="status" data-testid="broadcast-unread">
+                {broadcastCopy.marksUnreachable}
+              </p>
+            )}
+            {broadcastCopy && unconfirmedMoney.length > 0 && (
+              <div className="mt-heading" role="status" data-testid="broadcast-confirm">
+                <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]">
+                  {broadcastCopy.confirmTitle}
+                </p>
+                <p className="nf-body-sm mt-inline-tight text-[var(--nf-content-secondary)]">
+                  {fill(broadcastCopy.confirmBody, {
+                    fields: unconfirmedMoney.map((key) => broadcastCopy.fields[key]).join(", "),
+                  })}
+                </p>
+              </div>
+            )}
             <Button
               variant="primary"
               full
               className="mt-heading"
               onClick={send}
-              disabled={unmet.length > 0}
+              disabled={unmet.length > 0 || unconfirmedMoney.length > 0 || marksUnread}
               loading={pending}
             >
               {copy.submit.action}

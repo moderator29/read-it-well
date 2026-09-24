@@ -5,6 +5,8 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { RowLink, RowValue, SettingsGroup } from "@/components/app/account/rows";
 import { SupportChat } from "@/components/app/account/SupportChat";
 import { aiConsentForViewer } from "@/lib/ai/consent-server";
+import { loadMyReports } from "@/lib/reports/my-reports";
+import { MyReports } from "./MyReports";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.hub.help };
@@ -17,6 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function HelpSettingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
+  const reports = await loadMyReports();
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -28,6 +31,10 @@ export default async function HelpSettingsPage() {
       <div className="space-y-block">
         <section id="settings-help" className="scroll-mt-28">
           <SupportChat aiConsented={await aiConsentForViewer()} />
+        </section>
+        {/* V-89: what this person reported, where it stands, and a way to take it back. */}
+        <section id="settings-reports" className="scroll-mt-28">
+          <MyReports list={reports} locale={locale} />
         </section>
         <section id="settings-about" className="scroll-mt-28">
           <div id="legal">

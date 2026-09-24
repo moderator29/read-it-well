@@ -65,10 +65,27 @@ const nextConfig: NextConfig = {
   // hardcoded, and the pattern is omitted entirely when the URL is absent,
   // which keeps the allowlist tight in a build without keys.
   images: {
-    /* OPS-10: AVIF first, WebP for browsers without it. AVIF is typically a
-       fifth to a third smaller than WebP for photographs, which is the whole
-       weight of a catalogue page on a metered connection. */
+    /*
+     * V-78, THE DATA DIET. A card in the two-column grid is about 170px wide
+     * at 390px, and the smallest device width the optimiser offered was 640,
+     * so every card photo was fetched at 640 wide. 384 and 480 are added so a
+     * 1.5x or 2x phone gets a file the size it draws. AVIF first, WebP next,
+     * each smaller than the JPEG it replaces.
+     *
+     * HOW LONG AN OPTIMISED FILE IS KEPT. One day at least, not thirty: the
+     * floor applies to every image, and a listing photo taken down by
+     * moderation must stop being served within a day, not a month. The
+     * optimiser keeps a file for the longer of this floor and the source's
+     * own max-age, so `/brand` art, which `headers()` below serves for 30
+     * days, is still kept for 30 days.
+     *
+     * OPS-10: AVIF is typically a fifth to a third smaller than WebP for
+     * photographs, which is the whole weight of a catalogue page on a metered
+     * connection.
+     */
+    deviceSizes: [384, 480, 640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 86_400,
     remotePatterns: [
       {
         protocol: "https",
@@ -173,6 +190,44 @@ const nextConfig: NextConfig = {
        * who types the obvious thing.
        */
       { source: "/agent", destination: "/agent/dashboard", permanent: false },
+      /*
+       * `/rent`, THE SECOND RENT SHELF, DELETED (V-26).
+       *
+       * It read `kind: "rental"` only, so a flat typed as an apartment or a
+       * house for yearly rent never appeared on it: two shelves on one
+       * platform that disagreed about what was for rent, and only one of them
+       * had the filter drawer. The rent market is `/search?market=rent`, and
+       * the one good idea on the old page, Message agent on each card, moved
+       * there. `/rent/move-in` and `/rent/pay` are the transaction rather than
+       * a shelf, and stay exactly where they are.
+       *
+       * Permanent, because this address is not coming back as a shelf. The
+       * request's own query rides along (Next.js passes it through and merges
+       * it with the destination's), so `/rent?q=Yaba` lands on
+       * `/search?market=rent&q=Yaba` and a shared link keeps its words.
+       */
+      { source: "/rent", destination: "/search?market=rent", permanent: true },
+      /*
+       * `/trips` AND `/inspections`, FOLDED INTO PLANS (V-76).
+       *
+       * Three lists (`/bookings`, `/trips`, `/inspections`) whose empty
+       * states were signposts to each other are one page at `/bookings`,
+       * titled Plans. The two old addresses land on the half they held, and
+       * their own query rides along: `/inspections?changed=<id>` still opens
+       * the inspection a thread just answered, and `/trips?justBooked=<id>`
+       * still marks the stay checkout confirmed.
+       */
+      { source: "/trips", destination: "/bookings?side=stays&from=stays", permanent: true },
+      { source: "/inspections", destination: "/bookings?kind=inspection&from=property", permanent: true },
+      /*
+       * THE CONSOLE'S THREE MODERATION DESKS ARE LANES OF THE QUEUE (V-88).
+       * Reports, message flags and held content were three destinations for
+       * one noun; the unified queue renders each as a lane with every control
+       * the desk had. The query rides along, so a filtered link still filters.
+       */
+      { source: "/admin/reports", destination: "/admin/queue?tab=reports", permanent: true },
+      { source: "/admin/flags", destination: "/admin/queue?tab=flags", permanent: true },
+      { source: "/admin/moderation", destination: "/admin/queue?tab=held", permanent: true },
     ];
   },
 
@@ -189,6 +244,16 @@ const nextConfig: NextConfig = {
       {
         source: "/fonts/:file*.woff2",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      /*
+       * V-78: the brand artwork answered `max-age=0, must-revalidate`, a
+       * revalidation round trip per image per page on a 3G phone. Thirty days,
+       * not `immutable`: unlike the fonts these files are not versioned by
+       * name, so a replaced logo must still reach people within the month.
+       */
+      {
+        source: "/brand/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=2592000, stale-while-revalidate=86400" }],
       },
       /*
        * The Apple app site association file, which is the iOS half of the deep

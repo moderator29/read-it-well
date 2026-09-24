@@ -72,6 +72,7 @@ the obligation ends.
 | The application row itself, minus the redacted fields | `public.agent_applications` | Same | 2 years [L] | Purge |
 | Identity document for an `APPROVED` agent | `agent-documents` bucket | The agent relationship ends, by account closure or termination | **5 years [C]** | Purge |
 | `id_number` and payout details for an approved agent | `public.agent_applications`, `public.payout_accounts` | Same | **5 years [C]** | Redact. The payout account is kept with its Paystack recipient code cleared, so nothing can be paid to it. It ends on the same date as the identity document (`kyc_retain_until`, equal to `money_retain_until`) |
+| HMACs of the NIN, phone numbers and payout accounts of a person whose stop was upheld as fraud (V-90); never the values | `private.identity_denylist` | The stop is lifted, or the stop row is deleted | **While the upheld stop stands [L]** | Purge, automatically when the stop lifts |
 | Application abandoned at `DRAFT`, never submitted | `public.agent_applications`, `agent-documents` | Last update to the row | 12 months [L] | Purge, row and objects |
 
 **The 5 year figure is the anti money laundering floor, not an NDPA period.**
@@ -120,6 +121,17 @@ data is still held and the notice currently implies it is not.
 | Bank accounts, payout accounts, and a withdrawal's destination (`account_name`, `account_number`, `name` in `wallet_entries.metadata`) of a closed account **with money history** | `public.bank_accounts`, `public.payout_accounts`, `public.wallet_entries` | Account purge; the date is `account_deletion_requests.money_retain_until` | **5 years [C]** | Keep, marked deleted and with the recipient code cleared so nothing can be paid to it. Then `destroy_expired_money_records`, run by the daily account-purge job, deletes the accounts and strips the destination keys; the entry itself stays |
 | The same, for a closed account with **no** money history | Same | Account purge | 30 days [L] | Purge |
 | Saved card tokens | `public.payment_methods` | Account purge | 30 days [L] | Purge. A token is a credential to charge, not a record; a card payment is reconstructed from its processor reference on the transaction |
+| Tenancy evidence: the rent charge, the move-in quote, the promise snapshot, the caution register (obligation, deductions, answers, returns), the move-in and move-out reports and their photos, and pins | `public.rent_payments`, `public.move_in_quotes`, `public.tenancy_snapshots`, `public.caution_obligations`, `public.caution_deductions`, `public.caution_deduction_answers`, `public.caution_returns`, `public.tenancy_reports`, `public.tenancy_report_items`, `public.tenancy_report_photos`, `public.tenancy_pins`, the `tenancy-evidence` bucket, the viewing report (`public.inspection_report*`) of the inspection behind the charge | **Tenancy end** (move-in plus one rent period) | **6 years [C]** | Keep until tenancy end plus six years, then redact the subject. V-47 |
+| Refund requests | `public.refund_requests` | Booking completion or cancellation | **6 years [C]** | Redact the subject, keep the record. V-24 |
+| Threshold reports (SCUML item 7): the monitor's observations, the reportable events, the officer's decisions and the second approvals, and the reminders sent | `public.aml_ledger_observations`, `public.threshold_events`, `public.threshold_decisions`, `public.threshold_approvals`, `public.threshold_reminders` | Entry date | **At least 5 years (SCUML item 11)** | Never purged and never edited: triggers refuse update, delete and truncate. A party is a plain uuid, so an account deletion anonymises the person and leaves the record whole |
+
+**Tenancy evidence runs from the end of the tenancy, not from the payment.**
+A multi-year tenancy is argued about years after the move-in money moved, and
+six years is the ordinary limitation period for a contract claim. A message
+either party pinned to the tenancy (`public.tenancy_pins`) is tenancy evidence:
+any message purge must ask `private.message_is_tenancy_evidence(message_id)`
+and skip a message for which it answers true, whatever the three-year thread
+rule in 3.4 says.
 
 **A ledger is never purged.** Company accounting records carry a statutory
 retention period and a financial record with a hole in it is worse than one that
@@ -139,7 +151,7 @@ Contact data on the ledger (email, phone) still goes at the purge.
 
 | Data | Where it lives | Trigger | Period | Action |
 | --- | --- | --- | ---: | --- |
-| Messages, conversations | `public.messages`, `public.conversations` | Last message in the conversation | 3 years [L] | Purge |
+| Messages, conversations | `public.messages`, `public.conversations` | Last message in the conversation | 3 years [L] | Purge, except a message pinned to a tenancy (3.3) |
 | Message attachments | `public.message_attachments` rows and the `message-attachments` bucket | Last message in the conversation | 3 years [L] | Purge, objects before rows |
 | Flagged messages and the reason for the flag | `public.message_flags` | Flag resolution | 3 years [L] | Purge |
 | Support tickets and their replies | `public.support_tickets`, `public.support_ticket_messages` | Ticket closure | 3 years [L] | Purge |

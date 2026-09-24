@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
 import { payWithWallet, startCardCheckout } from "@/lib/bookings/checkout";
 import { startRentPayment } from "@/lib/rent/actions";
 import type { RentPayView } from "@/lib/rent/queries";
@@ -20,7 +21,7 @@ import { ActionBar } from "@/components/ui/ActionBar";
 import { Amount } from "@/components/ui/Amount";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { getDictionary } from "@vallo/i18n";
+import { formatMoney, getDictionary, type Dictionary } from "@vallo/i18n";
 
 /**
  * The three ways to pay the rent.
@@ -104,8 +105,11 @@ export function PayPanel({
   view,
   savedCards = [],
   chargeSavedCard,
+  payCopy,
 }: {
   view: RentPayView;
+  /** V-25: the large-payment sentences, from `t.afterTheGate.pay`. */
+  payCopy?: Dictionary["afterTheGate"]["pay"];
   savedCards?: PaymentMethod[];
   /**
    * The saved-card charge, bound by the page to this inspection and one key.
@@ -116,6 +120,8 @@ export function PayPanel({
 }) {
   const c = getDictionary(view.locale).checkout;
   const router = useRouter();
+  /* V-81: paying from the wallet asks for the phone lock, when there is one. */
+  const moneyLock = useMoneyStepUp(view.locale);
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [slow, setSlow] = useState(false);
   const cardKey = useMemo(() => newKey(), []);
@@ -135,6 +141,10 @@ export function PayPanel({
     phase.kind === "card-starting" ||
     phase.kind === "checkout-open" ||
     phase.kind === "wallet-paying";
+
+  /* V-25. Above the threshold the one page that can take a transfer leads
+     with it, and says why a card is likely to be refused. */
+  const largeLead = view.routes.leadWithTransfer && payCopy !== undefined ? payCopy : null;
 
   const clearTimers = () => {
     for (const id of timers.current) window.clearTimeout(id);
@@ -224,8 +234,16 @@ export function PayPanel({
     startClocks("wallet");
     const bookingId = await openCharge();
     if (!bookingId) return;
-    setPhase({ kind: "wallet-paying" });
-    const result = await payWithWallet({ bookingId, idempotencyKey: walletKey });
+    /* V-81: the phone lock, when there is one, for exactly this charge. */
+    const result = await moneyLock.guard({ kind: "pay_wallet", target: bookingId }, (stepUp) => {
+      setPhase({ kind: "wallet-paying" });
+      return payWithWallet({ bookingId, idempotencyKey: walletKey, stepUp });
+    });
+    if (result === null) {
+      clearTimers();
+      setPhase({ kind: "error", message: getDictionary(view.locale).platform.moneyLock.notConfirmed });
+      return;
+    }
     clearTimers();
     if (result.ok && result.data) {
       setPhase({ kind: "paid" });
@@ -274,8 +292,13 @@ export function PayPanel({
         {view.cardAvailable ? (
           <Option
             icon="card-lock"
-            title={c.cardTitle}
-            body={c.cardBody}
+            title={largeLead ? largeLead.largeLead : c.cardTitle}
+            body={
+              largeLead
+                ? largeLead.largeBody
+                : c.cardBody
+            }
+            note={largeLead ? largeLead.largeNote.replace("{amount}", view.totalDisplay) : undefined}
             action={
               <Button
                 variant="primary"
@@ -284,7 +307,7 @@ export function PayPanel({
                 disabled={busy}
                 loading={phase.kind === "card-starting"}
               >
-                {c.payByCard}
+                {largeLead ? largeLead.largeLead : c.payByCard}
               </Button>
             }
           />
@@ -296,7 +319,21 @@ export function PayPanel({
             note={c.cardUnavailableRentNote}
           />
         )}
-        {view.walletCovers ? (
+        {!view.routes.walletOffered ? (
+          /* V-25. Above the wallet's own ceiling the wallet is not a route,
+             so it is said here rather than discovered after a top-up. */
+          <Option
+            icon="wallet-secure"
+            title={c.walletTitle}
+            body={
+              payCopy
+                ? payCopy.walletTooLarge
+                    .replace("{limit}", formatMoney(view.routes.walletLimitMinor, view.locale, view.currency))
+                    .replace("{amount}", view.totalDisplay)
+                : getDictionary(view.locale).afterTheGate.pay.walletTooLargeShort
+            }
+          />
+        ) : view.walletCovers ? (
           <Option
             icon="wallet-secure"
             title={c.walletTitle}
@@ -354,9 +391,9 @@ export function PayPanel({
             loading={phase.kind === "card-starting"}
             className="shrink-0"
           >
-            {c.payByCard}
+            {largeLead ? largeLead.largeLead : c.payByCard}
           </Button>
-        ) : view.walletCovers ? (
+        ) : view.walletCovers && view.routes.walletOffered ? (
           <Button
             variant="primary"
             onClick={payFromWallet}
@@ -388,6 +425,7 @@ export function PayPanel({
 
   return (
     <>
+      {moneyLock.sheet}
       {/*
         THE CHECKOUT, ON THIS PAGE. The identical component the stay checkout
         uses, for the identical reason: rent was the other half of the same

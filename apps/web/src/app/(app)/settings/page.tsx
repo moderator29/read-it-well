@@ -1,3 +1,4 @@
+import { phoneConfirmationOn } from "@/lib/phone-otp/flag";
 import type { Metadata } from "next";
 import { distinctDeviceCount } from "@/lib/security/device-count";
 import { getDictionary } from "@vallo/i18n";
@@ -94,6 +95,14 @@ export default async function SettingsPage() {
           }
           notifications={profile ? profile.settings.notifications : null}
           deviceCount={deviceCount}
+          phoneRow={
+            signedIn && (await phoneConfirmationOn())
+              ? { label: t.trustVisible.phone.title, sub: t.trustVisible.phone.subtitle }
+              : null
+          }
+          passportRow={
+            signedIn ? { label: t.trustVisible.passport.title, sub: t.trustVisible.passport.subtitle } : null
+          }
         />
 
         {/* Worker E's block, on the real `listPaymentMethods` and

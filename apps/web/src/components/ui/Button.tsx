@@ -4,8 +4,7 @@ import Link from "next/link";
 import { Children, forwardRef } from "react";
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from "react";
 import { UiIcon, type UiIconSize, type UiIconName } from "@/design-system/icons/UiIcon";
-import { nativeHaptic } from "@/lib/native/device";
-import { looksNative } from "@/lib/native/platform";
+import { feedback } from "@/lib/ui/feedback";
 
 /**
  * The button.
@@ -142,9 +141,15 @@ type CommonProps = {
    */
   iconOnly?: boolean;
   /**
-   * Fires a short `navigator.vibrate` on press where the device supports it.
-   * Defaults on for primary and danger, which are the consequential actions.
-   * `navigator.vibrate` appeared zero times in this codebase before now.
+   * Fires the `select` kind of `lib/ui/feedback.ts` on press: a light impact
+   * in the native shell, a short pulse on Android web, nothing on iOS web.
+   *
+   * OFF BY DEFAULT since V-30. It used to buzz every primary and danger press,
+   * before anybody knew whether the action was accepted, identically for
+   * "pressed" and "paid", and never on an iPhone. The outcome is now felt
+   * where it is known: `ResultSheet` fires success, warning or error when it
+   * opens. Pass `haptic` only for a press that is itself the choice (a
+   * toggle-like control), never for a submit.
    */
   haptic?: boolean;
   className?: string;
@@ -175,23 +180,15 @@ function buttonClass({
 }
 
 /**
- * A press is worth about 8ms of vibration. Long enough to register as physical,
- * short enough that a user tapping quickly through a list does not feel it as
- * buzzing. Guarded because desktop Safari and iOS Safari do not implement it.
+ * A press, felt as `select` through the one feedback grammar (V-30). The
+ * grammar owns the channel: native haptics in the shell, a pattern on Android
+ * web, silence on iOS web. `feedback` never throws.
  */
 function pulse(enabled: boolean) {
   if (!enabled) return;
-  /* STORE-04: inside the app the native haptic engine takes the tap (iOS has
-     no `navigator.vibrate`); on the website nothing native is loaded. */
-  if (looksNative()) {
-    void nativeHaptic("tap");
-    return;
-  }
-  try {
-    navigator.vibrate?.(8);
-  } catch {
-    /* Vibration is a nicety. A device that refuses it changes nothing. */
-  }
+  /* STORE-04 and V-30: inside the app the native haptic engine takes the tap
+     (iOS has no `navigator.vibrate`); `feedback` chooses the channel. */
+  feedback("select");
 }
 
 function Content({
@@ -270,7 +267,7 @@ export const Button = forwardRef(function Button(
   }: ButtonProps,
   ref: Ref<HTMLButtonElement>,
 ) {
-  const wantsHaptic = haptic ?? (variant === "primary" || variant === "danger");
+  const wantsHaptic = haptic === true;
   return (
     /*
      * `rest` is spread FIRST so nothing a call site passes can clobber the
@@ -332,7 +329,7 @@ export const ButtonLink = forwardRef(function ButtonLink(
   }: ButtonLinkProps,
   ref: Ref<HTMLAnchorElement>,
 ) {
-  const wantsHaptic = haptic ?? (variant === "primary" || variant === "danger");
+  const wantsHaptic = haptic === true;
   return (
     <Link
       {...rest}

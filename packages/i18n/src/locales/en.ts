@@ -4,6 +4,20 @@ import type { CountForms, PluralForms } from "../plural";
    once already. One import and one line is the smallest footprint a
    namespace can have here. */
 import { priceCheckEn } from "./price-check.en";
+import { shapeEn } from "./shape.en";
+/* The front of the funnel (share door, area pages, store desk, broadcast,
+   board): its own module for the same reason. */
+import { frontDoorEn } from "./front-door.en";
+import { afterTheGateEn } from "./after-the-gate.en";
+import { trustVisibleEn } from "./trust-visible.en";
+import { landlordEn } from "./landlord.en";
+import { trustDoorsEn } from "./trust-doors.en";
+import { arrivalCheckEn } from "./arrival-check.en";
+/* The platform and the craft (devices, sign-in alert, wallet hold, feedback),
+   in its own module for the same reason as Price Check. */
+import { platformEn } from "./platform.en";
+import { complianceEn } from "./compliance.en";
+import { complianceThresholdEn } from "./compliance-7.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -594,8 +608,6 @@ export const en = {
     restaurantsEmptyBody: "Restaurants come onto Vallo through their owners. When one near you lists, it appears here.",
     tripsTitle: "Trips",
     tripsLine: "Your stays and reservations, by date.",
-    tripsEmptyTitle: "No trips yet",
-    tripsEmptyBody: "Book a stay or a table and it lands here with its confirmation and its conversation.",
     findStay: "Find a stay",
     /* The date spine on /trips. */
     tripsToday: "Today",
@@ -612,13 +624,10 @@ export const en = {
        Stays side's name for its bookings surface. */
     stays: "Stays",
     exploreStays: "Explore stays",
-    trips: "Trips",
-    inspections: "Inspections",
     home: "Home",
     hotels: "Hotels",
     apartments: "Apartments",
     homes: "Homes",
-    rent: "Rent",
     buy: "Buy",
     shortlets: "Shortlets",
     land: "Land",
@@ -636,7 +645,7 @@ export const en = {
        does. Write these again when there is an experience to name. */
     services: "Services",
     properties: "Properties",
-    bookings: "Bookings",
+    bookings: "Plans",
     messages: "Messages",
     wallet: "Wallet",
     aiAssistant: "AI Assistant",
@@ -652,9 +661,9 @@ export const en = {
     notifications: "Notifications",
     places: "Places",
     people: "People",
-    agentMode: "Agent Mode",
+    agentMode: "Agent workspace",
     consoleLabel: "Console",
-    workspacesLabel: "Listing accounts",
+    workspacesLabel: "Workspaces",
     becomeAgent: "Become an agent",
     more: "More",
     search: "Search",
@@ -727,11 +736,10 @@ export const en = {
   socialProfile: {
     /** The account page's tab pair and the rows under Belongings (`50E032EA`). */
     belongings: "Belongings",
-    myBookings: "My Bookings",
-    myBookingsSub: "View your property and stays bookings",
+    myBookings: "Plans",
+    myBookingsSub: "Inspections, move-ins, stays and tables",
     savedSub: "Your saved properties, hotels and places",
     walletSub: "Manage your balance, cards and transactions",
-    inspectionsSub: "View your scheduled and past inspections",
     /*
      * The same four rows, said in one line each.
      *
@@ -743,7 +751,6 @@ export const en = {
     myBookingsRow: "Property and stays bookings",
     savedRow: "Saved properties and places",
     walletRow: "Balance, cards and transactions",
-    inspectionsRow: "Scheduled and past inspections",
     /*
      * The account page itself (`/profile`). Row values carry the
      * figure in `{count}`; the Switch role line names only the roles the
@@ -756,9 +763,8 @@ export const en = {
       followers: "Followers",
       following: "Following",
       settings: "Settings",
-      /* UX-23: one name for listing on Vallo: a "listing account". */
-      switchTitle: "Switch mode",
-      switchNone: "Add a listing account: owner, agent or firm",
+      switchTitle: "Your workspaces",
+      switchNone: "Add a workspace",
       switchTwo: "Change between {a} and {b}",
       switchMany: "Change between {list} or {last}",
       roleUser: "user",
@@ -798,7 +804,6 @@ export const en = {
     posts: "Posts",
     joined: "Joined {month}",
     editProfile: "Edit profile",
-    trustScore: "Trust score",
     completedDeals: "Completed deals",
     responseTime: "Response time",
     tabsLabel: "What @{handle} has on their page",
@@ -1839,10 +1844,7 @@ export const en = {
 
     privacy: {
       label: "Privacy",
-      note: "Who can see me covers your name and reviews on listings.",
-      whoCanSeeMe: "Who can see me",
-      everyone: "Everyone",
-      onlyMe: "Only me",
+      note: "Kept on this device. Sign in to choose what your page shows.",
       readReceipts: "Read receipts",
       readReceiptsSub: "Let hosts see when you have read their messages.",
       personalised: "Personalised recommendations",
@@ -2310,13 +2312,13 @@ export const en = {
       SUSPENDED: "Paused, contact support",
     },
     mode: {
-      personal: "Personal Mode",
-      agent: "Agent Mode",
-      switchToAgent: "Switch to Agent Mode",
-      switchToPersonal: "Switch to Personal Mode",
+      personal: "Personal",
+      agent: "Agent workspace",
+      switchToAgent: "Switch to the agent workspace",
+      switchToPersonal: "Switch to Personal",
       manageSub: "Manage your listings and earnings",
-      chooseTitle: "Choose your mode",
-      chooseSub: "Switch between modes anytime",
+      chooseTitle: "Choose a workspace",
+      chooseSub: "Change workspace at any time.",
       personalDesc: "Discover and book amazing places across Nigeria.",
       agentDesc: "Manage your listings, bookings, customers and earnings.",
       verifiedAgent: "Verified Agent",
@@ -2420,7 +2422,7 @@ export const en = {
       applicationId: "Application ID",
       reviewNote: "Our team typically reviews applications within 24 to 48 hours.",
       backHome: "Back to home",
-      enterAgent: "Enter Agent Mode",
+      enterAgent: "Open the agent workspace",
       signedOutTitle: "Sign in to see your application",
       signedOutBody:
         "Your application and its reference are tied to your account, so we have to know who you are before we can show them.",
@@ -3428,6 +3430,8 @@ export const en = {
         reviewing: "In review",
         resolved: "Resolved",
         dismissed: "Dismissed",
+        /* V-89: the reporter took it back. */
+        withdrawn: "Withdrawn by the reporter",
         pending: "Awaiting reply",
         closed: "Closed",
         DRAFT: "Draft",
@@ -3773,7 +3777,7 @@ export const en = {
     applications: {
       title: "Agent applications",
       lede:
-        "Approving creates the agent profile, grants the agent role so Agent Mode opens, and tells the applicant on the platform. Sending one back asks for exactly what is missing.",
+        "Approving creates the agent profile, grants the agent role so the agent workspace opens, and tells the applicant on the platform. Sending one back asks for exactly what is missing.",
       emptyTitle: "No applications waiting",
       emptyBody:
         "Everyone who applied has had an answer. New applications arrive here the moment they are submitted.",
@@ -3831,7 +3835,7 @@ export const en = {
       approveSheet: {
         title: "Approve {name}?",
         body:
-          "This creates their agent profile, grants the agent role so Agent Mode opens for them, and tells them on the platform. It is written to the audit log with your name against it.",
+          "This creates their agent profile, grants the agent role so the agent workspace opens for them, and tells them on the platform. It is written to the audit log with your name against it.",
         confirm: "Yes, approve",
         notesLabel: "Note to the applicant",
         successTitle: "Application approved",
@@ -5043,17 +5047,11 @@ export const en = {
    */
   inspectionsPage: {
     title: "Inspections",
-    lede: "Every inspection you asked for or were asked to host. Both of you see the same state on the same request.",
     openTitle: "Open",
     openDescription: "Your move first, then what is booked in, then what is waiting on them.",
     closedTitle: "Closed",
     readFailed:
       "We could not load your inspections just now, so this is not showing you an empty list that might not be true. Nothing has been lost. Try again in a moment.",
-    emptyTitle: "Nothing booked to see yet",
-    emptyBody:
-      "Request an inspection from a property's page and it lands here, with the answer beside it the moment it comes.",
-    emptyAction: "Find a place",
-    loading: "Loading your inspections",
   },
 
   /**
@@ -5076,7 +5074,7 @@ export const en = {
       tableBooking: "Table booking",
       directMessage: "Direct message",
       viewBooking: "View booking details",
-      viewTrips: "View your trips",
+      viewTrips: "View your plans",
       viewProperty: "View the property",
       viewRestaurant: "View the restaurant",
     },
@@ -5470,7 +5468,6 @@ export const en = {
       backupPower: "Backup power",
       bandA: "Band A feeder",
       water: "Where the water comes from",
-      instant: "Instant book",
       verifiedOnly: "Verified only",
       trust: "Booking and trust",
       location: "Location",
@@ -5557,15 +5554,6 @@ export const en = {
       upcoming: "Upcoming",
       completed: "Completed",
       cancelled: "Cancelled",
-      emptyUpcomingTitle: "Nothing booked yet",
-      emptyUpcomingBody:
-        "When you reserve a place, it appears here with your dates, your total and everything you need on the day.",
-      emptyCompletedTitle: "No completed stays yet",
-      emptyCompletedBody:
-        "A stay moves here after checkout, and that is where you can leave a review of it.",
-      emptyCancelledTitle: "Nothing cancelled",
-      emptyCancelledBody:
-        "Cancelled bookings are kept here so you always have the record, even after the dates have gone.",
       findPlace: "Find a place",
       payNow: "Pay now",
       cancel: "Cancel",
@@ -5582,14 +5570,9 @@ export const en = {
         "Every stay you book is tied to your account, so we only ever show you your own. Sign in and anything booked with this account appears here.",
       signIn: "Sign in",
       findStay: "Find somewhere to stay",
-      inspectionsTitle: "Your inspections",
-      inspectionsBody: "Whoever listed the property sees the same state you do.",
       /* The two halves of the record, each saying where the other half is
          (R3 finding F-08). Written as one sentence and a link rather than a
          second navigation block. */
-      alsoOnTrips: "Your stays and tables, in the order they happen, are on Trips.",
-      openTrips: "Open Trips",
-      alsoOnBookings: "Tenancies and inspections are on Bookings.",
       openBookings: "Open Bookings",
       /* One booking's own page, which a shared card opens (R2 finding R2-2).
          "Not yours" and "not there" say the same thing on purpose: naming the
@@ -5654,59 +5637,6 @@ export const en = {
       seeRooms: "See rooms",
       roomsTitle: "Rooms",
     },
-  },
-  /**
-   * /crypto: the market surface. Display only: prices, movers, pairs and
-   * the way to fund the wallet with crypto. No trading, no custody, no
-   * advice. Added 18 September 2026.
-   */
-  crypto: {
-    title: "Crypto",
-    lede: "Live market prices, for information only.",
-    search: "Search coins",
-    overview: "Market Overview",
-    overviewSub: "Live prices, movers, seven-day trend",
-    coins: "Coins",
-    pairs: "Pairs",
-    gainers: "Top gainers",
-    losers: "Top losers",
-    allCoins: "All coins",
-    seeAll: "See all",
-    change24h: "24h",
-    change7d: "7d",
-    marketCap: "Market cap",
-    volume24h: "24h volume",
-    high24h: "24h high",
-    low24h: "24h low",
-    about: "About {name}",
-    readMore: "Read more",
-    readLess: "Read less",
-    chart7d: "Seven-day price",
-    fundTitle: "Fund your wallet with crypto",
-    fundBody: "Pay in crypto and your wallet is credited in naira. Yellow Card carries the exchange; nothing about a coin or a rate touches your balance.",
-    fundAction: "Top up with crypto",
-    fundOffTitle: "Crypto top-ups are not switched on yet",
-    fundOffBody: "When the exchange partner is connected, this is where you will top up in crypto. Your naira wallet works as normal in the meantime.",
-    unconfiguredTitle: "Market data is not connected yet",
-    unconfiguredBody: "Prices and pairs appear here the moment the market feed is connected. Nothing on Vallo depends on it in the meantime.",
-    rateLimitedTitle: "The market feed is busy",
-    rateLimitedBody: "Too many requests reached the feed just now. Try again in a minute.",
-    upstreamTitle: "The market feed did not answer",
-    upstreamBody: "Prices could not be read just now. Try again shortly.",
-    retry: "Try again",
-    updated: "Updated {time}",
-    displayOnly: "Prices are shown for information. Vallo does not trade, hold or advise on crypto.",
-    network: "Network",
-    pairsSearch: "Search pairs",
-    pool: "Pool",
-    price: "Price",
-    noPairs: "No pairs matched.",
-    noCoins: "No coins matched.",
-    loading: "Loading market prices",
-    backToMarket: "Back to market",
-    notFound: "That coin could not be found",
-    notFoundBody: "It may have left the feed, or the address is wrong. The market list is one tap away.",
-    priceIn: "Show prices in",
   },
 
   /**
@@ -5989,15 +5919,15 @@ export const en = {
    * citation.
    */
   supply: {
-    switchTitle: "Switch mode",
-    switchTrigger: "Switch mode",
+    switchTitle: "Your workspaces",
+    switchTrigger: "Workspace",
     personal: "Personal",
     personalMeaning: "Use Vallo for your personal needs",
-    addTitle: "Add a listing account",
-    addMeaning: "List property, or take bookings as a business",
+    addTitle: "Add a workspace",
+    addMeaning: "Owner, agent or firm; hotel, shortlet or restaurant",
     current: "Current",
     empty:
-      "You have no listing accounts yet. Add one to list property or take bookings.",
+      "You have no workspaces yet. Add one to list property or take bookings.",
     kinds: {
       owner: "List your own properties",
       agent: "Act for property owners",
@@ -6017,10 +5947,10 @@ export const en = {
       suspended: "Suspended",
     },
     chooser: {
-      title: "Add a listing account",
-      sub: "Tell us how you list. This sets up the right tools and checks for you.",
+      title: "Add a workspace",
+      sub: "Choose what you want to do on Vallo. Each workspace gets its own tools and its own checks.",
       overviewTitle: "What we will ask you for",
-      overviewSub: "We need a few details to verify your listing account and get you set up.",
+      overviewSub: "We need a few details to verify your workspace and get you set up.",
       continueLabel: "Continue",
       back: "Back",
       chooseAgain: "Choose a different one",
@@ -6310,6 +6240,20 @@ export const en = {
   },
 
   priceCheck: priceCheckEn,
+  shape: shapeEn,
+  frontDoor: frontDoorEn,
+  afterTheGate: afterTheGateEn,
+  trustVisible: trustVisibleEn,
+
+  landlord: landlordEn,
+
+  trustDoors: trustDoorsEn,
+  arrivalCheck: arrivalCheckEn,
+
+  platform: platformEn,
+
+  compliance: complianceEn,
+  complianceThreshold: complianceThresholdEn,
 
 };
 

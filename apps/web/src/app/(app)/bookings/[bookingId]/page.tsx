@@ -8,6 +8,12 @@ import { EmptyState, TYPE } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { TenancyCard } from "@/components/app/bookings/TenancyCard";
 import { BookingDetailCard } from "./BookingDetailCard";
+import { BookingMoneyRecord } from "@/components/app/after-gate/BookingMoneyRecord";
+import { ArrivalCheck } from "@/components/app/arrival-check/ArrivalCheck";
+import { ArrivalChargesLine } from "@/components/stays/ArrivalChargesLine";
+import { DoorChargeReport } from "@/components/stays/DoorChargeReport";
+import { bookingChargeKind } from "@/lib/after-gate/is-rent-charge";
+import { lagosToday } from "@/lib/rent/schema";
 
 /** A receipt for one commitment. Never indexed, and never in a tab title. */
 export const metadata: Metadata = {
@@ -69,7 +75,7 @@ export default async function BookingDetailPage({
 
   const shell = (children: React.ReactNode) => (
     <div className="nf-cat-surface mx-auto max-w-2xl">
-      <PageHeader title={t.nav.bookings} fallback="/bookings" />
+      <PageHeader title={t.shape.plans.kinds.stay} fallback="/bookings?side=stays&from=stays" />
       <Reveal>{children}</Reveal>
     </div>
   );
@@ -124,11 +130,38 @@ export default async function BookingDetailPage({
         icon="calendar-check"
         title={copy.detailMissingTitle}
         body={copy.detailMissingBody}
-        action={<EmptyActions primary={{ label: copy.openBookings, href: "/bookings" }} />}
+        action={<EmptyActions primary={{ label: copy.openBookings, href: "/bookings?side=stays&from=stays" }} />}
         data-testid="booking-missing"
       />,
     );
   }
 
-  return shell(<BookingDetailCard booking={booking} locale={locale} />);
+  return shell(
+    <>
+      <BookingDetailCard booking={booking} locale={locale} />
+      {/* V-20 and V-24: the terms this stay was paid under, and every refund
+          with the date it is due by. Nothing at all for an unpaid stay. */}
+      <BookingMoneyRecord
+        bookingId={booking.id}
+        checkIn={booking.checkIn}
+        checkOut={booking.checkOut}
+        cancelled={booking.status === "CANCELLED"}
+        locale={locale}
+      />
+      {/* V-57: what the host declared at the door (as frozen at payment), and
+          the report if asked for more. A stay only: a rent charge is settled
+          in its own agreement, and every other bookings row is a nightly stay.
+          A failed read shows neither. The report opens on the check-in day. */}
+      {booking.status !== "CANCELLED" && (await bookingChargeKind(booking.id)) === "stay" && (
+        <div className="mt-lg grid gap-md">
+          <ArrivalChargesLine listingId={booking.listingId} bookingId={booking.id} locale={locale} />
+          {(booking.status === "CONFIRMED" || booking.status === "COMPLETED") && booking.checkIn.slice(0, 10) <= lagosToday() && (
+            <DoorChargeReport bookingId={booking.id} copy={t.afterTheGate.arrival} />
+          )}
+        </div>
+      )}
+      {/* V-91: "Is it as listed?", from check-in time until three hours after. */}
+      <ArrivalCheck bookingId={booking.id} checkIn={booking.checkIn} locale={locale} />
+    </>,
+  );
 }

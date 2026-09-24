@@ -1,4 +1,9 @@
 import type { Metadata } from "next";
+import { StillAvailable } from "@/components/app/listing/StillAvailable";
+import { readRecentlyLet } from "@/lib/availability/queries";
+import { readViewingSlots } from "@/lib/viewings/queries";
+import { ViewingSlots } from "@/components/app/inspections/ViewingSlots";
+import { Suspense } from "react";
 import { marketOf, type ListingMarket } from "@/lib/listings/market";
 import { panelClass } from "@/components/ui/Panel";
 import { headers } from "next/headers";
@@ -22,7 +27,17 @@ import {
   type PricePeriod,
   type RentPeriod,
 } from "@/lib/listings/pricing";
-import { formatNumber } from "@vallo/i18n";
+import { formatDate, formatNumber } from "@vallo/i18n";
+import { listedAge, listedAgeText, staleMonthOptions } from "@/lib/listings/listed-age";
+import { isModestExample } from "@/lib/listings/example-imagery";
+import { ListingCompound } from "@/components/app/listing/ListingCompound";
+import { ListingService } from "@/components/app/listing/ListingService";
+import { RecordViews } from "@/components/app/search/RecordViews";
+import { ListingNeighbours } from "@/components/app/listing/ListingNeighbours";
+import { readFlooding, readNeighbours } from "@/lib/around/pulse-queries";
+import { flagIsOn, NEIGHBOURS_FLAG, SHOW_ME_FLAG } from "@/lib/flags/read";
+import { readCommutesFrom } from "@/lib/listings/commute-queries";
+import { commuteLine } from "@/lib/listings/commute";
 import { getBlockedDates } from "@/lib/bookings/queries";
 import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";
@@ -37,9 +52,20 @@ import { ListingAbout } from "@/components/app/listing/ListingAbout";
 import { ListingAmenities } from "@/components/app/listing/ListingAmenities";
 import { ListingAmenityTiles } from "@/components/app/listing/ListingAmenityTiles";
 import { ListingAgentCard } from "@/components/app/listing/ListingAgentCard";
+import { ProofStrip } from "@/components/app/listing/ProofStrip";
+import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
+import { doorHonestyLine, readDoorHonesty } from "@/lib/tenancy/door";
+import { readListingRecord } from "@/lib/trust/record-read";
+import { ValloRecord } from "@/components/app/trust/ValloRecord";
+import { readListingCredentials } from "@/lib/trust/credentials-read";
 import { ListingMoveInBlock } from "@/components/app/listing/ListingMoveInBlock";
+import { OwnerAvailabilityLine, PropertyOffers } from "@/components/app/listing/LandlordFacts";
 import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
+import { readPayeeRecords } from "@/lib/after-gate/payee";
+import { LastLetLine } from "@/components/app/listing/LastLetLine";
+import { PhotographedLine } from "@/components/app/listing/PhotographedLine";
+import { CautionRecordLine } from "@/components/app/listing/CautionRecordLine";
 import { ListingPurchase } from "@/components/app/listing/ListingPurchase";
 import { ListingSectionTabs } from "@/components/app/listing/ListingSectionTabs";
 import { ListingSpecChips, specChips } from "@/components/app/listing/ListingSpecChips";
@@ -267,6 +293,16 @@ export default async function ListingDetailPage({
   // Written reviews for this listing. Public by policy for a PUBLISHED listing,
   // so this read works for a signed-out visitor too.
   const reviews = await getListingReviews(listing.id, locale);
+  /* V-59: "Moved in for the Vallo price", the one public number from the
+     tenancy reviews. Null (and no line) on every example listing. */
+  /* V-87: the lister's dated credential checks, for the proof strip. */
+  const credentials = listing.isDemo ? [] : await readListingCredentials(listing.id);
+  const doorLine = listing.isDemo
+    ? null
+    : doorHonestyLine(await readDoorHonesty(listing.id), t.trustVisible.tenancy);
+  /* V-34: the lister's Record under the agent card. An example listing has
+     no Record, and a null draws nothing. */
+  const record = listing.isDemo ? null : await readListingRecord(listing.id);
 
   /*
    * WHERE "MESSAGE AGENT" GOES, AND THE DEAD END THIS REPLACES.
@@ -297,6 +333,8 @@ export default async function ListingDetailPage({
      apartment let by the year is a tenancy here, never a nightly stay. */
   const listingMarket = marketOf(listing);
   const isRental = listingMarket === "tenancy";
+  /* V-94: free viewing slots, read only for a rental (null or empty draws nothing). */
+  const viewingSlots = isRental ? await readViewingSlots(listing.id) : null;
 
   /* A restaurant is ours to take a booking for, and it is NOT a stay. Without
      this it fell into the nightly branch and drew a date range picker, a
@@ -343,11 +381,27 @@ export default async function ListingDetailPage({
      booking on this listing. A refusal and an absence are the same answer here
      on purpose, so nobody can learn whether a code exists by watching the page
      change. */
-  const [access, bookingConfirmed] = await Promise.all([
+  /* V-41: the neighbours' account, for a home to let or sell. Read with the
+     caller's session; the summary function applies its own threshold. */
+  const showMeOpen = await flagIsOn(SHOW_ME_FLAG);
+  /* V-43: rush-hour bands from this area (nothing when the flag is off). */
+  const commute =
+    (isRental || isSale) && !listing.isDemo
+      ? await readCommutesFrom({ stateCode: listing.stateCode, area: listing.area, city: listing.city })
+      : { anchors: 0, rows: [] };
+  const neighboursOn =
+    (isRental || isSale) && session.state === "signed-in" && (await flagIsOn(NEIGHBOURS_FLAG));
+  const [access, bookingConfirmed, neighbours, flooding] = await Promise.all([
     readListingAccess(listing.id),
     session.state === "signed-in"
       ? hasConfirmedBooking(session.supabase, listing.id, session.user.id)
       : Promise.resolve(false),
+    neighboursOn && session.state === "signed-in"
+      ? readNeighbours(session.supabase, listing.stateCode, listing.area)
+      : Promise.resolve({ state: "unavailable" } as const),
+    neighboursOn && session.state === "signed-in"
+      ? readFlooding(session.supabase, listing.id)
+      : Promise.resolve(undefined),
   ]);
 
   // An area is only worth naming when it says something the city does not.
@@ -470,6 +524,17 @@ export default async function ListingDetailPage({
    */
   const isExample = listing.isDemo;
 
+  /* V-22: the listed age, from the same pure rule the card uses. */
+  const ageNow = new Date();
+  const age = isExample ? null : listedAge(listing.publishedAt, ageNow);
+  const listedLine = age
+    ? listedAgeText(
+        age,
+        t.shape.listed,
+        age.kind === "stale" ? formatDate(age.since, locale, staleMonthOptions(age.since, ageNow)) : "",
+      )
+    : null;
+
   /* The footer of 9E8B56ED on a tenancy: Calculate breakdown (the move-in
      ledger) and Book inspection (the real request, in the panel below). A
      stay keeps Check availability with the conversation beside it; a sale
@@ -542,6 +607,10 @@ export default async function ListingDetailPage({
     </div>
   ) : isRental || isSale ? (
     /*
+      V-14: on a rental, "Still available?" comes first. It is the first
+      WhatsApp message about every Nigerian listing; here it is one tap each
+      way and a counted answer. A sale keeps its panel as it was.
+
       The panel gets the SAME period the hero above it gets.
 
       It used to get none and print "/ year" regardless, so this page could
@@ -552,14 +621,28 @@ export default async function ListingDetailPage({
       falling back to the year the rest of this page assumes is better than
       labelling annual rent as nightly.
     */
-    <RentalPanel
-      listingId={listing.id}
-      priceMinor={listing.priceMinor}
-      currency={listing.currency}
-      locale={locale}
-      period={isSale ? "sale" : rentPeriodOf(listing.pricePeriod)}
-      minimumTenancyMonths={listing.minimumTenancyMonths}
-    />
+    <div className="flex flex-col gap-md">
+      {isRental && (
+        <StillAvailable
+          listingId={listing.id}
+          copy={t.frontDoor.available}
+          recentlyLet={await readRecentlyLet(listing.id)}
+          locale={locale}
+        />
+      )}
+      {/* V-94: the lister's free viewing slots, when they have set windows. */}
+      {isRental && viewingSlots && viewingSlots.length > 0 && (
+        <ViewingSlots listingId={listing.id} slots={viewingSlots} copy={t.frontDoor.viewings} locale={locale} />
+      )}
+      <RentalPanel
+        listingId={listing.id}
+        priceMinor={listing.priceMinor}
+        currency={listing.currency}
+        locale={locale}
+        period={isSale ? "sale" : rentPeriodOf(listing.pricePeriod)}
+        minimumTenancyMonths={listing.minimumTenancyMonths}
+      />
+    </div>
   ) : (
     <ReservePanel
       listingId={listing.id}
@@ -688,6 +771,8 @@ export default async function ListingDetailPage({
 
         {/* Nothing rendered. Puts this place in the recently-viewed memory the
             search page offers back, whichever way it was reached. */}
+        {/* V-73: this listing was opened (counted once per person per day). */}
+        <RecordViews opened={listing.id} />
         <RecordVisit
           id={listing.id}
           title={listing.title}
@@ -706,6 +791,7 @@ export default async function ListingDetailPage({
           hue={listing.hue}
           kind={listing.kind}
           photos={listing.photos}
+          drawn={isModestExample(listing)}
           initialSaved={initialSaved}
           backFallback="/home"
           mark={{
@@ -799,8 +885,52 @@ export default async function ListingDetailPage({
                     <ExampleNotice variant="page" className="mt-row" statement={t.examples.statement} />
                   )}
 
+                  {/*
+                    THE MOVE-IN TOTAL LEADS ON A TENANCY, AS IT DOES ON THE CARD.
+
+                    This row used to print the yearly rent in the big figure and
+                    the move-in block sat three rows lower, so the page led with
+                    the number every competitor leads with and the card led with
+                    the one this product exists to print (PRODUCT.md section 5:
+                    "the card leads with the total move-in cost and the rent is
+                    the secondary line"). The founder read the two side by side
+                    and saw them disagree. On a tenancy the move-in block now
+                    takes this place, with the rent beneath the total inside it,
+                    and the rent headline is not drawn a second time. Every other
+                    market keeps its headline figure here.
+                  */}
+                  {isRental && !isSale && (
+                    <div className="mt-md" data-testid="detail-lead-move-in">
+                      <ListingMoveInBlock listing={listing} locale={locale} t={t} />
+                    </div>
+                  )}
+
+                  {/* V-69: ask for one clip before crossing Lagos. Behind the
+                      show_me flag; never on an example, which has nobody to
+                      film anything. */}
+                  {showMeOpen && isRental && !isSale && !listing.isDemo && (
+                    <div className="mt-sm" data-testid="detail-show-me">
+                      <ButtonLink
+                        href={`/messages/new?listing=${listing.id}&then=showme`}
+                        variant="secondary"
+                        className="w-full"
+                      >
+                        {t.shape.showMe.entry}
+                      </ButtonLink>
+                      <p className="nf-caption mt-2xs text-[var(--nf-content-muted)]">{t.shape.showMe.entryHint}</p>
+                    </div>
+                  )}
+
+                  {/* V-31: what the OWNER said about availability, or nothing.
+                      Streams on its own and never holds the page. */}
+                  {isRental && !isSale && (
+                    <Suspense fallback={null}>
+                      <OwnerAvailabilityLine listingId={listing.id} isDemo={listing.isDemo} copy={t.landlord.listing} />
+                    </Suspense>
+                  )}
+
                   <div className="nf-detail-price-row mt-md">
-                    {listing.priceMinor > 0 && (
+                    {listing.priceMinor > 0 && !(isRental && !isSale) && (
                       <p className="nf-detail-price" data-testid="detail-price">
                         <Amount
                           minorUnits={listing.priceMinor}
@@ -818,6 +948,14 @@ export default async function ListingDetailPage({
                       </span>
                     )}
                   </div>
+
+                  {/* How old it is (V-22). Never on an example, which
+                      illustrates a flat that does not exist. */}
+                  {listedLine && (
+                    <p className={`mt-inline-tight ${TYPE.body}`} data-testid="detail-listed-age">
+                      {listedLine}
+                    </p>
+                  )}
 
                   {/* The spec pairs live inside the Move-in panel's own box on
                       a tenancy, exactly as the render draws them, so the
@@ -850,11 +988,47 @@ export default async function ListingDetailPage({
                     </ul>
                   )}
 
-                  {/* The Nigerian number, on a tenancy: the total to move in. */}
-                  {isRental && !isSale && (
+                  {/* V-03, THE PROOF STRIP: the dated facts the database holds,
+                      in a fixed order, each opening what the check is and is
+                      not. It renders nothing at all when there is nothing
+                      dated, which today is every example listing. */}
+                  <ProofStrip
+                    lines={proofLines({ ...proofFactsOf(listing), credentials })}
+                    variant="full"
+                    t={t}
+                    locale={locale}
+                    className="mt-md"
+                  />
+
+                  {/* The move-in total leads above the price row on a tenancy (see above). */}
+
+                  {/* The compound's answers (V-28); absent when none was given. */}
+                  {listing.compound && (
                     <div className="mt-md">
-                      <ListingMoveInBlock listing={listing} locale={locale} t={t} />
+                      <ListingCompound compound={listing.compound} copy={t.shape.compound} />
                     </div>
+                  )}
+
+                  {/* What the service charge covers, and Serviced only when
+                      the database derived it (V-68). */}
+                  {listing.service && (
+                    <div className="mt-md">
+                      <ListingService service={listing.service} copy={t.shape.service} />
+                    </div>
+                  )}
+
+                  {/* V-37: every offer on this property, side by side, each with
+                      its own move-in total. Nothing when there is one offer. */}
+                  {isRental && !isSale && (
+                    <Suspense fallback={null}>
+                      <PropertyOffers
+                        listingId={listing.id}
+                        isDemo={listing.isDemo}
+                        copy={t.landlord.offers}
+                        listingCopy={t.landlord.listing}
+                        locale={locale}
+                      />
+                    </Suspense>
                   )}
 
                   {listing.amenities.length > 0 && (
@@ -908,7 +1082,13 @@ export default async function ListingDetailPage({
                     divided
                     className="scroll-mt-16"
                   >
-                    <ListingMoveIn listing={listing} locale={locale} t={t} />
+                    <ListingMoveIn listing={listing} locale={locale} t={t} records={await readPayeeRecords(listing.id)} />
+                    {/* V-38: what this flat was last let at through Vallo. Nothing when there is no such let. */}
+                    <LastLetLine listingId={listing.id} locale={locale} />
+                    {/* V-70: which of the shot list's photos this listing has. */}
+                    <PhotographedLine listingId={listing.id} locale={locale} />
+                    {/* V-36: the lister's caution record, once five have settled. */}
+                    <CautionRecordLine listingId={listing.id} listerName={null} locale={locale} />
                   </Section>
                 )}
 
@@ -957,19 +1137,56 @@ export default async function ListingDetailPage({
                 </Section>
 
                 {/* ------------------------- 7. LIGHT, WATER AND THE GATE */}
-                {listing.utilities && (
+                {(listing.utilities || neighbours.state !== "unavailable" || flooding !== undefined) && (
                   <Reveal>
                     <Section
                       title="Light, water and getting in"
-                      description="The three things worth knowing before you commit, answered by the agent."
+                      description="The three things worth knowing before you commit: what the agent says, and what residents report where enough have answered."
                       divided
                     >
-                      <ListingUtilities
-                        locale={locale}
-                        utilities={listing.utilities}
-                        access={access}
-                        bookingConfirmed={bookingConfirmed}
-                      />
+                      {listing.utilities && (
+                        <ListingUtilities
+                          locale={locale}
+                          utilities={listing.utilities}
+                          access={access}
+                          bookingConfirmed={bookingConfirmed}
+                        />
+                      )}
+                      {/* V-41: the lister's flooding answer, and what residents
+                          report, beside the claims above. */}
+                      <div className="mt-md">
+                        <ListingNeighbours
+                          neighbours={neighbours}
+                          flooding={flooding}
+                          area={listing.area || listing.city}
+                          copy={t.shape.neighbours}
+                        />
+                      </div>
+                    </Section>
+                  </Reveal>
+                )}
+
+                {/* ------------------------- V-43. GETTING TO WORK FROM HERE */}
+                {commute.anchors > 0 && (
+                  <Reveal>
+                    <Section
+                      title={t.shape.commute.locationTitle}
+                      description={t.shape.commute.locationLede.replace("{area}", listing.area || listing.city)}
+                      divided
+                    >
+                      {commute.rows.length > 0 ? (
+                        <ul className="flex flex-col gap-sm" data-testid="listing-commute">
+                          {commute.rows.map((row) => (
+                            <li key={row.anchor.id} className="nf-body-sm break-words text-[var(--nf-content-secondary)]">
+                              {commuteLine(row.bands, row.anchor.name, t.shape.commute)}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="nf-caption text-[var(--nf-content-muted)]">
+                          {t.shape.commute.locationNone.replace("{area}", listing.area || listing.city)}
+                        </p>
+                      )}
                     </Section>
                   </Reveal>
                 )}
@@ -1102,6 +1319,7 @@ export default async function ListingDetailPage({
                       name={listing.listerName ?? null}
                       listingRole={listing.listerRole ?? null}
                     />
+                    <ValloRecord record={record} t={t} locale={locale} className="mt-row" />
                   </Section>
                 </Reveal>
 
@@ -1111,6 +1329,11 @@ export default async function ListingDetailPage({
                     behaviours are correct and are preserved exactly. */}
                 <Reveal>
                   <Section id="reviews" title={t.catalogue.detail.reviews} divided className="scroll-mt-16">
+                    {doorLine && (
+                      <p className={`mb-row ${TYPE.body}`} data-testid="door-honesty">
+                        {doorLine}
+                      </p>
+                    )}
                     <ListingReviews
                       rating={listing.rating}
                       reviewCount={listing.reviewCount}

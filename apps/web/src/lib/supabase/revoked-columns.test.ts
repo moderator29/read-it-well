@@ -57,9 +57,20 @@ const SIGNED_IN_ONLY: Record<string, string> = {
 async function evaluated(): Promise<Record<string, string>> {
   const agentQueries = await import("../agent/listings-queries");
   const canary = await import("../ops/catalogue-canary");
+  /* The listing answers kept in their own columns (V-28, V-66, V-68), read
+     by the wizard and by the repository through imported constants. */
+  const compound = await import("../listings/compound");
+  const service = await import("../listings/service");
+  const unit = await import("../listings/unit-shape");
   return {
     "lib/agent/listings-queries.ts:LISTING_PUBLIC_SELECT": agentQueries.LISTING_PUBLIC_SELECT,
     "lib/ops/catalogue-canary.ts:CANARY_CARD_SELECT": canary.CANARY_CARD_SELECT,
+    "lib/agent/listings-queries.ts:COMPOUND_COLUMNS": compound.COMPOUND_COLUMNS,
+    "lib/agent/listings-queries.ts:SERVICE_COLUMNS": service.SERVICE_COLUMNS,
+    "lib/agent/listings-queries.ts:UNIT_COLUMNS": unit.UNIT_COLUMNS,
+    "lib/listings/supabase-repository.ts:COMPOUND_BY_ID_COLUMNS": compound.COMPOUND_BY_ID_COLUMNS,
+    "lib/listings/supabase-repository.ts:SERVICE_BY_ID_COLUMNS": service.SERVICE_BY_ID_COLUMNS,
+    "lib/listings/supabase-repository.ts:UNIT_BY_ID_COLUMNS": unit.UNIT_BY_ID_COLUMNS,
   };
 }
 

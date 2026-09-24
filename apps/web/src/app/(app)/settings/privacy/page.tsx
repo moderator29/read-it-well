@@ -11,6 +11,8 @@ import { DevicesRow } from "../DevicesCard";
 import { DataExportCard } from "../DataExportCard";
 import { loadMoneyHoldUntil, loadPendingAddressMove } from "@/lib/auth/pending-address-move";
 import { PendingAddressMove } from "./PendingAddressMove";
+import { MoneyLockGroup } from "../MoneyLockGroup";
+import { loadMoneyCredentials } from "@/lib/security/money-step-up";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.hub.privacy };
@@ -23,11 +25,12 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function PrivacySettingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const [account, sessions, pendingMove, moneyHoldUntil] = await Promise.all([
+  const [account, sessions, pendingMove, moneyHoldUntil, moneyLock] = await Promise.all([
     loadSettingsState(),
     loadSessions(),
     loadPendingAddressMove(locale),
     loadMoneyHoldUntil(locale),
+    loadMoneyCredentials().catch(() => ({ state: "unreadable" as const })),
   ]);
   const signedIn = account.state === "signed-in";
   const deviceCount =
@@ -69,6 +72,10 @@ export default async function PrivacySettingsPage() {
           <SecurityCard t={t}>
             <DevicesRow t={t} signedIn={signedIn} count={deviceCount} />
           </SecurityCard>
+        </section>
+        {/* V-81: face or fingerprint as the lock on money. */}
+        <section id="settings-money-lock" className="scroll-mt-28">
+          <MoneyLockGroup list={moneyLock} locale={locale} />
         </section>
         <section id="settings-data" className="scroll-mt-28">
           <DataCard t={t} />

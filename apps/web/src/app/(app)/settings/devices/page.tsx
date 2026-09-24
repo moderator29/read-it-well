@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getDictionary, type Dictionary } from "@vallo/i18n";
+import { getDictionary, plural, type Dictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { loadSessions, type DeviceSession } from "@/lib/security/sessions";
-import { groupSessions } from "@/lib/security/session-groups";
-import { sessionWhen, type SessionWhen } from "@/lib/security/when";
-import { DeviceList, type DeviceRow } from "./DeviceList";
+import { sessionWhen } from "@/lib/security/when";
+import { phrase } from "./when-words";
+import { groupSessions, type SessionGroup } from "@/lib/security/session-groups";
+import { DeviceList, type DeviceGroupRow, type DeviceRow } from "./DeviceList";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -50,8 +51,10 @@ export const dynamic = "force-dynamic";
  * just ended is still signed in.
  */
 export default async function DevicesPage() {
-  const t = getDictionary(await getLocale());
+  const locale = await getLocale();
+  const t = getDictionary(locale);
   const copy = t.settings.devices;
+  const fold = t.platform.devices;
   const state = await loadSessions();
 
   if (state.state !== "signed-in") {
@@ -78,29 +81,23 @@ export default async function DevicesPage() {
     );
   }
 
-  /* The clock comes from the read, not from the render. See `SessionsState`. */
-  const groups = groupSessions(state.sessions);
-  const rows = groups.listed.map((session) => toRow(session, t, state.readAt));
-  const folded =
-    groups.unrecorded.count > 0
-      ? {
-          label:
-            groups.unrecorded.count === 1
-              ? copy.unrecordedGroupOne
-              : copy.unrecordedGroupMany.replace("{count}", String(groups.unrecorded.count)),
-          sub: copy.unrecordedGroupSub,
-          lastSeen: groups.unrecorded.newestLastSeenAt
-            ? phrase(copy.lastSeenAt, sessionWhen(groups.unrecorded.newestLastSeenAt, state.readAt), t)
-            : "",
-        }
-      : null;
+  /*
+   * V-19: ONE LINE PER DEVICE TYPE. The QA member holds 91 sessions, 89 of
+   * them our own middleware's refreshes. One card per row buried the one line
+   * a person is looking for, so the rows are folded (`session-groups.ts`) and
+   * each line can still be opened to its sessions. The clock comes from the
+   * read, not from the render. See `SessionsState`.
+   */
+  const { current, groups } = groupSessions(state.sessions);
+  const currentRow = current ? toRow(current, t, state.readAt) : null;
+  const groupRows = groups.map((group) => toGroupRow(group, t, locale, state.readAt));
 
   return (
     <div className="mx-auto max-w-lg" data-testid="devices-settings">
       <PageHeader title={copy.screenTitle} fallback="/settings" />
       <DeviceList
-        rows={rows}
-        folded={folded}
+        current={currentRow}
+        groups={groupRows}
         othersCount={state.sessions.filter((session) => !session.isCurrent).length}
         readable={state.readable}
         copy={{
@@ -119,10 +116,48 @@ export default async function DevicesPage() {
           endedOthers: copy.endedOthers,
           endedNone: copy.endedNone,
           unreadable: copy.unreadable,
+          currentTitle: fold.currentTitle,
+          othersTitle: fold.othersTitle,
+          othersEmpty: fold.othersEmpty,
+          strangerHint: fold.strangerHint,
+          groupFailed: fold.groupFailed,
+          endedGroup: fold.endedGroup,
+          notMeTitle: fold.notMeTitle,
+          notMeBody: fold.notMeBody,
+          notMe: fold.notMe,
+          notMeConfirm: fold.notMeConfirm,
+          notMeWorking: fold.notMeWorking,
         }}
+        notMeCopy={t.platform.notMe}
+        locale={locale}
       />
     </div>
   );
+}
+
+/** A folded line: the device, how many, first and last, and its sessions. */
+function toGroupRow(
+  group: SessionGroup<DeviceSession>,
+  t: Dictionary,
+  locale: Locale,
+  now: number,
+): DeviceGroupRow {
+  const fold = t.platform.devices;
+  const first = group.sessions[0];
+  const described = first ? toRow(first, t, now) : null;
+  const count = group.sessions.length;
+  return {
+    key: group.key,
+    device: described?.device ?? t.settings.devices.deviceUnknown,
+    deviceNote: described?.deviceNote,
+    count: plural(count, fold.sessions, locale),
+    firstSignedIn: phrase(fold.firstSignedIn, sessionWhen(group.firstSignedInAt, now), t),
+    lastUsed: phrase(fold.lastUsed, sessionWhen(group.lastSeenAt, now), t),
+    endLabel: plural(count, fold.endGroup, locale),
+    showLabel: fold.showSessions,
+    sessionIds: group.sessions.map((session) => session.id),
+    sessions: group.sessions.map((session) => toRow(session, t, now)),
+  };
 }
 
 /**
@@ -163,24 +198,4 @@ function toRow(session: DeviceSession, t: Dictionary, now: number): DeviceRow {
     signedIn: phrase(copy.signedInAt, sessionWhen(session.signedInAt, now), t),
     lastSeen: phrase(copy.lastSeenAt, sessionWhen(session.lastSeenAt, now), t),
   };
-}
-
-/** "{when}" filled from the shape `sessionWhen` returns, in the reader's words. */
-function phrase(template: string, when: SessionWhen, t: Dictionary): string {
-  const copy = t.settings.devices;
-  const words =
-    when.kind === "now"
-      ? copy.whenNow
-      : when.kind === "minutes"
-        ? copy.whenMinutes.replace("{count}", String(when.minutes))
-        : when.kind === "today"
-          ? copy.whenToday.replace("{time}", when.time)
-          : when.kind === "yesterday"
-            ? copy.whenYesterday.replace("{time}", when.time)
-            : when.kind === "date"
-              ? when.date
-              : "";
-  /* An unusable timestamp draws no line at all rather than a sentence with a
-     hole in it. There is nothing useful to say and saying half of it is worse. */
-  return words.length === 0 ? "" : template.replace("{when}", words);
 }

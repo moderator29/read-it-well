@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition, type ReactNode } from "react";
+import { setLite } from "@/lib/ui/lite";
 import { useRouter } from "next/navigation";
 import { LOCALES, localeMeta, type Dictionary, type Locale } from "@vallo/i18n";
 import { LOCALE_COOKIE } from "@/lib/locale.constants";
@@ -130,7 +131,11 @@ export function AppearanceCard({ t, children }: { t: Dictionary; children?: Reac
         label={copy.lessData}
         sub={copy.lessDataSub}
         checked={settings.dataSaver}
-        onChange={(next) => set("dataSaver", next)}
+        onChange={(next) => {
+          /* V-79: the cookie the server reads, and this setting, together. */
+          setLite(next);
+          set("dataSaver", next);
+        }}
       />
       {/*
        * LANGUAGE ARRIVES HERE AS A ROW RATHER THAN AS ITS OWN CARD.
@@ -248,16 +253,6 @@ export function PrivacyCard({ t }: { t: Dictionary }) {
 
   return (
     <SettingsGroup label={copy.label} note={copy.note}>
-      <RowSelect
-        icon="user"
-        label={copy.whoCanSeeMe}
-        value={settings.profileVisibility}
-        options={[
-          { value: "everyone", label: copy.everyone },
-          { value: "private", label: copy.onlyMe },
-        ]}
-        onChange={(next) => set("profileVisibility", next)}
-      />
       <RowSwitch
         icon="verified"
         label={copy.readReceipts}

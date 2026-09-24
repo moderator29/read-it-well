@@ -8,12 +8,24 @@ import { InspectionHero, InspectionSheet } from "@/components/app/inspections/In
 import { InspectionsLive } from "@/components/app/inspections/InspectionsLive";
 import { EmptyState, Section, Stack, TYPE } from "@/components/app/Screen";
 import { resolveSession } from "@/lib/actions/session";
-import { readListingFacts } from "@/app/(app)/inspections/facts";
+import { readListingFacts } from "@/components/app/plans/inspection-facts";
 import { readReportsFor } from "@/lib/inspections/report-queries";
 import { reportStorageLive } from "@/lib/inspections/report-flag";
 import { ButtonLink } from "@/components/ui/Button";
 import { isOpen } from "@/lib/inspections/types";
 import { SUPPLY_DOOR_HREF } from "@/components/agent/agent-doors";
+import { readMyListings } from "@/lib/agent/listings-queries";
+import { readMyViewingWindows } from "@/lib/viewings/queries";
+import { lagosDay, nextStop, routeFor } from "@/lib/viewings/route";
+import { ViewingWindows } from "@/components/agent/ViewingWindows";
+import { SaturdayRoute } from "@/components/agent/SaturdayRoute";
+import { formatDate } from "@vallo/i18n";
+
+/** Lagos today, from the clock, once per request (V-94). */
+function lagosToday(): { day: string; now: number } {
+  const now = Date.now();
+  return { day: lagosDay(now), now };
+}
 
 export const metadata: Metadata = {
   title: "Inspections",
@@ -44,7 +56,7 @@ export default async function AgentInspectionsPage() {
       <AgentShell t={t} locale={locale} active="/agent/inspections" profile={null}>
         <EmptyState
           icon="calendar-check"
-          title="Inspections live behind an approved profile"
+          title="Inspections open once you are approved"
           body="Once your Listing or selling profile is approved, every request to inspect one of your properties arrives here with a state on it that the other side can see too."
           action={
             <ButtonLink href={SUPPLY_DOOR_HREF} variant="primary" size="lg">
@@ -68,6 +80,40 @@ export default async function AgentInspectionsPage() {
     readReportsFor(list.inspections.map((one) => one.id)),
   ]);
   const reportLive = reportStorageLive();
+
+  /* V-94: the lister's viewing windows, and the first day from today with
+     booked viewings drawn as a route (today when there are none). */
+  const [windows, mine] = await Promise.all([
+    readMyViewingWindows(),
+    /* A failed read is null, never "no published homes". */
+    readMyListings(context.supabase, context.agent.id).catch(() => null),
+  ]);
+  const homes = mine === null ? null : mine.filter((one) => one.status === "PUBLISHED").map((one) => ({ id: one.id, title: one.title }));
+  const areaOf = new Map((mine ?? []).map((one) => [one.id, one.area]));
+  const clock = lagosToday();
+  const booked = list.inspections.filter(
+    (one) => one.state === "CONFIRMED" && one.slotAt !== null && lagosDay(one.slotAt) >= clock.day,
+  );
+  const routeDay = booked.map((one) => lagosDay(one.slotAt!)).sort()[0] ?? clock.day;
+  const route = routeFor(
+    booked
+      .filter((one) => lagosDay(one.slotAt!) === routeDay)
+      .map((one) => ({
+        inspectionId: one.id,
+        listingId: one.listingId,
+        listingTitle: one.listingTitle,
+        area: areaOf.get(one.listingId) ?? null,
+        slotAt: one.slotAt!,
+        counterpartName: one.counterpartName,
+        conversationId: one.conversationId,
+      })),
+  );
+  const routeLabel = formatDate(new Date(`${routeDay}T12:00:00+01:00`), locale, {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+    timeZone: "Africa/Lagos",
+  });
   /* The first one waiting on somebody arrives expanded, as on /inspections;
      failing that the first scheduled one, which is the render's own case. */
   const expanded =
@@ -89,6 +135,16 @@ export default async function AgentInspectionsPage() {
         />
         <InspectionsLive userId={userId} />
 
+        {/* V-94: the day as a route, and the windows renters book into. */}
+        <SaturdayRoute
+          dayLabel={routeLabel}
+          route={route}
+          next={routeDay === clock.day ? nextStop(route, clock.now) : null}
+          copy={t.frontDoor.viewings}
+          locale={locale}
+        />
+        <ViewingWindows windows={windows} homes={homes} copy={t.frontDoor.viewings} />
+
         {list.readFailed ? (
           /* The wallet's rule, applied here: an empty list and an unreadable
              one look identical and mean opposite things. */
@@ -99,7 +155,7 @@ export default async function AgentInspectionsPage() {
         ) : list.inspections.length === 0 ? (
           <EmptyState
             icon="calendar-check"
-            title="Nobody has asked to inspect a property yet"
+            title="No inspection requests yet"
             body="When somebody requests an inspection from one of your listings it lands here, and you can confirm it, offer another time, or say no."
             action={
               <ButtonLink href="/agent/listings" variant="primary" size="lg">
@@ -117,6 +173,7 @@ export default async function AgentInspectionsPage() {
                 <div className="nf-ix-list">
                   {open.map((one) => (
                     <InspectionSheet
+                      gateCopy={t.platform.gate}
                       key={one.id}
                       inspection={one}
                       side="lister"
@@ -136,6 +193,7 @@ export default async function AgentInspectionsPage() {
                 <div className="nf-ix-list">
                   {settled.map((one) => (
                     <InspectionSheet
+                      gateCopy={t.platform.gate}
                       key={one.id}
                       inspection={one}
                       side="lister"

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { flagIsOn, NEIGHBOURS_FLAG } from "@/lib/flags/read";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
@@ -12,6 +13,7 @@ import {
   type WizardDraft,
 } from "@/lib/agent/listings-queries";
 import { AMENITY_CHOICES, STATE_CODES } from "@/lib/agent/listings-schema";
+import { readBroadcastMarks } from "@/lib/agent/broadcast-marks-queries";
 import { ListingWizard } from "./ListingWizard";
 import { ListingPitch } from "./ListingPitch";
 
@@ -72,8 +74,15 @@ export default async function Page({
       <AgentShell t={t} locale={locale} active="/agent/list" profile={null}>
         <ListingWizard
           copy={t.agentListings}
+          shotsCopy={t.afterTheGate.shots}
           reference={t.listingReference}
           moveInCopy={t.moveIn}
+          compoundCopy={t.shape.compound}
+          serviceCopy={t.shape.service}
+          unitCopy={t.shape.unit}
+          floodCopy={t.shape.neighbours}
+          remainderCopy={t.afterTheGate.remainder}
+          moneyMapCopy={t.afterTheGate.moneyMap}
           locale={locale}
           userId={null}
           states={STATE_CODES.map((code) => ({ code, name: code }))}
@@ -95,6 +104,10 @@ export default async function Page({
         : readOpenDraft(context.supabase, context.agent.id),
   ]);
 
+  /* V-09: which figures from a pasted message are still unchecked, as the
+     server holds them for this draft. */
+  const unconfirmed = draft?.id ? await readBroadcastMarks(context.supabase, draft.id) : [];
+
   return (
     <AgentShell
       t={t}
@@ -104,14 +117,26 @@ export default async function Page({
     >
       <ListingWizard
         copy={t.agentListings}
+          shotsCopy={t.afterTheGate.shots}
         reference={t.listingReference}
         moveInCopy={t.moveIn}
+        compoundCopy={t.shape.compound}
+        serviceCopy={t.shape.service}
+        unitCopy={t.shape.unit}
+        floodCopy={t.shape.neighbours}
+        floodOpen={await flagIsOn(NEIGHBOURS_FLAG)}
+        remainderCopy={t.afterTheGate.remainder}
+        moneyMapCopy={t.afterTheGate.moneyMap}
         locale={locale}
         userId={context.user.id}
         states={states.length > 0 ? states : STATE_CODES.map((code) => ({ code, name: code }))}
         amenities={amenities}
         initial={draft}
         canPersist
+        broadcastCopy={t.frontDoor.broadcast}
+        guideCopy={t.frontDoor.guide}
+        initialUnconfirmed={unconfirmed}
+        demandCopy={t.frontDoor.demand}
       />
     </AgentShell>
   );
