@@ -1,9 +1,19 @@
 import "server-only";
 
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { forwardedAgentHeaders } from "./agent";
 import type { Database } from "./database.types";
 import { requireSupabasePublicEnv } from "./env";
+
+/** The incoming request's User-Agent, or null outside a request scope. */
+async function visitorAgent(): Promise<string | null> {
+  try {
+    return (await headers()).get("user-agent");
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Request-scoped server Supabase client.
@@ -20,6 +30,13 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient<Database>(url, anonKey, {
+    /*
+     * SEC-08: sign-in, sign-up confirmation and the code exchange run here, in
+     * a server action, so the request GoTrue sees is ours. Forwarding the
+     * visitor's User-Agent is what lets `auth.sessions` record the device the
+     * person actually signed in on (see `./agent.ts`).
+     */
+    global: { headers: forwardedAgentHeaders(await visitorAgent()) },
     cookies: {
       getAll() {
         return cookieStore.getAll();

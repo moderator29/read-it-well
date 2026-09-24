@@ -32,6 +32,7 @@ import {
 import { isFeatureEnabled } from "../flags";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
+import { SCRUB_REFUSED_MESSAGE, scrubPublicPhoto } from "../images/scrub";
 import {
   PHOTO_BUCKET,
   VIDEO_BUCKET,
@@ -487,6 +488,14 @@ export async function addPhoto(input: {
   if (!(PHOTO_MIME_TYPES as readonly string[]).includes(mime)) {
     return fail("That file is not a photo we can show. Use JPEG, PNG or WebP.");
   }
+
+  /*
+   * OPS-13 / SEC-04: the wizard re-encodes in the browser, which strips EXIF,
+   * but a direct upload with the member's own token skips the wizard. The
+   * server strips it here too, before the row makes the object public.
+   */
+  const scrubbed = await scrubPublicPhoto(PHOTO_BUCKET, storagePath);
+  if (!scrubbed.ok) return fail(SCRUB_REFUSED_MESSAGE);
 
   const { data: created, error } = await gate.supabase
     .from("listing_photos")

@@ -650,6 +650,20 @@
     border-radius: 0;
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+  /*
+   * THE PINNED BAR IS OPAQUE. Its glass fill is 11% white and relies on a
+   * backdrop blur to hide what scrolls under it. Where the blur is not drawn
+   * (a WebView without backdrop-filter, a screenshot renderer) the listing's
+   * tab strip and headings read straight through the price and the button,
+   * and even where it is drawn a sharp heading under a price is a second line
+   * of text. The same tint now sits over the canvas colour, so the bar looks
+   * the same and nothing shows through it.
+   */
+  .nf-glass.nf-action-bar-pinned {
+    background:
+      linear-gradient(var(--nf-glass-fill-strong), var(--nf-glass-fill-strong)),
+      var(--nf-surface-canvas);
+  }
   /* The scrim above it, so content dissolves into the bar instead of hitting a seam. */
   .nf-action-bar-pinned::after {
     content: "";
