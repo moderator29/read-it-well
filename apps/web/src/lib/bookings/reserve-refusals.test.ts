@@ -34,3 +34,15 @@ describe("checkConstraintMessage (ESC-02 refusals)", () => {
     );
   });
 });
+
+describe("checkConstraintMessage (ESC-03 / SUP-P2-02 hold limits)", () => {
+  it("names each limit on holding a calendar", () => {
+    expect(checkConstraintMessage("booking_too_long: a stay is at most 90 nights")).toMatch(/90 nights/);
+    expect(
+      checkConstraintMessage("booking_hold_limit: too many unconfirmed stays are already held"),
+    ).toMatch(/unconfirmed stays/);
+    expect(checkConstraintMessage("booking_rate_limit: too many bookings in a short time")).toMatch(
+      /short time/,
+    );
+  });
+});

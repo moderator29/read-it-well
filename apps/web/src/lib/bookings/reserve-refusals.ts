@@ -5,6 +5,16 @@ export const NOT_LIVE_MESSAGE =
 
 export const PAST_DATES_MESSAGE = "Check-in has already passed. Pick dates from today onwards.";
 
+/* ESC-03 / SUP-P2-02: the limits on holding a calendar without paying. */
+export const TOO_LONG_MESSAGE =
+  "A stay can be at most 90 nights. For longer, message the host about a tenancy.";
+
+export const HOLD_LIMIT_MESSAGE =
+  "You already have unconfirmed stays waiting, including one here or three in all. Pay for or cancel one from Bookings, then book this.";
+
+export const RATE_LIMIT_MESSAGE =
+  "You have made a lot of bookings in a short time. Try again tomorrow, or finish one you already have from Bookings.";
+
 /**
  * Turn a 23514 check-constraint violation into the true sentence.
  *
@@ -17,9 +27,12 @@ export const PAST_DATES_MESSAGE = "Check-in has already passed. Pick dates from 
  * so and does not send them back to the form to guess.
  */
 export function checkConstraintMessage(message: string): string {
-  /* ESC-02: the two refusals `private.price_booking_from_listing` raises. */
+  /* ESC-02, ESC-03: the refusals `private.price_booking_from_listing` raises. */
   if (message.includes("booking_listing_not_bookable")) return NOT_LIVE_MESSAGE;
   if (message.includes("booking_check_in_past")) return PAST_DATES_MESSAGE;
+  if (message.includes("booking_too_long")) return TOO_LONG_MESSAGE;
+  if (message.includes("booking_hold_limit")) return HOLD_LIMIT_MESSAGE;
+  if (message.includes("booking_rate_limit")) return RATE_LIMIT_MESSAGE;
   if (message.includes("bookings_dates_chk")) {
     return "Check-out has to be after check-in. Pick the dates again.";
   }

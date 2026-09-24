@@ -143,17 +143,32 @@ begin
     price_per_night_minor, cleaning_fee_minor, service_fee_minor, subtotal_minor, total_minor, status)
   values (stay, member, lagos + 30, lagos + 32, 2, 1, 0, rate, 0, 0, rate * 2, rate * 2, 'PENDING')
   returning id into bk;
-  update public.bookings set total_minor = 1, status = 'CONFIRMED' where id = bk;
-  get diagnostics n = row_count;
+  -- Refused by RLS (0 rows) today, and by the grant (42501) once MON-10's
+  -- revoke is in; either way nothing changes.
+  begin
+    update public.bookings set total_minor = 1, status = 'CONFIRMED' where id = bk;
+    get diagnostics n = row_count;
+  exception when insufficient_privilege then n := 0;
+  end;
   if n <> 0 then raise exception 'PROBE_FAIL esc-p2-01: guest updated % rows', n; end if;
   perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
   select count(*) into n from public.bookings where id = bk;
   if n <> 1 then raise exception 'PROBE_FAIL esc-p2-01: admin cannot read the booking'; end if;
-  update public.bookings set status = 'CONFIRMED', total_minor = 0, subtotal_minor = 0, price_per_night_minor = 0 where id = bk;
-  get diagnostics n = row_count;
+  -- Refused by RLS (0 rows) today, and by the grant (42501) once MON-10's
+  -- revoke is in; either way nothing changes.
+  begin
+    update public.bookings set status = 'CONFIRMED', total_minor = 0, subtotal_minor = 0, price_per_night_minor = 0 where id = bk;
+    get diagnostics n = row_count;
+  exception when insufficient_privilege then n := 0;
+  end;
   if n <> 0 then raise exception 'PROBE_FAIL esc-p2-01: admin rewrote % rows over the API', n; end if;
-  update public.bookings set status = 'CONFIRMED' where id = bk;
-  get diagnostics n = row_count;
+  -- Refused by RLS (0 rows) today, and by the grant (42501) once MON-10's
+  -- revoke is in; either way nothing changes.
+  begin
+    update public.bookings set status = 'CONFIRMED' where id = bk;
+    get diagnostics n = row_count;
+  exception when insufficient_privilege then n := 0;
+  end;
   if n <> 0 then raise exception 'PROBE_FAIL esc-p2-01: admin confirmed % rows over the API', n; end if;
   reset role;
   begin
