@@ -942,7 +942,7 @@ the transactional sender followed without being touched.
 for: it fails if `BRAND_DOMAIN` stops being a bare host, if `BRAND_ORIGIN`
 stops deriving from it, if the Android manifest or the iOS entitlements stop
 naming both the bare and the `www.` host, if any of five named files carries
-`vallo.ng` again, or if `vallospacesltd@gmail.com` appears in any of them.
+`vallo.ng` again, or if `<the private address, redacted (SEC-11)>` appears in any of them.
 
 WHAT DELIBERATELY DID NOT CHANGE, and the founder should know: the native
 bundle identifier is still `ng.vallo.app`, in `build.gradle`, the Java
@@ -956,7 +956,7 @@ signing and provisioning setup already in place, so it is on the founder's
 desk in section 9 rather than done unasked. The window closes at first
 submission.
 
-`vallospacesltd@gmail.com` appears in no tracked file. `vallo.ng` survives in
+`<the private address, redacted (SEC-11)>` appears in no tracked file. `vallo.ng` survives in
 exactly two, both deliberate: `docs/archive/SESSION_REPORT_2026-09-15.md` and
 `docs/design/audits/r3/findings.md`, which are historical records and are
 excluded from the sweep by design.
