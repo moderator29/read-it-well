@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { StillAvailable } from "@/components/app/listing/StillAvailable";
 import { readRecentlyLet } from "@/lib/availability/queries";
+import { readViewingSlots } from "@/lib/viewings/queries";
+import { ViewingSlots } from "@/components/app/inspections/ViewingSlots";
 import { Suspense } from "react";
 import { panelClass } from "@/components/ui/Panel";
 import { headers } from "next/headers";
@@ -308,6 +310,8 @@ export default async function ListingDetailPage({
   // Rentals are annual tenancies: no Reserve control anywhere on the page.
   // The path is message the agent, inspect the property, then pay.
   const isRental = listing.kind === "rental";
+  /* V-94: free viewing slots, read only for a rental (null or empty draws nothing). */
+  const viewingSlots = isRental ? await readViewingSlots(listing.id) : null;
 
   /* A restaurant is ours to take a booking for, and it is NOT a stay. Without
      this it fell into the nightly branch and drew a date range picker, a
@@ -575,6 +579,10 @@ export default async function ListingDetailPage({
           recentlyLet={await readRecentlyLet(listing.id)}
           locale={locale}
         />
+      )}
+      {/* V-94: the lister's free viewing slots, when they have set windows. */}
+      {isRental && viewingSlots && viewingSlots.length > 0 && (
+        <ViewingSlots listingId={listing.id} slots={viewingSlots} copy={t.frontDoor.viewings} locale={locale} />
       )}
       <RentalPanel
         listingId={listing.id}
