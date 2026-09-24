@@ -39,8 +39,8 @@ describe("honest example imagery", () => {
     expect(honestExamplePhotos(ex({ isDemo: false }), VILLA_RENDERS)).toEqual(VILLA_RENDERS);
   });
 
-  it("a modest example never wears the villa renders, and wears nothing until its slot exists", () => {
-    expect(honestExamplePhotos(ex({}), VILLA_RENDERS)).toEqual([]);
+  it("a modest example keeps its own photos until an honest slot exists, then wears the slot", () => {
+    expect(honestExamplePhotos(ex({}), VILLA_RENDERS)).toEqual(VILLA_RENDERS);
     expect(honestExamplePhotos(ex({}), VILLA_RENDERS, ["room-single"])).toEqual([
       exampleSlotPath("room-single"),
     ]);
