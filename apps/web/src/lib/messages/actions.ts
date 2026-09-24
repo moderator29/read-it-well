@@ -18,6 +18,7 @@
  * Sending inside an existing thread is never throttled.
  */
 
+import { oncePerTap, tapKey } from "../offline/replay-guard";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
@@ -410,10 +411,26 @@ export type SentMessage = {
 export async function sendMessage(input: {
   conversationId: string;
   body: string;
+  /** V-40: the UUID minted when this was tapped; a replay answers with the first send. */
+  tapKey?: string;
 }): Promise<ActionResult<SentMessage>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+  /* Kept for replay: the id, the thread and the time, never the words. */
+  return oncePerTap(
+    "outbox.message",
+    session.user.id,
+    tapKey(input.tapKey),
+    () => sendMessageWork(session, { conversationId: input.conversationId, body: input.body }),
+    (sent) => ({ id: sent.id, conversationId: sent.conversationId, createdAt: sent.createdAt }),
+  );
+}
+
+async function sendMessageWork(
+  session: Extract<Awaited<ReturnType<typeof resolveSession>>, { state: "signed-in" }>,
+  input: { conversationId: string; body: string },
+): Promise<ActionResult<SentMessage>> {
 
   if (!(await isFeatureEnabled("messaging"))) return fail(PAUSED_MESSAGE);
 

@@ -1,0 +1,194 @@
+"use server";
+
+/**
+ * THE LOCK ON MONEY, AS THE SCREENS CALL IT. V-81.
+ *
+ * Codes, not sentences: the client maps them onto `platform.moneyLock`. Every
+ * door authorises off the signed-in session and hands the checking to
+ * `money-step-up.ts`, which is the only code that writes the three tables.
+ * Every proof is for ONE action, named by its intent (`money-intent.ts`).
+ *
+ * The fallback proof is the one re-authentication door the account deletion
+ * flow uses (`lib/account-deletion/reauthenticate.ts`): the password for an
+ * account that has one, an emailed code for one that signed up with Google.
+ * The password is refused for a day after it changes, because today any
+ * signed-in session can change it (reported to the audit).
+ */
+
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { resolveSession } from "../actions/session";
+import { reauthenticate, reauthMethodFor, sendReauthCode, type ReauthMethod } from "../account-deletion/reauthenticate";
+import { consume, subjectForUser } from "./rate-limit";
+import { isMoneyIntent, type MoneyIntent } from "./money-intent";
+import {
+  admin,
+  ceremonyOrigin,
+  consumeStepUp,
+  enrolKey,
+  intentDigest,
+  listCredentialIds,
+  mintChallenge,
+  passwordChangedRecently,
+  proveWithAssertion,
+  recordStepUp,
+  spendEmailCodeMarker,
+} from "./money-step-up";
+
+export type StepUpStatus = { needed: boolean; credentialIds: string[]; rpId: string; fallback: ReauthMethod };
+
+/**
+ * Does this person's money need a proof, and which keys may give it? Null
+ * when that cannot be read: the phone then submits and the server decides.
+ */
+export async function stepUpStatus(): Promise<StepUpStatus | null> {
+  const session = await resolveSession();
+  const a = admin();
+  const { rpId } = await ceremonyOrigin();
+  if (session.state !== "signed-in" || !a) return null;
+  const ids = await listCredentialIds(a, session.user.id);
+  if (ids === null) return null;
+  return { needed: ids.length > 0, credentialIds: ids, rpId, fallback: reauthMethodFor(session.user) };
+}
+
+export async function beginMoneyConfirm(intent: unknown): Promise<{ challenge: string } | { error: "failed" | "rejected" }> {
+  if (!isMoneyIntent(intent)) return { error: "rejected" };
+  const session = await resolveSession();
+  const a = admin();
+  if (session.state !== "signed-in" || !a) return { error: "failed" };
+  const challenge = await mintChallenge(a, session.user.id, "money", intentDigest(intent));
+  return challenge ? { challenge } : { error: "failed" };
+}
+
+const assertionSchema = z.object({
+  challenge: z.string().min(20).max(200),
+  credentialId: z.string().min(16).max(1400),
+  clientDataJSON: z.string().min(10).max(4000),
+  authenticatorData: z.string().min(10).max(4000),
+  signature: z.string().min(10).max(2000),
+});
+
+export async function finishMoneyConfirm(input: unknown): Promise<{ stepUp: string } | { error: "rejected" | "failed" }> {
+  const parsed = assertionSchema.safeParse(input);
+  if (!parsed.success) return { error: "rejected" };
+  const session = await resolveSession();
+  const a = admin();
+  if (session.state !== "signed-in" || !a) return { error: "failed" };
+  const id = await proveWithAssertion(a, { userId: session.user.id, ...parsed.data });
+  return id ? { stepUp: id } : { error: "rejected" };
+}
+
+/* A guess through any fallback door counts against one allowance, so the
+   lock is not a way to try passwords or codes faster than sign-in allows. */
+async function attemptAllowed(userId: string): Promise<boolean> {
+  const verdict = await consume({ bucket: "money_lock_password", subject: subjectForUser(userId), limit: 5, windowSeconds: 900 });
+  /* A limiter that could not count is not a limit: closed, for guesses. */
+  return verdict.allowed && !verdict.degraded;
+}
+
+const proofSchema = z.object({
+  password: z.string().max(200).optional(),
+  code: z.string().trim().regex(/^\d{6,10}$/).optional(),
+});
+
+type FallbackError = "rejected" | "failed" | "password_recent";
+
+/** Check the fallback proof: the password (not within a day of a change) or an emailed code. */
+async function fallbackProven(
+  user: Parameters<typeof reauthenticate>[0],
+  proof: z.infer<typeof proofSchema>,
+): Promise<true | FallbackError> {
+  const a = admin();
+  if (!a) return "failed";
+  if (!(await attemptAllowed(user.id))) return "rejected";
+  if ((proof.password ?? "").length > 0) {
+    if (await passwordChangedRecently(a, user.id)) return "password_recent";
+    return (await reauthenticate(user, { password: proof.password })) ? true : "rejected";
+  }
+  if ((proof.code ?? "").length > 0) {
+    /* Only with a code requested from this lock (advisory: see
+       spendEmailCodeMarker). The marker is spent after the code checks out. */
+    const code = proof.code;
+    return (await spendEmailCodeMarker(a, user.id, () => reauthenticate(user, { emailCode: code }))) ? true : "rejected";
+  }
+  return "rejected";
+}
+
+/** An emailed code, for an account with no password or a phone whose sensor will not answer. */
+export async function sendFallbackCode(): Promise<{ ok: true } | { error: "failed" }> {
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return { error: "failed" };
+  const a = admin();
+  if (!a || !(await attemptAllowed(session.user.id))) return { error: "failed" };
+  /* The marker first: the code this sends is good for the lock only with it. */
+  if (!(await mintChallenge(a, session.user.id, "email_code"))) return { error: "failed" };
+  return (await sendReauthCode(session.user)) ? { ok: true } : { error: "failed" };
+}
+
+/** The fallback: the password or an emailed code, for one action. */
+export async function confirmWithFallback(input: unknown): Promise<{ stepUp: string } | { error: FallbackError }> {
+  const parsed = z.object({ proof: proofSchema, intent: z.unknown() }).safeParse(input);
+  if (!parsed.success || !isMoneyIntent(parsed.data.intent)) return { error: "rejected" };
+  const intent: MoneyIntent = parsed.data.intent;
+  const session = await resolveSession();
+  const a = admin();
+  if (session.state !== "signed-in" || !a) return { error: "failed" };
+  const proven = await fallbackProven(session.user, parsed.data.proof);
+  if (proven !== true) return { error: proven };
+  const method = (parsed.data.proof.password ?? "").length > 0 ? "password" : "email_code";
+  const id = await recordStepUp(a, session.user.id, method, intentDigest(intent));
+  return id ? { stepUp: id } : { error: "failed" };
+}
+
+/** Enrolling starts with the fallback proof, so a thief with an open session cannot. */
+export async function beginEnrol(
+  proof: unknown,
+): Promise<{ challenge: string; userId: string; email: string; rpId: string } | { error: FallbackError }> {
+  const parsed = proofSchema.safeParse(proof);
+  if (!parsed.success) return { error: "rejected" };
+  const session = await resolveSession();
+  const a = admin();
+  if (session.state !== "signed-in" || !a || !session.user.email) return { error: "failed" };
+  const proven = await fallbackProven(session.user, parsed.data);
+  if (proven !== true) return { error: proven };
+  const challenge = await mintChallenge(a, session.user.id, "enrol");
+  const { rpId } = await ceremonyOrigin();
+  return challenge ? { challenge, userId: session.user.id, email: session.user.email, rpId } : { error: "failed" };
+}
+
+const enrolSchema = z.object({
+  challenge: z.string().min(20).max(200),
+  credentialId: z.string().min(16).max(1400),
+  clientDataJSON: z.string().min(10).max(4000),
+  publicKey: z.string().min(40).max(2000),
+  alg: z.number().int(),
+  label: z.string().trim().max(60).nullable(),
+});
+
+export async function finishEnrol(input: unknown): Promise<{ ok: true } | { error: "rejected" | "failed" }> {
+  const parsed = enrolSchema.safeParse(input);
+  if (!parsed.success) return { error: "rejected" };
+  const session = await resolveSession();
+  const a = admin();
+  if (session.state !== "signed-in" || !a) return { error: "failed" };
+  const result = await enrolKey(a, { userId: session.user.id, ...parsed.data });
+  if (result !== "ok") return { error: result };
+  revalidatePath("/settings/privacy");
+  return { ok: true };
+}
+
+/** Removing a key is itself a money-lock change, so it needs a proof for exactly that. */
+export async function removeMoneyCredential(input: unknown): Promise<{ ok: true } | { error: "rejected" | "failed" }> {
+  const parsed = z.object({ id: z.string().uuid(), stepUp: z.string().uuid() }).safeParse(input);
+  if (!parsed.success) return { error: "rejected" };
+  const session = await resolveSession();
+  const a = admin();
+  if (session.state !== "signed-in" || !a) return { error: "failed" };
+  const digest = intentDigest({ kind: "remove_lock", target: parsed.data.id });
+  if (!(await consumeStepUp(a, session.user.id, parsed.data.stepUp, digest))) return { error: "rejected" };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (a as any).from("money_credentials").delete().eq("id", parsed.data.id).eq("user_id", session.user.id);
+  if (error) return { error: "failed" };
+  revalidatePath("/settings/privacy");
+  return { ok: true };
+}

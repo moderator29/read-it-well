@@ -95,8 +95,10 @@ describe("the pack", () => {
 
 describe("queued check-ins", () => {
   it("validates and keys them so a double tap is one row", () => {
-    const checkin = { inspectionId: ID, result: "match", observedAt: "2026-09-26T10:01:00Z" };
+    const checkin = { ownerId: ID, inspectionId: ID, result: "match", observedAt: "2026-09-26T10:01:00Z" };
     expect(asCheckin(checkin)).toEqual(checkin);
+    /* V-35: a check-in that does not say whose it is is not kept. */
+    expect(asCheckin({ inspectionId: ID, result: "match", observedAt: "2026-09-26T10:01:00Z" })).toBeNull();
     expect(checkinKey(asCheckin(checkin)!)).toBe(`${ID}:match:2026-09-26T10:01:00Z`);
     expect(asCheckin({ ...checkin, result: "maybe" })).toBeNull();
   });

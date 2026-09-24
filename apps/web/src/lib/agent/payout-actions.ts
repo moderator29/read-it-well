@@ -32,6 +32,7 @@ import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE } from "../actions/session";
 import { PaystackError, isPaystackConfigured, resolveAccountNumber } from "../payments/paystack";
 import { createAdminClient } from "../supabase/admin";
 import { getAgentContext } from "./listings-queries";
+import { moneyLockRefusalFor } from "../security/money-lock-guard";
 import {
   addPayoutAccountInputSchema,
   payoutAccountIdSchema,
@@ -101,6 +102,12 @@ export async function addPayoutAccount(
 
   const parsed = validate(addPayoutAccountInputSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  /* V-81: where payouts go is a money decision; an enrolled phone lock asks first. */
+  const payoutLock = await moneyLockRefusalFor(context.user.id, formData.get("stepUp"), {
+    kind: "payout_add",
+    target: `${parsed.data.bankCode}:${parsed.data.accountNumber}`,
+  });
+  if (payoutLock) return fail(payoutLock);
 
   // The name is re-resolved server side and the client's value is discarded.
   let accountName: string;
@@ -205,6 +212,12 @@ export async function setDefaultPayoutAccount(
 
   const parsed = validate(payoutAccountIdSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  /* V-81: changing the default changes where payouts go. */
+  const defaultLock = await moneyLockRefusalFor(context.user.id, formData.get("stepUp"), {
+    kind: "payout_default",
+    target: parsed.data.accountId,
+  });
+  if (defaultLock) return fail(defaultLock);
 
   const { error, count } = await context.supabase
     .from("payout_accounts")
@@ -237,6 +250,23 @@ export async function removePayoutAccount(
 
   const parsed = validate(payoutAccountIdSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+
+  /* V-81: removing the default promotes a survivor, which changes where
+     payouts go, so it needs the same proof as choosing a default. */
+  const { data: row, error: readError } = await context.supabase
+    .from("payout_accounts")
+    .select("is_default")
+    .eq("id", parsed.data.accountId)
+    .eq("agent_id", context.agent.id)
+    .maybeSingle();
+  if (readError) return fail(SERVICE_DOWN_MESSAGE);
+  if (row?.is_default) {
+    const removeLock = await moneyLockRefusalFor(context.user.id, formData.get("stepUp"), {
+      kind: "payout_remove",
+      target: `payout:${parsed.data.accountId}`,
+    });
+    if (removeLock) return fail(removeLock);
+  }
 
   const { error, count } = await context.supabase
     .from("payout_accounts")

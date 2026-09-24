@@ -1,5 +1,8 @@
 "use client";
 
+import { getDictionary } from "@vallo/i18n";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
+import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
 import { useEffect, useState, useTransition } from "react";
 import type { Dictionary } from "@vallo/i18n";
 import { RowButton, Sheet } from "@/components/app/account/rows";
@@ -94,15 +97,21 @@ export function AddBankAccountSheet({
     });
   };
 
+  const viewerLocale = useClientLocale();
+  const lock = useMoneyStepUp(viewerLocale);
+
   const save = () => {
     if (!bank) return;
     setError(null);
     startTransition(async () => {
-      const result = await addBankAccount({
-        bankCode: bank.code,
-        accountNumber: digits,
-        idempotencyKey,
-      });
+      /* V-81: a new account to be paid into asks for the phone lock, when there is one. */
+      const result = await lock.guard({ kind: "bank_add", target: `${bank.code}:${digits}` }, (stepUp) =>
+        addBankAccount({ bankCode: bank.code, accountNumber: digits, idempotencyKey, stepUp }),
+      );
+      if (result === null) {
+        setError(getDictionary(viewerLocale).platform.moneyLock.notConfirmed);
+        return;
+      }
       if (!result.ok) {
         setError(result.error);
         return;
@@ -113,6 +122,7 @@ export function AddBankAccountSheet({
 
   return (
     <Sheet open onClose={onClose} title={copy.addSheetTitle}>
+      {lock.sheet}
       {beat === "bank" && (
         <div>
           <TextField

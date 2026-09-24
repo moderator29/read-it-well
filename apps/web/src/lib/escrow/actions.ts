@@ -43,6 +43,7 @@ import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { guardMoney } from "../security/money-limits";
+import { moneyLockRefusalFor } from "../security/money-lock-guard";
 import { getAdminClient } from "../wallet/ledger";
 import { callMoneyRpc, readMoneyStatus } from "../wallet/rpc";
 import {
@@ -184,9 +185,17 @@ async function callGuarded(
 /** Say, as one of the two parties, that this is settled. */
 export async function confirmHeldPayment(input: {
   id: string;
+  /** V-81: a fresh proof for exactly this, when the person locked money with a phone. */
+  stepUp?: string;
 }): Promise<ActionResult<HeldPaymentOutcome>> {
   const parsed = validate(idSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  /* V-81: confirming releases held money, so an enrolled phone lock asks first. */
+  const lockSession = await resolveSession();
+  if (lockSession.state === "signed-in") {
+    const lock = await moneyLockRefusalFor(lockSession.user.id, input.stepUp, { kind: "escrow_confirm", target: parsed.data.id });
+    if (lock) return fail(lock);
+  }
   return callGuarded(
     "escrow_confirm_as",
     (actorId) => ({ p_actor: actorId, p_escrow: parsed.data.id }),
@@ -542,9 +551,17 @@ export async function proposeHeldPayment(input: {
 export async function fundHeldPaymentProposal(input: {
   id: string;
   holdDays?: number;
+  /** V-81: a fresh proof for exactly this, when the person locked money with a phone. */
+  stepUp?: string;
 }): Promise<ActionResult<HeldPaymentOutcome>> {
   const parsed = validate(idSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  /* V-81: funding moves money out of the wallet, so an enrolled phone lock asks first. */
+  const lockSession = await resolveSession();
+  if (lockSession.state === "signed-in") {
+    const lock = await moneyLockRefusalFor(lockSession.user.id, input.stepUp, { kind: "escrow_fund", target: parsed.data.id });
+    if (lock) return fail(lock);
+  }
 
   if (!(await heldPaymentsAreOpen())) return fail(HELD_PAYMENTS_CLOSED_MESSAGE);
 

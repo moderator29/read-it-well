@@ -7,6 +7,8 @@ import { loadSettingsState } from "@/lib/profile/queries";
 import { loadSessions } from "@/lib/security/sessions";
 import { AccountPrivacyCard } from "../AccountToggles";
 import { DevicesRow } from "../DevicesCard";
+import { MoneyLockGroup } from "../MoneyLockGroup";
+import { loadMoneyCredentials } from "@/lib/security/money-step-up";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.hub.privacy };
@@ -19,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function PrivacySettingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const [account, sessions] = await Promise.all([loadSettingsState(), loadSessions()]);
+  const [account, sessions, moneyLock] = await Promise.all([loadSettingsState(), loadSessions(), loadMoneyCredentials().catch(() => ({ state: "unreadable" as const }))]);
   const signedIn = account.state === "signed-in";
   const deviceCount =
     sessions.state === "signed-in" && sessions.readable ? sessions.sessions.length : null;
@@ -47,6 +49,10 @@ export default async function PrivacySettingsPage() {
           <SecurityCard t={t}>
             <DevicesRow t={t} signedIn={signedIn} count={deviceCount} />
           </SecurityCard>
+        </section>
+        {/* V-81: face or fingerprint as the lock on money. */}
+        <section id="settings-money-lock" className="scroll-mt-28">
+          <MoneyLockGroup list={moneyLock} locale={locale} />
         </section>
         <section id="settings-data" className="scroll-mt-28">
           <DataCard t={t} />

@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Locale } from "@vallo/i18n";
+import { DEFAULT_LOCALE, getDictionary, type Locale } from "@vallo/i18n";
 import { ResultSheet } from "@/components/app/ResultSheet";
+import { clearInflight, noteInflight } from "@/lib/offline/inflight";
 
 /**
  * THE CHECKOUT THAT DOES NOT LEAVE.
@@ -154,7 +155,7 @@ type Phase =
   | { kind: "opening" }
   | { kind: "open" }
   | { kind: "settling" }
-  | { kind: "unavailable"; message: string };
+  | { kind: "unavailable"; message: string; offline?: true };
 
 /**
  * MOUNTING IS OPENING. There is no `open` prop and that is deliberate: one
@@ -187,6 +188,9 @@ export function PaystackCheckout({
      `onPaid` here would settle a payment into a panel that has moved on. */
   const handlers = useRef({ onPaid, onCancelled, onFailed, confirm });
   handlers.current = { onPaid, onCancelled, onFailed, confirm };
+  /* V-40: the figure for the in-flight note, read when the checkout opens. */
+  const amountRef = useRef(amountMinor);
+  amountRef.current = amountMinor;
 
   /* `onLoad` fired at least once. This is the whole difference between two
      sentences that must not be swapped: before it, nothing has been charged
@@ -235,11 +239,13 @@ export function PaystackCheckout({
         if (finished.current) return;
         if (outcome === "paid") {
           finished.current = true;
+          clearInflight(reference);
           handlers.current.onPaid(reference);
           return;
         }
         if (outcome === "failed") {
           finished.current = true;
+          clearInflight(reference);
           handlers.current.onFailed(
             "That payment did not go through, and nothing was taken. You can try again.",
           );
@@ -271,12 +277,29 @@ export function PaystackCheckout({
 
     let cancelled = false;
 
+    /* V-40. Money is never started offline, and a payment that is started is
+       noted by reference BEFORE a card can be presented, so a popup that dies,
+       an app that is killed or a network that drops between charge and
+       confirm is resolved later (`InflightResolver`) rather than guessed at.
+       The note is cleared on every ending that is certain. */
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      /* Deferred a tick: the sentence is state, not a synchronous effect write. */
+      void Promise.resolve().then(() => {
+        if (!cancelled) setPhase({ kind: "unavailable", message: "", offline: true });
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+    noteInflight(reference, amountRef.current ?? null);
+
     /* If nothing has been heard by the timeout, the popup did not open. Say
        so rather than spinning: a disc rotating forever is how a loading state
        and a dead control end up looking identical. */
     timers.current.push(
       window.setTimeout(() => {
         if (cancelled || loaded.current || finished.current) return;
+        clearInflight(reference);
         setPhase({
           kind: "unavailable",
           message: "The payment window did not open. Nothing has been charged.",
@@ -296,6 +319,7 @@ export function PaystackCheckout({
       } catch {
         if (cancelled) return;
         clearTimers();
+        clearInflight(reference);
         setPhase({
           kind: "unavailable",
           message: "The payment window could not be loaded. Nothing has been charged.",
@@ -322,6 +346,8 @@ export function PaystackCheckout({
             if (cancelled || finished.current) return;
             clearTimers();
             finished.current = true;
+            /* Closed without paying: Paystack says so, and there is nothing to resolve. */
+            clearInflight(reference);
             setPhase({ kind: "idle" });
             handlers.current.onCancelled();
           },
@@ -333,6 +359,7 @@ export function PaystackCheckout({
                may have been entered, so we go and ask instead of promising. */
             if (!loaded.current) {
               finished.current = true;
+              clearInflight(reference);
               const said = (payload?.message ?? "").trim();
               setPhase({ kind: "idle" });
               handlers.current.onFailed(
@@ -359,7 +386,7 @@ export function PaystackCheckout({
       cancelled = true;
       clearTimers();
     };
-  }, [accessCode, clearTimers, settle]);
+  }, [accessCode, reference, clearTimers, settle]);
 
   const fact = {
     ...(typeof amountMinor === "number" ? { amountMinor, currency: "NGN" } : {}),
@@ -418,7 +445,7 @@ export function PaystackCheckout({
         }}
         state="failed"
         verdict="Cannot pay here"
-        consequence={`${phase.message} You can try again in a moment, or open the payment page on Paystack's own site, which will take you off Vallo until it is done.`}
+        consequence={`${phase.offline ? getDictionary(locale ?? DEFAULT_LOCALE).platform.inflight.offline : phase.message} You can try again in a moment, or open the payment page on Paystack's own site, which will take you off Vallo until it is done.`}
         fact={fact}
         locale={locale}
         actions={
