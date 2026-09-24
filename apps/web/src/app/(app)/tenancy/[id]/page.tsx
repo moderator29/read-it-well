@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getDictionary } from "@vallo/i18n";
+import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getTenancyFile, type TenancyFile } from "@/lib/tenancy/queries";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -77,14 +77,14 @@ export default async function TenancyPage({ params }: { params: Promise<{ id: st
       <MoneySection file={file} copy={copy} />
       {/* Flatmates' shares are the lead tenant's business, not the lister's. */}
       {file.viewer === "tenant" && (!file.void || file.flatmates.rows.some((row) => row.paid)) && (
-        <FlatmatesSection file={file} copy={mates} />
+        <FlatmatesSection file={file} copy={mates} locale={locale} />
       )}
       {file.viewer === "tenant" && file.paid && (
         <Section>
           <ReceiptCodePanel tenancyId={file.id} live={file.receiptCode} copy={t.afterTheGate.receipt} />
         </Section>
       )}
-      <CautionSection file={file} copy={copy} />
+      <CautionSection file={file} copy={copy} locale={locale} />
       {file.paid && !file.void && <RenewalSection file={file} copy={copy} />}
       <PromiseSection file={file} copy={copy} />
       <Section title={copy.evidenceHeading} divided>
@@ -189,7 +189,7 @@ function MoneySection({ file, copy }: { file: TenancyFile; copy: Copy }) {
   );
 }
 
-function CautionSection({ file, copy }: { file: TenancyFile; copy: Copy }) {
+function CautionSection({ file, copy, locale }: { file: TenancyFile; copy: Copy; locale: Locale }) {
   const caution = file.caution;
   return (
     <Section title={copy.cautionHeading} divided>
@@ -293,6 +293,7 @@ function CautionSection({ file, copy }: { file: TenancyFile; copy: Copy }) {
                     outstanding={caution.outstanding}
                     outstandingNaira={koboToNairaInput(caution.returnableMinor)}
                     copy={copy}
+                    locale={locale}
                   />
                 </div>
               </div>
@@ -304,7 +305,15 @@ function CautionSection({ file, copy }: { file: TenancyFile; copy: Copy }) {
   );
 }
 
-function FlatmatesSection({ file, copy }: { file: TenancyFile; copy: ReturnType<typeof getDictionary>["afterTheGate"]["flatmates"] }) {
+function FlatmatesSection({
+  file,
+  copy,
+  locale,
+}: {
+  file: TenancyFile;
+  copy: ReturnType<typeof getDictionary>["afterTheGate"]["flatmates"];
+  locale: Locale;
+}) {
   const mates = file.flatmates;
   if (mates.unavailable) {
     return (
@@ -340,8 +349,14 @@ function FlatmatesSection({ file, copy }: { file: TenancyFile; copy: ReturnType<
                   )}
                 </div>
                 {!row.paid && !file.void && <RemoveFlatmate tenancyId={file.id} contributorId={row.id} copy={copy} />}
-                {row.paid && !row.returned && file.void && (
-                  <ReturnShare tenancyId={file.id} contributorId={row.id} label={copy.returnShare} />
+                {row.paid && !row.returned && file.void && row.paidMinor !== null && (
+                  <ReturnShare
+                    tenancyId={file.id}
+                    contributorId={row.id}
+                    amountMinor={row.paidMinor}
+                    label={copy.returnShare}
+                    locale={locale}
+                  />
                 )}
               </li>
             ))}

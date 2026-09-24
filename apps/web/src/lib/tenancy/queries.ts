@@ -165,6 +165,8 @@ export type TenancyFlatmates = {
     share: string;
     answer: "accepted" | "declined" | null;
     paid: boolean;
+    /** What was paid, in kobo, which a return moves back (V-81 binds the proof to it). */
+    paidMinor: number | null;
     returned: boolean;
     cautionPart: string | null;
   }[];
@@ -518,13 +520,14 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
     const shareIds = coShares.map((row) => row.id);
     const [sharePaidRead, namesRead, answersRead, returnsRead] = coShares.length
       ? await Promise.all([
-          loose.from("rent_share_payments").select("contributor_id").in("contributor_id", shareIds),
+          loose.from("rent_share_payments").select("contributor_id, amount_minor").in("contributor_id", shareIds),
           db.from("profiles").select("id, first_name").in("id", coShares.map((row) => row.userId)),
           loose.from("rent_share_answers").select("contributor_id, answer").in("contributor_id", shareIds),
           loose.from("rent_share_returns").select("contributor_id").in("contributor_id", shareIds),
         ])
       : [{ data: [], error: null }, { data: [], error: null }, { data: [], error: null }, { data: [], error: null }];
     const sharePaid = new Set(rows(sharePaidRead.data).map((row) => String(row.contributor_id)));
+    const sharePaidMinor = new Map(rows(sharePaidRead.data).map((row) => [String(row.contributor_id), kobo(row.amount_minor)]));
     const shareReturned = new Set(rows(returnsRead.data).map((row) => String(row.contributor_id)));
     const shareAnswer = new Map(rows(answersRead.data).map((row) => [String(row.contributor_id), row.answer]));
     // A declined share does not count: the lead carries it again.
@@ -542,6 +545,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
           return value === "accepted" || value === "declined" ? value : null;
         })(),
         paid: sharePaid.has(row.id),
+        paidMinor: sharePaidMinor.get(row.id) ?? null,
         returned: shareReturned.has(row.id),
         cautionPart: cautionMinor > 0 && attributed.byId[row.id] !== undefined ? money(attributed.byId[row.id] ?? 0) : null,
       })),
