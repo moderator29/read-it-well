@@ -5,6 +5,7 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { TYPE } from "@/components/app/Screen";
 import { moveInLines } from "./move-in-lines";
 import { unexplainedRemainder } from "@/lib/rent/ledger";
+import type { PayeeContext } from "@/lib/listings/money-map";
 
 /**
  * What it actually costs to move in.
@@ -54,13 +55,19 @@ export function ListingMoveIn({
   listing,
   locale,
   t,
+  records = { mandateVerified: false, ownershipVerified: false },
 }: {
   listing: Listing;
   locale: Locale;
   t: Dictionary;
+  /** V-46: whether staff dated the ownership or the mandate. Absent reads as neither. */
+  records?: Pick<PayeeContext, "mandateVerified" | "ownershipVerified">;
 }) {
   const copy = t.moveIn;
-  const lines = moveInLines(listing, copy);
+  const lines = moveInLines(listing, copy, {
+    ctx: { listerRole: listing.listerRole, listerName: listing.listerName, ...records },
+    copy: t.afterTheGate.moneyMap,
+  });
   const declared = lines.filter((line) => line.minor !== undefined && line.minor !== null);
   const stated = listing.moveInCostStated === true;
   const total =

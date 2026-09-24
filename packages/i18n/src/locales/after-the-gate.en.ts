@@ -165,6 +165,17 @@ export const afterTheGateEn = {
     done: "Saved",
     failed: "That did not go through. Nothing was changed.",
   },
+  moneyMap: {
+    /** Fallback names when the lister's display name is not public. */
+    theAgent: "the agent",
+    theLister: "the lister",
+    toLandlord: "Paid to the landlord",
+    throughToLandlord: "Paid through {name} to the landlord",
+    toListerNoLandlord: "Paid to {name}. No landlord is on record for this listing.",
+    cautionOwed: "Owed back at the end of the tenancy, less repairs you both agree.",
+    keptBy: "Kept by {name}",
+    forEstate: "Paid to {name} for the estate",
+  },
   admin: {
     dueSoonTitle: "Refunds due within 24 hours",
     dueSoonEmpty: "No refund request or rent refund is due in the next 24 hours.",

@@ -75,6 +75,7 @@ export default async function Page({
           reference={t.listingReference}
           moveInCopy={t.moveIn}
           remainderCopy={t.afterTheGate.remainder}
+          moneyMapCopy={t.afterTheGate.moneyMap}
           locale={locale}
           userId={null}
           states={STATE_CODES.map((code) => ({ code, name: code }))}
@@ -108,6 +109,7 @@ export default async function Page({
         reference={t.listingReference}
         moveInCopy={t.moveIn}
         remainderCopy={t.afterTheGate.remainder}
+        moneyMapCopy={t.afterTheGate.moneyMap}
         locale={locale}
         userId={context.user.id}
         states={states.length > 0 ? states : STATE_CODES.map((code) => ({ code, name: code }))}

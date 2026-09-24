@@ -677,14 +677,22 @@ function TenantPays({
   locale,
   copy,
   moveInCopy,
+  moneyMap,
 }: {
   facts: Parameters<typeof moveInLines>[0];
   currency: string;
   locale: Locale;
   copy: WizardCopy;
   moveInCopy: Dictionary["moveIn"];
+  moneyMap?: Dictionary["afterTheGate"]["moneyMap"];
 }) {
-  const lines = moveInLines(facts, moveInCopy);
+  /* V-46: the agent sees the captions a tenant will, and before a mandate is
+     dated by staff no caption names a landlord. */
+  const lines = moveInLines(
+    facts,
+    moveInCopy,
+    moneyMap ? { ctx: { mandateVerified: false, ownershipVerified: false }, copy: moneyMap } : undefined,
+  );
   const declared = lines.filter((line) => line.minor !== undefined && line.minor !== null);
   const total = declared.reduce((sum, line) => sum + (line.minor ?? 0), 0);
 
@@ -759,6 +767,7 @@ export function ListingWizard({
   reference,
   moveInCopy,
   remainderCopy,
+  moneyMapCopy,
   locale,
   userId,
   states,
@@ -778,6 +787,8 @@ export function ListingWizard({
   moveInCopy: Dictionary["moveIn"];
   /** V-13: the sentence that refuses an unexplained remainder in the total. */
   remainderCopy?: Dictionary["afterTheGate"]["remainder"];
+  /** V-46: the captions that say who each move-in line is paid to. */
+  moneyMapCopy?: Dictionary["afterTheGate"]["moneyMap"];
   locale: Locale;
   userId: string | null;
   states: { code: string; name: string }[];
@@ -2695,6 +2706,7 @@ export function ListingWizard({
                     locale={locale}
                     copy={copy}
                     moveInCopy={moveInCopy}
+                    moneyMap={moneyMapCopy}
                   />
                   {statedTotalMinor !== null && statedTotalMinor > partsSumMinor && (
                     <div className="mt-row">

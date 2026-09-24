@@ -39,6 +39,7 @@ import { ListingAgentCard } from "@/components/app/listing/ListingAgentCard";
 import { ListingMoveInBlock } from "@/components/app/listing/ListingMoveInBlock";
 import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
+import { readPayeeRecords } from "@/lib/after-gate/payee";
 import { ListingPurchase } from "@/components/app/listing/ListingPurchase";
 import { ListingSectionTabs } from "@/components/app/listing/ListingSectionTabs";
 import { ListingSpecChips, specChips } from "@/components/app/listing/ListingSpecChips";
@@ -897,7 +898,7 @@ export default async function ListingDetailPage({
                     divided
                     className="scroll-mt-16"
                   >
-                    <ListingMoveIn listing={listing} locale={locale} t={t} />
+                    <ListingMoveIn listing={listing} locale={locale} t={t} records={await readPayeeRecords(listing.id)} />
                   </Section>
                 )}
 
