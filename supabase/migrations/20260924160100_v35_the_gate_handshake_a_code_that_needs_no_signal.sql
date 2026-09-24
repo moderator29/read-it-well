@@ -206,6 +206,13 @@ begin
   /* Named and not yet accepted: the person may see the invitation and
      nothing else. No seed until they say yes. */
   if d.delegate_user_id is not null and actor = d.delegate_user_id and d.accepted_at is null then
+    /* Only while the inspection can still be shown: an invitation to a
+       cancelled or finished inspection is not one. */
+    if r.state not in ('REQUESTED'::public.inspection_state, 'PROPOSED'::public.inspection_state,
+                       'CONFIRMED'::public.inspection_state)
+       or (r.slot_at is not null and now() >= r.slot_at + interval '24 hours') then
+      return jsonb_build_object('status', 'not_found');
+    end if;
     return jsonb_build_object(
       'status', 'invite',
       'principal_name', private.person_name(r.lister_id),
@@ -306,6 +313,10 @@ begin
   select * into d from public.inspection_delegates where inspection_id = p_inspection;
 
   if v_email = '' then
+    /* Nobody named: nothing to clear, nothing to write down. */
+    if d.inspection_id is null then
+      return jsonb_build_object('status', 'cleared', 'rotated', false);
+    end if;
     delete from public.inspection_delegates where inspection_id = p_inspection;
     if d.accepted_at is not null then
       /* A delegate who could show it no longer can: rotate, and tell the
@@ -320,7 +331,7 @@ begin
     end if;
     insert into public.audit_log (actor_id, action, entity_type, entity_id, metadata)
     values (actor, 'inspection.delegate_cleared', 'inspection', p_inspection::text, '{}'::jsonb);
-    return jsonb_build_object('status', 'cleared');
+    return jsonb_build_object('status', 'cleared', 'rotated', d.accepted_at is not null);
   end if;
 
   select u.id into v_delegate from auth.users u where lower(u.email) = v_email and u.deleted_at is null;
@@ -341,10 +352,15 @@ begin
     end if;
   end if;
 
-  /* One answer for "no account", "that is you", "that is the renter" and
-     "not eligible", and no name on success either, so this is not a lookup. */
+  /* ONE ANSWER, "asked", whether or not the address belongs to somebody who
+     may show it: "no account", "that is you", "that is the renter", "not
+     eligible" and success all read the same, with no name, so this cannot be
+     used to learn who holds an email address. Only an eligible person is
+     written down and notified. */
   if v_basis is null then
-    return jsonb_build_object('status', 'not_eligible');
+    insert into public.audit_log (actor_id, action, entity_type, entity_id, metadata)
+    values (actor, 'inspection.delegate_not_named', 'inspection', p_inspection::text, '{}'::jsonb);
+    return jsonb_build_object('status', 'asked');
   end if;
 
   insert into public.inspection_delegates (inspection_id, delegate_user_id, basis, named_by, named_at, accepted_at)
@@ -379,7 +395,7 @@ begin
     '/inspections/gate/' || p_inspection::text
   );
 
-  return jsonb_build_object('status', 'ok');
+  return jsonb_build_object('status', 'asked');
 end;
 $$;
 
@@ -409,6 +425,12 @@ begin
     return jsonb_build_object('status', 'not_found');
   end if;
   select * into r from public.inspection_requests where id = p_inspection;
+  /* Saying yes (or no) to an inspection that can no longer be shown ends it. */
+  if r.state not in ('REQUESTED'::public.inspection_state, 'PROPOSED'::public.inspection_state,
+                     'CONFIRMED'::public.inspection_state) then
+    delete from public.inspection_delegates where inspection_id = p_inspection;
+    return jsonb_build_object('status', 'not_found');
+  end if;
 
   if not coalesce(p_accept, false) then
     delete from public.inspection_delegates where inspection_id = p_inspection;

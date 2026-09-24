@@ -43,7 +43,7 @@ export async function prepareHandshake(inspectionId: unknown): Promise<Handshake
 }
 
 export type DelegateAnswer = {
-  state: "asked" | "cleared" | "not_eligible" | "closed" | "too_late" | "rate_limited" | "failed";
+  state: "asked" | "cleared" | "cleared_rotated" | "invalid" | "closed" | "too_late" | "rate_limited" | "failed";
 };
 
 const delegateSchema = z.object({
@@ -59,7 +59,7 @@ const delegateSchema = z.object({
  */
 export async function nameDelegate(input: unknown): Promise<DelegateAnswer> {
   const parsed = delegateSchema.safeParse(input);
-  if (!parsed.success) return { state: "not_eligible" };
+  if (!parsed.success) return { state: "invalid" };
   const session = await resolveSession();
   if (session.state !== "signed-in") return { state: "failed" };
   try {
@@ -68,11 +68,11 @@ export async function nameDelegate(input: unknown): Promise<DelegateAnswer> {
       p_email: parsed.data.email,
     })) as { data: unknown; error: unknown };
     if (error || !data || typeof data !== "object") return { state: "failed" };
-    const status = (data as { status?: unknown }).status;
-    if (status === "ok") return { state: "asked" };
+    const { status, rotated } = data as { status?: unknown; rotated?: unknown };
+    /* "asked" is the one answer whether or not the address can show it. */
+    if (status === "asked") return { state: "asked" };
+    if (status === "cleared") return { state: rotated === true ? "cleared_rotated" : "cleared" };
     if (
-      status === "cleared" ||
-      status === "not_eligible" ||
       status === "closed" ||
       status === "too_late" ||
       status === "rate_limited"

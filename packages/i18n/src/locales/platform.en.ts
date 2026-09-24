@@ -166,7 +166,7 @@ export const platformEn = {
     delegateSave: "Ask them",
     delegateClear: "I will show it myself",
     delegateNamed:
-      "We have asked them. Once they say yes they will show this inspection, and the renter will be told to refresh their code.",
+      "If that address belongs to somebody who can show inspections for you, we have asked them. Nothing changes until they say yes; then the renter is told to refresh their code.",
     delegateTooLate:
       "It is too close to the inspection to change who shows it; the renter may already be on the way with their code.",
     delegateRateLimited: "You have asked several people in the last hour. Try again later.",
@@ -178,9 +178,9 @@ export const platformEn = {
     inviteAccepted: "Thank you. Open this again while you have signal before you go, so the code works at the gate.",
     inviteDeclined: "We have told them you will not show it.",
     inviteGone: "This request has ended.",
-    delegateCleared: "You are showing this inspection yourself. The code has changed.",
-    delegateNotEligible:
-      "We cannot name that person. They need a Vallo account with a confirmed phone number, or to be in your firm on Vallo.",
+    delegateCleared: "You are showing this inspection yourself.",
+    delegateClearedRotated: "You are showing this inspection yourself. The code has changed and the renter has been told to refresh it.",
+    delegateInvalid: "Enter their email address as it is on their Vallo account.",
     delegateClosed: "This inspection is closed, so nobody else can be named for it.",
     delegateFailed: "That did not go through. Nothing changed. Try again while you have signal.",
 

@@ -455,15 +455,15 @@ function DelegateForm({
         setMessage({ tone: "done", text: copy.delegateNamed });
         setEmail("");
         await onChanged();
-      } else if (answer.state === "cleared") {
-        setMessage({ tone: "done", text: copy.delegateCleared });
+      } else if (answer.state === "cleared" || answer.state === "cleared_rotated") {
+        setMessage({ tone: "done", text: answer.state === "cleared_rotated" ? copy.delegateClearedRotated : copy.delegateCleared });
         await onChanged();
       } else {
         setMessage({
           tone: "problem",
           text:
-            answer.state === "not_eligible"
-              ? copy.delegateNotEligible
+            answer.state === "invalid"
+              ? copy.delegateInvalid
               : answer.state === "closed"
                 ? copy.delegateClosed
                 : answer.state === "too_late"
