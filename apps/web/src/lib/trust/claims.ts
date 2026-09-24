@@ -88,8 +88,6 @@ export const BACKED_CLAIMS: readonly BackedClaim[] = [
   { phrase: /\bhow it is protected\b|\bkeep (?:it|the service) (?:working and )?secure\b|\bused to keep it working and secure\b/i, mechanism: "the privacy policy's own section on protection (encryption in transit, RLS, hashed passwords, licensed payment providers)" },
 
   /* Everyday senses of "checked". */
-  { phrase: /\byou have checked a lot of recipients\b/i, mechanism: "the sender's own recipient look-ups, counted by the wallet send rate limit; not a trust claim" },
-  { phrase: /\beach hold is checked with paystack first\b/i, mechanism: "the staff stuck-withdrawal desk verifies each transfer with Paystack before settling the hold (lib/wallet/withdraw-sweep, reconciliation); a process description" },
   { phrase: /\bchecked out\b/i, mechanism: "a stay's check-out, not a trust claim" },
   { phrase: /\brooms checked\b|^\s+checked$|\bthings that can be checked\b/i, mechanism: "the member's own inspection checklist and evidence, not a platform claim" },
   { phrase: /\bchecked many times\b|\bhave checked that payment\b|\bcould not be checked\b|\buntil you have checked\b/i, mechanism: "payment status polling against the provider, not a trust claim" },
