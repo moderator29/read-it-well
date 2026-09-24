@@ -1398,6 +1398,24 @@ export const en = {
    * languages.
    */
   settings: {
+    /**
+     * SEC-15: a request by support to move this account to another email
+     * address, shown to its owner while it is cooling off, with the one
+     * action that matters: stop it.
+     */
+    addressMove: {
+      title: "A request to move your account to another email address",
+      body: "Our support team opened a request to move this account to {address}. It completes no earlier than {when}.",
+      afterNotice: "72 hours after we email this address about it",
+      ifYou: "If you asked for this, there is nothing to do.",
+      cancel: "This was not me, cancel it",
+      cancelled: "Cancelled. Your account stays at this address.",
+    },
+    /** SEC-15: the 7-day hold after support moved this account to a new address. */
+    moneyHold: {
+      title: "Money cannot leave your account until {when}",
+      body: "Support moved this account to a new email address. For 7 days after that, withdrawals, wallet sends, wallet payments and new or changed bank accounts are paused, so nobody who took the account over can empty it. Money coming in, and paying by card, work as normal.",
+    },
     /** The settings home to `7F96BE6C`: the headline, the profile row, the hub rows. */
     hub: {
       lede: "Manage your account, preferences and payment methods.",
@@ -1969,8 +1987,8 @@ export const en = {
       personalDesc: "Discover and book amazing places across Nigeria.",
       agentDesc: "Manage your listings, bookings, customers and earnings.",
       verifiedAgent: "Verified Agent",
-      visitor: "Not signed in as an agent",
-      signInToWorkspace: "Sign in",
+      noWorkspace: "You are not listing yet",
+      applyToList: "Apply to list",
       workspaceLabel: "Agent workspace",
       notApproved: "Your agent application is still under review.",
     },
@@ -2083,6 +2101,21 @@ export const en = {
         "This is on our side, not yours. Nothing you have submitted is lost. Try again in a few minutes.",
       reviewedOn: "Decided on",
       reviewerNote: "What the reviewer said",
+      respond: {
+        title: "Answer the reviewer",
+        body: "Write what they asked for, add a document if it helps, and send it back. A person reads it again.",
+        answerLabel: "Your answer",
+        answerHint: "Up to 2,000 characters.",
+        attachIdentityTitle: "An identity document",
+        attachAddressTitle: "Proof of address",
+        attachBody: "Optional. A photo or a PDF, up to 10 MB.",
+        send: "Send it back",
+        sending: "Sending",
+        sent: "Sent back. It is with the reviewer again.",
+        needSomething: "Write an answer or add a document before you send it back.",
+        notWaiting: "This application is not waiting on you any more. Refresh to see where it stands.",
+        failed: "We could not send this just now. Nothing you wrote was lost, so please try again.",
+      },
     },
     dashboard: {
       title: "Agent Dashboard",
@@ -2483,7 +2516,7 @@ export const en = {
           body: "Vallo charges you nothing to list. Your price is your price.",
         },
       },
-      apply: "Become an agent",
+      apply: "Apply to list",
       signIn: "Sign in",
       how: "How listing works",
     },
@@ -3443,6 +3476,7 @@ export const en = {
         terms: "Terms",
         applied: "Applied",
         lastNote: "Last reviewer note",
+        applicantAnswer: "Applicant's answer",
         lastReviewed: "Last reviewed",
       },
       asIndividual: "Applying as an individual",
@@ -4343,13 +4377,13 @@ export const en = {
         floor: "Ten minutes is the floor. Anything shorter would fail withdrawals that are still on their way.",
         nothing: "Nothing is stuck at that window",
         review: { one: "Review 1 hold", other: "Review {count} holds" },
-        willRelease: "This will release {amount} across {withdrawals}.",
+        willRelease: "This will check {withdrawals} ({amount}) with Paystack.",
         withdrawals: { one: "1 held withdrawal", other: "{count} held withdrawals" },
         consequence:
-          "Each one is marked failed and the money returns to the owner's spendable balance. Nobody is paid by this. Anyone who still wants their withdrawal has to start it again.",
-        release: "Release {amount}",
+          "Each hold is checked with Paystack first. A transfer that paid out is marked complete. One that failed, was reversed or never reached Paystack is released to the owner's spendable balance, and they start it again if they still want it. One Paystack cannot answer for yet is left as it is. Nobody is paid by this.",
+        release: "Check and settle {amount}",
         cancel: "Cancel",
-        nothingNeeded: "Nothing needed releasing. Every hold had already settled.",
+        nothingNeeded: "Nothing was released. Every hold had settled, paid out, or is still waiting on Paystack.",
         released: {
           one: "Released 1 hold, with your name on the record.",
           other: "Released {count} holds, with your name on the record.",

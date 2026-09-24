@@ -135,7 +135,6 @@ export function DeviceList({
       if (!result.ok) return { tone: "problem", message: result.error };
       /* A full load, for the same reason as ending the current session above:
          the proxy must see cookies that no longer resolve. */
-      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.assign("/sign-in?notice=sign-in-required");
       return null;
     });

@@ -48,20 +48,24 @@ export default async function Page({
   if (context.state === "unconfigured") {
     return (
       <AgentShell t={t} locale={locale} active="/agent/listings" profile={null}>
-        <div className="mx-auto max-w-md py-10 text-center">
-          <h1 className="nf-h2">{t.agentListings.workspace.title}</h1>
-          <p className="mx-auto mt-sm max-w-[40ch] text-[var(--nf-content-secondary)]">
-            {t.agentListings.workspace.unconfigured}
-          </p>
-          <ButtonLink href="/agent/list" variant="primary" className="mt-lg">
-            {t.agentListings.workspace.start}
-          </ButtonLink>
-        </div>
+        <ListingsUnreachable t={t} />
       </AgentShell>
     );
   }
 
   const listings = await readMyListings(context.supabase, context.agent.id);
+  if (listings === null) {
+    return (
+      <AgentShell
+        t={t}
+        locale={locale}
+        active="/agent/listings"
+        profile={agentProfileFrom(context.agent)}
+      >
+        <ListingsUnreachable t={t} />
+      </AgentShell>
+    );
+  }
 
   return (
     <AgentShell
@@ -90,5 +94,20 @@ export default async function Page({
         query={query}
       />
     </AgentShell>
+  );
+}
+
+/** The listings could not be read: say so, and keep the way to start one. */
+function ListingsUnreachable({ t }: { t: ReturnType<typeof getDictionary> }) {
+  return (
+    <div className="mx-auto max-w-md py-10 text-center">
+      <h1 className="nf-h2">{t.agentListings.workspace.title}</h1>
+      <p className="mx-auto mt-sm max-w-[40ch] text-[var(--nf-content-secondary)]">
+        {t.agentListings.workspace.unconfigured}
+      </p>
+      <ButtonLink href="/agent/list" variant="primary" className="mt-lg">
+        {t.agentListings.workspace.start}
+      </ButtonLink>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { PRIVATE_ADDRESS } from "../security/private-address";
 
 import { drainEmailOutbox, type OutboxRow } from "./outbox";
 import { OUTBOX_TEMPLATE_KEYS, type Payload } from "./templates";
@@ -472,7 +473,7 @@ describe("every template the outbox can send survives the whole path to the sock
         expect(part, template).not.toContain("[object Object]");
         expect(part, template).not.toContain("${");
         /* The private gmail must never appear on any surface. */
-        expect(part, template).not.toContain("vallospacesltd@gmail.com");
+        expect(part, template).not.toMatch(PRIVATE_ADDRESS);
         /* Nor the reader's own address, which the queue never carried. */
         expect(part, template).not.toContain(RECIPIENT);
         for (const id of EVERY_ID) expect(part, `${template} leaked ${id}`).not.toContain(id);
@@ -551,8 +552,8 @@ describe("a row a database trigger wrote becomes a real HTTP request", () => {
     expect(call?.body.text).toContain("Welcome to Vallo");
     expect(call?.body.html).not.toContain(RECIPIENT);
     expect(call?.body.text).not.toContain(RECIPIENT);
-    expect(call?.body.html).not.toContain("vallospacesltd@gmail.com");
-    expect(call?.body.text).not.toContain("vallospacesltd@gmail.com");
+    expect(call?.body.html).not.toMatch(PRIVATE_ADDRESS);
+    expect(call?.body.text).not.toMatch(PRIVATE_ADDRESS);
 
     expect(result.counts).toMatchObject({ claimed: 1, sent: 1 });
     expect(settled).toEqual([{ id: "row-welcome", result: "sent" }]);

@@ -1,9 +1,8 @@
 "use server";
 
 import { resolveSession } from "@/lib/actions/session";
-import { consume, subjectForUser } from "@/lib/security/rate-limit";
 import { displayNameFor, getAdminClient, type AdminClient } from "@/lib/wallet/ledger";
-import { resolveRecipientId } from "@/lib/wallet/handle-recipient";
+import { paceRecipientLookup, resolveRecipientId } from "@/lib/wallet/handle-recipient";
 import { parseRecipientInput } from "@/lib/wallet/recipient-input";
 
 /* The recipient's published tier from `public.person_badge`, or none. */
@@ -51,19 +50,12 @@ export async function lookupRecipient(rawRecipient: string): Promise<RecipientLo
   const admin = getAdminClient();
   if (!admin) return { state: "unknown", reason: "" };
 
-  /* Paced like the address checks a bank app makes: enough for a person
-     correcting a typo, not enough to walk a list of addresses. */
-  const pace = await consume({
-    bucket: "wallet_recipient_lookup",
-    subject: subjectForUser(session.user.id),
-    limit: 40,
-    windowSeconds: 600,
-  });
+  const pace = await paceRecipientLookup(session.user.id);
   if (!pace.allowed) return { state: "unknown", reason: `Try again ${pace.retryIn}.` };
 
   /* A handle resolves as the viewer (blocks respected) and yields an id
      only; the answer names the person, never the address behind a handle. */
-  const recipientId = await resolveRecipientId(target);
+  const recipientId = await resolveRecipientId(target, session.user.id);
   if (!recipientId) return { state: "none" };
   if (recipientId === session.user.id) return { state: "self" };
   const fallbackName = target.kind === "handle" ? `@${target.handle}` : target.email;

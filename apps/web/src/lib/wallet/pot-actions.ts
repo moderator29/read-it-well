@@ -106,10 +106,10 @@ export async function createPot(
   /*
    * Created through the SIGNED-IN SESSION rather than the service role.
    *
-   * The insert policy is `user_id = auth.uid() and balance_minor = 0`, so RLS
-   * both decides ownership and refuses a pot that tries to be born holding
-   * money. Using the admin client here would bypass exactly the check that
-   * makes this safe.
+   * The insert policy checks `user_id = auth.uid()`, so RLS decides ownership. A
+   * pot holds exactly what the ledger's pot entries say (MON-08), so a pot
+   * cannot be born holding money whatever a row claims. Using the admin
+   * client here would bypass the ownership check.
    */
   const inserter = session.supabase as unknown as {
     from: (table: string) => {

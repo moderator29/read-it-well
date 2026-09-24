@@ -11,7 +11,8 @@ import {
   validate,
   type ActionResult,
 } from "../actions/envelope";
-import { consume, ipFromHeaders, subjectForIp, subjectForUser } from "../security/rate-limit";
+import { mailboxKey } from "../security/mailbox";
+import { consume, ipFromHeaders, subjectForEmail, subjectForIp, subjectForUser } from "../security/rate-limit";
 import type { Database } from "../supabase/database.types";
 import { NOT_CONFIGURED_MESSAGE, resolveSession } from "../actions/session";
 import { bestEffortEmail, sendMessage } from "../email/client";
@@ -172,15 +173,30 @@ export async function fileSupportTicket(
         }
         // The ticket row is written. The acknowledgement is best effort, and
         // goes only to the address Zod has already validated on this form.
-        await bestEffortEmail(async () => {
-          const message = supportTicketFiled({
-            name,
-            reference,
-            topic: topic ?? null,
-            body,
-          });
-          await sendMessage(email, message);
+        //
+        // SEC-03: that address is whatever the caller typed, so the email is
+        // a message from our domain to anyone. Two limits keep it from being
+        // a relay. One address hears from support at most three times a day,
+        // whoever files, counted by mailbox so dots and +tags do not make
+        // fresh addresses of one inbox. The cap does not fail open: if the
+        // counter cannot be read, no acknowledgement leaves (the ticket is
+        // filed all the same). And a signed-out filer's words are not echoed:
+        // the email carries the reference only, no name, topic or message.
+        const recipient = await consume({
+          bucket: "support_ack_recipient",
+          subject: subjectForEmail(mailboxKey(email)),
+          limit: 3,
+          windowSeconds: 86_400,
         });
+        if (recipient.allowed && !recipient.degraded) {
+          await bestEffortEmail(async () => {
+            const message =
+              session.state === "signed-in"
+                ? supportTicketFiled({ name, reference, topic: topic ?? null, body })
+                : supportTicketFiled({ reference });
+            await sendMessage(email, message);
+          });
+        }
         return ok({ reference });
       }
       if (error.code !== "23505") return fail(FILE_FAILED_MESSAGE);
