@@ -102,6 +102,7 @@ import {
 } from "./schema";
 import type { WalletSummary } from "./types";
 import { processorFeeMetadata } from "./funding-fee";
+import { fundingCheckRefusal } from "./funding-check";
 
 const WALLET_OFF_MESSAGE =
   "The wallet is switched off for a moment while we make improvements. Please try again shortly.";
@@ -1433,10 +1434,9 @@ export async function verifyFunding(
   let tx;
   try {
     tx = await verifyTransaction(parsedReference.data);
-  } catch {
-    return fail(
-      "The payment could not be checked just now. If you completed it, your balance updates automatically in a moment.",
-    );
+  } catch (error) {
+    /* MON-20. A reference the processor has never seen is said so. */
+    return fail(fundingCheckRefusal(error));
   }
 
   if (tx.status !== "success") {

@@ -6,15 +6,22 @@ describe("walletRequestLink (the /wallet/receive share)", () => {
     const link = walletRequestLink({
       origin: "https://www.vallospaces.com",
       handle: "ada",
-      amountNaira: 5000,
+      amountMinor: 500_000,
       note: "rent share",
     });
     expect(link).toBe("https://www.vallospaces.com/wallet/send?to=%40ada&amount=5000&note=rent+share");
     expect(link).not.toMatch(/%40.*\.|@.*\./);
   });
 
+  it("keeps the kobo: a request for 5,000.50 is a link for 5000.50, not 5001 (MON-17)", () => {
+    const link = walletRequestLink({ origin: "https://x", handle: "ada", amountMinor: 500_050, note: "" });
+    expect(new URL(link).searchParams.get("amount")).toBe("5000.50");
+    const five = walletRequestLink({ origin: "https://x", handle: "ada", amountMinor: 500_005, note: "" });
+    expect(new URL(five).searchParams.get("amount")).toBe("5000.05");
+  });
+
   it("carries no recipient at all without a handle", () => {
-    expect(walletRequestLink({ origin: "https://x", handle: null, amountNaira: null, note: "" })).toBe(
+    expect(walletRequestLink({ origin: "https://x", handle: null, amountMinor: null, note: "" })).toBe(
       "https://x/wallet/send",
     );
   });

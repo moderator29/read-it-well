@@ -15,17 +15,25 @@ export function walletRequestLink(input: {
   origin: string;
   /** The claimed handle without its @, or null. */
   handle: string | null;
-  /** Whole naira, already validated, or null. */
-  amountNaira: number | null;
+  /** Integer kobo, already validated, or null. MON-17: kobo, so a request
+      for 5,000.50 never becomes a link for 5,001. */
+  amountMinor: number | null;
   note: string;
 }): string {
   const params = new URLSearchParams();
   if (input.handle) params.set("to", `@${input.handle}`);
-  if (input.amountNaira !== null) params.set("amount", String(input.amountNaira));
+  if (input.amountMinor !== null) params.set("amount", nairaText(input.amountMinor));
   const note = input.note.trim().slice(0, 140);
   if (note) params.set("note", note);
   const query = params.toString();
   return `${input.origin}/wallet/send${query ? `?${query}` : ""}`;
+}
+
+/** Kobo as the amount field reads it: whole naira, or naira and two digits. */
+function nairaText(minor: number): string {
+  const kobo = minor % 100;
+  const naira = (minor - kobo) / 100;
+  return kobo === 0 ? String(naira) : `${naira}.${String(kobo).padStart(2, "0")}`;
 }
 
 /** A `to=` value that names a handle rather than an address, without its @. */
