@@ -19,6 +19,7 @@ import type { WizardDraft } from "@/lib/agent/listings-queries";
 import { BROADCAST_MONEY_KEYS, type BroadcastKey, type BroadcastParse } from "@/lib/agent/broadcast";
 import { BroadcastPaste } from "./BroadcastPaste";
 import { PriceGuidePanel, usePriceGuide } from "./PriceGuide";
+import { saveBroadcastMarks } from "@/lib/agent/broadcast-marks";
 import { feeNormLine, type GuideSubject } from "@/lib/price-check/wizard-guide";
 import {
   MAX_ACCESS_CODE,
@@ -811,7 +812,13 @@ export function ListingWizard({
   startAt = 0,
   broadcastCopy,
   guideCopy,
+  initialUnconfirmed = [],
 }: {
+  /**
+   * V-09: the unconfirmed set as the server holds it for this draft
+   * (`listing_broadcast_marks`), so another device starts from the truth.
+   */
+  initialUnconfirmed?: readonly string[];
   copy: WizardCopy;
   /**
    * V-74: the pricing step's guide. Absent in the harnesses, which then draw
@@ -873,7 +880,7 @@ export function ListingWizard({
    * is still in it: a figure read from a WhatsApp message is not sent for
    * review until a person has looked at it.
    */
-  const [fromMessage, setFromMessage] = useState<ReadonlySet<string>>(() => new Set());
+  const [fromMessage, setFromMessage] = useState<ReadonlySet<string>>(() => new Set(initialUnconfirmed));
 
   /*
    * The unconfirmed set survives a reload, keyed by the listing it belongs to
@@ -898,6 +905,21 @@ export function ListingWizard({
     }
     setUnconfirmedLoaded(unconfirmedKey);
   }, [unconfirmedKey, unconfirmedLoaded, listingId]);
+  /* And on the server, beside the draft, once the draft exists: the submit
+     gate there reads it (review fix, V-09). Debounced; a failure is retried
+     on the next change and the server gate still holds. */
+  const savedMarks = useRef<string>(JSON.stringify([...initialUnconfirmed].sort()));
+  useEffect(() => {
+    if (!listingId || !canPersist || unconfirmedLoaded !== unconfirmedKey) return;
+    const next = JSON.stringify([...fromMessage].sort());
+    if (next === savedMarks.current) return;
+    const timer = setTimeout(() => {
+      void saveBroadcastMarks({ listingId, keys: [...fromMessage] }).then((result) => {
+        if (result.ok) savedMarks.current = next;
+      });
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [fromMessage, listingId, canPersist, unconfirmedLoaded, unconfirmedKey]);
   useEffect(() => {
     if (unconfirmedLoaded !== unconfirmedKey) return;
     try {

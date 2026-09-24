@@ -12,6 +12,7 @@ import {
   type WizardDraft,
 } from "@/lib/agent/listings-queries";
 import { AMENITY_CHOICES, STATE_CODES } from "@/lib/agent/listings-schema";
+import { readBroadcastMarks } from "@/lib/agent/broadcast-marks-queries";
 import { ListingWizard } from "./ListingWizard";
 import { ListingPitch } from "./ListingPitch";
 
@@ -95,6 +96,10 @@ export default async function Page({
         : readOpenDraft(context.supabase, context.agent.id),
   ]);
 
+  /* V-09: which figures from a pasted message are still unchecked, as the
+     server holds them for this draft. */
+  const unconfirmed = draft?.id ? await readBroadcastMarks(context.supabase, draft.id) : [];
+
   return (
     <AgentShell
       t={t}
@@ -114,6 +119,7 @@ export default async function Page({
         canPersist
         broadcastCopy={t.frontDoor.broadcast}
         guideCopy={t.frontDoor.guide}
+        initialUnconfirmed={unconfirmed}
       />
     </AgentShell>
   );

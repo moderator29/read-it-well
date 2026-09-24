@@ -30,6 +30,10 @@ import {
   resolveSession,
 } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "../locale";
+import { BROADCAST_MONEY_KEYS } from "./broadcast";
+import { readBroadcastMarks } from "./broadcast-marks-queries";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import {
@@ -987,6 +991,14 @@ export async function submitListing(input: {
   }
   if (!EDITABLE.includes(listing.status)) {
     return fail("This listing has already been through review. Return it to a draft to change it.");
+  }
+
+  /* V-09: a figure read from a pasted WhatsApp message is not sent for review
+     until a person has looked at it. The set is kept beside the draft on the
+     server, so this holds on every device, not only the one that pasted. */
+  const unconfirmed = await readBroadcastMarks(gate.supabase, listingId);
+  if (unconfirmed.some((key) => (BROADCAST_MONEY_KEYS as readonly string[]).includes(key))) {
+    return fail(getDictionary(await getLocale()).frontDoor.broadcast.unconfirmedOnServer);
   }
 
   const [photoRes, amenityRes] = await Promise.all([
