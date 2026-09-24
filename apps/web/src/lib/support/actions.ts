@@ -11,6 +11,7 @@ import {
   validate,
   type ActionResult,
 } from "../actions/envelope";
+import { mailboxKey } from "../security/mailbox";
 import { consume, ipFromHeaders, subjectForEmail, subjectForIp, subjectForUser } from "../security/rate-limit";
 import type { Database } from "../supabase/database.types";
 import { NOT_CONFIGURED_MESSAGE, resolveSession } from "../actions/session";
@@ -176,15 +177,18 @@ export async function fileSupportTicket(
         // SEC-03: that address is whatever the caller typed, so the email is
         // a message from our domain to anyone. Two limits keep it from being
         // a relay. One address hears from support at most three times a day,
-        // whoever files. And a signed-out filer's words are not echoed: the
-        // email carries the reference only, no name, topic or message.
+        // whoever files, counted by mailbox so dots and +tags do not make
+        // fresh addresses of one inbox. The cap does not fail open: if the
+        // counter cannot be read, no acknowledgement leaves (the ticket is
+        // filed all the same). And a signed-out filer's words are not echoed:
+        // the email carries the reference only, no name, topic or message.
         const recipient = await consume({
           bucket: "support_ack_recipient",
-          subject: subjectForEmail(email),
+          subject: subjectForEmail(mailboxKey(email)),
           limit: 3,
           windowSeconds: 86_400,
         });
-        if (recipient.allowed) {
+        if (recipient.allowed && !recipient.degraded) {
           await bestEffortEmail(async () => {
             const message =
               session.state === "signed-in"
