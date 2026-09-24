@@ -167,9 +167,14 @@ export function ListingGallery({
        */
       className="relative -mx-gutter -mt-xl sm:-mt-2xl"
     >
+      {/* DOC-21: focusable, so a keyboard can scroll the photographs where
+          the arrow buttons are hidden (below 640px). */}
       <div
         ref={track}
         onScroll={onScroll}
+        tabIndex={0}
+        role="group"
+        aria-label={`${title} photos`}
         className="nf-scroll-x flex aspect-[4/3] w-full snap-x snap-mandatory sm:aspect-[16/9] lg:aspect-[2/1]"
       >
         {panes.map((photo, i) => (

@@ -219,13 +219,17 @@ function Row({
   value: React.ReactNode;
 }) {
   return (
-    <div className="flex gap-sm py-md first:pt-0">
-      <span className="block h-10 w-10 shrink-0">
-        <BrandIcon name={icon} fill />
-      </span>
-      <div className="min-w-0 flex-1">
-        <dt className={TYPE.label}>{term}</dt>
-        <dd className="mt-2xs">
+    /* DOC-21: a row of a <dl> holds only its <dt> and <dd>. The icon floats
+       inside the term, and the answer (its own formatting context) sits
+       beside it, which is the two-column look the wrapper div gave. */
+    <div className="flow-root py-md first:pt-0">
+        <dt className={TYPE.label}>
+          <span className="float-left mr-sm block h-10 w-10" aria-hidden="true">
+            <BrandIcon name={icon} fill />
+          </span>
+          {term}
+        </dt>
+        <dd className="mt-2xs overflow-hidden">
           {answered ? (
             value
           ) : (
@@ -235,7 +239,6 @@ function Row({
             </span>
           )}
         </dd>
-      </div>
     </div>
   );
 }

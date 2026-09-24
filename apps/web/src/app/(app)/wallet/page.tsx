@@ -78,6 +78,8 @@ export default async function WalletPage({
 
   return (
     <div className="nf-money mx-auto max-w-2xl">
+      {/* DOC-21: the page's heading, for a screen reader; the balance card is the visible one. */}
+      <h1 className="sr-only">{t.nav.wallet}</h1>
       <WalletBack />
       {verifying && <FundingVerifier reference={verifying} locale={locale} />}
 
