@@ -129,6 +129,54 @@ export const shapeEn = {
     viewsCounted:
       "Views are counted per listing above: different signed-in people who saw or opened it, once each per day, with no names kept. There is still no conversion rate, because a rate over a week this young would be noise.",
   },
+  /** V-41: light, water and flooding as residents report them. */
+  neighbours: {
+    title: "What the neighbours say",
+    lede: "Members living in {area} answer one tap at a time. Shown as counts once five different members have answered, never with a name.",
+    residents: "{area} residents",
+    line: "{answer} on {n} of {total} reports in the last {days} days",
+    kinds: { light: "Light", water: "Water", flood: "In heavy rain" },
+    answers: {
+      light: { most: "Most of the day", some: "Some of the day", none: "None" },
+      water: { normal: "Running as normal", tanker: "Tanker", none: "None" },
+      flood: { none: "No flooding", road: "The road cuts off", compound: "Water enters the compound" },
+    },
+    questions: {
+      light: "Light in {area} today?",
+      water: "Water in {area} this month?",
+      flood: "In heavy rain, does water cut off your road or enter your compound?",
+    },
+    choices: {
+      light: { most: "Most of the day", some: "Some", none: "None" },
+      water: { normal: "Running as normal", tanker: "Tanker", none: "None" },
+      flood: { none: "No", road: "The road, not the compound", compound: "Yes, the compound" },
+    },
+    listerFlood: {
+      none: "Lister says the road does not flood.",
+      road: "Lister says the road cuts off in heavy rain, not the compound.",
+      compound: "Lister says water enters the compound in heavy rain.",
+      unanswered: "The lister has not said whether it floods.",
+    },
+    tooFew: "Fewer than five members living in {area} have answered yet, so there is nothing to show.",
+    noArea: "No Around area covers {area} yet, so there are no residents' reports.",
+    cardTitle: "Tell your neighbours",
+    cardLede: "One tap, counted for {area} only and never shown with your name.",
+    results: {
+      ok: "Counted. Thank you.",
+      "signed-out": "Sign in to answer.",
+      "not-member": "Join {area} to answer for it.",
+      "too-new": "You can answer for {area} 14 days after joining it.",
+      "bad-answer": "That answer was not one of the choices.",
+      lister: "You list a home in {area}, so your answers are not counted there.",
+      already: "Already counted. You will be asked again later.",
+      failed: "That did not save. Try again.",
+    },
+    done: "Nothing to ask right now. You will be asked again in a few days.",
+    wizardTitle: "Flooding",
+    wizardLabel: "In heavy rain, does water cut off the road or enter the compound?",
+    wizardHint: "Renters see your answer beside what residents report. Leave it unanswered and the page says you have not said.",
+    unanswered: "Not answered",
+  },
   /** V-66: the shape of the home, in the words the market uses. */
   unit: {
     shapes: {
