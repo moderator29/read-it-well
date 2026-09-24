@@ -99,6 +99,12 @@ export type ListingFacts = {
   offerCount: number;
   /** The property a reviewer joined this listing to (V-37), or null. */
   propertyId: string | null;
+  /**
+   * Whether this is the one copy of its property that search shows: the
+   * lowest move-in total, then a verified lister, then a reconfirmed one,
+   * chosen by the database across every published copy, not just this page.
+   */
+  isRepresentative: boolean;
 };
 
 /** Read `listing_landlord_facts` rows into a map, dropping anything malformed. */
@@ -114,6 +120,7 @@ export function readListingFacts(rows: unknown): Map<string, ListingFacts> {
       notReconfirmed: row.not_reconfirmed === true,
       offerCount: typeof row.offer_count === "number" && row.offer_count > 0 ? row.offer_count : 1,
       propertyId: typeof row.property_id === "string" ? row.property_id : null,
+      isRepresentative: row.is_representative !== false,
     });
   }
   return out;
@@ -133,14 +140,17 @@ export function requestNow(): number {
  * V-37 ON THE SEARCH SHELF: ONE CARD PER PROPERTY.
  *
  * Four agents on one flat were four cards, and a renter could not tell four
- * flats from one. A reviewer has joined them to one property, so the shelf now
- * keeps the FIRST copy in whatever order the page chose (cheapest first when
- * the renter sorted by move-in cost, which is the copy they would pick anyway)
- * and drops the rest, and the kept card says how many offers there are. The
- * listing page then shows every offer side by side with its own move-in total.
+ * flats from one. A reviewer has joined them to one property, and the
+ * database names the one copy search shows: the lowest move-in total, then a
+ * verified lister, then one the owner reconfirmed. The choice is made across
+ * every published copy, so the card is the same whichever page it lands on,
+ * and a cheaper copy on another page is never hidden behind a dearer one on
+ * this page. Every other copy is dropped here, and the kept card says how many
+ * agents offer the flat. The listing page shows every offer side by side.
  *
- * A listing on no property, or whose facts did not load, is never collapsed:
- * a failed read leaves the shelf exactly as it was.
+ * A listing on no property, or whose facts did not load, is never dropped: a
+ * failed read leaves the shelf exactly as it was. Within one page a second
+ * copy of the same property is dropped too, as a guard.
  */
 export function collapseByProperty<T extends { id: string }>(
   listings: readonly T[],
@@ -152,10 +162,10 @@ export function collapseByProperty<T extends { id: string }>(
   for (const listing of listings) {
     const fact = facts.get(listing.id);
     const property = fact?.propertyId ?? null;
-    if (property) {
-      if (seen.has(property)) continue;
+    if (fact && property) {
+      if (!fact.isRepresentative || seen.has(property)) continue;
       seen.add(property);
-      if (fact && fact.offerCount > 1) offerCounts.set(listing.id, fact.offerCount);
+      if (fact.offerCount > 1) offerCounts.set(listing.id, fact.offerCount);
     }
     kept.push(listing);
   }
