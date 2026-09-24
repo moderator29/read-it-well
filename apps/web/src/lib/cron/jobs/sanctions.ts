@@ -23,8 +23,10 @@ import type { AdminClient } from "../rpc";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Loose = any;
 
-export function listsVerdict(results: { source: string; result: IngestResult }[]): JobVerdict {
+export function listsVerdict(results: { source: string; result: IngestResult }[], waiting: number | null = 0): JobVerdict {
   const counts = {
+    waiting: waiting ?? 0,
+    incomplete: results.filter((r) => r.result.state === "waiting" && r.result.why === "unverified").length,
     sources: results.length,
     loaded: results.filter((r) => r.result.state === "loaded").length,
     same: results.filter((r) => r.result.state === "same").length,
@@ -41,13 +43,42 @@ export function listsVerdict(results: { source: string; result: IngestResult }[]
       alert: { kind: "sanctions.list_refresh_failed", severity: "warning", detail: { sources: broken, scuml_item: 9 } },
     };
   }
+  if (waiting === null) {
+    /* The count could not be read: never "nothing waiting". */
+    return {
+      outcome: "attention",
+      counts,
+      detail,
+      alert: { kind: "sanctions.list_waiting_unreadable", severity: "warning", detail: { scuml_item: 9 } },
+    };
+  }
+  if (counts.incomplete > 0) {
+    /* A fetched file that cannot prove it is whole: load the whole file on the desk. */
+    return {
+      outcome: "attention",
+      counts,
+      detail,
+      alert: { kind: "sanctions.list_incomplete", severity: "warning", detail: { incomplete: counts.incomplete, scuml_item: 9 } },
+    };
+  }
+  if (waiting > 0) {
+    /* A version loaded and not activated screens nobody: somebody must look. */
+    return {
+      outcome: "attention",
+      counts,
+      detail,
+      alert: { kind: "sanctions.list_waiting", severity: "warning", detail: { waiting, scuml_item: 9 } },
+    };
+  }
   return { outcome: "ok", counts, detail, alert: null };
 }
 
 export async function sanctionsLists(admin: AdminClient, sources: ListSource[] = configuredSources()): Promise<JobVerdict> {
   const results: { source: string; result: IngestResult }[] = [];
   for (const source of sources) results.push({ source: source.source, result: await ingestList(admin as Loose, source) });
-  return listsVerdict(results);
+  /* The same rule the desk uses: loaded, not active, complete, not superseded. */
+  const { data, error } = await (admin as Loose).rpc("sanctions_lists_waiting");
+  return listsVerdict(results, error ? null : Number(data) || 0);
 }
 
 export function screenVerdict(counts: DrainCounts): JobVerdict {

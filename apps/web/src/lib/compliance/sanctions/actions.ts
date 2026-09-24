@@ -2,46 +2,47 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "../../admin/guard";
-import { getAdminClient } from "../../wallet/ledger";
-import { ingestList } from "./ingest";
-import { uploadSource } from "./sources";
 
 /**
  * THE SANCTIONS DESK'S ACTIONS. SCUML items 8, 9 and 19.
  *
  * Staff only (`requireAdmin`). Proposals and approvals go through the
  * definer functions under the operator's own session, which check the role
- * again and enforce the two-person rule in the database; the upload uses the
- * service role after the admin check, because list tables are born locked.
+ * again and enforce the two-person rule in the database. The file upload is
+ * a route handler (`/api/compliance/sanctions-upload`), not an action, so the
+ * app's server-action body limit stays at its default.
  */
 
 export type DeskAnswer = { ok: true; message: string } | { ok: false; error: string };
 
-const MAX_UPLOAD = 40 * 1024 * 1024;
-
-export async function uploadSanctionsList(_prev: DeskAnswer | null, form: FormData): Promise<DeskAnswer> {
-  const access = await requireAdmin();
-  if (access.state !== "admin") return { ok: false, error: "forbidden" };
-  const source = form.get("source");
-  const file = form.get("file");
-  if ((source !== "un" && source !== "ng") || !(file instanceof File) || file.size === 0 || file.size > MAX_UPLOAD) {
-    return { ok: false, error: "failed" };
-  }
-  const admin = getAdminClient();
-  if (!admin) return { ok: false, error: "failed" };
-  const result = await ingestList(admin as never, uploadSource(source, await file.text()), access.user.id);
-  revalidatePath("/admin/compliance");
-  if (result.state === "loaded") return { ok: true, message: `loaded:${result.entries}` };
-  if (result.state === "same") return { ok: true, message: "same" };
-  return { ok: false, error: "failed" };
-}
-
 type Rpc = { rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }> };
 
-export async function proposeSanctionsDecision(input: { hitId: string; decision: "clear" | "confirm"; note: string }): Promise<DeskAnswer> {
+async function staffRpc(fn: string, args: Record<string, unknown>, done: string): Promise<DeskAnswer> {
   const access = await requireAdmin();
   if (access.state !== "admin") return { ok: false, error: "forbidden" };
-  if (input.decision !== "clear" && input.decision !== "confirm") return { ok: false, error: "failed" };
+  const { data, error } = await (access.supabase as unknown as Rpc).rpc(fn, args);
+  revalidatePath("/admin/compliance");
+  const status = !error && data && typeof data === "object" ? (data as { status?: unknown }).status : null;
+  if (status === "ok") return { ok: true, message: done };
+  /* A short URL list's first step: proposed, waiting on a second person. */
+  if (status === "proposed") return { ok: true, message: "proposed" };
+  return { ok: false, error: typeof status === "string" ? status : "failed" };
+}
+
+/** A different staff member activates a waiting list version (items 9 and 19). */
+export async function activateSanctionsList(input: { versionId: string }): Promise<DeskAnswer> {
+  return staffRpc("sanctions_list_activate", { p_version: input.versionId }, "activated");
+}
+
+/** Anyone but the proposer rejects a proposal; the match is open again (item 19). */
+export async function rejectSanctionsDecision(input: { decisionId: string }): Promise<DeskAnswer> {
+  return staffRpc("sanctions_hit_reject", { p_decision: input.decisionId }, "rejected");
+}
+
+export async function proposeSanctionsDecision(input: { hitId: string; decision: "clear" | "confirm" | "release"; note: string }): Promise<DeskAnswer> {
+  const access = await requireAdmin();
+  if (access.state !== "admin") return { ok: false, error: "forbidden" };
+  if (input.decision !== "clear" && input.decision !== "confirm" && input.decision !== "release") return { ok: false, error: "failed" };
   const { data, error } = await (access.supabase as unknown as Rpc).rpc("sanctions_hit_propose", {
     p_hit: input.hitId,
     p_decision: input.decision,

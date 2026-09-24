@@ -511,9 +511,10 @@ declare t text;
 begin
   foreach t in array array['sanctions_list_versions', 'sanctions_entries', 'sanctions_screen_queue',
                            'sanctions_screenings', 'sanctions_hits', 'sanctions_hit_decisions'] loop
-    if exists (select 1 from information_schema.role_table_grants
-                where table_schema = 'public' and table_name = t
-                  and grantee in ('anon', 'authenticated', 'PUBLIC')) then
+    /* has_table_privilege answers for the named role; the information_schema
+       grant views only show what the observing role is party to. */
+    if has_table_privilege('anon', 'public.' || t, 'SELECT, INSERT, UPDATE, DELETE')
+       or has_table_privilege('authenticated', 'public.' || t, 'SELECT, INSERT, UPDATE, DELETE') then
       raise exception 'SCUML item 8: % is not born locked', t;
     end if;
   end loop;

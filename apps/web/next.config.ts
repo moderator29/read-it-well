@@ -57,6 +57,7 @@ const nextConfig: NextConfig = {
   // Workspace packages ship raw TypeScript, so Next compiles them in place.
   transpilePackages: ["@vallo/design-tokens", "@vallo/i18n"],
 
+
   // Three image sources, all explicitly allowed through the optimiser and
   // nothing else: the seed catalogue's Unsplash photography, the Supabase
   // storage CDN that serves agent-uploaded listing photos and avatars once
