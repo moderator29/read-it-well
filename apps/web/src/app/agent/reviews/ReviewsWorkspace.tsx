@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatRating, formatNumber, type Locale } from "@vallo/i18n";
+import { countOf, formatNumber, formatRating, type Locale } from "@vallo/i18n";
 import type { AgentReview, AgentReviewsSummary } from "@/lib/agent/reviews-queries";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -59,7 +59,7 @@ function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Lo
             {formatRating(summary.average, locale)}
           </span>
           <span className="text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]">
-            across {formatNumber(summary.total, locale)} {summary.total === 1 ? "review" : "reviews"}
+            across {countOf(summary.total, "reviews", locale)}
           </span>
         </p>
       </div>
@@ -85,8 +85,7 @@ function Summary({ summary, locale }: { summary: AgentReviewsSummary; locale: Lo
                 {count}
               </span>
               <span className="sr-only">
-                {count} {count === 1 ? "review" : "reviews"} at {star}{" "}
-                {star === 1 ? "star" : "stars"}
+                {countOf(count, "reviews", locale)} at {countOf(star, "stars", locale)}
               </span>
             </li>
           );

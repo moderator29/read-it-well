@@ -1,3 +1,5 @@
+import { getDictionary } from "@vallo/i18n";
+
 /**
  * What a payment failure is allowed to say to the person who tried to pay.
  *
@@ -65,7 +67,7 @@ const REWRITES: { pattern: RegExp; sentence: string }[] = [
      * money sentence follows it either way.
      */
     pattern: /\b(payment|platform|paystack)\s+keys?\b|\bswitch(es)?\s+on\b/i,
-    sentence: "We cannot take this payment right now.",
+    sentence: getDictionary("en").checkout.cannotTakePayment,
   },
 ];
 
@@ -155,13 +157,10 @@ export function failureConsequence(raw: string | undefined | null, money: string
  */
 
 /** The rent page when it is opened again after a paid charge. */
-export const RENT_PAID_PAGE_CONSEQUENCE =
-  "The move-in total is paid and recorded to the kobo. Arrange the keys with the agent in your thread.";
+export const RENT_PAID_PAGE_CONSEQUENCE = getDictionary("en").checkout.paidRent;
 
 /** The sheet that opens the moment a rent payment confirms. */
-export const RENT_PAID_SHEET_CONSEQUENCE =
-  "The move-in total is paid and recorded to the kobo. Arrange the keys with the agent in your thread.";
+export const RENT_PAID_SHEET_CONSEQUENCE = getDictionary("en").checkout.paidRent;
 
 /** The sheet that opens the moment a stay payment confirms. */
-export const STAY_PAID_SHEET_CONSEQUENCE =
-  "Paid and recorded to the kobo, and these dates are yours.";
+export const STAY_PAID_SHEET_CONSEQUENCE = getDictionary("en").checkout.paidStay;

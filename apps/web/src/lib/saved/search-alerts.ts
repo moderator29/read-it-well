@@ -2,6 +2,7 @@ import { matchesFilter } from "../listings/filter";
 import type { Listing, ListingSearchFilter } from "../listings/types";
 import { parseShelfQuery, shelfFilter } from "@/components/app/search/shelf-query";
 import type { SavedSearchParams } from "./searches";
+import { countOf } from "@vallo/i18n";
 
 /**
  * WHAT COUNTS AS A NEW MATCH, AS A PURE DECISION.
@@ -114,18 +115,12 @@ export function noticeCopy(
 ): { title: string; body: string } {
   if (searches === 1) {
     return {
-      title:
-        matches === 1
-          ? `A new place matches ${label}`
-          : `${matches} new places match ${label}`,
+      title: countOf(matches, "newPlacesMatch").replace("{label}", label),
       body: "Opening this search shows everything that matches it now, including these.",
     };
   }
   return {
-    title:
-      matches === 1
-        ? "A new place matches your saved searches"
-        : `${matches} new places match your saved searches`,
+    title: countOf(matches, "newPlacesMatchSaved"),
     body: `Across ${searches} of your saved searches. Each one opens on its own results.`,
   };
 }

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { Locale } from "@vallo/i18n";
+import { countOf, type Locale } from "@vallo/i18n";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
@@ -914,7 +914,7 @@ function ConsentStep({ draft, pending, saveText, set }: StepProps) {
   );
 }
 
-function ReviewStep({ draft, pending, run, goTo, set }: StepProps) {
+function ReviewStep({ draft, pending, run, goTo, set, locale }: StepProps) {
   const missing = missingFrom(draft);
   const send = () =>
     run(
@@ -940,14 +940,14 @@ function ReviewStep({ draft, pending, run, goTo, set }: StepProps) {
           {accommodation ? (
             <Fact
               label="Property"
-              value={draft.accommodation ? `${draft.accommodation.name}, ${draft.roomTypeCount} room type${draft.roomTypeCount === 1 ? "" : "s"}, ${draft.ratePlanCount} rate${draft.ratePlanCount === 1 ? "" : "s"}` : ""}
+              value={draft.accommodation ? `${draft.accommodation.name}, ${countOf(draft.roomTypeCount, "roomTypes", locale)}, ${countOf(draft.ratePlanCount, "ratePlans", locale)}` : ""}
               /* The property's first drawn screen, whichever branch this
                  host is on: a hotelier lands on "Your hotel" and a shortlet
                  operator on "Your place". */
               onEdit={() => goTo(branchFor(draft.kind) === "shortlet" ? "place" : "hotel")}
             />
           ) : (
-            <Fact label="Service" value={draft.serviceWindowCount > 0 ? `${draft.serviceWindowCount} window${draft.serviceWindowCount === 1 ? "" : "s"}` : ""} onEdit={() => goTo("tables")} />
+            <Fact label="Service" value={draft.serviceWindowCount > 0 ? countOf(draft.serviceWindowCount, "windows", locale) : ""} onEdit={() => goTo("tables")} />
           )}
           <Fact label="Payouts" value={draft.hasBankAccount ? "Bank account on record" : ""} onEdit={() => goTo("payout")} />
         </dl>

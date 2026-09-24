@@ -37,6 +37,9 @@ describe.skipIf(!hasBrowser && !process.env.CI)("listing detail (axe)", () => {
       />,
     );
     expect(await axe(html, { rules: ["definition-list", "dlitem"] })).toEqual([]);
+    /* Every term stays a real box: older WebKit (the iOS app's web view)
+       drops the role of an element with display: contents. */
+    expect(html).not.toMatch(/<dt[^>]*class="[^"]*\bcontents\b/);
   });
 
   it("the amenity capsules can be scrolled from the keyboard when they overflow", async () => {

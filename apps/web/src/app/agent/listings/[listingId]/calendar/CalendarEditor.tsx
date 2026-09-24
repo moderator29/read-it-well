@@ -8,6 +8,8 @@ import { monthGrid, countNights } from "@/lib/agent/calendar-schema";
 import type { CalendarNight, CalendarSubject } from "@/lib/agent/calendar-queries";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { EmptyState } from "@/components/app/Screen";
+import { countOf } from "@vallo/i18n";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * The host's calendar.
@@ -33,6 +35,7 @@ export function CalendarEditor({
   subject: CalendarSubject;
   nights: CalendarNight[];
 }) {
+  const locale = useClientLocale();
   const router = useRouter();
   const [anchor, setAnchor] = useState<string | null>(null);
   const [end, setEnd] = useState<string | null>(null);
@@ -214,7 +217,7 @@ export function CalendarEditor({
       {from && to && (
         <div className="nf-panel nf-panel--card block sticky bottom-4 mt-lg p-md">
           <p className="text-[length:var(--nf-text-body-sm)] font-medium text-[var(--nf-content-primary)]">
-            {selectedCount} {selectedCount === 1 ? "night" : "nights"} selected
+            {countOf(selectedCount, "nights", locale)} selected
           </p>
           <p className="nf-numeric mt-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {from} to {to}

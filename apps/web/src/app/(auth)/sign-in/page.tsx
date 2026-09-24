@@ -22,24 +22,8 @@ export const metadata: Metadata = {
  * They land on the chooser rather than the form because every one of them is
  * about getting in at all, not about the email route specifically.
  */
-const NOTICES: Record<string, string> = {
-  "link-expired":
-    "That link has expired or was already used. Sign in below, or ask for a new link.",
-  "link-invalid": "That link was incomplete. Sign in below and it will work as normal.",
-  unconfigured: "We cannot reach accounts right now. Nothing you typed was lost.",
-  "signed-out": "You are signed out. Sign in whenever you are ready.",
-  /*
-   * Sent by the middleware when somebody reaches a product address without a
-   * session. It names the reason rather than dropping them on a bare form,
-   * because arriving at a sign-in screen you did not ask for is confusing
-   * enough to read as a bug.
-   */
-  "sign-in-required": "Sign in to open that. It takes a moment, and new accounts are free.",
-  /* STORE-P2-04: a stranger who has opened a great many catalogue pages in a
-     few minutes (`anon_catalogue` in the proxy). */
-  "catalogue-paced":
-    "You have opened a lot of pages in a few minutes. Sign in to keep browsing, or come back in a few minutes.",
-};
+/* The sentences are `authFlow.notices` in the dictionary, keyed by the
+   notice name the callback and the middleware send. */
 
 export default async function SignInPage({
   searchParams,
@@ -59,7 +43,7 @@ export default async function SignInPage({
   const t = getDictionary(locale);
   const notice = typeof params.notice === "string" ? params.notice : undefined;
   const next = typeof params.next === "string" ? params.next : undefined;
-  const noticeText = notice ? NOTICES[notice] : undefined;
+  const noticeText = notice ? t.authFlow.notices[notice] : undefined;
 
   const surface = await requestSurface();
   return (

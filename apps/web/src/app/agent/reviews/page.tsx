@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getDictionary } from "@vallo/i18n";
+import { countOf, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
@@ -75,9 +75,7 @@ export default async function Page({
         <h1 className="nf-h1">{t.agent.nav.reviews}</h1>
         <p className="mt-3xs text-[var(--nf-content-secondary)]">
           {read.state === "ready" && read.summary.unanswered > 0
-            ? `${read.summary.unanswered} ${
-                read.summary.unanswered === 1 ? "review is" : "reviews are"
-              } waiting on your answer. Your reply is public, and the next guest reads it.`
+            ? `${countOf(read.summary.unanswered, "reviewsAre", locale)} waiting on your answer. Your reply is public, and the next guest reads it.`
             : "What guests said about your stays, and what you said back."}
         </p>
       </div>

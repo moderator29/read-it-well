@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import { DEFAULT_LOCALE, plural, type Dictionary, type Locale } from "@vallo/i18n";
 import type { Listing, PowerBackup, PowerGrid } from "@/lib/listings/types";
 import { PERIOD_SUFFIX_SHORT } from "@/lib/listings/pricing";
 
@@ -174,14 +174,14 @@ const KIND_NOUN: Record<Listing["kind"], string | null> = {
  * The row is capped at four. A fifth fact at this size stops being scanned and
  * starts being noise, and the detail page has room for all of them.
  */
-export function cardFacts(listing: Listing, t: Dictionary): CardFact[] {
+export function cardFacts(listing: Listing, t: Dictionary, locale: Locale = DEFAULT_LOCALE): CardFact[] {
   const facts: CardFact[] = [];
 
   if (listing.bedrooms > 0) {
     facts.push({
       key: "beds",
       numeric: true,
-      label: `${listing.bedrooms} ${listing.bedrooms === 1 ? t.common.bed : t.common.beds}`,
+      label: plural(listing.bedrooms, t.units.beds, locale),
     });
   }
 
@@ -189,7 +189,7 @@ export function cardFacts(listing: Listing, t: Dictionary): CardFact[] {
     facts.push({
       key: "baths",
       numeric: true,
-      label: `${listing.bathrooms} ${listing.bathrooms === 1 ? t.common.bath : t.common.baths}`,
+      label: plural(listing.bathrooms, t.units.baths, locale),
     });
   }
 

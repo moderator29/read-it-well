@@ -1,4 +1,4 @@
-import type { CountForms } from "../plural";
+import type { CountForms, PluralForms } from "../plural";
 /* Price Check lives in its own module: `en.ts` is 4,900 lines, many changes
    touch it at once, and this namespace was lost to a concurrent overwrite
    once already. One import and one line is the smallest footprint a
@@ -24,6 +24,132 @@ const counts: CountForms = {
 };
 
 /**
+ * DOC-22: every counted phrase the product prints, as `plural()` forms.
+ *
+ * These replaced about seventy hand-written `n === 1 ? "x" : "xs"` tests in
+ * components, which decided the grammar of every language at once and could
+ * never be translated. A phrase that carries a verb ("{count} reports have")
+ * is a whole form here, because agreement differs by language as much as the
+ * noun does. Yoruba, Hausa and Igbo fall back to these English forms until a
+ * translator supplies them (`fallback.ts`); `Intl` picks the category, so a
+ * locale with only `other` simply never asks for `one`.
+ *
+ * Read through `countOf(n, "noun", locale)` in `@vallo/i18n`.
+ */
+const units = {
+  bedrooms: { one: "1 bedroom", other: "{count} bedrooms" },
+  beds: { one: "1 bed", other: "{count} beds" },
+  baths: { one: "1 bath", other: "{count} baths" },
+  bathrooms: { one: "1 bathroom", other: "{count} bathrooms" },
+  toilets: { one: "1 toilet", other: "{count} toilets" },
+  hours: { one: "1 hour", other: "{count} hours" },
+  days: { one: "1 day", other: "{count} days" },
+  months: { one: "1 month", other: "{count} months" },
+  nights: { one: "1 night", other: "{count} nights" },
+  guests: { one: "1 guest", other: "{count} guests" },
+  adults: { one: "1 adult", other: "{count} adults" },
+  children: { one: "1 child", other: "{count} children" },
+  members: { one: "1 member", other: "{count} members" },
+  comments: { one: "1 comment", other: "{count} comments" },
+  replies: { one: "1 reply", other: "{count} replies" },
+  localGovernments: { one: "1 local government", other: "{count} local governments" },
+  places: { one: "1 place", other: "{count} places" },
+  facilities: { one: "1 facility", other: "{count} facilities" },
+  rooms: { one: "1 room", other: "{count} rooms" },
+  roomTypes: { one: "1 room type", other: "{count} room types" },
+  ratePlans: { one: "1 rate", other: "{count} rates" },
+  serviceWindows: { one: "1 service window", other: "{count} service windows" },
+  windows: { one: "1 window", other: "{count} windows" },
+  stars: { one: "1 star", other: "{count} stars" },
+  photos: { one: "1 photo", other: "{count} photos" },
+  cuisines: { one: "1 cuisine", other: "{count} cuisines" },
+  reports: { one: "1 report", other: "{count} reports" },
+  heldItems: { one: "1 held item", other: "{count} held items" },
+  documents: { one: "1 document", other: "{count} documents" },
+  decisions: { one: "1 decision", other: "{count} decisions" },
+  stays: { one: "1 stay", other: "{count} stays" },
+  spaces: { one: "1 space", other: "{count} spaces" },
+  reviews: { one: "1 review", other: "{count} reviews" },
+  lines: { one: "1 line", other: "{count} lines" },
+  things: { one: "1 thing", other: "{count} things" },
+  digitsToGo: { one: "1 more digit to go.", other: "{count} more digits to go." },
+  /* Phrases whose verb agrees with the count. */
+  reportsWaiting: { one: "{count} report has", other: "{count} reports have" },
+  findingsResolved: { one: "{count} finding has", other: "{count} findings have" },
+  examplesLeftOut: { one: "{count} example listing is", other: "{count} example listings are" },
+  reviewsAre: { one: "{count} review is", other: "{count} reviews are" },
+  enquiriesAre: { one: "{count} enquiry is", other: "{count} enquiries are" },
+  businesses: { one: "1 business", other: "{count} businesses" },
+  matches: { one: "1 match", other: "{count} matches" },
+  entries: { one: "1 entry", other: "{count} entries" },
+  cities: { one: "1 city", other: "{count} cities" },
+  examples: { one: "1 example", other: "{count} examples" },
+  reviewExamples: { one: "Review 1 example", other: "Review all {count} examples" },
+  exampleProperties: { one: "1 example property", other: "{count} example properties" },
+  liveListings: { one: "1 live listing", other: "{count} live listings" },
+  earlierStops: { one: "One earlier stop", other: "{count} earlier stops" },
+  minutesAgo: { one: "1 minute ago", other: "{count} minutes ago" },
+  daysAgo: { one: "yesterday", other: "{count} days ago" },
+  daysWaiting: { one: "1 day waiting", other: "{count} days waiting" },
+  examplesAre: { one: "1 example is", other: "{count} examples are" },
+  confirmedStaysAre: { one: "One confirmed stay is", other: "{count} confirmed stays are" },
+  moreNights: { one: "another night", other: "{count} more nights" },
+  thingsStopLive: { one: "1 thing stops it going live", other: "{count} things stop it going live" },
+  peopleSoFar: { one: "One person has so far.", other: "{count} people have so far." },
+  walkthroughVideos: { one: "Walkthrough video", other: "Walkthrough videos ({count})" },
+  amenitiesChosen: { one: "1 amenity chosen.", other: "{count} amenities chosen." },
+  listingsPutBack: { one: "One listing was put back.", other: "{count} listings were put back." },
+  staysStillAhead: {
+    one: "One confirmed stay was still ahead when this landed. It was never cancelled and that guest keeps it.",
+    other:
+      "{count} confirmed stays were still ahead when this landed. None were cancelled and those guests keep them.",
+  },
+  listingsBack: { one: "One listing is back where it was.", other: "{count} listings are back where they were." },
+  stoppedBefore: { one: "Stopped once before.", other: "Stopped {count} times before." },
+  liveListingsComeDown: {
+    one: "Their one live listing comes down and returns where it was if this is lifted.",
+    other: "All {count} of their live listings come down and return where they were if this is lifted.",
+  },
+  listingsCameDown: { one: "One listing came down.", other: "{count} listings came down." },
+  payoutAccounts: {
+    one: "This is the account your payouts are sent to.",
+    other: "Your payouts go here. You have {count} accounts on file.",
+  },
+  requestsWaiting: { one: "One request is waiting on your answer.", other: "{count} requests are waiting on your answer." },
+  photographsOnRecord: {
+    one: " has one photograph, and it is the one guests see first.",
+    other: " has {count} photographs.",
+  },
+  quarters: { one: "1 quarter", other: "{count} quarters" },
+  years: { one: "1 year", other: "{count} years" },
+  tablesBooked: { one: "One table is still booked here.", other: "{count} tables are still booked here." },
+  thingsMissing: {
+    one: "One thing is still missing: {item}.",
+    other: "{count} things are still missing before you can send this.",
+  },
+  newPlacesMatch: { one: "A new place matches {label}", other: "{count} new places match {label}" },
+  newPlacesMatchSaved: {
+    one: "A new place matches your saved searches",
+    other: "{count} new places match your saved searches",
+  },
+  listingsCited: {
+    one: "Answered from 1 published listing{place}.",
+    other: "Answered from {count} published listings{place}.",
+  },
+  propertiesLive: {
+    one: "One property under it is live and bookable.",
+    other: "{count} properties under it are live and bookable.",
+  },
+  yourBusinessTrading: { other: "Your business is still trading." },
+  businessesStillTrading: {
+    one: "{count} of your businesses is still trading.",
+    other: "{count} of your businesses are still trading.",
+  },
+} satisfies Record<string, PluralForms>;
+
+export type UnitNoun = keyof typeof units;
+
+/**
  * English. The source of truth.
  *
  * Every other locale is typed against this shape, so a missing or misspelled
@@ -31,6 +157,7 @@ const counts: CountForms = {
  */
 export const en = {
   counts,
+  units: units as Record<UnitNoun, PluralForms>,
 
   /*
    * The reserve panel on a listing.
@@ -56,6 +183,205 @@ export const en = {
     restaurantNotBookable: "Nothing here can be booked or held. Search for a real restaurant you can reach.",
     browseRestaurants: "Browse real restaurants",
   },
+  /*
+   * Paying for a stay (checkout) and for a move-in (rent). The two panels
+   * share every sentence that does not name what is being paid for.
+   */
+  checkout: {
+    dates: "Dates",
+    guests: "Guests",
+    totalToPay: "Total to pay",
+    moveInTotal: "Move-in total",
+    inFull: "in full",
+    takesNothing: "Vallo adds nothing of its own to this total. Every naira goes to the stay.",
+    howToPay: "How would you like to pay?",
+    savedCardTitle: "Pay with a saved card",
+    savedCardBody: "The card you saved, charged straight away. Your card details still never touch Vallo.",
+    payWithThisCard: "Pay with this card",
+    cardTitle: "Pay by card",
+    cardBody: "A secure page in naira, then straight back here. Your card details never touch Vallo.",
+    payByCard: "Pay by card",
+    cardUnavailable: "Card payment is not available right now.",
+    cardUnavailableStayNote:
+      "Your dates stay held and nothing has been charged. Pay from your wallet, or try the card again from here.",
+    cardUnavailableRentNote: "Nothing has been charged. Pay from your wallet, or try the card again from here.",
+    walletTitle: "Pay from your Vallo wallet",
+    walletCoversStay: "Your wallet holds {balance}. Paying from it confirms this stay straight away.",
+    walletCoversRent: "Your wallet holds {balance}. Paying from it settles the rent straight away.",
+    walletShortStay: "Your wallet holds {balance}, and this stay comes to {total}.",
+    walletShortRent: "Your wallet holds {balance}, and the move-in total comes to {total}.",
+    walletShortNote: "Add money to your wallet first, or pay by card.",
+    payFromWallet: "Pay from my wallet",
+    openWallet: "Open my wallet",
+    addMoney: "Add money",
+    onPlatformStay:
+      "Money moves inside Vallo, so the stay and the payment stay attached to each other. Keep every conversation and every payment on the platform.",
+    onPlatformRent:
+      "Money moves inside Vallo, so the tenancy and the payment stay attached to each other. Keep every conversation and every payment on the platform.",
+    rentTotalStated: "Move-in total, as stated by the lister",
+    rentTotalFromParts: "Move-in total, from the parts the lister stated",
+    rentPeriod: { month: "monthly", quarter: "quarterly", year: "yearly" },
+    rentTerms:
+      "Rent is {period}, moving in from {moveIn}. Vallo charges nothing on this payment; a card processor may show its own charge on the payment page.",
+    rentStepOpen:
+      "This payment step stays open for 48 hours from when you opened it. If it closes unpaid, open it again from here.",
+    holdRunOut: "Hold has run out",
+    holdHeld: "Your dates are held",
+    holdExpired:
+      "These dates are no longer held and somebody else can book them. If the stay is still open, paying now still confirms it. If it has already been released, the payment is refused before anything is charged.",
+    holdLeft: "{minutes}m {seconds}s left",
+    holdUntil: "Until {time}",
+    title: "Checkout",
+    step: "Step 2 of 3: review and pay",
+    loading: "Loading your booking",
+    acceptedNote:
+      "The agent has accepted these dates, so the stay is yours. All that is left is paying for it, and your dates are not counting down while you do.",
+    completedNote:
+      "These dates have already passed and the stay is recorded as taken. Nothing is counting down. The total below is what is still outstanding on it.",
+    noShowNote:
+      "The agent recorded that this stay was not taken up, so nothing is counting down. If this total is still owed, paying settles it. If that does not match what happened, get help before you pay.",
+    recordedOnce:
+      "Amounts are naira, recorded to the kobo. A payment is only ever recorded once, however many times a page is reloaded.",
+    onlyYourBooking: "You pay only for a booking you have made, and only the total shown here.",
+    rentTitle: "Pay the rent",
+    pageNotOpened: "The secure payment page could not be opened.",
+    notCompleted: "The payment could not be completed.",
+    paidFootnote: "Paid inside Vallo, recorded to the kobo.",
+    payingFromWallet: "Paying from your wallet",
+    openingPaymentPage: "Opening your payment page",
+    slowNothingMoved: "This is taking longer than usual. Nothing has moved yet and nothing has been charged. Stay here.",
+    walletUntilComplete: "Nothing leaves your wallet until this completes.",
+    nothingChargedYet: "Nothing has been charged yet.",
+    continueToBank: "Continue to your bank",
+    payAnotherWay: "Pay another way",
+    notHeardBack: "We have not heard back",
+    tryAgain: "Try again",
+    paymentNotCompleted: "Payment not completed",
+    nothingTaken: "Nothing has been taken from your card or your wallet.",
+    getHelp: "Get help",
+    paymentSent: "Payment sent",
+    seeStays: "See your stays",
+    backToStay: "Back to the stay",
+    stalledWalletStay: "Your wallet balance has not changed. Check your stays before you try again, so you do not pay twice.",
+    stalledCardStay: "Your card has not been charged. Check your stays before you try again, so you do not pay twice.",
+    rentPaid: "Rent paid",
+    openThread: "Open the thread",
+    backToListing: "Back to the listing",
+    preparingPayment: "Preparing your payment",
+    stalledWalletRent: "Your wallet balance has not changed. Reload this page before you try again, so you do not pay twice.",
+    stalledCardRent: "Your card has not been charged. Reload this page before you try again, so you do not pay twice.",
+    reload: "Reload",
+    confirmingPayment: "Confirming your payment",
+    returnSlow: "This is taking longer than usual. Your card has not been charged twice and nothing has been lost. Stay here.",
+    returnChecking: "Checking with the payment service. This usually takes a few seconds.",
+    paymentReceived: "Payment received",
+    stayConfirmed: "Your stay is confirmed and the dates are yours.",
+    alreadyRecorded: "This payment was already recorded, so your stay is confirmed.",
+    stillChecking: "Still checking",
+    returnStalled: "We have not heard back from the payment service. Do not pay again. Your stay appears under your stays the moment it settles, and the reference above is what support will trace it by.",
+    paymentNotConfirmed: "Payment not confirmed",
+    returnFailed: "Your card has not been charged. If money did leave your account, it returns within 24 hours.",
+    cannotReachPayment: "We cannot reach payment right now",
+    cannotReachStay: "This is on our side, not yours. Nothing has been charged and your dates are unchanged. Try again in a few minutes.",
+    signInToPayStay: "Sign in to pay for this stay",
+    signInKeptStay: "Your booking and its dates are kept. Sign in and you land straight back here.",
+    signIn: "Sign in",
+    bookingNotFound: "We could not find that booking",
+    bookingNotFoundBody: "It may have been cancelled, or it belongs to another account. Your stays are all in one place.",
+    checkoutDidNotOpen: "Checkout did not open",
+    checkoutDidNotOpenBody: "Your booking is unchanged and nothing has been charged. Try again in a few minutes.",
+    stayPaidFor: "This stay is paid for",
+    bookingCancelled: "This booking was cancelled",
+    bookingCancelledBody: "Cancelled stays cannot be paid for. The dates are open again, so search and reserve them afresh if you still want them.",
+    stayPaidBody: "{total} has been received and your dates are confirmed.",
+    cannotReachRent: "This is on our side, not yours. Nothing has been charged and your inspection is unchanged. Try again in a few minutes.",
+    seeInspections: "See your inspections",
+    signInToPayRent: "Sign in to pay the rent",
+    signInKeptRent: "Your inspection is kept. Sign in and you land straight back here.",
+    inspectionNotFound: "We could not find that inspection",
+    inspectionNotFoundBody: "It may have been withdrawn, or it belongs to another account. Your inspections are all in one place.",
+    rentStepDidNotOpen: "The payment step did not open",
+    rentStepDidNotOpenBody: "Nothing has been charged. Try again in a few minutes.",
+    yourListing: "This is your listing",
+    yourListingBody: "The person who inspected it pays the move-in total here, and you are told the moment it lands.",
+    waitingOnLister: "Waiting on the lister",
+    waitingOnListerBody: "Nothing can be paid until the lister accepts your inspection. You will be told the moment they do, and this page opens then.",
+    noFigure: "There is no figure to pay yet",
+    noFigureBody: "This listing does not state a rent and its fees, so there is nothing to charge. Ask the lister in your thread to put the move-in figure on the listing.",
+    openMessages: "Open messages",
+    rentIsPaid: "The rent is paid",
+    cannotHoldRoom: "Vallo cannot hold this room",
+    stayNotFound: "We could not find that stay",
+    cannotHoldRoomBody: "Rooms at this property are not reserved through Vallo, so nothing has been held and nothing has been charged. Go back to the stay for its rates and the ways to reach the property, or find another stay.",
+    stayNotFoundBody: "It may have been taken off the shelf, or the link is incomplete. Nothing has been held and nothing has been charged.",
+    cannotTakePayment: "We cannot take this payment right now.",
+    paidRent: "The move-in total is paid and recorded to the kobo. Arrange the keys with the agent in your thread.",
+    paidStay: "Paid and recorded to the kobo, and these dates are yours.",
+    rentSubtitle: "The move-in total, paid inside Vallo",
+  },
+
+  /* Confirming an address, by code or by link, and the auth screens' edges. */
+  authFlow: {
+    enterCode: "Enter your code",
+    sentTo: "We sent {count} digits to",
+    sentToTail: ". Type them here and you are in. No second sign-in.",
+    sentNoAddress: "We sent {count} digits to the address you signed up with. Type them here and you are in. No second sign-in.",
+    codeLabel: "Confirmation code",
+    confirmAndGo: "Confirm and go in",
+    sendAnother: "Send me another code",
+    sameEmailButton: "The same email carries a button that does this in one tap.",
+    alreadyConfirmed: "Already confirmed? Sign in",
+    verifyingTitle: "Verifying your email",
+    verifyingBody: "One moment. We are confirming your address and opening your account.",
+    signingInTitle: "Signing you in",
+    signingInBody: "One moment. We are checking it is you and opening your account.",
+    noScriptSignUp:
+      "This step needs JavaScript to finish. The same email carries a six digit code, and entering it needs nothing but the form.",
+    noScriptSignIn:
+      "This step needs JavaScript to finish. Signing in with your email address and password needs nothing but the form.",
+    enterCodeInstead: "Enter the code instead",
+    signInWithYourEmail: "Sign in with your email",
+    signInWithEmail: "Sign in with email",
+    linkFailedTitle: "We could not confirm that link",
+    codeStillWorks: "The same email carries a six digit code, and that one does not expire on opening.",
+    providerOff:
+      "Vallo signs you in with your email address and password, not with that provider. Nothing was signed in. If your account was made with Google, use Forgot password on the email sign-in screen to set a password.",
+    unconfigured:
+      "This platform is not holding its email keys yet, so nothing could be confirmed. Nothing is wrong with your account.",
+    invalidLink:
+      "That link is missing the part that confirms who it belongs to. It may have been cut in half by an email client.",
+    expiredLink: "That link has expired or has already been used. Confirmation links are good for one visit.",
+    takenGoogleLead: "That address is already signed up, with Google. Use",
+    continueWithGoogle: "Continue with Google",
+    takenGoogleOn: "on the",
+    signInScreen: "sign in screen",
+    takenGoogleTail: ", not a password.",
+    takenLead: "That address is already signed up.",
+    signInInstead: "Sign in instead",
+    takenOr: ", or",
+    resetPassword: "reset the password",
+    takenTail: "if you cannot remember it.",
+    errorTitle: "This screen did not load",
+    errorBody:
+      "Something on our side stopped part way through. Nothing was submitted and no account was created or changed. Trying again usually settles it.",
+    tryAgain: "Try again",
+    backHome: "Back to the home page",
+    reference: "Reference {digest}",
+    loading: "Loading",
+    notices: {
+      "link-expired": "That link has expired or was already used. Sign in below, or ask for a new link.",
+      "link-invalid": "That link was incomplete. Sign in below and it will work as normal.",
+      unconfigured: "We cannot reach accounts right now. Nothing you typed was lost.",
+      "signed-out": "You are signed out. Sign in whenever you are ready.",
+      "sign-in-required": "Sign in to open that. It takes a moment, and new accounts are free.",
+      "catalogue-paced":
+        "You have opened a lot of pages in a few minutes. Sign in to keep browsing, or come back in a few minutes.",
+    } as Record<string, string>,
+    appleUnfinished: "Apple did not finish signing you in. Try again, or use your email address.",
+    appleFailed: "Apple sign-in did not finish. You can try again or use your email address.",
+    passwordsDiffer: "Passwords do not match.",
+  },
+
   reserve: {
     /** The confirmation moment. Both counts arrive already pluralised. */
     confirmedRange: "{from} to {to}, {nights} for {guests}.",
@@ -4702,7 +5028,7 @@ export const en = {
     notificationsUnread: "Notifications, {count} unread",
     unreadOn: "{label}, {count} unread notifications",
     /* DOC-21: a horizontal scroller a keyboard can reach has to be named. */
-    photoGallery: "Photographs of {title}. Use the arrow keys to move between them.",
+    photoGallery: "Photographs of {title}",
     /* DOC-21: the navigation landmarks, each named for what it is, so a
        screen reader's landmark list does not offer two called "Primary". */
     railNav: "Main menu",

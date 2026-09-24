@@ -19,6 +19,7 @@ import {
 import { formatDuration, percentChange } from "../_review/metrics";
 import type { ListingReviewTimes, ListingStatusCounts } from "../_review/contracts";
 import type { QueueRow } from "./rows";
+import { countOf } from "@vallo/i18n";
 
 /**
  * The listings review queue, C1D98B3C panel 1: status tabs, the table of
@@ -139,7 +140,7 @@ export function ListingsQueue(props: ListingsQueueProps) {
                 <Donut segments={healthSegments(counts)} caption="real listings" label="Queue health" />
                 {examples ? (
                   <p className="nf-rv-panel__note" style={{ marginTop: "var(--nf-space-sm)" }}>
-                    {examples} example {examples === 1 ? "listing is" : "listings are"} left out. Examples
+                    {countOf(examples, "examplesLeftOut")} left out. Examples
                     show how the product looks and are never counted as supply.
                   </p>
                 ) : null}
@@ -162,7 +163,7 @@ export function ListingsQueue(props: ListingsQueueProps) {
               reviewTimes
                 ? reviewTimes.thisWeek.decisions === 0
                   ? "No decisions in the last seven days. The median appears with the first one."
-                  : `Median, submitted to decided, over ${reviewTimes.thisWeek.decisions} ${reviewTimes.thisWeek.decisions === 1 ? "decision" : "decisions"} in the last seven days.`
+                  : `Median, submitted to decided, over ${countOf(reviewTimes.thisWeek.decisions, "decisions")} in the last seven days.`
                 : "The review times could not be read just now."
             }
           />

@@ -55,6 +55,7 @@ export function VerifyCodeForm({
   email: string;
   next?: string | undefined;
 }) {
+  const a = t.authFlow;
   const [state, verifyAction, verifying] = useActionState(verify, EMPTY);
   const [resendState, resendAction, resending] = useActionState(resend, EMPTY);
   const [address, setAddress] = useState(email);
@@ -112,18 +113,17 @@ export function VerifyCodeForm({
 
   return (
     <div className="w-full max-w-[26rem]">
-      <h1 className="nf-h2">Enter your code</h1>
+      <h1 className="nf-h2">{a.enterCode}</h1>
       <p className="mt-2 text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
         {address.length > 0 ? (
           <>
-            We sent {codeLengthWord()} digits to{" "}
-            <span className="font-semibold text-[var(--nf-content-primary)]">{address}</span>. Type
-            them here and you are in. No second sign-in.
+            {a.sentTo.replace("{count}", codeLengthWord())}{" "}
+            <span className="font-semibold text-[var(--nf-content-primary)]">{address}</span>
+            {a.sentToTail}
           </>
         ) : (
           <>
-            We sent {codeLengthWord()} digits to the address you signed up with. Type them here
-            and you are in. No second sign-in.
+            {a.sentNoAddress.replace("{count}", codeLengthWord())}
           </>
         )}
       </p>
@@ -154,7 +154,7 @@ export function VerifyCodeForm({
           id="verify-code"
           name="code"
           type="text"
-          label="Confirmation code"
+          label={a.codeLabel}
           placeholder={CONFIRMATION_CODE_PLACEHOLDER}
           /* `one-time-code` is what makes iOS and Android offer the code from
              the message above the keyboard, which is the difference between
@@ -182,7 +182,7 @@ export function VerifyCodeForm({
         )}
 
         <Button type="submit" variant="primary" size="lg" full loading={verifying}>
-          Confirm and go in
+          {a.confirmAndGo}
         </Button>
       </form>
 
@@ -192,7 +192,7 @@ export function VerifyCodeForm({
         <input type="hidden" name="email" value={address} />
         {next ? <input type="hidden" name="next" value={next} /> : null}
         <Button type="submit" variant="ghost" size="sm" loading={resending}>
-          Send me another code
+          {a.sendAnother}
         </Button>
         {resendState.message && (
           <p
@@ -212,9 +212,9 @@ export function VerifyCodeForm({
           one screen where somebody is stuck waiting for an email the way out
           was invisible. Colour is never the ONLY signal (rule 13); here there
           was no signal. */}
-      <p className="nf-auth__terms">The same email carries a button that does this in one tap.</p>
+      <p className="nf-auth__terms">{a.sameEmailButton}</p>
       <p className="nf-auth__swap mt-xs">
-        <Link href="/sign-in">Already confirmed? Sign in</Link>
+        <Link href="/sign-in">{a.alreadyConfirmed}</Link>
       </p>
     </div>
   );

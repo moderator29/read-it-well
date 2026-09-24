@@ -25,6 +25,7 @@ import { ModeratorApply } from "./ModeratorApply";
 import { ModeratorNote, PlaceAbout, PlaceNotes } from "./PlacePanels";
 import { SocialPaused } from "@/components/social/SocialPaused";
 import { isSocialEnabled } from "@/lib/social/flag";
+import { countOf } from "@vallo/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -193,7 +194,7 @@ export default async function AreaPage({
                 <Link
                   href={`/around/${place.slug}`}
                   className="nf-chip nf-enter__chip"
-                  aria-label={`${place.name}, ${place.memberCount} ${place.memberCount === 1 ? "member" : "members"}`}
+                  aria-label={`${place.name}, ${countOf(place.memberCount, "members", locale)}`}
                 >
                   <span className="nf-enter__chip-name">{place.name}</span>
                   <span className="nf-enter__chip-count nf-numeric">

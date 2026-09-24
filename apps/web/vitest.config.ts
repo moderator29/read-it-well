@@ -44,6 +44,9 @@ const shared = {
 export default defineConfig({
   test: {
     retry: 0,
+    /* A generous per-test budget can hide a test creeping towards it, so the
+       report names every test over 5 s, in CI's log as well as locally. */
+    slowTestThreshold: 5_000,
     projects: [
       {
         resolve: {

@@ -63,6 +63,7 @@ import {
   shortletPlaceDraftSchema,
 } from "./schema";
 import { bedsArray, placeTypeUnavailable } from "./stays-setup";
+import { countOf } from "@vallo/i18n";
 
 type BusinessKind = Database["public"]["Enums"]["business_kind"];
 
@@ -366,9 +367,7 @@ export async function submitHostApplication(): Promise<ActionResult<{ businessId
   const missing = missingFrom(draft);
   if (missing.length > 0) {
     return fail(
-      missing.length === 1
-        ? `One thing is still missing: ${missing[0]}.`
-        : `${missing.length} things are still missing before you can send this.`,
+      countOf(missing.length, "thingsMissing").replace("{item}", missing[0] ?? ""),
       Object.fromEntries(missing.map((item, index) => [`missing.${index}`, item])),
     );
   }

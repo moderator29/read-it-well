@@ -26,44 +26,117 @@ afterAll(async () => {
   await new Promise((resolve) => server.close(resolve));
 });
 
-async function readUntilStopped(signal: AbortSignal, onEvent?: () => void): Promise<string> {
-  const res = await fetch(url, { signal });
-  const reader = res.body!.getReader();
-  try {
-    for (;;) {
-      const { done } = await reader.read();
-      if (done) return "ended";
-      onEvent?.();
+/**
+ * A clock advanced by hand. The deadlines take it in place of the real one,
+ * so each cut is proved at an exact tick: nothing at the tick before, the
+ * abort at the tick itself. There is no wall-clock bound to lose on a busy
+ * machine, and a deadline that ignored its clock would never fire here.
+ */
+function handClock() {
+  let now = 0;
+  let next = 0;
+  const pending = new Map<number, { at: number; run: () => void }>();
+  return {
+    timers: {
+      setTimeout: (run: () => void, ms: number) => {
+        next += 1;
+        pending.set(next, { at: now + ms, run });
+        return next;
+      },
+      clearTimeout: (handle: unknown) => {
+        pending.delete(handle as number);
+      },
+    },
+    advance(ms: number) {
+      now += ms;
+      for (const [handle, timer] of [...pending]) {
+        if (timer.at <= now) {
+          pending.delete(handle);
+          timer.run();
+        }
+      }
+    },
+    get pending() {
+      return pending.size;
+    },
+  };
+}
+
+/**
+ * Read the stalled response until it stops. `firstEvent` settles once the
+ * one event the server sends has been read, so the test acts only after the
+ * stream is open and waiting.
+ */
+function readUntilStopped(signal: AbortSignal, onEvent?: () => void) {
+  let seen: () => void = () => undefined;
+  const firstEvent = new Promise<void>((resolve) => {
+    seen = resolve;
+  });
+  const outcome = (async () => {
+    const res = await fetch(url, { signal });
+    const reader = res.body!.getReader();
+    try {
+      for (;;) {
+        const { done } = await reader.read();
+        if (done) return "ended";
+        onEvent?.();
+        seen();
+      }
+    } catch (error) {
+      return (error as Error).name;
     }
-  } catch (error) {
-    return (error as Error).name;
-  }
+  })();
+  return { firstEvent, outcome };
 }
 
 describe("upstream deadlines", () => {
-  it("cuts a round that goes quiet", async () => {
-    const watchdog = roundWatchdog(new AbortController().signal, 80);
-    const started = Date.now();
-    const outcome = await readUntilStopped(watchdog.signal, () => watchdog.touch());
+  it("cuts a round that goes quiet, at the idle limit and not before", async () => {
+    const clock = handClock();
+    const watchdog = roundWatchdog(new AbortController().signal, 15_000, clock.timers);
+    const read = readUntilStopped(watchdog.signal, () => watchdog.touch());
+    await read.firstEvent;
+    clock.advance(14_999);
+    expect(watchdog.signal.aborted).toBe(false);
+    clock.advance(1);
+    expect(watchdog.signal.aborted).toBe(true);
+    expect((watchdog.signal.reason as Error).message).toBe("upstream went quiet");
+    expect(await read.outcome).not.toBe("ended");
     watchdog.done();
-    expect(outcome).not.toBe("ended");
-    // The stalled server never ends the stream; only the cut can. The bound
-    // is far above the 80 ms cut so a loaded runner cannot flake it.
-    expect(Date.now() - started).toBeLessThan(20_000);
+    expect(clock.pending).toBe(0);
+  }, 10_000);
+
+  it("re-arms on every event, so a slow but live stream is not cut", async () => {
+    const clock = handClock();
+    const watchdog = roundWatchdog(new AbortController().signal, 15_000, clock.timers);
+    clock.advance(10_000);
+    watchdog.touch();
+    clock.advance(10_000);
+    expect(watchdog.signal.aborted).toBe(false);
+    expect(clock.pending).toBe(1);
+    watchdog.done();
+    expect(clock.pending).toBe(0);
   });
 
-  it("cuts a request that runs past its total budget", async () => {
-    const started = Date.now();
-    const outcome = await readUntilStopped(requestSignal(new AbortController().signal, 100));
-    expect(outcome).not.toBe("ended");
-    expect(Date.now() - started).toBeLessThan(20_000);
-  });
+  it("cuts a request that runs past its total budget, at the budget and not before", async () => {
+    const clock = handClock();
+    const signal = requestSignal(new AbortController().signal, 50_000, clock.timers);
+    const read = readUntilStopped(signal);
+    await read.firstEvent;
+    clock.advance(49_999);
+    expect(signal.aborted).toBe(false);
+    clock.advance(1);
+    expect(signal.aborted).toBe(true);
+    expect(await read.outcome).not.toBe("ended");
+  }, 10_000);
 
   it("still ends when the visitor leaves", async () => {
     const client = new AbortController();
-    setTimeout(() => client.abort(), 50);
-    expect(await readUntilStopped(requestSignal(client.signal, 60_000))).not.toBe("ended");
-  });
+    const signal = requestSignal(client.signal, 50_000, handClock().timers);
+    const read = readUntilStopped(signal);
+    await read.firstEvent;
+    client.abort();
+    expect(await read.outcome).not.toBe("ended");
+  }, 10_000);
 
   it("is what both model routes use", () => {
     for (const route of ["assistant", "support"]) {

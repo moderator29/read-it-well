@@ -7,6 +7,7 @@ import { sendMessage, startReservationThread } from "../messages/actions";
 import { consume, subjectForUser } from "../security/rate-limit";
 import type { ReservationStatus } from "./db";
 import { lagosInstant, reserveSchema, reserveTarget, respondSchema, whyNotBookable } from "./schema";
+import { countOf } from "@vallo/i18n";
 
 /**
  * Asking a restaurant to hold a table, and the restaurant answering.
@@ -74,7 +75,7 @@ function lagosLabel(iso: string): string {
 }
 
 function party(size: number): string {
-  return size === 1 ? "1 guest" : `${size} guests`;
+  return countOf(size, "guests");
 }
 
 /**

@@ -23,6 +23,14 @@ export const yo: Dictionary = withFallback({
     party: "{adults}, {children}",
   },
 
+  /* The counted nouns shared with `counts`; every other unit is still English. */
+  units: {
+    nights: { other: "alẹ́ {count}" },
+    guests: { other: "àlejò {count}" },
+    adults: { other: "àgbàlagbà {count}" },
+    children: { other: "ọmọdé {count}" },
+  },
+
   reserve: {
     confirmedRange: "{from} sí {to}, {nights} fún {guests}.",
     capacityNote: "Ibí yìí gba tó {guests}.",

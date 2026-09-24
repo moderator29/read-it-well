@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getDictionary } from "@vallo/i18n";
+import { countOf, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
 import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries";
@@ -78,9 +78,7 @@ export default async function Page({
         <h1 className="nf-h1">{t.agent.nav.messages}</h1>
         <p className="mt-3xs text-[var(--nf-content-secondary)]">
           {read.state === "ready" && read.inbox.waitingCount > 0
-            ? `${read.inbox.waitingCount} ${
-                read.inbox.waitingCount === 1 ? "enquiry is" : "enquiries are"
-              } waiting on your reply. Guests book the agents who answer.`
+            ? `${countOf(read.inbox.waitingCount, "enquiriesAre", locale)} waiting on your reply. Guests book the agents who answer.`
             : "Every guest enquiry about your listings, oldest wait first."}
         </p>
       </div>

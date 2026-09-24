@@ -16,6 +16,7 @@
 
 import { z } from "zod";
 import type { AreaStatus } from "./areas-schema";
+import { countOf } from "@vallo/i18n";
 
 /** One of the 774 rows in `public.local_governments`. */
 export type LgaNode = {
@@ -129,7 +130,7 @@ export const PLACE_COPY = {
 
   /** The line under the local government chips. */
   lgaHint: (state: string, count: number) =>
-    `${count} local government${count === 1 ? "" : "s"} in ${state}. Tap one to go in.`,
+    `${countOf(count, "localGovernments")} in ${state}. Tap one to go in.`,
 
   nothingMatches: "Nothing matches that",
 

@@ -37,6 +37,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
+import { countOf } from "@vallo/i18n";
 
 export type Occupation = { code: string; name: string };
 
@@ -258,7 +259,7 @@ function durationLabel(minutes: number | null): string {
   const hours = minutes / 60;
   if (hours < 24) return `${hours < 10 ? Math.round(hours * 10) / 10 : Math.round(hours)} hrs`;
   const days = Math.round(hours / 24);
-  return `${days} ${days === 1 ? "day" : "days"}`;
+  return countOf(days, "days");
 }
 
 /**

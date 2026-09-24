@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { countOf } from "@vallo/i18n";
 
 /**
  * @vallo in the replies: the shapes, the words and the arithmetic.
@@ -128,7 +129,5 @@ export const BOT_COPY = {
 export function sourceNote(listings: number, areaName: string | null): string {
   const place = areaName ? ` around ${areaName}` : "";
   if (listings === 0) return `Answered from what is published on Vallo${place}. No listings cited.`;
-  return listings === 1
-    ? `Answered from 1 published listing${place}.`
-    : `Answered from ${listings} published listings${place}.`;
+  return countOf(listings, "listingsCited").replace("{place}", place);
 }

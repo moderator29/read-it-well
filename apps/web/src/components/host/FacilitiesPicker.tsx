@@ -6,6 +6,8 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button } from "@/components/ui/Button";
 import { setAccommodationFacilities } from "@/lib/host/actions";
 import { STAY_FACILITIES } from "@/lib/host/facilities";
+import { countOf } from "@vallo/i18n";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * WHAT THE PROPERTY OFFERS. `GOVERNING-10` screen four, the facilities half.
@@ -47,6 +49,7 @@ export function FacilitiesPicker({
   /** The codes on record. */
   chosen: readonly string[];
 }) {
+  const locale = useClientLocale();
   const router = useRouter();
   const [picked, setPicked] = useState<Set<string>>(() => new Set(chosen));
   const [notice, setNotice] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
@@ -78,7 +81,7 @@ export function FacilitiesPicker({
         text:
           result.data.codes.length === 0
             ? "Saved. This property claims no facilities, so none is shown to a guest."
-            : `Saved. ${result.data.codes.length} facilit${result.data.codes.length === 1 ? "y" : "ies"} on record.`,
+            : `Saved. ${countOf(result.data.codes.length, "facilities", locale)} on record.`,
       });
       router.refresh();
     });

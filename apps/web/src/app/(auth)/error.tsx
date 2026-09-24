@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * The auth group's error boundary. There was none.
@@ -34,33 +35,33 @@ export default function AuthError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const a = useClientDictionary().authFlow;
   useEffect(() => {
     console.error("[vallo] auth route error", error);
   }, [error]);
 
   return (
     <div className="text-center">
-      <h1 className="nf-h3">This screen did not load</h1>
+      <h1 className="nf-h3">{a.errorTitle}</h1>
       <p className="mt-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-        Something on our side stopped part way through. Nothing was submitted and
-        no account was created or changed. Trying again usually settles it.
+        {a.errorBody}
       </p>
 
       <div className="mt-6 flex flex-col gap-2">
         <Button variant="primary" size="lg" full onClick={reset}>
-          Try again
+          {a.tryAgain}
         </Button>
         <Link
           href="/"
           className="nf-tap py-2 text-[0.875rem] font-semibold text-[var(--nf-content-muted)] transition-colors hover:text-[var(--nf-content-primary)]"
         >
-          Back to the home page
+          {a.backHome}
         </Link>
       </div>
 
       {error.digest && (
         <p className="nf-numeric mt-5 text-[0.75rem] text-[var(--nf-content-muted)]">
-          Reference {error.digest}
+          {a.reference.replace("{digest}", error.digest)}
         </p>
       )}
     </div>

@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { useOverlay } from "@/lib/ui/use-overlay";
+import { countOf } from "@vallo/i18n";
 
 /**
  * The sheet behind a card's `…`.
@@ -144,9 +145,7 @@ export function actionsForPost(options: {
      lives here rather than becoming a sixth control at 390px. */
   const soFar =
     options.repostCount > 0
-      ? options.repostCount === 1
-        ? " One person has so far."
-        : ` ${options.repostCount} people have so far.`
+      ? ` ${countOf(options.repostCount, "peopleSoFar")}`
       : "";
 
   const rows: SheetAction[] = [
