@@ -7,11 +7,11 @@
  * and from the create ring, both of them deliberate taps.
  */
 import { Skeleton } from "@/components/ui/Skeleton";
+import { State } from "@/components/ui/State";
 
 export default function LoadingProposeArea() {
   return (
-    <div className="mx-auto w-full max-w-2xl pb-3xl pt-md" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Opening the suggestion form</span>
+    <State kind="loading" title="Opening the suggestion form" className="mx-auto w-full max-w-2xl pb-3xl pt-md">
 
       <div className="mb-lg space-y-sm" aria-hidden="true">
         <Skeleton width="11rem" height="1.75rem" radius="xs" />
@@ -36,6 +36,6 @@ export default function LoadingProposeArea() {
         <Skeleton height="0.75rem" radius="xs" />
         <Skeleton width="80%" height="0.75rem" radius="xs" />
       </div>
-    </div>
+    </State>
   );
 }

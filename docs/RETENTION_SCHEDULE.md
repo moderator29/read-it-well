@@ -157,6 +157,7 @@ them, and a report of harassment is evidenced by them.
 | Data | Where it lives | Trigger | Period | Action |
 | --- | --- | --- | ---: | --- |
 | Admin action audit trail | `public.audit_log` | Entry date | 6 years [C] | Keep. See the note below |
+| Suspicious Transaction Report cases, links, decisions, approvals and the goAML register (SCUML item 6, MLPPA 2022) | `private.str_cases`, `private.str_case_links`, `private.str_decisions`, `private.str_approvals`, `private.str_register` | The filing, or the approved decision not to file | 5 years [C] | Keep. Append-only by trigger; account deletion does not reach them (no foreign key to the account) |
 | Rate limit counters | `public.rate_limits` | Entry date | 30 days [L] | Purge |
 | Idempotency records | `public.idempotency_records` | Entry date | 90 days [L] | Purge |
 | Notifications | `public.notifications` | Read, or creation if never read | 12 months [L] | Purge |

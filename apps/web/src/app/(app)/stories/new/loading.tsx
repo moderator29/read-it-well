@@ -9,11 +9,11 @@
  * is deliberate and the wait is felt.
  */
 import { Skeleton } from "@/components/ui/Skeleton";
+import { State } from "@/components/ui/State";
 
 export default function LoadingNewStory() {
   return (
-    <div className="mx-auto w-full max-w-2xl pb-4xl pt-md" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Opening the story composer</span>
+    <State kind="loading" title="Opening the story composer" className="mx-auto w-full max-w-2xl pb-4xl pt-md">
 
       <div className="mb-lg space-y-sm" aria-hidden="true">
         <Skeleton width="10rem" height="1.75rem" radius="xs" />
@@ -29,6 +29,6 @@ export default function LoadingNewStory() {
         <Skeleton height="6rem" radius="md" />
         <Skeleton width="10rem" height="2.75rem" radius="md" />
       </div>
-    </div>
+    </State>
   );
 }

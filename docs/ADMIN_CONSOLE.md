@@ -648,6 +648,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_purge_view_marks | pg_cron `41 * * * *` | hourly at :41 | | forgets the day's listing view marks and salt once the day ends (V-73) |
 | vallo_alert_overdue_refunds | pg_cron `12 * * * *` | hourly at :12 | | alerts on refunds past their due-by date (V-24) |
 | vallo_escrow_sweep_timeouts | pg_cron `17 * * * *` | hourly at :17 | | escrow timeouts |
+| vallo_str_nudge_overdue | pg_cron `17 * * * *` | hourly at :17 | | reminds staff of a Suspicious Transaction Report case past its clock, once a day per case (`private.str_nudge_overdue`, SCUML item 6) |
 | vallo_escrow_invariants | pg_cron `23 * * * *` | hourly at :23 | | asserts the escrow float identity (`private.escrow_invariants_check`), six minutes after the sweeper |
 | vallo_escrow_age_watch | pg_cron `41 * * * *` | hourly at :41 | | alerts on a dispute older than 48 hours and cancels a proposal nobody funded in 14 days (`private.escrow_age_watch`, ESC-09) |
 | vallo_reconcile_payments | pg_cron `47 * * * *` | hourly at :47 | | database side of reconciliation |
@@ -668,7 +669,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_notify_void_shares | pg_cron `25 7 * * *` | daily 08:25 | | tells a flatmate once when a move-in they paid a share of fell through (V-86) |
 | vallo_threshold_reminders | pg_cron `5 * * * *` | hourly at :05 | | tells staff three days and one day before a threshold report to the NFIU is due (SCUML item 7) |
 
-14 Vercel Cron jobs and 26 pg_cron jobs in all. The numbers are derived,
+14 Vercel Cron jobs and 27 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by

@@ -12,11 +12,11 @@
  * rather than pushing the words down the screen when it arrives.
  */
 import { Skeleton } from "@/components/ui/Skeleton";
+import { State } from "@/components/ui/State";
 
 export default function LoadingStory() {
   return (
-    <div className="nf-story" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading this story</span>
+    <State kind="loading" title="Loading this story" className="nf-story">
       <article className="nf-story__stage" aria-hidden="true">
         {/* This one keeps `.nf-story__image` because the CLASS is the
             geometry: the stage's own aspect and object fit, which no width and
@@ -45,6 +45,6 @@ export default function LoadingStory() {
           </div>
         </div>
       </article>
-    </div>
+    </State>
   );
 }
