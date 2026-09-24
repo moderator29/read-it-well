@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { DEFAULT_LOCALE, getDictionary, type Locale } from "@vallo/i18n";
+import { getDictionary, type Locale } from "@vallo/i18n";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
 import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -811,13 +812,15 @@ function PayoutStep({ draft, pending, run, setNotice, set }: StepProps) {
   };
 
   /* V-81: a new account to be paid into asks for the phone lock, when there is one. */
-  const lock = useMoneyStepUp(DEFAULT_LOCALE);
+  const viewerLocale = useClientLocale();
+  const lock = useMoneyStepUp(viewerLocale);
   const save = () =>
     run(
       async () => {
-        const stepUp = await lock.prove({ kind: "bank_add", target: `${bank}:${number.replace(/\D/g, "")}` });
-        if (stepUp === null) return { ok: false as const, error: getDictionary(DEFAULT_LOCALE).platform.moneyLock.notConfirmed };
-        return addBankAccount({ bankCode: bank, accountNumber: number, stepUp: stepUp || undefined });
+        const result = await lock.guard({ kind: "bank_add", target: `${bank}:${number.replace(/\D/g, "")}` }, (stepUp) =>
+          addBankAccount({ bankCode: bank, accountNumber: number, stepUp }),
+        );
+        return result ?? { ok: false as const, error: getDictionary(viewerLocale).platform.moneyLock.notConfirmed };
       },
       () => {
         set("hasBankAccount", true);

@@ -12,7 +12,8 @@ import {
 import type { EscrowState, Party } from "@/lib/escrow/copy";
 import { Button } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
-import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
+import { getDictionary } from "@vallo/i18n";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
 import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
 
 /**
@@ -47,11 +48,11 @@ export function HeldPaymentControls({
   const [reason, setReason] = useState("");
   const [arguing, setArguing] = useState(false);
   /* V-81: paying held money out asks for the phone lock, when there is one. */
-  const lock = useMoneyStepUp(DEFAULT_LOCALE);
+  const viewerLocale = useClientLocale();
+  const lock = useMoneyStepUp(viewerLocale);
   const confirmOut = async () => {
-    const stepUp = await lock.prove({ kind: "escrow_confirm", target: id });
-    if (stepUp === null) return { ok: false, error: getDictionary(DEFAULT_LOCALE).platform.moneyLock.notConfirmed };
-    return confirmHeldPayment({ id, stepUp: stepUp || undefined });
+    const result = await lock.guard({ kind: "escrow_confirm", target: id }, (stepUp) => confirmHeldPayment({ id, stepUp }));
+    return result ?? { ok: false, error: getDictionary(viewerLocale).platform.moneyLock.notConfirmed };
   };
 
   function run(work: () => Promise<{ ok: boolean; error?: string }>): void {

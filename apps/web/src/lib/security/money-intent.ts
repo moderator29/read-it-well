@@ -17,6 +17,8 @@ export const MONEY_KINDS = [
   "bank_add",
   "payout_add",
   "payout_default",
+  "bank_default",
+  "payout_remove",
   "escrow_confirm",
   "escrow_fund",
   "pay_wallet",

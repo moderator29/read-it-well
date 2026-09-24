@@ -2,7 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { Dictionary } from "@vallo/i18n";
+import { getDictionary, type Dictionary } from "@vallo/i18n";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
+import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
 import { RowButton, Sheet } from "@/components/app/account/rows";
 import { TYPE } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
@@ -85,6 +87,9 @@ export function PaymentMethodsPanel({
   copy: PaymentsCopy;
 }) {
   const router = useRouter();
+  const locale = useClientLocale();
+  const dict = getDictionary(locale);
+  const moneyLock = useMoneyStepUp(locale);
   const [openCard, setOpenCard] = useState<PaymentMethod | null>(null);
   const [openAccount, setOpenAccount] = useState<BankAccount | null>(null);
   const [chooser, setChooser] = useState(false);
@@ -178,6 +183,7 @@ export function PaymentMethodsPanel({
 
   return (
     <>
+      {moneyLock.sheet}
       <section className={panelClass({ variant: "card", className: "p-0" })} aria-labelledby="nf-pay-title" data-testid="payment-methods-block">
         <div className="nf-pay-head">
           <IconPlate size="md">
@@ -408,7 +414,15 @@ export function PaymentMethodsPanel({
                 <RowButton
                   icon="verified"
                   label={copy.makeDefaultAccount}
-                  onClick={() => run(() => setDefaultBankAccount(openAccount.id), close)}
+                  onClick={() =>
+                    run(async () => {
+                      /* V-81: choosing where money is paid needs the phone lock, when there is one. */
+                      const result = await moneyLock.guard({ kind: "bank_default", target: openAccount.id }, (stepUp) =>
+                        setDefaultBankAccount(openAccount.id, stepUp),
+                      );
+                      return result ?? { ok: false, error: dict.platform.moneyLock.notConfirmed };
+                    }, close)
+                  }
                   disabled={pending}
                   chevron={false}
                 />
@@ -430,7 +444,16 @@ export function PaymentMethodsPanel({
                       variant="danger"
                       full
                       loading={pending}
-                      onClick={() => run(() => removeBankAccount(openAccount.id), close)}
+                      onClick={() =>
+                        run(async () => {
+                          /* V-81: removing the default promotes another account, so it asks too. */
+                          if (!openAccount.isDefault) return removeBankAccount(openAccount.id);
+                          const result = await moneyLock.guard({ kind: "payout_remove", target: `bank:${openAccount.id}` }, (stepUp) =>
+                            removeBankAccount(openAccount.id, stepUp),
+                          );
+                          return result ?? { ok: false, error: dict.platform.moneyLock.notConfirmed };
+                        }, close)
+                      }
                     >
                       {copy.removeAccountConfirm}
                     </Button>

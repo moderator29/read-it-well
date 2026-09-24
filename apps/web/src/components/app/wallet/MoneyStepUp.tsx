@@ -48,6 +48,8 @@ export function useMoneyStepUp(
 ): {
   pass: (event: FormEvent<HTMLFormElement>) => boolean;
   prove: (intent: MoneyIntent) => Promise<string | null>;
+  guard: <R extends { ok: boolean; error?: string }>(intent: MoneyIntent, act: (stepUp?: string) => Promise<R>) => Promise<R | null>;
+  recover: (error: string | null | undefined) => Promise<string | null> | null;
   token: string;
   sheet: ReactNode;
 } {
@@ -121,6 +123,7 @@ export function useMoneyStepUp(
   const ask = async (): Promise<"none" | "shown"> => {
     const fresh = status ?? (await stepUpStatus().catch(() => null));
     if (fresh) setStatus(fresh);
+    askedKnowing.current = fresh?.needed === true;
     /* Unknown or unlocked: go ahead and let the server decide. */
     if (!fresh || !fresh.needed) return "none";
     setError(null);
@@ -134,19 +137,76 @@ export function useMoneyStepUp(
       bypass.current = false;
       return true;
     }
-    if (status && !status.needed) return true;
-    event.preventDefault();
     form.current = event.currentTarget;
     intent.current = intentOf ? intentOf(new FormData(event.currentTarget)) : null;
+    if (status && !status.needed) {
+      askedKnowing.current = false;
+      return true;
+    }
+    event.preventDefault();
     void ask().then((shown) => {
       if (shown === "none") release("");
     });
     return false;
   };
 
+  /* Whether the last ask KNEW a proof was needed. When it did not (the
+     status could not be read), a refusal with the lock sentence means the
+     phone guessed wrong, and `recover` asks properly; when it did, the proof
+     was given and refused, and asking again would only loop. */
+  const askedKnowing = useRef(false);
+  const recovering = useRef(false);
+
+  /**
+   * The server refused with the lock sentence although this phone did not
+   * know a proof was needed: read the status again and, if one is, open the
+   * sheet for the same intent. A form resubmits itself with the proof; a
+   * call gets the step-up back (or null) to run the action again.
+   */
+  const recover = (refusal: string | null | undefined): Promise<string | null> | null => {
+    if (refusal !== copy.needed || askedKnowing.current || !intent.current || recovering.current) return null;
+    recovering.current = true;
+    return new Promise((resolve) => {
+      void stepUpStatus()
+        .catch(() => null)
+        .then((fresh) => {
+          recovering.current = false;
+          if (fresh) setStatus(fresh);
+          if (!fresh?.needed) {
+            resolve(null);
+            return;
+          }
+          askedKnowing.current = true;
+          setError(null);
+          setMode(sensor ? "sensor" : "fallback");
+          if (!form.current) settle.current = resolve;
+          else resolve(null);
+          setOpen(true);
+        });
+    });
+  };
+
+  /** Prove, act, and if the server says a proof was needed after all, ask and act once more. */
+  const guard = async <R extends { ok: boolean; error?: string }>(
+    next: MoneyIntent,
+    act: (stepUp?: string) => Promise<R>,
+  ): Promise<R | null> => {
+    form.current = null;
+    const stepUp = await prove(next);
+    if (stepUp === null) return null;
+    const first = await act(stepUp || undefined);
+    const retry = recover(first.ok ? null : first.error);
+    if (!retry) return first;
+    const second = await retry;
+    return second === null ? first : act(second || undefined);
+  };
+
   const prove = (next: MoneyIntent): Promise<string | null> => {
     intent.current = next;
-    if (status && !status.needed) return Promise.resolve("");
+    if (status && !status.needed) {
+      askedKnowing.current = false;
+      return Promise.resolve("");
+    }
     return new Promise((resolve) => {
       settle.current = resolve;
       void ask().then((shown) => {
@@ -264,5 +324,24 @@ export function useMoneyStepUp(
     </Sheet>
   );
 
-  return { pass, prove, token, sheet };
+  return { pass, prove, guard, recover, token, sheet };
+}
+
+/**
+ * For a FORM guarded by `useMoneyStepUp`: when its action answers with the
+ * lock sentence although the phone did not know a proof was needed, ask for
+ * it now; the form then resubmits itself with the proof. Once per answer.
+ */
+export function useLockRecovery(
+  lock: { recover: (error: string | null | undefined) => Promise<string | null> | null },
+  answer: unknown,
+): void {
+  const recover = useRef(lock.recover);
+  useEffect(() => {
+    recover.current = lock.recover;
+  });
+  useEffect(() => {
+    const result = answer as { ok?: unknown; error?: unknown } | null;
+    if (result && result.ok === false && typeof result.error === "string") void recover.current(result.error);
+  }, [answer]);
 }

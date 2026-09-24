@@ -251,6 +251,23 @@ export async function removePayoutAccount(
   const parsed = validate(payoutAccountIdSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
+  /* V-81: removing the default promotes a survivor, which changes where
+     payouts go, so it needs the same proof as choosing a default. */
+  const { data: row, error: readError } = await context.supabase
+    .from("payout_accounts")
+    .select("is_default")
+    .eq("id", parsed.data.accountId)
+    .eq("agent_id", context.agent.id)
+    .maybeSingle();
+  if (readError) return fail(SERVICE_DOWN_MESSAGE);
+  if (row?.is_default) {
+    const removeLock = await moneyLockRefusalFor(context.user.id, formData.get("stepUp"), {
+      kind: "payout_remove",
+      target: `payout:${parsed.data.accountId}`,
+    });
+    if (removeLock) return fail(removeLock);
+  }
+
   const { error, count } = await context.supabase
     .from("payout_accounts")
     .delete({ count: "exact" })

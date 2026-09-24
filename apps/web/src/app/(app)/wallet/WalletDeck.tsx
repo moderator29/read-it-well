@@ -1,6 +1,6 @@
 "use client";
 
-import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
+import { useLockRecovery, useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
 import { intentFromForm } from "@/lib/security/money-intent";
 import { useActionState, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
@@ -491,6 +491,7 @@ function WithdrawForm({
   const [state, formAction, pending] = useActionState(withdraw, WITHDRAW_INITIAL);
   /* V-81: the phone lock on money, when this person has set one. */
   const moneyLock = useMoneyStepUp(locale, (form) => intentFromForm("withdraw", form));
+  useLockRecovery(moneyLock, state);
   const wait = useMoneyWait(pending);
   const router = useRouter();
   const [amount, setAmount] = useState("");

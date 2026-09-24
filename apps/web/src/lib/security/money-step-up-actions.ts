@@ -32,7 +32,7 @@ import {
   passwordChangedRecently,
   proveWithAssertion,
   recordStepUp,
-  takeEmailCodeMarker,
+  spendEmailCodeMarker,
 } from "./money-step-up";
 
 export type StepUpStatus = { needed: boolean; credentialIds: string[]; rpId: string; fallback: ReauthMethod };
@@ -106,10 +106,10 @@ async function fallbackProven(
     return (await reauthenticate(user, { password: proof.password })) ? true : "rejected";
   }
   if ((proof.code ?? "").length > 0) {
-    /* Only a code emailed for this lock: a code sent for deleting the
-       account, say, has no marker here and cannot unlock money. */
-    if (!(await takeEmailCodeMarker(a, user.id))) return "rejected";
-    return (await reauthenticate(user, { emailCode: proof.code })) ? true : "rejected";
+    /* Only with a code requested from this lock (advisory: see
+       spendEmailCodeMarker). The marker is spent after the code checks out. */
+    const code = proof.code;
+    return (await spendEmailCodeMarker(a, user.id, () => reauthenticate(user, { emailCode: code }))) ? true : "rejected";
   }
   return "rejected";
 }

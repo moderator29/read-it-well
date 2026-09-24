@@ -22,7 +22,8 @@ import {
 } from "@/lib/escrow/copy";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
-import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
+import { getDictionary } from "@vallo/i18n";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
 import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
 
 /**
@@ -88,7 +89,8 @@ export function ProposeHeldPayment({
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   /* V-81: setting money aside asks for the phone lock, when there is one. */
-  const lock = useMoneyStepUp(DEFAULT_LOCALE);
+  const viewerLocale = useClientLocale();
+  const lock = useMoneyStepUp(viewerLocale);
 
   function run(work: () => Promise<{ ok: boolean; error?: string }>): void {
     setMessage(null);
@@ -129,9 +131,10 @@ export function ProposeHeldPayment({
               disabled={pending}
               onClick={() =>
                 run(async () => {
-                  const stepUp = await lock.prove({ kind: "escrow_fund", target: agreement.id });
-                  if (stepUp === null) return { ok: false, error: getDictionary(DEFAULT_LOCALE).platform.moneyLock.notConfirmed };
-                  return fundHeldPaymentProposal({ id: agreement.id, stepUp: stepUp || undefined });
+                  const result = await lock.guard({ kind: "escrow_fund", target: agreement.id }, (stepUp) =>
+                    fundHeldPaymentProposal({ id: agreement.id, stepUp }),
+                  );
+                  return result ?? { ok: false, error: getDictionary(viewerLocale).platform.moneyLock.notConfirmed };
                 })
               }
             >

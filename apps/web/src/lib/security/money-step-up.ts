@@ -113,11 +113,21 @@ export async function mintChallenge(
 }
 
 /**
- * Spend the marker that a code was emailed for the lock on money: the newest
- * unused one inside its five minutes. False when there is none, which is what
- * keeps a code sent for anything else from unlocking money.
+ * An emailed code counts for the lock on money only if it was asked for the
+ * lock: `sendMoneyLockCode` writes an `email_code` marker before it sends.
+ *
+ * THE BINDING IS ADVISORY. Supabase's reauthentication nonce is one per
+ * account, whatever it was requested for, so a marker cannot prove WHICH
+ * email carried the code. What it does guarantee: without a request made
+ * from the lock in the last five minutes, no code unlocks money, and each
+ * request unlocks at most once.
+ *
+ * `proved` runs the real check (the code against Supabase). The marker is
+ * spent only if that succeeds, in one conditional update (still unused,
+ * still inside its five minutes), so a wrong code costs nothing and two
+ * racing right codes spend it once.
  */
-export async function takeEmailCodeMarker(a: Admin, userId: string): Promise<boolean> {
+export async function spendEmailCodeMarker(a: Admin, userId: string, proved: () => Promise<boolean>): Promise<boolean> {
   try {
     const { data } = await loose(a)
       .from("money_challenges")
@@ -130,11 +140,14 @@ export async function takeEmailCodeMarker(a: Admin, userId: string): Promise<boo
       .limit(1);
     const id = Array.isArray(data) && data[0] ? (data[0] as { id: string }).id : null;
     if (!id) return false;
+    if (!(await proved())) return false;
+    const now = new Date().toISOString();
     const { data: taken } = await loose(a)
       .from("money_challenges")
-      .update({ used_at: new Date().toISOString() })
+      .update({ used_at: now })
       .eq("id", id)
       .is("used_at", null)
+      .gt("expires_at", now)
       .select("id");
     return Array.isArray(taken) && taken.length === 1;
   } catch {

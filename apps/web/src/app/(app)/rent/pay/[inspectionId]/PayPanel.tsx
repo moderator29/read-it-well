@@ -234,14 +234,15 @@ export function PayPanel({
     const bookingId = await openCharge();
     if (!bookingId) return;
     /* V-81: the phone lock, when there is one, for exactly this charge. */
-    const stepUp = await moneyLock.prove({ kind: "pay_wallet", target: bookingId });
-    if (stepUp === null) {
+    const result = await moneyLock.guard({ kind: "pay_wallet", target: bookingId }, (stepUp) => {
+      setPhase({ kind: "wallet-paying" });
+      return payWithWallet({ bookingId, idempotencyKey: walletKey, stepUp });
+    });
+    if (result === null) {
       clearTimers();
       setPhase({ kind: "error", message: getDictionary(view.locale).platform.moneyLock.notConfirmed });
       return;
     }
-    setPhase({ kind: "wallet-paying" });
-    const result = await payWithWallet({ bookingId, idempotencyKey: walletKey, stepUp: stepUp || undefined });
     clearTimers();
     if (result.ok && result.data) {
       setPhase({ kind: "paid" });

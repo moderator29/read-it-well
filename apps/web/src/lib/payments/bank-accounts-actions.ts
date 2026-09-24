@@ -311,7 +311,7 @@ async function addBankAccountWork(
  * change on this platform a person most needs to hear about while it is still
  * reversible.
  */
-export async function setDefaultBankAccount(id: string): Promise<ActionResult<null>> {
+export async function setDefaultBankAccount(id: string, stepUp?: string): Promise<ActionResult<null>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
@@ -340,6 +340,9 @@ export async function setDefaultBankAccount(id: string): Promise<ActionResult<nu
     revalidatePath("/wallet");
     return ok(null);
   }
+  /* V-81: this changes where money is paid out. */
+  const defaultLock = await moneyLockRefusalFor(session.user.id, stepUp, { kind: "bank_default", target: account.id });
+  if (defaultLock) return fail(defaultLock);
 
   const { error, count } = await session.supabase
     .from("bank_accounts")
@@ -382,7 +385,7 @@ export async function setDefaultBankAccount(id: string): Promise<ActionResult<nu
  * write idempotent by construction, and the second tap is told the account is
  * not on the list, which is the truth.
  */
-export async function removeBankAccount(id: string): Promise<ActionResult<null>> {
+export async function removeBankAccount(id: string, stepUp?: string): Promise<ActionResult<null>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
@@ -395,13 +398,18 @@ export async function removeBankAccount(id: string): Promise<ActionResult<null>>
 
   const { data: account, error: readError } = await session.supabase
     .from("bank_accounts")
-    .select("id, bank_name, bank_code")
+    .select("id, bank_name, bank_code, is_default")
     .eq("id", parsed.data.id)
     .eq("user_id", session.user.id)
     .is("deleted_at", null)
     .maybeSingle();
   if (readError) return fail(SERVICE_DOWN_MESSAGE);
   if (!account) return fail(NOT_YOURS_MESSAGE);
+  /* V-81: removing the default promotes a survivor, which changes where money goes. */
+  if (account.is_default) {
+    const removeLock = await moneyLockRefusalFor(session.user.id, stepUp, { kind: "payout_remove", target: `bank:${account.id}` });
+    if (removeLock) return fail(removeLock);
+  }
 
   const { error, count } = await session.supabase
     .from("bank_accounts")

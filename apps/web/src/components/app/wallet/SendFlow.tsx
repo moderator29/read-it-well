@@ -38,7 +38,7 @@ import { useMoneyWait, WaitNotice } from "./MoneyWait";
 import { ErrorNotice } from "./ErrorNotice";
 import { mintIdempotencyKey } from "./idempotency";
 import { createSubmitGuard } from "./submit-guard";
-import { useMoneyStepUp } from "./MoneyStepUp";
+import { useLockRecovery, useMoneyStepUp } from "./MoneyStepUp";
 import { intentFromForm } from "@/lib/security/money-intent";
 import {
   lookupRecipient,
@@ -140,6 +140,7 @@ export function SendFlow({
   const [state, formAction, pending] = useActionState(transferToUser, INITIAL);
   /* V-81: the phone lock on money, when this person has set one. */
   const moneyLock = useMoneyStepUp(locale, (form) => intentFromForm("send", form));
+  useLockRecovery(moneyLock, state);
   const wait = useMoneyWait(pending);
   const [entry, setEntry] = useState<WalletEntry | null>(null);
   /* The double-tap latch and the button's own disabled state from the first

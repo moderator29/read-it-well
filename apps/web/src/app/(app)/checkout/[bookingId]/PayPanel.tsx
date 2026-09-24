@@ -308,18 +308,15 @@ export function PayPanel({
   const payFromWallet = async () => {
     startClocks("wallet");
     /* V-81: the phone lock, when there is one, for exactly this booking. */
-    const stepUp = await moneyLock.prove({ kind: "pay_wallet", target: view.bookingId });
-    if (stepUp === null) {
+    const result = await moneyLock.guard({ kind: "pay_wallet", target: view.bookingId }, (stepUp) => {
+      setPhase({ kind: "wallet-paying" });
+      return payWithWallet({ bookingId: view.bookingId, idempotencyKey: walletKey, stepUp });
+    });
+    if (result === null) {
       clearTimers();
       setPhase({ kind: "error", message: getDictionary(view.locale).platform.moneyLock.notConfirmed });
       return;
     }
-    setPhase({ kind: "wallet-paying" });
-    const result = await payWithWallet({
-      bookingId: view.bookingId,
-      idempotencyKey: walletKey,
-      stepUp: stepUp || undefined,
-    });
     clearTimers();
     if (result.ok && result.data) {
       setPhase({ kind: "wallet-paid" });

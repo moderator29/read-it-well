@@ -24,7 +24,7 @@ export async function oncePerTap<T>(
   work: () => Promise<ActionResult<T>>,
 ): Promise<ActionResult<T>> {
   const run = await withIdempotency<ActionResult<T>>(
-    { scope, key: key ?? null, subject: subjectForUser(userId), ttlSeconds: 3 * 86_400, shouldRecord: (r) => r.ok },
+    { scope, key: key ?? null, subject: subjectForUser(userId), ttlSeconds: 3 * 86_400, shouldRecord: (result) => result.ok },
     work,
   );
   if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE, { idempotency: "in_flight" });
