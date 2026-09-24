@@ -91,7 +91,7 @@ export default async function HostApplyPage({
         <EmptyState
           icon="hotel"
           title="We could not open your application"
-          body="Nothing has been changed. Your details are safe; we just could not load them this time. Try again in a moment."
+          body="Nothing has been changed and your saved details are still there; we just could not load them this time. Try again in a moment."
           action={
             <ButtonLink href={door ? `/host/apply?door=${door.id}` : "/host/apply"} variant="primary" size="lg">
               Try again
