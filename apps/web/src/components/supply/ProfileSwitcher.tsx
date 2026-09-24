@@ -106,6 +106,12 @@ export type ProfileSwitcherCopy = {
   empty: string;
   /** What the dock slot announces. */
   triggerLabel: string;
+  /**
+   * V-75. The two letters under the dock's centre glyph, per workspace kind,
+   * so the centre says WHICH workspace you are in rather than drawing the
+   * swap arrows, which read as the side flip.
+   */
+  short: Record<WorkspaceKind, string>;
   kinds: Record<WorkspaceKind, string>;
   /**
    * One word per standing the database can produce, INCLUDING `active`.
@@ -270,7 +276,14 @@ export function ProfileSwitcher({
          * Profile. The CONTAINER stays, and the container is what still says
          * this one is not a destination.
          */}
-        <UiIcon name="switch-profile" size="md" />
+        {current.kind === "personal" ? (
+          <UiIcon name="user" size="md" />
+        ) : (
+          <span className="nf-switch-dock__face">
+            <UiIcon name={KIND_ICON[current.workspace.kind]} size="md" />
+            <span className="nf-switch-dock__caption">{copy.short[current.workspace.kind]}</span>
+          </span>
+        )}
       </span>
     </button>
   );

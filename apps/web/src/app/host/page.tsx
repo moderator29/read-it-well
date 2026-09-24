@@ -103,7 +103,7 @@ export function HostStandingBody({
             FILL IN A FORM. `/host/start` draws the three stays doors of
             GOVERNING-09; a host with an application already open goes straight
             back to it, because the question has been answered. */}
-        <ButtonLink href={open ? "/host/apply" : "/host/start"} variant="primary">
+        <ButtonLink href={open ? "/host/apply" : "/profile/setup?side=stays"} variant="primary">
           <BrandIcon name="hotel" size={24} />
           {open ? "Continue the application" : "Start an application"}
         </ButtonLink>
@@ -213,7 +213,7 @@ export function HostStandingBody({
             title="Become a host"
             body="Ten short steps at most, saved as you go. A person on our team reads it, and the badge only ever means a human was checked."
             action={
-              <ButtonLink href="/host/start" variant="primary" size="lg">
+              <ButtonLink href="/profile/setup?side=stays" variant="primary" size="lg">
                 Start
               </ButtonLink>
             }

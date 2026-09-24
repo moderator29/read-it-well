@@ -310,7 +310,7 @@ export const en = {
     notifications: "Notifications",
     places: "Places",
     people: "People",
-    agentMode: "Agent Mode",
+    agentMode: "Agent workspace",
     consoleLabel: "Console",
     workspacesLabel: "Workspaces",
     becomeAgent: "Become an agent",
@@ -414,8 +414,8 @@ export const en = {
       followers: "Followers",
       following: "Following",
       settings: "Settings",
-      switchTitle: "Switch role",
-      switchNone: "Add an owner, agent or firm workspace",
+      switchTitle: "Your workspaces",
+      switchNone: "Add a workspace",
       switchTwo: "Change between {a} and {b}",
       switchMany: "Change between {list} or {last}",
       roleUser: "user",
@@ -1924,12 +1924,12 @@ export const en = {
       SUSPENDED: "Paused, contact support",
     },
     mode: {
-      personal: "Personal Mode",
-      agent: "Agent Mode",
-      switchToAgent: "Switch to Agent Mode",
-      switchToPersonal: "Switch to Personal Mode",
+      personal: "Personal",
+      agent: "Agent workspace",
+      switchToAgent: "Switch to the agent workspace",
+      switchToPersonal: "Switch to Personal",
       manageSub: "Manage your listings and earnings",
-      chooseTitle: "Choose your mode",
+      chooseTitle: "Choose a workspace",
       chooseSub: "Switch between modes anytime",
       personalDesc: "Discover and book amazing places across Nigeria.",
       agentDesc: "Manage your listings, bookings, customers and earnings.",
@@ -2034,7 +2034,7 @@ export const en = {
       applicationId: "Application ID",
       reviewNote: "Our team typically reviews applications within 24 to 48 hours.",
       backHome: "Back to home",
-      enterAgent: "Enter Agent Mode",
+      enterAgent: "Open the agent workspace",
       signedOutTitle: "Sign in to see your application",
       signedOutBody:
         "Your application and its reference are tied to your account, so we have to know who you are before we can show them.",
@@ -3366,7 +3366,7 @@ export const en = {
     applications: {
       title: "Agent applications",
       lede:
-        "Approving creates the agent profile, grants the agent role so Agent Mode opens, and tells the applicant on the platform. Sending one back asks for exactly what is missing.",
+        "Approving creates the agent profile, grants the agent role so the agent workspace opens, and tells the applicant on the platform. Sending one back asks for exactly what is missing.",
       emptyTitle: "No applications waiting",
       emptyBody:
         "Everyone who applied has had an answer. New applications arrive here the moment they are submitted.",
@@ -3423,7 +3423,7 @@ export const en = {
       approveSheet: {
         title: "Approve {name}?",
         body:
-          "This creates their agent profile, grants the agent role so Agent Mode opens for them, and tells them on the platform. It is written to the audit log with your name against it.",
+          "This creates their agent profile, grants the agent role so the agent workspace opens for them, and tells them on the platform. It is written to the audit log with your name against it.",
         confirm: "Yes, approve",
         notesLabel: "Note to the applicant",
         successTitle: "Application approved",
@@ -5562,12 +5562,12 @@ export const en = {
    * citation.
    */
   supply: {
-    switchTitle: "Switch profile",
-    switchTrigger: "Switch profile",
+    switchTitle: "Your workspaces",
+    switchTrigger: "Workspace",
     personal: "Personal",
     personalMeaning: "Use Vallo for your personal needs",
     addTitle: "Add a workspace",
-    addMeaning: "Register as a supplier or business",
+    addMeaning: "Owner, agent or firm; hotel, shortlet or restaurant",
     current: "Current",
     empty:
       "You have no workspaces yet. Add one to start listing property or taking bookings.",
@@ -5591,7 +5591,7 @@ export const en = {
     },
     chooser: {
       title: "Add a workspace",
-      sub: "Tell us what kind of supplier you are. This helps us set up the right tools and verification for you.",
+      sub: "Choose what you want to do on Vallo. Each workspace gets its own tools and its own checks.",
       overviewTitle: "What we will ask you for",
       overviewSub: "We need a few details to verify your workspace and get you set up.",
       continueLabel: "Continue",

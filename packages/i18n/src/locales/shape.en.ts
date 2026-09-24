@@ -49,6 +49,12 @@ export const shapeEn = {
   card: {
     messageAgent: "Message agent",
   },
+  /** V-75: one noun, workspace, for who you are being. */
+  workspace: {
+    short: { owner: "Ow", agent: "Ag", firm: "Fm", host: "St", console: "Op" },
+    propertyGroup: "Property",
+    staysGroup: "Stays",
+  },
   /** V-64: a member's page publishes only what the member turned on. */
   profile: {
     showOccupation: "Show my occupation on my page",

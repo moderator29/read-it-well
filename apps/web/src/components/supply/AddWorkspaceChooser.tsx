@@ -122,7 +122,19 @@ const OVERVIEW_FALLBACK: BrandIconName = "doc-shield";
 
 export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) {
   const router = useRouter();
-  const doors: readonly string[] = side === "stays" ? STAYS_DOOR_ORDER : SUPPLY_DOOR_ORDER;
+  /* V-75. BOTH GROUPS, ALWAYS, the side you are on first. A hotelier who
+     started from Property used to see only owner, agent and firm, and the
+     two choosers never mentioned each other. */
+  const groups: { label: string; doors: readonly string[] }[] =
+    side === "stays"
+      ? [
+          { label: t.shape.workspace.staysGroup, doors: STAYS_DOOR_ORDER },
+          { label: t.shape.workspace.propertyGroup, doors: SUPPLY_DOOR_ORDER },
+        ]
+      : [
+          { label: t.shape.workspace.propertyGroup, doors: SUPPLY_DOOR_ORDER },
+          { label: t.shape.workspace.staysGroup, doors: STAYS_DOOR_ORDER },
+        ];
 
   const [chosen, setChosen] = useState<string | null>(null);
   const [step, setStep] = useState<"choose" | "overview">("choose");
@@ -136,7 +148,7 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
       setStep("overview");
       return;
     }
-    router.push(hrefFor(chosen, side));
+    router.push(hrefFor(chosen));
   }
 
   const overviewRows = chosen
@@ -198,8 +210,12 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
       </p>
 
       {step === "choose" ? (
-        <ul className="mt-heading grid gap-group">
-          {doors.map((id) => {
+        <div className="mt-heading space-y-heading">
+        {groups.map((group) => (
+        <section key={group.label} aria-label={group.label}>
+        <p className={`mb-inline ${TYPE.rowMeta}`}>{group.label}</p>
+        <ul className="grid gap-group">
+          {group.doors.map((id) => {
             const door = doorCopy(id);
             const selected = chosen === id;
             return (
@@ -238,6 +254,9 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
             );
           })}
         </ul>
+        </section>
+        ))}
+        </div>
       ) : (
         <>
           <ul className="mt-heading grid gap-group">
@@ -296,8 +315,10 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
  * form, so the form can branch on it the day the three forms land without the
  * chooser changing.
  */
-export function hrefFor(door: string, side: Side): string {
-  if (side === "stays") return `/host/apply?door=${door}`;
+export function hrefFor(door: string): string {
+  /* The door decides where it leads, not the side the chooser opened on:
+     both groups are on the screen now (V-75). */
+  if ((STAYS_DOOR_ORDER as readonly string[]).includes(door)) return `/host/apply?door=${door}`;
   if (door === "owner" || door === "agent" || door === "firm") {
     return `/profile/setup/${door}`;
   }

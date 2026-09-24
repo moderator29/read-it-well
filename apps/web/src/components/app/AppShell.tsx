@@ -167,6 +167,7 @@ export function AppShell({
     current: t.supply.current,
     empty: t.supply.empty,
     triggerLabel: t.supply.switchTrigger,
+    short: t.shape.workspace.short,
     kinds: t.supply.kinds,
     standings: t.supply.standings,
   };
