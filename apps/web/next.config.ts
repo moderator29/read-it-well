@@ -52,12 +52,18 @@ const nextConfig: NextConfig = {
      * at 390px, and the smallest device width the optimiser offered was 640,
      * so every card photo was fetched at 640 wide. 384 and 480 are added so a
      * 1.5x or 2x phone gets a file the size it draws. AVIF first, WebP next,
-     * each smaller than the JPEG it replaces, and the optimised results are
-     * kept for 30 days rather than re-made after 60 seconds.
+     * each smaller than the JPEG it replaces.
+     *
+     * HOW LONG AN OPTIMISED FILE IS KEPT. One day at least, not thirty: the
+     * floor applies to every image, and a listing photo taken down by
+     * moderation must stop being served within a day, not a month. The
+     * optimiser keeps a file for the longer of this floor and the source's
+     * own max-age, so `/brand` art, which `headers()` below serves for 30
+     * days, is still kept for 30 days.
      */
     deviceSizes: [384, 480, 640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     formats: ["image/avif", "image/webp"],
-    minimumCacheTTL: 2_592_000,
+    minimumCacheTTL: 86_400,
     remotePatterns: [
       {
         protocol: "https",

@@ -238,6 +238,7 @@ export const platformEn = {
     off: "Off",
     meterOn: "This week Vallo used about {mb} MB that this phone could measure. Data saver is on.",
     meterOff: "This week Vallo used about {mb} MB that this phone could measure. Data saver is off.",
+    phoneAsks: "Your phone or network is asking to save data, so some pages load lighter anyway.",
     welcomeTitle: "Are you usually on mobile data?",
     welcomeSub: "Use less data. You can change this in Settings.",
   },
