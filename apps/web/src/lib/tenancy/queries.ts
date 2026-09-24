@@ -1,5 +1,7 @@
 import "server-only";
 
+import { firstNameAndInitial } from "../after-gate/public-place-model";
+
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { formatMoney, type Locale } from "@vallo/i18n";
 import { resolveSession } from "../actions/session";
@@ -270,7 +272,8 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
     let listerName: string | null = null;
     if (listing?.agent_id) {
       const { data: agent } = await db.from("agents").select("display_name").eq("id", listing.agent_id).maybeSingle();
-      listerName = agent?.display_name?.trim() || null;
+      // Printed on the pack and the letter a third party reads: first name and initial only.
+      listerName = firstNameAndInitial(agent?.display_name);
     }
 
     const ledger = ledgerFromCharge(rp);

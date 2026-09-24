@@ -1,3 +1,5 @@
+import { firstNameAndInitial } from "../after-gate/public-place-model";
+
 /**
  * V-55. Receipt codes, the pure half.
  *
@@ -65,7 +67,8 @@ export function readVerifyAnswer(raw: unknown): VerifyOutcome {
       paidMinor: paid,
       paidAt: row.paid_at,
       tenant: text(row.tenant),
-      lister: text(row.lister),
+      // Rule 10: a display name is typed, so a third party reads the first name and initial only.
+      lister: firstNameAndInitial(text(row.lister)),
       rentPeriod: period,
       area: text(row.area),
       city: text(row.city),

@@ -1,15 +1,11 @@
 import "server-only";
 
-import { publicAreaName, publicCityName } from "../share/public-text";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "../locale";
 import { listStates } from "../social/areas-queries";
+import { placeFrom } from "./public-place-model";
 
-/**
- * Rule 10 for the after-the-gate surfaces a third party can read (the /r
- * receipt check, the complaint pack, the demand letter): a place is printed
- * only through the closed lists. The neighbourhood when the whole of it is on
- * the list for its state, otherwise the listed city, otherwise the state name
- * from the states table, which nobody typed. Never the lister's spelling.
- */
+/** `placeFrom`, with the state name read from the states table. */
 export async function publicPlace(
   area: string | null | undefined,
   city: string | null | undefined,
@@ -23,8 +19,6 @@ export async function publicPlace(
       stateName = null;
     }
   }
-  const local = publicAreaName(area, stateCode) ?? publicCityName(city, stateCode);
-  if (local === null) return stateName ?? "Nigeria";
-  if (!stateName || local.toLowerCase() === stateName.toLowerCase()) return local;
-  return `${local}, ${stateName}`;
+  const country = getDictionary(await getLocale()).afterTheGate.place.country;
+  return placeFrom(area, city, stateCode, stateName, country);
 }

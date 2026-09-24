@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
  * open signed out because the people who need it (an employer, an embassy, a
  * tribunal clerk, a new landlord) are not members. What it shows is decided
  * by `public.verify_receipt` and nothing else: the amount, the month, the
- * tenant's first name and last initial, the lister's display name, the period
+ * tenant's first name and last initial, the lister's first name and initial, the period
  * and the area. Never the address, a landmark, a phone number or an email.
  * The same page is served to every visitor; there is no unfurler variant.
  *

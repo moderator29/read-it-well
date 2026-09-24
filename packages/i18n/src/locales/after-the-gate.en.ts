@@ -14,6 +14,10 @@
  * has the column that would prove it.
  */
 export const afterTheGateEn = {
+  place: {
+    /** Where a place falls back to when no neighbourhood, city or state is on a closed list. */
+    country: "Nigeria",
+  },
   quote: {
     /** On the inspection card and the pay page, once the lister has said yes. */
     frozen: "Move-in quoted at {amount} on {date}. This is the figure you will be charged.",

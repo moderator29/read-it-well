@@ -201,7 +201,6 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
                       .replace("{item}", ROOM_COPY[line.item].title)
                       .replace("{amount}", line.amount)
                       .replace("{answer}", line.answer === "accepted" ? copy.accepted : line.answer === "disputed" ? copy.disputed : copy.unanswered)}
-                    {line.note && <span className="nf-caption block">{line.note}</span>}
                   </li>
                 ))}
               </ul>
