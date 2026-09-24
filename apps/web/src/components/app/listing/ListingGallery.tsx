@@ -47,9 +47,15 @@ export function ListingGallery({
   mark,
   shareKind = "listing",
   place,
+  shareTitle,
 }: {
   listingId: string;
   title: string;
+  /**
+   * STORE-16: what the share sheet carries, when the page has one built
+   * from structured fields. The lister's own title can name a street.
+   */
+  shareTitle?: string;
   hue: number;
   /**
    * Stand-in photography for a place with no photographs of its own: the
@@ -248,7 +254,7 @@ export function ListingGallery({
 
       <ListingActions
         listingId={listingId}
-        title={title}
+        title={shareTitle ?? title}
         initialSaved={initialSaved}
         shareKind={shareKind}
         place={place}
