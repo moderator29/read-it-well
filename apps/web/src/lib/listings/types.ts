@@ -498,12 +498,33 @@ export type ListingSearchOptions = {
   order?: "default" | "move-in";
 };
 
+/** One page of the catalogue (OPS-11). */
+export type ListingPageOptions = {
+  /** Listings per page. Defaults to the repository's page size. */
+  pageSize?: number;
+  /** The `next` of the previous page, as it came back. Absent for the first page. */
+  after?: string | null;
+  /** The keyset order; a cursor from the other order reads as the first page. */
+  order?: "default" | "move-in";
+};
+
+export type ListingPage = {
+  listings: Listing[];
+  /**
+   * Where the next page starts, opaque, for `?after=`. Null when there is no
+   * next page. A page is shorter than its size only when this is null.
+   */
+  next: string | null;
+};
+
 export interface ListingRepository {
   /** True when the results carry no pagination cursor behind them. */
   readonly isSeed: boolean;
   recommended(limit?: number): Promise<Listing[]>;
   /** Filtered catalogue lookup for the discovery surface. */
   search(filter?: ListingSearchFilter, opts?: ListingSearchOptions): Promise<Listing[]>;
+  /** The same catalogue one keyset page at a time, never skipping or repeating a row. */
+  searchPage(filter?: ListingSearchFilter, opts?: ListingPageOptions): Promise<ListingPage>;
   /** Single listing lookup for the detail page. Resolves null when unknown. */
   byId(id: string): Promise<Listing | null>;
   /**

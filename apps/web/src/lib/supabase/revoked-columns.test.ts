@@ -165,6 +165,10 @@ export function resolveSelect(args: string, file: string, rel: string, known: Re
   const first = topLevelArgs(args)[0] ?? "";
   if (first === "") return { text: "*", publicPoint: false };
   let expr = first.replace(/^await\s+/, "");
+  /* `withAmenities(X, ids)` (OPS-11) is X plus one `listing_amenities!inner(amenity_id)`
+     embed per amenity: nested, never a top-level listings column, so X is what is read. */
+  const amenities = expr.match(/^withAmenities\(([\s\S]*)\)$/);
+  if (amenities) expr = (topLevelArgs(amenities[1]!)[0] ?? "").replace(/^await\s+/, "");
   let publicPoint = false;
   const wrapped = expr.match(/^(pointSelect|withPublicPoint)\(([\s\S]*)\)$/);
   if (wrapped) {
@@ -340,6 +344,11 @@ describe("no own-client read names a column the step-2 grants take away", () => 
     expect(unresolved("`id, ${extra}`")).toBe(true);
     expect(unresolved("columns")).toBe(true);
     expect(unresolved("await pointSelect(supabase, COMPUTED)")).toBe(true);
+    expect(unresolved("withAmenities(await pointSelect(supabase, COMPUTED), ids)")).toBe(true);
+    expect(resolveSelect('withAmenities(await pointSelect(supabase, "id, latitude"), ids)', file, "fixture.ts", {})).toEqual({
+      text: "id, latitude",
+      publicPoint: true,
+    });
     expect(resolveSelect("JOINED", file, "fixture.ts", {})).toEqual({ text: "id, title", publicPoint: false });
     expect(resolveSelect("", file, "fixture.ts", {})).toEqual({ text: "*", publicPoint: false });
     expect(resolveSelect("COMPUTED", file, "fixture.ts", { "fixture.ts:COMPUTED": "id" })).toEqual({

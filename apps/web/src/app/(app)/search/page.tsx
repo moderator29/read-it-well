@@ -145,16 +145,39 @@ export default async function SearchPage({
   const query: ShelfQuery = parseShelfQuery(raw);
 
   const repo = getListingRepository();
+
+  /*
+   * PAGES, FOR THE TWO ORDERS THE DATABASE KEEPS (OPS-11).
+   *
+   * "Recommended" and "cheapest to move into" are orders the database reads
+   * in, so the shelf is paged by keyset: `after` is where the previous page
+   * ended, the next page starts at the very next row, and a page is short only
+   * at the end of the results. The other sorts order on a figure computed in
+   * memory (the headline price, the rating), so they still read one bounded
+   * batch and sort it, as before.
+   */
+  const paged = query.sort === "recommended" || query.sort === "move-in-asc";
+  const afterRaw = Array.isArray(raw.after) ? raw.after[0] : raw.after;
+  const after = paged && typeof afterRaw === "string" && afterRaw.length > 0 ? afterRaw : null;
+  const order = query.sort === "move-in-asc" ? "move-in" : "default";
+
   /* Three reads: the results, the pool the sheet counts against (the whole
      catalogue for the current text), and the whole catalogue for the map. */
-  const [rawResults, pool, whole] = await Promise.all([
+  const [page, pool, whole] = await Promise.all([
     /* The move-in ordering is pushed into the read, because the read has a row
        ceiling: sorting afterwards alone would order the newest rows rather
        than the cheapest ones to move into. See `ListingSearchOptions.order`. */
-    repo.search(shelfFilter(query), query.sort === "move-in-asc" ? { order: "move-in" } : {}),
+    paged
+      ? repo.searchPage(shelfFilter(query), { order, after })
+      : repo.search(shelfFilter(query)).then((listings) => ({ listings, next: null })),
     repo.search(shelfPoolFilter(query)),
     repo.search({}),
   ]);
+  const rawResults = page.listings;
+  const shelfHref = toShelfHref(query);
+  const nextHref = page.next
+    ? `${shelfHref}${shelfHref.includes("?") ? "&" : "?"}after=${encodeURIComponent(page.next)}`
+    : null;
   const sorted = sortListings(rawResults, query.sort);
 
   /*
@@ -424,7 +447,26 @@ export default async function SearchPage({
         </div>
       )}
 
-      {query.view === "list" && listings.length > 0 && repo.isSeed && (
+      {query.view === "list" && !codeHit && (nextHref || after) && (
+        <nav
+          aria-label="More results"
+          className="mt-block flex flex-wrap items-center justify-center gap-sm"
+          data-testid="shelf-pages"
+        >
+          {after && (
+            <ButtonLink href={shelfHref} variant="secondary" data-testid="shelf-first-page">
+              Back to the first results
+            </ButtonLink>
+          )}
+          {nextHref && (
+            <ButtonLink href={nextHref} variant="primary" data-testid="shelf-next-page">
+              More results
+            </ButtonLink>
+          )}
+        </nav>
+      )}
+
+      {query.view === "list" && listings.length > 0 && !nextHref && (paged || repo.isSeed) && (
         <p className="nf-caption mt-block text-center text-[var(--nf-content-muted)]">
           That is everything matching this search.
         </p>
