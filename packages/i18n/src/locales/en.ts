@@ -4753,7 +4753,7 @@ export const en = {
     trustHolds: "Your wallet is Vallo's naira record of your money, not a bank deposit.",
     trustFails: "If a send fails, nothing leaves your wallet: both sides move together or not at all.",
     /* The founder's answer of 23 September, stated as a fact. */
-    trustRefund: "Refunds reach your wallet in 3 to 5 business days.",
+    trustRefund: "A refund from a cancelled stay lands in your wallet the moment it is decided.",
     trustRecall: "A completed send cannot be recalled. Only the person you paid can send it back.",
     title: "Send money",
     lede: "To another Vallo wallet, by the email on their account. It lands the moment you confirm.",
