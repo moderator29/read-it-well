@@ -37,12 +37,14 @@ const TONE_ICON: Record<RefundLine["tone"], "verified" | "history" | "info"> = {
 export async function BookingMoneyRecord({
   bookingId,
   checkIn,
+  checkOut,
   cancelled,
   totalMinor,
   locale,
 }: {
   bookingId: string;
   checkIn: string;
+  checkOut: string;
   /** The booking's own status says CANCELLED. */
   cancelled: boolean;
   /** What was paid, in kobo, when the caller has it; without it the terms show as shares. */
@@ -54,7 +56,7 @@ export async function BookingMoneyRecord({
   const copy = getDictionary(locale).afterTheGate.refund;
   const [frozen, refunds] = await Promise.all([
     readFrozenTerms(session.supabase, bookingId),
-    readMyRefundLines(bookingId, locale, { cancelled }),
+    readMyRefundLines(bookingId, locale, { cancelled, checkOut }),
   ]);
 
   const canAsk = refunds.state !== "unavailable" && refunds.canAsk;

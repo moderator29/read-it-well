@@ -5,6 +5,7 @@ import { formatMoney, getDictionary, type Locale } from "@vallo/i18n";
 import { resolveSession } from "../actions/session";
 import { requireAdmin } from "../admin/guard";
 import { formatMoneyDate } from "../money/dates";
+import { lagosToday } from "../rent/schema";
 import { refundClock } from "../trust/business-days";
 import { readCancellationTerms, type CancellationTerms } from "../trust/cancellation";
 import { readRefundRequest, readRefundRow, type RefundRequestRow, type RefundRow } from "./rows";
@@ -16,8 +17,9 @@ import { readRefundRequest, readRefundRow, type RefundRequestRow, type RefundRow
  * transaction that records it, so it lands the moment it is decided and there
  * is nothing to time. The wait a guest actually has is from ASKING to the
  * decision, so the clock is the `refund_requests` row: its `due_by` (five
- * Nigerian business days after the ask) is the ceiling, and the first
- * `booking_refunds` row after the ask answers it. A rent refund a lister owes
+ * Nigerian business days after the ask) is the date support decides by, and
+ * the first `booking_refunds` row after the ask, or a decline recorded in
+ * `refund_request_decisions`, answers it. A rent refund a lister owes
  * (`rent_refunds_owed`) is timed from when it became owed. Both are listed for
  * the operator by `public.admin_refund_clock`, which filters in the database.
  *
@@ -85,7 +87,7 @@ export type MyRefunds =
 export async function readMyRefundLines(
   bookingId: string,
   locale: Locale,
-  booking: { cancelled: boolean },
+  booking: { cancelled: boolean; checkOut: string },
   now: Date = new Date(),
 ): Promise<MyRefunds> {
   const session = await resolveSession();
@@ -131,8 +133,26 @@ export async function readMyRefundLines(
         : { ...base, sentence: copy.landed.replace("{date}", date(landedAt, true)), tone: "success" };
     });
 
+    // Support's answer to the ask, readable only by the guest who asked.
+    const decisionRead = request
+      ? await loose.from("refund_request_decisions").select("decision, note, decided_at").eq("request_id", request.id).maybeSingle()
+      : null;
+    const decision = !decisionRead || decisionRead.error ? null : (decisionRead.data as Record<string, unknown> | null);
+    const declined = decision?.decision === "declined" && typeof decision.decided_at === "string" ? decision : null;
+    if (request && declined) {
+      const note = typeof declined.note === "string" && declined.note.trim() ? declined.note.trim() : null;
+      lines.push({
+        id: `${request.id}-decision`,
+        amount: null,
+        retained: null,
+        sentence: (note ? copy.declined : copy.declinedNoNote)
+          .replace("{date}", date(declined.decided_at as string))
+          .replace("{note}", note ?? ""),
+        tone: "neutral",
+      });
+    }
     const answered = request
-      ? refunds.some((row) => Date.parse(row.createdAt) >= Date.parse(request.requestedAt))
+      ? declined !== null || refunds.some((row) => Date.parse(row.createdAt) >= Date.parse(request.requestedAt))
       : false;
     if (request && !answered && request.dueBy) {
       const clock = refundClock({ refundMinor: 1, dueBy: new Date(request.dueBy), landedAt: null, now });
@@ -147,8 +167,16 @@ export async function readMyRefundLines(
       });
     }
 
+    // The same rule as the insert policy: a stay whose check-out has passed
+    // is a complaint for support, not a cancellation.
     const canAsk =
-      paid && !booking.cancelled && !tenancy && !requestRead.error && !request && refunds.length === 0;
+      paid &&
+      !booking.cancelled &&
+      booking.checkOut > lagosToday(now) &&
+      !tenancy &&
+      !requestRead.error &&
+      !request &&
+      refunds.length === 0;
     return lines.length === 0 ? { state: "none", canAsk } : { state: "ready", lines, canAsk };
   } catch {
     return { state: "unavailable" };
@@ -157,6 +185,8 @@ export async function readMyRefundLines(
 
 export type ClockBoardRow = {
   id: string;
+  /** The refund request's id, for a decision; null for a rent refund owed. */
+  requestId: string | null;
   bookingId: string;
   kind: "request" | "rent_owed";
   amount: string;
@@ -185,6 +215,7 @@ export async function readRefundClockBoard(locale: Locale, now: Date = new Date(
       }
       const row: ClockBoardRow = {
         id: `${String(raw.kind)}-${raw.subject_id}`,
+        requestId: raw.kind === "rent_owed" ? null : raw.subject_id,
         bookingId: raw.booking_id,
         kind: raw.kind === "rent_owed" ? "rent_owed" : "request",
         amount: formatMoney(amount, locale),

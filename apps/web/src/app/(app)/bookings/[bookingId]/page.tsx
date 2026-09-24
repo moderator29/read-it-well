@@ -139,6 +139,7 @@ export default async function BookingDetailPage({
       <BookingMoneyRecord
         bookingId={booking.id}
         checkIn={booking.checkIn}
+        checkOut={booking.checkOut}
         cancelled={booking.status === "CANCELLED"}
         locale={locale}
       />

@@ -117,7 +117,7 @@ create table if not exists public.refund_requests (
 );
 
 comment on table public.refund_requests is
-  'V-24. A guest asking for a paid stay to be cancelled and refunded. due_by (the end of the fifth Nigerian business day after the ask, Lagos time) is the ceiling of the refund promise; the first booking_refunds row for the booking after requested_at answers it. Append-only.';
+  'V-24. A guest asking for a paid stay to be cancelled and refunded. due_by (the end of the fifth Nigerian business day after the ask, Lagos time) is the date support decides by; the first booking_refunds row for the booking after requested_at, or a refund_request_decisions row, answers it. Append-only.';
 
 create index if not exists refund_requests_due_idx on public.refund_requests (due_by);
 
@@ -132,7 +132,9 @@ create policy refund_requests_read on public.refund_requests for select to authe
          or private.has_role((select auth.uid()), 'admin'::public.app_role)
          or private.has_role((select auth.uid()), 'super_admin'::public.app_role));
 
-/* The guest asks, as themselves, about their own paid, uncancelled stay. */
+/* The guest asks, as themselves, about their own paid, uncancelled stay
+   whose check-out has not passed (Lagos day): a stay already over is a
+   complaint for support, not a cancellation. */
 drop policy if exists refund_requests_insert on public.refund_requests;
 create policy refund_requests_insert on public.refund_requests for insert to authenticated
   with check (
@@ -142,6 +144,7 @@ create policy refund_requests_insert on public.refund_requests for insert to aut
        where b.id = refund_requests.booking_id
          and b.guest_id = (select auth.uid())
          and b.status <> 'CANCELLED'
+         and b.check_out > (now() at time zone 'Africa/Lagos')::date
          and not exists (select 1 from public.rent_payments rp where rp.booking_id = b.id)
          and exists (select 1 from public.transactions t where t.booking_id = b.id and t.status = 'SUCCESSFUL')
     )
@@ -173,10 +176,104 @@ create trigger refund_requests_stamp
   before insert or update on public.refund_requests
   for each row execute function private.refund_requests_stamp();
 
+/* ------------------------------------------------------------ the decision */
+
+/* Support's answer to an ask. A refund is recorded by the existing desk in
+   `booking_refunds`, which already answers the clock; a DECLINE had nowhere to
+   go, so an ask support turned down stayed "overdue" for ever. One decision
+   per ask, append-only, written only through `decide_refund_request`. */
+create table if not exists public.refund_request_decisions (
+  request_id uuid primary key references public.refund_requests(id) on delete cascade,
+  decision   text not null check (decision in ('declined', 'refunded')),
+  note       text check (note is null or length(note) <= 1000),
+  decided_by uuid not null,
+  decided_at timestamptz not null default now()
+);
+
+comment on table public.refund_request_decisions is
+  'V-24. Support''s decision on a refund request: declined, or refunded (only once a booking_refunds row exists after the ask). Answers the refund clock. Append-only.';
+
+alter table public.refund_request_decisions enable row level security;
+revoke all on public.refund_request_decisions from public, anon, authenticated;
+grant select on public.refund_request_decisions to authenticated;
+grant all on public.refund_request_decisions to service_role;
+
+drop policy if exists refund_request_decisions_read on public.refund_request_decisions;
+create policy refund_request_decisions_read on public.refund_request_decisions for select to authenticated
+  using (exists (select 1 from public.refund_requests q where q.id = request_id));
+
+create or replace function private.refund_request_decisions_frozen()
+returns trigger
+language plpgsql
+set search_path to 'pg_catalog', 'public'
+as $function$
+begin
+  raise exception 'public.refund_request_decisions is append-only' using errcode = '42501';
+end;
+$function$;
+
+revoke all on function private.refund_request_decisions_frozen() from public, anon, authenticated;
+
+drop trigger if exists refund_request_decisions_frozen on public.refund_request_decisions;
+create trigger refund_request_decisions_frozen
+  before update on public.refund_request_decisions
+  for each row execute function private.refund_request_decisions_frozen();
+
+create or replace function public.decide_refund_request(p_request uuid, p_decision text, p_note text default null)
+returns jsonb
+language plpgsql
+security definer
+set search_path to 'pg_catalog', 'public'
+as $function$
+declare
+  q public.refund_requests%rowtype;
+  caller uuid := (select auth.uid());
+begin
+  if not (private.has_role(caller, 'admin'::public.app_role)
+          or private.has_role(caller, 'super_admin'::public.app_role)) then
+    return jsonb_build_object('status', 'not_allowed');
+  end if;
+  select * into q from public.refund_requests where id = p_request;
+  if q.id is null then
+    return jsonb_build_object('status', 'not_found');
+  end if;
+  if p_decision not in ('declined', 'refunded') then
+    return jsonb_build_object('status', 'bad_decision');
+  end if;
+  if p_decision = 'declined' and nullif(btrim(coalesce(p_note, '')), '') is null then
+    return jsonb_build_object('status', 'needs_reason');
+  end if;
+  if p_decision = 'refunded' and not exists (
+    select 1 from public.booking_refunds r where r.booking_id = q.booking_id and r.created_at >= q.requested_at
+  ) then
+    return jsonb_build_object('status', 'no_refund_recorded');
+  end if;
+  insert into public.refund_request_decisions (request_id, decision, note, decided_by)
+  values (q.id, p_decision, left(nullif(btrim(coalesce(p_note, '')), ''), 1000), caller)
+  on conflict (request_id) do nothing;
+  if not found then
+    return jsonb_build_object('status', 'already_decided');
+  end if;
+  if p_decision = 'declined' then
+    begin
+      perform private.notify(q.guest_id, 'booking'::public.notification_kind,
+        'Support answered your refund request',
+        'Open the booking to read the answer.', '/bookings/' || q.booking_id);
+    exception when others then
+      null;
+    end;
+  end if;
+  return jsonb_build_object('status', 'ok');
+end;
+$function$;
+
+revoke all on function public.decide_refund_request(uuid, text, text) from public, anon;
+grant execute on function public.decide_refund_request(uuid, text, text) to authenticated;
+
 /* ------------------------------------------------------------ the measurement */
 
 /* Hourly. One high alert, once, per ask past its due-by with no refund
-   recorded after it, and per rent refund owed past five business days and not
+   recorded after it and no decision from support, and per rent refund owed past five business days and not
    cleared. */
 create or replace function private.alert_overdue_refunds()
 returns int
@@ -200,6 +297,7 @@ begin
      and q.due_by < now()
      and not exists (select 1 from public.booking_refunds r
                       where r.booking_id = q.booking_id and r.created_at >= q.requested_at)
+     and not exists (select 1 from public.refund_request_decisions d where d.request_id = q.id)
      and not exists (select 1 from public.risk_alerts a
                       where a.entity_type = 'refund_request' and a.entity_id = q.id::text);
   get diagnostics raised = row_count;
@@ -210,12 +308,15 @@ begin
          format('Booking %s: %s kobo owed back by the lister since %s (Lagos), not cleared.',
                 o.booking_id, o.amount_minor,
                 to_char(o.created_at at time zone 'Africa/Lagos', 'Dy DD Mon YYYY HH24:MI')),
-         'rent_refund_owed', o.booking_id::text
+         -- One alert per owing, not per booking: a booking reversed a second
+         -- time is a second debt with its own clock.
+         'rent_refund_owed', o.booking_id::text || ':' || floor(extract(epoch from o.created_at))::bigint
     from public.rent_refunds_owed o
    where o.cleared_at is null
      and private.business_days_after(o.created_at, 5) < now()
      and not exists (select 1 from public.risk_alerts a
-                      where a.entity_type = 'rent_refund_owed' and a.entity_id = o.booking_id::text);
+                      where a.entity_type = 'rent_refund_owed'
+                        and a.entity_id = o.booking_id::text || ':' || floor(extract(epoch from o.created_at))::bigint);
   get diagnostics more = row_count;
   return raised + more;
 end;
@@ -241,6 +342,7 @@ as $function$
       from public.refund_requests q
      where not exists (select 1 from public.booking_refunds r
                         where r.booking_id = q.booking_id and r.created_at >= q.requested_at)
+       and not exists (select 1 from public.refund_request_decisions d where d.request_id = q.id)
     union all
     select 'rent_owed'::text, o.booking_id, o.booking_id, o.amount_minor,
            private.business_days_after(o.created_at, 5)
