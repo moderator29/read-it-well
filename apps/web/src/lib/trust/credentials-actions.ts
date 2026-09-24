@@ -1,26 +1,29 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getDictionary } from "@vallo/i18n";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
+import { credentialRefusal } from "./credential-answer";
 
 /**
- * V-87: staff record a credential they checked on the public register. The
- * database refuses anybody who is not staff (`public.record_credential`
- * guards inside), so this action only shapes the input and words the answer.
+ * V-87: staff record a LASRERA or ESVARBON entry they read on the public
+ * register, with the number AND the name the register shows. The database
+ * refuses anybody who is not staff (`public.record_credential` guards inside),
+ * and refuses a CAC directorship, which the free CAC search cannot show, so
+ * this action does not offer one. The desk reads English, so the answers come
+ * from the English dictionary.
  */
 
-const schema = z
-  .object({
-    subjectId: z.string().uuid(),
-    kind: z.enum(["lasrera", "esvarbon", "cac_director"]),
-    number: z.string().trim().min(2, "Enter the number exactly as the register shows it.").max(60),
-    company: z.string().trim().max(200).optional(),
-  })
-  .refine((v) => (v.kind === "cac_director") === Boolean(v.company && v.company.length >= 2), {
-    message: "A CAC directorship needs the company name, and only a CAC directorship has one.",
-  });
+const desk = getDictionary("en").trustVisible.desk;
+
+const schema = z.object({
+  subjectId: z.string().uuid(),
+  kind: z.enum(["lasrera", "esvarbon"]),
+  number: z.string().trim().min(2, desk.credentialInvalid).max(60),
+  registerName: z.string().trim().min(2, desk.credentialNoName).max(200),
+});
 
 type RpcCaller = { rpc(fn: string, args: Record<string, unknown>): Promise<{ data: unknown; error: unknown }> };
 
@@ -34,12 +37,13 @@ export async function recordCredential(input: unknown): Promise<ActionResult<{ r
     p_subject: parsed.data.subjectId,
     p_kind: parsed.data.kind,
     p_number: parsed.data.number,
-    p_company: parsed.data.kind === "cac_director" ? (parsed.data.company ?? null) : null,
+    p_company: null,
     p_source: "register_by_hand",
+    p_register_name: parsed.data.registerName,
   });
-  if (error) return fail("The check was not recorded. Try again in a moment.");
-  if (data === "forbidden") return fail("Only Vallo staff can record a credential check.");
-  if (data !== "recorded") return fail("That does not look like a register number we can record. Check it and try again.");
+  if (error) return fail(desk.credentialFailed);
+  const refusal = credentialRefusal(data, desk);
+  if (refusal) return fail(refusal);
   revalidatePath("/admin/kyc");
   return ok({ recorded: true });
 }

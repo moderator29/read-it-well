@@ -91,7 +91,14 @@ export type ProofFacts = {
    */
   listedForFirm?: boolean;
   /** V-87: the lister's dated credential checks from the last year. */
-  credentials?: { kind: CredentialKind; number: string; company: string | null; checkedAt: string }[];
+  credentials?: {
+    kind: CredentialKind;
+    number: string;
+    company: string | null;
+    /** The name as the register shows it; required for LASRERA and ESVARBON. */
+    registerName?: string | null;
+    checkedAt: string;
+  }[];
   /** `listings.ownership_verified_at`: a title document seen in the lister's name. */
   ownershipVerifiedAt?: string;
   /** `listings.mandate_verified_at`: the owner's instruction seen, the owner spoken to. */
@@ -112,7 +119,14 @@ export type CredentialKind = "lasrera" | "esvarbon" | "cac_director";
 
 export type ProofLine =
   | { kind: "identity"; at: string; method: IdentityMethod; forFirm: boolean }
-  | { kind: "credentials"; at: string; credential: CredentialKind; number: string; company: string | null }
+  | {
+      kind: "credentials";
+      at: string;
+      credential: CredentialKind;
+      number: string;
+      company: string | null;
+      registerName: string | null;
+    }
   | { kind: "authority"; at: string; basis: "ownership" | "mandate" }
   | { kind: "availability"; at: string }
   | { kind: "photographs"; at: string }
@@ -140,7 +154,17 @@ const SPECS: Record<ProofLineKind, Spec> = {
     (f.credentials ?? [])
       .filter((c) => provableDate(c.checkedAt) !== null && c.number.trim() !== "")
       .filter((c) => c.kind !== "cac_director" || (c.company ?? "").trim() !== "")
-      .map((c) => ({ kind: "credentials" as const, at: c.checkedAt, credential: c.kind, number: c.number, company: c.company })),
+      /* A register entry prints only with the name the register shows: a
+         number alone says a number exists, not whose it is. */
+      .filter((c) => c.kind === "cac_director" || (c.registerName ?? "").trim() !== "")
+      .map((c) => ({
+        kind: "credentials" as const,
+        at: c.checkedAt,
+        credential: c.kind,
+        number: c.number,
+        company: c.company,
+        registerName: c.registerName ?? null,
+      })),
   identity: (f) => {
     const at = provableDate(f.identitySeenAt);
     return at
@@ -238,7 +262,11 @@ export function proofLineText(line: ProofLine, copy: ProofCopy, locale: Locale):
     case "credentials": {
       const template =
         line.credential === "lasrera" ? copy.lasrera : line.credential === "esvarbon" ? copy.esvarbon : copy.cacDirector;
-      return template.replace("{number}", line.number).replace("{company}", line.company ?? "").replace("{date}", date);
+      return template
+        .replace("{name}", line.registerName ?? "")
+        .replace("{number}", line.number)
+        .replace("{company}", line.company ?? "")
+        .replace("{date}", date);
     }
     case "availability":
       return copy.availability.replace("{date}", date);

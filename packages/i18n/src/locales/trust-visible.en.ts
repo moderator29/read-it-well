@@ -30,8 +30,9 @@ export const trustVisibleEn = {
     mandate: "Owner's instruction seen and owner spoken to, {date}",
     availability: "Owner confirmed available, {date}",
     /** V-87. `{number}`, `{company}` and `{date}` come from the credential check. */
-    lasrera: "Registered with LASRERA, number {number} checked on the LASRERA register {date}",
-    esvarbon: "Registered estate surveyor and valuer (ESVARBON), number {number} checked {date}",
+    /** `{name}` is the name as the register shows it. */
+    lasrera: "Registered with LASRERA as {name}, number {number}, checked on the LASRERA register {date}",
+    esvarbon: "Registered estate surveyor and valuer (ESVARBON) as {name}, number {number}, checked on the ESVARBON register {date}",
     cacDirector: "A director of {company} ({number}), checked with the CAC {date}",
     photographs: "Photographed at the property, {date}",
     /** `{count}` renters answered; `{listed}` said as listed; `{month}` e.g. "September 2026". */
@@ -240,5 +241,28 @@ export const trustVisibleEn = {
     requestButton: "Request an inspection",
     report: "Report",
     block: "Block",
+  },
+  /** V-49 and V-87 on the verification desk. The desk reads English. */
+  desk: {
+    payoutLabel: "Payout name check (suggestion):",
+    payoutMatch: "the names match",
+    payoutDiffer: "the names do not match",
+    /** `{holder}` is the bank's account holder, `{onRecord}` the name Vallo holds. */
+    payoutNames: "Bank holder {holder}; on record {onRecord}.",
+    credentialTitle: "Record a credential checked on the public register",
+    credentialKind: "Credential",
+    lasrera: "LASRERA registration",
+    esvarbon: "ESVARBON registration",
+    credentialNumber: "Number as the register shows it",
+    credentialName: "Name as the register shows it",
+    credentialCac: "A CAC directorship cannot be checked here: the free CAC search does not list directors. It waits for the identity aggregator.",
+    credentialSubmit: "Record the check",
+    credentialRecording: "Recording",
+    credentialRecorded: "Recorded, dated today.",
+    credentialForbidden: "Only Vallo staff can record a credential check.",
+    credentialInvalid: "That does not look like a register number we can record. Check it and try again.",
+    credentialNoName: "Enter the name exactly as the register shows it.",
+    credentialNeedsAggregator: "A CAC directorship waits for the identity aggregator.",
+    credentialFailed: "The check was not recorded. Try again in a moment.",
   },
 };
