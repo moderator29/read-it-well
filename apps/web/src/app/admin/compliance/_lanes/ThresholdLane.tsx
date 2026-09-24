@@ -2,7 +2,7 @@ import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
 import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { lagosToday } from "@/lib/rent/schema";
-import { dueClock, type ThresholdRow } from "@/lib/compliance/threshold-model";
+import { dueClock, dueLabel, type ThresholdRow } from "@/lib/compliance/threshold-model";
 import { readThresholdLane } from "@/lib/compliance/threshold-queries";
 import { adminUi } from "../../_components/ui";
 import { ApproveThreshold, DecideThreshold } from "./ThresholdControls";
@@ -22,18 +22,10 @@ import type { ComplianceLane, ComplianceLaneProps } from "./lane";
  */
 function clockPill(row: ThresholdRow, copy: Dictionary["complianceThreshold"]): { tone: StatusTone; label: string } {
   const clock = dueClock(row.dueAt, row.state);
-  switch (clock.stage) {
-    case "done":
-      return { tone: "success", label: copy.due.done };
-    case "overdue":
-      return { tone: "danger", label: clock.days === 1 ? copy.due.overdueOne : copy.due.overdue.replace("{days}", String(clock.days)) };
-    case "1d":
-      return { tone: "danger", label: copy.due.within1.replace("{hours}", String(clock.hours)) };
-    case "3d":
-      return { tone: "warning", label: copy.due.within3.replace("{days}", String(clock.days)) };
-    default:
-      return { tone: "neutral", label: copy.due.later.replace("{days}", String(clock.days)) };
-  }
+  const label = dueLabel(clock, copy.due);
+  const tone: StatusTone =
+    clock.stage === "done" ? "success" : clock.stage === "overdue" || clock.stage === "1d" ? "danger" : clock.stage === "3d" ? "warning" : "neutral";
+  return { tone, label };
 }
 
 async function Lane({ t, locale }: ComplianceLaneProps) {
@@ -45,11 +37,19 @@ async function Lane({ t, locale }: ComplianceLaneProps) {
     // A read that did not run is a failure, never "nothing to report".
     return <ui.QueueAlarm title={desk.unavailableTitle} body={desk.unavailableBody} />;
   }
+  /* A missed movement means the lane may be short: an alarm, never "nothing to report". */
+  const faults =
+    read.monitorFaults > 0 ? (
+      <ui.QueueAlarm
+        title={read.monitorFaults === 1 ? copy.faultsTitleOne : copy.faultsTitle.replace("{count}", String(read.monitorFaults))}
+        body={copy.faultsBody}
+      />
+    ) : null;
   if (read.rows.length === 0) {
     return (
       <>
         <p className="nf-body-sm text-[var(--nf-content-secondary)]">{copy.lede}</p>
-        <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} everHadRows={false} />
+        {faults ?? <ui.QueueEmpty title={copy.emptyTitle} body={copy.emptyBody} everHadRows={false} />}
       </>
     );
   }
@@ -58,11 +58,17 @@ async function Lane({ t, locale }: ComplianceLaneProps) {
   return (
     <div className="grid gap-md" data-testid="threshold-lane">
       <p className="nf-body-sm text-[var(--nf-content-secondary)]">{copy.lede}</p>
+      {faults}
       <ul className="grid gap-md">
         {read.rows.map((row) => (
           <ThresholdCard key={row.id} row={row} copy={copy} locale={locale} viewerId={read.viewerId} today={today} date={date} />
         ))}
       </ul>
+      {read.truncated && (
+        <p className="nf-caption" role="note" data-testid="threshold-truncated">
+          {copy.truncated}
+        </p>
+      )}
     </div>
   );
 }
@@ -93,6 +99,7 @@ function ThresholdCard({
             {row.kind === "single"
               ? `${copy.kind.single} · ${copy.source[row.source ?? "none"]}`
               : copy.kind.structuring.replace("{count}", String(row.movements))}
+            {row.direction && ` · ${copy.direction[row.direction]}`}
           </p>
         </div>
         <StatusPill tone={pill.tone}>{pill.label}</StatusPill>

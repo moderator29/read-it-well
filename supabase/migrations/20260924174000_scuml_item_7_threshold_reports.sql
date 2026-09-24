@@ -1,3 +1,5 @@
+set local lock_timeout = '5s';
+
 -- SCUML item 7: report any transaction above N5,000,000 (individual) or
 -- N10,000,000 (corporate) to the NFIU within seven days.
 --
@@ -9,33 +11,16 @@
 -- reference the officer enters.
 --
 -- READ-ONLY OVER THE MONEY. The monitor is AFTER triggers on the settled paths
--- (a SUCCESSFUL `transactions` row, a funded escrow, a COMPLETED wallet
--- deposit, withdrawal or transfer out) that only write to the tables below.
+-- (which paths, and in which direction, is set in 20260924174100) that only
+-- write to the tables below.
 -- Every trigger body catches every error and records it as a risk alert, so a
 -- fault here can never raise inside settlement, block a payment or change a
 -- figure. Nothing here moves money or places a hold.
 --
--- WHAT COUNTS AS ONE TRANSACTION. A booking payment is one transaction at its
--- settled amount; a Lagos move-in (rent, caution and fees on one charge) is
--- one booking, so its whole total is one transaction. A booking paid from the
--- wallet is counted once, on its `transactions` row: the wallet's own
--- `payment` debit and the escrow and pot movements are the platform moving
--- money it already holds, and are not observed. A wallet deposit, a
--- withdrawal and a transfer to another member are each one transaction.
---
--- WHO IS OBSERVED. Both sides of a booking or an escrow (payer and payee) and
--- the owner of a wallet movement. Each observation is classed individual or
--- corporate: a member with a business agent account, a firm membership or a
--- business (hotel, apartments, agency) is corporate, everybody else is an
--- individual. A transaction is reportable when it is above the threshold of
--- either side, so a corporate paying an individual N6,000,000 is reported on
--- the individual's threshold.
---
--- STRUCTURING. Several transactions for one party inside seven days, each at
--- or under that party's threshold, that together pass it, raise one
--- `structuring` event naming every observation in the window. A party gets at
--- most one structuring event per seven days, so a run of payments raises one
--- event, not one per payment.
+-- WHAT IS OBSERVED, AND HOW STRUCTURING IS SUMMED, is set in 20260924174100,
+-- which replaces the monitor below: one observation point per flow of money,
+-- each tagged in or out, the escrow and wallet-paid bookings left out, and
+-- who counts as corporate narrowed to what staff approved. Read that header.
 --
 -- DUE CLOCK. due_at = occurred_at + 7 days. An event is open until a decision
 -- ("reported" with its external reference, or "not reportable" with a reason)
@@ -410,34 +395,8 @@ create trigger aml_threshold_watch
   after insert or update of status on public.wallet_entries
   for each row execute function private.aml_watch_wallet_entries();
 
-/* Everything settled before the monitor existed, observed once, oldest first. */
-do $$
-declare r record;
-begin
-  for r in
-    select 'booking' as src, t.id, b.guest_id as payer, a.user_id as payee, t.amount_minor, t.updated_at as at, t.provider_ref as ref
-      from public.transactions t
-      join public.bookings b on b.id = t.booking_id
-      left join public.listings l on l.id = b.listing_id
-      left join public.agents a on a.id = l.agent_id
-     where t.status = 'SUCCESSFUL'
-    union all
-    select 'escrow', e.id, e.payer_id, e.payee_id, e.amount_minor, e.funded_at, null
-      from public.escrows e where e.funded_at is not null
-    union all
-    select 'wallet', we.id, w.user_id, null, we.amount_minor, we.created_at, we.reference
-      from public.wallet_entries we join public.wallets w on w.id = we.wallet_id
-     where we.status = 'COMPLETED' and we.kind::text in ('deposit', 'withdrawal', 'transfer_out')
-     order by 6
-  loop
-    if r.src = 'wallet' then
-      perform private.aml_observe('wallet', r.id, r.payer, 'owner', null, r.amount_minor, r.at, r.ref);
-    else
-      perform private.aml_observe(r.src, r.id, r.payer, 'payer', r.payee, r.amount_minor, r.at, r.ref);
-      perform private.aml_observe(r.src, r.id, r.payee, 'payee', r.payer, r.amount_minor, r.at, r.ref);
-    end if;
-  end loop;
-end $$;
+/* The backfill of everything settled before the monitor existed is in
+   20260924174100, once each movement has one observation point and a direction. */
 
 /* ------------------------------------------------------------ the register */
 

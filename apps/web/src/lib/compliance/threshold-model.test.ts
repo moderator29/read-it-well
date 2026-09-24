@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { dueClock, isAboveThreshold, laneOrder, readThresholdRow, THRESHOLD_MINOR, type ThresholdRow } from "./threshold-model";
+import {
+  dueClock,
+  dueLabel,
+  isAboveThreshold,
+  laneOrder,
+  readThresholdLaneAnswer,
+  readThresholdRow,
+  THRESHOLD_MINOR,
+  type ThresholdRow,
+} from "./threshold-model";
 
 describe("SCUML item 7 thresholds", () => {
   it("reports strictly above N5m for an individual and N10m for a corporate", () => {
@@ -78,6 +87,45 @@ describe("the database twin", () => {
     );
     expect(sql).toContain(`then ${THRESHOLD_MINOR.corporate}::bigint else ${THRESHOLD_MINOR.individual}::bigint`);
     expect(sql).toContain("p_occurred_at + interval '7 days'");
+    const fix = readFileSync(
+      resolve(__dirname, "../../../../../supabase/migrations/20260924174100_scuml_item_7_one_observation_per_flow.sql"),
+      "utf8",
+    );
+    expect(fix).toContain("pg_advisory_xact_lock");
+    expect(fix).toContain("when query_canceled then");
     expect(sql).toContain("SCUML item 7");
+  });
+});
+
+describe("dueLabel", () => {
+  const copy = {
+    overdue: "Overdue by {days} days",
+    overdueOne: "Overdue by a day",
+    withinHour: "Due within the hour",
+    inHours: "Due in {hours} hours",
+    inHour: "Due in 1 hour",
+    inDays: "Due in {days} days",
+    inDay: "Due in 1 day",
+    done: "Closed",
+  };
+  const now = new Date("2026-09-24T12:00:00Z");
+  const at = (iso: string) => dueLabel(dueClock(iso, "open", now), copy);
+  it("says the singulars and the last hour", () => {
+    expect(at("2026-09-24T12:30:00Z")).toBe("Due within the hour");
+    expect(at("2026-09-24T13:30:00Z")).toBe("Due in 1 hour");
+    expect(at("2026-09-24T17:00:00Z")).toBe("Due in 5 hours");
+    expect(at("2026-09-25T13:00:00Z")).toBe("Due in 1 day");
+    expect(at("2026-09-27T13:00:00Z")).toBe("Due in 3 days");
+    expect(at("2026-09-23T11:00:00Z")).toBe("Overdue by 2 days");
+    expect(dueLabel(dueClock("2026-09-01T00:00:00Z", "closed", now), copy)).toBe("Closed");
+  });
+});
+
+describe("readThresholdLaneAnswer", () => {
+  it("reads the paged answer and refuses one without its flags", () => {
+    expect(readThresholdLaneAnswer({ rows: [], truncated: true, monitor_faults: 2 })).toEqual({ rows: [], truncated: true, monitorFaults: 2 });
+    expect(readThresholdLaneAnswer({ rows: [] })).toBeNull();
+    expect(readThresholdLaneAnswer([])).toBeNull();
+    expect(readThresholdLaneAnswer({ rows: [{ id: "x" }], truncated: false, monitor_faults: 0 })).toBeNull();
   });
 });

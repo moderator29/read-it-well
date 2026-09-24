@@ -24,6 +24,8 @@ export type EventState = "open" | "awaiting_approval" | "closed";
 export type ThresholdRow = {
   id: string;
   kind: "single" | "structuring";
+  /** Money in to the party or out of it; structuring sums each apart. */
+  direction: "in" | "out" | null;
   source: "booking" | "escrow" | "wallet" | null;
   sourceId: string | null;
   amountMinor: number;
@@ -80,6 +82,7 @@ export function readThresholdRow(raw: unknown): ThresholdRow | null {
   return {
     id,
     kind,
+    direction: row.direction === "in" || row.direction === "out" ? row.direction : null,
     source,
     sourceId: str(row.source_id),
     amountMinor,
@@ -138,4 +141,38 @@ export function dueClock(dueAt: string, state: EventState, now: Date = new Date(
 export function laneOrder(rows: ThresholdRow[]): ThresholdRow[] {
   const rank = (row: ThresholdRow) => (row.state === "closed" ? 2 : row.state === "awaiting_approval" ? 1 : 0);
   return [...rows].sort((a, b) => rank(a) - rank(b) || a.dueAt.localeCompare(b.dueAt));
+}
+
+export type DueCopy = {
+  overdue: string;
+  overdueOne: string;
+  withinHour: string;
+  inHours: string;
+  inHour: string;
+  inDays: string;
+  inDay: string;
+  done: string;
+};
+
+/** The clock in words, with its singulars: "Due in 1 day", "Due within the hour". */
+export function dueLabel(clock: DueClock, copy: DueCopy): string {
+  if (clock.stage === "done") return copy.done;
+  if (clock.stage === "overdue") return clock.days === 1 ? copy.overdueOne : copy.overdue.replace("{days}", String(clock.days));
+  if (clock.hours < 1) return copy.withinHour;
+  if (clock.hours < 24) return clock.hours === 1 ? copy.inHour : copy.inHours.replace("{hours}", String(clock.hours));
+  return clock.days === 1 ? copy.inDay : copy.inDays.replace("{days}", String(clock.days));
+}
+
+/** `public.threshold_lane`'s answer: the rows, whether a page was cut, and open monitor faults. */
+export type ThresholdLaneAnswer = { rows: ThresholdRow[]; truncated: boolean; monitorFaults: number };
+
+export function readThresholdLaneAnswer(raw: unknown): ThresholdLaneAnswer | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const answer = raw as Record<string, unknown>;
+  if (!Array.isArray(answer.rows) || typeof answer.truncated !== "boolean") return null;
+  const faults = int(answer.monitor_faults);
+  if (faults === null || faults < 0) return null;
+  const rows = answer.rows.map(readThresholdRow);
+  if (rows.some((row) => row === null)) return null;
+  return { rows: laneOrder(rows as ThresholdRow[]), truncated: answer.truncated, monitorFaults: faults };
 }

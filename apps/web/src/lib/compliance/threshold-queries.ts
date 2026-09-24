@@ -1,7 +1,7 @@
 import "server-only";
 
 import { requireAdmin } from "../admin/guard";
-import { laneOrder, readThresholdRow, type ThresholdRow } from "./threshold-model";
+import { readThresholdLaneAnswer, type ThresholdRow } from "./threshold-model";
 
 /**
  * SCUML item 7. The threshold reports lane, read through
@@ -10,7 +10,7 @@ import { laneOrder, readThresholdRow, type ThresholdRow } from "./threshold-mode
  * nothing is due, and a read that did not run cannot say that.
  */
 export type ThresholdLaneRead =
-  | { state: "ready"; rows: ThresholdRow[]; viewerId: string }
+  | { state: "ready"; rows: ThresholdRow[]; truncated: boolean; monitorFaults: number; viewerId: string }
   | { state: "unavailable" };
 
 export async function readThresholdLane(): Promise<ThresholdLaneRead> {
@@ -19,11 +19,10 @@ export async function readThresholdLane(): Promise<ThresholdLaneRead> {
   try {
     const { data, error } = await (access.supabase as unknown as {
       rpc(fn: string, args: Record<string, unknown>): Promise<{ data: unknown; error: unknown }>;
-    }).rpc("threshold_lane", { p_limit: 300 });
-    if (error || !Array.isArray(data)) return { state: "unavailable" };
-    const rows = data.map(readThresholdRow);
-    if (rows.some((row) => row === null)) return { state: "unavailable" };
-    return { state: "ready", rows: laneOrder(rows as ThresholdRow[]), viewerId: access.user.id };
+    }).rpc("threshold_lane", { p_open: 300, p_closed: 100 });
+    const answer = error ? null : readThresholdLaneAnswer(data);
+    if (!answer) return { state: "unavailable" };
+    return { state: "ready", ...answer, viewerId: access.user.id };
   } catch {
     return { state: "unavailable" };
   }
