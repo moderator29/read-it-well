@@ -137,7 +137,7 @@ export default async function PriceCheckPage({
     stateCode ? areaCensus(stateCode, null, area, intent) : Promise.resolve(null),
     stateCode ? utilityFacts(stateCode, null, area) : Promise.resolve(null),
     // V-39: what tenancies here actually settled at, beside the asking report.
-    stateCode ? areaPaid(stateCode, null, area) : Promise.resolve(null),
+    stateCode && area ? areaPaid(stateCode, area) : Promise.resolve(undefined),
   ]);
 
   const result =

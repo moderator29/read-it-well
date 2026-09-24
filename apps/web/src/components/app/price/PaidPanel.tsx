@@ -1,5 +1,6 @@
 import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
 import type { PaidRow } from "@/lib/after-gate/paid-prices";
+import { bpsAsPercentText } from "@/lib/money/percent";
 import { Section, TYPE } from "@/components/app/Screen";
 
 /**
@@ -7,9 +8,10 @@ import { Section, TYPE } from "@/components/app/Screen";
  *
  * Three states and none of them is a zero: a read that failed says so; a
  * cell below the crowd floor (five settled tenancies from three listers) says
- * exactly what the floor is, which is every area today; and a row, when there
- * is one, prints the move-in range, how many tenancies stand behind it, the
- * month range and the median fee share. Month and year only: a day would be
+ * exactly what the floor is, which is every area today; no chosen area says
+ * to choose one; and a row, when there is one, prints the move-in range, a
+ * band for how many tenancies stand behind it, the month range and the
+ * median fee share. Month and year only: a day would be
  * precision the crowd rule was built to withhold.
  */
 function monthYear(iso: string | null, locale: Locale): string {
@@ -25,14 +27,19 @@ export function PaidPanel({
   copy,
   typeNames,
 }: {
-  rows: PaidRow[] | null;
+  /** Undefined when no area is chosen: the figures are only ever per area. */
+  rows: PaidRow[] | null | undefined;
   locale: Locale;
   copy: Dictionary["afterTheGate"]["paid"];
   typeNames: Record<string, string>;
 }) {
   return (
     <Section title={copy.heading} description={copy.lede} divided>
-      {rows === null ? (
+      {rows === undefined ? (
+        <p className={TYPE.body} data-testid="paid-needs-area">
+          {copy.needsArea}
+        </p>
+      ) : rows === null ? (
         <p className={TYPE.body} data-testid="paid-unavailable">
           {copy.unavailable}
         </p>
@@ -53,11 +60,11 @@ export function PaidPanel({
                   )
                   .replace("{low}", formatMoney(row.p25Minor, locale))
                   .replace("{high}", formatMoney(row.p75Minor, locale))
-                  .replace("{count}", String(row.tenancyCount))}
+                  .replace("{band}", row.tenancyBand === "10+" ? copy.bandMany : copy.bandFew)}
               </p>
               {row.feeShareBps !== null && (
                 <p className={`mt-2xs ${TYPE.rowMeta}`}>
-                  {copy.feeShare.replace("{percent}", String(Math.round(row.feeShareBps / 100)))}
+                  {copy.feeShare.replace("{percent}", bpsAsPercentText(row.feeShareBps))}
                 </p>
               )}
               {row.oldestAt && row.newestAt && (

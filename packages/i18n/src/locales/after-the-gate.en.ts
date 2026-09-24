@@ -185,13 +185,16 @@ export const afterTheGateEn = {
   paid: {
     heading: "What people actually paid",
     lede: "Move-in totals settled through Vallo in the last 12 months. Asking prices are what listers hope for; these are what tenants paid.",
-    row: "{type}, {beds}: move-in {low} to {high}, from {count} tenancies",
-    feeShare: "Fees on top of the rent: {percent}% of the rent, at the median.",
+    row: "{type}, {beds}: move-in {low} to {high}, from {band} tenancies",
+    bandFew: "5 to 9",
+    bandMany: "10 or more",
+    feeShare: "Fees on top of the rent: about {percent}% of the rent, at the median.",
     months: "Paid between {from} and {to}.",
     bedsOne: "1 bedroom",
     bedsMany: "{count} bedrooms",
     empty: "No paid figures here yet. We show them once at least five tenancies from at least three different listers have settled in this area, so no single payment or agent can be read from them.",
     unavailable: "The paid figures could not be read just now.",
+    needsArea: "Choose an area to see what tenancies there actually settled at. We only ever show them one area at a time.",
   },
   receipt: {
     /** The tenancy file's proof block. */
