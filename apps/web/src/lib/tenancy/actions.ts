@@ -5,11 +5,16 @@
  *
  * Every write here is one call to a security-definer door that checks who is
  * calling and what may change (`propose_caution_deduction`,
- * `answer_caution_deduction`, `record_caution_return`, `save_tenancy_report`,
+ * `answer_caution_deduction`, `save_tenancy_report`,
  * `add_tenancy_report_photo`, `countersign_tenancy_report`), made on the
- * caller's own session client so `auth.uid()` is the person. No service role,
- * and nothing here moves money: a caution return is a transfer the lister
- * already made from their own wallet, which this only links to the record.
+ * caller's own session client so `auth.uid()` is the person.
+ *
+ * THE ONE EXCEPTION MOVES MONEY. `returnCaution` sends the lister's own money
+ * to the tenant's wallet through `return_caution`, which wraps the ordinary
+ * wallet transfer and, like it, is reachable by the service role only: money
+ * never moves from a browser. It passes the same gates as the Send page (the
+ * wallet flag and the money limits) before it names the signed-in lister to
+ * the door.
  *
  * Each door answers a status word; this file turns it into the sentence the
  * person reads. An unknown word is a service fault, said as one.
@@ -22,25 +27,30 @@ import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE, resolveSession } from "../actions/session";
 import { ROOM_ITEMS } from "../inspections/report";
 import { parseNairaToKobo } from "../agent/listings-schema";
+import { isFeatureEnabled } from "../flags";
+import { guardMoney } from "../security/money-limits";
+import { getAdminClient } from "../wallet/ledger";
+import { callMoneyRpc } from "../wallet/rpc";
 
+const WALLET_OFF = "The wallet is switched off for a moment. Nothing was sent. Try again shortly.";
 const SERVICE_DOWN = "That did not go through. Nothing was changed. Try again in a moment.";
 
 const STATUS_WORDS: Record<string, string> = {
   not_found: "We could not find that on your tenancy.",
   bad_item: "Choose one of the eight rooms.",
   bad_amount: "Enter an amount above zero.",
-  needs_move_out_photo: "Choose a photograph from the move-out report. A deduction needs one.",
+  needs_move_out_photo: "Choose a photograph from your move-out report, submitted after the tenancy ended. A deduction needs one.",
   exceeds_caution: "That is more than is left of the caution.",
   bad_answer: "Choose accept or dispute.",
   already_answered: "You have already answered that line.",
-  no_such_transfer: "No transfer with that reference was found in your wallet.",
-  not_a_transfer_to_the_tenant: "That reference is not a completed transfer from your wallet to this tenant.",
-  before_the_tenancy: "That transfer was made before this tenancy began.",
-  already_linked: "That transfer is already recorded.",
+  void: "This tenancy was cancelled or refunded, so no caution is owed on it.",
+  not_ended: "Deductions open once the tenancy has ended.",
+  already_returned: "That return has already gone through.",
+  insufficient: "There is not enough in your wallet for this amount.",
+  no_such_file: "That photo did not finish uploading. Upload it again.",
   bad_stage: "That report does not exist.",
   not_paid: "The tenancy file opens when the move-in payment has settled.",
   not_open_yet: "This report is not open yet.",
-  other_party_writes: "The other party is writing this report. You countersign it once they submit.",
   submitted: "This report has been submitted and is now fixed.",
   needs_all_eight: "Tick all eight rooms before you submit.",
   bad_path: "That photo could not be attached. Upload it again.",
@@ -126,25 +136,45 @@ export async function answerCautionDeduction(input: {
   );
 }
 
-export async function recordCautionReturn(input: {
+export async function returnCaution(input: {
   tenancyId: string;
   obligationId: string;
-  reference: string;
+  amountNaira: string;
 }): Promise<ActionResult<Record<string, unknown>>> {
   const parsed = validate(
-    z.object({
-      tenancyId: uuid,
-      obligationId: uuid,
-      reference: z.string().trim().min(4, "Paste the transfer reference.").max(120),
-    }),
+    z.object({ tenancyId: uuid, obligationId: uuid, amountNaira: z.string() }),
     input,
   );
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
-  return door(
-    "record_caution_return",
-    { p_obligation: parsed.data.obligationId, p_reference: parsed.data.reference },
-    `/tenancy/${parsed.data.tenancyId}`,
+  const amount = parseNairaToKobo(parsed.data.amountNaira);
+  if (amount === null || amount <= 0) {
+    return fail("Enter an amount above zero.", { amountNaira: "Enter an amount above zero." });
+  }
+  if (!(await isFeatureEnabled("wallet"))) return fail(WALLET_OFF);
+
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+  const limit = await guardMoney("transferToUser", session.user.id);
+  if (!limit.allowed) return fail(limit.message);
+  const admin = getAdminClient();
+  if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
+
+  const call = await callMoneyRpc(
+    admin,
+    "transfer",
+    "return_caution",
+    { p_obligation: parsed.data.obligationId, p_amount: amount, p_lister: session.user.id },
+    { amountMinor: amount, userId: session.user.id },
   );
+  if (call.outcome !== "ok" || typeof call.data !== "object" || call.data === null) {
+    return fail(SERVICE_DOWN);
+  }
+  const answer = call.data as Record<string, unknown>;
+  if (answer.status !== "ok") return fail(STATUS_WORDS[String(answer.status)] ?? SERVICE_DOWN);
+  revalidatePath(`/tenancy/${parsed.data.tenancyId}`);
+  revalidatePath("/wallet");
+  return ok(answer);
 }
 
 export async function saveTenancyReport(input: {

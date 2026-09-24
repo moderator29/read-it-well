@@ -6,7 +6,8 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, FactGrid, Section, Stack, TYPE } from "@/components/app/Screen";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { ROOM_COPY } from "@/lib/inspections/report";
-import { DeductionAnswer, ProposeDeduction, RecordReturn } from "@/components/app/tenancy/CautionControls";
+import { DeductionAnswer, ProposeDeduction, ReturnCaution } from "@/components/app/tenancy/CautionControls";
+import { koboToNairaInput } from "@/lib/agent/listings-schema";
 import { TenancyReportCard } from "@/components/app/tenancy/TenancyReportCard";
 import { ReceiptCodePanel } from "@/components/app/tenancy/ReceiptCodePanel";
 
@@ -25,7 +26,9 @@ export const dynamic = "force-dynamic";
  * caution, what was promised, and the record of the flat.
  *
  * THE AREA, NEVER THE ADDRESS. The page names the area and city only, like
- * every other surface; the promise snapshot never carried the address.
+ * every other surface. The promise snapshot never copies the address,
+ * landmark or coordinates; its title and description are the lister's own
+ * words as written.
  *
  * A tenancy that is not the reader's answers exactly as one that does not
  * exist, so a stranger guessing ids learns nothing. A read that failed says
@@ -84,7 +87,7 @@ export default async function TenancyPage({ params }: { params: Promise<{ id: st
         <div className="mt-md grid gap-md sm:grid-cols-2">
           {file.reports.map((report) => (
             <TenancyReportCard
-              key={report.stage}
+              key={`${report.stage}-${report.id ?? "new"}`}
               tenancyId={file.id}
               report={report}
               copy={copy}
@@ -94,10 +97,8 @@ export default async function TenancyPage({ params }: { params: Promise<{ id: st
           ))}
         </div>
       </Section>
-      <Section title={copy.pinsHeading} divided>
-        {file.pins.length === 0 ? (
-          <p className={TYPE.body}>{copy.pinsNone}</p>
-        ) : (
+      {file.pins.length > 0 && (
+        <Section title={copy.pinsHeading} divided>
           <ul className="grid gap-sm">
             {file.pins.map((pin) => (
               <li key={pin.id} className="nf-card p-card">
@@ -106,9 +107,9 @@ export default async function TenancyPage({ params }: { params: Promise<{ id: st
               </li>
             ))}
           </ul>
-        )}
-        <p className="nf-caption mt-md">{copy.retention.replace("{date}", file.keptUntilLabel)}</p>
-      </Section>
+        </Section>
+      )}
+      <p className="nf-caption">{copy.retention.replace("{date}", file.keptUntilLabel)}</p>
     </Stack>,
     file.area || undefined,
   );
@@ -146,8 +147,9 @@ function MoneySection({ file, copy }: { file: TenancyFile; copy: Copy }) {
           <dd className="nf-body nf-numeric font-semibold">{file.total}</dd>
         </div>
       </dl>
-      <h3 className="nf-h4 mt-md">{copy.receiptsHeading}</h3>
-      {file.receipts.length === 0 ? (
+      {/* The lister cannot read the tenant's payment rows, so the receipts are the tenant's and staff's. */}
+      {file.viewer !== "lister" && <h3 className="nf-h4 mt-md">{copy.receiptsHeading}</h3>}
+      {file.viewer === "lister" ? null : file.receipts.length === 0 ? (
         <p className={`mt-xs ${TYPE.body}`}>{copy.noReceipt}</p>
       ) : (
         <ul className="mt-xs grid gap-xs">
@@ -171,7 +173,11 @@ function CautionSection({ file, copy }: { file: TenancyFile; copy: Copy }) {
   const caution = file.caution;
   return (
     <Section title={copy.cautionHeading} divided>
-      {!caution ? (
+      {file.void ? (
+        <p className={TYPE.body} data-testid="tenancy-caution-void">
+          {copy.cautionVoid}
+        </p>
+      ) : !caution ? (
         <p className={TYPE.body} data-testid="tenancy-caution-empty">
           {file.cautionPending ? copy.cautionNotOpen : copy.cautionNone}
         </p>
@@ -237,25 +243,35 @@ function CautionSection({ file, copy }: { file: TenancyFile; copy: Copy }) {
               <div className="nf-panel nf-panel--card block p-md">
                 <h3 className="nf-h4">{copy.proposeHeading}</h3>
                 <div className="mt-sm">
-                  <ProposeDeduction
-                    tenancyId={file.id}
-                    obligationId={caution.obligationId}
-                    copy={copy}
-                    photos={(file.reports.find((report) => report.stage === "move_out")?.photos ?? []).map((photo, index) => ({
-                      id: photo.id,
-                      item: photo.item,
-                      label: `${photo.item ? ROOM_COPY[photo.item].title : copy.moveOut} ${index + 1}`,
-                    }))}
-                  />
+                  {file.ended ? (
+                    <ProposeDeduction
+                      tenancyId={file.id}
+                      obligationId={caution.obligationId}
+                      copy={copy}
+                      photos={file.reports
+                        .filter((report) => report.stage === "move_out" && report.authorIsViewer && report.submitted)
+                        .flatMap((report) => report.photos)
+                        .map((photo, index) => ({
+                          id: photo.id,
+                          item: photo.item,
+                          label: `${photo.item ? ROOM_COPY[photo.item].title : copy.moveOut} ${index + 1}`,
+                        }))}
+                    />
+                  ) : (
+                    <p className="nf-body-sm text-[var(--nf-content-secondary)]">
+                      {copy.proposeNotEnded.replace("{date}", file.endsOnLabel)}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="nf-panel nf-panel--card block p-md">
                 <h3 className="nf-h4">{copy.returnHeading}</h3>
                 <div className="mt-sm">
-                  <RecordReturn
+                  <ReturnCaution
                     tenancyId={file.id}
                     obligationId={caution.obligationId}
-                    sendHref={`/wallet/send?note=${encodeURIComponent("Caution return")}`}
+                    outstanding={caution.outstanding}
+                    outstandingNaira={koboToNairaInput(caution.outstandingMinor)}
                     copy={copy}
                   />
                 </div>

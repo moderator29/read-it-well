@@ -3,13 +3,13 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Dictionary } from "@vallo/i18n";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { ROOM_COPY, ROOM_ITEMS, type RoomItem } from "@/lib/inspections/report";
 import {
   answerCautionDeduction,
   proposeCautionDeduction,
-  recordCautionReturn,
+  returnCaution,
 } from "@/lib/tenancy/actions";
 
 type Copy = Dictionary["afterTheGate"]["tenancy"];
@@ -19,8 +19,8 @@ type Copy = Dictionary["afterTheGate"]["tenancy"];
  *
  * The tenant answers each deduction line once: accept or dispute. The lister
  * proposes a line (a room, an amount, a move-out photograph: no lump sums),
- * and records a return by pasting the reference of a transfer they already
- * made from their own wallet. Every rule is enforced by the database door;
+ * and returns caution money from their own wallet to the tenant's in one
+ * step, which lands on the record as it goes through. Every rule is enforced by the database door;
  * these forms only collect the facts and say what came back.
  */
 
@@ -157,44 +157,46 @@ export function ProposeDeduction({
   );
 }
 
-export function RecordReturn({
+export function ReturnCaution({
   tenancyId,
   obligationId,
-  sendHref,
+  outstanding,
+  outstandingNaira,
   copy,
 }: {
   tenancyId: string;
   obligationId: string;
-  sendHref: string;
+  /** The formatted amount still owed, for the help line. */
+  outstanding: string;
+  /** The same amount as plain naira, to prefill the field. */
+  outstandingNaira: string;
   copy: Copy;
 }) {
   const { pending, error, run } = useRun();
-  const [reference, setReference] = useState("");
+  const [amount, setAmount] = useState(outstandingNaira);
   return (
     <form
       className="grid gap-md"
       data-testid="caution-return"
       onSubmit={(event) => {
         event.preventDefault();
-        run(() => recordCautionReturn({ tenancyId, obligationId, reference }));
+        run(() => returnCaution({ tenancyId, obligationId, amountNaira: amount }));
       }}
     >
-      <p className="nf-body-sm text-[var(--nf-content-secondary)]">{copy.returnHelp}</p>
-      <ButtonLink href={sendHref} variant="secondary" full trailingIcon="arrow-right">
-        {copy.returnSend}
-      </ButtonLink>
-      <Field label={copy.returnReference} error={error ?? undefined}>
+      <p className="nf-body-sm text-[var(--nf-content-secondary)]">{copy.returnHelp.replace("{outstanding}", outstanding)}</p>
+      <Field label={copy.returnAmount} error={error ?? undefined}>
         {(control) => (
           <input
             {...control}
             className="nf-field"
+            inputMode="decimal"
             autoComplete="off"
-            value={reference}
-            onChange={(e) => setReference(e.target.value)}
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
           />
         )}
       </Field>
-      <Button type="submit" variant="primary" full loading={pending} disabled={pending || reference.trim().length < 4}>
+      <Button type="submit" variant="primary" full loading={pending} disabled={pending || amount.trim().length === 0}>
         {copy.returnSubmit}
       </Button>
     </form>

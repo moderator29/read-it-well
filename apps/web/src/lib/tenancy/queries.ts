@@ -29,8 +29,14 @@ import {
  * are reached through the untyped view of the same client and every row is
  * read defensively: a malformed row is dropped, never drawn as a zero.
  *
- * NOTHING HERE LOCATES THE FLAT. The listing is read for its title, area and
- * city; the promise snapshot never carried the address.
+ * NOTHING HERE LOCATES THE FLAT BY ITSELF. The listing is read for its title,
+ * area and city, and the promise snapshot never copies the address, landmark
+ * or coordinates. The title and description are the lister's own words,
+ * copied as written, so they say whatever the lister chose to say.
+ *
+ * EACH PARTY WRITES THEIR OWN REPORT of each stage, so a stage can hold two
+ * reports: the viewer's own (writable while it is a draft) and the other
+ * party's (countersignable once submitted).
  */
 
 export type TenancyMoneyLine = { label: string; display: string };
@@ -57,6 +63,7 @@ export type TenancyCaution = {
   returned: string;
   deducted: string;
   outstanding: string;
+  outstandingMinor: number;
   deductions: TenancyDeduction[];
   returns: { amount: string; date: string }[];
 };
@@ -65,6 +72,7 @@ export type TenancyReportView = {
   stage: "move_in" | "move_out";
   id: string | null;
   authorIsViewer: boolean;
+  submitted: boolean;
   status: ReportStatus;
   items: Partial<Record<RoomItem, boolean>>;
   notes: string | null;
@@ -84,6 +92,10 @@ export type TenancyFile = {
   keptUntilLabel: string;
   rentPeriod: RentPeriod;
   paid: boolean;
+  /** The tenancy has ended (Lagos day), so deductions may be proposed. */
+  ended: boolean;
+  /** The charge was cancelled, refunded or reversed: nothing is owed on it. */
+  void: boolean;
   lines: TenancyMoneyLine[];
   total: string;
   receipts: TenancyReceipt[];
@@ -169,7 +181,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
     const endsOn = tenancyEnd(rp.move_in, period);
     const today = lagosToday(now);
 
-    const [listingRead, txRead, snapshotRead, obligationRead, reportsRead, viewingRead, pinsRead, codeRead] = await Promise.all([
+    const [listingRead, txRead, snapshotRead, obligationRead, reportsRead, viewingRead, pinsRead, codeRead, voidRead] = await Promise.all([
       db.from("listings").select("title, area, city, agent_id").eq("id", rp.listing_id).maybeSingle(),
       db
         .from("transactions")
@@ -191,6 +203,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         .is("revoked_at", null)
         .order("created_at", { ascending: false })
         .limit(1),
+      loose.rpc("tenancy_is_void", { p_rent_payment: id }),
     ]);
 
     const listing = listingRead.data;
@@ -268,6 +281,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         returned: money(reading.returnedMinor),
         deducted: money(reading.deductedMinor),
         outstanding: money(reading.outstandingMinor),
+        outstandingMinor: reading.outstandingMinor,
         deductions,
         returns: returns.map((row) => ({ amount: money(row.amountMinor), date: day(row.date) })),
       };
@@ -289,8 +303,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
       const { data } = await db.storage.from("tenancy-evidence").createSignedUrls(paths, 3600);
       for (const entry of data ?? []) if (entry.path && entry.signedUrl) signed.set(entry.path, entry.signedUrl);
     }
-    const reports: TenancyReportView[] = (["move_in", "move_out"] as const).map((stage) => {
-      const row = reportRows.find((candidate) => candidate.stage === stage) ?? null;
+    const toView = (stage: "move_in" | "move_out", row: Row | null): TenancyReportView => {
       const reportId = row ? str(row.id) : null;
       const items: Partial<Record<RoomItem, boolean>> = {};
       for (const item of rows(itemsRead.data)) {
@@ -299,7 +312,8 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
       return {
         stage,
         id: reportId,
-        authorIsViewer: row ? row.author_id === session.user.id : false,
+        authorIsViewer: row ? row.author_id === session.user.id : viewer !== "staff",
+        submitted: row ? str(row.submitted_at) !== null : false,
         status: reportStatus({
           opensOn: stage === "move_in" ? rp.move_in : moveOutOpensOn(rp.move_in, period),
           today,
@@ -316,11 +330,20 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
             url: signed.get(String(photo.storage_path)) ?? null,
           })),
       };
+    };
+    // Per stage: the viewer's own report first (an empty one to start, for a
+    // party), then every report the other side wrote.
+    const reports: TenancyReportView[] = (["move_in", "move_out"] as const).flatMap((stage) => {
+      const own = reportRows.find((row) => row.stage === stage && row.author_id === session.user.id) ?? null;
+      const others = reportRows.filter((row) => row.stage === stage && row.author_id !== session.user.id);
+      const views = others.map((row) => toView(stage, row));
+      return viewer === "staff" ? views : [toView(stage, own), ...views];
     });
     // Each deduction shows the move-out photograph it was proposed against.
     if (caution) {
-      const moveOut = reports.find((report) => report.stage === "move_out");
-      const byId = new Map((moveOut?.photos ?? []).map((photo) => [photo.id, photo.url]));
+      const byId = new Map(
+        reports.filter((report) => report.stage === "move_out").flatMap((report) => report.photos.map((photo): [string, string | null] => [photo.id, photo.url])),
+      );
       caution.deductions = caution.deductions.map((deduction) => ({
         ...deduction,
         photoUrl: deduction.photoId ? (byId.get(deduction.photoId) ?? null) : null,
@@ -370,7 +393,12 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         endsOnLabel: day(endsOn),
         keptUntilLabel: day(keptUntil(rp.move_in, period)),
         rentPeriod: period,
-        paid: receipts.length > 0,
+        // The lister cannot read the tenant's transactions under RLS, so the
+        // snapshot, written in the same transaction as the settlement, also
+        // says the charge was paid.
+        paid: receipts.length > 0 || snap !== null,
+        ended: today >= endsOn,
+        void: voidRead.error ? false : voidRead.data === true,
         lines: (ledger?.lines ?? []).map((line) => ({ label: line.label, display: money(line.minor) })),
         total: money(rp.total_minor),
         receipts,

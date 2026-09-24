@@ -4,7 +4,10 @@
 -- six months later: no copy of what the listing promised, no row saying the
 -- caution is owed back, no date the tenancy ends. This file adds those
 -- records AROUND the existing `rent_payments` and `transactions` rows. It
--- changes no money function and moves no money.
+-- changes no money function. The one door here that moves money,
+-- `return_caution`, CALLS the existing wallet-to-wallet transfer
+-- (`private.transfer_between_wallets`, unchanged) from the lister's own wallet
+-- to the tenant's, exactly as the Send page does.
 --
 -- EVERYTHING HERE IS A SIDE TABLE, and every one is append-only:
 --
@@ -13,8 +16,8 @@
 --   caution_deductions      itemised lines against it, each tied to a
 --                           move-out photograph (V-54's report photos)
 --   caution_deduction_answers  the tenant's accept or dispute, once per line
---   caution_returns         a completed wallet-to-wallet transfer from the
---                           lister to the tenant, linked to the obligation
+--   caution_returns         a wallet-to-wallet return from the lister to the
+--                           tenant, made through `return_caution`
 --   tenancy_pins            messages either party pins as evidence
 --
 -- WHERE A STATE WOULD USUALLY BE A COLUMN, IT IS DERIVED AT READ TIME. An
@@ -23,11 +26,19 @@
 -- its tests). A state column would be a second truth that could drift from
 -- the rows that justify it.
 --
--- NO CUSTODY. Vallo records the debt; it never holds the caution. The return
--- is an ordinary wallet transfer the lister makes from their own wallet
--- (`private.transfer_between_wallets`, untouched), and
--- `record_caution_return` only links a transfer that has already COMPLETED,
--- from the lister's wallet to the tenant's, to the obligation.
+-- NO CUSTODY. Vallo records the debt; it never holds the caution. A return
+-- is made only through `return_caution`, which moves the lister's own money
+-- to the tenant's wallet through the ordinary transfer, under a reference
+-- derived from the obligation and what it has already covered, so a double
+-- tap is the same transfer twice and the second is a no-op. It is clamped so
+-- returns plus accepted deductions can never exceed the caution. A transfer
+-- made any other way is never counted as a caution return, so a refund, a
+-- round trip or an unrelated payment cannot inflate the record.
+--
+-- A VOID TENANCY OWES NOTHING. A rent charge whose booking was CANCELLED, or
+-- that was refunded (`booking_refunds`) or reversed by the lister
+-- (`rent_refunds_owed`), makes its obligation void: no reminders, no
+-- deductions, no returns, and it is left out of the lister's record.
 --
 -- THE RECORDS OPEN AT PAYMENT, NOT AT CHARGE. A rent charge is opened before it
 -- is paid and can lapse unpaid, so the snapshot and the obligation are written
@@ -104,6 +115,59 @@ grant execute on function private.caution_return_days() to authenticated;
 grant execute on function private.tenancy_party(uuid) to authenticated;
 grant execute on function private.is_staff() to authenticated;
 
+/* A tenancy is void when its charge was cancelled, refunded or reversed. */
+create or replace function private.tenancy_void(p_rent_payment uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path to ''
+as $function$
+  select exists (
+    select 1 from public.rent_payments rp
+      join public.bookings b on b.id = rp.booking_id
+     where rp.id = p_rent_payment
+       and (b.status = 'CANCELLED'
+            or exists (select 1 from public.booking_refunds r where r.booking_id = b.id and r.refund_minor > 0)
+            or exists (select 1 from public.rent_refunds_owed o where o.booking_id = b.id))
+  );
+$function$;
+
+revoke all on function private.tenancy_void(uuid) from public, anon;
+grant execute on function private.tenancy_void(uuid) to authenticated;
+
+/* The tenancy file asks the same question for its reader: a party learns
+   whether their own tenancy is void, and a stranger learns nothing. */
+create or replace function public.tenancy_is_void(p_rent_payment uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path to ''
+as $function$
+  select (private.tenancy_party(p_rent_payment) or private.is_staff())
+     and private.tenancy_void(p_rent_payment);
+$function$;
+
+revoke all on function public.tenancy_is_void(uuid) from public, anon;
+grant execute on function public.tenancy_is_void(uuid) to authenticated;
+
+/* Tell the other party, and never fail the write that prompted it. */
+create or replace function private.tenancy_tell(p_user uuid, p_title text, p_body text, p_rent_payment uuid)
+returns void
+language plpgsql
+security definer
+set search_path to 'pg_catalog', 'public'
+as $function$
+begin
+  perform private.notify(p_user, 'booking'::public.notification_kind, p_title, p_body, '/tenancy/' || p_rent_payment);
+exception when others then
+  null;
+end;
+$function$;
+
+revoke all on function private.tenancy_tell(uuid, text, text, uuid) from public, anon, authenticated;
+
 /* One append-only guard for every table in this file. */
 create or replace function private.tenancy_record_is_frozen()
 returns trigger
@@ -128,13 +192,12 @@ create table if not exists public.tenancy_snapshots (
   rent_payment_id uuid primary key references public.rent_payments(id) on delete cascade,
   listing         jsonb not null,
   amenities       text[] not null default '{}',
-  photo_paths     text[] not null default '{}',
   taken_at        timestamptz not null default now(),
   constraint tenancy_snapshots_listing_is_object check (jsonb_typeof(listing) = 'object')
 );
 
 comment on table public.tenancy_snapshots is
-  'V-47. The listing as it stood at the moment of payment: facts, utilities, description, amenities and photo paths. Never the address, landmark or coordinates. Append-only; kept to tenancy end plus six years.';
+  'V-47. The listing as it stood at the moment of payment: facts, utilities, the lister''s own title and description as written, and amenities. The address, landmark and coordinate columns are never copied; the title and description are the lister''s free text and are copied as written. Append-only; kept to tenancy end plus six years.';
 
 /* ------------------------------------------------------------ V-36 register */
 
@@ -240,9 +303,8 @@ create policy caution_returns_read on public.caution_returns for select to authe
   using (exists (select 1 from public.caution_obligations o where o.id = obligation_id));
 create policy tenancy_pins_read on public.tenancy_pins for select to authenticated
   using (private.tenancy_party(rent_payment_id) or private.is_staff());
--- A pin: by a party, as themselves, of a message they can read (the messages
--- RLS decides that inside the subquery) in a thread about this tenancy's
--- listing.
+-- A pin: by a party, as themselves, of a message in THE conversation between
+-- this tenant and this lister about this listing, and nowhere else.
 create policy tenancy_pins_insert on public.tenancy_pins for insert to authenticated
   with check (
     pinned_by = (select auth.uid())
@@ -254,6 +316,8 @@ create policy tenancy_pins_insert on public.tenancy_pins for insert to authentic
         join public.rent_payments rp on rp.id = tenancy_pins.rent_payment_id
        where m.id = tenancy_pins.message_id
          and c.listing_id = rp.listing_id
+         and c.guest_id = rp.tenant_id
+         and c.agent_id = rp.lister_id
     )
   );
 
@@ -287,11 +351,12 @@ begin
   select * into lst from public.listings where id = rp.listing_id;
 
   if lst.id is not null then
-    insert into public.tenancy_snapshots (rent_payment_id, listing, amenities, photo_paths)
+    insert into public.tenancy_snapshots (rent_payment_id, listing, amenities)
     values (
       rp.id,
-      -- The promise, and nothing that locates the flat: no address, landmark,
-      -- coordinates or location. Area and state only.
+      -- The promise. The address, landmark and coordinate columns are never
+      -- copied; the title and description are the lister's own words, copied
+      -- as written, because they are the promise.
       jsonb_build_object(
         'title', lst.title, 'description', lst.description,
         'property_type', lst.property_type, 'area', lst.area, 'city', lst.city,
@@ -306,9 +371,7 @@ begin
       ),
       coalesce((select array_agg(a.code order by a.code)
                   from public.listing_amenities la join public.amenities a on a.id = la.amenity_id
-                 where la.listing_id = lst.id), '{}'),
-      coalesce((select array_agg(p.storage_path order by p.position)
-                  from public.listing_photos p where p.listing_id = lst.id), '{}')
+                 where la.listing_id = lst.id), '{}')
     )
     on conflict (rent_payment_id) do nothing;
   end if;
@@ -378,9 +441,10 @@ end $$;
 
 /* ------------------------------------------------------------ the doors */
 
-/* The lister proposes one itemised deduction. The photo must be a move-out
-   photo of this tenancy (V-54's tenancy_report_photos, created in the next
-   migration; checked by name at call time). */
+/* The lister proposes one itemised deduction, against a photograph from
+   THEIR OWN SUBMITTED move-out report (V-54), and only once the tenancy has
+   ended: a draft report, or one written while the tenant still lives there,
+   is not evidence of what the tenant left behind. */
 create or replace function public.propose_caution_deduction(
   p_obligation uuid, p_item text, p_amount bigint, p_photo uuid, p_note text default null)
 returns jsonb
@@ -398,6 +462,12 @@ begin
   if o.id is null or o.lister_id <> (select auth.uid()) then
     return jsonb_build_object('status', 'not_found');
   end if;
+  if private.tenancy_void(o.rent_payment_id) then
+    return jsonb_build_object('status', 'void');
+  end if;
+  if o.tenancy_end > (now() at time zone 'Africa/Lagos')::date then
+    return jsonb_build_object('status', 'not_ended');
+  end if;
   if p_item is null or p_item not in ('exterior','interior','kitchen','bathrooms','utilities','appliances','safety','overall') then
     return jsonb_build_object('status', 'bad_item');
   end if;
@@ -408,7 +478,12 @@ begin
     select 1
       from public.tenancy_report_photos ph
       join public.tenancy_reports r on r.id = ph.report_id
-     where ph.id = p_photo and r.rent_payment_id = o.rent_payment_id and r.stage = 'move_out'
+     where ph.id = p_photo
+       and r.rent_payment_id = o.rent_payment_id
+       and r.stage = 'move_out'
+       and r.author_id = o.lister_id
+       and r.submitted_at is not null
+       and (r.submitted_at at time zone 'Africa/Lagos')::date >= o.tenancy_end
   ) then
     return jsonb_build_object('status', 'needs_move_out_photo');
   end if;
@@ -424,6 +499,8 @@ begin
   insert into public.caution_deductions (obligation_id, item, amount_minor, photo_id, note, proposed_by)
   values (o.id, p_item, p_amount, p_photo, nullif(btrim(coalesce(p_note, '')), ''), (select auth.uid()))
   returning id into new_id;
+  perform private.tenancy_tell(o.tenant_id, 'A deduction was proposed from your caution',
+                               'Accept or dispute it in your tenancy file.', o.rent_payment_id);
   return jsonb_build_object('status', 'ok', 'deduction_id', new_id);
 end;
 $function$;
@@ -453,48 +530,73 @@ begin
   if not found then
     return jsonb_build_object('status', 'already_answered');
   end if;
+  perform private.tenancy_tell(o.lister_id,
+    case when p_answer = 'accepted' then 'A caution deduction was accepted' else 'A caution deduction was disputed' end,
+    'See the answer in the tenancy file.', o.rent_payment_id);
   return jsonb_build_object('status', 'ok');
 end;
 $function$;
 
-/* The lister links a transfer they already made to the tenant. Only a
-   COMPLETED transfer_out from the lister's own wallet, to this tenant, after
-   the obligation opened, and never twice. */
-create or replace function public.record_caution_return(p_obligation uuid, p_reference text)
+/* The lister returns caution money from their own wallet to the tenant's.
+   The ordinary transfer does the moving; the reference is derived from the
+   obligation and what it already covers, so a repeat of the same tap is the
+   same transfer and is refused as a duplicate. SERVICE ROLE ONLY, like the
+   transfer it wraps: money never moves from a browser. The server action
+   checks the session, the wallet flag and the money limits, then names the
+   caller as p_lister. */
+create or replace function public.return_caution(p_obligation uuid, p_amount bigint, p_lister uuid)
 returns jsonb
 language plpgsql
 security definer
 set search_path to 'pg_catalog', 'public'
 as $function$
 declare
-  o     public.caution_obligations%rowtype;
-  e     public.wallet_entries%rowtype;
-  owner uuid;
+  o        public.caution_obligations%rowtype;
+  returned bigint;
+  accepted bigint;
+  outcome  text;
+  out_ref  text;
+  pair     uuid;
+  entry    public.wallet_entries%rowtype;
 begin
   select * into o from public.caution_obligations where id = p_obligation for update;
-  if o.id is null or o.lister_id <> (select auth.uid()) then
+  if o.id is null or p_lister is null or o.lister_id <> p_lister then
     return jsonb_build_object('status', 'not_found');
   end if;
-  select * into e from public.wallet_entries where reference = btrim(coalesce(p_reference, ''));
-  if e.id is null then
-    return jsonb_build_object('status', 'no_such_transfer');
+  if private.tenancy_void(o.rent_payment_id) then
+    return jsonb_build_object('status', 'void');
   end if;
-  select w.user_id into owner from public.wallets w where w.id = e.wallet_id;
-  if owner is distinct from o.lister_id
-     or e.kind <> 'transfer_out' or e.status <> 'COMPLETED'
-     or (e.metadata ->> 'counterparty_user_id') is distinct from o.tenant_id::text then
-    return jsonb_build_object('status', 'not_a_transfer_to_the_tenant');
+  if p_amount is null or p_amount <= 0 then
+    return jsonb_build_object('status', 'bad_amount');
   end if;
-  if e.created_at < o.opened_at then
-    return jsonb_build_object('status', 'before_the_tenancy');
+  select coalesce(sum(r.amount_minor), 0) into returned from public.caution_returns r where r.obligation_id = o.id;
+  select coalesce(sum(d.amount_minor), 0) into accepted
+    from public.caution_deductions d
+    join public.caution_deduction_answers a on a.deduction_id = d.id and a.answer = 'accepted'
+   where d.obligation_id = o.id;
+  if returned + accepted + p_amount > o.amount_minor then
+    return jsonb_build_object('status', 'exceeds_caution');
   end if;
-  begin
-    insert into public.caution_returns (obligation_id, wallet_entry_id, reference, amount_minor, returned_at)
-    values (o.id, e.id, e.reference, e.amount_minor, e.created_at);
-  exception when unique_violation then
-    return jsonb_build_object('status', 'already_linked');
-  end;
-  return jsonb_build_object('status', 'ok', 'amount_minor', e.amount_minor);
+  -- The platform's own transfer shape (rm-p2p-<uuid>-out / -in, see
+  -- lib/payments/references.ts), with the uuid derived from the obligation and
+  -- what it already covers instead of drawn fresh: the same tap twice is the
+  -- same reference, and the ledger's unique index refuses the second.
+  pair := md5('caution:' || o.id || ':' || (returned + accepted))::uuid;
+  out_ref := 'rm-p2p-' || pair || '-out';
+  outcome := private.transfer_between_wallets(o.lister_id, o.tenant_id, p_amount, out_ref,
+                                              'rm-p2p-' || pair || '-in', 'Caution return');
+  if outcome = 'duplicate' then
+    return jsonb_build_object('status', 'already_returned');
+  end if;
+  if outcome <> 'ok' then
+    return jsonb_build_object('status', outcome);
+  end if;
+  select * into entry from public.wallet_entries where reference = out_ref;
+  insert into public.caution_returns (obligation_id, wallet_entry_id, reference, amount_minor, returned_at)
+  values (o.id, entry.id, out_ref, p_amount, entry.created_at);
+  perform private.tenancy_tell(o.tenant_id, 'Caution money is back in your wallet',
+                               'Your tenancy file shows what was returned.', o.rent_payment_id);
+  return jsonb_build_object('status', 'ok', 'amount_minor', p_amount);
 end;
 $function$;
 
@@ -516,6 +618,7 @@ as $function$
            (select max(r.returned_at) from public.caution_returns r where r.obligation_id = o.id) as last_return
       from public.caution_obligations o
      where o.lister_id = p_lister
+       and not private.tenancy_void(o.rent_payment_id)
   ), settled as (
     select * from per where returned + deducted >= amount_minor
   )
@@ -529,11 +632,11 @@ $function$;
 
 revoke all on function public.propose_caution_deduction(uuid, text, bigint, uuid, text) from public, anon;
 revoke all on function public.answer_caution_deduction(uuid, text) from public, anon;
-revoke all on function public.record_caution_return(uuid, text) from public, anon;
+revoke all on function public.return_caution(uuid, bigint, uuid) from public, anon, authenticated;
 revoke all on function public.lister_caution_record(uuid) from public, anon;
 grant execute on function public.propose_caution_deduction(uuid, text, bigint, uuid, text) to authenticated;
 grant execute on function public.answer_caution_deduction(uuid, text) to authenticated;
-grant execute on function public.record_caution_return(uuid, text) to authenticated;
+grant execute on function public.return_caution(uuid, bigint, uuid) to service_role;
 grant execute on function public.lister_caution_record(uuid) to authenticated;
 
 /* ------------------------------------------------------------ retention */
@@ -581,6 +684,7 @@ begin
                       where d.obligation_id = ob.id), 0) as covered
       from public.caution_obligations ob
      where ob.due_on in (today + 30, today + 7, today)
+       and not private.tenancy_void(ob.rent_payment_id)
   loop
     if o.covered >= o.amount_minor then
       continue;
