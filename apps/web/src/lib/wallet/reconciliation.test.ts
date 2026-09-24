@@ -104,6 +104,12 @@ describe("a recovery is a missed webhook (MON-P2-03)", () => {
     );
   });
 
+  it("does not page on a charge paid inside the grace, whose webhook may still be in flight", async () => {
+    paystack.verifyTransaction.mockResolvedValue(successfulCharge({ paidAt: new Date(Date.now() - 60_000).toISOString() }));
+    await reconcileFundingReference(ADMIN, REFERENCE, ACTOR);
+    expect(alerts.recordAlert).not.toHaveBeenCalled();
+  });
+
   it("raises nothing when the ledger already had the credit", async () => {
     ledger.recordFunding.mockResolvedValue("duplicate");
     await reconcileFundingReference(ADMIN, REFERENCE, ACTOR);
