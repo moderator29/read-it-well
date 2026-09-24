@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { readPhotographedCaptions } from "@/lib/listings/photographed";
 import Link from "next/link";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -41,6 +42,8 @@ export default async function RentPage({
   const repo = getListingRepository();
   const messages = getMessageRepository();
   const rentals = await repo.search({ q, kind: "rental" });
+  /* V-70: which labelled shots each card's listing has, in one read. */
+  const photographedCaptions = await readPhotographedCaptions(rentals.map((r) => r.id), locale);
 
   /* The shortlist, so a hearted rental comes back hearted. Without this the
      card resolved the heart from the device store alone and a signed-in
@@ -133,7 +136,7 @@ export default async function RentPage({
           <ul className="grid grid-cols-1 gap-md sm:grid-cols-2 lg:grid-cols-3">
             {rentals.map((r) => (
               <li key={r.id} className="flex flex-col gap-sm">
-                <ListingCard listing={r} locale={locale} t={t} saved={savedIds.has(r.id)} />
+                <ListingCard listing={r} locale={locale} t={t} saved={savedIds.has(r.id)} photographed={photographedCaptions.get(r.id) ?? null} />
                 <ButtonLink
                   href={messageHrefs.get(r.id) ?? "/messages"}
                   variant="primary"

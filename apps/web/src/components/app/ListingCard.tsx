@@ -65,7 +65,10 @@ export function ListingCard({
   saved,
   wide = false,
   dense = false,
+  photographed = null,
 }: {
+  /** V-70: "Photographed: kitchen, prepaid meter", when the lister labelled photos. */
+  photographed?: string | null;
   listing: Listing;
   locale: Locale;
   t: Dictionary;
@@ -435,6 +438,12 @@ export function ListingCard({
             <p className="nf-pcard__sub mt-inline-tight inline-flex items-start gap-inline-tight">
               <UiIcon name="bolt" size={12} className="mt-3xs shrink-0" />
               <span className="break-words">{power}</span>
+            </p>
+          )}
+          {photographed && (
+            <p className="nf-pcard__sub mt-inline-tight inline-flex items-start gap-inline-tight" data-testid="card-photographed">
+              <UiIcon name="picture" size={12} className="mt-3xs shrink-0" />
+              <span className="break-words">{photographed}</span>
             </p>
           )}
         </div>
