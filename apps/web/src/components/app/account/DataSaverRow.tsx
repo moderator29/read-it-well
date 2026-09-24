@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import type { Dictionary } from "@vallo/i18n";
 import { RowSwitch, SettingsGroup } from "@/components/app/account/rows";
-import { isDataSaver } from "@/lib/ui/data-saver";
+import { loadSettings } from "@/components/app/account/settings-store";
+import { connectionIsFrugal } from "@/lib/ui/data-saver";
 import { readLite, setLite } from "@/lib/ui/lite";
 import { METER_KEY, megabytes, readDays, weekBytes } from "@/lib/ui/data-meter";
 
@@ -20,13 +21,24 @@ import { METER_KEY, megabytes, readDays, weekBytes } from "@/lib/ui/data-meter";
 export function DataSaverRow({ copy }: { copy: Dictionary["platform"]["lite"] }) {
   const [on, setOn] = useState(false);
   const [week, setWeek] = useState<number | null>(null);
+  const [phoneAsks, setPhoneAsks] = useState(false);
 
   useEffect(() => {
     /* Read after mount: the cookie, the device setting and the meter all
        live on the phone. Every update follows an await-free read, which the
        microtask makes explicit to the effect rule. */
     void Promise.resolve().then(() => {
-      setOn(readLite() || isDataSaver());
+      /* The switch is the person's own choice only: the cookie or the stored
+         setting. What the phone or the network says is a note beneath it,
+         so switching off is never contradicted by a switch that stays on. */
+      let stored = false;
+      try {
+        stored = loadSettings().dataSaver === true;
+      } catch {
+        stored = false;
+      }
+      setOn(readLite() || stored);
+      setPhoneAsks(connectionIsFrugal());
       try {
         const bytes = weekBytes(readDays(window.localStorage.getItem(METER_KEY)), Date.now());
         setWeek(bytes > 0 ? bytes : null);
@@ -36,10 +48,9 @@ export function DataSaverRow({ copy }: { copy: Dictionary["platform"]["lite"] })
     });
   }, []);
 
-  const note =
-    week === null
-      ? undefined
-      : (on ? copy.meterOn : copy.meterOff).replace("{mb}", megabytes(week));
+  const meter = week === null ? null : (on ? copy.meterOn : copy.meterOff).replace("{mb}", megabytes(week));
+  const phone = !on && phoneAsks ? copy.phoneAsks : null;
+  const note = [phone, meter].filter(Boolean).join(" ") || undefined;
 
   return (
     <SettingsGroup note={note}>
