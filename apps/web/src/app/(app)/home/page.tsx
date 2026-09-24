@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { isPropertyMarket, marketOf } from "@/lib/listings/market";
 import { redirect } from "next/navigation";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -63,7 +64,9 @@ export default async function HomePage() {
    * home of that read and is still used by the preview harness; nothing was
    * deleted, one caller stopped calling.
    */
-  const listings = await repo.recommended(6);
+  /* UX-04: the Property home's shelf is Property: tenancies and sales. A
+     shortlet or a hotel room here opened under Stays and turned the app over. */
+  const listings = (await repo.recommended(18)).filter((listing) => isPropertyMarket(marketOf(listing))).slice(0, 6);
 
   /*
    * Whether this person is a seller or an agent who has not finished verifying.

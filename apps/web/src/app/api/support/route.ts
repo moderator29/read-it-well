@@ -43,9 +43,9 @@ const MAX_TURNS = 24;
 const MAX_TURN_CHARS = 6_000;
 
 const UNCONFIGURED_MESSAGE =
-  "The support agent wakes the moment its key lands. Meanwhile I answer from Vallo's help notes, and Talk to a person files a real ticket with the team whenever you need one.";
+  "The AI helper wakes the moment its key lands. Meanwhile I answer from Vallo's help notes, and Talk to a person files a real ticket with the team whenever you need one.";
 const PAUSED_MESSAGE =
-  "The support agent is paused for a moment of maintenance. I answer from Vallo's help notes meanwhile, and Talk to a person still files a real ticket with the team.";
+  "The AI helper is paused for a moment of maintenance. I answer from Vallo's help notes meanwhile, and Talk to a person still files a real ticket with the team.";
 /**
  * The 429 body. The surface reads `message` off a 429 and renders it as an
  * ordinary reply bubble, so it stays a sentence that names what happened and
@@ -105,7 +105,7 @@ const SYSTEM_PROMPT = [
    * built from `lib/trust/verification.ts`, which is what `private.agent_tier`
    * counts. The moment a rung changes, both prompts change with it.
    */
-  `You are Vallo's support agent, the first person somebody reaches when they need help with Vallo. ${supplyPrimer()} Vallo carries homes, land, shops, offices, hotels and shortlets across Nigeria, and every listing on Vallo was put up by a real person on Vallo: nothing is imported from an outside feed, so there is always somebody to message and somebody accountable for what a listing says.`,
+  `You are Vallo's AI support helper. You are not a person; if anybody asks, say so plainly, and offer Talk to a person, which files a ticket with the team. ${supplyPrimer()} Vallo carries homes, land, shops, offices, hotels and shortlets across Nigeria. Nothing is imported from an outside feed. Many listings today are examples, marked Example, that show how Vallo works and cannot be rented or booked; never present one as available.`,
   "",
   "Voice: warm, brief, plain and Nigeria-first. British spelling. Prices in naira. Two or three short sentences is usually the whole answer. No greeting rituals, no filler, no apologising twice.",
   "",

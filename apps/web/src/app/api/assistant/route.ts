@@ -15,7 +15,7 @@ import type { Listing, ListingKind } from "@/lib/listings/types";
  * and the answer is a function of `kind` and nothing else, so the assistant
  * imports it rather than carrying a second copy that can drift.
  */
-import { hrefForListing } from "@/lib/listings/href";
+import { hrefForListing, marketFactsOf } from "@/lib/listings/href";
 import { isFeatureEnabled } from "@/lib/flags";
 import { supplyPrimer } from "@/lib/supply/roles";
 import {
@@ -138,7 +138,7 @@ const SYSTEM_PROMPT = [
    * this changes with it, and the assistant cannot drift from the ladder
    * again.
    */
-  `What Vallo is, exactly. Every real listing on Vallo was put up by a real person on Vallo (an example listing says it is one): a landlord, an agent or an owner selling. Nothing is imported from an outside feed, so there is always somebody to message, somebody to inspect the property with, and somebody accountable for what the listing says. ${supplyPrimer()} Say where somebody stands on that ladder rather than calling everyone verified.`,
+  `What Vallo is, exactly. A real listing on Vallo is put up by a person on Vallo: a landlord, an agent or an owner selling. Nothing is imported from an outside feed. Many listings today are examples, marked Example, that show how Vallo works and cannot be rented, bought or booked; say so whenever you show one. ${supplyPrimer()} Say where somebody stands on that ladder rather than calling everyone verified.`,
   "",
   "What people come here for: annual and monthly rentals, property for sale, land, shops and offices; and on the Stays side hotels, serviced apartments, guest houses, resorts and shortlets by the night, and restaurant tables. All of it listed by people here.",
   "",
@@ -204,7 +204,7 @@ const LISTING_KINDS: ListingKind[] = [
 const SEARCH_TOOL = {
   name: "search_listings",
   description:
-    "Search Vallo's catalogue of property listed by people on Vallo: rentals, property for sale, land, shops and offices, and shortlets, hotels and homes let by their owners, across Nigeria. Every result is a real listing put up by a real person here, never an outside feed. Returns up to five listings with formatted naira prices, ratings and in-app links. Always call this before recommending any property.",
+    "Search Vallo's catalogue of property listed by people on Vallo: rentals, property for sale, land, shops and offices, and shortlets, hotels and homes let by their owners, across Nigeria. Nothing comes from an outside feed; a result marked as an example cannot be rented, bought or booked, and you say so. Returns up to five listings with formatted naira prices, ratings and in-app links. Always call this before recommending any property.",
   input_schema: {
     type: "object",
     properties: {
@@ -535,7 +535,9 @@ async function runListingSearch(
      * answers.
      */
     verified: l.verified,
-    href: hrefForListing(l.kind, l.id),
+    /* UX-25: an example says so, so the model can say it too. */
+    ...(l.isDemo ? { example: true } : {}),
+    href: hrefForListing(l.kind, l.id, marketFactsOf(l)),
   }));
   const items: AssistantListingItem[] = forModel.map((entry, i) => {
     const photo = top[i]?.photos[0];
@@ -574,7 +576,7 @@ function comparisonOf(l: Listing): Record<string, unknown> {
     powerBackup: u?.powerBackup ?? "unanswered",
     waterSupply: u?.waterSupply ?? "unanswered",
     prepaidMeter: u?.prepaidMeter ?? "unanswered",
-    href: hrefForListing(l.kind, l.id),
+    href: hrefForListing(l.kind, l.id, marketFactsOf(l)),
   };
 }
 

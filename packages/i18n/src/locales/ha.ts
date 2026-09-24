@@ -889,7 +889,7 @@ export const ha: Dictionary = withFallback({
       off: "A kashe",
       privacy: "Sirri & Tsaro",
       privacySub: "Kalmar sirri, shiga da na'urori",
-      appearanceSub: "Jigo, girman rubutu, motsi",
+      appearanceSub: "Girman rubutu, motsi",
       languageSub: "Harshen manhaja",
       help: "Taimako & Tallafi",
       helpSub: "Tambayoyi, tuntuɓe mu",
@@ -1132,7 +1132,7 @@ export const ha: Dictionary = withFallback({
       // recognisable than the English term it replaced.
       note: "Saitunan da aka ajiye a wannan na'urar suna nan a wannan na'urar. Ana kare saitunan asusu da row level security, don haka kai kaɗai za ka iya karanta ko canja naka.",
       help: "Taimako",
-      helpSub: "Sami amsa daga mutum",
+      helpSub: "Tambayoyi, tuntuɓe mu",
       terms: "Sharuɗɗa",
       privacy: "Manufar sirri",
       version: "Sigar",

@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getListingRepository } from "@/lib/listings/repository";
+import { isPropertyMarket, marketOf } from "@/lib/listings/market";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { StayDetailView } from "./StayDetailView";
-import { readStayDates, toStaysSearchHref } from "@/components/app/stays/model";
+import { readStayDates } from "@/components/app/stays/model";
 import type { StayDetail } from "./detail-model";
 import { getStayDetail } from "@/lib/stays/queries";
 import { listSavedPlaces } from "@/lib/saved/places-actions";
@@ -172,7 +175,14 @@ export default async function StayDetailPage({
   /* No accommodation row: the catalogue listing, in the Stays shell. The
      address's dates and party size are handed on, so the reserve panel and
      the pinned bar open on the stay the visitor searched for. */
-  if (!detail) return <ListingPage params={params} searchParams={searchParams} />;
+  if (!detail) {
+    /* UX-10 / UX-04: a listing let on a tenancy or sold is Property, whatever
+       its kind. An old link to /stay/<id> for it moves to /listing/<id>, so it
+       is drawn under the rental template and does not turn the app to Stays. */
+    const listing = await getListingRepository().byId(id);
+    if (listing && isPropertyMarket(marketOf(listing))) redirect(`/listing/${id}`);
+    return <ListingPage params={params} searchParams={searchParams} />;
+  }
 
   const [locale, query, savedPlaces, session] = await Promise.all([
     getLocale(),
@@ -202,7 +212,8 @@ export default async function StayDetailPage({
       locale={locale}
       copy={t.stayDetail}
       t={t}
-      datesHref={toStaysSearchHref({ checkIn, checkOut, guests })}
+      /* UX-08: the dates are picked here, on this stay, not on search. */
+      datesHref="#stay-dates"
       reserve={{ stayId: detail.id, checkIn, checkOut, guests }}
       saved={saved}
       signedIn={session.state === "signed-in"}

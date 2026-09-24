@@ -65,10 +65,12 @@ describe("what the store says about money", () => {
     expect(answer).toMatch(/charges nothing/i);
   });
 
-  it("says every listing came from a person on the platform", () => {
+  it("says listings come from the platform, and that examples cannot be rented or booked (UX-25)", () => {
     const answer = faqAnswerById("where-listings-come-from") ?? "";
-    expect(answer).toMatch(/real person/i);
     expect(answer).toMatch(/import nothing/i);
+    expect(answer).toMatch(/examples, marked Example/);
+    expect(answer).toMatch(/cannot be rented, bought or booked/);
+    expect(answer).not.toMatch(/always a real person/i);
   });
 });
 
