@@ -9,6 +9,7 @@ import { listSavedPlaces } from "@/lib/saved/places-actions";
 import { isSaved, savedKeySet } from "@/lib/saved/places";
 import { accommodationPhotoUrl } from "@/lib/stays/photos";
 import { siteUrl } from "@/lib/site";
+import { resolveSession } from "@/lib/actions/session";
 import ListingPage, { generateMetadata as listingMetadata } from "../../listing/[id]/page";
 
 type Params = Promise<{ id: string }>;
@@ -173,7 +174,7 @@ export default async function StayDetailPage({
      handing it the one argument it takes. */
   if (!detail) return <ListingPage params={params} />;
 
-  const [locale, query, savedPlaces] = await Promise.all([
+  const [locale, query, savedPlaces, session] = await Promise.all([
     getLocale(),
     searchParams,
     /* THE HEART'S RESTING STATE, read on the server so it survives a reload.
@@ -181,6 +182,7 @@ export default async function StayDetailPage({
        shortlist, and an accommodation's shortlist is `saved_places`. Keys
        alone; `isSaved` decides this one card. */
     listSavedPlaces(),
+    resolveSession(),
   ]);
   const t = getDictionary(locale);
   const { checkIn, checkOut, nights, guests } = readStayDates(query);
@@ -203,6 +205,7 @@ export default async function StayDetailPage({
       datesHref={toStaysSearchHref({ checkIn, checkOut, guests })}
       reserve={{ stayId: detail.id, checkIn, checkOut, guests }}
       saved={saved}
+      signedIn={session.state === "signed-in"}
     />
   );
 }

@@ -12,6 +12,7 @@ import { listSavedPlaces } from "@/lib/saved/places-actions";
 import { isSaved, savedKeySet } from "@/lib/saved/places";
 import { RESTAURANT_PLATES } from "@/components/app/stays/restaurant-plates";
 import { siteUrl } from "@/lib/site";
+import { resolveSession } from "@/lib/actions/session";
 import { RestaurantFace } from "./RestaurantFace";
 
 /**
@@ -259,6 +260,8 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
         .concat("."),
   ];
 
+  const signedIn = (await resolveSession()).state === "signed-in";
+
   /* The face itself is `RestaurantFace`, so the sweep's fixture harness draws
      exactly what this route draws (the second audit's S-B). */
   return (
@@ -318,6 +321,11 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
       reserve={{ ...(venue.isBusiness ? { businessId: venue.id } : { listingId: venue.id }), messageHref }}
       windows={detail ? detail.windows : null}
       messageHref={messageHref}
+      report={{
+        targetType: venue.isBusiness ? "business" : "listing",
+        targetId: venue.id,
+        signedIn,
+      }}
     />
   );
 }

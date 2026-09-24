@@ -67,6 +67,8 @@ import { VideoWalkthrough, type WalkthroughVideo } from "@/components/agent/Vide
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ListingSentForReview } from "./ListingSentForReview";
 import { TextField, TextArea } from "@/components/ui/Field";
+import { tenantPreference } from "@/lib/safety/tenant-preference";
+import Link from "next/link";
 
 /**
  * The List Apartment wizard: eight steps, canon reference 03.
@@ -930,6 +932,9 @@ export function ListingWizard({
   const purchaseMinor = statedPurchaseMinor ?? purchasePartsMinor;
 
   const words = countWords(values.description);
+  /* SEC-06: the database holds a listing that states a tenant preference for
+     review; this says so while the lister is still typing. */
+  const preference = tenantPreference(`${values.title} ${values.description}`);
   const stepNames = STEP_KEYS.map((key) => copy.wizard.steps[key]);
   const amenityNames = copy.amenities.names as Record<string, string | undefined>;
   const pricePeriod = forSale
@@ -1644,6 +1649,14 @@ export function ListingWizard({
               placeholder={copy.basics.descriptionPlaceholder}
               textAreaClassName="min-h-[9rem]"
             />
+            {preference && (
+              <div className="mt-row" data-testid="tenant-preference-warning">
+                <Note glyph="info">
+                  {`This reads as a tenant preference ("${preference}"). Vallo does not allow refusing people for their ethnicity, religion, marital status or gender, so a listing that says this is held for review before it goes up. See `}
+                  <Link href="/standards" className="underline">our standards</Link>.
+                </Note>
+              </div>
+            )}
 
             {/*
               THE ROOMS, DRAWN AS GOVERNING-06 SCREEN THREE DRAWS THEM.
