@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function PrivacySettingsPage() {
   const locale = await getLocale();
   const t = getDictionary(locale);
-  const [account, sessions, moneyLock] = await Promise.all([loadSettingsState(), loadSessions(), loadMoneyCredentials()]);
+  const [account, sessions, moneyLock] = await Promise.all([loadSettingsState(), loadSessions(), loadMoneyCredentials().catch(() => ({ state: "unreadable" as const }))]);
   const signedIn = account.state === "signed-in";
   const deviceCount =
     sessions.state === "signed-in" && sessions.readable ? sessions.sessions.length : null;

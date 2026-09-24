@@ -55,7 +55,7 @@ const ADA = "11111111-1111-4111-8111-111111111111";
 const THIEF = "22222222-2222-4222-8222-222222222222";
 const PROOF = "33333333-3333-4333-8333-333333333333";
 const later = () => new Date(Date.now() + 60_000).toISOString();
-const SEND = { kind: "send" as const, amount: "5,000", target: "ada@example.com" };
+const SEND = { kind: "send" as const, amountKobo: 500_000, target: "ada@example.com" };
 
 beforeEach(() => {
   db.credentials = [];
@@ -97,15 +97,19 @@ describe("moneyStepUpRefusal (V-81)", () => {
     db.credentials = [{ user_id: ADA }];
     db.stepUps = [{ id: PROOF, user_id: ADA, digest: await digestOf(SEND), used_at: null, expires_at: later() }];
     const { moneyStepUpRefusal } = await import("./money-step-up");
-    expect(await moneyStepUpRefusal(ADA, PROOF, { ...SEND, amount: "500,000" })).toBe("needed");
+    expect(await moneyStepUpRefusal(ADA, PROOF, { ...SEND, amountKobo: 50_000_000 })).toBe("needed");
     expect(await moneyStepUpRefusal(ADA, PROOF, { ...SEND, target: "thief@example.com" })).toBe("needed");
-    expect(await moneyStepUpRefusal(ADA, PROOF, { ...SEND, amount: "5000" })).toBeNull();
+    expect(await moneyStepUpRefusal(ADA, PROOF, { ...SEND, target: "ADA@example.com " })).toBeNull();
   });
   it("fails closed when the lock cannot be read, and open only when it is not deployed", async () => {
     const { moneyStepUpRefusal } = await import("./money-step-up");
     db.credentialsError = { code: "57014" };
     expect(await moneyStepUpRefusal(ADA, null, SEND)).toBe("needed");
-    db.credentialsError = { code: "42P01" };
+    /* What PostgREST answers while the V-81 migration is not applied. */
+    db.credentialsError = { code: "PGRST205" };
     expect(await moneyStepUpRefusal(ADA, null, SEND)).toBeNull();
+    const { lockNotDeployed } = await import("./money-step-up");
+    expect(["PGRST205", "PGRST204", "42P01"].map((code) => lockNotDeployed({ code }))).toEqual([true, true, true]);
+    expect(lockNotDeployed({ code: "57014" })).toBe(false);
   });
 });

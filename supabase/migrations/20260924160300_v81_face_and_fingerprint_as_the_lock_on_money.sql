@@ -65,12 +65,14 @@ create table if not exists public.money_challenges (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   challenge text not null unique,
-  purpose text not null check (purpose in ('enrol', 'money')),
+  /* `email_code` marks that a code was emailed FOR THE LOCK ON MONEY, so a
+     code sent for anything else (deleting the account) cannot be spent here. */
+  purpose text not null check (purpose in ('enrol', 'money', 'email_code')),
   /* What the proof is for: a SHA-256 of the action's kind, amount in kobo
      and recipient or account (`lib/security/money-intent.ts`). Null only for
      an enrolment challenge. */
   digest text check (digest is null or digest ~ '^[0-9a-f]{64}$'),
-  check ((purpose = 'enrol') = (digest is null)),
+  check ((purpose = 'money') = (digest is not null)),
   expires_at timestamptz not null default now() + interval '5 minutes',
   used_at timestamptz,
   created_at timestamptz not null default now()

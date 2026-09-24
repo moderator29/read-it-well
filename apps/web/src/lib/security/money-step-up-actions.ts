@@ -32,6 +32,7 @@ import {
   passwordChangedRecently,
   proveWithAssertion,
   recordStepUp,
+  takeEmailCodeMarker,
 } from "./money-step-up";
 
 export type StepUpStatus = { needed: boolean; credentialIds: string[]; rpId: string; fallback: ReauthMethod };
@@ -81,7 +82,8 @@ export async function finishMoneyConfirm(input: unknown): Promise<{ stepUp: stri
    lock is not a way to try passwords or codes faster than sign-in allows. */
 async function attemptAllowed(userId: string): Promise<boolean> {
   const verdict = await consume({ bucket: "money_lock_password", subject: subjectForUser(userId), limit: 5, windowSeconds: 900 });
-  return verdict.allowed;
+  /* A limiter that could not count is not a limit: closed, for guesses. */
+  return verdict.allowed && !verdict.degraded;
 }
 
 const proofSchema = z.object({
@@ -104,6 +106,9 @@ async function fallbackProven(
     return (await reauthenticate(user, { password: proof.password })) ? true : "rejected";
   }
   if ((proof.code ?? "").length > 0) {
+    /* Only a code emailed for this lock: a code sent for deleting the
+       account, say, has no marker here and cannot unlock money. */
+    if (!(await takeEmailCodeMarker(a, user.id))) return "rejected";
     return (await reauthenticate(user, { emailCode: proof.code })) ? true : "rejected";
   }
   return "rejected";
@@ -113,7 +118,10 @@ async function fallbackProven(
 export async function sendFallbackCode(): Promise<{ ok: true } | { error: "failed" }> {
   const session = await resolveSession();
   if (session.state !== "signed-in") return { error: "failed" };
-  if (!(await attemptAllowed(session.user.id))) return { error: "failed" };
+  const a = admin();
+  if (!a || !(await attemptAllowed(session.user.id))) return { error: "failed" };
+  /* The marker first: the code this sends is good for the lock only with it. */
+  if (!(await mintChallenge(a, session.user.id, "email_code"))) return { error: "failed" };
   return (await sendReauthCode(session.user)) ? { ok: true } : { error: "failed" };
 }
 

@@ -34,6 +34,8 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
   const [enrolling, setEnrolling] = useState(false);
   const [password, setPassword] = useState("");
   const [codeSent, setCodeSent] = useState(false);
+  /* A password changed in the last day is refused; the emailed code takes over. */
+  const [forceCode, setForceCode] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -48,8 +50,9 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
     };
   }, []);
 
-  if (list.state === "signed-out") return null;
-  const byCode = list.state === "ok" && list.fallback === "email-code";
+  /* Signed out, or the lock is not deployed on this database: nothing to offer. */
+  if (list.state === "signed-out" || list.state === "not-deployed") return null;
+  const byCode = (list.state === "ok" && list.fallback === "email-code") || forceCode;
 
   const enrol = () =>
     start(async () => {
@@ -58,6 +61,11 @@ export function MoneyLockGroup({ list, locale }: { list: MoneyCredentialList; lo
       const begun = await beginEnrol(proof).catch(() => ({ error: "failed" as const }));
       if ("error" in begun) {
         setError(begun.error === "rejected" ? copy.rejected : begun.error === "password_recent" ? copy.passwordRecent : copy.failed);
+        if (begun.error === "password_recent") {
+          setForceCode(true);
+          setCodeSent(false);
+          setPassword("");
+        }
         return;
       }
       const made = await createPlatformKey({

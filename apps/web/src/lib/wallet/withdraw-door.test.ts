@@ -54,7 +54,7 @@ const rpc = vi.hoisted(() => ({ callSecurityRpc: vi.fn(), hasServiceRole: vi.fn(
 
 /* V-81: the lock on money. Null lets the movement through; a sentence refuses. */
 const moneyLock = vi.hoisted(() => ({ refusal: null as string | null }));
-vi.mock("../security/money-lock-guard", () => ({ moneyLockRefusal: async () => moneyLock.refusal }));
+vi.mock("../security/money-lock-guard", () => ({ moneyLockRefusalFor: async () => moneyLock.refusal }));
 
 vi.mock("../security/service-rpc", () => ({
   callSecurityRpc: rpc.callSecurityRpc,

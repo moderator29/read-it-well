@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
 import { payWithWallet, startCardCheckout } from "@/lib/bookings/checkout";
 import { startRentPayment } from "@/lib/rent/actions";
 import type { RentPayView } from "@/lib/rent/queries";
@@ -20,7 +21,7 @@ import { ActionBar } from "@/components/ui/ActionBar";
 import { Amount } from "@/components/ui/Amount";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { formatMoney, type Dictionary } from "@vallo/i18n";
+import { DEFAULT_LOCALE, getDictionary, formatMoney, type Dictionary } from "@vallo/i18n";
 
 /**
  * The three ways to pay the rent.
@@ -118,6 +119,8 @@ export function PayPanel({
   chargeSavedCard?: (methodId: string) => Promise<ActionResult<ChargeSavedCardOutcome>>;
 }) {
   const router = useRouter();
+  /* V-81: paying from the wallet asks for the phone lock, when there is one. */
+  const moneyLock = useMoneyStepUp(view.locale);
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [slow, setSlow] = useState(false);
   const cardKey = useMemo(() => newKey(), []);
@@ -230,8 +233,15 @@ export function PayPanel({
     startClocks("wallet");
     const bookingId = await openCharge();
     if (!bookingId) return;
+    /* V-81: the phone lock, when there is one, for exactly this charge. */
+    const stepUp = await moneyLock.prove({ kind: "pay_wallet", target: bookingId });
+    if (stepUp === null) {
+      clearTimers();
+      setPhase({ kind: "error", message: getDictionary(DEFAULT_LOCALE).platform.moneyLock.notConfirmed });
+      return;
+    }
     setPhase({ kind: "wallet-paying" });
-    const result = await payWithWallet({ bookingId, idempotencyKey: walletKey });
+    const result = await payWithWallet({ bookingId, idempotencyKey: walletKey, stepUp: stepUp || undefined });
     clearTimers();
     if (result.ok && result.data) {
       setPhase({ kind: "paid" });
@@ -416,6 +426,7 @@ export function PayPanel({
 
   return (
     <>
+      {moneyLock.sheet}
       {/*
         THE CHECKOUT, ON THIS PAGE. The identical component the stay checkout
         uses, for the identical reason: rent was the other half of the same

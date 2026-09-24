@@ -391,7 +391,7 @@ export const platformEn = {
     sendCode: "Email me a code",
     codeLabel: "The code we emailed you",
     passwordRecent:
-      "Your password changed in the last day, so it cannot confirm money yet. Use this phone's lock, or wait a day. Nothing has left your wallet.",
+      "Your password changed in the last day, so it cannot confirm this. We can email you a code instead. Nothing has moved.",
     passwordLabel: "Your Vallo password",
     passwordConfirm: "Confirm",
     cancel: "Cancel",

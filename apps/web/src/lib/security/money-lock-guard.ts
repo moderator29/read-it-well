@@ -2,7 +2,7 @@ import "server-only";
 
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "../locale";
-import { intentFromForm, type MoneyIntent } from "./money-intent";
+import type { MoneyIntent } from "./money-intent";
 import { moneyStepUpRefusal } from "./money-step-up";
 
 /**
@@ -15,9 +15,4 @@ export async function moneyLockRefusalFor(userId: string, stepUp: unknown, inten
   const refusal = await moneyStepUpRefusal(userId, typeof stepUp === "string" ? stepUp : null, intent);
   if (!refusal) return null;
   return getDictionary(await getLocale()).platform.moneyLock.needed;
-}
-
-/** For the two form actions: a send or a withdrawal, read off the form. */
-export async function moneyLockRefusal(userId: string, formData: FormData, kind: "send" | "withdraw"): Promise<string | null> {
-  return moneyLockRefusalFor(userId, formData.get("stepUp"), intentFromForm(kind, formData));
 }

@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMoneyStepUp } from "@/components/app/wallet/MoneyStepUp";
+import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
 import { payWithWallet, startCardCheckout } from "@/lib/bookings/checkout";
 import type { CheckoutView } from "@/lib/bookings/checkout-view";
 import { ResultSheet } from "@/components/app/ResultSheet";
@@ -183,6 +185,8 @@ export function PayPanel({
   chargeSavedCard?: (methodId: string) => Promise<ActionResult<ChargeSavedCardOutcome>>;
 }) {
   const router = useRouter();
+  /* V-81: paying from the wallet asks for the phone lock, when there is one. */
+  const moneyLock = useMoneyStepUp(view.locale);
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [slow, setSlow] = useState(false);
   /* Inline arrows rather than `useMemo(newKey, [])`. Passing the function by
@@ -303,10 +307,18 @@ export function PayPanel({
 
   const payFromWallet = async () => {
     startClocks("wallet");
+    /* V-81: the phone lock, when there is one, for exactly this booking. */
+    const stepUp = await moneyLock.prove({ kind: "pay_wallet", target: view.bookingId });
+    if (stepUp === null) {
+      clearTimers();
+      setPhase({ kind: "error", message: getDictionary(DEFAULT_LOCALE).platform.moneyLock.notConfirmed });
+      return;
+    }
     setPhase({ kind: "wallet-paying" });
     const result = await payWithWallet({
       bookingId: view.bookingId,
       idempotencyKey: walletKey,
+      stepUp: stepUp || undefined,
     });
     clearTimers();
     if (result.ok && result.data) {
@@ -537,6 +549,7 @@ export function PayPanel({
 
   return (
     <>
+      {moneyLock.sheet}
       {/*
         THE CHECKOUT, ON THIS PAGE.
 

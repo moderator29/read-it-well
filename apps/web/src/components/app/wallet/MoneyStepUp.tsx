@@ -59,6 +59,8 @@ export function useMoneyStepUp(
   const [mode, setMode] = useState<"sensor" | "fallback">("sensor");
   const [secret, setSecret] = useState("");
   const [codeSent, setCodeSent] = useState(false);
+  /* A password changed in the last day is refused; the emailed code takes over. */
+  const [forceCode, setForceCode] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<"rejected" | "failed" | "password_recent" | null>(null);
   const bypass = useRef(false);
@@ -181,7 +183,7 @@ export function useMoneyStepUp(
     release(done.stepUp);
   };
 
-  const byCode = status?.fallback === "email-code";
+  const byCode = status?.fallback === "email-code" || forceCode;
 
   const askForCode = async () => {
     setBusy(true);
@@ -201,6 +203,11 @@ export function useMoneyStepUp(
     if ("error" in done) {
       setBusy(false);
       setError(done.error);
+      if (done.error === "password_recent") {
+        setForceCode(true);
+        setCodeSent(false);
+        setSecret("");
+      }
       return;
     }
     release(done.stepUp);

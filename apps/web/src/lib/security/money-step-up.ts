@@ -41,15 +41,24 @@ export function intentDigest(intent: MoneyIntent): string {
 }
 
 /**
+ * The lock's tables are not in this database yet: PostgREST answers PGRST205
+ * for an unknown table (PGRST204 for an unknown column) and Postgres 42P01.
+ * Then nobody can have enrolled, and money goes on exactly as before V-81.
+ */
+export function lockNotDeployed(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null)?.code;
+  return code === "PGRST205" || code === "PGRST204" || code === "42P01";
+}
+
+/**
  * Has this person locked money with a phone? FAILS CLOSED: an unreadable
  * answer is "yes", so a read error asks for a proof rather than waving money
- * through. The one exception is a missing table (42P01), which means the
- * lock is not deployed at all and nobody can have enrolled.
+ * through. The one exception is a lock that is not deployed at all.
  */
 export async function hasMoneyCredential(a: Admin, userId: string): Promise<boolean> {
   try {
     const { data, error } = await loose(a).from("money_credentials").select("id").eq("user_id", userId).limit(1);
-    if (error) return (error as { code?: string }).code !== "42P01";
+    if (error) return !lockNotDeployed(error);
     return Array.isArray(data) && data.length > 0;
   } catch {
     return true;
@@ -85,17 +94,52 @@ export async function passwordChangedRecently(a: Admin, userId: string): Promise
 export async function listCredentialIds(a: Admin, userId: string): Promise<string[] | null> {
   try {
     const { data, error } = await loose(a).from("money_credentials").select("credential_id").eq("user_id", userId);
-    if (error) return (error as { code?: string }).code === "42P01" ? [] : null;
+    if (error) return lockNotDeployed(error) ? [] : null;
     return Array.isArray(data) ? (data as { credential_id: string }[]).map((r) => r.credential_id) : null;
   } catch {
     return null;
   }
 }
 
-export async function mintChallenge(a: Admin, userId: string, purpose: "enrol" | "money", digest: string | null = null): Promise<string | null> {
+export async function mintChallenge(
+  a: Admin,
+  userId: string,
+  purpose: "enrol" | "money" | "email_code",
+  digest: string | null = null,
+): Promise<string | null> {
   const challenge = bufferToB64url(randomBytes(32));
   const { error } = await loose(a).from("money_challenges").insert({ user_id: userId, challenge, purpose, digest });
   return error ? null : challenge;
+}
+
+/**
+ * Spend the marker that a code was emailed for the lock on money: the newest
+ * unused one inside its five minutes. False when there is none, which is what
+ * keeps a code sent for anything else from unlocking money.
+ */
+export async function takeEmailCodeMarker(a: Admin, userId: string): Promise<boolean> {
+  try {
+    const { data } = await loose(a)
+      .from("money_challenges")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("purpose", "email_code")
+      .is("used_at", null)
+      .gt("expires_at", new Date().toISOString())
+      .order("created_at", { ascending: false })
+      .limit(1);
+    const id = Array.isArray(data) && data[0] ? (data[0] as { id: string }).id : null;
+    if (!id) return false;
+    const { data: taken } = await loose(a)
+      .from("money_challenges")
+      .update({ used_at: new Date().toISOString() })
+      .eq("id", id)
+      .is("used_at", null)
+      .select("id");
+    return Array.isArray(taken) && taken.length === 1;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -206,7 +250,8 @@ export async function consumeStepUp(a: Admin, userId: string, id: string, digest
  */
 export async function moneyStepUpRefusal(userId: string, stepUp: unknown, intent: MoneyIntent): Promise<"needed" | null> {
   const a = getAdminClient();
-  if (!a) return null;
+  /* No service role: nothing can be checked, so nothing moves. */
+  if (!a) return "needed";
   if (!(await hasMoneyCredential(a, userId))) return null;
   if (typeof stepUp !== "string" || !(await consumeStepUp(a, userId, stepUp, intentDigest(intent)))) return "needed";
   return null;
@@ -215,6 +260,7 @@ export async function moneyStepUpRefusal(userId: string, stepUp: unknown, intent
 export type MoneyCredentialRow = { id: string; label: string | null; createdAt: string; lastUsedAt: string | null };
 export type MoneyCredentialList =
   | { state: "signed-out" }
+  | { state: "not-deployed" }
   | { state: "unreadable" }
   | { state: "ok"; rows: MoneyCredentialRow[]; fallback: "password" | "email-code" };
 
@@ -224,6 +270,15 @@ export type MoneyCredentialList =
  * and never the key, so this read proves the grant as well as using it.
  */
 export async function loadMoneyCredentials(): Promise<MoneyCredentialList> {
+  try {
+    return await readMoneyCredentials();
+  } catch {
+    /* Never the reason a settings page fails: the group says it could not read. */
+    return { state: "unreadable" };
+  }
+}
+
+async function readMoneyCredentials(): Promise<MoneyCredentialList> {
   const { resolveSession } = await import("../actions/session");
   const { reauthMethodFor } = await import("../account-deletion/reauthenticate");
   const session = await resolveSession();
@@ -233,6 +288,7 @@ export async function loadMoneyCredentials(): Promise<MoneyCredentialList> {
     .from("money_credentials")
     .select("id, label, created_at, last_used_at")
     .order("created_at", { ascending: true });
+  if (error && lockNotDeployed(error)) return { state: "not-deployed" };
   if (error || !Array.isArray(data)) return { state: "unreadable" };
   return {
     state: "ok",

@@ -19,28 +19,35 @@ export const MONEY_KINDS = [
   "payout_default",
   "escrow_confirm",
   "escrow_fund",
+  "pay_wallet",
+  "caution_return",
   "remove_lock",
 ] as const;
 export type MoneyKind = (typeof MONEY_KINDS)[number];
 
-export type MoneyIntent = { kind: MoneyKind; amount?: string | null; target?: string | null };
+/**
+ * `amountKobo` is the figure the action will move; `target` is who or where:
+ * the recipient's email for a send, `saved:<bank account id>` for a saved
+ * payout account, `<bank code>:<account number>` for a typed one.
+ */
+export type MoneyIntent = { kind: MoneyKind; amountKobo?: number | null; target?: string | null };
 
 export function isMoneyIntent(value: unknown): value is MoneyIntent {
   if (!value || typeof value !== "object") return false;
   const v = value as Record<string, unknown>;
   if (!(MONEY_KINDS as readonly string[]).includes(String(v.kind))) return false;
-  for (const key of ["amount", "target"] as const) {
-    const item = v[key];
-    if (item !== undefined && item !== null && (typeof item !== "string" || item.length > 200)) return false;
-  }
+  const target = v.target;
+  if (target !== undefined && target !== null && (typeof target !== "string" || target.length > 200)) return false;
+  const kobo = v.amountKobo;
+  if (kobo !== undefined && kobo !== null && (typeof kobo !== "number" || !Number.isSafeInteger(kobo) || kobo < 0)) return false;
   return true;
 }
 
 /** The canonical line the digest is taken over. */
 export function intentLine(intent: MoneyIntent): string {
-  const kobo = intent.amount ? parseNairaToKobo(intent.amount) : null;
+  const kobo = typeof intent.amountKobo === "number" ? intent.amountKobo : "";
   const target = (intent.target ?? "").trim().toLowerCase();
-  return `${intent.kind}|${typeof kobo === "number" ? kobo : ""}|${target}`;
+  return `${intent.kind}|${kobo}|${target}`;
 }
 
 const one = (form: FormData, key: string): string => {
@@ -48,13 +55,31 @@ const one = (form: FormData, key: string): string => {
   return typeof value === "string" ? value : "";
 };
 
-/** A send or a withdrawal, read off its form the way the server reads it. */
+/**
+ * The phone's reading of a send or withdrawal form, for asking the proof. The
+ * server does NOT use this: each action builds its intent from its own
+ * validated input (`sendIntent`, `withdrawIntent`), and the two must agree.
+ */
 export function intentFromForm(kind: "send" | "withdraw", form: FormData): MoneyIntent {
-  if (kind === "send") return { kind, amount: one(form, "amount"), target: one(form, "recipientEmail") };
-  const method = one(form, "methodId");
+  const amountKobo = parseNairaToKobo(one(form, "amount"));
+  if (kind === "send") return sendIntent(amountKobo, one(form, "recipientEmail"));
+  const saved = one(form, "bankAccountId").trim();
+  return saved
+    ? withdrawIntent(amountKobo, { bankAccountId: saved })
+    : withdrawIntent(amountKobo, { bankCode: one(form, "bankCode"), accountNumber: one(form, "accountNumber").replace(/\D/g, "") });
+}
+
+export function sendIntent(amountKobo: number | null, recipientEmail: string): MoneyIntent {
+  return { kind: "send", amountKobo, target: recipientEmail };
+}
+
+export function withdrawIntent(
+  amountKobo: number | null,
+  to: { bankAccountId: string } | { bankCode: string; accountNumber: string },
+): MoneyIntent {
   return {
-    kind,
-    amount: one(form, "amount"),
-    target: method ? `method:${method}` : `${one(form, "bankCode")}:${one(form, "accountNumber").replace(/\D/g, "")}`,
+    kind: "withdraw",
+    amountKobo,
+    target: "bankAccountId" in to ? `saved:${to.bankAccountId}` : `${to.bankCode}:${to.accountNumber}`,
   };
 }
