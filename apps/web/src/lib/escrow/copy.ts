@@ -192,7 +192,10 @@ export function countdown(
   const on = autoReleaseAt instanceof Date ? autoReleaseAt : new Date(autoReleaseAt);
   if (Number.isNaN(on.getTime())) return { kind: "none" };
 
-  const when = formatDate(on);
+  /* ESC-11. The payout moment is the end of a Lagos day (00:00 WAT the next
+     day), so the date a person reads is the last whole day to object, in
+     Lagos, whatever the server's or the reader's clock says. */
+  const when = lastDayBefore(on);
   if (on.getTime() <= now.getTime()) {
     return {
       kind: "passed",
@@ -203,8 +206,14 @@ export function countdown(
   return {
     kind: "due",
     on,
-    line: `If nobody says otherwise, this pays out on ${when}.`,
+    line: `If nobody says otherwise, this pays out at the end of ${when}, Lagos time.`,
   };
+}
+
+/** The Lagos calendar day a payout moment closes: the day before it, when it is midnight. */
+const LAGOS_DAY = { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" } as const;
+function lastDayBefore(on: Date): string {
+  return formatDate(new Date(on.getTime() - 1), undefined, LAGOS_DAY);
 }
 
 /** The same date, said to the payer, who is the one with something to lose. */
@@ -505,9 +514,20 @@ export function proposalStanding(viewer: Party): string {
  * that returns the number.
  */
 export function payoutDateIfFundedNow(holdDays = 21, now: Date = new Date()): string {
-  const on = new Date(now.getTime());
-  on.setDate(on.getDate() + Math.min(180, Math.max(1, Math.trunc(holdDays))));
-  return `If neither of you says otherwise, it pays out on ${formatDate(on)}.`;
+  /* ESC-11. Today in Lagos, plus the hold, as the database counts it: the
+     payout is the end of that Lagos day. Noon UTC keeps the date whole. */
+  const [year = NaN, month = NaN, day = NaN] = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Lagos",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+    .format(now)
+    .split("-")
+    .map(Number);
+  const days = Math.min(180, Math.max(1, Math.trunc(holdDays)));
+  const on = new Date(Date.UTC(year, month - 1, day + days, 12));
+  return `If neither of you says otherwise, it pays out at the end of ${formatDate(on, undefined, LAGOS_DAY)}, Lagos time.`;
 }
 
 /**
