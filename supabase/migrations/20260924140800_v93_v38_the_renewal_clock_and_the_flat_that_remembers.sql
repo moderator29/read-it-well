@@ -65,6 +65,15 @@ create table if not exists public.tenancy_renewal_answers (
   answered_at     timestamptz not null default now()
 );
 
+/* When the tenant was last told about the renewal figure: one notice a day at most. */
+create table if not exists public.tenancy_renewal_notices (
+  rent_payment_id uuid primary key references public.rent_payments(id) on delete cascade,
+  notified_at     timestamptz not null default now()
+);
+alter table public.tenancy_renewal_notices enable row level security;
+revoke all on public.tenancy_renewal_notices from public, anon, authenticated;
+grant all on public.tenancy_renewal_notices to service_role;
+
 create index if not exists tenancy_renewal_offers_rp_idx on public.tenancy_renewal_offers (rent_payment_id, offered_at desc);
 
 /* ------------------------------------------------------------ V-38 */
@@ -165,8 +174,12 @@ begin
   insert into public.tenancy_renewal_offers
     (rent_payment_id, rent_minor, service_minor, agency_minor, legal_minor, agreement_minor, offered_by)
   values (rp.id, p_rent, p_service, coalesce(p_agency, 0), coalesce(p_legal, 0), coalesce(p_agreement, 0), rp.lister_id);
-  -- Told on the first offer and on a changed one, at most once a day.
-  if prev.id is null or prev.offered_at < now() - interval '1 day' then
+  -- Told on the first offer and on a changed one, at most once a day,
+  -- measured from the last notice rather than the last offer.
+  if not exists (select 1 from public.tenancy_renewal_notices n
+                  where n.rent_payment_id = rp.id and n.notified_at > now() - interval '1 day') then
+    insert into public.tenancy_renewal_notices (rent_payment_id, notified_at) values (rp.id, now())
+    on conflict (rent_payment_id) do update set notified_at = excluded.notified_at;
     perform private.tenancy_tell(rp.tenant_id,
       case when prev.id is null then 'The renewal figure is in' else 'The renewal figure changed' end,
       'Your tenancy file shows what renewing costs.', rp.id);

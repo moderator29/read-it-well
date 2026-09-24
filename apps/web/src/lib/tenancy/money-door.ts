@@ -18,11 +18,15 @@ import { callMoneyRpc } from "../wallet/rpc";
  *
  *   the wallet flag, the session, the account hold (V-19), the money limits,
  *   then the call naming the signed-in user; a failure the hold trigger raised
- *   is said as the hold, and every call that moved money, or found it had
- *   already moved, is written to the money history.
+ *   is said as the hold, a failure that may have reached the database is
+ *   said as unconfirmed, and only a call that moved money is written to the
+ *   money history (a repeat that found it already moved was written the first
+ *   time).
  */
 export const WALLET_OFF = "The wallet is switched off for a moment. Nothing was sent. Try again shortly.";
 const SERVICE_DOWN = "That did not go through. Nothing was sent. Try again in a moment.";
+/** The call may have reached the database, so nothing is promised either way. */
+export const UNCONFIRMED = "We could not confirm it went through. Check your wallet before trying again.";
 
 export async function callMoneyDoor(input: {
   fn: string;
@@ -50,13 +54,14 @@ export async function callMoneyDoor(input: {
   });
   if (call.outcome === "failed") {
     const held = await holdRefusalForFailure(session.supabase, call.reason);
-    return fail(held ?? SERVICE_DOWN);
+    return fail(held ?? UNCONFIRMED);
   }
-  if (call.outcome !== "ok" || typeof call.data !== "object" || call.data === null) return fail(SERVICE_DOWN);
+  if (call.outcome !== "ok") return fail(SERVICE_DOWN);
+  if (typeof call.data !== "object" || call.data === null) return fail(UNCONFIRMED);
   const answer = call.data as Record<string, unknown>;
   const status = String(answer.status);
   const reference = typeof answer.reference === "string" ? answer.reference : null;
-  if (reference && (status === "ok" || status.startsWith("already_"))) {
+  if (reference && status === "ok") {
     await recordMoneyAudit(admin, {
       actor: { kind: "user", userId: session.user.id },
       action: input.action,

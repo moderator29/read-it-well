@@ -32,6 +32,7 @@ const WORDS: Record<string, string> = {
   bad_amount: "Enter a share above zero.",
   exceeds_total: "That would leave you no share of your own. Make it smaller.",
   already_added: "That person already has a share on this move-in.",
+  declined_before: "That person declined a share of this move-in, so they cannot be asked again.",
   already_paid: "That share has already been paid.",
   insufficient: "There is not enough in your wallet for this.",
   not_accepted: "Accept the share first, then pay it.",

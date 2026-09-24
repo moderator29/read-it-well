@@ -27,8 +27,9 @@
 -- browser, and the server action applies the wallet flag, the account hold
 -- and the money limits first.
 --
--- WHEN A CHARGE GOES VOID AFTER SHARES WERE PAID (cancelled, refunded or
--- reversed), the money sits in the lead's wallet. The lead returns each share
+-- WHEN A CHARGE GOES VOID AFTER SHARES WERE PAID (the booking cancelled, or
+-- the whole total refunded or reversed; a partial refund is not void), the
+-- money sits in the lead's wallet. The lead returns each share
 -- in one tap (`return_rent_share`, the same transfer, a reference derived from
 -- the row, exactly the amount paid, once), the share page shows the co-tenant
 -- what they paid, to whom and when, and a daily job tells each paid co-tenant
@@ -72,6 +73,15 @@ create table if not exists public.rent_share_returns (
   returned_at     timestamptz not null default now()
 );
 
+/* A decline outlives the invitation: removing and re-inviting a person who
+   declined is refused, so a "no" cannot be worn down. */
+create table if not exists public.rent_share_declines (
+  rent_payment_id uuid not null references public.rent_payments(id) on delete cascade,
+  user_id         uuid not null,
+  declined_at     timestamptz not null default now(),
+  primary key (rent_payment_id, user_id)
+);
+
 /* One invitation notice per (charge, person), ever; one void notice per share. */
 create table if not exists public.rent_share_notices (
   rent_payment_id uuid not null references public.rent_payments(id) on delete cascade,
@@ -92,6 +102,9 @@ alter table public.rent_share_payments enable row level security;
 alter table public.rent_share_returns enable row level security;
 alter table public.rent_share_notices enable row level security;
 alter table public.rent_share_void_notices enable row level security;
+alter table public.rent_share_declines enable row level security;
+revoke all on public.rent_share_declines from public, anon, authenticated;
+grant all on public.rent_share_declines to service_role;
 revoke all on public.rent_payment_contributors, public.rent_share_answers, public.rent_share_payments,
               public.rent_share_returns, public.rent_share_notices, public.rent_share_void_notices
   from public, anon, authenticated;
@@ -100,9 +113,12 @@ grant select on public.rent_payment_contributors, public.rent_share_answers, pub
 grant all on public.rent_payment_contributors, public.rent_share_answers, public.rent_share_payments,
              public.rent_share_returns, public.rent_share_notices, public.rent_share_void_notices to service_role;
 
-/* The lead, the lister and the co-tenant themselves read a contributor row. */
+/* The lead and the co-tenant themselves read a contributor row, and staff.
+   Not the lister: who the tenant shares a flat with is not the lister's. */
 create policy rent_payment_contributors_read on public.rent_payment_contributors for select to authenticated
-  using (user_id = (select auth.uid()) or private.tenancy_party(rent_payment_id) or private.is_staff());
+  using (user_id = (select auth.uid())
+         or exists (select 1 from public.rent_payments rp where rp.id = rent_payment_id and rp.tenant_id = (select auth.uid()))
+         or private.is_staff());
 create policy rent_share_answers_read on public.rent_share_answers for select to authenticated
   using (exists (select 1 from public.rent_payment_contributors c where c.id = contributor_id));
 create policy rent_share_payments_read on public.rent_share_payments for select to authenticated
@@ -135,6 +151,27 @@ with (security_invoker = true) as
 
 revoke all on public.rent_payment_shares from public, anon;
 grant select on public.rent_payment_shares to authenticated;
+
+/* A share is void only when the whole move-in fell through: the booking was
+   CANCELLED, or the full total was refunded or reversed. A partial refund
+   leaves the tenancy standing and the shares with it. */
+create or replace function private.rent_share_void(p_rent_payment uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path to ''
+as $function$
+  select exists (
+    select 1 from public.rent_payments rp join public.bookings b on b.id = rp.booking_id
+     where rp.id = p_rent_payment
+       and (b.status = 'CANCELLED'
+            or coalesce((select sum(r.refund_minor) from public.booking_refunds r where r.booking_id = b.id), 0) >= rp.total_minor
+            or coalesce((select sum(o.amount_minor) from public.rent_refunds_owed o where o.booking_id = b.id), 0) >= rp.total_minor)
+  );
+$function$;
+
+revoke all on function private.rent_share_void(uuid) from public, anon, authenticated;
 
 /* Open and payable: the booking is still PENDING, nothing has settled, not void. */
 create or replace function private.rent_charge_payable(p_rent_payment uuid)
@@ -178,6 +215,9 @@ begin
   end if;
   if p_share is null or p_share <= 0 then
     return jsonb_build_object('status', 'bad_amount');
+  end if;
+  if exists (select 1 from public.rent_share_declines d where d.rent_payment_id = rp.id and d.user_id = p_user) then
+    return jsonb_build_object('status', 'declined_before');
   end if;
   if not private.consume_rate_limit('rent_share_invite', rp.tenant_id::text, 10, 86400) then
     return jsonb_build_object('status', 'rate_limited');
@@ -233,6 +273,10 @@ begin
   on conflict (contributor_id) do nothing;
   if not found then
     return jsonb_build_object('status', 'already_answered');
+  end if;
+  if p_answer = 'declined' then
+    insert into public.rent_share_declines (rent_payment_id, user_id) values (c.rent_payment_id, c.user_id)
+    on conflict do nothing;
   end if;
   select rp.tenant_id into lead from public.rent_payments rp where rp.id = c.rent_payment_id;
   begin
@@ -346,7 +390,7 @@ begin
   if paid.contributor_id is null then
     return jsonb_build_object('status', 'not_paid');
   end if;
-  if not private.tenancy_void(rp.id) then
+  if not private.rent_share_void(rp.id) then
     return jsonb_build_object('status', 'not_void');
   end if;
   pair := md5('rent-share-return:' || c.id)::uuid;
@@ -396,7 +440,7 @@ as $function$
            'paid_at', (select s.paid_at from public.rent_share_payments s where s.contributor_id = c.id),
            'returned_at', (select r.returned_at from public.rent_share_returns r where r.contributor_id = c.id),
            'payable', private.rent_charge_payable(rp.id),
-           'void', private.tenancy_void(rp.id))
+           'void', private.rent_share_void(rp.id))
     from public.rent_payment_contributors c
     join public.rent_payments rp on rp.id = c.rent_payment_id
     join public.listings l on l.id = rp.listing_id
@@ -419,7 +463,7 @@ begin
   for r in
     select c.id, c.user_id from public.rent_payment_contributors c
       join public.rent_share_payments s on s.contributor_id = c.id
-     where private.tenancy_void(c.rent_payment_id)
+     where private.rent_share_void(c.rent_payment_id)
        and not exists (select 1 from public.rent_share_returns x where x.contributor_id = c.id)
        and not exists (select 1 from public.rent_share_void_notices v where v.contributor_id = c.id)
   loop

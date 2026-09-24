@@ -166,7 +166,7 @@ export async function readUpcoming(now: Date = new Date()): Promise<UpcomingItem
         const share = !read.error && read.data && typeof read.data === "object" ? (read.data as Row) : null;
         const amount = share ? int(share.share_minor) : null;
         const due = share ? dayOf(share.move_in) : null;
-        if (!share || share.paid_at || share.void === true || share.payable !== true || share.answer === "declined" || amount === null || !due) {
+        if (!share || share.paid_at || share.void === true || share.payable !== true || share.answer !== "accepted" || amount === null || !due) {
           continue;
         }
         items.push({ kind: "share", on: due, amountMinor: amount, href: `/rent/share/${row.id}`, id: `share-${row.id}` });
