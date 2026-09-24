@@ -34,6 +34,8 @@ import { RecordViews } from "@/components/app/search/RecordViews";
 import { ListingNeighbours } from "@/components/app/listing/ListingNeighbours";
 import { readFlooding, readNeighbours } from "@/lib/around/pulse-queries";
 import { flagIsOn, NEIGHBOURS_FLAG, SHOW_ME_FLAG } from "@/lib/flags/read";
+import { readCommutesFrom } from "@/lib/listings/commute-queries";
+import { commuteLine } from "@/lib/listings/commute";
 import { getBlockedDates } from "@/lib/bookings/queries";
 import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";
@@ -374,6 +376,11 @@ export default async function ListingDetailPage({
   /* V-41: the neighbours' account, for a home to let or sell. Read with the
      caller's session; the summary function applies its own threshold. */
   const showMeOpen = await flagIsOn(SHOW_ME_FLAG);
+  /* V-43: rush-hour bands from this area (nothing when the flag is off). */
+  const commute =
+    (isRental || isSale) && !listing.isDemo
+      ? await readCommutesFrom({ stateCode: listing.stateCode, area: listing.area, city: listing.city })
+      : { anchors: 0, rows: [] };
   const neighboursOn =
     (isRental || isSale) && session.state === "signed-in" && (await flagIsOn(NEIGHBOURS_FLAG));
   const [access, bookingConfirmed, neighbours, flooding] = await Promise.all([
@@ -1134,6 +1141,31 @@ export default async function ListingDetailPage({
                           copy={t.shape.neighbours}
                         />
                       </div>
+                    </Section>
+                  </Reveal>
+                )}
+
+                {/* ------------------------- V-43. GETTING TO WORK FROM HERE */}
+                {commute.anchors > 0 && (
+                  <Reveal>
+                    <Section
+                      title={t.shape.commute.locationTitle}
+                      description={t.shape.commute.locationLede.replace("{area}", listing.area || listing.city)}
+                      divided
+                    >
+                      {commute.rows.length > 0 ? (
+                        <ul className="flex flex-col gap-sm" data-testid="listing-commute">
+                          {commute.rows.map((row) => (
+                            <li key={row.anchor.id} className="nf-body-sm break-words text-[var(--nf-content-secondary)]">
+                              {commuteLine(row.bands, row.anchor.name, t.shape.commute)}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="nf-caption text-[var(--nf-content-muted)]">
+                          {t.shape.commute.locationNone.replace("{area}", listing.area || listing.city)}
+                        </p>
+                      )}
                     </Section>
                   </Reveal>
                 )}

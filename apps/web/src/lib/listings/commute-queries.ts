@@ -63,3 +63,25 @@ export async function readCommutes(
   }
   return out;
 }
+
+/**
+ * From ONE listing's area to the anchors in its city (at most six), for the
+ * listing page's Location section. Only anchors with a band come back, so an
+ * area with no guide and no residents shows the honest "none yet" line.
+ */
+export async function readCommutesFrom(
+  origin: { stateCode?: string | undefined; area?: string | undefined; city: string },
+): Promise<{ anchors: number; rows: { anchor: Anchor; bands: CommuteBand[] }[] }> {
+  const anchors = (await readAnchors()).filter((a) => a.city.toLowerCase() === origin.city.toLowerCase()).slice(0, 6);
+  const rows: { anchor: Anchor; bands: CommuteBand[] }[] = [];
+  const key = originKey(origin.stateCode, origin.area);
+  if (!key) return { anchors: anchors.length, rows };
+  await Promise.all(
+    anchors.map(async (anchor) => {
+      const bands = (await readCommutes(anchor.id, [origin])).get(key);
+      if (bands && bands.length > 0) rows.push({ anchor, bands });
+    }),
+  );
+  rows.sort((a, b) => a.anchor.name.localeCompare(b.anchor.name));
+  return { anchors: anchors.length, rows };
+}
