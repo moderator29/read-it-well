@@ -15,6 +15,7 @@
  * `lib/trust/cancellation.ts` for the schedule and `lib/trust/standards.ts`
  * for how fast a person answers.
  */
+import { WALLET_MONEY_USES } from "../wallet/bank-payouts";
 
 export type FaqEntry = {
   id: string;
@@ -70,7 +71,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "wallet",
     keywords: ["wallet", "balance", "top up", "topup", "fund", "withdraw", "transaction"],
     answer:
-      "Your naira wallet lives in the Wallet tab: balance at the top, then every entry grouped by day. The balance is always computed from the ledger rather than stored, and a withdrawal you have started is held out of what you can spend until it settles, so the two figures can differ for a while. Funding, withdrawals and transfers need the payment provider to be connected.",
+      `Your naira wallet lives in the Wallet tab: balance at the top, then every entry grouped by day. The balance is always computed from the ledger rather than stored. ${WALLET_MONEY_USES}`,
   },
   {
     id: "verified-badge",
@@ -112,7 +113,7 @@ export const SUPPORT_FAQ: FaqEntry[] = [
     id: "refunds",
     keywords: ["refund", "money back", "my money", "reimburse", "paid twice", "double charge", "reversal"],
     answer:
-      "Refunds go to your Vallo wallet in naira, to the kobo, because that is the fastest route in this market. The money is in the wallet the moment the cancellation is decided, not days later. It is not a store credit: move it to your Nigerian bank account from Wallet whenever you want, and banks normally credit within minutes and can take up to one working day, or spend it on your next stay with nothing to wait for. If the host cancelled, the place was not what was listed, or you could not get in, you get everything back whatever the hour.",
+      `Refunds go to your Vallo wallet in naira, to the kobo, because that is the fastest route in this market. The money is in the wallet the moment the cancellation is decided, not days later. ${WALLET_MONEY_USES} If the host cancelled, the place was not what was listed, or you could not get in, you get everything back whatever the hour.`,
   },
   {
     id: "arrival",

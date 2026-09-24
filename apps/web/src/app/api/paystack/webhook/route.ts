@@ -37,6 +37,7 @@ import {
   isBookingReference,
 } from "@/lib/payments/references";
 import type { Json } from "@/lib/supabase/database.types";
+import { processorFeeMetadata } from "@/lib/wallet/funding-fee";
 
 /**
  * Paystack webhook.
@@ -273,6 +274,7 @@ async function handleFundingChargeSuccess(
       channel: (data.channel ?? null) as Json,
       paid_at: (data.paid_at ?? null) as Json,
       purpose: "wallet_fund",
+      ...processorFeeMetadata(data.fees),
     },
   });
 

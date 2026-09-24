@@ -7,9 +7,9 @@
  * something only the host at the door knows. This action is that host's
  * control (and an admin's override for support cases), and it is the twin of
  * recordStay in lib/agent/bookings-actions.ts with one difference: the move
- * itself happens in public.record_booking_no_show, so the state event, the
- * calendar nights ahead going back on sale and the guest's notification land
- * in one transaction, and the same function refuses an actor who is neither
+ * itself happens in public.record_booking_no_show, so the state event and
+ * the guest's notification land in one transaction (the nights stay booked
+ * until check-out, ESC-04), and the same function refuses an actor who is neither
  * the listing's host nor an admin even if this action were bypassed.
  *
  * Every export is a public endpoint, so the action authorises hard before

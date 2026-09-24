@@ -290,6 +290,8 @@ export type ChargeSummary = {
   channel: string | null;
   customerEmail: string | null;
   metadata: Record<string, unknown>;
+  /** Integer kobo the processor kept, when the list reported it (MON-14). */
+  feesMinor?: number | null;
 };
 
 /** The largest page Paystack will serve, and the sweep's page size. */
@@ -331,6 +333,7 @@ export async function listSuccessfulCharges(params: {
         channel?: string | null;
         customer?: { email?: string | null } | null;
         metadata?: unknown;
+        fees?: number | null;
       }[]
     >(`/transaction?${query.toString()}`);
 
@@ -345,6 +348,7 @@ export async function listSuccessfulCharges(params: {
         channel: row.channel ?? null,
         customerEmail: row.customer?.email ?? null,
         metadata: metadataObject(row.metadata),
+        feesMinor: Number.isSafeInteger(row.fees) ? (row.fees as number) : null,
       });
     }
 

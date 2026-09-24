@@ -10,6 +10,7 @@ import {
   bannedWordsIn,
   countdown,
   countdownForPayer,
+  payoutDateIfFundedNow,
   custodySentence,
   isLive,
   isSettled,
@@ -134,6 +135,14 @@ describe("the held payment copy", () => {
     }
   });
 
+  it("names what a settled dispute did, not who decided it (ESC-13)", () => {
+    expect(STATE_LABEL.RESOLVED).not.toMatch(/vallo/i);
+    for (const party of PARTIES) {
+      expect(stateLine("RESOLVED", party)).not.toMatch(/vallo has made a decision/i);
+      expect(stateLine("RESOLVED", party)).toMatch(/money has moved/i);
+    }
+  });
+
   it("renders the countdown as a date and never as a duration", () => {
     const now = new Date("2026-09-22T12:00:00Z");
     const c = countdown("2026-10-14T09:00:00Z", "HELD", now);
@@ -143,6 +152,21 @@ describe("the held payment copy", () => {
     /* No number of days, hours or weeks anywhere in it. */
     expect(c.line).not.toMatch(/\b\d+\s*(day|days|hour|hours|week|weeks)\b/i);
     expect(countdownForPayer(c)).toContain("14 Oct 2026");
+  });
+
+  it("names the last whole Lagos day to object (ESC-11)", () => {
+    const now = new Date("2026-09-22T12:00:00Z");
+    /* The database stores the end of 14 Oct in Lagos: 00:00 WAT on 15 Oct. */
+    const c = countdown("2026-10-14T23:00:00Z", "HELD", now);
+    if (c.kind !== "due") throw new Error("unreachable");
+    expect(c.line).toContain("14 Oct 2026");
+    expect(c.line).toMatch(/at the end of 14 Oct 2026, Lagos time/);
+  });
+
+  it("counts the proposal's date from today in Lagos, not from the reader's clock (ESC-11)", () => {
+    /* 23:30 UTC on 22 Sep is already 23 Sep in Lagos. */
+    expect(payoutDateIfFundedNow(21, new Date("2026-09-22T23:30:00Z"))).toContain("14 Oct 2026");
+    expect(payoutDateIfFundedNow(21, new Date("2026-09-22T12:00:00Z"))).toContain("13 Oct 2026");
   });
 
   it("does not call a passed payout date overdue, because the sweeper is hourly", () => {

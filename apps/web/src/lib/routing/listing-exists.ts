@@ -1,16 +1,24 @@
 /**
- * OPS-17: A LISTING THAT DOES NOT EXIST IS A REAL 404, DECIDED BEFORE RENDER.
+ * OPS-17 / UI-16: A DETAIL PAGE FOR SOMETHING THAT IS NOT THERE IS A REAL 404,
+ * DECIDED BEFORE RENDER.
  *
- * The listing page's `notFound()` runs after the root `loading.tsx` has
- * started the stream, so the status was already 200 and a missing listing was
- * a soft 404, indexed as a page and invisible to a link checker. The proxy
- * answers first: an id that cannot be a listing, or one that names no
- * published listing this caller can read, is rewritten to the not-found page
- * with a 404. It is the same read the page makes (`status = PUBLISHED`, the
- * caller's own session and RLS), reduced to a count. Any read failure answers
- * "exists" and lets the page decide, so an outage never 404s a live listing.
+ * A page's `notFound()` runs after the root `loading.tsx` has started the
+ * stream, so the status was already 200 and a missing listing, stay or
+ * restaurant was a soft 404, indexed as a page and invisible to a link
+ * checker. The proxy answers first: an id that cannot name anything, or one
+ * that names nothing this caller can read, is rewritten to the not-found page
+ * with a 404. Each check is the page's own read reduced to a count (the
+ * caller's session and RLS, the same filters):
+ *
+ *   /listing/<id>     a PUBLISHED listing.
+ *   /stay/<id>        an accommodation, or a PUBLISHED listing (the page
+ *                     falls back to one, and redirects a tenancy).
+ *   /restaurant/<id>  a restaurant business, or a PUBLISHED listing.
+ *
+ * Any read failure answers "exists" and lets the page decide, so an outage
+ * never 404s a live page.
  */
-const LISTING_PAGE = /^\/listing\/([^/]+)$/;
+const DETAIL_PAGE = /^\/(listing|stay|restaurant)\/([^/]+)$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type CountQuery = {
@@ -18,31 +26,51 @@ type CountQuery = {
 } & PromiseLike<{ count: number | null; error: unknown }>;
 
 export type ListingCounter = {
-  from: (table: "listings") => {
+  from: (table: "listings" | "accommodations" | "businesses") => {
     select: (columns: string, options: { count: "exact"; head: true }) => CountQuery;
   };
 };
 
-/** True only when `path` is a listing page for a listing that is not there. */
-export async function listingIsMissing(path: string, reader: ListingCounter): Promise<boolean> {
-  const match = LISTING_PAGE.exec(path);
+type Check = { table: "listings" | "accommodations" | "businesses"; filters: [string, string][] };
+
+function checksFor(page: string, id: string): Check[] {
+  const listing: Check = { table: "listings", filters: [["status", "PUBLISHED"], ["id", id]] };
+  if (page === "stay") return [{ table: "accommodations", filters: [["id", id]] }, listing];
+  if (page === "restaurant") return [{ table: "businesses", filters: [["id", id], ["kind", "restaurant"]] }, listing];
+  return [listing];
+}
+
+/** 1 or more, 0, or null when the read failed. */
+async function count(reader: ListingCounter, check: Check): Promise<number | null> {
+  try {
+    let query = reader.from(check.table).select("id", { count: "exact", head: true });
+    for (const [column, value] of check.filters) query = query.eq(column, value);
+    const { count: n, error } = await query;
+    return error || n === null ? null : n;
+  } catch {
+    return null;
+  }
+}
+
+/** True only when `path` is a detail page for something that is not there. */
+export async function detailIsMissing(path: string, reader: ListingCounter): Promise<boolean> {
+  const match = DETAIL_PAGE.exec(path);
   if (!match) return false;
   let id: string;
   try {
-    id = decodeURIComponent(match[1] ?? "");
+    id = decodeURIComponent(match[2] ?? "");
   } catch {
     return true;
   }
   if (!UUID.test(id)) return true;
-  try {
-    const { count, error } = await reader
-      .from("listings")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "PUBLISHED")
-      .eq("id", id);
-    if (error || count === null) return false;
-    return count === 0;
-  } catch {
-    return false;
+  for (const check of checksFor(match[1] ?? "listing", id)) {
+    const n = await count(reader, check);
+    if (n === null || n > 0) return false;
   }
+  return true;
+}
+
+/** The listing page alone, kept for its callers. */
+export async function listingIsMissing(path: string, reader: ListingCounter): Promise<boolean> {
+  return /^\/listing\//.test(path) ? detailIsMissing(path, reader) : false;
 }

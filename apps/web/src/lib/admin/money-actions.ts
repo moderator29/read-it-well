@@ -172,19 +172,21 @@ export async function reverseEscrowRuling(input: {
 
 /* --------------------------------------------------------------- fee rates */
 
+/** MON-P2-01. The highest rate fee_rates and private.set_fee_rate accept. */
+const FEE_RATE_CEILING_BPS = 2000;
+
 const setFeeRateSchema = z.object({
   kind: z.enum(["commission", "listing_fee"]),
   /*
    * Basis points, typed as a percentage by the operator and converted at the
-   * edge of the form rather than here. 10000 is a hundred percent and is
-   * allowed by the constraint, because a platform taking the whole of
-   * something is a coherent thing to express even if nobody should.
+   * edge of the form rather than here. MON-P2-01: the database refuses more
+   * than 2000 (20 percent), and so does this.
    */
   basisPoints: z
     .number()
     .int("Enter the rate in basis points, a whole number.")
     .min(0, "A rate cannot be negative.")
-    .max(10000, "A rate cannot be more than 100 percent."),
+    .max(FEE_RATE_CEILING_BPS, "A rate cannot be more than 20 percent."),
   flatMinor: z
     .number()
     .int("Enter the flat amount in kobo, a whole number.")
@@ -246,6 +248,15 @@ export async function setFeeRate(input: {
     }
     if (status === "needs_a_reason") {
       return fail("Say why the rate is changing.", { note: "This goes on the record." });
+    }
+    if (status === "raise_needs_super_admin") {
+      return fail(
+        "Only a super admin can raise a rate or a flat fee. Lowering one is open to any admin.",
+        { basisPoints: "Above the rate in force when this starts." },
+      );
+    }
+    if (status === "bad_rate") {
+      return fail("A rate cannot be more than 20 percent.", { basisPoints: "At most 2000 basis points." });
     }
     if (status === "forbidden") return fail(ADMIN_FORBIDDEN_MESSAGE);
     return fail(SERVICE_DOWN);

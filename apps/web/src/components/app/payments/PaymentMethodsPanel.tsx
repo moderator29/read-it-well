@@ -26,6 +26,7 @@ import { AddBankAccountSheet } from "./AddBankAccountSheet";
 import { PaystackCheckout, type ConfirmOutcome } from "./PaystackCheckout";
 import { panelClass } from "@/components/ui/Panel";
 import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
+import { BANK_PAYOUTS_OPEN } from "@/lib/wallet/bank-payouts";
 
 /**
  * PAYMENT METHODS, to the block at the foot of the settings render
@@ -299,7 +300,9 @@ export function PaymentMethodsPanel({
               <span className="block h-12 w-12 shrink-0" aria-hidden="true">
                 <BrandIcon name="card-lock" fill />
               </span>
-              <p className={TYPE.rowMeta}>{copy.blockEmpty}</p>
+              <p className={TYPE.rowMeta}>
+                {BANK_PAYOUTS_OPEN ? copy.blockEmpty : copy.blockEmptyBeforePayouts}
+              </p>
             </div>
           )}
         </div>
@@ -318,7 +321,7 @@ export function PaymentMethodsPanel({
         <RowButton
           icon="building-apartment"
           label={copy.addAccount}
-          sub={copy.banksNote}
+          sub={BANK_PAYOUTS_OPEN ? copy.banksNote : copy.banksNoteBeforePayouts}
           onClick={() => {
             setChooser(false);
             setAddingAccount(true);
