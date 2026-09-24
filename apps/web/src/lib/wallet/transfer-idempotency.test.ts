@@ -42,6 +42,7 @@ type Claim = { state: "running" } | { state: "done"; result: unknown };
 const store = new Map<string, Claim>();
 const moves: { out: string; in: string; amount: number }[] = [];
 
+const blockState = vi.hoisted(() => ({ blocked: false }));
 const rpc = vi.hoisted(() => ({ callSecurityRpc: vi.fn(), hasServiceRole: vi.fn(() => true) }));
 const money = vi.hoisted(() => ({ callMoneyRpc: vi.fn(), readMoneyStatus: vi.fn() }));
 
@@ -77,7 +78,16 @@ vi.mock("./ledger", () => ({
   displayNameFor: async () => "Ada",
   ensureWalletId: async () => "w",
   findUserByEmail: async () => ({ id: "user-2" }),
-  getAdminClient: () => ({ from: vi.fn() }),
+  getAdminClient: () => ({
+    /* Block rows: user-2 has blocked the sender only when blockedPair says so. */
+    from: () => ({
+      select: () => ({
+        or: () => ({
+          limit: async () => ({ data: blockState.blocked ? [{ user_id: "user-2" }] : [], error: null }),
+        }),
+      }),
+    }),
+  }),
   postEntry: vi.fn(),
   recordFunding: vi.fn(),
   setEntryStatus: vi.fn(),
@@ -123,6 +133,7 @@ function form(entries: Record<string, string>): FormData {
 const SEND = { recipientEmail: "kofi@example.invalid", amount: "5000" };
 
 beforeEach(() => {
+  blockState.blocked = false;
   store.clear();
   moves.length = 0;
   vi.resetModules();
@@ -292,7 +303,11 @@ describe("sending money twice on one tap moves it once", () => {
        on, and the guard steps aside exactly as it does for funding. This is
        what the withdrawal forms still look like today. */
     expect(moves).toHaveLength(2);
-    expect(rpc.callSecurityRpc).not.toHaveBeenCalled();
+    /* The recipient pace (NEW-A2-04) still counts; no idempotency call is made. */
+    const idempotencyCalls = rpc.callSecurityRpc.mock.calls.filter(([fn]) =>
+      String(fn).includes("idempotency"),
+    );
+    expect(idempotencyCalls).toHaveLength(0);
   });
 });
 
@@ -306,6 +321,35 @@ describe("sending to an @handle", () => {
     expect(sent.ok).toBe(true);
     expect(moves).toHaveLength(1);
     expect(money.callMoneyRpc.mock.calls[0]?.[3]).toMatchObject({ recipient_user: "user-2" });
+  });
+
+  it("refuses an address whose owner blocked the payer with the no-account answer (NEW-A2-04)", async () => {
+    const { transferToUser } = await import("./actions");
+    blockState.blocked = true;
+    const sent = await transferToUser(
+      { ok: true, data: null },
+      form({ ...SEND, idempotencyKey: "blocked-email" }),
+    );
+    expect(sent.ok).toBe(false);
+    expect(moves).toHaveLength(0);
+    expect(sent.ok ? "" : sent.error).toMatch(/No Vallo account uses that email address or handle/);
+  });
+
+  it("refuses a send once the shared recipient-lookup budget is spent, before resolving anybody", async () => {
+    const { transferToUser } = await import("./actions");
+    const base = rpc.callSecurityRpc.getMockImplementation();
+    rpc.callSecurityRpc.mockImplementation(async (fn: string, args: Record<string, unknown>) =>
+      fn === "consume_rate_limit" && args["bucket"] === "wallet_recipient_lookup"
+        ? { ok: true, data: false }
+        : base!(fn, args),
+    );
+    const sent = await transferToUser(
+      { ok: true, data: null },
+      form({ ...SEND, idempotencyKey: "paced-send" }),
+    );
+    expect(sent.ok).toBe(false);
+    expect(sent.ok ? "" : sent.error).toMatch(/checked a lot of recipients/);
+    expect(moves).toHaveLength(0);
   });
 
   it("refuses a handle the payer cannot see, and moves nothing", async () => {

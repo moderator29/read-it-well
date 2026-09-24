@@ -83,7 +83,7 @@ import {
   type AdminClient,
 } from "./ledger";
 import { callMoneyRpc, readMoneyStatus } from "./rpc";
-import { resolveRecipientId } from "./handle-recipient";
+import { paceRecipientLookup, resolveRecipientId } from "./handle-recipient";
 import { parseRecipientInput } from "./recipient-input";
 import { readStatement } from "./repository";
 import { chargeSavedCard } from "../payments/charge-saved-card";
@@ -1171,7 +1171,14 @@ async function transferToUserWork(
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
   const target = parseRecipientInput(parsed.data.recipientEmail);
-  const recipientId = target ? await resolveRecipientId(target) : null;
+  /* NEW-A2-04: the send shares the lookup's budget, so the two doors together
+     cannot walk a list of addresses; and a blocked person reads exactly like
+     an address nobody uses. */
+  const pace = await paceRecipientLookup(session.user.id);
+  if (!pace.allowed) {
+    return fail(`You have checked a lot of recipients in a short time. Try again ${pace.retryIn}. Your balance is untouched.`);
+  }
+  const recipientId = target ? await resolveRecipientId(target, session.user.id) : null;
   const recipient = recipientId ? { id: recipientId } : null;
   if (!recipient) {
     return fail(
