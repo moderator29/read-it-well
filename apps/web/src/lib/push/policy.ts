@@ -1,7 +1,8 @@
 import { isUrgentKind, wantsPush, type NotificationKind } from "./preferences";
+import { sameOriginPath } from "./same-origin";
 import { quietVerdict, readQuietHours } from "./quiet-hours";
 import type { PushPayload } from "./types";
-import { actionsFor } from "./actions";
+import { actionsFor, recipientLocale } from "./actions";
 
 /**
  * EVERY DECISION ABOUT ONE QUEUED PUSH, AS A PURE FUNCTION.
@@ -71,12 +72,9 @@ export function collapseTag(kind: NotificationKind): string {
  * notifications list, which is always a truthful destination.
  */
 export function safeHref(href: string | null): string {
-  if (typeof href !== "string") return "/notifications";
-  const trimmed = href.trim();
-  if (!trimmed.startsWith("/")) return "/notifications";
-  /* `//host` is a protocol-relative URL and leaves the origin. */
-  if (trimmed.startsWith("//")) return "/notifications";
-  return trimmed;
+  /* `same-origin.ts` also refuses "/\\host" and "/\t/host", which a
+     browser resolves off the origin just like "//host". */
+  return sameOriginPath(href) ?? "/notifications";
 }
 
 /**
@@ -153,7 +151,7 @@ export function decide(input: {
       href: safeHref(notification.href),
       tag: collapseTag(notification.kind),
       urgent,
-      actions: actionsFor(notification.kind, notification.href),
+      actions: actionsFor(notification.kind, notification.href, recipientLocale(settings)),
     },
   };
 }

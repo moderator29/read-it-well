@@ -1,4 +1,4 @@
-import { getDictionary, DEFAULT_LOCALE } from "@vallo/i18n";
+import { getDictionary, DEFAULT_LOCALE, isLocale, type Locale } from "@vallo/i18n";
 import type { NotificationKind } from "./preferences";
 
 /**
@@ -49,19 +49,30 @@ export type PushAction = {
   href: string;
 };
 
+import { sameOriginPath } from "./same-origin";
+
 const MAX_ACTIONS = 2;
 
 function onOrigin(href: string | null): string | null {
-  if (typeof href !== "string") return null;
-  const trimmed = href.trim();
-  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) return null;
-  return trimmed;
+  return sameOriginPath(href);
 }
 
-export function actionsFor(kind: NotificationKind, href: string | null): PushAction[] {
+/** The recipient's language from `profiles.settings`, or the default. */
+export function recipientLocale(settings: unknown): Locale {
+  const value = settings && typeof settings === "object" ? (settings as { locale?: unknown }).locale : null;
+  return typeof value === "string" && isLocale(value) ? value : DEFAULT_LOCALE;
+}
+
+/**
+ * The buttons, titled in the RECIPIENT's language. Only the web push
+ * service worker draws them: FCM and APNs deliveries carry them in the data
+ * payload for the native tap handler, but no native button is drawn until
+ * the Android and iOS projects register notification categories.
+ */
+export function actionsFor(kind: NotificationKind, href: string | null, locale: Locale = DEFAULT_LOCALE): PushAction[] {
   const path = onOrigin(href);
   if (!path) return [];
-  const copy = getDictionary(DEFAULT_LOCALE).platform.pushActions;
+  const copy = getDictionary(locale).platform.pushActions;
   const out: PushAction[] = [];
 
   if (kind === "message" && path.startsWith("/messages/")) {

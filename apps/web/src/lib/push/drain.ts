@@ -156,6 +156,9 @@ export async function pushDrain(admin: PushClient): Promise<JobVerdict> {
      is still there to send. */
   if (platforms.length === 0) {
     const depth = await queueDepth(admin);
+    /* V-53: keys present but every one is iOS behind the shut flag. That is a
+       decision waiting, not a missing key, and it is named as one. */
+    const flagShut = configured.length > 0;
     return {
       outcome: depth.waiting > 0 ? "attention" : "ok",
       counts: { ...ZERO_COUNTS, waiting: depth.waiting },
@@ -163,13 +166,18 @@ export async function pushDrain(admin: PushClient): Promise<JobVerdict> {
       alert:
         depth.waiting > 0
           ? {
-              kind: "push.no_credentials",
-              severity: "critical",
-              detail: {
-                waiting: depth.waiting,
-                /* Variable NAMES, never values. */
-                note: "Push has no transport configured and notifications are queueing. See lib/push/credentials.ts for which variable is missing and who supplies it.",
-              },
+              kind: flagShut ? "push.apns_flag_shut" : "push.no_credentials",
+              severity: flagShut ? "warning" : "critical",
+              detail: flagShut
+                ? {
+                    waiting: depth.waiting,
+                    note: "Only APNs is configured and the native_push_apns flag is shut, so notifications are queueing. Open the flag (lib/push/apns-flag.ts) when the signed iOS build is ready.",
+                  }
+                : {
+                    waiting: depth.waiting,
+                    /* Variable NAMES, never values. */
+                    note: "Push has no transport configured and notifications are queueing. See lib/push/credentials.ts for which variable is missing and who supplies it.",
+                  },
             }
           : null,
     };

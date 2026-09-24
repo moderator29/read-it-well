@@ -465,16 +465,25 @@ function notificationFromPayload(raw) {
  * A destination, or the notifications list.
  *
  * Only a path on our own origin is ever carried. `//host` is a
- * protocol-relative URL and leaves the origin, which is the one that gets
- * missed. This mirrors `safeHref` in `lib/push/policy.ts` deliberately: the
+ * protocol-relative URL and leaves the origin, and so do "/\\host" and a
+ * tab or newline after the slash. This mirrors `lib/push/same-origin.ts`
+ * (a test runs both over the same escapes) deliberately: the
  * sender checks and the receiver checks, and neither trusts the other.
  */
 function safePushHref(href) {
   if (typeof href !== "string") return PUSH_FALLBACK_HREF;
   const trimmed = href.trim();
-  if (trimmed.charAt(0) !== "/") return PUSH_FALLBACK_HREF;
-  if (trimmed.charAt(1) === "/") return PUSH_FALLBACK_HREF;
-  return trimmed;
+  if (trimmed.charAt(0) !== "/" || trimmed.length > 2000) return PUSH_FALLBACK_HREF;
+  /* "/\\host" and "/\t/host" resolve off the origin just as "//host" does. */
+  if (/[\\\u0000-\u001f\u007f]/.test(trimmed)) return PUSH_FALLBACK_HREF;
+  let resolved;
+  try {
+    resolved = new URL(trimmed, "https://vallo.invalid");
+  } catch (_) {
+    return PUSH_FALLBACK_HREF;
+  }
+  if (resolved.origin !== "https://vallo.invalid") return PUSH_FALLBACK_HREF;
+  return resolved.pathname + resolved.search + resolved.hash;
 }
 
 /*

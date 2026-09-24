@@ -46,13 +46,12 @@ type PushPlugin = {
   }) => Promise<void>;
 };
 
+import { sameOriginPath } from "../push/same-origin";
+
 const FALLBACK = "/notifications";
 
 function onOrigin(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) return null;
-  return trimmed;
+  return sameOriginPath(value);
 }
 
 /** Pure: where a native tap goes. */
