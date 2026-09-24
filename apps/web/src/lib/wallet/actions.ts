@@ -28,7 +28,8 @@
  * email failure can change what the ledger says or what the caller is told.
  */
 
-import { moneyHoldRefusal } from "./money-hold";
+import { bankPayoutsOpen, PAYOUTS_CLOSED_MESSAGE } from "./bank-payouts";
+import { moneyHoldRefusal, payoutsClosedRefusal } from "./money-hold";
 import { createHash, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
@@ -515,6 +516,12 @@ export async function withdraw(
   _prev: ActionResult<WithdrawReceipt | null>,
   formData: FormData,
 ): Promise<ActionResult<WithdrawReceipt | null>> {
+  /* Bank payouts are closed (lib/wallet/bank-payouts.ts). Refused first:
+     before the session, the idempotency claim, any hold or any transfer, for
+     the typed-in account and the saved one alike. The database refuses a new
+     withdrawal debit on its own switch as well. */
+  if (!bankPayoutsOpen()) return fail(PAYOUTS_CLOSED_MESSAGE);
+
   const session = await resolveSession();
   const key = formDataToObject(formData)["idempotencyKey"] ?? null;
   if (session.state !== "signed-in" || !key) return withdrawWork(_prev, formData);
@@ -660,7 +667,11 @@ async function withdrawWork(
   );
 
   if (held.outcome === "failed") {
-    return fail(moneyHoldRefusal(held) ?? "The withdrawal could not be recorded. Your balance is untouched. Please try again.");
+    return fail(
+      moneyHoldRefusal(held) ??
+        payoutsClosedRefusal(held) ??
+        "The withdrawal could not be recorded. Your balance is untouched. Please try again.",
+    );
   }
 
   if (held.outcome === "ok") {
@@ -926,7 +937,7 @@ async function withdrawToSavedAccount(
 
   if (held.outcome !== "ok") {
     return fail(
-      (held.outcome === "failed" ? moneyHoldRefusal(held) : null) ??
+      (held.outcome === "failed" ? (moneyHoldRefusal(held) ?? payoutsClosedRefusal(held)) : null) ??
         "The withdrawal could not be recorded. Your balance is untouched. Please try again.",
     );
   }

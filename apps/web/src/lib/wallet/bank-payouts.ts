@@ -21,6 +21,28 @@
  */
 export const BANK_PAYOUTS_OPEN = false;
 
+/**
+ * THE SWITCH IS ENFORCED, NOT ONLY WORDED.
+ *
+ * `withdraw` refuses on this before any hold or transfer, and the database
+ * refuses a new withdrawal debit on its own switch
+ * (`private.platform_switches`, row `bank_payouts`, closed by default and
+ * changed only by a migration), so a caller that skips this action is refused
+ * too. Opening payouts means opening BOTH, and only once the account-name
+ * match (D-02) is enforced on the payout path: a withdrawal must go to an
+ * account in the member's own name.
+ *
+ * A function rather than the bare constant so a test can drive the withdraw
+ * flow as it will run on the day payouts open.
+ */
+export function bankPayoutsOpen(): boolean {
+  return BANK_PAYOUTS_OPEN;
+}
+
+/** What `withdraw` answers while bank payouts are closed. */
+export const PAYOUTS_CLOSED_MESSAGE =
+  "Withdrawal to a bank account is not available yet. Your money stays in your Vallo wallet, where you can spend it on Vallo or send it to another Vallo member.";
+
 /** One sentence: how money in the wallet can be used. */
 export const WALLET_MONEY_USES = BANK_PAYOUTS_OPEN
   ? "Money in your Vallo wallet can be spent on Vallo, sent to other Vallo members, or moved to your own Nigerian bank account whenever you want."
