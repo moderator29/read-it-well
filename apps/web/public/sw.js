@@ -51,8 +51,9 @@
 /* Bumped to v2 when the push handlers moved in from `/api/push/sw`.
    Bumped to v3 (V-35, V-78) when the offline page began carrying the gate
    code and its script chunks were precached, and when the asset cache key
-   stopped including the deployment id. */
-const CACHE_VERSION = "v3";
+   stopped including the deployment id. v4 (V-53) when notifications gained
+   buttons. */
+const CACHE_VERSION = "v4";
 const SHELL_CACHE = `vallo-shell-${CACHE_VERSION}`;
 const ASSET_CACHE = `vallo-assets-${CACHE_VERSION}`;
 const CURRENT_CACHES = [SHELL_CACHE, ASSET_CACHE];
@@ -411,6 +412,7 @@ function notificationFromPayload(raw) {
   const tag =
     typeof payload.tag === "string" && payload.tag.trim().length > 0 ? payload.tag : "vallo";
   const urgent = payload.urgent === true;
+  const actions = pushActionsFrom(payload.actions);
 
   return {
     title,
@@ -439,7 +441,16 @@ function notificationFromPayload(raw) {
       requireInteraction: urgent,
       /* Everything the tap handler needs, and nothing that identifies a
          device. `count` is what makes a summary countable; see below. */
-      data: { href: safePushHref(payload.href), urgent, count: 1 },
+      data: {
+        href: safePushHref(payload.href),
+        urgent,
+        count: 1,
+        /* V-53: where each button goes, keyed by its id. */
+        actionHrefs: Object.fromEntries(actions.map((a) => [a.action, a.href])),
+      },
+      /* V-53: at most two buttons, each a destination inside Vallo. A
+         browser that draws none simply ignores this. */
+      actions: actions.map((a) => ({ action: a.action, title: a.title })),
     },
   };
 }
@@ -458,6 +469,26 @@ function safePushHref(href) {
   if (trimmed.charAt(0) !== "/") return PUSH_FALLBACK_HREF;
   if (trimmed.charAt(1) === "/") return PUSH_FALLBACK_HREF;
   return trimmed;
+}
+
+/*
+ * The buttons, re-checked. The sender builds them from a fixed list
+ * (`lib/push/actions.ts`); this refuses anything that is not a short id, a
+ * short title and a path on our own origin, and keeps two at most.
+ */
+function pushActionsFrom(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const item of raw) {
+    if (out.length >= 2) break;
+    if (!item || typeof item !== "object") continue;
+    const id = typeof item.id === "string" && /^[a-z-]{1,24}$/.test(item.id) ? item.id : null;
+    const title = typeof item.title === "string" && item.title.length > 0 && item.title.length <= 40 ? item.title : null;
+    const href = safePushHref(item.href);
+    if (!id || !title || href === PUSH_FALLBACK_HREF) continue;
+    out.push({ action: id, title, href });
+  }
+  return out;
 }
 
 /* How many real events an already-displayed notification stands for. */
@@ -579,7 +610,13 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
   const data = event.notification.data || {};
-  const href = safePushHref(data.href);
+  /* V-53: a button carries its own destination; the body of the
+     notification carries the default one. */
+  const byAction =
+    event.action && data.actionHrefs && typeof data.actionHrefs === "object"
+      ? data.actionHrefs[event.action]
+      : undefined;
+  const href = safePushHref(byAction !== undefined ? byAction : data.href);
 
   event.waitUntil(
     (async () => {

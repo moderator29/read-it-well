@@ -15,6 +15,9 @@ const SOURCE = readFileSync(
 );
 
 type Pure = {
+  notificationFromPayload: (raw: unknown) => {
+    options: { actions: { action: string; title: string }[]; data: { href: string; actionHrefs: Record<string, string> } };
+  };
   assetCacheKey: (url: URL) => string | null;
   offlineAssetUrls: (html: string) => string[];
   CACHE_VERSION: string;
@@ -22,7 +25,7 @@ type Pure = {
 
 function load(): Pure {
   const self = { addEventListener: () => undefined, location: { origin: "https://www.vallospaces.com" } };
-  const run = new Function("self", `${SOURCE}\nreturn { assetCacheKey, offlineAssetUrls, CACHE_VERSION };`);
+  const run = new Function("self", `${SOURCE}\nreturn { assetCacheKey, offlineAssetUrls, CACHE_VERSION, notificationFromPayload };`);
   return run(self) as Pure;
 }
 
@@ -64,6 +67,37 @@ describe("offlineAssetUrls", () => {
 
 describe("the version", () => {
   it("was bumped, so the activate step clears the caches keyed the old way", () => {
-    expect(sw.CACHE_VERSION).toBe("v3");
+    expect(sw.CACHE_VERSION).toBe("v4");
+  });
+});
+
+describe("notification buttons (V-53)", () => {
+  it("draws up to two buttons, each routed to its own path", () => {
+    const shown = sw.notificationFromPayload({
+      title: "New message",
+      href: "/messages/abc",
+      actions: [
+        { id: "reply", title: "Reply", href: "/messages/abc" },
+        { id: "answer", title: "Answer the request", href: "/agent/inspections" },
+        { id: "open-booking", title: "Open the booking", href: "/bookings/1" },
+      ],
+    });
+    expect(shown.options.actions.map((a) => a.action)).toEqual(["reply", "answer"]);
+    expect(shown.options.data.actionHrefs.answer).toBe("/agent/inspections");
+  });
+  it("refuses a button that would leave the origin, or has no title", () => {
+    const shown = sw.notificationFromPayload({
+      title: "x",
+      actions: [
+        { id: "reply", title: "Reply", href: "https://evil.example/x" },
+        { id: "reply", title: "Reply", href: "//evil.example" },
+        { id: "answer", title: "", href: "/agent/inspections" },
+        "nonsense",
+      ],
+    });
+    expect(shown.options.actions).toEqual([]);
+  });
+  it("carries no buttons when the sender sent none", () => {
+    expect(sw.notificationFromPayload({ title: "x" }).options.actions).toEqual([]);
   });
 });

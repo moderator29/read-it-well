@@ -1,6 +1,7 @@
 import { isUrgentKind, wantsPush, type NotificationKind } from "./preferences";
 import { quietVerdict, readQuietHours } from "./quiet-hours";
 import type { PushPayload } from "./types";
+import { actionsFor } from "./actions";
 
 /**
  * EVERY DECISION ABOUT ONE QUEUED PUSH, AS A PURE FUNCTION.
@@ -152,6 +153,7 @@ export function decide(input: {
       href: safeHref(notification.href),
       tag: collapseTag(notification.kind),
       urgent,
+      actions: actionsFor(notification.kind, notification.href),
     },
   };
 }

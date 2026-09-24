@@ -8,6 +8,7 @@ import { decide, planCollapse, type QueuedNotification } from "./policy";
 import type { NotificationKind } from "./preferences";
 import type { PushClient, PushPlatform, PushQueueOutcome } from "./schema";
 import { sendApns } from "./transport/apns";
+import { apnsIsOpen, gatePlatforms } from "./apns-flag";
 import { sendFcm } from "./transport/fcm";
 import { sendWebPush } from "./transport/webpush";
 import { isRetryable, type ProviderReply, type PushPayload, type PushTarget } from "./types";
@@ -140,7 +141,13 @@ export async function pushDrain(admin: PushClient): Promise<JobVerdict> {
      `AdminClient` is the same `SupabaseClient<Database>` this now takes, so
      the drain and the runner check against each other rather than meeting
      through an `unknown`. */
-  const platforms = deliverablePlatforms();
+  /* V-53: iOS only once the founder has opened `native_push_apns`. The
+     flag is read only when APNs credentials exist, so a deployment without
+     them pays for no extra query. */
+  const configured = deliverablePlatforms();
+  const platforms = configured.includes("ios")
+    ? gatePlatforms(configured, await apnsIsOpen(admin))
+    : configured;
 
   /* NO CREDENTIALS MEANS DO NOT TOUCH THE QUEUE.
      A deployment with no keys must not claim rows, burn attempts against a

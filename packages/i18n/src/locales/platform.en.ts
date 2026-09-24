@@ -160,4 +160,12 @@ export const platformEn = {
     offlineHeading: "Your inspections on this phone",
     offlineWhen: "{day} at {time}",
   },
+
+  /* V-53: the buttons a notification carries. Each opens a screen in Vallo;
+     none acts from the lock screen, so each says where it goes. */
+  pushActions: {
+    reply: "Reply",
+    answer: "Open inspections",
+    openBooking: "Open the booking",
+  },
 };
