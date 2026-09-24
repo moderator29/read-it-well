@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { isPropertyMarket, marketOf } from "@/lib/listings/market";
+import { notFound, redirect } from "next/navigation";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
@@ -135,7 +136,10 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
    * answered. Nothing else about the listing path changes.
    */
   const listing = await getListingRepository().byId(id);
-  const listingFace = listing && listing.kind === "restaurant" ? listing : null;
+  /* UI-P2-03: premises let on a rent or sold are Property, not a place to
+     book a table; they move to the rental template. */
+  if (listing && isPropertyMarket(marketOf(listing))) redirect(`/listing/${id}`);
+  const listingFace = listing && marketOf(listing) === "dining" ? listing : null;
   const detail = await getRestaurantDetail(listingFace ? listingFace.id : id);
 
   /* This route is for restaurants. Anything else is served by the surface built

@@ -54,7 +54,7 @@ type Message = {
 const THREAD_KEY = "nf_support_thread";
 
 const GREETING =
-  "Hello, I am Vallo's support agent. Ask me anything about your bookings, payments, the wallet, listing a property, verification or cancellations. If you are signed in I can look at your own bookings and wallet, and I bring in a person whenever that is the right answer.";
+  "Hello, I am Vallo's AI support helper, not a person. Ask me anything about your bookings, payments, the wallet, listing a property, verification or cancellations. If you are signed in I can look at your own bookings and wallet, and I bring in a person whenever that is the right answer.";
 
 const STARTERS = [
   "Where is my booking?",
@@ -401,7 +401,9 @@ export function SupportChat({ aiConsented = false }: { aiConsented?: boolean } =
               take the row interval. This was mt-0.5, which is 2px: a heading
               and a sentence touching rather than an interval. */}
           <p className="mt-row nf-caption text-[var(--nf-content-muted)]">
-            An agent that reads your own bookings and hands you to a person when it should.
+            {/* UX-15: said plainly that this is AI, and "agent" is kept for estate
+                agents, which is what the word means everywhere else here. */}
+            An AI helper that reads your own bookings and hands you to a person when it should.
           </p>
         </div>
         <button

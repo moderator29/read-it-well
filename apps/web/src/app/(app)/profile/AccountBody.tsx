@@ -309,7 +309,7 @@ export function AccountBody({
                 label="Notifications"
                 sub="Everything that happened while you were away"
               />
-              <RowLink href="/help" icon="ticket" label="Help" sub="Get an answer from a person" />
+              <RowLink href="/help" icon="ticket" label="Help" sub="FAQs, contact us" />
             </SettingsGroup>
           </div>
         </div>

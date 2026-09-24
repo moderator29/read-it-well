@@ -1,3 +1,4 @@
+import { initial } from "@/lib/text/initial";
 import Link from "next/link";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { StoryCard } from "@/lib/social/stories-queries";
@@ -39,7 +40,7 @@ export function StoryRing({
     return true;
   });
 
-  const monogram = (you?.label ?? "?").charAt(0).toUpperCase();
+  const monogram = initial(you?.label);
 
   return (
     <div className="nf-story-ring" data-testid="story-ring">
@@ -76,7 +77,7 @@ export function StoryRing({
                   />
                 ) : (
                   <span className="nf-story-ring__monogram" aria-hidden="true">
-                    {story.authorLabel.charAt(0).toUpperCase()}
+                    {initial(story.authorLabel)}
                   </span>
                 )}
               </span>

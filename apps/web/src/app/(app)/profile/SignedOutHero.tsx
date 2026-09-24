@@ -1,5 +1,6 @@
 "use client";
 
+import { initial } from "@/lib/text/initial";
 import "./profile.css";
 import { useState } from "react";
 import Image from "next/image";
@@ -60,7 +61,7 @@ export function SignedOutHero({ unconfigured }: { unconfigured: boolean }) {
   const email = identity.email;
   const since = formatSince(identity.since);
 
-  const monogram = name.charAt(0).toUpperCase() || "G";
+  const monogram = initial(name, "G");
 
   return (
     <header className="nf-pf-hero" data-testid="signed-out-hero">

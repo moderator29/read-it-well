@@ -1,5 +1,6 @@
 "use client";
 
+import { initial } from "@/lib/text/initial";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -82,7 +83,7 @@ function ProfileRow({
       </Link>
     );
   }
-  const monogram = (person.name || person.email || "?").charAt(0).toUpperCase();
+  const monogram = initial(person.name || person.email);
   return (
     <Link href="/profile" className="nf-panel nf-panel--card nf-hub-profile" data-testid="settings-profile-row">
       <span className="nf-hub-profile__avatar" aria-hidden="true">

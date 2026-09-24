@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/Button";
 import { TYPE } from "@/components/app/Screen";
 import { SUPPLY_DOOR_ORDER, STAYS_DOOR_ORDER } from "@/lib/supply/roles";
 import type { Side } from "@/lib/side.constants";
+import { hrefFor } from "./AddWorkspaceChooser.href";
+
+export { hrefFor };
 
 /**
  * ADD A WORKSPACE, and it is the door this platform did not have.
@@ -122,7 +125,18 @@ const OVERVIEW_FALLBACK: BrandIconName = "doc-shield";
 
 export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) {
   const router = useRouter();
-  const doors: readonly string[] = side === "stays" ? STAYS_DOOR_ORDER : SUPPLY_DOOR_ORDER;
+  /*
+   * UX-05: BOTH SETS OF DOORS, ALWAYS, in two labelled groups. The chooser
+   * used to show the property doors or the stays doors depending on an
+   * invisible side cookie, so a landlord who had last tapped a shortlet could
+   * not find "I own the property". The current side's group comes first; the
+   * other is never hidden.
+   */
+  const groups: { key: Side; title: string; doors: readonly string[] }[] = [
+    { key: "property", title: t.supply.chooser.groupProperty, doors: SUPPLY_DOOR_ORDER },
+    { key: "stays", title: t.supply.chooser.groupStays, doors: STAYS_DOOR_ORDER },
+  ];
+  if (side === "stays") groups.reverse();
 
   const [chosen, setChosen] = useState<string | null>(null);
   const [step, setStep] = useState<"choose" | "overview">("choose");
@@ -136,7 +150,7 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
       setStep("overview");
       return;
     }
-    router.push(hrefFor(chosen, side));
+    router.push(hrefFor(chosen));
   }
 
   const overviewRows = chosen
@@ -198,46 +212,53 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
       </p>
 
       {step === "choose" ? (
-        <ul className="mt-heading grid gap-group">
-          {doors.map((id) => {
-            const door = doorCopy(id);
-            const selected = chosen === id;
-            return (
-              <li key={id}>
-                <button
-                  type="button"
-                  onClick={() => setChosen(id)}
-                  aria-pressed={selected}
-                  className="nf-door"
-                  data-on={selected || undefined}
-                >
-                  <span className="nf-door__mark" aria-hidden="true">
-                    <BrandIcon name={DOOR_OBJECT[id] ?? "home-ring"} size={44} />
-                  </span>
-                  <span className="min-w-0 flex-1 text-left">
-                    <span className={`block ${TYPE.rowTitle}`}>{door.title}</span>
-                    <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{door.blurb}</span>
-                  </span>
-                  {/* The tick replaces the chevron on the chosen one, exactly
-                      as the render's second screen draws it. */}
-                  {/* The circular badge and not the shield, for the reason
-                      `ProfileSwitcher` gives: the shield means a checked
-                      listing in this product and a mark means one thing. */}
-                  <UiIcon
-                    name={selected ? "verified-badge" : "chevron-right"}
-                    size={selected ? "lg" : "sm"}
-                    className={
-                      selected
-                        ? "shrink-0 text-[var(--nf-brand-primary)]"
-                        : "shrink-0 text-[var(--nf-content-muted)]"
-                    }
-                    label={selected ? copy.selected : undefined}
-                  />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        groups.map((group) => (
+          <section key={group.key} aria-labelledby={`doors-${group.key}`} className="mt-heading">
+            <h2 id={`doors-${group.key}`} className={TYPE.rowTitle}>
+              {group.title}
+            </h2>
+            <ul className="mt-inline grid gap-group">
+              {group.doors.map((id) => {
+                const door = doorCopy(id);
+                const selected = chosen === id;
+                return (
+                  <li key={id}>
+                    <button
+                      type="button"
+                      onClick={() => setChosen(id)}
+                      aria-pressed={selected}
+                      className="nf-door"
+                      data-on={selected || undefined}
+                    >
+                      <span className="nf-door__mark" aria-hidden="true">
+                        <BrandIcon name={DOOR_OBJECT[id] ?? "home-ring"} size={44} />
+                      </span>
+                      <span className="min-w-0 flex-1 text-left">
+                        <span className={`block ${TYPE.rowTitle}`}>{door.title}</span>
+                        <span className={`mt-inline-tight block ${TYPE.rowMeta}`}>{door.blurb}</span>
+                      </span>
+                      {/* The tick replaces the chevron on the chosen one, exactly
+                          as the render's second screen draws it. */}
+                      {/* The circular badge and not the shield, for the reason
+                          `ProfileSwitcher` gives: the shield means a checked
+                          listing in this product and a mark means one thing. */}
+                      <UiIcon
+                        name={selected ? "verified-badge" : "chevron-right"}
+                        size={selected ? "lg" : "sm"}
+                        className={
+                          selected
+                            ? "shrink-0 text-[var(--nf-brand-primary)]"
+                            : "shrink-0 text-[var(--nf-content-muted)]"
+                        }
+                        label={selected ? copy.selected : undefined}
+                      />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))
       ) : (
         <>
           <ul className="mt-heading grid gap-group">
@@ -286,20 +307,4 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
       )}
     </div>
   );
-}
-
-/**
- * Where a door goes, in one function, so the chooser and any later caller
- * cannot disagree about it.
- *
- * The answer is carried in the URL for the two property doors that share one
- * form, so the form can branch on it the day the three forms land without the
- * chooser changing.
- */
-export function hrefFor(door: string, side: Side): string {
-  if (side === "stays") return `/host/apply?door=${door}`;
-  if (door === "owner" || door === "agent" || door === "firm") {
-    return `/profile/setup/${door}`;
-  }
-  return "/profile/setup/professional";
 }

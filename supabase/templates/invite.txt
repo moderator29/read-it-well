@@ -12,8 +12,6 @@ account is set up in a moment.
 Accept your invitation:
 {{ .ConfirmationURL }}
 
-- Browse as much as you like before you tell anybody anything about
-yourself.
 - Listings, conversations, bookings and trips all sit in one account.
 - Your details stay private until you choose to message a lister.
 
@@ -24,8 +22,9 @@ If the button does not work, copy this link into your browser:
 {{ .ConfirmationURL }}
 
 Worth knowing before you start
-- Every listing was put up by a real person on Vallo. Nothing is
-imported from an outside feed, so there is always somebody to message.
+- Message whoever listed a place from inside Vallo, so the conversation
+stays on the record. Places marked Example are there to show how Vallo
+works and cannot be rented or booked.
 - Vallo has two sides on one account. Property is renting, buying and
 selling; Vallo Stays is hotels, apartments, guest houses, resorts and
 restaurant tables. One naira wallet pays for both.

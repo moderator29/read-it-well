@@ -10,6 +10,7 @@ import { ListingGallery } from "@/components/app/listing/ListingGallery";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { ICON, Section, Stack, TYPE } from "@/components/app/Screen";
 import { RoomTypes } from "./RoomTypes";
+import { StayDatesForm } from "./StayDatesForm";
 import {
   DetailAboutCard,
   DetailAvailabilityCard,
@@ -362,6 +363,19 @@ export function StayDetailView({
                 ? `${copy.totalFor.replace("{count}", formatNumber(nights, locale))}: ${formatMoney(total, locale)}`
                 : copy.pickDatesForTotal
             }
+          />
+          <StayDatesForm
+            action={`/stay/${detail.id}`}
+            checkIn={checkIn}
+            checkOut={checkOut}
+            guests={guests}
+            copy={{
+              title: copy.datesTitle,
+              checkIn: catalogue.checkIn,
+              checkOut: catalogue.checkOut,
+              guests: catalogue.guests,
+              submit: copy.datesSubmit,
+            }}
           />
         </div>
         )}

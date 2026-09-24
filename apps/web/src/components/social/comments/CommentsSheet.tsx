@@ -1,5 +1,6 @@
 "use client";
 
+import { initial } from "@/lib/text/initial";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -293,7 +294,7 @@ export function CommentsSheet({
                       sizes="32px"
                     />
                   ) : (
-                    <span aria-hidden="true">{comment.authorLabel.charAt(0).toUpperCase()}</span>
+                    <span aria-hidden="true">{initial(comment.authorLabel)}</span>
                   )}
                 </Link>
 
