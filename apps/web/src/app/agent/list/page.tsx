@@ -112,6 +112,7 @@ export default async function Page({
         amenities={amenities}
         initial={draft}
         canPersist
+        broadcastCopy={t.frontDoor.broadcast}
       />
     </AgentShell>
   );

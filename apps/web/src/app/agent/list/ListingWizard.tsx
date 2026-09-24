@@ -16,6 +16,8 @@ import {
   submitListing,
 } from "@/lib/agent/listings-actions";
 import type { WizardDraft } from "@/lib/agent/listings-queries";
+import { BROADCAST_MONEY_KEYS, type BroadcastKey, type BroadcastParse } from "@/lib/agent/broadcast";
+import { BroadcastPaste } from "./BroadcastPaste";
 import {
   MAX_ACCESS_CODE,
   MAX_BACKUP_HOURS,
@@ -339,16 +341,26 @@ function Field({
   label,
   hint,
   error,
+  fromMessage,
   children,
 }: {
   label: string;
   hint?: string;
   error?: string;
+  /** V-09: the words "From your message", when this value came from a pasted broadcast. */
+  fromMessage?: string;
   children: React.ReactNode;
 }) {
   return (
     <label className="block">
-      <span className="nf-label">{label}</span>
+      <span className="nf-label">
+        {label}
+        {fromMessage && (
+          <span className="nf-badge nf-badge--info ml-inline-tight align-middle" data-testid="from-message">
+            {fromMessage}
+          </span>
+        )}
+      </span>
       {children}
       {error ? (
         <span className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
@@ -765,8 +777,14 @@ export function ListingWizard({
   initial,
   canPersist,
   startAt = 0,
+  broadcastCopy,
 }: {
   copy: WizardCopy;
+  /**
+   * V-09, "Start from your WhatsApp message". Absent in the harnesses that
+   * photograph the governing screens, which then draw exactly what they did.
+   */
+  broadcastCopy?: Dictionary["frontDoor"]["broadcast"];
   /* Its own slice rather than a key inside `agentListings`, because the same
      words are read by the search page, the public listing page and the
      lister's console, and one namespace owns them. */
@@ -810,6 +828,14 @@ export function ListingWizard({
     })),
   );
   const [listingId, setListingId] = useState<string | null>(initial?.id ?? null);
+  /*
+   * V-09: THE FIELDS A PASTED BROADCAST FILLED, until the agent touches them.
+   * A key leaves this set the moment the agent edits that field, which is
+   * what "confirmed" means here. The submit gate refuses while any MONEY key
+   * is still in it: a figure read from a WhatsApp message is not sent for
+   * review until a person has looked at it.
+   */
+  const [fromMessage, setFromMessage] = useState<ReadonlySet<string>>(() => new Set());
 
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -1101,6 +1127,12 @@ export function ListingWizard({
 
   function set<K extends keyof Values>(key: K, value: Values[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
+    setFromMessage((prev) => {
+      if (!prev.has(key as string)) return prev;
+      const next = new Set(prev);
+      next.delete(key as string);
+      return next;
+    });
     setFieldErrors((prev) => {
       if (!(key in prev)) return prev;
       const next = { ...prev };
@@ -1108,6 +1140,36 @@ export function ListingWizard({
       return next;
     });
   }
+
+  /**
+   * V-09: put a pasted broadcast into the form. ONLY FIELDS STILL AT THEIR
+   * EMPTY STARTING VALUE are filled, so nothing the agent typed is ever
+   * overwritten, and every field filled is marked "from your message".
+   * Returns the keys actually filled, for the panel's list.
+   */
+  function applyBroadcast(result: BroadcastParse): BroadcastKey[] {
+    const taken: BroadcastKey[] = [];
+    const next: Partial<Values> = {};
+    for (const key of result.filled) {
+      const incoming = result.values[key];
+      if (incoming === undefined) continue;
+      const current = values[key as keyof Values];
+      const blank = EMPTY[key as keyof Values];
+      if (current !== blank) continue;
+      (next as Record<string, unknown>)[key] = incoming;
+      taken.push(key);
+    }
+    if (taken.length === 0) return taken;
+    setValues((prev) => ({ ...prev, ...next }));
+    setFromMessage((prev) => new Set([...prev, ...taken]));
+    return taken;
+  }
+
+  /** The "From your message" mark for one field, or nothing. */
+  const mark = (key: keyof Values): string | undefined =>
+    broadcastCopy && fromMessage.has(key as string) ? broadcastCopy.tag : undefined;
+
+  const unconfirmedMoney = BROADCAST_MONEY_KEYS.filter((key) => fromMessage.has(key));
 
   /* --------------------------------------------------------------- saving */
 
@@ -1575,6 +1637,9 @@ export function ListingWizard({
         {/* ---------------------------------------------------- 1 basic info */}
         {step === 0 && (
           <div className="space-y-lg">
+            {broadcastCopy && (
+              <BroadcastPaste copy={broadcastCopy} onApply={applyBroadcast} />
+            )}
             {/*
               The two fields that can actually fail validation use the shared
               TextField/TextArea. The local `Field` above them only draws a
@@ -1978,7 +2043,7 @@ export function ListingWizard({
                 ))}
               </select>
             </Field>
-            <Field label={copy.location.cityLabel} error={fieldErrors.city}>
+            <Field fromMessage={mark("city")} label={copy.location.cityLabel} error={fieldErrors.city}>
               <input
                 className="nf-field"
                 value={values.city}
@@ -1986,7 +2051,7 @@ export function ListingWizard({
                 placeholder={copy.location.cityPlaceholder}
               />
             </Field>
-            <Field
+            <Field fromMessage={mark("area")}
               label={copy.location.areaLabel}
               error={fieldErrors.area}
               hint={copy.location.areaHint}
@@ -2268,7 +2333,7 @@ export function ListingWizard({
             {/* ------------------------------------------------------- a sale */}
             {forSale && (
               <>
-                <Field
+                <Field fromMessage={mark("salePriceNaira")}
                   label="Asking price"
                   error={fieldErrors.salePrice ?? fieldErrors.salePriceNaira}
                   hint={
@@ -2322,7 +2387,7 @@ export function ListingWizard({
                   </p>
 
                   <div className="mt-group grid grid-cols-2 gap-row">
-                    <Field label="Agency fee" error={fieldErrors.saleAgencyFeeNaira}>
+                    <Field fromMessage={mark("saleAgencyFeeNaira")} label="Agency fee" error={fieldErrors.saleAgencyFeeNaira}>
                       <input
                         className="nf-field"
                         inputMode="decimal"
@@ -2331,7 +2396,7 @@ export function ListingWizard({
                         placeholder="9,000,000"
                       />
                     </Field>
-                    <Field label="Legal fee" error={fieldErrors.saleLegalFeeNaira}>
+                    <Field fromMessage={mark("saleLegalFeeNaira")} label="Legal fee" error={fieldErrors.saleLegalFeeNaira}>
                       <input
                         className="nf-field"
                         inputMode="decimal"
@@ -2495,7 +2560,7 @@ export function ListingWizard({
             {/* ---------------------------------------------------- a tenancy */}
             {tenancy && (
               <>
-                <Field
+                <Field fromMessage={mark("rentNaira")}
                   label="Rent"
                   error={fieldErrors.rent ?? fieldErrors.rentNaira}
                   hint={
@@ -2563,7 +2628,7 @@ export function ListingWizard({
                   </p>
 
                   <div className="mt-group grid grid-cols-2 gap-row">
-                    <Field label="Caution deposit" error={fieldErrors.cautionDepositNaira}>
+                    <Field fromMessage={mark("cautionDepositNaira")} label="Caution deposit" error={fieldErrors.cautionDepositNaira}>
                       <input
                         className="nf-field"
                         inputMode="decimal"
@@ -2572,7 +2637,7 @@ export function ListingWizard({
                         placeholder="450,000"
                       />
                     </Field>
-                    <Field label="Agency fee" error={fieldErrors.agencyFeeNaira}>
+                    <Field fromMessage={mark("agencyFeeNaira")} label="Agency fee" error={fieldErrors.agencyFeeNaira}>
                       <input
                         className="nf-field"
                         inputMode="decimal"
@@ -2581,7 +2646,7 @@ export function ListingWizard({
                         placeholder="450,000"
                       />
                     </Field>
-                    <Field label="Legal fee" error={fieldErrors.legalFeeNaira}>
+                    <Field fromMessage={mark("legalFeeNaira")} label="Legal fee" error={fieldErrors.legalFeeNaira}>
                       <input
                         className="nf-field"
                         inputMode="decimal"
@@ -2590,7 +2655,7 @@ export function ListingWizard({
                         placeholder="225,000"
                       />
                     </Field>
-                    <Field label="Agreement fee" error={fieldErrors.agreementFeeNaira}>
+                    <Field fromMessage={mark("agreementFeeNaira")} label="Agreement fee" error={fieldErrors.agreementFeeNaira}>
                       <input
                         className="nf-field"
                         inputMode="decimal"
@@ -2602,7 +2667,7 @@ export function ListingWizard({
                   </div>
 
                   <div className="mt-row grid grid-cols-2 gap-row">
-                    <Field label="Service charge" error={fieldErrors.serviceChargeNaira}>
+                    <Field fromMessage={mark("serviceChargeNaira")} label="Service charge" error={fieldErrors.serviceChargeNaira}>
                       <input
                         className="nf-field"
                         inputMode="decimal"
@@ -2629,7 +2694,7 @@ export function ListingWizard({
                   </div>
 
                   <div className="mt-group">
-                    <Field
+                    <Field fromMessage={mark("totalMoveInNaira")}
                       label="Total to move in"
                       error={fieldErrors.totalMoveInNaira}
                       hint={
@@ -2740,7 +2805,7 @@ export function ListingWizard({
 
             {/* ------------------------------------------------- a short stay */}
             {shortStay && (
-              <Field
+              <Field fromMessage={mark("rateNaira")}
                 label={perHead ? "Price per head" : copy.pricing.priceNightLabel}
                 error={fieldErrors.rate ?? fieldErrors.rateNaira}
                 hint={
@@ -3059,12 +3124,24 @@ export function ListingWizard({
               })}
             </ul>
 
+            {broadcastCopy && unconfirmedMoney.length > 0 && (
+              <div className="mt-heading" role="status" data-testid="broadcast-confirm">
+                <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]">
+                  {broadcastCopy.confirmTitle}
+                </p>
+                <p className="nf-body-sm mt-inline-tight text-[var(--nf-content-secondary)]">
+                  {fill(broadcastCopy.confirmBody, {
+                    fields: unconfirmedMoney.map((key) => broadcastCopy.fields[key]).join(", "),
+                  })}
+                </p>
+              </div>
+            )}
             <Button
               variant="primary"
               full
               className="mt-heading"
               onClick={send}
-              disabled={unmet.length > 0}
+              disabled={unmet.length > 0 || unconfirmedMoney.length > 0}
               loading={pending}
             >
               {copy.submit.action}
