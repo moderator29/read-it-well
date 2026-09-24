@@ -116,7 +116,7 @@ table below is a draft built from how the product works, not from the NRA.
 | Refunds or reversals used to clean funds | A payment comes in on one instrument and goes out to a different account | Medium | 4.3, 9.1 |
 | Sanctioned persons or PEPs as customers | Not screened today | Unknown until screening exists | 6 |
 | Cash | No cash path exists | Low | 8 |
-| Crypto funding | Code exists (`lib/payments/yellowcard.ts`) but is dormant: `isYellowCardConfigured()` is false in production, so `startCryptoDeposit` refuses. Turning it on is a policy decision under 3.4 | Low while dormant | 3.4 |
+| Crypto funding | Code exists (`lib/payments/yellowcard.ts`) but is dormant: `startCryptoDeposit` refuses unless `isYellowCardConfigured()` is true, which needs both Yellow Card keys. THE_AUDIT MON-19 (pass two) records that the production keys are not set. This was read from the code and the audit record, not from the production environment, which the drafter could not see. The Compliance Officer confirms it in the Vercel settings. Turning it on is a policy decision under 3.4 | Low while dormant | 3.4 |
 
 3.3 **Review.** The register is reviewed whenever the NRA is revised, before
 any new product or payment channel launches, and at least once a year.
@@ -159,15 +159,29 @@ below.
    bank-resolved name. It is resolved again before each payout, and the payout
    is refused if the name has changed (`sameAccountName`). Every lookup goes
    through one resolver, `lib/payments/bank-resolve.ts`.
+
+   **Bank withdrawals are presented as not open yet, but that is only
+   copy.** `BANK_PAYOUTS_OPEN` in `lib/wallet/bank-payouts.ts` is `false`,
+   and the payment-methods screen and the help pages say payouts are not
+   open. But the `withdraw` server action checks only the `wallet` feature
+   flag, and the database's `hold_wallet_withdrawal` does not check the
+   payout flag at all. Deficiency D-17. **Two things must be true before bank
+   payouts are opened:** (i) a server and database gate on the payout flag,
+   and (ii) D-02 fixed, so the bank-resolved name is matched to the member.
 3. **What is NOT true today.** It is not enforced that money reaches only
    an account in the member's own name. The
    platform records the bank's account name, but it does not compare that name
    with the member. It cannot, because an unverified member has no verified
    name to compare against. A member can withdraw to any valid Nigerian bank
    account. Deficiency D-02.
-4. **Every movement is on the append-only ledger** (section 10). A
-   withdrawal therefore always links a named bank account to a Vallo account
-   and a date.
+4. **Every movement is on the ledger** (section 10). While the account is
+   open, a withdrawal's ledger entry carries the payee's bank, account name
+   and account number. **After the account is closed it no longer does.** The
+   account purge removes `account_name` and `account_number` (and the
+   member's name, email and phone) from their `wallet_entries` metadata, and
+   deletes their `bank_accounts`. The amount, date, reference, bank and last
+   four digits remain, but the payee's name and full number do not.
+   Deficiency D-16 (section 10.4).
 
 **Plan for D-02.** For withdrawals, and for any single payment at or above
 the threshold in section 7.2, identify the member before the money moves. The
@@ -183,10 +197,12 @@ payout step.
 
 - **An agent must apply and be approved by staff.** `reviewAgentApplication`
   in `apps/web/src/lib/admin/actions.ts` creates the `agents` row and grants
-  the agent role only on staff approval. The application collects an ID type
-  (NIN, BVN, passport, driver's licence or voter's card), the ID number, a
-  residential address and payout details, and the identity document is
-  uploaded to the private `agent-documents` bucket.
+  the agent role only on staff approval. The agent application wizard
+  collects an ID type (NIN, BVN, passport, driver's licence or voter's
+  card), the ID number, a residential address and payout details. The
+  identity document is uploaded to the private `agent-documents` bucket.
+  The owner and firm registration forms (`components/supply`) collect only
+  an optional NIN.
 - **Only staff can publish a listing.** The database guard from DB-01/DB-02
   (migration `20260923232741`) refuses a listing owner who tries to publish or
   mark their own listing verified.
@@ -334,7 +350,8 @@ tells the customer that a report is being considered or has been made
 
 7.2 **Threshold reports.** Any transaction at or above **₦5,000,000 for an
 individual** or **₦10,000,000 for a body corporate** is reported within **7
-days**.
+days**. These figures come from the SCUML checklist. The solicitor confirms
+them.
 
 **This will happen in normal business.** A Lagos or Abuja move-in (rent,
 caution deposit and fees paid at once) can cross ₦5,000,000, so Vallo's first
@@ -398,7 +415,9 @@ letter as the custody question (section 9.2).
 
 - Each payment that came through Paystack keeps its Paystack reference on
   the ledger or the transaction row.
-- Each withdrawal keeps the resolved bank name and account name.
+- Each withdrawal keeps the resolved bank, account name and account number
+  while the account is open. After closure only the bank and last four digits
+  remain (D-16).
 
 ---
 
@@ -436,14 +455,22 @@ Opening it is a board decision after the solicitor's custody answer, not an
 admin toggle. Work to extend the gate to other money paths is under way.
 This policy will describe it when it lands.
 
+The separate `held_payments_payouts` flag is on. It is the ESC-05 pause
+switch: any admin may turn it off to stop every escrow payout, and only a
+super admin may turn it back on. Being on is harmless only while no escrow
+can be created. It must be reviewed before the gate above is opened.
+
 9.3 **The records cannot be rewritten.**
 
 - `audit_log` is append-only. Triggers refuse update, delete and truncate,
   and no application role has update or delete rights on it.
-- `wallet_entries` is append-only (migration
-  `20260924015257_mon10_wallet_entries_are_append_only`). The only allowed
-  change to a completed entry is a super admin's reversal, and that is itself
-  recorded.
+- `wallet_entries` is protected, but not strictly append-only (migration
+  `20260924015257_mon10_wallet_entries_are_append_only`). The trigger fixes
+  an entry's amount, parties, direction, reference and money-bearing
+  metadata keys once written. It still allows three changes: a PENDING
+  entry can settle; a super admin's escrow ruling reversal can mark a
+  completed entry REVERSED; and other metadata keys can be edited. The
+  account purge's redaction (section 10.4) relies on that last one.
 
 9.4 **What is still a management override.** Whoever holds the Supabase
 project's owner or service credentials, or the Paystack dashboard login, can
@@ -467,7 +494,8 @@ least five years, in a form from which any transaction can be reconstructed.
 
 10.2 **Transaction records.**
 
-- `wallet_entries` and `audit_log` are append-only (section 9.3).
+- `audit_log` is append-only, and `wallet_entries` keeps its money fields
+  fixed (section 9.3).
 - Bookings, reservations, ledger entries, transactions and escrows are kept.
   `docs/RETENTION_SCHEDULE.md` section 3.3 sets 6 years for these, with
   redaction of the person and never deletion of the entry.
@@ -482,21 +510,35 @@ least five years, in a form from which any transaction can be reconstructed.
 - A rejected applicant, who never became a customer, is purged after 30 days.
   The solicitor must confirm this (retention schedule, section 7, question 1).
 
-10.4 **The conflict in the tree today.** The account deletion routine
-(`purge_account_rows`) deletes `agent_documents`, `bank_accounts` and
-`payout_accounts` when an account is closed. That destroys CDD records the
-five-year floor requires us to keep. Deficiency D-11. The fix is in progress.
+10.4 **What account closure keeps, and what it does not.**
 
-Until it lands, the rule is: no account belonging to an approved agent, or to
-anyone with a withdrawal on record, is deleted without the Compliance Officer
-first exporting its CDD records to secure storage and noting it in the
-deficiency register.
+- **Approved agents: kept (D-11, closed).** Migration
+  `20260924020602_the_purge_erases_what_it_promises_and_never_money`
+  (applied live) changes the purge. When an approved or suspended agent's
+  account closes, it keeps for five years: the agent documents and their
+  files, the payout accounts, and the identity and payout fields on the
+  application. The kept row is stamped `kyc_retain_until`. Only after that
+  date does `destroy_expired_kyc` delete the rows and redact the
+  application, and it writes an audit row when it does.
+- **Members who withdrew: not kept (D-16, open).** At closure,
+  `purge_account_rows` deletes the member's `bank_accounts` and removes
+  `account_name`, `account_number`, name, email and phone from their
+  `wallet_entries` metadata. After closure, a withdrawal can no longer be
+  tied to the named account it went to.
+
+**Plan for D-16.** Keep the payee's bank-resolved name and account number on
+withdrawal entries for five years after closure. Do this by retaining those
+keys, or by moving them to a staff-only retained record like the agents'.
+Until that lands, no account with a withdrawal on record is deleted until
+the Compliance Officer has exported its withdrawal records to secure
+storage and noted the export in the deficiency register.
 
 10.5 **Reconstruction.** For any transaction the Compliance Officer must be
 able to produce:
 
 - who paid, and by which Paystack reference;
-- who received it, and to which bank-resolved account;
+- who received it, and to which bank-resolved account. For a closed member
+  account this is not possible today (D-16);
 - the listing and, for an agent listing, the principal (section 11);
 - every admin action on it, from `audit_log`.
 
@@ -570,11 +612,13 @@ document kept with this policy. It opens with these entries:
 | D-08 | No PEP identification | 6 | Engineering |
 | D-09 | No threshold monitor | 7 | Engineering |
 | D-10 | No STR workflow or register | 7 | Engineering |
-| D-11 | Account deletion destroys CDD records | 10.4 | Engineering (in progress) |
+| D-11 | Account deletion destroyed an approved agent's CDD records. Closed by migration `20260924020602` | 10.4 | Closed |
 | D-12 | Mandate optional, no filing screen | 11 | Engineering |
 | D-13 | Risk assessment not done against the NRA | 3 | Compliance Officer |
 | D-14 | No training given or recorded | 14 | Compliance Officer |
 | D-15 | No internal audit arrangement | 13 | Board |
+| D-16 | Account closure strips the payee name and number from a member's withdrawal records | 4.1, 10.4 | Engineering |
+| D-17 | Bank payouts closed by copy only; `withdraw` and `hold_wallet_withdrawal` do not check the payout flag | 4.1 | Engineering |
 
 12.2 **Compliance reviews.** The Compliance Officer reviews compliance against
 this policy at least every six months. They record the gaps found in the
