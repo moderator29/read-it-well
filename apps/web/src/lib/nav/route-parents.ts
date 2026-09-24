@@ -200,6 +200,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/inspections": "/home",
   "/rent": "/home",
   "/rent/move-in/[listingId]": "/listing/[listingId]",
+  "/rent/review/[paymentId]": "/inspections",
+  "/record/[code]": "/search",
   "/rent/pay/[inspectionId]": "/inspections",
   "/tenancy/[id]": "/bookings",
   /*
@@ -306,6 +308,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/settings/payments": "/settings",
   "/settings/place": "/settings",
   "/settings/privacy": "/settings",
+  "/settings/phone": "/settings",
   "/legal/privacy": "/settings",
   "/legal/terms": "/settings",
 

@@ -9,6 +9,9 @@ import { InspectionHero, InspectionSheet } from "@/components/app/inspections/In
 import { InspectionsLive } from "@/components/app/inspections/InspectionsLive";
 import { resolveSession } from "@/lib/actions/session";
 import { readReportsFor } from "@/lib/inspections/report-queries";
+import { readTruthAnsweredFor } from "@/lib/inspections/truth-queries";
+import { readTenancyReviewsDue } from "@/lib/tenancy/review-queries";
+import { truthOpenNow } from "@/lib/inspections/truth";
 import { reportStorageLive } from "@/lib/inspections/report-flag";
 import { groupInspections, tagSide } from "@/components/app/inspections/grouping";
 import {
@@ -72,7 +75,7 @@ export default async function InspectionsPage({
     ...tagSide(shown.inspections, "lister"),
   ]);
   const all = [...groups.open, ...groups.closed];
-  const [facts, reports, quotes] = await Promise.all([
+  const [facts, reports, quotes, truthAnswered, tenancyDue] = await Promise.all([
     readListingFacts(
       all.map((row) => row.listingId),
       locale,
@@ -82,7 +85,21 @@ export default async function InspectionsPage({
       all.map((row) => row.id),
       locale,
     ),
+    readTruthAnsweredFor(
+      all.filter((row) => row.side === "requester").map((row) => row.id),
+    ),
+    readTenancyReviewsDue(all.filter((row) => row.side === "requester").map((row) => row.id)),
   ]);
+  const tenancyFor = (row: (typeof all)[number]) => {
+    const href = tenancyDue.get(row.id);
+    return href ? { href, label: t.trustVisible.tenancy.entry } : null;
+  };
+  /* V-05: the truth questions are open for the requester once the agreed
+     time has passed; decided here, once, with the server's clock. */
+  const truthFor = (row: (typeof all)[number]) =>
+    truthOpenNow(row.side, row.state, row.slotAt, row.requestedAt) || truthAnswered.has(row.id)
+      ? { answeredAt: truthAnswered.get(row.id) ?? null, copy: t.trustVisible.truth }
+      : null;
   const reportLive = reportStorageLive();
   const empty = all.length === 0;
   const expanded = changed ?? groups.open[0]?.id ?? null;
@@ -129,6 +146,8 @@ export default async function InspectionsPage({
                       report={reports.get(row.id) ?? null}
                       reportLive={reportLive}
                       quoteLine={quotes.get(row.id) ?? null}
+                      truth={truthFor(row)}
+                      tenancyReview={tenancyFor(row)}
                       locale={locale}
                       open={row.id === expanded}
                     />
@@ -148,6 +167,8 @@ export default async function InspectionsPage({
                       report={reports.get(row.id) ?? null}
                       reportLive={reportLive}
                       quoteLine={quotes.get(row.id) ?? null}
+                      truth={truthFor(row)}
+                      tenancyReview={tenancyFor(row)}
                       locale={locale}
                       open={row.id === expanded}
                     />

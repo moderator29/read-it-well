@@ -27,7 +27,11 @@ import { canonicalSearch } from "@/lib/saved/searches";
 import { findSavedSearch } from "@/lib/saved/searches-queries";
 import { SaveSearchControl } from "@/components/app/saved-searches/SaveSearchControl";
 import { KIND_NOUN, type SortKey } from "@/lib/listings/search-params";
+import { rankRecommended } from "@/lib/listings/ranking";
+import { feeSortKey } from "@/lib/listings/fee-share";
 import { readListingReference } from "@/lib/listings/reference";
+import { readRecordCode } from "@/lib/trust/record";
+import { redirect } from "next/navigation";
 import type { Listing, ListingKind } from "@/lib/listings/types";
 import { ListingCard } from "@/components/app/ListingCard";
 import { BackButton } from "@/components/site/BackButton";
@@ -111,6 +115,18 @@ function sortListings(listings: Listing[], sort: SortKey): Listing[] {
         return left - right || byVerification(a, b);
       });
       break;
+    /* V-12: the fees paid to the agent, as one share of a year's rent.
+       A listing that stated no fee is unstated, not cheap: it sorts last. */
+    case "fees-asc":
+      out.sort((a, b) => {
+        const left = feeSortKey(a);
+        const right = feeSortKey(b);
+        if (left === null && right === null) return byVerification(a, b);
+        if (left === null) return 1;
+        if (right === null) return -1;
+        return left - right || byVerification(a, b);
+      });
+      break;
     case "price-asc":
       out.sort((a, b) => a.priceMinor - b.priceMinor || byVerification(a, b));
       break;
@@ -118,9 +134,12 @@ function sortListings(listings: Listing[], sort: SortKey): Listing[] {
       out.sort((a, b) => b.priceMinor - a.priceMinor || byVerification(a, b));
       break;
     default:
-      // Recommended keeps the repository's order and lifts the checked rows.
-      out.sort(byVerification);
-      break;
+      /* V-06: Recommended is the published formula in `ranking.ts` (real
+         before example, then points for facts about the listing, then
+         newest), the same constants /standards prints in words. It still
+         lifts a checked lister, as one point among four, never above
+         everything. Nobody can pay to be higher. */
+      return rankRecommended(out);
   }
   return out;
 }
@@ -210,6 +229,12 @@ export default async function SearchPage({
    * GOVERNING-12 screen four draws the found listing under a line saying how
    * it was found, and a redirect has nowhere to put that line.
    */
+  /* V-34: a Record code (`VR-`) is a person, not a listing, and has its own
+     page. Only with the prefix, so a six-letter place name is never taken
+     for one. */
+  const recordCode = readRecordCode(query.q ?? "");
+  if (recordCode) redirect(`/record/${recordCode}`);
+
   const codeRead = readListingReference(query.q ?? "");
   const codeHit = codeRead.state === "code" ? await repo.byReference(codeRead.value) : null;
 

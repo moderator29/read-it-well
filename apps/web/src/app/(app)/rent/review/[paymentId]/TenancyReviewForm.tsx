@@ -1,0 +1,164 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import type { Dictionary } from "@vallo/i18n";
+import { panelClass } from "@/components/ui/Panel";
+import { Segmented } from "@/components/ui/Segmented";
+import { TextField } from "@/components/ui/Field";
+import { Button } from "@/components/ui/Button";
+import { submitTenancyReview } from "@/lib/tenancy/review-actions";
+import { EXTRA_TO } from "@/lib/tenancy/review";
+
+type Tri = "yes" | "no" | "not_sure";
+
+/**
+ * THE TENANCY REVIEW FORM (V-59). The door first, then the flat, the agent
+ * and "again", then the stars and a sentence. Every control is a 44px
+ * segmented row. States: answering, the refusal in words with every answer
+ * kept, sending, and done.
+ */
+export function TenancyReviewForm({
+  paymentId,
+  copy,
+}: {
+  paymentId: string;
+  copy: Dictionary["trustVisible"]["tenancy"];
+}) {
+  const [paidExtra, setPaidExtra] = useState<"no" | "yes" | "">("");
+  const [extraNaira, setExtraNaira] = useState("");
+  const [extraTo, setExtraTo] = useState<(typeof EXTRA_TO)[number] | "">("");
+  const [asListed, setAsListed] = useState<Tri | "">("");
+  const [agentOnTime, setAgentOnTime] = useState<Tri | "">("");
+  const [again, setAgain] = useState<Tri | "">("");
+  const [rating, setRating] = useState<"1" | "2" | "3" | "4" | "5" | "">("");
+  const [body, setBody] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+  const [pending, startTransition] = useTransition();
+
+  const tri = [
+    { value: "yes" as const, label: copy.yes },
+    { value: "no" as const, label: copy.no },
+    { value: "not_sure" as const, label: copy.notSure },
+  ];
+
+  if (done) {
+    return (
+      <p role="status" className="nf-body text-[var(--nf-content-primary)]" data-testid="tenancy-review-done">
+        {copy.done}
+      </p>
+    );
+  }
+
+  function send() {
+    setError(null);
+    const naira = Number(extraNaira.replace(/[^\d]/g, ""));
+    if (
+      paidExtra === "" ||
+      asListed === "" ||
+      agentOnTime === "" ||
+      again === "" ||
+      rating === "" ||
+      (paidExtra === "yes" && (!(naira > 0) || extraTo === ""))
+    ) {
+      setError(copy.incomplete);
+      return;
+    }
+    startTransition(async () => {
+      const result = await submitTenancyReview({
+        paymentId,
+        paidExtra,
+        ...(paidExtra === "yes" ? { extraNaira: naira, extraTo } : {}),
+        asListed,
+        agentOnTime,
+        again,
+        rating: Number(rating),
+        ...(body.trim() ? { body: body.trim() } : {}),
+      });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setDone(true);
+    });
+  }
+
+  return (
+    <div className={panelClass({ className: "grid gap-md p-card" })} data-testid="tenancy-review-form">
+      <div className="grid gap-xs">
+        <p className="nf-body font-semibold text-[var(--nf-content-primary)]">{copy.paidExtra}</p>
+        <Segmented<"no" | "yes" | "">
+          semantics="radio"
+          full
+          label={copy.paidExtra}
+          options={[
+            { value: "no" as const, label: copy.no },
+            { value: "yes" as const, label: copy.yes },
+          ]}
+          value={paidExtra}
+          onChange={(next) => setPaidExtra(next)}
+        />
+      </div>
+      {paidExtra === "yes" && (
+        <>
+          <TextField
+            label={copy.howMuch}
+            inputMode="numeric"
+            value={extraNaira}
+            onChange={(event) => setExtraNaira(event.target.value.replace(/[^\d,]/g, ""))}
+          />
+          <div className="grid gap-xs">
+            <p className="nf-body-sm text-[var(--nf-content-primary)]">{copy.toWhom}</p>
+            <Segmented<(typeof EXTRA_TO)[number] | "">
+              semantics="radio"
+              full
+              label={copy.toWhom}
+              options={EXTRA_TO.map((to) => ({ value: to, label: copy.to[to] }))}
+              value={extraTo}
+              onChange={(next) => setExtraTo(next)}
+            />
+          </div>
+        </>
+      )}
+      {(
+        [
+          [copy.asListed, asListed, setAsListed],
+          [copy.agentOnTime, agentOnTime, setAgentOnTime],
+          [copy.again, again, setAgain],
+        ] as const
+      ).map(([question, value, set]) => (
+        <div key={question} className="grid gap-xs">
+          <p className="nf-body-sm text-[var(--nf-content-primary)]">{question}</p>
+          <Segmented<Tri | "">
+            semantics="radio"
+            full
+            label={question}
+            options={tri}
+            value={value}
+            onChange={(next) => set(next)}
+          />
+        </div>
+      ))}
+      <div className="grid gap-xs">
+        <p className="nf-body-sm text-[var(--nf-content-primary)]">{copy.rating}</p>
+        <Segmented<"1" | "2" | "3" | "4" | "5" | "">
+          semantics="radio"
+          full
+          label={copy.rating}
+          options={(["1", "2", "3", "4", "5"] as const).map((n) => ({ value: n, label: n }))}
+          value={rating}
+          onChange={(next) => setRating(next)}
+        />
+      </div>
+      <TextField label={copy.body} value={body} maxLength={2000} onChange={(event) => setBody(event.target.value)} />
+      {error && (
+        <p role="alert" className="nf-body-sm text-[var(--nf-state-error)]">
+          {error}
+        </p>
+      )}
+      <Button type="button" variant="primary" full loading={pending} onClick={send}>
+        {pending ? copy.sending : copy.submit}
+      </Button>
+    </div>
+  );
+}

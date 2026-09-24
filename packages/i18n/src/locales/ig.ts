@@ -362,7 +362,6 @@ export const ig: Dictionary = withFallback({
     posts: "Ederede",
     joined: "Ọ sonyere na {month}",
     editProfile: "Dezie profaịlụ",
-    trustScore: "Akara ntụkwasị obi",
     completedDeals: "Azụmahịa emechara",
     responseTime: "Oge nzaghachi",
     tabsLabel: "Ihe @{handle} nwere na peeji ya",

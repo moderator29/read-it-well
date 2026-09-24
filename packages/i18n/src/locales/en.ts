@@ -5,6 +5,7 @@ import type { CountForms } from "../plural";
    namespace can have here. */
 import { priceCheckEn } from "./price-check.en";
 import { afterTheGateEn } from "./after-the-gate.en";
+import { trustVisibleEn } from "./trust-visible.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -456,7 +457,6 @@ export const en = {
     posts: "Posts",
     joined: "Joined {month}",
     editProfile: "Edit profile",
-    trustScore: "Trust score",
     completedDeals: "Completed deals",
     responseTime: "Response time",
     tabsLabel: "What @{handle} has on their page",
@@ -5885,6 +5885,7 @@ export const en = {
 
   priceCheck: priceCheckEn,
   afterTheGate: afterTheGateEn,
+  trustVisible: trustVisibleEn,
 
 };
 

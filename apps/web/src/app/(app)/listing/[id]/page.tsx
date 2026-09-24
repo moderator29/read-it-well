@@ -36,6 +36,12 @@ import { ListingAbout } from "@/components/app/listing/ListingAbout";
 import { ListingAmenities } from "@/components/app/listing/ListingAmenities";
 import { ListingAmenityTiles } from "@/components/app/listing/ListingAmenityTiles";
 import { ListingAgentCard } from "@/components/app/listing/ListingAgentCard";
+import { ProofStrip } from "@/components/app/listing/ProofStrip";
+import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
+import { doorHonestyLine, readDoorHonesty } from "@/lib/tenancy/door";
+import { readListingRecord } from "@/lib/trust/record-read";
+import { ValloRecord } from "@/components/app/trust/ValloRecord";
+import { readListingCredentials } from "@/lib/trust/credentials-read";
 import { ListingMoveInBlock } from "@/components/app/listing/ListingMoveInBlock";
 import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
@@ -262,6 +268,16 @@ export default async function ListingDetailPage({
   // Written reviews for this listing. Public by policy for a PUBLISHED listing,
   // so this read works for a signed-out visitor too.
   const reviews = await getListingReviews(listing.id, locale);
+  /* V-59: "Moved in for the Vallo price", the one public number from the
+     tenancy reviews. Null (and no line) on every example listing. */
+  /* V-87: the lister's dated credential checks, for the proof strip. */
+  const credentials = listing.isDemo ? [] : await readListingCredentials(listing.id);
+  const doorLine = listing.isDemo
+    ? null
+    : doorHonestyLine(await readDoorHonesty(listing.id), t.trustVisible.tenancy);
+  /* V-34: the lister's Record under the agent card. An example listing has
+     no Record, and a null draws nothing. */
+  const record = listing.isDemo ? null : await readListingRecord(listing.id);
 
   /*
    * WHERE "MESSAGE AGENT" GOES, AND THE DEAD END THIS REPLACES.
@@ -840,6 +856,18 @@ export default async function ListingDetailPage({
                     </ul>
                   )}
 
+                  {/* V-03, THE PROOF STRIP: the dated facts the database holds,
+                      in a fixed order, each opening what the check is and is
+                      not. It renders nothing at all when there is nothing
+                      dated, which today is every example listing. */}
+                  <ProofStrip
+                    lines={proofLines({ ...proofFactsOf(listing), credentials })}
+                    variant="full"
+                    t={t}
+                    locale={locale}
+                    className="mt-md"
+                  />
+
                   {/* The Nigerian number, on a tenancy: the total to move in. */}
                   {isRental && !isSale && (
                     <div className="mt-md">
@@ -1090,6 +1118,7 @@ export default async function ListingDetailPage({
                       name={listing.listerName ?? null}
                       listingRole={listing.listerRole ?? null}
                     />
+                    <ValloRecord record={record} t={t} locale={locale} className="mt-row" />
                   </Section>
                 </Reveal>
 
@@ -1099,6 +1128,11 @@ export default async function ListingDetailPage({
                     behaviours are correct and are preserved exactly. */}
                 <Reveal>
                   <Section id="reviews" title={t.catalogue.detail.reviews} divided className="scroll-mt-16">
+                    {doorLine && (
+                      <p className={`mb-row ${TYPE.body}`} data-testid="door-honesty">
+                        {doorLine}
+                      </p>
+                    )}
                     <ListingReviews
                       rating={listing.rating}
                       reviewCount={listing.reviewCount}

@@ -21,6 +21,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { phoneGateFor } from "../phone-otp/gate";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
 import {
   NOT_CONFIGURED_MESSAGE,
@@ -50,6 +51,10 @@ export async function submitReview(
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
 
   if (!(await isFeatureEnabled("bookings"))) return fail(PAUSED_MESSAGE);
+
+  /* V-50: the first review needs a confirmed phone, when the flag is on. */
+  const phoneGate = await phoneGateFor(session.supabase, session.user.id, "review");
+  if (phoneGate) return fail(phoneGate);
 
   const parsed = validate(reviewInputSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
