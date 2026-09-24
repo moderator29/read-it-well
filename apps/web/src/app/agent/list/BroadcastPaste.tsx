@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { Dictionary } from "@vallo/i18n";
+import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
 import { draftFromBroadcast } from "@/lib/agent/broadcast-actions";
 import type { BroadcastKey, BroadcastParse } from "@/lib/agent/broadcast";
@@ -26,9 +26,11 @@ type Copy = Dictionary["frontDoor"]["broadcast"];
 
 export function BroadcastPaste({
   copy,
+  locale,
   onApply,
 }: {
   copy: Copy;
+  locale: Locale;
   /** Fill the wizard. Returns the keys actually filled (empty fields only). */
   onApply: (result: BroadcastParse) => BroadcastKey[];
 }) {
@@ -70,6 +72,12 @@ export function BroadcastPaste({
   const value = (key: BroadcastKey): string => {
     const raw = result?.parse.values[key];
     if (raw === undefined) return "";
+    /* Money is shown from the kobo the server worked out, through the one
+       money formatter; an enum is shown in words, never as its code. */
+    const minor = result?.parse.kobo[key];
+    if (minor !== undefined) return formatMoney(minor, locale);
+    const words = copy.words as Record<string, string | undefined>;
+    if (typeof raw === "string" && words[raw]) return words[raw] as string;
     if (typeof raw === "boolean") return raw ? copy.yes : copy.no;
     return String(raw);
   };

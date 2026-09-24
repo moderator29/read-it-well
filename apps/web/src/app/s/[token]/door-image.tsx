@@ -169,6 +169,8 @@ function face(input: DoorImageFace, copy: Dictionary["frontDoor"]["door"]) {
     <Frame>
       <div style={{ display: "flex", gap: 44, alignItems: "center" }}>
         {photo && (
+          // Satori draws this; there is no browser here for next/image to serve.
+          // eslint-disable-next-line @next/next/no-img-element
           <img src={photo} alt="" width={220} height={220} style={{ borderRadius: 24, objectFit: "cover" }} />
         )}
         <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>

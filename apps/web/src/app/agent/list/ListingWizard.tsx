@@ -1638,7 +1638,7 @@ export function ListingWizard({
         {step === 0 && (
           <div className="space-y-lg">
             {broadcastCopy && (
-              <BroadcastPaste copy={broadcastCopy} onApply={applyBroadcast} />
+              <BroadcastPaste copy={broadcastCopy} locale={locale} onApply={applyBroadcast} />
             )}
             {/*
               The two fields that can actually fail validation use the shared
