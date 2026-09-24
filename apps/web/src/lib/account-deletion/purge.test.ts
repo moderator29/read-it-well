@@ -296,3 +296,47 @@ describe("reading the storage paths the database saw", () => {
     expect(storagePathsFrom("no")).toEqual({});
   });
 });
+
+describe("an approved agent's retained identification (AML)", () => {
+  function listingDoor(listed: string[]): StorageDoor & { swept: string[]; removed: string[] } {
+    const swept: string[] = [];
+    const removed: string[] = [];
+    return {
+      swept,
+      removed,
+      async list(bucket, prefix) {
+        swept.push(bucket);
+        return prefix === USER ? listed.map((name) => ({ name, id: `id-${name}` })) : [];
+      },
+      async remove(bucket, paths) {
+        removed.push(...paths.map((path) => `${bucket}:${path}`));
+        return { failed: [] };
+      },
+    };
+  }
+
+  it("leaves the agent-documents bucket alone when the purge kept the record", async () => {
+    const door = listingDoor(["passport.jpg"]);
+    const d = deps({
+      storage: door,
+      rpcAnswers: {
+        purge_account_rows: {
+          purged: true, user_id: USER, auth_scrubbed: true,
+          counts: { kyc_retained: true }, storage: {},
+        },
+      },
+    });
+    const outcome = await purgeOne(d, { requestId: REQUEST, userId: USER, attempts: 0 });
+    expect(outcome.result).toBe("purged");
+    expect(door.swept).not.toContain("agent-documents");
+    expect(door.removed.some((path) => path.startsWith("agent-documents:"))).toBe(false);
+    expect(door.removed).toContain(`avatars:${USER}/passport.jpg`);
+  });
+
+  it("empties it for anybody whose record is not kept", async () => {
+    const door = listingDoor(["passport.jpg"]);
+    const d = deps({ storage: door });
+    await purgeOne(d, { requestId: REQUEST, userId: USER, attempts: 0 });
+    expect(door.removed).toContain(`agent-documents:${USER}/passport.jpg`);
+  });
+});

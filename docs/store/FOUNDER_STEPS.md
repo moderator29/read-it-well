@@ -10,11 +10,14 @@ website and in the iPhone app, the moment Supabase reports the Apple provider
 enabled (the sign-in screens ask Supabase every five minutes). You need an
 Apple Developer account (organisation, VALLO SPACES LTD) first.
 
-> **Do not enable it in Supabase yet.** An account made with Apple does not
-> pass through the sign-up form, so today it records no agreement to the Terms
-> and no 18-or-over statement (NEW-A4-04). That has to be closed in code first,
-> and it is on the engineering list. Until then, email is the only way in, which
-> is also the recorded decision.
+> **A precondition, not a step: do not enable Apple (or Google) in Supabase
+> yet.** An account made through a provider never passes the sign-up form, so
+> today it records no agreement to the Terms and no 18-or-over statement
+> (STORE-19, NEW-A4-04). Email sign-up asks for both and refuses without them.
+> The provider path must first hold a new account at a step that asks for both
+> and records them. That is engineering work, noted in
+> `apps/web/src/lib/auth/providers.ts`. Until it ships, email is the only way
+> in, which is also the recorded decision.
 
 1. **Apple Developer → Certificates, Identifiers & Profiles → Identifiers →
    the App ID `com.vallospaces.app`.** Tick **Sign In with Apple**, save.
@@ -178,8 +181,9 @@ it to close the catalogue again.
    privacy notice §7 says it. Confirm the period with counsel. If it changes,
    change the interval in `purge_account_rows` and the notice in the same
    commit. The records are stamped `agent_applications.kyc_retain_until`.
-   Nothing expires before 2031, and the job that destroys them on that date
-   is a recorded follow-up. It is not built yet.
+   Nothing expires before 2031. On that date the daily account-purge job
+   destroys them: it removes the files first, then the rows, and writes an
+   audit line (`account.kyc.destroyed`).
 2. **The key in the vault.** A deleted account keeps a keyed hash of its
    mailbox, so staff can see when a new account uses the same mailbox. The
    key is the Supabase Vault secret `account_identity_pepper`.

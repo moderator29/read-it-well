@@ -18,6 +18,8 @@ declare
   o_new  uuid;
   o_fail uuid;
   pot    uuid;
+  app_old uuid;
+  due_j  jsonb;
   req_r  uuid;
   req_c  uuid;
   res    jsonb;
@@ -51,6 +53,10 @@ begin
   insert into public.agent_documents (application_id, uploader_id, kind, storage_path)
   values (app_a, agent, 'identity', agent::text || '/probe-id.jpg');
   insert into public.agents (user_id, display_name) values (agent, 'Probe Agent');
+  -- The same agent was rejected once before: that application keeps nothing.
+  insert into public.agent_applications (user_id, status, full_name, id_type, id_number)
+  values (agent, 'REJECTED', 'Probe Agent Earlier', 'nin', '55555555555')
+  returning id into app_old;
 
   -- The rich account has money in a savings pot, as the ledger records it:
   -- a deposit, then the same amount moved into the pot.
@@ -184,6 +190,37 @@ begin
                     and kyc_retain_until > now() + interval '4 years 11 months') then
     raise exception 'PROBE_FAIL sec-13: the approved agent''s record was not kept as scheduled';
   end if;
+  if (select id_number is not null or full_name is not null or kyc_retain_until is not null
+        from public.agent_applications where id = app_old) then
+    raise exception 'PROBE_FAIL sec-13: the agent''s earlier rejected application was kept';
+  end if;
+
+  -- 3b. Five years on, the retained record is destroyed, and only the
+  -- service role can do it.
+  update public.agent_applications set kyc_retain_until = now() - interval '1 minute' where id = app_a;
+  due_j := public.due_kyc_destructions(500);
+  if not exists (select 1 from jsonb_array_elements(due_j -> 'users') u
+                  where u ->> 'user_id' = agent::text
+                    and u -> 'paths' ? (agent::text || '/probe-id.jpg')) then
+    raise exception 'PROBE_FAIL sec-13: the expired record is not listed with its file: %', due_j;
+  end if;
+  set local role authenticated;
+  perform set_config('request.jwt.claims', json_build_object('sub', admin, 'role', 'authenticated')::text, true);
+  begin
+    perform public.destroy_expired_kyc(agent);
+    raise exception 'PROBE_FAIL sec-13: a signed-in caller destroyed a retained record';
+  exception when insufficient_privilege then null;
+  end;
+  reset role;
+  perform set_config('request.jwt.claims', '', true);
+  res := public.destroy_expired_kyc(agent);
+  if (res ->> 'destroyed')::boolean is not true
+     or exists (select 1 from public.agent_documents where uploader_id = agent)
+     or exists (select 1 from public.agent_applications
+                 where user_id = agent and (id_number is not null or full_name is not null or kyc_retain_until is not null))
+     or not exists (select 1 from public.audit_log where action = 'account.kyc.destroyed' and entity_id = agent::text) then
+    raise exception 'PROBE_FAIL sec-13: the expired record was not destroyed: %', res;
+  end if;
 
   -- 4. Staff can see that a new account uses an erased mailbox; a member cannot ask.
   insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -205,6 +242,9 @@ begin
   end;
   reset role;
   perform set_config('request.jwt.claims', '', true);
+  if not exists (select 1 from public.audit_log where action = 'account.erased_identity.matched' and actor_id = admin) then
+    raise exception 'PROBE_FAIL sec-13: the staff match was not audited';
+  end if;
 
   -- 5. Delivered emails are pruned after 90 days; failed ones wait for a person.
   insert into public.email_outbox (dedupe_key, template, user_id, status, settled_at)

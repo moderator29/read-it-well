@@ -155,9 +155,11 @@ export function sharedMailboxes(rows: readonly IdentityRow[]): SharedMailbox[] {
  * mailbox (`erased:<hmac>`, written by the purge). Grouping by the stored
  * value can never join that to a live row, so the database does the
  * comparison: `admin_erased_identity_matches` hashes every live canonical with
- * the same key and returns the pairs. Admin-only in the database; read
- * through the operator's own session. The same ceiling as above applies:
- * where to look, not what was found.
+ * the same key and returns the pairs. Admin-only in the database, and every
+ * call writes an audit row; read through the operator's own session. The same
+ * ceiling as above applies: where to look, not what was found. No console
+ * screen draws it yet: it is available to staff tooling, as the other reads
+ * in this file are.
  */
 export type ErasedMatch = { userId: string; erasedUserId: string; rule: CanonicalRule };
 
