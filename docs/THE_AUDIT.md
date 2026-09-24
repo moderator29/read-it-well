@@ -5696,6 +5696,10 @@ This section was added on 24 September 2026, when the fixing closed. The full re
 - **Approve a written AML/CFT/CPF policy** (item 5; ₦1,000,000). A draft written against the code as it stands is at `docs/AML_CFT_CPF_POLICY.md`. Read it, have the solicitor confirm it, and approve it by board minute.
 - The rest of the checklist is in that file: sanctions and PEP screening, NFIU reporting (a single Lagos move-in can cross ₦5,000,000), training, and a solicitor's view on whether Vallo files for its own escrow.
 
+- **Controls nobody overrides alone (item 19).** Once AML-19 is live, two things are yours:
+  - A second super admin can be added only by a migration run as the database owner. It is audited, and it is the step that lets two-person rulings, reversals and the held-payments gate work at all.
+  - The database-owner credential is the one path outside these controls. Keep it under MFA, with as few holders as possible.
+
 **Settings only you can change (each is a single step).**
 - **GitHub:**
   - Restore billing.
