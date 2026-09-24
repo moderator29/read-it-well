@@ -84,9 +84,8 @@ describe("how much was compared", () => {
   });
 
   it("calls a listing fully compared only with every photo hashed and something to compare against", () => {
-    expect(comparedFully({ photos: 8, hashed: 8, pool: 120 })).toBe(true);
-    expect(comparedFully({ photos: 8, hashed: 6, pool: 120 })).toBe(false);
-    expect(comparedFully({ photos: 8, hashed: 8, pool: 0 })).toBe(false);
+    expect(comparedFully({ photos: 8, hashed: 6, pool: 120, poolWaiting: 0 })).toBe(false);
+    expect(comparedFully({ photos: 8, hashed: 8, pool: 0, poolWaiting: 0 })).toBe(false);
     expect(comparedFully({ photos: 8, hashed: 8, pool: 120, poolWaiting: 0 })).toBe(true);
     expect(comparedFully({ photos: 8, hashed: 8, pool: 120, poolWaiting: 3 })).toBe(false);
   });

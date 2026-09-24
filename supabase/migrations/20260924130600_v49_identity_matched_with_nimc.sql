@@ -119,6 +119,7 @@ as $$
 declare
   agent uuid;
   elsewhere boolean;
+  v_constraint text;
 begin
   select a.id into agent from public.agents a where a.user_id = p_user and not a.is_demo;
   if agent is null then return 'no_agent'; end if;
@@ -171,9 +172,28 @@ begin
         where v.nin_hmac = p_nin_hmac and v.outcome = 'matched' and v.subject_id = p_user) then
     null;
   else
-    insert into public.identity_verifications (subject_id, method, outcome, legal_name, nin_hmac, provider_ref, note)
-    values (p_user, 'vnin', case when p_matched then 'matched' else 'mismatch' end,
-            p_legal_name, p_nin_hmac, p_provider_ref, left(p_note, 1000));
+    begin
+      insert into public.identity_verifications (subject_id, method, outcome, legal_name, nin_hmac, provider_ref, note)
+      values (p_user, 'vnin', case when p_matched then 'matched' else 'mismatch' end,
+              p_legal_name, p_nin_hmac, p_provider_ref, left(p_note, 1000));
+    exception when unique_violation then
+      /* A race the checks above lost: another account matched this NIN (the
+         per-person lock does not cover a second person), or this person
+         matched another NIN a moment ago. Answered as the checks would have. */
+      get stacked diagnostics v_constraint = constraint_name;
+      if v_constraint = 'identity_verifications_one_account_per_nin' then
+        insert into public.identity_verifications (subject_id, method, outcome, legal_name, nin_hmac, provider_ref, note)
+        values (p_user, 'vnin', 'mismatch', p_legal_name, p_nin_hmac, p_provider_ref,
+                'This NIN is already matched to another Vallo account.');
+        perform private.record_verification_check(agent, 'identity', 'pending',
+          'The vNIN check returned a NIN already matched to another Vallo account. Somebody should look at this.', null);
+        return 'nin_elsewhere';
+      end if;
+      insert into public.identity_verifications (subject_id, method, outcome, legal_name, nin_hmac, provider_ref, note)
+      values (p_user, 'vnin', 'mismatch', p_legal_name, p_nin_hmac, p_provider_ref,
+              'A different NIN from the one already matched to this account.');
+      return 'other_nin';
+    end;
   end if;
 
   perform private.record_verification_check(
