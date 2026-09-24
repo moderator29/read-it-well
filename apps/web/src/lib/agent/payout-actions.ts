@@ -37,6 +37,8 @@ import { PaystackError, isPaystackConfigured, resolveAccountNumber } from "../pa
 import { createAdminClient } from "../supabase/admin";
 import { getAgentContext } from "./listings-queries";
 import { moneyLockRefusalFor } from "../security/money-lock-guard";
+import { pepQuestionRefusal } from "../compliance/pep-gate";
+import { eddGateMessage, isEddGateRefusal } from "../compliance/gate";
 import {
   addPayoutAccountInputSchema,
   payoutAccountIdSchema,
@@ -104,6 +106,11 @@ export async function addPayoutAccount(
 
   if (!isPaystackConfigured()) return fail(UNVERIFIABLE_MESSAGE);
 
+  /* SCUML item 20: the PEP question is asked at payout account setup, and an
+     account is not added until it has been answered once. */
+  const pepFirst = await pepQuestionRefusal(context.supabase);
+  if (pepFirst) return fail(pepFirst);
+
   const parsed = validate(addPayoutAccountInputSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   /* V-81: where payouts go is a money decision; an enrolled phone lock asks first. */
@@ -155,6 +162,8 @@ export async function addPayoutAccount(
   if (insertError) {
     const held = moneyHoldRefusal(insertError);
     if (held) return fail(held);
+    /* SCUML item 15: the gate refused; say nothing that would tip anybody off. */
+    if (isEddGateRefusal(insertError)) return fail(eddGateMessage("member"));
     // 23505 is the per-agent unique NUBAN.
     if (insertError.code === "23505") {
       return fail(

@@ -125,6 +125,27 @@ names a person. The disposal action here is always redaction of the subject,
 never deletion of the entry. Confirm the exact period with the solicitor,
 question 2 in section 7.
 
+### 3.3a AML/CFT due diligence records (SCUML items 20 and 15)
+
+| Data | Where it lives | Trigger | Period | Action |
+| --- | --- | --- | ---: | --- |
+| PEP answers, staff's PEP record and the approvals of taking somebody off it | `public.pep_declarations`, `public.pep_flags`, `public.pep_clear_approvals` | Date recorded | **5 years [C]** | Keep; on account deletion the record stays against the tombstoned account |
+| Enhanced due diligence reviews, decisions and approvals | `public.edd_reviews`, `public.edd_decisions`, `public.edd_approvals` | Date recorded | **5 years [C]** | Keep; the same on deletion |
+| Risk class history and the approvals of a class lowered by hand | `public.risk_classes`, `public.risk_override_approvals` | Date recorded | **5 years [C]** | Keep; the same on deletion |
+
+**AML retention wins over minimisation for these.** The Money Laundering
+(Prevention and Prohibition) Act 2022 and the SCUML checklist ask for five
+years of due diligence records, reconstructable. Every table above is append
+only (`private.aml_append_only` refuses an edit or a delete) and no purge job
+touches it. Account deletion does not delete the `auth.users` row: the purge
+(20260919160100) strips it to a tombstone, a uuid with no address, telephone,
+name or password, banned for ever. So the uuid on these records stays and
+resolves to an anonymous account: the person is gone, and the record of what
+was checked, by whom and when, still points at one distinct subject. (The
+foreign keys are ON DELETE SET NULL, and the guard allows that one change, only
+for the case where an auth row is ever deleted outright.) A disposal job after
+five years is not written yet; until it is, nothing here is deleted early.
+
 ### 3.4 Communications and support
 
 | Data | Where it lives | Trigger | Period | Action |

@@ -19,6 +19,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { eddGateMessage, isEddGateRefusal } from "../compliance/gate";
 import { ARRIVAL_DECLARATION_NEEDED, arrivalChargesDeclared } from "../stays/arrival-gate";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { createAdminClient } from "../supabase/admin";
@@ -613,6 +614,8 @@ export async function reviewListing(input: {
     })
     .eq("id", listing.id);
   if (isClosedListingRefusal(updateError)) return fail(CLOSED_LISTING_MESSAGE);
+  /* SCUML item 15: a high-risk lister's listing waits for a cleared EDD review. */
+  if (isEddGateRefusal(updateError)) return fail(eddGateMessage("admin"));
   if (updateError) return fail(SERVICE_DOWN);
 
   try {

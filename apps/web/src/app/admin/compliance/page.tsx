@@ -5,6 +5,8 @@ import { fill } from "../_components/copy";
 import { QueueTabs } from "../_components/QueueTable";
 import type { ComplianceLane } from "./_lanes/lane";
 import { ThresholdLane } from "./_lanes/ThresholdLane";
+import { riskLane } from "./_lanes/RiskLane";
+import { pepLane } from "./_lanes/PepLane";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +23,8 @@ export const dynamic = "force-dynamic";
  */
 const LANES: ComplianceLane[] = [
   ThresholdLane,
+  riskLane, // SCUML item 15
+  pepLane, // SCUML item 20
 ];
 
 export default async function CompliancePage({

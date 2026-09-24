@@ -18,6 +18,8 @@ import { arrivalCheckEn } from "./arrival-check.en";
 import { platformEn } from "./platform.en";
 import { complianceEn } from "./compliance.en";
 import { complianceThresholdEn } from "./compliance-7.en";
+import { compliancePepEn } from "./compliance-pep.en";
+import { complianceRiskEn } from "./compliance-risk.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -6250,6 +6252,8 @@ export const en = {
 
   compliance: complianceEn,
   complianceThreshold: complianceThresholdEn,
+  compliancePep: compliancePepEn,
+  complianceRisk: complianceRiskEn,
 
 };
 

@@ -271,6 +271,8 @@ const PUBLIC_API_PATHS = new Set([
   "/api/cron/inventory-drift",
   "/api/cron/landlord-line",
   "/api/cron/pg-cron-watch",
+  /* SCUML item 15: the daily risk classification, behind the cron bearer. */
+  "/api/cron/risk-classes",
   "/api/cron/saved-search-alerts",
   "/api/cron/store-readiness",
   "/api/cron/new-match-alerts",

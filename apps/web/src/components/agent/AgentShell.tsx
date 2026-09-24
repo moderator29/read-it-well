@@ -10,6 +10,7 @@ import { LogoMark } from "@/design-system/brand/Logo";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { BackButton } from "@/components/site/BackButton";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { PepBanner } from "@/components/compliance/PepBanner";
 
 /**
  * Agent Mode shell: the rail plus a top bar, wrapping every agent page so the
@@ -105,6 +106,8 @@ export async function AgentShell({
         </header>
 
         <div className="px-md pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-lg sm:px-5 md:px-xl md:pt-7 lg:pb-10">
+          {/* SCUML item 20: until a lister has answered the PEP question. */}
+          {profile && <PepBanner />}
           {children}
         </div>
       </main>
