@@ -147,6 +147,8 @@ export function OperationsView(props: OperationsProps) {
     href: t.key === "jobs" ? "/admin/operations" : `/admin/operations?tab=${t.key}`,
     active: props.tab === t.key,
   }));
+  /* V-80: field speed is its own desk; Operations is where it is found. */
+  tabs.push({ key: "field-speed", label: getDictionary(locale).platform.fieldSpeed.title, href: "/admin/field-speed", active: false });
 
   return (
     <div className="nf-admin-stack">

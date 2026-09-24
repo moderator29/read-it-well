@@ -8,6 +8,8 @@
  * dropped rather than half-stored.
  */
 
+import { matchRoute, normalisePath } from "../nav/resolve";
+
 export const VITAL_METRICS = ["LCP", "INP", "CLS", "FCP", "TTFB"] as const;
 export type VitalMetric = (typeof VITAL_METRICS)[number];
 export const EFFECTIVE_TYPES = ["slow-2g", "2g", "3g", "4g"] as const;
@@ -24,23 +26,23 @@ export type VitalsRow = {
   transfer_kb: number | null;
 };
 
-/* A uuid, a number, or anything six long or more that carries a digit
-   (a reference code, a slug with a number in it). Words alone are routes. */
-const ID_SEGMENT = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|\d+|(?=[a-z0-9-]*\d)[a-z0-9-]{6,})$/i;
-
 /**
- * A path, as a template: `/listing/3653d202-...` becomes `/listing/[id]`.
- * Query strings and fragments are dropped. Anything that looks like an id
- * (a uuid, a number, a long code, a slug with digits in it) becomes `[id]`,
- * because a route template is a fact about the product and an id is a fact
- * about somebody.
+ * A path, as a template from the product's own route map. V-80 fix.
+ *
+ * The earlier guess (an id looks like a uuid, a number or a slug with a
+ * digit) kept `/u/adaokafor`, which records whose profile was read. Now the
+ * path is matched against `ROUTE_PARENTS` (every route file this app has, a
+ * test keeps it complete) and what is stored is the PATTERN it matched, so
+ * `/u/adaokafor` is `/u/[handle]` and `/listing/3653...` is `/listing/[id]`.
+ * A path the map does not know is stored as `/[other]`, never as itself.
+ * Query strings and fragments are dropped before matching.
  */
 export function routeTemplate(pathname: string): string {
-  const path = pathname.split(/[?#]/)[0] ?? "/";
-  const segments = path.split("/").filter((s) => s.length > 0).slice(0, 6);
-  const out = segments.map((s) => (ID_SEGMENT.test(s) ? "[id]" : s.replace(/[^a-z0-9_-]/gi, "").slice(0, 32) || "[id]"));
-  return `/${out.join("/")}`.slice(0, 120);
+  const path = normalisePath(pathname);
+  return matchRoute(path)?.pattern ?? OTHER_ROUTE;
 }
+
+export const OTHER_ROUTE = "/[other]";
 
 /** Read what a browser sent into rows, or null. */
 export function sanitiseVitals(payload: unknown): VitalsRow[] | null {

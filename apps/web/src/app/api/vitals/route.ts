@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sanitiseVitals } from "@/lib/observability/vitals";
+import { consume, ipFromHeaders, subjectForIp } from "@/lib/security/rate-limit";
 
 /**
  * FIELD SPEED INGEST. V-80.
@@ -39,6 +40,22 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
   if (windowCount >= MAX_PER_WINDOW) return done;
   windowCount += 1;
+
+  /* The size is judged before the body is read, so a large body costs
+     nothing; the read below checks again for a sender that lied. */
+  const declared = Number(request.headers.get("content-length") ?? "0");
+  if (!Number.isFinite(declared) || declared > MAX_BODY_BYTES) return done;
+
+  /* Per caller, through the shared limiter: a page view sends one body, so
+     thirty a minute from one address is already generous. The subject is the
+     limiter's own counting key; nothing about it reaches the samples table. */
+  const verdict = await consume({
+    bucket: "web_vitals",
+    subject: subjectForIp(ipFromHeaders(request.headers)),
+    limit: 30,
+    windowSeconds: 60,
+  });
+  if (!verdict.allowed) return done;
 
   let rows;
   try {
