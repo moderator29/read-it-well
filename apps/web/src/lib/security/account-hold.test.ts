@@ -25,6 +25,13 @@ describe("holdFromRows", () => {
       reason: "other",
     });
   });
+  it("reads a staff hold (SCUML item 6) as staff, which the wallet shows without a reason", () => {
+    expect(holdFromRows([{ hold_until: "2026-09-25T09:00:00Z", reason: "staff_review" }], NOW)).toEqual({
+      state: "held",
+      until: "2026-09-25T09:00:00Z",
+      reason: "staff",
+    });
+  });
   it("is unknown, never none, when the answer is not a list", () => {
     expect(holdFromRows(null, NOW)).toEqual({ state: "unknown" });
   });

@@ -246,7 +246,7 @@ begin
      where ur.role in ('admin'::public.app_role, 'super_admin'::public.app_role)
   loop
     perform private.notify(staff, 'system'::public.notification_kind, p_title, p_body,
-                           '/admin/compliance?lane=str&case=' || p_case::text);
+                           '/admin/compliance?tab=str&case=' || p_case::text);
   end loop;
 end;
 $$;

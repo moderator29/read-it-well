@@ -25,7 +25,10 @@
 
 import { formatDate, type Locale } from "@vallo/i18n";
 
-export type HoldReason = "not_me" | "other";
+/* "staff": a hold staff placed by hand (SCUML item 6, `str_place_hold`). The
+   member is told the money is held and when it ends, and never why: that
+   is the no-tipping-off rule. */
+export type HoldReason = "not_me" | "other" | "staff";
 
 export type AccountHold =
   | { state: "none" }
@@ -45,7 +48,10 @@ export function holdFromRows(rows: unknown, now: number): AccountHold {
     if (!Number.isFinite(at) || at <= now) continue;
     if (latest === null || at > latest) {
       latest = at;
-      found = { until: row.hold_until, reason: row.reason === "not_me" ? "not_me" : "other" };
+      found = {
+        until: row.hold_until,
+        reason: row.reason === "not_me" ? "not_me" : row.reason === "staff_review" ? "staff" : "other",
+      };
     }
   }
   return found === null ? { state: "none" } : { state: "held", ...found };

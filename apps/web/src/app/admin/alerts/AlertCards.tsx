@@ -1,6 +1,7 @@
 import type { AlertView } from "@/lib/admin/queries";
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { AlertResolve } from "../_components/AdminActions";
+import { ConsiderStr } from "../_components/ConsiderStr";
 import { fill, type AdminCommon, type AdminCopy } from "../_components/copy";
 import type { AdminUi } from "../_components/ui";
 import type { QueueStatusOption } from "../_components/QueueFilters";
@@ -85,6 +86,9 @@ export function AlertCard({
           {fill(copy.attachedTo, { type: alert.entityType, id: alert.entityId ?? "" }).trim()}
         </p>
       )}
+
+      {/* SCUML item 6: open an STR case from this alert. */}
+      <ConsiderStr from="risk_alert" id={alert.id} />
 
       {alert.status === "open" ? (
         <AlertResolve alertId={alert.id} copy={copy} common={common} />

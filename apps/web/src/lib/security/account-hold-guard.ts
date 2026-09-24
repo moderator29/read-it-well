@@ -22,7 +22,7 @@ export async function accountHoldRefusal(client: unknown): Promise<string | null
   const locale = await getLocale();
   const until = formatHoldUntil(hold.until, locale);
   const copy = getDictionary(locale).platform.hold;
-  return (hold.reason === "not_me" ? copy.refusalNotMe : copy.refusalOther).replace("{until}", until);
+  return (hold.reason === "not_me" ? copy.refusalNotMe : hold.reason === "staff" ? copy.refusalPlain : copy.refusalOther).replace("{until}", until);
 }
 
 /**
