@@ -1567,13 +1567,13 @@ export const en = {
       unrecordedGroupMany: "{count} older sign-ins whose device was not recorded",
       unrecordedGroupSub:
         "These started before Vallo recorded which device a sign-in came from, so there is nothing to recognise them by. Sign out everywhere else ends all of them.",
-      endEverywhere: "Sign out everywhere",
-      endEverywhereSub: "Ends every session on this account, including this one. You will sign in again here.",
+      endEverywhere: "Sign out everywhere, this device included",
+      endEverywhereSub: "Ends every session on this account, the one you are using now as well. You will need to sign in again here.",
 
       endThis: "Sign out this device",
       endCurrent: "Sign out of this browser",
       endOthers: "Sign out everywhere else",
-      endOthersSub: "Ends every session except the one you are using right now.",
+      endOthersSub: "Ends every session except this one. You stay signed in on this device.",
       endOthersNone: "Nothing else is signed in, so there is nothing to end.",
       confirm: "Tap again to confirm",
       working: "Ending it",

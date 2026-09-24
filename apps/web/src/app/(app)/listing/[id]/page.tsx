@@ -56,6 +56,7 @@ import {
   type StickyAction,
 } from "@/components/app/listing/ListingStickyBar";
 import { StayDatesProvider } from "@/components/app/listing/StayDates";
+import { readStayDates } from "@/components/app/stays/model";
 import { PhotoViewerProvider } from "@/components/app/listing/PhotoViewer";
 import { ReportSheet } from "@/components/app/ReportSheet";
 import { resolveSession } from "@/lib/actions/session";
@@ -248,10 +249,14 @@ async function hasConfirmedBooking(
 
 export default async function ListingDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  /** A stay's dates and party size, carried from the stays search. */
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  const requested = readStayDates((await searchParams) ?? {});
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
 
@@ -1183,6 +1188,7 @@ export default async function ListingDetailPage({
       cleaningMinor={listing.cleaningMinor ?? 0}
       serviceMinor={listing.serviceMinor ?? 0}
       capacity={capacityOf(listing)}
+      requested={{ checkIn: requested.checkIn, checkOut: requested.checkOut, guests: requested.guests }}
     >
       {body}
     </StayDatesProvider>

@@ -167,11 +167,10 @@ export default async function StayDetailPage({
   const { id } = await params;
   const detail = await readStayDetail(id);
 
-  /* No accommodation row: the catalogue listing, unchanged, in the Stays
-     shell. Not an error, and not an empty state. It reads `params` only, and
-     the stay dates ride the URL rather than a prop, so nothing is dropped by
-     handing it the one argument it takes. */
-  if (!detail) return <ListingPage params={params} />;
+  /* No accommodation row: the catalogue listing, in the Stays shell. The
+     address's dates and party size are handed on, so the reserve panel and
+     the pinned bar open on the stay the visitor searched for. */
+  if (!detail) return <ListingPage params={params} searchParams={searchParams} />;
 
   const [locale, query, savedPlaces] = await Promise.all([
     getLocale(),
