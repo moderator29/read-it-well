@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /*
  * V-61. The check reserves a slot in the platform-wide miss budget BEFORE the
@@ -38,13 +38,18 @@ beforeEach(() => {
   rpc.mockReset();
 });
 
+afterEach(() => {
+  vi.useRealTimers();
+});
+
 describe("checkAgent", () => {
   it("reserves the miss budget before the lookup and gives it back on a hit, to the reserved window", async () => {
     consume.mockResolvedValue(ALLOWED);
     rpc.mockImplementation(async (_db: unknown, name: string) =>
       name === "agent_lookup" ? { data: { found: true, kind: "code", display_name: "Ada", role: "agent", code: "VA-7K3MP" }, error: null } : { data: null, error: null },
     );
-    const before = Math.floor(Date.now() / 3_600_000) * 3_600_000;
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-24T10:37:12.345Z"));
     const result = await checkAgent(null, form("VA-7K3MP"));
     expect(result.ok && result.data.state).toBe("result");
     const buckets = consume.mock.calls.map((call) => (call[0] as { bucket: string }).bucket);
@@ -53,7 +58,7 @@ describe("checkAgent", () => {
     expect(names).toEqual(["agent_lookup", "refund_agent_check_slot"]);
     const refund = rpc.mock.calls[1]?.[2] as { p_bucket: string; p_window_start: string };
     expect(refund.p_bucket).toBe("agent_check_code_miss");
-    expect(Date.parse(refund.p_window_start)).toBeGreaterThanOrEqual(before);
+    expect(refund.p_window_start).toBe("2026-09-24T10:00:00.000Z");
   });
 
   it("keeps the slot on a miss", async () => {

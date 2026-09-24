@@ -34,11 +34,9 @@
 export const landlordEn = {
   sms: {
     vacancy:
-      "Vallo: is your {place} still available to let{agentPart}? Reply 1 {code} if yes, 2 {code} if it is let, 3 {code} if you have not instructed this agent. Or answer here: {link}",
-    vacancyAgent: ", listed by {agent}",
+      "Vallo: is your {place} still available to let? Reply 1 {code} if yes, 2 {code} if it is let, 3 {code} if you have not instructed this agent. Or answer here: {link}",
     rent:
-      "Vallo: a tenant has paid {total} for your {place}{agentPart}. Reply 1 {code} if that is right, 2 {code} if it is not what you agreed. Every figure is here: {link}",
-    rentAgent: " through {agent}",
+      "Vallo: a tenant has paid {total} for your {place}. Reply 1 {code} if that is right, 2 {code} if it is not what you agreed. Every figure is here: {link}",
   },
 
   reply: {
