@@ -512,7 +512,7 @@ export type ListingSearchOptions = {
    * two can never disagree, exactly as SQL narrows and `matchesFilter`
    * decides.
    */
-  order?: "default" | "move-in";
+  order?: "default" | "move-in" | "newest";
 };
 
 export interface ListingRepository {

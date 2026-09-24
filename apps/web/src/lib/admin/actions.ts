@@ -504,7 +504,7 @@ export async function reviewListing(input: {
 
   const { data: listing, error: readError } = await access.supabase
     .from("listings")
-    .select("id, title, status, agent_id, reference, agents ( user_id )")
+    .select("id, title, status, agent_id, reference, published_at, agents ( user_id )")
     .eq("id", listingId)
     .maybeSingle();
   if (readError) return fail(SERVICE_DOWN);
@@ -537,7 +537,11 @@ export async function reviewListing(input: {
       reviewer_id: access.user.id,
       reviewed_at: now,
       review_notes: notes,
-      ...(decision === "publish" ? { published_at: now } : {}),
+      /* The FIRST time it went live, kept (V-22, batch 1 review finding 4):
+         a listing sent back to draft and published again is not new, and
+         "Listed today", the Newest sort, the New mark and saved-search alerts
+         all read this column. */
+      ...(decision === "publish" && !listing.published_at ? { published_at: now } : {}),
     })
     .eq("id", listing.id);
   if (updateError) return fail(SERVICE_DOWN);

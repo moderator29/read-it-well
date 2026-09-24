@@ -133,7 +133,7 @@ const OWNERS = [
   ["/stay", "V1 discovery and listing"],
   ["/restaurants", "V1 discovery and listing"],
   ["/restaurant", "V1 discovery and listing"],
-  ["/rent", "V1 discovery and listing"],
+  ["/search?market=rent", "V1 discovery and listing"],
   ["/saved", "V1 discovery and listing"],
   ["/home", "V1 discovery and listing"],
   ["/", "site, the lead"],

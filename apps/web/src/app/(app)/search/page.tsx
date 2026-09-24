@@ -162,7 +162,10 @@ export default async function SearchPage({
     /* The move-in ordering is pushed into the read, because the read has a row
        ceiling: sorting afterwards alone would order the newest rows rather
        than the cheapest ones to move into. See `ListingSearchOptions.order`. */
-    repo.search(shelfFilter(query), query.sort === "move-in-asc" ? { order: "move-in" } : {}),
+    repo.search(
+      shelfFilter(query),
+      query.sort === "move-in-asc" ? { order: "move-in" } : query.sort === "newest" ? { order: "newest" } : {},
+    ),
     repo.search(shelfPoolFilter(query)),
     repo.search({}),
   ]);

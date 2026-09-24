@@ -12,6 +12,7 @@ import {
 } from "@/lib/interests/actions";
 import type { Dictionary } from "@vallo/i18n";
 import { PROPERTY_TYPES, type PropertyType } from "@/lib/interests/schema";
+import { forgetFirstInterest } from "./first-run-seen";
 
 /**
  * The one question worth asking at the door.
@@ -83,6 +84,8 @@ export function InterestChoices({
 
   useEffect(() => {
     if (!state?.ok) return;
+    /* Answered: the market a landing tile carried has done its job (V-18). */
+    forgetFirstInterest();
     if (!firstRun) {
       /*
        * Settings stays where it is. Bouncing somebody to home the moment they
@@ -118,6 +121,7 @@ export function InterestChoices({
         setSkipError(result.error);
         return;
       }
+      forgetFirstInterest();
       router.replace("/home");
       router.refresh();
     });

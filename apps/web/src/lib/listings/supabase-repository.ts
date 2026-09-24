@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { memo } from "../cache/memo";
 import { honestExamplePhotos } from "./example-imagery";
+import { rentMeansTenancy } from "./filter";
 import { COMPOUND_COLUMNS, readCompound, type Compound, type CompoundRow } from "./compound";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
@@ -1205,10 +1206,11 @@ export class SupabaseListingRepository implements ListingRepository {
           "listing_intent",
           filter.intent as Database["public"]["Enums"]["listing_intent"],
         );
-        /* The rent market is tenancies: a row with a rent period. A nightly or
-           per-head rate is `rent` too and is a stay (V-26). `matchesFacts`
-           holds the same rule for the drawer's count. */
-        if (filter.intent === "rent") query = query.not("rent_period", "is", null);
+        /* The rent market is tenancies (V-26): a row with no positive rate,
+           which is the column `headlinePrice` reads to call a row a rate.
+           `rentMeansTenancy` and `isTenancyPeriod` hold the same rule for
+           the drawer's count and the alerts. */
+        if (rentMeansTenancy(filter)) query = query.or("rate_minor.is.null,rate_minor.lte.0");
       }
 
       /*
@@ -1326,6 +1328,11 @@ export class SupabaseListingRepository implements ListingRepository {
        * unstated, so it sorts after every listing that said a number rather
        * than ahead of all of them as a null would.
        */
+      /* V-22: Newest orders on the date it went live BEFORE the ceiling, for
+         the same reason move-in does; the page still sorts what comes back. */
+      if (opts.order === "newest") {
+        query = query.order("published_at", { ascending: false, nullsFirst: false });
+      }
       if (opts.order === "move-in") {
         query = query.order("total_move_in_cost_minor", {
           ascending: true,

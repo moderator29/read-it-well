@@ -131,6 +131,16 @@ export function firstInterestCookieString(value: string, secure: boolean): strin
   ].join("; ");
 }
 
+/** Client only. Clears the carried market once the question is answered or skipped. */
+export function forgetFirstInterest(): void {
+  if (typeof document === "undefined") return;
+  try {
+    document.cookie = `${FIRST_INTEREST_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
+  } catch {
+    /* Nothing to clear. */
+  }
+}
+
 /** Client only. Quiet: a refused cookie only means nothing is pre-ticked. */
 export function rememberFirstInterest(value: string): void {
   if (typeof document === "undefined") return;

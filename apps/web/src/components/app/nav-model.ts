@@ -40,8 +40,9 @@ import type { Side } from "@/lib/side.constants";
  *    market the catalogue actually holds rather than five of them. Five rows in
  *    a drawer were a worse copy of a filter.
  *
- *  - **Rent.** `/rent` is discovery filtered to the long-let market, which is
- *    the same thing again: a filter presented as a destination.
+ *  - **Rent.** `/rent` was discovery filtered to the long-let market, which is
+ *    the same thing again: a filter presented as a destination. The page is
+ *    deleted now (V-26) and the address redirects to `/search?market=rent`.
  *
  *  - **The three Feed children.** Feed, Places and People are the feed screen
  *    and two indexes reachable from it. The first child pointed at the same

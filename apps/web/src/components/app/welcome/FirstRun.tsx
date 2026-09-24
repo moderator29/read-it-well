@@ -11,7 +11,12 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { markWelcomeSeen, skipInterests } from "@/lib/interests/actions";
 import { InterestChoices } from "./InterestChoices";
 import { WelcomeScene, type SceneCentre } from "./WelcomeScene";
-import { rememberFirstInterest, rememberFirstRunSeen, withPassedFlag } from "./first-run-seen";
+import {
+  forgetFirstInterest,
+  rememberFirstInterest,
+  rememberFirstRunSeen,
+  withPassedFlag,
+} from "./first-run-seen";
 import type { Arrival } from "@/app/welcome/plan";
 import { wallHeading } from "./wall-heading";
 import type { BrandIconObject } from "@/design-system/icons/BrandIcon";
@@ -363,6 +368,7 @@ export function FirstRun({
         setError(skipped.error);
         return;
       }
+      forgetFirstInterest();
       leave(next ?? "/home");
     });
   };

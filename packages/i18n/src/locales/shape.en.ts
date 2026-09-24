@@ -20,7 +20,7 @@ export const shapeEn = {
     create: "Create an account",
     signIn: "Sign in",
     searchPlace: "to see homes in {place}",
-    searchQuoted: "to see results for “{term}”",
+    searchQuoted: "to search for “{term}”",
     searchAny: "to see what is listed",
     listing: "to open this listing",
     stay: "to open this stay",
@@ -37,9 +37,27 @@ export const shapeEn = {
     newMark: "New",
     newMarkLabel: "New since your last visit",
   },
+  /** The shelf's sort names, keyed by `SortKey` (V-22 added Newest). */
+  sorts: {
+    recommended: "Recommended",
+    newest: "Newest",
+    "top-rated": "Top rated",
+    "price-asc": "Price: low to high",
+    "price-desc": "Price: high to low",
+    "move-in-asc": "Move-in cost: low to high",
+  },
   /** V-26: the card's own words that moved from the deleted `/rent` shelf. */
   card: {
     messageAgent: "Message agent",
+  },
+  /** V-64: a member's page publishes only what the member turned on. */
+  profile: {
+    showOccupation: "Show my occupation on my page",
+    showOccupationSub: "Off by default. When it is off, only you see it.",
+    showHomeTown: "Show my home town on my page",
+    showHomeTownSub: "Off by default. When it is off, only you see it.",
+    privateNote: "Only you can see your occupation and home town here.",
+    privateNoteLink: "Choose what your page shows",
   },
   /** V-26: the shelf's market chip when the rent market is chosen. */
   market: {

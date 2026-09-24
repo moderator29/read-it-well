@@ -689,8 +689,6 @@ function TenantPays({
   locale: Locale;
   copy: WizardCopy;
   moveInCopy: Dictionary["moveIn"];
-  /** V-28: the compound's five questions. */
-  compoundCopy: Dictionary["shape"]["compound"];
 }) {
   const lines = moveInLines(facts, moveInCopy);
   const declared = lines.filter((line) => line.minor !== undefined && line.minor !== null);
@@ -784,6 +782,8 @@ export function ListingWizard({
      breakdown GOVERNING-08 screen two draws is the searcher's block turned
      round to face the agent, and it has to read in exactly the same words. */
   moveInCopy: Dictionary["moveIn"];
+  /** V-28: the compound's five questions. */
+  compoundCopy: Dictionary["shape"]["compound"];
   locale: Locale;
   userId: string | null;
   states: { code: string; name: string }[];

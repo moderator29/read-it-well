@@ -1,4 +1,5 @@
 import type { Listing } from "./types";
+import { isTenancyPeriod } from "./pricing";
 
 /**
  * WHICH PICTURE AN EXAMPLE LISTING MAY WEAR, decided by what it is.
@@ -90,8 +91,7 @@ type Shape = Pick<Listing, "kind" | "bedrooms" | "intent" | "pricePeriod" | "isD
 export function isModestExample(listing: Shape): boolean {
   if (!listing.isDemo) return false;
   if (listing.intent === "sale") return false;
-  const period = listing.pricePeriod;
-  if (period !== "year" && period !== "month" && period !== "quarter") return false;
+  if (!isTenancyPeriod(listing.pricePeriod)) return false;
   switch (listing.kind) {
     case "rental":
     case "apartment":

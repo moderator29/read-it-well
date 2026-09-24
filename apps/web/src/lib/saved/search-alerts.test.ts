@@ -110,6 +110,21 @@ describe("planAlerts", () => {
     expect(plan.notices[0]!.title).toContain("2 new places");
   });
 
+  it("never alerts a rent-market search to a nightly stay its shelf would not show (V-26)", () => {
+    const rent = canonicalSearch({ market: "rent" });
+    const plan = planAlerts(
+      [search({ params: rent.params, href: rent.href })],
+      [
+        candidate(NOON, { id: "shortlet", kind: "shortlet", pricePeriod: "night" }),
+        candidate(NOON, { id: "flat", kind: "apartment", pricePeriod: "year" }),
+      ],
+      "/saved/searches",
+    );
+    expect(plan.notices).toHaveLength(1);
+    expect(plan.notices[0]!.matches).toBe(1);
+    expect(plan.matchedListings).toBe(1);
+  });
+
   it("never reports a place that went up before the watermark", () => {
     const plan = planAlerts(
       [search({ cursorAt: ELEVEN })],

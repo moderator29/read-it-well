@@ -8,6 +8,11 @@
  * (V-06), so `published_at` is a real date nobody can buy a new copy of, and
  * printing it is the cheapest honest defence against a stale listing.
  *
+ * THE DATE IS THE FIRST TIME IT WENT LIVE. The review desk writes
+ * `published_at` only when it is empty (`lib/admin/actions.ts`), so a listing
+ * sent back to draft and published again keeps its age rather than reading
+ * "Listed today" and jumping the Newest sort.
+ *
  * THE SIXTY DAY RULE. Past sixty days the age stops reading as fresh news and
  * becomes a question: has anybody said the flat is still free? Until the owner
  * heartbeat exists (V-31) nobody has, and the line says exactly that: "Listed

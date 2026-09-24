@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getDictionary } from "@vallo/i18n";
-import { looksLikePlace, wallHeading } from "./wall-heading";
+import { isKnownPlace, wallHeading } from "./wall-heading";
 
 const copy = getDictionary("en").shape.wall;
 
@@ -11,9 +11,10 @@ describe("the wall names what they asked for (V-18)", () => {
     expect(h.primary).toBe("sign-up");
   });
 
-  it("a search that is not a place is quoted back as typed", () => {
+  it("a search that is not a known place is quoted back as typed", () => {
     const h = wallHeading({ kind: "search", place: "2 bed under 3m" }, copy);
-    expect(h.titleB).toBe("to see results for “2 bed under 3m”");
+    expect(h.titleB).toBe("to search for \u201c2 bed under 3m\u201d");
+    expect(wallHeading({ kind: "search", place: "Mars" }, copy).titleB).toBe("to search for \u201cMars\u201d");
   });
 
   it("a search with no words says so without inventing one", () => {
@@ -30,11 +31,13 @@ describe("the wall names what they asked for (V-18)", () => {
     expect(wallHeading({ kind: "other" }, copy).titleB).toBe("to open that page");
   });
 
-  it("knows a place name from a query", () => {
-    expect(looksLikePlace("Port Harcourt")).toBe(true);
-    expect(looksLikePlace("Ọ̀yọ́")).toBe(true);
-    expect(looksLikePlace("Lekki Phase 1")).toBe(false);
-    expect(looksLikePlace("one two three four")).toBe(false);
+  it("calls only a state or a covered city a place", () => {
+    expect(isKnownPlace("Port Harcourt")).toBe(true);
+    expect(isKnownPlace("  lagos ")).toBe(true);
+    expect(isKnownPlace("Akwa Ibom")).toBe(true);
+    expect(isKnownPlace("FCT")).toBe(true);
+    expect(isKnownPlace("Mars")).toBe(false);
+    expect(isKnownPlace("Lekki Phase 1")).toBe(false);
   });
 
   it("carries no dash as punctuation", () => {

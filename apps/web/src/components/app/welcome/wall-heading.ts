@@ -1,4 +1,5 @@
 import type { ArrivalReason } from "@/app/welcome/plan";
+import { NIGERIAN_STATES } from "@/lib/data/nigeria";
 
 /**
  * The words on the wall, for somebody who was stopped on the way somewhere
@@ -16,10 +17,11 @@ import type { ArrivalReason } from "@/app/welcome/plan";
  * sent between people is as likely to reach an existing member, so it leads
  * with Sign in. Either way both doors are on the screen.
  *
- * A SEARCH TERM IS ONLY CALLED A PLACE WHEN IT LOOKS LIKE ONE. "Lagos" reads
- * as "homes in Lagos"; "2 bed Lekki under 3m" does not, and printing "homes in
- * 2 bed Lekki under 3m" would be the product misreading its own visitor. So a
- * short run of letters is a place and anything else is quoted back as typed.
+ * A SEARCH TERM IS ONLY CALLED A PLACE WHEN WE KNOW IT IS ONE. "Lagos" reads
+ * as "homes in Lagos". "Mars" must not: "homes in Mars" claims homes exist
+ * there (batch 1 review, finding 8). So a term that names one of the 37 states
+ * or one of the cities the catalogue covers is a place, and anything else is
+ * quoted back as typed: "to search for “Mars”".
  */
 export type WallCopy = {
   create: string;
@@ -40,9 +42,18 @@ export type WallHeading = {
   primary: "sign-in" | "sign-up";
 };
 
-/** Up to three words of letters, spaces, hyphens and apostrophes. */
-export function looksLikePlace(term: string): boolean {
-  return /^[\p{L}][\p{L}\p{M}'\-]*(?: [\p{L}][\p{L}\p{M}'\-]*){0,2}$/u.test(term.trim());
+/* The cities discovery maps and the landing page offers, beside the states. */
+const KNOWN_CITIES = ["Lagos", "Abuja", "Ibadan", "Enugu", "Port Harcourt", "Calabar", "Kano", "Benin City"];
+
+const KNOWN_PLACES = new Set(
+  [...NIGERIAN_STATES.map((state) => state.replace(/\s*\(.*\)$/, "")), "FCT", ...KNOWN_CITIES].map((name) =>
+    name.toLowerCase(),
+  ),
+);
+
+/** A state or a covered city, whatever the case and spacing it was typed in. */
+export function isKnownPlace(term: string): boolean {
+  return KNOWN_PLACES.has(term.trim().replace(/\s+/g, " ").toLowerCase());
 }
 
 export function wallHeading(reason: ArrivalReason, copy: WallCopy): WallHeading {
@@ -51,7 +62,7 @@ export function wallHeading(reason: ArrivalReason, copy: WallCopy): WallHeading 
       const place = reason.place;
       const titleB = !place
         ? copy.searchAny
-        : looksLikePlace(place)
+        : isKnownPlace(place)
           ? copy.searchPlace.replace("{place}", place)
           : copy.searchQuoted.replace("{term}", place);
       return { titleA: copy.create, titleB, body: copy.body, primary: "sign-up" };

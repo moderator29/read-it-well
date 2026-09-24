@@ -23,6 +23,7 @@ import {
 } from "@/lib/listings/pricing";
 import { formatDate, formatNumber } from "@vallo/i18n";
 import { listedAge, listedAgeText, staleMonthOptions } from "@/lib/listings/listed-age";
+import { isTenancyPeriod } from "@/lib/listings/pricing";
 import { isModestExample } from "@/lib/listings/example-imagery";
 import { ListingCompound } from "@/components/app/listing/ListingCompound";
 import { getBlockedDates } from "@/lib/bookings/queries";
@@ -287,9 +288,17 @@ export default async function ListingDetailPage({
    */
   const messageHref = `/messages/new?listing=${listing.id}`;
 
-  // Rentals are annual tenancies: no Reserve control anywhere on the page.
-  // The path is message the agent, inspect the property, then pay.
-  const isRental = listing.kind === "rental";
+  // Rentals are tenancies: no Reserve control anywhere on the page. The path
+  // is message the agent, inspect the property, then pay.
+  //
+  // A TENANCY IS DECIDED BY THE PERIOD, NOT THE CATEGORY (batch 1 review,
+  // finding 5). This was `kind === "rental"`, which is 8 of the 40 example
+  // tenancies: a flat or a house let by the year has kind apartment or home,
+  // so it fell into the nightly branch and drew a date range picker and Check
+  // availability for an annual let, and led with the rent. `isTenancyPeriod`
+  // is the one predicate the card, the rent market and Message agent use.
+  const isRental =
+    listing.kind === "rental" || (listing.intent !== "sale" && isTenancyPeriod(listing.pricePeriod));
 
   /* A restaurant is ours to take a booking for, and it is NOT a stay. Without
      this it fell into the nightly branch and drew a date range picker, a

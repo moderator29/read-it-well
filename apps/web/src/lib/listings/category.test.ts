@@ -68,6 +68,8 @@ function query(over: Partial<DiscoveryQuery> = {}): DiscoveryQuery {
     verifiedOnly: false,
     powerBackup: false,
     powerBandA: false,
+    landlordAway: false,
+    parkingInside: false,
     waterSupply: [],
     listerRoles: [],
     ...over,

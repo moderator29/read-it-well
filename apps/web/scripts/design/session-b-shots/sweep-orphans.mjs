@@ -76,7 +76,6 @@ const LIVE = [
   ["l-crypto", "/crypto"],
   ["l-crypto-coin", "/crypto/bitcoin"],
   ["l-verification", "/verification"],
-  ["l-rent", "/rent"],
   ["l-rent-pay-missing", `/rent/pay/${MISSING}`],
   ["l-saved", "/saved"],
   ["l-saved-searches", "/saved/searches"],

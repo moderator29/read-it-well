@@ -187,8 +187,8 @@ async function walk(colorScheme) {
     check("no horizontal overflow on a stay at 390px", await noHorizontalOverflow(page));
 
     // ----------------------------------------------------- a rental detail
-    console.log("/rent, then the first rental's detail page");
-    await page.goto(`${BASE_URL}/rent`, { waitUntil: "load" });
+    console.log("/search?market=rent, then the first rental's detail page");
+    await page.goto(`${BASE_URL}/search?market=rent`, { waitUntil: "load" });
     await page.waitForTimeout(WAIT);
 
     const rentalHref = await page.locator('a[href^="/listing/"]').first().getAttribute("href");

@@ -295,6 +295,7 @@ export function FilterDrawer({
   copy,
   costCopy,
   compoundCopy,
+  sortCopy,
   openOnMount = false,
 }: {
   query: ShelfQuery;
@@ -308,6 +309,8 @@ export function FilterDrawer({
   costCopy: Dictionary["moveIn"];
   /** V-28: the compound's words, for its two filters. */
   compoundCopy: Dictionary["shape"]["compound"];
+  /** The sort names, from the dictionary rather than `SORTS[].label`. */
+  sortCopy: Dictionary["shape"]["sorts"];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(openOnMount);
@@ -950,7 +953,7 @@ export function FilterDrawer({
                 >
                   {SORTS.map((sort) => (
                     <option key={sort.key} value={sort.key}>
-                      {sort.label}
+                      {sortCopy[sort.key]}
                     </option>
                   ))}
                 </select>

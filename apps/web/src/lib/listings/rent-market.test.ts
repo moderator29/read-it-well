@@ -31,6 +31,18 @@ describe("the rent market", () => {
     expect(matchesFacts(facts({}), { intent: "rent" })).toBe(true);
   });
 
+  it("keeps the drawer's Shortlet and Hotel options full (review finding 1)", () => {
+    const shortlet = facts({ kind: "shortlet", pricePeriod: "night" });
+    expect(matchesFacts(shortlet, { intent: "rent", kind: "shortlet" })).toBe(true);
+    expect(matchesFacts(facts({ kind: "hotel", pricePeriod: "night" }), { intent: "rent", kind: "hotel" })).toBe(true);
+    expect(matchesFacts(facts({ kind: "apartment", pricePeriod: "night" }), { intent: "rent", kind: "apartment" })).toBe(false);
+  });
+
+  it("a Listing is judged the same way as its facts, so alerts agree with the shelf", () => {
+    const listing = { ...facts({ kind: "shortlet", pricePeriod: "night" }), q: undefined };
+    expect(matchesFacts(listing, { intent: "rent" })).toBe(false);
+  });
+
   it("leaves an unfiltered shelf alone", () => {
     expect(matchesFacts(facts({ pricePeriod: "night" }), {})).toBe(true);
   });

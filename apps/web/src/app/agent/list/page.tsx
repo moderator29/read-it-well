@@ -74,7 +74,6 @@ export default async function Page({
           copy={t.agentListings}
           reference={t.listingReference}
           moveInCopy={t.moveIn}
-        compoundCopy={t.shape.compound}
           compoundCopy={t.shape.compound}
           locale={locale}
           userId={null}
@@ -108,6 +107,7 @@ export default async function Page({
         copy={t.agentListings}
         reference={t.listingReference}
         moveInCopy={t.moveIn}
+        compoundCopy={t.shape.compound}
         locale={locale}
         userId={context.user.id}
         states={states.length > 0 ? states : STATE_CODES.map((code) => ({ code, name: code }))}

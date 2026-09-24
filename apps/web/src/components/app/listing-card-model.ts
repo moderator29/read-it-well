@@ -1,6 +1,6 @@
 import type { Dictionary } from "@vallo/i18n";
 import type { Listing, PowerBackup, PowerGrid } from "@/lib/listings/types";
-import { PERIOD_SUFFIX_SHORT } from "@/lib/listings/pricing";
+import { PERIOD_SUFFIX_SHORT, isTenancyPeriod } from "@/lib/listings/pricing";
 
 /**
  * What a property card says, decided away from how it looks.
@@ -310,8 +310,6 @@ export function cardUtility(listing: Listing): string | null {
 export function cardMessageHref(listing: Listing): string | null {
   if (listing.isDemo) return null;
   if (listing.intent === "sale") return null;
-  const period = listing.pricePeriod;
-  const tenancy = period === "year" || period === "month" || period === "quarter";
-  if (!tenancy) return null;
+  if (!isTenancyPeriod(listing.pricePeriod)) return null;
   return `/messages/new?listing=${encodeURIComponent(listing.id)}`;
 }
