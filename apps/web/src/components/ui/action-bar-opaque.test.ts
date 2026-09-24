@@ -38,12 +38,14 @@ describe.skipIf(!CHROMIUM && !process.env.CI)("the pinned action bar (real Chrom
   it("hides what scrolls under it, with or without a backdrop blur", async () => {
     const page = await browser.newPage({ viewport: { width: 390, height: 400 } });
     const css = [
+      // eslint-disable-next-line nf/no-raw-colour -- fixture: the resolved values of the tokens the bar reads, so the test sees the colours the page paints
       ":root{--nf-glass-fill-strong:rgba(255,255,255,0.11);--nf-surface-canvas:#010118;--nf-glass-blur-strong:0px;--nf-glass-saturate:1}",
       rule("glass.css", ".nf-glass--strong"),
       rule("chips.css", ".nf-action-bar-pinned"),
       rule("chips.css", ".nf-glass.nf-action-bar-pinned"),
     ].join("\n");
     await page.setContent(
+      // eslint-disable-next-line nf/no-raw-colour -- fixture: a white page behind the bar, so any see-through shows
       `<html><head><style>body{margin:0;background:#fff}${css}</style></head><body>
        <div class="nf-glass nf-glass--strong nf-action-bar-pinned" style="position:fixed;left:0;right:0;bottom:0;height:120px;backdrop-filter:none;-webkit-backdrop-filter:none"></div>
        </body></html>`,
