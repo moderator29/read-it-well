@@ -277,6 +277,8 @@ const EXPECTED_PUBLIC = new Set([
   "/api/push/drain",
   "/api/push/sw",
   "/api/support",
+  /* V-96: Meta's WhatsApp webhook, behind the app-secret signature. */
+  "/api/whatsapp/inbound",
   "/api/yellowcard/webhook",
 ]);
 

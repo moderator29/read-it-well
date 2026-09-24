@@ -261,6 +261,14 @@ export const platformEn = {
     what: "the field speed figures",
   },
 
+  /* V-96: WhatsApp is a doorbell. The auto-reply is the only thing Vallo
+     ever says on WhatsApp unprompted by an event; the safety line is drawn
+     only when the number is configured. */
+  whatsapp: {
+    autoReply: "We only talk inside Vallo, so there is always a record. Open your messages: {link}",
+    safetyLine: "Vallo's only WhatsApp number is {number}. It will never ask you for money or send you an account number.",
+  },
+
   /* V-89: the queue as a desk. */
   queueDesk: {
     dueIn: "Due in {hours}h",
