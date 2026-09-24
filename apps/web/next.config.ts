@@ -63,6 +63,10 @@ const nextConfig: NextConfig = {
   // hardcoded, and the pattern is omitted entirely when the URL is absent,
   // which keeps the allowlist tight in a build without keys.
   images: {
+    /* OPS-10: AVIF first, WebP for browsers without it. AVIF is typically a
+       fifth to a third smaller than WebP for photographs, which is the whole
+       weight of a catalogue page on a metered connection. */
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
         protocol: "https",

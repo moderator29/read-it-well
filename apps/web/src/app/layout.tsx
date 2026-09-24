@@ -32,17 +32,18 @@ import { CHROME_COLOUR } from "@/lib/theme/chrome";
  * routes at 390px and at 1280px fetched Inter latin, Inter latin-ext and both
  * Poppins subsets on every single load.
  */
+/*
+ * OPS-10: ONLY WHAT THE FIRST SCREEN PAINTS IS PRELOADED. Six preloads
+ * (about 155 KB) competed with the critical CSS and script on a 94 KB/s link.
+ * A preload only raises priority; the other subsets still arrive when the
+ * stylesheet asks for them, with `font-display: swap` covering the gap. The
+ * first screen's body text is Inter latin and its heading Poppins 700 latin
+ * (Inter vietnamese on the two locales whose headings need it).
+ */
 const PRELOADED_FONTS: Record<string, readonly string[]> = {
-  yo: ["inter-latin", "inter-latin-ext", "inter-vietnamese"],
-  ig: ["inter-latin", "inter-latin-ext", "inter-vietnamese"],
-  default: [
-    "inter-latin",
-    "inter-latin-ext",
-    "poppins-700-latin",
-    "poppins-700-latin-ext",
-    "poppins-600-latin",
-    "poppins-600-latin-ext",
-  ],
+  yo: ["inter-latin", "inter-vietnamese"],
+  ig: ["inter-latin", "inter-vietnamese"],
+  default: ["inter-latin", "poppins-700-latin"],
 };
 
 export const metadata: Metadata = {
@@ -115,13 +116,21 @@ export const metadata: Metadata = {
     "Port Harcourt",
   ],
   /*
-   * The card image is NOT declared here on purpose. `opengraph-image.png` sits
+   * The card image is NOT declared here on purpose. `opengraph-image.jpg` sits
    * beside this file and Next emits og:image and twitter:image for it
    * automatically, at the right URL, with dimensions. Declaring `images` here
    * as well would be a second copy of the same fact that drifts the first time
    * the file changes. `scripts/build-og-image.mjs` is the generator.
    */
+  /*
+   * OPS-16: EVERY PAGE NAMES ITS OWN ADDRESS. `./` resolves against
+   * metadataBase and the page's own path, so each page's canonical and
+   * og:url are itself on the production host, and a page that sets its own
+   * (a listing does) overrides this.
+   */
+  alternates: { canonical: "./" },
   openGraph: {
+    url: "./",
     title: "Vallo. Rent, buy or stay, without the runaround.",
     description:
       "Homes, land, hotels and shortlets across Nigeria, with the cost of moving in written down before you call anybody. Hotels, apartments and restaurant tables on Vallo Stays. One account, one naira wallet.",
