@@ -5656,3 +5656,98 @@ Everything I would have said out loud is here.
 **What this audit means for the git history.** 945 of the 1,021 commits carry a `Co-Authored-By` trailer naming an AI model. No amount of file cleaning changes that. Removing them would mean rewriting every commit in history, which would invalidate every clone and every open branch. You have been told and have chosen to leave it. History was not rewritten.
 
 **Where the fixing starts.** When you come back with instructions, section 3 is the order of work. Each finding's THE FIX is written so it can be implemented without rediscovering the problem. Re-verify each one against current `main` first: two sessions are changing the code under these findings as you read.
+
+### 11b. After the fixes: what stands now, and what only you can do
+
+This section was added on 24 September 2026, when the fixing closed. The full record is in [THE_AUDIT_FIXES.md](THE_AUDIT_FIXES.md). Each finding appears there with what changed, the proof, the test that would have caught it, and the review.
+
+**Where things stand.**
+- **The release is on `main` and live.** On your instruction, the gated release branch was merged to `main` in steps on 24 September. Each step passed all four gates first (the numbers are in THE_AUDIT_FIXES.md). Production (www.vallospaces.com) now serves it from `dub1` (Dublin), beside the database, and every script carries its nonce (OPS-09 and OPS-15 checked on live).
+- **Post-release database steps, applied after the deploy:**
+  - Live: m10 (the two age-only hold releasers are retired), m5b (one successful payment per booking) and DB-05 step 2 (only the server files bank and payout accounts).
+  - Rolled back within two minutes: the grant halves of DB-10 step 2 and NEW-A4-01 step 2 (20260924071045), and m12b's column drop (20260924071133 restored `wallet_pots.balance_minor` at 0; no pot exists, so nothing was lost).
+  - Why they were rolled back: **a separate deployment of the other session's V-03 branch (`claude/vallo-hundred-recommendations-xclnva`, 69da7aef) reads the production database.** Its listing select names `ownership_verified_at`, `mandate_verified_at` and the exact point, so its reads failed 401/403 as soon as those grants went. The release's own reads were proven safe under both grant changes in a rolled-back run. A new guard test (`revoked-columns.test.ts`) refuses any select like V-03's.
+  - A pots read against the dropped column also failed (07:09 UTC). Its source was not traced in this session; it may be the same deployment.
+- **To finish the held steps:**
+  1. Find that V-03 deployment in Vercel and stop it, or point it at a non-production database.
+  2. Keep 69da7aef out of `main` until its select passes the guard test.
+  3. Re-apply the two grant blocks and run `supabase/tests/pending/db-10-step2.sql` and `new-a4-01-step2.sql` (expect `PROBE_OK`).
+  4. Drop the pot column again only once nothing reads it.
+- **Do not open the held-payments gate** until you have confirmed the deploy shows payout dates as whole Lagos days (ESC-11).
+- **Set Vercel's install command to `npm ci`**, so production installs exactly the tested tree.
+
+**Settings only you can change (each is a single step).**
+- **GitHub:**
+  - Restore billing.
+  - Protect `main`, with "Typecheck, lint, test" and "Build" as required checks and force-push disabled.
+  - Add the repository secret `PROBES_DATABASE_URL`, the session-pooler connection string. Without it, the "Database probes" job fails on purpose, saying the database was not checked.
+  - Add the repository variables `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEXT_PUBLIC_MAPTILER_KEY`.
+  - Turn on Dependabot security updates.
+- **Supabase plan and backups (OPS-07, OPS-P2-01):** upgrade to Pro before the first real payment; turn on point-in-time recovery (a paid add-on); do one timed restore into a new project; set a spend cap and at least Small compute (live allows 60 connections).
+- **Company ownership (OPS-P2-02):** `docs/DEPLOY.md` section 0 moves Supabase and Vercel into company-owned accounts. Put the Vercel team on Pro before the transfer, because the 5-minute cron needs it.
+- **Paystack:** register the webhook URL and send a test event (MON-P2-03). The only real top-up so far was credited by the reconciler 16 hours late, not by the webhook.
+- **Supabase dashboard:**
+  - Turn on leaked-password protection (DB-18).
+  - Set the Auth rate limits and CAPTCHA (SEC-09).
+  - Turn Google off under Providers (STORE-02/03).
+  - Make sure the redirect allow-list accepts `/auth/callback**` with a query string (UX-02).
+  - Raise PostgREST's idle timeout so the connection pool stays warm (DB-12). Most slow searches are cold connections, not slow queries.
+  - When convenient, paste the regenerated `supabase/templates` files. These are only the fallback used when the Send Email Hook is off (UX-25).
+- **Alerting:**
+  - Create an ntfy topic and set it as `OPS_ALERT_WEBHOOK_URL` in Vercel.
+  - Run `select vault.create_secret('<the same url>', 'vallo_ops_alert_webhook_url');` in Supabase. The database pager is live but pages nobody until this secret exists.
+  - Point an uptime monitor at `https://www.vallospaces.com/api/health/catalogue`.
+  - Create a Sentry project and paste its `SENTRY_DSN` into Vercel Production and Preview. It is not set today.
+- **Email:** everything in item 6 above still stands, and `EMAIL_REPLY_TO` and `NEXT_PUBLIC_SUPPORT_EMAIL` are still unset.
+- **Migration history:** run `supabase migration fetch`, which needs the database password, to reconcile the 33 migration files edited after they were applied (DB-11; `docs/DEPLOY.md` §4.9).
+- **Test application:**
+  - VL-AGT-10023 ("QA Member Probe Owner") is a test owner application, filed through the real UI to prove listing creation end to end.
+  - Approving it as the QA admin was refused by this session's permission policy.
+  - Approve it at `/admin/agents`, create one listing at `/agent/list`, then delete the draft. Or reject it.
+  - Listing creation is proven fixed by the live probe regardless (DB-03).
+- **Previews to check by hand:**
+  - One photo attach on a Vercel preview, to confirm the server-side EXIF strip works on Vercel's runtime (SEC-04).
+  - One refused sign-up, to confirm the terms tick and the "where did you hear" answer survive (UX-14). This was proven in Chromium from a bundle; the live preview was not checked because the permission policy refused a local server.
+  - One print of a receipt from both the receipt page and the receipt sheet (MON-16).
+
+- **The QA account ids.** The two QA accounts' ids appear in the database probes and in some tests (65 files on `main`). They are not logins, but your credentials rule names them. Decide whether they stay, or whether the probes look the accounts up at run time. The last gated merge (f99b1a28 and later) waits on this answer.
+
+**Decisions only you can make.** Each has a recommended default where one exists, and nothing is blocked while you decide.
+- **The no-show money rule (ESC-04).** Recommended: the host keeps the first night. The rest returns to the guest's wallet automatically 48 hours after the no-show is recorded, unless the guest disputes first. The service fee is not refunded. One migration follows your answer.
+- **When a lister cannot cover a refund after rent was credited to them (V-33).** Today the refund is recorded as owed, the lister's outgoing money is frozen up to the debt, and staff get an alert. The choice is whether Vallo pays the tenant first or the tenant waits.
+- **A second super admin.** Two-person rulings at or above ₦500,000 fail closed until you appoint one (ESC-07). Two related questions are also yours:
+  - the wording of the dispute response time (ESC-09);
+  - whether to guard against splitting a large dispute into rulings below the threshold (ESC-07).
+- **Custody.** The held-payments gate cannot open while `custody_structure` is "undecided" (ESC-08). Terms §4 also needs a held-payments section read by a solicitor before it opens (ESC-13).
+- **Terms §17 promises notice before significant changes.** §4 and §5 changed materially this week (MON-04, ESC-13), and nothing sends that notice or asks for re-acceptance. Decide whether to email members, and whether to add a re-accept step.
+- **The payouts switch.** `BANK_PAYOUTS_OPEN` in `apps/web/src/lib/wallet/bank-payouts.ts` is false. The day the Registered Business upgrade lands:
+  1. Set it to true.
+  2. Bump `TERMS_VERSION`.
+  3. Draw the withdraw tile.
+- **Tenancies:**
+  - Whether a paid tenancy gets a finishing state, for example move-in plus the rent period. Today it stays CONFIRMED (ESC-P2-02).
+  - Which bookings tab it shows under.
+  - Whether tenancies get their own review. Today they cannot be reviewed as a stay (NEW-A1-03).
+- **Rooms (SUP-08).** Hotel and shortlet rooms cannot be booked until the M6 bookings extension lands. If M6 waits, the interim is "Message the property" in place of Reserve, about half a day.
+- **A let home (SUP-09).** A second full payment for a home already let is now refused. Decide whether a let home leaves the catalogue. Renewals by the same tenant need their own charge path.
+- **Staff badges.** Every staff account shows a public platinum mark, and the list of members is readable, so the staff list can be worked out. Decide whether staff carry a public mark at all, or one only signed-in viewers see (DB-09).
+- **Bank names.** Whether a member's bank account name must match their verified identity, as agents' already must. Terms §15 says "in your own name" (DB-05).
+- **The "this account uses Google" hint on sign-in.** It reveals an email's sign-in method. It is capped at 60 an hour per IP (SEC-17). Keep it or remove it.
+- **Social sign-in.** Apple or Google sign-in must not be switched on until that sign-up records the terms and the 18+ statement (NEW-A4-04). Apple switches itself on the moment Supabase enables the provider.
+- **Social previews.** Whether social crawlers such as WhatsApp may see `/listing/*` signed out, so a shared link previews as the listing rather than as the sign-in page (OPS-16).
+- **The public catalogue switch** (STORE-P2-04). `VALLO_PUBLIC_CATALOGUE` is off. Apple will very probably want it on for review. `/u`, messages, the wallet and exact addresses stay gated either way.
+- **The profile switch.** Whether it moves to the avatar (UX-06). The side switch is already at the top of the ⇄ sheet.
+- **Flagged messages.** Whether digits in flagged messages are scrubbed. Today this would touch 0 rows.
+- **KYC retention.** Confirm the five-year AML retention period for approved agents' identity records with counsel. The destruction job runs daily and acts only after an account's deletion has finished (SEC-13).
+- **Account deletion in the dashboard.** Deleting a user who has conversations or an agent row in the Supabase dashboard is now refused, because their counterparts' records are kept (DB-16). Accounts are deleted through the app's purge, which anonymises in place.
+
+**Merged but not on `main` yet** (gated and waiting on the ids decision above): Agent 4's SUP sweep (SUP-10, 11, 13, 14, 16 and 17, plus SUP-04 with its five-page allow-list) and SUP-09. SUP-09 and SUP-12 are already live in the database.
+
+**What was not done, and why.** The full list is in THE_AUDIT_FIXES.md.
+- **SEC-16, a sweep of unreferenced public uploads.** It is destructive and needs a full reference map first.
+- **SEC-18, the member KYC stub.** It needs a product decision.
+- **DOC-22's remaining hard-coded English outside checkout, rent and sign-up.** Roughly one to two days of translation.
+- **Search pagination (OPS-11).** A plan is written; about 1.5 to 2 days.
+- **The native biometric lock and offline catalogue caching (STORE-04).** Deferred rather than built badly.
+- **NEW-A1-02.** Restaurant windows, profiles and rate plans stay editable while live, because a venue must change them.
+- **Threads opened on example listings at the database level.** The example pages no longer offer messaging.
