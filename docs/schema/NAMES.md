@@ -18,7 +18,7 @@ Twelve tables carry an amount of money in a `*_minor` column. Most record one st
 
 | Table | Authoritative for | Written by |
 |---|---|---|
-| `wallet_entries` | **a member's wallet balance, and each pot's balance.** The append-only ledger: integer kobo, `direction` says which way, only `COMPLETED` entries count. A pot's balance is `private.pot_balance_minor(pot)`, summed from these entries. | `pay_booking_from_wallet`, `settle_booking_charge`, `settle_rent_charge_to_lister`, `refund_booking_payment`, `refund_and_cancel_booking`, `hold_wallet_withdrawal`, `transfer_between_wallets`, `move_into_pot`, `move_out_of_pot`, the escrow functions |
+| `wallet_entries` | **a member's wallet balance, and each pot's balance.** The append-only ledger: integer kobo, `direction` says which way, only `COMPLETED` entries count. A pot's balance is `private.pot_balance_minor(pot)`, summed from these entries. | `pay_booking_from_wallet`, `settle_booking_charge`, `settle_rent_charge_to_lister`, `refund_booking_payment`, `refund_and_cancel_booking`, `hold_wallet_withdrawal`, `expire_stale_withdrawal_holds`, `transfer_between_wallets`, `purge_account_rows`, `move_into_pot`, `move_out_of_pot`, the escrow functions |
 | `escrows` | **money held between two people**, with its state machine enforced by a trigger. | the escrow functions only |
 | `wallet_pots` | the pots a member made (name, target). **Its `balance_minor` column is not the balance**; it is being retired, and the balance is read from `wallet_entries` as above. | the app creates pots (`lib/wallet/pot-actions.ts`) |
 | `transactions` | **each payment attempt against a booking**, by card or from the wallet, and whether it succeeded. | the app inserts a card attempt as PENDING (`lib/bookings/checkout.ts`) and marks it FAILED (`lib/bookings/settlement.ts`); `settle_booking_charge` and `pay_booking_from_wallet` record success |
@@ -28,7 +28,7 @@ Twelve tables carry an amount of money in a `*_minor` column. Most record one st
 | `rent_refunds_owed` | what a lister owes back on a refunded rent charge. | `settle_rent_charge_to_lister`, `rent_refund_shortfall` |
 | `escrow_rulings` | an admin's ruling on a disputed escrow. | `escrow_admin_resolve`, `escrow_reverse_ruling` |
 | `escrow_float_snapshots` | **the total held in escrow on a day**, booked as a liability. A report, never a balance. | `escrow_float_snapshot_take` |
-| `platform_revenue` | **commission Vallo collected when an escrow settles.** | `escrow_settle` |
+| `platform_revenue` | **commission Vallo collected when an escrow settles.** | `escrow_settle` books it; `escrow_reverse_ruling` deletes it when a ruling is reversed |
 | `escrow_evidence` | the evidence filed in a dispute (it carries a disputed amount, not a movement). | `escrow_file_evidence_as` |
 
 How a rent payment settles, the way round it actually happens:

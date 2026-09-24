@@ -108,7 +108,7 @@ describe("docs/schema/NAMES.md matches the schema", () => {
       for (const fn of [...(writers ?? "").matchAll(/`([a-z_]+)`/g)].map((m) => m[1] ?? "")) {
         const body = latestBody(fn);
         expect(body, `${fn} is defined in a migration`).not.toBeNull();
-        expect(body, `${fn} writes ${table}`).toMatch(new RegExp(`(insert\\s+into|update)\\s+(public\\.)?${table}\\b`, "i"));
+        expect(body, `${fn} writes ${table}`).toMatch(new RegExp(`(insert\\s+into|update|delete\\s+from)\\s+(public\\.)?${table}\\b`, "i"));
         checked += 1;
       }
     }

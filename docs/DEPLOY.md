@@ -47,7 +47,7 @@ Only the founder can move them. Both moves keep the same URLs, keys and data.
    - Signed in as `ops@`, create the team **Vallo**.
    - Invite a second **Owner**, put the company card on it, and move it to **Pro** BEFORE the transfer. The catalogue canary cron runs every 5 minutes, which Hobby does not allow, so a project transferred into a Hobby team loses its crons.
    - In `boosthubservice-2204's projects`, open the Vallo project, then **Settings → General → Transfer Project**, and choose Vallo.
-   - Environment variables, deployments and cron jobs move with the project. Afterwards, check three things:
+   - Environment variables, deployments and cron jobs move with the project. Afterwards, check four things:
      - `vallospaces.com` still shows *Valid Configuration* under Domains;
      - the GitHub app is installed for the new team, so pushes still deploy;
      - the next cron run appears in the logs;
