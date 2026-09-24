@@ -43,7 +43,8 @@ function decode(text: string): string {
     .replace(/&(#x[0-9a-f]+|#\d+|\w+);/gi, (whole, code: string) => {
       if (code[0] === "#") {
         const n = code[1]?.toLowerCase() === "x" ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10);
-        return Number.isFinite(n) ? String.fromCodePoint(n) : whole;
+        /* fromCodePoint throws above 0x10FFFF: a hostile or broken file keeps its text. */
+        return Number.isInteger(n) && n >= 0 && n <= 0x10ffff ? String.fromCodePoint(n) : whole;
       }
       return ENTITIES[code.toLowerCase()] ?? whole;
     })
@@ -51,11 +52,31 @@ function decode(text: string): string {
     .trim();
 }
 
+/**
+ * The bodies of every `<tag>...</tag>`, found with indexOf in one forward pass
+ * (no backtracking regex over a 20 MB file). `<tag>` and `<tag attr=...>`
+ * open it; a self-closing `<tag/>` has no body.
+ */
 function blocks(xml: string, tag: string): string[] {
   const out: string[] = [];
-  const re = new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, "g");
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(xml))) out.push(m[1]!);
+  const open = `<${tag}`;
+  const close = `</${tag}>`;
+  let at = 0;
+  for (;;) {
+    const start = xml.indexOf(open, at);
+    if (start < 0) break;
+    const next = xml[start + open.length];
+    const end = xml.indexOf(">", start);
+    if (end < 0) break;
+    if ((next !== ">" && next !== " " && next !== "\t" && next !== "\n" && next !== "\r") || xml[end - 1] === "/") {
+      at = end + 1;
+      continue;
+    }
+    const stop = xml.indexOf(close, end + 1);
+    if (stop < 0) break;
+    out.push(xml.slice(end + 1, stop));
+    at = stop + close.length;
+  }
   return out;
 }
 
@@ -101,10 +122,15 @@ function entry(
 
 export function parseUnConsolidated(xml: string): ParseResult {
   if (!/<CONSOLIDATED_LIST[\s>]/.test(xml)) return { ok: false, reason: "not_un_consolidated_list" };
+  /* A file cut off in transit has no closing tag: refused, never loaded short. */
+  if (!/<\/CONSOLIDATED_LIST>\s*$/.test(xml)) return { ok: false, reason: "truncated" };
   const entries: ParsedEntry[] = [];
   for (const person of blocks(xml, "INDIVIDUAL")) {
     const name = ["FIRST_NAME", "SECOND_NAME", "THIRD_NAME", "FOURTH_NAME"].map((t) => first(person, t)).filter(Boolean).join(" ");
-    const aliases = blocks(person, "INDIVIDUAL_ALIAS").map((a) => first(a, "ALIAS_NAME"));
+    /* The UN grades aliases; a "Low" quality one is too loose to screen on. */
+    const aliases = blocks(person, "INDIVIDUAL_ALIAS")
+      .filter((a) => first(a, "QUALITY").toLowerCase() !== "low")
+      .map((a) => first(a, "ALIAS_NAME"));
     const dobs = blocks(person, "INDIVIDUAL_DATE_OF_BIRTH").map((d) => first(d, "DATE") || first(d, "YEAR"));
     const nationalities = blocks(person, "NATIONALITY").flatMap((n) => all(n, "VALUE"));
     const made = entry("individual", first(person, "REFERENCE_NUMBER"), name, aliases, dobs, nationalities, isoDate(first(person, "LISTED_ON")));

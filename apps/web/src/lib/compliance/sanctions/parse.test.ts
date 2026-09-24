@@ -15,7 +15,8 @@ describe("reading the UN Consolidated List (SCUML item 8)", () => {
     expect(first).toMatchObject({
       kind: "individual",
       primaryName: "ZEPHYRIN QUILLAN BRAXTOVÉ",
-      aliases: ["Zeph Braxtove", "The Quill & Ink"],
+      /* "The Quill & Ink" is graded Low by the list, so it is not screened on. */
+      aliases: ["Zeph Braxtove"],
       datesOfBirth: ["1971-07-02"],
       nationalities: ["Testland"],
       listedOn: "2020-03-14",
@@ -28,6 +29,14 @@ describe("reading the UN Consolidated List (SCUML item 8)", () => {
   it("refuses a file that is not the list, rather than loading an empty one", () => {
     expect(parseUnConsolidated("<html></html>")).toEqual({ ok: false, reason: "not_un_consolidated_list" });
     expect(parseUnConsolidated("<CONSOLIDATED_LIST></CONSOLIDATED_LIST>")).toEqual({ ok: false, reason: "no_entries" });
+    const whole = fixture("un-consolidated.fixture.xml");
+    expect(parseUnConsolidated(whole.slice(0, whole.indexOf("</INDIVIDUALS>")))).toEqual({ ok: false, reason: "truncated" });
+  });
+
+  it("keeps a numeric character reference beyond Unicode as text instead of throwing", () => {
+    const xml = "<CONSOLIDATED_LIST><INDIVIDUALS><INDIVIDUAL><FIRST_NAME>ADA &#x110000; OBI</FIRST_NAME><REFERENCE_NUMBER>R1</REFERENCE_NUMBER></INDIVIDUAL></INDIVIDUALS></CONSOLIDATED_LIST>";
+    const result = parseUnConsolidated(xml);
+    expect(result.ok && result.entries[0]!.primaryName).toBe("ADA &#x110000; OBI");
   });
 });
 

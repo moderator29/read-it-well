@@ -16,22 +16,29 @@ import { createMatcher, outcomeOf, type ListedName, type NameMatch } from "./mat
  * WHICH NAMES. A person: the profile's first name and surname and display
  * name, the name on their agent application and the business name, and the
  * account names their banks returned (bank accounts and agent payout
- * accounts). A card payment: the guest (and the name on the booking) and the
- * listing's agent. A wallet entry: the wallet's owner and, on a withdrawal,
- * the name on the receiving account.
+ * accounts). A card payment or its settlement ledger line: the guest (and the
+ * name on the booking) and the listing's agent. A wallet entry: the wallet's
+ * owner and, on a withdrawal, the name on the receiving account. A rent
+ * payment: tenant and lister. A held payment (escrow): payer and payee. A
+ * business transfer: both people.
+ *
+ * A screening whose matches could not be recorded as hits is NOT done: the
+ * queue row stays open and the run counts it failed, so no match is lost.
+ * Every run also renews the rolling 30-day hold of anyone with a confirmed
+ * match (`sanctions_renew_holds`).
  *
  * WITH NO LIST LOADED the outcome is `no_list`, never `clear`: a screening
  * against nothing is not a clean screening.
  */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Admin = { from: (table: string) => any };
+type Admin = { from: (table: string) => any; rpc: (fn: string, args?: Record<string, unknown>) => any };
 
 type QueueRow = {
   id: number;
   subject_kind: "person" | "transaction";
   person_id: string | null;
-  transaction_kind: "card_payment" | "wallet_entry" | null;
+  transaction_kind: "card_payment" | "wallet_entry" | "rent_payment" | "escrow" | "ledger_entry" | "business_transfer" | null;
   transaction_id: string | null;
   trigger: string;
 };
@@ -78,8 +85,26 @@ async function partiesFor(admin: Admin, row: QueueRow): Promise<Party[]> {
   if (row.subject_kind === "person" && row.person_id) {
     return [{ personId: row.person_id, names: await namesForPerson(admin, row.person_id) }];
   }
-  if (row.transaction_kind === "card_payment") {
-    const { data: tx } = await admin.from("transactions").select("booking_id").eq("id", row.transaction_id).maybeSingle();
+  const people = async (...ids: (string | null | undefined)[]): Promise<Party[]> => {
+    const out: Party[] = [];
+    for (const id of [...new Set(ids.filter((x): x is string => typeof x === "string"))]) out.push({ personId: id, names: await namesForPerson(admin, id) });
+    return out;
+  };
+  if (row.transaction_kind === "rent_payment") {
+    const { data } = await admin.from("rent_payments").select("tenant_id, lister_id").eq("id", row.transaction_id).maybeSingle();
+    return data ? people(data.tenant_id, data.lister_id) : [];
+  }
+  if (row.transaction_kind === "escrow") {
+    const { data } = await admin.from("escrows").select("payer_id, payee_id").eq("id", row.transaction_id).maybeSingle();
+    return data ? people(data.payer_id, data.payee_id) : [];
+  }
+  if (row.transaction_kind === "business_transfer") {
+    const { data } = await admin.from("business_transfers").select("from_user_id, to_user_id").eq("id", row.transaction_id).maybeSingle();
+    return data ? people(data.from_user_id, data.to_user_id) : [];
+  }
+  if (row.transaction_kind === "card_payment" || row.transaction_kind === "ledger_entry") {
+    const table = row.transaction_kind === "card_payment" ? "transactions" : "ledger_entries";
+    const { data: tx } = await admin.from(table).select("booking_id").eq("id", row.transaction_id).maybeSingle();
     if (!tx?.booking_id) return [];
     const { data: booking } = await admin.from("bookings").select("guest_id, guest_name, listing_id").eq("id", tx.booking_id).maybeSingle();
     if (!booking) return [];
@@ -138,27 +163,35 @@ export async function currentLists(admin: Admin): Promise<Lists | null> {
   return { unVersion, ngVersion, listed };
 }
 
-export type DrainCounts = { screened: number; clear: number; exact: number; fuzzy: number; noList: number; hits: number; failed: number; listsUnreadable: boolean };
+export type DrainCounts = {
+  screened: number;
+  clear: number;
+  exact: number;
+  fuzzy: number;
+  noList: number;
+  hits: number;
+  failed: number;
+  renewed: number;
+  listsUnreadable: boolean;
+};
 
 export async function drainScreenQueue(admin: Admin, now: Date = new Date(), limit = 200): Promise<DrainCounts> {
-  const counts: DrainCounts = { screened: 0, clear: 0, exact: 0, fuzzy: 0, noList: 0, hits: 0, failed: 0, listsUnreadable: false };
+  const counts: DrainCounts = { screened: 0, clear: 0, exact: 0, fuzzy: 0, noList: 0, hits: 0, failed: 0, renewed: 0, listsUnreadable: false };
+  /* The rolling hold: thirty days from now for everyone still confirmed. */
+  const { data: renewed, error: renewError } = await admin.rpc("sanctions_renew_holds");
+  if (renewError) counts.failed += 1;
+  else counts.renewed = Number(renewed) || 0;
   const lists = await currentLists(admin);
   if (!lists) return { ...counts, listsUnreadable: true };
   const matcher = lists.listed.length > 0 ? createMatcher(lists.listed) : null;
 
-  /* A row taken more than thirty minutes ago by a run that died is taken again. */
-  const stale = new Date(now.getTime() - 30 * 60_000).toISOString();
-  const { data: rows } = await admin
-    .from("sanctions_screen_queue")
-    .select("id, subject_kind, person_id, transaction_kind, transaction_id, trigger")
-    .is("done_at", null)
-    .or(`taken_at.is.null,taken_at.lt.${stale}`)
-    .order("enqueued_at", { ascending: true })
-    .limit(limit);
+  /* Claimed, not read: update ... returning, for update skip locked,
+     transactions first; a row a dead run took is claimable after 30 min. */
+  const { data: rows, error: claimError } = await admin.rpc("sanctions_claim_queue", { p_limit: limit });
+  if (claimError) return { ...counts, failed: counts.failed + 1 };
 
-  for (const row of (rows ?? []) as QueueRow[]) {
+  for (const row of (Array.isArray(rows) ? rows : []) as QueueRow[]) {
     try {
-      await admin.from("sanctions_screen_queue").update({ taken_at: now.toISOString() }).eq("id", row.id);
       const record = screenParties(await partiesFor(admin, row), matcher);
       const { data: screening, error } = await admin
         .from("sanctions_screenings")
@@ -195,10 +228,16 @@ export async function drainScreenQueue(admin: Admin, now: Date = new Date(), lim
           matched_name: m.matchedName,
         }));
       if (hits.length > 0) {
-        const { data: raised } = await admin
+        const { data: raised, error: hitError } = await admin
           .from("sanctions_hits")
           .upsert(hits, { onConflict: "person_id,source,entry_reference,screened_name", ignoreDuplicates: true })
           .select("id");
+        if (hitError) {
+          /* The screening is recorded; its matches are not. The row stays
+             open, so the next run screens it again and raises them. */
+          counts.failed += 1;
+          continue;
+        }
         counts.hits += Array.isArray(raised) ? raised.length : 0;
       }
       await admin.from("sanctions_screen_queue").update({ done_at: now.toISOString() }).eq("id", row.id);

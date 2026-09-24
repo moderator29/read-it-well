@@ -8,7 +8,8 @@
  */
 
 export type SanctionsList = { source: "un" | "ng"; activatedAt: string; entries: number; origin: string };
-export type PendingDecision = { id: string; decision: "clear" | "confirm"; note: string; proposedBy: string; proposedAt: string };
+export type PendingDecision = { id: string; decision: "clear" | "confirm" | "release"; note: string; proposedBy: string; proposedAt: string };
+export type WaitingList = { id: string; source: "un" | "ng"; entries: number; previousEntries: number | null; origin: string; loadedBy: string | null; loadedAt: string };
 export type SanctionsHit = {
   id: string;
   personId: string;
@@ -20,12 +21,26 @@ export type SanctionsHit = {
   matchedName: string;
   createdAt: string;
   trigger: string;
+  status: "open" | "confirmed";
+  /** The listing's own dates of birth and nationalities, to check against. */
+  datesOfBirth: string[];
+  nationalities: string[];
+  /** A confirmed match whose reference left a newer list version (item 9). */
+  delisted: boolean;
   pending: PendingDecision | null;
 };
 export type RecentScreening = { id: string; subject: "person" | "transaction"; trigger: string; outcome: string; at: string };
 
 export type SanctionsDesk =
-  | { state: "ok"; me: string; lists: SanctionsList[]; hits: SanctionsHit[]; recent: RecentScreening[]; waiting: number }
+  | {
+      state: "ok";
+      me: string;
+      lists: SanctionsList[];
+      waitingLists: WaitingList[];
+      hits: SanctionsHit[];
+      recent: RecentScreening[];
+      waiting: number;
+    }
   | { state: "forbidden" }
   | { state: "unreadable" };
 
@@ -53,8 +68,12 @@ export function readSanctionsDesk(data: unknown, error: unknown): SanctionsDesk 
       matchedName: str(raw.matchedName) ? raw.matchedName : "",
       createdAt: str(raw.createdAt) ? raw.createdAt : "",
       trigger: str(raw.trigger) ? raw.trigger : "manual",
+      status: raw.status === "confirmed" ? "confirmed" : "open",
+      datesOfBirth: Array.isArray(raw.datesOfBirth) ? raw.datesOfBirth.filter(str) : [],
+      nationalities: Array.isArray(raw.nationalities) ? raw.nationalities.filter(str) : [],
+      delisted: raw.delisted === true,
       pending:
-        p && str(p.id) && (p.decision === "clear" || p.decision === "confirm") && str(p.proposedBy)
+        p && str(p.id) && (p.decision === "clear" || p.decision === "confirm" || p.decision === "release") && str(p.proposedBy)
           ? { id: p.id, decision: p.decision, note: str(p.note) ? p.note : "", proposedBy: p.proposedBy, proposedAt: str(p.proposedAt) ? p.proposedAt : "" }
           : null,
     });
@@ -65,6 +84,17 @@ export function readSanctionsDesk(data: unknown, error: unknown): SanctionsDesk 
     lists: (d.lists as Record<string, unknown>[])
       .filter((l) => (l.source === "un" || l.source === "ng") && str(l.activatedAt))
       .map((l) => ({ source: l.source as "un" | "ng", activatedAt: l.activatedAt as string, entries: Number(l.entries) || 0, origin: str(l.origin) ? l.origin : "" })),
+    waitingLists: (Array.isArray(d.waitingLists) ? (d.waitingLists as Record<string, unknown>[]) : [])
+      .filter((l) => str(l.id) && (l.source === "un" || l.source === "ng"))
+      .map((l) => ({
+        id: l.id as string,
+        source: l.source as "un" | "ng",
+        entries: Number(l.entries) || 0,
+        previousEntries: typeof l.previousEntries === "number" ? l.previousEntries : null,
+        origin: str(l.origin) ? l.origin : "",
+        loadedBy: str(l.loadedBy) ? l.loadedBy : null,
+        loadedAt: str(l.loadedAt) ? l.loadedAt : "",
+      })),
     hits,
     recent: (d.recent as Record<string, unknown>[])
       .filter((r) => str(r.id) && str(r.at))

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { listsVerdict, screenVerdict } from "./sanctions";
 
-const zero = { screened: 0, clear: 0, exact: 0, fuzzy: 0, noList: 0, hits: 0, failed: 0, listsUnreadable: false };
+const zero = { screened: 0, clear: 0, exact: 0, fuzzy: 0, noList: 0, hits: 0, failed: 0, renewed: 0, listsUnreadable: false };
 
 describe("the sanctions jobs' verdicts (SCUML items 8 and 9)", () => {
   it("is a clean run with no URL configured, and asks for attention when a refresh fails", () => {

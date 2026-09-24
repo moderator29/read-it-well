@@ -45,4 +45,19 @@ describe("matching (SCUML item 8)", () => {
     expect(m[0]!.kind).toBe("exact");
     expect(outcomeOf(m)).toEqual({ outcome: "exact", best: 1 });
   });
+
+  it("folds transliterations: Mohammed Yousef finds Muhammad Yusuf, as a close match", () => {
+    const listed = [{ entryId: "e9", source: "un" as const, reference: "FXi.009", primaryName: "Muhammad Yusuf", names: ["muhammad yusuf"] }];
+    const m = matchNames(["Mohammed Yousef"], listed);
+    expect(m).toHaveLength(1);
+    expect(m[0]!.kind).toBe("fuzzy");
+    expect(m[0]!.score).toBeGreaterThanOrEqual(FUZZY_THRESHOLD);
+  });
+
+  it("never matches one word from our side, and needs two thirds of the listed name", () => {
+    const listed = [{ entryId: "e8", source: "un" as const, reference: "FXi.008", primaryName: "Musa Ibrahim Kabiru Danjuma", names: ["danjuma ibrahim kabiru musa"] }];
+    expect(matchNames(["Danjuma"], listed)).toEqual([]);
+    expect(matchNames(["Musa Ibrahim"], listed)).toEqual([]);
+    expect(matchNames(["Musa Ibrahim Danjuma"], listed)).toHaveLength(1);
+  });
 });

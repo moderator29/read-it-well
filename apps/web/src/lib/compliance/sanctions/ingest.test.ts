@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { ingestList } from "./ingest";
+import { activatesItself, ingestList } from "./ingest";
 import { configuredSources, uploadSource, urlSource } from "./sources";
 
 const UN = readFileSync(join(__dirname, "fixtures", "un-consolidated.fixture.xml"), "utf8");
@@ -19,6 +19,12 @@ function fakeAdmin() {
       select: () => api,
       eq: (k: string, v: unknown) => ((filters[k] = v), api),
       is: () => api,
+      not: () => ((filters.activeOnly = true), api),
+      order: () => api,
+      limit: async () => ({
+        data: versions.filter((v) => v.source === filters.source && v.activated_at !== null).slice(-1),
+        error: null,
+      }),
       insert: (p: unknown) => ((op = "insert"), (payload = p), api),
       update: (p: unknown) => ((op = "update"), (payload = p), api),
       upsert: (p: unknown) => ((op = "upsert"), (payload = p), api),
@@ -40,14 +46,27 @@ function fakeAdmin() {
 }
 
 describe("loading a list version (SCUML items 8 and 9)", () => {
-  it("loads the UN fixture through an upload, activates it, and changes nothing the second time", async () => {
+  it("loads an upload INACTIVE, for a second person to activate (item 19)", async () => {
     const { admin, versions, entries } = fakeAdmin();
-    expect(await ingestList(admin, uploadSource("un", UN), "staff-1")).toEqual({ state: "loaded", versionId: "v1", entries: 3 });
-    expect(versions[0]).toMatchObject({ source: "un", origin: "upload", loaded_by: "staff-1", entry_count: 3 });
-    expect(versions[0]!.activated_at).not.toBeNull();
+    expect(await ingestList(admin, uploadSource("un", UN), "staff-1")).toEqual({ state: "waiting", versionId: "v1", entries: 3, why: "upload" });
+    expect(versions[0]).toMatchObject({ source: "un", origin: "upload", loaded_by: "staff-1", entry_count: 3, activated_at: null });
     expect(entries.map((e) => e.reference)).toEqual(["FXi.001", "FXi.002", "FXe.001"]);
-    expect(await ingestList(admin, uploadSource("un", UN))).toEqual({ state: "same" });
+  });
+
+  it("activates a URL list by itself, and changes nothing the second time", async () => {
+    const { admin, versions } = fakeAdmin();
+    const fetchUn = (async () => new Response(UN, { status: 200 })) as unknown as typeof fetch;
+    expect(await ingestList(admin, urlSource("un", "https://lists.example/un.xml", fetchUn))).toMatchObject({ state: "loaded", entries: 3 });
+    expect(versions[0]!.activated_at).not.toBeNull();
+    expect(await ingestList(admin, urlSource("un", "https://lists.example/un.xml", fetchUn))).toEqual({ state: "same" });
     expect(versions).toHaveLength(1);
+  });
+
+  it("holds back a URL list with under 90% of the entries in force", () => {
+    expect(activatesItself("url", 89, 100)).toBe("shrunk");
+    expect(activatesItself("url", 90, 100)).toBe("yes");
+    expect(activatesItself("url", 3, null)).toBe("yes");
+    expect(activatesItself("upload", 500, 100)).toBe("upload");
   });
 
   it("loads the Nigeria fixture through the URL source, with no live fetch", async () => {

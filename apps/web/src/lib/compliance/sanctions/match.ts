@@ -16,8 +16,17 @@
  *     weighted by length), so a missing middle name or a transliteration
  *     ("Mohammed"/"Muhammad") still scores high while two names that only
  *     share a common surname do not.
- * A single-word name is only ever matched exactly: one shared word is not a
- * person.
+ * TRANSLITERATION. Before scoring (and indexing), each word is FOLDED to a
+ * rough sound: "ph" to f, "ou"/"oo" to u, "kh" to k, "q" to k, doubled
+ * letters to one, then o to u and e to a, so "Mohammed Yousef" and "Muhammad
+ * Yusuf" land on the same letters. Exact still means the unfolded names are
+ * the same words; a match only through folding is fuzzy.
+ *
+ * NEVER ON ONE WORD OR ON PART OF A LISTING. A single-word name from our side
+ * is never matched, exact or not: one word is not a person. And the words we
+ * hold must cover at least two thirds of the LISTED name's words (each
+ * listed word counted when one of ours is close to it), so "Musa Ibrahim"
+ * does not match a four-word listing that merely contains both.
  *
  * A match is a reason for a person to look, never a verdict. See the
  * escalation path in the migration header and docs/COMPLIANCE_RUNBOOK.md.
@@ -29,6 +38,28 @@ const HONORIFICS = new Set([
   "mr", "mrs", "ms", "miss", "dr", "prof", "chief", "alhaji", "alhaja", "hajia", "sheikh", "shaykh",
   "mallam", "malam", "engr", "barr", "rev", "pastor", "sir", "lady", "hon", "mal",
 ]);
+
+/** One word folded to a rough sound, for scoring and indexing only. */
+export function foldWord(word: string): string {
+  return word
+    .replace(/ph/g, "f")
+    .replace(/ou|oo/g, "u")
+    .replace(/kh/g, "k")
+    .replace(/q/g, "k")
+    .replace(/(.)\1+/g, "$1")
+    .replace(/o/g, "u")
+    .replace(/e/g, "a");
+}
+
+/** A normalised name, every word folded (word order kept sorted). */
+export function foldName(normalised: string): string {
+  return normalised
+    .split(" ")
+    .filter(Boolean)
+    .map(foldWord)
+    .sort()
+    .join(" ");
+}
 
 export function normaliseName(raw: string): string {
   const words = raw
@@ -108,13 +139,29 @@ function wordScore(a: string[], b: string[]): number {
   return weight === 0 ? 0 : (weighted / weight) * (0.85 + 0.15 * coverage);
 }
 
-/** 0..1 for two already-normalised names. */
-export function nameScore(a: string, b: string): number {
-  if (!a || !b) return 0;
-  if (a === b) return 1;
+const WORD_CLOSE = 0.88;
+const MIN_COVERAGE = 2 / 3;
+
+/** The share of the LISTED name's words that one of ours is close to. */
+function listedCoverage(ours: string[], listed: string[]): number {
+  let covered = 0;
+  for (const word of listed) if (ours.some((mine) => jaroWinkler(mine, word) >= WORD_CLOSE)) covered += 1;
+  return listed.length === 0 ? 0 : covered / listed.length;
+}
+
+/**
+ * 0..1 for a screened name against a listed one, both already normalised
+ * (`screened` is ours, `listed` is the list's). Scored on folded words.
+ */
+export function nameScore(screened: string, listed: string): number {
+  if (!screened || !listed) return 0;
+  const a = foldName(screened);
+  const b = foldName(listed);
   const aw = a.split(" ");
   const bw = b.split(" ");
   if (aw.length < 2 || bw.length < 2) return 0;
+  if (listedCoverage(aw, bw) < MIN_COVERAGE) return 0;
+  if (a === b) return 1;
   return Math.max(editRatio(a, b), wordScore(aw, bw));
 }
 
@@ -152,7 +199,7 @@ export function createMatcher(listed: readonly ListedName[], threshold = FUZZY_T
   const byPrefix = new Map<string, Set<number>>();
   listed.forEach((entry, index) => {
     for (const name of entry.names) {
-      for (const word of name.split(" ")) {
+      for (const word of foldName(name).split(" ")) {
         const key = word.slice(0, 3);
         if (!key) continue;
         let bucket = byPrefix.get(key);
@@ -166,16 +213,18 @@ export function createMatcher(listed: readonly ListedName[], threshold = FUZZY_T
     const out: NameMatch[] = [];
     const mine = [...new Set(screened.map((s) => s.trim()).filter(Boolean))].map((raw) => ({ raw, norm: normaliseName(raw) }));
     for (const person of mine) {
-      if (!person.norm) continue;
+      /* One word from our side is never a person. */
+      if (!person.norm || person.norm.split(" ").length < 2) continue;
       const candidates = new Set<number>();
-      for (const word of person.norm.split(" ")) for (const i of byPrefix.get(word.slice(0, 3)) ?? []) candidates.add(i);
+      for (const word of foldName(person.norm).split(" ")) for (const i of byPrefix.get(word.slice(0, 3)) ?? []) candidates.add(i);
       for (const index of candidates) {
         const entry = listed[index]!;
         let best: NameMatch | null = null;
         for (const name of entry.names) {
-          const score = person.norm === name ? 1 : nameScore(person.norm, name);
+          const exact = person.norm === name;
+          const score = exact ? 1 : Math.min(nameScore(person.norm, name), 0.999);
           if (score < threshold) continue;
-          const kind = person.norm === name ? "exact" : "fuzzy";
+          const kind = exact ? "exact" : "fuzzy";
           if (!best || score > best.score) {
             best = { entryId: entry.entryId, source: entry.source, reference: entry.reference, kind, score, screenedName: person.raw, matchedName: entry.primaryName };
           }

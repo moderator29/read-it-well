@@ -24,7 +24,9 @@ say nothing more on the phone, in support or by email.
   - submit or change an agent application (lister verification);
   - have an identity check recorded;
   - add a bank account or payout account, or when the bank returns its name;
-  - make any transaction (a card payment, and every wallet ledger entry).
+  - make any transaction: a card payment and its settlement line, every wallet
+    ledger entry, a rent payment, a held payment (escrow) and a business
+    transfer.
 - Triggers queue the screening, and the `sanctions-screen` job runs it every 15
   minutes. Nothing about a payment waits on it.
 - Every screening is recorded, clean ones included, in `sanctions_screenings`,
@@ -42,7 +44,15 @@ say nothing more on the phone, in support or by email.
 3. Set `SANCTIONS_UN_URL` to the UN's published XML address, and the UN list
    refreshes itself daily. Otherwise, upload the XML.
 4. A file identical to the one in force changes nothing. A file that does not
-   read as its list is refused, and nothing changes.
+   read as its list (including one cut off before its closing tag) is refused,
+   and nothing changes.
+5. **An uploaded file loads inactive.** A different staff member must activate
+   it on the desk, and only activation re-screens anyone (item 19). A URL
+   fetch activates itself, unless it has fewer than 90% of the entries in
+   force, in which case it waits for a staff member like an upload. The file
+   limit is 8 MB.
+6. **De-listing.** When a new version no longer carries the reference of a
+   confirmed match, the desk flags it. Consider a release (below).
 
 **When a match appears (the escalation path).**
 
@@ -53,20 +63,25 @@ say nothing more on the phone, in support or by email.
    bank-resolved account name, and the documents.
 3. **Propose.** Choose "Not the same person" or "It is the same person" and
    write what you checked. The note is required.
-4. **A second staff member approves.** The person who proposed cannot approve
-   their own proposal (item 19); the database refuses it.
+4. **A second staff member approves, or rejects.** The person who proposed
+   cannot approve or reject their own proposal (item 19); the database refuses
+   it. A rejected proposal leaves the match open for a new one.
 5. **If it is the same person, the approval freezes the account.** It places
    the audit's own hold, `account_money_holds`,
-   for ten years or until lifted, under the reason code `plain`, which names nothing (the member can read it). No money leaves and no payout account
-   changes.
+   for thirty days under the reason code `plain`, which names nothing (the
+   member can read it). The screening job renews it every run while the match
+   stands, so no far-off end date gives anything away. No money leaves and no
+   payout account changes.
 6. **Report it.**
    - Open the STR from the match ("Open a suspicious transaction report", SCUML
      item 6).
    - The Compliance Officer files with the NFIU through goAML and informs the
      Nigeria Sanctions Committee, both outside Vallo.
    - Record the references in the STR register.
-7. **Lifting a hold** is a decision for the Compliance Officer and the
-   solicitor. It is not made on this desk.
+7. **Releasing a hold** (de-listing, or the solicitor's advice) is two-person
+   too: one proposes "Release the hold" with the reason, a second approves.
+   The match becomes released and, if the person has no other confirmed match,
+   the plain hold ends at once.
 
 **What the job raises on Operations.**
 

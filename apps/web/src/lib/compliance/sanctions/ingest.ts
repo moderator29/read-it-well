@@ -8,11 +8,18 @@ import type { ListSource } from "./sources";
  * LOADING A LIST VERSION. SCUML items 8 and 9.
  *
  * Service role only. A file is identified by its SHA-256: the same file again
- * changes nothing. A new file becomes a new version: written INACTIVE, its
- * entries inserted, then activated in one update, which the database answers
- * by queueing everyone to be screened again (item 9,
- * `sanctions_list_activated`). A file that does not parse as its list is
- * refused and nothing is written.
+ * changes nothing. A new file becomes a new version, written INACTIVE with its
+ * entries. Activation (which the database answers by queueing everyone to be
+ * screened again, item 9) happens here only for a file fetched from its URL
+ * that is not suspiciously short. Otherwise the version waits for a staff
+ * member on the desk (`sanctions_list_activate`, item 19):
+ *   - an UPLOAD always waits, and the person who uploaded it cannot activate
+ *     it;
+ *   - a file with fewer than 90% of the entries of the version in force
+ *     waits, because a truncated or partial list would clear everyone it
+ *     dropped.
+ * A file that does not parse as its list (including one without its closing
+ * tag) is refused and nothing is written.
  */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,11 +27,20 @@ type Admin = { from: (table: string) => any };
 
 export type IngestResult =
   | { state: "loaded"; versionId: string; entries: number }
+  | { state: "waiting"; versionId: string; entries: number; why: "upload" | "shrunk" }
   | { state: "same" }
   | { state: "refused"; reason: string }
   | { state: "failed"; reason: string };
 
 const CHUNK = 500;
+export const SHRINK_FLOOR = 0.9;
+
+/** Does a new version activate by itself? Only from a URL, and only when it is not short. */
+export function activatesItself(origin: "url" | "upload", entries: number, inForce: number | null): "yes" | "upload" | "shrunk" {
+  if (origin === "upload") return "upload";
+  if (inForce !== null && entries < SHRINK_FLOOR * inForce) return "shrunk";
+  return "yes";
+}
 
 export async function ingestList(admin: Admin, source: ListSource, loadedBy: string | null = null): Promise<IngestResult> {
   const text = await source.read();
@@ -70,11 +86,27 @@ export async function ingestList(admin: Admin, source: ListSource, loadedBy: str
     if (error) return { state: "failed", reason: "entries" };
   }
 
+  const { data: inForceRows, error: inForceError } = await admin
+    .from("sanctions_list_versions")
+    .select("entry_count")
+    .eq("source", source.source)
+    .not("activated_at", "is", null)
+    .order("activated_at", { ascending: false })
+    .limit(1);
+  if (inForceError) return { state: "failed", reason: "read" };
+  const inForce = Array.isArray(inForceRows) && inForceRows[0] ? Number(inForceRows[0].entry_count) : null;
+  const entries = parsed.entries.length;
+  const verdict = activatesItself(source.origin, entries, inForce);
+
   const { error: activateError } = await admin
     .from("sanctions_list_versions")
-    .update({ entry_count: parsed.entries.length, activated_at: new Date().toISOString() })
+    .update({
+      entry_count: entries,
+      previous_entries: inForce,
+      ...(verdict === "yes" ? { activated_at: new Date().toISOString() } : {}),
+    })
     .eq("id", versionId)
     .is("activated_at", null);
   if (activateError) return { state: "failed", reason: "activate" };
-  return { state: "loaded", versionId, entries: parsed.entries.length };
+  return verdict === "yes" ? { state: "loaded", versionId, entries } : { state: "waiting", versionId, entries, why: verdict };
 }

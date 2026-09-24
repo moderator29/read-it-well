@@ -17,7 +17,8 @@ import { uploadSource } from "./sources";
 
 export type DeskAnswer = { ok: true; message: string } | { ok: false; error: string };
 
-const MAX_UPLOAD = 40 * 1024 * 1024;
+/* The same figure as next.config's serverActions bodySizeLimit. */
+const MAX_UPLOAD = 8 * 1024 * 1024;
 
 export async function uploadSanctionsList(_prev: DeskAnswer | null, form: FormData): Promise<DeskAnswer> {
   const access = await requireAdmin();
@@ -31,6 +32,7 @@ export async function uploadSanctionsList(_prev: DeskAnswer | null, form: FormDa
   if (!admin) return { ok: false, error: "failed" };
   const result = await ingestList(admin as never, uploadSource(source, await file.text()), access.user.id);
   revalidatePath("/admin/compliance");
+  if (result.state === "waiting") return { ok: true, message: `waiting:${result.entries}` };
   if (result.state === "loaded") return { ok: true, message: `loaded:${result.entries}` };
   if (result.state === "same") return { ok: true, message: "same" };
   return { ok: false, error: "failed" };
@@ -38,10 +40,29 @@ export async function uploadSanctionsList(_prev: DeskAnswer | null, form: FormDa
 
 type Rpc = { rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }> };
 
-export async function proposeSanctionsDecision(input: { hitId: string; decision: "clear" | "confirm"; note: string }): Promise<DeskAnswer> {
+async function staffRpc(fn: string, args: Record<string, unknown>, done: string): Promise<DeskAnswer> {
   const access = await requireAdmin();
   if (access.state !== "admin") return { ok: false, error: "forbidden" };
-  if (input.decision !== "clear" && input.decision !== "confirm") return { ok: false, error: "failed" };
+  const { data, error } = await (access.supabase as unknown as Rpc).rpc(fn, args);
+  revalidatePath("/admin/compliance");
+  const status = !error && data && typeof data === "object" ? (data as { status?: unknown }).status : null;
+  return status === "ok" ? { ok: true, message: done } : { ok: false, error: typeof status === "string" ? status : "failed" };
+}
+
+/** A different staff member activates a waiting list version (items 9 and 19). */
+export async function activateSanctionsList(input: { versionId: string }): Promise<DeskAnswer> {
+  return staffRpc("sanctions_list_activate", { p_version: input.versionId }, "activated");
+}
+
+/** Anyone but the proposer rejects a proposal; the match is open again (item 19). */
+export async function rejectSanctionsDecision(input: { decisionId: string }): Promise<DeskAnswer> {
+  return staffRpc("sanctions_hit_reject", { p_decision: input.decisionId }, "rejected");
+}
+
+export async function proposeSanctionsDecision(input: { hitId: string; decision: "clear" | "confirm" | "release"; note: string }): Promise<DeskAnswer> {
+  const access = await requireAdmin();
+  if (access.state !== "admin") return { ok: false, error: "forbidden" };
+  if (input.decision !== "clear" && input.decision !== "confirm" && input.decision !== "release") return { ok: false, error: "failed" };
   const { data, error } = await (access.supabase as unknown as Rpc).rpc("sanctions_hit_propose", {
     p_hit: input.hitId,
     p_decision: input.decision,

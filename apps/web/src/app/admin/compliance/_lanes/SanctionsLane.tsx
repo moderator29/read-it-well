@@ -1,11 +1,11 @@
 import Link from "next/link";
 import type { Dictionary } from "@vallo/i18n";
 import { requireAdmin } from "@/lib/admin/guard";
-import { readSanctionsDesk, strHref, type SanctionsDesk } from "@/lib/compliance/sanctions/desk";
+import { readSanctionsDesk, strHref, type SanctionsDesk, type SanctionsHit } from "@/lib/compliance/sanctions/desk";
 import { adminUi } from "../../_components/ui";
 import { fill } from "../../_components/copy";
 import type { ComplianceLane, ComplianceLaneProps } from "./lane";
-import { SanctionsDecision, SanctionsUpload } from "./SanctionsControls";
+import { SanctionsActivate, SanctionsDecision, SanctionsUpload } from "./SanctionsControls";
 
 /**
  * THE SANCTIONS LANE. SCUML items 8 and 9.
@@ -38,10 +38,13 @@ async function SanctionsLaneView({ t, locale }: ComplianceLaneProps) {
     return <ui.QueueUnavailable />;
   }
   const sourceName = (s: "un" | "ng") => (s === "un" ? c.sourceUn : c.sourceNg);
+  const openHits = desk.hits.filter((hit) => hit.status === "open");
+  const confirmedHits = desk.hits.filter((hit) => hit.status === "confirmed");
 
   return (
     <div className="nf-admin-stack">
       <p className="nf-body text-content-2">{c.lede}</p>
+      <p className="nf-caption">{c.scope}</p>
 
       <section className="nf-panel nf-panel--card nf-admin-card p-card">
         <h2 className="nf-h4">{c.lists}</h2>
@@ -56,16 +59,32 @@ async function SanctionsLaneView({ t, locale }: ComplianceLaneProps) {
             ))}
           </ul>
         )}
+        {desk.waitingLists.length > 0 && (
+          <div className="mt-group">
+            <h3 className="nf-overline">{c.waitingTitle}</h3>
+            <ul className="mt-inline">
+              {desk.waitingLists.map((list) => (
+                <li key={list.id} className="mt-row" data-testid="sanctions-waiting-list">
+                  <p className="nf-body">{fill(c.waitingRow, { source: sourceName(list.source), count: list.entries, when: ui.when(list.loadedAt) })}</p>
+                  {list.previousEntries !== null && list.entries < 0.9 * list.previousEntries && (
+                    <p className="nf-caption" role="alert">{fill(c.shrunk, { previous: list.previousEntries })}</p>
+                  )}
+                  <SanctionsActivate copy={c} list={list} me={desk.me} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <SanctionsUpload copy={c} />
       </section>
 
       <section>
         <h2 className="nf-h4">{c.hitsTitle}</h2>
-        {desk.hits.length === 0 ? (
+        {openHits.length === 0 ? (
           <ui.QueueEmpty title={c.hitsEmpty} body={c.hitsEmptyBody} everHadRows={desk.recent.length > 0} />
         ) : (
           <ul className="mt-row nf-admin-stack">
-            {desk.hits.map((hit) => (
+            {openHits.map((hit) => (
               <li key={hit.id} className="nf-panel nf-panel--card nf-admin-card p-card" data-testid="sanctions-hit">
                 <p className="nf-body font-semibold text-content">
                   {hit.kind === "exact" ? c.exact : fill(c.fuzzy, { score: hit.score.toFixed(2) })}
@@ -74,6 +93,7 @@ async function SanctionsLaneView({ t, locale }: ComplianceLaneProps) {
                 <p className="nf-body">
                   {fill(c.against, { name: hit.matchedName, reference: `${sourceName(hit.source)} ${hit.reference}` })}
                 </p>
+                <ListingFacts hit={hit} c={c} />
                 <p className="nf-caption mt-inline">
                   {fill(c.why, { trigger: c.trigger[hit.trigger as keyof Dictionary["compliance"]["sanctions"]["trigger"]] ?? hit.trigger })}{" "}
                   · {ui.when(hit.createdAt)}
@@ -89,6 +109,28 @@ async function SanctionsLaneView({ t, locale }: ComplianceLaneProps) {
           </ul>
         )}
       </section>
+
+      {confirmedHits.length > 0 && (
+        <section>
+          <h2 className="nf-h4">{c.confirmedTitle}</h2>
+          <ul className="mt-row nf-admin-stack">
+            {confirmedHits.map((hit) => (
+              <li key={hit.id} className="nf-panel nf-panel--card nf-admin-card p-card" data-testid="sanctions-confirmed">
+                <p className="nf-body">{fill(c.screenedAs, { name: hit.screenedName })}</p>
+                <p className="nf-body">
+                  {fill(c.against, { name: hit.matchedName, reference: `${sourceName(hit.source)} ${hit.reference}` })}
+                </p>
+                {hit.delisted && (
+                  <p className="nf-caption" role="alert">
+                    {c.delisted}
+                  </p>
+                )}
+                <SanctionsDecision copy={c} hit={hit} me={desk.me} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section>
         <h2 className="nf-h4">{c.recentTitle}</h2>
@@ -106,6 +148,17 @@ async function SanctionsLaneView({ t, locale }: ComplianceLaneProps) {
         )}
       </section>
     </div>
+  );
+}
+
+/** What the list itself says about the listed person, to check against what we hold. */
+function ListingFacts({ hit, c }: { hit: SanctionsHit; c: Dictionary["compliance"]["sanctions"] }) {
+  if (hit.datesOfBirth.length === 0 && hit.nationalities.length === 0) return <p className="nf-caption mt-inline">{c.listedNone}</p>;
+  return (
+    <>
+      {hit.datesOfBirth.length > 0 && <p className="nf-caption mt-inline">{fill(c.listedDob, { value: hit.datesOfBirth.join(", ") })}</p>}
+      {hit.nationalities.length > 0 && <p className="nf-caption">{fill(c.listedNationality, { value: hit.nationalities.join(", ") })}</p>}
+    </>
   );
 }
 
