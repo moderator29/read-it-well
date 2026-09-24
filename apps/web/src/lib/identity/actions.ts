@@ -28,6 +28,8 @@ const REFUSED: Record<Extract<VninOutcome, { status: "refused" }>["reason"], str
   expired: "That virtual NIN has expired. Generate a new one and try again.",
   failed: "We could not complete the check just now. Nothing was recorded. Try again in a moment.",
   no_agent: "Only an approved lister can confirm identity here.",
+  other_nin: "Your account is already matched to a different NIN. One NIN confirms one person, so nothing was changed.",
+  unchanged: "Your identity is already matched. This check did not match the name on your application, so nothing was changed.",
 };
 
 const PENDING =

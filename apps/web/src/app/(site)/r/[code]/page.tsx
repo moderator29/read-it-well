@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { publicPlace } from "@/lib/after-gate/public-place";
 import { formatMoney, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { verifyReceiptCode } from "@/lib/receipts/verify";
@@ -19,7 +20,7 @@ export const dynamic = "force-dynamic";
  * open signed out because the people who need it (an employer, an embassy, a
  * tribunal clerk, a new landlord) are not members. What it shows is decided
  * by `public.verify_receipt` and nothing else: the amount, the month, the
- * tenant's first name and last initial, the lister's display name, the period
+ * tenant's first name and last initial, the lister's first name and initial, the period
  * and the area. Never the address, a landmark, a phone number or an email.
  * The same page is served to every visitor; there is no unfurler variant.
  *
@@ -67,7 +68,8 @@ export default async function ReceiptCheckPage({ params }: { params: Promise<{ c
   }).format(new Date(receipt.paidAt));
   const period =
     receipt.rentPeriod === "month" ? copy.periodMonth : receipt.rentPeriod === "quarter" ? copy.periodQuarter : copy.periodYear;
-  const where = [receipt.area, receipt.city].filter(Boolean).join(", ");
+  // Rule 10: through the closed lists, never the lister's spelling.
+  const where = await publicPlace(receipt.area, receipt.city, receipt.stateCode);
 
   return frame(
     <section className="nf-panel nf-panel--card block p-md" data-testid="receipt-genuine">
@@ -78,9 +80,9 @@ export default async function ReceiptCheckPage({ params }: { params: Promise<{ c
       <p className="nf-h3 nf-numeric mt-sm">
         {copy.paidLine.replace("{amount}", formatMoney(receipt.paidMinor, locale)).replace("{month}", month)}
       </p>
-      {receipt.tenant && receipt.lister && (
+      {receipt.tenant && (
         <p className="nf-body mt-xs">
-          {copy.byLine.replace("{tenant}", receipt.tenant).replace("{lister}", receipt.lister)}
+          {copy.byLine.replace("{tenant}", receipt.tenant).replace("{lister}", receipt.lister ?? getDictionary(locale).afterTheGate.moneyMap.theLister)}
         </p>
       )}
       {where && <p className="nf-body mt-2xs">{copy.forLine.replace("{period}", period).replace("{area}", where)}</p>}

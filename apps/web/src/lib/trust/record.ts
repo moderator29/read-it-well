@@ -33,9 +33,14 @@ export type RecordRow = {
   described: number | null;
   describedOf: number | null;
   lets: number | null;
+  /** V-35: confirmed inspections the renter's phone matched at the gate, and of how many. */
+  kept: number | null;
+  keptOf: number | null;
+  /** The lister is stopped. With no date the Record shows nothing at all. */
+  stopped: boolean;
 };
 
-export type RecordLineKey = "stopped" | "replies" | "answered" | "described" | "lets" | "since";
+export type RecordLineKey = "stopped" | "replies" | "answered" | "kept" | "described" | "lets" | "since";
 
 export type RecordLine = { key: RecordLineKey; text: string };
 
@@ -75,6 +80,9 @@ export function recordFrom(row: unknown): RecordRow | null {
     described: int(o.described),
     describedOf: int(o.described_of),
     lets: int(o.lets),
+    kept: int(o.kept),
+    keptOf: int(o.kept_of),
+    stopped: o.stopped === true || str(o.stopped_at) !== null,
   };
 }
 
@@ -102,7 +110,9 @@ export function recordLines(record: RecordRow | null, copy: Copy, locale: Locale
   if (!record) return [];
   const fmt = (n: number) => formatNumber(n, locale);
 
-  /* A stopped lister's Record is the stop and nothing else. */
+  /* A stopped lister's Record is the stop and nothing else, and a stop the
+     database cannot date is nothing at all: no counts, no code. */
+  if (record.stopped && !validIso(record.stoppedAt)) return [];
   if (validIso(record.stoppedAt)) {
     const date = formatDate(new Date(record.stoppedAt), locale, {
       day: "numeric",
@@ -123,6 +133,13 @@ export function recordLines(record: RecordRow | null, copy: Copy, locale: Locale
     out.push({
       key: "answered",
       text: copy.answered.replace("{count}", fmt(answered[0])).replace("{total}", fmt(answered[1])),
+    });
+  }
+  const kept = pair(record.kept, record.keptOf);
+  if (kept) {
+    out.push({
+      key: "kept",
+      text: copy.kept.replace("{count}", fmt(kept[0])).replace("{total}", fmt(kept[1])),
     });
   }
   const described = pair(record.described, record.describedOf);

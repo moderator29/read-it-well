@@ -66,6 +66,10 @@ export type QueueRowData = {
   children?: ReactNode;
   /** Opened on arrival, for the row that was just decided. */
   open?: boolean;
+  /** V-89: a control before the type, the queue desk's select box. */
+  lead?: ReactNode;
+  /** V-89: a line under the title: the clock, the owner and the weight. */
+  extra?: ReactNode;
 };
 
 /* The English default comes OUT OF THE DICTIONARY, not out of a literal here.
@@ -147,6 +151,7 @@ function RowGrid({ row, view: viewWord = DEFAULT_WORDS.view }: { row: QueueRowDa
   return (
     <div className="nf-admin-row__grid">
       <span className="nf-admin-row__type">
+        {row.lead}
         <span className="nf-admin-row__tile" aria-hidden="true">
           <UiIcon name={row.icon} size={20} />
         </span>
@@ -166,6 +171,7 @@ function RowGrid({ row, view: viewWord = DEFAULT_WORDS.view }: { row: QueueRowDa
             <span className="min-w-0 truncate">{row.sub}</span>
           </span>
         )}
+        {row.extra}
       </span>
       <span className="nf-admin-row__detail">
         {row.detail && <span className="block truncate font-semibold text-[var(--nf-content-primary)]">{row.detail}</span>}

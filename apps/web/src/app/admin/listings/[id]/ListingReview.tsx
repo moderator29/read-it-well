@@ -64,6 +64,8 @@ export type ListingReviewProps = {
   };
   /** Said above everything when the listing may be an example (AR-10). */
   exampleNote?: ReactNode;
+  /** V-45: the photograph comparison, drawn under the photographs. */
+  photoProvenance?: ReactNode;
   /** V-28: the compound's words, for the reviewer's view of the five answers. */
   compoundCopy?: Dictionary["shape"]["compound"];
 };
@@ -105,6 +107,7 @@ export function ListingReview(props: ListingReviewProps) {
     actions,
     keepers,
     exampleNote,
+    photoProvenance,
   } = props;
   const type = copy.propertyType[listing.propertyType];
   const summary = [
@@ -136,6 +139,7 @@ export function ListingReview(props: ListingReviewProps) {
       {exampleNote}
 
       <MediaStrip listing={listing} copy={copy} />
+      {photoProvenance}
 
       <div className="nf-rv-grid2">
         <Panel title="Property details" labelledBy="rv-details">

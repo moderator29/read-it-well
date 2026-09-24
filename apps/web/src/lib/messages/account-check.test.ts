@@ -189,7 +189,8 @@ describe("the wiring", () => {
   const root = join(__dirname, "..", "..");
   it("sendMessage schedules the check after the insert and never awaits it", () => {
     const src = readFileSync(join(root, "lib/messages/actions.ts"), "utf8");
-    const send = src.slice(src.indexOf("export async function sendMessage"));
+    /* The insert lives in sendMessageWork, behind the V-40 tap-key guard. */
+    const send = src.slice(src.indexOf("async function sendMessageWork"));
     const body = send.slice(0, send.indexOf("\n}\n"));
     expect(body).toMatch(/after\(\(\) => checkAccountAfterSend\(sent\)\)/);
     expect(body.indexOf("after(")).toBeGreaterThan(body.indexOf(".insert("));

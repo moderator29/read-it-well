@@ -13,6 +13,10 @@ import { DataSaverRow } from "@/components/app/account/DataSaverRow";
 import { useNfSettings } from "@/components/app/account/settings-store";
 import { clearPacks } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
+import { clearOutbox } from "@/lib/offline/outbox";
+import { forgetWidget } from "@/lib/native/widget";
+import { revokeWidgetTokens } from "@/lib/native/widget-actions";
+import { clearAllInflight } from "@/lib/offline/inflight";
 import { signOut, updateSettings } from "@/lib/profile/actions";
 import type { ResolvedProfileSettings } from "@/lib/profile/schema";
 import { RemoteImage } from "@/components/ui/RemoteImage";
@@ -54,6 +58,8 @@ export type SettingsHubProps = {
    * "nothing is needed" is not drawn).
    */
   phoneRow?: { label: string; sub: string } | null;
+  /** V-100: the renter passport row, for a signed-in person. Absent draws nothing. */
+  passportRow?: { label: string; sub: string } | null;
 };
 
 const ALL_ON: ResolvedProfileSettings["notifications"] = {
@@ -157,6 +163,7 @@ export function SettingsHub({
   notifications,
   deviceCount,
   phoneRow = null,
+  passportRow = null,
 }: SettingsHubProps) {
   const hub = t.settings.hub;
   /* The appearance group and its theme row went with light mode on 23
@@ -260,6 +267,15 @@ export function SettingsHub({
             testId="hub-phone"
           />
         )}
+        {passportRow && (
+          <RowLink
+            href="/settings/passport"
+            glyph={<HubGlyph name="user" />}
+            label={passportRow.label}
+            sub={passportRow.sub}
+            testId="hub-passport"
+          />
+        )}
         {/*
           THE APPEARANCE ROW IS GONE, and it was the theme. The founder removed
           light mode from the platform on 23 September 2026, so this hub has
@@ -317,6 +333,8 @@ export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean })
           onClick={() => {
             setError(null);
             startSignOut(async () => {
+              /* V-98: the widget stops reading this account before the session ends. */
+              await revokeWidgetTokens().catch(() => undefined);
               const result = await signOut();
               if (!result.ok) {
                 setError(result.error);
@@ -326,6 +344,9 @@ export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean })
                  nor their shortlist. */
               await clearPacks();
               await clearShelf();
+              await clearOutbox();
+              await forgetWidget();
+              clearAllInflight();
               router.replace("/");
               router.refresh();
             });

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { readCountedReviews } from "../reviews/weight";
+
 import { createAdminClient } from "../supabase/admin";
 
 /**
@@ -558,14 +560,24 @@ async function readRatings(
   agentId: string,
 ): Promise<{ overall: RatingTally; byListing: Map<string, RatingTally> } | null> {
   try {
-    const { data, error } = await supabase
-      .from("reviews")
-      .select("listing_id, rating, listings!inner(agent_id)")
-      .eq("listings.agent_id", agentId)
+    /* V-58: the lister's own average leaves out reviews written from their
+       own shadow, through the counted view, so the two reads are split: this
+       lister's listings first, then their counted reviews. */
+    const { data: owned, error: ownedError } = await supabase
+      .from("listings")
+      .select("id")
+      .eq("agent_id", agentId)
       .limit(MAX_ROWS);
+    if (ownedError) return null;
+    const ids = ((owned ?? []) as { id: string }[]).map((l) => l.id);
+    const { data, error } = ids.length
+      ? await readCountedReviews<{ listing_id: string; rating: number }>((table) =>
+          (supabase as unknown as SupabaseClient).from(table).select("listing_id, rating").in("listing_id", ids).limit(MAX_ROWS),
+        )
+      : { data: [], error: null };
     if (error) return null;
 
-    const rows = (data ?? []) as unknown as { listing_id: string; rating: number }[];
+    const rows = (data ?? []) as { listing_id: string; rating: number }[];
     const overall: RatingTally = { count: 0, total: 0 };
     const byListing = new Map<string, RatingTally>();
 

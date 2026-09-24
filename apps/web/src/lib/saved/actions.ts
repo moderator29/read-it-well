@@ -25,6 +25,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 const toggleInputSchema = z.object({
   listingId: z.string().trim().min(1, "Choose a listing to save.").max(120),
+  want: z.boolean().optional(),
 });
 
 const SAVE_DOWN_MESSAGE =
@@ -40,6 +41,12 @@ const GONE_MESSAGE =
  */
 export async function toggleSave(input: {
   listingId: string;
+  /**
+   * V-40: the state wanted, when known. A replay from the phone's outbox
+   * says "saved" or "not saved" rather than "flip", so replaying it twice
+   * lands in the same place.
+   */
+  want?: boolean;
 }): Promise<ActionResult<SaveOutcome>> {
   const parsed = validate(toggleInputSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
@@ -61,6 +68,12 @@ export async function toggleSave(input: {
     .eq("listing_id", listingId)
     .maybeSingle();
   if (readError) return fail(SAVE_DOWN_MESSAGE);
+
+  /* Already as wanted: nothing to do, and say so. */
+  const want = parsed.data.want;
+  if (typeof want === "boolean" && Boolean(existing) === want) {
+    return ok({ mode: "db", listingId, saved: want });
+  }
 
   if (existing) {
     const { error } = await session.supabase

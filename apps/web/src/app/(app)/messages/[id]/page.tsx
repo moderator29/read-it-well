@@ -19,6 +19,8 @@ import { readAccountMoment } from "@/lib/messages/account-moment-read";
 import { counterpartFactsFrom, personFacts } from "@/lib/messages/person-line";
 import { recordLines } from "@/lib/trust/record";
 import { readThreadRecord } from "@/lib/trust/record-read";
+import { passportLines } from "@/lib/trust/passport";
+import { readPassportShareState, readThreadPassport } from "@/lib/trust/passport-read";
 import { InboxEmpty } from "../Inbox";
 import { readDeskStage } from "@/lib/enquiry/queries";
 import { quickReplies } from "@/lib/enquiry/quick-replies";
@@ -204,6 +206,15 @@ export default async function ConversationPage({
     /* V-34: when the other party is a lister, their Record, counted, under
        the person line. "On Vallo since" is already on the person line, so the
        Record's copy of it is not drawn twice. No row, no line. */
+    /* V-100: the renter passport. The lister sees it here only when the
+       renter chose to show it in THIS thread; the renter gets the switch. A
+       listing thread only, where the guest is the renter. */
+    const passportLine =
+      context.kind === "listing" && role === "host"
+        ? passportLines(await readThreadPassport(id), t.trustVisible.passport, locale).filter((l) => l.key !== "since")
+        : [];
+    const passportShare =
+      context.kind === "listing" && role === "guest" ? await readPassportShareState(id) : null;
     const counterpartRecordLine = recordLines(await readThreadRecord(id), t.trustVisible.record, locale).filter(
       (line) => line.key !== "since",
     );
@@ -296,13 +307,17 @@ export default async function ConversationPage({
         accountMoment={accountMoment}
         personLine={counterpartFactsLine}
         recordLine={counterpartRecordLine}
+        passportLine={passportLine}
+        passportShare={passportShare}
+        passportLabel={t.trustVisible.passport.heading}
         recordLabel={t.trustVisible.record.title}
         showMe={
           showMe ? (
             <ShowMePanel
               conversationId={thread.conversationId}
               role={role}
-              requests={showMe}
+              requests={showMe.requests}
+              canAsk={showMe.canAsk}
               copy={t.shape.showMe}
               locale={locale}
               now={renderedAt()}

@@ -44,4 +44,13 @@ describe("public review lists read the counted view (V-58)", () => {
     expect(repo).toContain("readCountedReviews<");
     expect(queries + repo).not.toContain('"weight_withheld"');
   });
+
+  it("is also what the supplier page, the area page and the lister's own average read", () => {
+    const root = join(__dirname, "..", "..");
+    for (const file of ["lib/social/profile-tabs-queries.ts", "lib/social/reviews-queries.ts", "lib/agent/analytics-queries.ts"]) {
+      const src = readFileSync(join(root, file), "utf8");
+      expect(src, file).toContain("readCountedReviews<");
+      expect(src, file).not.toMatch(/\.from\("reviews"\)/);
+    }
+  });
 });

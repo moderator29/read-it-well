@@ -151,8 +151,36 @@ export async function queueCheckin(checkin: QueuedCheckin): Promise<void> {
 }
 
 export async function readCheckins(): Promise<QueuedCheckin[]> {
-  const values = (await run<unknown[]>(CHECKINS, "readonly", (s) => s.getAll())) ?? [];
-  return values.map(asCheckin).filter((c): c is QueuedCheckin => c !== null);
+  /* One cursor in one readwrite transaction: each record is read and, if it
+     no longer parses (an older shape, a damaged record), deleted where it
+     stands, so a bad row cannot sit in the queue for ever and no key can
+     drift out of step with its value. */
+  const db = await open();
+  if (!db) return [];
+  return new Promise((resolve) => {
+    const out: QueuedCheckin[] = [];
+    const done = () => {
+      db.close();
+      resolve(out);
+    };
+    try {
+      const tx = db.transaction(CHECKINS, "readwrite");
+      const cursorRequest = tx.objectStore(CHECKINS).openCursor();
+      cursorRequest.onsuccess = () => {
+        const cursor = cursorRequest.result;
+        if (!cursor) return;
+        const checkin = asCheckin(cursor.value);
+        if (checkin) out.push(checkin);
+        else cursor.delete();
+        cursor.continue();
+      };
+      tx.oncomplete = done;
+      tx.onerror = done;
+      tx.onabort = done;
+    } catch {
+      done();
+    }
+  });
 }
 
 export async function forgetCheckin(checkin: QueuedCheckin): Promise<void> {

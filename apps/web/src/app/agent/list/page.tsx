@@ -74,6 +74,7 @@ export default async function Page({
       <AgentShell t={t} locale={locale} active="/agent/list" profile={null}>
         <ListingWizard
           copy={t.agentListings}
+          shotsCopy={t.afterTheGate.shots}
           reference={t.listingReference}
           moveInCopy={t.moveIn}
           compoundCopy={t.shape.compound}
@@ -116,6 +117,7 @@ export default async function Page({
     >
       <ListingWizard
         copy={t.agentListings}
+          shotsCopy={t.afterTheGate.shots}
         reference={t.listingReference}
         moveInCopy={t.moveIn}
         compoundCopy={t.shape.compound}

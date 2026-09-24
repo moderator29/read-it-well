@@ -39,6 +39,9 @@ vi.mock("../security/money-limits", () => ({
     seam.allowed ? { allowed: true, degraded: false } : { allowed: false, message: "too many", retryAfterSeconds: 60 },
 }));
 vi.mock("../wallet/ledger", () => ({ getAdminClient: () => ({ rpc: seam.rpc }) }));
+/* V-81: the phone lock. Null lets the door through; a sentence refuses before any money call. */
+const lockSeam = vi.hoisted(() => ({ refusal: null as string | null }));
+vi.mock("../security/money-lock-guard", () => ({ moneyLockRefusalFor: async () => lockSeam.refusal }));
 vi.mock("../wallet/rpc", () => ({
   callMoneyRpc: async (
     _admin: unknown,
@@ -452,5 +455,17 @@ describe("the open-and-fund door stays shut", () => {
       Object.keys(call[1] as Record<string, unknown>),
     );
     expect(everyArgumentName).not.toContain("p_reference");
+  });
+});
+
+describe("the phone lock on held money (V-81)", () => {
+  it("refuses to fund or confirm without a fresh proof, and calls nothing", async () => {
+    lockSeam.refusal = "Confirm it is you first.";
+    const before = seam.rpc.mock.calls.length;
+    const { fundHeldPaymentProposal, confirmHeldPayment } = await import("./actions");
+    expect(await fundHeldPaymentProposal({ id: ESCROW })).toMatchObject({ ok: false, error: "Confirm it is you first." });
+    expect(await confirmHeldPayment({ id: ESCROW })).toMatchObject({ ok: false, error: "Confirm it is you first." });
+    expect(seam.rpc.mock.calls.length).toBe(before);
+    lockSeam.refusal = null;
   });
 });

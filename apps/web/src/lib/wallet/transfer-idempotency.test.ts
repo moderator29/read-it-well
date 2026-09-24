@@ -51,6 +51,7 @@ vi.mock("../security/service-rpc", () => ({
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("../security/money-lock-guard", () => ({ moneyLockRefusalFor: async () => null }));
 vi.mock("next/headers", () => ({ headers: async () => new Map() }));
 vi.mock("../security/money-limits", () => ({ guardMoney: async () => ({ allowed: true }) }));
 vi.mock("../flags", () => ({ isFeatureEnabled: async () => true }));

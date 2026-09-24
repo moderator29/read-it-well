@@ -23,9 +23,9 @@
 -- insert policy: the tenant on the rent charge, the booking that carries it
 -- CONFIRMED (paid), and thirty days since the move-in date.
 --
--- WHAT IS PUBLIC. One number per listing, from five up: how many tenants
--- said NOTHING more was asked at the door ("Moved in for the Vallo price: 9
--- tenants"). The "yes" answers are private: two different tenants of one
+-- WHAT IS PUBLIC. One number per listing, once five tenants have said it:
+-- how many said NOTHING more was asked at the door ("Moved in for the Vallo
+-- price: 9 tenants"). How many answered in all is never published. The "yes" answers are private: two different tenants of one
 -- lister saying yes open a HIGH risk alert for staff, naming no tenant. A
 -- tenancy review from the lister's own shadow (V-58) is stamped and counted
 -- nowhere.
@@ -168,10 +168,11 @@ create trigger tenancy_reviews_alert
 
 /* ------------------------------------------------------ the public count */
 
-/* Per listing only, and only at five or more. No lister id: r_sh4 stopped
-   publishing raw user ids, and this view must not start again. Five, because
-   below it a count of one or two lets a reader who knows who rented the flat
-   work out by elimination what a tenant answered. */
+/* Per listing, N only, and only once N is five or more. The spec's
+   rule: the count of tenants who paid nothing more is the public number, and
+   how many answered in all is never published, so the yes answers stay
+   private even as a difference. No lister id: r_sh4 stopped publishing raw
+   user ids, and this view must not start again. */
 create or replace view public.door_honesty as
   select t.listing_id,
          (count(*) filter (where t.paid_extra = 'no'))::integer as nothing_more
@@ -179,10 +180,14 @@ create or replace view public.door_honesty as
     join public.listings l on l.id = t.listing_id
    where t.weight_withheld_reason is null and not l.is_demo
    group by t.listing_id
+  /* FIVE WHO SAID "NOTHING MORE", not five answers. With five answers and
+     a published N of three, anyone can subtract: two tenants said they paid
+     extra. Only once N is itself five or more does the number stop pointing
+     at the few who said yes. */
   having count(*) filter (where t.paid_extra = 'no') >= 5;
 
 comment on view public.door_honesty is
-  'V-59. Per listing, how many tenants said they paid nothing beyond what they paid on Vallo, shown only at five or more. Only that count: a yes is never public, and no user id is published. A definer view granted to readers, recorded as the same deliberate exception as public.listing_lister: aggregate columns only, and an invoker view would need a policy letting strangers read the rows.';
+  'V-59. Per listing, how many tenants said they paid nothing beyond what they paid on Vallo, published only once at least five of them said so. The total is never published. No user id. A definer view granted to readers, recorded as the same deliberate exception as public.listing_lister: aggregate columns only, and an invoker view would need a policy letting strangers read the rows.';
 
 revoke all on public.door_honesty from public, anon, authenticated;
 grant select on public.door_honesty to anon, authenticated;

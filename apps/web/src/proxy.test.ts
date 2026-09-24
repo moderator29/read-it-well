@@ -274,9 +274,13 @@ const EXPECTED_PUBLIC = new Set([
   "/api/landlord/inbound",
   "/api/paystack/reconcile",
   "/api/paystack/webhook",
+  /* V-98: the home-screen widget, behind its device-bound token. */
+  "/api/plans/next",
   "/api/push/drain",
   "/api/push/sw",
   "/api/support",
+  /* V-96: Meta's WhatsApp webhook, behind the app-secret signature. */
+  "/api/whatsapp/inbound",
   "/api/yellowcard/webhook",
 ]);
 

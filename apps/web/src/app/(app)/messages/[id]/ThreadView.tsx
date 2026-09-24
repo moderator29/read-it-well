@@ -34,6 +34,9 @@ import {
   type LiveMessageRow,
 } from "@/lib/messages/useRealtime";
 import { createClient } from "@/lib/supabase/client";
+import { getDictionary } from "@vallo/i18n";
+import { OUTBOX_SENT_EVENT, type OutboxSentDetail } from "@/lib/offline/outbox";
+import { sendOrKeep } from "@/lib/offline/send-or-keep";
 import {
   ProposeHeldPayment,
   type ThreadAgreement,
@@ -76,7 +79,8 @@ export type ThreadBubble = {
   body: string;
   timeLabel: string;
   imageUrl: string | null;
-  state?: "sending" | "failed";
+  /** `waiting`: tapped with no signal, kept in the outbox, sends by itself (V-40). */
+  state?: "sending" | "failed" | "waiting";
   /**
    * True once the other side has opened it. Carried by the row's `read_at`;
    * only ever drawn on my own bubbles, and only as the second tick.
@@ -192,6 +196,11 @@ export type ThreadViewProps = {
    */
   recordLine?: { key: string; text: string }[];
   recordLabel?: string;
+  /** V-100: the renter's passport, for the lister, when the renter shows it here. */
+  passportLine?: { key: string; text: string }[];
+  /** V-100: the renter's own switch for this thread. Null for anybody else. */
+  passportShare?: { enabled: boolean; shared: boolean } | null;
+  passportLabel?: string;
   /** V-69: the "Show me" panel for a listing thread, when it is open. */
   showMe?: React.ReactNode;
 };
@@ -329,6 +338,9 @@ export function ThreadView({
   personLabel,
   recordLine = [],
   recordLabel,
+  passportLine = [],
+  passportShare = null,
+  passportLabel,
   showMe = null,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
@@ -446,14 +458,39 @@ export function ThreadView({
     setItems((prev) => prev.map((m) => (m.id === tempId ? { ...m, state: "failed" } : m)));
   }, []);
 
+  /* V-40: which outbox entry stands for which waiting bubble. */
+  const waitingKeys = useRef(new Map<string, string>());
+
   const runTextSend = useCallback(
     async (tempId: string, body: string) => {
-      const result = await sendMessage({ conversationId, body });
-      if (result.ok) adoptResult(tempId, result.data.id, lagosTimeLabel(result.data.createdAt));
-      else markFailed(tempId);
+      const done = await sendOrKeep("send_message", { conversationId, body }, (tapKey) =>
+        sendMessage({ conversationId, body, tapKey }),
+      );
+      if (done.state === "kept") {
+        waitingKeys.current.set(done.key, tempId);
+        setItems((prev) => prev.map((m) => (m.id === tempId ? { ...m, state: "waiting" } : m)));
+        return;
+      }
+      if (done.state === "sent" && done.result.ok) {
+        adoptResult(tempId, done.result.data.id, lagosTimeLabel(done.result.data.createdAt));
+      } else markFailed(tempId);
     },
     [conversationId, adoptResult, markFailed],
   );
+
+  /* The outbox sent a waiting message: the bubble takes its real id. */
+  useEffect(() => {
+    const onSent = (event: Event) => {
+      const detail = (event as CustomEvent<OutboxSentDetail>).detail;
+      const tempId = detail ? waitingKeys.current.get(detail.key) : undefined;
+      if (!tempId) return;
+      waitingKeys.current.delete(detail.key);
+      const sent = detail.data as { id: string; createdAt: string };
+      adoptResult(tempId, sent.id, lagosTimeLabel(sent.createdAt));
+    };
+    window.addEventListener(OUTBOX_SENT_EVENT, onSent);
+    return () => window.removeEventListener(OUTBOX_SENT_EVENT, onSent);
+  }, [adoptResult]);
 
   const runImageSend = useCallback(
     async (tempId: string, file: File, previewUrl: string) => {
@@ -755,7 +792,7 @@ export function ThreadView({
           names the flat, so the person gets their own slim line: the avatar
           with their one published mark, their name, and only the dated facts
           Vallo holds about them. Nothing that is null is drawn. */}
-      {live && (propertyFace || personLine.length > 0 || recordLine.length > 0) && (
+      {live && (propertyFace || personLine.length > 0 || recordLine.length > 0 || passportLine.length > 0) && (
         <div className="nf-thread__person flex items-center gap-sm px-gutter py-xs" aria-label={personLabel} data-testid="thread-person">
           {propertyFace && <VerifiedAvatar name={counterpartName} tier={counterpartTier} size="sm" />}
           <div className="min-w-0 flex-1">
@@ -769,6 +806,15 @@ export function ThreadView({
               <p className="nf-caption text-[var(--nf-content-muted)]">
                 {personLine.map((fact) => fact.text).join(" · ")}
               </p>
+            )}
+            {passportLine.length > 0 && (
+              <ul className="mt-3xs grid gap-3xs" aria-label={passportLabel} data-testid="thread-passport">
+                {passportLine.map((line) => (
+                  <li key={line.key} className="nf-caption text-[var(--nf-content-secondary)]">
+                    {line.text}
+                  </li>
+                ))}
+              </ul>
             )}
             {recordLine.length > 0 && (
               <ul className="mt-3xs grid gap-3xs" aria-label={recordLabel} data-testid="thread-record">
@@ -802,6 +848,8 @@ export function ThreadView({
         canShare={live}
         onConfirmInspection={() => void handleConfirmInspection()}
         onClose={closeSheet}
+        passportShare={live ? passportShare : null}
+        unsafeAsLister={context?.kind === "listing" && role === "host"}
       />
 
       {/* ------------------------------------------------- context banner */}
@@ -985,6 +1033,8 @@ export function ThreadView({
                       */}
                       {m.state === "sending" ? (
                         <span>Sending</span>
+                      ) : m.state === "waiting" ? (
+                        <span data-testid="bubble-waiting">{getDictionary(locale).platform.outbox.waitingShort}</span>
                       ) : (
                         <span className="nf-numeric">{m.timeLabel}</span>
                       )}

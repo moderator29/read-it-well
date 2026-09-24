@@ -103,7 +103,7 @@ export default async function PlansPage({
       at,
       title: row.listingTitle ?? copy.inspectionFallback,
       where: row.counterpartName ?? "",
-      href: `/bookings?kind=inspection&changed=${row.id}#ix-${row.id}`,
+      href: `/bookings?kind=inspection&from=property&changed=${row.id}#ix-${row.id}`,
     });
   }
   for (const tenancy of groups?.rent ?? []) {

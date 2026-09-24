@@ -18,13 +18,21 @@
 -- THE TENANT OWNS IT AND CAN REVOKE IT. A revoked code answers exactly as a
 -- code that never existed.
 --
+-- ONLY A HASH IS KEPT. The table stores sha256 of the code and its last two
+-- characters as a hint, never the code: the tenant sees the code once, when
+-- it is made, and making a new one stops the old. A leaked table cannot be
+-- turned into working links. The check is SERVICE ROLE ONLY, called by the
+-- page's server with the caller's hashed address as the rate-limit subject,
+-- so the per-caller limit cannot be dodged by calling the database directly.
+--
 -- WHAT IT RENDERS FROM: the ledger (`transactions` SUCCESSFUL on the charge's
 -- booking), `rent_payments`, the tenancy snapshot's area, and display names.
 -- Nothing the tenant typed.
 
 create table if not exists public.receipt_codes (
   id           uuid primary key default gen_random_uuid(),
-  code         text not null unique check (code ~ '^[0-9ABCDEFGHJKMNPQRSTVWXYZ]{10}$'),
+  code_hash    text not null unique check (code_hash ~ '^[0-9a-f]{64}$'),
+  code_hint    text not null check (code_hint ~ '^[0-9ABCDEFGHJKMNPQRSTVWXYZ]{2}$'),
   subject_kind text not null check (subject_kind in ('rent_payment')),
   subject_id   uuid not null,
   owner_id     uuid not null,
@@ -88,19 +96,18 @@ begin
   if not exists (select 1 from public.transactions t where t.booking_id = rp.booking_id and t.status = 'SUCCESSFUL') then
     return jsonb_build_object('status', 'not_paid');
   end if;
-  select * into existing from public.receipt_codes
-   where subject_kind = 'rent_payment' and subject_id = rp.id and revoked_at is null
-   order by created_at desc limit 1;
-  if existing.id is not null then
-    return jsonb_build_object('status', 'ok', 'code', existing.code, 'id', existing.id);
-  end if;
+  -- A new code stops the old one: only the hash is kept, so the old code
+  -- cannot be shown again, and one live code per receipt is the rule.
+  update public.receipt_codes set revoked_at = now()
+   where subject_kind = 'rent_payment' and subject_id = rp.id and revoked_at is null;
   for attempt in 1..5 loop
     fresh := private.new_receipt_code();
     begin
-      insert into public.receipt_codes (code, subject_kind, subject_id, owner_id)
-      values (fresh, 'rent_payment', rp.id, rp.tenant_id)
+      insert into public.receipt_codes (code_hash, code_hint, subject_kind, subject_id, owner_id)
+      values (encode(sha256(convert_to(fresh, 'UTF8')), 'hex'), right(fresh, 2), 'rent_payment', rp.id, rp.tenant_id)
       returning * into existing;
-      return jsonb_build_object('status', 'ok', 'code', existing.code, 'id', existing.id);
+      -- The one time the code itself is handed out.
+      return jsonb_build_object('status', 'ok', 'code', fresh, 'id', existing.id, 'hint', existing.code_hint);
     exception when unique_violation then
       null;
     end;
@@ -132,9 +139,9 @@ grant execute on function public.revoke_receipt_code(uuid) to authenticated;
 
 /* ------------------------------------------------------------ the check */
 
-/* Anybody may ask; the answer is area-level facts about a genuine receipt,
-   or "not found". `p_subject` is the caller's hashed address, supplied by the
-   page's server; a direct caller who lies about it still meets the global cap. */
+/* Anybody may ask, through the page; the answer is area-level facts about a
+   genuine receipt, or "not found". `p_subject` is the caller's hashed
+   address, supplied by the page's server, the only caller. */
 create or replace function public.verify_receipt(p_code text, p_subject text default null)
 returns jsonb
 language plpgsql
@@ -169,7 +176,8 @@ begin
     return jsonb_build_object('status', 'not_found');
   end if;
 
-  select * into rc from public.receipt_codes where code = normalised and revoked_at is null;
+  select * into rc from public.receipt_codes
+   where code_hash = encode(sha256(convert_to(normalised, 'UTF8')), 'hex') and revoked_at is null;
   if rc.id is null then
     return jsonb_build_object('status', 'not_found');
   end if;
@@ -213,5 +221,5 @@ begin
 end;
 $function$;
 
-revoke all on function public.verify_receipt(text, text) from public;
-grant execute on function public.verify_receipt(text, text) to anon, authenticated;
+revoke all on function public.verify_receipt(text, text) from public, anon, authenticated;
+grant execute on function public.verify_receipt(text, text) to service_role;

@@ -14,6 +14,7 @@ import { ageShort } from "../_review/metrics";
 import { LiveRefresh } from "../_review/LiveRefresh";
 import { HoldDecision } from "./HoldDecision";
 import { ModerationDesk, type ModerationRow } from "./ModerationDesk";
+import { SafetyHolds, safetyHoldRowsFrom } from "./SafetyHolds";
 import "../_review/review.css";
 
 /* V-88: this was the /admin/moderation desk, reports by reason beside what
@@ -91,9 +92,19 @@ export async function HeldLane({
   const categoryLabel = (key: string) =>
     key === "uncategorised" ? "No reason chosen" : ui.columnLabel("reportCategory", key);
 
+  /* V-63: open safety holds, on the lane that answers the reports behind them. */
+  let holds: ReturnType<typeof safetyHoldRowsFrom> | null = null;
+  if (access.state === "admin") {
+    const { data: holdRows, error: holdError } = await (access.supabase as unknown as {
+      rpc(fn: string): Promise<{ data: unknown; error: unknown }>;
+    }).rpc("open_safety_holds");
+    holds = holdError ? null : safetyHoldRowsFrom(holdRows);
+  }
+
   return (
     <>
       <LiveRefresh />
+      <SafetyHolds rows={holds} />
       <ModerationDesk
         tabs={[
           { key: "held", label: "Held by the scan", href: base, on: true },

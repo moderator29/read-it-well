@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { commuteLine, originKey, readBands, withinCommute } from "./commute";
+import { commuteCount, commuteLine, originKey, readBands, withinCommute } from "./commute";
 
 const copy = {
   line: "About {low} to {high} min in the {peak} rush to {anchor}.",
@@ -59,5 +59,24 @@ describe("the commute address", () => {
     expect(toSearchHref(q)).toContain("within=45");
     expect(parseDiscoveryQuery({ within: "45" }).within).toBeUndefined();
     expect(parseDiscoveryQuery({ to: "Bad Slug!" }).to).toBeUndefined();
+  });
+});
+
+describe("the drawer's commute count", () => {
+  it("counts the limit for the shelf's own anchor", () => {
+    const c = commuteCount({ to: "marina", withinOn: true }, "marina");
+    expect(c.countable).toBe(true);
+    expect(c.passes(40)).toBe(true);
+    expect(c.passes(60)).toBe(false);
+  });
+  it("does not count a newly chosen anchor, and says so", () => {
+    const c = commuteCount({ to: "ikeja", withinOn: true }, "marina");
+    expect(c.countable).toBe(false);
+    expect(c.pending).toBe(true);
+    expect(c.passes(undefined)).toBe(true);
+  });
+  it("drops a home with no band when the limit counts", () => {
+    expect(commuteCount({ to: "marina", withinOn: true }, "marina").passes(undefined)).toBe(false);
+    expect(commuteCount({ to: "marina", withinOn: false }, "marina").passes(undefined)).toBe(true);
   });
 });

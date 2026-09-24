@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { demandRecorder } from "@/lib/demand/record";
 import { demandCell } from "@/lib/demand/cell";
 import { readListingFactsFor } from "@/lib/landlord/queries";
+import { readPhotographedCaptions } from "@/lib/listings/photographed";
 import { collapseByProperty, ownerConfirmedLine, requestNow, sinkNotReconfirmed } from "@/lib/landlord/facts";
 import { LandlordCardLine } from "@/components/app/listing/LandlordCardLine";
 import Link from "next/link";
@@ -357,7 +358,8 @@ export default async function SearchPage({
     delete query.to;
     delete query.within;
   }
-  const commutes = anchor ? await readCommutes(anchor.id, ranked) : new Map<string, CommuteBand[]>();
+  /* The results AND the drawer's pool, so the drawer can count "within". */
+  const commutes = anchor ? await readCommutes(anchor.id, [...ranked, ...pool]) : new Map<string, CommuteBand[]>();
   const commuteOf = (l: Listing): CommuteBand[] => {
     /* An example has no real journey to it (review). */
     if (l.isDemo) return [];
@@ -366,6 +368,8 @@ export default async function SearchPage({
   };
   const within = query.within;
   const listings = anchor && within !== undefined ? ranked.filter((l) => withinCommute(commuteOf(l), within)) : ranked;
+  /* V-70: "Photographed: kitchen, prepaid meter" under a card whose lister labelled its photos. */
+  const photographedCaptions = await readPhotographedCaptions(listings.map((l) => l.id), locale);
   const landlordNow = requestNow();
   const intentApplied = !codeHit && ordered !== sorted;
   const intentKinds: ListingKind[] = intentApplied
@@ -408,7 +412,12 @@ export default async function SearchPage({
       */}
       <ShelfBar
         query={query}
-        facts={pool.map(factsOf)}
+        facts={pool.map((l) => {
+          /* V-43: the morning band's upper end to the chosen anchor, for the
+             drawer's live count of "Under 45 minutes". */
+          const band = anchor ? commuteOf(l).find((b) => b.peak === "am") : undefined;
+          return band ? { ...factsOf(l), commuteAmHigh: band.highMin } : factsOf(l);
+        })}
         locale={locale}
         t={t}
         openFilters={raw.filters === "open"}
@@ -586,6 +595,7 @@ export default async function SearchPage({
                     intent={tuning.signedIn ? tuning.interests : undefined}
                     messageAgent
                     commute={anchor ? commuteLine(commuteOf(l), anchor.name, t.shape.commute) : null}
+                    photographed={photographedCaptions.get(l.id) ?? null}
                   />
                   <LandlordCardLine
                     notReconfirmed={notReconfirmed.has(l.id)}

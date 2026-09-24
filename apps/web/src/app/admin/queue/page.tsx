@@ -16,6 +16,22 @@ import { FlagsLane } from "../_lanes/FlagsLane";
 import { HeldLane } from "../_lanes/HeldLane";
 import { QueueFilters, readQueueQuery } from "../_components/QueueFilters";
 import { QueueTable, QueueTabs, shortRef, type QueueRowData } from "../_components/QueueTable";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { formatDate } from "@vallo/i18n";
+import {
+  byDue,
+  claimIsLive,
+  clockFor,
+  gradeFor,
+  probablyNotAPerson,
+  reportWeight,
+  viewHref,
+  type Clock,
+  type QueueKind,
+  type Weight,
+} from "@/lib/admin/queue-desk";
+import { loadDesk } from "@/lib/admin/reads/queue-desk";
+import { bulkAct, deleteView, releaseRow, saveView, takeRow } from "@/lib/admin/queue-desk-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -47,16 +63,39 @@ export const dynamic = "force-dynamic";
  * controls stay on the desks, which is where the audit log expects them.
  *
  * `?tab=` narrows to one kind; `?q=` runs the search each desk already has.
+ *
+ * V-89, THE QUEUE BECOMES A DESK. Rows waiting on a decision now carry the
+ * promise they are under (`lib/trust/standards.ts`) and sort by when it falls
+ * due, not by newest; a report is weighted inside its clock by what its
+ * reporter has shown, and the row says why. Every row has an owner slot
+ * (take it, let it go, free again after 30 idle minutes). Lanes narrow to
+ * late, mine and unowned rows, and "Probably not a person" holds support
+ * tickets from no account that carry a link or a domain pitch, off the
+ * clock. Rows can be decided in bulk through the desks' own actions, one
+ * audit row each under one batch id, and a filter set can be saved and
+ * shared by link.
  */
 
 type TabKey = "all" | "listings" | "applications" | "reports" | "tickets" | "flags" | "held";
 
 /* V-88. ONE NOUN, ONE DESK. Reports, Flags and Held were three desks of their
    own (/admin/reports, /admin/flags, /admin/moderation), the same "somebody
-   told us something bad" on four screens. They are lanes of this queue now:
+   told us something bad" on four screens. They are tabs of this queue now:
    the tab renders the desk's own working view, with every decision control it
    had, and the three old addresses redirect here. */
-const LANES = new Set<TabKey>(["reports", "flags", "held"]);
+const DESK_TABS = new Set<TabKey>(["reports", "flags", "held"]);
+
+/* V-89. The ownership lanes, across every tab. ONE SURFACE with V-88: on
+   Reports and Flags, "All" is the desk's own working view and the other lanes
+   (late, mine, free, not a person) are this table narrowed to that kind, with
+   claims, due order and bulk; the lane chips sit above both, so an operator
+   moves between them without leaving the tab. Held has no rows in this table
+   (a hold is decided on its content, not its clock), so it is the working
+   view only. */
+type Lane = "all" | "late" | "mine" | "free" | "spam";
+const LANES: Lane[] = ["all", "late", "mine", "free", "spam"];
+/* "Probably not a person" only ever holds support tickets, so its chip is
+   offered on All and Support only. */
 
 const TABS: { key: TabKey; label: string; href: string }[] = [
   { key: "all", label: "All", href: "/admin/queue" },
@@ -86,10 +125,18 @@ export default async function AdminQueuePage({
   const query = readQueueQuery(params);
   const tabRaw = Array.isArray(params.tab) ? params.tab[0] : params.tab;
   const tab: TabKey = TABS.some((entry) => entry.key === tabRaw) ? (tabRaw as TabKey) : "all";
+  const laneRaw = Array.isArray(params.lane) ? params.lane[0] : params.lane;
+  const laneWanted: Lane = LANES.includes(laneRaw as Lane) ? (laneRaw as Lane) : "all";
+  const lane: Lane = laneWanted === "spam" && tab !== "all" && tab !== "tickets" ? "all" : laneWanted;
+  const one = (key: string) => {
+    const raw = params[key];
+    return Array.isArray(raw) ? raw[0] : raw;
+  };
+  const desk = t.platform.queueDesk;
   const filter = query.q ? { q: query.q } : {};
   const wants = (key: TabKey) => tab === "all" || tab === key;
 
-  if (LANES.has(tab)) {
+  if (DESK_TABS.has(tab) && (lane === "all" || tab === "held")) {
     const counts = await getQueueCounts();
     const laneCount: Partial<Record<TabKey, number>> =
       counts.state === "ok"
@@ -115,6 +162,17 @@ export default async function AdminQueuePage({
               on: entry.key === tab,
             }))}
           />
+          {tab !== "held" && (
+            <QueueTabs
+              label={desk.lanesLabel}
+              tabs={LANES.filter((key) => key !== "spam" || tab === "all" || tab === "tickets").map((key) => ({
+                key,
+                label: desk.lanes[key],
+                href: viewHref({ tab, q: query.q || undefined, lane: key === "all" ? undefined : key }),
+                on: key === "all",
+              }))}
+            />
+          )}
         </div>
         {tab === "reports" ? (
           <ReportsLane params={params} />
@@ -161,10 +219,17 @@ export default async function AdminQueuePage({
     held: counts.data.moderation,
   };
 
-  const rows: (QueueRowData & { at: string })[] = [];
+  type DeskRow = QueueRowData & { at: string; kind: QueueKind; itemId: string; clock: Clock | null; weight?: Weight; spam?: boolean };
+  const rows: DeskRow[] = [];
+  const now = new Date();
   if (listings?.state === "ok") {
+    const waitingIds = new Set(listings.data.waiting.map((l) => l.id));
     for (const listing of [...listings.data.waiting, ...listings.data.decided]) {
+      const opened = listing.submittedAt ?? listing.createdAt;
       rows.push({
+        kind: "listing",
+        itemId: listing.id,
+        clock: waitingIds.has(listing.id) ? clockFor(opened, gradeFor("listing", {}), now) : null,
         id: `listing:${listing.id}`,
         /* The real code once it exists, the id-derived stand-in until then. */
         reference: listing.reference ?? shortRef("LST", listing.id),
@@ -183,8 +248,14 @@ export default async function AdminQueuePage({
     }
   }
   if (applications?.state === "ok") {
+    const waitingIds = new Set(applications.data.waiting.map((a) => a.id));
     for (const application of [...applications.data.waiting, ...applications.data.decided]) {
       rows.push({
+        kind: "application",
+        itemId: application.id,
+        clock: waitingIds.has(application.id)
+          ? clockFor(application.submittedAt ?? application.createdAt, gradeFor("application", {}), now)
+          : null,
         id: `application:${application.id}`,
         reference: application.reference,
         type: "Agent",
@@ -203,7 +274,11 @@ export default async function AdminQueuePage({
   }
   if (reports?.state === "ok") {
     for (const report of reports.data.rows) {
+      const open = report.status === "open" || report.status === "reviewing";
       rows.push({
+        kind: "report",
+        itemId: report.id,
+        clock: open ? clockFor(report.createdAt, gradeFor("report", { category: report.category }), now) : null,
         id: `report:${report.id}`,
         reference: shortRef("RPT", report.id),
         type: "Report",
@@ -222,7 +297,14 @@ export default async function AdminQueuePage({
   }
   if (tickets?.state === "ok") {
     for (const ticket of tickets.data.rows) {
+      const open = ticket.status === "open" || ticket.status === "pending";
+      const spam = open && probablyNotAPerson(ticket);
       rows.push({
+        kind: "ticket",
+        itemId: ticket.id,
+        spam,
+        /* Off the clock: a squatter's pitch does not share a promise with people. */
+        clock: open && !spam ? clockFor(ticket.createdAt, gradeFor("ticket", { topic: ticket.topic }), now) : null,
         id: `ticket:${ticket.id}`,
         reference: ticket.reference,
         type: "Support",
@@ -242,6 +324,9 @@ export default async function AdminQueuePage({
   if (flags?.state === "ok") {
     for (const flag of flags.data.rows) {
       rows.push({
+        kind: "flag",
+        itemId: flag.id,
+        clock: flag.status === "open" ? clockFor(flag.createdAt, gradeFor("flag", { reason: flag.reason }), now) : null,
         id: `flag:${flag.id}`,
         reference: shortRef("FLG", flag.id),
         type: "Message",
@@ -257,8 +342,106 @@ export default async function AdminQueuePage({
       });
     }
   }
-  rows.sort((a, b) => b.at.localeCompare(a.at));
-  const shown = rows.slice(0, 40);
+  /* V-89: the desk's own reads, then the lanes, then due-first order. */
+  const reads = await loadDesk(
+    rows.map((r) => r.itemId),
+    rows.filter((r) => r.kind === "report").map((r) => r.itemId),
+  );
+  for (const row of rows) {
+    if (row.kind === "report") row.weight = reportWeight(reads.signals.get(row.itemId) ?? null);
+  }
+  const claimOf = (row: DeskRow) => {
+    const claim = reads.claims.get(`${row.kind}:${row.itemId}`);
+    return claim && claimIsLive(claim.touchedAt, now.getTime()) ? claim : null;
+  };
+  const laned = rows.filter((row) => {
+    if (lane === "spam") return row.spam === true;
+    if (row.spam) return false;
+    if (lane === "late") return row.clock?.overdue === true;
+    if (lane === "mine") return claimOf(row)?.claimedBy === reads.me;
+    if (lane === "free") return row.clock !== null && claimOf(row) === null;
+    return true;
+  });
+  const spamCount = rows.filter((row) => row.spam).length;
+  const clocked = laned
+    .filter((r) => r.clock)
+    .map((r) => ({ row: r, clock: r.clock as Clock, weight: r.weight?.score ?? 0, openedAt: r.at }))
+    .sort(byDue)
+    .map((x) => x.row);
+  const unclocked = laned.filter((r) => !r.clock).sort((a, b) => b.at.localeCompare(a.at));
+  const operatorName = (id: string) => reads.operators.find((o) => o.id === id)?.name ?? desk.someone;
+  const keep = { tab: tab === "all" ? "" : tab, q: query.q ?? "", lane: lane === "all" ? "" : lane };
+  const hidden = (
+    <>
+      {keep.tab && <input type="hidden" name="tab" value={keep.tab} />}
+      {keep.q && <input type="hidden" name="q" value={keep.q} />}
+      {keep.lane && <input type="hidden" name="lane" value={keep.lane} />}
+    </>
+  );
+  const clockLabel = (clock: Clock) =>
+    clock.overdue
+      ? desk.late.replace("{hours}", String(Math.abs(clock.hoursLeft)))
+      : clock.hoursLeft < 1
+        ? desk.dueSoon
+        : desk.dueIn.replace("{hours}", String(clock.hoursLeft));
+  const weightLine = (weight: Weight) =>
+    weight.reasons.length === 0
+      ? desk.weightFirst
+      : weight.reasons
+          .map((reason) =>
+            reason.kind === "attended"
+              ? desk.weightAttended.replace("{date}", formatDate(new Date(reason.at), locale, { day: "numeric", month: "short", timeZone: "Africa/Lagos" }))
+              : reason.kind === "phone"
+                ? desk.weightPhone
+                : desk.weightRecord.replace("{upheld}", String(reason.upheld)).replace("{closed}", String(reason.closed)),
+          )
+          .join("; ");
+  const shown = [...clocked, ...unclocked].slice(0, 40).map((row) => {
+    const claim = claimOf(row);
+    const key = `${row.kind}:${row.itemId}`;
+    return {
+      ...row,
+      lead: (
+        /* A 44px target around a 16px box. */
+        <label className="mr-2xs inline-flex size-11 shrink-0 cursor-pointer items-center justify-center">
+          <input
+            type="checkbox"
+            name="item"
+            value={key}
+            form="queue-bulk"
+            aria-label={desk.select.replace("{ref}", row.reference)}
+            className="size-4"
+          />
+        </label>
+      ),
+      extra: (
+        <span className="nf-admin-row__sub flex flex-wrap items-center gap-2xs" data-testid="queue-desk-line">
+          {row.clock ? (
+            <StatusPill tone="warning" size="xs">
+              {clockLabel(row.clock)}
+            </StatusPill>
+          ) : row.spam ? (
+            <StatusPill tone="neutral" size="xs">
+              {desk.offClock}
+            </StatusPill>
+          ) : null}
+          {claim ? (
+            <span>{claim.claimedBy === reads.me ? desk.takenByYou : desk.takenBy.replace("{name}", operatorName(claim.claimedBy))}</span>
+          ) : null}
+          {row.clock && (!claim || claim.claimedBy === reads.me) && (
+            <form action={claim ? releaseRow : takeRow} className="inline">
+              <input type="hidden" name="item" value={key} />
+              {hidden}
+              <button type="submit" className="nf-link-quiet inline-flex min-h-11 items-center px-2xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-link)]">
+                {claim ? desk.release : desk.take}
+              </button>
+            </form>
+          )}
+          {row.weight && <span className="min-w-0 truncate">{weightLine(row.weight)}</span>}
+        </span>
+      ),
+    };
+  });
 
   return (
     <div className="nf-console">
@@ -280,6 +463,87 @@ export default async function AdminQueuePage({
 
       <QueueFilters base={tab === "all" ? "/admin/queue" : `/admin/queue?tab=${tab}`} query={query} common={t.admin.common} dateable={false} />
 
+      {/* V-89: lanes. */}
+      <QueueTabs
+        label={desk.lanesLabel}
+        tabs={LANES.filter((key) => key !== "spam" || tab === "all" || tab === "tickets").map((key) => ({
+          key,
+          label: desk.lanes[key],
+          href: viewHref({ tab: keep.tab || undefined, q: keep.q || undefined, lane: key === "all" ? undefined : key }),
+          ...(key === "spam" ? { count: spamCount } : {}),
+          on: key === lane,
+        }))}
+      />
+      {lane === "spam" && <p className="nf-caption mt-inline">{desk.spamNote}</p>}
+
+      {(() => {
+        const claim = one("claim");
+        const bulk = one("bulk");
+        const view = one("view");
+        const line =
+          claim === "taken" ? desk.claimTaken
+          : claim === "held" ? desk.claimHeld
+          : claim === "released" ? desk.claimReleased
+          : claim === "failed" ? desk.claimFailed
+          : bulk === "none" ? desk.bulkNone
+          : bulk && /^\d+-\d+-\d+$/.test(bulk)
+            ? (() => {
+                const [done, skipped, failed] = bulk.split("-");
+                return desk.bulkDone.replace("{done}", done!).replace("{skipped}", skipped!).replace("{failed}", failed!);
+              })()
+          : view === "saved" ? desk.viewSaved
+          : null;
+        return line ? (
+          <p role="status" className="nf-body-sm mt-inline text-[var(--nf-content-secondary)]">
+            {line}
+          </p>
+        ) : null;
+      })()}
+
+      {/* V-89: decide the selected rows. The boxes on each row belong to this form. */}
+      <form id="queue-bulk" action={bulkAct} className="mt-inline flex flex-wrap items-end gap-xs" aria-label={desk.bulkLabel}>
+        {hidden}
+        <label className="nf-caption flex flex-col gap-3xs">
+          {desk.bulkVerb}
+          <select name="verb" className="nf-admin-select" defaultValue="take">
+            {(Object.keys(desk.verbs) as (keyof typeof desk.verbs)[]).map((verb) => (
+              <option key={verb} value={verb}>
+                {desk.verbs[verb]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="nf-caption flex flex-col gap-3xs">
+          {desk.bulkReason}
+          <select name="reason" className="nf-admin-select" defaultValue="">
+            <option value="">{desk.bulkNoReason}</option>
+            {(Object.keys(desk.sendBackReasons) as (keyof typeof desk.sendBackReasons)[]).map((group) => (
+              <optgroup key={group} label={desk.sendBackGroups[group]}>
+                {Object.keys(desk.sendBackReasons[group]).map((key) => (
+                  <option key={key} value={key}>
+                    {desk.sendBackLabels[key as keyof typeof desk.sendBackLabels]}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </label>
+        <label className="nf-caption flex flex-col gap-3xs">
+          {desk.bulkTo}
+          <select name="to" className="nf-admin-select" defaultValue="">
+            <option value="">{desk.bulkNoOperator}</option>
+            {reads.operators.map((operator) => (
+              <option key={operator.id} value={operator.id}>
+                {operator.name ?? desk.someone}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button type="submit" className="nf-btn nf-btn--glass nf-btn--sm">
+          {desk.bulkApply}
+        </button>
+      </form>
+
       {shown.length === 0 ? (
         <ui.QueueEmpty
           title={query.q ? t.admin.common.noMatchTitle : "Nothing waiting across these queues"}
@@ -291,8 +555,49 @@ export default async function AdminQueuePage({
       )}
 
       <p className="nf-caption mt-inline">
-        Showing {shown.length} of the newest across {tab === "all" ? "five queues" : "this queue"}. Every View opens the desk that decides it.
+        Showing {shown.length} across {tab === "all" ? "five queues" : "this queue"}, what falls due first at the top. Every View opens the desk that decides it.
       </p>
+
+      {/* V-89: saved views, the operator's own and the desk's shared ones. */}
+      <section className="mt-block" aria-label={desk.viewsLabel}>
+        <p className="nf-overline">{desk.viewsLabel}</p>
+        {reads.views.length === 0 ? (
+          <p className="nf-caption mt-3xs">{desk.viewsNone}</p>
+        ) : (
+          <ul className="mt-3xs flex flex-wrap gap-xs">
+            {reads.views.map((view) => (
+              <li key={view.id} className="flex items-center gap-3xs">
+                <Link href={viewHref(view.filters)} className="nf-admin-tab">
+                  {view.name}
+                  {view.shared && <span className="nf-caption"> ({desk.viewSharedTag})</span>}
+                </Link>
+                {view.mine && (
+                  <form action={deleteView}>
+                    <input type="hidden" name="id" value={view.id} />
+                    {hidden}
+                    <button type="submit" className="nf-link-quiet nf-caption text-[var(--nf-content-link)]">
+                      {desk.viewDelete}
+                    </button>
+                  </form>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        <form action={saveView} className="mt-xs flex flex-wrap items-end gap-xs">
+          {hidden}
+          <label className="nf-caption flex flex-col gap-3xs">
+            {desk.viewName}
+            <input name="name" maxLength={60} required className="nf-field" />
+          </label>
+          <label className="nf-caption flex items-center gap-3xs">
+            <input type="checkbox" name="shared" /> {desk.viewShared}
+          </label>
+          <button type="submit" className="nf-btn nf-btn--glass nf-btn--sm">
+            {desk.viewSave}
+          </button>
+        </form>
+      </section>
 
       {/* The queues the table does not fold in, still one tap away. */}
       <ul className="mt-block flex flex-wrap gap-xs">

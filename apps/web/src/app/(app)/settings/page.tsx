@@ -99,6 +99,9 @@ export default async function SettingsPage() {
               ? { label: t.trustVisible.phone.title, sub: t.trustVisible.phone.subtitle }
               : null
           }
+          passportRow={
+            signedIn ? { label: t.trustVisible.passport.title, sub: t.trustVisible.passport.subtitle } : null
+          }
         />
 
         {/* Worker E's block, on the real `listPaymentMethods` and

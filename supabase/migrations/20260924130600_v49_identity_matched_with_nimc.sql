@@ -34,6 +34,10 @@
 -- matches. A selfie match is the next step and needs a camera capture this
 -- product does not have yet.
 --
+-- ONE NIN PER PERSON, AND A PASS IS NOT UNDONE. A subject matched to one NIN
+-- cannot be matched to another ('other_nin'), and a later mismatch by
+-- somebody whose rung already passed leaves the rung passed ('unchanged').
+--
 -- THE SAME CHECK TWICE IS NOT A SECOND ACCOUNT. A subject who already holds a
 -- matched row for this NIN and checks again gets the rung passed again, with
 -- no second matched row (the unique index would refuse one).
@@ -68,6 +72,11 @@ comment on column public.identity_verifications.nin_hmac is
 
 create unique index if not exists identity_verifications_one_account_per_nin
   on public.identity_verifications (nin_hmac) where outcome = 'matched' and nin_hmac is not null;
+/* ONE MATCHED NIN PER PERSON, held by the database as well as the function:
+   two checks for the same person racing with two different NINs cannot both
+   land as matched. */
+create unique index if not exists identity_verifications_one_nin_per_person
+  on public.identity_verifications (subject_id) where outcome = 'matched' and method = 'vnin';
 create index if not exists identity_verifications_subject_idx
   on public.identity_verifications (subject_id, decided_at desc);
 
@@ -110,9 +119,12 @@ as $$
 declare
   agent uuid;
   elsewhere boolean;
+  v_constraint text;
 begin
   select a.id into agent from public.agents a where a.user_id = p_user and not a.is_demo;
   if agent is null then return 'no_agent'; end if;
+  /* One check per person at a time, so the answers below read a settled row. */
+  perform pg_advisory_xact_lock(hashtextextended('record_vnin_check:' || p_user::text, 0));
   if p_nin_hmac !~ '^[0-9a-f]{64}$' or p_provider_ref is null then return 'invalid'; end if;
 
   select exists (
@@ -131,6 +143,28 @@ begin
     return 'nin_elsewhere';
   end if;
 
+  /* ONE NIN PER PERSON. A subject already matched to one NIN cannot be
+     matched to a different one: the attempt is kept for the desk and changes
+     nothing. */
+  if exists (select 1 from public.identity_verifications v
+              where v.subject_id = p_user and v.outcome = 'matched' and v.nin_hmac <> p_nin_hmac) then
+    insert into public.identity_verifications (subject_id, method, outcome, legal_name, nin_hmac, provider_ref, note)
+    values (p_user, 'vnin', 'mismatch', p_legal_name, p_nin_hmac, p_provider_ref,
+            'A different NIN from the one already matched to this account.');
+    return 'other_nin';
+  end if;
+
+  /* A PASSED RUNG IS NOT UNDONE BY A LATER MISMATCH. Somebody already matched
+     who checks again and does not match keeps the rung they earned; the
+     attempt is kept for the desk. */
+  if not p_matched and exists (
+       select 1 from public.agent_verification_checks c
+        where c.agent_id = agent and c.kind = 'identity' and c.status = 'passed') then
+    insert into public.identity_verifications (subject_id, method, outcome, legal_name, nin_hmac, provider_ref, note)
+    values (p_user, 'vnin', 'mismatch', p_legal_name, p_nin_hmac, p_provider_ref, left(p_note, 1000));
+    return 'unchanged';
+  end if;
+
   /* The same subject, the same NIN, matched again: no second matched row
      (the unique index would refuse it), and the rung passes as before. */
   if p_matched and exists (
@@ -138,9 +172,28 @@ begin
         where v.nin_hmac = p_nin_hmac and v.outcome = 'matched' and v.subject_id = p_user) then
     null;
   else
-    insert into public.identity_verifications (subject_id, method, outcome, legal_name, nin_hmac, provider_ref, note)
-    values (p_user, 'vnin', case when p_matched then 'matched' else 'mismatch' end,
-            p_legal_name, p_nin_hmac, p_provider_ref, left(p_note, 1000));
+    begin
+      insert into public.identity_verifications (subject_id, method, outcome, legal_name, nin_hmac, provider_ref, note)
+      values (p_user, 'vnin', case when p_matched then 'matched' else 'mismatch' end,
+              p_legal_name, p_nin_hmac, p_provider_ref, left(p_note, 1000));
+    exception when unique_violation then
+      /* A race the checks above lost: another account matched this NIN (the
+         per-person lock does not cover a second person), or this person
+         matched another NIN a moment ago. Answered as the checks would have. */
+      get stacked diagnostics v_constraint = constraint_name;
+      if v_constraint = 'identity_verifications_one_account_per_nin' then
+        insert into public.identity_verifications (subject_id, method, outcome, legal_name, nin_hmac, provider_ref, note)
+        values (p_user, 'vnin', 'mismatch', p_legal_name, p_nin_hmac, p_provider_ref,
+                'This NIN is already matched to another Vallo account.');
+        perform private.record_verification_check(agent, 'identity', 'pending',
+          'The vNIN check returned a NIN already matched to another Vallo account. Somebody should look at this.', null);
+        return 'nin_elsewhere';
+      end if;
+      insert into public.identity_verifications (subject_id, method, outcome, legal_name, nin_hmac, provider_ref, note)
+      values (p_user, 'vnin', 'mismatch', p_legal_name, p_nin_hmac, p_provider_ref,
+              'A different NIN from the one already matched to this account.');
+      return 'other_nin';
+    end;
   end if;
 
   perform private.record_verification_check(
@@ -219,7 +272,7 @@ begin
      or has_table_privilege('authenticated', 'public.identity_verifications', 'update') then
     bad := bad || ' [a member can write a verification]';
   end if;
-  if has_function_privilege('authenticated', 'public.record_vnin_check(uuid,text,text,text,numeric,boolean,text)', 'execute') then
+  if has_function_privilege('authenticated', 'public.record_vnin_check(uuid,text,text,text,boolean,text)', 'execute') then
     bad := bad || ' [a member can record their own check]';
   end if;
   if exists (select 1 from information_schema.columns

@@ -19,7 +19,7 @@ export type BundleInput = {
   body: string;
   timeLabel: string;
   imageUrl: string | null;
-  state?: "sending" | "failed";
+  state?: "sending" | "failed" | "waiting";
 };
 
 export type Bundle<T extends BundleInput> = {

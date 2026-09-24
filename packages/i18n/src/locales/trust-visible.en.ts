@@ -211,7 +211,7 @@ export const trustVisibleEn = {
     signedOut: "Sign in to review your tenancy.",
     signIn: "Sign in",
     entry: "Tell us how moving in went",
-    /** `{count}` tenants who paid nothing more at the door. */
+    /** `{count}` tenants who paid nothing more at the door: never under five. */
     doorMany: "Moved in for the Vallo price: {count} tenants said nothing more was asked at the door.",
   },
   /** V-21: the agent band on a profile, with no score in it. */
@@ -282,6 +282,73 @@ export const trustVisibleEn = {
     credentialNoName: "Enter the name exactly as the register shows it.",
     credentialNeedsAggregator: "A CAC directorship waits for the identity aggregator.",
     credentialFailed: "The check was not recorded. Try again in a moment.",
+    /** V-45: the review desk's photograph comparison. A resemblance, never a verdict. */
+    photosTitle: "Photographs that look like others on Vallo",
+    /** `{total}` photographs on this listing. */
+    photosNone: "None of these {total} photographs look like one on another lister's listing or on a listing Vallo rejected.",
+    /** `{matched}` of `{total}`. */
+    photosSome:
+      "{matched} of these {total} photographs look like photographs on another lister's listing or on a listing Vallo rejected. Look before you decide: a shared stock photo, a firm's two agents and a relisted flat all match too.",
+    /** `{count}` photographs matched a rejected listing. */
+    photosRejected: "{count} of them look like photographs on a listing Vallo rejected.",
+    /** `{position}` is the photo's number, `{reference}` the other listing's code, `{distance}` bits apart out of 64. */
+    photoLine: "Photo {position} looks like one on {reference}, {distance} of 64 bits apart",
+    photoLineRejected: "Photo {position} looks like one on {reference}, which Vallo rejected, {distance} of 64 bits apart",
+    photoNoReference: "a listing with no code",
+    photosNotCompared: "These photographs have not been compared: hashing needs the server's storage key, which this environment does not have.",
+    photosFailed: "The comparison could not be read just now. Try again before deciding.",
+    /** `{hashed}` of `{photos}` on this listing compared against `{pool}` hashed photographs elsewhere. */
+    photosCoverage: "{hashed} of {photos} photographs compared, against {pool} hashed photographs on other listings.",
+    photosPartial: "Not every photograph here could be compared yet, so no match is not the same as no copy.",
+    /** `{count}` photographs across Vallo still without a hash. */
+    photosWaiting: "{count} photographs across Vallo are not hashed yet.",
+    photosBackfill: "Hash the next 60",
+    photosBackfilling: "Hashing",
+    /** `{count}` photographs hashed by one press. */
+    photosBackfilled: "Hashed {count} more. Reload to compare again.",
+    /** V-60: recalling a stop for fraud. */
+    recallTitle: "Tell the people this account talked to",
+    recallLede: "Everybody who had a conversation or an inspection with this account in the 60 days before the stop is told, by notification and email. The account, the reason written above and whoever reported it are never named.",
+    /** `{reason}` is one of the two reason phrases below. */
+    recallBecause: "The upheld reports say this account was stopped {reason}.",
+    recallNoReport: "No upheld report of paying outside Vallo or a scam stands against this account, so there is nothing to recall. Uphold the report first.",
+    recallCount: "Count who would be told",
+    recallCounting: "Counting",
+    /** `{count}` people. */
+    recallWillTellOne: "This will tell 1 person.",
+    recallWillTell: "This will tell {count} people.",
+    recallNobody: "Nobody talked to this account in the 60 days before the stop, so there is nobody to tell.",
+    recallConfirm: "Tell them",
+    recallSending: "Telling them",
+    /** `{count}` people, `{date}` a date. */
+    recallSent: "Told {count} people on {date}.",
+    recallSentOne: "Told 1 person on {date}.",
+    recallLifted: "This stop has been lifted, so nobody can be told it stands.",
+    recallFailed: "That did not go through. Nothing was sent. Try again in a moment.",
+    recallForbidden: "Only Vallo staff can recall a stop.",
+    /** The words every recipient reads. `{listing}` is the title they talked about, `{reason}` a reason phrase. */
+    recallTitle2: "An account you talked to has been stopped",
+    recallBodyAbout: "An account you talked to about {listing} was stopped by Vallo {reason}. If you paid them anything, tell us now: open the conversation and report it.",
+    recallBodyPlain: "An account you arranged a viewing with, about {listing}, was stopped by Vallo {reason}. If you paid them anything, tell us now.",
+    recallListingFallback: "a place on Vallo",
+    /** `{date}` is when the upheld report behind this stop was resolved. */
+    /** `{ref}` is the report's short reference, `{date}` when it was upheld. */
+    recallReport: "It rests on report {ref}, upheld on {date}.",
+    recallReportChanged: "The report behind this stop has changed since you counted. Nothing was sent. Count again.",
+    recallReasonPay: "for asking people to pay outside Vallo",
+    recallReasonRules: "for breaking Vallo's safety rules",
+    recallAlready: "This stop has already been recalled. Nobody is told twice.",
+    /** V-63: the moderation lane's safety holds. */
+    holdsTitle: "Safety holds",
+    holdsLede: "People whose new inspection requests are paused because somebody pressed \"I feel unsafe\" after writing to them. A hold lapses on its own; clear it once you have looked, or extend it.",
+    holdsEmpty: "Nobody is on a safety hold.",
+    /** `{name}` is the held person, `{date}` when it lapses. */
+    holdsRow: "{name}, paused until {date}",
+    holdsClear: "Clear",
+    holdsExtend: "Extend 72 hours",
+    holdsWorking: "Saving",
+    holdsFailed: "That did not save. Try again.",
+    holdsUnavailable: "The safety holds could not be read just now.",
   },
   /** V-34: the Vallo Record, counted facts, never a score. */
   record: {
@@ -297,6 +364,7 @@ export const trustVisibleEn = {
       threeDays: "Replies usually within 3 days ({count} enquiries, last 90 days)",
     },
     answered: "Enquiries answered within a day: {count} of {total}, last 90 days",
+    kept: "Inspections kept: {count} of {total}, counted from the code at the gate, last 12 months",
     described: "Found as described at inspection: {count} of {total} renters, last 12 months",
     lets: "Let through Vallo: {count} in the last 12 months",
     since: "On Vallo since {month}",
@@ -310,7 +378,91 @@ export const trustVisibleEn = {
     lookupMissingBody: "Check the code with the person who gave it to you. Record codes start VR- and never contain 0, 1, I, L, O or U.",
     lookupLimited: "You have looked up a lot of codes in the last hour. Try again later.",
     lookupFailed: "The Record did not load. Try again.",
-    lookupEmpty: "This lister is new to Vallo, so nothing has been counted yet.",
+    lookupEmpty: "Too few to count yet.",
     search: "Back to search",
+  },
+  /** V-63: "I feel unsafe", one sheet, the actions in order. */
+  unsafe: {
+    opener: "I feel unsafe",
+    openerHint: "Call for help, leave, or tell Vallo.",
+    title: "If you feel unsafe",
+    lede: "Do what you need to, in this order. Vallo never tells the other person who reported them.",
+    call: "Call 112",
+    callHint: "Nigeria's emergency number. If you are in danger, call now.",
+    leave: "Leave and block",
+    leaveHint: "They can no longer message you and Vallo is told.",
+    tell: "Tell Vallo",
+    tellHint: "A person here reads it {clock}.",
+    /**
+     * Added to either hint only when the person filing is the lister in this
+     * thread or on this inspection: a hold pauses the other person's requests
+     * to them, which means nothing to a renter filing about a lister.
+     */
+    pauseHint: "If you have written to them here, their new inspection requests to you are paused for up to three days while a person here looks at it.",
+    working: "One moment",
+    /** `{clock}` is the promised time, e.g. "within 4 hours". */
+    told: "Vallo has it. A person here reads it {clock}. Vallo does not tell them who reported them.",
+    left: "You have left and they are blocked. Vallo has it and a person here reads it {clock}.",
+    failed: "That did not go through. If you are in danger, call 112 now.",
+    notAParty: "This is not a conversation you are part of.",
+    signedOut: "Sign in to tell Vallo. If you are in danger, call 112 now.",
+    close: "Close",
+    /** After filing, when the hold was placed. */
+    heldNote: "Their new inspection requests to you are paused for up to three days while a person here looks at it.",
+  },
+  /** V-63: the report sheet's promise, read from the category's own clock. */
+  report: {
+    /** `{clock}` is the promised time for the chosen category, e.g. "within 4 hours". */
+    filed: "A person here reads every report. For this kind of report that is {clock}. You will not have to chase it, and the person you reported is never told who reported them.",
+    footer: "The person you report is never told who reported them. If you are in danger,",
+    call: "call 112 now",
+  },
+  /** V-100: the renter passport. Opt in, never required, one thread at a time. */
+  passport: {
+    title: "Renter passport",
+    subtitle: "What Vallo recorded about you, shown only where you choose",
+    lede: "Instead of a guarantor letter, you can show a lister what Vallo itself recorded about you. It is off unless you turn it on, it is shown only in the conversations you choose, and you can take it back at any time. No lister may ask you for it.",
+    on: "Passport on",
+    off: "Passport off",
+    turnOn: "Turn it on",
+    turnOff: "Turn it off",
+    offNote: "Turning it off takes it back from every conversation it was shown in.",
+    preview: "What a lister would see",
+    previewEmpty: "Nothing yet. As you confirm your phone, attend inspections and rent through Vallo, it fills itself in.",
+    /** `{count}` conversations. */
+    sharedIn: "Shown in {count} conversations.",
+    sharedInOne: "Shown in 1 conversation.",
+    sharedInNone: "Not shown in any conversation yet. Open a conversation with a lister to show it there.",
+    phone: "Phone confirmed",
+    /** `{date}` is a date. */
+    nimc: "Identity matched with NIMC, {date}",
+    attendedOne: "1 inspection attended, recorded at the gate by both phones",
+    /** `{count}` inspections. */
+    attended: "{count} inspections attended, recorded at the gate by both phones",
+    tenancyOne: "1 tenancy paid through Vallo",
+    /** `{count}` tenancies. */
+    tenancies: "{count} tenancies paid through Vallo",
+    /** `{month}` is a month and year. */
+    since: "On Vallo since {month}",
+    heading: "Renter passport, shared by them",
+    share: "Show my renter passport to this lister",
+    shareHint: "Only what Vallo recorded. You can take it back.",
+    unshare: "Stop showing my renter passport here",
+    shared: "Shown here. You can take it back at any time.",
+    turnOnFirst: "Turn your passport on in Settings first.",
+    failed: "That did not save. Nothing changed. Try again.",
+    signedOut: "Sign in to see your renter passport.",
+    signIn: "Sign in",
+    readFailed: "Your passport did not load. Nothing was changed. Try again in a moment.",
+    working: "Saving",
+  },
+  /**
+   * V-97, the state kit's own screens. Written to `docs/design/VOICE.md`:
+   * second person, one sentence of body, and nothing the code cannot prove.
+   */
+  state: {
+    /** The shared 404. No hotel pun: renters and landlords read this too. */
+    lostTitle: "We could not find that page",
+    lostBody: "The link may be old, or the page may have moved. Search for what you came for, or go back home.",
   },
 };

@@ -4,12 +4,14 @@ import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
 import { createClient } from "@/lib/supabase/client";
+import { useDataSaver } from "@/lib/ui/data-saver";
 import { answerShowMe, requestShowMe } from "@/lib/messages/show-me-actions";
 import {
   SHOW_ME_ITEMS,
   SHOW_ME_MAX_SECONDS,
   clipPath,
   elapsedText,
+  playLabel,
   showMeState,
   type ShowMeItem,
   type ShowMeRequest,
@@ -50,6 +52,7 @@ export function ShowMePanel({
   locale,
   now,
   openOnArrival = false,
+  canAsk = true,
 }: {
   conversationId: string;
   role: "guest" | "host";
@@ -60,9 +63,14 @@ export function ShowMePanel({
   now: string;
   /** Arrived from the listing's "Show me..." link: the choices start open. */
   openOnArrival?: boolean;
+  /** False when the listing is gone: earlier asks stay readable, no new one (review). */
+  canAsk?: boolean;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(openOnArrival && role === "guest");
+  const [open, setOpen] = useState(openOnArrival && role === "guest" && canAsk);
+  /* V-79's data saver: clips wait for a tap. */
+  const saver = useDataSaver();
+  const [played, setPlayed] = useState<string[]>([]);
   const [other, setOther] = useState("");
   const [result, setResult] = useState<ShowMeResult | null>(null);
   const [pending, startTransition] = useTransition();
@@ -115,7 +123,7 @@ export function ShowMePanel({
     <section className="nf-panel nf-panel--card mx-md my-sm block p-md" data-testid="show-me">
       <div className="flex items-center justify-between gap-sm">
         <h2 className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">{copy.title}</h2>
-        {role === "guest" && (
+        {role === "guest" && canAsk && (
           <button
             type="button"
             className="nf-btn nf-btn--secondary nf-btn--sm min-h-11"
@@ -127,9 +135,11 @@ export function ShowMePanel({
           </button>
         )}
       </div>
-      <p className="nf-caption mt-2xs text-[var(--nf-content-muted)]">{role === "guest" ? copy.guestLede : copy.hostLede}</p>
+      <p className="nf-caption mt-2xs text-[var(--nf-content-muted)]">
+        {!canAsk ? copy.readOnly : role === "guest" ? copy.guestLede : copy.hostLede}
+      </p>
 
-      {open && role === "guest" && (
+      {open && role === "guest" && canAsk && (
         <div className="mt-sm flex flex-wrap gap-xs" role="group" aria-label={copy.ask}>
           {SHOW_ME_ITEMS.filter((item) => item !== "other").map((item) => (
             <button
@@ -178,8 +188,29 @@ export function ShowMePanel({
                 {/* Only a clip that can be played gets a "Sent" line (review). */}
                 {state === "answered" && request.answeredAt && request.clipUrl && (
                   <>
-                    {/* A clip the renter asked for; it has no captions to offer. */}
-                    <video className="mt-xs w-full rounded-[var(--nf-radius-md)]" controls preload="none" src={request.clipUrl} />
+                    {/* With the data saver on, nothing loads until a tap, and the
+                        tap says what it costs. A clip the renter asked for; it
+                        has no captions to offer. */}
+                    {saver && !played.includes(request.id) ? (
+                      <button
+                        type="button"
+                        className="nf-btn nf-btn--secondary nf-btn--sm mt-xs min-h-11"
+                        onClick={() => setPlayed((ids) => [...ids, request.id])}
+                        data-testid="show-me-play"
+                      >
+                        {playLabel(request.clipBytes, copy)}
+                      </button>
+                    ) : (
+                      <video
+                        className="mt-xs w-full rounded-[var(--nf-radius-md)]"
+                        controls
+                        /* The tap that loaded it also plays it (review). */
+                        autoPlay={saver}
+                        playsInline
+                        preload={saver ? "auto" : "none"}
+                        src={request.clipUrl}
+                      />
+                    )}
                     <p className="nf-caption mt-2xs text-[var(--nf-content-secondary)]">
                       {(role === "host" ? copy.sentAtHost : copy.sentAt)
                         .replace("{time}", time(request.answeredAt))

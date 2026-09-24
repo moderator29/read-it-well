@@ -110,3 +110,19 @@ export function originKey(stateCode: string | undefined, area: string | undefine
   if (!stateCode || !area || !area.trim()) return null;
   return `${stateCode}|${area.trim().toLowerCase()}`;
 }
+
+/**
+ * The drawer's commute count (V-43). The pool carries bands to the anchor the
+ * shelf was loaded with, so "within" can be counted only for that anchor.
+ *
+ *   countable  the limit is on and the anchor is the shelf's own
+ *   pending    the limit is on for a newly chosen anchor: not countable yet
+ *   passes     one fact, under the limit (always true when not countable)
+ */
+export function commuteCount(draft: { to: string; withinOn: boolean }, shelfTo: string | undefined) {
+  const countable = draft.withinOn && draft.to !== "" && draft.to === (shelfTo ?? "");
+  const pending = draft.withinOn && draft.to !== "" && !countable;
+  const passes = (commuteAmHigh: number | undefined): boolean =>
+    !countable || (commuteAmHigh !== undefined && commuteAmHigh <= RUSH_WITHIN);
+  return { countable, pending, passes };
+}

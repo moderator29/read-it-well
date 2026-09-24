@@ -6,6 +6,8 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { NEVER_ASK, NO_FEES_LINE, RESPONSE_COMMITMENTS } from "@/lib/trust/standards";
 import { REPORT_CATEGORY_COPY, REPORT_CATEGORY_ORDER } from "@/lib/reports/schema";
+import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
+import { e164 } from "@/lib/notify/whatsapp";
 
 export const metadata: Metadata = {
   title: "Safety centre",
@@ -72,6 +74,9 @@ const INSPECTION_STEPS: { title: string; body: string }[] = [
 ];
 
 export default function SafetyCentrePage() {
+  /* V-96: the one WhatsApp number, printed only once it is configured. A
+     number that is not set renders nothing, never a placeholder. */
+  const whatsapp = e164(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER);
   return (
     <>
       <SiteHead
@@ -96,6 +101,11 @@ export default function SafetyCentrePage() {
             account number, and if somebody does, they are not doing platform
             business. Report them and stop replying.
           </p>
+          {whatsapp && (
+            <p className="nf-body-sm mt-row font-semibold text-[var(--nf-content-primary)]" data-testid="safety-whatsapp">
+              {getDictionary(DEFAULT_LOCALE).platform.whatsapp.safetyLine.replace("{number}", whatsapp)}
+            </p>
+          )}
           <div className="mt-group flex flex-wrap gap-row">
             <ButtonLink href="/contact?topic=safety" variant="primary" size="md">
               Report someone

@@ -39,7 +39,7 @@ describe("the tenancy review (V-59)", () => {
     expect(tenancyReviewOpen({ bookingStatus: "PENDING", moveIn: "2026-08-01", today: "2026-10-01" })).toBe(false);
   });
 
-  it("publishes only the count of tenants who paid nothing more, and nothing at zero", () => {
+  it("publishes N only, never how many answered, and nothing at zero", () => {
     const copy = getDictionary("en").trustVisible.tenancy;
     expect(doorHonestyLine(9, copy)).toBe("Moved in for the Vallo price: 9 tenants said nothing more was asked at the door.");
     expect(doorHonestyLine(5, copy)).toContain("5 tenants said");
@@ -47,6 +47,17 @@ describe("the tenancy review (V-59)", () => {
     expect(doorHonestyLine(1, copy)).toBeNull();
     expect(doorHonestyLine(0, copy)).toBeNull();
     expect(doorHonestyLine(null, copy)).toBeNull();
+    expect(copy.doorMany).not.toContain("{total}");
+  });
+
+  it("is published by the database only once five tenants said nothing more was asked", () => {
+    const sql = readFileSync(
+      join(__dirname, "../../../../../supabase/migrations/20260924130900_v59_the_rental_review_asks_about_the_door.sql"),
+      "utf8",
+    );
+    expect(sql).toContain("having count(*) filter (where t.paid_extra = 'no') >= 5;");
+    expect(sql).not.toContain("having count(*) >= 5");
+    expect(sql).not.toMatch(/count\(\*\)::integer as answered/);
   });
 
   it("is reachable from the inspection card and shown on the listing page", () => {

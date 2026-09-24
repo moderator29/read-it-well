@@ -336,7 +336,12 @@ begin
 
   select u.id into v_delegate from auth.users u where lower(u.email) = v_email and u.deleted_at is null;
 
-  if v_delegate is not null and v_delegate <> actor and v_delegate <> r.requester_id then
+  /* Nor the renter's own shadow (V-58's identity keys, V-100's review): a
+     delegate who shares a mailbox, phone, card or bank account with the
+     renter could record "shown" for them and hand their passport an
+     inspection nobody attended. Answered "asked" like every other refusal. */
+  if v_delegate is not null and v_delegate <> actor and v_delegate <> r.requester_id
+     and cardinality(private.shares_identity_with(v_delegate, r.requester_id)) = 0 then
     select 'phone_confirmed' into v_basis
       from auth.users u where u.id = v_delegate and u.phone_confirmed_at is not null;
     if v_basis is null then
@@ -358,8 +363,25 @@ begin
      used to learn who holds an email address. Only an eligible person is
      written down and notified. */
   if v_basis is null then
+    /* Naming somebody else ends the last arrangement either way, so the
+       answer cannot tell an eligible address from an ineligible one by what
+       happens to the old delegate: whoever was named goes, and if they had
+       said yes the code rotates and the renter is told. */
+    if d.inspection_id is not null then
+      delete from public.inspection_delegates where inspection_id = p_inspection;
+      if d.accepted_at is not null then
+        delete from private.inspection_handshake_seeds where inspection_id = p_inspection;
+        perform private.notify(
+          r.requester_id, 'listing'::public.notification_kind,
+          'Your inspection code has changed',
+          'The person showing your inspection has changed. Open the inspection once while you have signal so your gate code matches.',
+          '/inspections'
+        );
+      end if;
+    end if;
     insert into public.audit_log (actor_id, action, entity_type, entity_id, metadata)
-    values (actor, 'inspection.delegate_not_named', 'inspection', p_inspection::text, '{}'::jsonb);
+    values (actor, 'inspection.delegate_not_named', 'inspection', p_inspection::text,
+            jsonb_build_object('previous_cleared', d.inspection_id is not null));
     return jsonb_build_object('status', 'asked');
   end if;
 

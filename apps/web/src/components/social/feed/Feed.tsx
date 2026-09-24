@@ -476,7 +476,7 @@ export function Feed({
           <EmptyPanel
             icon="reviews"
             title={`Nobody has reviewed a stay around ${areaName ?? "here"} yet`}
-            body="A guest can write one once their stay is finished, and it lands here as well as on the flat itself. Until then there is nothing to read, and inventing something would be worse than saying so."
+            body="A guest can write one once their stay is finished, and it lands here and on the flat itself. Until then there is nothing to read, and Vallo will not invent any."
             action={{ href: "/search", label: "See the stays here" }}
           />
         )

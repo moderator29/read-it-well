@@ -5,13 +5,12 @@ import { createClient } from "../supabase/server";
 
 /**
  * "Moved in for the Vallo price" (V-59): how many tenants of this listing said
- * they paid nothing beyond what they paid on Vallo, from `public.door_honesty`,
- * which publishes that count and nothing else, and only from five up. Null
- * when there is none or the read fails: a null draws no line.
+ * they paid nothing beyond what they paid on Vallo, from `public.door_honesty`.
+ * The database publishes that number only once at least five tenants said so
+ * (fewer, beside a count of answers, would point at the few who said yes), and
+ * never publishes how many answered in all. Null when there is none or the
+ * read fails: a null draws no line.
  */
-
-/** Below this the database publishes nothing and the page prints nothing. */
-export const DOOR_MIN_TENANTS = 5;
 export async function readDoorHonesty(listingId: string): Promise<number | null> {
   try {
     const supabase = (await createClient()) as unknown as SupabaseClient;
@@ -22,14 +21,17 @@ export async function readDoorHonesty(listingId: string): Promise<number | null>
       .maybeSingle();
     if (error || !data) return null;
     const n = Number((data as { nothing_more: number }).nothing_more);
-    return Number.isInteger(n) && n >= DOOR_MIN_TENANTS ? n : null;
+    return Number.isInteger(n) && n > 0 ? n : null;
   } catch {
     return null;
   }
 }
 
-/** The sentence, or null below five. */
+/** The database's own floor, held here as well so a stray row cannot print. */
+export const DOOR_HONESTY_FLOOR = 5;
+
+/** The sentence, N only; nothing under the floor or for a failed read. */
 export function doorHonestyLine(count: number | null, copy: { doorMany: string }): string | null {
-  if (count === null || !Number.isInteger(count) || count < DOOR_MIN_TENANTS) return null;
+  if (count === null || !Number.isInteger(count) || count < DOOR_HONESTY_FLOOR) return null;
   return copy.doorMany.replace("{count}", String(count));
 }

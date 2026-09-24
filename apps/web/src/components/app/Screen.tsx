@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
-import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
+import type { BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { panelClass } from "@/components/ui/Panel";
+import { State } from "@/components/ui/State";
 
 /**
  * THE SCREEN LANGUAGE.
@@ -269,35 +270,21 @@ export function EmptyState({
   className?: string;
   "data-testid"?: string;
 }) {
+  /* V-97: the anatomy now lives in the one State kit, and this is a thin
+     wrapper over it while the call sites move. The 80px object, the balanced
+     title and the one-step-down body are the kit's, unchanged; the reasons
+     for each are recorded in `components/ui/State.tsx`. */
   return (
-    <div
-      data-testid={testId}
-      className={`flex flex-col items-center px-lg py-section text-center ${className ?? ""}`}
-    >
-      {/* 80px, and it was 112.
-          An empty state is a sentence with a picture beside it, not a poster.
-          At 112 the object was the tallest thing on the screen and the words
-          explaining what happened sat below the fold on a phone; the owner's
-          note was that the icons across the platform are too big and the
-          containers longer than they need to be, and this is the single
-          largest instance of it. The body drops a step with it, from the lede
-          size to ordinary copy, for the same reason. */}
-      <span className="block h-20 w-20">
-        <BrandIcon name={icon} fill />
-      </span>
-      {/* `text-wrap: balance`, which is the CSS half of the orphan fix.
-          At 390px the shared headline pattern on the wallet, on bookings and on
-          notifications all broke as "...your sign / in", leaving a two-letter
-          orphan under a centred heading with a large gap above it. The copy was
-          rewritten to lead with the verb, which is the better half of the fix;
-          this is what stops the next headline doing it again. `balance` and not
-          `pretty`: these are two or three short lines, which is exactly the
-          shape the balancer is for and well inside its line budget. */}
-      <p className={`mt-block ${TYPE.sectionTitle} [text-wrap:balance]`}>{title}</p>
-      <p className={`mt-inline max-w-[42ch] ${TYPE.body}`}>{body}</p>
-      {action && <div className="mt-block">{action}</div>}
-      {secondary && <div className="mt-group">{secondary}</div>}
-    </div>
+    <State
+      kind="empty"
+      icon={icon}
+      title={title}
+      body={body}
+      action={action}
+      footnote={secondary}
+      {...(className ? { className } : {})}
+      {...(testId ? { "data-testid": testId } : {})}
+    />
   );
 }
 
