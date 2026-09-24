@@ -174,7 +174,8 @@ below.
    opens it. A member could never call `hold_wallet_withdrawal` (it is granted
    to the service role only). Settling, failing, expiring and reversing a
    withdrawal that already exists are not affected. Probe:
-   `supabase/tests/probes/payout-gate.sql`. This closes D-17.
+   `supabase/tests/probes/payout-gate.sql`. D-17 is closed by migration
+   `20260924101149`.
    **Three things must be done together to open bank payouts:** (i) set
    `BANK_PAYOUTS_OPEN` to true, (ii) open the database switch by migration,
    and (iii) fix D-02, so the bank-resolved name is matched to the member.
@@ -629,7 +630,7 @@ document kept with this policy. It opens with these entries:
 | D-14 | No training given or recorded | 14 | Compliance Officer |
 | D-15 | No internal audit arrangement | 13 | Board |
 | D-16 | Account closure strips the payee name and number from a member's withdrawal records | 4.1, 10.4 | Engineering |
-| D-17 | Bank payouts were closed by copy only. Being closed: `withdraw` refuses while `BANK_PAYOUTS_OPEN` is false, and a trigger on `wallet_entries` refuses any new withdrawal debit while `private.platform_switches.bank_payouts` is closed (migration pending apply). Opening payouts also needs D-02 | 4.1 | Engineering |
+| D-17 | Bank payouts were closed by copy only. Closed by migration `20260924101149`: `withdraw` refuses while `BANK_PAYOUTS_OPEN` is false, and a trigger on `wallet_entries` refuses any new withdrawal debit while `private.platform_switches.bank_payouts` is closed. Opening payouts also needs D-02 | 4.1 | Closed |
 
 12.2 **Compliance reviews.** The Compliance Officer reviews compliance against
 this policy at least every six months. They record the gaps found in the

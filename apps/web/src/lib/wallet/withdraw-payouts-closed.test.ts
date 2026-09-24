@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BANK_PAYOUTS_OPEN, PAYOUTS_CLOSED_MESSAGE } from "./bank-payouts";
+import { payoutsClosedRefusal } from "./money-hold";
 
 /**
  * Bank payouts are closed, and `withdraw` enforces it rather than only saying
@@ -98,5 +99,22 @@ describe("withdraw while bank payouts are closed", () => {
   it("says what the person can still do with the money", () => {
     expect(PAYOUTS_CLOSED_MESSAGE).toMatch(/not available yet/);
     expect(PAYOUTS_CLOSED_MESSAGE).toMatch(/spend it on Vallo or send it to another Vallo member/);
+  });
+});
+
+describe("the ledger's own refusal (RM051)", () => {
+  it("is told as the closed-payouts sentence, not as try again", () => {
+    expect(payoutsClosedRefusal({ code: "RM051", message: "Withdrawal to a bank account is not available yet." })).toBe(
+      PAYOUTS_CLOSED_MESSAGE,
+    );
+    expect(payoutsClosedRefusal({ code: "RM050", message: "held" })).toBeNull();
+    expect(payoutsClosedRefusal(null)).toBeNull();
+  });
+
+  it("is read at both withdrawal holds (typed-in and saved account)", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const source = readFileSync(join(process.cwd(), "src/lib/wallet/actions.ts"), "utf8");
+    expect(source.match(/payoutsClosedRefusal\(held\)/g)).toHaveLength(2);
   });
 });

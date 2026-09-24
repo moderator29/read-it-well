@@ -29,7 +29,7 @@
  */
 
 import { bankPayoutsOpen, PAYOUTS_CLOSED_MESSAGE } from "./bank-payouts";
-import { moneyHoldRefusal } from "./money-hold";
+import { moneyHoldRefusal, payoutsClosedRefusal } from "./money-hold";
 import { createHash, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
@@ -667,7 +667,11 @@ async function withdrawWork(
   );
 
   if (held.outcome === "failed") {
-    return fail(moneyHoldRefusal(held) ?? "The withdrawal could not be recorded. Your balance is untouched. Please try again.");
+    return fail(
+      moneyHoldRefusal(held) ??
+        payoutsClosedRefusal(held) ??
+        "The withdrawal could not be recorded. Your balance is untouched. Please try again.",
+    );
   }
 
   if (held.outcome === "ok") {
@@ -933,7 +937,7 @@ async function withdrawToSavedAccount(
 
   if (held.outcome !== "ok") {
     return fail(
-      (held.outcome === "failed" ? moneyHoldRefusal(held) : null) ??
+      (held.outcome === "failed" ? (moneyHoldRefusal(held) ?? payoutsClosedRefusal(held)) : null) ??
         "The withdrawal could not be recorded. Your balance is untouched. Please try again.",
     );
   }
