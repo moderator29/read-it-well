@@ -47,13 +47,21 @@ export type GuideRefusal =
   /** Fewer than five similar real listings in the area. */
   | "too_few";
 
+/** Shares are WHOLE BASIS POINTS: 1000 is 10 per cent. */
 export type FeeNorms = {
   listingCount: number;
   agencyCount: number;
-  agencyPct: number | null;
+  agencyListers: number;
+  agencyBp: number | null;
   legalCount: number;
-  legalPct: number | null;
+  legalListers: number;
+  legalBp: number | null;
+  /** Different listers holding similar homes (type and bedrooms) in the area. */
+  similarListers: number;
 };
+
+/** The fewest different listers a figure on this panel may come from. */
+export const MINIMUM_LISTERS = 3;
 
 export type Guide =
   | { kind: "unreachable" }
@@ -80,7 +88,11 @@ export function guideRefusalFor(subject: GuideSubject): GuideRefusal | null {
  * which is never shown as "not enough listings": that would be a claim about
  * our data made because a query threw.
  */
-export function guideFromRows(subject: GuideSubject, rows: readonly AreaAskingRow[] | null): Guide {
+export function guideFromRows(
+  subject: GuideSubject,
+  rows: readonly AreaAskingRow[] | null,
+  similarListers: number | null = null,
+): Guide {
   const refusal = guideRefusalFor(subject);
   if (refusal) return { kind: "refused", code: refusal, count: 0 };
   if (rows === null) return { kind: "unreachable" };
@@ -90,6 +102,11 @@ export function guideFromRows(subject: GuideSubject, rows: readonly AreaAskingRo
   );
   if (!row || row.listingCount < MINIMUM_COMPARABLES || !(row.p25Minor > 0) || !(row.p75Minor >= row.p25Minor)) {
     return { kind: "refused", code: "too_few", count: row?.listingCount ?? 0 };
+  }
+  /* A range from fewer than three listers is one agency's pricing, not the
+     area's. Unknown (a failed read) refuses too, towards printing less. */
+  if (similarListers === null || similarListers < MINIMUM_LISTERS) {
+    return { kind: "refused", code: "too_few", count: row.listingCount };
   }
   return {
     kind: "asking",
@@ -135,19 +152,26 @@ export function guideLines(
   }
   const range = fill(subject.intent === "sale" ? copy.rangeSale : copy.rangeRent, {
     similar: similarNoun(subject, copy),
-    area: (subject.area ?? "").trim(),
     low: formatMoney(guide.lowMinor, locale),
     high: formatMoney(guide.highMinor, locale),
   });
   return { headline: range, basis: fill(copy.basis, { count: guide.count }) };
 }
 
-/** "Agency fees here are usually 10% of the yearly rent (12 listings)", or null. */
+/** Basis points as a percentage in words, by integer arithmetic: 1250 is "12.5". */
+export function bpText(bp: number): string {
+  const whole = Math.trunc(bp / 100);
+  const rest = Math.abs(bp % 100);
+  if (rest === 0) return String(whole);
+  return rest % 10 === 0 ? `${whole}.${rest / 10}` : `${whole}.${String(rest).padStart(2, "0")}`;
+}
+
+/** "Agency fees in this area are usually 10% of the yearly rent (12 listings)", or null. */
 export function feeNormLine(kind: "agency" | "legal", norms: FeeNorms | null, copy: Copy): string | null {
   if (!norms) return null;
-  const pct = kind === "agency" ? norms.agencyPct : norms.legalPct;
+  const bp = kind === "agency" ? norms.agencyBp : norms.legalBp;
   const count = kind === "agency" ? norms.agencyCount : norms.legalCount;
-  if (pct === null || count < MINIMUM_COMPARABLES) return null;
-  const shown = Number.isInteger(pct) ? String(pct) : pct.toFixed(1);
-  return fill(kind === "agency" ? copy.agencyNorm : copy.legalNorm, { pct: shown, count });
+  const listers = kind === "agency" ? norms.agencyListers : norms.legalListers;
+  if (bp === null || count < MINIMUM_COMPARABLES || listers < MINIMUM_LISTERS) return null;
+  return fill(kind === "agency" ? copy.agencyNorm : copy.legalNorm, { pct: bpText(bp), count });
 }

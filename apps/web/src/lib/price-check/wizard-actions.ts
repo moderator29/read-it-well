@@ -39,29 +39,34 @@ const schema = z.object({
 
 type NormsRpc = (
   fn: "area_fee_norms",
-  args: { p_state_code: string; p_city: string | null; p_area: string },
+  args: { p_state_code: string; p_city: string | null; p_area: string; p_property_type: string; p_bedrooms: number | null },
 ) => PromiseLike<{ data: unknown; error: unknown }>;
 
 type SignedIn = Extract<Awaited<ReturnType<typeof resolveSession>>, { state: "signed-in" }>;
 
 async function readFeeNorms(subject: GuideSubject, session: SignedIn): Promise<FeeNorms | null> {
-  if (subject.intent !== "rent" || !subject.area) return null;
+  if (!subject.area) return null;
   try {
     const rpc = session.supabase.rpc.bind(session.supabase) as unknown as NormsRpc;
     const { data, error } = await rpc("area_fee_norms", {
       p_state_code: subject.stateCode,
       p_city: subject.city,
       p_area: subject.area,
+      p_property_type: subject.propertyType,
+      p_bedrooms: subject.bedrooms,
     });
     if (error || !Array.isArray(data) || data.length === 0) return null;
     const row = data[0] as Record<string, unknown>;
-    const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
+    const int = (v: unknown) => (v === null || v === undefined ? null : Math.trunc(Number(v)));
     return {
-      listingCount: num(row.listing_count) ?? 0,
-      agencyCount: num(row.agency_count) ?? 0,
-      agencyPct: num(row.agency_pct),
-      legalCount: num(row.legal_count) ?? 0,
-      legalPct: num(row.legal_pct),
+      listingCount: int(row.listing_count) ?? 0,
+      agencyCount: int(row.agency_count) ?? 0,
+      agencyListers: int(row.agency_listers) ?? 0,
+      agencyBp: int(row.agency_bp),
+      legalCount: int(row.legal_count) ?? 0,
+      legalListers: int(row.legal_listers) ?? 0,
+      legalBp: int(row.legal_bp),
+      similarListers: int(row.similar_listers) ?? 0,
     };
   } catch {
     return null;
@@ -87,7 +92,9 @@ export async function wizardPriceGuide(input: unknown): Promise<ActionResult<{ g
         areaAsking(subject.stateCode, subject.city, subject.area, subject.intent, subject.propertyType, subject.bedrooms),
         readFeeNorms(subject, session),
       ]);
-  const guide = guideFromRows(subject, rows);
+  /* The fee norms read also counts the listers behind similar homes, which the
+     range needs; for a sale there are no rent fees but the count still holds. */
+  const guide = guideFromRows(subject, rows, norms ? norms.similarListers : null);
 
   if (isSupabaseConfigured() && guide.kind !== "unreachable") {
     try {

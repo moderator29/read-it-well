@@ -499,10 +499,10 @@ export const frontDoorEn = {
   guide: {
     title: "What similar homes here are asking",
     /** "Similar 2 bedroom flats in Yaba are advertised at ₦1,300,000 to ₦1,800,000 a year." */
-    rangeRent: "Similar {similar} in {area} are advertised at {low} to {high} a year.",
-    rangeSale: "Similar {similar} for sale in {area} are advertised at {low} to {high}.",
+    rangeRent: "Similar {similar} in this area are advertised at {low} to {high} a year.",
+    rangeSale: "Similar {similar} for sale in this area are advertised at {low} to {high}.",
     basis: "{count} listings on Vallo, asking prices. The middle half: a quarter ask less and a quarter ask more.",
-    foundOnly: "We found {count}, and a range needs at least five.",
+    foundOnly: "We found {count}, and a range needs at least five, from at least three different listers.",
     nouns: {
       flats: "flats",
       houses: "houses",
@@ -519,8 +519,8 @@ export const frontDoorEn = {
     },
     unreachable: "We could not read the figures just now. Your listing is not affected.",
     loading: "Looking at similar listings",
-    agencyNorm: "Agency fees here are usually {pct}% of the yearly rent ({count} listings).",
-    legalNorm: "Legal fees here are usually {pct}% of the yearly rent ({count} listings).",
+    agencyNorm: "Agency fees in this area are usually {pct}% of the yearly rent ({count} listings).",
+    legalNorm: "Legal fees in this area are usually {pct}% of the yearly rent ({count} listings).",
   },
   /** V-94: viewing windows and the Saturday route. */
   viewings: {
