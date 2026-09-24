@@ -2,11 +2,14 @@ import { getDictionary } from "@vallo/i18n";
 import { previewHarnessIsOpen } from "@/lib/preview-harness";
 import { doorCardFromRow, doorLines, type DoorRow } from "@/lib/share/door";
 import { doorImage, photoData } from "@/app/s/[token]/door-image";
+import { boardImage } from "@/app/agent/listings/[listingId]/board/board-image";
+import { boardFor } from "@/lib/listings/board";
 
 /**
  * The door's unfurl image, every face, against a fixture (V-07). The fixture
  * carries an address and coordinates; the picture must show neither.
- * `?state=listing|example|area|mark`. Closed by the harness guard in
+ * `?state=listing|example|area|mark|board|board-a3`; the last two draw the
+ * V-08 TO LET board, which is flagged off in the product. Closed by the harness guard in
  * production, like every other preview.
  */
 export async function GET(request: Request) {
@@ -38,6 +41,16 @@ export async function GET(request: Request) {
     longitude: 3.4721,
   } as unknown as DoorRow;
   const card = doorCardFromRow(row);
+  if (state === "board" || state === "board-a3") {
+    const boardCopy = getDictionary("en").frontDoor.board;
+    const verdict = boardFor(
+      { reference: "VL-7K4MQP", intent: "rent", propertyType: "rental", bedrooms: 2, isDemo: false },
+      boardCopy,
+    );
+    if (verdict.state === "ready") {
+      return boardImage(verdict.lines, boardCopy.typeCode, state === "board" ? "square" : "a3");
+    }
+  }
   if (state === "area") {
     return doorImage(
       {

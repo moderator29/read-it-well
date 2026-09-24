@@ -44,7 +44,8 @@ export type DoorImageFace =
 
 const FONT = new URL("./Inter-Regular.woff", import.meta.url);
 
-async function interRegular(): Promise<ArrayBuffer> {
+/** The bundled Inter, which carries the naira sign. Shared with the V-08 board. */
+export async function interRegular(): Promise<ArrayBuffer> {
   const file = await readFile(FONT);
   return file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) as ArrayBuffer;
 }

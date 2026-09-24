@@ -289,8 +289,11 @@ function ListingRow({
   error,
   onAction,
   onDelete,
+  boardLabel,
 }: {
   t: WorkspaceCopy;
+  /** V-08: the board action's words, when the board is switched on. */
+  boardLabel?: string;
   /* The listing code's own namespace, shared with the search page and the
      public listing page so one set of words governs the code everywhere. */
   reference: Dictionary["listingReference"];
@@ -427,6 +430,17 @@ function ListingRow({
           <UiIcon name="calendar-booking" size={16} />
           Calendar
         </Link>
+        {/* V-08: a board needs a code, and a code needs a published listing. */}
+        {boardLabel && listing.reference && listing.status === "PUBLISHED" && (
+          <Link
+            href={`/agent/listings/${listing.id}/board`}
+            className="flex items-center gap-2xs text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-secondary)]"
+            data-testid="listing-board"
+          >
+            <UiIcon name="document" size={16} />
+            {boardLabel}
+          </Link>
+        )}
         {editable && (
           <button
             type="button"
@@ -479,6 +493,7 @@ export function ListingsWorkspace({
   listings: all,
   locale,
   query = "",
+  boardLabel,
 }: {
   t: WorkspaceCopy;
   reference: Dictionary["listingReference"];
@@ -486,6 +501,11 @@ export function ListingsWorkspace({
   locale: Locale;
   /** The top bar's search term. Narrows by title; empty shows everything. */
   query?: string;
+  /**
+   * V-08, "Print or paint your board". Present only while
+   * `feature_flags.listing_board` is on; absent, no row draws the action.
+   */
+  boardLabel?: string;
 }) {
   /* The bar's search lands here with `?q=`, so it is a real narrowing and
      not a field that does nothing. */
@@ -618,6 +638,7 @@ export function ListingsWorkspace({
                     error={errors[listing.id]}
                     onAction={(kind, target) => setSheet({ kind, listing: target })}
                     onDelete={scheduleDelete}
+                    boardLabel={boardLabel}
                   />
                 ),
               )}

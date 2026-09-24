@@ -1,0 +1,68 @@
+/*
+ * V-08, the TO LET board on screen and in print. Tokens only; dark only; the
+ * code is the largest thing on the board because it is read from a moving car.
+ */
+@layer components {
+  .nf-board {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-xs);
+    padding: var(--nf-space-lg) var(--nf-space-md);
+    border: 4px solid var(--nf-brand-primary);
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-canvas);
+    text-align: center;
+  }
+  .nf-board__banner {
+    font-size: var(--nf-text-h0);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--nf-content-primary);
+  }
+  .nf-board__shape {
+    font-size: var(--nf-text-h3);
+    color: var(--nf-content-primary);
+  }
+  .nf-board__on {
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-muted);
+  }
+  .nf-board__code {
+    margin-top: var(--nf-space-sm);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-raised);
+    font-size: var(--nf-text-h2);
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+  .nf-board__hint {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+  .nf-board-print {
+    display: none;
+  }
+}
+
+@media print {
+  @page {
+    size: A3 portrait;
+    margin: 0;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .nf-board-print {
+    display: block;
+    visibility: visible;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}

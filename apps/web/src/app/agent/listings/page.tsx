@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { listingBoardIsOn } from "@/lib/listings/board-queries";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
@@ -61,7 +62,10 @@ export default async function Page({
     );
   }
 
-  const listings = await readMyListings(context.supabase, context.agent.id);
+  const [listings, boardOn] = await Promise.all([
+    readMyListings(context.supabase, context.agent.id),
+    listingBoardIsOn(),
+  ]);
 
   return (
     <AgentShell
@@ -88,6 +92,7 @@ export default async function Page({
         listings={listings}
         locale={locale}
         query={query}
+        boardLabel={boardOn ? t.frontDoor.board.action : undefined}
       />
     </AgentShell>
   );
