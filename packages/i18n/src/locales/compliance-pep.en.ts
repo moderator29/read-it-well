@@ -1,0 +1,94 @@
+/**
+ * SCUML item 20. POLITICALLY EXPOSED PERSONS, in English.
+ *
+ * Two audiences, kept apart. `question` is the one thing a LISTER sees: the
+ * question the law asks, at verification and at payout account setup. A member
+ * looking for a home never sees it. Nothing in `question` says what an answer
+ * leads to, so the person is never tipped off about a review.
+ *
+ * `lane` is staff only: the compliance desk's item 20 lane.
+ *
+ * Its own module so `en.ts` carries one import and one line. British spelling,
+ * no dashes as punctuation.
+ */
+export const compliancePepEn = {
+  question: {
+    title: "A question we ask everyone who lists",
+    body: "Nigeria's anti-money-laundering rules ask every lister whether they, a family member or a close associate hold or have held a prominent public position: for example a minister, commissioner, governor, legislator, senior judge, senior military or police officer, party official, or head of a government-owned company.",
+    legend: "Does that describe you, a family member or a close associate?",
+    yes: "Yes",
+    no: "No",
+    who: "Who is it?",
+    self: "Me",
+    family: "A family member",
+    associate: "A close associate",
+    role: "Which position, and where",
+    rolePlaceholder: "For example, Commissioner for Works, Ogun State, 2019 to 2023",
+    save: "Save my answer",
+    saving: "Saving",
+    saved: "Saved. Thank you.",
+    answered: "You answered this on {date}. If anything changes, answer again.",
+    again: "Answer again",
+    chooseOne: "Choose yes or no.",
+    whoNeeded: "Say who it is.",
+    roleNeeded: "Say which position, and where.",
+    failed: "Your answer was not saved. Please try again.",
+    unavailable: "This question could not be loaded just now. Refresh the page to try again.",
+    payoutFirst: "Answer the question about public positions on this page before adding a payout account.",
+    checkFailed: "We could not check that just now. Nothing was saved; please try again in a moment.",
+  },
+  lane: {
+    tab: "PEP",
+    lede: "Politically exposed persons: the lister's own answer, staff's own record, and a review of every transaction a PEP makes. Each review needs the source of funds and two people.",
+    openTitle: "Reviews waiting",
+    openEmpty: "No reviews are waiting.",
+    openEmptyBody: "Every transaction by a person on the PEP record has been reviewed and approved.",
+    settledTitle: "Recently approved",
+    settledEmpty: "Nothing has been approved yet.",
+    reason: {
+      transaction: "A transaction",
+      declaration: "They answered yes",
+      staff_flag: "Staff flagged them",
+      high_risk: "High risk",
+    },
+    source: {
+      transactions: "a card payment",
+      escrows: "an escrow",
+      wallet_entries: "a wallet entry",
+      rent_payments: "a rent payment",
+      pep_declarations: "their own answer",
+      pep_flags: "a staff flag",
+      risk_classes: "their risk class",
+    },
+    raised: "Raised {date}",
+    amount: "Amount {amount}",
+    sourceOfFunds: "Source of funds",
+    sourceOfFundsHelp: "Where the money came from, and what you saw that shows it.",
+    outcome: "Outcome",
+    cleared: "Cleared",
+    refer: "Refer for a suspicious transaction report",
+    note: "Note (optional)",
+    decide: "Record the decision",
+    decided: "{who} recorded on {date}: {outcome}. A second person must approve.",
+    approve: "Approve",
+    ownDecision: "You recorded this, so a second person must approve it.",
+    approvedBy: "Approved by {who} on {date}.",
+    peopleTitle: "People on the PEP record",
+    peopleEmpty: "Nobody is on the PEP record.",
+    peopleRow: "{name}: {relation}, {role}. {source} {date}.",
+    relation: { self: "themselves", family: "a family member", associate: "a close associate" },
+    declared: "Declared",
+    flaggedBy: "Staff record",
+    flagTitle: "Put a person on the record, or take them off",
+    flagHelp: "Their handle, or the account id from their person file.",
+    person: "Handle or account id",
+    flagNote: "What you saw, and where",
+    flag: "Flag as a PEP",
+    clear: "Take off the record",
+    flagged: "Recorded.",
+    notFound: "No member has that handle or id.",
+    failed: "That was not recorded. Nothing has changed.",
+    decisionSaved: "Recorded. A second person must now approve it.",
+    approved: "Approved.",
+  },
+};

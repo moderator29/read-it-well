@@ -33,6 +33,7 @@ import { PaystackError, isPaystackConfigured, resolveAccountNumber } from "../pa
 import { createAdminClient } from "../supabase/admin";
 import { getAgentContext } from "./listings-queries";
 import { moneyLockRefusalFor } from "../security/money-lock-guard";
+import { pepQuestionRefusal } from "../compliance/pep-gate";
 import {
   addPayoutAccountInputSchema,
   payoutAccountIdSchema,
@@ -99,6 +100,11 @@ export async function addPayoutAccount(
   if (context.state === "not-agent") return fail(NOT_AGENT_MESSAGE);
 
   if (!isPaystackConfigured()) return fail(UNVERIFIABLE_MESSAGE);
+
+  /* SCUML item 20: the PEP question is asked at payout account setup, and an
+     account is not added until it has been answered once. */
+  const pepFirst = await pepQuestionRefusal(context.supabase);
+  if (pepFirst) return fail(pepFirst);
 
   const parsed = validate(addPayoutAccountInputSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);

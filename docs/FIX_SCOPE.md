@@ -25,3 +25,9 @@ settlement).
 
 | File | V | What the build changes | State |
 |---|---|---|---|
+| `apps/web/src/lib/agent/payout-actions.ts` | SCUML 20 | One import and one guard: a payout account is not added until the PEP question has been answered once (`pepQuestionRefusal`) | Claimed |
+| `apps/web/src/app/(app)/verification/page.tsx`, `apps/web/src/app/agent/earnings/page.tsx` | SCUML 20 | One import and one element each: the PEP question panel, drawn for listers only | Claimed |
+| `apps/web/vercel.json`, `apps/web/src/lib/admin/reads/jobs.ts`, `docs/ADMIN_CONSOLE.md` | SCUML 15 | One new cron entry (`risk-classes`), its registry line and its handbook row; the stated count moves from 11 to 12 | Claimed |
+| `public.listings`, `public.payout_accounts`, `public.bank_accounts` (triggers only) | SCUML 15 | New BEFORE triggers `*_zz_scuml15_edd_gate` that only refuse a high-risk person without a cleared EDD review; nothing existing is edited | Claimed |
+| `public.transactions`, `public.escrows`, `public.wallet_entries`, `public.rent_payments` (triggers only) | SCUML 20 | New AFTER triggers `*_zz_scuml20_pep_watch` that only enqueue a review, inside their own exception block, so money code is never blocked | Claimed |
+| `docs/RETENTION_SCHEDULE.md` | SCUML 20, 15 | New section 3.3a, additive | Claimed |
