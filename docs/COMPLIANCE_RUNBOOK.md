@@ -82,6 +82,14 @@ say nothing more on the phone, in support or by email.
    is still a match: it appears under "Common name, check identifiers", after
    the others. Decide it the same way, on the date of birth, nationality and
    documents. An exact match is never put in that group.
+   **Padding and long names.** Stray one- and two-letter tokens are ignored
+   (not Al, El, Ul or Md), a list name found word for word is scored on those
+   words alone, and a long name is never passed over for its length.
+   **Risk class (SCUML item 15).** A match changes a person's risk class only
+   once it is confirmed by two people, or while it is an open exact match. An
+   open close match, common names included, never does, so it never blocks a
+   listing or a payout account. A decision on a match puts the person in the
+   next risk run.
 2. **Check it.** Compare the list entry's date of birth, nationality and
    aliases with what Vallo holds: the NIN name on an agent application, the
    bank-resolved account name, and the documents.

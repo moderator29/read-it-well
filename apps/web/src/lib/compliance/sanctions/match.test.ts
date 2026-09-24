@@ -170,4 +170,18 @@ describe("matching (SCUML item 8)", () => {
     expect(matcher(["Quorvin Adelmaro Tesc"], { dateOfBirth: "1990-01-01" })[0]).toMatchObject({ kind: "fuzzy", raise: false });
     expect(matcher(["Quorvin Adelmaro Tesk"], { dateOfBirth: "1990-01-01" })[0]).toMatchObject({ kind: "exact", raise: true });
   });
+
+  it("cannot be diluted by padding, and never gives up on a long name", () => {
+    const listed = [{ entryId: "s", source: "un" as const, reference: "QDi.322", primaryName: "Abubakar Shekau", names: [normaliseName("Abubakar Shekau")] }];
+    const hit = (name: string) => matchNames([name], listed).some((m) => m.reference === "QDi.322" && m.raise);
+    expect(hit("Abubakar Shekau a b c d e f g h i")).toBe(true);
+    expect(hit("Abubakar Shekau xq zz yy kk")).toBe(true);
+    expect(hit("Abubakar Shekau Chinedu Okafor Emeka")).toBe(true);
+    const twenty = "Chinedu Okafor Emeka Ngozi Tunde Babajide Olusegun Adewale Oluwaseun Chukwuma Ifeanyi Obinna Nnamdi Uchenna Kelechi Chidi Ekene Abubakar Shekau Somto";
+    expect(twenty.split(" ")).toHaveLength(20);
+    expect(hit(twenty)).toBe(true);
+    /* A real two-letter name is kept when it is one of only two words. */
+    expect(normaliseName("Li Wei")).toBe("li wei");
+    expect(normaliseName("Md Yusuf")).toBe("md yusuf");
+  });
 });
