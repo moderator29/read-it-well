@@ -91,11 +91,14 @@ export type ParsedReply =
  * read with certainty.
  */
 export function parseReply(text: string): ParsedReply | null {
-  /* A STOP anywhere in the text is a stop, and it wins over any digit beside
-     it: "2 stop", "Please stop texting me" and "STOP." are all withdrawals of
-     consent, and misreading one as an answer would keep messaging somebody who
-     asked us not to. Checked before any length limit for the same reason. */
-  if (/\b(STOP|STOPALL|UNSUBSCRIBE|QUIT|CANCEL|END)\b/i.test(text)) return { kind: "stop" };
+  /* STOP or UNSUBSCRIBE anywhere in the text is a stop, and it wins over any
+     digit beside it: "2 stop", "Please stop texting me" and "STOP." are all
+     withdrawals of consent, and misreading one as an answer would keep
+     messaging somebody who asked us not to. END, CANCEL and QUIT are ordinary
+     words ("cancel the viewing", "the end of the month"), so they count only
+     when they are the whole reply. Checked before any length limit. */
+  if (/\b(STOP|STOPALL|UNSUBSCRIBE)\b/i.test(text)) return { kind: "stop" };
+  if (/^\s*(QUIT|CANCEL|END)\s*[.!]*\s*$/i.test(text)) return { kind: "stop" };
   const cleaned = text.trim().toUpperCase().replace(/[.,!]+$/g, "");
   if (cleaned.length === 0 || cleaned.length > 40) return null;
 

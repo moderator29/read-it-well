@@ -77,12 +77,13 @@ describe("reading what a landlord typed back", () => {
     ["1 K7RX STOP", { kind: "stop" }],
     ["unsubscribe", { kind: "stop" }],
     ["quit.", { kind: "stop" }],
-    ["The END", { kind: "stop" }],
+    ["END", { kind: "stop" }],
+    ["cancel", { kind: "stop" }],
   ])("reads %j", (text, expected) => {
     expect(parseReply(text)).toEqual(expected);
   });
 
-  it.each(["4", "yes", "1 2", "12", "1 KBOX", "", "please call me", "1 K7RXX", "stopping by later is fine? 1"])("refuses to guess at %j", (text) => {
+  it.each(["4", "yes", "1 2", "12", "1 KBOX", "", "please call me", "1 K7RXX", "stopping by later is fine? 1", "The END", "cancel the viewing, 1", "end of month 2"])("refuses to guess at %j", (text) => {
     expect(parseReply(text)).toBeNull();
   });
 

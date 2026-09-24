@@ -277,16 +277,3 @@ export async function readOpenOwnerHeartbeats(): Promise<string[]> {
     return [];
   }
 }
-
-/** V-48, for the console: how many listings are closed, or null. Staff only. */
-export async function readClosedListingCount(): Promise<number | null> {
-  if (!isSupabaseConfigured()) return null;
-  try {
-    const db = await createClient();
-    const { data, error } = await callLandlordRpc(db, "closed_listing_count", {});
-    if (error || typeof data !== "number") return null;
-    return data;
-  } catch {
-    return null;
-  }
-}

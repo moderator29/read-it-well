@@ -15,7 +15,7 @@ import { LiveRefresh } from "../_review/LiveRefresh";
 import { ListingsQueue } from "./ListingsQueue";
 import { MandatesPanel } from "./MandatesPanel";
 import { MandateConsent } from "./MandateConsent";
-import { landlordLineIsOpen, readClosedListingCount, readClosedReasons, readMandateConsents } from "@/lib/landlord/queries";
+import { landlordLineIsOpen, readClosedReasons, readMandateConsents } from "@/lib/landlord/queries";
 import { consentLine } from "@/lib/landlord/consent";
 import { toQueueRow } from "./rows";
 import { LISTING_TABS, isDecidedStatus, listingStatusWord, reviewHref } from "./tabs";
@@ -98,13 +98,12 @@ export default async function AdminListingsPage({
     landlordLineIsOpen(),
   ]);
   /* V-48: a listing closed with a reason is SUSPENDED underneath, and it is
-     not a suspension. It is kept out of the Suspended tab and its count. */
-  const closedCount = await readClosedListingCount();
+     not a suspension. The count and the Suspended tab's query leave it out
+     themselves, so nothing is subtracted or filtered here. */
   const total = (key: string) =>
     counts.state === "ok"
       ? (counts.data.real[key as keyof typeof counts.data.real] ?? 0) +
-        (counts.data.examples[key as keyof typeof counts.data.examples] ?? 0) -
-        (key === "SUSPENDED" ? (closedCount ?? 0) : 0)
+        (counts.data.examples[key as keyof typeof counts.data.examples] ?? 0)
       : null;
   const allCount =
     counts.state === "ok"
@@ -152,8 +151,7 @@ export default async function AdminListingsPage({
   const { waiting, decided, full } = read.data;
   const decidedTab = Boolean(status && isDecidedStatus(status));
   const closedReasons = await readClosedReasons([...waiting, ...decided].map((listing) => listing.id));
-  const notClosedSuspension = (listing: { id: string }) => !(status === "SUSPENDED" && listing.id in closedReasons);
-  const main = (decidedTab ? decided : waiting).filter(notClosedSuspension);
+  const main = decidedTab ? decided : waiting;
   const shownDecided = !status && offset === 0 ? decided : [];
   const extras = await getQueueRowExtras([...main, ...shownDecided].map((listing) => listing.id));
   const rowOf = (listing: (typeof main)[number]) => {

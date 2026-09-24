@@ -192,7 +192,7 @@ export const landlordEn = {
 
   owner: {
     prompt: "Is this still available?",
-    body: "You listed it as the owner, so we ask you every two weeks. Answering keeps it in its place in search; three weeks without an answer moves it to the end. If it has been let, close it instead.",
+    body: "You listed it as the owner, so we ask you every two weeks. Answering keeps it in its place in search. Three weeks without an answer moves it to the end of search, and it stops taking inspection requests until you answer. If it has been let, close it instead.",
     yes: "Yes, still available",
     let: "It has been let",
     thanks: "Thank you. We will ask again in about two weeks.",
