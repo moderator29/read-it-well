@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
+import { ShotList } from "@/components/agent/ShotList";
 import { fill } from "../_copy";
 import { createClient } from "@/lib/supabase/client";
 import { Switch } from "@/components/ui/Switch";
@@ -823,7 +824,10 @@ export function ListingWizard({
   broadcastCopy,
   guideCopy,
   initialUnconfirmed = [],
+  shotsCopy,
 }: {
+  /** V-70: the shot list's words. Without them the shot list is not drawn. */
+  shotsCopy?: Dictionary["afterTheGate"]["shots"];
   /**
    * V-09: the unconfirmed set as the server holds it for this draft
    * (`listing_broadcast_marks`), so another device starts from the truth.
@@ -2161,6 +2165,15 @@ export function ListingWizard({
                 </li>
               )}
             </ul>
+            {/* V-70: say what each photo shows. Additive; drawn only with its copy. */}
+            {shotsCopy && (
+              <ShotList
+                listingId={listingId}
+                photos={photos.map((photo) => ({ id: photo.id, url: photo.url }))}
+                claims={{ prepaidMeter: values.prepaidMeter, waterSupply: values.waterSupply || null, powerBackup: values.powerBackup || null }}
+                copy={shotsCopy}
+              />
+            )}
 
             <p className="nf-numeric text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
               {fill(copy.photos.progress, { count: photos.length, min: MIN_PHOTOS })}

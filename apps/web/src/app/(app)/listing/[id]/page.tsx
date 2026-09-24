@@ -51,6 +51,7 @@ import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
 import { readPayeeRecords } from "@/lib/after-gate/payee";
 import { LastLetLine } from "@/components/app/listing/LastLetLine";
+import { PhotographedLine } from "@/components/app/listing/PhotographedLine";
 import { ListingPurchase } from "@/components/app/listing/ListingPurchase";
 import { ListingSectionTabs } from "@/components/app/listing/ListingSectionTabs";
 import { ListingSpecChips, specChips } from "@/components/app/listing/ListingSpecChips";
@@ -970,6 +971,8 @@ export default async function ListingDetailPage({
                     <ListingMoveIn listing={listing} locale={locale} t={t} records={await readPayeeRecords(listing.id)} />
                     {/* V-38: what this flat was last let at through Vallo. Nothing when there is no such let. */}
                     <LastLetLine listingId={listing.id} locale={locale} />
+                    {/* V-70: which of the shot list's photos this listing has. */}
+                    <PhotographedLine listingId={listing.id} locale={locale} />
                   </Section>
                 )}
 

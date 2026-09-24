@@ -222,6 +222,27 @@ export const afterTheGateEn = {
     keptBy: "Kept by {name}",
     forEstate: "Paid to {name} for the estate",
   },
+  shots: {
+    /** V-70, the wizard's shot list and the listing page's line. */
+    heading: "Say what each photo shows",
+    lede: "Renters trust a listing that shows the front, the living room, the kitchen and a bedroom, and the meter, water and power it claims.",
+    labelFor: "What photo {n} shows",
+    unlabelled: "Not labelled",
+    slots: {
+      front: "Gate or front",
+      road: "Access road",
+      living: "Living room",
+      kitchen: "Kitchen",
+      bedroom: "Bedroom",
+      bathroom: "Bathroom",
+      meter: "Prepaid meter",
+      water: "Water source",
+      power: "Generator or inverter bay",
+    },
+    missing: "Still to photograph: {slots}.",
+    complete: "The four key shots are covered.",
+    photographed: "Photographed: {slots}",
+  },
   complaint: {
     /** V-85, the tenancy file's complaint pack. */
     open: "Prepare a complaint",
