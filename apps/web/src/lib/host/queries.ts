@@ -1,4 +1,5 @@
 import "server-only";
+import { withBusinessPrivate } from "../supabase/private-fields";
 
 /**
  * Reading a host's own application.
@@ -97,8 +98,25 @@ export type MyBusiness = {
   createdAt: string;
 };
 
+/* The business's contact and registration details, its reviewer's
+   note and its tier are the owner's and staff's. The table read names only
+   the public columns; the private ones come from `business_private_fields`,
+   which answers only for the caller's own businesses. */
 const BUSINESS_COLUMNS =
-  "id, name, slug, kind, status, host_type, description, phone, email, address, area, city, state_code, registered_name, cac_number, tin, representative_name, representative_phone, consents, hygiene_attested_at, licence_attested_at, submitted_at, reviewed_at, review_notes, verification_tier, verified, created_at";
+  "id, name, slug, kind, status, host_type, description, area, city, state_code, hygiene_attested_at, licence_attested_at, submitted_at, reviewed_at, verified, created_at";
+const BUSINESS_PRIVATE_KEYS = [
+  "phone",
+  "email",
+  "address",
+  "registered_name",
+  "cac_number",
+  "tin",
+  "representative_name",
+  "representative_phone",
+  "consents",
+  "review_notes",
+  "verification_tier",
+] as const;
 
 function asHostType(value: string | null): HostType | null {
   return value === "individual" || value === "business" || value === "restaurant" ? value : null;
@@ -129,7 +147,7 @@ export async function getMyHostDraft(): Promise<HostDraft> {
   if (session.state !== "signed-in") return emptyHostDraft();
 
   try {
-    const { data: business } = await session.supabase
+    const { data: publicBusiness } = await session.supabase
       .from("businesses")
       .select(BUSINESS_COLUMNS)
       .eq("owner_id", session.user.id)
@@ -137,6 +155,8 @@ export async function getMyHostDraft(): Promise<HostDraft> {
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
+    if (!publicBusiness) return emptyHostDraft();
+    const [business] = await withBusinessPrivate(session.supabase, [publicBusiness], BUSINESS_PRIVATE_KEYS);
     if (!business) return emptyHostDraft();
 
     const [documents, accommodations, restaurant, windows, bankAccounts] = await Promise.all([
@@ -284,7 +304,7 @@ export async function getMyHostDraft(): Promise<HostDraft> {
       hygieneAttestedAt: business.hygiene_attested_at,
       licenceAttestedAt: business.licence_attested_at,
       hasBankAccount: (bankAccounts.data?.length ?? 0) > 0,
-      consents: readConsents(business.consents),
+      consents: readConsents(business.consents as Parameters<typeof readConsents>[0]),
     };
   } catch {
     /* The wizard renders whatever happens here. An empty draft is survivable;
@@ -302,21 +322,22 @@ export async function getMyBusinesses(): Promise<MyBusiness[]> {
     const { data, error } = await session.supabase
       .from("businesses")
       .select(
-        "id, name, slug, kind, status, host_type, verification_tier, verified, submitted_at, reviewed_at, review_notes, created_at",
+        "id, name, slug, kind, status, host_type, verified, submitted_at, reviewed_at, created_at",
       )
       .eq("owner_id", session.user.id)
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) return [];
 
-    return (data ?? []).map((row) => ({
+    const rows = await withBusinessPrivate(session.supabase, data ?? [], ["verification_tier", "review_notes"] as const);
+    return rows.map((row) => ({
       id: row.id,
       name: row.name,
       slug: row.slug,
       kind: row.kind,
       status: row.status,
       hostType: asHostType(row.host_type),
-      verificationTier: row.verification_tier,
+      verificationTier: row.verification_tier ?? 0,
       verified: row.verified,
       submittedAt: row.submitted_at,
       reviewedAt: row.reviewed_at,
@@ -492,13 +513,15 @@ export async function getMyBusinessLadder(businessId: string): Promise<MyBusines
   if (session.state !== "signed-in") return null;
 
   try {
-    const { data: business, error } = await session.supabase
+    const { data: publicRow, error } = await session.supabase
       .from("businesses")
-      .select("id, name, verification_tier, verified")
+      .select("id, name, verified")
       .eq("id", businessId)
       .eq("owner_id", session.user.id)
       .maybeSingle();
-    if (error || !business) return null;
+    if (error || !publicRow) return null;
+    const [business] = await withBusinessPrivate(session.supabase, [publicRow], ["verification_tier"] as const);
+    if (!business) return null;
 
     const { data: checks } = await session.supabase
       .from("business_verification_checks")
