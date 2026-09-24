@@ -64,6 +64,8 @@ export const VERCEL_JOBS: readonly VercelJob[] = [
     maxGapHours: 26,
     audit: { entityType: "cron_job", term: "saved-search-alerts" },
   },
+  /* V-31 and V-32, the landlord line. A no-op while `landlord_line` is off. */
+  { name: "landlord-line", cron: "*/15 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "landlord-line" } },
 ];
 
 /**
@@ -90,6 +92,7 @@ export const PG_CRON_JOBS: readonly PgCronJob[] = [
   { name: "vallo_escrow_book_the_float", cron: "5 3 * * *", when: "daily 04:05", what: "books the day's escrow float as a liability" },
   { name: "vallo_sweep_price_check_events", cron: "40 3 * * *", when: "daily 04:40", what: "deletes price check events older than 24 months" },
   { name: "vallo_announce_completed_stays", cron: "20 5 * * *", when: "daily 06:20", what: "announces completed stays" },
+  { name: "vallo_landlord_not_reconfirmed", cron: "35 4 * * *", when: "daily 05:35", what: "marks a listing Not reconfirmed after 21 days of owner silence" },
   { name: "vallo_sweep_price_check_watches", cron: "50 5 * * *", when: "daily 06:50", what: "tells a price check watcher once the area opens" },
   { name: "vallo-daily-note", cron: "0 6 * * *", when: "daily 07:00", what: "the daily note" },
 ];
