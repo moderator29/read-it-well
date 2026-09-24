@@ -11,8 +11,10 @@ import {
   holdDecision,
   holdSweepVerdict,
   lagosToday,
+  NO_SHOW_MESSAGES,
   noShowDecision,
   noShowInputSchema,
+  noShowOpensAt,
   parseCompletionSweepResult,
   parseCronFailures,
   parseDriftReport,
@@ -157,9 +159,24 @@ describe("completion at check-out", () => {
 });
 
 describe("no show", () => {
-  it("may be recorded from arrival day on a confirmed stay", () => {
-    expect(noShowDecision({ status: "CONFIRMED", checkIn: TODAY }, TODAY)).toBe("record");
-    expect(noShowDecision({ status: "CONFIRMED", checkIn: "2026-09-10" }, TODAY)).toBe("record");
+  it("may be recorded from 12:00 WAT the day after check-in on a confirmed stay (ESC-04)", () => {
+    const now = new Date(NOW);
+    expect(noShowDecision({ status: "CONFIRMED", checkIn: "2026-09-17" }, TODAY, now)).toBe("record");
+    expect(noShowDecision({ status: "CONFIRMED", checkIn: "2026-09-10" }, TODAY, now)).toBe("record");
+    expect(noShowOpensAt("2026-09-17").toISOString()).toBe("2026-09-18T11:00:00.000Z");
+  });
+
+  it("is refused on arrival day and until 12:00 WAT the next day (ESC-04)", () => {
+    expect(
+      noShowDecision({ status: "CONFIRMED", checkIn: TODAY }, TODAY, new Date("2026-09-18T23:59:00Z")),
+    ).toBe("too_early");
+    expect(
+      noShowDecision({ status: "CONFIRMED", checkIn: "2026-09-17" }, TODAY, new Date("2026-09-18T10:59:00Z")),
+    ).toBe("too_early");
+    expect(
+      noShowDecision({ status: "CONFIRMED", checkIn: "2026-09-17" }, TODAY, new Date("2026-09-18T11:00:00Z")),
+    ).toBe("record");
+    expect(NO_SHOW_MESSAGES.too_early).toMatch(/12:00 the day after check-in/);
   });
 
   it("is refused before arrival day", () => {
@@ -208,6 +225,11 @@ describe("the database's answers are read strictly", () => {
     });
     expect(parseNoShowOutcome({ outcome: "not_confirmed", status: "PENDING" }).outcome).toBe("not_confirmed");
     expect(parseNoShowOutcome({ outcome: "missing" }).outcome).toBe("missing");
+    expect(parseNoShowOutcome({ outcome: "too_early", opens_at: "2026-09-19T11:00:00+00:00" }).outcome).toBe(
+      "too_early",
+    );
+    expect(parseNoShowOutcome({ outcome: "rent_charge" }).outcome).toBe("rent_charge");
+    expect(NO_SHOW_MESSAGES.rent_charge).toMatch(/contact support/);
     expect(() => parseNoShowOutcome({ outcome: "guessed" })).toThrow();
   });
 
