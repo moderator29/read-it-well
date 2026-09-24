@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { StaysDatesRow, carriedParams } from "@/components/app/stays/StaysDatesRow";
 import { formatNumber, getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { lagosToday, parseStaysQuery, toStaysHref, type StaysQuery } from "@/lib/stays/filters";
@@ -81,6 +82,24 @@ export default async function StaysSearchPage({
             openOnMount={params.filters === "open"}
           />
         }
+      />
+
+      {/* UX-08: the dates on the face of the page, not only inside Filters. */}
+      <StaysDatesRow
+        carried={carriedParams(
+          toStaysHref({ ...query, checkIn: undefined, checkOut: undefined, guests: undefined }, "/stays/search"),
+          type,
+        )}
+        checkIn={query.checkIn}
+        checkOut={query.checkOut}
+        guests={query.guests}
+        today={today}
+        copy={{
+          checkIn: copy.checkIn,
+          checkOut: copy.checkOut,
+          guests: copy.guests,
+          submit: t.stayDetail.datesSubmit,
+        }}
       />
 
       <div className="mt-md">

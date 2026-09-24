@@ -174,12 +174,13 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
         </p>
         <p>
           <strong>
-            Everything on {COMPANY_TRADING_NAME} was listed on {COMPANY_TRADING_NAME} by
-            a real person who applied and was approved.
+            A real listing on {COMPANY_TRADING_NAME} is listed on {COMPANY_TRADING_NAME}
+            by a person who applied and was approved.
           </strong>{" "}
-          Nothing is imported from an outside feed. That is the point of the platform
-          and it is why there is always somebody to message and somebody accountable
-          for what a listing says.
+          Nothing is imported from an outside feed, so a real listing has somebody to
+          message and somebody accountable for what it says. Some listings are
+          examples, marked Example, that {COMPANY_TRADING_NAME} publishes to show how
+          the platform works; an example cannot be rented, bought or booked.
         </p>
         <p>
           The property itself is provided by the person who listed it, not by{" "}

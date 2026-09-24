@@ -99,8 +99,7 @@ export default async function CheckoutPage({
             inside a cyan glow: a success mark and the pending colour, both
             contradicting the sentence between them. */}
         <ResultScreen
-          state="failed"
-          mark="seal-cross"
+          state="missing"
           verdict="We could not find that booking"
           consequence="It may have been cancelled, or it belongs to another account. Your stays are all in one place."
           actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}

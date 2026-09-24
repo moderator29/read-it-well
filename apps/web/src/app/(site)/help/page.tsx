@@ -176,7 +176,7 @@ const FAQS: Faq[] = [
        flat in Bwari is not becoming an agent and never will be, and we were
        showing him the door rather than the room. The three doors are named from
        `SUPPLY_DOORS`, so renaming one changes this sentence too. */
-    a: `Add a workspace from your profile and pick the door that fits: ${doorsSentence()}. The owner form takes about five minutes and asks for your name, an ID and whatever you hold on the property, and there is an honest answer if you hold no document at all. Once you are through you publish from that workspace.`,
+    a: `Add a listing account from your profile and pick the door that fits: ${doorsSentence()}. The owner form takes about five minutes and asks for your name, an ID and whatever you hold on the property, and there is an honest answer if you hold no document at all. Once you are through you publish from that listing account.`,
   },
   {
     category: "Listing your property",

@@ -93,8 +93,13 @@ export default async function MoveInPage({ params }: { params: Promise<{ listing
         t={t}
         proceed={
           listing.isDemo ? (
-            <ButtonLink href="/search" variant="primary" full size="lg">
-              Browse real listings
+            <ButtonLink
+              href={`/search?q=${encodeURIComponent(listing.area || listing.city)}`}
+              variant="primary"
+              full
+              size="lg"
+            >
+              Get told when real homes arrive
             </ButtonLink>
           ) : payHref ? (
             <AuthGate action="pay">

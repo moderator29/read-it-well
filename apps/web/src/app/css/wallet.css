@@ -1166,8 +1166,13 @@
     padding-block: 0;
   }
   /* The 44px link would push the title down; the head's own top padding
-     gives that height back, so the title sits 15px under the rim as drawn. */
+     gives that height back, so the title sits 15px under the rim as drawn.
+     UI-11: only when the link is there. An empty list has no "See all", and
+     the title then sat 2px under the rim. */
   .nf-tx-card__head {
+    padding-top: 0.875rem;
+  }
+  .nf-tx-card__head:has(.nf-wallet-link) {
     padding-top: 0.125rem;
   }
   /* Quick cards: title "Send Money" 55.6px = 9.4px, sub 61.4px for "To bank

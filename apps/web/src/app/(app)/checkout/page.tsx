@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { stayDateLabel } from "@/lib/stays/date-label";
 import { redirect } from "next/navigation";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -71,7 +72,7 @@ export default async function RoomCheckoutPage({
               <div className="flex items-start justify-between gap-md">
                 <dt className={TYPE.rowMeta}>{t.catalogue.stays.checkIn}</dt>
                 <dd className={`text-right ${TYPE.rowTitle}`}>
-                  <span className="nf-numeric">{checkIn}</span>
+                  <span className="nf-numeric">{stayDateLabel(checkIn, locale) ?? checkIn}</span>
                 </dd>
               </div>
             )}
@@ -79,7 +80,7 @@ export default async function RoomCheckoutPage({
               <div className="flex items-start justify-between gap-md">
                 <dt className={TYPE.rowMeta}>{t.catalogue.stays.checkOut}</dt>
                 <dd className={`text-right ${TYPE.rowTitle}`}>
-                  <span className="nf-numeric">{checkOut}</span>
+                  <span className="nf-numeric">{stayDateLabel(checkOut, locale) ?? checkOut}</span>
                 </dd>
               </div>
             )}
@@ -106,8 +107,7 @@ export default async function RoomCheckoutPage({
       )}
 
       <ResultScreen
-        state="expired"
-        mark="calendar-check"
+        state={detail ? "expired" : "missing"}
         verdict={detail ? "Vallo cannot hold this room" : "We could not find that stay"}
         consequence={
           detail

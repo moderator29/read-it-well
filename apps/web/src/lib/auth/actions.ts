@@ -65,7 +65,10 @@ const field = (formData: FormData, name: string) => String(formData.get(name) ??
  * When the auth backend is not configured the action says so plainly instead of
  * pretending the account was created.
  */
-function validateCredentials(formData: FormData): Partial<Record<AuthField, string>> {
+function validateCredentials(
+  formData: FormData,
+  purpose: "sign-in" | "sign-up" = "sign-up",
+): Partial<Record<AuthField, string>> {
   const email = field(formData, "email").trim();
   const password = field(formData, "password");
 
@@ -76,7 +79,9 @@ function validateCredentials(formData: FormData): Partial<Record<AuthField, stri
   else if (!EMAIL_RE.test(email)) errors.email = "That does not look like a valid email.";
 
   if (!password) errors.password = "Enter your password.";
-  else if (password.length < 8) errors.password = "Use at least 8 characters.";
+  /* UX-28: the length rule is a sign-up rule. On sign-in a short password is
+     simply a wrong one, and the server says so in the same words as any other. */
+  else if (purpose === "sign-up" && password.length < 8) errors.password = "Use at least 8 characters.";
   else if (password.length > 200) errors.password = "That password is too long.";
 
   return errors;
@@ -300,7 +305,7 @@ export async function signInWithEmail(
   _prev: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
-  const fieldErrors = validateCredentials(formData);
+  const fieldErrors = validateCredentials(formData, "sign-in");
   if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
 
   if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };

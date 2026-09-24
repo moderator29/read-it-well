@@ -83,8 +83,7 @@ export default async function RentPayPage({
     return (
       <Shell>
         <ResultScreen
-          state="failed"
-          mark="seal-cross"
+          state="missing"
           verdict="We could not find that inspection"
           consequence="It may have been withdrawn, or it belongs to another account. Your inspections are all in one place."
           actions={[{ label: "See your inspections", href: "/inspections", tone: "primary" }]}

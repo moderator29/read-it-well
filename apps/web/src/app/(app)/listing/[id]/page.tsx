@@ -478,8 +478,12 @@ export default async function ListingDetailPage({
      ledger) and Book inspection (the real request, in the panel below). A
      stay keeps Check availability with the conversation beside it; a sale
      and a table keep the conversation. */
+  /* UX-21: while every listing is an example, "Browse real listings" led back
+     to more examples. The honest next step is to be told when a real one
+     arrives here: the area's search, where "Save this search" sends alerts. */
+  const realSoonHref = `/search?q=${encodeURIComponent(listing.area || listing.city)}`;
   const stickyAction: StickyAction | null = isExample
-    ? { label: "Browse real listings", href: "/search" }
+    ? { label: "Get told when real homes arrive", href: realSoonHref }
     : isBookable
       ? { label: t.catalogue.detail.checkAvailability, href: "#reserve" }
       : isRental
@@ -528,11 +532,11 @@ export default async function ListingDetailPage({
   const bookingPanel = isExample ? (
     <div className="nf-panel nf-panel--card isolate p-card">
       <p className={TYPE.rowMeta}>
-        Nothing here can be booked or paid for. Search for a real place with an
-        owner you can reach.
+        Nothing here can be booked or paid for. Save a search for this area and
+        we will tell you when a real place with an owner you can reach is listed.
       </p>
-      <ButtonLink href="/search" variant="primary" className="mt-block w-full">
-        Browse real listings
+      <ButtonLink href={realSoonHref} variant="primary" className="mt-block w-full">
+        Get told when real homes arrive
       </ButtonLink>
     </div>
   ) : isRestaurant ? (
@@ -1118,6 +1122,7 @@ export default async function ListingDetailPage({
                       locale={locale}
                       t={t}
                       signedIn={signedIn}
+                      tenancy={isRental}
                     />
                   </Section>
                 </Reveal>

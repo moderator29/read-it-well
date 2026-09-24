@@ -127,9 +127,9 @@ body {
    * for every descendant - and every shell on this platform has sticky chrome.
    */
   overflow-x: clip;
-  /* Native app feel on touch: no grey tap flash, no rubber-band past the ends. */
+  /* Native app feel on touch: no grey tap flash. (The no-rubber-band rule is
+     on `html` below: only the root element's value reaches the viewport.) */
   -webkit-tap-highlight-color: transparent;
-  overscroll-behavior-y: none;
 }
 
 /*
@@ -140,6 +140,9 @@ body {
  */
 html {
   overflow-x: clip;
+  /* UI-19: no rubber-band past the ends. By spec only the root element's
+     overscroll-behavior applies to the viewport; on `body` it did nothing. */
+  overscroll-behavior-y: none;
 }
 
 /* Pointer clicks never draw a focus rectangle; keyboard focus keeps the ring. */

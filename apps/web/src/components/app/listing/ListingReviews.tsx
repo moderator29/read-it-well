@@ -52,6 +52,7 @@ export function ListingReviews({
   locale,
   t,
   signedIn,
+  tenancy = false,
 }: {
   rating: number;
   reviewCount: number;
@@ -65,13 +66,19 @@ export function ListingReviews({
    * (a static preview) draws none.
    */
   signedIn?: boolean;
+  /** UX-21: a tenancy is lived in, not stayed at; its empty state says so. */
+  tenancy?: boolean;
 }) {
   if (reviewCount === 0 && reviews.length === 0) {
     return (
       <EmptyState
         icon="reviews"
         title="No reviews yet"
-        body="Nobody has stayed here through Vallo yet. A review appears once a guest actually has, and never before."
+        body={
+          tenancy
+            ? "Tenants can review a place after they move in, and a review appears only once one has."
+            : "Nobody has stayed here through Vallo yet. A review appears once a guest actually has, and never before."
+        }
         data-testid="reviews-empty"
       />
     );

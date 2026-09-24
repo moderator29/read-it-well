@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { distinctDeviceCount } from "@/lib/security/device-count";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -30,7 +31,7 @@ export default async function PrivacySettingsPage() {
   ]);
   const signedIn = account.state === "signed-in";
   const deviceCount =
-    sessions.state === "signed-in" && sessions.readable ? sessions.sessions.length : null;
+    sessions.state === "signed-in" && sessions.readable ? distinctDeviceCount(sessions.sessions) : null;
 
   return (
     <div className="mx-auto max-w-2xl">

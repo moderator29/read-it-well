@@ -328,7 +328,7 @@ export const en = {
     people: "People",
     agentMode: "Agent Mode",
     consoleLabel: "Console",
-    workspacesLabel: "Workspaces",
+    workspacesLabel: "Listing accounts",
     becomeAgent: "Become an agent",
     more: "More",
     search: "Search",
@@ -430,8 +430,9 @@ export const en = {
       followers: "Followers",
       following: "Following",
       settings: "Settings",
-      switchTitle: "Switch role",
-      switchNone: "Add an owner, agent or firm workspace",
+      /* UX-23: one name for listing on Vallo: a "listing account". */
+      switchTitle: "Switch mode",
+      switchNone: "Add a listing account: owner, agent or firm",
       switchTwo: "Change between {a} and {b}",
       switchMany: "Change between {list} or {last}",
       roleUser: "user",
@@ -1991,7 +1992,7 @@ export const en = {
       verifiedAgent: "Verified Agent",
       noWorkspace: "You are not listing yet",
       applyToList: "Apply to list",
-      workspaceLabel: "Agent workspace",
+      workspaceLabel: "Your listings",
       notApproved: "Your agent application is still under review.",
     },
     nav: {
@@ -2148,13 +2149,13 @@ export const en = {
       /* The workspace with nobody in it. Three states and no fourth:
          signed out, signed in without an agent row, and unconfigured.
          The deck of invented figures this replaced is gone. */
-      signedOutTitle: "The workspace for people who list",
+      signedOutTitle: "Your listings, in one place",
       signedOutBody:
         "Your earnings, your bookings, your calendar and your listings, all in one place. Sign in to open yours.",
       notAgentTitle: "You are not listing yet",
       notAgentBody:
-        "This workspace fills in the moment you have a place on Vallo. Applying takes about two minutes and a person reads every application.",
-      unconfiguredTitle: "We cannot reach the workspace right now",
+        "This page fills in the moment you have a place on Vallo. Applying takes about two minutes and a person reads every application.",
+      unconfiguredTitle: "We cannot reach your listings right now",
       unconfiguredBody:
         "This is on our side, not yours, and there is nothing to read here until it is fixed. Everything else on Vallo still works.",
       applyCta: "Apply to list",
@@ -5651,15 +5652,15 @@ export const en = {
    * citation.
    */
   supply: {
-    switchTitle: "Switch profile",
-    switchTrigger: "Switch profile",
+    switchTitle: "Switch mode",
+    switchTrigger: "Switch mode",
     personal: "Personal",
     personalMeaning: "Use Vallo for your personal needs",
-    addTitle: "Add a workspace",
-    addMeaning: "Register as a supplier or business",
+    addTitle: "Add a listing account",
+    addMeaning: "List property, or take bookings as a business",
     current: "Current",
     empty:
-      "You have no workspaces yet. Add one to start listing property or taking bookings.",
+      "You have no listing accounts yet. Add one to list property or take bookings.",
     kinds: {
       owner: "List your own properties",
       agent: "Act for property owners",
@@ -5679,12 +5680,13 @@ export const en = {
       suspended: "Suspended",
     },
     chooser: {
-      title: "Add a workspace",
-      sub: "Tell us what kind of supplier you are. This helps us set up the right tools and verification for you.",
+      title: "Add a listing account",
+      sub: "Tell us how you list. This sets up the right tools and checks for you.",
       overviewTitle: "What we will ask you for",
-      overviewSub: "We need a few details to verify your workspace and get you set up.",
+      overviewSub: "We need a few details to verify your listing account and get you set up.",
       continueLabel: "Continue",
       back: "Back",
+      chooseAgain: "Choose a different one",
       howLongTitle: "How long it takes",
       selected: "Selected",
       /* UX-05: both groups are always shown; the current side's comes first. */
