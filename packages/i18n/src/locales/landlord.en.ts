@@ -46,8 +46,6 @@ export const landlordEn = {
     chip: "For the owner",
     loading: "Opening your question",
     vacancyTitle: "Is your {place} still available?",
-    vacancyLede:
-      "{agent} has listed it to let on Vallo. You are the one person who knows for certain, so we ask you rather than the agent.",
     vacancyLedeNoAgent:
       "It is listed to let on Vallo. You are the one person who knows for certain, so we ask you rather than the agent.",
     yes: "Yes, it is still available",
@@ -56,8 +54,6 @@ export const landlordEn = {
     whatHappens:
       "If it has been let, every listing of it on Vallo comes down straight away. If you have not instructed this agent, the listing is closed and our team calls you back.",
     rentTitle: "A tenant has paid rent for your {place}",
-    rentLede:
-      "{total} was paid through {agent} on Vallo, for a tenancy from {moveIn}. These are the figures the tenant was charged, to the kobo.",
     rentLedeNoAgent:
       "{total} was paid on Vallo, for a tenancy from {moveIn}. These are the figures the tenant was charged, to the kobo.",
     rows: {

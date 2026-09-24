@@ -51,7 +51,7 @@ export default async function SafetySharePage({ params }: { params: Promise<{ to
                 : { title: copy.unknownTitle, body: copy.unknownBody };
     /* V-62 review: a lister closing or moving the inspection must not quieten
        this page while the renter has not checked in. */
-    const stillOut = (view.state === "cancelled" || view.state === "moved") && !view.checkedIn;
+    const stillOut = (view.state === "cancelled" || view.state === "moved") && !view.checkedIn && !view.quiet;
     return (
       <Frame>
         <ResultScreen

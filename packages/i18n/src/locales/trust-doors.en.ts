@@ -82,8 +82,6 @@ export const trustDoorsEn = {
     failed: "The link was not made. Nothing was sent. Please try again.",
     pageTitle: "{name} is at an inspection in {area}",
     pageTitleNoName: "A Vallo member is at an inspection in {area}",
-    pageWith: "With {agent}.",
-    pageIdentity: "{agent}'s identity was checked by Vallo on {date}.",
     pageWhen: "From {start}. Expected back by {back}.",
     pageDone: "They tapped I'm done at {time}.",
     pageWaiting: "Not checked in yet. They have not tapped I'm done.",

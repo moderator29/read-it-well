@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isShareToken, readSafetyShare, shareableInspections } from "./safety";
+import { isShareToken, readSafetyShare, shareableInspections, safetyControlRows } from "./safety";
 
 describe("readSafetyShare", () => {
   it("reads a live page with the area and never more", () => {
@@ -20,6 +20,8 @@ describe("readSafetyShare", () => {
     if (view.state !== "live") return;
     expect(view.area).toBe("Ikoyi");
     expect(JSON.stringify(view)).not.toContain("Secret");
+    /* The lister's name is text they typed: never carried, even if sent. */
+    expect(JSON.stringify(view)).not.toContain("Chidi");
   });
 
   it("never falls back to a city, and is failed on anything unreadable", () => {
@@ -34,11 +36,14 @@ describe("readSafetyShare", () => {
       state: "cancelled",
       checkedIn: false,
       overdue: true,
+      quiet: false,
     });
+    expect(readSafetyShare({ state: "cancelled", quiet: true, overdue: false })).toMatchObject({ quiet: true });
     expect(readSafetyShare({ state: "moved", overdue: false, checked_in_at: "2026-09-24T10:00:00Z" })).toEqual({
       state: "moved",
       checkedIn: true,
       overdue: false,
+      quiet: false,
     });
     expect(readSafetyShare({ state: "stopped" }).state).toBe("stopped");
     expect(readSafetyShare(null).state).toBe("failed");
@@ -81,5 +86,35 @@ describe("shareableInspections", () => {
     expect(shareableInspections([row({ side: "lister" })], now)).toHaveLength(0);
     expect(shareableInspections([row({ state: "REQUESTED" })], now)).toHaveLength(0);
     expect(shareableInspections([row({ slotAt: null })], now)).toHaveLength(0);
+  });
+});
+
+describe("which inspections carry the safety control", () => {
+  const now = Date.parse("2026-09-24T12:00:00Z");
+  const row = (id: string, state: string, slotAt: string | null, side: "requester" | "lister" = "requester") => ({ id, state, slotAt, side });
+
+  it("keeps the control while a share is live, whatever the inspection's state", () => {
+    const rows = [row("w", "WITHDRAWN", "2026-09-24T09:00:00Z"), row("c", "COMPLETED", "2026-09-24T09:00:00Z")];
+    const out = safetyControlRows(rows, {
+      w: { checkedIn: false, expiresAt: "2026-09-24T13:00:00Z" },
+      c: { checkedIn: true, expiresAt: "2026-09-24T13:00:00Z" },
+    }, now);
+    expect(out.map((item) => [item.row.id, item.initial])).toEqual([["w", "shared"], ["c", "done"]]);
+  });
+
+  it("uses the share's own expiry, not the slot", () => {
+    const rows = [row("late", "CONFIRMED", "2026-09-24T05:00:00Z")];
+    expect(safetyControlRows(rows, { late: { checkedIn: false, expiresAt: "2026-09-24T12:30:00Z" } }, now)).toHaveLength(1);
+    expect(safetyControlRows(rows, { late: { checkedIn: false, expiresAt: "2026-09-24T11:59:00Z" } }, now)).toHaveLength(0);
+  });
+
+  it("offers a new link only on a confirmed inspection in the window, and never to the lister", () => {
+    const rows = [
+      row("soon", "CONFIRMED", "2026-09-24T15:00:00Z"),
+      row("far", "CONFIRMED", "2026-09-27T15:00:00Z"),
+      row("theirs", "CONFIRMED", "2026-09-24T15:00:00Z", "lister"),
+      row("gone", "WITHDRAWN", "2026-09-24T15:00:00Z"),
+    ];
+    expect(safetyControlRows(rows, {}, now).map((item) => [item.row.id, item.initial])).toEqual([["soon", "none"]]);
   });
 });

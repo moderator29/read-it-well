@@ -9,13 +9,6 @@ function time(iso: string | null, locale: Locale): string {
   return formatDate(date, locale, { hour: "numeric", minute: "2-digit", timeZone: "Africa/Lagos" });
 }
 
-function day(iso: string | null, locale: Locale): string {
-  if (!iso) return "";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  return formatDate(date, locale, { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Lagos" });
-}
-
 type ShareCopy = Dictionary["trustDoors"]["safetyShare"];
 
 /** The live page, apart from its read, so the preview harness can draw it from fixtures. */
@@ -39,15 +32,6 @@ export function SafetySharePanel({
       <h1 className="nf-h2 text-[var(--nf-content-primary)]">{title}</h1>
 
       <div className="mt-md space-y-xs text-[length:var(--nf-text-body)] leading-relaxed text-[var(--nf-content-secondary)]">
-        {view.agentName && <p>{copy.pageWith.replace("{agent}", view.agentName)}</p>}
-        {view.agentName && view.identityCheckedAt && (
-          <p className="flex items-center gap-xs">
-            <UiIcon name="verified-badge" size={18} className="shrink-0 text-[var(--nf-state-success)]" />
-            <span>
-              {copy.pageIdentity.replace("{agent}", view.agentName).replace("{date}", day(view.identityCheckedAt, locale))}
-            </span>
-          </p>
-        )}
         {view.slotAt && view.expectedBackAt && (
           <p className="nf-numeric">
             {copy.pageWhen.replace("{start}", time(view.slotAt, locale)).replace("{back}", time(view.expectedBackAt, locale))}

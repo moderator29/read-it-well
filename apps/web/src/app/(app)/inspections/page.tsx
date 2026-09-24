@@ -20,8 +20,9 @@ import {
 } from "@/lib/inspections/queries";
 import { readListingFacts } from "./facts";
 import { SafetyShareControl } from "@/components/app/doors/SafetyShareControl";
-import { shareableInspections } from "@/lib/doors/safety";
-import { readMySafetyShares } from "@/lib/doors/queries";
+import { safetyControlRows } from "@/lib/doors/safety";
+import { readMyLiveSafetyShares } from "@/lib/doors/queries";
+import { requestNow } from "@/lib/landlord/facts";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -78,9 +79,6 @@ export default async function InspectionsPage({
     ...tagSide(shown.inspections, "lister"),
   ]);
   const all = [...groups.open, ...groups.closed];
-  /* V-62: the renter's own confirmed inspections, from now until the page for
-     each would close, each with "Tell someone where I am going". */
-  const goingAlone = shareableInspections(groups.open);
   const [facts, reports, quotes, truthAnswered, tenancyDue, shares] = await Promise.all([
     readListingFacts(
       all.map((row) => row.listingId),
@@ -95,8 +93,12 @@ export default async function InspectionsPage({
       all.filter((row) => row.side === "requester").map((row) => row.id),
     ),
     readTenancyReviewsDue(all.filter((row) => row.side === "requester").map((row) => row.id)),
-    readMySafetyShares(goingAlone.map((row) => row.id)),
+    readMyLiveSafetyShares(),
   ]);
+  /* V-62: every inspection of the renter's with a share still live, whatever
+     its state now, so "I'm done" and "Stop sharing" stay while the contact's
+     page is up; and the confirmed ones a link can be made for. */
+  const goingAlone = safetyControlRows(all, shares, requestNow());
   const tenancyFor = (row: (typeof all)[number]) => {
     const href = tenancyDue.get(row.id);
     return href ? { href, label: t.trustVisible.tenancy.entry } : null;
@@ -144,7 +146,7 @@ export default async function InspectionsPage({
             {goingAlone.length > 0 && (
               <Section title={t.trustDoors.safetyShare.stripTitle}>
                 <div className="grid gap-sm" data-testid="safety-strip">
-                  {goingAlone.map((row) => (
+                  {goingAlone.map(({ row, initial }) => (
                     <SafetyShareControl
                       key={row.id}
                       inspectionId={row.id}
@@ -152,7 +154,7 @@ export default async function InspectionsPage({
                       slotAt={row.slotAt ?? row.requestedAt}
                       locale={locale}
                       copy={t.trustDoors.safetyShare}
-                      initial={shares[row.id] ? (shares[row.id]!.checkedIn ? "done" : "shared") : "none"}
+                      initial={initial}
                     />
                   ))}
                 </div>

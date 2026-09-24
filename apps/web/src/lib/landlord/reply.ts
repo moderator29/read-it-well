@@ -38,7 +38,6 @@ export type QuestionView = {
   state: "open" | "used" | "expired";
   purpose: "vacancy" | "rent";
   place: string;
-  listerName: string | null;
   askedAt: string | null;
   answeredAt: string | null;
   answer: string | null;
@@ -89,7 +88,6 @@ export function readReply(raw: unknown): ReplyView {
     state,
     purpose,
     place,
-    listerName: s(row.lister_name),
     askedAt: s(row.asked_at),
     answeredAt: s(row.answered_at),
     answer: s(row.answer),
