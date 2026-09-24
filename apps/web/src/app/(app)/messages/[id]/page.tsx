@@ -114,10 +114,10 @@ export default async function ConversationPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ attach?: string | string[] }>;
+  searchParams: Promise<{ attach?: string | string[]; showme?: string | string[] }>;
 }) {
   const { id } = await params;
-  const { attach } = await searchParams;
+  const { attach, showme: showMeParam } = await searchParams;
   const session = await resolveSession();
 
   if (session.state === "signed-in") {
@@ -306,6 +306,7 @@ export default async function ConversationPage({
               copy={t.shape.showMe}
               locale={locale}
               now={renderedAt()}
+              openOnArrival={(Array.isArray(showMeParam) ? showMeParam[0] : showMeParam) === "1"}
             />
           ) : null
         }

@@ -48,6 +48,7 @@ export function ShowMePanel({
   copy,
   locale,
   now,
+  openOnArrival = false,
 }: {
   conversationId: string;
   role: "guest" | "host";
@@ -56,9 +57,11 @@ export function ShowMePanel({
   locale: Locale;
   /** The server's clock at render, so the server and the browser agree. */
   now: string;
+  /** Arrived from the listing's "Show me..." link: the choices start open. */
+  openOnArrival?: boolean;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(openOnArrival && role === "guest");
   const [other, setOther] = useState("");
   const [result, setResult] = useState<ShowMeResult | null>(null);
   const [pending, startTransition] = useTransition();

@@ -24,3 +24,5 @@ export async function flagIsOn(key: string): Promise<boolean> {
 export const NEIGHBOURS_FLAG = "neighbours_account";
 /** V-43: rush-hour times to named places. */
 export const COMMUTE_FLAG = "commute_by_the_clock";
+/** V-69: a renter asks the lister for one clip. */
+export const SHOW_ME_FLAG = "show_me";

@@ -33,7 +33,7 @@ import { ListingService } from "@/components/app/listing/ListingService";
 import { RecordViews } from "@/components/app/search/RecordViews";
 import { ListingNeighbours } from "@/components/app/listing/ListingNeighbours";
 import { readFlooding, readNeighbours } from "@/lib/around/pulse-queries";
-import { flagIsOn, NEIGHBOURS_FLAG } from "@/lib/flags/read";
+import { flagIsOn, NEIGHBOURS_FLAG, SHOW_ME_FLAG } from "@/lib/flags/read";
 import { getBlockedDates } from "@/lib/bookings/queries";
 import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";
@@ -373,6 +373,7 @@ export default async function ListingDetailPage({
      change. */
   /* V-41: the neighbours' account, for a home to let or sell. Read with the
      caller's session; the summary function applies its own threshold. */
+  const showMeOpen = await flagIsOn(SHOW_ME_FLAG);
   const neighboursOn =
     (isRental || isSale) && session.state === "signed-in" && (await flagIsOn(NEIGHBOURS_FLAG));
   const [access, bookingConfirmed, neighbours, flooding] = await Promise.all([
@@ -881,6 +882,22 @@ export default async function ListingDetailPage({
                   {isRental && !isSale && (
                     <div className="mt-md" data-testid="detail-lead-move-in">
                       <ListingMoveInBlock listing={listing} locale={locale} t={t} />
+                    </div>
+                  )}
+
+                  {/* V-69: ask for one clip before crossing Lagos. Behind the
+                      show_me flag; never on an example, which has nobody to
+                      film anything. */}
+                  {showMeOpen && isRental && !isSale && !listing.isDemo && (
+                    <div className="mt-sm" data-testid="detail-show-me">
+                      <ButtonLink
+                        href={`/messages/new?listing=${listing.id}&then=showme`}
+                        variant="secondary"
+                        className="w-full"
+                      >
+                        {t.shape.showMe.entry}
+                      </ButtonLink>
+                      <p className="nf-caption mt-2xs text-[var(--nf-content-muted)]">{t.shape.showMe.entryHint}</p>
                     </div>
                   )}
 

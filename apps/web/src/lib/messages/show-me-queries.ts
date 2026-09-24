@@ -2,10 +2,8 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
-import { flagIsOn } from "../flags/read";
+import { flagIsOn, SHOW_ME_FLAG } from "../flags/read";
 import { isShowMeItem, type ShowMeRequest } from "./show-me";
-
-export const SHOW_ME_FLAG = "show_me";
 
 /**
  * The thread's "Show me" requests, under the caller's own policy (the two

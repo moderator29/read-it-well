@@ -238,6 +238,8 @@ export const shapeEn = {
   showMe: {
     title: "Show me",
     ask: "Ask for a clip",
+    entry: "Show me...",
+    entryHint: "Ask the lister for one short clip, the tap running or the meter reading, before you travel.",
     guestLede: "Ask for one thing on video before you travel. The lister has 48 hours to send it.",
     hostLede: "Answer each ask with a short clip from your phone, 30 seconds at most. It stays in this conversation.",
     items: {
