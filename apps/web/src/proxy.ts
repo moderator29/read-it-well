@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { isAuthRetryableFetchError, type User } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import {
   contentSecurityPolicy,
@@ -9,7 +10,20 @@ import {
 } from "@/lib/security/csp";
 import { safeReturnPath } from "@/lib/security/return-path";
 import { isShellUserAgent, SHELL_START } from "@/lib/native/shell";
+import { forwardedAgentHeaders } from "./lib/supabase/agent";
+import { serverCookiesSecure, withAuthCookiePolicy } from "./lib/supabase/cookie-policy";
+import { consume, ipFromHeaders, subjectForIp } from "@/lib/security/rate-limit";
+import {
+  ANON_CATALOGUE_LIMIT,
+  ANON_CATALOGUE_WINDOW_SECONDS,
+  isPublicCataloguePath,
+  PUBLIC_CATALOGUE_API_PATHS,
+  publicCatalogueEnabled,
+} from "@/lib/catalogue/public-access";
 import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/supabase/env";
+import { previewHarnessIsOpen } from "@/lib/preview-harness";
+import { isKnownRoute } from "@/lib/routing/known-routes";
+import { detailIsMissing, type ListingCounter } from "@/lib/routing/listing-exists";
 
 /**
  * Refresh the Supabase auth session on every request, and hold the door on the
@@ -99,8 +113,7 @@ import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/sup
  *
  * `welcome` IS THE FRONT DOOR. First run is the first thing a stranger meets,
  * from the stores and from Sign up or Sign in, so it must answer signed out.
- * This is the line Session B holds by written agreement; it has moved from the
- * closed list to this one and it means the same thing.
+ * It has moved from the closed list to this one and it means the same thing.
  *
  * `offline` is served when there is no network at all, so it cannot depend on
  * an auth call, and `home-or-landing` resolves the word "home" by reading the
@@ -171,7 +184,10 @@ const PUBLIC_SEGMENTS = new Set([
   "check",
   "safe",
   // Serving with no network, and resolving which home the caller means.
+  // `open` is where the native app starts (STORE-04): it answers /home for a
+  // session and /welcome or the open catalogue for anybody else.
   "home-or-landing",
+  "open",
   "offline",
   // Development harnesses, closed by their own guard in production.
   "gallery",
@@ -183,7 +199,7 @@ const PUBLIC_SEGMENTS = new Set([
  *
  * `/` is the landing page. `/robots.txt` and `/sitemap.xml` are read by
  * crawlers that have no session and never will, and a sitemap behind a login
- * is a sitemap nothing can fetch. `/opengraph-image.png` is what an unfurler
+ * is a sitemap nothing can fetch. `/opengraph-image.jpg` is what an unfurler
  * fetches when somebody pastes our address into a chat, so it is public for
  * the same reason.
  *
@@ -192,7 +208,7 @@ const PUBLIC_SEGMENTS = new Set([
  * chunks, the brand and icon directories, the fonts, the PWA assets,
  * `/.well-known/`, `/sw.js` and `/manifest.webmanifest`.
  */
-const PUBLIC_PATHS = new Set(["/", "/robots.txt", "/sitemap.xml", "/opengraph-image.png"]);
+const PUBLIC_PATHS = new Set(["/", "/robots.txt", "/sitemap.xml", "/opengraph-image.jpg"]);
 
 /**
  * The API routes that answer WITHOUT a session, by exact path, and why each
@@ -248,6 +264,7 @@ const PUBLIC_API_PATHS = new Set([
   "/api/auth/email-hook",
   "/api/client-error",
   "/api/cron/account-purge",
+  "/api/cron/canary",
   "/api/cron/complete-stays",
   "/api/cron/email-outbox",
   "/api/cron/hold-sweep",
@@ -261,6 +278,7 @@ const PUBLIC_API_PATHS = new Set([
   "/api/cron/sanctions-lists",
   "/api/cron/sanctions-screen",
   "/api/csp-report",
+  "/api/health/catalogue",
   "/api/landlord/inbound",
   "/api/push/key",
   "/api/paystack/reconcile",
@@ -282,14 +300,65 @@ const PUBLIC_API_PATHS = new Set([
  * same function the running middleware uses, rather than through a second copy
  * of the rule that can agree with itself while disagreeing with the product.
  */
-export function isPublicPath(path: string): boolean {
+export function isPublicPath(
+  path: string,
+  options: { publicCatalogue?: boolean } = {},
+): boolean {
   if (PUBLIC_PATHS.has(path)) return true;
+  /* STORE-P2-04: the founder's switch, VALLO_PUBLIC_CATALOGUE. It can only
+     ADD the six read-only catalogue segments; it cannot open an account
+     surface, and of the API only the map's pins, which the search page calls
+     and which carry their own per-address limit
+     (`lib/catalogue/public-access.ts`). */
+  if (options.publicCatalogue && isPublicCataloguePath(path)) return true;
+  if (options.publicCatalogue && PUBLIC_CATALOGUE_API_PATHS.has(path)) return true;
   /* An API path is decided by its WHOLE path and never by its first segment,
      because `api` is not a public tree: only the endpoints enumerated above
      answer a caller with no session and the rest do not. */
   if (isApiPath(path)) return PUBLIC_API_PATHS.has(path);
   const [, first = ""] = path.split("/");
   return PUBLIC_SEGMENTS.has(first);
+}
+
+/**
+ * A top-level page load, as opposed to Next's RSC navigation fetches and the
+ * intent prefetches a listing card fires on hover or touch. Only these count
+ * against a stranger's catalogue allowance: a person scrolling a list would
+ * otherwise spend several counts per page they never opened, and a refusal
+ * sent to an RSC fetch surfaces as a broken navigation, not a sentence.
+ */
+export function isDocumentRequest(request: { headers: Headers }): boolean {
+  const headers = request.headers;
+  if (headers.get("rsc") === "1" || headers.has("next-router-prefetch")) return false;
+  const purpose = `${headers.get("purpose") ?? ""} ${headers.get("sec-purpose") ?? ""}`.toLowerCase();
+  if (purpose.includes("prefetch")) return false;
+  const dest = headers.get("sec-fetch-dest");
+  return dest === null || dest === "document";
+}
+
+/**
+ * The form pages a signed-out server action may reach. Each one checks the
+ * session in the page itself, so a render caused by an action shows nobody
+ * anything gated: the three supply registration pages call
+ * `requireSignedInPage`, and /host/apply and /agent/list draw their own
+ * signed-out state. A page is added here only with that check and a test of it
+ * (proxy-server-action.test.ts).
+ */
+export const SELF_GUARDING_FORM_PATHS: ReadonlySet<string> = new Set([
+  "/profile/setup/owner",
+  "/profile/setup/agent",
+  "/profile/setup/professional",
+  "/host/apply",
+  "/agent/list",
+]);
+
+/**
+ * A server action call: a POST carrying the `next-action` header that Next's
+ * client sets on every action it invokes. Signed out, it reaches the action
+ * only on `SELF_GUARDING_FORM_PATHS`; see the signed-out branch of `proxy`.
+ */
+export function isServerActionRequest(request: { method: string; headers: Headers }): boolean {
+  return request.method === "POST" && request.headers.has("next-action");
 }
 
 /** An `/api` path, which is answered rather than redirected. See `refuse`. */
@@ -308,14 +377,21 @@ export function isApiPath(path: string): boolean {
  */
 /** The visitor's own User-Agent, capped, or nothing at all. See the call site. */
 function forwardedAgent(request: NextRequest): Record<string, string> {
-  const agent = request.headers.get("user-agent");
-  return agent ? { "user-agent": agent.slice(0, 512) } : {};
+  return forwardedAgentHeaders(request.headers.get("user-agent"));
 }
 
 function withSecurityPolicy(response: NextResponse, nonce: string): NextResponse {
   response.headers.set(cspHeaderName(), contentSecurityPolicy(nonce));
   response.headers.set("Reporting-Endpoints", REPORTING_ENDPOINTS);
   return response;
+}
+
+/** An address no route matches: a closed harness request, or an unknown one, is rewritten here to get the site's 404. */
+export const HARNESS_CLOSED_PATH = "/_harness-closed";
+
+/** The development harness trees, `/preview` and `/gallery`. */
+export function isHarnessPath(pathname: string): boolean {
+  return /^\/(preview|gallery)(\/|$)/.test(pathname);
 }
 
 export async function proxy(request: NextRequest) {
@@ -331,8 +407,25 @@ export async function proxy(request: NextRequest) {
   request.headers.set(NONCE_HEADER, nonce);
 
   /*
+   * STORE-17: A CLOSED HARNESS IS A REAL 404, DECIDED BEFORE ANY RENDER.
+   *
+   * The harness layout's own `notFound()` runs after the root `loading.tsx`
+   * has started the stream, so the status was already 200 and the page
+   * beside it had streamed its list of preview decks into the payload. The
+   * rewrite goes to an address no route matches, so Next answers with the
+   * site's not-found page and a 404 status, and nothing of the harness is
+   * rendered at all.
+   */
+  if (isHarnessPath(request.nextUrl.pathname) && !previewHarnessIsOpen(process.env)) {
+    const closed = request.nextUrl.clone();
+    closed.pathname = HARNESS_CLOSED_PATH;
+    closed.search = "";
+    return withSecurityPolicy(NextResponse.rewrite(closed, { request }), nonce);
+  }
+
+  /*
    * V-11: THE STORE SHELL NEVER GETS THE LANDING PAGE. The shell appends
-   * `ValloShell` to its user agent (`capacitor.config.ts`), and its first
+   * `VALLO-NATIVE` to its user agent (`capacitor.config.ts`), and its first
    * request is for `/`. It is sent to its own start before anything renders,
    * here rather than in the page, because the root `loading.tsx` streams and
    * a page-level redirect would arrive as a refresh after a skeleton. A
@@ -389,20 +482,53 @@ export async function proxy(request: NextRequest) {
         }
         response = NextResponse.next({ request });
         for (const { name, value, options } of cookiesToSet) {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, withAuthCookiePolicy(options, serverCookiesSecure(request.nextUrl.protocol)));
         }
       },
     },
   });
 
   // Rotates the token when needed. Do not remove: this call is the refresh.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const reader = await readSessionUser(() => supabase.auth.getUser(), carriesSessionCookie(request));
+
+  /* OPS-05. A request that carries a session while auth cannot answer (a
+     5xx, a network failure, no answer in time) is let through: the page's
+     own reads decide, and fail visibly, instead of every member being sent
+     to sign-in at once. */
+  if (reader === "unknown") return withSecurityPolicy(response, nonce);
+  const user = reader;
 
   if (!user) {
     const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
-    if (!isPublicPath(path)) {
+    const publicCatalogue = publicCatalogueEnabled();
+
+    /* A stranger reading the open catalogue is counted per address, so the
+       switch cannot be used to walk every listing at machine speed. Only the
+       pages are counted; a person reads a few a minute. */
+    if (publicCatalogue && isPublicCataloguePath(path) && isDocumentRequest(request)) {
+      const verdict = await consume({
+        bucket: "anon_catalogue",
+        subject: subjectForIp(ipFromHeaders(request.headers)),
+        limit: ANON_CATALOGUE_LIMIT,
+        windowSeconds: ANON_CATALOGUE_WINDOW_SECONDS,
+      });
+      if (!verdict.allowed) {
+        /* A page, so a page answers: the sign-in screen with the reason, and
+           the address they wanted kept. Sign in and browsing carries on. */
+        const target = request.nextUrl.clone();
+        target.pathname = "/sign-in";
+        target.search = "";
+        const back = safeReturnPath(request.nextUrl.pathname, request.nextUrl.search);
+        if (back) target.searchParams.set("next", back);
+        target.searchParams.set("notice", "catalogue-paced");
+        const response = NextResponse.redirect(target);
+        response.headers.set("retry-after", String(verdict.retryAfterSeconds));
+        response.headers.set("cache-control", "no-store");
+        return withSecurityPolicy(response, nonce);
+      }
+    }
+
+    if (!isPublicPath(path, { publicCatalogue })) {
       /*
        * AN API ROUTE IS ANSWERED, NEVER REDIRECTED.
        *
@@ -420,6 +546,37 @@ export async function proxy(request: NextRequest) {
           ),
           nonce,
         );
+      }
+
+      /*
+       * ON A FORM PAGE, A SERVER ACTION ANSWERS FOR ITSELF, NOT BY REDIRECT.
+       *
+       * An action is a POST the page's own code makes with `fetch`. A 307 to
+       * the sign-in page is followed, returns HTML, and React throws "An
+       * unexpected response was received from the server": the route error
+       * boundary replaces the form and everything typed into it is gone. On
+       * the form pages below, the action reads the session itself and refuses
+       * in its own envelope ("Sign in to continue."), which the form shows
+       * with its answers still in place.
+       *
+       * ONLY THOSE PAGES. When an action revalidates, Next renders the page
+       * at the posted address into the response, so a signed-out action POST
+       * to any other gated address (a listing, /home) would come back with
+       * that page drawn for nobody. Each page listed here checks the session
+       * itself (`requireSignedInPage`, or its own signed-out state), and
+       * everything else keeps the redirect.
+       */
+      if (isServerActionRequest(request) && SELF_GUARDING_FORM_PATHS.has(path)) {
+        return withSecurityPolicy(response, nonce);
+      }
+
+      /* OPS-17: an address this app does not answer at is a 404 for a
+         stranger too, not a trip to the sign-in screen. */
+      if (!isKnownRoute(path)) {
+        const missing = request.nextUrl.clone();
+        missing.pathname = HARNESS_CLOSED_PATH;
+        missing.search = "";
+        return withSecurityPolicy(NextResponse.rewrite(missing, { request }), nonce);
       }
 
       const target = request.nextUrl.clone();
@@ -442,7 +599,59 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  /* OPS-17 / UI-16: a listing, stay or restaurant page for something that is
+     not there answers 404 before the stream starts. Documents only: a prefetch or an RSC fetch goes on to
+     the page, which renders the not-found state itself. The refreshed session
+     cookies on `response` are carried over. */
+  if (request.method === "GET" && isDocumentRequest(request)) {
+    const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
+    if (await detailIsMissing(path, supabase as unknown as ListingCounter)) {
+      const missing = request.nextUrl.clone();
+      missing.pathname = HARNESS_CLOSED_PATH;
+      missing.search = "";
+      const rewritten = NextResponse.rewrite(missing, { request });
+      for (const cookie of response.cookies.getAll()) rewritten.cookies.set(cookie);
+      return withSecurityPolicy(rewritten, nonce);
+    }
+  }
+
   return withSecurityPolicy(response, nonce);
+}
+
+/** OPS-05. How long the guard waits for auth before it stops waiting. */
+const AUTH_ANSWER_TIMEOUT_MS = 3000;
+
+/** Whether the request carries a Supabase session cookie at all. */
+function carriesSessionCookie(request: NextRequest): boolean {
+  return request.cookies.getAll().some(({ name }) => name.startsWith("sb-") && name.includes("-auth-token"));
+}
+
+/**
+ * The signed-in reader, null when there is none, or "unknown" when a request
+ * that carries a session could not be answered: auth returned a 5xx or a
+ * network failure (AuthRetryableFetchError), or did not answer in time. A
+ * refusal from auth itself (an expired, revoked or malformed session) and a
+ * request with no session cookie are both null, never "unknown".
+ */
+async function readSessionUser(
+  getUser: () => Promise<{ data: { user: User | null }; error: unknown }>,
+  hasSessionCookie: boolean,
+): Promise<User | null | "unknown"> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<"timeout">((resolve) => {
+    timer = setTimeout(() => resolve("timeout"), AUTH_ANSWER_TIMEOUT_MS);
+  });
+  try {
+    const answer = await Promise.race([getUser(), timeout]);
+    if (answer === "timeout") return hasSessionCookie ? "unknown" : null;
+    if (answer.data.user) return answer.data.user;
+    if (hasSessionCookie && isAuthRetryableFetchError(answer.error)) return "unknown";
+    return null;
+  } catch {
+    return hasSessionCookie ? "unknown" : null;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export const config = {

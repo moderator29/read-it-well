@@ -2,7 +2,7 @@ import { isModestExample } from "@/lib/listings/example-imagery";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatMoney, formatNumber, plural, type Dictionary, type Locale } from "@vallo/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { PERIOD_SUFFIX_SLASH, type RentPeriod } from "@/lib/listings/pricing";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
@@ -80,13 +80,13 @@ export function MoveInLedger({
             {listing.bedrooms > 0 && (
               <span className="inline-flex items-center gap-2xs">
                 <UiIcon name="bed" size={12} />
-                {listing.bedrooms} {listing.bedrooms === 1 ? t.common.bed : t.common.beds}
+                {plural(listing.bedrooms, t.units.beds, locale)}
               </span>
             )}
             {listing.bathrooms > 0 && (
               <span className="inline-flex items-center gap-2xs">
                 <UiIcon name="bath" size={12} />
-                {listing.bathrooms} {listing.bathrooms === 1 ? t.common.bath : t.common.baths}
+                {plural(listing.bathrooms, t.units.baths, locale)}
               </span>
             )}
             {listing.sizeSqm !== undefined && listing.sizeSqm > 0 && (

@@ -5,6 +5,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { CancellationTimeline } from "@/lib/trust/CancellationTimeline";
 import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";
 import { RESPONSE_COMMITMENTS } from "@/lib/trust/standards";
+import { WALLET_MONEY_USES } from "@/lib/wallet/bank-payouts";
 
 export const metadata: Metadata = {
   title: "Cancellation policy",
@@ -163,12 +164,10 @@ export default function CancellationPolicyPage() {
           </h2>
           <div className="nf-panel nf-panel--card block mt-group p-card">
             <p className="text-[0.9375rem] leading-relaxed text-[var(--nf-content-secondary)]">
-              Into your Vallo wallet, in naira, to the kobo. That is the fastest
-              route available in this market and it is not a store credit: move it
-              to your Nigerian bank account from the wallet whenever you want, or
-              spend it on your next stay or on the other side of the product. One
-              wallet serves both. Card reversals are slower and depend on your
-              bank, which is why they are not the default.
+              Into your Vallo wallet, in naira, to the kobo, usually within minutes
+              of the decision. One wallet serves both sides of the product.{" "}
+              {WALLET_MONEY_USES} A refund is not returned to the card it was paid
+              with.
             </p>
           </div>
         </section>

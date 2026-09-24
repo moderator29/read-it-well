@@ -1,7 +1,7 @@
 # R2 functionality audit: what is broken or half done
 
 **Written 19 September 2026 by R2, the functionality auditor.** The rules of
-section 0 of `docs/BUILD_06_LEDGER.md` are restated at the head of the report
+section 0 of `docs/archive/BUILD_06_LEDGER.md` are restated at the head of the report
 this accompanies. R2 owns no product code and has fixed nothing; every entry
 below is a finding for the worker whose scope holds it.
 
@@ -208,7 +208,7 @@ open in fact.
 
 **EVIDENCE.**
 - `apps/web/src/lib/reservations/actions.ts:25-27` - the trigger's refusal and the "every listing in the catalogue today is one" note
-- `docs/BUILD_06_LEDGER.md` section 1 - 64 listings, all `is_demo`, 0 businesses
+- `docs/archive/BUILD_06_LEDGER.md` section 1 - 64 listings, all `is_demo`, 0 businesses
 - The guest side is genuinely built: `app/(app)/trips/page.tsx:39` reads
   `getMyReservations()`, `app/(app)/trips/TripSpine.tsx:121-124` threads each
   one to `/messages/<conversationId>` and falls back to `/restaurant/<id>`,
@@ -382,7 +382,7 @@ are listed.
 ## Things checked and found genuinely closed
 
 Recorded because "we already fixed that" deserves evidence too, and because
-four items `docs/HANDOFF_06.md` section 4 lists as outstanding are not.
+four items `docs/archive/HANDOFF_06.md` section 4 lists as outstanding are not.
 
 - **The rent dead end.** `/rent/pay/[inspectionId]` exists, is reachable from
   `components/app/threads/RentalFace.tsx:247`,

@@ -6,6 +6,7 @@ import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
 import { FULL_REFUND_HOURS } from "@/lib/trust/cancellation";
 import { VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { MAX_MOVE_KOBO, MIN_MOVE_KOBO } from "@/lib/wallet/schema";
+import { BANK_PAYOUTS_OPEN, WALLET_MONEY_USES } from "@/lib/wallet/bank-payouts";
 import { MAX_BLOCK_NIGHTS } from "@/lib/agent/calendar-schema";
 import { MAX_DAYS_AHEAD, MAX_PARTY } from "@/lib/reservations/schema";
 import { EDIT_WINDOW_MINUTES, POST_MAX, POST_MEDIA_MAX } from "@/lib/social/posts-schema";
@@ -89,7 +90,7 @@ export const CHAPTERS: DocChapter[] = [
             <p>
               It has two sides. <strong>Property</strong> is renting, buying and
               selling across Nigeria: annual rentals, homes, villas, shops, offices
-              and land, listed by people a person has checked, with inspections before
+              and land, listed by people a person here approved, with inspections before
               any money moves. <strong>Vallo Stays</strong> is the nightly side:
               hotels, apartments, guest houses, resorts, serviced apartments,
               shortlets and restaurant tables. One account carries both, along with
@@ -180,9 +181,10 @@ export const CHAPTERS: DocChapter[] = [
               conversation, and no money moves for a table.
             </li>
             <li>
-              <strong>Keep your money in one place.</strong> Fund a wallet, withdraw to
-              a Nigerian bank account, send money to another Vallo account, and read
-              every movement in a statement that cannot be edited.
+              <strong>Keep your money in one place.</strong> Fund a wallet, send money
+              to another Vallo account
+              {BANK_PAYOUTS_OPEN ? ", withdraw to a Nigerian bank account" : ""}, and
+              read every movement in a statement that cannot be edited.
             </li>
             <li>
               <strong>Talk to the agent.</strong> Ask about the road, the generator or
@@ -769,13 +771,13 @@ export const CHAPTERS: DocChapter[] = [
         body: (
           <>
             <p>
-              Every listing on Vallo was listed on Vallo, by a real person who applied,
-              was verified and was approved. Nothing is imported from an outside feed,
+              Every real listing on Vallo was listed on Vallo, by a real person who
+              applied and was approved, and every example says it is one. Nothing is imported from an outside feed,
               nothing is scraped, and no third party fills the catalogue for us.
             </p>
             <p>
               That is the ground the rest of the trust stands on. The verified badge can
-              mean something because there is a checked person behind every listing:
+              mean something because a person here checked the ID of the agent who earns it:
               somebody to message, somebody to inspect the property with, and somebody
               accountable if it is not as described.
             </p>
@@ -885,7 +887,7 @@ export const CHAPTERS: DocChapter[] = [
             <p>
               An annual tenancy is not lodging, so there is no Reserve button on one. The
               path is message the agent, inspect the property, then pay, and every step
-              stays inside the platform where it can be protected.
+              stays inside the platform, where there is a record of it.
             </p>
             <p>
               The rent market is{" "}
@@ -1115,7 +1117,7 @@ export const CHAPTERS: DocChapter[] = [
               If the agent cancels, or the property was materially not what was listed, you
               get everything back whenever it happens. A refund lands in your Vallo wallet
               the moment the cancellation is decided, and never later than five Nigerian
-              business days after you ask. You move it to your bank from there.
+              business days after you ask. {WALLET_MONEY_USES}
             </p>
             <p>
               An unpaid hold is different again: let it go whenever you like, for nothing.
@@ -1220,7 +1222,7 @@ export const CHAPTERS: DocChapter[] = [
     number: 6,
     title: "Your wallet",
     summary:
-      "Funding, savings pots, withdrawing to a Nigerian bank, sending money to another account, and what the platform charges: nothing.",
+      `Funding, savings pots, ${BANK_PAYOUTS_OPEN ? "withdrawing to a Nigerian bank" : "why withdrawing to a bank is not open yet"}, sending money to another account, and what the platform charges: nothing.`,
     icon: "wallet-secure",
     sections: [
       {
@@ -1232,9 +1234,8 @@ export const CHAPTERS: DocChapter[] = [
               <Link href="/wallet" className={A}>
                 Your wallet
               </Link>{" "}
-              is a naira balance held against your account. Refunds land here, you can pay
-              for a stay from here in one tap, and you can move money to a Nigerian bank
-              account whenever you want.
+              is a naira balance held against your account. Refunds land here, and you can
+              pay for a stay from here in one tap. {WALLET_MONEY_USES}
             </p>
             <p>
               The balance is not a number somebody stores and edits. It is derived from a
@@ -1279,7 +1280,7 @@ export const CHAPTERS: DocChapter[] = [
       {
         id: "withdrawing",
         heading: "Withdrawing to your bank",
-        body: (
+        body: BANK_PAYOUTS_OPEN ? (
           <>
             <p>
               Tap <strong>Withdraw</strong>, choose your bank, enter the account number
@@ -1292,6 +1293,11 @@ export const CHAPTERS: DocChapter[] = [
               <code>rm-wd-</code>.
             </p>
           </>
+        ) : (
+          <p>
+            Not yet. Vallo cannot send a transfer to your bank today, so there is no
+            Withdraw button. {WALLET_MONEY_USES} Nothing you hold is lost in the meantime.
+          </p>
         ),
       },
       {
@@ -1335,8 +1341,8 @@ export const CHAPTERS: DocChapter[] = [
         body: (
           <p>
             The smallest amount you can move in one go is {MIN_MOVE}, and the largest is{" "}
-            {MAX_MOVE}. Those bounds apply to adding money, withdrawing and transferring
-            alike. To move more than the ceiling, split it across more than one movement.
+            {MAX_MOVE}. Those bounds apply to adding money and transferring
+            {BANK_PAYOUTS_OPEN ? ", and to withdrawing," : ""} alike. To move more than the ceiling, split it across more than one movement.
           </p>
         ),
       },
@@ -1377,8 +1383,8 @@ export const CHAPTERS: DocChapter[] = [
           <>
             <p>
               <strong>Nothing.</strong> There is no fee to hold a wallet, no fee to add
-              money, no fee to withdraw, no fee to transfer, and no fee to pay for a stay
-              from it.
+              money, {BANK_PAYOUTS_OPEN ? "no fee to withdraw, " : ""}no fee to transfer,
+              and no fee to pay for a stay from it.
             </p>
             <p>
               This is not a line of marketing copy, it is the shape of the ledger. Every
@@ -1745,8 +1751,8 @@ export const CHAPTERS: DocChapter[] = [
                 Add a workspace
               </Link>{" "}
               and pick the door that fits: {doorsSentence()}. The owner form is four
-              short screens. The agent and firm forms ask for more, because more can go
-              wrong when somebody acts for another person. Your progress saves as you
+              short screens. The agent form asks for more, because more can go wrong
+              when somebody acts for another person. Your progress saves as you
               go, so you can put it down and come back. Applying as an agent, the six
               steps are:
             </p>
@@ -1768,8 +1774,9 @@ export const CHAPTERS: DocChapter[] = [
               </li>
               <li>
                 <strong>Payout account.</strong> The Nigerian bank account your earnings
-                go to. We ask the bank whose account it is and store the name the bank
-                gave, not the one typed into the form.
+                {BANK_PAYOUTS_OPEN ? " go to" : " will be paid to once bank payouts open"}.
+                We ask the bank whose account it is and store the name the bank gave, not
+                the one typed into the form.
               </li>
               <li>
                 <strong>Review.</strong> Check it and submit.
@@ -1964,9 +1971,9 @@ export const CHAPTERS: DocChapter[] = [
               It does not mean the mattress is comfortable. Read the reviews for that.
             </p>
             <p>
-              Every listing here was put up by a person we have checked. There is no
-              outside inventory on Vallo at all, which is the only reason the badge can
-              carry any weight.
+              Every real listing here was put up by a person we approved, and every
+              example says it is one. There is no outside inventory on Vallo at all,
+              which is the only reason the badge can carry any weight.
             </p>
             <p>
               <strong>Verified and Third party are different words and they never
@@ -2367,9 +2374,8 @@ export const CHAPTERS: DocChapter[] = [
             <Link href="/wallet" className={A}>
               wallet statement
             </Link>{" "}
-            first. From there, withdraw to your bank: a bank transfer takes as long as your
-            bank takes. If nothing appears in the statement, contact support with the
-            booking reference.
+            first. {WALLET_MONEY_USES} If nothing appears in the statement, contact
+            support with the booking reference.
           </p>
         ),
       },

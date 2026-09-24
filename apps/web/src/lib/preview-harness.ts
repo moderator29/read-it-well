@@ -12,7 +12,6 @@
  * 404s there. So the two rules met head on: the harness is the only way to
  * render a signed-in surface, an empty state or an error state without a
  * session, and the production server is the only place a proof of it counts.
- * Every sweep worker hit this at once.
  *
  * THE RESOLUTION, AND THE PART THAT MATTERS IS THE SECOND CONDITION. The
  * harness opens on a production build ONLY when `VALLO_PREVIEW_HARNESS` is set to

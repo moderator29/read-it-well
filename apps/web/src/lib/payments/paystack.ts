@@ -30,6 +30,22 @@ export class PaystackError extends Error {
   }
 }
 
+/**
+ * MON-01. A call whose outcome is NOT KNOWN: the request may have reached
+ * Paystack and done its work. A network failure, the fifteen-second abort, a
+ * 5xx, or a 2xx whose body could not be read. Only an explicit refusal (a 4xx,
+ * or a 2xx envelope with `status: false`) proves nothing happened. A withdrawal
+ * whose transfer call ends this way keeps its hold PENDING and lets the sweep
+ * ask Paystack, because releasing it would hand back money that may already
+ * have been paid out.
+ */
+export class PaystackUnknownOutcome extends PaystackError {
+  constructor(message: string, status?: number) {
+    super(message, status);
+    this.name = "PaystackUnknownOutcome";
+  }
+}
+
 function secretKey(): string {
   return process.env.PAYSTACK_SECRET_KEY ?? "";
 }
@@ -73,7 +89,7 @@ async function request<T>(
       cache: "no-store",
     });
   } catch {
-    throw new PaystackError("The payment service could not be reached. Please try again.");
+    throw new PaystackUnknownOutcome("The payment service could not be reached. Please try again.");
   }
 
   let envelope: PaystackEnvelope | null = null;
@@ -83,6 +99,12 @@ async function request<T>(
     envelope = null;
   }
 
+  if (res.status >= 500 || (res.ok && envelope === null)) {
+    throw new PaystackUnknownOutcome(
+      "The payment service did not say whether it acted on the request.",
+      res.status,
+    );
+  }
   if (!res.ok || envelope === null || envelope.status !== true) {
     const message =
       envelope?.message && envelope.message.trim().length > 0
@@ -268,6 +290,8 @@ export type ChargeSummary = {
   channel: string | null;
   customerEmail: string | null;
   metadata: Record<string, unknown>;
+  /** Integer kobo the processor kept, when the list reported it (MON-14). */
+  feesMinor?: number | null;
 };
 
 /** The largest page Paystack will serve, and the sweep's page size. */
@@ -309,6 +333,7 @@ export async function listSuccessfulCharges(params: {
         channel?: string | null;
         customer?: { email?: string | null } | null;
         metadata?: unknown;
+        fees?: number | null;
       }[]
     >(`/transaction?${query.toString()}`);
 
@@ -323,6 +348,7 @@ export async function listSuccessfulCharges(params: {
         channel: row.channel ?? null,
         customerEmail: row.customer?.email ?? null,
         metadata: metadataObject(row.metadata),
+        feesMinor: Number.isSafeInteger(row.fees) ? (row.fees as number) : null,
       });
     }
 

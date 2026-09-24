@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient, User } from "@supabase/supabase-js";
+import { LISTING_PRIVATE_COLUMNS, withListingPrivate, withoutColumns } from "../supabase/private-fields";
 import type { Database } from "../supabase/database.types";
 import { readClosedReasons } from "../landlord/queries";
 import { SUPABASE_URL } from "../supabase/env";
@@ -299,6 +300,27 @@ const LISTING_SELECT =
   "listing_videos(id, storage_path, poster_path, duration_seconds, position), " +
   "listing_amenities(amenities(code)), " +
   "listing_access(estate_name, gate_directions, security_phone, access_code)";
+
+/**
+ * The street address, landmark and the reviewer's note are the lister's and
+ * staff's, not every member's. The table read names only the
+ * public columns; the private ones come from `listing_private_fields`, which
+ * answers only for the caller's own listings.
+ */
+export const LISTING_PUBLIC_SELECT = withoutColumns(LISTING_SELECT, LISTING_PRIVATE_COLUMNS);
+
+/** The row with its private fields, or null when they could not be read. */
+async function withListingPrivateOrNull(
+  supabase: Parameters<typeof withListingPrivate>[0],
+  row: ListingWithChildren,
+) {
+  try {
+    const [merged] = await withListingPrivate(supabase, [row]);
+    return merged ?? null;
+  } catch {
+    return null;
+  }
+}
 
 type ListingWithChildren = {
   id: string;
@@ -628,19 +650,27 @@ async function readUnitFor(
   }
 }
 
-/** Every listing the agent owns, newest activity first, all statuses. */
+/**
+ * Every listing the agent owns, newest activity first, all statuses. Null
+ * when they could not be read, which is not the same as having none.
+ */
 export async function readMyListings(
   supabase: SupabaseClient<Database>,
   agentId: string,
-): Promise<ListingSummary[]> {
+): Promise<ListingSummary[] | null> {
   const { data, error } = await supabase
     .from("listings")
-    .select(LISTING_SELECT)
+    .select(LISTING_PUBLIC_SELECT)
     .eq("agent_id", agentId)
     .order("updated_at", { ascending: false });
 
-  if (error || !data) return [];
-  return (data as unknown as ListingWithChildren[]).map(toSummary);
+  if (error || !data) return null;
+  try {
+    const rows = await withListingPrivate(supabase, data as unknown as ListingWithChildren[]);
+    return rows.map(toSummary);
+  } catch {
+    return null;
+  }
 }
 
 /** One listing, fully hydrated for the wizard. Null when it is not theirs. */
@@ -651,13 +681,14 @@ export async function readDraft(
 ): Promise<WizardDraft | null> {
   const { data, error } = await supabase
     .from("listings")
-    .select(LISTING_SELECT)
+    .select(LISTING_PUBLIC_SELECT)
     .eq("id", listingId)
     .eq("agent_id", agentId)
     .maybeSingle();
 
   if (error || !data) return null;
-  return toDraft(supabase, data as unknown as ListingWithChildren);
+  const row = await withListingPrivateOrNull(supabase, data as unknown as ListingWithChildren);
+  return row ? toDraft(supabase, row) : null;
 }
 
 /**
@@ -688,7 +719,7 @@ export async function readOpenDraft(
 ): Promise<WizardDraft | null> {
   const { data, error } = await supabase
     .from("listings")
-    .select(LISTING_SELECT)
+    .select(LISTING_PUBLIC_SELECT)
     .eq("agent_id", agentId)
     .eq("status", "DRAFT")
     .order("updated_at", { ascending: false })
@@ -696,7 +727,8 @@ export async function readOpenDraft(
     .maybeSingle();
 
   if (error || !data) return null;
-  return toDraft(supabase, data as unknown as ListingWithChildren);
+  const row = await withListingPrivateOrNull(supabase, data as unknown as ListingWithChildren);
+  return row ? toDraft(supabase, row) : null;
 }
 
 /* ------------------------------------------------------- reference data */

@@ -467,11 +467,12 @@ export const trustVisibleEn = {
     /** A screen inside the app that failed to load. No promise that nothing was lost: no code checks it. */
     screenErrorOverline: "Error",
     screenErrorTitle: "That screen did not load",
-    screenErrorBody: "Something on our side stopped part way through. Trying again usually settles it.",
+    /* The audit's claims sweep reworded this: nothing promises the reader lost nothing. */
+    screenErrorBody: "Something stopped part way through. Anything you had typed on this screen may need typing again, and trying again usually settles it.",
     /** `{digest}` is the server's id for the failure, for support to find it. */
     screenErrorRef: "Reference {digest}",
     offlineOverline: "Connection",
     offlineTitle: "You are offline",
-    offlineBody: "The connection dropped before this page could load. Your balance, messages and bookings are never shown from an old copy, so they are real when you are back.",
+    offlineBody: "The connection dropped before this page could load. Anything you had typed but not sent may need typing again. Your balance, messages and bookings are never shown from an old copy.",
   },
 };

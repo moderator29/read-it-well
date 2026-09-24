@@ -458,6 +458,29 @@ describe("the open-and-fund door stays shut", () => {
   });
 });
 
+describe("the database-side pauses (ESC-05, ESC-08)", () => {
+  it.each([
+    ["payouts_paused", /Payouts are paused/],
+    ["paused_for_review", /check something before this is paid out/],
+  ])("tells somebody who confirmed that %s keeps the money held, not that something broke", async (status, sentence) => {
+    answer({ status, escrow_id: ESCROW, state: "HELD" });
+    const { confirmHeldPayment } = await import("./actions");
+    const result = await confirmHeldPayment({ id: ESCROW });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toMatch(sentence);
+      expect(result.error).not.toMatch(/could not be done/i);
+    }
+  });
+
+  it("names the database's closed gate in the same words as the app's", async () => {
+    answer({ status: "held_payments_closed" });
+    const { fundHeldPaymentProposal } = await import("./actions");
+    const result = await fundHeldPaymentProposal({ id: ESCROW });
+    expect(result.ok ? "" : result.error).toMatch(/Held payments are not available/);
+  });
+});
+
 describe("the phone lock on held money (V-81)", () => {
   it("refuses to fund or confirm without a fresh proof, and calls nothing", async () => {
     lockSeam.refusal = "Confirm it is you first.";

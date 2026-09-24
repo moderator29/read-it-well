@@ -30,6 +30,7 @@
  * Every amount is integer kobo, end to end (Master Rule 50).
  */
 
+import { moneyHoldRefusal } from "../wallet/money-hold";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
@@ -52,8 +53,9 @@ import { bookingReference, isBookingReference } from "../payments/references";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { bookingPaymentSubject } from "./payment-subject";
 import { checkoutReturnPath } from "../rent/return-path";
+import { ALREADY_LET_MESSAGE } from "../rent/db";
 import { guardMoney } from "../security/money-limits";
-import { accountHoldRefusal, holdRefusalForFailure } from "../security/account-hold-guard";
+import { accountHoldRefusal } from "../security/account-hold-guard";
 import { moneyLockRefusalFor } from "../security/money-lock-guard";
 import { createClient } from "../supabase/server";
 import { availableBalanceMinor, ensureWalletId, getAdminClient } from "../wallet/ledger";
@@ -247,6 +249,10 @@ async function guardPayable(bookingId: string): Promise<Guarded> {
 
   if (error) return { ok: false, result: fail<never>(SERVICE_DOWN_MESSAGE) };
   if (!booking) return { ok: false, result: fail<never>(NOT_FOUND_MESSAGE) };
+  /* SEC-P2-04. Reading a booking is not owning it: the host and admins can
+     read it too. Only its guest pays for it, as the wallet path already
+     requires (pay_booking_from_wallet: guest_id = payer). */
+  if (booking.guest_id !== session.user.id) return { ok: false, result: fail<never>(NOT_FOUND_MESSAGE) };
   if (booking.status === "CANCELLED") return { ok: false, result: fail<never>(CANCELLED_MESSAGE) };
   // CONFIRMED is deliberately payable. A request-to-book stay is confirmed by
   // the host accepting it, not by money arriving, so refusing CONFIRMED here
@@ -572,11 +578,7 @@ async function payWithWalletWork(
       target_booking: booking.id,
       payment_reference: reference,
     });
-    if (error) {
-      /* V-19: the hold trigger (RM050) refused a call that raced the check. */
-      const held = own ? await holdRefusalForFailure(own, error.message ?? "") : null;
-      return fail(held ?? SERVICE_DOWN_MESSAGE);
-    }
+    if (error) return fail(moneyHoldRefusal(error) ?? SERVICE_DOWN_MESSAGE);
     outcome = readOutcome(data);
   } catch {
     return fail(SERVICE_DOWN_MESSAGE);
@@ -594,6 +596,7 @@ async function payWithWalletWork(
   if (outcome.status === "not_pending") return fail(CONFIRMED_MESSAGE);
   if (outcome.status === "not_found") return fail(NOT_FOUND_MESSAGE);
   if (outcome.status === "already_paid") return fail(ALREADY_PAID_MESSAGE);
+  if (outcome.status === "already_let") return fail(ALREADY_LET_MESSAGE);
   if (outcome.status !== "ok" && outcome.status !== "duplicate") return fail(SERVICE_DOWN_MESSAGE);
 
   // Everything committed together or not at all. Reading the balance back is
@@ -744,6 +747,11 @@ export async function settleCardPayment(
 
   if (settlement.outcome === "unknown-reference") {
     return fail("That payment could not be matched to a booking. Our team reconciles it for you.");
+  }
+  if (settlement.outcome === "returned-to-wallet") {
+    return fail(
+      "Your payment went through but could not be applied to this booking, so the whole amount is in your Vallo wallet now. Nothing is lost; you can use it from your wallet.",
+    );
   }
 
   const confirmed = settlement.outcome === "settled" ? settlement.confirmed : false;

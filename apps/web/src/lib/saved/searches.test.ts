@@ -146,7 +146,7 @@ describe("summariseSearch", () => {
     expect(chips).toContain("Yaba");
     expect(chips).toContain("Rentals");
     expect(chips).toContain("2+ beds");
-    expect(chips).toContain("Checked listings");
+    expect(chips).toContain("Verified only");
     expect(chips).toContain("Backup power");
     expect(chips).toContain("Borehole");
     expect(chips).not.toContain("Band A feeder");

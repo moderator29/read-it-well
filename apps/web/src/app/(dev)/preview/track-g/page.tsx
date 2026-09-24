@@ -15,7 +15,7 @@ import { LISTING_ROLES } from "@/lib/supply/roles";
  * so the dev server's Supabase client cannot reach the project at all, every
  * listing read returns null, and `/listing/[id]` answers the not-found body at
  * HTTP 200. That is measured and not assumed, and it is recorded in
- * `docs/design/TRACK_G_STATE.md` rather than papered over.
+ * `docs/archive/TRACK_G_STATE.md` rather than papered over.
  *
  * So the evidence is split, and each half says what it is:
  *

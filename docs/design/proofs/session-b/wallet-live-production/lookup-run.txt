@@ -1,7 +1,0 @@
-wallet-live-lookup-production.mjs, run 2026-09-23T17:23:28Z (UTC), against https://www.vallospaces.com
-signed in as the QA member (password grant); the QA admin's address redacted
-GET /wallet/send 200  x-vercel-id iad1::iad1::4vpmn-1790184205432-808cf5483866
-signed in page: true bank mode present: true wallet copy: true
-buildId (not in page)
-action in /_next/static/chunks/3zcstcolfetfo.js
-POST lookup 200 1:{"state":"found","name":"<the QA admin account's display name>","tier":"platinum"}

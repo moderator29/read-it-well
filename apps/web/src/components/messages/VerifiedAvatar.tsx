@@ -1,3 +1,4 @@
+import { initial } from "@/lib/text/initial";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { type BadgeTier } from "@/lib/trust/badge-tier";
@@ -132,7 +133,7 @@ const PIXELS: Record<AvatarSize, number> = { sm: 36, md: 44, lg: 48 };
 
 function initialOf(name: string): string {
   const trimmed = name.trim();
-  return trimmed.length > 0 ? trimmed.charAt(0).toUpperCase() : "?";
+  return initial(trimmed);
 }
 
 export function VerifiedAvatar({

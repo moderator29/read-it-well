@@ -55,6 +55,7 @@ export default async function CheckoutPage({
   const locale = await getLocale();
   const plans = getDictionary(locale).shape.plans;
   const staysAction = { label: plans.seeStays, href: "/bookings?side=stays&from=stays" };
+  const c = getDictionary(locale).checkout;
   const read = await getCheckoutView(bookingId, locale);
 
   const settling =
@@ -74,9 +75,9 @@ export default async function CheckoutPage({
         <ResultScreen
           state="pending"
           mark="card-lock"
-          verdict="We cannot reach payment right now"
-          consequence="This is on our side, not yours. Nothing has been charged and your dates are unchanged. Try again in a few minutes."
-          actions={[{ label: plans.seeStays, href: "/bookings?side=stays&from=stays", tone: "primary" }]}
+          verdict={c.cannotReachPayment}
+          consequence={c.cannotReachStay}
+          actions={[{ label: staysAction.label, href: staysAction.href, tone: "primary" }]}
         />
       </Shell>
     );
@@ -88,9 +89,9 @@ export default async function CheckoutPage({
         <ResultScreen
           state="confirmed"
           mark="shield-check"
-          verdict="Sign in to pay for this stay"
-          consequence="Your booking and its dates are kept safe. Sign in and you land straight back here."
-          actions={[{ label: "Sign in", href: "/sign-in", tone: "primary" }]}
+          verdict={c.signInToPayStay}
+          consequence={c.signInKeptStay}
+          actions={[{ label: c.signIn, href: "/sign-in", tone: "primary" }]}
         />
       </Shell>
     );
@@ -104,11 +105,10 @@ export default async function CheckoutPage({
             inside a cyan glow: a success mark and the pending colour, both
             contradicting the sentence between them. */}
         <ResultScreen
-          state="failed"
-          mark="seal-cross"
-          verdict="We could not find that booking"
-          consequence="It may have been cancelled, or it belongs to another account. Your stays are all in one place."
-          actions={[{ label: plans.seeStays, href: "/bookings?side=stays&from=stays", tone: "primary" }]}
+          state="missing"
+          verdict={c.bookingNotFound}
+          consequence={c.bookingNotFoundBody}
+          actions={[{ label: staysAction.label, href: staysAction.href, tone: "primary" }]}
         />
       </Shell>
     );
@@ -120,9 +120,9 @@ export default async function CheckoutPage({
         <ResultScreen
           state="failed"
           mark="alert-triangle"
-          verdict="Checkout did not open"
-          consequence="Your booking is unchanged and nothing has been charged. Try again in a few minutes."
-          actions={[{ label: plans.seeStays, href: "/bookings?side=stays&from=stays", tone: "primary" }]}
+          verdict={c.checkoutDidNotOpen}
+          consequence={c.checkoutDidNotOpenBody}
+          actions={[{ label: staysAction.label, href: staysAction.href, tone: "primary" }]}
         />
       </Shell>
     );
@@ -179,7 +179,7 @@ export default async function CheckoutPage({
             <SegmentedProgress
               steps={3}
               current={2}
-              label="Step 2 of 3: review and pay"
+              label={c.step}
             />
           </div>
         </Reveal>
@@ -197,9 +197,9 @@ export default async function CheckoutPage({
           <ResultScreen
             state="received"
             mark="receipt-check"
-            verdict="This stay is paid for"
-            consequence={`${view.totalDisplay} has been received and your dates are confirmed.`}
-            actions={[{ label: plans.seeStays, href: "/bookings?side=stays&from=stays", tone: "primary" }]}
+            verdict={c.stayPaidFor}
+            consequence={c.stayPaidBody.replace("{total}", view.totalDisplay)}
+            actions={[{ label: staysAction.label, href: staysAction.href, tone: "primary" }]}
           />
         </Reveal>
       ) : view.status === "CANCELLED" ? (
@@ -210,10 +210,10 @@ export default async function CheckoutPage({
               said it was still in progress. It was also marked with a tick. */}
           <ResultScreen
             state="expired"
-            verdict="This booking was cancelled"
-            consequence="Cancelled stays cannot be paid for. The dates are open again, so search and reserve them afresh if you still want them."
+            verdict={c.bookingCancelled}
+            consequence={c.bookingCancelledBody}
             actions={[
-              { label: "Back to the stay", href: `/listing/${view.listingId}`, tone: "primary" },
+              { label: c.backToStay, href: `/listing/${view.listingId}`, tone: "primary" },
             ]}
           />
         </Reveal>
@@ -239,22 +239,18 @@ export default async function CheckoutPage({
                  be a fiction. What this guest needs to know is that the stay is
                  theirs and the money is what is outstanding. */
               <HoldNote>
-                The agent has accepted these dates, so the stay is yours. All that is left is
-                paying for it, and your dates are not counting down while you do.
+                {c.acceptedNote}
               </HoldNote>
             ) : view.status === "COMPLETED" ? (
               <HoldNote>
-                These dates have already passed and the stay is recorded as taken. Nothing is
-                counting down. The total below is what is still outstanding on it.
+                {c.completedNote}
               </HoldNote>
             ) : (
               /* NO_SHOW. Said without accusing the reader of anything: the
                  record is the agent's and the guest may well disagree with it,
                  so the route to a person comes before the route to a payment. */
               <HoldNote>
-                The agent recorded that this stay was not taken up, so nothing is counting down. If
-                this total is still owed, paying settles it. If that does not match what happened,
-                get help before you pay.
+                {c.noShowNote}
               </HoldNote>
             )}
           </Reveal>
@@ -318,8 +314,7 @@ export default async function CheckoutPage({
             <BrandIcon name="naira-hand" fill tile={false} />
           </span>
           <span>
-            Amounts are naira, recorded to the kobo. A payment is only ever recorded once, however
-            many times a page is reloaded.
+            {c.recordedOnce}
           </span>
         </p>
       </Reveal>
@@ -346,18 +341,19 @@ function HoldNote({ children }: { children: React.ReactNode }) {
 }
 
 /** The page frame, shared by every state so the chrome never jumps. */
-function Shell({
+async function Shell({
   children,
   subtitle,
 }: {
   children: React.ReactNode;
   subtitle?: string;
 }) {
+  const c = getDictionary(await getLocale()).checkout;
   return (
     <div className="nf-cat-surface mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="calendar-check" />
-        <PageHeader title="Checkout" subtitle={subtitle} fallback="/bookings?side=stays&from=stays" />
+        <PageHeader title={c.title} subtitle={subtitle} fallback="/bookings?side=stays&from=stays" />
       </div>
       {children}
     </div>

@@ -2,7 +2,7 @@ import { getDictionary } from "@vallo/i18n";
 import { AppShell } from "@/components/app/AppShell";
 
 /**
- * Session B platform sweep, group "stays" (SWEEP.md Phase 2): the real stays,
+ * Platform sweep harness, group "stays": the real stays,
  * stay detail, trips, restaurants, checkout and held-payment components on
  * fixture props, inside the real consumer chrome, so every before and after
  * proof in docs/design/proofs/session-b/sweep-stays can be re-shot. Every

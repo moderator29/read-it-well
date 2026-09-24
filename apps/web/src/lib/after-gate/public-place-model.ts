@@ -1,21 +1,21 @@
-import { publicAreaName, publicCityName } from "../share/public-text";
+import { publicAreaName } from "../share/public-text";
 
 /**
  * Rule 10 for the after-the-gate surfaces a third party can read (the /r
  * receipt check, the complaint pack, the demand letter): a place is printed
  * only through the closed lists. The neighbourhood when the whole of it is on
- * the list for its state, otherwise the listed city, otherwise the state name
- * from the states table, which nobody typed, otherwise `country`. Never the
- * lister's spelling.
+ * the list for its state, otherwise the state name from the states table,
+ * which nobody typed, otherwise `country`. Never the city, which a lister
+ * types (the rule-ten ruling), and never the lister's spelling.
  */
 export function placeFrom(
   area: string | null | undefined,
-  city: string | null | undefined,
+  _city: string | null | undefined,
   stateCode: string | null | undefined,
   stateName: string | null,
   country: string,
 ): string {
-  const local = publicAreaName(area, stateCode) ?? publicCityName(city, stateCode);
+  const local = publicAreaName(area, stateCode);
   if (local === null) return stateName ?? country;
   if (!stateName || local.toLowerCase() === stateName.toLowerCase()) return local;
   return `${local}, ${stateName}`;

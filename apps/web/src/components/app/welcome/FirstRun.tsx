@@ -20,9 +20,10 @@ import {
 import type { Arrival } from "@/app/welcome/plan";
 import { wallHeading } from "./wall-heading";
 import type { BrandIconObject } from "@/design-system/icons/BrandIcon";
+import { destinationOf, withNext } from "@/lib/auth/next-link";
 
 /**
- * Get started, to its governing image (`2A49E2F7` at the repository root).
+ * Get started, to its governing image (`2A49E2F7` in docs/design/references/).
  *
  * FOUR SLIDES ON ONE STAGE, the render's four dots:
  *   1. Two worlds. One platform.  Property and Stays, and the coin between.
@@ -377,7 +378,7 @@ export function FirstRun({
   const onLast = index === lastIndex;
 
   /*
-   * The two doors, keeping whatever the person was on their way to.
+   * The doors, keeping whatever the person was on their way to.
    *
    * CREATE ACCOUNT USED TO DROP IT (audit UX-02, R16). With `next` set to the
    * wall's `/sign-in?next=/search...`, the sign-in door kept it and the
@@ -385,15 +386,19 @@ export function FirstRun({
    * make an account instead of signing in lost the thing that was shared with
    * them. Both doors now carry the destination: the door they came through
    * keeps its whole address (its notice included), and the other door is
-   * built from the destination underneath it.
+   * built from the destination underneath it, through `withNext`, which drops
+   * anything that is not a safe same-origin path.
    */
-  const destinationQuery = arrival ? `?next=${encodeURIComponent(arrival.destination)}` : "";
   const signUpHref =
-    next && /^\/sign-up(?:[/?#]|$)/.test(next) ? next : `/sign-up${destinationQuery}`;
+    next && /^\/sign-up(?:[/?#]|$)/.test(next) ? next : withNext("/sign-up", destinationOf(next));
   const signInHref =
-    next && /^\/sign-in(?:[/?#]|$)/.test(next) ? next : `/sign-in${destinationQuery}`;
-  /* The primary door is the one the heading names. Without a heading, the
-     one they came through. */
+    next && /^\/sign-in(?:[/?#]|$)/.test(next)
+      ? next
+      : arrival
+        ? withNext("/sign-in", arrival.destination)
+        : "/sign-in";
+  /* The primary door is the one the heading names (V-18). Without a heading,
+     the one they came through. */
   const signInFirst = wall ? wall.primary === "sign-in" : signInHref !== "/sign-in";
 
   const lockup = (

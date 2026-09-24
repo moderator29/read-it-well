@@ -25,6 +25,7 @@ import type { Database } from "../supabase/database.types";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
 import { NOT_CONFIGURED_MESSAGE, SIGNED_OUT_MESSAGE } from "../actions/session";
 import { getAgentContext } from "./listings-queries";
+import { contentRefusal } from "../safety/content-refusal";
 import { REPLY_MAX, replyInputSchema, replyRemoveSchema } from "./reviews-schema";
 
 const NOT_AGENT_MESSAGE =
@@ -95,6 +96,9 @@ export async function replyToReview(
       // 42501 is the policy refusing a review on somebody else's listing, and
       // it is the only refusal here a host can do anything about.
       if (error.code === "42501") return fail(NOT_YOURS_MESSAGE);
+      // RM004: the content scanner refused the wording (SEC-05).
+      const refused = contentRefusal(error);
+      if (refused) return fail(refused, { body: refused });
       if (error.code === "23514") {
         return fail(`Keep your reply under ${REPLY_MAX} characters.`, {
           body: "This reply is too long.",

@@ -35,7 +35,7 @@ Two things in this file are worth reading before the rest.
 
 The founder's private gmail address appears in no tracked file except
 `apps/web/src/lib/brand-domain.test.ts`, which forbids it, and
-`docs/BUILD_06_LEDGER.md` section 10, which records the earlier sweep. Checked
+`docs/archive/BUILD_06_LEDGER.md` section 10, which records the earlier sweep. Checked
 across the whole tree, clean, no urgent finding. It is not repeated here, so
 this file cannot become the next place it leaks from.
 

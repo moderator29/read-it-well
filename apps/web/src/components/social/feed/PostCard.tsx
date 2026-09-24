@@ -1,5 +1,6 @@
 "use client";
 
+import { initial as initialOf } from "@/lib/text/initial";
 import { DEFAULT_LOCALE, formatNumber, getDictionary, type Locale } from "@vallo/i18n";
 import Link from "next/link";
 import Image from "next/image";
@@ -11,6 +12,7 @@ import { RemoteImage } from "@/components/ui/RemoteImage";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { panelClass } from "@/components/ui/Panel";
 import type { BadgeTier } from "@/lib/trust/badge-tier";
+import { countOf } from "@vallo/i18n";
 
 /**
  * A post.
@@ -133,7 +135,7 @@ function compact(n: number, locale: Locale): string {
 }
 
 function Avatar({ author }: { author: PostAuthor | null }) {
-  const initial = (author?.displayLabel ?? author?.handle ?? "?").charAt(0).toUpperCase();
+  const initial = initialOf(author?.displayLabel ?? author?.handle);
   return (
     /* The glass ring the render draws around every face: a thin luminous
        border box with the photo cut inside it, lit from the upper left like
@@ -247,9 +249,9 @@ function ActionRow({
       <AuthGate action="post">
         <button type="button" className="nf-post__act nf-post__act--reply" onClick={onReply}>
           <UiIcon name="chat-bubble" size={16} />
-          <span className="nf-numeric">{compact(post.replyCount, locale)}</span>
+          <span className="nf-numeric" aria-hidden="true">{compact(post.replyCount, locale)}</span>
           <span className="sr-only">
-            {post.replyCount === 1 ? "reply" : "replies"}, reply to this
+            {countOf(post.replyCount, "replies", locale)}, reply to this
           </span>
         </button>
       </AuthGate>
@@ -335,7 +337,7 @@ export function PostCard({
 
         The face in its glass ring, then the name with the verified mark beside
         it and the handle on the line under, then the time and the kebab at the
-        far end. The mark is Session A's `TierBadge`, the one badge on the
+        far end. The mark is `TierBadge`, the one badge on the
         platform, drawn from `public.person_badge` and nothing else. It used to
         be a tick for `isAgent`, which is a role marker and not a check of
         anybody (`lib/trust/badge-tier.ts` forbids exactly that reading).

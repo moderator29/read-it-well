@@ -53,15 +53,34 @@
  * imply a shop with something in it.
  */
 
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
 import { createClient } from "@supabase/supabase-js";
 
 const DRY_RUN = process.argv.includes("--dry-run");
 
-/** The version strings the product serves, kept in one place in the app. */
-const LEGAL_VERSIONS = [
-  { document: "terms", version: "2026-09-22" },
-  { document: "privacy", version: "2026-09-22" },
-];
+/**
+ * The version strings the product serves, READ from the one place the app
+ * keeps them (`apps/web/src/lib/legal/versions.ts`) rather than copied here.
+ * A copy went stale the day the privacy notice changed, and a reviewer whose
+ * receipts name an old version is asked to accept again mid-review (STORE-10).
+ */
+export function legalVersionsFrom(source) {
+  const read = (name) => {
+    const match = source.match(new RegExp(`export const ${name} = "(\\d{4}-\\d{2}-\\d{2})";`));
+    if (!match) throw new Error(`store-reviewer: ${name} not found in versions.ts`);
+    return match[1];
+  };
+  return [
+    { document: "terms", version: read("TERMS_VERSION") },
+    { document: "privacy", version: read("PRIVACY_VERSION") },
+  ];
+}
+
+const LEGAL_VERSIONS = legalVersionsFrom(
+  readFileSync(fileURLToPath(new URL("../../apps/web/src/lib/legal/versions.ts", import.meta.url)), "utf8"),
+);
 
 /**
  * Who the reviewer is, as far as the product is concerned.
@@ -263,9 +282,12 @@ async function main() {
   console.log("");
 }
 
-main().catch((error) => {
-  console.error("");
-  console.error(`FAILED: ${error instanceof Error ? error.message : String(error)}`);
-  console.error("Nothing further was attempted.");
-  process.exit(1);
-});
+/* Run only as a script, so a test can import `legalVersionsFrom`. */
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  main().catch((error) => {
+    console.error("");
+    console.error(`FAILED: ${error instanceof Error ? error.message : String(error)}`);
+    console.error("Nothing further was attempted.");
+    process.exit(1);
+  });
+}

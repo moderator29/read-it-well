@@ -76,6 +76,13 @@ export type ResultState =
   /** A window closed. Not a failure and not a success. */
   | "expired";
 
+/**
+ * The screen form also says "missing" (UI-15): the thing is not there, or not
+ * yours. Neither a failure the person can act on nor good news, so it is
+ * neutral: never rose, never a success mark. The sheet never shows it.
+ */
+export type ResultScreenState = ResultState | "missing";
+
 export type ResultAction = {
   label: string;
   href?: string;
@@ -156,7 +163,7 @@ export type ResultSheetProps = Common &
  * failure the error tone, a settled movement the success tone. The glyph is
  * the stroked tier, as the primitive expects.
  */
-const PLATE: Record<ResultState, { tone: IconPlateTone; glyph: UiIconName }> = {
+const PLATE: Record<ResultScreenState, { tone: IconPlateTone; glyph: UiIconName }> = {
   sent: { tone: "success", glyph: "arrow-up" },
   received: { tone: "success", glyph: "arrow-down" },
   confirmed: { tone: "brand", glyph: "verified" },
@@ -164,9 +171,10 @@ const PLATE: Record<ResultState, { tone: IconPlateTone; glyph: UiIconName }> = {
   review: { tone: "pending", glyph: "history" },
   failed: { tone: "error", glyph: "close" },
   expired: { tone: "info", glyph: "history" },
+  missing: { tone: "info", glyph: "search" },
 };
 
-function ResultPlate({ state }: { state: ResultState }) {
+function ResultPlate({ state }: { state: ResultScreenState }) {
   const plate = PLATE[state];
   return (
     <IconPlate size="lg" tone={plate.tone}>
@@ -190,7 +198,7 @@ const FEEL: Record<ResultState, FeedbackKind | null> = {
   expired: null,
 };
 
-const STATE: Record<ResultState, { ink: string }> = {
+const STATE: Record<ResultScreenState, { ink: string }> = {
   sent: { ink: "var(--nf-state-success)" },
   received: { ink: "var(--nf-state-success)" },
   confirmed: { ink: "var(--nf-brand-primary)" },
@@ -198,6 +206,7 @@ const STATE: Record<ResultState, { ink: string }> = {
   review: { ink: "var(--nf-state-warning)" },
   failed: { ink: "var(--nf-state-error)" },
   expired: { ink: "var(--nf-content-muted)" },
+  missing: { ink: "var(--nf-content-muted)" },
 };
 
 export function ResultSheet(props: ResultSheetProps) {
@@ -450,7 +459,7 @@ export function ResultScreen({
   footnote,
   "data-testid": testId,
 }: {
-  state: ResultState;
+  state: ResultScreenState;
   verdict: string;
   consequence: string;
   actions?: readonly [ResultAction] | readonly [ResultAction, ResultAction];

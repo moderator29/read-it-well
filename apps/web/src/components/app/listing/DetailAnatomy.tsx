@@ -112,7 +112,9 @@ export function DetailCapsules({
   const shown = items.slice(0, 4);
   if (shown.length === 0) return null;
   return (
-    <ul className="nf-detail-capsules nf-scroll-x" aria-label={label} data-testid="detail-capsules">
+    /* DOC-21: the row scrolls sideways when the capsules do not fit, so it is
+       focusable (axe `scrollable-region-focusable`); it is already named. */
+    <ul className="nf-detail-capsules nf-scroll-x" aria-label={label} tabIndex={0} data-testid="detail-capsules">
       {shown.map((item) => (
         <li key={item.key} className="nf-detail-capsule">
           <UiIcon name={item.icon} size={14} />
@@ -178,7 +180,9 @@ export function DetailAboutCard({
               {host.photoUrl ? (
                 <Image src={host.photoUrl} alt="" fill sizes="48px" className="object-cover" />
               ) : (
-                <BrandIcon name="user-check" fill />
+                /* UX-09: the person-with-a-tick is the verified mark's own
+                   shape, so an unchecked host gets the plain person card. */
+                <BrandIcon name={host.verified ? "user-check" : "person-card"} fill />
               )}
             </span>
             <span className="nf-host-row__body">

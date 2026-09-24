@@ -1,8 +1,8 @@
 import { readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { isApiPath, isPublicPath, proxy } from "./proxy";
+import { HARNESS_CLOSED_PATH, isApiPath, isHarnessPath, isPublicPath, proxy } from "./proxy";
 import { NONCE_HEADER } from "@/lib/security/csp";
 
 /**
@@ -181,7 +181,7 @@ function routePaths(): string[] {
   };
   walk(appDir, "");
   /* The root page and the two file conventions that answer at a URL. */
-  out.push("/", "/robots.txt", "/sitemap.xml", "/opengraph-image.png");
+  out.push("/", "/robots.txt", "/sitemap.xml", "/opengraph-image.jpg");
   return [...new Set(out)].sort();
 }
 
@@ -205,10 +205,14 @@ const EXPECTED_PUBLIC = new Set([
    * the intended use, and its variable is named `NEXT_PUBLIC_`.
    */
   "/api/push/key",
+  /* OPS-03 / V-01: the uptime monitor's URL (a yes or no, no rows) and the
+     canary cron, which authenticates itself with the cron secret. */
+  "/api/health/catalogue",
+  "/api/cron/canary",
   "/",
   "/robots.txt",
   "/sitemap.xml",
-  "/opengraph-image.png",
+  "/opengraph-image.jpg",
   /* Company and support. */
   "/about",
   /* V-82: area price pages, aggregates only, 404 below the floor. */
@@ -254,6 +258,7 @@ const EXPECTED_PUBLIC = new Set([
   "/safe/[token]",
   /* No network, and which home. */
   "/home-or-landing",
+  "/open",
   "/offline",
   /* API, each one guarded by a signature, a bearer secret, or nothing because
      it is telemetry a signed-out browser has to be able to post. */
@@ -436,7 +441,7 @@ describe("who may see the platform with no session", () => {
 
 describe("the store shell never opens on the landing page (V-11)", () => {
   const SHELL =
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 ValloShell";
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 VALLO-NATIVE";
 
   it("sends the shell's request for / to its own start, with the policy still stamped", async () => {
     const response = await proxy(new NextRequest("http://localhost/", { headers: { "user-agent": SHELL } }));
@@ -451,5 +456,53 @@ describe("the store shell never opens on the landing page (V-11)", () => {
     expect(browser.status).not.toBe(307);
     const privacy = await proxy(new NextRequest("http://localhost/privacy", { headers: { "user-agent": SHELL } }));
     expect(privacy.status).not.toBe(307);
+  });
+});
+
+describe("STORE-17: the preview harness in production", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  const rewrittenTo = (response: Response) => {
+    const target = response.headers.get("x-middleware-rewrite");
+    return target ? new URL(target).pathname : null;
+  };
+
+  it("answers a real 404 on Vercel, before anything renders", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL", "1");
+    for (const route of ["/preview", "/preview/f1/chrome", "/preview/session-b/signin", "/gallery"]) {
+      const response = await proxy(new NextRequest(`http://localhost${route}?_rsc=abc`));
+      expect(rewrittenTo(response), route).toBe(HARNESS_CLOSED_PATH);
+      expect(response.headers.get("content-security-policy"), route).toBeTruthy();
+    }
+  });
+
+  it("stays closed on Vercel even with the opt-in set", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL", "1");
+    vi.stubEnv("VALLO_PREVIEW_HARNESS", "1");
+    expect(rewrittenTo(await proxy(new NextRequest("http://localhost/preview")))).toBe(HARNESS_CLOSED_PATH);
+  });
+
+  it("opens in development and on a local proof server that opted in", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    expect(rewrittenTo(await proxy(new NextRequest("http://localhost/preview")))).toBeNull();
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL", "");
+    vi.stubEnv("VALLO_PREVIEW_HARNESS", "1");
+    expect(rewrittenTo(await proxy(new NextRequest("http://localhost/preview")))).toBeNull();
+  });
+
+  it("the rewrite target is no route at all, so Next serves not-found with 404", () => {
+    expect(routePaths()).not.toContain(HARNESS_CLOSED_PATH);
+  });
+
+  it("matches only the harness trees", () => {
+    expect(isHarnessPath("/preview")).toBe(true);
+    expect(isHarnessPath("/gallery/x")).toBe(true);
+    expect(isHarnessPath("/previews")).toBe(false);
+    expect(isHarnessPath("/listing/preview")).toBe(false);
   });
 });

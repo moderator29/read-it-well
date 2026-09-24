@@ -349,4 +349,6 @@ export const noArbitraryFontSize = {
   },
 };
 
-export default { rules: { "no-arbitrary-font-size": noArbitraryFontSize } };
+const plugin = { rules: { "no-arbitrary-font-size": noArbitraryFontSize } };
+
+export default plugin;

@@ -117,7 +117,7 @@ async function run(theme) {
 
     /* Only genuinely visible links count. The desktop rail is `display: none`
        below lg and reports a zero-size rect, so counting every match would
-       report the hidden rail as a duplicate destination (docs/HANDOFF.md
+       report the hidden rail as a duplicate destination (docs/archive/HANDOFF.md
        section 6). One visible link to experiences is the category tile; five
        was the row that has been removed. */
     const experienceLinks = await page.evaluate(() =>

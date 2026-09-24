@@ -27,7 +27,7 @@ import { isOptimisable } from "@/lib/images/optimisable";
  * ## Why `width` and `height` rather than `fill`
  *
  * `fill` needs a positioned ancestor, and the containers these images sit in
- * are styled by CSS files other workers own. Passing the intrinsic shape
+ * are styled by each surface's own CSS files. Passing the intrinsic shape
  * instead lets the existing `width: 100%; height: 100%; object-fit: cover`
  * rules keep doing exactly what they already do, with no stylesheet touched
  * and no layout to re-prove. The numbers are the ASPECT the box wants, not a

@@ -2,9 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 /*
- * The partial is imported here rather than from globals.css because that file
- * is the lead's. When the lead promotes `css/system.css` into the ordered
- * import list, delete this line and nothing else changes: every rule in it is
+ * The partial is imported here rather than from globals.css because the partial
+ * is not in its ordered import list yet. When `css/system.css` is added to that
+ * list, delete this line and nothing else changes: every rule in it is
  * inside `@layer components` and every class name is new, so it has no
  * position in the cascade to lose.
  */

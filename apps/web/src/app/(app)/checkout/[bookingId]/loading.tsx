@@ -1,15 +1,18 @@
 import { Skeleton } from "@/components/ui/Skeleton";
 import { panelClass } from "@/components/ui/Panel";
 import { LoadingShell, PageHeaderSkeleton } from "@/components/app/ScreenSkeleton";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 
 /**
  * The wait, on your booking.
  *
  * Every line of the price is read before render. This is the screen where money moves, so nothing here may arrive by pushing something else down the page.
  */
-export default function LoadingCheckout() {
+export default async function LoadingCheckout() {
+  const c = getDictionary(await getLocale()).checkout;
   return (
-    <LoadingShell label="Loading your booking" className="mx-auto w-full max-w-2xl">
+    <LoadingShell label={c.loading} className="mx-auto w-full max-w-2xl">
       <PageHeaderSkeleton />
       <div className={panelClass({ variant: "card" })}>
         <Skeleton width="40%" height="0.8125rem" radius="sm" />

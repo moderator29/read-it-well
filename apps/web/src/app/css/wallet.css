@@ -1,6 +1,5 @@
 /*
-  wallet: the money surfaces' own partial. Owned by worker E per
-  docs/BUILD_06_LEDGER.md section 2: the wallet home, send, receive, the
+  wallet: the money surfaces' own partial: the wallet home, send, receive, the
   statement and receipts, the payment methods block and the result sheet's
   mark. Dark only: light mode was removed by the founder on 23 September, and the
   paper twins that lived at the foot of this file went with it.
@@ -1106,7 +1105,7 @@
   /* 77A54EA3's form panel and its rows measure a 10px corner, which is the
      shared `--nf-container-radius`; they take it from the panel tokens. */
 
-  /* ------------------------------------- round three: lead rulings R-A to R-C */
+  /* ------------------------------------- rules R-A to R-C, DESIGN_DIRECTION 1.1 */
 
   /*
    * TYPE AT THE RENDER'S SIZE, WITH THE 11PX FLOOR (R-A); CONTROLS AT THE
@@ -1114,7 +1113,7 @@
    * WIDTH (R-C). Every size below is measured off the governing render at
    * 1.71 image px per CSS px, font size = measured text width divided by the
    * string's width in ems (cross-checked against cap height / 0.73). The
-   * measurements are in docs/BUILD_SESSION_B_LEDGER.md sections 4 and 5.
+   * measurements are in docs/archive/BUILD_SESSION_B_LEDGER.md sections 4 and 5.
    * Stated once, here, after the rules they overrule, so the earlier values
    * read as the base and this block as the ruling.
    */
@@ -1167,8 +1166,13 @@
     padding-block: 0;
   }
   /* The 44px link would push the title down; the head's own top padding
-     gives that height back, so the title sits 15px under the rim as drawn. */
+     gives that height back, so the title sits 15px under the rim as drawn.
+     UI-11: only when the link is there. An empty list has no "See all", and
+     the title then sat 2px under the rim. */
   .nf-tx-card__head {
+    padding-top: 0.875rem;
+  }
+  .nf-tx-card__head:has(.nf-wallet-link) {
     padding-top: 0.125rem;
   }
   /* Quick cards: title "Send Money" 55.6px = 9.4px, sub 61.4px for "To bank
@@ -1290,9 +1294,29 @@
 }
 
 @layer components {
-  /* The person tier mark (Session A's TierBadge) beside a name: the mark
+  /* The person tier mark (TierBadge) beside a name: the mark
      alone, spaced off the name it belongs to. */
   .nf-send-name-tier {
     margin-inline-start: var(--nf-space-2xs);
+  }
+}
+
+/* MON-16. A printed receipt is the receipt alone: everything else on the page
+   is hidden, and so are its own buttons. */
+@media print {
+  body:has(.nf-receipt) * {
+    visibility: hidden;
+  }
+  .nf-receipt,
+  .nf-receipt * {
+    visibility: visible;
+  }
+  .nf-receipt {
+    position: absolute;
+    inset: 0 0 auto 0;
+    box-shadow: none;
+  }
+  .nf-receipt-actions {
+    display: none;
   }
 }

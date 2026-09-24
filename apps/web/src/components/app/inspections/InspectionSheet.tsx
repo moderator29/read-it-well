@@ -49,6 +49,7 @@ import { ladderFor, type LadderKey } from "./ladder";
 import { statusFor, type BadgeTone } from "./status";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { TruthQuestions } from "./TruthQuestions";
+import { earliestLagosInput, lagosWallClockToIso } from "@/lib/inspections/when";
 
 /**
  * ONE INSPECTION, EXACTLY IN THE ANATOMY OF F6A8A482 / founder/inspection-target.jpg.
@@ -59,9 +60,9 @@ import { TruthQuestions } from "./TruthQuestions";
  * Inspection Report (glass, disabled until it can be sent). Containers,
  * plates and buttons are the shared layer (Panel, IconPlate, Button).
  *
- * THE REPORT (eight rooms and notes) writes through Session A's
- * `saveInspectionReport` (I1, applied 23 September) and nothing of this
- * surface's own; photos wait on Session A's `addReportPhoto` (I1b). Behind ONE flag
+ * THE REPORT (eight rooms and notes) writes through
+ * `saveInspectionReport` and nothing of this surface's own; photos go through
+ * `addReportPhoto`. Behind ONE flag
  * (`reportLive`, `lib/inspections/report-flag.ts`). A tick is drawn only from
  * what the action read back from the database, never optimistically. With
  * the flag off the rows draw, the circles are not pressable, and a plain line
@@ -120,7 +121,7 @@ const OUTCOME_LABEL: Record<InspectionOutcome, string> = {
   no_deal: "Inspected, no deal",
 };
 
-/* The drawn words: short, so the three sit in one row (lead ruling R-F). */
+/* The drawn words: short, so the three sit in one row (rule R-F). */
 const OUTCOME_SHORT: Record<InspectionOutcome, string> = {
   inspected: "Inspected",
   deal_done: "Deal done",
@@ -232,7 +233,7 @@ export function InspectionSheet({
    * A tick is drawn only from what the action read back, never
    * optimistically. The notes travel with EVERY call: the action writes
    * `notes ?? null` on each save, so a tick sent without them would clear
-   * what was typed (request I5 to Session A).
+   * what was typed.
    */
   function saveReport(body: { items?: { item: RoomItem; checked: boolean }[]; submit?: boolean }) {
     setError(null);
@@ -253,9 +254,9 @@ export function InspectionSheet({
   }
 
   /*
-   * A photo into the report: a signed path from Session A's
+   * A photo into the report: a signed path from
    * `createInspectionPhotoUpload`, the upload straight from the browser to the
-   * private bucket, then Session A's `addReportPhoto` records the row (I1b).
+   * private bucket, then `addReportPhoto` records the row.
    * The count moves only when that row came back.
    */
   async function addPhoto(file: File) {
@@ -623,7 +624,7 @@ export function InspectionSheet({
 
           {/*
             Add Photos, as the render draws it (the render's own camera). With
-            the report on it uploads into the report through Session A's I1b
+            the report on it uploads into the report through the report photo
             actions; with it off it opens the conversation, the one photo path
             an inspection then has.
           */}
@@ -734,10 +735,14 @@ function ProposeSheet({
         They will see the time you offer and can take it in one tap. The time they asked for stays on the record.
       </p>
       <label className="mt-md block">
-        <span className="nf-label">When you can do it</span>
+        <span className="nf-label">When you can do it (Lagos time)</span>
         <input
           type="datetime-local"
           value={when}
+          /* UX-20: Lagos time, two hours ahead at the earliest, as the request is. */
+          min={earliestLagosInput()}
+          suppressHydrationWarning
+          step={900}
           onChange={(event) => setWhen(event.target.value)}
           className="nf-field mt-2xs w-full"
         />
@@ -758,7 +763,7 @@ function ProposeSheet({
         variant="primary"
         className="mt-lg"
         disabled={pending || when.length === 0}
-        onClick={() => onSubmit(new Date(when).toISOString(), note.trim())}
+        onClick={() => onSubmit(lagosWallClockToIso(when) ?? when, note.trim())}
       >
         Send this time
       </Button>

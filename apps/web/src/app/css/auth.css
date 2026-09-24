@@ -1,7 +1,6 @@
 /*
-  auth: the "Welcome back" family, to its governing image `55A56F21` (repo
-  root; `docs/design/references/55A56F21-...png`). Owned by Session B, see
-  `docs/SESSION_B_SCOPE.md`.
+  auth: the "Welcome back" family, to its governing image `55A56F21`
+  (`docs/design/references/55A56F21-...png`).
 
   DARK ONLY. Light mode was removed from the platform by the founder on
   23 September; this family never had a light twin (rule 22) and has none
@@ -575,7 +574,7 @@
    */
   /*
    * ======================================================================
-   * THE RENDER'S CARD, AT THE RENDER'S SIZE (lead rulings R-A, R-B, R-C).
+   * THE RENDER'S CARD, AT THE RENDER'S SIZE (rules R-A, R-B, R-C).
    *
    * The render's card is 633 of 1024 px, 61.6 per cent of the screen: 240 CSS
    * px at 390, so s = 240 / 633 = 0.379 and every "at s" here is a render
@@ -967,8 +966,8 @@
    * stay round.
    *
    * ONLY THE RADIUS MOVED. The glow on this button is left exactly as it was:
-   * the lead is setting the glow scale centrally and two people tuning one
-   * bloom at once produces neither person's number.
+   * the glow scale is set centrally in the tokens, and tuning one bloom in two
+   * places produces neither number.
    */
   .nf-welcome__cta {
     margin-top: var(--nf-space-md);

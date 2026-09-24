@@ -15,6 +15,8 @@ import {
 import { ICON, Section, Stack, Surface, TYPE } from "@/components/app/Screen";
 import { ReserveTable } from "../../listing/[id]/ReserveTable";
 import { panelClass } from "@/components/ui/Panel";
+import { ReportSheet } from "@/components/app/ReportSheet";
+import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
 
 const WEEKDAY: Record<number, string> = {
   0: "Sunday",
@@ -47,6 +49,13 @@ export type RestaurantFaceProps = {
   /** The venue's service windows, `HH:MM` or `HH:MM:SS`; null when unread. */
   windows: { id: string; weekday: number; opens: string; closes: string }[] | null;
   messageHref: string | null;
+  /** The report control for this venue (STORE-P2-01): a catalogue listing is
+      reported as a listing, an onboarded venue as a business. Absent in a
+      static preview. */
+  report?: { targetType: "listing" | "business"; targetId: string; signedIn: boolean };
+  /** UX-09 / UI-P2-01: an example venue says so under its name, and offers no
+      table to hold. */
+  isExample?: boolean;
 };
 
 /**
@@ -81,6 +90,8 @@ export function RestaurantFace({
   reserve,
   windows,
   messageHref,
+  report,
+  isExample = false,
 }: RestaurantFaceProps) {
   const copy = t.restaurantPage;
   return (
@@ -98,6 +109,7 @@ export function RestaurantFace({
             )}
           </div>
           <h1 className="nf-h2 mt-row [text-wrap:balance]">{title}</h1>
+          {isExample && <ExampleNotice variant="page" className="mt-row" statement={t.examples.statement} />}
           {where && (
             <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
               <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
@@ -126,9 +138,22 @@ export function RestaurantFace({
 
         <Stack className="mt-block">
           {/* THE RESERVATION, FIRST. Not a panel beside the description. */}
-          <Section title={copy.reserveTitle} description={copy.reserveBody}>
-            <ReserveTable {...reserve} />
-          </Section>
+          {isExample ? (
+            <Section title={copy.reserveTitle}>
+              <Surface>
+                <p className={TYPE.rowMeta} data-testid="restaurant-not-bookable">
+                  {t.examples.restaurantNotBookable}
+                </p>
+                <ButtonLink href="/restaurants" variant="primary" className="mt-row w-full">
+                  {t.examples.browseRestaurants}
+                </ButtonLink>
+              </Surface>
+            </Section>
+          ) : (
+            <Section title={copy.reserveTitle} description={copy.reserveBody}>
+              <ReserveTable {...reserve} />
+            </Section>
+          )}
 
           <Section title={copy.gettingThereTitle}>
             <Surface>
@@ -195,6 +220,17 @@ export function RestaurantFace({
               )}
             </Surface>
           </Section>
+
+          {report && (
+            <div className="py-md" data-testid="restaurant-report">
+              <ReportSheet
+                targetType={report.targetType}
+                targetId={report.targetId}
+                targetLabel={title}
+                signedIn={report.signedIn}
+              />
+            </div>
+          )}
         </Stack>
       </div>
     </div>

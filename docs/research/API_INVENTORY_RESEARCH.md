@@ -1,7 +1,7 @@
 # API and integration inventory: the research
 
 Written 18 September 2026, by the research agent for the marketplace mission
-(`docs/HANDOFF_04_MARKETPLACE.md` section 10). This is the researched input to
+(`docs/archive/HANDOFF_04_MARKETPLACE.md` section 10). This is the researched input to
 the final `docs/API_INVENTORY.md`. Everything in it is either verified in this
 repository's code, verified in this repository's git history, or derived from
 web search results whose sources are named in the verification log at the end.
@@ -760,7 +760,7 @@ everywhere except payment webhooks, where it must log loudly (the
 ## 12. Verification log
 
 **Code-verified (source opened in this repository):**
-`docs/HANDOFF_04_MARKETPLACE.md`, `docs/ENVIRONMENT.md`,
+`docs/archive/HANDOFF_04_MARKETPLACE.md`, `docs/ENVIRONMENT.md`,
 `docs/HANDOFF_02_PLATFORM.md` section 22, `apps/web/src/lib/security/csp.ts`,
 `lib/payments/paystack.ts` (via targeted reads), `lib/payments/yellowcard.ts`,
 `lib/payments/observability.ts`, `lib/payments/metadata.test.ts`,

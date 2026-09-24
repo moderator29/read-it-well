@@ -7,28 +7,29 @@ import { createAdminClient } from "../supabase/admin";
 import { writeAudit } from "./audit";
 import { adminRefusal, requireAdmin, ADMIN_FORBIDDEN_MESSAGE } from "./guard";
 import { removeSavedMethodSchema } from "./schema";
+import { getAdminClient } from "../wallet/ledger";
+import { sweepStaleWithdrawalHolds } from "../wallet/reconciliation";
 
 /**
  * Sweeping stuck withdrawal holds, which is a money movement and is treated as
  * one.
  *
  * WHAT IT ACTUALLY DOES. A withdrawal that never got its transfer webhook
- * leaves a PENDING debit on the wallet forever, and available balance is
- * settled minus pending debits, so the owner is short that amount with nothing
- * on any screen explaining why. The sweep flips those PENDING rows to FAILED,
- * which returns the money to the owner's spendable balance. It does not send
- * anybody money and it does not cancel a transfer that is genuinely in flight:
- * only PENDING rows move, so a webhook landing mid sweep is unaffected.
+ * leaves a PENDING debit on the wallet, and available balance is settled minus
+ * pending debits, so the owner is short that amount until it resolves.
  *
- * AUTHORISATION, TWICE. `requireAdmin()` here is the first lock and the weaker
- * one, because it is code in this process. The real one is inside
- * `public.admin_expire_stale_withdrawal_holds`, which is SECURITY DEFINER and
- * checks `private.has_role(auth.uid(), 'admin' | 'super_admin')` before it does
- * anything, returning `{"status":"forbidden"}` otherwise. `anon` holds no
- * EXECUTE on it. Deleting this file would not let a stranger sweep a hold.
+ * MON-02. It used to call `public.admin_expire_stale_withdrawal_holds`, which
+ * failed every PENDING hold past an age, whatever the processor said. A
+ * transfer that had in fact paid out was released as well, and the member was
+ * paid twice. It now runs `sweepStaleWithdrawalHolds`, the same code as the
+ * scheduled sweep: every hold is verified with Paystack first; a paid transfer
+ * is completed, a failed or reversed one released, one Paystack has never seen
+ * released only once it is old enough (NEVER_STARTED_MIN_AGE_MINUTES), and an
+ * unanswered one is left alone. Each resolution is audited with this admin as
+ * the actor.
  *
- * The database also writes the audit row, inside the same transaction as the
- * sweep, so the record cannot drift from what happened.
+ * AUTHORISATION. `requireAdmin()` reads the caller's roles through their own
+ * client; the sweep then runs with the service role, as the scheduled one does.
  */
 
 const SERVICE_DOWN =
@@ -72,7 +73,14 @@ const expireHoldsSchema = z.object({
     .max(10080, "Choose a window inside the last week."),
 });
 
-export type SweepOutcome = { expired: number };
+export type SweepOutcome = {
+  /** Holds handed back to their owners (failed, reversed or never started). */
+  expired: number;
+  /** Holds whose transfer had paid out, now completed rather than released. */
+  completed: number;
+  /** Holds Paystack could not settle either way, left as they were. */
+  leftPending: number;
+};
 
 export async function expireStaleWithdrawalHolds(input: {
   olderThanMinutes: number;
@@ -83,20 +91,24 @@ export async function expireStaleWithdrawalHolds(input: {
   const parsed = validate(expireHoldsSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
-  try {
-    const { data, error } = await access.supabase.rpc("admin_expire_stale_withdrawal_holds", {
-      p_older_than_minutes: parsed.data.olderThanMinutes,
-    });
-    if (error) return fail(SERVICE_DOWN);
+  const admin = getAdminClient();
+  if (!admin) return fail(SERVICE_DOWN);
 
-    const status = readStatus(data);
-    if (status === "ok") {
-      revalidatePath("/admin/payments");
-      revalidatePath("/admin/money");
-      return ok({ expired: readCount(data, "expired") });
-    }
-    if (status === "forbidden") return fail(ADMIN_FORBIDDEN_MESSAGE);
-    return fail(SERVICE_DOWN);
+  try {
+    const report = await sweepStaleWithdrawalHolds(admin, {
+      olderThanMinutes: parsed.data.olderThanMinutes,
+      apply: true,
+      actor: { kind: "user", userId: access.user.id },
+    });
+    if (report.unavailable) return fail(SERVICE_DOWN);
+    revalidatePath("/admin/payments");
+    revalidatePath("/admin/money");
+    const count = (action: string) => report.resolutions.filter((r) => r.action === action).length;
+    return ok({
+      expired: count("released"),
+      completed: count("completed"),
+      leftPending: count("left_pending") + count("failed"),
+    });
   } catch {
     return fail(SERVICE_DOWN);
   }

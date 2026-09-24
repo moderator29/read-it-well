@@ -1,5 +1,6 @@
 "use client";
 
+import { initial } from "@/lib/text/initial";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -55,7 +56,7 @@ export function ProfilePhotos({
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
 
-  const monogram = (displayName || handle).charAt(0).toUpperCase();
+  const monogram = initial(displayName || handle);
 
   async function prepare(file: File, square: boolean): Promise<Blob | null> {
     if (!ACCEPTED.includes(file.type)) {

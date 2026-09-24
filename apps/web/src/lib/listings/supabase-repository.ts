@@ -5,13 +5,15 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { memo } from "../cache/memo";
 import { honestExamplePhotos } from "./example-imagery";
 import { rentMeansTenancy } from "./filter";
-import { COMPOUND_COLUMNS, readCompound, type Compound, type CompoundRow } from "./compound";
-import { SERVICE_COLUMNS, readService, type ServiceFacts, type ServiceRow } from "./service";
-import { UNIT_COLUMNS, readUnit, type UnitFacts, type UnitRow } from "./unit-shape";
+import { COMPOUND_BY_ID_COLUMNS, readCompound, type Compound, type CompoundRow } from "./compound";
+import { SERVICE_BY_ID_COLUMNS, readService, type ServiceFacts, type ServiceRow } from "./service";
+import { UNIT_BY_ID_COLUMNS, readUnit, type UnitFacts, type UnitRow } from "./unit-shape";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import { createClient } from "../supabase/server";
+import { pointSelect } from "../supabase/public-point";
 import { isListingRole } from "../supply/roles";
+import { catalogueReadFailed } from "./read-failure";
 import { diversePick, matchesFilter } from "./filter";
 import {
   headlinePrice,
@@ -214,8 +216,6 @@ const LISTING_SELECT = `
   created_at,
   address_verified_at,
   physically_inspected_at,
-  ownership_verified_at,
-  mandate_verified_at,
   power_grid,
   power_backup,
   power_backup_hours,
@@ -289,8 +289,6 @@ const LISTING_DETAIL_SELECT = `
   created_at,
   address_verified_at,
   physically_inspected_at,
-  ownership_verified_at,
-  mandate_verified_at,
   power_grid,
   power_backup,
   power_backup_hours,
@@ -644,7 +642,11 @@ async function listingIdsWithAllAmenities(
       .select("listing_id, amenity_id")
       .in("amenity_id", wanted)
       .limit(JOIN_ROW_LIMIT);
-    if (error || !data) return [];
+    if (error) {
+      await catalogueReadFailed("amenity_join", error);
+      return [];
+    }
+    if (!data) return [];
     warnIfTruncated(data.length, "listing_amenities", wanted.length);
 
     const found = new Map<string, Set<string>>();
@@ -658,7 +660,8 @@ async function listingIdsWithAllAmenities(
       if (set.size === wanted.length) out.push(listingId);
     }
     return out;
-  } catch {
+  } catch (error) {
+    await catalogueReadFailed("amenity_join", error);
     return [];
   }
 }
@@ -1167,7 +1170,7 @@ async function getUnitFacts(supabase: Client, ids: string[]): Promise<Map<string
   const out = new Map<string, UnitFacts>();
   if (ids.length === 0) return out;
   try {
-    const { data, error } = await supabase.from("listings").select(`id, ${UNIT_COLUMNS}`).in("id", ids);
+    const { data, error } = await supabase.from("listings").select(UNIT_BY_ID_COLUMNS).in("id", ids);
     if (error || !data) return out;
     for (const row of data as unknown as (UnitRow & { id: string })[]) {
       const unit = readUnit(row);
@@ -1194,7 +1197,7 @@ async function getServiceFacts(
   try {
     const { data, error } = await supabase
       .from("listings")
-      .select(`id, ${SERVICE_COLUMNS}`)
+      .select(SERVICE_BY_ID_COLUMNS)
       .in("id", ids);
     if (error || !data) return out;
     for (const row of data as unknown as (ServiceRow & { id: string })[]) {
@@ -1229,7 +1232,7 @@ async function getCompoundFacts(
   try {
     const { data, error } = await supabase
       .from("listings")
-      .select(`id, ${COMPOUND_COLUMNS}`)
+      .select(COMPOUND_BY_ID_COLUMNS)
       .in("id", ids);
     if (error || !data) return out;
     for (const row of data as unknown as (CompoundRow & { id: string })[]) {
@@ -1256,16 +1259,45 @@ export async function loadListingsByIds(
     const { data, error } = await supabase
       .from("listings")
       // The shortlist renders cards, so no walkthroughs and no signing call.
-      .select(LISTING_SELECT)
+      // NEW-A4-01: a signed-out reader is given the public point.
+      .select(await pointSelect(supabase, LISTING_SELECT))
       .eq("status", "PUBLISHED")
       .in("id", ids);
-    if (error || !data) return out;
-    for (const listing of await mapRows(supabase, data as ListingRow[])) {
+    if (error) {
+      await catalogueReadFailed("by_ids", error);
+      return out;
+    }
+    if (!data) return out;
+    for (const listing of await mapRows(supabase, data as unknown as ListingRow[])) {
       out.set(listing.id, listing);
     }
     return out;
-  } catch {
+  } catch (error) {
+    await catalogueReadFailed("by_ids", error);
     return out;
+  }
+}
+
+/**
+ * V-10: one listing in ANY status, as the card model, read under the caller's
+ * own client, so RLS decides (a draft comes back only to its owner). Used to
+ * ask which saved searches a draft would match before it is published; never
+ * for anything shown to somebody else. Null when it cannot be read.
+ */
+export async function loadOwnListingAnyStatus(supabase: Client, id: string): Promise<Listing | null> {
+  try {
+    /* NEW-A4-01: through `pointSelect`, like every other listing read, so a
+       caller without a session asks for the public point. */
+    const { data, error } = await supabase
+      .from("listings")
+      .select(await pointSelect(supabase, LISTING_SELECT))
+      .eq("id", id)
+      .limit(1);
+    if (error || !data || data.length === 0) return null;
+    const [listing] = await mapRows(supabase, data as unknown as ListingRow[]);
+    return listing ?? null;
+  } catch {
+    return null;
   }
 }
 
@@ -1273,7 +1305,15 @@ export class SupabaseListingRepository implements ListingRepository {
   readonly isSeed = false;
 
   /**
-   * The published catalogue, newest first.
+   * Where the rows are read through. The caller's own cookie-bound client by
+   * default, so RLS answers as the person asking; the landing page's shared
+   * read passes a cookie-free anonymous client instead (OPS-11), because a
+   * value cached for every visitor must be the one a stranger would see.
+   */
+  constructor(private readonly connect: () => Promise<Client> = createClient) {}
+
+  /**
+   * The published catalogue, newest and featured first.
    *
    * What runs where, and why:
    *
@@ -1303,7 +1343,7 @@ export class SupabaseListingRepository implements ListingRepository {
   ): Promise<Listing[]> {
     if (filter.kind && propertyTypeFor(filter.kind) === null) return [];
     try {
-      const supabase = await createClient();
+      const supabase = await this.connect();
 
       // The amenity join is resolved first: with no listing carrying the whole
       // set there is nothing to ask the catalogue for.
@@ -1315,7 +1355,7 @@ export class SupabaseListingRepository implements ListingRepository {
 
       let query = supabase
         .from("listings")
-        .select(LISTING_SELECT)
+        .select(await pointSelect(supabase, LISTING_SELECT))
         .eq("status", "PUBLISHED");
       if (filter.kind) {
         const propertyType = propertyTypeFor(filter.kind);
@@ -1357,10 +1397,12 @@ export class SupabaseListingRepository implements ListingRepository {
           "listing_intent",
           filter.intent as Database["public"]["Enums"]["listing_intent"],
         );
-        /* The rent market is tenancies (V-26): a row with no positive rate,
-           which is the column `headlinePrice` reads to call a row a rate.
-           `rentMeansTenancy` and `isTenancyPeriod` hold the same rule for
-           the drawer's count and the alerts. */
+        /* The rent market is tenancies (V-26, UX-07): a row with no positive
+           rate, which is the column `headlinePrice` reads to call a row a
+           rate. A row that leads with a nightly or per-head rate is a stay or
+           a table, so it is narrowed out here; `matchesFacts` decides the
+           rest with the same `rentMeansTenancy` rule, for the drawer's count
+           and the alerts. */
       }
       /* V-26 and V-67 ask the same question of the same column. */
       if (filter.propertySide || rentMeansTenancy(filter)) {
@@ -1484,8 +1526,7 @@ export class SupabaseListingRepository implements ListingRepository {
        * THE MOVE-IN COST ORDER, AND THE INDEX THAT HAS NEVER BEEN QUERIED.
        *
        * `listings_move_in_cost_idx` is partial on published rows with a stated
-       * total, and HANDOFF 09 section 4.2 records that nothing in the tree
-       * asked for it. This is the ask. `nullsFirst: false` is the honesty
+       * total, and until this read nothing in the tree asked for it. `nullsFirst: false` is the honesty
        * half: a listing whose lister declared no total is not cheap, it is
        * unstated, so it sorts after every listing that said a number rather
        * than ahead of all of them as a null would.
@@ -1509,11 +1550,16 @@ export class SupabaseListingRepository implements ListingRepository {
         .order("published_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false })
         .limit(rowCap(opts.limit));
-      if (error || !data) return [];
+      if (error) {
+        await catalogueReadFailed("search", error);
+        return [];
+      }
+      if (!data) return [];
 
-      const listings = await mapRows(supabase, data as ListingRow[]);
+      const listings = await mapRows(supabase, data as unknown as ListingRow[]);
       return listings.filter((l) => matchesFilter(l, filter));
-    } catch {
+    } catch (error) {
+      await catalogueReadFailed("search", error);
       return [];
     }
   }
@@ -1540,18 +1586,23 @@ export class SupabaseListingRepository implements ListingRepository {
 
   async byId(id: string): Promise<Listing | null> {
     try {
-      const supabase = await createClient();
+      const supabase = await this.connect();
       const { data, error } = await supabase
         .from("listings")
         // The one surface a walkthrough belongs on, so it pays for the signing.
-        .select(LISTING_DETAIL_SELECT)
+        .select(await pointSelect(supabase, LISTING_DETAIL_SELECT))
         .eq("status", "PUBLISHED")
         .eq("id", id)
         .maybeSingle();
-      if (error || !data) return null;
-      const [listing] = await mapRows(supabase, [data as ListingRow]);
+      if (error) {
+        await catalogueReadFailed("by_id", error);
+        return null;
+      }
+      if (!data) return null;
+      const [listing] = await mapRows(supabase, [data as unknown as ListingRow]);
       return listing ?? null;
-    } catch {
+    } catch (error) {
+      await catalogueReadFailed("by_id", error);
       return null;
     }
   }
@@ -1569,17 +1620,22 @@ export class SupabaseListingRepository implements ListingRepository {
    */
   async byReference(reference: string): Promise<Listing | null> {
     try {
-      const supabase = await createClient();
+      const supabase = await this.connect();
       const { data, error } = await supabase
         .from("listings")
-        .select(LISTING_DETAIL_SELECT)
+        .select(await pointSelect(supabase, LISTING_DETAIL_SELECT))
         .eq("status", "PUBLISHED")
         .eq("reference", reference)
         .maybeSingle();
-      if (error || !data) return null;
-      const [listing] = await mapRows(supabase, [data as ListingRow]);
+      if (error) {
+        await catalogueReadFailed("by_reference", error);
+        return null;
+      }
+      if (!data) return null;
+      const [listing] = await mapRows(supabase, [data as unknown as ListingRow]);
       return listing ?? null;
-    } catch {
+    } catch (error) {
+      await catalogueReadFailed("by_reference", error);
       return null;
     }
   }

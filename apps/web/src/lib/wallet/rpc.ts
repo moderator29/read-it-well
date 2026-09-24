@@ -117,7 +117,7 @@ type RpcCaller = {
 export type WalletRpcResult =
   | { outcome: "ok"; data: unknown }
   | { outcome: "missing"; reason: string }
-  | { outcome: "failed"; reason: string };
+  | { outcome: "failed"; reason: string; code?: string | null; message?: string | null };
 
 /**
  * PostgREST's code for "no function matches that name and argument list". It
@@ -127,14 +127,13 @@ export type WalletRpcResult =
  */
 const UNDEFINED_FUNCTION_CODES = new Set(["PGRST202", "42883"]);
 
-function isMissing(error: RpcError): boolean {
-  if (error.code && UNDEFINED_FUNCTION_CODES.has(error.code)) return true;
-  const message = (error.message ?? "").toLowerCase();
-  return (
-    message.includes("could not find the function") ||
-    message.includes("does not exist") ||
-    message.includes("schema cache")
-  );
+/*
+ * MON-12. By code only. A message containing "does not exist" is as likely to
+ * be a relation or column missing INSIDE a function that ran, or PostgREST's
+ * schema cache reloading mid-deploy, and neither means the function is absent.
+ */
+export function isMissing(error: RpcError): boolean {
+  return Boolean(error.code && UNDEFINED_FUNCTION_CODES.has(error.code));
 }
 
 /**
@@ -166,7 +165,7 @@ export async function callMoneyRpc(
       }
       const reason = error.message ?? error.code ?? "rpc_error";
       logMoney({ surface, outcome: "failed", reason: `rpc_error:${fn}:${reason}`, ...context });
-      return { outcome: "failed", reason };
+      return { outcome: "failed", reason, code: error.code ?? null, message: error.message ?? null };
     }
     return { outcome: "ok", data };
   } catch (error) {

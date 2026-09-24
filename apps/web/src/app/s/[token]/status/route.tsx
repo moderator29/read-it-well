@@ -30,6 +30,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tok
   const read = await readDoor(token);
   const t = getDictionary(DEFAULT_LOCALE);
   const copy = t.frontDoor.door;
+  if (read.state === "unreachable") {
+    /* We could not ask: this answer must not be kept by any cache, or an
+       outage would be served as the card for the next five minutes. */
+    const image = await statusImage({ kind: "mark" }, copy, null);
+    image.headers.set("cache-control", "no-store");
+    return image;
+  }
   if (read.state !== "open" || read.card.kind === "gone" || read.card.kind === "price_area") {
     return cached(await statusImage({ kind: "mark" }, copy, null));
   }

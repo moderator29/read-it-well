@@ -4,7 +4,7 @@ import { createElement } from "react";
 import { tierMap } from "./shared";
 import { PersonTier } from "@/app/admin/_components/PersonTier";
 
-/* TierBadge is Session A's renderer and is proved by its own tests; here it
+/* TierBadge is the one badge renderer and is proved by its own tests; here it
    stands in as a marker so this test can see what PersonTier hands it. */
 vi.mock("@/components/trust/TierBadge", () => ({
   TierBadge: ({ tier, size }: { tier: string; size: number }) =>
@@ -25,7 +25,7 @@ describe("the badge tier (B-BADGE)", () => {
       ["b", "gold"],
     ]);
   });
-  it("hands the published tier to Session A's badge, and draws nothing without one", () => {
+  it("hands the published tier to the badge, and draws nothing without one", () => {
     expect(renderToStaticMarkup(createElement(PersonTier, { tier: "platinum" }))).toBe(
       '<i data-tier="platinum" data-size="14"></i>',
     );

@@ -191,6 +191,8 @@ async function run(request: Request): Promise<NextResponse> {
       holds_examined: report.holds.examined,
       released_minor: report.holds.releasedMinor,
       overdrawn: report.overdrawn.length,
+      paid_checked: report.paid?.checked ?? 0,
+      paid_reversed: report.paid?.reversed.length ?? 0,
     },
   };
 
@@ -225,6 +227,7 @@ async function run(request: Request): Promise<NextResponse> {
         resolutions: report.holds.resolutions,
       },
       overdrawn: report.overdrawn,
+      paid: report.paid,
       needsAttention: report.needsAttention,
     },
     { status: 200 },

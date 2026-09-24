@@ -51,6 +51,7 @@ type Claim = { state: "running" } | { state: "done"; result: unknown };
 const claims = new Map<string, Claim>();
 
 const rpc = vi.hoisted(() => ({ callSecurityRpc: vi.fn(), hasServiceRole: vi.fn(() => true) }));
+const ledgerSpies = vi.hoisted(() => ({ setEntryStatus: vi.fn(async () => true) }));
 
 /* V-81: the lock on money. Null lets the movement through; a sentence refuses. */
 const moneyLock = vi.hoisted(() => ({ refusal: null as string | null }));
@@ -90,7 +91,7 @@ vi.mock("../actions/session", () => ({
 /** Postgres, as far as this path can see it. The RPC door itself is real. */
 const adminClient = {
   rpc: async (fn: string, args: Record<string, unknown>) => {
-    if (fn !== "hold_wallet_withdrawal") return { data: null, error: { code: "42883" } };
+    if (fn !== "hold_wallet_withdrawal" || holdFunctionMissing) return { data: null, error: { code: "42883" } };
     const reference = String(args["hold_reference"]);
     const amount = Number(args["amount"]);
     if (holds.some((h) => h.reference === reference)) {
@@ -130,7 +131,8 @@ vi.mock("./ledger", () => ({
   getAdminClient: () => adminClient,
   postEntry: vi.fn(),
   recordFunding: vi.fn(),
-  setEntryStatus: vi.fn(),
+  setEntryStatus: ledgerSpies.setEntryStatus,
+  annotateEntry: vi.fn(),
   labelTransferLegs: vi.fn(),
 }));
 
@@ -159,6 +161,10 @@ const REGISTRY = [
 let registryDown = false;
 /** Resolved when the transfer call may answer; left open to hold one in flight. */
 let transferGate: Promise<void> | null = null;
+/** How the transfer call ends: answered, never answered, or refused outright. */
+let transferMode: "ok" | "timeout" | "refused" = "ok";
+/* MON-12: public.hold_wallet_withdrawal answers as not deployed. */
+let holdFunctionMissing = false;
 
 function envelope(data: unknown): Response {
   return new Response(JSON.stringify({ status: true, message: "ok", data }), { status: 200 });
@@ -189,6 +195,13 @@ function installBank(): void {
 
     if (url === "https://api.paystack.co/transfer") {
       if (transferGate) await transferGate;
+      if (transferMode === "timeout") throw new DOMException("The operation timed out.", "TimeoutError");
+      if (transferMode === "refused") {
+        return new Response(
+          JSON.stringify({ status: false, message: "You cannot initiate third party payouts as a starter business" }),
+          { status: 400 },
+        );
+      }
       const body = JSON.parse(String(init?.body)) as { reference: string };
       return envelope({ transfer_code: "TRF_test", reference: body.reference, status: "pending" });
     }
@@ -223,6 +236,9 @@ beforeEach(() => {
   moneyLock.refusal = null;
   registryDown = false;
   transferGate = null;
+  transferMode = "ok";
+  holdFunctionMissing = false;
+  ledgerSpies.setEntryStatus.mockClear();
   balanceMinor = 1_000_000;
   installBank();
 
@@ -539,3 +555,55 @@ describe("two taps on a withdrawal move the money once", () => {
     expect(transferCalls()).toHaveLength(1);
   });
 });
+
+/* ==================================================================== */
+/* MON-01: a transfer that never answered keeps its hold                */
+/* ==================================================================== */
+
+describe("a withdrawal whose transfer outcome is unknown (MON-01)", () => {
+  it("keeps the hold PENDING when the transfer call times out, and says the bank has not confirmed", async () => {
+    transferMode = "timeout";
+    const { withdraw } = await load();
+
+    const result = await withdraw({ ok: false, error: "" }, form({ ...WITHDRAW, bankCode: "058" }));
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/has not confirmed/);
+    expect(holds).toHaveLength(1);
+    /* The hold was NOT released: nothing moved it to FAILED. */
+    expect(ledgerSpies.setEntryStatus).not.toHaveBeenCalled();
+    expect(audits.some((a) => a.action === "wallet.withdrawal.outcome_unknown")).toBe(true);
+  });
+
+  it("releases the hold when Paystack refuses the transfer outright", async () => {
+    transferMode = "refused";
+    const { withdraw } = await load();
+
+    const result = await withdraw({ ok: false, error: "" }, form({ ...WITHDRAW, bankCode: "058" }));
+
+    expect(result.ok).toBe(false);
+    expect(ledgerSpies.setEntryStatus).toHaveBeenCalledWith(
+      adminClient,
+      expect.stringMatching(/^rm-wd-/),
+      "FAILED",
+      expect.objectContaining({ failure: expect.stringMatching(/starter business/) }),
+    );
+  });
+});
+
+describe("no unlocked fallback for the typed-account withdrawal (MON-12)", () => {
+  it("refuses, holds nothing and never calls the bank when the atomic hold is not there", async () => {
+    holdFunctionMissing = true;
+    const { withdraw } = await load();
+    const ledger = await import("./ledger");
+
+    const result = await withdraw({ ok: false, error: "" }, form({ ...WITHDRAW, bankCode: "058" }));
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/balance is untouched/);
+    expect(holds).toHaveLength(0);
+    expect(ledger.postEntry).not.toHaveBeenCalled();
+    expect(transferCalls()).toHaveLength(0);
+  });
+});
+

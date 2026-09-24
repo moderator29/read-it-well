@@ -2,7 +2,7 @@
  * File the founder's reference photography as product assets.
  *
  * The plates in `docs/design/references/` are multi-megabyte PNG renders. The
- * product never ships one raw (a stop-list rule of HANDOFF_05 third edition):
+ * product never ships one raw:
  * this script writes each keeper photograph, named per the catalogue, as a
  * compressed JPEG and a WebP under `apps/web/public/brand/photos/`, capped at
  * 1920px on the long edge, plus a 640px twin for cards, and copies the eight

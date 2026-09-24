@@ -3,25 +3,42 @@
 # Three checks that need no secrets: typecheck, lint, test. They run from the
 # repository root so the workspaces resolve, on the Node line the app is
 # developed on, with the npm cache keyed on package-lock.json. `npm run lint`
-# is `eslint . && node scripts/check-css-tokens.mjs`, so the CSS token check
-# (the third of the five gates in BUILD_06_LEDGER 10.7) rides in with it.
+# is `eslint . && node scripts/check-css-tokens.mjs && node
+# scripts/check-valuation-words.mjs` in apps/web, so the CSS token check and
+# the valuation-words check ride in with it.
 #
-# The build is a separate job because it is the slow one and the one most
-# likely to need an environment later. Today `next build` passes without any
-# env (BUILD_06_LEDGER section 1 baseline), so it runs here with none; if it
-# ever needs a key, it gets a repository variable, never a secret in this file.
+# `npm ci`, never `npm install`: production (Vercel) builds from
+# package-lock.json, so the lockfile tree is the only tree worth testing
+# (DOC-01, DOC-02). A separate, non-required `audit` job fails on a high or
+# critical advisory in the production dependencies, so a vulnerable pin cannot
+# sit in the lock unseen without an advisory service outage blocking a merge.
+#
+# THE BUILD COMPILES PRODUCTION'S CONFIG (DOC-P2-02). `next.config.ts` and
+# several `NEXT_PUBLIC_*` branches fold at build time, so a build with no env
+# compiles a program that never ships. The Build job therefore gets the same
+# PUBLIC values Vercel has: the Supabase project URL and publishable key, the
+# site URL and the MapTiler key. None of them is a secret (all four are in the
+# browser bundle), and they come from repository VARIABLES (Settings, Secrets
+# and variables, Actions, Variables), never secrets, except the two addresses,
+# which fall back to their known values. A missing variable is a loud warning
+# in the run, not a silent no-env build.
 #
 # IT NO LONGER WAITS FOR `checks`, AND THAT IS THE POINT OF THIS EDIT.
-# `next build` is the ONLY gate that sees a type re-export from a "use server"
-# module: TypeScript erases it, no test can reach it, and the CSS checker has
-# nothing to say about it. That line took production down for twenty minutes
-# on 19 September (BUILD_06_LEDGER section 7.0). With `needs: checks` the
-# build was skipped entirely whenever a typecheck, a lint warning-turned-error
-# or one red test failed for an unrelated reason, which is exactly the shape of
-# the day that outage happened: the one gate that could see it did not run.
-# The two jobs are independent now, so a push always gets the build's answer.
-# The cost is one extra runner on a red branch, which is worth far less than
-# twenty minutes of production.
+# A type re-export from a "use server" module took production down for twenty
+# minutes on 19 September 2026. TypeScript erases it and no unit test reaches
+# it; two gates see it: lint (`nf/server-actions-export-only-actions`) and
+# `next build` (DOC-P2-01). With `needs: checks` the build was skipped
+# entirely whenever a typecheck, lint or one red test failed for an unrelated
+# reason, which is exactly the shape of the day that outage happened. The two
+# jobs are independent now, so a push always gets the build's answer. The cost
+# is one extra runner on a red branch, which is worth far less than twenty
+# minutes of production.
+#
+# THE DATABASE PROBES (DOC-03) are the `db-probes` job: every
+# supabase/tests/probes/*.sql against the database in the PROBES_DATABASE_URL
+# secret, each required to raise PROBE_OK (and always rolled back). The unit
+# suite never reaches the database; this is the job that fails when a
+# migration revokes a grant an RLS policy needs.
 name: CI
 
 on:
@@ -30,9 +47,12 @@ on:
   pull_request:
     branches: [main]
 
+# DOC-23: a pull request cancels its own superseded runs; a push to main never
+# does, so every commit on main gets its verdict and a regression can be
+# bisected to the commit that brought it.
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.ref }}-${{ github.event_name == 'push' && github.sha || 'pr' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -44,6 +64,9 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The migration check diffs against the commit before this push.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -54,11 +77,11 @@ jobs:
       - name: Install
         run: npm ci
 
-      # All three run on every push, not just up to the first red one. A run
-      # that stops at the typecheck tells a worker one thing about their branch
-      # and hides two, which costs a round trip each time; the job still fails
-      # if any of them does. `!cancelled()` rather than `always()`, so a
-      # cancelled run stops properly.
+      # All of these run on every push, not just up to the first red one. A
+      # run that stops at the typecheck tells a developer one thing about their
+      # branch and hides the rest, which costs a round trip each time; the job
+      # still fails if any of them does. `!cancelled()` rather than
+      # `always()`, so a cancelled run stops properly.
       - name: Typecheck
         run: npm run typecheck
 
@@ -66,14 +89,68 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run lint
 
+      # DOC-P2-04: failures are recorded by name, and kept.
       - name: Test
         if: ${{ !cancelled() }}
-        run: npm run test
+        run: npm run test --workspace @vallo/web -- --reporter=default --reporter=junit --outputFile.junit=vitest-junit.xml
+
+      - name: Keep the test report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-junit
+          path: apps/web/vitest-junit.xml
+          if-no-files-found: warn
+
+      # DOC-13 / STORE-03. Red, with one error annotation per placeholder,
+      # until the founder's Apple Team ID and Play signing fingerprints are in
+      # the association files. `continue-on-error` keeps it from blocking web
+      # work; `npm run cap:sync` (the documented release sync) runs the same
+      # check strictly, so a release sync refuses while it is red; a bare
+      # `npx cap sync` is not guarded. Drop `continue-on-error` the day
+      # the values land.
+      - name: Deep links (founder values)
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: npm run check:deep-links --workspace @vallo/web
+
+      - name: Database probe files keep the contract
+        if: ${{ !cancelled() }}
+        run: node scripts/db-probes/run.mjs --check
+
+      # OPS-08: migration names and versions, and no applied migration edited,
+      # renamed or deleted since the commit before this push (or the pull
+      # request's base).
+      - name: Migrations are named, unique and never edited
+        if: ${{ !cancelled() }}
+        run: node scripts/check-migrations.mjs --base "${{ github.event.pull_request.base.sha || github.event.before }}"
+
+  # Its own job, and NOT one of the required checks: a new advisory with no
+  # fix yet, or the npm audit service being down, must not turn the
+  # deterministic gate above red. A red run here is a notice to act on.
+  audit:
+    name: Advisories (production dependencies)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: npm audit
+        run: npm audit --omit=dev --audit-level=high
 
   build:
     name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://uccixoonmbhrnyczyigt.supabase.co' }}
+      NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://www.vallospaces.com' }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_MAPTILER_KEY: ${{ vars.NEXT_PUBLIC_MAPTILER_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -86,5 +163,65 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Say which production values this build is missing
+        run: |
+          for v in NEXT_PUBLIC_SUPABASE_ANON_KEY NEXT_PUBLIC_MAPTILER_KEY; do
+            if [ -z "${!v}" ]; then
+              echo "::warning title=Build is not production-shaped::Repository variable $v is not set, so this build compiles branches production never takes. Add it under Settings > Secrets and variables > Actions > Variables (it is public, not a secret)."
+            fi
+          done
+
       - name: Build
         run: npm run build
+
+  # DOC-03. Every supabase/tests/probes/*.sql against the database named by the
+  # PROBES_DATABASE_URL secret; each probe must raise PROBE_OK and always rolls
+  # back (supabase/tests/README.md). Without the secret this job FAILS, saying
+  # that the database was not checked: it can never pass without running.
+  db-probes:
+    name: Database probes
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # One run at a time against the database, never cancelled halfway: every
+    # probe rolls back, but a killed client leaves its locks to time out.
+    concurrency:
+      group: db-probes
+      cancel-in-progress: false
+    env:
+      DATABASE_URL: ${{ secrets.PROBES_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: No database configured
+        if: ${{ env.DATABASE_URL == '' }}
+        run: |
+          echo "::warning title=DATABASE PROBES DID NOT RUN::The PROBES_DATABASE_URL secret is not set, so no RLS policy, grant or trigger was checked on this push. See supabase/tests/README.md for the one-step setup."
+          {
+            echo "## Database probes did NOT run"
+            echo ""
+            echo "PROBES_DATABASE_URL is not set. Nothing in supabase/tests/probes was checked, and this run says nothing about the database."
+          } >> "$GITHUB_STEP_SUMMARY"
+          # Red, not green-with-a-warning: a job that passes without running
+          # is the blind light this job exists to remove, and must never be
+          # able to satisfy a required check.
+          exit 1
+
+      - name: Install psql
+        if: ${{ env.DATABASE_URL != '' }}
+        run: command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client)
+
+      - name: Run every probe
+        if: ${{ env.DATABASE_URL != '' }}
+        run: node scripts/db-probes/run.mjs --json db-probes.json
+
+      - name: Keep the verdicts
+        if: ${{ !cancelled() && env.DATABASE_URL != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-probes
+          path: db-probes.json
+          if-no-files-found: ignore

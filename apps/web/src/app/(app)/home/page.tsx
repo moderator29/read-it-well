@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import { isPropertyMarket, marketOf } from "@/lib/listings/market";
 import { redirect } from "next/navigation";
-import { isStayPeriod } from "@/lib/listings/filter";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getHomeOverview } from "@/lib/app/home-queries";
@@ -58,17 +58,15 @@ export default async function HomePage() {
    *
    * The market counts read that stood here came off with the nine market
    * tiles: `GOVERNING-01` draws a category row with NO counts on it, and
-   * HANDOFF 09 section 1.1 rules that the tiles drop their counts rather than
+   * the product rule is that the tiles drop their counts rather than
    * print a figure `platform_stats()` cannot yet produce honestly. So the page
    * no longer pays for a count nothing draws. `./market-queries` is still the
    * home of that read and is still used by the preview harness; nothing was
    * deleted, one caller stopped calling.
    */
-  /* V-67: the Property home's featured shelf shows no per-night cards; a
-     wider pick is narrowed, so the shelf stays six when it can. */
-  const listings = (await repo.recommended(12))
-    .filter((listing) => listing.pricePeriod === undefined || !isStayPeriod(listing.pricePeriod))
-    .slice(0, 6);
+  /* UX-04: the Property home's shelf is Property: tenancies and sales. A
+     shortlet or a hotel room here opened under Stays and turned the app over. */
+  const listings = (await repo.recommended(18)).filter((listing) => isPropertyMarket(marketOf(listing))).slice(0, 6);
 
   /*
    * Whether this person is a seller or an agent who has not finished verifying.
@@ -93,7 +91,7 @@ export default async function HomePage() {
   /*
    * WHERE "MANAGE" GOES, DECIDED BY WHO IS ASKING.
    *
-   * HANDOFF 09 section 6C.2: somebody holding a supplier workspace lands on
+   * Somebody holding a supplier workspace lands on
    * their own properties; somebody holding none lands on the "Add a workspace"
    * chooser. Both states are honest and neither needs a new product.
    *

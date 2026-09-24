@@ -1,4 +1,4 @@
-import { exactCity, exactNeighbourhood } from "../places/neighbourhoods";
+import { exactNeighbourhood } from "../places/neighbourhoods";
 
 /**
  * RULE 10, BY CONSTRUCTION: NO TEXT A LISTER TYPED EVER REACHES A PUBLIC
@@ -16,12 +16,12 @@ import { exactCity, exactNeighbourhood } from "../places/neighbourhoods";
  *   - AN AREA IS PRINTED ONLY WHEN THE WHOLE OF IT IS A NAME ON THE CLOSED
  *     NEIGHBOURHOODS LIST (`lib/places/neighbourhoods.ts`), in the listing's
  *     own state, and then in the list's spelling, not the lister's.
- *   - Otherwise the CITY, only when it is on the closed city list; otherwise
- *     the STATE, which comes from the states table and was never typed.
+ *   - Otherwise the STATE, which comes from the states table and was never
+ *     typed. Never a city: a city is text a lister typed too.
  *
- * The same lists live in SQL (`private.public_neighbourhood`,
- * `private.public_city`, migration 20260924121300), so the database hands a
- * public surface nothing else, and a test holds the two lists equal. Two
+ * The same list lives in SQL (`private.public_neighbourhood`, migration
+ * 20260924121300), so the database hands a public surface nothing else, and a
+ * test holds the two lists equal. Two
  * walls, one list. The share door, its image, the Status image, the TO LET
  * board, the area pages and the demand board all read places through here.
  */
@@ -29,9 +29,4 @@ import { exactCity, exactNeighbourhood } from "../places/neighbourhoods";
 /** A neighbourhood fit for a public surface, in the list's spelling, or null. */
 export function publicAreaName(area: string | null | undefined, stateCode?: string | null): string | null {
   return exactNeighbourhood(area, stateCode)?.area ?? null;
-}
-
-/** A city fit for a public surface, in the list's spelling, or null. */
-export function publicCityName(city: string | null | undefined, stateCode?: string | null): string | null {
-  return exactCity(city, stateCode);
 }

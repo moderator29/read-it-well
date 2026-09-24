@@ -25,9 +25,8 @@
 --   1. `private.catalogue_refresh_listing` wrote `l.featured` into
 --      `catalogue_entries`. Re-created identically except that a listing's
 --      catalogue row is always `featured = false`.
---   2. `public.listings_in_bounds` (the map, which this repository's code
---      calls) ordered by `l.featured desc`. Re-created without it.
---      `create or replace` keeps its grants.
+--   2. `public.listings_in_bounds` (the map) is left as the audit's
+--      NEW-A4-01 dispatcher; see section 2 for why it is not re-created.
 --   3. A CHECK that `listings.featured` is false, so the lever cannot be
 --      pulled while the column waits to be dropped. Every row is false today
 --      (the probe reads it back), and `private.guard_owner_write` already
@@ -101,63 +100,17 @@ update public.catalogue_entries set featured = false where entity_kind = 'listin
 
 /* 2 ------------------------------------------------------------- the map */
 
-create or replace function public.listings_in_bounds(
-  p_west double precision, p_south double precision, p_east double precision, p_north double precision,
-  p_intent public.listing_intent default null::public.listing_intent,
-  p_property_type public.property_type default null::public.property_type,
-  p_min_price_minor bigint default null::bigint, p_max_price_minor bigint default null::bigint,
-  p_bedrooms integer default null::integer, p_limit integer default 500)
-returns table (id uuid, title text, property_type public.property_type, listing_intent public.listing_intent,
-               city text, area text, state_code text, latitude double precision, longitude double precision,
-               bedrooms integer, bathrooms integer, price_minor bigint, is_demo boolean)
-language sql
-stable
-set search_path to ''
-as $function$
-  select
-    l.id,
-    l.title,
-    l.property_type,
-    l.listing_intent,
-    l.city,
-    l.area,
-    l.state_code,
-    l.latitude,
-    l.longitude,
-    l.bedrooms,
-    l.bathrooms,
-    case
-      when l.listing_intent = 'sale' then l.sale_price_minor
-      else coalesce(l.total_move_in_cost_minor, l.rent_amount_minor, nullif(l.rate_minor, 0))
-    end as price_minor,
-    l.is_demo
-  from public.listings l
-  where l.status = 'PUBLISHED'
-    and l.location is not null
-    and l.location::extensions.geometry
-        operator(extensions.&&) extensions.st_makeenvelope(p_west, p_south, p_east, p_north, 4326)
-    and (p_intent is null or l.listing_intent = p_intent)
-    and (p_property_type is null or l.property_type = p_property_type)
-    and (p_bedrooms is null or l.bedrooms >= p_bedrooms)
-    and (
-      p_min_price_minor is null
-      or coalesce(
-           case when l.listing_intent = 'sale' then l.sale_price_minor
-                else coalesce(l.total_move_in_cost_minor, l.rent_amount_minor, nullif(l.rate_minor, 0)) end,
-           -1
-         ) >= p_min_price_minor
-    )
-    and (
-      p_max_price_minor is null
-      or coalesce(
-           case when l.listing_intent = 'sale' then l.sale_price_minor
-                else coalesce(l.total_move_in_cost_minor, l.rent_amount_minor, nullif(l.rate_minor, 0)) end,
-           -1
-         ) between 0 and p_max_price_minor
-    )
-  order by l.published_at desc nulls last, l.id
-  limit least(greatest(coalesce(p_limit, 500), 1), 1000);
-$function$;
+/* NOT RE-CREATED HERE. `public.listings_in_bounds` is now the audit's
+   dispatcher (NEW-A4-01): a signed-out caller is answered by
+   `listings_in_bounds_public`, which returns only the public point, and
+   everybody else by `listings_in_bounds_exact`. An earlier draft of this file
+   replaced it with a direct read of `l.latitude` and `l.longitude` for every
+   caller, which would silently have handed exact points back to signed-out
+   readers. The dispatcher itself names no `featured`, which the read-back
+   below still asserts. The two functions it calls still `order by
+   l.featured desc`; with the CHECK in section 3 every row is false, so that
+   ordering is inert, and removing it is the audit session's to do with the
+   column drop. */
 
 /* 3 -------------------------------------------------- the lever, locked */
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import cases from "./rule-ten-cases.json";
 import { NEIGHBOURHOODS } from "../places/neighbourhoods";
-import { publicAreaName, publicCityName } from "./public-text";
+import { publicAreaName } from "./public-text";
 
 /**
  * RULE 10, BY CONSTRUCTION. The reviewer's cases (`rule-ten-cases.json`,
@@ -17,12 +17,10 @@ describe("a place a lister typed, before it reaches a public surface", () => {
   it("admits none of the reviewer's cases except whole names on the closed list", () => {
     for (const text of cases as string[]) {
       const area = publicAreaName(text);
-      const city = publicCityName(text);
       if (LIST_NAMES.has(text.trim().toLowerCase())) {
         expect(area?.toLowerCase(), text).toBe(text.trim().toLowerCase());
       } else {
         expect(area, text).toBeNull();
-        expect(city, text).toBeNull();
       }
     }
   });
@@ -41,7 +39,5 @@ describe("a place a lister typed, before it reaches a public surface", () => {
   it("holds a name to its own state", () => {
     expect(publicAreaName("Wuse 2", "LA")).toBeNull();
     expect(publicAreaName("Wuse 2", "FC")).toBe("Wuse 2");
-    expect(publicCityName("Lagos", "FC")).toBeNull();
-    expect(publicCityName("lagos", "LA")).toBe("Lagos");
   });
 });

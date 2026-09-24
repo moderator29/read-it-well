@@ -1,7 +1,7 @@
 /**
  * THE BADGE TIER, AS READ, NEVER AS DERIVED.
  *
- * Session A owns the badge end to end (scope B-BADGE): the derivation is the
+ * The badge is derived in one place only: the
  * view `public.person_badge` (migration 20260923111950), which publishes one
  * row per person with a `tier` of `public.badge_tier` ('none', 'gold',
  * 'platinum'), and an absent row means no badge. This module only narrows

@@ -32,5 +32,6 @@ export function demandWhat(row: Pick<DemandRow, "areaKey" | "market" | "bedrooms
 export function demandCounts(row: Pick<DemandRow, "searches" | "unmet" | "realSupply">, copy: Copy): string {
   const supply =
     row.realSupply === 0 ? copy.noneMatch : row.realSupply === 1 ? copy.oneMatches : fill(copy.manyMatch, { count: row.realSupply });
+  if (row.unmet === null) return fill(copy.countsNoUnmet, { searches: row.searches, supply });
   return fill(copy.counts, { searches: row.searches, unmet: row.unmet, supply });
 }

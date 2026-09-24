@@ -23,6 +23,8 @@ import type { SavePlaceTarget } from "@/components/app/SaveControl";
 import { addLocalSave, readLocalSaves, removeLocalSave, writeLocalSaves } from "@/lib/saved/local";
 import { EmptyActions } from "@/components/app/EmptyActions";
 import { EmptyState, ICON, TYPE } from "@/components/app/Screen";
+import { countOf } from "@vallo/i18n";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * The shortlist, made interactive.
@@ -71,6 +73,7 @@ function sameOrder(a: string[], b: string[]): boolean {
 }
 
 export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
+  const locale = useClientLocale();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [phase, setPhase] = useState<Record<string, Phase>>({});
@@ -238,7 +241,7 @@ export function SavedBoard({ items }: { items: SavedBoardItem[] }) {
           />
           <span>
             <span className="font-semibold text-[var(--nf-content-primary)]">
-              {visible} {visible === 1 ? "place" : "places"} saved
+              {countOf(visible, "places", locale)} saved
             </span>{" "}
             &middot; ready to compare
           </span>

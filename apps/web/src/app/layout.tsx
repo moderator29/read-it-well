@@ -33,32 +33,20 @@ import { CHROME_COLOUR } from "@/lib/theme/chrome";
  * Poppins subsets on every single load.
  */
 /*
- * V-78: English no longer preloads Inter latin-ext (85KB) for the naira sign;
- * `inter-naira` (1.2KB) carries it alone. Hausa keeps latin-ext for its hooked
- * letters; Yoruba and Igbo keep it for the s-with-dot. The Poppins latin-ext
- * files are left as they were: 5KB each, and they carry the naira in the
- * display face.
+ * OPS-10: ONLY WHAT THE FIRST SCREEN PAINTS IS PRELOADED. Six preloads
+ * (about 155 KB) competed with the critical CSS and script on a 94 KB/s link.
+ * A preload only raises priority; the other subsets still arrive when the
+ * stylesheet asks for them, with `font-display: swap` covering the gap. The
+ * first screen's body text is Inter latin and its heading Poppins 700 latin
+ * (Inter vietnamese on the two locales whose headings need it). The naira
+ * sign's own 1.2 KB face, `inter-naira` (V-78), is not preloaded either: the
+ * stylesheet fetches it the first time a price is drawn, so English no longer
+ * pulls the 85 KB latin-ext file for one glyph.
  */
 const PRELOADED_FONTS: Record<string, readonly string[]> = {
-  yo: ["inter-latin", "inter-latin-ext", "inter-vietnamese", "inter-naira"],
-  ig: ["inter-latin", "inter-latin-ext", "inter-vietnamese", "inter-naira"],
-  ha: [
-    "inter-latin",
-    "inter-latin-ext",
-    "inter-naira",
-    "poppins-700-latin",
-    "poppins-700-latin-ext",
-    "poppins-600-latin",
-    "poppins-600-latin-ext",
-  ],
-  default: [
-    "inter-latin",
-    "inter-naira",
-    "poppins-700-latin",
-    "poppins-700-latin-ext",
-    "poppins-600-latin",
-    "poppins-600-latin-ext",
-  ],
+  yo: ["inter-latin", "inter-vietnamese"],
+  ig: ["inter-latin", "inter-vietnamese"],
+  default: ["inter-latin", "poppins-700-latin"],
 };
 
 export const metadata: Metadata = {
@@ -131,13 +119,21 @@ export const metadata: Metadata = {
     "Port Harcourt",
   ],
   /*
-   * The card image is NOT declared here on purpose. `opengraph-image.png` sits
+   * The card image is NOT declared here on purpose. `opengraph-image.jpg` sits
    * beside this file and Next emits og:image and twitter:image for it
    * automatically, at the right URL, with dimensions. Declaring `images` here
    * as well would be a second copy of the same fact that drifts the first time
    * the file changes. `scripts/build-og-image.mjs` is the generator.
    */
+  /*
+   * OPS-16: EVERY PAGE NAMES ITS OWN ADDRESS. `./` resolves against
+   * metadataBase and the page's own path, so each page's canonical and
+   * og:url are itself on the production host, and a page that sets its own
+   * (a listing does) overrides this.
+   */
+  alternates: { canonical: "./" },
   openGraph: {
+    url: "./",
     title: "Vallo. Rent, buy or stay, without the runaround.",
     description:
       "Homes, land, hotels and shortlets across Nigeria, with the cost of moving in written down before you call anybody. Hotels, apartments and restaurant tables on Vallo Stays. One account, one naira wallet.",
@@ -151,7 +147,9 @@ export const metadata: Metadata = {
     description:
       "Homes, land, hotels and shortlets across Nigeria, with the cost of moving in written down before you call anybody. Hotels, apartments and restaurant tables on Vallo Stays. One account, one naira wallet.",
   },
-  robots: { index: true, follow: true },
+  /* UI-16: no site-wide robots tag. Indexable is the default with no tag at
+     all; stating "index, follow" here put it beside the "noindex" that a
+     not-found page or a private page adds, so those pages carried both. */
 
   /*
    * Installable app metadata. Emitted by Next rather than hand written tags:
@@ -305,7 +303,8 @@ export default async function RootLayout({
           `nonce=""`, so the two can never agree and every route logged a
           hydration mismatch on these elements. R1 caught it in the dev
           log and then found it staring out of a shipped proof, as the "2
-          Issues" badge in `docs/design/proofs/f5/inbox-390-dark.png`.
+          Issues" badge in `docs/design/proofs/f5/inbox-390-dark.png` (a proof
+          shot since removed from the tree; in git history at `85c5471`).
 
           The cost of leaving it was not the warning, it was that a permanent
           false positive hides the real hydration bugs behind it. The

@@ -4,7 +4,7 @@
  * Client-safe on purpose. A picker is a client component and needs these types
  * and these strings; putting them beside the server reads would make the whole
  * module server-only and the import would typecheck and then fail the build,
- * which is the trap recorded in docs/HANDOFF.md section 6.
+ * which is the trap recorded in docs/archive/HANDOFF.md section 6.
  */
 
 /** One of the 37 rows in public.states, the FCT included. */

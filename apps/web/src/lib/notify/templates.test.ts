@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { PRIVATE_ADDRESS } from "../security/private-address";
 
 import {
   OUTBOX_TEMPLATES,
@@ -268,8 +269,8 @@ describe("the welcome is the version the reader declared, and never a guess", ()
     );
     expect(message?.text).toContain("/welcome");
     /* The one private address the founder keeps off every public surface. */
-    expect(message?.html).not.toContain("vallospacesltd@gmail.com");
-    expect(message?.text).not.toContain("vallospacesltd@gmail.com");
+    expect(message?.html).not.toMatch(PRIVATE_ADDRESS);
+    expect(message?.text).not.toMatch(PRIVATE_ADDRESS);
   });
 });
 

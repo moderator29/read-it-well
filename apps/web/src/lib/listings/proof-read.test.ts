@@ -95,10 +95,14 @@ function map(
 }
 
 describe("the proof dates are asked for, in both reads", () => {
-  it("names both supply dates in the card and the detail select", () => {
+  it("does not name the two supply dates in a member's read (DB-10 step 2)", () => {
+    /* The audit's step 2 takes both dates from `authenticated`, and a select
+       naming a revoked column fails the whole page, not the field. Until a
+       member-readable door for them exists the mapper below still copies
+       them, but no read asks, so the Authority line draws nothing. */
     for (const select of [LISTING_SELECTS.card, LISTING_SELECTS.detail]) {
-      expect(select).toMatch(/^\s*ownership_verified_at,?$/m);
-      expect(select).toMatch(/^\s*mandate_verified_at,?$/m);
+      expect(select).not.toMatch(/ownership_verified_at/);
+      expect(select).not.toMatch(/mandate_verified_at/);
       /* The person who made the decision is never read. */
       expect(select).not.toMatch(/supply_verified_by/);
     }

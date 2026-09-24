@@ -5,6 +5,7 @@ import { fill } from "../_components/copy";
 import { QueueTabs } from "../_components/QueueTable";
 import type { ComplianceLane } from "./_lanes/lane";
 import { StrLane } from "./_lanes/StrLane";
+import { ThresholdLane } from "./_lanes/ThresholdLane";
 import { sanctionsLane } from "./_lanes/SanctionsLane";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +23,7 @@ export const dynamic = "force-dynamic";
  */
 const LANES: ComplianceLane[] = [
   StrLane, // SCUML item 6
+  ThresholdLane, // SCUML item 7
   sanctionsLane, // SCUML items 8 and 9
 ];
 

@@ -1,5 +1,6 @@
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { ICON, TYPE } from "@/components/app/Screen";
+import { countOf, DEFAULT_LOCALE, type Locale } from "@vallo/i18n";
 
 /**
  * The spec row.
@@ -37,11 +38,13 @@ function prettify(key: string): string {
 type Mark = { key: string; icon: UiIconName; label: string; spec?: boolean };
 
 export function ListingAmenities({
+  locale = DEFAULT_LOCALE,
   bedrooms,
   bathrooms,
   amenities,
   guests,
 }: {
+  locale?: Locale;
   bedrooms: number;
   bathrooms: number;
   amenities: string[];
@@ -57,7 +60,7 @@ export function ListingAmenities({
     marks.push({
       key: "bedrooms",
       icon: "bed",
-      label: `${bedrooms} ${bedrooms === 1 ? "bedroom" : "bedrooms"}`,
+      label: countOf(bedrooms, "bedrooms", locale),
       spec: true,
     });
   }
@@ -65,7 +68,7 @@ export function ListingAmenities({
     marks.push({
       key: "bathrooms",
       icon: "bath",
-      label: `${bathrooms} ${bathrooms === 1 ? "bathroom" : "bathrooms"}`,
+      label: countOf(bathrooms, "bathrooms", locale),
       spec: true,
     });
   }

@@ -44,6 +44,7 @@ function row(overrides: Partial<DoorRow> = {}): DoorRow {
     rate_period: null,
     photo_path: "owner/listing/one.webp",
     price_share_id: null,
+    state_code: "LA",
     ...overrides,
   };
 }
@@ -96,9 +97,11 @@ describe("the door cannot carry an address, whatever it is handed", () => {
   });
 
   it("keeps an ordinary neighbourhood name, with the state", () => {
-    expect(doorPlace("Yaba", "Lagos", "Lagos")).toBe("Yaba, Lagos");
-    expect(doorPlace("Lekki Phase 1", "Lagos", "Lagos")).toBe("Lekki Phase 1, Lagos");
-    expect(doorPlace("Wuse 2", "Abuja", "Federal Capital Territory")).toBe(
+    expect(doorPlace("Yaba", "LA", "Lagos")).toBe("Yaba, Lagos");
+    expect(doorPlace("Lekki Phase 1", "LA", "Lagos")).toBe("Lekki Phase 1, Lagos");
+    /* A list name in the wrong state is not printed: the state is. */
+    expect(doorPlace("Wuse 2", "LA", "Lagos")).toBe("Lagos");
+    expect(doorPlace("Wuse 2", "FC", "Federal Capital Territory")).toBe(
       "Wuse 2, Federal Capital Territory",
     );
     expect(doorPlace("Lagos", null, "Lagos")).toBe("Lagos");
@@ -354,5 +357,21 @@ describe("the counter leaves link previews out (V-71 review)", () => {
     expect(isPreviewAgent("TelegramBot (like TwitterBot)")).toBe(true);
     expect(isPreviewAgent("Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36")).toBe(false);
     expect(isPreviewAgent(null)).toBe(false);
+  });
+});
+
+describe("no city on a public surface (rule 10 review)", () => {
+  it("never prints the city, even one that looks like a real city", () => {
+    const card = doorCardFromRow(row({ area: "14 Admiralty Way", city: "Lagos Island, 14 Admiralty" }));
+    if (card?.kind !== "listing") throw new Error("expected a listing card");
+    expect(card.place).toBe("Lagos");
+    expect(JSON.stringify(card)).not.toContain("Admiralty");
+    expect(JSON.stringify(card)).not.toContain("Island");
+  });
+
+  it("names a stay by its state when its area is not on the list", () => {
+    const card = doorCardFromRow(row({ state: "stay", area: "Carlton Gate", city: "Ikoyi", property_type: "stay" }));
+    if (card?.kind !== "stay") throw new Error("expected a stay card");
+    expect(stayLines(card, copy).title).toBe("A stay in Lagos");
   });
 });

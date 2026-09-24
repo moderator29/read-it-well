@@ -1,6 +1,6 @@
 /*
-  catalogue: this surface family's own partial. Owned by its worker per docs/BUILD_06_LEDGER.md
-  section 2. There is one theme: the founder removed light mode on 23 September
+  catalogue: this surface family's own partial.
+  There is one theme: the founder removed light mode on 23 September
   2026 and the paper rules that used to live here are deleted, so the partial
   is the whole surface for the only palette there is.
 
@@ -37,7 +37,7 @@
     /* This surface's own rung beneath the overline, for the card's smallest
        type: the fact row, the place line, the price suffix and the pills on
        the photograph. Declared on the card root so everything inside it
-       reads one value, and reported to the lead for promotion. */
+       reads one value; a candidate for promotion to the token scale. */
     --nf-pcard-fact: 0.6875rem;
     display: flex;
     flex-direction: column;
@@ -99,7 +99,7 @@
    * screen. The render gives the same column a small two-line title, a
    * muted place, the figure as the one prominent line, and a hairline fact
    * row. `--nf-pcard-fact` is this surface's own rung beneath the overline,
-   * scoped to the card and reported to the lead for promotion.
+   * scoped to the card; a candidate for promotion to the token scale.
    */
   .nf-pcard__body {
     display: flex;
@@ -1100,17 +1100,27 @@
   .nf-spec-tile > svg {
     color: var(--nf-brand-secondary);
   }
+  /*
+   * UI-06: five tiles squeezed onto one line at 390 came to about 55px each,
+   * and `overflow-wrap: anywhere` then broke words at any letter ("Parkin g",
+   * "Backu p power"). The row now wraps: a tile is at least a third of the
+   * row, so five tiles sit three and two, and a word breaks at a
+   * hyphenation point; only a word longer than the whole tile (a long
+   * translation or figure) breaks mid-letter rather than spilling out.
+   */
   .nf-spec-row--fit {
+    flex-wrap: wrap;
     margin-inline: 0;
     padding-inline: 0;
   }
   .nf-spec-row--fit .nf-spec-tile {
-    flex: 1 1 0;
+    flex: 1 1 calc((100% - 2 * var(--nf-space-xs)) / 3);
     min-width: 0;
     padding-inline: var(--nf-space-xs);
     font-size: var(--nf-text-overline);
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
   .nf-spec-row--fit .nf-spec-tile > span {
     display: block;
@@ -1594,7 +1604,7 @@
   /* An avatar, so it stays a circle: the founder's shape law exempts avatars
      by name, and 999px on a 3rem square IS the circle. Left on the pill token
      rather than swapped to `--nf-radius-circle` because the two render
-     identically here and the token swap is the lead's tidy, not a shape
+     identically here and the token swap is a tidy, not a shape
      change. */
   .nf-host-row__avatar {
     position: relative;
@@ -2021,15 +2031,18 @@
   .nf-stay-card__rating > svg {
     color: var(--nf-brand-secondary);
   }
+  /*
+   * DOC-21: the chips wrap instead of scrolling. The row sits inside the
+   * card's link, so it cannot take keyboard focus of its own (a focusable
+   * element inside a link), and a scroller nobody can reach by keyboard hid
+   * its last chip from anyone not swiping (axe `scrollable-region-focusable`,
+   * six nodes on /stays). Four chips at most, so two short rows at worst.
+   */
   .nf-stay-card__chips {
     display: flex;
+    flex-wrap: wrap;
     gap: var(--nf-space-xs);
     margin-top: var(--nf-space-xs);
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .nf-stay-card__chips::-webkit-scrollbar {
-    display: none;
   }
   .nf-stay-card__chip {
     display: inline-flex;
@@ -2202,7 +2215,7 @@
      AN UNDECLARED COST IS DRAWN, NOT HIDDEN, and it is drawn quiet: the row
      loses its lit rim and its figure is a word at the muted ink, so the eye
      reads the declared costs first and still cannot miss that something was
-     left unsaid. HANDOFF 09 section 4.3. */
+     left unsaid. */
   .nf-movein__list {
     display: grid;
     gap: var(--nf-space-xs);

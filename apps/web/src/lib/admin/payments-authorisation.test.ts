@@ -39,6 +39,16 @@ vi.mock("./guard", async (importOriginal) => {
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
+/* MON-02: the hold sweep runs the verifying sweep with the service role; it
+   reports unavailable unless a test says otherwise. */
+const sweep = vi.hoisted(() => ({
+  sweepStaleWithdrawalHolds: vi.fn(async () => ({
+    examined: 0, resolutions: [], releasedMinor: 0, unavailable: true, reason: "test",
+  })),
+}));
+vi.mock("../wallet/reconciliation", () => sweep);
+vi.mock("../wallet/ledger", () => ({ getAdminClient: () => ({}) }));
+
 import { expireStaleWithdrawalHolds, retireExampleListings } from "./payments-actions";
 import { getPaymentHealth } from "./payments-queries";
 import { getRevenueSummary } from "./revenue-queries";
@@ -104,14 +114,6 @@ describe("a `forbidden` answer from the database", () => {
    * database still refuses, and nothing in this process may round that up to a
    * success or to an empty-but-fine result.
    */
-  it("fails the sweep rather than reporting nothing was stuck", async () => {
-    adminAnswering({ status: "forbidden" });
-    const result = await expireStaleWithdrawalHolds({ olderThanMinutes: 30 });
-
-    expect(result.ok).toBe(false);
-    expect(result.ok === false && result.error).toBe(ADMIN_FORBIDDEN_MESSAGE);
-  });
-
   it("fails the retirement rather than reporting zero retired", async () => {
     adminAnswering({ status: "forbidden" });
     const result = await retireExampleListings({ listingIds: [LISTING] });
@@ -172,17 +174,30 @@ describe("the sweep window floor", () => {
 
     expect(result.ok).toBe(false);
     expect(rpc).not.toHaveBeenCalled();
+    expect(sweep.sweepStaleWithdrawalHolds).not.toHaveBeenCalled();
   });
 
-  it("accepts the ten-minute floor itself", async () => {
+  it("accepts the ten-minute floor itself, and hands it to the verifying sweep (MON-02)", async () => {
     const rpc = adminAnswering({ status: "ok", expired: 2 });
+    sweep.sweepStaleWithdrawalHolds.mockResolvedValueOnce({
+      examined: 2,
+      releasedMinor: 2,
+      unavailable: false,
+      reason: "",
+      resolutions: [
+        { reference: "a", amountMinor: 1, ageMinutes: 20, action: "released", reason: "transfer_failed" },
+        { reference: "b", amountMinor: 1, ageMinutes: 20, action: "released", reason: "transfer_reversed" },
+      ],
+    } as never);
     const result = await expireStaleWithdrawalHolds({ olderThanMinutes: 10 });
 
     expect(result.ok).toBe(true);
     expect(result.ok === true && result.data.expired).toBe(2);
-    expect(rpc).toHaveBeenCalledWith("admin_expire_stale_withdrawal_holds", {
-      p_older_than_minutes: 10,
-    });
+    expect(sweep.sweepStaleWithdrawalHolds).toHaveBeenCalledWith(
+      {},
+      expect.objectContaining({ olderThanMinutes: 10, apply: true }),
+    );
+    expect(rpc).not.toHaveBeenCalled();
   });
 
   it("refuses a fractional window, because minutes are whole", async () => {

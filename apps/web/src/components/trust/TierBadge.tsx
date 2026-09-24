@@ -34,7 +34,8 @@ import { BADGE_TIER_MEANING, type BadgeTier } from "@/lib/trust/badge-tier";
  *
  * WHAT IT DRAWS, AND WHERE THAT CAME FROM. An eight lobed scalloped seal with a
  * tick knocked through it, taken off the founder's own artwork by measurement
- * rather than by eye: `IMG_6170.png` and `IMG_6169.png`, added in `cb7deb07`.
+ * rather than by eye: the gold and platinum sources in
+ * `docs/design/references/trust-badges/`, added in `cb7deb07`.
  * The lobe count, the 0.819 inner to outer radius ratio, the gradient stops and
  * the tick's three points are all sampled values, recorded in
  * `app/css/trust-badge.css`. The images govern the FORM. They govern nothing
