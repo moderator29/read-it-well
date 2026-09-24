@@ -110,10 +110,17 @@ security definer
 set search_path = ''
 as $$
 begin
+  /* ACCEPTING A PROPOSAL FREEZES THE PROPOSAL. On PROPOSED to CONFIRMED the
+     requester is the one confirming, and they could move `slot_at` into the
+     past in the same statement; the agreed time is the lister's offer, which
+     is `old.slot_at`, whatever the confirming statement wrote. */
   if new.state = 'CONFIRMED'::public.inspection_state
      and old.state is distinct from 'CONFIRMED'::public.inspection_state then
     insert into private.inspection_slot_agreed (inspection_id, slot_at, agreed_at)
-    values (new.id, coalesce(new.slot_at, new.requested_at), now())
+    values (new.id,
+            coalesce(case when old.state = 'PROPOSED'::public.inspection_state then old.slot_at end,
+                     new.slot_at, new.requested_at),
+            now())
     on conflict (inspection_id) do update set slot_at = excluded.slot_at, agreed_at = now();
   end if;
   return new;
