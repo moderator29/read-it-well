@@ -7,6 +7,8 @@ import { AreaTimeChart } from "@/components/agent/charts/AreaTimeChart";
 import { isQaAccount, type AlertTrend, type InspectionActivity, type JobHealth, type NotificationActivity, type PersonTier, type PushActivity } from "@/lib/admin/reads/shapes";
 import { EmailOutboxPanel, PushActivityPanels } from "./PushActivityPanels";
 import { InFlight } from "./InFlight";
+import { StorePanel } from "./StorePanel";
+import type { StoreRun } from "@/lib/store/run";
 import {
   PG_CRON_JOBS,
   durationLabel,
@@ -45,7 +47,7 @@ import {
  * database's own pg_cron jobs are summarised from the platform's watch job
  * until Request A5 lists them; notification volumes need Request A6.
  */
-export type OpsTab = "jobs" | "alerts" | "audit" | "notifications" | "inflight";
+export type OpsTab = "jobs" | "alerts" | "audit" | "notifications" | "inflight" | "store";
 
 export type OperationsProps = {
   locale: Locale;
@@ -65,6 +67,8 @@ export type OperationsProps = {
   /** Published badge tiers of the people the audit rows name (`getPersonTiers`). */
   tiers?: ReadonlyMap<string, PersonTier>;
   inspections?: InspectionActivity | null;
+  /** V-52: the store readiness checks, run live on the Store tab only. */
+  store?: StoreRun | null;
 };
 
 function stamp(iso: string | null, locale: Locale): string {
@@ -142,6 +146,7 @@ export function OperationsView(props: OperationsProps) {
     { key: "audit", label: c.tabAudit },
     { key: "notifications", label: c.tabNotifications },
     { key: "inflight", label: c.tabInFlight },
+    { key: "store", label: getDictionary(locale).frontDoor.store.tab },
   ].map((t) => ({
     ...t,
     href: t.key === "jobs" ? "/admin/operations" : `/admin/operations?tab=${t.key}`,
@@ -175,6 +180,7 @@ export function OperationsView(props: OperationsProps) {
         </>
       )}
       {props.tab === "inflight" && <InFlight locale={locale} inspections={props.inspections ?? null} />}
+      {props.tab === "store" && <StorePanel run={props.store ?? null} locale={locale} />}
 
       <div className="nf-admin-grid nf-admin-grid--halves">
         <Panel id="ops-recent-alerts" title={shell.overview.alertsTitle} action={<PanelLink href="/admin/alerts">{shell.states.viewAll}</PanelLink>}>

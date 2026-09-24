@@ -360,7 +360,6 @@ export const yo: Dictionary = withFallback({
     posts: "Ìkéde",
     joined: "Ó dara pọ̀ ní {month}",
     editProfile: "Ṣàtúnṣe ojú ewé",
-    trustScore: "Àmì ìgbẹ́kẹ̀lé",
     completedDeals: "Ìdúnàdúrà tí ó parí",
     responseTime: "Àkókò ìdáhùn",
     tabsLabel: "Ohun tí @{handle} ní ní ojú ewé wọn",

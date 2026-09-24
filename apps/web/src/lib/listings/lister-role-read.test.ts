@@ -70,7 +70,6 @@ function row(over: Partial<ListingRow> = {}): ListingRow {
     total_floors: null,
     bedrooms: 4,
     bathrooms: 4,
-    featured: false,
     is_demo: true,
     agent_id: "ag000000-0000-4000-8000-000000000001",
     listing_role: "agent",

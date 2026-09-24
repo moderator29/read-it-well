@@ -2347,3 +2347,23 @@
     margin-inline-start: var(--nf-space-2xs);
   }
 }
+
+/* V-52: one row per store check on the Store tab of /admin/operations. The
+   state is carried by the badge's word as well as its tone; the rule on the
+   left repeats it for a scanning eye, never alone. */
+@layer components {
+  .nf-admin-store-check {
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-inset);
+    border-inline-start: 3px solid var(--nf-border-subtle);
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .nf-admin-store-check[data-state="pass"] {
+    border-inline-start-color: var(--nf-state-success);
+  }
+  .nf-admin-store-check[data-state="fail"] {
+    border-inline-start-color: var(--nf-state-error);
+  }
+}

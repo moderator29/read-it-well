@@ -69,6 +69,25 @@ const config: CapacitorConfig = {
 
   webDir: "native-shell",
 
+  /*
+   * THE SHELL ANNOUNCES ITSELF (V-11), so the server can keep it off the
+   * marketing page. The landing page and `/home-or-landing` read this mark
+   * and send the shell to `/home`, `/welcome` or `/sign-in`, never `/`.
+   *
+   * WHY NOT `server.url: origin + "/home-or-landing?app=1"`, which is the
+   * obvious move: on iOS the bridge treats a navigation as the app's own only
+   * when its URL starts with `server.url`, so every tap away from that exact
+   * path would be handed to Safari; on Android the raw server URL becomes an
+   * origin rule for the JavaScript bridge, where a path is not an origin. And
+   * `server.appStartPath` refuses to start on iOS unless a local file exists at
+   * that path. The full reading is in `src/lib/native/shell.ts`.
+   *
+   * The literal is `SHELL_UA_MARK` in that file, written out because the
+   * Capacitor CLI evaluates this file without the app's path aliases;
+   * `shell.test.ts` holds the two equal.
+   */
+  appendUserAgent: "ValloShell",
+
   android: {
     /*
      * A release build must never be debuggable, and this is the flag people

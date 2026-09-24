@@ -38,6 +38,7 @@ import type { Database } from "../supabase/database.types";
 /* ONE VOCABULARY, READ HERE TOO. The three doors narrow onto the two person
    values in exactly one place and this is a caller of it, not a second copy. */
 import { personRoleFrom } from "../supply/roles";
+import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/closed";
 import {
   replySupportTicketSchema,
   resolveReportSchema,
@@ -544,6 +545,7 @@ export async function reviewListing(input: {
       ...(decision === "publish" ? { published_at: now } : {}),
     })
     .eq("id", listing.id);
+  if (isClosedListingRefusal(updateError)) return fail(CLOSED_LISTING_MESSAGE);
   if (updateError) return fail(SERVICE_DOWN);
 
   try {

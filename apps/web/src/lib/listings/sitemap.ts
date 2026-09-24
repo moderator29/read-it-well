@@ -84,10 +84,29 @@ export const PUBLIC_PAGES: readonly {
  * the next person to hold this file would reasonably assume the rows were
  * being published.
  */
-export function buildSitemap(origin: string): MetadataRoute.Sitemap {
+export function buildSitemap(
+  origin: string,
+  /**
+   * The public area price pages (V-82) that exist right now, and only those.
+   * `lib/areas/pages.ts` decides which: an area needs the Price Check minimum
+   * of REAL listings, so today this is empty and the sitemap grows with
+   * supply rather than ahead of it. Each is an aggregate page, never a
+   * listing, so the "no inventory address" rule below still holds.
+   */
+  areaPages: readonly { path: string; lastModified?: string | null }[] = [],
+): MetadataRoute.Sitemap {
   const base = origin.replace(/\/+$/, "");
-  return PUBLIC_PAGES.map((page) => ({
-    url: `${base}${page.path === "/" ? "" : page.path}` || base,
-    changeFrequency: page.changeFrequency,
-  }));
+  return [
+    ...PUBLIC_PAGES.map((page) => ({
+      url: `${base}${page.path === "/" ? "" : page.path}` || base,
+      changeFrequency: page.changeFrequency,
+    })),
+    ...areaPages
+      .filter((page) => /^\/areas\/[a-z0-9-]+\/[a-z0-9-]+$/.test(page.path))
+      .map((page) => ({
+        url: `${base}${page.path}`,
+        changeFrequency: "weekly" as const,
+        ...(page.lastModified ? { lastModified: page.lastModified } : {}),
+      })),
+  ];
 }

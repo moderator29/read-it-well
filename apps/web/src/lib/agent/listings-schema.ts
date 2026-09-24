@@ -840,6 +840,13 @@ export type SubmitSubject = {
   photoCount: number;
   /** True when a photo sits at position 0, which is the cover. */
   hasCover: boolean;
+  /**
+   * V-13. The lister's stated move-in total in kobo, and the parts they named
+   * beside it. Optional so every existing caller still compiles; both real
+   * callers (the wizard and `submitListing`) pass them.
+   */
+  moveInStatedMinor?: number | null;
+  moveInPartsMinor?: ReadonlyArray<number | null | undefined>;
 };
 
 /** One unmet requirement, named by the field the agent has to go back to. */
@@ -935,6 +942,22 @@ export function submitRequirements(subject: SubmitSubject): GateRequirement[] {
     }
     if (!subject.rentPeriod) {
       unmet.push({ field: "rentPeriod", message: "Say whether the rent is per year, quarter or month." });
+    }
+    /* V-13. A stated total above the named parts publishes a fee nobody named.
+       It is refused here, on the server and in the wizard alike, until the
+       gap is itemised in the fee boxes or taken out of the total. */
+    const stated = subject.moveInStatedMinor;
+    if (typeof stated === "number" && Number.isInteger(stated) && stated > 0) {
+      const parts = (subject.moveInPartsMinor ?? []).reduce<number>(
+        (sum, part) => sum + (typeof part === "number" && Number.isInteger(part) && part > 0 ? part : 0),
+        0,
+      );
+      if (stated > parts) {
+        unmet.push({
+          field: "totalMoveIn",
+          message: "Your stated total is more than the parts you listed. Name what the difference is for in the fee boxes, or remove it from the total.",
+        });
+      }
     }
   } else {
     if ((subject.rateMinor ?? 0) <= 0) {

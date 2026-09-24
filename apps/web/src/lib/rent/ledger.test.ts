@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ledgerFromCharge, ledgerFromListing } from "./ledger";
+import { ledgerFromCharge, ledgerFromListing, unexplainedRemainder } from "./ledger";
 
 /**
  * The move-in maths, in integer kobo and nothing else.
@@ -103,5 +103,42 @@ describe("ledgerFromCharge", () => {
         total_stated: true,
       }),
     ).toBeNull();
+  });
+});
+
+describe("the unexplained remainder (V-13)", () => {
+  it("names the part of a stated total nobody itemised", () => {
+    const ledger = ledgerFromListing({ ...LEKKI, total_move_in_cost_minor: 1_292_500_000 });
+    expect(ledger?.remainderMinor).toBe(15_000_000);
+  });
+
+  it("is zero for a summed total and for a total at its parts", () => {
+    expect(ledgerFromListing(LEKKI)?.remainderMinor).toBe(0);
+    expect(ledgerFromListing({ ...LEKKI, total_move_in_cost_minor: 1_277_500_000 })?.remainderMinor).toBe(0);
+  });
+
+  it("is zero, not negative, for a total below its parts", () => {
+    expect(ledgerFromListing({ ...LEKKI, total_move_in_cost_minor: 1_000_000_000 })?.remainderMinor).toBe(0);
+  });
+
+  it("is carried on the frozen charge too", () => {
+    const ledger = ledgerFromCharge({
+      rent_minor: 300_000_000,
+      rent_period: "year",
+      caution_minor: 30_000_000,
+      service_minor: null,
+      agency_minor: 30_000_000,
+      legal_minor: 15_000_000,
+      agreement_minor: null,
+      total_minor: 390_000_000,
+      total_stated: true,
+    });
+    expect(ledger?.remainderMinor).toBe(15_000_000);
+  });
+
+  it("counts only whole kobo parts", () => {
+    expect(unexplainedRemainder(1000, [400, 500], true)).toBe(100);
+    expect(unexplainedRemainder(1000, [400, 500], false)).toBe(0);
+    expect(unexplainedRemainder(1000, [400, Number.NaN], true)).toBe(600);
   });
 });

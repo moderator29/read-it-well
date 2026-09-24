@@ -11,7 +11,17 @@ import { heldPaymentsAreOpen } from "@/lib/escrow/flag";
 import { readHeldPaymentForConversation } from "@/lib/escrow/queries";
 import { ThreadView, type ThreadBubble } from "./ThreadView";
 import { resolveCards } from "./cards";
+import { readAvailabilityForConversation } from "@/lib/availability/queries";
+import { AvailabilityCard } from "@/components/app/messages/AvailabilityCard";
+import { readAccountMoment } from "@/lib/messages/account-moment-read";
+import { counterpartFactsFrom, personFacts } from "@/lib/messages/person-line";
+import { recordLines } from "@/lib/trust/record";
+import { readThreadRecord } from "@/lib/trust/record-read";
 import { InboxEmpty } from "../Inbox";
+import { readDeskStage } from "@/lib/enquiry/queries";
+import { quickReplies } from "@/lib/enquiry/quick-replies";
+import { loadListingsByIds } from "@/lib/listings/supabase-repository";
+import { StageControl } from "@/components/app/messages/StageControl";
 
 /**
  * A single conversation thread.
@@ -33,6 +43,11 @@ import { InboxEmpty } from "../Inbox";
  * telling somebody a real thing does not exist is the same class of lie in the
  * other direction.
  */
+
+/** Today in Lagos, `YYYY-MM-DD`, for the still-available date field (V-14). */
+function lagosDayNow(): string {
+  return new Date(Date.now() + 3_600_000).toISOString().slice(0, 10);
+}
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -155,6 +170,54 @@ export default async function ConversationPage({
        ask, structurally. */
     const inspection =
       context.kind === "listing" ? await readOpenInspectionForConversation(id) : null;
+    /* V-14: the still-available question on this thread, if one was asked. */
+    const availability = context.kind === "listing" ? await readAvailabilityForConversation(id) : null;
+    const lagosToday = lagosDayNow();
+    /* V-72: the desk, for the lister of a listing thread only. The stage read
+       answers only for the caller's own threads, and the listing is read
+       under the lister's own client for the quick replies' figures. */
+    const desk = context.kind === "listing" && role === "host";
+    const [stage, deskListing] = desk
+      ? await Promise.all([
+          readDeskStage(id),
+          thread.listing
+            ? loadListingsByIds(session.supabase, [thread.listing.id])
+                .then((found) => found.get(thread.listing!.id) ?? null)
+                .catch(() => null)
+            : Promise.resolve(null),
+        ])
+      : [null, null];
+    /* V-23: the dated facts about the other person, for the line under the
+       header. One RPC that answers only to a party; a failure is no line. */
+    let counterpartFactsLine: { key: string; text: string }[] = [];
+    try {
+      const { data: factsRows } = await (session.supabase as unknown as {
+        rpc(fn: string, args: Record<string, unknown>): Promise<{ data: unknown }>;
+      }).rpc("thread_counterpart_facts", { p_conversation: id });
+      const first = Array.isArray(factsRows) ? factsRows[0] : null;
+      counterpartFactsLine = personFacts(counterpartFactsFrom(first), t.trustVisible.person, locale);
+    } catch {
+      counterpartFactsLine = [];
+    }
+    /* V-34: when the other party is a lister, their Record, counted, under
+       the person line. "On Vallo since" is already on the person line, so the
+       Record's copy of it is not drawn twice. No row, no line. */
+    const counterpartRecordLine = recordLines(await readThreadRecord(id), t.trustVisible.record, locale).filter(
+      (line) => line.key !== "since",
+    );
+    /* V-04: the receiver's account card. Skipped, at no cost, unless a
+       message from the other side carries an account number. */
+    const accountMoment =
+      context.kind === "listing"
+        ? await readAccountMoment(session.supabase, {
+            conversationId: id,
+            meId: session.user.id,
+            role,
+            listingId: thread.listing?.id ?? null,
+            messages: thread.messages,
+            locale,
+          })
+        : null;
 
     return (
       <ThreadView
@@ -210,8 +273,27 @@ export default async function ConversationPage({
             : null
         }
         inspected={thread.inspected}
+        availabilitySlot={
+          availability ? (
+            <AvailabilityCard
+              check={availability}
+              copy={t.frontDoor.available}
+              locale={locale}
+              today={lagosToday}
+            />
+          ) : null
+        }
+        stageSlot={stage ? <StageControl conversationId={id} stage={stage} copy={t.frontDoor.desk} /> : null}
+        quickReplies={desk ? quickReplies(deskListing, t.frontDoor.desk.quick, locale) : []}
+        quickRepliesTitle={t.frontDoor.desk.quickTitle}
         openAttach={(Array.isArray(attach) ? attach[0] : attach) === "1"}
         heldPaymentsOpen={heldPaymentsOpen}
+        accountMoment={accountMoment}
+        personLine={counterpartFactsLine}
+        recordLine={counterpartRecordLine}
+        recordLabel={t.trustVisible.record.title}
+        personLabel={t.trustVisible.person.label}
+        accountCopy={t.trustVisible.account}
         agreement={
           heldPayment.payment
             ? {
@@ -232,6 +314,7 @@ export default async function ConversationPage({
             timeLabel: m.timeLabel,
             imageUrl: m.imageUrl,
             read: read.has(m.id),
+            ...(m.createdAt ? { createdAt: m.createdAt } : {}),
             ...(card ? { card } : {}),
           };
         })}

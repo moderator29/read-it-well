@@ -4,6 +4,13 @@ import type { CountForms } from "../plural";
    overwrite once already. One import and one line is the smallest footprint a
    namespace can have here. */
 import { priceCheckEn } from "./price-check.en";
+/* The front of the funnel (share door, area pages, store desk, broadcast,
+   board): its own module for the same reason. */
+import { frontDoorEn } from "./front-door.en";
+import { afterTheGateEn } from "./after-the-gate.en";
+import { trustVisibleEn } from "./trust-visible.en";
+import { landlordEn } from "./landlord.en";
+import { trustDoorsEn } from "./trust-doors.en";
 /* The platform and the craft (devices, sign-in alert, wallet hold, feedback),
    in its own module for the same reason as Price Check. */
 import { platformEn } from "./platform.en";
@@ -458,7 +465,6 @@ export const en = {
     posts: "Posts",
     joined: "Joined {month}",
     editProfile: "Edit profile",
-    trustScore: "Trust score",
     completedDeals: "Completed deals",
     responseTime: "Response time",
     tabsLabel: "What @{handle} has on their page",
@@ -5833,6 +5839,13 @@ export const en = {
   },
 
   priceCheck: priceCheckEn,
+  frontDoor: frontDoorEn,
+  afterTheGate: afterTheGateEn,
+  trustVisible: trustVisibleEn,
+
+  landlord: landlordEn,
+
+  trustDoors: trustDoorsEn,
 
   platform: platformEn,
 

@@ -1,0 +1,113 @@
+/*
+ * THE SHARE DOOR (V-07). A stranger's first sight of Vallo, from a WhatsApp
+ * thread, at 390 pixels. One column, the mark, one card, one button. Colours
+ * only through the token layer (the css token check fails on a raw colour),
+ * dark only, and every control a rounded rectangle under the shape law.
+ */
+@layer components {
+  .nf-door {
+    position: relative;
+    display: flex;
+    min-height: 100dvh;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--nf-space-lg);
+    padding: max(var(--nf-space-lg), env(safe-area-inset-top, 0px)) var(--nf-space-md)
+      max(var(--nf-space-lg), env(safe-area-inset-bottom, 0px));
+    background: var(--nf-surface-canvas);
+    color: var(--nf-content-primary);
+  }
+
+  .nf-door__mark {
+    display: flex;
+    justify-content: center;
+    padding-top: var(--nf-space-md);
+  }
+
+  .nf-door__stage {
+    display: flex;
+    width: 100%;
+    max-width: 26rem;
+    flex-direction: column;
+  }
+
+  .nf-door__card {
+    gap: var(--nf-space-md);
+  }
+
+  .nf-door__eyebrow {
+    font-size: var(--nf-text-caption);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--nf-content-muted);
+  }
+
+  .nf-door__lead {
+    display: flex;
+    align-items: center;
+    gap: var(--nf-space-md);
+  }
+
+  .nf-door__photo {
+    display: block;
+    width: 88px;
+    height: 88px;
+    flex-shrink: 0;
+    object-fit: cover;
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-inset);
+  }
+
+  .nf-door__title {
+    font-size: var(--nf-text-h4);
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--nf-content-primary);
+    overflow-wrap: anywhere;
+  }
+
+  .nf-door__place {
+    margin-top: var(--nf-space-2xs);
+    font-size: var(--nf-text-body-sm);
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-door__headline {
+    font-size: var(--nf-text-h2);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--nf-content-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .nf-door__second {
+    font-size: var(--nf-text-body);
+    color: var(--nf-content-secondary);
+  }
+
+  .nf-door__example {
+    align-self: flex-start;
+  }
+
+  .nf-door__code {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nf-space-3xs);
+    padding: var(--nf-space-sm) var(--nf-space-md);
+    border-radius: var(--nf-radius-md);
+    background: var(--nf-surface-inset);
+  }
+
+  .nf-door__code-value {
+    font-size: var(--nf-text-h3);
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    color: var(--nf-content-primary);
+  }
+
+  .nf-door__note {
+    font-size: var(--nf-text-caption);
+    color: var(--nf-content-muted);
+  }
+}

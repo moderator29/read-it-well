@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
 import { GateHandshake } from "./GateHandshake";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { panelClass } from "@/components/ui/Panel";
 import { Sheet } from "@/components/ui/Sheet";
@@ -47,6 +47,7 @@ import {
 import { ladderFor, type LadderKey } from "./ladder";
 import { statusFor, type BadgeTone } from "./status";
 import { TierBadge } from "@/components/trust/TierBadge";
+import { TruthQuestions } from "./TruthQuestions";
 
 /**
  * ONE INSPECTION, EXACTLY IN THE ANATOMY OF F6A8A482 / founder/inspection-target.jpg.
@@ -162,6 +163,9 @@ export function InspectionSheet({
   open = false,
   report = null,
   reportLive = false,
+  quoteLine = null,
+  truth = null,
+  tenancyReview = null,
   gateCopy,
 }: {
   inspection: Inspection;
@@ -174,6 +178,15 @@ export function InspectionSheet({
   report?: InspectionReport | null;
   /** The one flag: report storage exists. */
   reportLive?: boolean;
+  /** V-13: "Quoted at ₦3,900,000 on Thu 1 Oct", once the lister's yes froze it. */
+  quoteLine?: string | null;
+  /**
+   * V-05: the four truth questions, when the page decided they are open for
+   * this viewer (the requester, after the agreed time). Null draws nothing.
+   */
+  truth?: { answeredAt: string | null; copy: Dictionary["trustVisible"]["truth"] } | null;
+  /** V-59: the tenancy review, when one is waiting for this renter. */
+  tenancyReview?: { href: string; label: string } | null;
   /** V-35: the gate handshake's copy. Absent, no gate section is drawn. */
   gateCopy?: Dictionary["platform"]["gate"];
 }) {
@@ -315,6 +328,12 @@ export function InspectionSheet({
                 {facts.priceLabel} {facts.periodLabel && <small>{facts.periodLabel}</small>}
               </p>
             )}
+            {quoteLine && (
+              <p className="nf-ix-card__line" data-testid="inspection-quote">
+                <UiIcon name="key" size={12} />
+                <span className="truncate">{quoteLine}</span>
+              </p>
+            )}
           </div>
           <UiIcon name="chevron-right" size={20} className="nf-ix-card__chev" />
         </div>
@@ -386,6 +405,23 @@ export function InspectionSheet({
             </li>
           ))}
         </ol>
+
+        {/* ------------------------------------------ V-59, the tenancy review */}
+        {tenancyReview && (
+          <ButtonLink href={tenancyReview.href} variant="primary" full data-testid="tenancy-review-entry">
+            {tenancyReview.label}
+          </ButtonLink>
+        )}
+
+        {/* ------------------------------------------ V-05, the truth questions */}
+        {truth && (
+          <TruthQuestions
+            inspectionId={inspection.id}
+            answeredAt={truth.answeredAt}
+            copy={truth.copy}
+            locale={locale}
+          />
+        )}
 
         {/* -------------------------------------------------------- checklist */}
         <section className={panelClass({ className: "nf-ix-check" })} aria-label="Inspection checklist">

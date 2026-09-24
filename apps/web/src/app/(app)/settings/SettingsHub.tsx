@@ -48,6 +48,12 @@ export type SettingsHubProps = {
   notifications: ResolvedProfileSettings["notifications"] | null;
   /** Real count of signed-in devices, or null when it could not be read. */
   deviceCount: number | null;
+  /**
+   * V-50: the Phone row, drawn only when the page decided phone confirmation
+   * is on for a signed-in person. Absent draws nothing (a row that leads to
+   * "nothing is needed" is not drawn).
+   */
+  phoneRow?: { label: string; sub: string } | null;
 };
 
 const ALL_ON: ResolvedProfileSettings["notifications"] = {
@@ -143,7 +149,15 @@ function Checked({ children }: { children: string }) {
   );
 }
 
-export function SettingsHub({ t, locale, signedIn, person, notifications, deviceCount }: SettingsHubProps) {
+export function SettingsHub({
+  t,
+  locale,
+  signedIn,
+  person,
+  notifications,
+  deviceCount,
+  phoneRow = null,
+}: SettingsHubProps) {
   const hub = t.settings.hub;
   /* The appearance group and its theme row went with light mode on 23
      September. `t.settings.appearance` still exists in the dictionary and is
@@ -237,6 +251,15 @@ export function SettingsHub({ t, locale, signedIn, person, notifications, device
           }
           testId="hub-privacy"
         />
+        {phoneRow && (
+          <RowLink
+            href="/settings/phone"
+            glyph={<HubGlyph name="user" />}
+            label={phoneRow.label}
+            sub={phoneRow.sub}
+            testId="hub-phone"
+          />
+        )}
         {/*
           THE APPEARANCE ROW IS GONE, and it was the theme. The founder removed
           light mode from the platform on 23 September 2026, so this hub has
