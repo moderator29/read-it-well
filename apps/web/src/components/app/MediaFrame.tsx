@@ -532,6 +532,7 @@ export function MediaFrame({
   sizes = "(max-width: 640px) 50vw, 33vw",
   priority = false,
   scrim = false,
+  drawn = false,
 }: {
   hue: number;
   index?: number;
@@ -576,11 +577,23 @@ export function MediaFrame({
    * nothing over it, where it is the subject rather than the ground.
    */
   ghost?: boolean;
+  /**
+   * Draw the kind, never a scene photograph (the modest examples: see
+   * `lib/listings/example-imagery.ts`).
+   *
+   * Every scene photograph on disk today is an aspirational render: a lit
+   * tower on a waterfront for `flats`, a villa at sunset for `house`. Behind a
+   * mini flat in Yaba that trains the eye to expect what a real agent's
+   * photograph will never show. So a caller holding a modest example asks for
+   * the drawing, which states what kind of place it is and nothing more.
+   */
+  drawn?: boolean;
 }) {
   const scene = SCENE_BY_KIND[kind ?? "home"];
   /* A dropped-in photograph for this scene wins over the stand-in. See the
      note above STAND_IN: the manifest is generated from what is on disk. */
-  const photo = scene === "land" ? null : (SCENE_PHOTOGRAPHS[scene] ?? STAND_IN[scene]);
+  const photo =
+    scene === "land" || drawn ? null : (SCENE_PHOTOGRAPHS[scene] ?? STAND_IN[scene]);
   const at = Math.abs(hue + index) % CROPS.length;
 
   return (

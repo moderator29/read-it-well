@@ -55,7 +55,7 @@ function check(name, condition, detail) {
 const ROUTES = [
   "/", "/home", "/search", "/search?view=map", "/listing/lekki-palm-grove", "/saved",
   "/messages", "/notifications", "/profile", "/settings", "/settings/notifications",
-  "/wallet", "/bookings", "/rent", "/agents", "/agents/apply", "/assistant",
+  "/wallet", "/bookings", "/search?market=rent", "/agents", "/agents/apply", "/assistant",
   "/help", "/contact", "/about", "/careers", "/safety", "/standards", "/cancellations",
   "/docs", "/styleguide", "/legal/privacy", "/legal/terms", "/privacy", "/terms",
   "/agent/dashboard", "/agent/bookings", "/agent/listings", "/agent/calendar",

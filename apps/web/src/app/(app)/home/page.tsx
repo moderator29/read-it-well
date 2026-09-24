@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { isStayPeriod } from "@/lib/listings/filter";
 import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getHomeOverview } from "@/lib/app/home-queries";
@@ -63,7 +64,11 @@ export default async function HomePage() {
    * home of that read and is still used by the preview harness; nothing was
    * deleted, one caller stopped calling.
    */
-  const listings = await repo.recommended(6);
+  /* V-67: the Property home's featured shelf shows no per-night cards; a
+     wider pick is narrowed, so the shelf stays six when it can. */
+  const listings = (await repo.recommended(12))
+    .filter((listing) => listing.pricePeriod === undefined || !isStayPeriod(listing.pricePeriod))
+    .slice(0, 6);
 
   /*
    * Whether this person is a seller or an agent who has not finished verifying.

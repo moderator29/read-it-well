@@ -197,6 +197,8 @@ export type ThreadViewProps = {
   /** V-100: the renter's own switch for this thread. Null for anybody else. */
   passportShare?: { enabled: boolean; shared: boolean } | null;
   passportLabel?: string;
+  /** V-69: the "Show me" panel for a listing thread, when it is open. */
+  showMe?: React.ReactNode;
 };
 
 const INSPECTIONS_KEY = "nf_inspections";
@@ -335,6 +337,7 @@ export function ThreadView({
   passportLine = [],
   passportShare = null,
   passportLabel,
+  showMe = null,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
   /*
@@ -834,6 +837,7 @@ export function ThreadView({
         />
       )}
 
+      {showMe}
       {availabilitySlot}
       {stageSlot}
 

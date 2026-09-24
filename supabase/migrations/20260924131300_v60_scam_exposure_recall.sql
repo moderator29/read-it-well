@@ -242,7 +242,7 @@ begin
       /* The thread wording only for somebody who has a thread to open. */
       replace(replace(case when who.conversation_id is not null then p_body_about else p_body_plain end,
                       '{listing}', coalesce(who.listing_title, p_listing_fallback)), '{reason}', reason_words),
-      case when who.conversation_id is not null then '/messages/' || who.conversation_id::text else '/inspections' end
+      case when who.conversation_id is not null then '/messages/' || who.conversation_id::text else '/bookings' end
     );
     perform private.email_outbox_enqueue(
       who.user_id,

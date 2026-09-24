@@ -319,7 +319,7 @@ const DYNAMIC = [
  * ran against a build with no platform keys at all, where the gate never runs.
  */
 const GATED = [
-  { pattern: "/inspections", url: "/inspections" },
+  { pattern: "/bookings", url: "/bookings?kind=inspection" },
   { pattern: "/checkout", url: "/checkout" },
   { pattern: "/assistant", url: "/assistant" },
   { pattern: "/verification", url: "/verification" },

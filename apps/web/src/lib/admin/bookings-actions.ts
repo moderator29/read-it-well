@@ -471,7 +471,7 @@ export async function decideReservationAsAdmin(input: {
         kind: "booking",
         title: notice.title,
         body: notice.body,
-        href: "/trips",
+        href: "/bookings?side=stays&from=stays",
       });
     }
   } catch {
@@ -480,7 +480,6 @@ export async function decideReservationAsAdmin(input: {
 
   revalidatePath("/admin/bookings");
   revalidatePath("/admin/bookings/reservations");
-  revalidatePath("/trips");
   revalidatePath("/bookings");
   revalidatePath("/agent/bookings");
 

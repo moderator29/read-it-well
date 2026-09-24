@@ -30,7 +30,8 @@ describe("I feel unsafe (V-63)", () => {
   it("is in every thread's options and on every open inspection", () => {
     expect(read("app/(app)/messages/[id]/ThreadOptionsSheet.tsx")).toContain("<UnsafeSheet");
     expect(read("components/app/inspections/InspectionSheet.tsx")).toContain("<UnsafeSheet copy={unsafe} inspectionId={inspection.id}");
-    expect(read("app/(app)/inspections/page.tsx")).toContain("unsafe={t.trustVisible.unsafe}");
+    /* /inspections folded into /bookings (V-76): the plans board renders the sheets. */
+    expect(read("components/app/plans/InspectionsBoard.tsx")).toContain("unsafe={t.trustVisible.unsafe}");
   });
 
   it("offers 112 first, then leave and block, then tell Vallo, and never a row that does nothing", () => {
@@ -70,8 +71,8 @@ describe("the hold, after review (V-63)", () => {
   });
 
   it("is listed on the moderation lane with Clear and Extend", () => {
-    expect(read("app/admin/moderation/page.tsx")).toContain("<SafetyHolds rows={holds} />");
-    const buttons = read("app/admin/moderation/SafetyHoldButtons.tsx");
+    expect(read("app/admin/_lanes/HeldLane.tsx")).toContain("<SafetyHolds rows={holds} />");
+    const buttons = read("app/admin/_lanes/SafetyHoldButtons.tsx");
     expect(buttons).toContain('act("clear")');
     expect(buttons).toContain('act("extend")');
   });

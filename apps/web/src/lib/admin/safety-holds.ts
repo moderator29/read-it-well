@@ -27,6 +27,6 @@ export async function decideSafetyHold(input: unknown): Promise<ActionResult<{ d
     p_note: parsed.data.action === "clear" ? "Cleared on the moderation lane." : "Extended on the moderation lane.",
   });
   if (error || (data !== "cleared" && data !== "extended")) return fail(desk.holdsFailed);
-  revalidatePath("/admin/moderation");
+  revalidatePath("/admin/queue");
   return ok({ done: true });
 }

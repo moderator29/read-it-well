@@ -234,3 +234,28 @@ which photograph wins.
   light on a dark ground follows from the palette rather than from a screenshot
   of a candidate image in a card.
 - The stand-ins are unchanged and the product looks exactly as it did.
+
+---
+
+## 5. The example listings wear honest imagery or none (24 September 2026)
+
+The 64 example listings were given the aspirational renders in
+`apps/web/public/brand/photos/` (marble bathrooms over a lit skyline, a villa
+with a pool at sunset), so "Mini flat in Yaba" showed a gated villa. That trains
+a stranger's eye to expect what a real agent's phone photograph will never show.
+
+`apps/web/src/lib/listings/example-imagery.ts` now decides, by kind, which
+examples are MODEST (a tenancy of a rental, an apartment, a house of up to three
+bedrooms, a shop or an office) and which ten honest photographs ("slots") each
+one should wear. A modest example shows only slot photographs that exist, and
+until one exists it shows the drawn scene of its kind with "No photographs yet".
+Villas, larger houses, sales and stays keep what they had.
+
+**What is needed, and it is a founder item.** Ten photographs, each described in
+`EXAMPLE_SLOT_BRIEF` in that file: a single room, a modest living room, kitchen
+and bathroom, a block of flats, a bungalow, a terrace, a duplex, a shop front and
+an office floor. Ordinary, daylight, no skyline, no pool, no recognisable faces,
+and only images the company has the right to use (its own photographs, or a
+licence from section 2). Save each as `apps/web/public/brand/examples/<slot>.jpg`
+and add the slot to `EXAMPLE_PHOTOGRAPHS_PRESENT`; the test fails if a named file
+is missing.

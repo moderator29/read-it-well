@@ -202,15 +202,14 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/listing/[id]": "/search",
   "/saved": "/home",
   "/saved/searches": "/saved",
-  "/inspections": "/home",
-  /* V-35: the gate code for one inspection, where a named delegate lands. */
-  "/inspections/gate/[id]": "/inspections",
-  "/rent": "/home",
+  /* V-35: the gate code for one inspection, where a named delegate lands.
+     Its parent is Plans, where inspections now live (V-76). */
+  "/inspections/gate/[id]": "/bookings",
   "/rent/move-in/[listingId]": "/listing/[listingId]",
-  "/rent/review/[paymentId]": "/inspections",
+  "/rent/review/[paymentId]": "/bookings",
   "/record/[code]": "/search",
   "/settings/passport": "/settings",
-  "/rent/pay/[inspectionId]": "/inspections",
+  "/rent/pay/[inspectionId]": "/bookings",
   "/tenancy/[id]": "/bookings",
   /*
    * PRICE CHECK. Both entries reproduce what the two pages already pass to
@@ -230,7 +229,6 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* ---------------------------------------------------------- stays side */
   "/stays/search": "/stays",
   "/stay/[id]": "/stays",
-  "/trips": "/stays",
   "/restaurants": "/stays",
   "/restaurant/[id]": "/restaurants",
   "/bookings": "/home",
@@ -339,11 +337,9 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/escrow": "/admin",
   "/admin/examples": "/admin",
   "/admin/fees": "/admin",
-  "/admin/flags": "/admin",
   "/admin/kyc": "/admin",
   "/admin/listings": "/admin",
   "/admin/listings/[id]": "/admin/listings",
-  "/admin/moderation": "/admin",
   "/admin/money": "/admin",
   "/admin/operations": "/admin",
   /* V-80: field speed, one panel read from real phones. */
@@ -357,7 +353,6 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
    */
   "/admin/queue": "/admin",
   "/admin/reference": "/admin",
-  "/admin/reports": "/admin",
   "/admin/settings": "/admin",
   "/admin/social": "/admin",
   "/admin/standing": "/admin",

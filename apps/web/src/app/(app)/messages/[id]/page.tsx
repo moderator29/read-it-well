@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { ShowMePanel } from "@/components/app/messages/ShowMePanel";
+import { readShowMe } from "@/lib/messages/show-me-queries";
 import { notFound } from "next/navigation";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
@@ -114,10 +116,10 @@ export default async function ConversationPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ attach?: string | string[] }>;
+  searchParams: Promise<{ attach?: string | string[]; showme?: string | string[] }>;
 }) {
   const { id } = await params;
-  const { attach } = await searchParams;
+  const { attach, showme: showMeParam } = await searchParams;
   const session = await resolveSession();
 
   if (session.state === "signed-in") {
@@ -230,6 +232,9 @@ export default async function ConversationPage({
           })
         : null;
 
+    /* V-69: a listing thread's clip asks, when the flag is open. */
+    const showMe = context.kind === "listing" ? await readShowMe(session.supabase, id) : null;
+
     return (
       <ThreadView
         live
@@ -306,6 +311,19 @@ export default async function ConversationPage({
         passportShare={passportShare}
         passportLabel={t.trustVisible.passport.heading}
         recordLabel={t.trustVisible.record.title}
+        showMe={
+          showMe ? (
+            <ShowMePanel
+              conversationId={thread.conversationId}
+              role={role}
+              requests={showMe}
+              copy={t.shape.showMe}
+              locale={locale}
+              now={renderedAt()}
+              openOnArrival={(Array.isArray(showMeParam) ? showMeParam[0] : showMeParam) === "1"}
+            />
+          ) : null
+        }
         personLabel={t.trustVisible.person.label}
         accountCopy={t.trustVisible.account}
         agreement={
@@ -348,4 +366,9 @@ export default async function ConversationPage({
       />
     </div>
   );
+}
+
+/** The server's clock, read once per request, outside render purity rules. */
+function renderedAt(): string {
+  return new Date().toISOString();
 }

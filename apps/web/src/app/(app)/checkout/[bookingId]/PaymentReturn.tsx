@@ -65,6 +65,7 @@ export function PaymentReturn({
   locale,
   /** Where "Try again" goes. The checkout screen this sits on. */
   retryHref,
+  plansAction,
 }: {
   reference: string;
   amountMinor?: number;
@@ -72,6 +73,8 @@ export function PaymentReturn({
   subject?: string;
   locale?: Locale;
   retryHref: string;
+  /** Where "done" sends somebody, in the dictionary's words (V-76 review). */
+  plansAction: { label: string; href: string };
 }) {
   const [phase, setPhase] = useState<Phase>({ kind: "checking" });
   const [open, setOpen] = useState(true);
@@ -165,7 +168,7 @@ export function PaymentReturn({
             : "This payment was already recorded, so your stay is confirmed."
         }
         actions={[
-          { label: "See your stays", href: "/bookings", tone: "primary" },
+          { label: plansAction.label, href: plansAction.href, tone: "primary" },
           { label: "Close", onClick: () => setOpen(false), tone: "quiet" },
         ]}
       />
@@ -183,7 +186,7 @@ export function PaymentReturn({
         locale={locale}
         consequence="We have not heard back from the payment service. Do not pay again. Your stay appears under your stays the moment it settles, and the reference above is what support will trace it by."
         actions={[
-          { label: "See your stays", href: "/bookings", tone: "primary" },
+          { label: plansAction.label, href: plansAction.href, tone: "primary" },
           { label: "Get help", href: "/help", tone: "quiet" },
         ]}
       />

@@ -93,7 +93,7 @@ export default async function PeoplePage({
           name="q"
           type="search"
           defaultValue={view.query}
-          placeholder="A name, a handle, a job, a place"
+          placeholder="A name or a handle"
           autoComplete="off"
         />
         <Button type="submit" variant="primary" className="h-12 shrink-0">
@@ -105,11 +105,11 @@ export default async function PeoplePage({
         {searching ? `People matching ${view.query}` : "People who just arrived"}
       </p>
 
-      {/* Why these people, said plainly. A search for "Ikeja" that quietly also
-          matched an occupation looks like a broken search unless it says so. */}
+      {/* People are found by name and handle only (V-64): occupation and
+          place are a member's own facts and are searched by nobody. */}
       {searching && view.people.length > 0 ? (
         <p className="mt-2xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
-          Searched by {matchLabel(view.matchedOn)}.
+          Searched by name and handle.
         </p>
       ) : null}
 
@@ -120,7 +120,7 @@ export default async function PeoplePage({
             title={searching ? `Nobody here is called ${view.query}` : "Nobody has a page yet"}
             body={
               searching
-                ? "Nobody matched that name, handle, occupation or place. Try a shorter piece of it, or the handle itself."
+                ? "Nobody matched that name or handle. Try a shorter piece of it, or the handle itself."
                 : "The first person to claim a handle appears here. Claim yours and yours is the first name anybody arriving reads."
             }
             action={{ href: "/around", label: "Go to Around" }}
@@ -165,9 +165,9 @@ export default async function PeoplePage({
                       is nothing here to truncate, and truncating the one
                       sentence somebody wrote about themselves to tidy a row is
                       the wrong trade. */}
-                  {/* What they do and where, from columns a trigger projects
-                      rather than columns a person types. Absent entirely when
-                      unknown: a profile should never look like a form somebody
+                  {/* What they do and where, ONLY where the member published
+                      it in their settings (V-64). Absent entirely otherwise:
+                      a profile should never look like a form somebody
                       abandoned. */}
                   {person.occupation || person.place ? (
                     <span className="nf-people__facts">
@@ -218,19 +218,3 @@ export default async function PeoplePage({
   );
 }
 
-/**
- * "name and handle", "name and handle, and what people do", and so on.
- *
- * Written out rather than printed as a list of three words, because the line
- * under a search result is a sentence somebody reads once and it should read
- * like one. Never truncated and never abbreviated: the label is the meaning of
- * the results below it.
- */
-function matchLabel(matched: ("name" | "occupation" | "place")[]): string {
-  const parts = matched.map((key) =>
-    key === "name" ? "name and handle" : key === "occupation" ? "what people do" : "where they are",
-  );
-  if (parts.length === 0) return "name and handle";
-  if (parts.length === 1) return parts[0] as string;
-  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
-}

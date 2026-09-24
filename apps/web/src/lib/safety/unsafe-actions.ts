@@ -48,6 +48,6 @@ export async function feelUnsafe(input: unknown): Promise<ActionResult<{ blocked
   if (status === "signed_out") return fail(copy.signedOut);
   if (status !== "filed") return fail(copy.failed);
   revalidatePath("/messages");
-  revalidatePath("/inspections");
+  revalidatePath("/bookings");
   return ok({ blocked: parsed.data.block, held: (data as { held?: unknown }).held === true });
 }

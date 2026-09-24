@@ -148,7 +148,7 @@ check("no surface hand-writes a status colour pair inline", inlineStatus.length 
 const ROUTES = [
   "/", "/home", "/search", "/search?view=map", "/listing/lekki-palm-grove", "/saved",
   "/messages", "/notifications", "/profile", "/settings", "/settings/interests",
-  "/settings/place", "/wallet", "/bookings", "/rent", "/assistant", "/around", "/u",
+  "/settings/place", "/wallet", "/bookings", "/search?market=rent", "/assistant", "/around", "/u",
   "/stories", "/agents", "/agents/apply", "/agents/status", "/help", "/contact",
   "/about", "/careers", "/safety", "/standards", "/cancellations", "/docs",
   "/styleguide", "/privacy", "/terms", "/sign-in", "/sign-up", "/sign-up/email",

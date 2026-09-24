@@ -16,6 +16,7 @@ const plan: AlertPlan = {
   matchedIds: ["s-ada", "s-bola"],
   matchedSearches: 2,
   matchedListings: 2,
+  staySide: [],
 };
 const subjects = [subject("s-ada", "ada"), subject("s-bola", "bola"), subject("s-chidi", "chidi")];
 

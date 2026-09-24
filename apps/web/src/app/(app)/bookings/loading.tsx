@@ -11,7 +11,7 @@ import { LoadingShell, PageHeaderSkeleton } from "@/components/app/ScreenSkeleto
  */
 export default function LoadingBookings() {
   return (
-    <LoadingShell label="Loading your bookings" className="mx-auto w-full max-w-2xl">
+    <LoadingShell label="Loading your plans" className="mx-auto w-full max-w-2xl">
       <PageHeaderSkeleton />
 
       <div className="nf-panel nf-panel--card block p-md sm:p-lg">

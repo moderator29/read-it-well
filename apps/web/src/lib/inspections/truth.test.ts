@@ -67,9 +67,13 @@ describe("the answers", () => {
 
 describe("the wiring", () => {
   const root = join(__dirname, "..", "..");
-  it("the inspections page hands the truth questions to both lists", () => {
-    const page = readFileSync(join(root, "app/(app)/inspections/page.tsx"), "utf8");
-    expect(page.match(/truth=\{truthFor\(row\)\}/g)?.length).toBe(2);
+  it("the inspections board on Plans hands the truth questions to both lists", () => {
+    /* /inspections folded into /bookings (V-76): one sheet renderer serves
+       the open and the closed list alike. */
+    const board = readFileSync(join(root, "components/app/plans/InspectionsBoard.tsx"), "utf8");
+    expect(board.match(/truth=\{truthFor\(row\)\}/g)?.length).toBe(1);
+    expect(board).toContain("groups.open.map(sheet)");
+    expect(board).toContain("groups.closed.map(sheet)");
   });
   it("the card draws the questions above the room checklist", () => {
     const sheet = readFileSync(join(root, "components/app/inspections/InspectionSheet.tsx"), "utf8");

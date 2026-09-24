@@ -2,7 +2,7 @@ import { getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
-import { TripSpine } from "@/app/(app)/trips/TripSpine";
+import { TripSpine } from "@/components/app/plans/TripSpine";
 import { BOOKINGS, RESERVATIONS } from "../fixtures";
 
 /** /trips with fixture stays and a fixture table on the same spine. */
