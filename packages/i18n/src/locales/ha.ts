@@ -435,7 +435,7 @@ export const ha: Dictionary = withFallback({
         overline: "Mutane na gaske. Wurare na gaske.",
         title: "Lissafin da aka duba. Mutane na gaske. Gidaje na gaske.",
         listings: "Lissafi",
-        agents: "Wakilai da aka tabbatar",
+        agents: "Wakilai da aka amince da su",
         cities: "Birane",
         states: "Jihohi",
       },
@@ -506,9 +506,7 @@ export const ha: Dictionary = withFallback({
            wrong badge rather than a localised one. */
         rightTitle: "Tafiyar gidanka, yanzu a waya.",
         points: {
-          all: "Cikakken damar kowane fasali",
           notify: "Sanarwa nan take",
-          fast: "Tsaro da sauri",
           design: "An yi don hannu ɗaya",
         },
       },
@@ -994,18 +992,12 @@ export const ha: Dictionary = withFallback({
       // and the admin stays queue all use it). One word for two unrelated
       // things on the same product is worse than clunky. Said in plain Hausa
       // now: the device you are signed in on. `shiga` is `common.signIn`.
-      signOutNote:
-        "Wannan ita ce na'urar da ka shiga a kanta kaɗai, don haka babu wani wurin fita. Da zarar asusun sun fara aiki, wannan maɓallin zai fitar da kai a kowace na'ura lokaci ɗaya.",
       // NATIVE REVIEW: was `da jiki`, "with the body". Names the two methods.
-      appLock: "Kulle manhaja da yatsa ko fuska",
-      appLockSub:
-        "Nemi yatsa ko fuska duk lokacin da manhajar ta buɗe, a na'urorin da suka goyi bayan hakan.",
       signedInOn: "Ka shiga a kan",
       thisDevice: "Wannan na'urar",
       deviceOn: "{browser} a kan {os}",
       unknownBrowser: "Burauza",
       unknownOs: "wannan na'urar",
-      signOutEverywhere: "Fita ko'ina",
     },
 
     /* NATIVE REVIEW. `caveat` is the line that matters most on this screen and
@@ -1062,10 +1054,6 @@ export const ha: Dictionary = withFallback({
 
     data: {
       label: "Bayananka",
-      exportNote:
-        "A yanzu duk abin da Vallo ya sani game da kai yana cikin wannan burauzar, kuma babu abin da ya bar wannan na'urar. Cikakken fitar da bayanai zai zo tare da sakin ƙaddamarwa.",
-      download: "Sauke bayanaina",
-      downloadSub: "Kwafin duk abin da Vallo ke riƙe game da kai.",
       clear: "Share bayanan na'urar",
       clearAgain: "Sake danna don tabbatarwa",
       clearSub:
@@ -1278,7 +1266,7 @@ export const ha: Dictionary = withFallback({
     },
     join: {
       title: "Shiga Al'ummar Wakilan Vallo",
-      body: "Jera kadarori, hada da bakin da aka tabbatar, sarrafa ajiye ka samu kudi.",
+      body: "Jera kadarori, hada da baki, sarrafa ajiye ka samu kudi.",
       start: "Fara bukata",
       resume: "Ci gaba da bukata",
       whatYouGet: "Abin da za ka samu",
@@ -1289,7 +1277,7 @@ export const ha: Dictionary = withFallback({
          A speaker should be given the English above if exact parity matters. */
       benefitReach: "Kai ga bakin da aka tabbatar",
       benefitTools: "Kayan aikin jeri da ajiye na kwararru",
-      benefitEarn: "Bi diddigin kudi ka samu biya cikin aminci",
+      benefitEarn: "Bi diddigin kuɗin da ka samu ka ga abin da ake bin ka",
     },
     apply: {
       title: "Zama Wakili",
@@ -1729,9 +1717,9 @@ export const ha: Dictionary = withFallback({
         "Ka shiga asusun wakilcinka don fara jeri, ko ka nemi cikin kusan minti biyu idan sabo ne ka nan.",
       points: {
         verified: {
-          title: "Kadarar da aka tabbatar kaɗai",
+          title: "Mutum mai suna a bayan kowane jeri",
           body:
-            "Ana duba kowane jeri da hannu, don haka alamar da ke kan kadararka na nufin wani abu ga baƙi.",
+            "Alamar tabbaci tana bayyana ne kawai idan wani a nan ya duba katin shaidarka, don haka tana nufin wani abu ga baƙi.",
         },
         inside: {
           title: "Baƙi na iso gare ka cikin Vallo",
@@ -3432,7 +3420,7 @@ export const ha: Dictionary = withFallback({
       step1Title: "Zaɓi kwanakinka",
       step1Body: "Zaɓi ranar shiga da ranar fita a kalanda mai rai.",
       step2Title: "Tabbatar ka biya",
-      step2Body: "Biyan kuɗi mai tsaro da naira. Ba a taɓa cajin ka da wuri ba.",
+      step2Body: "Biyan kuɗi da naira ta Paystack. Ba a taɓa cajin ka da wuri ba.",
       step3Title: "Ji daɗin masaukinka",
       step3Body: "Bayanan shiga za su iso nan da kuma ta imel.",
     },
@@ -3556,7 +3544,7 @@ export const ha: Dictionary = withFallback({
   /* TRACK P: shafukan gida biyu da mashigin ƙasa. */
   directHome: {
     heroTitle: "Nemo gidanka na gaba",
-    heroLede: "Yi haya, saya ko saka jari a gidajen da aka tabbatar a faɗin Najeriya.",
+    heroLede: "Yi haya, saya ko sayar da gidaje a faɗin Najeriya.",
     heroSearch: "Nema ta wuri, nau'in gida",
     filters: "Tacewa",
     featured: "Gidaje na musamman",
@@ -3564,7 +3552,7 @@ export const ha: Dictionary = withFallback({
     parkingMany: "wuraren ajiye mota {count}",
     buy: "Saya",
     rent: "Haya",
-    manage: "Sarrafa",
+    manage: "Jera gida",
     invest: "Jari",
     investNote: "Gidajen da aka gabatar saboda ribarsu. Vallo ba ya sayar da wani kayan jari.",
     stays: {
@@ -3578,8 +3566,8 @@ export const ha: Dictionary = withFallback({
       shortletsNote: "Kamar gida",
       restaurants: "Gidajen abinci",
       restaurantsNote: "Abinci mai daɗi",
-      nearby: "Kusa da kai",
-      nearbyNote: "Gano unguwa",
+      nearby: "Hirar unguwa",
+      nearbyNote: "Abin da mutane ke faɗi",
     },
     dock: {
       switchProfile: "Sauya",

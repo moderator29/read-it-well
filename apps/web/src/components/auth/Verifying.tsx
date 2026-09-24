@@ -117,11 +117,28 @@ export function Verifying({
 
   if (failed) {
     const said =
-      failed.reason === "unconfigured"
+      failed.reason === "provider-off"
+        ? "Vallo signs you in with your email address and password, not with that provider. Nothing was signed in. If your account was made with Google, use Forgot password on the email sign-in screen to set a password."
+        : failed.reason === "unconfigured"
         ? "This platform is not holding its email keys yet, so nothing could be confirmed. Nothing is wrong with your account."
         : failed.reason === "invalid"
           ? "That link is missing the part that confirms who it belongs to. It may have been cut in half by an email client."
           : "That link has expired or has already been used. Confirmation links are good for one visit.";
+
+    if (failed.reason === "provider-off") {
+      return (
+        <div className="w-full max-w-[26rem] text-center" data-testid="verify-failed" data-reason="provider-off">
+          <span className="flex justify-center">
+            <LogoMark size={44} title="Vallo" />
+          </span>
+          <h1 className="nf-h2 mt-md">Sign in with your email</h1>
+          <p className="mt-sm leading-relaxed text-[var(--nf-content-secondary)]">{said}</p>
+          <ButtonLink href="/sign-in/email" variant="primary" size="lg" className="mt-lg">
+            Sign in with email
+          </ButtonLink>
+        </div>
+      );
+    }
 
     return (
       <div className="w-full max-w-[26rem] text-center" data-testid="verify-failed">

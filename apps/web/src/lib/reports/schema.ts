@@ -84,8 +84,20 @@ export const REPORT_CATEGORY_ORDER: ReportCategory[] = [
  * `public.reports.target_type` is a plain `text` column with no check
  * constraint on the kind, so these two need no migration; the CATEGORY is the
  * constrained column and it is unchanged.
+ *
+ * STORE-P2-01: `review`, `business` (a stay or a restaurant; its id is the
+ * accommodation or business id the page is keyed on) and `event` are public
+ * user-generated surfaces too, and a store reviewer expects to be able to
+ * report any of them.
  */
-export const REPORT_TARGETS = ["listing", "conversation", "message"] as const;
+export const REPORT_TARGETS = [
+  "listing",
+  "conversation",
+  "message",
+  "review",
+  "business",
+  "event",
+] as const;
 export type ReportTarget = (typeof REPORT_TARGETS)[number];
 
 /**
@@ -98,6 +110,9 @@ export const REPORT_TARGET_NOUN: Record<ReportTarget, string> = {
   listing: "listing",
   conversation: "conversation",
   message: "message",
+  review: "review",
+  business: "place",
+  event: "event",
 };
 
 export const DETAILS_MAX = 1200;

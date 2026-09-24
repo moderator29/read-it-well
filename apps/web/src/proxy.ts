@@ -9,6 +9,14 @@ import {
 } from "@/lib/security/csp";
 import { safeReturnPath } from "@/lib/security/return-path";
 import { forwardedAgentHeaders } from "./lib/supabase/agent";
+import { consume, ipFromHeaders, subjectForIp } from "@/lib/security/rate-limit";
+import {
+  ANON_CATALOGUE_LIMIT,
+  ANON_CATALOGUE_WINDOW_SECONDS,
+  isPublicCataloguePath,
+  PUBLIC_CATALOGUE_API_PATHS,
+  publicCatalogueEnabled,
+} from "@/lib/catalogue/public-access";
 import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/supabase/env";
 
 /**
@@ -139,7 +147,10 @@ const PUBLIC_SEGMENTS = new Set([
   "start",
   "welcome",
   // Serving with no network, and resolving which home the caller means.
+  // `open` is where the native app starts (STORE-04): it answers /home for a
+  // session and /welcome or the open catalogue for anybody else.
   "home-or-landing",
+  "open",
   "offline",
   // Development harnesses, closed by their own guard in production.
   "gallery",
@@ -216,6 +227,7 @@ const PUBLIC_API_PATHS = new Set([
   "/api/auth/email-hook",
   "/api/client-error",
   "/api/cron/account-purge",
+  "/api/cron/canary",
   "/api/cron/complete-stays",
   "/api/cron/email-outbox",
   "/api/cron/hold-sweep",
@@ -223,6 +235,7 @@ const PUBLIC_API_PATHS = new Set([
   "/api/cron/pg-cron-watch",
   "/api/cron/saved-search-alerts",
   "/api/csp-report",
+  "/api/health/catalogue",
   "/api/push/key",
   "/api/paystack/reconcile",
   "/api/paystack/webhook",
@@ -239,14 +252,40 @@ const PUBLIC_API_PATHS = new Set([
  * same function the running middleware uses, rather than through a second copy
  * of the rule that can agree with itself while disagreeing with the product.
  */
-export function isPublicPath(path: string): boolean {
+export function isPublicPath(
+  path: string,
+  options: { publicCatalogue?: boolean } = {},
+): boolean {
   if (PUBLIC_PATHS.has(path)) return true;
+  /* STORE-P2-04: the founder's switch, VALLO_PUBLIC_CATALOGUE. It can only
+     ADD the six read-only catalogue segments; it cannot open an account
+     surface, and of the API only the map's pins, which the search page calls
+     and which carry their own per-address limit
+     (`lib/catalogue/public-access.ts`). */
+  if (options.publicCatalogue && isPublicCataloguePath(path)) return true;
+  if (options.publicCatalogue && PUBLIC_CATALOGUE_API_PATHS.has(path)) return true;
   /* An API path is decided by its WHOLE path and never by its first segment,
      because `api` is not a public tree: exactly sixteen endpoints under it
      answer a caller with no session and the rest do not. */
   if (isApiPath(path)) return PUBLIC_API_PATHS.has(path);
   const [, first = ""] = path.split("/");
   return PUBLIC_SEGMENTS.has(first);
+}
+
+/**
+ * A top-level page load, as opposed to Next's RSC navigation fetches and the
+ * intent prefetches a listing card fires on hover or touch. Only these count
+ * against a stranger's catalogue allowance: a person scrolling a list would
+ * otherwise spend several counts per page they never opened, and a refusal
+ * sent to an RSC fetch surfaces as a broken navigation, not a sentence.
+ */
+export function isDocumentRequest(request: { headers: Headers }): boolean {
+  const headers = request.headers;
+  if (headers.get("rsc") === "1" || headers.has("next-router-prefetch")) return false;
+  const purpose = `${headers.get("purpose") ?? ""} ${headers.get("sec-purpose") ?? ""}`.toLowerCase();
+  if (purpose.includes("prefetch")) return false;
+  const dest = headers.get("sec-fetch-dest");
+  return dest === null || dest === "document";
 }
 
 /** An `/api` path, which is answered rather than redirected. See `refuse`. */
@@ -345,7 +384,35 @@ export async function proxy(request: NextRequest) {
 
   if (!user) {
     const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
-    if (!isPublicPath(path)) {
+    const publicCatalogue = publicCatalogueEnabled();
+
+    /* A stranger reading the open catalogue is counted per address, so the
+       switch cannot be used to walk every listing at machine speed. Only the
+       pages are counted; a person reads a few a minute. */
+    if (publicCatalogue && isPublicCataloguePath(path) && isDocumentRequest(request)) {
+      const verdict = await consume({
+        bucket: "anon_catalogue",
+        subject: subjectForIp(ipFromHeaders(request.headers)),
+        limit: ANON_CATALOGUE_LIMIT,
+        windowSeconds: ANON_CATALOGUE_WINDOW_SECONDS,
+      });
+      if (!verdict.allowed) {
+        /* A page, so a page answers: the sign-in screen with the reason, and
+           the address they wanted kept. Sign in and browsing carries on. */
+        const target = request.nextUrl.clone();
+        target.pathname = "/sign-in";
+        target.search = "";
+        const back = safeReturnPath(request.nextUrl.pathname, request.nextUrl.search);
+        if (back) target.searchParams.set("next", back);
+        target.searchParams.set("notice", "catalogue-paced");
+        const response = NextResponse.redirect(target);
+        response.headers.set("retry-after", String(verdict.retryAfterSeconds));
+        response.headers.set("cache-control", "no-store");
+        return withSecurityPolicy(response, nonce);
+      }
+    }
+
+    if (!isPublicPath(path, { publicCatalogue })) {
       /*
        * AN API ROUTE IS ANSWERED, NEVER REDIRECTED.
        *

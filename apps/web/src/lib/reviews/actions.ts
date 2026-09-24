@@ -28,6 +28,7 @@ import {
   SIGNED_OUT_MESSAGE,
 } from "../actions/session";
 import { lagosToday } from "../bookings/schema";
+import { contentRefusal } from "../safety/content-refusal";
 import { isFeatureEnabled } from "../flags";
 import { reviewInputSchema } from "./schema";
 
@@ -93,6 +94,10 @@ export async function submitReview(
 
   if (insertError) {
     // 23505 is the unique booking_id: the stay is already reviewed.
+    // RM004: the content scanner refused the wording (SEC-05). A review has
+    // no held state, so it is refused with a sentence the person can act on.
+    const refused = contentRefusal(insertError);
+    if (refused) return fail(refused, { body: refused });
     if (insertError.code === "23505") {
       return fail("You have already reviewed this stay. Thank you for that.");
     }

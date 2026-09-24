@@ -53,6 +53,21 @@ import { KeyboardResize } from "@capacitor/keyboard";
  */
 const liveOrigin = (process.env.CAPACITOR_SERVER_URL ?? "").trim();
 
+/*
+ * STORE-04: WHERE THE APP OPENS. Never the marketing page. `/open` is a
+ * server route that sends a signed-in person to `/home` and anybody else to
+ * the public catalogue (when `VALLO_PUBLIC_CATALOGUE` is on) or to `/welcome`.
+ * The same value is written into the offline card's retry target by
+ * `scripts/write-shell-config.mjs`, from `native-shell/start-path.json`.
+ *
+ * iOS CHECKS THAT THE PATH EXISTS INSIDE `webDir` BEFORE LOADING THE SERVER
+ * URL (`CAPBridgeViewController.loadWebView` → `appStartFileURL`), and calls
+ * `fatalLoadError()` if it does not, so `native-shell/open/index.html` exists
+ * for that check alone.
+ */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const nativeStartPath: string = require("./native-shell/start-path.json").startPath;
+
 const config: CapacitorConfig = {
   /*
    * Reverse DNS on a domain the owner controls. This string is permanent: it is
@@ -68,6 +83,16 @@ const config: CapacitorConfig = {
   appName: "Vallo",
 
   webDir: "native-shell",
+
+  /*
+   * STORE-02 / STORE-03. Every request from the shell carries this token, so
+   * the SERVER knows it is rendering for the app and can leave out a sign-in
+   * door that cannot complete inside a web view (a Google or Apple redirect
+   * lands in the system browser's cookie jar, not the app's), on the first
+   * frame rather than drawing it and removing it on the client. Read by
+   * `surfaceFromUserAgent` in `src/lib/auth/providers.ts`; keep the two equal.
+   */
+  appendUserAgent: "VALLO-NATIVE",
 
   android: {
     /*
@@ -198,6 +223,7 @@ const config: CapacitorConfig = {
            * line is only what makes it reachable.
            */
           errorPath: "index.html",
+          appStartPath: nativeStartPath,
         },
       }
     : {}),

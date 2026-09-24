@@ -365,6 +365,12 @@ async function handleBookingChargeSuccess(
   // not settlement.confirmed: a request-to-book stay the host already accepted
   // is CONFIRMED before the money arrives, so gating on the status change would
   // take a guest's card and never send them a receipt.
+  /* MON-05 / OPS-02. The money moved but could not be applied to the booking,
+     so the database already returned it to the payer's wallet and raised the
+     alert. That is handled, not failed: 200, and Paystack does not retry. */
+  if (settlement.outcome === "returned-to-wallet") {
+    return verdict("posted", `booking_returned_to_wallet:${settlement.reason}`, 200, { amountMinor });
+  }
   if (settlement.outcome !== "settled") {
     return verdict("duplicate", `booking_${settlement.outcome}`, 200, { amountMinor });
   }

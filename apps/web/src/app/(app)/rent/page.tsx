@@ -64,8 +64,8 @@ export default async function RentPage({
 
       <Reveal as="section" className="mt-xs">
         <p className="max-w-[52ch] text-[length:var(--nf-text-body-sm)] leading-relaxed text-[var(--nf-content-secondary)]">
-          Homes for real rent, priced per year. Message the agent, inspect the
-          property, then pay. Verified listings only.
+          Homes to rent, priced per year. Message the agent, inspect the
+          property, then pay. Examples are marked as examples.
         </p>
 
         {/* The safety rule of the rent market, stated up front. */}
@@ -84,10 +84,10 @@ export default async function RentPage({
           art="shield-home"
           alt="The Vallo shield mark with a verification check"
           stage="paper"
-          title="Every rental here is checked"
-          body="Listings and agents are verified before they go live, and the whole conversation stays inside Vallo."
+          title="Who is behind each rental"
+          body="Every rental names the agent behind it. The verified tick appears only once a person here has checked that agent's ID, and an example says it is one."
           href="/help"
-          action="How we protect you"
+          action="How renting works here"
           className="mt-md"
         />
 

@@ -19,7 +19,7 @@
  *
  * WIRE IT IN: `npm run check:deep-links` before `npx cap sync`. It is also
  * safe to run at any time; a green run means universal links and app links
- * can verify, and that Continue with Google can complete on the native shell.
+ * can verify, and that an auth return (email confirmation, reset) reaches the app.
  *
  * `--warn` downgrades the exit code to 0 and still prints everything, for a
  * web-only deployment where the association files are served but no binary is
@@ -78,7 +78,7 @@ for (const appID of appIDs) {
 }
 
 /* The callback include, and its ORDER, which is the half that decides whether
-   Continue with Google can complete. An AASA components array is read in
+   an auth return reaches the app. An AASA components array is read in
    order, so an include after a blanket exclusion never runs. */
 if (aasa) {
   const components = (aasa.applinks?.details ?? []).flatMap((d) => d?.components ?? []);
@@ -89,7 +89,7 @@ if (aasa) {
   if (include === -1) {
     problems.push({
       file: "apple-app-site-association",
-      what: "/auth/callback* is not included, so the OAuth return goes to the in-app tab and Continue with Google cannot complete",
+      what: "/auth/callback* is not included, so an auth return (email confirmation, reset) goes to the browser and cannot complete for an account made in the app",
       who: "a code fix, not a founder value. See src/lib/native/deep-links.ts.",
     });
   } else if (exclude !== -1 && exclude < include) {
@@ -134,9 +134,9 @@ console.error(" DEEP LINKS ARE DEAD, AND A BINARY MUST NOT BE CUT IN THIS STATE.
 console.error("=========================================================================");
 console.error("");
 console.error(" Every one of these is SERVED and looks like it works. None of them can");
-console.error(" verify. And while they cannot verify, the OAuth callback is never handed");
-console.error(" back to the application, so Continue with Google returns a reviewer to a");
-console.error(" signed-out app. That is an App Store 2.1 refusal on its own.");
+console.error(" verify. And while they cannot verify, a shared listing opens in the");
+console.error(" browser instead of the app, and an email confirmation link for an");
+console.error(" account made in the app lands in a browser that cannot finish it.");
 console.error("");
 for (const problem of problems) {
   console.error(` ${problem.file}`);
@@ -148,5 +148,13 @@ console.error(" The full list of what the founder supplies is in");
 console.error(" docs/archive/BUILD_07_LEDGER.md section 5 and");
 console.error(" docs/research/STORE_REJECTION_RISK_RESEARCH.md Part F.");
 console.error("");
+
+/* In GitHub Actions each problem is also an annotation on the run, so the
+   state is visible on every push, not only to whoever runs this by hand. */
+if (process.env.GITHUB_ACTIONS === "true") {
+  for (const problem of problems) {
+    console.log(`::error file=apps/web/public/.well-known/${problem.file},title=Deep links cannot verify::${problem.what} (${problem.who})`);
+  }
+}
 
 process.exit(warnOnly ? 0 : 1);

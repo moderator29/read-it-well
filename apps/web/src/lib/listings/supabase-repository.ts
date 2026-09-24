@@ -6,6 +6,7 @@ import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { isListingRole } from "../supply/roles";
+import { catalogueReadFailed } from "./read-failure";
 import { diversePick, matchesFilter } from "./filter";
 import {
   headlinePrice,
@@ -633,7 +634,11 @@ async function listingIdsWithAllAmenities(
       .select("listing_id, amenity_id")
       .in("amenity_id", wanted)
       .limit(JOIN_ROW_LIMIT);
-    if (error || !data) return [];
+    if (error) {
+      await catalogueReadFailed("amenity_join", error);
+      return [];
+    }
+    if (!data) return [];
     warnIfTruncated(data.length, "listing_amenities", wanted.length);
 
     const found = new Map<string, Set<string>>();
@@ -647,7 +652,8 @@ async function listingIdsWithAllAmenities(
       if (set.size === wanted.length) out.push(listingId);
     }
     return out;
-  } catch {
+  } catch (error) {
+    await catalogueReadFailed("amenity_join", error);
     return [];
   }
 }
@@ -1060,12 +1066,17 @@ export async function loadListingsByIds(
       .select(LISTING_SELECT)
       .eq("status", "PUBLISHED")
       .in("id", ids);
-    if (error || !data) return out;
+    if (error) {
+      await catalogueReadFailed("by_ids", error);
+      return out;
+    }
+    if (!data) return out;
     for (const listing of await mapRows(supabase, data as ListingRow[])) {
       out.set(listing.id, listing);
     }
     return out;
-  } catch {
+  } catch (error) {
+    await catalogueReadFailed("by_ids", error);
     return out;
   }
 }
@@ -1278,11 +1289,16 @@ export class SupabaseListingRepository implements ListingRepository {
         .order("published_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false })
         .limit(rowCap(opts.limit));
-      if (error || !data) return [];
+      if (error) {
+        await catalogueReadFailed("search", error);
+        return [];
+      }
+      if (!data) return [];
 
       const listings = await mapRows(supabase, data as ListingRow[]);
       return listings.filter((l) => matchesFilter(l, filter));
-    } catch {
+    } catch (error) {
+      await catalogueReadFailed("search", error);
       return [];
     }
   }
@@ -1317,10 +1333,15 @@ export class SupabaseListingRepository implements ListingRepository {
         .eq("status", "PUBLISHED")
         .eq("id", id)
         .maybeSingle();
-      if (error || !data) return null;
+      if (error) {
+        await catalogueReadFailed("by_id", error);
+        return null;
+      }
+      if (!data) return null;
       const [listing] = await mapRows(supabase, [data as ListingRow]);
       return listing ?? null;
-    } catch {
+    } catch (error) {
+      await catalogueReadFailed("by_id", error);
       return null;
     }
   }
@@ -1345,10 +1366,15 @@ export class SupabaseListingRepository implements ListingRepository {
         .eq("status", "PUBLISHED")
         .eq("reference", reference)
         .maybeSingle();
-      if (error || !data) return null;
+      if (error) {
+        await catalogueReadFailed("by_reference", error);
+        return null;
+      }
+      if (!data) return null;
       const [listing] = await mapRows(supabase, [data as ListingRow]);
       return listing ?? null;
-    } catch {
+    } catch (error) {
+      await catalogueReadFailed("by_reference", error);
       return null;
     }
   }

@@ -191,4 +191,18 @@ export function firstBannedPhrase(
  * right word. The mechanism stays, empty, so the next synonym lands here with
  * its copy fix rather than in a new file.
  */
-export const BANNED_SYNONYMS: { label: string; pattern: RegExp; instead: string }[] = [];
+/*
+ * DOC-08: AN EMPTY LIST IS A GREEN LIGHT THAT CANNOT TURN RED, so the table
+ * holds every synonym from PRODUCT.md section 7 that no product string uses
+ * today, and the test fails if it is ever emptied again. The rest of that
+ * column (feed, hub, gist, landlord, reputation, Host, user, ...) is still in
+ * live copy; each joins this list in the change that rewrites its copy.
+ */
+export const BANNED_SYNONYMS: { label: string; pattern: RegExp; instead: string }[] = [
+  { label: "karma", pattern: /\bkarma\b/i, instead: "Standing" },
+  { label: "admin panel", pattern: /\badmin panel\b/i, instead: "the console" },
+  { label: "backend", pattern: /\bbackend\b/i, instead: "the console" },
+  { label: "host dashboard", pattern: /\bhost dashboard\b/i, instead: "Workspace" },
+  { label: "portal", pattern: /\bportals?\b/i, instead: "Workspace" },
+  { label: "vendor", pattern: /\bvendors?\b/i, instead: "Agent" },
+];

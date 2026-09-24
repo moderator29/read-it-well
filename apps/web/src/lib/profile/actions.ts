@@ -24,6 +24,7 @@
 
 import { revalidatePath } from "next/cache";
 import { fail, formDataToObject, ok, validate, type ActionResult } from "../actions/envelope";
+import { contentRefusal } from "../safety/content-refusal";
 import {
   NOT_CONFIGURED_MESSAGE,
   SIGNED_OUT_MESSAGE,
@@ -102,7 +103,14 @@ export async function updateProfile(input: unknown): Promise<ActionResult<Profil
     .select("display_name, first_name, surname, nickname, phone")
     .maybeSingle();
 
-  if (error) return fail(SAVE_FAILED_MESSAGE);
+  if (error) {
+    // RM004: the content scanner on profile names (SEC-05) refused a name on
+    // the objectionable-content list. The database message is written for a
+    // person, so it is shown as it is.
+    const refused = contentRefusal(error);
+    if (refused) return fail(refused);
+    return fail(SAVE_FAILED_MESSAGE);
+  }
   if (!saved) return fail(NO_ROW_MESSAGE);
 
   revalidatePath("/profile");

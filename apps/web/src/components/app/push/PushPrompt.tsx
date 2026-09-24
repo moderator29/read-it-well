@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
 import { failureMessage } from "./device-state";
-import { currentPermission, enrol, onIosHomeScreenApp } from "./enrol";
+import { currentPermission, enrol, failureReference, onIosHomeScreenApp } from "./enrol";
 import {
   offerVerdict,
   readMemory,
@@ -120,11 +120,13 @@ export function PushPrompt({ moment, onSettled }: PushPromptProps) {
       }
       /* Every failure says one plain sentence and the prompt stays, so the
          person is never left with a closed prompt and a silent screen. */
+      const reference = failureReference(outcome);
       setFailed({
-        text: failureMessage(outcome.reason, {
-          iosHomeScreenApp: onIosHomeScreenApp(),
-          where: "prompt",
-        }),
+        text:
+          failureMessage(outcome.reason, {
+            iosHomeScreenApp: onIosHomeScreenApp(),
+            where: "prompt",
+          }) + (reference ? ` (Reference: ${reference}.)` : ""),
         signIn: outcome.reason === "signed_out",
       });
     });

@@ -40,6 +40,7 @@ import {
   resolveSession,
 } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
+import { checkConstraintMessage, NOT_LIVE_MESSAGE } from "./reserve-refusals";
 import { getListingRepository } from "../listings/repository";
 import { createAdminClient } from "../supabase/admin";
 import {
@@ -95,33 +96,6 @@ const NOT_YOURS_MESSAGE =
 /** The host-and-admin side of confirm: every refusal ends at the same queue. */
 const CONFIRM_DOWN_MESSAGE =
   "Confirming is temporarily unavailable. The request is unchanged. Please try again shortly.";
-
-/**
- * Turn a 23514 check-constraint violation into the true sentence.
- *
- * Eleven check constraints on public.bookings can raise this code and only
- * three of them are ever the guest's doing. Saying "those dates do not work"
- * for all of them tells a guest to go and fix dates that are perfectly fine,
- * and hides an arithmetic bug of ours behind their supposed mistake.
- *
- * The guest-fixable ones name the fix. Everything else is our error, so it says
- * so and does not send them back to the form to guess.
- */
-function checkConstraintMessage(message: string): string {
-  if (message.includes("bookings_dates_chk")) {
-    return "Check-out has to be after check-in. Pick the dates again.";
-  }
-  if (message.includes("bookings_adults_check")) {
-    return "A booking needs at least one adult on it.";
-  }
-  if (message.includes("bookings_children_check")) {
-    return "The number of children cannot be negative.";
-  }
-  /* bookings_nights_chk, bookings_subtotal_chk, bookings_total_chk and the
-     non-negative money checks are all arithmetic this server did. A guest can
-     do nothing about any of them, so we do not pretend otherwise. */
-  return "Something went wrong working out this booking on our side. Nothing was charged and nothing was held. Please try again, and tell support if it happens twice.";
-}
 
 /** What a successful reserve hands back for the confirmation moment. */
 export type ReserveReceipt = {
@@ -183,7 +157,7 @@ export async function reserve(
     const { data: row, error } = await session.supabase
       .from("listings")
       .select(
-        "id, title, agent_id, listing_intent, rate_minor, rate_period, rent_amount_minor, is_demo",
+        "id, title, agent_id, listing_intent, rate_minor, rate_period, rent_amount_minor, is_demo, status",
       )
       .eq("id", input.listingId)
       .maybeSingle();
@@ -213,6 +187,9 @@ export async function reserve(
          multiplying a head price by a number of nights would invoice somebody
          for a week of dinners they never ordered. */
       if (row.rate_period === "guest") return fail(RESTAURANT_MESSAGE);
+      /* ESC-02: the database refuses a stay on a listing that is not live, so
+         say it before the insert rather than after it. */
+      if (row.status !== "PUBLISHED") return fail(NOT_LIVE_MESSAGE);
       priceMinor = row.rate_minor;
       listingTitle = row.title;
       listingAgentId = row.agent_id;

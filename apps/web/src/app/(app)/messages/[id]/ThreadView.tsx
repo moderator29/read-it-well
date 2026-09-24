@@ -42,6 +42,7 @@ import "@/app/css/escrow.css";
 import { useBack } from "@/lib/nav/use-back";
 import { ThreadOptionsSheet, type SheetListing } from "./ThreadOptionsSheet";
 import { Button } from "@/components/ui/Button";
+import { PushPrompt } from "@/components/app/push/PushPrompt";
 
 /**
  * The conversation thread, one component for both data sources.
@@ -289,6 +290,16 @@ export function ThreadView({
   const [inspected, setInspected] = useState(inspectedInitial);
   const [confirmBusy, setConfirmBusy] = useState(false);
   const [confirmNote, setConfirmNote] = useState<string | null>(null);
+  /* STORE-04: the push question at a real moment. Once this person has sent
+     a message into a thread the other side has already written in, it is a
+     conversation, and "know the moment they reply" is worth asking.
+     `PushPrompt` itself decides whether to show (never twice in thirty days,
+     never after two refusals, never when already granted). */
+  const [conversationActive, setConversationActive] = useState(false);
+  const itemsRef = useRef(items);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -390,8 +401,10 @@ export function ThreadView({
   const runTextSend = useCallback(
     async (tempId: string, body: string) => {
       const result = await sendMessage({ conversationId, body });
-      if (result.ok) adoptResult(tempId, result.data.id, lagosTimeLabel(result.data.createdAt));
-      else markFailed(tempId);
+      if (result.ok) {
+        adoptResult(tempId, result.data.id, lagosTimeLabel(result.data.createdAt));
+        if (itemsRef.current.some((m) => !m.mine)) setConversationActive(true);
+      } else markFailed(tempId);
     },
     [conversationId, adoptResult, markFailed],
   );
@@ -944,6 +957,8 @@ export function ThreadView({
           agreement={agreement}
         />
       ) : null}
+
+      {conversationActive ? <PushPrompt moment="conversation_active" /> : null}
 
       {/* --------------------------------------------------------- composer */}
       {pendingFile && (

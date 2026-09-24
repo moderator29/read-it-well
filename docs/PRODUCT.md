@@ -334,7 +334,7 @@ Use these words. Do not invent synonyms.
 | **Around** | The social layer | Feed, community, compound. A compound is a different thing in Nigerian property |
 | **Place** | A named area inside Around, backed by a local government | Hub, district, neighbourhood |
 | **Post** | Anything somebody writes in Around | Gist, talk, echo. The lexicon was tested and cut |
-| **Story** | A picture post that expires | |
+| **Story** | A picture post with a headline; it stays up until its author or a moderator takes it down (nothing expires it) | |
 | **Standing** | Badges and trust, as a whole | Reputation, score, karma |
 | **Stop** | An admin suspending an agent's ability to trade | Ban, block. Block is a member muting another member |
 | **The console** | `/admin` | Dashboard, backend, admin panel |
