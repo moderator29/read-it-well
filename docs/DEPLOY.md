@@ -354,6 +354,24 @@ multiple-permissive-policy notes and unused indexes on empty tables; that is
 expected pre-launch noise, not a regression. Re-run both after the first real
 month, which is the first point at which the performance list means anything.
 
+### 4.8 Removing a person: never "Delete user"
+
+**Authentication, Users, Delete user** (and a hard delete through the Admin
+API) fails with `Database error deleting user` for almost anybody who has used
+the product, and that is deliberate. A person's wallet, bookings, escrows, rent
+records, escrow evidence, conversations, messages, reports and agent profile
+all refuse the delete (`ON DELETE RESTRICT`), because deleting one person must
+never take the other party's thread, money trail or moderation evidence with
+them.
+
+Remove a person with the account deletion flow instead: they ask from
+Settings, or staff open it for them, and the purge anonymises the account in
+place and keeps what the law and the other party need
+(`docs/RETENTION_SCHEDULE.md`). The same applies to a booking or a table
+reservation: one with a conversation cannot be deleted, and a draft listing
+whose reservations have threads stays as a draft (hidden from everybody but
+its lister) rather than being deleted.
+
 ---
 
 ## 5. Paystack
