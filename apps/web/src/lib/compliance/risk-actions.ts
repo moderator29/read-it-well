@@ -58,3 +58,32 @@ export async function overrideRiskClass(
   revalidatePath("/admin/compliance");
   return ok(null);
 }
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** SCUML items 15 and 19: the second person approves a class lowered by hand. */
+export async function approveRiskOverride(
+  _prev: ActionResult<null> | null,
+  formData: FormData,
+): Promise<ActionResult<null>> {
+  const l = getDictionary("en").complianceRisk.lane;
+  const access = await requireAdmin();
+  if (access.state !== "admin") return fail(adminRefusal(access));
+  const rowId = text(formData, "id");
+  if (!UUID_RE.test(rowId)) return fail(l.failed);
+  const { error } = await callRpc(access.supabase, "approve_risk_override", { p_row: rowId });
+  if (error) return fail(error.code === "RM175" ? l.ownProposal : l.failed);
+  try {
+    await writeAudit(createAdminClient(), {
+      actorId: access.user.id,
+      action: "compliance.risk.override_approve",
+      entityType: "risk_class",
+      entityId: rowId,
+      detail: { scuml_item: 15 },
+    });
+  } catch {
+    /* The approval row is the record. */
+  }
+  revalidatePath("/admin/compliance");
+  return ok(null);
+}

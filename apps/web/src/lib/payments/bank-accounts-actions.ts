@@ -19,6 +19,8 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { eddGateMessage, isEddGateRefusal } from "../compliance/gate";
+import { listerPepRefusal } from "../compliance/pep-gate";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import type { Database } from "../supabase/database.types";
@@ -178,6 +180,11 @@ export async function addBankAccount(input: {
      audit's trigger; say so in words before Paystack is paid to resolve it. */
   const accountHold = await accountHoldRefusal(session.supabase);
   if (accountHold) return fail(accountHold);
+  /* SCUML item 20: a lister answers the PEP question before adding an
+     account to be paid into, the same as on the payout path. A member looking
+     for a home is never asked. */
+  const pepFirst = await listerPepRefusal(session.supabase, session.user.id);
+  if (pepFirst) return fail(pepFirst);
   /* V-81: a new account to be paid into; an enrolled phone lock asks first. */
   const bankLock = await moneyLockRefusalFor(session.user.id, input.stepUp, {
     kind: "bank_add",
@@ -253,6 +260,8 @@ async function addBankAccountWork(
     /* V-19: the hold trigger (RM050) refused a call that raced the check. */
     const held = error ? await holdRefusalForFailure(supabase, error.message ?? "") : null;
     if (held) return fail(held);
+    /* SCUML item 15: the gate refused a lister; say nothing that would tip them off. */
+    if (isEddGateRefusal(error)) return fail(eddGateMessage("member"));
     // 23505 is the per-person unique NUBAN among live rows.
     if (error?.code === "23505") {
       return fail(

@@ -23,6 +23,38 @@ export type RiskPerson = {
   eddClear: boolean;
 };
 
+export type PendingOverride = {
+  id: string;
+  name: string;
+  from: RiskClass | null;
+  to: RiskClass;
+  reason: string;
+  setBy: string | null;
+  setByName: string;
+  setAt: string;
+};
+
+function readPending(v: unknown): PendingOverride[] {
+  if (!Array.isArray(v)) return [];
+  return v.flatMap((raw) => {
+    if (!raw || typeof raw !== "object") return [];
+    const r = raw as Record<string, unknown>;
+    if (typeof r.id !== "string" || typeof r.set_at !== "string" || !CLASSES.has(String(r.to))) return [];
+    return [
+      {
+        id: r.id,
+        name: typeof r.name === "string" ? r.name : "A member",
+        from: CLASSES.has(String(r.from)) ? (r.from as RiskClass) : null,
+        to: r.to as RiskClass,
+        reason: typeof r.reason === "string" ? r.reason : "",
+        setBy: typeof r.set_by === "string" ? r.set_by : null,
+        setByName: typeof r.set_by_name === "string" ? r.set_by_name : "A member of staff",
+        setAt: r.set_at,
+      } satisfies PendingOverride,
+    ];
+  });
+}
+
 export type RiskDesk =
   | { state: "unavailable" }
   | {
@@ -31,6 +63,7 @@ export type RiskDesk =
       counts: { high: number; medium: number; low: number; due: number };
       people: RiskPerson[];
       open: EddReview[];
+      pending: PendingOverride[];
     };
 
 const CLASSES = new Set(["high", "medium", "low"]);
@@ -81,5 +114,6 @@ export async function readRiskDesk(): Promise<RiskDesk> {
     counts: { high: count(c.high), medium: count(c.medium), low: count(c.low), due: count(c.due) },
     people: readPeople(d.people),
     open: readEddReviews(d.open),
+    pending: readPending(d.pending),
   };
 }

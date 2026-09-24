@@ -7,7 +7,7 @@ import { flagPepPerson } from "@/lib/compliance/pep-actions";
 
 /** SCUML item 20: staff put a person on the PEP record, or take them off. Staff only. */
 export function PepFlagForm({ copy, question }: { copy: Dictionary["compliancePep"]["lane"]; question: Dictionary["compliancePep"]["question"] }) {
-  const [state, action, pending] = useActionState<ActionResult<null> | null, FormData>(flagPepPerson, null);
+  const [state, action, pending] = useActionState<ActionResult<"flagged" | "proposed"> | null, FormData>(flagPepPerson, null);
   const err = state && !state.ok ? state : null;
   return (
     <form action={action} className="grid gap-sm" data-testid="pep-flag-form">
@@ -53,7 +53,7 @@ export function PepFlagForm({ copy, question }: { copy: Dictionary["compliancePe
       </div>
       {state?.ok ? (
         <p role="status" className="nf-caption text-[var(--nf-content-secondary)]">
-          {copy.flagged}
+          {state.data === "proposed" ? copy.clearProposed : copy.flagged}
         </p>
       ) : null}
       {err ? (

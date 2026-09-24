@@ -63,9 +63,9 @@ export async function answerPepQuestion(
 }
 
 export async function flagPepPerson(
-  _prev: ActionResult<null> | null,
+  _prev: ActionResult<"flagged" | "proposed"> | null,
   formData: FormData,
-): Promise<ActionResult<null>> {
+): Promise<ActionResult<"flagged" | "proposed">> {
   const l = getDictionary("en").compliancePep.lane;
   const access = await requireAdmin();
   if (access.state !== "admin") return fail(adminRefusal(access));
@@ -102,6 +102,37 @@ export async function flagPepPerson(
     /* The flag row itself is the record; the audit line is best effort. */
   }
   await deriveRiskSoon(userId);
+  revalidatePath("/admin/compliance");
+  /* Taking somebody off the record is only a proposal until a second member
+     of staff approves it (SCUML item 19). */
+  return ok(flagged ? "flagged" : "proposed");
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** SCUML items 20 and 19: the second person approves taking somebody off the record. */
+export async function approvePepClear(
+  _prev: ActionResult<null> | null,
+  formData: FormData,
+): Promise<ActionResult<null>> {
+  const l = getDictionary("en").compliancePep.lane;
+  const access = await requireAdmin();
+  if (access.state !== "admin") return fail(adminRefusal(access));
+  const flagId = text(formData, "id");
+  if (!UUID_RE.test(flagId)) return fail(l.failed);
+  const { error } = await callRpc(access.supabase, "approve_pep_clear", { p_flag: flagId });
+  if (error) return fail(error.code === "RM175" ? l.ownProposal : l.failed);
+  try {
+    await writeAudit(createAdminClient(), {
+      actorId: access.user.id,
+      action: "compliance.pep.clear_approve",
+      entityType: "pep_flag",
+      entityId: flagId,
+      detail: { scuml_item: 20 },
+    });
+  } catch {
+    /* The approval row is the record. */
+  }
   revalidatePath("/admin/compliance");
   return ok(null);
 }

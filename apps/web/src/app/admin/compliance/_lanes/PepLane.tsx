@@ -2,6 +2,8 @@ import { readPepDesk } from "@/lib/compliance/pep-queries";
 import { eddCardView, when } from "@/lib/compliance/edd-view";
 import { EddReviewCard } from "@/components/compliance/EddReviewCard";
 import { PepFlagForm } from "@/components/compliance/PepFlagForm";
+import { ApproveForm } from "@/components/compliance/ApproveForm";
+import { approvePepClear } from "@/lib/compliance/pep-actions";
 import { Panel } from "../../_review/parts";
 import type { ComplianceLane, ComplianceLaneProps } from "./lane";
 
@@ -29,6 +31,9 @@ async function PepLaneBody({ t, locale }: ComplianceLaneProps) {
   return (
     <div className="grid gap-group" data-testid="pep-lane">
       <p className="nf-body-sm text-[var(--nf-content-secondary)]">{l.lede}</p>
+      <p className="nf-body-sm font-semibold" data-testid="pep-unasked">
+        {desk.unasked > 0 ? l.unasked.replace("{count}", String(desk.unasked)) : l.unaskedNone}
+      </p>
 
       <Panel title={l.openTitle}>
         {desk.open.length === 0 ? (
@@ -60,6 +65,39 @@ async function PepLaneBody({ t, locale }: ComplianceLaneProps) {
                   .replace("{role}", p.role ?? "")
                   .replace("{source}", p.source === "staff" ? l.flaggedBy : l.declared)
                   .replace("{date}", when(p.at, locale))}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Panel>
+
+      <Panel title={l.pendingTitle}>
+        {desk.pendingClears.length === 0 ? (
+          <p className="nf-body-sm" data-testid="pep-pending-empty">
+            {l.pendingEmpty}
+          </p>
+        ) : (
+          <ul className="grid gap-sm" data-testid="pep-pending">
+            {desk.pendingClears.map((c) => (
+              <li key={c.id} className="nf-panel nf-panel--card block p-card">
+                <p className="nf-body-sm">
+                  {l.pendingRow
+                    .replace("{name}", c.name)
+                    .replace("{who}", c.setByName)
+                    .replace("{date}", when(c.setAt, locale))
+                    .replace("{note}", c.note)}
+                </p>
+                <div className="mt-inline">
+                  <ApproveForm
+                    action={approvePepClear}
+                    fieldName="id"
+                    value={c.id}
+                    label={l.approve}
+                    doneLabel={l.approved}
+                    own={c.setBy === desk.viewerId}
+                    ownLine={l.ownProposal}
+                  />
+                </div>
               </li>
             ))}
           </ul>

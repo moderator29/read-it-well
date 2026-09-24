@@ -9,6 +9,12 @@
  * no dashes as punctuation.
  */
 export const complianceRiskEn = {
+  /* The gates' refusals. The admin is told why; the member is told nothing
+     that would tip them off. */
+  gate: {
+    admin: "Needs a cleared EDD review on the compliance desk (item 15).",
+    member: "We need to check a detail before this can be added. We will be in touch.",
+  },
   lane: {
     tab: "Risk",
     lede: "Every customer classified high, medium or low from the documented factors, dated, with the history kept. A high-risk lister cannot publish or add a payout account until two people clear an enhanced due diligence review.",
@@ -49,5 +55,15 @@ export const complianceRiskEn = {
     saved: "Recorded.",
     notFound: "No member has that handle or id.",
     failed: "That was not recorded. Nothing has changed.",
+    pendingTitle: "Class changes waiting on a second person",
+    pendingEmpty: "No class change is waiting.",
+    pendingRow: "{name}: {from} to {to}, proposed by {who} on {date}: {reason}",
+    pendingNote: "A class lowered by hand takes effect only when a second member of staff approves it.",
+    approve: "Approve",
+    ownProposal: "You proposed this, so a second person must approve it.",
+    approved: "Approved.",
+    proposed: "Recorded. Lowering a class needs a second person to approve it.",
+    reopen: "Reopen the EDD review",
+    reopened: "Reopened. The gates stay shut until it is cleared again.",
   },
 };

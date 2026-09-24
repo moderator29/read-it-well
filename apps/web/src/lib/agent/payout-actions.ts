@@ -34,6 +34,7 @@ import { createAdminClient } from "../supabase/admin";
 import { getAgentContext } from "./listings-queries";
 import { moneyLockRefusalFor } from "../security/money-lock-guard";
 import { pepQuestionRefusal } from "../compliance/pep-gate";
+import { eddGateMessage, isEddGateRefusal } from "../compliance/gate";
 import {
   addPayoutAccountInputSchema,
   payoutAccountIdSchema,
@@ -146,6 +147,8 @@ export async function addPayoutAccount(
     .single();
 
   if (insertError) {
+    /* SCUML item 15: the gate refused; say nothing that would tip anybody off. */
+    if (isEddGateRefusal(insertError)) return fail(eddGateMessage("member"));
     // 23505 is the per-agent unique NUBAN.
     if (insertError.code === "23505") {
       return fail(

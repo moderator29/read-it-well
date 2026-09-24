@@ -19,14 +19,14 @@ export type EddReview = {
   userId: string | null;
   name: string;
   item: 15 | 20;
-  reason: "transaction" | "declaration" | "staff_flag" | "high_risk";
+  reason: "transaction" | "declaration" | "staff_flag" | "high_risk" | "reopened" | "member_account";
   sourceTable: string;
   amountMinor: number | null;
   raisedAt: string;
   decision: EddDecision | null;
 };
 
-const REASONS = new Set(["transaction", "declaration", "staff_flag", "high_risk"]);
+const REASONS = new Set(["transaction", "declaration", "staff_flag", "high_risk", "reopened", "member_account"]);
 
 function str(v: unknown): string | null {
   return typeof v === "string" && v.length > 0 ? v : null;

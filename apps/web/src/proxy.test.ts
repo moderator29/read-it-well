@@ -1,4 +1,4 @@
-import { readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { NextRequest } from "next/server";
@@ -266,6 +266,8 @@ const EXPECTED_PUBLIC = new Set([
   "/api/cron/inventory-drift",
   "/api/cron/landlord-line",
   "/api/cron/pg-cron-watch",
+  /* SCUML item 15: the daily risk classification, behind the cron bearer. */
+  "/api/cron/risk-classes",
   "/api/cron/saved-search-alerts",
   "/api/cron/store-readiness",
   "/api/cron/new-match-alerts",
@@ -396,6 +398,19 @@ describe("who may see the platform with no session", () => {
     expect(isPublicPath("/api/push/key"), "a browser cannot subscribe without this").toBe(true);
     for (const path of ["/api/push/register", "/api/push/revoke", "/api/push/self-test"]) {
       expect(isPublicPath(path), `${path} writes or sends and must stay shut`).toBe(false);
+    }
+  });
+
+  it("lets every scheduled job in vercel.json through the wall", () => {
+    /* A cron path missing here is a job Vercel Cron can never reach: the
+       sign-in wall answers it and the run silently never happens. */
+    const config = JSON.parse(readFileSync(join(process.cwd(), "vercel.json"), "utf8")) as {
+      crons?: { path: string }[];
+    };
+    const paths = (config.crons ?? []).map((c) => c.path);
+    expect(paths.length).toBeGreaterThan(0);
+    for (const path of paths) {
+      expect(isPublicPath(path), `${path} is scheduled in vercel.json and must answer the scheduler`).toBe(true);
     }
   });
 

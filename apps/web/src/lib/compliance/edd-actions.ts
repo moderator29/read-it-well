@@ -84,3 +84,20 @@ export async function approveEddDecision(
   revalidatePath("/admin/compliance");
   return ok(null);
 }
+
+/** SCUML item 15: staff reopen a person's EDD review; the gates shut until it is cleared again. */
+export async function reopenEddReview(
+  _prev: ActionResult<null> | null,
+  formData: FormData,
+): Promise<ActionResult<null>> {
+  const l = getDictionary("en").complianceRisk.lane;
+  const access = await requireAdmin();
+  if (access.state !== "admin") return fail(adminRefusal(access));
+  const userId = text(formData, "userId");
+  if (!UUID_RE.test(userId)) return fail(l.failed);
+  const { data, error } = await callRpc(access.supabase, "reopen_edd_review", { p_user: userId });
+  if (error) return fail(l.failed);
+  await audit(access.user.id, "compliance.edd.reopen", typeof data === "string" ? data : userId, "15");
+  revalidatePath("/admin/compliance");
+  return ok(null);
+}

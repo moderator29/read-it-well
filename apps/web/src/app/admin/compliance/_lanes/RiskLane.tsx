@@ -3,6 +3,9 @@ import { readRiskDesk, type RiskPerson } from "@/lib/compliance/risk-queries";
 import { eddCardView, when } from "@/lib/compliance/edd-view";
 import { EddReviewCard } from "@/components/compliance/EddReviewCard";
 import { RiskOverrideForm } from "@/components/compliance/RiskOverrideForm";
+import { ApproveForm } from "@/components/compliance/ApproveForm";
+import { ReopenEddButton } from "@/components/compliance/ReopenEddButton";
+import { approveRiskOverride } from "@/lib/compliance/risk-actions";
 import { Panel } from "../../_review/parts";
 import type { ComplianceLane, ComplianceLaneProps } from "./lane";
 
@@ -85,6 +88,41 @@ async function RiskLaneBody({ t, locale }: ComplianceLaneProps) {
         )}
       </Panel>
 
+      <Panel title={l.pendingTitle} note={l.pendingNote}>
+        {desk.pending.length === 0 ? (
+          <p className="nf-body-sm" data-testid="risk-pending-empty">
+            {l.pendingEmpty}
+          </p>
+        ) : (
+          <ul className="grid gap-sm" data-testid="risk-pending">
+            {desk.pending.map((p) => (
+              <li key={p.id} className="nf-panel nf-panel--card block p-card">
+                <p className="nf-body-sm">
+                  {l.pendingRow
+                    .replace("{name}", p.name)
+                    .replace("{from}", p.from ? l.class[p.from] : "")
+                    .replace("{to}", l.class[p.to])
+                    .replace("{who}", p.setByName)
+                    .replace("{date}", when(p.setAt, locale))
+                    .replace("{reason}", p.reason)}
+                </p>
+                <div className="mt-inline">
+                  <ApproveForm
+                    action={approveRiskOverride}
+                    fieldName="id"
+                    value={p.id}
+                    label={l.approve}
+                    doneLabel={l.approved}
+                    own={p.setBy === desk.viewerId}
+                    ownLine={l.ownProposal}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Panel>
+
       <Panel title={l.peopleTitle}>
         {desk.people.length === 0 ? (
           <div data-testid="risk-people-empty">
@@ -104,6 +142,11 @@ async function RiskLaneBody({ t, locale }: ComplianceLaneProps) {
                     {line}
                   </p>
                 ))}
+                {p.riskClass === "high" && p.eddClear ? (
+                  <div className="mt-inline">
+                    <ReopenEddButton userId={p.userId} copy={l} />
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>
