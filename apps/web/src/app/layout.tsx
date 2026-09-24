@@ -222,6 +222,9 @@ export const viewport: Viewport = {
   themeColor: CHROME_COLOUR,
   width: "device-width",
   initialScale: 1,
+  /* Never below 1: a phone may not zoom the page OUT to fit something wide,
+     which is what made the forms read "zoomed out". Zooming in is untouched. */
+  minimumScale: 1,
   viewportFit: "cover",
 };
 

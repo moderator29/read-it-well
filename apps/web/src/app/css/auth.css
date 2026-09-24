@@ -27,7 +27,11 @@
     color: var(--nf-content-primary);
     position: relative;
     display: flex;
-    min-height: 100dvh;
+    /* `svh`, never `dvh`: the dynamic unit changes every time the phone's
+       address bar or keyboard moves, and the whole screen jumped with it,
+       which is the sign-in page "shaking". The small viewport is fixed. */
+    min-height: 100vh;
+    min-height: 100svh;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
@@ -165,11 +169,12 @@
    * per cent of the screen height. The tile's centre is 184 render px into
    * the lockup crop, 184 / 633 of the card width, and a margin percentage
    * resolves against that width, so the lockup's top is placed at
-   * 24dvh less that offset.
+   * 24svh less that offset.
    */
   .nf-auth__brand {
     width: 100%;
-    margin-top: max(var(--nf-space-sm), calc(24dvh - 100% * 184 / 633));
+    margin-top: max(var(--nf-space-sm), calc(24vh - 100% * 184 / 633));
+    margin-top: max(var(--nf-space-sm), calc(24svh - 100% * 184 / 633));
   }
 
   /* ----------------------------------------------------------------- card */
@@ -603,7 +608,8 @@
    * puts the tile's centre at 29 per cent of the height.
    */
   .nf-auth__stage:has(.nf-auth--narrow) .nf-auth__brand {
-    margin-top: max(var(--nf-space-sm), calc(29dvh - 100% * 184 / 633));
+    margin-top: max(var(--nf-space-sm), calc(29vh - 100% * 184 / 633));
+    margin-top: max(var(--nf-space-sm), calc(29svh - 100% * 184 / 633));
   }
   /* Corner 42 render = 16; inset 60 = 23; title caps sit 73 below the card
      top (28, less the title's half-leading); the foot line's caps end 49

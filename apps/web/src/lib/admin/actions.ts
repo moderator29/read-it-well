@@ -568,7 +568,7 @@ export async function reviewListing(input: {
 
   const { data: listing, error: readError } = await access.supabase
     .from("listings")
-    .select("id, title, status, agent_id, reference, published_at, agents ( user_id )")
+    .select("id, title, status, agent_id, reference, published_at, agents!listings_agent_id_fkey( user_id )")
     .eq("id", listingId)
     .maybeSingle();
   if (readError) return fail(SERVICE_DOWN);

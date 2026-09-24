@@ -268,7 +268,7 @@ export async function getQueueRowExtras(ids: readonly string[]): Promise<Read<Ma
   try {
     const { data, error } = await db
       .from("listings")
-      .select("id, is_demo, agents ( type, application_id, user_id )")
+      .select("id, is_demo, agents!listings_agent_id_fkey( type, application_id, user_id )")
       .in("id", [...ids]);
     if (error) return UNAVAILABLE;
     const rows = (data ?? []) as unknown as {
@@ -340,7 +340,7 @@ export async function getListingReviewExtras(
     const { data: row, error } = await db
       .from("listings")
       .select(
-        "id, title, status, is_demo, latitude, longitude, available_from, submitted_at, agent_id, agents ( display_name, type, verified, verification_tier, application_id, user_id ), listing_amenities ( amenities ( label ) )",
+        "id, title, status, is_demo, latitude, longitude, available_from, submitted_at, agent_id, agents!listings_agent_id_fkey( display_name, type, verified, verification_tier, application_id, user_id ), listing_amenities ( amenities ( label ) )",
       )
       .eq("id", id)
       .maybeSingle();
