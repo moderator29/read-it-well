@@ -54,7 +54,7 @@ Public, and the complete list:
 | `/sign-in`, `/sign-in/email`, `/sign-up`, `/sign-up/email`, `/sign-up/verify`, `/forgot-password`, `/reset-password`, `/auth/callback`, `/start` | The doors. A lock with no door is a wall. `/auth/callback` is where every confirmation link lands and a session is the thing it is about to create. |
 | `/welcome` | Get Started. First run is the first thing a reviewer and a stranger meet. |
 | `/offline` | Served when there is no network at all, so it cannot depend on an auth call. |
-| `/robots.txt`, `/sitemap.xml`, `/opengraph-image.png` | Fetched by machines that have no session and never will. |
+| `/robots.txt`, `/sitemap.xml`, `/opengraph-image.jpg` | Fetched by machines that have no session and never will. |
 
 Everything else needs an account. That includes the whole catalogue
 (`/listing/[id]`, `/search`, `/stay/[id]`, `/stays`, `/restaurant/[id]`,

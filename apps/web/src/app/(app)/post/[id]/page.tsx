@@ -31,7 +31,7 @@ export async function generateMetadata({
    * A post's media lives in the private `social-media` bucket and reaches the
    * page as a SIGNED url that expires. A signed url in an og:image is a card
    * that works for an hour and then shows a broken image for ever, which is
-   * worse than the site card, so the root `opengraph-image.png` is left to do
+   * worse than the site card, so the root `opengraph-image.jpg` is left to do
    * this job. The author's avatar is not used either: on a text post it would
    * read as the subject of the link rather than as its author.
    */

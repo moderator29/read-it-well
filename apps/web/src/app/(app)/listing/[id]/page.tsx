@@ -219,6 +219,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const listing = await getListingRepository().byId(id);
+  /* OPS-17: metadata resolves before the body streams for crawlers and
+     link checkers, so a missing listing answers them with a real 404 rather
+     than a 200 that streams a not-found page. */
+  if (!listing) notFound();
   return listingMetadata(listing, siteUrl());
 }
 

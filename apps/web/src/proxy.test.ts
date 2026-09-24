@@ -181,7 +181,7 @@ function routePaths(): string[] {
   };
   walk(appDir, "");
   /* The root page and the two file conventions that answer at a URL. */
-  out.push("/", "/robots.txt", "/sitemap.xml", "/opengraph-image.png");
+  out.push("/", "/robots.txt", "/sitemap.xml", "/opengraph-image.jpg");
   return [...new Set(out)].sort();
 }
 
@@ -212,7 +212,7 @@ const EXPECTED_PUBLIC = new Set([
   "/",
   "/robots.txt",
   "/sitemap.xml",
-  "/opengraph-image.png",
+  "/opengraph-image.jpg",
   /* Company and support. */
   "/about",
   "/careers",
