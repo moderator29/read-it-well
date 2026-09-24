@@ -49,6 +49,8 @@ import { EmptyState } from "@/components/app/Screen";
 import { LastVisitProvider } from "@/components/app/search/LastVisit";
 import { RecordViews } from "@/components/app/search/RecordViews";
 import { ReadAs } from "@/components/app/search/ReadAs";
+import { readAnchors, readCommutes } from "@/lib/listings/commute-queries";
+import { commuteLine, originKey, withinCommute, type CommuteBand } from "@/lib/listings/commute";
 import { parseWords } from "@/lib/listings/query-parse";
 import { looksCheckable } from "@/lib/doors/agent-check";
 
@@ -299,7 +301,24 @@ export default async function SearchPage({
      is never collapsed. */
   const collapsed = codeHit ? { listings: shelf, offerCounts: new Map<string, number>() } : collapseByProperty(shelf, landlordFacts);
   /* The one listing the code named, or the ordinary shelf. */
-  const listings = sinkNotReconfirmed(collapsed.listings, notReconfirmed);
+  const ranked = sinkNotReconfirmed(collapsed.listings, notReconfirmed);
+
+  /*
+   * V-43: WHERE YOU GO EVERY DAY. With an anchor chosen, each card carries the
+   * rush-hour band from its area to it (the route guide, or residents once
+   * five have reported), and "within" keeps only homes whose morning band
+   * ends inside it. Nothing is shown for an area with no band: the claims
+   * rule. The drawer count does not see commutes yet; the shelf does.
+   */
+  const anchors = await readAnchors();
+  const anchor = query.to ? (anchors.find((a) => a.slug === query.to) ?? null) : null;
+  const commutes = anchor ? await readCommutes(anchor.id, ranked) : new Map<string, CommuteBand[]>();
+  const commuteOf = (l: Listing): CommuteBand[] => {
+    const key = originKey(l.stateCode, l.area);
+    return key ? (commutes.get(key) ?? []) : [];
+  };
+  const within = query.within;
+  const listings = anchor && within !== undefined ? ranked.filter((l) => withinCommute(commuteOf(l), within)) : ranked;
   const landlordNow = requestNow();
   const intentApplied = !codeHit && ordered !== sorted;
   const intentKinds: ListingKind[] = intentApplied
@@ -346,6 +365,7 @@ export default async function SearchPage({
         locale={locale}
         t={t}
         openFilters={raw.filters === "open"}
+        anchors={anchors}
         leading={<BackButton fallback="/" />}
       />
       <ReadAs query={query} said={said} locale={locale} copy={t.shape.unit} />
@@ -518,6 +538,7 @@ export default async function SearchPage({
                     saved={savedIds.has(l.id)}
                     intent={tuning.signedIn ? tuning.interests : undefined}
                     messageAgent
+                    commute={anchor ? commuteLine(commuteOf(l), anchor.name, t.shape.commute) : null}
                   />
                   <LandlordCardLine
                     notReconfirmed={notReconfirmed.has(l.id)}

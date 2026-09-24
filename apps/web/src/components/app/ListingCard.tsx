@@ -72,6 +72,7 @@ export function ListingCard({
   wide = false,
   dense = false,
   messageAgent = false,
+  commute = null,
 }: {
   listing: Listing;
   locale: Locale;
@@ -116,6 +117,8 @@ export function ListingCard({
    * does, whatever the page asks.
    */
   messageAgent?: boolean;
+  /** V-43: the rush-hour line to the reader's chosen anchor, or null. */
+  commute?: string | null;
 }) {
   const router = useRouter();
   const photo = listing.photos[0];
@@ -505,6 +508,15 @@ export function ListingCard({
                 </li>
               )}
             </ul>
+          )}
+
+          {/* V-43. The rush-hour band to where the reader goes every day, with
+              whose figure it is. Absent when no band exists for this area. */}
+          {commute && (
+            <p className="nf-pcard__sub inline-flex items-start gap-inline-tight" data-testid="card-commute">
+              <UiIcon name="history" size={12} className="mt-3xs shrink-0" />
+              <span className="break-words">{commute}</span>
+            </p>
           )}
 
           {/* V-68. Serviced, only when the charge covers power, water and

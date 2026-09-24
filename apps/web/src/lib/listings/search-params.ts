@@ -39,6 +39,8 @@ import { UNIT_SHAPES, shapeFromSlug, shapeSlug, type UnitShape } from "./unit-sh
  *   bq         "1": a boys' quarters comes with it (V-66)
  *   area       comma separated areas, ANY of which will do: "yaba,akoka",
  *              what "Yaba/Akoka" in the search box becomes (V-66)
+ *   to         a landmark slug: where the reader goes every day (V-43)
+ *   within     minutes: at most this long at the morning rush to `to` (V-43)
  *   upfront    months: at most this many months of rent asked for up front,
  *              "12" is the drawer's "One year upfront at most" (V-65)
  *
@@ -193,6 +195,10 @@ export type DiscoveryQuery = {
   withBq?: boolean;
   /** V-66: areas, any of which will do. Absent or empty: not asked. */
   areas?: string[];
+  /** V-43: the landmark the reader goes to every day, by slug. */
+  to?: string;
+  /** V-43: at most this many minutes at the morning rush to `to`. */
+  within?: number;
 };
 
 /**
@@ -426,6 +432,10 @@ export function parseDiscoveryQuery(params: RawSearchParams): DiscoveryQuery {
   if (readFlag(params.bq)) query.withBq = true;
   const areas = readAreas(params.area);
   if (areas.length > 0) query.areas = areas;
+  const to = readText(params.to);
+  if (to && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(to) && to.length <= 140) query.to = to;
+  const within = readInt(params.within, 10, 240);
+  if (within !== undefined && query.to) query.within = within;
 
   return query;
 }
@@ -516,6 +526,8 @@ export function toSearchHref(query: DiscoveryQuery): string {
   if (query.shapes && query.shapes.length > 0) params.set("shape", query.shapes.map(shapeSlug).join(","));
   if (query.withBq) params.set("bq", "1");
   if (query.areas && query.areas.length > 0) params.set("area", query.areas.join(","));
+  if (query.to) params.set("to", query.to);
+  if (query.to && query.within !== undefined) params.set("within", String(query.within));
   const qs = params.toString();
   return qs ? `/search?${qs}` : "/search";
 }
@@ -593,5 +605,6 @@ export function activeFilterCount(query: DiscoveryQuery): number {
   if (query.withBq) count += 1;
   /* Areas are not counted: like the search text they are where, Clear all
      keeps them, and a badge must not say 1 after everything was cleared. */
+  if (query.within !== undefined) count += 1;
   return count;
 }

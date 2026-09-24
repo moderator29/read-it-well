@@ -15,6 +15,7 @@ import {
 } from "@/lib/listings/filter";
 
 import { UNIT_SHAPES, takesShape, type UnitShape } from "@/lib/listings/unit-shape";
+import { RUSH_WITHIN, type Anchor } from "@/lib/listings/commute";
 
 /* V-65: the drawer's one upfront choice, "One year upfront at most". */
 const ONE_YEAR = 12;
@@ -97,6 +98,9 @@ type Draft = {
   /** V-66: the shapes the reader will take, any of them. */
   shapes: UnitShape[];
   withBq: boolean;
+  /** V-43: the anchor's slug, and whether the rush-hour limit is on. */
+  to: string;
+  withinOn: boolean;
 };
 
 function draftFrom(query: ShelfQuery): Draft {
@@ -124,6 +128,8 @@ function draftFrom(query: ShelfQuery): Draft {
     ...(query.maxUpfront !== undefined ? { maxUpfront: query.maxUpfront } : {}),
     shapes: query.shapes ?? [],
     withBq: query.withBq === true,
+    to: query.to ?? "",
+    withinOn: query.within !== undefined,
   };
 }
 
@@ -173,6 +179,10 @@ function queryFrom(base: ShelfQuery, draft: Draft): ShelfQuery {
   if (homes && draft.shapes.length > 0) next.shapes = draft.shapes;
   if (homes && draft.withBq) next.withBq = true;
   if (base.areas && base.areas.length > 0) next.areas = base.areas;
+  if (draft.to) {
+    next.to = draft.to;
+    if (draft.withinOn) next.within = RUSH_WITHIN;
+  }
   return next;
 }
 
@@ -320,6 +330,8 @@ export function FilterDrawer({
   cashCopy,
   unitCopy,
   feesBasis,
+  anchors = [],
+  commuteCopy,
   openOnMount = false,
 }: {
   query: ShelfQuery;
@@ -341,6 +353,9 @@ export function FilterDrawer({
   cashCopy: Dictionary["shape"]["cash"];
   /** V-66: the unit shapes' words, for the shape chips. */
   unitCopy: Dictionary["shape"]["unit"];
+  /** V-43: the anchors a renter can pick, and the words for the group. */
+  anchors?: Anchor[];
+  commuteCopy: Dictionary["shape"]["commute"];
   /** V-12: the sentence under the "Lowest fees on top of rent" order. */
   feesBasis?: string;
 }) {
@@ -655,6 +670,48 @@ export function FilterDrawer({
                       checked={draft.withBq}
                       testId="filter-bq"
                       onChange={(next) => setDraft((current) => ({ ...current, withBq: next }))}
+                    />
+                  </div>
+                )}
+              </Group>
+            )}
+
+            {/* --------------------------------- commute (V-43) */}
+            {anchors.length > 0 && (
+              <Group
+                id="filter-commute"
+                title={commuteCopy.filterTitle}
+                clearLabel={copy.clear}
+                onClear={draft.to ? () => setDraft((current) => ({ ...current, to: "", withinOn: false })) : undefined}
+              >
+                <label className="block">
+                  <span className="sr-only">{commuteCopy.filterTitle}</span>
+                  <select
+                    className="nf-field"
+                    value={draft.to}
+                    data-testid="filter-commute-to"
+                    onChange={(event) => {
+                      const to = event.target.value;
+                      setDraft((current) => ({ ...current, to, withinOn: to ? current.withinOn : false }));
+                    }}
+                  >
+                    <option value="">{commuteCopy.anywhere}</option>
+                    {anchors.map((anchor) => (
+                      <option key={anchor.id} value={anchor.slug}>
+                        {anchor.name}, {anchor.city}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {draft.to && (
+                  <div className="mt-sm divide-y divide-[var(--nf-panel-hair)]">
+                    <SwitchRow
+                      icon="history"
+                      label={commuteCopy.within.replace("{n}", String(RUSH_WITHIN))}
+                      hint={commuteCopy.withinHint}
+                      checked={draft.withinOn}
+                      testId="filter-commute-within"
+                      onChange={(next) => setDraft((current) => ({ ...current, withinOn: next }))}
                     />
                   </div>
                 )}
