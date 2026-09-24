@@ -4,39 +4,30 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "../supabase/server";
 
 /**
- * "Moved in for the Vallo price" (V-59): of the tenants of this listing who
- * answered, how many said they paid nothing beyond what they paid on Vallo,
- * from `public.door_honesty`, which publishes that pair and nothing else, and
- * only once five have answered. Null when there is none or the read fails: a
- * null draws no line.
+ * "Moved in for the Vallo price" (V-59): how many tenants of this listing said
+ * they paid nothing beyond what they paid on Vallo, from `public.door_honesty`.
+ * The database publishes that number only once five tenants have answered,
+ * and never publishes how many answered in all. Null when there is none or the
+ * read fails: a null draws no line.
  */
-
-/** Below this many tenants answering, the database publishes nothing and the page prints nothing. */
-export const DOOR_MIN_TENANTS = 5;
-
-export type DoorHonesty = { nothingMore: number; answered: number };
-
-export async function readDoorHonesty(listingId: string): Promise<DoorHonesty | null> {
+export async function readDoorHonesty(listingId: string): Promise<number | null> {
   try {
     const supabase = (await createClient()) as unknown as SupabaseClient;
     const { data, error } = await supabase
       .from("door_honesty")
-      .select("nothing_more, answered")
+      .select("nothing_more")
       .eq("listing_id", listingId)
       .maybeSingle();
     if (error || !data) return null;
-    const row = data as { nothing_more: number; answered: number };
-    return { nothingMore: Number(row.nothing_more), answered: Number(row.answered) };
+    const n = Number((data as { nothing_more: number }).nothing_more);
+    return Number.isInteger(n) && n > 0 ? n : null;
   } catch {
     return null;
   }
 }
 
-/** The sentence, "N of M", or null below five answers or on a row that does not add up. */
-export function doorHonestyLine(door: DoorHonesty | null, copy: { doorMany: string }): string | null {
-  if (!door) return null;
-  const { nothingMore, answered } = door;
-  if (!Number.isInteger(nothingMore) || !Number.isInteger(answered)) return null;
-  if (answered < DOOR_MIN_TENANTS || nothingMore < 0 || nothingMore > answered) return null;
-  return copy.doorMany.replace("{count}", String(nothingMore)).replace("{total}", String(answered));
+/** The sentence, N only; nothing for zero or a failed read. */
+export function doorHonestyLine(count: number | null, copy: { doorOne: string; doorMany: string }): string | null {
+  if (count === null || !Number.isInteger(count) || count < 1) return null;
+  return count === 1 ? copy.doorOne : copy.doorMany.replace("{count}", String(count));
 }

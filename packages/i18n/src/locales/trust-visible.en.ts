@@ -211,8 +211,9 @@ export const trustVisibleEn = {
     signedOut: "Sign in to review your tenancy.",
     signIn: "Sign in",
     entry: "Tell us how moving in went",
-    /** `{count}` of `{total}` tenants who answered paid nothing more at the door. */
-    doorMany: "Moved in for the Vallo price: {count} of {total} tenants said nothing more was asked at the door.",
+    doorOne: "Moved in for the Vallo price: 1 tenant said nothing more was asked at the door.",
+    /** `{count}` tenants who paid nothing more at the door. */
+    doorMany: "Moved in for the Vallo price: {count} tenants said nothing more was asked at the door.",
   },
   /** V-21: the agent band on a profile, with no score in it. */
   profile: {
