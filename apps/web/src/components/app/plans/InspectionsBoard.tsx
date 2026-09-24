@@ -13,8 +13,9 @@ import { readTruthAnsweredFor } from "@/lib/inspections/truth-queries";
 import { readTenancyReviewsDue } from "@/lib/tenancy/review-queries";
 import { truthOpenNow } from "@/lib/inspections/truth";
 import { SafetyShareControl } from "@/components/app/doors/SafetyShareControl";
-import { shareableInspections } from "@/lib/doors/safety";
-import { readMySafetyShares } from "@/lib/doors/queries";
+import { safetyControlRows } from "@/lib/doors/safety";
+import { readMyLiveSafetyShares } from "@/lib/doors/queries";
+import { requestNow } from "@/lib/landlord/facts";
 
 /**
  * The inspections on Plans: the Property side's diary, in the anatomy of
@@ -61,9 +62,6 @@ export async function InspectionsBoard({
   const all = [...groups.open, ...groups.closed];
   if (!readFailed && all.length === 0) return null;
 
-  /* V-62: the renter's own confirmed inspections, from now until the sheet
-     for each would close, each with "Tell someone where I am going". */
-  const goingAlone = shareableInspections(groups.open);
   const [facts, reports, quotes, truthAnswered, tenancyDue, shares] = await Promise.all([
     readListingFacts(
       all.map((row) => row.listingId),
@@ -78,8 +76,12 @@ export async function InspectionsBoard({
     readTruthAnsweredFor(all.filter((row) => row.side === "requester").map((row) => row.id)),
     /* V-59: the tenancy review, when one is due. */
     readTenancyReviewsDue(all.filter((row) => row.side === "requester").map((row) => row.id)),
-    readMySafetyShares(goingAlone.map((row) => row.id)),
+    readMyLiveSafetyShares(),
   ]);
+  /* V-62: every inspection of the renter's with a share still live, whatever
+     its state now, so "I'm done" and "Stop sharing" stay while the contact's
+     page is up; and the confirmed ones a link can be made for. */
+  const goingAlone = safetyControlRows(all, shares, requestNow());
   const tenancyFor = (row: (typeof all)[number]) => {
     const href = tenancyDue.get(row.id);
     return href ? { href, label: t.trustVisible.tenancy.entry } : null;
@@ -129,7 +131,7 @@ export async function InspectionsBoard({
             {goingAlone.length > 0 && (
               <Section title={t.trustDoors.safetyShare.stripTitle}>
                 <div className="grid gap-sm" data-testid="safety-strip">
-                  {goingAlone.map((row) => (
+                  {goingAlone.map(({ row, initial }) => (
                     <SafetyShareControl
                       key={row.id}
                       inspectionId={row.id}
@@ -137,7 +139,7 @@ export async function InspectionsBoard({
                       slotAt={row.slotAt ?? row.requestedAt}
                       locale={locale}
                       copy={t.trustDoors.safetyShare}
-                      initial={shares[row.id] ? (shares[row.id]!.checkedIn ? "done" : "shared") : "none"}
+                      initial={initial}
                     />
                   ))}
                 </div>

@@ -9,6 +9,7 @@ import { EmptyActions } from "@/components/app/EmptyActions";
 import { TenancyCard } from "@/components/app/bookings/TenancyCard";
 import { BookingDetailCard } from "./BookingDetailCard";
 import { BookingMoneyRecord } from "@/components/app/after-gate/BookingMoneyRecord";
+import { ArrivalCheck } from "@/components/app/arrival-check/ArrivalCheck";
 
 /** A receipt for one commitment. Never indexed, and never in a tab title. */
 export const metadata: Metadata = {
@@ -143,6 +144,8 @@ export default async function BookingDetailPage({
         cancelled={booking.status === "CANCELLED"}
         locale={locale}
       />
+      {/* V-91: "Is it as listed?", from check-in time until three hours after. */}
+      <ArrivalCheck bookingId={booking.id} checkIn={booking.checkIn} locale={locale} />
     </>,
   );
 }

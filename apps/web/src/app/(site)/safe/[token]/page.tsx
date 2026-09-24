@@ -40,17 +40,36 @@ export default async function SafetySharePage({ params }: { params: Promise<{ to
     const words =
       view.state === "expired"
         ? { title: copy.expiredTitle, body: copy.expiredBody }
-        : view.state === "failed"
-          ? { title: copy.failedTitle, body: copy.failedBody }
-          : { title: copy.unknownTitle, body: copy.unknownBody };
+        : view.state === "cancelled"
+          ? { title: copy.cancelledTitle, body: copy.cancelledBody }
+          : view.state === "moved"
+            ? { title: copy.movedTitle, body: copy.movedBody }
+            : view.state === "stopped"
+              ? { title: copy.stoppedTitle, body: copy.stoppedBody }
+              : view.state === "failed"
+                ? { title: copy.failedTitle, body: copy.failedBody }
+                : { title: copy.unknownTitle, body: copy.unknownBody };
+    /* V-62 review: a lister closing or moving the inspection must not quieten
+       this page while the renter has not checked in. */
+    const stillOut = (view.state === "cancelled" || view.state === "moved") && !view.checkedIn && !view.quiet;
     return (
       <Frame>
         <ResultScreen
-          state={view.state === "failed" ? "failed" : view.state === "expired" ? "expired" : "pending"}
+          state={view.state === "failed" ? "failed" : view.state === "unknown" ? "pending" : "expired"}
           verdict={words.title}
           consequence={words.body}
           data-testid={`safety-${view.state}`}
         />
+        {stillOut && (
+          <div role="status" className="mx-lg mt-lg rounded-[var(--nf-container-radius)] border border-[var(--nf-border-subtle)] p-md" data-testid="safety-still-out">
+            <p className="text-[length:var(--nf-text-body)] font-semibold text-[var(--nf-content-primary)]">
+              {view.overdue ? copy.pageOverdue : copy.worried}
+            </p>
+            <a href="tel:112" className="nf-btn nf-btn--danger nf-btn--md mt-sm inline-flex min-h-11">
+              {copy.call}
+            </a>
+          </div>
+        )}
       </Frame>
     );
   }

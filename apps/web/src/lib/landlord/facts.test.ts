@@ -46,7 +46,7 @@ describe("reading the facts off the database", () => {
       null,
     ]);
     expect(facts.size).toBe(2);
-    expect(facts.get("a")).toEqual({ ownerConfirmedAt: "2026-09-20T00:00:00Z", notReconfirmed: false, offerCount: 3, propertyId: null });
+    expect(facts.get("a")).toEqual({ ownerConfirmedAt: "2026-09-20T00:00:00Z", notReconfirmed: false, offerCount: 3, propertyId: null, isRepresentative: true });
     expect(facts.get("b")!.notReconfirmed).toBe(true);
     expect(readListingFacts(null).size).toBe(0);
   });
@@ -68,25 +68,50 @@ describe("reading the facts off the database", () => {
 });
 
 describe("one card per property on the shelf", () => {
-  const fact = (propertyId: string | null, offerCount = 1): ListingFacts => ({
+  const fact = (propertyId: string | null, offerCount = 1, isRepresentative = true): ListingFacts => ({
     ownerConfirmedAt: null,
     notReconfirmed: false,
     offerCount,
     propertyId,
+    isRepresentative,
   });
 
-  it("keeps the first copy of a property in the page's order and counts the offers", () => {
+  it("keeps the copy the database chose, wherever it sorts on the page, and counts the offers", () => {
     const rows = [{ id: "a" }, { id: "b" }, { id: "c" }, { id: "d" }];
     const facts = new Map([
       ["a", fact(null)],
-      ["b", fact("p1", 3)],
-      ["c", fact("p1", 3)],
-      ["d", fact("p1", 3)],
+      ["b", fact("p1", 3, false)],
+      ["c", fact("p1", 3, true)],
+      ["d", fact("p1", 3, false)],
     ]);
     const out = collapseByProperty(rows, facts);
-    expect(out.listings.map((r) => r.id)).toEqual(["a", "b"]);
-    expect(out.offerCounts.get("b")).toBe(3);
+    expect(out.listings.map((r) => r.id)).toEqual(["a", "c"]);
+    expect(out.offerCounts.get("c")).toBe(3);
     expect(out.offerCounts.has("a")).toBe(false);
+  });
+
+  it("keeps the property when a rent ceiling filtered out its representative", () => {
+    /* The representative has the lowest move-in total but a rent above the
+       renter's ceiling; the two copies that passed the filter are dearer to
+       move into. The property must stay on the shelf, once, as the first
+       copy that passed. */
+    const passedTheCeiling = [{ id: "b" }, { id: "d" }];
+    const facts = new Map([
+      ["b", fact("p1", 3, false)],
+      ["d", fact("p1", 3, false)],
+    ]);
+    const out = collapseByProperty(passedTheCeiling, facts);
+    expect(out.listings.map((r) => r.id)).toEqual(["b"]);
+    expect(out.offerCounts.get("b")).toBe(3);
+  });
+
+  it("prefers the representative over an earlier copy when both passed the filters", () => {
+    const rows = [{ id: "b" }, { id: "c" }];
+    const facts = new Map([
+      ["b", fact("p1", 2, false)],
+      ["c", fact("p1", 2, true)],
+    ]);
+    expect(collapseByProperty(rows, facts).listings.map((r) => r.id)).toEqual(["c"]);
   });
 
   it("changes nothing when the facts did not load", () => {

@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { createSafetyShare, markSafetyDone } from "@/lib/doors/safety-actions";
+import { createSafetyShare, markSafetyDone, stopSafetyShare } from "@/lib/doors/safety-actions";
 
 type ShareCopy = Dictionary["trustDoors"]["safetyShare"];
 
@@ -12,7 +12,8 @@ type Phase =
   | { kind: "idle" }
   | { kind: "made"; url: string; text: string; copied: boolean }
   | { kind: "shared" }
-  | { kind: "done" };
+  | { kind: "done" }
+  | { kind: "stopped" };
 
 /**
  * V-62 on a confirmed inspection: "Tell someone where I am going".
@@ -98,6 +99,24 @@ export function SafetyShareControl({
     });
   };
 
+  const stop = () => {
+    setError(null);
+    start(async () => {
+      const result = await stopSafetyShare({ inspectionId });
+      if (!result.ok) {
+        setError(copy.failed);
+        return;
+      }
+      setPhase({ kind: "stopped" });
+    });
+  };
+
+  const stopButton = (
+    <Button type="button" variant="ghost" size="md" full className="mt-xs" disabled={pending} onClick={stop}>
+      {copy.stop}
+    </Button>
+  );
+
   return (
     <div className="nf-panel nf-panel--card p-panel" data-testid="safety-share">
       <p className="flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
@@ -147,6 +166,7 @@ export function SafetyShareControl({
           <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
             {copy.doneHint}
           </p>
+          {stopButton}
         </div>
       )}
 
@@ -159,14 +179,26 @@ export function SafetyShareControl({
           <p className="mt-xs text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-muted)]">
             {copy.doneHint}
           </p>
+          {stopButton}
         </div>
       )}
 
-      {phase.kind === "done" && (
-        <p className="mt-sm flex items-center gap-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-state-success)]" role="status">
-          <UiIcon name="verified" size={16} className="shrink-0" />
-          {copy.doneThanks}
+      {phase.kind === "stopped" && (
+        <p className="mt-sm text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-secondary)]" role="status">
+          {copy.stopped}
         </p>
+      )}
+
+      {phase.kind === "done" && (
+        <div className="mt-sm">
+          <p className="flex items-center gap-xs text-[length:var(--nf-text-body-sm)] text-[var(--nf-state-success)]" role="status">
+            <UiIcon name="verified" size={16} className="shrink-0" />
+            {copy.doneThanks}
+          </p>
+          {/* The page still shows "done" to whoever holds the link until it
+              expires; the renter can take it down now. */}
+          {stopButton}
+        </div>
       )}
 
       {error && (

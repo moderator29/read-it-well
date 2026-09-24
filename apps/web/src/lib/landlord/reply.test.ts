@@ -21,7 +21,7 @@ describe("the reply page's model", () => {
       answer: null,
       rent: null,
     });
-    expect(view).toMatchObject({ state: "open", purpose: "vacancy", place: "2 bedroom apartment in Ikeja GRA", listerName: "Chidi Okeke", rent: null });
+    expect(view).toMatchObject({ state: "open", purpose: "vacancy", place: "2 bedroom apartment in Ikeja GRA", rent: null });
     expect(JSON.stringify(view)).not.toMatch(/address|phone|\+234/i);
   });
 

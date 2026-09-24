@@ -48,7 +48,7 @@ function fakeDatabase(opts: { open: boolean }) {
   const mandates = new Map<string, Mandate>();
   const listings = new Map<string, Listing>();
   const asks: Ask[] = [];
-  const recorded: { ask: string; channel: string; body: string; delivered: boolean }[] = [];
+  const recorded: { ask: string; channel: string; body: string; delivered: boolean; status: string }[] = [];
   let seq = 0;
   let open = opts.open;
 
@@ -110,11 +110,26 @@ function fakeDatabase(opts: { open: boolean }) {
             is_demo: m.consent.isDemo,
           };
         }),
-    landlord_line_record: (args) => {
+    landlord_line_begin: (args) => {
       if (/\/landlord\/[A-Za-z0-9_-]{16,}/.test(String(args.p_body))) throw new Error("check_violation: token in body");
-      recorded.push({ ask: String(args.p_ask), channel: String(args.p_channel), body: String(args.p_body), delivered: args.p_delivered === true });
-      if (args.p_delivered !== true) {
-        const ask = asks.find((a) => a.id === args.p_ask)!;
+      if (!open) return null;
+      const ask = asks.find((a) => a.id === args.p_ask);
+      if (!ask || !ask.sent || ask.answer || !may(ask.mandateId)) return null;
+      if (recorded.some((r) => r.ask === ask.id)) return null;
+      recorded.push({ ask: ask.id, channel: String(args.p_channel), body: String(args.p_body), delivered: false, status: "sending" });
+      return `msg-${ask.id}`;
+    },
+    landlord_line_finish: (args) => {
+      const row = recorded.find((r) => `msg-${r.ask}` === args.p_message);
+      if (row && row.status === "sending") {
+        row.status = args.p_delivered === true ? "sent" : "failed";
+        row.delivered = args.p_delivered === true;
+      }
+      return null;
+    },
+    landlord_line_release: (args) => {
+      const ask = asks.find((a) => a.id === args.p_ask);
+      if (ask && !ask.answer && !recorded.some((r) => r.ask === ask.id)) {
         ask.sent = false;
         ask.token = null;
       }
@@ -140,11 +155,6 @@ function fakeDatabase(opts: { open: boolean }) {
       return answer ? apply(ask, answer) : { state: "invalid" };
     },
     landlord_line_requeue: () => 0,
-    landlord_line_claim: (args) => {
-      if (!open) return false;
-      const ask = asks.find((a) => a.id === args.p_ask);
-      return Boolean(ask && ask.sent && !ask.answer && may(ask.mandateId));
-    },
     landlord_line_stop_number: (args) => {
       let n = 0;
       for (const m of mandates.values()) {
@@ -223,8 +233,8 @@ describe("the landlord line, end to end with the stub", () => {
     expect(channel.sent).toHaveLength(1);
     expect(channel.sent[0]!.to).toBe("+2348031234567");
 
-    // What was stored carries no token and names the stub, so it never counts as delivered.
-    expect(fake.recorded[0]).toMatchObject({ channel: "stub", delivered: true });
+    // Logged before the send, finished after it; the stored body carries no token.
+    expect(fake.recorded[0]).toMatchObject({ channel: "stub", delivered: true, status: "sent" });
     expect(fake.recorded[0]!.body).toContain("/landlord/[link]");
 
     const token = tokenIn(channel.sent[0]!.body);
@@ -343,19 +353,40 @@ describe("a STOP between issue and send is honoured", () => {
     expect(result.refused).toBe(1);
   });
 
-  it("counts a delivered message the log refused, for the job to raise", async () => {
+  it("counts a delivered message the log could not finish, for the job to raise, and never resends it", async () => {
     const fake = fakeDatabase({ open: true });
     fake.addListing("l1", "+2348031234567", approvedWithConsent);
     const base = fake.db.rpc.bind(fake.db);
     const db = {
       async rpc(fn: string, args: Record<string, unknown>) {
-        if (fn === "landlord_line_record" && args.p_delivered === true) return { data: null, error: { message: "boom" } };
+        if (fn === "landlord_line_finish") return { data: null, error: { message: "boom" } };
         return base(fn, args);
       },
     };
-    const result = await drainLandlordLine(deps(db));
+    const channel = new StubChannel();
+    const result = await drainLandlordLine(deps(db, channel));
     expect(result.sent).toBe(1);
     expect(result.unlogged).toBe(1);
+    expect(fake.recorded[0]!.status).toBe("sending");
+    // The next run does not send it again.
+    await drainLandlordLine(deps(db, channel));
+    expect(channel.sent).toHaveLength(1);
+  });
+
+  it("the log row exists before the transport is called", async () => {
+    const fake = fakeDatabase({ open: true });
+    fake.addListing("l1", "+2348031234567", approvedWithConsent);
+    let seenAtSend: string | undefined;
+    const channel = {
+      name: "sms" as const,
+      send: async () => {
+        seenAtSend = fake.recorded[0]?.status;
+        return { ok: true as const, ref: "r1" };
+      },
+    };
+    await drainLandlordLine({ ...deps(fake.db), channel });
+    expect(seenAtSend).toBe("sending");
+    expect(fake.recorded[0]!.status).toBe("sent");
   });
 });
 
@@ -366,13 +397,16 @@ describe("the transport", () => {
     expect(transportConfigured(new StubChannel())).toBe(false);
   });
 
-  it("a transport failure returns the question to unsent and counts it", async () => {
+  it("a transport failure is logged as failed and counted, and the question is not resent", async () => {
     const fake = fakeDatabase({ open: true });
     fake.addListing("l1", "+2348031234567", approvedWithConsent);
-    const failing = { name: "sms" as const, send: async () => ({ ok: false as const, reason: "down" }) };
+    let calls = 0;
+    const failing = { name: "sms" as const, send: async () => ((calls += 1), { ok: false as const, reason: "down" }) };
     const result = await drainLandlordLine({ ...deps(fake.db), channel: failing });
     expect(result).toMatchObject({ sent: 0, failed: 1 });
-    expect(fake.asks[0]!.sent).toBe(false);
+    expect(fake.recorded[0]!.status).toBe("failed");
+    await drainLandlordLine({ ...deps(fake.db), channel: failing });
+    expect(calls).toBe(1);
   });
 
   it("drops a malformed issue row rather than sending it", () => {

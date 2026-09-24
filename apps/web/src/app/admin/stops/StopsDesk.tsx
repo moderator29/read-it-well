@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import {
   liftAgentStop,
@@ -179,7 +180,9 @@ function StoppedCard({
           Stopped
         </span>
         <h3 className="nf-lede font-semibold text-[var(--nf-content-primary)]">
-          {agent.displayName}
+          <Link href={`/admin/people/${agent.userId}`} className="underline-offset-2 hover:underline">
+            {agent.displayName}
+          </Link>
         </h3>
       </div>
 
@@ -273,7 +276,9 @@ function TradingCard({
     <li className="nf-panel nf-panel--card nf-admin-card p-card">
       <div className="flex flex-wrap items-center gap-xs">
         <h3 className="min-w-0 flex-1 nf-body font-semibold text-[var(--nf-content-primary)]">
-          {agent.displayName}
+          <Link href={`/admin/people/${agent.userId}`} className="underline-offset-2 hover:underline">
+            {agent.displayName}
+          </Link>
         </h3>
         <span className="nf-numeric nf-caption text-[var(--nf-content-muted)]">
           {agent.liveListingCount === 1 ? "1 live listing" : `${agent.liveListingCount} live listings`}

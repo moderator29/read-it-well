@@ -56,3 +56,13 @@ export async function markSafetyDone(input: { inspectionId: string }): Promise<A
   if (error) return fail(FAILED);
   return ok({ done: typeof data === "number" && data > 0 });
 }
+
+export async function stopSafetyShare(input: { inspectionId: string }): Promise<ActionResult<null>> {
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+  const id = ID.safeParse(input.inspectionId);
+  if (!id.success) return fail(FAILED);
+  const { error } = await callLandlordRpc(session.supabase, "safety_share_stop", { p_inspection: id.data });
+  return error ? fail(FAILED) : ok(null);
+}

@@ -68,6 +68,7 @@ the obligation ends.
 | The application row itself, minus the redacted fields | `public.agent_applications` | Same | 2 years [L] | Purge |
 | Identity document for an `APPROVED` agent | `agent-documents` bucket | The agent relationship ends, by account closure or termination | **5 years [C]** | Purge |
 | `id_number` and payout details for an approved agent | `public.agent_applications`, `public.payout_accounts` | Same | **5 years [C]** | Redact |
+| HMACs of the NIN, phone numbers and payout accounts of a person whose stop was upheld as fraud (V-90); never the values | `private.identity_denylist` | The stop is lifted, or the stop row is deleted | **While the upheld stop stands [L]** | Purge, automatically when the stop lifts |
 | Application abandoned at `DRAFT`, never submitted | `public.agent_applications`, `agent-documents` | Last update to the row | 12 months [L] | Purge, row and objects |
 
 **The 5 year figure is the anti money laundering floor, not an NDPA period.**

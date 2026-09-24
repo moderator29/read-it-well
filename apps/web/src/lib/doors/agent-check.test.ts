@@ -37,9 +37,12 @@ describe("what the lookup answered", () => {
       displayName: "Chidi Okeke",
       role: "agent",
       code: "VA-7K3MP",
+      hint: null,
       identityCheckedAt: "2026-08-12T10:00:00Z",
       handle: "chidi",
     });
+    const byCode = readCheckResult({ found: true, display_name: "Chidi", code: "VA-7K3MP", hint: "567" }, { kind: "code", value: "VA-7K3MP" });
+    expect(byCode && byCode.found && byCode.hint).toBe("567");
   });
 
   it("reads the one plain no, and refuses anything it cannot read", () => {

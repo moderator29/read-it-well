@@ -40,14 +40,13 @@ export function LandlordQuestion({
   const title =
     view.purpose === "vacancy" ? fill(copy.vacancyTitle, { place: view.place }) : fill(copy.rentTitle, { place: view.place });
   const lede =
+    /* Rule 10: the lister's name is text they typed, so the page never has
+       it and always uses the wording that names no agent. */
     view.purpose === "vacancy"
-      ? view.listerName
-        ? fill(copy.vacancyLede, { agent: view.listerName })
-        : copy.vacancyLedeNoAgent
+      ? copy.vacancyLedeNoAgent
       : rent
-        ? fill(view.listerName ? copy.rentLede : copy.rentLedeNoAgent, {
+        ? fill(copy.rentLedeNoAgent, {
             total: formatMoney(rent.totalMinor, locale, rent.currency),
-            agent: view.listerName ?? "",
             moveIn: day(rent.moveIn, locale),
           })
         : "";
