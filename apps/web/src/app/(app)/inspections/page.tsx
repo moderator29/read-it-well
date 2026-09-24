@@ -9,6 +9,7 @@ import { InspectionsLive } from "@/components/app/inspections/InspectionsLive";
 import { resolveSession } from "@/lib/actions/session";
 import { readReportsFor } from "@/lib/inspections/report-queries";
 import { readTruthAnsweredFor } from "@/lib/inspections/truth-queries";
+import { readTenancyReviewsDue } from "@/lib/tenancy/queries";
 import { truthOpenNow } from "@/lib/inspections/truth";
 import { reportStorageLive } from "@/lib/inspections/report-flag";
 import { groupInspections, tagSide } from "@/components/app/inspections/grouping";
@@ -73,7 +74,7 @@ export default async function InspectionsPage({
     ...tagSide(shown.inspections, "lister"),
   ]);
   const all = [...groups.open, ...groups.closed];
-  const [facts, reports, truthAnswered] = await Promise.all([
+  const [facts, reports, truthAnswered, tenancyDue] = await Promise.all([
     readListingFacts(
       all.map((row) => row.listingId),
       locale,
@@ -82,7 +83,12 @@ export default async function InspectionsPage({
     readTruthAnsweredFor(
       all.filter((row) => row.side === "requester").map((row) => row.id),
     ),
+    readTenancyReviewsDue(all.filter((row) => row.side === "requester").map((row) => row.id)),
   ]);
+  const tenancyFor = (row: (typeof all)[number]) => {
+    const href = tenancyDue.get(row.id);
+    return href ? { href, label: t.trustVisible.tenancy.entry } : null;
+  };
   /* V-05: the truth questions are open for the requester once the agreed
      time has passed; decided here, once, with the server's clock. */
   const truthFor = (row: (typeof all)[number]) =>
@@ -135,6 +141,7 @@ export default async function InspectionsPage({
                       report={reports.get(row.id) ?? null}
                       reportLive={reportLive}
                       truth={truthFor(row)}
+                      tenancyReview={tenancyFor(row)}
                       locale={locale}
                       open={row.id === expanded}
                     />
@@ -154,6 +161,7 @@ export default async function InspectionsPage({
                       report={reports.get(row.id) ?? null}
                       reportLive={reportLive}
                       truth={truthFor(row)}
+                      tenancyReview={tenancyFor(row)}
                       locale={locale}
                       open={row.id === expanded}
                     />

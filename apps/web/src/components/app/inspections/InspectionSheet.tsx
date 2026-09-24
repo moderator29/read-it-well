@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { IconPlate } from "@/components/ui/IconPlate";
 import { panelClass } from "@/components/ui/Panel";
 import { Sheet } from "@/components/ui/Sheet";
@@ -163,6 +163,7 @@ export function InspectionSheet({
   report = null,
   reportLive = false,
   truth = null,
+  tenancyReview = null,
 }: {
   inspection: Inspection;
   side: "lister" | "requester";
@@ -179,6 +180,8 @@ export function InspectionSheet({
    * this viewer (the requester, after the agreed time). Null draws nothing.
    */
   truth?: { answeredAt: string | null; copy: Dictionary["trustVisible"]["truth"] } | null;
+  /** V-59: the tenancy review, when one is waiting for this renter. */
+  tenancyReview?: { href: string; label: string } | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -382,6 +385,13 @@ export function InspectionSheet({
             </li>
           ))}
         </ol>
+
+        {/* ------------------------------------------ V-59, the tenancy review */}
+        {tenancyReview && (
+          <ButtonLink href={tenancyReview.href} variant="primary" full data-testid="tenancy-review-entry">
+            {tenancyReview.label}
+          </ButtonLink>
+        )}
 
         {/* ------------------------------------------ V-05, the truth questions */}
         {truth && (

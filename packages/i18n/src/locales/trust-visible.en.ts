@@ -153,6 +153,41 @@ export const trustVisibleEn = {
     /** `{count}` is a number. */
     viewingsMany: "{count} viewings arranged on Vallo",
   },
+  /** V-59: the tenancy review, led by the door. */
+  tenancy: {
+    title: "How moving in went",
+    lede: "A month in, five questions before any stars. Whether you paid anything more is private: it is counted, never shown with your name.",
+    paidExtra: "Did you pay anything to anybody for this place beyond what you paid on Vallo?",
+    howMuch: "How much, in naira",
+    toWhom: "To whom",
+    to: { agent: "The agent", caretaker: "A caretaker", landlord: "The landlord", other: "Somebody else" },
+    asListed: "Was the place as listed: the light, the water, the gate?",
+    agentOnTime: "Did the agent show up when agreed?",
+    again: "Would you rent through this agent again?",
+    rating: "Overall, out of five",
+    body: "Anything else, in a sentence (optional)",
+    yes: "Yes",
+    no: "No",
+    notSure: "Not sure",
+    submit: "Send",
+    sending: "Sending",
+    incomplete: "Answer every question, then send.",
+    done: "Thank you. Your review is recorded.",
+    failed: "Your review did not send. Nothing was recorded. Try again.",
+    notOpen: "The review opens a month after your move-in date, for the tenant on the rent charge.",
+    /** `{date}` is the move-in date. */
+    movedIn: "Your move-in date is {date}.",
+    already: "You have already reviewed this tenancy.",
+    missingTitle: "We could not find that tenancy",
+    missingBody: "It may belong to another account. Your inspections and payments are in one place.",
+    openInspections: "See your inspections",
+    signedOut: "Sign in to review your tenancy.",
+    signIn: "Sign in",
+    entry: "Tell us how moving in went",
+    /** `{count}` tenants who paid nothing more at the door. */
+    doorOne: "Moved in for the Vallo price: 1 tenant said nothing more was asked at the door.",
+    doorMany: "Moved in for the Vallo price: {count} tenants said nothing more was asked at the door.",
+  },
   /** V-21: the agent band on a profile, with no score in it. */
   profile: {
     reviews: "Reviews",

@@ -38,6 +38,7 @@ import { ListingAmenityTiles } from "@/components/app/listing/ListingAmenityTile
 import { ListingAgentCard } from "@/components/app/listing/ListingAgentCard";
 import { ProofStrip } from "@/components/app/listing/ProofStrip";
 import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
+import { doorHonestyLine, readDoorHonesty } from "@/lib/tenancy/door";
 import { ListingMoveInBlock } from "@/components/app/listing/ListingMoveInBlock";
 import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
@@ -263,6 +264,11 @@ export default async function ListingDetailPage({
   // Written reviews for this listing. Public by policy for a PUBLISHED listing,
   // so this read works for a signed-out visitor too.
   const reviews = await getListingReviews(listing.id, locale);
+  /* V-59: "Moved in for the Vallo price", the one public number from the
+     tenancy reviews. Null (and no line) on every example listing. */
+  const doorLine = listing.isDemo
+    ? null
+    : doorHonestyLine(await readDoorHonesty(listing.id), t.trustVisible.tenancy);
 
   /*
    * WHERE "MESSAGE AGENT" GOES, AND THE DEAD END THIS REPLACES.
@@ -1112,6 +1118,11 @@ export default async function ListingDetailPage({
                     behaviours are correct and are preserved exactly. */}
                 <Reveal>
                   <Section id="reviews" title={t.catalogue.detail.reviews} divided className="scroll-mt-16">
+                    {doorLine && (
+                      <p className={`mb-row ${TYPE.body}`} data-testid="door-honesty">
+                        {doorLine}
+                      </p>
+                    )}
                     <ListingReviews
                       rating={listing.rating}
                       reviewCount={listing.reviewCount}
