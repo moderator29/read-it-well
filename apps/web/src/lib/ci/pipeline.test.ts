@@ -84,3 +84,23 @@ describe("DOC-P2-03: something watches for advisories", () => {
     expect(dependabot).toMatch(/package-ecosystem:\s*npm\s*\n\s*directory:\s*\//);
   });
 });
+
+describe("A10 gate details", () => {
+  const ci = readFileSync(join(ROOT, ".github", "workflows", "ci.yml"), "utf8");
+
+  it("DOC-23: a push to main is never cancelled by the next push", () => {
+    expect(ci).toMatch(/cancel-in-progress: \$\{\{ github\.event_name == 'pull_request' \}\}/);
+    expect(ci).not.toMatch(/^\s*cancel-in-progress: true\s*$/m);
+  });
+
+  it("DOC-P2-04: failures are recorded by name (junit, kept as an artifact) and never retried", () => {
+    expect(ci).toMatch(/--reporter=junit/);
+    expect(ci).toMatch(/name: vitest-junit/);
+    expect(readFileSync(join(ROOT, "apps", "web", "vitest.config.ts"), "utf8")).toMatch(/retry: 0/);
+  });
+
+  it("DOC-18: lint fails when the warning count rises", () => {
+    const pkg = JSON.parse(readFileSync(join(ROOT, "apps", "web", "package.json"), "utf8")) as { scripts: Record<string, string> };
+    expect(pkg.scripts.lint).toMatch(/eslint \. --max-warnings=\d+/);
+  });
+});

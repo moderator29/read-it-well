@@ -64,3 +64,6 @@ assets/brand-cut/
 scripts/ownerA-*.mjs
 scripts/ownerb-*.mjs
 apps/web/src/app/(app)/ownerb-preview/
+
+# CI test report (DOC-P2-04)
+vitest-junit.xml

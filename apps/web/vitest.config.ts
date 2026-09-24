@@ -2,17 +2,17 @@ import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 
 /**
- * Unit tests, for the handful of things a browser cannot reach.
+ * The unit suite: every `.test.ts` file under `src`, in Node, with NO database and no
+ * running server. It covers most of `lib/` and the route handlers with their
+ * dependencies stubbed; what lives in SQL (RLS, grants, triggers, the money
+ * functions) is tested by the database probes in `supabase/tests/probes`
+ * (`scripts/db-probes/run.mjs`, CI job "Database probes"), and the browser
+ * scripts in `tests/*.spec.mjs` are run by hand, not by this config.
  *
- * Nearly everything on this platform is proved by a Playwright spec against a
- * running server, and that stays the rule: a test that drives the real screen
- * is worth more than one that drives a function. This config exists for the
- * exception, which is code whose whole job is to interpret somebody else's
- * payload. The partner providers map Google and Amadeus responses, and the only
- * honest way to test that mapping is to hand them a response, which a browser
- * spec cannot do without either a live key or a stand-in for Google.
+ * `retry: 0` is explicit so a flaky test is a red run with its name on it,
+ * never a pass on the second try (DOC-P2-04).
  *
- * Every module under `lib/inventory` opens with `import "server-only"`. That
+ * Server modules open with `import "server-only"`. That
  * package exports an empty module under the `react-server` condition and a
  * module that throws on purpose under every other one, which is exactly the
  * guard we want in a build and exactly the thing that stops a test importing
@@ -52,5 +52,6 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
+    retry: 0,
   },
 });

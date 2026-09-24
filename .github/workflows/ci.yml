@@ -47,9 +47,12 @@ on:
   pull_request:
     branches: [main]
 
+# DOC-23: a pull request cancels its own superseded runs; a push to main never
+# does, so every commit on main gets its verdict and a regression can be
+# bisected to the commit that brought it.
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.ref }}-${{ github.event_name == 'push' && github.sha || 'pr' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -86,9 +89,18 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run lint
 
+      # DOC-P2-04: failures are recorded by name, and kept.
       - name: Test
         if: ${{ !cancelled() }}
-        run: npm run test
+        run: npm run test --workspace @vallo/web -- --reporter=default --reporter=junit --outputFile.junit=vitest-junit.xml
+
+      - name: Keep the test report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-junit
+          path: apps/web/vitest-junit.xml
+          if-no-files-found: warn
 
       - name: Database probe files keep the contract
         if: ${{ !cancelled() }}
