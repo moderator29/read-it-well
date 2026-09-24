@@ -42,6 +42,7 @@ import "@/app/css/escrow.css";
 import { useBack } from "@/lib/nav/use-back";
 import { ThreadOptionsSheet, type SheetListing } from "./ThreadOptionsSheet";
 import { Button } from "@/components/ui/Button";
+import { Chip, ChipRow } from "@/components/ui/Chip";
 
 /**
  * The conversation thread, one component for both data sources.
@@ -153,6 +154,18 @@ export type ThreadViewProps = {
    * component learns nothing new about the question's rules.
    */
   availabilitySlot?: React.ReactNode;
+  /**
+   * V-72: the enquiry's stage, drawn by the page for the thread's lister only.
+   * A slot, like the availability card, so this component learns no stage rules.
+   */
+  stageSlot?: React.ReactNode;
+  /**
+   * V-72: the lister's quick replies, already worded from the listing's own
+   * facts. A tap puts the sentence in the composer; nothing is sent until the
+   * lister sends it. Empty or absent draws no tray.
+   */
+  quickReplies?: { key: string; label: string; text: string }[];
+  quickRepliesTitle?: string;
 };
 
 const INSPECTIONS_KEY = "nf_inspections";
@@ -279,6 +292,9 @@ export function ThreadView({
   heldPaymentsOpen = false,
   agreement = null,
   availabilitySlot = null,
+  stageSlot = null,
+  quickReplies = [],
+  quickRepliesTitle = "",
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
   /*
@@ -730,6 +746,7 @@ export function ThreadView({
       )}
 
       {availabilitySlot}
+      {stageSlot}
 
       {/* ------------------------------------------------------ chat thread */}
       <div
@@ -976,6 +993,23 @@ export function ThreadView({
             Remove
           </Button>
         </div>
+      )}
+      {quickReplies.length > 0 && (
+        /* V-72: the tray. A tap adds the sentence to whatever is already typed. */
+        <nav aria-label={quickRepliesTitle} className="px-md pb-xs" data-testid="quick-replies">
+          <ChipRow bleed={false}>
+            {quickReplies.map((reply) => (
+              <Chip
+                key={reply.key}
+                size="sm"
+                onSelectedChange={() => onDraftChange(draft.trim() ? `${draft.trimEnd()} ${reply.text}` : reply.text)}
+                data-testid={`quick-reply-${reply.key}`}
+              >
+                {reply.label}
+              </Chip>
+            ))}
+          </ChipRow>
+        </nav>
       )}
       <form
         onSubmit={(e) => {

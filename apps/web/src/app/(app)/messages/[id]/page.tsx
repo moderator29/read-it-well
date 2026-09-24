@@ -14,6 +14,10 @@ import { resolveCards } from "./cards";
 import { readAvailabilityForConversation } from "@/lib/availability/queries";
 import { AvailabilityCard } from "@/components/app/messages/AvailabilityCard";
 import { InboxEmpty } from "../Inbox";
+import { readDeskStage } from "@/lib/enquiry/queries";
+import { quickReplies } from "@/lib/enquiry/quick-replies";
+import { loadListingsByIds } from "@/lib/listings/supabase-repository";
+import { StageControl } from "@/components/app/messages/StageControl";
 
 /**
  * A single conversation thread.
@@ -165,6 +169,20 @@ export default async function ConversationPage({
     /* V-14: the still-available question on this thread, if one was asked. */
     const availability = context.kind === "listing" ? await readAvailabilityForConversation(id) : null;
     const lagosToday = lagosDayNow();
+    /* V-72: the desk, for the lister of a listing thread only. The stage read
+       answers only for the caller's own threads, and the listing is read
+       under the lister's own client for the quick replies' figures. */
+    const desk = context.kind === "listing" && role === "host";
+    const [stage, deskListing] = desk
+      ? await Promise.all([
+          readDeskStage(id),
+          thread.listing
+            ? loadListingsByIds(session.supabase, [thread.listing.id])
+                .then((found) => found.get(thread.listing!.id) ?? null)
+                .catch(() => null)
+            : Promise.resolve(null),
+        ])
+      : [null, null];
 
     return (
       <ThreadView
@@ -230,6 +248,9 @@ export default async function ConversationPage({
             />
           ) : null
         }
+        stageSlot={stage ? <StageControl conversationId={id} stage={stage} copy={t.frontDoor.desk} /> : null}
+        quickReplies={desk ? quickReplies(deskListing, t.frontDoor.desk.quick, locale) : []}
+        quickRepliesTitle={t.frontDoor.desk.quickTitle}
         openAttach={(Array.isArray(attach) ? attach[0] : attach) === "1"}
         heldPaymentsOpen={heldPaymentsOpen}
         agreement={
