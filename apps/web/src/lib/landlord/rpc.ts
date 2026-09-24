@@ -48,7 +48,7 @@ export type LandlordRpcArgs = {
   owner_heartbeats_open: Record<string, never>;
   owner_heartbeat_answer: { p_listing: string };
   agent_lookup: { p_query: string };
-  refund_agent_check_slot: { p_bucket: string; p_window_seconds: number };
+  refund_agent_check_slot: { p_bucket: string; p_window_start: string };
   agent_lookup_opt_in: { p_phone: string | null };
   my_agent_lookup: Record<string, never>;
   safety_share_create: { p_inspection: string; p_minutes: number };

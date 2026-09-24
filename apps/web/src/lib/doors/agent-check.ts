@@ -70,3 +70,13 @@ export function readCheckResult(raw: unknown, asked: CheckQuery): CheckResult | 
 export function looksCheckable(raw: string | undefined | null): boolean {
   return raw ? readCheckQuery(raw) !== null : false;
 }
+
+/**
+ * The start of the fixed rate-limit window `nowMs` falls in, as the database
+ * computes it (`floor(epoch / window) * window`), in ISO form. The agent check
+ * names it when it reserves a slot, so the refund goes back to that window.
+ */
+export function reservationWindowStart(nowMs: number, windowSeconds: number): string {
+  const seconds = Math.floor(nowMs / 1000 / windowSeconds) * windowSeconds;
+  return new Date(seconds * 1000).toISOString();
+}

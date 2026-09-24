@@ -7,7 +7,7 @@ import { callLandlordRpc } from "../landlord/rpc";
 import { consume, ipFromHeaders, subjectForIp } from "../security/rate-limit";
 import { getAdminClient } from "../wallet/ledger";
 import { normalisePhone } from "../phone";
-import { readCheckQuery, readCheckResult, type CheckResult } from "./agent-check";
+import { readCheckQuery, readCheckResult, reservationWindowStart, type CheckResult } from "./agent-check";
 
 /**
  * V-61. THE CHECK, AND THE LIMIT THAT KEEPS IT FROM BEING A PHONE BOOK.
@@ -65,13 +65,16 @@ export async function checkAgent(
      spent EVERY lookup of that kind is refused, hit or miss. Somebody with
      many addresses cannot walk the space; real agents' names cost nothing. */
   const budget = MISS_BUDGET[query.kind];
+  /* The window the slot is taken in, named now, so a lookup that returns
+     after the hour turns gives the slot back where it was taken. */
+  const reservedWindow = reservationWindowStart(Date.now(), HOUR);
   const reserved = await consume({ bucket: budget.bucket, subject: "platform", limit: budget.limit, windowSeconds: HOUR });
   if (!reserved.allowed) return ok({ state: "limited", retryIn: reserved.retryIn });
   if (reserved.degraded) return fail(FAILED);
 
   const giveBack = async () => {
     try {
-      await callLandlordRpc(admin, "refund_agent_check_slot", { p_bucket: budget.bucket, p_window_seconds: HOUR });
+      await callLandlordRpc(admin, "refund_agent_check_slot", { p_bucket: budget.bucket, p_window_start: reservedWindow });
     } catch {
       /* A slot not given back only makes the budget stricter. */
     }
