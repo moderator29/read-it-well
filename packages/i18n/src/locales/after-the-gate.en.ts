@@ -222,6 +222,19 @@ export const afterTheGateEn = {
     keptBy: "Kept by {name}",
     forEstate: "Paid to {name} for the estate",
   },
+  comingUp: {
+    /** V-84, on /wallet. */
+    heading: "Coming up",
+    kinds: {
+      renewal: "Rent renews {date}",
+      caution_owed_to_you: "Caution owed back to you by {date}",
+      caution_you_owe: "Caution you owe back by {date}",
+      held: "Set aside in a held payment until {date}",
+      stay: "Paid stay from {date}",
+    },
+    seeAll: "See all {count}",
+    failed: "What is coming up could not be read just now.",
+  },
   lastLet: {
     /** V-38, on a relisted flat's page. */
     line: "Last let through Vallo in {month} at {rent} a {period}.",
