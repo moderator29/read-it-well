@@ -20,11 +20,16 @@
 --                  whose booking was paid
 --   since          when the lister joined, the month is enough
 --
--- NOT HERE, ON PURPOSE: "Inspections kept: 29 of 31". The entry counts an
--- inspection as kept only with a gate handshake, so nobody can mark themselves
--- present, and the handshake table (V-35's check-ins) is not in this schema
--- yet. A kept count from `inspection_requests.state` would be the lister's own
--- word, so the line is not built until the handshake exists.
+--   kept           "Inspections kept: 29 of 31", counted ONLY from the gate
+--                  handshake (V-35): a confirmed inspection whose slot passed
+--                  more than a day ago in the last 12 months is kept when the
+--                  renter's phone recorded that the lister's code matched. The
+--                  lister cannot mark themselves present.
+--
+-- THE CORE IS PL/pgSQL, NOT SQL, because it reads `inspection_checkins`,
+-- which V-35 (20260924160100) creates after this file in timestamp order: a
+-- plpgsql body is resolved when it runs, so this file applies first and the
+-- Record works once both are in. Nothing calls it in between.
 --
 -- FIVE OR NOTHING. Every counted fact is returned only when its denominator
 -- reaches five; below that the columns are null and the screen prints nothing
@@ -32,7 +37,16 @@
 -- tenancy from being read off a public page.
 --
 -- A STOPPED LISTER'S RECORD IS THE STOP. When the agent is suspended the row
--- carries the date of the stop and every counted column is null.
+-- carries `stopped`, the date of the stop when a suspension row gives one, and
+-- every counted column null. The stop is answered only where the reader
+-- already has the context: the listing they are on, the thread they are in,
+-- or a code somebody handed them. The by-person door never answers it, and
+-- neither door takes an agent id, so no door walks agents to list the
+-- stopped. A stop with no date shows nothing at all, not even the code.
+--
+-- AN ENQUIRY FROM THE LISTER'S OWN SHADOW (V-58: a shared mailbox, phone,
+-- card or bank account) is not counted, so the reply lines cannot be farmed
+-- with sock renters.
 --
 -- EXAMPLE LISTERS HAVE NO RECORD. An `is_demo` agent returns no row: example
 -- listings never carry a trust signal.
@@ -50,8 +64,10 @@
 -- step to take when a lister has thousands of threads, and it changes nothing
 -- above the function signatures.
 --
---   public.lister_record(agent)           signed in, any lister
---   public.lister_record_for_user(user)   signed in, the supplier page
+--   public.lister_record_for_listing(l)   signed in, rate limited, the
+--                                         listing's agent card
+--   public.lister_record_for_user(user)   signed in, rate limited, the
+--                                         supplier page; never a stopped one
 --   public.lister_record_by_code(code)    signed in, rate limited
 --   public.thread_counterpart_record(c)   a party to the thread only
 
@@ -139,13 +155,18 @@ returns table (
   enquiries integer,
   described integer,
   described_of integer,
-  lets integer
+  lets integer,
+  kept integer,
+  kept_of integer,
+  stopped boolean
 )
-language sql
+language plpgsql
 stable
 security definer
 set search_path = ''
 as $$
+begin
+  return query
   with a as (
     select ag.id, ag.user_id, ag.record_code, ag.display_name, ag.created_at,
            ag.status = 'SUSPENDED'::public.agent_application_status as stopped
@@ -167,6 +188,8 @@ as $$
       ) first_m on true
      where first_m.sender_id = c.guest_id
        and c.guest_id <> c.agent_id
+       /* V-58: an enquiry from the lister's own shadow is not an enquiry. */
+       and cardinality(private.shares_identity_with(c.guest_id, c.agent_id)) = 0
        and first_m.created_at > now() - interval '90 days'
        and first_m.created_at <= now() - interval '1 day'
   ),
@@ -202,6 +225,19 @@ as $$
       join public.listings l on l.id = rp.listing_id and not l.is_demo
      where b.status in ('CONFIRMED'::public.booking_status, 'COMPLETED'::public.booking_status)
        and rp.created_at > now() - interval '12 months'
+  ),
+  kept_stats as (
+    select count(*) filter (where exists (
+             select 1 from public.inspection_checkins k
+              where k.inspection_id = r.id and k.role = 'checker' and k.result = 'match'))::integer as kept,
+           count(*)::integer as of
+      from a
+      join public.inspection_requests r on r.lister_id = a.user_id
+     where r.state in ('CONFIRMED'::public.inspection_state, 'COMPLETED'::public.inspection_state)
+       /* A viewing with the lister's own shadow proves nothing about keeping one. */
+       and cardinality(private.shares_identity_with(r.requester_id, a.user_id)) = 0
+       and r.slot_at > now() - interval '12 months'
+       and r.slot_at <= now() - interval '1 day'
   )
   select a.record_code,
          a.display_name,
@@ -216,8 +252,12 @@ as $$
          case when not a.stopped and r.n >= 5 then r.n end,
          case when not a.stopped and ts.of >= 5 then ts.yes end,
          case when not a.stopped and ts.of >= 5 then ts.of end,
-         case when not a.stopped and ls.n >= 5 then ls.n end
-    from a, reply_stats r, truth_stats ts, let_stats ls;
+         case when not a.stopped and ls.n >= 5 then ls.n end,
+         case when not a.stopped and ks.of >= 5 then ks.kept end,
+         case when not a.stopped and ks.of >= 5 then ks.of end,
+         a.stopped
+    from a, reply_stats r, truth_stats ts, let_stats ls, kept_stats ks;
+end;
 $$;
 
 revoke all on function private.lister_record_core(uuid) from public, anon, authenticated;
@@ -225,25 +265,41 @@ revoke all on function private.lister_record_core(uuid) from public, anon, authe
 comment on function private.lister_record_core(uuid) is
   'V-34. The counted facts of one lister''s Record. Every count only at a denominator of five or more; a stopped lister returns only the date of the stop; an example agent returns no row. Called only by the three public doors below.';
 
-create or replace function public.lister_record(p_agent uuid)
+/* The listing page's door: the Record of the lister behind ONE published
+   listing, rate limited. Taking a listing rather than an agent id is the
+   point: it answers only in the context a reader is already looking at, so
+   it cannot be walked across agent ids to list who has been stopped. */
+create or replace function public.lister_record_for_listing(p_listing uuid)
 returns table (
   record_code text, display_name text, since timestamptz, stopped_at timestamptz,
   reply_median_minutes integer, replied integer, answered_in_day integer, enquiries integer,
-  described integer, described_of integer, lets integer
+  described integer, described_of integer, lets integer, kept integer, kept_of integer, stopped boolean
 )
-language sql
-stable
+language plpgsql
+volatile
 security definer
 set search_path = ''
 as $$
-  select * from private.lister_record_core(p_agent) where (select auth.uid()) is not null;
+declare
+  caller uuid := auth.uid();
+  target uuid;
+begin
+  if caller is null then return; end if;
+  if not private.consume_rate_limit('lister_record', caller::text, 300, 3600) then
+    raise exception 'too many record reads' using errcode = 'P0001', hint = 'rate_limited';
+  end if;
+  select l.agent_id into target from public.listings l
+   where l.id = p_listing and l.status = 'PUBLISHED'::public.listing_status and not l.is_demo;
+  if target is null then return; end if;
+  return query select * from private.lister_record_core(target);
+end;
 $$;
 
-comment on function public.lister_record(uuid) is
-  'V-34. A lister''s Record for anybody signed in: on the supplier page and the listing''s agent card. Counts only, never a user id.';
+comment on function public.lister_record_for_listing(uuid) is
+  'V-34. The Record of the lister behind one published listing, for anybody signed in, three hundred reads an hour. Counts only, never a user id.';
 
-revoke all on function public.lister_record(uuid) from public, anon;
-grant execute on function public.lister_record(uuid) to authenticated;
+revoke all on function public.lister_record_for_listing(uuid) from public, anon;
+grant execute on function public.lister_record_for_listing(uuid) to authenticated;
 
 /* The supplier page knows a person, not an agent row: `agents` is select own
    plus staff, so a visitor cannot walk from a profile to an agent id. This
@@ -252,22 +308,33 @@ create or replace function public.lister_record_for_user(p_user uuid)
 returns table (
   record_code text, display_name text, since timestamptz, stopped_at timestamptz,
   reply_median_minutes integer, replied integer, answered_in_day integer, enquiries integer,
-  described integer, described_of integer, lets integer
+  described integer, described_of integer, lets integer, kept integer, kept_of integer, stopped boolean
 )
-language sql
-stable
+language plpgsql
+volatile
 security definer
 set search_path = ''
 as $$
-  select r.*
-    from public.agents ag
-    cross join lateral private.lister_record_core(ag.id) r
-   where ag.user_id = p_user and not ag.is_demo and (select auth.uid()) is not null
-   limit 1;
+declare
+  caller uuid := auth.uid();
+begin
+  if caller is null then return; end if;
+  if not private.consume_rate_limit('lister_record', caller::text, 300, 3600) then
+    raise exception 'too many record reads' using errcode = 'P0001', hint = 'rate_limited';
+  end if;
+  /* By person, the stop is never answered: a stopped lister has no Record
+     here at all, so this door cannot list who has been stopped. */
+  return query
+    select r.*
+      from public.agents ag
+      cross join lateral private.lister_record_core(ag.id) r
+     where ag.user_id = p_user and not ag.is_demo and not r.stopped
+     limit 1;
+end;
 $$;
 
 comment on function public.lister_record_for_user(uuid) is
-  'V-34. A lister''s Record by person, for the supplier page, for anybody signed in. No row for a member who is not a lister.';
+  'V-34. A lister''s Record by person, for the supplier page, for anybody signed in, rate limited. No row for a member who is not a lister, and none for a stopped one.';
 
 revoke all on function public.lister_record_for_user(uuid) from public, anon;
 grant execute on function public.lister_record_for_user(uuid) to authenticated;
@@ -276,10 +343,10 @@ create or replace function public.lister_record_by_code(p_code text)
 returns table (
   record_code text, display_name text, since timestamptz, stopped_at timestamptz,
   reply_median_minutes integer, replied integer, answered_in_day integer, enquiries integer,
-  described integer, described_of integer, lets integer
+  described integer, described_of integer, lets integer, kept integer, kept_of integer, stopped boolean
 )
 language plpgsql
-stable
+volatile
 security definer
 set search_path = ''
 as $$
@@ -308,7 +375,7 @@ create or replace function public.thread_counterpart_record(p_conversation uuid)
 returns table (
   record_code text, display_name text, since timestamptz, stopped_at timestamptz,
   reply_median_minutes integer, replied integer, answered_in_day integer, enquiries integer,
-  described integer, described_of integer, lets integer
+  described integer, described_of integer, lets integer, kept integer, kept_of integer, stopped boolean
 )
 language sql
 stable
@@ -337,7 +404,7 @@ grant execute on function public.thread_counterpart_record(uuid) to authenticate
 do $readback$
 declare bad text := '';
 begin
-  if has_function_privilege('anon', 'public.lister_record(uuid)', 'execute') then bad := bad || ' [anon reads a record]'; end if;
+  if has_function_privilege('anon', 'public.lister_record_for_listing(uuid)', 'execute') then bad := bad || ' [anon reads a record]'; end if;
   if has_function_privilege('authenticated', 'private.lister_record_core(uuid)', 'execute') then bad := bad || ' [the core is callable]'; end if;
   if exists (select 1 from public.agents where is_demo and record_code is not null) then bad := bad || ' [an example agent has a code]'; end if;
   if bad <> '' then raise exception 'READ-BACK FAILED:%', bad; end if;

@@ -192,6 +192,11 @@ export type ThreadViewProps = {
    */
   recordLine?: { key: string; text: string }[];
   recordLabel?: string;
+  /** V-100: the renter's passport, for the lister, when the renter shows it here. */
+  passportLine?: { key: string; text: string }[];
+  /** V-100: the renter's own switch for this thread. Null for anybody else. */
+  passportShare?: { enabled: boolean; shared: boolean } | null;
+  passportLabel?: string;
   /** V-69: the "Show me" panel for a listing thread, when it is open. */
   showMe?: React.ReactNode;
 };
@@ -329,6 +334,9 @@ export function ThreadView({
   personLabel,
   recordLine = [],
   recordLabel,
+  passportLine = [],
+  passportShare = null,
+  passportLabel,
   showMe = null,
 }: ThreadViewProps) {
   const [items, setItems] = useState<ThreadBubble[]>(messages);
@@ -755,7 +763,7 @@ export function ThreadView({
           names the flat, so the person gets their own slim line: the avatar
           with their one published mark, their name, and only the dated facts
           Vallo holds about them. Nothing that is null is drawn. */}
-      {live && (propertyFace || personLine.length > 0 || recordLine.length > 0) && (
+      {live && (propertyFace || personLine.length > 0 || recordLine.length > 0 || passportLine.length > 0) && (
         <div className="nf-thread__person flex items-center gap-sm px-gutter py-xs" aria-label={personLabel} data-testid="thread-person">
           {propertyFace && <VerifiedAvatar name={counterpartName} tier={counterpartTier} size="sm" />}
           <div className="min-w-0 flex-1">
@@ -769,6 +777,15 @@ export function ThreadView({
               <p className="nf-caption text-[var(--nf-content-muted)]">
                 {personLine.map((fact) => fact.text).join(" · ")}
               </p>
+            )}
+            {passportLine.length > 0 && (
+              <ul className="mt-3xs grid gap-3xs" aria-label={passportLabel} data-testid="thread-passport">
+                {passportLine.map((line) => (
+                  <li key={line.key} className="nf-caption text-[var(--nf-content-secondary)]">
+                    {line.text}
+                  </li>
+                ))}
+              </ul>
             )}
             {recordLine.length > 0 && (
               <ul className="mt-3xs grid gap-3xs" aria-label={recordLabel} data-testid="thread-record">
@@ -802,6 +819,8 @@ export function ThreadView({
         canShare={live}
         onConfirmInspection={() => void handleConfirmInspection()}
         onClose={closeSheet}
+        passportShare={live ? passportShare : null}
+        unsafeAsLister={context?.kind === "listing" && role === "host"}
       />
 
       {/* ------------------------------------------------- context banner */}

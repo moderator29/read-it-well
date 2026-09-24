@@ -1,5 +1,7 @@
 import "server-only";
 
+import { readCountedReviews } from "../reviews/weight";
+
 /**
  * What sits under the tabs on a person's page.
  *
@@ -146,15 +148,25 @@ export async function getAgentReviews(agentId: string | null): Promise<ReviewCar
     if (rows.length === 0) return [];
     const titleById = new Map(rows.map((l) => [l.id, l.title]));
 
-    const { data, error } = await supabase
-      .from("reviews")
-      .select("id, rating, body, created_at, listing_id, author_id")
-      .in(
-        "listing_id",
-        rows.map((l) => l.id),
-      )
-      .order("created_at", { ascending: false })
-      .limit(LIMIT);
+    /* V-58: a review from the lister's own shadow is not on their page. */
+    const { data, error } = await readCountedReviews<{
+      id: string;
+      rating: number;
+      body: string | null;
+      created_at: string;
+      listing_id: string;
+      author_id: string | null;
+    }>((table) =>
+      (supabase as unknown as SupabaseClient)
+        .from(table)
+        .select("id, rating, body, created_at, listing_id, author_id")
+        .in(
+          "listing_id",
+          rows.map((l) => l.id),
+        )
+        .order("created_at", { ascending: false })
+        .limit(LIMIT),
+    );
     if (error || !data) return [];
 
     const authorIds = [

@@ -57,6 +57,16 @@ export default async function RecordLookupPage({ params }: { params: Promise<{ c
   }
 
   const record = lookup.record;
+  /* A Record with no line at all (a stop the database cannot date) is
+     answered exactly as a code that matches nobody. */
+  if (recordLines(record, copy, locale).length === 0) {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <PageHeader title={copy.lookupTitle} fallback="/search" />
+        <EmptyState icon="shield-check" title={copy.lookupMissingTitle} body={copy.lookupMissingBody} action={back} />
+      </div>
+    );
+  }
   const title = record.displayName ?? copy.lookupTitle;
   /* Only the joining month counted so far: say so rather than draw a Record
      that looks empty. */

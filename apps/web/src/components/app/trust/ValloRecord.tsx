@@ -25,6 +25,7 @@ const ICON: Record<RecordLineKey, UiIconName> = {
   stopped: "shield-stop",
   replies: "chat-bubble",
   answered: "chat-bubble",
+  kept: "home",
   described: "eye",
   lets: "key",
   since: "calendar-booking",

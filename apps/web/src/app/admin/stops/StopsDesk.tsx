@@ -11,6 +11,7 @@ import {
 import type { AgentStanding, StopRecord } from "@/lib/admin/suspension-queries";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { RecallPanel } from "./RecallPanel";
 
 /**
  * The stops desk.
@@ -210,6 +211,9 @@ function StoppedCard({
             What came down
           </h4>
           <WithdrawnList withdrawn={stop.withdrawn} lifted={false} closedIds={closedIds} />
+
+          {/* V-60: tell everybody this account talked to, counted first. */}
+          <RecallPanel suspensionId={stop.id} />
         </>
       ) : (
         <p className="mt-heading nf-body-sm leading-relaxed text-[var(--nf-state-warning)]">

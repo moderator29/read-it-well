@@ -336,7 +336,12 @@ begin
 
   select u.id into v_delegate from auth.users u where lower(u.email) = v_email and u.deleted_at is null;
 
-  if v_delegate is not null and v_delegate <> actor and v_delegate <> r.requester_id then
+  /* Nor the renter's own shadow (V-58's identity keys, V-100's review): a
+     delegate who shares a mailbox, phone, card or bank account with the
+     renter could record "shown" for them and hand their passport an
+     inspection nobody attended. Answered "asked" like every other refusal. */
+  if v_delegate is not null and v_delegate <> actor and v_delegate <> r.requester_id
+     and cardinality(private.shares_identity_with(v_delegate, r.requester_id)) = 0 then
     select 'phone_confirmed' into v_basis
       from auth.users u where u.id = v_delegate and u.phone_confirmed_at is not null;
     if v_basis is null then

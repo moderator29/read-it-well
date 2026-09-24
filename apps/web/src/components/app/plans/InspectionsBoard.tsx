@@ -107,6 +107,7 @@ export async function InspectionsBoard({
         quoteLine={quotes.get(row.id) ?? null}
         truth={truthFor(row)}
         tenancyReview={tenancyFor(row)}
+        unsafe={t.trustVisible.unsafe}
         locale={locale}
         open={row.id === expanded}
       />

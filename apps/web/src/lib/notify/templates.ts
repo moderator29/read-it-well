@@ -24,6 +24,7 @@ import {
   type WithdrawalOutcome,
 } from "../email/messages";
 import type { EmailChannel } from "../email/recipients";
+import { scamRecall } from "../email/safety-messages";
 import type { EscrowPurpose } from "../escrow/copy";
 
 /**
@@ -593,6 +594,28 @@ export const OUTBOX_TEMPLATES: Readonly<Record<string, OutboxTemplate>> = {
         listingTitle: listing.title,
         preview: enquiry.body,
         conversationPath: enquiry.conversationPath,
+      });
+    },
+  },
+
+  /* --------------------------------------------------------------- safety */
+
+  /*
+   * V-60, WRITTEN BY `public.scam_recall_send`: staff recalled a stop for
+   * fraud and this person talked to the stopped account. No `channel`: a
+   * safety notice is not a switchable kind of mail. The payload carries the
+   * listing title the recipient talked about and the category, and nothing
+   * about the stopped account.
+   */
+  "safety.scam_recall": {
+    needs: () => ({}),
+    build: (payload, context) => {
+      const category = str(payload, "category");
+      if (category !== "off_platform_payment" && category !== "scam") return null;
+      return scamRecall({
+        name: context.recipient.name,
+        listingTitle: str(payload, "listing_title"),
+        category,
       });
     },
   },

@@ -34,7 +34,10 @@ export type VninCheckDeps = {
 export type VninOutcome =
   | { status: "passed" }
   | { status: "pending"; reason: string }
-  | { status: "refused"; reason: "invalid_token" | "unconfigured" | "not_found" | "expired" | "failed" | "no_agent" };
+  | {
+      status: "refused";
+      reason: "invalid_token" | "unconfigured" | "not_found" | "expired" | "failed" | "no_agent" | "other_nin" | "unchanged";
+    };
 
 export async function runVninCheck(
   deps: VninCheckDeps,
@@ -66,6 +69,9 @@ export async function runVninCheck(
   if (result === "passed") return { status: "passed" };
   if (result === "no_agent") return { status: "refused", reason: "no_agent" };
   if (result === "nin_elsewhere") return { status: "pending", reason: "nin_elsewhere" };
+  /* One NIN per person, and a passed rung is never undone by a later miss. */
+  if (result === "other_nin") return { status: "refused", reason: "other_nin" };
+  if (result === "unchanged") return { status: "refused", reason: "unchanged" };
   if (result === "pending") return { status: "pending", reason: "name" };
   return { status: "refused", reason: "failed" };
 }
