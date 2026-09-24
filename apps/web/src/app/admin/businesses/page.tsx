@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { RemoteImage } from "@/components/ui/RemoteImage";
-import { getDictionary, type Locale } from "@vallo/i18n";
+import { countOf, getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import {
   BUSINESS_RUNGS,
@@ -111,7 +111,7 @@ function restaurantChecks(row: BusinessQueueRow): { blocking: Check[]; thin: Che
         pass: windows > 0,
         detail:
           windows > 0
-            ? `${windows} service window${windows === 1 ? "" : "s"} on record. Every one of them seats guests, because the column refuses a zero.`
+            ? `${countOf(windows, "serviceWindows")} on record. Every one of them seats guests, because the column refuses a zero.`
             : "None. Every request for a table would be refused with 'that restaurant does not seat guests at that time', and the owner would watch a page that looks fine take no bookings.",
       },
       {
@@ -152,7 +152,7 @@ function restaurantChecks(row: BusinessQueueRow): { blocking: Check[]; thin: Che
         pass: cuisines > 0,
         detail:
           cuisines > 0
-            ? `${cuisines} cuisine${cuisines === 1 ? "" : "s"}. The first shows on the fact strip, the rest become tags.`
+            ? `${countOf(cuisines, "cuisines")}. The first shows on the fact strip, the rest become tags.`
             : "None. The venue's fact strip renders empty, which reads as a record nobody finished.",
       },
       {
@@ -258,7 +258,7 @@ export function BusinessCard({ row, ui }: { row: BusinessQueueRow; ui: AdminUi }
         <ui.StatusChip label={ui.columnLabel("businessKind", row.kind)} tone="neutral" />
         {blocked > 0 && isRestaurant && (
           <ui.StatusChip
-            label={blocked === 1 ? "1 thing stops it going live" : `${blocked} things stop it going live`}
+            label={countOf(blocked, "thingsStopLive")}
             tone="warning"
           />
         )}
@@ -319,10 +319,8 @@ export function BusinessCard({ row, ui }: { row: BusinessQueueRow; ui: AdminUi }
                 <ui.StatusChip status={property.status} />
               </div>
               <p className="nf-caption mt-inline-tight">
-                {property.hasPin ? "Pin set" : "No pin"} · {property.photoCount} photograph
-                {property.photoCount === 1 ? "" : "s"} · {property.roomTypeCount} room type
-                {property.roomTypeCount === 1 ? "" : "s"} · {property.ratePlanCount} rate
-                {property.ratePlanCount === 1 ? "" : "s"}
+                {property.hasPin ? "Pin set" : "No pin"} · {countOf(property.photoCount, "photos")} ·{" "}
+                {countOf(property.roomTypeCount, "roomTypes")} · {countOf(property.ratePlanCount, "ratePlans")}
               </p>
               {/*
                 THE PICTURES, NOT A COUNT OF THEM. The property desk has shown

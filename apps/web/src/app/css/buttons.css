@@ -532,7 +532,7 @@
 
   /*
    * =====================================================================
-   * THE RENDERS' BUTTON SHAPES (Build 06, G1). ADDITIVE: every rule below
+   * THE RENDERS' BUTTON SHAPES. ADDITIVE: every rule below
    * is a new modifier class. Nothing above changes its default look.
    *
    * `.nf-btn--glass-brand`  the render's secondary: Explore Stays, Contact
@@ -630,8 +630,8 @@
    *
    * ONE THING OUTSIDE THIS SCOPE STILL UNDOES IT: `wallet.css` carries
    * `.nf-money .nf-btn { border-radius: var(--nf-radius-pill) }`, which
-   * re-capsules every button on the money surfaces. That file is another
-   * worker's and it is named in this worker's report.
+   * re-capsules every button on the money surfaces. That rule belongs to
+   * the money surfaces' own stylesheet.
    */
 
   /* The arrow nudges two pixels on hover and nowhere else: a hint of the

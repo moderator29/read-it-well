@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveSession } from "../actions/session";
 import { flagIsOn, NEIGHBOURS_FLAG } from "../flags/read";
 import { isFlooding, isFloodClear, summarise, type Flooding, type SummaryRow } from "./pulse";
@@ -19,14 +20,16 @@ export async function floodClearFor(
   try {
     const session = await resolveSession();
     if (session.state !== "signed-in") return null;
-    const supabase = session.supabase;
+    /* Untyped, because `flooding` is newer than the generated types; the
+       select stays a plain literal so the revoked-columns guard can read it. */
+    const supabase = session.supabase as unknown as SupabaseClient;
     /* Every listing on the page, 200 ids a read, so none is silently unjudged. */
     const lister = new Map<string, Flooding | null>();
     const ids = [...new Set(listings.map((l) => l.id))];
     for (let i = 0; i < ids.length; i += 200) {
       const { data, error } = await supabase
         .from("listings")
-        .select("id, flooding" as never)
+        .select("id, flooding")
         .in("id", ids.slice(i, i + 200));
       if (error || !data) return null;
       for (const row of data as unknown as { id: string; flooding: unknown }[]) {

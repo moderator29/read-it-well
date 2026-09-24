@@ -6,11 +6,11 @@ import { beforeAll, describe, expect, it } from "vitest";
 /*
  * V-51: the migration gate's rules, run against the two lines that caused the
  * section 67 outage and against their correct forms. The gate itself is
- * `scripts/check-migrations.mjs` at the repository root; this imports it
+ * `scripts/check-migration-rules.mjs` at the repository root; this imports it
  * rather than restating it.
  */
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "..", "..");
-const GATE = join(ROOT, "scripts", "check-migrations.mjs");
+const GATE = join(ROOT, "scripts", "check-migration-rules.mjs");
 
 type Gate = {
   checkText: (name: string, sql: string, columns: string[]) => [string, string][];

@@ -36,6 +36,7 @@
  */
 
 import { z } from "zod";
+import { DB_LIMIT_CODE, DB_LIMIT_MESSAGE } from "@/lib/security/db-limit";
 
 export const STORY_HEADLINE_MIN = 3;
 export const STORY_HEADLINE_MAX = 120;
@@ -149,6 +150,8 @@ export function messageForStoryError(code: string | undefined): string {
       return STORY_FAILURE.gone;
     case "23514":
       return "That will not publish. Check the headline and try again.";
+    case DB_LIMIT_CODE:
+      return DB_LIMIT_MESSAGE;
     default:
       return STORY_FAILURE.down;
   }

@@ -12,8 +12,10 @@ import type { Metadata } from "next";
 /**
  * NOTHING UNDER THIS LAYOUT IS FOR A CRAWLER, AND THE TAG NOW SAYS SO.
  *
- * The root layout declares `robots: { index: true, follow: true }`, which was
- * right when browsing was open: `/search`, `/listing/[id]`, `/around`,
+ * The root layout used to declare `robots: { index: true, follow: true }`
+ * (UI-16 removed it: no tag is the indexable default, and stating it put
+ * "index, follow" beside a not-found page's "noindex"). That was right when
+ * browsing was open: `/search`, `/listing/[id]`, `/around`,
  * `/stays` and `/stay/[id]` were the inventory we wanted found. The founder's
  * item 8 of 23 September closed all of them, and roughly half the routes under
  * this group had no robots directive of their own, so they went on inheriting
@@ -29,9 +31,8 @@ import type { Metadata } from "next";
  * ONE PLACE RATHER THAN THIRTY. Next merges metadata down the tree, so a page
  * that states its own `robots` still wins: the pages that already carry
  * `index: false` are unaffected, and any page deliberately reopened states it
- * here. `app/layout.tsx` is deliberately NOT edited: it is the public site's
- * default and it belongs to the landing page and the company and legal pages,
- * which are indexed and must stay so.
+ * here. The public site (landing, company and legal pages) carries no tag and
+ * is indexed by default, as it must be.
  */
 export const metadata: Metadata = {
   robots: { index: false, follow: false },

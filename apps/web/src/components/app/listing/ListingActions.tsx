@@ -21,6 +21,7 @@ import { ShareSheet } from "@/components/app/messages/ShareSheet";
 import type { SharedKind } from "@/components/app/messages/share";
 import { createShareLink } from "@/lib/share/actions";
 import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
+import { nativeHaptic, nativeShare } from "@/lib/native/device";
 
 /**
  * The two controls that float over the gallery: share and save.
@@ -234,6 +235,7 @@ export function ListingActions({
         return;
       }
       setSaved(result.data.saved);
+      if (result.data.saved) void nativeHaptic("success");
       say(result.data.saved ? "Saved to your shortlist" : "Removed from saved");
     });
   }
@@ -257,6 +259,10 @@ export function ListingActions({
       }
       url = minted;
     }
+
+    /* STORE-04: inside the app, the operating system's own share sheet. */
+    const native = await nativeShare({ title, url });
+    if (native !== "unhandled") return;
 
     if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
       try {

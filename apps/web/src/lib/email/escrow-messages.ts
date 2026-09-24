@@ -22,6 +22,7 @@
  * money, because `custodySentence` returns null and there is nothing to print.
  */
 
+import { WALLET_MONEY_NEXT } from "../wallet/bank-payouts";
 import {
   SET_ASIDE_SENTENCE,
   STATE_LABEL,
@@ -262,7 +263,7 @@ export function heldPaymentPaidOut(
         ? data.automatic
           ? `The date passed with nothing raised, so the ${money(data.amountMinor)} for the ${labelFor(data.purpose)} has gone to ${who(data.counterpartyName)}.`
           : `The ${money(data.amountMinor)} for the ${labelFor(data.purpose)} has gone to ${who(data.counterpartyName)}.`
-        : `${money(data.netMinor)} is in your Vallo balance. You can spend it or withdraw it to your bank.`,
+        : `${money(data.netMinor)} is in your Vallo balance. ${WALLET_MONEY_NEXT}`,
     ),
     rows([
       { label: "Reference", value: data.id },
@@ -295,7 +296,7 @@ export function heldPaymentReturned(
     paragraph(hello(data.name)),
     paragraph(
       payer
-        ? `The ${money(data.amountMinor)} you set aside for the ${labelFor(data.purpose)} is back in your Vallo balance. You can spend it or withdraw it to your bank.`
+        ? `The ${money(data.amountMinor)} you set aside for the ${labelFor(data.purpose)} is back in your Vallo balance. ${WALLET_MONEY_NEXT}`
         : `The ${money(data.amountMinor)} set aside for the ${labelFor(data.purpose)} has gone back to ${who(data.counterpartyName)}.`,
     ),
     rows(summaryRows(data)),

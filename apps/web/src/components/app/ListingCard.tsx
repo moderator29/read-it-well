@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { formatDate, formatMoney, formatNumber, isGlanceCompact, type Dictionary, type Locale } from "@vallo/i18n";
 import type { Listing } from "@/lib/listings/types";
-import { hrefForListing } from "@/lib/listings/href";
+import { hrefForListing, marketFactsOf } from "@/lib/listings/href";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { Amount } from "@/components/ui/Amount";
 import { IntentTune } from "@/components/app/IntentTune";
@@ -136,7 +136,7 @@ export function ListingCard({
    * prop is deleted rather than threaded through the three pages, because a
    * prop nobody passes is how this happened. See `lib/listings/href.ts`.
    */
-  const href = hrefForListing(listing.kind, listing.id);
+  const href = hrefForListing(listing.kind, listing.id, marketFactsOf(listing));
   const copy = t.catalogue.card;
 
   /* Prefetch on intent, never on a data-saver connection. */
@@ -178,7 +178,7 @@ export function ListingCard({
   const price = cardPrice(listing);
   /* V-65: the months of rent asked for up front, for the line under the rent. */
   const cash = cashAtDoor(listing);
-  const facts = cardFacts(listing, t);
+  const facts = cardFacts(listing, t, locale);
   const power = cardUtility(listing);
   const marketKey = cardMarket(listing);
   const market =

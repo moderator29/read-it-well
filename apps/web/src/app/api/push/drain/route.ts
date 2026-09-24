@@ -17,15 +17,13 @@ import { pushDrain } from "@/lib/push/drain";
  * IT LIVES UNDER `/api/push` RATHER THAN `/api/cron` ONLY BECAUSE OF WHO OWNS
  * WHICH DIRECTORY on this build, and nothing else follows from it.
  *
- * HOW IT IS CALLED, AND WHY THERE ARE TWO ANSWERS. The seven existing jobs
- * are scheduled in `apps/web/vercel.json`, which is not this worker's file to
- * edit; the request to add a line for this one is in
- * `docs/BUILD_07_LEDGER.md`. In the meantime the job is scheduled from the
- * database by `private.request_push_drain()`, which is this worker's own
- * migration, calls this route through pg_net every five minutes, AND READS
+ * HOW IT IS CALLED, AND WHY THERE ARE TWO ANSWERS. The other jobs are
+ * scheduled in `apps/web/vercel.json`, and this one is not listed there. It is
+ * scheduled from the database instead: `private.request_push_drain()` (its own
+ * migration) calls this route through pg_net every five minutes, AND READS
  * THE REPLY OF ITS PREVIOUS CALL before making the next one. A queue whose
  * drain is never called is the failure this whole build is written against,
- * so it does not wait on somebody else's file.
+ * so it does not depend on a line in another file.
  */
 
 export const runtime = "nodejs";

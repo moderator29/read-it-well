@@ -2,21 +2,39 @@ import type { NextConfig } from "next";
 
 /**
  * The Supabase storage hostname, taken from the public project URL. Returns
- * an empty string when the URL is missing or malformed, so a build without
- * keys never throws and simply serves the seed catalogue.
+ * an empty string when the URL is ABSENT, so a build without keys never throws
+ * and simply serves the seed catalogue.
+ *
+ * DOC-P2-02: a URL that is SET but unusable fails the build instead of being
+ * treated as absent. It used to return "" for a malformed value too, which
+ * silently dropped the Supabase image host from the allowlist in exactly the
+ * build that had a value: production. A typo in the Vercel variable is now a
+ * red deploy with this message, not a site whose listing photos quietly stop
+ * going through the optimiser.
  */
 const supabaseImageHost = (() => {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const url = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
   if (url.length === 0) return "";
+  let parsed: URL;
   try {
-    return new URL(url).hostname;
+    parsed = new URL(url);
   } catch {
-    return "";
+    throw new Error(
+      `NEXT_PUBLIC_SUPABASE_URL is set but is not a URL (${JSON.stringify(url.slice(0, 80))}). Expected https://<project>.supabase.co`,
+    );
   }
+  if (parsed.protocol !== "https:" && parsed.hostname !== "localhost" && parsed.hostname !== "127.0.0.1") {
+    throw new Error(
+      `NEXT_PUBLIC_SUPABASE_URL must be https (got ${parsed.protocol}//${parsed.hostname}). Expected https://<project>.supabase.co`,
+    );
+  }
+  return parsed.hostname;
 })();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  /* SEC-17: no `X-Powered-By: Next.js` on every response. */
+  poweredByHeader: false,
 
   /**
    * Where the build output goes. `.next` unless something asks otherwise.
@@ -60,6 +78,10 @@ const nextConfig: NextConfig = {
      * optimiser keeps a file for the longer of this floor and the source's
      * own max-age, so `/brand` art, which `headers()` below serves for 30
      * days, is still kept for 30 days.
+     *
+     * OPS-10: AVIF is typically a fifth to a third smaller than WebP for
+     * photographs, which is the whole weight of a catalogue page on a metered
+     * connection.
      */
     deviceSizes: [384, 480, 640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     formats: ["image/avif", "image/webp"],

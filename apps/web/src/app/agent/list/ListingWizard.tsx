@@ -6,6 +6,7 @@ import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i1
 import { ShotList } from "@/components/agent/ShotList";
 import { fill } from "../_copy";
 import { createClient } from "@/lib/supabase/client";
+import { canCapturePhoto, capturePhoto } from "@/lib/native/device";
 import { Switch } from "@/components/ui/Switch";
 import {
   addPhoto,
@@ -81,6 +82,10 @@ import { UnitQuestions } from "@/components/agent/UnitQuestions";
 import { FloodQuestion } from "@/components/agent/FloodQuestion";
 import type { Flooding } from "@/lib/around/pulse";
 import { EMPTY_UNIT_FORM, takesShape, unitPayload, type UnitForm } from "@/lib/listings/unit-shape";
+import { listingDraftKey } from "@/lib/agent/listing-draft-storage";
+import { looksLikeStreetAddress, STREET_IN_TITLE_WARNING } from "@/lib/listings/public-title";
+import { tenantPreference } from "@/lib/safety/tenant-preference";
+import Link from "next/link";
 
 /**
  * The List Apartment wizard: eight steps, canon reference 03.
@@ -140,7 +145,6 @@ const TYPE_ORDER: PropertyType[] = [
   "restaurant",
 ];
 
-const DRAFT_KEY = "nf_listing_draft";
 
 type Values = {
   title: string;
@@ -1004,6 +1008,17 @@ export function ListingWizard({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [photoNotice, setPhotoNotice] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  /* STORE-04: the shell's own camera, when the running binary carries it. */
+  const [nativeCamera, setNativeCamera] = useState(false);
+  useEffect(() => {
+    let live = true;
+    void canCapturePhoto().then((able) => {
+      if (live) setNativeCamera(able);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
   const [submitted, setSubmitted] = useState(false);
   const [pending, startTransition] = useTransition();
   const restored = useRef(false);
@@ -1136,6 +1151,9 @@ export function ListingWizard({
   const purchaseMinor = statedPurchaseMinor ?? purchasePartsMinor;
 
   const words = countWords(values.description);
+  /* SEC-06: the database holds a listing that states a tenant preference for
+     review; this says so while the lister is still typing. */
+  const preference = tenantPreference(`${values.title} ${values.description}`);
   const stepNames = STEP_KEYS.map((key) => copy.wizard.steps[key]);
   const amenityNames = copy.amenities.names as Record<string, string | undefined>;
   const pricePeriod = forSale
@@ -1285,8 +1303,11 @@ export function ListingWizard({
     if (restored.current) return;
     restored.current = true;
     if (initial) return;
+    /* SUP-16: one account's draft, never the last person's on this device. */
+    const draftKey = listingDraftKey(userId);
+    if (!draftKey) return;
     try {
-      const raw = localStorage.getItem(DRAFT_KEY);
+      const raw = localStorage.getItem(draftKey);
       if (!raw) return;
       const parsed = JSON.parse(raw) as {
         listingId?: string | null;
@@ -1294,7 +1315,7 @@ export function ListingWizard({
         amenities?: string[];
       };
       if (typeof parsed.listingId === "string" && parsed.listingId.length > 0) {
-        localStorage.removeItem(DRAFT_KEY);
+        localStorage.removeItem(draftKey);
         return;
       }
       if (parsed.values) setValues((prev) => ({ ...prev, ...parsed.values }));
@@ -1302,19 +1323,21 @@ export function ListingWizard({
     } catch {
       /* a malformed draft is not worth an error message */
     }
-  }, [initial]);
+  }, [initial, userId]);
 
   useEffect(() => {
     if (!restored.current) return;
+    const draftKey = listingDraftKey(userId);
+    if (!draftKey) return;
     try {
       localStorage.setItem(
-        DRAFT_KEY,
+        draftKey,
         JSON.stringify({ listingId, values, amenities: chosenAmenities }),
       );
     } catch {
       /* storage unavailable, the platform copy still holds */
     }
-  }, [listingId, values, chosenAmenities]);
+  }, [listingId, values, chosenAmenities, userId]);
 
   function set<K extends keyof Values>(key: K, value: Values[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -1577,7 +1600,7 @@ export function ListingWizard({
     }
   }
 
-  async function onFiles(files: FileList | null) {
+  async function onFiles(files: FileList | readonly File[] | null) {
     if (!files || files.length === 0) return;
     setPhotoNotice(null);
 
@@ -1740,7 +1763,8 @@ export function ListingWizard({
       setFieldErrors({});
       setSubmitted(true);
       try {
-        localStorage.removeItem(DRAFT_KEY);
+        const draftKey = listingDraftKey(userId);
+        if (draftKey) localStorage.removeItem(draftKey);
       } catch {
         /* nothing depends on this */
       }
@@ -1868,7 +1892,8 @@ export function ListingWizard({
             */}
             <TextField
               label={copy.basics.titleLabel}
-              hint={copy.basics.titleHint}
+              /* STORE-16: a warning, never a refusal. */
+              hint={looksLikeStreetAddress(values.title) ? STREET_IN_TITLE_WARNING : copy.basics.titleHint}
               error={fieldErrors.title}
               value={values.title}
               onChange={(e) => set("title", e.target.value)}
@@ -1931,6 +1956,14 @@ export function ListingWizard({
               textAreaClassName="min-h-[9rem]"
             />
             {mark("description")}
+            {preference && (
+              <div className="mt-row" data-testid="tenant-preference-warning">
+                <Note glyph="info">
+                  {`This reads as a tenant preference ("${preference}"). Vallo does not allow refusing people for their ethnicity, religion, marital status or gender, so a listing that says this is held for review before it goes up. See `}
+                  <Link href="/standards" className="underline">our standards</Link>.
+                </Note>
+              </div>
+            )}
 
             {/*
               THE ROOMS, DRAWN AS GOVERNING-06 SCREEN THREE DRAWS THEM.
@@ -2232,6 +2265,26 @@ export function ListingWizard({
                       <UiIcon name="plus" size={18} />
                     </span>
                     <span>{uploading ? copy.photos.uploading : copy.drawn.photos.add}</span>
+                  </button>
+                </li>
+              )}
+              {photos.length < MAX_PHOTOS && nativeCamera && (
+                <li className="contents">
+                  <button
+                    type="button"
+                    className="nf-lw-add"
+                    data-testid="listing-photo-camera"
+                    onClick={() =>
+                      void capturePhoto().then((shot) => {
+                        if (shot) void onFiles([shot]);
+                      })
+                    }
+                    disabled={uploading}
+                  >
+                    <span className="nf-lw-add__plus" aria-hidden="true">
+                      <UiIcon name="picture" size={18} />
+                    </span>
+                    <span>{copy.photos.takePhoto}</span>
                   </button>
                 </li>
               )}

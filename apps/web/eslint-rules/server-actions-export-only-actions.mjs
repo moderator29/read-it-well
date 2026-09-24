@@ -12,7 +12,7 @@
  * the whole test suite was silent; the CSS checker has nothing to say about
  * it. `next build` was the only gate that saw it, and `next build` is the slow
  * gate, the one a tired person skips, and the one that was skipped.
- * BUILD_06_LEDGER section 7.0 records the twenty minutes that cost.
+ * It cost twenty minutes of production on 19 September 2026.
  *
  * So the same defect is now an ERROR IN LINT, which runs in seconds, runs in
  * CI on every push, and runs in the editor while the line is being typed. The

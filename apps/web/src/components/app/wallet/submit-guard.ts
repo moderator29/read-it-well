@@ -10,7 +10,7 @@
  *
  * THIS NARROWS THE DOUBLE-SEND WINDOW; IT DOES NOT CLOSE IT. A reload, a
  * second tab or a replayed request still reaches `transferToUser`, which
- * ignores the idempotency key today (docs/SESSION_B_SCOPE.md, W1). Only the
+ * ignores the idempotency key today. Only the
  * server can close it.
  */
 export type SubmitGuard = {

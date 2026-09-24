@@ -214,7 +214,23 @@ describe("missingFrom", () => {
       "A price band",
       "At least one service window",
       "The health permit attestation",
+      "At least one photo of the restaurant",
     ]);
+  });
+
+  it("SUP-17: a restaurant is not submitted without a photograph, and is with one", () => {
+    const base = {
+      hostType: "restaurant" as const,
+      kind: "restaurant" as const,
+      accommodation: null,
+      roomTypeCount: 0,
+      ratePlanCount: 0,
+      restaurant: { priceBand: 2, cuisineCount: 1, cuisines: ["nigerian"] },
+      serviceWindowCount: 1,
+      hygieneAttestedAt: "2026-09-18T08:00:00Z",
+    };
+    expect(missingFrom(complete({ ...base, businessPhotoCount: 0 }))).toEqual(["At least one photo of the restaurant"]);
+    expect(missingFrom(complete({ ...base, businessPhotoCount: 1 }))).toEqual([]);
   });
 
   it("prints each missing consent by its own label, never one bundled line", () => {

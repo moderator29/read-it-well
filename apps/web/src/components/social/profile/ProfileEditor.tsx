@@ -23,7 +23,7 @@ import {
   type ContactPolicy,
   type SocialProfileSaved,
 } from "@/lib/social/profiles-schema";
-import { displayHost } from "@/lib/brand-domain";
+import { useDisplayHost } from "@/lib/ui/use-display-host";
 
 /**
  * The profile editor, as a full page.
@@ -56,6 +56,7 @@ export function ProfileEditor({
   areas: AreaOption[];
 }) {
   const router = useRouter();
+  const host = useDisplayHost();
   const [state, formAction, pending] = useActionState<
     ActionResult<SocialProfileSaved> | null,
     FormData
@@ -153,7 +154,7 @@ export function ProfileEditor({
             <span className="text-[var(--nf-state-error)]">{fieldError("handle")}</span>
           ) : (
             <>
-              {HANDLE_HELP} People will find you at {displayHost()}/u/{handle || "yourname"}.
+              {HANDLE_HELP} People will find you at {host}/u/{handle || "yourname"}.
               {!claiming && " A handle can be changed once every 30 days."}
             </>
           )}

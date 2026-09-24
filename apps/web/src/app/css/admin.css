@@ -1,20 +1,23 @@
 /*
-  admin: the console's own partial, owned by Session B worker admin-shell
-  (docs/SESSION_B_SCOPE.md section 7). Dark only: light mode was removed by
+  admin: the console's own partial. Dark only: light mode was removed by
   the founder on 23 September, and the paper twins that used to close this
   file went with it.
 
-  The governing images are the four admin renders at the repository root:
-  5EAA44CB (overview, one full desktop window), 01F7DFC7 (moderation,
-  operations, analytics), 8E9602E2 (escrow, verification, supply) and
-  C1D98B3C (listings queue, listing under review, money). One shell, built
+  The governing images are the four admin renders in
+  docs/design/references/admin/: 5EAA44CB = admin-01-overview.png (one full
+  desktop window), C1D98B3C = admin-02-listings-review-money.png (listings
+  queue, listing under review, money), 8E9602E2 =
+  admin-03-escrow-verification-supply.png (escrow, verification, supply) and
+  01F7DFC7 = admin-04-moderation-operations-analytics.png (moderation,
+  operations, analytics). The short ids are the renders' original names and
+  are what the comments across the console cite. One shell, built
   once: a floating lit glass rail with the twelve rows, Settings and the
   operator at its foot; a bar with the search, the clock, the bell and the
   operator; lit glass panels, KPI strip and cards with sparklines, status
   badges, tabs, tables and charts in the blue family. Every desk inherits it
   through app/admin/_components. The older desk furniture below (count tabs,
   filters, chips, the row table, the pager) is kept and restyled into the same
-  register so the desks the other workers rebuild keep working meanwhile.
+  register so the desks not yet rebuilt on the new shell keep working.
 */
 @layer components {
   /* ------------------------------------------------------------ the frame
@@ -851,7 +854,7 @@
       are another worker's scope and still draw `rounded-full` as this is
       written; they come to the same rung under the same ruling.
 
-      THE RUNG IS NOW `--nf-radius-sm` (lead ruling R-D, 22 September): the
+      THE RUNG IS NOW `--nf-radius-sm` (rule R-D, 22 September): the
       chip is 40px tall, and 14px drew 0.35 of its height, on the shape
       review line. 10px is 0.25.
     */
@@ -2341,7 +2344,7 @@
 }
 
 @layer components {
-  /* The person tier mark (Session A's TierBadge) beside a name: the mark
+  /* The person tier mark (TierBadge) beside a name: the mark
      alone, spaced off the name it belongs to. */
   .nf-admin-name-tier {
     margin-inline-start: var(--nf-space-2xs);

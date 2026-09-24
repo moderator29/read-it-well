@@ -115,7 +115,7 @@ export function FacilitiesStep({ draft, userId, pending, run, setNotice, advance
         {/*
           FOUR PIXELS OF HORIZONTAL OVERFLOW, AND THE SHOT IS THE EVIDENCE.
           `docs/design/proofs/imgc/g10-4-facilities-and-photos-390-{dark,light}.png`
-          are 394 pixels wide against a 390 viewport. Every other shot in that
+          (in git history at `85c5471`) are 394 pixels wide against a 390 viewport. Every other shot in that
           folder is 390. Two buttons that will not shrink and a row that would
           not wrap: "Use my location" carries an icon and a three word label,
           "Save the pin" carries three more, and inside the plate's padding

@@ -48,6 +48,8 @@ import {
   startConversationSchema,
   startReservationThreadSchema,
 } from "./schema";
+import { dbLimitRefusal } from "../security/db-limit";
+import { attributeConversation } from "../share/attribution";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -120,6 +122,52 @@ function newConversationLimitMessage(retryIn: string): string {
 export async function startConversation(input: {
   listingId: string;
 }): Promise<ActionResult<{ conversationId: string }>> {
+  const found = await findOrStartConversation(input, true);
+  if (!found.ok) return found;
+  return found.data.conversationId
+    ? ok({ conversationId: found.data.conversationId })
+    : fail("We could not open this conversation just now. Please try again.");
+}
+
+/**
+ * UX-P2-03: the "Message" page looks, it does not write. Every check the
+ * start makes (the listing, the agent, your own listing, a block), and an
+ * existing thread comes back; nothing is created and the daily count is not
+ * touched. `conversationId` is null when there is no thread yet: the page
+ * shows a first-message box, and the thread is made when that is sent.
+ */
+export async function findConversationForListing(input: {
+  listingId: string;
+}): Promise<ActionResult<{ conversationId: string | null }>> {
+  return findOrStartConversation(input, false);
+}
+
+/**
+ * UX-P2-03: the first message makes the thread. Opens (or finds) the
+ * conversation and sends the message in one call, so an abandoned "Message"
+ * tap leaves nothing behind in either inbox.
+ */
+export async function startConversationWithMessage(input: {
+  listingId: string;
+  body: string;
+}): Promise<ActionResult<{ conversationId: string }>> {
+  const body = typeof input?.body === "string" ? input.body.trim() : "";
+  if (!body) return fail("Type a message before sending.", { body: "Type a message before sending." });
+  const started = await startConversation({ listingId: input.listingId });
+  if (!started.ok) return started;
+  /* V-71: credit the lister whose link this device first came through, now
+     that the thread exists. Best effort: no credit is the only cost. */
+  const session = await resolveSession();
+  if (session.state === "signed-in") await attributeConversation(session.supabase, started.data.conversationId);
+  const sent = await sendMessage({ conversationId: started.data.conversationId, body });
+  if (!sent.ok) return fail(sent.error, sent.fieldErrors);
+  return ok({ conversationId: started.data.conversationId });
+}
+
+async function findOrStartConversation(
+  input: { listingId: string },
+  create: boolean,
+): Promise<ActionResult<{ conversationId: string | null }>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
@@ -185,6 +233,7 @@ export async function startConversation(input: {
     .maybeSingle();
   if (findError) return fail("Messaging is unavailable just now. Please try again shortly.");
   if (existing) return ok({ conversationId: existing.id });
+  if (!create) return ok({ conversationId: null });
 
   // A row is genuinely about to be created, so this is the moment the daily
   // count applies. The limiter fails open, so a limiter outage can never stop a
@@ -197,6 +246,8 @@ export async function startConversation(input: {
   });
   if (!verdict.allowed) return fail(newConversationLimitMessage(verdict.retryIn));
 
+  /* `conversations.agent_id` is the host's AUTH USER id, not an `agents.id`
+     (docs/schema/NAMES.md), which is why it takes `agentUserId`. */
   const { data: created, error: insertError } = await session.supabase
     .from("conversations")
     .insert({ guest_id: session.user.id, agent_id: agentUserId, listing_id: listingId })
@@ -215,6 +266,9 @@ export async function startConversation(input: {
         .maybeSingle();
       if (raced) return ok({ conversationId: raced.id });
     }
+    // SEC-P2-02: the database holds the same daily count, and it does not fail
+    // open. 54000 is that limit; say so rather than "try again".
+    if (insertError?.code === "54000") return fail(newConversationLimitMessage("tomorrow"));
     return fail("We could not open this conversation just now. Please try again.");
   }
 
@@ -439,6 +493,8 @@ export async function sendMessage(input: {
 
   if (error || !row) {
     if (error?.code === "42501") return fail(NOT_YOUR_CONVERSATION_MESSAGE);
+    const limited = dbLimitRefusal(error);
+    if (limited) return fail(limited);
     return fail(SEND_FAILED_MESSAGE);
   }
 
@@ -524,6 +580,8 @@ export async function attachImage(input: {
       .single();
     if (messageError || !message) {
       if (messageError?.code === "42501") return fail(NOT_YOUR_CONVERSATION_MESSAGE);
+      const limited = dbLimitRefusal(messageError);
+      if (limited) return fail(limited);
       return fail("Your photo did not send. Tap retry to send it again.");
     }
     messageId = message.id;
@@ -662,10 +720,13 @@ export async function markInboxRead(): Promise<ActionResult<{ updated: number }>
 
   if (!(await isFeatureEnabled("messaging"))) return fail(PAUSED_MESSAGE);
 
-  // RLS answers "which conversations are yours" and nothing else has to.
+  /* SEC-02. RLS alone also answers every conversation to an admin, so the
+     caller is named as a party: an admin's "Mark all read" marks only their
+     own threads, never another member's. */
   const { data: conversations, error: readError } = await session.supabase
     .from("conversations")
     .select("id")
+    .or(`guest_id.eq.${session.user.id},agent_id.eq.${session.user.id}`)
     .limit(200);
   if (readError) return fail(READ_STATE_FAILED_MESSAGE);
   const ids = (conversations ?? []).map((row) => row.id);

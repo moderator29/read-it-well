@@ -64,16 +64,15 @@ export function ShelfBar({
   const copy = t.catalogue.shelf;
   const sheetHref = toShelfFiltersHref(query);
 
-  /* A category names itself first; the rent market names itself when no
-     category narrows it (V-26: `/rent` lands here as `market=rent`, and the
-     chip said "Any market" over a shelf of tenancies). */
+  /* UX-07: the chip names the market it is filtering by; it read "Any market"
+     on a Rent search while the count said one filter was on. */
   const marketLabel =
     query.intent === "sale"
-      ? "Buy"
+      ? copy.marketBuy
       : query.kind
         ? kindLabel(query.kind)
         : query.intent === "rent"
-          ? t.shape.market.rent
+          ? copy.marketRent
           : copy.anyMarket;
   const bedsLabel =
     query.bedrooms !== undefined ? copy.beds.replace("{count}", String(query.bedrooms)) : copy.bedsAny;

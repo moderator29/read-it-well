@@ -94,6 +94,11 @@ export type StayDetail = {
   /** True only where a human was checked (ledger rule 12). */
   hostVerified?: boolean;
   /**
+   * UX-09 / UI-P2-01: an example stay (the accommodation or its business is
+   * `is_demo`). The page says so under the name and offers nothing to book.
+   */
+  isExample?: boolean;
+  /**
    * The guest rating, and ONLY where real review rows stand behind it.
    *
    * Null is the honest answer for every accommodation today: `reviews.listing_id`

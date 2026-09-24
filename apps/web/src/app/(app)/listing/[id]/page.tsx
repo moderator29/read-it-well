@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { StillAvailable } from "@/components/app/listing/StillAvailable";
 import { readRecentlyLet } from "@/lib/availability/queries";
 import { Suspense } from "react";
+import { marketOf, type ListingMarket } from "@/lib/listings/market";
 import { panelClass } from "@/components/ui/Panel";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { NONCE_HEADER } from "@/lib/security/csp";
-import { getDictionary, type Locale, formatRating } from "@vallo/i18n";
+import { getDictionary, intlTag, plural, type Locale, formatRating } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getListingRepository } from "@/lib/listings/repository";
 import {
@@ -26,7 +27,6 @@ import {
 } from "@/lib/listings/pricing";
 import { formatDate, formatNumber } from "@vallo/i18n";
 import { listedAge, listedAgeText, staleMonthOptions } from "@/lib/listings/listed-age";
-import { isTenancyPeriod } from "@/lib/listings/pricing";
 import { isModestExample } from "@/lib/listings/example-imagery";
 import { ListingCompound } from "@/components/app/listing/ListingCompound";
 import { ListingService } from "@/components/app/listing/ListingService";
@@ -81,6 +81,7 @@ import {
   type StickyAction,
 } from "@/components/app/listing/ListingStickyBar";
 import { StayDatesProvider } from "@/components/app/listing/StayDates";
+import { readStayDates } from "@/components/app/stays/model";
 import { PhotoViewerProvider } from "@/components/app/listing/PhotoViewer";
 import { ReportSheet } from "@/components/app/ReportSheet";
 import { resolveSession } from "@/lib/actions/session";
@@ -90,6 +91,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";
 import type { StatusTone } from "@/components/ui/StatusPill";
 import { Disclosure } from "@/components/app/Disclosure";
+import { publicListingTitle } from "@/lib/listings/public-title";
 import { FactGrid, ICON, Section, Stack, TYPE, type Fact } from "@/components/app/Screen";
 
 /**
@@ -173,24 +175,19 @@ function rentPeriodOf(value: PricePeriod | null | undefined): RentPeriod {
   return value === "month" || value === "quarter" ? value : "year";
 }
 
-const MARKET_PILL: Record<ListingKind, { icon: UiIconName; label: string; tone: StatusTone }> = {
-  rental: { icon: "key", label: "For rent", tone: "brand" },
-  hotel: { icon: "calendar-booking", label: "For stays", tone: "success" },
-  apartment: { icon: "calendar-booking", label: "For stays", tone: "success" },
-  home: { icon: "calendar-booking", label: "For stays", tone: "success" },
-  shortlet: { icon: "calendar-booking", label: "For stays", tone: "success" },
-  villa: { icon: "calendar-booking", label: "For stays", tone: "success" },
-  /* Semantic, never generic grey: a status pill in a neutral wash reads as an
-     absence of state rather than as a market. */
-  restaurant: { icon: "utensils", label: "Dining", tone: "info" },
+/*
+ * UX-10 / UI-P2-03: the pill names the MARKET the listing is in
+ * (`marketOf`), not its kind. A villa let by the year is "For rent", not
+ * "For stays"; restaurant premises let on a rent are "For rent", not
+ * "Dining". Semantic tones, never generic grey: a status pill in a neutral
+ * wash reads as an absence of state rather than as a market.
+ */
+const MARKET_PILL: Record<ListingMarket, { icon: UiIconName; label: string; tone: StatusTone }> = {
+  tenancy: { icon: "key", label: "For rent", tone: "brand" },
+  sale: { icon: "key", label: "For sale", tone: "brand" },
+  stay: { icon: "calendar-booking", label: "For stays", tone: "success" },
+  dining: { icon: "utensils", label: "Dining", tone: "info" },
   experience: { icon: "ticket", label: "Experience", tone: "info" },
-  /* Commercial space and land are let on a tenancy exactly like a rental, so
-     they read as the same market and take the same key glyph and brand tint.
-     What they are individually is already said by `KIND_LABEL`; the pill
-     answers "which market am I in", not "what is this". */
-  shop: { icon: "key", label: "For rent", tone: "brand" },
-  office: { icon: "key", label: "For rent", tone: "brand" },
-  land: { icon: "key", label: "For rent", tone: "brand" },
 };
 
 /** "Lagos State" reads naturally; the FCT does not take the suffix. */
@@ -242,6 +239,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const listing = await getListingRepository().byId(id);
+  /* OPS-17: metadata resolves before the body streams for crawlers and
+     link checkers, so a missing listing answers them with a real 404 rather
+     than a 200 that streams a not-found page. */
+  if (!listing) notFound();
   return listingMetadata(listing, siteUrl());
 }
 
@@ -273,10 +274,14 @@ async function hasConfirmedBooking(
 
 export default async function ListingDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  /** A stay's dates and party size, carried from the stays search. */
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  const requested = readStayDates((await searchParams) ?? {});
   const locale: Locale = await getLocale();
   const t = getDictionary(locale);
 
@@ -319,23 +324,19 @@ export default async function ListingDetailPage({
    */
   const messageHref = `/messages/new?listing=${listing.id}`;
 
-  // Rentals are tenancies: no Reserve control anywhere on the page. The path
-  // is message the agent, inspect the property, then pay.
-  //
-  // A TENANCY IS DECIDED BY THE PERIOD, NOT THE CATEGORY (batch 1 review,
-  // finding 5). This was `kind === "rental"`, which is 8 of the 40 example
-  // tenancies: a flat or a house let by the year has kind apartment or home,
-  // so it fell into the nightly branch and drew a date range picker and Check
-  // availability for an annual let, and led with the rent. `isTenancyPeriod`
-  // is the one predicate the card, the rent market and Message agent use.
-  const isRental =
-    listing.kind === "rental" || (listing.intent !== "sale" && isTenancyPeriod(listing.pricePeriod));
+  // Rentals are annual tenancies: no Reserve control anywhere on the page.
+  // The path is message the agent, inspect the property, then pay.
+  /* UX-10: the market decides, by the price period and the intent, with the
+     kind only as the fallback (`lib/listings/market.ts`). A villa or an
+     apartment let by the year is a tenancy here, never a nightly stay. */
+  const listingMarket = marketOf(listing);
+  const isRental = listingMarket === "tenancy";
 
   /* A restaurant is ours to take a booking for, and it is NOT a stay. Without
      this it fell into the nightly branch and drew a date range picker, a
      cleaning fee and a per-night total for a table. What a restaurant takes is
      a party size at a moment (docs/HYBRID_INVENTORY.md section 9). */
-  const isRestaurant = listing.kind === "restaurant";
+  const isRestaurant = listingMarket === "dining";
 
   /*
    * A property FOR SALE is not bookable, and until now it was.
@@ -406,7 +407,7 @@ export default async function ListingDetailPage({
       : `${listing.city}, ${stateLabel(listing.state)}`;
 
   const kind = KIND_LABEL[listing.kind];
-  const market = MARKET_PILL[listing.kind];
+  const market = MARKET_PILL[listingMarket];
 
   /*
    * What the price buys, from the one place that owns that mapping.
@@ -436,11 +437,7 @@ export default async function ListingDetailPage({
     .filter((a): a is string => Boolean(a));
   const amenitySentence =
     amenityPhrases.length > 0
-      ? ` Amenities include ${
-          amenityPhrases.length === 1
-            ? amenityPhrases[0]
-            : `${amenityPhrases.slice(0, -1).join(", ")} and ${amenityPhrases[amenityPhrases.length - 1]}`
-        }.`
+      ? ` Amenities include ${new Intl.ListFormat(intlTag.en, { type: "conjunction" }).format(amenityPhrases)}.`
       : "";
 
   /*
@@ -468,7 +465,7 @@ export default async function ListingDetailPage({
     aboutParagraphs.push(
       `The rent is quoted for a full year and agreed directly with the agent.${
         listing.verified
-          ? " The agent and this property were checked by Vallo before the listing went live."
+          ? " A person at Vallo checked the ID of the agent behind this listing."
           : ""
       }`,
     );
@@ -483,7 +480,7 @@ export default async function ListingDetailPage({
     const closing: string[] = [];
     const capacity = capacityOf(listing);
     if (capacity !== null) {
-      closing.push(`It sleeps up to ${capacity} ${capacity === 1 ? "guest" : "guests"}.`);
+      closing.push(`It sleeps up to ${plural(capacity, t.units.guests, locale)}.`);
     }
     if (listing.reviewCount > 0) {
       closing.push(
@@ -494,7 +491,7 @@ export default async function ListingDetailPage({
       );
     }
     if (listing.verified) {
-      closing.push("The agent and this property were checked by Vallo before it went live.");
+      closing.push("A person at Vallo checked the ID of the agent behind this listing.");
     }
     if (closing.length > 0) aboutParagraphs.push(closing.join(" "));
   }
@@ -538,8 +535,12 @@ export default async function ListingDetailPage({
      ledger) and Book inspection (the real request, in the panel below). A
      stay keeps Check availability with the conversation beside it; a sale
      and a table keep the conversation. */
+  /* UX-21: while every listing is an example, "Browse real listings" led back
+     to more examples. The honest next step is to be told when a real one
+     arrives here: the area's search, where "Save this search" sends alerts. */
+  const realSoonHref = `/search?q=${encodeURIComponent(listing.area || listing.city)}`;
   const stickyAction: StickyAction | null = isExample
-    ? { label: "Browse real listings", href: "/search" }
+    ? { label: "Get told when real homes arrive", href: realSoonHref }
     : isBookable
       ? { label: t.catalogue.detail.checkAvailability, href: "#reserve" }
       : isRental
@@ -588,11 +589,11 @@ export default async function ListingDetailPage({
   const bookingPanel = isExample ? (
     <div className="nf-panel nf-panel--card isolate p-card">
       <p className={TYPE.rowMeta}>
-        Nothing here can be booked or paid for. Search for a real place with an
-        owner you can reach.
+        Nothing here can be booked or paid for. Save a search for this area and
+        we will tell you when a real place with an owner you can reach is listed.
       </p>
-      <ButtonLink href="/search" variant="primary" className="mt-block w-full">
-        Browse real listings
+      <ButtonLink href={realSoonHref} variant="primary" className="mt-block w-full">
+        Get told when real homes arrive
       </ButtonLink>
     </div>
   ) : isRestaurant ? (
@@ -683,7 +684,7 @@ export default async function ListingDetailPage({
       value:
         listing.parkingSpaces === 0
           ? "None"
-          : `${formatNumber(listing.parkingSpaces, locale)} ${listing.parkingSpaces === 1 ? "space" : "spaces"}`,
+          : plural(listing.parkingSpaces, t.units.spaces, locale),
     });
   }
   if (listing.floor !== undefined) {
@@ -705,9 +706,7 @@ export default async function ListingDetailPage({
   if (listing.minimumTenancyMonths !== undefined) {
     facts.push({
       label: "Minimum tenancy",
-      value: `${formatNumber(listing.minimumTenancyMonths, locale)} ${
-        listing.minimumTenancyMonths === 1 ? "month" : "months"
-      }`,
+      value: plural(listing.minimumTenancyMonths, t.units.months, locale),
     });
   }
 
@@ -780,6 +779,7 @@ export default async function ListingDetailPage({
         <ListingGallery
           listingId={listing.id}
           title={listing.title}
+          shareTitle={publicListingTitle(listing)}
           hue={listing.hue}
           kind={listing.kind}
           photos={listing.photos}
@@ -873,7 +873,9 @@ export default async function ListingDetailPage({
 
                   {/* Above the price, and that position is the point: the
                       disclosure lands before the belief the figure forms. */}
-                  {listing.isDemo && <ExampleNotice variant="page" className="mt-row" />}
+                  {listing.isDemo && (
+                    <ExampleNotice variant="page" className="mt-row" statement={t.examples.statement} />
+                  )}
 
                   {/*
                     THE MOVE-IN TOTAL LEADS ON A TENANCY, AS IT DOES ON THE CARD.
@@ -1052,9 +1054,9 @@ export default async function ListingDetailPage({
 
                 {/* --------------------- 6. THE NIGERIAN NUMBER, ITEMISED */}
                 {/*
-                  WHAT A TENANT WILL ACTUALLY PAY, and until this commit the
-                  page showed ONE NUMBER while the component that draws the
-                  whole breakdown sat unimported (HANDOFF 09 section 4.1).
+                  WHAT A TENANT WILL ACTUALLY PAY. The page used to show ONE
+                  NUMBER while the component that draws the whole breakdown
+                  sat unimported.
 
                   The block above the fold still leads with the total, which is
                   the figure somebody shops on. This section is the itemised
@@ -1117,6 +1119,7 @@ export default async function ListingDetailPage({
                     <ListingAmenityTiles amenities={listing.amenities} />
                   ) : (
                     <ListingAmenities
+                      locale={locale}
                       bedrooms={listing.bedrooms}
                       bathrooms={listing.bathrooms}
                       amenities={listing.amenities}
@@ -1135,6 +1138,7 @@ export default async function ListingDetailPage({
                     >
                       {listing.utilities && (
                         <ListingUtilities
+                          locale={locale}
                           utilities={listing.utilities}
                           access={access}
                           bookingConfirmed={bookingConfirmed}
@@ -1328,6 +1332,8 @@ export default async function ListingDetailPage({
                       reviews={reviews}
                       locale={locale}
                       t={t}
+                      signedIn={signedIn}
+                      tenancy={isRental}
                     />
                   </Section>
                 </Reveal>
@@ -1407,6 +1413,7 @@ export default async function ListingDetailPage({
       cleaningMinor={listing.cleaningMinor ?? 0}
       serviceMinor={listing.serviceMinor ?? 0}
       capacity={capacityOf(listing)}
+      requested={{ checkIn: requested.checkIn, checkOut: requested.checkOut, guests: requested.guests }}
     >
       {body}
     </StayDatesProvider>

@@ -9,6 +9,7 @@ import type { AgentProfile } from "@/lib/agent/types";
 import { Logo } from "@/design-system/brand/Logo";
 import { ModeSwitcher } from "./ModeSwitcher";
 import { AgentIdentityCard, AgentModePill } from "./AgentNav";
+import { noWorkspaceDoor } from "./agent-doors";
 import { buildAgentNav } from "./agent-nav-model";
 import { NavTree } from "@/components/app/NavTree";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -145,8 +146,7 @@ export function AgentMobileNav({
                 <AgentIdentityCard
                   profile={profile}
                   verifiedLabel={t.agent.mode.verifiedAgent}
-                  visitorLabel={t.agent.mode.visitor}
-                  signInLabel={t.agent.mode.signInToWorkspace}
+                  door={noWorkspaceDoor(t.agent.mode)}
                 />
                 <ModeSwitcher t={t} current="working" variant="menu" />
               </div>

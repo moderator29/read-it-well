@@ -1,6 +1,6 @@
 # Welcome back: art cropped from the governing render
 
-Render: `55A56F21-0654-4F2D-984B-60A8CE97BB17.png` (repo root), 1024 x 1536.
+Render: `docs/design/references/55A56F21-0654-4F2D-984B-60A8CE97BB17.png`, 1024 x 1536.
 Cut by `node scripts/design/session-b-crops.mjs --surface signin`. Re-run that command to
 rebuild both files; never edit them by hand.
 

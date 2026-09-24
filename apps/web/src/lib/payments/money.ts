@@ -11,8 +11,11 @@ import { formatMoney } from "@vallo/i18n";
  * (Master Rule 50).
  */
 export function nairaExact(minor: number): string {
-  const abs = Math.abs(Math.trunc(minor));
+  const whole = Math.trunc(minor);
+  const abs = Math.abs(whole);
   const kobo = abs % 100;
-  const whole = formatMoney(abs - kobo);
-  return kobo === 0 ? whole : `${whole}.${String(kobo).padStart(2, "0")}`;
+  const figure = formatMoney(abs - kobo);
+  const text = kobo === 0 ? figure : `${figure}.${String(kobo).padStart(2, "0")}`;
+  /* UI-13: a negative amount keeps its sign. */
+  return whole < 0 ? `-${text}` : text;
 }

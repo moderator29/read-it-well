@@ -102,6 +102,11 @@ const MASTER = 1024;
  * generated mipmaps and masking them at the real 66 of 108, and it is kept
  * because the constraint is the launcher's, not the artwork's.
  *
+ * The BACKGROUND layer's inset is then removed from
+ * `mipmap-anydpi-v26/ic_launcher*.xml` by hand (STORE-18): launchers move and
+ * scale that layer, and an inset background shows an unpainted ring.
+ * `lib/theme/native-chrome.test.ts` fails if a regeneration puts it back.
+ *
  * `splash` is small because a splash screen is a held breath, not a poster,
  * and because the same image is centred on both phone and tablet.
  */

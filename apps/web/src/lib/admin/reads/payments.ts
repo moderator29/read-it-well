@@ -26,8 +26,8 @@ import { exactCount, readEvery } from "./money";
  *               person never finished; the reconcile job settles any that did.
  *
  * The existing health reads (`getPaymentHealth`, `getSavedMethods`) and the
- * two actions (`expireStaleWithdrawalHolds`, the saved method removals) stay
- * Session A's and are called unchanged by the page.
+ * two actions (`expireStaleWithdrawalHolds`, the saved method removals) are
+ * called unchanged by the page.
  */
 
 type Client = SupabaseClient<Database>;

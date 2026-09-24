@@ -207,7 +207,7 @@ export function ListingStickyBar({
                 {/*
                  * THROUGH `formatMoney`, NOT THROUGH `Amount`.
                  *
-                 * The bar used `<Amount glance>`, and that is why the lead's
+                 * The bar used `<Amount glance>`, and that is why an earlier
                  * formatter fix did not reach this figure: `Amount` builds its
                  * own `Intl.NumberFormat` with `notation: "compact"` and no
                  * `maximumFractionDigits`, on the belief that Intl's compact
@@ -218,8 +218,7 @@ export function ListingStickyBar({
                  * ₦14,700,000.
                  *
                  * `formatMoneyGlance` is the same one-million-naira threshold
-                 * applied by `formatMoney`, which the lead has already fixed to
-                 * keep the tenth. It is also the rule: money is displayed only
+                 * applied by `formatMoney`, which keeps the tenth. It is also the rule: money is displayed only
                  * through `formatMoney`. `Amount` is not in this scope and the
                  * defect is reported rather than edited here.
                  */}

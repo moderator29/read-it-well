@@ -7,8 +7,7 @@ import { getSide } from "@/lib/side";
 import { isSide, type Side } from "@/lib/side.constants";
 import { AddWorkspaceChooser } from "@/components/supply/AddWorkspaceChooser";
 
-/* Back to the declared parent (`route-parents.ts`), Session A's R14: this
-   route declared one and drew no control, so Android back closed the app. */
+/* Back to the declared parent (`route-parents.ts`): this route declared one and drew no control, so Android back closed the app. */
 const BACK = parentOf("/profile/setup");
 
 export const metadata: Metadata = {
@@ -27,8 +26,7 @@ export const metadata: Metadata = {
  *
  * Most of the supply this platform now wants is landlords who are not agents
  * and never will be, and the only door into the supply side was marked
- * "become an agent". That is the whole of the defect HANDOFF 09 section 6A.2
- * names, and this page is the half of the fix that a person can see.
+ * "become an agent". That is the whole of the defect, and this page is the half of the fix that a person can see.
  *
  * WHY IT IS UNDER `/profile` AND NOT `/agent`. Everything under `/agent` is
  * role gated and the entire audience for this page is people who do not have

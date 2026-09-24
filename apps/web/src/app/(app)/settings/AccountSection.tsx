@@ -1,5 +1,6 @@
 "use client";
 
+import { clearListingDrafts } from "@/lib/agent/listing-draft-storage";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { RowLink, RowValue, RowButton, SettingsGroup } from "@/components/app/account/rows";
@@ -66,6 +67,8 @@ export function AccountSection({
          nor their shortlist. */
       await clearPacks();
       await clearShelf();
+      /* SUP-16: a listing draft never outlives the session that wrote it. */
+      clearListingDrafts();
       router.replace("/");
       router.refresh();
     });

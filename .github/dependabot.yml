@@ -1,0 +1,54 @@
+# DOC-P2-03: something watches for advisories. The Next.js/sharp CRITICAL that
+# DOC-02 fixed was found only because an auditor ran `npm audit` by hand.
+#
+# Security updates are opened as soon as GitHub publishes an advisory that
+# affects the lockfile (enable "Dependabot security updates" under Settings,
+# Code security, once). The weekly run below proposes ordinary version bumps,
+# grouped so the framework moves as one pull request and small tooling bumps
+# do not arrive as twenty. Dependabot pull requests are created by GitHub
+# whether or not Actions has billing; their CI still needs it (DOC-01).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Africa/Lagos
+    open-pull-requests-limit: 5
+    groups:
+      framework:
+        patterns:
+          - next
+          - eslint-config-next
+          - react
+          - react-dom
+          - "@types/react"
+          - "@types/react-dom"
+      supabase:
+        patterns:
+          - "@supabase/*"
+      capacitor:
+        patterns:
+          - "@capacitor/*"
+      dev-tooling:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # Majors of the toolchain are deliberate moves (DOC-24), not weekly noise.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
+      - dependency-name: vitest
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

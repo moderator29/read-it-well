@@ -1,53 +1,53 @@
-import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 
 /**
- * Which sign-in methods the platform can honestly offer right now.
+ * Which sign-in methods the platform offers, and which it REFUSES.
  *
- * Auth runs on Supabase, which means the OAuth client secrets live in the
- * Supabase dashboard and never in this application. An earlier version of this
- * file asked the app for GOOGLE_CLIENT_SECRET and friends, which it will never
- * hold, so those buttons could never light up no matter how correctly the
- * dashboard was configured. That was the bug.
+ * STORE-02 / STORE-03. The recorded product decision (docs/PRODUCT.md, "No
+ * Google or Apple sign in. Email and password only") had not reached the
+ * code: `DEFAULT_SOCIALS` was `["google"]`, so the live sign-in and sign-up
+ * screens drew "Continue with Google". That is also the App Store 4.8 trigger
+ * (a third-party login with no equivalent privacy-preserving option), and on
+ * the native shell a Google round trip cannot complete at all: the PKCE
+ * verifier cookie lives in the web view's jar and the callback lands in the
+ * system browser's.
  *
- * The honest signals are:
- *  - email and password work as soon as Supabase itself is configured, because
- *    Supabase issues the session and sends the confirmation mail.
- *  - a social provider works only once the owner has enabled it in the
- *    Supabase dashboard, which this application cannot detect from here.
+ * The rules, per provider and per SURFACE (the website, the iOS shell, the
+ * Android shell):
  *
- * ---------------------------------------------------------------------------
- * GOOGLE IS ON BY DEFAULT NOW, AND APPLE IS NOT.
+ *   EMAIL   on wherever Supabase is configured.
  *
- * Both used to be off until NEXT_PUBLIC_AUTH_PROVIDERS named them, on the
- * reasoning that offering a provider the dashboard has not enabled sends
- * somebody to an error page. That reasoning is right and it produced the wrong
- * default: Google IS enabled in this project's Supabase dashboard, the owner
- * has confirmed it twice, and the sign-up screen was still showing one email
- * button because a variable nobody had reason to know about was unset. A
- * correct default that is wrong about the actual deployment is not correct.
+ *   GOOGLE  OFF. Refused by `startOAuth` and by the callback, not only
+ *           undrawn. The founder can reverse the decision for the WEBSITE with
+ *           `VALLO_SOCIAL_SIGN_IN=google` (server-only, read at request
+ *           time). It never runs inside a native shell, whatever the variable
+ *           says, because it cannot complete there.
  *
- * So the two providers are defaulted separately, on what is actually true of
- * each:
+ *   APPLE   On when, and only when, Supabase itself reports the Apple provider
+ *           enabled (`GET /auth/v1/settings` → `external.apple`), which is the
+ *           moment the Services ID and signing key are saved in the dashboard.
+ *           Nothing in this repository has to change that day. On the website
+ *           it is the ordinary redirect; on the iOS shell it is the native
+ *           Sign in with Apple sheet plus `signInWithIdToken` (the redirect
+ *           has the same cookie-jar problem as Google there); on the Android
+ *           shell it is off. `VALLO_SOCIAL_SIGN_IN=none` switches it off
+ *           everywhere without touching the dashboard.
  *
- *   GOOGLE  on. Configured in the dashboard, works today.
- *   APPLE   off. Apple sign-in requires an Apple Developer team, a Services ID
- *           and a signing key, and the owner has said plainly that they will do
- *           that when they take the app to the App Store. Drawing the button
- *           before then is a control that can only fail, which is the same
- *           defect as a Reserve button on a listing nobody can book.
+ * THE CONTROL OF RECORD FOR GOOGLE IS THE SUPABASE DASHBOARD (Providers →
+ * Google → off; docs/store/FOUNDER_STEPS.md §2). The app refuses to start it,
+ * ends a Google session that reaches the callback, and never exchanges a code
+ * in the browser (`detectSessionInUrl: false` in `lib/supabase/client.ts`),
+ * but while the dashboard has it enabled Supabase will still create the
+ * account for a hand-built authorize URL.
  *
- * The environment variable still wins whenever it names anything:
- * `NEXT_PUBLIC_AUTH_PROVIDERS=google,apple` adds Apple the day it is ready, and
- * `NEXT_PUBLIC_AUTH_PROVIDERS=none` turns every social off without a deploy. It
- * is an override now rather than a switch that has to be found.
+ * iPadOS NOTE: with TARGETED_DEVICE_FAMILY = 1 the shell runs on an iPad in
+ * iPhone compatibility mode and reports an iPhone User-Agent. A shell that
+ * ever reported "Macintosh" would be read as android-native here, which only
+ * hides the Apple door.
  *
- * AN EMPTY VALUE MEANS UNSET, NOT "NONE", and that is not fastidiousness. The
- * example env file shipped `NEXT_PUBLIC_AUTH_PROVIDERS=` with nothing after it,
- * so any deployment configured by copying that file has the variable present
- * and blank. Reading blank as a deliberate "turn everything off" would mean
- * this change did nothing at all on the one deployment it exists to fix. A
- * value nobody typed is not an instruction; `none` is a word somebody has to
- * mean.
+ * The old `NEXT_PUBLIC_AUTH_PROVIDERS` is deliberately NOT read any more: a
+ * deployment that had it set to `google` would otherwise have kept Google on
+ * against the decision, and that value was never meant to be public anyway.
  */
 
 export type ProviderId = "email" | "google" | "apple";
@@ -57,41 +57,149 @@ export type ProviderState = {
   configured: boolean;
 };
 
-const SOCIAL_IDS = ["google", "apple"] as const;
+export type SignInSurface = "web" | "ios-native" | "android-native";
 
 /**
- * Which socials are offered: the override if there is one, the defaults if not.
- *
- * Unset, or set to nothing, means nobody has expressed an opinion and the
- * defaults apply. `none` is how somebody says they want no socials at all: an
- * explicit word rather than an absence, for the reason in the note above.
+ * The token every native shell appends to its User-Agent
+ * (`appendUserAgent` in `capacitor.config.ts`). The server reads it to know
+ * it is answering the shell, which is the only way a server-rendered sign-in
+ * screen can leave a door out on the first frame rather than drawing it and
+ * then removing it on the client.
  */
-const DEFAULT_SOCIALS = ["google"] as const;
+export const NATIVE_UA_TOKEN = "VALLO-NATIVE";
 
-function enabledSocials(): Set<string> {
-  const named = (process.env.NEXT_PUBLIC_AUTH_PROVIDERS ?? "")
+export function surfaceFromUserAgent(userAgent: string | null | undefined): SignInSurface {
+  const agent = userAgent ?? "";
+  if (!agent.includes(NATIVE_UA_TOKEN)) return "web";
+  return /iPhone|iPad|iPod/i.test(agent) && !/Android/i.test(agent) ? "ios-native" : "android-native";
+}
+
+type Override = { none: boolean; google: boolean };
+
+function readOverride(env: Record<string, string | undefined>): Override {
+  const named = (env.VALLO_SOCIAL_SIGN_IN ?? "")
     .split(",")
     .map((entry) => entry.trim().toLowerCase())
     .filter((entry) => entry.length > 0);
-
-  if (named.length === 0) return new Set<string>(DEFAULT_SOCIALS);
-  if (named.includes("none")) return new Set<string>();
-  return new Set(named);
+  const none = named.includes("none");
+  return { none, google: named.includes("google") && !none };
 }
 
-export function getProviderStates(): ProviderState[] {
-  const supabaseReady = isSupabaseConfigured();
-  const socials = enabledSocials();
-
+/**
+ * PRECONDITION FOR SWITCHING ANY PROVIDER ON (STORE-19, NEW-A4-04).
+ *
+ * An account created through Apple or Google never passes the sign-up form,
+ * so today it records no terms agreement and no 18-or-over statement: only
+ * `signUpWithEmail` asks for both and refuses without them. Before a provider
+ * is enabled in Supabase (Apple switches on by itself when Supabase reports
+ * it) or named in `VALLO_SOCIAL_SIGN_IN`, the OAuth callback and
+ * `signInWithAppleIdToken` must hold a NEW social account at a step that asks
+ * for both and records them with `recordTermsAcceptance`. The founder's list
+ * says the same (docs/store/FOUNDER_STEPS.md section 1).
+ *
+ * THE POLICY, pure, so every branch is tested without a network.
+ * `supabaseApple` is what Supabase reports about its own Apple provider.
+ */
+export function providerPolicy(input: {
+  surface: SignInSurface;
+  supabaseConfigured: boolean;
+  supabaseApple: boolean;
+  env: Record<string, string | undefined>;
+}): ProviderState[] {
+  const override = readOverride(input.env);
+  const ready = input.supabaseConfigured;
+  const google = ready && override.google && input.surface === "web";
+  const apple = ready && !override.none && input.supabaseApple && input.surface !== "android-native";
   return [
-    { id: "email", configured: supabaseReady },
-    ...SOCIAL_IDS.map((id) => ({
-      id,
-      configured: supabaseReady && socials.has(id),
-    })),
+    { id: "email", configured: ready },
+    { id: "google", configured: google },
+    { id: "apple", configured: apple },
   ];
 }
 
-export function isAnyProviderConfigured(): boolean {
-  return getProviderStates().some((p) => p.configured);
+/**
+ * The synchronous half, for callers that only need to know whether email
+ * works and must not wait on a network read. Social doors always read off
+ * here; `resolveProviderStates` is the answer for them.
+ */
+export function getProviderStates(): ProviderState[] {
+  const ready = isSupabaseConfigured();
+  return [
+    { id: "email", configured: ready },
+    { id: "google", configured: false },
+    { id: "apple", configured: false },
+  ];
+}
+
+/**
+ * Whether Supabase reports the Apple provider enabled. Cached for five
+ * minutes by the fetch cache; any failure reads as OFF, so an outage can only
+ * ever hide the door, never draw one that fails.
+ */
+export async function supabaseReportsApple(): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false;
+  try {
+    const response = await fetch(`${SUPABASE_URL}/auth/v1/settings`, {
+      headers: { apikey: SUPABASE_ANON_KEY },
+      next: { revalidate: 300 },
+      /* Inside a server action the fetch cache does not apply, so this is a
+         live call; a slow settings endpoint must not hang sign-in. A timeout
+         reads as OFF like any other failure. */
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!response.ok) return false;
+    const body = (await response.json()) as { external?: { apple?: unknown } };
+    return body.external?.apple === true;
+  } catch {
+    return false;
+  }
+}
+
+export async function resolveProviderStates(surface: SignInSurface): Promise<ProviderState[]> {
+  return providerPolicy({
+    surface,
+    supabaseConfigured: isSupabaseConfigured(),
+    supabaseApple: await supabaseReportsApple(),
+    env: process.env,
+  });
+}
+
+export function providerAllowed(states: readonly ProviderState[], id: ProviderId): boolean {
+  return states.some((state) => state.id === id && state.configured);
+}
+
+/**
+ * Which social provider, if any, produced THIS session.
+ *
+ * The access token's `amr` claim says how the session was made (`oauth` for a
+ * provider redirect, `id_token` for a native sheet, `password`, `otp` and so
+ * on) but not which provider. The social identity with the newest
+ * `last_sign_in_at` is the one that just signed in. Null for a session no
+ * social provider made.
+ */
+export function socialProviderOfSession(
+  accessToken: string | null | undefined,
+  identities: ReadonlyArray<{ provider: string; last_sign_in_at?: string | null }> | null | undefined,
+): string | null {
+  const methods = amrMethods(accessToken);
+  if (!methods.some((method) => method === "oauth" || method === "id_token" || method === "sso/saml")) {
+    return null;
+  }
+  const newest = [...(identities ?? [])]
+    .filter((identity) => identity.provider !== "email" && identity.provider !== "phone")
+    .sort((a, b) => (Date.parse(b.last_sign_in_at ?? "") || 0) - (Date.parse(a.last_sign_in_at ?? "") || 0))[0];
+  return newest?.provider ?? "unknown";
+}
+
+function amrMethods(accessToken: string | null | undefined): string[] {
+  if (!accessToken) return [];
+  const payload = accessToken.split(".")[1];
+  if (!payload) return [];
+  try {
+    const text = Buffer.from(payload.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8");
+    const claims = JSON.parse(text) as { amr?: Array<{ method?: unknown }> };
+    return (claims.amr ?? []).map((entry) => (typeof entry.method === "string" ? entry.method : ""));
+  } catch {
+    return [];
+  }
 }

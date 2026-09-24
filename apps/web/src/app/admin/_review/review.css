@@ -14,7 +14,7 @@
  * 26px, tab 21 -> 32px), so type and heights use x1.5 and widths use the
  * window proportions (content column about 57% of the window, side rail about
  * 16%, sized up to 300px so its labels fit). The ledger, section 7, carries
- * the full table. Controls are drawn at 44px (lead ruling R-B) so the shape
+ * the full table. Controls are drawn at 44px (rule R-B) so the shape
  * law's control radius (14px) sits at 0.32, under the 0.35 review line (R-D); status badges and role
  * tags are 26px and 20px on `--nf-radius-xs`, the badge rung the product's own
  * `.nf-badge` already uses (0.23 and 0.30).

@@ -87,6 +87,9 @@ export const afterTheGateEn = {
     largeLead: "Pay by bank transfer",
     largeNote: "Most Nigerian cards cannot pay {amount} in one go. A bank transfer can.",
     walletTooLarge: "A wallet top-up can add at most {limit} at a time, so topping up to {amount} is not offered here. Pay by bank transfer instead.",
+    largeBody:
+      "A secure page in naira that offers bank transfer as well as card, then straight back here. Your card details never touch Vallo.",
+    walletTooLargeShort: "The wallet cannot take a payment this large in one movement.",
   },
   tenancy: {
     openFile: "Open the tenancy file",

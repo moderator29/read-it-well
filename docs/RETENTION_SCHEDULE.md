@@ -16,8 +16,12 @@ questions in section 7.
 ## 1. Why this document exists
 
 The privacy notice states that personal data is kept only as long as it is
-needed. **Nothing in the database enforces that.** Every period the notice
-promises is, today, a sentence rather than a mechanism.
+needed. **Most of it is not enforced.** Since this was written, two periods
+have become mechanisms: the account purge (`/api/cron/account-purge`, daily)
+and the price-check events sweep (`vallo_sweep_price_check_events`), described
+in the later sections below. Every other period the notice promises, including
+the case below, is still a sentence rather than a mechanism (checked 23
+September 2026 against `cron.job` and `apps/web/vercel.json`).
 
 The sharpest case is the one that names a real person: an applicant who applied
 to become an agent, uploaded a government identity document and a NIN, and was

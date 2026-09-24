@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, Row, RowList, Section, Stack, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
 import { StatusPill, toneForStatus } from "@/components/ui/StatusPill";
+import { RespondToReview } from "@/components/agent/RespondToReview";
 
 export const metadata: Metadata = {
   title: "Your application",
@@ -224,6 +225,10 @@ export default async function ProfileApplicationPage() {
             )}
           </RowList>
         </Section>
+
+        {/* SUP-05: the reviewer asked for something, so the answer is here,
+            under their note, rather than in an email that pointed nowhere. */}
+        {application.status === "MORE_INFO_REQUIRED" && <RespondToReview t={t} />}
 
         {approved && (
           <div className="flex justify-center">

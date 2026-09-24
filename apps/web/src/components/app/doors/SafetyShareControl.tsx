@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { createSafetyShare, markSafetyDone, stopSafetyShare } from "@/lib/doors/safety-actions";
 
+/** The first segment of the trusted contact's page (`app/safe/[token]`). */
+const SAFE_DOOR = "safe";
+
 type ShareCopy = Dictionary["trustDoors"]["safetyShare"];
 
 type Phase =
@@ -62,7 +65,7 @@ export function SafetyShareControl({
         setError(copy.failed);
         return;
       }
-      const url = `${window.location.origin}/safe/${result.data.token}`;
+      const url = new URL(`/${SAFE_DOOR}/${result.data.token}`, window.location.origin).toString();
       const area = result.data.area ?? "";
       const text = result.data.firstName
         ? copy.shareText.replace("{name}", result.data.firstName).replace("{area}", area)

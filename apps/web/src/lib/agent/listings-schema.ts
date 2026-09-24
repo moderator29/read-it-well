@@ -1077,7 +1077,7 @@ export type ListingStatus =
  * notification that made it worse by telling them to publish it themselves is
  * fixed (`lib/admin/actions.ts`), and so is the email. The CHIP is not, for
  * two reasons that are both about not making things worse: the live string
- * lives in a dictionary namespace this worker may only add to, and the colour
+ * lives in a shared dictionary namespace, and the colour
  * comes from `toneForStatus`, which maps APPROVED to success for bookings,
  * payments, support tickets and six other families at once. Both belong to
  * whoever owns those, and both are in the report.

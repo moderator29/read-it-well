@@ -25,6 +25,14 @@ export const ig: Dictionary = withFallback({
     party: "{adults}, {children}",
   },
 
+  /* The counted nouns shared with `counts`; every other unit is still English. */
+  units: {
+    nights: { other: "abalị {count}" },
+    guests: { other: "ọbịa {count}" },
+    adults: { other: "okenye {count}" },
+    children: { other: "nwa {count}" },
+  },
+
   reserve: {
     confirmedRange: "{from} ruo {to}, {nights} maka {guests}.",
     capacityNote: "Ebe a na-anabata ruo {guests}.",
@@ -215,7 +223,7 @@ export const ig: Dictionary = withFallback({
   },
   nav: {
     /* The two sides. Added 18 September 2026 with the flip; Trips is the
-       Stays side's name for its bookings surface (HANDOFF_05 section 2). */
+       Stays side's name for its bookings surface. */
     stays: "Ebe obibi",
     exploreStays: "Chọọ ebe obibi",
     home: "Ụlọ",
@@ -428,7 +436,7 @@ export const ig: Dictionary = withFallback({
         overline: "Ndị mmadụ n'ezie. Ebe n'ezie.",
         title: "Ndepụta enyochara. Ndị mmadụ n'ezie. Ụlọ dị mkpa.",
         listings: "Ndepụta",
-        agents: "Ndị nnọchiteanya enyochara",
+        agents: "Ndị nnọchiteanya anabatara",
         cities: "Obodo",
         states: "Steeti",
       },
@@ -495,9 +503,7 @@ export const ig: Dictionary = withFallback({
            wrong badge rather than a localised one. */
         rightTitle: "Njem ụlọ gị, ugbu a na ekwentị.",
         points: {
-          all: "Ohere zuru oke na njirimara ọ bụla",
           notify: "Ọkwa ozugbo",
-          fast: "Nchebe ma dị ngwa",
           design: "Emere maka otu aka",
         },
       },
@@ -880,7 +886,7 @@ export const ig: Dictionary = withFallback({
       off: "Gbanyụrụ",
       privacy: "Nzuzo & Nchekwa",
       privacySub: "Okwuntughe, mbanye na ngwaọrụ",
-      appearanceSub: "Ụdị, nha mkpụrụedemede, mmegharị",
+      appearanceSub: "Nha mkpụrụedemede, mmegharị",
       languageSub: "Asụsụ ngwa",
       help: "Enyemaka & Nkwado",
       helpSub: "Ajụjụ, kpọtụrụ anyị",
@@ -979,19 +985,13 @@ export const ig: Dictionary = withFallback({
       // Igbo term for a session in the sense of a sitting that runs and then
       // ends, it is what Igbo broadcasting uses, and unlike Hausa `zama` it
       // collides with nothing else in this dictionary.
-      signOutNote:
-        "Nke a bụ naanị nnọkọ gị, ya mere ọ dịghị nke ọzọ ị ga-apụ na ya. Ozugbo akaụntụ malitere, ihe njikwa a ga-akwụsị nnọkọ ọ bụla na ngwaọrụ ọ bụla n'otu mgbe.",
       // NATIVE REVIEW: was `site n'ahụ`, "through the body". Names the two
       // methods, matching the sub-line and what the phone itself calls them.
-      appLock: "Mkpọchi ngwa site na mkpịsị aka ma ọ bụ ihu",
-      appLockSub:
-        "Rịọ maka mkpịsị aka ma ọ bụ ihu mgbe ngwa a mepere, na ngwaọrụ ndị kwadoro ya.",
       signedInOn: "Ị banyere na",
       thisDevice: "Ngwaọrụ a",
       deviceOn: "{browser} na {os}",
       unknownBrowser: "Ihe nchọgharị",
       unknownOs: "ngwaọrụ a",
-      signOutEverywhere: "Pụọ n'ebe niile",
     },
 
     /* NATIVE REVIEW. `caveat` is the line that matters most on this screen and
@@ -1048,10 +1048,6 @@ export const ig: Dictionary = withFallback({
 
     data: {
       label: "Data gị",
-      exportNote:
-        "Ugbu a ihe niile Vallo maara banyere gị nọ n'ime ihe nchọgharị a, ọ dịghịkwa ihe hapụrụ ngwaọrụ a. Mbupụ data zuru oke ga-abịa na mwepụta mmalite.",
-      download: "Budata data m",
-      downloadSub: "Otu ndetu nke ihe niile Vallo ji banyere gị.",
       clear: "Hichapụ data ngwaọrụ a",
       clearAgain: "Pịa ọzọ iji kwado",
       clearSub:
@@ -1136,7 +1132,7 @@ export const ig: Dictionary = withFallback({
       // own label further up this same screen.
       note: "Ntọala echekwara na ngwaọrụ a na-anọgide na ngwaọrụ a. E ji row level security echedo ntọala akaụntụ, ya mere naanị gị nwere ike ịgụ ma ọ bụ gbanwee nke gị.",
       help: "Enyemaka",
-      helpSub: "Nweta azịza site n'aka mmadụ",
+      helpSub: "Ajụjụ, kpọtụrụ anyị",
       terms: "Usoro",
       privacy: "Amụma nzuzo",
       version: "Ụdị",
@@ -1250,8 +1246,8 @@ export const ig: Dictionary = withFallback({
       personalDesc: "Chọpụta ma debe ebe magburu onwe ha na Naịjirịa.",
       agentDesc: "Jikwaa ndepụta, ndebe, ndị ahịa na ego gị.",
       verifiedAgent: "Onye Nnọchi Enyochara",
-      visitor: "Ị banyeghị dịka onye nnọchi",
-      signInToWorkspace: "Banye",
+      noWorkspace: "Ị depụtabeghị ụlọ ọ bụla",
+      applyToList: "Rịọ ka i depụta ụlọ",
       workspaceLabel: "Ebe ọrụ onye nnọchi",
       notApproved: "A ka na-enyocha arịrịọ onye nnọchi gị.",
     },
@@ -1270,7 +1266,7 @@ export const ig: Dictionary = withFallback({
     },
     join: {
       title: "Sonye na Obodo Ndị Nnọchi Vallo",
-      body: "Depụta ihe onwunwe, jikọọ na ndị ọbịa enyochara, jikwaa ndebe ma nweta ego.",
+      body: "Depụta ihe onwunwe, jikọọ na ndị ọbịa, jikwaa ndebe ma nweta ego.",
       start: "Malite arịrịọ",
       resume: "Gaa n'ihu na arịrịọ",
       whatYouGet: "Ihe ị na-enweta",
@@ -1280,7 +1276,7 @@ export const ig: Dictionary = withFallback({
          with it matters. */
       benefitReach: "Ruo ndị ọbịa enyochara",
       benefitTools: "Ngwaọrụ ndepụta na ndebe ọkachamara",
-      benefitEarn: "Soro ego ma nweta ụgwọ n'enweghị nsogbu",
+      benefitEarn: "Soro ego ị nwetara ma hụ ihe a ga-akwụ gị",
     },
     apply: {
       title: "Bụrụ Onye Nnọchi",
@@ -1722,9 +1718,9 @@ export const ig: Dictionary = withFallback({
         "Banye n'akaụntụ onye nnọchi gị ka ị malite ndepụta, ma ọ bụ rịọ n'ime ihe dịka nkeji abụọ ma ọ bụrụ na ị bụ ọhụrụ ebe a.",
       points: {
         verified: {
-          title: "Naanị ihe onwunwe enyochara",
+          title: "Onye aha ya dị n'azụ ndepụta ọ bụla",
           body:
-            "A na-enyocha ndepụta ọ bụla n'aka, ya mere akara dị n'ihe onwunwe gị pụtara ihe nye ndị ọbịa.",
+            "Akara nkwenye na-apụta naanị mgbe mmadụ ebe a nyochara NIN ma ọ bụ akwụkwọ njirimara gị, ya mere ọ pụtara ihe nye ndị ọbịa.",
         },
         inside: {
           title: "Ndị ọbịa na-erute gị n'ime Vallo",
@@ -1735,7 +1731,7 @@ export const ig: Dictionary = withFallback({
           body: "Vallo anaghị anara gị ihe ọ bụla maka idepụta. Ọnụahịa gị bụ ọnụahịa gị.",
         },
       },
-      apply: "Bụrụ onye nnọchiteanya",
+      apply: "Rịọ ka i depụta ụlọ",
       signIn: "Banye",
       how: "Otu ndepụta si arụ ọrụ",
     },
@@ -2849,7 +2845,7 @@ export const ig: Dictionary = withFallback({
     },
 
     /*
-     * The console shell (Session B, admin-shell). Additive. Only the rail's
+     * The console shell. Additive. Only the rail's
      * destination names are carried here, taken word for word from this
      * file's own admin.nav above so they read the same in both places; every
      * other shell string falls back to English through withFallback until a
@@ -2889,7 +2885,7 @@ export const ig: Dictionary = withFallback({
     unreadOn: "{label}, ọkwa {count} a gụghị agụ",
   },
 
-  /* Build 05, FE-1. Short labels translated; longer sentences kept in English
+  /* Short labels translated; longer sentences kept in English
      until a native reviewer rewrites them. */
   inspectionsPage: {
     title: "Nyocha ụlọ",
@@ -2970,7 +2966,7 @@ export const ig: Dictionary = withFallback({
     },
   },
 
-  /* Build 05, FE-2. Short labels translated; sentences about money kept in
+  /* Short labels translated; sentences about money kept in
      English until a native reviewer rewrites them. */
   walletSend: {
     availableBalance: "Ego dị ugbu a",
@@ -3060,7 +3056,7 @@ export const ig: Dictionary = withFallback({
     requestSub: "Njikọ nke ego ole dịlarị n'ime ya",
   },
 
-  /* Build 05, FE-3. Short labels translated; sentences about money kept in
+  /* Short labels translated; sentences about money kept in
      English until a native reviewer rewrites them. */
   paymentsPage: {
     title: "Ụzọ ịkwụ ụgwọ",
@@ -3126,7 +3122,7 @@ export const ig: Dictionary = withFallback({
     blockEmpty: "Enweghị kaadị ma ọ bụ akaụntụ ụlọ akụ echekwara. Tinye otu, ịkwụ ụgwọ ma ọ bụ iwepụ ego bụ otu mmetụ.",
   },
 
-  /* Build 05, FE-4. Short labels translated; longer sentences kept in English
+  /* Short labels translated; longer sentences kept in English
      until a native reviewer rewrites them. */
   stayDetail: {
     aboutTitle: "Maka ebe a",
@@ -3179,7 +3175,7 @@ export const ig: Dictionary = withFallback({
     },
   },
 
-  /* Build 05, FE-11. Short labels translated; the longer sentences kept in
+  /* Short labels translated; the longer sentences kept in
      English until a native reviewer rewrites them. */
   restaurantPage: {
     fallbackTitle: "Ụlọ oriri",
@@ -3206,7 +3202,7 @@ export const ig: Dictionary = withFallback({
     loading: "Na-ebubata ụlọ oriri a",
   },
 
-  /* The catalogue and stays surfaces (F3, Build 06). */
+  /* The catalogue and stays surfaces. */
   catalogue: {
     card: {
       forRent: "Maka mgbazinye",
@@ -3325,7 +3321,7 @@ export const ig: Dictionary = withFallback({
       notFound: "Ndepụta ahụ adịghịzi.",
       notRental: "Naanị ụlọ mgbazinye nwere ụgwọ mbanye.",
     },
-    /* Ibe ndebe ọnọdụ (/bookings). Build 06, F3. */
+    /* Ibe ndebe ọnọdụ (/bookings). */
     bookings: {
       statusLabel: "Ọnọdụ ndebe",
       upcoming: "Na-abịa",
@@ -3355,11 +3351,11 @@ export const ig: Dictionary = withFallback({
       step1Title: "Họrọ ụbọchị gị",
       step1Body: "Họrọ ụbọchị mbanye na ụbọchị ọpụpụ na kalenda dị ndụ.",
       step2Title: "Kwenye ma kwụọ",
-      step2Body: "Ịkwụ ụgwọ nwere nchekwa na naira. Anyị anaghị anara gị ụgwọ n'oge na-erubeghị.",
+      step2Body: "Ịkwụ ụgwọ na naira site na Paystack. Anyị anaghị anara gị ụgwọ n'oge na-erubeghị.",
       step3Title: "Nwee obi ụtọ na ebe obibi gị",
       step3Body: "Nkọwa mbanye ga-abịa ebe a nakwa site na email.",
     },
-    /* Mgbazinye abụghị ebe obibi: o nwere ụbọchị mbanye na oge ụgwọ ụlọ. Build 06, F3. */
+    /* Mgbazinye abụghị ebe obibi: o nwere ụbọchị mbanye na oge ụgwọ ụlọ. */
     tenancy: {
       section: "Mgbazinye gị",
       sectionLine: "Ụgwọ ụlọ ị malitere ịkwụ na Vallo.",
@@ -3479,7 +3475,7 @@ export const ig: Dictionary = withFallback({
   /* TRACK P: ibe ụlọ abụọ na ogwe ala. */
   directHome: {
     heroTitle: "Chọta ụlọ ọzọ gị",
-    heroLede: "Gbazinye, zụta maọbụ tinye ego n'ụlọ ndị a nyochara na Naịjirịa niile.",
+    heroLede: "Gbazinye, zụta maọbụ ree ụlọ na Naịjirịa niile.",
     heroSearch: "Chọọ site na ebe, ụdị ụlọ",
     filters: "Nzacha",
     featured: "Ụlọ ndị a kapịrị ọnụ",
@@ -3487,7 +3483,7 @@ export const ig: Dictionary = withFallback({
     parkingMany: "ebe ịdọba ụgbọala {count}",
     buy: "Zụta",
     rent: "Gbazinye",
-    manage: "Lekọta",
+    manage: "Depụta ụlọ",
     invest: "Tinye ego",
     investNote: "Ụlọ ndị e gosipụtara maka uru ha. Vallo anaghị ere ngwaahịa itinye ego ọ bụla.",
     stays: {
@@ -3501,8 +3497,8 @@ export const ig: Dictionary = withFallback({
       shortletsNote: "Ọ dị ka ụlọ",
       restaurants: "Ụlọ oriri",
       restaurantsNote: "Nri dị ụtọ",
-      nearby: "Nso ebe a",
-      nearbyNote: "Chọpụta ógbè",
+      nearby: "Okwu ógbè",
+      nearbyNote: "Ihe ndị mmadụ na-ekwu",
     },
     dock: {
       switchProfile: "Gbanwee",
@@ -3661,7 +3657,7 @@ export const ig: Dictionary = withFallback({
           phone: "Nọmba ekwentị",
           nin: "Nọmba Njirimara Mba (NIN)",
           ninHint: "Ọnụọgụ iri na otu. Ị nwere ike itinye ya ma emechaa ma ọ bụrụ na ị nweghị ya ugbu a.",
-          assurance: "Anyị na-enyocha onye ị bụ tupu e bipụta ihe ọ bụla.",
+          assurance: "Otu onye na Vallo na-agụ akwụkwọ arịrịọ gị, na ndepụta ọ bụla, tupu e bipụta ihe ọ bụla.",
         },
         where: {
           title: "Ebee ka ị nwere ụlọ?",

@@ -24,8 +24,8 @@ import { BrandIcon } from "@/design-system/icons/BrandIcon";
  * visible. Where no dock is rendered the row goes to `/profile/setup`, the
  * workspace chooser, which is the other half of the same sheet.
  *
- * The coupling to a class name is recorded as request 1 in
- * `docs/SESSION_B_SCOPE.md`, asking for a trigger prop so it can go.
+ * The coupling to a class name is deliberate and temporary: a trigger prop on
+ * the dock's switch would let it go.
  */
 export const DOCK_SWITCH_SELECTOR = ".nf-tab__link--switch";
 

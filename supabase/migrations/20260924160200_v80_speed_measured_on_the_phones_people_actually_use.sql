@@ -118,11 +118,10 @@ select cron.schedule('vallo_purge_web_vitals', '35 2 * * *', 'select private.pur
 
 do $$
 begin
-  if exists (
-    select 1 from information_schema.role_table_grants
-     where table_schema = 'public' and table_name = 'web_vitals_samples'
-       and grantee in ('anon', 'authenticated', 'PUBLIC')
-  ) then
+  /* has_table_privilege answers for the named role (a grant to PUBLIC
+     included), not only for the observer. */
+  if has_table_privilege('anon', 'public.web_vitals_samples', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')
+     or has_table_privilege('authenticated', 'public.web_vitals_samples', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER') then
     raise exception 'web_vitals_samples is not born locked';
   end if;
   if has_function_privilege('anon', 'public.admin_field_speed()', 'EXECUTE')

@@ -299,9 +299,8 @@ function HeldBody({
 }
 
 /**
- * A held event. It can be read and opened, not decided: Session A's
- * `decideHeldItem` has no event target, so the row says so and names the
- * request (AR-10) rather than offering a button that would do nothing.
+ * A held event. It can be read and opened, not decided: `decideHeldItem`
+ * has no event target, so the row says so rather than offering a button that would do nothing.
  */
 function eventRow(event: HeldEvent, ui: AdminUi, now: number): ModerationRow & { at: string } {
   return {

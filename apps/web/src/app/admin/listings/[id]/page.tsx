@@ -33,15 +33,15 @@ export const dynamic = "force-dynamic";
  * One listing under review, C1D98B3C panel 2, with the flow of GOVERNING-12
  * panel 2.
  *
- * Two reads. `getListingReviewExtras` (Session B's, lib/admin/reads) reads the
+ * Two reads. `getListingReviewExtras` (lib/admin/reads/listings.ts) reads the
  * listing by id: its map pin, amenity names, availability, whether it is an
  * example, the lister's verification, and the next listing waiting in the
  * reviewer's queue. The listing itself (photos, walkthrough, the admission
- * checklist, the itemised costs) is Session A's `getListingSubmissions` view,
+ * checklist, the itemised costs) is the `getListingSubmissions` view,
  * found by the listing's own title and status so the checklist and the costs
  * are computed in one place only.
  *
- * The decision bar calls Session A's `reviewListing` and nothing else.
+ * The decision bar calls `reviewListing` and nothing else.
  */
 export default async function ListingUnderReviewPage({
   params,

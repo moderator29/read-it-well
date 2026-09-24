@@ -26,7 +26,7 @@
  * and it is harder to spot than one of them saying it alone.
  *
  * THE TWO DOCUMENTS ARE THE OTHER HALF OF THIS AND THEY ARE STILL WRONG.
- * `docs/ICON_SYSTEM.md` and `docs/HANDOFF.md` rule 18 both state the scale as
+ * `docs/ICON_SYSTEM.md` and `docs/archive/HANDOFF.md` rule 18 both state the scale as
  * "12, 16, 20, 24, 28, 32" and the weight as 1.4, until 16 September 2026 when
  * they were corrected to match this file. The scale is
  * [16, 20, 24, 28, 32, 40] and `UI_ICON_STROKE_PX` is 1.5. Checked rather than
@@ -843,7 +843,7 @@ const PATHS: Record<UiIconName, React.ReactNode> = {
  * right one: the scale runs 12 to 32 on a 4px grid and adds 40 for display.
  * On-scale coverage goes from 137 of 197 call sites to 172.
  *
- * `docs/ICON_SYSTEM.md` and `docs/HANDOFF.md` rule 18 both listed 12 and both
+ * `docs/ICON_SYSTEM.md` and `docs/archive/HANDOFF.md` rule 18 both listed 12 and both
  * lost it when this file did. They need it back and their lines are named in
  * the report that accompanied this change.
  */

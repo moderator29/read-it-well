@@ -57,7 +57,7 @@ lists the off-brand details that must be translated rather than copied.
    **THIS SUPERSEDES THE EARLIER NOTE IN THIS SECTION**, which read "control
    shape follows the governing image ... where a render shows pill chips and
    capsule buttons, ship them", **and it supersedes the section 8 amendment
-   in `docs/BUILD_06_LEDGER.md`** that added `--nf-radius-control-pill` as a
+   in `docs/archive/BUILD_06_LEDGER.md`** that added `--nf-radius-control-pill` as a
    second control role. Both are withdrawn. The founder's ruling of
    19 September, with `GOVERNING-landing-desktop-hero.png` open: not one
    capsule in that image, and the only circle in it is the search glyph at
@@ -66,7 +66,8 @@ lists the off-brand details that must be translated rather than copied.
    squares and reserving the circle for avatars. It is not a preference and
    it is not reopened by a render that disagrees: where a render draws a
    capsule, that is a render mistake and rule 3 above governs it.
-   `apps/web/scripts/check-css-tokens.mjs` rule 10 fails the build on a pill
+   `apps/web/scripts/check-css-tokens.mjs` rule 10 (part of `npm run lint`,
+   which CI runs; the Vercel build does not) fails on a pill
    radius on a control, in the stylesheets and in TSX, so drift cannot
    reopen it either.
 
@@ -93,6 +94,36 @@ lists the off-brand details that must be translated rather than copied.
    anatomy, same rhythm, so the whole product reads as one object. The
    founder: "the ones we didn't create image should be done too in this
    idea".
+
+### 1.1 The measurement rules, R-A to R-G
+
+Code comments cite these by letter. They settle questions that come up every
+time a surface is built to a render, so the same question gets the same answer
+everywhere.
+
+- **R-A. Type at the render's size, with a floor, per role.** Every text role
+  takes the render's measured size. A role is raised only where that would be
+  unreadable, and only to the floor, never by a whole-surface factor: body,
+  subtitle, caption and label 11px; a value typed into an input 16px (iOS
+  zooms the page below that); names, titles, headings and figures at the
+  render's measured size, not scaled.
+- **R-B. Controls at the render's height, with a 44px floor.** A pressable
+  control takes the render's measured height unless that is under 44px, in
+  which case it is 44px. Everything around it keeps the render's proportions.
+- **R-C. Containers at the render's measured width.** Where a real string
+  cannot fit at the floor sizes, the text wraps before the container grows.
+- **R-D. Controls clear the shape review line.** A clean shape sweep means no
+  control at or above 0.35 (radius over short side), not only none at 0.5.
+- **R-E. The admin console lands on the overview on every entry, including by
+  address.** The first request to any `/admin/**` desk in a browser session
+  goes to `/admin`, which offers the desk the operator was heading for as its
+  first link.
+- **R-F. Real function beats pixel parity, and is drawn compactly.** A control
+  the product needs and the render does not draw stays, drawn in the render's
+  register as compactly as the render's own nearest element.
+- **R-G. Proofs are reproducible.** Every fixture harness a screenshot comes
+  from is committed under `apps/web/src/app/(dev)/preview/`, behind the preview
+  gate, so anyone can re-run the shots and the shape sweep.
 
 ## 2. The five governing images (founder-chosen, named in the folder)
 
@@ -170,7 +201,7 @@ lists the off-brand details that must be translated rather than copied.
    dark state until the key lands, display-only (no trading, no advice
    copy). No new colour: price-up is emerald, price-down is rose.
 5. **Icons: the blue glass objects everywhere content icons appear.** The
-   repo's glass pack (103 objects + light twins) is the source. Where a
+   repo's glass pack (the dark objects in `public/brand/glass/`) is the source. Where a
    render uses a glass object we do not have (catalogue lists them), CROP
    it from the reference PNG, alpha-key it with the existing
    `scripts/cut-icon-ground.mjs` pipeline, file it through
@@ -198,10 +229,9 @@ lists the off-brand details that must be translated rather than copied.
 
 A surface closes only when ALL of these hold:
 1. Screenshot at 390px dark matches the governing image's composition,
-   depth and mood side by side (the worker attaches the comparison to the
-   ledger note).
-2. The light theme is designed, not derived: same anatomy on paper per the
-   existing light law.
+   depth and mood side by side, with the comparison kept with the change.
+2. Dark only: there is no light theme to verify
+   (`docs/design/LIGHT_MODE_REMOVED.md`).
 3. Every control on the screen is FUNCTIONAL end to end (the ONE LAW):
    real action, real data, real state change, notification where deserved.
    Nothing ships as a picture of a feature.

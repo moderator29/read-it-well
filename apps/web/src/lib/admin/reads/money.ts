@@ -16,7 +16,7 @@ import {
 import type { LedgerPage, MoneyFlow, MoneyPulse, ReconciliationHealth, RentCharges } from "./money-types";
 
 /**
- * THE MONEY DESK'S READS. Session B's, under the founder's reads split of 22
+ * THE MONEY DESK'S READS, under the founder's reads rule of 22
  * September: select and aggregate only, through the admin's own RLS-bound
  * client from `requireAdmin()`, never the service role. `wallets`,
  * `wallet_entries`, `escrows`, `transactions`, `profiles` and `audit_log` all

@@ -19,7 +19,7 @@
  * and the brand edge never landed on anything.
  *
  * WHAT THAT COST. It is R1's finding A5 seen from underneath. Three separate
- * workers spent this cycle moving resting controls off grey hairlines and on
+ * changes moved resting controls off grey hairlines and on
  * to the brand edge, a guard rule was added to `check-css-tokens.mjs` so it
  * could not regress, and the checker passed, because it greps source text and
  * the source text was correct. On screen nothing moved. F4 measured it on a
@@ -127,9 +127,9 @@ body {
    * for every descendant - and every shell on this platform has sticky chrome.
    */
   overflow-x: clip;
-  /* Native app feel on touch: no grey tap flash, no rubber-band past the ends. */
+  /* Native app feel on touch: no grey tap flash. (The no-rubber-band rule is
+     on `html` below: only the root element's value reaches the viewport.) */
   -webkit-tap-highlight-color: transparent;
-  overscroll-behavior-y: none;
 }
 
 /*
@@ -140,6 +140,9 @@ body {
  */
 html {
   overflow-x: clip;
+  /* UI-19: no rubber-band past the ends. By spec only the root element's
+     overscroll-behavior applies to the viewport; on `body` it did nothing. */
+  overscroll-behavior-y: none;
 }
 
 /* Pointer clicks never draw a focus rectangle; keyboard focus keeps the ring. */

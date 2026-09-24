@@ -172,7 +172,7 @@ try {
   );
   await ctx3.close();
 
-  /* THE SIGNED-IN ENDING, through the committed fixture harness (lead ruling
+  /* THE SIGNED-IN ENDING, through the committed fixture harness (rule
      R-G). It needs the server started with VALLO_PREVIEW_HARNESS=1; without
      it the harness answers 404 and these checks say so rather than pass. */
   console.log("\nThe signed-in ending (fixture harness)");

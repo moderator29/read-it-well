@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getDictionary } from "@vallo/i18n";
+import { countOf, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getKycQueue, type KycSubjectView } from "@/lib/admin/kyc-queries";
 import { getSupplyRoles, getVerificationSummary } from "@/lib/admin/reads/verification";
@@ -166,7 +166,7 @@ export default async function AdminKycPage({
                     <summary style={{ gridTemplateColumns: "minmax(0, 1fr) auto" }}>
                       <span className="nf-rv-rows__cell">{subject.displayName ?? "No display name"}</span>
                       <span className="nf-rv-rows__cell nf-rv-table__muted">
-                        {subject.documents.length} {subject.documents.length === 1 ? "document" : "documents"}
+                        {countOf(subject.documents.length, "documents")}
                       </span>
                     </summary>
                     <div className="nf-rv-detail__body">

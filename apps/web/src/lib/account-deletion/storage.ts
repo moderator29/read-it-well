@@ -138,11 +138,14 @@ export async function purgeStorage(
   door: StorageDoor,
   userId: string,
   explicit: Partial<Record<string, readonly string[]>>,
+  /** The buckets to sweep; every bucket unless the caller keeps some. */
+  only: readonly StorageBucket[] = STORAGE_BUCKETS,
 ): Promise<StoragePurgeResult> {
   const buckets: BucketOutcome[] = [];
   const counts: Record<string, number> = {};
 
   for (const bucket of STORAGE_BUCKETS) {
+    if (!only.includes(bucket)) continue;
     const paths = new Set<string>();
     let failed = false;
 

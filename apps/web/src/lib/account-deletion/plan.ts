@@ -53,12 +53,17 @@ export const DESTROYED_TABLES: readonly DestroyedTable[] = [
   { table: "user_roles", note: "roles" },
   { table: "payment_methods", note: "saved cards" },
   { table: "bank_accounts", note: "saved bank accounts" },
-  { table: "payout_accounts", note: "payout accounts" },
-  { table: "agent_documents", note: "identity and agency documents, rows and objects" },
+  { table: "payout_accounts", note: "payout accounts (an approved agent's: kept five years, then destroyed)" },
+  { table: "agent_documents", note: "identity and agency documents, rows and objects (an approved agent's: kept five years, then destroyed)" },
   { table: "business_documents", note: "host and business documents, rows and objects" },
   { table: "listing_photos", note: "photographs they uploaded" },
   { table: "listing_videos", note: "films they uploaded" },
   { table: "message_attachments", note: "pictures they sent in a thread" },
+  { table: "push_tokens", note: "notification addresses on their devices" },
+  { table: "known_devices", note: "the device records used to warn about new sign-ins" },
+  { table: "email_outbox", note: "emails queued or sent to them" },
+  { table: "price_check_events", note: "their price-check steps" },
+  { table: "price_check_watches", note: "saved price-check spots" },
 ];
 
 export type RetainedTable = {

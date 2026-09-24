@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getDictionary } from "@vallo/i18n";
+import { countOf, DEFAULT_LOCALE, getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import { getMyBusinesses, getMyHostDraft, type MyBusiness } from "@/lib/host/queries";
@@ -66,7 +66,7 @@ export default async function HostPage() {
 
   return (
     <HostShell logoLabel={t.a11y.logoHome}>
-      <HostStandingBody businesses={businesses} draft={draft.businessId ? draft : null} />
+      <HostStandingBody businesses={businesses} draft={draft.businessId ? draft : null} locale={locale} />
     </HostShell>
   );
 }
@@ -81,8 +81,10 @@ export default async function HostPage() {
 export function HostStandingBody({
   businesses,
   draft: open,
+  locale = DEFAULT_LOCALE,
 }: {
   businesses: MyBusiness[];
+  locale?: Locale;
   /** The application still in progress, or null when there is none. */
   draft: HostDraft | null;
 }) {
@@ -96,7 +98,7 @@ export function HostStandingBody({
           <p className={`mt-row ${TYPE.bodyLg}`}>
             {businesses.length === 0
               ? "Nothing listed yet. One application, saved as you go."
-              : `${businesses.length} business${businesses.length === 1 ? "" : "es"} on this account.`}
+              : `${countOf(businesses.length, "businesses", locale)} on this account.`}
           </p>
         </div>
         {/* A HOST WHO HAS NOT STARTED IS ASKED WHAT THEY ARE, NOT ASKED TO
@@ -118,7 +120,7 @@ export function HostStandingBody({
                 ? "A person reads it next. We write to you when it has been read."
                 : missing.length === 0
                   ? "Everything is in. Open it and send it for review."
-                  : `${missing.length} thing${missing.length === 1 ? "" : "s"} still to add before it can be sent.`
+                  : `${countOf(missing.length, "things", locale)} still to add before it can be sent.`
             }
           >
             <Link href="/host/apply" className="nf-panel nf-panel--card nf-host-choice">

@@ -584,18 +584,16 @@ begin
      or has_table_privilege('anon', 'private.inspection_handshake_seeds', 'SELECT') then
     raise exception 'the handshake seeds are readable by an API role';
   end if;
-  if exists (
-    select 1 from information_schema.role_table_grants
-     where table_schema = 'public' and table_name = 'inspection_delegates'
-       and grantee in ('anon', 'authenticated', 'PUBLIC')
-  ) then
+  /* has_table_privilege answers for the named role (a grant to PUBLIC
+     included); information_schema's grant views answer only for the
+     observer, and pass by seeing nothing. */
+  if has_table_privilege('anon', 'public.inspection_delegates', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')
+     or has_table_privilege('authenticated', 'public.inspection_delegates', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER') then
     raise exception 'inspection_delegates is not born locked';
   end if;
-  if exists (
-    select 1 from information_schema.role_table_grants
-     where table_schema = 'public' and table_name = 'inspection_checkins'
-       and (grantee in ('anon', 'PUBLIC') or (grantee = 'authenticated' and privilege_type <> 'SELECT'))
-  ) then
+  if has_table_privilege('anon', 'public.inspection_checkins', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')
+     or has_table_privilege('authenticated', 'public.inspection_checkins',
+                            'INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER') then
     raise exception 'inspection_checkins grants more than select to authenticated';
   end if;
   if has_function_privilege('anon', 'public.inspection_handshake(uuid)', 'EXECUTE')

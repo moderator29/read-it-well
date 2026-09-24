@@ -1251,7 +1251,7 @@ for (const file of [...filesUnder(TOKENS, [".css"]), ...ROOTS.flatMap((dir) => f
  * somebody describing a file they were about to create.
  *
  * WHAT COUNTS AS A PATH. A slash, and an extension this repository actually
- * uses. That is deliberately narrow: `HANDOFF_03 section 2.3` and `inbox item
+ * uses. That is deliberately narrow: `BRIEF section 2.3` and `inbox item
  * 226` are references to things outside the tree and are none of this check's
  * business, and a check that reported them would be switched off in a week.
  *

@@ -56,6 +56,7 @@ export function EscrowRuling({
   const [note, setNote] = useState("");
   const [direction, setDirection] = useState<"release" | "refund" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
   function run() {
@@ -67,6 +68,9 @@ export function EscrowRuling({
         setError(result.fieldErrors?.["note"] ?? result.error);
         return;
       }
+      /* ESC-07. At or above the two-person threshold the first ruling is a
+         proposal; say so, because nothing has moved yet. */
+      setNotice(result.data.outcome === "awaiting_second_approval" ? result.data.message : null);
       setNote("");
       setDirection(null);
       router.refresh();
@@ -154,6 +158,11 @@ export function EscrowRuling({
         </div>
       )}
       <Refusal message={error} />
+      {notice ? (
+        <p role="status" className="nf-body-sm mt-row font-medium text-content-2">
+          {notice}
+        </p>
+      ) : null}
     </div>
   );
 }

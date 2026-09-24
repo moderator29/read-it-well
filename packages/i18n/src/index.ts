@@ -1,4 +1,4 @@
-import { en, type Dictionary } from "./locales/en";
+import { en, type Dictionary, type UnitNoun } from "./locales/en";
 import { yo } from "./locales/yo";
 import { ha } from "./locales/ha";
 import { ig } from "./locales/ig";
@@ -6,7 +6,7 @@ import { suppliedKeys } from "./locales/fallback";
 import { matchAcceptLanguage } from "./negotiate";
 import type { CountForms, PluralForms } from "./plural";
 
-export type { Dictionary };
+export type { Dictionary, UnitNoun };
 export { suppliedKeys };
 export type { CountForms, PluralForms };
 export {
@@ -79,6 +79,9 @@ export const intlTag: Record<Locale, string> = {
  * Amounts are ALWAYS integer minor units (kobo). Never pass a float, and never
  * store one. 100 kobo is 1 naira. This is the only place that divides.
  */
+/** Below ₦1,000 (in kobo) compact money is written in full (UI-13). */
+export const COMPACT_FROM_MINOR = 100_000;
+
 export function formatMoney(
   minorUnits: number,
   locale: Locale = DEFAULT_LOCALE,
@@ -87,7 +90,10 @@ export function formatMoney(
 ): string {
   const major = minorUnits / 100;
 
-  if (options.compact) {
+  /* UI-13: under ₦1,000 there is nothing to abbreviate, and compact
+     notation would round kobo away (1 kobo read "₦0", 99 kobo "₦1"), so the
+     full figure is written instead. */
+  if (options.compact && Math.abs(minorUnits) >= COMPACT_FROM_MINOR) {
     /*
      * COMPACT USED TO BE WRONG, AND WRONG ABOUT MONEY.
      *
@@ -131,7 +137,11 @@ export function formatMoney(
          ₦180.0m. A whole figure prints whole. */
       minimumFractionDigits: 0,
       maximumFractionDigits: 1,
-    }).format(major);
+      /* UI-13: truncate, never round up across a boundary: ₦999,999.99 is
+         "₦999.9k", not "₦1m". An abbreviation may hide the tail of a figure;
+         it may not state a bigger one. */
+      roundingMode: "trunc",
+    } as Intl.NumberFormatOptions).format(major);
     return compact.replace(/[A-Za-z]+$/, (suffix) => suffix.toLowerCase());
   }
 
@@ -236,6 +246,25 @@ export function plural(
 ): string {
   const category = rulesFor(locale).select(count);
   const template = forms[category] ?? forms.other;
+  return template.replace(/\{count\}/g, formatNumber(count, locale));
+}
+
+/**
+ * A counted phrase from the dictionary's `units` table: `countOf(3,
+ * "bedrooms", "en")` is "3 bedrooms". The one door every component uses
+ * instead of writing `n === 1 ? "x" : "xs"` itself.
+ */
+export function countOf(count: number, noun: UnitNoun, locale: Locale = DEFAULT_LOCALE): string {
+  const dictionary = getDictionary(locale);
+  /*
+   * A unit the locale has not translated is English text, so it takes
+   * English's categories: a Yoruba page still reads "1 bed" rather than the
+   * "1 beds" Yoruba's single category would pick from English forms. The
+   * number itself is always formatted for the page's locale.
+   */
+  const translated = locale === "en" || suppliedKeys(dictionary).has(`units.${noun}.other`);
+  const forms = dictionary.units[noun];
+  const template = forms[rulesFor(translated ? locale : "en").select(count)] ?? forms.other;
   return template.replace(/\{count\}/g, formatNumber(count, locale));
 }
 

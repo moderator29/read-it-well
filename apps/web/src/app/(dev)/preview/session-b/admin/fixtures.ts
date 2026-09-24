@@ -1,4 +1,4 @@
-// Session B admin-shell fixture harness (lead ruling R-G): fixture props for
+// Admin console fixture harness: fixture props for
 // the real console components, behind the preview gate, so the proof shots and
 // the shape sweep can be re-run by anyone. Figures here are fixtures, never data.
 import type { AlertView } from "@/lib/admin/queries";

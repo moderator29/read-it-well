@@ -16,10 +16,16 @@ import {
 import { recordAlert } from "@/lib/alerts";
 import { recordTermsAcceptance } from "@/lib/legal/acceptance";
 import { TERMS_VERSION } from "@/lib/legal/versions";
-import { termsRefusal } from "./terms-gate";
+import { ageConfirmed, ageRefusal, termsRefusal } from "./terms-gate";
 import { welcomeOnce } from "@/lib/notify/welcome";
 import { authOrigin } from "@/lib/site";
-import { getProviderStates } from "./providers";
+import {
+  getProviderStates,
+  providerAllowed,
+  resolveProviderStates,
+  socialProviderOfSession,
+  surfaceFromUserAgent,
+} from "./providers";
 import { HEAR_ABOUT_VALUES, REFERRAL_CODE_RE } from "./signup-options";
 import { CONFIRMATION_CODE_RE, codeLengthWord } from "./confirmation-code";
 import {
@@ -60,7 +66,10 @@ const field = (formData: FormData, name: string) => String(formData.get(name) ??
  * When the auth backend is not configured the action says so plainly instead of
  * pretending the account was created.
  */
-function validateCredentials(formData: FormData): Partial<Record<AuthField, string>> {
+function validateCredentials(
+  formData: FormData,
+  purpose: "sign-in" | "sign-up" = "sign-up",
+): Partial<Record<AuthField, string>> {
   const email = field(formData, "email").trim();
   const password = field(formData, "password");
 
@@ -71,7 +80,9 @@ function validateCredentials(formData: FormData): Partial<Record<AuthField, stri
   else if (!EMAIL_RE.test(email)) errors.email = "That does not look like a valid email.";
 
   if (!password) errors.password = "Enter your password.";
-  else if (password.length < 8) errors.password = "Use at least 8 characters.";
+  /* UX-28: the length rule is a sign-up rule. On sign-in a short password is
+     simply a wrong one, and the server says so in the same words as any other. */
+  else if (purpose === "sign-up" && password.length < 8) errors.password = "Use at least 8 characters.";
   else if (password.length > 200) errors.password = "That password is too long.";
 
   return errors;
@@ -137,6 +148,8 @@ function validateSignUp(formData: FormData): Partial<Record<AuthField, string>> 
      stood in front of it was reading markup as text. */
   const refusal = termsRefusal(field(formData, "termsVersion"));
   if (refusal) errors.acceptTerms = refusal;
+  const underAge = ageRefusal(field(formData, "ageConfirmed"));
+  if (underAge) errors.ageConfirmed = underAge;
 
   if (!hearAbout) errors.hearAbout = "Tell us where you heard about us.";
   else if (!HEAR_ABOUT_VALUES.includes(hearAbout))
@@ -293,7 +306,7 @@ export async function signInWithEmail(
   _prev: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
-  const fieldErrors = validateCredentials(formData);
+  const fieldErrors = validateCredentials(formData, "sign-in");
   if (Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
 
   if (!emailConfigured()) return { ok: false, message: NOT_CONNECTED_MESSAGE };
@@ -384,7 +397,8 @@ export async function signUpWithEmail(
     email,
     password: field(formData, "password"),
     options: {
-      emailRedirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent("/home")}`,
+      /* UX-02: the email link lands where the form was going, as the code does. */
+      emailRedirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent(landingAfterAuth(formData))}`,
       data: {
         first_name: firstName,
         surname,
@@ -455,7 +469,9 @@ export async function signUpWithEmail(
   if (data.user) {
     const submitted = field(formData, "termsVersion").trim();
     if (submitted === TERMS_VERSION) {
-      await recordTermsAcceptance(data.user.id, "signup_email");
+      await recordTermsAcceptance(data.user.id, "signup_email", {
+        ageConfirmed: ageConfirmed(field(formData, "ageConfirmed")),
+      });
     }
   }
 
@@ -734,6 +750,14 @@ export async function completeEmailVerification(input: {
     return { ok: false, reason: "invalid" };
   }
 
+  /* STORE-02 / STORE-03: A PROVIDER THE PLATFORM HAS SWITCHED OFF IS REFUSED
+     HERE, NOT ONLY LEFT UNDRAWN. Somebody can still build the Supabase
+     authorize URL for Google by hand, and the dashboard will honour it until
+     the provider is switched off there too; the session it produces is
+     ended before it is used, whatever the screens drew. */
+  const refused = await refuseSwitchedOffProvider(supabase);
+  if (refused) return refused;
+
   await forgetPendingEmail();
   /* The link half of the same moment. Same key, same unique index, so two taps
      on one email and the trigger's own row are still one welcome. */
@@ -743,6 +767,26 @@ export async function completeEmailVerification(input: {
   // the signed-in tree rather than the anonymous one behind this screen.
   revalidatePath("/", "layout");
   return { ok: true, next };
+}
+
+async function refuseSwitchedOffProvider(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+): Promise<VerificationOutcome | null> {
+  const [{ data: sessionData }, { data: userData }] = await Promise.all([
+    supabase.auth.getSession(),
+    supabase.auth.getUser(),
+  ]);
+  const provider = socialProviderOfSession(
+    sessionData.session?.access_token,
+    userData.user?.identities ?? [],
+  );
+  if (provider === null) return null;
+  /* The callback runs in a web view or a browser; its surface is read from
+     the same header the sign-in screen used. */
+  const states = await resolveProviderStates(surfaceFromUserAgent((await headers()).get("user-agent")));
+  if ((provider === "google" || provider === "apple") && providerAllowed(states, provider)) return null;
+  await supabase.auth.signOut({ scope: "local" });
+  return { ok: false, reason: "provider-off" };
 }
 
 /**
@@ -790,7 +834,7 @@ export async function resendSignUpCode(
     type: "signup",
     email,
     options: {
-      emailRedirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent("/home")}`,
+      emailRedirectTo: `${await authOrigin()}/auth/callback?next=${encodeURIComponent(landingAfterAuth(formData))}`,
     },
   });
 
@@ -828,8 +872,14 @@ export async function startOAuth(
   provider: "google" | "apple",
   formData: FormData = new FormData(),
 ): Promise<AuthFormState> {
-  const states = getProviderStates();
-  if (!states.some((p) => p.id === provider && p.configured)) {
+  /* THE SERVER'S ANSWER, for THIS surface. A form posted by hand from a page
+     that never drew the button reaches here and is refused the same way. */
+  const surface = surfaceFromUserAgent((await headers()).get("user-agent"));
+  const states = await resolveProviderStates(surface);
+  /* The redirect cannot complete inside a native shell (STORE-03), so even an
+     allowed provider is refused there; the iOS shell signs in with Apple
+     through `signInWithAppleIdToken` instead. */
+  if (surface !== "web" || !providerAllowed(states, provider)) {
     return {
       ok: false,
       message: "That sign-in method is not switched on yet. Use your email address for now.",
@@ -857,6 +907,43 @@ export async function startOAuth(
 
   if (error || !data.url) return { ok: false, message: authMessage(error?.message ?? "") };
   redirect(data.url);
+}
+
+/**
+ * Sign in with Apple from the iOS shell's native sheet (STORE-02).
+ *
+ * The sheet hands the page an identity token signed by Apple; Supabase checks
+ * that signature and the nonce and issues the session, and the cookies are
+ * written here, in the same jar the web view uses. Refused unless Supabase
+ * reports the Apple provider enabled and the policy allows it on this surface.
+ */
+export async function signInWithAppleIdToken(input: {
+  idToken: string;
+  nonce: string;
+  next?: string | undefined;
+}): Promise<{ ok: true; next: string } | { ok: false; message: string }> {
+  const surface = surfaceFromUserAgent((await headers()).get("user-agent"));
+  const states = await resolveProviderStates(surface);
+  if (surface !== "ios-native" || !providerAllowed(states, "apple")) {
+    return { ok: false, message: "That sign-in method is not switched on yet. Use your email address for now." };
+  }
+  if (typeof input.idToken !== "string" || input.idToken.length < 20 || input.idToken.length > 8192) {
+    return { ok: false, message: "Apple did not send a usable answer. Try again." };
+  }
+  if (typeof input.nonce !== "string" || input.nonce.length < 16 || input.nonce.length > 128) {
+    return { ok: false, message: "Apple did not send a usable answer. Try again." };
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithIdToken({
+    provider: "apple",
+    token: input.idToken,
+    nonce: input.nonce,
+  });
+  if (error) return { ok: false, message: authMessage(error.message) };
+  const { data } = await supabase.auth.getUser();
+  if (data.user) await welcomeOnce(data.user.id);
+  revalidatePath("/", "layout");
+  return { ok: true, next: landingFromPath(input.next) };
 }
 
 /* ------------------------------------------------------------ password reset */
@@ -970,6 +1057,16 @@ export async function updatePassword(
 
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return { ok: false, message: authMessage(error.message) };
+
+  /*
+   * SEC-08: a new password ends every OTHER session. A reset is what somebody
+   * does after losing a phone, and the thief's session used to keep working
+   * after it. `scope: 'others'` revokes every refresh token but this one, so
+   * those devices cannot mint a new access token. A failure here does not undo
+   * the password change; the devices screen can still end them one by one.
+   */
+  const { error: othersError } = await supabase.auth.signOut({ scope: "others" });
+  if (othersError) console.warn("[auth] password changed; ending other sessions failed:", othersError.message);
 
   // The password changed under the session the link created, so every cached
   // render of the signed-out shell has to go.

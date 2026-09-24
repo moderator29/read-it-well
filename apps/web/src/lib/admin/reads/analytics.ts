@@ -17,8 +17,7 @@ const QA_OR_NULL = `user_id.is.null,user_id.not.in.${QA_NOT_IN}`;
  * platform's first demand log, readable under `price_check_events_admin_read`).
  * WHAT IT CANNOT: site searches and listing views are not recorded, and a
  * decline of an inspection or reservation carries no reason, so those panels
- * say so and name their requests (A7 for searches, A8, A11 for declines in
- * docs/SESSION_B_SCOPE.md); nothing here estimates them.
+ * say so; nothing here estimates them.
  *
  * Examples (`is_demo`) are excluded from every supply figure.
  */

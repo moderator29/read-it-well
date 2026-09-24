@@ -20,7 +20,7 @@ import { ActionBar } from "@/components/ui/ActionBar";
 import { Amount } from "@/components/ui/Amount";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
-import { formatMoney, type Dictionary } from "@vallo/i18n";
+import { formatMoney, getDictionary, type Dictionary } from "@vallo/i18n";
 
 /**
  * The three ways to pay the rent.
@@ -38,8 +38,8 @@ import { formatMoney, type Dictionary } from "@vallo/i18n";
  * One idempotency key is minted per method per mount, so the second of two
  * taps on a flaky connection replays the first answer instead of paying
  * twice. The pending, stalled, failed and paid states are the checkout's own
- * result sheets, with tenancy words: "the agent has been paid and the keys
- * are yours to collect", never "these dates are yours".
+ * result sheets, with tenancy words ("arrange the keys"), never "these dates
+ * are yours", and never a claim that anybody has been paid out (V-33).
  */
 
 function newKey(): string {
@@ -117,6 +117,7 @@ export function PayPanel({
    */
   chargeSavedCard?: (methodId: string) => Promise<ActionResult<ChargeSavedCardOutcome>>;
 }) {
+  const c = getDictionary(view.locale).checkout;
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [slow, setSlow] = useState(false);
@@ -222,7 +223,7 @@ export function PayPanel({
     clearTimers();
     setPhase({
       kind: "error",
-      message: result.ok ? "The secure payment page could not be opened." : result.error,
+      message: result.ok ? c.pageNotOpened : result.error,
     });
   };
 
@@ -240,21 +241,21 @@ export function PayPanel({
     }
     setPhase({
       kind: "error",
-      message: result.ok ? "The payment could not be completed." : result.error,
+      message: result.ok ? c.notCompleted : result.error,
     });
   };
 
   const panel = (
     <section aria-labelledby="nf-rent-pay">
       <h2 id="nf-rent-pay" className="nf-h3">
-        How would you like to pay?
+        {c.howToPay}
       </h2>
       <ul className="mt-block grid gap-row">
         {savedCardsOffered && (
           <Option
             icon="card-lock"
-            title="Pay with a saved card"
-            body="The card you saved, charged straight away. Your card details still never touch Vallo."
+            title={c.savedCardTitle}
+            body={c.savedCardBody}
             action={
               <div>
                 <SavedCardPicker
@@ -271,7 +272,7 @@ export function PayPanel({
                   disabled={busy || chosenCard === null}
                   loading={phase.kind === "saved-card-charging"}
                 >
-                  Pay with this card
+                  {c.payWithThisCard}
                 </Button>
               </div>
             }
@@ -280,11 +281,11 @@ export function PayPanel({
         {view.cardAvailable ? (
           <Option
             icon="card-lock"
-            title={largeLead ? largeLead.largeLead : "Pay by card"}
+            title={largeLead ? largeLead.largeLead : c.cardTitle}
             body={
               largeLead
-                ? "A secure page in naira that offers bank transfer as well as card, then straight back here. Your card details never touch Vallo."
-                : "A secure page in naira, then straight back here. Your card details never touch Vallo."
+                ? largeLead.largeBody
+                : c.cardBody
             }
             note={largeLead ? largeLead.largeNote.replace("{amount}", view.totalDisplay) : undefined}
             action={
@@ -295,16 +296,16 @@ export function PayPanel({
                 disabled={busy}
                 loading={phase.kind === "card-starting"}
               >
-                {largeLead ? largeLead.largeLead : "Pay by card"}
+                {largeLead ? largeLead.largeLead : c.payByCard}
               </Button>
             }
           />
         ) : (
           <Option
             icon="card-lock"
-            title="Pay by card"
-            body="Card payment is not available right now."
-            note="Nothing has been charged. Pay from your wallet, or try the card again from here."
+            title={c.cardTitle}
+            body={c.cardUnavailable}
+            note={c.cardUnavailableRentNote}
           />
         )}
         {!view.routes.walletOffered ? (
@@ -312,20 +313,20 @@ export function PayPanel({
              so it is said here rather than discovered after a top-up. */
           <Option
             icon="wallet-secure"
-            title="Pay from your Vallo wallet"
+            title={c.walletTitle}
             body={
               payCopy
                 ? payCopy.walletTooLarge
                     .replace("{limit}", formatMoney(view.routes.walletLimitMinor, view.locale, view.currency))
                     .replace("{amount}", view.totalDisplay)
-                : "The wallet cannot take a payment this large in one movement."
+                : getDictionary(view.locale).afterTheGate.pay.walletTooLargeShort
             }
           />
         ) : view.walletCovers ? (
           <Option
             icon="wallet-secure"
-            title="Pay from your Vallo wallet"
-            body={`Your wallet holds ${view.walletBalanceDisplay}. Paying from it settles the rent straight away.`}
+            title={c.walletTitle}
+            body={c.walletCoversRent.replace("{balance}", view.walletBalanceDisplay)}
             action={
               <Button
                 variant="secondary"
@@ -334,19 +335,19 @@ export function PayPanel({
                 disabled={busy}
                 loading={phase.kind === "wallet-paying"}
               >
-                Pay from my wallet
+                {c.payFromWallet}
               </Button>
             }
           />
         ) : (
           <Option
             icon="wallet-secure"
-            title="Pay from your Vallo wallet"
-            body={`Your wallet holds ${view.walletBalanceDisplay}, and the move-in total comes to ${view.totalDisplay}.`}
-            note="Add money to your wallet first, or pay by card."
+            title={c.walletTitle}
+            body={c.walletShortRent.replace("{balance}", view.walletBalanceDisplay).replace("{total}", view.totalDisplay)}
+            note={c.walletShortNote}
             action={
               <ButtonLink href="/wallet" variant="secondary" full trailingIcon="arrow-right">
-                Open my wallet
+                {c.openWallet}
               </ButtonLink>
             }
           />
@@ -359,7 +360,7 @@ export function PayPanel({
       />
       <ActionBar>
         <p className="flex min-w-0 flex-1 flex-col">
-          <span className="nf-caption text-[var(--nf-content-muted)]">Move-in total</span>
+          <span className="nf-caption text-[var(--nf-content-muted)]">{c.moveInTotal}</span>
           <span className="min-w-0">
             <Amount
               minorUnits={view.totalMinor}
@@ -379,7 +380,7 @@ export function PayPanel({
             loading={phase.kind === "card-starting"}
             className="shrink-0"
           >
-            {largeLead ? largeLead.largeLead : "Pay by card"}
+            {largeLead ? largeLead.largeLead : c.payByCard}
           </Button>
         ) : view.walletCovers && view.routes.walletOffered ? (
           <Button
@@ -389,21 +390,18 @@ export function PayPanel({
             loading={phase.kind === "wallet-paying"}
             className="shrink-0"
           >
-            Pay from my wallet
+            {c.payFromWallet}
           </Button>
         ) : (
           <ButtonLink href="/wallet" variant="primary" className="shrink-0">
-            Add money
+            {c.addMoney}
           </ButtonLink>
         )}
       </ActionBar>
 
       <p className="nf-caption mt-block flex items-start gap-inline leading-relaxed text-[var(--nf-content-muted)]">
         <UiIcon name="verified" size="xs" className="mt-3xs shrink-0" />
-        <span>
-          Money moves inside Vallo, so the tenancy and the payment stay attached to each other.
-          Keep every conversation and every payment on the platform.
-        </span>
+        <span>{c.onPlatformRent}</span>
       </p>
     </section>
   );
@@ -447,15 +445,15 @@ export function PayPanel({
         open={phase.kind === "paid"}
         onOpenChange={() => setPhase({ kind: "idle" })}
         state="sent"
-        verdict="Rent paid"
+        verdict={c.rentPaid}
         fact={fact}
         locale={view.locale}
-        consequence="The agent has been paid and the move-in is recorded. Arrange the keys with them in your thread."
+        consequence={c.paidRent}
         actions={[
-          { label: "Open the thread", href: "/messages", tone: "primary" },
-          { label: "Back to the listing", href: `/listing/${view.listingId}`, tone: "quiet" },
+          { label: c.openThread, href: "/messages", tone: "primary" },
+          { label: c.backToListing, href: `/listing/${view.listingId}`, tone: "quiet" },
         ]}
-        footnote="Paid inside Vallo, recorded to the kobo."
+        footnote={c.paidFootnote}
       />
 
       <ResultSheet
@@ -465,23 +463,23 @@ export function PayPanel({
         blocking
         verdict={
           phase.kind === "opening"
-            ? "Preparing your payment"
+            ? c.preparingPayment
             : phase.kind === "wallet-paying"
-              ? "Paying from your wallet"
+              ? c.payingFromWallet
               : phase.kind === "saved-card-charging"
                 ? savedCardMoment({ kind: "charging" }, view.totalDisplay).verdict
-                : "Opening your payment page"
+                : c.openingPaymentPage
         }
         fact={fact}
         locale={view.locale}
         consequence={
           slow
-            ? "This is taking longer than usual. Nothing has moved yet and nothing has been charged. Stay here."
+            ? c.slowNothingMoved
             : phase.kind === "wallet-paying"
-              ? "Nothing leaves your wallet until this completes."
+              ? c.walletUntilComplete
               : phase.kind === "saved-card-charging"
                 ? savedCardMoment({ kind: "charging" }, view.totalDisplay).consequence
-                : "Nothing has been charged yet."
+                : c.nothingChargedYet
         }
       />
 
@@ -495,7 +493,7 @@ export function PayPanel({
         consequence={savedCardMoment(hostedPhase, view.totalDisplay).consequence}
         actions={[
           {
-            label: "Continue to your bank",
+            label: c.continueToBank,
             onClick: () => {
               /* The bank's page renders inside the checkout iframe, on this
                  page, under the same reference. */
@@ -510,7 +508,7 @@ export function PayPanel({
             },
             tone: "primary",
           },
-          { label: "Pay another way", onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },
+          { label: c.payAnotherWay, onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },
         ]}
       />
 
@@ -518,17 +516,17 @@ export function PayPanel({
         open={phase.kind === "stalled"}
         onOpenChange={() => setPhase({ kind: "idle" })}
         state="pending"
-        verdict="We have not heard back"
+        verdict={c.notHeardBack}
         fact={fact}
         locale={view.locale}
         consequence={
           phase.kind === "stalled" && phase.method === "wallet"
-            ? "Your wallet balance has not changed. Reload this page before you try again, so you do not pay twice."
-            : "Your card has not been charged. Reload this page before you try again, so you do not pay twice."
+            ? c.stalledWalletRent
+            : c.stalledCardRent
         }
         actions={[
-          { label: "Reload", onClick: () => router.refresh(), tone: "primary" },
-          { label: "Try again", onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },
+          { label: c.reload, onClick: () => router.refresh(), tone: "primary" },
+          { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },
         ]}
       />
 
@@ -536,16 +534,16 @@ export function PayPanel({
         open={phase.kind === "error"}
         onOpenChange={() => setPhase({ kind: "idle" })}
         state="failed"
-        verdict="Payment not completed"
+        verdict={c.paymentNotCompleted}
         fact={fact}
         locale={view.locale}
         consequence={failureConsequence(
           phase.kind === "error" ? phase.message : null,
-          "Nothing has been taken from your card or your wallet.",
+          c.nothingTaken,
         )}
         actions={[
-          { label: "Try again", onClick: () => setPhase({ kind: "idle" }), tone: "primary" },
-          { label: "Get help", href: "/help", tone: "quiet" },
+          { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "primary" },
+          { label: c.getHelp, href: "/help", tone: "quiet" },
         ]}
       />
 

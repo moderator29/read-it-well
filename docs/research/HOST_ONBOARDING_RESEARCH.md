@@ -13,7 +13,7 @@ says so plainly.
 Ground truth read first: `docs/research/TWO_MODE_BACKEND_RESEARCH.md`
 (sections 5 and 7), `docs/research/MARKETPLACE_ARCHITECTURE_RESEARCH.md`
 (sections 2.3 to 2.6), `docs/API_INVENTORY.md`,
-`docs/HANDOFF_05_UPGRADED_WIDE_PLATFORM_BUILD.md`, and the live agent
+`docs/archive/HANDOFF_05_UPGRADED_WIDE_PLATFORM_BUILD.md`, and the live agent
 verification code under `apps/web/src/lib/trust/verification.ts`,
 `apps/web/src/lib/agent/application.ts`,
 `apps/web/src/components/verification/kyc.ts` and

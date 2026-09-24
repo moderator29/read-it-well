@@ -11,6 +11,12 @@ Payments: Paystack. Transactional email: Resend. Deploy branch policy:
 `main` is never pushed to from a working session, so the production branch on
 Vercel should be whichever branch the owner promotes deliberately.
 
+Functions run in Dublin (`"regions": ["dub1"]` in `apps/web/vercel.json`,
+OPS-09), next to the database in eu-west-1. If the Vercel dashboard's
+Settings → Functions → Function Region shows something else, `vercel.json`
+wins on the next deploy. Confirm it once after deploying: the `x-vercel-id`
+response header should read `…::dub1::…`, not `iad1`.
+
 Order of operations, because some steps depend on earlier ones:
 
 1. Create the Vercel project and set the environment variables (section 2).
@@ -22,24 +28,62 @@ Order of operations, because some steps depend on earlier ones:
 
 ---
 
+## 0. Who owns the accounts (OPS-P2-02, FOUNDER)
+
+**Today the company does not own its own production.** The live database is Supabase project `uccixoonmbhrnyczyigt`. It sits in a project named after a personal Gmail address, inside an organisation called `Naijafinds`. Hosting is Vercel team `boosthubservice-2204's projects`, next to unrelated projects. A lost personal login or a lapsed personal card would take VALLO SPACES LTD's customer data, wallet ledger and KYC store with it.
+
+Only the founder can move them. Both moves keep the same URLs, keys and data.
+
+1. **A company identity.**
+   - Create `ops@vallospaces.com`, or any company-domain mailbox that is not one person's.
+   - Turn on 2FA and store the recovery codes somewhere a second director can reach.
+2. **Supabase.**
+   - Signed in as `ops@`, create the organisation **VALLO SPACES LTD**.
+   - Invite a second person as **Owner**.
+   - Put the company card on it and choose **Pro**, which gives daily backups (OPS-07). Point-in-time recovery is a separate add-on on top of Pro; turn it on too, because the wallet ledger is in this database.
+   - From an account that owns both organisations, open project `uccixoonmbhrnyczyigt`, then **Project Settings → General → Transfer project**, and choose VALLO SPACES LTD.
+   - The project URL and API keys do not change, so no Vercel variable changes.
+3. **Vercel.**
+   - Signed in as `ops@`, create the team **Vallo**.
+   - Invite a second **Owner**, put the company card on it, and move it to **Pro** BEFORE the transfer. The catalogue canary cron runs every 5 minutes, which Hobby does not allow, so a project transferred into a Hobby team loses its crons.
+   - In `boosthubservice-2204's projects`, open the Vallo project, then **Settings → General → Transfer Project**, and choose Vallo.
+   - Environment variables, deployments and cron jobs move with the project. Afterwards, check four things:
+     - `vallospaces.com` still shows *Valid Configuration* under Domains;
+     - the GitHub app is installed for the new team, so pushes still deploy;
+     - the next cron run appears in the logs;
+     - any Vercel ↔ Supabase integration is re-authorised for the new team and organisation. It is tied to the account that installed it, so it may need installing again.
+4. **Write it down here.** Fill in the table below. Remove the old personal accounts' access only after one deploy and one cron run have succeeded under the new owners.
+
+| Account | Organisation / team | Owners (two, by role) | Recovery codes kept at |
+|---|---|---|---|
+| Supabase | *to fill: VALLO SPACES LTD* | *to fill* | *to fill* |
+| Vercel | *to fill: Vallo* | *to fill* | *to fill* |
+| GitHub | *to fill* | *to fill* | *to fill* |
+
 ## 1. What is in the box
 
-Counts corrected 2026-08-09. They said 36 routes and 23 migrations, which was
-true on 2026-07-29 and understated the platform by a factor of three.
+Counted on 23 September 2026. Counts go stale within days on this repository;
+re-count rather than quoting them.
 
-- **85 page routes**, plus four API routes under `apps/web/src/app/api`:
-  `/api/assistant`, `/api/paystack/webhook`, `/api/support`, `/api/csp-report`.
-- **120 applied migrations, 71 tables**, RLS on every one, `private.*`
-  security-definer helpers. Nothing in this runbook needs a migration run by
-  hand unless section 4.6 says so.
-- **`pg_cron` installed with six active jobs.** They run whether or not the web
-  application is up. ADR-014.
+- **About 145 page routes and 26 API routes** under `apps/web/src/app`
+  (excluding the `(dev)` fixture harnesses).
+- **About 300 migrations** in `supabase/migrations/`, RLS on every table,
+  `private.*` security-definer helpers. Nothing in this runbook needs a
+  migration run by hand unless section 4.6 says so.
+- **`pg_cron` with 14 jobs**, which run whether or not the web application is
+  up (ADR-014), and **eight Vercel Cron jobs** declared in `apps/web/vercel.json`.
 - An installable PWA: `apps/web/src/app/manifest.ts` serves
   `/manifest.webmanifest`, `apps/web/public/sw.js` is the hand written service
   worker, `/offline` is the offline shell, and the icon set lives in
   `apps/web/public/pwa/`.
-- Five branded Supabase auth email templates in `supabase/templates/`, which
-  must be pasted into the dashboard by hand (section 4.4).
+- Auth email through the Send Email Hook (section 4.4), with generated
+  fallback templates in `supabase/templates/`.
+- **CI** in `.github/workflows/ci.yml`: typecheck, lint, tests and a build on
+  every push. The Build job reads two public values from repository
+  **Variables** (GitHub, Settings, Secrets and variables, Actions, Variables):
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY` (the publishable key) and
+  `NEXT_PUBLIC_MAPTILER_KEY` (the same value as Vercel Production). Without
+  them the run warns that it is not building production's config.
 
 ---
 
@@ -57,7 +101,7 @@ pointing here, because Next.js loads `.env.local` from the application
 directory and a value set at the workspace root is read by nothing.
 
 Every variable in that template is read by code, and every variable the code
-reads is in it. Section 2.5 lists what was removed to make that true, so that
+reads is in it. Section 2.6 lists what was removed to make that true, so that
 nobody re-adds a key on the strength of having seen it here once.
 
 ### 2.1 Required for the platform to do anything real
@@ -65,7 +109,7 @@ nobody re-adds a key on the strength of having seen it here once.
 | Variable | If it is missing | Where to obtain it |
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | The whole Supabase layer switches off. Every client is env-guarded, so nothing crashes: discovery returns **nothing** and every screen draws its designed empty state, sign-in and sign-up render as honest disabled states. The seed catalogue this row used to promise as a fallback was deleted, deliberately, and an honest absence replaced it (ADR-005). Nothing writes to a database. | Supabase dashboard, Project Settings, API. Already known for this project: `https://uccixoonmbhrnyczyigt.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Same as above. The URL alone is not enough; `isSupabaseConfigured()` requires both, and the auth middleware becomes a pass-through. | Supabase dashboard, Project Settings, API, "anon public" key |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Same as above. The URL alone is not enough; `isSupabaseConfigured()` requires both, and the auth proxy (`src/proxy.ts`) becomes a pass-through. | Supabase dashboard, Project Settings, API, "anon public" key |
 | `SUPABASE_SERVICE_ROLE_KEY` (SERVER ONLY) | **Set this first, and verify it.** Every path that must bypass RLS legitimately stops working, and the worst one does so silently: the Paystack webhook answers HTTP 200 with `{received:false}` and no log (`app/api/paystack/webhook/route.ts:242-243`), so Paystack never retries and a funding that was paid for is lost permanently. The redirect verify path takes the same branch. This is the most probable cause of the reported wallet failure: `RECOMMENDATIONS.md` W-1. Also affected: booking `confirm`, and anonymous support escalation (there is deliberately no anon insert policy on `support_tickets`). Signed-in user paths under their own RLS keep working. | Supabase dashboard, Project Settings, API, "service_role" key. Treat as a root password |
 | `NEXT_PUBLIC_SITE_URL` | Absolute URLs fall back to `http://localhost:3000`. Consequences: Open Graph and canonical URLs in page metadata point at localhost, Paystack callback URLs built by the wallet actions point at localhost, and rendered email links point at localhost. This is the single most commonly forgotten variable and the damage is invisible until someone shares a link. | Your own production URL, for example `https://vallospaces.com`. No trailing slash |
 
@@ -88,8 +132,6 @@ nobody re-adds a key on the strength of having seen it here once.
 
 | Variable | If it is missing | Where to obtain it |
 |---|---|---|
-| `AMADEUS_CLIENT_ID`, `AMADEUS_CLIENT_SECRET`, `AMADEUS_ENV` (SERVER ONLY) | Third-party hotel inventory stays absent. The provider layer is not built yet (see section 9). | https://developers.amadeus.com/register, then My Self-Service Workspace, Create app. Start on `test` |
-| `GOOGLE_PLACES_API_KEY` (SERVER ONLY) | No restaurant discovery or address autocomplete from Places. Not built yet. | https://console.cloud.google.com/apis/credentials with "Places API (New)" enabled |
 | `BASE_URL` | Nothing in the product. Read only by the Playwright specs in `apps/web/tests`, each of which defaults to its own localhost port. Set it only to point the suite at a deployed build. | Not a secret |
 
 ### 2.4 Social sign-in: do not configure it
@@ -112,7 +154,7 @@ applied and reads Google identity metadata on signup: provider secrets went into
 the Supabase dashboard and never into this application, which only ever read
 which buttons to draw.
 
-### 2.4 THE TWO CRON SECRETS, AND THE SPELLING THAT COST FOUR DAYS
+### 2.5 THE TWO CRON SECRETS, AND THE SPELLING THAT COST FOUR DAYS
 
 `lib/cron/auth.ts` has pointed readers at "docs/DEPLOY.md, section 2" for
 these since it was written, **and this section never mentioned them**. A
@@ -151,14 +193,14 @@ value produced this same silent 401. The same fault in SQL, where `btrim` with
 one argument strips spaces only, broke the database half of this on the same
 day.
 
-`vercel.json` declares the seven scheduled paths. If a job is missing from
+`apps/web/vercel.json` declares the scheduled paths (eight today). If a job is missing from
 there, no secret will help it.
 
 ---
 
-### 2.5 Removed from the template, and why
+### 2.6 Removed from the template, and why
 
-This document previously told you to set the eleven groups below. **The code
+This document previously told you to set the groups below. **The code
 reads none of them.** Verified by scanning every `process.env` reference in
 `apps/web`, `packages` and `scripts`; each has zero hits. They are listed here
 rather than deleted silently, so that finding one in an old deploy or an old
@@ -166,14 +208,15 @@ commit does not read as an accidental omission.
 
 | Variable | Why it is gone |
 |---|---|
-| `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | Funding redirects to Paystack's hosted checkout page (`authorization_url`), so the browser never initialises the Paystack SDK. Only the secret key is read |
+| `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | Checkout runs inline: the server initialises the transaction and the page resumes it by its access code in Paystack's iframe (`components/app/payments/PaystackCheckout.tsx`), a path that takes no public key. Only the secret key is read |
 | `PAYSTACK_WEBHOOK_SECRET` | Paystack issues no such thing. Webhooks are signed with an HMAC SHA-512 of the raw body keyed by the secret key. The phantom variable sent somebody hunting a dashboard field that does not exist |
 | `AUTH_DATABASE_URL` | A leftover of the pre-Supabase auth layer. `lib/auth/providers.ts` reads exactly one variable now, and this is not it |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Same leftover. These belong in the Supabase dashboard, per 2.4 |
 | `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` | Same |
 | `X_CLIENT_ID`, `X_CLIENT_SECRET` | Sign in with X was never built, and its API tier is paid |
-| `NEXT_PUBLIC_MAPTILER_KEY` | The map runs on Carto tiles and never reads a MapTiler key. The non-commercial licensing question is real and is tracked in `RECOMMENDATIONS.md` M-1, but an unread environment variable does not answer it |
-| `GOOGLE_MAPS_SERVER_KEY`, `NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY` | Same. Google Maps is not the map provider. `GOOGLE_PLACES_API_KEY` is separate and is read |
+| `GOOGLE_MAPS_SERVER_KEY`, `NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY` | Google Maps is not the map provider |
+| `GOOGLE_PLACES_API_KEY` | Places was part of the removed third-party inventory; nothing reads it |
+| `AMADEUS_CLIENT_ID`, `AMADEUS_CLIENT_SECRET`, `AMADEUS_ENV` | The hotel provider was removed on 7 August 2026 with these variables (ADR-013) |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Media goes to Supabase Storage |
 | `TERMII_API_KEY` | No SMS or OTP path calls it |
 | `TRAVELGATE_API_KEY` | Requires a signed commercial agreement that does not exist, and no code path awaits it |
@@ -212,7 +255,7 @@ headers configuration.
 
 **The Content Security Policy is the one exception, and it is set elsewhere.**
 It lives in `apps/web/src/lib/security/csp.ts` and is applied per request by
-`apps/web/src/middleware.ts`, because it carries a fresh nonce every time and a
+`apps/web/src/proxy.ts` (Next 16's name for middleware), because it carries a fresh nonce every time and a
 static header cannot. Do not move it into `next.config.ts` and do not add a
 second policy in Vercel: two `Content-Security-Policy` headers are intersected
 by the browser, so the stricter one wins and the nonce in ours stops matching,
@@ -276,40 +319,26 @@ One consequence worth knowing: App Store guideline 4.8 requires Sign in with
 Apple only when another third-party sign-in is offered. Offering neither removes
 the obligation and removes the paid-key work that came with it.
 
-### 4.4 Auth email delivery and the five templates
+### 4.4 Auth email delivery: the Send Email Hook
 
 Supabase's built-in email service is rate limited and unsuitable for
-production. Configure your own sender.
+production. Vallo sends its own auth email through the **Send Email Hook**,
+which has been live since 22 September 2026 (`docs/email/AUTH_EMAILS.md`
+section 1).
 
-**Project Settings, Authentication, SMTP Settings.** Enable custom SMTP and
-fill in:
+1. **Authentication, Hooks, Send Email.** Enable it, type HTTPS, URL
+   `https://<your production domain>/api/auth/email-hook`.
+2. Copy the secret Supabase shows (`v1,whsec_...`, the whole thing) into
+   Vercel as `SUPABASE_AUTH_HOOK_SECRET` and redeploy. Without it the route
+   refuses every request, so no confirmation code is sent.
+3. Sign up with a test address and check `auth_logs` for a `run_hook` row
+   saying "Hook ran successfully".
 
-- Host: `smtp.resend.com`, port `465`, username `resend`, password: your
-  Resend API key. (Any SMTP provider works; Resend is already the choice for
-  transactional mail, so using it for auth mail keeps one sending domain and
-  one reputation to manage.)
-- Sender email and sender name: an address on the domain you verified in
-  Resend, for example `hello@vallospaces.com` and `Vallo`.
-
-Then **Authentication, Email Templates**, and paste each file from
-`supabase/templates/` into the matching template. All five, or the ones you
-skip send Supabase's unbranded defaults:
-
-| File | Supabase template |
-|---|---|
-| `supabase/templates/confirmation.html` | Confirm signup |
-| `supabase/templates/magic-link.html` | Magic Link |
-| `supabase/templates/recovery.html` | Reset Password |
-| `supabase/templates/email-change.html` | Change Email Address |
-| `supabase/templates/invite.html` | Invite user |
-
-The templates are generated, not hand-edited. To change one, edit
-`scripts/build-auth-emails.mjs` and run `node scripts/build-auth-emails.mjs`,
-then paste again. Each template loads the logo from
-`{{ .SiteURL }}/brand/vallo-mark.png`, which is why section 4.1 has to be
-right first. (`supabase/README.md` still refers to `/brand/mark.png`; the
-generated templates use `/brand/vallo-mark.png`, which is the file that
-actually exists.)
+With the hook on, GoTrue sends nothing itself and the dashboard's Email
+Templates are not used. Custom SMTP is not needed. The generated templates in
+`supabase/templates/` (built by `node scripts/build-auth-emails.mjs`) are the
+fallback to paste into Authentication, Email Templates if the hook is ever
+switched off.
 
 ### 4.5 Storage buckets
 
@@ -335,7 +364,7 @@ opposite of the truth.
 - **Turn on leaked password protection.** Authentication, Policies. It is off,
   and it is the only genuine item on the security advisor list. Credential
   stuffing against a marketplace with a naira wallet behind it is exactly what
-  it prevents. `docs/DATABASE_AUDIT.md` section 1.1.
+  it prevents. `docs/archive/DATABASE_AUDIT.md` section 1.1.
 - **Drop `private.probe_as` before real people's data arrives.** It sets
   `request.jwt.claims` so a probe can run as a signed-in person under RLS, which
   is the only way to test a policy. It is revoked from every role but
@@ -356,12 +385,57 @@ because the limiter fails open by design.
 
 **Advisors, Security Advisor** and **Performance Advisor**. Security returns
 eleven items and **ten of them are correct by design**: read
-`docs/DATABASE_AUDIT.md` section 4, the do-not-fix list, before changing
+`docs/archive/DATABASE_AUDIT.md` section 4, the do-not-fix list, before changing
 anything. "Fixing" any of those five breaks the landing page, the agent trust
 panel or the machinery that stops a payment being taken twice. Performance shows
 multiple-permissive-policy notes and unused indexes on empty tables; that is
 expected pre-launch noise, not a regression. Re-run both after the first real
 month, which is the first point at which the performance list means anything.
+
+### 4.8 Removing a person: never "Delete user"
+
+**Authentication, Users, Delete user** (and a hard delete through the Admin
+API) fails with `Database error deleting user` for almost anybody who has used
+the product, and that is deliberate. A person's wallet, bookings, escrows, rent
+records, escrow evidence, conversations, messages, reports and agent profile
+all refuse the delete (`ON DELETE RESTRICT`), because deleting one person must
+never take the other party's thread, money trail or moderation evidence with
+them.
+
+Remove a person with the account deletion flow instead: they ask from
+Settings, or staff open it for them, and the purge anonymises the account in
+place and keeps what the law and the other party need
+(`docs/RETENTION_SCHEDULE.md`). The same applies to a booking or a table
+reservation: one with a conversation cannot be deleted, and a draft listing
+whose reservations have threads stays as a draft (hidden from everybody but
+its lister) rather than being deleted.
+
+### 4.9 The migration history and the files
+
+Every row in the live `supabase_migrations.schema_migrations` has a file in
+`supabase/migrations` with the same version and name
+(`supabase/tests/probes/db-11.sql` checks it). Apply every new migration
+through the history (the CLI or the MCP), never by pasting SQL into the
+dashboard, so the history and the directory keep matching.
+
+What a reset or a branch rebuilds from the directory is not yet exactly live.
+33 files were edited after they were applied, most by a few characters and
+about a dozen materially. The SQL live actually ran is kept in the history's
+`statements` column for each version. `supabase migration fetch` (with the
+database password) writes those statements back out as files; run it and
+review the diff before building a branch or a disaster recovery from the
+repository. Until then, treat live as the source of truth. The versions
+concerned:
+
+20260812090000, 20260812090100, 20260915090000, 20260918120200,
+20260918120400, 20260918120500, 20260918140000, 20260918140100,
+20260918151000, 20260918151100, 20260919103000, 20260919160000,
+20260919160100, 20260919190000, 20260922120000, 20260922130000,
+20260922140000, 20260922150000, 20260922160000, 20260922170000,
+20260922190000, 20260922190200, 20260922193000, 20260922200100,
+20260922220000, 20260922230000, 20260922230300, 20260922230400,
+20260922230500, 20260923011000, 20260923011500, 20260923012500,
+20260923081500.
 
 ---
 
@@ -463,10 +537,10 @@ rm -rf apps/web/.next && npm run build
 cd apps/web && npx next start -p 3210
 ```
 
-Two scripts in `package.json` do not run today, and neither is a blocker:
-`npm run lint` fails because no ESLint flat config (`eslint.config.mjs`) exists
-in `apps/web` yet, and `npm test` finds no Vitest files because none have been
-written. Typecheck plus the Playwright specs are the real gate.
+`npm run lint` (eslint, the CSS token check and the valuation-words check) and
+`npm test` (the vitest suite, a few thousand tests) both run, and CI runs them
+on every push (`.github/workflows/ci.yml`). The browser specs below are plain
+node scripts that nothing runs automatically (THE_AUDIT DOC-09).
 
 With that server up, in a second shell:
 
@@ -478,13 +552,12 @@ done
 
 # 5. The 390px screenshot pass. Writes PNGs to scripts/.shots/.
 node scripts/verify-shots.mjs / /home /search /offline /wallet /bookings /messages
-node scripts/verify-shots.mjs --light / /home /search /offline
 ```
 
 Then, by eye:
 
-- **390px** is the reference width. Every touched surface is checked there
-  first, in dark mode, then in light.
+- **390px** is the reference width. Every touched surface is checked there,
+  in dark (the only theme).
 - Listing photos and map tiles render as grey placeholders in this sandbox
   because it has no outbound access to Unsplash or the tile servers. They load
   on a real deploy. This is not a bug to fix.
@@ -527,95 +600,79 @@ Against the real production URL, on a real Android phone if possible.
    delivered a 200.
 10. Withdraw that amount back out and confirm the hold settles.
 
+### 8.1 Paging a human (OPS-03, V-01)
+
+Three layers, each switched on by the founder once. None of them needs code.
+
+1. **Inside the app: critical alerts reach a phone.** Set `OPS_ALERT_WEBHOOK_URL`
+   (simplest: install the ntfy app, subscribe to a long random topic, and set
+   `https://ntfy.sh/<that topic>`) and/or `OPS_ALERT_EMAIL` in Vercel
+   Production. Every critical alert then pages, at most once an hour per alert.
+   The catalogue canary (`/api/cron/canary`, every 5 minutes) raises one when
+   the published catalogue cannot be read as the public role, reads fewer
+   listings than exist, or is empty.
+   Alerts the DATABASE writes itself (the escrow float check, the money
+   reconciliation and push drain watchers, the content scanners) page through
+   the database instead, so they still leave when Vercel is down: in the
+   Supabase SQL editor run, once, with the same URL,
+   `select vault.create_secret('https://ntfy.sh/<that topic>', 'vallo_ops_alert_webhook_url');`
+   (trigger `risk_alerts_page_on_high`; checked by `supabase/tests/probes/ops-03.sql`).
+2. **Outside the app: an uptime monitor.** If Vercel itself is down, nothing
+   inside it can page. Create a free monitor at UptimeRobot or Better Stack:
+   type HTTP(s), URL **`https://www.vallospaces.com/api/health/catalogue`**,
+   every 5 minutes, alert when the status is not 200 (it answers 503 with a
+   reason token when the catalogue read fails), alert contact your phone or
+   email. Add a second monitor on `https://www.vallospaces.com/` for the site
+   itself.
+3. **Crashes: Sentry.** At sentry.io create a project (platform **Next.js**,
+   or "Other JavaScript"; the app posts envelopes itself and needs no SDK),
+   copy its **DSN**, and paste it as `SENTRY_DSN` in Vercel for
+   **Production** and **Preview** (server only; never a `NEXT_PUBLIC_` name).
+   Then in Sentry, Alerts, create a rule "a new issue is created" that emails
+   you. Critical alerts are also sent to Sentry, so the same rule covers them.
+
 ---
 
 ## 9. Not yet wired, honestly
 
-Do not promise any of this at launch. It is either unbuilt or unconfigured, and
-the product is written to behave gracefully in each case rather than pretend.
+Do not promise any of this at launch. **Rewritten 23 September 2026.** The
+checked, finding-by-finding state of the platform is `docs/THE_AUDIT.md`;
+section 3 there is the store-readiness list and section 11 is what only the
+owner can do. What follows is only what an operator needs before pressing
+deploy.
 
-**Rewritten 2026-08-09.** Seven of the twelve entries this section carried were
-closed and one of them, "the admin console is not built", had been false for
-almost two weeks. The full and current list is `RECOMMENDATIONS.md`; what
-follows is only the part an operator needs before pressing deploy.
-
-- **There is no inventory.** `public.listings` holds zero rows, and so do
-  `agents` and `agent_applications`. That is a supply problem, not a code
-  problem: the whole chain from agent application to admin approval to published
-  listing works. Discovery correctly shows its designed empty state. The seed
-  catalogue that used to fill it was deleted because twenty-two of its
-  twenty-three places carried a verified badge on an address that does not
-  exist. **Do not put one back.**
-- **The product cannot express a sale.** Vallo is for renting, buying and
-  selling, and `public.listings` has no sale price, no intent and no tenure
-  field. `RECOMMENDATIONS.md` P-1.
-- **Escrow does not exist.** Zero implementation, and correctly promised nowhere
-  in product copy. Nothing in a launch announcement may mention it.
-  `RECOMMENDATIONS.md` E-1.
-- **Money has never actually moved.** No charge or transfer has been made
-  against the live Paystack API from this project. Before the first one, read
-  `RECOMMENDATIONS.md` W-1: a missing `SUPABASE_SERVICE_ROLE_KEY` makes the
-  webhook answer HTTP 200 with no log, so Paystack never retries and a paid
-  funding is lost permanently. There is also no transaction PIN, no rate limit on
-  any money action, and no reconciliation job.
-- **Signed-out visitors are locked out of the whole product**, which is the
-  opposite of the intended rule and means a shared listing link goes to a sign-in
-  wall. `RECOMMENDATIONS.md` N-1. Fix this before any marketing spend.
-- **Transactional email is unproven.** Nine message builders and live sends from
-  six places, all through `bestEffortEmail`, so a delivery failure is silent.
-  Nothing has ever been sent from this project. `EMAIL_FROM` must be a verified
-  sender on the Resend domain or every send is rejected.
-- **The Content Security Policy enforces.** It served report-only for months
-  behind a `CSP_ENFORCE` nobody set, which is a policy that blocks nothing. The
-  default is inverted: unset enforces, and only the literal `false` steps back
-  to reporting. Before flipping it, a production build was walked in a browser
-  across eighteen routes signed out, and the one real violation found was a Zod
-  feature probe calling `new Function("")`, now switched off at source in
-  `src/instrumentation-client.ts` rather than paid for with `'unsafe-eval'`.
-  Re-run `BASE_URL=... node apps/web/tests/csp.spec.mjs` against any deployment
-  before trusting it. `RECOMMENDATIONS.md` SEC-1.
-- **Map tiles are on the non-commercial CARTO endpoint** until
-  `NEXT_PUBLIC_MAPTILER_KEY` is set. This is the only item on this page that can
-  produce a letter from a lawyer rather than a bug report, and it costs one
-  signup. `RECOMMENDATIONS.md` M-1.
-- **Nothing tells a crawler anything.** No `robots.ts`, no `sitemap.ts`, no
-  JSON-LD. `/admin` relies entirely on per-page `robots` metadata, so one page
-  added without it is a console in a search index. `RECOMMENDATIONS.md` N-2.
-- **The landing page claims NDPA compliance as a fact** and nothing in the
-  repository can establish it. Change that sentence before launch, and start the
-  NDPC registration, which has weeks of lead time. `RECOMMENDATIONS.md` LG-1.
-- **No analytics.** `NEXT_PUBLIC_POSTHOG_KEY` is documented and nothing reads
-  it. That absence is a genuine privacy asset:
-  `docs/MOBILE_READINESS.md` section 5. **Error tracking is now wired**
-  (`SENTRY_DSN`, `lib/observability/`), and it is the one piece of telemetry
-  the stores make unavoidable: a store build's crashes are not reported back
-  to us by either store. It sends no personal data and no analytics; set the
-  DSN before the first store submission or a production incident still leaves
-  only Vercel's own logs.
-- **No CI.** There is no `.github/workflows` directory, and 83 browser specs
-  plus 8 vitest files run only when a human remembers.
-  `RECOMMENDATIONS.md` T-1.
-- **Assistant threads do not read back.** Threads persist to `ai_conversations`
-  and `ai_messages`, and the sidebar reads only `localStorage`, so history
-  vanishes on a new device. `RECOMMENDATIONS.md` AI-1.
-- **Universal Links and Android App Links are not configured**, so a
-  WhatsApp-shared listing opens in the browser rather than the installed
-  application. Both association files exist and carry loud placeholders that fail
-  verification rather than looking plausible. `docs/MOBILE.md` section 5.
-- **Push notifications are not implemented.** The service worker has no `push`
-  or `notificationclick` handler by choice: a worker that asks for notification
-  permission before the product has anything to say with it burns the one
-  permission prompt a user will ever grant.
-- **`apps/web/src/middleware.ts` still uses the middleware filename.** Next 16
-  prefers `proxy.ts`. It works as-is; renaming it is deliberate follow-up work
-  and was left alone rather than touched blind during a deploy pass.
-- **Locale coverage is incomplete.** Yoruba, Hausa and Igbo are complete and
-  functional and were not written by native speakers. Marketing copy in
-  particular should be rewritten from intent rather than corrected word by word.
-
-**Closed since this section was written, so nobody re-reports them:** the admin
-console (14 destinations, built), agent listings CRUD, the unread badge on the
-rail and the dock, the durable rate limiter replacing the in-process one, and
-`pg_cron`, which is installed and running six jobs. Hybrid inventory is not
-closed but removed: there is no provider layer and there will not be one
-(ADR-013).
+- **There is almost no real supply.** The catalogue is example listings
+  (`is_demo`), clearly marked, and no real transaction has been made. Real
+  listings from real listers are a launch dependency (THE_AUDIT STORE-11).
+- **No real money has moved.** The Paystack paths, the webhook and the hourly
+  reconciliation are built and tested, but no live charge or payout has run.
+  Third-party bank payouts are refused on a starter Paystack business, so a
+  withdrawal does not complete end to end today.
+- **Held payments (escrow) exist in code; who holds the money has not been
+  decided** (`docs/adr/0001-held-payments-custody-purpose-and-the-float.md`).
+  The purpose gate refuses every purpose except the agency fee. Do not describe
+  escrow in launch copy beyond what the product itself says.
+- **Crash reporting is wired and switched off.** `SENTRY_DSN` is not set in
+  Vercel, so every crash report is a silent no-op. Set it before the first
+  store submission (THE_AUDIT OPS-03).
+- **Replies to platform email reach no one.** `EMAIL_REPLY_TO` and
+  `NEXT_PUBLIC_SUPPORT_EMAIL` are not set, and `vallospaces.com` has no MX and
+  no DMARC record (THE_AUDIT OPS-06). Sending works: a real sign-up email has
+  been delivered through the outbox.
+- **Push is built and unproven.** Web Push (VAPID) is configured; FCM is set
+  on Production only (Preview reports Android push unconfigured, by design);
+  APNs is not configured, and `android/app/google-services.json` still holds a
+  placeholder API key that fails every release build. No real device has
+  enrolled yet: at 23:47 UTC on 23 September `push_tokens` held one web token, a
+  test enrolment that was revoked 28 seconds later.
+- **CI exists but does not gate.** `.github/workflows/ci.yml` runs typecheck,
+  lint, tests and a build, and `main` has no branch protection
+  (THE_AUDIT DOC-01).
+- **Map tiles are on the non-commercial CARTO endpoint** wherever
+  `NEXT_PUBLIC_MAPTILER_KEY` is unset. It is set in Vercel for Production and
+  Preview; a local build without it falls back.
+- **Universal Links and Android App Links**: both association files exist and
+  carry placeholders that fail verification rather than looking plausible.
+  `docs/MOBILE.md` section 5.
+- **Locale coverage is incomplete.** Yoruba, Hausa and Igbo are functional and
+  were not written by native speakers.

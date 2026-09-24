@@ -50,6 +50,7 @@ import {
   writeRecentRecipients,
   type RecentRecipient,
 } from "./recent-recipients";
+import { isRecipientInput } from "@/lib/wallet/recipient-input";
 import { panelClass } from "@/components/ui/Panel";
 
 /**
@@ -86,7 +87,6 @@ type SendCopy = Dictionary["walletSend"];
 type Step = "compose" | "confirm" | "sent";
 
 const INITIAL: ActionResult<TransferReceipt | null> = { ok: false, error: "" };
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /* The render's four presets (77A54EA3), in integer kobo: 5,000, 10,000,
    20,000 and 50,000 naira. */
 const PRESETS_KOBO = [500_000, 1_000_000, 2_000_000, 5_000_000];
@@ -140,7 +140,7 @@ export function SendFlow({
   const [entry, setEntry] = useState<WalletEntry | null>(null);
   /* The double-tap latch and the button's own disabled state from the first
      press until the result returns. See submit-guard.ts: this narrows the
-     double-send window and does not close it (scope request W1). */
+     double-send window and does not close it. */
   const guard = useRef(createSubmitGuard());
   const [pressed, setPressed] = useState(false);
   const [answered, setAnswered] = useState(state);
@@ -167,7 +167,7 @@ export function SendFlow({
   const after = balanceMinor - (kobo ?? 0);
   const enough = after >= 0;
   const address = email.trim().toLowerCase();
-  const emailOk = EMAIL_RE.test(address);
+  const emailOk = isRecipientInput(address);
 
   /*
    * THE LOOKUP, keyed on the address it answered for, so an answer about the
@@ -181,7 +181,7 @@ export function SendFlow({
   } | null>(null);
   const attempt = useRef(0);
   useEffect(() => {
-    if (!EMAIL_RE.test(address)) return;
+    if (!isRecipientInput(address)) return;
     const mine = ++attempt.current;
     const timer = window.setTimeout(() => {
       setLookup({ for: address, result: "checking" });
@@ -504,8 +504,8 @@ export function SendFlow({
         each row a round glass plate, a label and the control. Recipient,
         Amount and Narration are the rows this product has. The render's Bank
         row is refused: sending to someone else's bank account is licensed
-        activity in Nigeria and the founder removed it on 23 September (see
-        the Session B ledger, section 5); a send moves money between two Vallo
+        activity in Nigeria and the founder removed it on 23 September; a send moves money between
+        two Vallo
         wallets inside the ledger. The scan button is refused too (there is
         no scanner).
       */}
@@ -523,7 +523,7 @@ export function SendFlow({
                   id="nf-send-recipient"
                   className="nf-send-row__input"
                   name="recipientEmail"
-                  type="email"
+                  type="text"
                   autoComplete="off"
                   inputMode="email"
                   placeholder={copy.recipientPlaceholder}

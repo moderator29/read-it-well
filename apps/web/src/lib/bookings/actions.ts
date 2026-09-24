@@ -40,6 +40,7 @@ import {
   resolveSession,
 } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
+import { checkConstraintMessage, NOT_LIVE_MESSAGE } from "./reserve-refusals";
 import { getListingRepository } from "../listings/repository";
 import { createAdminClient } from "../supabase/admin";
 import {
@@ -50,6 +51,7 @@ import {
   reserveInputSchema,
 } from "./schema";
 import { releaseBookedNights, writeBookedNights } from "./settlement";
+import { countOf } from "@vallo/i18n";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -95,33 +97,6 @@ const NOT_YOURS_MESSAGE =
 /** The host-and-admin side of confirm: every refusal ends at the same queue. */
 const CONFIRM_DOWN_MESSAGE =
   "Confirming is temporarily unavailable. The request is unchanged. Please try again shortly.";
-
-/**
- * Turn a 23514 check-constraint violation into the true sentence.
- *
- * Eleven check constraints on public.bookings can raise this code and only
- * three of them are ever the guest's doing. Saying "those dates do not work"
- * for all of them tells a guest to go and fix dates that are perfectly fine,
- * and hides an arithmetic bug of ours behind their supposed mistake.
- *
- * The guest-fixable ones name the fix. Everything else is our error, so it says
- * so and does not send them back to the form to guess.
- */
-function checkConstraintMessage(message: string): string {
-  if (message.includes("bookings_dates_chk")) {
-    return "Check-out has to be after check-in. Pick the dates again.";
-  }
-  if (message.includes("bookings_adults_check")) {
-    return "A booking needs at least one adult on it.";
-  }
-  if (message.includes("bookings_children_check")) {
-    return "The number of children cannot be negative.";
-  }
-  /* bookings_nights_chk, bookings_subtotal_chk, bookings_total_chk and the
-     non-negative money checks are all arithmetic this server did. A guest can
-     do nothing about any of them, so we do not pretend otherwise. */
-  return "Something went wrong working out this booking on our side. Nothing was charged and nothing was held. Please try again, and tell support if it happens twice.";
-}
 
 /** What a successful reserve hands back for the confirmation moment. */
 export type ReserveReceipt = {
@@ -183,7 +158,7 @@ export async function reserve(
     const { data: row, error } = await session.supabase
       .from("listings")
       .select(
-        "id, title, agent_id, listing_intent, rate_minor, rate_period, rent_amount_minor, is_demo",
+        "id, title, agent_id, listing_intent, rate_minor, rate_period, rent_amount_minor, is_demo, status",
       )
       .eq("id", input.listingId)
       .maybeSingle();
@@ -213,6 +188,9 @@ export async function reserve(
          multiplying a head price by a number of nights would invoice somebody
          for a week of dinners they never ordered. */
       if (row.rate_period === "guest") return fail(RESTAURANT_MESSAGE);
+      /* ESC-02: the database refuses a stay on a listing that is not live, so
+         say it before the insert rather than after it. */
+      if (row.status !== "PUBLISHED") return fail(NOT_LIVE_MESSAGE);
       priceMinor = row.rate_minor;
       listingTitle = row.title;
       listingAgentId = row.agent_id;
@@ -235,12 +213,10 @@ export async function reserve(
      when they came to accept it. Name the number, because "those dates do not
      work" leaves the guest guessing which way to move. */
   if (nights < minStayNights) {
-    const nightWord = minStayNights === 1 ? "night" : "nights";
+    const minimum = countOf(minStayNights, "nights");
     return fail(
-      `This place takes bookings of ${minStayNights} ${nightWord} or more. Add ${
-        minStayNights - nights === 1 ? "another night" : `${minStayNights - nights} more nights`
-      } and you are set.`,
-      { checkOut: `Minimum stay is ${minStayNights} ${nightWord}.` },
+      `This place takes bookings of ${minimum} or more. Add ${countOf(minStayNights - nights, "moreNights")} and you are set.`,
+      { checkOut: `Minimum stay is ${minimum}.` },
     );
   }
 
@@ -251,10 +227,10 @@ export async function reserve(
      guests do not work" leaves the guest guessing which way to move. */
   const party = input.adults + input.children;
   if (maxGuests !== null && party > maxGuests) {
-    const guestWord = maxGuests === 1 ? "guest" : "guests";
+    const capacity = countOf(maxGuests, "guests");
     return fail(
-      `This place takes up to ${maxGuests} ${guestWord}, and you have asked for ${party}. Lower the party size, or find a bigger place from search.`,
-      { adults: `Up to ${maxGuests} ${guestWord} in total.` },
+      `This place takes up to ${capacity}, and you have asked for ${party}. Lower the party size, or find a bigger place from search.`,
+      { adults: `Up to ${capacity} in total.` },
     );
   }
 
@@ -416,12 +392,15 @@ export async function cancel(
   const parsed = validate(cancelInputSchema, formDataToObject(formData));
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
-  // Ownership is proven by reading through the guest's own RLS client: a
-  // booking that is not theirs simply does not come back.
+  // Ownership is proven by reading through the caller's own RLS client AND
+  // as the guest. RLS alone also shows the booking to its host and to admins,
+  // and the cancel below is service-role work, so without the guest filter a
+  // host could cancel through the guest's path (SEC-17).
   const { data: booking, error: readError } = await session.supabase
     .from("bookings")
     .select("id, listing_id, status, check_in, check_out")
     .eq("id", parsed.data.bookingId)
+    .eq("guest_id", session.user.id)
     .maybeSingle();
 
   if (readError) return fail(SERVICE_DOWN_MESSAGE);

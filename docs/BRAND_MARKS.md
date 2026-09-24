@@ -13,8 +13,8 @@ The old section 3 of this file was a commission for twenty four transaction and
 status marks. **That commission has been delivered.** Section 4 below says which
 arrived, under which names, and which one must not be used.
 
-Read `docs/HANDOFF_03_FRONTEND.md` for the direction, `docs/ICON_SYSTEM.md` for
-the two tiers, and `docs/FRONTEND_REVAMP.md` for the full replacement map.
+Read `docs/archive/HANDOFF_03_FRONTEND.md` for the direction, `docs/ICON_SYSTEM.md` for
+the two tiers, and `docs/archive/FRONTEND_REVAMP.md` for the full replacement map.
 
 ---
 
@@ -146,7 +146,7 @@ user: "Escrow moves money out of it and holds it until both sides are done",
 escrow. It comes back if the deal does not happen." **The wallet screen and the
 terms of service say opposite things about where somebody's rent money is.** That
 is not an artwork problem and it is the highest-priority item in
-`docs/FRONTEND_REVAMP.md`.
+`docs/archive/FRONTEND_REVAMP.md`.
 
 ---
 
@@ -172,7 +172,7 @@ would be better.
 named there.
 
 Everything else is either already drawn, substituted in
-`docs/FRONTEND_REVAMP.md` section 2.6, or dead artwork that should be deleted
+`docs/archive/FRONTEND_REVAMP.md` section 2.6, or dead artwork that should be deleted
 rather than redrawn.
 
 ---
