@@ -625,6 +625,7 @@ a fall is emerald. The line is alerts raised per day.
 
 | Job | Scheduler | When (Lagos) | Allowed silence | What it does |
 |---|---|---|---|---|
+| canary | Vercel Cron `*/5 * * * *` | every 5 min | 1 h | reads the published catalogue as the public role against the service role's count, and pages a person when it is refused, short or empty (`lib/ops/catalogue-canary.ts`) |
 | email-outbox | Vercel Cron `*/15 * * * *` | every 15 min | 2 h | sends the queued emails in `email_outbox` |
 | hold-sweep | Vercel Cron `5 * * * *` | hourly at :05 | 3 h | releases wallet holds past their window |
 | paystack-reconcile | Vercel Cron `10 * * * *` | hourly at :10 | 3 h | matches Paystack charges to the ledger |
@@ -648,7 +649,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_sweep_price_check_watches | pg_cron `50 5 * * *` | daily 06:50 | | re-runs the price check gate at each pending watch and tells the watcher once when it opens |
 | vallo-daily-note | pg_cron `0 6 * * *` | daily 07:00 | | the daily note |
 
-8 Vercel Cron jobs and 14 pg_cron jobs in all. The numbers are derived,
+9 Vercel Cron jobs and 14 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by

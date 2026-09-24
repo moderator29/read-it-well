@@ -43,6 +43,8 @@ export const VERCEL_JOBS: readonly VercelJob[] = [
    * The email outbox drain: data only, kept here because the equality test
    * with `vercel.json` needs it.
    */
+  /* V-01: the catalogue canary. A failed run is a critical alert that pages a person. */
+  { name: "canary", cron: "*/5 * * * *", schedule: "Every 5 minutes", maxGapHours: 1, audit: { entityType: "cron_job", term: "canary" } },
   { name: "email-outbox", cron: "*/15 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "email-outbox" } },
   { name: "hold-sweep", cron: "5 * * * *", schedule: "Hourly at :05", maxGapHours: 3, audit: { entityType: "cron_job", term: "hold-sweep" } },
   {
