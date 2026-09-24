@@ -1096,6 +1096,16 @@ Pass-two tally: 14 confirmed (4 by execution: ESC-01, 02, 04, 08), 3 severity ch
   - Add a documented correction path: a `RESOLVED` correction is an explicit reversing ledger pair plus audit, done by super_admin.
 - **EFFORT:** 1 day (excluding building MFA itself).
 - **PASS TWO:** CONFIRMED. Reviewer checked live: the body of `escrow_admin_resolve` has no check against `e.payer_id`/`e.payee_id`, its `proacl` includes `authenticated=X`, and ESC-01's probe shows an admin JWT alone drives it to a credit. HIGH stands as a gate condition; the fix is correct (moving to a service-role `_as` variant means rewiring `resolveEscrow`, `lib/admin/money-actions.ts:53`, which today uses the session client).
+- **AML/CFT (added 24 September, after the fixes):** SCUML's checklist for DNFBPs, item 19, requires "controls that management and the Compliance Officer cannot override". Today one person is admin, super admin and Compliance Officer, so this finding is also a finable control weakness (₦250,000, stricter if an override enabled laundering). The fix discharges item 19:
+  - 20260924015442 (ESC-07/08): rulings are super-admin-only, the parties are excluded, two super admins are needed at or above ₦500,000, every ruling and flag change is audited, and held payments stay shut until custody is decided.
+  - AML-19 closes what remained, in the database, whichever path makes the change:
+    - nobody rules on or reverses an escrow they paid into, are paid from, or opened;
+    - a reversal takes two super admins, one proposing and a different one, who took no part, applying it;
+    - opening held payments, changing custody, and granting admin or super admin each need a proposal and a second super admin's approval;
+    - every role, setting and fee-rate change is audited.
+  - With one super admin, every two-person control fails closed.
+  - The database owner (migrations) remains outside the control. That credential must be held under MFA and restricted custody (section 11b).
+  - See `docs/AML_COMPLIANCE_GAP.md` and THE_AUDIT_FIXES.md.
 
 #### ESC-08 | ESCROW | HIGH | The escrow gate lives in one writable table row that any admin can create over the wire, with no database audit
 - **WHAT IS WRONG:**
@@ -1120,6 +1130,16 @@ Pass-two tally: 14 confirmed (4 by execution: ESC-01, 02, 04, 08), 3 severity ch
   - Revoke table INSERT/UPDATE on `feature_flags` from `anon`.
 - **EFFORT:** 3 hours.
 - **PASS TWO:** CONFIRMED (by execution). HIGH stands: one admin request opens the gate onto ESC-01. Reviewer's rolled-back probe: member insert → 42501, admin insert → inserted, 0 audit rows. Live grants: `anon` and `authenticated` both hold INSERT and UPDATE on `feature_flags`; the policy is `feature_flags_admin_write` (ALL); the only trigger is `feature_flags_set_updated_at`; `heldPaymentsAreOpen()` reads only `enabled`, and nothing ties it to `CUSTODY_STRUCTURE`.
+- **AML/CFT (added 24 September, after the fixes):** SCUML's checklist for DNFBPs, item 19, requires "controls that management and the Compliance Officer cannot override". Today one person is admin, super admin and Compliance Officer, so this finding is also a finable control weakness (₦250,000, stricter if an override enabled laundering). The fix discharges item 19:
+  - 20260924015442 (ESC-07/08): rulings are super-admin-only, the parties are excluded, two super admins are needed at or above ₦500,000, every ruling and flag change is audited, and held payments stay shut until custody is decided.
+  - AML-19 closes what remained, in the database, whichever path makes the change:
+    - nobody rules on or reverses an escrow they paid into, are paid from, or opened;
+    - a reversal takes two super admins, one proposing and a different one, who took no part, applying it;
+    - opening held payments, changing custody, and granting admin or super admin each need a proposal and a second super admin's approval;
+    - every role, setting and fee-rate change is audited.
+  - With one super admin, every two-person control fails closed.
+  - The database owner (migrations) remains outside the control. That credential must be held under MFA and restricted custody (section 11b).
+  - See `docs/AML_COMPLIANCE_GAP.md` and THE_AUDIT_FIXES.md.
 
 #### ESC-09 | ESCROW | MEDIUM | Disputes and proposals never time out and nothing alerts on their age
 - **WHAT IS WRONG:**
