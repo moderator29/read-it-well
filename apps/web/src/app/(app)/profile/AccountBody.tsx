@@ -3,7 +3,7 @@
 import "./profile.css";
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { formatNumber, type Locale } from "@vallo/i18n";
+import { type Locale } from "@vallo/i18n";
 import Link from "next/link";
 import { ProfilePosts } from "@/components/social/profile/ProfilePosts";
 import type { PostView } from "@/components/social/feed/PostCard";
@@ -112,7 +112,6 @@ function BelongingRow({ row, value }: { row: Belonging; value: string | null }) 
 }
 
 export function AccountBody({
-  counts,
   copy,
   email,
   placeLabel,
@@ -154,7 +153,6 @@ export function AccountBody({
   const COPY = accountCopy(locale);
   const [tab, setTab] = useState<Tab>("account");
   const [editing, setEditing] = useState(false);
-  const formatCount = (value: number) => formatNumber(value, locale);
 
   const tabs: { key: Tab; label: string; icon: UiIconName }[] = [
     { key: "account", label: copy.belongings, icon: "home" },
@@ -296,12 +294,9 @@ export function AccountBody({
               label={COPY.activity}
               note="Photos are re-encoded on your phone before they are uploaded, so the location tag a camera writes never leaves it."
             >
-              <RowLink
-                href="/reviews"
-                icon="star"
-                label="Reviews"
-                value={counts.reviews > 0 ? formatCount(counts.reviews) : undefined}
-              />
+              {/* UI-02: no Reviews row until a page lists a member's reviews; it
+                  led to /reviews, which no route serves. Reviews are written
+                  from a finished booking (/bookings/[id]/review). */}
               <RowLink
                 href="/messages"
                 icon="chat-bubble"

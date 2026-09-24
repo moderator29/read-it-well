@@ -45,6 +45,7 @@ import {
   startConversationSchema,
   startReservationThreadSchema,
 } from "./schema";
+import { dbLimitRefusal } from "../security/db-limit";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -482,6 +483,8 @@ export async function sendMessage(input: {
 
   if (error || !row) {
     if (error?.code === "42501") return fail(NOT_YOUR_CONVERSATION_MESSAGE);
+    const limited = dbLimitRefusal(error);
+    if (limited) return fail(limited);
     return fail(SEND_FAILED_MESSAGE);
   }
 
@@ -553,6 +556,8 @@ export async function attachImage(input: {
       .single();
     if (messageError || !message) {
       if (messageError?.code === "42501") return fail(NOT_YOUR_CONVERSATION_MESSAGE);
+      const limited = dbLimitRefusal(messageError);
+      if (limited) return fail(limited);
       return fail("Your photo did not send. Tap retry to send it again.");
     }
     messageId = message.id;

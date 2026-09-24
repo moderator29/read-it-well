@@ -68,6 +68,7 @@ import {
   type PropertyType,
   type RentPeriod,
 } from "./listings-schema";
+import { dbLimitRefusal } from "@/lib/security/db-limit";
 
 const NOT_AGENT_MESSAGE =
   "Only approved agents can manage listings. Apply in two minutes.";
@@ -379,7 +380,7 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     .select("id, status")
     .single();
 
-  if (error || !created) return fail(SAVE_FAILED_MESSAGE);
+  if (error || !created) return fail(dbLimitRefusal(error) ?? SAVE_FAILED_MESSAGE);
 
   refreshAgentSurfaces();
   return ok({ id: created.id, status: created.status });
@@ -1076,6 +1077,10 @@ export async function unpublishListing(input: {
   return ok(null);
 }
 
+/** Why a draft with bookings or table requests on record is kept. */
+const DRAFT_KEPT_FOR_ITS_RECORDS_MESSAGE =
+  "This draft has bookings or table requests on record, with their conversations, so it is kept rather than deleted. As a draft it stays hidden from everybody but you.";
+
 /** Delete a draft outright, with its photos. Anything further along stays. */
 export async function deleteListing(input: {
   listingId: string;
@@ -1102,7 +1107,14 @@ export async function deleteListing(input: {
     .delete()
     .eq("id", listing.id)
     .eq("agent_id", gate.agentId);
-  if (error) return fail("We could not delete this draft just now. Please try again.");
+  if (error) {
+    /* 23503: something the draft carries is on record for somebody else, a
+       booking, or a table request with its conversation. Those are kept, so
+       the draft is kept with them; as a draft it is hidden from everybody
+       but its lister. Retrying would never help. */
+    if (error.code === "23503") return fail(DRAFT_KEPT_FOR_ITS_RECORDS_MESSAGE);
+    return fail("We could not delete this draft just now. Please try again.");
+  }
 
   const paths = (photos ?? []).map((p) => p.storage_path);
   if (paths.length > 0) {

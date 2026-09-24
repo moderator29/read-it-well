@@ -215,6 +215,8 @@ close-out that lists only successes is not a close-out.**
    querying role. **The exception to rule 21 was already written in this
    repository in three places.** It shipped anyway because it was in prose
    where it needed to be in a check. There is a check now.
+   [CORRECTION, DOC-15 in docs/THE_AUDIT.md: the "check" was a manual probe
+   run by hand, not an automated gate (DOC-03).]
 4. **I nearly sent a worker a list of fourteen files with eight false entries
    on it**, an hour before writing this, by grepping for a string that also
    appears in comments. The real check strips comments first. I caught it by

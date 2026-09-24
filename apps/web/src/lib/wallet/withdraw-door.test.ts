@@ -87,7 +87,7 @@ vi.mock("../actions/session", () => ({
 /** Postgres, as far as this path can see it. The RPC door itself is real. */
 const adminClient = {
   rpc: async (fn: string, args: Record<string, unknown>) => {
-    if (fn !== "hold_wallet_withdrawal") return { data: null, error: { code: "42883" } };
+    if (fn !== "hold_wallet_withdrawal" || holdFunctionMissing) return { data: null, error: { code: "42883" } };
     const reference = String(args["hold_reference"]);
     const amount = Number(args["amount"]);
     if (holds.some((h) => h.reference === reference)) {
@@ -159,6 +159,8 @@ let registryDown = false;
 let transferGate: Promise<void> | null = null;
 /** How the transfer call ends: answered, never answered, or refused outright. */
 let transferMode: "ok" | "timeout" | "refused" = "ok";
+/* MON-12: public.hold_wallet_withdrawal answers as not deployed. */
+let holdFunctionMissing = false;
 
 function envelope(data: unknown): Response {
   return new Response(JSON.stringify({ status: true, message: "ok", data }), { status: 200 });
@@ -230,6 +232,7 @@ beforeEach(() => {
   registryDown = false;
   transferGate = null;
   transferMode = "ok";
+  holdFunctionMissing = false;
   ledgerSpies.setEntryStatus.mockClear();
   balanceMinor = 1_000_000;
   installBank();
@@ -573,3 +576,20 @@ describe("a withdrawal whose transfer outcome is unknown (MON-01)", () => {
     );
   });
 });
+
+describe("no unlocked fallback for the typed-account withdrawal (MON-12)", () => {
+  it("refuses, holds nothing and never calls the bank when the atomic hold is not there", async () => {
+    holdFunctionMissing = true;
+    const { withdraw } = await load();
+    const ledger = await import("./ledger");
+
+    const result = await withdraw({ ok: false, error: "" }, form({ ...WITHDRAW, bankCode: "058" }));
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/balance is untouched/);
+    expect(holds).toHaveLength(0);
+    expect(ledger.postEntry).not.toHaveBeenCalled();
+    expect(transferCalls()).toHaveLength(0);
+  });
+});
+

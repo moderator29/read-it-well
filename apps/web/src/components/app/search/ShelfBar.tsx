@@ -60,7 +60,16 @@ export function ShelfBar({
   const copy = t.catalogue.shelf;
   const sheetHref = toShelfFiltersHref(query);
 
-  const marketLabel = query.intent === "sale" ? "Buy" : query.kind ? kindLabel(query.kind) : copy.anyMarket;
+  /* UX-07: the chip names the market it is filtering by; it read "Any market"
+     on a Rent search while the count said one filter was on. */
+  const marketLabel =
+    query.intent === "sale"
+      ? copy.marketBuy
+      : query.kind
+        ? kindLabel(query.kind)
+        : query.intent === "rent"
+          ? copy.marketRent
+          : copy.anyMarket;
   const bedsLabel =
     query.bedrooms !== undefined ? copy.beds.replace("{count}", String(query.bedrooms)) : copy.bedsAny;
   const priceLabel =

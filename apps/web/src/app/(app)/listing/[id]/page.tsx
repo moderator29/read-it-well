@@ -67,6 +67,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Amount } from "@/components/ui/Amount";
 import type { StatusTone } from "@/components/ui/StatusPill";
 import { Disclosure } from "@/components/app/Disclosure";
+import { publicListingTitle } from "@/lib/listings/public-title";
 import { FactGrid, ICON, Section, Stack, TYPE, type Fact } from "@/components/app/Screen";
 
 /**
@@ -214,6 +215,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const listing = await getListingRepository().byId(id);
+  /* OPS-17: metadata resolves before the body streams for crawlers and
+     link checkers, so a missing listing answers them with a real 404 rather
+     than a 200 that streams a not-found page. */
+  if (!listing) notFound();
   return listingMetadata(listing, siteUrl());
 }
 
@@ -699,6 +704,7 @@ export default async function ListingDetailPage({
         <ListingGallery
           listingId={listing.id}
           title={listing.title}
+          shareTitle={publicListingTitle(listing)}
           hue={listing.hue}
           kind={listing.kind}
           photos={listing.photos}

@@ -1,5 +1,6 @@
 "use server";
 
+import { farEnoughAhead, lagosWallClockToIso } from "./when";
 import { revalidatePath } from "next/cache";
 import { PHOTO_EXTENSIONS, photoPathBelongsTo } from "./report-photo-path";
 import { z } from "zod";
@@ -46,8 +47,12 @@ const MAX_DAYS_AHEAD = 90;
 const whenSchema = z
   .string()
   .min(1, "Pick a day and a time.")
+  /* UX-20: a picker's zone-less "2026-10-10T14:30" is Lagos time, whatever
+     zone the sender's phone is in; a full ISO instant passes through. */
+  .transform((value) => lagosWallClockToIso(value) ?? value)
   .refine((value) => !Number.isNaN(Date.parse(value)), "That is not a time we can read.")
-  .refine((value) => Date.parse(value) > Date.now(), "Pick a time in the future.")
+  /* UX-20: at least two hours ahead, so the other side can answer first. */
+  .refine((value) => farEnoughAhead(value), "Pick a time at least two hours from now, so they have time to answer.")
   .refine(
     (value) => Date.parse(value) < Date.now() + MAX_DAYS_AHEAD * 86_400_000,
     `Pick a time within the next ${MAX_DAYS_AHEAD} days.`,
@@ -190,6 +195,11 @@ export async function answerInspection(input: unknown): Promise<ActionResult<nul
       : nextState === "PROPOSED"
         ? parsed.data.when
         : null;
+
+  /* UX-20: saying yes to a time that has already gone confirms nothing. */
+  if (nextState === "CONFIRMED" && slot && Date.parse(slot) <= Date.now()) {
+    return fail("The time they asked for has passed. Offer another time instead.");
+  }
 
   const { error } = await session.supabase
     .from("inspection_requests")

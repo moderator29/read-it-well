@@ -19,6 +19,9 @@ import {
   publicCatalogueEnabled,
 } from "@/lib/catalogue/public-access";
 import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/supabase/env";
+import { previewHarnessIsOpen } from "@/lib/preview-harness";
+import { isKnownRoute } from "@/lib/routing/known-routes";
+import { listingIsMissing, type ListingCounter } from "@/lib/routing/listing-exists";
 
 /**
  * Refresh the Supabase auth session on every request, and hold the door on the
@@ -163,7 +166,7 @@ const PUBLIC_SEGMENTS = new Set([
  *
  * `/` is the landing page. `/robots.txt` and `/sitemap.xml` are read by
  * crawlers that have no session and never will, and a sitemap behind a login
- * is a sitemap nothing can fetch. `/opengraph-image.png` is what an unfurler
+ * is a sitemap nothing can fetch. `/opengraph-image.jpg` is what an unfurler
  * fetches when somebody pastes our address into a chat, so it is public for
  * the same reason.
  *
@@ -172,7 +175,7 @@ const PUBLIC_SEGMENTS = new Set([
  * chunks, the brand and icon directories, the fonts, the PWA assets,
  * `/.well-known/`, `/sw.js` and `/manifest.webmanifest`.
  */
-const PUBLIC_PATHS = new Set(["/", "/robots.txt", "/sitemap.xml", "/opengraph-image.png"]);
+const PUBLIC_PATHS = new Set(["/", "/robots.txt", "/sitemap.xml", "/opengraph-image.jpg"]);
 
 /**
  * The API routes that answer WITHOUT a session, by exact path, and why each
@@ -314,6 +317,14 @@ function withSecurityPolicy(response: NextResponse, nonce: string): NextResponse
   return response;
 }
 
+/** An address no route matches: a closed harness request, or an unknown one, is rewritten here to get the site's 404. */
+export const HARNESS_CLOSED_PATH = "/_harness-closed";
+
+/** The development harness trees, `/preview` and `/gallery`. */
+export function isHarnessPath(pathname: string): boolean {
+  return /^\/(preview|gallery)(\/|$)/.test(pathname);
+}
+
 export async function proxy(request: NextRequest) {
   /*
    * One nonce per request, minted before anything else so that every exit below
@@ -325,6 +336,23 @@ export async function proxy(request: NextRequest) {
    */
   const nonce = createNonce();
   request.headers.set(NONCE_HEADER, nonce);
+
+  /*
+   * STORE-17: A CLOSED HARNESS IS A REAL 404, DECIDED BEFORE ANY RENDER.
+   *
+   * The harness layout's own `notFound()` runs after the root `loading.tsx`
+   * has started the stream, so the status was already 200 and the page
+   * beside it had streamed its list of preview decks into the payload. The
+   * rewrite goes to an address no route matches, so Next answers with the
+   * site's not-found page and a 404 status, and nothing of the harness is
+   * rendered at all.
+   */
+  if (isHarnessPath(request.nextUrl.pathname) && !previewHarnessIsOpen(process.env)) {
+    const closed = request.nextUrl.clone();
+    closed.pathname = HARNESS_CLOSED_PATH;
+    closed.search = "";
+    return withSecurityPolicy(NextResponse.rewrite(closed, { request }), nonce);
+  }
 
   let response = NextResponse.next({ request });
 
@@ -372,7 +400,7 @@ export async function proxy(request: NextRequest) {
         }
         response = NextResponse.next({ request });
         for (const { name, value, options } of cookiesToSet) {
-          response.cookies.set(name, value, withAuthCookiePolicy(options, serverCookiesSecure()));
+          response.cookies.set(name, value, withAuthCookiePolicy(options, serverCookiesSecure(request.nextUrl.protocol)));
         }
       },
     },
@@ -433,6 +461,15 @@ export async function proxy(request: NextRequest) {
         );
       }
 
+      /* OPS-17: an address this app does not answer at is a 404 for a
+         stranger too, not a trip to the sign-in screen. */
+      if (!isKnownRoute(path)) {
+        const missing = request.nextUrl.clone();
+        missing.pathname = HARNESS_CLOSED_PATH;
+        missing.search = "";
+        return withSecurityPolicy(NextResponse.rewrite(missing, { request }), nonce);
+      }
+
       const target = request.nextUrl.clone();
       target.pathname = "/sign-in";
       target.search = "";
@@ -450,6 +487,22 @@ export async function proxy(request: NextRequest) {
       if (back) target.searchParams.set("next", back);
       target.searchParams.set("notice", "sign-in-required");
       return withSecurityPolicy(NextResponse.redirect(target), nonce);
+    }
+  }
+
+  /* OPS-17: a listing page for a listing that is not there answers 404 before
+     the stream starts. Documents only: a prefetch or an RSC fetch goes on to
+     the page, which renders the not-found state itself. The refreshed session
+     cookies on `response` are carried over. */
+  if (request.method === "GET" && isDocumentRequest(request)) {
+    const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
+    if (await listingIsMissing(path, supabase as unknown as ListingCounter)) {
+      const missing = request.nextUrl.clone();
+      missing.pathname = HARNESS_CLOSED_PATH;
+      missing.search = "";
+      const rewritten = NextResponse.rewrite(missing, { request });
+      for (const cookie of response.cookies.getAll()) rewritten.cookies.set(cookie);
+      return withSecurityPolicy(rewritten, nonce);
     }
   }
 

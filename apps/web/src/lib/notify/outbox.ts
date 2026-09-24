@@ -2,7 +2,13 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { isEmailConfigured, sendMessage, type SendFailureReason } from "@/lib/email/client";
+import {
+  isEmailConfigured,
+  listUnsubscribeHeaders,
+  sendMessage,
+  type SendFailureReason,
+} from "@/lib/email/client";
+import { siteUrl } from "@/lib/site";
 import { contactForUser } from "@/lib/email/recipients";
 import type { Database } from "@/lib/supabase/database.types";
 import {
@@ -490,10 +496,11 @@ function lookupsFor(facts: BatchFacts): TemplateLookups {
 export type SendPort = (
   to: string,
   message: { subject: string; html: string; text: string },
+  headers?: Record<string, string>,
 ) => Promise<{ sent: boolean; reason?: SendFailureReason; status?: number }>;
 
-const realSend: SendPort = async (to, message) => {
-  const result = await sendMessage(to, message);
+const realSend: SendPort = async (to, message, headers) => {
+  const result = await sendMessage(to, message, headers ? { headers } : undefined);
   return result.sent
     ? { sent: true }
     : { sent: false, reason: result.reason, ...(result.status ? { status: result.status } : {}) };
@@ -611,7 +618,11 @@ async function deliverOne(
 
   let result: Awaited<ReturnType<SendPort>>;
   try {
-    result = await send(contact.email, message);
+    /* OPS-14: mail a /settings switch can turn off says where the switch is,
+       in the header mail clients read. */
+    result = template.channel
+      ? await send(contact.email, message, listUnsubscribeHeaders(siteUrl(), template.channel))
+      : await send(contact.email, message);
   } catch {
     /* The client is documented never to throw. If it ever does, that is a
        transient condition by definition and the row goes back. */

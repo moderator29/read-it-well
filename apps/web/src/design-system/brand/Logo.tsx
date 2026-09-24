@@ -167,6 +167,9 @@ export function Logo({
           aria-hidden="true"
           width={758}
           height={167}
+          /* OPS-10: drawn at most about wordSize × 4.5 wide; without this the
+             optimiser served the 1920-wide version for a 78 px logo. */
+          sizes={`${Math.ceil((wordSize * 758) / 167)}px`}
           priority={priority}
           className="nf-logo__word"
           style={{ height: wordFontSize, width: "auto" }}

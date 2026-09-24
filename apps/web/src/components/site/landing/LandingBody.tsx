@@ -1,6 +1,7 @@
 import type { Dictionary, Locale } from "@vallo/i18n";
 import { getListingRepository } from "@/lib/listings/repository";
-import type { ListingKind } from "@/lib/listings/types";
+import { landingCatalogue } from "@/lib/listings/landing-catalogue";
+import type { Listing, ListingKind } from "@/lib/listings/types";
 import { getPlatformStats, type PlatformStats } from "@/lib/platform-stats";
 import { toMiniListing, type MiniListing } from "@/lib/site/listing-card";
 import { Hero } from "./Hero";
@@ -28,12 +29,17 @@ export type LandingData = {
 };
 
 export async function landingData(t: Dictionary): Promise<LandingData> {
-  const repo = getListingRepository();
-  const [featured, catalogue, stats] = await Promise.all([
-    repo.recommended(5),
-    repo.search(),
-    getPlatformStats(),
-  ]);
+  /* OPS-11: the shared five-minute read when there is a database; the
+     repository (empty or API-backed) otherwise. */
+  const [shared, stats] = await Promise.all([landingCatalogue(), getPlatformStats()]);
+  let featured: Listing[];
+  let catalogue: Listing[];
+  if (shared) {
+    ({ featured, catalogue } = shared);
+  } else {
+    const repo = getListingRepository();
+    [featured, catalogue] = await Promise.all([repo.recommended(5), repo.search()]);
+  }
   const tally = new Map<ListingKind, number>();
   for (const l of catalogue) tally.set(l.kind, (tally.get(l.kind) ?? 0) + 1);
   const complete = stats !== null && catalogue.length > 0 && catalogue.length === stats.listings;

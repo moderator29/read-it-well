@@ -1,8 +1,8 @@
 import { readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { isApiPath, isPublicPath, proxy } from "./proxy";
+import { HARNESS_CLOSED_PATH, isApiPath, isHarnessPath, isPublicPath, proxy } from "./proxy";
 import { NONCE_HEADER } from "@/lib/security/csp";
 
 /**
@@ -181,7 +181,7 @@ function routePaths(): string[] {
   };
   walk(appDir, "");
   /* The root page and the two file conventions that answer at a URL. */
-  out.push("/", "/robots.txt", "/sitemap.xml", "/opengraph-image.png");
+  out.push("/", "/robots.txt", "/sitemap.xml", "/opengraph-image.jpg");
   return [...new Set(out)].sort();
 }
 
@@ -212,7 +212,7 @@ const EXPECTED_PUBLIC = new Set([
   "/",
   "/robots.txt",
   "/sitemap.xml",
-  "/opengraph-image.png",
+  "/opengraph-image.jpg",
   /* Company and support. */
   "/about",
   "/careers",
@@ -409,5 +409,53 @@ describe("who may see the platform with no session", () => {
        not-found page is still served to anybody signed in; a stranger is sent
        to the door. */
     expect(isPublicPath("/definitely-not-a-route")).toBe(false);
+  });
+});
+
+describe("STORE-17: the preview harness in production", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  const rewrittenTo = (response: Response) => {
+    const target = response.headers.get("x-middleware-rewrite");
+    return target ? new URL(target).pathname : null;
+  };
+
+  it("answers a real 404 on Vercel, before anything renders", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL", "1");
+    for (const route of ["/preview", "/preview/f1/chrome", "/preview/session-b/signin", "/gallery"]) {
+      const response = await proxy(new NextRequest(`http://localhost${route}?_rsc=abc`));
+      expect(rewrittenTo(response), route).toBe(HARNESS_CLOSED_PATH);
+      expect(response.headers.get("content-security-policy"), route).toBeTruthy();
+    }
+  });
+
+  it("stays closed on Vercel even with the opt-in set", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL", "1");
+    vi.stubEnv("VALLO_PREVIEW_HARNESS", "1");
+    expect(rewrittenTo(await proxy(new NextRequest("http://localhost/preview")))).toBe(HARNESS_CLOSED_PATH);
+  });
+
+  it("opens in development and on a local proof server that opted in", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    expect(rewrittenTo(await proxy(new NextRequest("http://localhost/preview")))).toBeNull();
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL", "");
+    vi.stubEnv("VALLO_PREVIEW_HARNESS", "1");
+    expect(rewrittenTo(await proxy(new NextRequest("http://localhost/preview")))).toBeNull();
+  });
+
+  it("the rewrite target is no route at all, so Next serves not-found with 404", () => {
+    expect(routePaths()).not.toContain(HARNESS_CLOSED_PATH);
+  });
+
+  it("matches only the harness trees", () => {
+    expect(isHarnessPath("/preview")).toBe(true);
+    expect(isHarnessPath("/gallery/x")).toBe(true);
+    expect(isHarnessPath("/previews")).toBe(false);
+    expect(isHarnessPath("/listing/preview")).toBe(false);
   });
 });

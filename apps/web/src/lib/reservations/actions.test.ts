@@ -66,6 +66,9 @@ type Write = { table: string; op: "insert" | "update"; payload: Record<string, u
  * is thenable so a filtered update can be awaited without a terminal read,
  * which is exactly how `reserveTable` stamps the thread id.
  */
+/** Every `.or(...)` filter the fake client was handed, in order. */
+const orFilters: string[] = [];
+
 function fakeClient(answers: Record<string, Answer>, writes: Write[]) {
   const reads: string[] = [];
   return {
@@ -74,9 +77,13 @@ function fakeClient(answers: Record<string, Answer>, writes: Write[]) {
       let op: "insert" | "update" | "select" = "select";
       const chain: Record<string, unknown> = {};
       const settle = (): Answer => answers[`${table}:${op}`] ?? { data: null, error: null };
-      for (const method of ["select", "eq", "neq", "order", "limit"]) {
+      for (const method of ["select", "eq", "neq", "in", "order", "limit"]) {
         chain[method] = () => chain;
       }
+      chain["or"] = (filter: string) => {
+        orFilters.push(filter);
+        return chain;
+      };
       chain["insert"] = (payload: Record<string, unknown>) => {
         op = "insert";
         writes.push({ table, op, payload });
@@ -337,6 +344,9 @@ describe("the answer and the cancellation are posted by the person who made them
     expect(result).toEqual({ ok: true, data: null });
     const cancelled = writes.find((w) => w.table === "reservations" && w.op === "update");
     expect(cancelled?.payload).toMatchObject({ status: "CANCELLED" });
+    /* Only an unanswered request, or a confirmed table still ahead. */
+    const filter = orFilters.at(-1) ?? "";
+    expect(filter).toMatch(/^status\.eq\.PENDING,and\(status\.eq\.CONFIRMED,reserved_for\.gt\.\d{4}-/);
     const [spoken] = messages.sendMessage.mock.calls[0] as [{ conversationId: string; body: string }];
     expect(spoken.body).toContain("I need to cancel the table for 3 guests");
     expect(client.reads).not.toContain("messages");

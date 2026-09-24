@@ -4,6 +4,7 @@ import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { RowLink, RowValue, SettingsGroup } from "@/components/app/account/rows";
 import { SupportChat } from "@/components/app/account/SupportChat";
+import { aiConsentForViewer } from "@/lib/ai/consent-server";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).settings.hub.help };
@@ -26,7 +27,7 @@ export default async function HelpSettingsPage() {
       />
       <div className="space-y-block">
         <section id="settings-help" className="scroll-mt-28">
-          <SupportChat />
+          <SupportChat aiConsented={await aiConsentForViewer()} />
         </section>
         <section id="settings-about" className="scroll-mt-28">
           <div id="legal">

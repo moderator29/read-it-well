@@ -1115,6 +1115,10 @@ export const en = {
       "I agree to the Terms, the Privacy Policy and the Community Rules, and I understand that abusive content gets an account removed.",
     acceptRead: "Read them:",
     acceptRequired: "Please tick the box to continue. It is how we record what you agreed to.",
+    /* STORE-19: the Terms require 18 or over, so sign-up asks, and the
+       server refuses an account without the answer. */
+    ageLabel: "I am 18 or older.",
+    ageRequired: "Vallo is for adults. Tick the box to confirm you are 18 or older.",
     termsLink: "Terms",
     privacyLink: "Privacy Policy",
     rulesLink: "Community Rules",
@@ -1699,7 +1703,7 @@ export const en = {
       losesContent: "Your posts, comments, stories, saved items, interests and drafts.",
       losesDevices: "Every device you are signed in on, and every notification.",
       losesFiles:
-        "Every file you have uploaded, including any identity or host documents.",
+        "Every file you have uploaded, including any host documents. If you were approved as an agent, your identification is kept for five years, as the money laundering rules require, and then destroyed.",
       /* The founder's ruling of 19 September: a future event is cancelled with
          notice to everyone attending, never left with a host who has gone.
          Named here so nobody discovers it afterwards, which is the whole
@@ -1752,6 +1756,11 @@ export const en = {
       blockerWalletBalanceCta: "Withdraw it",
       blockerWalletHeld: "{amount} of yours is held in escrow.",
       blockerWalletHeldCta: "Open my wallet",
+      /* STORE-12 / MON-09: money in a pot, and rent refunds either way. The
+         deletion is also re-checked for these on the day it runs. */
+      blockerPotBalance: "{amount} of yours is set aside in a savings pot.",
+      blockerRentRefundsOwed: "You owe {amount} in rent refunds to people who paid you.",
+      blockerRentRefundsDue: "{amount} in rent refunds is owed to you.",
       blockerPendingPayouts: "You have {count} withdrawal that has not settled.",
       blockerPendingPayoutsPlural: "You have {count} withdrawals that have not settled.",
       blockerPendingPayoutsCta: "Open my wallet",
@@ -4370,13 +4379,13 @@ export const en = {
         floor: "Ten minutes is the floor. Anything shorter would fail withdrawals that are still on their way.",
         nothing: "Nothing is stuck at that window",
         review: { one: "Review 1 hold", other: "Review {count} holds" },
-        willRelease: "This will release {amount} across {withdrawals}.",
+        willRelease: "This will check {withdrawals} ({amount}) with Paystack.",
         withdrawals: { one: "1 held withdrawal", other: "{count} held withdrawals" },
         consequence:
-          "Each one is marked failed and the money returns to the owner's spendable balance. Nobody is paid by this. Anyone who still wants their withdrawal has to start it again.",
-        release: "Release {amount}",
+          "Vallo asks Paystack about each hold first. A transfer that paid out is marked complete. One that failed, was reversed or never reached Paystack is released to the owner's spendable balance, and they start it again if they still want it. One Paystack cannot answer for yet is left as it is. Nobody is paid by this.",
+        release: "Check and settle {amount}",
         cancel: "Cancel",
-        nothingNeeded: "Nothing needed releasing. Every hold had already settled.",
+        nothingNeeded: "Nothing was released. Every hold had settled, paid out, or is still waiting on Paystack.",
         released: {
           one: "Released 1 hold, with your name on the record.",
           other: "Released {count} holds, with your name on the record.",
@@ -4688,6 +4697,13 @@ export const en = {
      */
     notificationsUnread: "Notifications, {count} unread",
     unreadOn: "{label}, {count} unread notifications",
+    /* DOC-21: a horizontal scroller a keyboard can reach has to be named. */
+    photoGallery: "Photographs of {title}. Use the arrow keys to move between them.",
+    /* DOC-21: the navigation landmarks, each named for what it is, so a
+       screen reader's landmark list does not offer two called "Primary". */
+    railNav: "Main menu",
+    dockNav: "Shortcuts",
+    walletHeading: "Wallet",
   },
 
   /**
@@ -4757,7 +4773,7 @@ export const en = {
       keep: "Keep it",
       proposeTitle: "Offer another time",
       proposeBody: "They can take it in one tap. The time they asked for stays on the record.",
-      proposeWhen: "When you can do it",
+      proposeWhen: "When you can do it (Lagos time)",
       proposeNote: "A line for them, if you want one",
       proposeSend: "Send this time",
       outcomeTitle: "How did it go?",
@@ -5085,6 +5101,8 @@ export const en = {
       search: "Search",
       filters: "Filters",
       anyMarket: "Any market",
+      marketRent: "Rent",
+      marketBuy: "Buy",
       beds: "{count}+ bed",
       bedsAny: "Beds",
       price: "Price",

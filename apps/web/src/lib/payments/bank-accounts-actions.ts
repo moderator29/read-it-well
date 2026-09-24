@@ -19,10 +19,8 @@
  */
 
 import { moneyHoldRefusal } from "../wallet/money-hold";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import type { Database } from "../supabase/database.types";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import {
   NOT_CONFIGURED_MESSAGE,
@@ -186,7 +184,7 @@ export async function addBankAccount(input: {
       subject: subjectForUser(session.user.id),
       shouldRecord: (result) => result.ok,
     },
-    () => addBankAccountWork(session.user.id, session.supabase, parsed),
+    () => addBankAccountWork(session.user.id, parsed),
   );
   if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);
   return run.result;
@@ -197,7 +195,6 @@ const BANK_ACCOUNT_SCOPE = "payments.bank.add";
 
 async function addBankAccountWork(
   userId: string,
-  supabase: SupabaseClient<Database>,
   parsed: { data: { bankCode: string; accountNumber: string } },
 ): Promise<ActionResult<BankAccount>> {
 
@@ -223,7 +220,12 @@ async function addBankAccountWork(
   }
   const accountName = resolved.accountName;
 
-  const { data: created, error } = await supabase
+  /* Written by the service role, for the signed-in owner: a member's own
+     client holds no INSERT on bank_accounts, so the bank's name, the time it
+     answered and the processor's recipient can only ever come from here. */
+  const writer = getAdminClient();
+  if (!writer) return fail(NOT_CONFIGURED_MESSAGE);
+  const { data: created, error } = await writer
     .from("bank_accounts")
     .insert({
       user_id: userId,

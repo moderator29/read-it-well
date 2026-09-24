@@ -5,8 +5,11 @@ import {
   emailFrom,
   emailReplyTo,
   isEmailConfigured,
+  listUnsubscribeHeaders,
+  RETRY_DELAYS_MS,
   sendEmail,
   sendMessage,
+  setEmailRetrySleep,
 } from "./client";
 
 /**
@@ -48,6 +51,7 @@ function ok(id = "re_123") {
 }
 
 beforeEach(() => {
+  setEmailRetrySleep(async () => {});
   fetchMock = vi.fn(async () => ok());
   vi.stubGlobal("fetch", fetchMock);
   vi.stubEnv(KEY, "re_test_key");
@@ -149,7 +153,7 @@ describe("a failure is a value, never an exception", () => {
   });
 
   it("reports an unreachable service by result", async () => {
-    fetchMock.mockRejectedValueOnce(new Error("getaddrinfo ENOTFOUND"));
+    fetchMock.mockRejectedValue(new Error("getaddrinfo ENOTFOUND"));
     const result = await sendEmail({ to: "ada@example.com", ...MESSAGE });
     expect(result).toEqual({ sent: false, reason: "unreachable" });
   });
@@ -157,7 +161,7 @@ describe("a failure is a value, never an exception", () => {
   it("names a timeout as a timeout, not as an outage", async () => {
     const timeout = new Error("The operation was aborted due to timeout");
     timeout.name = "TimeoutError";
-    fetchMock.mockRejectedValueOnce(timeout);
+    fetchMock.mockRejectedValue(timeout);
     const result = await sendEmail({ to: "ada@example.com", ...MESSAGE });
     expect(result).toEqual({ sent: false, reason: "timeout" });
   });
@@ -279,5 +283,61 @@ describe("the sender", () => {
   it("honours EMAIL_FROM when it is set", () => {
     vi.stubEnv(FROM, "Vallo <no-reply@vallospaces.com>");
     expect(emailFrom()).toBe("Vallo <no-reply@vallospaces.com>");
+  });
+});
+
+describe("OPS-14: a blip is retried, never sent twice", () => {
+  const failure = (status: number) =>
+    ({ ok: false, status, json: async () => ({ name: "rate_limit_exceeded" }) }) as unknown as Response;
+
+  it("tries a 429 again and delivers, with the same idempotency key on every attempt", async () => {
+    fetchMock.mockResolvedValueOnce(failure(429)).mockResolvedValueOnce(failure(503));
+    const result = await sendEmail({ to: "ada@example.com", ...MESSAGE });
+    expect(result).toEqual({ sent: true, id: "re_123" });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    const keys = fetchMock.mock.calls.map((call) => (call[1] as RequestInit).headers as Record<string, string>)
+      .map((headers) => headers["Idempotency-Key"]);
+    expect(new Set(keys).size).toBe(1);
+    expect(keys[0]).toBeTruthy();
+  });
+
+  it("tries a dropped connection again", async () => {
+    fetchMock.mockRejectedValueOnce(new Error("socket hang up"));
+    const result = await sendEmail({ to: "ada@example.com", ...MESSAGE });
+    expect(result.sent).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("gives up after three attempts", async () => {
+    fetchMock.mockResolvedValue(failure(500));
+    const result = await sendEmail({ to: "ada@example.com", ...MESSAGE });
+    expect(result).toEqual({ sent: false, reason: "rejected", status: 500 });
+    expect(fetchMock).toHaveBeenCalledTimes(1 + RETRY_DELAYS_MS.length);
+  });
+
+  it("never retries a refusal: a 422 is Resend saying no", async () => {
+    fetchMock.mockResolvedValue(failure(422));
+    await sendEmail({ to: "ada@example.com", ...MESSAGE });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("OPS-14: mail a switch can turn off says where the switch is", () => {
+  it("sends the headers it is given", async () => {
+    await sendMessage("ada@example.com", MESSAGE, {
+      headers: listUnsubscribeHeaders("https://www.vallospaces.com/", "messages"),
+    });
+    const body = JSON.parse(String((fetchMock.mock.calls[0]?.[1] as RequestInit).body)) as {
+      headers?: Record<string, string>;
+    };
+    expect(body.headers).toEqual({
+      "List-Unsubscribe": "<https://www.vallospaces.com/settings/notifications?channel=messages>",
+    });
+  });
+
+  it("sends no headers field when there are none", async () => {
+    await sendMessage("ada@example.com", MESSAGE);
+    const body = JSON.parse(String((fetchMock.mock.calls[0]?.[1] as RequestInit).body)) as Record<string, unknown>;
+    expect(body).not.toHaveProperty("headers");
   });
 });
