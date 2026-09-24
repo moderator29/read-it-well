@@ -4,8 +4,12 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { JobVerdict } from "../bookings/lifecycle";
 import type { AdminClient } from "../cron/rpc";
 import { LISTING_SELECTS } from "../listings/supabase-repository";
+import { withPublicPoint } from "../supabase/public-point";
 import type { Database } from "../supabase/database.types";
 import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "../supabase/env";
+
+/** The card select as a signed-out reader issues it. Exported for its test. */
+export const CANARY_CARD_SELECT = withPublicPoint(LISTING_SELECTS.card);
 
 /**
  * V-01 / OPS-03: the catalogue canary. Find out before the founder does.
@@ -101,7 +105,9 @@ export async function probeCatalogue(admin: AdminClient | null, reader?: Reader)
   try {
     const { error } = await client
       .from("listings")
-      .select(LISTING_SELECTS.card)
+      /* NEW-A4-01: this is the signed-out card read, so it names the public
+         point, exactly as the repository does for a reader with no session. */
+      .select(CANARY_CARD_SELECT)
       .eq("status", "PUBLISHED")
       .limit(1);
     if (error) {
