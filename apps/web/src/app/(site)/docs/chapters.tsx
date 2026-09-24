@@ -1114,8 +1114,9 @@ export const CHAPTERS: DocChapter[] = [
             </ul>
             <p>
               If the agent cancels, or the property was materially not what was listed, you
-              get everything back whenever it happens. Refunds land in your Vallo wallet,
-              usually within minutes, and you move them to your bank from there.
+              get everything back whenever it happens. A refund lands in your Vallo wallet
+              the moment the cancellation is decided, and never later than five Nigerian
+              business days after you ask. You move it to your bank from there.
             </p>
             <p>
               An unpaid hold is different again: let it go whenever you like, for nothing.
@@ -2362,8 +2363,8 @@ export const CHAPTERS: DocChapter[] = [
         heading: "My refund has not arrived",
         body: (
           <p>
-            Refunds land in your Vallo wallet, usually within minutes, not back on your
-            card. Check the{" "}
+            A refund lands in your Vallo wallet the moment the cancellation is decided,
+            and never later than five Nigerian business days after you ask, not back on your card. Check the{" "}
             <Link href="/wallet" className={A}>
               wallet statement
             </Link>{" "}

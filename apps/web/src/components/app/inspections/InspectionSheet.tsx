@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatDate, type Dictionary, type Locale } from "@vallo/i18n";
+import { GateHandshake } from "./GateHandshake";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { IconPlate } from "@/components/ui/IconPlate";
@@ -163,9 +164,11 @@ export function InspectionSheet({
   open = false,
   report = null,
   reportLive = false,
+  quoteLine = null,
   truth = null,
   tenancyReview = null,
   unsafe = null,
+  gateCopy,
 }: {
   inspection: Inspection;
   side: "lister" | "requester";
@@ -177,6 +180,8 @@ export function InspectionSheet({
   report?: InspectionReport | null;
   /** The one flag: report storage exists. */
   reportLive?: boolean;
+  /** V-13: "Quoted at ₦3,900,000 on Thu 1 Oct", once the lister's yes froze it. */
+  quoteLine?: string | null;
   /**
    * V-05: the four truth questions, when the page decided they are open for
    * this viewer (the requester, after the agreed time). Null draws nothing.
@@ -186,11 +191,15 @@ export function InspectionSheet({
   tenancyReview?: { href: string; label: string } | null;
   /** V-63: "I feel unsafe", on an inspection that is still ahead or under way. */
   unsafe?: Dictionary["trustVisible"]["unsafe"] | null;
+  /** V-35: the gate handshake's copy. Absent, no gate section is drawn. */
+  gateCopy?: Dictionary["platform"]["gate"];
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [proposing, setProposing] = useState(false);
+  /* V-35: whether the card is open, so the gate section mounts only then. */
+  const [expanded, setExpanded] = useState(open);
   const [outcome, setOutcome] = useState<InspectionOutcome | null>(null);
   const [saved, setSaved] = useState<InspectionReport>(report ?? EMPTY_REPORT);
   const [notes, setNotes] = useState(report?.notes ?? "");
@@ -288,7 +297,12 @@ export function InspectionSheet({
   }
 
   return (
-    <details className="nf-ix nf-ix-fold" open={open} data-testid="inspection-sheet">
+    <details
+      className="nf-ix nf-ix-fold"
+      open={open}
+      onToggle={(event) => setExpanded((event.currentTarget as HTMLDetailsElement).open)}
+      data-testid="inspection-sheet"
+    >
       <summary>
         <div className={panelClass({ variant: "card", className: "nf-ix-card" })}>
           <div className="nf-ix-card__photo" aria-hidden="true">
@@ -316,6 +330,12 @@ export function InspectionSheet({
             {facts?.priceLabel && (
               <p className="nf-ix-card__price">
                 {facts.priceLabel} {facts.periodLabel && <small>{facts.periodLabel}</small>}
+              </p>
+            )}
+            {quoteLine && (
+              <p className="nf-ix-card__line" data-testid="inspection-quote">
+                <UiIcon name="key" size={12} />
+                <span className="truncate">{quoteLine}</span>
               </p>
             )}
           </div>
@@ -509,6 +529,13 @@ export function InspectionSheet({
             while report storage is off; with it on, submitting the report
             is what closes the inspection and I1 has no outcome to carry it
             (request I1a). Drawn and dropped would be worse than not drawn. */}
+        {/* V-35: the gate code, which works with no signal on either phone. */}
+        {/* Mounted only while this card is open: a closed card asks for no
+            seed, writes no pack and runs no clock (review finding 6). */}
+        {inspection.state === "CONFIRMED" && gateCopy && expanded && (
+          <GateHandshake inspectionId={inspection.id} locale={locale} copy={gateCopy} />
+        )}
+
         {inspection.state === "CONFIRMED" && !reportLive && (
           <section className={panelClass({ className: "nf-ix-outcome" })} aria-label="How did it go?">
             <p className="nf-ix-outcome__head" id={`outcome-${inspection.id}`}>

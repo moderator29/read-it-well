@@ -6,7 +6,11 @@ import { HOLD_WINDOW_HOURS } from "../bookings/checkout-view";
 import type { InspectionState } from "../inspections/types";
 import { isPaystackConfigured } from "../payments/paystack";
 import type { Database } from "../supabase/database.types";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { readMoveInQuote } from "../after-gate/rows";
+import { formatMoneyDate } from "../money/dates";
 import { ledgerFromCharge, ledgerFromListing, type RentLedger } from "./ledger";
+import { payRoutes, type PayRoutes } from "./large-payment";
 import { lagosToday } from "./schema";
 
 /**
@@ -56,6 +60,16 @@ export type RentPayView = {
   walletBalanceMinor: number;
   walletBalanceDisplay: string;
   walletCovers: boolean;
+  /** V-24: the move-in day as a weekday, "Fri 16 Oct". */
+  moveInDisplay: string;
+  /** V-13: when the lister's yes froze the figure, or null before any yes froze one. */
+  quotedAt: string | null;
+  quotedOnDisplay: string | null;
+  /** V-13: the part of a stated total the lister never itemised, in kobo. */
+  remainderMinor: number;
+  remainderDisplay: string;
+  /** V-25: which routes a payment this size can actually take. */
+  routes: PayRoutes;
 };
 
 export type RentPayRead =
@@ -118,8 +132,32 @@ export async function getRentPayView(inspectionId: string, locale: Locale): Prom
       .eq("inspection_id", inspectionId)
       .maybeSingle();
 
-    const ledger: RentLedger | null = charge ? ledgerFromCharge(charge) : ledgerFromListing(listing);
-    if (!ledger || (!charge && (listing.listing_intent !== "rent" || listing.rent_amount_minor === null))) {
+    // V-13. The quote the lister's yes froze, read through the untyped view
+    // until the generated types know `move_in_quotes`. A read that fails is
+    // treated as "no quote yet", which shows the listing's own figure with the
+    // sentence that says it is not frozen: never a figure dressed as a quote.
+    let quote = null as ReturnType<typeof readMoveInQuote>;
+    try {
+      const loose = session.supabase as unknown as SupabaseClient;
+      const quoteRead = await loose
+        .from("move_in_quotes")
+        .select("*")
+        .eq("inspection_id", inspectionId)
+        .maybeSingle();
+      quote = quoteRead.error ? null : readMoveInQuote(quoteRead.data);
+    } catch {
+      quote = null;
+    }
+
+    const ledger: RentLedger | null = charge
+      ? ledgerFromCharge(charge)
+      : quote
+        ? ledgerFromCharge(quote)
+        : ledgerFromListing(listing);
+    if (
+      !ledger ||
+      (!charge && !quote && (listing.listing_intent !== "rent" || listing.rent_amount_minor === null))
+    ) {
       return { state: "no-charge", listingId: listing.id, title };
     }
 
@@ -169,7 +207,10 @@ export async function getRentPayView(inspectionId: string, locale: Locale): Prom
       (bookingStatus === "PENDING" || bookingStatus === "CONFIRMED") &&
       !holdExpired;
 
-    const rentPeriod = (charge?.rent_period ?? listing.rent_period ?? "year") as RentPayView["rentPeriod"];
+    const rentPeriod = (charge?.rent_period ??
+      quote?.rent_period ??
+      listing.rent_period ??
+      "year") as RentPayView["rentPeriod"];
     const moveIn = charge?.move_in ?? (inspection.slot_at ? inspection.slot_at.slice(0, 10) : lagosToday());
 
     return {
@@ -198,6 +239,12 @@ export async function getRentPayView(inspectionId: string, locale: Locale): Prom
         walletBalanceMinor,
         walletBalanceDisplay: money(walletBalanceMinor),
         walletCovers: walletBalanceMinor >= ledger.totalMinor && ledger.totalMinor > 0,
+        moveInDisplay: formatMoneyDate(moveIn < lagosToday() ? lagosToday() : moveIn, locale) ?? moveIn,
+        quotedAt: quote?.quoted_at ?? null,
+        quotedOnDisplay: quote ? formatMoneyDate(quote.quoted_at, locale) : null,
+        remainderMinor: ledger.remainderMinor,
+        remainderDisplay: money(ledger.remainderMinor),
+        routes: payRoutes(ledger.totalMinor, walletBalanceMinor),
       },
     };
   } catch {

@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { StillAvailable } from "@/components/app/listing/StillAvailable";
+import { readRecentlyLet } from "@/lib/availability/queries";
+import { Suspense } from "react";
 import { panelClass } from "@/components/ui/Panel";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -43,8 +46,10 @@ import { readListingRecord } from "@/lib/trust/record-read";
 import { ValloRecord } from "@/components/app/trust/ValloRecord";
 import { readListingCredentials } from "@/lib/trust/credentials-read";
 import { ListingMoveInBlock } from "@/components/app/listing/ListingMoveInBlock";
+import { OwnerAvailabilityLine, PropertyOffers } from "@/components/app/listing/LandlordFacts";
 import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
+import { readPayeeRecords } from "@/lib/after-gate/payee";
 import { ListingPurchase } from "@/components/app/listing/ListingPurchase";
 import { ListingSectionTabs } from "@/components/app/listing/ListingSectionTabs";
 import { ListingSpecChips, specChips } from "@/components/app/listing/ListingSpecChips";
@@ -548,6 +553,10 @@ export default async function ListingDetailPage({
     </div>
   ) : isRental || isSale ? (
     /*
+      V-14: on a rental, "Still available?" comes first. It is the first
+      WhatsApp message about every Nigerian listing; here it is one tap each
+      way and a counted answer. A sale keeps its panel as it was.
+
       The panel gets the SAME period the hero above it gets.
 
       It used to get none and print "/ year" regardless, so this page could
@@ -558,14 +567,24 @@ export default async function ListingDetailPage({
       falling back to the year the rest of this page assumes is better than
       labelling annual rent as nightly.
     */
-    <RentalPanel
-      listingId={listing.id}
-      priceMinor={listing.priceMinor}
-      currency={listing.currency}
-      locale={locale}
-      period={isSale ? "sale" : rentPeriodOf(listing.pricePeriod)}
-      minimumTenancyMonths={listing.minimumTenancyMonths}
-    />
+    <div className="flex flex-col gap-md">
+      {isRental && (
+        <StillAvailable
+          listingId={listing.id}
+          copy={t.frontDoor.available}
+          recentlyLet={await readRecentlyLet(listing.id)}
+          locale={locale}
+        />
+      )}
+      <RentalPanel
+        listingId={listing.id}
+        priceMinor={listing.priceMinor}
+        currency={listing.currency}
+        locale={locale}
+        period={isSale ? "sale" : rentPeriodOf(listing.pricePeriod)}
+        minimumTenancyMonths={listing.minimumTenancyMonths}
+      />
+    </div>
   ) : (
     <ReservePanel
       listingId={listing.id}
@@ -804,6 +823,14 @@ export default async function ListingDetailPage({
                       disclosure lands before the belief the figure forms. */}
                   {listing.isDemo && <ExampleNotice variant="page" className="mt-row" />}
 
+                  {/* V-31: what the OWNER said about availability, or nothing.
+                      Streams on its own and never holds the page. */}
+                  {isRental && !isSale && (
+                    <Suspense fallback={null}>
+                      <OwnerAvailabilityLine listingId={listing.id} isDemo={listing.isDemo} copy={t.landlord.listing} />
+                    </Suspense>
+                  )}
+
                   <div className="nf-detail-price-row mt-md">
                     {listing.priceMinor > 0 && (
                       <p className="nf-detail-price" data-testid="detail-price">
@@ -874,6 +901,20 @@ export default async function ListingDetailPage({
                     </div>
                   )}
 
+                  {/* V-37: every offer on this property, side by side, each with
+                      its own move-in total. Nothing when there is one offer. */}
+                  {isRental && !isSale && (
+                    <Suspense fallback={null}>
+                      <PropertyOffers
+                        listingId={listing.id}
+                        isDemo={listing.isDemo}
+                        copy={t.landlord.offers}
+                        listingCopy={t.landlord.listing}
+                        locale={locale}
+                      />
+                    </Suspense>
+                  )}
+
                   {listing.amenities.length > 0 && (
                     <div className="mt-md">
                       <ListingAmenityTiles
@@ -925,7 +966,7 @@ export default async function ListingDetailPage({
                     divided
                     className="scroll-mt-16"
                   >
-                    <ListingMoveIn listing={listing} locale={locale} t={t} />
+                    <ListingMoveIn listing={listing} locale={locale} t={t} records={await readPayeeRecords(listing.id)} />
                   </Section>
                 )}
 

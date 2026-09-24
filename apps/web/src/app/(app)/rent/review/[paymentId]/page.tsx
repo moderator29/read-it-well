@@ -4,7 +4,7 @@ import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, TYPE } from "@/components/app/Screen";
 import { ButtonLink } from "@/components/ui/Button";
-import { readTenancyReviewTarget } from "@/lib/tenancy/queries";
+import { readTenancyReviewTarget } from "@/lib/tenancy/review-queries";
 import { TenancyReviewForm } from "./TenancyReviewForm";
 
 export async function generateMetadata(): Promise<Metadata> {

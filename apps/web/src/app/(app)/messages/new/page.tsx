@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { attributeConversation } from "@/lib/share/attribution";
 import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/app/PageHeader";
 import { resolveSession } from "@/lib/actions/session";
@@ -105,7 +106,11 @@ export default async function NewMessagePage({
 
   if (session.state === "signed-in") {
     const result = await startConversation({ listingId: listing });
-    if (result.ok) redirect(`/messages/${result.data.conversationId}`);
+    if (result.ok) {
+      /* V-71: credit the lister whose link this device first came through. */
+      await attributeConversation(session.supabase, result.data.conversationId);
+      redirect(`/messages/${result.data.conversationId}`);
+    }
     return (
       <Bridge
         title="This chat cannot open yet"

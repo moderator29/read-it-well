@@ -181,7 +181,7 @@ describe("the wiring", () => {
     const gate = readFileSync(join(root, "lib/phone-otp/gate.ts"), "utf8");
     expect(gate).toContain('from("tenancy_reviews")');
     expect(gate).toContain("rows.filter(countsAsOwnReport)");
-    const tenancy = readFileSync(join(root, "lib/tenancy/actions.ts"), "utf8");
+    const tenancy = readFileSync(join(root, "lib/tenancy/review-actions.ts"), "utf8");
     expect(tenancy).toContain('phoneGateFor(session.supabase, session.user.id, "review")');
   });
 

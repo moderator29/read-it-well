@@ -90,16 +90,11 @@
  * `route-files.test.ts` fails if any route file is in neither structure. A
  * route nobody has made a decision about is now impossible to add quietly.
  *
- * FOUR ENTRIES BELOW DELIBERATELY DRAW NO CONTROL, AND THAT IS NOT THE GAP.
+ * TWO ENTRIES BELOW DELIBERATELY DRAW NO CONTROL, AND THAT IS NOT THE GAP.
  *
  * A declared parent is a fact about where a screen SITS. It is not a promise
- * that the screen paints an arrow, and four of these cannot:
+ * that the screen paints an arrow, and these cannot:
  *
- *   /crypto, /crypto/[id]   the page is `notFound()` by the store ruling in
- *                           `app/(app)/crypto/page.tsx`. There is no screen to
- *                           put a control on. The entries stay because the
- *                           ruling is DEFERRED, not cancelled, and the day the
- *                           body comes back the hierarchy is already written.
  *   /gallery                `notFound()` in a production build by its own
  *                           guard. The control is wired for development, which
  *                           is the only place the board exists.
@@ -110,7 +105,7 @@
  *                           on a screen that only renders when nothing can be
  *                           fetched would be a control that cannot work.
  *
- * Android is unaffected by all four: `isAppRoot` is false for every one of
+ * Android is unaffected by both: `isAppRoot` is false for every one of
  * them, so the hardware button goes to the parent rather than closing the
  * shell, which is the half that matters most there.
  *
@@ -127,6 +122,9 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   /* ---------------------------------------------------------- the website */
   "/": ROOT,
   "/about": "/",
+  /* V-82: a public area price page sits under the landing page, as the
+     company pages do; it is a statement about a market, not a shelf. */
+  "/areas/[state]/[area]": "/",
   "/cancellations": "/",
   "/careers": "/",
   "/contact": "/",
@@ -135,8 +133,11 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/docs/[slug]": "/docs",
   "/eula": "/",
   "/help": "/",
+  "/r": "/",
+  "/r/[code]": "/r",
   "/privacy": "/",
   "/safety": "/",
+  "/check": "/",
   "/standards": "/",
   "/styleguide": "/",
   "/terms": "/",
@@ -174,6 +175,12 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
      the other defensible answer and is one step further from what they were
      doing. */
   "/auth/callback": "/sign-in",
+  /* The share door (V-07). A stranger arrives from outside Vallo and the
+     card's own button is the only way on; the door draws no back control.
+     Declared under the landing page because that is the public surface it
+     sits beside, and a hardware back that had to go somewhere should go
+     there rather than into the platform it is a door to. */
+  "/s/[token]": "/",
 
   /* ------------------------------------------------- the two app homes
    *
@@ -196,11 +203,14 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/saved": "/home",
   "/saved/searches": "/saved",
   "/inspections": "/home",
+  /* V-35: the gate code for one inspection, where a named delegate lands. */
+  "/inspections/gate/[id]": "/inspections",
   "/rent": "/home",
   "/rent/move-in/[listingId]": "/listing/[listingId]",
   "/rent/review/[paymentId]": "/inspections",
   "/record/[code]": "/search",
   "/rent/pay/[inspectionId]": "/inspections",
+  "/tenancy/[id]": "/bookings",
   /*
    * PRICE CHECK. Both entries reproduce what the two pages already pass to
    * `PageHeader` as a fallback, which is the honest reading of the surface
@@ -243,8 +253,6 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/wallet/send": "/wallet",
   "/wallet/transactions": "/wallet",
   "/wallet/transactions/[id]": "/wallet/transactions",
-  "/crypto": "/wallet",
-  "/crypto/[id]": "/crypto",
   /*
    * HELD PAYMENTS. `/escrow/[id]` is linked from a message thread
    * (`ProposeHeldPayment`) and from the escrow emails, and `/escrow` is linked
@@ -299,6 +307,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/settings/account": "/settings",
   "/settings/appearance": "/settings",
   "/settings/devices": "/settings",
+  /* V-19: the new sign-in alert a push lands on; back is the devices screen. */
+  "/settings/devices/alert": "/settings/devices",
   "/settings/help": "/settings",
   "/settings/interests": "/settings",
   "/settings/notifications": "/settings",
@@ -335,6 +345,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/moderation": "/admin",
   "/admin/money": "/admin",
   "/admin/operations": "/admin",
+  /* V-80: field speed, one panel read from real phones. */
+  "/admin/field-speed": "/admin/operations",
   "/admin/payments": "/admin",
   /*
    * `/admin/queue` is a DESK, not the console's landing screen, and that is the
@@ -361,10 +373,15 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/agent/inspections": "/agent/dashboard",
   "/agent/listings": "/agent/dashboard",
   "/agent/listings/[listingId]/calendar": "/agent/listings",
+  /* V-08: the TO LET board, under the listing's workspace like its calendar. */
+  "/agent/listings/[listingId]/board": "/agent/listings",
+  /* V-71: the Status kit, under the listing's workspace like its board. */
+  "/agent/listings/[listingId]/status": "/agent/listings",
   "/agent/list": "/agent/listings",
   "/agent/messages": "/agent/dashboard",
   "/agent/reviews": "/agent/dashboard",
   "/agent/settings": "/agent/dashboard",
+  "/agent/portfolio": "/agent/dashboard",
   "/agent/verification": "/agent/dashboard",
 
   /* ----------------------------------------------------- the host console */
@@ -465,21 +482,25 @@ export const LITERAL_EXPANSIONS: Readonly<Record<string, readonly string[]>> = {
  * because a thing nobody wrote down is a thing nobody checked.
  */
 export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
+  "/agent/listings/[listingId]/board/image": "V-08: the board as a PNG, not a page.",
+  "/s/[token]/status": "V-71: the door's card as a Status PNG, not a page.",
   "/api/assistant": "POST only, the assistant's model call.",
   "/api/auth/email-hook": "Supabase Auth's send-email webhook.",
   "/api/client-error": "the browser's error beacon.",
+  "/api/vitals": "the browser's field speed beacon (V-80).",
   "/api/cron/account-purge": "scheduled job, bearer token.",
   "/api/cron/complete-stays": "scheduled job, bearer token.",
   "/api/cron/email-outbox": "scheduled job, bearer token.",
   "/api/cron/hold-sweep": "scheduled job, bearer token.",
   "/api/cron/inventory-drift": "scheduled job, bearer token.",
+  "/api/cron/landlord-line": "scheduled job, bearer token.",
   "/api/cron/pg-cron-watch": "scheduled job, bearer token.",
   "/api/cron/saved-search-alerts": "scheduled job, bearer token.",
-  "/api/crypto/coins/[id]": "JSON read for the crypto screens.",
-  "/api/crypto/markets": "JSON read for the crypto screens.",
-  "/api/crypto/pairs": "JSON read for the crypto screens.",
+  "/api/cron/store-readiness": "scheduled job, bearer token.",
+  "/api/cron/new-match-alerts": "scheduled job, bearer token.",
   "/api/csp-report": "the browser's policy violation report.",
   "/api/documents/[id]": "a signed document stream, not a page.",
+  "/api/landlord/inbound": "the SMS aggregator's inbound webhook, bearer token.",
   "/api/map/listings": "JSON read for the map.",
   "/api/paystack/reconcile": "processor reconciliation.",
   "/api/paystack/webhook": "processor webhook.",
@@ -493,4 +514,8 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/yellowcard/webhook": "processor webhook.",
   "/admin/enter": "303 into the console with the entry cookie.",
   "/home-or-landing": "307 to `/` or `/home`, decided by the caller's cookies.",
+  "/landlord/[token]":
+    "a landlord's single-use reply page, opened from an SMS by somebody with no account; there is nowhere inside the platform for it to go back to.",
+  "/safe/[token]":
+    "the page a renter's trusted contact opens from a link the renter sent; the contact has no account and nowhere inside the platform to go back to.",
 };

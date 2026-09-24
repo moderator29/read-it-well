@@ -4,6 +4,7 @@ import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { LanguageSwitcher } from "@/components/site/LanguageSwitcher";
 import { AuthBackBar } from "./AuthBackBar";
+import { ForgetOnSignOut } from "@/components/app/offline/ForgetOnSignOut";
 
 /**
  * Auth shell, to its governing image (`55A56F21`, "Welcome back").
@@ -54,6 +55,8 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
      */
     <main id="main" className="nf-auth" data-theme="dark">
       <AuthBackBar />
+      {/* V-35, V-77: a phone at the way in keeps nobody's gate code or shortlist. */}
+      <ForgetOnSignOut />
       <div className="nf-auth__lang">
         <LanguageSwitcher current={locale} label={t.a11y.languageSwitcher} compact />
       </div>

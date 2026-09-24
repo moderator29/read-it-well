@@ -6,7 +6,7 @@ import { panelClass } from "@/components/ui/Panel";
 import { Segmented } from "@/components/ui/Segmented";
 import { TextField } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
-import { submitTenancyReview } from "@/lib/tenancy/actions";
+import { submitTenancyReview } from "@/lib/tenancy/review-actions";
 import { EXTRA_TO } from "@/lib/tenancy/review";
 
 type Tri = "yes" | "no" | "not_sure";

@@ -24,7 +24,7 @@ import { Switch } from "@/components/ui/Switch";
  * to save four lines of work once. And the premise was wrong anyway: a button
  * specimen that cannot be pressed is not a specimen of a button. It is a
  * picture of one. Half of what this primitive is - the press scale, the
- * 8ms haptic pulse, the spinner swapping into the leading slot without the
+ * haptic (V-30: silent on a press unless asked), the spinner swapping into the leading slot without the
  * label moving, the disabled opacity - only exists while somebody is pressing
  * it, and none of that was reachable on the page whose entire job is to show
  * what the primitive does.

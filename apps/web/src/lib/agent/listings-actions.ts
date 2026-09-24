@@ -32,6 +32,11 @@ import {
   resolveSession,
 } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "../locale";
+import { BROADCAST_MONEY_KEYS } from "./broadcast";
+import { readBroadcastMarks } from "./broadcast-marks-queries";
+import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/closed";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import {
@@ -142,7 +147,7 @@ async function ownedListing(
   const { data } = await supabase
     .from("listings")
     .select(
-      "id, status, title, description, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, sale_status, tenure, caution_deposit_minor, service_charge_minor, agency_fee_minor, legal_fee_minor, agreement_fee_minor, sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, stamp_duty_minor, survey_registration_fee_minor, state_code, city, area, bedrooms, bathrooms",
+      "id, status, title, description, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, sale_status, tenure, caution_deposit_minor, service_charge_minor, agency_fee_minor, legal_fee_minor, agreement_fee_minor, total_move_in_cost_minor, sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, stamp_duty_minor, survey_registration_fee_minor, state_code, city, area, bedrooms, bathrooms",
     )
     .eq("id", listingId)
     .eq("agent_id", agentId)
@@ -996,6 +1001,14 @@ export async function submitListing(input: {
     return fail("This listing has already been through review. Return it to a draft to change it.");
   }
 
+  /* V-09: a figure read from a pasted WhatsApp message is not sent for review
+     until a person has looked at it. The set is kept beside the draft on the
+     server, so this holds on every device, not only the one that pasted. */
+  const unconfirmed = await readBroadcastMarks(gate.supabase, listingId);
+  if (unconfirmed.some((key) => (BROADCAST_MONEY_KEYS as readonly string[]).includes(key))) {
+    return fail(getDictionary(await getLocale()).frontDoor.broadcast.unconfirmedOnServer);
+  }
+
   const [photoRes, amenityRes] = await Promise.all([
     gate.supabase.from("listing_photos").select("id, position").eq("listing_id", listingId),
     gate.supabase.from("listing_amenities").select("amenity_id").eq("listing_id", listingId),
@@ -1021,6 +1034,15 @@ export async function submitListing(input: {
     amenityCount: (amenityRes.data ?? []).length,
     photoCount: photos.length,
     hasCover: photos.some((p) => p.position === 0),
+    moveInStatedMinor: listing.total_move_in_cost_minor,
+    moveInPartsMinor: [
+      listing.rent_amount_minor,
+      listing.caution_deposit_minor,
+      listing.service_charge_minor,
+      listing.agency_fee_minor,
+      listing.legal_fee_minor,
+      listing.agreement_fee_minor,
+    ],
   });
 
   if (unmet.length > 0) {
@@ -1035,6 +1057,7 @@ export async function submitListing(input: {
     .select("id, status")
     .single();
 
+  if (isClosedListingRefusal(error)) return fail(CLOSED_LISTING_MESSAGE);
   if (error || !updated) {
     return fail("We could not send this listing for review just now. Please try again.");
   }
@@ -1068,6 +1091,7 @@ export async function unpublishListing(input: {
     .update({ status: "DRAFT" })
     .eq("id", listing.id)
     .eq("agent_id", gate.agentId);
+  if (isClosedListingRefusal(error)) return fail(CLOSED_LISTING_MESSAGE);
   if (error) return fail("We could not take this listing down just now. Please try again.");
 
   refreshAgentSurfaces();

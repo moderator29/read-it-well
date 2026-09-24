@@ -115,11 +115,14 @@ export function TenancyCard({
             {copy.pay}
           </ButtonLink>
         ) : (
+          /* V-47. A paid tenancy opens its own file; an unpaid one that can no
+             longer be paid still points at the listing. */
           <Link
-            href={`/listing/${tenancy.listingId}`}
+            href={tenancy.paid ? tenancy.fileHref : `/listing/${tenancy.listingId}`}
             className="flex shrink-0 items-center gap-2xs whitespace-nowrap text-[length:var(--nf-text-caption)] font-semibold text-[var(--nf-content-link)] underline-offset-4 hover:underline"
+            data-testid={tenancy.paid ? "tenancy-file-link" : undefined}
           >
-            {copy.view}
+            {tenancy.paid ? t.afterTheGate.tenancy.openFile : copy.view}
             <UiIcon name="arrow-right" size={16} />
           </Link>
         )}

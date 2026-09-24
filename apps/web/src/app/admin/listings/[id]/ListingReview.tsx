@@ -1,4 +1,5 @@
 import { PersonTier } from "@/app/admin/_components/PersonTier";
+import { payeeCaption, type MoneyMapCopy, type PayeeContext } from "@/lib/listings/money-map";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
@@ -50,7 +51,16 @@ export type ListingReviewProps = {
    * "Agency fee (10%)" with no owner, which reads as the platform's; Vallo
    * charges no platform fee and this screen must not imply one (rule 15).
    */
-  keepers: { moveIn: Dictionary["moveIn"]; purchase: Dictionary["purchase"] };
+  keepers: {
+    moveIn: Dictionary["moveIn"];
+    purchase: Dictionary["purchase"];
+    /**
+     * V-46: who a rent listing's lines are paid to, by the same rule as the
+     * listing page. Without it the rent and caution lines carry no caption
+     * rather than naming a landlord no record stands behind.
+     */
+    payee?: { ctx: PayeeContext; copy: MoneyMapCopy } | null;
+  };
   /** Said above everything when the listing may be an example (AR-10). */
   exampleNote?: ReactNode;
   /** V-45: the photograph comparison, drawn under the photographs. */
@@ -61,7 +71,7 @@ export type ListingReviewProps = {
 export function keeperFor(
   intent: string,
   key: string,
-  words: { moveIn: Dictionary["moveIn"]; purchase: Dictionary["purchase"] },
+  words: ListingReviewProps["keepers"],
 ): string | null {
   if (intent === "sale") {
     if (key === "price") return words.purchase.keptBySeller;
@@ -69,7 +79,9 @@ export function keeperFor(
     if (key === "consent" || key === "stamp" || key === "registration") return words.purchase.keptByState;
     return null;
   }
-  if (key === "rent" || key === "caution") return words.moveIn.keptByLister;
+  if (words.payee) return payeeCaption(key, words.payee.ctx, words.payee.copy) ?? null;
+  // No payee context: never name a landlord no record stands behind.
+  if (key === "rent" || key === "caution") return null;
   if (key === "agency" || key === "legal" || key === "agreement") return words.moveIn.keptByAgent;
   if (key === "service") return words.moveIn.keptByEstate;
   return null;

@@ -2,7 +2,6 @@ import type { WalletEntry } from "@/lib/wallet/types";
 import type { BalanceBreakdown } from "@/lib/wallet/types";
 import type { PaymentMethod } from "@/lib/payments/methods";
 import type { BankAccount } from "@/lib/payments/bank-accounts-actions";
-import type { CoinDetail, MarketRow, PairRow, CryptoResponse } from "@/components/app/crypto/client";
 import { COUNTERPART, HOTEL } from "../_fixtures/people";
 
 /**
@@ -119,69 +118,3 @@ export const ACCOUNTS: BankAccount[] = [
     createdAt: at(40, 10, 0),
   },
 ];
-
-/* --------------------------------------------------------------- crypto */
-
-function spark(base: number, drift: number, wobble: number): number[] {
-  const out: number[] = [];
-  for (let i = 0; i < 28; i += 1) {
-    const wave = Math.sin(i / 3.1) * wobble + Math.cos(i / 1.7) * (wobble / 2);
-    out.push(base + (drift * i) / 27 + wave);
-  }
-  return out;
-}
-
-const CACHED_AT = new Date(NOW - 4 * 60_000).toISOString();
-
-/* Prices in naira, so the default view is the one a Nigerian reader opens. */
-export const MARKETS: CryptoResponse<MarketRow[]> = {
-  ok: true,
-  cachedAt: CACHED_AT,
-  data: [
-    { id: "bitcoin", symbol: "btc", name: "Bitcoin", image: "", price: 98_412_500, change24h: 2.48, marketCap: 1_940_000_000_000_000, sparkline7d: spark(94_000_000, 4_400_000, 900_000) },
-    { id: "ethereum", symbol: "eth", name: "Ethereum", image: "", price: 4_936_200, change24h: 3.21, marketCap: 594_000_000_000_000, sparkline7d: spark(4_700_000, 240_000, 60_000) },
-    { id: "solana", symbol: "sol", name: "Solana", image: "", price: 216_980, change24h: 4.32, marketCap: 101_000_000_000_000, sparkline7d: spark(205_000, 12_000, 4_000) },
-    { id: "binancecoin", symbol: "bnb", name: "BNB", image: "", price: 885_260, change24h: 1.76, marketCap: 129_000_000_000_000, sparkline7d: spark(860_000, 25_000, 7_000) },
-    { id: "ripple", symbol: "xrp", name: "XRP", image: "", price: 3_940, change24h: -0.92, marketCap: 226_000_000_000_000, sparkline7d: spark(4_010, -70, 40) },
-    { id: "cardano", symbol: "ada", name: "Cardano", image: "", price: 1_120, change24h: -2.35, marketCap: 39_000_000_000_000, sparkline7d: spark(1_160, -40, 18) },
-    { id: "tron", symbol: "trx", name: "TRON", image: "", price: 512, change24h: 0.64, marketCap: 45_000_000_000_000, sparkline7d: spark(505, 7, 4) },
-    { id: "chainlink", symbol: "link", name: "Chainlink", image: "", price: 36_450, change24h: 5.87, marketCap: 22_000_000_000_000, sparkline7d: spark(34_000, 2_450, 500) },
-    { id: "polkadot", symbol: "dot", name: "Polkadot", image: "", price: 9_870, change24h: -4.18, marketCap: 15_000_000_000_000, sparkline7d: spark(10_300, -430, 120) },
-    { id: "litecoin", symbol: "ltc", name: "Litecoin", image: "", price: 168_300, change24h: -1.42, marketCap: 12_000_000_000_000, sparkline7d: spark(171_000, -2_700, 900) },
-  ],
-};
-
-export const COIN: CryptoResponse<CoinDetail> = {
-  ok: true,
-  cachedAt: CACHED_AT,
-  data: {
-    id: "bitcoin",
-    symbol: "btc",
-    name: "Bitcoin",
-    image: "",
-    price: 98_412_500,
-    change24h: 2.48,
-    change7d: 4.61,
-    marketCap: 1_940_000_000_000_000,
-    volume24h: 68_000_000_000_000,
-    high24h: 99_120_000,
-    low24h: 95_880_000,
-    description:
-      "Bitcoin is the first decentralised digital currency. It runs on a public network of computers that agree on a shared record of every transaction, with no bank or company in the middle. New coins are issued on a fixed schedule and the total supply is capped, which is the property most often discussed about it. Prices move with demand on open exchanges around the world, around the clock.",
-    chart7d: spark(94_000_000, 4_400_000, 900_000).map((v, i) => [NOW - (27 - i) * 6 * 60 * 60_000, v] as [number, number]),
-  },
-};
-
-export const PAIRS: CryptoResponse<PairRow[]> = {
-  ok: true,
-  cachedAt: CACHED_AT,
-  data: [
-    { address: "0xa1", name: "WETH / USDC", baseSymbol: "WETH", quoteSymbol: "USDC", priceUsd: 3246.17, change24h: 3.2, volume24h: 412_000_000, dex: "Uniswap v3" },
-    { address: "0xa2", name: "WBTC / WETH", baseSymbol: "WBTC", quoteSymbol: "WETH", priceUsd: 64_782.32, change24h: 2.4, volume24h: 88_000_000, dex: "Uniswap v3" },
-    { address: "0xa3", name: "USDT / USDC", baseSymbol: "USDT", quoteSymbol: "USDC", priceUsd: 1.0002, change24h: 0.01, volume24h: 61_000_000, dex: "Curve" },
-    { address: "0xa4", name: "LINK / WETH", baseSymbol: "LINK", quoteSymbol: "WETH", priceUsd: 24.11, change24h: -1.3, volume24h: 9_400_000, dex: "Sushi" },
-  ],
-};
-
-export const UNCONFIGURED: CryptoResponse<MarketRow[]> = { ok: false, reason: "unconfigured" };
-export const UNCONFIGURED_PAIRS: CryptoResponse<PairRow[]> = { ok: false, reason: "unconfigured" };

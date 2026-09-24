@@ -4,7 +4,16 @@ import type { CountForms } from "../plural";
    overwrite once already. One import and one line is the smallest footprint a
    namespace can have here. */
 import { priceCheckEn } from "./price-check.en";
+/* The front of the funnel (share door, area pages, store desk, broadcast,
+   board): its own module for the same reason. */
+import { frontDoorEn } from "./front-door.en";
+import { afterTheGateEn } from "./after-the-gate.en";
 import { trustVisibleEn } from "./trust-visible.en";
+import { landlordEn } from "./landlord.en";
+import { trustDoorsEn } from "./trust-doors.en";
+/* The platform and the craft (devices, sign-in alert, wallet hold, feedback),
+   in its own module for the same reason as Price Check. */
+import { platformEn } from "./platform.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -5231,59 +5240,6 @@ export const en = {
       roomsTitle: "Rooms",
     },
   },
-  /**
-   * /crypto: the market surface. Display only: prices, movers, pairs and
-   * the way to fund the wallet with crypto. No trading, no custody, no
-   * advice. Added 18 September 2026 (Build 06, E).
-   */
-  crypto: {
-    title: "Crypto",
-    lede: "Live market prices, for information only.",
-    search: "Search coins",
-    overview: "Market Overview",
-    overviewSub: "Live prices, movers, seven-day trend",
-    coins: "Coins",
-    pairs: "Pairs",
-    gainers: "Top gainers",
-    losers: "Top losers",
-    allCoins: "All coins",
-    seeAll: "See all",
-    change24h: "24h",
-    change7d: "7d",
-    marketCap: "Market cap",
-    volume24h: "24h volume",
-    high24h: "24h high",
-    low24h: "24h low",
-    about: "About {name}",
-    readMore: "Read more",
-    readLess: "Read less",
-    chart7d: "Seven-day price",
-    fundTitle: "Fund your wallet with crypto",
-    fundBody: "Pay in crypto and your wallet is credited in naira. Yellow Card carries the exchange; nothing about a coin or a rate touches your balance.",
-    fundAction: "Top up with crypto",
-    fundOffTitle: "Crypto top-ups are not switched on yet",
-    fundOffBody: "When the exchange partner is connected, this is where you will top up in crypto. Your naira wallet works as normal in the meantime.",
-    unconfiguredTitle: "Market data is not connected yet",
-    unconfiguredBody: "Prices and pairs appear here the moment the market feed is connected. Nothing on Vallo depends on it in the meantime.",
-    rateLimitedTitle: "The market feed is busy",
-    rateLimitedBody: "Too many requests reached the feed just now. Try again in a minute.",
-    upstreamTitle: "The market feed did not answer",
-    upstreamBody: "Prices could not be read just now. Try again shortly.",
-    retry: "Try again",
-    updated: "Updated {time}",
-    displayOnly: "Prices are shown for information. Vallo does not trade, hold or advise on crypto.",
-    network: "Network",
-    pairsSearch: "Search pairs",
-    pool: "Pool",
-    price: "Price",
-    noPairs: "No pairs matched.",
-    noCoins: "No coins matched.",
-    loading: "Loading market prices",
-    backToMarket: "Back to market",
-    notFound: "That coin could not be found",
-    notFoundBody: "It may have left the feed, or the address is wrong. The market list is one tap away.",
-    priceIn: "Show prices in",
-  },
 
   /**
    * TRACK H: what a tenant will actually pay.
@@ -5883,7 +5839,15 @@ export const en = {
   },
 
   priceCheck: priceCheckEn,
+  frontDoor: frontDoorEn,
+  afterTheGate: afterTheGateEn,
   trustVisible: trustVisibleEn,
+
+  landlord: landlordEn,
+
+  trustDoors: trustDoorsEn,
+
+  platform: platformEn,
 
 };
 

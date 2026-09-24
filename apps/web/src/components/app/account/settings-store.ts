@@ -174,6 +174,14 @@ function writeSetting<K extends keyof NfSettings>(key: K, value: NfSettings[K]):
 }
 
 /**
+ * V-79: the data saver, written from outside a component (the lite switch in
+ * `lib/ui/lite.ts` sets the cookie the server reads and this in one go).
+ */
+export function setDataSaverSetting(on: boolean): void {
+  writeSetting("dataSaver", on);
+}
+
+/**
  * The settings document and one writer, shared by every card that reads it.
  */
 export function useNfSettings() {
