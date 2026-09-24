@@ -151,8 +151,21 @@ export async function queueCheckin(checkin: QueuedCheckin): Promise<void> {
 }
 
 export async function readCheckins(): Promise<QueuedCheckin[]> {
+  /* Keys and values come back in the same key order, so a row that no
+     longer parses (an older shape, a damaged record) can be deleted by its
+     key rather than sitting in the queue for ever. */
+  const keys = (await run<IDBValidKey[]>(CHECKINS, "readonly", (s) => s.getAllKeys())) ?? [];
   const values = (await run<unknown[]>(CHECKINS, "readonly", (s) => s.getAll())) ?? [];
-  return values.map(asCheckin).filter((c): c is QueuedCheckin => c !== null);
+  const out: QueuedCheckin[] = [];
+  for (let i = 0; i < values.length; i += 1) {
+    const checkin = asCheckin(values[i]);
+    if (checkin) out.push(checkin);
+    else if (keys.length === values.length && keys[i] !== undefined) {
+      const key = keys[i]!;
+      await run(CHECKINS, "readwrite", (s) => s.delete(key));
+    }
+  }
+  return out;
 }
 
 export async function forgetCheckin(checkin: QueuedCheckin): Promise<void> {

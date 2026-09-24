@@ -85,8 +85,8 @@ export async function bulkAct(formData: FormData): Promise<void> {
   const rpc = access.supabase as unknown as Rpc;
 
   /* Another operator's live claim is theirs: bulk skips it and says so. */
-  const { data: claimRows } = await (access.supabase as unknown as {
-    from: (t: string) => { select: (c: string) => { in: (c: string, v: string[]) => PromiseLike<{ data: unknown }> } };
+  const { data: claimRows, error: claimError } = await (access.supabase as unknown as {
+    from: (t: string) => { select: (c: string) => { in: (c: string, v: string[]) => PromiseLike<{ data: unknown; error: unknown }> } };
   })
     .from("queue_claims")
     .select("kind, item_id, claimed_by, touched_at")
@@ -104,7 +104,8 @@ export async function bulkAct(formData: FormData): Promise<void> {
     let outcome: "done" | "skipped" | "failed" = "skipped";
     const reason = reasonFor(item.kind);
     try {
-      if (heldByOther.has(`${item.kind}:${item.id}`) && verb !== "take") {
+      /* Claims unreadable: nobody can say whose a row is, so only "take" (which the database checks) goes ahead. */
+      if ((claimError || heldByOther.has(`${item.kind}:${item.id}`)) && verb !== "take") {
         outcome = "skipped";
       } else if (verb === "take" || verb === "assign") {
         if (verb === "assign" && !/^[0-9a-f-]{36}$/i.test(assignee)) {

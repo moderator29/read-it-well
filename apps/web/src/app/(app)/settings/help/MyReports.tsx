@@ -77,7 +77,7 @@ export function MyReports({ list, locale }: { list: MyReportsList; locale: Local
                     type="button"
                     disabled={pending}
                     onClick={() => withdraw(report.id)}
-                    className="nf-link-quiet nf-caption text-[var(--nf-content-link)]"
+                    className="nf-link-quiet nf-caption inline-flex min-h-11 items-center px-2xs text-[var(--nf-content-link)]"
                     data-testid="my-report-withdraw"
                   >
                     {armed === report.id ? copy.withdrawConfirm : copy.withdraw}
