@@ -5,6 +5,7 @@ import { getLocale } from "@/lib/locale";
 import { readPerson } from "@/lib/admin/person-queries";
 import { adminUi } from "../../_components/ui";
 import { UpholdControl } from "./UpholdControl";
+import { ConsiderStr } from "../../_components/ConsiderStr";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +64,8 @@ export default async function PersonFilePage({ params }: { params: Promise<{ id:
   return (
     <div className="nf-console">
       <ui.QueueHeader title={person.name ?? "A person"} lede={LEDE} />
+      {/* SCUML item 6: open an STR case about this person. */}
+      <ConsiderStr from="person" id={id} />
 
       <section className="nf-panel nf-panel--card nf-admin-card p-card" aria-label="Who">
         <dl className="grid gap-xs text-[length:var(--nf-text-body-sm)] sm:grid-cols-2">

@@ -81,6 +81,11 @@ export const platformEn = {
       "Your wallet was already on hold until {until} while a change to your account is checked; pressing this does not shorten it. {ended} Change your password now if you have not.",
     rateLimitedHeld:
       "{ended} You have pressed this several times in the last hour, so the hold was left as it was: no money can leave your wallet until {until}. Change your password now if you have not.",
+    /* A plain hold (see account-hold.ts): no cause, no date. */
+    alreadyHeldPlainConsequence:
+      "Your wallet was already on hold; pressing this does not change that. {ended} Change your password now if you have not.",
+    rateLimitedHeldPlain:
+      "{ended} You have pressed this several times in the last hour, so the hold was left as it was. Change your password now if you have not.",
     rateLimitedNoHold:
       "{ended} You have pressed this several times in the last hour, so no new hold was placed this time. Change your password now, and press again later if you still need the hold.",
     signedOutVerdict: "Every other device is signed out",
@@ -105,6 +110,9 @@ export const platformEn = {
     refusalOther:
       "No money can leave this wallet until {until}, because the email address on this account was changed with help from support. Nothing has left your wallet.",
     refusalUnknown: "No money can leave this wallet while a hold is on it. Nothing has left your wallet.",
+    bodyPlain:
+      "Nothing can leave this wallet for now: no withdrawal, no send, no payment from the balance, and payout accounts cannot be changed. Money can still arrive.",
+    refusalPlain: "No money can leave this wallet for now. Nothing has left your wallet.",
   },
 
   /* V-30: the five kinds of the feedback grammar, as the styleguide names them. */

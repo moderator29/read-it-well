@@ -17,6 +17,7 @@ import { arrivalCheckEn } from "./arrival-check.en";
    in its own module for the same reason as Price Check. */
 import { platformEn } from "./platform.en";
 import { complianceEn } from "./compliance.en";
+import { complianceStrEn } from "./compliance-str.en";
 import { complianceThresholdEn } from "./compliance-7.en";
 import { compliancePepEn } from "./compliance-pep.en";
 import { complianceRiskEn } from "./compliance-risk.en";
@@ -6252,6 +6253,7 @@ export const en = {
   platform: platformEn,
 
   compliance: complianceEn,
+  complianceStr: complianceStrEn,
   complianceThreshold: complianceThresholdEn,
   compliancePep: compliancePepEn,
   complianceRisk: complianceRiskEn,

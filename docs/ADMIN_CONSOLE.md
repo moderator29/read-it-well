@@ -639,6 +639,8 @@ a fall is emerald. The line is alerts raised per day.
 | new-match-alerts | Vercel Cron `0,5,10,15,20,25,30,35,45,50,55 * * * *` | every 5 min except :40, so it never runs beside the 07:40 digest | 2 h | tells people within minutes about a listing just published, three times a day at most; the rest wait for the morning digest (V-15) |
 | store-readiness | Vercel Cron `0 5 * * *` | daily 06:00 | 26 h | runs the Store tab's checks against production and raises an alert when one is red (V-52) |
 | landlord-line | Vercel Cron `*/15 * * * *` | every 15 min | 2 h | asks consenting landlords whether the flat is still free and shows them the rent paid (V-31, V-32); a no-op while `landlord_line` is off |
+| sanctions-lists | Vercel Cron `10 5 * * *` | daily 06:10 | 26 h | loads the UN and Nigeria sanctions lists from their configured URLs when they changed; a new version re-screens everyone (SCUML items 8, 9); a no-op with no URL set |
+| sanctions-screen | Vercel Cron `7,22,37,52 * * * *` | every 15 min | 2 h | screens the people and transactions the triggers queued against the lists in force and raises matches on the compliance desk (SCUML item 8) |
 | risk-classes | Vercel Cron `50 3 * * *` | daily 04:50 | 26 h | classifies every customer high, medium or low risk, dated, from the documented factors (SCUML item 15) |
 | vallo_push_drain | pg_cron `*/5 * * * *` | every 5 min | | asks the app to drain the push queue (`private.request_push_drain`) |
 | vallo_safety_share_sweep | pg_cron `*/10 * * * *` | every 10 min | | reminds a renter once when half an hour has passed since they expected to be back from an inspection they shared and they have not tapped I'm done (V-62) |
@@ -647,6 +649,8 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_purge_view_marks | pg_cron `41 * * * *` | hourly at :41 | | forgets the day's listing view marks and salt once the day ends (V-73) |
 | vallo_alert_overdue_refunds | pg_cron `12 * * * *` | hourly at :12 | | alerts on refunds past their due-by date (V-24) |
 | vallo_escrow_sweep_timeouts | pg_cron `17 * * * *` | hourly at :17 | | escrow timeouts |
+| vallo_hold_claims_sweep | pg_cron `* * * * *` | every minute | | recomputes every person with a live compliance hold claim, so pending STR and sanctions claims take over within a minute of a "this was not me" hold ending; skips and cleans up deleted accounts (`private.hold_claims_sweep`, SCUML items 6 and 8) |
+| vallo_str_nudge_overdue | pg_cron `17 * * * *` | hourly at :17 | | reminds staff of a Suspicious Transaction Report case past its clock, once a day per case (`private.str_nudge_overdue`, SCUML item 6) |
 | vallo_escrow_invariants | pg_cron `23 * * * *` | hourly at :23 | | asserts the escrow float identity (`private.escrow_invariants_check`), six minutes after the sweeper |
 | vallo_escrow_age_watch | pg_cron `41 * * * *` | hourly at :41 | | alerts on a dispute older than 48 hours and cancels a proposal nobody funded in 14 days (`private.escrow_age_watch`, ESC-09) |
 | vallo_reconcile_payments | pg_cron `47 * * * *` | hourly at :47 | | database side of reconciliation |
@@ -670,7 +674,7 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_notify_void_shares | pg_cron `25 7 * * *` | daily 08:25 | | tells a flatmate once when a move-in they paid a share of fell through (V-86) |
 | vallo_threshold_reminders | pg_cron `5 * * * *` | hourly at :05 | | tells staff three days and one day before a threshold report to the NFIU is due (SCUML item 7) |
 
-13 Vercel Cron jobs and 29 pg_cron jobs in all. The numbers are derived,
+15 Vercel Cron jobs and 31 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by

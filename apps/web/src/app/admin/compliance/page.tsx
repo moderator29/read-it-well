@@ -4,7 +4,9 @@ import { adminUi } from "../_components/ui";
 import { fill } from "../_components/copy";
 import { QueueTabs } from "../_components/QueueTable";
 import type { ComplianceLane } from "./_lanes/lane";
+import { StrLane } from "./_lanes/StrLane";
 import { ThresholdLane } from "./_lanes/ThresholdLane";
+import { sanctionsLane } from "./_lanes/SanctionsLane";
 import { riskLane } from "./_lanes/RiskLane";
 import { pepLane } from "./_lanes/PepLane";
 import { beneficialOwnershipLane } from "./_lanes/BeneficialOwnershipLane";
@@ -23,7 +25,9 @@ export const dynamic = "force-dynamic";
  * `_lanes/` and ONE line here; keep the order by checklist item.
  */
 const LANES: ComplianceLane[] = [
-  ThresholdLane,
+  StrLane, // SCUML item 6
+  ThresholdLane, // SCUML item 7
+  sanctionsLane, // SCUML items 8 and 9
   riskLane, // SCUML item 15
   beneficialOwnershipLane, // SCUML item 17
   pepLane, // SCUML item 20

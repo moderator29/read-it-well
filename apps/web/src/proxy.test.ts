@@ -270,6 +270,8 @@ const EXPECTED_PUBLIC = new Set([
   "/api/cron/hold-sweep",
   "/api/cron/inventory-drift",
   "/api/cron/landlord-line",
+  "/api/cron/sanctions-lists",
+  "/api/cron/sanctions-screen",
   "/api/cron/pg-cron-watch",
   /* SCUML item 15: the daily risk classification, behind the cron bearer. */
   "/api/cron/risk-classes",

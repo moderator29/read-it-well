@@ -105,11 +105,11 @@ const owe = (file, what) => legacy.push(`${relative(ROOT, file)}: ${what}`);
 
 for (const file of walk(SRC)) {
   const source = readFileSync(file, "utf8");
-  for (const match of source.matchAll(/<(State|EmptyState|EmptyPanel)\b(?=[\s/>])/g)) {
+  for (const match of source.matchAll(/<(State|StateMoment|EmptyState|EmptyPanel)\b(?=[\s/>])/g)) {
     const tag = openingTag(source, match.index);
     sites += 1;
     /* The kit fails outright; a wrapper still migrating goes on the ratchet. */
-    const report = match[1] === "State" ? fail : owe;
+    const report = match[1] === "State" || match[1] === "StateMoment" ? fail : owe;
     const title = literal(tag, "title");
     const body = literal(tag, "body");
     if (title !== undefined || body !== undefined) literalCopy += 1;
@@ -121,9 +121,9 @@ for (const file of walk(SRC)) {
     for (const hit of banned(`${title ?? ""} ${body ?? ""} ${labelsIn(tag).join(" ")}`)) {
       fail(file, `"${hit.phrase}": ${hit.why}`);
     }
-    if (match[1] === "State") {
+    if (match[1] === "State" || match[1] === "StateMoment") {
       const kind = literal(tag, "kind");
-      if (kind && NEEDING.has(kind) && !hasProp(tag, "primary") && !hasProp(tag, "action")) {
+      if (kind && NEEDING.has(kind) && !hasProp(tag, "primary") && !hasProp(tag, "action") && !hasProp(tag, "actions")) {
         fail(file, `${kind === "error" || kind === "empty" || kind === "offline" ? "an" : "a"} ${kind} state with no way onward`);
       }
     }
@@ -148,6 +148,19 @@ else {
 if (legacy.length > LEGACY_BUDGET) {
   fail(SRC, `${legacy.length} long titles or bodies on wrappers still migrating, over the budget of ${LEGACY_BUDGET}: a new one was written`);
 }
+/*
+ * EVERY ROUTE LOADING STATE ANNOUNCES THROUGH THE KIT: directly, or through a
+ * shared shell that renders it (LoadingShell, and QueueSkeleton,
+ * AgentScreenSkeleton and LoadingPeople over it). One is still its own, the
+ * share door's card (`app/s/[token]`), which is builder-owned and new; it is
+ * the whole of LOADING_BUDGET, and the number may only go down.
+ */
+const LOADING_BUDGET = 1;
+const KIT_LOADERS = /\b(State|LoadingShell|QueueSkeleton|AgentScreenSkeleton|LoadingPeople)\b/;
+const loose = walk(join(SRC, "app")).filter((f) => f.endsWith("/loading.tsx") && !KIT_LOADERS.test(readFileSync(f, "utf8")));
+if (loose.length > LOADING_BUDGET) {
+  for (const f of loose) fail(f, "a loading state that does not announce through the kit");
+}
 if (sites < FLOOR) fail(SRC, `only ${sites} state call sites walked, under the floor of ${FLOOR}: the walk is broken`);
 
 if (failures.length > 0) {
@@ -161,7 +174,7 @@ if (legacy.length < LEGACY_BUDGET) {
   console.log(`  the owed list is ${legacy.length}, under the budget of ${LEGACY_BUDGET}: lower LEGACY_BUDGET to hold the gain.`);
 }
 console.log(
-  `state sweep: clean - ${sites} state call sites walked (${literalCopy} with literal copy), the 404 and the kit's own copy; ` +
+  `state sweep: clean - ${sites} state call sites walked, ${loose.length} loading route(s) outside the kit (budget ${LOADING_BUDGET}) (${literalCopy} with literal copy), the 404 and the kit's own copy; ` +
     `titles to ${TITLE_MAX}, bodies to ${BODY_MAX}, ${BANNED.length} banned phrases, every stuck state offers a way onward. ` +
     "Copy passed as an expression is not resolved here, and none of this proves what a browser rendered.",
 );

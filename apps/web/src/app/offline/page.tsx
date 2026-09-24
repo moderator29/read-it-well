@@ -3,7 +3,7 @@ import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
 import { RetryButton } from "./RetryButton";
 import { OfflinePacks } from "./OfflinePacks";
 import { OfflineShelf } from "./OfflineShelf";
-import { SystemMoment } from "./SystemMoment";
+import { StateMoment } from "@/components/ui/StateMoment";
 
 /**
  * The offline shell: the brand moment with the real retry.
@@ -29,22 +29,20 @@ export const metadata: Metadata = {
 };
 
 export default function OfflinePage() {
+  /* V-97: the state kit's full-screen form. The words are the kit's, and the
+     retry pair is the RetryButton's own actions block. */
+  const copy = getDictionary(DEFAULT_LOCALE).trustVisible.state;
   return (
-    <SystemMoment
+    <StateMoment
+      kind="offline"
       home="/home"
       offline
       aside="Worth checking: mobile data switched on, aeroplane mode off, and enough left on your bundle."
+      overline={copy.offlineOverline}
+      title={copy.offlineTitle}
+      body={copy.offlineBody}
+      actions={<RetryButton />}
     >
-      <p className="nf-system__overline">Connection</p>
-      <h1 className="nf-system__title">You are offline</h1>
-      <p className="nf-system__body">
-        The connection dropped before this page could load, so it has not
-        been shown. Anything you had typed but not sent may need typing again.
-        Your balance, your messages and your bookings are never shown from an
-        old copy, so they will be the real figures when you are back.
-      </p>
-
-      <RetryButton />
       {/* V-35: this phone's inspection packs, with their gate codes. The
           page is precached and static, so the copy is English, the same as
           every other sentence on it. */}
@@ -55,6 +53,6 @@ export default function OfflinePage() {
         exampleLabel={getDictionary(DEFAULT_LOCALE).catalogue.card.example}
         locale={DEFAULT_LOCALE}
       />
-    </SystemMoment>
+    </StateMoment>
   );
 }

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { panelClass } from "@/components/ui/Panel";
+import { State } from "@/components/ui/State";
 
 /**
  * The pieces every `loading.tsx` is assembled from.
@@ -30,11 +31,12 @@ export function LoadingShell({
   className?: string;
   children: ReactNode;
 }) {
+  /* V-97: the one loading state. The route keeps its own skeleton; the kit
+     supplies the announcement, so every loading screen says it the same way. */
   return (
-    <div className={className} aria-busy="true" aria-live="polite">
-      <span className="sr-only">{label}</span>
+    <State kind="loading" title={label} {...(className ? { className } : {})}>
       {children}
-    </div>
+    </State>
   );
 }
 

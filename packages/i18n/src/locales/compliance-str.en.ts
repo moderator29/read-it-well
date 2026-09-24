@@ -1,0 +1,128 @@
+/**
+ * SCUML item 6: Suspicious Transaction Reports to the NFIU, in English.
+ *
+ * Staff-only copy for the STR lane on /admin/compliance. Nothing here is ever
+ * shown to a member: a person under STR review sees nothing different, and
+ * no sentence in this file may reach them (no tipping off).
+ */
+export const complianceStrEn = {
+  tab: "STRs",
+  lede: "Consider a Suspicious Transaction Report, decide to file or not with reasons, have a second person approve, then record the goAML reference. Filing itself happens in goAML.",
+  /** "Consider an STR" from elsewhere on the console. */
+  consider: "Consider an STR",
+
+  openTitle: "Consider an STR",
+  sourceKind: "It starts from",
+  sources: {
+    person: "A person",
+    transaction: "A transaction",
+    risk_alert: "A risk alert",
+    report: "An upheld report",
+    sanctions_hit: "A sanctions hit",
+    pep_review: "A PEP review",
+    threshold_report: "A threshold report",
+  },
+  sourceId: "Its id",
+  subject: "The person it is about (id, if known)",
+  grounds: "The grounds",
+  groundsHint: "What happened and why it looks suspicious, in your own words. At least 20 characters.",
+  open: "Open the case",
+  opening: "Opening",
+  /** `{due}` is a Lagos date and time. */
+  opened: "Case opened. The decision is due by {due}.",
+
+  casesTitle: "Cases",
+  empty: "No STR cases. When somebody considers one, it waits here on its clock.",
+  failed: "The STR cases could not be read, so nothing here means none are open. Try again in a moment.",
+  /** `{due}` is a Lagos date and time. */
+  due: "Due {due}",
+  overdue: "Overdue",
+  openedOn: "Opened {date}",
+  states: {
+    open: "Waiting for a decision",
+    awaiting_approval: "Waiting for a second person",
+    to_file: "Approved to file: record the goAML reference",
+    filed: "Filed",
+    not_filed: "Not filed, approved",
+  },
+  groundsLabel: "Grounds",
+  linksLabel: "Linked",
+  decisionFile: "File",
+  decisionNoFile: "Do not file",
+  /** `{decision}` is File or Do not file. */
+  decided: "Decision: {decision}",
+  reasons: "Reasons",
+  reasonsHint: "Why, at least 20 characters. A second person reads this before approving.",
+  decide: "Record the decision",
+  approveNote: "Note (needed to send it back)",
+  approve: "Approve",
+  reject: "Send it back",
+  secondPerson: "Only a second staff member can approve. The person who decided cannot.",
+  goaml: "goAML reference",
+  filedAt: "Filed at (Lagos time)",
+  recordFiling: "Record the filing",
+  linkKind: "Link",
+  linkRef: "Its id",
+  link: "Add the link",
+  hold: "Hold their money",
+  holdHint: "Stops money leaving their wallet for 30 days from now; place it again to keep it. The wallet says money cannot leave, with no reason and no date. Use it only when money must not move.",
+  releaseNote: "Why it is released",
+  release: "Ask to release the hold",
+  releasesTitle: "Hold releases waiting for a second person",
+  releasesFailed: "The waiting releases could not be read. Try again in a moment.",
+  /** `{date}` is a Lagos date and time. */
+  releaseAsked: "Asked {date}",
+  approveRelease: "Approve the release",
+  /** Link kinds, including the two a case only links (never starts from). */
+  linkKinds: {
+    person: "A person",
+    transaction: "A transaction",
+    risk_alert: "A risk alert",
+    report: "An upheld report",
+    sanctions_hit: "A sanctions hit",
+    pep_review: "A PEP review",
+    threshold_report: "A threshold report",
+    rent_payment: "A rent payment",
+    booking: "A booking",
+  },
+  working: "Working",
+
+  registerTitle: "Register of STRs filed",
+  registerEmpty: "Nothing has been filed with the NFIU yet.",
+  registerFailed: "The register could not be read. Try again in a moment.",
+  registerCase: "Case",
+  registerRef: "goAML reference",
+  registerFiled: "Filed",
+  registerPeople: "Decided and approved by",
+
+  results: {
+    forbidden: "Only staff can do this.",
+    invalid: "Something in that is not valid. Check the ids and try again.",
+    not_found: "That could not be found. Check the id.",
+    grounds_short: "Write the grounds in at least 20 characters.",
+    reasons_short: "Write the reasons in at least 20 characters.",
+    awaiting_approval: "A decision on this case is already waiting for a second person.",
+    closed: "This case is closed.",
+    same_person: "You made this decision, so a second person has to approve it.",
+    note_needed: "Say why you are sending it back.",
+    already: "That is already recorded.",
+    not_approved: "A filing can only be recorded after a second person approves filing.",
+    no_subject: "This case has no person on it, so there is nobody to hold.",
+    conflicted: "You are the person this case is about, or linked to it, so you cannot act on it. Another staff member has to.",
+    before_approval: "A filing cannot be dated before a second person approved filing. Check the time.",
+    other_hold: "This desk's hold is ended. Another hold keeps their money held, and stays as it is.",
+    no_hold: "There is no hold from this desk to release.",
+    released: "Released: this desk's hold is ended. Any other hold on their wallet stays as it is.",
+    expired: "This desk's hold had already run out, and nothing holds their money now.",
+    release_asked: "Release asked for. A second staff member has to approve it.",
+    release_waiting: "A release of this hold is already waiting for a second person.",
+    failed: "That did not go through. Nothing was changed. Try again in a moment.",
+    decided: "Decision recorded. It waits for a second person.",
+    approved: "Approved.",
+    rejected: "Sent back. The case is open for a new decision.",
+    recorded: "Filing recorded in the register.",
+    linked: "Linked.",
+    /** `{until}` is a Lagos date and time. */
+    held: "Their money is held until {until}.",
+  },
+};

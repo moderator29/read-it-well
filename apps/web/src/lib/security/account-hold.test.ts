@@ -77,3 +77,10 @@ describe("formatHoldUntil", () => {
     expect(formatHoldUntil("nonsense", "en")).toBe("");
   });
 });
+
+describe("a plain hold (SCUML items 6 and 8)", () => {
+  it("reads as plain, so the member is told no cause and no date", () => {
+    const later = new Date(NOW + 86_400_000).toISOString();
+    expect(holdFromRows([{ hold_until: later, reason: "plain" }], NOW)).toEqual({ state: "held", until: later, reason: "plain" });
+  });
+});

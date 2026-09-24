@@ -6,6 +6,7 @@ import type { Dictionary } from "@vallo/i18n";
 import { ResultSheet } from "@/components/app/ResultSheet";
 import { reportNotMe, type NotMeResult } from "@/lib/security/device-alert-actions";
 import { formatHoldUntil } from "@/lib/security/account-hold";
+import { notMeConsequence } from "@/lib/security/not-me-copy";
 
 /**
  * "THIS WAS NOT ME". V-19.
@@ -75,16 +76,12 @@ export function NotMePanel({
         ? copy.endedNone
         : plural(outcome.result.ended, copy.ended, locale)
       : "";
+  /* A plain hold's end is never printed (no tipping off): see not-me-copy.ts. */
   const until =
-    outcome?.kind === "held" && outcome.result.holdUntil ? formatHoldUntil(outcome.result.holdUntil, locale) : "";
-  const heldConsequence = (result: NotMeResult): string => {
-    if (result.rateLimited) return result.holdUntil ? copy.rateLimitedHeld : copy.rateLimitedNoHold;
-    if (result.holdPlaced) return copy.heldConsequence;
-    if (result.holdExtended) return copy.extendedConsequence;
-    /* Pressing again does not change a hold, and the sentence says whose
-       hold it is: the person's own earlier press, or a support change. */
-    return result.holdReason === "not_me" ? copy.alreadyHeldConsequence : copy.alreadyHeldOtherConsequence;
-  };
+    outcome?.kind === "held" && outcome.result.holdUntil && outcome.result.holdReason !== "plain"
+      ? formatHoldUntil(outcome.result.holdUntil, locale)
+      : "";
+  const heldConsequence = (result: NotMeResult): string => notMeConsequence(result, copy);
 
   return (
     <div className="nf-panel nf-panel--card block p-card" data-testid="not-me-panel">

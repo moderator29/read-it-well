@@ -6,11 +6,11 @@
  * rather than appearing all at once after a silence.
  */
 import { Skeleton } from "@/components/ui/Skeleton";
+import { State } from "@/components/ui/State";
 
 export default function LoadingArea() {
   return (
-    <div className="mx-auto w-full max-w-3xl pb-4xl pt-md" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading this place</span>
+    <State kind="loading" title="Loading this place" className="mx-auto w-full max-w-3xl pb-4xl pt-md">
 
       <div className="mb-lg space-y-sm" aria-hidden="true">
         <Skeleton width="13rem" height="1.75rem" radius="xs" />
@@ -36,6 +36,6 @@ export default function LoadingArea() {
           </div>
         ))}
       </div>
-    </div>
+    </State>
   );
 }

@@ -87,6 +87,19 @@ attach to them, and the storage limitation principle is the only rule left. This
 is the pivot the whole schedule turns on and it is question 1 for the solicitor
 in section 7.
 
+### 3.1a Sanctions screening (SCUML items 8 and 9)
+
+| Data | Where it lives | Trigger | Period | Action |
+| --- | --- | --- | ---: | --- |
+| Every screening, clean ones included, with the names screened and the list versions used | `public.sanctions_screenings` (append-only) | The screening | **5 years [C], at least** | None: no purge job touches it. `person_id` is a plain uuid, so account deletion leaves it standing |
+| Matches and their two-person decisions | `public.sanctions_hits`, `public.sanctions_hit_decisions` | The decision | **5 years [C], at least** | None |
+| Loaded list versions and their entries | `public.sanctions_list_versions`, `public.sanctions_entries` | Superseded by a newer version | **5 years [C]**, because a screening names the version it used | None |
+| The screening queue | `public.sanctions_screen_queue` | Screened (`done_at` set) | Working data | May be purged once done; it is not the record |
+
+These are AML records (Money Laundering (Prevention and Prohibition) Act 2022),
+not NDPA personal data kept for convenience: the Act's five year floor wins, and
+deleting an account anonymises the person elsewhere without deleting them.
+
 ### 3.2 Account and profile
 
 | Data | Where it lives | Trigger | Period | Action |
@@ -166,6 +179,7 @@ them, and a report of harassment is evidenced by them.
 | Data | Where it lives | Trigger | Period | Action |
 | --- | --- | --- | ---: | --- |
 | Admin action audit trail | `public.audit_log` | Entry date | 6 years [C] | Keep. See the note below |
+| Suspicious Transaction Report cases, links, decisions, approvals and the goAML register (SCUML item 6, MLPPA 2022) | `private.str_cases`, `private.str_case_links`, `private.str_decisions`, `private.str_approvals`, `private.str_register` | The filing, or the approved decision not to file | 5 years [C] | Keep. Append-only by trigger; account deletion does not reach them (no foreign key to the account) |
 | Rate limit counters | `public.rate_limits` | Entry date | 30 days [L] | Purge |
 | Idempotency records | `public.idempotency_records` | Entry date | 90 days [L] | Purge |
 | Notifications | `public.notifications` | Read, or creation if never read | 12 months [L] | Purge |

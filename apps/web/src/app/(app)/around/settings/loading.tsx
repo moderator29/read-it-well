@@ -9,11 +9,11 @@
  * The real layout rather than a spinner, so nothing jumps when the data lands.
  */
 import { Skeleton } from "@/components/ui/Skeleton";
+import { State } from "@/components/ui/State";
 
 export default function LoadingAroundManage() {
   return (
-    <div className="mx-auto w-full max-w-3xl pb-4xl pt-md" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading places</span>
+    <State kind="loading" title="Loading places" className="mx-auto w-full max-w-3xl pb-4xl pt-md">
 
       <div className="mb-lg space-y-sm" aria-hidden="true">
         <Skeleton width="8rem" height="1.75rem" radius="xs" />
@@ -32,6 +32,6 @@ export default function LoadingAroundManage() {
           </li>
         ))}
       </ul>
-    </div>
+    </State>
   );
 }

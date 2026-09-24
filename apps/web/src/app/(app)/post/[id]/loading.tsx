@@ -6,11 +6,11 @@
  * the root post and one reply arrives immediately instead.
  */
 import { Skeleton } from "@/components/ui/Skeleton";
+import { State } from "@/components/ui/State";
 
 export default function LoadingThread() {
   return (
-    <div className="mx-auto w-full max-w-2xl pb-4xl pt-md" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading this thread</span>
+    <State kind="loading" title="Loading this thread" className="mx-auto w-full max-w-2xl pb-4xl pt-md">
 
       <div className="mb-lg space-y-sm" aria-hidden="true">
         <Skeleton width="7rem" height="1.75rem" radius="xs" />
@@ -28,6 +28,6 @@ export default function LoadingThread() {
           <Skeleton width="75%" height="0.75rem" radius="xs" />
         </div>
       </div>
-    </div>
+    </State>
   );
 }

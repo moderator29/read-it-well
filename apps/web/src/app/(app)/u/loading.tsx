@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/Skeleton";
+import { State } from "@/components/ui/State";
 
 /**
  * The wait, on the people directory.
@@ -22,9 +23,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
  */
 export default function LoadingPeopleDirectory() {
   return (
-    <div className="mx-auto w-full max-w-2xl pb-4xl pt-md" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Looking for people</span>
-
+    <State kind="loading" title="Looking for people" className="mx-auto w-full max-w-2xl pb-4xl pt-md">
       <div className="mb-lg space-y-sm">
         <Skeleton width="7rem" height="1.75rem" radius="sm" />
         <Skeleton width="12rem" height="0.75rem" radius="sm" />
@@ -58,6 +57,6 @@ export default function LoadingPeopleDirectory() {
           </li>
         ))}
       </ul>
-    </div>
+    </State>
   );
 }
