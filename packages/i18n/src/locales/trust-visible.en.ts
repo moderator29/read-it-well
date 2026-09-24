@@ -158,9 +158,10 @@ export const trustVisibleEn = {
     /** `{month}` is a month and year. */
     memberSince: "On Vallo since {month}",
     phoneConfirmed: "Phone confirmed",
-    viewingsOne: "1 viewing arranged on Vallo",
+    /** Viewings the other person requested from the reader, and the reader accepted. */
+    viewingsOne: "1 viewing with you arranged on Vallo",
     /** `{count}` is a number. */
-    viewingsMany: "{count} viewings arranged on Vallo",
+    viewingsMany: "{count} viewings with you arranged on Vallo",
   },
   /** V-59: the tenancy review, led by the door. */
   tenancy: {

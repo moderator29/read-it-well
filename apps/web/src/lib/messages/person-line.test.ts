@@ -11,23 +11,23 @@ describe("the person line (V-23)", () => {
   it("prints every fact, in order, when every fact is there", () => {
     const facts = counterpartFactsFrom({
       identity_seen_at: "2026-08-12T10:00:00Z",
-      identity_nimc: true,
+      identity_nimc_at: "2026-09-02T10:00:00Z",
       member_since: "2026-03-02T10:00:00Z",
       phone_confirmed: true,
       viewings_arranged: 4,
     });
     expect(personFacts(facts, copy, "en").map((f) => f.text)).toEqual([
-      "Identity matched with NIMC, 12 Aug 2026",
+      "Identity matched with NIMC, 2 Sept 2026",
       "On Vallo since March 2026",
       "Phone confirmed",
-      "4 viewings arranged on Vallo",
+      "4 viewings with you arranged on Vallo",
     ]);
   });
 
   it("prints nothing for a null, a false or a zero: no 'not verified', no '0 viewings'", () => {
     const facts = counterpartFactsFrom({
       identity_seen_at: null,
-      identity_nimc: false,
+      identity_nimc_at: null,
       member_since: null,
       phone_confirmed: false,
       viewings_arranged: 0,
@@ -38,8 +38,13 @@ describe("the person line (V-23)", () => {
   });
 
   it("says seen, not matched, unless NIMC matched it", () => {
-    const facts = counterpartFactsFrom({ identity_seen_at: "2026-08-12T10:00:00Z", identity_nimc: false });
+    const facts = counterpartFactsFrom({ identity_seen_at: "2026-08-12T10:00:00Z", identity_nimc_at: null });
     expect(personFacts(facts, copy, "en")[0]!.text).toBe("Identity document seen by Vallo, 12 Aug 2026");
+  });
+
+  it("dates the NIMC line with NIMC's own date, even with no badge date", () => {
+    const facts = counterpartFactsFrom({ identity_seen_at: null, identity_nimc_at: "2026-09-02T10:00:00Z" });
+    expect(personFacts(facts, copy, "en")[0]!.text).toBe("Identity matched with NIMC, 2 Sept 2026");
   });
 
   it("is read from the RPC and drawn under the header", () => {

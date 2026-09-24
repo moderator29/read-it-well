@@ -12,7 +12,8 @@ import { formatDate, formatNumber, type Dictionary, type Locale } from "@vallo/i
 
 export type CounterpartFacts = {
   identitySeenAt: string | null;
-  identityNimc: boolean;
+  /** When NIMC matched this person's identity (V-49), or null. */
+  identityNimcAt: string | null;
   memberSince: string | null;
   phoneConfirmed: boolean;
   viewingsArranged: number;
@@ -31,14 +32,18 @@ export function personFacts(
 ): PersonFact[] {
   if (!facts) return [];
   const out: PersonFact[] = [];
-  if (valid(facts.identitySeenAt)) {
-    const date = formatDate(new Date(facts.identitySeenAt), locale, {
+  /* The NIMC line carries the date NIMC matched, never the badge's date. */
+  const nimc = valid(facts.identityNimcAt) ? facts.identityNimcAt : null;
+  const seen = valid(facts.identitySeenAt) ? facts.identitySeenAt : null;
+  const identityAt = nimc ?? seen;
+  if (identityAt) {
+    const date = formatDate(new Date(identityAt), locale, {
       day: "numeric",
       month: "short",
       year: "numeric",
       timeZone: "Africa/Lagos",
     });
-    out.push({ key: "identity", text: (facts.identityNimc ? copy.identityNimc : copy.identitySeen).replace("{date}", date) });
+    out.push({ key: "identity", text: (nimc ? copy.identityNimc : copy.identitySeen).replace("{date}", date) });
   }
   if (valid(facts.memberSince)) {
     const month = formatDate(new Date(facts.memberSince), locale, {
@@ -61,7 +66,7 @@ export function counterpartFactsFrom(row: unknown): CounterpartFacts | null {
   const r = row as Record<string, unknown>;
   return {
     identitySeenAt: typeof r.identity_seen_at === "string" ? r.identity_seen_at : null,
-    identityNimc: r.identity_nimc === true,
+    identityNimcAt: typeof r.identity_nimc_at === "string" ? r.identity_nimc_at : null,
     memberSince: typeof r.member_since === "string" ? r.member_since : null,
     phoneConfirmed: r.phone_confirmed === true,
     viewingsArranged: typeof r.viewings_arranged === "number" ? r.viewings_arranged : 0,

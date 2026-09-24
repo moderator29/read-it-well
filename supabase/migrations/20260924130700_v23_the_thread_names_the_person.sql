@@ -7,13 +7,20 @@
 --
 --   identity_seen_at    when that person's identity rung passed (the date the
 --                       published badge turned true), or null
---   identity_nimc       true when that identity was matched with NIMC (V-49)
+--   identity_nimc_at    when that person's identity was matched with NIMC
+--                       (V-49): the matched check's own date, or null. The
+--                       screen prints this line instead of the badge date when
+--                       it is there, so "matched with NIMC" always carries the
+--                       date NIMC matched it.
 --   member_since        when the account was created
 --   phone_confirmed     true when they confirmed a mobile number (V-50). The
 --                       number itself never leaves `confirmed_phones`.
---   viewings_arranged   inspections they requested that a lister accepted.
---                       "Arranged", not "attended": acceptance is what the
---                       platform can prove until V-35 proves attendance.
+--   viewings_arranged   inspections they requested FROM THE CALLER that the
+--                       caller accepted. Only between these two people: a
+--                       renter's viewings with other listers are not this
+--                       lister's business. "Arranged", not "attended":
+--                       acceptance is what the platform can prove until V-35
+--                       proves attendance.
 --
 -- A null is not a line: the screen prints only the facts that are there.
 -- SECURITY DEFINER because every source is locked to its owner; the guard
@@ -22,7 +29,7 @@
 create or replace function public.thread_counterpart_facts(p_conversation uuid)
 returns table (
   identity_seen_at timestamptz,
-  identity_nimc boolean,
+  identity_nimc_at timestamptz,
   member_since timestamptz,
   phone_confirmed boolean,
   viewings_arranged integer
@@ -41,12 +48,13 @@ as $$
   select
     (select ab.verified_at from public.agents a join public.agent_badges ab on ab.agent_id = a.id
       where a.user_id = party.other and ab.verified and not a.is_demo limit 1),
-    exists (select 1 from public.identity_verifications iv
-             where iv.subject_id = party.other and iv.outcome = 'matched' and iv.method = 'vnin'),
+    (select max(iv.decided_at) from public.identity_verifications iv
+      where iv.subject_id = party.other and iv.outcome = 'matched' and iv.method = 'vnin'),
     (select u.created_at from auth.users u where u.id = party.other),
     exists (select 1 from public.confirmed_phones cp where cp.user_id = party.other),
     (select count(*)::integer from public.inspection_requests r
       where r.requester_id = party.other
+        and r.lister_id = (select auth.uid())
         and r.state in ('CONFIRMED'::public.inspection_state, 'COMPLETED'::public.inspection_state))
   from party;
 $$;
