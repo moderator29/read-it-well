@@ -23,7 +23,7 @@
 -- insert policy: the tenant on the rent charge, the booking that carries it
 -- CONFIRMED (paid), and thirty days since the move-in date.
 --
--- WHAT IS PUBLIC. One number per listing and per lister: how many tenants
+-- WHAT IS PUBLIC. One number per listing, from five up: how many tenants
 -- said NOTHING more was asked at the door ("Moved in for the Vallo price: 9
 -- tenants"). The "yes" answers are private: two different tenants of one
 -- lister saying yes open a HIGH risk alert for staff, naming no tenant. A
@@ -168,17 +168,21 @@ create trigger tenancy_reviews_alert
 
 /* ------------------------------------------------------ the public count */
 
+/* Per listing only, and only at five or more. No lister id: r_sh4 stopped
+   publishing raw user ids, and this view must not start again. Five, because
+   below it a count of one or two lets a reader who knows who rented the flat
+   work out by elimination what a tenant answered. */
 create or replace view public.door_honesty as
-  select t.listing_id, t.lister_id,
+  select t.listing_id,
          (count(*) filter (where t.paid_extra = 'no'))::integer as nothing_more
     from public.tenancy_reviews t
     join public.listings l on l.id = t.listing_id
    where t.weight_withheld_reason is null and not l.is_demo
-   group by t.listing_id, t.lister_id
-  having count(*) filter (where t.paid_extra = 'no') > 0;
+   group by t.listing_id
+  having count(*) filter (where t.paid_extra = 'no') >= 5;
 
 comment on view public.door_honesty is
-  'V-59. Per listing and lister, how many tenants said they paid nothing beyond what they paid on Vallo. Only that count: a yes is never public. A definer view granted to readers, recorded as the same deliberate exception as public.listing_lister: aggregate columns only, and an invoker view would need a policy letting strangers read the rows.';
+  'V-59. Per listing, how many tenants said they paid nothing beyond what they paid on Vallo, shown only at five or more. Only that count: a yes is never public, and no user id is published. A definer view granted to readers, recorded as the same deliberate exception as public.listing_lister: aggregate columns only, and an invoker view would need a policy letting strangers read the rows.';
 
 revoke all on public.door_honesty from public, anon, authenticated;
 grant select on public.door_honesty to anon, authenticated;
@@ -192,6 +196,10 @@ begin
     bad := bad || ' [a tenancy review can be edited]';
   end if;
   if has_table_privilege('anon', 'public.door_honesty', 'insert') then bad := bad || ' [the count can be written]'; end if;
+  if exists (select 1 from information_schema.columns
+              where table_schema = 'public' and table_name = 'door_honesty' and column_name = 'lister_id') then
+    bad := bad || ' [the view publishes a user id]';
+  end if;
   if bad <> '' then raise exception 'READ-BACK FAILED:%', bad; end if;
 end;
 $readback$;

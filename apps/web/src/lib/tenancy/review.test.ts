@@ -42,7 +42,9 @@ describe("the tenancy review (V-59)", () => {
   it("publishes only the count of tenants who paid nothing more, and nothing at zero", () => {
     const copy = getDictionary("en").trustVisible.tenancy;
     expect(doorHonestyLine(9, copy)).toBe("Moved in for the Vallo price: 9 tenants said nothing more was asked at the door.");
-    expect(doorHonestyLine(1, copy)).toContain("1 tenant said");
+    expect(doorHonestyLine(5, copy)).toContain("5 tenants said");
+    expect(doorHonestyLine(4, copy)).toBeNull();
+    expect(doorHonestyLine(1, copy)).toBeNull();
     expect(doorHonestyLine(0, copy)).toBeNull();
     expect(doorHonestyLine(null, copy)).toBeNull();
   });
