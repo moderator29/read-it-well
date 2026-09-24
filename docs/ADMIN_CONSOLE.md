@@ -633,22 +633,29 @@ a fall is emerald. The line is alerts raised per day.
 | inventory-drift | Vercel Cron `45 2 * * *` | daily 03:45 | 26 h | checks room inventory against bookings |
 | account-purge | Vercel Cron `15 3 * * *` | daily 04:15 | 26 h | honours account deletions after thirty days |
 | saved-search-alerts | Vercel Cron `40 7 * * *` | daily 08:40 | 26 h | tells people about new matches for saved searches |
+| landlord-line | Vercel Cron `*/15 * * * *` | every 15 min | 2 h | asks consenting landlords whether the flat is still free and shows them the rent paid (V-31, V-32); a no-op while `landlord_line` is off |
 | vallo_push_drain | pg_cron `*/5 * * * *` | every 5 min | | asks the app to drain the push queue (`private.request_push_drain`) |
+| vallo_safety_share_sweep | pg_cron `*/10 * * * *` | every 10 min | | reminds a renter once when half an hour has passed since they expected to be back from an inspection they shared and they have not tapped I'm done (V-62) |
 | vallo_release_stale_holds | pg_cron `*/15 * * * *` | every 15 min | | database side of the hold release |
 | vallo_purge_rate_limits | pg_cron `30 * * * *` | hourly at :30 | | clears old rate limit rows |
+| vallo_alert_overdue_refunds | pg_cron `12 * * * *` | hourly at :12 | | alerts on refunds past their due-by date (V-24) |
 | vallo_escrow_sweep_timeouts | pg_cron `17 * * * *` | hourly at :17 | | escrow timeouts |
 | vallo_escrow_invariants | pg_cron `23 * * * *` | hourly at :23 | | asserts the escrow float identity (`private.escrow_invariants_check`), six minutes after the sweeper |
 | vallo_reconcile_payments | pg_cron `47 * * * *` | hourly at :47 | | database side of reconciliation |
 | vallo_purge_idempotency | pg_cron `10 2 * * *` | daily 03:10 | | clears old idempotency records |
 | vallo-nightly-badges | pg_cron `20 2 * * *` | daily 03:20 | | awards earned badges |
 | vallo_purge_email_outbox | pg_cron `25 2 * * *` | daily 03:25 | | forgets emails the outbox has already delivered |
+| vallo_purge_web_vitals | pg_cron `35 2 * * *` | daily 03:35 | | deletes field speed samples older than 30 days (V-80) |
 | vallo_escrow_book_the_float | pg_cron `5 3 * * *` | daily 04:05 | | books the day's escrow float snapshot as a liability (`private.escrow_float_snapshot_take`) |
 | vallo_sweep_price_check_events | pg_cron `40 3 * * *` | daily 04:40 | | deletes price check events older than 24 months (the retention schedule, run) |
 | vallo_announce_completed_stays | pg_cron `20 5 * * *` | daily 06:20 | | announces completed stays |
 | vallo_sweep_price_check_watches | pg_cron `50 5 * * *` | daily 06:50 | | re-runs the price check gate at each pending watch and tells the watcher once when it opens |
+| vallo_landlord_not_reconfirmed | pg_cron `35 4 * * *` | daily 05:35 | | marks a listing Not reconfirmed after a delivered owner question goes 21 days unanswered, and clears every mark while the line is off (V-31) |
+| vallo_owner_heartbeat | pg_cron `15 8 * * *` | daily 09:15 | | asks a lister who says they own the flat, in the app, whether it is still available, once a fortnight (V-31); a no-op while `landlord_line` is off |
 | vallo-daily-note | pg_cron `0 6 * * *` | daily 07:00 | | the daily note |
+| vallo_remind_caution_due | pg_cron `15 7 * * *` | daily 08:15 | | reminds listers and tenants when a caution is due back (V-36) |
 
-8 Vercel Cron jobs and 14 pg_cron jobs in all. The numbers are derived,
+9 Vercel Cron jobs and 20 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by

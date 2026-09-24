@@ -191,15 +191,8 @@ export function buildNav({
         },
         { href: "/saved", label: t.nav.saved, icon: "heart" },
         { href: "/wallet", label: t.nav.wallet, icon: "wallet" },
-        /*
-         * CRYPTO IS NOT IN THE DRAWER FOR VERSION ONE. The founder's ruling
-         * (DESIGN_DIRECTION 3.4) made it a side-nav feature; HANDOFF 08
-         * section 5.2 takes it dark for the first submission, and `/crypto`
-         * now returns `notFound()`. A drawer row pointing at a 404 is worse
-         * than no row, so the row goes with the route. DEFERRED, NOT
-         * CANCELLED: `t.nav.crypto` stays in the dictionary and this comment
-         * is where the row comes back.
-         */
+        /* No crypto row: V-83 took the deferred crypto market out of the
+           shipped tree (parked on `claude/parked-crypto-deferred`). */
         /*
          * THE ASSISTANT ROW IS BACK, BY REQUEST.
          *

@@ -136,6 +136,7 @@ export function ShelfBar({
           serviceCopy={t.shape.service}
           cashCopy={t.shape.cash}
           unitCopy={t.shape.unit}
+          feesBasis={t.trustVisible.fees.sortBasis}
           openOnMount={openFilters}
         />
       </div>

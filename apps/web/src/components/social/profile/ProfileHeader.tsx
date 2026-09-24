@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
+import { formatNumber, formatRating, type Dictionary, type Locale } from "@vallo/i18n";
 import { TierBadge } from "@/components/trust/TierBadge";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
@@ -106,6 +106,7 @@ export function ProfileHeader({
   share?: React.ReactNode;
 }) {
   const copy = t.socialProfile;
+  const visible = t.trustVisible.profile;
   const name = profile.displayLabel || `@${profile.handle}`;
   const monogram = (profile.displayLabel || profile.handle).charAt(0).toUpperCase();
   /*
@@ -365,14 +366,27 @@ export function ProfileHeader({
       {/* --------------------------------------------- agents only, ever */}
       {trust ? (
         <dl className="nf-social-trust nf-panel nf-panel--card">
-          <div className="nf-social-trust__cell">
-            <dt>{copy.trustScore}</dt>
-            <dd className="nf-numeric">{trust.score}</dd>
-          </div>
-          <div className="nf-social-trust__cell">
-            <dt>{copy.completedDeals}</dt>
-            <dd className="nf-numeric">{formatNumber(trust.completedDeals, locale)}</dd>
-          </div>
+          {/* V-21: NO SCORE. The "Trust score" cell was a number out of 100
+              nobody could explain, and it is gone with its column. What is
+              left are plain facts, each printed only when there is one: the
+              reviews, the stays hosted (never a zero, which told every rental
+              agent their lets did not count), and the reply time. */}
+          {trust.reviewCount > 0 && trust.averageRating !== null ? (
+            <div className="nf-social-trust__cell">
+              <dt>{visible.reviews}</dt>
+              <dd className="nf-numeric">
+                {visible.reviewsValue
+                  .replace("{rating}", formatRating(trust.averageRating, locale))
+                  .replace("{count}", formatNumber(trust.reviewCount, locale))}
+              </dd>
+            </div>
+          ) : null}
+          {trust.completedDeals > 0 ? (
+            <div className="nf-social-trust__cell">
+              <dt>{visible.staysHosted}</dt>
+              <dd className="nf-numeric">{formatNumber(trust.completedDeals, locale)}</dd>
+            </div>
+          ) : null}
           <div className="nf-social-trust__cell">
             <dt>{copy.responseTime}</dt>
             <dd className="nf-numeric">{trust.responseTime}</dd>

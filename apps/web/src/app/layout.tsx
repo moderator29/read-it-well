@@ -32,12 +32,28 @@ import { CHROME_COLOUR } from "@/lib/theme/chrome";
  * routes at 390px and at 1280px fetched Inter latin, Inter latin-ext and both
  * Poppins subsets on every single load.
  */
+/*
+ * V-78: English no longer preloads Inter latin-ext (85KB) for the naira sign;
+ * `inter-naira` (1.2KB) carries it alone. Hausa keeps latin-ext for its hooked
+ * letters; Yoruba and Igbo keep it for the s-with-dot. The Poppins latin-ext
+ * files are left as they were: 5KB each, and they carry the naira in the
+ * display face.
+ */
 const PRELOADED_FONTS: Record<string, readonly string[]> = {
-  yo: ["inter-latin", "inter-latin-ext", "inter-vietnamese"],
-  ig: ["inter-latin", "inter-latin-ext", "inter-vietnamese"],
-  default: [
+  yo: ["inter-latin", "inter-latin-ext", "inter-vietnamese", "inter-naira"],
+  ig: ["inter-latin", "inter-latin-ext", "inter-vietnamese", "inter-naira"],
+  ha: [
     "inter-latin",
     "inter-latin-ext",
+    "inter-naira",
+    "poppins-700-latin",
+    "poppins-700-latin-ext",
+    "poppins-600-latin",
+    "poppins-600-latin-ext",
+  ],
+  default: [
+    "inter-latin",
+    "inter-naira",
     "poppins-700-latin",
     "poppins-700-latin-ext",
     "poppins-600-latin",

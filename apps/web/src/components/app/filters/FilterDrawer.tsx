@@ -319,6 +319,7 @@ export function FilterDrawer({
   serviceCopy,
   cashCopy,
   unitCopy,
+  feesBasis,
   openOnMount = false,
 }: {
   query: ShelfQuery;
@@ -340,6 +341,8 @@ export function FilterDrawer({
   cashCopy: Dictionary["shape"]["cash"];
   /** V-66: the unit shapes' words, for the shape chips. */
   unitCopy: Dictionary["shape"]["unit"];
+  /** V-12: the sentence under the "Lowest fees on top of rent" order. */
+  feesBasis?: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(openOnMount);
@@ -491,7 +494,9 @@ export function FilterDrawer({
       ? costCopy.basisPrice
       : draftBasisKey === "move-in"
         ? costCopy.basisMoveIn
-        : null;
+        : draftBasisKey === "fees"
+          ? (feesBasis ?? null)
+          : null;
 
   // Naira, because that is what the control holds. It becomes kobo the moment
   // it is shown or stored, and never before.

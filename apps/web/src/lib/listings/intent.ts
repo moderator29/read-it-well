@@ -46,7 +46,7 @@ export function hasOwnRequest(query: DiscoveryQuery): boolean {
  * Matching kinds first, everything else after, order preserved inside both.
  *
  * A stable partition rather than a sort: the repository's own order is
- * meaningful (featured before the rest, newest before older) and a comparator
+ * meaningful (newest before older, or the published Recommended formula) and a comparator
  * that only knows about intent would scramble it. Partitioning moves whole groups and leaves the ranking
  * within each group exactly as it arrived.
  *

@@ -37,6 +37,7 @@ import {
 } from "../listings/compound";
 import { serviceColumns, type ServicePayload } from "../listings/service";
 import { unitColumns, type UnitPayload } from "../listings/unit-shape";
+import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/closed";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import {
@@ -147,7 +148,7 @@ async function ownedListing(
   const { data } = await supabase
     .from("listings")
     .select(
-      "id, status, title, description, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, sale_status, tenure, caution_deposit_minor, service_charge_minor, agency_fee_minor, legal_fee_minor, agreement_fee_minor, sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, stamp_duty_minor, survey_registration_fee_minor, state_code, city, area, bedrooms, bathrooms",
+      "id, status, title, description, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, sale_status, tenure, caution_deposit_minor, service_charge_minor, agency_fee_minor, legal_fee_minor, agreement_fee_minor, total_move_in_cost_minor, sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, stamp_duty_minor, survey_registration_fee_minor, state_code, city, area, bedrooms, bathrooms",
     )
     .eq("id", listingId)
     .eq("agent_id", agentId)
@@ -1152,6 +1153,15 @@ export async function submitListing(input: {
     amenityCount: (amenityRes.data ?? []).length,
     photoCount: photos.length,
     hasCover: photos.some((p) => p.position === 0),
+    moveInStatedMinor: listing.total_move_in_cost_minor,
+    moveInPartsMinor: [
+      listing.rent_amount_minor,
+      listing.caution_deposit_minor,
+      listing.service_charge_minor,
+      listing.agency_fee_minor,
+      listing.legal_fee_minor,
+      listing.agreement_fee_minor,
+    ],
   });
 
   if (unmet.length > 0) {
@@ -1166,6 +1176,7 @@ export async function submitListing(input: {
     .select("id, status")
     .single();
 
+  if (isClosedListingRefusal(error)) return fail(CLOSED_LISTING_MESSAGE);
   if (error || !updated) {
     return fail("We could not send this listing for review just now. Please try again.");
   }
@@ -1199,6 +1210,7 @@ export async function unpublishListing(input: {
     .update({ status: "DRAFT" })
     .eq("id", listing.id)
     .eq("agent_id", gate.agentId);
+  if (isClosedListingRefusal(error)) return fail(CLOSED_LISTING_MESSAGE);
   if (error) return fail("We could not take this listing down just now. Please try again.");
 
   refreshAgentSurfaces();

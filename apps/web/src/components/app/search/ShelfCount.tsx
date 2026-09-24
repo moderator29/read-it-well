@@ -35,6 +35,8 @@ export function ShelfCount({
         ? t.moveIn.basisMoveIn
         : currentBasis === "listed"
           ? t.shape.listed.basis
+          : currentBasis === "fees"
+            ? t.trustVisible.fees.sortBasis
           : null;
   const line =
     count === 0
@@ -70,6 +72,16 @@ export function ShelfCount({
         {basis && (
           <p data-testid="sort-basis" className="nf-caption truncate text-[var(--nf-content-muted)]">
             {basis}
+          </p>
+        )}
+        {/* V-06: Recommended is a published formula, one tap away, and the
+            promise that nobody can pay to move it is said where the order is. */}
+        {query.sort === "recommended" && count > 1 && (
+          <p data-testid="sort-basis" className="nf-caption text-[var(--nf-content-muted)]">
+            {t.trustVisible.ranking.shelfLine}{" "}
+            <Link href="/standards#ranking" className="font-semibold text-[var(--nf-content-secondary)] underline">
+              {t.trustVisible.ranking.shelfLink}
+            </Link>
           </p>
         )}
       </div>

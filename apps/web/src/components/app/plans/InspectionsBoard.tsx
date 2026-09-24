@@ -8,6 +8,13 @@ import { reportStorageLive } from "@/lib/inspections/report-flag";
 import { groupInspections, tagSide } from "@/components/app/inspections/grouping";
 import type { InspectionList } from "@/lib/inspections/queries";
 import { readListingFacts } from "./inspection-facts";
+import { readQuoteLinesFor } from "@/lib/after-gate/quotes";
+import { readTruthAnsweredFor } from "@/lib/inspections/truth-queries";
+import { readTenancyReviewsDue } from "@/lib/tenancy/review-queries";
+import { truthOpenNow } from "@/lib/inspections/truth";
+import { SafetyShareControl } from "@/components/app/doors/SafetyShareControl";
+import { shareableInspections } from "@/lib/doors/safety";
+import { readMySafetyShares } from "@/lib/doors/queries";
 
 /**
  * The inspections on Plans: the Property side's diary, in the anatomy of
@@ -54,24 +61,50 @@ export async function InspectionsBoard({
   const all = [...groups.open, ...groups.closed];
   if (!readFailed && all.length === 0) return null;
 
-  const [facts, reports] = await Promise.all([
+  /* V-62: the renter's own confirmed inspections, from now until the sheet
+     for each would close, each with "Tell someone where I am going". */
+  const goingAlone = shareableInspections(groups.open);
+  const [facts, reports, quotes, truthAnswered, tenancyDue, shares] = await Promise.all([
     readListingFacts(
       all.map((row) => row.listingId),
       locale,
     ),
     readReportsFor(all.map((row) => row.id)),
+    /* V-13: the quote line agreed at the gate. */
+    readQuoteLinesFor(
+      all.map((row) => row.id),
+      locale,
+    ),
+    readTruthAnsweredFor(all.filter((row) => row.side === "requester").map((row) => row.id)),
+    /* V-59: the tenancy review, when one is due. */
+    readTenancyReviewsDue(all.filter((row) => row.side === "requester").map((row) => row.id)),
+    readMySafetyShares(goingAlone.map((row) => row.id)),
   ]);
+  const tenancyFor = (row: (typeof all)[number]) => {
+    const href = tenancyDue.get(row.id);
+    return href ? { href, label: t.trustVisible.tenancy.entry } : null;
+  };
+  /* V-05: the truth questions are open for the requester once the agreed
+     time has passed; decided here, once, with the server's clock. */
+  const truthFor = (row: (typeof all)[number]) =>
+    truthOpenNow(row.side, row.state, row.slotAt, row.requestedAt) || truthAnswered.has(row.id)
+      ? { answeredAt: truthAnswered.get(row.id) ?? null, copy: t.trustVisible.truth }
+      : null;
   const reportLive = reportStorageLive();
   const expanded = changed ?? groups.open[0]?.id ?? null;
 
   const sheet = (row: (typeof all)[number]) => (
     <div key={row.id} id={`ix-${row.id}`} className="scroll-mt-16">
       <InspectionSheet
+        gateCopy={t.platform.gate}
         inspection={row}
         side={row.side}
         facts={facts.get(row.listingId) ?? null}
         report={reports.get(row.id) ?? null}
         reportLive={reportLive}
+        quoteLine={quotes.get(row.id) ?? null}
+        truth={truthFor(row)}
+        tenancyReview={tenancyFor(row)}
         locale={locale}
         open={row.id === expanded}
       />
@@ -93,6 +126,23 @@ export async function InspectionsBoard({
       ) : (
         <Reveal>
           <Stack>
+            {goingAlone.length > 0 && (
+              <Section title={t.trustDoors.safetyShare.stripTitle}>
+                <div className="grid gap-sm" data-testid="safety-strip">
+                  {goingAlone.map((row) => (
+                    <SafetyShareControl
+                      key={row.id}
+                      inspectionId={row.id}
+                      title={row.listingTitle}
+                      slotAt={row.slotAt ?? row.requestedAt}
+                      locale={locale}
+                      copy={t.trustDoors.safetyShare}
+                      initial={shares[row.id] ? (shares[row.id]!.checkedIn ? "done" : "shared") : "none"}
+                    />
+                  ))}
+                </div>
+              </Section>
+            )}
             {groups.open.length > 0 && (
               <Section title={copy.openTitle} description={copy.openDescription}>
                 <div className="nf-ix-list">{groups.open.map(sheet)}</div>

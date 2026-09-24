@@ -90,16 +90,11 @@
  * `route-files.test.ts` fails if any route file is in neither structure. A
  * route nobody has made a decision about is now impossible to add quietly.
  *
- * FOUR ENTRIES BELOW DELIBERATELY DRAW NO CONTROL, AND THAT IS NOT THE GAP.
+ * TWO ENTRIES BELOW DELIBERATELY DRAW NO CONTROL, AND THAT IS NOT THE GAP.
  *
  * A declared parent is a fact about where a screen SITS. It is not a promise
- * that the screen paints an arrow, and four of these cannot:
+ * that the screen paints an arrow, and these cannot:
  *
- *   /crypto, /crypto/[id]   the page is `notFound()` by the store ruling in
- *                           `app/(app)/crypto/page.tsx`. There is no screen to
- *                           put a control on. The entries stay because the
- *                           ruling is DEFERRED, not cancelled, and the day the
- *                           body comes back the hierarchy is already written.
  *   /gallery                `notFound()` in a production build by its own
  *                           guard. The control is wired for development, which
  *                           is the only place the board exists.
@@ -110,7 +105,7 @@
  *                           on a screen that only renders when nothing can be
  *                           fetched would be a control that cannot work.
  *
- * Android is unaffected by all four: `isAppRoot` is false for every one of
+ * Android is unaffected by both: `isAppRoot` is false for every one of
  * them, so the hardware button goes to the parent rather than closing the
  * shell, which is the half that matters most there.
  *
@@ -135,8 +130,11 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/docs/[slug]": "/docs",
   "/eula": "/",
   "/help": "/",
+  "/r": "/",
+  "/r/[code]": "/r",
   "/privacy": "/",
   "/safety": "/",
+  "/check": "/",
   "/standards": "/",
   "/styleguide": "/",
   "/terms": "/",
@@ -195,8 +193,14 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/listing/[id]": "/search",
   "/saved": "/home",
   "/saved/searches": "/saved",
+  /* V-35: the gate code for one inspection, where a named delegate lands.
+     Its parent is Plans, where inspections now live (V-76). */
+  "/inspections/gate/[id]": "/bookings",
   "/rent/move-in/[listingId]": "/listing/[listingId]",
+  "/rent/review/[paymentId]": "/bookings",
+  "/record/[code]": "/search",
   "/rent/pay/[inspectionId]": "/bookings",
+  "/tenancy/[id]": "/bookings",
   /*
    * PRICE CHECK. Both entries reproduce what the two pages already pass to
    * `PageHeader` as a fallback, which is the honest reading of the surface
@@ -238,8 +242,6 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/wallet/send": "/wallet",
   "/wallet/transactions": "/wallet",
   "/wallet/transactions/[id]": "/wallet/transactions",
-  "/crypto": "/wallet",
-  "/crypto/[id]": "/crypto",
   /*
    * HELD PAYMENTS. `/escrow/[id]` is linked from a message thread
    * (`ProposeHeldPayment`) and from the escrow emails, and `/escrow` is linked
@@ -294,12 +296,15 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/settings/account": "/settings",
   "/settings/appearance": "/settings",
   "/settings/devices": "/settings",
+  /* V-19: the new sign-in alert a push lands on; back is the devices screen. */
+  "/settings/devices/alert": "/settings/devices",
   "/settings/help": "/settings",
   "/settings/interests": "/settings",
   "/settings/notifications": "/settings",
   "/settings/payments": "/settings",
   "/settings/place": "/settings",
   "/settings/privacy": "/settings",
+  "/settings/phone": "/settings",
   "/legal/privacy": "/settings",
   "/legal/terms": "/settings",
 
@@ -327,6 +332,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/listings/[id]": "/admin/listings",
   "/admin/money": "/admin",
   "/admin/operations": "/admin",
+  /* V-80: field speed, one panel read from real phones. */
+  "/admin/field-speed": "/admin/operations",
   "/admin/payments": "/admin",
   /*
    * `/admin/queue` is a DESK, not the console's landing screen, and that is the
@@ -356,6 +363,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/agent/messages": "/agent/dashboard",
   "/agent/reviews": "/agent/dashboard",
   "/agent/settings": "/agent/dashboard",
+  "/agent/portfolio": "/agent/dashboard",
   "/agent/verification": "/agent/dashboard",
 
   /* ----------------------------------------------------- the host console */
@@ -459,18 +467,18 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/assistant": "POST only, the assistant's model call.",
   "/api/auth/email-hook": "Supabase Auth's send-email webhook.",
   "/api/client-error": "the browser's error beacon.",
+  "/api/vitals": "the browser's field speed beacon (V-80).",
   "/api/cron/account-purge": "scheduled job, bearer token.",
   "/api/cron/complete-stays": "scheduled job, bearer token.",
   "/api/cron/email-outbox": "scheduled job, bearer token.",
   "/api/cron/hold-sweep": "scheduled job, bearer token.",
   "/api/cron/inventory-drift": "scheduled job, bearer token.",
+  "/api/cron/landlord-line": "scheduled job, bearer token.",
   "/api/cron/pg-cron-watch": "scheduled job, bearer token.",
   "/api/cron/saved-search-alerts": "scheduled job, bearer token.",
-  "/api/crypto/coins/[id]": "JSON read for the crypto screens.",
-  "/api/crypto/markets": "JSON read for the crypto screens.",
-  "/api/crypto/pairs": "JSON read for the crypto screens.",
   "/api/csp-report": "the browser's policy violation report.",
   "/api/documents/[id]": "a signed document stream, not a page.",
+  "/api/landlord/inbound": "the SMS aggregator's inbound webhook, bearer token.",
   "/api/map/listings": "JSON read for the map.",
   "/api/paystack/reconcile": "processor reconciliation.",
   "/api/paystack/webhook": "processor webhook.",
@@ -484,4 +492,8 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/yellowcard/webhook": "processor webhook.",
   "/admin/enter": "303 into the console with the entry cookie.",
   "/home-or-landing": "307 to `/` or `/home`, decided by the caller's cookies.",
+  "/landlord/[token]":
+    "a landlord's single-use reply page, opened from an SMS by somebody with no account; there is nowhere inside the platform for it to go back to.",
+  "/safe/[token]":
+    "the page a renter's trusted contact opens from a link the renter sent; the contact has no account and nowhere inside the platform to go back to.",
 };

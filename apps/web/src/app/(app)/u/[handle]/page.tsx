@@ -4,6 +4,8 @@ import { getLocale } from "@/lib/locale";
 import { PageHeader } from "@/components/app/PageHeader";
 import { FollowButton } from "@/components/social/profile/FollowButton";
 import { ProfileHeader } from "@/components/social/profile/ProfileHeader";
+import { ValloRecord } from "@/components/app/trust/ValloRecord";
+import { readUserRecord } from "@/lib/trust/record-read";
 /* ONE empty-state anatomy across the whole product. See EmptyPanel. */
 import { EmptyPanel } from "@/components/social/profile/EmptyPanel";
 import { ProfileMenu } from "@/components/social/profile/ProfileMenu";
@@ -149,7 +151,7 @@ export default async function SocialProfilePage({
     const isAgentPage = view.profile.isAgent && Boolean(agentId);
     const tabs = isAgentPage ? AGENT_TABS : MEMBER_TABS;
 
-    const [posts, replies, media, activity, properties, reviews, stories] =
+    const [posts, replies, media, activity, properties, reviews, stories, record] =
       await Promise.all([
         isAgentPage ? Promise.resolve([]) : getProfileFeed(userId),
         isAgentPage ? Promise.resolve([]) : getProfileReplies(userId),
@@ -158,6 +160,9 @@ export default async function SocialProfilePage({
         isAgentPage ? getAgentProperties(agentId) : Promise.resolve([]),
         isAgentPage ? getAgentReviews(agentId) : Promise.resolve([]),
         isAgentPage ? listStories({ authorId: userId, limit: 30 }) : Promise.resolve([]),
+        /* V-34: a lister's Record. No row for a member who is not one, or for
+           a reader who is signed out, and then nothing is drawn. */
+        view.profile.isAgent ? readUserRecord(userId) : Promise.resolve(null),
       ]);
 
     return (
@@ -202,6 +207,8 @@ export default async function SocialProfilePage({
             />
           }
         />
+
+        <ValloRecord record={record} t={t} locale={locale} className="mx-gutter mt-block" />
 
         <ProfileTabs
           handle={view.profile.handle}

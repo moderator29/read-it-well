@@ -177,24 +177,30 @@ export function SweepSettingsHarness({ v }: { v: string }) {
         <PageHeader title={copy.screenTitle} fallback="/settings" />
         <DeviceList
           readable
-          rows={[
+          locale="en"
+          othersCount={1}
+          current={{
+            id: "00000000-0000-4000-8000-00000000d101",
+            isCurrent: true,
+            device: "Safari on iOS",
+            thisDevice: copy.thisDevice,
+            signedIn: "Signed in 2 June",
+            lastSeen: "Active now",
+          }}
+          groups={[
             {
-              id: "00000000-0000-4000-8000-00000000d101",
-              isCurrent: true,
-              device: "Safari on iOS",
-              thisDevice: copy.thisDevice,
-              signedIn: "Signed in 2 June",
-              lastSeen: "Active now",
-            },
-            {
-              id: "00000000-0000-4000-8000-00000000d102",
-              isCurrent: false,
+              key: "device:Chrome:Windows",
               device: "Chrome on Windows",
-              thisDevice: copy.thisDevice,
-              signedIn: "Signed in 14 August",
-              lastSeen: "Last seen 3 days ago",
+              count: "1 session",
+              firstSignedIn: "First signed in 14 August",
+              lastUsed: "Last used 3 days ago",
+              endLabel: "Sign out this session",
+              showLabel: t.platform.devices.showSessions,
+              sessionIds: ["00000000-0000-4000-8000-00000000d102"],
+              sessions: [],
             },
           ]}
+          notMeCopy={t.platform.notMe}
           copy={{
             intro: copy.intro,
             caveat: copy.caveat,
@@ -209,6 +215,17 @@ export function SweepSettingsHarness({ v }: { v: string }) {
             endedOthers: copy.endedOthers,
             endedNone: copy.endedNone,
             unreadable: copy.unreadable,
+            currentTitle: t.platform.devices.currentTitle,
+            othersTitle: t.platform.devices.othersTitle,
+            othersEmpty: t.platform.devices.othersEmpty,
+            strangerHint: t.platform.devices.strangerHint,
+            groupFailed: t.platform.devices.groupFailed,
+            endedGroup: t.platform.devices.endedGroup,
+            notMeTitle: t.platform.devices.notMeTitle,
+            notMeBody: t.platform.devices.notMeBody,
+            notMe: t.platform.devices.notMe,
+            notMeConfirm: t.platform.devices.notMeConfirm,
+            notMeWorking: t.platform.devices.notMeWorking,
           }}
         />
       </div>

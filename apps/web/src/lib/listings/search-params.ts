@@ -63,7 +63,10 @@ export type SortKey =
   | "newest"
   | "price-asc"
   | "price-desc"
-  | "move-in-asc";
+  | "move-in-asc"
+  /* V-12: the agency, legal and agreement fees together, as a share of a
+     year's rent (`fee-share.ts`). Unstated fees sort last. */
+  | "fees-asc";
 
 /**
  * THE FOUR SORTS ALL READ THE HEADLINE PRICE, AND THAT IS THE DEFECT.
@@ -81,9 +84,11 @@ export type SortKey =
  * shelf prints that sentence under the count. Nothing may be added here
  * without answering that question.
  */
-export type SortBasis = "price" | "move-in" | "rating" | "listed" | "mixed";
+export type SortBasis = "price" | "move-in" | "rating" | "listed" | "mixed" | "fees";
 
-export const SORTS: { key: SortKey; label: string; basis: SortBasis }[] = [
+/* `short` is what the closed sort control prints when the full label would
+   push the result count off a 390px row (seen on the V-12 visual pass). */
+export const SORTS: { key: SortKey; label: string; basis: SortBasis; short?: string }[] = [
   { key: "recommended", label: "Recommended", basis: "mixed" },
   /* V-22. The date each listing went live, which nobody can buy a fresh copy
      of on Vallo because there is no push-up to buy (V-06). */
@@ -91,6 +96,7 @@ export const SORTS: { key: SortKey; label: string; basis: SortBasis }[] = [
   { key: "price-asc", label: "Price: low to high", basis: "price" },
   { key: "price-desc", label: "Price: high to low", basis: "price" },
   { key: "move-in-asc", label: "Move-in cost: low to high", basis: "move-in" },
+  { key: "fees-asc", label: "Lowest fees on top of rent", basis: "fees", short: "Lowest fees" },
 ];
 
 /** The basis a sort key orders on, defaulting to the shelf's opening order. */

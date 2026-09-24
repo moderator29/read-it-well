@@ -370,7 +370,7 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
 
        THE CLIENT IS NOT ALWAYS THE VIEWER'S. `EXECUTE` on `agent_trust` was
        revoked from `anon` on 22 September, because signed out it answered for
-       ANY user id: somebody's trust score, completed deal count, median reply
+       ANY user id: somebody's (since deleted) trust score, stays count, median reply
        time, review count and average rating, for a uuid nobody had to be able
        to see the profile of. The band itself is public and stays public, so a
        signed-out read is served from the server after this profile row has

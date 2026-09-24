@@ -69,6 +69,7 @@ async function readStayDetail(id: string): Promise<StayDetail | null> {
               name: plan.policy.name,
               summary: plan.policy.summary,
               freeUntilHours: plan.policy.is_free_until_hours,
+              rules: plan.policy.rules,
             }
           : null,
       })),
@@ -79,6 +80,7 @@ async function readStayDetail(id: string): Promise<StayDetail | null> {
           name: detail.policy.name,
           summary: detail.policy.summary,
           freeUntilHours: detail.policy.is_free_until_hours,
+          rules: detail.policy.rules,
         }
       : null,
     businessKind: detail.business.kind,

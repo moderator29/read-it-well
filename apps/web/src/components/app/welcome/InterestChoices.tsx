@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState, useTransition } from "react";
+import { DataSaverRow } from "@/components/app/account/DataSaverRow";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -180,6 +181,16 @@ export function InterestChoices({
           );
         })}
       </div>
+
+      {/* V-79: asked once, on the first run, where a person on a small
+          bundle is deciding how the app will treat them. */}
+      {firstRun && (
+        <div className="mt-md">
+          <DataSaverRow
+            copy={{ ...t.platform.lite, label: t.platform.lite.welcomeTitle, sub: t.platform.lite.welcomeSub }}
+          />
+        </div>
+      )}
 
       {state && !state.ok && (
         <p

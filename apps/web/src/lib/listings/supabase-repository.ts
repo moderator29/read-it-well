@@ -1,5 +1,6 @@
 import "server-only";
 
+import { readCountedReviews } from "../reviews/weight";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { memo } from "../cache/memo";
 import { honestExamplePhotos } from "./example-imagery";
@@ -201,7 +202,6 @@ const LISTING_SELECT = `
   total_floors,
   bedrooms,
   bathrooms,
-  featured,
   is_demo,
   agent_id,
   listing_role,
@@ -214,6 +214,8 @@ const LISTING_SELECT = `
   created_at,
   address_verified_at,
   physically_inspected_at,
+  ownership_verified_at,
+  mandate_verified_at,
   power_grid,
   power_backup,
   power_backup_hours,
@@ -275,7 +277,6 @@ const LISTING_DETAIL_SELECT = `
   total_floors,
   bedrooms,
   bathrooms,
-  featured,
   is_demo,
   agent_id,
   listing_role,
@@ -288,6 +289,8 @@ const LISTING_DETAIL_SELECT = `
   created_at,
   address_verified_at,
   physically_inspected_at,
+  ownership_verified_at,
+  mandate_verified_at,
   power_grid,
   power_backup,
   power_backup_hours,
@@ -345,7 +348,6 @@ export type ListingRow = {
   total_floors: number | null;
   bedrooms: number;
   bathrooms: number;
-  featured: boolean;
   is_demo: boolean;
   agent_id: string;
   listing_role: string | null;
@@ -364,6 +366,10 @@ export type ListingRow = {
   created_at: string;
   address_verified_at: string | null;
   physically_inspected_at: string | null;
+  /* V-03: the two supply dates, granted to anon by migration 20260924130000.
+     Optional on the type so a fixture written before them still builds. */
+  ownership_verified_at?: string | null;
+  mandate_verified_at?: string | null;
   listing_photos: { storage_path: string; position: number }[];
   listing_videos: {
     storage_path: string;
@@ -664,11 +670,14 @@ async function getReviewStats(
 ): Promise<Map<string, { rating: number; count: number }>> {
   const stats = new Map<string, { rating: number; count: number }>();
   if (listingIds.length === 0) return stats;
-  const { data, error } = await supabase
-    .from("reviews")
-    .select("listing_id, rating")
-    .in("listing_id", listingIds)
-    .limit(JOIN_ROW_LIMIT);
+  /* V-58: a review from the lister's own shadow is not in the average. */
+  const { data, error } = await readCountedReviews<{ id: string; listing_id: string; rating: number }>((table) =>
+    (supabase as unknown as SupabaseClient)
+      .from(table)
+      .select("id, listing_id, rating")
+      .in("listing_id", listingIds)
+      .limit(JOIN_ROW_LIMIT),
+  );
   if (error || !data) return stats;
   warnIfTruncated(data.length, "reviews", listingIds.length);
 
@@ -707,6 +716,13 @@ export function mapRow(
   signedVideos: Map<string, string>,
   verifiedAgents: Set<string>,
   listerNames: Map<string, string>,
+  /* V-03: when each checked agent's identity rung passed, from
+     `agent_badges.verified_at`. Optional and last so every existing caller
+     and spec reads exactly as before. */
+  identitySeenAt: Map<string, string> = new Map(),
+  /* V-05: the public count of renters' truth answers, from
+     `public.listing_truth_summary` (two answers up, real listings only). */
+  renterTruth: Map<string, { attended: number; asListed: number; lastAt: string }> = new Map(),
 ): Listing {
   const kind = KIND_BY_PROPERTY_TYPE[row.property_type] ?? "home";
   const stat = stats.get(row.id);
@@ -763,6 +779,7 @@ export function mapRow(
     area: row.area ?? row.city ?? "",
     city: row.city ?? "",
     state: (row.state_code ? stateNames.get(row.state_code) : undefined) ?? row.state_code ?? "",
+    ...(row.state_code ? { stateCode: row.state_code } : {}),
     /* Both columns are nullable and the wizard does not force a pin, so a row
        carries a coordinate or it carries neither. A half pair is refused rather
        than mapped, because a latitude with no longitude places a property on
@@ -849,6 +866,24 @@ export function mapRow(
     ...(row.total_floors === null ? {} : { totalFloors: row.total_floors }),
     ...(row.physically_inspected_at ? { inspectedAt: row.physically_inspected_at } : {}),
     ...(row.address_verified_at ? { addressVerifiedAt: row.address_verified_at } : {}),
+    /*
+     * THE PROOF STRIP'S DATES (V-03), and none of them on an example listing.
+     * The database already refuses the two supply stamps on an example and
+     * refuses a verified lister behind one; the clamp here is the same second
+     * lock `verified` carries, for the same reason. The identity date is only
+     * carried where the badge itself is true, so the strip can never print an
+     * identity line beside a listing that draws no badge.
+     */
+    ...(!row.is_demo && row.ownership_verified_at
+      ? { ownershipVerifiedAt: row.ownership_verified_at }
+      : {}),
+    ...(!row.is_demo && row.mandate_verified_at
+      ? { mandateVerifiedAt: row.mandate_verified_at }
+      : {}),
+    ...(!row.is_demo && verifiedAgents.has(row.agent_id) && identitySeenAt.has(row.agent_id)
+      ? { listerIdentitySeenAt: identitySeenAt.get(row.agent_id) }
+      : {}),
+    ...(!row.is_demo && renterTruth.has(row.id) ? { renterTruth: renterTruth.get(row.id) } : {}),
     source: "vallo",
     bedrooms: row.bedrooms,
     bathrooms: row.bathrooms,
@@ -986,18 +1021,24 @@ export function mapRow(
 async function getAgentBadges(
   supabase: Client,
   agentIds: string[],
-): Promise<Set<string>> {
+): Promise<{ verified: Set<string>; seenAt: Map<string, string> }> {
   const verified = new Set<string>();
-  if (agentIds.length === 0) return verified;
+  /* V-03: the date the badge turned true, which is the date the identity rung
+     passed. Read in the same query, so the proof strip costs no round trip. */
+  const seenAt = new Map<string, string>();
+  if (agentIds.length === 0) return { verified, seenAt };
   const { data, error } = await supabase
     .from("agent_badges")
-    .select("agent_id, verified")
+    .select("agent_id, verified, verified_at")
     .in("agent_id", agentIds);
-  if (error || !data) return verified;
-  for (const row of data as { agent_id: string; verified: boolean }[]) {
-    if (row.verified) verified.add(row.agent_id);
+  if (error || !data) return { verified, seenAt };
+  for (const row of data as { agent_id: string; verified: boolean; verified_at: string | null }[]) {
+    if (row.verified) {
+      verified.add(row.agent_id);
+      if (row.verified_at) seenAt.set(row.agent_id, row.verified_at);
+    }
   }
-  return verified;
+  return { verified, seenAt };
 }
 
 /**
@@ -1041,10 +1082,38 @@ async function getListerNames(
   return names;
 }
 
+/**
+ * V-05: WHAT RENTERS WHO WENT THERE FOUND, AS A COUNT. One read of the
+ * published view for the whole page, in parallel with the others. The view
+ * only answers for published real listings with two answers or more, so a
+ * missing row is the ordinary case and draws no line. A failed read is an
+ * empty map: the failure mode is a line that does not appear.
+ */
+async function getRenterTruth(
+  supabase: Client,
+  listingIds: string[],
+): Promise<Map<string, { attended: number; asListed: number; lastAt: string }>> {
+  const out = new Map<string, { attended: number; asListed: number; lastAt: string }>();
+  if (listingIds.length === 0) return out;
+  try {
+    const { data, error } = await (supabase as unknown as SupabaseClient)
+      .from("listing_truth_summary")
+      .select("listing_id, attended, as_listed, last_at")
+      .in("listing_id", listingIds);
+    if (error || !data) return out;
+    for (const row of data as { listing_id: string; attended: number; as_listed: number; last_at: string }[]) {
+      out.set(row.listing_id, { attended: row.attended, asListed: row.as_listed, lastAt: row.last_at });
+    }
+  } catch {
+    return new Map();
+  }
+  return out;
+}
+
 /** Map raw rows into listings, resolving references and review stats in bulk. */
 async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]> {
   if (rows.length === 0) return [];
-  const [stateNames, amenityCodes, stats, signedVideos, verifiedAgents, listerNames] = await Promise.all([
+  const [stateNames, amenityCodes, stats, signedVideos, badges, listerNames, renterTruth] = await Promise.all([
     getStateNames(),
     getAmenityCodes(),
     getReviewStats(
@@ -1057,6 +1126,7 @@ async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]>
     ),
     getAgentBadges(supabase, [...new Set(rows.map((r) => r.agent_id))]),
     getListerNames(supabase, rows.map((r) => r.id)),
+    getRenterTruth(supabase, rows.filter((r) => !r.is_demo).map((r) => r.id)),
   ]);
   const ids = rows.map((r) => r.id);
   const [compounds, services, units] = await Promise.all([
@@ -1065,7 +1135,17 @@ async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]>
     getUnitFacts(supabase, ids),
   ]);
   return rows.map((row) => {
-    const listing = mapRow(row, stateNames, amenityCodes, stats, signedVideos, verifiedAgents, listerNames);
+    const listing = mapRow(
+      row,
+      stateNames,
+      amenityCodes,
+      stats,
+      signedVideos,
+      badges.verified,
+      listerNames,
+      badges.seenAt,
+      renterTruth,
+    );
     const compound = compounds.get(row.id);
     const service = services.get(row.id);
     const unit = units.get(row.id);
@@ -1193,7 +1273,7 @@ export class SupabaseListingRepository implements ListingRepository {
   readonly isSeed = false;
 
   /**
-   * The published catalogue, newest and featured first.
+   * The published catalogue, newest first.
    *
    * What runs where, and why:
    *
@@ -1422,8 +1502,10 @@ export class SupabaseListingRepository implements ListingRepository {
         });
       }
 
+      /* V-06: there is no `featured` any more. The read is newest first, and
+         "Recommended" is decided over what comes back by the published
+         formula in `ranking.ts`, which nobody can pay to move. */
       const { data, error } = await query
-        .order("featured", { ascending: false })
         .order("published_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false })
         .limit(rowCap(opts.limit));

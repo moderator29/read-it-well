@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, useTransition } from "react";
+import { setLite } from "@/lib/ui/lite";
 import { RowSwitch, SettingsGroup } from "@/components/app/account/rows";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { updateSettings } from "@/lib/profile/actions";
@@ -212,6 +213,8 @@ export function AccountPrivacyCard({
         onChange={(next) => {
           const previous = dataSaver;
           setDataSaver(next);
+          /* V-79: the cookie the server reads, and the device setting. */
+          setLite(next);
           save({ dataSaver: next }, () => setDataSaver(previous));
         }}
         disabled={pending}

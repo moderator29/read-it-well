@@ -44,6 +44,7 @@ export const shapeEn = {
     "price-asc": "Price: low to high",
     "price-desc": "Price: high to low",
     "move-in-asc": "Move-in cost: low to high",
+    "fees-asc": "Lowest fees on top of rent",
   },
   /** V-26: the card's own words that moved from the deleted `/rent` shelf. */
   card: {

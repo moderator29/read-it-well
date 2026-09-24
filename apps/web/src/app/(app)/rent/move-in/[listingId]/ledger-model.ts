@@ -2,6 +2,7 @@ import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
 import type { Listing } from "@/lib/listings/types";
 import { RENT_PERIOD_LABEL, type RentPeriod } from "@/lib/listings/pricing";
 import type { AreaComparison, LedgerLine } from "./MoveInLedger";
+import { feeShares, formatBps, type FeeKey } from "@/lib/listings/fee-share";
 
 /** The tenancy period the rent is quoted in; a yearly quote unless said. */
 export function rentPeriodOf(listing: Listing): RentPeriod {
@@ -56,9 +57,18 @@ export function ledgerLines(listing: Listing, t: Dictionary, locale: Locale = "e
     hint: "Estate and building upkeep",
     minor: listing.serviceChargeMinor,
   });
-  push({ key: "agency", icon: "user", label: "Agency fee", hint: "The agent's own fee", minor: listing.agencyFeeMinor });
-  push({ key: "legal", icon: "document", label: "Legal fee", hint: "Documentation and processing", minor: listing.legalFeeMinor });
-  push({ key: "agreement", icon: "document", label: "Agreement fee", hint: "The tenancy agreement", minor: listing.agreementFeeMinor });
+  /* V-12: each fee paid to the agent carries its share of a year's rent,
+     in integer basis points, beside what it is for. */
+  const shares = feeShares(listing);
+  const withShare = (hint: string, key: FeeKey) => {
+    const share = shares?.each[key];
+    return share
+      ? `${hint}, ${t.trustVisible.fees.shareOfRent.replace("{share}", formatBps(share.bps, locale))}`
+      : hint;
+  };
+  push({ key: "agency", icon: "user", label: "Agency fee", hint: withShare("The agent's own fee", "agency"), minor: listing.agencyFeeMinor });
+  push({ key: "legal", icon: "document", label: "Legal fee", hint: withShare("Documentation and processing", "legal"), minor: listing.legalFeeMinor });
+  push({ key: "agreement", icon: "document", label: "Agreement fee", hint: withShare("The tenancy agreement", "agreement"), minor: listing.agreementFeeMinor });
   return lines;
 }
 
