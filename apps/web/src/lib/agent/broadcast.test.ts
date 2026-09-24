@@ -20,7 +20,7 @@ function assertDraftable(result: BroadcastParse) {
   /* And it survives the real validator, which is what saveDraft runs. */
   const parsed = draftInputSchema.safeParse({ title: "A title long enough", ...result.values });
   expect(parsed.success, JSON.stringify(parsed.error?.issues)).toBe(true);
-  /* Nothing a stranger could use to go round the platform survives. */
+  /* Every contact form in the tests below is removed and reported. */
   const carried = JSON.stringify(result.values);
   expect(carried).not.toMatch(/0[789][01]\d{8}/);
   expect(carried).not.toMatch(/\+?234\s?[789]/);
@@ -284,7 +284,7 @@ describe("every money key is a key the submit gate checks", () => {
   });
 });
 
-describe("review fixes: nothing is cut out of a word, no contact survives, no figure is invented", () => {
+describe("review fixes: nothing is cut out of a word, every listed contact form is removed, no figure is invented", () => {
   it("does not cut letters out of words that contain dm, chat or text", () => {
     const r = parseBroadcast("2 bedroom flat near Admiralty, Yaba. Context: tastefully finished, textured walls. Rent 1.5m per annum.");
     expect(String(r.values.description)).toContain("Admiralty");

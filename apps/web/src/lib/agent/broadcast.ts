@@ -1,5 +1,6 @@
 import { koboToNairaInput, MAX_PRICE_KOBO } from "./listings-schema";
 import { findNeighbourhood as findPlace } from "../places/neighbourhoods";
+import { CUT_MARK_RE, stripContacts } from "./contacts";
 
 /**
  * V-09: PASTE YOUR BROADCAST. The WhatsApp message a Lagos agent already wrote
@@ -34,7 +35,11 @@ import { findNeighbourhood as findPlace } from "../places/neighbourhoods";
  *      stated rent, rounded to the kobo. No float touches a figure, and when a
  *      percentage has no rent to be a percentage of, it is reported rather
  *      than resolved against anything else.
- *   4. PHONE NUMBERS AND ACCOUNT NUMBERS ARE STRIPPED, and so are the phrases
+ *   4. CONTACT DETAILS ARE STRIPPED after normalising the text first
+ *      (`contacts.ts`: full-width digits, spelled digits, the letter O,
+ *      numbers split by any separator; handles by platform word; spelled
+ *      emails). Every form in the review's list is tested; no claim is made
+ *      beyond that. So are the phrases
  *      that only make sense on WhatsApp ("serious clients only", "call or
  *      WhatsApp", an inspection fee). Each is listed back to the agent as not
  *      carried over, so nothing vanishes silently.
@@ -178,6 +183,7 @@ export function shareOf(baseKobo: number, basisPoints: number): number {
   return Math.floor((baseKobo * basisPoints + 5_000) / 10_000);
 }
 
+
 /* ---------------------------------------------------- the closed vocabulary */
 
 /* The closed list of neighbourhoods lives in `lib/places/neighbourhoods.ts`,
@@ -212,6 +218,9 @@ const PHONE = /(?:\+?\s?234[\s.-]*(?:\(0\)[\s.-]*)?|\b0)[789][01](?:[\s.-]?\d){8
  * call: +234..."). They go WITH the number, so stripping the number does not
  * leave a lone "Call" behind to be reported as wording of its own.
  */
+/** The same words, when what followed them was cut by `stripContacts`. */
+const CONTACT_LEAD_TO_CUT =
+  /(?:\b(?:call|whatsapp|text|dm|contact|tel|phone|reach|email|mail|pay(?:\s+to)?|send(?:\s+to)?|acct|account(?:\s+(?:no|number))?|landline|ig|insta(?:gram)?)\b[\s:.,/&-]*(?:or\s+|and\s+)?)+(?:(?:me|us)\s+)?(?:on\s+|via\s+|at\s+)?(?:[A-Z]{2,5}\s+)?(?=\s*\u2063)/gi;
 const CONTACT_LEAD =
   /(?:\b(?:call|whatsapp|text|dm|contact|tel|phone|reach)\b[\s:.,/&-]*(?:or\s+|and\s+)?)+(?:(?:me|us)\s+)?(?:on\s+|via\s+)?(?=\+?\s?(?:234|0)[\s(]*[0789])/gi;
 /**
@@ -291,6 +300,14 @@ function tokens(clause: string, rejects: NotCarried[] = []): Token[] {
       out.push({ type: "label", kind, at, end });
     }
   }
+  /* "1O%" with the letter O: a percentage nobody can be sure of. Reported. */
+  for (const m of clause.matchAll(/(?<![\w.])(?=[\dOo.]*\d)(?=[\dOo.]*[Oo])[\dOo]+(?:\.[\dOo]+)?\s?%/g)) {
+    const at = m.index ?? 0;
+    const end = at + m[0].length;
+    if (overlaps(at, end)) continue;
+    taken.push([at, end]);
+    rejects.push({ kind: "unreadable", text: m[0].trim() });
+  }
   PERCENT.lastIndex = 0;
   for (const m of clause.matchAll(PERCENT)) {
     const at = m.index ?? 0;
@@ -318,6 +335,14 @@ function tokens(clause: string, rejects: NotCarried[] = []): Token[] {
        figure with a sign, a k/m/b, or at least five digits is. */
     if (!suffix && !hasSign && !bigBare) continue;
     taken.push([at, end]);
+    /* "1,500,000.50": the grouped figure stops at the comma groups and a
+       fraction would be dropped on the floor. Handed back whole instead. */
+    const fraction = /^\.\d+/.exec(clause.slice(end));
+    if (fraction) {
+      taken.push([end, end + fraction[0].length]);
+      rejects.push({ kind: "unreadable", text: `${m[0].trim()}${fraction[0]}` });
+      continue;
+    }
     /* "-200k" is a discount, a range or a typo, and a guess would be one of
        three different figures. It is handed back. */
     const first = at + (m[0].length - m[0].trimStart().length);
@@ -338,7 +363,20 @@ function tokens(clause: string, rejects: NotCarried[] = []): Token[] {
     }
     out.push({ type: "amount", kobo, at, end, raw: m[0].trim(), explicit: Boolean(suffix || hasSign) });
   }
-  return out.sort((a, b) => a.at - b.at);
+  /* A RANGE OR A CHOICE IS NOT A FIGURE. "1.5m-2m", "1.5m to 2m", "1.5m or
+     1.8m": taking either end would be a guess, so both are handed back. */
+  const sorted = out.sort((a, b) => a.at - b.at);
+  const drop = new Set<Token>();
+  for (let i = 0; i + 1 < sorted.length; i++) {
+    const a = sorted[i]!;
+    const b = sorted[i + 1]!;
+    if (a.type !== "amount" || b.type !== "amount") continue;
+    if (!/^\s*(?:-|–|—|to|or|\/)\s*$/i.test(clause.slice(a.end, b.at))) continue;
+    drop.add(a);
+    drop.add(b);
+    rejects.push({ kind: "ambiguous", text: clause.slice(a.at, b.end).trim() });
+  }
+  return sorted.filter((token) => !drop.has(token));
 }
 
 const PERIOD_YEAR = /(?:per\s+annum|\bp\.?\s?a\b|\/\s*(?:yr|year|annum)|per\s+year|yearly|a\s+year|annual(?:ly)?|\bpa\b)/i;
@@ -407,8 +445,12 @@ export function parseBroadcast(message: string): BroadcastParse {
     if (values[key] === undefined) values[key] = value;
   };
 
-  /* 1. Strip what must never be carried, and say what it was. */
-  let text = message.replace(/\r/g, "");
+  /* 1. Strip what must never be carried, and say what it was. Contacts are
+        normalised first (`contacts.ts`), then the words that led up to each
+        go with it, then the shapes below catch anything left. */
+  const stripped = stripContacts(message.replace(/\r/g, ""));
+  for (const hit of stripped.hits) notCarried.push({ kind: hit.kind, text: hit.text });
+  let text = stripped.text.replace(CONTACT_LEAD_TO_CUT, " ").replace(CUT_MARK_RE, " ");
   text = text.replace(CONTACT_LEAD, "");
   for (const m of text.matchAll(PHONE)) notCarried.push({ kind: "phone", text: m[0].trim() });
   text = text.replace(PHONE, " ");
