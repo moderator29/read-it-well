@@ -90,7 +90,7 @@ export function RetireExamples({ live }: { live: ExampleListingView[] }) {
                 flex row with a gap, so two children put the gap AND the
                 literal space between the words: the button read
                 "Review  all 2 examples". */}
-            {`Review ${live.length > 1 ? "all " : ""}${countOf(live.length, "examples")}`}
+            {countOf(live.length, "reviewExamples")}
           </Button>
         </div>
       )}

@@ -13,7 +13,7 @@ import { savedCardMoment, type SavedCardPhase } from "@/components/app/payments/
 import type { PaymentMethod } from "@/lib/payments/methods";
 import type { ChargeSavedCardOutcome } from "@/lib/payments/charge-saved-card";
 import type { ActionResult } from "@/lib/actions/envelope";
-import { failureConsequence, STAY_PAID_SHEET_CONSEQUENCE } from "./payment-copy";
+import { failureConsequence } from "./payment-copy";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ActionBar } from "@/components/ui/ActionBar";
 import { Amount } from "@/components/ui/Amount";
@@ -298,7 +298,7 @@ export function PayPanel({
     setPhase({
       kind: "error",
       message: result.ok
-        ? "The secure payment page could not be opened."
+        ? c.pageNotOpened
         : result.error,
     });
   };
@@ -318,7 +318,7 @@ export function PayPanel({
     }
     setPhase({
       kind: "error",
-      message: result.ok ? "The payment could not be completed." : result.error,
+      message: result.ok ? c.notCompleted : result.error,
     });
   };
 
@@ -577,15 +577,15 @@ export function PayPanel({
         open={phase.kind === "wallet-paid"}
         onOpenChange={() => setPhase({ kind: "idle" })}
         state="sent"
-        verdict="Payment sent"
+        verdict={c.paymentSent}
         fact={fact}
         locale={view.locale}
-        consequence={STAY_PAID_SHEET_CONSEQUENCE}
+        consequence={c.paidStay}
         actions={[
-          { label: "See your stays", href: "/bookings", tone: "primary" },
-          { label: "Back to the stay", href: `/listing/${view.listingId}`, tone: "quiet" },
+          { label: c.seeStays, href: "/bookings", tone: "primary" },
+          { label: c.backToStay, href: `/listing/${view.listingId}`, tone: "quiet" },
         ]}
-        footnote="Paid inside Vallo, recorded to the kobo."
+        footnote={c.paidFootnote}
       />
 
       <ResultSheet
@@ -598,21 +598,21 @@ export function PayPanel({
         blocking
         verdict={
           phase.kind === "wallet-paying"
-            ? "Paying from your wallet"
+            ? c.payingFromWallet
             : phase.kind === "saved-card-charging"
               ? savedCardMoment({ kind: "charging" }, view.totalDisplay).verdict
-              : "Opening your payment page"
+              : c.openingPaymentPage
         }
         fact={fact}
         locale={view.locale}
         consequence={
           slow
-            ? "This is taking longer than usual. Nothing has moved yet and nothing has been charged. Stay here."
+            ? c.slowNothingMoved
             : phase.kind === "wallet-paying"
-              ? "Nothing leaves your wallet until this completes."
+              ? c.walletUntilComplete
               : phase.kind === "saved-card-charging"
                 ? savedCardMoment({ kind: "charging" }, view.totalDisplay).consequence
-                : "Nothing has been charged yet."
+                : c.nothingChargedYet
         }
       />
 
@@ -636,7 +636,7 @@ export function PayPanel({
         consequence={savedCardMoment(hostedPhase, view.totalDisplay).consequence}
         actions={[
           {
-            label: "Continue to your bank",
+            label: c.continueToBank,
             onClick: () => {
               /* The bank's own authentication page renders inside the checkout
                  iframe, on this page, under the same reference. Every 3-D
@@ -653,7 +653,7 @@ export function PayPanel({
             },
             tone: "primary",
           },
-          { label: "Pay another way", onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },
+          { label: c.payAnotherWay, onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },
         ]}
       />
 
@@ -661,17 +661,17 @@ export function PayPanel({
         open={phase.kind === "stalled"}
         onOpenChange={() => setPhase({ kind: "idle" })}
         state="pending"
-        verdict="We have not heard back"
+        verdict={c.notHeardBack}
         fact={fact}
         locale={view.locale}
         consequence={
           phase.kind === "stalled" && phase.method === "wallet"
-            ? "Your wallet balance has not changed. Check your stays before you try again, so you do not pay twice."
-            : "Your card has not been charged. Check your stays before you try again, so you do not pay twice."
+            ? c.stalledWalletStay
+            : c.stalledCardStay
         }
         actions={[
-          { label: "See your stays", href: "/bookings", tone: "primary" },
-          { label: "Try again", onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },
+          { label: c.seeStays, href: "/bookings", tone: "primary" },
+          { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },
         ]}
       />
 
@@ -688,7 +688,7 @@ export function PayPanel({
         open={phase.kind === "error"}
         onOpenChange={() => setPhase({ kind: "idle" })}
         state="failed"
-        verdict="Payment not completed"
+        verdict={c.paymentNotCompleted}
         fact={fact}
         locale={view.locale}
         /* THE SERVER'S STRING NO LONGER REACHES THE READER UNFILTERED. Every
@@ -699,11 +699,11 @@ export function PayPanel({
            prose a person wrote, and always leaves the money sentence standing. */
         consequence={failureConsequence(
           phase.kind === "error" ? phase.message : null,
-          "Nothing has been taken from your card or your wallet.",
+          c.nothingTaken,
         )}
         actions={[
-          { label: "Try again", onClick: () => setPhase({ kind: "idle" }), tone: "primary" },
-          { label: "Get help", href: "/help", tone: "quiet" },
+          { label: c.tryAgain, onClick: () => setPhase({ kind: "idle" }), tone: "primary" },
+          { label: c.getHelp, href: "/help", tone: "quiet" },
         ]}
       />
 

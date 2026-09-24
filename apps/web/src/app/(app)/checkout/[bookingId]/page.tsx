@@ -71,9 +71,9 @@ export default async function CheckoutPage({
         <ResultScreen
           state="pending"
           mark="card-lock"
-          verdict="We cannot reach payment right now"
-          consequence="This is on our side, not yours. Nothing has been charged and your dates are unchanged. Try again in a few minutes."
-          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
+          verdict={c.cannotReachPayment}
+          consequence={c.cannotReachStay}
+          actions={[{ label: c.seeStays, href: "/bookings", tone: "primary" }]}
         />
       </Shell>
     );
@@ -85,9 +85,9 @@ export default async function CheckoutPage({
         <ResultScreen
           state="confirmed"
           mark="shield-check"
-          verdict="Sign in to pay for this stay"
-          consequence="Your booking and its dates are kept. Sign in and you land straight back here."
-          actions={[{ label: "Sign in", href: "/sign-in", tone: "primary" }]}
+          verdict={c.signInToPayStay}
+          consequence={c.signInKeptStay}
+          actions={[{ label: c.signIn, href: "/sign-in", tone: "primary" }]}
         />
       </Shell>
     );
@@ -103,9 +103,9 @@ export default async function CheckoutPage({
         <ResultScreen
           state="failed"
           mark="seal-cross"
-          verdict="We could not find that booking"
-          consequence="It may have been cancelled, or it belongs to another account. Your stays are all in one place."
-          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
+          verdict={c.bookingNotFound}
+          consequence={c.bookingNotFoundBody}
+          actions={[{ label: c.seeStays, href: "/bookings", tone: "primary" }]}
         />
       </Shell>
     );
@@ -117,9 +117,9 @@ export default async function CheckoutPage({
         <ResultScreen
           state="failed"
           mark="alert-triangle"
-          verdict="Checkout did not open"
-          consequence="Your booking is unchanged and nothing has been charged. Try again in a few minutes."
-          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
+          verdict={c.checkoutDidNotOpen}
+          consequence={c.checkoutDidNotOpenBody}
+          actions={[{ label: c.seeStays, href: "/bookings", tone: "primary" }]}
         />
       </Shell>
     );
@@ -192,9 +192,9 @@ export default async function CheckoutPage({
           <ResultScreen
             state="received"
             mark="receipt-check"
-            verdict="This stay is paid for"
-            consequence={`${view.totalDisplay} has been received and your dates are confirmed.`}
-            actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
+            verdict={c.stayPaidFor}
+            consequence={c.stayPaidBody.replace("{total}", view.totalDisplay)}
+            actions={[{ label: c.seeStays, href: "/bookings", tone: "primary" }]}
           />
         </Reveal>
       ) : view.status === "CANCELLED" ? (
@@ -205,10 +205,10 @@ export default async function CheckoutPage({
               said it was still in progress. It was also marked with a tick. */}
           <ResultScreen
             state="expired"
-            verdict="This booking was cancelled"
-            consequence="Cancelled stays cannot be paid for. The dates are open again, so search and reserve them afresh if you still want them."
+            verdict={c.bookingCancelled}
+            consequence={c.bookingCancelledBody}
             actions={[
-              { label: "Back to the stay", href: `/listing/${view.listingId}`, tone: "primary" },
+              { label: c.backToStay, href: `/listing/${view.listingId}`, tone: "primary" },
             ]}
           />
         </Reveal>

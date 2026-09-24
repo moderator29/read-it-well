@@ -8,7 +8,6 @@ import { ResultScreen } from "@/components/app/ResultSheet";
 import { PageHeader } from "@/components/app/PageHeader";
 import { Reveal } from "@/components/site/Reveal";
 import { PaymentReturn } from "@/app/(app)/checkout/[bookingId]/PaymentReturn";
-import { RENT_PAID_PAGE_CONSEQUENCE } from "@/app/(app)/checkout/[bookingId]/payment-copy";
 import { PayPanel } from "./PayPanel";
 import { RentSummary } from "./RentSummary";
 import { chargeRentSavedCardFor } from "./saved-card-action";
@@ -47,6 +46,7 @@ export default async function RentPayPage({
   const { inspectionId } = await params;
   const { paid, reference } = await searchParams;
   const locale = await getLocale();
+  const c = getDictionary(locale).checkout;
   const read = await getRentPayView(inspectionId, locale);
 
   const settling =
@@ -58,9 +58,9 @@ export default async function RentPayPage({
         <ResultScreen
           state="pending"
           mark="card-lock"
-          verdict="We cannot reach payment right now"
-          consequence="This is on our side, not yours. Nothing has been charged and your inspection is unchanged. Try again in a few minutes."
-          actions={[{ label: "See your inspections", href: "/inspections", tone: "primary" }]}
+          verdict={c.cannotReachPayment}
+          consequence={c.cannotReachRent}
+          actions={[{ label: c.seeInspections, href: "/inspections", tone: "primary" }]}
         />
       </Shell>
     );
@@ -72,9 +72,9 @@ export default async function RentPayPage({
         <ResultScreen
           state="confirmed"
           mark="shield-check"
-          verdict="Sign in to pay the rent"
-          consequence="Your inspection is kept. Sign in and you land straight back here."
-          actions={[{ label: "Sign in", href: "/sign-in", tone: "primary" }]}
+          verdict={c.signInToPayRent}
+          consequence={c.signInKeptRent}
+          actions={[{ label: c.signIn, href: "/sign-in", tone: "primary" }]}
         />
       </Shell>
     );
@@ -86,9 +86,9 @@ export default async function RentPayPage({
         <ResultScreen
           state="failed"
           mark="seal-cross"
-          verdict="We could not find that inspection"
-          consequence="It may have been withdrawn, or it belongs to another account. Your inspections are all in one place."
-          actions={[{ label: "See your inspections", href: "/inspections", tone: "primary" }]}
+          verdict={c.inspectionNotFound}
+          consequence={c.inspectionNotFoundBody}
+          actions={[{ label: c.seeInspections, href: "/inspections", tone: "primary" }]}
         />
       </Shell>
     );
@@ -100,9 +100,9 @@ export default async function RentPayPage({
         <ResultScreen
           state="failed"
           mark="alert-triangle"
-          verdict="The payment step did not open"
-          consequence="Nothing has been charged. Try again in a few minutes."
-          actions={[{ label: "See your inspections", href: "/inspections", tone: "primary" }]}
+          verdict={c.rentStepDidNotOpen}
+          consequence={c.rentStepDidNotOpenBody}
+          actions={[{ label: c.seeInspections, href: "/inspections", tone: "primary" }]}
         />
       </Shell>
     );
@@ -114,9 +114,9 @@ export default async function RentPayPage({
         <ResultScreen
           state="confirmed"
           mark="shield-check"
-          verdict="This is your listing"
-          consequence="The person who inspected it pays the move-in total here, and you are told the moment it lands."
-          actions={[{ label: "See your inspections", href: "/agent/inspections", tone: "primary" }]}
+          verdict={c.yourListing}
+          consequence={c.yourListingBody}
+          actions={[{ label: c.seeInspections, href: "/agent/inspections", tone: "primary" }]}
         />
       </Shell>
     );
@@ -128,11 +128,11 @@ export default async function RentPayPage({
         <ResultScreen
           state="pending"
           mark="calendar-check"
-          verdict="Waiting on the lister"
-          consequence="Nothing can be paid until the lister accepts your inspection. You will be told the moment they do, and this page opens then."
+          verdict={c.waitingOnLister}
+          consequence={c.waitingOnListerBody}
           actions={[
-            { label: "See your inspections", href: "/inspections", tone: "primary" },
-            { label: "Back to the listing", href: `/listing/${read.listingId}`, tone: "quiet" },
+            { label: c.seeInspections, href: "/inspections", tone: "primary" },
+            { label: c.backToListing, href: `/listing/${read.listingId}`, tone: "quiet" },
           ]}
         />
       </Shell>
@@ -145,11 +145,11 @@ export default async function RentPayPage({
         <ResultScreen
           state="failed"
           mark="seal-cross"
-          verdict="There is no figure to pay yet"
-          consequence="This listing does not state a rent and its fees, so there is nothing to charge. Ask the lister in your thread to put the move-in figure on the listing."
+          verdict={c.noFigure}
+          consequence={c.noFigureBody}
           actions={[
-            { label: "Open messages", href: "/messages", tone: "primary" },
-            { label: "Back to the listing", href: `/listing/${read.listingId}`, tone: "quiet" },
+            { label: c.openMessages, href: "/messages", tone: "primary" },
+            { label: c.backToListing, href: `/listing/${read.listingId}`, tone: "quiet" },
           ]}
         />
       </Shell>
@@ -164,11 +164,11 @@ export default async function RentPayPage({
         <ResultScreen
           state="confirmed"
           mark="shield-check"
-          verdict="The rent is paid"
-          consequence={RENT_PAID_PAGE_CONSEQUENCE}
+          verdict={c.rentIsPaid}
+          consequence={c.paidRent}
           actions={[
-            { label: "Open messages", href: "/messages", tone: "primary" },
-            { label: "Back to the listing", href: `/listing/${view.listingId}`, tone: "quiet" },
+            { label: c.openMessages, href: "/messages", tone: "primary" },
+            { label: c.backToListing, href: `/listing/${view.listingId}`, tone: "quiet" },
           ]}
         />
       </Shell>

@@ -13,6 +13,9 @@ import { describe, expect, it } from "vitest";
  * through `countOf` (or a dictionary pair through `plural`), which picks the
  * form by the locale's own plural rules.
  *
+ * A count compared with one by any operator counts: `=== 1`, `> 1` and
+ * `<= 1` are the same inflection written three ways.
+ *
  * This reads the syntax tree rather than the text, so a comment that quotes
  * the old pattern (several do, on purpose) is not a hit, and a ternary split
  * over three lines is. A hit is a conditional whose test compares against the
@@ -46,12 +49,23 @@ function walk(dir: string, out: string[] = []): string[] {
   return out;
 }
 
+/** Every way a count is compared with one: `=== 1`, `!== 1`, `== 1`, `> 1`, `<= 1`, ... */
+const COMPARISONS = new Set([
+  ts.SyntaxKind.EqualsEqualsEqualsToken,
+  ts.SyntaxKind.ExclamationEqualsEqualsToken,
+  ts.SyntaxKind.EqualsEqualsToken,
+  ts.SyntaxKind.ExclamationEqualsToken,
+  ts.SyntaxKind.GreaterThanToken,
+  ts.SyntaxKind.GreaterThanEqualsToken,
+  ts.SyntaxKind.LessThanToken,
+  ts.SyntaxKind.LessThanEqualsToken,
+]);
+
 function comparesWithOne(node: ts.Expression): boolean {
   let test = node;
   while (ts.isParenthesizedExpression(test)) test = test.expression;
   if (!ts.isBinaryExpression(test)) return false;
-  const op = test.operatorToken.kind;
-  if (op !== ts.SyntaxKind.EqualsEqualsEqualsToken && op !== ts.SyntaxKind.ExclamationEqualsEqualsToken) return false;
+  if (!COMPARISONS.has(test.operatorToken.kind)) return false;
   const one = (side: ts.Expression) => ts.isNumericLiteral(side) && side.text === "1";
   return one(test.left) || one(test.right);
 }
@@ -59,7 +73,10 @@ function comparesWithOne(node: ts.Expression): boolean {
 function wordy(node: ts.Expression): boolean {
   let branch = node;
   while (ts.isParenthesizedExpression(branch)) branch = branch.expression;
-  if (ts.isStringLiteral(branch) || ts.isNoSubstitutionTemplateLiteral(branch)) return /[A-Za-z]/.test(branch.text);
+  if (ts.isStringLiteral(branch) || ts.isNoSubstitutionTemplateLiteral(branch)) {
+    /* A camelCase key ("businessesStillTrading") names a dictionary entry; it is not a word shown to anybody. */
+    return /[A-Za-z]/.test(branch.text) && !/^[a-z]+[A-Z][A-Za-z]*$/.test(branch.text);
+  }
   if (ts.isTemplateExpression(branch)) {
     return [branch.head.text, ...branch.templateSpans.map((span) => span.literal.text)].some((part) => /[A-Za-z]/.test(part));
   }
@@ -90,8 +107,12 @@ describe("counted phrases come from the dictionary", () => {
       "const e = n === 1 ? copy.one : copy.many;",
       "// n === 1 ? \"night\" : \"nights\"",
       'const f = n === 2 ? "pair" : "other";',
+      'const g = n > 1 ? "nights" : "night";',
+      'const h = n <= 1 ? "guest" : "guests";',
+      'const i = n == 1 ? "day" : "days";',
+      'const k = n > 1 ? "businessesStillTrading" : "yourBusinessTrading";',
     ].join("\n");
-    expect(handInflected("sample.ts", sample).map((hit) => hit.split(":")[1])).toEqual(["1", "2", "3", "6"]);
+    expect(handInflected("sample.ts", sample).map((hit) => hit.split(":")[1])).toEqual(["1", "2", "3", "6", "10", "11", "12"]);
   });
 
   it("finds no hand-inflected English plural anywhere in the app", () => {

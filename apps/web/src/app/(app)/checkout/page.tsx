@@ -108,14 +108,14 @@ export default async function RoomCheckoutPage({
       <ResultScreen
         state="expired"
         mark="calendar-check"
-        verdict={detail ? "Vallo cannot hold this room" : "We could not find that stay"}
+        verdict={detail ? t.checkout.cannotHoldRoom : t.checkout.stayNotFound}
         consequence={
           detail
-            ? "Rooms at this property are not reserved through Vallo, so nothing has been held and nothing has been charged. Go back to the stay for its rates and the ways to reach the property, or find another stay."
-            : "It may have been taken off the shelf, or the link is incomplete. Nothing has been held and nothing has been charged."
+            ? t.checkout.cannotHoldRoomBody
+            : t.checkout.stayNotFoundBody
         }
         actions={[
-          { label: detail ? "Back to the stay" : t.stays.findStay, href: backHref, tone: "primary" },
+          { label: detail ? t.checkout.backToStay : t.stays.findStay, href: backHref, tone: "primary" },
           { label: t.stays.findStay, href: "/stays/search", tone: "quiet" },
         ]}
         data-testid="room-checkout-state"
