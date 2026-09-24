@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
@@ -14,11 +15,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * /agent/firm (V-99): the firm desk, for a firm's principal and its
- * coordinators. Everything it shows is read through functions that answer
+ * /agent/firm (V-99): the firm desk, for a firm's principal (the coordinator
+ * role cannot be granted yet: admit_firm_member, audit-owned, refuses it). Everything it shows is read through functions that answer
  * only to them; anybody else sees one sentence saying who it is for.
  */
-export default async function FirmDeskPage() {
+export default async function FirmDeskPage({ searchParams }: { searchParams: Promise<{ firm?: string | string[] }> }) {
+  const wanted = (await searchParams).firm;
   const locale = await getLocale();
   const t = getDictionary(locale);
   const copy = t.frontDoor.firm;
@@ -26,7 +28,9 @@ export default async function FirmDeskPage() {
   const profile = context.state === "agent" ? agentProfileFrom(context.agent) : null;
 
   const firms = context.state === "agent" ? await readMyRoutingFirms() : [];
-  const firm = firms?.[0] ?? null;
+  /* A principal of more than one firm picks it with ?firm=; the first is the
+     default. Only a firm this person may route is ever chosen. */
+  const firm = firms?.find((f) => f.firmId === wanted) ?? firms?.[0] ?? null;
 
   if (firms === null) {
     return (
@@ -61,6 +65,20 @@ export default async function FirmDeskPage() {
           {copy.title}: {firm.firmName}
         </h1>
         <p className="mt-3xs text-[var(--nf-content-secondary)]">{copy.lede}</p>
+        {firms && firms.length > 1 && (
+          <nav className="mt-row flex flex-wrap gap-xs" aria-label={copy.pickFirm}>
+            {firms.map((f) => (
+              <Link
+                key={f.firmId}
+                href={`/agent/firm?firm=${f.firmId}`}
+                aria-current={f.firmId === firm.firmId ? "page" : undefined}
+                className="nf-link-quiet nf-body-sm text-[var(--nf-content-link)]"
+              >
+                {f.firmName}
+              </Link>
+            ))}
+          </nav>
+        )}
       </div>
       <FirmDesk firmId={firm.firmId} listings={listings} team={team} routing={routing} areas={areas} copy={copy} />
     </AgentShell>

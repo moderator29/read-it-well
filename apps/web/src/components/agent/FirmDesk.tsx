@@ -111,7 +111,7 @@ export function FirmDesk({
           {team.map((m) => (
             <li key={m.agentId} className="flex justify-between gap-sm nf-body-sm text-[var(--nf-content-primary)]">
               <span>
-                {m.name} <span className="nf-caption text-[var(--nf-content-muted)]">{copy.roles[m.role]}</span>
+                {m.name} <span className="nf-caption text-[var(--nf-content-muted)]">{copy.roles[m.role === "principal" ? "principal" : "staff"]}</span>
               </span>
               <span className="nf-caption text-[var(--nf-content-muted)]">{copy.routed.replace("{count}", String(m.routed30d))}</span>
             </li>
@@ -125,6 +125,14 @@ export function FirmDesk({
           {copy.routingTitle}
         </h2>
         <p className="nf-body-sm text-[var(--nf-content-secondary)]">{copy.routingNote}</p>
+        {routing === null ? (
+          /* A failed read never offers Save: saving the defaults shown here
+             would overwrite the stored rule. */
+          <p className="nf-body-sm text-[var(--nf-content-muted)]" role="status">
+            {copy.unreachable}
+          </p>
+        ) : (
+          <>
         <fieldset className="flex flex-col gap-xs">
           {(["lister", "area", "round_robin"] as const).map((m) => (
             <label key={m} className="flex items-center gap-sm nf-body-sm text-[var(--nf-content-primary)]">
@@ -183,6 +191,8 @@ export function FirmDesk({
           {pending ? copy.saving : copy.saveRouting}
         </Button>
         {note && <p className="nf-caption text-[var(--nf-content-secondary)]" role="status">{note}</p>}
+          </>
+        )}
       </section>
     </div>
   );
