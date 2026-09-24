@@ -11,6 +11,12 @@ Payments: Paystack. Transactional email: Resend. Deploy branch policy:
 `main` is never pushed to from a working session, so the production branch on
 Vercel should be whichever branch the owner promotes deliberately.
 
+Functions run in Dublin (`"regions": ["dub1"]` in `apps/web/vercel.json`,
+OPS-09), next to the database in eu-west-1. If the Vercel dashboard's
+Settings → Functions → Function Region shows something else, `vercel.json`
+wins on the next deploy. Confirm it once after deploying: the `x-vercel-id`
+response header should read `…::dub1::…`, not `iad1`.
+
 Order of operations, because some steps depend on earlier ones:
 
 1. Create the Vercel project and set the environment variables (section 2).
