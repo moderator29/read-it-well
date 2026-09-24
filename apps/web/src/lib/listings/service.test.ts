@@ -12,16 +12,21 @@ import { matchesFacts, type ListingFacts } from "./filter";
 
 describe("Serviced, defined (V-68)", () => {
   it("is earned only by power, water and security together", () => {
-    expect(isServiced(["diesel", "water", "security"])).toBe(true);
-    expect(isServiced(["diesel", "water", "security", "lift"])).toBe(true);
-    expect(isServiced(["security", "cleaning"])).toBe(false);
-    expect(isServiced(undefined)).toBe(false);
+    expect(isServiced(["diesel", "water", "security"], 50_000_000)).toBe(true);
+    expect(isServiced(["diesel", "water", "security", "lift"], 50_000_000)).toBe(true);
+    expect(isServiced(["security", "cleaning"], 50_000_000)).toBe(false);
+    expect(isServiced(undefined, 50_000_000)).toBe(false);
+  });
+
+  it("needs a service charge to exist at all (batch 4 review)", () => {
+    expect(isServiced(["diesel", "water", "security"], null)).toBe(false);
+    expect(isServiced(["diesel", "water", "security"], 0)).toBe(false);
   });
 
   it("reads only known answers, and nothing as null", () => {
     expect(readService(null)).toBeNull();
     expect(readService({ service_charge_covers: null, estate_type: "moat" })).toBeNull();
-    expect(readService({ service_charge_covers: ["water", "jacuzzi", "diesel", "security"] })).toEqual({
+    expect(readService({ service_charge_minor: 50_000_000, service_charge_covers: ["water", "jacuzzi", "diesel", "security"] })).toEqual({
       covers: ["diesel", "water", "security"],
       serviced: true,
     });

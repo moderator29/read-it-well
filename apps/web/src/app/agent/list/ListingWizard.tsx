@@ -2261,10 +2261,13 @@ export function ListingWizard({
             />
 
             {/* ------------------------ the service charge and the gate (V-68) */}
+            {/* What the charge covers is asked only where a charge is stated on
+                a home to let or sell (batch 4 review); the gate always is. */}
             <ServiceQuestions
               copy={serviceCopy}
               value={values.service}
               onChange={(next) => set("service", next)}
+              chargeMinor={(tenancy || forSale) ? parseNairaToKobo(values.serviceChargeNaira) : null}
             />
 
             {/* ---------------------------------------- the compound (V-28) */}

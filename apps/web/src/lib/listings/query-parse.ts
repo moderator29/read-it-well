@@ -1,5 +1,5 @@
 import { nairaToKobo } from "./search-params";
-import type { UnitShape } from "./unit-shape";
+import { SHAPE_PHRASES, type UnitShape } from "./unit-shape";
 
 /**
  * THE SEARCH BOX READS WHATSAPP SHORTHAND (V-66).
@@ -37,6 +37,8 @@ export type ParsedWords = {
   maxMinor?: number;
   ownerDirect: boolean;
   withBq: boolean;
+  /** "serviced": Serviced only, the derived word (V-68). */
+  serviced: boolean;
   intent?: "rent" | "sale";
   areas: string[];
   /** What was not recognised, tidied. Empty when everything was read. */
@@ -55,29 +57,33 @@ const NUMBER_WORDS: Record<string, number> = {
   seven: 7,
 };
 
-/* Longest phrases first, so "semi detached" is not read as "detached". */
-const SHAPE_PHRASES: [RegExp, UnitShape][] = [
-  [/(?:^|\s)s\/c(?=\s|$)/g, "self_contain"],
-  [/\bself[\s-]*con(?:tain(?:ed)?)?\b/g, "self_contain"],
-  [/\broom\s*(?:and|&|n)\s*parlou?r\b/g, "room_parlour"],
-  [/\bmini[\s-]*flat\b/g, "mini_flat"],
-  [/\bsemi[\s-]*detached\b/g, "semi_detached"],
-  [/\bdetached(?:\s+house)?\b/g, "detached"],
-  [/\bterraced?(?:\s+house)?\b/g, "terrace"],
-  [/\bduplex\b/g, "duplex"],
-  [/\bbungalow\b/g, "bungalow"],
-  [/\bmaisonn?ette\b/g, "maisonette"],
-  [/\bpenthouse\b/g, "penthouse"],
-  [/\bboys?'?\s*quarters?\b/g, "boys_quarters"],
-  [/\bflat\b/g, "flat"],
-];
-
-const MONEY =
-  /(?:\b(under|below|max(?:imum)?|less\s+than|up\s*to|within|above|over|from|min(?:imum)?|at\s+least)\s+)?(?:₦|\bngn\s*|\bn(?=\d))?(\d+(?:\.\d+)?)\s*(m|mil|million|k|thousand)\b/g;
-const MONEY_PLAIN = /(?:\b(under|below|max|above|over|from|min)\s+)?(?:₦|\bngn\s*|\bn(?=\d))(\d{4,10})\b/g;
+/*
+ * A number is whole or has a DOT decimal, and never starts or ends inside a
+ * longer run of digits and commas: "1,5m" is refused (a comma decimal would
+ * otherwise read as ₦5m) and stays as text.
+ */
+const NUM = String.raw`(?<![\d.,])(\d+(?:\.\d+)?)(?![\d,])`;
+const UNIT = String.raw`(m|mil|million|k|thousand)`;
+const SIGN = String.raw`(?:₦|\bngn\s*|\bn(?=\d))?`;
+/* "2m-3m", "2 to 3m", "between 1.5m and 2m": a floor and a ceiling. */
+const RANGE = new RegExp(
+  String.raw`(?:\bbetween\s+)?${SIGN}${NUM}\s*${UNIT}?\s*(?:-|–|\bto\b|\band\b)\s*${SIGN}${NUM}\s*${UNIT}\b`,
+  "g",
+);
+const MONEY = new RegExp(
+  String.raw`(?:\b(under|below|max(?:imum)?|less\s+than|up\s*to|within|above|over|from|min(?:imum)?|at\s+least)\s+)?${SIGN}${NUM}\s*${UNIT}\b`,
+  "g",
+);
+/* A naira sign and a bare figure, commas allowed as thousands: "N1,500,000". */
+const MONEY_PLAIN =
+  /(?:\b(under|below|max|above|over|from|min)\s+)?(?:₦|\bngn\s*|\bn(?=\d))(\d{1,3}(?:,\d{3})+|\d{4,10})(?![\d,])/g;
+/* How often rent is quoted: read and dropped, never a filter. */
+const PERIOD_WORDS =
+  /(?:\bper\s+(?:month|annum|anum|year|yr)\b|\bp\.\s?a\.?|\bpa\b|\bmonthly\b|\byearly\b|\bannually\b|\ba\s+year\b|\/\s*(?:yr|year|annum|month|mo)\b|\bnaira\b)/g;
+const SERVICED = /\bserviced\b/g;
 const FLOOR_WORDS = /^(above|over|from|min(?:imum)?|at\s+least)$/;
 
-const ROOMS = /\b(\d{1,2}|one|two|three|four|five|six|seven)\s*-?\s*(?:br|bdr|bdrm|bdrms|bed|beds|bedroom|bedrooms|bedroomed)\b/g;
+const ROOMS = /\b(\d{1,2}|one|two|three|four|five|six|seven)\s*\+?\s*-?\s*(?:br|bdr|bdrm|bdrms|bed|beds|bedroom|bedrooms|bedroomed)\b/g;
 const OWNER = /\b(?:no\s+agen(?:cy|t)(?:\s+fee)?s?|owner\s+direct|direct\s+(?:from\s+)?(?:owner|landlord)|landlord\s+direct)\b/g;
 const MARKET_RENT = /\b(?:for\s+rent|to\s+let)\b/g;
 const MARKET_SALE = /\bfor\s+sale\b/g;
@@ -92,7 +98,15 @@ function amountToNaira(value: string, unit: string): number {
 
 export function parseWords(input: string): ParsedWords {
   let text = ` ${input.toLowerCase().replace(/\s+/g, " ").trim()} `;
-  const out: ParsedWords = { shapes: [], ownerDirect: false, withBq: false, areas: [], rest: "", recognised: false };
+  const out: ParsedWords = {
+    shapes: [],
+    ownerDirect: false,
+    withBq: false,
+    serviced: false,
+    areas: [],
+    rest: "",
+    recognised: false,
+  };
   const take = (re: RegExp, on: (m: RegExpExecArray) => void) => {
     text = text.replace(re, (...args) => {
       const groups = args.slice(0, -2) as string[];
@@ -113,13 +127,27 @@ export function parseWords(input: string): ParsedWords {
     out.intent = "sale";
   });
 
+  /* Read and dropped without counting as understanding: "yearly" alone is
+     not worth a redirect. */
+  text = text.replace(PERIOD_WORDS, " ");
+
+  take(RANGE, (m) => {
+    const low = amountToNaira(m[1]!, m[2] ?? m[4]!);
+    const high = amountToNaira(m[3]!, m[4]!);
+    out.minMinor = nairaToKobo(Math.min(low, high));
+    out.maxMinor = nairaToKobo(Math.max(low, high));
+  });
+
   const money = (m: RegExpExecArray, naira: number) => {
     const floor = m[1] !== undefined && FLOOR_WORDS.test(m[1].replace(/\s+/g, " "));
     if (floor) out.minMinor = nairaToKobo(naira);
     else out.maxMinor = nairaToKobo(naira);
   };
   take(MONEY, (m) => money(m, amountToNaira(m[2]!, m[3]!)));
-  take(MONEY_PLAIN, (m) => money(m, Number(m[2])));
+  take(MONEY_PLAIN, (m) => money(m, Number(m[2]!.replace(/,/g, ""))));
+  take(SERVICED, () => {
+    out.serviced = true;
+  });
 
   take(ROOMS, (m) => {
     const raw = m[1]!;
@@ -148,7 +176,11 @@ export function parseWords(input: string): ParsedWords {
     }
   });
 
-  const words = text.split(" ").filter(Boolean);
+  /* Punctuation left standing alone ("+", "/", "-", ",") is not a word. */
+  const words = text
+    .split(" ")
+    .map((w) => w.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, ""))
+    .filter((w) => /[a-z0-9]/.test(w));
   const kept = out.recognised ? words.filter((w) => !JOINERS.test(w)) : words;
   out.rest = kept.join(" ");
   return out;

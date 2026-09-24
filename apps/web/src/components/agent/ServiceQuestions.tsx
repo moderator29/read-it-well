@@ -29,10 +29,13 @@ export function ServiceQuestions({
   copy,
   value,
   onChange,
+  chargeMinor,
 }: {
   copy: Dictionary["shape"]["service"];
   value: ServiceForm;
   onChange: (next: ServiceForm) => void;
+  /** The service charge stated in the pricing step; Serviced needs one. */
+  chargeMinor: number | null;
 }) {
   const id = useId();
   const toggle = (cover: ServiceCover) => {
@@ -41,7 +44,7 @@ export function ServiceQuestions({
       : SERVICE_COVERS.filter((c) => c === cover || value.covers.includes(c));
     onChange({ ...value, covers, coversAnswered: true });
   };
-  const serviced = isServiced(value.covers);
+  const serviced = isServiced(value.covers, chargeMinor);
 
   return (
     <fieldset className="nf-panel nf-panel--card block p-card" data-testid="wizard-service">
@@ -54,44 +57,63 @@ export function ServiceQuestions({
       </p>
 
       <div className="mt-group space-y-group">
-        <div>
-          <p className="nf-label mb-inline">{copy.coversLabel}</p>
-          <div className="flex flex-wrap gap-xs">
-            {SERVICE_COVERS.map((cover) => (
-              <button
-                key={cover}
-                type="button"
-                aria-pressed={value.covers.includes(cover)}
-                data-testid={`service-cover-${cover}`}
-                onClick={() => toggle(cover)}
-                className="nf-filters__tile"
-              >
-                {copy.covers[cover]}
-              </button>
-            ))}
-          </div>
-          {value.coversAnswered && (
-            <p className="nf-caption mt-inline text-[var(--nf-content-secondary)]" role="status">
-              {serviced ? `${copy.serviced}: ${copy.servicedMeaning}` : value.covers.length === 0 ? copy.coversNone : ""}
-            </p>
-          )}
-        </div>
+        {chargeMinor !== null && chargeMinor > 0 ? (
+          <>
+            <div>
+              <p className="nf-label mb-inline">{copy.coversLabel}</p>
+              <div className="flex flex-wrap gap-xs">
+                {SERVICE_COVERS.map((cover) => (
+                  <button
+                    key={cover}
+                    type="button"
+                    aria-pressed={value.covers.includes(cover)}
+                    data-testid={`service-cover-${cover}`}
+                    onClick={() => toggle(cover)}
+                    className="nf-filters__tile"
+                  >
+                    {copy.covers[cover]}
+                  </button>
+                ))}
+              </div>
+              {value.coversAnswered && (
+                <>
+                  <p className="nf-caption mt-inline text-[var(--nf-content-secondary)]" role="status">
+                    {serviced ? `${copy.serviced}: ${copy.servicedMeaning}` : value.covers.length === 0 ? copy.coversNone : ""}
+                  </p>
+                  {/* Back to unanswered, which is not the same as "covers none". */}
+                  <button
+                    type="button"
+                    data-testid="service-covers-unanswered"
+                    onClick={() => onChange({ ...value, covers: [], coversAnswered: false })}
+                    className="nf-link-quiet mt-inline min-h-11 text-[length:var(--nf-text-caption)] text-[var(--nf-content-link)]"
+                  >
+                    {copy.unanswered}
+                  </button>
+                </>
+              )}
+            </div>
 
-        <div>
-          <p className="nf-label mb-inline">{copy.reconciledLabel}</p>
-          <Segmented
-            options={[
-              { value: "" as const, label: copy.unanswered },
-              { value: "fixed" as const, label: copy.fixed },
-              { value: "reconciled" as const, label: copy.reconciled },
-            ]}
-            value={value.reconciled}
-            onChange={(next) => onChange({ ...value, reconciled: next })}
-            semantics="radio"
-            full
-            label={copy.reconciledLabel}
-          />
-        </div>
+            <div>
+              <p className="nf-label mb-inline">{copy.reconciledLabel}</p>
+              <Segmented
+                options={[
+                  { value: "" as const, label: copy.unanswered },
+                  { value: "fixed" as const, label: copy.fixed },
+                  { value: "reconciled" as const, label: copy.reconciled },
+                ]}
+                value={value.reconciled}
+                onChange={(next) => onChange({ ...value, reconciled: next })}
+                semantics="radio"
+                full
+                label={copy.reconciledLabel}
+              />
+            </div>
+          </>
+        ) : (
+          <p className="nf-body-sm text-[var(--nf-content-muted)]" data-testid="wizard-service-needs-charge">
+            {copy.needsCharge}
+          </p>
+        )}
 
         <div>
           <label htmlFor={`${id}-estate`} className="nf-label mb-inline block">

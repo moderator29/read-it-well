@@ -74,6 +74,9 @@ export function ReadAs({
     });
   }
   if (query.withBq) chips.push({ key: "bq", label: copy.filterBq, href: without({}, ["withBq"]) });
+  if (said && query.servicedOnly) {
+    chips.push({ key: "serviced", label: copy.serviced, href: without({ servicedOnly: false }) });
+  }
   for (const area of query.areas ?? []) {
     const rest = (query.areas ?? []).filter((a) => a !== area);
     const label = area.replace(/\b\p{L}/gu, (c) => c.toUpperCase());

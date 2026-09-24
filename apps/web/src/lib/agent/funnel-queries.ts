@@ -34,7 +34,7 @@ export async function readFunnelBoard(supabase: Loose, agentId: string): Promise
   try {
     const { data, error } = await supabase
       .from("listings")
-      .select("id, title, rent_period, total_move_in_cost_minor, listing_photos(id)")
+      .select("id, title, rent_period, total_move_in_cost_minor, published_at, listing_photos(id)")
       .eq("agent_id", agentId)
       .eq("status", "PUBLISHED")
       .order("updated_at", { ascending: false })
@@ -46,6 +46,7 @@ export async function readFunnelBoard(supabase: Loose, agentId: string): Promise
       title: string;
       rent_period: string | null;
       total_move_in_cost_minor: number | null;
+      published_at: string | null;
       listing_photos: { id: string }[] | null;
     }[];
 
@@ -55,7 +56,7 @@ export async function readFunnelBoard(supabase: Loose, agentId: string): Promise
         supabase as unknown as {
           rpc: (fn: string, args: object) => Promise<{ data: unknown; error: unknown }>;
         }
-      ).rpc("listing_funnel", { p_listing: row.id, p_days: 7 });
+      ).rpc("listing_funnel", { p_listing: row.id });
       if (rpcError) return { state: "unavailable" };
       const funnel = funnelFrom(raw as FunnelRpcRow[]);
       if (!funnel) continue;
@@ -66,7 +67,7 @@ export async function readFunnelBoard(supabase: Loose, agentId: string): Promise
         fix: fixFor(funnel, {
           photoCount: row.listing_photos?.length ?? 0,
           moveInStated: row.rent_period === null || (row.total_move_in_cost_minor ?? 0) > 0,
-          published: true,
+          publishedDays: daysSince(row.published_at),
         }),
       });
     }
@@ -74,4 +75,12 @@ export async function readFunnelBoard(supabase: Loose, agentId: string): Promise
   } catch {
     return { state: "unavailable" };
   }
+}
+
+/** Whole days since an instant, zero when unknown or in the future. */
+function daysSince(iso: string | null): number {
+  if (!iso) return 0;
+  const at = Date.parse(iso);
+  if (!Number.isFinite(at)) return 0;
+  return Math.max(0, Math.floor((Date.now() - at) / 86_400_000));
 }

@@ -67,7 +67,8 @@ export type FixFacts = {
   photoCount: number;
   /** True when the lister stated a total to move in, or it is not a tenancy. */
   moveInStated: boolean;
-  published: boolean;
+  /** Whole days since the listing went live; "not seen" advice waits for a week. */
+  publishedDays: number;
 };
 
 export type FixKey = "not-seen" | "not-opened" | "not-saved" | "no-enquiry" | "no-viewing";
@@ -86,7 +87,9 @@ export function fixFor(funnel: Funnel, facts: FixFacts): Fix | null {
   const enquired = get("enquired");
   const booked = get("booked");
 
-  if (facts.published && seen === 0) return { key: "not-seen", values: {} };
+  /* A week of silence before "nobody saw it": a listing two days old has not
+     had its chance yet (batch 4 review). */
+  if (facts.publishedDays >= 7 && seen === 0) return { key: "not-seen", values: {} };
   if (seen >= 20 && opened === 0) return { key: "not-opened", values: { seen } };
   if (opened >= 10 && saved === 0 && facts.photoCount < 5) {
     return { key: "not-saved", values: { opened, photos: facts.photoCount } };

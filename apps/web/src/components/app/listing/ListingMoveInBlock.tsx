@@ -1,5 +1,5 @@
 import { formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
-import { cashAtDoor, upfrontText } from "@/lib/listings/upfront";
+import { cashAtDoor, upfrontDuration, upfrontText } from "@/lib/listings/upfront";
 import type { Listing } from "@/lib/listings/types";
 import { PERIOD_SUFFIX_SLASH, type RentPeriod } from "@/lib/listings/pricing";
 import { Amount } from "@/components/ui/Amount";
@@ -67,14 +67,17 @@ export function ListingMoveInBlock({
             {PERIOD_SUFFIX_SLASH[period]}
           </p>
         )}
-        {cash && (
+        {cash && cash.upfrontMonths !== null && (
           <p className="nf-caption mt-inline-tight break-words text-[var(--nf-content-primary)]" data-testid="move-in-upfront">
-            <strong>{upfrontText(cash.upfrontMonths, t.shape.cash)}</strong>
-            {cash.restated && (
-              <>
-                {". "}
-                {t.shape.cash.atDoor.replace("{amount}", formatMoney(cash.minor, locale, listing.currency))}
-              </>
+            {/* The lister's DEMAND, labelled as theirs: the move-in charge on
+                Vallo still takes one rent period (audit-owned), so this is not
+                a figure Vallo collects. */}
+            {cash.restated ? (
+              t.shape.cash.listerAsks
+                .replace("{duration}", upfrontDuration(cash.upfrontMonths, t.shape.cash))
+                .replace("{amount}", formatMoney(cash.minor, locale, listing.currency))
+            ) : (
+              <strong>{upfrontText(cash.upfrontMonths, t.shape.cash)}</strong>
             )}
           </p>
         )}

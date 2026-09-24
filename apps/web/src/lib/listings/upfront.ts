@@ -28,15 +28,21 @@ import type { PricePeriod } from "./pricing";
 
 const PERIOD_MONTHS: Partial<Record<PricePeriod, number>> = { month: 1, quarter: 3, year: 12 };
 
-/** The months of rent a tenancy asks for at the start, or null when it is not a tenancy. */
+/**
+ * The months of rent a tenancy asks for at the start, or null when that is
+ * not stated: not a tenancy, or no shortest tenancy given. The larger of one
+ * rent period and the shortest tenancy the lister accepts. Unstated is never
+ * read as "one period" (batch 4 review): the card says nothing rather than
+ * "One year upfront" on a listing that never said so.
+ */
 export function upfrontMonths(
   period: PricePeriod | undefined,
   minimumTenancyMonths: number | undefined,
 ): number | null {
   const months = period ? PERIOD_MONTHS[period] : undefined;
   if (months === undefined) return null;
-  const minimum = minimumTenancyMonths !== undefined && minimumTenancyMonths > 0 ? minimumTenancyMonths : 0;
-  return Math.max(months, minimum);
+  if (minimumTenancyMonths === undefined || minimumTenancyMonths <= 0) return null;
+  return Math.max(months, minimumTenancyMonths);
 }
 
 export type CashShape = {
@@ -50,27 +56,31 @@ export type CashShape = {
 export type CashAtDoor = {
   /** Kobo a renter must hold at the door. */
   minor: number;
-  /** Months of rent asked for up front. */
-  upfrontMonths: number;
+  /** Months of rent asked for up front; null when the lister did not say. */
+  upfrontMonths: number | null;
   /** Periods of rent inside `minor` (1 unless the demand is several whole periods). */
   periods: number;
   /** True when `minor` is more than the move-in total because of the demand. */
   restated: boolean;
 };
 
-/** The cash at the door for a tenancy, or null when it has no honest figure. */
+/**
+ * The cash at the door for a tenancy, or null when it has no honest figure:
+ * a sale, not a tenancy, no move-in total, or an upfront demand that is not a
+ * whole number of rent periods (18 months on a yearly rent), where any figure
+ * would be a guess. With no demand stated, it is the move-in total itself.
+ */
 export function cashAtDoor(listing: CashShape): CashAtDoor | null {
   if (listing.intent === "sale") return null;
-  const months = upfrontMonths(listing.pricePeriod, listing.minimumTenancyMonths);
-  if (months === null) return null;
+  const periodMonths = listing.pricePeriod ? PERIOD_MONTHS[listing.pricePeriod] : undefined;
+  if (periodMonths === undefined) return null;
   const moveIn = listing.moveInCostMinor ?? 0;
   if (moveIn <= 0) return null;
-  const periodMonths = PERIOD_MONTHS[listing.pricePeriod!]!;
-  if (months % periodMonths !== 0 || listing.priceMinor <= 0) {
-    return { minor: moveIn, upfrontMonths: months, periods: 1, restated: false };
-  }
+  const months = upfrontMonths(listing.pricePeriod, listing.minimumTenancyMonths);
+  if (months === null) return { minor: moveIn, upfrontMonths: null, periods: 1, restated: false };
+  if (months % periodMonths !== 0) return null;
   const periods = months / periodMonths;
-  const extra = (periods - 1) * listing.priceMinor;
+  const extra = listing.priceMinor > 0 ? (periods - 1) * listing.priceMinor : 0;
   return { minor: moveIn + extra, upfrontMonths: months, periods, restated: extra > 0 };
 }
 
@@ -88,4 +98,11 @@ export function upfrontText(months: number, copy: UpfrontCopy): string {
     return years === 1 ? copy.upfrontYear : copy.upfrontYears.replace("{n}", String(years));
   }
   return months === 1 ? copy.upfrontMonth : copy.upfrontMonths.replace("{n}", String(months));
+}
+
+/** "2 years", "18 months": the demand as a length, for the lister's-demand line. */
+export function upfrontDuration(months: number, copy: { durationYears: string; durationMonths: string }): string {
+  return months % 12 === 0
+    ? copy.durationYears.replace("{n}", String(months / 12))
+    : copy.durationMonths.replace("{n}", String(months));
 }

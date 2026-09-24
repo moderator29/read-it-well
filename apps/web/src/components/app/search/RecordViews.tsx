@@ -1,19 +1,39 @@
-"use client";
+import "server-only";
 
-import { useEffect } from "react";
-import { recordListingViews } from "@/lib/listings/views-actions";
+import { after } from "next/server";
+import { resolveSession } from "@/lib/actions/session";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
- * Tells the platform what this person saw or opened, once, after the page has
- * painted (V-73). Renders nothing. The server de-duplicates per viewer per
- * day, so a reload or a strict-mode double effect counts once.
+ * Counts what this signed-in person was SHOWN and what they OPENED (V-73),
+ * from the server, with the ids this render actually drew.
+ *
+ * A server component that renders nothing. It used to be a client component
+ * calling a server action with ids of the browser's choosing, which let
+ * anybody inflate a listing. Now `public.record_listing_views` is executable
+ * by the service role alone, this render is the only caller, and the work runs
+ * after the response (`after`) so the page never waits for it. The database
+ * de-duplicates per person per day under a salt that lives one day, caps a
+ * person at 300 calls a day, and never counts examples or a lister's own
+ * listings. Without a service-role key (a local build) nothing is counted,
+ * which is the honest failure.
  */
-export function RecordViews({ seen = [], opened = null }: { seen?: string[]; opened?: string | null }) {
-  const key = `${seen.join(",")}|${opened ?? ""}`;
-  useEffect(() => {
-    void recordListingViews(seen, opened);
-    // The key is the dependency: the same ids are the same visit.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+export async function RecordViews({ seen = [], opened = null }: { seen?: string[]; opened?: string | null }) {
+  const ids = seen.slice(0, 20);
+  if (ids.length === 0 && !opened) return null;
+  const session = await resolveSession();
+  if (session.state !== "signed-in") return null;
+  const viewer = session.user.id;
+  after(async () => {
+    try {
+      await (
+        createAdminClient() as unknown as {
+          rpc: (fn: string, args: object) => Promise<{ error: unknown }>;
+        }
+      ).rpc("record_listing_views", { p_viewer: viewer, p_seen: ids, p_opened: opened });
+    } catch {
+      /* Not counted is the honest outcome of a count that failed. */
+    }
+  });
   return null;
 }

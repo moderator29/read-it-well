@@ -588,9 +588,10 @@ export function activeFilterCount(query: DiscoveryQuery): number {
   if (query.servicedOnly) count += 1;
   if (query.gatedEstate) count += 1;
   if (query.maxUpfront !== undefined) count += 1;
-  // One thing each: the shapes the reader will take, and where.
+  // One thing each: the shapes the reader will take.
   if (query.shapes && query.shapes.length > 0) count += 1;
   if (query.withBq) count += 1;
-  if (query.areas && query.areas.length > 0) count += 1;
+  /* Areas are not counted: like the search text they are where, Clear all
+     keeps them, and a badge must not say 1 after everything was cleared. */
   return count;
 }

@@ -1,3 +1,4 @@
+import { rentMeansTenancy } from "@/lib/listings/filter";
 import {
   KIND_NOUN,
   WATER_LABEL,
@@ -203,7 +204,12 @@ export function summariseSearch(
   if (query.q) chips.push(query.q);
   if (query.kind) chips.push(sentence(KIND_NOUN[query.kind].many));
   if (query.intent) chips.push(query.intent === "sale" ? "For sale" : "To rent");
-  const money = moneyClause(query, locale);
+  /* V-65: on the Rent market the budget is the cash at the door, and a saved
+     search's chip says so, since its meaning changed (batch 4 review). */
+  const cashBudget = rentMeansTenancy(query) && query.maxMinor !== undefined && query.minMinor === undefined;
+  const money = cashBudget
+    ? getDictionary(locale).shape.cash.savedBudget.replace("{amount}", formatMoney(query.maxMinor!, locale))
+    : moneyClause(query, locale);
   if (money) chips.push(sentence(money));
   if (query.bedrooms !== undefined) chips.push(`${query.bedrooms}+ beds`);
   if (query.bathrooms !== undefined) chips.push(`${query.bathrooms}+ baths`);
@@ -218,7 +224,10 @@ export function summariseSearch(
   if (query.servicedOnly) chips.push("Serviced");
   if (query.gatedEstate) chips.push("Gated estate");
   if (query.maxUpfront !== undefined) {
-    chips.push(query.maxUpfront === 12 ? "One year upfront at most" : `${query.maxUpfront} months upfront at most`);
+    const cash = getDictionary(locale).shape.cash;
+    chips.push(
+      query.maxUpfront === 12 ? cash.savedUpfrontYear : cash.savedUpfrontMonths.replace("{n}", String(query.maxUpfront)),
+    );
   }
   /* V-66: the shapes and areas, in the words the dictionary uses. */
   for (const shape of query.shapes ?? []) chips.push(getDictionary(locale).shape.unit.shapes[shape]);

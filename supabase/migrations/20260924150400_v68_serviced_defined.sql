@@ -16,8 +16,9 @@
  *                              balanced against what was spent at year end
  *   estate_type                gated_estate (controlled entry), gated_compound
  *                              (a gateman), open_street
- *   is_serviced                GENERATED, never typed: true only when power,
- *                              water and security are all covered. The word
+ *   is_serviced                GENERATED, never typed: true only when a
+ *                              service charge is stated and it covers power,
+ *                              water and security. The word
  *                              "Serviced" is shown and filtered on from this
  *                              column and from nothing a lister can type.
  *
@@ -49,7 +50,10 @@ alter table public.listings
 alter table public.listings
   add column if not exists is_serviced boolean
     generated always as (
-      coalesce(service_charge_covers @> array['diesel', 'water', 'security']::text[], false)
+      /* Batch 4 review: there must BE a service charge. Covers ticked on a
+         listing that states no charge describe nothing a renter pays for. */
+      coalesce(service_charge_minor, 0) > 0
+      and coalesce(service_charge_covers @> array['diesel', 'water', 'security']::text[], false)
     ) stored;
 
 comment on column public.listings.service_charge_covers is

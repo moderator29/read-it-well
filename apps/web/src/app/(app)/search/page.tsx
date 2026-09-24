@@ -13,6 +13,7 @@ import {
   parseShelfQuery,
   applyWords,
   wordsHref,
+  wordsShown,
   SAID_PARAM,
   staySideHref,
   shelfActiveCount,
@@ -186,10 +187,16 @@ export default async function SearchPage({
      nothing, so this never redirects twice. */
   if (query.q) {
     const words = parseWords(query.q);
-    if (words.recognised) redirect(wordsHref(applyWords(query, words), query.q));
+    if (words.recognised) {
+      const href = wordsHref(applyWords(query, words), query.q);
+      /* The open filter sheet survives the redirect (batch 4 review). */
+      redirect(raw.filters === "open" ? `${href}&filters=open` : href);
+    }
   }
   const saidRaw = raw[SAID_PARAM];
-  const said = typeof saidRaw === "string" && saidRaw.trim() ? saidRaw.trim().slice(0, 120) : null;
+  const saidText = typeof saidRaw === "string" && saidRaw.trim() ? saidRaw.trim().slice(0, 120) : null;
+  /* Shown only while it still describes the chips on screen. */
+  const said = saidText && wordsShown(query, parseWords(saidText)) ? saidText : null;
 
   const repo = getListingRepository();
   /* Three reads: the results, the pool the sheet counts against (the whole

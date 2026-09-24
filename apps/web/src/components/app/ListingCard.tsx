@@ -21,7 +21,7 @@ import { panelClass } from "@/components/ui/Panel";
 import { ListerRoleLine } from "@/components/app/listing/ListerRoleLine";
 import { isNewSince, listedAge, listedAgeText, staleMonthOptions } from "@/lib/listings/listed-age";
 import { useLastVisit } from "@/components/app/search/LastVisit";
-import { cashAtDoor, upfrontText } from "@/lib/listings/upfront";
+import { cashAtDoor, upfrontDuration, upfrontText } from "@/lib/listings/upfront";
 import { unitLine } from "@/lib/listings/unit-shape";
 import { ProofStrip } from "@/components/app/listing/ProofStrip";
 import { proofFactsOf, proofLines } from "@/lib/trust/proof-strip";
@@ -268,8 +268,11 @@ export function ListingCard({
      stands as it was. */
   const shapeLine = unitLine(listing.bedrooms, listing.unit, t.shape.unit);
   const factLimit = dense ? 2 : 3;
-  const shown = ranked.slice(0, factLimit);
-  const spilled = ranked.slice(factLimit, 3);
+  /* With the shape line drawn, the beds live in it ("2 bed flat"); the other
+     facts stay (batch 4 review). */
+  const factRow = shapeLine ? ranked.filter((fact) => fact.key !== "beds") : ranked;
+  const shown = factRow.slice(0, factLimit);
+  const spilled = factRow.slice(factLimit, 3);
 
   return (
     <article
@@ -458,29 +461,31 @@ export function ListingCard({
               </p>
               {/* V-65. How much rent is asked for at the start, and when that
                   is several years, what that means at the door. */}
-              {cash && (
+              {cash && cash.upfrontMonths !== null && (
                 <p className="nf-pcard__sub break-words" data-testid="card-upfront">
-                  {upfrontText(cash.upfrontMonths, t.shape.cash)}
-                  {cash.restated && (
-                    <>
-                      {". "}
-                      {t.shape.cash.atDoor.replace("{amount}", formatMoney(cash.minor, locale, listing.currency))}
-                    </>
-                  )}
+                  {cash.restated
+                    ? t.shape.cash.listerAsks
+                        .replace("{duration}", upfrontDuration(cash.upfrontMonths, t.shape.cash))
+                        .replace("{amount}", formatMoney(cash.minor, locale, listing.currency))
+                    : upfrontText(cash.upfrontMonths, t.shape.cash)}
                 </p>
               )}
             </>
           )}
 
-          {shapeLine ? (
+          {shapeLine && (
             <p className="nf-pcard__facts" data-testid="card-shape">
               <span className="nf-pcard__fact min-w-0 items-start whitespace-normal">
                 <UiIcon name="house" size={11} className="mt-3xs shrink-0" />
                 <span className="break-words">{shapeLine}</span>
               </span>
             </p>
-          ) : shown.length > 0 && (
-            <ul className="nf-pcard__facts" data-testid="card-facts">
+          )}
+          {shown.length > 0 && (
+            <ul
+              className={`nf-pcard__facts${shapeLine ? " mt-0 border-t-0 pt-2xs" : ""}`}
+              data-testid="card-facts"
+            >
               {shown.map((fact) => (
                 <li key={fact.key} className="nf-pcard__fact">
                   <UiIcon name={fact.icon} size={11} />

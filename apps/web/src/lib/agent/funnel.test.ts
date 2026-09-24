@@ -4,7 +4,7 @@ import { FUNNEL_STAGES, fixFor, fixText, funnelFrom, type FunnelRpcRow } from ".
 function rows(mine: Partial<Record<string, number>>, compared = 5, median: number | null = 4): FunnelRpcRow[] {
   return FUNNEL_STAGES.map((stage) => ({ stage, mine: mine[stage] ?? 0, area_median: median, compared }));
 }
-const facts = { photoCount: 8, moveInStated: true, published: true };
+const facts = { photoCount: 8, moveInStated: true, publishedDays: 30 };
 
 describe("the per-listing funnel (V-73)", () => {
   it("reads the six stages in order, and nothing when a stage is missing", () => {
@@ -24,7 +24,8 @@ describe("the per-listing funnel (V-73)", () => {
     const f = (mine: Partial<Record<string, number>>, over = {}) =>
       fixFor(funnelFrom(rows(mine))!, { ...facts, ...over });
     expect(f({})?.key).toBe("not-seen");
-    expect(f({}, { published: false })).toBeNull();
+    // Under a week live: no "nobody saw it" advice yet.
+    expect(f({}, { publishedDays: 3 })).toBeNull();
     expect(f({ seen: 30 })).toEqual({ key: "not-opened", values: { seen: 30 } });
     expect(f({ seen: 200, opened: 180, saved: 0 }, { photoCount: 3 })).toEqual({
       key: "not-saved",

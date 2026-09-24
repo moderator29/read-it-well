@@ -34,6 +34,43 @@ export function isUnitShape(value: unknown): value is UnitShape {
   return typeof value === "string" && (UNIT_SHAPES as readonly string[]).includes(value);
 }
 
+/**
+ * The shapes as people type them (V-66), longest phrases first so "semi
+ * detached" is not read as "detached". The search box's parser reads these,
+ * and a shape filter uses them to keep an UNSHAPED listing whose own title
+ * says the word (batch 4 review): a typed shape must not hide real listings
+ * that simply predate the shape question.
+ */
+export const SHAPE_PHRASES: readonly [RegExp, UnitShape][] = [
+  [/(?:^|\s)s\/c(?=\s|$)/g, "self_contain"],
+  [/\bself[\s-]*con(?:tain(?:ed)?)?\b/g, "self_contain"],
+  [/\broom\s*(?:and|&|n)\s*parlou?r\b/g, "room_parlour"],
+  [/\bmini[\s-]*flat\b/g, "mini_flat"],
+  [/\bsemi[\s-]*detached\b/g, "semi_detached"],
+  [/\bdetached(?:\s+house)?\b/g, "detached"],
+  [/\bterraced?(?:\s+house)?\b/g, "terrace"],
+  [/\bduplex\b/g, "duplex"],
+  [/\bbungalow\b/g, "bungalow"],
+  [/\bmaisonn?ette\b/g, "maisonette"],
+  [/\bpenthouse\b/g, "penthouse"],
+  [/\bboys?'?\s*quarters?\b/g, "boys_quarters"],
+  [/\bflat\b/g, "flat"],
+];
+
+/** The shapes a piece of text names, each once, longest phrase winning. */
+export function shapesInText(text: string): UnitShape[] {
+  let rest = ` ${text.toLowerCase()} `;
+  const found: UnitShape[] = [];
+  for (const [pattern, shape] of SHAPE_PHRASES) {
+    const re = new RegExp(pattern.source, "g");
+    if (re.test(rest)) {
+      if (!found.includes(shape)) found.push(shape);
+      rest = rest.replace(new RegExp(pattern.source, "g"), " ");
+    }
+  }
+  return found;
+}
+
 /** How a shape is written in an address bar: `mini-flat`, `self-contain`. */
 export function shapeSlug(shape: UnitShape): string {
   return shape.replace(/_/g, "-");
@@ -76,9 +113,16 @@ export function readUnit(row: UnitRow | null | undefined): UnitFacts | null {
 export function matchesUnit(
   unit: UnitFacts | null | undefined,
   filter: { shapes?: UnitShape[]; withBq?: boolean },
+  title?: string,
 ): boolean {
   if (filter.shapes && filter.shapes.length > 0) {
-    if (!unit?.shape || !filter.shapes.includes(unit.shape)) return false;
+    if (unit?.shape) {
+      if (!filter.shapes.includes(unit.shape)) return false;
+    } else {
+      /* Unshaped: the listing's own title may still say it. */
+      const said = title ? shapesInText(title) : [];
+      if (!said.some((shape) => filter.shapes!.includes(shape))) return false;
+    }
   }
   if (filter.withBq && unit?.hasBq !== true) return false;
   return true;

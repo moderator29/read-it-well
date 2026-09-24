@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cashAtDoor, upfrontMonths, upfrontText } from "./upfront";
+import { cashAtDoor, upfrontDuration, upfrontMonths, upfrontText } from "./upfront";
 import { budgetFigure, matchesFacts, type ListingFacts } from "./filter";
 
 const YEAR = 1_000_000_00; // 1m naira a year, in kobo
@@ -30,11 +30,13 @@ const COPY = {
 
 describe("upfrontMonths", () => {
   it("is the larger of one period and the shortest tenancy", () => {
-    expect(upfrontMonths("year", undefined)).toBe(12);
     expect(upfrontMonths("year", 24)).toBe(24);
     expect(upfrontMonths("year", 6)).toBe(12);
     expect(upfrontMonths("month", 6)).toBe(6);
-    expect(upfrontMonths("quarter", undefined)).toBe(3);
+  });
+  it("is null when the lister stated no shortest tenancy, never assumed", () => {
+    expect(upfrontMonths("year", undefined)).toBeNull();
+    expect(upfrontMonths("quarter", 0)).toBeNull();
   });
   it("is null when the price is not a tenancy", () => {
     expect(upfrontMonths("night", 12)).toBeNull();
@@ -43,8 +45,9 @@ describe("upfrontMonths", () => {
 });
 
 describe("cashAtDoor", () => {
-  it("is the move-in total when one period is asked", () => {
-    expect(cashAtDoor(tenancy())).toEqual({ minor: 1_500_000_00, upfrontMonths: 12, periods: 1, restated: false });
+  it("is the move-in total when one period is asked, or nothing is said", () => {
+    expect(cashAtDoor(tenancy({ minimumTenancyMonths: 12 }))).toEqual({ minor: 1_500_000_00, upfrontMonths: 12, periods: 1, restated: false });
+    expect(cashAtDoor(tenancy())).toEqual({ minor: 1_500_000_00, upfrontMonths: null, periods: 1, restated: false });
   });
   it("adds the rent for every whole period past the first", () => {
     expect(cashAtDoor(tenancy({ minimumTenancyMonths: 24 }))).toEqual({
@@ -54,9 +57,9 @@ describe("cashAtDoor", () => {
       restated: true,
     });
   });
-  it("never guesses a figure for a part period", () => {
-    const cash = cashAtDoor(tenancy({ minimumTenancyMonths: 18 }));
-    expect(cash).toEqual({ minor: 1_500_000_00, upfrontMonths: 18, periods: 1, restated: false });
+  it("has no figure at all for a part period, rather than a guess", () => {
+    expect(cashAtDoor(tenancy({ minimumTenancyMonths: 18 }))).toBeNull();
+    expect(budgetFigure(tenancy({ minimumTenancyMonths: 18 }), { intent: "rent" })).toBeNull();
   });
   it("has no figure without a move-in total, for a sale, or for a stay", () => {
     expect(cashAtDoor(tenancy({ moveInCostMinor: undefined }))).toBeNull();
@@ -84,7 +87,9 @@ describe("the budget on the Rent market", () => {
 
 describe("one year upfront at most", () => {
   it("keeps a yearly let and drops a two-year demand", () => {
-    expect(matchesFacts(tenancy(), { maxUpfrontMonths: 12 })).toBe(true);
+    expect(matchesFacts(tenancy({ minimumTenancyMonths: 12 }), { maxUpfrontMonths: 12 })).toBe(true);
+    // Unstated is not "one year": strict, like every other filter here.
+    expect(matchesFacts(tenancy(), { maxUpfrontMonths: 12 })).toBe(false);
     expect(matchesFacts(tenancy({ minimumTenancyMonths: 24 }), { maxUpfrontMonths: 12 })).toBe(false);
   });
   it("is strict about listings with no upfront demand", () => {
@@ -115,5 +120,13 @@ describe("the upfront address", () => {
     const { parseShelfQuery, shelfFilter } = await import("@/components/app/search/shelf-query");
     expect(shelfFilter(parseShelfQuery({ upfront: "12", market: "rent" })).maxUpfrontMonths).toBe(12);
     expect(shelfFilter(parseShelfQuery({ upfront: "12", market: "buy" })).maxUpfrontMonths).toBeUndefined();
+  });
+});
+
+describe("upfrontDuration", () => {
+  it("names the demand as a length", () => {
+    const copy = { durationYears: "{n} years", durationMonths: "{n} months" };
+    expect(upfrontDuration(24, copy)).toBe("2 years");
+    expect(upfrontDuration(18, copy)).toBe("18 months");
   });
 });

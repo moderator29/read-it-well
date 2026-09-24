@@ -43,15 +43,24 @@ export type ServiceFacts = {
 };
 
 export type ServiceRow = {
+  /** Read only: whether a charge exists at all decides "Serviced". */
+  service_charge_minor?: number | null;
   service_charge_covers?: string[] | null;
   service_charge_reconciled?: boolean | null;
   estate_type?: string | null;
 };
 
-export const SERVICE_COLUMNS = "service_charge_covers, service_charge_reconciled, estate_type";
+export const SERVICE_COLUMNS = "service_charge_covers, service_charge_reconciled, estate_type, service_charge_minor";
 
-export function isServiced(covers: readonly string[] | undefined | null): boolean {
-  if (!covers) return false;
+/**
+ * Serviced: a service charge is stated AND it covers power, water and
+ * security. The database's generated `is_serviced` is the same rule.
+ */
+export function isServiced(
+  covers: readonly string[] | undefined | null,
+  chargeMinor: number | null | undefined,
+): boolean {
+  if (!covers || !chargeMinor || chargeMinor <= 0) return false;
   return SERVICED_REQUIRES.every((need) => covers.includes(need));
 }
 
@@ -65,7 +74,7 @@ export function readService(row: ServiceRow | null | undefined): ServiceFacts | 
   const out: ServiceFacts = { serviced: false };
   if (Array.isArray(row.service_charge_covers)) {
     out.covers = knownCovers(row.service_charge_covers);
-    out.serviced = isServiced(out.covers);
+    out.serviced = isServiced(out.covers, row.service_charge_minor);
   }
   if (typeof row.service_charge_reconciled === "boolean") out.reconciled = row.service_charge_reconciled;
   if (row.estate_type && (ESTATE_TYPES as readonly string[]).includes(row.estate_type)) {

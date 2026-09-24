@@ -122,16 +122,16 @@ export const shapeEn = {
     fixLabel: "One thing to do:",
     fixes: {
       "not-seen": "Nobody was shown this in results this week. Check the price, the area and the property type are filled in, so it answers the searches renters make.",
-      "not-opened": "Seen by {seen} people and opened by none. Put a daylight photo of the main room first and name the area in the title.",
-      "not-saved": "Opened by {opened} people and saved by none. It has {photos} photos; add the kitchen, the bathroom and the view from the gate.",
-      "no-enquiry": "Opened by {opened} people and nobody asked about it. State the total to move in, so a renter can see the whole cost before they write.",
+      "not-opened": "Shown {seen} times in results (once a day per person) and opened by none. Put a daylight photo of the main room first and name the area in the title.",
+      "not-saved": "Opened {opened} times (once a day per person) and saved by none. It has {photos} photos; add the kitchen, the bathroom and the view from the gate.",
+      "no-enquiry": "Opened {opened} times (once a day per person) and nobody asked about it. State the total to move in, so a renter can see the whole cost before they write.",
       "no-viewing": "{enquired} people asked and nobody booked a viewing. Reply with a day and a time they can come and see it.",
     },
     empty: "Publish a listing and its week appears here: who saw it, who opened it, and what happened next.",
     howCounted:
-      "Seen and opened count different signed-in people, once each per day. Example listings and your own visits are never counted. Nobody's name is kept.",
+      "Seen and opened count signed-in people once each per day, so a week's figure is times, not different people. Example listings and your own visits are never counted. Who looked is never shown, and the day's record of it is deleted when the day ends.",
     viewsCounted:
-      "Views are counted per listing above: different signed-in people who saw or opened it, once each per day, with no names kept. There is still no conversion rate, because a rate over a week this young would be noise.",
+      "Views are counted per listing above: signed-in people who saw or opened it, once each per day, and who looked is never shown. There is still no conversion rate, because a rate over a week this young would be noise.",
   },
   /** V-41: light, water and flooding as residents report them. */
   neighbours: {
@@ -223,6 +223,7 @@ export const shapeEn = {
     removeLabel: "Remove {what}",
     anyArea: "{area}",
     ownerDirect: "Owner direct",
+    serviced: "Serviced",
     toRent: "To rent",
     forSale: "For sale",
     beds: "{n}+ beds",
@@ -239,7 +240,12 @@ export const shapeEn = {
     upfrontMonths: "{n} months upfront",
     upfrontYear: "One year upfront",
     upfrontYears: "{n} years upfront",
-    atDoor: "{amount} at the door with all the rent asked up front",
+    listerAsks: "The lister asks for {duration} of rent up front: {amount} in all.",
+    durationYears: "{n} years",
+    durationMonths: "{n} months",
+    savedBudget: "Up to {amount} to move in",
+    savedUpfrontYear: "One year upfront at most",
+    savedUpfrontMonths: "{n} months upfront at most",
   },
   /** V-68: what the service charge buys, and the word Serviced, derived. */
   service: {
@@ -264,6 +270,7 @@ export const shapeEn = {
       open_street: "On an open street",
     },
     wizardTitle: "The service charge and the gate",
+    needsCharge: "State a service charge with the price and you can say here what it pays for.",
     wizardHint:
       "Say what the service charge pays for. Vallo calls a home Serviced only when it covers diesel, water and security, whatever the title says.",
     coversLabel: "What does the service charge cover?",

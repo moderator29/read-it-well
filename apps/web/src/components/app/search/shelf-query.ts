@@ -130,6 +130,7 @@ export function applyWords(query: ShelfQuery, words: ParsedWords): ShelfQuery {
   if (words.ownerDirect && !next.listerRoles.includes("owner")) next.listerRoles = [...next.listerRoles, "owner"];
   if (words.shapes.length > 0) next.shapes = [...new Set([...(next.shapes ?? []), ...words.shapes])];
   if (words.withBq) next.withBq = true;
+  if (words.serviced) next.servicedOnly = true;
   if (words.areas.length > 0) next.areas = [...new Set([...(next.areas ?? []), ...words.areas])].slice(0, 4);
   return next;
 }
@@ -139,6 +140,25 @@ export function wordsHref(query: ShelfQuery, said: string): string {
   const href = toShelfHref(query);
   const joiner = href.includes("?") ? "&" : "?";
   return `${href}${joiner}${SAID_PARAM}=${encodeURIComponent(said.slice(0, 120))}`;
+}
+
+/**
+ * Whether the words still describe the filters on screen (batch 4 review):
+ * the "Read ... as" line is shown only while every fact read from them is
+ * still in force, so removing a chip does not leave a sentence claiming it.
+ */
+export function wordsShown(query: ShelfQuery, words: ParsedWords): boolean {
+  if (!words.recognised) return false;
+  if (words.bedrooms !== undefined && query.bedrooms !== words.bedrooms) return false;
+  if (words.maxMinor !== undefined && query.maxMinor !== words.maxMinor) return false;
+  if (words.minMinor !== undefined && query.minMinor !== words.minMinor) return false;
+  if (words.intent && query.intent !== words.intent) return false;
+  if (words.ownerDirect && !query.listerRoles.includes("owner")) return false;
+  if (words.withBq && !query.withBq) return false;
+  if (words.serviced && !query.servicedOnly) return false;
+  if (words.shapes.some((shape) => !(query.shapes ?? []).includes(shape))) return false;
+  if (words.areas.some((area) => !(query.areas ?? []).includes(area))) return false;
+  return true;
 }
 
 /** Not part of the query: a one-time note of what the search box said. */

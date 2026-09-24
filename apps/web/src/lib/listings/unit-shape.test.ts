@@ -105,3 +105,25 @@ describe("the shelf reads the words", () => {
     expect(back.areas).toEqual(["yaba", "akoka"]);
   });
 });
+
+describe("a typed shape keeps unshaped listings whose title says it (batch 4 review)", () => {
+  it("matches the title when the shape was never answered", () => {
+    expect(matchesUnit(undefined, { shapes: ["self_contain"] }, "Self contained in Akoka")).toBe(true);
+    expect(matchesUnit(undefined, { shapes: ["duplex"] }, "Three bedroom flat in Yaba")).toBe(false);
+    // An answered shape is the answer, whatever the title says.
+    expect(matchesUnit({ shape: "flat" }, { shapes: ["duplex"] }, "Duplex style flat")).toBe(false);
+  });
+});
+
+describe("the Read as line", () => {
+  it("is shown only while the words still describe the chips", async () => {
+    const { parseShelfQuery, applyWords, wordsShown } = await import("@/components/app/search/shelf-query");
+    const { parseWords } = await import("./query-parse");
+    const words = parseWords("2br under 2m");
+    const applied = applyWords(parseShelfQuery({}), words);
+    expect(wordsShown(applied, words)).toBe(true);
+    const { bedrooms: _gone, ...fewer } = applied;
+    void _gone;
+    expect(wordsShown(fewer as typeof applied, words)).toBe(false);
+  });
+});
