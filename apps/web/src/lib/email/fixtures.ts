@@ -50,6 +50,18 @@ export const EVERY_MESSAGE: NamedMessage[] = [
     message: messages.passwordChanged({ name: "Ada", date: "2026-09-22", time: "14:05" }),
   },
   {
+    name: "emailRecoveryOpened",
+    message: messages.emailRecoveryOpened({
+      name: "Ada",
+      newAddressMasked: "a***@example.com",
+      eligibleAt: "26 September 2026, 14:05",
+    }),
+  },
+  {
+    name: "emailRecoveryCompleted",
+    message: messages.emailRecoveryCompleted({ name: "Ada", newAddressMasked: "a***@example.com" }),
+  },
+  {
     // Every optional fact absent, which is the shape when the parse failed.
     // The rows block must disappear rather than print empty labels.
     name: "newDeviceSignIn:bare",
