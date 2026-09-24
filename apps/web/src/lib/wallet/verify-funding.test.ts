@@ -17,7 +17,8 @@ describe("fundingCheckRefusal (MON-20)", () => {
     expect(fundingCheckRefusal(new PaystackError("Transaction reference not found", status))).toBe(
       NO_SUCH_PAYMENT_MESSAGE,
     );
-    expect(NO_SUCH_PAYMENT_MESSAGE).toMatch(/Nothing was charged/);
+    expect(NO_SUCH_PAYMENT_MESSAGE).toMatch(/contact support with the reference/);
+    expect(NO_SUCH_PAYMENT_MESSAGE).not.toMatch(/Nothing was charged/);
   });
 
   it("keeps the wait-and-see answer when the processor could not be reached", () => {

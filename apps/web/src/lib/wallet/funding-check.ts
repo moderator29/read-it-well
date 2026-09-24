@@ -1,7 +1,8 @@
 import { PaystackError } from "../payments/paystack";
 
 /** MON-20. What a person reads when the processor has no such payment. */
-export const NO_SUCH_PAYMENT_MESSAGE = "We have no payment under that reference. Nothing was charged.";
+export const NO_SUCH_PAYMENT_MESSAGE =
+  "We have no payment under that reference. If money left your account, contact support with the reference and we will trace it.";
 
 /** What a person reads when the processor could not be asked. */
 export const FUNDING_CHECK_UNAVAILABLE_MESSAGE =
