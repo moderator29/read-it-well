@@ -6,6 +6,7 @@ import { RowLink, RowValue, RowButton, SettingsGroup } from "@/components/app/ac
 import { clearPacks } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
 import { clearOutbox } from "@/lib/offline/outbox";
+import { forgetWidget } from "@/lib/native/widget";
 import { revokeWidgetTokens } from "@/lib/native/widget-actions";
 import { clearAllInflight } from "@/lib/offline/inflight";
 import { signOut } from "@/lib/profile/actions";
@@ -72,6 +73,7 @@ export function AccountSection({
       await clearPacks();
       await clearShelf();
       await clearOutbox();
+      await forgetWidget();
       clearAllInflight();
       router.replace("/");
       router.refresh();

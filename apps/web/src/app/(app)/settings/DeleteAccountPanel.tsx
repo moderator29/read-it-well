@@ -12,6 +12,7 @@ import { useClientMount } from "@/lib/ui/client-mount";
 import { clearPacks } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
 import { clearOutbox } from "@/lib/offline/outbox";
+import { forgetWidget } from "@/lib/native/widget";
 import { clearAllInflight } from "@/lib/offline/inflight";
 import { DELETE_CONFIRM_PHRASE, GRACE_WINDOW_DAYS } from "@/lib/account-deletion/constants";
 import type { Blocker } from "@/lib/account-deletion/preconditions";
@@ -329,6 +330,7 @@ function DeleteDrawer({
     void clearPacks();
     void clearShelf();
     void clearOutbox();
+    void forgetWidget();
     clearAllInflight();
     const timer = window.setTimeout(() => {
       router.replace("/");

@@ -56,6 +56,14 @@ begin
   if v_user is null then
     return jsonb_build_object('status', 'unauthorised');
   end if;
+  /* A banned, deleted or deleting account answers nothing, whatever the token. */
+  if exists (select 1 from auth.users u
+              where u.id = v_user
+                and ((u.banned_until is not null and u.banned_until > now()) or u.deleted_at is not null))
+     or exists (select 1 from public.account_deletion_requests r
+                 where r.user_id = v_user and r.status in ('SCHEDULED', 'PURGING')) then
+    return jsonb_build_object('status', 'unauthorised');
+  end if;
 
   select i.id, i.slot_at, l.area, l.state_code,
          case when i.requester_id = v_user then i.lister_id else i.requester_id end as other,
@@ -102,7 +110,8 @@ begin
       'on', v_book.check_in,
       'area', v_book.area,
       'state', v_book.state_code,
-      'href', '/bookings/' || v_book.id::text
+      /* The list, never a row id: a widget shows nothing that names a booking. */
+      'href', '/bookings'
     );
   end if;
   return jsonb_build_object('status', 'ok', 'kind', 'nothing');
@@ -111,6 +120,79 @@ $$;
 
 revoke all on function public.widget_next_up(text) from public, anon, authenticated;
 grant execute on function public.widget_next_up(text) to service_role;
+
+/*
+ * REVOKED WHEREVER THE ACCOUNT IS STOPPED. A widget token outlives the app's
+ * session by design, so every place that stops an account stops its widgets:
+ * asking for deletion, a "this was not me" money hold (V-19, and any other
+ * hold), and ending every other session.
+ */
+create or replace function private.revoke_widget_tokens_for(p_user uuid)
+returns void
+language sql
+security definer
+set search_path to ''
+as $$
+  update public.widget_tokens set revoked_at = now()
+   where user_id = p_user and revoked_at is null;
+$$;
+revoke all on function private.revoke_widget_tokens_for(uuid) from public, anon, authenticated;
+
+create or replace function private.widget_tokens_stop_on_row()
+returns trigger
+language plpgsql
+security definer
+set search_path to ''
+as $$
+begin
+  perform private.revoke_widget_tokens_for(new.user_id);
+  return new;
+end;
+$$;
+revoke all on function private.widget_tokens_stop_on_row() from public, anon, authenticated;
+
+drop trigger if exists widget_tokens_stop_on_deletion on public.account_deletion_requests;
+create trigger widget_tokens_stop_on_deletion
+  after insert on public.account_deletion_requests
+  for each row execute function private.widget_tokens_stop_on_row();
+
+do $$
+begin
+  if to_regclass('public.account_money_holds') is not null then
+    execute 'drop trigger if exists widget_tokens_stop_on_hold on public.account_money_holds';
+    execute 'create trigger widget_tokens_stop_on_hold
+               after insert or update of hold_until on public.account_money_holds
+               for each row execute function private.widget_tokens_stop_on_row()';
+  end if;
+end
+$$;
+
+/* end_other_sessions, exactly as before, and the widgets too. */
+create or replace function public.end_other_sessions()
+returns jsonb
+language plpgsql
+security definer
+set search_path to ''
+as $function$
+declare
+  actor uuid := (select auth.uid());
+  current_session uuid := nullif(((select auth.jwt()) ->> 'session_id'), '')::uuid;
+  removed integer;
+begin
+  if actor is null then
+    return jsonb_build_object('status', 'forbidden');
+  end if;
+
+  delete from auth.sessions s
+   where s.user_id = actor
+     and s.id is distinct from current_session;
+  get diagnostics removed = row_count;
+
+  perform private.revoke_widget_tokens_for(actor);
+
+  return jsonb_build_object('status', 'ok', 'ended', removed);
+end;
+$function$;
 
 do $$
 begin

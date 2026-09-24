@@ -14,6 +14,7 @@ import { useNfSettings } from "@/components/app/account/settings-store";
 import { clearPacks } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
 import { clearOutbox } from "@/lib/offline/outbox";
+import { forgetWidget } from "@/lib/native/widget";
 import { revokeWidgetTokens } from "@/lib/native/widget-actions";
 import { clearAllInflight } from "@/lib/offline/inflight";
 import { signOut, updateSettings } from "@/lib/profile/actions";
@@ -332,6 +333,7 @@ export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean })
               await clearPacks();
               await clearShelf();
               await clearOutbox();
+              await forgetWidget();
               clearAllInflight();
               router.replace("/");
               router.refresh();

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
-import { consume } from "@/lib/security/rate-limit";
+import { consume, ipFromHeaders, subjectForIp } from "@/lib/security/rate-limit";
 import { getAdminClient } from "@/lib/wallet/ledger";
 
 /**
@@ -14,8 +14,10 @@ import { getAdminClient } from "@/lib/wallet/ledger";
  * or "nothing". Never an address, an amount or a reference.
  *
  * A public API path, because a widget has no session; the token is the
- * authorisation, and an unknown, revoked or expired one gets a 401. Sixty a
- * minute per token. Never cached.
+ * authorisation, and an unknown, revoked or expired one gets a 401. A
+ * hundred and twenty a minute per address FIRST (so a stream of made-up
+ * tokens cannot each open a fresh bucket), then sixty per token. A limiter
+ * that cannot count refuses: this route is public. Never cached.
  */
 
 export const runtime = "nodejs";
@@ -24,6 +26,10 @@ export const dynamic = "force-dynamic";
 const HEADERS = { "cache-control": "no-store" };
 
 export async function GET(request: Request): Promise<NextResponse> {
+  const byIp = await consume({ bucket: "widget_next_up_ip", subject: subjectForIp(ipFromHeaders(request.headers)), limit: 120, windowSeconds: 60 });
+  if (!byIp.allowed || byIp.degraded) {
+    return NextResponse.json({ ok: false, reason: "slow_down" }, { status: 429, headers: HEADERS });
+  }
   const header = request.headers.get("authorization") ?? "";
   const token = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
   if (!/^[A-Za-z0-9_-]{40,60}$/.test(token)) {
@@ -31,7 +37,7 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
   const hash = createHash("sha256").update(token).digest("hex");
   const verdict = await consume({ bucket: "widget_next_up", subject: `widget:${hash.slice(0, 32)}`, limit: 60, windowSeconds: 60 });
-  if (!verdict.allowed) return NextResponse.json({ ok: false, reason: "slow_down" }, { status: 429, headers: HEADERS });
+  if (!verdict.allowed || verdict.degraded) return NextResponse.json({ ok: false, reason: "slow_down" }, { status: 429, headers: HEADERS });
 
   const admin = getAdminClient() as unknown as {
     rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }>;

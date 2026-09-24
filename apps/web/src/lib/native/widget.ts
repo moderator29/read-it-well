@@ -3,35 +3,67 @@ import { looksNative } from "./platform";
 /**
  * HANDING THE WIDGET ITS TOKEN. V-98, the JavaScript half.
  *
- * In the native app only, once per install, the app mints a device-bound
- * token (`mintWidgetToken`) and hands it, with this deployment's origin, to
- * the native `ValloWidget` plugin, which keeps it in the keystore or the
- * keychain App Group for the Android Glance and iOS WidgetKit widgets. Those
- * native widgets are not built yet; until they are, the plugin is absent and
- * nothing is minted, so no token exists that nothing holds.
+ * In the native app only, the app mints a device-bound token
+ * (`mintWidgetToken`) and hands it, with this deployment's origin, to the
+ * native `ValloWidget` plugin, which keeps it in the keystore or the keychain
+ * App Group for the Android Glance and iOS WidgetKit widgets. Those native
+ * widgets are not built yet; until they are, the plugin is absent and nothing
+ * is minted, so no token exists that nothing holds.
+ *
+ * The marker records WHOSE token the widget holds. A different person signed
+ * in on this phone gets a fresh token; signing out or deleting the account
+ * drops the marker and tells the plugin to forget its token (`forgetWidget`).
  */
 
-type WidgetPlugin = { setToken(options: { token: string; origin: string }): Promise<void> };
+type WidgetPlugin = {
+  setToken(options: { token: string; origin: string }): Promise<void>;
+  clearToken?(): Promise<void>;
+};
 
 const HANDED = "vallo.widget.handed";
 
-export async function handWidgetToken(mint: () => Promise<{ token: string } | { error: string }>): Promise<"handed" | "skipped"> {
-  if (typeof window === "undefined" || !looksNative()) return "skipped";
+function readMarker(): string | null {
   try {
-    if (window.localStorage.getItem(HANDED) === "1") return "skipped";
+    return window.localStorage.getItem(HANDED);
   } catch {
-    return "skipped";
+    return null;
   }
+}
+
+async function plugin(): Promise<WidgetPlugin | null> {
+  if (typeof window === "undefined" || !looksNative()) return null;
   const { Capacitor } = await import("@capacitor/core");
-  if (!Capacitor.isNativePlatform() || !Capacitor.isPluginAvailable("ValloWidget")) return "skipped";
+  if (!Capacitor.isNativePlatform() || !Capacitor.isPluginAvailable("ValloWidget")) return null;
+  return Capacitor.registerPlugin<WidgetPlugin>("ValloWidget");
+}
+
+export async function handWidgetToken(
+  userId: string,
+  mint: () => Promise<{ token: string } | { error: string }>,
+): Promise<"handed" | "skipped"> {
+  if (typeof window === "undefined" || !looksNative() || !userId) return "skipped";
+  if (readMarker() === userId) return "skipped";
+  const widget = await plugin().catch(() => null);
+  if (!widget) return "skipped";
   const minted = await mint().catch(() => ({ error: "failed" }));
   if (!("token" in minted)) return "skipped";
-  const plugin = Capacitor.registerPlugin<WidgetPlugin>("ValloWidget");
   try {
-    await plugin.setToken({ token: minted.token, origin: window.location.origin });
-    window.localStorage.setItem(HANDED, "1");
+    await widget.setToken({ token: minted.token, origin: window.location.origin });
+    window.localStorage.setItem(HANDED, userId);
     return "handed";
   } catch {
     return "skipped";
   }
+}
+
+/** Sign-out and deletion: the widget forgets its token and the marker goes. */
+export async function forgetWidget(): Promise<void> {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(HANDED);
+  } catch {
+    /* Nothing stored, nothing to drop. */
+  }
+  const widget = await plugin().catch(() => null);
+  await widget?.clearToken?.().catch(() => undefined);
 }

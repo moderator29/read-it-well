@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { forgetPacksKeepQueue } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
 import { clearOutbox } from "@/lib/offline/outbox";
+import { forgetWidget } from "@/lib/native/widget";
 import { clearAllInflight } from "@/lib/offline/inflight";
 
 /**
@@ -40,6 +41,7 @@ export function ForgetOnSignOut() {
       await clearShelf();
       /* V-40: another person's queued saves and payment notes go too. */
       await clearOutbox();
+      await forgetWidget();
       clearAllInflight();
     })();
     return () => {

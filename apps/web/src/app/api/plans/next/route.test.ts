@@ -1,7 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const seam = vi.hoisted(() => ({ answer: null as unknown, calls: [] as unknown[] }));
-vi.mock("@/lib/security/rate-limit", () => ({ consume: async () => ({ allowed: true, degraded: false }) }));
+const limiter = vi.hoisted(() => ({ buckets: [] as string[], degraded: false }));
+vi.mock("@/lib/security/rate-limit", () => ({
+  consume: async (input: { bucket: string }) => {
+    limiter.buckets.push(input.bucket);
+    return { allowed: true, degraded: limiter.degraded };
+  },
+  ipFromHeaders: () => "203.0.113.9",
+  subjectForIp: (ip: string) => `ip:${ip}`,
+}));
 vi.mock("@/lib/wallet/ledger", () => ({
   getAdminClient: () => ({
     rpc: async (_fn: string, args: unknown) => {
@@ -17,6 +25,8 @@ const ask = (auth?: string) => new Request("https://www.vallospaces.com/api/plan
 beforeEach(() => {
   seam.answer = null;
   seam.calls = [];
+  limiter.buckets = [];
+  limiter.degraded = false;
 });
 
 describe("GET /api/plans/next (V-98)", () => {
@@ -40,5 +50,13 @@ describe("GET /api/plans/next (V-98)", () => {
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(body.next).toMatchObject({ kind: "inspection", area: "Yaba", person: "Ada O." });
     expect(JSON.stringify(body)).not.toMatch(/Herbert|amount/);
+  });
+  it("counts the address before the token, and refuses when the limiter cannot count", async () => {
+    seam.answer = { status: "ok", kind: "nothing" };
+    const { GET } = await import("./route");
+    expect((await GET(ask(`Bearer ${TOKEN}`))).status).toBe(200);
+    expect(limiter.buckets).toEqual(["widget_next_up_ip", "widget_next_up"]);
+    limiter.degraded = true;
+    expect((await GET(ask(`Bearer ${TOKEN}`))).status).toBe(429);
   });
 });
