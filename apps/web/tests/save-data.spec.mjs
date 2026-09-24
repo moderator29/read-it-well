@@ -194,6 +194,23 @@ try {
   check("so is everything you can go to", intact.links >= 8, [`${intact.links} links`]);
   check("and the navigation", intact.dock === true);
   await context.close();
+
+  /*
+   * V-79: the Settings switch writes `vallo_lite=1`, because Chrome no longer
+   * sends Save-Data by default. With the cookie and NO header, the server
+   * must still render the light page.
+   */
+  console.log("\nThe switch in Settings, without the header");
+  const liteContext = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme: "dark" });
+  await liteContext.addCookies([
+    { name: "vallo_lite", value: "1", url: BASE_URL },
+    { name: "vallo_first_run", value: "seen", url: BASE_URL },
+  ]);
+  const litePage = await liteContext.newPage();
+  await litePage.goto(`${BASE_URL}/welcome`, { waitUntil: "load", timeout: 45000 });
+  const marked = await litePage.evaluate(() => document.documentElement.getAttribute("data-save-data"));
+  check("the cookie alone marks the document for the light render", marked === "on", [`data-save-data=${marked}`]);
+  await liteContext.close();
 } finally {
   await browser.close();
 }

@@ -9,6 +9,7 @@ import { SettingsGlyph, type SettingsGlyphName } from "@/components/app/account/
 import { ICON } from "@/components/app/Screen";
 import { ROW_GLYPH, RowButton, RowLink, RowSwitch, SettingsGroup } from "@/components/app/account/rows";
 import { LanguageRow } from "@/components/app/account/SettingsGroups";
+import { DataSaverRow } from "@/components/app/account/DataSaverRow";
 import { useNfSettings } from "@/components/app/account/settings-store";
 import { clearPacks } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
@@ -193,6 +194,9 @@ export function SettingsHub({ t, locale, signedIn, person, notifications, device
   return (
     <div className="nf-hub space-y-block" data-testid="settings-hub">
       <ProfileRow t={t} person={person} />
+
+      {/* V-79: the data saver, at the top where people look for it. */}
+      <DataSaverRow copy={t.platform.lite} />
 
       <SettingsGroup
         note={

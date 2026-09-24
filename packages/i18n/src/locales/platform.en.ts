@@ -219,4 +219,17 @@ export const platformEn = {
     compareRooms: "Rooms",
     comparePower: "Power",
   },
+
+  /* V-79: data saver. Megabytes only, never naira: the price of a megabyte
+     depends on the network and the bundle, which the code cannot know. */
+  lite: {
+    label: "Data saver",
+    sub: "Leaves out the decorative artwork and does not load pages before you open them. For small bundles.",
+    on: "On",
+    off: "Off",
+    meterOn: "This week Vallo used about {mb} MB that this phone could measure. Data saver is on.",
+    meterOff: "This week Vallo used about {mb} MB that this phone could measure. Data saver is off.",
+    welcomeTitle: "Are you usually on mobile data?",
+    welcomeSub: "Use less data. You can change this in Settings.",
+  },
 };
