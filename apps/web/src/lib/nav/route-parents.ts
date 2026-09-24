@@ -90,14 +90,11 @@
  * `route-files.test.ts` fails if any route file is in neither structure. A
  * route nobody has made a decision about is now impossible to add quietly.
  *
- * FOUR ENTRIES BELOW DELIBERATELY DRAW NO CONTROL, AND THAT IS NOT THE GAP.
+ * TWO ENTRIES BELOW DELIBERATELY DRAW NO CONTROL, AND THAT IS NOT THE GAP.
  *
  * A declared parent is a fact about where a screen SITS. It is not a promise
  * that the screen paints an arrow, and these cannot:
  *
- *   (/crypto and /crypto/[id] stood here. V-83 took the deferred crypto
- *   market out of the shipped tree; it is parked on the branch
- *   `claude/parked-crypto-deferred`, and its hierarchy comes back with it.)
  *   /gallery                `notFound()` in a production build by its own
  *                           guard. The control is wired for development, which
  *                           is the only place the board exists.
@@ -108,7 +105,7 @@
  *                           on a screen that only renders when nothing can be
  *                           fetched would be a control that cannot work.
  *
- * Android is unaffected by all four: `isAppRoot` is false for every one of
+ * Android is unaffected by both: `isAppRoot` is false for every one of
  * them, so the hardware button goes to the parent rather than closing the
  * shell, which is the half that matters most there.
  *
