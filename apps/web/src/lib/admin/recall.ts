@@ -10,6 +10,8 @@ export type RecallPreview = {
   lifted: boolean;
   /** Derived from upheld reports in the database; null means no recall is possible. */
   category: "off_platform_payment" | "scam" | null;
+  /** The upheld report the recall rests on, and when it was resolved. */
+  report: { id: string; resolvedAt: string } | null;
   /** The recall already sent for this stop, if there was one. */
   sent: { at: string; to: number; category: string } | null;
 };
@@ -24,7 +26,11 @@ export function recallPreviewFrom(data: unknown): RecallPreview | null {
       ? { at: r.sent_at, to: typeof r.sent_to === "number" ? r.sent_to : 0, category: String(r.sent_category ?? "") }
       : null;
   const category = r.category === "off_platform_payment" || r.category === "scam" ? r.category : null;
-  return { audience: r.audience, lifted: r.lifted === true, category, sent };
+  const report =
+    typeof r.report_id === "string" && typeof r.report_resolved_at === "string"
+      ? { id: r.report_id, resolvedAt: r.report_resolved_at }
+      : null;
+  return { audience: r.audience, lifted: r.lifted === true, category, report, sent };
 }
 
 export function recallSendFrom(

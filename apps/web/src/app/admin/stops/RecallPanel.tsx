@@ -82,6 +82,7 @@ export function RecallPanel({ suspensionId }: { suspensionId: string }) {
             <>
               <p className="nf-body-sm text-[var(--nf-content-secondary)]">
                 {desk.recallBecause.replace("{reason}", recallReason(preview.category, desk))}
+                {preview.report ? ` ${desk.recallReport.replace("{date}", day(preview.report.resolvedAt))}` : ""}
               </p>
               <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]" data-testid="recall-count">
                 {willTell(preview.audience, desk)}

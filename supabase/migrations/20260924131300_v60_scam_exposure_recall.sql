@@ -23,6 +23,9 @@
 -- otherwise breaking Vallo's safety rules. The desk sees "This will tell 14
 -- people" first, and confirms. `suspend_agent` is not touched.
 --
+-- THE REPORT IS THIS STOP'S. Only a report resolved from thirty days before
+-- the stop to seven days after it counts, and the desk is shown which one.
+--
 -- WHO IS TOLD. A conversation counts only if somebody wrote in it; an
 -- inspection counts as it is. Each person is pointed at their own
 -- conversation with the account, where the report control is, or at their
@@ -32,8 +35,9 @@
 --   public.scam_recalls                 one row per recalled stop: category,
 --                                       who sent it, when, to how many. At
 --                                       most one recall per stop.
---   private.recall_category(stop)       the category the upheld reports
---                                       support, or null.
+--   private.recall_category(stop)       the upheld report this stop rests on:
+--                                       its category, id and when it was
+--                                       resolved, or no row.
 --   private.recall_audience(stop)       the distinct counterparties, each with
 --                                       the listing they most recently talked
 --                                       about and their conversation, if any.
@@ -61,36 +65,36 @@ alter table public.scam_recalls enable row level security;
 grant all on public.scam_recalls to service_role;
 
 create or replace function private.recall_category(p_suspension uuid)
-returns text
+returns table (category text, report_id uuid, resolved_at timestamptz)
 language sql
 stable
 security definer
 set search_path = ''
 as $$
   with s as (
-    select ag.id as agent_id, ag.user_id as stopped
+    select ag.id as agent_id, ag.user_id as stopped, su.suspended_at
       from public.agent_suspensions su join public.agents ag on ag.id = su.agent_id
      where su.id = p_suspension
-  ),
-  upheld as (
-    select r.category
-      from public.reports r, s
-     where r.status = 'resolved'::public.report_status
-       and r.category in ('off_platform_payment', 'scam')
-       and r.reporter_id <> s.stopped
-       and (
-         (r.target_type = 'listing' and exists (
-            select 1 from public.listings l where l.id::text = r.target_id and l.agent_id = s.agent_id))
-         or (r.target_type = 'conversation' and exists (
-            select 1 from public.conversations c where c.id::text = r.target_id and s.stopped in (c.guest_id, c.agent_id)))
-         or (r.target_type = 'message' and exists (
-            select 1 from public.messages m where m.id::text = r.target_id and m.sender_id = s.stopped))
-       )
   )
-  select case
-           when exists (select 1 from upheld where category = 'off_platform_payment') then 'off_platform_payment'
-           when exists (select 1 from upheld) then 'scam'
-         end;
+  /* THE REPORT BEHIND THIS STOP, not any fraud report ever upheld: resolved
+     from thirty days before the stop to seven days after it. A report about
+     paying outside Vallo wins over a scam report; then the latest. */
+  select r.category, r.id, r.resolved_at
+    from public.reports r, s
+   where r.status = 'resolved'::public.report_status
+     and r.category in ('off_platform_payment', 'scam')
+     and r.reporter_id <> s.stopped
+     and r.resolved_at between s.suspended_at - interval '30 days' and s.suspended_at + interval '7 days'
+     and (
+       (r.target_type = 'listing' and exists (
+          select 1 from public.listings l where l.id::text = r.target_id and l.agent_id = s.agent_id))
+       or (r.target_type = 'conversation' and exists (
+          select 1 from public.conversations c where c.id::text = r.target_id and s.stopped in (c.guest_id, c.agent_id)))
+       or (r.target_type = 'message' and exists (
+          select 1 from public.messages m where m.id::text = r.target_id and m.sender_id = s.stopped))
+     )
+   order by (r.category = 'off_platform_payment') desc, r.resolved_at desc
+   limit 1;
 $$;
 
 revoke all on function private.recall_category(uuid) from public, anon, authenticated;
@@ -140,7 +144,8 @@ $$;
 revoke all on function private.recall_audience(uuid) from public, anon, authenticated;
 
 create or replace function public.scam_recall_preview(p_suspension uuid)
-returns table (audience integer, category text, sent_at timestamptz, sent_to integer, sent_category text, lifted boolean)
+returns table (audience integer, category text, report_id uuid, report_resolved_at timestamptz,
+               sent_at timestamptz, sent_to integer, sent_category text, lifted boolean)
 language plpgsql
 stable
 security definer
@@ -153,16 +158,17 @@ begin
   end if;
   return query
     select (select count(*)::integer from private.recall_audience(p_suspension)),
-           private.recall_category(p_suspension),
+           rc.category, rc.report_id, rc.resolved_at,
            r.sent_at, r.recipients, r.category, su.lifted_at is not null
       from public.agent_suspensions su
       left join public.scam_recalls r on r.suspension_id = su.id
+      left join lateral private.recall_category(su.id) rc on true
      where su.id = p_suspension;
 end;
 $$;
 
 comment on function public.scam_recall_preview(uuid) is
-  'V-60. Staff: how many people a recall of this stop would tell, the category the upheld reports support (null: no recall), and the recall already sent if there was one.';
+  'V-60. Staff: how many people a recall of this stop would tell, the upheld report it rests on (category, id, when it was resolved; null: no recall), and the recall already sent if there was one.';
 
 revoke all on function public.scam_recall_preview(uuid) from public, anon;
 grant execute on function public.scam_recall_preview(uuid) to authenticated;
@@ -176,7 +182,8 @@ create or replace function public.scam_recall_send(
   p_body_about text,
   p_body_plain text,
   p_reason_pay text,
-  p_reason_rules text
+  p_reason_rules text,
+  p_listing_fallback text
 )
 returns jsonb
 language plpgsql
@@ -196,13 +203,14 @@ begin
     return jsonb_build_object('status', 'forbidden');
   end if;
   if coalesce(btrim(p_title), '') = '' or coalesce(btrim(p_body_about), '') = '' or coalesce(btrim(p_body_plain), '') = ''
-     or coalesce(btrim(p_reason_pay), '') = '' or coalesce(btrim(p_reason_rules), '') = '' then
+     or coalesce(btrim(p_reason_pay), '') = '' or coalesce(btrim(p_reason_rules), '') = ''
+     or coalesce(btrim(p_listing_fallback), '') = '' then
     return jsonb_build_object('status', 'invalid');
   end if;
   select * into stop from public.agent_suspensions where id = p_suspension for update;
   if stop.id is null then return jsonb_build_object('status', 'not_found'); end if;
   if stop.lifted_at is not null then return jsonb_build_object('status', 'lifted'); end if;
-  cat := private.recall_category(p_suspension);
+  select rc.category into cat from private.recall_category(p_suspension) rc;
   if cat is null then return jsonb_build_object('status', 'no_upheld_report'); end if;
 
   insert into public.scam_recalls (suspension_id, category, sent_by)
@@ -217,8 +225,9 @@ begin
       who.user_id,
       'system'::public.notification_kind,
       p_title,
-      replace(replace(case when who.listing_title is not null then p_body_about else p_body_plain end,
-                      '{listing}', coalesce(who.listing_title, '')), '{reason}', reason_words),
+      /* The thread wording only for somebody who has a thread to open. */
+      replace(replace(case when who.conversation_id is not null then p_body_about else p_body_plain end,
+                      '{listing}', coalesce(who.listing_title, p_listing_fallback)), '{reason}', reason_words),
       case when who.conversation_id is not null then '/messages/' || who.conversation_id::text else '/inspections' end
     );
     perform private.email_outbox_enqueue(
@@ -241,11 +250,11 @@ begin
 end;
 $$;
 
-comment on function public.scam_recall_send(uuid, text, text, text, text, text) is
+comment on function public.scam_recall_send(uuid, text, text, text, text, text, text) is
   'V-60. Staff: when an upheld fraud report stands against a stopped account, tell every member who talked to it in the 60 days before the stop, once, by notification and email, in the app''s words. Never names the reporter or the account. Refuses a lifted stop and a stop with no upheld report.';
 
-revoke all on function public.scam_recall_send(uuid, text, text, text, text, text) from public, anon;
-grant execute on function public.scam_recall_send(uuid, text, text, text, text, text) to authenticated;
+revoke all on function public.scam_recall_send(uuid, text, text, text, text, text, text) from public, anon;
+grant execute on function public.scam_recall_send(uuid, text, text, text, text, text, text) to authenticated;
 
 do $readback$
 declare bad text := '';

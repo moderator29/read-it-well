@@ -49,6 +49,7 @@ export async function sendRecall(input: unknown): Promise<ActionResult<{ recipie
     p_body_plain: desk.recallBodyPlain,
     p_reason_pay: desk.recallReasonPay,
     p_reason_rules: desk.recallReasonRules,
+    p_listing_fallback: desk.recallListingFallback,
   });
   if (error) return fail(desk.recallFailed);
   const result = recallSendFrom(data, desk);

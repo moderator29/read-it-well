@@ -13,6 +13,7 @@ describe("recalling a stop (V-60)", () => {
       audience: 14,
       lifted: false,
       category: null,
+      report: null,
       sent: null,
     });
     const sent = recallPreviewFrom([
@@ -20,6 +21,9 @@ describe("recalling a stop (V-60)", () => {
     ]);
     expect(sent?.sent).toEqual({ at: "2026-10-04T09:00:00Z", to: 14, category: "scam" });
     expect(sent?.category).toBe("scam");
+    expect(
+      recallPreviewFrom([{ audience: 2, category: "scam", report_id: "r1", report_resolved_at: "2026-10-01T09:00:00Z", lifted: false }])?.report,
+    ).toEqual({ id: "r1", resolvedAt: "2026-10-01T09:00:00Z" });
     expect(recallPreviewFrom([{ audience: 3, category: "fraud" }])?.category).toBeNull();
     expect(recallPreviewFrom([])).toBeNull();
     expect(recallPreviewFrom([{ audience: "14" }])).toBeNull();

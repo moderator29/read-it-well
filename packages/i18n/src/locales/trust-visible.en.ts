@@ -329,7 +329,10 @@ export const trustVisibleEn = {
     /** The words every recipient reads. `{listing}` is the title they talked about, `{reason}` a reason phrase. */
     recallTitle2: "An account you talked to has been stopped",
     recallBodyAbout: "An account you talked to about {listing} was stopped by Vallo {reason}. If you paid them anything, tell us now: open the conversation and report it.",
-    recallBodyPlain: "An account you talked to was stopped by Vallo {reason}. If you paid them anything, tell us now.",
+    recallBodyPlain: "An account you arranged a viewing with, about {listing}, was stopped by Vallo {reason}. If you paid them anything, tell us now.",
+    recallListingFallback: "a place on Vallo",
+    /** `{date}` is when the upheld report behind this stop was resolved. */
+    recallReport: "It rests on the report upheld on {date}.",
     recallReasonPay: "for asking people to pay outside Vallo",
     recallReasonRules: "for breaking Vallo's safety rules",
     recallAlready: "This stop has already been recalled. Nobody is told twice.",
