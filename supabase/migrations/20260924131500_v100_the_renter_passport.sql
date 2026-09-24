@@ -97,7 +97,9 @@ begin
                        and k.role = 'checker' and k.result = 'match')
         and exists (select 1 from public.inspection_checkins k
                      where k.inspection_id = r.id and k.role = 'shower' and k.result = 'shown'
-                       and (k.recorded_by = r.lister_id or k.recorded_by = private.active_delegate(r.id)))
+                       and (k.recorded_by = r.lister_id or k.recorded_by = private.active_delegate(r.id))
+                       /* and never by the renter's own shadow, named as a delegate */
+                       and cardinality(private.shares_identity_with(p_user, k.recorded_by)) = 0)
         and cardinality(private.shares_identity_with(p_user, r.lister_id)) = 0),
     (select count(*)::integer from public.rent_payments rp
        join public.bookings b on b.id = rp.booking_id
