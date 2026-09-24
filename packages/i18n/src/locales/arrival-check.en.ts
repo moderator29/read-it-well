@@ -46,5 +46,10 @@ export const arrivalCheckEn = {
     ruledUpheld: "Upheld on {when}.",
     ruledDeclined: "Declined on {when}.",
     ruleFailed: "The ruling was not saved. Try again.",
+    confirmUphold: "Uphold this report? The stay's payout stays paused until the refund is decided.",
+    confirmDecline: "Decline this report? The pause on the stay's payout lifts.",
+    confirm: "Confirm",
+    cancel: "Cancel",
+    ruleNone: "Nothing was ruled: this report has already been ruled on, or it is not a report.",
   },
 } as const;
