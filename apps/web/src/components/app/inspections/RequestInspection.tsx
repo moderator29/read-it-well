@@ -120,6 +120,7 @@ export function RequestInspection({
               type="datetime-local"
               value={when}
               min={earliestLagosInput()}
+              suppressHydrationWarning
               step={900}
               onChange={(event) => setWhen(event.target.value)}
               className="nf-field mt-2xs w-full"

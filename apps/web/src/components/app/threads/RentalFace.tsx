@@ -324,6 +324,7 @@ function ProposeSheet({
           value={when}
           /* UX-20: Lagos time, two hours ahead at the earliest, as the request is. */
           min={earliestLagosInput()}
+          suppressHydrationWarning
           step={900}
           onChange={(event) => setWhen(event.target.value)}
           className="nf-field mt-2xs w-full"
