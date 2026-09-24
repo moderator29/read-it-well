@@ -422,3 +422,35 @@ describe("the claim and the health read", () => {
     expect(await readOutboxHealth(admin)).toMatchObject({ pending: 0, stuck: 0, failed: 0 });
   });
 });
+
+describe("OPS-14: mail a switch can turn off carries List-Unsubscribe", () => {
+  function headerRecorder() {
+    const seen: (Record<string, string> | undefined)[] = [];
+    const send: SendPort = async (_to, _message, headers) => {
+      seen.push(headers);
+      return { sent: true };
+    };
+    return { send, seen };
+  }
+
+  it("an enquiry email (the Messages switch) names where the switch is", async () => {
+    const { admin } = fakeAdmin([
+      escrowRow({
+        id: "row-enquiry",
+        template: "listing.new_enquiry",
+        payload: { enquirer_id: COUNTERPARTY, listing_id: LISTING, message_id: "msg-1" },
+      }),
+    ]);
+    const { send, seen } = headerRecorder();
+    await drainEmailOutbox(admin, { configured: true, send });
+    expect(seen).toHaveLength(1);
+    expect(seen[0]?.["List-Unsubscribe"]).toMatch(/^<https?:\/\/[^>]+\/settings\/notifications\?channel=messages>$/);
+  });
+
+  it("an escrow email, which nothing can switch off, carries none", async () => {
+    const { admin } = fakeAdmin([escrowRow()]);
+    const { send, seen } = headerRecorder();
+    await drainEmailOutbox(admin, { configured: true, send });
+    expect(seen).toEqual([undefined]);
+  });
+});

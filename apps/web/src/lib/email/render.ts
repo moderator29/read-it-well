@@ -428,9 +428,9 @@ export type ComposeOptions = {
    * For the messages that a preference can switch off. The settings card
    * promises those can be turned off, so the email that arrives because of one
    * says where that switch is, in the small print, where a reader looks for
-   * it. It is NOT an unsubscribe: an unsubscribe belongs on the marketing
-   * channel and needs the List-Unsubscribe headers to go with it, which this
-   * client does not send yet. Saying "unsubscribe" and meaning "change a
+   * it. It is NOT an unsubscribe: the outbox sends a List-Unsubscribe header
+   * pointing at the same switch (OPS-14), but there is no one-click
+   * unsubscribe yet, and saying "unsubscribe" and meaning "change a
    * preference" is the kind of promise a footer should not make.
    *
    * A transactional message that nothing can switch off leaves this unset,
