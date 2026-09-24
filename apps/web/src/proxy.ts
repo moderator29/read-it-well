@@ -262,6 +262,8 @@ const PUBLIC_API_PATHS = new Set([
   "/api/push/key",
   "/api/paystack/reconcile",
   "/api/paystack/webhook",
+  /* V-98: the home-screen widget, behind its device-bound token. */
+  "/api/plans/next",
   "/api/push/drain",
   "/api/push/sw",
   "/api/support",

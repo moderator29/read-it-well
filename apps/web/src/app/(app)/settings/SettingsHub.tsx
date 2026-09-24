@@ -14,6 +14,7 @@ import { useNfSettings } from "@/components/app/account/settings-store";
 import { clearPacks } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
 import { clearOutbox } from "@/lib/offline/outbox";
+import { revokeWidgetTokens } from "@/lib/native/widget-actions";
 import { clearAllInflight } from "@/lib/offline/inflight";
 import { signOut, updateSettings } from "@/lib/profile/actions";
 import type { ResolvedProfileSettings } from "@/lib/profile/schema";
@@ -319,6 +320,8 @@ export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean })
           onClick={() => {
             setError(null);
             startSignOut(async () => {
+              /* V-98: the widget stops reading this account before the session ends. */
+              await revokeWidgetTokens().catch(() => undefined);
               const result = await signOut();
               if (!result.ok) {
                 setError(result.error);

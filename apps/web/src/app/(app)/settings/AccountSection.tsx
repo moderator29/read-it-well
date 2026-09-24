@@ -6,6 +6,7 @@ import { RowLink, RowValue, RowButton, SettingsGroup } from "@/components/app/ac
 import { clearPacks } from "@/lib/offline/pack-store";
 import { clearShelf } from "@/lib/offline/shelf-store";
 import { clearOutbox } from "@/lib/offline/outbox";
+import { revokeWidgetTokens } from "@/lib/native/widget-actions";
 import { clearAllInflight } from "@/lib/offline/inflight";
 import { signOut } from "@/lib/profile/actions";
 import { DeleteAccountPanel } from "./DeleteAccountPanel";
@@ -59,6 +60,8 @@ export function AccountSection({
   const leave = () => {
     setSignOutError(null);
     startSignOut(async () => {
+      /* V-98: the widget stops reading this account before the session ends. */
+      await revokeWidgetTokens().catch(() => undefined);
       const result = await signOut();
       if (!result.ok) {
         setSignOutError(result.error);
