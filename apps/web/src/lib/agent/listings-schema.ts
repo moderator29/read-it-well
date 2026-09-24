@@ -686,6 +686,12 @@ export const draftInputSchema = z.object({
   ),
   waterSupply: z.preprocess(emptyToUndefined, z.enum(WATER_SUPPLY_VALUES).optional()),
   prepaidMeter: z.preprocess(emptyToUndefined, z.boolean().optional()),
+  /**
+   * V-09: the wizard fields a pasted broadcast filled and the lister has not
+   * yet confirmed, written beside the draft in the same save. Absent leaves
+   * what is stored alone; an empty list clears it.
+   */
+  broadcastUnconfirmed: z.array(z.string().regex(/^[A-Za-z]{1,40}$/)).max(40).optional(),
 });
 
 export type DraftInput = z.input<typeof draftInputSchema>;

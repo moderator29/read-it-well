@@ -33,7 +33,7 @@ import { isFeatureEnabled } from "../flags";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "../locale";
 import { BROADCAST_MONEY_KEYS } from "./broadcast";
-import { readBroadcastMarks } from "./broadcast-marks-queries";
+import { readBroadcastMarks, writeBroadcastMarks } from "./broadcast-marks-queries";
 import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/closed";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
@@ -358,6 +358,10 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
       .eq("id", value.id)
       .eq("agent_id", gate.agentId);
     if (error) return fail(SAVE_FAILED_MESSAGE);
+    /* V-09: the unconfirmed set, in the same save, so it cannot lag the draft. */
+    if (value.broadcastUnconfirmed !== undefined && !(await writeBroadcastMarks(gate.supabase, value.id, value.broadcastUnconfirmed))) {
+      return fail(SAVE_FAILED_MESSAGE);
+    }
 
     refreshAgentSurfaces();
     return ok({ id: value.id, status: existing.status });
@@ -384,6 +388,9 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     .single();
 
   if (error || !created) return fail(SAVE_FAILED_MESSAGE);
+  if (value.broadcastUnconfirmed !== undefined && value.broadcastUnconfirmed.length > 0) {
+    await writeBroadcastMarks(gate.supabase, created.id, value.broadcastUnconfirmed);
+  }
 
   refreshAgentSurfaces();
   return ok({ id: created.id, status: created.status });
@@ -998,7 +1005,8 @@ export async function submitListing(input: {
      until a person has looked at it. The set is kept beside the draft on the
      server, so this holds on every device, not only the one that pasted. */
   const unconfirmed = await readBroadcastMarks(gate.supabase, listingId);
-  if (unconfirmed.some((key) => (BROADCAST_MONEY_KEYS as readonly string[]).includes(key))) {
+  /* Fails closed: a set we could not read is treated as unchecked. */
+  if (unconfirmed === null || unconfirmed.some((key) => (BROADCAST_MONEY_KEYS as readonly string[]).includes(key))) {
     return fail(getDictionary(await getLocale()).frontDoor.broadcast.unconfirmedOnServer);
   }
 

@@ -100,7 +100,7 @@ export default async function Page({
 
   /* V-09: which figures from a pasted message are still unchecked, as the
      server holds them for this draft. */
-  const unconfirmed = draft?.id ? await readBroadcastMarks(context.supabase, draft.id) : [];
+  const unconfirmed = draft?.id ? ((await readBroadcastMarks(context.supabase, draft.id)) ?? []) : [];
 
   return (
     <AgentShell

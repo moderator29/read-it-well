@@ -19,7 +19,6 @@ import type { WizardDraft } from "@/lib/agent/listings-queries";
 import { BROADCAST_MONEY_KEYS, type BroadcastKey, type BroadcastParse } from "@/lib/agent/broadcast";
 import { BroadcastPaste } from "./BroadcastPaste";
 import { PriceGuidePanel, usePriceGuide } from "./PriceGuide";
-import { saveBroadcastMarks } from "@/lib/agent/broadcast-marks";
 import { feeNormLine, type GuideSubject } from "@/lib/price-check/wizard-guide";
 import {
   MAX_ACCESS_CODE,
@@ -919,21 +918,6 @@ export function ListingWizard({
     }
     setUnconfirmedLoaded(unconfirmedKey);
   }, [unconfirmedKey, unconfirmedLoaded, listingId]);
-  /* And on the server, beside the draft, once the draft exists: the submit
-     gate there reads it (review fix, V-09). Debounced; a failure is retried
-     on the next change and the server gate still holds. */
-  const savedMarks = useRef<string>(JSON.stringify([...initialUnconfirmed].sort()));
-  useEffect(() => {
-    if (!listingId || !canPersist || unconfirmedLoaded !== unconfirmedKey) return;
-    const next = JSON.stringify([...fromMessage].sort());
-    if (next === savedMarks.current) return;
-    const timer = setTimeout(() => {
-      void saveBroadcastMarks({ listingId, keys: [...fromMessage] }).then((result) => {
-        if (result.ok) savedMarks.current = next;
-      });
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [fromMessage, listingId, canPersist, unconfirmedLoaded, unconfirmedKey]);
   useEffect(() => {
     if (unconfirmedLoaded !== unconfirmedKey) return;
     try {
@@ -1333,6 +1317,8 @@ export function ListingWizard({
 
     const result = await saveDraft({
       id: listingId ?? undefined,
+      /* V-09: the unconfirmed set goes to the server in the same save. */
+      broadcastUnconfirmed: [...fromMessage],
       title: values.title,
       description: values.description,
       propertyType: values.propertyType,
@@ -1415,7 +1401,7 @@ export function ListingWizard({
     if (!accessResult.ok) setNotice(accessResult.error);
 
     return result.data.id;
-  }, [canPersist, chosenAmenities, listingId, values]);
+  }, [canPersist, chosenAmenities, listingId, values, fromMessage]);
 
   function go(next: number) {
     const target = Math.min(STEP_KEYS.length - 1, Math.max(0, next));
@@ -1661,7 +1647,9 @@ export function ListingWizard({
 
   function send() {
     startTransition(async () => {
-      const id = listingId ?? (await persist());
+      /* Saved first, always: the draft and its unconfirmed set (V-09) must be
+         what the server checks, not what it held before the last tap. */
+      const id = (await persist()) ?? listingId;
       if (!id) {
         setNotice(canPersist ? copy.submit.needsTitle : copy.submit.needsKeys);
         return;
