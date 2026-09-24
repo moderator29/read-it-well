@@ -214,7 +214,7 @@ async function listingsFor(db: Db, listingIds: string[]): Promise<Map<string, Li
   if (wanted.length === 0) return listings;
   const { data } = await db
     .from("listings")
-    .select("id, title, area, city, agents(display_name)")
+    .select("id, title, area, city, agents!listings_agent_id_fkey(display_name)")
     .in("id", wanted);
   for (const row of data ?? []) {
     const agent = row.agents as { display_name?: string | null } | null;

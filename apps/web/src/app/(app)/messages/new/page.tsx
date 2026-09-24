@@ -129,7 +129,7 @@ export default async function NewMessagePage({
     }
     return (
       <Bridge
-        title="This chat cannot open yet"
+        title="This chat did not open"
         message={result.error}
         listingId={listing}
         primary={{ label: "Go to your Inbox", href: "/messages" }}

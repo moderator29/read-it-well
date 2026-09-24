@@ -66,8 +66,21 @@ const PAUSED_MESSAGE = "Messaging is paused for maintenance. Please try again in
 const SEED_LISTING_MESSAGE =
   "This is an example listing, so there is no agent to write to. Open a real listing from search and message the agent from there.";
 
+/**
+ * The claims rule applies to error copy too. "We could not find this listing"
+ * was once shown for a query that FAILED (an ambiguous join), and the founder
+ * read it as his catalogue being deleted. A failed read now says only that the
+ * chat could not open; "no longer exists" is said only after the service role
+ * has confirmed there is no such row.
+ */
+const CHAT_DID_NOT_OPEN_MESSAGE =
+  "This chat did not open just now. Nothing has changed on the listing. Please try again in a moment.";
+
+const LISTING_NOT_OPEN_MESSAGE =
+  "This listing is not taking messages right now. Explore other places from search.";
+
 const UNKNOWN_LISTING_MESSAGE =
-  "We could not find this listing. It may no longer be available. Explore other places from search.";
+  "This listing no longer exists. Explore other places from search.";
 
 const NOT_YOUR_CONVERSATION_MESSAGE =
   "That conversation is not on your account. Open your inbox to see the conversations you are part of.";
@@ -165,6 +178,25 @@ export async function startConversationWithMessage(input: {
   return ok({ conversationId: started.data.conversationId });
 }
 
+/**
+ * A listing the reader cannot see is not proof it is gone: it may be paused,
+ * under review, or the read may have been refused. Only a service-role read
+ * that finds no row at all earns "no longer exists".
+ */
+async function absentListingMessage(listingId: string): Promise<string> {
+  try {
+    const { data, error } = await createAdminClient()
+      .from("listings")
+      .select("id")
+      .eq("id", listingId)
+      .maybeSingle();
+    if (error) return CHAT_DID_NOT_OPEN_MESSAGE;
+    return data ? LISTING_NOT_OPEN_MESSAGE : UNKNOWN_LISTING_MESSAGE;
+  } catch {
+    return CHAT_DID_NOT_OPEN_MESSAGE;
+  }
+}
+
 async function findOrStartConversation(
   input: { listingId: string },
   create: boolean,
@@ -188,11 +220,11 @@ async function findOrStartConversation(
 
   const { data: listing, error: listingError } = await session.supabase
     .from("listings")
-    .select("id, title, agent_id, agents(user_id)")
+    .select("id, title, agent_id, agents!listings_agent_id_fkey(user_id)")
     .eq("id", listingId)
     .maybeSingle();
-  if (listingError) return fail(UNKNOWN_LISTING_MESSAGE);
-  if (!listing) return fail(UNKNOWN_LISTING_MESSAGE);
+  if (listingError) return fail(CHAT_DID_NOT_OPEN_MESSAGE);
+  if (!listing) return fail(await absentListingMessage(listingId));
 
   // Guests cannot read the agents row under RLS; the service role resolves
   // the counterpart after the listing itself has passed the RLS read above.
@@ -321,13 +353,13 @@ async function startContextThread(
       ? await session.supabase
           .from("reservations")
           .select(
-            "id, guest_id, listing_id, business_id, listings(agent_id, agents(user_id)), businesses(owner_id)",
+            "id, guest_id, listing_id, business_id, listings(agent_id, agents!listings_agent_id_fkey(user_id)), businesses(owner_id)",
           )
           .eq("id", transactionId)
           .maybeSingle()
       : await session.supabase
           .from("bookings")
-          .select("id, guest_id, listing_id, listings(agent_id, agents(user_id))")
+          .select("id, guest_id, listing_id, listings(agent_id, agents!listings_agent_id_fkey(user_id))")
           .eq("id", transactionId)
           .maybeSingle();
   if (read.error) return fail(CONTEXT_THREAD_DOWN_MESSAGE);
