@@ -332,6 +332,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/admin/moderation": "/admin",
   "/admin/money": "/admin",
   "/admin/operations": "/admin",
+  /* V-80: field speed, one panel read from real phones. */
+  "/admin/field-speed": "/admin/operations",
   "/admin/payments": "/admin",
   /*
    * `/admin/queue` is a DESK, not the console's landing screen, and that is the
@@ -465,6 +467,7 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/assistant": "POST only, the assistant's model call.",
   "/api/auth/email-hook": "Supabase Auth's send-email webhook.",
   "/api/client-error": "the browser's error beacon.",
+  "/api/vitals": "the browser's field speed beacon (V-80).",
   "/api/cron/account-purge": "scheduled job, bearer token.",
   "/api/cron/complete-stays": "scheduled job, bearer token.",
   "/api/cron/email-outbox": "scheduled job, bearer token.",

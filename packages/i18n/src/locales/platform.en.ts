@@ -232,4 +232,22 @@ export const platformEn = {
     welcomeTitle: "Are you usually on mobile data?",
     welcomeSub: "Use less data. You can change this in Settings.",
   },
+
+  /* V-80: the admin desk's field speed panel. */
+  fieldSpeed: {
+    title: "Field speed",
+    lede: "How fast Vallo is on the phones people actually use, from one page view in ten over the last seven days. The 75th percentile: three in four visits were at least this fast.",
+    panel: "By route and connection",
+    route: "Route",
+    connection: "Connection",
+    samples: "Samples",
+    lcp: "Largest paint",
+    inp: "Response to a tap",
+    cls: "Layout shift",
+    weight: "Page weight",
+    unknown: "Not reported",
+    emptyTitle: "No samples yet",
+    emptyBody: "Phones report their speed as people use the app. Nothing has arrived in the last seven days, so there is nothing to show rather than a guess.",
+    what: "the field speed samples",
+  },
 };
