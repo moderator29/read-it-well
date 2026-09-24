@@ -77,6 +77,8 @@ type Draft = {
   powerBandA: boolean;
   waterSupply: WaterSupply[];
   listerRoles: ListingRole[];
+  landlordAway: boolean;
+  parkingInside: boolean;
 };
 
 function draftFrom(query: ShelfQuery): Draft {
@@ -97,6 +99,8 @@ function draftFrom(query: ShelfQuery): Draft {
     powerBandA: query.powerBandA,
     waterSupply: query.waterSupply,
     listerRoles: query.listerRoles,
+    landlordAway: query.landlordAway,
+    parkingInside: query.parkingInside,
   };
 }
 
@@ -125,6 +129,8 @@ function queryFrom(base: ShelfQuery, draft: Draft): ShelfQuery {
     powerBandA: draft.powerBandA,
     waterSupply: draft.waterSupply,
     listerRoles: draft.listerRoles,
+    landlordAway: draft.landlordAway,
+    parkingInside: draft.parkingInside,
   };
   const q = draft.q.trim();
   if (q.length > 0) next.q = q;
@@ -288,6 +294,7 @@ export function FilterDrawer({
   locale,
   copy,
   costCopy,
+  compoundCopy,
   openOnMount = false,
 }: {
   query: ShelfQuery;
@@ -299,6 +306,8 @@ export function FilterDrawer({
      chooses between two different money columns and has to name the one in
      force. */
   costCopy: Dictionary["moveIn"];
+  /** V-28: the compound's words, for its two filters. */
+  compoundCopy: Dictionary["shape"]["compound"];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(openOnMount);
@@ -391,6 +400,20 @@ export function FilterDrawer({
   }, [facts, draft.powerBackup, draft.powerBandA, draft.waterSupply]);
   const showUtilities =
     utilityOptions.backup || utilityOptions.bandA || utilityOptions.water.length > 0;
+
+  /* V-28. The compound filters are strict about silence, so they are offered
+     only when the pool in front of the reader holds an answer, the same rule
+     light and water follow: a switch that can only ever return nothing is a
+     dead end. A switch already on is always shown, so it can be turned off. */
+  const compoundOptions = useMemo(() => {
+    let landlord = draft.landlordAway;
+    let parking = draft.parkingInside;
+    for (const fact of facts) {
+      if (fact.compound?.landlordOnSite === false) landlord = true;
+      if (fact.compound?.parkingType === "inside") parking = true;
+    }
+    return { landlord, parking };
+  }, [facts, draft.landlordAway, draft.parkingInside]);
 
   const pending = useMemo(() => queryFrom(query, draft), [query, draft]);
   const matchCount = useMemo(() => {
@@ -770,6 +793,42 @@ export function FilterDrawer({
                     </div>
                   </>
                 )}
+              </Group>
+            )}
+
+            {/* ---------------------------------------------- compound */}
+            {(compoundOptions.landlord || compoundOptions.parking) && (
+              <Group
+                id="filter-compound"
+                title={compoundCopy.title}
+                clearLabel={copy.clear}
+                onClear={
+                  draft.landlordAway || draft.parkingInside
+                    ? () =>
+                        setDraft((current) => ({ ...current, landlordAway: false, parkingInside: false }))
+                    : undefined
+                }
+              >
+                <div className="divide-y divide-[var(--nf-panel-hair)]">
+                  {compoundOptions.landlord && (
+                    <SwitchRow
+                      icon="house"
+                      label={compoundCopy.filterLandlordAway}
+                      checked={draft.landlordAway}
+                      testId="filter-landlord-away"
+                      onChange={(next) => setDraft((current) => ({ ...current, landlordAway: next }))}
+                    />
+                  )}
+                  {compoundOptions.parking && (
+                    <SwitchRow
+                      icon="parking"
+                      label={compoundCopy.filterParkingInside}
+                      checked={draft.parkingInside}
+                      testId="filter-parking-inside"
+                      onChange={(next) => setDraft((current) => ({ ...current, parkingInside: next }))}
+                    />
+                  )}
+                </div>
               </Group>
             )}
 

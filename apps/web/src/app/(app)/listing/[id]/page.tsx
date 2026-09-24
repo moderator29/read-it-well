@@ -24,6 +24,7 @@ import {
 import { formatDate, formatNumber } from "@vallo/i18n";
 import { listedAge, listedAgeText, staleMonthOptions } from "@/lib/listings/listed-age";
 import { isModestExample } from "@/lib/listings/example-imagery";
+import { ListingCompound } from "@/components/app/listing/ListingCompound";
 import { getBlockedDates } from "@/lib/bookings/queries";
 import { getListingReviews } from "@/lib/reviews/queries";
 import { getSavedListings } from "@/lib/saved/queries";
@@ -883,6 +884,13 @@ export default async function ListingDetailPage({
 
                   {/* The Nigerian number, on a tenancy, now leads above the
                       price row rather than following the trust marks. */}
+
+                  {/* The compound's answers (V-28); absent when none was given. */}
+                  {listing.compound && (
+                    <div className="mt-md">
+                      <ListingCompound compound={listing.compound} copy={t.shape.compound} />
+                    </div>
+                  )}
 
                   {listing.amenities.length > 0 && (
                     <div className="mt-md">

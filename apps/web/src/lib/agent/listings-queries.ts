@@ -21,6 +21,14 @@ import {
   type WaterSupply,
 } from "./listings-schema";
 import { headlinePrice, headlinePeriod, type PricePeriod } from "../listings/pricing";
+import {
+  COMPOUND_COLUMNS,
+  compoundFormOf,
+  readCompound,
+  type Compound,
+  type CompoundForm,
+  type CompoundRow,
+} from "../listings/compound";
 
 /**
  * Server-side reads for the agent supply loop.
@@ -237,6 +245,8 @@ export type WizardDraft = {
   powerBackupHours: string;
   waterSupply: WaterSupply | "";
   prepaidMeter: boolean;
+  /** V-28: the compound's five answers, as the wizard's controls hold them. */
+  compound?: CompoundForm;
   /** Never public. Read from public.listing_access, which only the host,
       an admin and a guest with a CONFIRMED booking may select from. */
   access: {
@@ -498,6 +508,7 @@ async function toDraft(
     powerBackupHours: row.power_backup_hours === null ? "" : String(row.power_backup_hours),
     waterSupply: row.water_supply ?? "",
     prepaidMeter: row.prepaid_meter ?? false,
+    compound: compoundFormOf(await readCompoundFor(supabase, row.id)),
     access: {
       estateName: row.listing_access?.estate_name ?? "",
       gateDirections: row.listing_access?.gate_directions ?? "",
@@ -509,6 +520,28 @@ async function toDraft(
     videos: await sortedVideos(supabase, row),
     reviewNotes: row.review_notes,
   };
+}
+
+/**
+ * The compound's five answers for one draft (V-28), by their own read so a
+ * database without the migration still opens the wizard: an error is "nothing
+ * answered". See `getCompoundFacts` in the listings repository for why.
+ */
+async function readCompoundFor(
+  supabase: SupabaseClient<Database>,
+  listingId: string,
+): Promise<Compound | null> {
+  try {
+    const { data, error } = await supabase
+      .from("listings")
+      .select(COMPOUND_COLUMNS)
+      .eq("id", listingId)
+      .maybeSingle();
+    if (error || !data) return null;
+    return readCompound(data as unknown as CompoundRow);
+  } catch {
+    return null;
+  }
 }
 
 /** Every listing the agent owns, newest activity first, all statuses. */

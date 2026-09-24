@@ -67,6 +67,8 @@ import { VideoWalkthrough, type WalkthroughVideo } from "@/components/agent/Vide
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ListingSentForReview } from "./ListingSentForReview";
 import { TextField, TextArea } from "@/components/ui/Field";
+import { CompoundQuestions } from "@/components/agent/CompoundQuestions";
+import { EMPTY_COMPOUND_FORM, compoundPayload, type CompoundForm } from "@/lib/listings/compound";
 
 /**
  * The List Apartment wizard: eight steps, canon reference 03.
@@ -185,6 +187,8 @@ type Values = {
   powerBackupHours: string;
   waterSupply: WaterSupply | "";
   prepaidMeter: boolean;
+  /** V-28: the compound's five answers; "" is unanswered. */
+  compound: CompoundForm;
   estateName: string;
   gateDirections: string;
   securityPhone: string;
@@ -253,6 +257,7 @@ const EMPTY: Values = {
   powerBackupHours: "",
   waterSupply: "",
   prepaidMeter: false,
+  compound: EMPTY_COMPOUND_FORM,
   estateName: "",
   gateDirections: "",
   securityPhone: "",
@@ -308,6 +313,7 @@ function valuesFrom(draft: WizardDraft): Values {
     powerBackupHours: draft.powerBackupHours,
     waterSupply: draft.waterSupply,
     prepaidMeter: draft.prepaidMeter,
+    compound: draft.compound ?? EMPTY_COMPOUND_FORM,
     estateName: draft.access.estateName,
     gateDirections: draft.access.gateDirections,
     securityPhone: draft.access.securityPhone,
@@ -683,6 +689,8 @@ function TenantPays({
   locale: Locale;
   copy: WizardCopy;
   moveInCopy: Dictionary["moveIn"];
+  /** V-28: the compound's five questions. */
+  compoundCopy: Dictionary["shape"]["compound"];
 }) {
   const lines = moveInLines(facts, moveInCopy);
   const declared = lines.filter((line) => line.minor !== undefined && line.minor !== null);
@@ -758,6 +766,7 @@ export function ListingWizard({
   copy,
   reference,
   moveInCopy,
+  compoundCopy,
   locale,
   userId,
   states,
@@ -1168,6 +1177,7 @@ export function ListingWizard({
       powerBackupHours: values.powerBackupHours === "" ? undefined : values.powerBackupHours,
       waterSupply: values.waterSupply === "" ? undefined : values.waterSupply,
       prepaidMeter: values.prepaidMeter,
+      ...compoundPayload(values.compound),
     });
 
     if (!result.ok) {
@@ -2175,6 +2185,13 @@ export function ListingWizard({
               description={copy.drawn.supply.prepaidBody}
               checked={values.prepaidMeter}
               onCheckedChange={(v) => set("prepaidMeter", v)}
+            />
+
+            {/* ---------------------------------------- the compound (V-28) */}
+            <CompoundQuestions
+              copy={compoundCopy}
+              value={values.compound}
+              onChange={(next) => set("compound", next)}
             />
 
             {/* ------------------------------------------------ the gate */}

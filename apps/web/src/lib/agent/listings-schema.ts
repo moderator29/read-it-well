@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PARKING_TYPES, WASTE_DISPOSALS } from "@/lib/listings/compound";
 
 import {
   BUILD_CONDITION_VALUES,
@@ -686,6 +687,15 @@ export const draftInputSchema = z.object({
   ),
   waterSupply: z.preprocess(emptyToUndefined, z.enum(WATER_SUPPLY_VALUES).optional()),
   prepaidMeter: z.preprocess(emptyToUndefined, z.boolean().optional()),
+
+  /* V-28. The compound's five answers. NULL clears an answer the lister took
+     back (the wizard holds all five and sends null for unanswered); undefined
+     leaves the column as it was, like every other draft field. */
+  parkingType: z.enum(PARKING_TYPES).nullable().optional(),
+  flatsInCompound: z.number().int().min(1, "Enter 1 or more homes.").max(500, "Enter 500 or fewer homes.").nullable().optional(),
+  landlordOnSite: z.boolean().nullable().optional(),
+  wasteDisposal: z.enum(WASTE_DISPOSALS).nullable().optional(),
+  carAccess: z.boolean().nullable().optional(),
 });
 
 export type DraftInput = z.input<typeof draftInputSchema>;

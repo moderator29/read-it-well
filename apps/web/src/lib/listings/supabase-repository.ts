@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { memo } from "../cache/memo";
 import { honestExamplePhotos } from "./example-imagery";
+import { COMPOUND_COLUMNS, readCompound, type Compound, type CompoundRow } from "./compound";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import { createClient } from "../supabase/server";
@@ -1054,9 +1055,47 @@ async function mapRows(supabase: Client, rows: ListingRow[]): Promise<Listing[]>
     getAgentBadges(supabase, [...new Set(rows.map((r) => r.agent_id))]),
     getListerNames(supabase, rows.map((r) => r.id)),
   ]);
-  return rows.map((row) =>
-    mapRow(row, stateNames, amenityCodes, stats, signedVideos, verifiedAgents, listerNames),
-  );
+  const compounds = await getCompoundFacts(supabase, rows.map((r) => r.id));
+  return rows.map((row) => {
+    const listing = mapRow(row, stateNames, amenityCodes, stats, signedVideos, verifiedAgents, listerNames);
+    const compound = compounds.get(row.id);
+    return compound ? { ...listing, compound } : listing;
+  });
+}
+
+/**
+ * THE COMPOUND'S FIVE ANSWERS (V-28), READ ON THEIR OWN.
+ *
+ * Not in the catalogue selects above, on purpose. A PostgREST select naming a
+ * column that does not exist fails the whole read, and the catalogue has
+ * already been taken off the air once by code that reached production ahead of
+ * its migration. So these five come from their own small read, and a database
+ * without migration `20260924150200` answers with an error that is treated as
+ * "nobody answered", which is exactly what it means.
+ *
+ * After the batch above rather than inside it, so it can never fail that
+ * batch; it is one primary key read either way.
+ */
+async function getCompoundFacts(
+  supabase: Client,
+  ids: string[],
+): Promise<Map<string, Compound>> {
+  const out = new Map<string, Compound>();
+  if (ids.length === 0) return out;
+  try {
+    const { data, error } = await supabase
+      .from("listings")
+      .select(`id, ${COMPOUND_COLUMNS}`)
+      .in("id", ids);
+    if (error || !data) return out;
+    for (const row of data as unknown as (CompoundRow & { id: string })[]) {
+      const compound = readCompound(row);
+      if (compound) out.set(row.id, compound);
+    }
+  } catch {
+    /* No compound facts is the honest answer to a read that failed. */
+  }
+  return out;
 }
 
 /**

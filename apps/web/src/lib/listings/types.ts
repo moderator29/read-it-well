@@ -1,6 +1,7 @@
 /** Domain types for discovery results. Shared by every data source. */
 
 import type { ListingRole } from "@/lib/supply/roles";
+import type { Compound } from "./compound";
 import type {
   BuildCondition,
   Furnishing,
@@ -161,6 +162,12 @@ export type Listing = {
    * by the listed age on the card and the page (V-22) and by the Newest sort.
    */
   publishedAt?: string;
+  /**
+   * The compound's five answers (V-28): parking, how many homes share it,
+   * whether the landlord lives there, how rubbish leaves, and whether a car
+   * gets in. Absent when the lister answered none of them.
+   */
+  compound?: Compound;
   furnished?: Furnishing;
   /**
    * WHAT A BUYER ACTUALLY PAYS, in kobo, as the lister stated it.
@@ -451,6 +458,10 @@ export type ListingSearchFilter = {
    * a borehole and treated mains as an AND would match nothing, every time.
    */
   waterSupply?: WaterSupply[];
+  /** V-28: only listings whose lister said the landlord lives elsewhere. Strict. */
+  landlordAway?: boolean;
+  /** V-28: only listings whose lister said the parking is inside the compound. Strict. */
+  parkingInside?: boolean;
 };
 
 /**

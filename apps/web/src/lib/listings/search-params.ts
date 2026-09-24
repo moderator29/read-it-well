@@ -27,6 +27,8 @@ import { WATER_SOURCES, type ListingKind, type ListingSearchFilter, type WaterSu
  *              "mains", "borehole", "storage", "tanker"
  *   by         comma separated supply kinds, ANY of which will do:
  *              "owner", "agent", "firm"
+ *   landlord   "away": the lister said the landlord lives elsewhere (V-28)
+ *   parking    "inside": the lister said a car parks inside the compound (V-28)
  *
  * The two utility parameters use opposite set logic on purpose, and the URL
  * says so by naming one after a requirement and one after a source. Backup
@@ -161,6 +163,9 @@ export type DiscoveryQuery = {
    * an address bar, so unlike water they need no second spelling.
    */
   listerRoles: ListingRole[];
+  /** V-28. Strict: an unanswered listing never satisfies either. */
+  landlordAway: boolean;
+  parkingInside: boolean;
 };
 
 /**
@@ -345,6 +350,8 @@ export function parseDiscoveryQuery(params: RawSearchParams): DiscoveryQuery {
     powerBandA: power.bandA,
     waterSupply: readWater(params.water),
     listerRoles: readRoles(params.by),
+    landlordAway: readText(params.landlord) === "away",
+    parkingInside: readText(params.parking) === "inside",
   };
 
   const q = readText(params.q);
@@ -381,6 +388,8 @@ export function toFilter(query: DiscoveryQuery): ListingSearchFilter {
   if (query.powerBandA) filter.powerBandA = true;
   if (query.waterSupply.length > 0) filter.waterSupply = query.waterSupply;
   if (query.listerRoles.length > 0) filter.listerRoles = query.listerRoles;
+  if (query.landlordAway) filter.landlordAway = true;
+  if (query.parkingInside) filter.parkingInside = true;
   return filter;
 }
 
@@ -432,6 +441,8 @@ export function toSearchHref(query: DiscoveryQuery): string {
     params.set("water", query.waterSupply.map(waterSlug).join(","));
   }
   if (query.listerRoles.length > 0) params.set("by", query.listerRoles.join(","));
+  if (query.landlordAway) params.set("landlord", "away");
+  if (query.parkingInside) params.set("parking", "inside");
   const qs = params.toString();
   return qs ? `/search?${qs}` : "/search";
 }
@@ -464,6 +475,8 @@ export function clearedFilters(query: DiscoveryQuery): DiscoveryQuery {
     powerBandA: false,
     waterSupply: [],
     listerRoles: [],
+    landlordAway: false,
+    parkingInside: false,
   };
   if (query.q) cleared.q = query.q;
   if (query.kind) cleared.kind = query.kind;
@@ -493,5 +506,7 @@ export function activeFilterCount(query: DiscoveryQuery): number {
   // One thing again: the reader set who they want to deal with, however many
   // kinds they ticked.
   if (query.listerRoles.length > 0) count += 1;
+  if (query.landlordAway) count += 1;
+  if (query.parkingInside) count += 1;
   return count;
 }

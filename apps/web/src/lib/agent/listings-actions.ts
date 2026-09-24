@@ -30,6 +30,11 @@ import {
   resolveSession,
 } from "../actions/session";
 import { isFeatureEnabled } from "../flags";
+import {
+  compoundColumns,
+  isMissingColumnError,
+  type CompoundPayload,
+} from "../listings/compound";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
 import {
@@ -353,6 +358,9 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
       .eq("id", value.id)
       .eq("agent_id", gate.agentId);
     if (error) return fail(SAVE_FAILED_MESSAGE);
+    if (!(await writeCompound(gate.supabase, value.id, gate.agentId, value))) {
+      return fail(SAVE_FAILED_MESSAGE);
+    }
 
     refreshAgentSurfaces();
     return ok({ id: value.id, status: existing.status });
@@ -379,9 +387,50 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
     .single();
 
   if (error || !created) return fail(SAVE_FAILED_MESSAGE);
+  if (!(await writeCompound(gate.supabase, created.id, gate.agentId, value))) {
+    return fail(SAVE_FAILED_MESSAGE);
+  }
 
   refreshAgentSurfaces();
   return ok({ id: created.id, status: created.status });
+}
+
+/**
+ * THE COMPOUND'S FIVE ANSWERS (V-28), WRITTEN BY THEIR OWN UPDATE.
+ *
+ * Separate from `columns` above for one reason: an update naming a column that
+ * does not exist fails whole, so if this code reaches production before
+ * migration `20260924150200`, folding these into the main write would stop
+ * every draft saving. Written on their own, a missing column costs the five
+ * answers and nothing else, and `isMissingColumnError` treats that as saved.
+ * Any other failure is a failure. Nothing is sent when no answer changed.
+ */
+async function writeCompound(
+  supabase: SupabaseClient<Database>,
+  listingId: string,
+  agentId: string,
+  value: {
+    parkingType?: CompoundPayload["parkingType"] | undefined;
+    flatsInCompound?: CompoundPayload["flatsInCompound"] | undefined;
+    landlordOnSite?: CompoundPayload["landlordOnSite"] | undefined;
+    wasteDisposal?: CompoundPayload["wasteDisposal"] | undefined;
+    carAccess?: CompoundPayload["carAccess"] | undefined;
+  },
+): Promise<boolean> {
+  const row = compoundColumns({
+    ...(value.parkingType !== undefined ? { parkingType: value.parkingType } : {}),
+    ...(value.flatsInCompound !== undefined ? { flatsInCompound: value.flatsInCompound } : {}),
+    ...(value.landlordOnSite !== undefined ? { landlordOnSite: value.landlordOnSite } : {}),
+    ...(value.wasteDisposal !== undefined ? { wasteDisposal: value.wasteDisposal } : {}),
+    ...(value.carAccess !== undefined ? { carAccess: value.carAccess } : {}),
+  });
+  if (Object.keys(row).length === 0) return true;
+  const { error } = await supabase
+    .from("listings")
+    .update(row as never)
+    .eq("id", listingId)
+    .eq("agent_id", agentId);
+  return !error || isMissingColumnError(error);
 }
 
 /** Kobo as naira text, for one error sentence. Integer division, never a float. */

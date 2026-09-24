@@ -1,4 +1,5 @@
-import type { ListingIntent } from "./pricing";
+import type { ListingIntent, PricePeriod } from "./pricing";
+import { matchesCompound, type Compound } from "./compound";
 import type { ListingRole } from "@/lib/supply/roles";
 import type { Listing, ListingKind, ListingSearchFilter } from "./types";
 
@@ -46,12 +47,15 @@ export type ListingFacts = {
    */
   intent?: ListingIntent;
   /**
-   * True for a tenancy (rent by the month, quarter or year), false for a
-   * nightly or per-head rate, absent when the source does not say. The rent
+   * What the price covers. A month, quarter or year is a tenancy; a night or a
+   * head is a stay or a table; absent when the source does not say. The rent
    * MARKET is tenancies: a shortlet is `listing_intent = 'rent'` too, and the
-   * deleted `/rent` shelf never showed one (V-26).
+   * deleted `/rent` shelf never showed one (V-26). The same name as on
+   * `Listing`, so a listing still IS a facts object.
    */
-  tenancy?: boolean;
+  pricePeriod?: PricePeriod;
+  /** The compound's five answers (V-28), absent when none was given. */
+  compound?: Compound;
   bedrooms: number;
   bathrooms: number;
   /** The host's declared capacity, where the source carries one. */
@@ -95,9 +99,8 @@ export function factsOf(l: Listing): ListingFacts {
     kind: l.kind,
     priceMinor: l.priceMinor,
     ...(l.intent !== undefined ? { intent: l.intent } : {}),
-    ...(l.pricePeriod !== undefined
-      ? { tenancy: l.pricePeriod === "year" || l.pricePeriod === "month" || l.pricePeriod === "quarter" }
-      : {}),
+    ...(l.pricePeriod !== undefined ? { pricePeriod: l.pricePeriod } : {}),
+    ...(l.compound !== undefined ? { compound: l.compound } : {}),
     bedrooms: l.bedrooms,
     bathrooms: l.bathrooms,
     ...(l.maxGuests !== undefined ? { maxGuests: l.maxGuests } : {}),
@@ -175,7 +178,9 @@ export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = 
   if (filter.intent && (facts.intent ?? "rent") !== filter.intent) return false;
   /* The rent market is tenancies. A nightly shortlet is let too, but it is a
      stay, and it lives on the Stays side (V-26, V-67). */
-  if (filter.intent === "rent" && facts.tenancy === false) return false;
+  if (filter.intent === "rent" && (facts.pricePeriod === "night" || facts.pricePeriod === "guest")) {
+    return false;
+  }
 
   const wantsBudget = filter.minPriceMinor !== undefined || filter.maxPriceMinor !== undefined;
   if (wantsBudget) {
@@ -233,6 +238,9 @@ export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = 
     if (role === undefined) return false;
     if (!filter.listerRoles.includes(role)) return false;
   }
+
+  /* V-28: the two compound filters, strict about silence like power. */
+  if (!matchesCompound(facts.compound, filter)) return false;
 
   if (filter.waterSupply && filter.waterSupply.length > 0) {
     // OR, not AND: one column, one value. See the note on the filter type.

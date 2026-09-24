@@ -19,12 +19,12 @@ const facts = (over: Partial<ListingFacts>): ListingFacts =>
 
 describe("the rent market", () => {
   it("holds a flat to let by the year, whatever its category", () => {
-    expect(matchesFacts(facts({ tenancy: true }), { intent: "rent" })).toBe(true);
-    expect(matchesFacts(facts({ kind: "home", tenancy: true }), { intent: "rent" })).toBe(true);
+    expect(matchesFacts(facts({ pricePeriod: "year" }), { intent: "rent" })).toBe(true);
+    expect(matchesFacts(facts({ kind: "home", pricePeriod: "year" }), { intent: "rent" })).toBe(true);
   });
 
   it("does not hold a nightly shortlet, which is a stay", () => {
-    expect(matchesFacts(facts({ kind: "shortlet", tenancy: false }), { intent: "rent" })).toBe(false);
+    expect(matchesFacts(facts({ kind: "shortlet", pricePeriod: "night" }), { intent: "rent" })).toBe(false);
   });
 
   it("does not guess when the source does not say", () => {
@@ -32,6 +32,6 @@ describe("the rent market", () => {
   });
 
   it("leaves an unfiltered shelf alone", () => {
-    expect(matchesFacts(facts({ tenancy: false }), {})).toBe(true);
+    expect(matchesFacts(facts({ pricePeriod: "night" }), {})).toBe(true);
   });
 });

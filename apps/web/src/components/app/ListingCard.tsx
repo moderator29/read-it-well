@@ -461,6 +461,19 @@ export function ListingCard({
             </ul>
           )}
 
+          {/* V-28. The one compound answer that earns a line on a card:
+              whether the landlord lives there. Absent when unanswered. */}
+          {listing.compound?.landlordOnSite !== undefined && (
+            <p className="nf-pcard__sub inline-flex items-start gap-inline-tight" data-testid="card-landlord">
+              <UiIcon name="house" size={12} className="mt-3xs shrink-0" />
+              <span className="break-words">
+                {listing.compound.landlordOnSite
+                  ? t.shape.compound.landlordOnSite
+                  : t.shape.compound.landlordElsewhere}
+              </span>
+            </p>
+          )}
+
           {/* The one Nigerian field that earns a line in a grid: what happens
               when the light goes. Absent when the host has not answered. */}
           {power && (

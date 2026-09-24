@@ -213,6 +213,8 @@ export function summariseSearch(
   if (query.powerBackup) chips.push("Backup power");
   if (query.powerBandA) chips.push("Band A feeder");
   for (const source of query.waterSupply) chips.push(WATER_LABEL[source]);
+  if (query.landlordAway) chips.push("Landlord lives elsewhere");
+  if (query.parkingInside) chips.push("Parking inside the compound");
   for (const code of query.amenities) chips.push(amenityWord(code));
 
   return chips;
