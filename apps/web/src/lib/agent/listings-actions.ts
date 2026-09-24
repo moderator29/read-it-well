@@ -424,7 +424,14 @@ export async function saveDraft(input: DraftInput): Promise<ActionResult<SavedDr
   ];
   for (const write of followUps) {
     if (!(await write())) {
-      await gate.supabase.from("listings").delete().eq("id", created.id).eq("agent_id", gate.agentId);
+      const { error: rollbackError } = await gate.supabase
+        .from("listings")
+        .delete()
+        .eq("id", created.id)
+        .eq("agent_id", gate.agentId);
+      /* A draft left behind is harmless to the lister (it is theirs, and a
+         draft) but must not go unseen. */
+      if (rollbackError) console.warn(`[saveDraft] rollback of draft ${created.id} failed: ${rollbackError.message}`);
       return fail(SAVE_FAILED_MESSAGE);
     }
   }

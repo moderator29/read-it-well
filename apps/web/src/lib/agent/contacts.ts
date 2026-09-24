@@ -74,8 +74,8 @@ const SPELLED_CHAIN = new RegExp(`(?<![a-z])${DIGIT_TOKEN}(?:${CHAIN_SEP}${DIGIT
 /* Any run of non-alphanumeric characters joins digit groups, however long
    ("0803 ------ 123"), and so do joining words ("0803 or 123 4567", "0803
    and then 1234567"). A run that holds no contact is handed back exactly as
-   it was, so prices and dates keep their shape. Comma-grouped figures are set
-   aside before this runs (see stripContacts). */
+   it was, so prices and dates keep their shape. Comma-grouped figures are
+   single groups (see groupsOf). */
 /* One or two short words between digit groups ("0803 or 123 4567", "0803
    (my line) 123 4567", "0803 abc 123 4567"), up to three, still join
    groups of three or more digits: a word is not a
@@ -98,14 +98,22 @@ function classify(compact: string): "phone" | "account" | null {
   return null;
 }
 
-type Group = { start: number; end: number; digits: string };
+type Group = { start: number; end: number; digits: string; figure: boolean };
+
+/**
+ * A comma-grouped figure ("1,500,000": 1 to 9, then groups of exactly three,
+ * nothing digit-like after) is ONE group, so its inner groups never join a
+ * neighbour on their own. It is still read like any group: "0803 1,234,567"
+ * and "1,234,567,890" are contacts. Only a stretch made purely of two or
+ * more whole figures ("1,500,000 - 2,000,000") is left alone as money.
+ */
+const FIGURE_OR_DIGITS = /(?<![\d,])[1-9]\d{0,2}(?:,\d{3})+(?!\d)(?!,\d)|\d+/g;
 
 function groupsOf(run: string): Group[] {
   const out: Group[] = [];
-  const re = /\d+/g;
-  for (const m of run.matchAll(re)) {
-    const digits = m[0];
-    out.push({ start: m.index ?? 0, end: (m.index ?? 0) + m[0].length, digits });
+  for (const m of run.matchAll(FIGURE_OR_DIGITS)) {
+    const figure = m[0].includes(",");
+    out.push({ start: m.index ?? 0, end: (m.index ?? 0) + m[0].length, digits: m[0].replace(/,/g, ""), figure });
   }
   return out;
 }
@@ -131,15 +139,9 @@ export function stripContacts(message: string): { text: string; hits: ContactHit
     token.replace(/[oO]/g, "0").replace(/[iIlL]/g, "1").replace(/[sS]/g, "5"),
   );
 
-  /* A comma-grouped figure ("1,500,000") is money, never a phone or an
-     account: it is set aside whole before the runs are read, so no group
-     inside it can join a neighbour. Only a figure that starts 1 to 9 with
-     every later group exactly three digits; "080,312,..." is not one. */
-  const figures: string[] = [];
-  text = text.replace(/(?<![\d,.])[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?(?![\d,]\d)/g, (figure) => {
-    figures.push(figure);
-    return `\uE000${String(figures.length - 1).replace(/\d/g, (d) => "abcdefghij"[Number(d)]!)}\uE001`;
-  });
+  /* A mobile glued onto the end of another figure ("1,500,0008031234567")
+     is split off, so it is read as the number it is. */
+  text = text.replace(/(\d)((?:0|234)[789][01]\d{8})(?!\d)/g, "$1 $2");
 
   /* 2. Spelled digit chains to digits. */
   text = text.replace(SPELLED_CHAIN, (chain) => {
@@ -173,6 +175,12 @@ export function stripContacts(message: string): { text: string; hits: ContactHit
           if (compact.length > 14) break;
           const kind = classify(compact);
           if (!kind) continue;
+          /* Two or more whole figures side by side are prices ("1,500,000 -
+             2,000,000"), never a contact. */
+          if (j > i && groups.slice(i, j + 1).every((g) => g.figure)) continue;
+          /* One round figure on its own ("1,500,000,000") is a price; an
+             account number does not end in a whole thousand. */
+          if (j === i && groups[i]!.figure && /,000$/.test(run.slice(groups[i]!.start, groups[i]!.end))) continue;
           if (kind === "account" && isMoney && i === 0) continue;
           if (!best || j - i > best.j - best.i || compact.length > best.compact.length) best = { i, j, kind, compact };
         }
@@ -197,11 +205,6 @@ export function stripContacts(message: string): { text: string; hits: ContactHit
       if (/^\s*[)\]}]/.test(run.slice(at))) at += run.slice(at).indexOf(run.slice(at).trimStart()[0]!) + 1;
     }
     return out + run.slice(at);
-  });
-
-  text = text.replace(/\uE000([a-j]+)\uE001/g, (_all, code: string) => {
-    const index = Number(code.replace(/[a-j]/g, (c) => String("abcdefghij".indexOf(c))));
-    return figures[index] ?? "";
   });
 
   /* 4a. Handles named by their platform. */

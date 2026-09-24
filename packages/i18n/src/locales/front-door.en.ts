@@ -623,7 +623,7 @@ export const frontDoorEn = {
     routed: "{count} enquiries recorded for them in 30 days",
     roles: { principal: "Principal", staff: "Staff" },
     routingTitle: "Who should handle new enquiries (recorded on each enquiry)",
-    routingNote: "Worked out once, when the renter first writes, and recorded on the enquiry so the team can see whose it is. Nobody is notified by it and nobody gains access to the conversation: the listing's lister still receives it.",
+    routingNote: "Worked out once, when the renter first writes, and recorded on the enquiry. Nobody is notified by it and nobody gains access to the conversation: the listing's lister still receives it.",
     modes: {
       lister: "Whoever handles the listing (or listed it)",
       area: "By neighbourhood, a named member",

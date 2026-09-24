@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseBroadcast } from "./broadcast";
+import { stripContacts } from "./contacts";
 
 /**
  * The review's list (24 September), each after "2 bed flat Yaba rent 1.5m".
@@ -197,4 +198,38 @@ describe("the third review (rv_a2e)", () => {
       expect(parse.notCarried.some((n) => n.kind === "ambiguous"), text).toBe(true);
     }
   });
+});
+
+describe("the fourth review (rv_a2f): comma figures are one group, never a hiding place", () => {
+  for (const text of [
+    "WhatsApp 0803 1,234,567 now",
+    "call 0803-1,234,567",
+    "call 080 31,234,567",
+    "acct 012 3,456,789",
+    "call 803,123,4567",
+    "call 0803 123,4567",
+    "account 1,234,567,890 GTB",
+    "rent 1,500,0008031234567",
+  ]) {
+    it(text, () => {
+      const { text: left, hits } = stripContacts(text);
+      expect(hits.length, text).toBeGreaterThan(0);
+      expect(dialable(left).length, left).toBeLessThan(7);
+    });
+  }
+
+  for (const text of [
+    "Rent 1,500,000 - 2,000,000 per annum.",
+    "Rent N1,500,000/N2,000,000.",
+    "rent 1,200,000 agency 120,000 legal 120,000 caution 100,000 total 1,540,000",
+    "Rent 1,500,000; 2 bed 2,000,000; 3 bed 3,000,000",
+    "Rent 1,500,000,000",
+    "Rent 12,000,000",
+  ]) {
+    it(`leaves money alone: ${text}`, () => {
+      const { text: left, hits } = stripContacts(text);
+      expect(hits, text).toEqual([]);
+      expect(left).toBe(text);
+    });
+  }
 });

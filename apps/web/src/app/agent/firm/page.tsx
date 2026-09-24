@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { AgentShell } from "@/components/agent/AgentShell";
@@ -7,6 +6,7 @@ import { agentProfileFrom, getAgentContext } from "@/lib/agent/listings-queries"
 import { readFirmDesk, readFirmRouting, readFirmTeam, readMyRoutingFirms } from "@/lib/firm/queries";
 import { publicAreaName } from "@/lib/share/public-text";
 import { FirmDesk } from "@/components/agent/FirmDesk";
+import { FirmPicker } from "@/components/agent/FirmPicker";
 import { Unreachable } from "@/components/app/Unreachable";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -66,18 +66,7 @@ export default async function FirmDeskPage({ searchParams }: { searchParams: Pro
         </h1>
         <p className="mt-3xs text-[var(--nf-content-secondary)]">{copy.lede}</p>
         {firms && firms.length > 1 && (
-          <nav className="mt-row flex flex-wrap gap-xs" aria-label={copy.pickFirm}>
-            {firms.map((f) => (
-              <Link
-                key={f.firmId}
-                href={`/agent/firm?firm=${f.firmId}`}
-                aria-current={f.firmId === firm.firmId ? "page" : undefined}
-                className="nf-link-quiet nf-body-sm text-[var(--nf-content-link)]"
-              >
-                {f.firmName}
-              </Link>
-            ))}
-          </nav>
+          <FirmPicker firms={firms} current={firm.firmId} label={copy.pickFirm} />
         )}
       </div>
       <FirmDesk firmId={firm.firmId} listings={listings} team={team} routing={routing} areas={areas} copy={copy} />
