@@ -21,10 +21,11 @@
  * `meta` record names the account that last saved one here. Only that
  * account's packs are ever read back, and a pack saved by a different
  * account clears the previous one's first. `clearPacks` also runs from both
- * sign-out controls in settings and whenever a signed-out screen renders
- * (`components/app/offline/ForgetOnSignOut.tsx` in the sign-in layout), so a
- * session that ended some other way (expiry, the devices screen from another
- * phone) is cleared the next time the phone shows the way in.
+ * sign-out controls in settings and on account deletion, and a signed-out
+ * way in (`components/app/offline/ForgetOnSignOut.tsx`, which checks there
+ * is no session first) clears the packs but keeps the unsent check-ins for
+ * their owner, so a session that ended some other way (expiry, the devices
+ * screen from another phone) leaves no gate code behind.
  */
 
 import { asCheckin, asPack, checkinKey, isExpired, livePacks, type InspectionPack, type QueuedCheckin } from "./pack";
@@ -156,6 +157,15 @@ export async function readCheckins(): Promise<QueuedCheckin[]> {
 
 export async function forgetCheckin(checkin: QueuedCheckin): Promise<void> {
   await run(CHECKINS, "readwrite", (s) => s.delete(checkinKey(checkin)));
+}
+
+/**
+ * The gate codes only, for a signed-out way in. The unsent check-ins and the
+ * owner record stay, so the same person signing back in still sends them and
+ * anybody else saving a pack clears them first (`savePack`).
+ */
+export async function forgetPacksKeepQueue(): Promise<void> {
+  await run(PACKS, "readwrite", (s) => s.clear());
 }
 
 /** Everything, for signing out and for a phone that changes hands. */
