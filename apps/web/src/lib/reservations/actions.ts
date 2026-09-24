@@ -281,11 +281,12 @@ export async function respondToReservation(
  *
  * Separate from the host's decision even though both write CANCELLED, because
  * they are scoped by different policies and mean different things. This one is
- * allowed while the table is still ahead, PENDING or CONFIRMED: somebody who
- * cannot come should be able to say so whether or not the restaurant has
- * answered yet, and a confirmed table nobody releases is a table the
- * restaurant loses. A finished table (completed or a no-show) is the venue's
- * record and is not rewritten; the database refuses it as well. The word goes into the thread too,
+ * allowed for a request the restaurant has not answered, and for a confirmed
+ * table while it is still ahead: somebody who cannot come should be able to
+ * say so whether or not the restaurant has answered yet, and a confirmed
+ * table nobody releases is a table the restaurant loses. A table whose time
+ * has passed is the venue's record (completed or not arrived) and is not
+ * rewritten; the database refuses it as well. The word goes into the thread too,
  * so the venue reads it where they read everything else about this table.
  */
 export async function cancelReservation(
@@ -311,7 +312,10 @@ export async function cancelReservation(
     .update({ status: cancelled, responded_at: new Date().toISOString() })
     .eq("id", id)
     .eq("guest_id", session.user.id)
-    .in("status", ["PENDING", "CONFIRMED"])
+    /* An unanswered request can be withdrawn at any time; a confirmed table
+       only while it is still ahead. Once it has passed, what happened is the
+       venue's to record, and the database refuses it too. */
+    .or(`status.eq.PENDING,and(status.eq.CONFIRMED,reserved_for.gt.${new Date().toISOString()})`)
     .select("id, party_size, reserved_for, conversation_id")
     .maybeSingle();
 
