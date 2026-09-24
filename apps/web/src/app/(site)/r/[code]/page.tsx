@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { publicPlace } from "@/lib/after-gate/public-place";
 import { formatMoney, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { verifyReceiptCode } from "@/lib/receipts/verify";
@@ -67,7 +68,8 @@ export default async function ReceiptCheckPage({ params }: { params: Promise<{ c
   }).format(new Date(receipt.paidAt));
   const period =
     receipt.rentPeriod === "month" ? copy.periodMonth : receipt.rentPeriod === "quarter" ? copy.periodQuarter : copy.periodYear;
-  const where = [receipt.area, receipt.city].filter(Boolean).join(", ");
+  // Rule 10: through the closed lists, never the lister's spelling.
+  const where = await publicPlace(receipt.area, receipt.city, receipt.stateCode);
 
   return frame(
     <section className="nf-panel nf-panel--card block p-md" data-testid="receipt-genuine">

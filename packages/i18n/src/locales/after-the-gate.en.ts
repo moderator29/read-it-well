@@ -278,7 +278,7 @@ export const afterTheGateEn = {
       water: "Water source",
       power: "Generator or inverter bay",
     },
-    missing: "Still to photograph: {slots}.",
+    missing: "Still to label or photograph: {slots}.",
     complete: "The four key shots are covered.",
     photographed: "Photographed: {slots}",
   },
@@ -313,6 +313,10 @@ export const afterTheGateEn = {
     disputed: "Disputed by the tenant.",
     unanswered: "Not answered.",
     pins: "Pinned messages",
+    pinsWarning: "These are messages as written, and may contain an address. Tick only the ones you want on the printed pack.",
+    pinsInclude: "Include the message from {date}",
+    heading: "A tenancy in {place}",
+    headingBeds: "A {count}-bedroom tenancy in {place}",
     letter: "Caution demand letter",
     letterLede: "Built from the record above. It opens in your own mail app with no address filled in; send it to the lister and keep a copy. It is a demand, not legal advice.",
     letterNotYet: "The letter opens after {date}, the day the caution is due back, if any of it is still owed then.",
@@ -377,7 +381,8 @@ export const afterTheGateEn = {
     /** V-84, on /wallet. */
     heading: "Coming up",
     kinds: {
-      renewal: "Rent renews {date}",
+      /** The amount is the latest renewal figure in full (rent, service and fees), or the rent when none is set. */
+      renewal: "Renewal due {date}",
       caution_owed_to_you: "Caution owed back to you by {date}",
       caution_you_owe: "Caution you owe back by {date}",
       share: "Your share of a move-in, due {date}",
@@ -391,6 +396,8 @@ export const afterTheGateEn = {
     /** V-36, on a lister's listing page, only once five cautions have settled. */
     line: "{name} has settled {settled} cautions through Vallo: {onTime} returned on time, and {deduction}% kept for agreed repairs on average.",
     theLister: "This lister",
+    overdue: "{count} more are still owed past their due date.",
+    overdueOne: "1 more is still owed past its due date.",
   },
   lastLet: {
     /** V-38, on a relisted flat's page. */

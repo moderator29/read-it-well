@@ -89,6 +89,9 @@ export type TenancyFile = {
   viewer: "tenant" | "lister" | "staff";
   title: string;
   area: string;
+  /** For surfaces a third party reads: the raw place parts, to go through the closed lists. */
+  place: { area: string | null; city: string | null; stateCode: string | null };
+  bedrooms: number | null;
   listerName: string | null;
   /** V-85: the tenant's first name and last initial, for their own letter. */
   tenantName: string | null;
@@ -239,7 +242,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
     const today = lagosToday(now);
 
     const [listingRead, txRead, snapshotRead, obligationRead, reportsRead, viewingRead, pinsRead, codeRead, voidRead] = await Promise.all([
-      db.from("listings").select("title, area, city, agent_id").eq("id", rp.listing_id).maybeSingle(),
+      db.from("listings").select("title, area, city, state_code, bedrooms, agent_id").eq("id", rp.listing_id).maybeSingle(),
       db
         .from("transactions")
         .select("id, amount_minor, created_at, provider_ref")
@@ -581,6 +584,8 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         viewer,
         title: listing?.title?.trim() || "Your tenancy",
         area: [listing?.area, listing?.city].filter((part): part is string => Boolean(part)).join(", "),
+        place: { area: listing?.area ?? null, city: listing?.city ?? null, stateCode: listing?.state_code ?? null },
+        bedrooms: typeof listing?.bedrooms === "number" ? listing.bedrooms : null,
         listerName,
         tenantName,
         moveIn: rp.move_in,

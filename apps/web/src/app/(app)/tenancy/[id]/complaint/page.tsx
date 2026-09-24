@@ -10,7 +10,8 @@ import { formatMoneyDate } from "@/lib/money/dates";
 import { ROOM_COPY, ROOM_ITEMS } from "@/lib/inspections/report";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState, FactGrid, Section, Stack, TYPE } from "@/components/app/Screen";
-import { DemandLetter, PrintPack } from "./PackControls";
+import { DemandLetter, PinnedChoice, PrintPack } from "./PackControls";
+import { publicPlace } from "@/lib/after-gate/public-place";
 import "./pack.css";
 
 /** A private record. Never indexed. */
@@ -53,6 +54,14 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
 
   const file = read.file;
   const today = lagosToday();
+  // Rule 10: this page is printed and handed to strangers, so the place goes
+  // through the closed lists and the heading is composed from facts, never
+  // the lister's title or description.
+  const place = await publicPlace(file.place.area, file.place.city, file.place.stateCode);
+  const heading =
+    file.bedrooms && file.bedrooms > 0
+      ? copy.headingBeds.replace("{count}", String(file.bedrooms)).replace("{place}", place)
+      : copy.heading.replace("{place}", place);
   const day = (value: string) => formatMoneyDate(value, locale) ?? value;
   const host = (await headers()).get("host");
   const origin = host ? `https://${host}` : null;
@@ -67,7 +76,7 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
       ? {
           tenantName: file.tenantName,
           listerName: file.listerName,
-          area: file.area,
+          area: place,
           period: { from: file.moveInLabel, to: file.endsOnLabel },
           cautionPaid: caution.amount,
           returned: caution.returned,
@@ -86,7 +95,8 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
   const moveIn = file.reports.filter((report) => report.stage === "move_in" && report.id);
   const moveOut = file.reports.filter((report) => report.stage === "move_out" && report.id);
   const who = (own: boolean) => copy.by.replace("{who}", own ? copy.you : copy.other);
-  const cell = (checked: boolean | undefined) => (checked === undefined ? copy.notChecked : checked ? copy.checked : copy.notChecked);
+  // A room the report never answered is blank, not a claim either way.
+  const cell = (checked: boolean | undefined) => (checked === undefined ? "" : checked ? copy.checked : copy.notChecked);
 
   return shell(
     <article className="nf-pack" data-testid="complaint-pack">
@@ -99,14 +109,14 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
         </Section>
 
         <Section title={copy.tenancy} divided>
-          <p className="nf-body font-semibold">{file.title}</p>
+          <p className="nf-body font-semibold">{heading}</p>
           <p className={`mt-2xs ${TYPE.body}`}>
             {copy.parties
               .replace("{tenant}", file.tenantName ?? t.afterTheGate.tenancy.you)
               .replace("{lister}", file.listerName ?? t.afterTheGate.moneyMap.theLister)}
           </p>
           <p className={`mt-2xs nf-numeric ${TYPE.body}`}>
-            {copy.period.replace("{from}", file.moveInLabel).replace("{to}", file.endsOnLabel).replace("{area}", file.area)}
+            {copy.period.replace("{from}", file.moveInLabel).replace("{to}", file.endsOnLabel).replace("{area}", place)}
           </p>
         </Section>
 
@@ -140,7 +150,6 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
         {file.snapshot && (
           <Section title={copy.promise.replace("{date}", file.snapshot.takenAtLabel)} divided>
             <FactGrid facts={file.snapshot.facts} />
-            {file.snapshot.description && <p className="nf-body-sm mt-md whitespace-pre-line">{file.snapshot.description}</p>}
           </Section>
         )}
 
@@ -202,14 +211,9 @@ export default async function ComplaintPage({ params }: { params: Promise<{ id: 
 
         {file.pins.length > 0 && (
           <Section title={copy.pins} divided>
-            <ul className="grid gap-sm">
-              {file.pins.map((pin) => (
-                <li key={pin.id}>
-                  <p className="nf-caption">{pin.date}</p>
-                  <p className="nf-body-sm whitespace-pre-line">{pin.body}</p>
-                </li>
-              ))}
-            </ul>
+            {/* Pinned messages are the parties' own words and may name a street,
+                so they print only when the tenant chooses each one. */}
+            <PinnedChoice pins={file.pins} copy={{ warning: copy.pinsWarning, include: copy.pinsInclude }} />
           </Section>
         )}
 

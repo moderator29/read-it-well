@@ -30,6 +30,7 @@ export type VerifiedReceipt = {
   rentPeriod: "year" | "quarter" | "month";
   area: string | null;
   city: string | null;
+  stateCode: string | null;
   parts: Partial<Record<"rent" | "caution" | "service" | "agency" | "legal" | "agreement", number>>;
 };
 
@@ -68,6 +69,7 @@ export function readVerifyAnswer(raw: unknown): VerifyOutcome {
       rentPeriod: period,
       area: text(row.area),
       city: text(row.city),
+      stateCode: text(row.state_code),
       parts,
     },
   };
