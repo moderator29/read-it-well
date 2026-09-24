@@ -425,7 +425,7 @@ export function ApplyWizard({ t, role }: { t: Dictionary; role?: SetupRole }) {
                     The control is the button around it and it carries no radius
                     of its own. */}
                 <span
-                  className="nf-numeric grid h-8 w-8 place-items-center rounded-full text-[length:var(--nf-text-overline)] font-bold transition-colors sm:h-9 sm:w-9 sm:text-[length:var(--nf-text-caption)]"
+                  className="nf-numeric grid h-8 w-8 place-items-center rounded-[var(--nf-radius-sm)] text-[length:var(--nf-text-overline)] font-bold transition-colors sm:h-9 sm:w-9 sm:text-[length:var(--nf-text-caption)]"
                   style={{
                     background: done || current ? "var(--nf-gradient-agent)" : "var(--nf-surface-raised)",
                     color: done || current ? "var(--nf-content-on-brand)" : "var(--nf-content-muted)",
@@ -816,7 +816,7 @@ function UploadZone({
           </span>
         )}
         {done && !slot?.uploading && (
-          <span className="absolute bottom-1.5 right-1.5 flex items-center gap-2xs rounded-[var(--nf-radius-control)] bg-[var(--nf-brand-primary)] px-xs py-3xs text-[length:var(--nf-text-overline)] font-bold text-[var(--nf-content-on-brand)]">
+          <span className="absolute bottom-1.5 right-1.5 flex items-center gap-2xs rounded-[var(--nf-radius-xs)] bg-[var(--nf-brand-primary)] px-xs py-3xs text-[length:var(--nf-text-overline)] font-bold text-[var(--nf-content-on-brand)]">
             <UiIcon name="verified" size={12} />
             Uploaded
           </span>

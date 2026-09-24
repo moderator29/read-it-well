@@ -86,7 +86,7 @@ export default async function InspectionsPage({
     <div className="mx-auto max-w-2xl">
       {/* The render's top row (logo, bell, profile) is the shared app header;
           the back square, the title and the glass house are this page's. */}
-      <InspectionHero sub="Check the property, confirm details, submit your report." fallback="/home" />
+      <InspectionHero sub="The viewings you asked for, and the agent's answer to each." fallback="/home" />
       <InspectionsLive userId={userId} />
 
       {readFailed ? (

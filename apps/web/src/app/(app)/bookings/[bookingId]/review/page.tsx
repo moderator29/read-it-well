@@ -67,8 +67,7 @@ export default async function ReviewPage({
         {/* Rose and a cross. This said "We could not find that stay" under a
             calendar with a tick, in the pending colour. */}
         <ResultScreen
-          state="failed"
-          mark="seal-cross"
+          state="missing"
           verdict="We could not find that stay"
           consequence="It may belong to another account. Your stays are all in one place."
           actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}

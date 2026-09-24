@@ -28,11 +28,12 @@ function Demo() {
   const [open, setOpen] = useState(false);
   useSheetHistory(open, "demo", () => setOpen(false));
   return (
-    <div>
+    <div style={{ minHeight: "4000px" }}>
       <button id="open" onClick={() => setOpen(true)}>open</button>
       <button id="close" onClick={() => setOpen(false)}>close</button>
       <button id="close-and-go" onClick={() => { setOpen(false); history.pushState({ page: "next" }, "", "/next"); }}>go</button>
       <output id="state">{open ? "open" : "closed"}</output>
+      <button id="open-low" style={{ position: "absolute", top: "1500px" }} onClick={() => setOpen(true)}>open low</button>
     </div>
   );
 }
@@ -98,6 +99,21 @@ describe.skipIf(!CHROMIUM && !process.env.CI)("Back and an open sheet (real Chro
     await p.waitForFunction(() => !(history.state && (history.state as Record<string, unknown>).nfSheet));
     expect(await state(p)).toBe("closed");
     expect(new URL(p.url()).pathname).toBe("/wallet");
+    await p.close();
+  });
+
+  it("keeps the reader's place on the page through Back and through a close", async () => {
+    const p = await page();
+    await p.evaluate(() => window.scrollTo(0, 1200));
+    await p.click("#open-low");
+    await p.evaluate(() => history.back());
+    await p.waitForFunction(() => document.querySelector("#state")?.textContent === "closed");
+    await p.waitForTimeout(100);
+    expect(await p.evaluate(() => Math.round(window.scrollY))).toBeGreaterThan(1000);
+    await p.click("#open-low");
+    await p.evaluate(() => (document.querySelector("#close") as HTMLButtonElement).click());
+    await p.waitForTimeout(150);
+    expect(await p.evaluate(() => Math.round(window.scrollY))).toBeGreaterThan(1000);
     await p.close();
   });
 

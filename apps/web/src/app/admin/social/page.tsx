@@ -131,7 +131,7 @@ export default async function AdminSocialPage({
       <section>
         <h2 className="mb-sm flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           Places waiting
-          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="nf-numeric rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {queue.proposed.length}
           </span>
         </h2>
@@ -195,7 +195,7 @@ export default async function AdminSocialPage({
       <section>
         <h2 className="mb-sm flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           People who want to look after a place
-          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="nf-numeric rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {queue.applications.length}
           </span>
         </h2>
@@ -255,7 +255,7 @@ export default async function AdminSocialPage({
       <section>
         <h2 className="mb-sm flex items-center gap-xs text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           Open places
-          <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+          <span className="nf-numeric rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
             {queue.open.length}
           </span>
         </h2>
@@ -282,7 +282,7 @@ export default async function AdminSocialPage({
                       {area.name}
                     </Link>
                     {area.status === "PAUSED" ? (
-                      <span className="rounded-[var(--nf-radius-control)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
+                      <span className="rounded-[var(--nf-radius-xs)] border border-[var(--nf-border-default)] px-xs py-3xs text-[length:var(--nf-text-overline)] font-semibold uppercase tracking-wider text-[var(--nf-content-muted)]">
                         Paused
                       </span>
                     ) : null}

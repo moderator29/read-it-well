@@ -84,8 +84,7 @@ export default async function RentPayPage({
     return (
       <Shell>
         <ResultScreen
-          state="failed"
-          mark="seal-cross"
+          state="missing"
           verdict={c.inspectionNotFound}
           consequence={c.inspectionNotFoundBody}
           actions={[{ label: c.seeInspections, href: "/inspections", tone: "primary" }]}

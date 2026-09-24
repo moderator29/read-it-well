@@ -164,7 +164,7 @@ export function OccupationEditor({ rows }: { rows: Occupation[] }) {
     <section>
       <div className="mb-sm flex flex-wrap items-center gap-sm">
         <h2 className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">Occupations</h2>
-        <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-brand-edge)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="nf-numeric rounded-[var(--nf-radius-xs)] border border-[var(--nf-brand-edge)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {rows.length}
         </span>
         <button
@@ -345,7 +345,7 @@ export function LocalGovernmentEditor({
         <h2 className="text-[length:var(--nf-text-body-sm)] font-semibold text-[var(--nf-content-primary)]">
           Local governments
         </h2>
-        <span className="nf-numeric rounded-[var(--nf-radius-control)] border border-[var(--nf-brand-edge)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
+        <span className="nf-numeric rounded-[var(--nf-radius-xs)] border border-[var(--nf-brand-edge)] px-xs py-3xs text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
           {rows.length}
         </span>
         <button

@@ -1748,7 +1748,7 @@ export const CHAPTERS: DocChapter[] = [
             <p>
               Start at{" "}
               <Link href={SUPPLY_DOOR_HREF} className={A}>
-                Add a workspace
+                Add a listing account
               </Link>{" "}
               and pick the door that fits: {doorsSentence()}. The owner form is four
               short screens. The agent and firm forms ask for more, because more can go

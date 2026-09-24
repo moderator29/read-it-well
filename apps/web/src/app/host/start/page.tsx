@@ -5,7 +5,7 @@ import { HostShell } from "@/components/host/HostShell";
 import { StaysDoors } from "@/components/host/StaysDoors";
 
 export const metadata: Metadata = {
-  title: "Add a workspace",
+  title: "Add a listing account",
   robots: { index: false, follow: false },
 };
 

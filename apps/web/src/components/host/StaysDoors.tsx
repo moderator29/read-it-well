@@ -32,7 +32,7 @@ export function StaysDoors() {
     <>
       <div className="nf-agent-head">
         <div>
-          <h1 className="nf-agent-head__title">Add a workspace</h1>
+          <h1 className="nf-agent-head__title">Add a listing account</h1>
           <p className={`mt-row ${TYPE.bodyLg}`}>What kind of stays business are you?</p>
         </div>
       </div>

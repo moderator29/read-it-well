@@ -35,7 +35,7 @@ export default function AboutPage() {
          verification claim the database is built to refuse. What follows is
          what is actually true and it is a stronger thing to say: the ladder
          exists, it gates being paid, and nothing arrives from an outside feed. */
-      body: "Nothing here came from a feed. Every listing was put up by a named person who applied to be here, and a lister climbs a verification ladder before any money can reach them. We would rather grow slowly than carry a place nobody can be held to.",
+      body: "Nothing here came from a feed. A real listing is put up by a named person who applied to be here, and a lister climbs a verification ladder before any money can reach them. While real listings arrive, the ones marked Example show how Vallo works and cannot be rented or booked. We would rather grow slowly than carry a place nobody can be held to.",
     },
     {
       icon: "globe-pin",

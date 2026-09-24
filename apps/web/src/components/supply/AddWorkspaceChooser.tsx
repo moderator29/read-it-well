@@ -181,16 +181,10 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
         it steps back to the doors from the overview and leaves the chooser
         from the doors, which is what a person pressing it expects.
       */}
-      <div className="mb-heading flex items-center">
-        <button
-          type="button"
-          aria-label={copy.back}
-          onClick={() => (step === "overview" ? setStep("choose") : router.push("/profile"))}
-          className="nf-icon-btn nf-icon-btn--glass h-11 w-11 shrink-0"
-        >
-          <UiIcon name="arrow-left" size={20} />
-        </button>
-      </div>
+      {/* UX-28: ONE back control. The page mounts the shared BackButton to
+          the declared parent; the chooser drew a second arrow under it. The
+          step back from the overview to the doors is the "Choose again"
+          control beside Continue. */}
 
       {/*
         THE PROGRESS ROW: small filled rectangles, which is how every screen in
@@ -303,6 +297,11 @@ export function AddWorkspaceChooser({ t, side }: { t: Dictionary; side: Side }) 
           <Button onClick={onContinue} variant="primary" size="lg" full trailingIcon="arrow-right">
             {copy.continueLabel}
           </Button>
+          {step === "overview" && (
+            <Button onClick={() => setStep("choose")} variant="ghost" size="lg" full>
+              {copy.chooseAgain}
+            </Button>
+          )}
         </div>
       )}
     </div>

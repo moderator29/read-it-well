@@ -118,6 +118,48 @@ function newConversationLimitMessage(retryIn: string): string {
 export async function startConversation(input: {
   listingId: string;
 }): Promise<ActionResult<{ conversationId: string }>> {
+  const found = await findOrStartConversation(input, true);
+  if (!found.ok) return found;
+  return found.data.conversationId
+    ? ok({ conversationId: found.data.conversationId })
+    : fail("We could not open this conversation just now. Please try again.");
+}
+
+/**
+ * UX-P2-03: the "Message" page looks, it does not write. Every check the
+ * start makes (the listing, the agent, your own listing, a block), and an
+ * existing thread comes back; nothing is created and the daily count is not
+ * touched. `conversationId` is null when there is no thread yet: the page
+ * shows a first-message box, and the thread is made when that is sent.
+ */
+export async function findConversationForListing(input: {
+  listingId: string;
+}): Promise<ActionResult<{ conversationId: string | null }>> {
+  return findOrStartConversation(input, false);
+}
+
+/**
+ * UX-P2-03: the first message makes the thread. Opens (or finds) the
+ * conversation and sends the message in one call, so an abandoned "Message"
+ * tap leaves nothing behind in either inbox.
+ */
+export async function startConversationWithMessage(input: {
+  listingId: string;
+  body: string;
+}): Promise<ActionResult<{ conversationId: string }>> {
+  const body = typeof input?.body === "string" ? input.body.trim() : "";
+  if (!body) return fail("Type a message before sending.", { body: "Type a message before sending." });
+  const started = await startConversation({ listingId: input.listingId });
+  if (!started.ok) return started;
+  const sent = await sendMessage({ conversationId: started.data.conversationId, body });
+  if (!sent.ok) return fail(sent.error, sent.fieldErrors);
+  return ok({ conversationId: started.data.conversationId });
+}
+
+async function findOrStartConversation(
+  input: { listingId: string },
+  create: boolean,
+): Promise<ActionResult<{ conversationId: string | null }>> {
   const session = await resolveSession();
   if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
   if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
@@ -183,6 +225,7 @@ export async function startConversation(input: {
     .maybeSingle();
   if (findError) return fail("Messaging is unavailable just now. Please try again shortly.");
   if (existing) return ok({ conversationId: existing.id });
+  if (!create) return ok({ conversationId: null });
 
   // A row is genuinely about to be created, so this is the moment the daily
   // count applies. The limiter fails open, so a limiter outage can never stop a

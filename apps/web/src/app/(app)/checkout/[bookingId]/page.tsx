@@ -101,8 +101,7 @@ export default async function CheckoutPage({
             inside a cyan glow: a success mark and the pending colour, both
             contradicting the sentence between them. */}
         <ResultScreen
-          state="failed"
-          mark="seal-cross"
+          state="missing"
           verdict={c.bookingNotFound}
           consequence={c.bookingNotFoundBody}
           actions={[{ label: c.seeStays, href: "/bookings", tone: "primary" }]}

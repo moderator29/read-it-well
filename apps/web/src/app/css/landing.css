@@ -1400,7 +1400,7 @@
     place-items: center;
     width: 1.25rem;
     height: 1.25rem;
-    border-radius: var(--nf-radius-circle);
+    border-radius: var(--nf-radius-xs); /* UI-01: a numeral is text; round text is a capsule */
     font-size: var(--nf-text-overline);
     font-weight: 700;
     color: var(--nf-content-on-brand);
