@@ -89,13 +89,14 @@ their call sites move to it route by route, and the wrappers are then deleted.
 ## The ratchet
 
 On 24 September 2026, ten literal titles and bodies on the wrappers still being
-migrated broke the length limits. They are on the wallet, the wallet
-transactions, agent inspections, host photos, host reservations, host rooms and
-the feed.
+migrated broke the length limits. The seven on agent inspections, host photos,
+host reservations, host rooms and the feed were rewritten the same day. The
+three left are on the wallet and wallet transactions screens, which belong to
+the audit session.
 
-The sweep lists them as owed rather than failing on them. `LEGACY_BUDGET` may only
-go down: a new long line on a wrapper fails the sweep. So does any problem at all
-on a `<State>` call site.
+The sweep lists them as owed rather than failing on them. `LEGACY_BUDGET` is
+now 3 and may only go down: a new long line on a wrapper fails the sweep. So
+does any problem at all on a `<State>` call site.
 
 ## What the sweep cannot see
 

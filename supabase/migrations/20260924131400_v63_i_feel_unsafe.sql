@@ -14,7 +14,7 @@
 --     one row per hold: who is held, who filed, the report, when, when it
 --     lapses, and when a moderator cleared it. While a hold is open the HELD
 --     PERSON cannot REQUEST an inspection of the FILER'S listings (a trigger
---     refuses the insert; the app says so first). It does not follow them to
+--     refuses the insert). It does not follow them to
 --     anybody else's. Nothing stops anyone RECEIVING a request: a hold on
 --     an agent's inbound requests would let one report shut an agent's
 --     business, which is the lever V-63 must not hand anybody.
@@ -29,6 +29,11 @@
 -- withdrawal today tells the lister at once. So pending inspections are left
 -- as they are, and the moderator, who is told by the report on the four-hour
 -- clock, withdraws them. Recorded as partial.
+--
+-- KNOWN LIMIT. A held request is refused in the words any listing not taking
+-- requests gets, and nothing names the hold or the filer. But a held person
+-- who is refused on every one of one lister's listings, and nowhere else, may
+-- infer that lister filed a hold. Recorded, not solved.
 --
 -- ABUSE. A hold needs the filer to have SENT at least one message in that
 -- conversation (or, from an inspection with no thread, to be a party to a
@@ -79,8 +84,8 @@ revoke all on function private.has_open_safety_hold(uuid, uuid) from public, ano
 /* NO READ OF ONE'S OWN HOLD. An earlier draft let a person ask "am I held
    against this listing's lister?", and the answer named the filer: only the
    lister of that listing could have filed it. A held request is refused below
-   exactly as a listing that is not taking requests is refused, so nothing a
-   held person can see tells them a report exists, or who made it. */
+   in the words a listing that is not taking requests gets; see KNOWN LIMIT in
+   the header for what repeated refusals can still suggest. */
 
 create or replace function public.feel_unsafe(p_conversation uuid, p_inspection uuid, p_block boolean)
 returns jsonb
@@ -280,7 +285,7 @@ begin
   if private.has_open_safety_hold(new.requester_id, new.lister_id) then
     /* Word for word what the insert policy says when it refuses a listing
        that is not taking requests, with no hint: the held person reads the
-       same sentence as anybody else turned away, and learns nothing. */
+       same sentence as anybody else turned away. */
     raise exception 'new row violates row-level security policy for table "inspection_requests"'
       using errcode = '42501';
   end if;

@@ -185,7 +185,7 @@ export function OfflineTray() {
     } finally {
       running.current = false;
     }
-  }, []);
+  }, [copy]);
 
   useEffect(() => {
     const kick = () => void run();

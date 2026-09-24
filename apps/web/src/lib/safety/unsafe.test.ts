@@ -58,7 +58,7 @@ describe("I feel unsafe (V-63)", () => {
 });
 
 describe("the hold, after review (V-63)", () => {
-  it("never lets a held person learn of the hold, and pauses only the person asking", () => {
+  it("refuses a held request in the generic words, and pauses only the person asking", () => {
     const sql = read("../../../supabase/migrations/20260924131400_v63_i_feel_unsafe.sql");
     expect(sql).not.toContain("create or replace function public.safety_hold_open");
     expect(sql).toContain("if private.has_open_safety_hold(new.requester_id, new.lister_id) then");
@@ -91,7 +91,8 @@ describe("the hold, after review (V-63)", () => {
     const copy = getDictionary("en").trustVisible.unsafe;
     expect(copy.leaveHint).not.toMatch(/inspection/);
     expect(copy.tellHint).not.toMatch(/inspection/);
-    expect(copy.pauseHint).toMatch(/inspection requests to you pause/);
+    expect(copy.pauseHint).toMatch(/paused for up to three days/);
+    expect(copy.heldNote).toMatch(/paused for up to three days/);
     const sheet = read("components/app/safety/UnsafeSheet.tsx");
     expect(sheet).toContain("filerIsLister ? `${copy.leaveHint} ${copy.pauseHint}` : copy.leaveHint");
     expect(read("components/app/inspections/InspectionSheet.tsx")).toContain('filerIsLister={side === "lister"}');

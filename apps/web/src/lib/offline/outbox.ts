@@ -209,8 +209,8 @@ export function rememberedOutboxUser(): string | null {
 }
 
 /** The session's answer: a user id, null for a clean "nobody", undefined for "could not tell". */
-export async function sessionUserId(): Promise<string | null | undefined> {
-  if (typeof window === "undefined") return undefined;
+/** One read of the session: the user id, and whether the read itself failed. */
+async function readSession(): Promise<{ id: string | null; failed: boolean }> {
   try {
     const { createClient } = await import("../supabase/client");
     const { data, error } = await createClient().auth.getSession();
@@ -221,14 +221,22 @@ export async function sessionUserId(): Promise<string | null | undefined> {
       } catch {
         /* Remembering is a convenience. */
       }
-      return id;
     }
-    if (error || (typeof navigator !== "undefined" && navigator.onLine === false)) return undefined;
-    forgetOutboxUser();
-    return null;
+    return { id, failed: !id && Boolean(error) };
   } catch {
-    return undefined;
+    return { id: null, failed: true };
   }
+}
+
+export async function sessionUserId(): Promise<string | null | undefined> {
+  if (typeof window === "undefined") return undefined;
+  const { id, failed } = await readSession();
+  if (id) return id;
+  /* Offline, a clean "nobody" may still be a token that could not refresh:
+     the tray and sign-out cleanup wait for a clear answer. */
+  if (failed || (typeof navigator !== "undefined" && navigator.onLine === false)) return undefined;
+  forgetOutboxUser();
+  return null;
 }
 
 /** Sign-out: nobody is remembered any more. */
@@ -242,9 +250,10 @@ export function forgetOutboxUser(): void {
 
 /** Keep an intent, stamped with who tapped it. The latest tap on the same thing replaces the earlier one. */
 export async function enqueue(entry: OutboxEntry): Promise<boolean> {
-  const now = await sessionUserId();
-  /* Offline with an expired token: the last user the session confirmed. */
-  const userId = now === undefined ? rememberedOutboxUser() : now;
+  /* The remembered user only when getSession itself failed (an expired
+     token that could not refresh); being offline alone is not a reason. */
+  const read = typeof window === "undefined" ? { id: null, failed: false } : await readSession();
+  const userId = read.id ?? (read.failed ? rememberedOutboxUser() : null);
   const stamped = { ...entry, userId };
   const done = await run("readwrite", (s) => s.put(stamped, entry.key));
   changed();

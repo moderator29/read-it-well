@@ -37,7 +37,7 @@ import { STATE_TONE, stateRole, type StateKind } from "@/lib/design/voice";
 /* The type roles, as `TYPE.sectionTitle` and `TYPE.body` in
    `components/app/Screen.tsx` spell them. Written out rather than imported,
    because Screen's EmptyState renders this kit and a two-way import is a cycle;
-   `state.test.ts` holds them equal. */
+   `lib/design/voice.test.ts` holds them equal. */
 export const STATE_TITLE_CLASS = "nf-h3 text-[var(--nf-content-primary)]";
 export const STATE_BODY_CLASS = "nf-body text-[var(--nf-content-secondary)]";
 
