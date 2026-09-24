@@ -504,7 +504,7 @@ export const frontDoorEn = {
     funnelEmpty: "No enquiries yet. When a renter messages you about a listing, it is counted here.",
     lostTitle: "Why enquiries were lost, by area",
     lostNote:
-      "From every lister on Vallo in the last 12 weeks. An area appears only once enquiries there were lost by at least three different listers across at least five homes, and a reason is named only where five enquiries give it. No listing, lister or renter is named.",
+      "From other listers on Vallo over the last full 12-week period; your own enquiries are not counted. An area appears only once enquiries there were lost by at least three different listers across at least five homes, with no one lister behind most of them, and a reason is named only where five enquiries from three listers give it. No listing, lister or renter is named.",
     lostEmpty: "No area has enough lost enquiries from enough different listers yet, so there is nothing to show without pointing at somebody.",
     lostApprovedOnly: "Why enquiries are lost opens once your lister profile is approved.",
     lostRow: "{count} of {total}",

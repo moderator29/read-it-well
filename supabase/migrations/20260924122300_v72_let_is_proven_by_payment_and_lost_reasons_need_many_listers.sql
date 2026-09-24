@@ -25,12 +25,20 @@ comment on column public.inspection_requests.confirmed_at is
 comment on column public.inspection_requests.completed_at is
   'V-72. When the viewing became COMPLETED (a trigger stamps it). Backfilled from updated_at for rows completed before it existed.';
 
-update public.inspection_requests
-   set confirmed_at = coalesce(confirmed_at, responded_at, updated_at)
- where state in ('CONFIRMED', 'COMPLETED') and confirmed_at is null;
-update public.inspection_requests
-   set completed_at = coalesce(completed_at, updated_at)
- where state = 'COMPLETED' and completed_at is null;
+-- One statement, from values captured before it runs: a first UPDATE would
+-- move updated_at (set_updated_at) and a second would then date every
+-- COMPLETED row to the migration. COMPLETED rows take both stamps here.
+with before as (
+  select ir.id, ir.state, ir.responded_at, ir.updated_at
+    from public.inspection_requests ir
+   where ir.state in ('CONFIRMED', 'COMPLETED')
+     and (ir.confirmed_at is null or (ir.state = 'COMPLETED' and ir.completed_at is null))
+)
+update public.inspection_requests ir
+   set completed_at = case when b.state = 'COMPLETED' then coalesce(ir.completed_at, b.updated_at) else ir.completed_at end,
+       confirmed_at = coalesce(ir.confirmed_at, b.responded_at, b.updated_at)
+  from before b
+ where ir.id = b.id;
 
 create or replace function private.stamp_inspection_transitions()
 returns trigger
