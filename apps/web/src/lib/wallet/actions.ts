@@ -52,6 +52,7 @@ import { isFeatureEnabled } from "../flags";
 import { logMoney } from "../payments/observability";
 import {
   PaystackError,
+  PaystackUnknownOutcome,
   createTransferRecipient,
   initializeTransaction,
   initiateTransfer,
@@ -77,6 +78,7 @@ import {
   findUserByEmail,
   getAdminClient,
   postEntry,
+  annotateEntry,
   recordFunding,
   setEntryStatus,
   type AdminClient,
@@ -155,6 +157,39 @@ async function siteOrigin(): Promise<string> {
 }
 
 /** Turn a Paystack failure into honest copy, keeping its useful detail. */
+/**
+ * MON-01. A withdrawal whose transfer call ended without an answer: the hold
+ * stays PENDING (the money is neither spendable nor released), the sweep
+ * asks Paystack and settles it either way, and the person is told the truth,
+ * that the bank has not said yet.
+ */
+const WITHDRAWAL_UNKNOWN_MESSAGE =
+  "The bank has not confirmed this withdrawal yet. The amount stays on hold until it does, and you will be told either way. Do not try again in the meantime.";
+
+async function keepHoldForUnknownOutcome(
+  admin: AdminClient,
+  args: { reference: string; amountMinor: number; userId: string },
+): Promise<ActionResult<WithdrawReceipt | null>> {
+  logMoney({
+    surface: "withdraw",
+    outcome: "failed",
+    reason: "transfer_outcome_unknown_hold_kept",
+    reference: args.reference,
+    amountMinor: args.amountMinor,
+    userId: args.userId,
+  });
+  await recordMoneyAudit(admin, {
+    actor: { kind: "user", userId: args.userId },
+    action: "wallet.withdrawal.outcome_unknown",
+    reference: args.reference,
+    amountMinor: args.amountMinor,
+    subjectUserId: args.userId,
+    outcome: "still_pending",
+    detail: {},
+  });
+  return fail(WITHDRAWAL_UNKNOWN_MESSAGE);
+}
+
 function describePaystackError(e: unknown, fallback: string): string {
   if (e instanceof PaystackError && e.status !== 401 && e.message.trim().length > 0) {
     return `${fallback} The payment service said: ${e.message.trim()}`;
@@ -722,6 +757,7 @@ async function withdrawWork(
     }
   }
 
+  let transferAttempted = false;
   try {
     const recipient = await createTransferRecipient({
       /* The bank's own answer, resolved above. This read a form field until
@@ -731,6 +767,7 @@ async function withdrawWork(
       accountNumber: parsed.data.accountNumber,
       bankCode: bank.code,
     });
+    transferAttempted = true;
     await initiateTransfer({
       amountMinor,
       recipientCode: recipient.recipientCode,
@@ -738,12 +775,17 @@ async function withdrawWork(
       reason: "Vallo wallet withdrawal",
     });
   } catch (e) {
+    /* MON-01. The transfer call may have reached Paystack. Releasing the hold
+       now would hand back money that may already be on its way to the bank,
+       so it stays PENDING and the sweep asks Paystack what happened. */
+    if (transferAttempted && e instanceof PaystackUnknownOutcome) {
+      return keepHoldForUnknownOutcome(admin, { reference, amountMinor, userId: session.user.id });
+    }
     let markedFailed = false;
     try {
-      await setEntryStatus(admin, reference, "FAILED", {
+      markedFailed = await setEntryStatus(admin, reference, "FAILED", {
         failure: e instanceof PaystackError ? e.message : "Transfer initiation failed.",
       });
-      markedFailed = true;
     } catch {
       // The hold stays PENDING. sweepStaleWithdrawalHolds asks Paystack what
       // became of this reference and, finding no transfer under it, releases
@@ -933,6 +975,7 @@ async function withdrawToSavedAccount(
     },
   });
 
+  let transferAttempted = false;
   try {
     let recipientCode = account.recipient_code;
     if (!recipientCode) {
@@ -951,6 +994,7 @@ async function withdrawToSavedAccount(
         .update({ recipient_code: recipientCode })
         .eq("id", account.id);
     }
+    transferAttempted = true;
     await initiateTransfer({
       amountMinor,
       recipientCode,
@@ -958,12 +1002,17 @@ async function withdrawToSavedAccount(
       reason: "Vallo wallet withdrawal",
     });
   } catch (e) {
+    /* MON-01. The transfer call may have reached Paystack. Releasing the hold
+       now would hand back money that may already be on its way to the bank,
+       so it stays PENDING and the sweep asks Paystack what happened. */
+    if (transferAttempted && e instanceof PaystackUnknownOutcome) {
+      return keepHoldForUnknownOutcome(admin, { reference, amountMinor, userId: session.user.id });
+    }
     let markedFailed = false;
     try {
-      await setEntryStatus(admin, reference, "FAILED", {
+      markedFailed = await setEntryStatus(admin, reference, "FAILED", {
         failure: e instanceof PaystackError ? e.message : "Transfer initiation failed.",
       });
-      markedFailed = true;
     } catch {
       // The hold stays PENDING and sweepStaleWithdrawalHolds releases it once
       // Paystack confirms no transfer exists under this reference.
@@ -1291,8 +1340,10 @@ async function labelTransferLegs(
   legs: { outReference: string; inReference: string; outNote: string; inNote: string },
 ): Promise<void> {
   try {
-    await setEntryStatus(admin, legs.outReference, "COMPLETED", { note: legs.outNote });
-    await setEntryStatus(admin, legs.inReference, "COMPLETED", { note: legs.inNote });
+    /* A caption only. The legs are already COMPLETED, and a status write on a
+       settled row is what MON-01 stopped setEntryStatus from doing. */
+    await annotateEntry(admin, legs.outReference, { note: legs.outNote });
+    await annotateEntry(admin, legs.inReference, { note: legs.inNote });
   } catch {
     // A statement row without its caption is a cosmetic problem. See above.
   }
