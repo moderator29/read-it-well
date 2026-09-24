@@ -161,12 +161,12 @@ const SURFACES = {};
 
 /* ------------------------------------------------------------ inspection */
 /*
- * Render: F6A8A482-657B-4836-B30A-1A0578BC3FBA.png (repo root), 1024x1536,
+ * Render: docs/design/references/F6A8A482-657B-4836-B30A-1A0578BC3FBA.png, 1024x1536,
  * phone screen 668 image px wide. Boxes are [left, top, width, height] in
  * render px. See apps/web/public/brand/session-b/inspection/SOURCES.md.
  */
 SURFACES.inspection = async () => {
-  const render = path.join(ROOT, "F6A8A482-657B-4836-B30A-1A0578BC3FBA.png");
+  const render = path.join(ROOT, "docs/design/references/F6A8A482-657B-4836-B30A-1A0578BC3FBA.png");
   const dir = path.join(OUT, "inspection");
   await mkdir(dir, { recursive: true });
   /* The glass house with the tick, beside the title. The box stops above the
@@ -234,7 +234,7 @@ SURFACES.inspection = async () => {
 
 /* ------------------------------------------------------------------ send */
 /*
- * Render: 77A54EA3-BBB5-4BF4-B3A5-144C99CABAF7.png (repo root), 1024x1536,
+ * Render: docs/design/references/77A54EA3-BBB5-4BF4-B3A5-144C99CABAF7.png, 1024x1536,
  * phone screen 667 image px wide (1.71 image px per CSS px at 390). The round
  * glass plates at the left of the send form's rows, glyph included (line art,
  * no lettering). Only rows the product offers: Recipient, Amount, Narration,
@@ -246,7 +246,7 @@ SURFACES.inspection = async () => {
  * (Wallet worker.)
  */
 SURFACES.send = async () => {
-  const render = path.join(ROOT, "77A54EA3-BBB5-4BF4-B3A5-144C99CABAF7.png");
+  const render = path.join(ROOT, "docs/design/references/77A54EA3-BBB5-4BF4-B3A5-144C99CABAF7.png");
   const dir = path.join(OUT, "send");
   await mkdir(dir, { recursive: true });
   const plates = {
@@ -728,7 +728,7 @@ the slicer grows a retouch step, take those four from this folder rather than
 re-cutting them raw.
 
 \`\`\`js
-  /* roles/: the platform identity pack (Session B, docs/SESSION_B_SCOPE.md section 10). */
+  /* roles/: the platform identity pack (Session B, docs/archive/SESSION_B_SCOPE.md section 10). */
 ${manifest}
 \`\`\`
 `;
@@ -837,7 +837,7 @@ async function stageCut(img, box, feather) {
 }
 
 async function welcome() {
-  const RENDER = "2A49E2F7-F99C-47D3-BB79-075DCC1A0F5D.png";
+  const RENDER = "docs/design/references/2A49E2F7-F99C-47D3-BB79-075DCC1A0F5D.png";
   const dir = path.join(OUT, "welcome");
   await mkdir(dir, { recursive: true });
 
@@ -962,7 +962,7 @@ text at 3x and matches it at 2x. Nothing is upscaled.
 SURFACES.welcome = welcome;
 
 /* =====================================================================
- * SIGNIN (Welcome back), render 55A56F21. Owner: Session B "signin".
+ * SIGNIN (Welcome back), render 55A56F21.
  * Its own helpers, prefixed `si`, so nothing above is changed: raw RGBA
  * through sharp, a normalised-convolution fill that lifts painted UI out of
  * a render, an edge feather, and a brightest-channel key outside one
@@ -1145,7 +1145,7 @@ function siExtend(raw, { side, below, insetX = 110, insetY = 40 }) {
 }
 
 async function signin() {
-  const RENDER = "55A56F21-0654-4F2D-984B-60A8CE97BB17.png";
+  const RENDER = "docs/design/references/55A56F21-0654-4F2D-984B-60A8CE97BB17.png";
   const dir = path.join(OUT, "signin");
   await mkdir(dir, { recursive: true });
 

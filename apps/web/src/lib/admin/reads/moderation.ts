@@ -229,7 +229,7 @@ export type CategoryReport = {
 
 /**
  * Reports narrowed by category IN THE QUERY, paged forty at a time, with the
- * same search, status and date narrowing as Session A's `getReports` (which
+ * same search, status and date narrowing as `getReports` (which
  * has no category filter). `category` of "uncategorised" means rows filed
  * before categories existed.
  */
@@ -302,9 +302,9 @@ export type HeldEvent = {
  * Every event the safety scan is holding (`private.scan_event` sets
  * `status = 'HELD'` on payment language or an account number), oldest first,
  * read whole a thousand at a time. `events_admin_write` lets an admin read
- * them. There is no decision for a held event in Session A's actions yet
- * (`decideHeldItem` takes posts, stories, comments and bios); scope request
- * AR-10 asks for one, and the desk says so under each held event.
+ * them. There is no decision for a held event in the admin actions yet
+ * (`decideHeldItem` takes posts, stories, comments and bios), and the desk
+ * says so under each held event.
  */
 export async function getHeldEvents(): Promise<Read<HeldEvent[]>> {
   const db = await adminDb();

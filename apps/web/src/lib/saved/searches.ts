@@ -208,7 +208,7 @@ export function summariseSearch(
   if (query.bedrooms !== undefined) chips.push(`${query.bedrooms}+ beds`);
   if (query.bathrooms !== undefined) chips.push(`${query.bathrooms}+ baths`);
   if (query.guests !== undefined) chips.push(`Sleeps ${query.guests}`);
-  if (query.verifiedOnly) chips.push("Checked listings");
+  if (query.verifiedOnly) chips.push("Verified only");
   if (query.instantBook) chips.push("Instant book");
   if (query.powerBackup) chips.push("Backup power");
   if (query.powerBandA) chips.push("Band A feeder");

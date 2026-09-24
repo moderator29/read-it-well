@@ -94,7 +94,7 @@ describe("brand object artwork", () => {
    * nothing in the product references `glass/light/` at all.
    *
    * THE FILES STAY AND THAT IS A DECISION RATHER THAN AN OVERSIGHT. They are
-   * commissioned artwork and deleting them is not this session's call, so they
+   * commissioned artwork and deleting them is the founder's call, so they
    * sit there unreferenced. The spec below is what stops the next reader
    * filing that as a wiring bug: it asserts the directory is intact and
    * UNUSED, which is the state somebody has to deliberately change.

@@ -173,12 +173,19 @@
 		shut: on iOS Safari the same input offers the same camera today, with
 		Safari holding the permission instead of us.
 	-->
+	<!--
+		STORE-P2-03. The listing walkthrough upload (`VideoWalkthrough.tsx`)
+		accepts video, and on iOS its picker offers "Take Video". So this
+		string no longer says Vallo never records video (that was false the
+		moment the option existed), and the microphone string below exists:
+		recording video with sound without one terminates the app.
+	-->
 	<key>NSCameraUsageDescription</key>
-	<string>Vallo opens your camera only when you choose "Take Photo" while adding a picture, so you can photograph a place you are listing, a document that verifies you as an agent, or something you want to send in a message. Nothing is captured until you tap the shutter, and Vallo never records video or opens the camera on its own.</string>
+	<string>Vallo opens your camera only when you choose to take a photo or record a video: a place you are listing, a walkthrough video of it, a document that verifies you as an agent, or something you want to send in a message. Nothing is captured until you tap the shutter, and Vallo never opens the camera on its own.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Vallo uses the microphone only while you record a walkthrough video of a property you are listing, so the video has sound. Nothing is recorded until you start recording.</string>
 	<!--
 		DELIBERATELY ABSENT, and each one is a decision rather than an omission.
-
-		NSMicrophoneUsageDescription. Nothing records audio.
 
 		NSContactsUsageDescription, NSCalendarsUsageDescription. Nothing reads
 		an address book or writes a calendar entry, and asking would be a review
@@ -189,7 +196,8 @@
 		implements it yet. The key arrives with the feature.
 
 		NSUserTrackingUsageDescription. There is no analytics vendor and no
-		crash reporting anywhere in this codebase, so there is no tracking to
+		advertising identifier anywhere in this codebase (crash reports, when
+		Sentry is configured, are not tracking), so there is no tracking to
 		ask permission for. That is worth keeping true: it makes the App
 		Privacy questionnaire short and honest.
 	-->
@@ -234,13 +242,8 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
+	<!-- STORE-13: iPhone only for v1 (TARGETED_DEVICE_FAMILY = 1), so there is
+	     no iPad orientation list. iPads run it in iPhone compatibility mode. -->
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 </dict>

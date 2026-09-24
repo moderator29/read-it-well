@@ -1,7 +1,7 @@
 /**
  * THE WAY TO OPEN THE WORKSPACE SHEET WITHOUT KNOWING HOW IT IS DRAWN.
  *
- * Session B's `/profile` has a "Switch role" row whose job is to open the one
+ * `/profile` has a "Switch role" row whose job is to open the one
  * workspace sheet. Before this file the only way it could was to find the
  * dock's own button by its class name and click it:
  *

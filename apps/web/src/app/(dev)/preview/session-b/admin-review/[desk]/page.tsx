@@ -1,5 +1,5 @@
 /**
- * The review desks' proof harness (lead ruling R-G): the real desk components
+ * The review desks' proof harness (rule R-G): the real desk components
  * on fixture props, behind the preview gate, so anyone can re-run the proof
  * shots and the shape sweep. `/preview/session-b/admin-review/<desk>` with
  * desk one of listings, review, moderation, kyc; `?empty=1` draws the empty

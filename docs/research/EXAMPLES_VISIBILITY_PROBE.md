@@ -100,7 +100,7 @@ behind sign-in before it.
 Outage window: 22 Sep 22:19 to 23 Sep 10:34 UTC for everyone non-staff;
 anon additionally from the deploy of `22e544f5` until 10:34.
 
-## 6. Owners (per `docs/SESSION_B_SCOPE.md`)
+## 6. Owners (per `docs/archive/SESSION_B_SCOPE.md`)
 
 - Migrations: Session A (Session B never edits a migration).
 - `apps/web/src/lib/listings/**`, listing pages, `proxy.ts`: Session A (listing

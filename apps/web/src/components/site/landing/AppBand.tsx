@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { Dictionary, Locale } from "@vallo/i18n";
 import { Reveal } from "@/components/site/Reveal";
 import { Logo } from "@/design-system/brand/Logo";
@@ -7,45 +6,49 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { MiniListing } from "@/lib/site/listing-card";
 import { photo } from "@/lib/site/photos";
 import { ListingMini } from "./ListingMini";
+import { storeBadges } from "./store-badges";
 
 /**
  * Take Vallo with you.
  *
- * The render shows App Store and Google Play badges, and on the founder's
- * ruling of 19 September they now carry the real marks: the listings go live
- * shortly. Each badge reads its destination from the environment
- * (`NEXT_PUBLIC_APP_STORE_URL`, `NEXT_PUBLIC_PLAY_STORE_URL`) and falls back
- * to `/start`, where the browser install prompt lives, until the store URL
- * exists. That is the honest arrangement: the badge is the real badge, and
- * the day the listing is published the link becomes the listing with one
- * environment variable and no code change. It never points at a store page
- * that is not there, and it never says coming soon.
+ * STORE-06 (also UI-07, UX-26). The store badges used to render with their
+ * links falling back to `/start` until a store URL existed, and they rendered
+ * inside the native shell too: a "GET IT ON Google Play" badge inside the iOS
+ * app (App Store 2.3.10), and a badge that does not lead to the store (both
+ * stores' badge terms). Now:
+ *
+ *   - each badge renders ONLY when its store URL is set and is that store's
+ *     own address (`storeBadges` in `store-badges.ts`);
+ *   - neither renders inside a native shell, whatever is set (`LandingBody`
+ *     passes the surface the server read from the shell's User-Agent);
+ *   - "Full access to all features" and "Secure and fast" are gone.
  *
  * The phone beside them is drawn, not cropped from the render, with the
  * portrait villa plate and a real listing card on its screen.
  */
-/*
- * Where a badge goes. Read at module scope because `NEXT_PUBLIC_*` is inlined
- * at build time, and defaulted to the browser install page so the control is
- * never dead while the store listings are still in review.
- */
-const IOS_HREF = process.env.NEXT_PUBLIC_APP_STORE_URL || "/start";
-const ANDROID_HREF = process.env.NEXT_PUBLIC_PLAY_STORE_URL || "/start";
-
 export function AppBand({
   t,
   locale,
   listing,
+  native = false,
 }: {
   t: Dictionary;
   locale: Locale;
   listing: MiniListing | null;
+  /** True when the server is rendering for a native shell. */
+  native?: boolean;
 }) {
   /* Two phones, as the render shows: one carrying a real listing card, one
      carrying the brand face the app opens on. Both are drawn from the
      product's own parts, never cropped from the render. */
   const a = t.landing.face.app;
-  const points = [a.points.all, a.points.notify, a.points.fast, a.points.design];
+  const points = [a.points.notify, a.points.design];
+  /* `NEXT_PUBLIC_*` is inlined at build time. */
+  const badges = storeBadges({
+    appStoreUrl: process.env.NEXT_PUBLIC_APP_STORE_URL,
+    playStoreUrl: process.env.NEXT_PUBLIC_PLAY_STORE_URL,
+    native,
+  });
   return (
     <section className="nf-shell pt-section-tight pb-section" aria-labelledby="nf-landing-app-title">
       <div className="nf-landing-app">
@@ -56,22 +59,29 @@ export function AppBand({
             </h2>
             <p className="nf-lede mt-group max-w-measure-lede">{a.body}</p>
           </div>
-          <div className="flex flex-wrap gap-row">
-            <Link href={IOS_HREF} className="nf-landing-store" prefetch={false}>
-              <UiIcon name="apple" size={26} aria-hidden />
-              <span>
-                <small>{a.iosSub}</small>
-                <strong>{a.ios}</strong>
-              </span>
-            </Link>
-            <Link href={ANDROID_HREF} className="nf-landing-store" prefetch={false}>
-              <UiIcon name="google-play" size={24} aria-hidden />
-              <span>
-                <small>{a.androidSub}</small>
-                <strong>{a.android}</strong>
-              </span>
-            </Link>
-          </div>
+          {badges.length > 0 && (
+            <div className="flex flex-wrap gap-row" data-testid="store-badges">
+              {badges.map((badge) =>
+                badge.store === "ios" ? (
+                  <a key="ios" href={badge.href} className="nf-landing-store" rel="noopener">
+                    <UiIcon name="apple" size={26} aria-hidden />
+                    <span>
+                      <small>{a.iosSub}</small>
+                      <strong>{a.ios}</strong>
+                    </span>
+                  </a>
+                ) : (
+                  <a key="android" href={badge.href} className="nf-landing-store" rel="noopener">
+                    <UiIcon name="google-play" size={24} aria-hidden />
+                    <span>
+                      <small>{a.androidSub}</small>
+                      <strong>{a.android}</strong>
+                    </span>
+                  </a>
+                ),
+              )}
+            </div>
+          )}
         </Reveal>
 
         <Reveal delay={60}>

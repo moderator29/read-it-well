@@ -1,5 +1,7 @@
 # Vallo design reference catalogue
 
+**Light mode was removed on 23 September 2026** (`LIGHT_MODE_REMOVED.md`). Rows below that describe light-theme captures or light twins are kept as history; they are not work to do.
+
 Source: `docs/design/references/` and its two SUBFOLDERS. Every UUID file was opened and inspected. Exact duplicates were confirmed by MD5 checksum, so "exact duplicate" below means byte-identical, not merely similar.
 
 **THIS CATALOGUE INDEXED ONLY THE TOP LEVEL FOLDER UNTIL 22 SEPTEMBER, AND THAT WAS A MAP WITH THE MOST IMPORTANT ROADS MISSING.** Two subfolders hold twenty three files between them, eleven of them the founder's own corrective targets and twelve a complete new governing set, and this document had never mentioned either. Every worker doing image work has been reading a stale map. A FOUNDER TARGET BEATS A GENERATED RENDER, ALWAYS, and that is the ordering rule for every conflict below.
@@ -278,3 +280,17 @@ Deletable exact duplicates (13): BC882C5A, 97080069, 8D58A2DA, 8AA6F0DD, C94E4E8
 from `references/`; each one's keeper above is byte-identical, so nothing a
 row in this catalogue describes was lost. The rows stay so a UUID quoted in an
 older document still resolves to its keeper.
+
+## The admin console renders (`references/admin/`)
+
+The four desktop renders that govern `/admin`. They arrived at the repository
+root under UUID names and moved here on 23 September 2026 under descriptive
+names. Code comments cite them by the first eight characters of the original
+UUID, so both names are listed.
+
+| Short id | File | What it draws |
+|---|---|---|
+| 5EAA44CB | admin/admin-01-overview.png | One full desktop window (1586 x 992): the rail, the pulse strip, four KPI cards, naira over time, supply by type, new listings per month, recent alerts |
+| C1D98B3C | admin/admin-02-listings-review-money.png | Three panels: the listings review queue, one listing under review with its action bar, the money desk |
+| 8E9602E2 | admin/admin-03-escrow-verification-supply.png | Three panels: the escrow desk, identity verification, supply |
+| 01F7DFC7 | admin/admin-04-moderation-operations-analytics.png | Three panels: moderation, operations (jobs, alerts, audit log), analytics |

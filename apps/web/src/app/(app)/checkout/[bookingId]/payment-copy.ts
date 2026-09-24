@@ -140,3 +140,28 @@ export function failureConsequence(raw: string | undefined | null, money: string
   const reason = vettedFailureSentence(raw);
   return reason ? `${reason} ${money}` : money;
 }
+
+/* ------------------------------------------------------------ paid screens */
+
+/*
+ * V-33: WHAT A SUCCESS SCREEN MAY SAY ABOUT WHERE THE MONEY WENT.
+ *
+ * These screens used to tell the payer the agent had been paid. Nothing paid
+ * the agent: no payout to a bank exists, and the charge credited nobody. A
+ * success screen is read at the most anxious second of the transaction, so it
+ * states only what the ledger already proves (the charge is recorded to the
+ * kobo) and what the reader should do next. It never claims a payout, and
+ * `payment-copy.test.ts` fails if any of these sentences starts to.
+ */
+
+/** The rent page when it is opened again after a paid charge. */
+export const RENT_PAID_PAGE_CONSEQUENCE =
+  "The move-in total is paid and recorded to the kobo. Arrange the keys with the agent in your thread.";
+
+/** The sheet that opens the moment a rent payment confirms. */
+export const RENT_PAID_SHEET_CONSEQUENCE =
+  "The move-in total is paid and recorded to the kobo. Arrange the keys with the agent in your thread.";
+
+/** The sheet that opens the moment a stay payment confirms. */
+export const STAY_PAID_SHEET_CONSEQUENCE =
+  "Paid and recorded to the kobo, and these dates are yours.";

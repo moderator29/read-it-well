@@ -3,7 +3,7 @@ import "server-only";
 import { requireAdmin } from "../guard";
 
 /**
- * THE BADGE TIER, READ AND NEVER DERIVED. `public.person_badge` (Session A,
+ * THE BADGE TIER, READ AND NEVER DERIVED. `public.person_badge` (commit
  * 5f19539b) is the one source: `{ user_id, tier }`, tier being gold or
  * platinum, precedence decided once in `public.badge_tier`. This reads it for
  * the people a desk draws and returns only what it says. A failed read returns

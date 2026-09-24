@@ -70,7 +70,7 @@ import type { BalanceBreakdown, EscrowLine, EscrowPurpose, EscrowState } from "@
 /**
  * How the nine states read to somebody who is not reading the schema.
  *
- * Session A added `CANCELLED` here on 23 September because `EscrowState` began
+ * `CANCELLED` was added here on 23 September because `EscrowState` began
  * deriving from the database enum rather than a hand written copy, which made
  * this map a compile error rather than a chip that would have rendered the raw
  * column at a person. A red main outranks the scope split, so it was fixed

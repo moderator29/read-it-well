@@ -178,7 +178,9 @@ export function DetailAboutCard({
               {host.photoUrl ? (
                 <Image src={host.photoUrl} alt="" fill sizes="48px" className="object-cover" />
               ) : (
-                <BrandIcon name="user-check" fill />
+                /* UX-09: the person-with-a-tick is the verified mark's own
+                   shape, so an unchecked host gets the plain person card. */
+                <BrandIcon name={host.verified ? "user-check" : "person-card"} fill />
               )}
             </span>
             <span className="nf-host-row__body">

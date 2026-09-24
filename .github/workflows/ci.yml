@@ -102,6 +102,18 @@ jobs:
           path: apps/web/vitest-junit.xml
           if-no-files-found: warn
 
+      # DOC-13 / STORE-03. Red, with one error annotation per placeholder,
+      # until the founder's Apple Team ID and Play signing fingerprints are in
+      # the association files. `continue-on-error` keeps it from blocking web
+      # work; `npm run cap:sync` (the documented release sync) runs the same
+      # check strictly, so a release sync refuses while it is red; a bare
+      # `npx cap sync` is not guarded. Drop `continue-on-error` the day
+      # the values land.
+      - name: Deep links (founder values)
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: npm run check:deep-links --workspace @vallo/web
+
       - name: Database probe files keep the contract
         if: ${{ !cancelled() }}
         run: node scripts/db-probes/run.mjs --check

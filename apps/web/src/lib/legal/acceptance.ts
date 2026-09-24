@@ -54,9 +54,8 @@ export async function recordTermsAcceptance(
 
   try {
     /* Structurally typed rather than regenerated, for the reason written out
-       in `lib/admin/legal-queries.ts`: `database.types.ts` is a generated file
-       every worker in this tree has open, and one table is not worth the
-       collision. The shape below is the shape the migration creates. */
+       in `lib/admin/legal-queries.ts`: `database.types.ts` is a generated file,
+       and one table is not worth regenerating all of it. The shape below is the shape the migration creates. */
     const admin = createAdminClient() as unknown as AcceptanceWriter;
     const { error } = await admin.from("terms_acceptances").upsert(
       ACCEPTED_AT_SIGNUP.map((accepted) => ({

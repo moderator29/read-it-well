@@ -78,4 +78,4 @@ export type EmailStatus = "none" | "email" | "google" | "unknown";
 /** The result of following a confirmation link or typing its code. */
 export type VerificationOutcome =
   | { ok: true; next: string }
-  | { ok: false; reason: "expired" | "invalid" | "unconfigured" };
+  | { ok: false; reason: "expired" | "invalid" | "unconfigured" | "provider-off" };

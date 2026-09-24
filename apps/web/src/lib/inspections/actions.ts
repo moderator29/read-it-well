@@ -310,9 +310,8 @@ function refusalMessage(raw: string): string {
 /**
  * THE REPORT: EIGHT ROOMS, A NOTE, AND THE TICK THAT CLOSES THE INSPECTION.
  *
- * `F6A8A482` draws eight rows, a notes field and Add Photos. I1 in
- * `docs/SESSION_B_SCOPE.md` asked for exactly this shape and Session B's
- * screen is wired to it.
+ * `F6A8A482` draws eight rows, a notes field and Add Photos. This is exactly
+ * that shape, and the inspection screen is wired to it.
  *
  * NOTHING HERE DECIDES WHO MAY WRITE, AND THAT IS THE POINT. The same split
  * the four actions above use: `inspection_reports_insert_party`,

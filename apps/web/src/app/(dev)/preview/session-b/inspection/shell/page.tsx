@@ -9,7 +9,7 @@ import { InspectionFixture } from "../fixture";
 export const dynamic = "force-dynamic";
 
 /**
- * The inspection harness inside the real app shell (lead ruling R-G), with
+ * The inspection harness inside the real app shell (rule R-G), with
  * the same server facts `app/(app)/layout.tsx` hands it, so the first-screen
  * proof (Add Photos on the first 844px) is measured under the real header.
  * Run without a session it is the signed-out shell.

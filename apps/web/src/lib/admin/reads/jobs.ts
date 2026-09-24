@@ -40,9 +40,8 @@ export type VercelJob = {
 
 export const VERCEL_JOBS: readonly VercelJob[] = [
   /*
-   * Added by Session A's email junction worker (R13): data only, kept by
-   * Session B's ruling of 23 September, because the equality test with
-   * `vercel.json` needs it and nothing else in the file moved.
+   * The email outbox drain: data only, kept here because the equality test
+   * with `vercel.json` needs it.
    */
   /* V-01: the catalogue canary. A failed run is a critical alert that pages a person. */
   { name: "canary", cron: "*/5 * * * *", schedule: "Every 5 minutes", maxGapHours: 1, audit: { entityType: "cron_job", term: "canary" } },

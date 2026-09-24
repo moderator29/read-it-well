@@ -441,7 +441,7 @@ async function load(page, url) {
       response = await page.goto(`${BASE}${url}`, { waitUntil: "load", timeout: 45_000 });
       lastError = null;
       /* A status of 0 is Chromium saying it never got a response object at all,
-         which on a box running six workers' servers is a dropped connection
+         which on a box running several servers at once is a dropped connection
          rather than a fact about the route. Retried like a throw; a route that
          answers 0 three times is reported. */
       if ((response?.status() ?? 0) !== 0) break;

@@ -16,7 +16,7 @@ import { SeriesChart, StatusBar } from "../money/_desk/charts";
  * the bookings made per day (drawn only once there are two days of them),
  * one status bar on the status four with a word on every segment, the
  * shared filter, and every stay in a numbered table whose rows open the
- * stay's own page, where Session A's cancel and refund decision lives
+ * stay's own page, where the cancel and refund decision lives
  * unchanged. Figures come from `getBookingsDesk` (`lib/admin/reads/bookings.ts`).
  */
 

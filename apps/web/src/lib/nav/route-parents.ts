@@ -492,4 +492,5 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/yellowcard/webhook": "processor webhook.",
   "/admin/enter": "303 into the console with the entry cookie.",
   "/home-or-landing": "307 to `/` or `/home`, decided by the caller's cookies.",
+  "/open": "307 to `/home`, `/search` or `/welcome`: where the native app starts (STORE-04).",
 };

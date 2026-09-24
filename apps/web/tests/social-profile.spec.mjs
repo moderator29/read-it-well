@@ -19,7 +19,7 @@
  * at 390px.
  *
  * The write itself, the row level security behind it and the three triggers on
- * `public.social_profiles` are proven against live Postgres by the lead's audit,
+ * `public.social_profiles` are proven against live Postgres by database probes,
  * not from here.
  */
 

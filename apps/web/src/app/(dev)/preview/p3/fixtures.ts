@@ -165,7 +165,7 @@ export const P3_TABLE_BOARD: HostTableBoard = {
   total: 4,
 };
 
-/** The plates the lead filed, standing in for an owner's own photographs. */
+/** The filed photo plates, standing in for an owner's own photographs. */
 export const P3_PHOTOS = [
   { id: "00000000-0000-4000-8000-0000000p3060", url: "/brand/photos/restaurant-01.jpg" },
   { id: "00000000-0000-4000-8000-0000000p3061", url: "/brand/photos/restaurant-02-lounge.jpg" },

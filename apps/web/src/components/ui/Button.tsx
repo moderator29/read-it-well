@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Children, forwardRef } from "react";
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from "react";
 import { UiIcon, type UiIconSize, type UiIconName } from "@/design-system/icons/UiIcon";
+import { nativeHaptic } from "@/lib/native/device";
+import { looksNative } from "@/lib/native/platform";
 
 /**
  * The button.
@@ -42,7 +44,7 @@ import { UiIcon, type UiIconSize, type UiIconName } from "@/design-system/icons/
  * Stays beside Explore Properties, Contact Hotel beside View booking details,
  * Reset beside Apply. Same glass, but with the BRAND edge and a lit rim, so
  * it reads as part of the same lit object as the primary rather than as a
- * neutral plate next to it. Two workers reached for `variant="glass"` before
+ * neutral plate next to it. Two screens reached for `variant="glass"` before
  * it existed, which is the clearest sign a vocabulary is missing a word.
  */
 export type ButtonVariant =
@@ -179,6 +181,12 @@ function buttonClass({
  */
 function pulse(enabled: boolean) {
   if (!enabled) return;
+  /* STORE-04: inside the app the native haptic engine takes the tap (iOS has
+     no `navigator.vibrate`); on the website nothing native is loaded. */
+  if (looksNative()) {
+    void nativeHaptic("tap");
+    return;
+  }
   try {
     navigator.vibrate?.(8);
   } catch {

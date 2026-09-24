@@ -100,7 +100,7 @@ export function PayoutAccounts({
             No payout account yet
           </p>
           <p className="mx-auto mt-2xs max-w-[40ch] text-[length:var(--nf-text-body-sm)] text-[var(--nf-content-muted)]">
-            Your earnings are safe and waiting. Add an account below and the
+            Your earnings are recorded and waiting. Add an account below and the
             first one becomes your default automatically.
           </p>
         </div>

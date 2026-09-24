@@ -9,7 +9,7 @@ import { UI_ICON_STROKE_PX, UiIcon, snapUiIconSize, type UiIconName } from "@/de
  * Drawn in the same house style as `UiIcon` so they sit beside it without a
  * seam: a 24 unit box, round caps and joins, and the same 1.5px on-screen
  * stroke at every size. They live here rather than in the design system
- * because the design system is not this worker's to change; if they earn a
+ * because they are console-only so far; if they earn a
  * place in the shared set, they move there whole.
  */
 export type AdminGlyphName =

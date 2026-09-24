@@ -1,5 +1,5 @@
 -- B4 lifecycle probe for the LIVE project: the same cases as
--- scripts/probes/b4_lifecycle.sh, run by the lead through the Supabase MCP
+-- scripts/probes/b4_lifecycle.sh, run through the Supabase MCP
 -- AFTER the two B4 migrations are applied, inside ONE transaction that ends
 -- in ROLLBACK. Nothing here is ever persisted: the three auth users, the agent,
 -- the listings, the bookings, the events, the notifications and the alerts

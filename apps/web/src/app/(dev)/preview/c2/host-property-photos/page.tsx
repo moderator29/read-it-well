@@ -13,7 +13,7 @@ import { C2_HOTEL, C2_HOTEL_PROPERTY, C2_PROPERTY_PHOTOS, C2_OWNER } from "../fi
  * accommodation with no photograph. This is the screen that closes it, read
  * here at 390 in dark against the register.
  *
- * The images are the lead's own filed plates rather than bucket objects,
+ * The images are the filed photo plates rather than bucket objects,
  * because this sandbox has no session and therefore no uploads. What is being
  * read is the surface: the cover's place in the grid, the take-down control
  * beside each one, and the drop target under them.

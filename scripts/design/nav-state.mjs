@@ -218,12 +218,13 @@ const gated = (url) =>
 
 /* -------------------------------------------------------------- whose it is */
 /**
- * `docs/SESSION_B_SCOPE.md` as prefixes, plus the two routes R14 assigned.
+ * The routes the design build owned, as prefixes (from
+ * `docs/archive/SESSION_B_SCOPE.md`), plus two routes assigned to it later.
  *
  * `/profile/setup/**` and `/profile/application/**` are explicitly NOT Session
  * B's in that file, which is why the profile prefix names the page file rather
- * than the folder. The whole `(auth)` group is listed because R14 assigned all
- * eight auth screens and Session B has acknowledged R14 in its own scope file.
+ * than the folder. The whole `(auth)` group is listed because all eight auth
+ * screens were assigned to it.
  * This is a reading of that document; where it is wrong the document wins.
  */
 const SESSION_B = [

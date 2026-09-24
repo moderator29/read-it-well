@@ -198,12 +198,12 @@ Facts only, and each one true on the day of writing:
   `/auth/callback`, so a shared listing opened signed out returns to that
   listing after signing in. One hop still drops it: the "New to Vallo? Sign up"
   swap link inside `components/auth/AuthChoices.tsx`, which is Session B's
-  file. Filed as R16 in `docs/BUILD_07_LEDGER.md` section 49. Until it lands, a
+  file. Filed as R16 in `docs/archive/BUILD_07_LEDGER.md` section 49. Until it lands, a
   person who arrives at sign-in from a shared link and chooses to create an
   account instead finishes on `/home` rather than on the thing that was shared.
 - **The native shell's first launch.** `capacitor.config.ts` loads the origin,
   so a store install opens `/`, the landing page, which is public and renders.
-  Request W3 in `docs/SESSION_B_SCOPE.md` proposes pointing it at `/welcome`
+  Request W3 in `docs/archive/SESSION_B_SCOPE.md` proposes pointing it at `/welcome`
   instead. Not done, not a blocker: `/` is public and carries Get Started.
 - **The web manifest's `start_url` is `/`**, which is public, so an installed
   PWA still opens on a real screen rather than a sign-in wall.

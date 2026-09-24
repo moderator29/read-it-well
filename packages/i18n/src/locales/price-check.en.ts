@@ -5,10 +5,10 @@
  * ---------------------------------------------------------------------------
  * WHY THIS IS ITS OWN FILE RATHER THAN A BLOCK INSIDE `en.ts`.
  *
- * `en.ts` is 4,900 lines and three workers write to it in the same hour. The
- * ledger records that two agents have already collided there once and that the
- * second silently overwrote the first's finished work; this namespace was lost
- * to exactly that once while it was being written. A separate module reduces
+ * `en.ts` is 4,900 lines and many changes touch it at once. Two concurrent
+ * edits have collided there, with the second silently overwriting the first's
+ * finished work; this namespace was lost to exactly that once while it was
+ * being written. A separate module reduces
  * the footprint in the contested file to one import and one line, which is the
  * smallest surface a namespace can have while still being part of the
  * dictionary.

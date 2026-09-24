@@ -53,7 +53,7 @@ export function ListingGallery({
   hue: number;
   /**
    * Stand-in photography for a place with no photographs of its own: the
-   * category plates the lead filed (restaurant-01 and its siblings). Drawn
+   * filed category plates (restaurant-01 and its siblings). Drawn
    * in the hero, never counted as this place's photos, and labelled so.
    */
   plates?: string[];

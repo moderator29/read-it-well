@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i18n";
 import { fill } from "../_copy";
 import { createClient } from "@/lib/supabase/client";
+import { canCapturePhoto, capturePhoto } from "@/lib/native/device";
 import { Switch } from "@/components/ui/Switch";
 import {
   addPhoto,
@@ -67,6 +68,8 @@ import { VideoWalkthrough, type WalkthroughVideo } from "@/components/agent/Vide
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ListingSentForReview } from "./ListingSentForReview";
 import { TextField, TextArea } from "@/components/ui/Field";
+import { tenantPreference } from "@/lib/safety/tenant-preference";
+import Link from "next/link";
 
 /**
  * The List Apartment wizard: eight steps, canon reference 03.
@@ -816,6 +819,17 @@ export function ListingWizard({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [photoNotice, setPhotoNotice] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  /* STORE-04: the shell's own camera, when the running binary carries it. */
+  const [nativeCamera, setNativeCamera] = useState(false);
+  useEffect(() => {
+    let live = true;
+    void canCapturePhoto().then((able) => {
+      if (live) setNativeCamera(able);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
   const [submitted, setSubmitted] = useState(false);
   const [pending, startTransition] = useTransition();
   const restored = useRef(false);
@@ -930,6 +944,9 @@ export function ListingWizard({
   const purchaseMinor = statedPurchaseMinor ?? purchasePartsMinor;
 
   const words = countWords(values.description);
+  /* SEC-06: the database holds a listing that states a tenant preference for
+     review; this says so while the lister is still typing. */
+  const preference = tenantPreference(`${values.title} ${values.description}`);
   const stepNames = STEP_KEYS.map((key) => copy.wizard.steps[key]);
   const amenityNames = copy.amenities.names as Record<string, string | undefined>;
   const pricePeriod = forSale
@@ -1298,7 +1315,7 @@ export function ListingWizard({
     }
   }
 
-  async function onFiles(files: FileList | null) {
+  async function onFiles(files: FileList | readonly File[] | null) {
     if (!files || files.length === 0) return;
     setPhotoNotice(null);
 
@@ -1644,6 +1661,14 @@ export function ListingWizard({
               placeholder={copy.basics.descriptionPlaceholder}
               textAreaClassName="min-h-[9rem]"
             />
+            {preference && (
+              <div className="mt-row" data-testid="tenant-preference-warning">
+                <Note glyph="info">
+                  {`This reads as a tenant preference ("${preference}"). Vallo does not allow refusing people for their ethnicity, religion, marital status or gender, so a listing that says this is held for review before it goes up. See `}
+                  <Link href="/standards" className="underline">our standards</Link>.
+                </Note>
+              </div>
+            )}
 
             {/*
               THE ROOMS, DRAWN AS GOVERNING-06 SCREEN THREE DRAWS THEM.
@@ -1931,6 +1956,26 @@ export function ListingWizard({
                       <UiIcon name="plus" size={18} />
                     </span>
                     <span>{uploading ? copy.photos.uploading : copy.drawn.photos.add}</span>
+                  </button>
+                </li>
+              )}
+              {photos.length < MAX_PHOTOS && nativeCamera && (
+                <li className="contents">
+                  <button
+                    type="button"
+                    className="nf-lw-add"
+                    data-testid="listing-photo-camera"
+                    onClick={() =>
+                      void capturePhoto().then((shot) => {
+                        if (shot) void onFiles([shot]);
+                      })
+                    }
+                    disabled={uploading}
+                  >
+                    <span className="nf-lw-add__plus" aria-hidden="true">
+                      <UiIcon name="picture" size={18} />
+                    </span>
+                    <span>{copy.photos.takePhoto}</span>
                   </button>
                 </li>
               )}

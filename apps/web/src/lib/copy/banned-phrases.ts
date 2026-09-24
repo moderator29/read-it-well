@@ -183,8 +183,7 @@ export function firstBannedPhrase(
  * that makes it pass. The mechanism is the point; the list grows.
  */
 /*
- * "TRIP" LEFT THE TABLE ON 18 SEPTEMBER 2026, on the founder's ruling in
- * `docs/HANDOFF_05_UPGRADED_WIDE_PLATFORM_BUILD.md` section 2: the product now
+ * "TRIP" LEFT THE TABLE ON 18 SEPTEMBER 2026, on the founder's ruling: the product now
  * has two sides, and on the Stays side "Trips" is the name of the surface
  * that holds your stays and reservations (`/trips`, replacing Bookings in the
  * Stays navigation). The word was banned when the whole product sold land and

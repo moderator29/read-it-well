@@ -13,7 +13,7 @@ import { exactCount, readEvery } from "./money";
  * September). Every booking is read once, in chunks, and checked against an
  * exact count, so no figure is the total of a capped list.
  *
- * The cancel and refund decisions stay Session A's (`cancelBookingAsAdmin`
+ * The cancel and refund decisions stay where they were (`cancelBookingAsAdmin`
  * and `previewCancellation` in `lib/admin/bookings-actions.ts`), on the stay's
  * own page, unchanged.
  */

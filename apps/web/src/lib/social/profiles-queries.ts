@@ -88,6 +88,26 @@ export type AreaOption = { id: string; name: string; city: string; stateCode: st
 const PROFILE_COLUMNS =
   "user_id, handle, display_label, avatar_path, is_agent, bio, bio_status, pronouns, link, contact_policy, pidgin_ok, home_area_id, cover_path, follower_count, following_count, post_count, handle_claimed_at";
 
+/**
+ * UX-24: what a SIGNED-OUT reader of a profile may ask for.
+ *
+ * `anon` holds SELECT on the display columns of `social_profiles` only;
+ * `occupation_code`, `lga_code`, `state_code` and `home_area_id` are not for
+ * somebody who has not signed in. PostgREST refuses the whole read when one
+ * named column is denied, so the anonymous read names none of them and the
+ * home area is simply absent for that reader.
+ */
+export const ANON_DENIED_PROFILE_COLUMNS = [
+  "occupation_code",
+  "lga_code",
+  "state_code",
+  "home_area_id",
+] as const;
+
+export const ANON_PROFILE_COLUMNS = PROFILE_COLUMNS.split(", ")
+  .filter((column) => !(ANON_DENIED_PROFILE_COLUMNS as readonly string[]).includes(column))
+  .join(", ");
+
 type ProfileRow = {
   user_id: string;
   handle: string;
@@ -276,7 +296,7 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
 
   const { data, error } = await supabase
     .from("social_profiles")
-    .select(PROFILE_COLUMNS)
+    .select(viewerId ? PROFILE_COLUMNS : ANON_PROFILE_COLUMNS)
     .eq("handle", handle)
     .maybeSingle();
 
@@ -310,7 +330,7 @@ export async function loadPublicProfile(rawHandle: string): Promise<PublicProfil
     };
   }
 
-  const row = data as ProfileRow;
+  const row = { home_area_id: null, ...(data as unknown as Partial<ProfileRow>) } as ProfileRow;
   /*
    * THE BADGE, FROM THE ONE PUBLISHED DOOR, and this read is why the profile
    * header no longer draws a mark off `is_agent`.

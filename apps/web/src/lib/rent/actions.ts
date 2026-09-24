@@ -123,6 +123,10 @@ export async function startRentPayment(input: {
       return fail("This is your own listing, so there is no rent for you to pay on it.");
     case "move_in_past":
       return fail("The move-in date has passed. Pick today or later.", { moveIn: "Pick today or later." });
+    case "date_taken":
+      return fail("That move-in date is already taken on this listing. Pick another day.", {
+        moveIn: "Pick another day.",
+      });
     default:
       return fail(SERVICE_DOWN_MESSAGE);
   }

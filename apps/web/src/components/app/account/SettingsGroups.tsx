@@ -314,12 +314,13 @@ export function SearchCard({ t }: { t: Dictionary }) {
 /* --------------------------------------------------------------- security */
 
 /**
- * Security: the app lock preference plus a truthful view of sessions. There is
- * exactly one session today, this device, so that is what the row shows, and
- * sign out everywhere says plainly when it will start doing something.
+ * Security: where this account is signed in. UX-P2-02: the "Biometric app
+ * lock" switch saved a preference nothing read (no biometric plugin, no lock
+ * screen), and "Sign out everywhere" only showed a note saying this was the
+ * only session; both are gone. Ending sessions is real and lives on
+ * /settings/devices, reached through the `DevicesRow` passed in as children.
  */
 export function SecurityCard({ t, children }: { t: Dictionary; children?: ReactNode }) {
-  const { settings, set } = useNfSettings();
   const copy = t.settings.security;
   /*
    * DERIVED DURING RENDER, BEHIND THE CLIENT LATCH.
@@ -342,26 +343,9 @@ export function SecurityCard({ t, children }: { t: Dictionary; children?: ReactN
   const onClient = useClientMount();
   const device = onClient ? describeDevice(copy) : copy.thisDevice;
 
-  /* Set once, by the sign-out-everywhere row, to explain why nothing appeared
-     to happen. It is this card's own state and belongs in `useState`. */
-  const [signOutNote, setSignOutNote] = useState(false);
-
   return (
-    <SettingsGroup label={copy.label} note={signOutNote ? copy.signOutNote : undefined}>
-      <RowSwitch
-        icon="key"
-        label={copy.appLock}
-        sub={copy.appLockSub}
-        checked={settings.appLock}
-        onChange={(next) => set("appLock", next)}
-      />
+    <SettingsGroup label={copy.label}>
       <RowValue icon="verified" label={copy.signedInOn} value={device} />
-      <RowButton
-        icon="arrow-right"
-        label={copy.signOutEverywhere}
-        onClick={() => setSignOutNote(true)}
-        chevron={false}
-      />
       {/* `DevicesRow` lands here. Where an account is signed in is the half of
           security this screen did not have, and it was a card of its own
           holding one link; see the note on that component. */}
@@ -373,12 +357,14 @@ export function SecurityCard({ t, children }: { t: Dictionary; children?: ReactN
 /* ------------------------------------------------------------------- data */
 
 /**
- * Data: an export request that says exactly where it stands, and a working
- * clear-out that removes every Vallo key from this device and reloads.
+ * Data: a working clear-out that removes every Vallo key from this device and
+ * reloads. UX-P2-01: "Download my data" downloaded nothing and said everything
+ * Vallo knows lives in this browser, which is false (the account, wallet,
+ * bookings and documents are held server-side). It is gone until the real
+ * export exists (OPS-12).
  */
 export function DataCard({ t }: { t: Dictionary }) {
   const copy = t.settings.data;
-  const [exportNote, setExportNote] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
 
   const clearLocalData = () => {
@@ -400,13 +386,7 @@ export function DataCard({ t }: { t: Dictionary }) {
   };
 
   return (
-    <SettingsGroup label={copy.label} note={exportNote ? copy.exportNote : undefined}>
-      <RowButton
-        icon="share"
-        label={copy.download}
-        sub={copy.downloadSub}
-        onClick={() => setExportNote(true)}
-      />
+    <SettingsGroup label={copy.label}>
       <RowButton
         icon="close"
         label={confirmClear ? copy.clearAgain : copy.clear}

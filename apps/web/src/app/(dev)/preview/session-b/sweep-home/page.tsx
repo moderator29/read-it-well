@@ -6,9 +6,8 @@ import Link from "next/link";
  * detail and the price check. Every page renders the real screen components
  * inside the real shell; most take fixture rows, and the two marked "the
  * route's own page" mount the route itself, which on this box reads nothing
- * and so draws its empty state. First added by Session A to turn `main`
- * green (`lib/nav/route-files.test.ts` needs a parent served here); the
- * labels are now the owner's.
+ * and so draws its empty state. `lib/nav/route-files.test.ts` needs a parent
+ * served here.
  */
 
 const PAGES: readonly (readonly [string, string])[] = [

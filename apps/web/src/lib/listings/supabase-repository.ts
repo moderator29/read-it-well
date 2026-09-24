@@ -1272,8 +1272,7 @@ export class SupabaseListingRepository implements ListingRepository {
        * THE MOVE-IN COST ORDER, AND THE INDEX THAT HAS NEVER BEEN QUERIED.
        *
        * `listings_move_in_cost_idx` is partial on published rows with a stated
-       * total, and HANDOFF 09 section 4.2 records that nothing in the tree
-       * asked for it. This is the ask. `nullsFirst: false` is the honesty
+       * total, and until this read nothing in the tree asked for it. `nullsFirst: false` is the honesty
        * half: a listing whose lister declared no total is not cheap, it is
        * unstated, so it sorts after every listing that said a number rather
        * than ahead of all of them as a null would.

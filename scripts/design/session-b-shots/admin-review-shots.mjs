@@ -1,5 +1,5 @@
 /*
- * The review desks' proof shots, re-runnable (lead ruling R-G).
+ * The review desks' proof shots, re-runnable (rule R-G).
  *
  * Serve a production build with the preview harness open, then run from the
  * repo root:
@@ -83,10 +83,10 @@ await browser.close();
 
 /* Render (left) beside built (right). Panel boxes in image px, measured once. */
 const renders = {
-  listings: ["C1D98B3C-D7B7-4B2D-9182-79E0F89ED287.png", 18, 68, 497, 830, 1100],
-  review: ["C1D98B3C-D7B7-4B2D-9182-79E0F89ED287.png", 530, 68, 487, 830, 1400],
-  moderation: ["01F7DFC7-65F8-4EAB-B051-421B6AEA1214.png", 12, 93, 497, 797, 1100],
-  kyc: ["8E9602E2-0E75-4623-8813-A10D2165CE27.png", 520, 95, 497, 790, 1100],
+  listings: ["docs/design/references/admin/admin-02-listings-review-money.png", 18, 68, 497, 830, 1100],
+  review: ["docs/design/references/admin/admin-02-listings-review-money.png", 530, 68, 487, 830, 1400],
+  moderation: ["docs/design/references/admin/admin-04-moderation-operations-analytics.png", 12, 93, 497, 797, 1100],
+  kyc: ["docs/design/references/admin/admin-03-escrow-verification-supply.png", 520, 95, 497, 790, 1100],
 };
 for (const [desk, [file, x, y, w, h, height]] of Object.entries(renders)) {
   if (only && !only.split(",").some((prefix) => desk.startsWith(prefix))) continue;

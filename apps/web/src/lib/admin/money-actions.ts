@@ -85,6 +85,19 @@ export async function resolveEscrow(input: {
     if (status === "not_found") {
       return fail("That escrow is no longer here. Reload the page.");
     }
+    /* ESC-01. The database refuses to rule on an agreement whose money was
+       never taken, and refuses a release (a refund to the payer still goes
+       through) while the float is short. */
+    if (status === "never_funded") {
+      return fail(
+        "No money was ever taken for this agreement, so there is nothing to release or refund. Nothing was changed.",
+      );
+    }
+    if (status === "float_out_of_balance") {
+      return fail(
+        "Held money does not reconcile right now: the ledger holds less than the open agreements promise. A release waits until reconciliation has been checked; a refund to the payer can still be made. Nothing was changed.",
+      );
+    }
     if (status === "forbidden") return fail(ADMIN_FORBIDDEN_MESSAGE);
     return fail(SERVICE_DOWN);
   } catch {

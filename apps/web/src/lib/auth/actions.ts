@@ -18,7 +18,13 @@ import { TERMS_VERSION } from "@/lib/legal/versions";
 import { termsRefusal } from "./terms-gate";
 import { welcomeOnce } from "@/lib/notify/welcome";
 import { authOrigin } from "@/lib/site";
-import { getProviderStates } from "./providers";
+import {
+  getProviderStates,
+  providerAllowed,
+  resolveProviderStates,
+  socialProviderOfSession,
+  surfaceFromUserAgent,
+} from "./providers";
 import { HEAR_ABOUT_VALUES, REFERRAL_CODE_RE } from "./signup-options";
 import { CONFIRMATION_CODE_RE, codeLengthWord } from "./confirmation-code";
 import {
@@ -733,6 +739,14 @@ export async function completeEmailVerification(input: {
     return { ok: false, reason: "invalid" };
   }
 
+  /* STORE-02 / STORE-03: A PROVIDER THE PLATFORM HAS SWITCHED OFF IS REFUSED
+     HERE, NOT ONLY LEFT UNDRAWN. Somebody can still build the Supabase
+     authorize URL for Google by hand, and the dashboard will honour it until
+     the provider is switched off there too; the session it produces is
+     ended before it is used, whatever the screens drew. */
+  const refused = await refuseSwitchedOffProvider(supabase);
+  if (refused) return refused;
+
   await forgetPendingEmail();
   /* The link half of the same moment. Same key, same unique index, so two taps
      on one email and the trigger's own row are still one welcome. */
@@ -742,6 +756,26 @@ export async function completeEmailVerification(input: {
   // the signed-in tree rather than the anonymous one behind this screen.
   revalidatePath("/", "layout");
   return { ok: true, next };
+}
+
+async function refuseSwitchedOffProvider(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+): Promise<VerificationOutcome | null> {
+  const [{ data: sessionData }, { data: userData }] = await Promise.all([
+    supabase.auth.getSession(),
+    supabase.auth.getUser(),
+  ]);
+  const provider = socialProviderOfSession(
+    sessionData.session?.access_token,
+    userData.user?.identities ?? [],
+  );
+  if (provider === null) return null;
+  /* The callback runs in a web view or a browser; its surface is read from
+     the same header the sign-in screen used. */
+  const states = await resolveProviderStates(surfaceFromUserAgent((await headers()).get("user-agent")));
+  if ((provider === "google" || provider === "apple") && providerAllowed(states, provider)) return null;
+  await supabase.auth.signOut({ scope: "local" });
+  return { ok: false, reason: "provider-off" };
 }
 
 /**
@@ -827,8 +861,14 @@ export async function startOAuth(
   provider: "google" | "apple",
   formData: FormData = new FormData(),
 ): Promise<AuthFormState> {
-  const states = getProviderStates();
-  if (!states.some((p) => p.id === provider && p.configured)) {
+  /* THE SERVER'S ANSWER, for THIS surface. A form posted by hand from a page
+     that never drew the button reaches here and is refused the same way. */
+  const surface = surfaceFromUserAgent((await headers()).get("user-agent"));
+  const states = await resolveProviderStates(surface);
+  /* The redirect cannot complete inside a native shell (STORE-03), so even an
+     allowed provider is refused there; the iOS shell signs in with Apple
+     through `signInWithAppleIdToken` instead. */
+  if (surface !== "web" || !providerAllowed(states, provider)) {
     return {
       ok: false,
       message: "That sign-in method is not switched on yet. Use your email address for now.",
@@ -856,6 +896,43 @@ export async function startOAuth(
 
   if (error || !data.url) return { ok: false, message: authMessage(error?.message ?? "") };
   redirect(data.url);
+}
+
+/**
+ * Sign in with Apple from the iOS shell's native sheet (STORE-02).
+ *
+ * The sheet hands the page an identity token signed by Apple; Supabase checks
+ * that signature and the nonce and issues the session, and the cookies are
+ * written here, in the same jar the web view uses. Refused unless Supabase
+ * reports the Apple provider enabled and the policy allows it on this surface.
+ */
+export async function signInWithAppleIdToken(input: {
+  idToken: string;
+  nonce: string;
+  next?: string | undefined;
+}): Promise<{ ok: true; next: string } | { ok: false; message: string }> {
+  const surface = surfaceFromUserAgent((await headers()).get("user-agent"));
+  const states = await resolveProviderStates(surface);
+  if (surface !== "ios-native" || !providerAllowed(states, "apple")) {
+    return { ok: false, message: "That sign-in method is not switched on yet. Use your email address for now." };
+  }
+  if (typeof input.idToken !== "string" || input.idToken.length < 20 || input.idToken.length > 8192) {
+    return { ok: false, message: "Apple did not send a usable answer. Try again." };
+  }
+  if (typeof input.nonce !== "string" || input.nonce.length < 16 || input.nonce.length > 128) {
+    return { ok: false, message: "Apple did not send a usable answer. Try again." };
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithIdToken({
+    provider: "apple",
+    token: input.idToken,
+    nonce: input.nonce,
+  });
+  if (error) return { ok: false, message: authMessage(error.message) };
+  const { data } = await supabase.auth.getUser();
+  if (data.user) await welcomeOnce(data.user.id);
+  revalidatePath("/", "layout");
+  return { ok: true, next: landingFromPath(input.next) };
 }
 
 /* ------------------------------------------------------------ password reset */

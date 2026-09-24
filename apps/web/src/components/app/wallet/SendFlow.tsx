@@ -140,7 +140,7 @@ export function SendFlow({
   const [entry, setEntry] = useState<WalletEntry | null>(null);
   /* The double-tap latch and the button's own disabled state from the first
      press until the result returns. See submit-guard.ts: this narrows the
-     double-send window and does not close it (scope request W1). */
+     double-send window and does not close it. */
   const guard = useRef(createSubmitGuard());
   const [pressed, setPressed] = useState(false);
   const [answered, setAnswered] = useState(state);
@@ -504,8 +504,8 @@ export function SendFlow({
         each row a round glass plate, a label and the control. Recipient,
         Amount and Narration are the rows this product has. The render's Bank
         row is refused: sending to someone else's bank account is licensed
-        activity in Nigeria and the founder removed it on 23 September (see
-        the Session B ledger, section 5); a send moves money between two Vallo
+        activity in Nigeria and the founder removed it on 23 September; a send moves money between
+        two Vallo
         wallets inside the ledger. The scan button is refused too (there is
         no scanner).
       */}

@@ -36,7 +36,7 @@ import { photo, type PhotoName } from "@/lib/site/photos";
  * mark four times: shortlets take the calendar, resorts the palm, commercial
  * the tower and land the map pin, which is what each tile is actually about.
  *
- * The plates are the lead's mapping (re-audit, ledger section 6). Land takes
+ * The plates are mapped by hand. Land takes
  * the bridge skyline as the closest honest plate: a category tile is a door
  * into a market, not a picture of one listing, so the objection `MediaFrame`
  * raises to a building on a plot does not apply here.

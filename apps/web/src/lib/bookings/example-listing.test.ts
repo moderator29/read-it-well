@@ -141,6 +141,7 @@ describe("reserve, against an example listing", () => {
           rate_period: "night",
           rent_amount_minor: null,
           is_demo: false,
+          status: "PUBLISHED",
         },
         error: null,
       },
@@ -175,6 +176,7 @@ describe("reserve, against an example listing", () => {
           rate_period: "night",
           rent_amount_minor: null,
           is_demo: false,
+          status: "PUBLISHED",
         },
         error: null,
       },
@@ -188,5 +190,32 @@ describe("reserve, against an example listing", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toContain("our side");
+  });
+
+  /* ESC-02. The database takes no stay against a listing that is not live, so
+     reserve says so before it writes rather than after. */
+  it("refuses a listing that is not live before it writes", async () => {
+    const { writes } = mount({
+      "listings:select": {
+        data: {
+          id: LISTING,
+          title: "A draft apartment",
+          agent_id: "a1",
+          listing_intent: "rent",
+          rate_minor: 5_000_000,
+          rate_period: "night",
+          rent_amount_minor: null,
+          is_demo: false,
+          status: "DRAFT",
+        },
+        error: null,
+      },
+    });
+
+    const result = await reserve(null, form());
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/not taking bookings/);
+    expect(writes).not.toContain("bookings");
   });
 });
