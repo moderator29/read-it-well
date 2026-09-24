@@ -21,7 +21,7 @@ import {
 import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/supabase/env";
 import { previewHarnessIsOpen } from "@/lib/preview-harness";
 import { isKnownRoute } from "@/lib/routing/known-routes";
-import { listingIsMissing, type ListingCounter } from "@/lib/routing/listing-exists";
+import { detailIsMissing, type ListingCounter } from "@/lib/routing/listing-exists";
 
 /**
  * Refresh the Supabase auth session on every request, and hold the door on the
@@ -490,13 +490,13 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  /* OPS-17: a listing page for a listing that is not there answers 404 before
-     the stream starts. Documents only: a prefetch or an RSC fetch goes on to
+  /* OPS-17 / UI-16: a listing, stay or restaurant page for something that is
+     not there answers 404 before the stream starts. Documents only: a prefetch or an RSC fetch goes on to
      the page, which renders the not-found state itself. The refreshed session
      cookies on `response` are carried over. */
   if (request.method === "GET" && isDocumentRequest(request)) {
     const path = request.nextUrl.pathname.replace(/\/+$/, "") || "/";
-    if (await listingIsMissing(path, supabase as unknown as ListingCounter)) {
+    if (await detailIsMissing(path, supabase as unknown as ListingCounter)) {
       const missing = request.nextUrl.clone();
       missing.pathname = HARNESS_CLOSED_PATH;
       missing.search = "";
