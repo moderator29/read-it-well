@@ -72,7 +72,7 @@ export default async function CheckoutPage({
           mark="card-lock"
           verdict="We cannot reach payment right now"
           consequence="This is on our side, not yours. Nothing has been charged and your dates are unchanged. Try again in a few minutes."
-          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
+          actions={[{ label: "See your stays", href: "/bookings?side=stays", tone: "primary" }]}
         />
       </Shell>
     );
@@ -104,7 +104,7 @@ export default async function CheckoutPage({
           mark="seal-cross"
           verdict="We could not find that booking"
           consequence="It may have been cancelled, or it belongs to another account. Your stays are all in one place."
-          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
+          actions={[{ label: "See your stays", href: "/bookings?side=stays", tone: "primary" }]}
         />
       </Shell>
     );
@@ -118,7 +118,7 @@ export default async function CheckoutPage({
           mark="alert-triangle"
           verdict="Checkout did not open"
           consequence="Your booking is unchanged and nothing has been charged. Try again in a few minutes."
-          actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
+          actions={[{ label: "See your stays", href: "/bookings?side=stays", tone: "primary" }]}
         />
       </Shell>
     );
@@ -193,7 +193,7 @@ export default async function CheckoutPage({
             mark="receipt-check"
             verdict="This stay is paid for"
             consequence={`${view.totalDisplay} has been received and your dates are confirmed.`}
-            actions={[{ label: "See your stays", href: "/bookings", tone: "primary" }]}
+            actions={[{ label: "See your stays", href: "/bookings?side=stays", tone: "primary" }]}
           />
         </Reveal>
       ) : view.status === "CANCELLED" ? (
@@ -344,7 +344,7 @@ function Shell({
     <div className="nf-cat-surface mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="calendar-check" />
-        <PageHeader title="Checkout" subtitle={subtitle} fallback="/bookings" />
+        <PageHeader title="Checkout" subtitle={subtitle} fallback="/bookings?side=stays" />
       </div>
       {children}
     </div>

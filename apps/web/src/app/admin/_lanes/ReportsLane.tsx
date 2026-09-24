@@ -1,6 +1,8 @@
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getReports, type ReportView } from "@/lib/admin/queries";
+import Link from "next/link";
+import { getReportsByCategory, REPORT_CATEGORIES, type ReportCategory } from "@/lib/admin/reads/moderation";
 import { countOverdueReports, REPORT_RESPONSE_HOURS } from "@/lib/admin/overdue-reports";
 import { QUEUE_PAGE_SIZE } from "@/lib/admin/queue-filter";
 import {
@@ -23,6 +25,20 @@ import { dueChip } from "../_components/due";
    unified queue now (`/admin/queue?tab=reports`), and the old address
    redirects there. */
 const BASE = "/admin/queue?tab=reports";
+
+/* V-88 review: the reason chips moved here from the Held lane, as
+   `?reason=` filters on the reports themselves. Short words; the rows use
+   the full wording. */
+const REASON_WORD: Record<(typeof REPORT_CATEGORIES)[number], string> = {
+  off_platform_payment: "Payment outside",
+  scam: "Scam",
+  unsafe: "Unsafe",
+  not_as_described: "Not as described",
+  unavailable: "Unavailable",
+  offensive: "Offensive",
+  duplicate: "Duplicate",
+  other: "Other",
+};
 
 /**
  * Abuse and content reports raised by members.
@@ -140,6 +156,13 @@ export async function ReportsLane({
      cap applies to the rows that matched rather than to the rows that happened
      to be newest. */
   const query = readQueueQuery(params);
+  const rawReason = Array.isArray(params.reason) ? params.reason[0] : params.reason;
+  const reason = (REPORT_CATEGORIES as readonly string[]).includes(rawReason ?? "")
+    ? (rawReason as ReportCategory)
+    : null;
+  /* The chosen reason travels in the base, so the search form, the status
+     chips and the pager all keep it. */
+  const base = reason ? `${BASE}&reason=${reason}` : BASE;
   /*
    * THE PROMISE, MEASURED. `lib/legal/eula.tsx` says "We act on every report
    * within 24 hours" in a document people accept at sign up. This is the
@@ -147,8 +170,14 @@ export async function ReportsLane({
    * the page's own filter, because a filtered view is the moderator's question
    * and the promise is not.
    */
+  const narrowing = {
+    ...(query.q ? { q: query.q } : {}),
+    ...(query.from ? { from: query.from } : {}),
+    ...(query.to ? { to: query.to } : {}),
+    ...(query.offset ? { offset: query.offset } : {}),
+  };
   const [reports, overdue] = await Promise.all([
-    getReports({
+    reason ? getReportsByCategory(reason, narrowing) : getReports({
       ...(query.q ? { q: query.q } : {}),
       ...(query.status ? { status: query.status } : {}),
       ...(query.from ? { from: query.from } : {}),
@@ -206,8 +235,25 @@ export async function ReportsLane({
         </p>
       )}
 
+      {/* The reasons a member chose, each a filter on this lane. */}
+      <nav aria-label="Reason" className="nf-scroll-x mt-sm flex gap-xs" data-testid="reports-reasons">
+        <Link href={BASE} aria-current={reason === null ? "page" : undefined} className="nf-chip min-h-11 whitespace-nowrap">
+          All reasons
+        </Link>
+        {REPORT_CATEGORIES.map((category) => (
+          <Link
+            key={category}
+            href={`${BASE}&reason=${category}`}
+            aria-current={reason === category ? "page" : undefined}
+            className="nf-chip min-h-11 whitespace-nowrap"
+          >
+            {REASON_WORD[category]}
+          </Link>
+        ))}
+      </nav>
+
       <QueueFilters
-        base={BASE}
+        base={base}
         query={query}
         common={common}
         statuses={statusFilters(ui)}
@@ -260,7 +306,7 @@ export async function ReportsLane({
       )}
 
       <QueuePager
-        base={BASE}
+        base={base}
         query={query}
         pageSize={QUEUE_PAGE_SIZE}
         full={reports.data.full}

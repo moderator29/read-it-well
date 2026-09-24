@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupPlans, inFilter, lagosDay, planCount, planFilterFrom, type PlanItem } from "./plans";
+import { groupPlans, inFilter, isLiveTenancy, lagosDay, planCount, planFilterFrom, type PlanItem } from "./plans";
 
 const item = (id: string, on: string, over: Partial<PlanItem> = {}): PlanItem => ({
   id,
@@ -50,5 +50,17 @@ describe("Plans: one dated list (V-76)", () => {
 
   it("dates an instant on the Lagos calendar", () => {
     expect(lagosDay("2026-09-24T23:30:00Z")).toBe("2026-09-25");
+  });
+});
+
+describe("isLiveTenancy (V-76 review)", () => {
+  it("keeps pending and confirmed move-ins from today on", () => {
+    expect(isLiveTenancy("PENDING", "2026-10-01", "2026-09-24")).toBe(true);
+    expect(isLiveTenancy("CONFIRMED", "2026-09-24", "2026-09-24")).toBe(true);
+  });
+  it("drops cancelled, finished and past ones", () => {
+    expect(isLiveTenancy("CANCELLED", "2026-10-01", "2026-09-24")).toBe(false);
+    expect(isLiveTenancy("COMPLETED", "2026-10-01", "2026-09-24")).toBe(false);
+    expect(isLiveTenancy("CONFIRMED", "2026-09-01", "2026-09-24")).toBe(false);
   });
 });

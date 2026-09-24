@@ -481,7 +481,6 @@ export async function decideReservationAsAdmin(input: {
   revalidatePath("/admin/bookings");
   revalidatePath("/admin/bookings/reservations");
   revalidatePath("/bookings");
-  revalidatePath("/bookings");
   revalidatePath("/agent/bookings");
 
   return ok({ status: transition.next });

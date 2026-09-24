@@ -301,12 +301,14 @@ by title, city or date to reach older ones.
 
 ## 5. Moderation
 
-**Where:** the Held lane of the unified queue, `/admin/queue?tab=held` (V-88: `/admin/moderation` redirects there). Built to `01F7DFC7` panel 1.
+**Where:** the Held lane of the unified queue, `/admin/queue?tab=held` (V-88: `/admin/moderation` redirects there). Built to `01F7DFC7` panel 1. The lanes are addressed with `?tab=`, not the `?lane=` the V-88 entry wrote, because the queue already named its tabs that way.
 
-Two kinds of work in one table. **Reports** are what members filed about a
-listing, a post, a story or a person (`reports`). **Held items** are what the
-safety scan stopped before anybody saw them: posts, stories, story comments
-and bios (`status = 'HELD'`).
+The Held lane lists only what the safety scan stopped before anybody saw it:
+posts, stories, story comments, bios and events (`status = 'HELD'`), and its
+count on the queue tab counts exactly those. **Reports** (what members filed
+about a listing, a post, a story or a person) are the Reports lane, where the
+reason chips (Payment outside, Scam, Unsafe and the rest) filter with
+`?tab=reports&reason=<category>`.
 
 - **Reason tabs**: All, then the eight reasons a member can choose (payment
   off the platform, scam, unsafe, not as described, unavailable, offensive,
@@ -1020,7 +1022,7 @@ back to Waiting when they resubmit.
 (not the lister's to let, a scam, a duplicate). Write why, press Reject, press
 it again to confirm. The lister is told and may still edit and resubmit.
 
-**Deciding a report.** `/admin/queue?tab=held` (or the Reports lane). Work top down: waiting items are
+**Deciding a report.** The Reports lane, `/admin/queue?tab=reports`, narrowed by reason with `&reason=` if you like. Work top down: waiting items are
 oldest first. Open the row, read the reporter's words and open what was
 reported. Start review if it will take time (the reporter's report now shows
 as in review under your name). Resolve when you have acted (for a listing,

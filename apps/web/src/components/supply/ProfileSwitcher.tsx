@@ -96,6 +96,21 @@ const KIND_ICON: Record<WorkspaceKind, UiIconName> = {
   console: "shield-stop",
 };
 
+/*
+ * THE DOCK'S OWN GLYPHS (V-75 review). The dock centre drew the same user,
+ * home and bed glyphs as the Profile, Home and Stays tabs beside it, so the
+ * control read as a second copy of a destination. Personal is the account's
+ * own photograph (a glyph no tab uses when there is none), and each workspace
+ * takes a glyph that no tab in either bar draws.
+ */
+const DOCK_ICON: Record<WorkspaceKind, UiIconName> = {
+  owner: "document",
+  agent: "key",
+  firm: "building-apartment",
+  host: "building-hotel",
+  console: "shield-stop",
+};
+
 export type ProfileSwitcherCopy = {
   title: string;
   personal: string;
@@ -277,10 +292,21 @@ export function ProfileSwitcher({
          * this one is not a destination.
          */}
         {current.kind === "personal" ? (
-          <UiIcon name="user" size="md" />
+          avatarUrl ? (
+            <RemoteImage
+              src={avatarUrl}
+              alt=""
+              width={24}
+              height={24}
+              sizes="24px"
+              className="nf-switch-mark__photo nf-switch-dock__photo"
+            />
+          ) : (
+            <UiIcon name="switch-profile" size="md" />
+          )
         ) : (
           <span className="nf-switch-dock__face">
-            <UiIcon name={KIND_ICON[current.workspace.kind]} size="md" />
+            <UiIcon name={DOCK_ICON[current.workspace.kind]} size="md" />
             <span className="nf-switch-dock__caption">{copy.short[current.workspace.kind]}</span>
           </span>
         )}

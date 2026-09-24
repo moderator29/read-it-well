@@ -119,6 +119,7 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
       heldStories,
       heldComments,
       heldBios,
+      heldEvents,
     ] = await Promise.all([
       admin.from("message_flags").select("id", { count: "exact", head: true }).eq("status", "open"),
       admin.from("risk_alerts").select("id", { count: "exact", head: true }).eq("status", "open"),
@@ -148,6 +149,8 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
         .from("social_profiles")
         .select("user_id", { count: "exact", head: true })
         .eq("bio_status", "HELD"),
+      /* V-88 review: the Held lane lists held events too, so it counts them. */
+      admin.from("events").select("id", { count: "exact", head: true }).eq("status", "HELD"),
     ]);
 
     return {
@@ -163,7 +166,8 @@ export const getQueueCounts = cache(async (): Promise<AdminRead<QueueCounts>> =>
           (heldPosts.count ?? 0) +
           (heldStories.count ?? 0) +
           (heldComments.count ?? 0) +
-          (heldBios.count ?? 0),
+          (heldBios.count ?? 0) +
+          (heldEvents.count ?? 0),
       },
     };
   } catch {

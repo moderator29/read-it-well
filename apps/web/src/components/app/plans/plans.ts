@@ -103,3 +103,12 @@ export function groupPlans(items: PlanItem[], today: string): PlanGroups {
 export function planCount(groups: PlanGroups): number {
   return groups.today.length + groups.week.length + groups.later.length;
 }
+
+/**
+ * Whether a tenancy belongs in "Coming up" (V-76 review): still pending or
+ * confirmed, and moving in today or later. A cancelled or refunded charge is
+ * a record, never an upcoming move-in.
+ */
+export function isLiveTenancy(status: string, moveIn: string, today: string): boolean {
+  return (status === "PENDING" || status === "CONFIRMED") && moveIn >= today;
+}

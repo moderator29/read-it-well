@@ -82,7 +82,7 @@ export function AlreadyReviewedPanel({
         <ButtonLink href={`/listing/${subject.listingId}`} variant="primary">
           See it on the listing
         </ButtonLink>
-        <ButtonLink href="/bookings" variant="secondary">
+        <ButtonLink href="/bookings?side=stays" variant="secondary">
           See your stays
         </ButtonLink>
       </Reveal>

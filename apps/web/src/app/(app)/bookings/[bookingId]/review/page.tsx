@@ -164,7 +164,7 @@ function Shell({
     <div className="mx-auto max-w-2xl">
       <div className="relative">
         <PageScene art="calendar-check" />
-        <PageHeader title="Review your stay" subtitle={subtitle} fallback="/bookings" />
+        <PageHeader title="Review your stay" subtitle={subtitle} fallback="/bookings?side=stays" />
       </div>
       {children}
     </div>

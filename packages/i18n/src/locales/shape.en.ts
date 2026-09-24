@@ -52,7 +52,8 @@ export const shapeEn = {
   },
   /** V-75: one noun, workspace, for who you are being. */
   workspace: {
-    short: { owner: "Ow", agent: "Ag", firm: "Fm", host: "St", console: "Op" },
+    /* The dock caption under the workspace glyph, in full words (review 11). */
+    short: { owner: "Owner", agent: "Agent", firm: "Firm", host: "Stays", console: "Console" },
     propertyGroup: "Property",
     staysGroup: "Stays",
   },

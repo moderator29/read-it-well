@@ -53,7 +53,7 @@ export const SIDE_HOME: Record<Side, string> = {
  * `/stays/search` are the Stays roots.
  */
 const STAYS_PATHS = /^\/(stays|stay|restaurants|restaurant|trips|host)(\/|$)/;
-const PROPERTY_PATHS = /^\/(home|search|agent|listing|rent|inspections|bookings)(\/|$)/;
+const PROPERTY_PATHS = /^\/(home|search|agent|listing|rent|inspections)(\/|$)/;
 
 export function sideOfPath(pathname: string): Side | null {
   if (STAYS_PATHS.test(pathname)) return "stays";

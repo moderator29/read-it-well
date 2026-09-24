@@ -376,7 +376,7 @@ export async function reviewAgentApplication(input: {
                verification queue has not seen a document. The body already
                said the true thing; the title now does too. */
             title: "Your agent application is approved",
-            body: "Agent Mode is open, so you can list your first property. Verification is a separate step and you can start it from your dashboard.",
+            body: "Your agent workspace is open, so you can list your first property. Verification is a separate step and you can start it from your dashboard.",
           }
         : decision === "reject"
           ? {

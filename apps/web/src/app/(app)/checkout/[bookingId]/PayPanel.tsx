@@ -583,7 +583,7 @@ export function PayPanel({
         locale={view.locale}
         consequence="The agent has been paid and these dates are yours."
         actions={[
-          { label: "See your stays", href: "/bookings", tone: "primary" },
+          { label: "See your stays", href: "/bookings?side=stays", tone: "primary" },
           { label: "Back to the stay", href: `/listing/${view.listingId}`, tone: "quiet" },
         ]}
         footnote="Paid inside Vallo, recorded to the kobo."
@@ -671,7 +671,7 @@ export function PayPanel({
             : "Your card has not been charged. Check your stays before you try again, so you do not pay twice."
         }
         actions={[
-          { label: "See your stays", href: "/bookings", tone: "primary" },
+          { label: "See your stays", href: "/bookings?side=stays", tone: "primary" },
           { label: "Try again", onClick: () => setPhase({ kind: "idle" }), tone: "quiet" },
         ]}
       />

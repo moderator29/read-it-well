@@ -1106,6 +1106,11 @@
     align-items: center;
     line-height: 1;
   }
+  /* Personal, in the dock: the account photograph at the tab glyph step. */
+  .nf-switch-mark__photo.nf-switch-dock__photo {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
   .nf-switch-dock__caption {
     margin-top: 1px;
     font-size: var(--nf-text-overline);

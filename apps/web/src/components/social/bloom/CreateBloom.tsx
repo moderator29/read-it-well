@@ -477,7 +477,7 @@ export function CreateBloom({
                   A stay can be reviewed once you have checked out of it. Your stays, past and
                   coming, are all in one place.
                 </p>
-                <Link href="/bookings" className="nf-btn nf-btn--primary mt-lg" onClick={closeReview}>
+                <Link href="/bookings?side=stays" className="nf-btn nf-btn--primary mt-lg" onClick={closeReview}>
                   See your stays
                 </Link>
               </div>

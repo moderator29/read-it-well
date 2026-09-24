@@ -47,12 +47,18 @@ export function ComingUp({
   groups,
   copy,
   locale,
+  partial = false,
 }: {
   groups: PlanGroups;
   copy: Dictionary["shape"]["plans"];
   locale: Locale;
+  /** True when a read behind the list failed: an empty list is then unknown, not empty. */
+  partial?: boolean;
 }) {
   if (planCount(groups) === 0) {
+    /* A failed read is said where it failed, below; "nothing ahead" here
+       would be a claim this page cannot make (V-76 review). */
+    if (partial) return null;
     return (
       <p className={`mb-block ${TYPE.rowMeta}`} data-testid="plans-nothing-ahead">
         {copy.nothingAhead}

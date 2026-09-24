@@ -10,7 +10,7 @@ import { getDictionary } from "@vallo/i18n";
  * section 7 now says Workspace, and this walks every English UI string so a
  * synonym cannot come back quietly. The side switch keeps its own word, Flip.
  */
-const BANNED = /\b(switch profile|switch role|agent mode|personal mode|register as a supplier|choose your mode)\b/i;
+const BANNED = /\b(switch profile|switch role|agent mode|personal mode|register as a supplier|choose your mode|between modes)\b/i;
 
 function strings(value: unknown, path: string, out: [string, string][]): void {
   if (typeof value === "string") out.push([path, value]);

@@ -288,7 +288,7 @@ export function ReservePanel({
           stay
         </ButtonLink>
         <ButtonLink
-          href={`/bookings?justBooked=${r.bookingId}`}
+          href={`/bookings?side=stays&justBooked=${r.bookingId}`}
           variant="ghost"
           full
           className="mt-row"

@@ -165,7 +165,7 @@ export function PaymentReturn({
             : "This payment was already recorded, so your stay is confirmed."
         }
         actions={[
-          { label: "See your stays", href: "/bookings", tone: "primary" },
+          { label: "See your stays", href: "/bookings?side=stays", tone: "primary" },
           { label: "Close", onClick: () => setOpen(false), tone: "quiet" },
         ]}
       />
@@ -183,7 +183,7 @@ export function PaymentReturn({
         locale={locale}
         consequence="We have not heard back from the payment service. Do not pay again. Your stay appears under your stays the moment it settles, and the reference above is what support will trace it by."
         actions={[
-          { label: "See your stays", href: "/bookings", tone: "primary" },
+          { label: "See your stays", href: "/bookings?side=stays", tone: "primary" },
           { label: "Get help", href: "/help", tone: "quiet" },
         ]}
       />

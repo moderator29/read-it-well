@@ -70,7 +70,7 @@ export default async function BookingDetailPage({
 
   const shell = (children: React.ReactNode) => (
     <div className="nf-cat-surface mx-auto max-w-2xl">
-      <PageHeader title={t.nav.bookings} fallback="/bookings" />
+      <PageHeader title={t.shape.plans.kinds.stay} fallback="/bookings?side=stays" />
       <Reveal>{children}</Reveal>
     </div>
   );

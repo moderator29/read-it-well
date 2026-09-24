@@ -126,8 +126,8 @@ export const CHAPTERS: DocChapter[] = [
                   Rent
                 </Link>
                 , listings, agents, inspections and{" "}
-                <Link href="/bookings" className={A}>
-                  Bookings
+                <Link href="/bookings?side=property" className={A}>
+                  Plans
                 </Link>
                 . Prices are a sale price or a yearly rent with the move-in total
                 printed under it.
@@ -143,7 +143,7 @@ export const CHAPTERS: DocChapter[] = [
                 </Link>{" "}
                 and{" "}
                 <Link href="/bookings?side=stays" className={A}>
-                  Trips
+                  Plans
                 </Link>
                 . Prices are per night, against dates and a party size.
               </li>
@@ -153,9 +153,8 @@ export const CHAPTERS: DocChapter[] = [
               switch sits at the foot of the side drawer, and flipping it changes the
               vocabulary and the bottom bar, not your account: the same profile, the
               same wallet, the same balance, the same inbox and the same saved places.
-              Bookings is the Property side&apos;s word for what is coming up, and
-              Trips is the Stays side&apos;s word for it. A table you hold and a room
-              you book both land in Trips.
+              Plans is one dated list of everything you have lined up on both sides:
+              inspections, move-ins, stays and tables, in the order they happen.
             </p>
           </>
         ),
@@ -284,11 +283,11 @@ export const CHAPTERS: DocChapter[] = [
             <ul>
               <li>
                 <strong>The platform.</strong> Home, Search, Stays, Restaurants,
-                Around, Saved, Bookings and Trips, Wallet, Inbox, Notifications, the
+                Around, Saved, Plans, Wallet, Inbox, Notifications, the
                 assistant, your profile and Settings.
               </li>
               <li>
-                <strong>Agent Mode.</strong> A separate workspace at{" "}
+                <strong>The agent workspace.</strong> A separate workspace at{" "}
                 <code>/agent</code> for listings, the calendar, bookings, earnings,
                 reviews and verification. You switch into it once your application is
                 approved.
@@ -1812,7 +1811,7 @@ export const CHAPTERS: DocChapter[] = [
               <Link href="/agent/verification" className={A}>
                 Verification
               </Link>{" "}
-              in Agent Mode.
+              in the agent workspace.
             </p>
           </>
         ),

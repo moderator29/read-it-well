@@ -28,6 +28,7 @@ import {
   planFilterFrom,
   type PlanFilter,
   type PlanItem,
+  isLiveTenancy,
 } from "@/components/app/plans/plans";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -100,10 +101,11 @@ export default async function PlansPage({
       at,
       title: row.listingTitle ?? copy.inspectionFallback,
       where: row.counterpartName ?? "",
-      href: `/bookings?kind=inspection#ix-${row.id}`,
+      href: `/bookings?kind=inspection&changed=${row.id}#ix-${row.id}`,
     });
   }
   for (const tenancy of groups?.rent ?? []) {
+    if (!isLiveTenancy(tenancy.status, tenancy.moveIn, today)) continue;
     items.push({
       id: tenancy.id,
       kind: "tenancy",
@@ -186,11 +188,24 @@ export default async function PlansPage({
         />
       ) : (
         <>
-          <ComingUp groups={upcoming} copy={copy} locale={locale} />
+          <ComingUp
+            groups={upcoming}
+            copy={copy}
+            locale={locale}
+            partial={unavailable || asked.readFailed || shown.readFailed}
+          />
 
-          {showProperty && (rent.length > 0 || hasInspections) && (
+          {showProperty && (rent.length > 0 || hasInspections || unavailable) && (
             <Reveal className="mt-block">
               <h2 className="nf-group-label">{copy.propertyTitle}</h2>
+              {/* The tenancies come from the same read as the stays: when it
+                  failed, say so here too rather than showing no move-ins. */}
+              {unavailable && !inspectionsOnly && (
+                <div className="py-heading text-center" data-testid="plans-property-unavailable">
+                  <p className={TYPE.rowTitle}>{t.catalogue.bookings.unavailableTitle}</p>
+                  <p className={`mx-auto mt-row max-w-sm ${TYPE.body}`}>{t.catalogue.bookings.unavailableBody}</p>
+                </div>
+              )}
               {rent.length > 0 && (
                 <Section title={copy.tenanciesTitle}>
                   <div className="flex flex-col gap-md">
