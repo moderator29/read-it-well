@@ -167,6 +167,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
     ? {
         id: listingFace.id,
         isBusiness: false as const,
+        isExample: listingFace.isDemo === true,
         title: listingFace.title,
         area: listingFace.area,
         city: listingFace.city,
@@ -181,6 +182,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
     : {
         id: detail!.business.id,
         isBusiness: true as const,
+        isExample: detail!.business.is_demo === true,
         title: detail!.business.name,
         area: detail!.business.area,
         city: detail!.business.city,
@@ -198,7 +200,8 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
   /* A thread is bound to a LISTING (`startConversation({ listingId })`), so a
      business venue has no thread to open and the control is not drawn for it
      rather than drawn and refusing. Reported, not worked around. */
-  const messageHref = venue.isBusiness ? null : `/messages/new?listing=${venue.id}`;
+  const messageHref =
+    venue.isBusiness || venue.isExample ? null : `/messages/new?listing=${venue.id}`;
 
   /* The hours, when the venue has published them through lib/stays
      (service windows on the business-grade schema). A listing with none
@@ -321,6 +324,7 @@ export default async function RestaurantPage({ params }: { params: Promise<{ id:
       reserve={{ ...(venue.isBusiness ? { businessId: venue.id } : { listingId: venue.id }), messageHref }}
       windows={detail ? detail.windows : null}
       messageHref={messageHref}
+      isExample={venue.isExample}
       report={{
         targetType: venue.isBusiness ? "business" : "listing",
         targetId: venue.id,

@@ -42,9 +42,8 @@ export default function AuthError({
     <div className="text-center">
       <h1 className="nf-h3">This screen did not load</h1>
       <p className="mt-sm text-[0.875rem] leading-relaxed text-[var(--nf-content-secondary)]">
-        Something on our side stopped part way through. Nothing was submitted, no
-        account was created or changed, and your details are safe. Trying again
-        usually settles it.
+        Something on our side stopped part way through. Nothing was submitted and
+        no account was created or changed. Trying again usually settles it.
       </p>
 
       <div className="mt-6 flex flex-col gap-2">

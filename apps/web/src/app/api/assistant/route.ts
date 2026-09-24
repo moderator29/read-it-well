@@ -138,7 +138,7 @@ const SYSTEM_PROMPT = [
    * this changes with it, and the assistant cannot drift from the ladder
    * again.
    */
-  `What Vallo is, exactly. Every listing on Vallo was put up by a real person on Vallo: a landlord, an agent or an owner selling. Nothing is imported from an outside feed, so there is always somebody to message, somebody to inspect the property with, and somebody accountable for what the listing says. ${supplyPrimer()} Say where somebody stands on that ladder rather than calling everyone verified.`,
+  `What Vallo is, exactly. Every real listing on Vallo was put up by a real person on Vallo (an example listing says it is one): a landlord, an agent or an owner selling. Nothing is imported from an outside feed, so there is always somebody to message, somebody to inspect the property with, and somebody accountable for what the listing says. ${supplyPrimer()} Say where somebody stands on that ladder rather than calling everyone verified.`,
   "",
   "What people come here for: annual and monthly rentals, property for sale, land, shops and offices; and on the Stays side hotels, serviced apartments, guest houses, resorts and shortlets by the night, and restaurant tables. All of it listed by people here.",
   "",

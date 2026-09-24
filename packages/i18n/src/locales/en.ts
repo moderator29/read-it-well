@@ -530,7 +530,7 @@ export const en = {
         title1: "Rent, buy or stay.",
         title2: "Without the runaround.",
         subtitle:
-          "Verified homes, land, hotels and shortlets across Nigeria. See what you will actually pay before you call anybody, and deal with the owner directly where there is one.",
+          "Homes, land, hotels and shortlets across Nigeria, with the person behind each listing named. See what you will actually pay before you call anybody, and deal with the owner directly where there is one.",
         explore: "Explore Properties",
         stays: "Explore Stays",
         /* "Popular Cities" was the label and popularity is a claim: nothing
@@ -559,9 +559,9 @@ export const en = {
       },
       stats: {
         overline: "Real people. Real places.",
-        title: "Checked listings. Real people. Serious property.",
+        title: "Reviewed listings. Named people. Serious property.",
         listings: "Listings",
-        agents: "Verified agents",
+        agents: "Approved agents",
         cities: "Cities",
         states: "States",
       },
@@ -931,7 +931,7 @@ export const en = {
       title: "Questions, answered",
       items: [
         {
-          q: "Is my money safe?",
+          q: "How is my money handled?",
           a: "Payments run in naira through a licensed Nigerian payment provider, and your card details never touch our servers. You are never charged before you confirm.",
         },
         {
@@ -1493,11 +1493,6 @@ export const en = {
 
     security: {
       label: "Security",
-      signOutNote:
-        "This is your only session, so there is nothing else to sign out. Once accounts launch, this control ends every session on every device at once.",
-      appLock: "Biometric app lock",
-      appLockSub:
-        "Ask for fingerprint or face unlock when the app opens, on devices that support it.",
       signedInOn: "Signed in on",
       thisDevice: "This device",
       /* Browser and platform names are proper nouns and stay as they are; only
@@ -1506,7 +1501,6 @@ export const en = {
       deviceOn: "{browser} on {os}",
       unknownBrowser: "Browser",
       unknownOs: "this device",
-      signOutEverywhere: "Sign out everywhere",
     },
 
     /*
@@ -1577,10 +1571,6 @@ export const en = {
 
     data: {
       label: "Your data",
-      exportNote:
-        "Right now everything Vallo knows about you lives in this browser, and nothing has left this device. Full data export ships with the launch release.",
-      download: "Download my data",
-      downloadSub: "A copy of everything Vallo holds about you.",
       clear: "Clear local data",
       clearAgain: "Tap again to confirm",
       clearSub:
@@ -1957,7 +1947,7 @@ export const en = {
     },
     join: {
       title: "Join the Vallo Agent Community",
-      body: "List properties, connect with verified guests, manage bookings and earn.",
+      body: "List properties, connect with guests, manage bookings and earn.",
       start: "Start application",
       resume: "Continue application",
       whatYouGet: "What you get",
@@ -1968,7 +1958,7 @@ export const en = {
          about reach is no claim about size. */
       benefitReach: "Reach guests who chose Vallo",
       benefitTools: "Professional listing and booking tools",
-      benefitEarn: "Track earnings and get paid securely",
+      benefitEarn: "Track earnings and see what you are owed",
     },
     apply: {
       title: "Become an Agent",
@@ -2436,13 +2426,13 @@ export const en = {
         "Sign in to your agent account to start a listing, or apply in about two minutes if you are new here.",
       points: {
         verified: {
-          title: "Verified supply only",
+          title: "A named person behind every listing",
           body:
-            "Every listing is checked by hand, so the badge on your property means something to guests.",
+            "The verified tick appears only once a person here has checked your ID, so it means something to guests.",
         },
         inside: {
           title: "Guests reach you inside Vallo",
-          body: "Chats, inspections and payments stay on the platform, where they are protected.",
+          body: "Chats, inspections and payments stay on the platform, where there is a record of them.",
         },
         keep: {
           title: "You keep what you charge",
@@ -3927,7 +3917,7 @@ export const en = {
     },
 
     escrow: {
-      lede: "Secure transactions. Fair outcomes.",
+      lede: "Disputes, decided on the record.",
       /* The escrow ruling control (`_components/MoneyDecisions.tsx`), English
          only; the other locales fall back to it. */
       rulingControl: {
@@ -5385,7 +5375,7 @@ export const en = {
    */
   directHome: {
     heroTitle: "Find your next home",
-    heroLede: "Rent, buy or invest in verified properties across Nigeria.",
+    heroLede: "Rent, buy or sell property across Nigeria.",
     heroSearch: "Search by location, property type",
     filters: "Filters",
     featured: "Featured properties",
@@ -5393,7 +5383,7 @@ export const en = {
     parkingMany: "{count} parking",
     buy: "Buy",
     rent: "Rent",
-    manage: "Manage",
+    manage: "List a property",
     invest: "Invest",
     investNote: "Properties presented for their yield. Vallo sells no investment product.",
     stays: {
@@ -5407,8 +5397,8 @@ export const en = {
       shortletsNote: "Feels like home",
       restaurants: "Restaurants",
       restaurantsNote: "Great food",
-      nearby: "Nearby",
-      nearbyNote: "Discover local",
+      nearby: "Local talk",
+      nearbyNote: "What people say",
     },
     dock: {
       /* The raised centre slot. The sheet it opens is B1's; this is the word

@@ -293,7 +293,7 @@ export async function removeStory(input: {
     if (error) return fail(messageForStoryError(error.code));
     if (!data || data.length === 0) {
       return fail(
-        "That story can no longer be taken down from here. It may have expired or been removed already. Refresh to see your stories.",
+        "That story can no longer be taken down from here. It may have been removed already. Refresh to see your stories.",
       );
     }
 

@@ -409,7 +409,7 @@ export default async function ListingDetailPage({
     aboutParagraphs.push(
       `The rent is quoted for a full year and agreed directly with the agent.${
         listing.verified
-          ? " The agent and this property were checked by Vallo before the listing went live."
+          ? " A person at Vallo checked the ID of the agent behind this listing."
           : ""
       }`,
     );
@@ -435,7 +435,7 @@ export default async function ListingDetailPage({
       );
     }
     if (listing.verified) {
-      closing.push("The agent and this property were checked by Vallo before it went live.");
+      closing.push("A person at Vallo checked the ID of the agent behind this listing.");
     }
     if (closing.length > 0) aboutParagraphs.push(closing.join(" "));
   }

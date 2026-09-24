@@ -2,6 +2,8 @@ import Image from "next/image";
 import { formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
 import { Amount } from "@/components/ui/Amount";
 import { ReportSheet } from "@/components/app/ReportSheet";
+import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
+import { ButtonLink } from "@/components/ui/Button";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
@@ -265,6 +267,9 @@ export function StayDetailView({
             and overlaps the photograph, as every lead card here does. */}
         <div className={panelClass({ variant: "card", className: "nf-detail-lead relative z-10 -mt-xl block sm:-mt-2xl" })}>
           <h1 className="nf-h2 [text-wrap:balance]">{detail.name}</h1>
+          {/* UX-09 / UI-P2-01: said here, one tap deeper than the shelf card,
+              where the booking would have happened. */}
+          {detail.isExample && <ExampleNotice variant="page" className="mt-row" />}
           {where && (
             <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
               <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
@@ -321,7 +326,7 @@ export function StayDetailView({
                     role: BUSINESS_LABEL[businessKind] ?? "Host",
                     verified: detail.hostVerified === true,
                     verifiedLabel: detailCopy.verifiedHost,
-                    messageHref: `/messages/new?listing=${detail.id}`,
+                    messageHref: detail.isExample ? null : `/messages/new?listing=${detail.id}`,
                     messageLabel: detailCopy.message,
                   }
                 : null
@@ -330,6 +335,21 @@ export function StayDetailView({
         </div>
 
         {/* --------------------------------------- dates and the party */}
+        {detail.isExample ? (
+          /* An example has nothing to book, so there is no Book now to press
+             and be refused at checkout. The same consequence line the
+             property page draws. */
+          <div className="mt-block" data-testid="stay-not-bookable">
+            <div className={panelClass({ variant: "card", className: "block p-card" })}>
+              <p className={TYPE.rowMeta}>
+                Nothing here can be booked or paid for. Search for a real place with a host you can reach.
+              </p>
+              <ButtonLink href="/stays" variant="primary" className="mt-block w-full">
+                Browse real stays
+              </ButtonLink>
+            </div>
+          </div>
+        ) : (
         <div className="mt-block" data-testid="stay-dates-row">
           <DetailAvailabilityCard
             title={detailCopy.checkAvailability}
@@ -342,6 +362,7 @@ export function StayDetailView({
             }
           />
         </div>
+        )}
 
         <Stack className="mt-block">
           {/* ------------------------------------------------ amenities */}
@@ -413,7 +434,11 @@ export function StayDetailView({
           )}
 
           <Section id="rooms" title={copy.roomsTitle} description={copy.roomsDescription} className="scroll-mt-28">
-            {detail.roomTypes.length > 0 ? (
+            {detail.isExample ? (
+              <p className={TYPE.rowMeta} data-testid="rooms-example">
+                These rooms are an example of how a stay looks on Vallo. None of them can be booked.
+              </p>
+            ) : detail.roomTypes.length > 0 ? (
               <RoomTypes
                 detail={detail}
                 guests={guests}

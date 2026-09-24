@@ -140,22 +140,11 @@ export function HomeScreen({
     { key: "rent", label: copy.rent, href: "/search?market=rent", icon: "keys-home" },
     { key: "manage", label: copy.manage, href: manageHref, icon: "manage-ring" },
     /*
-      NO SUPPORTING LINE ON THIS ROW, AND IT HAD ONE FOR A DAY.
-
-      The Invest tile carried `copy.investNote` as a `meaning`, which in a
-      four-across row at 390px set a seven-line paragraph under one tile and
-      left the other three standing on nothing. Measured on a production
-      server: it pushed "Featured properties" 180px down the page and broke
-      the row's rhythm, which is the one thing `GOVERNING-01` screen one is
-      unambiguous about. The render carries labels and nothing else.
-
-      The ruling it was trying to state does not need a disclaimer on a tile.
-      What makes Invest not an instrument is WHERE IT GOES: a filtered shelf of
-      the catalogue. `directHome.investNote` stays in the dictionary for the
-      Invest destination's own header, which is where an explanation belongs
-      and where there is room for one.
+      UX-22 / STORE-05: NO INVEST TILE. It went to `/search?market=buy`, the
+      same shelf as Buy, so it filtered nothing distinct and promised an
+      investment product that does not exist. "Manage" reads "List a
+      property", which is where it goes.
     */
-    { key: "invest", label: copy.invest, href: "/search?market=buy", icon: "chart-growth" },
   ];
 
   return (

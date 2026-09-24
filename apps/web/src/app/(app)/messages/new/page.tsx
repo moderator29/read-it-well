@@ -132,7 +132,7 @@ export default async function NewMessagePage({
     return (
       <Bridge
         title="Sign in to message the agent"
-        message="Chat with the agent, arrange an inspection and keep every step of the deal in one protected place. You will come straight back to this conversation."
+        message="Chat with the agent, arrange an inspection and keep every step of the deal in one place, on the record. You will come straight back to this conversation."
         listingId={listing}
         primary={{ label: "Sign in", href: authHref(next, "sign-in") }}
       />
