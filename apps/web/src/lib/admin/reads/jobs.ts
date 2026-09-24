@@ -93,6 +93,7 @@ export const PG_CRON_JOBS: readonly PgCronJob[] = [
   { name: "vallo_announce_completed_stays", cron: "20 5 * * *", when: "daily 06:20", what: "announces completed stays" },
   { name: "vallo_sweep_price_check_watches", cron: "50 5 * * *", when: "daily 06:50", what: "tells a price check watcher once the area opens" },
   { name: "vallo-daily-note", cron: "0 6 * * *", when: "daily 07:00", what: "the daily note" },
+  { name: "vallo_remind_caution_due", cron: "15 7 * * *", when: "daily 08:15", what: "reminds listers and tenants when a caution is due back" },
 ];
 
 /** A readable name for a job: "hold-sweep" becomes "Hold sweep". */

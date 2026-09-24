@@ -648,8 +648,9 @@ a fall is emerald. The line is alerts raised per day.
 | vallo_announce_completed_stays | pg_cron `20 5 * * *` | daily 06:20 | | announces completed stays |
 | vallo_sweep_price_check_watches | pg_cron `50 5 * * *` | daily 06:50 | | re-runs the price check gate at each pending watch and tells the watcher once when it opens |
 | vallo-daily-note | pg_cron `0 6 * * *` | daily 07:00 | | the daily note |
+| vallo_remind_caution_due | pg_cron `15 7 * * *` | daily 08:15 | | reminds listers and tenants when a caution is due back (V-36) |
 
-8 Vercel Cron jobs and 15 pg_cron jobs in all. The numbers are derived,
+8 Vercel Cron jobs and 16 pg_cron jobs in all. The numbers are derived,
 not remembered: the Vercel list is `VERCEL_JOBS` in
 `lib/admin/reads/jobs.ts`, held equal to `vercel.json` by a test, and the
 database list is `PG_CRON_JOBS` in the same file, held equal by

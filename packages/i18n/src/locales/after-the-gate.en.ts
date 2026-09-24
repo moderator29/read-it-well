@@ -157,7 +157,7 @@ export const afterTheGateEn = {
     otherParty: "the other party",
     pinsHeading: "Pinned messages",
     pinsNone: "Nothing pinned yet. Pin a message in the thread to keep it with the tenancy.",
-    retention: "This file is kept until six years after the tenancy ends.",
+    retention: "This file is kept until {date}, six years after the tenancy ends.",
     missingTitle: "We could not find that tenancy",
     missingBody: "It may belong to another account. Your tenancies are all in Bookings.",
     unavailableTitle: "The tenancy file did not open",
