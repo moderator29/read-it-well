@@ -504,6 +504,7 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/compliance/sanctions-upload": "POST only, staff upload of a sanctions list file.",
   "/api/cron/sanctions-screen": "scheduled job, bearer token.",
   "/api/cron/pg-cron-watch": "scheduled job, bearer token.",
+  "/api/cron/risk-classes": "scheduled job, bearer token.",
   "/api/cron/saved-search-alerts": "scheduled job, bearer token.",
   "/api/cron/store-readiness": "scheduled job, bearer token.",
   "/api/cron/new-match-alerts": "scheduled job, bearer token.",

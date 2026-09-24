@@ -132,8 +132,13 @@ export function exampleSlotsFor(listing: Shape): ExampleSlot[] {
 /**
  * The photographs an example actually shows, replacing whatever the row
  * carries. For anything that is not a modest example, the row's own photos,
- * untouched. For a modest example, only the slots that exist on disk, which
- * today is none: the frame then draws the kind.
+ * untouched. For a modest example, the slots that exist on disk.
+ *
+ * FOUNDER'S DECISION, 24 September 2026: until the honest slot photographs
+ * exist, a modest example keeps its original photos rather than showing an
+ * empty "No photographs yet" card. They are labelled examples, and a blank
+ * card in front of every visitor was worse. The slot idea above stands for
+ * when the files arrive; nothing here waits on them.
  */
 export function honestExamplePhotos(
   listing: Shape,
@@ -141,7 +146,8 @@ export function honestExamplePhotos(
   present: readonly ExampleSlot[] = EXAMPLE_PHOTOGRAPHS_PRESENT,
 ): string[] {
   if (!isModestExample(listing)) return rowPhotos;
-  return exampleSlotsFor(listing)
+  const honest = exampleSlotsFor(listing)
     .filter((slot) => present.includes(slot))
     .map(exampleSlotPath);
+  return honest.length > 0 ? honest : rowPhotos;
 }

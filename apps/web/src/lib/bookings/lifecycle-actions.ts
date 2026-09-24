@@ -81,7 +81,7 @@ export async function recordNoShow(input: NoShowInput): Promise<ActionResult<nul
     const [{ data: listing }, { data: roles }] = await Promise.all([
       admin
         .from("listings")
-        .select("agent_id, agents!inner(user_id)")
+        .select("agent_id, agents!listings_agent_id_fkey!inner(user_id)")
         .eq("id", booking.listing_id)
         .maybeSingle(),
       admin

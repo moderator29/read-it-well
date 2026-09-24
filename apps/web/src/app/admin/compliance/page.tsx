@@ -7,6 +7,8 @@ import type { ComplianceLane } from "./_lanes/lane";
 import { StrLane } from "./_lanes/StrLane";
 import { ThresholdLane } from "./_lanes/ThresholdLane";
 import { sanctionsLane } from "./_lanes/SanctionsLane";
+import { riskLane } from "./_lanes/RiskLane";
+import { pepLane } from "./_lanes/PepLane";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +27,8 @@ const LANES: ComplianceLane[] = [
   StrLane, // SCUML item 6
   ThresholdLane, // SCUML item 7
   sanctionsLane, // SCUML items 8 and 9
+  riskLane, // SCUML item 15
+  pepLane, // SCUML item 20
 ];
 
 export default async function CompliancePage({

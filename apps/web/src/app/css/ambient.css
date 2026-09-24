@@ -135,8 +135,9 @@
      * able to see it happening, only notice afterwards that the ground was
      * never quite still.
      */
-    animation: nf-drift-a 34s ease-in-out infinite;
-    will-change: transform, opacity;
+    /* Still, like the rest of the ground. A drifting bloom is motion that
+       never settles, and on a phone it read as the page itself moving. */
+    opacity: 0.3;
   }
   .nf-ambient > span:nth-child(3) {
     inset: auto;
@@ -271,10 +272,6 @@
    * had no caller for some time. A keyframe nothing plays is a description of
    * an animation somebody might reintroduce by accident.
    */
-  @keyframes nf-drift-a {
-    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.3; }
-    50% { transform: translate3d(4vw, 3vh, 0) scale(1.06); opacity: 0.36; }
-  }
   @media (prefers-reduced-motion: reduce) {
     .nf-ambient::before,
     .nf-ambient::after,

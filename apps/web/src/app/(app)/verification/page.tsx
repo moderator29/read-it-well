@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { PageScene } from "@/components/app/PageScene";
 import { KycFlow } from "@/components/verification/KycFlow";
 import { VninPanel } from "@/components/verification/VninPanel";
+import { PepQuestionPanel } from "@/components/compliance/PepQuestionPanel";
 import { vninIdentityOn } from "@/lib/identity/flag";
 import {
   KycStatus,
@@ -65,6 +66,9 @@ export default async function VerificationPage({
       <VninPanel copy={getDictionary(locale).trustVisible.vnin} merchantCode={merchantCode} />
     ) : null;
   const ladder = await getOwnLadder(context);
+  /* SCUML item 20: the PEP question, for listers only (the panel draws
+     nothing for anybody without an agents row). */
+  const pep = <PepQuestionPanel askedAt="verification" />;
   const params = await searchParams;
   const asked = Array.isArray(params.resubmit)
     ? params.resubmit[0]
@@ -197,6 +201,7 @@ export default async function VerificationPage({
             <span className="mt-inline-tight block">{whatWasSaid}</span>
           </p>
         )}
+        {pep}
         {vnin}
         <KycFlow submit={submitVerification} />
       </div>
@@ -212,6 +217,7 @@ export default async function VerificationPage({
             <PageHeader title="Verification" />
           </div>
           <KycStatus status={status} locale={locale} />
+          {pep}
         </>
       ) : (
         <>
@@ -224,6 +230,7 @@ export default async function VerificationPage({
               the scene is not repeated here because there is no status object
               for it to sit behind. */}
           <PageHeader title="Verification" fallback="/profile" />
+          {pep}
           {vnin}
           <KycFlow submit={submitVerification} />
         </>

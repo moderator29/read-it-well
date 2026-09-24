@@ -72,6 +72,8 @@ export const VERCEL_JOBS: readonly VercelJob[] = [
   /* SCUML items 8 and 9: sanctions lists refreshed daily, the screening queue drained every 15 minutes. */
   { name: "sanctions-lists", cron: "10 5 * * *", schedule: "Daily at 06:10", maxGapHours: 26, audit: { entityType: "cron_job", term: "sanctions-lists" } },
   { name: "sanctions-screen", cron: "7,22,37,52 * * * *", schedule: "Every 15 minutes", maxGapHours: 2, audit: { entityType: "cron_job", term: "sanctions-screen" } },
+  /* SCUML item 15: every customer's risk class, derived and dated. */
+  { name: "risk-classes", cron: "50 3 * * *", schedule: "Daily at 04:50", maxGapHours: 26, audit: { entityType: "cron_job", term: "risk-classes" } },
 ];
 
 /**
