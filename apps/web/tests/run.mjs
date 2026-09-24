@@ -66,7 +66,14 @@ function arg(argv, flag, fallback) {
 function runOne(name, env, timeoutMs) {
   return new Promise((resolve) => {
     const started = Date.now();
-    const child = spawn(process.execPath, [join(HERE, `${name}.spec.mjs`)], { env, stdio: ["ignore", "pipe", "pipe"] });
+    /* Its own process group, so a timeout takes the spec's Chromium down
+       with it; killing only the Node parent leaves the browser holding the
+       pipes open and the run waits for it anyway. */
+    const child = spawn(process.execPath, [join(HERE, `${name}.spec.mjs`)], {
+      env,
+      stdio: ["ignore", "pipe", "pipe"],
+      detached: true,
+    });
     let tail = "";
     const keep = (chunk) => {
       tail = (tail + chunk.toString()).split("\n").slice(-12).join("\n");
@@ -75,7 +82,11 @@ function runOne(name, env, timeoutMs) {
     child.stderr.on("data", keep);
     const timer = setTimeout(() => {
       tail += `\n[run] timed out after ${Math.round(timeoutMs / 1000)}s`;
-      child.kill("SIGKILL");
+      try {
+        process.kill(-child.pid, "SIGKILL");
+      } catch {
+        child.kill("SIGKILL");
+      }
     }, timeoutMs);
     child.on("close", (code, signal) => {
       clearTimeout(timer);
