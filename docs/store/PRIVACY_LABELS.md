@@ -12,7 +12,7 @@ Facts that apply to every row:
 
 - **Tracking: NO, for every data type.** There is no advertising SDK, no IDFA
   or Android advertising ID, no third-party analytics, and no data is shared
-  with data brokers (`grep -ri "firebase-analytics\|mixpanel\|segment\|amplitude\|gtag\|fbq" apps/web/src` returns nothing). So on iOS there is no App
+  with data brokers (`grep -rn -i "firebase-analytics\|mixpanel\|segment\.io\|gtag(\|fbq(\|googletagmanager\|posthog\|@vercel/analytics" apps/web/src apps/web/package.json` finds no SDK, only unrelated prose). So on iOS there is no App
   Tracking Transparency prompt and no `NSUserTrackingUsageDescription`.
 - **Encrypted in transit: YES.** HTTPS only, HSTS with preload (`next.config.ts`
   headers), `cleartext: false` in the shell.
