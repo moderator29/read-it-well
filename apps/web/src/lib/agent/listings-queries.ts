@@ -274,7 +274,7 @@ const LISTING_SELECT =
  * public columns; the private ones come from `listing_private_fields`, which
  * answers only for the caller's own listings.
  */
-const LISTING_PUBLIC_SELECT = withoutColumns(LISTING_SELECT, LISTING_PRIVATE_COLUMNS);
+export const LISTING_PUBLIC_SELECT = withoutColumns(LISTING_SELECT, LISTING_PRIVATE_COLUMNS);
 
 /** The row with its private fields, or null when they could not be read. */
 async function withListingPrivateOrNull(

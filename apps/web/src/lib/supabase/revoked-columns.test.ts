@@ -1,6 +1,8 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("server-only", () => ({}));
 
 /**
  * DB-10 STEP 2 AND NEW-A4-01 STEP 2 CAN ONLY GO LIVE ONCE NO READ NAMES WHAT THEY TAKE AWAY.
@@ -13,16 +15,28 @@ import { describe, expect, it } from "vitest";
  * reverted (20260924071045).
  *
  * The revoked columns are read from the step-2 migrations themselves, never
- * restated here. Every select on listings, businesses, accommodations and
- * catalogue_entries in the app, including a relation embedded in a select on
- * another table, is checked:
+ * restated here: the newest file named `<14 digits>_db10_step2_*.sql` and
+ * `<14 digits>_new_a4_01_step2_*.sql` in supabase/migrations or its pending/
+ * folder, so a re-applied step 2 must keep those names. Every select on
+ * listings, businesses, accommodations and catalogue_entries in the app is
+ * checked, and so is any of those tables embedded in a resolved select on
+ * another table:
  *   - through a caller's own client, it names no column step 2 takes from
- *     `authenticated`, and it is never `*`;
+ *     `authenticated`, and it is never `*` (an empty `.select()` is `*`);
  *   - a select naming the exact point (latitude, longitude, location) goes
  *     through `pointSelect` or `withPublicPoint`, so a signed-out reader asks
- *     for the public twins, unless its file is one only a signed-in member
- *     reaches (SIGNED_IN_ONLY, each with its reason).
- * The service role (an admin client) reads every column and is not checked.
+ *     for the public twins, unless it runs in a function only a signed-in
+ *     member reaches (SIGNED_IN_ONLY, each with its reason).
+ *
+ * IT FAILS CLOSED. A select it cannot read as text is an offence, not a skip:
+ * a constant built by a function call, an imported constant, a template with
+ * `${}` or a variable. The one way through is EVALUATED below, which imports
+ * the real value so the test checks what PostgREST is actually sent.
+ *
+ * An admin client is skipped by the name of the receiver (`admin`,
+ * `service...`) or by living under lib/admin or app/admin: the service role
+ * reads every column. That trusts the name, so a service client must be called
+ * one.
  */
 
 const WEB = process.cwd();
@@ -33,11 +47,23 @@ const MIGRATIONS = join(REPO, "supabase", "migrations");
 const TABLES = ["listings", "businesses", "accommodations", "catalogue_entries"] as const;
 type Table = (typeof TABLES)[number];
 
-/** Files whose selects only a signed-in member ever runs, so `anon`'s point grants do not apply. */
+/** Functions whose selects only a signed-in member ever runs, so `anon`'s point grants do not apply. */
 const SIGNED_IN_ONLY: Record<string, string> = {
-  "lib/host/queries.ts": "the host workspace: every read returns early unless session.state is signed-in",
-  "lib/saved/queries.ts": "saved places: every read returns early unless session.state is signed-in",
+  "lib/host/queries.ts#loadMyHostDraft": "returns emptyHostDraft() unless session.state is signed-in",
+  "lib/saved/queries.ts#getSavedPlaces": "returns [] unless session.state is signed-in",
 };
+
+/** Computed or imported selects, with the real value PostgREST is sent. */
+async function evaluated(): Promise<Record<string, string>> {
+  const agentQueries = await import("../agent/listings-queries");
+  const canary = await import("../ops/catalogue-canary");
+  return {
+    "lib/agent/listings-queries.ts:LISTING_PUBLIC_SELECT": agentQueries.LISTING_PUBLIC_SELECT,
+    "lib/ops/catalogue-canary.ts:CANARY_CARD_SELECT": canary.CANARY_CARD_SELECT,
+  };
+}
+
+/* ------------------------------------------------------------ the step-2 lists */
 
 /** The newest step-2 file of that name, applied or still pending. */
 function migrationText(pattern: RegExp): string {
@@ -73,6 +99,8 @@ function revokedFromAnon(): { tables: Set<string>; columns: Set<string> } {
   };
 }
 
+/* ------------------------------------------------------------ reading a select */
+
 /** The text between a "(" at `start - 1` and its matching ")". */
 function balanced(text: string, start: number): string {
   let depth = 1;
@@ -83,6 +111,78 @@ function balanced(text: string, start: number): string {
     i += 1;
   }
   return text.slice(start, i - 1);
+}
+
+/** Split call arguments at top-level commas (outside brackets and quotes). */
+function topLevelArgs(args: string): string[] {
+  const out: string[] = [];
+  let depth = 0;
+  let quote: string | null = null;
+  let current = "";
+  for (const ch of args) {
+    if (quote) {
+      current += ch;
+      if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === "`") quote = ch;
+    else if ("([{".includes(ch)) depth += 1;
+    else if (")]}".includes(ch)) depth -= 1;
+    else if (ch === "," && depth === 0) {
+      out.push(current.trim());
+      current = "";
+      continue;
+    }
+    current += ch;
+  }
+  if (current.trim()) out.push(current.trim());
+  return out;
+}
+
+const PLAIN_LITERAL = /^(?:`([^`$]*)`|"([^"]*)"|'([^']*)')$/;
+
+/** A plain literal, or literals joined with `+`; null for anything else. */
+function literalValue(expr: string): string | null {
+  const parts = expr.split(/\s*\+\s*/).map((part) => part.trim());
+  const values: string[] = [];
+  for (const part of parts) {
+    const m = part.match(PLAIN_LITERAL);
+    if (!m) return null;
+    values.push(m[1] ?? m[2] ?? m[3] ?? "");
+  }
+  return values.join("");
+}
+
+export type Resolution = { text: string; publicPoint: boolean } | { unresolved: string };
+
+/**
+ * The text a select call hands PostgREST, or why it cannot be read.
+ * `select(X)`, `select(await pointSelect(c, X))`, `select(withPublicPoint(X))`,
+ * where X is a plain literal, a same-file constant built only from literals,
+ * or an EVALUATED key.
+ */
+export function resolveSelect(args: string, file: string, rel: string, known: Record<string, string>): Resolution {
+  const first = topLevelArgs(args)[0] ?? "";
+  if (first === "") return { text: "*", publicPoint: false };
+  let expr = first.replace(/^await\s+/, "");
+  let publicPoint = false;
+  const wrapped = expr.match(/^(pointSelect|withPublicPoint)\(([\s\S]*)\)$/);
+  if (wrapped) {
+    publicPoint = true;
+    expr = topLevelArgs(wrapped[2]!).at(-1) ?? "";
+  }
+  const literal = literalValue(expr);
+  if (literal !== null) return { text: literal, publicPoint };
+  if (/^[A-Za-z_$][\w$]*$/.test(expr)) {
+    const key = `${rel}:${expr}`;
+    if (key in known) return { text: known[key]!, publicPoint: publicPoint || /latitude_public/.test(known[key]!) };
+    const def = file.match(new RegExp(`(?:^|\\n)\\s*(?:export\\s+)?const\\s+${expr}\\s*(?::[^=]+)?=\\s*([\\s\\S]*?);\\s*\\n`));
+    if (!def) return { unresolved: `${expr} is not a constant of this file (imported or a variable)` };
+    const value = literalValue(def[1]!.trim());
+    if (value === null) return { unresolved: `${expr} is computed (not only literals); add it to EVALUATED` };
+    return { text: value, publicPoint };
+  }
+  return { unresolved: `select argument is not a literal or a constant: ${expr.slice(0, 60)}` };
 }
 
 /** Top-level column names of a PostgREST select (aliases, casts and hints dropped). */
@@ -98,7 +198,7 @@ export function topLevelColumns(select: string): string[] {
     .split(",")
     .map((part) => part.trim())
     .filter(Boolean)
-    .map((part) => part.split(":").filter(Boolean).pop()!.split("!")[0]!.trim())
+    .map((part) => part.split(":").filter(Boolean).pop()!.split("!")[0]!.split("::")[0]!.trim())
     .filter((name) => !/\s/.test(name));
 }
 
@@ -112,9 +212,7 @@ export function embedded(select: string): { table: Table; columns: string[] }[] 
   return out;
 }
 
-type Offence = string;
-
-/** Check one select on one table; the file context decides the anon rule. */
+/** Check one select on one table. */
 export function offences(
   where: string,
   table: Table,
@@ -123,21 +221,23 @@ export function offences(
   signedInOnly: boolean,
   authRevoked: Map<Table, Set<string>>,
   anon: { tables: Set<string>; columns: Set<string> },
-): Offence[] {
-  const found: Offence[] = [];
+): string[] {
+  const found: string[] = [];
   const revoked = authRevoked.get(table) ?? new Set<string>();
+  const anonReads = anon.tables.has(table) && !publicPoint && !signedInOnly;
   for (const column of columns) {
     if (column === "*") {
-      const anonReads = anon.tables.has(table) && !publicPoint && !signedInOnly;
       if (authRevoked.has(table) || anonReads) found.push(`${where} ${table}: select * (step 2 revokes columns of this table)`);
-    }
-    else if (revoked.has(column)) found.push(`${where} ${table}.${column}: revoked from authenticated`);
-    else if (anon.tables.has(table) && anon.columns.has(column) && !publicPoint && !signedInOnly) {
+    } else if (revoked.has(column)) {
+      found.push(`${where} ${table}.${column}: revoked from authenticated`);
+    } else if (anonReads && anon.columns.has(column)) {
       found.push(`${where} ${table}.${column}: revoked from anon; use pointSelect/withPublicPoint`);
     }
   }
   return found;
 }
+
+/* ------------------------------------------------------------ the sweep */
 
 function sourceFiles(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -150,53 +250,56 @@ function sourceFiles(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-/** The select text a call hands PostgREST: its literals, and its ALL_CAPS constants resolved in the same file. */
-function selectText(args: string, file: string): string {
-  const parts = [...args.matchAll(/`([^`$]*)`|"([^"]*)"|'([^']*)'/g)].map((m) => m[1] ?? m[2] ?? m[3] ?? "");
-  for (const id of args.matchAll(/\b([A-Z][A-Z0-9_]{3,})\b/g)) {
-    const def = file.match(new RegExp(`const\\s+${id[1]}\\s*=\\s*(?:\`([^\`]*)\`|"([^"]*)"|'([^']*)')`));
-    if (def) parts.push(def[1] ?? def[2] ?? def[3] ?? "");
-  }
-  return parts.join(",");
-}
-
-function isAdminCall(before: string, path: string): boolean {
-  if (/(^|\/)(lib|app)\/admin\//.test(path)) return true;
+function isAdminCall(before: string, rel: string): boolean {
+  if (/(^|\/)(lib|app)\/admin\//.test(rel)) return true;
   const receiver = before.match(/([\w.]+(?:\(\))?)\s*$/)?.[1] ?? "";
   return /admin|service/i.test(receiver);
 }
 
-function scan(): Offence[] {
+function enclosingFunction(file: string, at: number): string {
+  const names = [...file.slice(0, at).matchAll(/(?:^|\s)(?:async\s+)?function\s+(\w+)/g)];
+  return names.at(-1)?.[1] ?? "";
+}
+
+async function scan(): Promise<string[]> {
   const authRevoked = revokedFromAuthenticated();
   const anon = revokedFromAnon();
-  const found: Offence[] = [];
+  const known = await evaluated();
+  const found: string[] = [];
   for (const path of sourceFiles(SRC)) {
     const rel = relative(SRC, path);
     const file = readFileSync(path, "utf8");
-    const signedInOnly = rel in SIGNED_IN_ONLY;
     for (const call of file.matchAll(/\.select\(/g)) {
       const at = call.index!;
       const args = balanced(file, at + call[0].length);
       const chainStart = Math.max(file.lastIndexOf(";", at), file.lastIndexOf("{", at), 0);
       const chain = file.slice(chainStart, at);
-      const from = chain.match(/\.from\(\s*["'](\w+)["']\s*\)\s*$|\.from\(\s*["'](\w+)["']\s*\)[\s\S]*$/);
-      const table = (from?.[1] ?? from?.[2]) as Table | undefined;
+      const from = chain.match(/\.from\(\s*["'](\w+)["']\s*\)/);
+      const table = from?.[1] as Table | undefined;
+      const onTable = table !== undefined && TABLES.includes(table);
       const fromAt = from ? chainStart + from.index! : at;
       if (isAdminCall(file.slice(Math.max(0, fromAt - 160), fromAt), rel)) continue;
-      const text = selectText(args, file);
-      const publicPoint = /pointSelect\(|withPublicPoint\(/.test(args);
-      const line = file.slice(0, at).split("\n").length;
-      const where = `${rel}:${line}`;
-      if (table && TABLES.includes(table)) {
-        found.push(...offences(where, table, topLevelColumns(text), publicPoint, signedInOnly, authRevoked, anon));
+      const where = `${rel}:${file.slice(0, at).split("\n").length}`;
+      const resolution = resolveSelect(args, file, rel, known);
+      if ("unresolved" in resolution) {
+        if (onTable) found.push(`${where} ${table}: cannot be read (${resolution.unresolved})`);
+        continue;
       }
-      for (const inner of embedded(text)) {
-        found.push(...offences(where, inner.table, inner.columns, publicPoint, signedInOnly, authRevoked, anon));
+      const signedInOnly = `${rel}#${enclosingFunction(file, at)}` in SIGNED_IN_ONLY;
+      if (onTable) {
+        found.push(
+          ...offences(where, table, topLevelColumns(resolution.text), resolution.publicPoint, signedInOnly, authRevoked, anon),
+        );
+      }
+      for (const inner of embedded(resolution.text)) {
+        found.push(...offences(where, inner.table, inner.columns, resolution.publicPoint, signedInOnly, authRevoked, anon));
       }
     }
   }
   return found;
 }
+
+/* ------------------------------------------------------------ tests */
 
 describe("no own-client read names a column the step-2 grants take away", () => {
   it("reads the revoked columns out of the step-2 migrations", () => {
@@ -214,16 +317,46 @@ describe("no own-client read names a column the step-2 grants take away", () => 
     const auth = revokedFromAuthenticated();
     const anon = revokedFromAnon();
     const broke = "id,title,latitude,longitude,ownership_verified_at,mandate_verified_at,listing_photos(storage_path)";
-    const found = offences("fixture", "listings", topLevelColumns(broke), false, false, auth, anon);
-    expect(found.join("\n")).toMatch(/ownership_verified_at/);
-    expect(found.join("\n")).toMatch(/mandate_verified_at/);
-    expect(found.join("\n")).toMatch(/latitude: revoked from anon/);
+    const found = offences("fixture", "listings", topLevelColumns(broke), false, false, auth, anon).join("\n");
+    expect(found).toMatch(/ownership_verified_at/);
+    expect(found).toMatch(/mandate_verified_at/);
+    expect(found).toMatch(/latitude: revoked from anon/);
     const nested = embedded("id, listings!inner(id, address), status");
     expect(offences("fixture", nested[0]!.table, nested[0]!.columns, false, false, auth, anon)).toHaveLength(1);
     expect(offences("fixture", "listings", topLevelColumns("id, latitude"), true, false, auth, anon)).toEqual([]);
+    expect(offences("fixture", "listings", topLevelColumns("*"), true, true, auth, anon)).toHaveLength(1);
   });
 
-  it("finds no offending select in the app", () => {
-    expect(scan()).toEqual([]);
+  it("fails closed on every select it cannot read as text", () => {
+    const file = [
+      'const COMPUTED = withoutColumns(BASE, ["address"]);',
+      'const JOINED = "id, " + "title";',
+      "const TEMPLATE = `id, ${extra}`;",
+    ].join("\n") + "\n";
+    const unresolved = (args: string) => "unresolved" in resolveSelect(args, file, "fixture.ts", {});
+    expect(unresolved("COMPUTED")).toBe(true);
+    expect(unresolved("IMPORTED_SELECT")).toBe(true);
+    expect(unresolved("TEMPLATE")).toBe(true);
+    expect(unresolved("`id, ${extra}`")).toBe(true);
+    expect(unresolved("columns")).toBe(true);
+    expect(unresolved("await pointSelect(supabase, COMPUTED)")).toBe(true);
+    expect(resolveSelect("JOINED", file, "fixture.ts", {})).toEqual({ text: "id, title", publicPoint: false });
+    expect(resolveSelect("", file, "fixture.ts", {})).toEqual({ text: "*", publicPoint: false });
+    expect(resolveSelect("COMPUTED", file, "fixture.ts", { "fixture.ts:COMPUTED": "id" })).toEqual({
+      text: "id",
+      publicPoint: false,
+    });
+  });
+
+  it("reads the real value of every computed select it lets through", async () => {
+    const known = await evaluated();
+    for (const [key, value] of Object.entries(known)) {
+      expect(value.length, `${key} evaluated to nothing`).toBeGreaterThan(0);
+    }
+    expect(known["lib/agent/listings-queries.ts:LISTING_PUBLIC_SELECT"]).not.toMatch(/\baddress\b|\blandmark\b|review_notes/);
+  });
+
+  it("finds no offending select in the app", async () => {
+    expect(await scan()).toEqual([]);
   });
 });
