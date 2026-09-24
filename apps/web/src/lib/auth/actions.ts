@@ -15,7 +15,7 @@ import {
 import { recordAlert } from "@/lib/alerts";
 import { recordTermsAcceptance } from "@/lib/legal/acceptance";
 import { TERMS_VERSION } from "@/lib/legal/versions";
-import { termsRefusal } from "./terms-gate";
+import { ageConfirmed, ageRefusal, termsRefusal } from "./terms-gate";
 import { welcomeOnce } from "@/lib/notify/welcome";
 import { authOrigin } from "@/lib/site";
 import {
@@ -142,6 +142,8 @@ function validateSignUp(formData: FormData): Partial<Record<AuthField, string>> 
      stood in front of it was reading markup as text. */
   const refusal = termsRefusal(field(formData, "termsVersion"));
   if (refusal) errors.acceptTerms = refusal;
+  const underAge = ageRefusal(field(formData, "ageConfirmed"));
+  if (underAge) errors.ageConfirmed = underAge;
 
   if (!hearAbout) errors.hearAbout = "Tell us where you heard about us.";
   else if (!HEAR_ABOUT_VALUES.includes(hearAbout))
@@ -460,7 +462,9 @@ export async function signUpWithEmail(
   if (data.user) {
     const submitted = field(formData, "termsVersion").trim();
     if (submitted === TERMS_VERSION) {
-      await recordTermsAcceptance(data.user.id, "signup_email");
+      await recordTermsAcceptance(data.user.id, "signup_email", {
+        ageConfirmed: ageConfirmed(field(formData, "ageConfirmed")),
+      });
     }
   }
 

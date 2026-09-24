@@ -1113,6 +1113,10 @@ export const en = {
       "I agree to the Terms, the Privacy Policy and the Community Rules, and I understand that abusive content gets an account removed.",
     acceptRead: "Read them:",
     acceptRequired: "Please tick the box to continue. It is how we record what you agreed to.",
+    /* STORE-19: the Terms require 18 or over, so sign-up asks, and the
+       server refuses an account without the answer. */
+    ageLabel: "I am 18 or older.",
+    ageRequired: "Vallo is for adults. Tick the box to confirm you are 18 or older.",
     termsLink: "Terms",
     privacyLink: "Privacy Policy",
     rulesLink: "Community Rules",
