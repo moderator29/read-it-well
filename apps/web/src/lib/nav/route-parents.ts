@@ -93,13 +93,11 @@
  * FOUR ENTRIES BELOW DELIBERATELY DRAW NO CONTROL, AND THAT IS NOT THE GAP.
  *
  * A declared parent is a fact about where a screen SITS. It is not a promise
- * that the screen paints an arrow, and four of these cannot:
+ * that the screen paints an arrow, and these cannot:
  *
- *   /crypto, /crypto/[id]   the page is `notFound()` by the store ruling in
- *                           `app/(app)/crypto/page.tsx`. There is no screen to
- *                           put a control on. The entries stay because the
- *                           ruling is DEFERRED, not cancelled, and the day the
- *                           body comes back the hierarchy is already written.
+ *   (/crypto and /crypto/[id] stood here. V-83 took the deferred crypto
+ *   market out of the shipped tree; it is parked on the branch
+ *   `claude/parked-crypto-deferred`, and its hierarchy comes back with it.)
  *   /gallery                `notFound()` in a production build by its own
  *                           guard. The control is wired for development, which
  *                           is the only place the board exists.
@@ -243,8 +241,6 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/wallet/send": "/wallet",
   "/wallet/transactions": "/wallet",
   "/wallet/transactions/[id]": "/wallet/transactions",
-  "/crypto": "/wallet",
-  "/crypto/[id]": "/crypto",
   /*
    * HELD PAYMENTS. `/escrow/[id]` is linked from a message thread
    * (`ProposeHeldPayment`) and from the escrow emails, and `/escrow` is linked
@@ -476,9 +472,6 @@ export const NON_NAVIGABLE: Readonly<Record<string, string>> = {
   "/api/cron/inventory-drift": "scheduled job, bearer token.",
   "/api/cron/pg-cron-watch": "scheduled job, bearer token.",
   "/api/cron/saved-search-alerts": "scheduled job, bearer token.",
-  "/api/crypto/coins/[id]": "JSON read for the crypto screens.",
-  "/api/crypto/markets": "JSON read for the crypto screens.",
-  "/api/crypto/pairs": "JSON read for the crypto screens.",
   "/api/csp-report": "the browser's policy violation report.",
   "/api/documents/[id]": "a signed document stream, not a page.",
   "/api/map/listings": "JSON read for the map.",
