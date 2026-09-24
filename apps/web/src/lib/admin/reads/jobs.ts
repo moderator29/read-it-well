@@ -99,6 +99,7 @@ export const PG_CRON_JOBS: readonly PgCronJob[] = [
   { name: "vallo_escrow_book_the_float", cron: "5 3 * * *", when: "daily 04:05", what: "books the day's escrow float as a liability" },
   { name: "vallo_sweep_price_check_events", cron: "40 3 * * *", when: "daily 04:40", what: "deletes price check events older than 24 months" },
   { name: "vallo_announce_completed_stays", cron: "20 5 * * *", when: "daily 06:20", what: "announces completed stays" },
+  { name: "vallo_scuml17_mandate_grace_sweep", cron: "25 5 * * *", when: "daily 06:25", what: "SCUML item 17: after the grace date, takes down agent listings without a current mandate and tells the agent" },
   { name: "vallo_landlord_not_reconfirmed", cron: "35 4 * * *", when: "daily 05:35", what: "marks a listing Not reconfirmed after 21 days of owner silence" },
   { name: "vallo_owner_heartbeat", cron: "15 8 * * *", when: "daily 09:15", what: "asks an owner lister in the app whether the flat is still available" },
   { name: "vallo_sweep_price_check_watches", cron: "50 5 * * *", when: "daily 06:50", what: "tells a price check watcher once the area opens" },

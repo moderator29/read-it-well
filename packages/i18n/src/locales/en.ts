@@ -17,6 +17,7 @@ import { arrivalCheckEn } from "./arrival-check.en";
    in its own module for the same reason as Price Check. */
 import { platformEn } from "./platform.en";
 import { complianceEn } from "./compliance.en";
+import { complianceBeneficialOwnershipEn } from "./compliance-17.en";
 
 /**
  * The counted nouns, in every form English uses.
@@ -5826,6 +5827,7 @@ export const en = {
   platform: platformEn,
 
   compliance: complianceEn,
+  complianceBeneficialOwnership: complianceBeneficialOwnershipEn,
 
 };
 

@@ -7,9 +7,10 @@ import { Badge, Empty, Panel, ReadFailed, StatusBar } from "../_review/parts";
  * (`listing_mandates`). Exact counts by review status, every pending mandate
  * with its principal, and the latest decisions with the refusal reason.
  *
- * READ ONLY ON PURPOSE. No action in Session A's `lib/admin` decides a
- * mandate yet, so the panel shows the queue and says what deciding needs
- * (scope request AR-12) rather than drawing a button that would do nothing.
+ * DECIDING (SCUML item 17) is drawn by the caller through `decideFor`, into
+ * `decide_listing_mandate`, which records how the principal was confirmed.
+ * Without it the panel reads as it always did.
+ *
  * The principal's number is shown only inside the opened row: it is the
  * number a reviewer rings to confirm the instruction, and it goes nowhere else.
  */
@@ -24,6 +25,7 @@ export function MandatesPanel({
   day,
   today,
   consentFor,
+  decideFor,
 }: {
   queue: MandateQueue | null;
   day: (iso: string | null) => string;
@@ -34,6 +36,12 @@ export function MandatesPanel({
    * exactly what it drew before when a caller does not pass it.
    */
   consentFor?: (row: MandateRow) => ReactNode;
+  /**
+   * SCUML item 17: the staff decision for a waiting mandate, drawn in place of
+   * the old "no decision yet" note. Optional, so a caller that does not pass
+   * it draws exactly what it drew before.
+   */
+  decideFor?: (row: MandateRow) => ReactNode;
 }) {
   const rows = queue ? [...queue.pending, ...queue.decided] : [];
   return (
@@ -68,7 +76,14 @@ export function MandatesPanel({
             <span>Status</span>
           </div>
           {rows.map((row) => (
-            <MandateLine key={row.id} row={row} day={day} today={today} consent={consentFor?.(row)} />
+            <MandateLine
+              key={row.id}
+              row={row}
+              day={day}
+              today={today}
+              consent={consentFor?.(row)}
+              decide={row.status === "pending" ? decideFor?.(row) : undefined}
+            />
           ))}
         </div>
       ) : null}
@@ -81,11 +96,13 @@ function MandateLine({
   day,
   today,
   consent,
+  decide,
 }: {
   row: MandateRow;
   day: (iso: string | null) => string;
   today: string;
   consent?: ReactNode;
+  decide?: ReactNode;
 }) {
   const expired = Boolean(row.expiresOn && row.expiresOn < today);
   return (
@@ -127,7 +144,9 @@ function MandateLine({
             Refused: {row.rejectionReason}
           </p>
         ) : null}
-        {row.status === "pending" ? (
+        {row.status === "pending" && decide ? (
+          decide
+        ) : row.status === "pending" ? (
           <p className="nf-rv-panel__note">
             There is no decision for a mandate in the console yet: approving or refusing one needs an
             action Session A has not written (scope request AR-12).

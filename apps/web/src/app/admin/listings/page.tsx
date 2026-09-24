@@ -15,6 +15,7 @@ import { LiveRefresh } from "../_review/LiveRefresh";
 import { ListingsQueue } from "./ListingsQueue";
 import { MandatesPanel } from "./MandatesPanel";
 import { MandateConsent } from "./MandateConsent";
+import { MandateDecision } from "./MandateDecision";
 import { landlordLineIsOpen, readClosedReasons, readMandateConsents } from "@/lib/landlord/queries";
 import { consentLine } from "@/lib/landlord/consent";
 import { toQueueRow } from "./rows";
@@ -201,6 +202,7 @@ export default async function AdminListingsPage({
             queue={mandates.state === "ok" ? mandates.data : null}
             day={ui.day}
             today={lagosToday()}
+            decideFor={(row) => <MandateDecision mandateId={row.id} copy={t.complianceBeneficialOwnership} />}
             consentFor={(row) => {
               const consent = consents?.get(row.id) ?? null;
               return (

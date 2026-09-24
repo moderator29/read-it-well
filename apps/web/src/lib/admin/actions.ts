@@ -40,6 +40,7 @@ import type { Database } from "../supabase/database.types";
    values in exactly one place and this is a caller of it, not a second copy. */
 import { personRoleFrom } from "../supply/roles";
 import { CLOSED_LISTING_MESSAGE, isClosedListingRefusal } from "../landlord/closed";
+import { MANDATE_NEEDED_MESSAGE, isMandateRefusal } from "../compliance/beneficial-ownership";
 import {
   replySupportTicketSchema,
   resolveReportSchema,
@@ -561,6 +562,8 @@ export async function reviewListing(input: {
     })
     .eq("id", listing.id);
   if (isClosedListingRefusal(updateError)) return fail(CLOSED_LISTING_MESSAGE);
+  /* SCUML item 17: the publish gate refuses an agent or firm listing without an approved mandate. */
+  if (isMandateRefusal(updateError)) return fail(MANDATE_NEEDED_MESSAGE);
   if (updateError) return fail(SERVICE_DOWN);
 
   try {

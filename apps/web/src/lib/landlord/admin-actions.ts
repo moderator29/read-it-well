@@ -6,6 +6,7 @@ import { fail, ok, type ActionResult } from "../actions/envelope";
 import { adminRefusal, requireAdmin } from "../admin/guard";
 import { CONSENT_SENTENCE } from "./consent";
 import { callLandlordRpc } from "./rpc";
+import { MANDATE_NEEDED_MESSAGE, isMandateRefusal } from "../compliance/beneficial-ownership";
 
 /**
  * THE REVIEWER'S THREE DECISIONS: CONSENT, SAME PROPERTY, AND NOT THE SAME.
@@ -102,6 +103,8 @@ export async function reopenClosedListing(input: { listingId: string; note: stri
   const note = input.note.trim();
   if (!id.success || note.length < 8) return fail("Say why the listing is being reopened, in a sentence.");
   const { error } = await callLandlordRpc(access.supabase, "reopen_listing", { p_listing: id.data, p_note: note });
+  /* SCUML item 17: reopening puts it live, and the publish gate asks for a mandate first. */
+  if (isMandateRefusal(error)) return fail(MANDATE_NEEDED_MESSAGE);
   if (error) return fail(FAILED_DECISION);
   revalidatePath(`/admin/listings/${id.data}`);
   return ok(null);
