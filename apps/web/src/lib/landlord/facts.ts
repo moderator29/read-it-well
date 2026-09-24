@@ -148,23 +148,39 @@ export function requestNow(): number {
  * this page. Every other copy is dropped here, and the kept card says how many
  * agents offer the flat. The listing page shows every offer side by side.
  *
- * A listing on no property, or whose facts did not load, is never dropped: a
- * failed read leaves the shelf exactly as it was. Within one page a second
- * copy of the same property is dropped too, as a guard.
+ * The representative is kept only if it passed the renter's filters; when it
+ * did not, the first copy of that property that did stands in, so filtering
+ * never makes a property vanish. A listing on no property, or whose facts did
+ * not load, is never dropped: a failed read leaves the shelf as it was.
  */
 export function collapseByProperty<T extends { id: string }>(
   listings: readonly T[],
   facts: ReadonlyMap<string, ListingFacts>,
 ): { listings: T[]; offerCounts: Map<string, number> } {
-  const seen = new Set<string>();
+  /* Which copy stands for each property IN THIS LIST: the database's
+     representative when it passed the renter's filters, otherwise the first
+     copy that did. A property is never made to vanish because its cheapest
+     copy was filtered out (a rent ceiling it is over, say) while a dearer
+     copy the renter can afford is still on the shelf. */
+  const chosen = new Map<string, string>();
+  for (const listing of listings) {
+    const fact = facts.get(listing.id);
+    const property = fact?.propertyId ?? null;
+    if (!fact || !property) continue;
+    if (!chosen.has(property) || fact.isRepresentative) {
+      const current = chosen.get(property);
+      const currentIsRep = current ? facts.get(current)?.isRepresentative === true : false;
+      if (!current || (fact.isRepresentative && !currentIsRep)) chosen.set(property, listing.id);
+    }
+  }
+
   const kept: T[] = [];
   const offerCounts = new Map<string, number>();
   for (const listing of listings) {
     const fact = facts.get(listing.id);
     const property = fact?.propertyId ?? null;
     if (fact && property) {
-      if (!fact.isRepresentative || seen.has(property)) continue;
-      seen.add(property);
+      if (chosen.get(property) !== listing.id) continue;
       if (fact.offerCount > 1) offerCounts.set(listing.id, fact.offerCount);
     }
     kept.push(listing);

@@ -1205,10 +1205,12 @@ export async function getListingSubmissions(
         const decidedQuery = narrow(
           admin.from("listings").select(LISTING_COLUMNS).in("status", inBucket(decidedStatuses)),
         );
-        /* V-48: a closed listing is SUSPENDED underneath and is not a
-           suspension, so the Suspended tab leaves it out in the query itself,
-           before the limit, never after it. */
-        return (status === "SUSPENDED" ? decidedQuery.is("closed_at", null) : decidedQuery)
+        /* V-48: a closed listing is SUSPENDED underneath and is neither a
+           suspension nor a reviewer's decision, so the decided list (the
+           Suspended tab and the All tab's "recently decided" alike) leaves it
+           out in the query itself, before the limit, never after it. */
+        return decidedQuery
+          .is("closed_at", null)
           .order("reviewed_at", { ascending: false, nullsFirst: false })
           .limit(10);
       })(),

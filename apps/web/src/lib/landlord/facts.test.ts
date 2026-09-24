@@ -90,9 +90,28 @@ describe("one card per property on the shelf", () => {
     expect(out.offerCounts.has("a")).toBe(false);
   });
 
-  it("drops a dearer copy even when the chosen one is on another page", () => {
-    const rows = [{ id: "b" }];
-    expect(collapseByProperty(rows, new Map([["b", fact("p1", 2, false)]])).listings).toEqual([]);
+  it("keeps the property when a rent ceiling filtered out its representative", () => {
+    /* The representative has the lowest move-in total but a rent above the
+       renter's ceiling; the two copies that passed the filter are dearer to
+       move into. The property must stay on the shelf, once, as the first
+       copy that passed. */
+    const passedTheCeiling = [{ id: "b" }, { id: "d" }];
+    const facts = new Map([
+      ["b", fact("p1", 3, false)],
+      ["d", fact("p1", 3, false)],
+    ]);
+    const out = collapseByProperty(passedTheCeiling, facts);
+    expect(out.listings.map((r) => r.id)).toEqual(["b"]);
+    expect(out.offerCounts.get("b")).toBe(3);
+  });
+
+  it("prefers the representative over an earlier copy when both passed the filters", () => {
+    const rows = [{ id: "b" }, { id: "c" }];
+    const facts = new Map([
+      ["b", fact("p1", 2, false)],
+      ["c", fact("p1", 2, true)],
+    ]);
+    expect(collapseByProperty(rows, facts).listings.map((r) => r.id)).toEqual(["c"]);
   });
 
   it("changes nothing when the facts did not load", () => {
