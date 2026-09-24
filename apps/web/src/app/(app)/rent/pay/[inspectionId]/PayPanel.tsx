@@ -20,6 +20,7 @@ import { ActionBar } from "@/components/ui/ActionBar";
 import { Amount } from "@/components/ui/Amount";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
+import { formatMoney, type Dictionary } from "@vallo/i18n";
 
 /**
  * The three ways to pay the rent.
@@ -103,8 +104,11 @@ export function PayPanel({
   view,
   savedCards = [],
   chargeSavedCard,
+  payCopy,
 }: {
   view: RentPayView;
+  /** V-25: the large-payment sentences, from `t.afterTheGate.pay`. */
+  payCopy?: Dictionary["afterTheGate"]["pay"];
   savedCards?: PaymentMethod[];
   /**
    * The saved-card charge, bound by the page to this inspection and one key.
@@ -133,6 +137,10 @@ export function PayPanel({
     phase.kind === "card-starting" ||
     phase.kind === "checkout-open" ||
     phase.kind === "wallet-paying";
+
+  /* V-25. Above the threshold the one page that can take a transfer leads
+     with it, and says why a card is likely to be refused. */
+  const largeLead = view.routes.leadWithTransfer && payCopy !== undefined ? payCopy : null;
 
   const clearTimers = () => {
     for (const id of timers.current) window.clearTimeout(id);
@@ -272,8 +280,13 @@ export function PayPanel({
         {view.cardAvailable ? (
           <Option
             icon="card-lock"
-            title="Pay by card"
-            body="A secure page in naira, then straight back here. Your card details never touch Vallo."
+            title={largeLead ? largeLead.largeLead : "Pay by card"}
+            body={
+              largeLead
+                ? "A secure page in naira that offers bank transfer as well as card, then straight back here. Your card details never touch Vallo."
+                : "A secure page in naira, then straight back here. Your card details never touch Vallo."
+            }
+            note={largeLead ? largeLead.largeNote.replace("{amount}", view.totalDisplay) : undefined}
             action={
               <Button
                 variant="primary"
@@ -282,7 +295,7 @@ export function PayPanel({
                 disabled={busy}
                 loading={phase.kind === "card-starting"}
               >
-                Pay by card
+                {largeLead ? largeLead.largeLead : "Pay by card"}
               </Button>
             }
           />
@@ -294,7 +307,21 @@ export function PayPanel({
             note="Nothing has been charged. Pay from your wallet, or try the card again from here."
           />
         )}
-        {view.walletCovers ? (
+        {!view.routes.walletOffered ? (
+          /* V-25. Above the wallet's own ceiling the wallet is not a route,
+             so it is said here rather than discovered after a top-up. */
+          <Option
+            icon="wallet-secure"
+            title="Pay from your Vallo wallet"
+            body={
+              payCopy
+                ? payCopy.walletTooLarge
+                    .replace("{limit}", formatMoney(view.routes.walletLimitMinor, view.locale, view.currency))
+                    .replace("{amount}", view.totalDisplay)
+                : "The wallet cannot take a payment this large in one movement."
+            }
+          />
+        ) : view.walletCovers ? (
           <Option
             icon="wallet-secure"
             title="Pay from your Vallo wallet"
@@ -352,9 +379,9 @@ export function PayPanel({
             loading={phase.kind === "card-starting"}
             className="shrink-0"
           >
-            Pay by card
+            {largeLead ? largeLead.largeLead : "Pay by card"}
           </Button>
-        ) : view.walletCovers ? (
+        ) : view.walletCovers && view.routes.walletOffered ? (
           <Button
             variant="primary"
             onClick={payFromWallet}

@@ -216,6 +216,9 @@ const EXPECTED_PUBLIC = new Set([
   "/docs",
   "/docs/[slug]",
   "/help",
+  // V-55: the receipt check, a door for people who are not members.
+  "/r",
+  "/r/[code]",
   /* Legal and policy. */
   "/cancellations",
   "/eula",

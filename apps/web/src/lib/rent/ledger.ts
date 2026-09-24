@@ -21,7 +21,27 @@ export type RentLedger = {
   stated: boolean;
   /** True when the total is at least the sum of the parts shown beside it. */
   consistent: boolean;
+  /**
+   * V-13. What the stated total asks for beyond the parts the lister named,
+   * in kobo: zero when the parts explain the whole figure. `consistent`
+   * accepted a total larger than its parts and the gap was drawn nowhere,
+   * which rebuilt the hidden fee inside the most honest screen in the
+   * product. Every surface that prints a move-in total now prints this as its
+   * own line ("Not broken down by the lister"), and the wizard refuses to
+   * publish while it is above zero.
+   */
+  remainderMinor: number;
 };
+
+/**
+ * The part of a stated total nobody itemised. Zero for a summed total (it is
+ * its parts by definition) and for a total at or below its parts.
+ */
+export function unexplainedRemainder(totalMinor: number, partsMinor: number[], stated: boolean): number {
+  if (!stated || !isKobo(totalMinor)) return 0;
+  const sum = partsMinor.reduce((acc, part) => acc + (isKobo(part) ? part : 0), 0);
+  return totalMinor > sum ? totalMinor - sum : 0;
+}
 
 /** The columns the charge reads, as `rent_payments` stores them. */
 export type RentChargeColumns = {
@@ -51,6 +71,7 @@ export function ledgerFromListing(row: MoveInColumns): RentLedger | null {
     totalMinor: total.minor,
     stated: total.stated,
     consistent: total.minor >= sum,
+    remainderMinor: unexplainedRemainder(total.minor, lines.map((part) => part.minor), total.stated),
   };
 }
 
@@ -81,5 +102,6 @@ export function ledgerFromCharge(row: RentChargeColumns): RentLedger | null {
     totalMinor: row.total_minor,
     stated: row.total_stated,
     consistent: row.total_minor >= sum,
+    remainderMinor: unexplainedRemainder(row.total_minor, built.lines.map((part) => part.minor), row.total_stated),
   };
 }

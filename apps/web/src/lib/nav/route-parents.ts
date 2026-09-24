@@ -135,6 +135,8 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/docs/[slug]": "/docs",
   "/eula": "/",
   "/help": "/",
+  "/r": "/",
+  "/r/[code]": "/r",
   "/privacy": "/",
   "/safety": "/",
   "/standards": "/",
@@ -199,6 +201,7 @@ export const ROUTE_PARENTS: Readonly<Record<string, ParentRoute>> = {
   "/rent": "/home",
   "/rent/move-in/[listingId]": "/listing/[listingId]",
   "/rent/pay/[inspectionId]": "/inspections",
+  "/tenancy/[id]": "/bookings",
   /*
    * PRICE CHECK. Both entries reproduce what the two pages already pass to
    * `PageHeader` as a fallback, which is the honest reading of the surface

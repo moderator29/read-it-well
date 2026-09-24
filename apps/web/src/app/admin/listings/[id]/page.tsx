@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { readPayeeContext } from "@/lib/after-gate/payee";
 import Link from "next/link";
 import { getDictionary } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
@@ -94,6 +95,7 @@ export default async function ListingUnderReviewPage({
     );
   }
 
+  const payeeCtx = found.intent === "sale" ? null : await readPayeeContext(found.id);
   const decidable = found.status !== "PUBLISHED" && found.status !== "REJECTED";
   const dark = tileProvider("dark");
   const nextId = extra?.nextId ?? null;
@@ -115,7 +117,11 @@ export default async function ListingUnderReviewPage({
           dark: dark.url,
           credit: dark.credits.map((credit) => credit.label).join(", "),
         }}
-        keepers={{ moveIn: t.moveIn, purchase: t.purchase }}
+        keepers={{
+          moveIn: t.moveIn,
+          purchase: t.purchase,
+          payee: payeeCtx ? { ctx: payeeCtx, copy: t.afterTheGate.moneyMap } : null,
+        }}
         exampleNote={
           extra?.isDemo ? (
             <p className="nf-rv-unwired" role="note">

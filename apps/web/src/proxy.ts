@@ -131,6 +131,11 @@ const PUBLIC_SEGMENTS = new Set([
   // deletion already started.
   "delete-account",
   // The doors.
+  // `r` is V-55's receipt check: a code a tenant hands to an employer, an
+  // embassy or a new landlord, none of whom are members. It answers
+  // area-level facts about a genuine payment and nothing else, the same page
+  // to every visitor.
+  "r",
   "auth",
   "forgot-password",
   "reset-password",

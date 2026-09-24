@@ -140,7 +140,7 @@ async function ownedListing(
   const { data } = await supabase
     .from("listings")
     .select(
-      "id, status, title, description, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, sale_status, tenure, caution_deposit_minor, service_charge_minor, agency_fee_minor, legal_fee_minor, agreement_fee_minor, sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, stamp_duty_minor, survey_registration_fee_minor, state_code, city, area, bedrooms, bathrooms",
+      "id, status, title, description, property_type, listing_intent, rent_amount_minor, rent_period, rate_minor, rate_period, sale_price_minor, sale_status, tenure, caution_deposit_minor, service_charge_minor, agency_fee_minor, legal_fee_minor, agreement_fee_minor, total_move_in_cost_minor, sale_agency_fee_minor, sale_legal_fee_minor, governors_consent_fee_minor, stamp_duty_minor, survey_registration_fee_minor, state_code, city, area, bedrooms, bathrooms",
     )
     .eq("id", listingId)
     .eq("agent_id", agentId)
@@ -1014,6 +1014,15 @@ export async function submitListing(input: {
     amenityCount: (amenityRes.data ?? []).length,
     photoCount: photos.length,
     hasCover: photos.some((p) => p.position === 0),
+    moveInStatedMinor: listing.total_move_in_cost_minor,
+    moveInPartsMinor: [
+      listing.rent_amount_minor,
+      listing.caution_deposit_minor,
+      listing.service_charge_minor,
+      listing.agency_fee_minor,
+      listing.legal_fee_minor,
+      listing.agreement_fee_minor,
+    ],
   });
 
   if (unmet.length > 0) {

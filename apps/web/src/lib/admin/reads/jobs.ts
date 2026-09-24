@@ -80,6 +80,7 @@ export type PgCronJob = { name: string; cron: string; when: string; what: string
 export const PG_CRON_JOBS: readonly PgCronJob[] = [
   { name: "vallo_push_drain", cron: "*/5 * * * *", when: "every 5 min", what: "asks the app to drain the push queue" },
   { name: "vallo_release_stale_holds", cron: "*/15 * * * *", when: "every 15 min", what: "database side of the hold release" },
+  { name: "vallo_alert_overdue_refunds", cron: "12 * * * *", when: "hourly at :12", what: "alerts on refunds past their due-by date" },
   { name: "vallo_escrow_sweep_timeouts", cron: "17 * * * *", when: "hourly at :17", what: "escrow timeouts" },
   { name: "vallo_escrow_invariants", cron: "23 * * * *", when: "hourly at :23", what: "asserts the escrow float identity" },
   { name: "vallo_purge_rate_limits", cron: "30 * * * *", when: "hourly at :30", what: "clears old rate limit rows" },
@@ -92,6 +93,7 @@ export const PG_CRON_JOBS: readonly PgCronJob[] = [
   { name: "vallo_announce_completed_stays", cron: "20 5 * * *", when: "daily 06:20", what: "announces completed stays" },
   { name: "vallo_sweep_price_check_watches", cron: "50 5 * * *", when: "daily 06:50", what: "tells a price check watcher once the area opens" },
   { name: "vallo-daily-note", cron: "0 6 * * *", when: "daily 07:00", what: "the daily note" },
+  { name: "vallo_remind_caution_due", cron: "15 7 * * *", when: "daily 08:15", what: "reminds listers and tenants when a caution is due back" },
 ];
 
 /** A readable name for a job: "hold-sweep" becomes "Hold sweep". */
