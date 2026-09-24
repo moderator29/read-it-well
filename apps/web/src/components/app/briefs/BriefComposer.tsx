@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import type { Dictionary } from "@vallo/i18n";
 import { Button } from "@/components/ui/Button";
 import { postBrief } from "@/lib/briefs/actions";
+import { koboToNaira, nairaToKobo } from "@/lib/listings/search-params";
 import { BRIEF_PROPERTY_TYPES, briefAreasFor, briefDraftFrom, type BriefDraft, type BriefPropertyType } from "@/lib/briefs/brief";
 
 /**
@@ -38,7 +39,7 @@ export function BriefComposer({
     initial ?? { stateCode: "LA", areas: [], intent: "rent", propertyType: null, bedroomsMin: null, maxMinor: null },
   );
   const [savedSearchId, setSavedSearchId] = useState<string | null>(null);
-  const [budget, setBudget] = useState(draft.maxMinor !== null ? String(Math.trunc(draft.maxMinor / 100)) : "");
+  const [budget, setBudget] = useState(draft.maxMinor !== null ? String(koboToNaira(draft.maxMinor)) : "");
   const [moveFrom, setMoveFrom] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -51,7 +52,7 @@ export function BriefComposer({
     if (chosen) {
       const next = briefDraftFrom(chosen.params);
       setDraft(next);
-      setBudget(next.maxMinor !== null ? String(Math.trunc(next.maxMinor / 100)) : "");
+      setBudget(next.maxMinor !== null ? String(koboToNaira(next.maxMinor)) : "");
     }
   }
 
@@ -66,7 +67,7 @@ export function BriefComposer({
       const result = await postBrief({
         ...draft,
         /* Whole naira to kobo, integer only. */
-        maxMinor: naira === null ? null : naira * 100,
+        maxMinor: naira === null ? null : nairaToKobo(naira),
         moveFrom: moveFrom === "" ? null : moveFrom,
         savedSearchId,
       });

@@ -82,9 +82,11 @@ export default async function Page({
   if (filterParam === "briefs") {
     const [briefs, mine] = await Promise.all([
       readBriefsForMe(),
-      readMyListings(context.supabase, context.agent.id).catch(() => []),
+      /* A failed read is null, which the desk shows as unreachable, never as
+         "no homes". */
+      readMyListings(context.supabase, context.agent.id).catch(() => null),
     ]);
-    const homes = mine.filter((one) => one.status === "PUBLISHED").map((one) => ({ id: one.id, title: one.title }));
+    const homes = mine === null ? null : mine.filter((one) => one.status === "PUBLISHED").map((one) => ({ id: one.id, title: one.title }));
     return (
       <AgentShell t={t} locale={locale} active="/agent/messages" profile={profile}>
         <h1 className="nf-h1">{t.agent.nav.messages}</h1>

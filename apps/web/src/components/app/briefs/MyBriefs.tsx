@@ -49,7 +49,11 @@ export function MyBriefs({
                 ? copy.closed
                 : copy.expires.replace("{date}", formatDate(new Date(brief.expiresAt), locale, { day: "numeric", month: "short", timeZone: "Africa/Lagos" }))}
               {" · "}
-              {brief.answers.length === 0 ? copy.noAnswers : copy.answers.replace("{count}", String(brief.answers.length))}
+              {brief.answers.length === 0
+                ? copy.noAnswers
+                : brief.answers.length === 1
+                  ? copy.answersOne
+                  : copy.answers.replace("{count}", String(brief.answers.length))}
             </p>
             {brief.answers.length > 0 && (
               <ul className="mt-row flex flex-col gap-xs">

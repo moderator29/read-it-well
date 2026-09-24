@@ -78,7 +78,8 @@ export function BriefsDesk({
   locale,
 }: {
   briefs: DeskBrief[] | null;
-  homes: { id: string; title: string }[];
+  /** The lister's published homes; null when they could not be read. */
+  homes: { id: string; title: string }[] | null;
   copy: Copy;
   locale: Locale;
 }) {
@@ -88,7 +89,7 @@ export function BriefsDesk({
         {copy.deskTitle}
       </h2>
       <p className="mt-inline nf-body-sm text-[var(--nf-content-secondary)]">{copy.deskNote}</p>
-      {briefs === null ? (
+      {briefs === null || homes === null ? (
         <p className="mt-group nf-body-sm text-[var(--nf-content-muted)]">{copy.unreachable}</p>
       ) : briefs.length === 0 ? (
         <p className="mt-group nf-body-sm text-[var(--nf-content-muted)]">{copy.deskEmpty}</p>
