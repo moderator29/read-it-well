@@ -158,7 +158,7 @@ export const NOT_INCLUDED: readonly { what: string; why: string }[] = [
   },
   {
     what: "Staff identities",
-    why: "Which member of staff reviewed, verified or resolved something is removed from the rows. The decision and the reason you were given stay.",
+    why: "Which member of staff reviewed a document or resolved a request is removed from the rows. The decision and the reason you were given stay.",
   },
   {
     what: "Firm listings, room types, rates and opening hours",

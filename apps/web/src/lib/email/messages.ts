@@ -383,6 +383,64 @@ export function passwordChanged(data: PasswordChangedData): EmailMessage {
   );
 }
 
+/* ------------------------------------------------- staff email recovery */
+
+export type EmailRecoveryData = {
+  name?: string | null;
+  /** The new address, already masked by the caller ("n***@example.com"). */
+  newAddressMasked: string;
+  /** "24 September 2026, 14:05", already formatted by the caller. */
+  eligibleAt?: string | null;
+};
+
+/**
+ * SEC-15. Sent to the OLD address the moment support opens a request to move
+ * the account to another address, so a person whose account is being taken
+ * has the whole cooling-off to stop it.
+ */
+export function emailRecoveryOpened(data: EmailRecoveryData): EmailMessage {
+  return message(
+    "A request to move your Vallo account to another email address",
+    "If this was not you, tell us before it completes.",
+    [
+      heading("Somebody asked to move your account"),
+      paragraph(
+        `${hello(data.name)} Our support team has opened a request to move your Vallo account from this address to ${data.newAddressMasked}, after checking the NIN on your identity record.`,
+      ),
+      rows([{ label: "It completes, at the earliest", value: data.eligibleAt ?? "in 72 hours" }]),
+      paragraph("If that was you, there is nothing to do. Nothing changes before the time above."),
+      paragraph(
+        "If it was not you, cancel it from Settings, Privacy while you can still sign in, or contact us now. The request is cancelled and your account stays at this address.",
+      ),
+      button("Contact us", appUrl("/contact"), true),
+    ],
+    [
+      "You are receiving this because it is the address on the account.",
+      "This is a security notice. It is always sent and it cannot be switched off.",
+    ],
+  );
+}
+
+/** SEC-15. Sent to the OLD address once the move has happened. */
+export function emailRecoveryCompleted(data: EmailRecoveryData): EmailMessage {
+  return message(
+    "Your Vallo account has moved to another email address",
+    "Sign-in and messages now go to the new address.",
+    [
+      heading("Your account has moved"),
+      paragraph(
+        `${hello(data.name)} Your Vallo account now signs in with ${data.newAddressMasked}. This address no longer reaches it.`,
+      ),
+      paragraph("If this was not you, contact us straight away and quote this email."),
+      button("Contact us", appUrl("/contact"), true),
+    ],
+    [
+      "You are receiving this because it was the address on the account.",
+      "This is a security notice. It is always sent and it cannot be switched off.",
+    ],
+  );
+}
+
 export type NewDeviceSignInData = {
   name?: string | null;
   /** ISO date of the sign-in. */

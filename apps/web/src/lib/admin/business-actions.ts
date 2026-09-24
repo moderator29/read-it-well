@@ -32,6 +32,7 @@
  */
 
 import { revalidatePath } from "next/cache";
+import { withBusinessPrivate } from "../supabase/private-fields";
 import { z } from "zod";
 import { fail, ok, validate, type ActionResult } from "../actions/envelope";
 import { createAdminClient } from "../supabase/admin";
@@ -482,15 +483,17 @@ export async function publishRestaurant(input: {
   const parsed = validate(businessIdSchema, input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
 
-  const { data: business, error: readError } = await access.supabase
+  const { data: publicRow, error: readError } = await access.supabase
     .from("businesses")
-    .select(
-      "id, name, kind, status, owner_id, source, is_demo, city, state_code, phone, service_windows(covers)",
-    )
+    .select("id, name, kind, status, owner_id, source, is_demo, city, state_code, service_windows(covers)")
     .eq("id", parsed.data.businessId)
     .maybeSingle();
   if (readError) return fail(SERVICE_DOWN);
-  if (!business) return fail(GONE);
+  if (!publicRow) return fail(GONE);
+  /* The venue's phone is a private column, read through the definer (staff
+     pass it). */
+  const [business] = await withBusinessPrivate(access.supabase, [publicRow], ["phone"] as const).catch(() => [null]);
+  if (!business) return fail(SERVICE_DOWN);
 
   if (business.kind !== "restaurant") {
     return fail(
@@ -594,18 +597,22 @@ export async function recordBusinessRung(input: {
     });
   }
 
-  const { data: business, error: readError } = await access.supabase
+  const { data: publicRow, error: readError } = await access.supabase
     .from("businesses")
-    .select("id, name, status, owner_id, source, verification_tier")
+    .select("id, name, status, owner_id, source")
     .eq("id", businessId)
     .maybeSingle();
   if (readError) return fail(SERVICE_DOWN);
-  if (!business) return fail(GONE);
+  if (!publicRow) return fail(GONE);
+  const [business] = await withBusinessPrivate(access.supabase, [publicRow], ["verification_tier"] as const).catch(
+    () => [null],
+  );
+  if (!business) return fail(SERVICE_DOWN);
   if (business.source !== "first_party") {
     return fail("Only a first-party business carries a verification ladder.");
   }
 
-  const before = business.verification_tier;
+  const before = business.verification_tier ?? 0;
 
   /*
    * THE IDENTITY RUNG IS THE BADGE, SO THE SERVER ASKS FOR THE EVIDENCE TOO.
@@ -651,11 +658,14 @@ export async function recordBusinessRung(input: {
     );
   if (writeError) return fail(SERVICE_DOWN);
 
-  const { data: after } = await access.supabase
+  const { data: afterPublic } = await access.supabase
     .from("businesses")
-    .select("verification_tier, verified")
+    .select("id, verified")
     .eq("id", business.id)
     .maybeSingle();
+  const [after] = afterPublic
+    ? await withBusinessPrivate(access.supabase, [afterPublic], ["verification_tier"] as const).catch(() => [null])
+    : [null];
   const now = after?.verification_tier ?? before;
 
   /*

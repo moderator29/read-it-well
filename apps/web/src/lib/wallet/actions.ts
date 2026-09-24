@@ -28,6 +28,7 @@
  * email failure can change what the ledger says or what the caller is told.
  */
 
+import { moneyHoldRefusal } from "./money-hold";
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
@@ -69,7 +70,7 @@ import { CRYPTO_PREFIX, FUND_PREFIX, P2P_PREFIX, WITHDRAW_PREFIX } from "../paym
 import { guardMoney } from "../security/money-limits";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { subjectForUser } from "../security/rate-limit";
-import { lookupBank, resolveBankAccountName } from "../payments/bank-resolve";
+import { lookupBank, resolveBankAccountName, sameAccountName } from "../payments/bank-resolve";
 import { recordMoneyAudit } from "./audit";
 import {
   availableBalanceMinor,
@@ -652,7 +653,7 @@ async function withdrawWork(
   );
 
   if (held.outcome === "failed") {
-    return fail("The withdrawal could not be recorded. Your balance is untouched. Please try again.");
+    return fail(moneyHoldRefusal(held) ?? "The withdrawal could not be recorded. Your balance is untouched. Please try again.");
   }
 
   if (held.outcome === "ok") {
@@ -851,8 +852,9 @@ async function withdrawWork(
  * The same hold-then-transfer shape as the typed-in path, with two
  * differences that are the point of having the table. The name on the payout
  * instruction is the one the bank gave when the account was filed
- * (resolved_account_name, NOT NULL), so there is nothing to re-resolve and
- * nothing a form could tamper with. And the Paystack recipient is minted
+ * (resolved_account_name, NOT NULL), confirmed with the bank again before the
+ * first payout to it, so nothing a form or a direct insert could tamper with
+ * is ever paid. And the Paystack recipient is minted
  * ONCE: the code is cached on the row by the service role after the first
  * transfer, so the next withdrawal reuses it instead of creating another
  * recipient record at the processor.
@@ -894,6 +896,34 @@ async function withdrawToSavedAccount(
     });
   }
 
+  /* No recipient has been minted for this account yet, so the payout would be
+     made out to the stored name. Ask the bank again before any hold is
+     placed: the name paid is the bank's answer today, and an account whose
+     holder no longer matches what was filed is refused rather than paid. A
+     cached recipient_code is only ever written by the service role after
+     this check, so it needs none. */
+  let payeeName = account.resolved_account_name;
+  if (!account.recipient_code) {
+    const resolved = await resolveBankAccountName({
+      accountNumber: account.account_number,
+      bankCode: account.bank_code,
+    });
+    if (!resolved.ok) {
+      return fail(
+        resolved.failure === "not-confirmed"
+          ? "Your bank could not confirm this account just now. Your balance is untouched. Check it on your list, or remove it and add it again."
+          : "We could not reach your bank to confirm this account. Your balance is untouched. Please try again shortly.",
+      );
+    }
+    if (!sameAccountName(resolved.accountName, account.resolved_account_name)) {
+      return fail(
+        "Your bank now names this account differently from when it was added. Your balance is untouched. Remove it and add it again to use it.",
+        { bankAccountId: "Remove this account and add it again." },
+      );
+    }
+    payeeName = resolved.accountName;
+  }
+
   const amountMinor = parsed.data.amount;
   const accountLast4 = account.account_number.slice(-4);
   const reference = `${WITHDRAW_PREFIX}${randomUUID()}`;
@@ -921,7 +951,10 @@ async function withdrawToSavedAccount(
   );
 
   if (held.outcome !== "ok") {
-    return fail("The withdrawal could not be recorded. Your balance is untouched. Please try again.");
+    return fail(
+      (held.outcome === "failed" ? moneyHoldRefusal(held) : null) ??
+        "The withdrawal could not be recorded. Your balance is untouched. Please try again.",
+    );
   }
   const status = readMoneyStatus(held.data);
   if (status.status === "insufficient") {
@@ -980,14 +1013,14 @@ async function withdrawToSavedAccount(
     let recipientCode = account.recipient_code;
     if (!recipientCode) {
       const recipient = await createTransferRecipient({
-        name: account.resolved_account_name,
+        name: payeeName,
         accountNumber: account.account_number,
         bankCode: account.bank_code,
       });
       recipientCode = recipient.recipientCode;
-      // Cached by the service role: the owner's column grant does not include
-      // recipient_code, so a browser can never point an account at a
-      // recipient it did not earn. Best effort; a missed cache is one extra
+      // Cached by the service role: the owner's grants include recipient_code
+      // for neither insert nor update, so a browser can never point an account
+      // at a recipient it did not earn. Best effort; a missed cache is one extra
       // recipient next time, not a wrong payout.
       await admin
         .from("bank_accounts")
@@ -1219,7 +1252,7 @@ async function transferToUserWork(
   );
 
   if (call.outcome === "failed") {
-    return fail("The transfer could not be completed. Your balance is untouched. Please try again.");
+    return fail(moneyHoldRefusal(call) ?? "The transfer could not be completed. Your balance is untouched. Please try again.");
   }
 
   if (call.outcome === "ok") {

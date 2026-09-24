@@ -886,7 +886,7 @@ export const CHAPTERS: DocChapter[] = [
             <p>
               An annual tenancy is not lodging, so there is no Reserve button on one. The
               path is message the agent, inspect the property, then pay, and every step
-              stays inside the platform where it can be protected.
+              stays inside the platform, where there is a record of it.
             </p>
             <p>
               The rent market has its own front door at{" "}
