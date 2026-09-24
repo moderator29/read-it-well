@@ -130,7 +130,9 @@ grant all on public.weight_withheld to service_role;
    restates `reviews_select`, because a definer view does not run it, and adds
    one arm: a server read as the service role sees every listing's reviews, as
    it does on the table, so a server-side average never loses the ratings of a
-   paused or unpublished listing. The withheld filter still applies to it. */
+   paused or unpublished listing. The withheld filter still applies to it.
+   The arm asks the role actually running the query (`current_user`), never
+   a claim read from a token. */
 create or replace view public.reviews_counted as
   select r.id, r.listing_id, r.booking_id, r.author_id, r.rating, r.body, r.author_label, r.created_at
     from public.reviews r
@@ -140,7 +142,7 @@ create or replace view public.reviews_counted as
           or private.owns_listing(r.listing_id)
           or private.has_role((select auth.uid()), 'admin'::public.app_role)
           or private.has_role((select auth.uid()), 'super_admin'::public.app_role)
-          or (select auth.role()) = 'service_role')
+          or current_user = 'service_role')
      and ((select auth.uid()) = r.author_id
           or not exists (select 1 from public.weight_withheld w
                           where w.kind = 'review' and w.subject_id = r.id));
