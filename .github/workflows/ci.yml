@@ -61,6 +61,9 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The migration check diffs against the commit before this push.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -90,6 +93,13 @@ jobs:
       - name: Database probe files keep the contract
         if: ${{ !cancelled() }}
         run: node scripts/db-probes/run.mjs --check
+
+      # OPS-08: migration names and versions, and no applied migration edited,
+      # renamed or deleted since the commit before this push (or the pull
+      # request's base).
+      - name: Migrations are named, unique and never edited
+        if: ${{ !cancelled() }}
+        run: node scripts/check-migrations.mjs --base "${{ github.event.pull_request.base.sha || github.event.before }}"
 
   # Its own job, and NOT one of the required checks: a new advisory with no
   # fix yet, or the npm audit service being down, must not turn the
