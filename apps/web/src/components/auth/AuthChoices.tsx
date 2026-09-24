@@ -1,8 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import { withNext } from "@/lib/auth/next-link";
 import type { Dictionary } from "@vallo/i18n";
-import type { ProviderId, ProviderState } from "@/lib/auth/providers";
-import { startGoogleOAuth } from "@/lib/auth/actions";
+import type { ProviderId, ProviderState, SignInSurface } from "@/lib/auth/providers";
+import { startAppleOAuth, startGoogleOAuth } from "@/lib/auth/actions";
+import { AppleMark, NativeAppleSignIn } from "./NativeAppleSignIn";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
 /**
@@ -36,10 +38,14 @@ export function AuthChoices({
   providers,
   notice,
   next,
+  surface = "web",
 }: {
   mode: "sign-in" | "sign-up";
   t: Dictionary;
   providers: ProviderState[];
+  /** Which surface the server rendered for. The redirect doors are drawn
+      only on the website; inside a shell they cannot complete (STORE-03). */
+  surface?: SignInSurface;
   /** A message from the auth callback, for example an expired link. */
   notice?: string | undefined;
   /**
@@ -53,7 +59,8 @@ export function AuthChoices({
   const isSignUp = mode === "sign-up";
   const configured = (id: ProviderId) => providers.find((p) => p.id === id)?.configured ?? false;
   const emailReady = configured("email");
-  const googleReady = configured("google");
+  const googleReady = configured("google") && surface === "web";
+  const appleReady = configured("apple");
   const emailRoute = isSignUp ? "/sign-up/email" : "/sign-in/email";
 
   return (
@@ -132,14 +139,34 @@ export function AuthChoices({
         </>
       )}
 
+      {appleReady && (
+        <>
+          {!googleReady && (
+            <div className="nf-auth__rule" aria-hidden="true">
+              {t.auth.orDivider}
+            </div>
+          )}
+          {surface === "ios-native" ? (
+            <NativeAppleSignIn label={t.auth.continueWithApple} next={next} />
+          ) : surface === "web" ? (
+            <form action={startAppleOAuth} className={googleReady ? "mt-sm" : undefined}>
+              {next ? <input type="hidden" name="next" value={next} /> : null}
+              <input type="hidden" name="intent" value={mode} />
+              <button type="submit" className="nf-btn nf-btn--glass nf-btn--full nf-auth__door">
+                <AppleMark />
+                {t.auth.continueWithApple}
+              </button>
+            </form>
+          ) : null}
+        </>
+      )}
+
       <p className="nf-auth__swap">
         {isSignUp ? t.auth.haveAccount : t.auth.newToVallo}{" "}
         {/* The other door keeps the destination too (audit UX-02, R16):
             a stranger who arrived to sign in and chose to make an account
             instead used to lose the thing that was shared with them here. */}
-        <Link
-          href={`${isSignUp ? "/sign-in" : "/sign-up"}${next ? `?next=${encodeURIComponent(next)}` : ""}`}
-        >
+        <Link href={withNext(isSignUp ? "/sign-in" : "/sign-up", next)}>
           {isSignUp ? t.common.signIn : t.common.signUp}
         </Link>
       </p>
@@ -150,7 +177,7 @@ export function AuthChoices({
           redirect and was prefetched on every render of this card. */}
       {isSignUp && (
         <p className="nf-auth__swap mt-xs">
-          <Link href={`/welcome?next=${encodeURIComponent("/sign-up")}`} prefetch={false}>
+          <Link href={`/welcome?next=${encodeURIComponent(withNext("/sign-up", next))}`} prefetch={false}>
             {t.welcomeCards.label}
           </Link>
         </p>

@@ -546,11 +546,13 @@ export type ApplicationView = {
   submittedAt: string | null;
   reviewedAt: string | null;
   reviewNotes: string | null;
+  /** SUP-05: the applicant's answer to a MORE_INFO_REQUIRED note. */
+  applicantResponse: string | null;
   createdAt: string;
 };
 
 const APPLICATION_COLUMNS =
-  "id, reference, status, type, full_name, phone, email, residential_address, state_code, city, id_type, id_number, business_name, business_rc, bank_name, account_number, account_name, agree_terms, submitted_at, reviewed_at, review_notes, created_at, agent_documents ( id, kind, storage_path )";
+  "id, reference, status, type, full_name, phone, email, residential_address, state_code, city, id_type, id_number, business_name, business_rc, bank_name, account_number, account_name, agree_terms, submitted_at, reviewed_at, review_notes, applicant_response, created_at, agent_documents ( id, kind, storage_path )";
 
 type ApplicationRow = {
   id: string;
@@ -574,6 +576,7 @@ type ApplicationRow = {
   submitted_at: string | null;
   reviewed_at: string | null;
   review_notes: string | null;
+  applicant_response: string | null;
   created_at: string;
   agent_documents: { id: string; kind: string; storage_path: string }[];
 };
@@ -637,6 +640,7 @@ function toApplicationView(
     submittedAt: row.submitted_at,
     reviewedAt: row.reviewed_at,
     reviewNotes: row.review_notes,
+    applicantResponse: row.applicant_response,
     createdAt: row.created_at,
   };
 }

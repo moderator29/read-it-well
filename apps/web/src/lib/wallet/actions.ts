@@ -28,7 +28,8 @@
  * email failure can change what the ledger says or what the caller is told.
  */
 
-import { randomUUID } from "node:crypto";
+import { moneyHoldRefusal } from "./money-hold";
+import { createHash, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
@@ -52,6 +53,7 @@ import { isFeatureEnabled } from "../flags";
 import { logMoney } from "../payments/observability";
 import {
   PaystackError,
+  PaystackUnknownOutcome,
   createTransferRecipient,
   initializeTransaction,
   initiateTransfer,
@@ -66,25 +68,32 @@ import {
 } from "../payments/yellowcard";
 import { CRYPTO_PREFIX, FUND_PREFIX, P2P_PREFIX, WITHDRAW_PREFIX } from "../payments/references";
 import { guardMoney } from "../security/money-limits";
-import { accountHoldRefusal, holdRefusalForFailure } from "../security/account-hold-guard";
+import { accountHoldRefusal } from "../security/account-hold-guard";
 import { moneyLockRefusalFor } from "../security/money-lock-guard";
 import { sendIntent, withdrawIntent } from "../security/money-intent";
-import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
+import {
+  CONFLICT_MESSAGE,
+  IN_FLIGHT_MESSAGE,
+  UNGUARDED_REFUSAL_MESSAGE,
+  withGuardedIdempotency,
+  withIdempotency,
+} from "../security/idempotency";
 import { subjectForUser } from "../security/rate-limit";
-import { lookupBank, resolveBankAccountName } from "../payments/bank-resolve";
+import { lookupBank, resolveBankAccountName, sameAccountName } from "../payments/bank-resolve";
 import { recordMoneyAudit } from "./audit";
 import {
   availableBalanceMinor,
   displayNameFor,
   ensureWalletId,
-  findUserByEmail,
   getAdminClient,
-  postEntry,
+  annotateEntry,
   recordFunding,
   setEntryStatus,
   type AdminClient,
 } from "./ledger";
 import { callMoneyRpc, readMoneyStatus } from "./rpc";
+import { paceRecipientLookup, resolveRecipientId } from "./handle-recipient";
+import { parseRecipientInput } from "./recipient-input";
 import { readStatement } from "./repository";
 import { chargeSavedCard } from "../payments/charge-saved-card";
 import {
@@ -96,6 +105,8 @@ import {
   withdrawToSavedAccountSchema,
 } from "./schema";
 import type { WalletSummary } from "./types";
+import { processorFeeMetadata } from "./funding-fee";
+import { fundingCheckRefusal } from "./funding-check";
 
 const WALLET_OFF_MESSAGE =
   "The wallet is switched off for a moment while we make improvements. Please try again shortly.";
@@ -158,6 +169,39 @@ async function siteOrigin(): Promise<string> {
 }
 
 /** Turn a Paystack failure into honest copy, keeping its useful detail. */
+/**
+ * MON-01. A withdrawal whose transfer call ended without an answer: the hold
+ * stays PENDING (the money is neither spendable nor released), the sweep
+ * asks Paystack and settles it either way, and the person is told the truth,
+ * that the bank has not said yet.
+ */
+const WITHDRAWAL_UNKNOWN_MESSAGE =
+  "The bank has not confirmed this withdrawal yet. The amount stays on hold until it does, and you will be told either way. Do not try again in the meantime.";
+
+async function keepHoldForUnknownOutcome(
+  admin: AdminClient,
+  args: { reference: string; amountMinor: number; userId: string },
+): Promise<ActionResult<WithdrawReceipt | null>> {
+  logMoney({
+    surface: "withdraw",
+    outcome: "failed",
+    reason: "transfer_outcome_unknown_hold_kept",
+    reference: args.reference,
+    amountMinor: args.amountMinor,
+    userId: args.userId,
+  });
+  await recordMoneyAudit(admin, {
+    actor: { kind: "user", userId: args.userId },
+    action: "wallet.withdrawal.outcome_unknown",
+    reference: args.reference,
+    amountMinor: args.amountMinor,
+    subjectUserId: args.userId,
+    outcome: "still_pending",
+    detail: {},
+  });
+  return fail(WITHDRAWAL_UNKNOWN_MESSAGE);
+}
+
 function describePaystackError(e: unknown, fallback: string): string {
   if (e instanceof PaystackError && e.status !== 401 && e.message.trim().length > 0) {
     return `${fallback} The payment service said: ${e.message.trim()}`;
@@ -463,9 +507,8 @@ export type WithdrawReceipt = {
  * a digit, or who was short by a hundred naira and has just funded, must be
  * able to try again at once rather than be handed the same refusal for the
  * whole TTL. A form with no key runs unguarded exactly as before, which is the
- * state the withdraw sheet is in until it mints one: the request is filed in
- * `docs/BUILD_07_LEDGER.md` section 49, and the panel can have its retry
- * button the day it carries a key.
+ * state the withdraw sheet is in until it mints one; the panel can have its
+ * retry button the day it carries a key.
  *
  * THE GUARD FAILS OPEN BY DESIGN when it cannot reach its store, so it is not
  * a substitute for the ledger's unique `reference`. It removes the common
@@ -631,10 +674,7 @@ async function withdrawWork(
   );
 
   if (held.outcome === "failed") {
-    /* V-19: the audit's hold trigger, reached by a race past the check. */
-    const holdSentence = await holdRefusalForFailure(session.supabase, held.reason);
-    if (holdSentence) return fail(holdSentence);
-    return fail("The withdrawal could not be recorded. Your balance is untouched. Please try again.");
+    return fail(moneyHoldRefusal(held) ?? "The withdrawal could not be recorded. Your balance is untouched. Please try again.");
   }
 
   if (held.outcome === "ok") {
@@ -688,57 +728,25 @@ async function withdrawWork(
     });
   } else {
     /*
-     * THE FALLBACK. See the identical note in transferToUser: the public
-     * wrapper is not applied yet, and refusing every withdrawal would be a
-     * worse answer than running the path that already shipped. It says so on
-     * the money channel every time, and it goes the day
-     * public.hold_wallet_withdrawal lands.
+     * MON-12. No unlocked fallback. public.hold_wallet_withdrawal is the only
+     * way a withdrawal hold is placed, as it is for the saved-account door: a
+     * balance read followed by a separate insert let two withdrawals in a
+     * deploy window both pass the check and overdraw the wallet.
      */
     logMoney({
       surface: "withdraw",
       outcome: "unconfigured",
-      reason: "atomic_hold_unavailable_using_unlocked_path",
+      reason: "atomic_hold_unavailable_refused",
       reference,
       amountMinor,
       userId: session.user.id,
     });
-    try {
-      const walletId = await ensureWalletId(admin, session.user.id);
-      const available = await availableBalanceMinor(admin, walletId);
-      if (amountMinor > available) {
-        return fail(
-          `Your available balance is ${nairaExact(available)}, so this withdrawal of ${nairaExact(amountMinor)} cannot go through.`,
-          { amount: "There is not enough in your wallet for this amount." },
-        );
-      }
-
-      await postEntry(admin, {
-        walletId,
-        kind: "withdrawal",
-        direction: "debit",
-        amountMinor,
-        reference,
-        status: "PENDING",
-        metadata: holdMetadata,
-      });
-
-      await recordMoneyAudit(admin, {
-        actor: { kind: "user", userId: session.user.id },
-        action: "wallet.withdrawal.hold_placed",
-        reference,
-        amountMinor,
-        subjectUserId: session.user.id,
-        walletId,
-        outcome: "posted",
-        detail: { bank_code: bank.code, account_last4: accountLast4, atomic: false },
-      });
-    } catch {
-      return fail(
-        "The withdrawal could not be recorded. Your balance is untouched. Please try again.",
-      );
-    }
+    return fail(
+      "Withdrawals are not available for a moment. Your balance is untouched. Please try again shortly.",
+    );
   }
 
+  let transferAttempted = false;
   try {
     const recipient = await createTransferRecipient({
       /* The bank's own answer, resolved above. This read a form field until
@@ -748,6 +756,7 @@ async function withdrawWork(
       accountNumber: parsed.data.accountNumber,
       bankCode: bank.code,
     });
+    transferAttempted = true;
     await initiateTransfer({
       amountMinor,
       recipientCode: recipient.recipientCode,
@@ -755,12 +764,17 @@ async function withdrawWork(
       reason: "Vallo wallet withdrawal",
     });
   } catch (e) {
+    /* MON-01. The transfer call may have reached Paystack. Releasing the hold
+       now would hand back money that may already be on its way to the bank,
+       so it stays PENDING and the sweep asks Paystack what happened. */
+    if (transferAttempted && e instanceof PaystackUnknownOutcome) {
+      return keepHoldForUnknownOutcome(admin, { reference, amountMinor, userId: session.user.id });
+    }
     let markedFailed = false;
     try {
-      await setEntryStatus(admin, reference, "FAILED", {
+      markedFailed = await setEntryStatus(admin, reference, "FAILED", {
         failure: e instanceof PaystackError ? e.message : "Transfer initiation failed.",
       });
-      markedFailed = true;
     } catch {
       // The hold stays PENDING. sweepStaleWithdrawalHolds asks Paystack what
       // became of this reference and, finding no transfer under it, releases
@@ -826,8 +840,9 @@ async function withdrawWork(
  * The same hold-then-transfer shape as the typed-in path, with two
  * differences that are the point of having the table. The name on the payout
  * instruction is the one the bank gave when the account was filed
- * (resolved_account_name, NOT NULL), so there is nothing to re-resolve and
- * nothing a form could tamper with. And the Paystack recipient is minted
+ * (resolved_account_name, NOT NULL), confirmed with the bank again before the
+ * first payout to it, so nothing a form or a direct insert could tamper with
+ * is ever paid. And the Paystack recipient is minted
  * ONCE: the code is cached on the row by the service role after the first
  * transfer, so the next withdrawal reuses it instead of creating another
  * recipient record at the processor.
@@ -880,6 +895,34 @@ async function withdrawToSavedAccount(
     });
   }
 
+  /* No recipient has been minted for this account yet, so the payout would be
+     made out to the stored name. Ask the bank again before any hold is
+     placed: the name paid is the bank's answer today, and an account whose
+     holder no longer matches what was filed is refused rather than paid. A
+     cached recipient_code is only ever written by the service role after
+     this check, so it needs none. */
+  let payeeName = account.resolved_account_name;
+  if (!account.recipient_code) {
+    const resolved = await resolveBankAccountName({
+      accountNumber: account.account_number,
+      bankCode: account.bank_code,
+    });
+    if (!resolved.ok) {
+      return fail(
+        resolved.failure === "not-confirmed"
+          ? "Your bank could not confirm this account just now. Your balance is untouched. Check it on your list, or remove it and add it again."
+          : "We could not reach your bank to confirm this account. Your balance is untouched. Please try again shortly.",
+      );
+    }
+    if (!sameAccountName(resolved.accountName, account.resolved_account_name)) {
+      return fail(
+        "Your bank now names this account differently from when it was added. Your balance is untouched. Remove it and add it again to use it.",
+        { bankAccountId: "Remove this account and add it again." },
+      );
+    }
+    payeeName = resolved.accountName;
+  }
+
   const amountMinor = parsed.data.amount;
   const accountLast4 = account.account_number.slice(-4);
   const reference = `${WITHDRAW_PREFIX}${randomUUID()}`;
@@ -907,11 +950,10 @@ async function withdrawToSavedAccount(
   );
 
   if (held.outcome !== "ok") {
-    /* V-19: the audit's hold trigger, reached by a race past the check. */
-    const holdSentence =
-      held.outcome === "failed" ? await holdRefusalForFailure(session.supabase, held.reason) : null;
-    if (holdSentence) return fail(holdSentence);
-    return fail("The withdrawal could not be recorded. Your balance is untouched. Please try again.");
+    return fail(
+      (held.outcome === "failed" ? moneyHoldRefusal(held) : null) ??
+        "The withdrawal could not be recorded. Your balance is untouched. Please try again.",
+    );
   }
   const status = readMoneyStatus(held.data);
   if (status.status === "insufficient") {
@@ -965,24 +1007,26 @@ async function withdrawToSavedAccount(
     },
   });
 
+  let transferAttempted = false;
   try {
     let recipientCode = account.recipient_code;
     if (!recipientCode) {
       const recipient = await createTransferRecipient({
-        name: account.resolved_account_name,
+        name: payeeName,
         accountNumber: account.account_number,
         bankCode: account.bank_code,
       });
       recipientCode = recipient.recipientCode;
-      // Cached by the service role: the owner's column grant does not include
-      // recipient_code, so a browser can never point an account at a
-      // recipient it did not earn. Best effort; a missed cache is one extra
+      // Cached by the service role: the owner's grants include recipient_code
+      // for neither insert nor update, so a browser can never point an account
+      // at a recipient it did not earn. Best effort; a missed cache is one extra
       // recipient next time, not a wrong payout.
       await admin
         .from("bank_accounts")
         .update({ recipient_code: recipientCode })
         .eq("id", account.id);
     }
+    transferAttempted = true;
     await initiateTransfer({
       amountMinor,
       recipientCode,
@@ -990,12 +1034,17 @@ async function withdrawToSavedAccount(
       reason: "Vallo wallet withdrawal",
     });
   } catch (e) {
+    /* MON-01. The transfer call may have reached Paystack. Releasing the hold
+       now would hand back money that may already be on its way to the bank,
+       so it stays PENDING and the sweep asks Paystack what happened. */
+    if (transferAttempted && e instanceof PaystackUnknownOutcome) {
+      return keepHoldForUnknownOutcome(admin, { reference, amountMinor, userId: session.user.id });
+    }
     let markedFailed = false;
     try {
-      await setEntryStatus(admin, reference, "FAILED", {
+      markedFailed = await setEntryStatus(admin, reference, "FAILED", {
         failure: e instanceof PaystackError ? e.message : "Transfer initiation failed.",
       });
-      markedFailed = true;
     } catch {
       // The hold stays PENDING and sweepStaleWithdrawalHolds releases it once
       // Paystack confirms no transfer exists under this reference.
@@ -1117,17 +1166,49 @@ export async function transferToUser(
   const key = formDataToObject(formData)["idempotencyKey"] ?? null;
   if (session.state !== "signed-in" || !key) return transferToUserWork(_prev, formData);
 
-  const run = await withIdempotency<ActionResult<TransferReceipt | null>>(
+  const run = await withGuardedIdempotency<ActionResult<TransferReceipt | null>>(
     {
       scope: TRANSFER_SCOPE,
       key,
       subject: subjectForUser(session.user.id),
       shouldRecord: (result) => result.ok,
+      /* MON-11: a replay that asks for something else is a conflict, and a
+         key store that cannot be asked is a refusal, not an unguarded send. */
+      fingerprint: transferFingerprint(formData),
+      failClosed: true,
     },
     () => transferToUserWork(_prev, formData),
   );
   if (run.status === "in-flight") return fail(IN_FLIGHT_MESSAGE);
+  if (run.status === "conflict") return fail(CONFLICT_MESSAGE);
+  if (run.status === "unavailable") return fail(UNGUARDED_REFUSAL_MESSAGE);
   return run.result;
+}
+
+/** What a send asks for, canonically: who, how much, and the note. */
+function transferFingerprint(formData: FormData): string {
+  const raw = formDataToObject(formData);
+  const canonical = JSON.stringify([
+    String(raw["recipientEmail"] ?? "").trim().toLowerCase(),
+    String(raw["amount"] ?? "").trim(),
+    String(raw["note"] ?? "").trim(),
+  ]);
+  return createHash("sha256").update(canonical).digest("hex");
+}
+
+/**
+ * MON-11. The transfer's ledger references come from the payer and the key,
+ * so a retry that outlives the key store's window (or a process that died
+ * after the transfer committed) meets the database's unique reference and is
+ * a duplicate for ever, never a second transfer. Without a key they are fresh.
+ */
+function transferPairId(userId: string, key: string | undefined): string {
+  if (!key) return randomUUID();
+  const hex = createHash("sha256").update(`wallet.transfer:${userId}:${key}`).digest("hex");
+  // Shaped as a version-5-style uuid so every reader of the reference parses it.
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-5${hex.slice(13, 16)}-${((parseInt(hex.slice(16, 18), 16) & 0x3f) | 0x80)
+    .toString(16)
+    .padStart(2, "0")}${hex.slice(18, 20)}-${hex.slice(20, 32)}`;
 }
 
 /** One scope for the send door, matching the two funding doors' shape. */
@@ -1163,13 +1244,22 @@ async function transferToUserWork(
   const admin = getAdminClient();
   if (!admin) return fail(NOT_CONFIGURED_MESSAGE);
 
-  const recipient = await findUserByEmail(parsed.data.recipientEmail);
+  const target = parseRecipientInput(parsed.data.recipientEmail);
+  /* NEW-A2-04: the send shares the lookup's budget, so the two doors together
+     cannot walk a list of addresses; and a blocked person reads exactly like
+     an address nobody uses. */
+  const pace = await paceRecipientLookup(session.user.id);
+  if (!pace.allowed) {
+    return fail(`You have looked up a lot of recipients in a short time. Try again ${pace.retryIn}. Your balance is untouched.`);
+  }
+  const recipientId = target ? await resolveRecipientId(target, session.user.id) : null;
+  const recipient = recipientId ? { id: recipientId } : null;
   if (!recipient) {
     return fail(
-      "No Vallo account uses that email address yet. Check the spelling, or ask them to sign up for Vallo and send it once they have.",
+      "No Vallo account uses that email address or handle yet. Check the spelling, or ask them to sign up for Vallo and send it once they have.",
       {
         recipientEmail:
-          "No account uses this address. Check the spelling, or ask them to sign up first.",
+          "No account uses this address or handle. Check the spelling, or ask them to sign up first.",
       },
     );
   }
@@ -1180,7 +1270,7 @@ async function transferToUserWork(
   }
 
   const amountMinor = parsed.data.amount;
-  const pairId = randomUUID();
+  const pairId = transferPairId(session.user.id, parsed.data.idempotencyKey);
   const outReference = `${P2P_PREFIX}${pairId}-out`;
   const inReference = `${P2P_PREFIX}${pairId}-in`;
 
@@ -1211,10 +1301,7 @@ async function transferToUserWork(
   );
 
   if (call.outcome === "failed") {
-    /* V-19: the audit's hold trigger, reached by a race past the check. */
-    const holdSentence = await holdRefusalForFailure(session.supabase, call.reason);
-    if (holdSentence) return fail(holdSentence);
-    return fail("The transfer could not be completed. Your balance is untouched. Please try again.");
+    return fail(moneyHoldRefusal(call) ?? "The transfer could not be completed. Your balance is untouched. Please try again.");
   }
 
   if (call.outcome === "ok") {
@@ -1337,8 +1424,10 @@ async function labelTransferLegs(
   legs: { outReference: string; inReference: string; outNote: string; inNote: string },
 ): Promise<void> {
   try {
-    await setEntryStatus(admin, legs.outReference, "COMPLETED", { note: legs.outNote });
-    await setEntryStatus(admin, legs.inReference, "COMPLETED", { note: legs.inNote });
+    /* A caption only. The legs are already COMPLETED, and a status write on a
+       settled row is what MON-01 stopped setEntryStatus from doing. */
+    await annotateEntry(admin, legs.outReference, { note: legs.outNote });
+    await annotateEntry(admin, legs.inReference, { note: legs.inNote });
   } catch {
     // A statement row without its caption is a cosmetic problem. See above.
   }
@@ -1413,10 +1502,9 @@ export async function verifyFunding(
   let tx;
   try {
     tx = await verifyTransaction(parsedReference.data);
-  } catch {
-    return fail(
-      "The payment could not be checked just now. If you completed it, your balance updates automatically in a moment.",
-    );
+  } catch (error) {
+    /* MON-20. A reference the processor has never seen is said so. */
+    return fail(fundingCheckRefusal(error));
   }
 
   if (tx.status !== "success") {
@@ -1464,6 +1552,7 @@ export async function verifyFunding(
         channel: tx.channel,
         paid_at: tx.paidAt,
         purpose: "wallet_fund",
+        ...processorFeeMetadata(tx.feesMinor),
       },
     });
     logMoney({

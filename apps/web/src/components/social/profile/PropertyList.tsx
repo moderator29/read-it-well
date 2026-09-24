@@ -3,6 +3,7 @@ import { formatMoney } from "@vallo/i18n";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import type { PropertyCard } from "@/lib/social/profile-tabs-queries";
 import { RemoteImage } from "@/components/ui/RemoteImage";
+import { countOf } from "@vallo/i18n";
 
 /**
  * An agent's live places, on their own page.
@@ -48,11 +49,9 @@ export function PropertyList({ properties }: { properties: PropertyCard[] }) {
                   </span>
                 </p>
                 <p className="text-[length:var(--nf-text-overline)] text-[var(--nf-content-muted)]">
-                  <span className="nf-numeric">{property.bedrooms}</span>{" "}
-                  {property.bedrooms === 1 ? "bedroom" : "bedrooms"}
+                  {countOf(property.bedrooms, "bedrooms")}
                   {" · "}
-                  <span className="nf-numeric">{property.bathrooms}</span>{" "}
-                  {property.bathrooms === 1 ? "bathroom" : "bathrooms"}
+                  {countOf(property.bathrooms, "bathrooms")}
                 </p>
               </div>
             </div>

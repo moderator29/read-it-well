@@ -173,7 +173,7 @@ export function tierMap(rows: readonly { user_id: string | null; tier: string | 
 }
 
 /**
- * THE BADGE (B-BADGE, Session A's end to end). The console reads each named
+ * THE BADGE. The console reads each named
  * person's tier from `public.person_badge`, the one published source (SELECT
  * granted to authenticated), through the operator's own session, and hands
  * it to the shared slot `app/admin/_components/PersonTier.tsx`. An absent row means no

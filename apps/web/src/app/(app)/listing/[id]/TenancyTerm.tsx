@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { type Locale } from "@vallo/i18n";
+import { countOf, type Locale } from "@vallo/i18n";
 import { Amount } from "@/components/ui/Amount";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { PERIOD_NOUN, type RentPeriod } from "@/lib/listings/pricing";
 import { TYPE } from "@/components/app/Screen";
+
+/** The counted unit a rent period is quoted in. */
+const PERIOD_UNIT = { month: "months", quarter: "quarters", year: "years" } as const satisfies Record<RentPeriod, string>;
 
 /**
  * How long a tenancy, and what that comes to.
@@ -67,7 +70,7 @@ export function TenancyTerm({
   const [terms, setTerms] = useState(floor);
 
   const noun = PERIOD_NOUN[period];
-  const label = `${terms} ${terms === 1 ? noun : `${noun}s`}`;
+  const label = countOf(terms, PERIOD_UNIT[period], locale);
 
   return (
     <div className="mt-md border-t border-[var(--nf-panel-hair)] pt-md">

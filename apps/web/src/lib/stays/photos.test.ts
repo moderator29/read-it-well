@@ -6,7 +6,7 @@ import { accommodationPhotoUrl } from "./photos";
 /**
  * Three shapes of storage_path, three answers. A bucket path becomes the
  * public object URL; an absolute URL and an absolute public path (the example
- * stays seed) pass through untouched, so the photograph the lead filed under
+ * stays seed) pass through untouched, so the photograph filed under
  * apps/web/public is the one the page asks for.
  */
 describe("accommodationPhotoUrl", () => {

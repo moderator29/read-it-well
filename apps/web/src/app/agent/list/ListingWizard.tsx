@@ -6,6 +6,7 @@ import { formatDate, formatMoney, type Dictionary, type Locale } from "@vallo/i1
 import { ShotList } from "@/components/agent/ShotList";
 import { fill } from "../_copy";
 import { createClient } from "@/lib/supabase/client";
+import { canCapturePhoto, capturePhoto } from "@/lib/native/device";
 import { Switch } from "@/components/ui/Switch";
 import {
   addPhoto,
@@ -20,7 +21,7 @@ import type { OwnAnswers, WizardDraft } from "@/lib/agent/listings-queries";
 import { BROADCAST_MONEY_KEYS, type BroadcastKey, type BroadcastParse } from "@/lib/agent/broadcast";
 import { BroadcastPaste } from "./BroadcastPaste";
 import { PriceGuidePanel, usePriceGuide } from "./PriceGuide";
-import { saveBroadcastMarks } from "@/lib/agent/broadcast-marks";
+import { DraftMatches } from "./DraftMatches";
 import { feeNormLine, type GuideSubject } from "@/lib/price-check/wizard-guide";
 import {
   MAX_ACCESS_CODE,
@@ -81,6 +82,10 @@ import { UnitQuestions } from "@/components/agent/UnitQuestions";
 import { FloodQuestion } from "@/components/agent/FloodQuestion";
 import type { Flooding } from "@/lib/around/pulse";
 import { EMPTY_UNIT_FORM, takesShape, unitPayload, type UnitForm } from "@/lib/listings/unit-shape";
+import { listingDraftKey } from "@/lib/agent/listing-draft-storage";
+import { looksLikeStreetAddress, STREET_IN_TITLE_WARNING } from "@/lib/listings/public-title";
+import { tenantPreference } from "@/lib/safety/tenant-preference";
+import Link from "next/link";
 
 /**
  * The List Apartment wizard: eight steps, canon reference 03.
@@ -140,7 +145,6 @@ const TYPE_ORDER: PropertyType[] = [
   "restaurant",
 ];
 
-const DRAFT_KEY = "nf_listing_draft";
 
 type Values = {
   title: string;
@@ -863,14 +867,19 @@ export function ListingWizard({
   guideCopy,
   initialUnconfirmed = [],
   shotsCopy,
+  demandCopy,
 }: {
   /** V-70: the shot list's words. Without them the shot list is not drawn. */
   shotsCopy?: Dictionary["afterTheGate"]["shots"];
+  /** V-10: the saved-search count on the last step. Absent in harnesses. */
+  demandCopy?: Dictionary["frontDoor"]["demand"];
   /**
    * V-09: the unconfirmed set as the server holds it for this draft
    * (`listing_broadcast_marks`), so another device starts from the truth.
+   * Null when the read failed: the set is then never written from here (an
+   * empty set would wipe the server's) and submit waits until it is read.
    */
-  initialUnconfirmed?: readonly string[];
+  initialUnconfirmed?: readonly string[] | null;
   copy: WizardCopy;
   /**
    * V-74: the pricing step's guide. Absent in the harnesses, which then draw
@@ -948,7 +957,8 @@ export function ListingWizard({
    * is still in it: a figure read from a WhatsApp message is not sent for
    * review until a person has looked at it.
    */
-  const [fromMessage, setFromMessage] = useState<ReadonlySet<string>>(() => new Set(initialUnconfirmed));
+  const [fromMessage, setFromMessage] = useState<ReadonlySet<string>>(() => new Set(initialUnconfirmed ?? []));
+  const marksUnread = initialUnconfirmed === null;
 
   /*
    * The unconfirmed set survives a reload, keyed by the listing it belongs to
@@ -973,21 +983,6 @@ export function ListingWizard({
     }
     setUnconfirmedLoaded(unconfirmedKey);
   }, [unconfirmedKey, unconfirmedLoaded, listingId]);
-  /* And on the server, beside the draft, once the draft exists: the submit
-     gate there reads it (review fix, V-09). Debounced; a failure is retried
-     on the next change and the server gate still holds. */
-  const savedMarks = useRef<string>(JSON.stringify([...initialUnconfirmed].sort()));
-  useEffect(() => {
-    if (!listingId || !canPersist || unconfirmedLoaded !== unconfirmedKey) return;
-    const next = JSON.stringify([...fromMessage].sort());
-    if (next === savedMarks.current) return;
-    const timer = setTimeout(() => {
-      void saveBroadcastMarks({ listingId, keys: [...fromMessage] }).then((result) => {
-        if (result.ok) savedMarks.current = next;
-      });
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [fromMessage, listingId, canPersist, unconfirmedLoaded, unconfirmedKey]);
   useEffect(() => {
     if (unconfirmedLoaded !== unconfirmedKey) return;
     try {
@@ -1004,6 +999,17 @@ export function ListingWizard({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [photoNotice, setPhotoNotice] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  /* STORE-04: the shell's own camera, when the running binary carries it. */
+  const [nativeCamera, setNativeCamera] = useState(false);
+  useEffect(() => {
+    let live = true;
+    void canCapturePhoto().then((able) => {
+      if (live) setNativeCamera(able);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
   const [submitted, setSubmitted] = useState(false);
   const [pending, startTransition] = useTransition();
   const restored = useRef(false);
@@ -1136,6 +1142,9 @@ export function ListingWizard({
   const purchaseMinor = statedPurchaseMinor ?? purchasePartsMinor;
 
   const words = countWords(values.description);
+  /* SEC-06: the database holds a listing that states a tenant preference for
+     review; this says so while the lister is still typing. */
+  const preference = tenantPreference(`${values.title} ${values.description}`);
   const stepNames = STEP_KEYS.map((key) => copy.wizard.steps[key]);
   const amenityNames = copy.amenities.names as Record<string, string | undefined>;
   const pricePeriod = forSale
@@ -1285,8 +1294,11 @@ export function ListingWizard({
     if (restored.current) return;
     restored.current = true;
     if (initial) return;
+    /* SUP-16: one account's draft, never the last person's on this device. */
+    const draftKey = listingDraftKey(userId);
+    if (!draftKey) return;
     try {
-      const raw = localStorage.getItem(DRAFT_KEY);
+      const raw = localStorage.getItem(draftKey);
       if (!raw) return;
       const parsed = JSON.parse(raw) as {
         listingId?: string | null;
@@ -1294,7 +1306,7 @@ export function ListingWizard({
         amenities?: string[];
       };
       if (typeof parsed.listingId === "string" && parsed.listingId.length > 0) {
-        localStorage.removeItem(DRAFT_KEY);
+        localStorage.removeItem(draftKey);
         return;
       }
       if (parsed.values) setValues((prev) => ({ ...prev, ...parsed.values }));
@@ -1302,19 +1314,21 @@ export function ListingWizard({
     } catch {
       /* a malformed draft is not worth an error message */
     }
-  }, [initial]);
+  }, [initial, userId]);
 
   useEffect(() => {
     if (!restored.current) return;
+    const draftKey = listingDraftKey(userId);
+    if (!draftKey) return;
     try {
       localStorage.setItem(
-        DRAFT_KEY,
+        draftKey,
         JSON.stringify({ listingId, values, amenities: chosenAmenities }),
       );
     } catch {
       /* storage unavailable, the platform copy still holds */
     }
-  }, [listingId, values, chosenAmenities]);
+  }, [listingId, values, chosenAmenities, userId]);
 
   function set<K extends keyof Values>(key: K, value: Values[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -1390,6 +1404,8 @@ export function ListingWizard({
 
     const result = await saveDraft({
       id: listingId ?? undefined,
+      /* V-09: the unconfirmed set goes to the server in the same save. */
+      broadcastUnconfirmed: marksUnread ? undefined : [...fromMessage],
       title: values.title,
       description: values.description,
       propertyType: values.propertyType,
@@ -1479,7 +1495,7 @@ export function ListingWizard({
     if (!accessResult.ok) setNotice(accessResult.error);
 
     return result.data.id;
-  }, [canPersist, chosenAmenities, listingId, values, unread]);
+  }, [canPersist, chosenAmenities, listingId, values, unread, fromMessage, marksUnread]);
 
   function go(next: number) {
     const target = Math.min(STEP_KEYS.length - 1, Math.max(0, next));
@@ -1577,7 +1593,7 @@ export function ListingWizard({
     }
   }
 
-  async function onFiles(files: FileList | null) {
+  async function onFiles(files: FileList | readonly File[] | null) {
     if (!files || files.length === 0) return;
     setPhotoNotice(null);
 
@@ -1725,7 +1741,9 @@ export function ListingWizard({
 
   function send() {
     startTransition(async () => {
-      const id = listingId ?? (await persist());
+      /* Saved first, always: the draft and its unconfirmed set (V-09) must be
+         what the server checks, not what it held before the last tap. */
+      const id = (await persist()) ?? listingId;
       if (!id) {
         setNotice(canPersist ? copy.submit.needsTitle : copy.submit.needsKeys);
         return;
@@ -1740,7 +1758,8 @@ export function ListingWizard({
       setFieldErrors({});
       setSubmitted(true);
       try {
-        localStorage.removeItem(DRAFT_KEY);
+        const draftKey = listingDraftKey(userId);
+        if (draftKey) localStorage.removeItem(draftKey);
       } catch {
         /* nothing depends on this */
       }
@@ -1868,7 +1887,8 @@ export function ListingWizard({
             */}
             <TextField
               label={copy.basics.titleLabel}
-              hint={copy.basics.titleHint}
+              /* STORE-16: a warning, never a refusal. */
+              hint={looksLikeStreetAddress(values.title) ? STREET_IN_TITLE_WARNING : copy.basics.titleHint}
               error={fieldErrors.title}
               value={values.title}
               onChange={(e) => set("title", e.target.value)}
@@ -1931,6 +1951,14 @@ export function ListingWizard({
               textAreaClassName="min-h-[9rem]"
             />
             {mark("description")}
+            {preference && (
+              <div className="mt-row" data-testid="tenant-preference-warning">
+                <Note glyph="info">
+                  {`This reads as a tenant preference ("${preference}"). Vallo does not allow refusing people for their ethnicity, religion, marital status or gender, so a listing that says this is held for review before it goes up. See `}
+                  <Link href="/standards" className="underline">our standards</Link>.
+                </Note>
+              </div>
+            )}
 
             {/*
               THE ROOMS, DRAWN AS GOVERNING-06 SCREEN THREE DRAWS THEM.
@@ -2232,6 +2260,26 @@ export function ListingWizard({
                       <UiIcon name="plus" size={18} />
                     </span>
                     <span>{uploading ? copy.photos.uploading : copy.drawn.photos.add}</span>
+                  </button>
+                </li>
+              )}
+              {photos.length < MAX_PHOTOS && nativeCamera && (
+                <li className="contents">
+                  <button
+                    type="button"
+                    className="nf-lw-add"
+                    data-testid="listing-photo-camera"
+                    onClick={() =>
+                      void capturePhoto().then((shot) => {
+                        if (shot) void onFiles([shot]);
+                      })
+                    }
+                    disabled={uploading}
+                  >
+                    <span className="nf-lw-add__plus" aria-hidden="true">
+                      <UiIcon name="picture" size={18} />
+                    </span>
+                    <span>{copy.photos.takePhoto}</span>
                   </button>
                 </li>
               )}
@@ -3179,6 +3227,12 @@ export function ListingWizard({
         {step === 6 && (
           <div>
             <Note>{copy.guestView.intro}</Note>
+            {/* V-10: whose saved searches this would reach, once it exists. */}
+            {demandCopy && listingId && (
+              <div className="mt-group">
+                <DraftMatches listingId={listingId} copy={demandCopy} />
+              </div>
+            )}
             <article className="nf-panel nf-panel--card block mt-group overflow-hidden">
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--nf-surface-raised)]">
                 {photos[0] ? (
@@ -3454,6 +3508,11 @@ export function ListingWizard({
               })}
             </ul>
 
+            {broadcastCopy && marksUnread && (
+              <p className="nf-body-sm mt-heading text-[var(--nf-content-secondary)]" role="status" data-testid="broadcast-unread">
+                {broadcastCopy.marksUnreachable}
+              </p>
+            )}
             {broadcastCopy && unconfirmedMoney.length > 0 && (
               <div className="mt-heading" role="status" data-testid="broadcast-confirm">
                 <p className="nf-body-sm font-semibold text-[var(--nf-content-primary)]">
@@ -3471,7 +3530,7 @@ export function ListingWizard({
               full
               className="mt-heading"
               onClick={send}
-              disabled={unmet.length > 0 || unconfirmedMoney.length > 0}
+              disabled={unmet.length > 0 || unconfirmedMoney.length > 0 || marksUnread}
               loading={pending}
             >
               {copy.submit.action}

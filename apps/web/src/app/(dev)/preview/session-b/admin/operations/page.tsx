@@ -1,4 +1,4 @@
-// Session B admin-shell fixture harness (R-G), behind the preview gate. Real OperationsView on fixture props.
+// Admin console fixture harness, behind the preview gate. Real OperationsView on fixture props.
 import { OperationsView, type OpsTab } from "@/app/admin/operations/OperationsView";
 import type { AuditRowView } from "@/lib/admin/audit-queries";
 import { Frame } from "../frame";

@@ -54,7 +54,7 @@ as $function$
       from public.bookings b
       join public.listings l on l.id = b.listing_id
       join me on me.id = l.agent_id
-     where b.status = 'CONFIRMED'
+     where b.status in ('CONFIRMED', 'COMPLETED')
        and b.check_out <= (now() at time zone 'Africa/Lagos')::date
   ),
   replies as (

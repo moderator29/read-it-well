@@ -60,7 +60,13 @@ export async function readFlooding(
   listingId: string,
 ): Promise<Flooding | null | undefined> {
   try {
-    const { data, error } = await supabase.from("listings").select("flooding" as never).eq("id", listingId).maybeSingle();
+    /* Untyped, because `flooding` is newer than the generated types; the
+       select stays a plain literal so the revoked-columns guard can read it. */
+    const { data, error } = await (supabase as unknown as SupabaseClient)
+      .from("listings")
+      .select("flooding")
+      .eq("id", listingId)
+      .maybeSingle();
     if (error || !data) return undefined;
     const value = (data as { flooding?: unknown }).flooding;
     return isFlooding(value) ? value : null;

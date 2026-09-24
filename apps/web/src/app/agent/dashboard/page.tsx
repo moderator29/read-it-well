@@ -14,6 +14,7 @@ import { KycBanner } from "@/components/agent/KycBanner";
 import { getKycStanding } from "@/lib/agent/kyc-standing";
 import { readInspectionsForLister } from "@/lib/inspections/queries";
 import { ButtonLink } from "@/components/ui/Button";
+import { SUPPLY_DOOR_HREF } from "@/components/agent/agent-doors";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getDictionary(await getLocale());
@@ -103,10 +104,10 @@ export default async function AgentDashboardPage() {
         : {
             title: a.notAgentTitle,
             body: a.notAgentBody,
-            /* Setting up the Seller profile, which is where the agent
-               application went when "Become an agent" stopped being a
-               destination. See next.config.ts and roles.ts. */
-            href: "/profile/setup/owner",
+            /* The workspace chooser (owner, agent or firm), not the owner
+               form: a signed-in member here may be any of the three, and
+               sending an agent to "Register as an owner" was UX-11. */
+            href: SUPPLY_DOOR_HREF,
             cta: a.applyCta,
           };
 

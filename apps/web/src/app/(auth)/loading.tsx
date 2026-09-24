@@ -1,5 +1,7 @@
 import { Skeleton } from "@/components/ui/Skeleton";
 import { LoadingShell } from "@/components/app/ScreenSkeleton";
+import { getDictionary } from "@vallo/i18n";
+import { getLocale } from "@/lib/locale";
 
 /**
  * The wait, on every auth screen.
@@ -21,9 +23,10 @@ import { LoadingShell } from "@/components/app/ScreenSkeleton";
  * product where a stall reads as "this app is broken" rather than "this is
  * slow".
  */
-export default function LoadingAuth() {
+export default async function LoadingAuth() {
+  const a = getDictionary(await getLocale()).authFlow;
   return (
-    <LoadingShell label="Loading" className="w-full">
+    <LoadingShell label={a.loading} className="w-full">
       {/* The heading pair, centred, at the real sizes. */}
       <Skeleton width="11rem" height="1.75rem" radius="sm" className="mx-auto" />
       <Skeleton width="14rem" height="1rem" radius="sm" className="mx-auto mt-sm" />

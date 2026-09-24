@@ -69,13 +69,23 @@ function digitsOf(raw: string): { digits: string; plus: boolean } {
  * person writing it: 0803 123 4567, 08031234567, +234 803 123 4567, 234 803
  * 123 4567, and the same again with dashes or brackets.
  */
+/**
+ * The national digits with the country code and trunk zero taken off.
+ * UX-12: "+234 (0) 803 …" and "+2340803…" carry both, and read as
+ * "080 312 3456" when only the country code came off.
+ */
+function withoutTrunkPrefix(digits: string): string {
+  let national = digits.startsWith("234") ? digits.slice(3) : digits;
+  if (national.startsWith("0")) national = national.slice(1);
+  return national;
+}
+
 export function nationalDigits(raw: string): string | null {
   const { digits } = digitsOf(raw);
   if (digits.length === 0) return null;
 
   let national = digits;
-  if (national.startsWith("234")) national = national.slice(3);
-  else if (national.startsWith("0")) national = national.slice(1);
+  national = withoutTrunkPrefix(national);
 
   return /^[7-9]\d{9}$/.test(national) ? national : null;
 }
@@ -120,8 +130,7 @@ export function readPhone(raw: string): PhoneReading {
   if (digits.length === 0) return { state: "empty" };
 
   let national = digits;
-  if (national.startsWith("234")) national = national.slice(3);
-  else if (national.startsWith("0")) national = national.slice(1);
+  national = withoutTrunkPrefix(national);
 
   if (national.length < NATIONAL_LENGTH) {
     return { state: "incomplete", digits: national.length };
@@ -152,8 +161,7 @@ export function readPhone(raw: string): PhoneReading {
 export function maskNational(raw: string): string {
   const { digits } = digitsOf(raw);
   let national = digits;
-  if (national.startsWith("234")) national = national.slice(3);
-  else if (national.startsWith("0")) national = national.slice(1);
+  national = withoutTrunkPrefix(national);
   national = national.slice(0, NATIONAL_LENGTH);
 
   const parts = [national.slice(0, 3), national.slice(3, 6), national.slice(6, 10)];

@@ -29,7 +29,7 @@ one alert when any is red. Prefer the panel to this file where the two
 disagree; this file is prose and the panel is a measurement.
 
 **A binary built before V-11 still opens on `/`.** The shell is kept off the
-marketing page by the `ValloShell` mark it appends to its user agent, which is
+marketing page by the `VALLO-NATIVE` mark it appends to its user agent, which is
 set in `capacitor.config.ts` and baked in at `cap sync`. A build synced before
 that change sends no mark, so the server cannot tell it from a browser. Rebuild
 and resubmit both binaries after this change merges; do not submit an older
@@ -75,7 +75,7 @@ Public, and the complete list:
 | `/sign-in`, `/sign-in/email`, `/sign-up`, `/sign-up/email`, `/sign-up/verify`, `/forgot-password`, `/reset-password`, `/auth/callback`, `/start` | The doors. A lock with no door is a wall. `/auth/callback` is where every confirmation link lands and a session is the thing it is about to create. |
 | `/welcome` | Get Started. First run is the first thing a reviewer and a stranger meet. |
 | `/offline` | Served when there is no network at all, so it cannot depend on an auth call. |
-| `/robots.txt`, `/sitemap.xml`, `/opengraph-image.png` | Fetched by machines that have no session and never will. |
+| `/robots.txt`, `/sitemap.xml`, `/opengraph-image.jpg` | Fetched by machines that have no session and never will. |
 
 Everything else needs an account. That includes the whole catalogue
 (`/listing/[id]`, `/search`, `/stay/[id]`, `/stays`, `/restaurant/[id]`,
@@ -219,12 +219,12 @@ Facts only, and each one true on the day of writing:
   `/auth/callback`, so a shared listing opened signed out returns to that
   listing after signing in. One hop still drops it: the "New to Vallo? Sign up"
   swap link inside `components/auth/AuthChoices.tsx`, which is Session B's
-  file. Filed as R16 in `docs/BUILD_07_LEDGER.md` section 49. Until it lands, a
+  file. Filed as R16 in `docs/archive/BUILD_07_LEDGER.md` section 49. Until it lands, a
   person who arrives at sign-in from a shared link and chooses to create an
   account instead finishes on `/home` rather than on the thing that was shared.
 - **The native shell's first launch.** `capacitor.config.ts` loads the origin,
   so a store install opens `/`, the landing page, which is public and renders.
-  Request W3 in `docs/SESSION_B_SCOPE.md` proposes pointing it at `/welcome`
+  Request W3 in `docs/archive/SESSION_B_SCOPE.md` proposes pointing it at `/welcome`
   instead. Not done, not a blocker: `/` is public and carries Get Started.
 - **The web manifest's `start_url` is `/`**, which is public, so an installed
   PWA still opens on a real screen rather than a sign-in wall.

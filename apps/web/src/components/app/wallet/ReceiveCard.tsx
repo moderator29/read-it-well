@@ -11,6 +11,7 @@ import { ICON, TYPE } from "@/components/app/Screen";
 import { MAX_MOVE_KOBO, MIN_MOVE_KOBO, parseNairaToKobo } from "@/lib/wallet/schema";
 import { useClientMount } from "@/lib/ui/client-mount";
 import { RollingAmount } from "./RollingAmount";
+import { walletRequestLink } from "@/lib/wallet/request-link";
 import { panelClass } from "@/components/ui/Panel";
 import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
 
@@ -22,9 +23,10 @@ import { IconPlate, ICON_PLATE_GLYPH } from "@/components/ui/IconPlate";
  * of one movement read as one design.
  *
  * A send on Vallo goes to the email on the recipient's account, so the one
- * fact a person needs in order to be paid is that email, said plainly. The
- * request is a link into /wallet/send with the recipient and, if given, the
- * amount and note already in the form. Nothing is created on the server: a
+ * fact a person needs in order to be paid is that email, said plainly, to its
+ * owner on this screen. The request is a link into /wallet/send with the
+ * requester's handle (never the email) and, if given, the amount and note
+ * already in the form. Nothing is created on the server: a
  * request is a message between two people, and the money only moves when
  * the other person confirms it on their own screen.
  */
@@ -55,10 +57,14 @@ export function ReceiveCard({
   const amountOk = kobo !== null && kobo >= MIN_MOVE_KOBO && kobo <= MAX_MOVE_KOBO;
   const amountGiven = amountText.trim().length > 0;
 
-  const params = new URLSearchParams({ to: email });
-  if (amountOk && kobo !== null) params.set("amount", String(Math.round(kobo / 100)));
-  if (note.trim()) params.set("note", note.trim().slice(0, 140));
-  const link = `${origin}/wallet/send?${params.toString()}`;
+  /* The requester's handle, never their email: the link is pasted into
+     groups. See lib/wallet/request-link.ts. */
+  const link = walletRequestLink({
+    origin,
+    handle,
+    amountMinor: amountOk && kobo !== null ? kobo : null,
+    note,
+  });
 
   const text =
     amountOk && kobo !== null

@@ -3,8 +3,8 @@ import type { AgentInbox as Inbox, AgentThread } from "@/lib/agent/messages-quer
 import { BrandIcon } from "@/design-system/icons/BrandIcon";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { Chip, ChipRow } from "@/components/ui/Chip";
-import type { Dictionary } from "@vallo/i18n";
 import { countByStage, STAGES, type DeskStage, type Stage } from "@/lib/enquiry/stage";
+import { countOf, type Dictionary } from "@vallo/i18n";
 
 /**
  * The host inbox.
@@ -24,7 +24,7 @@ function waitLabel(hours: number): string {
   if (hours < 1) return "just now";
   if (hours < 24) return `${hours}h waiting`;
   const days = Math.floor(hours / 24);
-  return days === 1 ? "1 day waiting" : `${days} days waiting`;
+  return countOf(days, "daysWaiting");
 }
 
 type DeskCopy = Dictionary["frontDoor"]["desk"];
@@ -119,6 +119,7 @@ export function AgentInbox({
   stages,
   stage,
   deskCopy,
+  briefsLabel,
 }: {
   inbox: Inbox;
   filter: InboxFilter;
@@ -134,6 +135,8 @@ export function AgentInbox({
   /** V-14: thread ids with an unanswered still-available question. */
   asked?: ReadonlySet<string>;
   askedLabel?: string;
+  /** V-95: the label of the Briefs filter; absent draws no such chip. */
+  briefsLabel?: string;
 }) {
   const staged = stages && deskCopy ? stages : null;
   const activeStage = staged ? (stage ?? null) : null;
@@ -171,6 +174,11 @@ export function AgentInbox({
               {chip.label}
             </Chip>
           ))}
+          {briefsLabel && (
+            <Chip behaviour="link" href="/agent/messages?filter=briefs" selected={false}>
+              {briefsLabel}
+            </Chip>
+          )}
         </ChipRow>
       </nav>
 

@@ -39,6 +39,7 @@ import { parseSettings } from "../profile/schema";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
+import { countOf } from "@vallo/i18n";
 
 export type Occupation = { code: string; name: string };
 
@@ -74,7 +75,7 @@ export type AgentTrust = {
 };
 
 /* The generated types are regenerated after a migration, not before it, so the
-   two disagree for exactly as long as it takes the lead to run the generator.
+   two disagree until the generator is run.
    Loosened at the call, never across the whole client. */
 type Loose = SupabaseClient<Database>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -315,7 +316,7 @@ function durationLabel(minutes: number | null): string {
   const hours = minutes / 60;
   if (hours < 24) return `${hours < 10 ? Math.round(hours * 10) / 10 : Math.round(hours)} hrs`;
   const days = Math.round(hours / 24);
-  return `${days} ${days === 1 ? "day" : "days"}`;
+  return countOf(days, "days");
 }
 
 /**

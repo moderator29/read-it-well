@@ -139,6 +139,23 @@ export function escrowReference(escrowId: string, leg: EscrowLeg): string {
   return `${ESCROW_PREFIX}${escrowId}-${leg}`;
 }
 
+/**
+ * ESC-P2-03. The escrow agreement a ledger reference belongs to, whichever of
+ * the two formats wrote it: the hold is `rm-esc-<id>-hold`, and the
+ * settlement credits `private.escrow_settle` posts are `escrow:release:<id>`
+ * and `escrow:refund:<id>` (a reversed one carries `:reversed:<n>` after the
+ * id). Null for anything else.
+ */
+export function escrowIdFromReference(value: string): string | null {
+  if (isEscrowReference(value)) {
+    const rest = value.slice(ESCROW_PREFIX.length);
+    return rest.slice(0, rest.lastIndexOf("-"));
+  }
+  const settled = /^escrow:(?:release|refund):([0-9a-f-]{36})(?::reversed:.+)?$/i.exec(value);
+  if (settled && REFERENCE_UUID_RE.test(settled[1] ?? "")) return settled[1] ?? null;
+  return null;
+}
+
 /** True when a string is a reference this platform generated for escrow. */
 export function isEscrowReference(value: string): boolean {
   if (!value.startsWith(ESCROW_PREFIX)) return false;

@@ -1,7 +1,7 @@
 # Valuation engine research: what Vallo can honestly estimate, and when
 
 Written 22 September 2026, against the working tree and the live-project counts
-recorded in `docs/PLATFORM_SURVEY_2026-09-22.md`. Every claim about this
+recorded in `docs/archive/PLATFORM_SURVEY_2026-09-22.md`. Every claim about this
 codebase carries a `path:line`. Every claim about Nigerian law, data sources or
 market practice carries a citation. Everything this research could not verify is
 listed in the honesty log at the end, with the reason.
@@ -15,7 +15,7 @@ partnering with the World Bank to try to lift that to 50 per cent over a decade
 ([TheCable](https://www.thecable.ng/over-90-of-lands-in-nigeria-unregistered-says-minister/),
 [Businessday](https://businessday.ng/news/article/fg-explains-why-in-fresh-push-for-national-land-registration-titling/)).
 Our own catalogue holds 64 listings, all 64 flagged as examples, and zero
-bookings (`docs/PLATFORM_SURVEY_2026-09-22.md:26`). A per-property figure built
+bookings (`docs/archive/PLATFORM_SURVEY_2026-09-22.md:26`). A per-property figure built
 on that today is a random number with a confidence interval painted on it. The
 three-stage hypothesis is right in shape and wrong in two details, and both
 corrections are in section 3.
@@ -223,7 +223,7 @@ read already sets.
 
 ## 1.6 How many price points are countable today
 
-`docs/PLATFORM_SURVEY_2026-09-22.md:26`, measured against the live project on
+`docs/archive/PLATFORM_SURVEY_2026-09-22.md:26`, measured against the live project on
 22 September 2026:
 
 > 64 listings, 64 published, **64 of 64 are `is_demo`**. 0 bookings. 0 escrows.
@@ -952,7 +952,7 @@ is, makes clear the fault is not the reader's, and leaves them somewhere to go.
 | `demo_only` | The only rows found are `is_demo`. | "Everything we hold near here is an example listing, not a real one. We will not build a figure from examples." | Notify me. **This is the state the entire product is in today.** |
 
 `demo_only` deserves its own note. With 64 of 64 listings flagged as examples
-(`docs/PLATFORM_SURVEY_2026-09-22.md:26`), the `is_demo = false` predicate in
+(`docs/archive/PLATFORM_SURVEY_2026-09-22.md:26`), the `is_demo = false` predicate in
 `comparable_listings` means that on the day this ships, **every per-property
 call refuses**. That is correct and it is the proof the gate works. It is also
 why stage one must carry real product value on its own.
@@ -1709,7 +1709,7 @@ required for version one.
 the correction changes what gets built.**
 
 Right about the moment. Supply is unambiguously the binding constraint:
-`docs/PLATFORM_SURVEY_2026-09-22.md:26` records 64 listings of which 64 are
+`docs/archive/PLATFORM_SURVEY_2026-09-22.md:26` records 64 listings of which 64 are
 examples, 1 agent, 0 bookings, and the survey's own gloss at `:31-35` is that
 "the engine is real and the shop is empty" and that the marketing surface is
 advertising stock that cannot be transacted. Everything else on the platform
@@ -1916,8 +1916,8 @@ Everything this research could not verify, with the reason.
 
 **About our own code and data**
 
-1. **The 22 listings this tree does not explain.** `docs/PLATFORM_SURVEY_2026-09-22.md:26` records 64 listings in the live project. The only listing seed in the migration tree is `20260809081618_forty_two_example_properties_across_four_cities.sql`, which inserts 42. The other 22 are not created by any migration here. I did not query the live database, so I cannot say what they are, whether they carry sizes or pins, or whether all 22 are also `is_demo`. The survey says 64 of 64 are, and I have relied on that.
-2. **Live row counts generally.** Every count in Part 1 comes from `docs/PLATFORM_SURVEY_2026-09-22.md`, dated 22 September 2026, and from the migration tree. I did not run a query against the database, per the instruction not to write to it and my own decision not to read from it either.
+1. **The 22 listings this tree does not explain.** `docs/archive/PLATFORM_SURVEY_2026-09-22.md:26` records 64 listings in the live project. The only listing seed in the migration tree is `20260809081618_forty_two_example_properties_across_four_cities.sql`, which inserts 42. The other 22 are not created by any migration here. I did not query the live database, so I cannot say what they are, whether they carry sizes or pins, or whether all 22 are also `is_demo`. The survey says 64 of 64 are, and I have relied on that.
+2. **Live row counts generally.** Every count in Part 1 comes from `docs/archive/PLATFORM_SURVEY_2026-09-22.md`, dated 22 September 2026, and from the migration tree. I did not run a query against the database, per the instruction not to write to it and my own decision not to read from it either.
 3. **Whether `listings.published_at` is reliably set on real listings.** The seed rows all set it explicitly. The publish path that sets it in production was not traced.
 4. **Whether `size_sqm` coverage on real listings will resemble the seed.** All 42 seed rows carry a size. I have assumed real coverage will be far lower and have designed for that, but I have no measurement, because there are no real listings.
 5. **The exact behaviour of the Postgres planner on the proposed `listings_comparables_idx` combined with the existing GiST index.** Neither index was created and no `EXPLAIN` was run. The SQL in Part 3 is written to be correct; its plans are untested.

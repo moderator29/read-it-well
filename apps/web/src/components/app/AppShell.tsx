@@ -1,5 +1,6 @@
 "use client";
 
+import { initial } from "@/lib/text/initial";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlay } from "@/lib/ui/use-overlay";
 import Link from "next/link";
@@ -14,6 +15,7 @@ import { AuthGateProvider, SignedOutActions } from "@/components/auth/AuthGate";
 import { sideOfPath, sideOfPlansQuery, SIDE_HOME, type Side } from "@/lib/side.constants";
 import { SideFlip } from "./flip/SideFlip";
 import { SideSync } from "./SideSync";
+import { isDetailPath } from "@/lib/side.constants";
 import { ProfileSwitcher, type ProfileSwitcherCopy } from "@/components/supply/ProfileSwitcher";
 import type { ProfileSelection, Workspace } from "@/lib/supply/workspaces";
 
@@ -238,7 +240,7 @@ export function AppShell({
   return (
     <AuthGateProvider signedIn={signedIn}>
     <SideFlip side={effectiveSide} t={t}>
-    <SideSync side={effectiveSide} />
+    <SideSync side={effectiveSide} persist={!isDetailPath(active)} />
     <div className="flex min-h-dvh" data-side={effectiveSide}>
       <AppRail
         t={t}
@@ -376,6 +378,15 @@ export function AppShell({
             >
               <Logo size={40} wordSize={19} responsive />
             </Link>
+            {signedIn && (
+              /* UX-04: which side the app is on, always in view. The switch
+                 itself stays where it is (the drawer's flip and the top of
+                 the ⇄ sheet); this only says where you are. */
+              <span className="nf-side-tag lg:hidden" data-side-tag={effectiveSide}>
+                <span className="sr-only">{t.side.indicatorPrefix} </span>
+                {effectiveSide === "stays" ? t.side.staysName : t.side.propertyName}
+              </span>
+            )}
             <SignedOutActions t={t} className="ms-auto" />
             {signedIn && (
               <>
@@ -405,7 +416,7 @@ export function AppShell({
                        route at once. */
                     <RemoteImage src={avatarUrl} alt="" width={40} height={40} sizes="40px" />
                   ) : (
-                    <span aria-hidden="true">{userName.slice(0, 1).toUpperCase()}</span>
+                    <span aria-hidden="true">{initial(userName)}</span>
                   )}
                 </Link>
               </>

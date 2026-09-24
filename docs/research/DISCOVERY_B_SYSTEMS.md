@@ -11,8 +11,8 @@ DML, no git command was run. This file is the mission's only output.
 A build session (Build 05, the two-side platform) is pushing to main
 concurrently. This snapshot reflects the tree as pulled today, after the Build
 05 commits `bb36563`, `a8fad5b`, `70c98d9` and `b9b0eab1` had landed. The
-build's own ledger (`docs/BUILD_05_LEDGER.md`) and brief
-(`docs/HANDOFF_05_UPGRADED_WIDE_PLATFORM_BUILD.md`) were read in full;
+build's own ledger (`docs/archive/BUILD_05_LEDGER.md`) and brief
+(`docs/archive/HANDOFF_05_UPGRADED_WIDE_PLATFORM_BUILD.md`) were read in full;
 `docs/research/TWO_MODE_BACKEND_RESEARCH.md` and
 `docs/research/MARKETPLACE_ARCHITECTURE_RESEARCH.md` were mined and their
 claims re-verified live where this file relies on them.

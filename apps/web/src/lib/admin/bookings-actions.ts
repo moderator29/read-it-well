@@ -223,6 +223,16 @@ export async function cancelBookingAsAdmin(
     );
   }
   if (status === "duplicate") return fail(ALREADY);
+  /* V-33. Settled rent is the lister's the moment it is charged, so a refund
+     comes back out of the lister's wallet. When they no longer hold it the
+     database records the sum as owed, holds it against what the lister can
+     spend, raises an alert, and moves nothing, so this is retried later. */
+  if (status === "lister_short") {
+    const holds = outcomeNumber(data, "lister_spendable_minor") ?? 0;
+    return fail(
+      `This rent was settled to the lister, who can cover ${formatMoney(holds, "en")} of the ${formatMoney(outcome.refundMinor, "en")} refund. Nothing was paid yet. The shortfall is recorded as owed by the lister and held against their wallet; retry the refund once it is covered, and tell the tenant it is on its way.`,
+    );
+  }
   if (status !== "ok") return fail(SERVICE_DOWN);
 
   const refundMinor = outcomeNumber(data, "refund_minor") ?? outcome.refundMinor;
@@ -298,6 +308,100 @@ export async function cancelBookingAsAdmin(
  * it computes through the same `refundForReason` the write path uses, so the
  * figure previewed is the figure that moves.
  */
+/* ------------------------------------------------ refund in any status */
+
+const REFUND_REASONS = [
+  "guest_choice",
+  "host_cancelled",
+  "not_as_listed",
+  "no_access",
+  "goodwill",
+  "duplicate_charge",
+] as const;
+
+const refundSchema = z.object({
+  bookingId: z.string().uuid("That booking id is not one we recognise."),
+  amountMinor: z
+    .number({ message: "Say how much to refund." })
+    .int("Refunds are whole kobo.")
+    .positive("A refund is more than nothing."),
+  reason: z.enum(REFUND_REASONS, { message: "Pick a reason." }),
+  note: z
+    .string()
+    .trim()
+    .min(10, "Say what was established, in a sentence.")
+    .max(2000, "Keep the note under 2000 characters."),
+});
+
+export type RefundBookingInput = z.infer<typeof refundSchema>;
+
+/**
+ * MON-P2-02. Refund a paid booking in any status, in part, without cancelling
+ * it: a goodwill part-refund on a stay that goes ahead, a stay that ended and
+ * was not as listed, a NO_SHOW marked too early, a second charge. The bound is
+ * cumulative in the database (everything paid less everything already
+ * refunded), so two operators cannot refund the same naira twice.
+ */
+export async function refundBookingAsAdmin(
+  input: RefundBookingInput,
+): Promise<ActionResult<{ refundMinor: number; refundableAfterMinor: number; reference: string }>> {
+  const access = await requireAdmin();
+  if (access.state !== "admin") return fail(adminRefusal(access));
+
+  const parsed = validate(refundSchema, input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const { bookingId, amountMinor, reason, note } = parsed.data;
+  const reference = refundReference();
+
+  let data: unknown = null;
+  try {
+    const admin = createAdminClient();
+    const caller = admin as unknown as RpcCaller;
+    const called = await caller.rpc("refund_booking_payment", {
+      acting_admin: access.user.id,
+      target_booking: bookingId,
+      refund_amount: amountMinor,
+      refund_reference: reference,
+      reason_code: reason,
+      decision_note: note,
+    });
+    if (called.error) return fail(SERVICE_DOWN);
+    data = called.data;
+  } catch {
+    return fail(SERVICE_DOWN);
+  }
+
+  const status = outcomeStatus(data);
+  if (status === "not_found") return fail(GONE);
+  if (status === "forbidden") return fail(adminRefusal({ state: "not-admin" }));
+  if (status === "duplicate") return fail("This refund was already made. Refresh to see it.");
+  if (status === "over_refund") {
+    const refundable = outcomeNumber(data, "refundable_minor") ?? 0;
+    return fail(
+      `Only ${formatMoney(refundable, "en")} of what was paid is still refundable on this booking. Nothing was changed.`,
+      { amountMinor: `At most ${formatMoney(refundable, "en")}.` },
+    );
+  }
+  if (status === "lister_short") {
+    const holds = outcomeNumber(data, "lister_spendable_minor") ?? 0;
+    return fail(
+      `This rent was settled to the lister, who can cover ${formatMoney(holds, "en")} of it. Nothing was paid yet. The shortfall is recorded as owed by the lister and held against their wallet; retry once it is covered.`,
+    );
+  }
+  if (status !== "ok") return fail(SERVICE_DOWN);
+
+  revalidatePath("/admin/bookings");
+  revalidatePath(`/admin/bookings/${bookingId}`);
+  revalidatePath("/bookings");
+  revalidatePath("/wallet");
+
+  return ok({
+    refundMinor: outcomeNumber(data, "refund_minor") ?? amountMinor,
+    refundableAfterMinor: outcomeNumber(data, "refundable_after_minor") ?? 0,
+    reference,
+  });
+}
+
 export async function previewCancellation(input: {
   bookingId: string;
   reason: CancellationReason;

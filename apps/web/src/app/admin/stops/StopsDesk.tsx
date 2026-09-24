@@ -12,6 +12,7 @@ import type { AgentStanding, StopRecord } from "@/lib/admin/suspension-queries";
 import type { ActionResult } from "@/lib/actions/envelope";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RecallPanel } from "./RecallPanel";
+import { countOf } from "@vallo/i18n";
 
 /**
  * The stops desk.
@@ -123,7 +124,7 @@ function StopHistory({ records }: { records: StopRecord[] }) {
     <details className="mt-heading">
       {/* The 44px floor on a disclosure an operator taps to open a case file. */}
       <summary className="flex min-h-11 cursor-pointer items-center nf-body-sm font-semibold text-[var(--nf-content-secondary)]">
-        {records.length === 1 ? "One earlier stop" : `${records.length} earlier stops`}
+        {countOf(records.length, "earlierStops")}
       </summary>
       <ul className="mt-row space-y-row">
         {records.map((record) => (
@@ -136,9 +137,7 @@ function StopHistory({ records }: { records: StopRecord[] }) {
               {record.liftedByName ?? "an administrator"} on {dateLabel(record.liftedAt)}.{" "}
               {record.restoredCount === 0
                 ? "Nothing was put back."
-                : record.restoredCount === 1
-                  ? "One listing was put back."
-                  : `${record.restoredCount} listings were put back.`}
+                : countOf(record.restoredCount, "listingsPutBack")}
             </p>
             {record.liftNote && (
               <p className="mt-inline-tight nf-caption italic text-[var(--nf-content-secondary)]">
@@ -198,9 +197,7 @@ function StoppedCard({
 
           {stop.staysAhead > 0 && (
             <p className="mt-row nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">
-              {stop.staysAhead === 1
-                ? "One confirmed stay was still ahead when this landed. It was never cancelled and that guest keeps it."
-                : `${stop.staysAhead} confirmed stays were still ahead when this landed. None were cancelled and those guests keep them.`}
+              {countOf(stop.staysAhead, "staysStillAhead")}
             </p>
           )}
 
@@ -247,9 +244,7 @@ function StoppedCard({
           {state.data.displayName} is trading again.{" "}
           {state.data.restoredCount === 0
             ? "Nothing needed putting back."
-            : state.data.restoredCount === 1
-              ? "One listing is back where it was."
-              : `${state.data.restoredCount} listings are back where they were.`}
+            : countOf(state.data.restoredCount, "listingsBack")}
           {state.data.restoredCount < state.data.withdrawnCount &&
             ` ${state.data.withdrawnCount - state.data.restoredCount} had moved since and were left alone.`}
         </p>
@@ -285,15 +280,13 @@ function TradingCard({
           </Link>
         </h3>
         <span className="nf-numeric nf-caption text-[var(--nf-content-muted)]">
-          {agent.liveListingCount === 1 ? "1 live listing" : `${agent.liveListingCount} live listings`}
+          {countOf(agent.liveListingCount, "liveListings")}
         </span>
       </div>
 
       {agent.pastStops.length > 0 && (
         <p className="mt-inline-tight nf-caption text-[var(--nf-content-muted)]">
-          {agent.pastStops.length === 1
-            ? "Stopped once before."
-            : `Stopped ${agent.pastStops.length} times before.`}
+          {countOf(agent.pastStops.length, "stoppedBefore")}
         </p>
       )}
 
@@ -320,9 +313,7 @@ function TradingCard({
           <p className="mt-row nf-body-sm leading-relaxed text-[var(--nf-content-secondary)]">
             {agent.liveListingCount === 0
               ? "Nothing of theirs is live, so nothing will come down."
-              : agent.liveListingCount === 1
-                ? "Their one live listing comes down and returns where it was if this is lifted."
-                : `All ${agent.liveListingCount} of their live listings come down and return where they were if this is lifted.`}{" "}
+              : countOf(agent.liveListingCount, "liveListingsComeDown")}{" "}
             Confirmed stays are never cancelled.
           </p>
 
@@ -358,11 +349,9 @@ function TradingCard({
           {state.data.displayName} has been stopped and told why.{" "}
           {state.data.withdrawnCount === 0
             ? "Nothing was live."
-            : state.data.withdrawnCount === 1
-              ? "One listing came down."
-              : `${state.data.withdrawnCount} listings came down.`}
+            : countOf(state.data.withdrawnCount, "listingsCameDown")}
           {state.data.staysAhead > 0 &&
-            ` ${state.data.staysAhead === 1 ? "One confirmed stay is" : `${state.data.staysAhead} confirmed stays are`} untouched.`}
+            ` ${countOf(state.data.staysAhead, "confirmedStaysAre")} untouched.`}
         </p>
       )}
 

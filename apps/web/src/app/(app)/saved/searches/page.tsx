@@ -9,6 +9,13 @@ import { Reveal } from "@/components/site/Reveal";
 import { SavedSearchBoard } from "@/components/app/saved-searches/SavedSearchBoard";
 import { getLocale } from "@/lib/locale";
 import { listSavedSearches } from "@/lib/saved/searches-queries";
+import { getDictionary } from "@vallo/i18n";
+import { readMyBriefs } from "@/lib/briefs/queries";
+import { briefDraftFrom } from "@/lib/briefs/brief";
+import { BriefComposer } from "@/components/app/briefs/BriefComposer";
+import { MyBriefs } from "@/components/app/briefs/MyBriefs";
+import { resolveSession } from "@/lib/actions/session";
+import { loadListingsByIds } from "@/lib/listings/supabase-repository";
 
 export const metadata: Metadata = { title: "Saved searches" };
 
@@ -36,9 +43,28 @@ export const metadata: Metadata = { title: "Saved searches" };
  * lost. Signed out gets its own screen rather than a redirect, because the
  * product shell may or may not have caught them first.
  */
-export default async function SavedSearchesPage() {
+export default async function SavedSearchesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getLocale();
   const state = await listSavedSearches();
+  const t = getDictionary(locale);
+
+  /* V-95: the renter's briefs, the answers' titles, and a draft when they
+     came from a search that found nothing (`?brief=1` plus its filters). */
+  const raw = await searchParams;
+  const params: Record<string, string> = {};
+  for (const [key, value] of Object.entries(raw)) if (typeof value === "string") params[key] = value;
+  const signedIn = state.state === "signed-in";
+  const briefs = signedIn ? await readMyBriefs() : null;
+  const answerIds = [...new Set((briefs ?? []).flatMap((b) => b.answers.map((a) => a.listingId)))];
+  const session = signedIn && answerIds.length > 0 ? await resolveSession() : null;
+  const found =
+    session && session.state === "signed-in" ? await loadListingsByIds(session.supabase, answerIds).catch(() => new Map()) : new Map();
+  const titles: Record<string, string> = {};
+  for (const [id, listing] of found) titles[id] = (listing as { title: string }).title;
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -103,6 +129,21 @@ export default async function SavedSearchesPage() {
         <Reveal>
           <SavedSearchBoard initial={state.searches} locale={locale} />
         </Reveal>
+      )}
+
+      {signedIn && (
+        <section id="briefs" className="mt-lg flex flex-col gap-row" aria-labelledby="briefs-title">
+          <h2 id="briefs-title" className="nf-h4 text-[var(--nf-content-primary)]">
+            {t.frontDoor.briefs.title}
+          </h2>
+          <p className="nf-body-sm text-[var(--nf-content-secondary)]">{t.frontDoor.briefs.lede}</p>
+          <BriefComposer
+            copy={t.frontDoor.briefs}
+            saved={state.state === "signed-in" ? state.searches.map((s) => ({ id: s.id, label: s.label, params: s.params })) : []}
+            initial={params.brief === "1" ? briefDraftFrom(params) : null}
+          />
+          <MyBriefs briefs={briefs} titles={titles} copy={t.frontDoor.briefs} locale={locale} />
+        </section>
       )}
     </div>
   );

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
-import { getMyHostDraft } from "@/lib/host/queries";
+import { readMyHostDraft } from "@/lib/host/queries";
 import { doorFrom } from "@/lib/host/doors";
 import { authHref, returnHref } from "@/components/auth/auth-intent";
 import { EmptyState } from "@/components/app/Screen";
@@ -65,8 +65,8 @@ export default async function HostApplyPage({
     );
   }
 
-  const [draft, policiesRead] = await Promise.all([
-    getMyHostDraft(),
+  const [draftRead, policiesRead] = await Promise.all([
+    readMyHostDraft(),
     session.supabase
       .from("cancellation_policies")
       /* `is_free_until_hours` is what `GOVERNING-10` screen three's "Free
@@ -83,10 +83,29 @@ export default async function HostApplyPage({
     isFreeUntilHours: row.is_free_until_hours,
   }));
 
+  /* An application whose contact and registration details could not be read
+     is not drawn as a form: an empty form would save blanks over them. */
+  if (draftRead.state === "unavailable") {
+    return (
+      <HostShell logoLabel={t.a11y.logoHome} fallback="/host">
+        <EmptyState
+          icon="hotel"
+          title="We could not open your application"
+          body="Nothing has been changed and your saved details are still there; we just could not load them this time. Try again in a moment."
+          action={
+            <ButtonLink href={door ? `/host/apply?door=${door.id}` : "/host/apply"} variant="primary" size="lg">
+              Try again
+            </ButtonLink>
+          }
+        />
+      </HostShell>
+    );
+  }
+
   return (
     <HostShell logoLabel={t.a11y.logoHome} fallback="/host" chromeBack={false}>
       <HostWizard
-        initial={draft}
+        initial={draftRead.draft}
         userId={session.user.id}
         policies={policies}
         locale={locale}

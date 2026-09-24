@@ -179,6 +179,24 @@ describe("authentication and shape", () => {
 });
 
 describe("funding", () => {
+  it("records what the processor kept on the credit (MON-14)", async () => {
+    const event = chargeSuccess({ user_id: "owner-1" });
+    (event.data as Record<string, unknown>)["fees"] = 25_100;
+    await POST(delivery(event));
+    expect(ledger.recordFunding).toHaveBeenCalledWith(
+      ADMIN,
+      expect.objectContaining({ metadata: expect.objectContaining({ processor_fee_minor: 25_100 }) }),
+    );
+  });
+
+  it("records an unreported fee as null, never as a guess (MON-14)", async () => {
+    await POST(delivery(chargeSuccess({ user_id: "owner-1" })));
+    expect(ledger.recordFunding).toHaveBeenCalledWith(
+      ADMIN,
+      expect.objectContaining({ metadata: expect.objectContaining({ processor_fee_minor: null }) }),
+    );
+  });
+
   it("credits a funding whose metadata is an OBJECT", async () => {
     const response = await POST(delivery(chargeSuccess({ user_id: "owner-1" })));
 

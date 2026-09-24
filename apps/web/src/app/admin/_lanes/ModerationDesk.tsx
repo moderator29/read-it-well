@@ -18,6 +18,7 @@ import {
 import { formatDuration, percentChange } from "../_review/metrics";
 import { CalmNote } from "../_components/panels";
 import type { ModerationSummary } from "../_review/contracts";
+import { countOf } from "@vallo/i18n";
 
 /**
  * Moderation, 01F7DFC7 panel 1: the reason tabs, Total reports and Over 24
@@ -119,8 +120,8 @@ export function ModerationDesk(props: ModerationDeskProps) {
                 <>
                   <p className="nf-rv-kpi__figure">{s.olderThan24h.reports + s.olderThan24h.held}</p>
                   <p className="nf-rv-panel__note">
-                    {s.olderThan24h.reports} {s.olderThan24h.reports === 1 ? "report" : "reports"} past the
-                    24 hour promise, {s.olderThan24h.held} held {s.olderThan24h.held === 1 ? "item" : "items"} older
+                    {countOf(s.olderThan24h.reports, "reports")} past the 24 hour promise,{" "}
+                    {countOf(s.olderThan24h.held, "heldItems")} older
                     than a day.
                   </p>
                 </>
@@ -237,8 +238,7 @@ export function ModerationDesk(props: ModerationDeskProps) {
                   }}
                 />
                 <p className="nf-rv-panel__note">
-                  Filed to closed, over the {s.closedThisWeek}{" "}
-                  {s.closedThisWeek === 1 ? "report" : "reports"} closed in the last seven days.
+                  Filed to closed, over the {countOf(s.closedThisWeek, "reports")} closed in the last seven days.
                 </p>
               </dl>
             ) : (

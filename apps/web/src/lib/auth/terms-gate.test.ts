@@ -50,7 +50,7 @@ vi.mock("./providers", () => ({ getProviderStates: () => [{ id: "email", configu
 import { TERMS_VERSION } from "@/lib/legal/versions";
 
 /** Everything a sign-up needs, so the only variable is the agreement. */
-function signUpForm(termsVersion: string | null): FormData {
+function signUpForm(termsVersion: string | null, age: string | null = "18+"): FormData {
   const data = new FormData();
   data.set("firstName", "Ada");
   data.set("surname", "Obi");
@@ -62,6 +62,7 @@ function signUpForm(termsVersion: string | null): FormData {
   data.set("occupationCode", "other");
   data.set("hearAbout", "Friend or family");
   if (termsVersion !== null) data.set("termsVersion", termsVersion);
+  if (age !== null) data.set("ageConfirmed", age);
   return data;
 }
 
@@ -118,5 +119,22 @@ describe("a sign-up without the agreement never reaches the provider", () => {
     // And the version that travelled is the one we checked, not some other.
     const options = seam.signUp.mock.calls[0]?.[0]?.options;
     expect(options?.data?.terms_version).toBe(TERMS_VERSION);
+  });
+});
+
+describe("STORE-19: the Terms say 18 or over, so the server asks", () => {
+  it.each([null, "", "17", "yes", "18"])("refuses a sign-up whose age answer is %s", async (age) => {
+    const { signUpWithEmail } = await import("./actions");
+    const state = await signUpWithEmail({ ok: false }, signUpForm(TERMS_VERSION, age));
+    expect(state.ok).toBe(false);
+    expect(state.fieldErrors?.ageConfirmed).toBeTruthy();
+    expect(seam.signUp).not.toHaveBeenCalled();
+    expect(seam.record).not.toHaveBeenCalled();
+  });
+
+  it("records the statement with the terms receipt", async () => {
+    const { signUpWithEmail } = await import("./actions");
+    await expect(signUpWithEmail({ ok: false }, signUpForm(TERMS_VERSION))).rejects.toThrow(/REDIRECT:/);
+    expect(seam.record).toHaveBeenCalledWith("u1", "signup_email", { ageConfirmed: true });
   });
 });

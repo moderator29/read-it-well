@@ -168,8 +168,9 @@ export function namesMatch(a: string, b: string, surname?: string | null): NameM
     match: true,
     reason:
       `every part of the shorter name found in the longer` +
-      (initials === 1 ? ", one by its initial" : "") +
-      (extra > 0 ? `, ${extra} further part${extra === 1 ? "" : "s"} (such as a middle name) on the longer` : "") +
+      /* At most one initial reaches here (the check above refuses two). */
+      (initials > 0 ? ", one by its initial" : "") +
+      (extra > 0 ? `, further parts on the longer (such as a middle name): ${extra}` : "") +
       (surname ? ", surname on record present in both" : ""),
   };
 }

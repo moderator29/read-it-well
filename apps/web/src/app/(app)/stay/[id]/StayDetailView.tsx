@@ -1,14 +1,19 @@
 import Image from "next/image";
-import { formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
+import { countOf, formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
 import { Amount } from "@/components/ui/Amount";
 import { formatMoneyDate } from "@/lib/money/dates";
 import { freeToCancelUntil, termsFromPolicyRules } from "@/lib/trust/cancellation";
+import { ReportSheet } from "@/components/app/ReportSheet";
+import { ExampleNotice } from "@/components/app/listing/ExampleNotice";
+import { ButtonLink } from "@/components/ui/Button";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
 import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { ListingGallery } from "@/components/app/listing/ListingGallery";
 import { MediaFrame } from "@/components/app/MediaFrame";
 import { ICON, Section, Stack, TYPE } from "@/components/app/Screen";
 import { RoomTypes } from "./RoomTypes";
+import { StayDatesForm } from "./StayDatesForm";
+import { stayDateLabel } from "@/lib/stays/date-label";
 import {
   DetailAboutCard,
   DetailAvailabilityCard,
@@ -77,17 +82,7 @@ export function amenityGlyph(label: string): UiIconName {
   return "verified";
 }
 
-function dateLabel(iso: string | undefined, locale: Locale): string | null {
-  if (!iso) return null;
-  const parsed = new Date(`${iso}T12:00:00Z`);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : undefined, {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    timeZone: "UTC",
-  }).format(parsed);
-}
+const dateLabel = stayDateLabel;
 
 /**
  * The stay detail, to BB0C2C85 and 84054CE9.
@@ -111,6 +106,7 @@ export function StayDetailView({
   datesHref,
   reserve,
   saved = false,
+  signedIn,
 }: {
   detail: StayDetail;
   nights: number | null;
@@ -126,6 +122,9 @@ export function StayDetailView({
       on the server from `saved_places` so the heart is lit before hydration
       and stays lit through a reload. */
   saved?: boolean;
+  /** Whether the reader is signed in. When given, the page carries a report
+      control for the place (STORE-P2-01); a static preview passes nothing. */
+  signedIn?: boolean;
 }) {
   const from = stayFromMinor(detail, nights);
   const total = from !== null && nights !== null ? from * nights : null;
@@ -288,6 +287,11 @@ export function StayDetailView({
             and overlaps the photograph, as every lead card here does. */}
         <div className={panelClass({ variant: "card", className: "nf-detail-lead relative z-10 -mt-xl block sm:-mt-2xl" })}>
           <h1 className="nf-h2 [text-wrap:balance]">{detail.name}</h1>
+          {/* UX-09 / UI-P2-01: said here, one tap deeper than the shelf card,
+              where the booking would have happened. */}
+          {detail.isExample && (
+            <ExampleNotice variant="page" className="mt-row" statement={t.examples.statement} />
+          )}
           {where && (
             <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
               <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
@@ -344,7 +348,7 @@ export function StayDetailView({
                     role: BUSINESS_LABEL[businessKind] ?? "Host",
                     verified: detail.hostVerified === true,
                     verifiedLabel: detailCopy.verifiedHost,
-                    messageHref: `/messages/new?listing=${detail.id}`,
+                    messageHref: detail.isExample ? null : `/messages/new?listing=${detail.id}`,
                     messageLabel: detailCopy.message,
                   }
                 : null
@@ -353,6 +357,21 @@ export function StayDetailView({
         </div>
 
         {/* --------------------------------------- dates and the party */}
+        {detail.isExample ? (
+          /* An example has nothing to book, so there is no Book now to press
+             and be refused at checkout. The same consequence line the
+             property page draws. */
+          <div className="mt-block" data-testid="stay-not-bookable">
+            <div className={panelClass({ variant: "card", className: "block p-card" })}>
+              <p className={TYPE.rowMeta}>
+                {t.examples.stayNotBookable}
+              </p>
+              <ButtonLink href="/stays" variant="primary" className="mt-block w-full">
+                {t.examples.browseStays}
+              </ButtonLink>
+            </div>
+          </div>
+        ) : (
         <div className="mt-block" data-testid="stay-dates-row">
           <DetailAvailabilityCard
             title={detailCopy.checkAvailability}
@@ -364,7 +383,21 @@ export function StayDetailView({
                 : copy.pickDatesForTotal
             }
           />
+          <StayDatesForm
+            action={`/stay/${detail.id}`}
+            checkIn={checkIn}
+            checkOut={checkOut}
+            guests={guests}
+            copy={{
+              title: copy.datesTitle,
+              checkIn: catalogue.checkIn,
+              checkOut: catalogue.checkOut,
+              guests: catalogue.guests,
+              submit: copy.datesSubmit,
+            }}
+          />
         </div>
+        )}
 
         <Stack className="mt-block">
           {/* ------------------------------------------------ amenities */}
@@ -395,7 +428,7 @@ export function StayDetailView({
               <span className={`block ${TYPE.rowTitle}`}>{BUSINESS_LABEL[businessKind] ?? "Hotel"}</span>
               <span className={`mt-3xs block ${TYPE.rowMeta}`}>
                 {detail.roomTypes.length > 0
-                  ? `${detail.roomTypes.length} ${detail.roomTypes.length === 1 ? "room type" : "room types"}`
+                  ? countOf(detail.roomTypes.length, "roomTypes", locale)
                   : copy.noRoomsYet}
                 {detail.checkInFrom ? ` · ${copy.checkIn} ${detail.checkInFrom.slice(0, 5)}` : ""}
                 {detail.checkOutBy ? ` · ${copy.checkOut} ${detail.checkOutBy.slice(0, 5)}` : ""}
@@ -436,7 +469,11 @@ export function StayDetailView({
           )}
 
           <Section id="rooms" title={copy.roomsTitle} description={copy.roomsDescription} className="scroll-mt-28">
-            {detail.roomTypes.length > 0 ? (
+            {detail.isExample ? (
+              <p className={TYPE.rowMeta} data-testid="rooms-example">
+                {t.examples.roomsExample}
+              </p>
+            ) : detail.roomTypes.length > 0 ? (
               <RoomTypes
                 detail={detail}
                 guests={guests}
@@ -481,13 +518,24 @@ export function StayDetailView({
               <p className={`${TYPE.body} leading-relaxed`}>{detail.houseRules}</p>
             </Section>
           )}
+
+          {signedIn !== undefined && (
+            <div className="py-md" data-testid="stay-report">
+              <ReportSheet
+                targetType="business"
+                targetId={detail.id}
+                targetLabel={detail.name}
+                signedIn={signedIn}
+              />
+            </div>
+          )}
         </Stack>
       </div>
 
       {/*
         NO PINNED FOOT ON THIS FACE.
 
-        It used to carry one, and it was the fault the lead's audit caught: the
+        It used to carry one, and an audit caught the fault: the
         foot painted over the amenity tiles at 390, and it quoted a total a
         second time under a card that already stated it. Neither B047A0CE nor
         BB0C2C85 ends on a pinned bar; both end on the availability card's own

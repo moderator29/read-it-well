@@ -1,8 +1,7 @@
 # Session B crops: send
 
-Cut by `scripts/design/session-b-crops.mjs --surface send` (the `send` block,
-wallet worker). Render: `77A54EA3-BBB5-4BF4-B3A5-144C99CABAF7.png` at the
-repository root, 1024x1536, phone screen 667 image px wide.
+Cut by `scripts/design/session-b-crops.mjs --surface send` (the `send` block).
+Render: `docs/design/references/77A54EA3-BBB5-4BF4-B3A5-144C99CABAF7.png`, 1024x1536, phone screen 667 image px wide.
 
 Treatment for every file: plane-fit ground subtraction, brightest-channel key,
 unpremultiplied, alpha feathered over the outer 4 per cent, WebP with alpha at

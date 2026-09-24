@@ -43,6 +43,7 @@ import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
 import { getAreaFeed, getEverywhereFeed, getJoinedFeed, type FeedPage } from "./posts-queries";
 import { parseFeedCursor } from "./posts-cursor";
 import { blockUserSafely, unblockUserSafely } from "../safety/blocks-actions";
+import { DB_LIMIT_CODE, DB_LIMIT_MESSAGE, dbLimitRefusal } from "@/lib/security/db-limit";
 
 function paced(seconds: number): string {
   return `You have done that a few times already. Try again ${retryIn(seconds)}.`;
@@ -70,6 +71,8 @@ function messageForPostError(code: string | undefined, fallback: string): string
       return POST_FAILURE.notInArea;
     case "23514":
       return "That will not post. Check the length and try again.";
+    case DB_LIMIT_CODE:
+      return DB_LIMIT_MESSAGE;
     default:
       return fallback;
   }
@@ -556,7 +559,7 @@ export async function reportPost(input: {
       : parsed.data.reason,
   });
 
-  if (error) return fail(POST_FAILURE.down);
+  if (error) return fail(dbLimitRefusal(error) ?? POST_FAILURE.down);
   return ok(null);
 }
 
@@ -607,7 +610,7 @@ export async function reportProfile(input: {
       : parsed.data.reason,
   });
 
-  if (error) return fail(POST_FAILURE.down);
+  if (error) return fail(dbLimitRefusal(error) ?? POST_FAILURE.down);
   return ok(null);
 }
 
@@ -632,8 +635,8 @@ export async function reportProfile(input: {
  * file". It does not fail in isolation either. The module then compiles with NO
  * EXPORTS AT ALL, so every importer fails to resolve, and four components on
  * the social spine went down together with fifty eight errors from one line.
- * `next build` was red on main from the moment it landed. BUILD_06_LEDGER 7.0
- * records the same fault on 19 September and the lint rule's own message names
+ * `next build` was red on main from the moment it landed. The same fault took
+ * production down on 19 September, and the lint rule's own message names
  * that date.
  *
  * The distinction that matters, because it is subtle and it is the one people

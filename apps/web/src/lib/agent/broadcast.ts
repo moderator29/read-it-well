@@ -371,10 +371,32 @@ function tokens(clause: string, rejects: NotCarried[] = []): Token[] {
     const a = sorted[i]!;
     const b = sorted[i + 1]!;
     if (a.type !== "amount" || b.type !== "amount") continue;
-    if (!/^\s*(?:-|–|—|to|or|\/)\s*$/i.test(clause.slice(a.end, b.at))) continue;
+    const between = clause.slice(a.end, b.at);
+    const range =
+      /^\s*(?:-|\u2013|\u2014|~|to|or|and|\/)\s*$/i.test(between) ||
+      /* "min 2.5m max 3m", "2.5m (ground) 3m (top)": two figures for one
+         field, told apart only by a word. */
+      /^\s*(?:max(?:imum)?|up\s+to)\s*$/i.test(between) ||
+      /^\s*\([^()]{1,24}\)\s*$/.test(between) ||
+      /* "between 2.5m and 3m" */
+      (/^\s*and\s*$/i.test(between) && /\bbetween\s*(?:₦|n|#)?\s*$/i.test(clause.slice(0, a.at)));
+    if (!range) continue;
     drop.add(a);
     drop.add(b);
     rejects.push({ kind: "ambiguous", text: clause.slice(a.at, b.end).trim() });
+  }
+  /* "2.5 to 3m", "2.5-3m", "between 2.5 and 3 million": the unit on the
+     second figure belongs to both, so a bare number just before it makes a
+     range too. Both are handed back. */
+  for (const b of sorted) {
+    if (b.type !== "amount" || !b.explicit || drop.has(b)) continue;
+    const before = clause.slice(0, b.at);
+    const bare = /(?<![\w.,])(\d+(?:\.\d+)?)\s*(?:-|\u2013|\u2014|~|to|and)\s*$/i.exec(before);
+    if (!bare) continue;
+    const from = bare.index;
+    if (sorted.some((t) => t !== b && t.at < b.at && t.end > from)) continue;
+    drop.add(b);
+    rejects.push({ kind: "ambiguous", text: clause.slice(from, b.end).trim() });
   }
   return sorted.filter((token) => !drop.has(token));
 }
@@ -448,7 +470,11 @@ export function parseBroadcast(message: string): BroadcastParse {
   /* 1. Strip what must never be carried, and say what it was. Contacts are
         normalised first (`contacts.ts`), then the words that led up to each
         go with it, then the shapes below catch anything left. */
-  const stripped = stripContacts(message.replace(/\r/g, ""));
+  /* Links first, so "instagram.com/vallohomes" goes whole rather than
+     leaving "/vallohomes" behind once the handle reader has taken a word. */
+  const linked = message.replace(/\r/g, "");
+  for (const m of linked.matchAll(LINK)) notCarried.push({ kind: "link", text: m[0] });
+  const stripped = stripContacts(linked.replace(LINK, " "));
   for (const hit of stripped.hits) notCarried.push({ kind: hit.kind, text: hit.text });
   let text = stripped.text.replace(CONTACT_LEAD_TO_CUT, " ").replace(CUT_MARK_RE, " ");
   text = text.replace(CONTACT_LEAD, "");

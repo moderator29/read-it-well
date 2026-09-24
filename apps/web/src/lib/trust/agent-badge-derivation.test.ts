@@ -57,7 +57,7 @@ import { describe, expect, it } from "vitest";
  * `components/trust/TierBadge.tsx` DRAWS it and decides nothing. Those two
  * files are the only ones allowed to mention a tier by name in a way that
  * PRODUCES or COMPARES one, and the assertions below enforce that across every
- * `.ts` and `.tsx` in `src`, including the other session's files.
+ * `.ts` and `.tsx` in `src`.
  *
  * THE FAULT THIS HALF EXISTS TO STOP WAS ALREADY SHIPPING WHEN THIS HALF WAS
  * WRITTEN. `ProfileHeader` and `PeopleList` drew the verified tick from
@@ -446,7 +446,7 @@ describe("the mark on the screen, read off the rendered DOM of the real componen
    * So `scripts/probes/badge_mark_dom.mjs` bundles the real
    * `components/trust/TierBadge.tsx` and renders it under the ordinary client
    * conditions, and this test runs that file and reads its verdict. The check
-   * stays inside the suite; the shared config that ten workers run against is
+   * stays inside the suite; the shared config is
    * not touched to get it there.
    *
    * IT ASSERTS ON WHAT HAPPENED, NOT THAT IT TRIED. The probe exits non-zero

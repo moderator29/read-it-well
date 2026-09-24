@@ -10,13 +10,13 @@ import { createClient } from "../supabase/server";
  * THE VERIFIED MARK ON A FEED CARD, READ AND NEVER DERIVED.
  *
  * The founder's feed image draws a tick beside every name. On Vallo that tick
- * is Session A's `TierBadge`, and its only source is `public.person_badge`
+ * is `TierBadge`, and its only source is `public.person_badge`
  * (`readPersonBadges`, one read for the whole page). This stamps each post's
  * author with the tier that view published and nothing else; a person with no
  * row, and every failed read, comes back with no tier, which draws no mark.
  *
- * It lives beside the reads rather than inside `posts-queries.ts` because
- * Session B's claim on that file is the deleted-post filter only. The feed
+ * It lives beside the reads rather than inside `posts-queries.ts`, which
+ * keeps to the query and its deleted-post filter. The feed
  * route calls it on page one and on every next page,
  * so a card never gains or loses its mark by scrolling (`app/(app)/around/feed-actions.ts`).
  */

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getDictionary } from "@vallo/i18n";
+import { countOf, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getInventoryDriftAlerts, getRiskAlerts } from "@/lib/admin/queries";
 import { adminUi } from "../_components/ui";
@@ -110,7 +110,7 @@ export default async function AdminAlertsPage({
         <p className="nf-caption mb-block">
           No inventory drift is open.
           {drift.data.resolvedCount > 0
-            ? ` ${drift.data.resolvedCount} ${drift.data.resolvedCount === 1 ? "finding has" : "findings have"} been resolved before.`
+            ? ` ${countOf(drift.data.resolvedCount, "findingsResolved")} been resolved before.`
             : " The nightly sweep files a finding here the first time the calendar and the bookings disagree."}
         </p>
       )}

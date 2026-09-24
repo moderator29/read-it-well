@@ -20,8 +20,8 @@ const arg = (name, fallback) => {
 const BASE = arg("base", "http://127.0.0.1:3177");
 const OUT = "docs/design/proofs/session-b/admin-money";
 const DESKS = ["money", "escrow", "supply", "bookings", "payments"];
-const C = "C1D98B3C-D7B7-4B2D-9182-79E0F89ED287.png";
-const E = "8E9602E2-0E75-4623-8813-A10D2165CE27.png";
+const C = "docs/design/references/admin/admin-02-listings-review-money.png";
+const E = "docs/design/references/admin/admin-03-escrow-verification-supply.png";
 /** [out name, render, crop x, y, w, h, built shot, caption] */
 const SIDES = [
   ["side-by-side-money.jpg", C, 1033, 70, 486, 826, "money-full-1440-dark.jpg", "C1D98B3C panel 3"],

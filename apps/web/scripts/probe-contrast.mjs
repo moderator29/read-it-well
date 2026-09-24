@@ -120,7 +120,7 @@ const THEMES = ["dark"];
  * THE ROUTE LIST IS READ OFF DISK, NOT WRITTEN DOWN HERE.
  *
  * A hardcoded list is a list that is wrong the week after it is written, and a
- * route added to the harness by a worker who has never opened this file is
+ * route added to the harness by someone who has never opened this file is
  * exactly the route that will carry the next defect. So the sweep walks
  * `src/app/(dev)/preview` for `page.tsx` and opens what it finds. A group index
  * page is a list of links and carries no product surface, so the bare group

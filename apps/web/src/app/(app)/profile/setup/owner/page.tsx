@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { BackButton } from "@/components/site/BackButton";
 import { parentOf } from "@/lib/nav/resolve";
+import { requireSignedInPage } from "@/lib/actions/signed-in-page";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { listStates } from "@/lib/places/queries";
 import { OwnerRegisterForm } from "@/components/supply/OwnerRegisterForm";
 
-/* Back to the declared parent (`route-parents.ts`), Session A's R14: this
-   route declared one and drew no control, so Android back closed the app. */
+/* Back to the declared parent (`route-parents.ts`): this route declared one and drew no control, so Android back closed the app. */
 const BACK = parentOf("/profile/setup/owner");
 
 export const metadata: Metadata = {
@@ -45,6 +45,7 @@ export const metadata: Metadata = {
  * a metered connection should pay for them before they have decided to answer.
  */
 export default async function OwnerRegistrationPage() {
+  await requireSignedInPage("/profile/setup/owner");
   const [locale, states] = await Promise.all([getLocale(), listStates()]);
   const t = getDictionary(locale);
 

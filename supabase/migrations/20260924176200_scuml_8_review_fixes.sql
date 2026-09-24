@@ -490,9 +490,8 @@ $$;
 
 do $$
 begin
-  if exists (select 1 from information_schema.role_table_grants
-              where table_schema = 'public' and table_name = 'sanctions_delisting_flags'
-                and grantee in ('anon', 'authenticated', 'PUBLIC')) then
+  if has_table_privilege('anon', 'public.sanctions_delisting_flags', 'SELECT, INSERT, UPDATE, DELETE')
+     or has_table_privilege('authenticated', 'public.sanctions_delisting_flags', 'SELECT, INSERT, UPDATE, DELETE') then
     raise exception 'SCUML item 9: sanctions_delisting_flags is not born locked';
   end if;
   if has_function_privilege('authenticated', 'public.sanctions_claim_queue(integer)', 'EXECUTE')

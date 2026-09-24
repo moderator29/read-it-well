@@ -7,9 +7,8 @@
   reads as the console and Get started do.
 
   It exists because the rules these components used to wear live in
-  `app/social.css` and `app/social-feed.css`, which the feed worker owns. Each
-  rule here names the old selector it supersedes; SW-S1 in
-  `docs/SESSION_B_SCOPE.md` asks the feed worker to delete those.
+  `app/social.css` and `app/social-feed.css`. Each rule here names the old
+  selector it supersedes, so those can be deleted from the feed's files.
 */
 @layer components {
   /*

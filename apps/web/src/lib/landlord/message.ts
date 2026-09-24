@@ -47,17 +47,15 @@ function fillTemplate(template: string, values: Record<string, string>): string 
   return template.replace(/\{(\w+)\}/g, (whole, key: string) => values[key] ?? whole);
 }
 
-export type VacancyTemplates = { vacancy: string; vacancyAgent: string };
-export type RentTemplates = { rent: string; rentAgent: string };
+export type VacancyTemplates = { vacancy: string };
+export type RentTemplates = { rent: string };
 
 export function composeVacancyMessage(
   copy: VacancyTemplates,
-  input: { place: string; agent: string | null; code: string; link: string },
+  input: { place: string; code: string; link: string },
 ): string {
-  const agentPart = input.agent ? fillTemplate(copy.vacancyAgent, { agent: input.agent }) : "";
   return fillTemplate(copy.vacancy, {
     place: input.place,
-    agentPart,
     code: input.code,
     link: input.link,
   });
@@ -65,12 +63,10 @@ export function composeVacancyMessage(
 
 export function composeRentMessage(
   copy: RentTemplates,
-  input: { place: string; agent: string | null; total: string; code: string; link: string },
+  input: { place: string; total: string; code: string; link: string },
 ): string {
-  const agentPart = input.agent ? fillTemplate(copy.rentAgent, { agent: input.agent }) : "";
   return fillTemplate(copy.rent, {
     place: input.place,
-    agentPart,
     total: input.total,
     code: input.code,
     link: input.link,

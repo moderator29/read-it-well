@@ -420,7 +420,7 @@ export const CONSENTS: readonly Consent[] = [
     id: "processing",
     label: "Vallo may process my details for identity and fraud checks",
     detail:
-      "Your name, document numbers and business registration are checked against identity, business and sanctions records through a processor. Your documents are not sold, and not used for anything else.",
+      "A person at Vallo checks your name, document numbers and business registration against the documents you upload and the CAC record. Your documents are not sold, and not used for anything else.",
   },
 ] as const;
 
@@ -545,6 +545,8 @@ export type HostDraft = {
     cuisines: string[];
   } | null;
   serviceWindowCount: number;
+  /** SUP-17: photographs of the business itself (a restaurant's), on record. */
+  businessPhotoCount: number;
   /*
    * THE OPENING HOURS, as `GOVERNING-11` screen four lists them: one row a
    * day, with the hours and a switch. Read back for the same reason as the
@@ -593,6 +595,7 @@ export function emptyHostDraft(): HostDraft {
     roomTypes: [],
     restaurant: null,
     serviceWindowCount: 0,
+    businessPhotoCount: 0,
     serviceWindows: [],
     hygieneAttestedAt: null,
     licenceAttestedAt: null,
@@ -652,6 +655,8 @@ export function missingFrom(draft: HostDraft): string[] {
     if (!draft.restaurant || draft.restaurant.priceBand === null) missing.push("A price band");
     if (draft.serviceWindowCount === 0) missing.push("At least one service window");
     if (!draft.hygieneAttestedAt) missing.push("The health permit attestation");
+    /* SUP-17: a restaurant goes on the shelf with a photograph, like a stay. */
+    if (draft.businessPhotoCount === 0) missing.push("At least one photo of the restaurant");
   }
 
   if (!draft.hasBankAccount) missing.push("A bank account for payouts");

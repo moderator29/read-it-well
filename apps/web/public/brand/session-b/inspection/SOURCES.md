@@ -1,7 +1,7 @@
 # Inspection crops: sources
 
 Cut by `scripts/design/session-b-crops.mjs --surface inspection` and by nothing
-else. Render: `F6A8A482-657B-4836-B30A-1A0578BC3FBA.png` at the repo root,
+else. Render: `docs/design/references/F6A8A482-657B-4836-B30A-1A0578BC3FBA.png`,
 1024 x 1536, phone screen 668 render px wide (one CSS px at 390 is 0.584
 render px). Boxes are left, top, width, height in render px.
 

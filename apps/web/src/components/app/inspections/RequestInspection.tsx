@@ -9,6 +9,8 @@ import { AuthGate } from "@/components/auth/AuthGate";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";
 import { requestInspection } from "@/lib/inspections/actions";
+import { earliestLagosInput, lagosWallClockToIso } from "@/lib/inspections/when";
+import Link from "next/link";
 import { sendOrKeep } from "@/lib/offline/send-or-keep";
 import type { Inspection } from "@/lib/inspections/types";
 
@@ -73,10 +75,14 @@ export function RequestInspection({
         <UiIcon name="calendar-booking" size={20} className="mt-3xs shrink-0" />
         <span>
           {existing.state === "CONFIRMED"
-            ? `${CONFIRMED_FOR} ${stamp}. ${TRACK_IT}`
+            ? `${CONFIRMED_FOR} ${stamp}. `
             : existing.state === "PROPOSED"
-              ? `${OFFERED_ANOTHER} ${stamp}. ${TRACK_IT}`
-              : `${ASKED_FOR} ${stamp}. ${TRACK_IT}`}
+              ? `${OFFERED_ANOTHER} ${stamp}. `
+              : `${ASKED_FOR} ${stamp}. `}
+          {/* UX-16: inspections live on their own screen, so the line links there. */}
+          <Link href="/inspections" className="underline">
+            {TRACK_IT}
+          </Link>
         </span>
       </p>
     );
@@ -87,7 +93,7 @@ export function RequestInspection({
     startTransition(async () => {
       const fields = {
         listingId,
-        when: new Date(when).toISOString(),
+        when: lagosWallClockToIso(when) ?? when,
         ...(note.trim() ? { note: note.trim() } : {}),
       };
       /* V-40: with no signal the request is kept and sent when it returns. */
@@ -140,6 +146,9 @@ export function RequestInspection({
             <input
               type="datetime-local"
               value={when}
+              min={earliestLagosInput()}
+              suppressHydrationWarning
+              step={900}
               onChange={(event) => setWhen(event.target.value)}
               className="nf-field mt-2xs w-full"
               data-testid="inspection-when"
@@ -187,13 +196,13 @@ const ASK = "Request an inspection";
 const SHEET_TITLE = "Request an inspection";
 const SHEET_SUB =
   "Pick a time that suits you. Whoever listed this can confirm it, offer another time, or say no, and you will see which on your own screen.";
-const WHEN_LABEL = "When you would like to see it";
+const WHEN_LABEL = "When you would like to see it (Lagos time)";
 const NOTE_LABEL = "Anything they should know";
-const NOTE_PLACEHOLDER = "Coming from Yaba, so late morning is easier";
+const NOTE_PLACEHOLDER = "Anything the agent should know";
 const SAFETY =
   "Inspect before you pay anything. Keep the chat and the payment inside Vallo; a deal made outside it is not protected by us.";
 const SEND = "Send the request";
 const ASKED_FOR = "You asked to see this on";
 const CONFIRMED_FOR = "Your inspection is confirmed for";
 const OFFERED_ANOTHER = "They have offered";
-const TRACK_IT = "It is on your bookings screen.";
+const TRACK_IT = "Follow it on Inspections.";

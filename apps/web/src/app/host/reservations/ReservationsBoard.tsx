@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/Button";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { TYPE } from "@/components/app/Screen";
+import { countOf, type Locale } from "@vallo/i18n";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * The venue's own table board.
@@ -61,8 +63,8 @@ function whenLabel(iso: string): string {
   });
 }
 
-function partyLabel(size: number): string {
-  return size === 1 ? "1 guest" : `${size} guests`;
+function partyLabel(size: number, locale: Locale): string {
+  return countOf(size, "guests", locale);
 }
 
 function Decision({ reservationId }: { reservationId: string }) {
@@ -114,6 +116,7 @@ function TableCard({
   table: HostReservationView;
   decidable: boolean;
 }) {
+  const locale = useClientLocale();
   const tone =
     table.status === "CONFIRMED" ? "success" : table.status === "CANCELLED" ? "danger" : "warning";
   const word =
@@ -137,7 +140,7 @@ function TableCard({
           <UiIcon name="user" size={16} aria-hidden />
           {table.guestName}
         </span>
-        <span className="nf-numeric">{partyLabel(table.partySize)}</span>
+        <span className="nf-numeric">{partyLabel(table.partySize, locale)}</span>
       </p>
 
       {/* Never truncated. A note is where an allergy goes, and a shortened

@@ -1,5 +1,6 @@
 "use client";
 
+import { initial } from "@/lib/text/initial";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,6 +13,8 @@ import { PostBody } from "@/components/social/feed/PostBody";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { RemoteImage } from "@/components/ui/RemoteImage";
 import { pruneDeleted } from "@/lib/social/deleted-posts";
+import { countOf } from "@vallo/i18n";
+import { useClientLocale } from "@/lib/i18n/use-client-dictionary";
 
 /**
  * Comments, as a sheet.
@@ -76,6 +79,7 @@ export function CommentsSheet({
   /** Removes your own comment. Absent when the source has no such path yet. */
   onDelete?: (commentId: string) => Promise<ActionResult<unknown>>;
 }) {
+  const locale = useClientLocale();
   const router = useRouter();
   const [rows, setRows] = useState(comments);
   const [draft, setDraft] = useState<Draft>(null);
@@ -241,7 +245,7 @@ export function CommentsSheet({
           </button>
           <h2 className="nf-comments__title">
             {rows.length > 0
-              ? `${rows.length} ${rows.length === 1 ? "comment" : "comments"}`
+              ? countOf(rows.length, "comments", locale)
               : "Comments"}
           </h2>
           <button type="button" className="nf-post__act" aria-label="Close" onClick={onClose}>
@@ -290,7 +294,7 @@ export function CommentsSheet({
                       sizes="32px"
                     />
                   ) : (
-                    <span aria-hidden="true">{comment.authorLabel.charAt(0).toUpperCase()}</span>
+                    <span aria-hidden="true">{initial(comment.authorLabel)}</span>
                   )}
                 </Link>
 

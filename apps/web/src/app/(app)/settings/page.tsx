@@ -1,5 +1,6 @@
 import { phoneConfirmationOn } from "@/lib/phone-otp/flag";
 import type { Metadata } from "next";
+import { distinctDeviceCount } from "@/lib/security/device-count";
 import { getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { BackButton } from "@/components/site/BackButton";
@@ -48,7 +49,7 @@ export default async function SettingsPage() {
      devices" to somebody reading it while signed in is a worse lie than no
      number at all. */
   const deviceCount =
-    sessions.state === "signed-in" && sessions.readable ? sessions.sessions.length : null;
+    sessions.state === "signed-in" && sessions.readable ? distinctDeviceCount(sessions.sessions) : null;
 
   /* "Verified" means a human was checked, and the one record of that on this
      platform is an APPROVED, verified agent. Nobody else gets the word. */

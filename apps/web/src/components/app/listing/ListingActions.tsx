@@ -21,6 +21,7 @@ import { ShareSheet } from "@/components/app/messages/ShareSheet";
 import type { SharedKind } from "@/components/app/messages/share";
 import { createShareLink } from "@/lib/share/actions";
 import { useClientDictionary } from "@/lib/i18n/use-client-dictionary";
+import { nativeHaptic, nativeShare } from "@/lib/native/device";
 
 /**
  * The two controls that float over the gallery: share and save.
@@ -234,6 +235,7 @@ export function ListingActions({
         return;
       }
       setSaved(result.data.saved);
+      if (result.data.saved) void nativeHaptic("success");
       say(result.data.saved ? "Saved to your shortlist" : "Removed from saved");
     });
   }
@@ -258,14 +260,18 @@ export function ListingActions({
       url = minted;
     }
 
+    /* STORE-04: inside the app, the operating system's own share sheet. */
+    const native = await nativeShare({ title, url });
+    if (native !== "unhandled") return;
+
     if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
       try {
         /* Rule 10: a door goes out with NO title. The lister's own title (or a
            stay's business name) is free text, and the share sheet hands it to
            whatever app is chosen next to the link; the door's card composes
-           its own heading from facts. Only an undoored place, whose own gated
-           address is shared, keeps its title. */
-        await navigator.share(doorable ? { url } : { title, url });
+           its own heading from facts. An undoored place (a venue) goes out
+           with no title either: its name is text somebody typed as well. */
+        await navigator.share({ url });
         return;
       } catch (error) {
         // A cancelled sheet is not a failure and must not raise a message.

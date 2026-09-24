@@ -52,6 +52,7 @@ import { createAdminClient } from "../supabase/admin";
 import { hasServiceRole } from "../security/service-rpc";
 import { consume, retryIn, subjectForUser } from "../security/rate-limit";
 import { getListingRepository } from "../listings/repository";
+import { hasAiConsent } from "../ai/consent-server";
 import type { Listing } from "../listings/types";
 import { SOCIAL_OFF_MESSAGE, isSocialEnabled } from "./flag";
 
@@ -306,6 +307,12 @@ export async function summonBot(input: { postId: string }): Promise<ActionResult
     .eq("author_kind", "BOT")
     .limit(1);
   if (existing && existing.length > 0) return ok({ replyId: null, refused: BOT_COPY.already });
+
+  /* STORE-07: the post would go to Anthropic; not without this person's
+     recorded agreement. Refused privately, so nothing is posted. */
+  if (!(await hasAiConsent({ supabase: session.supabase, userId: session.user.id }))) {
+    return ok({ replyId: null, refused: BOT_COPY.consent });
+  }
 
   if (!hasServiceRole()) return ok({ replyId: null, refused: BOT_COPY.unconfigured });
 

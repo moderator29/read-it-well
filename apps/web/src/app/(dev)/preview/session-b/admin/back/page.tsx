@@ -1,4 +1,4 @@
-// Session B admin-shell harness (R19), behind the preview gate. The real
+// Admin console harness, behind the preview gate. The real
 // AdminFrame and the real BackButton, rendered as they render on /admin/money,
 // so a browser can find the control and press it. See scripts/design/session-b-shots/admin-back.mjs.
 import { getDictionary } from "@vallo/i18n";

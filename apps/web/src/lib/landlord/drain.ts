@@ -47,7 +47,6 @@ export type IssuedAsk = {
   phone: string;
   purpose: "vacancy" | "rent";
   place: string;
-  listerName: string | null;
   totalMinor: number | null;
   consent: ConsentState;
 };
@@ -106,7 +105,6 @@ export function readIssuedAsk(raw: unknown): IssuedAsk | null {
     phone,
     purpose,
     place,
-    listerName: str(row.lister_name),
     totalMinor: typeof row.total_minor === "number" ? row.total_minor : null,
     consent: {
       reviewStatus: status === "approved" || status === "rejected" ? status : "pending",
@@ -123,12 +121,11 @@ export function readIssuedAsk(raw: unknown): IssuedAsk | null {
 export function bodyFor(ask: IssuedAsk, deps: Pick<DrainDeps, "copy" | "origin" | "formatTotal">): string | null {
   const link = `${deps.origin}${replyPath(ask.token)}`;
   if (ask.purpose === "vacancy") {
-    return composeVacancyMessage(deps.copy, { place: ask.place, agent: ask.listerName, code: ask.replyCode, link });
+    return composeVacancyMessage(deps.copy, { place: ask.place, code: ask.replyCode, link });
   }
   if (ask.totalMinor === null) return null;
   return composeRentMessage(deps.copy, {
     place: ask.place,
-    agent: ask.listerName,
     total: deps.formatTotal(ask.totalMinor),
     code: ask.replyCode,
     link,

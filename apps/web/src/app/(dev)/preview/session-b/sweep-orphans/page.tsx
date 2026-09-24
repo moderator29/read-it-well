@@ -53,7 +53,7 @@ import {
 /**
  * `/preview/session-b/sweep-orphans?v=<view>`: the 23 routes no sweep group
  * owned (audit B3), drawn inside the real app shell, signed in, on fixture
- * props (ruling R-G). Behind the preview gate in `../../layout.tsx`. Every
+ * props (rule R-G). Behind the preview gate in `../../layout.tsx`. Every
  * view renders the route's real components; nothing here restyles them. The
  * signed-in routes are also shot live as the QA member (ledger 13, orphans).
  */

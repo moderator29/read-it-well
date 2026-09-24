@@ -1,6 +1,5 @@
 import { getDictionary } from "@vallo/i18n";
 import type { RentPayView } from "@/lib/rent/queries";
-import { RENT_PERIOD_LABEL } from "@/lib/listings/pricing";
 import { Amount } from "@/components/ui/Amount";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 
@@ -12,6 +11,7 @@ import { UiIcon } from "@/design-system/icons/UiIcon";
  */
 export function RentSummary({ view }: { view: RentPayView }) {
   const copy = getDictionary(view.locale).afterTheGate;
+  const c = getDictionary(view.locale).checkout;
   return (
     <section aria-labelledby="nf-rent-summary" className="nf-panel nf-panel--card block p-md sm:p-lg">
       <h2 id="nf-rent-summary" className="nf-h3">
@@ -25,9 +25,7 @@ export function RentSummary({ view }: { view: RentPayView }) {
       )}
 
       <p className="nf-caption mt-block text-[var(--nf-content-muted)]">
-        {view.totalStated
-          ? "Move-in total, as stated by the lister"
-          : "Move-in total, from the parts the lister stated"}
+        {view.totalStated ? c.rentTotalStated : c.rentTotalFromParts}
       </p>
       <p className="mt-inline-tight">
         <Amount
@@ -67,7 +65,7 @@ export function RentSummary({ view }: { view: RentPayView }) {
           </div>
         )}
         <div className="flex items-baseline justify-between gap-group border-t border-[var(--nf-line)] pt-inline">
-          <dt className="nf-body font-semibold text-[var(--nf-content-primary)]">Total to pay</dt>
+          <dt className="nf-body font-semibold text-[var(--nf-content-primary)]">{c.totalToPay}</dt>
           <dd className="nf-body font-semibold tabular-nums text-[var(--nf-content-primary)]">
             {view.totalDisplay}
           </dd>
@@ -85,14 +83,11 @@ export function RentSummary({ view }: { view: RentPayView }) {
       </p>
 
       <p className="nf-caption mt-inline leading-relaxed text-[var(--nf-content-muted)]">
-        Rent is {RENT_PERIOD_LABEL[view.rentPeriod].toLowerCase()}, moving in from {view.moveInDisplay}.
-        Vallo charges nothing on this payment; a card processor may show its own charge on the
-        payment page.
+        {c.rentTerms.replace("{period}", c.rentPeriod[view.rentPeriod]).replace("{moveIn}", view.moveInDisplay)}
       </p>
       {view.bookingId && view.holdExpiresAt && !view.holdExpired && (
         <p className="nf-caption mt-inline leading-relaxed text-[var(--nf-content-muted)]">
-          This payment step stays open for 48 hours from when you opened it. If it closes unpaid,
-          open it again from here.
+          {c.rentStepOpen}
         </p>
       )}
     </section>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getDictionary, type Locale } from "@vallo/i18n";
+import { countOf, getDictionary, type Locale } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import {
@@ -151,8 +151,8 @@ export function HostRoomsBody({
             {rooms.length === 0
               ? `${accommodation.name} has no room types yet, so there is nothing a guest could book.`
               : onSale === 0
-                ? `${accommodation.name} has ${rooms.length} room type${rooms.length === 1 ? "" : "s"} and no nights on sale, so a search with dates on it will not find it.`
-                : `${accommodation.name} has ${rooms.length} room type${rooms.length === 1 ? "" : "s"}, ${onSale} of them on sale.`}
+                ? `${accommodation.name} has ${countOf(rooms.length, "roomTypes", locale)} and no nights on sale, so a search with dates on it will not find it.`
+                : `${accommodation.name} has ${countOf(rooms.length, "roomTypes", locale)}, ${onSale} of them on sale.`}
           </p>
         </div>
       </div>

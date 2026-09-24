@@ -74,7 +74,7 @@ async function run(theme, width) {
 
     /* Only genuinely visible badges count. Elements inside display:none report
        zero-size rects, so a hidden desktop rail would otherwise be reported as
-       broken navigation (docs/HANDOFF.md section 6). */
+       broken navigation (docs/archive/HANDOFF.md section 6). */
     const numericBadges = await page.evaluate(() => {
       const out = [];
       for (const el of document.querySelectorAll(".nf-badge")) {

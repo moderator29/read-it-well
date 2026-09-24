@@ -281,7 +281,7 @@ export async function reviewAgentApplication(input: {
        decides anything: two grep hits in the whole tree and both in the file
        that writes it. So an approved OWNER became an "agent" row and the role
        was discarded at the door. See the upsert below. */
-    .select("id, user_id, status, reference, full_name, type, supply_role")
+    .select("id, user_id, status, reference, full_name, type, supply_role, reviewer_id, reviewed_at, review_notes")
     .eq("id", applicationId)
     .maybeSingle();
   if (readError) return fail(SERVICE_DOWN);
@@ -315,10 +315,27 @@ export async function reviewAgentApplication(input: {
   }
   if (updateError) return fail(SERVICE_DOWN);
 
-  try {
-    const admin = createAdminClient();
-
-    if (decision === "approve") {
+  /*
+   * APPROVAL IS THREE WRITES AND THE APPLICANT IS TOLD ONLY WHEN ALL THREE
+   * LANDED. supabase-js reports a failed write in `error` rather than
+   * throwing, so an unchecked upsert that failed left the application saying
+   * APPROVED and the email saying "Agent Mode is open" to a person with no
+   * agent row and no role, whom `requireAgent` then refuses. Either failure
+   * puts the application back exactly as it was read, so the decision can be
+   * taken again, and nothing is announced.
+   */
+  if (decision === "approve") {
+    let sideEffectsFailed = false;
+    try {
+      const admin = createAdminClient();
+      /* Read first, so a failure below can tell a row this approval created,
+         which it takes back, from a live profile it must leave alone. */
+      const { data: priorAgent, error: priorError } = await admin
+        .from("agents")
+        .select("id")
+        .eq("user_id", application.user_id)
+        .maybeSingle();
+      if (priorError) throw priorError;
       /*
        * The approved agent profile. on conflict do nothing, so re-running an
        * approval never duplicates a person or overwrites their live profile.
@@ -355,7 +372,7 @@ export async function reviewAgentApplication(input: {
        * read it, and migration 1 of Track G marks it deprecated rather than
        * dropping it. Both columns are written for as long as both are read.
        */
-      await admin.from("agents").upsert(
+      const { error: agentError } = await admin.from("agents").upsert(
         {
           user_id: application.user_id,
           application_id: application.id,
@@ -367,15 +384,50 @@ export async function reviewAgentApplication(input: {
         { onConflict: "user_id", ignoreDuplicates: true },
       );
 
+      if (agentError) throw agentError;
+
       // The role grant. user_roles is super-admin-only under RLS by design, so
       // this is one of the three named service-role privileges.
-      await admin
+      const { error: roleError } = await admin
         .from("user_roles")
         .upsert(
           { user_id: application.user_id, role: "agent" },
           { onConflict: "user_id,role", ignoreDuplicates: true },
         );
+      if (roleError) {
+        /* The agents row alone is what `requireAgent` reads, so a row left
+           behind by a rolled-back approval would open listing to somebody
+           whose application says it was not approved. */
+        if (!priorAgent) {
+          await admin
+            .from("agents")
+            .delete()
+            .eq("user_id", application.user_id)
+            .eq("application_id", application.id);
+        }
+        sideEffectsFailed = true;
+      }
+    } catch {
+      sideEffectsFailed = true;
     }
+    if (sideEffectsFailed) {
+      await access.supabase
+        .from("agent_applications")
+        .update({
+          status: application.status,
+          reviewer_id: application.reviewer_id,
+          reviewed_at: application.reviewed_at,
+          review_notes: application.review_notes,
+        })
+        .eq("id", application.id);
+      return fail(
+        "The approval did not go through: Agent Mode could not be opened for this person. The application is back in the queue as it was. Try again.",
+      );
+    }
+  }
+
+  try {
+    const admin = createAdminClient();
 
     const notice =
       decision === "approve"

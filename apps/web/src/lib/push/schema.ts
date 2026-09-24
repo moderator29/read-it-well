@@ -13,8 +13,7 @@ import type { Database } from "@/lib/supabase/database.types";
  * and `lib/supabase/database.types.ts` did not know about them, so this file
  * described the three tables by hand and cast the Supabase client to a
  * private view of them in one named function. Its own header said that cast
- * would delete itself the day somebody regenerated the shared file. R-P2 in
- * `docs/BUILD_07_LEDGER.md` was the request to do that.
+ * would delete itself the day somebody regenerated the shared file.
  *
  * The push half of that regeneration has landed: the three tables, the
  * `push_queue_health` view and the five push enums are now in the generated
@@ -31,11 +30,10 @@ import type { Database } from "@/lib/supabase/database.types";
  * isolated worktree, and it does not compile: the live database is ahead of
  * four hand-written unions in the application, and widening them to match
  * fires three exhaustiveness guards that were built to fire. Ten compile
- * errors in total. Five of them are in `components/app/wallet/**`, which is
- * Session B's, plus the four locale dictionaries. **Landing the full file
- * today would have taken main red in somebody else's files and left it there
- * until they acted**, so the push half landed and the rest is a request with
- * the exact list beside it. That list is in the ledger and in section 49.
+ * errors in total. Five of them are in `components/app/wallet/**`, plus the four
+ * locale dictionaries. **Landing the full file at once would have taken main
+ * red in files unrelated to push**, so the push half landed and the rest
+ * waits for a change that widens those unions and their guards together.
  *
  * ===========================================================================
  * WHAT IS RE-EXPORTED HERE AND WHY ANY OF IT IS.

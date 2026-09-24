@@ -37,6 +37,9 @@ import { failureReason, logMoney } from "../payments/observability";
 /** Postgres codes for "there is no such table". */
 const MISSING_TABLE = new Set(["42P01", "PGRST205", "PGRST202"]);
 
+/** Each open pot with the balance the ledger gives it (MON-08). */
+export const POT_BALANCES_VIEW = "wallet_pot_balances";
+
 export type Pot = {
   id: string;
   name: string;
@@ -93,8 +96,10 @@ export async function readPots(): Promise<PotsRead> {
 
   try {
     const reader = session.supabase as unknown as Reader;
+    /* MON-08: the balance is the ledger's (pot_hold minus pot_release), read
+       through the security-invoker view, never the stored column. */
     const { data, error } = await reader
-      .from("wallet_pots")
+      .from(POT_BALANCES_VIEW)
       .select("id, name, balance_minor, target_minor, created_at")
       .is("archived_at", null)
       .order("created_at", { ascending: true });

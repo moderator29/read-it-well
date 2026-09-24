@@ -1,3 +1,4 @@
+import { initial } from "@/lib/text/initial";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -143,7 +144,7 @@ export default async function PeoplePage({
                     />
                   ) : (
                     <span aria-hidden="true">
-                      {person.displayLabel.charAt(0).toUpperCase()}
+                      {initial(person.displayLabel)}
                     </span>
                   )}
                 </span>

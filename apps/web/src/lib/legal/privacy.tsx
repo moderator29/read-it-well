@@ -24,7 +24,10 @@ import {
   DATA_PROTECTION_OFFICER,
 } from "./company";
 
-export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
+/** The date on the page; moves with PRIVACY_VERSION (`./versions`). */
+export const PRIVACY_UPDATED = "24 September 2026";
+
+export const PRIVACY_SECTIONS: { id?: string; title: string; body: React.ReactNode }[] = [
   {
     title: "1. Who we are",
     body: (
@@ -71,40 +74,87 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
     ),
   },
   {
+    /* STORE-08 / SEC-13: every entry below was derived from what the code
+       stores, not from what a policy usually says. When a feature starts
+       storing something new, this list changes in the same commit, and so do
+       `docs/store/PRIVACY_LABELS.md` and PRIVACY_VERSION. */
     title: "2. The data we collect",
     body: (
       <>
         <p>We collect only what the platform needs to work:</p>
         <ul>
           <li>
-            <strong>Account data.</strong> Your name, email address, phone number,
-            password (stored only in hashed form) and language preference.
+            <strong>Account data.</strong> Your name, email address, phone number if you
+            give one, password (stored only in hashed form), language, the state and
+            local government you choose, your occupation if you give it, and the
+            interests you pick.
           </li>
           <li>
-            <strong>Booking data.</strong> The listings you view, the bookings you make,
-            dates, guests, messages you exchange with the people who list, and reviews
-            you write.
+            <strong>Your public profile and what you post.</strong> Your display name,
+            handle, photo, cover picture and bio, and the posts, comments, stories,
+            reactions and follows you make in the social part of Vallo. These are
+            visible to other members, as the profile screen shows.
           </li>
           <li>
-            <strong>Payment data.</strong> Payment references, amounts, refund history
-            and your wallet balance. Card details are handled by licensed Nigerian
-            payment processors; we never store your full card number.
-          </li>
-          {/* NARROW BECAUSE THE PRODUCT IS NARROW TODAY. The agent application
-              is the only route into the supply side that exists, so this is
-              accurate as written. When the owner and firm forms land (HANDOFF
-              09 Track G) the categories they collect are not identical to
-              these, and this entry widens in the same commit as the form,
-              never after it: a notice that under-describes what is being
-              collected is a defective notice under the NDPA. */}
-          <li>
-            <strong>Agent verification data.</strong> If you apply to become an agent,
-            your government issued ID or NIN, business registration documents where
-            applicable, and the bank account you nominate for payouts.
+            <strong>What you list.</strong> If you list a property or a stay: its
+            description, photographs, videos, price, address and, if you drop a pin or
+            tap &quot;use my location&quot;, its map position. The street address can be
+            read by members who are signed in; it is not shown to anybody who is not.
           </li>
           <li>
-            <strong>Technical data.</strong> Device type, browser, IP address, and how
-            you move through the product, used to keep the service working and secure.
+            <strong>Bookings, messages and reviews.</strong> The listings you save, the
+            bookings, reservations and inspections you make, the messages you exchange
+            with the people who list, and the reviews you write.
+          </li>
+          <li>
+            <strong>Payment data.</strong> Payment references, amounts, refunds, your
+            wallet and savings pot balances, and, if you save them, a card token and the
+            bank account you nominate for payouts. Card numbers are handled by Paystack;
+            we never see or store your full card number.
+          </li>
+          <li>
+            <strong>Verification data.</strong> If you apply to list as an agent or a
+            host: your government ID or NIN, business registration documents where
+            they apply, and the bank account you nominate for payouts.
+          </li>
+          <li>
+            <strong>Location.</strong> Your device location is read only when you ask
+            for it: to place a listing&rsquo;s pin, to centre the map on where you are,
+            or to save a spot for a price check (stored to about 100 metres). We do not
+            track your location in the background.
+          </li>
+          <li>
+            <strong>What you type to the AI assistant or the support chat.</strong>{" "}
+            Assistant conversations are kept on your account so you can come back to
+            them; the support chat is kept on your device, and a ticket you open with a
+            person is kept on your account. What you type is processed by Anthropic to
+            write the answers, only if you agree to it. See section 12.
+          </li>
+          <li>
+            <strong>Devices and notifications.</strong> If you turn notifications on, the
+            notification address your phone or browser gives us and a short device name
+            (&quot;iPhone&quot;, &quot;Android phone&quot;). To warn you when your account
+            is used on a new device, we keep a code derived from the device and browser
+            you sign in with, and the browser and platform of each signed-in session.
+          </li>
+          <li>
+            <strong>Technical data.</strong> IP address, browser and device type in our
+            hosting and database logs, used to keep the service working and secure. If
+            something crashes, a crash report with the error, the page and the device
+            type, with personal details removed.
+          </li>
+          <li>
+            <strong>Price checks.</strong> When you use the price check, we record the
+            area, the kind of property and how far you got, against your account, so we
+            can see whether it gives useful answers. That is the only record we keep of
+            how the product is used. There is no other analytics and no advertising
+            tracking in Vallo.
+          </li>
+          <li>
+            <strong>Emails we send you.</strong> A record of each one is kept for 90
+            days after it is delivered, so we can answer whether it arrived. A record of
+            an email that could not be delivered is kept until a person at Vallo has
+            dealt with it.
           </li>
         </ul>
       </>
@@ -124,11 +174,20 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
           To carry messages between you and the people who list, about listings and
           bookings.
         </li>
+        <li>To show listings, stays and places on a map and near where you ask.</li>
+        <li>
+          To answer your questions with the AI assistant and the support chat, if you
+          agree to it (section 12).
+        </li>
+        <li>
+          To send you notifications and emails about your bookings, messages, money and
+          account, including a warning when your account is used on a new device.
+        </li>
         <li>To answer support requests and investigate reports and disputes.</li>
         <li>To keep the service secure, prevent abuse and comply with Nigerian law.</li>
         <li>
-          To send service messages about your bookings and account. Marketing messages
-          are sent only with your consent, and every one includes a way to opt out.
+          Marketing messages are sent only with your consent, and every one includes a
+          way to opt out.
         </li>
       </ul>
     ),
@@ -141,20 +200,21 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
         <ul>
           <li>
             <strong>Contract.</strong> Running your account, processing your bookings and
-            paying agents are all necessary to provide the service you signed up for.
+            payments, carrying your messages and paying people who list are necessary to
+            provide the service you signed up for.
           </li>
           <li>
             <strong>Legal obligation.</strong> Identity verification, financial record
             keeping and responding to lawful requests from Nigerian authorities.
           </li>
           <li>
-            <strong>Legitimate interest.</strong> Fraud prevention, platform security and
-            improving the product, balanced against your rights.
+            <strong>Legitimate interest.</strong> Fraud prevention, new-device warnings,
+            crash reports and platform security, balanced against your rights.
           </li>
           <li>
-            <strong>Consent.</strong> Marketing communications and any optional features
-            that ask for it. Consent can be withdrawn at any time without affecting your
-            use of the platform.
+            <strong>Consent.</strong> The AI assistant and support chat, notifications,
+            reading your device location, and marketing. Each can be withdrawn at any
+            time without affecting the rest of the platform.
           </li>
         </ul>
       </>
@@ -169,17 +229,47 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
           <li>
             <strong>The people who list, and the people who contact them.</strong> When
             you book a stay, request an inspection, apply for a tenancy or enquire about
-            a sale, the person who listed the property, whether that is an owner, an
-            agent or a host, sees the details they need to answer you. When you list,
-            the people who contact you see your public listing profile.
+            a sale, the person who listed the property sees the details they need to
+            answer you. When you list, the people who contact you see your public listing
+            profile.
           </li>
           <li>
-            <strong>Payment processors.</strong> Licensed Nigerian providers that process
-            payments, refunds and payouts on our behalf.
+            <strong>Other members,</strong> who see your public profile and what you post
+            in the social part of Vallo.
           </li>
           <li>
-            <strong>Service providers.</strong> Hosting, analytics and communication
-            providers who process data under contract and only on our instructions.
+            <strong>Our service providers,</strong> each under contract, only on our
+            instructions and only for the job named:
+            <ul>
+              <li>Supabase (Ireland, EU): our database, sign-in and file storage.</li>
+              <li>Vercel (United States): hosting the website and app.</li>
+              <li>
+                Paystack (Nigeria): card and bank payments, refunds and payouts.
+              </li>
+              <li>Resend (United States): sending our emails.</li>
+              <li>
+                Anthropic (United States): writing the answers of the AI assistant and
+                the support chat, if you agree to it (section 12).
+              </li>
+              <li>
+                MapTiler (Switzerland) and CARTO (United States, Spain): map tiles. When a
+                map is shown they receive your IP address and the part of the map you are
+                looking at.
+              </li>
+              <li>
+                Google Firebase Cloud Messaging (United States) and Apple Push
+                Notification service (United States), and your browser&rsquo;s own push
+                service: delivering notifications to your device, if you turn them on.
+              </li>
+              <li>
+                Sentry (United States), only when crash reporting is switched on: crash
+                reports, with personal details removed.
+              </li>
+              <li>
+                Unsplash (United States): some example photographs are loaded from it,
+                which gives it your IP address.
+              </li>
+            </ul>
           </li>
           <li>
             <strong>Authorities.</strong> Where Nigerian law requires it, or to protect
@@ -193,9 +283,10 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
     title: "6. Storage and international transfers",
     body: (
       <p>
-        Our infrastructure providers may store data on servers outside Nigeria. Where
-        personal data leaves Nigeria we rely on the transfer mechanisms permitted by the
-        NDPA, including transfers to jurisdictions providing adequate protection and
+        Our database and files are stored in Ireland (EU). Some of our providers named in
+        section 5 process data in the United States, Switzerland or elsewhere. Where
+        personal data leaves Nigeria we rely on the transfer mechanisms the NDPA permits,
+        including transfers to jurisdictions providing adequate protection and
         contractual safeguards with our providers, so your data keeps the same level of
         protection wherever it is processed.
       </p>
@@ -234,10 +325,27 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
           <strong>Destroyed outright.</strong> Your profile and the details in it, your
           photograph and cover picture, your posts, comments, stories and unpublished
           drafts, your saved properties, stays, tables, searches and interests, your
-          search history, the devices you are signed in on, your notifications, your saved
-          cards and bank accounts, and every file you have uploaded, including identity,
-          agency and host documents. The files are removed from storage, not merely the
-          records that point at them.
+          search history, the devices you are signed in on and the device records we keep
+          to warn you about new sign-ins, your notification addresses, your
+          notifications, the emails we had queued or sent you, your price checks and saved
+          price-check spots, your assistant conversations, your saved cards and bank
+          accounts, and every file you have uploaded, including host documents and the
+          identity and agency documents of anybody who applied to be an agent and was not
+          approved. The files are removed from storage, not merely the records that
+          point at them. The one exception is an approved agent&rsquo;s identification,
+          described below.
+        </p>
+        <p>
+          <strong>Your email address is not kept.</strong> We keep only a one-way keyed
+          code made from it, which cannot be turned back into the address. Our staff can
+          use it only to see that a new account uses the same mailbox as a deleted one.
+        </p>
+        <p>
+          <strong>Money is never deleted with an account.</strong> On the day the deletion
+          runs we check again. If money is still in your wallet or a savings pot, held for
+          a transaction, on its way to your bank, or owed to you or by you, the deletion
+          waits: nothing is destroyed, a person at Vallo is told, and we contact you to
+          settle it first. Your code to stop the deletion keeps working while it waits.
         </p>
         <p>
           <strong>Kept, with you removed from it.</strong> Vallo is registered with the
@@ -260,10 +368,15 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
           else.
         </p>
         <p>
-          Verification documents are the clearest example of the line: while you are an
-          agent or a host we keep them because the law requires us to hold them; when you
-          delete your account we destroy the documents themselves and keep only the record
-          that a check took place, with the document type and number removed.
+          Verification documents are the clearest example of the line. If you were
+          approved as an agent, you were a customer under the same anti money laundering
+          law, which requires us to keep your identification. So when you delete your
+          account we keep, for five years after it closes, your identity and agency
+          documents, your name, residential address, ID type and number, business
+          registration and payout account details. Only our staff can read them, and at
+          the end of the five years they are destroyed. If you applied and were not
+          approved, none of this is kept: the documents and the numbers are destroyed with
+          the rest of your account.
         </p>
         <p>
           The full list of what is destroyed and what is kept, and the form that stops a
@@ -324,14 +437,30 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
     ),
   },
   {
+    /* SEC-13: this said Vallo used "analytics that help us understand how the
+       product is used". It does not: there is no analytics or advertising
+       script, and the only cookies are the functional ones listed here. */
     title: "9. Cookies and similar technology",
     body: (
-      <p>
-        We use a small number of cookies and similar technologies: strictly necessary
-        ones that keep you signed in and remember your language and theme, and analytics
-        that help us understand how the product is used so we can improve it. We do not
-        use cookies to sell your attention to third parties.
-      </p>
+      <>
+        <p>
+          We use only cookies and device storage that the product needs to work. There is
+          no analytics, advertising or tracking cookie in Vallo, and none from a third
+          party.
+        </p>
+        <ul>
+          <li>Your sign-in session (set by our sign-in provider, Supabase).</li>
+          <li>
+            Your choices: language, theme, which side of Vallo you last used, how you like
+            search results shown, and whether you have seen the welcome cards.
+          </li>
+          <li>That you agreed to how the AI assistant works (section 12).</li>
+          <li>
+            On your device only: places you saved before signing in, your support chat,
+            whether notifications are on for this device, and your data-saver choice.
+          </li>
+        </ul>
+      </>
     ),
   },
   {
@@ -356,7 +485,51 @@ export const PRIVACY_SECTIONS: { title: string; body: React.ReactNode }[] = [
     ),
   },
   {
-    title: "12. Changes to this policy",
+    id: "ai",
+    /* STORE-07: named here because the assistant sends what a person types to
+       a third party outside Nigeria. `lib/ai/consent.ts` holds the words the
+       person agrees to before it does. */
+    title: "12. The AI assistant and the support chat",
+    body: (
+      <>
+        <p>
+          Vallo&rsquo;s assistant, the support chat and the @vallo replies in the social
+          feed are AI. They are powered by <strong>Anthropic</strong>, a company in the
+          United States. When you use them, what you type, the recent turns of the
+          conversation and the Vallo listings the assistant looks up for you are sent to
+          Anthropic to write the answer.
+        </p>
+        <ul>
+          <li>
+            <strong>Only with your agreement.</strong> Before the first question we show
+            you what is sent and to whom, and nothing is sent until you agree. Our servers
+            refuse to send anything without that agreement. You can use Vallo fully
+            without the AI, and you can always reach a person at{" "}
+            <a href="/contact" className="font-semibold text-[var(--nf-content-link)] hover:underline">
+              Contact support
+            </a>
+            , with no AI involved.
+          </li>
+          <li>
+            <strong>Not used to train models.</strong> Under Anthropic&rsquo;s commercial
+            terms, what we send is not used to train its models. Anthropic keeps it only
+            for a limited period for safety and abuse monitoring.
+          </li>
+          <li>
+            <strong>Don&rsquo;t share secrets.</strong> Never type card numbers, passwords
+            or codes into the assistant.
+          </li>
+          <li>
+            <strong>Withdrawing.</strong> Deleting your account deletes your assistant
+            conversations with us. To withdraw your agreement without deleting your
+            account, clear this site&rsquo;s data on your device or write to support.
+          </li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    title: "13. Changes to this policy",
     body: (
       <p>
         When we change this policy we will update the date at the top of this page, and

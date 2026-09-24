@@ -1,5 +1,5 @@
 import type { Listing, ListingKind } from "@/lib/listings/types";
-import { hrefForListing } from "@/lib/listings/href";
+import { hrefForListing, marketFactsOf } from "@/lib/listings/href";
 import type { StaySearchRow } from "@/lib/stays/types";
 import { accommodationPhotoUrl } from "@/lib/stays/photos";
 import type { SavePlaceTarget } from "@/components/app/SaveControl";
@@ -68,7 +68,7 @@ export function stayCardFromListing(listing: Listing, nights: number | null = nu
        lodging shell - and any other caller that forgot would have shipped the
        bug. `hrefForListing` answers it from `listing.kind` for every surface
        at once. See `lib/listings/href.ts` and R2 findings 1 and 3. */
-    href: hrefForListing(listing.kind, listing.id),
+    href: hrefForListing(listing.kind, listing.id, marketFactsOf(listing)),
     title: listing.title,
     where: place(listing.area, listing.city),
     kind: listing.kind,

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getDictionary } from "@vallo/i18n";
+import { countOf, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import {
@@ -169,9 +169,7 @@ export function HostPhotosBody({
             {subjectName}
             {onRecord === 0
               ? " has no photographs yet, so its page shows a Vallo plate with a label saying so."
-              : onRecord === 1
-                ? " has one photograph, and it is the one guests see first."
-                : ` has ${onRecord} photographs.`}
+              : countOf(onRecord, "photographsOnRecord")}
           </p>
         </div>
       </div>

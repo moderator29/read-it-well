@@ -1,5 +1,6 @@
 "use client";
 
+import { initial as initialOf } from "@/lib/text/initial";
 import { useEffect, useId, useRef, useState } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { ICON } from "@/components/app/Screen";
@@ -67,7 +68,7 @@ export function ProfileIdentityCard() {
   const updateName = (next: string) => save({ name: next.slice(0, MAX_NAME) });
 
   const shownName = name.trim() || GUEST_NAME;
-  const initial = shownName.charAt(0).toUpperCase();
+  const initial = initialOf(shownName);
 
   useEffect(() => {
     if (editing) inputRef.current?.focus();

@@ -78,9 +78,12 @@ export default function GlobalError({
               Vallo did not load
             </h1>
             <p style={{ margin: "1rem 0 0", opacity: 0.8, lineHeight: 1.6 }}>
-              Something on our side stopped before the app could start. Nothing
-              you were doing was lost, and trying again usually settles it. If
-              it keeps happening, tell support and quote the reference.
+              Something stopped before the app could start. Anything you had
+              typed may need typing again, and trying again usually settles
+              it.{" "}
+              {error.digest
+                ? "If it keeps happening, tell support and quote the reference below."
+                : "If it keeps happening, tell support what you were doing when it stopped."}
             </p>
 
             {error.digest && (

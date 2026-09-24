@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getLocale } from "@/lib/locale";
 import { resolveSession } from "@/lib/actions/session";
 import { AssistantChat } from "@/components/app/assistant/AssistantChat";
+import { aiConsentForViewer } from "@/lib/ai/consent-server";
 
 export const metadata: Metadata = { title: "Vallo AI" };
 
@@ -40,5 +41,5 @@ export default async function AssistantPage() {
      or a price in the assistant's result cards must group its digits the same
      way as the same figure on the search page. */
   const [locale, viewer] = await Promise.all([getLocale(), readViewer()]);
-  return <AssistantChat locale={locale} viewer={viewer} />;
+  return <AssistantChat locale={locale} viewer={viewer} aiConsented={await aiConsentForViewer()} />;
 }

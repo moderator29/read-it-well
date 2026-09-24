@@ -9,6 +9,7 @@ import { isSupabaseConfigured } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { lagosToday } from "./schema";
 import type { Database } from "../supabase/database.types";
+import { reviewIneligibility } from "../reviews/eligibility";
 
 /**
  * Read side of the bookings loop.
@@ -331,19 +332,12 @@ export async function getMyBookings(
       arrivingPhone: (row.guest_phone ?? "").trim() || null,
       reviewed: reviewedBookingIds.has(row.id),
       /*
-       * COMPLETED COUNTS, AND IT DID NOT.
-       *
-       * This asked for CONFIRMED and a passed checkout, which was the only way
-       * to say "the stay happened" while `booking_status` had no terminal good
-       * value. It has one now, and an agent recording a stay as COMPLETED moved
-       * the row out of CONFIRMED, so the guest SILENTLY LOST the ability to
-       * review the stay at the exact moment the platform learned for certain
-       * that it had happened. The date test stays for CONFIRMED, which is still
-       * the ordinary path for a stay nobody has recorded either way.
+       * The same rule as reviews_insert_own, through lib/reviews/eligibility:
+       * CONFIRMED or COMPLETED with a check-out on or before today. Tenancy
+       * charges were filtered out above, so none reaches this view.
        */
       reviewable:
-        (row.status === "COMPLETED" ||
-          (row.status === "CONFIRMED" && row.check_out <= today)) &&
+        reviewIneligibility({ status: row.status, checkOut: row.check_out, isTenancy: false }, today) === null &&
         !reviewedBookingIds.has(row.id),
     };
     /*

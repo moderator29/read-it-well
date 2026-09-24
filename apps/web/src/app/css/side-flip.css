@@ -66,7 +66,7 @@
    * face of the card, where the render keeps the page still and turns a pane
    * over it. Mid-turn the page is therefore edge-on rather than flat behind
    * the pane. Changing that is a restructure of `components/app/flip`, which
-   * is not this worker's scope; this removes the black-out, which is the part
+   * is a larger change than this rule; this removes the black-out, which is the part
    * that read as a fault.
    */
   .nf-flip-stage:not([data-phase="idle"]) .nf-flip-face--front {
@@ -323,7 +323,7 @@
      * hairline - and it drew it on the one surface in the product that is
      * entirely about light, the pane mid-turn. `.nf-glass--tile`'s recipe,
      * restated here because these are list items the stylesheet owns rather
-     * than elements this worker's scope can add a class to.
+     * than elements a class can be added to.
      */
     background:
       linear-gradient(180deg, var(--nf-wash-3) 0%, transparent 60%),

@@ -1,3 +1,4 @@
+import { requestSignal, roundWatchdog } from "@/lib/ai/upstream-deadline";
 import { NextRequest } from "next/server";
 import type { SessionState } from "@/lib/actions/session";
 import { isFeatureEnabled } from "@/lib/flags";
@@ -10,6 +11,8 @@ import {
 import { resolveSupportCaller, runSupportTool, SUPPORT_TOOLS } from "@/lib/support/tools";
 import { supplyPrimer } from "@/lib/supply/roles";
 import type { SupportAction, SupportStreamEvent, SupportTurn } from "@/lib/support/types";
+import { consentRefusal } from "@/lib/ai/consent";
+import { hasAiConsent } from "@/lib/ai/consent-server";
 
 /**
  * Vallo support, streamed.
@@ -32,6 +35,8 @@ import type { SupportAction, SupportStreamEvent, SupportTurn } from "@/lib/suppo
  */
 
 export const runtime = "nodejs";
+/* OPS-18: above the 50 s upstream budget, so the route always answers first. */
+export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
@@ -43,9 +48,9 @@ const MAX_TURNS = 24;
 const MAX_TURN_CHARS = 6_000;
 
 const UNCONFIGURED_MESSAGE =
-  "The support agent wakes the moment its key lands. Meanwhile I answer from Vallo's help notes, and Talk to a person files a real ticket with the team whenever you need one.";
+  "The AI helper wakes the moment its key lands. Meanwhile I answer from Vallo's help notes, and Talk to a person files a real ticket with the team whenever you need one.";
 const PAUSED_MESSAGE =
-  "The support agent is paused for a moment of maintenance. I answer from Vallo's help notes meanwhile, and Talk to a person still files a real ticket with the team.";
+  "The AI helper is paused for a moment of maintenance. I answer from Vallo's help notes meanwhile, and Talk to a person still files a real ticket with the team.";
 /**
  * The 429 body. The surface reads `message` off a 429 and renders it as an
  * ordinary reply bubble, so it stays a sentence that names what happened and
@@ -105,7 +110,7 @@ const SYSTEM_PROMPT = [
    * built from `lib/trust/verification.ts`, which is what `private.agent_tier`
    * counts. The moment a rung changes, both prompts change with it.
    */
-  `You are Vallo's support agent, the first person somebody reaches when they need help with Vallo. ${supplyPrimer()} Vallo carries homes, land, shops, offices, hotels and shortlets across Nigeria, and every listing on Vallo was put up by a real person on Vallo: nothing is imported from an outside feed, so there is always somebody to message and somebody accountable for what a listing says.`,
+  `You are Vallo's AI support helper. You are not a person; if anybody asks, say so plainly, and offer Talk to a person, which files a ticket with the team. ${supplyPrimer()} Vallo carries homes, land, shops, offices, hotels and shortlets across Nigeria. Nothing is imported from an outside feed. Many listings today are examples, marked Example, that show how Vallo works and cannot be rented or booked; never present one as available.`,
   "",
   "Voice: warm, brief, plain and Nigeria-first. British spelling. Prices in naira. Two or three short sentences is usually the whole answer. No greeting rituals, no filler, no apologising twice.",
   "",
@@ -124,7 +129,7 @@ const SYSTEM_PROMPT = [
   "- Vallo charges nothing to use. The price on a listing is the price. Never imply any charge for using the platform.",
   "- Renting is message, inspect, then pay: message the lister inside Vallo, inspect the property in person, and pay only after that.",
   "- Chats and payments stay inside Vallo. That record is what protects somebody when a deal goes wrong, so never help anyone move a conversation or a payment off the platform.",
-  "- The verified badge means the person behind the listing passed ID and address checks. Everything on Vallo was listed by somebody here, so the badge is about how far that person has climbed the verification ladder, never about where the listing came from. A rung not reached is not an accusation: say what has been checked rather than implying either the best or the worst. Where a listing publishes no price, say the price is not published rather than free.",
+  "- The verified badge means a person at Vallo checked the ID of the person behind the listing. Every real listing on Vallo was listed by somebody here (examples say they are examples), so the badge is about how far that person has climbed the verification ladder, never about where the listing came from. A rung not reached is not an accusation: say what has been checked rather than implying either the best or the worst. Where a listing publishes no price, say the price is not published rather than free.",
   "- The rent is rarely the whole number. Caution deposit, agency fee, legal or agreement fee and service charge are normal in Nigeria and they are the difference between the price on the card and the money somebody has to find. Where a listing states its move-in cost, quote that alongside the rent. Where it does not, say the extra costs exist and are not stated rather than letting somebody plan around the rent alone. A cost nobody has declared is undeclared, never zero.",
   /*
    * THE ESCROW SENTENCE IS GONE FROM HERE TOO, AND IT MUST NOT COME BACK YET.
@@ -257,74 +262,80 @@ async function streamOneRound(
   signal: AbortSignal,
   onText: (text: string) => void,
 ): Promise<RoundResult> {
-  const res = await fetch(ANTHROPIC_URL, {
-    method: "POST",
-    signal,
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": ANTHROPIC_VERSION,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: MAX_TOKENS,
-      stream: true,
-      system,
-      tools: SUPPORT_TOOLS,
-      messages,
-    }),
-  });
+  const watchdog = roundWatchdog(signal);
+  try {
+    const res = await fetch(ANTHROPIC_URL, {
+      method: "POST",
+      signal: watchdog.signal,
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": ANTHROPIC_VERSION,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: MAX_TOKENS,
+        stream: true,
+        system,
+        tools: SUPPORT_TOOLS,
+        messages,
+      }),
+    });
 
-  if (!res.ok || !res.body) {
-    throw new Error(`Claude API responded ${res.status}`);
-  }
-
-  const blocks: AnthropicBlock[] = [];
-  const jsonBuffers = new Map<number, string>();
-  let stopReason: string | null = null;
-
-  for await (const event of anthropicEvents(res.body)) {
-    const type = event.type;
-    if (type === "content_block_start") {
-      const index = event.index as number;
-      const block = { ...(event.content_block as AnthropicBlock) };
-      blocks[index] = block;
-      if (block.type === "tool_use") jsonBuffers.set(index, "");
-    } else if (type === "content_block_delta") {
-      const index = event.index as number;
-      const delta = event.delta as Record<string, unknown>;
-      const block = blocks[index];
-      if (!block) continue;
-      if (delta.type === "text_delta" && typeof delta.text === "string") {
-        block.text = `${typeof block.text === "string" ? block.text : ""}${delta.text}`;
-        onText(delta.text);
-      } else if (delta.type === "input_json_delta" && typeof delta.partial_json === "string") {
-        jsonBuffers.set(index, `${jsonBuffers.get(index) ?? ""}${delta.partial_json}`);
-      } else if (delta.type === "thinking_delta" && typeof delta.thinking === "string") {
-        block.thinking = `${typeof block.thinking === "string" ? block.thinking : ""}${delta.thinking}`;
-      } else if (delta.type === "signature_delta" && typeof delta.signature === "string") {
-        block.signature = delta.signature;
-      }
-    } else if (type === "content_block_stop") {
-      const index = event.index as number;
-      const block = blocks[index];
-      if (block?.type === "tool_use") {
-        const raw = jsonBuffers.get(index) ?? "";
-        try {
-          block.input = raw ? (JSON.parse(raw) as unknown) : {};
-        } catch {
-          block.input = {};
-        }
-      }
-    } else if (type === "message_delta") {
-      const delta = event.delta as Record<string, unknown> | undefined;
-      if (delta && typeof delta.stop_reason === "string") stopReason = delta.stop_reason;
-    } else if (type === "error") {
-      throw new Error("Claude API stream error");
+    if (!res.ok || !res.body) {
+      throw new Error(`Claude API responded ${res.status}`);
     }
-  }
 
-  return { blocks: blocks.filter(Boolean), stopReason };
+    const blocks: AnthropicBlock[] = [];
+    const jsonBuffers = new Map<number, string>();
+    let stopReason: string | null = null;
+
+    for await (const event of anthropicEvents(res.body)) {
+      watchdog.touch();
+      const type = event.type;
+      if (type === "content_block_start") {
+        const index = event.index as number;
+        const block = { ...(event.content_block as AnthropicBlock) };
+        blocks[index] = block;
+        if (block.type === "tool_use") jsonBuffers.set(index, "");
+      } else if (type === "content_block_delta") {
+        const index = event.index as number;
+        const delta = event.delta as Record<string, unknown>;
+        const block = blocks[index];
+        if (!block) continue;
+        if (delta.type === "text_delta" && typeof delta.text === "string") {
+          block.text = `${typeof block.text === "string" ? block.text : ""}${delta.text}`;
+          onText(delta.text);
+        } else if (delta.type === "input_json_delta" && typeof delta.partial_json === "string") {
+          jsonBuffers.set(index, `${jsonBuffers.get(index) ?? ""}${delta.partial_json}`);
+        } else if (delta.type === "thinking_delta" && typeof delta.thinking === "string") {
+          block.thinking = `${typeof block.thinking === "string" ? block.thinking : ""}${delta.thinking}`;
+        } else if (delta.type === "signature_delta" && typeof delta.signature === "string") {
+          block.signature = delta.signature;
+        }
+      } else if (type === "content_block_stop") {
+        const index = event.index as number;
+        const block = blocks[index];
+        if (block?.type === "tool_use") {
+          const raw = jsonBuffers.get(index) ?? "";
+          try {
+            block.input = raw ? (JSON.parse(raw) as unknown) : {};
+          } catch {
+            block.input = {};
+          }
+        }
+      } else if (type === "message_delta") {
+        const delta = event.delta as Record<string, unknown> | undefined;
+        if (delta && typeof delta.stop_reason === "string") stopReason = delta.stop_reason;
+      } else if (type === "error") {
+        throw new Error("Claude API stream error");
+      }
+    }
+
+    return { blocks: blocks.filter(Boolean), stopReason };
+  } finally {
+    watchdog.done();
+  }
 }
 
 /* ------------------------------------------------------------------- route */
@@ -377,6 +388,14 @@ export async function POST(req: NextRequest) {
   }
 
   const session = await resolveSupportCaller();
+
+  /* STORE-07: nothing is sent to Anthropic without this person's recorded
+     agreement. The screen asks first; this is what holds when it did not. */
+  const consented = await hasAiConsent(
+    session.state === "signed-in" ? { supabase: session.supabase, userId: session.user.id } : {},
+  );
+  if (!consented) return consentRefusal();
+
   const verdict = await consume({
     bucket: SUPPORT_BUCKET,
     subject:
@@ -420,8 +439,9 @@ export async function POST(req: NextRequest) {
       let ranOutOfRounds = false;
 
       try {
+        const upstream = requestSignal(req.signal);
         for (let round = 0; round <= MAX_TOOL_ROUNDS; round += 1) {
-          const result = await streamOneRound(apiKey, model, system, convo, req.signal, (t) => {
+          const result = await streamOneRound(apiKey, model, system, convo, upstream, (t) => {
             spoke = true;
             emit({ type: "text", text: t });
           });

@@ -1,4 +1,4 @@
-import { getDictionary } from "@vallo/i18n";
+import { countOf, getDictionary } from "@vallo/i18n";
 import { getLocale } from "@/lib/locale";
 import { getReports, type ReportView } from "@/lib/admin/queries";
 import Link from "next/link";
@@ -232,7 +232,7 @@ export async function ReportsLane({
         >
           {overdue === 0
             ? `Nothing has been waiting longer than ${REPORT_RESPONSE_HOURS} hours. That is the commitment in the Community rules and it is being kept.`
-            : `${overdue} ${overdue === 1 ? "report has" : "reports have"} been waiting longer than ${REPORT_RESPONSE_HOURS} hours. The Community rules promise every person who signed up that we act within ${REPORT_RESPONSE_HOURS} hours.`}
+            : `${countOf(overdue, "reportsWaiting")} been waiting longer than ${REPORT_RESPONSE_HOURS} hours. The Community rules promise every person who signed up that we act within ${REPORT_RESPONSE_HOURS} hours.`}
         </p>
       )}
 

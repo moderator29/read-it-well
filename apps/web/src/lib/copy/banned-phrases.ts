@@ -183,8 +183,7 @@ export function firstBannedPhrase(
  * that makes it pass. The mechanism is the point; the list grows.
  */
 /*
- * "TRIP" LEFT THE TABLE ON 18 SEPTEMBER 2026, on the founder's ruling in
- * `docs/HANDOFF_05_UPGRADED_WIDE_PLATFORM_BUILD.md` section 2: the product now
+ * "TRIP" LEFT THE TABLE ON 18 SEPTEMBER 2026, on the founder's ruling: the product now
  * has two sides, and on the Stays side "Trips" is the name of the surface
  * that holds your stays and reservations (`/trips`, replacing Bookings in the
  * Stays navigation). The word was banned when the whole product sold land and
@@ -192,4 +191,18 @@ export function firstBannedPhrase(
  * right word. The mechanism stays, empty, so the next synonym lands here with
  * its copy fix rather than in a new file.
  */
-export const BANNED_SYNONYMS: { label: string; pattern: RegExp; instead: string }[] = [];
+/*
+ * DOC-08: AN EMPTY LIST IS A GREEN LIGHT THAT CANNOT TURN RED, so the table
+ * holds every synonym from PRODUCT.md section 7 that no product string uses
+ * today, and the test fails if it is ever emptied again. The rest of that
+ * column (feed, hub, gist, landlord, reputation, Host, user, ...) is still in
+ * live copy; each joins this list in the change that rewrites its copy.
+ */
+export const BANNED_SYNONYMS: { label: string; pattern: RegExp; instead: string }[] = [
+  { label: "karma", pattern: /\bkarma\b/i, instead: "Standing" },
+  { label: "admin panel", pattern: /\badmin panel\b/i, instead: "the console" },
+  { label: "backend", pattern: /\bbackend\b/i, instead: "the console" },
+  { label: "host dashboard", pattern: /\bhost dashboard\b/i, instead: "Workspace" },
+  { label: "portal", pattern: /\bportals?\b/i, instead: "Workspace" },
+  { label: "vendor", pattern: /\bvendors?\b/i, instead: "Agent" },
+];

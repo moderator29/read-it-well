@@ -5,7 +5,7 @@ platform. This is the record of what came out, what was struck with it, and the
 handful of things deliberately left behind with the reason for each.
 
 Session A led it because it is the token layer. Session B follows in its seven
-surfaces; the note telling it the floor was laid is `docs/BUILD_07_LEDGER.md`
+surfaces; the note telling it the floor was laid is `docs/archive/BUILD_07_LEDGER.md`
 section 49, R11.
 
 ---
@@ -139,7 +139,7 @@ exists for.
 
 ## 3. What was struck
 
-- **The 121 light twins owed.** `docs/FOUNDER_ARTWORK_NEEDED.md` was a render
+- **The 121 light twins owed.** `docs/archive/FOUNDER_ARTWORK_NEEDED.md` was a render
   order for daylight versions of brand objects. Kept with a STRUCK banner
   rather than deleted, because two things in it are facts about the ARTWORK and
   survive the theme: the pack splits into 80 objects sliced from the supplied
@@ -149,7 +149,8 @@ exists for.
 - **The 49 daylight contrast failures.** A whole-harness sweep on the day of the
   decision measured 60 below the floor in light, on 5,264 text-bearing leaves
   across 136 routes. That number is now about a theme that does not ship.
-- **`docs/design/proofs/paper/`.** Struck with a banner, kept because
+- **`scripts/design/paper/`.** The two daylight tools that still say something
+  true, `model-vs-chromium.mjs` and `measure-object-ground.mjs`, kept because
   `model-vs-chromium.mjs` establishes that compositing these PNGs offline is a
   model of what Chromium paints, mean 1.41 of 255, which is a fact about the
   artwork's alpha key and the licence for any future offline measurement.
@@ -189,7 +190,7 @@ broken by leaving it and nothing is fixed by leaving it.
 
 Session A has since cleared the four general stylesheets that belong to no
 surface as well: `settings-rows.css`, `side-nav.css`, `social.css` and
-`social-feed.css`. `docs/SESSION_B_SCOPE.md` names `social.css` among the files
+`social-feed.css`. `docs/archive/SESSION_B_SCOPE.md` names `social.css` among the files
 Session B never edits and does not claim the other three.
 
 What is left, measured with the comment-stripped check below rather than with a
@@ -204,12 +205,12 @@ grep:
 | `scripts/design/compare-surface.mjs` | its `--twin-sweep` has nothing left to find | whoever owns it |
 
 Both of the first two are filed with their exact selectors in
-`docs/BUILD_07_LEDGER.md` section 49, R12, so nobody has to re-derive the list.
+`docs/archive/BUILD_07_LEDGER.md` section 49, R12, so nobody has to re-derive the list.
 
 **HOW TO CHECK, AND IT IS NOT A GREP.** After a removal like this most hits for
 the string are comments explaining that the thing is gone, including ones that
 say so in those words: a plain search reported fourteen files of which eight
-were prose. `docs/design/proofs/no-light/live-light-rules.mjs` blanks `/* */`
+were prose. `scripts/design/no-light/live-light-rules.mjs` blanks `/* */`
 and `//` first, then looks for the selector, prints file and line, and exits
 non-zero if anything is live. It refuses to report a clean result if it read
 zero files, because the first version of it pointed one directory too high and
@@ -217,5 +218,5 @@ printed a confident pass over nothing.
 
 ## 6. The proof
 
-`docs/design/proofs/no-light/prove-no-light.mjs`, run against a production
+`scripts/design/no-light/prove-no-light.mjs`, run against a production
 build with the OS preference forced to light. See section 7 for the run.

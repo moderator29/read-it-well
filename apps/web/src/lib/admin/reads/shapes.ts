@@ -4,7 +4,7 @@
  * Types only. The reads that fill them are beside this file
  * (`overview.ts`, `operations.ts`, `analytics.ts`). A shape whose source does
  * not exist in the database yet is still declared, and its panel is handed
- * null and says so, naming the numbered request in docs/SESSION_B_SCOPE.md.
+ * null and says so.
  *
  * Money is integer kobo throughout and is drawn only through `formatMoney`.
  * Days are Lagos calendar days, `YYYY-MM-DD`; months are `YYYY-MM`.

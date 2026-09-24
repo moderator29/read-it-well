@@ -19,7 +19,7 @@ export function DemandBoard({
   locale,
   listHref,
 }: {
-  rows: DemandRow[] | null;
+  rows: DemandRow[] | null | "approved_only";
   copy: Dictionary["frontDoor"]["demand"];
   locale: Locale;
   /** Where "List a home that fits" goes; omitted on the staff desk. */
@@ -31,7 +31,11 @@ export function DemandBoard({
         {copy.title}
       </h2>
       <p className="mt-inline nf-body-sm text-[var(--nf-content-secondary)]">{copy.lede}</p>
-      {rows === null ? (
+      {rows === "approved_only" ? (
+        <p className="mt-group nf-body-sm text-[var(--nf-content-muted)]" data-testid="demand-approved-only">
+          {copy.approvedOnly}
+        </p>
+      ) : rows === null ? (
         <p className="mt-group nf-body-sm text-[var(--nf-content-muted)]" data-testid="demand-unavailable">
           {copy.unavailable}
         </p>
@@ -52,7 +56,7 @@ export function DemandBoard({
           ))}
         </ul>
       )}
-      {listHref && rows !== null && rows.length > 0 && (
+      {listHref && Array.isArray(rows) && rows.length > 0 && (
         <ButtonLink href={listHref} variant="secondary" className="mt-group">
           {copy.listCta}
         </ButtonLink>

@@ -23,6 +23,14 @@ export const yo: Dictionary = withFallback({
     party: "{adults}, {children}",
   },
 
+  /* The counted nouns shared with `counts`; every other unit is still English. */
+  units: {
+    nights: { other: "alẹ́ {count}" },
+    guests: { other: "àlejò {count}" },
+    adults: { other: "àgbàlagbà {count}" },
+    children: { other: "ọmọdé {count}" },
+  },
+
   reserve: {
     confirmedRange: "{from} sí {to}, {nights} fún {guests}.",
     capacityNote: "Ibí yìí gba tó {guests}.",
@@ -213,7 +221,7 @@ export const yo: Dictionary = withFallback({
   },
   nav: {
     /* The two sides. Added 18 September 2026 with the flip; Trips is the
-       Stays side's name for its bookings surface (HANDOFF_05 section 2). */
+       Stays side's name for its bookings surface. */
     stays: "Ibùgbé",
     exploreStays: "Ṣàwárí ibùgbé",
     home: "Ilé",
@@ -426,7 +434,7 @@ export const yo: Dictionary = withFallback({
         overline: "Àwọn ènìyàn gidi. Àwọn ibi gidi.",
         title: "Àkọsílẹ̀ tí a ti yẹ̀ wò. Àwọn ènìyàn gidi. Ohun ìní tó ṣe pàtàkì.",
         listings: "Àkọsílẹ̀",
-        agents: "Aṣojú tí a fọwọ́ sí",
+        agents: "Aṣojú tí a gbà wọlé",
         cities: "Ìlú",
         states: "Ìpínlẹ̀",
       },
@@ -493,9 +501,7 @@ export const yo: Dictionary = withFallback({
            wrong badge rather than a localised one. */
         rightTitle: "Ìrìn àjò ohun ìní rẹ, báyìí lórí fóònù.",
         points: {
-          all: "Àǹfààní kíkún sí gbogbo ẹ̀yà",
           notify: "Ìfitónilétí lẹ́sẹ̀kẹsẹ̀",
-          fast: "Ààbò àti ìyára",
           design: "A ṣe fún ọwọ́ kan",
         },
       },
@@ -878,7 +884,7 @@ export const yo: Dictionary = withFallback({
       off: "Ti pa",
       privacy: "Àṣírí & Ààbò",
       privacySub: "Ọ̀rọ̀ aṣínà, ìwọlé àti àwọn ẹ̀rọ",
-      appearanceSub: "Àwòrán, ìwọ̀n ọ̀rọ̀, ìṣíkiri",
+      appearanceSub: "Ìwọ̀n ọ̀rọ̀, ìṣíkiri",
       languageSub: "Èdè app",
       help: "Ìrànlọ́wọ́ & Àtìlẹ́yìn",
       helpSub: "Àwọn ìbéèrè, kàn sí wa",
@@ -976,19 +982,13 @@ export const yo: Dictionary = withFallback({
       // nobody uses for a login. Yorùbá has no settled noun for it, so the
       // sentence now says what the session IS in plain Yorùbá: the device you
       // are signed in on. `wọlé` is already `common.signIn`, so the two agree.
-      signOutNote:
-        "Ẹ̀rọ yìí nìkan ni o ti wọlé sí, nítorí náà kò sí ibòmíràn láti jáde. Ní kété tí àwọn àkàǹtì bá bẹ̀rẹ̀, ìdarí yìí yóò mú ọ jáde lórí gbogbo ẹ̀rọ lẹ́ẹ̀kan náà.",
       // NATIVE REVIEW: was `pẹ̀lú ara`, "with the body". Names the two methods
       // instead, the way Apple and Google do in their own localisations.
-      appLock: "Ìtìpa ohun èlò pẹ̀lú ìka ọwọ́ tàbí ojú",
-      appLockSub:
-        "Béèrè fún ìka ọwọ́ tàbí ojú nígbà tí ohun èlò náà bá ṣí, lórí àwọn ẹ̀rọ tí ó lè ṣe é.",
       signedInOn: "O wọlé lórí",
       thisDevice: "Ẹ̀rọ yìí",
       deviceOn: "{browser} lórí {os}",
       unknownBrowser: "Aṣàwákiri",
       unknownOs: "ẹ̀rọ yìí",
-      signOutEverywhere: "Jáde ní ibi gbogbo",
     },
 
     /* NATIVE REVIEW. `caveat` is the line that matters most on this screen and
@@ -1045,10 +1045,6 @@ export const yo: Dictionary = withFallback({
 
     data: {
       label: "Dátà rẹ",
-      exportNote:
-        "Lọ́wọ́lọ́wọ́, gbogbo ohun tí Vallo mọ̀ nípa rẹ wà nínú aṣàwákiri yìí, kò sì sí ohun tí ó ti kúrò lórí ẹ̀rọ yìí. Gbígba dátà ní kíkún yóò dé pẹ̀lú ìdásílẹ̀ ìbẹ̀rẹ̀.",
-      download: "Gba dátà mi",
-      downloadSub: "Ẹ̀dà gbogbo ohun tí Vallo ní nípa rẹ.",
       clear: "Pa dátà ẹ̀rọ yìí rẹ́",
       clearAgain: "Tẹ̀ ẹ́ lẹ́ẹ̀kansí láti fẹsẹ̀múlẹ̀",
       clearSub:
@@ -1130,7 +1126,7 @@ export const yo: Dictionary = withFallback({
       // reader actually needs.
       note: "Àwọn ètò tí a fi pamọ́ sórí ẹ̀rọ yìí yóò dúró sórí ẹ̀rọ yìí. A fi row level security bo àwọn ètò àkàǹtì, nítorí náà ìwọ nìkan ni ó lè ka tàbí yí àwọn tirẹ padà.",
       help: "Ìrànlọ́wọ́",
-      helpSub: "Gba ìdáhùn lọ́wọ́ ènìyàn",
+      helpSub: "Àwọn ìbéèrè, kàn sí wa",
       terms: "Àdéhùn",
       privacy: "Ìlànà àṣírí",
       version: "Ẹ̀yà",
@@ -1244,8 +1240,8 @@ export const yo: Dictionary = withFallback({
       personalDesc: "Ṣawari ki o si fi awọn ibi iyanu pamọ jákèjádò Nàìjíríà.",
       agentDesc: "Ṣakoso atokọ, ìfipamọ́, onibara àti èrè rẹ.",
       verifiedAgent: "Aṣojú Tí Fọwọ́sí",
-      visitor: "O kò wọlé gẹ́gẹ́ bí aṣojú",
-      signInToWorkspace: "Wọlé",
+      noWorkspace: "O kò tíì ta ilé kankan",
+      applyToList: "Bèèrè láti ta ilé",
       workspaceLabel: "Ibi iṣẹ́ aṣojú",
       notApproved: "Ìbéèrè aṣojú rẹ wa labẹ atunyẹwo.",
     },
@@ -1264,7 +1260,7 @@ export const yo: Dictionary = withFallback({
     },
     join: {
       title: "Dara pọ̀ mọ́ Àwùjọ Aṣojú Vallo",
-      body: "Ṣàtòjọ ohun ìní, so pọ̀ mọ́ àwọn àlejò tí fọwọ́sí, ṣàkóso ìfipamọ́ kí o sì jèrè.",
+      body: "Ṣàtòjọ ohun ìní, so pọ̀ mọ́ àwọn àlejò, ṣàkóso ìfipamọ́ kí o sì jèrè.",
       start: "Bẹrẹ ìbéèrè",
       resume: "Tẹsiwaju ìbéèrè",
       whatYouGet: "Ohun tí o ń rí gbà",
@@ -1274,7 +1270,7 @@ export const yo: Dictionary = withFallback({
          with it matters. */
       benefitReach: "Dé ọ̀dọ̀ àlejò tí fọwọ́sí",
       benefitTools: "Àwọn irinṣẹ́ atokọ àti ìfipamọ́ ọ̀jọ̀gbọ́n",
-      benefitEarn: "Tọpa èrè kí o sì gba owó láìséwu",
+      benefitEarn: "Tọpa èrè kí o sì rí iye tí a jẹ ọ́",
     },
     apply: {
       title: "Di Aṣojú",
@@ -1717,9 +1713,9 @@ export const yo: Dictionary = withFallback({
         "Wọlé sí àkàǹtì aṣojú rẹ láti bẹ̀rẹ̀ àtòjọ, tàbí béèrè ní nǹkan bí ìṣẹ́jú méjì bí o ṣẹ̀ṣẹ̀ dé ibí.",
       points: {
         verified: {
-          title: "Ohun ìní tí a fọwọ́sí nìkan",
+          title: "Ẹni tó ní orúkọ lẹ́yìn àtòjọ kọ̀ọ̀kan",
           body:
-            "A ń ṣàyẹ̀wò àtòjọ kọ̀ọ̀kan pẹ̀lú ọwọ́, nítorí náà àmì tó wà lórí ohun ìní rẹ ní ìtumọ̀ fún àwọn àlejò.",
+            "Àmì ìfọwọ́sí máa ń hàn nìkan lẹ́yìn tí ẹnìkan níbí bá ti ṣàyẹ̀wò káàdì ìdánimọ̀ rẹ, nítorí náà ó ní ìtumọ̀ fún àwọn àlejò.",
         },
         inside: {
           title: "Àwọn àlejò dé ọ̀dọ̀ rẹ nínú Vallo",
@@ -1731,7 +1727,7 @@ export const yo: Dictionary = withFallback({
           body: "Vallo kò gba owó kankan lọ́wọ́ rẹ láti ṣàtòjọ. Iye tí o pinnu ni iye rẹ.",
         },
       },
-      apply: "Di aṣojú",
+      apply: "Bèèrè láti ta ilé",
       signIn: "Wọlé",
       how: "Bí ṣíṣàtòjọ ṣe ń ṣiṣẹ́",
     },
@@ -2860,7 +2856,7 @@ export const yo: Dictionary = withFallback({
     },
 
     /*
-     * The console shell (Session B, admin-shell). Additive. Only the rail's
+     * The console shell. Additive. Only the rail's
      * destination names are carried here, taken word for word from this
      * file's own admin.nav above so they read the same in both places; every
      * other shell string falls back to English through withFallback until a
@@ -2900,7 +2896,7 @@ export const yo: Dictionary = withFallback({
     unreadOn: "{label}, ìfitónilétí {count} tí a kò tí ì kà",
   },
 
-  /* Build 05, FE-1. Short labels translated; longer sentences kept in English
+  /* Short labels translated; longer sentences kept in English
      until a native reviewer rewrites them (see the note at the top of this file). */
   inspectionsPage: {
     title: "Àyẹ̀wò ilé",
@@ -2981,7 +2977,7 @@ export const yo: Dictionary = withFallback({
     },
   },
 
-  /* Build 05, FE-2. Short labels translated; sentences about money kept in
+  /* Short labels translated; sentences about money kept in
      English until a native reviewer rewrites them. */
   walletSend: {
     availableBalance: "Owó tó wà",
@@ -3071,7 +3067,7 @@ export const yo: Dictionary = withFallback({
     requestSub: "Ìjápọ̀ tí iye owó ti wà nínú rẹ̀",
   },
 
-  /* Build 05, FE-3. Short labels translated; sentences about money kept in
+  /* Short labels translated; sentences about money kept in
      English until a native reviewer rewrites them. */
   paymentsPage: {
     title: "Àwọn ọ̀nà ìsanwó",
@@ -3137,7 +3133,7 @@ export const yo: Dictionary = withFallback({
     blockEmpty: "Kò sí káàdì tàbí àkáǹtì báǹkì tí a fi pamọ́ síbẹ̀. Fi ọ̀kan kún, ìsanwó tàbí yíyọ owó yóò sì jẹ́ ìfọwọ́kàn kan.",
   },
 
-  /* Build 05, FE-4. Short labels translated; longer sentences kept in English
+  /* Short labels translated; longer sentences kept in English
      until a native reviewer rewrites them. */
   stayDetail: {
     aboutTitle: "Nípa ibi yìí",
@@ -3190,7 +3186,7 @@ export const yo: Dictionary = withFallback({
     },
   },
 
-  /* Build 05, FE-11. Short labels translated; the longer sentences kept in
+  /* Short labels translated; the longer sentences kept in
      English until a native reviewer rewrites them. */
   restaurantPage: {
     fallbackTitle: "Ilé oúnjẹ",
@@ -3217,7 +3213,7 @@ export const yo: Dictionary = withFallback({
     loading: "Ń gbé ilé oúnjẹ yìí wọlé",
   },
 
-  /* The catalogue and stays surfaces (F3, Build 06). */
+  /* The catalogue and stays surfaces. */
   catalogue: {
     card: {
       forRent: "Fún háyà",
@@ -3336,7 +3332,7 @@ export const yo: Dictionary = withFallback({
       notFound: "Àkọsílẹ̀ yẹn kò sí mọ́.",
       notRental: "Ilé háyà nìkan ló ní owó ìwọlé.",
     },
-    /* Ojú-ìwé ìfipamọ́ (/bookings). Build 06, F3. */
+    /* Ojú-ìwé ìfipamọ́ (/bookings). */
     bookings: {
       statusLabel: "Ipò ìfipamọ́",
       upcoming: "Tó ń bọ̀",
@@ -3366,11 +3362,11 @@ export const yo: Dictionary = withFallback({
       step1Title: "Yan àwọn ọjọ́ rẹ",
       step1Body: "Yan ọjọ́ ìwọlé àti ọjọ́ ìjáde lórí kàlẹ́ńdà ààyè.",
       step2Title: "Fọwọ́sí kí o sì san",
-      step2Body: "Ìsanwó tó ní ààbò ní naira. A kì í gba owó ní kùtùkùtù.",
+      step2Body: "Ìsanwó ní naira nípasẹ̀ Paystack. A kì í gba owó ní kùtùkùtù.",
       step3Title: "Gbádùn ibùgbé rẹ",
       step3Body: "Àwọn àlàyé ìwọlé yóò dé síbí àti nípasẹ̀ ímeèlì.",
     },
-    /* Háyà kìí ṣe ibùgbé: ọjọ́ ìwọlé àti àkókò háyà ni ó ní. Build 06, F3. */
+    /* Háyà kìí ṣe ibùgbé: ọjọ́ ìwọlé àti àkókò háyà ni ó ní. */
     tenancy: {
       section: "Àwọn háyà rẹ",
       sectionLine: "Háyà tí o ti bẹ̀rẹ̀ sí san lórí Vallo.",
@@ -3490,7 +3486,7 @@ export const yo: Dictionary = withFallback({
   /* TRACK P: àwọn ojú-ìwé ilé méjèèjì àti ìlà ìsàlẹ̀. */
   directHome: {
     heroTitle: "Wá ilé rẹ tó kàn",
-    heroLede: "Yá, rà tàbí dá owó sí ilé tí a ti ṣàyẹ̀wò kàkiri Nàìjíríà.",
+    heroLede: "Yá, rà tàbí ta ilé kàkiri Nàìjíríà.",
     heroSearch: "Wá nípa ibi, irú ilé",
     filters: "Àwọn ìṣẹ́",
     featured: "Àwọn ilé pàtàkì",
@@ -3498,7 +3494,7 @@ export const yo: Dictionary = withFallback({
     parkingMany: "ibùdó ọkọ̀ {count}",
     buy: "Rà",
     rent: "Yá",
-    manage: "Ṣàkóso",
+    manage: "Ṣàtòjọ ilé",
     invest: "Dá owó sí",
     investNote: "Àwọn ilé tí a fi hàn fún èrè wọn. Vallo kò ta ohun ìdókòwò kankan.",
     stays: {
@@ -3512,8 +3508,8 @@ export const yo: Dictionary = withFallback({
       shortletsNote: "Ó dàbí ilé",
       restaurants: "Ilé oúnjẹ",
       restaurantsNote: "Oúnjẹ tó dùn",
-      nearby: "Nítòsí",
-      nearbyNote: "Ṣàwárí àdúgbò",
+      nearby: "Ọ̀rọ̀ àdúgbò",
+      nearbyNote: "Ohun tí àwọn ènìyàn ń sọ",
     },
     dock: {
       switchProfile: "Yípadà",
@@ -3672,7 +3668,7 @@ export const yo: Dictionary = withFallback({
           phone: "Nọ́mbà fóònù",
           nin: "Nọ́mbà Ìdánimọ̀ Orílẹ̀-èdè (NIN)",
           ninHint: "Nọ́mbà mọ́kànlá. O lè fi kun nígbà mìíràn bí kò bá sí lọ́wọ́ rẹ báyìí.",
-          assurance: "A máa ń ṣàyẹ̀wò ẹni tí o jẹ́ kí a tó tẹ ohunkóhun jáde.",
+          assurance: "Ẹnìkan ní Vallo máa ń ka ìbéèrè rẹ, àti gbogbo ìpolówó, kí a tó tẹ ohunkóhun jáde.",
         },
         where: {
           title: "Níbo ni o ti ní ilé?",

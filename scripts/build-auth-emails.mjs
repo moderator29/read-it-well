@@ -15,7 +15,7 @@
  * under Authentication -> Email Templates, or via the Management API. The
  * dashboard takes HTML only; the .txt is the readable source of each message
  * and the text part for the day the Send Email Hook replaces SMTP (see
- * AUTH_EMAILS.md). Today a regeneration does not reach production by itself.
+ * docs/email/AUTH_EMAILS.md). Today a regeneration does not reach production by itself.
  *
  * Run: node scripts/build-auth-emails.mjs
  *
@@ -76,7 +76,7 @@
  * - English. The product dictionary carries four locales (en, ha, ig, yo) and
  *   is English-first; Supabase renders one template per action with no locale
  *   input, so these are written once, in English, like the transactional
- *   catalogue. See AUTH_EMAILS.md, "The language question".
+ *   catalogue. See docs/email/AUTH_EMAILS.md, "The language question".
  */
 
 import { mkdirSync, writeFileSync, statSync } from "node:fs";
@@ -607,7 +607,8 @@ const FACTS_MARKETPLACE = {
    * to that line, and an email cannot be corrected once it has landed.
    */
   lines: [
-    "Every listing was put up by a real person on Vallo. Nothing is imported from an outside feed, so there is always somebody to message.",
+    /* UX-25: most listings today are examples; the email says what is true. */
+    "Message whoever listed a place from inside Vallo, so the conversation stays on the record. Places marked Example are there to show how Vallo works and cannot be rented or booked.",
     "Vallo has two sides on one account. Property is renting, buying and selling; Vallo Stays is hotels, apartments, guest houses, resorts and restaurant tables. One naira wallet pays for both.",
     "On a tenancy the rent is rarely the whole number. Caution deposit, agency, legal, agreement and service charge are normal here, so the move-in total is printed in full before you commit.",
     "Keep chats and payments inside Vallo. Inspect a property before you pay for it, and pay for a stay at checkout rather than into anybody's account.",
@@ -737,7 +738,6 @@ const templates = {
       cta("Accept your invitation", "{{ .ConfirmationURL }}"),
       gap(28),
       pointList([
-        "Browse as much as you like before you tell anybody anything about yourself.",
         "Listings, conversations, bookings and trips all sit in one account.",
         "Your details stay private until you choose to message a lister.",
       ]),

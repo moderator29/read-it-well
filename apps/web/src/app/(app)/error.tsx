@@ -47,8 +47,8 @@ export default function AppError({
       <p className="nf-system__overline">Something went wrong</p>
       <h1 className="nf-system__title">That screen did not load</h1>
       <p className="nf-system__body">
-        Something on our side stopped part way through. Nothing you were doing
-        was lost, and trying again usually settles it.
+        Something stopped part way through. Anything you had typed on this
+        screen may need typing again, and trying again usually settles it.
       </p>
 
       {error.digest && (

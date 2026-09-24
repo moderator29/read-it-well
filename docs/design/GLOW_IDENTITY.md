@@ -13,8 +13,9 @@ rim, bloom walked outward), and a pixel sampler with sharp for everything else
 pixel means for text colour). `scripts/design/sample-reference.mjs` is
 hard-wired to the landing hero and the phone home target, so it was read for
 method and not run on these images. The proof that the values reproduce the
-look is `docs/design/proofs/session-b/identity/identity-side-by-side.jpg`:
-the render on the left, the values below built in plain CSS in the middle,
+look is `docs/design/proofs/session-b/identity/identity-side-by-side.jpg`
+(removed from the tree with the other build proofs; it is in git history at
+`77cf90ad`): the render on the left, the values below built in plain CSS in the middle,
 the paper twin on the right, at 2x.
 
 **Revised the same evening on the lead's review** (second push): the paper
@@ -26,7 +27,7 @@ light (section 4) and the button's lower cyan lift (section 5).
 
 Session B does not edit the tokens. This file is a proposal for Session A to
 adopt into `packages/design-tokens/src/tokens.css` (request in
-`docs/SESSION_B_SCOPE.md`). Each value names the token it would replace or
+`docs/archive/SESSION_B_SCOPE.md`). Each value names the token it would replace or
 extend.
 
 ---
