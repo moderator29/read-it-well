@@ -101,10 +101,18 @@ export async function linkStr(input: unknown): Promise<StrAnswer> {
   return call("str_link", { p_case: parsed.data.caseId, p_kind: parsed.data.kind, p_ref: parsed.data.ref });
 }
 
-const holdSchema = z.object({ caseId: id, hours: z.number().int().min(1).max(168) });
+const holdSchema = z.object({ caseId: id });
 
 export async function holdStrSubject(input: unknown): Promise<StrAnswer> {
   const parsed = validate(holdSchema, input);
   if (!parsed.ok) return fail<{ text: string; data: unknown }>(parsed.error);
-  return call("str_place_hold", { p_case: parsed.data.caseId, p_hours: parsed.data.hours });
+  return call("str_place_hold", { p_case: parsed.data.caseId });
+}
+
+const releaseSchema = z.object({ caseId: id, note: z.string().trim().min(5).max(2000) });
+
+export async function releaseStrHold(input: unknown): Promise<StrAnswer> {
+  const parsed = validate(releaseSchema, input);
+  if (!parsed.ok) return fail<{ text: string; data: unknown }>(parsed.error);
+  return call("str_release_hold", { p_case: parsed.data.caseId, p_note: parsed.data.note });
 }

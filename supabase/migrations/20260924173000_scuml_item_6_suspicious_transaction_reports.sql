@@ -26,15 +26,16 @@
 --   public.str_place_hold(case, hours)
 --     the ONLY lever that stops money: a staff-placed row in the audit's
 --     public.account_money_holds for the case's subject, reason
---     'staff_review'. Never automatic. Audited.
---   public.str_cases(), public.str_case_detail(case), public.str_register()
+--     'staff_review' here, replaced by the neutral 'plain' in 20260924173100.
+--     Never automatic. Audited.
+--   public.str_cases(), public.str_register()
 --     the desk's reads.
 --
 -- NO TIPPING OFF. Nothing in this file writes anything a member can read: no
 -- notification to the subject, no status on any member-facing table, no
 -- change to what their pages show. Staff notifications go to staff only. The
 -- one exception is a money hold, placed by a person on purpose, which the
--- wallet shows without a cause (see `staff_review` in lib/security).
+-- wallet shows without a cause (the `plain` reason, 20260924173100).
 --
 -- APPEND-ONLY AND KEPT FIVE YEARS (SCUML item 11). Every table here refuses
 -- UPDATE and DELETE by trigger, whoever asks, the service role included. No
@@ -623,7 +624,8 @@ begin
 end;
 $readback$;
 
-/* Outside the transaction: cron.schedule commits its own row. Minute 17. */
+/* The job is scheduled with the rest of this migration, in its transaction:
+   if anything above fails, no job is left behind. Minute 17. */
 select cron.unschedule('vallo_str_nudge_overdue')
  where exists (select 1 from cron.job where jobname = 'vallo_str_nudge_overdue');
 select cron.schedule('vallo_str_nudge_overdue', '17 * * * *', 'select private.str_nudge_overdue();');

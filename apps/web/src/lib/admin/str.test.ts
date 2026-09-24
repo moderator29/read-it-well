@@ -2,8 +2,11 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getDictionary } from "@vallo/i18n";
 import { describe, expect, it } from "vitest";
+import { holdFromRows } from "../security/account-hold";
+import { holdReasonOf, notMeConsequence } from "../security/not-me-copy";
 import {
   considerStrHref,
+  lagosLocalToIso,
   lagosTime,
   strCaseFrom,
   strCasesFrom,
@@ -58,7 +61,9 @@ describe("SCUML item 6: reading the STR desk", () => {
     expect(strCaseFrom({ ...row, source_kind: "gossip" })).toBeNull();
     expect(strCaseFrom({ ...row, state: "done" })).toBeNull();
     expect(strCasesFrom(null)).toBeNull();
-    expect(strCasesFrom([row, 7])).toHaveLength(1);
+    expect(strCasesFrom([row])).toHaveLength(1);
+    /* A row that could not be read makes the whole read a failure. */
+    expect(strCasesFrom([row, 7])).toBeNull();
     expect(strRegisterFrom("nope")).toBeNull();
     expect(
       strRegisterFrom([{ case_id: ID, goaml_reference: "G-1", filed_at: "2026-09-24T12:00:00Z", recorded_by: "b", decided_by: "a", approver_id: "b" }]),
@@ -75,15 +80,27 @@ describe("SCUML item 6: reading the STR desk", () => {
   it("says every database answer in the desk's words", () => {
     expect(strResultText("same_person", copy)).toEqual({ ok: false, text: copy.results.same_person });
     expect(strResultText({ status: "decided" }, copy)).toEqual({ ok: true, text: copy.results.decided });
-    expect(strResultText({ status: "held", until: "2026-09-26T10:00:00Z" }, copy).text).toContain("Sat 26 Sept");
+    expect(strResultText({ status: "held", until: "2026-09-26T10:00:00Z" }, copy).text).toMatch(/Sat,? 26 Sept/);
     expect(strResultText("something new", copy)).toEqual({ ok: false, text: copy.results.failed });
     expect(lagosTime("not a date")).toBe("");
+    expect(strResultText("conflicted", copy)).toEqual({ ok: false, text: copy.results.conflicted });
+    expect(strResultText("released", copy)).toEqual({ ok: true, text: copy.results.released });
+    /* "Filed at" is Lagos time whatever the browser's zone. */
+    expect(lagosLocalToIso("2026-09-24T09:30")).toBe("2026-09-24T08:30:00.000Z");
+    expect(lagosLocalToIso("yesterday")).toBeNull();
   });
 
   it("links in from the console, and a prefill takes nothing that is not an id", () => {
     expect(considerStrHref("risk_alert", ID)).toBe(`/admin/compliance?tab=str&from=risk_alert&id=${ID}`);
     expect(strPrefill({ from: "report", id: ID })).toEqual({ from: "report", id: ID, subject: "" });
     expect(strPrefill({ from: "nonsense", id: "<script>" })).toEqual({ from: "person", id: "", subject: "" });
+    /* The sanctions lane's hand-off (SCUML item 8). */
+    expect(strPrefill({ tab: "str", person: ID, from: "sanctions:hit-42" })).toEqual({
+      from: "sanctions_hit",
+      id: "hit-42",
+      subject: ID,
+    });
+    expect(strPrefill({ person: ID })).toEqual({ from: "person", id: ID, subject: "" });
   });
 });
 
@@ -115,9 +132,38 @@ describe("SCUML item 6: what the database holds to", () => {
     expect(sql).toContain("create or replace function public.str_place_hold");
   });
 
-  it("keeps the wallet from giving a reason for a staff hold", () => {
-    const copyText = getDictionary("en").platform.hold;
-    expect(copyText.bodyPlain).not.toMatch(/because|review|report|suspici/i);
-    expect(copyText.refusalPlain).not.toMatch(/because|review|report|suspici/i);
+  it("writes the one neutral reason, which reads as a hold with no cause anywhere a member looks", () => {
+    const fixes = readFileSync(
+      join(__dirname, "../../../../../supabase/migrations/20260924173100_scuml_item_6_str_review_fixes.sql"),
+      "utf8",
+    );
+    expect(fixes).toContain("values (c.subject_id, v_until, 'plain', now());");
+    expect(fixes).not.toContain("'staff_review', now()");
+    /* Behaviour: the row the desk writes, read the way the wallet and the
+       not-me panel read it. */
+    const hold = holdFromRows([{ hold_until: "2099-01-01T00:00:00Z", reason: "plain" }], Date.parse("2026-09-24T10:00:00Z"));
+    expect(hold).toEqual({ state: "held", until: "2099-01-01T00:00:00Z", reason: "plain" });
+    const notMe = getDictionary("en").platform.notMe;
+    const said = notMeConsequence(
+      { holdUntil: "2099-01-01T00:00:00Z", holdPlaced: false, holdExtended: false, holdReason: holdReasonOf("plain"), rateLimited: false },
+      notMe,
+    );
+    expect(said).not.toMatch(/review|staff|compliance|report|suspic|checked|investigat/i);
+  });
+
+  it("keeps a conflicted staff member out, dates no filing before its approval, and caps the hold (173100)", () => {
+    const fixes = readFileSync(
+      join(__dirname, "../../../../../supabase/migrations/20260924173100_scuml_item_6_str_review_fixes.sql"),
+      "utf8",
+    );
+    expect(fixes.match(/if private\.str_is_party\([^)]*actor\) then return/g)?.length).toBeGreaterThanOrEqual(6);
+    expect(fixes).toContain("and not private.str_is_party(p_case, ur.user_id)");
+    expect(fixes.match(/where not private\.str_is_party\(/g)?.length).toBe(2);
+    expect(fixes).toContain("if p_filed_at < v_approved_at then return 'before_approval'; end if;");
+    expect(fixes).toContain("before truncate on private.%I for each statement");
+    expect(fixes).toContain("v_until timestamptz := now() + private.str_hold_length();");
+    expect(fixes).toContain("return jsonb_build_object('status', 'other_hold', 'until', v_existing.hold_until);");
+    expect(fixes).toContain("private.str_overdue(c.id)");
+    expect(fixes).toContain("where private.str_overdue(x.id)");
   });
 });

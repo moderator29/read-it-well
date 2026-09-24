@@ -51,9 +51,11 @@ export function StateMoment({
   const role = stateRole(kind);
   return (
     <SystemMoment {...(home ? { home } : {})} inset={inset} offline={offline} {...(aside ? { aside } : {})}>
-      {/* `contents`: the card lays its children out itself, and this wrapper
-          is here for the role and the sweep's marker, not for layout. */}
-      <div data-state-kind={kind} role={role} className="contents">
+      {/* The role sits on a real box: `display: contents` drops an element
+          from the accessibility tree in some browsers, and the role with it.
+          A block wrapper changes nothing in the card's layout (the card is
+          `display: block`, and each line keeps its own top margin). */}
+      <div data-state-kind={kind} role={role}>
         {overline && <p className="nf-system__overline">{overline}</p>}
         <h1 className="nf-system__title">{title}</h1>
         <p className="nf-system__body">{body}</p>

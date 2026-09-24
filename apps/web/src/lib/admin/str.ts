@@ -1,4 +1,4 @@
-import type { Dictionary } from "@vallo/i18n";
+import { formatDate, type Dictionary } from "@vallo/i18n";
 
 /**
  * SCUML item 6: Suspicious Transaction Reports, the pure half.
@@ -114,13 +114,18 @@ export function strCaseFrom(row: unknown): StrCase | null {
   };
 }
 
-/** The rows, or null when the read itself is not a list (a failed read, never "no cases"). */
+/**
+ * The rows, or null when the read failed: not a list, or a list with a row
+ * that could not be read. A desk that quietly dropped a case would look
+ * clearer than it is, so a partial read is a failed one.
+ */
 export function strCasesFrom(data: unknown): StrCase[] | null {
   if (!Array.isArray(data)) return null;
-  return data.flatMap((row) => {
+  const cases = data.flatMap((row) => {
     const c = strCaseFrom(row);
     return c ? [c] : [];
   });
+  return cases.length === data.length ? cases : null;
 }
 
 export function strRegisterFrom(data: unknown): StrFiling[] | null {
@@ -149,7 +154,7 @@ export function strResultText(answer: unknown, copy: Copy): { ok: boolean; text:
       : answer && typeof answer === "object" && typeof (answer as { status?: unknown }).status === "string"
         ? ((answer as { status: string }).status)
         : "failed";
-  const good = new Set(["opened", "decided", "approved", "rejected", "recorded", "linked", "held"]);
+  const good = new Set(["opened", "decided", "approved", "rejected", "recorded", "linked", "held", "released"]);
   const key = (status in copy.results ? status : "failed") as ResultKey;
   if (status === "opened") return { ok: true, text: "" };
   if (status === "held") {
@@ -163,7 +168,7 @@ export function strResultText(answer: unknown, copy: Copy): { ok: boolean; text:
 export function lagosTime(iso: string): string {
   const at = new Date(iso);
   if (!Number.isFinite(at.getTime())) return "";
-  return at.toLocaleString("en-GB", {
+  return formatDate(at, "en", {
     timeZone: "Africa/Lagos",
     weekday: "short",
     day: "numeric",
@@ -171,6 +176,17 @@ export function lagosTime(iso: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+/**
+ * A `datetime-local` value (no zone) read as LAGOS time, as the form labels
+ * it, whatever zone the staff member's browser is in. Lagos is UTC+1 all
+ * year (no daylight saving). Null for anything that is not that shape.
+ */
+export function lagosLocalToIso(value: string): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(value)) return null;
+  const at = new Date(`${value.length === 16 ? `${value}:00` : value}+01:00`);
+  return Number.isFinite(at.getTime()) ? at.toISOString() : null;
 }
 
 /** What the next step on a case is, so the desk offers exactly one form. */
@@ -194,7 +210,13 @@ export function considerStrHref(from: StrSource, id: string, subject?: string | 
   return `/admin/compliance?${q.toString()}`;
 }
 
-/** The desk's prefill from the address, or nothing that is not valid. */
+/**
+ * The desk's prefill from the address, or nothing that is not valid.
+ *
+ * Two shapes arrive. This desk's own: `?from=<kind>&id=<id>&subject=<id>`.
+ * The sanctions lane's hand-off (SCUML item 8): `?person=<id>&from=sanctions:<hitId>`,
+ * which opens a case on the sanctions hit about that person.
+ */
 export function strPrefill(params: Record<string, string | string[] | undefined>): {
   from: StrSource;
   id: string;
@@ -204,7 +226,11 @@ export function strPrefill(params: Record<string, string | string[] | undefined>
     const v = params[k];
     return (Array.isArray(v) ? v[0] : v) ?? "";
   };
-  const from = one("from");
   const clean = (v: string) => (/^[A-Za-z0-9-]{1,200}$/.test(v) ? v : "");
-  return { from: isStrSource(from) ? from : "person", id: clean(one("id")), subject: clean(one("subject")) };
+  const from = one("from");
+  const person = clean(one("person"));
+  const sanctions = /^sanctions:(.+)$/.exec(from);
+  if (sanctions) return { from: "sanctions_hit", id: clean(sanctions[1] ?? ""), subject: person };
+  if (!from && person) return { from: "person", id: person, subject: "" };
+  return { from: isStrSource(from) ? from : "person", id: clean(one("id")), subject: clean(one("subject")) || person };
 }
