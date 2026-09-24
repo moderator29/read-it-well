@@ -11,6 +11,7 @@ import { ROW_GLYPH, RowButton, RowLink, RowSwitch, SettingsGroup } from "@/compo
 import { LanguageRow } from "@/components/app/account/SettingsGroups";
 import { useNfSettings } from "@/components/app/account/settings-store";
 import { clearPacks } from "@/lib/offline/pack-store";
+import { clearShelf } from "@/lib/offline/shelf-store";
 import { signOut, updateSettings } from "@/lib/profile/actions";
 import type { ResolvedProfileSettings } from "@/lib/profile/schema";
 import { RemoteImage } from "@/components/ui/RemoteImage";
@@ -294,8 +295,10 @@ export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean })
                 setError(result.error);
                 return;
               }
-              /* V-35: a shared phone does not keep somebody else's gate code. */
+              /* V-35, V-77: a shared phone keeps neither somebody else's gate code
+                 nor their shortlist. */
               await clearPacks();
+              await clearShelf();
               router.replace("/");
               router.refresh();
             });

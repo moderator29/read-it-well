@@ -11,6 +11,8 @@ import { stayCardFromRow } from "@/components/app/stays/stay-card-model";
 import { SAVED_COOKIE, parseSavedCookie } from "@/lib/saved/keys";
 import { getSavedListings, getSavedPlaces } from "@/lib/saved/queries";
 import { SavedBoard, type SavedBoardItem } from "./SavedBoard";
+import { ShelfSync } from "./ShelfSync";
+import { shelfFromListing } from "@/lib/offline/shelf";
 
 export const metadata: Metadata = { title: "Saved" };
 
@@ -55,6 +57,10 @@ export default async function SavedPage() {
     getSavedListings(parseSavedCookie(cookieStore.get(SAVED_COOKIE)?.value)),
     getSavedPlaces(),
   ]);
+
+  /* The copies are built here, from the same rows the cards draw, so the
+     phone's copy cannot disagree with the card. */
+  const shelf = shelfCopies(entries.map((entry) => entry.listing));
 
   const items: SavedBoardItem[] = [
     ...entries.map<SavedBoardItem>((entry) => ({
@@ -111,7 +117,16 @@ export default async function SavedPage() {
         }
       />
       </div>
+      {/* V-77: the saved listings, copied to the phone for when there is no
+          signal, and any figure that moved since it was first copied. */}
+      <ShelfSync items={shelf} copy={t.platform.shelf} locale={locale} />
       <SavedBoard items={items} />
     </div>
   );
+}
+
+/** V-77: the phone's copies, stamped with the time of the read, not a render. */
+function shelfCopies(listings: Parameters<typeof shelfFromListing>[0][]) {
+  const readAt = Date.now();
+  return listings.map((listing) => shelfFromListing(listing, readAt));
 }

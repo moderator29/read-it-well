@@ -168,4 +168,33 @@ export const platformEn = {
     answer: "Open inspections",
     openBooking: "Open the booking",
   },
+
+  /* V-77: the shortlist on the phone. MB and dates only; no claim the phone
+     cannot prove. */
+  shelf: {
+    changesTitle: "Since you saved these",
+    moveInChanged: "{title}: the move-in total was {was} when you saved it; it is {now} now.",
+    priceChanged: "{title}: the price was {was} when you saved it; it is {now} now.",
+    rentChanged: "{title}: the rent was {was} when you saved it; it is {now} now.",
+    onPhone: "Your shortlist is kept on this phone too, so it opens without signal.",
+    offlineHeading: "Your shortlist on this phone",
+    storedAt: "Saved on your phone {when}. Prices may have changed.",
+    storedToday: "today at {time}",
+    storedOn: "on {date}",
+    moveIn: "{amount} to move in",
+    moveInFrom: "From {amount} to move in",
+    rentLine: "Rent {amount}{suffix}",
+    priceLine: "{amount}{suffix}",
+    noPrice: "No price stated",
+    beds: { one: "{count} bed", other: "{count} beds" } as PluralForms,
+    baths: { one: "{count} bath", other: "{count} baths" } as PluralForms,
+    compare: "Compare",
+    compareHint: "Tick up to three to see them side by side.",
+    compareClose: "Close the comparison",
+    compareMoveIn: "To move in",
+    compareRent: "Rent",
+    comparePlace: "Area",
+    compareRooms: "Rooms",
+    comparePower: "Power",
+  },
 };
