@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/admin/guard";
-import { lagosTime, strCasesFrom, strPrefill, strRegisterFrom, type StrCase } from "@/lib/admin/str";
+import { lagosTime, strCasesFrom, strPrefill, strRegisterFrom, strReleasesFrom, type StrCase } from "@/lib/admin/str";
 import type { ComplianceLane, ComplianceLaneProps } from "./lane";
-import { StrCaseControls, StrOpenForm } from "./StrControls";
+import { StrApproveRelease, StrCaseControls, StrOpenForm } from "./StrControls";
 
 /**
  * SCUML item 6: SUSPICIOUS TRANSACTION REPORTS TO THE NFIU (with item 19,
@@ -31,9 +31,11 @@ async function StrLaneView({ t, params }: ComplianceLaneProps) {
   const access = await requireAdmin();
   let cases: StrCase[] | null = null;
   let register: ReturnType<typeof strRegisterFrom> = null;
+  let releases: ReturnType<typeof strReleasesFrom> = null;
   if (access.state === "admin") {
     const db = access.supabase as unknown as RpcCaller;
-    const [c, r] = await Promise.all([db.rpc("str_cases"), db.rpc("str_register")]);
+    const [c, r, rel] = await Promise.all([db.rpc("str_cases"), db.rpc("str_register"), db.rpc("str_pending_releases")]);
+    releases = rel.error ? null : strReleasesFrom(rel.data);
     cases = c.error ? null : strCasesFrom(c.data);
     register = r.error ? null : strRegisterFrom(r.data);
   }
@@ -94,6 +96,27 @@ async function StrLaneView({ t, params }: ComplianceLaneProps) {
           </ul>
         )}
       </section>
+
+      {/* SCUML items 6 and 19: a hold is ended by a second person, and only
+          when it is still this desk's alone (20260924173200). */}
+      {releases === null ? (
+        <p role="alert" className="nf-body text-[var(--nf-state-error)]">{copy.releasesFailed}</p>
+      ) : releases.length > 0 ? (
+        <section aria-labelledby="str-releases-title">
+          <h2 id="str-releases-title" className="nf-h3">{copy.releasesTitle}</h2>
+          <ul className="mt-row grid gap-inline" data-testid="str-releases">
+            {releases.map((rel) => (
+              <li key={rel.releaseId} className="nf-panel nf-panel--card p-card nf-body-sm">
+                <p>{rel.note}</p>
+                <p className="nf-caption mt-inline-tight">
+                  {copy.releaseAsked.replace("{date}", lagosTime(rel.requestedAt))}. {copy.registerCase}: {rel.caseId.slice(0, 8)}
+                </p>
+                <StrApproveRelease copy={copy} releaseId={rel.releaseId} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section aria-labelledby="str-register-title">
         <h2 id="str-register-title" className="nf-h3">{copy.registerTitle}</h2>

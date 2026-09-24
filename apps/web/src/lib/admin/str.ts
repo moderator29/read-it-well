@@ -128,9 +128,10 @@ export function strCasesFrom(data: unknown): StrCase[] | null {
   return cases.length === data.length ? cases : null;
 }
 
+/** The register, or null when the read failed or any row could not be read. */
 export function strRegisterFrom(data: unknown): StrFiling[] | null {
   if (!Array.isArray(data)) return null;
-  return data.flatMap((row) => {
+  const rows = data.flatMap((row) => {
     const r = row as Record<string, unknown> | null;
     if (!r) return [];
     const caseId = str(r.case_id);
@@ -141,6 +142,26 @@ export function strRegisterFrom(data: unknown): StrFiling[] | null {
     if (!caseId || !goamlReference || !filedAt || !recordedBy || !decidedBy) return [];
     return [{ caseId, goamlReference, filedAt, recordedBy, decidedBy, approverId: str(r.approver_id) }];
   });
+  return rows.length === data.length ? rows : null;
+}
+
+export type StrRelease = { releaseId: string; caseId: string; note: string; requestedBy: string; requestedAt: string };
+
+/** Releases waiting on a second person, or null when the read failed or dropped a row. */
+export function strReleasesFrom(data: unknown): StrRelease[] | null {
+  if (!Array.isArray(data)) return null;
+  const rows = data.flatMap((row) => {
+    const r = row as Record<string, unknown> | null;
+    if (!r) return [];
+    const releaseId = str(r.release_id);
+    const caseId = str(r.case_id);
+    const note = str(r.note);
+    const requestedBy = str(r.requested_by);
+    const requestedAt = str(r.requested_at);
+    if (!releaseId || !caseId || !note || !requestedBy || !requestedAt) return [];
+    return [{ releaseId, caseId, note, requestedBy, requestedAt }];
+  });
+  return rows.length === data.length ? rows : null;
 }
 
 type Copy = Dictionary["complianceStr"];
@@ -154,7 +175,7 @@ export function strResultText(answer: unknown, copy: Copy): { ok: boolean; text:
       : answer && typeof answer === "object" && typeof (answer as { status?: unknown }).status === "string"
         ? ((answer as { status: string }).status)
         : "failed";
-  const good = new Set(["opened", "decided", "approved", "rejected", "recorded", "linked", "held", "released"]);
+  const good = new Set(["opened", "decided", "approved", "rejected", "recorded", "linked", "held", "released", "release_asked"]);
   const key = (status in copy.results ? status : "failed") as ResultKey;
   if (status === "opened") return { ok: true, text: "" };
   if (status === "held") {

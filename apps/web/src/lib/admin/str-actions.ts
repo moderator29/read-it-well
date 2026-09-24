@@ -116,3 +116,12 @@ export async function releaseStrHold(input: unknown): Promise<StrAnswer> {
   if (!parsed.ok) return fail<{ text: string; data: unknown }>(parsed.error);
   return call("str_release_hold", { p_case: parsed.data.caseId, p_note: parsed.data.note });
 }
+
+const approveReleaseSchema = z.object({ releaseId: id });
+
+/** SCUML items 6 and 19: a second person ends the hold, and only this desk's own. */
+export async function approveStrRelease(input: unknown): Promise<StrAnswer> {
+  const parsed = validate(approveReleaseSchema, input);
+  if (!parsed.ok) return fail<{ text: string; data: unknown }>(parsed.error);
+  return call("str_approve_release", { p_release: parsed.data.releaseId });
+}

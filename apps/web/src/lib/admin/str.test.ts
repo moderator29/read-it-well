@@ -13,6 +13,7 @@ import {
   strNextStep,
   strPrefill,
   strRegisterFrom,
+  strReleasesFrom,
   strResultText,
 } from "./str";
 
@@ -65,6 +66,9 @@ describe("SCUML item 6: reading the STR desk", () => {
     /* A row that could not be read makes the whole read a failure. */
     expect(strCasesFrom([row, 7])).toBeNull();
     expect(strRegisterFrom("nope")).toBeNull();
+    expect(strRegisterFrom([{ case_id: ID }])).toBeNull();
+    expect(strReleasesFrom([{ release_id: "r", case_id: ID, note: "Cleared.", requested_by: "a", requested_at: "2026-09-24T12:00:00Z" }])).toHaveLength(1);
+    expect(strReleasesFrom([{ release_id: "r" }])).toBeNull();
     expect(
       strRegisterFrom([{ case_id: ID, goaml_reference: "G-1", filed_at: "2026-09-24T12:00:00Z", recorded_by: "b", decided_by: "a", approver_id: "b" }]),
     ).toEqual([{ caseId: ID, goamlReference: "G-1", filedAt: "2026-09-24T12:00:00Z", recordedBy: "b", decidedBy: "a", approverId: "b" }]);
@@ -165,5 +169,16 @@ describe("SCUML item 6: what the database holds to", () => {
     expect(fixes).toContain("return jsonb_build_object('status', 'other_hold', 'until', v_existing.hold_until);");
     expect(fixes).toContain("private.str_overdue(c.id)");
     expect(fixes).toContain("where private.str_overdue(x.id)");
+  });
+
+  it("ends only its own hold, never shortens one, and needs a second person to release (173200)", () => {
+    const own = readFileSync(
+      join(__dirname, "../../../../../supabase/migrations/20260924173200_scuml_item_6_str_holds_are_its_own.sql"),
+      "utf8",
+    );
+    expect(own).toContain("v_until := greatest(v_existing.hold_until, v_until);");
+    expect(own).toContain("and v_now.hold_until = v_ours and not private.str_sanctions_confirmed(r.user_id) then");
+    expect(own).toContain("if r.requested_by = actor then return 'same_person'; end if;");
+    expect(own).toContain("create table if not exists private.str_holds");
   });
 });

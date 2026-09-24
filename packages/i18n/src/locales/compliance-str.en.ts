@@ -67,7 +67,12 @@ export const complianceStrEn = {
   hold: "Hold their money",
   holdHint: "Stops money leaving their wallet for 30 days from now; place it again to keep it. The wallet says money cannot leave, with no reason and no date. Use it only when money must not move.",
   releaseNote: "Why it is released",
-  release: "Release the hold",
+  release: "Ask to release the hold",
+  releasesTitle: "Hold releases waiting for a second person",
+  releasesFailed: "The waiting releases could not be read. Try again in a moment.",
+  /** `{date}` is a Lagos date and time. */
+  releaseAsked: "Asked {date}",
+  approveRelease: "Approve the release",
   /** Link kinds, including the two a case only links (never starts from). */
   linkKinds: {
     person: "A person",
@@ -105,9 +110,11 @@ export const complianceStrEn = {
     no_subject: "This case has no person on it, so there is nobody to hold.",
     conflicted: "You are the person this case is about, or linked to it, so you cannot act on it. Another staff member has to.",
     before_approval: "A filing cannot be dated before a second person approved filing. Check the time.",
-    other_hold: "Another hold is already on their wallet, and this desk does not change it. Place this one again once it ends.",
+    other_hold: "The hold on their wallet is not this desk's alone (another desk placed or renewed it, or a sanctions match stands), so it was not changed.",
     no_hold: "There is no hold from this desk to release.",
     released: "Released. Money can leave their wallet again.",
+    release_asked: "Release asked for. A second staff member has to approve it.",
+    release_waiting: "A release of this hold is already waiting for a second person.",
     failed: "That did not go through. Nothing was changed. Try again in a moment.",
     decided: "Decision recorded. It waits for a second person.",
     approved: "Approved.",

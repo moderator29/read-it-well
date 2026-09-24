@@ -8,6 +8,7 @@ import {
   holdStrSubject,
   linkStr,
   releaseStrHold,
+  approveStrRelease,
   openStrCase,
   recordStrFiling,
 } from "@/lib/admin/str-actions";
@@ -396,6 +397,30 @@ export function StrCaseControls({ copy, c }: { copy: Copy; c: StrCase }) {
           {copy.working}
         </p>
       )}
+      <Message said={said} />
+    </div>
+  );
+}
+
+/** SCUML items 6 and 19: the second person on a hold release. */
+export function StrApproveRelease({ copy, releaseId }: { copy: Copy; releaseId: string }) {
+  const [said, setSaid] = useState<Said>(null);
+  const [pending, start] = useTransition();
+  return (
+    <div className="mt-row">
+      <button
+        type="button"
+        disabled={pending}
+        className="nf-btn nf-btn--secondary min-h-[44px] w-full"
+        onClick={() =>
+          start(async () => {
+            const result = await approveStrRelease({ releaseId });
+            setSaid(result.ok ? { ok: true, text: result.data.text } : { ok: false, text: result.error });
+          })
+        }
+      >
+        {pending ? copy.working : copy.approveRelease}
+      </button>
       <Message said={said} />
     </div>
   );
