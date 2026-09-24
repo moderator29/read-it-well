@@ -3422,7 +3422,7 @@ export const ha: Dictionary = withFallback({
       step1Title: "Zaɓi kwanakinka",
       step1Body: "Zaɓi ranar shiga da ranar fita a kalanda mai rai.",
       step2Title: "Tabbatar ka biya",
-      step2Body: "Biyan kuɗi mai tsaro da naira. Ba a taɓa cajin ka da wuri ba.",
+      step2Body: "Biyan kuɗi da naira ta Paystack. Ba a taɓa cajin ka da wuri ba.",
       step3Title: "Ji daɗin masaukinka",
       step3Body: "Bayanan shiga za su iso nan da kuma ta imel.",
     },

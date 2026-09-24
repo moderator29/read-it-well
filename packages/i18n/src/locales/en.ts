@@ -42,6 +42,20 @@ export const en = {
    * en-GB formatter. These two are here because a sentence that wraps a counted
    * noun cannot be pluralised without also owning the words around it.
    */
+  /*
+   * The example disclosure and what an example cannot do (UX-09, UI-P2-01).
+   * `statement` is the agreed sentence (`EXAMPLE_STATEMENT` in
+   * lib/listings/syndication.ts, which a test keeps equal to it).
+   */
+  examples: {
+    statement:
+      "This is an example listing. No such property is available. Vallo has not verified anything on this page.",
+    stayNotBookable: "Nothing here can be booked or paid for. Search for a real place with a host you can reach.",
+    browseStays: "Browse real stays",
+    roomsExample: "These rooms are an example of how a stay looks on Vallo. None of them can be booked.",
+    restaurantNotBookable: "Nothing here can be booked or held. Search for a real restaurant you can reach.",
+    browseRestaurants: "Browse real restaurants",
+  },
   reserve: {
     /** The confirmation moment. Both counts arrive already pluralised. */
     confirmedRange: "{from} to {to}, {nights} for {guests}.",
@@ -5167,7 +5181,7 @@ export const en = {
       step1Title: "Choose your dates",
       step1Body: "Pick check-in and check-out on a live calendar.",
       step2Title: "Confirm and pay",
-      step2Body: "Secure payment in naira. You are never charged early.",
+      step2Body: "Payment in naira through Paystack. You are never charged early.",
       step3Title: "Enjoy your stay",
       step3Body: "Check-in details arrive right here and by email.",
     },

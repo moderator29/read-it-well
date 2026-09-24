@@ -109,7 +109,7 @@ export function RestaurantFace({
             )}
           </div>
           <h1 className="nf-h2 mt-row [text-wrap:balance]">{title}</h1>
-          {isExample && <ExampleNotice variant="page" className="mt-row" />}
+          {isExample && <ExampleNotice variant="page" className="mt-row" statement={t.examples.statement} />}
           {where && (
             <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
               <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
@@ -142,10 +142,10 @@ export function RestaurantFace({
             <Section title={copy.reserveTitle}>
               <Surface>
                 <p className={TYPE.rowMeta} data-testid="restaurant-not-bookable">
-                  Nothing here can be booked or held. Search for a real restaurant you can reach.
+                  {t.examples.restaurantNotBookable}
                 </p>
                 <ButtonLink href="/restaurants" variant="primary" className="mt-row w-full">
-                  Browse real restaurants
+                  {t.examples.browseRestaurants}
                 </ButtonLink>
               </Surface>
             </Section>

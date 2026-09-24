@@ -3437,7 +3437,7 @@ export const yo: Dictionary = withFallback({
       step1Title: "Yan àwọn ọjọ́ rẹ",
       step1Body: "Yan ọjọ́ ìwọlé àti ọjọ́ ìjáde lórí kàlẹ́ńdà ààyè.",
       step2Title: "Fọwọ́sí kí o sì san",
-      step2Body: "Ìsanwó tó ní ààbò ní naira. A kì í gba owó ní kùtùkùtù.",
+      step2Body: "Ìsanwó ní naira nípasẹ̀ Paystack. A kì í gba owó ní kùtùkùtù.",
       step3Title: "Gbádùn ibùgbé rẹ",
       step3Body: "Àwọn àlàyé ìwọlé yóò dé síbí àti nípasẹ̀ ímeèlì.",
     },

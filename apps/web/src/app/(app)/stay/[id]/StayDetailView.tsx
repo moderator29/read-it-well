@@ -269,7 +269,9 @@ export function StayDetailView({
           <h1 className="nf-h2 [text-wrap:balance]">{detail.name}</h1>
           {/* UX-09 / UI-P2-01: said here, one tap deeper than the shelf card,
               where the booking would have happened. */}
-          {detail.isExample && <ExampleNotice variant="page" className="mt-row" />}
+          {detail.isExample && (
+            <ExampleNotice variant="page" className="mt-row" statement={t.examples.statement} />
+          )}
           {where && (
             <p className={`mt-inline-tight flex items-center gap-inline-tight ${TYPE.body}`}>
               <UiIcon name="location" size={ICON.inline} className="shrink-0 text-[var(--nf-brand-secondary)]" />
@@ -342,10 +344,10 @@ export function StayDetailView({
           <div className="mt-block" data-testid="stay-not-bookable">
             <div className={panelClass({ variant: "card", className: "block p-card" })}>
               <p className={TYPE.rowMeta}>
-                Nothing here can be booked or paid for. Search for a real place with a host you can reach.
+                {t.examples.stayNotBookable}
               </p>
               <ButtonLink href="/stays" variant="primary" className="mt-block w-full">
-                Browse real stays
+                {t.examples.browseStays}
               </ButtonLink>
             </div>
           </div>
@@ -436,7 +438,7 @@ export function StayDetailView({
           <Section id="rooms" title={copy.roomsTitle} description={copy.roomsDescription} className="scroll-mt-28">
             {detail.isExample ? (
               <p className={TYPE.rowMeta} data-testid="rooms-example">
-                These rooms are an example of how a stay looks on Vallo. None of them can be booked.
+                {t.examples.roomsExample}
               </p>
             ) : detail.roomTypes.length > 0 ? (
               <RoomTypes

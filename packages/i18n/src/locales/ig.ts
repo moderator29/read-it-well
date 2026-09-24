@@ -3426,7 +3426,7 @@ export const ig: Dictionary = withFallback({
       step1Title: "Họrọ ụbọchị gị",
       step1Body: "Họrọ ụbọchị mbanye na ụbọchị ọpụpụ na kalenda dị ndụ.",
       step2Title: "Kwenye ma kwụọ",
-      step2Body: "Ịkwụ ụgwọ nwere nchekwa na naira. Anyị anaghị anara gị ụgwọ n'oge na-erubeghị.",
+      step2Body: "Ịkwụ ụgwọ na naira site na Paystack. Anyị anaghị anara gị ụgwọ n'oge na-erubeghị.",
       step3Title: "Nwee obi ụtọ na ebe obibi gị",
       step3Body: "Nkọwa mbanye ga-abịa ebe a nakwa site na email.",
     },

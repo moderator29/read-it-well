@@ -786,7 +786,9 @@ export default async function ListingDetailPage({
 
                   {/* Above the price, and that position is the point: the
                       disclosure lands before the belief the figure forms. */}
-                  {listing.isDemo && <ExampleNotice variant="page" className="mt-row" />}
+                  {listing.isDemo && (
+                    <ExampleNotice variant="page" className="mt-row" statement={t.examples.statement} />
+                  )}
 
                   <div className="nf-detail-price-row mt-md">
                     {listing.priceMinor > 0 && (
