@@ -1,4 +1,4 @@
-import type { ListingIntent } from "./pricing";
+import type { ListingIntent, PricePeriod } from "./pricing";
 import type { ListingRole } from "@/lib/supply/roles";
 import type { Listing, ListingKind, ListingSearchFilter } from "./types";
 
@@ -45,6 +45,8 @@ export type ListingFacts = {
    * catalogue is and what every row that predates the distinction was.
    */
   intent?: ListingIntent;
+  /** The cycle the headline price is quoted in; absent on a sale. */
+  pricePeriod?: PricePeriod;
   bedrooms: number;
   bathrooms: number;
   /** The host's declared capacity, where the source carries one. */
@@ -88,6 +90,7 @@ export function factsOf(l: Listing): ListingFacts {
     kind: l.kind,
     priceMinor: l.priceMinor,
     ...(l.intent !== undefined ? { intent: l.intent } : {}),
+    ...(l.pricePeriod !== undefined ? { pricePeriod: l.pricePeriod } : {}),
     bedrooms: l.bedrooms,
     bathrooms: l.bathrooms,
     ...(l.maxGuests !== undefined ? { maxGuests: l.maxGuests } : {}),
@@ -154,6 +157,13 @@ export function isVerifiedFirstParty(facts: ListingFacts): boolean {
  * Every bound is a minimum except the price ceiling, and every one of them is
  * skipped when it was not asked for, so an empty filter matches everything.
  */
+/** Stays, tables and experiences: priced per night or per head, never on a tenancy. */
+const NIGHTLY_KINDS: ReadonlySet<ListingKind> = new Set(["hotel", "shortlet", "restaurant", "experience"]);
+
+function isNightlyOrPerHead(facts: Pick<ListingFacts, "kind" | "pricePeriod">): boolean {
+  return facts.pricePeriod === "night" || facts.pricePeriod === "guest" || NIGHTLY_KINDS.has(facts.kind);
+}
+
 export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = {}): boolean {
   // The category, which lives here rather than in `matchesFilter` because the
   // drawer counts against facts alone and it is the drawer that now asks it.
@@ -163,6 +173,11 @@ export function matchesFacts(facts: ListingFacts, filter: ListingSearchFilter = 
   // search is the single most confusing thing this catalogue could do. Absent
   // reads as "rent" because that is what every row without the column is.
   if (filter.intent && (facts.intent ?? "rent") !== filter.intent) return false;
+
+  // UX-07: "Rent" is the tenancy market. A place priced by the night or by
+  // the head is let as a stay or a table, not on a tenancy, even though its
+  // intent column says rent, so it does not answer a search for a flat.
+  if (filter.intent === "rent" && isNightlyOrPerHead(facts)) return false;
 
   const wantsBudget = filter.minPriceMinor !== undefined || filter.maxPriceMinor !== undefined;
   if (wantsBudget) {

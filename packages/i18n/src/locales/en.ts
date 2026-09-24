@@ -5062,6 +5062,8 @@ export const en = {
       search: "Search",
       filters: "Filters",
       anyMarket: "Any market",
+      marketRent: "Rent",
+      marketBuy: "Buy",
       beds: "{count}+ bed",
       bedsAny: "Beds",
       price: "Price",
