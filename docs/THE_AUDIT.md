@@ -5671,6 +5671,11 @@ This section was added on 24 September 2026, when the fixing closed. The full re
 - **Do not open the held-payments gate** until you have confirmed the deploy shows payout dates as whole Lagos days (ESC-11).
 - **Set Vercel's install command to `npm ci`**, so production installs exactly the tested tree.
 
+**AML/CFT: two free items whose fines start the day the SCUML certificate issues.** See `docs/AML_COMPLIANCE_GAP.md` for SCUML's checklist for DNFBPs.
+- **Appoint a Compliance Officer at management level, in writing** (item 13). This is you: a signed board minute naming you and your duties. The fine is ₦150,000, then ₦500,000 a month after six months. A template minute is in the policy draft's appendix.
+- **Approve a written AML/CFT/CPF policy** (item 5; ₦1,000,000). A draft written against the code as it stands is at `docs/AML_CFT_CPF_POLICY.md`. Read it, have the solicitor confirm it, and approve it by board minute.
+- The rest of the checklist is in that file: sanctions and PEP screening, NFIU reporting (a single Lagos move-in can cross ₦5,000,000), training, and a solicitor's view on whether Vallo files for its own escrow.
+
 **Settings only you can change (each is a single step).**
 - **GitHub:**
   - Restore billing.
