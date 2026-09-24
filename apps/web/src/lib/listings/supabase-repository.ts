@@ -5,6 +5,7 @@ import { memo } from "../cache/memo";
 import type { Database } from "../supabase/database.types";
 import { SUPABASE_URL } from "../supabase/env";
 import { createClient } from "../supabase/server";
+import { pointSelect } from "../supabase/public-point";
 import { isListingRole } from "../supply/roles";
 import { diversePick, matchesFilter } from "./filter";
 import {
@@ -1057,11 +1058,12 @@ export async function loadListingsByIds(
     const { data, error } = await supabase
       .from("listings")
       // The shortlist renders cards, so no walkthroughs and no signing call.
-      .select(LISTING_SELECT)
+      // NEW-A4-01: a signed-out reader is given the public point.
+      .select(await pointSelect(supabase, LISTING_SELECT))
       .eq("status", "PUBLISHED")
       .in("id", ids);
     if (error || !data) return out;
-    for (const listing of await mapRows(supabase, data as ListingRow[])) {
+    for (const listing of await mapRows(supabase, data as unknown as ListingRow[])) {
       out.set(listing.id, listing);
     }
     return out;
@@ -1116,7 +1118,7 @@ export class SupabaseListingRepository implements ListingRepository {
 
       let query = supabase
         .from("listings")
-        .select(LISTING_SELECT)
+        .select(await pointSelect(supabase, LISTING_SELECT))
         .eq("status", "PUBLISHED");
       if (filter.kind) {
         const propertyType = propertyTypeFor(filter.kind);
@@ -1281,7 +1283,7 @@ export class SupabaseListingRepository implements ListingRepository {
         .limit(rowCap(opts.limit));
       if (error || !data) return [];
 
-      const listings = await mapRows(supabase, data as ListingRow[]);
+      const listings = await mapRows(supabase, data as unknown as ListingRow[]);
       return listings.filter((l) => matchesFilter(l, filter));
     } catch {
       return [];
@@ -1314,12 +1316,12 @@ export class SupabaseListingRepository implements ListingRepository {
       const { data, error } = await supabase
         .from("listings")
         // The one surface a walkthrough belongs on, so it pays for the signing.
-        .select(LISTING_DETAIL_SELECT)
+        .select(await pointSelect(supabase, LISTING_DETAIL_SELECT))
         .eq("status", "PUBLISHED")
         .eq("id", id)
         .maybeSingle();
       if (error || !data) return null;
-      const [listing] = await mapRows(supabase, [data as ListingRow]);
+      const [listing] = await mapRows(supabase, [data as unknown as ListingRow]);
       return listing ?? null;
     } catch {
       return null;
@@ -1342,12 +1344,12 @@ export class SupabaseListingRepository implements ListingRepository {
       const supabase = await createClient();
       const { data, error } = await supabase
         .from("listings")
-        .select(LISTING_DETAIL_SELECT)
+        .select(await pointSelect(supabase, LISTING_DETAIL_SELECT))
         .eq("status", "PUBLISHED")
         .eq("reference", reference)
         .maybeSingle();
       if (error || !data) return null;
-      const [listing] = await mapRows(supabase, [data as ListingRow]);
+      const [listing] = await mapRows(supabase, [data as unknown as ListingRow]);
       return listing ?? null;
     } catch {
       return null;
