@@ -52,8 +52,15 @@ describe("reverseEscrowRuling (ESC-07)", () => {
   it("calls the reversal door with the ruling and the reason", async () => {
     seam.rpc.mockResolvedValue({ data: { status: "ok" }, error: null });
     const result = await reverseEscrowRuling({ rulingId: RULING, note: NOTE });
-    expect(result.ok).toBe(true);
+    expect(result).toMatchObject({ ok: true, data: { outcome: "applied" } });
     expect(seam.rpc).toHaveBeenCalledWith("escrow_reverse_ruling", { p_ruling: RULING, p_note: NOTE });
+  });
+
+  it("reports the first super admin's reversal as a proposal, not as done (AML-19)", async () => {
+    seam.rpc.mockResolvedValue({ data: { status: "awaiting_second_approval" }, error: null });
+    const result = await reverseEscrowRuling({ rulingId: RULING, note: NOTE });
+    expect(result).toMatchObject({ ok: true, data: { outcome: "awaiting_second_approval" } });
+    expect(result.ok ? result.data.message : "").toMatch(/second super admin/);
   });
 
   it.each([
