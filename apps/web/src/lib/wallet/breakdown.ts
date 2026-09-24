@@ -3,7 +3,7 @@ import "server-only";
 import { escrowHoldsTakenMoney } from "@/lib/escrow/money-taken";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../supabase/database.types";
-import { ESCROW_PREFIX, isEscrowReference } from "../payments/references";
+import { escrowIdFromReference } from "../payments/references";
 import type { BalanceBreakdown, EscrowLine, EscrowState } from "./types";
 
 /**
@@ -184,9 +184,10 @@ export async function readPropertyNamesForReferences(
 ): Promise<Map<string, string>> {
   const byEscrowId = new Map<string, string[]>();
   for (const reference of references) {
-    if (!isEscrowReference(reference)) continue;
-    const rest = reference.slice(ESCROW_PREFIX.length);
-    const escrowId = rest.slice(0, rest.lastIndexOf("-"));
+    /* ESC-P2-03: the settlement credits' `escrow:release:<id>` too, so a
+       payee's release and a payer's refund name the property. */
+    const escrowId = escrowIdFromReference(reference);
+    if (!escrowId) continue;
     const existing = byEscrowId.get(escrowId);
     if (existing) existing.push(reference);
     else byEscrowId.set(escrowId, [reference]);
