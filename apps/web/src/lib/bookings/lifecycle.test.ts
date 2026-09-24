@@ -181,6 +181,7 @@ describe("no show", () => {
 
   it("is refused before arrival day", () => {
     expect(noShowDecision({ status: "CONFIRMED", checkIn: "2026-09-19" }, TODAY)).toBe("not_arrived");
+    expect(NO_SHOW_MESSAGES.not_arrived).not.toMatch(/come back on the day/i);
   });
 
   it("is never recorded twice and never on a stay that is not confirmed", () => {

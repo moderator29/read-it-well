@@ -203,7 +203,7 @@ export const NO_SHOW_MESSAGES: Record<
   not_confirmed:
     "Only a confirmed stay can be recorded as a no show. Reload the page to see where this one stands.",
   not_arrived:
-    "Arrival day has not come yet, so there is nothing to record. Come back on the day.",
+    "Arrival day has not come yet, so there is nothing to record. You can record a no show from 12:00 the day after check-in.",
   too_early:
     "A guest can still arrive late on the day. You can record a no show from 12:00 the day after check-in.",
   rent_charge:
