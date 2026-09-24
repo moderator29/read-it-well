@@ -350,7 +350,12 @@ export function ProfileHeader({
           "my page shows this" is never a guess. */}
       {isOwner && published && ((occupation && !published.occupation) || (place && !published.homeTown)) ? (
         <p className="nf-caption mt-xs text-[var(--nf-content-muted)]" data-testid="profile-private-note">
-          {t.shape.profile.privateNote}{" "}
+          {/* Per field: say only what is actually held back (review 9). */}
+          {occupation && !published.occupation && place && !published.homeTown
+            ? t.shape.profile.privateNote
+            : occupation && !published.occupation
+              ? t.shape.profile.privateNoteOccupation
+              : t.shape.profile.privateNoteHomeTown}{" "}
           <Link href="/settings/privacy" className="nf-link-quiet text-[var(--nf-content-link)]">
             {t.shape.profile.privateNoteLink}
           </Link>

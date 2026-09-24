@@ -58,10 +58,12 @@ export const shapeEn = {
   /** V-64: a member's page publishes only what the member turned on. */
   profile: {
     showOccupation: "Show my occupation on my page",
-    showOccupationSub: "Off by default. When it is off, only you see it.",
+    showOccupationSub: "Off by default. When it is off, your page and people search do not show it.",
     showHomeTown: "Show my home town on my page",
-    showHomeTownSub: "Off by default. When it is off, only you see it.",
-    privateNote: "Only you can see your occupation and home town here.",
+    showHomeTownSub: "Off by default. When it is off, your page and people search do not show it.",
+    privateNote: "Your occupation and home town are not shown to others on your page.",
+    privateNoteOccupation: "Your occupation is not shown to others on your page.",
+    privateNoteHomeTown: "Your home town is not shown to others on your page.",
     privateNoteLink: "Choose what your page shows",
   },
   /** V-76: Bookings, Trips and Inspections are one dated list called Plans. */
@@ -274,6 +276,7 @@ export const shapeEn = {
   compound: {
     title: "The compound",
     lede: "What the lister says about the compound this home is in.",
+    listerSays: "Lister says: {fact}",
     parkingInside: "Parking inside the compound",
     parkingStreet: "Street parking",
     parkingNone: "No parking",

@@ -15,7 +15,7 @@ import {
   setListingAccess,
   submitListing,
 } from "@/lib/agent/listings-actions";
-import type { WizardDraft } from "@/lib/agent/listings-queries";
+import type { OwnAnswers, WizardDraft } from "@/lib/agent/listings-queries";
 import {
   MAX_ACCESS_CODE,
   MAX_BACKUP_HOURS,
@@ -772,6 +772,15 @@ function TenantPays({
 
 /* ------------------------------------------------------------- the wizard */
 
+/**
+ * True when a group's saved answers could not be read AND the lister has not
+ * touched the empty form standing in for them. Such a group is left out of
+ * the save rather than written back as nulls (review 13).
+ */
+function untouchedUnread(unread: readonly OwnAnswers[], group: OwnAnswers, value: unknown, empty: unknown): boolean {
+  return unread.includes(group) && JSON.stringify(value) === JSON.stringify(empty);
+}
+
 export function ListingWizard({
   copy,
   reference,
@@ -823,6 +832,8 @@ export function ListingWizard({
     Math.min(Math.max(Math.trunc(startAt), 0), STEP_KEYS.length - 1),
   );
   const [values, setValues] = useState<Values>(initial ? valuesFrom(initial) : EMPTY);
+  /* The answer groups whose saved values could not be read (review 13). */
+  const unread = useMemo(() => initial?.unread ?? [], [initial]);
   const [photos, setPhotos] = useState<Photo[]>(initial?.photos ?? []);
   const [chosenAmenities, setChosenAmenities] = useState<string[]>(initial?.amenityCodes ?? []);
   /* The walkthroughs already attached to this draft. Every layer behind them
@@ -1198,9 +1209,12 @@ export function ListingWizard({
       powerBackupHours: values.powerBackupHours === "" ? undefined : values.powerBackupHours,
       waterSupply: values.waterSupply === "" ? undefined : values.waterSupply,
       prepaidMeter: values.prepaidMeter,
-      ...compoundPayload(values.compound),
-      ...servicePayload(values.service),
-      ...unitPayload(values.unit, values.bedrooms),
+      /* A group whose saved answers could not be read, and which the lister
+         has not touched, is left out: sending its empty form would write
+         nulls over answers this screen never saw (review 13). */
+      ...(untouchedUnread(unread, "compound", values.compound, EMPTY_COMPOUND_FORM) ? {} : compoundPayload(values.compound)),
+      ...(untouchedUnread(unread, "service", values.service, EMPTY_SERVICE_FORM) ? {} : servicePayload(values.service)),
+      ...(untouchedUnread(unread, "unit", values.unit, EMPTY_UNIT_FORM) ? {} : unitPayload(values.unit, values.bedrooms)),
     });
 
     if (!result.ok) {
@@ -1233,7 +1247,7 @@ export function ListingWizard({
     if (!accessResult.ok) setNotice(accessResult.error);
 
     return result.data.id;
-  }, [canPersist, chosenAmenities, listingId, values]);
+  }, [canPersist, chosenAmenities, listingId, values, unread]);
 
   function go(next: number) {
     const target = Math.min(STEP_KEYS.length - 1, Math.max(0, next));
@@ -2233,6 +2247,7 @@ export function ListingWizard({
               copy={compoundCopy}
               value={values.compound}
               onChange={(next) => set("compound", next)}
+              flatsError={fieldErrors.flatsInCompound}
             />
 
             {/* ------------------------------------------------ the gate */}

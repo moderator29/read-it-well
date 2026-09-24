@@ -33,6 +33,8 @@ export function ListingCompound({
   return (
     <section aria-label={copy.title} data-testid="listing-compound">
       <p className="nf-overline text-[var(--nf-content-muted)]">{copy.title}</p>
+      {/* Whose answers these are, said once: the lister's, not Vallo's. */}
+      <p className="nf-caption mt-2xs text-[var(--nf-content-secondary)]">{copy.lede}</p>
       <ul className="nf-spec-row nf-scroll-x mt-inline">
         {facts.map((fact) => (
           <li key={fact.key} className="nf-spec-tile" data-fact={fact.key}>

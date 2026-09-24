@@ -504,9 +504,13 @@ export function ListingCard({
             <p className="nf-pcard__sub inline-flex items-start gap-inline-tight" data-testid="card-landlord">
               <UiIcon name="house" size={12} className="mt-3xs shrink-0" />
               <span className="break-words">
-                {listing.compound.landlordOnSite
-                  ? t.shape.compound.landlordOnSite
-                  : t.shape.compound.landlordElsewhere}
+                {/* The lister's answer, and the line says so (V-28 review). */}
+                {t.shape.compound.listerSays.replace(
+                  "{fact}",
+                  listing.compound.landlordOnSite
+                    ? t.shape.compound.landlordOnSite
+                    : t.shape.compound.landlordElsewhere,
+                )}
               </span>
             </p>
           )}

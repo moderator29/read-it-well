@@ -158,7 +158,7 @@ export default async function SearchPage({
   const raw = await searchParams;
   const query: ShelfQuery = parseShelfQuery(raw);
   /* A stay typed on the Property side is sent to the Stays side, words kept (V-67). */
-  const staySide = staySideHref(query.kind, query.q);
+  const staySide = staySideHref(query.kind, raw);
   if (staySide) redirect(staySide);
   /* V-66: WhatsApp shorthand becomes filters, once. What is left over reads
      nothing, so this never redirects twice. */
@@ -181,7 +181,9 @@ export default async function SearchPage({
       query.sort === "move-in-asc" ? { order: "move-in" } : query.sort === "newest" ? { order: "newest" } : {},
     ),
     repo.search(shelfPoolFilter(query)),
-    repo.search({}),
+    /* The Property side's catalogue, never its stays: a nightly rate must
+       not become a city's "from" price on this map (V-67 review). */
+    repo.search({ propertySide: true }),
   ]);
   const sorted = sortListings(rawResults, query.sort);
 

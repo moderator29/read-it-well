@@ -33,11 +33,14 @@ describe("the Property side", () => {
   });
 
   it("sends a stay category typed here to the Stays side, with the words kept", () => {
-    expect(staySideHref("hotel", "Ikeja")).toBe("/stays/search?type=hotel&q=Ikeja");
-    expect(staySideHref("shortlet", undefined)).toBe("/stays/search?type=shortlet");
-    expect(staySideHref("restaurant", "Jabi")).toBe("/restaurants");
-    expect(staySideHref("apartment", "Yaba")).toBeNull();
-    expect(staySideHref(undefined, undefined)).toBeNull();
+    expect(staySideHref("hotel", { q: "Ikeja" })).toBe("/stays/search?type=hotel&q=Ikeja");
+    expect(staySideHref("shortlet", {})).toBe("/stays/search?type=shortlet");
+    expect(staySideHref("shortlet", { q: "Wuse", guests: "3", verified: "1", max: "5000000", sort: "newest", beds: "2" })).toBe(
+      "/stays/search?type=shortlet&q=Wuse&guests=3&verified=1",
+    );
+    expect(staySideHref("restaurant", { q: "Jabi" })).toBe("/restaurants");
+    expect(staySideHref("apartment", { q: "Yaba" })).toBeNull();
+    expect(staySideHref(undefined, {})).toBeNull();
   });
 
   it("offers no stay kind and no Top rated sort", () => {

@@ -1464,7 +1464,7 @@ export const en = {
 
     privacy: {
       label: "Privacy",
-      note: "Your occupation and home town are private unless you turn them on under Privacy.",
+      note: "Kept on this device. Sign in to choose what your page shows.",
       readReceipts: "Read receipts",
       readReceiptsSub: "Let hosts see when you have read their messages.",
       personalised: "Personalised recommendations",

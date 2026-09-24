@@ -66,7 +66,10 @@ describe("the compound's five answers (V-28)", () => {
       wasteDisposal: null,
       carAccess: null,
     });
-    expect(compoundPayload({ ...form, flatsInCompound: "0" }).flatsInCompound).toBeNull();
+    // Out of range is passed through for the schema to refuse with its message.
+    expect(compoundPayload({ ...form, flatsInCompound: "0" }).flatsInCompound).toBe(0);
+    expect(compoundPayload({ ...form, flatsInCompound: "750" }).flatsInCompound).toBe(750);
+    expect(compoundPayload({ ...form, flatsInCompound: "" }).flatsInCompound).toBeNull();
     expect(compoundColumns(compoundPayload(EMPTY_COMPOUND_FORM))).toEqual({
       parking_type: null,
       flats_in_compound: null,

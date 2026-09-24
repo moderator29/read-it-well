@@ -194,6 +194,9 @@ export type ListingSummary = {
 };
 
 /** Everything the wizard needs to reopen a draft exactly as it was left. */
+/** The answer groups kept in their own columns. */
+export type OwnAnswers = "compound" | "service" | "unit";
+
 export type WizardDraft = {
   id: string;
   status: ListingStatus;
@@ -260,6 +263,8 @@ export type WizardDraft = {
   service?: ServiceForm;
   /** V-66: the unit's shape, as the wizard's controls hold it. */
   unit?: UnitForm;
+  /** Which of those three could not be read, so a save leaves them alone. */
+  unread?: OwnAnswers[];
   /** Never public. Read from public.listing_access, which only the host,
       an admin and a guest with a CONFIRMED booking may select from. */
   access: {
@@ -521,9 +526,7 @@ async function toDraft(
     powerBackupHours: row.power_backup_hours === null ? "" : String(row.power_backup_hours),
     waterSupply: row.water_supply ?? "",
     prepaidMeter: row.prepaid_meter ?? false,
-    compound: compoundFormOf(await readCompoundFor(supabase, row.id)),
-    service: serviceFormOf(await readServiceFor(supabase, row.id)),
-    unit: unitFormOf(await readUnitFor(supabase, row.id)),
+    ...(await ownAnswers(supabase, row.id)),
     access: {
       estateName: row.listing_access?.estate_name ?? "",
       gateDirections: row.listing_access?.gate_directions ?? "",
@@ -538,6 +541,32 @@ async function toDraft(
 }
 
 /**
+ * The answers kept in their own columns (V-28, V-68, V-66), read on their
+ * own. A read that FAILED is named in `unread`, so the wizard does not send
+ * its empty form back as nulls and wipe answers it never saw (review 13).
+ */
+async function ownAnswers(
+  supabase: SupabaseClient<Database>,
+  listingId: string,
+): Promise<Pick<WizardDraft, "compound" | "service" | "unit" | "unread">> {
+  const [compound, service, unit] = await Promise.all([
+    readCompoundFor(supabase, listingId),
+    readServiceFor(supabase, listingId),
+    readUnitFor(supabase, listingId),
+  ]);
+  const unread: OwnAnswers[] = [];
+  if (compound === undefined) unread.push("compound");
+  if (service === undefined) unread.push("service");
+  if (unit === undefined) unread.push("unit");
+  return {
+    compound: compoundFormOf(compound ?? null),
+    service: serviceFormOf(service ?? null),
+    unit: unitFormOf(unit ?? null),
+    unread,
+  };
+}
+
+/**
  * The compound's five answers for one draft (V-28), by their own read so a
  * database without the migration still opens the wizard: an error is "nothing
  * answered". See `getCompoundFacts` in the listings repository for why.
@@ -545,17 +574,17 @@ async function toDraft(
 async function readCompoundFor(
   supabase: SupabaseClient<Database>,
   listingId: string,
-): Promise<Compound | null> {
+): Promise<Compound | null | undefined> {
   try {
     const { data, error } = await supabase
       .from("listings")
       .select(COMPOUND_COLUMNS)
       .eq("id", listingId)
       .maybeSingle();
-    if (error || !data) return null;
+    if (error || !data) return undefined;
     return readCompound(data as unknown as CompoundRow);
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -563,28 +592,31 @@ async function readCompoundFor(
 async function readServiceFor(
   supabase: SupabaseClient<Database>,
   listingId: string,
-): Promise<ServiceFacts | null> {
+): Promise<ServiceFacts | null | undefined> {
   try {
     const { data, error } = await supabase
       .from("listings")
       .select(SERVICE_COLUMNS)
       .eq("id", listingId)
       .maybeSingle();
-    if (error || !data) return null;
+    if (error || !data) return undefined;
     return readService(data as unknown as ServiceRow);
   } catch {
-    return null;
+    return undefined;
   }
 }
 
 /** V-66: the unit's shape for one draft, by its own read. */
-async function readUnitFor(supabase: SupabaseClient<Database>, listingId: string): Promise<UnitFacts | null> {
+async function readUnitFor(
+  supabase: SupabaseClient<Database>,
+  listingId: string,
+): Promise<UnitFacts | null | undefined> {
   try {
     const { data, error } = await supabase.from("listings").select(UNIT_COLUMNS).eq("id", listingId).maybeSingle();
-    if (error || !data) return null;
+    if (error || !data) return undefined;
     return readUnit(data as unknown as UnitRow);
   } catch {
-    return null;
+    return undefined;
   }
 }
 

@@ -116,6 +116,7 @@ export default async function ListingUnderReviewPage({
           credit: dark.credits.map((credit) => credit.label).join(", "),
         }}
         keepers={{ moveIn: t.moveIn, purchase: t.purchase }}
+        compoundCopy={t.shape.compound}
         exampleNote={
           extra?.isDemo ? (
             <p className="nf-rv-unwired" role="note">

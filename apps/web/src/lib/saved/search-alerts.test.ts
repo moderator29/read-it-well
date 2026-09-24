@@ -87,6 +87,17 @@ describe("filterFor", () => {
 });
 
 describe("planAlerts", () => {
+  it("does not judge a search saved for a stay category, and says which", () => {
+    const hotel = canonicalSearch({ type: "hotel" });
+    const plan = planAlerts(
+      [search({ id: "stay", params: hotel.params, href: hotel.href }), search()],
+      [candidate("2026-09-20T10:00:00.000Z", { kind: "apartment", bedrooms: 2 })],
+      "/saved/searches",
+    );
+    expect(plan.staySide).toEqual(["stay"]);
+    expect(plan.matchedIds).not.toContain("stay");
+  });
+
   it("tells nobody anything when nothing went up", () => {
     const plan = planAlerts([search()], [], "/saved/searches");
     expect(plan.notices).toEqual([]);

@@ -1,9 +1,10 @@
-import type { ListingIntent, PricePeriod } from "./pricing";
+import type { ListingRole } from "@/lib/supply/roles";
+import { isTenancyPeriod, type ListingIntent, type PricePeriod } from "./pricing";
+import type { Listing, ListingKind, ListingSearchFilter } from "./types";
 import { matchesCompound, type Compound } from "./compound";
 import { matchesService, type ServiceFacts } from "./service";
 import { cashAtDoor, upfrontMonths } from "./upfront";
 import { matchesUnit, type UnitFacts } from "./unit-shape";
-
 
 /**
  * Whether the rent market narrows to tenancies for this filter (V-26).
@@ -22,7 +23,8 @@ export function rentMeansTenancy(filter: { intent?: ListingIntent; kind?: Listin
 
 /** A night or a head: a stay, a hotel room or a table, never the Property side's (V-67). */
 export function isStayPeriod(period: PricePeriod): boolean {
-  return period === "night" || period === "guest";
+  /* The complement of a tenancy, from the one definition in pricing.ts. */
+  return !isTenancyPeriod(period);
 }
 
 /** The kinds the Property side offers, in the drawer's order (V-67). */
@@ -52,8 +54,6 @@ export function budgetFigure(
   if (rentMeansTenancy(filter)) return cashAtDoor(facts)?.minor ?? null;
   return facts.priceMinor > 0 ? facts.priceMinor : null;
 }
-import type { ListingRole } from "@/lib/supply/roles";
-import type { Listing, ListingKind, ListingSearchFilter } from "./types";
 
 /**
  * Filter and ranking semantics, in one place.

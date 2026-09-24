@@ -441,9 +441,9 @@ export const CHAPTERS: DocChapter[] = [
           <>
             <p>
               A handle is your address on Vallo. Claim one and your public page lives at{" "}
-              <code>/u/your-handle</code>: your name, your area, your occupation, any
-              standing you have earned, and tabs for what you have posted, replied to
-              and shared. An agent gets a Properties tab and a Reviews tab instead.
+              <code>/u/your-handle</code>: your name, your area, any standing you have
+              earned, your occupation and home town only if you switch each one on
+              under Privacy, and tabs for what you have posted, replied to and shared. An agent gets a Properties tab and a Reviews tab instead.
             </p>
             <p>
               Handles are lowercase letters, digits and underscores, three to twenty

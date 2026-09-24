@@ -29,10 +29,13 @@ export function CompoundQuestions({
   copy,
   value,
   onChange,
+  flatsError,
 }: {
   copy: Dictionary["shape"]["compound"];
   value: CompoundForm;
   onChange: (next: CompoundForm) => void;
+  /** The schema's own sentence when the number is out of range. */
+  flatsError?: string | undefined;
 }) {
   const id = useId();
   const patch = (next: Partial<CompoundForm>) => onChange({ ...value, ...next });
@@ -85,6 +88,11 @@ export function CompoundQuestions({
             data-testid="compound-flats"
             onChange={(e) => patch({ flatsInCompound: e.target.value.replace(/[^0-9]/g, "").slice(0, 3) })}
           />
+          {flatsError && (
+            <span role="alert" className="nf-body-sm mt-inline-tight block font-medium text-[var(--nf-state-error)]">
+              {flatsError}
+            </span>
+          )}
         </div>
 
         <div>

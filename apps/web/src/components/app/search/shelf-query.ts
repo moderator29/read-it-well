@@ -1,5 +1,6 @@
 import type { ListingIntent, ListingKind, ListingSearchFilter } from "@/lib/listings/types";
 import { rentMeansTenancy } from "@/lib/listings/filter";
+import { staysParamsSchema } from "@/lib/stays/filters";
 import type { ParsedWords } from "@/lib/listings/query-parse";
 import {
   activeFilterCount,
@@ -37,6 +38,9 @@ function readMarket(value: string | string[] | undefined): ListingIntent | undef
 
 export function parseShelfQuery(params: RawSearchParams): ShelfQuery {
   const query: ShelfQuery = parseDiscoveryQuery(params);
+  /* Instant book is a stay's question, and the Property side has none: an old
+     link's `instant=1` is not read here (V-67 review). */
+  query.instantBook = false;
   const intent = readMarket(params[MARKET_PARAM]);
   if (intent !== undefined) query.intent = intent;
   return query;
@@ -85,16 +89,28 @@ export function shelfPoolFilter(query: ShelfQuery): ListingSearchFilter {
   return { ...toPoolFilter(query), propertySide: true };
 }
 
+/* What the Stays search reads, minus the money and the order: a yearly
+   budget or a property sort key does not mean the same thing per night. */
+const STAYS_CARRIED = Object.keys(staysParamsSchema.shape).filter(
+  (key) => key !== "min" && key !== "max" && key !== "sort",
+);
+
 /**
  * Where a stay category typed on the Property side belongs (V-67), or null.
- * Hotels and shortlets are the Stays side's search, with the same words;
- * restaurants have their own shelf.
+ * Hotels and shortlets are the Stays side's search, carrying every parameter
+ * that search reads (`staysParamsSchema`) apart from the budget and the sort.
+ * Restaurants go to `/restaurants`, which reads no parameters at all, so
+ * nothing is carried there.
  */
-export function staySideHref(kind: ListingKind | undefined, q: string | undefined): string | null {
+export function staySideHref(kind: ListingKind | undefined, raw: RawSearchParams): string | null {
   if (kind === "restaurant") return "/restaurants";
   if (kind !== "hotel" && kind !== "shortlet") return null;
   const params = new URLSearchParams({ type: kind });
-  if (q) params.set("q", q);
+  for (const key of STAYS_CARRIED) {
+    const value = raw[key];
+    const one = Array.isArray(value) ? value[0] : value;
+    if (typeof one === "string" && one.trim() !== "") params.set(key, one);
+  }
   return `/stays/search?${params.toString()}`;
 }
 

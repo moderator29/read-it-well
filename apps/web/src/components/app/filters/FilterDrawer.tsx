@@ -6,8 +6,8 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { formatMoney, formatNumber, type Dictionary, type Locale } from "@vallo/i18n";
 import { UiIcon, type UiIconName } from "@/design-system/icons/UiIcon";
+import { priceScale } from "@/lib/listings/price-bounds";
 import {
-  budgetFigure,
   hasBackupPower,
   matchesFacts,
   rentMeansTenancy,
@@ -69,7 +69,7 @@ import { useClientMount } from "@/lib/ui/client-mount";
  */
 
 /** The three markets the Market group offers; see `marketOptions`. */
-type Market = ListingIntent | "shortlet";
+type Market = ListingIntent;
 
 type Draft = {
   q: string;
@@ -178,18 +178,6 @@ function queryFrom(base: ShelfQuery, draft: Draft): ShelfQuery {
 
 /* Any, then 1+ to 4+. Zero is "any", which the query does not carry. */
 const ROOM_STEPS: number[] = [0, 1, 2, 3, 4];
-
-function sliderScale(high: number | undefined) {
-  const floor = 0;
-  const ceiling = high !== undefined && high > 0 ? Math.ceil(koboToNaira(high) / 1000) * 1000 : 5_000_000;
-  const span = Math.max(1, ceiling - floor);
-  // A hundred stops across the range, rounded to something a person would
-  // type, so dragging lands on round numbers rather than on 187,431.
-  const raw = Math.max(1, Math.round(span / 100));
-  const magnitude = 10 ** Math.max(0, String(Math.floor(raw)).length - 1);
-  const step = Math.max(1, Math.round(raw / magnitude) * magnitude);
-  return { floor, ceiling, span, step };
-}
 
 const AMENITY_ICON: Record<string, UiIconName> = {
   pool: "pool",
@@ -389,13 +377,8 @@ export function FilterDrawer({
   }, [facts, draft.kind]);
 
   /*
-   * BUY, RENT, SHORTLET, as the target render draws the Market group.
-   *
-   * Two of the three are `listing_intent` values and the third is not:
-   * a shortlet is rented, by the night, and the column that tells it apart
-   * from a tenancy is `kind`. So the control answers in markets and writes
-   * whichever pair of columns that market means, which is the same shape
-   * the card's own `cardMarket` uses to read them back. Each option is
+   * BUY AND RENT: the Property side's two markets, each a `listing_intent`
+   * value. Shortlet was a third and left with the stays (V-67). Buy is
    * offered only where the pool holds something it could return.
    */
   const marketOptions = useMemo(() => {
@@ -417,10 +400,8 @@ export function FilterDrawer({
     return options;
   }, [facts, draft.intent]);
 
-  /* Which of the three the draft currently stands on. A shortlet is a rent
-     with a kind, so it is read before the bare intent. */
-  const market: Market | undefined =
-    draft.kind === "shortlet" ? "shortlet" : draft.intent === undefined ? undefined : draft.intent;
+  /* Which market the draft currently stands on. */
+  const market: Market | undefined = draft.intent;
 
   const amenityOptions = useMemo(() => {
     const codes = new Set<string>();
@@ -493,24 +474,12 @@ export function FilterDrawer({
     return facts.filter((fact) => matchesFacts(fact, filter)).length;
   }, [facts, pending]);
 
-  /* THE PRICE CONTROL IS SCALED TO THE MARKET (V-67). It ran from nothing to
-     the dearest sale on the shelf, so a renter's whole market was the first
-     sliver of the track. Only the chosen market's prices set the ceiling. */
-  /* V-65: on the Rent market the figure is the cash at the door, so the
-     track is scaled to the dearest door price rather than the dearest rent. */
+  /* THE PRICE CONTROL IS SCALED TO THE MARKET (V-67). A fixed range per
+     market (`PRICE_BOUNDS`), the Rent scale when no market is chosen, so the
+     track never runs to the dearest sale. V-65: on the Rent market the figure
+     it bounds is the cash at the door. */
   const cashMarket = rentMeansTenancy(draft);
-  const bounds = useMemo(() => {
-    const market = { ...(draft.intent ? { intent: draft.intent } : {}), ...(draft.kind ? { kind: draft.kind } : {}) };
-    let high: number | undefined;
-    for (const fact of facts) {
-      if (draft.intent && (fact.intent ?? "rent") !== draft.intent) continue;
-      const figure = budgetFigure(fact, market);
-      if (figure === null) continue;
-      if (high === undefined || figure > high) high = figure;
-    }
-    return { high };
-  }, [facts, draft.intent, draft.kind]);
-  const scale = useMemo(() => sliderScale(bounds.high), [bounds.high]);
+  const scale = useMemo(() => priceScale(draft.intent), [draft.intent]);
 
   const noun = draft.kind ? KIND_NOUN[draft.kind] : { one: "place", many: "places" };
 
@@ -552,16 +521,11 @@ export function FilterDrawer({
 
   function pickMarket(value: Market) {
     setDraft((current) => {
-      const { intent: _wasIntent, kind: _wasKind, ...rest } = current;
-      const wasShortlet = current.kind === "shortlet";
-      const standing = wasShortlet ? "shortlet" : current.intent;
+      const { intent: _wasIntent, ...rest } = current;
       /* Tapping the market you are already in clears it, which is how every
          other group in this sheet behaves. */
-      if (standing === value) return current.kind && !wasShortlet ? { ...rest, kind: current.kind } : rest;
-      if (value === "shortlet") return { ...rest, intent: "rent", kind: "shortlet" };
-      return current.kind && !wasShortlet
-        ? { ...rest, intent: value, kind: current.kind }
-        : { ...rest, intent: value };
+      if (current.intent === value) return rest;
+      return { ...rest, intent: value };
     });
   }
 
@@ -702,9 +666,7 @@ export function FilterDrawer({
                   ? () =>
                       setDraft((current) => {
                         const { intent: _wasIntent, ...rest } = current;
-                        if (current.kind !== "shortlet") return rest;
-                        const { kind: _wasKind, ...bare } = rest;
-                        return bare;
+                        return rest;
                       })
                   : undefined
               }

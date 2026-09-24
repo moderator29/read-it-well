@@ -208,7 +208,9 @@ export function compoundPayload(form: CompoundForm): CompoundPayload {
   const flats = /^\d{1,3}$/.test(form.flatsInCompound.trim()) ? Number(form.flatsInCompound.trim()) : null;
   return {
     parkingType: form.parkingType === "" ? null : form.parkingType,
-    flatsInCompound: flats !== null && flats >= 1 && flats <= 500 ? flats : null,
+    /* Out-of-range numbers go to the schema as typed, so the lister is told
+       "Enter 500 or fewer homes" instead of the answer vanishing (review 12). */
+    flatsInCompound: flats,
     landlordOnSite: form.landlordOnSite === "" ? null : form.landlordOnSite === "yes",
     wasteDisposal: form.wasteDisposal === "" ? null : form.wasteDisposal,
     carAccess: form.carAccess === "" ? null : form.carAccess === "yes",

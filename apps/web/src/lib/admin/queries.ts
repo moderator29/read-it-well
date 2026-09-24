@@ -1,4 +1,5 @@
 import "server-only";
+import { COMPOUND_COLUMNS, readCompound, type Compound, type CompoundRow } from "@/lib/listings/compound";
 
 import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -829,6 +830,8 @@ export type ListingReviewView = {
   reviewNotes: string | null;
   createdAt: string;
   checks: QualityCheck[];
+  /** V-28: the compound's five answers, read on their own. Null: none, or unreadable. */
+  compound?: Compound | null;
 };
 
 const LISTING_COLUMNS =
@@ -1211,19 +1214,47 @@ export async function getListingSubmissions(
 
     const waitingPage = takePage((waiting.data ?? []) as ListingRow[]);
     const rows = [...waitingPage.rows, ...((decided.data ?? []) as ListingRow[])];
-    const signedVideos = await signListingVideos(admin, rows);
+    const [signedVideos, compounds] = await Promise.all([
+      signListingVideos(admin, rows),
+      readCompounds(admin, rows.map((row) => row.id)),
+    ]);
+    /* V-28 review: the reviewer sees the compound answers the renter will. */
+    const view = (row: ListingRow) => ({
+      ...toListingView(admin, row, signedVideos),
+      compound: compounds.get(row.id) ?? null,
+    });
 
     return {
       state: "ok",
       data: {
-        waiting: waitingPage.rows.map((row) => toListingView(admin, row, signedVideos)),
-        decided: (decided.data ?? []).map((row) => toListingView(admin, row, signedVideos)),
+        waiting: waitingPage.rows.map(view),
+        decided: ((decided.data ?? []) as ListingRow[]).map(view),
         full: waitingPage.full,
       },
     };
   } catch {
     return UNAVAILABLE;
   }
+}
+
+/**
+ * The compound answers for a page of listings (V-28), by their own read so a
+ * database without migration `20260924150200` still loads the queue.
+ */
+async function readCompounds(admin: SupabaseClient<Database>, ids: string[]): Promise<Map<string, Compound>> {
+  const out = new Map<string, Compound>();
+  if (ids.length === 0) return out;
+  try {
+    const { data, error } = await admin.from("listings").select(`id, ${COMPOUND_COLUMNS}`).in("id", ids);
+    if (error || !data) return out;
+    for (const row of data as unknown as (CompoundRow & { id: string })[]) {
+      const compound = readCompound(row);
+      if (compound) out.set(row.id, compound);
+    }
+  } catch {
+    /* No answers shown is the honest result of a read that failed. */
+  }
+  return out;
 }
 
 /** ---------------------------------------------------------- support tickets */

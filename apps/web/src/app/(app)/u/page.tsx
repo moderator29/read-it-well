@@ -93,7 +93,7 @@ export default async function PeoplePage({
           name="q"
           type="search"
           defaultValue={view.query}
-          placeholder="A name, a handle, a job, a place"
+          placeholder="A name or a handle"
           autoComplete="off"
         />
         <Button type="submit" variant="primary" className="h-12 shrink-0">
@@ -120,7 +120,7 @@ export default async function PeoplePage({
             title={searching ? `Nobody here is called ${view.query}` : "Nobody has a page yet"}
             body={
               searching
-                ? "Nobody matched that name, handle, occupation or place. Try a shorter piece of it, or the handle itself."
+                ? "Nobody matched that name or handle. Try a shorter piece of it, or the handle itself."
                 : "The first person to claim a handle appears here. Claim yours and yours is the first name anybody arriving reads."
             }
             action={{ href: "/around", label: "Go to Around" }}
@@ -165,9 +165,9 @@ export default async function PeoplePage({
                       is nothing here to truncate, and truncating the one
                       sentence somebody wrote about themselves to tidy a row is
                       the wrong trade. */}
-                  {/* What they do and where, from columns a trigger projects
-                      rather than columns a person types. Absent entirely when
-                      unknown: a profile should never look like a form somebody
+                  {/* What they do and where, ONLY where the member published
+                      it in their settings (V-64). Absent entirely otherwise:
+                      a profile should never look like a form somebody
                       abandoned. */}
                   {person.occupation || person.place ? (
                     <span className="nf-people__facts">
