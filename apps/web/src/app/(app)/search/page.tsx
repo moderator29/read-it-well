@@ -294,7 +294,15 @@ export default async function SearchPage({
         {query.q ? `Results for ${query.q}` : query.kind ? `Explore ${noun.many}` : "Explore properties"}
       </h1>
 
-      <ShelfCount query={query} count={listings.length} narrowed={narrowed || Boolean(query.q)} locale={locale} t={t} />
+      <ShelfCount
+        query={query}
+        count={listings.length}
+        narrowed={narrowed || Boolean(query.q)}
+        locale={locale}
+        t={t}
+        more={!codeHit && Boolean(nextHref)}
+        later={!codeHit && Boolean(after)}
+      />
 
       {/* HOW A CODE ANSWERED. A hit always says so, because a single result
           under no explanation looks like a strangely lucky search. A miss and
