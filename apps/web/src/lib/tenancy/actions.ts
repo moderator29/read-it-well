@@ -298,3 +298,36 @@ export async function answerExitAccount(input: {
     `/tenancy/${parsed.data.tenancyId}`,
   );
 }
+
+/* ------------------------------------------------------------ V-47 pins */
+
+/**
+ * Pin a message from the tenant-lister thread to the tenancy as evidence. The
+ * insert policy is the rule (a party, as themselves, a message in THE
+ * conversation between this tenant and this lister about this listing), and
+ * a pin is append-only: kept until tenancy end plus six years.
+ */
+export async function pinTenancyMessage(input: {
+  tenancyId: string;
+  messageId: string;
+}): Promise<ActionResult<Record<string, unknown>>> {
+  const parsed = validate(z.object({ tenancyId: uuid, messageId: uuid }), input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const session = await resolveSession();
+  if (session.state === "unconfigured") return fail(NOT_CONFIGURED_MESSAGE);
+  if (session.state === "signed-out") return fail(SIGNED_OUT_MESSAGE);
+  try {
+    const loose = session.supabase as unknown as SupabaseClient;
+    const { error } = await loose
+      .from("tenancy_pins")
+      .insert({ rent_payment_id: parsed.data.tenancyId, message_id: parsed.data.messageId, pinned_by: session.user.id });
+    if (error) {
+      if (error.code === "23505") return fail("That message is already pinned.");
+      return fail("Only a message from your thread with the other party about this flat can be pinned.");
+    }
+    revalidatePath(`/tenancy/${parsed.data.tenancyId}`);
+    return ok({});
+  } catch {
+    return fail(SERVICE_DOWN);
+  }
+}

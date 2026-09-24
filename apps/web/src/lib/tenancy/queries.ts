@@ -114,6 +114,8 @@ export type TenancyFile = {
   viewing: { submittedLabel: string | null; ticked: number } | null;
   reports: TenancyReportView[];
   pins: { id: string; body: string; date: string }[];
+  /** Recent messages in the tenant-lister thread that can still be pinned. */
+  pinCandidates: { id: string; body: string; date: string }[];
   /** V-93 and V-38: the renewal clock, the relist and the exit account. */
   renewal: TenancyRenewal;
   /** V-86: flatmates' shares of the move-in, the lead's as the remainder. */
@@ -542,6 +544,32 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
       unavailable: Boolean(contributorsRead.error || sharePaidRead.error || answersRead.error || returnsRead.error),
     };
 
+    /* ---------------------------------------------------------- pin candidates */
+    // The pin policy allows only THE conversation between this tenant and this
+    // lister about this listing, so only its messages are offered.
+    let pinCandidates: TenancyFile["pinCandidates"] = [];
+    if (viewer !== "staff") {
+      const { data: threads } = await db
+        .from("conversations")
+        .select("id")
+        .eq("listing_id", rp.listing_id)
+        .eq("guest_id", rp.tenant_id)
+        .eq("agent_id", rp.lister_id);
+      const threadIds = (threads ?? []).map((thread) => thread.id);
+      if (threadIds.length > 0) {
+        const pinned = new Set(pins.map((pin) => pin.id));
+        const { data: recent } = await db
+          .from("messages")
+          .select("id, body, created_at")
+          .in("conversation_id", threadIds)
+          .order("created_at", { ascending: false })
+          .limit(30);
+        pinCandidates = (recent ?? [])
+          .filter((message) => !pinned.has(message.id) && typeof message.body === "string" && message.body.trim().length > 0)
+          .map((message) => ({ id: message.id, body: message.body, date: day(message.created_at, true) }));
+      }
+    }
+
     /* ---------------------------------------------------------- promise */
     const snap = snapshotRead.error ? null : (snapshotRead.data as Row | null);
     const snapListing = snap && typeof snap.listing === "object" && snap.listing !== null ? (snap.listing as Row) : null;
@@ -584,6 +612,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         viewing,
         reports,
         pins,
+        pinCandidates,
         renewal,
         flatmates,
         receiptCode: (() => {

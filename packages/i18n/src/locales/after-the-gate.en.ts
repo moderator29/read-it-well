@@ -162,6 +162,9 @@ export const afterTheGateEn = {
     you: "you",
     otherParty: "the other party",
     pinsHeading: "Pinned messages",
+    pinOpen: "Pin a message from your thread",
+    pinHelp: "A pinned message is kept with this tenancy file, as evidence, until six years after the tenancy ends. Pinning cannot be undone.",
+    pin: "Pin",
     retention: "This file is kept until {date}, six years after the tenancy ends.",
     listerHeading: "Tenancies",
     listerLede: "Each paid move-in opens a tenancy file: the reports, the caution and what the listing promised.",
@@ -383,6 +386,11 @@ export const afterTheGateEn = {
     },
     seeAll: "See all {count}",
     failed: "What is coming up could not be read just now.",
+  },
+  cautionRecord: {
+    /** V-36, on a lister's listing page, only once five cautions have settled. */
+    line: "{name} has settled {settled} cautions through Vallo: {onTime} returned on time, and {deduction}% kept for agreed repairs on average.",
+    theLister: "This lister",
   },
   lastLet: {
     /** V-38, on a relisted flat's page. */

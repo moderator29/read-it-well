@@ -11,6 +11,7 @@ import { DeductionAnswer, ProposeDeduction, ReturnCaution } from "@/components/a
 import { koboToNairaInput } from "@/lib/agent/listings-schema";
 import { TenancyReportCard } from "@/components/app/tenancy/TenancyReportCard";
 import { ReceiptCodePanel } from "@/components/app/tenancy/ReceiptCodePanel";
+import { PinMessages } from "@/components/app/tenancy/PinMessages";
 import { AddFlatmate, RemoveFlatmate, ReturnShare } from "@/components/app/tenancy/FlatmateControls";
 import { ExitAccountForm, RelistButton, RenewalAnswer, RenewalOfferForm } from "@/components/app/tenancy/RenewalControls";
 
@@ -113,16 +114,19 @@ export default async function TenancyPage({ params }: { params: Promise<{ id: st
           </ButtonLink>
         </Section>
       )}
-      {file.pins.length > 0 && (
+      {(file.pins.length > 0 || file.pinCandidates.length > 0) && (
         <Section title={copy.pinsHeading} divided>
-          <ul className="grid gap-sm">
-            {file.pins.map((pin) => (
-              <li key={pin.id} className="nf-card p-card">
-                <p className="nf-caption">{pin.date}</p>
-                <p className="nf-body-sm mt-2xs whitespace-pre-line">{pin.body}</p>
-              </li>
-            ))}
-          </ul>
+          {file.pins.length > 0 && (
+            <ul className="mb-md grid gap-sm">
+              {file.pins.map((pin) => (
+                <li key={pin.id} className="nf-card p-card">
+                  <p className="nf-caption">{pin.date}</p>
+                  <p className="nf-body-sm mt-2xs whitespace-pre-line">{pin.body}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+          <PinMessages tenancyId={file.id} candidates={file.pinCandidates} copy={copy} />
         </Section>
       )}
       <p className="nf-caption">{copy.retention.replace("{date}", file.keptUntilLabel)}</p>
