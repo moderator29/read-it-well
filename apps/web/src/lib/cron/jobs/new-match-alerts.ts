@@ -30,6 +30,7 @@ import { subjectOf, windowStart } from "./saved-search-alerts";
 
 const QUEUE_BATCH = 100;
 const SEARCH_BATCH = 500;
+const MAX_SEARCH_PAGES = 20;
 const CANDIDATE_LIMIT = 200;
 const SEARCHES_HREF = "/saved/searches";
 
@@ -43,6 +44,7 @@ type Untyped = {
       };
       eq: (col: string, value: string) => {
         in: (col: string, values: string[]) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
+        gte: (col: string, value: number) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
       };
     };
     upsert: (rows: unknown[], opts: { onConflict: string }) => PromiseLike<{ error: { message: string } | null }>;
@@ -70,18 +72,45 @@ export async function newMatchAlerts(admin: AdminClient): Promise<JobVerdict> {
   }
 
   const searches = asSavedSearches(admin);
-  const { data: rows, error: readError } = await searches
-    .from("saved_searches")
-    .select(SAVED_SEARCH_COLUMNS)
-    .eq("alert_enabled", true)
-    .order("alert_cursor_at", { ascending: true, nullsFirst: true })
-    .limit(SEARCH_BATCH);
-  if (readError) throw new Error(`saved_searches: ${readError.message}`);
-  const subjects = (rows ?? []).map(subjectOf);
-  /* A full page means there may be alerting searches this run did not read.
-     The queue rows stay open for the next run, which reads the searches this
-     one did not advance (the page is ordered by watermark, oldest first). */
-  const moreSearches = (rows ?? []).length >= SEARCH_BATCH;
+  const day = lagosDay(now);
+
+  /* People already at today's cap are left out of the page altogether: the
+     morning digest tells them, and their searches must not fill the page
+     and starve everybody behind them (review, V-15). */
+  const { data: capped, error: cappedError } = await db
+    .from("match_alert_quota")
+    .select("user_id, sent")
+    .eq("day", day)
+    .gte("sent", INSTANT_ALERTS_PER_DAY);
+  if (cappedError) throw new Error(`match_alert_quota: ${cappedError.message}`);
+  const overQuota = new Set(((capped as { user_id: string }[] | null) ?? []).map((row) => row.user_id));
+
+  /* Every alerting search, paged BY ID so the walk always moves forward,
+     up to MAX_SEARCH_PAGES pages. A run that stops at the cap leaves the
+     queue open for the next one. */
+  const rows: Parameters<typeof subjectOf>[0][] = [];
+  let lastId: string | null = null;
+  let moreSearches = false;
+  for (let page = 0; ; page += 1) {
+    if (page >= MAX_SEARCH_PAGES) {
+      moreSearches = true;
+      break;
+    }
+    let query = searches
+      .from("saved_searches")
+      .select(SAVED_SEARCH_COLUMNS)
+      .eq("alert_enabled", true)
+      .order("id", { ascending: true })
+      .limit(SEARCH_BATCH);
+    if (lastId !== null) query = query.gt("id", lastId);
+    const { data: pageRows, error: readError } = await query;
+    if (readError) throw new Error(`saved_searches: ${readError.message}`);
+    const list = pageRows ?? [];
+    for (const row of list) if (!overQuota.has(row.user_id)) rows.push(row);
+    if (list.length < SEARCH_BATCH) break;
+    lastId = list[list.length - 1]!.id;
+  }
+  const subjects = rows.map(subjectOf);
 
   const candidates: AlertCandidate[] = [];
   if (subjects.length > 0) {
@@ -106,7 +135,6 @@ export async function newMatchAlerts(admin: AdminClient): Promise<JobVerdict> {
   }
 
   const plan = planAlerts(subjects, candidates, SEARCHES_HREF);
-  const day = lagosDay(now);
   const users = [...new Set(plan.notices.map((notice) => notice.userId))];
   const sentToday = new Map<string, number>();
   if (users.length > 0) {
