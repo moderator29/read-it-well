@@ -18,6 +18,10 @@ describe("the account ownership runbook (OPS-P2-02)", () => {
     expect(section).toContain("Project Settings → General → Transfer project");
     expect(section).toContain("Settings → General → Transfer Project");
     expect(section).toMatch(/second person as \*\*Owner\*\*|second \*\*Owner\*\*/);
+    /* The two traps in the move: crons need a Pro team first, and PITR is its own add-on. */
+    expect(section).toContain("**Pro** BEFORE the transfer");
+    expect(section).toContain("Point-in-time recovery is a separate add-on");
+    expect(section).toMatch(/Vercel ↔ Supabase integration is re-authorised/);
   });
 
   it("still waits on the founder: the ownership table is unfilled", () => {

@@ -40,17 +40,18 @@ Only the founder can move them. Both moves keep the same URLs, keys and data.
 2. **Supabase.**
    - Signed in as `ops@`, create the organisation **VALLO SPACES LTD**.
    - Invite a second person as **Owner**.
-   - Put the company card on it and choose **Pro** (OPS-07 needs Pro for backups and point-in-time recovery).
+   - Put the company card on it and choose **Pro**, which gives daily backups (OPS-07). Point-in-time recovery is a separate add-on on top of Pro; turn it on too, because the wallet ledger is in this database.
    - From an account that owns both organisations, open project `uccixoonmbhrnyczyigt`, then **Project Settings → General → Transfer project**, and choose VALLO SPACES LTD.
    - The project URL and API keys do not change, so no Vercel variable changes.
 3. **Vercel.**
    - Signed in as `ops@`, create the team **Vallo**.
-   - Invite a second **Owner**, and put the company card on it.
+   - Invite a second **Owner**, put the company card on it, and move it to **Pro** BEFORE the transfer. The catalogue canary cron runs every 5 minutes, which Hobby does not allow, so a project transferred into a Hobby team loses its crons.
    - In `boosthubservice-2204's projects`, open the Vallo project, then **Settings → General → Transfer Project**, and choose Vallo.
    - Environment variables, deployments and cron jobs move with the project. Afterwards, check three things:
      - `vallospaces.com` still shows *Valid Configuration* under Domains;
      - the GitHub app is installed for the new team, so pushes still deploy;
-     - the next cron run appears in the logs.
+     - the next cron run appears in the logs;
+     - any Vercel ↔ Supabase integration is re-authorised for the new team and organisation. It is tied to the account that installed it, so it may need installing again.
 4. **Write it down here.** Fill in the table below. Remove the old personal accounts' access only after one deploy and one cron run have succeeded under the new owners.
 
 | Account | Organisation / team | Owners (two, by role) | Recovery codes kept at |
