@@ -52,15 +52,46 @@ export function AcceptTerms({
   accepted,
   onChange,
   showError,
+  adult,
+  onAdultChange,
+  showAdultError,
 }: {
   t: Dictionary;
   accepted: boolean;
   onChange: (next: boolean) => void;
   /** True once a submit has been refused for want of the tick. */
   showError: boolean;
+  /** STORE-19: the 18-or-over tick, a separate statement from the agreement. */
+  adult: boolean;
+  onAdultChange: (next: boolean) => void;
+  showAdultError: boolean;
 }) {
   return (
     <div className="mt-md text-left">
+      <label className="mb-sm flex cursor-pointer items-start gap-sm">
+        <input
+          type="checkbox"
+          name="ageConfirmed"
+          value="18+"
+          data-testid="age-confirmed"
+          checked={adult}
+          onChange={(e) => onAdultChange(e.target.checked)}
+          aria-describedby={showAdultError ? "age-confirmed-error" : undefined}
+          className="mt-3xs h-5 w-5 shrink-0 accent-[var(--nf-brand-primary)]"
+        />
+        <span className="text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]">
+          {t.safety.ageLabel}
+        </span>
+      </label>
+      {showAdultError && (
+        <p
+          id="age-confirmed-error"
+          role="alert"
+          className="-mt-2xs mb-sm text-[length:var(--nf-text-caption)] leading-relaxed text-[var(--nf-content-secondary)]"
+        >
+          {t.safety.ageRequired}
+        </p>
+      )}
       <label className="flex cursor-pointer items-start gap-sm">
         <input
           type="checkbox"

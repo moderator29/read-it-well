@@ -86,6 +86,17 @@ function readOverride(env: Record<string, string | undefined>): Override {
 }
 
 /**
+ * PRECONDITION FOR SWITCHING ANY PROVIDER ON (STORE-19, NEW-A4-04).
+ *
+ * An account created through Apple or Google never passes the sign-up form,
+ * so today it records no terms agreement and no 18-or-over statement: only
+ * `signUpWithEmail` asks for both and refuses without them. Before a provider
+ * is enabled in Supabase (Apple switches on by itself when Supabase reports
+ * it) or named in `VALLO_SOCIAL_SIGN_IN`, the OAuth callback and
+ * `signInWithAppleIdToken` must hold a NEW social account at a step that asks
+ * for both and records them with `recordTermsAcceptance`. The founder's list
+ * says the same (docs/store/FOUNDER_STEPS.md section 1).
+ *
  * THE POLICY, pure, so every branch is tested without a network.
  * `supabaseApple` is what Supabase reports about its own Apple provider.
  */

@@ -33,7 +33,10 @@ export const TERMS_VERSION = "2026-09-22";
  * because it is the one most likely to change on its own: a new processor or a
  * new retention period is a privacy change and not a terms change.
  */
-export const PRIVACY_VERSION = "2026-09-22";
+/* 2026-09-24 (STORE-08 / SEC-13 / STORE-07): processors named, location,
+   push tokens, device records, AI and crash data described, the analytics
+   claim removed, the deletion section brought to the purge that now runs. */
+export const PRIVACY_VERSION = "2026-09-24";
 
 /** The two documents a person accepts when they open an account. */
 export const ACCEPTED_AT_SIGNUP = [

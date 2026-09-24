@@ -1113,6 +1113,10 @@ export const en = {
       "I agree to the Terms, the Privacy Policy and the Community Rules, and I understand that abusive content gets an account removed.",
     acceptRead: "Read them:",
     acceptRequired: "Please tick the box to continue. It is how we record what you agreed to.",
+    /* STORE-19: the Terms require 18 or over, so sign-up asks, and the
+       server refuses an account without the answer. */
+    ageLabel: "I am 18 or older.",
+    ageRequired: "Vallo is for adults. Tick the box to confirm you are 18 or older.",
     termsLink: "Terms",
     privacyLink: "Privacy Policy",
     rulesLink: "Community Rules",
@@ -1697,7 +1701,7 @@ export const en = {
       losesContent: "Your posts, comments, stories, saved items, interests and drafts.",
       losesDevices: "Every device you are signed in on, and every notification.",
       losesFiles:
-        "Every file you have uploaded, including any identity or host documents.",
+        "Every file you have uploaded, including any host documents. If you were approved as an agent, your identification is kept for five years, as the money laundering rules require, and then destroyed.",
       /* The founder's ruling of 19 September: a future event is cancelled with
          notice to everyone attending, never left with a host who has gone.
          Named here so nobody discovers it afterwards, which is the whole
@@ -1750,6 +1754,11 @@ export const en = {
       blockerWalletBalanceCta: "Withdraw it",
       blockerWalletHeld: "{amount} of yours is held in escrow.",
       blockerWalletHeldCta: "Open my wallet",
+      /* STORE-12 / MON-09: money in a pot, and rent refunds either way. The
+         deletion is also re-checked for these on the day it runs. */
+      blockerPotBalance: "{amount} of yours is set aside in a savings pot.",
+      blockerRentRefundsOwed: "You owe {amount} in rent refunds to people who paid you.",
+      blockerRentRefundsDue: "{amount} in rent refunds is owed to you.",
       blockerPendingPayouts: "You have {count} withdrawal that has not settled.",
       blockerPendingPayoutsPlural: "You have {count} withdrawals that have not settled.",
       blockerPendingPayoutsCta: "Open my wallet",

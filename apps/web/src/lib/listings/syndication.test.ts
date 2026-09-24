@@ -141,11 +141,18 @@ describe("structured data", () => {
     ).toMatchObject({ ratingValue: 4.9, reviewCount: 12 });
   });
 
-  it("cannot be ended early by a title carrying markup", () => {
-    const node = listingStructuredData(listing({ title: "Flat </script><img> in Yaba" }), ORIGIN);
+  it("cannot be ended early by a field carrying markup", () => {
+    const node = listingStructuredData(listing({ area: "Yaba </script><img>" }), ORIGIN);
     const json = structuredDataJson(node ?? {});
     expect(json).not.toContain("</script>");
-    expect(JSON.parse(json).name).toBe("Flat </script><img> in Yaba");
+    expect(JSON.parse(json).name).toContain("Yaba </script><img>");
+  });
+
+  it("STORE-16: never names the lister's free-text title, which can carry a street", () => {
+    const node = listingStructuredData(listing({ title: "Duplex on 3 Adeola Odeku Street" }), ORIGIN);
+    expect(JSON.stringify(node)).not.toContain("Adeola Odeku");
+    const meta = listingMetadata(listing({ title: "Duplex on 3 Adeola Odeku Street" }), ORIGIN);
+    expect(JSON.stringify(meta)).not.toContain("Adeola Odeku");
   });
 });
 

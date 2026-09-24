@@ -31,6 +31,8 @@ import type {
   AssistantStreamEvent,
   AssistantTurn,
 } from "@/lib/assistant/types";
+import { consentRefusal } from "@/lib/ai/consent";
+import { hasAiConsent } from "@/lib/ai/consent-server";
 
 /**
  * The Vallo concierge, streamed.
@@ -919,6 +921,14 @@ export async function POST(req: NextRequest) {
   }
 
   const caller = await resolveCaller();
+
+  /* STORE-07: nothing is sent to Anthropic without this person's recorded
+     agreement. The screen asks first; this is what holds when it did not. */
+  const consented = await hasAiConsent(
+    caller.signedIn ? { supabase: caller.supabase, userId: caller.userId } : {},
+  );
+  if (!consented) return consentRefusal();
+
   const verdict = await consume(
     caller.signedIn
       ? {

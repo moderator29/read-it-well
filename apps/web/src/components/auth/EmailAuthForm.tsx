@@ -128,6 +128,8 @@ export function EmailAuthForm({
    */
   const [accepted, setAccepted] = useState(false);
   const [acceptError, setAcceptError] = useState(false);
+  const [adult, setAdult] = useState(false);
+  const [adultError, setAdultError] = useState(false);
 
   /*
    * "1 of 4" is a sentence, not a format. Yoruba, Hausa and Igbo do not all
@@ -210,9 +212,10 @@ export function EmailAuthForm({
         onSubmit={(e) => {
           /* Sign up only. Signing in is not the moment somebody agrees to
              anything: they agreed when they made the account. */
-          if (isSignUp && !accepted) {
+          if (isSignUp && (!accepted || !adult)) {
             e.preventDefault();
-            setAcceptError(true);
+            setAcceptError(!accepted);
+            setAdultError(!adult);
           }
         }}
         className={isSignUp ? "text-left" : "space-y-md text-left"}
@@ -403,6 +406,12 @@ export function EmailAuthForm({
                that comes back unchanged with no visible reason reads as
                broken. */
             showError={acceptError || Boolean(state.fieldErrors?.acceptTerms)}
+            adult={adult}
+            onAdultChange={(next) => {
+              setAdult(next);
+              if (next) setAdultError(false);
+            }}
+            showAdultError={adultError || Boolean(state.fieldErrors?.ageConfirmed)}
           />
         )}
 

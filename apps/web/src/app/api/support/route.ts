@@ -10,6 +10,8 @@ import {
 import { resolveSupportCaller, runSupportTool, SUPPORT_TOOLS } from "@/lib/support/tools";
 import { supplyPrimer } from "@/lib/supply/roles";
 import type { SupportAction, SupportStreamEvent, SupportTurn } from "@/lib/support/types";
+import { consentRefusal } from "@/lib/ai/consent";
+import { hasAiConsent } from "@/lib/ai/consent-server";
 
 /**
  * Vallo support, streamed.
@@ -377,6 +379,14 @@ export async function POST(req: NextRequest) {
   }
 
   const session = await resolveSupportCaller();
+
+  /* STORE-07: nothing is sent to Anthropic without this person's recorded
+     agreement. The screen asks first; this is what holds when it did not. */
+  const consented = await hasAiConsent(
+    session.state === "signed-in" ? { supabase: session.supabase, userId: session.user.id } : {},
+  );
+  if (!consented) return consentRefusal();
+
   const verdict = await consume({
     bucket: SUPPORT_BUCKET,
     subject:

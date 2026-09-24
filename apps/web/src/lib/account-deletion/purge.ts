@@ -1,4 +1,4 @@
-import { PURGE_BATCH_LIMIT } from "./constants";
+import { PURGE_BATCH_LIMIT, STORAGE_BUCKETS } from "./constants";
 import { purgeStorage, type StorageDoor, type StoragePurgeResult } from "./storage";
 import type { DeletionAction, DeletionAuditDetail } from "./audit";
 
@@ -152,10 +152,15 @@ export async function purgeOne(deps: PurgeDeps, due: DueRequest): Promise<PurgeO
     return { requestId: due.requestId, result: "retry", reason };
   }
 
+  /* An approved agent's identity files are the AML record kept for five
+     years (`kyc_retained`); their bucket is left alone here and emptied by
+     the retention job when the time is up. */
+  const retained = record(rows["counts"])["kyc_retained"] === true;
   const storage = await purgeStorage(
     deps.storage,
     due.userId,
     storagePathsFrom(rows["storage"]),
+    retained ? STORAGE_BUCKETS.filter((bucket) => bucket !== "agent-documents") : STORAGE_BUCKETS,
   );
 
   await deps.audit("account.deletion.purge_storage", due.userId, due.requestId, {

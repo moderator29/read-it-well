@@ -68,6 +68,7 @@ import { VideoWalkthrough, type WalkthroughVideo } from "@/components/agent/Vide
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ListingSentForReview } from "./ListingSentForReview";
 import { TextField, TextArea } from "@/components/ui/Field";
+import { looksLikeStreetAddress, STREET_IN_TITLE_WARNING } from "@/lib/listings/public-title";
 import { tenantPreference } from "@/lib/safety/tenant-preference";
 import Link from "next/link";
 
@@ -1603,7 +1604,8 @@ export function ListingWizard({
             */}
             <TextField
               label={copy.basics.titleLabel}
-              hint={copy.basics.titleHint}
+              /* STORE-16: a warning, never a refusal. */
+              hint={looksLikeStreetAddress(values.title) ? STREET_IN_TITLE_WARNING : copy.basics.titleHint}
               error={fieldErrors.title}
               value={values.title}
               onChange={(e) => set("title", e.target.value)}

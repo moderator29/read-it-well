@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { publicListingTitle } from "./public-title";
 
 import type { Listing } from "./types";
 import type { ListingSearchFilter } from "./types";
@@ -151,7 +152,7 @@ export function listingStructuredData(
   const node: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: listing.title,
+    name: publicListingTitle(listing),
     url,
     category: listing.kind,
     ...(listing.photos.length > 0 ? { image: listing.photos } : {}),
@@ -230,11 +231,6 @@ export function structuredDataJson(node: Record<string, unknown>): string {
 export function listingMetadata(listing: Listing | null, origin: string): Metadata {
   if (!listing) return { title: "Listing", robots: { index: false, follow: false } };
 
-  const place =
-    listing.area && listing.area !== listing.city
-      ? `${listing.area}, ${listing.city}`
-      : listing.city;
-
   if (!maySyndicate(listing)) {
     /*
      * The card an example listing shares as.
@@ -247,7 +243,7 @@ export function listingMetadata(listing: Listing | null, origin: string): Metada
      * tabs, and it is prefixed so it is honest there too.
      */
     return {
-      title: `Example listing: ${listing.title}`,
+      title: `Example listing: ${publicListingTitle(listing)}`,
       description: EXAMPLE_STATEMENT,
       robots: { index: false, follow: false },
       openGraph: {
@@ -267,25 +263,25 @@ export function listingMetadata(listing: Listing | null, origin: string): Metada
   const minor = askingMinor(listing);
   const description =
     minor > 0
-      ? `${listing.title} in ${place}. Listed on Vallo.`
-      : `${listing.title} in ${place}. Listed on Vallo. Ask the lister for the price.`;
+      ? `${publicListingTitle(listing)}. Listed on Vallo.`
+      : `${publicListingTitle(listing)}. Listed on Vallo. Ask the lister for the price.`;
   const url = listingUrl(listing, origin);
 
   return {
-    title: listing.title,
+    title: publicListingTitle(listing),
     description,
     robots: { index: true, follow: true },
     alternates: { canonical: url },
     openGraph: {
       type: "website",
-      title: listing.title,
+      title: publicListingTitle(listing),
       description,
       url,
       ...(listing.photos.length > 0 ? { images: listing.photos.slice(0, 1) } : {}),
     },
     twitter: {
       card: listing.photos.length > 0 ? "summary_large_image" : "summary",
-      title: listing.title,
+      title: publicListingTitle(listing),
       description,
       ...(listing.photos.length > 0 ? { images: listing.photos.slice(0, 1) } : {}),
     },

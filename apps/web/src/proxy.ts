@@ -19,6 +19,7 @@ import {
   publicCatalogueEnabled,
 } from "@/lib/catalogue/public-access";
 import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./lib/supabase/env";
+import { previewHarnessIsOpen } from "@/lib/preview-harness";
 
 /**
  * Refresh the Supabase auth session on every request, and hold the door on the
@@ -314,6 +315,14 @@ function withSecurityPolicy(response: NextResponse, nonce: string): NextResponse
   return response;
 }
 
+/** Where a closed harness request is rewritten: an address no route matches. */
+export const HARNESS_CLOSED_PATH = "/_harness-closed";
+
+/** The development harness trees, `/preview` and `/gallery`. */
+export function isHarnessPath(pathname: string): boolean {
+  return /^\/(preview|gallery)(\/|$)/.test(pathname);
+}
+
 export async function proxy(request: NextRequest) {
   /*
    * One nonce per request, minted before anything else so that every exit below
@@ -325,6 +334,23 @@ export async function proxy(request: NextRequest) {
    */
   const nonce = createNonce();
   request.headers.set(NONCE_HEADER, nonce);
+
+  /*
+   * STORE-17: A CLOSED HARNESS IS A REAL 404, DECIDED BEFORE ANY RENDER.
+   *
+   * The harness layout's own `notFound()` runs after the root `loading.tsx`
+   * has started the stream, so the status was already 200 and the page
+   * beside it had streamed its list of preview decks into the payload. The
+   * rewrite goes to an address no route matches, so Next answers with the
+   * site's not-found page and a 404 status, and nothing of the harness is
+   * rendered at all.
+   */
+  if (isHarnessPath(request.nextUrl.pathname) && !previewHarnessIsOpen(process.env)) {
+    const closed = request.nextUrl.clone();
+    closed.pathname = HARNESS_CLOSED_PATH;
+    closed.search = "";
+    return withSecurityPolicy(NextResponse.rewrite(closed, { request }), nonce);
+  }
 
   let response = NextResponse.next({ request });
 
