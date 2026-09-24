@@ -1,12 +1,15 @@
 /**
- * THE 24-HOUR HOLD "THIS WAS NOT ME" PLACES ON MONEY LEAVING AN ACCOUNT. V-19.
+ * THE HOLD ON MONEY LEAVING AN ACCOUNT, AS THE PERSON SEES IT. V-19.
  *
- * The rule lives in the database: a BEFORE INSERT trigger on `wallet_entries`
- * (`20260924160000`) refuses a withdrawal debit or a `transfer_out` while the
- * owner has a live row in `public.account_holds`, whichever door wrote it.
- * This file is the courtesy half of that rule. It lets the wallet screen say
- * the hold is there and until when, and it lets the two server actions refuse
- * with a sentence before they reach a database error.
+ * The rule is the AUDIT'S, not this file's: `public.account_money_holds`
+ * (live migration `20260924012454`) and its triggers refuse, while a hold
+ * stands, any withdrawal, send, payment or escrow hold from the balance and
+ * any change of payout account (error code RM050). "This was not me" writes a
+ * row there with reason `not_me` (`report_not_me`, `20260924160000`); a
+ * support-assisted email change writes one with its own reason. This file is
+ * the courtesy half: the wallet says the hold is there, until when and why,
+ * and the money actions refuse with a sentence before or instead of a raw
+ * database error.
  *
  * Pure except for `loadAccountHold`, which takes the caller's own Supabase
  * client: the table's RLS policy lets a person read their own holds and
@@ -22,40 +25,45 @@
 
 import { formatDate, type Locale } from "@vallo/i18n";
 
+export type HoldReason = "not_me" | "other";
+
 export type AccountHold =
   | { state: "none" }
-  | { state: "held"; until: string }
+  | { state: "held"; until: string; reason: HoldReason }
   | { state: "unknown" };
 
-type HoldRow = { ends_at?: unknown };
+type HoldRow = { hold_until?: unknown; reason?: unknown };
 
-/** The latest end time among rows still in force at `now`, or none. */
+/** The hold in force at `now`, from the owner's row (one per account). */
 export function holdFromRows(rows: unknown, now: number): AccountHold {
   if (!Array.isArray(rows)) return { state: "unknown" };
   let latest: number | null = null;
-  let latestIso: string | null = null;
+  let found: { until: string; reason: HoldReason } | null = null;
   for (const row of rows as HoldRow[]) {
-    if (typeof row?.ends_at !== "string") continue;
-    const at = Date.parse(row.ends_at);
+    if (typeof row?.hold_until !== "string") continue;
+    const at = Date.parse(row.hold_until);
     if (!Number.isFinite(at) || at <= now) continue;
     if (latest === null || at > latest) {
       latest = at;
-      latestIso = row.ends_at;
+      found = { until: row.hold_until, reason: row.reason === "not_me" ? "not_me" : "other" };
     }
   }
-  return latestIso === null ? { state: "none" } : { state: "held", until: latestIso };
+  return found === null ? { state: "none" } : { state: "held", ...found };
 }
 
 /**
- * Is this error the hold trigger refusing?
+ * Is this the audit's hold trigger refusing?
  *
- * The trigger raises the fixed message `account_hold_active`. Matched on that
- * token rather than on SQLSTATE because P0001 is every plpgsql `raise`.
+ * It raises SQLSTATE RM050 with a sentence that begins "Money cannot leave
+ * this account". `callMoneyRpc` keeps only the message as its failure
+ * reason, so both the code and the opening words are accepted.
  */
 export function isAccountHoldError(error: unknown): boolean {
+  if (typeof error === "string") return error.startsWith("Money cannot leave this account");
   if (!error || typeof error !== "object") return false;
-  const message = (error as { message?: unknown }).message;
-  return typeof message === "string" && message.includes("account_hold_active");
+  const { code, message } = error as { code?: unknown; message?: unknown };
+  if (code === "RM050") return true;
+  return typeof message === "string" && message.startsWith("Money cannot leave this account");
 }
 
 type HoldClient = {
@@ -70,9 +78,9 @@ type HoldClient = {
 export async function loadAccountHold(client: unknown, now: number = Date.now()): Promise<AccountHold> {
   try {
     const { data, error } = await (client as HoldClient)
-      .from("account_holds")
-      .select("ends_at")
-      .gt("ends_at", new Date(now).toISOString());
+      .from("account_money_holds")
+      .select("hold_until, reason")
+      .gt("hold_until", new Date(now).toISOString());
     if (error) return { state: "unknown" };
     return holdFromRows(data, now);
   } catch {

@@ -9,9 +9,10 @@
  * written twice.
  *
  * `reportNotMe` calls `public.report_not_me()`, which authorises off
- * `auth.uid()` and nothing else: it ends every OTHER session, places one
- * 24-hour hold on withdrawals and wallet-to-wallet sends (a second press does
- * not stack another day on the first), and writes an audit row. What it
+ * `auth.uid()` and nothing else: it ends every OTHER session, writes a 24-hour
+ * `not_me` row into the audit's `account_money_holds` (lengthened, to 72
+ * hours at most, only when pressed from a session older than the hold), and
+ * writes an audit row. What it
  * cannot do is change the password, because the password is the one thing
  * the server must never choose for somebody. So the answer carries the
  * instruction to do it now and the screen routes straight to the form.
@@ -32,7 +33,7 @@ type Loose = { rpc: (fn: string, args?: Record<string, unknown>) => Promise<unkn
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const loose = (client: unknown) => client as any as Loose;
 
-export type DeviceAlertError = "signed-out" | "unconfigured" | "failed" | "invalid";
+export type DeviceAlertError = "signed-out" | "unconfigured" | "failed" | "invalid" | "rate-limited";
 
 export type NotMeResult = {
   /** How many other sessions were ended. Zero is an honest answer. */
@@ -41,6 +42,8 @@ export type NotMeResult = {
   holdUntil: string;
   /** False when a hold was already in force and this press did not add one. */
   holdPlaced: boolean;
+  /** True when a press from an older session lengthened a hold already in force. */
+  holdExtended: boolean;
 };
 
 export async function reportNotMe(): Promise<ActionResult<NotMeResult>> {
@@ -54,7 +57,14 @@ export async function reportNotMe(): Promise<ActionResult<NotMeResult>> {
       error: unknown;
     };
     if (error || !data || typeof data !== "object") return fail("failed" satisfies DeviceAlertError);
-    const answer = data as { status?: unknown; ended?: unknown; hold_until?: unknown; hold_placed?: unknown };
+    const answer = data as {
+      status?: unknown;
+      ended?: unknown;
+      hold_until?: unknown;
+      hold_placed?: unknown;
+      hold_extended?: unknown;
+    };
+    if (answer.status === "rate_limited") return fail("rate-limited" satisfies DeviceAlertError);
     if (answer.status !== "ok" || typeof answer.hold_until !== "string") {
       return fail("failed" satisfies DeviceAlertError);
     }
@@ -64,6 +74,7 @@ export async function reportNotMe(): Promise<ActionResult<NotMeResult>> {
       ended: typeof answer.ended === "number" ? answer.ended : 0,
       holdUntil: answer.hold_until,
       holdPlaced: answer.hold_placed === true,
+      holdExtended: answer.hold_extended === true,
     });
   } catch {
     return fail("failed" satisfies DeviceAlertError);

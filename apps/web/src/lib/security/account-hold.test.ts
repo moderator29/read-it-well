@@ -8,15 +8,22 @@ describe("holdFromRows", () => {
     expect(holdFromRows([], NOW)).toEqual({ state: "none" });
   });
   it("ignores a hold that has already ended", () => {
-    expect(holdFromRows([{ ends_at: "2026-09-24T09:59:59Z" }], NOW)).toEqual({ state: "none" });
+    expect(holdFromRows([{ hold_until: "2026-09-24T09:59:59Z", reason: "not_me" }], NOW)).toEqual({ state: "none" });
   });
   it("returns the latest end among live holds", () => {
     expect(
       holdFromRows(
-        [{ ends_at: "2026-09-24T12:00:00Z" }, { ends_at: "2026-09-25T09:00:00Z" }, { ends_at: 7 }],
+        [{ hold_until: "2026-09-24T12:00:00Z" }, { hold_until: "2026-09-25T09:00:00Z", reason: "not_me" }, { hold_until: 7 }],
         NOW,
       ),
-    ).toEqual({ state: "held", until: "2026-09-25T09:00:00Z" });
+    ).toEqual({ state: "held", until: "2026-09-25T09:00:00Z", reason: "not_me" });
+  });
+  it("reads any other reason, a support email change among them, as other", () => {
+    expect(holdFromRows([{ hold_until: "2026-09-25T09:00:00Z", reason: "support_email_change" }], NOW)).toEqual({
+      state: "held",
+      until: "2026-09-25T09:00:00Z",
+      reason: "other",
+    });
   });
   it("is unknown, never none, when the answer is not a list", () => {
     expect(holdFromRows(null, NOW)).toEqual({ state: "unknown" });
@@ -24,8 +31,9 @@ describe("holdFromRows", () => {
 });
 
 describe("isAccountHoldError", () => {
-  it("recognises the trigger's refusal", () => {
-    expect(isAccountHoldError({ message: "account_hold_active", code: "P0001" })).toBe(true);
+  it("recognises the audit trigger's refusal, by code or by its opening words", () => {
+    expect(isAccountHoldError({ code: "RM050", message: "x" })).toBe(true);
+    expect(isAccountHoldError("Money cannot leave this account until 25 September 2026, 03:14, because ...")).toBe(true);
   });
   it("does not mistake another plpgsql raise for it", () => {
     expect(isAccountHoldError({ message: "insufficient", code: "P0001" })).toBe(false);
@@ -47,8 +55,8 @@ describe("loadAccountHold", () => {
 
   it("reads a live hold", async () => {
     await expect(
-      loadAccountHold(client({ data: [{ ends_at: "2026-09-25T10:00:00Z" }], error: null }), NOW),
-    ).resolves.toEqual({ state: "held", until: "2026-09-25T10:00:00Z" });
+      loadAccountHold(client({ data: [{ hold_until: "2026-09-25T10:00:00Z", reason: "not_me" }], error: null }), NOW),
+    ).resolves.toEqual({ state: "held", until: "2026-09-25T10:00:00Z", reason: "not_me" });
   });
   it("is unknown on an error, and on a throw", async () => {
     await expect(loadAccountHold(client({ data: null, error: { message: "x" } }), NOW)).resolves.toEqual({

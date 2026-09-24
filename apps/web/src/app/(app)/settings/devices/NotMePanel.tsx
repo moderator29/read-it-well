@@ -32,7 +32,7 @@ export type NotMeCopy = Dictionary["platform"]["notMe"];
 
 type Outcome =
   | { kind: "held"; result: NotMeResult }
-  | { kind: "failed"; signedOut: boolean }
+  | { kind: "failed"; signedOut: boolean; rateLimited: boolean }
   | null;
 
 export function NotMePanel({
@@ -61,7 +61,12 @@ export function NotMePanel({
     startTransition(async () => {
       const result = await reportNotMe();
       if (result.ok) setOutcome({ kind: "held", result: result.data });
-      else setOutcome({ kind: "failed", signedOut: result.error === "signed-out" });
+      else
+        setOutcome({
+          kind: "failed",
+          signedOut: result.error === "signed-out",
+          rateLimited: result.error === "rate-limited",
+        });
     });
   };
 
@@ -96,7 +101,11 @@ export function NotMePanel({
           }}
           state="confirmed"
           verdict={copy.heldVerdict}
-          consequence={(outcome.result.holdPlaced ? copy.heldConsequence : copy.alreadyHeldConsequence)
+          consequence={(outcome.result.holdPlaced
+            ? copy.heldConsequence
+            : outcome.result.holdExtended
+              ? copy.extendedConsequence
+              : copy.alreadyHeldConsequence)
             .replace("{until}", until)
             .replace("{ended}", endedLine)}
           actions={[
@@ -114,7 +123,9 @@ export function NotMePanel({
           }}
           state="failed"
           verdict={copy.failedVerdict}
-          consequence={outcome.signedOut ? copy.signedOut : copy.failedConsequence}
+          consequence={
+            outcome.signedOut ? copy.signedOut : outcome.rateLimited ? copy.rateLimited : copy.failedConsequence
+          }
           actions={[{ label: copy.close, onClick: () => setOutcome(null), tone: "quiet" }]}
         />
       )}

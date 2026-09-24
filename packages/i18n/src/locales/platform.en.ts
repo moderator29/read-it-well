@@ -49,7 +49,7 @@ export const platformEn = {
     /* The button, on the devices screen and on the alert. */
     notMeTitle: "Something here is not you?",
     notMeBody:
-      "This signs out every other device, holds withdrawals and sends from your wallet for 24 hours, and takes you to change your password.",
+      "This signs out every other device, stops any money leaving your wallet for 24 hours, and takes you to change your password.",
     notMe: "This was not me",
     notMeConfirm: "Tap again to hold your money",
     notMeWorking: "Holding your money",
@@ -72,9 +72,12 @@ export const platformEn = {
   notMe: {
     heldVerdict: "Your money is on hold",
     heldConsequence:
-      "Withdrawals and wallet sends are held until {until}. {ended} Change your password now: until you do, whoever has it can sign in again.",
+      "No money can leave your wallet until {until}. {ended} Change your password now: until you do, whoever has it can sign in again.",
+    extendedConsequence:
+      "The hold now lasts until {until}. {ended} Change your password now: until you do, whoever has it can sign in again.",
     alreadyHeldConsequence:
-      "Your money was already on hold until {until}; pressing again does not change that. {ended} Change your password now if you have not.",
+      "Your wallet was already on hold until {until}; pressing again does not change that. {ended} Change your password now if you have not.",
+    rateLimited: "You have pressed this several times in the last hour. Your wallet is already protected; try again later if you need to.",
     ended: { one: "We signed out 1 other device.", other: "We signed out {count} other devices." } as PluralForms,
     endedNone: "Nothing else was signed in.",
     changePassword: "Change your password",
@@ -86,11 +89,16 @@ export const platformEn = {
   },
 
   hold: {
-    title: "Withdrawals and sends are on hold",
-    body:
-      "You told us a sign-in was not you. Until {until}, nothing can leave this wallet by withdrawal or send. Money can still arrive, and you can still pay for a booking or rent inside Vallo.",
-    refusal:
-      "Withdrawals and sends are on hold until {until} because you told us a sign-in was not you. Nothing has left your wallet.",
+    title: "Money cannot leave this wallet for now",
+    bodyNotMe:
+      "You told us a sign-in was not you. Until {until}, nothing can leave this wallet: no withdrawal, no send, no payment from the balance, and payout accounts cannot be changed. Money can still arrive.",
+    bodyOther:
+      "The email address on this account was changed with help from support. Until {until}, nothing can leave this wallet: no withdrawal, no send, no payment from the balance, and payout accounts cannot be changed. Money can still arrive.",
+    refusalNotMe:
+      "No money can leave this wallet until {until}, because you told us a sign-in was not you. Nothing has left your wallet.",
+    refusalOther:
+      "No money can leave this wallet until {until}, because the email address on this account was changed with help from support. Nothing has left your wallet.",
+    refusalUnknown: "No money can leave this wallet while a hold is on it. Nothing has left your wallet.",
   },
 
   /* V-30: the five kinds of the feedback grammar, as the styleguide names them. */

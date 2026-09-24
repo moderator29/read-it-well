@@ -8,151 +8,53 @@
  * says it plainly: the most push-worthy security event in the product reaches
  * a person's inbox and not their phone, and an inbox is read hours later.
  *
- * Three things are added, and none of them replaces anything that exists.
+ * WHY THE DIGEST NOW MEANS SOMETHING. Web sign-in runs in a server action, so
+ * GoTrue recorded Node's own user agent ("node") on 99 of 105 live sessions,
+ * and every web sign-in, a stranger's included, hashed to the same device.
+ * `lib/security/agent-client.ts` forwards the browser's header on the three
+ * calls that create a session, which is what makes the trigger below fire for
+ * a stranger at all.
+ *
+ * Two things are added, and neither replaces anything that exists.
  *
  * 1. THE BUZZ. An AFTER INSERT trigger on `known_devices` calls
  *    `private.notify` for the same condition the email uses (a second distinct
- *    device or later). `private.notify` writes the in-app row, and the row's
- *    own trigger (`notifications_push_enqueue`) puts it on the push queue if
- *    the person has any device registered. The push drain then sends it
- *    through `lib/push/policy.ts`, which treats the path this row carries as
- *    urgent, so quiet hours do not sit on it until morning. The existing
- *    trigger function is NOT replaced: a second trigger on the table the first
- *    one writes is additive, and the first one's exception handler still wraps
- *    the whole of sign-in.
+ *    device or later). The row's own trigger (`notifications_push_enqueue`)
+ *    queues the push, and `lib/push/policy.ts` treats this path as urgent
+ *    through quiet hours. The existing trigger function is NOT replaced.
  *
- * 2. THE HOLD. `public.account_holds` records "this was not me" as a dated
- *    row that ends by itself 24 hours later. A BEFORE INSERT trigger on
- *    `wallet_entries` refuses the two movements that take money out of the
- *    person's reach: a withdrawal debit and a wallet-to-wallet `transfer_out`.
- *    Nothing else is touched. Paying rent or a booking, funding, pots and
- *    escrow all carry on, because the hold exists to stop money LEAVING to a
- *    stranger, and a hold on everything would punish the owner for pressing
- *    the right button.
+ * 2. THE BUTTON. `public.report_not_me()` ends every other session and places
+ *    a hold in THE AUDIT'S OWN HOLD, `public.account_money_holds` (live
+ *    migration `20260924012454_staff_assisted_email_recovery`), with reason
+ *    `not_me`. That hold is already enforced by the audit's triggers
+ *    (`wallet_entries_00_money_hold`, `bank_accounts_00_money_hold`,
+ *    `payout_accounts_00_money_hold`): no withdrawal, no send, no payment or
+ *    escrow hold from the balance, and no change of payout account, while it
+ *    stands. This migration adds no second hold and no second trigger; it
+ *    writes one row into the audit's table, under these rules:
  *
- *    WHY A TRIGGER AND NOT AN EDIT TO THE TWO FUNCTIONS. `hold_wallet_withdrawal`
- *    and `private.transfer_between_wallets` are the audited money path and
- *    they belong to the audit session. A trigger on the ledger they both write
- *    reaches every door that writes those rows, including any door added
- *    later, without changing a line of either function. The server actions
- *    ask the same question first so the person reads a sentence rather than a
- *    database error; the trigger is the rule and the sentence is the courtesy.
+ *    - NO HOLD IN FORCE: a 24-hour hold is placed.
+ *    - A HOLD IN FORCE, pressed from a session OLDER than the hold: the
+ *      presser was signed in before whoever placed it, which is what the real
+ *      owner looks like when a thief pressed first. The hold is extended to
+ *      24 hours from now, never beyond 72 hours from when it was placed.
+ *    - A HOLD IN FORCE, pressed from a newer session: nothing is extended, so
+ *      a person who signs in and presses repeatedly cannot freeze an account
+ *      for ever.
+ *    - An existing hold with another reason (a support email change) keeps its
+ *      reason and is only ever lengthened, never shortened.
+ *    - Five presses an hour per account, through `private.consume_rate_limit`.
  *
- * 3. THE BUTTON. `public.report_not_me()` ends every other session on the
- *    account, places the hold (once: pressing it again does not stack a
- *    second 24 hours on the first), writes an audit row and tells the person,
- *    in app, until when the hold stands. The password change is the step the
- *    server cannot take for them, so the screen sends them straight to it.
+ *    The password change is the step the server cannot take for them, so the
+ *    screen sends them straight to it. Note for the audit, reported, not
+ *    fixed here: `/reset-password` accepts any signed-in session without the
+ *    current password, so an attacker who is still signed in could set one.
  *
- * WHAT THE NOTIFICATION DOES NOT SAY. The recommendation's example read
- * "Chrome on Android, Lagos, just now". There is no Lagos: the address on
- * `auth.sessions` is whichever of our servers refreshed the token, which is
- * the reason the devices screen shows no location either (`lib/security/
- * sessions.ts`). And there is no "just now", because a notification is read
- * later than it is written and carries its own time. The device words come
- * from `private.device_words`, the fixed list of proper nouns, and a device it
- * cannot name is called exactly that.
+ * WHAT THE NOTIFICATION DOES NOT SAY. No place: the address on
+ * `auth.sessions` is whichever of our servers refreshed the token. No "just
+ * now": a notification is read later than it is written. The device words
+ * come from `private.device_words`, the fixed list of proper nouns.
  */
-
--- ----------------------------------------------------------------------------
--- THE HOLD, AS A DATED ROW.
-
-create table if not exists public.account_holds (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  /* One reason today. A check constraint rather than an enum so a second
-     reason (a support-placed hold, say) is a one-line migration. */
-  reason text not null check (reason in ('not_me')),
-  placed_at timestamptz not null default now(),
-  ends_at timestamptz not null,
-  /* How many other sessions the button ended. Recorded because "we signed you
-     out everywhere else" is a claim, and the number is what proves it. */
-  sessions_ended integer not null default 0 check (sessions_ended >= 0),
-  constraint account_holds_ends_after_placed check (ends_at > placed_at)
-);
-
-create index if not exists account_holds_user_ends_idx
-  on public.account_holds (user_id, ends_at desc);
-
-comment on table public.account_holds is
-  'V-19. A dated hold on money leaving an account (withdrawals and wallet-to-wallet sends), placed by the owner pressing "This was not me". Ends by itself at ends_at. The owner may read their own rows; only report_not_me() writes.';
-
-alter table public.account_holds enable row level security;
-
-/* BORN LOCKED. The default ACL hands every new table in `public` to anon and
-   authenticated; take it back before anything is granted. */
-revoke all on table public.account_holds from public, anon, authenticated;
-grant select on table public.account_holds to authenticated;
-
-drop policy if exists account_holds_select_own on public.account_holds;
-create policy account_holds_select_own on public.account_holds
-  for select to authenticated
-  using (user_id = (select auth.uid()));
-
--- ----------------------------------------------------------------------------
--- UNTIL WHEN IS THIS ACCOUNT HELD. NULL MEANS IT IS NOT.
-
-create or replace function private.account_hold_until(p_user uuid)
-returns timestamptz
-language sql
-stable
-security definer
-set search_path to ''
-as $$
-  select max(h.ends_at)
-    from public.account_holds h
-   where h.user_id = p_user
-     and h.ends_at > now();
-$$;
-
-revoke all on function private.account_hold_until(uuid) from public, anon, authenticated;
-
--- ----------------------------------------------------------------------------
--- THE RULE: NO MONEY LEAVES A HELD ACCOUNT.
-
-create or replace function private.refuse_money_out_during_account_hold()
-returns trigger
-language plpgsql
-security definer
-set search_path to ''
-as $$
-declare
-  v_user uuid;
-  v_until timestamptz;
-begin
-  /* Only the two movements that take money out of the person's reach. Every
-     other kind passes without a lookup, so the ledger's hot path pays for one
-     comparison and nothing else. */
-  if not ((new.kind = 'withdrawal'::public.wallet_entry_kind and new.direction = 'debit')
-          or new.kind = 'transfer_out'::public.wallet_entry_kind) then
-    return new;
-  end if;
-
-  select w.user_id into v_user from public.wallets w where w.id = new.wallet_id;
-  if v_user is null then
-    return new;
-  end if;
-
-  v_until := private.account_hold_until(v_user);
-  if v_until is not null then
-    /* Deliberately NOT swallowed. Unlike the notification triggers, the whole
-       point of this one is to stop the write. */
-    raise exception 'account_hold_active'
-      using errcode = 'P0001',
-            hint = 'held until ' || to_char(v_until at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"');
-  end if;
-
-  return new;
-end;
-$$;
-
-revoke all on function private.refuse_money_out_during_account_hold() from public, anon, authenticated;
-
-drop trigger if exists wallet_entries_refuse_during_account_hold on public.wallet_entries;
-create trigger wallet_entries_refuse_during_account_hold
-  before insert on public.wallet_entries
-  for each row
-  execute function private.refuse_money_out_during_account_hold();
 
 -- ----------------------------------------------------------------------------
 -- "THIS WAS NOT ME".
@@ -167,13 +69,22 @@ as $$
 declare
   actor uuid := (select auth.uid());
   current_session uuid := nullif(((select auth.jwt()) ->> 'session_id'), '')::uuid;
+  v_session_started timestamptz;
+  v_hold public.account_money_holds%rowtype;
   v_ended integer;
   v_until timestamptz;
   v_placed boolean := false;
+  v_extended boolean := false;
 begin
   if actor is null then
     return jsonb_build_object('status', 'forbidden');
   end if;
+
+  if not private.consume_rate_limit('security_not_me', actor::text, 5, 3600) then
+    return jsonb_build_object('status', 'rate_limited');
+  end if;
+
+  select s.created_at into v_session_started from auth.sessions s where s.id = current_session;
 
   /* Everything but the phone in the hand. `is distinct from`, as in
      `end_other_sessions`, so a token with no session claim ends everything
@@ -183,27 +94,39 @@ begin
      and s.id is distinct from current_session;
   get diagnostics v_ended = row_count;
 
-  /* ONE HOLD, NOT A STACK. A second press inside the window keeps the first
-     end time. Otherwise whoever holds a session could keep an owner's money
-     frozen forever by pressing it once a day. */
-  v_until := private.account_hold_until(actor);
-  if v_until is null then
+  select * into v_hold from public.account_money_holds h where h.user_id = actor for update;
+
+  if not found or v_hold.hold_until <= now() then
     v_until := now() + interval '24 hours';
-    insert into public.account_holds (user_id, reason, ends_at, sessions_ended)
-    values (actor, 'not_me', v_until, v_ended);
+    insert into public.account_money_holds (user_id, hold_until, reason, created_at)
+    values (actor, v_until, 'not_me', now())
+    on conflict (user_id) do update
+      set hold_until = excluded.hold_until, reason = excluded.reason, created_at = excluded.created_at;
     v_placed := true;
+  elsif v_session_started is not null and v_session_started < v_hold.created_at then
+    v_until := least(greatest(v_hold.hold_until, now() + interval '24 hours'),
+                     v_hold.created_at + interval '72 hours');
+    if v_until > v_hold.hold_until then
+      update public.account_money_holds set hold_until = v_until where user_id = actor;
+      v_extended := true;
+    else
+      v_until := v_hold.hold_until;
+    end if;
+  else
+    v_until := v_hold.hold_until;
   end if;
 
   insert into public.audit_log (actor_id, action, entity_type, entity_id, metadata)
   values (actor, 'security.not_me', 'account', actor::text,
-          jsonb_build_object('sessions_ended', v_ended, 'hold_until', v_until, 'hold_placed', v_placed));
+          jsonb_build_object('sessions_ended', v_ended, 'hold_until', v_until,
+                             'hold_placed', v_placed, 'hold_extended', v_extended));
 
-  if v_placed then
+  if v_placed or v_extended then
     perform private.notify(
       actor,
       'wallet'::public.notification_kind,
-      'Withdrawals and sends are on hold',
-      'You said a sign-in was not you. We signed out every other device and nothing can leave your wallet for 24 hours. Change your password now.',
+      'Money cannot leave your wallet for now',
+      'You said a sign-in was not you. We signed out every other device, and no money can leave your wallet until the hold ends. Change your password now.',
       '/wallet'
     );
   end if;
@@ -212,7 +135,8 @@ begin
     'status', 'ok',
     'ended', v_ended,
     'hold_until', v_until,
-    'hold_placed', v_placed
+    'hold_placed', v_placed,
+    'hold_extended', v_extended
   );
 end;
 $$;
@@ -221,7 +145,7 @@ revoke all on function public.report_not_me() from public, anon, authenticated;
 grant execute on function public.report_not_me() to authenticated;
 
 comment on function public.report_not_me() is
-  'V-19. The owner says a sign-in was not them: every other session ends, withdrawals and wallet-to-wallet sends are held for 24 hours (once, never stacked), and an audit row is written. Authorises off auth.uid() only.';
+  'V-19. The owner says a sign-in was not them: every other session ends and a not_me row is written to the audit-owned public.account_money_holds (24h; extended to at most 72h only when pressed from a session older than the hold). Five an hour. Authorises off auth.uid() only.';
 
 -- ----------------------------------------------------------------------------
 -- WHICH DEVICE THE ALERT IS ABOUT, FOR ITS OWNER ONLY.
@@ -285,23 +209,26 @@ create trigger known_devices_notify_new_device
   for each row
   execute function private.notify_new_device();
 
+
 -- ----------------------------------------------------------------------------
 -- READ BACK.
 
 do $$
 declare
   v_open int;
-  v_triggers int;
-  v_table_open int;
 begin
+  if to_regclass('public.account_money_holds') is null then
+    raise exception 'V-19 writes the audit hold public.account_money_holds, which is not here (20260924012454 must run first)';
+  end if;
+
   select count(*) into v_open
     from pg_proc p join pg_namespace n on n.oid = p.pronamespace
    where n.nspname = 'private'
-     and p.proname in ('account_hold_until', 'refuse_money_out_during_account_hold', 'notify_new_device')
+     and p.proname = 'notify_new_device'
      and (has_function_privilege('anon', p.oid, 'EXECUTE')
        or has_function_privilege('authenticated', p.oid, 'EXECUTE'));
   if v_open <> 0 then
-    raise exception 'rule 21: % private function(s) are executable by anon or authenticated', v_open;
+    raise exception 'rule 21: notify_new_device is executable by anon or authenticated';
   end if;
 
   if has_function_privilege('anon', 'public.report_not_me()', 'EXECUTE')
@@ -309,21 +236,11 @@ begin
     raise exception 'the not-me doors are open to anon';
   end if;
 
-  select count(*) into v_triggers
-    from pg_trigger t
-   where not t.tgisinternal and t.tgenabled = 'O'
-     and t.tgname in ('wallet_entries_refuse_during_account_hold', 'known_devices_notify_new_device');
-  if v_triggers <> 2 then
-    raise exception 'the two V-19 triggers are not both installed and enabled (%)', v_triggers;
-  end if;
-
-  select count(*) into v_table_open
-    from information_schema.role_table_grants
-   where table_schema = 'public' and table_name = 'account_holds'
-     and (grantee in ('anon', 'PUBLIC')
-       or (grantee = 'authenticated' and privilege_type <> 'SELECT'));
-  if v_table_open <> 0 then
-    raise exception 'account_holds is not born locked: % grant(s) stand', v_table_open;
+  if not exists (
+    select 1 from pg_trigger t
+     where not t.tgisinternal and t.tgenabled = 'O' and t.tgname = 'known_devices_notify_new_device'
+  ) then
+    raise exception 'the new sign-in trigger is not installed and enabled';
   end if;
 end
 $$;

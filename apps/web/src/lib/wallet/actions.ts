@@ -66,7 +66,7 @@ import {
 } from "../payments/yellowcard";
 import { CRYPTO_PREFIX, FUND_PREFIX, P2P_PREFIX, WITHDRAW_PREFIX } from "../payments/references";
 import { guardMoney } from "../security/money-limits";
-import { accountHoldRefusal } from "../security/account-hold-guard";
+import { accountHoldRefusal, holdRefusalForFailure } from "../security/account-hold-guard";
 import { IN_FLIGHT_MESSAGE, withIdempotency } from "../security/idempotency";
 import { subjectForUser } from "../security/rate-limit";
 import { lookupBank, resolveBankAccountName } from "../payments/bank-resolve";
@@ -622,6 +622,9 @@ async function withdrawWork(
   );
 
   if (held.outcome === "failed") {
+    /* V-19: the audit's hold trigger, reached by a race past the check. */
+    const holdSentence = await holdRefusalForFailure(session.supabase, held.reason);
+    if (holdSentence) return fail(holdSentence);
     return fail("The withdrawal could not be recorded. Your balance is untouched. Please try again.");
   }
 
@@ -888,6 +891,10 @@ async function withdrawToSavedAccount(
   );
 
   if (held.outcome !== "ok") {
+    /* V-19: the audit's hold trigger, reached by a race past the check. */
+    const holdSentence =
+      held.outcome === "failed" ? await holdRefusalForFailure(session.supabase, held.reason) : null;
+    if (holdSentence) return fail(holdSentence);
     return fail("The withdrawal could not be recorded. Your balance is untouched. Please try again.");
   }
   const status = readMoneyStatus(held.data);
@@ -1181,6 +1188,9 @@ async function transferToUserWork(
   );
 
   if (call.outcome === "failed") {
+    /* V-19: the audit's hold trigger, reached by a race past the check. */
+    const holdSentence = await holdRefusalForFailure(session.supabase, call.reason);
+    if (holdSentence) return fail(holdSentence);
     return fail("The transfer could not be completed. Your balance is untouched. Please try again.");
   }
 

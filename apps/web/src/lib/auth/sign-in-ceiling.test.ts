@@ -38,6 +38,10 @@ vi.mock("@/lib/alerts", () => ({ recordAlert: seam.alert }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({ auth: { signInWithPassword: seam.signIn } }),
 }));
+/* V-19: sign-in builds its client through the agent-forwarding helper. */
+vi.mock("@/lib/security/agent-client", () => ({
+  createClientWithAgent: async () => ({ auth: { signInWithPassword: seam.signIn } }),
+}));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ from: vi.fn() }) }));
 vi.mock("@/lib/site", () => ({ authOrigin: async () => "https://example.invalid" }));
 vi.mock("./providers", () => ({
