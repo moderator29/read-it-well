@@ -645,10 +645,13 @@ export async function markInboxRead(): Promise<ActionResult<{ updated: number }>
 
   if (!(await isFeatureEnabled("messaging"))) return fail(PAUSED_MESSAGE);
 
-  // RLS answers "which conversations are yours" and nothing else has to.
+  /* SEC-02. RLS alone also answers every conversation to an admin, so the
+     caller is named as a party: an admin's "Mark all read" marks only their
+     own threads, never another member's. */
   const { data: conversations, error: readError } = await session.supabase
     .from("conversations")
     .select("id")
+    .or(`guest_id.eq.${session.user.id},agent_id.eq.${session.user.id}`)
     .limit(200);
   if (readError) return fail(READ_STATE_FAILED_MESSAGE);
   const ids = (conversations ?? []).map((row) => row.id);

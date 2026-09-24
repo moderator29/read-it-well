@@ -149,7 +149,13 @@ export async function getRentPayView(inspectionId: string, locale: Locale): Prom
     // the same arithmetic the checkout view and the wallet ledger use.
     const [balanceRead, heldRead] = await Promise.all([
       session.supabase.from("wallet_balances").select("balance_minor").eq("user_id", session.user.id).maybeSingle(),
-      session.supabase.from("wallet_entries").select("amount_minor").eq("status", "PENDING").eq("direction", "debit"),
+      /* SEC-02. The caller's own wallet: an admin reads every entry. */
+      session.supabase
+        .from("wallet_entries")
+        .select("amount_minor, wallets!inner(user_id)")
+        .eq("wallets.user_id", session.user.id)
+        .eq("status", "PENDING")
+        .eq("direction", "debit"),
     ]);
     const settledBalance = balanceRead.data?.balance_minor ?? 0;
     let held = 0;

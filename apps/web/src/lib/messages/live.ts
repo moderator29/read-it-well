@@ -223,6 +223,9 @@ export async function loadConversationSummaries(
     .select(
       "id, guest_id, agent_id, last_message_at, context_kind, listings(title), reservations!conversations_reservation_id_fkey(listings(title)), bookings!conversations_booking_id_fkey(listings(title))",
     )
+    /* SEC-02. RLS lets an admin read every conversation; the inbox is the
+       caller's own threads, so the caller is named as a party. */
+    .or(`guest_id.eq.${user.id},agent_id.eq.${user.id}`)
     .order("last_message_at", { ascending: false })
     .limit(50);
   if (!conversations || conversations.length === 0) return [];
