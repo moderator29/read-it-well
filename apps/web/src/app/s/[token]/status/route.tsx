@@ -11,21 +11,37 @@ import { photoData, statusImage } from "../door-image";
  */
 export const dynamic = "force-dynamic";
 
+/**
+ * The picture is the same for everybody who asks within a few minutes, so a
+ * shared cache may keep it for five minutes and serve a stale copy for ten
+ * more while it fetches a new one. A revoked door stops being drawn within
+ * that window, which is the trade for not rendering a 1080x1920 image on
+ * every tap. Nothing personal is in it, so `public` is correct.
+ */
+const CACHE = "public, max-age=0, s-maxage=300, stale-while-revalidate=600";
+
+function cached(image: Response): Response {
+  image.headers.set("cache-control", CACHE);
+  return image;
+}
+
 export async function GET(_request: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const read = await readDoor(token);
   const t = getDictionary(DEFAULT_LOCALE);
   const copy = t.frontDoor.door;
   if (read.state !== "open" || read.card.kind === "gone" || read.card.kind === "price_area") {
-    return statusImage({ kind: "mark" }, copy, null);
+    return cached(await statusImage({ kind: "mark" }, copy, null));
   }
   const card = read.card;
-  if (card.kind === "example") return statusImage({ kind: "example", card }, copy, null);
+  if (card.kind === "example") return cached(await statusImage({ kind: "example", card }, copy, null));
   if (card.kind === "stay") {
-    return statusImage(
-      { kind: "listing", card, lines: stayLines(card, copy), photo: await photoData(stayDoorPhotoUrl(card.photoPath)) },
-      copy,
-      null,
+    return cached(
+      await statusImage(
+        { kind: "listing", card, lines: stayLines(card, copy), photo: await photoData(stayDoorPhotoUrl(card.photoPath)) },
+        copy,
+        null,
+      ),
     );
   }
   const image = await statusImage(
@@ -39,5 +55,5 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tok
     doorUtilities(card, t.frontDoor.status),
   );
   image.headers.set("content-disposition", `inline; filename="vallo-status-${card.reference ?? "listing"}.png"`);
-  return image;
+  return cached(image);
 }

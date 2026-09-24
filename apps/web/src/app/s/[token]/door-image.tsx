@@ -237,11 +237,15 @@ export async function statusImage(
     return new ImageResponse(
       frame(
         <>
+          {/* One brand mark only: the word at the top. The mark-only face
+              (a door that cannot be read) is that word and nothing else. */}
           <div style={{ display: "flex", color: OG_INK_MUTED, fontSize: 40, letterSpacing: 6 }}>VALLO</div>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", color: OG_INK, fontSize: 96 }}>
-              {example ? (input.card.stay ? copy.stay.example : copy.example) : "Vallo"}
-            </div>
+            {example && (
+              <div style={{ display: "flex", color: OG_INK, fontSize: 96 }}>
+                {input.card.stay ? copy.stay.example : copy.example}
+              </div>
+            )}
             {example && (
               <div style={{ display: "flex", marginTop: 28, color: OG_INK_SECONDARY, fontSize: 44, lineHeight: 1.3 }}>
                 {input.card.stay ? copy.stay.exampleBody : copy.exampleBody}
