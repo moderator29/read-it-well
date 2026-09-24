@@ -20,6 +20,7 @@ import {
   walletOwnerId,
   type AdminClient,
 } from "./ledger";
+import { processorFeeMetadata } from "./funding-fee";
 
 /**
  * Reconciliation. The permanent answer to "the processor took the money and
@@ -284,6 +285,7 @@ export async function reconcileFundingReference(
         paid_at: charge.paidAt,
         purpose: "wallet_fund",
         recovered_by: "reconciliation",
+        ...processorFeeMetadata(charge.feesMinor),
       },
     });
   } catch (error) {
@@ -322,6 +324,9 @@ export async function reconcileFundingReference(
     outcome: posted,
     detail: { resolution: owner.how, channel: charge.channel },
   });
+  if (posted === "posted") {
+    await alertWebhookMissed(trimmed, charge.amountMinor, "funding", "reconciliation", charge.paidAt);
+  }
 
   return {
     outcome: posted === "posted" ? "recovered" : "already_posted",
@@ -449,6 +454,7 @@ async function postGapFunding(
         paid_at: charge.paidAt,
         purpose: "wallet_fund",
         recovered_by: "sweep",
+        ...processorFeeMetadata(charge.feesMinor),
       },
     });
     logMoney({
@@ -468,6 +474,9 @@ async function postGapFunding(
       outcome: posted,
       detail: { resolution: owner.how, found_by: "sweep" },
     });
+    if (posted === "posted") {
+      await alertWebhookMissed(charge.reference, charge.amountMinor, "funding", "sweep", charge.paidAt);
+    }
     return { ...base, action: "posted", reason: posted };
   } catch (error) {
     logMoney({
@@ -639,6 +648,11 @@ export async function sweepUnrecordedCharges(
         outcome: settlement.outcome,
         detail: { found_by: "sweep" },
       });
+      /* Only a settlement this run made: already-settled means the webhook
+         got there first, and an unknown reference is not ours to page on. */
+      if (settlement.outcome === "settled" || settlement.outcome === "returned-to-wallet") {
+        await alertWebhookMissed(charge.reference, charge.amountMinor, "booking", "sweep", charge.paidAt);
+      }
       gaps.push({
         reference: charge.reference,
         amountMinor: charge.amountMinor,
@@ -723,6 +737,38 @@ export type HoldSweepReport = {
  * being kind='withdrawal' and status='PENDING'. One statement, so a webhook
  * arriving mid-sweep and this sweeper cannot both settle the same hold.
  */
+/** MON-P2-03. How long a webhook may take before a recovery counts as a miss. */
+export const WEBHOOK_GRACE_MINUTES = 15;
+
+/**
+ * MON-P2-03. A charge the reconciler had to post is proof the primary path
+ * (the Paystack webhook, or the redirect) did not: one critical alert per
+ * reference, so a webhook that is not registered or not arriving is seen the
+ * first time it matters instead of being healed quietly every hour.
+ */
+export async function alertWebhookMissed(
+  reference: string,
+  amountMinor: number,
+  family: "funding" | "booking",
+  foundBy: "reconciliation" | "sweep",
+  paidAt: string | null,
+  now: number = Date.now(),
+): Promise<void> {
+  /* A charge paid moments before the run may simply have its webhook still
+     in flight: the reconciler posting it first is a race, not a miss. Only a
+     charge older than the grace is proof the webhook did not arrive. A charge
+     with no paid time is treated as old. */
+  const paid = paidAt ? Date.parse(paidAt) : Number.NaN;
+  if (Number.isFinite(paid) && now - paid < WEBHOOK_GRACE_MINUTES * 60_000) return;
+  await recordAlert({
+    kind: "payment.webhook.missed",
+    severity: "critical",
+    subjectKind: "payment_reference",
+    subjectId: reference,
+    detail: { amount_minor: amountMinor, family, found_by: foundBy },
+  });
+}
+
 /**
  * MON-01. One high alert per stuck withdrawal (recordAlert folds a repeat into
  * the open row), so the desk sees a member's money held with no outcome

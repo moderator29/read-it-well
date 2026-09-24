@@ -6,6 +6,7 @@ import { HeldPaymentSheet } from "@/components/app/escrow/HeldPaymentSheet";
 import { resolveSession } from "@/lib/actions/session";
 import { isSettled } from "@/lib/escrow/copy";
 import { readHeldPayments } from "@/lib/escrow/queries";
+import { heldPaymentsAreOpen } from "@/lib/escrow/flag";
 
 import "@/app/css/escrow.css";
 
@@ -57,7 +58,7 @@ export default async function HeldPaymentsPage() {
     );
   }
 
-  const { payments, readFailed } = await readHeldPayments();
+  const [{ payments, readFailed }, gateOpen] = await Promise.all([readHeldPayments(), heldPaymentsAreOpen()]);
 
   if (readFailed) {
     return (
@@ -89,11 +90,21 @@ export default async function HeldPaymentsPage() {
       <PageHeader layout="stacked" title="Held payments" fallback="/wallet" />
       <Section>
         {open.length === 0 ? (
-          <EmptyState
-            icon="wallet-secure"
-            title="Nothing is set aside"
-            body="When you agree an agency fee with somebody on Vallo, you can set the money aside until the work is done. It stays out of both balances until then."
-          />
+          gateOpen ? (
+            <EmptyState
+              icon="wallet-secure"
+              title="Nothing is set aside"
+              body="When you agree an agency fee with somebody on Vallo, you can set the money aside until the work is done. It stays out of both balances until then."
+            />
+          ) : (
+            /* ESC-13. While the held-payments switch is off nothing can be set
+               aside, so the empty state says that instead of describing it. */
+            <EmptyState
+              icon="wallet-secure"
+              title="Held payments are not open yet"
+              body="Nothing can be set aside on Vallo today. Anything you set aside before stays on this page."
+            />
+          )
         ) : (
           open.map((payment) => (
             <HeldPaymentSheet key={payment.id} payment={payment} href={`/escrow/${payment.id}`} />

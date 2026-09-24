@@ -35,6 +35,7 @@
  *   warning nobody reads.
  */
 
+import { WALLET_MONEY_NEXT } from "../wallet/bank-payouts";
 import {
   appUrl,
   bullets,
@@ -515,7 +516,7 @@ export function walletFunded(data: WalletFundedData): EmailMessage {
         { label: "New balance", value: money(data.balanceMinor), strong: true },
       ]),
       paragraph(
-        "The money is available now. You can spend it on Vallo, send it to another Vallo wallet, or withdraw it to your bank account.",
+        `The money is available now. ${WALLET_MONEY_NEXT}`,
       ),
       button("Open my wallet", appUrl("/wallet")),
       note("Your full statement, every credit and debit, is in the wallet."),
@@ -783,7 +784,7 @@ export function escrowReleased(data: EscrowReleasedData): EmailMessage {
       button("Open my wallet", appUrl("/wallet")),
       note(
         toRecipient
-          ? "Withdraw it to your bank whenever you want it, or leave it in your wallet."
+          ? WALLET_MONEY_NEXT
           : "If you believe this was released in error, contact support with the reference above and a person will look at it.",
       ),
     ],
@@ -1551,7 +1552,7 @@ export function bookingRefunded(data: BookingRefundedData): EmailMessage {
       rows(list),
       returned
         ? paragraph(
-            "The money is in your Vallo wallet now. Spend it on another booking, or withdraw it to your bank from the wallet whenever you want it.",
+            `The money is in your Vallo wallet now. ${WALLET_MONEY_NEXT}`,
           )
         : paragraph(
             "Nothing has been taken from you beyond what you had already paid for this stay, and the booking stays in your history for your records.",
