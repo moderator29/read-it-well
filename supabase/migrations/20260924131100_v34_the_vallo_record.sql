@@ -20,11 +20,16 @@
 --                  whose booking was paid
 --   since          when the lister joined, the month is enough
 --
--- NOT HERE, ON PURPOSE: "Inspections kept: 29 of 31". The entry counts an
--- inspection as kept only with a gate handshake, so nobody can mark themselves
--- present, and the handshake table (V-35's check-ins) is not in this schema
--- yet. A kept count from `inspection_requests.state` would be the lister's own
--- word, so the line is not built until the handshake exists.
+--   kept           "Inspections kept: 29 of 31", counted ONLY from the gate
+--                  handshake (V-35): a confirmed inspection whose slot passed
+--                  more than a day ago in the last 12 months is kept when the
+--                  renter's phone recorded that the lister's code matched. The
+--                  lister cannot mark themselves present.
+--
+-- THE CORE IS PL/pgSQL, NOT SQL, because it reads `inspection_checkins`,
+-- which V-35 (20260924160100) creates after this file in timestamp order: a
+-- plpgsql body is resolved when it runs, so this file applies first and the
+-- Record works once both are in. Nothing calls it in between.
 --
 -- FIVE OR NOTHING. Every counted fact is returned only when its denominator
 -- reaches five; below that the columns are null and the screen prints nothing
@@ -139,13 +144,17 @@ returns table (
   enquiries integer,
   described integer,
   described_of integer,
-  lets integer
+  lets integer,
+  kept integer,
+  kept_of integer
 )
-language sql
+language plpgsql
 stable
 security definer
 set search_path = ''
 as $$
+begin
+  return query
   with a as (
     select ag.id, ag.user_id, ag.record_code, ag.display_name, ag.created_at,
            ag.status = 'SUSPENDED'::public.agent_application_status as stopped
@@ -202,6 +211,17 @@ as $$
       join public.listings l on l.id = rp.listing_id and not l.is_demo
      where b.status in ('CONFIRMED'::public.booking_status, 'COMPLETED'::public.booking_status)
        and rp.created_at > now() - interval '12 months'
+  ),
+  kept_stats as (
+    select count(*) filter (where exists (
+             select 1 from public.inspection_checkins k
+              where k.inspection_id = r.id and k.role = 'checker' and k.result = 'match'))::integer as kept,
+           count(*)::integer as of
+      from a
+      join public.inspection_requests r on r.lister_id = a.user_id
+     where r.state in ('CONFIRMED'::public.inspection_state, 'COMPLETED'::public.inspection_state)
+       and r.slot_at > now() - interval '12 months'
+       and r.slot_at <= now() - interval '1 day'
   )
   select a.record_code,
          a.display_name,
@@ -216,8 +236,11 @@ as $$
          case when not a.stopped and r.n >= 5 then r.n end,
          case when not a.stopped and ts.of >= 5 then ts.yes end,
          case when not a.stopped and ts.of >= 5 then ts.of end,
-         case when not a.stopped and ls.n >= 5 then ls.n end
-    from a, reply_stats r, truth_stats ts, let_stats ls;
+         case when not a.stopped and ls.n >= 5 then ls.n end,
+         case when not a.stopped and ks.of >= 5 then ks.kept end,
+         case when not a.stopped and ks.of >= 5 then ks.of end
+    from a, reply_stats r, truth_stats ts, let_stats ls, kept_stats ks;
+end;
 $$;
 
 revoke all on function private.lister_record_core(uuid) from public, anon, authenticated;
@@ -229,7 +252,7 @@ create or replace function public.lister_record(p_agent uuid)
 returns table (
   record_code text, display_name text, since timestamptz, stopped_at timestamptz,
   reply_median_minutes integer, replied integer, answered_in_day integer, enquiries integer,
-  described integer, described_of integer, lets integer
+  described integer, described_of integer, lets integer, kept integer, kept_of integer
 )
 language sql
 stable
@@ -252,7 +275,7 @@ create or replace function public.lister_record_for_user(p_user uuid)
 returns table (
   record_code text, display_name text, since timestamptz, stopped_at timestamptz,
   reply_median_minutes integer, replied integer, answered_in_day integer, enquiries integer,
-  described integer, described_of integer, lets integer
+  described integer, described_of integer, lets integer, kept integer, kept_of integer
 )
 language sql
 stable
@@ -276,7 +299,7 @@ create or replace function public.lister_record_by_code(p_code text)
 returns table (
   record_code text, display_name text, since timestamptz, stopped_at timestamptz,
   reply_median_minutes integer, replied integer, answered_in_day integer, enquiries integer,
-  described integer, described_of integer, lets integer
+  described integer, described_of integer, lets integer, kept integer, kept_of integer
 )
 language plpgsql
 stable
@@ -308,7 +331,7 @@ create or replace function public.thread_counterpart_record(p_conversation uuid)
 returns table (
   record_code text, display_name text, since timestamptz, stopped_at timestamptz,
   reply_median_minutes integer, replied integer, answered_in_day integer, enquiries integer,
-  described integer, described_of integer, lets integer
+  described integer, described_of integer, lets integer, kept integer, kept_of integer
 )
 language sql
 stable

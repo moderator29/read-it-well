@@ -333,6 +333,7 @@ export const trustVisibleEn = {
       threeDays: "Replies usually within 3 days ({count} enquiries, last 90 days)",
     },
     answered: "Enquiries answered within a day: {count} of {total}, last 90 days",
+    kept: "Inspections kept: {count} of {total}, counted from the code at the gate, last 12 months",
     described: "Found as described at inspection: {count} of {total} renters, last 12 months",
     lets: "Let through Vallo: {count} in the last 12 months",
     since: "On Vallo since {month}",

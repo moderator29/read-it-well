@@ -19,6 +19,8 @@ const FULL = {
   described: 27,
   described_of: 29,
   lets: 9,
+  kept: 29,
+  kept_of: 31,
 };
 
 describe("the Vallo Record (V-34)", () => {
@@ -26,6 +28,7 @@ describe("the Vallo Record (V-34)", () => {
     expect(recordLines(recordFrom(FULL), copy, "en").map((l) => l.text)).toEqual([
       "Replies usually within 2 hours (48 enquiries, last 90 days)",
       "Enquiries answered within a day: 47 of 51, last 90 days",
+      "Inspections kept: 29 of 31, counted from the code at the gate, last 12 months",
       "Found as described at inspection: 27 of 29 renters, last 12 months",
       "Let through Vallo: 9 in the last 12 months",
       "On Vallo since March 2026",
@@ -41,7 +44,7 @@ describe("the Vallo Record (V-34)", () => {
 
   it("prints nothing for a null count, and never below five even if one leaks through", () => {
     const lines = recordLines(
-      recordFrom({ ...FULL, enquiries: 4, answered_in_day: 4, described: null, described_of: null, lets: 3, replied: 4 }),
+      recordFrom({ ...FULL, enquiries: 4, answered_in_day: 4, described: null, described_of: null, lets: 3, replied: 4, kept: 3, kept_of: 4 }),
       copy,
       "en",
     );

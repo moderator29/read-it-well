@@ -33,9 +33,12 @@ export type RecordRow = {
   described: number | null;
   describedOf: number | null;
   lets: number | null;
+  /** V-35: confirmed inspections the renter's phone matched at the gate, and of how many. */
+  kept: number | null;
+  keptOf: number | null;
 };
 
-export type RecordLineKey = "stopped" | "replies" | "answered" | "described" | "lets" | "since";
+export type RecordLineKey = "stopped" | "replies" | "answered" | "kept" | "described" | "lets" | "since";
 
 export type RecordLine = { key: RecordLineKey; text: string };
 
@@ -75,6 +78,8 @@ export function recordFrom(row: unknown): RecordRow | null {
     described: int(o.described),
     describedOf: int(o.described_of),
     lets: int(o.lets),
+    kept: int(o.kept),
+    keptOf: int(o.kept_of),
   };
 }
 
@@ -123,6 +128,13 @@ export function recordLines(record: RecordRow | null, copy: Copy, locale: Locale
     out.push({
       key: "answered",
       text: copy.answered.replace("{count}", fmt(answered[0])).replace("{total}", fmt(answered[1])),
+    });
+  }
+  const kept = pair(record.kept, record.keptOf);
+  if (kept) {
+    out.push({
+      key: "kept",
+      text: copy.kept.replace("{count}", fmt(kept[0])).replace("{total}", fmt(kept[1])),
     });
   }
   const described = pair(record.described, record.describedOf);
