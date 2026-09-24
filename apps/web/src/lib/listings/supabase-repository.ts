@@ -1087,6 +1087,14 @@ export class SupabaseListingRepository implements ListingRepository {
   readonly isSeed = false;
 
   /**
+   * Where the rows are read through. The caller's own cookie-bound client by
+   * default, so RLS answers as the person asking; the landing page's shared
+   * read passes a cookie-free anonymous client instead (OPS-11), because a
+   * value cached for every visitor must be the one a stranger would see.
+   */
+  constructor(private readonly connect: () => Promise<Client> = createClient) {}
+
+  /**
    * The published catalogue, newest and featured first.
    *
    * What runs where, and why:
@@ -1117,7 +1125,7 @@ export class SupabaseListingRepository implements ListingRepository {
   ): Promise<Listing[]> {
     if (filter.kind && propertyTypeFor(filter.kind) === null) return [];
     try {
-      const supabase = await createClient();
+      const supabase = await this.connect();
 
       // The amenity join is resolved first: with no listing carrying the whole
       // set there is nothing to ask the catalogue for.
@@ -1327,7 +1335,7 @@ export class SupabaseListingRepository implements ListingRepository {
 
   async byId(id: string): Promise<Listing | null> {
     try {
-      const supabase = await createClient();
+      const supabase = await this.connect();
       const { data, error } = await supabase
         .from("listings")
         // The one surface a walkthrough belongs on, so it pays for the signing.
@@ -1361,7 +1369,7 @@ export class SupabaseListingRepository implements ListingRepository {
    */
   async byReference(reference: string): Promise<Listing | null> {
     try {
-      const supabase = await createClient();
+      const supabase = await this.connect();
       const { data, error } = await supabase
         .from("listings")
         .select(await pointSelect(supabase, LISTING_DETAIL_SELECT))
