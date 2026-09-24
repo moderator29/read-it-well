@@ -7,6 +7,10 @@ import { Segmented } from "@/components/ui/Segmented";
 import { reencodeToJpeg } from "@/components/social/profile/reencode";
 import { createClient } from "@/lib/supabase/client";
 import { attachPostMedia, dropPost, replyToPost } from "@/lib/social/posts-actions";
+import { sendOrKeep } from "@/lib/offline/send-or-keep";
+import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
+
+const OUTBOX = getDictionary(DEFAULT_LOCALE).platform.outbox;
 import { summonBot } from "@/lib/social/bot-actions";
 import { mentionsBot } from "@/lib/social/bot-schema";
 import {
@@ -91,6 +95,8 @@ export function Composer({
   const [kind, setKind] = useState<ComposableKind>(initialKind);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
+  /* V-40: the post was kept for when the signal returns. */
+  const [keptNote, setKeptNote] = useState<string | null>(null);
   const [held, setHeld] = useState(false);
   const [pictures, setPictures] = useState<Picture[]>([]);
   /* The post that landed without its pictures. While this is set, the retry is
@@ -272,9 +278,28 @@ export function Composer({
   const send = () => {
     setError(null);
     startTransition(async () => {
-      const result = parentId
-        ? await replyToPost({ parentId, body })
-        : await dropPost(areaId ? { areaId, kind, body } : { kind, body });
+      /* V-40: a new post with no signal and no pictures is kept and posted
+         when the signal returns. Replies and pictures need the connection. */
+      let result: Awaited<ReturnType<typeof dropPost>>;
+      if (parentId) {
+        result = await replyToPost({ parentId, body });
+      } else if (pictures.length === 0) {
+        const fields: { kind: "GIST" | "ASK"; body: string; areaId?: string } = areaId ? { areaId, kind, body } : { kind, body };
+        const done = await sendOrKeep("drop_post", fields, (tapKey) => dropPost({ ...fields, tapKey }));
+        if (done.state === "kept") {
+          setBody("");
+          setError(null);
+          setKeptNote(OUTBOX.waiting);
+          return;
+        }
+        if (done.state === "not_kept") {
+          setError(OUTBOX.couldNotKeep);
+          return;
+        }
+        result = done.result;
+      } else {
+        result = await dropPost(areaId ? { areaId, kind, body } : { kind, body });
+      }
 
       if (!result.ok) {
         setError(result.error);
@@ -429,6 +454,12 @@ export function Composer({
       {pictures.length > 0 && body.trim().length === 0 && !strandedPost ? (
         <p className="mt-xs text-[length:var(--nf-text-overline)] leading-relaxed text-[var(--nf-content-secondary)]">
           {POST_COPY.pictureNeedsWords}
+        </p>
+      ) : null}
+
+      {keptNote && !error ? (
+        <p role="status" className="mt-xs nf-caption text-[var(--nf-content-secondary)]" data-testid="composer-waiting">
+          {keptNote}
         </p>
       ) : null}
 

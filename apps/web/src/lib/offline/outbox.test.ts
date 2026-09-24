@@ -6,7 +6,8 @@ const ID = "3653d202-e498-4db0-ab71-882649f7f446";
 
 describe("the outbox (V-40)", () => {
   it("never carries money", () => {
-    expect(OUTBOX_KINDS).toEqual(["save_listing", "save_place"]);
+    expect(OUTBOX_KINDS).toEqual(["save_listing", "save_place", "send_message", "request_inspection", "submit_review", "drop_post"]);
+    for (const kind of OUTBOX_KINDS) expect(kind).not.toMatch(/pay|money|withdraw|transfer|fund|card|wallet/);
     expect(makeEntry("withdraw", ID, true, 0)).toBeNull();
     expect(makeEntry("send_money", ID, true, 0)).toBeNull();
   });
@@ -43,5 +44,33 @@ describe("in-flight payment notes (V-40)", () => {
     expect(readInflight(raw, now)).toEqual([{ reference: "rm-book-abc123", amountMinor: 500_000, at: now - 1000 }]);
     expect(readInflight("{", now)).toEqual([]);
     expect(readInflight(null, now)).toEqual([]);
+  });
+});
+
+describe("creates in the outbox (V-40)", () => {
+  const ID = "3f1c2a4e-9b7d-4c1e-8a2b-6d5e4f3a2b1c";
+
+  it("keeps a message, a request, a review and a post under the tap's own UUID", async () => {
+    const { makeCreateEntry, asEntry } = await import("./outbox");
+    const made = [
+      makeCreateEntry("send_message", ID, { conversationId: "c", body: "hello" }, 1),
+      makeCreateEntry("request_inspection", ID, { listingId: "l", when: "2026-10-01T10:00:00Z" }, 1),
+      makeCreateEntry("submit_review", ID, { bookingId: "b", rating: "5" }, 1),
+      makeCreateEntry("drop_post", ID, { kind: "GIST", body: "hi" }, 1),
+    ];
+    for (const entry of made) {
+      expect(entry?.key).toBe(`${entry?.kind}:${ID}`);
+      expect(asEntry(JSON.parse(JSON.stringify(entry)))).toEqual(entry);
+    }
+  });
+
+  it("refuses money, unknown fields, missing fields and a key that is not a UUID", async () => {
+    const { makeCreateEntry, asEntry } = await import("./outbox");
+    expect(makeCreateEntry("withdraw", ID, { amount: "5000" }, 1)).toBeNull();
+    expect(makeCreateEntry("send_money", ID, { amount: "5000" }, 1)).toBeNull();
+    expect(makeCreateEntry("send_message", ID, { conversationId: "c", body: "x", amount: "5000" }, 1)).toBeNull();
+    expect(makeCreateEntry("send_message", ID, { conversationId: "c", body: "   " }, 1)).toBeNull();
+    expect(makeCreateEntry("send_message", "not-a-uuid", { conversationId: "c", body: "x" }, 1)).toBeNull();
+    expect(asEntry({ kind: "drop_post", target: ID, want: true, payload: { kind: "GIST", body: 5 } })).toBeNull();
   });
 });

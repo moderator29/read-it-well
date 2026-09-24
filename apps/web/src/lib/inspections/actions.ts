@@ -1,5 +1,6 @@
 "use server";
 
+import { oncePerTap, tapKey } from "../offline/replay-guard";
 import { revalidatePath } from "next/cache";
 import { PHOTO_EXTENSIONS, photoPathBelongsTo } from "./report-photo-path";
 import { z } from "zod";
@@ -76,6 +77,16 @@ export async function requestInspection(input: unknown): Promise<ActionResult<{ 
   if (session.state !== "signed-in") {
     return fail("Sign in to arrange an inspection.");
   }
+  /* V-40: a replay of the same tap answers with the first request. */
+  const key = tapKey((input as { tapKey?: unknown } | null)?.tapKey);
+  return oncePerTap("outbox.inspection", session.user.id, key, () => requestInspectionWork(session, parsed.data));
+}
+
+async function requestInspectionWork(
+  session: Extract<Awaited<ReturnType<typeof resolveSession>>, { state: "signed-in" }>,
+  input: z.infer<typeof requestSchema>,
+): Promise<ActionResult<{ id: string }>> {
+  const parsed = { data: input };
 
   /* V-50: the first inspection request needs a confirmed phone, when the
      phone_confirmation flag is on. Null, and nothing read, when it is off. */

@@ -268,7 +268,17 @@ export const platformEn = {
     couldNotKeep: "You are offline, and this phone could not keep that for later.",
     sentTitle: "Sent now that you have signal",
     failedTitle: "Something you did offline did not go through",
-    failedItem: "Saving a place: {reason}",
+    failedItem: "{what}: {reason}",
+    what: {
+      save: "Saving a place",
+      message: "A message you sent",
+      inspection: "Your inspection request",
+      review: "Your review",
+      post: "Your post",
+    },
+    waiting: "Waiting for signal. It sends by itself when you are back online.",
+    waitingShort: "Waiting for signal",
+    reviewKeptVerdict: "Your review is kept on this phone",
     close: "Close",
   },
   inflight: {

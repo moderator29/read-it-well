@@ -4,7 +4,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { DEFAULT_LOCALE, getDictionary } from "@vallo/i18n";
 import { ResultSheet } from "@/components/app/ResultSheet";
 import { deviceSavesChanged } from "@/components/app/SaveControl";
-import { due, forget, readOutbox, reschedule, type OutboxEntry } from "@/lib/offline/outbox";
+import { announceSent, due, forget, isCreate, readOutbox, reschedule, type OutboxEntry } from "@/lib/offline/outbox";
+import type { ActionResult } from "@/lib/actions/envelope";
+import { sendMessage } from "@/lib/messages/actions";
+import { requestInspection } from "@/lib/inspections/actions";
+import { submitReview } from "@/lib/reviews/actions";
+import { dropPost } from "@/lib/social/posts-actions";
 import { clearInflight, listInflight } from "@/lib/offline/inflight";
 import { paymentState } from "@/lib/payments/payment-state";
 import { toggleSave } from "@/lib/saved/actions";
@@ -34,11 +39,50 @@ type Copy = ReturnType<typeof getDictionary>["platform"];
 
 type News =
   | { kind: "paid" | "failed" | "pending"; reference: string }
-  | { kind: "outbox_failed"; reasons: string[] }
+  | { kind: "outbox_failed"; reasons: { what: WhatKey; reason: string }[] }
   | null;
 
-async function replayOne(entry: OutboxEntry): Promise<"sent" | "retry" | { refused: string }> {
+type WhatKey = keyof Copy["outbox"]["what"];
+const WHAT: Record<OutboxEntry["kind"], WhatKey> = {
+  save_listing: "save",
+  save_place: "save",
+  send_message: "message",
+  request_inspection: "inspection",
+  submit_review: "review",
+  drop_post: "post",
+};
+
+type Outcome = "sent" | "retry" | { refused: string };
+
+/** A create, sent under the UUID it was tapped with, so a replay cannot make a second one. */
+async function replayCreate(entry: OutboxEntry & { payload: Record<string, string> }): Promise<Outcome> {
+  const p = entry.payload;
+  const tapKey = entry.target;
+  let result: ActionResult<unknown>;
+  if (entry.kind === "send_message") {
+    result = await sendMessage({ conversationId: p.conversationId!, body: p.body!, tapKey });
+  } else if (entry.kind === "request_inspection") {
+    result = await requestInspection({ listingId: p.listingId, when: p.when, ...(p.note ? { note: p.note } : {}), tapKey });
+  } else if (entry.kind === "submit_review") {
+    const form = new FormData();
+    for (const [key, value] of Object.entries(p)) form.set(key, value);
+    form.set("tapKey", tapKey);
+    result = await submitReview(null, form);
+  } else {
+    result = await dropPost({ kind: p.kind === "ASK" ? "ASK" : "GIST", body: p.body!, ...(p.areaId ? { areaId: p.areaId } : {}), tapKey });
+  }
+  if (result.ok) {
+    announceSent({ key: entry.key, kind: entry.kind, data: result.data });
+    return "sent";
+  }
+  /* The first attempt is still running on the server: ask again later. */
+  if (result.fieldErrors?.idempotency === "in_flight") return "retry";
+  return { refused: result.error };
+}
+
+async function replayOne(entry: OutboxEntry): Promise<Outcome> {
   try {
+    if (isCreate(entry)) return await replayCreate(entry);
     if (entry.kind === "save_listing") {
       const result = await toggleSave({ listingId: entry.target, want: entry.want });
       const deviceOwns = (result.ok && result.data.mode === "local") || (!result.ok && result.error.startsWith("Sign in"));
@@ -75,7 +119,7 @@ export function OfflineTray() {
     running.current = true;
     try {
       /* 1. The outbox. */
-      const refused: string[] = [];
+      const refused: { what: WhatKey; reason: string }[] = [];
       let sentAny = false;
       for (const entry of due(await readOutbox(), Date.now())) {
         const outcome = await replayOne(entry);
@@ -86,7 +130,7 @@ export function OfflineTray() {
           await reschedule(entry, Date.now());
           break;
         } else {
-          refused.push(outcome.refused);
+          refused.push({ what: WHAT[entry.kind], reason: outcome.refused });
           await forget(entry.key);
         }
       }
@@ -142,7 +186,9 @@ export function OfflineTray() {
         onOpenChange={(open) => !open && close()}
         state="failed"
         verdict={copy.outbox.failedTitle}
-        consequence={news.reasons.map((reason) => copy.outbox.failedItem.replace("{reason}", reason)).join(" ")}
+        consequence={news.reasons
+          .map((r) => copy.outbox.failedItem.replace("{what}", copy.outbox.what[r.what]).replace("{reason}", r.reason))
+          .join(" ")}
         actions={[{ label: copy.outbox.close, onClick: close, tone: "quiet" }]}
       />
     );
