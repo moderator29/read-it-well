@@ -68,6 +68,7 @@ import { VideoWalkthrough, type WalkthroughVideo } from "@/components/agent/Vide
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ListingSentForReview } from "./ListingSentForReview";
 import { TextField, TextArea } from "@/components/ui/Field";
+import { listingDraftKey } from "@/lib/agent/listing-draft-storage";
 import { looksLikeStreetAddress, STREET_IN_TITLE_WARNING } from "@/lib/listings/public-title";
 import { tenantPreference } from "@/lib/safety/tenant-preference";
 import Link from "next/link";
@@ -130,7 +131,6 @@ const TYPE_ORDER: PropertyType[] = [
   "restaurant",
 ];
 
-const DRAFT_KEY = "nf_listing_draft";
 
 type Values = {
   title: string;
@@ -1086,8 +1086,11 @@ export function ListingWizard({
     if (restored.current) return;
     restored.current = true;
     if (initial) return;
+    /* SUP-16: one account's draft, never the last person's on this device. */
+    const draftKey = listingDraftKey(userId);
+    if (!draftKey) return;
     try {
-      const raw = localStorage.getItem(DRAFT_KEY);
+      const raw = localStorage.getItem(draftKey);
       if (!raw) return;
       const parsed = JSON.parse(raw) as {
         listingId?: string | null;
@@ -1095,7 +1098,7 @@ export function ListingWizard({
         amenities?: string[];
       };
       if (typeof parsed.listingId === "string" && parsed.listingId.length > 0) {
-        localStorage.removeItem(DRAFT_KEY);
+        localStorage.removeItem(draftKey);
         return;
       }
       if (parsed.values) setValues((prev) => ({ ...prev, ...parsed.values }));
@@ -1103,19 +1106,21 @@ export function ListingWizard({
     } catch {
       /* a malformed draft is not worth an error message */
     }
-  }, [initial]);
+  }, [initial, userId]);
 
   useEffect(() => {
     if (!restored.current) return;
+    const draftKey = listingDraftKey(userId);
+    if (!draftKey) return;
     try {
       localStorage.setItem(
-        DRAFT_KEY,
+        draftKey,
         JSON.stringify({ listingId, values, amenities: chosenAmenities }),
       );
     } catch {
       /* storage unavailable, the platform copy still holds */
     }
-  }, [listingId, values, chosenAmenities]);
+  }, [listingId, values, chosenAmenities, userId]);
 
   function set<K extends keyof Values>(key: K, value: Values[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -1479,7 +1484,8 @@ export function ListingWizard({
       setFieldErrors({});
       setSubmitted(true);
       try {
-        localStorage.removeItem(DRAFT_KEY);
+        const draftKey = listingDraftKey(userId);
+        if (draftKey) localStorage.removeItem(draftKey);
       } catch {
         /* nothing depends on this */
       }

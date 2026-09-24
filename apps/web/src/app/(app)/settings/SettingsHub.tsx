@@ -1,5 +1,6 @@
 "use client";
 
+import { clearListingDrafts } from "@/lib/agent/listing-draft-storage";
 import { initial } from "@/lib/text/initial";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import Link from "next/link";
@@ -294,6 +295,8 @@ export function LogOutRow({ t, signedIn }: { t: Dictionary; signedIn: boolean })
                 setError(result.error);
                 return;
               }
+              /* SUP-16: a listing draft never outlives the session that wrote it. */
+              clearListingDrafts();
               router.replace("/");
               router.refresh();
             });

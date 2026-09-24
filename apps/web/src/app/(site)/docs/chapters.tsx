@@ -1751,8 +1751,8 @@ export const CHAPTERS: DocChapter[] = [
                 Add a listing account
               </Link>{" "}
               and pick the door that fits: {doorsSentence()}. The owner form is four
-              short screens. The agent and firm forms ask for more, because more can go
-              wrong when somebody acts for another person. Your progress saves as you
+              short screens. The agent form asks for more, because more can go wrong
+              when somebody acts for another person. Your progress saves as you
               go, so you can put it down and come back. Applying as an agent, the six
               steps are:
             </p>

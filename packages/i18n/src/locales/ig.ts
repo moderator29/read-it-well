@@ -3738,7 +3738,7 @@ export const ig: Dictionary = withFallback({
           phone: "Nọmba ekwentị",
           nin: "Nọmba Njirimara Mba (NIN)",
           ninHint: "Ọnụọgụ iri na otu. Ị nwere ike itinye ya ma emechaa ma ọ bụrụ na ị nweghị ya ugbu a.",
-          assurance: "Anyị na-enyocha onye ị bụ tupu e bipụta ihe ọ bụla.",
+          assurance: "Otu onye na Vallo na-agụ akwụkwọ arịrịọ gị, na ndepụta ọ bụla, tupu e bipụta ihe ọ bụla.",
         },
         where: {
           title: "Ebee ka ị nwere ụlọ?",

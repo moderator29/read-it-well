@@ -65,9 +65,7 @@ export type ApplicationResult = {
  * about the same number. `lib/phone.ts` is now the only one.
  */
 
-/** The document slots the wizard offers, and which of them are compulsory. */
-const DOCUMENT_KINDS = ["idFront", "idBack", "registration"] as const;
-type DocumentKind = (typeof DOCUMENT_KINDS)[number];
+import { DOCUMENT_KINDS, STORED_DOCUMENT_KIND, type DocumentKind } from "./application-document-kinds";
 
 type UploadedDocument = { kind: DocumentKind; path: string };
 
@@ -247,9 +245,12 @@ export async function submitAgentApplication(
   }
 
   const documentWrite = await supabase.from("agent_documents").insert(
+    /* `uploader_id` is what `agent_documents_insert_own` compares with
+       auth.uid(); without it the insert is refused by RLS as well. */
     documents.map((d) => ({
       application_id: inserted.id,
-      kind: d.kind,
+      uploader_id: user.id,
+      kind: STORED_DOCUMENT_KIND[d.kind],
       storage_path: d.path,
     })),
   );

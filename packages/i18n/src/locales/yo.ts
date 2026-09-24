@@ -3749,7 +3749,7 @@ export const yo: Dictionary = withFallback({
           phone: "Nọ́mbà fóònù",
           nin: "Nọ́mbà Ìdánimọ̀ Orílẹ̀-èdè (NIN)",
           ninHint: "Nọ́mbà mọ́kànlá. O lè fi kun nígbà mìíràn bí kò bá sí lọ́wọ́ rẹ báyìí.",
-          assurance: "A máa ń ṣàyẹ̀wò ẹni tí o jẹ́ kí a tó tẹ ohunkóhun jáde.",
+          assurance: "Ẹnìkan ní Vallo máa ń ka ìbéèrè rẹ, àti gbogbo ìpolówó, kí a tó tẹ ohunkóhun jáde.",
         },
         where: {
           title: "Níbo ni o ti ní ilé?",

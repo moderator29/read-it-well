@@ -276,7 +276,15 @@ export type SupplyDoor = {
  * platform now wants is landlords who are not agents and never will be, and
  * until today the only door into the supply side was marked "become an agent".
  */
-export const SUPPLY_DOOR_ORDER: readonly WorkspaceKind[] = ["owner", "agent", "firm"] as const;
+/*
+ * THE FIRM DOOR IS NOT OFFERED, AND ITS COPY BELOW IS KEPT FOR THE DAY IT IS.
+ * Approving a firm application makes one agent: nothing creates the agency
+ * business, a `firm_members` row or `agents.firm_id`, and no listing can say
+ * "listed by <firm>". A door promising that is a door with nothing behind it,
+ * so the chooser lists the two that are real and `/profile/setup/firm` sends
+ * a firm's principal to the agent form, which is what approval gave them.
+ */
+export const SUPPLY_DOOR_ORDER: readonly WorkspaceKind[] = ["owner", "agent"] as const;
 
 export const SUPPLY_DOORS: Record<"owner" | "agent" | "firm", SupplyDoor> = {
   owner: {

@@ -24,9 +24,10 @@ async function chooser(side: "property" | "stays"): Promise<string> {
 describe("the workspace chooser shows both sets of doors", () => {
   it.each(["property", "stays"] as const)("on the %s side", async (side) => {
     const html = await chooser(side);
-    for (const id of ["owner", "agent", "firm", "hotel", "shortlet", "restaurant"]) {
+    for (const id of ["owner", "agent", "hotel", "shortlet", "restaurant"]) {
       expect(html, id).toContain(escape(doors[id]!.title));
     }
+    expect(html).not.toContain(escape(doors.firm!.title));
     const property = html.indexOf(escape(t.supply.chooser.groupProperty));
     const stays = html.indexOf(escape(t.supply.chooser.groupStays));
     expect(property).toBeGreaterThan(-1);

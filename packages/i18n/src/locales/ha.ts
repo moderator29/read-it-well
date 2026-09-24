@@ -3734,7 +3734,7 @@ export const ha: Dictionary = withFallback({
           phone: "Lambar waya",
           nin: "Lambar Shaida ta Kasa (NIN)",
           ninHint: "Lambobi goma sha ɗaya. Kana iya ƙara ta daga baya idan ba ka da ita yanzu.",
-          assurance: "Muna duba ko wanene kai kafin a wallafa komai.",
+          assurance: "Wani mutum a Vallo yana karanta takardar neman ka, da kowane jeri, kafin a wallafa komai.",
         },
         where: {
           title: "A ina kake da gida?",

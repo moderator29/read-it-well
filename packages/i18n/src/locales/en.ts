@@ -6143,7 +6143,7 @@ export const en = {
           phone: "Phone number",
           nin: "National identity number (NIN)",
           ninHint: "Eleven digits. You can add it later if you do not have it to hand.",
-          assurance: "We check who you are before anything is published.",
+          assurance: "A person at Vallo reads your application, and every listing, before anything is published.",
         },
         where: {
           title: "Where do you own?",

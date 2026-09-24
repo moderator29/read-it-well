@@ -1,5 +1,6 @@
 "use client";
 
+import { clearListingDrafts } from "@/lib/agent/listing-draft-storage";
 import { useState, useTransition } from "react";
 import { UiIcon } from "@/design-system/icons/UiIcon";
 import { endOtherSessions, endSession } from "@/lib/security/sessions-actions";
@@ -133,6 +134,8 @@ export function DeviceList({
     run("everywhere", async () => {
       const result = await signOutEverywhere();
       if (!result.ok) return { tone: "problem", message: result.error };
+      /* SUP-16: a listing draft never outlives the session that wrote it. */
+      clearListingDrafts();
       /* A full load, for the same reason as ending the current session above:
          the proxy must see cookies that no longer resolve. */
       window.location.assign("/sign-in?notice=sign-in-required");

@@ -13,7 +13,6 @@ const SETUP = join(process.cwd(), "src/app/(app)/profile/setup");
 const PAGES: [string, string, string][] = [
   ["/profile/setup", "page.tsx", "/profile"],
   ["/profile/setup/agent", "agent/page.tsx", "/profile/setup"],
-  ["/profile/setup/firm", "firm/page.tsx", "/profile/setup"],
   ["/profile/setup/owner", "owner/page.tsx", "/profile/setup"],
 ];
 
@@ -45,5 +44,13 @@ describe("profile setup: a back control to the declared parent", () => {
       expect(decision.action).not.toBe("exit");
       expect("href" in decision ? decision.href : null).toBe(parent);
     }
+  });
+});
+
+describe("the firm door is closed until approval can make a firm (SUP-10)", () => {
+  it("sends /profile/setup/firm to the agent form and draws nothing of its own", () => {
+    const source = readFileSync(join(SETUP, "firm/page.tsx"), "utf8");
+    expect(source).toContain('redirect("/profile/setup/agent")');
+    expect(source).not.toContain("<FirmRegisterForm");
   });
 });
