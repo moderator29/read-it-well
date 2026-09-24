@@ -62,3 +62,29 @@ export async function destroyExpiredKyc(
 
   return { due, destroyed, retried, failures };
 }
+
+/**
+ * THE END OF A PURGED ACCOUNT'S RETAINED FINANCIAL RECORD (AML-11).
+ *
+ * An account that moved money keeps its bank accounts, payout accounts and
+ * withdrawal destinations for five years after the purge
+ * (`account_deletion_requests.money_retain_until`, docs/RETENTION_SCHEDULE.md
+ * 3.3). `destroy_expired_money_records` redacts every record whose date has
+ * passed, one audit row per account. There are no files, so it is one call.
+ * A call that fails is reported, not thrown, so the purge counts still land;
+ * the records stay for the next run.
+ */
+export type MoneyRedactionResult = { redacted: number; failed: boolean };
+
+export async function destroyExpiredMoneyRecords(
+  deps: Pick<PurgeDeps, "rpc">,
+  limit: number,
+): Promise<MoneyRedactionResult> {
+  try {
+    const answer = record(await deps.rpc("destroy_expired_money_records", { p_limit: limit }));
+    const redacted = answer["redacted"];
+    return { redacted: typeof redacted === "number" ? redacted : 0, failed: false };
+  } catch {
+    return { redacted: 0, failed: true };
+  }
+}

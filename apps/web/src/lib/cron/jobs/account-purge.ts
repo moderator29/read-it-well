@@ -1,7 +1,7 @@
 import "server-only";
 
 import { PURGE_BATCH_LIMIT } from "../../account-deletion/constants";
-import { destroyExpiredKyc } from "../../account-deletion/kyc-retention";
+import { destroyExpiredKyc, destroyExpiredMoneyRecords } from "../../account-deletion/kyc-retention";
 import { runAccountPurges } from "../../account-deletion/purge";
 import { purgeDeps } from "../../account-deletion/service";
 import { spreadIds, type JobVerdict } from "../../bookings/lifecycle";
@@ -32,6 +32,8 @@ export async function accountPurge(admin: AdminClient): Promise<JobVerdict> {
   const result = await runAccountPurges(deps, PURGE_BATCH_LIMIT);
   /* The same run ends any retained AML record whose five years are up. */
   const kyc = await destroyExpiredKyc(deps, PURGE_BATCH_LIMIT);
+  /* And any purged account's financial record whose five years are up (AML-11). */
+  const money = await destroyExpiredMoneyRecords(deps, PURGE_BATCH_LIMIT);
 
   const counts = {
     due: result.due,
@@ -40,9 +42,19 @@ export async function accountPurge(admin: AdminClient): Promise<JobVerdict> {
     kyc_due: kyc.due,
     kyc_destroyed: kyc.destroyed,
     kyc_retried: kyc.retried,
+    money_redacted: money.redacted,
+    money_failed: money.failed ? 1 : 0,
   };
   const detail = { ...counts };
 
+  if (result.retried === 0 && money.failed) {
+    return {
+      outcome: "attention",
+      counts,
+      detail,
+      alert: { kind: "cron.money_retention.unfinished", severity: "warning", detail: {} },
+    };
+  }
   if (result.retried === 0 && kyc.retried > 0) {
     return {
       outcome: "attention",
