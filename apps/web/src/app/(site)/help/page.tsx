@@ -7,6 +7,7 @@ import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { HelpSearch, type Faq } from "./HelpSearch";
 import { ButtonLink } from "@/components/ui/Button";
 import { doorsSentence } from "@/lib/supply/roles";
+import { aiConsentForViewer } from "@/lib/ai/consent-server";
 
 export const metadata: Metadata = {
   title: "Help centre",
@@ -238,7 +239,7 @@ const FAQS: Faq[] = [
   },
 ];
 
-export default function HelpPage() {
+export default async function HelpPage() {
   return (
     <>
       <SiteHead
@@ -279,7 +280,7 @@ export default function HelpPage() {
 
         {/* ------------------------------------------- ask the agent */}
         <div className="nf-rise mt-block" style={{ animationDelay: "160ms" }}>
-          <SupportChat />
+          <SupportChat aiConsented={await aiConsentForViewer()} />
         </div>
 
         {/* ------------------------------------------------ still stuck */}

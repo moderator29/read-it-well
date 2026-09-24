@@ -117,6 +117,13 @@ export type ProfileSettings = {
    * SEE THEM.
    */
   welcomeSeen?: boolean;
+  /**
+   * STORE-07. When this person agreed that what they type to the assistant or
+   * the support chat is sent to Anthropic, and to which wording (`version`,
+   * `lib/ai/consent.ts`). Null until they agree; set and cleared only by
+   * `recordAiConsent` / `withdrawAiConsent`, never by `updateSettings`.
+   */
+  aiConsent?: { version: string; at: string } | null;
 };
 
 /** Settings with every optional filled in, which is what the UI renders from. */
@@ -129,6 +136,7 @@ export const SETTINGS_DEFAULTS: ResolvedProfileSettings = {
   dataSaver: false,
   interestsAsked: false,
   welcomeSeen: false,
+  aiConsent: null,
 };
 
 /**
@@ -152,6 +160,11 @@ const storedSettingsSchema = z
     dataSaver: z.boolean().optional().catch(undefined),
     interestsAsked: z.boolean().optional().catch(undefined),
     welcomeSeen: z.boolean().optional().catch(undefined),
+    aiConsent: z
+      .object({ version: z.string().max(40), at: z.string().max(40) })
+      .nullable()
+      .optional()
+      .catch(undefined),
   })
   .partial()
   .catch({});
@@ -165,6 +178,7 @@ export function parseSettings(raw: unknown): ResolvedProfileSettings {
     dataSaver: stored.dataSaver ?? SETTINGS_DEFAULTS.dataSaver,
     welcomeSeen: stored.welcomeSeen ?? SETTINGS_DEFAULTS.welcomeSeen,
     interestsAsked: stored.interestsAsked ?? SETTINGS_DEFAULTS.interestsAsked,
+    aiConsent: stored.aiConsent ?? SETTINGS_DEFAULTS.aiConsent,
   };
 }
 
@@ -199,7 +213,7 @@ export type SettingsPatch = z.infer<typeof settingsPatchSchema>;
  */
 export function mergeSettings(
   currentRaw: unknown,
-  patch: SettingsPatch,
+  patch: SettingsPatch & { aiConsent?: ResolvedProfileSettings["aiConsent"] },
 ): ResolvedProfileSettings {
   const current = parseSettings(currentRaw);
   return {
@@ -209,6 +223,7 @@ export function mergeSettings(
     dataSaver: patch.dataSaver ?? current.dataSaver,
     interestsAsked: patch.interestsAsked ?? current.interestsAsked,
     welcomeSeen: patch.welcomeSeen ?? current.welcomeSeen,
+    aiConsent: patch.aiConsent === undefined ? current.aiConsent : patch.aiConsent,
   };
 }
 

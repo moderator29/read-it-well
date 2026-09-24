@@ -11,6 +11,8 @@ import { ICON } from "@/components/app/Screen";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
 import { useDeviceIdentity } from "./device-identity";
+import { AiConsentSheet } from "@/components/app/ai/AiConsentSheet";
+import { AI_CONSENT_REQUIRED_CODE } from "@/lib/ai/consent";
 
 /**
  * Help and support, AI first.
@@ -130,8 +132,14 @@ function transcriptSummary(messages: Message[]): string {
   return `Conversation so far:\n${lines.join("\n")}`;
 }
 
-export function SupportChat() {
+export function SupportChat({ aiConsented = false }: { aiConsented?: boolean } = {}) {
   const [open, setOpen] = useState(false);
+  /* STORE-07: the AI half of this chat runs only after this person agrees to
+     the disclosure; declining keeps the chat, answered from the help pages
+     and a person, with no AI. The route refuses without agreement anyway. */
+  const [consent, setConsent] = useState<"yes" | "ask" | "declined">(aiConsented ? "yes" : "ask");
+  const [consentSheet, setConsentSheet] = useState(false);
+  const [pending, setPending] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [streaming, setStreaming] = useState(false);
@@ -221,6 +229,11 @@ export function SupportChat() {
     async (raw: string) => {
       const text = raw.trim();
       if (!text || streaming) return;
+      if (!keywordOnly && consent === "ask") {
+        setPending(text);
+        setConsentSheet(true);
+        return;
+      }
       setDraft("");
 
       const userMessage: Message = { id: makeId(), role: "user", text };
@@ -232,8 +245,9 @@ export function SupportChat() {
         { id: replyId, role: "assistant" as const, text: "" },
       ]);
 
-      // Already told the platform cannot answer: stay local, stay useful.
-      if (keywordOnly) {
+      // Already told the platform cannot answer, or the person said no to the
+      // AI: stay local, stay useful.
+      if (keywordOnly || consent === "declined") {
         answerFromKeywords(replyId, text);
         return;
       }
@@ -255,6 +269,17 @@ export function SupportChat() {
           const j = (await res.json().catch(() => null)) as { message?: string } | null;
           patch(replyId, (m) => ({ ...m, text: j?.message ?? PACE_FALLBACK_MESSAGE }));
           return;
+        }
+        if (res.status === 403) {
+          const j = (await res.json().catch(() => null)) as { code?: string } | null;
+          if (j?.code === AI_CONSENT_REQUIRED_CODE) {
+            /* Nothing went to the AI. Ask, and answer this one from the help
+               pages meanwhile. */
+            setConsent("ask");
+            setConsentSheet(true);
+            answerFromKeywords(replyId, text);
+            return;
+          }
         }
         if (!res.ok || !res.body) {
           patch(replyId, (m) => ({ ...m, text: NETWORK_ERROR_MESSAGE, error: true }));
@@ -322,8 +347,20 @@ export function SupportChat() {
         setStreaming(false);
       }
     },
-    [answerFromKeywords, keywordOnly, patch, streaming],
+    [answerFromKeywords, keywordOnly, patch, streaming, consent],
   );
+
+  useEffect(() => {
+    if (consent === "yes" && pending) {
+      const question = pending;
+      setPending(null);
+      void send(question);
+    } else if (consent === "declined" && pending) {
+      const question = pending;
+      setPending(null);
+      void send(question);
+    }
+  }, [consent, pending, send]);
 
   /** Talk to a person: always available, never behind a failed answer. */
   const askForHuman = () => {
@@ -492,6 +529,20 @@ export function SupportChat() {
               )}
             </div>
 
+            {consentSheet ? (
+              <div className="p-row">
+                <AiConsentSheet
+                  onAgreed={() => {
+                    setConsentSheet(false);
+                    setConsent("yes");
+                  }}
+                  onDeclined={() => {
+                    setConsentSheet(false);
+                    setConsent("declined");
+                  }}
+                />
+              </div>
+            ) : null}
             <form
               onSubmit={(e) => {
                 e.preventDefault();

@@ -39,6 +39,8 @@ import {
   type Thread,
 } from "./threads";
 import { RemoteImage } from "@/components/ui/RemoteImage";
+import { AiConsentSheet } from "@/components/app/ai/AiConsentSheet";
+import { AI_CONSENT_REQUIRED_CODE } from "@/lib/ai/consent";
 
 /**
  * Vallo AI, to its governing image (`docs/design/references/BF49B814`).
@@ -172,8 +174,12 @@ export function AssistantChat({
   locale,
   viewer,
   seed,
+  aiConsented = false,
 }: {
   locale: Locale;
+  /** STORE-07: whether this person has agreed to the AI disclosure. The
+      server route refuses without it either way. */
+  aiConsented?: boolean;
   /** The signed-in person, for the mark beside their own bubbles. Absent for a guest. */
   viewer?: { initials: string; avatarUrl: string } | undefined;
   /**
@@ -193,6 +199,11 @@ export function AssistantChat({
   const [language, setLanguage] = useState<Language>("English");
   const [draft, setDraft] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  /* STORE-07: nothing is sent until this person has agreed to the disclosure.
+     `pending` is the question they asked before agreeing, sent on agreement. */
+  const [consent, setConsent] = useState<"yes" | "ask" | "declined">(aiConsented ? "yes" : "ask");
+  const [consentSheet, setConsentSheet] = useState(false);
+  const [pending, setPending] = useState<string | null>(null);
 
   // A question can arrive from anywhere on the platform via ?q=, e.g. the home
   // banner's quick-ask bar. It seeds the composer after mount, never auto-sends.
@@ -359,6 +370,17 @@ export function AssistantChat({
           setText(j?.message ?? PACE_FALLBACK_MESSAGE);
           return;
         }
+        if (res.status === 403) {
+          /* STORE-07: the route holds the line when the screen did not ask.
+             Nothing was sent to the AI; ask now. */
+          const j = (await res.json().catch(() => null)) as { code?: string; message?: string } | null;
+          if (j?.code === AI_CONSENT_REQUIRED_CODE) {
+            setText(j.message ?? "Agree to how the assistant works before asking it anything.");
+            setConsent("ask");
+            setConsentSheet(true);
+            return;
+          }
+        }
         if (!res.ok || !res.body) {
           setText(NETWORK_ERROR_MESSAGE, true);
           return;
@@ -433,6 +455,12 @@ export function AssistantChat({
     (raw: string) => {
       const text = raw.trim();
       if (!text) return;
+      if (consent !== "yes") {
+        /* Asked before anything leaves the device. The draft stays put. */
+        setPending(text);
+        setConsentSheet(true);
+        return;
+      }
       setDraft("");
 
       const userMessage: Message = { id: makeId(), role: "user", text, at: Date.now() };
@@ -469,8 +497,18 @@ export function AssistantChat({
 
       void runAssistant(targetId, history, serverId);
     },
-    [activeId, threads, runAssistant],
+    [activeId, threads, runAssistant, consent],
   );
+
+  /* Agreeing sends the question they had asked; declining leaves the draft
+     where it was and the assistant off. */
+  useEffect(() => {
+    if (consent === "yes" && pending) {
+      const question = pending;
+      setPending(null);
+      send(question);
+    }
+  }, [consent, pending, send]);
 
   /** Re-run the last turn after a failure: drop the failed bubble, resend. */
   const retry = useCallback(
@@ -759,6 +797,29 @@ export function AssistantChat({
               </button>
             ))}
           </div>
+
+          {consentSheet ? (
+            <AiConsentSheet
+              onAgreed={() => {
+                setConsentSheet(false);
+                setConsent("yes");
+              }}
+              onDeclined={() => {
+                setConsentSheet(false);
+                setConsent("declined");
+                setPending(null);
+              }}
+            />
+          ) : null}
+          {consent === "declined" && !consentSheet ? (
+            <p className="nf-body-sm text-[var(--nf-content-secondary)]" data-testid="ai-declined">
+              The assistant stays off, and nothing you typed was sent. Search is live, and{" "}
+              <Link href="/contact" className="underline">
+                a person at support
+              </Link>{" "}
+              will answer you without any AI.
+            </p>
+          ) : null}
 
           {/* ----------------------------------------------------- composer */}
           <form
