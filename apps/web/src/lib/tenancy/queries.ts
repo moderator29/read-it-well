@@ -17,6 +17,7 @@ import {
   type RentPeriod,
   type ReportStatus,
 } from "./model";
+import { daysUntil, exitAccountOpen, relistOpen, relistOpensOn, renewalCarriesFees, renewalTotal, rentChange } from "./renewal";
 
 /**
  * THE TENANCY FILE, READ. V-47, with V-36's caution and V-54's reports.
@@ -107,8 +108,36 @@ export type TenancyFile = {
   viewing: { submittedLabel: string | null; ticked: number } | null;
   reports: TenancyReportView[];
   pins: { id: string; body: string; date: string }[];
+  /** V-93 and V-38: the renewal clock, the relist and the exit account. */
+  renewal: TenancyRenewal;
   /** V-55: the tenant's live receipt code, when they have made one. */
   receiptCode: { id: string; code: string } | null;
+};
+
+export type TenancyRenewal = {
+  /** Whole days to the end; negative once it has ended. */
+  daysLeft: number;
+  offer: {
+    total: string;
+    rent: string;
+    service: string | null;
+    fees: string | null;
+    offeredOn: string;
+    /** Signed change against the rent paid, formatted, or null when it did not move. */
+    rise: string | null;
+    fall: string | null;
+  } | null;
+  /** The lister's figures to prefill a new offer, in kobo. */
+  rentMinor: number | null;
+  serviceMinor: number | null;
+  answer: "renewing" | "leaving" | null;
+  relistOpen: boolean;
+  relistOpensOnLabel: string;
+  successorId: string | null;
+  exitOpen: boolean;
+  exitAnswered: boolean;
+  /** A read failed: the section says so instead of offering controls. */
+  unavailable: boolean;
 };
 
 export type TenancyRead =
@@ -375,6 +404,54 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
       pins = (messages ?? []).map((message) => ({ id: message.id, body: message.body, date: day(message.created_at, true) }));
     }
 
+    /* ---------------------------------------------------------- renewal */
+    const [offerRead, answerRead, exitRead, lineageRead] = await Promise.all([
+      loose.from("tenancy_renewal_offers").select("*").eq("rent_payment_id", id).order("offered_at", { ascending: false }).limit(1),
+      loose.from("tenancy_renewal_answers").select("answer").eq("rent_payment_id", id).maybeSingle(),
+      loose.from("tenancy_exit_accounts").select("rent_payment_id").eq("rent_payment_id", id).maybeSingle(),
+      // Readable by the successor's owner only, so only the lister sees it.
+      loose.from("listing_lineage").select("successor_listing_id").eq("predecessor_rent_payment_id", id).maybeSingle(),
+    ]);
+    const offerRow = offerRead.error ? null : (rows(offerRead.data)[0] ?? null);
+    const offerRent = offerRow ? kobo(offerRow.rent_minor) : null;
+    const offer =
+      offerRow && offerRent !== null && offerRent > 0
+        ? {
+            rentMinor: offerRent,
+            serviceMinor: kobo(offerRow.service_minor),
+            agencyMinor: kobo(offerRow.agency_minor) ?? 0,
+            legalMinor: kobo(offerRow.legal_minor) ?? 0,
+            agreementMinor: kobo(offerRow.agreement_minor) ?? 0,
+          }
+        : null;
+    const change = offer ? rentChange(rp.rent_minor ?? null, offer) : null;
+    const answerValue = answerRead.error ? null : (answerRead.data as Row | null)?.answer;
+    const answer = answerValue === "renewing" || answerValue === "leaving" ? answerValue : null;
+    const cautionSettled = caution ? caution.state === "returned" : !(rp.caution_minor && rp.caution_minor > 0);
+    const renewal: TenancyRenewal = {
+      daysLeft: daysUntil(endsOn, today),
+      offer: offer
+        ? {
+            total: money(renewalTotal(offer)),
+            rent: money(offer.rentMinor),
+            service: offer.serviceMinor ? money(offer.serviceMinor) : null,
+            fees: renewalCarriesFees(offer) ? money(offer.agencyMinor + offer.legalMinor + offer.agreementMinor) : null,
+            offeredOn: day(str(offerRow?.offered_at)),
+            rise: change !== null && change > 0 ? money(change) : null,
+            fall: change !== null && change < 0 ? money(-change) : null,
+          }
+        : null,
+      rentMinor: offer?.rentMinor ?? rp.rent_minor ?? null,
+      serviceMinor: offer?.serviceMinor ?? rp.service_minor ?? null,
+      answer,
+      relistOpen: relistOpen(endsOn, today, answer === "renewing"),
+      relistOpensOnLabel: day(relistOpensOn(endsOn)),
+      successorId: lineageRead.error ? null : (str((lineageRead.data as Row | null)?.successor_listing_id) ?? null),
+      exitOpen: exitAccountOpen(endsOn, today, cautionSettled),
+      exitAnswered: !exitRead.error && exitRead.data !== null,
+      unavailable: Boolean(offerRead.error || answerRead.error || exitRead.error),
+    };
+
     /* ---------------------------------------------------------- promise */
     const snap = snapshotRead.error ? null : (snapshotRead.data as Row | null);
     const snapListing = snap && typeof snap.listing === "object" && snap.listing !== null ? (snap.listing as Row) : null;
@@ -416,6 +493,7 @@ export async function getTenancyFile(id: string, locale: Locale, now: Date = new
         viewing,
         reports,
         pins,
+        renewal,
         receiptCode: (() => {
           const row = codeRead.error ? null : rows(codeRead.data)[0];
           const codeId = row ? str(row.id) : null;

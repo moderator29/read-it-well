@@ -57,6 +57,9 @@ const STATUS_WORDS: Record<string, string> = {
   own_report: "You wrote this report, so the other party countersigns it.",
   not_submitted: "It can be countersigned once it is submitted.",
   already_countersigned: "It is already countersigned.",
+  too_early: "This opens later in the tenancy.",
+  tenant_renewing: "Your tenant has said they are renewing, so the flat is not relisted.",
+  caution_not_settled: "Your account of the flat opens once your caution is settled.",
 };
 
 async function door(
@@ -238,4 +241,69 @@ export async function countersignTenancyReport(input: {
   const parsed = validate(z.object({ tenancyId: uuid, reportId: uuid }), input);
   if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
   return door("countersign_tenancy_report", { p_report: parsed.data.reportId }, `/tenancy/${parsed.data.tenancyId}`);
+}
+
+/* ------------------------------------------------------------ V-93 and V-38 */
+
+export async function offerRenewal(input: {
+  tenancyId: string;
+  rentNaira: string;
+  serviceNaira?: string;
+  feesNaira?: string;
+}): Promise<ActionResult<Record<string, unknown>>> {
+  const parsed = validate(
+    z.object({ tenancyId: uuid, rentNaira: z.string(), serviceNaira: z.string().optional(), feesNaira: z.string().optional() }),
+    input,
+  );
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const rent = parseNairaToKobo(parsed.data.rentNaira);
+  if (rent === null || rent <= 0) return fail("Enter the renewal rent.", { rentNaira: "Enter the renewal rent." });
+  const service = parsed.data.serviceNaira?.trim() ? parseNairaToKobo(parsed.data.serviceNaira) : null;
+  const fees = parsed.data.feesNaira?.trim() ? parseNairaToKobo(parsed.data.feesNaira) : 0;
+  if ((service !== null && service < 0) || fees === null || fees < 0) return fail("Enter amounts of zero or more.");
+  return door(
+    "offer_renewal",
+    { p_rent_payment: parsed.data.tenancyId, p_rent: rent, p_service: service, p_agency: fees, p_legal: 0, p_agreement: 0 },
+    `/tenancy/${parsed.data.tenancyId}`,
+  );
+}
+
+export async function answerRenewal(input: {
+  tenancyId: string;
+  answer: "renewing" | "leaving";
+}): Promise<ActionResult<Record<string, unknown>>> {
+  const parsed = validate(z.object({ tenancyId: uuid, answer: z.enum(["renewing", "leaving"]) }), input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  return door("answer_renewal", { p_rent_payment: parsed.data.tenancyId, p_answer: parsed.data.answer }, `/tenancy/${parsed.data.tenancyId}`);
+}
+
+export async function relistFromTenancy(input: { tenancyId: string }): Promise<ActionResult<Record<string, unknown>>> {
+  const parsed = validate(z.object({ tenancyId: uuid }), input);
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  const result = await door("relist_from_tenancy", { p_rent_payment: parsed.data.tenancyId }, `/tenancy/${parsed.data.tenancyId}`);
+  revalidatePath("/agent/listings");
+  return result;
+}
+
+export async function answerExitAccount(input: {
+  tenancyId: string;
+  light: string;
+  water: string;
+  flooding: string;
+}): Promise<ActionResult<Record<string, unknown>>> {
+  const parsed = validate(
+    z.object({
+      tenancyId: uuid,
+      light: z.enum(["most_of_the_day", "some_of_the_day", "rarely"], { message: "Choose how much light there was." }),
+      water: z.enum(["always", "sometimes", "rarely"], { message: "Choose how the water was." }),
+      flooding: z.enum(["never", "sometimes", "often"], { message: "Choose whether it flooded." }),
+    }),
+    input,
+  );
+  if (!parsed.ok) return fail(parsed.error, parsed.fieldErrors);
+  return door(
+    "answer_exit_account",
+    { p_rent_payment: parsed.data.tenancyId, p_light: parsed.data.light, p_water: parsed.data.water, p_flooding: parsed.data.flooding },
+    `/tenancy/${parsed.data.tenancyId}`,
+  );
 }

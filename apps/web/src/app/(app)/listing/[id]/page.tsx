@@ -40,6 +40,7 @@ import { ListingMoveInBlock } from "@/components/app/listing/ListingMoveInBlock"
 import { ListingCodeRow } from "@/components/app/listing/ListingCode";
 import { ListingMoveIn } from "@/components/app/listing/ListingMoveIn";
 import { readPayeeRecords } from "@/lib/after-gate/payee";
+import { LastLetLine } from "@/components/app/listing/LastLetLine";
 import { ListingPurchase } from "@/components/app/listing/ListingPurchase";
 import { ListingSectionTabs } from "@/components/app/listing/ListingSectionTabs";
 import { ListingSpecChips, specChips } from "@/components/app/listing/ListingSpecChips";
@@ -899,6 +900,8 @@ export default async function ListingDetailPage({
                     className="scroll-mt-16"
                   >
                     <ListingMoveIn listing={listing} locale={locale} t={t} records={await readPayeeRecords(listing.id)} />
+                    {/* V-38: what this flat was last let at through Vallo. Nothing when there is no such let. */}
+                    <LastLetLine listingId={listing.id} locale={locale} />
                   </Section>
                 )}
 
