@@ -30,8 +30,6 @@ export type FeeRule = {
   legalMaxBps: number;
   /** Where the rule is published, named so a reader can look it up. */
   source: string;
-  /** When it was last restated, as the source is cited. */
-  restated: string;
 };
 
 export const FEE_RULES: readonly FeeRule[] = [
@@ -40,8 +38,15 @@ export const FEE_RULES: readonly FeeRule[] = [
     stateName: "Lagos State",
     agencyMaxBps: 1_000,
     legalMaxBps: 1_000,
+    /*
+     * THE CITATION AS THE ENTRY GIVES IT (docs/THE_HUNDRED.md, V-12). The
+     * entry also said "restated May 2025" without naming who restated it or
+     * where, so that part is not printed (review of batch 1): a date with no
+     * instrument behind it is a claim nobody can check. The founder should
+     * confirm the instrument and add its URL here before this reaches real
+     * listings.
+     */
     source: "Tenancy Law 2011",
-    restated: "May 2025",
   },
 ];
 

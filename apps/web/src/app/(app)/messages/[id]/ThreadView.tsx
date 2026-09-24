@@ -43,8 +43,8 @@ import { useBack } from "@/lib/nav/use-back";
 import { ThreadOptionsSheet, type SheetListing } from "./ThreadOptionsSheet";
 import { Button } from "@/components/ui/Button";
 import { AccountMomentCard } from "@/components/app/messages/AccountMomentCard";
-import { isAccountMoment } from "@/lib/messages/account-moment";
-import type { AccountCheckOutcome } from "@/lib/messages/account-check";
+import { accountNumbersIn, isAccountMoment } from "@/lib/messages/account-moment";
+import type { AccountCheckView } from "@/lib/messages/account-check";
 import type { ChargeOffer } from "@/lib/messages/charge-offer";
 
 /**
@@ -159,7 +159,7 @@ export type ThreadViewProps = {
    * offer. Absent draws no card, which is every thread with no account number
    * in it from the other side.
    */
-  accountMoment?: { checks: Record<string, AccountCheckOutcome>; offer: ChargeOffer } | null;
+  accountMoment?: { checks: Record<string, AccountCheckView>; offer: ChargeOffer } | null;
   accountCopy?: Dictionary["trustVisible"]["account"];
 };
 
@@ -797,8 +797,12 @@ export function ThreadView({
           const last = run[run.length - 1]!;
           /* V-04: the first message in this run from the other side that
              carries an account number gets the receiver's card above it. */
+          /* Only where a check can run: a listing thread, read by the renter,
+             about a message from the lister (the conversation's agent). */
           const accountMessage =
-            live && accountCopy && !m.mine ? run.find((p) => isAccountMoment(p.body)) : undefined;
+            live && accountCopy && !m.mine && role === "guest" && context?.kind === "listing"
+              ? run.find((p) => isAccountMoment(p.body))
+              : undefined;
           return (
             <div
               key={m.id}
@@ -832,7 +836,8 @@ export function ThreadView({
                   <AccountMomentCard
                     messageId={accountMessage.id}
                     createdAt={accountMessage.createdAt ?? null}
-                    initialOutcome={accountMoment?.checks[accountMessage.id] ?? null}
+                    initialCheck={accountMoment?.checks[accountMessage.id] ?? null}
+                    numberCount={accountNumbersIn(accountMessage.body).length}
                     offer={accountMoment?.offer ?? { kind: "none" }}
                     copy={accountCopy}
                     locale={locale}

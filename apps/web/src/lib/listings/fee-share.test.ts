@@ -74,9 +74,11 @@ describe("shares in integer basis points", () => {
     expect(shares.each.agency).toEqual({ minor: 28_000_000, bps: 1_000 });
     expect(shares.total).toEqual({ minor: 70_000_000, bps: 2_500, declared: 3 });
 
-    const partial = feeShares(listing({ agencyFeeMinor: 28_000_000 }))!;
-    expect(Object.keys(partial.each)).toEqual(["agency"]);
-    expect(partial.total).toEqual({ minor: 28_000_000, bps: 1_000, declared: 1 });
+    /* Two of three declared: each prints its share, but there is no total,
+       so leaving a fee out never looks cheaper. */
+    const partial = feeShares(listing({ agencyFeeMinor: 28_000_000, legalFeeMinor: 0 }))!;
+    expect(Object.keys(partial.each)).toEqual(["agency", "legal"]);
+    expect(partial.total).toBeNull();
   });
 
   it("gives a declared zero 0.0% and an undeclared fee nothing", () => {
@@ -91,11 +93,13 @@ describe("the sort", () => {
       key: "fees-asc",
       label: "Lowest fees on top of rent",
       basis: "fees",
+      short: "Lowest fees",
     });
   });
 
   it("keys on the total share, and has no key when nothing was stated", () => {
-    expect(feeSortKey(listing({ agencyFeeMinor: 28_000_000 }))).toBe(1_000);
+    expect(feeSortKey(listing({ agencyFeeMinor: 28_000_000, legalFeeMinor: 0, agreementFeeMinor: 0 }))).toBe(1_000);
+    expect(feeSortKey(listing({ agencyFeeMinor: 28_000_000 }))).toBeNull();
     expect(feeSortKey(listing())).toBeNull();
     expect(feeSortKey(listing({ intent: "sale", agencyFeeMinor: 1 }))).toBeNull();
   });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { businessNamesMatch, matchesAnyName, nameTokens, namesMatch } from "./name-match";
+import { businessNamesMatch, matchesAnyName, nameTokens, namesMatch, sharesAName } from "./name-match";
 
 describe("nameTokens", () => {
   it("folds case, accents and punctuation, and strips titles", () => {
@@ -81,5 +81,13 @@ describe("businessNamesMatch", () => {
   it("refuses a shorter or a longer name", () => {
     expect(businessNamesMatch("ACME LTD", "Acme Properties Limited").match).toBe(false);
     expect(businessNamesMatch("ACME PROPERTIES HOMES LTD", "Acme Properties Limited").match).toBe(false);
+  });
+});
+
+describe("sharesAName", () => {
+  it("is true when any real name part is shared, and false when none is", () => {
+    expect(sharesAName("OKEKE NGOZI", ["Chidi Okeke"])).toBe(true);
+    expect(sharesAName("ADEBAYO TUNDE", ["Chidi Okeke"])).toBe(false);
+    expect(sharesAName("ACME LTD", ["Other Ventures Ltd"])).toBe(false);
   });
 });

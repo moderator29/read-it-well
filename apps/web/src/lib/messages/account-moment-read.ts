@@ -6,7 +6,7 @@ import type { Database } from "@/lib/supabase/database.types";
 import type { InspectionState } from "@/lib/inspections/types";
 import { getListingRepository } from "@/lib/listings/repository";
 import { getRentPayView } from "@/lib/rent/queries";
-import type { AccountCheckOutcome } from "./account-check";
+import type { AccountCheckOutcome, AccountCheckView } from "./account-check";
 import { isAccountMoment } from "./account-moment";
 import { chargeOfferFrom, inspectionIsAccepted, type ChargeOffer } from "./charge-offer";
 
@@ -34,7 +34,7 @@ type UntypedFrom = {
 };
 
 export type AccountMomentRead = {
-  checks: Record<string, AccountCheckOutcome>;
+  checks: Record<string, AccountCheckView>;
   offer: ChargeOffer;
 };
 
@@ -51,17 +51,24 @@ export async function readAccountMoment(
     locale: Locale;
   },
 ): Promise<AccountMomentRead> {
+  /* Only a listing thread, and only when the other side is the lister: the
+     card and the check are both about the lister's own account. */
+  if (input.role !== "guest") return NONE;
   const theirs = input.messages.filter((m) => !m.mine && isAccountMoment(m.body)).map((m) => m.id);
   if (theirs.length === 0) return NONE;
 
-  const checks: Record<string, AccountCheckOutcome> = {};
+  const checks: Record<string, AccountCheckView> = {};
   try {
     const { data } = await (supabase as unknown as UntypedFrom)
       .from("message_account_checks")
-      .select("message_id, outcome")
+      .select("message_id, outcome, shares_a_name")
       .in("message_id", theirs);
-    for (const row of (Array.isArray(data) ? data : []) as { message_id: string; outcome: AccountCheckOutcome }[]) {
-      checks[row.message_id] = row.outcome;
+    for (const row of (Array.isArray(data) ? data : []) as {
+      message_id: string;
+      outcome: AccountCheckOutcome;
+      shares_a_name: boolean | null;
+    }[]) {
+      checks[row.message_id] = { outcome: row.outcome, sharesAName: row.shares_a_name };
     }
   } catch {
     /* A failed read is no rows: the card prints nothing about ownership. */

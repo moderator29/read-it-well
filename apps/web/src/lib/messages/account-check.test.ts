@@ -8,6 +8,7 @@ import {
   holderMatches,
   runAccountCheck,
   type AccountCheckDeps,
+  type AccountCheckOutcome,
   type AccountCheckRow,
   type ResolveAnswer,
 } from "./account-check";
@@ -65,16 +66,30 @@ describe("runAccountCheck", () => {
       bank_code: "058",
       last4: "6785",
       name_matches_lister: true,
+      shares_a_name: null,
       outcome: "match",
     });
     expect(JSON.stringify(saved)).not.toContain("0123456785");
     expect(JSON.stringify(saved)).not.toMatch(/OKEKE|CHIDI/);
   });
 
-  it("writes a no-match when the holder is somebody else", async () => {
+  it("writes a total no-match when the holder shares no name with the lister", async () => {
     const { deps: d, saved } = deps({ holder: "ADEBAYO TUNDE" });
     await runAccountCheck(d, input("GTB 0123456785 pay the caution"));
-    expect(saved[0]).toMatchObject({ outcome: "no_match", name_matches_lister: false, bank_code: "058" });
+    expect(saved[0]).toMatchObject({ outcome: "no_match", name_matches_lister: false, shares_a_name: false, bank_code: "058" });
+  });
+
+  it("marks a no-match that shares a name, so it is not drawn as an accusation", async () => {
+    const { deps: d, saved } = deps({ holder: "OKEKE NGOZI" });
+    await runAccountCheck(d, input("GTB 0123456785"));
+    expect(saved[0]).toMatchObject({ outcome: "no_match", shares_a_name: true });
+  });
+
+  it("checks nothing when a message holds two numbers: the card speaks for the whole message", async () => {
+    const { deps: d, saved, resolve } = deps({ holder: "OKEKE CHIDI" });
+    expect(await runAccountCheck(d, input("GTB 0123456785 or Zenith 0123456788"))).toBeNull();
+    expect(resolve).not.toHaveBeenCalled();
+    expect(saved).toEqual([]);
   });
 
   it("writes unresolved when the bank does not know the number", async () => {
@@ -147,12 +162,14 @@ describe("the receiver's card, from the stored outcome", () => {
   const now = Date.parse("2026-09-24T10:00:00Z");
   const fresh = new Date(now - 5_000).toISOString();
   const old = new Date(now - CHECKING_WINDOW_MS - 1).toISOString();
+  const view = (outcome: AccountCheckOutcome, sharesAName: boolean | null = null) => ({ outcome, sharesAName });
 
-  it("prints ownership only for match and no_match", () => {
-    expect(accountCardState("match", old, now)).toBe("belongs");
-    expect(accountCardState("no_match", old, now)).toBe("does_not_belong");
+  it("prints ownership only for match and no_match, and the error weight only for a total mismatch", () => {
+    expect(accountCardState(view("match"), old, now)).toBe("belongs");
+    expect(accountCardState(view("no_match", true), old, now)).toBe("not_on_record");
+    expect(accountCardState(view("no_match", false), old, now)).toBe("not_on_record_total");
     for (const outcome of ["unresolved", "no_verified_name", "limited"] as const) {
-      expect(accountCardState(outcome, fresh, now)).toBe("silent");
+      expect(accountCardState(view(outcome), fresh, now)).toBe("silent");
     }
   });
 
@@ -160,6 +177,11 @@ describe("the receiver's card, from the stored outcome", () => {
     expect(accountCardState(null, fresh, now)).toBe("checking");
     expect(accountCardState(null, old, now)).toBe("silent");
     expect(accountCardState(null, null, now)).toBe("silent");
+  });
+
+  it("says nothing about ownership when a message holds more than one number", () => {
+    expect(accountCardState(null, fresh, now, 2)).toBe("silent");
+    expect(accountCardState(view("match"), old, now, 2)).toBe("silent");
   });
 });
 
@@ -182,5 +204,10 @@ describe("the wiring", () => {
   it("the card never receives or renders a resolved name", () => {
     const card = readFileSync(join(root, "components/app/messages/AccountMomentCard.tsx"), "utf8");
     expect(card).not.toMatch(/accountName|resolved_account_name|holderName/);
+  });
+
+  it("the card is mounted only for the renter, on a listing thread", () => {
+    const view = readFileSync(join(root, "app/(app)/messages/[id]/ThreadView.tsx"), "utf8");
+    expect(view).toContain('role === "guest" && context?.kind === "listing"');
   });
 });

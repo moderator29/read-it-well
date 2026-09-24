@@ -96,7 +96,7 @@ export function TruthQuestions({
             <p className="nf-body-sm text-[var(--nf-content-primary)]">{copy.questions[question]}</p>
             <Segmented<TruthAnswer | "">
               semantics="radio"
-              size="sm"
+              size="md"
               full
               label={copy.questions[question]}
               options={options}

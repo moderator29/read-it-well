@@ -7,7 +7,7 @@ import { ButtonLink, Button } from "@/components/ui/Button";
 import { ReportSheet } from "@/components/app/ReportSheet";
 import { SAFETY_EDUCATION_COPY } from "@/lib/messages/education";
 import { readAccountCheck } from "@/lib/messages/account-check-actions";
-import { accountCardState, CHECKING_WINDOW_MS, type AccountCheckOutcome } from "@/lib/messages/account-check";
+import { accountCardState, CHECKING_WINDOW_MS, type AccountCheckView } from "@/lib/messages/account-check";
 import type { ChargeOffer } from "@/lib/messages/charge-offer";
 
 /**
@@ -43,7 +43,8 @@ import type { ChargeOffer } from "@/lib/messages/charge-offer";
 export function AccountMomentCard({
   messageId,
   createdAt,
-  initialOutcome,
+  initialCheck,
+  numberCount,
   offer,
   copy,
   locale,
@@ -52,16 +53,18 @@ export function AccountMomentCard({
   messageId: string;
   /** When the message was sent, for the one-minute "checking" window. Null for older rows. */
   createdAt: string | null;
-  initialOutcome: AccountCheckOutcome | null;
+  initialCheck: AccountCheckView | null;
+  /** How many ten-digit numbers the message holds. Only exactly one is ever checked. */
+  numberCount: number;
   offer: ChargeOffer;
   copy: Dictionary["trustVisible"]["account"];
   locale: Locale;
   /** Opens the thread's own options sheet, where Block already lives. */
   onBlock?: () => void;
 }) {
-  const [outcome, setOutcome] = useState<AccountCheckOutcome | null>(initialOutcome);
+  const [check, setCheck] = useState<AccountCheckView | null>(initialCheck);
   const [now, setNow] = useState(() => Date.now());
-  const state = accountCardState(outcome, createdAt, now);
+  const state = accountCardState(check, createdAt, now, numberCount);
 
   /* A message that arrived live has no answer yet: ask again, a few times,
      inside the checking window, then stop. Never more than four requests. */
@@ -73,7 +76,7 @@ export function AccountMomentCard({
       tries += 1;
       const next = await readAccountCheck(messageId);
       if (cancelled) return;
-      if (next) setOutcome(next);
+      if (next) setCheck(next);
       setNow(Date.now());
       if (next || tries >= 4) window.clearInterval(timer);
     }, CHECKING_WINDOW_MS / 6);
@@ -96,10 +99,18 @@ export function AccountMomentCard({
           <span>{copy.checking}</span>
         </p>
       )}
-      {state === "does_not_belong" && (
-        <p className="flex items-start gap-inline-tight nf-body-sm font-semibold text-[var(--nf-state-error)]">
+      {/* Not a name on record: the same words either way, because that is
+          what the comparison proves. Only a total mismatch (no name shared
+          at all) takes the error colour; the icon and the words carry it
+          either way, so colour is never the only signal. */}
+      {(state === "not_on_record" || state === "not_on_record_total") && (
+        <p
+          className={`flex items-start gap-inline-tight nf-body-sm font-semibold ${
+            state === "not_on_record_total" ? "text-[var(--nf-state-error)]" : "text-[var(--nf-content-primary)]"
+          }`}
+        >
           <UiIcon name="shield-stop" size={16} className="mt-3xs shrink-0" />
-          <span>{copy.doesNotBelong}</span>
+          <span>{copy.notOnRecord}</span>
         </p>
       )}
       {state === "belongs" && (

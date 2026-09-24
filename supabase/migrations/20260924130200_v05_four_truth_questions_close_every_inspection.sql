@@ -22,6 +22,16 @@
 -- platform holds today that a viewing was arranged with the lister; V-35's
 -- gate handshake will prove attendance, and the pause below waits for it.
 --
+-- THE AGREED TIME IS FROZEN HERE, NOT READ FROM `slot_at` (review of batch
+-- 1). `inspection_requests_update_party` lets the requester update any column
+-- and the transition guard returns early when the state is unchanged, so a
+-- requester could move `slot_at` into the past and answer before the viewing.
+-- `private.inspection_slot_agreed` keeps a copy of the slot taken AT THE
+-- MOMENT the inspection became CONFIRMED (a lister confirming, or the
+-- requester taking the lister's proposed time), written by a trigger nobody
+-- can call, and the questions open against that copy. Freezing `slot_at`
+-- itself against requester edits is handed to the audit session.
+--
 -- THREE CONSEQUENCES, EACH WRITTEN IN THE DATABASE:
 --
 --   1. "Asked for money outside Vallo: yes" OPENS A REPORT in the
@@ -39,10 +49,22 @@
 --      until attendance is proven (V-35) and reputation counts per confirmed
 --      phone (V-50). Turning it on is one statement; see the report.
 --
---   3. A PUBLIC COUNT for the proof strip: how many renters answered and how
---      many found the agent AND the flat as listed. Only on published real
---      listings, and only from TWO answers up, so a lister who had one viewer
---      cannot read one person's answer off their own listing page.
+--   3. A PUBLIC COUNT for the proof strip: how many DIFFERENT renters with a
+--      confirmed viewing answered (each renter's latest answer only), and how
+--      many said the agent AND the flat were as listed. Only on published real
+--      listings, only from FIVE renters up, dated to the MONTH, never the day,
+--      so a lister cannot difference one renter's answer out of two readings
+--      or match an answer to the Saturday it was given. Behind its own flag,
+--      `truth_public_count`, fail closed, until V-35 proves attendance: the
+--      line says "with a confirmed viewing" because that, and not attendance,
+--      is what the code can prove.
+--
+-- THE VIEW IS A DEFINER VIEW GRANTED TO ANON, AND THAT IS RECORDED HERE AS A
+-- DELIBERATE EXCEPTION, in the shape of `public.listing_lister`: it publishes
+-- four aggregate columns and nothing else, it cannot be written (everything is
+-- revoked and SELECT granted back), and an invoker view would need a policy
+-- on `inspection_truth` that lets a stranger read rows, which is exactly what
+-- the table must never allow.
 
 create table if not exists public.inspection_truth (
   inspection_id    uuid primary key references public.inspection_requests(id) on delete cascade,
@@ -63,8 +85,54 @@ create index if not exists inspection_truth_respondent_idx on public.inspection_
 
 revoke all on public.inspection_truth from public, anon, authenticated;
 
+/* ------------------------------------------ the agreed slot, frozen */
+
+create table if not exists private.inspection_slot_agreed (
+  inspection_id uuid primary key references public.inspection_requests(id) on delete cascade,
+  slot_at       timestamptz not null,
+  agreed_at     timestamptz not null default now()
+);
+
+comment on table private.inspection_slot_agreed is
+  'V-05. The slot as it stood when the inspection became CONFIRMED. The truth questions open against this copy, which the requester cannot edit.';
+
+revoke all on private.inspection_slot_agreed from public, anon, authenticated;
+grant all on private.inspection_slot_agreed to service_role;
+
+create or replace function private.freeze_agreed_slot()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.state = 'CONFIRMED'::public.inspection_state
+     and old.state is distinct from 'CONFIRMED'::public.inspection_state then
+    insert into private.inspection_slot_agreed (inspection_id, slot_at, agreed_at)
+    values (new.id, coalesce(new.slot_at, new.requested_at), now())
+    on conflict (inspection_id) do update set slot_at = excluded.slot_at, agreed_at = now();
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function private.freeze_agreed_slot() from public, anon, authenticated;
+
+drop trigger if exists inspection_requests_freeze_agreed_slot on public.inspection_requests;
+create trigger inspection_requests_freeze_agreed_slot
+  after update of state on public.inspection_requests
+  for each row execute function private.freeze_agreed_slot();
+
+/* The inspections already accepted or closed before this file, frozen at the
+   slot they carry now: the best copy there is, and fail-closed for none. */
+insert into private.inspection_slot_agreed (inspection_id, slot_at, agreed_at)
+select r.id, coalesce(r.slot_at, r.requested_at), now()
+  from public.inspection_requests r
+ where r.state in ('CONFIRMED'::public.inspection_state, 'COMPLETED'::public.inspection_state)
+on conflict (inspection_id) do nothing;
+
 /* May THIS caller answer for THIS inspection? Requester, accepted or closed,
-   the agreed time passed. Called by the insert policy, so it keeps EXECUTE
+   the agreed (frozen) time passed. Called by the insert policy, so it keeps EXECUTE
    for `authenticated` (the 23 September outage is why that is deliberate). */
 create or replace function private.inspection_truth_open(p_inspection uuid)
 returns boolean
@@ -75,10 +143,11 @@ set search_path = ''
 as $$
   select exists (
     select 1 from public.inspection_requests r
+      join private.inspection_slot_agreed a on a.inspection_id = r.id
      where r.id = p_inspection
        and r.requester_id = (select auth.uid())
        and r.state in ('CONFIRMED'::public.inspection_state, 'COMPLETED'::public.inspection_state)
-       and coalesce(r.slot_at, r.requested_at) <= now()
+       and a.slot_at <= now()
   );
 $$;
 
@@ -172,7 +241,14 @@ begin
       from public.inspection_truth t
      where t.listing_id = new.listing_id
        and t.answered_at > now() - interval '30 days'
-       and (t.available = 'no' or t.property_matched = 'no');
+       and (t.available = 'no' or t.property_matched = 'no')
+       /* Only answers since the listing was last paused by this rule: a
+          lister who reconfirmed starts from zero. */
+       and t.answered_at > coalesce(
+             (select max(al.created_at) from public.audit_log al
+               where al.entity_type = 'listing' and al.entity_id = new.listing_id::text
+                 and al.action = 'listing.paused_by_truth_answers'),
+             '-infinity'::timestamptz);
 
     if witnesses >= 2 then
       update public.listings
@@ -218,19 +294,26 @@ create trigger inspection_truth_consequences
 /* --------------------------------------------------------- the public count */
 
 create or replace view public.listing_truth_summary as
-  select t.listing_id,
+  with latest as (
+    select distinct on (t.listing_id, t.respondent_id)
+           t.listing_id, t.respondent_id, t.agent_matched, t.property_matched, t.answered_at
+      from public.inspection_truth t
+     order by t.listing_id, t.respondent_id, t.answered_at desc
+  )
+  select x.listing_id,
          count(*)::integer as attended,
-         (count(*) filter (where t.agent_matched = 'yes' and t.property_matched = 'yes'))::integer as as_listed,
-         max(t.answered_at) as last_at
-    from public.inspection_truth t
-    join public.listings l on l.id = t.listing_id
+         (count(*) filter (where x.agent_matched = 'yes' and x.property_matched = 'yes'))::integer as as_listed,
+         date_trunc('month', max(x.answered_at)) as last_at
+    from latest x
+    join public.listings l on l.id = x.listing_id
    where l.status = 'PUBLISHED'::public.listing_status
      and not l.is_demo
-   group by t.listing_id
-  having count(*) >= 2;
+     and coalesce((select f.enabled from public.feature_flags f where f.key = 'truth_public_count'), false)
+   group by x.listing_id
+  having count(*) >= 5;
 
 comment on view public.listing_truth_summary is
-  'V-05 and V-03. How many renters answered the truth questions for a published real listing, and how many found the agent and the flat as listed. Counts only, from two answers up, so no single renter''s answer can be read off a listing.';
+  'V-05 and V-03. How many different renters with a confirmed viewing answered the truth questions for a published real listing (latest answer each), and how many said the agent and the flat were as listed. Counts only, five renters up, dated to the month, behind feature_flags.truth_public_count.';
 
 /* A non-invoker view writes as its owner, so it is born able to write. Take
    everything back and grant SELECT only (the person_badge lesson). */
@@ -246,22 +329,35 @@ stable
 security definer
 set search_path = ''
 as $$
+  with latest as (
+    select distinct on (t.respondent_id) t.*
+      from public.inspection_truth t
+     where t.listing_id = p_listing
+       and t.answered_at > now() - interval '30 days'
+       and private.owns_listing(p_listing)
+     order by t.respondent_id, t.answered_at desc
+  )
   select count(*)::integer,
-         (count(*) filter (where t.available = 'no'))::integer,
-         (count(*) filter (where t.property_matched = 'no'))::integer,
-         (count(*) filter (where t.agent_matched = 'no'))::integer,
-         (count(*) filter (where t.off_platform_ask = 'yes'))::integer
-    from public.inspection_truth t
-   where t.listing_id = p_listing
-     and t.answered_at > now() - interval '30 days'
-     and private.owns_listing(p_listing);
+         (count(*) filter (where x.available = 'no'))::integer,
+         (count(*) filter (where x.property_matched = 'no'))::integer,
+         (count(*) filter (where x.agent_matched = 'no'))::integer,
+         (count(*) filter (where x.off_platform_ask = 'yes'))::integer
+    from latest x
+  /* Five renters or nothing: below that, the lister who met them could tell
+     whose answer is whose. */
+  having count(*) >= 5;
 $$;
 
 comment on function public.listing_truth_for_lister(uuid) is
-  'V-05. The lister of a listing, and nobody else, reads the last 30 days of truth answers as five counts, never as rows and never with a name.';
+  'V-05. The lister of a listing, and nobody else, reads the last 30 days of truth answers as five counts over different renters, only from five renters up, never as rows and never with a name.';
 
 revoke all on function public.listing_truth_for_lister(uuid) from public, anon;
 grant execute on function public.listing_truth_for_lister(uuid) to authenticated;
+
+insert into public.feature_flags (key, enabled, note)
+values ('truth_public_count', false,
+        'V-05. When true, the proof strip prints how many renters with a confirmed viewing answered the truth questions (five or more). Off until V-35 proves attendance.')
+on conflict (key) do nothing;
 
 insert into public.feature_flags (key, enabled, note)
 values ('truth_autopause', false,

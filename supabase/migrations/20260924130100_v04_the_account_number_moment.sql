@@ -48,6 +48,11 @@ create table if not exists public.message_account_checks (
   bank_code           text check (bank_code is null or bank_code ~ '^[0-9A-Za-z]{2,12}$'),
   last4               text check (last4 is null or last4 ~ '^[0-9]{4}$'),
   name_matches_lister boolean,
+  /* Only on a no_match: whether the holder shares any name with a name on
+     record (a surname, say). False means a total mismatch, the one case the
+     receiver's card draws in the error colour. It is a boolean about the
+     comparison and says nothing about what the resolved name was. */
+  shares_a_name       boolean,
   outcome             text not null
                       check (outcome in ('match', 'no_match', 'unresolved', 'no_verified_name', 'limited')),
   checked_at          timestamptz not null default now(),
@@ -57,6 +62,9 @@ create table if not exists public.message_account_checks (
     (outcome = 'match' and name_matches_lister is true)
     or (outcome = 'no_match' and name_matches_lister is false)
     or (outcome not in ('match', 'no_match') and name_matches_lister is null)
+  ),
+  constraint message_account_checks_shares_only_on_no_match check (
+    outcome = 'no_match' or shares_a_name is null
   )
 );
 

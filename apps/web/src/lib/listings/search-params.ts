@@ -72,13 +72,15 @@ export type SortKey =
  */
 export type SortBasis = "price" | "move-in" | "rating" | "mixed" | "fees";
 
-export const SORTS: { key: SortKey; label: string; basis: SortBasis }[] = [
+/* `short` is what the closed sort control prints when the full label would
+   push the result count off a 390px row (seen on the V-12 visual pass). */
+export const SORTS: { key: SortKey; label: string; basis: SortBasis; short?: string }[] = [
   { key: "recommended", label: "Recommended", basis: "mixed" },
   { key: "top-rated", label: "Top rated", basis: "rating" },
   { key: "price-asc", label: "Price: low to high", basis: "price" },
   { key: "price-desc", label: "Price: high to low", basis: "price" },
   { key: "move-in-asc", label: "Move-in cost: low to high", basis: "move-in" },
-  { key: "fees-asc", label: "Lowest fees on top of rent", basis: "fees" },
+  { key: "fees-asc", label: "Lowest fees on top of rent", basis: "fees", short: "Lowest fees" },
 ];
 
 /** The basis a sort key orders on, defaulting to the shelf's opening order. */

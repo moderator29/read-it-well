@@ -3,7 +3,15 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getDictionary } from "@vallo/i18n";
 
-import { RANK_INPUTS, RANK_MAX, RANK_MIN_PHOTOS, rankRecommended, rankScore, rankingProse } from "./ranking";
+import {
+  RANK_CEILING,
+  RANK_INPUTS,
+  RANK_MAX,
+  RANK_MIN_PHOTOS,
+  rankRecommended,
+  rankScore,
+  rankingProse,
+} from "./ranking";
 import { LISTING_SELECTS } from "./supabase-repository";
 import type { Listing } from "./types";
 
@@ -85,8 +93,22 @@ describe("the published words come from the same constants", () => {
     expect(prose.inputs.join(" ")).toContain(`At least ${RANK_MIN_PHOTOS} photographs`);
   });
 
-  it("says in public that nobody can pay to be higher", () => {
-    expect(prose.promise).toBe("Nobody can pay to be higher. Vallo does not sell placement.");
+  it("says in public that nobody can pay to be higher, scoped to what the formula orders", () => {
+    expect(prose.promise).toBe("Nobody can pay to place a property listing higher. Vallo does not sell placement.");
+    expect(prose.intro).toMatch(/^In property search/);
+  });
+
+  it("names the ceiling the read really has", () => {
+    const source = readFileSync(join(__dirname, "supabase-repository.ts"), "utf8");
+    expect(source).toContain(`const CATALOGUE_LIMIT = ${RANK_CEILING};`);
+    expect(prose.order).toContain(`${RANK_CEILING} newest listings`);
+  });
+
+  it("says in words how a nightly stay and a sale earn the costs point, as the code does", () => {
+    expect(prose.inputs[0]).toMatch(/stated total to buy/);
+    expect(prose.inputs[0]).toMatch(/priced by the night/);
+    expect(rankScore(listing("n", { pricePeriod: "night", priceMinor: 5_000_000 })).held).toContain("costs");
+    expect(rankScore(listing("s", { intent: "sale", pricePeriod: undefined, purchaseCostStated: true })).held).toContain("costs");
   });
 
   it("is mounted on /standards and linked from the Recommended sort", () => {

@@ -25,13 +25,16 @@ export const trustVisibleEn = {
     /** `{date}` is a formatted date. */
     identitySeen: "The lister's identity document seen by Vallo, {date}",
     identityNimc: "The lister's identity matched with NIMC, {date}",
+    identitySeenFirm: "The identity document of the person who listed this for the firm seen by Vallo, {date}",
     ownership: "Title document seen in the lister's name, {date}",
     mandate: "Owner's instruction seen and owner spoken to, {date}",
     availability: "Owner confirmed available, {date}",
     photographs: "Photographed at the property, {date}",
-    /** `{count}` renters attended; `{listed}` found the agent and flat as listed. */
-    rentersAll: "Inspected by {count} renters on Vallo. All {count} found the agent and the flat as listed.",
-    rentersSome: "Inspected by {count} renters on Vallo. {listed} of {count} found the agent and the flat as listed.",
+    /** `{count}` renters answered; `{listed}` said as listed; `{month}` e.g. "September 2026". */
+    rentersAll:
+      "{count} renters with a viewing the lister confirmed answered afterwards. All {count} said the agent and the flat were as listed, as of {month}.",
+    rentersSome:
+      "{count} renters with a viewing the lister confirmed answered afterwards. {listed} of {count} said the agent and the flat were as listed, as of {month}.",
     openHint: "What this check is",
     sheetIs: "What this is",
     sheetIsNot: "What this is not",
@@ -40,6 +43,10 @@ export const trustVisibleEn = {
       identity: {
         is: "A member of Vallo staff looked at a government identity document for the person who listed this, and it matched the application.",
         isNot: "It is not a check of the property, the price, or whether the place is still available. It says who, not whether they will treat you fairly.",
+      },
+      identityFirm: {
+        is: "A member of Vallo staff looked at a government identity document for the person who listed this on the firm's behalf, and it matched their application.",
+        isNot: "It is not a check of the firm's registration with the CAC, of the property, the price, or whether the place is still available.",
       },
       identityNimc: {
         is: "The lister's National Identification Number was confirmed with NIMC, and the name on it matched the name on their Vallo application.",
@@ -62,8 +69,8 @@ export const trustVisibleEn = {
         isNot: "It does not say the property looks the same today, or anything about its condition.",
       },
       renters: {
-        is: "Renters who booked an inspection through Vallo, and went, answered four short questions afterwards. This counts their answers.",
-        isNot: "It is not a review of the flat's condition. Answers are private and counted, never quoted, and nobody is named.",
+        is: "Different renters whose viewing the lister confirmed through Vallo answered four short questions after the agreed time. Each renter's latest answer counts once, and nothing is shown until five have answered.",
+        isNot: "It does not prove they went: Vallo cannot yet see who stood at the gate. It is not a review of the flat's condition, and nobody's answer is quoted or named.",
       },
     },
   },
@@ -71,17 +78,19 @@ export const trustVisibleEn = {
   ranking: {
     title: "How Recommended is ordered",
     intro:
-      "Recommended counts {count} things about each listing, one point each, and puts the highest count first. Real listings always come before example listings.",
+      "In property search, Recommended counts {count} things about each listing, one point each, and puts the highest count first. Real listings always come before example listings.",
     inputs: {
       costs:
-        "Every cost to move in or to buy is named: caution, agency, legal and agreement fees on a tenancy, and every buying cost on a sale.",
+        "Every cost is named: caution, agency, legal and agreement fees on a tenancy; every buying cost, or a stated total to buy, on a sale. A stay priced by the night, or anything priced per head, has nothing more to name, so its price alone earns this point.",
       utilities: "Light and water are answered: how often the power is on, and where the water comes from.",
       photos: "At least {min} photographs of the place.",
       checked: "A person at Vallo has checked the identity of whoever listed it.",
     },
-    order: "Listings with the same count keep the newest first.",
-    promise: "Nobody can pay to be higher. Vallo does not sell placement.",
-    shelfLine: "Ordered by a published formula. Nobody can pay to be higher.",
+    /** `{ceiling}` is how many of the newest matching listings are ordered. */
+    order:
+      "Listings with the same count keep the newest first. The order is worked out over the {ceiling} newest listings that match a search.",
+    promise: "Nobody can pay to place a property listing higher. Vallo does not sell placement.",
+    shelfLine: "Nobody can pay to be higher.",
     shelfLink: "How it works",
   },
   /** V-12: every fee as a share of a year's rent, and the law's number beside it. */
@@ -90,11 +99,37 @@ export const trustVisibleEn = {
     shareOfRent: "{share} of a year's rent",
     /** `{amount}` is money, `{share}` a percentage. */
     toAgent: "Fees to the agent: {amount}, {share} of a year's rent.",
-    /** `{state}`, `{agency}`, `{legal}`, `{source}`, `{restated}` come from `lib/trust/fee-rules.ts`. */
+    /** `{state}`, `{agency}`, `{legal}`, `{source}` come from `lib/trust/fee-rules.ts`. */
     stateRule:
-      "{state}'s published rule is up to {agency} for the agency fee and up to {legal} for the legal fee, each of a year's rent ({source}, restated {restated}).",
+      "{state}'s published rule is up to {agency} for the agency fee and up to {legal} for the legal fee, each of a year's rent ({source}).",
     noCap: "Vallo does not cap anybody's fee. It publishes it.",
     sortBasis: "Ordered by the agency, legal and agreement fees together, as a share of a year's rent. Listings that did not state their fees come last.",
+  },
+  /** V-50: confirming a mobile number with a one-time code. */
+  phone: {
+    title: "Phone",
+    subtitle: "One confirmed mobile number per account",
+    why: "Vallo asks for a confirmed mobile number once, before your first inspection request, your first review and your first report. It is never shown to anybody. It keeps one person to one account, which is what makes reviews and reports worth trusting.",
+    closedTitle: "Nothing is needed from you",
+    closedBody: "Vallo is not asking for phone numbers at the moment. Browsing, saving and messaging never need one.",
+    signedOutTitle: "Sign in to confirm your number",
+    signedOutBody: "A number is confirmed for an account, so this needs yours.",
+    signIn: "Sign in",
+    readFailed: "We could not read your phone settings just now. Nothing was changed. Try again in a moment.",
+    /** `{last}` is the last four digits, `{date}` a date. */
+    confirmed: "Your mobile number ending {last} was confirmed on {date}.",
+    change: "Use a different number",
+    numberLabel: "Mobile number",
+    numberHint: "A Nigerian mobile number. We send a six-digit code to it.",
+    send: "Send the code",
+    sending: "Sending",
+    /** `{number}` is the masked number. */
+    sentTo: "We sent a six-digit code to {number}. It expires in 10 minutes.",
+    codeLabel: "Code",
+    confirm: "Confirm",
+    confirming: "Confirming",
+    resend: "Send a new code",
+    done: "Confirmed. Your number is never shown to anybody.",
   },
   /** V-21: the agent band on a profile, with no score in it. */
   profile: {
@@ -121,7 +156,7 @@ export const trustVisibleEn = {
     incomplete: "Answer all four, then send.",
     done: "Thank you. Your answers were recorded on {date}.",
     offPlatformNote:
-      "Because you were asked for money outside Vallo, a report has been opened for our team with this inspection attached. You do not need to do anything else.",
+      "Because you said you were asked for money outside Vallo, our team has a report from you about this listing. You do not need to do anything else.",
     failed: "Your answers did not send. Nothing was recorded. Try again.",
     signedOut: "Sign in to answer.",
     notOpen: "These questions open once the agreed time for the inspection has passed.",
@@ -133,7 +168,7 @@ export const trustVisibleEn = {
     checking: "Checking who this account belongs to.",
     belongs:
       "This account belongs to the verified lister. Vallo still cannot protect a payment made to an account.",
-    doesNotBelong: "This account does not belong to the person Vallo verified for this listing.",
+    notOnRecord: "The name on this account is not a name Vallo has on record for this lister.",
     /** `{amount}` is formatted money. */
     payLead: "Paying for this place? Pay the move-in total here: {amount}, recorded to the kobo.",
     payButton: "Pay the move-in total",

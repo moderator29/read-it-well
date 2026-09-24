@@ -1,7 +1,7 @@
 "use server";
 
 import { resolveSession } from "../actions/session";
-import type { AccountCheckOutcome } from "./account-check";
+import type { AccountCheckOutcome, AccountCheckView } from "./account-check";
 
 /**
  * The receiver's card asks once more for a check that had not landed when
@@ -18,24 +18,26 @@ type UntypedFrom = {
   from(table: string): {
     select(columns: string): {
       eq(column: string, value: string): {
-        maybeSingle(): Promise<{ data: { outcome: string } | null; error: unknown }>;
+        maybeSingle(): Promise<{ data: { outcome: string; shares_a_name: boolean | null } | null; error: unknown }>;
       };
     };
   };
 };
 
-export async function readAccountCheck(messageId: string): Promise<AccountCheckOutcome | null> {
+export async function readAccountCheck(messageId: string): Promise<AccountCheckView | null> {
   if (typeof messageId !== "string" || !UUID_RE.test(messageId)) return null;
   const session = await resolveSession();
   if (session.state !== "signed-in") return null;
   try {
     const { data } = await (session.supabase as unknown as UntypedFrom)
       .from("message_account_checks")
-      .select("outcome")
+      .select("outcome, shares_a_name")
       .eq("message_id", messageId)
       .maybeSingle();
     const outcome = data?.outcome;
-    return OUTCOMES.includes(outcome as AccountCheckOutcome) ? (outcome as AccountCheckOutcome) : null;
+    return OUTCOMES.includes(outcome as AccountCheckOutcome)
+      ? { outcome: outcome as AccountCheckOutcome, sharesAName: data?.shares_a_name ?? null }
+      : null;
   } catch {
     return null;
   }

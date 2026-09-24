@@ -47,10 +47,6 @@
  * More than two candidates is "unresolved" rather than a wider search.
  */
 
-/** Payment language beside the digits, which is what makes them worth a card. */
-export const PAYMENT_WORDS_RE =
-  /\b(pay|payment|paying|transfer|send|account|acct|a\/c|bank|deposit|caution|agency fee|rent)\b/i;
-
 /** Ten digits, forgiving single separators, as a finder over a message. */
 const RUN_RE = /\d(?:[ .\-]?\d){9,}/g;
 

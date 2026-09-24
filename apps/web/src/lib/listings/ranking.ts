@@ -40,6 +40,14 @@ import type { Listing } from "./types";
 
 export type RankInputKey = "costs" | "utilities" | "photos" | "checked";
 
+/**
+ * How many of the newest matching rows the order is computed over. The same
+ * number as `CATALOGUE_LIMIT` in `supabase-repository.ts` (a spec holds them
+ * together), and printed on /standards so the page does not claim to rank
+ * listings the read never fetched.
+ */
+export const RANK_CEILING = 200;
+
 /** The photographs that earn the photos point. */
 export const RANK_MIN_PHOTOS = 5;
 
@@ -131,7 +139,7 @@ export function rankingProse(copy: RankingCopy): { intro: string; inputs: string
   return {
     intro: copy.intro.replace("{count}", String(RANK_INPUTS.length)),
     inputs: RANK_INPUTS.map((input) => copy.inputs[input.key].replace("{min}", String(RANK_MIN_PHOTOS))),
-    order: copy.order,
+    order: copy.order.replace("{ceiling}", String(RANK_CEILING)),
     promise: copy.promise,
   };
 }

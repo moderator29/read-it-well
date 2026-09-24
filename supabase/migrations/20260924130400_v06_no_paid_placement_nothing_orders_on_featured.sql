@@ -1,4 +1,5 @@
--- V-06, NO PAID PLACEMENT, EVER: DELETE `listings.featured`.
+-- V-06, NO PAID PLACEMENT, EVER: NOTHING THIS REPOSITORY OWNS ORDERS ON
+-- `listings.featured`, AND NOTHING CAN SET IT.
 --
 -- "Recommended" ordered the catalogue by `featured desc, published_at desc,
 -- created_at desc`, on a boolean (20260728152229_listings_core) that nothing in
@@ -6,33 +7,31 @@
 -- was plain recency, which rewards reposting. And a column called `featured`
 -- with no writer is exactly the lever a future sales conversation reaches for:
 -- every Nigerian portal's revenue is visibility, and the date on a listing
--- there means the agent paid. Vallo does not sell placement. The column goes,
--- so the lever does not exist.
+-- there means the agent paid. Vallo does not sell placement.
+--
+-- WHY THE COLUMN IS NOT DROPPED HERE (review of batch 1, blocker). Two live
+-- functions the audit session applied and owns, `public.listings_in_bounds_exact`
+-- and `public.listings_in_bounds_public`, both `order by l.featured desc`. A
+-- drop would take them down ("column l.featured does not exist"). So this
+-- file does only what is safe, and the drop is handed to the audit session:
+-- drop listings.featured after re-creating those two without it.
 --
 -- WHAT REPLACES IT is not a column. Recommended is a published formula in
 -- `apps/web/src/lib/listings/ranking.ts`, stated in words on /standards from
--- the SAME constants, so the prose and the code cannot drift. It reads only
--- facts about the listing (declared costs, answered utilities, photographs, a
--- checked lister) and ties keep the newest first.
+-- the SAME constants, so the prose and the code cannot drift.
 --
--- WHAT THIS FILE CHANGES, in the order the database needs:
+-- WHAT THIS FILE DOES:
 --
 --   1. `private.catalogue_refresh_listing` wrote `l.featured` into
 --      `catalogue_entries`. Re-created identically except that a listing's
---      catalogue row is always `featured = false`. `catalogue_entries.featured`
---      stays, because accommodations and restaurants feed it and stays search
---      reads it; that is a separate question for the stays side.
---   2. `public.listings_in_bounds` (the map) ordered by `l.featured desc`.
---      Re-created identically without it. `create or replace` keeps its grants.
---   3. The catalogue order index led on `featured`. Replaced by the same index
---      without it, still partial on published rows.
---   4. The check `listings_demo_is_never_featured` goes with the column.
---   5. The column.
---
--- `private.guard_owner_write` still names `featured` in its protected list and
--- its insert reset. Both are read through jsonb, where a missing key is null on
--- both sides and `jsonb_populate_record` ignores it, so the guard is correct
--- as it stands and is left to its owner.
+--      catalogue row is always `featured = false`.
+--   2. `public.listings_in_bounds` (the map, which this repository's code
+--      calls) ordered by `l.featured desc`. Re-created without it.
+--      `create or replace` keeps its grants.
+--   3. A CHECK that `listings.featured` is false, so the lever cannot be
+--      pulled while the column waits to be dropped. Every row is false today
+--      (the probe reads it back), and `private.guard_owner_write` already
+--      resets it to false on an owner's insert.
 
 /* 1 ---------------------------------------------------- the catalogue sync */
 
@@ -160,24 +159,17 @@ as $function$
   limit least(greatest(coalesce(p_limit, 500), 1), 1000);
 $function$;
 
-/* 3 ------------------------------------------------------------ the index */
+/* 3 -------------------------------------------------- the lever, locked */
 
-drop index if exists public.listings_catalogue_order_idx;
-create index if not exists listings_catalogue_order_idx
-  on public.listings (published_at desc nulls last, created_at desc)
-  where status = 'PUBLISHED'::public.listing_status;
-
-/* 4 and 5 ------------------------------------ the check, then the column */
-
-alter table public.listings drop constraint if exists listings_demo_is_never_featured;
-alter table public.listings drop column if exists featured;
+alter table public.listings drop constraint if exists listings_featured_is_never_set;
+alter table public.listings add constraint listings_featured_is_never_set check (featured = false);
 
 do $readback$
 declare bad text := '';
 begin
-  if exists (select 1 from information_schema.columns
-              where table_schema = 'public' and table_name = 'listings' and column_name = 'featured') then
-    bad := bad || ' [listings.featured still exists]';
+  if not exists (select 1 from pg_constraint
+                  where conrelid = 'public.listings'::regclass and conname = 'listings_featured_is_never_set') then
+    bad := bad || ' [featured can still be set]';
   end if;
   if pg_get_functiondef('public.listings_in_bounds(double precision,double precision,double precision,double precision,public.listing_intent,public.property_type,bigint,bigint,integer,integer)'::regprocedure) ilike '%featured%' then
     bad := bad || ' [the map still orders on featured]';

@@ -166,8 +166,7 @@ export function ListingMoveIn({
             .replace("{state}", rule.stateName)
             .replace("{agency}", formatBps(rule.agencyMaxBps, locale))
             .replace("{legal}", formatBps(rule.legalMaxBps, locale))
-            .replace("{source}", rule.source)
-            .replace("{restated}", rule.restated)}{" "}
+            .replace("{source}", rule.source)}{" "}
           {feeCopy.noCap}
         </p>
       )}

@@ -1,4 +1,4 @@
-import { businessNamesMatch, namesMatch } from "@/lib/identity/name-match";
+import { businessNamesMatch, namesMatch, sharesAName } from "@/lib/identity/name-match";
 import { accountNumbersIn, candidateBanks, lastFour, type BankRef } from "./account-moment";
 
 /**
@@ -50,6 +50,8 @@ export type AccountCheckRow = {
   bank_code: string | null;
   last4: string | null;
   name_matches_lister: boolean | null;
+  /** Only on a no_match: the holder shares some name with a name on record. */
+  shares_a_name: boolean | null;
   outcome: AccountCheckOutcome;
 };
 
@@ -89,21 +91,26 @@ export type AccountCheckInput = {
 };
 
 /**
- * Check the first account number in a message, if the lister sent it.
- * Returns the row it wrote, or null when nothing was checked at all.
+ * Check the account number in a message, if the lister sent it and there is
+ * EXACTLY ONE. The card speaks for the whole message, so a message with two
+ * numbers is never checked (review of batch 1): "belongs" about one of them
+ * would read as a claim about both. Returns the row it wrote, or null when
+ * nothing was checked at all.
  */
 export async function runAccountCheck(
   deps: AccountCheckDeps,
   input: AccountCheckInput,
 ): Promise<AccountCheckRow | null> {
   if (!input.listerUserId || input.senderId !== input.listerUserId) return null;
-  const nuban = accountNumbersIn(input.body)[0];
-  if (!nuban) return null;
+  const numbers = accountNumbersIn(input.body);
+  if (numbers.length !== 1) return null;
+  const nuban = numbers[0]!;
 
   const base = {
     message_id: input.messageId,
     conversation_id: input.conversationId,
     last4: lastFour(nuban),
+    shares_a_name: null,
   };
   const write = async (row: AccountCheckRow) => {
     await deps.save(row);
@@ -130,6 +137,7 @@ export async function runAccountCheck(
   const candidates = candidateBanks(nuban, input.body, registry);
   let firstResolvedBank: string | null = null;
   let resolvedAny = false;
+  let shares = false;
   for (const bank of candidates) {
     const answer = await deps.resolve({ accountNumber: nuban, bankCode: bank.code });
     if (!answer.ok) continue;
@@ -138,9 +146,16 @@ export async function runAccountCheck(
     if (holderMatches(answer.accountName, names)) {
       return write({ ...base, bank_code: bank.code, name_matches_lister: true, outcome: "match" });
     }
+    shares ||= sharesAName(answer.accountName, names.map((n) => n.name));
   }
   if (resolvedAny) {
-    return write({ ...base, bank_code: firstResolvedBank, name_matches_lister: false, outcome: "no_match" });
+    return write({
+      ...base,
+      bank_code: firstResolvedBank,
+      name_matches_lister: false,
+      shares_a_name: shares,
+      outcome: "no_match",
+    });
   }
   return write({ ...base, bank_code: null, name_matches_lister: null, outcome: "unresolved" });
 }
@@ -148,7 +163,10 @@ export async function runAccountCheck(
 /* ------------------------------------------------------ the receiver's card */
 
 /** How the receiver's card reads a stored outcome, or its absence. */
-export type AccountCardState = "checking" | "belongs" | "does_not_belong" | "silent";
+export type AccountCardState = "checking" | "belongs" | "not_on_record" | "not_on_record_total" | "silent";
+
+/** What the receiver's side knows about one message's check. */
+export type AccountCheckView = { outcome: AccountCheckOutcome; sharesAName: boolean | null };
 
 /** How long a missing row reads as "checking" before it reads as nothing. */
 export const CHECKING_WINDOW_MS = 60_000;
@@ -159,12 +177,19 @@ export const CHECKING_WINDOW_MS = 60_000;
  * Vallo rather than the account, print nothing about ownership at all.
  */
 export function accountCardState(
-  outcome: AccountCheckOutcome | null,
+  check: AccountCheckView | null,
   messageCreatedAt: string | null,
   now: number,
+  numberCount = 1,
 ): AccountCardState {
+  /* Two numbers in one message are never checked, so nothing is said. */
+  if (numberCount !== 1) return "silent";
+  const outcome = check?.outcome ?? null;
   if (outcome === "match") return "belongs";
-  if (outcome === "no_match") return "does_not_belong";
+  /* A fuzzy comparison can miss a truncated or re-ordered bank name, so the
+     sentence says what the code proves (not a name on record), and only a
+     TOTAL mismatch, sharing no name at all, is drawn in the error colour. */
+  if (outcome === "no_match") return check?.sharesAName === false ? "not_on_record_total" : "not_on_record";
   if (outcome !== null) return "silent";
   const sent = messageCreatedAt ? Date.parse(messageCreatedAt) : Number.NaN;
   return Number.isFinite(sent) && now - sent < CHECKING_WINDOW_MS ? "checking" : "silent";

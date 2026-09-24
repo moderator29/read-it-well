@@ -83,6 +83,12 @@ export type ProofFacts = {
   /** When the lister's identity rung passed, and how. */
   identitySeenAt?: string;
   identityMethod?: IdentityMethod;
+  /**
+   * The listing is a firm's. The identity rung checks a PERSON's government
+   * ID, the person who listed it for the firm, never the firm's registration,
+   * so the line has to say whose identity it was.
+   */
+  listedForFirm?: boolean;
   /** `listings.ownership_verified_at`: a title document seen in the lister's name. */
   ownershipVerifiedAt?: string;
   /** `listings.mandate_verified_at`: the owner's instruction seen, the owner spoken to. */
@@ -100,7 +106,7 @@ export type ProofFacts = {
 };
 
 export type ProofLine =
-  | { kind: "identity"; at: string; method: IdentityMethod }
+  | { kind: "identity"; at: string; method: IdentityMethod; forFirm: boolean }
   | { kind: "authority"; at: string; basis: "ownership" | "mandate" }
   | { kind: "availability"; at: string }
   | { kind: "photographs"; at: string }
@@ -114,7 +120,7 @@ export function provableDate(value: string | null | undefined): string | null {
 }
 
 /** The fewest renters whose answers may be counted in public. Matches `listing_truth_summary`. */
-export const MIN_PUBLIC_RENTERS = 2;
+export const MIN_PUBLIC_RENTERS = 5;
 
 type Spec = (facts: ProofFacts) => ProofLine | null;
 
@@ -126,7 +132,9 @@ type Spec = (facts: ProofFacts) => ProofLine | null;
 const SPECS: Record<ProofLineKind, Spec> = {
   identity: (f) => {
     const at = provableDate(f.identitySeenAt);
-    return at ? { kind: "identity", at, method: f.identityMethod ?? "seen" } : null;
+    return at
+      ? { kind: "identity", at, method: f.identityMethod ?? "seen", forFirm: f.listedForFirm === true }
+      : null;
   },
   authority: (f) => {
     /* The database refuses both at once (listings_one_supply_proof_chk). If a
@@ -151,7 +159,7 @@ const SPECS: Record<ProofLineKind, Spec> = {
     const at = provableDate(r.lastAt);
     const attended = Math.trunc(r.attended);
     const asListed = Math.trunc(r.asListed);
-    /* Fewer than two witnesses is not a line (one renter's answer must never
+    /* Fewer than five witnesses is not a line (one renter's answer must never
        be readable off a listing by the lister who met them; the database view
        refuses it too), and a count that claims more agreeing renters than
        attended is a read fault that must print nothing. */
@@ -184,6 +192,7 @@ export function proofFactsOf(listing: Listing): ProofFacts {
   return {
     isDemo: listing.isDemo,
     ...(listing.listerIdentitySeenAt ? { identitySeenAt: listing.listerIdentitySeenAt } : {}),
+    ...(listing.listerRole === "firm" ? { listedForFirm: true } : {}),
     ...(listing.ownershipVerifiedAt ? { ownershipVerifiedAt: listing.ownershipVerifiedAt } : {}),
     ...(listing.mandateVerifiedAt ? { mandateVerifiedAt: listing.mandateVerifiedAt } : {}),
     ...(listing.renterTruth ? { renters: listing.renterTruth } : {}),
@@ -209,7 +218,9 @@ export function proofLineText(line: ProofLine, copy: ProofCopy, locale: Locale):
   const date = proofDate(line.at, locale);
   switch (line.kind) {
     case "identity":
-      return (line.method === "nimc" ? copy.identityNimc : copy.identitySeen).replace("{date}", date);
+      return (
+        line.method === "nimc" ? copy.identityNimc : line.forFirm ? copy.identitySeenFirm : copy.identitySeen
+      ).replace("{date}", date);
     case "authority":
       return (line.basis === "ownership" ? copy.ownership : copy.mandate).replace("{date}", date);
     case "availability":
@@ -220,7 +231,10 @@ export function proofLineText(line: ProofLine, copy: ProofCopy, locale: Locale):
       const count = formatNumber(line.attended, locale);
       const listed = formatNumber(line.asListed, locale);
       const template = line.asListed === line.attended ? copy.rentersAll : copy.rentersSome;
-      return template.replace(/\{count\}/g, count).replace("{listed}", listed);
+      /* The public count is dated to the month (the view truncates it), so it
+         is printed as a month and never as a day it cannot prove. */
+      const month = formatDate(new Date(line.at), locale, { month: "long", year: "numeric", timeZone: "UTC" });
+      return template.replace(/\{count\}/g, count).replace("{listed}", listed).replace("{month}", month);
     }
   }
 }
@@ -229,7 +243,7 @@ export function proofLineText(line: ProofLine, copy: ProofCopy, locale: Locale):
 export function proofExplainKey(line: ProofLine): keyof ProofCopy["explain"] {
   switch (line.kind) {
     case "identity":
-      return line.method === "nimc" ? "identityNimc" : "identity";
+      return line.method === "nimc" ? "identityNimc" : line.forFirm ? "identityFirm" : "identity";
     case "authority":
       return line.basis;
     default:

@@ -90,7 +90,7 @@ export function ShelfCount({
         <details className="nf-shelf-sort shrink-0" data-testid="sort-control">
           <summary>
             <UiIcon name="sliders" size={14} />
-            {current.label}
+            {current.short ?? current.label}
             <UiIcon name="chevron-down" size={14} />
           </summary>
           <ul className="nf-shelf-sort__menu" aria-label={copy.sort}>

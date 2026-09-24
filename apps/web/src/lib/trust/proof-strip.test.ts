@@ -74,8 +74,10 @@ describe("the proof strip model", () => {
 
   it("refuses a renters line with no witnesses or an impossible count", () => {
     expect(proofLines({ isDemo: false, renters: { attended: 0, asListed: 0, lastAt: FULL.renters!.lastAt } })).toEqual([]);
-    expect(proofLines({ isDemo: false, renters: { attended: 2, asListed: 3, lastAt: FULL.renters!.lastAt } })).toEqual([]);
-    expect(proofLines({ isDemo: false, renters: { attended: 2, asListed: 1, lastAt: "nope" } })).toEqual([]);
+    expect(proofLines({ isDemo: false, renters: { attended: 6, asListed: 7, lastAt: FULL.renters!.lastAt } })).toEqual([]);
+    expect(proofLines({ isDemo: false, renters: { attended: 6, asListed: 1, lastAt: "nope" } })).toEqual([]);
+    /* Four renters is below the public minimum of five. */
+    expect(proofLines({ isDemo: false, renters: { attended: 4, asListed: 4, lastAt: FULL.renters!.lastAt } })).toEqual([]);
   });
 
   it("gives the card at most two lines, the first two, in order", () => {
@@ -86,7 +88,7 @@ describe("the proof strip model", () => {
 describe("the proof strip's words", () => {
   it("prints a date on every line", () => {
     for (const line of proofLines(FULL)) {
-      expect(proofLineText(line, copy, "en")).toMatch(/2026|renters? on Vallo/);
+      expect(proofLineText(line, copy, "en")).toMatch(/2026/);
     }
     const mandate = proofLines({ isDemo: false, mandateVerifiedAt: "2026-08-14T09:00:00Z" })[0]!;
     expect(proofLineText(mandate, copy, "en")).toBe("Owner's instruction seen and owner spoken to, 14 Aug 2026");
@@ -97,16 +99,16 @@ describe("the proof strip's words", () => {
     expect(proofLineText(late, copy, "en")).toBe("Title document seen in the lister's name, 15 Aug 2026");
   });
 
-  it("counts renters honestly: all, some, and never one", () => {
-    const at = "2026-09-21T09:00:00Z";
+  it("counts renters honestly: all, some, never below five, and dated to the month", () => {
+    const at = "2026-09-01T00:00:00Z";
     const all = proofLines({ isDemo: false, renters: { attended: 6, asListed: 6, lastAt: at } })[0]!;
     const some = proofLines({ isDemo: false, renters: { attended: 6, asListed: 4, lastAt: at } })[0]!;
     const one = proofLines({ isDemo: false, renters: { attended: 1, asListed: 1, lastAt: at } });
     expect(proofLineText(all, copy, "en")).toBe(
-      "Inspected by 6 renters on Vallo. All 6 found the agent and the flat as listed.",
+      "6 renters with a viewing the lister confirmed answered afterwards. All 6 said the agent and the flat were as listed, as of September 2026.",
     );
     expect(proofLineText(some, copy, "en")).toBe(
-      "Inspected by 6 renters on Vallo. 4 of 6 found the agent and the flat as listed.",
+      "6 renters with a viewing the lister confirmed answered afterwards. 4 of 6 said the agent and the flat were as listed, as of September 2026.",
     );
     /* One renter is never a public line: the lister would know whose answer it was. */
     expect(one).toEqual([]);
@@ -158,5 +160,16 @@ describe("the strip is mounted where the entry says", () => {
   it("and the component draws nothing when it has no lines", () => {
     const src = readFileSync(join(root, "components/app/listing/ProofStrip.tsx"), "utf8");
     expect(src).toContain("if (shown.length === 0) return null;");
+  });
+});
+
+describe("a firm's listing says whose identity was seen", () => {
+  it("names the person who listed it for the firm, and explains it is not a CAC check", () => {
+    const line = proofLines({ isDemo: false, identitySeenAt: "2026-08-12T10:00:00Z", listedForFirm: true })[0]!;
+    expect(proofLineText(line, copy, "en")).toBe(
+      "The identity document of the person who listed this for the firm seen by Vallo, 12 Aug 2026",
+    );
+    expect(proofExplainKey(line)).toBe("identityFirm");
+    expect(copy.explain.identityFirm.isNot).toContain("CAC");
   });
 });

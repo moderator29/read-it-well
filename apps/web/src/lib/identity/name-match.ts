@@ -226,3 +226,14 @@ export function matchesAnyName(holder: string, onRecord: readonly string[]): Nam
   }
   return last;
 }
+
+/**
+ * Does `holder` share ANY name with any name on record? Used only to decide
+ * how loudly a no-match is drawn (V-04): sharing a surname with the lister is
+ * a mismatch the reader should weigh, sharing nothing at all is a total one.
+ * Company suffixes are ignored, so "LTD" alone is never a shared name.
+ */
+export function sharesAName(holder: string, onRecord: readonly string[]): boolean {
+  const mine = new Set(nameTokens(holder).filter((t) => t.length > 1 && !BUSINESS_NOISE.has(t)));
+  return onRecord.some((name) => nameTokens(name).some((t) => t.length > 1 && mine.has(t)));
+}

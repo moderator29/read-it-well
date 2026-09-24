@@ -51,7 +51,12 @@ function feeOf(listing: Listing, key: FeeKey): number | undefined {
 export type FeeShares = {
   /** Per declared fee: its kobo and its share. Undeclared fees are absent. */
   each: Partial<Record<FeeKey, { minor: number; bps: number }>>;
-  /** The declared fees together, or null when none is declared. */
+  /**
+   * The three fees together, ONLY when all three are declared (a declared
+   * zero counts). A total over two of three would reward leaving a fee out
+   * (review of batch 1): the listing that hides its legal fee would print a
+   * smaller share than the one that states it.
+   */
   total: { minor: number; bps: number; declared: number } | null;
 };
 
@@ -69,13 +74,16 @@ export function feeShares(listing: Listing): FeeShares | null {
     sum += minor;
     declared += 1;
   }
-  return { each, total: declared > 0 ? { minor: sum, bps: shareBps(sum, annual), declared } : null };
+  return {
+    each,
+    total: declared === FEE_KEYS.length ? { minor: sum, bps: shareBps(sum, annual), declared } : null,
+  };
 }
 
 /**
  * The sort key for "Lowest fees on top of rent": the three fees as one share,
- * or null when it cannot be stated (not a tenancy, or no fee declared). A
- * null sorts LAST, because unstated is not cheap.
+ * or null when it cannot be stated (not a tenancy, or any of the three fees
+ * undeclared). A null sorts LAST, because unstated is not cheap.
  */
 export function feeSortKey(listing: Listing): number | null {
   const shares = feeShares(listing);

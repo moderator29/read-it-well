@@ -1,5 +1,10 @@
 -- V-21, DELETE THE 0 TO 100 TRUST SCORE.
 --
+-- APPLY AFTER THE CODE THAT STOPS READING `trust_score` IS LIVE. The previous
+-- reader did `Number(row.trust_score)`, which is NaN once the column is gone,
+-- and it then hides the whole agent band. The new reader never reads it, so
+-- code first, then this file, loses nothing.
+--
 -- `public.agent_trust(uuid)` returned five columns and the first was a number
 -- out of 100 printed on every agent's public profile. It collapsed the signals
 -- `docs/PRODUCT.md` section 6 says must stay separate into one, and it was
