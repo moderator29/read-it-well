@@ -17,6 +17,7 @@ import {
   closeInspection,
 } from "@/lib/inspections/actions";
 import { waitingOn, type Inspection, type InspectionState } from "@/lib/inspections/types";
+import { earliestLagosInput, lagosWallClockToIso } from "@/lib/inspections/when";
 
 /**
  * INSPECTIONS, AS ROWS, WITH THE STATE VISIBLE ON BOTH SIDES.
@@ -421,6 +422,9 @@ function ProposeSheet({
           <input
             type="datetime-local"
             value={when}
+            /* UX-20: Lagos time, two hours ahead at the earliest, as the request is. */
+            min={earliestLagosInput()}
+            step={900}
             onChange={(event) => setWhen(event.target.value)}
             className="nf-field mt-2xs w-full"
           />
@@ -444,7 +448,7 @@ function ProposeSheet({
           variant="primary"
           className="mt-lg"
           disabled={pending || when.length === 0}
-          onClick={() => onSubmit(new Date(when).toISOString(), note.trim())}
+          onClick={() => onSubmit(lagosWallClockToIso(when) ?? when, note.trim())}
         >
           {PROPOSE_SEND}
         </Button>
@@ -467,7 +471,7 @@ const PAY_RENT = "Pay the rent";
 const PROPOSE_TITLE = "Offer another time";
 const PROPOSE_SUB =
   "They will see the time you offer and can take it in one tap. The time they asked for stays on the record.";
-const WHEN_LABEL = "When you can do it";
+const WHEN_LABEL = "When you can do it (Lagos time)";
 const NOTE_LABEL = "A line for them, if you want one";
 const NOTE_PLACEHOLDER = "The gate closes at 6, so earlier is better";
 const PROPOSE_SEND = "Send this time";

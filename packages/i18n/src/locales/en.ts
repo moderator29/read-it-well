@@ -4737,7 +4737,7 @@ export const en = {
       keep: "Keep it",
       proposeTitle: "Offer another time",
       proposeBody: "They can take it in one tap. The time they asked for stays on the record.",
-      proposeWhen: "When you can do it",
+      proposeWhen: "When you can do it (Lagos time)",
       proposeNote: "A line for them, if you want one",
       proposeSend: "Send this time",
       outcomeTitle: "How did it go?",

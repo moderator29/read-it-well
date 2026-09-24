@@ -39,4 +39,17 @@ describe("when an inspection may be asked for", () => {
     expect(sheet).toContain('<Link href="/inspections"');
     expect(sheet).not.toContain("Coming from Yaba");
   });
+
+  it("is what every counter-offer picker uses too", () => {
+    for (const file of [
+      "components/app/inspections/InspectionSheet.tsx",
+      "components/app/inspections/InspectionRows.tsx",
+      "components/app/threads/RentalFace.tsx",
+    ]) {
+      const text = readFileSync(join(__dirname, "..", "..", file), "utf8");
+      expect(text, file).not.toContain("new Date(when).toISOString()");
+      expect(text, file).toContain("lagosWallClockToIso(when)");
+      expect(text, file).toContain("min={earliestLagosInput()}");
+    }
+  });
 });
