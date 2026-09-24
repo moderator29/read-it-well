@@ -101,6 +101,7 @@ import {
   withdrawToSavedAccountSchema,
 } from "./schema";
 import type { WalletSummary } from "./types";
+import { processorFeeMetadata } from "./funding-fee";
 
 const WALLET_OFF_MESSAGE =
   "The wallet is switched off for a moment while we make improvements. Please try again shortly.";
@@ -1483,6 +1484,7 @@ export async function verifyFunding(
         channel: tx.channel,
         paid_at: tx.paidAt,
         purpose: "wallet_fund",
+        ...processorFeeMetadata(tx.feesMinor),
       },
     });
     logMoney({

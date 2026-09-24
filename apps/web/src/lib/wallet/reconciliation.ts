@@ -20,6 +20,7 @@ import {
   walletOwnerId,
   type AdminClient,
 } from "./ledger";
+import { processorFeeMetadata } from "./funding-fee";
 
 /**
  * Reconciliation. The permanent answer to "the processor took the money and
@@ -284,6 +285,7 @@ export async function reconcileFundingReference(
         paid_at: charge.paidAt,
         purpose: "wallet_fund",
         recovered_by: "reconciliation",
+        ...processorFeeMetadata(charge.feesMinor),
       },
     });
   } catch (error) {
@@ -450,6 +452,7 @@ async function postGapFunding(
         paid_at: charge.paidAt,
         purpose: "wallet_fund",
         recovered_by: "sweep",
+        ...processorFeeMetadata(charge.feesMinor),
       },
     });
     logMoney({
