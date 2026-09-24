@@ -10,6 +10,7 @@ import {
   STAYS_DOOR_ORDER,
   SUPPLY_DOORS,
   SUPPLY_DOOR_ORDER,
+  doorsSentence,
   SUPPLY_ROLES,
   WORKSPACE_KINDS,
   WORKSPACE_SIDE,
@@ -79,9 +80,14 @@ describe("workspaces", () => {
 });
 
 describe("the doors", () => {
+  it("does not offer the firm door while approval cannot make a firm (SUP-10)", () => {
+    expect(SUPPLY_DOOR_ORDER).not.toContain("firm");
+    expect(doorsSentence()).not.toMatch(/firm/i);
+  });
+
   it("puts the owner first, because that is the supply this platform now wants", () => {
     expect(SUPPLY_DOOR_ORDER[0]).toBe("owner");
-    expect([...SUPPLY_DOOR_ORDER]).toEqual(["owner", "agent", "firm"]);
+    expect([...SUPPLY_DOOR_ORDER]).toEqual(["owner", "agent"]);
   });
 
   it("gives every property door a failure it answers and a proof that answers it", () => {
