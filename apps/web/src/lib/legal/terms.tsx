@@ -111,6 +111,7 @@
 import { SUPPORT_HREF, SUPPORT_LABEL } from "@/lib/support-email";
 import { VERIFICATION_ORDER } from "@/lib/trust/verification";
 import { COMPANY_FORMAL_NAME, COMPANY_TRADING_NAME } from "./company";
+import { BANK_PAYOUTS_OPEN, TERMS_REFUND_LINE } from "@/lib/wallet/bank-payouts";
 import Link from "next/link";
 
 /**
@@ -225,10 +226,16 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
               We do not hold your money in escrow, and you should not treat a payment
               made here as protected by us holding it.
             </strong>{" "}
-            When you pay, the money reaches the person you are paying. We keep the
-            record of what was paid, to whom, for what and when, and that record is what
-            we can act on if something goes wrong. It is not the same thing as holding
-            the money, and we will not describe it as though it were.
+            A payment for a stay, and money you add to your wallet, is collected by our
+            payment processor into {COMPANY_TRADING_NAME}&rsquo;s account and recorded
+            against your booking or your wallet, to the kobo.{" "}
+            {BANK_PAYOUTS_OPEN
+              ? "The host's share of a stay is recorded for them and paid to their bank account."
+              : "The host's share of a stay is recorded for them; paying it out to their bank is not open yet and will be once bank payouts open."}{" "}
+            We keep the record of what was paid, to whom, for what and when, and that
+            record is what we can act on if something goes wrong. It is not the same
+            thing as holding the money in escrow for you, and we will not describe it as
+            though it were.
           </li>
           <li>
             Renting is <strong>message, inspect, then pay</strong>. Message the person
@@ -266,8 +273,10 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
           it</strong>, because no money for one of those passes through{" "}
           {COMPANY_TRADING_NAME}. What is payable, what is returnable and on what notice
           are terms of the agreement you sign with the landlord, the vendor or their
-          agent, and you should read that agreement before you pay anybody anything. We
-          carry the messages and we hold no part of that money.
+          agent, and you should read that agreement before you pay anybody anything. If
+          you pay a move-in total on {COMPANY_TRADING_NAME} after an inspection, it is
+          credited to the lister&rsquo;s {COMPANY_TRADING_NAME} wallet and recorded
+          against the tenancy; the agreement still decides what is returnable.
         </li>
         <li>
           A stay nobody has paid for is only a hold on the calendar and can be called
@@ -278,10 +287,7 @@ export const TERMS_SECTIONS: { title: string; body: React.ReactNode }[] = [
           you could not get in, you get everything back whenever it happens. Report it
           rather than cancelling it yourself.
         </li>
-        <li>
-          Refunds go to your {COMPANY_TRADING_NAME} wallet in naira, and you move money
-          from there to your bank.
-        </li>
+        <li>{TERMS_REFUND_LINE}</li>
       </ul>
     ),
   },

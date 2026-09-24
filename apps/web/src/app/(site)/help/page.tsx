@@ -7,6 +7,7 @@ import { BrandIcon, type BrandIconName } from "@/design-system/icons/BrandIcon";
 import { HelpSearch, type Faq } from "./HelpSearch";
 import { ButtonLink } from "@/components/ui/Button";
 import { doorsSentence } from "@/lib/supply/roles";
+import { AGENT_PAYOUT_ANSWER, WALLET_MONEY_USES } from "@/lib/wallet/bank-payouts";
 
 export const metadata: Metadata = {
   title: "Help centre",
@@ -88,7 +89,7 @@ const FAQS: Faq[] = [
   {
     category: "Property and Stays",
     q: "Does my wallet work on both sides?",
-    a: "Yes. There is one naira wallet on one account. Top it up by card or bank transfer, pay for a tenancy, a sale deposit or a hotel room from the same balance, and withdraw to your own Nigerian bank account. Refunds land back in the same wallet whichever side they came from.",
+    a: `Yes. There is one naira wallet on one account. Top it up by card or bank transfer and pay for a tenancy, a sale deposit or a hotel room from the same balance. Refunds land back in the same wallet whichever side they came from. ${WALLET_MONEY_USES}`,
   },
   {
     category: "Property and Stays",
@@ -155,7 +156,7 @@ const FAQS: Faq[] = [
     /* This answer used to promise card reversals in three to ten business
        days. Refunds do not go back to a card: they land in the wallet, which
        is what the docs, the cancellation policy and the product itself say. */
-    a: "A refund lands in your Vallo wallet, usually within minutes of the decision. Moving it from the wallet to your bank is an ordinary withdrawal and takes as long as your bank takes. If nothing has appeared in your wallet statement, contact support with your booking reference.",
+    a: `A refund lands in your Vallo wallet, usually within minutes of the decision. ${WALLET_MONEY_USES} If nothing has appeared in your wallet statement, contact support with your booking reference.`,
   },
 
   // ------------------------------------------------------------ listing
@@ -185,7 +186,7 @@ const FAQS: Faq[] = [
   {
     category: "Listing your property",
     q: "When do agents get paid?",
-    a: "After each completed stay, your earnings are paid to the Nigerian bank account you added during your application. You can follow every payout from the earnings page in your agent workspace.",
+    a: AGENT_PAYOUT_ANSWER,
   },
 
   // ------------------------------------------------------- verification

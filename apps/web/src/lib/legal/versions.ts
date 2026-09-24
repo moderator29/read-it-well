@@ -26,7 +26,7 @@
  * together. A date rather than a number so a stored row says which text was on
  * screen without anybody keeping a separate table of what version meant what.
  */
-export const TERMS_VERSION = "2026-09-22";
+export const TERMS_VERSION = "2026-09-24";
 
 /**
  * The privacy notice moves with them today and has its own constant anyway,

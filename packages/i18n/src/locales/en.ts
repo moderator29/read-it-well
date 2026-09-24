@@ -606,7 +606,7 @@ export const en = {
       chips: {
         verified: { title: "Buy and rent", sub: "What moving in costs, not the rent alone." },
         ai: { title: "AI assistant", sub: "Ask in four languages. Real listings back." },
-        wallet: { title: "One naira wallet", sub: "Top up, pay, withdraw, on both sides." },
+        wallet: { title: "One naira wallet", sub: "Top up, pay and send, on both sides." },
         one: { title: "Bookings and trips", sub: "Stays, tables and inspections, by date." },
         stays: { title: "Vallo Stays", sub: "Hotels, apartments, resorts, guest houses, tables." },
         manage: { title: "Messages", sub: "Whoever is behind the listing, on the record." },
@@ -888,7 +888,7 @@ export const en = {
       points: {
         wallet: {
           title: "A naira wallet",
-          body: "Top up by card or bank transfer, pay from your balance, and withdraw to your own account. Crypto top-ups too, where they are switched on.",
+          body: "Top up by card or bank transfer, pay from your balance, and send to other Vallo members. Crypto top-ups too, where they are switched on.",
         },
         savings: {
           title: "Savings pots",
@@ -1706,7 +1706,11 @@ export const en = {
       blockedBody:
         "Clear these and the delete button unlocks. Nothing here stops you leaving, it just has to be settled first.",
       blockerWalletBalance: "Your wallet holds {amount}.",
-      blockerWalletBalanceCta: "Withdraw it",
+      blockerWalletBalanceCta: "Spend or send it",
+      /* While bank payouts are closed (lib/wallet/bank-payouts.ts) the balance
+         cannot be withdrawn, so the line names the ways it can be cleared. */
+      blockerWalletBalanceBeforePayouts:
+        "Your wallet holds {amount}. Spend it or send it to another Vallo member. Withdrawal to a bank is not available yet, so if you cannot do either, contact support and we will settle it with you.",
       blockerWalletHeld: "{amount} of yours is held in escrow.",
       blockerWalletHeldCta: "Open my wallet",
       blockerPendingPayouts: "You have {count} withdrawal that has not settled.",
@@ -4869,6 +4873,8 @@ export const en = {
     removeCardConfirm: "Yes, remove it",
     banksLabel: "Bank accounts",
     banksNote: "Where money you withdraw is paid. We confirm the name with the bank before saving anything.",
+    banksNoteBeforePayouts:
+      "Withdrawal to a bank is not available yet. An account saved here is where withdrawals will go once bank payouts open. We confirm the name with the bank before saving anything.",
     accountsEmptyTitle: "No bank account yet",
     accountsEmptyBody: "Add the account withdrawals should reach. The first one becomes your default.",
     addAccount: "Add a bank account",
@@ -4902,6 +4908,7 @@ export const en = {
     verified: "Verified",
     accountsNote: "The bank confirmed the name on this account before it was saved.",
     blockEmpty: "No card or bank account saved yet. Add one and paying or withdrawing is one tap.",
+    blockEmptyBeforePayouts: "No card or bank account saved yet. Add a card and paying is one tap.",
   },
 
   /**
